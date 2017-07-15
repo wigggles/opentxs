@@ -56,17 +56,18 @@
 #include "opentxs/server/ServerLoader.hpp"
 #include "opentxs/storage/Storage.hpp"
 
-#include <chrono>
 #include <functional>
-#include <memory>
-#include <mutex>
-#include <stdint.h>
-#include <string>
 
 #define OT_METHOD "opentxs::Wallet::"
 
 namespace opentxs
 {
+
+Wallet::Wallet(OT& ot)
+    : ot_(ot)
+{
+}
+
 std::shared_ptr<class Context> Wallet::context(
     const Identifier& localNymID,
     const Identifier& remoteNymID)
@@ -124,12 +125,21 @@ std::shared_ptr<class Context> Wallet::context(
 
     switch (serialized->type()) {
         case proto::CONSENSUSTYPE_SERVER: {
+            auto& zmq = ot_.ZMQ();
+            const auto& server = serialized->servercontext().serverid();
+            auto& connection = zmq.Server(server);
             entry.reset(
-                new class ServerContext(*serialized, localNym, remoteNym));
+                new class ServerContext(
+                    *serialized, localNym, remoteNym, connection));
         } break;
         case proto::CONSENSUSTYPE_CLIENT: {
-            entry.reset(
-                new class ClientContext(*serialized, localNym, remoteNym));
+            auto server = ServerLoader::getServer();
+
+            OT_ASSERT(nullptr != server);
+
+            const auto& serverID = server->GetServerID();
+            entry.reset(new class ClientContext(
+                *serialized, localNym, remoteNym, serverID));
         } break;
         default: {
             return nullptr;
@@ -233,7 +243,8 @@ Editor<class ClientContext> Wallet::mutable_ClientContext(
 
     OT_ASSERT(nullptr != server);
 
-    const auto serverNymID = server->GetServerNym().ID();
+    const auto& serverID = server->GetServerID();
+    const auto& serverNymID = server->GetServerNym().ID();
 
     std::unique_lock<std::mutex> lock(context_map_lock_);
 
@@ -258,7 +269,7 @@ Editor<class ClientContext> Wallet::mutable_ClientContext(
         const ContextID contextID = {String(serverNymID).Get(),
                                      String(remoteNymID).Get()};
         auto& entry = context_map_[contextID];
-        entry.reset(new class ClientContext(local, remote));
+        entry.reset(new class ClientContext(local, remote, serverID));
         base = entry;
     }
 
@@ -301,7 +312,10 @@ Editor<class ServerContext> Wallet::mutable_ServerContext(
         const ContextID contextID = {String(localNymID).Get(),
                                      String(remoteNymID).Get()};
         auto& entry = context_map_[contextID];
-        entry.reset(new class ServerContext(localNym, remoteNym, serverID));
+        auto& zmq = ot_.ZMQ();
+        auto& connection = zmq.Server(String(serverID).Get());
+        entry.reset(new class ServerContext(
+            localNym, remoteNym, serverID, connection));
         base = entry;
     }
 
@@ -1353,7 +1367,7 @@ ConstUnitDefinition Wallet::UnitDefinition(
     const std::string& symbol,
     const std::string& terms,
     const std::string& tla,
-    const uint32_t& power,
+    const std::uint32_t& power,
     const std::string& fraction)
 {
     std::string unit;

@@ -140,7 +140,7 @@ void OT::Init_Config()
     config_[""].reset(new Settings(strConfigFilePath));
 }
 
-void OT::Init_Contracts() { contract_manager_.reset(new class Wallet); }
+void OT::Init_Contracts() { contract_manager_.reset(new class Wallet(*this)); }
 
 void OT::Init_Crypto() { crypto_.reset(&CryptoEngine::It()); }
 

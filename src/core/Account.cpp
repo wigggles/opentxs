@@ -454,24 +454,26 @@ Account* Account::GenerateNewAccount(
     const Identifier& nymID,
     const Identifier& notaryID,
     const Nym& serverNym,
-    const Message& message,
+    const Identifier& userNymID,
+    const Identifier& instrumentDefinitionID,
     Account::AccountType acctType,
     int64_t stashTransNum)
 {
-    Account* account = new Account(nymID, notaryID);
+    std::unique_ptr<Account> output(new Account(nymID, notaryID));
 
-    if (account) {
-        // This is only for stash accounts.
-        if (account->GenerateNewAccount(
-                serverNym, message, acctType, stashTransNum)) {
-            return account;
+    if (output) {
+        if (false == output->GenerateNewAccount(
+                         serverNym,
+                         userNymID,
+                         notaryID,
+                         instrumentDefinitionID,
+                         acctType,
+                         stashTransNum)) {
+            output.reset();
         }
-
-        delete account;
-        account = nullptr;
     }
 
-    return nullptr;
+    return output.release();
 }
 
 /*
@@ -482,7 +484,9 @@ message.m_strNotaryID;
  */
 bool Account::GenerateNewAccount(
     const Nym& server,
-    const Message& message,
+    const Identifier& userNymID,
+    const Identifier& notaryID,
+    const Identifier& instrumentDefinitionID,
     Account::AccountType acctType,
     int64_t stashTransNum)
 {
@@ -536,17 +540,14 @@ bool Account::GenerateNewAccount(
     if (IsInternalServerAcct()) {
         server.GetIdentifier(m_AcctNymID);
     } else {
-        m_AcctNymID.SetString(message.m_strNymID);
+        m_AcctNymID.SetString(String(userNymID));
     }
 
-    acctInstrumentDefinitionID_.SetString(message.m_strInstrumentDefinitionID);
+    acctInstrumentDefinitionID_.SetString(String(instrumentDefinitionID));
 
     otLog3 << __FUNCTION__ << ": Creating new account, type:\n"
-           << message.m_strInstrumentDefinitionID << "\n";
+           << String(instrumentDefinitionID) << "\n";
 
-    Identifier notaryID(message.m_strNotaryID);
-    // TODO: this assumes the notaryID on the message
-    // is correct. It's vetted, but still...
     SetRealNotaryID(notaryID);
     SetPurportedNotaryID(notaryID);
 
@@ -774,6 +775,10 @@ int32_t Account::ProcessXMLNode(IrrXMLReader*& xml)
 
         if (strAcctAssetType.Exists()) {
             acctInstrumentDefinitionID_.SetString(strAcctAssetType);
+        } else {
+            otErr << "OTAccount::ProcessXMLNode: Failed: missing "
+                     "instrumentDefinitionID.\n";
+            return -1;
         }
         String strAccountID(xml->getAttributeValue("accountID"));
         String strNotaryID(xml->getAttributeValue("notaryID"));

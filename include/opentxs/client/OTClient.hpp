@@ -90,12 +90,8 @@ private:
         const Message& theReply,
         const String& strNotaryID,
         Nym* pNym,
-        bool setNymboxHash,
-        bool setRequestNumber = false);
+        bool setNymboxHash);
     bool processServerReplyTriggerClause(
-        const Message& theReply,
-        ProcessServerReplyArgs& args);
-    bool processServerReplyGetRequestNumber(
         const Message& theReply,
         ProcessServerReplyArgs& args);
     bool processServerReplyCheckNym(
@@ -157,7 +153,7 @@ public:
     void QueueOutgoingMessage(const Message& theMessage);
 
     EXPORT int32_t ProcessUserCommand(
-        ClientCommandType requestedCommand,
+        MessageType requestedCommand,
         Message& theMessage,
         Nym& theNym,
         const ServerContract& theServer,

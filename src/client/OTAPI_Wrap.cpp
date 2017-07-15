@@ -73,11 +73,9 @@ namespace opentxs
 
 #define DEFAULT_NODE_NAME "Stash Node Pro"
 
-bool OTAPI_Wrap::networkFailure()
+bool OTAPI_Wrap::networkFailure(const std::string& notaryID)
 {
-    // TODO implement this
-
-    return false;
+    return ConnectionState::ACTIVE != OT::App().ZMQ().Status(notaryID);
 }
 
 OTAPI_Exec* OTAPI_Wrap::Exec() { return &OT::App().API().Exec(); }
@@ -2399,13 +2397,6 @@ int64_t OTAPI_Wrap::Basket_GetMemberMinimumTransferAmount(
         BASKET_INSTRUMENT_DEFINITION_ID, nIndex);
 }
 
-int32_t OTAPI_Wrap::pingNotary(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID)
-{
-    return Exec()->pingNotary(NOTARY_ID, NYM_ID);
-}
-
 int32_t OTAPI_Wrap::registerContractNym(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID,
@@ -2704,13 +2695,6 @@ int32_t OTAPI_Wrap::sendNymInstrument(
         NYM_ID_RECIPIENT,
         THE_INSTRUMENT,
         INSTRUMENT_FOR_SENDER);
-}
-
-int32_t OTAPI_Wrap::getRequestNumber(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID)
-{
-    return Exec()->getRequestNumber(NOTARY_ID, NYM_ID);
 }
 
 int32_t OTAPI_Wrap::registerInstrumentDefinition(

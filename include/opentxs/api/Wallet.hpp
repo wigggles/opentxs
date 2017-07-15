@@ -48,9 +48,11 @@
 #include "opentxs/storage/Storage.hpp"
 
 #include <chrono>
+#include <cstdint>
 #include <ctime>
 #include <list>
 #include <map>
+#include <memory>
 #include <mutex>
 #include <string>
 #include <tuple>
@@ -92,6 +94,8 @@ private:
 
     friend OT;
 
+    OT& ot_;
+
     NymMap nym_map_;
     ServerMap server_map_;
     UnitMap unit_map_;
@@ -132,7 +136,8 @@ private:
      */
     ConstServerContract Server(std::unique_ptr<ServerContract>& contract);
 
-    Wallet() = default;
+    Wallet(OT& ot);
+    Wallet() = delete;
     Wallet(const Wallet&) = delete;
     Wallet operator=(const Wallet&) = delete;
 
@@ -677,7 +682,7 @@ public:
         const std::string& symbol,
         const std::string& terms,
         const std::string& tla,
-        const uint32_t& power,
+        const std::uint32_t& power,
         const std::string& fraction);
 
     /**   Create a new security contract

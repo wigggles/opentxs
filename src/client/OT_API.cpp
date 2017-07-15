@@ -4651,8 +4651,8 @@ Cheque* OT_API::WriteCheque(
     // already have a transaction number I can use to write it with. (Otherwise
     // I'd have to ask the server to send me one first.)
     String strNotaryID(NOTARY_ID);
-    const auto lTransactionNumber = context.It().NextTransactionNumber();
-    const bool bGotTransNum = 0 != lTransactionNumber;
+    const auto number = context.It().NextTransactionNumber();
+    const bool bGotTransNum = 0 != number;
 
     if (!bGotTransNum) {
         otOut << __FUNCTION__
@@ -4662,7 +4662,10 @@ Cheque* OT_API::WriteCheque(
         return nullptr;
     }
 
-    // At this point, I know that lTransactionNumber contains one I can use.
+    otErr << OT_METHOD << __FUNCTION__ << ": Allocated transaction number "
+          << number << std::endl;
+
+    // At this point, I know that number contains one I can use.
     Cheque* pCheque = new Cheque(
         pAccount->GetRealNotaryID(), pAccount->GetInstrumentDefinitionID());
     OT_ASSERT_MSG(
@@ -4672,7 +4675,7 @@ Cheque* OT_API::WriteCheque(
     // have to delete, or return to the caller.
     bool bIssueCheque = pCheque->IssueCheque(
         CHEQUE_AMOUNT,
-        lTransactionNumber,
+        number,
         VALID_FROM,
         VALID_TO,
         SENDER_ACCT_ID,
@@ -4684,7 +4687,7 @@ Cheque* OT_API::WriteCheque(
         delete pCheque;
         pCheque = nullptr;
         // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE NUMBERS.
-        context.It().RecoverAvailableNumber(lTransactionNumber);
+        context.It().RecoverAvailableNumber(number);
 
         return nullptr;
     }
@@ -8962,12 +8965,15 @@ bool OT_API::AddBasketExchangeItem(
     // ID.
     // pAccount is good, and no need to clean it up.
     const String strNotaryID(NOTARY_ID);
-    const auto lSubClosingTransactionNo = context.It().NextTransactionNumber();
-    const bool bGotSubClosingNum = 0 != lSubClosingTransactionNo;
+    const auto number = context.It().NextTransactionNumber();
+    const bool bGotSubClosingNum = 0 != number;
 
     if (bGotSubClosingNum) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Allocated transaction number "
+              << number << std::endl;
+
         theBasket.AddRequestSubContract(
-            INSTRUMENT_DEFINITION_ID, ASSET_ACCT_ID, lSubClosingTransactionNo);
+            INSTRUMENT_DEFINITION_ID, ASSET_ACCT_ID, number);
         theBasket.ReleaseSignatures();
         theBasket.SignContract(*pNym);
         theBasket.SaveContract();
@@ -9158,11 +9164,13 @@ int32_t OT_API::exchangeBasket(
             otOut << "OT_API::exchangeBasket: you don't have enough "
                      "transaction numbers to perform the exchange.\n";
         } else {
-            const auto lStoredTransactionNumber =
-                context.It().NextTransactionNumber();
-            const bool bGotTransNum = 0 != lStoredTransactionNumber;
+            const auto number = context.It().NextTransactionNumber();
+            const bool bGotTransNum = 0 != number;
 
             if (bGotTransNum) {
+                otErr << OT_METHOD << __FUNCTION__
+                      << ": Allocated opening transaction number " << number
+                      << std::endl;
                 // LOAD the INBOX for the MAIN ACCOUNT
                 //
                 std::unique_ptr<Ledger> pInbox(pAccount->LoadInbox(*pNym));
@@ -9173,15 +9181,13 @@ int32_t OT_API::exchangeBasket(
 
                     // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF
                     // AVAILABLE NUMBERS.
-                    context.It().RecoverAvailableNumber(
-                        lStoredTransactionNumber);
+                    context.It().RecoverAvailableNumber(number);
                 } else if (nullptr == pOutbox) {
                     otOut << "OT_API::exchangeBasket: Failed loading outbox!\n";
 
                     // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF
                     // AVAILABLE NUMBERS.
-                    context.It().RecoverAvailableNumber(
-                        lStoredTransactionNumber);
+                    context.It().RecoverAvailableNumber(number);
                 }
                 // Set up the Request Basket! ------------------------------
                 else {
@@ -9193,7 +9199,7 @@ int32_t OT_API::exchangeBasket(
                             NOTARY_ID,
                             OTTransaction::exchangeBasket,
                             originType::not_applicable,
-                            lStoredTransactionNumber);
+                            number);
 
                     // set up the transaction item (each transaction may have
                     // multiple items...)
@@ -9210,17 +9216,19 @@ int32_t OT_API::exchangeBasket(
                     // NOTE: I'm not checking this call for success...
                     // But, I DID check the count beforehand, and I know there
                     // are enough numbers.
-                    const auto lClosingTransactionNo =
+                    const auto closingNumber =
                         context.It().NextTransactionNumber();
-                    const bool bGotClosingNum = 0 != lClosingTransactionNo;
+                    const bool bGotClosingNum = 0 != closingNumber;
 
                     OT_ASSERT(bGotClosingNum);
 
+                    otErr << OT_METHOD << __FUNCTION__
+                          << ": Allocated closing transaction number "
+                          << closingNumber << std::endl;
+
                     // This goes in the final API call.
-                    theRequestBasket.SetClosingNum(
-                        lClosingTransactionNo);  // For the basketReceipt
-                    // (Closing Transaction Num) for
-                    // main account.
+                    theRequestBasket.SetClosingNum(closingNumber);
+                    // (Closing Transaction Num) for main account.
 
                     // This goes in the final API call.
                     theRequestBasket.SetExchangingIn(bExchangeInOrOut);
@@ -9381,7 +9389,7 @@ int32_t OT_API::getTransactionNumbers(
     Message theMessage;
 
     int32_t nReturnValue = m_pClient->ProcessUserCommand(
-        ClientCommandType::getTransactionNumbers,
+        MessageType::getTransactionNumbers,
         theMessage,
         *pNym,
         *pServer,
@@ -9458,14 +9466,17 @@ int32_t OT_API::notarizeWithdrawal(
         return (-1);
     }
 
-    const auto lStoredTransactionNumber = context.It().NextTransactionNumber();
-    const bool bGotTransNum = 0 != lStoredTransactionNumber;
+    const auto number = context.It().NextTransactionNumber();
+    const bool bGotTransNum = 0 != number;
 
     if (!bGotTransNum) {
         otOut << __FUNCTION__ << ": Next Transaction Number Available: Suggest "
                                  "requesting the server for a new one.\n";
         return (-1);
     }
+
+    otErr << OT_METHOD << __FUNCTION__ << ": Allocated transaction number "
+          << number << std::endl;
 
     // Create a transaction
     OTTransaction* pTransaction = OTTransaction::GenerateTransaction(
@@ -9474,7 +9485,7 @@ int32_t OT_API::notarizeWithdrawal(
         NOTARY_ID,
         OTTransaction::withdrawal,
         originType::not_applicable,
-        lStoredTransactionNumber);
+        number);
 
     // set up the transaction item (each transaction may have multiple items...)
     Item* pItem =
@@ -9655,7 +9666,7 @@ int32_t OT_API::notarizeWithdrawal(
         return static_cast<int32_t>(lRequestNumber);
     } else {
         // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE NUMBERS.
-        context.It().RecoverAvailableNumber(lStoredTransactionNumber);
+        context.It().RecoverAvailableNumber(number);
     }
 
     return (-1);
@@ -9722,14 +9733,17 @@ int32_t OT_API::notarizeDeposit(
         return (-1);
     }
 
-    const auto lStoredTransactionNumber = context.It().NextTransactionNumber();
-    const bool bGotTransNum = 0 != lStoredTransactionNumber;
+    const auto number = context.It().NextTransactionNumber();
+    const bool bGotTransNum = 0 != number;
 
     if (!bGotTransNum) {
         otOut << __FUNCTION__ << ": Next Transaction Number Available: Suggest "
                                  "requesting the server for a new one.\n";
         return (-1);
     }
+
+    otErr << OT_METHOD << __FUNCTION__ << ": Allocated transaction number "
+          << number << std::endl;
 
     if (!pServerNym) OT_FAIL;
 
@@ -9742,7 +9756,7 @@ int32_t OT_API::notarizeDeposit(
         NOTARY_ID,
         OTTransaction::deposit,
         originType::not_applicable,
-        lStoredTransactionNumber);
+        number);
     // set up the transaction item (each transaction may have multiple items...)
     Item* pItem = Item::CreateItemFromTransaction(*pTransaction, Item::deposit);
 
@@ -9935,7 +9949,7 @@ int32_t OT_API::notarizeDeposit(
         pTransaction = nullptr;
 
         // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE NUMBERS.
-        context.It().RecoverAvailableNumber(lStoredTransactionNumber);
+        context.It().RecoverAvailableNumber(number);
     }
 
     return (-1);
@@ -10060,10 +10074,13 @@ int32_t OT_API::payDividend(
     Message theMessage;
     String strNotaryID(NOTARY_ID), strNymID(ISSUER_NYM_ID),
         strFromAcct(DIVIDEND_FROM_ACCT_ID);
-    const auto lStoredTransactionNumber = context.It().NextTransactionNumber();
-    const bool bGotTransNum = 0 != lStoredTransactionNumber;
+    const auto number = context.It().NextTransactionNumber();
+    const bool bGotTransNum = 0 != number;
 
     if (bGotTransNum) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Allocated transaction number "
+              << number << std::endl;
+
         // Expiration (ignored by server -- it sets its own for its vouchers.)
         const time64_t VALID_FROM =
             OTTimeGetCurrentTime();  // This time is set to TODAY NOW
@@ -10086,7 +10103,7 @@ int32_t OT_API::payDividend(
 
         bool bIssueCheque = theRequestVoucher.IssueCheque(
             lAmountPerShare,  // <====== Server needs this (lAmountPerShare.)
-            lStoredTransactionNumber,  // server actually ignores this and
+            number,           // server actually ignores this and
             // supplies its own transaction number for
             // any vouchers.
             VALID_FROM,
@@ -10124,18 +10141,18 @@ int32_t OT_API::payDividend(
 
             // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE
             // NUMBERS.
-            context.It().RecoverAvailableNumber(lStoredTransactionNumber);
+            context.It().RecoverAvailableNumber(number);
         } else if (nullptr == pOutbox) {
             otOut << __FUNCTION__ << ": Failed loading outbox for acct "
                   << strFromAcct << "\n";
 
             // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE
             // NUMBERS.
-            context.It().RecoverAvailableNumber(lStoredTransactionNumber);
+            context.It().RecoverAvailableNumber(number);
         } else if (!bIssueCheque) {
             // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE
             // NUMBERS.
-            context.It().RecoverAvailableNumber(lStoredTransactionNumber);
+            context.It().RecoverAvailableNumber(number);
         } else {
             // Create a transaction
             OTTransaction* pTransaction = OTTransaction::GenerateTransaction(
@@ -10144,7 +10161,7 @@ int32_t OT_API::payDividend(
                 NOTARY_ID,
                 OTTransaction::payDividend,
                 originType::not_applicable,
-                lStoredTransactionNumber);
+                number);
             // set up the transaction item (each transaction may have multiple
             // items...)
             Item* pItem = Item::CreateItemFromTransaction(
@@ -10313,10 +10330,10 @@ int32_t OT_API::withdrawVoucher(
     Message theMessage;
     const int64_t lAmount = AMOUNT;
     String strNotaryID(NOTARY_ID), strNymID(NYM_ID), strFromAcct(ACCT_ID);
-    const auto lWithdrawTransNum = context.It().NextTransactionNumber();
-    const auto lVoucherTransNum = context.It().NextTransactionNumber();
-    const bool bGotTransNum1 = 0 != lWithdrawTransNum;
-    const bool bGotTransNum2 = 0 != lVoucherTransNum;
+    const auto withdrawalNumber = context.It().NextTransactionNumber();
+    const auto voucherNumber = context.It().NextTransactionNumber();
+    const bool bGotTransNum1 = 0 != withdrawalNumber;
+    const bool bGotTransNum2 = 0 != voucherNumber;
 
     if (!bGotTransNum1 || !bGotTransNum2) {
         otOut << __FUNCTION__
@@ -10324,15 +10341,22 @@ int32_t OT_API::withdrawVoucher(
                  "(Suggest requesting the server for more.)\n";
 
         if (bGotTransNum1) {
-            context.It().RecoverAvailableNumber(lWithdrawTransNum);
+            context.It().RecoverAvailableNumber(withdrawalNumber);
         }
 
         if (bGotTransNum2) {
-            context.It().RecoverAvailableNumber(lVoucherTransNum);
+            context.It().RecoverAvailableNumber(voucherNumber);
         }
 
         return (-1);
     }
+
+    otErr << OT_METHOD << __FUNCTION__ << ": Allocated transaction number "
+          << withdrawalNumber << " for withdrawal" << std::endl;
+
+    otErr << OT_METHOD << __FUNCTION__ << ": Allocated transaction number "
+          << voucherNumber << " for voucher" << std::endl;
+
     const String strChequeMemo(CHEQUE_MEMO);
     const String strRecipientNymID(RECIPIENT_NYM_ID);
     // Expiration (ignored by server -- it sets its own for its vouchers.)
@@ -10347,7 +10371,7 @@ int32_t OT_API::withdrawVoucher(
     Cheque theRequestVoucher(NOTARY_ID, CONTRACT_ID);
     bool bIssueCheque = theRequestVoucher.IssueCheque(
         lAmount,
-        lVoucherTransNum,
+        voucherNumber,
         VALID_FROM,
         VALID_TO,
         ACCT_ID,
@@ -10362,19 +10386,19 @@ int32_t OT_API::withdrawVoucher(
               << ": Failed loading inbox for acct " << strFromAcct << "\n";
 
         // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE NUMBERS.
-        context.It().RecoverAvailableNumber(lWithdrawTransNum);
-        context.It().RecoverAvailableNumber(lVoucherTransNum);
+        context.It().RecoverAvailableNumber(withdrawalNumber);
+        context.It().RecoverAvailableNumber(voucherNumber);
     } else if (nullptr == pOutbox) {
         otOut << "OT_API::" << __FUNCTION__
               << ": Failed loading outbox for acct " << strFromAcct << "\n";
 
         // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE NUMBERS.
-        context.It().RecoverAvailableNumber(lWithdrawTransNum);
-        context.It().RecoverAvailableNumber(lVoucherTransNum);
+        context.It().RecoverAvailableNumber(withdrawalNumber);
+        context.It().RecoverAvailableNumber(voucherNumber);
     } else if (!bIssueCheque) {
         // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE NUMBERS.
-        context.It().RecoverAvailableNumber(lWithdrawTransNum);
-        context.It().RecoverAvailableNumber(lVoucherTransNum);
+        context.It().RecoverAvailableNumber(withdrawalNumber);
+        context.It().RecoverAvailableNumber(voucherNumber);
     } else {
         // Create a transaction
         OTTransaction* pTransaction = OTTransaction::GenerateTransaction(
@@ -10383,7 +10407,7 @@ int32_t OT_API::withdrawVoucher(
             NOTARY_ID,
             OTTransaction::withdrawal,
             originType::not_applicable,
-            lWithdrawTransNum);
+            withdrawalNumber);
         // set up the transaction item (each transaction may have multiple
         // items...)
         Item* pItem = Item::CreateItemFromTransaction(
@@ -10631,8 +10655,8 @@ int32_t OT_API::depositCheque(
     Message theMessage;
     String strNotaryID(NOTARY_ID), strNymID(NYM_ID), strDepositAcct(ACCT_ID);
     Cheque theCheque(NOTARY_ID, CONTRACT_ID);
-    const auto lStoredTransactionNumber = context.It().NextTransactionNumber();
-    const bool bGotTransNum = 0 != lStoredTransactionNumber;
+    const auto number = context.It().NextTransactionNumber();
+    const bool bGotTransNum = 0 != number;
 
     if (!bGotTransNum)
         otOut << __FUNCTION__ << ": No transaction numbers were available. "
@@ -10642,7 +10666,7 @@ int32_t OT_API::depositCheque(
               << ": Unable to load cheque from string. Sorry. Contents:\n\n"
               << THE_CHEQUE << "\n\n";
         // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE NUMBERS.
-        context.It().RecoverAvailableNumber(lStoredTransactionNumber);
+        context.It().RecoverAvailableNumber(number);
     } else if (theCheque.GetNotaryID() != NOTARY_ID) {
         const String strChequeNotaryID(theCheque.GetNotaryID());
         otOut << __FUNCTION__ << ": NotaryID on cheque (" << strChequeNotaryID
@@ -10650,8 +10674,10 @@ int32_t OT_API::depositCheque(
                  "match notaryID where it's being deposited to ("
               << strNotaryID << ").";
         // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE NUMBERS.
-        context.It().RecoverAvailableNumber(lStoredTransactionNumber);
+        context.It().RecoverAvailableNumber(number);
     } else {
+        otErr << OT_METHOD << __FUNCTION__ << ": Allocated transaction number "
+              << number << std::endl;
         std::unique_ptr<Ledger> pInbox(pAccount->LoadInbox(*pNym));
 
         if (nullptr == pInbox) {
@@ -10659,7 +10685,7 @@ int32_t OT_API::depositCheque(
                   << strDepositAcct << "\n";
             // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE
             // NUMBERS.
-            context.It().RecoverAvailableNumber(lStoredTransactionNumber);
+            context.It().RecoverAvailableNumber(number);
 
             return -1;
         }
@@ -10704,7 +10730,7 @@ int32_t OT_API::depositCheque(
 
                 // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE
                 // NUMBERS.
-                context.It().RecoverAvailableNumber(lStoredTransactionNumber);
+                context.It().RecoverAvailableNumber(number);
 
                 return (-1);
             }
@@ -10730,7 +10756,7 @@ int32_t OT_API::depositCheque(
                       << THE_CHEQUE << "\n\n";
                 // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE
                 // NUMBERS.
-                context.It().RecoverAvailableNumber(lStoredTransactionNumber);
+                context.It().RecoverAvailableNumber(number);
             }
         }
         // By this point, we're either NOT cancelling the cheque, or if we are,
@@ -10758,7 +10784,7 @@ int32_t OT_API::depositCheque(
                 NOTARY_ID,
                 OTTransaction::deposit,
                 originType::not_applicable,
-                lStoredTransactionNumber));
+                number));
 
         // set up the transaction item (each transaction may have multiple
         // items...)
@@ -10790,7 +10816,7 @@ int32_t OT_API::depositCheque(
                   << strDepositAcct << "\n";
             // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE
             // NUMBERS.
-            context.It().RecoverAvailableNumber(lStoredTransactionNumber);
+            context.It().RecoverAvailableNumber(number);
         } else {
             // BALANCE AGREEMENT
             // pBalanceItem is signed and saved within this call. No need to do
@@ -11551,15 +11577,17 @@ int32_t OT_API::cancelCronItem(
                  "Try requesting the server for more numbers (you are low.)\n";
         return (-1);
     }
-
-    const auto lStoredTransactionNumber = context.It().NextTransactionNumber();
-    const bool bGotTransNum = 0 != lStoredTransactionNumber;
+    const auto number = context.It().NextTransactionNumber();
+    const bool bGotTransNum = 0 != number;
 
     if (!bGotTransNum)
         otErr << "OT_API::cancelCronItem: Supposedly there was a "
                  "transaction number available, but the call\n"
                  "still failed.\n";
     else {
+        otErr << OT_METHOD << __FUNCTION__ << ": Allocated transaction number "
+              << number << std::endl;
+
         RequestNumber lRequestNumber = 0;
 
         String str_ASSET_ACCT_ID(ASSET_ACCT_ID);
@@ -11571,7 +11599,7 @@ int32_t OT_API::cancelCronItem(
             NOTARY_ID,
             OTTransaction::cancelCronItem,
             originType::not_applicable,
-            lStoredTransactionNumber);
+            number);
         // set up the transaction item (each transaction may have multiple
         // items...)
         Item* pItem = Item::CreateItemFromTransaction(
@@ -11730,12 +11758,12 @@ int32_t OT_API::issueMarketOffer(
                  "Try requesting the server for more (you are low.)\n";
         return (-1);
     }
-    const auto lStoredTransactionNumber = context.It().NextTransactionNumber();
-    const auto lAssetAcctClosingNo = context.It().NextTransactionNumber();
-    const auto lCurrencyAcctClosingNo = context.It().NextTransactionNumber();
-    const bool bGotTransNum = 0 != lStoredTransactionNumber;
-    const bool bGotAssetClosingNum = 0 != lAssetAcctClosingNo;
-    const bool bGotCurrencyClosingNum = 0 != lCurrencyAcctClosingNo;
+    const auto openingNumber = context.It().NextTransactionNumber();
+    const auto assetClosingNumber = context.It().NextTransactionNumber();
+    const auto currencyClosingNumber = context.It().NextTransactionNumber();
+    const bool bGotTransNum = 0 != openingNumber;
+    const bool bGotAssetClosingNum = 0 != assetClosingNumber;
+    const bool bGotCurrencyClosingNum = 0 != currencyClosingNumber;
 
     if (!bGotTransNum || !bGotAssetClosingNum || !bGotCurrencyClosingNum) {
         otErr << __FUNCTION__
@@ -11743,14 +11771,26 @@ int32_t OT_API::issueMarketOffer(
                  "available, but the call(s)\n"
                  "still failed. (Re-adding back to Nym, and failing out "
                  "of this function.)\n";
-        context.It().RecoverAvailableNumber(lStoredTransactionNumber);
-        context.It().RecoverAvailableNumber(lAssetAcctClosingNo);
-        context.It().RecoverAvailableNumber(lCurrencyAcctClosingNo);
+        context.It().RecoverAvailableNumber(openingNumber);
+        context.It().RecoverAvailableNumber(assetClosingNumber);
+        context.It().RecoverAvailableNumber(currencyClosingNumber);
 
         if (bGotTransNum || bGotAssetClosingNum || bGotCurrencyClosingNum) {
             pNym->SaveSignedNymfile(*pNym);
         }
     } else {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Allocated opening transaction number " << openingNumber
+              << std::endl;
+
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Allocated asset account closing transaction number "
+              << assetClosingNumber << std::endl;
+
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Allocated currency account closing transaction number "
+              << currencyClosingNumber << std::endl;
+
         const time64_t VALID_FROM = GetTime();  // defaults to RIGHT NOW
                                                 // aka OT_API_GetTime() if
                                                 // set to 0 anyway.
@@ -11806,7 +11846,7 @@ int32_t OT_API::issueMarketOffer(
         if (lPriceLimit > 0)
             strPrice.Format("Price: %" PRId64 "\n", lPriceLimit);
 
-        otOut << "Placing market offer " << lStoredTransactionNumber
+        otOut << "Placing market offer " << openingNumber
               << ", type: " << (bBuyingOrSelling ? "selling" : "buying") << ", "
               << strOfferType << "\n"
               << strPrice << "Assets for sale/purchase: " << lTotalAssetsOnOffer
@@ -11840,11 +11880,11 @@ int32_t OT_API::issueMarketOffer(
                                   // purchase.
             lMinimumIncrement,  // The minimum increment that must be bought or
                                 // sold for each transaction
-            lStoredTransactionNumber,  // Transaction number matches on
-                                       // transaction, item, offer, and trade.
-            VALID_FROM,  // defaults to RIGHT NOW aka OT_API_GetTime()
-            VALID_TO);   // defaults to 24 hours (a "Day Order") aka
-                         // OT_API_GetTime() + 86,400
+            openingNumber,      // Transaction number matches on
+                                // transaction, item, offer, and trade.
+            VALID_FROM,         // defaults to RIGHT NOW aka OT_API_GetTime()
+            VALID_TO);          // defaults to 24 hours (a "Day Order") aka
+                                // OT_API_GetTime() + 86,400
         // ISSUE TRADE.
         bool bIssueTrade = false;
 
@@ -11864,10 +11904,10 @@ int32_t OT_API::issueMarketOffer(
                     // Since this is a market offer, it needs a closing number
                     // (for later cancellation
                     // or expiration.)
-                    // lAssetAcctClosingNo=0, lCurrencyAcctClosingNo=0;
+                    // assetClosingNumber=0, currencyClosingNumber=0;
                     //
-                    theTrade.AddClosingTransactionNo(lAssetAcctClosingNo);
-                    theTrade.AddClosingTransactionNo(lCurrencyAcctClosingNo);
+                    theTrade.AddClosingTransactionNo(assetClosingNumber);
+                    theTrade.AddClosingTransactionNo(currencyClosingNumber);
 
                     if (bIssueTrade) {
                         bIssueTrade = theTrade.SignContract(*pNym);
@@ -11887,7 +11927,7 @@ int32_t OT_API::issueMarketOffer(
                 NOTARY_ID,
                 OTTransaction::marketOffer,
                 originType::origin_market_offer,
-                lStoredTransactionNumber);
+                openingNumber);
 
             // set up the transaction item (each transaction may have multiple
             // items...)
@@ -11998,9 +12038,9 @@ int32_t OT_API::issueMarketOffer(
 
             // IF FAILED, add the transaction number (and closing number)
             // BACK to the list of available numbers.
-            context.It().RecoverAvailableNumber(lStoredTransactionNumber);
-            context.It().RecoverAvailableNumber(lAssetAcctClosingNo);
-            context.It().RecoverAvailableNumber(lCurrencyAcctClosingNo);
+            context.It().RecoverAvailableNumber(openingNumber);
+            context.It().RecoverAvailableNumber(assetClosingNumber);
+            context.It().RecoverAvailableNumber(currencyClosingNumber);
         }
     }  // got transaction number.
 
@@ -12254,10 +12294,13 @@ int32_t OT_API::notarizeTransfer(
     String strNotaryID(NOTARY_ID), strNymID(NYM_ID), strFromAcct(ACCT_FROM),
         strToAcct(ACCT_TO);
 
-    const auto lStoredTransactionNumber = context.It().NextTransactionNumber();
-    const bool bGotTransNum = 0 != lStoredTransactionNumber;
+    const auto number = context.It().NextTransactionNumber();
+    const bool bGotTransNum = 0 != number;
 
     if (bGotTransNum) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Allocated transaction number "
+              << number << std::endl;
+
         // Create a transaction
         OTTransaction* pTransaction = OTTransaction::GenerateTransaction(
             NYM_ID,
@@ -12265,7 +12308,7 @@ int32_t OT_API::notarizeTransfer(
             NOTARY_ID,
             OTTransaction::transfer,
             originType::not_applicable,
-            lStoredTransactionNumber);
+            number);
 
         // set up the transaction item (each transaction may have multiple
         // items...)
@@ -12292,14 +12335,14 @@ int32_t OT_API::notarizeTransfer(
                   << strFromAcct << "\n";
             // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE
             // NUMBERS.
-            context.It().RecoverAvailableNumber(lStoredTransactionNumber);
+            context.It().RecoverAvailableNumber(number);
         } else if (nullptr == pOutbox) {
             otOut << "OT_API::notarizeTransfer: Failed loading outbox "
                      "for acct: "
                   << strFromAcct << "\n";
             // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE
             // NUMBERS.
-            context.It().RecoverAvailableNumber(lStoredTransactionNumber);
+            context.It().RecoverAvailableNumber(number);
         } else {
             TransactionNumber lRequestNumber = 0;
             // Need to setup a dummy outbox transaction (to mimic the one that
@@ -13119,42 +13162,6 @@ int32_t OT_API::getAccountData(
     return static_cast<int32_t>(lRequestNumber);
 }
 
-int32_t OT_API::getRequestNumber(
-    const Identifier& NOTARY_ID,
-    const Identifier& NYM_ID) const
-{
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
-
-    if (nullptr == pNym) {
-        return (-1);
-    }
-
-    auto pServer = wallet_.Server(NOTARY_ID);
-
-    if (!pServer) {
-        return (-1);
-    }
-
-    Message theMessage;
-
-    int32_t nReturnValue = m_pClient->ProcessUserCommand(
-        ClientCommandType::getRequestNumber,
-        theMessage,
-        *pNym,
-        *pServer,
-        nullptr);  // nullptr pAccount on this command.
-    if (0 < nReturnValue) {
-        SendMessage(NOTARY_ID, pNym, theMessage);
-        return nReturnValue;
-    } else
-        otErr << "Error processing getRequestNumber command in "
-                 "OT_API::getRequestNumber\n";
-
-    return (-1);
-}
-
 int32_t OT_API::usageCredits(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID,
@@ -13745,7 +13752,7 @@ int32_t OT_API::registerNym(
     Message theMessage;
 
     int32_t nReturnValue = m_pClient->ProcessUserCommand(
-        ClientCommandType::registerNym,
+        MessageType::registerNym,
         theMessage,
         *pNym,
         *pServer,
@@ -13783,7 +13790,7 @@ int32_t OT_API::unregisterNym(
     Message theMessage;
 
     int32_t nReturnValue = m_pClient->ProcessUserCommand(
-        ClientCommandType::unregisterNym,
+        MessageType::unregisterNym,
         theMessage,
         *pNym,
         *pServer,
@@ -13794,44 +13801,6 @@ int32_t OT_API::unregisterNym(
     } else
         otErr << "Error processing unregisterNym command in "
                  "OT_API::unregisterNym\n";
-
-    return -1;
-}
-
-int32_t OT_API::pingNotary(
-    const Identifier& NOTARY_ID,
-    const Identifier& NYM_ID) const
-{
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
-
-    if (nullptr == pNym) {
-        return (-1);
-    }
-
-    // By this point, pNym is a good pointer, and is on the wallet.
-    //  (No need to cleanup.)
-    auto pServer = wallet_.Server(NOTARY_ID);
-
-    if (!pServer) {
-        return (-1);
-    }
-
-    Message theMessage;
-
-    int32_t nReturnValue = m_pClient->ProcessUserCommand(
-        ClientCommandType::pingNotary,
-        theMessage,
-        *pNym,
-        *pServer,
-        nullptr);  // nullptr pAccount on this command.
-    if (0 < nReturnValue) {
-        SendMessage(NOTARY_ID, pNym, theMessage);
-        return nReturnValue;
-    } else
-        otErr << "Error processing pingNotary command in "
-                 "OT_API::pingNotary\n";
 
     return -1;
 }
@@ -13847,7 +13816,7 @@ SendResult OT_API::SendMessage(
     auto& connection = zeromq_.Server(String(server).Get());
     auto result = connection.Send(message);
 
-    if (SendResult::HAVE_REPLY == result.first) {
+    if (SendResult::VALID_REPLY == result.first) {
         m_pClient->processServerReply(server, nym, result.second);
     }
 
@@ -14675,6 +14644,9 @@ OTTransaction* OT_API::get_or_create_process_inbox(
 
             return {};
         }
+
+        otErr << OT_METHOD << __FUNCTION__ << ": Allocated transaction number "
+              << number << std::endl;
 
         std::unique_ptr<OTTransaction> newProcessInbox(
             OTTransaction::GenerateTransaction(

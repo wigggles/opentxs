@@ -80,10 +80,7 @@ AccountList::AccountList(Account::AccountType acctType)
 {
 }
 
-AccountList::~AccountList()
-{
-    Release_AcctList();
-}
+AccountList::~AccountList() { Release_AcctList(); }
 
 void AccountList::Serialize(Tag& parent) const
 {
@@ -100,13 +97,13 @@ void AccountList::Serialize(Tag& parent) const
     for (auto& it : mapAcctIDs_) {
         std::string instrumentDefinitionID = it.first;
         std::string accountId = it.second;
-        OT_ASSERT((instrumentDefinitionID.size() > 0) &&
-                  (accountId.size() > 0));
+        OT_ASSERT(
+            (instrumentDefinitionID.size() > 0) && (accountId.size() > 0));
 
         TagPtr pTagEntry(new Tag("accountEntry"));
 
-        pTagEntry->add_attribute("instrumentDefinitionID",
-                                 instrumentDefinitionID);
+        pTagEntry->add_attribute(
+            "instrumentDefinitionID", instrumentDefinitionID);
         pTagEntry->add_attribute("accountID", accountId);
 
         pTag->add_tag(pTagEntry);
@@ -115,9 +112,10 @@ void AccountList::Serialize(Tag& parent) const
     parent.add_tag(pTag);
 }
 
-int32_t AccountList::ReadFromXMLNode(irr::io::IrrXMLReader*& xml,
-                                     const String& acctType,
-                                     const String& acctCount)
+int32_t AccountList::ReadFromXMLNode(
+    irr::io::IrrXMLReader*& xml,
+    const String& acctType,
+    const String& acctCount)
 {
     if (!acctType.Exists()) {
         otErr << "AccountList::ReadFromXMLNode: Failed: Empty accountList "
@@ -147,10 +145,10 @@ int32_t AccountList::ReadFromXMLNode(irr::io::IrrXMLReader*& xml,
             if ((xml->getNodeType() == EXN_ELEMENT) &&
                 (!strcmp("accountEntry", xml->getNodeName()))) {
                 String instrumentDefinitionID = xml->getAttributeValue(
-                    "instrumentDefinitionID"); // Instrument Definition ID of
-                                               // this account.
+                    "instrumentDefinitionID");  // Instrument Definition ID of
+                                                // this account.
                 String accountID = xml->getAttributeValue(
-                    "accountID"); // Account ID for this account.
+                    "accountID");  // Account ID for this account.
 
                 if (!instrumentDefinitionID.Exists() || !accountID.Exists()) {
                     otErr << "Error loading accountEntry: Either the "
@@ -160,17 +158,16 @@ int32_t AccountList::ReadFromXMLNode(irr::io::IrrXMLReader*& xml,
                     return -1;
                 }
 
-                mapAcctIDs_.insert(std::make_pair(instrumentDefinitionID.Get(),
-                                                  accountID.Get()));
-            }
-            else {
+                mapAcctIDs_.insert(std::make_pair(
+                    instrumentDefinitionID.Get(), accountID.Get()));
+            } else {
                 otErr << "Expected accountEntry element in accountList.\n";
                 return -1;
             }
         }
     }
 
-    if (!Contract::SkipAfterLoadingField(xml)) // </accountList>
+    if (!Contract::SkipAfterLoadingField(xml))  // </accountList>
     {
         otOut << "*** AccountList::ReadFromXMLNode: Bad data? Expected "
                  "EXN_ELEMENT_END here, but "
@@ -187,17 +184,17 @@ void AccountList::Release_AcctList()
     mapWeakAccts_.clear();
 }
 
-void AccountList::Release()
-{
-    Release_AcctList();
-}
+void AccountList::Release() { Release_AcctList(); }
 
 std::shared_ptr<Account> AccountList::GetOrRegisterAccount(
-    Nym& serverNym, const Identifier& accountOwnerId,
-    const Identifier& instrumentDefinitionID, const Identifier& notaryID,
+    Nym& serverNym,
+    const Identifier& accountOwnerId,
+    const Identifier& instrumentDefinitionID,
+    const Identifier& notaryID,
     // this will be set to true if the acct is created here.
     // Otherwise set to false;
-    bool& wasAcctCreated, int64_t stashTransNum)
+    bool& wasAcctCreated,
+    int64_t stashTransNum)
 {
     std::shared_ptr<Account> account;
     wasAcctCreated = false;
@@ -245,14 +242,14 @@ std::shared_ptr<Account> AccountList::GetOrRegisterAccount(
                 // we're not walking on each other's toes.
                 if (weakAccount) {
                     otOut << "AccountList::GetOrRegisterAccount: Warning: "
-                             "account (" << accountIdString
+                             "account ("
+                          << accountIdString
                           << ") was already in memory so I gave you a "
                              "pointer to the existing one. (But who else has a "
                              "copy of it?) \n";
                     return weakAccount;
                 }
-            }
-            catch (...) {
+            } catch (...) {
             }
 
             // Though the weak pointer was there, the resource must have since
@@ -276,17 +273,14 @@ std::shared_ptr<Account> AccountList::GetOrRegisterAccount(
         if (!loadedAccount) {
             otErr << "Failed trying to load " << acctTypeString
                   << " account with account ID: " << acctIDString << '\n';
-        }
-        else if (!loadedAccount->VerifySignature(serverNym)) {
+        } else if (!loadedAccount->VerifySignature(serverNym)) {
             otErr << "Failed verifying server's signature on " << acctTypeString
                   << " account with account ID: " << acctIDString << '\n';
-        }
-        else if (!loadedAccount->VerifyOwnerByID(accountOwnerId)) {
+        } else if (!loadedAccount->VerifyOwnerByID(accountOwnerId)) {
             String strOwnerID(accountOwnerId);
             otErr << "Failed verifying owner ID (" << strOwnerID << ") on "
                   << acctTypeString << " account ID: " << acctIDString << '\n';
-        }
-        else {
+        } else {
             otLog3 << "Successfully loaded " << acctTypeString
                    << " account ID: " << acctIDString
                    << " Instrument Definition ID: "
@@ -301,22 +295,22 @@ std::shared_ptr<Account> AccountList::GetOrRegisterAccount(
     }
 
     // Not found. There's no account ID yet for that instrument definition ID.
-    // That means
-    // we can create it.
-    Message message;
-    accountOwnerId.GetString(message.m_strNymID);
-    instrumentDefinitionID.GetString(message.m_strInstrumentDefinitionID);
-    notaryID.GetString(message.m_strNotaryID);
+    // That means we can create it.
 
     Account* createdAccount = Account::GenerateNewAccount(
-        accountOwnerId, notaryID, serverNym, message, acctType_, stashTransNum);
+        accountOwnerId,
+        notaryID,
+        serverNym,
+        accountOwnerId,
+        instrumentDefinitionID,
+        acctType_,
+        stashTransNum);
 
     if (!createdAccount) {
         otErr << " AccountList::GetOrRegisterAccount: Failed trying to generate"
               << acctTypeString << " account with instrument definition ID: "
               << instrumentDefinitionIDString << "\n";
-    }
-    else {
+    } else {
         String acctIDString;
         createdAccount->GetIdentifier(acctIDString);
 
@@ -331,8 +325,7 @@ std::shared_ptr<Account> AccountList::GetOrRegisterAccount(
         // but we'll also know if it's been deleted.
         mapWeakAccts_[acctIDString.Get()] = std::weak_ptr<Account>(account);
         // Save the new acct ID in a map, keyed by instrument definition ID.
-        mapAcctIDs_[message.m_strInstrumentDefinitionID.Get()] =
-            acctIDString.Get();
+        mapAcctIDs_[String(instrumentDefinitionID).Get()] = acctIDString.Get();
 
         wasAcctCreated = true;
     }
@@ -340,4 +333,4 @@ std::shared_ptr<Account> AccountList::GetOrRegisterAccount(
     return account;
 }
 
-} // namespace opentxs
+}  // namespace opentxs

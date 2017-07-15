@@ -43,8 +43,10 @@
 #include "opentxs/consensus/TransactionStatement.hpp"
 #include "opentxs/core/Item.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/core/Message.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/network/ServerConnection.hpp"
 
 #define OT_METHOD "ServerContext::"
 
@@ -53,28 +55,30 @@ namespace opentxs
 ServerContext::ServerContext(
     const ConstNym& local,
     const ConstNym& remote,
-    const Identifier& server)
-      : ot_super(local, remote)
-      , server_id_(server)
+    const Identifier& server,
+    ServerConnection& connection)
+    : ot_super(local, remote, server)
+    , connection_(connection)
+    , highest_transaction_number_(0)
 {
-    highest_transaction_number_.store(0);
 }
 
 ServerContext::ServerContext(
     const proto::Context& serialized,
     const ConstNym& local,
-    const ConstNym& remote)
-    : ot_super(serialized, local, remote)
-    , server_id_()
+    const ConstNym& remote,
+    ServerConnection& connection)
+    : ot_super(
+          serialized,
+          local,
+          remote,
+          Identifier(serialized.servercontext().serverid()))
+    , connection_(connection)
+    , highest_transaction_number_(
+          serialized.servercontext().highesttransactionnumber())
 {
-    if (serialized.has_servercontext()) {
-        auto& context = serialized.servercontext();
-        server_id_ = Identifier(context.serverid());
-        highest_transaction_number_.store(context.highesttransactionnumber());
-
-        for (const auto& it : context.tentativerequestnumber()) {
-            tentative_transaction_numbers_.insert(it);
-        }
+    for (const auto& it : serialized.servercontext().tentativerequestnumber()) {
+        tentative_transaction_numbers_.insert(it);
     }
 }
 
@@ -99,7 +103,9 @@ bool ServerContext::AcceptIssuedNumbers(const TransactionStatement& statement)
     std::size_t added = 0;
     const auto offered = statement.Issued().size();
 
-    if (0 == offered) { return false; }
+    if (0 == offered) {
+        return false;
+    }
 
     std::set<TransactionNumber> adding, accepted, rejected;
 
@@ -110,8 +116,7 @@ bool ServerContext::AcceptIssuedNumbers(const TransactionStatement& statement)
         // re-added thereanyway.)
         const bool tentative =
             (1 == tentative_transaction_numbers_.count(number));
-        const bool issued =
-            (1 == issued_transaction_numbers_.count(number));
+        const bool issued = (1 == issued_transaction_numbers_.count(number));
 
         if (tentative && !issued) {
             adding.insert(number);
@@ -142,13 +147,36 @@ bool ServerContext::AddTentativeNumber(const TransactionNumber& number)
 {
     Lock lock(lock_);
 
-    if (number < highest_transaction_number_.load()) { return false; }
+    if (number < highest_transaction_number_.load()) {
+        return false;
+    }
 
     auto output = tentative_transaction_numbers_.insert(number);
 
     lock.unlock();
 
     return output.second;
+}
+
+bool ServerContext::finalize_server_command(Message& command) const
+{
+    OT_ASSERT(nym_);
+
+    if (false == command.SignContract(*nym_)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to sign server message."
+              << std::endl;
+
+        return false;
+    }
+
+    if (false == command.SaveContract()) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Failed to serialize server message." << std::endl;
+
+        return false;
+    }
+
+    return true;
 }
 
 std::unique_ptr<TransactionStatement> ServerContext::generate_statement(
@@ -186,17 +214,87 @@ TransactionNumber ServerContext::Highest() const
     return highest_transaction_number_.load();
 }
 
+std::unique_ptr<Message> ServerContext::initialize_server_command(
+    const MessageType type) const
+{
+    std::unique_ptr<Message> output(new Message);
+
+    OT_ASSERT(output);
+    OT_ASSERT(nym_);
+
+    output->m_strCommand.Set(Message::Command(type).data());
+    output->m_strNymID = String(nym_->ID());
+    output->m_strNotaryID = String(server_id_);
+
+    return output;
+}
+
 TransactionNumber ServerContext::NextTransactionNumber()
 {
     Lock lock(lock_);
 
-    if (0 == available_transaction_numbers_.size()) { return 0; }
+    if (0 == available_transaction_numbers_.size()) {
+        return 0;
+    }
 
     auto first = available_transaction_numbers_.begin();
     const auto output = *first;
     available_transaction_numbers_.erase(first);
 
     return output;
+}
+
+NetworkReplyMessage ServerContext::PingNotary()
+{
+    Lock lock(message_lock_);
+
+    OT_ASSERT(nym_);
+
+    auto request = initialize_server_command(MessageType::pingNotary);
+
+    if (false == bool(request)) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Failed to initialize server message." << std::endl;
+
+        return {};
+    }
+
+    String serializedAuthKey{};
+    String serializedEncryptKey{};
+    const auto& authKey = nym_->GetPublicAuthKey();
+    const auto& encrKey = nym_->GetPublicEncrKey();
+    authKey.GetPublicKey(serializedAuthKey);
+    encrKey.GetPublicKey(serializedEncryptKey);
+    request->m_strRequestNum = std::to_string(FIRST_REQUEST_NUMBER).c_str();
+    request->m_strNymPublicKey = serializedAuthKey;
+    request->m_strNymID2 = serializedEncryptKey;
+    request->keytypeAuthent_ = authKey.keyType();
+    request->keytypeEncrypt_ = encrKey.keyType();
+
+    if (false == finalize_server_command(*request)) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Failed to finalize server message." << std::endl;
+
+        return {};
+    }
+
+    return connection_.Send(*request);
+}
+
+bool ServerContext::remove_acknowledged_number(
+    const Lock& lock,
+    const Message& reply)
+{
+    OT_ASSERT(verify_write_lock(lock));
+
+    std::set<RequestNumber> list{};
+
+    if (false == reply.m_AcknowledgedReplies.Output(list)) {
+
+        return false;
+    }
+
+    return remove_acknowledged_number(lock, list);
 }
 
 bool ServerContext::remove_tentative_number(
@@ -248,11 +346,6 @@ proto::Context ServerContext::serialize(const Lock& lock) const
     return output;
 }
 
-const Identifier& ServerContext::Server() const
-{
-    return server_id_;
-}
-
 bool ServerContext::SetHighest(const TransactionNumber& highest)
 {
     Lock lock(lock_);
@@ -266,8 +359,7 @@ bool ServerContext::SetHighest(const TransactionNumber& highest)
     return false;
 }
 
-std::unique_ptr<Item> ServerContext::Statement(
-    const OTTransaction& owner) const
+std::unique_ptr<Item> ServerContext::Statement(const OTTransaction& owner) const
 {
     const std::set<TransactionNumber> empty;
 
@@ -284,8 +376,8 @@ std::unique_ptr<Item> ServerContext::Statement(
     OT_ASSERT(nym_);
 
     if ((transaction.GetNymID() != nym_->ID())) {
-        otErr << OT_METHOD << __FUNCTION__
-              << ": Transaction has wrong owner." << std::endl;
+        otErr << OT_METHOD << __FUNCTION__ << ": Transaction has wrong owner."
+              << std::endl;
 
         return output;
     }
@@ -298,12 +390,16 @@ std::unique_ptr<Item> ServerContext::Statement(
         transaction, Item::transactionStatement));
 
     // The above has an ASSERT, so this this will never actually happen.
-    if (!output) { return output; }
+    if (!output) {
+        return output;
+    }
 
     const std::set<TransactionNumber> empty;
     auto statement = generate_statement(lock, adding, empty);
 
-    if (!statement) { return output; }
+    if (!statement) {
+        return output;
+    }
 
     switch (transaction.GetType()) {
         case OTTransaction::cancelCronItem: {
@@ -318,7 +414,8 @@ std::unique_ptr<Item> ServerContext::Statement(
         case OTTransaction::marketOffer:
         case OTTransaction::paymentPlan:
         case OTTransaction::smartContract:
-        default: {}
+        default: {
+        }
     }
 
     // What about cases where no number is being used? (Such as processNymbox)
@@ -390,6 +487,23 @@ TransactionNumber ServerContext::update_highest(
     return output;
 }
 
+Identifier ServerContext::update_remote_hash(
+    const Lock& lock,
+    const Message& reply)
+{
+    OT_ASSERT(verify_write_lock(lock));
+
+    Identifier output{};
+    const auto& input = reply.m_strNymboxHash;
+
+    if (input.Exists()) {
+        output.SetString(input);
+        remote_nymbox_hash_ = output;
+    }
+
+    return output;
+}
+
 TransactionNumber ServerContext::UpdateHighest(
     const std::set<TransactionNumber>& numbers,
     std::set<TransactionNumber>& good,
@@ -413,13 +527,85 @@ void ServerContext::validate_number_set(
                    << " record. (Must be seeing the same server reply for a "
                    << "second time, due to a receipt in my Nymbox.) FYI, last "
                    << "known 'highest' number received: " << limit
-                   << " (Current 'violator': " << it<< ") Skipping..."
+                   << " (Current 'violator': " << it << ") Skipping..."
                    << std::endl;
             bad.insert(it);
         } else {
             good.insert(it);
         }
     }
+}
+
+RequestNumber ServerContext::UpdateRequestNumber()
+{
+    bool notUsed{false};
+
+    return UpdateRequestNumber(notUsed);
+}
+
+RequestNumber ServerContext::UpdateRequestNumber(bool& sendStatus)
+{
+    sendStatus = false;
+
+    Lock lock(message_lock_);
+
+    auto request = initialize_server_command(MessageType::getRequestNumber);
+
+    if (false == bool(request)) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Failed to initialize server message." << std::endl;
+
+        return {};
+    }
+
+    request->m_strRequestNum = std::to_string(FIRST_REQUEST_NUMBER).c_str();
+
+    if (false == finalize_server_command(*request)) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Failed to finalize server message." << std::endl;
+
+        return {};
+    }
+
+    const auto response = connection_.Send(*request);
+    const auto& status = response.first;
+    const auto& reply = response.second;
+
+    switch (status) {
+        case SendResult::TIMEOUT: {
+            otErr << OT_METHOD << __FUNCTION__ << ": Reply timeout."
+                  << std::endl;
+
+            return {};
+        } break;
+        case SendResult::INVALID_REPLY: {
+            sendStatus = true;
+            otErr << OT_METHOD << __FUNCTION__ << ": Invalid reply."
+                  << std::endl;
+
+            return {};
+        } break;
+        case SendResult::VALID_REPLY: {
+            sendStatus = true;
+        } break;
+        default: {
+            otErr << OT_METHOD << __FUNCTION__ << ": Unknown error."
+                  << std::endl;
+
+            return {};
+        }
+    }
+
+    OT_ASSERT(reply);
+
+    const RequestNumber newNumber = reply->m_lNewRequestNum;
+    Lock contextLock(lock_);
+    add_acknowledged_number(contextLock, newNumber);
+    remove_acknowledged_number(contextLock, *reply);
+    request_number_.store(newNumber);
+    update_remote_hash(contextLock, *reply);
+
+    return newNumber;
 }
 
 // This is called by VerifyTransactionReceipt and VerifyBalanceReceipt.
@@ -465,4 +651,4 @@ bool ServerContext::VerifyTentativeNumber(const TransactionNumber& number) const
 {
     return (0 < tentative_transaction_numbers_.count(number));
 }
-} // namespace opentxs
+}  // namespace opentxs

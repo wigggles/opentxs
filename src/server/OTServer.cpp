@@ -143,6 +143,8 @@ void OTServer::ProcessCron()
     // Such as sweeping server accounts after expiration dates, etc.
 }
 
+const Identifier& OTServer::GetServerID() const { return m_strNotaryID; }
+
 const Nym& OTServer::GetServerNym() const { return m_nymServer; }
 
 bool OTServer::IsFlaggedForShutdown() const { return m_bShutdownFlag; }
@@ -478,7 +480,6 @@ void OTServer::CreateMainFile(
 
     otOut << "Your server contract has been saved as " << SERVER_CONTRACT_FILE
           << " in the server data directory." << std::endl;
-
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     const std::string defaultFingerprint = OT::App().DB().DefaultSeed();
 
@@ -646,29 +647,11 @@ bool OTServer::SendInstrumentToNym(
     const Identifier& NOTARY_ID,
     const Identifier& SENDER_NYM_ID,
     const Identifier& RECIPIENT_NYM_ID,
-    Message* pMsg,              // the request msg from payer, which is attached
-                                // WHOLE to the Nymbox receipt. contains payment
-                                // already.
-    const OTPayment* pPayment,  // or pass this instead: we will create
-                                // our own msg here (with message
-                                // inside) to be attached to the
-                                // receipt.
+    const OTPayment* pPayment,
     const char* szCommand)
 {
-    OT_ASSERT_MSG(
-        !((nullptr == pMsg) && (nullptr == pPayment)),
-        "pMsg and pPayment -- these can't BOTH be nullptr.\n");  // must provide
-                                                                 // one
-    // or the other.
-    OT_ASSERT_MSG(
-        !((nullptr != pMsg) && (nullptr != pPayment)),
-        "pMsg and pPayment -- these can't BOTH be not-nullptr.\n");  // can't
-                                                                     // provide
-                                                                     // both.
-    OT_ASSERT_MSG(
-        (nullptr == pPayment) || ((nullptr != pPayment) && pPayment->IsValid()),
-        "OTServer::SendInstrumentToNym: You can only pass a valid "
-        "payment here.");
+    OT_ASSERT(nullptr == pPayment);
+    OT_ASSERT(pPayment->IsValid());
     // If a payment was passed in (for us to use it to construct pMsg, which is
     // nullptr in the case where payment isn't nullptr)
     // Then we grab it in string form, so we can pass it on...
@@ -684,11 +667,36 @@ bool OTServer::SendInstrumentToNym(
         SENDER_NYM_ID,
         RECIPIENT_NYM_ID,
         OTTransaction::instrumentNotice,
-        pMsg,
-        (nullptr != pMsg) ? nullptr : &strPayment,
+        nullptr,
+        &strPayment,
         szCommand);
 
     return bDropped;
+}
+
+bool OTServer::SendInstrumentToNym(
+    const Identifier& NOTARY_ID,
+    const Identifier& SENDER_NYM_ID,
+    const Identifier& RECIPIENT_NYM_ID,
+    const Message& pMsg)
+{
+    return DropMessageToNymbox(
+        NOTARY_ID,
+        SENDER_NYM_ID,
+        RECIPIENT_NYM_ID,
+        OTTransaction::instrumentNotice,
+        pMsg);
+}
+
+bool OTServer::DropMessageToNymbox(
+    const Identifier& notaryID,
+    const Identifier& senderNymID,
+    const Identifier& recipientNymID,
+    OTTransaction::transactionType transactionType,
+    const Message& msg)
+{
+    return DropMessageToNymbox(
+        notaryID, senderNymID, recipientNymID, transactionType, &msg);
 }
 
 // Can't be static (transactor_.issueNextTransactionNumber is called...)
@@ -757,7 +765,7 @@ bool OTServer::DropMessageToNymbox(
     const Identifier& SENDER_NYM_ID,
     const Identifier& RECIPIENT_NYM_ID,
     OTTransaction::transactionType theType,
-    Message* pMsg,
+    const Message* pMsg,
     const String* pstrMessage,
     const char* szCommand)  // If you pass
                             // something here, it
@@ -802,31 +810,32 @@ bool OTServer::DropMessageToNymbox(
     // create pMsg using pstrMessage.
     //
     std::unique_ptr<Message> theMsgAngel;
+    const Message* message{nullptr};
 
-    if (nullptr == pMsg)  // we have to create it ourselves.
-    {
-        pMsg = new Message;
-        theMsgAngel.reset(pMsg);
+    if (nullptr == pMsg) {
+        theMsgAngel.reset(new Message);
+
         if (nullptr != szCommand)
-            pMsg->m_strCommand = szCommand;
+            theMsgAngel->m_strCommand = szCommand;
         else {
             switch (theType) {
                 case OTTransaction::message:
-                    pMsg->m_strCommand = "sendNymMessage";
+                    theMsgAngel->m_strCommand = "sendNymMessage";
                     break;
                 case OTTransaction::instrumentNotice:
-                    pMsg->m_strCommand = "sendNymInstrument";
+                    theMsgAngel->m_strCommand = "sendNymInstrument";
                     break;
                 default:
                     break;  // should never happen.
             }
         }
-        pMsg->m_strNotaryID = m_strNotaryID;
-        pMsg->m_bSuccess = true;
-        SENDER_NYM_ID.GetString(pMsg->m_strNymID);
-        RECIPIENT_NYM_ID.GetString(pMsg->m_strNymID2);  // set the recipient ID
-                                                        // in pMsg to match our
-                                                        // recipient ID.
+        theMsgAngel->m_strNotaryID = String(m_strNotaryID);
+        theMsgAngel->m_bSuccess = true;
+        SENDER_NYM_ID.GetString(theMsgAngel->m_strNymID);
+        RECIPIENT_NYM_ID.GetString(
+            theMsgAngel->m_strNymID2);  // set the recipient ID
+                                        // in theMsgAngel to match our
+                                        // recipient ID.
         // Load up the recipient's public key (so we can encrypt the envelope
         // to him that will contain the payment instrument.)
         //
@@ -849,27 +858,28 @@ bool OTServer::DropMessageToNymbox(
             return false;
         }
         const OTAsymmetricKey& thePubkey = nymRecipient.GetPublicEncrKey();
-        // Wrap the message up into an envelope and attach it to pMsg.
+        // Wrap the message up into an envelope and attach it to theMsgAngel.
         //
         OTEnvelope theEnvelope;
 
-        pMsg->m_ascPayload.Release();
+        theMsgAngel->m_ascPayload.Release();
 
         if ((nullptr != pstrMessage) && pstrMessage->Exists() &&
             theEnvelope.Seal(thePubkey, *pstrMessage) &&  // Seal pstrMessage
                                                           // into theEnvelope,
             // using nymRecipient's
             // public key.
-            theEnvelope.GetCiphertext(pMsg->m_ascPayload))  // Grab the sealed
-                                                            // version as
+            theEnvelope.GetCiphertext(theMsgAngel->m_ascPayload))  // Grab the
+                                                                   // sealed
+                                                                   // version as
         // base64-encoded string, into
-        // pMsg->m_ascPayload.
+        // theMsgAngel->m_ascPayload.
         {
-            pMsg->SignContract(m_nymServer);
-            pMsg->SaveContract();
+            theMsgAngel->SignContract(m_nymServer);
+            theMsgAngel->SaveContract();
         } else {
             Log::vError(
-                "%s: Failed trying to seal envelope containing message "
+                "%s: Failed trying to seal envelope containing theMsgAngel "
                 "(or while grabbing the base64-encoded result.)\n",
                 szFunc);
             return false;
@@ -878,6 +888,10 @@ bool OTServer::DropMessageToNymbox(
         // By this point, pMsg is all set up, signed and saved. Its payload
         // contains
         // the envelope (as base64) containing the encrypted message.
+
+        message = theMsgAngel.get();
+    } else {
+        message = pMsg;
     }
     //  else // pMsg was passed in, so it's not nullptr. No need to create it
     // ourselves like above. (pstrMessage should be nullptr anyway in this
@@ -885,9 +899,9 @@ bool OTServer::DropMessageToNymbox(
     //  {
     //       // Apparently no need to do anything in here at all.
     //  }
-    // Grab a string copy of pMsg.
+    // Grab a string copy of message.
     //
-    const String strInMessage(*pMsg);
+    const String strInMessage(*message);
     Ledger theLedger(
         RECIPIENT_NYM_ID,
         RECIPIENT_NYM_ID,

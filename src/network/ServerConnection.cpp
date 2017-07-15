@@ -50,6 +50,7 @@
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/network/ZMQ.hpp"
 
 #ifdef ANDROID
 #include "opentxs/core/util/android_string.hpp"
@@ -58,21 +59,31 @@
 #include <chrono>
 #include <cstdint>
 
+#define OT_METHOD "opentxs::ServerConnection::"
+
 namespace opentxs
 {
 ServerConnection::ServerConnection(
     const std::string& server,
     std::atomic<bool>& shutdown,
-    std::atomic<std::chrono::seconds>& keepAlive)
-        : remote_endpoint_(GetRemoteEndpoint(server, remote_contract_))
-        , request_socket_(zsock_new_req(nullptr))
-        , lock_(new std::mutex)
-        , shutdown_(shutdown)
-        , keep_alive_(keepAlive)
+    std::atomic<std::chrono::seconds>& keepAlive,
+    ZMQ& zmq,
+    Settings& config)
+    : shutdown_(shutdown)
+    , keep_alive_(keepAlive)
+    , zmq_(zmq)
+    , config_(config)
+    , remote_contract_(nullptr)
+    , remote_endpoint_(GetRemoteEndpoint(server, remote_contract_))
+    , request_socket_(zsock_new_req(nullptr))
+    , lock_(new std::mutex)
+    , thread_(nullptr)
+    , last_activity_(0)
+    , status_(false)
 {
-    if (!zsys_has_curve()) {
-        otErr << __FUNCTION__ << ": libzmq has no libsodium support."
-              << std::endl;
+    if (false == zsys_has_curve()) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": libzmq has no libsodium support." << std::endl;
 
         OT_FAIL;
     }
@@ -102,8 +113,8 @@ void ServerConnection::Init()
     SetRemoteKey();
 
     if (0 != zsock_connect(request_socket_, "%s", remote_endpoint_.c_str())) {
-        otErr << __FUNCTION__ << ": Failed to connect to " << remote_endpoint_
-              << std::endl;
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to connect to "
+              << remote_endpoint_ << std::endl;
     }
 }
 
@@ -113,7 +124,7 @@ void ServerConnection::ResetSocket()
     request_socket_ = zsock_new_req(nullptr);
 
     if (nullptr == request_socket_) {
-        otErr << __FUNCTION__ << ": Failed trying to reset socket."
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed trying to reset socket."
               << std::endl;
 
         OT_FAIL;
@@ -124,11 +135,11 @@ void ServerConnection::ResetSocket()
 
 std::string ServerConnection::GetRemoteEndpoint(
     const std::string& server,
-    std::shared_ptr<const ServerContract>& contract)
+    std::shared_ptr<const ServerContract>& contract) const
 {
     bool changed = false;
     std::int64_t preferred = 0;
-    OT::App().Config().CheckSet_long(
+    config_.CheckSet_long(
         "Connection",
         "preferred_address_type",
         static_cast<std::int64_t>(proto::ADDRESSTYPE_IPV4),
@@ -136,7 +147,7 @@ std::string ServerConnection::GetRemoteEndpoint(
         changed);
 
     if (changed) {
-        OT::App().Config().Save();
+        config_.Save();
     }
 
     contract = OT::App().Contract().Server(Identifier(server));
@@ -145,13 +156,12 @@ std::string ServerConnection::GetRemoteEndpoint(
     std::string hostname;
 
     if (!contract->ConnectInfo(
-        hostname,
-        port,
-        static_cast<proto::AddressType>(preferred))) {
-            otErr << __FUNCTION__ << ": Failed retrieving connection info from "
-                  << "server contract." << std::endl;
+            hostname, port, static_cast<proto::AddressType>(preferred))) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Failed retrieving connection info from server contract."
+              << std::endl;
 
-            OT_FAIL;
+        OT_FAIL;
     }
 
     const std::string endpoint =
@@ -165,7 +175,11 @@ bool ServerConnection::Receive(std::string& reply)
 {
     char* message = zstr_recv(request_socket_);
 
-    if (nullptr == message) { return false; }
+    if (nullptr == message) {
+        otErr << OT_METHOD << __FUNCTION__ << ": No server reply." << std::endl;
+
+        return false;
+    }
 
     reply.assign(message);
     zstr_free(&message);
@@ -182,12 +196,14 @@ NetworkReplyRaw ServerConnection::Send(const std::string& message)
 {
     OT_ASSERT(lock_);
 
-    std::lock_guard<std::mutex> lock(*lock_);
+    Lock lock(*lock_);
 
-    NetworkReplyRaw output{SendResult::ERROR_SENDING, nullptr};
-    output.second.reset(new std::string);
+    NetworkReplyRaw output{SendResult::ERROR, nullptr};
+    auto& status = output.first;
+    auto& reply = output.second;
+    reply.reset(new std::string);
 
-    OT_ASSERT(output.second);
+    OT_ASSERT(reply);
 
     const bool sent = (0 == zstr_send(request_socket_, message.c_str()));
 
@@ -198,14 +214,16 @@ NetworkReplyRaw ServerConnection::Send(const std::string& message)
     }
 
     ResetTimer();
-    const bool received = Receive(*output.second);
+    const bool received = Receive(*reply);
 
     if (received) {
         status_.store(true);
-        output.first = SendResult::HAVE_REPLY;
+        status = SendResult::VALID_REPLY;
     } else {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Timeout waiting for server reply." << std::endl;
         status_.store(false);
-        output.first = SendResult::TIMEOUT_RECEIVING;
+        status = SendResult::TIMEOUT;
     }
 
     return output;
@@ -214,20 +232,30 @@ NetworkReplyRaw ServerConnection::Send(const std::string& message)
 NetworkReplyString ServerConnection::Send(const String& message)
 {
     OTASCIIArmor envelope(message);
-    NetworkReplyString output{SendResult::ERROR_SENDING, nullptr};
-    output.second.reset(new String);
+    NetworkReplyString output{SendResult::ERROR, nullptr};
+    auto& status = output.first;
+    auto& reply = output.second;
+    reply.reset(new String);
 
-    OT_ASSERT(output.second);
+    OT_ASSERT(reply);
 
-    if (!envelope.Exists()) { return output; }
+    if (!envelope.Exists()) {
+        return output;
+    }
 
     auto rawOutput = Send(std::string(envelope.Get()));
-    output.first = rawOutput.first;
+    status = rawOutput.first;
 
-    if (SendResult::HAVE_REPLY == output.first) {
-        OTASCIIArmor reply;
-        reply.Set(rawOutput.second->c_str());
-        reply.GetString(*output.second);
+    if (SendResult::VALID_REPLY == status) {
+        OTASCIIArmor armored;
+        armored.Set(rawOutput.second->c_str());
+
+        if (false == armored.GetString(*reply)) {
+            otErr << OT_METHOD << __FUNCTION__ << ": Received server reply, "
+                  << "but unable to decode it into a String." << std::endl;
+            reply.reset();
+            status = SendResult::INVALID_REPLY;
+        }
     }
 
     return output;
@@ -235,18 +263,25 @@ NetworkReplyString ServerConnection::Send(const String& message)
 
 NetworkReplyMessage ServerConnection::Send(const Message& message)
 {
-    NetworkReplyMessage output{SendResult::ERROR_SENDING, nullptr};
-    output.second.reset(new Message);
+    NetworkReplyMessage output{SendResult::ERROR, nullptr};
+    auto& status = output.first;
+    auto& reply = output.second;
+    reply.reset(new Message);
 
-    OT_ASSERT(output.second);
+    OT_ASSERT(reply);
 
     String input;
     message.SaveContractRaw(input);
     auto rawOutput = Send(input);
-    output.first = rawOutput.first;
+    status = rawOutput.first;
 
-    if (SendResult::HAVE_REPLY == output.first) {
-        output.second->LoadContractFromString(*rawOutput.second);
+    if (SendResult::VALID_REPLY == status) {
+        if (false == reply->LoadContractFromString(*rawOutput.second)) {
+            otErr << OT_METHOD << __FUNCTION__ << ": Received server reply, "
+                  << "but unable to instantiate it as a Message." << std::endl;
+            reply.reset();
+            status = SendResult::INVALID_REPLY;
+        }
     }
 
     return output;
@@ -262,7 +297,7 @@ void ServerConnection::SetProxy()
 {
     std::string proxy;
 
-    if (OT::App().ZMQ().SocksProxy(proxy)) {
+    if (zmq_.SocksProxy(proxy)) {
         OT_ASSERT(nullptr != request_socket_);
 
         zsock_set_socks_proxy(request_socket_, proxy.c_str());
@@ -271,22 +306,14 @@ void ServerConnection::SetProxy()
 
 void ServerConnection::SetTimeouts()
 {
-    zsock_set_linger(
-        request_socket_,
-        OT::App().ZMQ().Linger().count());
-    zsock_set_sndtimeo(
-        request_socket_,
-        OT::App().ZMQ().SendTimeout().count());
+    zsock_set_linger(request_socket_, zmq_.Linger().count());
+    zsock_set_sndtimeo(request_socket_, zmq_.SendTimeout().count());
     zsock_set_rcvtimeo(
-        request_socket_,
-        OT::App().ZMQ().ReceiveTimeout().count());
+        request_socket_, zmq_.ReceiveTimeout().count());
     zcert_apply(zcert_new(), request_socket_);
 }
 
-bool ServerConnection::Status() const
-{
-    return status_.load();
-}
+bool ServerConnection::Status() const { return status_.load(); }
 
 void ServerConnection::Thread()
 {

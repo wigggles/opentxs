@@ -49,7 +49,7 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/Types.hpp"
 
-#include <stdint.h>
+#include <cstdint>
 #include <map>
 #include <set>
 #include <string>
@@ -69,7 +69,7 @@ typedef std::map<std::string, OTStash*> mapOfStashes;
 
 class OTSmartContract : public OTCronItem
 {
-private: // Private prevents erroneous use by other classes.
+private:  // Private prevents erroneous use by other classes.
     typedef OTCronItem ot_super;
 
 private:
@@ -87,17 +87,17 @@ private:
     // This is where the scripts inside the smart contract can stash money,
     // after it starts operating.
     //
-    mapOfStashes m_mapStashes; // The server will NOT allow any smart contract
-                               // to be activated unless these lists are empty.
+    mapOfStashes m_mapStashes;  // The server will NOT allow any smart contract
+                                // to be activated unless these lists are empty.
     // A smart contract may have any number of "stashes" which are stored by
     // name. Each stash
     // can be queried for balance for ANY ASSET TYPE. So stash "alice" might
     // have 5 instrument definitions
     // in it, AND stash "bob" might also have 5 instrument definitions stored in
     // it.
-    AccountList m_StashAccts; // The actual accounts where stash funds are
-                              // stored
-                              // (so they will turn up properly on an audit.)
+    AccountList m_StashAccts;  // The actual accounts where stash funds are
+                               // stored
+                               // (so they will turn up properly on an audit.)
     // Assuming that Alice and Bob both use the same instrument definitions,
     // there will be
     // 5 stash accounts here,
@@ -107,37 +107,43 @@ private:
     // the information is
     // stored in m_mapStashes, not in the accounts themselves, which are only
     // reserves for those stashes.
-    String m_strLastSenderUser;    // These four strings are here so that each
-                                   // sender or recipient (of a transfer of
-                                   // funds)
-    String m_strLastSenderAcct;    // is clearly saved in each inbox receipt.
-                                   // That way, if the receipt has a monetary
-                                   // value, then
-    String m_strLastRecipientUser; // we know who was sending and who was
-                                   // receiving. Also, if a STASH was the last
-                                   // action, then
-    String m_strLastRecipientAcct; // the sender (or recipient) will be blank,
-                                   // signifying that the source or
-                                   // destination was a stash.
+    String m_strLastSenderUser;     // These four strings are here so that each
+                                    // sender or recipient (of a transfer of
+                                    // funds)
+    String m_strLastSenderAcct;     // is clearly saved in each inbox receipt.
+                                    // That way, if the receipt has a monetary
+                                    // value, then
+    String m_strLastRecipientUser;  // we know who was sending and who was
+                                    // receiving. Also, if a STASH was the last
+                                    // action, then
+    String m_strLastRecipientAcct;  // the sender (or recipient) will be blank,
+                                    // signifying that the source or
+                                    // destination was a stash.
 
     // If onProcess() is on a timer (say, to wake up in a week) then this will
     // contain the
-    time64_t m_tNextProcessDate{0}; // date that it WILL be, in a week. (Or zero.)
+    time64_t m_tNextProcessDate{
+        0};  // date that it WILL be, in a week. (Or zero.)
 
     // For moving money from one nym's account to another.
     // it is also nearly identically copied in OTPaymentPlan.
-    bool MoveFunds(const mapOfConstNyms& map_NymsAlreadyLoaded,
-                   const int64_t& lAmount, const Identifier& SOURCE_ACCT_ID,
-                   const Identifier& SENDER_NYM_ID,
-                   const Identifier& RECIPIENT_ACCT_ID,
-                   const Identifier& RECIPIENT_NYM_ID);
+    bool MoveFunds(
+        const mapOfConstNyms& map_NymsAlreadyLoaded,
+        const std::int64_t& lAmount,
+        const Identifier& SOURCE_ACCT_ID,
+        const Identifier& SENDER_NYM_ID,
+        const Identifier& RECIPIENT_ACCT_ID,
+        const Identifier& RECIPIENT_NYM_ID);
 
 protected:
-    void onActivate() override; // called by OTCronItem::HookActivationOnCron().
+    void onActivate() override;  // called by
+                                 // OTCronItem::HookActivationOnCron().
 
-    void onFinalReceipt(OTCronItem& theOrigCronItem,
-                                const int64_t& lNewTransactionNumber,
-                                Nym& theOriginator, Nym* pRemover) override;
+    void onFinalReceipt(
+        OTCronItem& theOrigCronItem,
+        const std::int64_t& lNewTransactionNumber,
+        Nym& theOriginator,
+        Nym* pRemover) override;
     void onRemovalFromCron() override;
     // Above are stored the user and acct IDs of the last sender and recipient
     // of funds.
@@ -150,14 +156,13 @@ protected:
     {
         m_tNextProcessDate = tNEXT_DATE;
     }
-    const time64_t& GetNextProcessDate() const
-    {
-        return m_tNextProcessDate;
-    }
+    const time64_t& GetNextProcessDate() const { return m_tNextProcessDate; }
 
 public:
     originType GetOriginType() const override
-    { return originType::origin_smart_contract; }
+    {
+        return originType::origin_smart_contract;
+    }
 
     void SetDisplayLabel(const std::string* pstrLabel = nullptr) override;
     // FOR RECEIPTS
@@ -170,14 +175,8 @@ public:
     // then set right when a MoveAcctFunds() or StashAcctFunds() is being
     // performed.
     //
-    const String& GetLastSenderNymID() const
-    {
-        return m_strLastSenderUser;
-    }
-    const String& GetLastSenderAcctID() const
-    {
-        return m_strLastSenderAcct;
-    }
+    const String& GetLastSenderNymID() const { return m_strLastSenderUser; }
+    const String& GetLastSenderAcctID() const { return m_strLastSenderAcct; }
     const String& GetLastRecipientNymID() const
     {
         return m_strLastRecipientUser;
@@ -186,8 +185,8 @@ public:
     {
         return m_strLastRecipientAcct;
     }
-    int32_t GetCountStashes() const;
-    int32_t GetCountStashAccts() const;
+    std::int32_t GetCountStashes() const;
+    std::int32_t GetCountStashAccts() const;
     // Merchant Nym is passed here so we can verify the signature before
     // confirming.
     // These notes are from OTAgreement/OTPaymentPlan but they are still
@@ -223,9 +222,10 @@ public:
     // Server-side. Similar to below:
     void CloseoutOpeningNumbers();
     using ot_super::HarvestClosingNumbers;
-    void HarvestClosingNumbers(Nym* pSignerNym = nullptr,
-                               std::set<OTParty*>* pFailedParties =
-                                   nullptr); // Used on server-side. Assumes the
+    void HarvestClosingNumbers(
+        Nym* pSignerNym = nullptr,
+        std::set<OTParty*>* pFailedParties = nullptr);  // Used on server-side.
+                                                        // Assumes the
     // related Nyms are already loaded and
     // known to *this. Purpose of
     // pSignerNymm is to pass in the
@@ -237,22 +237,24 @@ public:
 
     // Return True if should stay on OTCron's list for more processing.
     // Return False if expired or otherwise should be removed.
-    bool ProcessCron() override; // OTCron calls this regularly, which is my
-                                // chance to expire, etc.
+    bool ProcessCron() override;  // OTCron calls this regularly, which is my
+                                  // chance to expire, etc.
 
-    bool HasTransactionNum(const int64_t& lInput) const override;
+    bool HasTransactionNum(const std::int64_t& lInput) const override;
     void GetAllTransactionNumbers(NumList& numlistOutput) const override;
 
-    bool AddParty(OTParty& theParty) override; // Takes ownership.
+    bool AddParty(OTParty& theParty) override;  // Takes ownership.
     bool ConfirmParty(
         OTParty& theParty,
-        ServerContext& context) override; // Takes ownership.
+        ServerContext& context) override;  // Takes ownership.
     // Returns true if it was empty (and thus successfully set).
     EXPORT bool SetNotaryIDIfEmpty(const Identifier& theID);
 
-    EXPORT bool VerifySmartContract(Nym& theNym, Account& theAcct,
-                                    Nym& theServerNym,
-                                    bool bBurnTransNo = false);
+    EXPORT bool VerifySmartContract(
+        Nym& theNym,
+        Account& theAcct,
+        Nym& theServerNym,
+        bool bBurnTransNo = false);
 
     // theNym is trying to activate the smart contract, and has
     // supplied transaction numbers and a user/acct ID. theNym definitely IS the
@@ -292,10 +294,11 @@ public:
     // contract
     // will interoperate with the old Cron Item system of doing things.
     //
-    EXPORT void PrepareToActivate(const int64_t& lOpeningTransNo,
-                                  const int64_t& lClosingTransNo,
-                                  const Identifier& theNymID,
-                                  const Identifier& theAcctID);
+    EXPORT void PrepareToActivate(
+        const std::int64_t& lOpeningTransNo,
+        const std::int64_t& lClosingTransNo,
+        const Identifier& theNymID,
+        const Identifier& theAcctID);
 
     //
     // HIGH LEVEL
@@ -307,37 +310,45 @@ public:
     //    bool OTScriptable::CanExecuteClause(std::string str_party_name,
     // std::string str_clause_name); // This calls (if available) the
     // scripted clause: bool party_may_execute_clause(party_name, clause_name)
-    bool CanCancelContract(std::string str_party_name); // This calls (if
-                                                        // available) the
-                                                        // scripted
-                                                        // clause:
+    bool CanCancelContract(std::string str_party_name);  // This calls (if
+                                                         // available) the
+                                                         // scripted
+                                                         // clause:
     // bool party_may_cancel_contract(party_name)
     // OT NATIVE FUNCTIONS -- Available for scripts to call:
 
-    void SetRemainingTimer(std::string str_seconds_from_now); // onProcess
-                                                              // will
-                                                              // trigger X
-                                                              // seconds
-                                                              // from
-                                                              // now...
-                                                              // (And not
-                                                              // until
-                                                              // then,
-                                                              // either.)
-    std::string GetRemainingTimer() const; // returns seconds left on the timer,
-                                           // in string format, or "0".
+    void SetRemainingTimer(std::string str_seconds_from_now);  // onProcess
+                                                               // will
+                                                               // trigger X
+                                                               // seconds
+                                                               // from
+                                                               // now...
+                                                               // (And not
+                                                               // until
+                                                               // then,
+                                                               // either.)
+    std::string GetRemainingTimer() const;  // returns seconds left on the
+                                            // timer,
+                                            // in string format, or "0".
     // class member, with string parameter
-    bool MoveAcctFundsStr(std::string from_acct_name, std::string to_acct_name,
-                          std::string str_Amount); // calls
-                                                   // OTCronItem::MoveFunds()
-    bool StashAcctFunds(std::string from_acct_name, std::string to_stash_name,
-                        std::string str_Amount); // calls StashFunds()
-    bool UnstashAcctFunds(std::string to_acct_name, std::string from_stash_name,
-                          std::string str_Amount); // calls StashFunds(
-                                                   // lAmount * (-1) )
+    bool MoveAcctFundsStr(
+        std::string from_acct_name,
+        std::string to_acct_name,
+        std::string str_Amount);  // calls
+                                  // OTCronItem::MoveFunds()
+    bool StashAcctFunds(
+        std::string from_acct_name,
+        std::string to_stash_name,
+        std::string str_Amount);  // calls StashFunds()
+    bool UnstashAcctFunds(
+        std::string to_acct_name,
+        std::string from_stash_name,
+        std::string str_Amount);  // calls StashFunds(
+                                  // lAmount * (-1) )
     std::string GetAcctBalance(std::string from_acct_name);
-    std::string GetStashBalance(std::string stash_name,
-                                std::string instrument_definition_id);
+    std::string GetStashBalance(
+        std::string stash_name,
+        std::string instrument_definition_id);
 
     std::string GetInstrumentDefinitionIDofAcct(std::string from_acct_name);
 
@@ -368,8 +379,9 @@ public:
     OTStash* GetStash(std::string str_stash_name);
 
     // Low-level.
-    EXPORT void ExecuteClauses(mapOfClauses& theClauses,
-                               String* pParam = nullptr);
+    EXPORT void ExecuteClauses(
+        mapOfClauses& theClauses,
+        String* pParam = nullptr);
 
     // Low level.
     // This function (StashFunds) is called by StashAcctFunds() and
@@ -382,10 +394,12 @@ public:
     //
     EXPORT bool StashFunds(
         const mapOfConstNyms& map_NymsAlreadyLoaded,
-        const int64_t& lAmount, // negative amount here means UNstash. Positive
-                                // means STASH.
+        const std::int64_t& lAmount,  // negative amount here means UNstash.
+                                      // Positive
+                                      // means STASH.
         const Identifier& PARTY_ACCT_ID,
-        const Identifier& PARTY_NYM_ID, OTStash& theStash);
+        const Identifier& PARTY_NYM_ID,
+        OTStash& theStash);
     EXPORT OTSmartContract();
     EXPORT OTSmartContract(const Identifier& NOTARY_ID);
 
@@ -399,17 +413,18 @@ public:
 
     static void CleanupNyms(mapOfConstNyms& theMap);
     static void CleanupAccts(mapOfAccounts& theMap);
-    bool IsValidOpeningNumber(const int64_t& lOpeningNum) const override;
+    bool IsValidOpeningNumber(const std::int64_t& lOpeningNum) const override;
 
-    int64_t GetOpeningNumber(const Identifier& theNymID) const override;
-    int64_t GetClosingNumber(const Identifier& theAcctID) const override;
+    std::int64_t GetOpeningNumber(const Identifier& theNymID) const override;
+    std::int64_t GetClosingNumber(const Identifier& theAcctID) const override;
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
-    int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
+    std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
 
-    void UpdateContents() override; // Before transmission or serialization, this
-                                   // is where the ledger saves its contents
+    void UpdateContents() override;  // Before transmission or serialization,
+                                     // this
+                                     // is where the ledger saves its contents
 };
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CORE_SCRIPT_OTSMARTCONTRACT_HPP
+#endif  // OPENTXS_CORE_SCRIPT_OTSMARTCONTRACT_HPP

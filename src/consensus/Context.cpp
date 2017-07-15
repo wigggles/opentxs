@@ -55,24 +55,35 @@ namespace opentxs
 {
 Context::Context(
     const ConstNym& local,
-    const ConstNym& remote)
+    const ConstNym& remote,
+    const Identifier& server)
     : ot_super(local, 1)
+    , server_id_(server)
+    , remote_nym_(remote)
+    , available_transaction_numbers_()
+    , issued_transaction_numbers_()
+    , request_number_(0)
+    , remote_nymbox_hash_()
+    , local_nymbox_hash_()
+    , acknowledged_request_numbers_()
 {
-    remote_nym_ = remote;
-    request_number_.store(0);
 }
 
 Context::Context(
     const proto::Context& serialized,
     const ConstNym& local,
-    const ConstNym& remote)
+    const ConstNym& remote,
+    const Identifier& server)
     : ot_super(local, serialized.version())
-    , local_nymbox_hash_(serialized.localnymboxhash())
-    , remote_nymbox_hash_(serialized.remotenymboxhash())
+    , server_id_(server)
     , remote_nym_(remote)
+    , available_transaction_numbers_()
+    , issued_transaction_numbers_()
+    , request_number_(serialized.requestnumber())
+    , remote_nymbox_hash_(serialized.remotenymboxhash())
+    , local_nymbox_hash_(serialized.localnymboxhash())
+    , acknowledged_request_numbers_()
 {
-    request_number_.store(serialized.requestnumber());
-
     for (const auto& it : serialized.acknowledgedrequestnumber()) {
         acknowledged_request_numbers_.insert(it);
     }
@@ -85,9 +96,8 @@ Context::Context(
         issued_transaction_numbers_.insert(it);
     }
 
-    signatures_.push_front(
-        SerializedSignature(
-            std::make_shared<proto::Signature>(serialized.signature())));
+    signatures_.push_front(SerializedSignature(
+        std::make_shared<proto::Signature>(serialized.signature())));
 }
 
 std::set<RequestNumber> Context::AcknowledgedNumbers() const
@@ -97,9 +107,11 @@ std::set<RequestNumber> Context::AcknowledgedNumbers() const
     return acknowledged_request_numbers_;
 }
 
-bool Context::AddAcknowledgedNumber(const RequestNumber req)
+bool Context::add_acknowledged_number(
+    const Lock& lock,
+    const RequestNumber req)
 {
-    Lock lock(lock_);
+    OT_ASSERT(verify_write_lock(lock));
 
     auto output = acknowledged_request_numbers_.insert(req);
 
@@ -109,6 +121,13 @@ bool Context::AddAcknowledgedNumber(const RequestNumber req)
     }
 
     return output.second;
+}
+
+bool Context::AddAcknowledgedNumber(const RequestNumber req)
+{
+    Lock lock(lock_);
+
+    return add_acknowledged_number(lock, req);
 }
 
 std::size_t Context::AvailableNumbers() const
@@ -150,6 +169,8 @@ proto::Context Context::contract(const Lock& lock) const
     return output;
 }
 
+// This method will remove entries from acknowledged_request_numbers_ if they
+// are not on the provided set
 void Context::finish_acknowledgements(
     const Lock& lock,
     const std::set<RequestNumber>& req)
@@ -196,7 +217,7 @@ proto::Context Context::IDVersion(const Lock& lock) const
     output.set_version(version_);
 
     switch (Type()) {
-        case proto::CONSENSUSTYPE_SERVER : {
+        case proto::CONSENSUSTYPE_SERVER: {
             if (nym_) {
                 output.set_localnym(String(nym_->ID()).Get());
             }
@@ -208,7 +229,7 @@ proto::Context Context::IDVersion(const Lock& lock) const
             output.set_localnymboxhash(String(local_nymbox_hash_).Get());
             output.set_remotenymboxhash(String(remote_nymbox_hash_).Get());
         } break;
-        case proto::CONSENSUSTYPE_CLIENT : {
+        case proto::CONSENSUSTYPE_CLIENT: {
             if (nym_) {
                 output.set_remotenym(String(nym_->ID()).Get());
             }
@@ -220,7 +241,9 @@ proto::Context Context::IDVersion(const Lock& lock) const
             output.set_remotenymboxhash(String(local_nymbox_hash_).Get());
             output.set_localnymboxhash(String(remote_nymbox_hash_).Get());
         } break;
-        default : { OT_FAIL; }
+        default: {
+            OT_FAIL;
+        }
     }
 
     output.set_requestnumber(request_number_.load());
@@ -236,10 +259,7 @@ proto::Context Context::IDVersion(const Lock& lock) const
     return output;
 }
 
-RequestNumber Context::IncrementRequest()
-{
-    return ++request_number_;
-}
+RequestNumber Context::IncrementRequest() { return ++request_number_; }
 
 bool Context::insert_available_number(const TransactionNumber& number)
 {
@@ -255,9 +275,7 @@ bool Context::insert_issued_number(const TransactionNumber& number)
     return issued_transaction_numbers_.insert(number).second;
 }
 
-bool Context::issue_number(
-    const Lock& lock,
-    const TransactionNumber& number)
+bool Context::issue_number(const Lock& lock, const TransactionNumber& number)
 {
     OT_ASSERT(verify_write_lock(lock));
 
@@ -291,22 +309,30 @@ std::string Context::Name() const
 
 bool Context::NymboxHashMatch() const
 {
-    if (!HaveLocalNymboxHash()) { return false; }
+    if (!HaveLocalNymboxHash()) {
+        return false;
+    }
 
-    if (!HaveRemoteNymboxHash()) { return false; }
+    if (!HaveRemoteNymboxHash()) {
+        return false;
+    }
 
     return (local_nymbox_hash_ == remote_nymbox_hash_);
 }
 
 bool Context::RecoverAvailableNumber(const TransactionNumber& number)
 {
-    if (0 == number) { return false; }
+    if (0 == number) {
+        return false;
+    }
 
     Lock lock(lock_);
 
     const bool issued = 1 == issued_transaction_numbers_.count(number);
 
-    if (!issued) { return false; }
+    if (!issued) {
+        return false;
+    }
 
     return available_transaction_numbers_.insert(number).second;
 }
@@ -325,9 +351,11 @@ Identifier Context::RemoteNymboxHash() const
     return remote_nymbox_hash_;
 }
 
-bool Context::RemoveAcknowledgedNumber(const std::set<RequestNumber>& req)
+bool Context::remove_acknowledged_number(
+    const Lock& lock,
+    const std::set<RequestNumber>& req)
 {
-    Lock lock(lock_);
+    OT_ASSERT(verify_write_lock(lock));
 
     std::size_t removed = 0;
 
@@ -335,15 +363,17 @@ bool Context::RemoveAcknowledgedNumber(const std::set<RequestNumber>& req)
         removed += acknowledged_request_numbers_.erase(number);
     }
 
-    lock.unlock();
-
     return (0 < removed);
 }
 
-RequestNumber Context::Request() const
+bool Context::RemoveAcknowledgedNumber(const std::set<RequestNumber>& req)
 {
-    return request_number_.load();
+    Lock lock(lock_);
+
+    return remove_acknowledged_number(lock, req);
 }
+
+RequestNumber Context::Request() const { return request_number_.load(); }
 
 void Context::Reset()
 {
@@ -392,10 +422,7 @@ proto::Context Context::serialize(
     return output;
 }
 
-Data Context::Serialize() const
-{
-    return proto::ProtoAsData(Serialized());
-}
+Data Context::Serialize() const { return proto::ProtoAsData(Serialized()); }
 
 proto::Context Context::Serialized() const
 {
@@ -403,6 +430,8 @@ proto::Context Context::Serialized() const
 
     return contract(lock);
 }
+
+const Identifier& Context::Server() const { return server_id_; }
 
 void Context::SetLocalNymboxHash(const Identifier& hash)
 {
@@ -439,7 +468,9 @@ proto::Context Context::SigVersion(const Lock& lock) const
 
 bool Context::update_signature(const Lock& lock)
 {
-    if (!ot_super::update_signature(lock)) { return false; }
+    if (!ot_super::update_signature(lock)) {
+        return false;
+    }
 
     bool success = false;
 
@@ -464,8 +495,7 @@ bool Context::validate(const Lock& lock) const
 {
     if (1 != signatures_.size()) {
         otErr << OT_METHOD << __FUNCTION__
-              << ": Error: this context is not signed."
-              << std::endl;
+              << ": Error: this context is not signed." << std::endl;
 
         return false;
     }
@@ -511,4 +541,4 @@ bool Context::verify_signature(
 
     return nym_->VerifyProto(serialized, sigProto);
 }
-} // namespace opentxs
+}  // namespace opentxs

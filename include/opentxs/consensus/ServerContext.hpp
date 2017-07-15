@@ -52,62 +52,26 @@ namespace opentxs
 
 class Item;
 class OTTransaction;
+class Message;
+class ServerConnection;
 class TransactionStatement;
 class Wallet;
 
 class ServerContext : public Context
 {
-private:
-    typedef Context ot_super;
-
-    Identifier server_id_;
-    std::atomic<TransactionNumber> highest_transaction_number_;
-    std::set<TransactionNumber> tentative_transaction_numbers_;
-
-    static void scan_number_set(
-        const std::set<TransactionNumber>& input,
-        TransactionNumber& highest,
-        TransactionNumber& lowest);
-    static void validate_number_set(
-        const std::set<TransactionNumber>& input,
-        const TransactionNumber limit,
-        std::set<TransactionNumber>& good,
-        std::set<TransactionNumber>& bad);
-
-    std::unique_ptr<TransactionStatement> generate_statement(
-        const Lock& lock,
-        const std::set<TransactionNumber>& adding,
-        const std::set<TransactionNumber>& without) const;
-    using ot_super::serialize;
-    proto::Context serialize(const Lock& lock) const override;
-
-    bool remove_tentative_number(
-        const Lock& lock,
-        const TransactionNumber& number);
-    TransactionNumber update_highest(
-        const Lock& lock,
-        const std::set<TransactionNumber>& numbers,
-        std::set<TransactionNumber>& good,
-        std::set<TransactionNumber>& bad);
-
-    ServerContext() = delete;
-    ServerContext(const ServerContext&) = delete;
-    ServerContext(ServerContext&&) = delete;
-    ServerContext& operator=(const ServerContext&) = delete;
-    ServerContext& operator=(ServerContext&&) = delete;
-
 public:
     ServerContext(
         const ConstNym& local,
         const ConstNym& remote,
-        const Identifier& server);
+        const Identifier& server,
+        ServerConnection& connection);
     ServerContext(
         const proto::Context& serialized,
         const ConstNym& local,
-        const ConstNym& remote);
+        const ConstNym& remote,
+        ServerConnection& connection);
 
     TransactionNumber Highest() const;
-    const Identifier& Server() const;
     std::unique_ptr<Item> Statement(const OTTransaction& owner) const;
     std::unique_ptr<Item> Statement(
         const OTTransaction& owner,
@@ -122,17 +86,67 @@ public:
     bool AcceptIssuedNumbers(const TransactionStatement& statement);
     bool AddTentativeNumber(const TransactionNumber& number);
     TransactionNumber NextTransactionNumber();
+    NetworkReplyMessage PingNotary();
     bool RemoveTentativeNumber(const TransactionNumber& number);
     bool SetHighest(const TransactionNumber& highest);
     TransactionNumber UpdateHighest(
         const std::set<TransactionNumber>& numbers,
         std::set<TransactionNumber>& good,
         std::set<TransactionNumber>& bad);
+    RequestNumber UpdateRequestNumber();
+    RequestNumber UpdateRequestNumber(bool& sendStatus);
 
     proto::ConsensusType Type() const override;
 
     ~ServerContext() = default;
-};
-} // namespace opentxs
 
-#endif // OPENTXS_CONSENSUS_SERVERCONTEXT_HPP
+private:
+    typedef Context ot_super;
+
+    ServerConnection& connection_;
+
+    std::mutex message_lock_{};
+    std::atomic<TransactionNumber> highest_transaction_number_{0};
+    std::set<TransactionNumber> tentative_transaction_numbers_{};
+
+    static void scan_number_set(
+        const std::set<TransactionNumber>& input,
+        TransactionNumber& highest,
+        TransactionNumber& lowest);
+    static void validate_number_set(
+        const std::set<TransactionNumber>& input,
+        const TransactionNumber limit,
+        std::set<TransactionNumber>& good,
+        std::set<TransactionNumber>& bad);
+
+    bool finalize_server_command(Message& command) const;
+    std::unique_ptr<TransactionStatement> generate_statement(
+        const Lock& lock,
+        const std::set<TransactionNumber>& adding,
+        const std::set<TransactionNumber>& without) const;
+    std::unique_ptr<Message> initialize_server_command(
+        const MessageType type) const;
+    using ot_super::serialize;
+    proto::Context serialize(const Lock& lock) const override;
+
+    using ot_super::remove_acknowledged_number;
+    bool remove_acknowledged_number(const Lock& lock, const Message& reply);
+    bool remove_tentative_number(
+        const Lock& lock,
+        const TransactionNumber& number);
+    TransactionNumber update_highest(
+        const Lock& lock,
+        const std::set<TransactionNumber>& numbers,
+        std::set<TransactionNumber>& good,
+        std::set<TransactionNumber>& bad);
+    Identifier update_remote_hash(const Lock& lock, const Message& reply);
+
+    ServerContext() = delete;
+    ServerContext(const ServerContext&) = delete;
+    ServerContext(ServerContext&&) = delete;
+    ServerContext& operator=(const ServerContext&) = delete;
+    ServerContext& operator=(ServerContext&&) = delete;
+};
+}  // namespace opentxs
+
+#endif  // OPENTXS_CONSENSUS_SERVERCONTEXT_HPP
