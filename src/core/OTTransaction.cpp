@@ -41,6 +41,7 @@
 #include "opentxs/core/OTTransaction.hpp"
 
 #include "opentxs/consensus/ServerContext.hpp"
+#include "opentxs/consensus/TransactionStatement.hpp"
 #include "opentxs/core/cron/OTCronItem.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/recurring/OTPaymentPlan.hpp"

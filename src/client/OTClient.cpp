@@ -53,6 +53,7 @@
 #include "opentxs/client/OTMessageOutbuffer.hpp"
 #include "opentxs/client/OTWallet.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
+#include "opentxs/consensus/TransactionStatement.hpp"
 #include "opentxs/core/contract/ServerContract.hpp"
 #include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
