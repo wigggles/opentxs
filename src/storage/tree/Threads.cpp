@@ -68,12 +68,12 @@ Threads::Threads(
 
 std::string Threads::Create(const std::set<std::string>& participants)
 {
-    std::unique_ptr<class Thread> newThread(new class Thread(
-        driver_, participants, mail_inbox_, mail_outbox_));
+    std::unique_ptr<class Thread> newThread(
+        new class Thread(driver_, participants, mail_inbox_, mail_outbox_));
 
     if (!newThread) {
         std::cerr << __FUNCTION__ << ": Failed to instantiate thread."
-                    << std::endl;
+                  << std::endl;
         abort();
     }
 
@@ -223,7 +223,7 @@ bool Threads::save(const std::unique_lock<std::mutex>& lock) const
 
     auto serialized = serialize();
 
-    if (!proto::Check(serialized, version_, version_)) {
+    if (!proto::Validate(serialized, VERBOSE)) {
         return false;
     }
 

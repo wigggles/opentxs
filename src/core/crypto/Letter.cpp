@@ -99,16 +99,14 @@ bool Letter::AddRSARecipients(
 
     if (!serialized) {
         otErr << __FUNCTION__ << ": Session key serialization failed."
-              <<  std::endl;
+              << std::endl;
 
         return false;
     }
 
     Data binary = proto::ProtoAsData(serializedSessionKey);
-    const bool haveSessionKey = engine.EncryptSessionKey(
-        recipients,
-        binary,
-        encrypted);
+    const bool haveSessionKey =
+        engine.EncryptSessionKey(recipients, binary, encrypted);
 
     if (haveSessionKey) {
         envelope.set_rsakey(encrypted.GetPointer(), encrypted.GetSize());
@@ -143,7 +141,7 @@ bool Letter::SortRecipients(
 {
     for (auto& it : recipients) {
         switch (it.second->keyType()) {
-            case proto::AKEYTYPE_SECP256K1 :
+            case proto::AKEYTYPE_SECP256K1:
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
                 secp256k1Recipients.insert(
                     std::pair<std::string, const AsymmetricKeyEC*>(
@@ -151,21 +149,19 @@ bool Letter::SortRecipients(
                         static_cast<const AsymmetricKeySecp256k1*>(it.second)));
 #endif
                 break;
-            case proto::AKEYTYPE_ED25519 :
+            case proto::AKEYTYPE_ED25519:
                 ed25519Recipients.insert(
                     std::pair<std::string, const AsymmetricKeyEC*>(
                         it.first,
                         static_cast<const AsymmetricKeyEd25519*>(it.second)));
                 break;
-            case proto::AKEYTYPE_LEGACY :
-                RSARecipients.insert(
-                    std::pair<std::string, OTAsymmetricKey*>(
-                        it.first,
-                        it.second));
+            case proto::AKEYTYPE_LEGACY:
+                RSARecipients.insert(std::pair<std::string, OTAsymmetricKey*>(
+                    it.first, it.second));
                 break;
-            default :
-                otErr << __FUNCTION__
-                      << ": Unknown recipient type." << std::endl;
+            default:
+                otErr << __FUNCTION__ << ": Unknown recipient type."
+                      << std::endl;
                 return false;
         }
     }
@@ -183,11 +179,11 @@ bool Letter::Seal(
     mapOfECKeys ed25519Recipients;
 
     if (!SortRecipients(
-        RecipPubKeys,
-        RSARecipients,
-        secp256k1Recipients,
-        ed25519Recipients)) {
-            return false;
+            RecipPubKeys,
+            RSARecipients,
+            secp256k1Recipients,
+            ed25519Recipients)) {
+        return false;
     }
 
     const bool haveRecipientsECDSA = (0 < secp256k1Recipients.size());
@@ -231,11 +227,9 @@ bool Letter::Seal(
         auto& newDhKey = *output.add_dhkey();
         newDhKey = *dhKeypair->Serialize(false);
 
-
         std::unique_ptr<AsymmetricKeyEC> dhPrivateKey;
-        dhPrivateKey.reset(
-            static_cast<AsymmetricKeySecp256k1*>(
-                OTAsymmetricKey::KeyFactory(*dhKeypair->Serialize(true))));
+        dhPrivateKey.reset(static_cast<AsymmetricKeySecp256k1*>(
+            OTAsymmetricKey::KeyFactory(*dhKeypair->Serialize(true))));
 
         OT_ASSERT(dhPrivateKey);
 
@@ -263,16 +257,15 @@ bool Letter::Seal(
         }
 #else
         otErr << __FUNCTION__ << ": Attempting to Seal to "
-                << "secp256k1 recipients without Libsecp256k1 support."
-                << std::endl;
+              << "secp256k1 recipients without Libsecp256k1 support."
+              << std::endl;
 
         return false;
 #endif
     }
 
     if (haveRecipientsED25519) {
-        Ecdsa& engine =
-            static_cast<Libsodium&>(OT::App().Crypto().ED25519());
+        Ecdsa& engine = static_cast<Libsodium&>(OT::App().Crypto().ED25519());
         std::unique_ptr<OTKeypair> dhKeypair;
         NymParameters parameters(proto::CREDTYPE_LEGACY);
         parameters.setNymParameterType(NymParameterType::ED25519);
@@ -283,11 +276,9 @@ bool Letter::Seal(
         auto& newDhKey = *output.add_dhkey();
         newDhKey = *dhKeypair->Serialize(false);
 
-
         std::unique_ptr<AsymmetricKeyEC> dhPrivateKey;
-        dhPrivateKey.reset(
-            static_cast<AsymmetricKeyEd25519*>(
-                OTAsymmetricKey::KeyFactory(*dhKeypair->Serialize(true))));
+        dhPrivateKey.reset(static_cast<AsymmetricKeyEd25519*>(
+            OTAsymmetricKey::KeyFactory(*dhKeypair->Serialize(true))));
 
         OT_ASSERT(dhPrivateKey);
 
@@ -328,7 +319,7 @@ bool Letter::Open(
 {
     auto serialized = proto::DataToProto<proto::Envelope>(dataInput);
 
-    const bool haveInput = proto::Check(serialized, 0, 0xFFFFFFFF);
+    const bool haveInput = proto::Validate(serialized, VERBOSE);
 
     if (!haveInput) {
         otErr << __FUNCTION__ << " Could not decode input." << std::endl;
@@ -387,25 +378,21 @@ bool Letter::Open(
         std::unique_ptr<AsymmetricKeyEC> dhPublicKey;
         if (secp256k1) {
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-            dhPublicKey.reset(static_cast<AsymmetricKeySecp256k1*>
-                (OTAsymmetricKey::KeyFactory(ephemeralPubkey)));
+            dhPublicKey.reset(static_cast<AsymmetricKeySecp256k1*>(
+                OTAsymmetricKey::KeyFactory(ephemeralPubkey)));
 #endif
         } else if (ed25519) {
-            dhPublicKey.reset(static_cast<AsymmetricKeyEd25519*>
-                (OTAsymmetricKey::KeyFactory(ephemeralPubkey)));
+            dhPublicKey.reset(static_cast<AsymmetricKeyEd25519*>(
+                OTAsymmetricKey::KeyFactory(ephemeralPubkey)));
         }
 
         // The only way to know which session key (might) belong to us to try
         // them all
         for (auto& it : serialized.sessionkey()) {
             key = OT::App().Crypto().Symmetric().Key(
-                it,
-                serialized.ciphertext().mode());
+                it, serialized.ciphertext().mode());
             haveSessionKey = ecKey->ECDSA().DecryptSessionKeyECDH(
-                *ecKey,
-                *dhPublicKey,
-                keyPassword,
-                *key);
+                *ecKey, *dhPublicKey, keyPassword, *key);
 
             if (haveSessionKey) {
                 break;
@@ -422,10 +409,7 @@ bool Letter::Open(
             serialized.rsakey().data(), serialized.rsakey().size());
         Data sessionKey;
         haveSessionKey = engine.DecryptSessionKey(
-            serializedKey,
-            theRecipient,
-            sessionKey,
-            nullptr);
+            serializedKey, theRecipient, sessionKey, nullptr);
     }
 #endif
 
@@ -433,10 +417,8 @@ bool Letter::Open(
         Data plaintext;
         OTPasswordData defaultPassword("");
         DefaultPassword(defaultPassword);
-        const bool decrypted = key->Decrypt(
-            serialized.ciphertext(),
-            defaultPassword,
-            plaintext);
+        const bool decrypted =
+            key->Decrypt(serialized.ciphertext(), defaultPassword, plaintext);
 
         if (decrypted) {
             theOutput.Set(
@@ -456,4 +438,4 @@ bool Letter::Open(
         return false;
     }
 }
-} // namespace opentxs
+}  // namespace opentxs

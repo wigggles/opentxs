@@ -12716,7 +12716,7 @@ int32_t OT_API::registerInstrumentDefinition(
     //  (No need to cleanup.)
     auto serialized = proto::StringToProto<proto::UnitDefinition>(THE_CONTRACT);
 
-    if (!proto::Check<proto::UnitDefinition>(serialized, 0, 0xFFFFFFFF, true)) {
+    if (!proto::Validate<proto::UnitDefinition>(serialized, VERBOSE, true)) {
         return -1;
     }
 

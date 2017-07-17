@@ -2478,6 +2478,10 @@ void OTME_too::refresh_contacts(nymAccountMap& nymsToCheck)
         auto& revision = std::get<1>(meta);
         auto& checked = std::get<2>(meta);
         auto& name = std::get<4>(meta);
+
+        otErr << "Contact: " << contact.first << "\nLabel: " << name
+              << std::endl;
+
         const auto now = std::time(nullptr);
         const std::chrono::seconds interval(now - checked);
         const std::chrono::hours limit(24 * CONTACT_REFRESH_DAYS);
@@ -2486,6 +2490,7 @@ void OTME_too::refresh_contacts(nymAccountMap& nymsToCheck)
 
         if (bool(nym) && name.empty()) {
             name = extract_nym_name(*nym);
+            otErr << "Updated contact label to: " << name << std::endl;
             updated = true;
         }
 

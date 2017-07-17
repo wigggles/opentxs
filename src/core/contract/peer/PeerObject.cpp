@@ -157,8 +157,7 @@ std::unique_ptr<PeerObject> PeerObject::Factory(
     const ConstNym& signerNym,
     const proto::PeerObject& serialized)
 {
-    const bool valid =
-        proto::Check(serialized, serialized.version(), serialized.version());
+    const bool valid = proto::Validate(serialized, VERBOSE);
     std::unique_ptr<PeerObject> output;
 
     if (valid) {
@@ -272,7 +271,7 @@ bool PeerObject::Validate() const
         }
     }
 
-    const bool validProto = proto::Check(Serialize(), version_, version_);
+    const bool validProto = proto::Validate(Serialize(), VERBOSE);
 
     return (validChildren && validProto);
 }

@@ -72,10 +72,6 @@ Api::Api(
 
 void Api::Init()
 {
-    if (!Log::Init("client")) {
-        OT_FAIL;
-    }
-
     // Changed this to otErr (stderr) so it doesn't muddy the output.
     otLog3 << "\n\nWelcome to Open Transactions -- version " << Log::Version()
            << "\n";

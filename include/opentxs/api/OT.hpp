@@ -136,6 +136,7 @@ private:
     void Init_Crypto();
     void Init_Dht();
     void Init_Identity();
+    void Init_Log();
     void Init_Periodic();
     void Init_Storage();
     void Init_ZMQ();

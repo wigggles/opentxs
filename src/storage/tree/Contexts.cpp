@@ -46,9 +46,7 @@ namespace opentxs
 {
 namespace storage
 {
-Contexts::Contexts(
-    const StorageDriver& storage,
-    const std::string& hash)
+Contexts::Contexts(const StorageDriver& storage, const std::string& hash)
     : Node(storage, hash)
 {
     if (check_hash(hash)) {
@@ -103,7 +101,8 @@ bool Contexts::save(const std::unique_lock<std::mutex>& lock) const
 
     auto serialized = serialize();
 
-    if (!proto::Check(serialized, version_, version_)) {
+    if (false == proto::Validate(serialized, VERBOSE)) {
+
         return false;
     }
 
@@ -128,9 +127,7 @@ proto::StorageNymList Contexts::serialize() const
     return serialized;
 }
 
-bool Contexts::Store(
-    const proto::Context& data,
-    const std::string& alias)
+bool Contexts::Store(const proto::Context& data, const std::string& alias)
 {
     return store_proto(data, data.remotenym(), alias);
 }

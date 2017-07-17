@@ -89,10 +89,7 @@ class Contexts* Nym::contexts() const
     std::unique_lock<std::mutex> lock(contexts_lock_);
 
     if (!contexts_) {
-        contexts_.reset(
-            new class Contexts(
-                driver_,
-                contexts_root_));
+        contexts_.reset(new class Contexts(driver_, contexts_root_));
 
         if (!contexts_) {
             std::cerr << __FUNCTION__ << ": Unable to instantiate."
@@ -106,10 +103,7 @@ class Contexts* Nym::contexts() const
     return contexts_.get();
 }
 
-const class Contexts& Nym::Contexts() const
-{
-    return *contexts();
-}
+const class Contexts& Nym::Contexts() const { return *contexts(); }
 
 PeerReplies* Nym::finished_reply_box() const
 {
@@ -137,7 +131,7 @@ PeerRequests* Nym::finished_request_box() const
 
     if (!finished_request_box_) {
         finished_request_box_.reset(
-            new PeerRequests(driver_,finished_peer_request_));
+            new PeerRequests(driver_, finished_peer_request_));
 
         if (!finished_request_box_) {
             std::cerr << __FUNCTION__ << ": Unable to instantiate."
@@ -167,7 +161,7 @@ PeerReplies* Nym::incoming_reply_box() const
 
     if (!incoming_reply_box_) {
         incoming_reply_box_.reset(
-            new PeerReplies(driver_,incoming_peer_reply_));
+            new PeerReplies(driver_, incoming_peer_reply_));
 
         if (!incoming_reply_box_) {
             std::cerr << __FUNCTION__ << ": Unable to instantiate."
@@ -187,7 +181,7 @@ PeerRequests* Nym::incoming_request_box() const
 
     if (!incoming_request_box_) {
         incoming_request_box_.reset(
-            new PeerRequests(driver_,incoming_peer_request_));
+            new PeerRequests(driver_, incoming_peer_request_));
 
         if (!incoming_request_box_) {
             std::cerr << __FUNCTION__ << ": Unable to instantiate."
@@ -300,8 +294,7 @@ Mailbox* Nym::mail_inbox() const
     std::unique_lock<std::mutex> lock(mail_inbox_lock_);
 
     if (!mail_inbox_) {
-        mail_inbox_.reset(
-            new Mailbox(driver_,mail_inbox_root_));
+        mail_inbox_.reset(new Mailbox(driver_, mail_inbox_root_));
 
         if (!mail_inbox_) {
             std::cerr << __FUNCTION__ << ": Unable to instantiate."
@@ -320,8 +313,7 @@ Mailbox* Nym::mail_outbox() const
     std::unique_lock<std::mutex> lock(mail_outbox_lock_);
 
     if (!mail_outbox_) {
-        mail_outbox_.reset(
-            new Mailbox(driver_,mail_outbox_root_));
+        mail_outbox_.reset(new Mailbox(driver_, mail_outbox_root_));
 
         if (!mail_outbox_) {
             std::cerr << __FUNCTION__ << ": Unable to instantiate."
@@ -335,15 +327,9 @@ Mailbox* Nym::mail_outbox() const
     return mail_outbox_.get();
 }
 
-const Mailbox& Nym::MailInbox() const
-{
-    return *mail_inbox();
-}
+const Mailbox& Nym::MailInbox() const { return *mail_inbox(); }
 
-const Mailbox& Nym::MailOutbox() const
-{
-    return *mail_outbox();
-}
+const Mailbox& Nym::MailOutbox() const { return *mail_outbox(); }
 
 bool Nym::Migrate() const
 {
@@ -504,8 +490,9 @@ Editor<Mailbox> Nym::mutable_MailOutbox()
 
 Editor<class Threads> Nym::mutable_Threads()
 {
-    std::function<void(class Threads*, std::unique_lock<std::mutex>&)> callback
-        = [&](class Threads* in, std::unique_lock<std::mutex>& lock) -> void {
+    std::function<void(class Threads*, std::unique_lock<std::mutex>&)>
+        callback =
+            [&](class Threads* in, std::unique_lock<std::mutex>& lock) -> void {
         this->save(in, lock);
     };
 
@@ -514,8 +501,9 @@ Editor<class Threads> Nym::mutable_Threads()
 
 Editor<class Contexts> Nym::mutable_Contexts()
 {
-    std::function<void(class Contexts*, std::unique_lock<std::mutex>&)> callback
-        = [&](class Contexts* in, std::unique_lock<std::mutex>& lock) -> void {
+    std::function<void(class Contexts*, std::unique_lock<std::mutex>&)>
+        callback = [&](
+            class Contexts* in, std::unique_lock<std::mutex>& lock) -> void {
         this->save(in, lock);
     };
 
@@ -528,7 +516,7 @@ PeerReplies* Nym::processed_reply_box() const
 
     if (!processed_reply_box_) {
         processed_reply_box_.reset(
-            new PeerReplies(driver_,processed_peer_reply_));
+            new PeerReplies(driver_, processed_peer_reply_));
 
         if (!processed_reply_box_) {
             std::cerr << __FUNCTION__ << ": Unable to instantiate."
@@ -548,7 +536,7 @@ PeerRequests* Nym::processed_request_box() const
 
     if (!processed_request_box_) {
         processed_request_box_.reset(
-            new PeerRequests(driver_,processed_peer_request_));
+            new PeerRequests(driver_, processed_peer_request_));
 
         if (!processed_request_box_) {
             std::cerr << __FUNCTION__ << ": Unable to instantiate."
@@ -581,7 +569,7 @@ bool Nym::save(const std::unique_lock<std::mutex>& lock) const
 
     auto serialized = serialize();
 
-    if (!proto::Check(serialized, version_, version_)) {
+    if (!proto::Validate(serialized, VERBOSE)) {
         return false;
     }
 
@@ -657,9 +645,7 @@ void Nym::save(
     }
 }
 
-void Nym::save(
-    class Threads* input,
-    const std::unique_lock<std::mutex>& lock)
+void Nym::save(class Threads* input, const std::unique_lock<std::mutex>& lock)
 {
     if (!verify_write_lock(lock)) {
         std::cerr << __FUNCTION__ << ": Lock failure." << std::endl;
@@ -687,9 +673,7 @@ void Nym::save(
     }
 }
 
-void Nym::save(
-    class Contexts* input,
-    const std::unique_lock<std::mutex>& lock)
+void Nym::save(class Contexts* input, const std::unique_lock<std::mutex>& lock)
 {
     if (!verify_write_lock(lock)) {
         std::cerr << __FUNCTION__ << ": Lock failure." << std::endl;
@@ -714,12 +698,8 @@ class Threads* Nym::threads() const
     std::unique_lock<std::mutex> lock(threads_lock_);
 
     if (!threads_) {
-        threads_.reset(
-            new class Threads(
-                driver_,
-                threads_root_,
-                *mail_inbox(),
-                *mail_outbox()));
+        threads_.reset(new class Threads(
+            driver_, threads_root_, *mail_inbox(), *mail_outbox()));
 
         if (!threads_) {
             std::cerr << __FUNCTION__ << ": Unable to instantiate."
@@ -733,10 +713,7 @@ class Threads* Nym::threads() const
     return threads_.get();
 }
 
-const class Threads& Nym::Threads() const
-{
-    return *threads();
-}
+const class Threads& Nym::Threads() const { return *threads(); }
 
 void Nym::update_hash(const StorageBox type, const std::string& root)
 {
@@ -793,8 +770,7 @@ PeerReplies* Nym::sent_reply_box() const
     std::unique_lock<std::mutex> lock(sent_reply_box_lock_);
 
     if (!sent_reply_box_) {
-        sent_reply_box_.reset(
-            new PeerReplies(driver_,sent_peer_reply_));
+        sent_reply_box_.reset(new PeerReplies(driver_, sent_peer_reply_));
 
         if (!sent_reply_box_) {
             std::cerr << __FUNCTION__ << ": Unable to instantiate."
@@ -813,8 +789,7 @@ PeerRequests* Nym::sent_request_box() const
     std::unique_lock<std::mutex> lock(sent_request_box_lock_);
 
     if (!sent_request_box_) {
-        sent_request_box_.reset(
-            new PeerRequests(driver_,sent_peer_request_));
+        sent_request_box_.reset(new PeerRequests(driver_, sent_peer_request_));
 
         if (!sent_request_box_) {
             std::cerr << __FUNCTION__ << ": Unable to instantiate."
@@ -880,25 +855,11 @@ proto::StorageNym Nym::serialize() const
         processed_peer_reply_,
         *serialized.mutable_processedpeerreply());
     set_hash(
-        version_,
-        nymid_,
-        mail_inbox_root_,
-        *serialized.mutable_mailinbox());
+        version_, nymid_, mail_inbox_root_, *serialized.mutable_mailinbox());
     set_hash(
-        version_,
-        nymid_,
-        mail_outbox_root_,
-        *serialized.mutable_mailoutbox());
-    set_hash(
-        version_,
-        nymid_,
-        threads_root_,
-        *serialized.mutable_threads());
-    set_hash(
-        version_,
-        nymid_,
-        contexts_root_,
-        *serialized.mutable_contexts());
+        version_, nymid_, mail_outbox_root_, *serialized.mutable_mailoutbox());
+    set_hash(version_, nymid_, threads_root_, *serialized.mutable_threads());
+    set_hash(version_, nymid_, contexts_root_, *serialized.mutable_contexts());
 
     return serialized;
 }

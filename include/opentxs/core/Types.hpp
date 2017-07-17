@@ -64,6 +64,7 @@ class String;
 #define MESSAGE_SUCCESS_FALSE 0
 #define MESSAGE_SUCCESS_TRUE 1
 #define FIRST_REQUEST_NUMBER 1
+
 typedef bool CredentialIndexModeFlag;
 static const CredentialIndexModeFlag CREDENTIAL_INDEX_MODE_ONLY_IDS = true;
 static const CredentialIndexModeFlag CREDENTIAL_INDEX_MODE_FULL_CREDS = false;
@@ -79,6 +80,10 @@ static const SerializationModeFlag AS_PUBLIC = false;
 typedef bool SerializationSignatureFlag;
 static const SerializationSignatureFlag WITH_SIGNATURES = true;
 static const SerializationSignatureFlag WITHOUT_SIGNATURES = false;
+
+typedef bool ProtoValidationVerbosity;
+static const ProtoValidationVerbosity SILENT = true;
+static const ProtoValidationVerbosity VERBOSE = false;
 
 typedef std::vector<std::shared_ptr<std::string>> DhtResults;
 

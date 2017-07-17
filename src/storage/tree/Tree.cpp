@@ -53,9 +53,7 @@ namespace opentxs
 namespace storage
 {
 
-Tree::Tree(
-    const StorageDriver& storage,
-    const std::string& hash)
+Tree::Tree(const StorageDriver& storage, const std::string& hash)
     : Node(storage, hash)
 {
     if (check_hash(hash)) {
@@ -236,7 +234,7 @@ bool Tree::save(const std::unique_lock<std::mutex>& lock) const
 
     auto serialized = serialize();
 
-    if (!proto::Check(serialized, version_, version_)) {
+    if (!proto::Validate(serialized, VERBOSE)) {
         return false;
     }
 

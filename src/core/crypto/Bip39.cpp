@@ -68,7 +68,9 @@ bool Bip39::DecryptSeed(
     OTPassword& words,
     OTPassword& phrase) const
 {
-    if (!proto::Check(seed, 0, 0xFFFFFFFF)) { return false; }
+    if (!proto::Validate(seed, VERBOSE)) {
+        return false;
+    }
 
     const auto& cwords = seed.words();
     const auto& cphrase = seed.passphrase();
@@ -79,11 +81,7 @@ bool Bip39::DecryptSeed(
     OT_ASSERT(key);
     OT_ASSERT(words.isPassword());
 
-    const bool haveWords =
-        key->Decrypt(
-            seed.words(),
-            reason,
-            words);
+    const bool haveWords = key->Decrypt(seed.words(), reason, words);
 
     if (!haveWords) {
         otErr << __FUNCTION__ << ": Failed to decrypt words." << std::endl;
@@ -94,10 +92,7 @@ bool Bip39::DecryptSeed(
     OT_ASSERT(phrase.isPassword());
 
     if (seed.has_passphrase()) {
-        const bool havePassphrase = key->Decrypt(
-            cphrase,
-            reason,
-            phrase);
+        const bool havePassphrase = key->Decrypt(cphrase, reason, phrase);
 
         if (!havePassphrase) {
             otErr << __FUNCTION__ << ": Failed to decrypt passphrase."
@@ -126,9 +121,8 @@ std::string Bip39::SaveSeed(
     auto fingerprint = OT::App().Crypto().BIP32().SeedToFingerprint(
         EcdsaCurve::SECP256K1, *seed);
     const OTPasswordData reason("Encrypting a new BIP39 seed");
-    auto key = OT::App().Crypto().Symmetric().Key(
-        reason,
-        DEFAULT_ENCRYPTION_MODE);
+    auto key =
+        OT::App().Crypto().Symmetric().Key(reason, DEFAULT_ENCRYPTION_MODE);
 
     OT_ASSERT(key);
 
@@ -141,11 +135,7 @@ std::string Bip39::SaveSeed(
 
     Data empty;
 
-    const bool haveWords = key->Encrypt(
-        words,
-        empty,
-        reason,
-        encryptedWords);
+    const bool haveWords = key->Encrypt(words, empty, reason, encryptedWords);
 
     if (!haveWords) {
         otErr << __FUNCTION__ << ": Failed to encrypt seed." << std::endl;
@@ -153,13 +143,8 @@ std::string Bip39::SaveSeed(
         return "";
     }
 
-    bool havePassphrase = key->Encrypt(
-        passphrase,
-        empty,
-        reason,
-        encryptedPassphrase,
-        false);
-
+    bool havePassphrase =
+        key->Encrypt(passphrase, empty, reason, encryptedPassphrase, false);
 
     if (!havePassphrase) {
         otErr << __FUNCTION__ << ": Failed to encrypt passphrase." << std::endl;
@@ -186,10 +171,7 @@ bool Bip39::SeedToData(
     OT_ASSERT(words.isPassword());
     OT_ASSERT(passphrase.isPassword());
 
-    WordsToSeed(
-        words,
-        output,
-        passphrase);
+    WordsToSeed(words, output, passphrase);
 
     return true;
 }
@@ -206,11 +188,13 @@ std::string Bip39::NewSeed() const
     auto entropy = OT::App().Crypto().AES().InstantiateBinarySecretSP();
 
     if (entropy) {
-        entropy->randomizeMemory(256/8);
+        entropy->randomizeMemory(256 / 8);
         OTPassword words, passphrase;
         passphrase.setPassword(DEFAULT_PASSPHRASE);
 
-        if (!toWords(*entropy, words)) { return ""; }
+        if (!toWords(*entropy, words)) {
+            return "";
+        }
 
         return SaveSeed(words, passphrase);
     } else {
@@ -222,16 +206,20 @@ std::string Bip39::NewSeed() const
 
 std::string Bip39::Passphrase(const std::string& fingerprint) const
 {
-    //TODO: make fingerprint non-const
-    std::string input (fingerprint);
+    // TODO: make fingerprint non-const
+    std::string input(fingerprint);
     std::uint32_t notUsed = 0;
     auto seed = SerializedSeed(input, notUsed);
 
-    if (!seed) { return ""; }
+    if (!seed) {
+        return "";
+    }
 
     OTPassword words, phrase;
 
-    if (!DecryptSeed(*seed, words, phrase)) { return ""; }
+    if (!DecryptSeed(*seed, words, phrase)) {
+        return "";
+    }
 
     return phrase.getPassword();
 }
@@ -246,23 +234,23 @@ std::shared_ptr<OTPassword> Bip39::Seed(
 
     auto serialized = SerializedSeed(fingerprint, index);
 
-        if (serialized) {
-            std::unique_ptr<OTPassword>
-                seed(OT::App().Crypto().AES().InstantiateBinarySecret());
+    if (serialized) {
+        std::unique_ptr<OTPassword> seed(
+            OT::App().Crypto().AES().InstantiateBinarySecret());
 
-            OT_ASSERT(seed);
+        OT_ASSERT(seed);
 
-            OTPassword words, passphrase;
-            const bool decrypted = DecryptSeed(*serialized, words, passphrase);
+        OTPassword words, passphrase;
+        const bool decrypted = DecryptSeed(*serialized, words, passphrase);
 
-            OT_ASSERT(decrypted);
+        OT_ASSERT(decrypted);
 
-            bool extracted = SeedToData(words, passphrase, *seed);
+        bool extracted = SeedToData(words, passphrase, *seed);
 
-            if (extracted) {
-                output.reset(seed.release());
-            }
+        if (extracted) {
+            output.reset(seed.release());
         }
+    }
 
     return output;
 }
@@ -291,7 +279,7 @@ std::shared_ptr<proto::Seed> Bip39::SerializedSeed(
 
         // Update to correct value
         fingerprint = defaultFingerprint;
-    } else { // want an explicitly identified seed
+    } else {  // want an explicitly identified seed
         OT::App().DB().Load(fingerprint, serialized);
     }
 
@@ -323,19 +311,23 @@ bool Bip39::UpdateIndex(std::string& seed, const std::uint32_t index) const
 
 std::string Bip39::Words(const std::string& fingerprint) const
 {
-    //TODO: make fingerprint non-const
-    std::string input (fingerprint);
+    // TODO: make fingerprint non-const
+    std::string input(fingerprint);
     std::uint32_t notUsed;
     auto seed = SerializedSeed(input, notUsed);
 
-    if (!seed) { return ""; }
+    if (!seed) {
+        return "";
+    }
 
     OTPassword words, phrase;
 
-    if (!DecryptSeed(*seed, words, phrase)) { return ""; }
+    if (!DecryptSeed(*seed, words, phrase)) {
+        return "";
+    }
 
     return words.getPassword();
 }
 
-} // namespace opentxs
+}  // namespace opentxs
 #endif

@@ -302,11 +302,10 @@ bool UnitDefinition::VisitAccountRecords(AccountVisitor& visitor) const
     String strAcctRecordFile;
     strAcctRecordFile.Format("%s.a", strInstrumentDefinitionID.Get());
 
-    std::unique_ptr<OTDB::Storable> pStorable(
-        OTDB::QueryObject(
-            OTDB::STORED_OBJ_STRING_MAP,
-            OTFolders::Contract().Get(),
-            strAcctRecordFile.Get()));
+    std::unique_ptr<OTDB::Storable> pStorable(OTDB::QueryObject(
+        OTDB::STORED_OBJ_STRING_MAP,
+        OTFolders::Contract().Get(),
+        strAcctRecordFile.Get()));
 
     OTDB::StringMap* pMap = dynamic_cast<OTDB::StringMap*>(pStorable.get());
 
@@ -613,10 +612,10 @@ UnitDefinition::UnitDefinition(
     const std::string& name,
     const std::string& symbol,
     const std::string& terms)
-        : ot_super(nym)
-        , primary_unit_name_(name)
-        , short_name_(shortname)
-        , primary_unit_symbol_(symbol)
+    : ot_super(nym)
+    , primary_unit_name_(name)
+    , short_name_(shortname)
+    , primary_unit_symbol_(symbol)
 {
     version_ = 1;
     conditions_ = terms;
@@ -631,9 +630,8 @@ UnitDefinition::UnitDefinition(
         id_ = Identifier(serialized.id());
     }
     if (serialized.has_signature()) {
-        signatures_.push_front(
-            SerializedSignature(
-                std::make_shared<proto::Signature>(serialized.signature())));
+        signatures_.push_front(SerializedSignature(
+            std::make_shared<proto::Signature>(serialized.signature())));
     }
     if (serialized.has_version()) {
         version_ = serialized.version();
@@ -662,25 +660,32 @@ UnitDefinition* UnitDefinition::Create(
     const uint32_t& power,
     const std::string& fraction)
 {
-    std::unique_ptr<UnitDefinition> contract(
-        new CurrencyContract(
-            nym, shortname, name, symbol, terms, tla, power, fraction));
+    std::unique_ptr<UnitDefinition> contract(new CurrencyContract(
+        nym, shortname, name, symbol, terms, tla, power, fraction));
 
-    if (!contract) { return nullptr; }
+    if (!contract) {
+        return nullptr;
+    }
 
     Lock lock(contract->lock_);
 
-    if (!contract->CalculateID(lock)) { return nullptr; }
+    if (!contract->CalculateID(lock)) {
+        return nullptr;
+    }
 
     if (contract->nym_) {
         auto serialized = contract->SigVersion(lock);
         std::shared_ptr<proto::Signature> sig =
             std::make_shared<proto::Signature>();
 
-        if (!contract->update_signature(lock)) { return nullptr; }
+        if (!contract->update_signature(lock)) {
+            return nullptr;
+        }
     }
 
-    if (!contract->validate(lock)) { return nullptr; }
+    if (!contract->validate(lock)) {
+        return nullptr;
+    }
 
     contract->alias_ = contract->short_name_;
 
@@ -712,10 +717,14 @@ UnitDefinition* UnitDefinition::Create(
         std::shared_ptr<proto::Signature> sig =
             std::make_shared<proto::Signature>();
 
-        if (!contract->update_signature(lock)) { return nullptr; }
+        if (!contract->update_signature(lock)) {
+            return nullptr;
+        }
     }
 
-    if (!contract->validate(lock)) { return nullptr; }
+    if (!contract->validate(lock)) {
+        return nullptr;
+    }
 
     contract->alias_ = contract->short_name_;
 
@@ -743,7 +752,8 @@ UnitDefinition* UnitDefinition::Factory(
     const ConstNym& nym,
     const proto::UnitDefinition& serialized)
 {
-    if (!proto::Check<proto::UnitDefinition>(serialized, 0, 0xFFFFFFFF, true)) {
+    if (!proto::Validate<proto::UnitDefinition>(serialized, VERBOSE, true)) {
+
         return nullptr;
     }
 
@@ -767,11 +777,15 @@ UnitDefinition* UnitDefinition::Factory(
             return nullptr;
     }
 
-    if (!contract) { return nullptr; }
+    if (!contract) {
+        return nullptr;
+    }
 
     Lock lock(contract->lock_);
 
-    if (!contract->validate(lock)) { return nullptr; }
+    if (!contract->validate(lock)) {
+        return nullptr;
+    }
 
     contract->alias_ = contract->short_name_;
 
@@ -857,7 +871,9 @@ void UnitDefinition::SetAlias(const std::string& alias)
 
 bool UnitDefinition::update_signature(const Lock& lock)
 {
-    if (!ot_super::update_signature(lock)) { return false; }
+    if (!ot_super::update_signature(lock)) {
+        return false;
+    }
 
     bool success = false;
     signatures_.clear();
@@ -869,8 +885,7 @@ bool UnitDefinition::update_signature(const Lock& lock)
     if (success) {
         signatures_.emplace_front(new proto::Signature(signature));
     } else {
-        otErr << __FUNCTION__ << ": failed to create signature."
-                << std::endl;
+        otErr << __FUNCTION__ << ": failed to create signature." << std::endl;
     }
 
     return success;
@@ -884,7 +899,7 @@ bool UnitDefinition::validate(const Lock& lock) const
         validNym = nym_->VerifyPseudonym();
     }
 
-    const bool validSyntax = proto::Check(contract(lock), 0, 0xFFFFFFFF, true);
+    const bool validSyntax = proto::Validate(contract(lock), VERBOSE, true);
 
     if (1 > signatures_.size()) {
         otErr << __FUNCTION__ << ": Missing signature." << std::endl;
@@ -906,13 +921,16 @@ bool UnitDefinition::verify_signature(
     const Lock& lock,
     const proto::Signature& signature) const
 {
-    if (!ot_super::verify_signature(lock, signature)) { return false; }
+    if (!ot_super::verify_signature(lock, signature)) {
+        return false;
+    }
 
     auto serialized = SigVersion(lock);
     auto& sigProto = *serialized.mutable_signature();
     sigProto.CopyFrom(signature);
 
-    return nym_->VerifyProto(serialized, sigProto);;
+    return nym_->VerifyProto(serialized, sigProto);
+    ;
 }
 
 proto::UnitDefinition UnitDefinition::PublicContract() const

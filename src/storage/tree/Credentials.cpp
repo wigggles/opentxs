@@ -46,9 +46,7 @@ namespace opentxs
 {
 namespace storage
 {
-Credentials::Credentials(
-    const StorageDriver& storage,
-    const std::string& hash)
+Credentials::Credentials(const StorageDriver& storage, const std::string& hash)
     : Node(storage, hash)
 {
     if (check_hash(hash)) {
@@ -162,7 +160,7 @@ bool Credentials::save(const std::unique_lock<std::mutex>& lock) const
 
     auto serialized = serialize();
 
-    if (!proto::Check(serialized, version_, version_)) {
+    if (!proto::Validate(serialized, VERBOSE)) {
         return false;
     }
 

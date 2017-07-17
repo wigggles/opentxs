@@ -93,7 +93,9 @@ namespace opentxs
 bool MasterCredential::verify_internally(const Lock& lock) const
 {
     // Perform common Key Credential verifications
-    if (!ot_super::verify_internally(lock)) { return false; }
+    if (!ot_super::verify_internally(lock)) {
+        return false;
+    }
 
     // Check that the source validates this credential
     if (!verify_against_source(lock)) {
@@ -111,13 +113,15 @@ bool MasterCredential::verify_against_source(const Lock& lock) const
     std::shared_ptr<proto::Credential> serialized;
 
     switch (owner_backlink_->Source().Type()) {
-        case proto::SOURCETYPE_PUBKEY : {
+        case proto::SOURCETYPE_PUBKEY: {
             serialized = serialize(lock, AS_PUBLIC, WITH_SIGNATURES);
         } break;
-        case proto::SOURCETYPE_BIP47 : {
+        case proto::SOURCETYPE_BIP47: {
             serialized = serialize(lock, AS_PUBLIC, WITHOUT_SIGNATURES);
         } break;
-        default : { return false ; }
+        default: {
+            return false;
+        }
     }
 
     auto sourceSig = SourceSignature();
@@ -177,9 +181,8 @@ MasterCredential::MasterCredential(
         sourceProof->set_type(proto::SOURCEPROOFTYPE_SIGNATURE);
 
         std::unique_ptr<PaymentCode> bip47Source;
-        bip47Source.reset(new PaymentCode(
-            nymParameters.Seed(),
-            nymParameters.Nym()));
+        bip47Source.reset(
+            new PaymentCode(nymParameters.Seed(), nymParameters.Nym()));
 
         source = std::make_shared<NymIDSource>(bip47Source);
     }
@@ -194,7 +197,9 @@ MasterCredential::MasterCredential(
 
 bool MasterCredential::New(const NymParameters& nymParameters)
 {
-    if (!ot_super::New(nymParameters)) { return false; }
+    if (!ot_super::New(nymParameters)) {
+        return false;
+    }
 
     if (proto::SOURCEPROOFTYPE_SELF_SIGNATURE != source_proof_->type()) {
         SerializedSignature sig = std::make_shared<proto::Signature>();
@@ -217,8 +222,8 @@ serializedCredential MasterCredential::serialize(
 {
     auto serializedCredential = ot_super::serialize(lock, asPrivate, asSigned);
 
-    std::unique_ptr<proto::MasterCredentialParameters>
-        parameters(new proto::MasterCredentialParameters);
+    std::unique_ptr<proto::MasterCredentialParameters> parameters(
+        new proto::MasterCredentialParameters);
 
     OT_ASSERT(parameters);
 
@@ -240,17 +245,11 @@ bool MasterCredential::Verify(
     const Identifier& masterID,
     const proto::Signature& masterSig) const
 {
-    if (!proto::Check<proto::Credential>(
-            credential,
-            0,
-            0xFFFFFFFF,
-            proto::KEYMODE_PUBLIC,
-            role,
-            false)) {
-                otErr << __FUNCTION__ << ": Invalid credential syntax."
-                      << std::endl;
+    if (!proto::Validate<proto::Credential>(
+            credential, VERBOSE, proto::KEYMODE_PUBLIC, role, false)) {
+        otErr << __FUNCTION__ << ": Invalid credential syntax." << std::endl;
 
-                return false;
+        return false;
     }
 
     bool sameMaster = (id_ == masterID);
@@ -274,14 +273,15 @@ bool MasterCredential::Verify(
 bool MasterCredential::hasCapability(const NymCapability& capability) const
 {
     switch (capability) {
-        case (NymCapability::SIGN_CHILDCRED) : {
+        case (NymCapability::SIGN_CHILDCRED): {
             if (m_SigningKey) {
                 return m_SigningKey->hasCapability(capability);
             }
 
             break;
         }
-        default : {}
+        default: {
+        }
     }
 
     return false;

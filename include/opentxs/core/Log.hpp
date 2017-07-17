@@ -64,6 +64,7 @@ namespace opentxs
 typedef std::deque<String*> dequeOfStrings;
 
 class OTLogStream;
+class Settings;
 
 #ifdef _WIN32
 #ifdef OTLOG_IMPORT
@@ -79,9 +80,9 @@ class OTLogStream;
 #endif
 
 OTLOG_IMPORT extern OTLogStream otErr;   // logs using OTLog::vError()
-OTLOG_IMPORT extern OTLogStream otInfo;  // logs using OTLog::vOutput(2)
 OTLOG_IMPORT extern OTLogStream otOut;   // logs using OTLog::vOutput(0)
 OTLOG_IMPORT extern OTLogStream otWarn;  // logs using OTLog::vOutput(1)
+OTLOG_IMPORT extern OTLogStream otInfo;  // logs using OTLog::vOutput(2)
 OTLOG_IMPORT extern OTLogStream otLog3;  // logs using OTLog::vOutput(3)
 OTLOG_IMPORT extern OTLogStream otLog4;  // logs using OTLog::vOutput(4)
 OTLOG_IMPORT extern OTLogStream otLog5;  // logs using OTLog::vOutput(5)
@@ -100,36 +101,40 @@ public:
     virtual int overflow(int c) override;
 };
 
-// cppcheck-suppress noConstructor
 class Log
 {
 private:
     static Log* pLogger;
-
     static const String m_strVersion;
     static const String m_strPathSeparator;
 
-    dequeOfStrings logDeque;
-
-    String m_strThreadContext;
-    String m_strLogFileName;
-    String m_strLogFilePath;
-
-    int32_t m_nLogLevel{0};
-
+    Settings& config_;
+    std::int32_t m_nLogLevel{0};
     bool m_bInitialized{false};
+    bool write_log_file_{false};
+    String m_strThreadContext{""};
+    String m_strLogFileName{""};
+    String m_strLogFilePath{""};
+    dequeOfStrings logDeque{};
 
     /** For things that represent internal inconsistency in the code. Normally
      * should NEVER happen even with bad input from user. (Don't call this
      * directly. Use the above #defined macro instead.) */
     static Assert::fpt_Assert_sz_n_sz(logAssert);
-
     static bool CheckLogger(Log* pLogger);
+
+    Log(Settings& config);
+    Log() = delete;
+    Log(const Log&) = delete;
+    Log(Log&&) = delete;
+    Log& operator=(const Log&) = delete;
+    Log& operator=(Log&&) = delete;
 
 public:
     /** now the logger checks the global config file itself for the
      * log-filename. */
     EXPORT static bool Init(
+        Settings& config,
         const String& strThreadContext = "",
         const int32_t& nLogLevel = 0);
 

@@ -50,9 +50,7 @@ namespace opentxs
 {
 namespace storage
 {
-Nyms::Nyms(
-    const StorageDriver& storage,
-    const std::string& hash)
+Nyms::Nyms(const StorageDriver& storage, const std::string& hash)
     : Node(storage, hash)
 {
     if (check_hash(hash)) {
@@ -87,7 +85,8 @@ void Nyms::init(const std::string& hash)
     }
 }
 
-void Nyms::Map(NymLambda lambda) const {
+void Nyms::Map(NymLambda lambda) const
+{
     std::unique_lock<std::mutex> lock(write_lock_);
     const auto copy = item_map_;
     write_lock_.unlock();
@@ -99,7 +98,9 @@ void Nyms::Map(NymLambda lambda) const {
 
         std::shared_ptr<proto::CredentialIndex> serialized;
 
-        if (Node::BLANK_HASH == hash) { continue; }
+        if (Node::BLANK_HASH == hash) {
+            continue;
+        }
 
         if (driver_.LoadProto(hash, serialized, false)) {
             lambda(*serialized);
@@ -163,7 +164,7 @@ bool Nyms::save(const std::unique_lock<std::mutex>& lock) const
 
     auto serialized = serialize();
 
-    if (!proto::Check(serialized, version_, version_)) {
+    if (!proto::Validate(serialized, VERBOSE)) {
         return false;
     }
 

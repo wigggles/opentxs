@@ -182,10 +182,10 @@ const serializedCredential CredentialSet::GetSerializedPubCredential() const
 CredentialSet::CredentialSet(
     const proto::KeyMode mode,
     const proto::CredentialSet& serializedCredentialSet)
-        : m_strNymID(String(serializedCredentialSet.nymid()))
-        , version_(serializedCredentialSet.version())
-        , index_(serializedCredentialSet.index())
-        , mode_(mode)
+    : m_strNymID(String(serializedCredentialSet.nymid()))
+    , version_(serializedCredentialSet.version())
+    , index_(serializedCredentialSet.index())
+    , mode_(mode)
 {
     if (proto::CREDSETMODE_INDEX == serializedCredentialSet.mode()) {
         Load_Master(
@@ -213,8 +213,8 @@ CredentialSet::CredentialSet(
 CredentialSet::CredentialSet(
     const NymParameters& nymParameters,
     const OTPasswordData*)
-        : version_(2)
-        , mode_(proto::KEYMODE_PRIVATE)
+    : version_(2)
+    , mode_(proto::KEYMODE_PRIVATE)
 {
     CreateMasterCredential(nymParameters);
 
@@ -313,7 +313,7 @@ bool CredentialSet::CreateMasterCredential(const NymParameters& nymParameters)
     }
 
     otErr << __FUNCTION__ << ": Failed to instantiate master credential."
-            << std::endl;
+          << std::endl;
 
     return false;
 }
@@ -515,8 +515,7 @@ bool CredentialSet::Load_MasterFromString(
 
     if (!m_MasterCredential) {
         otErr << __FUNCTION__
-              << ": Failed to construct credential from protobuf."
-              << std::endl;
+              << ": Failed to construct credential from protobuf." << std::endl;
 
         return false;
     }
@@ -563,7 +562,9 @@ bool CredentialSet::LoadChildKeyCredentialFromString(
     serializedCredential serialized =
         Credential::ExtractArmoredCredential(strInput);
 
-    if (!serialized) { return false; }
+    if (!serialized) {
+        return false;
+    }
 
     auto child = Credential::Factory(*this, *serialized, mode_);
 
@@ -597,8 +598,8 @@ bool CredentialSet::LoadChildKeyCredential(
     const proto::Credential& serializedCred)
 {
 
-    bool validProto = proto::Check<proto::Credential>(
-        serializedCred, 0, 0xFFFFFFFF, mode_, proto::CREDROLE_ERROR, true);
+    bool validProto = proto::Validate<proto::Credential>(
+        serializedCred, VERBOSE, mode_, proto::CREDROLE_ERROR, true);
 
     if (!validProto) {
         otErr << __FUNCTION__ << ": Invalid serialized child key credential.\n";
@@ -874,10 +875,7 @@ const OTAsymmetricKey& CredentialSet::GetPrivateSignKey(
 
 CredentialSet::~CredentialSet() { ClearChildCredentials(); }
 
-void CredentialSet::ClearChildCredentials()
-{
-    m_mapCredentials.clear();
-}
+void CredentialSet::ClearChildCredentials() { m_mapCredentials.clear(); }
 
 // listRevokedIDs should contain a list of std::strings for IDs of
 // already-revoked child credentials.
@@ -908,16 +906,12 @@ void CredentialSet::SerializeIDs(
         parent.add_tag(pTag);
 
         if (nullptr != pmapPubInfo)  // optional out-param.
-            pmapPubInfo->insert(
-                std::pair<std::string, std::string>(
-                    GetMasterCredID().Get(),
-                    m_MasterCredential->asString(false)));
+            pmapPubInfo->insert(std::pair<std::string, std::string>(
+                GetMasterCredID().Get(), m_MasterCredential->asString(false)));
 
         if (nullptr != pmapPriInfo)  // optional out-param.
-            pmapPriInfo->insert(
-                std::pair<std::string, std::string>(
-                    GetMasterCredID().Get(),
-                    m_MasterCredential->asString(true)));
+            pmapPriInfo->insert(std::pair<std::string, std::string>(
+                GetMasterCredID().Get(), m_MasterCredential->asString(true)));
     }
 
     for (const auto& it : m_mapCredentials) {
@@ -960,14 +954,12 @@ void CredentialSet::SerializeIDs(
             parent.add_tag(pTag);
 
             if (nullptr != pmapPubInfo)  // optional out-param.
-                pmapPubInfo->insert(
-                    std::pair<std::string, std::string>(
-                        str_cred_id.c_str(), pSub->asString(false)));
+                pmapPubInfo->insert(std::pair<std::string, std::string>(
+                    str_cred_id.c_str(), pSub->asString(false)));
 
             if (nullptr != pmapPriInfo)  // optional out-param.
-                pmapPriInfo->insert(
-                    std::pair<std::string, std::string>(
-                        str_cred_id.c_str(), pSub->asString(true)));
+                pmapPriInfo->insert(std::pair<std::string, std::string>(
+                    str_cred_id.c_str(), pSub->asString(true)));
 
         }  // if (bChildCredValid)
     }
@@ -985,7 +977,7 @@ bool CredentialSet::WriteCredentials() const
     for (auto& it : m_mapCredentials) {
         if (!it.second->Save()) {
             otErr << __FUNCTION__ << ": Failed to save child credential."
-              << std::endl;
+                  << std::endl;
 
             return false;
         }
@@ -1030,15 +1022,13 @@ SerializedCredentialSet CredentialSet::Serialize(
 
         for (auto& it : m_mapCredentials) {
             pChildCred.reset(credSet->add_activechildren());
-            *pChildCred =
-                *(it.second->Serialized(AS_PUBLIC, WITH_SIGNATURES));
+            *pChildCred = *(it.second->Serialized(AS_PUBLIC, WITH_SIGNATURES));
             pChildCred.release();
         }
 
         for (auto& it : m_mapRevokedCredentials) {
             pChildCred.reset(credSet->add_revokedchildren());
-            *pChildCred =
-                *(it.second->Serialized(AS_PUBLIC, WITH_SIGNATURES));
+            *pChildCred = *(it.second->Serialized(AS_PUBLIC, WITH_SIGNATURES));
             pChildCred.release();
         }
     }
@@ -1122,7 +1112,9 @@ void CredentialSet::RevokeVerificationCredentials(
 
 bool CredentialSet::AddContactCredential(const proto::ContactData& contactData)
 {
-    if (!m_MasterCredential) { return false; }
+    if (!m_MasterCredential) {
+        return false;
+    }
 
     NymParameters nymParameters;
     nymParameters.SetContactData(contactData);
@@ -1130,7 +1122,9 @@ bool CredentialSet::AddContactCredential(const proto::ContactData& contactData)
     std::unique_ptr<Credential> newChildCredential =
         Credential::Create<ContactCredential>(*this, nymParameters);
 
-    if (!newChildCredential) { return false; }
+    if (!newChildCredential) {
+        return false;
+    }
 
     auto& it = m_mapCredentials[String(newChildCredential->ID()).Get()];
     it.swap(newChildCredential);
@@ -1141,7 +1135,9 @@ bool CredentialSet::AddContactCredential(const proto::ContactData& contactData)
 bool CredentialSet::AddVerificationCredential(
     const proto::VerificationSet& verificationSet)
 {
-    if (!m_MasterCredential) { return false; }
+    if (!m_MasterCredential) {
+        return false;
+    }
 
     NymParameters nymParameters;
     nymParameters.SetVerificationSet(verificationSet);
@@ -1149,7 +1145,9 @@ bool CredentialSet::AddVerificationCredential(
     std::unique_ptr<Credential> newChildCredential =
         Credential::Create<VerificationCredential>(*this, nymParameters);
 
-    if (!newChildCredential) { return false; }
+    if (!newChildCredential) {
+        return false;
+    }
 
     auto& it = m_mapCredentials[String(newChildCredential->ID()).Get()];
     it.swap(newChildCredential);
@@ -1202,9 +1200,7 @@ bool CredentialSet::Verify(const proto::Verification& item) const
     return Verify(proto::ProtoAsData(serialized), signatureCopy);
 }
 
-bool CredentialSet::TransportKey(
-    Data& publicKey,
-    OTPassword& privateKey) const
+bool CredentialSet::TransportKey(Data& publicKey, OTPassword& privateKey) const
 {
     bool haveKey = false;
 
@@ -1215,13 +1211,13 @@ bool CredentialSet::TransportKey(
             const Credential& childCred = *it.second;
 
             if (childCred.hasCapability(
-                NymCapability::AUTHENTICATE_CONNECTION)) {
-                    if (childCred.TransportKey(publicKey, privateKey)) {
+                    NymCapability::AUTHENTICATE_CONNECTION)) {
+                if (childCred.TransportKey(publicKey, privateKey)) {
 
-                        return true;
-                    }
+                    return true;
+                }
 
-                    OT_FAIL;
+                OT_FAIL;
             }
         }
     }
@@ -1235,15 +1231,17 @@ bool CredentialSet::TransportKey(
 bool CredentialSet::hasCapability(const NymCapability& capability) const
 {
     switch (capability) {
-        case (NymCapability::SIGN_CHILDCRED) : {
+        case (NymCapability::SIGN_CHILDCRED): {
             if (m_MasterCredential) {
                 return m_MasterCredential->hasCapability(capability);
             }
             break;
         }
-        case (NymCapability::SIGN_MESSAGE) : {}
-        case (NymCapability::ENCRYPT_MESSAGE) : {}
-        case (NymCapability::AUTHENTICATE_CONNECTION) : {
+        case (NymCapability::SIGN_MESSAGE): {
+        }
+        case (NymCapability::ENCRYPT_MESSAGE): {
+        }
+        case (NymCapability::AUTHENTICATE_CONNECTION): {
             for (auto& childCred : m_mapCredentials) {
                 if (nullptr != childCred.second) {
                     if (childCred.second->hasCapability(capability)) {
@@ -1254,7 +1252,8 @@ bool CredentialSet::hasCapability(const NymCapability& capability) const
 
             break;
         }
-        default : {}
+        default: {
+        }
     }
 
     return false;

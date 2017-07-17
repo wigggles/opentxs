@@ -1307,9 +1307,8 @@ bool UserCommandProcessor::cmd_issue_basket(ReplyMessage& reply) const
 
     auto serialized =
         proto::DataToProto<proto::UnitDefinition>(Data(msgIn.m_ascPayload));
-    const auto ver = serialized.version();
 
-    if (false == proto::Check(serialized, ver, ver)) {
+    if (false == proto::Validate(serialized, VERBOSE)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Invalid contract."
               << std::endl;
 
