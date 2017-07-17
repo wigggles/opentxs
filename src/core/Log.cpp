@@ -40,6 +40,7 @@
 
 #include "opentxs/core/Log.hpp"
 
+#include "opentxs/api/OT.hpp"
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
@@ -120,13 +121,15 @@ struct sigcontext {
 #define LOGFILE_EXT ".log"
 #define GLOBAL_LOGNAME "init"
 #define GLOBAL_LOGFILE "init.log"
+#define CONFIG_LOG_SECTION "logging"
+#define CONFIG_LOG_TO_FILE_KEY "log_to_file"
 
 //  OTLog Static Variables and Constants.
 
 namespace opentxs
 {
 
-Log* Log::pLogger = nullptr;
+Log* Log::pLogger{nullptr};
 
 const String Log::m_strVersion = OPENTXS_VERSION_STRING;
 const String Log::m_strPathSeparator = "/";
@@ -172,13 +175,24 @@ int OTLogStream::overflow(int c)
     return 0;
 }
 
+Log::Log(Settings& config)
+    : config_(config)
+{
+    bool notUsed{false};
+    config_.Check_bool(
+        CONFIG_LOG_SECTION, CONFIG_LOG_TO_FILE_KEY, write_log_file_, notUsed);
+}
+
 //  OTLog Init, must run this before using any OTLog function.
 
 // static
-bool Log::Init(const String& strThreadContext, const int32_t& nLogLevel)
+bool Log::Init(
+    Settings& config,
+    const String& strThreadContext,
+    const int32_t& nLogLevel)
 {
     if (nullptr == pLogger) {
-        pLogger = new Log;
+        pLogger = new Log(config);
         pLogger->m_bInitialized = false;
     }
 
@@ -337,6 +351,11 @@ bool Log::LogToFile(const String& strOutput)
     bool bSuccess = false;
 
     if (bHaveLogger) {
+        if (false == pLogger->write_log_file_) {
+
+            return true;
+        }
+
         // Append to logfile
         if ((strOutput.Exists()) && (Log::pLogger->m_strLogFilePath.Exists())) {
             std::ofstream logfile;

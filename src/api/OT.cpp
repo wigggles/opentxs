@@ -95,6 +95,7 @@ void OT::Factory(const bool serverMode)
 void OT::Init()
 {
     Init_Config();
+    Init_Log();  // requires Init_Config()
     Init_Crypto();
     Init_Storage();  // requires Init_Config()
     Init_Dht();      // requires Init_Config()
@@ -131,7 +132,8 @@ void OT::Init_Config()
     if (!server_mode_) {
         if (!OTDataFolder::Init(CLIENT_CONFIG_KEY)) {
             otErr << __FUNCTION__ << ": Unable to Init data folders";
-            OT_FAIL;
+
+            abort();
         }
     }
 
@@ -145,6 +147,21 @@ void OT::Init_Contracts() { contract_manager_.reset(new class Wallet(*this)); }
 void OT::Init_Crypto() { crypto_.reset(&CryptoEngine::It()); }
 
 void OT::Init_Identity() { identity_.reset(new class Identity); }
+
+void OT::Init_Log()
+{
+    std::string type{};
+
+    if (server_mode_) {
+        type = "server";
+    } else {
+        type = "client";
+    }
+
+    if (false == Log::Init(Config(), type.c_str())) {
+        abort();
+    }
+}
 
 void OT::Init_Storage()
 {
@@ -557,6 +574,7 @@ void OT::Shutdown()
     dht_.reset();
     storage_.reset();
     crypto_.reset();
+    Log::Cleanup();
 
     for (auto& config : config_) {
         config.second.reset();
