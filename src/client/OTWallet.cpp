@@ -52,9 +52,6 @@
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/crypto/OTSymmetricKey.hpp"
-#ifdef ANDROID
-#include "opentxs/core/util/android_string.hpp"
-#endif // ANDROID
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/OTDataFolder.hpp"
 #include "opentxs/core/util/Tag.hpp"
@@ -263,8 +260,7 @@ Nym* OTWallet::GetPrivateNymByID(const Identifier& NYM_ID)
         if (it) {
             output = it.get();
         }
-    }
-    catch (const std::out_of_range) {
+    } catch (const std::out_of_range) {
         output = nullptr;
     }
 
@@ -810,8 +806,7 @@ bool OTWallet::RemoveNym(
         }
 
         return true;
-    }
-    catch (std::out_of_range) {
+    } catch (std::out_of_range) {
 
         return false;
     }
@@ -1385,9 +1380,8 @@ bool OTWallet::LoadWallet(const char* szFilename)
                                                      "symmetricKey ID (it was "
                                                      "blank.)\n";
 
-                        else if (
-                            Contract::LoadEncodedTextField(
-                                xml, ascSymmetricKey)) {
+                        else if (Contract::LoadEncodedTextField(
+                                     xml, ascSymmetricKey)) {
                             std::shared_ptr<OTSymmetricKey> pKey(
                                 new OTSymmetricKey);
 
@@ -1515,9 +1509,8 @@ bool OTWallet::LoadWallet(const char* szFilename)
                     // individually for each seed rather than globally in the
                     // wallet (which assumed only one seed existed).
                     else if (strNodeName.Compare("hd")) {
-                        std::uint32_t index =
-                            String::StringToUint(
-                                xml->getAttributeValue("index"));
+                        std::uint32_t index = String::StringToUint(
+                            xml->getAttributeValue("index"));
                         // An empty string will load the default seed
                         std::string seed = "";
                         OT::App().Crypto().BIP39().UpdateIndex(seed, index);
@@ -1543,8 +1536,7 @@ bool OTWallet::LoadWallet(const char* szFilename)
         for (auto& it : m_mapPrivateNyms) {
             auto& pNym = it.second;
 
-            if (pNym &&
-                pNym->hasCapability(NymCapability::SIGN_MESSAGE) &&
+            if (pNym && pNym->hasCapability(NymCapability::SIGN_MESSAGE) &&
                 ConvertNymToCachedKey(*pNym))  // Internally this is smart
                                                // enough to only convert
                                                // the unconverted.

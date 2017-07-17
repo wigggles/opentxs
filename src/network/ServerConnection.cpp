@@ -52,10 +52,6 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/network/ZMQ.hpp"
 
-#ifdef ANDROID
-#include "opentxs/core/util/android_string.hpp"
-#endif
-
 #include <chrono>
 #include <cstdint>
 
@@ -308,8 +304,7 @@ void ServerConnection::SetTimeouts()
 {
     zsock_set_linger(request_socket_, zmq_.Linger().count());
     zsock_set_sndtimeo(request_socket_, zmq_.SendTimeout().count());
-    zsock_set_rcvtimeo(
-        request_socket_, zmq_.ReceiveTimeout().count());
+    zsock_set_rcvtimeo(request_socket_, zmq_.ReceiveTimeout().count());
     zcert_apply(zcert_new(), request_socket_);
 }
 

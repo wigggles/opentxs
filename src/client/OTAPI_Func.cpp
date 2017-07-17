@@ -45,9 +45,6 @@
 #include "opentxs/client/Utility.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/core/script/OTVariable.hpp"
-#ifdef ANDROID
-#include "opentxs/core/util/android_string.hpp"
-#endif  // ANDROID
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"

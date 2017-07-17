@@ -46,9 +46,6 @@
 #include "opentxs/core/crypto/Ecdsa.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
-#ifdef ANDROID
-#include "opentxs/core/util/android_string.hpp"
-#endif // ANDROID
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -64,14 +61,14 @@ extern "C" {
 namespace opentxs
 {
 AsymmetricKeyEC::AsymmetricKeyEC(
-    const proto::AsymmetricKeyType keyType, const proto::KeyRole role)
-        : ot_super(keyType, role)
+    const proto::AsymmetricKeyType keyType,
+    const proto::KeyRole role)
+    : ot_super(keyType, role)
 {
 }
 
-AsymmetricKeyEC::AsymmetricKeyEC(
-    const proto::AsymmetricKey& serializedKey)
-        : ot_super(serializedKey)
+AsymmetricKeyEC::AsymmetricKeyEC(const proto::AsymmetricKey& serializedKey)
+    : ot_super(serializedKey)
 {
     m_keyType = serializedKey.type();
 
@@ -104,7 +101,7 @@ AsymmetricKeyEC::AsymmetricKeyEC(
 AsymmetricKeyEC::AsymmetricKeyEC(
     const proto::AsymmetricKeyType keyType,
     const String& publicKey)
-        : AsymmetricKeyEC(keyType, proto::KEYROLE_ERROR)
+    : AsymmetricKeyEC(keyType, proto::KEYROLE_ERROR)
 {
     m_keyType = proto::AKEYTYPE_SECP256K1;
 
@@ -173,8 +170,8 @@ const std::string AsymmetricKeyEC::Path() const
                     path.Concatenate(String(std::to_string(it)));
                 } else {
                     path.Concatenate(String(std::to_string(
-                            it -
-                            static_cast<std::uint32_t>(Bip32Child::HARDENED))));
+                        it -
+                        static_cast<std::uint32_t>(Bip32Child::HARDENED))));
                     path.Concatenate("'");
                 }
             }
@@ -234,9 +231,7 @@ bool AsymmetricKeyEC::ReEncryptPrivateKey(
             if (bImporting) {
                 thePWData.ClearOverride();
                 reencrypted = ECDSA().ECPrivatekeyToAsymmetricKey(
-                    pClearKey,
-                    thePWData,
-                    *const_cast<AsymmetricKeyEC*>(this));
+                    pClearKey, thePWData, *const_cast<AsymmetricKeyEC*>(this));
             }
 
             // Else if we're exporting, that means we just loaded up the Nym
@@ -246,9 +241,7 @@ bool AsymmetricKeyEC::ReEncryptPrivateKey(
             else {
                 thePWData.SetOverride(theExportPassword);
                 reencrypted = ECDSA().ExportECPrivatekey(
-                    pClearKey,
-                    thePWData,
-                    *const_cast<AsymmetricKeyEC*>(this));
+                    pClearKey, thePWData, *const_cast<AsymmetricKeyEC*>(this));
             }
 
             if (!reencrypted) {
@@ -271,11 +264,11 @@ bool AsymmetricKeyEC::ReEncryptPrivateKey(
 
 void AsymmetricKeyEC::Release()
 {
-    Release_AsymmetricKeyEC(); // My own cleanup is performed here.
+    Release_AsymmetricKeyEC();  // My own cleanup is performed here.
 
     // Next give the base class a chance to do the same...
-    ot_super::Release(); // since I've overridden the base class, I call it
-                         // now...
+    ot_super::Release();  // since I've overridden the base class, I call it
+                          // now...
 }
 
 serializedAsymmetricKey AsymmetricKeyEC::Serialize() const
@@ -304,7 +297,6 @@ serializedAsymmetricKey AsymmetricKeyEC::Serialize() const
         }
     }
 
-
     return serializedKey;
 }
 
@@ -328,17 +320,20 @@ bool AsymmetricKeyEC::SetKey(std::unique_ptr<proto::Ciphertext>& key)
     return true;
 }
 
-bool AsymmetricKeyEC::TransportKey(
-    Data& publicKey,
-    OTPassword& privateKey) const
+bool AsymmetricKeyEC::TransportKey(Data& publicKey, OTPassword& privateKey)
+    const
 {
-    if (!IsPrivate()) { return false; }
+    if (!IsPrivate()) {
+        return false;
+    }
 
-    if (!encrypted_key_) { return false; }
+    if (!encrypted_key_) {
+        return false;
+    }
 
     OTPassword seed;
     ECDSA().AsymmetricKeyToECPrivatekey(*this, "Get transport key", seed);
 
     return ECDSA().SeedToCurveKey(seed, privateKey, publicKey);
 }
-} // namespace opentxs
+}  // namespace opentxs
