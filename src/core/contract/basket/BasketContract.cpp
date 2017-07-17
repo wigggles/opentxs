@@ -71,14 +71,18 @@ bool BasketContract::FinalizeTemplate(
     const ConstNym& nym,
     proto::UnitDefinition& serialized)
 {
-    std::unique_ptr<BasketContract>
-        contract(new BasketContract(nym, serialized));
+    std::unique_ptr<BasketContract> contract(
+        new BasketContract(nym, serialized));
 
-    if (!contract) { return false; }
+    if (!contract) {
+        return false;
+    }
 
     Lock lock(contract->lock_);
 
-    if (!contract->CalculateID(lock)) { return false; }
+    if (!contract->CalculateID(lock)) {
+        return false;
+    }
 
     if (contract->nym_) {
         proto::UnitDefinition basket = contract->SigVersion(lock);
@@ -88,7 +92,7 @@ bool BasketContract::FinalizeTemplate(
             lock.unlock();
             serialized = contract->PublicContract();
 
-            return proto::Check(serialized, 0, 0xFFFFFFFF, false);
+            return proto::Validate(serialized, VERBOSE, false);
         }
     }
 
@@ -98,7 +102,7 @@ bool BasketContract::FinalizeTemplate(
 BasketContract::BasketContract(
     const ConstNym& nym,
     const proto::UnitDefinition serialized)
-        : ot_super(nym, serialized)
+    : ot_super(nym, serialized)
 {
     if (serialized.has_basket()) {
 
@@ -120,8 +124,8 @@ BasketContract::BasketContract(
     const std::string& symbol,
     const std::string& terms,
     const uint64_t weight)
-        : ot_super(nym, shortname, name, symbol, terms)
-        , weight_(weight)
+    : ot_super(nym, shortname, name, symbol, terms)
+    , weight_(weight)
 {
 }
 
@@ -158,4 +162,4 @@ proto::UnitDefinition BasketContract::BasketIDVersion(const Lock& lock) const
     return contract;
 }
 
-} // namespace opentxs
+}  // namespace opentxs

@@ -275,10 +275,9 @@ bool PaymentCode::Verify(
     const proto::Credential& master,
     const proto::Signature& sourceSignature) const
 {
-    if (!proto::Check<proto::Credential>(
+    if (!proto::Validate<proto::Credential>(
             master,
-            0,
-            0xFFFFFFFF,
+            VERBOSE,
             proto::KEYMODE_PUBLIC,
             proto::CREDROLE_MASTERKEY,
             false)) {
@@ -404,7 +403,7 @@ void PaymentCode::ConstructKey(const Data& pubkey)
 
 bool PaymentCode::VerifyInternally() const
 {
-    return (proto::Check<proto::PaymentCode>(*Serialize(), version_, version_));
+    return (proto::Validate<proto::PaymentCode>(*Serialize(), SILENT));
 }
 }  // namespace opentxs
 #endif

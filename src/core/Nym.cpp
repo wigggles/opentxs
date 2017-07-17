@@ -891,8 +891,7 @@ bool Nym::SaveCredentialIDs() const
     GetIdentifier(strNymID);
     serializedCredentialIndex index =
         SerializeCredentialIndex(CREDENTIAL_INDEX_MODE_ONLY_IDS);
-
-    const bool valid = proto::Check(index, index.version(), index.version());
+    const bool valid = proto::Validate(index, VERBOSE);
 
     if (!valid) {
         return false;
@@ -1030,7 +1029,7 @@ serializedCredentialIndex Nym::SerializeCredentialIndex(
 
 bool Nym::LoadCredentialIndex(const serializedCredentialIndex& index)
 {
-    if (!proto::Check<proto::CredentialIndex>(index, 0, 0xFFFFFFFF)) {
+    if (!proto::Validate<proto::CredentialIndex>(index, VERBOSE)) {
         otErr << __FUNCTION__ << ": Unable to load invalid serialized"
               << " credential index." << std::endl;
 

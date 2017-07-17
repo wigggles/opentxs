@@ -46,9 +46,7 @@ namespace opentxs
 {
 namespace storage
 {
-Seeds::Seeds(
-    const StorageDriver& storage,
-    const std::string& hash)
+Seeds::Seeds(const StorageDriver& storage, const std::string& hash)
     : Node(storage, hash)
 {
     if (check_hash(hash)) {
@@ -138,7 +136,7 @@ bool Seeds::save(const std::unique_lock<std::mutex>& lock) const
 
     auto serialized = serialize();
 
-    if (!proto::Check(serialized, version_, version_)) {
+    if (!proto::Validate(serialized, VERBOSE)) {
         return false;
     }
 

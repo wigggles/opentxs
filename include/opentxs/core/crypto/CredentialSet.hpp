@@ -77,12 +77,13 @@
 namespace opentxs
 {
 
+class Credential;
+class ChildKeyCredential;
+class Data;
 class Identifier;
 class Nym;
 class OTPassword;
 class OTPasswordData;
-class Credential;
-class ChildKeyCredential;
 class Tag;
 
 typedef std::map<std::string, std::unique_ptr<Credential>> mapOfCredentials;
@@ -270,69 +271,63 @@ public:
     bool Verify(const proto::Verification& item) const;
     bool TransportKey(Data& publicKey, OTPassword& privateKey) const;
 
-    template<class C>
+    template <class C>
     bool SignProto(
         C& serialized,
         proto::Signature& signature,
         const OTPasswordData* pPWData = nullptr,
         proto::KeyRole key = proto::KEYROLE_SIGN) const
-            {
-                switch (signature.role()) {
-                    case (proto::SIGROLE_PUBCREDENTIAL) : {
-                        if (m_MasterCredential->hasCapability(
-                            NymCapability::SIGN_CHILDCRED)) {
-                                return m_MasterCredential->SignProto<C>(
-                                    serialized,
-                                    signature,
-                                    key,
-                                    pPWData);
-                        }
-
-                        break;
-                    }
-                    case (proto::SIGROLE_NYMIDSOURCE) : {
-                        otErr << __FUNCTION__ << ": Credentials to be signed "
-                              << "with a nym source can not use this method."
-                              << std::endl;
-
-                        return false;
-                    }
-                    case (proto::SIGROLE_PRIVCREDENTIAL) : {
-                        otErr << __FUNCTION__ << ": Private credential can not "
-                              << "use this method." << std::endl;
-
-                        return false;
-                    }
-                    default : {
-                        bool haveSignature = false;
-
-                        for (auto& it: m_mapCredentials) {
-                            auto& credential = it.second;
-
-                            if (nullptr != credential) {
-                                if (credential->hasCapability(
-                                        NymCapability::SIGN_MESSAGE)) {
-                                    const auto keyCredential =
-                                        dynamic_cast<const KeyCredential*>
-                                            (credential.get());
-                                    haveSignature = keyCredential->SignProto<C>(
-                                        serialized,
-                                        signature,
-                                        key,
-                                        pPWData);
-                                }
-
-                                if (haveSignature) {
-
-                                    return true;
-                                }
-                            }
-                        }
-                    }
+    {
+        switch (signature.role()) {
+            case (proto::SIGROLE_PUBCREDENTIAL): {
+                if (m_MasterCredential->hasCapability(
+                        NymCapability::SIGN_CHILDCRED)) {
+                    return m_MasterCredential->SignProto<C>(
+                        serialized, signature, key, pPWData);
                 }
+
+                break;
+            }
+            case (proto::SIGROLE_NYMIDSOURCE): {
+                otErr << __FUNCTION__ << ": Credentials to be signed "
+                      << "with a nym source can not use this method."
+                      << std::endl;
 
                 return false;
             }
+            case (proto::SIGROLE_PRIVCREDENTIAL): {
+                otErr << __FUNCTION__ << ": Private credential can not "
+                      << "use this method." << std::endl;
+
+                return false;
+            }
+            default: {
+                bool haveSignature = false;
+
+                for (auto& it : m_mapCredentials) {
+                    auto& credential = it.second;
+
+                    if (nullptr != credential) {
+                        if (credential->hasCapability(
+                                NymCapability::SIGN_MESSAGE)) {
+                            const auto keyCredential =
+                                dynamic_cast<const KeyCredential*>(
+                                    credential.get());
+                            haveSignature = keyCredential->SignProto<C>(
+                                serialized, signature, key, pPWData);
+                        }
+
+                        if (haveSignature) {
+
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
 };
 }  // namespace opentxs
 

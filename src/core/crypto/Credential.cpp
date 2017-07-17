@@ -102,8 +102,8 @@ std::unique_ptr<Credential> Credential::Factory(
     std::unique_ptr<Credential> result;
 
     // This check allows all constructors to assume inputs are well-formed
-    if (!proto::Check<proto::Credential>(
-            serialized, 0, 0xFFFFFFFF, mode, purportedRole)) {
+    if (!proto::Validate<proto::Credential>(
+            serialized, VERBOSE, mode, purportedRole)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Invalid serialized credential."
               << std::endl;
 
@@ -131,7 +131,9 @@ std::unique_ptr<Credential> Credential::Factory(
             break;
     }
 
-    if (!result->Validate()) { result.reset(); }
+    if (!result->Validate()) {
+        result.reset();
+    }
 
     return result;
 }
@@ -197,7 +199,9 @@ bool Credential::VerifyNymID() const
 bool Credential::VerifyMasterID() const
 {
     // This check is not applicable to master credentials
-    if (proto::CREDROLE_MASTERKEY == role_) { return true; }
+    if (proto::CREDROLE_MASTERKEY == role_) {
+        return true;
+    }
 
     const std::string parent = owner_backlink_->GetMasterCredID().Get();
     const std::string child = master_id_.Get();
@@ -284,8 +288,7 @@ SerializedSignature Credential::MasterSignature() const
     const std::string master = MasterID().Get();
 
     for (auto& it : signatures_) {
-        if ((it->role() == targetRole) &&
-            (it->credentialid() == master)) {
+        if ((it->role() == targetRole) && (it->credentialid() == master)) {
 
             masterSignature = it;
             break;
@@ -304,9 +307,8 @@ bool Credential::isValid(const Lock& lock) const
 }
 
 /** Returns the serialized form to prevent unnecessary serializations */
-bool Credential::isValid(
-    const Lock& lock,
-    serializedCredential& credential) const
+bool Credential::isValid(const Lock& lock, serializedCredential& credential)
+    const
 {
     SerializationModeFlag serializationMode = AS_PUBLIC;
 
@@ -316,10 +318,9 @@ bool Credential::isValid(
 
     credential = serialize(lock, serializationMode, WITH_SIGNATURES);
 
-    return proto::Check<proto::Credential>(
+    return proto::Validate<proto::Credential>(
         *credential,
-        0,
-        0xFFFFFFFF,
+        VERBOSE,
         mode_,
         role_,
         true);  // with signatures
@@ -328,7 +329,9 @@ bool Credential::isValid(
 bool Credential::validate(const Lock& lock) const
 {
     // Check syntax
-    if (!isValid(lock)) { return false; }
+    if (!isValid(lock)) {
+        return false;
+    }
 
     // Check cryptographic requirements
     return verify_internally(lock);
@@ -457,8 +460,7 @@ SerializedSignature Credential::SelfSignature(CredentialModeFlag version) const
     const std::string self = String(id_).Get();
 
     for (auto& it : signatures_) {
-        if ((it->role() == targetRole) &&
-            (it->credentialid() == self)) {
+        if ((it->role() == targetRole) && (it->credentialid() == self)) {
 
             return it;
         }
@@ -512,9 +514,8 @@ bool Credential::Save() const
 
 Data Credential::Serialize() const
 {
-    serializedCredential serialized = Serialized(
-        Private() ? AS_PRIVATE : AS_PUBLIC,
-        WITH_SIGNATURES);
+    serializedCredential serialized =
+        Serialized(Private() ? AS_PRIVATE : AS_PUBLIC, WITH_SIGNATURES);
 
     return proto::ProtoAsData<proto::Credential>(*serialized);
 }
@@ -586,10 +587,7 @@ bool Credential::AddMasterSignature(const Lock& lock)
     auto& signature = *serialized->add_signature();
     signature.set_role(proto::SIGROLE_PUBCREDENTIAL);
 
-    bool havePublicSig =
-        owner_backlink_->SignProto(
-            *serialized,
-            signature);
+    bool havePublicSig = owner_backlink_->SignProto(*serialized, signature);
 
     if (!havePublicSig) {
         otErr << OT_METHOD << __FUNCTION__
@@ -654,10 +652,7 @@ bool Credential::TransportKey(Data&, OTPassword&) const
     return false;
 }
 
-bool Credential::hasCapability(const NymCapability&) const
-{
-    return false;
-}
+bool Credential::hasCapability(const NymCapability&) const { return false; }
 
 serializedCredential Credential::Serialized(
     const SerializationModeFlag asPrivate,

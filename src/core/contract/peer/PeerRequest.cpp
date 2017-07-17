@@ -57,34 +57,32 @@ namespace opentxs
 PeerRequest::PeerRequest(
     const ConstNym& nym,
     const proto::PeerRequest& serialized)
-        : ot_super(nym, serialized.version())
-        , initiator_(serialized.initiator())
-        , recipient_(serialized.recipient())
-        , server_(serialized.server())
-        , cookie_(serialized.cookie())
-        , type_(serialized.type())
+    : ot_super(nym, serialized.version())
+    , initiator_(serialized.initiator())
+    , recipient_(serialized.recipient())
+    , server_(serialized.server())
+    , cookie_(serialized.cookie())
+    , type_(serialized.type())
 {
     id_ = Identifier(serialized.id());
-    signatures_.push_front(
-        SerializedSignature(
-            std::make_shared<proto::Signature>(serialized.signature())));
+    signatures_.push_front(SerializedSignature(
+        std::make_shared<proto::Signature>(serialized.signature())));
 }
 
 PeerRequest::PeerRequest(
     const ConstNym& nym,
     const proto::PeerRequest& serialized,
     const std::string& conditions)
-        : ot_super(nym, serialized.version(), conditions)
-        , initiator_(serialized.initiator())
-        , recipient_(serialized.recipient())
-        , server_(serialized.server())
-        , cookie_(serialized.cookie())
-        , type_(serialized.type())
+    : ot_super(nym, serialized.version(), conditions)
+    , initiator_(serialized.initiator())
+    , recipient_(serialized.recipient())
+    , server_(serialized.server())
+    , cookie_(serialized.cookie())
+    , type_(serialized.type())
 {
     id_ = Identifier(serialized.id());
-    signatures_.push_front(
-        SerializedSignature(
-            std::make_shared<proto::Signature>(serialized.signature())));
+    signatures_.push_front(SerializedSignature(
+        std::make_shared<proto::Signature>(serialized.signature())));
 }
 
 PeerRequest::PeerRequest(
@@ -92,11 +90,11 @@ PeerRequest::PeerRequest(
     const Identifier& recipient,
     const Identifier& server,
     const proto::PeerRequestType& type)
-        : ot_super(nym, 2)
-        , initiator_(nym->ID())
-        , recipient_(recipient)
-        , server_(server)
-        , type_(type)
+    : ot_super(nym, 2)
+    , initiator_(nym->ID())
+    , recipient_(recipient)
+    , server_(server)
+    , type_(type)
 {
     auto random = OT::App().Crypto().AES().InstantiateBinarySecretSP();
     random->randomizeMemory(32);
@@ -110,11 +108,11 @@ PeerRequest::PeerRequest(
     const Identifier& server,
     const std::string& conditions,
     const proto::PeerRequestType& type)
-        : ot_super(nym, 2, conditions)
-        , initiator_(nym->ID())
-        , recipient_(recipient)
-        , server_(server)
-        , type_(type)
+    : ot_super(nym, 2, conditions)
+    , initiator_(nym->ID())
+    , recipient_(recipient)
+    , server_(server)
+    , type_(type)
 {
     auto random = OT::App().Crypto().AES().InstantiateBinarySecretSP();
     random->randomizeMemory(32);
@@ -157,9 +155,9 @@ std::unique_ptr<PeerRequest> PeerRequest::Create(
     std::unique_ptr<PeerRequest> contract;
 
     switch (type) {
-        case (proto::PEERREQUEST_PENDINGBAILMENT) : {
-            contract.reset(new BailmentNotice(
-                sender, recipient, unitID, serverID, txid));
+        case (proto::PEERREQUEST_PENDINGBAILMENT): {
+            contract.reset(
+                new BailmentNotice(sender, recipient, unitID, serverID, txid));
             break;
         }
         default: {
@@ -190,7 +188,7 @@ std::unique_ptr<PeerRequest> PeerRequest::Create(
     std::unique_ptr<PeerRequest> contract;
 
     switch (type) {
-        case (proto::PEERREQUEST_BAILMENT) : {
+        case (proto::PEERREQUEST_BAILMENT): {
             contract.reset(
                 new BailmentRequest(nym, unit->Nym()->ID(), unitID, serverID));
             break;
@@ -225,10 +223,9 @@ std::unique_ptr<PeerRequest> PeerRequest::Create(
     std::unique_ptr<PeerRequest> contract;
 
     switch (type) {
-        case (proto::PEERREQUEST_OUTBAILMENT) : {
-            contract.reset(
-                new OutBailmentRequest(
-                    nym, unit->Nym()->ID(), unitID, serverID, amount, terms));
+        case (proto::PEERREQUEST_OUTBAILMENT): {
+            contract.reset(new OutBailmentRequest(
+                nym, unit->Nym()->ID(), unitID, serverID, amount, terms));
         } break;
         default: {
             otErr << __FUNCTION__ << ": invalid request type." << std::endl;
@@ -250,10 +247,9 @@ std::unique_ptr<PeerRequest> PeerRequest::Create(
     std::unique_ptr<PeerRequest> contract;
 
     switch (type) {
-        case (proto::PEERREQUEST_CONNECTIONINFO) : {
-            contract.reset(
-                new ConnectionRequest(
-                    sender, recipient, connectionType, serverID));
+        case (proto::PEERREQUEST_CONNECTIONINFO): {
+            contract.reset(new ConnectionRequest(
+                sender, recipient, connectionType, serverID));
         } break;
         default: {
             otErr << __FUNCTION__ << ": invalid request type." << std::endl;
@@ -277,10 +273,9 @@ std::unique_ptr<PeerRequest> PeerRequest::Create(
     std::unique_ptr<PeerRequest> contract;
 
     switch (type) {
-        case (proto::PEERREQUEST_STORESECRET) : {
-            contract.reset(
-                new StoreSecret(
-                    sender, recipient, secretType, primary, secondary, serverID));
+        case (proto::PEERREQUEST_STORESECRET): {
+            contract.reset(new StoreSecret(
+                sender, recipient, secretType, primary, secondary, serverID));
         } break;
         default: {
             otErr << __FUNCTION__ << ": invalid request type." << std::endl;
@@ -296,7 +291,7 @@ std::unique_ptr<PeerRequest> PeerRequest::Factory(
     const ConstNym& nym,
     const proto::PeerRequest& serialized)
 {
-    if (!proto::Check(serialized, 0, 0xFFFFFFFF)) {
+    if (!proto::Validate(serialized, VERBOSE)) {
         otErr << __FUNCTION__ << ": invalid protobuf." << std::endl;
 
         return nullptr;
@@ -305,22 +300,22 @@ std::unique_ptr<PeerRequest> PeerRequest::Factory(
     std::unique_ptr<PeerRequest> contract;
 
     switch (serialized.type()) {
-        case (proto::PEERREQUEST_BAILMENT) : {
+        case (proto::PEERREQUEST_BAILMENT): {
             contract.reset(new BailmentRequest(nym, serialized));
         } break;
-        case (proto::PEERREQUEST_OUTBAILMENT) : {
+        case (proto::PEERREQUEST_OUTBAILMENT): {
             contract.reset(new OutBailmentRequest(nym, serialized));
         } break;
-        case (proto::PEERREQUEST_PENDINGBAILMENT) : {
+        case (proto::PEERREQUEST_PENDINGBAILMENT): {
             contract.reset(new BailmentNotice(nym, serialized));
         } break;
-        case (proto::PEERREQUEST_CONNECTIONINFO) : {
+        case (proto::PEERREQUEST_CONNECTIONINFO): {
             contract.reset(new ConnectionRequest(nym, serialized));
         } break;
-        case (proto::PEERREQUEST_STORESECRET) : {
+        case (proto::PEERREQUEST_STORESECRET): {
             contract.reset(new StoreSecret(nym, serialized));
         } break;
-        default : {
+        default: {
             otErr << __FUNCTION__ << ": invalid request type." << std::endl;
 
             return nullptr;
@@ -371,7 +366,9 @@ bool PeerRequest::FinalizeContract(PeerRequest& contract)
         return false;
     }
 
-    if (!contract.update_signature(lock)) { return false; }
+    if (!contract.update_signature(lock)) {
+        return false;
+    }
 
     return contract.validate(lock);
 }
@@ -383,7 +380,7 @@ std::unique_ptr<PeerRequest> PeerRequest::Finish(
 
     if (!output) {
         otErr << __FUNCTION__ << ": failed to instantiate request."
-        << std::endl;
+              << std::endl;
 
         return nullptr;
     }
@@ -422,7 +419,7 @@ proto::PeerRequest PeerRequest::IDVersion(const Lock& lock) const
         contract.set_version(version_);
     }
 
-    contract.clear_id();         // reinforcing that this field must be blank.
+    contract.clear_id();  // reinforcing that this field must be blank.
     contract.set_initiator(String(initiator_).Get());
     contract.set_recipient(String(recipient_).Get());
     contract.set_type(type_);
@@ -433,10 +430,7 @@ proto::PeerRequest PeerRequest::IDVersion(const Lock& lock) const
     return contract;
 }
 
-std::string PeerRequest::Name() const
-{
-    return String(id_).Get();
-}
+std::string PeerRequest::Name() const { return String(id_).Get(); }
 
 Data PeerRequest::Serialize() const
 {
@@ -455,7 +449,9 @@ proto::PeerRequest PeerRequest::SigVersion(const Lock& lock) const
 
 bool PeerRequest::update_signature(const Lock& lock)
 {
-    if (!ot_super::update_signature(lock)) { return false; }
+    if (!ot_super::update_signature(lock)) {
+        return false;
+    }
 
     bool success = false;
     signatures_.clear();
@@ -467,8 +463,7 @@ bool PeerRequest::update_signature(const Lock& lock)
     if (success) {
         signatures_.emplace_front(new proto::Signature(signature));
     } else {
-        otErr << __FUNCTION__ << ": failed to create signature."
-                << std::endl;
+        otErr << __FUNCTION__ << ": failed to create signature." << std::endl;
     }
 
     return success;
@@ -484,7 +479,7 @@ bool PeerRequest::validate(const Lock& lock) const
         otErr << __FUNCTION__ << ": invalid nym." << std::endl;
     }
 
-    const bool validSyntax = proto::Check(contract(lock), 0, 0xFFFFFFFF);
+    const bool validSyntax = proto::Validate(contract(lock), VERBOSE);
 
     if (!validSyntax) {
         otErr << __FUNCTION__ << ": invalid syntax." << std::endl;
@@ -514,12 +509,15 @@ bool PeerRequest::verify_signature(
     const Lock& lock,
     const proto::Signature& signature) const
 {
-    if (!ot_super::verify_signature(lock, signature)) { return false; }
+    if (!ot_super::verify_signature(lock, signature)) {
+        return false;
+    }
 
     auto serialized = SigVersion(lock);
     auto& sigProto = *serialized.mutable_signature();
     sigProto.CopyFrom(signature);
 
-    return nym_->VerifyProto(serialized, sigProto);;
+    return nym_->VerifyProto(serialized, sigProto);
+    ;
 }
-} // namespace opentxs
+}  // namespace opentxs

@@ -46,9 +46,7 @@ namespace opentxs
 {
 namespace storage
 {
-PeerReplies::PeerReplies(
-    const StorageDriver& storage,
-    const std::string& hash)
+PeerReplies::PeerReplies(const StorageDriver& storage, const std::string& hash)
     : Node(storage, hash)
 {
     if (check_hash(hash)) {
@@ -94,7 +92,9 @@ bool PeerReplies::Load(
 
     bool loaded = load_proto<proto::PeerReply>(id, output, notUsed, true);
 
-    if (loaded) { return true; }
+    if (loaded) {
+        return true;
+    }
 
     // The provided ID might actually be a request ID instead of a reply ID.
 
@@ -113,9 +113,12 @@ bool PeerReplies::Load(
 
     lock.unlock();
 
-    if (realID.empty()) { return false; }
+    if (realID.empty()) {
+        return false;
+    }
 
-    return load_proto<proto::PeerReply>(realID, output, notUsed, checking);;
+    return load_proto<proto::PeerReply>(realID, output, notUsed, checking);
+    ;
 }
 
 bool PeerReplies::save(const std::unique_lock<std::mutex>& lock) const
@@ -127,7 +130,7 @@ bool PeerReplies::save(const std::unique_lock<std::mutex>& lock) const
 
     auto serialized = serialize();
 
-    if (!proto::Check(serialized, version_, version_)) {
+    if (!proto::Validate(serialized, VERBOSE)) {
         return false;
     }
 

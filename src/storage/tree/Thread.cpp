@@ -100,13 +100,13 @@ bool Thread::Add(
     bool saved = false;
 
     switch (box) {
-        case StorageBox::MAILINBOX : {
+        case StorageBox::MAILINBOX: {
             saved = mail_inbox_.Store(id, contents, alias);
         } break;
-        case StorageBox::MAILOUTBOX : {
+        case StorageBox::MAILOUTBOX: {
             saved = mail_outbox_.Store(id, contents, alias);
         } break;
-        default : {
+        default: {
             std::cerr << __FUNCTION__ << ": Warning: unknown box." << std::endl;
         }
     }
@@ -132,7 +132,7 @@ bool Thread::Add(
     item.set_account(account);
     item.set_unread(true);
 
-    const bool valid = proto::Check(item, version_, version_);
+    const bool valid = proto::Validate(item, VERBOSE);
 
     if (!valid) {
         items_.erase(id);
@@ -211,10 +211,7 @@ proto::StorageThread Thread::Items() const
     return serialize(lock);
 }
 
-bool Thread::Migrate() const
-{
-    return Node::migrate(root_);
-}
+bool Thread::Migrate() const { return Node::migrate(root_); }
 
 bool Thread::Read(const std::string& id)
 {
@@ -222,7 +219,9 @@ bool Thread::Read(const std::string& id)
 
     auto it = items_.find(id);
 
-    if (items_.end() == it) { return false; }
+    if (items_.end() == it) {
+        return false;
+    }
 
     auto& item = it->second;
 
@@ -231,25 +230,28 @@ bool Thread::Read(const std::string& id)
     return save(lock);
 }
 
-bool Thread::Remove(const std::string& id) {
+bool Thread::Remove(const std::string& id)
+{
     std::unique_lock<std::mutex> lock(write_lock_);
 
     auto it = items_.find(id);
 
-    if (items_.end() == it) { return false; }
+    if (items_.end() == it) {
+        return false;
+    }
 
     auto& item = it->second;
     StorageBox box = static_cast<StorageBox>(item.box());
     items_.erase(it);
 
     switch (box) {
-        case StorageBox::MAILINBOX : {
+        case StorageBox::MAILINBOX: {
             mail_inbox_.Delete(id);
         } break;
-        case StorageBox::MAILOUTBOX : {
+        case StorageBox::MAILOUTBOX: {
             mail_outbox_.Delete(id);
         } break;
-        default : {
+        default: {
             std::cerr << __FUNCTION__ << ": Warning: unknown box." << std::endl;
         }
     }
@@ -266,7 +268,7 @@ bool Thread::save(const std::unique_lock<std::mutex>& lock) const
 
     auto serialized = serialize(lock);
 
-    if (!proto::Check(serialized, version_, version_)) {
+    if (!proto::Validate(serialized, VERBOSE)) {
         return false;
     }
 

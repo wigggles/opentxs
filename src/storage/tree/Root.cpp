@@ -190,7 +190,7 @@ bool Root::Migrate() const
 Editor<class Tree> Root::mutable_Tree()
 {
     std::function<void(class Tree*, Lock&)> callback =
-        [&](class Tree* in, Lock& lock) -> void {this->save(in, lock);};
+        [&](class Tree* in, Lock& lock) -> void { this->save(in, lock); };
 
     return Editor<class Tree>(write_lock_, tree(), callback);
 }
@@ -202,7 +202,9 @@ bool Root::save(const std::unique_lock<std::mutex>& lock) const
     sequence_++;
     auto serialized = serialize();
 
-    if (!proto::Check(serialized, version_, version_)) { return false; }
+    if (!proto::Validate(serialized, VERBOSE)) {
+        return false;
+    }
 
     return driver_.StoreProto(serialized, root_);
 }

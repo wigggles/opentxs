@@ -225,7 +225,7 @@ std::unique_ptr<PeerReply> PeerReply::Factory(
     const ConstNym& nym,
     const proto::PeerReply& serialized)
 {
-    if (!proto::Check(serialized, 0, 0xFFFFFFFF)) {
+    if (!proto::Validate(serialized, VERBOSE)) {
         otErr << OT_METHOD << __FUNCTION__ << ": invalid serialized reply."
               << std::endl;
 
@@ -448,7 +448,7 @@ bool PeerReply::validate(const Lock& lock) const
         return false;
     }
 
-    const bool validSyntax = proto::Check(contract(lock), version_, version_);
+    const bool validSyntax = proto::Validate(contract(lock), VERBOSE);
 
     if (!validSyntax) {
         otErr << OT_METHOD << __FUNCTION__ << ": invalid syntax." << std::endl;

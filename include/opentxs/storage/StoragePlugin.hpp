@@ -50,16 +50,13 @@ namespace opentxs
 {
 class StorageConfig;
 
-class StoragePlugin_impl
-    : public virtual StoragePlugin
+class StoragePlugin_impl : public virtual StoragePlugin
 {
 public:
     bool EmptyBucket(const bool bucket) const override = 0;
 
-    bool Load(
-        const std::string& key,
-        const bool checking,
-        std::string& value) const override;
+    bool Load(const std::string& key, const bool checking, std::string& value)
+        const override;
     bool LoadFromBucket(
         const std::string& key,
         std::string& value,
@@ -68,9 +65,7 @@ public:
         const std::string& key,
         const std::string& value,
         const bool bucket) const override = 0;
-    bool Store(
-        const std::string& value,
-        std::string& key) const override;
+    bool Store(const std::string& value, std::string& key) const override;
 
     bool Migrate(const std::string& key) const override;
 
@@ -115,20 +110,20 @@ bool StorageDriver::LoadProto(
     if (loaded) {
         serialized.reset(new T);
         serialized->ParseFromArray(raw.data(), raw.size());
-        valid = proto::Check<T>(*serialized, 1, serialized->version());
+        valid = proto::Validate<T>(*serialized, VERBOSE);
     }
 
     if (!valid) {
         if (loaded) {
             std::cerr << "Specified object was located but could not be "
-                        << "validated. Database is corrupt." << std::endl
-                        << "Hash: " << hash << std::endl
-                        << "Size: " << raw.size() << std::endl;
+                      << "validated. Database is corrupt." << std::endl
+                      << "Hash: " << hash << std::endl
+                      << "Size: " << raw.size() << std::endl;
         } else {
             std::cerr << "Specified object is missing. Database is "
-                        << "corrupt." << std::endl
-                        << "Hash: " << hash << std::endl
-                        << "Size: " << raw.size() << std::endl;
+                      << "corrupt." << std::endl
+                      << "Hash: " << hash << std::endl
+                      << "Size: " << raw.size() << std::endl;
         }
     }
 
@@ -143,9 +138,7 @@ bool StorageDriver::StoreProto(
     std::string& key,
     std::string& plaintext) const
 {
-    const auto version = data.version();
-
-    if (!proto::Check<T>(data, version, version)) {
+    if (!proto::Validate<T>(data, VERBOSE)) {
 
         return false;
     }

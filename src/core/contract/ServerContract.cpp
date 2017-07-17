@@ -71,9 +71,8 @@ ServerContract::ServerContract(
     : ServerContract(nym)
 {
     id_ = Identifier(serialized.id());
-    signatures_.push_front(
-        SerializedSignature(
-            std::make_shared<proto::Signature>(serialized.signature())));
+    signatures_.push_front(SerializedSignature(
+        std::make_shared<proto::Signature>(serialized.signature())));
     version_ = serialized.version();
     conditions_ = serialized.terms();
 
@@ -118,13 +117,17 @@ ServerContract* ServerContract::Create(
 
         Lock lock(contract->lock_);
 
-        if (!contract->CalculateID(lock)) { return nullptr; }
+        if (!contract->CalculateID(lock)) {
+            return nullptr;
+        }
 
         if (contract->nym_) {
             contract->update_signature(lock);
         }
 
-        if (!contract->validate(lock)) { return nullptr; }
+        if (!contract->validate(lock)) {
+            return nullptr;
+        }
 
         contract->alias_ = contract->name_;
     } else {
@@ -139,18 +142,22 @@ ServerContract* ServerContract::Factory(
     const ConstNym& nym,
     const proto::ServerContract& serialized)
 {
-    if (!proto::Check<proto::ServerContract>(serialized, 0, 0xFFFFFFFF)) {
+    if (!proto::Validate<proto::ServerContract>(serialized, VERBOSE)) {
         return nullptr;
     }
 
     std::unique_ptr<ServerContract> contract(
         new ServerContract(nym, serialized));
 
-    if (!contract) { return nullptr; }
+    if (!contract) {
+        return nullptr;
+    }
 
     Lock lock(contract->lock_);
 
-    if (!contract->validate(lock)) { return nullptr; }
+    if (!contract->validate(lock)) {
+        return nullptr;
+    }
 
     contract->alias_ = contract->name_;
 
@@ -315,7 +322,9 @@ Data ServerContract::Serialize() const
 
 bool ServerContract::update_signature(const Lock& lock)
 {
-    if (!ot_super::update_signature(lock)) { return false; }
+    if (!ot_super::update_signature(lock)) {
+        return false;
+    }
 
     bool success = false;
     signatures_.clear();
@@ -327,8 +336,7 @@ bool ServerContract::update_signature(const Lock& lock)
     if (success) {
         signatures_.emplace_front(new proto::Signature(signature));
     } else {
-        otErr << __FUNCTION__ << ": failed to create signature."
-              << std::endl;
+        otErr << __FUNCTION__ << ": failed to create signature." << std::endl;
     }
 
     return success;
@@ -348,7 +356,7 @@ bool ServerContract::validate(const Lock& lock) const
         return false;
     }
 
-    const bool validSyntax = proto::Check(contract(lock), 0, 0xFFFFFFFF);
+    const bool validSyntax = proto::Validate(contract(lock), VERBOSE);
 
     if (!validSyntax) {
         otErr << __FUNCTION__ << ": Invalid syntax." << std::endl;
@@ -382,7 +390,9 @@ bool ServerContract::verify_signature(
     const Lock& lock,
     const proto::Signature& signature) const
 {
-    if (!ot_super::verify_signature(lock, signature)) { return false; }
+    if (!ot_super::verify_signature(lock, signature)) {
+        return false;
+    }
 
     auto serialized = SigVersion(lock);
     auto& sigProto = *serialized.mutable_signature();
