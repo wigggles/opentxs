@@ -53,7 +53,7 @@ OTServer* ServerLoader::server_ = nullptr;
 
 ServerLoader::ServerLoader(std::map<std::string, std::string>& args)
 {
-    // This is optional! (I, of course, am using it in this test app...)
+// This is optional! (I, of course, am using it in this test app...)
 #if defined(OT_SIGNAL_HANDLING)
     Log::SetupSignalHandler();
 #endif
@@ -61,8 +61,8 @@ ServerLoader::ServerLoader(std::map<std::string, std::string>& args)
     // I instantiate this here (instead of globally) so that I am assured that
     // any globals and other setup is already done before we instantiate the
     // server object itself.
-    OT_ASSERT_MSG(nullptr == server_,
-                    "server main(): ASSERT: nullptr == server_.");
+    OT_ASSERT_MSG(
+        nullptr == server_, "server main(): ASSERT: nullptr == server_.");
     server_ = new OTServer;
 
     OT_ASSERT_MSG(
@@ -73,19 +73,31 @@ ServerLoader::ServerLoader(std::map<std::string, std::string>& args)
         bool setupPathsSuccess = false;
         if (!OTDataFolder::Init(SERVER_CONFIG_KEY)) {
             OT_FAIL;
-        }
-        else {
+        } else {
             setupPathsSuccess = true;
         }
-        OT_ASSERT_MSG(setupPathsSuccess,
-                        "main(): Assert failed: Failed to set OT Path");
+        OT_ASSERT_MSG(
+            setupPathsSuccess, "main(): Assert failed: Failed to set OT Path");
 
         if (!OTDataFolder::IsInitialized()) {
             OT_FAIL;
         }
     }
 
-    OT::Factory(true);
+    std::string plugin{};
+    std::string backup{};
+    auto pluginOption = args.find("storage");
+    auto backupOption = args.find("backup");
+
+    if (args.end() != pluginOption) {
+        plugin = pluginOption->second;
+    }
+
+    if (args.end() != backupOption) {
+        backup = backupOption->second;
+    }
+
+    OT::Factory(true, plugin, backup);
 
     // OTServer::Init loads up server's nym so it can decrypt messages sent
     // in envelopes. It also does various other initialization work.
@@ -114,19 +126,17 @@ int ServerLoader::getPort() const
     uint32_t port = 0;
     bool connectInfo = server_->GetConnectInfo(hostname, port);
 
-    OT_ASSERT_MSG(connectInfo,
-                    "server main: Unable to find my own connect "
-                    "info (which SHOULD be in my server contract, "
-                    "BTW.) Perhaps you failed trying to open that "
-                    "contract? Have you tried the test password? "
-                    "(\"test\")\n");
+    OT_ASSERT_MSG(
+        connectInfo,
+        "server main: Unable to find my own connect "
+        "info (which SHOULD be in my server contract, "
+        "BTW.) Perhaps you failed trying to open that "
+        "contract? Have you tried the test password? "
+        "(\"test\")\n");
     return port;
 }
 
-OTServer* ServerLoader::getServer()
-{
-    return server_;
-}
+OTServer* ServerLoader::getServer() { return server_; }
 
 zcert_t* ServerLoader::getTransportKey() const
 {
@@ -146,4 +156,4 @@ ServerLoader::~ServerLoader()
 
     OT::Cleanup();
 }
-} // namespace opentxs
+}  // namespace opentxs

@@ -76,20 +76,27 @@ namespace opentxs
 
 OT* OT::instance_pointer_ = nullptr;
 
-OT::OT(const bool serverMode, const std::string& storagePlugin)
+OT::OT(
+    const bool serverMode,
+    const std::string& storagePlugin,
+    const std::string& backupDirectory)
     : server_mode_(serverMode)
     , primary_storage_plugin_(storagePlugin)
+    , archive_directory(backupDirectory)
 {
     shutdown_.store(false);
 }
 
-void OT::Factory(const bool serverMode, const std::string& storagePlugin)
+void OT::Factory(
+    const bool serverMode,
+    const std::string& storagePlugin,
+    const std::string& backupDirectory)
 {
-    OT_ASSERT(nullptr == instance_pointer_);
+    assert(nullptr == instance_pointer_);
 
-    instance_pointer_ = new OT(serverMode, storagePlugin);
+    instance_pointer_ = new OT(serverMode, storagePlugin, backupDirectory);
 
-    OT_ASSERT(nullptr != instance_pointer_);
+    assert(nullptr != instance_pointer_);
 
     instance_pointer_->Init();
 }
@@ -195,11 +202,18 @@ void OT::Init_Storage()
     config.path_ = path;
     bool notUsed;
     String defaultPlugin{};
+    String archiveDirectory{};
 
     if (primary_storage_plugin_.empty()) {
         defaultPlugin = config.primary_plugin_.c_str();
     } else {
         defaultPlugin = primary_storage_plugin_.c_str();
+    }
+
+    if (archive_directory.empty()) {
+        archiveDirectory = config.fs_backup_directory_.c_str();
+    } else {
+        archiveDirectory = archive_directory.c_str();
     }
 
     Config().CheckSet_bool(
@@ -232,6 +246,15 @@ void OT::Init_Storage()
         String(config.path_),
         config.path_,
         notUsed);
+
+    if (defaultPlugin.Exists()) {
+        Config().Set_str(
+            STORAGE_CONFIG_KEY,
+            STORAGE_CONFIG_PRIMARY_PLUGIN_KEY,
+            defaultPlugin,
+            notUsed);
+    }
+
     Config().CheckSet_str(
         STORAGE_CONFIG_KEY,
         STORAGE_CONFIG_PRIMARY_PLUGIN_KEY,
@@ -257,10 +280,19 @@ void OT::Init_Storage()
         String(config.fs_root_file_),
         config.fs_root_file_,
         notUsed);
+
+    if (archiveDirectory.Exists()) {
+        Config().Set_str(
+            STORAGE_CONFIG_KEY,
+            STORAGE_CONFIG_FS_BACKUP_DIRECTORY_KEY,
+            archiveDirectory,
+            notUsed);
+    }
+
     Config().CheckSet_str(
         STORAGE_CONFIG_KEY,
         STORAGE_CONFIG_FS_BACKUP_DIRECTORY_KEY,
-        String(config.fs_backup_directory_),
+        archiveDirectory,
         config.fs_backup_directory_,
         notUsed);
 #endif
