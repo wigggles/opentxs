@@ -67,6 +67,8 @@
 #include <string>
 #include <utility>
 
+#define OT_METHOD "opentxs::Mainfile::"
+
 namespace opentxs
 {
 
@@ -513,62 +515,79 @@ bool MainFile::LoadServerUserAndContract()
 {
     const char* szFunc = "MainFile::LoadServerUserAndContract";
     bool bSuccess = false;
+    auto& serverNym = server_->m_nymServer;
+
     OT_ASSERT(!version_.empty());
     OT_ASSERT(String(server_->m_strNotaryID).Exists());
     OT_ASSERT(server_->m_strServerNymID.Exists());
 
-    server_->m_nymServer.SetIdentifier(server_->m_strServerNymID);
+    serverNym.SetIdentifier(server_->m_strServerNymID);
 
-    if (!server_->m_nymServer.LoadCredentials(true)) {
+    if (false == serverNym.LoadCredentials(true)) {
         Log::vOutput(
             0, "%s: Error loading server certificate and keys.\n", szFunc);
-    } else if (!server_->m_nymServer.VerifyPseudonym()) {
+
+        return false;
+    }
+
+    if (false == serverNym.VerifyPseudonym()) {
         Log::vOutput(0, "%s: Error verifying server nym.\n", szFunc);
+
+        return false;
+    }
+
+    if (serverNym.hasCapability(NymCapability::SIGN_MESSAGE)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Server nym is viable."
+              << std::endl;
     } else {
-        // This file will be saved during the course of operation
-        // Just making sure it is loaded up first.
-        //
-        bool bLoadedSignedNymfile =
-            server_->m_nymServer.LoadSignedNymfile(server_->m_nymServer);
-        OT_ASSERT_MSG(
-            bLoadedSignedNymfile,
-            "ASSERT: MainFile::LoadServerUserAndContract: "
-            "m_nymServer.LoadSignedNymfile(m_nymServer)\n");
-        //      m_nymServer.SaveSignedNymfile(m_nymServer); // Uncomment this if
-        // you want to create the file. NORMALLY LEAVE IT OUT!!!! DANGEROUS!!!
+        otErr << OT_METHOD << __FUNCTION__ << ": Server nym lacks private keys."
+              << std::endl;
 
-        Log::vOutput(
-            0,
-            "%s: Loaded server certificate and keys.\nNext, loading Cron...\n",
+        return false;
+    }
+
+    // This file will be saved during the course of operation
+    // Just making sure it is loaded up first.
+    //
+    bool bLoadedSignedNymfile = serverNym.LoadSignedNymfile(serverNym);
+    OT_ASSERT_MSG(
+        bLoadedSignedNymfile,
+        "ASSERT: MainFile::LoadServerUserAndContract: "
+        "m_nymServer.LoadSignedNymfile(m_nymServer)\n");
+    //      m_nymServer.SaveSignedNymfile(m_nymServer); // Uncomment this if
+    // you want to create the file. NORMALLY LEAVE IT OUT!!!! DANGEROUS!!!
+
+    Log::vOutput(
+        0,
+        "%s: Loaded server certificate and keys.\nNext, loading Cron...\n",
+        szFunc);
+    // Load Cron (now that we have the server Nym.
+    // (I WAS loading this erroneously in Server.Init(), before
+    // the Nym had actually been loaded from disk. That didn't work.)
+    //
+    const Identifier NOTARY_ID(server_->m_strNotaryID);
+
+    // Make sure the Cron object has a pointer to the server's Nym.
+    // (For signing stuff...)
+    //
+    server_->m_Cron.SetNotaryID(NOTARY_ID);
+    server_->m_Cron.SetServerNym(&serverNym);
+
+    if (!server_->m_Cron.LoadCron())
+        Log::vError(
+            "%s: Failed loading Cron file. (Did you just create "
+            "this server?)\n",
             szFunc);
-        // Load Cron (now that we have the server Nym.
-        // (I WAS loading this erroneously in Server.Init(), before
-        // the Nym had actually been loaded from disk. That didn't work.)
-        //
-        const Identifier NOTARY_ID(server_->m_strNotaryID);
+    Log::vOutput(0, "%s: Loading the server contract...\n", szFunc);
 
-        // Make sure the Cron object has a pointer to the server's Nym.
-        // (For signing stuff...)
-        //
-        server_->m_Cron.SetNotaryID(NOTARY_ID);
-        server_->m_Cron.SetServerNym(&server_->m_nymServer);
+    auto pContract = OT::App().Contract().Server(NOTARY_ID);
 
-        if (!server_->m_Cron.LoadCron())
-            Log::vError(
-                "%s: Failed loading Cron file. (Did you just create "
-                "this server?)\n",
-                szFunc);
-        Log::vOutput(0, "%s: Loading the server contract...\n", szFunc);
-
-        auto pContract = OT::App().Contract().Server(NOTARY_ID);
-
-        if (pContract) {
-            Log::Output(0, "\n** Main Server Contract Verified **\n");
-            bSuccess = true;
-        } else {
-            Log::vOutput(
-                0, "\n%s: Failed reading Main Server Contract:\n\n", szFunc);
-        }
+    if (pContract) {
+        Log::Output(0, "\n** Main Server Contract Verified **\n");
+        bSuccess = true;
+    } else {
+        Log::vOutput(
+            0, "\n%s: Failed reading Main Server Contract:\n\n", szFunc);
     }
 
     return bSuccess;

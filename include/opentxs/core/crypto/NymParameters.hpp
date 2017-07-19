@@ -82,6 +82,7 @@ private:
     std::uint32_t nym_{0};
     std::uint32_t credset_{0};
     std::uint32_t cred_index_{0};
+    bool default_{true};
 #else
     proto::CredentialType credentialType_{proto::CREDTYPE_LEGACY};
 #endif
@@ -154,9 +155,12 @@ public:
 
     inline std::uint32_t CredIndex() const { return cred_index_; }
     inline void SetCredIndex(const std::uint32_t path) { cred_index_ = path; }
+
+    inline bool Default() const { return default_; }
+    inline void SetDefault(const bool in) { default_ = in; }
 #endif
 
-~NymParameters() = default;
+    ~NymParameters() = default;
 };
 }  // namespace opentxs
 #endif  // OPENTXS_CORE_CRYPTO_NYMPARAMETERS_HPP
