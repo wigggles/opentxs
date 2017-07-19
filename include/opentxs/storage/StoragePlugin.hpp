@@ -40,6 +40,7 @@
 #define OPENTXS_STORAGE_STORAGEDRIVERIMPLEMTNATION_HPP
 
 #include "opentxs/interface/storage/StoragePlugin.hpp"
+#include "opentxs/core/Log.hpp"
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/Types.hpp"
 
@@ -67,7 +68,8 @@ public:
         const bool bucket) const override = 0;
     bool Store(const std::string& value, std::string& key) const override;
 
-    bool Migrate(const std::string& key) const override;
+    bool Migrate(const std::string& key, const StorageDriver& to)
+        const override;
 
     std::string LoadRoot() const override = 0;
     bool StoreRoot(const std::string& hash) const override = 0;
@@ -115,15 +117,14 @@ bool StorageDriver::LoadProto(
 
     if (!valid) {
         if (loaded) {
-            std::cerr << "Specified object was located but could not be "
-                      << "validated. Database is corrupt." << std::endl
-                      << "Hash: " << hash << std::endl
-                      << "Size: " << raw.size() << std::endl;
+            otErr << "Specified object was located but could not be "
+                  << "validated." << std::endl
+                  << "Hash: " << hash << std::endl
+                  << "Size: " << raw.size() << std::endl;
         } else {
-            std::cerr << "Specified object is missing. Database is "
-                      << "corrupt." << std::endl
-                      << "Hash: " << hash << std::endl
-                      << "Size: " << raw.size() << std::endl;
+            otWarn << "Specified object is missing." << std::endl
+                   << "Hash: " << hash << std::endl
+                   << "Size: " << raw.size() << std::endl;
         }
     }
 

@@ -69,25 +69,34 @@
 #include <thread>
 
 #define CLIENT_CONFIG_KEY "client"
+#define STORAGE_CONFIG_KEY "storage"
 
 namespace opentxs
 {
 
 OT* OT::instance_pointer_ = nullptr;
 
-OT::OT(const bool serverMode)
+OT::OT(
+    const bool serverMode,
+    const std::string& storagePlugin,
+    const std::string& backupDirectory)
     : server_mode_(serverMode)
+    , primary_storage_plugin_(storagePlugin)
+    , archive_directory(backupDirectory)
 {
     shutdown_.store(false);
 }
 
-void OT::Factory(const bool serverMode)
+void OT::Factory(
+    const bool serverMode,
+    const std::string& storagePlugin,
+    const std::string& backupDirectory)
 {
-    OT_ASSERT(nullptr == instance_pointer_);
+    assert(nullptr == instance_pointer_);
 
-    instance_pointer_ = new OT(serverMode);
+    instance_pointer_ = new OT(serverMode, storagePlugin, backupDirectory);
 
-    OT_ASSERT(nullptr != instance_pointer_);
+    assert(nullptr != instance_pointer_);
 
     instance_pointer_->Init();
 }
@@ -97,13 +106,14 @@ void OT::Init()
     Init_Config();
     Init_Log();  // requires Init_Config()
     Init_Crypto();
-    Init_Storage();  // requires Init_Config()
+    Init_Storage();  // requires Init_Config(), Init_Crypto()
     Init_Dht();      // requires Init_Config()
     Init_ZMQ();      // requires Init_Config()
     Init_Contracts();
     Init_Identity();
     Init_Api();  // requires Init_Config(), Init_Crypto(), Init_Contracts(),
                  // Init_Identity(), Init_Storage(), Init_ZMQ()
+    storage_->InitBackup();
     Init_Periodic();  // requires Init_Dht(), Init_Storage()
 }
 
@@ -191,80 +201,128 @@ void OT::Init_Storage()
     StorageConfig config;
     config.path_ = path;
     bool notUsed;
+    String defaultPlugin{};
+    String archiveDirectory{};
+
+    if (primary_storage_plugin_.empty()) {
+        defaultPlugin = config.primary_plugin_.c_str();
+    } else {
+        defaultPlugin = primary_storage_plugin_.c_str();
+    }
+
+    if (archive_directory.empty()) {
+        archiveDirectory = config.fs_backup_directory_.c_str();
+    } else {
+        archiveDirectory = archive_directory.c_str();
+    }
 
     Config().CheckSet_bool(
-        "storage",
+        STORAGE_CONFIG_KEY,
         "auto_publish_nyms",
         config.auto_publish_nyms_,
         config.auto_publish_nyms_,
         notUsed);
     Config().CheckSet_bool(
-        "storage",
+        STORAGE_CONFIG_KEY,
         "auto_publish_servers_",
         config.auto_publish_servers_,
         config.auto_publish_servers_,
         notUsed);
     Config().CheckSet_bool(
-        "storage",
+        STORAGE_CONFIG_KEY,
         "auto_publish_units_",
         config.auto_publish_units_,
         config.auto_publish_units_,
         notUsed);
     Config().CheckSet_long(
-        "storage",
+        STORAGE_CONFIG_KEY,
         "gc_interval",
         config.gc_interval_,
         config.gc_interval_,
         notUsed);
     Config().CheckSet_str(
-        "storage", "path", String(config.path_), config.path_, notUsed);
+        STORAGE_CONFIG_KEY,
+        "path",
+        String(config.path_),
+        config.path_,
+        notUsed);
+
+    if (defaultPlugin.Exists()) {
+        Config().Set_str(
+            STORAGE_CONFIG_KEY,
+            STORAGE_CONFIG_PRIMARY_PLUGIN_KEY,
+            defaultPlugin,
+            notUsed);
+    }
+
+    Config().CheckSet_str(
+        STORAGE_CONFIG_KEY,
+        STORAGE_CONFIG_PRIMARY_PLUGIN_KEY,
+        defaultPlugin,
+        config.primary_plugin_,
+        notUsed);
 #if OT_STORAGE_FS
     Config().CheckSet_str(
-        "storage",
+        STORAGE_CONFIG_KEY,
         "fs_primary",
         String(config.fs_primary_bucket_),
         config.fs_primary_bucket_,
         notUsed);
     Config().CheckSet_str(
-        "storage",
+        STORAGE_CONFIG_KEY,
         "fs_secondary",
         String(config.fs_secondary_bucket_),
         config.fs_secondary_bucket_,
         notUsed);
     Config().CheckSet_str(
-        "storage",
+        STORAGE_CONFIG_KEY,
         "fs_root_file",
         String(config.fs_root_file_),
         config.fs_root_file_,
         notUsed);
+
+    if (archiveDirectory.Exists()) {
+        Config().Set_str(
+            STORAGE_CONFIG_KEY,
+            STORAGE_CONFIG_FS_BACKUP_DIRECTORY_KEY,
+            archiveDirectory,
+            notUsed);
+    }
+
+    Config().CheckSet_str(
+        STORAGE_CONFIG_KEY,
+        STORAGE_CONFIG_FS_BACKUP_DIRECTORY_KEY,
+        archiveDirectory,
+        config.fs_backup_directory_,
+        notUsed);
 #endif
 #if OT_STORAGE_SQLITE
     Config().CheckSet_str(
-        "storage",
+        STORAGE_CONFIG_KEY,
         "sqlite3_primary",
         String(config.sqlite3_primary_bucket_),
         config.sqlite3_primary_bucket_,
         notUsed);
     Config().CheckSet_str(
-        "storage",
+        STORAGE_CONFIG_KEY,
         "sqlite3_secondary",
         String(config.sqlite3_secondary_bucket_),
         config.sqlite3_secondary_bucket_,
         notUsed);
     Config().CheckSet_str(
-        "storage",
+        STORAGE_CONFIG_KEY,
         "sqlite3_control",
         String(config.sqlite3_control_table_),
         config.sqlite3_control_table_,
         notUsed);
     Config().CheckSet_str(
-        "storage",
+        STORAGE_CONFIG_KEY,
         "sqlite3_root_key",
         String(config.sqlite3_root_key_),
         config.sqlite3_root_key_,
         notUsed);
     Config().CheckSet_str(
-        "storage",
+        STORAGE_CONFIG_KEY,
         "sqlite3_db_file",
         String(config.sqlite3_db_file_),
         config.sqlite3_db_file_,
@@ -280,7 +338,9 @@ void OT::Init_Storage()
             std::placeholders::_2);
     }
 
-    storage_.reset(new Storage(config, hash, random));
+    OT_ASSERT(crypto_);
+
+    storage_.reset(new Storage(config, *crypto_, hash, random));
 }
 
 void OT::Init_Dht()

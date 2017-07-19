@@ -99,11 +99,12 @@ void CryptoEngine::Init()
     symmetric_.reset(new CryptoSymmetricEngine(*this));
     encode_.reset(new CryptoEncodingEngine(*this));
 
-    otWarn << "CryptoEngine::Init: Setting up rlimits, and crypto libraries...\n";
+    otWarn
+        << "CryptoEngine::Init: Setting up rlimits, and crypto libraries...\n";
 
-    // Here is a security measure intended to make it more difficult to
-    // capture a core dump. (Not used in debug mode, obviously.)
-    //
+// Here is a security measure intended to make it more difficult to
+// capture a core dump. (Not used in debug mode, obviously.)
+//
 #if !defined(PREDEF_MODE_DEBUG) && defined(PREDEF_PLATFORM_UNIX)
     struct rlimit rlim;
     getrlimit(RLIMIT_CORE, &rlim);
@@ -221,8 +222,5 @@ CryptoSymmetricEngine& CryptoEngine::Symmetric() const
     return *symmetric_;
 }
 
-CryptoEngine::~CryptoEngine()
-{
-    Cleanup();
-}
-} // namespace opentxs
+CryptoEngine::~CryptoEngine() { Cleanup(); }
+}  // namespace opentxs

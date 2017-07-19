@@ -75,8 +75,9 @@ public:
 
      Call this once per run of the application.
      */
-    EXPORT static bool AppInit();  // Call this ONLY ONCE, when your App first
-                                   // starts up.
+    EXPORT static bool AppInit(
+        const std::string& storagePlugin = "",
+        const std::string& archiveDirectory = "");
     EXPORT static bool AppCleanup();  // Call this ONLY ONCE, when your App is
                                       // shutting down.
 

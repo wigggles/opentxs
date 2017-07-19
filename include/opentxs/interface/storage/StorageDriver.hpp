@@ -62,11 +62,10 @@ public:
         const std::string& key,
         const std::string& value,
         const bool bucket) const = 0;
-    virtual bool Store(
-        const std::string& value,
-        std::string& key) const = 0;
+    virtual bool Store(const std::string& value, std::string& key) const = 0;
 
-    virtual bool Migrate(const std::string& key) const = 0;
+    virtual bool Migrate(const std::string& key, const StorageDriver& to)
+        const = 0;
 
     virtual std::string LoadRoot() const = 0;
     virtual bool StoreRoot(const std::string& hash) const = 0;
@@ -80,10 +79,8 @@ public:
         const bool checking = false) const;
 
     template <class T>
-    bool StoreProto(
-        const T& data,
-        std::string& key,
-        std::string& plaintext) const;
+    bool StoreProto(const T& data, std::string& key, std::string& plaintext)
+        const;
 
     template <class T>
     bool StoreProto(const T& data, std::string& key) const;

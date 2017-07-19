@@ -58,9 +58,6 @@
 #include "opentxs/client/OTAPI_Func.hpp"
 #include "opentxs/client/Utility.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
-#ifdef ANDROID
-#include "opentxs/core/util/android_string.hpp"
-#endif  // ANDROID
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/OTDataFolder.hpp"

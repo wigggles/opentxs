@@ -42,6 +42,7 @@
 #include "opentxs/api/Editor.hpp"
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/Types.hpp"
+#include "opentxs/interface/storage/StorageDriver.hpp"
 #include "opentxs/storage/StorageConfig.hpp"
 
 #include <atomic>
@@ -55,11 +56,14 @@
 #include <memory>
 #include <mutex>
 #include <string>
+#include <thread>
 #include <tuple>
+#include <vector>
 
 namespace opentxs
 {
 
+class CryptoEngine;
 class OT;
 class StoragePlugin;
 
@@ -93,7 +97,7 @@ typedef std::function<void(const proto::UnitDefinition&)> UnitLambda;
 // Objects are either stored and retrieved from either the primary bucket, or
 // the alternate bucket. This allows for garbage collection of outdated keys
 // to be implemented.
-class Storage
+class Storage : public virtual StorageDriver
 {
 private:
     friend class OT;
@@ -111,23 +115,46 @@ private:
      */
     typedef std::map<std::string, Metadata> Index;
 
+    CryptoEngine& crypto_;
     std::uint32_t version_{0};
     std::int64_t gc_interval_{std::numeric_limits<int64_t>::max()};
     mutable std::unique_ptr<storage::Root> meta_;
     std::unique_ptr<StoragePlugin> primary_plugin_;
+    std::vector<std::unique_ptr<StoragePlugin>> backup_plugins_;
     mutable std::atomic<bool> primary_bucket_;
-
-    void save(storage::Root* in, const Lock& lock);
-    bool verify_write_lock(const std::unique_lock<std::mutex>& lock) const;
+    std::vector<std::thread> background_threads_;
 
     void Cleanup_Storage();
     void CollectGarbage();
+    bool EmptyBucket(const bool bucket) const override;
+    void InitBackup();
+    void InitPlugins();
+    bool Load(const std::string& key, const bool checking, std::string& value)
+        const override;
+    bool LoadFromBucket(
+        const std::string& key,
+        std::string& value,
+        const bool bucket) const override;
+    std::string LoadRoot() const override;
     storage::Root* meta() const;
     const storage::Root& Meta() const;
+    bool Migrate(const std::string& key, const StorageDriver& to)
+        const override;
+    bool Store(
+        const std::string& key,
+        const std::string& value,
+        const bool bucket) const override;
+    bool Store(const std::string& value, std::string& key) const override;
+    bool StoreRoot(const std::string& hash) const override;
+    bool verify_write_lock(const std::unique_lock<std::mutex>& lock) const;
+
     Editor<storage::Root> mutable_Meta();
     void RunMapPublicNyms(NymLambda lambda);
     void RunMapServers(ServerLambda lambda);
     void RunMapUnits(UnitLambda lambda);
+    void save(storage::Root* in, const Lock& lock);
+    void synchronize_plugins();
+    void synchronize_root();
 
     Storage(const Storage&) = delete;
     Storage(Storage&&) = delete;
@@ -146,6 +173,7 @@ protected:
 
     Storage(
         const StorageConfig& config,
+        CryptoEngine& crypto,
         const Digest& hash,
         const Random& random);
 

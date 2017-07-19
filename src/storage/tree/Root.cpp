@@ -40,6 +40,7 @@
 
 #include "opentxs/storage/tree/Root.hpp"
 
+#include "opentxs/interface/storage/StorageDriver.hpp"
 #include "opentxs/storage/tree/Credentials.hpp"
 #include "opentxs/storage/tree/Nym.hpp"
 #include "opentxs/storage/tree/Nyms.hpp"
@@ -61,11 +62,9 @@ Root::Root(
     const StorageDriver& storage,
     const std::string& hash,
     const std::int64_t interval,
-    const EmptyBucket& empty,
     std::atomic<bool>& bucket)
     : ot_super(storage, hash)
     , gc_interval_(interval)
-    , empty_bucket_(empty)
     , current_bucket_(bucket)
 {
     if (check_hash(hash)) {
@@ -96,7 +95,7 @@ void Root::cleanup() const
     }
 }
 
-void Root::collect_garbage() const
+void Root::collect_garbage(const StorageDriver* to) const
 {
     Lock lock(write_lock_);
     otErr << OT_METHOD << __FUNCTION__ << ": Beginning garbage collection."
@@ -118,11 +117,11 @@ void Root::collect_garbage() const
 
     if (!gc_root_.empty()) {
         const class Tree tree(driver_, gc_root_);
-        success = tree.Migrate();
+        success = tree.Migrate(*to);
     }
 
     if (success) {
-        empty_bucket_(oldLocation);
+        driver_.EmptyBucket(oldLocation);
     } else {
         otErr << OT_METHOD << __FUNCTION__ << ": Garbage collection failed. "
               << "Will retry next cycle." << std::endl;
@@ -166,7 +165,7 @@ void Root::init(const std::string& hash)
     tree_root_ = serialized->items();
 }
 
-bool Root::Migrate() const
+bool Root::Migrate(const StorageDriver& to) const
 {
     const std::uint64_t time = std::time(nullptr);
     const bool intervalExceeded = ((time - last_gc_.load()) > gc_interval_);
@@ -178,7 +177,8 @@ bool Root::Migrate() const
 
         if (!running) {
             cleanup();
-            gc_thread_.reset(new std::thread(&Root::collect_garbage, this));
+            gc_thread_.reset(
+                new std::thread(&Root::collect_garbage, this, &to));
 
             return true;
         }
@@ -223,6 +223,8 @@ void Root::save(class Tree* tree, const Lock& lock)
 
     OT_ASSERT(saved);
 }
+
+std::uint64_t Root::Sequence() const { return sequence_.load(); }
 
 proto::StorageRoot Root::serialize() const
 {

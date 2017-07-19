@@ -142,7 +142,9 @@ protected:
             const auto& hash = std::get<0>(it.second);
             std::shared_ptr<T> serialized;
 
-            if (Node::BLANK_HASH == hash) { continue; }
+            if (Node::BLANK_HASH == hash) {
+                continue;
+            }
 
             if (driver_.LoadProto<T>(hash, serialized, false)) {
                 input(*serialized);
@@ -177,7 +179,7 @@ protected:
         std::string& output,
         std::string& alias,
         const bool checking) const;
-    bool migrate(const std::string& hash) const;
+    bool migrate(const std::string& hash, const StorageDriver& to) const;
     virtual bool save(const std::unique_lock<std::mutex>& lock) const = 0;
     void serialize_index(
         const std::string& id,
@@ -205,7 +207,7 @@ protected:
 
 public:
     ObjectList List() const;
-    virtual bool Migrate() const;
+    virtual bool Migrate(const StorageDriver& to) const;
     std::string Root() const;
 
     virtual ~Node() = default;

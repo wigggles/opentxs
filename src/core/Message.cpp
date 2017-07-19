@@ -40,10 +40,6 @@
 
 #include "opentxs/core/Message.hpp"
 
-#if defined(ANDROID)
-#include "opentxs/core/util/android_string.hpp"
-#endif
-
 #include "opentxs/consensus/Context.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"

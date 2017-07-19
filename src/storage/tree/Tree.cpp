@@ -129,29 +129,34 @@ void Tree::init(const std::string& hash)
     seed_root_ = serialized->seeds();
 }
 
-bool Tree::Migrate() const
+bool Tree::Migrate(const StorageDriver& to) const
 {
-    if (!credentials()->Migrate()) {
+    if (!credentials()->Migrate(to)) {
+
         return false;
     }
 
-    if (!nyms()->Migrate()) {
+    if (!nyms()->Migrate(to)) {
+
         return false;
     }
 
-    if (!seeds()->Migrate()) {
+    if (!seeds()->Migrate(to)) {
+
         return false;
     }
 
-    if (!servers()->Migrate()) {
+    if (!servers()->Migrate(to)) {
+
         return false;
     }
 
-    if (!units()->Migrate()) {
+    if (!units()->Migrate(to)) {
+
         return false;
     }
 
-    return migrate(root_);
+    return migrate(root_, to);
 }
 
 Editor<Credentials> Tree::mutable_Credentials()

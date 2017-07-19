@@ -73,6 +73,6 @@ public:
         const uint32_t nym) const;
 };
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CORE_CRYPTO_BIP32_HPP
+#endif  // OPENTXS_CORE_CRYPTO_BIP32_HPP

@@ -93,7 +93,7 @@ private:
 
 public:
     bool Exists(const std::string& id) const;
-    bool Migrate() const override;
+    bool Migrate(const StorageDriver& to) const override;
     const class Thread& Thread(const std::string& id) const;
 
     std::string Create(const std::set<std::string>& participants);

@@ -46,9 +46,6 @@
 #include "opentxs/client/OTAPI_Func.hpp"
 #include "opentxs/client/Utility.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
-#ifdef ANDROID
-#include "opentxs/core/util/android_string.hpp"
-#endif
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 

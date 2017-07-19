@@ -94,7 +94,6 @@ typedef std::function<
     bool(const std::uint32_t, const std::string&, std::string&)>
     Digest;
 typedef std::function<std::string()> Random;
-typedef std::function<bool(const bool)> EmptyBucket;
 
 /** C++11 representation of a claim. This version is more useful than the
  *  protobuf version, since it contains the claim ID.

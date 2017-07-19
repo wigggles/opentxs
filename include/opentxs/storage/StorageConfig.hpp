@@ -39,13 +39,19 @@
 #ifndef OPENTXS_STORAGE_STORAGECONFIG_HPP
 #define OPENTXS_STORAGE_STORAGECONFIG_HPP
 
+#include <cstdint>
 #include <functional>
 #include <string>
+
+#define OT_STORAGE_PRIMARY_PLUGIN_SQLITE "sqlite"
+#define OT_STORAGE_PRIMARY_PLUGIN_FS "fs"
+#define STORAGE_CONFIG_PRIMARY_PLUGIN_KEY "primary_plugin"
+#define STORAGE_CONFIG_FS_BACKUP_DIRECTORY_KEY "fs_backup_directory"
 
 namespace opentxs
 {
 
-typedef std::function<void(const std::string&, const std::string&)>  InsertCB;
+typedef std::function<void(const std::string&, const std::string&)> InsertCB;
 
 class StorageConfig
 {
@@ -53,14 +59,23 @@ public:
     bool auto_publish_nyms_ = true;
     bool auto_publish_servers_ = true;
     bool auto_publish_units_ = true;
-    int64_t gc_interval_ = 60 * 60 * 24 * 30;
-    std::string path_;
-    InsertCB dht_callback_;
+    std::int64_t gc_interval_ = 60 * 60 * 24 * 30;
+    std::string path_{};
+    InsertCB dht_callback_{};
+
+#if OT_STORAGE_SQLITE
+    std::string primary_plugin_ = OT_STORAGE_PRIMARY_PLUGIN_SQLITE;
+#elif OT_STORAGE_FS
+    std::string primary_plugin_ = OT_STORAGE_PRIMARY_PLUGIN_FS;
+#else
+    std::string primary_plugin_{};
+#endif
 
 #ifdef OT_STORAGE_FS
     std::string fs_primary_bucket_ = "a";
     std::string fs_secondary_bucket_ = "b";
     std::string fs_root_file_ = "root";
+    std::string fs_backup_directory_{""};
 #endif
 
 #ifdef OT_STORAGE_SQLITE
@@ -71,6 +86,5 @@ public:
     std::string sqlite3_db_file_ = "opentxs.sqlite3";
 #endif
 };
-
 }  // namespace opentxs
-#endif // OPENTXS_STORAGE_STORAGECONFIG_HPP
+#endif  // OPENTXS_STORAGE_STORAGECONFIG_HPP

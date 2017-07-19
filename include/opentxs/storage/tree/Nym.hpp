@@ -183,7 +183,7 @@ public:
         std::shared_ptr<proto::CredentialIndex>& output,
         std::string& alias,
         const bool checking) const;
-    bool Migrate() const override;
+    bool Migrate(const StorageDriver& to) const override;
 
     bool SetAlias(const std::string& alias);
     bool Store(

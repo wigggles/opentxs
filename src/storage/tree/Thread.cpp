@@ -211,7 +211,10 @@ proto::StorageThread Thread::Items() const
     return serialize(lock);
 }
 
-bool Thread::Migrate() const { return Node::migrate(root_); }
+bool Thread::Migrate(const StorageDriver& to) const
+{
+    return Node::migrate(root_, to);
+}
 
 bool Thread::Read(const std::string& id)
 {
