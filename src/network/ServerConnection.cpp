@@ -77,6 +77,8 @@ ServerConnection::ServerConnection(
     , last_activity_(0)
     , status_(false)
 {
+    shutdown_.store(false);
+
     if (false == zsys_has_curve()) {
         otErr << OT_METHOD << __FUNCTION__
               << ": libzmq has no libsodium support." << std::endl;
@@ -91,18 +93,33 @@ ServerConnection::ServerConnection(
     thread_.reset(new std::thread(&ServerConnection::Thread, this));
 }
 
-ServerConnection::~ServerConnection()
+bool ServerConnection::ChangeAddressType(const proto::AddressType type)
 {
-    if (thread_) {
-        thread_->join();
+    Lock lock(*lock_);
+
+    std::uint32_t port{0};
+    std::string hostname{};
+
+    OT_ASSERT(remote_contract_);
+
+    if (false == remote_contract_->ConnectInfo(hostname, port, type)) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Unable to extract connection info." << std::endl;
+
+        return false;
     }
 
-    zsock_destroy(&request_socket_);
+    auto& endpoint = const_cast<std::string&>(remote_endpoint_);
+    endpoint = "tcp://" + hostname + ":" + std::to_string(port);
+    otErr << OT_METHOD << __FUNCTION__
+          << ": Changing endpoint to: " << remote_endpoint_ << std::endl;
+    ResetSocket();
+
+    return true;
 }
 
 void ServerConnection::Init()
 {
-    shutdown_.store(false);
     status_.store(false);
     SetProxy();
     SetTimeouts();
@@ -328,5 +345,14 @@ void ServerConnection::Thread()
 
         Log::Sleep(std::chrono::seconds(1));
     }
+}
+
+ServerConnection::~ServerConnection()
+{
+    if (thread_) {
+        thread_->join();
+    }
+
+    zsock_destroy(&request_socket_);
 }
 }  // namespace opentxs

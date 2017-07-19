@@ -39,6 +39,7 @@
 #ifndef OPENTXS_NETWORK_SERVERCONNECTION_HPP
 #define OPENTXS_NETWORK_SERVERCONNECTION_HPP
 
+#include "opentxs/core/Proto.hpp"
 #include "opentxs/core/Types.hpp"
 #include "opentxs/network/ZMQ.hpp"
 
@@ -101,6 +102,7 @@ private:
     ServerConnection& operator=(ServerConnection&&) = delete;
 
 public:
+    bool ChangeAddressType(const proto::AddressType type);
     NetworkReplyRaw Send(const std::string& message);
     NetworkReplyString Send(const String& message);
     NetworkReplyMessage Send(const Message& message);
@@ -108,6 +110,6 @@ public:
 
     ~ServerConnection();
 };
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_NETWORK_SERVERCONNECTION_HPP
+#endif  // OPENTXS_NETWORK_SERVERCONNECTION_HPP
