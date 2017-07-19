@@ -46,6 +46,7 @@
 #define OT_STORAGE_PRIMARY_PLUGIN_SQLITE "sqlite"
 #define OT_STORAGE_PRIMARY_PLUGIN_FS "fs"
 #define STORAGE_CONFIG_PRIMARY_PLUGIN_KEY "primary_plugin"
+#define STORAGE_CONFIG_FS_BACKUP_DIRECTORY_KEY "fs_backup_directory"
 
 namespace opentxs
 {
@@ -74,6 +75,7 @@ public:
     std::string fs_primary_bucket_ = "a";
     std::string fs_secondary_bucket_ = "b";
     std::string fs_root_file_ = "root";
+    std::string fs_backup_directory_{""};
 #endif
 
 #ifdef OT_STORAGE_SQLITE

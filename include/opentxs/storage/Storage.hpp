@@ -63,6 +63,7 @@
 namespace opentxs
 {
 
+class CryptoEngine;
 class OT;
 class StoragePlugin;
 
@@ -114,6 +115,7 @@ private:
      */
     typedef std::map<std::string, Metadata> Index;
 
+    CryptoEngine& crypto_;
     std::uint32_t version_{0};
     std::int64_t gc_interval_{std::numeric_limits<int64_t>::max()};
     mutable std::unique_ptr<storage::Root> meta_;
@@ -125,6 +127,8 @@ private:
     void Cleanup_Storage();
     void CollectGarbage();
     bool EmptyBucket(const bool bucket) const override;
+    void InitBackup();
+    void InitPlugins();
     bool Load(const std::string& key, const bool checking, std::string& value)
         const override;
     bool LoadFromBucket(
@@ -169,6 +173,7 @@ protected:
 
     Storage(
         const StorageConfig& config,
+        CryptoEngine& crypto,
         const Digest& hash,
         const Random& random);
 

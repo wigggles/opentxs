@@ -99,13 +99,14 @@ void OT::Init()
     Init_Config();
     Init_Log();  // requires Init_Config()
     Init_Crypto();
-    Init_Storage();  // requires Init_Config()
+    Init_Storage();  // requires Init_Config(), Init_Crypto()
     Init_Dht();      // requires Init_Config()
     Init_ZMQ();      // requires Init_Config()
     Init_Contracts();
     Init_Identity();
     Init_Api();  // requires Init_Config(), Init_Crypto(), Init_Contracts(),
                  // Init_Identity(), Init_Storage(), Init_ZMQ()
+    storage_->InitBackup();
     Init_Periodic();  // requires Init_Dht(), Init_Storage()
 }
 
@@ -256,6 +257,12 @@ void OT::Init_Storage()
         String(config.fs_root_file_),
         config.fs_root_file_,
         notUsed);
+    Config().CheckSet_str(
+        STORAGE_CONFIG_KEY,
+        STORAGE_CONFIG_FS_BACKUP_DIRECTORY_KEY,
+        String(config.fs_backup_directory_),
+        config.fs_backup_directory_,
+        notUsed);
 #endif
 #if OT_STORAGE_SQLITE
     Config().CheckSet_str(
@@ -299,7 +306,9 @@ void OT::Init_Storage()
             std::placeholders::_2);
     }
 
-    storage_.reset(new Storage(config, hash, random));
+    OT_ASSERT(crypto_);
+
+    storage_.reset(new Storage(config, *crypto_, hash, random));
 }
 
 void OT::Init_Dht()

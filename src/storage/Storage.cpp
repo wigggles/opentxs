@@ -40,10 +40,15 @@
 
 #include "opentxs/storage/Storage.hpp"
 
+#if OT_STORAGE_FS
+#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/crypto/SymmetricKey.hpp"
+#endif
 #include "opentxs/core/Log.hpp"
 #include "opentxs/interface/storage/StoragePlugin.hpp"
 #if OT_STORAGE_FS
 #include "opentxs/storage/drivers/StorageFS.hpp"
+#include "opentxs/storage/drivers/StorageFSArchive.hpp"
 #endif
 #if OT_STORAGE_SQLITE
 #include "opentxs/storage/drivers/StorageSqlite3.hpp"
@@ -77,9 +82,11 @@ const std::uint32_t Storage::HASH_TYPE = 2;  // BTC160
 
 Storage::Storage(
     const StorageConfig& config,
+    CryptoEngine& crypto,
     const Digest& hash,
     const Random& random)
-    : gc_interval_(config.gc_interval_)
+    : crypto_(crypto)
+    , gc_interval_(config.gc_interval_)
     , config_(config)
     , digest_(hash)
     , random_(random)
@@ -150,6 +157,27 @@ bool Storage::EmptyBucket(const bool bucket) const
 void Storage::Init()
 {
     shutdown_.store(false);
+    InitPlugins();
+}
+
+void Storage::InitBackup()
+{
+    if (config_.fs_backup_directory_.empty()) {
+
+        return;
+    }
+
+    backup_plugins_.emplace_back(new StorageFSArchive(
+        config_,
+        digest_,
+        random_,
+        primary_bucket_,
+        config_.fs_backup_directory_));
+    InitPlugins();
+}
+
+void Storage::InitPlugins()
+{
     synchronize_root();
     synchronize_plugins();
 }
