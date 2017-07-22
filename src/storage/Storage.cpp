@@ -167,6 +167,7 @@ void Storage::InitBackup()
         return;
     }
 
+#if OT_STORAGE_FS
     backup_plugins_.emplace_back(new StorageFSArchive(
         config_,
         digest_,
@@ -174,6 +175,9 @@ void Storage::InitBackup()
         primary_bucket_,
         config_.fs_backup_directory_));
     InitPlugins();
+#else
+    return;
+#endif
 }
 
 void Storage::InitPlugins()
