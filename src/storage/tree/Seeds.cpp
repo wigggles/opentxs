@@ -42,6 +42,10 @@
 
 #include "opentxs/storage/StoragePlugin.hpp"
 
+#define CURRENT_VERSION 2
+
+#define OT_METHOD "opentxs::storage::Seeds::"
+
 namespace opentxs
 {
 namespace storage
@@ -52,36 +56,12 @@ Seeds::Seeds(const StorageDriver& storage, const std::string& hash)
     if (check_hash(hash)) {
         init(hash);
     } else {
-        version_ = 2;
+        version_ = CURRENT_VERSION;
         root_ = Node::BLANK_HASH;
     }
 }
 
 std::string Seeds::Alias(const std::string& id) const { return get_alias(id); }
-
-bool Seeds::check_existing(const std::uint64_t incoming, Metadata& metadata)
-{
-    const auto& hash = std::get<0>(metadata);
-    auto& revision = std::get<2>(metadata);
-
-    // This variable can be zero for two reasons:
-    // * The stored version has never been incremented,
-    // * The stored version hasn't been loaded yet and so the index
-    // hasn't been updated
-    // ...so we have to load the seed just to be sure
-    if (0 == revision) {
-        std::shared_ptr<proto::Seed> existing;
-
-        if (!driver_.LoadProto(hash, existing, false)) {
-            std::cerr << __FUNCTION__ << ": Unable to load." << std::endl;
-            abort();
-        }
-
-        revision = existing->index();
-    }
-
-    return (incoming > revision);
-}
 
 std::string Seeds::Default() const
 {
@@ -105,9 +85,9 @@ void Seeds::init(const std::string& hash)
 
     version_ = serialized->version();
 
-    // Upgrade to version 2
-    if (2 > version_) {
-        version_ = 2;
+    // Upgrade version
+    if (CURRENT_VERSION > version_) {
+        version_ = CURRENT_VERSION;
     }
 
     default_seed_ = serialized->defaultseed();
@@ -198,7 +178,10 @@ bool Seeds::Store(const proto::Seed& data, const std::string& alias)
     auto& hash = std::get<0>(metadata);
 
     if (existingKey) {
-        if (!check_existing(incomingRevision, metadata)) {
+        const bool revisionCheck =
+            check_revision<proto::Seed>(OT_METHOD, incomingRevision, metadata);
+
+        if (false == revisionCheck) {
             // We're trying to save a seed with a lower index than has already
             // been saved. Just silently skip this update instead.
 

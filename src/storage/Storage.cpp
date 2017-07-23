@@ -53,6 +53,7 @@
 #if OT_STORAGE_SQLITE
 #include "opentxs/storage/drivers/StorageSqlite3.hpp"
 #endif
+#include "opentxs/storage/tree/Contacts.hpp"
 #include "opentxs/storage/tree/Credentials.hpp"
 #include "opentxs/storage/tree/Nym.hpp"
 #include "opentxs/storage/tree/Nyms.hpp"
@@ -129,6 +130,13 @@ void Storage::Cleanup()
 }
 
 void Storage::CollectGarbage() { Meta().Migrate(*primary_plugin_); }
+
+std::string Storage::ContactAlias(const std::string& id)
+{
+    return Meta().Tree().ContactNode().Alias(id);
+}
+
+ObjectList Storage::ContactList() { return Meta().Tree().ContactNode().List(); }
 
 ObjectList Storage::ContextList(const std::string& nymID)
 {
@@ -232,6 +240,25 @@ bool Storage::Load(
     }
 
     return false;
+}
+
+bool Storage::Load(
+    const std::string& id,
+    std::shared_ptr<proto::Contact>& contact,
+    const bool checking)
+{
+    std::string notUsed{};
+
+    return Load(id, contact, notUsed, checking);
+}
+
+bool Storage::Load(
+    const std::string& id,
+    std::shared_ptr<proto::Contact>& contact,
+    std::string& alias,
+    const bool checking)
+{
+    return Meta().Tree().ContactNode().Load(id, contact, alias, checking);
 }
 
 bool Storage::Load(
@@ -861,6 +888,17 @@ void Storage::save(storage::Root* in, const Lock& lock)
     StoreRoot(in->root_);
 }
 
+bool Storage::SetContactAlias(const std::string& id, const std::string& alias)
+{
+    return mutable_Meta()
+        .It()
+        .mutable_Tree()
+        .It()
+        .mutable_Contacts()
+        .It()
+        .SetAlias(id, alias);
+}
+
 bool Storage::SetDefaultSeed(const std::string& id)
 {
     return mutable_Meta()
@@ -1047,6 +1085,18 @@ bool Storage::Store(const std::string& key, std::string& value) const
     }
 
     return output;
+}
+
+
+bool Storage::Store(const proto::Contact& data)
+{
+    return mutable_Meta()
+        .It()
+        .mutable_Tree()
+        .It()
+        .mutable_Contacts()
+        .It()
+        .Store(data, data.label());
 }
 
 bool Storage::Store(const proto::Context& data)

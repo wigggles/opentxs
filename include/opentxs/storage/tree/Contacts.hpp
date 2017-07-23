@@ -36,13 +36,15 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_STORAGE_TREE_SEEDS_HPP
-#define OPENTXS_STORAGE_TREE_SEEDS_HPP
+#ifndef OPENTXS_STORAGE_TREE_CONTACTS_HPP
+#define OPENTXS_STORAGE_TREE_CONTACTS_HPP
 
 #include "opentxs/api/Editor.hpp"
 #include "opentxs/storage/tree/Node.hpp"
 
 #include <cstdint>
+#include <map>
+#include <set>
 
 namespace opentxs
 {
@@ -51,43 +53,43 @@ namespace storage
 
 class Tree;
 
-class Seeds : public Node
+class Contacts : public Node
 {
-private:
-    friend class Tree;
-
-    std::string default_seed_;
-
-    void init(const std::string& hash) override;
-    bool save(const std::unique_lock<std::mutex>& lock) const override;
-    void set_default(
-        const std::unique_lock<std::mutex>& lock,
-        const std::string& id);
-    proto::StorageSeeds serialize() const;
-
-    Seeds(const StorageDriver& storage, const std::string& hash);
-    Seeds() = delete;
-    Seeds(const Seeds&) = delete;
-    Seeds(Seeds&&) = delete;
-    Seeds operator=(const Seeds&) = delete;
-    Seeds operator=(Seeds&&) = delete;
-
 public:
     std::string Alias(const std::string& id) const;
-    std::string Default() const;
     bool Load(
         const std::string& id,
-        std::shared_ptr<proto::Seed>& output,
+        std::shared_ptr<proto::Contact>& output,
         std::string& alias,
         const bool checking) const;
 
     bool Delete(const std::string& id);
     bool SetAlias(const std::string& id, const std::string& alias);
-    bool SetDefault(const std::string& id);
-    bool Store(const proto::Seed& data, const std::string& alias);
+    bool Store(const proto::Contact& data, const std::string& alias);
 
-    ~Seeds() = default;
+    ~Contacts() = default;
+
+private:
+    friend class Tree;
+
+    std::map<std::string, std::set<std::string>> merge_{};
+    std::map<std::string, std::string> merged_{};
+
+    const std::string& nomalize_id(const std::string& input) const;
+    bool save(const std::unique_lock<std::mutex>& lock) const override;
+    proto::StorageContacts serialize() const;
+
+    void init(const std::string& hash) override;
+    void reconcile_maps(const Lock& lock, const proto::Contact& data);
+    void reverse_merged();
+
+    Contacts(const StorageDriver& storage, const std::string& hash);
+    Contacts() = delete;
+    Contacts(const Contacts&) = delete;
+    Contacts(Contacts&&) = delete;
+    Contacts operator=(const Contacts&) = delete;
+    Contacts operator=(Contacts&&) = delete;
 };
 }  // namespace storage
 }  // namespace opentxs
-#endif  // OPENTXS_STORAGE_TREE_SEEDS_HPP
+#endif  // OPENTXS_STORAGE_TREE_CONTACTS_HPP

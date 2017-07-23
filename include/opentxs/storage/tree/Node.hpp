@@ -39,6 +39,7 @@
 #ifndef OPENTXS_STORAGE_TREE_NODE_HPP
 #define OPENTXS_STORAGE_TREE_NODE_HPP
 
+#include "opentxs/core/Log.hpp"
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/Types.hpp"
 #include "opentxs/interface/storage/StorageDriver.hpp"
@@ -152,6 +153,36 @@ protected:
         }
     }
 
+    template <class T>
+    bool check_revision(
+        const std::string& method,
+        const std::uint64_t incoming,
+        Metadata& metadata)
+    {
+        const auto& hash = std::get<0>(metadata);
+        auto& revision = std::get<2>(metadata);
+
+        // This variable can be zero for two reasons:
+        // * The stored version has never been incremented,
+        // * The stored version hasn't been loaded yet and so the index
+        // hasn't been updated
+        // ...so we have to load the object just to be sure
+        if (0 == revision) {
+            std::shared_ptr<T> existing{nullptr};
+
+            if (false == driver_.LoadProto(hash, existing, false)) {
+                otErr << method << __FUNCTION__ << ": Unable to load object."
+                      << std::endl;
+
+                abort();
+            }
+
+            revision = extract_revision(*existing);
+        }
+
+        return (incoming > revision);
+    }
+
 private:
     Node() = delete;
     Node(const Node&) = delete;
@@ -173,6 +204,9 @@ protected:
     mutable Index item_map_;
 
     bool check_hash(const std::string& hash) const;
+    std::uint64_t extract_revision(const proto::Contact& input) const;
+    std::uint64_t extract_revision(const proto::CredentialIndex& input) const;
+    std::uint64_t extract_revision(const proto::Seed& input) const;
     std::string get_alias(const std::string& id) const;
     bool load_raw(
         const std::string& id,
