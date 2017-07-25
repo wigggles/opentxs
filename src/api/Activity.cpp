@@ -60,14 +60,14 @@ Activity::Activity(ContactManager& contact, Storage& storage, Wallet& wallet)
 {
 }
 
-std::string Activity::nym_to_contact(const std::string& id)
+std::shared_ptr<const Contact> Activity::nym_to_contact(const std::string& id)
 {
     const Identifier nymID(id);
     auto contactID = contact_.ContactID(nymID);
 
     if (false == contactID.empty()) {
 
-        return String(contactID).Get();
+        return contact_.Contact(contactID);
     }
 
     // Contact does not yet exist. Create it.
@@ -86,11 +86,7 @@ std::string Activity::nym_to_contact(const std::string& id)
 
     OT_ASSERT(code);
 
-    auto contact = contact_.NewContact(label, nymID, *code);
-
-    OT_ASSERT(contact);
-
-    return String(contact->ID()).Get();
+    return contact_.NewContact(label, nymID, *code);
 }
 
 std::unique_ptr<Message> Activity::Mail(
@@ -141,37 +137,48 @@ std::string Activity::Mail(
     mail.CalculateContractID(id);
     const std::string output = String(id).Get();
     const String data(mail);
-    std::string alias{};
-    std::string contact{};
+    std::string participantNymID{};
     const String localName(nym);
 
     if (localName == mail.m_strNymID2) {
         // This is an incoming message. The contact id is the sender's id.
-        contact = mail.m_strNymID.Get();
+        participantNymID = mail.m_strNymID.Get();
     } else {
         // This is an outgoing message. The contact id is the recipient's id.
-        contact = mail.m_strNymID2.Get();
+        participantNymID = mail.m_strNymID2.Get();
     }
 
-    const auto thread = nym_to_contact(contact);
+    const auto contact = nym_to_contact(participantNymID);
+
+    OT_ASSERT(contact);
+
+    std::string alias = contact->Label();
+    const std::string contactID = String(contact->ID()).Get();
+    const auto& threadID = contactID;
     const auto threadList = storage_.ThreadList(nymID);
     bool threadExists = false;
 
     for (const auto it : threadList) {
-        const auto& threadID = it.first;
+        const auto& id = it.first;
 
-        if (threadID == thread) {
+        if (id == threadID) {
             threadExists = true;
             break;
         }
     }
 
     if (false == threadExists) {
-        storage_.CreateThread(nymID, thread, {contact});
+        storage_.CreateThread(nymID, threadID, {contactID});
     }
 
     const bool saved = storage_.Store(
-        localName.Get(), thread, output, mail.m_lTime, alias, data.Get(), box);
+        localName.Get(),
+        threadID,
+        output,
+        mail.m_lTime,
+        alias,
+        data.Get(),
+        box);
 
     if (saved) {
 
@@ -265,6 +272,24 @@ std::shared_ptr<proto::StorageThread> Activity::Thread(
 
 ObjectList Activity::Threads(const Identifier& nym) const
 {
-    return storage_.ThreadList(String(nym).Get());
+    const std::string nymID = String(nym).Get();
+    auto output = storage_.ThreadList(nymID);
+
+    for (auto& it : output) {
+        const auto& threadID = it.first;
+        auto& label = it.second;
+        auto contact = contact_.Contact(Identifier(threadID));
+
+        if (contact) {
+            const auto& name = contact->Label();
+
+            if (label != name) {
+                storage_.SetThreadAlias(nymID, threadID, name);
+                label = name;
+            }
+        }
+    }
+
+    return output;
 }
 }  // namespace opentxs

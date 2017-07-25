@@ -253,7 +253,13 @@ bool Thread::Remove(const std::string& id)
 bool Thread::Rename(const std::string& newID)
 {
     Lock lock(write_lock_);
+    const auto oldID = id_;
     id_ = newID;
+
+    if (0 != participants_.count(oldID)) {
+        participants_.erase(oldID);
+        participants_.emplace(newID);
+    }
 
     return save(lock);
 }

@@ -48,6 +48,7 @@
 namespace opentxs
 {
 
+class Contact;
 class ContactManager;
 class Identifier;
 class Message;
@@ -129,7 +130,7 @@ private:
      */
     void MigrateLegacyThreads() const;
 
-    std::string nym_to_contact(const std::string& nymID);
+    std::shared_ptr<const Contact> nym_to_contact(const std::string& nymID);
 
     Activity(ContactManager& contact, Storage& storage, Wallet& wallet);
     Activity() = delete;
