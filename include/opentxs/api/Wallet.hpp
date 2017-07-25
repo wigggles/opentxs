@@ -113,7 +113,6 @@ private:
     std::shared_ptr<class Context> context(
         const Identifier& localNymID,
         const Identifier& remoteNymID);
-    std::string nym_to_contact(const std::string& nymID);
 
     /**   Save an instantiated server contract to storage and add to internal
      *    map.
@@ -218,58 +217,6 @@ public:
     Editor<class ServerContext> mutable_ServerContext(
         const Identifier& localNymID,
         const Identifier& remoteID);
-
-    /**   Load a mail object
-     *
-     *    \param[in] nym the identifier of the nym who owns the mail box
-     *    \param[in] id the identifier of the mail object
-     *    \param[in] box the box from which to retrieve the mail object
-     *    \returns A smart pointer to the object. The smart pointer will not be
-     *             instantiated if the object does not exist or is invalid.
-     */
-    std::unique_ptr<Message> Mail(
-        const Identifier& nym,
-        const Identifier& id,
-        const StorageBox& box) const;
-
-    /**   Store a mail object
-     *
-     *    \param[in] nym the identifier of the nym who owns the mail box
-     *    \param[in] mail the mail object to be stored
-     *    \param[in] box the box from which to retrieve the mail object
-     *    \returns The id of the stored message. The string will be empty if
-     *             the mail object can not be stored.
-     */
-    std::string Mail(
-        const Identifier& nym,
-        const Message& mail,
-        const StorageBox box);
-
-    /**   Obtain a list of mail objects in a specified box
-     *
-     *    \param[in] nym the identifier of the nym who owns the mail box
-     *    \param[in] box the box to be listed
-     */
-    ObjectList Mail(const Identifier& nym, const StorageBox box) const;
-
-    /**   Delete a mail object
-     *
-     *    \param[in] nym the identifier of the nym who owns the mail box
-     *    \param[in] mail the mail object to be stored
-     *    \param[in] box the box from which to retrieve the mail object
-     *    \returns The id of the stored message. The string will be empty if
-     *             the mail object can not be stored.
-     */
-    bool MailRemove(
-        const Identifier& nym,
-        const Identifier& id,
-        const StorageBox box) const;
-
-    /**   Migrate nym-based thread IDs to contact-based thread IDs
-     *
-     *    This method should only be called by the ContactManager on startup
-     */
-    void MigrateLegacyThreads() const;
 
     /**   Obtain a smart pointer to an instantiated nym.
      *
@@ -621,12 +568,6 @@ public:
      *    \returns true if successful, false if the contract can not be located
      */
     bool SetUnitDefinitionAlias(const Identifier& id, const std::string& alias);
-
-    /**   Obtain a list of thread ids for the specified nym
-     *
-     *    \param[in] nym the identifier of the nym
-     */
-    ObjectList Threads(const Identifier& nym) const;
 
     /**   Obtain a list of all available unit definition contracts and their
      *    aliases

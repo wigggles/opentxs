@@ -1,4 +1,5 @@
 set(cxx-sources
+  Activity.cpp
   Api.cpp
   ContactManager.cpp
   Dht.cpp

@@ -40,6 +40,7 @@
 
 #include "opentxs/client/OT_API.hpp"
 
+#include "opentxs/api/Activity.hpp"
 #include "opentxs/api/Identity.hpp"
 #include "opentxs/api/OT.hpp"
 #include "opentxs/api/Settings.hpp"
@@ -514,13 +515,15 @@ bool OT_API::Pid::IsPidOpen() const { return m_bIsPidOpen; }
 
 // The API begins here...
 OT_API::OT_API(
+    Activity& activity,
     Settings& config,
     Identity& identity,
     Storage& storage,
     Wallet& wallet,
     ZMQ& zmq,
     std::recursive_mutex& lock)
-    : config_(config)
+    : activity_(activity)
+    , config_(config)
     , identity_(identity)
     , storage_(storage)
     , wallet_(wallet)
@@ -13319,7 +13322,7 @@ int32_t OT_API::sendNymMessage(
 
         pMessage->SignContract(*context->Nym());
         pMessage->SaveContract();
-        wallet_.Mail(NYM_ID, *pMessage, StorageBox::MAILOUTBOX);
+        activity_.Mail(NYM_ID, *pMessage, StorageBox::MAILOUTBOX);
     }
 
     return nReturnValue;
@@ -14062,7 +14065,7 @@ std::list<std::string> OT_API::BoxItemCount(
     const Identifier& NYM_ID,
     const StorageBox box) const
 {
-    const auto list = wallet_.Mail(NYM_ID, box);
+    const auto list = activity_.Mail(NYM_ID, box);
     std::list<std::string> output;
 
     for (auto& item : list) {
@@ -14077,7 +14080,7 @@ std::string OT_API::BoxContents(
     const Identifier& id,
     const StorageBox box) const
 {
-    const auto message = wallet_.Mail(nymID, id, box);
+    const auto message = activity_.Mail(nymID, id, box);
 
     if (!message) {
         otErr << OT_METHOD << __FUNCTION__ << ": Unable to load message "

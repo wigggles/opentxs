@@ -40,6 +40,7 @@
 
 #include "opentxs/api/Api.hpp"
 
+#include "opentxs/api/Activity.hpp"
 #include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/client/MadeEasy.hpp"
@@ -55,6 +56,7 @@ namespace opentxs
 {
 
 Api::Api(
+    Activity& activity,
     Settings& config,
     ContactManager& contacts,
     CryptoEngine& crypto,
@@ -62,7 +64,8 @@ Api::Api(
     Storage& storage,
     Wallet& wallet,
     ZMQ& zmq)
-    : config_(config)
+    : activity_(activity)
+    , config_(config)
     , contacts_(contacts)
     , crypto_engine_(crypto)
     , identity_(identity)
@@ -91,10 +94,17 @@ void Api::Init()
     // TODO in the case of Windows, figure err into this return val somehow.
     // (Or log it or something.)
 
-    ot_api_.reset(
-        new OT_API(config_, identity_, storage_, wallet_, zmq_, lock_));
+    ot_api_.reset(new OT_API(
+        activity_, config_, identity_, storage_, wallet_, zmq_, lock_));
     otapi_exec_.reset(new OTAPI_Exec(
-        config_, crypto_engine_, identity_, wallet_, zmq_, *ot_api_, lock_));
+        activity_,
+        config_,
+        crypto_engine_,
+        identity_,
+        wallet_,
+        zmq_,
+        *ot_api_,
+        lock_));
     made_easy_.reset(new MadeEasy(lock_));
     ot_me_.reset(new OT_ME(lock_, *made_easy_));
     otme_too_.reset(new OTME_too(

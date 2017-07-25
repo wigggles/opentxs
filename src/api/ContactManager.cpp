@@ -54,13 +54,9 @@
 
 namespace opentxs
 {
-ContactManager::ContactManager(
-    Storage& storage,
-    Wallet& wallet,
-    Identity& identity)
+ContactManager::ContactManager(Storage& storage, Wallet& wallet)
     : storage_(storage)
     , wallet_(wallet)
-    , identity_(identity)
     , lock_()
     , contact_map_()
 {

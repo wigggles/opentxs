@@ -40,6 +40,7 @@
 
 #include "opentxs/core/Nym.hpp"
 
+#include "opentxs/api/Activity.hpp"
 #include "opentxs/api/OT.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/consensus/ClientContext.hpp"
@@ -1614,7 +1615,7 @@ bool Nym::LoadNymFromString(
                                             strMessage);
 
                                     if (loaded) {
-                                        OT::App().Contract().Mail(
+                                        OT::App().Activity().Mail(
                                             m_nymID,
                                             *pMessage,
                                             StorageBox::MAILINBOX);
@@ -1667,7 +1668,7 @@ bool Nym::LoadNymFromString(
                                             strMessage);
 
                                     if (loaded) {
-                                        OT::App().Contract().Mail(
+                                        OT::App().Activity().Mail(
                                             m_nymID,
                                             *pMessage,
                                             StorageBox::MAILOUTBOX);

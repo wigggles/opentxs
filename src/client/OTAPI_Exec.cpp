@@ -40,6 +40,7 @@
 
 #include "opentxs/client/OTAPI_Exec.hpp"
 
+#include "opentxs/api/Activity.hpp"
 #include "opentxs/api/Api.hpp"
 #include "opentxs/api/Identity.hpp"
 #include "opentxs/api/OT.hpp"
@@ -118,6 +119,7 @@ const int32_t OT_ERROR = (-1);
 #endif
 
 OTAPI_Exec::OTAPI_Exec(
+    Activity& activity,
     Settings& config,
     CryptoEngine& crypto,
     Identity& identity,
@@ -125,7 +127,8 @@ OTAPI_Exec::OTAPI_Exec(
     ZMQ& zeromq,
     OT_API& otapi,
     std::recursive_mutex& lock)
-    : config_(config)
+    : activity_(activity)
+    , config_(config)
     , crypto_(crypto)
     , identity_(identity)
     , wallet_(wallet)
@@ -2607,8 +2610,8 @@ std::string OTAPI_Exec::GetNym_NymboxHash(
         !NYM_ID.empty(),
         "OTAPI_Exec::GetNym_NymboxHash: Null NYM_ID passed in.");
 
-    auto context = OT::App().Contract().ServerContext(
-        Identifier(NYM_ID), Identifier(NOTARY_ID));
+    auto context =
+        wallet_.ServerContext(Identifier(NYM_ID), Identifier(NOTARY_ID));
 
     if (context) {
 
@@ -2635,8 +2638,8 @@ std::string OTAPI_Exec::GetNym_RecentHash(
         !NYM_ID.empty(),
         "OTAPI_Exec::GetNym_RecentHash: Null NYM_ID passed in.");
 
-    auto context = OT::App().Contract().ServerContext(
-        Identifier(NYM_ID), Identifier(NOTARY_ID));
+    auto context =
+        wallet_.ServerContext(Identifier(NYM_ID), Identifier(NOTARY_ID));
 
     if (!context) {
         otWarn << __FUNCTION__
@@ -2755,7 +2758,7 @@ std::list<std::string> OTAPI_Exec::GetNym_MailThreads(
     const std::string& NYM_ID) const
 {
     const Identifier nym(NYM_ID);
-    const auto threads = wallet_.Threads(nym);
+    const auto threads = activity_.Threads(nym);
     std::list<std::string> output;
 
     for (auto& item : threads) {
@@ -2783,7 +2786,7 @@ std::string OTAPI_Exec::GetNym_MailSenderIDByIndex(
     const std::string& NYM_ID,
     const std::string& nIndex) const
 {
-    const auto message = OT::App().Contract().Mail(
+    const auto message = activity_.Mail(
         Identifier(NYM_ID), Identifier(nIndex), StorageBox::MAILINBOX);
 
     if (!message) {
@@ -2797,7 +2800,7 @@ std::string OTAPI_Exec::GetNym_MailNotaryIDByIndex(
     const std::string& NYM_ID,
     const std::string& nIndex) const
 {
-    const auto message = OT::App().Contract().Mail(
+    const auto message = activity_.Mail(
         Identifier(NYM_ID), Identifier(nIndex), StorageBox::MAILINBOX);
 
     if (!message) {
@@ -2811,7 +2814,7 @@ bool OTAPI_Exec::Nym_RemoveMailByIndex(
     const std::string& NYM_ID,
     const std::string& nIndex) const
 {
-    return OT::App().Contract().MailRemove(
+    return activity_.MailRemove(
         Identifier(NYM_ID), Identifier(nIndex), StorageBox::MAILINBOX);
 }
 
@@ -2819,14 +2822,14 @@ bool OTAPI_Exec::Nym_VerifyMailByIndex(
     const std::string& NYM_ID,
     const std::string& nIndex) const
 {
-    const auto message = OT::App().Contract().Mail(
+    const auto message = activity_.Mail(
         Identifier(NYM_ID), Identifier(nIndex), StorageBox::MAILINBOX);
 
     if (!message) {
         return false;
     }
 
-    auto senderNym = OT::App().Contract().Nym(Identifier(message->m_strNymID));
+    auto senderNym = wallet_.Nym(Identifier(message->m_strNymID));
 
     if (!senderNym) {
         return false;
@@ -2853,7 +2856,7 @@ std::string OTAPI_Exec::GetNym_OutmailRecipientIDByIndex(
     const std::string& NYM_ID,
     const std::string& nIndex) const
 {
-    const auto message = OT::App().Contract().Mail(
+    const auto message = activity_.Mail(
         Identifier(NYM_ID), Identifier(nIndex), StorageBox::MAILOUTBOX);
 
     if (!message) {
@@ -2867,7 +2870,7 @@ std::string OTAPI_Exec::GetNym_OutmailNotaryIDByIndex(
     const std::string& NYM_ID,
     const std::string& nIndex) const
 {
-    const auto message = OT::App().Contract().Mail(
+    const auto message = activity_.Mail(
         Identifier(NYM_ID), Identifier(nIndex), StorageBox::MAILOUTBOX);
 
     if (!message) {
@@ -2881,7 +2884,7 @@ bool OTAPI_Exec::Nym_RemoveOutmailByIndex(
     const std::string& NYM_ID,
     const std::string& nIndex) const
 {
-    return OT::App().Contract().MailRemove(
+    return activity_.MailRemove(
         Identifier(NYM_ID), Identifier(nIndex), StorageBox::MAILOUTBOX);
 }
 
@@ -2889,14 +2892,14 @@ bool OTAPI_Exec::Nym_VerifyOutmailByIndex(
     const std::string& NYM_ID,
     const std::string& nIndex) const
 {
-    const auto message = OT::App().Contract().Mail(
+    const auto message = activity_.Mail(
         Identifier(NYM_ID), Identifier(nIndex), StorageBox::MAILOUTBOX);
 
     if (!message) {
         return false;
     }
 
-    auto senderNym = OT::App().Contract().Nym(Identifier(message->m_strNymID));
+    auto senderNym = wallet_.Nym(Identifier(message->m_strNymID));
 
     if (!senderNym) {
         return false;
@@ -3828,7 +3831,7 @@ int32_t OTAPI_Exec::GetNym_TransactionNumCount(
     Identifier theNotaryID(NOTARY_ID);
     Identifier theNymID(NYM_ID);
 
-    auto context = OT::App().Contract().ServerContext(theNymID, theNotaryID);
+    auto context = wallet_.ServerContext(theNymID, theNotaryID);
 
     if (!context) {
         return OT_ERROR;
@@ -7884,8 +7887,7 @@ bool OTAPI_Exec::Msg_HarvestTransactionNumbers(
                 return false;
             }
 
-            auto context =
-                OT::App().Contract().mutable_ServerContext(theNymID, serverID);
+            auto context = wallet_.mutable_ServerContext(theNymID, serverID);
             theRequestBasket.HarvestClosingNumbers(
                 context.It(), *pNym, serverID, true);
 

@@ -51,7 +51,7 @@ namespace opentxs
 {
 
 class Contact;
-class Identity;
+class OT;
 class PaymentCode;
 class Storage;
 class Wallet;
@@ -59,8 +59,6 @@ class Wallet;
 class ContactManager
 {
 public:
-    ContactManager(Storage& storage, Wallet& wallet, Identity& identity);
-
     Identifier ContactID(const Identifier& nymID) const;
     ObjectList ContactList() const;
 
@@ -78,13 +76,14 @@ public:
     ~ContactManager() = default;
 
 private:
+    friend class OT;
+
     typedef std::pair<std::mutex, std::shared_ptr<class Contact>> ContactLock;
     typedef std::map<Identifier, ContactLock> ContactMap;
     typedef std::map<Identifier, Identifier> NymMap;
 
     Storage& storage_;
     Wallet& wallet_;
-    Identity& identity_;
     mutable std::mutex lock_{};
     ContactMap contact_map_{};
     NymMap nym_contact_map_{};
@@ -129,6 +128,7 @@ private:
         class Contact& contact,
         const bool replace = false);
 
+    ContactManager(Storage& storage, Wallet& wallet);
     ContactManager() = delete;
     ContactManager(const ContactManager&) = delete;
     ContactManager(ContactManager&&) = delete;

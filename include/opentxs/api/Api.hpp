@@ -46,11 +46,12 @@
 namespace opentxs
 {
 
-class OT;
+class Activity;
 class ContactManager;
 class CryptoEngine;
 class Identity;
 class MadeEasy;
+class OT;
 class OT_API;
 class OT_ME;
 class OTAPI_Exec;
@@ -76,6 +77,7 @@ public:
 private:
     friend class OT;
 
+    Activity& activity_;
     Settings& config_;
     ContactManager& contacts_;
     CryptoEngine& crypto_engine_;
@@ -95,7 +97,8 @@ private:
     void Cleanup();
     void Init();
 
-    Api(Settings& config,
+    Api(Activity& activity,
+        Settings& config,
         ContactManager& contacts,
         CryptoEngine& crypto,
         Identity& identity,
