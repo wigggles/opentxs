@@ -52,11 +52,13 @@
 #include <list>
 #include <map>
 #include <memory>
+#include <mutex>
 #include <set>
 
 namespace opentxs
 {
 
+class ContactData;
 class Credential;
 class Item;
 class Ledger;
@@ -109,8 +111,8 @@ public:
         const std::string& masterID,
         const std::string& childID) const;
     EXPORT std::int32_t ChildCredentialCount(const std::string& masterID) const;
+    EXPORT const class ContactData& Claims() const;
     EXPORT bool CompareID(const Nym& RHS) const;
-    EXPORT std::unique_ptr<proto::ContactData> ContactData() const;
     EXPORT const Credential* GetChildCredential(
         const String& strMasterID,
         const String& strChildCredID) const;
@@ -176,6 +178,9 @@ public:
     EXPORT std::string AddChildKeyCredential(
         const Identifier& strMasterID,
         const NymParameters& nymParameters);
+    EXPORT bool AddClaim(const Claim& claim);
+    EXPORT bool AddPreferredOTServer(const Identifier& id, const bool primary);
+    EXPORT bool DeleteClaim(const Identifier& id);
     EXPORT void DisplayStatistics(String& strOutput);
     EXPORT void GetPrivateCredentials(
         String& strCredList,
@@ -239,6 +244,7 @@ public:
     EXPORT bool SavePseudonym(String& strNym);
     EXPORT bool SaveSignedNymfile(const Nym& SIGNER_NYM);
     EXPORT bool SetAlias(const std::string& alias);
+    EXPORT bool SetCommonName(const std::string& name);
     EXPORT bool SetContactData(const proto::ContactData& data);
     EXPORT void SetDescription(const String& strLocation)
     {
@@ -252,6 +258,10 @@ public:
     EXPORT bool SetOutboxHash(
         const std::string& acct_id,
         const Identifier& theInput);  // client-side
+    EXPORT bool SetScope(
+        const proto::ContactItemType type,
+        const std::string& name,
+        const bool primary);
     EXPORT void SetUsageCredits(const std::int64_t& lUsage)
     {
         m_lUsageCredits = lUsage;
@@ -311,6 +321,7 @@ private:
     std::int64_t m_lUsageCredits{-1};
     bool m_bMarkForDeletion{false};
     std::string alias_{""};
+    mutable std::mutex lock_{};
     std::atomic<std::uint64_t> revision_{0};
     proto::CredentialIndexMode mode_{proto::CREDINDEX_ERROR};
     String m_strNymfile{""};
@@ -318,6 +329,7 @@ private:
     String m_strDescription{""};
     Identifier m_nymID{};
     std::shared_ptr<NymIDSource> source_{nullptr};
+    mutable std::unique_ptr<class ContactData> contact_data_;
 
     // The credentials for this Nym. (Each with a master key credential and
     // various child credentials.)
@@ -345,6 +357,7 @@ private:
         const mapOfIdentifiers& the_map,
         const std::string& str_id,
         Identifier& theOutput) const;
+    void init_claims(const Lock& lock) const;
     const CredentialSet* MasterCredential(const String& strID) const;
     bool SaveCredentialIDs() const;
     void SaveCredentialsToTag(
@@ -353,19 +366,30 @@ private:
         String::Map* pmapPriInfo = nullptr) const;
     serializedCredentialIndex SerializeCredentialIndex(
         const CredentialIndexModeFlag mode = ONLY_IDS) const;
+    bool set_contact_data(const Lock& lock, const proto::ContactData& data);
     void SerializeNymIDSource(Tag& parent) const;
     bool Verify(const Data& plaintext, const proto::Signature& sig) const;
+    bool verify_lock(const Lock& lock) const;
 
+    bool add_contact_credential(
+        const Lock& lock,
+        const proto::ContactData& data);
+    bool add_verification_credential(
+        const Lock& lock,
+        const proto::VerificationSet& data);
     void ClearAll();
     void ClearCredentials();
     void ClearOutpayments();
     CredentialSet* GetMasterCredential(const String& strID);
     void RemoveAllNumbers(const String* pstrNotaryID = nullptr);
+    void revoke_contact_credentials(const Lock& lock);
+    void revoke_verification_credentials(const Lock& lock);
     bool SavePseudonym(const char* szFoldername, const char* szFilename);
     bool SetHash(
         mapOfIdentifiers& the_map,
         const std::string& str_id,
         const Identifier& theInput);
+    bool update_nym(const Lock& lock);
 
     Nym(const String& name,
         const String& filename,

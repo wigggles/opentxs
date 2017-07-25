@@ -60,6 +60,7 @@ namespace opentxs
 {
 
 class Api;
+class ContactGroup;
 class ContactManager;
 class CryptoEncodingEngine;
 class Identity;
@@ -193,9 +194,6 @@ private:
     std::uint64_t extract_assets(
         const proto::ContactData& claims,
         PairedNode& node);
-    std::string extract_nym_name(const Nym& nym) const;
-    std::string extract_server(const std::string& nymID) const;
-    std::string extract_server(const proto::ContactData& claims) const;
     std::string extract_server_name(const std::string& serverNymID) const;
     std::set<std::string> extract_message_servers(
         const std::string& nymID) const;
@@ -277,8 +275,7 @@ private:
         const bool publish) const;
     std::string obtain_server_id(
         const std::string& ownerNym,
-        const std::string& bridgeNym,
-        const proto::ContactData& claims) const;
+        const Nym& bridgeNym) const;
     std::string obtain_server_id(const std::string& nym) const;
     void pair(const std::string& bridgeNymID);
     void pairing_thread();
@@ -328,8 +325,7 @@ private:
     std::int64_t scan_incomplete_pairing(const std::string& bridgeNym);
     void scan_pairing();
     void Shutdown();
-    std::set<std::string> unique_servers(
-        const std::list<std::string>& input) const;
+    std::set<std::string> unique_servers(const ContactGroup& group) const;
     bool update_accounts(const PairedNode& node);
     bool update_assets(PairedNode& node);
     bool update_notary(const std::string& id, PairedNode& node);

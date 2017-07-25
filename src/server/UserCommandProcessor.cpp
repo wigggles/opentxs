@@ -563,8 +563,9 @@ bool UserCommandProcessor::cmd_add_claim(ReplyMessage& reply) const
     const bool isAdmin = haveAdmin && (overrideNym == requestingNym);
 
     if (isAdmin) {
-        reply.SetSuccess(OT::App().Identity().AddClaim(
-            const_cast<Nym&>(server_->GetServerNym()), claim));
+        auto& serverNym = const_cast<Nym&>(server_->GetServerNym());
+        reply.SetSuccess(serverNym.AddClaim(claim));
+        auto nym = OT::App().Contract().Nym(serverNym.asPublicNym());
     }
 
     return true;

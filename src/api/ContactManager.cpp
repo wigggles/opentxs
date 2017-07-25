@@ -199,9 +199,7 @@ void ContactManager::import_contacts(const Lock& lock)
                 throw std::runtime_error("Unable to load nym");
             }
 
-            const auto nymType = identity_.NymType(*nym);
-
-            switch (nymType) {
+            switch (nym->Claims().Type()) {
                 case proto::CITEMTYPE_INDIVIDUAL:
                 case proto::CITEMTYPE_ORGANIZATION:
                 case proto::CITEMTYPE_BUSINESS:

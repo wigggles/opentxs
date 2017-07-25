@@ -447,27 +447,11 @@ void OTServer::CreateMainFile(
         OT_FAIL;
     }
 
-    const Claim nameClaim{"",
-                          proto::CONTACTSECTION_SCOPE,
-                          proto::CITEMTYPE_SERVER,
-                          name,
-                          0,
-                          0,
-                          {proto::CITEMATTR_ACTIVE, proto::CITEMATTR_PRIMARY}};
-    const Claim serverClaim{
-        "",
-        proto::CONTACTSECTION_IDENTIFIER,
-        proto::CITEMTYPE_COMMONNAME,
-        String(pContract->ID()).Get(),
-        0,
-        0,
-        {proto::CITEMATTR_ACTIVE, proto::CITEMATTR_PRIMARY}};
-
-    if (!OT::App().Identity().AddClaim(*newNym, nameClaim)) {
+    if (false == newNym->SetScope(proto::CITEMTYPE_SERVER, name, true)) {
         OT_FAIL
     }
 
-    if (!OT::App().Identity().AddClaim(*newNym, serverClaim)) {
+    if (false == newNym->SetCommonName(String(pContract->ID()).Get())) {
         OT_FAIL
     }
 

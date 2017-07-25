@@ -44,6 +44,7 @@
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
+#include "opentxs/contact/ContactData.hpp"
 #if OT_CRYPTO_SUPPORTED_KEY_HD
 #include "opentxs/core/crypto/Bip39.hpp"
 #endif
@@ -79,9 +80,12 @@
 
 #include <array>
 #include <fstream>
+#include <functional>
 #include <string>
 
 #define NYMFILE_VERSION "1.1"
+
+#define OT_METHOD "opentxs::Nym::"
 
 namespace opentxs
 {
@@ -95,13 +99,15 @@ Nym::Nym(
     , m_lUsageCredits(0)
     , m_bMarkForDeletion(false)
     , alias_(name.Get())
-    , revision_(0)
+    , lock_()
+    , revision_(1)
     , mode_(mode)
     , m_strNymfile(filename)
     , m_strVersion(NYMFILE_VERSION)
     , m_strDescription("")
     , m_nymID(nymID)
     , source_(nullptr)
+    , contact_data_(nullptr)
     , m_mapCredentialSets()
     , m_mapRevokedSets()
     , m_listRevokedIDs()
@@ -176,6 +182,50 @@ Nym::Nym(const NymParameters& nymParameters)
     SaveSignedNymfile(*this);
 }
 
+bool Nym::add_contact_credential(
+    const Lock& lock,
+    const proto::ContactData& data)
+{
+    OT_ASSERT(verify_lock(lock));
+
+    bool added = false;
+
+    for (auto& it : m_mapCredentialSets) {
+        if (nullptr != it.second) {
+            if (it.second->hasCapability(NymCapability::SIGN_CHILDCRED)) {
+                it.second->AddContactCredential(data);
+                added = true;
+
+                break;
+            }
+        }
+    }
+
+    return added;
+}
+
+bool Nym::add_verification_credential(
+    const Lock& lock,
+    const proto::VerificationSet& data)
+{
+    OT_ASSERT(verify_lock(lock));
+
+    bool added = false;
+
+    for (auto& it : m_mapCredentialSets) {
+        if (nullptr != it.second) {
+            if (it.second->hasCapability(NymCapability::SIGN_CHILDCRED)) {
+                it.second->AddVerificationCredential(data);
+                added = true;
+
+                break;
+            }
+        }
+    }
+
+    return added;
+}
+
 std::string Nym::AddChildKeyCredential(
     const Identifier& masterID,
     const NymParameters& nymParameters)
@@ -198,6 +248,21 @@ std::string Nym::AddChildKeyCredential(
     return output;
 }
 
+bool Nym::AddClaim(const Claim& claim)
+{
+    Lock lock(lock_);
+
+    if (false == bool(contact_data_)) {
+        init_claims(lock);
+    }
+
+    contact_data_.reset(new ContactData(contact_data_->AddItem(claim)));
+
+    OT_ASSERT(contact_data_);
+
+    return set_contact_data(lock, contact_data_->Serialize());
+}
+
 /// a payments message is a form of transaction, transported via Nymbox
 /// Though the parameter is a reference (forcing you to pass a real object),
 /// the Nym DOES take ownership of the object. Therefore it MUST be allocated
@@ -205,6 +270,22 @@ std::string Nym::AddChildKeyCredential(
 void Nym::AddOutpayments(Message& theMessage)
 {
     m_dequeOutpayments.push_front(&theMessage);
+}
+
+bool Nym::AddPreferredOTServer(const Identifier& id, const bool primary)
+{
+    Lock lock(lock_);
+
+    if (false == bool(contact_data_)) {
+        init_claims(lock);
+    }
+
+    contact_data_.reset(
+        new ContactData(contact_data_->AddPreferredOTServer(id, primary)));
+
+    OT_ASSERT(contact_data_);
+
+    return set_contact_data(lock, contact_data_->Serialize());
 }
 
 std::string Nym::Alias() const { return alias_; }
@@ -255,6 +336,19 @@ std::string Nym::ChildCredentialID(
     return output;
 }
 
+const class ContactData& Nym::Claims() const
+{
+    Lock lock(lock_);
+
+    if (false == bool(contact_data_)) {
+        init_claims(lock);
+    }
+
+    OT_ASSERT(contact_data_);
+
+    return *contact_data_;
+}
+
 void Nym::ClearAll()
 {
     m_mapInboxHash.clear();
@@ -289,19 +383,19 @@ void Nym::ClearOutpayments()
 
 bool Nym::CompareID(const Nym& RHS) const { return RHS.CompareID(m_nymID); }
 
-std::unique_ptr<proto::ContactData> Nym::ContactData() const
+bool Nym::DeleteClaim(const Identifier& id)
 {
-    std::unique_ptr<proto::ContactData> contactData;
+    Lock lock(lock_);
 
-    for (auto& it : m_mapCredentialSets) {
-        if (nullptr != it.second) {
-            it.second->GetContactData(contactData);
-
-            break;
-        }
+    if (false == bool(contact_data_)) {
+        init_claims(lock);
     }
 
-    return contactData;
+    contact_data_.reset(new ContactData(contact_data_->Delete(id)));
+
+    OT_ASSERT(contact_data_);
+
+    return set_contact_data(lock, contact_data_->Serialize());
 }
 
 void Nym::DisplayStatistics(String& strOutput)
@@ -738,6 +832,33 @@ bool Nym::hasCapability(const NymCapability& capability) const
     return false;
 }
 
+void Nym::init_claims(const Lock& lock) const
+{
+    OT_ASSERT(verify_lock(lock));
+
+    const proto::ContactData blank{};
+    const std::string nymID = String(m_nymID).Get();
+    contact_data_.reset(new class ContactData(nymID, blank));
+
+    OT_ASSERT(contact_data_);
+
+    std::unique_ptr<proto::ContactData> serialized{nullptr};
+
+    for (auto& it : m_mapCredentialSets) {
+        OT_ASSERT(nullptr != it.second);
+
+        const auto& credSet = *it.second;
+        credSet.GetContactData(serialized);
+
+        if (serialized) {
+            class ContactData claimCred(nymID, *serialized);
+            contact_data_.reset(
+                new class ContactData(*contact_data_ + claimCred));
+            serialized.reset();
+        }
+    }
+}
+
 bool Nym::LoadCredentialIndex(const serializedCredentialIndex& index)
 {
     if (!proto::Validate<proto::CredentialIndex>(index, VERBOSE)) {
@@ -748,12 +869,6 @@ bool Nym::LoadCredentialIndex(const serializedCredentialIndex& index)
     }
 
     version_ = index.version();
-
-    // Upgrade version
-    if (NYM_VERSION > version_) {
-        version_ = NYM_VERSION;
-    }
-
     index_ = index.index();
     revision_.store(index.revision());
     mode_ = index.mode();
@@ -2024,6 +2139,40 @@ bool Nym::ResyncWithServer(const Ledger& theNymbox, const Nym& theMessageNym)
 
 std::uint64_t Nym::Revision() const { return revision_.load(); }
 
+void Nym::revoke_contact_credentials(const Lock& lock)
+{
+    OT_ASSERT(verify_lock(lock));
+
+    std::list<std::string> revokedIDs;
+
+    for (auto& it : m_mapCredentialSets) {
+        if (nullptr != it.second) {
+            it.second->RevokeContactCredentials(revokedIDs);
+        }
+    }
+
+    for (auto& it : revokedIDs) {
+        m_listRevokedIDs.push_back(it);
+    }
+}
+
+void Nym::revoke_verification_credentials(const Lock& lock)
+{
+    OT_ASSERT(verify_lock(lock));
+
+    std::list<std::string> revokedIDs;
+
+    for (auto& it : m_mapCredentialSets) {
+        if (nullptr != it.second) {
+            it.second->RevokeVerificationCredentials(revokedIDs);
+        }
+    }
+
+    for (auto& it : revokedIDs) {
+        m_listRevokedIDs.push_back(it);
+    }
+}
+
 std::shared_ptr<const proto::Credential> Nym::RevokedCredentialContents(
     const std::string& id) const
 {
@@ -2351,6 +2500,27 @@ void Nym::SerializeNymIDSource(Tag& parent) const
     }
 }
 
+bool Nym::set_contact_data(const Lock& lock, const proto::ContactData& data)
+{
+    OT_ASSERT(lock);
+
+    if (false == hasCapability(NymCapability::SIGN_CHILDCRED)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": This nym can not be modified."
+              << std::endl;
+
+        return false;
+    }
+
+    revoke_contact_credentials(lock);
+
+    if (add_contact_credential(lock, data)) {
+
+        return update_nym(lock);
+    }
+
+    return false;
+}
+
 bool Nym::SetAlias(const std::string& alias)
 {
     alias_ = alias;
@@ -2364,42 +2534,29 @@ bool Nym::SetAlias(const std::string& alias)
     return false;
 }
 
+bool Nym::SetCommonName(const std::string& name)
+{
+    Lock lock(lock_);
+
+    if (false == bool(contact_data_)) {
+        init_claims(lock);
+    }
+
+    contact_data_.reset(new ContactData(contact_data_->SetCommonName(name)));
+
+    OT_ASSERT(contact_data_);
+
+    return set_contact_data(lock, contact_data_->Serialize());
+    ;
+}
+
 bool Nym::SetContactData(const proto::ContactData& data)
 {
-    std::list<std::string> revokedIDs;
-    for (auto& it : m_mapCredentialSets) {
-        if (nullptr != it.second) {
-            it.second->RevokeContactCredentials(revokedIDs);
-        }
-    }
+    Lock lock(lock_);
 
-    for (auto& it : revokedIDs) {
-        m_listRevokedIDs.push_back(it);
-    }
+    contact_data_.reset(new ContactData(String(m_nymID).Get(), data));
 
-    bool added = false;
-
-    for (auto& it : m_mapCredentialSets) {
-        if (nullptr != it.second) {
-            if (it.second->hasCapability(NymCapability::SIGN_CHILDCRED)) {
-                it.second->AddContactCredential(data);
-                added = true;
-
-                break;
-            }
-        }
-    }
-
-    if (added) {
-        if (VerifyPseudonym()) {
-            revision_++;
-            SaveCredentialIDs();
-
-            return true;
-        }
-    }
-
-    return false;
+    return set_contact_data(lock, data);
 }
 
 bool Nym::SetHash(
@@ -2461,39 +2618,40 @@ bool Nym::SetOutboxHash(
     return SetHash(m_mapOutboxHash, acct_id, theInput);
 }
 
+bool Nym::SetScope(
+    const proto::ContactItemType type,
+    const std::string& name,
+    const bool primary)
+{
+    Lock lock(lock_);
+
+    if (false == bool(contact_data_)) {
+        init_claims(lock);
+    }
+
+    contact_data_.reset(
+        new ContactData(contact_data_->SetScope(type, name, primary)));
+
+    OT_ASSERT(contact_data_);
+
+    return set_contact_data(lock, contact_data_->Serialize());
+}
+
 bool Nym::SetVerificationSet(const proto::VerificationSet& data)
 {
-    std::list<std::string> revokedIDs;
-    for (auto& it : m_mapCredentialSets) {
-        if (nullptr != it.second) {
-            it.second->RevokeVerificationCredentials(revokedIDs);
-        }
+    if (false == hasCapability(NymCapability::SIGN_CHILDCRED)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": This nym can not be modified."
+              << std::endl;
+
+        return false;
     }
 
-    for (auto& it : revokedIDs) {
-        m_listRevokedIDs.push_back(it);
-    }
+    Lock lock(lock_);
+    revoke_verification_credentials(lock);
 
-    bool added = false;
+    if (add_verification_credential(lock, data)) {
 
-    for (auto& it : m_mapCredentialSets) {
-        if (nullptr != it.second) {
-            if (it.second->hasCapability(NymCapability::SIGN_CHILDCRED)) {
-                it.second->AddVerificationCredential(data);
-                added = true;
-
-                break;
-            }
-        }
-    }
-
-    if (added) {
-        if (VerifyPseudonym()) {
-            revision_++;
-            SaveCredentialIDs();
-
-            return true;
-        }
+        return update_nym(lock);
     }
 
     return false;
@@ -2530,6 +2688,24 @@ zcert_t* Nym::TransportKey() const
     return output;
 }
 
+bool Nym::update_nym(const Lock& lock)
+{
+    OT_ASSERT(verify_lock(lock));
+
+    if (VerifyPseudonym()) {
+        // Upgrade version
+        if (NYM_VERSION > version_) {
+            version_ = NYM_VERSION;
+        }
+
+        ++revision_;
+
+        return SaveCredentialIDs();
+    }
+
+    return false;
+}
+
 std::unique_ptr<proto::VerificationSet> Nym::VerificationSet() const
 {
     std::unique_ptr<proto::VerificationSet> verificationSet;
@@ -2554,6 +2730,23 @@ bool Nym::Verify(const Data& plaintext, const proto::Signature& sig) const
     }
 
     return false;
+}
+
+bool Nym::verify_lock(const Lock& lock) const
+{
+    if (lock.mutex() != &lock_) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Incorrect mutex." << std::endl;
+
+        return false;
+    }
+
+    if (false == lock.owns_lock()) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Lock not owned." << std::endl;
+
+        return false;
+    }
+
+    return true;
 }
 
 bool Nym::VerifyPseudonym() const

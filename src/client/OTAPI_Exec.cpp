@@ -573,9 +573,8 @@ std::string OTAPI_Exec::CreateNymLegacy(
         case 8192:
             break;
         default:
-            otErr << __FUNCTION__
-                  << ": Failure: nKeySize must be one of: "
-                     "1024, 2048, 4096, 8192. ("
+            otErr << __FUNCTION__ << ": Failure: nKeySize must be one of: "
+                                     "1024, 2048, 4096, 8192. ("
                   << nKeySize << " was passed...)\n";
             return "";
     }
@@ -1117,11 +1116,10 @@ bool OTAPI_Exec::SetContactData_Base64(
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
     if (THE_DATA.empty()) {
-        otErr << __FUNCTION__
-              << ": Unexpectedly got a blank data parameter. "
-                 "Should assert here. (The UI developer has a "
-                 "bug in his UI code, if you are seeing this "
-                 "log.)";
+        otErr << __FUNCTION__ << ": Unexpectedly got a blank data parameter. "
+                                 "Should assert here. (The UI developer has a "
+                                 "bug in his UI code, if you are seeing this "
+                                 "log.)";
         return false;
     }
 
@@ -1174,11 +1172,10 @@ bool OTAPI_Exec::SetClaim_Base64(
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
     if (claim.empty()) {
-        otErr << __FUNCTION__
-              << ": Unexpectedly got a blank claim parameter. "
-                 "Should assert here. (The UI developer has a "
-                 "bug in his UI code, if you are seeing this "
-                 "log.)";
+        otErr << __FUNCTION__ << ": Unexpectedly got a blank claim parameter. "
+                                 "Should assert here. (The UI developer has a "
+                                 "bug in his UI code, if you are seeing this "
+                                 "log.)";
         return false;
     }
 
@@ -1221,8 +1218,9 @@ bool OTAPI_Exec::SetClaim(
                       item.start(),
                       item.end(),
                       attribute};
+    pNym->AddClaim(input);
 
-    return identity_.AddClaim(*pNym, input);
+    return true;
 }
 
 bool OTAPI_Exec::DeleteClaim(
@@ -1242,7 +1240,7 @@ bool OTAPI_Exec::DeleteClaim(
         return false;
     }
 
-    return identity_.DeleteClaim(*pNym, claimID);
+    return pNym->DeleteClaim(Identifier(claimID));
 }
 
 /// Identical to GetVerificationSet except it returns
@@ -1773,9 +1771,8 @@ bool OTAPI_Exec::Wallet_CanRemoveServer(const std::string& NOTARY_ID) const
 
         if (theID == theCompareID) {
             otOut << __FUNCTION__ << ": Unable to remove server contract "
-                  << NOTARY_ID
-                  << " from "
-                     "wallet, because Account "
+                  << NOTARY_ID << " from "
+                                  "wallet, because Account "
                   << strAcctID << " uses it.\n";
             return false;
         }
@@ -1791,9 +1788,8 @@ bool OTAPI_Exec::Wallet_CanRemoveServer(const std::string& NOTARY_ID) const
         if (true ==
             OTAPI_Exec::IsNym_RegisteredAtServer(strNymID.Get(), NOTARY_ID)) {
             otOut << __FUNCTION__ << ": Unable to remove server contract "
-                  << NOTARY_ID
-                  << " from "
-                     "wallet, because Nym "
+                  << NOTARY_ID << " from "
+                                  "wallet, because Nym "
                   << strNymID
                   << " is registered there. (Delete that first...)\n";
             return false;
@@ -1878,9 +1874,8 @@ bool OTAPI_Exec::Wallet_CanRemoveAssetType(
 
         if (theID == theCompareID) {
             otOut << __FUNCTION__ << ": Unable to remove asset contract "
-                  << INSTRUMENT_DEFINITION_ID
-                  << " from "
-                     "wallet: Account "
+                  << INSTRUMENT_DEFINITION_ID << " from "
+                                                 "wallet: Account "
                   << strAcctID << " uses it.\n";
             return false;
         }
@@ -2003,9 +1998,8 @@ bool OTAPI_Exec::Wallet_CanRemoveAccount(const std::string& ACCOUNT_ID) const
     if (nullptr == pAccount) return false;
     // Balance must be zero in order to close an account!
     else if (pAccount->GetBalance() != 0) {
-        otOut << __FUNCTION__
-              << ": Account balance MUST be zero in order to "
-                 "close an asset account: "
+        otOut << __FUNCTION__ << ": Account balance MUST be zero in order to "
+                                 "close an asset account: "
               << ACCOUNT_ID << ".\n";
         return false;
     }
@@ -2032,10 +2026,9 @@ bool OTAPI_Exec::Wallet_CanRemoveAccount(const std::string& ACCOUNT_ID) const
     } else if (
         (pInbox->GetTransactionCount() > 0) ||
         (pOutbox->GetTransactionCount() > 0)) {
-        otOut << __FUNCTION__
-              << ": Failure: You cannot remove an asset "
-                 "account if there are inbox/outbox items "
-                 "still waiting to be processed.\n";
+        otOut << __FUNCTION__ << ": Failure: You cannot remove an asset "
+                                 "account if there are inbox/outbox items "
+                                 "still waiting to be processed.\n";
     } else
         BOOL_RETURN_VALUE = true;  // SUCCESS!
 
@@ -4461,12 +4454,12 @@ std::string OTAPI_Exec::VerifyAndRetrieveXMLContents(
     const Identifier theSignerID(SIGNER_ID);
     String strOutput;
 
-    if (false == ot_api_.VerifyAndRetrieveXMLContents(
-                     strContract, theSignerID, strOutput)) {
-        otOut << __FUNCTION__
-              << ": Failure: "
-                 "ot_api_.VerifyAndRetrieveXMLContents() "
-                 "returned false.\n";
+    if (false ==
+        ot_api_.VerifyAndRetrieveXMLContents(
+            strContract, theSignerID, strOutput)) {
+        otOut << __FUNCTION__ << ": Failure: "
+                                 "ot_api_.VerifyAndRetrieveXMLContents() "
+                                 "returned false.\n";
         return "";
     }
     std::string pBuf = strOutput.Get();
@@ -6258,9 +6251,8 @@ bool OTAPI_Exec::Smart_AreAllPartiesConfirmed(
             //          otOut << __FUNCTION__ << ": Smart contract loaded up,
             // but all
             // parties are NOT confirmed:\n\n" << strContract << "\n\n";
-            otWarn << __FUNCTION__
-                   << ": Smart contract loaded up, but all "
-                      "parties are NOT confirmed.\n";
+            otWarn << __FUNCTION__ << ": Smart contract loaded up, but all "
+                                      "parties are NOT confirmed.\n";
             return false;
         } else if (bVerified) {
             //          otOut << __FUNCTION__ << ": Success: Smart contract
@@ -6698,10 +6690,9 @@ std::string OTAPI_Exec::Clause_GetNameByIndex(
     const int32_t nTempIndex = nIndex;
     OTClause* pClause = pBylaw->GetClauseByIndex(nTempIndex);
     if (nullptr == pClause) {
-        otOut << __FUNCTION__
-              << ": Smart contract loaded up, and "
-                 "bylaw found, but failed to retrieve "
-                 "the clause at index: "
+        otOut << __FUNCTION__ << ": Smart contract loaded up, and "
+                                 "bylaw found, but failed to retrieve "
+                                 "the clause at index: "
               << nTempIndex << "\n";
         return "";
     }
@@ -6750,10 +6741,9 @@ std::string OTAPI_Exec::Clause_GetContents(
     OTClause* pClause = pBylaw->GetClause(CLAUSE_NAME);
 
     if (nullptr == pClause) {
-        otOut << __FUNCTION__
-              << ": Smart contract loaded up, and "
-                 "bylaw found, but failed to retrieve "
-                 "the clause with name: "
+        otOut << __FUNCTION__ << ": Smart contract loaded up, and "
+                                 "bylaw found, but failed to retrieve "
+                                 "the clause with name: "
               << CLAUSE_NAME << "\n";
         return "";
     }
@@ -6797,10 +6787,9 @@ std::string OTAPI_Exec::Variable_GetNameByIndex(
     const int32_t nTempIndex = nIndex;
     OTVariable* pVar = pBylaw->GetVariableByIndex(nTempIndex);
     if (nullptr == pVar) {
-        otOut << __FUNCTION__
-              << ": Smart contract loaded up, and "
-                 "bylaw found, but failed to retrieve "
-                 "the variable at index: "
+        otOut << __FUNCTION__ << ": Smart contract loaded up, and "
+                                 "bylaw found, but failed to retrieve "
+                                 "the variable at index: "
               << nTempIndex << "\n";
         return "";
     }
@@ -7345,10 +7334,9 @@ std::string OTAPI_Exec::Party_GetAcctNameByIndex(
     const int32_t nTempIndex = nIndex;
     OTPartyAccount* pAcct = pParty->GetAccountByIndex(nTempIndex);
     if (nullptr == pAcct) {
-        otOut << __FUNCTION__
-              << ": Smart contract loaded up, and "
-                 "party found, but failed to retrieve "
-                 "the account at index: "
+        otOut << __FUNCTION__ << ": Smart contract loaded up, and "
+                                 "party found, but failed to retrieve "
+                                 "the account at index: "
               << nTempIndex << "\n";
         return "";
     }
@@ -7396,10 +7384,9 @@ std::string OTAPI_Exec::Party_GetAcctID(
 
     const OTPartyAccount* pAcct = pParty->GetAccount(ACCT_NAME);
     if (nullptr == pAcct) {
-        otOut << __FUNCTION__
-              << ": Smart contract loaded up, and "
-                 "party found, but failed to retrieve "
-                 "party's account named: "
+        otOut << __FUNCTION__ << ": Smart contract loaded up, and "
+                                 "party found, but failed to retrieve "
+                                 "party's account named: "
               << ACCT_NAME << "\n";
         return "";
     }
@@ -7452,10 +7439,9 @@ std::string OTAPI_Exec::Party_GetAcctInstrumentDefinitionID(
             const OTPartyAccount* pAcct = pParty->GetAccount(ACCT_NAME);
 
             if (nullptr == pAcct) {
-                otOut << __FUNCTION__
-                      << ": Smart contract loaded up, and "
-                         "party found, but failed to retrieve "
-                         "party's account named: "
+                otOut << __FUNCTION__ << ": Smart contract loaded up, and "
+                                         "party found, but failed to retrieve "
+                                         "party's account named: "
                       << ACCT_NAME << "\n";
             } else  // We found the account...
             {
@@ -7506,10 +7492,9 @@ std::string OTAPI_Exec::Party_GetAcctAgentName(
             const OTPartyAccount* pAcct = pParty->GetAccount(ACCT_NAME);
 
             if (nullptr == pAcct) {
-                otOut << __FUNCTION__
-                      << ": Smart contract loaded up, and "
-                         "party found, but failed to retrieve "
-                         "party's account named: "
+                otOut << __FUNCTION__ << ": Smart contract loaded up, and "
+                                         "party found, but failed to retrieve "
+                                         "party's account named: "
                       << ACCT_NAME << "\n";
             } else  // We found the account...
             {
@@ -7608,10 +7593,9 @@ std::string OTAPI_Exec::Party_GetAgentID(
             OTAgent* pAgent = pParty->GetAgent(AGENT_NAME);
 
             if (nullptr == pAgent) {
-                otOut << __FUNCTION__
-                      << ": Smart contract loaded up, and "
-                         "party found, but failed to retrieve "
-                         "party's agent named: "
+                otOut << __FUNCTION__ << ": Smart contract loaded up, and "
+                                         "party found, but failed to retrieve "
+                                         "party's agent named: "
                       << AGENT_NAME << "\n";
             } else  // We found the agent...
             {
@@ -7814,9 +7798,8 @@ bool OTAPI_Exec::Msg_HarvestTransactionNumbers(
     if (strMsg.Contains("PAYMENT PLAN") || strMsg.Contains("SMARTCONTRACT")) {
         const String& strCronItem = strMsg;
 
-        otOut << __FUNCTION__
-              << ": Attempting to harvest transaction numbers "
-                 "from cron item...\n";
+        otOut << __FUNCTION__ << ": Attempting to harvest transaction numbers "
+                                 "from cron item...\n";
         // Unfortunately the ONLY reason we are loading up this cron item here,
         // is so we can get the server ID off of it.
         //
@@ -7857,9 +7840,8 @@ bool OTAPI_Exec::Msg_HarvestTransactionNumbers(
     if (strMsg.Contains("currencyBasket")) {
         const String& strBasket = strMsg;
 
-        otOut << __FUNCTION__
-              << ": Attempting to harvest transaction numbers "
-                 "from a basket currency exchange request...\n";
+        otOut << __FUNCTION__ << ": Attempting to harvest transaction numbers "
+                                 "from a basket currency exchange request...\n";
         Nym* pNym = ot_api_.GetOrLoadPrivateNym(theNymID, false, __FUNCTION__);
 
         if (nullptr == pNym) {
@@ -7870,9 +7852,8 @@ bool OTAPI_Exec::Msg_HarvestTransactionNumbers(
 
         if (theRequestBasket.LoadContractFromString(strBasket)) {
             if (!theRequestBasket.IsExchanging()) {
-                otErr << __FUNCTION__
-                      << ": Error: This is apparently NOT a "
-                         "basket exchange request!\nContents:\n"
+                otErr << __FUNCTION__ << ": Error: This is apparently NOT a "
+                                         "basket exchange request!\nContents:\n"
                       << strBasket << "\n";
                 return false;
             }
@@ -8226,9 +8207,8 @@ std::string OTAPI_Exec::LoadMint(
         ot_api_.LoadMint(theNotaryID, theInstrumentDefinitionID));
 
     if (nullptr == pMint)
-        otOut << __FUNCTION__
-              << "OTAPI_Exec::LoadMint: Failure calling "
-                 "OT_API::LoadMint.\nServer: "
+        otOut << __FUNCTION__ << "OTAPI_Exec::LoadMint: Failure calling "
+                                 "OT_API::LoadMint.\nServer: "
               << NOTARY_ID << "\n Asset Type: " << INSTRUMENT_DEFINITION_ID
               << "\n";
     else  // success
@@ -8419,12 +8399,11 @@ std::string OTAPI_Exec::Nymbox_GetReplyNotice(
                                              // lets use that one.
         } else                               // nullptr == pFullTransaction
         {
-            otErr << __FUNCTION__
-                  << ": good index but uncovered \"\" pointer "
-                     "after trying to load full version of "
-                     "receipt (from abbreviated.) Thus, saving "
-                     "abbreviated version instead, so I can "
-                     "still return SOMETHING.\n";
+            otErr << __FUNCTION__ << ": good index but uncovered \"\" pointer "
+                                     "after trying to load full version of "
+                                     "receipt (from abbreviated.) Thus, saving "
+                                     "abbreviated version instead, so I can "
+                                     "still return SOMETHING.\n";
             Nym* pNym = ot_api_.GetNym(theNymID, __FUNCTION__);
             if (nullptr == pNym) return "";
             pTransaction->ReleaseSignatures();
@@ -9221,10 +9200,9 @@ std::string OTAPI_Exec::Ledger_GetTransactionByIndex(
         pTransaction =
             theLedger.GetTransaction(static_cast<int64_t>(lTransactionNum));
         if (nullptr == pTransaction) {
-            otErr << __FUNCTION__
-                  << ": good index but uncovered \"\" pointer "
-                     "after trying to load full version of "
-                     "receipt (from abbreviated): "
+            otErr << __FUNCTION__ << ": good index but uncovered \"\" pointer "
+                                     "after trying to load full version of "
+                                     "receipt (from abbreviated): "
                   << nIndex << "\n";
             return "";  // Weird.
         }
@@ -9350,11 +9328,10 @@ std::string OTAPI_Exec::Ledger_GetTransactionByID(
         // (else if false == bLoadedBoxReceipt, then pTransaction ALREADY points
         // to the abbreviated version.)
         if (nullptr == pTransaction) {
-            otErr << __FUNCTION__
-                  << ": good ID, but uncovered \"\" pointer "
-                     "after trying to load full version of "
-                     "receipt (from abbreviated.) Probably "
-                     "just need to download this one...\n";
+            otErr << __FUNCTION__ << ": good ID, but uncovered \"\" pointer "
+                                     "after trying to load full version of "
+                                     "receipt (from abbreviated.) Probably "
+                                     "just need to download this one...\n";
             return "";  // Weird.
         }
         // If it's STILL abbreviated after the above efforts, then there's
@@ -9470,9 +9447,8 @@ std::string OTAPI_Exec::Ledger_GetInstrument(
         GetInstrument(*pNym, nIndex, theLedger));
 
     if ((nullptr == pPayment) || !pPayment->IsValid()) {
-        otOut << __FUNCTION__
-              << ": theLedger.GetInstrument either returned "
-                 "nullptr, or an invalid instrument.\n";
+        otOut << __FUNCTION__ << ": theLedger.GetInstrument either returned "
+                                 "nullptr, or an invalid instrument.\n";
     } else {
         // NOTE: instead of loading up an OTPayment, and then loading a
         // cheque/purse/etc from it,
@@ -9483,9 +9459,8 @@ std::string OTAPI_Exec::Ledger_GetInstrument(
         String strPaymentContents;
 
         if (!pPayment->GetPaymentContents(strPaymentContents)) {
-            otOut << __FUNCTION__
-                  << ": Failed retrieving payment instrument "
-                     "from OTPayment object.\n";
+            otOut << __FUNCTION__ << ": Failed retrieving payment instrument "
+                                     "from OTPayment object.\n";
             return "";
         }
         std::string gBuf = strPaymentContents.Get();
@@ -9662,9 +9637,8 @@ std::string OTAPI_Exec::Ledger_AddTransaction(
         return "";
     } else if (!theLedger.VerifyAccount(*pNym)) {
         String strAcctID(theAccountID);
-        otErr << __FUNCTION__
-              << ": Error verifying ledger in "
-                 "OTAPI_Exec::Ledger_AddTransaction. Acct ID: "
+        otErr << __FUNCTION__ << ": Error verifying ledger in "
+                                 "OTAPI_Exec::Ledger_AddTransaction. Acct ID: "
               << strAcctID << "\n";
         return "";
     }
@@ -9801,10 +9775,9 @@ std::string OTAPI_Exec::Transaction_CreateResponse(
 
         if (nullptr == pTransaction) {
             String strAcctID(theAcctID);
-            otErr << __FUNCTION__
-                  << ": Error loading full transaction from "
-                     "abbreviated version of inbox receipt. "
-                     "Acct ID: "
+            otErr << __FUNCTION__ << ": Error loading full transaction from "
+                                     "abbreviated version of inbox receipt. "
+                                     "Acct ID: "
                   << strAcctID << "\n";
             return "";
         }
@@ -10005,9 +9978,8 @@ std::string OTAPI_Exec::Transaction_GetVoucher(
     // automatically.)
 
     if (OTTransaction::atWithdrawal != theTransaction.GetType()) {
-        otErr << __FUNCTION__
-              << ": Error: tried to retrieve voucher from "
-                 "wrong transaction (not atWithdrawal).\n";
+        otErr << __FUNCTION__ << ": Error: tried to retrieve voucher from "
+                                 "wrong transaction (not atWithdrawal).\n";
         return "";
     }
 
@@ -10114,17 +10086,15 @@ std::string OTAPI_Exec::Transaction_GetSenderNymID(
         else if (theTransaction.Contains("expiredBoxRecord"))
             lBoxType = static_cast<int64_t>(Ledger::expiredBox);
         else {
-            otErr << __FUNCTION__
-                  << ": Error loading from abbreviated "
-                     "transaction: unknown ledger type.\n";
+            otErr << __FUNCTION__ << ": Error loading from abbreviated "
+                                     "transaction: unknown ledger type.\n";
             return "";
         }
         pTransaction = LoadBoxReceipt(theTransaction, lBoxType);
         if (nullptr == pTransaction) {
-            otErr << __FUNCTION__
-                  << ": Error loading from abbreviated "
-                     "transaction: failed loading box "
-                     "receipt.\n";
+            otErr << __FUNCTION__ << ": Error loading from abbreviated "
+                                     "transaction: failed loading box "
+                                     "receipt.\n";
             return "";
         }
         theTransAngel.reset(pTransaction);
@@ -10215,16 +10185,14 @@ std::string OTAPI_Exec::Transaction_GetRecipientNymID(
         else if (theTransaction.Contains("expiredBoxRecord"))
             lBoxType = static_cast<int64_t>(Ledger::expiredBox);
         else {
-            otErr << __FUNCTION__
-                  << ": Error loading from abbreviated "
-                     "transaction: unknown ledger type. \n";
+            otErr << __FUNCTION__ << ": Error loading from abbreviated "
+                                     "transaction: unknown ledger type. \n";
             return "";
         }
         pTransaction = LoadBoxReceipt(theTransaction, lBoxType);
         if (nullptr == pTransaction) {
-            otErr << __FUNCTION__
-                  << ": Error loading from abbreviated "
-                     "transaction: failed loading box receipt.";
+            otErr << __FUNCTION__ << ": Error loading from abbreviated "
+                                     "transaction: failed loading box receipt.";
             return "";
         }
         theTransAngel.reset(pTransaction);
@@ -10330,17 +10298,15 @@ std::string OTAPI_Exec::Transaction_GetSenderAcctID(
         else if (theTransaction.Contains("expiredBoxRecord"))
             lBoxType = static_cast<int64_t>(Ledger::expiredBox);
         else {
-            otErr << __FUNCTION__
-                  << ": Error loading from abbreviated "
-                     "transaction: unknown ledger type.\n";
+            otErr << __FUNCTION__ << ": Error loading from abbreviated "
+                                     "transaction: unknown ledger type.\n";
             return "";
         }
         pTransaction = LoadBoxReceipt(theTransaction, lBoxType);
         if (nullptr == pTransaction) {
-            otErr << __FUNCTION__
-                  << ": Error loading from abbreviated "
-                     "transaction: failed loading box receipt. "
-                     "\n";
+            otErr << __FUNCTION__ << ": Error loading from abbreviated "
+                                     "transaction: failed loading box receipt. "
+                                     "\n";
             return "";
         }
         theTransAngel.reset(pTransaction);
@@ -10408,10 +10374,9 @@ std::string OTAPI_Exec::Transaction_GetRecipientAcctID(
 
     if (!theTransaction.LoadContractFromString(strTransaction)) {
         String strAcctID(theAccountID);
-        otErr << __FUNCTION__
-              << ": Error loading transaction from string in "
-                 "OTAPI_Exec::Transaction_GetRecipientAcctID. "
-                 "Acct ID: "
+        otErr << __FUNCTION__ << ": Error loading transaction from string in "
+                                 "OTAPI_Exec::Transaction_GetRecipientAcctID. "
+                                 "Acct ID: "
               << strAcctID << "\n";
         return "";
     }
@@ -10435,17 +10400,15 @@ std::string OTAPI_Exec::Transaction_GetRecipientAcctID(
         else if (theTransaction.Contains("expiredBoxRecord"))
             lBoxType = static_cast<int64_t>(Ledger::expiredBox);
         else {
-            otErr << __FUNCTION__
-                  << ": Error loading from abbreviated "
-                     "transaction: unknown ledger type. \n";
+            otErr << __FUNCTION__ << ": Error loading from abbreviated "
+                                     "transaction: unknown ledger type. \n";
             return "";
         }
         pTransaction = LoadBoxReceipt(theTransaction, lBoxType);
         if (nullptr == pTransaction) {
-            otErr << __FUNCTION__
-                  << ": Error loading from abbreviated "
-                     "transaction: failed loading box "
-                     "receipt.\n";
+            otErr << __FUNCTION__ << ": Error loading from abbreviated "
+                                     "transaction: failed loading box "
+                                     "receipt.\n";
             return "";
         }
         theTransAngel.reset(pTransaction);
@@ -10535,17 +10498,15 @@ std::string OTAPI_Exec::Pending_GetNote(
         else if (theTransaction.Contains("expiredBoxRecord"))
             lBoxType = static_cast<int64_t>(Ledger::expiredBox);
         else {
-            otErr << __FUNCTION__
-                  << " Error loading from abbreviated "
-                     "transaction: unknown ledger type. \n";
+            otErr << __FUNCTION__ << " Error loading from abbreviated "
+                                     "transaction: unknown ledger type. \n";
             return "";
         }
         pTransaction = LoadBoxReceipt(theTransaction, lBoxType);
         if (nullptr == pTransaction) {
-            otErr << __FUNCTION__
-                  << ": Error loading from abbreviated "
-                     "transaction: failed loading box receipt. "
-                     "\n";
+            otErr << __FUNCTION__ << ": Error loading from abbreviated "
+                                     "transaction: failed loading box receipt. "
+                                     "\n";
             return "";
         }
         theTransAngel.reset(pTransaction);
@@ -10577,9 +10538,8 @@ std::string OTAPI_Exec::Pending_GetNote(
     // pItem will be automatically cleaned up when it goes out of scope.
     if ((Item::transfer != pItem->GetType()) ||
         (Item::request != pItem->GetStatus())) {
-        otErr << __FUNCTION__
-              << ": Wrong item type or status attached as "
-                 "reference on transaction.\n";
+        otErr << __FUNCTION__ << ": Wrong item type or status attached as "
+                                 "reference on transaction.\n";
         return "";
     }
     String strOutput;
@@ -10656,17 +10616,15 @@ int64_t OTAPI_Exec::Transaction_GetAmount(
         else if (theTransaction.Contains("expiredBoxRecord"))
             lBoxType = static_cast<int64_t>(Ledger::expiredBox);
         else {
-            otErr << __FUNCTION__
-                  << ": Error loading from abbreviated "
-                     "transaction: unknown ledger type. \n";
+            otErr << __FUNCTION__ << ": Error loading from abbreviated "
+                                     "transaction: unknown ledger type. \n";
             return -1;
         }
         pTransaction = LoadBoxReceipt(theTransaction, lBoxType);
         if (nullptr == pTransaction) {
-            otErr << __FUNCTION__
-                  << ": Error loading from abbreviated "
-                     "transaction: failed loading box receipt. "
-                     "\n";
+            otErr << __FUNCTION__ << ": Error loading from abbreviated "
+                                     "transaction: failed loading box receipt. "
+                                     "\n";
             return -1;
         }
         theTransAngel.reset(pTransaction);
@@ -10983,17 +10941,15 @@ int32_t OTAPI_Exec::Transaction_GetSuccess(
         else if (theTransaction.Contains("expiredBoxRecord"))
             lBoxType = static_cast<int64_t>(Ledger::expiredBox);
         else {
-            otErr << __FUNCTION__
-                  << ": Error loading from abbreviated "
-                     "transaction: unknown ledger type. \n";
+            otErr << __FUNCTION__ << ": Error loading from abbreviated "
+                                     "transaction: unknown ledger type. \n";
             return OT_ERROR;
         }
         pTransaction = LoadBoxReceipt(theTransaction, lBoxType);
         if (nullptr == pTransaction) {
-            otErr << __FUNCTION__
-                  << ": Error loading from abbreviated "
-                     "transaction: failed loading box receipt. "
-                     "\n";
+            otErr << __FUNCTION__ << ": Error loading from abbreviated "
+                                     "transaction: failed loading box receipt. "
+                                     "\n";
             return OT_ERROR;
         }
         theTransAngel.reset(pTransaction);
@@ -11091,17 +11047,15 @@ int32_t OTAPI_Exec::Transaction_IsCanceled(
         else if (theTransaction.Contains("expiredBoxRecord"))
             lBoxType = static_cast<int64_t>(Ledger::expiredBox);
         else {
-            otErr << __FUNCTION__
-                  << ": Error loading from abbreviated "
-                     "transaction: unknown ledger type. \n";
+            otErr << __FUNCTION__ << ": Error loading from abbreviated "
+                                     "transaction: unknown ledger type. \n";
             return OT_ERROR;
         }
         pTransaction = LoadBoxReceipt(theTransaction, lBoxType);
         if (nullptr == pTransaction) {
-            otErr << __FUNCTION__
-                  << ": Error loading from abbreviated "
-                     "transaction: failed loading box receipt. "
-                     "\n";
+            otErr << __FUNCTION__ << ": Error loading from abbreviated "
+                                     "transaction: failed loading box receipt. "
+                                     "\n";
             return OT_ERROR;
         }
         theTransAngel.reset(pTransaction);
@@ -11195,17 +11149,15 @@ int32_t OTAPI_Exec::Transaction_GetBalanceAgreementSuccess(
         else if (theTransaction.Contains("expiredBoxRecord"))
             lBoxType = static_cast<int64_t>(Ledger::expiredBox);
         else {
-            otErr << __FUNCTION__
-                  << ": Error loading from abbreviated "
-                     "transaction: unknown ledger type. \n";
+            otErr << __FUNCTION__ << ": Error loading from abbreviated "
+                                     "transaction: unknown ledger type. \n";
             return OT_ERROR;
         }
         pTransaction = LoadBoxReceipt(theTransaction, lBoxType);
         if (nullptr == pTransaction) {
-            otErr << __FUNCTION__
-                  << ": Error loading from abbreviated "
-                     "transaction: failed loading box "
-                     "receipt.\n";
+            otErr << __FUNCTION__ << ": Error loading from abbreviated "
+                                     "transaction: failed loading box "
+                                     "receipt.\n";
             return OT_ERROR;
         }
         theTransAngel.reset(pTransaction);
@@ -11219,10 +11171,9 @@ int32_t OTAPI_Exec::Transaction_GetBalanceAgreementSuccess(
         pReplyItem = pTransaction->GetItem(Item::atTransactionStatement);
 
     if (nullptr == pReplyItem) {
-        otErr << __FUNCTION__
-              << ": good transaction (could have been "
-                 "abbreviated though) but uncovered \"\" item "
-                 "pointer.\n";
+        otErr << __FUNCTION__ << ": good transaction (could have been "
+                                 "abbreviated though) but uncovered \"\" item "
+                                 "pointer.\n";
         return OT_ERROR;  // Weird.
     }
 
@@ -12879,10 +12830,9 @@ int64_t OTAPI_Exec::Message_GetUsageCredits(
     }
 
     if (!theMessage.m_bSuccess) {
-        otErr << __FUNCTION__
-              << ": Message success == false, thus unable to "
-                 "report Usage Credits balance. (Returning "
-                 "-2.)\n";
+        otErr << __FUNCTION__ << ": Message success == false, thus unable to "
+                                 "report Usage Credits balance. (Returning "
+                                 "-2.)\n";
         return -2;
     }
 
@@ -13568,9 +13518,8 @@ int32_t OTAPI_Exec::sendNymInstrument(
     OTPayment thePayment(strInstrument);
 
     if (!thePayment.IsValid() || !thePayment.SetTempValues()) {
-        otOut << __FUNCTION__
-              << ": Failure loading payment instrument "
-                 "(intended for recipient) from string:\n\n"
+        otOut << __FUNCTION__ << ": Failure loading payment instrument "
+                                 "(intended for recipient) from string:\n\n"
               << strInstrument << "\n\n";
         return OT_ERROR;
     }
@@ -14706,10 +14655,9 @@ int32_t OTAPI_Exec::issueMarketOffer(
         cStopSign = '>';
     if (!STOP_SIGN.empty() && ((ACTIVATION_PRICE == 0) ||
                                ((cStopSign != '<') && (cStopSign != '>')))) {
-        otErr << __FUNCTION__
-              << ": If STOP_SIGN is provided, it must be \"<\" "
-                 "or \">\", and in that case ACTIVATION_PRICE "
-                 "must be non-zero.\n";
+        otErr << __FUNCTION__ << ": If STOP_SIGN is provided, it must be \"<\" "
+                                 "or \">\", and in that case ACTIVATION_PRICE "
+                                 "must be non-zero.\n";
         return OT_ERROR;
     }
     const Identifier theAssetAcctID(ASSET_ACCT_ID),
@@ -14724,9 +14672,8 @@ int32_t OTAPI_Exec::issueMarketOffer(
         OTAPI_Exec::GetAccountWallet_NymID(CURRENCY_ACCT_ID);
     if (str_asset_notary_id.empty() || str_currency_notary_id.empty() ||
         str_asset_nym_id.empty() || str_currency_nym_id.empty()) {
-        otErr << __FUNCTION__
-              << ": Failed determining server or nym ID for "
-                 "either asset or currency account.\n";
+        otErr << __FUNCTION__ << ": Failed determining server or nym ID for "
+                                 "either asset or currency account.\n";
         return OT_ERROR;
     }
     const Identifier theAssetNotaryID(str_asset_notary_id),
@@ -15165,10 +15112,9 @@ bool OTAPI_Exec::ResyncNymWithServer(
         return false;
     }
     if (!theMessage.m_strCommand.Compare("registerNymResponse")) {
-        otErr << __FUNCTION__
-              << ": Failed. Though success loading message "
-                 "from string, it had the wrong command type. "
-                 "(Expected registerNymResponse, but found "
+        otErr << __FUNCTION__ << ": Failed. Though success loading message "
+                                 "from string, it had the wrong command type. "
+                                 "(Expected registerNymResponse, but found "
               << theMessage.m_strCommand << ".) Message contents:\n\n"
               << strMessage << "\n\n";
         return false;
@@ -15185,12 +15131,11 @@ bool OTAPI_Exec::ResyncNymWithServer(
     String strMessageNym;
 
     if (!theMessage.m_ascPayload.GetString(strMessageNym)) {
-        otErr << __FUNCTION__
-              << ": Failed decoding message payload in server "
-                 "reply: registerNymResponse(). (Expected "
-                 "theMessageNym to be there, so I could "
-                 "re-sync client side to server.) Message "
-                 "contents:\n\n"
+        otErr << __FUNCTION__ << ": Failed decoding message payload in server "
+                                 "reply: registerNymResponse(). (Expected "
+                                 "theMessageNym to be there, so I could "
+                                 "re-sync client side to server.) Message "
+                                 "contents:\n\n"
               << strMessage << "\n\n";
         return false;
     }
@@ -15199,9 +15144,8 @@ bool OTAPI_Exec::ResyncNymWithServer(
     Nym theMessageNym;
 
     if (!theMessageNym.LoadNymFromString(strMessageNym, unused)) {
-        otErr << __FUNCTION__
-              << ": Failed loading theMessageNym from a "
-                 "string. String contents:\n\n"
+        otErr << __FUNCTION__ << ": Failed loading theMessageNym from a "
+                                 "string. String contents:\n\n"
               << strMessageNym << "\n\n";
         return false;
     }
@@ -15400,8 +15344,9 @@ std::string OTAPI_Exec::Message_GetNewInstrumentDefinitionID(
     // contain a ledger. (Don't want to pass back whatever it DOES contain
     // in that case, now do I?)
     //
-    if ((false == theMessage.m_strCommand.Compare(
-                      "registerInstrumentDefinitionResponse")) &&
+    if ((false ==
+         theMessage.m_strCommand.Compare(
+             "registerInstrumentDefinitionResponse")) &&
         (false == theMessage.m_strCommand.Compare("issueBasketResponse"))) {
         otOut << __FUNCTION__
               << ": Wrong message type: " << theMessage.m_strCommand << "\n";
@@ -15616,9 +15561,8 @@ int32_t OTAPI_Exec::Message_GetSuccess(const std::string& THE_MESSAGE) const
                                                                  // << "\n\n"
         return OT_TRUE;
     } else {
-        otWarn << __FUNCTION__
-               << ": ** FYI, server reply was received, and it "
-                  "said 'No.' (Status = failed). RequestNum: "
+        otWarn << __FUNCTION__ << ": ** FYI, server reply was received, and it "
+                                  "said 'No.' (Status = failed). RequestNum: "
                << StringToLong(theMessage.m_strRequestNum.Get())
                << "\n";  // Contents:\n\n" << THE_MESSAGE << "\n\n"
     }
@@ -15887,52 +15831,43 @@ std::string OTAPI_Exec::ContactAttributeName(
     const proto::ContactItemAttribute type,
     std::string lang)
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    return identity_.ContactAttributeName(type, lang);
+    return proto::TranslateItemAttributes(type, lang);
 }
 
 std::set<proto::ContactSectionName> OTAPI_Exec::ContactSectionList(
     const std::uint32_t version)
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    return identity_.ContactSectionList(version);
+    return proto::AllowedSectionNames.at(version);
 }
 
 std::string OTAPI_Exec::ContactSectionName(
     const proto::ContactSectionName section,
     std::string lang)
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    return identity_.ContactSectionName(section, lang);
+    return proto::TranslateSectionName(section, lang);
 }
 
 std::set<proto::ContactItemType> OTAPI_Exec::ContactSectionTypeList(
     const proto::ContactSectionName section,
     const std::uint32_t version)
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    proto::ContactSectionVersion contactVersion{version, section};
 
-    return identity_.ContactSectionTypeList(section, version);
+    return proto::AllowedItemTypes.at(contactVersion);
 }
 
 std::string OTAPI_Exec::ContactTypeName(
     const proto::ContactItemType type,
     std::string lang)
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    return identity_.ContactTypeName(type, lang);
+    return proto::TranslateItemType(type, lang);
 }
 
 proto::ContactItemType OTAPI_Exec::ReciprocalRelationship(
     const proto::ContactItemType relationship)
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    return identity_.ReciprocalRelationship(relationship);
+    return static_cast<proto::ContactItemType>(
+        proto::ReciprocalRelationship(relationship));
 }
 
 std::string OTAPI_Exec::Wallet_GetSeed() const

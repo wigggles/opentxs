@@ -52,6 +52,8 @@
 #include "opentxs/client/OT_ME.hpp"
 #include "opentxs/contact/Contact.hpp"
 #include "opentxs/contact/ContactData.hpp"
+#include "opentxs/contact/ContactGroup.hpp"
+#include "opentxs/contact/ContactItem.hpp"
 #include "opentxs/core/crypto/CryptoEncodingEngine.hpp"
 #include "opentxs/core/crypto/PaymentCode.hpp"
 #include "opentxs/core/Data.hpp"
@@ -422,14 +424,9 @@ Messagability OTME_too::can_message(
         return Messagability::MISSING_RECIPIENT;
     }
 
-    const auto claims = recipientNym->ContactData();
-
-    if (!claims) {
-
-        return Messagability::NO_SERVER_CLAIM;
-    }
-
-    server = extract_server(*claims);
+    const auto claims = recipientNym->Claims();
+    auto serverID = claims.PreferredOTServer();
+    server = String(serverID).Get();
 
     if (server.empty()) {
 
@@ -555,7 +552,7 @@ bool OTME_too::check_bridge_nym(const std::string& bridgeNym, PairedNode& node)
         return false;
     }
 
-    auto server = obtain_server_id(ownerNym, bridgeNym, *claims);
+    auto server = obtain_server_id(ownerNym, *bridge);
 
     if (server.empty()) {
         otErr << __FUNCTION__ << ": Bridge nym does not advertise a notary."
@@ -829,16 +826,9 @@ void OTME_too::establish_mailability(
         return;
     }
 
-    const auto claims = recipientNym->ContactData();
-
-    if (!claims) {
-        otInfo << OT_METHOD << __FUNCTION__ << ": Recipient nym has no claims."
-               << std::endl;
-
-        return;
-    }
-
-    auto server = extract_server(*claims);
+    const auto claims = recipientNym->Claims();
+    const auto serverID = claims.PreferredOTServer();
+    const std::string server = String(serverID).Get();
 
     if (server.empty()) {
         otInfo << OT_METHOD << __FUNCTION__
@@ -901,58 +891,6 @@ std::uint64_t OTME_too::extract_assets(
     return output;
 }
 
-std::string OTME_too::extract_nym_name(const Nym& nym) const
-{
-    std::string output;
-
-    const auto type = identity_.NymType(nym);
-
-    std::list<std::string> names;
-    const bool found = identity_.ExtractClaims(
-        nym, proto::CONTACTSECTION_SCOPE, type, names, true);
-
-    if (found) {
-        output = names.front();
-    }
-
-    return output;
-}
-
-std::string OTME_too::extract_server(const std::string& nymID) const
-{
-    const auto nym = wallet_.Nym(Identifier(nymID));
-
-    if (!nym) {
-        return "";
-    }
-
-    const auto claims = nym->ContactData();
-
-    if (!claims) {
-        return "";
-    }
-
-    return extract_server(*claims);
-}
-
-std::string OTME_too::extract_server(const proto::ContactData& claims) const
-{
-    std::string output;
-
-    std::list<std::string> servers;
-    const bool found = identity_.ExtractClaims(
-        claims,
-        proto::CONTACTSECTION_COMMUNICATION,
-        proto::CITEMTYPE_OPENTXS,
-        servers);
-
-    if (found) {
-        output = servers.front();
-    }
-
-    return output;
-}
-
 std::string OTME_too::extract_server_name(const std::string& serverNymID) const
 {
     std::string output;
@@ -960,20 +898,11 @@ std::string OTME_too::extract_server_name(const std::string& serverNymID) const
     const auto serverNym = wallet_.Nym(Identifier(serverNymID));
 
     if (!serverNym) {
+
         return output;
     }
 
-    std::list<std::string> names;
-    const bool found = identity_.ExtractClaims(
-        *serverNym,
-        proto::CONTACTSECTION_SCOPE,
-        proto::CITEMTYPE_SERVER,
-        names,
-        true);
-
-    if (found) {
-        output = names.front();
-    }
+    output = serverNym->Claims().Name();
 
     return output;
 }
@@ -981,22 +910,21 @@ std::string OTME_too::extract_server_name(const std::string& serverNymID) const
 std::set<std::string> OTME_too::extract_message_servers(
     const std::string& nymID) const
 {
-    std::list<std::string> output;
-
     const auto nym = wallet_.Nym(Identifier(nymID));
 
     if (!nym) {
         return {};
     }
 
-    identity_.ExtractClaims(
-        *nym,
-        proto::CONTACTSECTION_COMMUNICATION,
-        proto::CITEMTYPE_OPENTXS,
-        output,
-        false);
+    const auto group = nym->Claims().Group(
+        proto::CONTACTSECTION_COMMUNICATION, proto::CITEMTYPE_OPENTXS);
 
-    return unique_servers(output);
+    if (false == bool(group)) {
+
+        return {};
+    }
+
+    return unique_servers(*group);
 }
 
 void OTME_too::fill_existing_accounts(
@@ -1667,7 +1595,7 @@ std::unique_ptr<proto::ContactData> OTME_too::obtain_contact_data(
     bool retry = false;
 
     while (true) {
-        output.reset(identity_.Claims(remoteNym).release());
+        output.reset(new proto::ContactData(remoteNym.Claims().Serialize()));
 
         if (output) {
             break;
@@ -1757,14 +1685,12 @@ bool OTME_too::obtain_server_contract(
 
 std::string OTME_too::obtain_server_id(
     const std::string& ownerNym,
-    const std::string& bridgeNym,
-    const proto::ContactData& claims) const
+    const Nym& bridgeNym) const
 {
-    std::string output;
-    output = extract_server(claims);
+    std::string output = String(bridgeNym.Claims().PreferredOTServer()).Get();
 
     if (output.empty()) {
-        download_nym(ownerNym, bridgeNym, "");
+        download_nym(ownerNym, String(bridgeNym.ID()).Get(), "");
     }
 
     return output;
@@ -1772,23 +1698,14 @@ std::string OTME_too::obtain_server_id(
 
 std::string OTME_too::obtain_server_id(const std::string& nymID) const
 {
-    std::string output;
-
     auto nym = wallet_.Nym(Identifier(nymID));
 
     if (!nym) {
-        return output;
+
+        return {};
     }
 
-    auto data = nym->ContactData();
-
-    if (!data) {
-        return output;
-    }
-
-    output = extract_server(*data);
-
-    return output;
+    return String(nym->Claims().PreferredOTServer()).Get();
 }
 
 void OTME_too::pair(const std::string& bridgeNymID)
@@ -1965,7 +1882,7 @@ std::string OTME_too::PairingStatus(const std::string& identifier) const
     for (const auto& it : unitmap) {
         const auto& type = it.first;
         const auto& unitID = it.second;
-        const auto typeName = identity_.ContactTypeName(type);
+        const auto typeName = proto::TranslateItemType(type);
         output << "* " << typeName << " unit defininition ID: " << unitID
                << "\n";
     }
@@ -1982,7 +1899,7 @@ std::string OTME_too::PairingStatus(const std::string& identifier) const
     for (const auto& it : accountmap) {
         const auto& type = it.first;
         const auto& accountID = it.second;
-        const auto typeName = identity_.ContactTypeName(type);
+        const auto typeName = proto::TranslateItemType(type);
         output << "* " << typeName << " account ID: " << accountID << "\n";
     }
 
@@ -2239,52 +2156,12 @@ bool OTME_too::publish_server_registration(
 
     OT_ASSERT(nullptr != nym);
 
-    std::string claimID;
-    const bool alreadyExists = identity_.ClaimExists(
-        *nym,
-        proto::CONTACTSECTION_COMMUNICATION,
-        proto::CITEMTYPE_OPENTXS,
-        server,
-        claimID);
-
-    if (alreadyExists) {
-        return true;
-    }
-
-    bool setPrimary = false;
-
-    if (forcePrimary) {
-        setPrimary = true;
-    } else {
-        std::string primary;
-        const bool hasPrimary = identity_.HasPrimary(
-            *nym,
-            proto::CONTACTSECTION_COMMUNICATION,
-            proto::CITEMTYPE_OPENTXS,
-            primary);
-        setPrimary = !hasPrimary;
-    }
-
-    std::set<std::uint32_t> attribute;
-    attribute.insert(proto::CITEMATTR_ACTIVE);
-
-    if (setPrimary) {
-        attribute.insert(proto::CITEMATTR_PRIMARY);
-    }
-
-    const Claim input{"",
-                      proto::CONTACTSECTION_COMMUNICATION,
-                      proto::CITEMTYPE_OPENTXS,
-                      server,
-                      0,
-                      0,
-                      attribute};
-
-    const bool claimIsSet = identity_.AddClaim(*nym, input);
+    const auto output =
+        nym->AddPreferredOTServer(Identifier(server), forcePrimary);
     apiLock.unlock();
     yield();
 
-    return claimIsSet;
+    return output;
 }
 
 void OTME_too::refresh_contacts(nymAccountMap& nymsToCheck)
@@ -2468,6 +2345,10 @@ bool OTME_too::RegisterNym(
     const std::string& server,
     const bool setContactData) const
 {
+    if (setContactData) {
+        publish_server_registration(nymID, server, false);
+    }
+
     const auto result = otme_.register_nym(server, nymID);
 
     if (!yield()) {
@@ -2480,17 +2361,7 @@ bool OTME_too::RegisterNym(
         return false;
     }
 
-    if (registered) {
-        if (setContactData) {
-
-            return publish_server_registration(nymID, server, false);
-        } else {
-
-            return true;
-        }
-    }
-
-    return false;
+    return registered;
 }
 
 std::uint64_t OTME_too::RefreshCount() const { return refresh_count_.load(); }
@@ -2997,13 +2868,15 @@ ThreadStatus OTME_too::Status(const Identifier& thread)
     return ThreadStatus::FINISHED_FAILED;
 }
 
-std::set<std::string> OTME_too::unique_servers(
-    const std::list<std::string>& input) const
+std::set<std::string> OTME_too::unique_servers(const ContactGroup& group) const
 {
     std::set<std::string> output;
 
-    for (const auto& it : input) {
-        output.insert(it);
+    for (const auto& it : group) {
+        OT_ASSERT(it.second);
+
+        const auto& item = *it.second;
+        output.insert(item.Value());
     }
 
     return output;

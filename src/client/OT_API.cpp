@@ -54,6 +54,7 @@
 #include "opentxs/client/OTMessageOutbuffer.hpp"
 #include "opentxs/client/OTWallet.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
+#include "opentxs/contact/ContactData.hpp"
 #include "opentxs/core/contract/basket/Basket.hpp"
 #include "opentxs/core/contract/basket/BasketContract.hpp"
 #if OT_CRYPTO_WITH_BIP32
@@ -4036,7 +4037,7 @@ bool OT_API::Rename_Nym(
     proto::ContactItemType realType = proto::CITEMTYPE_ERROR;
 
     if (proto::CITEMTYPE_ERROR == type) {
-        const auto existingType = identity_.NymType(*nym);
+        const auto existingType = nym->Claims().Type();
 
         if (proto::CITEMTYPE_ERROR == existingType) {
             return false;
@@ -4047,7 +4048,7 @@ bool OT_API::Rename_Nym(
         realType = type;
     }
 
-    const bool renamed = identity_.SetScope(*nym, realType, name, primary);
+    const bool renamed = nym->SetScope(realType, name, primary);
 
     if (!renamed) {
         return false;
@@ -4544,8 +4545,6 @@ bool OT_API::AddClaim(
     const std::uint64_t end,
     const std::uint32_t) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     std::set<std::uint32_t> attribute;
 
     if (active) {
@@ -4557,8 +4556,9 @@ bool OT_API::AddClaim(
     }
 
     const Claim claim{"", section, type, value, start, end, attribute};
+    toNym.AddClaim(claim);
 
-    return identity_.AddClaim(toNym, claim);
+    return true;
 }
 
 /** Tries to get the account from the wallet.
@@ -14048,15 +14048,11 @@ std::string OT_API::AddChildKeyCredential(
 std::unique_ptr<proto::ContactData> OT_API::GetContactData(
     const Identifier& nymID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     std::unique_ptr<proto::ContactData> output;
-    OTPasswordData thePWData(OT_PW_DISPLAY);
+    const auto nym = wallet_.Nym(nymID);
 
-    const Nym* pNym = GetOrLoadNym(nymID, false, __FUNCTION__, &thePWData);
-
-    if (nullptr != pNym) {
-        output.reset(identity_.Claims(*pNym).release());
+    if (nym) {
+        output.reset(new proto::ContactData(nym->Claims().Serialize(true)));
     }
 
     return output;

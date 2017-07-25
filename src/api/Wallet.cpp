@@ -132,9 +132,8 @@ std::shared_ptr<class Context> Wallet::context(
             auto& zmq = ot_.ZMQ();
             const auto& server = serialized->servercontext().serverid();
             auto& connection = zmq.Server(server);
-            entry.reset(
-                new class ServerContext(
-                    *serialized, localNym, remoteNym, connection));
+            entry.reset(new class ServerContext(
+                *serialized, localNym, remoteNym, connection));
         } break;
         case proto::CONSENSUSTYPE_CLIENT: {
             auto server = ServerLoader::getServer();
@@ -318,8 +317,8 @@ Editor<class ServerContext> Wallet::mutable_ServerContext(
         auto& entry = context_map_[contextID];
         auto& zmq = ot_.ZMQ();
         auto& connection = zmq.Server(String(serverID).Get());
-        entry.reset(new class ServerContext(
-            localNym, remoteNym, serverID, connection));
+        entry.reset(
+            new class ServerContext(localNym, remoteNym, serverID, connection));
         base = entry;
     }
 
@@ -606,7 +605,6 @@ std::string Wallet::nym_to_contact(const std::string& id)
 {
     const Identifier nymID(id);
     auto& contacts = ot_.Contact();
-    auto& identity = ot_.Identity();
     auto contactID = contacts.ContactID(nymID);
 
     if (false == contactID.empty()) {
@@ -620,15 +618,7 @@ std::string Wallet::nym_to_contact(const std::string& id)
     std::unique_ptr<PaymentCode> code;
 
     if (nym) {
-        const auto type = identity.NymType(*nym);
-        std::list<std::string> names;
-        const bool found = identity.ExtractClaims(
-            *nym, proto::CONTACTSECTION_SCOPE, type, names, true);
-
-        if (found) {
-            label = names.front();
-        }
-
+        label = nym->Claims().Name();
         code.reset(new PaymentCode(nym->PaymentCode()));
     }
 
