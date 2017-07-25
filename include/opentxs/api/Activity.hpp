@@ -39,8 +39,10 @@
 #ifndef OPENTXS_API_ACTIVITY_HPP
 #define OPENTXS_API_ACTIVITY_HPP
 
+#include "opentxs/core/Proto.hpp"
 #include "opentxs/core/Types.hpp"
 
+#include <memory>
 #include <string>
 
 namespace opentxs
@@ -101,6 +103,10 @@ public:
         const Identifier& nym,
         const Identifier& id,
         const StorageBox box) const;
+
+    std::shared_ptr<proto::StorageThread> Thread(
+        const Identifier& nymID,
+        const Identifier& threadID) const;
 
     /**   Obtain a list of thread ids for the specified nym
      *

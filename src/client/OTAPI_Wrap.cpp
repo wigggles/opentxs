@@ -40,6 +40,7 @@
 
 #include "opentxs/client/OTAPI_Wrap.hpp"
 
+#include "opentxs/api/Activity.hpp"
 #include "opentxs/api/Api.hpp"
 #include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/OT.hpp"
@@ -713,14 +714,11 @@ std::string OTAPI_Wrap::GetNym_MailThread_base64(
     const std::string& nymId,
     const std::string& threadId)
 {
-    std::string output;
-    std::shared_ptr<proto::StorageThread> thread;
+    std::string output{};
+    const auto thread =
+        OT::App().Activity().Thread(Identifier(nymId), Identifier(threadId));
 
-    const bool loaded = OT::App().DB().Load(nymId, threadId, thread);
-
-    if (loaded) {
-
-        OT_ASSERT(thread);
+    if (thread) {
 
         return OT::App().Crypto().Encode().DataEncode(
             proto::ProtoAsData(*thread));

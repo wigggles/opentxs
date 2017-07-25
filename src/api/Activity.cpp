@@ -46,6 +46,7 @@
 #include "opentxs/contact/ContactData.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Message.hpp"
+#include "opentxs/core/String.hpp"
 #include "opentxs/storage/Storage.hpp"
 
 #define OT_METHOD "opentxs::Activity::"
@@ -250,6 +251,16 @@ void Activity::MigrateLegacyThreads() const
             }
         }
     }
+}
+
+std::shared_ptr<proto::StorageThread> Activity::Thread(
+    const Identifier& nymID,
+    const Identifier& threadID) const
+{
+    std::shared_ptr<proto::StorageThread> output;
+    storage_.Load(String(nymID).Get(), String(threadID).Get(), output);
+
+    return output;
 }
 
 ObjectList Activity::Threads(const Identifier& nym) const
