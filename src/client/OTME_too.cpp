@@ -1610,6 +1610,19 @@ std::string OTME_too::GetPairedServer(const std::string& identifier) const
     return output;
 }
 
+std::string OTME_too::ImportNym(const std::string& input) const
+{
+    const auto serialized =
+        proto::StringToProto<proto::CredentialIndex>(String(input.c_str()));
+    const auto nym = wallet_.Nym(serialized);
+
+    if (nym) {
+        return String(nym->ID()).Get();
+    }
+
+    return {};
+}
+
 void OTME_too::load_introduction_server() const
 {
     Lock lock(introduction_server_lock_);

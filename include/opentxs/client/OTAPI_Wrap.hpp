@@ -4593,6 +4593,8 @@ public:
 
     EXPORT static bool Have_Contact(const std::string& nymID);
 
+    EXPORT static std::string Import_Nym(const std::string& armored);
+
     EXPORT static std::string Message_Contact(
         const std::string& sender,
         const std::string& recipient,

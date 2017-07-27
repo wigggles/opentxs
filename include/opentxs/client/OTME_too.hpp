@@ -392,6 +392,7 @@ public:
     const Identifier& GetIntroductionServer() const;
     std::string GetPairedServer(const std::string& identifier) const;
     bool HaveContact(const std::string& nymID) const;
+    std::string ImportNym(const std::string& armored) const;
     Identifier MessageContact(
         const std::string& sender,
         const std::string& contact,

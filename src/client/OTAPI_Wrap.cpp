@@ -3420,6 +3420,11 @@ bool OTAPI_Wrap::Have_Contact(const std::string& nymID)
     return OT::App().API().OTME_TOO().HaveContact(nymID);
 }
 
+std::string OTAPI_Wrap::Import_Nym(const std::string& armored)
+{
+    return OT::App().API().OTME_TOO().ImportNym(armored);
+}
+
 std::string OTAPI_Wrap::Message_Contact(
     const std::string& sender,
     const std::string& recipient,
