@@ -5,6 +5,7 @@ if (OT_STORAGE_SQLITE)
 endif()
 
 set(cxx-sources
+  BlockchainTransactions.cpp
   Contacts.cpp
   Contexts.cpp
   Credentials.cpp

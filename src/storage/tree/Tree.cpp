@@ -40,6 +40,7 @@
 
 #include "opentxs/storage/tree/Tree.hpp"
 
+#include "opentxs/storage/tree/BlockchainTransactions.hpp"
 #include "opentxs/storage/tree/Contacts.hpp"
 #include "opentxs/storage/tree/Credentials.hpp"
 #include "opentxs/storage/tree/Nym.hpp"
@@ -54,18 +55,21 @@ namespace opentxs
 namespace storage
 {
 
-#define CURRENT_VERSION 2
+#define CURRENT_VERSION 3
 
 #define OT_METHOD "opentxs::storage::Tree::"
 
 Tree::Tree(const StorageDriver& storage, const std::string& hash)
     : Node(storage, hash)
+    , blockchain_root_(Node::BLANK_HASH)
     , contact_root_(Node::BLANK_HASH)
     , credential_root_(Node::BLANK_HASH)
     , nym_root_(Node::BLANK_HASH)
     , seed_root_(Node::BLANK_HASH)
     , server_root_(Node::BLANK_HASH)
     , unit_root_(Node::BLANK_HASH)
+    , blockchain_lock_()
+    , blockchain_(nullptr)
     , contact_lock_()
     , contacts_(nullptr)
     , credential_lock_()
@@ -89,12 +93,15 @@ Tree::Tree(const StorageDriver& storage, const std::string& hash)
 
 Tree::Tree(const Tree& rhs)
     : Node(rhs.driver_, "")
+    , blockchain_root_(Node::BLANK_HASH)
     , contact_root_(Node::BLANK_HASH)
     , credential_root_(Node::BLANK_HASH)
     , nym_root_(Node::BLANK_HASH)
     , seed_root_(Node::BLANK_HASH)
     , server_root_(Node::BLANK_HASH)
     , unit_root_(Node::BLANK_HASH)
+    , blockchain_lock_()
+    , blockchain_(nullptr)
     , contact_lock_()
     , contacts_(nullptr)
     , credential_lock_()
@@ -118,6 +125,32 @@ Tree::Tree(const Tree& rhs)
     seed_root_ = rhs.seed_root_;
     server_root_ = rhs.server_root_;
     unit_root_ = rhs.unit_root_;
+}
+
+BlockchainTransactions* Tree::blockchain() const
+{
+    Lock lock(blockchain_lock_);
+
+    if (false == bool(blockchain_)) {
+        blockchain_.reset(
+            new BlockchainTransactions(driver_, blockchain_root_));
+
+        if (false == bool(blockchain_)) {
+            otErr << OT_METHOD << __FUNCTION__ << ": Unable to instantiate."
+                  << std::endl;
+
+            abort();
+        }
+    }
+
+    lock.unlock();
+
+    return blockchain_.get();
+}
+
+const BlockchainTransactions& Tree::BlockchainNode() const
+{
+    return *blockchain();
 }
 
 const Contacts& Tree::ContactNode() const { return *contacts(); }
@@ -193,39 +226,27 @@ void Tree::init(const std::string& hash)
 
 bool Tree::Migrate(const StorageDriver& to) const
 {
-    if (false == contacts()->Migrate(to)) {
-        return false;
-    }
+    bool output{true};
+    output &= blockchain()->Migrate(to);
+    output &= contacts()->Migrate(to);
+    output &= credentials()->Migrate(to);
+    output &= nyms()->Migrate(to);
+    output &= seeds()->Migrate(to);
+    output &= servers()->Migrate(to);
+    output &= units()->Migrate(to);
+    output &= migrate(root_, to);
 
-    if (!credentials()->Migrate(to)) {
+    return output;
+}
 
-        return false;
-    }
+Editor<BlockchainTransactions> Tree::mutable_Blockchain()
+{
+    std::function<void(BlockchainTransactions*, Lock&)> callback =
+        [&](BlockchainTransactions* in, Lock& lock) -> void {
+        this->save(in, lock);
+    };
 
-    if (!nyms()->Migrate(to)) {
-
-        return false;
-    }
-
-    if (!seeds()->Migrate(to)) {
-
-        return false;
-    }
-
-    if (!servers()->Migrate(to)) {
-
-        return false;
-    }
-
-    if (!units()->Migrate(to)) {
-
-    }
-
-    if (false == units()->Migrate(to)) {
-        return false;
-    }
-
-    return migrate(root_, to);
+    return Editor<BlockchainTransactions>(write_lock_, blockchain(), callback);
 }
 
 Editor<Contacts> Tree::mutable_Contacts()
@@ -311,6 +332,28 @@ bool Tree::save(const Lock& lock) const
     }
 
     return driver_.StoreProto(serialized, root_);
+}
+
+void Tree::save(BlockchainTransactions* blockchain, const Lock& lock)
+{
+    if (!verify_write_lock(lock)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Lock failure." << std::endl;
+        abort();
+    }
+
+    if (nullptr == blockchain) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Null target" << std::endl;
+        abort();
+    }
+
+    Lock mapLock(blockchain_lock_);
+    blockchain_root_ = blockchain->Root();
+    mapLock.unlock();
+
+    if (!save(lock)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Save error" << std::endl;
+        abort();
+    }
 }
 
 void Tree::save(Contacts* contacts, const Lock& lock)

@@ -333,59 +333,23 @@ const Mailbox& Nym::MailOutbox() const { return *mail_outbox(); }
 
 bool Nym::Migrate(const StorageDriver& to) const
 {
-    if (!Node::migrate(credentials_, to)) {
-        return false;
-    }
+    bool output{true};
+    output &= migrate(credentials_, to);
+    output &= sent_request_box()->Migrate(to);
+    output &= incoming_request_box()->Migrate(to);
+    output &= sent_reply_box()->Migrate(to);
+    output &= incoming_reply_box()->Migrate(to);
+    output &= finished_request_box()->Migrate(to);
+    output &= finished_reply_box()->Migrate(to);
+    output &= processed_request_box()->Migrate(to);
+    output &= processed_reply_box()->Migrate(to);
+    output &= mail_inbox()->Migrate(to);
+    output &= mail_outbox()->Migrate(to);
+    output &= threads()->Migrate(to);
+    output &= contexts()->Migrate(to);
+    output &= migrate(root_, to);
 
-    if (!sent_request_box()->Migrate(to)) {
-        return false;
-    }
-
-    if (!incoming_request_box()->Migrate(to)) {
-        return false;
-    }
-
-    if (!sent_reply_box()->Migrate(to)) {
-        return false;
-    }
-
-    if (!incoming_reply_box()->Migrate(to)) {
-        return false;
-    }
-
-    if (!finished_request_box()->Migrate(to)) {
-        return false;
-    }
-
-    if (!finished_reply_box()->Migrate(to)) {
-        return false;
-    }
-
-    if (!processed_request_box()->Migrate(to)) {
-        return false;
-    }
-
-    if (!processed_reply_box()->Migrate(to)) {
-        return false;
-    }
-
-    if (!mail_inbox()->Migrate(to)) {
-        return false;
-    }
-
-    if (!mail_outbox()->Migrate(to)) {
-        return false;
-    }
-
-    if (!threads()->Migrate(to)) {
-        return false;
-    }
-
-    if (!contexts()->Migrate(to)) {
-        return false;
-    }
-
-    return Node::migrate(root_, to);
+    return output;
 }
 
 Editor<PeerRequests> Nym::mutable_SentRequestBox()

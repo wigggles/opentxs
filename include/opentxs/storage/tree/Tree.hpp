@@ -55,6 +55,7 @@ class Storage;
 namespace storage
 {
 
+class BlockchainTransactions;
 class Contacts;
 class Credentials;
 class Nyms;
@@ -69,6 +70,7 @@ private:
     friend class opentxs::Storage;
     friend class Root;
 
+    std::string blockchain_root_{Node::BLANK_HASH};
     std::string contact_root_{Node::BLANK_HASH};
     std::string credential_root_{Node::BLANK_HASH};
     std::string nym_root_{Node::BLANK_HASH};
@@ -76,19 +78,22 @@ private:
     std::string server_root_{Node::BLANK_HASH};
     std::string unit_root_{Node::BLANK_HASH};
 
-    mutable std::mutex contact_lock_{};
-    mutable std::unique_ptr<Contacts> contacts_{nullptr};
-    mutable std::mutex credential_lock_{};
-    mutable std::unique_ptr<Credentials> credentials_{nullptr};
-    mutable std::mutex nym_lock_{};
-    mutable std::unique_ptr<Nyms> nyms_{nullptr};
-    mutable std::mutex seed_lock_{};
-    mutable std::unique_ptr<Seeds> seeds_{nullptr};
-    mutable std::mutex server_lock_{};
-    mutable std::unique_ptr<Servers> servers_{nullptr};
-    mutable std::mutex unit_lock_{};
-    mutable std::unique_ptr<Units> units_{nullptr};
+    mutable std::mutex blockchain_lock_;
+    mutable std::unique_ptr<BlockchainTransactions> blockchain_;
+    mutable std::mutex contact_lock_;
+    mutable std::unique_ptr<Contacts> contacts_;
+    mutable std::mutex credential_lock_;
+    mutable std::unique_ptr<Credentials> credentials_;
+    mutable std::mutex nym_lock_;
+    mutable std::unique_ptr<Nyms> nyms_;
+    mutable std::mutex seed_lock_;
+    mutable std::unique_ptr<Seeds> seeds_;
+    mutable std::mutex server_lock_;
+    mutable std::unique_ptr<Servers> servers_;
+    mutable std::mutex unit_lock_;
+    mutable std::unique_ptr<Units> units_;
 
+    BlockchainTransactions* blockchain() const;
     Contacts* contacts() const;
     Credentials* credentials() const;
     Nyms* nyms() const;
@@ -96,6 +101,7 @@ private:
     Servers* servers() const;
     Units* units() const;
 
+    void save(BlockchainTransactions* blockchain, const Lock& lock);
     void save(Contacts* contacts, const Lock& lock);
     void save(Credentials* credentials, const Lock& lock);
     void save(Nyms* nyms, const Lock& lock);
@@ -116,6 +122,7 @@ private:
     Tree operator=(Tree&&) = delete;
 
 public:
+    const BlockchainTransactions& BlockchainNode() const;
     const Contacts& ContactNode() const;
     const Credentials& CredentialNode() const;
     const Nyms& NymNode() const;
@@ -123,6 +130,7 @@ public:
     const Servers& ServerNode() const;
     const Units& UnitNode() const;
 
+    Editor<BlockchainTransactions> mutable_Blockchain();
     Editor<Contacts> mutable_Contacts();
     Editor<Credentials> mutable_Credentials();
     Editor<Nyms> mutable_Nyms();

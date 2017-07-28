@@ -41,6 +41,7 @@
 #include "opentxs/storage/tree/Root.hpp"
 
 #include "opentxs/interface/storage/StorageDriver.hpp"
+#include "opentxs/storage/tree/BlockchainTransactions.hpp"
 #include "opentxs/storage/tree/Contacts.hpp"
 #include "opentxs/storage/tree/Credentials.hpp"
 #include "opentxs/storage/tree/Nym.hpp"

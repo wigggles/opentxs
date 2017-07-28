@@ -53,6 +53,7 @@
 #if OT_STORAGE_SQLITE
 #include "opentxs/storage/drivers/StorageSqlite3.hpp"
 #endif
+#include "opentxs/storage/tree/BlockchainTransactions.hpp"
 #include "opentxs/storage/tree/Contacts.hpp"
 #include "opentxs/storage/tree/Credentials.hpp"
 #include "opentxs/storage/tree/Nym.hpp"
@@ -107,6 +108,12 @@ Storage::Storage(
     OT_ASSERT(primary_plugin_);
 
     Init();
+}
+
+ObjectList Storage::BlockchainTransactionList()
+{
+
+    return Meta().Tree().BlockchainNode().List();
 }
 
 void Storage::Cleanup_Storage()
@@ -260,6 +267,14 @@ bool Storage::Load(
     }
 
     return false;
+}
+
+bool Storage::Load(
+    const std::string& id,
+    std::shared_ptr<proto::BlockchainTransaction>& transaction,
+    const bool checking)
+{
+    return Meta().Tree().BlockchainNode().Load(id, transaction, checking);
 }
 
 bool Storage::Load(
@@ -1125,6 +1140,16 @@ bool Storage::Store(const std::string& key, std::string& value) const
     return output;
 }
 
+bool Storage::Store(const proto::BlockchainTransaction& data)
+{
+    return mutable_Meta()
+        .It()
+        .mutable_Tree()
+        .It()
+        .mutable_Blockchain()
+        .It()
+        .Store(data);
+}
 
 bool Storage::Store(const proto::Contact& data)
 {

@@ -179,6 +179,7 @@ protected:
 
 public:
     static const std::uint32_t HASH_TYPE;
+    ObjectList BlockchainTransactionList();
     std::string ContactAlias(const std::string& id);
     ObjectList ContactList();
     ObjectList ContextList(const std::string& nymID);
@@ -187,6 +188,10 @@ public:
         const std::string& threadID,
         const std::set<std::string>& participants);
     std::string DefaultSeed();
+    bool Load(
+        const std::string& id,
+        std::shared_ptr<proto::BlockchainTransaction>& transaction,
+        const bool checking = false);  // If true, suppress "not found" errors
     bool Load(
         const std::string& id,
         std::shared_ptr<proto::Contact>& contact,
@@ -299,6 +304,7 @@ public:
     bool SetUnitDefinitionAlias(
         const std::string& id,
         const std::string& alias);
+    bool Store(const proto::BlockchainTransaction& data);
     bool Store(const proto::Contact& data);
     bool Store(const proto::Context& data);
     bool Store(const proto::Credential& data);
