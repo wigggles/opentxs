@@ -110,6 +110,13 @@ Storage::Storage(
     Init();
 }
 
+std::set<std::string> Storage::BlockchainAccountList(
+    const std::string& nymID,
+    const proto::ContactItemType type)
+{
+    return Meta().Tree().NymNode().Nym(nymID).BlockchainAccountList(type);
+}
+
 ObjectList Storage::BlockchainTransactionList()
 {
 
@@ -219,6 +226,15 @@ void Storage::InitPlugins()
 {
     synchronize_root();
     synchronize_plugins();
+}
+
+bool Storage::Load(
+    const std::string& nymID,
+    const std::string& accountID,
+    std::shared_ptr<proto::Bip44Account>& output,
+    const bool checking)
+{
+    return Meta().Tree().NymNode().Nym(nymID).Load(accountID, output, checking);
 }
 
 bool Storage::Load(
@@ -1138,6 +1154,22 @@ bool Storage::Store(const std::string& key, std::string& value) const
     }
 
     return output;
+}
+
+bool Storage::Store(
+    const std::string& nymID,
+    const proto::ContactItemType type,
+    const proto::Bip44Account& data)
+{
+    return mutable_Meta()
+        .It()
+        .mutable_Tree()
+        .It()
+        .mutable_Nyms()
+        .It()
+        .mutable_Nym(nymID)
+        .It()
+        .Store(type, data);
 }
 
 bool Storage::Store(const proto::BlockchainTransaction& data)

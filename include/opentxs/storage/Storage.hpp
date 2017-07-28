@@ -55,6 +55,7 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <set>
 #include <string>
 #include <thread>
 #include <tuple>
@@ -179,6 +180,9 @@ protected:
 
 public:
     static const std::uint32_t HASH_TYPE;
+    std::set<std::string> BlockchainAccountList(
+        const std::string& nymID,
+        const proto::ContactItemType type);
     ObjectList BlockchainTransactionList();
     std::string ContactAlias(const std::string& id);
     ObjectList ContactList();
@@ -188,6 +192,11 @@ public:
         const std::string& threadID,
         const std::set<std::string>& participants);
     std::string DefaultSeed();
+    bool Load(
+        const std::string& nymID,
+        const std::string& accountID,
+        std::shared_ptr<proto::Bip44Account>& output,
+        const bool checking = false);  // If true, suppress "not found" errors
     bool Load(
         const std::string& id,
         std::shared_ptr<proto::BlockchainTransaction>& transaction,
@@ -304,6 +313,10 @@ public:
     bool SetUnitDefinitionAlias(
         const std::string& id,
         const std::string& alias);
+    bool Store(
+        const std::string& nymID,
+        const proto::ContactItemType type,
+        const proto::Bip44Account& data);
     bool Store(const proto::BlockchainTransaction& data);
     bool Store(const proto::Contact& data);
     bool Store(const proto::Context& data);
