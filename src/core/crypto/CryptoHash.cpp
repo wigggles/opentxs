@@ -74,25 +74,25 @@ String CryptoHash::HashTypeToString(const proto::HashType hashType)
     String hashTypeString;
 
     switch (hashType) {
-        case proto::HASHTYPE_NONE :
+        case proto::HASHTYPE_NONE:
             hashTypeString = "NULL";
             break;
-        case proto::HASHTYPE_SHA256 :
+        case proto::HASHTYPE_SHA256:
             hashTypeString = "SHA256";
             break;
-        case proto::HASHTYPE_SHA512 :
+        case proto::HASHTYPE_SHA512:
             hashTypeString = "SHA512";
             break;
-        case proto::HASHTYPE_BLAKE2B160 :
+        case proto::HASHTYPE_BLAKE2B160:
             hashTypeString = "BLAKE2B160";
             break;
-        case proto::HASHTYPE_BLAKE2B256 :
+        case proto::HASHTYPE_BLAKE2B256:
             hashTypeString = "BLAKE2B256";
             break;
-        case proto::HASHTYPE_BLAKE2B512 :
+        case proto::HASHTYPE_BLAKE2B512:
             hashTypeString = "BLAKE2B512";
             break;
-        default :
+        default:
             hashTypeString = "ERROR";
     }
     return hashTypeString;
@@ -101,14 +101,28 @@ String CryptoHash::HashTypeToString(const proto::HashType hashType)
 size_t CryptoHash::HashSize(const proto::HashType hashType)
 {
     switch (hashType) {
-        case proto::HASHTYPE_SHA256 : { return 32; }
-        case proto::HASHTYPE_SHA512 : { return 64; }
-        case proto::HASHTYPE_BLAKE2B160 : { return 20; }
-        case proto::HASHTYPE_BLAKE2B256 : { return 32; }
-        case proto::HASHTYPE_BLAKE2B512 : { return 64; }
-        default : {}
+        case proto::HASHTYPE_SHA256: {
+            return 32;
+        }
+        case proto::HASHTYPE_SHA512: {
+            return 64;
+        }
+        case proto::HASHTYPE_BLAKE2B160: {
+            return 20;
+        }
+        case proto::HASHTYPE_BLAKE2B256: {
+            return 32;
+        }
+        case proto::HASHTYPE_BLAKE2B512: {
+            return 64;
+        }
+        case proto::HASHTYPE_RIMEMD160: {
+            return 20;
+        }
+        default: {
+        }
     }
 
     return 0;
 }
-} // namespace opentxs
+}  // namespace opentxs
