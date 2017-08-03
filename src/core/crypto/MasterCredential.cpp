@@ -84,6 +84,8 @@
 #include <memory>
 #include <ostream>
 
+#define OT_METHOD "opentxs::MasterCredential::"
+
 namespace opentxs
 {
 
@@ -285,5 +287,22 @@ bool MasterCredential::hasCapability(const NymCapability& capability) const
     }
 
     return false;
+}
+
+bool MasterCredential::Path(proto::HDPath& output) const
+{
+    if (false == bool(m_SigningKey)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": No signing key." << std::endl;
+
+        return false;
+    }
+
+    if (false == m_SigningKey->HasPrivateKey()) {
+        otErr << OT_METHOD << __FUNCTION__ << ": No private key." << std::endl;
+
+        return false;
+    }
+
+    return m_SigningKey->GetPrivateKey().Path(output);
 }
 }  // namespace opentxs

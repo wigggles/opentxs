@@ -123,6 +123,7 @@ public:
 
     virtual CryptoAsymmetric& engine() const = 0;
     virtual const std::string Path() const;
+    virtual bool Path(proto::HDPath& output) const;
 
 private:
     static OTAsymmetricKey* KeyFactory(
@@ -132,7 +133,9 @@ private:
 protected:
     proto::AsymmetricKeyType m_keyType = proto::AKEYTYPE_ERROR;
     proto::KeyRole role_ = proto::KEYROLE_ERROR;
-    OTAsymmetricKey(const proto::AsymmetricKeyType keyType, const proto::KeyRole role);
+    OTAsymmetricKey(
+        const proto::AsymmetricKeyType keyType,
+        const proto::KeyRole role);
 
 public:
     /** Caller IS responsible to delete! */
@@ -172,7 +175,8 @@ public:
 
     // To use m_metadata, call m_metadata.HasMetadata(). If it's true, then you
     // can see these values:
-    //    char m_metadata::Getproto::AsymmetricKeyType()             // Can be A, E, or S
+    //    char m_metadata::Getproto::AsymmetricKeyType()             // Can be
+    //    A, E, or S
     //    (authentication, encryption, or signing. Also, E would be unusual.)
     //    char m_metadata::FirstCharNymID()         // Can be any letter from
     //    base62 alphabet. Represents first letter of a Nym's ID.
@@ -291,50 +295,49 @@ public:
         const OTPassword* exportPassword = nullptr,
         const String& credID = String(""),
         const proto::SignatureRole role = proto::SIGROLE_ERROR) const;
-    virtual bool TransportKey(
-        Data& publicKey,
-        OTPassword& privateKey) const = 0;
+    virtual bool TransportKey(Data& publicKey, OTPassword& privateKey)
+        const = 0;
 
-    template<class C>
+    template <class C>
     bool SignProto(
         C& serialized,
         proto::Signature& signature,
         const String& credID = String(""),
         const OTPasswordData* pPWData = nullptr) const
-            {
-                if (IsPublic()) {
-                    otErr << "You must use private keys to create signatures."
-                          << std::endl;
+    {
+        if (IsPublic()) {
+            otErr << "You must use private keys to create signatures."
+                  << std::endl;
 
-                    return false;
-                }
+            return false;
+        }
 
-                if (0 == signature.version()) {
-                    signature.set_version(1);
-                }
+        if (0 == signature.version()) {
+            signature.set_version(1);
+        }
 
-                signature.set_credentialid(credID.Get());
+        signature.set_credentialid(credID.Get());
 
-                if ((proto::HASHTYPE_ERROR == signature.hashtype()) ||
-                    !signature.has_hashtype()) {
-                    signature.set_hashtype(SigHashType());
-                }
+        if ((proto::HASHTYPE_ERROR == signature.hashtype()) ||
+            !signature.has_hashtype()) {
+            signature.set_hashtype(SigHashType());
+        }
 
-                Data sig;
-                bool goodSig = engine().Sign(
-                    proto::ProtoAsData<C>(serialized),
-                    *this,
-                    signature.hashtype(),
-                    sig,
-                    pPWData,
-                    nullptr);
+        Data sig;
+        bool goodSig = engine().Sign(
+            proto::ProtoAsData<C>(serialized),
+            *this,
+            signature.hashtype(),
+            sig,
+            pPWData,
+            nullptr);
 
-                if (goodSig) {
-                    signature.set_signature(sig.GetPointer(), sig.GetSize());
-                }
+        if (goodSig) {
+            signature.set_signature(sig.GetPointer(), sig.GetSize());
+        }
 
-                return goodSig;
-            }
+        return goodSig;
+    }
 };
 
 }  // namespace opentxs

@@ -58,6 +58,8 @@ extern "C" {
 #include <sodium/crypto_box.h>
 }
 
+#define OT_METHOD "opentxs::AsymmetricKeyEC::"
+
 namespace opentxs
 {
 AsymmetricKeyEC::AsymmetricKeyEC(
@@ -144,6 +146,22 @@ bool AsymmetricKeyEC::GetPublicKey(String& strKey) const
     return true;
 }
 
+bool AsymmetricKeyEC::GetPublicKey(Data& key) const
+{
+    if (key_) {
+        key = *key_;
+
+        return true;
+    }
+
+    if (false == bool(encrypted_key_)) {
+
+        return false;
+    }
+
+    return ECDSA().PrivateToPublic(*encrypted_key_, key);
+}
+
 bool AsymmetricKeyEC::IsEmpty() const
 {
     if (!key_) {
@@ -179,6 +197,20 @@ const std::string AsymmetricKeyEC::Path() const
     }
 
     return path.Get();
+}
+
+bool AsymmetricKeyEC::Path(proto::HDPath& output) const
+{
+    if (path_) {
+        output = *path_;
+
+        return true;
+    }
+
+    otErr << OT_METHOD << __FUNCTION__ << ": HDPath not instantiated."
+          << std::endl;
+
+    return false;
 }
 
 bool AsymmetricKeyEC::ReEncryptPrivateKey(

@@ -81,7 +81,10 @@ public:
     bool GetKey(Data& key) const;
     bool GetKey(proto::Ciphertext& key) const;
     bool GetPublicKey(String& strKey) const override;
+    bool GetPublicKey(Data& key) const;
+    using ot_super::Path;
     const std::string Path() const override;
+    bool Path(proto::HDPath& output) const override;
     bool ReEncryptPrivateKey(
         const OTPassword& theExportPassword,
         bool bImporting) const override;

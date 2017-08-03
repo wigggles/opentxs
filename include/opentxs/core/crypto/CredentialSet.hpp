@@ -176,6 +176,7 @@ public:
         const OTPasswordData* pPWData = nullptr,
         const OTPassword* pImportPassword = nullptr);
 
+    EXPORT bool Path(proto::HDPath& output) const;
     /** Like for when you are exporting a Nym from the wallet. */
     EXPORT bool ReEncryptPrivateCredentials(
         const OTPassword& theExportPassword,

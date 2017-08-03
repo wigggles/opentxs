@@ -74,6 +74,8 @@
 #include <ostream>
 #include <string>
 
+#define OT_METHOD "opentxs::OTAsymmetricKey::"
+
 namespace opentxs
 {
 
@@ -85,26 +87,26 @@ OTAsymmetricKey* OTAsymmetricKey::KeyFactory(
     OTAsymmetricKey* pKey = nullptr;
 
     switch (keyType) {
-        case (proto::AKEYTYPE_ED25519) : {
+        case (proto::AKEYTYPE_ED25519): {
             pKey = new AsymmetricKeyEd25519(role);
 
             break;
         }
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-        case (proto::AKEYTYPE_SECP256K1) : {
+        case (proto::AKEYTYPE_SECP256K1): {
             pKey = new AsymmetricKeySecp256k1(role);
 
             break;
         }
 #endif
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
-        case (proto::AKEYTYPE_LEGACY) : {
+        case (proto::AKEYTYPE_LEGACY): {
             pKey = new OTAsymmetricKey_OpenSSL(role);
 
             break;
         }
 #endif
-        default : {
+        default: {
             otErr << __FUNCTION__ << ": Open-Transactions isn't built with "
                   << "support for this key type." << std::endl;
         }
@@ -122,26 +124,26 @@ OTAsymmetricKey* OTAsymmetricKey::KeyFactory(
     OTAsymmetricKey* pKey = nullptr;
 
     switch (keyType) {
-        case (proto::AKEYTYPE_ED25519) : {
+        case (proto::AKEYTYPE_ED25519): {
             pKey = new AsymmetricKeyEd25519(pubkey);
 
             break;
         }
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-        case (proto::AKEYTYPE_SECP256K1) : {
+        case (proto::AKEYTYPE_SECP256K1): {
             pKey = new AsymmetricKeySecp256k1(pubkey);
 
             break;
         }
 #endif
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
-        case (proto::AKEYTYPE_LEGACY) : {
+        case (proto::AKEYTYPE_LEGACY): {
             pKey = new OTAsymmetricKey_OpenSSL(pubkey);
 
             break;
         }
 #endif
-        default : {
+        default: {
             otErr << __FUNCTION__ << ": Open-Transactions isn't built with "
                   << "support for this key type." << std::endl;
         }
@@ -169,26 +171,26 @@ OTAsymmetricKey* OTAsymmetricKey::KeyFactory(
     OTAsymmetricKey* pKey = nullptr;
 
     switch (keyType) {
-        case (proto::AKEYTYPE_ED25519) : {
+        case (proto::AKEYTYPE_ED25519): {
             pKey = new AsymmetricKeyEd25519(serializedKey);
 
             break;
         }
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-        case (proto::AKEYTYPE_SECP256K1) : {
+        case (proto::AKEYTYPE_SECP256K1): {
             pKey = new AsymmetricKeySecp256k1(serializedKey);
 
             break;
         }
 #endif
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
-        case (proto::AKEYTYPE_LEGACY) : {
+        case (proto::AKEYTYPE_LEGACY): {
             pKey = new OTAsymmetricKey_OpenSSL(serializedKey);
 
             break;
         }
 #endif
-        default : {
+        default: {
             otErr << __FUNCTION__ << ": Open-Transactions isn't built with "
                   << "support for this key type." << std::endl;
         }
@@ -832,9 +834,7 @@ OTAsymmetricKey::OTAsymmetricKey(
 }
 
 OTAsymmetricKey::OTAsymmetricKey(const proto::AsymmetricKey& serializedKey)
-    : OTAsymmetricKey(
-          serializedKey.type(),
-          serializedKey.role())
+    : OTAsymmetricKey(serializedKey.type(), serializedKey.role())
 {
     if (proto::KEYMODE_PUBLIC == serializedKey.mode()) {
         SetAsPublic();
@@ -1055,9 +1055,8 @@ bool OTAsymmetricKey::operator==(const proto::AsymmetricKey& rhs) const
     return (LHData == RHData);
 }
 
-bool OTAsymmetricKey::Verify(
-    const Data& plaintext,
-    const proto::Signature& sig) const
+bool OTAsymmetricKey::Verify(const Data& plaintext, const proto::Signature& sig)
+    const
 {
     if (IsPrivate()) {
         otErr << "You must use public keys to verify signatures.\n";
@@ -1068,11 +1067,7 @@ bool OTAsymmetricKey::Verify(
     signature.Assign(sig.signature().c_str(), sig.signature().size());
 
     return engine().Verify(
-        plaintext,
-        *this,
-        signature,
-        sig.hashtype(),
-        nullptr);
+        plaintext, *this, signature, sig.hashtype(), nullptr);
 }
 
 bool OTAsymmetricKey::Sign(
@@ -1092,12 +1087,7 @@ bool OTAsymmetricKey::Sign(
     const auto hash = SigHashType();
 
     bool goodSig = engine().Sign(
-        plaintext,
-        *this,
-        hash,
-        signature,
-        pPWData,
-        exportPassword);
+        plaintext, *this, hash, signature, pPWData, exportPassword);
 
     if (goodSig) {
         sig.set_version(1);
@@ -1114,21 +1104,28 @@ bool OTAsymmetricKey::Sign(
     return goodSig;
 }
 
-const std::string OTAsymmetricKey::Path() const
+const std::string OTAsymmetricKey::Path() const { return ""; }
+
+bool OTAsymmetricKey::Path(proto::HDPath&) const
 {
-    return "";
+    otErr << OT_METHOD << __FUNCTION__ << ": Incorrect key type." << std::endl;
+
+    return false;
 }
 
 bool OTAsymmetricKey::hasCapability(const NymCapability& capability) const
 {
     switch (capability) {
-        case (NymCapability::SIGN_CHILDCRED) : {}
-        case (NymCapability::SIGN_MESSAGE) : {}
-        case (NymCapability::ENCRYPT_MESSAGE) : {
+        case (NymCapability::SIGN_CHILDCRED): {
+        }
+        case (NymCapability::SIGN_MESSAGE): {
+        }
+        case (NymCapability::ENCRYPT_MESSAGE): {
 
             return true;
         }
-        default : {}
+        default: {
+        }
     }
 
     return false;

@@ -1916,6 +1916,26 @@ std::shared_ptr<const proto::Credential> Nym::MasterCredentialContents(
     return output;
 }
 
+bool Nym::Path(proto::HDPath& output) const
+{
+    Lock lock(lock_);
+
+    for (const auto& it : m_mapCredentialSets) {
+        OT_ASSERT(nullptr != it.second);
+        const auto& set = *it.second;
+
+        if (set.Path(output)) {
+
+            return true;
+        }
+    }
+
+    otErr << OT_METHOD << __FUNCTION__ << ": No credential set contains a path."
+          << std::endl;
+
+    return false;
+}
+
 std::string Nym::PaymentCode() const
 {
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47

@@ -70,7 +70,6 @@
 // ChildCredentials are used for all other actions, and never sign other
 // Credentials
 
-
 namespace opentxs
 {
 
@@ -79,7 +78,7 @@ class String;
 
 class MasterCredential : public KeyCredential
 {
-private: // Private prevents erroneous use by other classes.
+private:  // Private prevents erroneous use by other classes.
     typedef KeyCredential ot_super;
     friend class Credential;
 
@@ -108,6 +107,7 @@ private: // Private prevents erroneous use by other classes.
 
 public:
     bool hasCapability(const NymCapability& capability) const override;
+    bool Path(proto::HDPath& output) const;
     using ot_super::Verify;
     bool Verify(
         const proto::Credential& credential,
@@ -118,6 +118,6 @@ public:
     virtual ~MasterCredential() = default;
 };
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CORE_CRYPTO_MASTERCREDENTIAL_HPP
+#endif  // OPENTXS_CORE_CRYPTO_MASTERCREDENTIAL_HPP
