@@ -38,12 +38,16 @@
 
 #include "opentxs/core/stdafx.hpp"
 
+#include "opentxs/storage/tree/Thread.hpp"
 #include "opentxs/storage/tree/Threads.hpp"
 
-#include "opentxs/storage/tree/Thread.hpp"
 #include "opentxs/storage/StoragePlugin.hpp"
 
+#include <utility>
+#include <string>
+#include <memory>
 #include <functional>
+#include <map>
 
 #define OT_METHOD "opentxs::storage::Threads::"
 
@@ -266,7 +270,8 @@ bool Threads::Rename(const std::string& existingID, const std::string& newID)
 
     newThread.reset(oldThread.release());
     threads_.erase(threadItem);
-    threads_.emplace(newID, newThread.release());
+    threads_.emplace(
+        newID, std::unique_ptr<opentxs::storage::Thread>(newThread.release()));
     item_map_.erase(it);
     item_map_.emplace(newID, meta);
 

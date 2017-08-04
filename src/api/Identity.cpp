@@ -57,7 +57,8 @@
 #include <string>
 #include <tuple>
 
-#define OT_METHOD "opentxs::Identity::"
+// error from being unused.
+//#define OT_METHOD "opentxs::Identity::"
 
 namespace opentxs
 {

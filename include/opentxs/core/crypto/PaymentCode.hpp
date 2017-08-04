@@ -42,6 +42,7 @@
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Proto.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
 
 #include <cstdint>
 #include <memory>
@@ -54,7 +55,7 @@ typedef std::shared_ptr<proto::PaymentCode> SerializedPaymentCode;
 class AsymmetricKeyEC;
 class Credential;
 class MasterCredential;
-class OTPassword;
+// class OTPassword;
 class OTPasswordData;
 
 class PaymentCode

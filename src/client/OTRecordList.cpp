@@ -1584,6 +1584,7 @@ bool OTRecordList::Populate()
                 sp_Record->SetContents(strMail.Get());
                 sp_Record->SetOtherNymID(str_mail_senderID);
                 sp_Record->SetBoxIndex(index);
+                sp_Record->SetThreadItemId(id);
                 sp_Record->SetDateRange(
                     OTTimeGetTimeFromSeconds(message->m_lTime),
                     OTTimeGetTimeFromSeconds(message->m_lTime));
@@ -1704,6 +1705,7 @@ bool OTRecordList::Populate()
                 const String strOutmail(
                     OTAPI_Wrap::GetNym_OutmailContentsByIndex(str_nym_id, id));
                 sp_Record->SetContents(strOutmail.Get());
+                sp_Record->SetThreadItemId(id);
                 sp_Record->SetBoxIndex(index);
                 sp_Record->SetOtherNymID(str_mail_recipientID);
                 sp_Record->SetDateRange(
@@ -2228,10 +2230,10 @@ bool OTRecordList::Populate()
                                     pBoxTrans->GetType()) {
                                     if (originType::origin_payment_plan ==
                                         theOriginType)
-                                        bOutgoing = true;  // Payment Plan
-                                                           // "recipient" of
-                                                           // funds
-                                    // (merchant) is the sender of the plan.
+                                        bOutgoing =
+                                            true;  // Payment Plan "recipient"
+                                                   // of funds (merchant) is the
+                                                   // sender of the plan.
                                     if (originType::origin_smart_contract ==
                                         theOriginType)
                                         bOutgoing =
@@ -2957,8 +2959,8 @@ bool OTRecordList::Populate()
                         OTPayment* pPayment = GetInstrument(
                             *pNym, nIndex, *pExpiredbox);  //===> Returns
                                                            // financial
-                        // instrument by
-                        // index.
+                                                           // instrument by
+                                                           // index.
                         std::unique_ptr<OTPayment> thePaymentAngel(pPayment);
 
                         if (nullptr == pPayment)  // then we treat it like it's
@@ -3833,8 +3835,8 @@ bool OTRecordList::Populate()
                 bool bOutgoing = false;
                 bool bCanceled = false;
                 std::string str_name;  // name of sender OR recipient (depending
-                                       // on
-                // whether it was originally incoming or outgoing.)
+                                       // on whether it was originally incoming
+                                       // or outgoing.)
                 std::string str_other_nym_id;
                 std::string str_other_acct_id;
                 std::string str_memo;
