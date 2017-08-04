@@ -42,6 +42,7 @@
 
 #include "opentxs/api/Activity.hpp"
 #include "opentxs/api/Api.hpp"
+#include "opentxs/api/Blockchain.hpp"
 #include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/OT.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
@@ -2656,6 +2657,24 @@ std::string OTAPI_Wrap::comma(const ObjectList& list)
     return output;
 }
 
+std::string OTAPI_Wrap::comma(const std::set<Identifier>& list)
+{
+    std::ostringstream stream;
+
+    for (const auto& item : list) {
+        stream << String(item).Get();
+        stream << ",";
+    }
+
+    std::string output = stream.str();
+
+    if (0 < output.size()) {
+        output.erase(output.size() - 1, 1);
+    }
+
+    return output;
+}
+
 std::string OTAPI_Wrap::getSentRequests(const std::string& nymID)
 {
     return comma(Exec()->getSentRequests(nymID));
@@ -3433,6 +3452,79 @@ std::string OTAPI_Wrap::AddChildRSACredential(
 {
     return Exec()->AddChildRSACredential(
         Identifier(nymID), Identifier(masterID), keysize);
+}
+
+std::string OTAPI_Wrap::Blockchain_Account_List(
+    const std::string& nymID,
+    const std::uint32_t chain)
+{
+    const auto output = OT::App().Blockchain().AccountList(
+        Identifier(nymID), static_cast<proto::ContactItemType>(chain));
+
+    return comma(output);
+}
+
+std::string OTAPI_Wrap::Blockchain_Allocate_Address(
+    const std::string& nymID,
+    const std::string& accountID,
+    const std::string& label,
+    const bool internal)
+{
+    const auto output = OT::App().Blockchain().AllocateAddress(
+        Identifier(nymID), Identifier(accountID), label, internal);
+
+    if (false == bool(output)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to allocate address"
+              << std::endl;
+
+        return {};
+    }
+
+    return proto::ProtoAsString(*output);
+}
+
+bool OTAPI_Wrap::Blockchain_Assign_Address(
+    const std::string& nymID,
+    const std::string& accountID,
+    const std::uint32_t index,
+    const std::string& contact,
+    const bool internal)
+{
+    return OT::App().Blockchain().AssignAddress(
+        Identifier(nymID),
+        Identifier(accountID),
+        index,
+        Identifier(contact),
+        internal);
+}
+
+std::string OTAPI_Wrap::Blockchain_Load_Address(
+    const std::string& nymID,
+    const std::string& accountID,
+    const std::uint32_t index,
+    const bool internal)
+{
+    const auto output = OT::App().Blockchain().LoadAddress(
+        Identifier(nymID), Identifier(accountID), index, internal);
+
+    if (false == bool(output)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to load address"
+              << std::endl;
+
+        return {};
+    }
+
+    return proto::ProtoAsString(*output);
+}
+
+std::string OTAPI_Wrap::Blockchain_New_Account(
+    const std::string& nymID,
+    const std::uint32_t chain)
+{
+    return String(OT::App().Blockchain().NewAccount(
+                      Identifier(nymID),
+                      static_cast<proto::ContactItemType>(chain)))
+        .Get();
 }
 
 std::string OTAPI_Wrap::Add_Contact(

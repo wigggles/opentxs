@@ -40,10 +40,12 @@
 #define OPENTXS_CLIENT_OTAPI_HPP
 
 #include "opentxs/core/util/Common.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/Types.hpp"
 
 #include <list>
+#include <set>
 #include <stdint.h>
 #include <string>
 
@@ -59,6 +61,7 @@ class OTAPI_Wrap
 private:
     static std::string comma(const std::list<std::string>& list);
     static std::string comma(const ObjectList& list);
+    static std::string comma(const std::set<Identifier>& list);
 
 public:
     EXPORT static OTAPI_Exec* Exec();
@@ -4573,6 +4576,66 @@ public:
         const std::string& nymID,
         const std::string& masterID,
         const std::uint32_t keysize);
+
+    // Wrapped Blockchain methods
+
+    /**  Retrieve a list of blockchain accounts for a nym
+     *    \param[in]  nymID owner of the account
+     *    \param[in]  chain currency type (proto::CITEMTYPE enum)
+     *    \return comma-seperated account ID list
+     */
+    EXPORT static std::string Blockchain_Account_List(
+        const std::string& nymID,
+        const std::uint32_t chain);
+
+    /**  Allocate the next address in a blockchain account
+     *    \param[in]  nymID owner of the account
+     *    \param[in]  accountID blockchain account owning the address
+     *    \param[in]  label optional text label for the address
+     *    \param[in]  internal allocate on internal chain (false for external)
+     *    \return binary serialized proto::Bip44Address
+     */
+    EXPORT static std::string Blockchain_Allocate_Address(
+        const std::string& nymID,
+        const std::string& accountID,
+        const std::string& label = "",
+        const bool internal = false);
+
+    /**  Assign a contact id to blockchain address
+     *    \param[in]  nymID owner of the account
+     *    \param[in]  accountID blockchain account owning the address
+     *    \param[in]  index index of the address
+     *    \param[in]  contact contact id to be assigned
+     *    \param[in]  internal allocate on internal chain (false for external)
+     */
+    EXPORT static bool Blockchain_Assign_Address(
+        const std::string& nymID,
+        const std::string& accountID,
+        const std::uint32_t index,
+        const std::string& contact,
+        const bool internal = false);
+
+    /**  Load metadata for a blockchain address
+     *    \param[in]  nymID owner of the account
+     *    \param[in]  accountID blockchain account owning the address
+     *    \param[in]  index index of the address
+     *    \param[in]  internal allocate on internal chain (false for external)
+     *    \return binary serialized proto::Bip44Address
+     */
+    EXPORT static std::string Blockchain_Load_Address(
+        const std::string& nymID,
+        const std::string& accountID,
+        const std::uint32_t index,
+        const bool internal = false);
+
+    /**  Allocate a blockchain account for a nym
+     *    \param[in]  nymID owner of the account
+     *    \param[in]  chain currency type (proto::CITEMTYPE enum)
+     *    \return account ID
+     */
+    EXPORT static std::string Blockchain_New_Account(
+        const std::string& nymID,
+        const std::uint32_t chain);
 
     // Wrapped OTME_too methods
 
