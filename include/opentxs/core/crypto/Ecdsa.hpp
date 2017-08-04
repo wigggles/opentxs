@@ -125,9 +125,10 @@ public:
     virtual bool PrivateToPublic(
         const proto::AsymmetricKey& privateKey,
         proto::AsymmetricKey& publicKey) const;
-    virtual bool RandomKeypair(
-        OTPassword& privateKey,
-        Data& publicKey) const = 0;
+    bool PrivateToPublic(const proto::Ciphertext& privateKey, Data& publicKey)
+        const;
+    virtual bool RandomKeypair(OTPassword& privateKey, Data& publicKey)
+        const = 0;
     virtual bool SeedToCurveKey(
         const OTPassword& seed,
         OTPassword& privateKey,

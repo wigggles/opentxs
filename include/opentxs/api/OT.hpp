@@ -62,6 +62,7 @@ namespace opentxs
 class Activity;
 class Api;
 class AppLoader;
+class Blockchain;
 class ContactManager;
 class CryptoEngine;
 class Dht;
@@ -89,43 +90,35 @@ private:
     /** Last performed, Interval, Task */
     typedef std::tuple<time64_t, time64_t, PeriodicTask> TaskItem;
     typedef std::list<TaskItem> TaskList;
+    typedef std::map<std::string, std::unique_ptr<Settings>> ConfigMap;
 
     static OT* instance_pointer_;
 
     const bool server_mode_{false};
+    std::int64_t nym_publish_interval_{0};
+    std::int64_t nym_refresh_interval_{0};
+    std::int64_t server_publish_interval_{0};
+    std::int64_t server_refresh_interval_{0};
+    std::int64_t unit_publish_interval_{0};
+    std::int64_t unit_refresh_interval_{0};
     const std::string primary_storage_plugin_{};
     const std::string archive_directory{};
-
-    std::unique_ptr<Api> api_;
     mutable std::mutex config_lock_;
-    mutable std::map<std::string, std::unique_ptr<Settings>> config_;
+    mutable std::mutex task_list_lock_;
+    mutable TaskList periodic_task_list;
+    mutable std::atomic<bool> shutdown_;
     std::unique_ptr<class Activity> activity_;
+    std::unique_ptr<Api> api_;
+    std::unique_ptr<class Blockchain> blockchain_;
+    mutable ConfigMap config_;
     std::unique_ptr<ContactManager> contacts_;
     std::unique_ptr<CryptoEngine> crypto_;
     std::unique_ptr<Dht> dht_;
-    std::unique_ptr<Storage> storage_;
-    std::unique_ptr<Wallet> contract_manager_;
     std::unique_ptr<class Identity> identity_;
+    std::unique_ptr<Storage> storage_;
+    std::unique_ptr<Wallet> wallet_;
     std::unique_ptr<class ZMQ> zeromq_;
-
-    mutable std::mutex task_list_lock_;
-    mutable std::atomic<bool> shutdown_;
-    mutable TaskList periodic_task_list;
-
     std::unique_ptr<std::thread> periodic_;
-
-    std::int64_t nym_publish_interval_{
-        std::numeric_limits<std::int64_t>::max()};
-    std::int64_t nym_refresh_interval_{
-        std::numeric_limits<std::int64_t>::max()};
-    std::int64_t server_publish_interval_{
-        std::numeric_limits<std::int64_t>::max()};
-    std::int64_t server_refresh_interval_{
-        std::numeric_limits<std::int64_t>::max()};
-    std::int64_t unit_publish_interval_{
-        std::numeric_limits<std::int64_t>::max()};
-    std::int64_t unit_refresh_interval_{
-        std::numeric_limits<std::int64_t>::max()};
 
     static void Factory(
         const bool serverMode,
@@ -145,6 +138,7 @@ private:
 
     void Init_Activity();
     void Init_Api();
+    void Init_Blockchain();
     void Init_Config();
     void Init_Contacts();
     void Init_Contracts();
@@ -167,6 +161,7 @@ public:
 
     class Activity& Activity() const;
     Api& API() const;
+    class Blockchain& Blockchain() const;
     Settings& Config(const std::string& path = std::string("")) const;
     ContactManager& Contact() const;
     Wallet& Contract() const;

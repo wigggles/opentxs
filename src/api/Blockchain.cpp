@@ -1,0 +1,530 @@
+/************************************************************
+ *
+ *                 OPEN TRANSACTIONS
+ *
+ *       Financial Cryptography and Digital Cash
+ *       Library, Protocol, API, Server, CLI, GUI
+ *
+ *       -- Anonymous Numbered Accounts.
+ *       -- Untraceable Digital Cash.
+ *       -- Triple-Signed Receipts.
+ *       -- Cheques, Vouchers, Transfers, Inboxes.
+ *       -- Basket Currencies, Markets, Payment Plans.
+ *       -- Signed, XML, Ricardian-style Contracts.
+ *       -- Scripted smart contracts.
+ *
+ *  EMAIL:
+ *  fellowtraveler@opentransactions.org
+ *
+ *  WEBSITE:
+ *  http://www.opentransactions.org/
+ *
+ *  -----------------------------------------------------
+ *
+ *   LICENSE:
+ *   This Source Code Form is subject to the terms of the
+ *   Mozilla Public License, v. 2.0. If a copy of the MPL
+ *   was not distributed with this file, You can obtain one
+ *   at http://mozilla.org/MPL/2.0/.
+ *
+ *   DISCLAIMER:
+ *   This program is distributed in the hope that it will
+ *   be useful, but WITHOUT ANY WARRANTY; without even the
+ *   implied warranty of MERCHANTABILITY or FITNESS FOR A
+ *   PARTICULAR PURPOSE.  See the Mozilla Public License
+ *   for more details.
+ *
+ ************************************************************/
+
+#include "opentxs/core/stdafx.hpp"
+
+#include "opentxs/api/Blockchain.hpp"
+
+#include "opentxs/api/Wallet.hpp"
+#include "opentxs/core/crypto/AsymmetricKeySecp256k1.hpp"
+#include "opentxs/core/crypto/Bip32.hpp"
+#include "opentxs/core/crypto/CryptoEncodingEngine.hpp"
+#include "opentxs/core/crypto/CryptoEngine.hpp"
+#include "opentxs/core/crypto/CryptoHashEngine.hpp"
+#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
+#include "opentxs/core/Data.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/storage/Storage.hpp"
+
+#define LOCK_ACCOUNT()                                                         \
+    Lock mapLock(lock_);                                                       \
+    auto& accountMutex = account_lock_[accountID];                             \
+    mapLock.unlock();                                                          \
+    Lock accountLock(accountMutex);
+
+#define LOCK_NYM()                                                             \
+    Lock mapLock(lock_);                                                       \
+    auto& nymMutex = nym_lock_[nymID];                                         \
+    mapLock.unlock();                                                          \
+    Lock nymLock(nymMutex);
+
+#define MAX_INDEX 2147483648
+#define BLOCKCHAIN_VERSION 1
+#define ACCOUNT_VERSION 1
+#define PATH_VERSION 1
+#define COMPRESSED_PUBKEY_SIZE 33
+#define BITCOIN_PUBKEY_HASH 0x0
+#define BITCOIN_TESTNET_HASH 0x6f
+#define LITECOIN_PUBKEY_HASH 0x30
+#define DOGECOIN_PUBKEY_HASH 0x1e
+#define DASH_PUBKEY_HASH 0x4c
+
+#define OT_METHOD "opentxs::Blockchain::"
+
+namespace opentxs
+{
+Blockchain::Blockchain(CryptoEngine& crypto, Storage& storage, Wallet& wallet)
+    : crypto_(crypto)
+    , storage_(storage)
+    , wallet_(wallet)
+    , lock_()
+    , nym_lock_()
+    , account_lock_()
+{
+}
+
+std::set<Identifier> Blockchain::AccountList(
+    const Identifier& nymID,
+    const proto::ContactItemType type) const
+{
+    std::set<Identifier> output;
+    auto list = storage_.BlockchainAccountList(String(nymID).Get(), type);
+
+    for (const auto& accountID : list) {
+        output.emplace(String(accountID.c_str()));
+    }
+
+    return output;
+}
+
+proto::Bip44Address& Blockchain::add_address(
+    const std::uint32_t index,
+    proto::Bip44Account& account,
+    const BIP44Chain chain) const
+{
+    OT_ASSERT(MAX_INDEX >= index);
+
+    account.set_revision(account.revision() + 1);
+
+    if (chain) {
+        account.set_internalindex(index + 1);
+
+        return *account.add_internaladdress();
+    } else {
+        account.set_externalindex(index + 1);
+
+        return *account.add_externaladdress();
+    }
+}
+
+std::uint8_t Blockchain::address_prefix(const proto::ContactItemType type) const
+{
+    switch (type) {
+        case proto::CITEMTYPE_BTC: {
+            return BITCOIN_PUBKEY_HASH;
+        }
+        case proto::CITEMTYPE_LTC: {
+            return LITECOIN_PUBKEY_HASH;
+        }
+        case proto::CITEMTYPE_DOGE: {
+            return DOGECOIN_PUBKEY_HASH;
+        }
+        case proto::CITEMTYPE_DASH: {
+            return DASH_PUBKEY_HASH;
+        }
+        case proto::CITEMTYPE_TNBTC:
+        case proto::CITEMTYPE_TNXRP:
+        case proto::CITEMTYPE_TNLTC:
+        case proto::CITEMTYPE_TNXEM:
+        case proto::CITEMTYPE_TNDASH:
+        case proto::CITEMTYPE_TNMAID:
+        case proto::CITEMTYPE_TNLSK:
+        case proto::CITEMTYPE_TNDOGE:
+        case proto::CITEMTYPE_TNXMR:
+        case proto::CITEMTYPE_TNWAVES:
+        case proto::CITEMTYPE_TNNXT:
+        case proto::CITEMTYPE_TNSC:
+        case proto::CITEMTYPE_TNSTEEM: {
+            return BITCOIN_TESTNET_HASH;
+        }
+        default: {
+            OT_FAIL;
+        }
+    }
+
+    return 0x0;
+}
+
+std::unique_ptr<proto::Bip44Address> Blockchain::AllocateAddress(
+    const Identifier& nymID,
+    const Identifier& accountID,
+    const std::string& label,
+    const BIP44Chain chain) const
+{
+    LOCK_ACCOUNT()
+
+    const std::string sNymID = String(nymID).Get();
+    const std::string sAccountID = String(accountID).Get();
+    std::unique_ptr<proto::Bip44Address> output{nullptr};
+    std::shared_ptr<proto::Bip44Account> account{nullptr};
+    const bool loaded = storage_.Load(sNymID, sAccountID, account);
+
+    if (false == loaded) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Account does not exist."
+              << std::endl;
+
+        return output;
+    }
+
+    const auto& type = account->type();
+    const auto index =
+        chain ? account->internalindex() : account->externalindex();
+
+    if (MAX_INDEX == index) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Account is full." << std::endl;
+
+        return output;
+    }
+
+    auto& newAddress = add_address(index, *account, chain);
+    newAddress.set_version(BLOCKCHAIN_VERSION);
+    newAddress.set_index(index);
+    newAddress.set_address(calculate_address(*account, chain, index));
+    newAddress.set_label(label);
+    const auto saved = storage_.Store(sNymID, type, *account);
+
+    if (false == saved) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to save account."
+              << std::endl;
+
+        return output;
+    }
+
+    output.reset(new proto::Bip44Address(newAddress));
+
+    return output;
+}
+
+bool Blockchain::AssignAddress(
+    const Identifier& nymID,
+    const Identifier& accountID,
+    const std::uint32_t index,
+    const Identifier& contactID,
+    const BIP44Chain chain) const
+{
+    LOCK_ACCOUNT()
+
+    const std::string sNymID = String(nymID).Get();
+    const std::string sAccountID = String(accountID).Get();
+    std::shared_ptr<proto::Bip44Account> account{nullptr};
+    const bool loaded = storage_.Load(sNymID, sAccountID, account);
+
+    if (false == loaded) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Account does not exist."
+              << std::endl;
+
+        return false;
+    }
+
+    const auto& type = account->type();
+    const auto allocatedIndex =
+        chain ? account->internalindex() : account->externalindex();
+
+    if (index > allocatedIndex) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Address has not been allocated." << std::endl;
+
+        return false;
+    }
+
+    auto& address = find_address(index, chain, *account);
+    address.set_contact(String(contactID).Get());
+    account->set_revision(account->revision() + 1);
+
+    return storage_.Store(sNymID, type, *account);
+}
+
+Bip44Type Blockchain::bip44_type(const proto::ContactItemType type) const
+{
+    switch (type) {
+        case proto::CITEMTYPE_BTC: {
+            return Bip44Type::BITCOIN;
+        }
+        case proto::CITEMTYPE_LTC: {
+            return Bip44Type::LITECOIN;
+        }
+        case proto::CITEMTYPE_DOGE: {
+            return Bip44Type::DOGECOIN;
+        }
+        case proto::CITEMTYPE_DASH: {
+            return Bip44Type::DASH;
+        }
+        case proto::CITEMTYPE_TNBTC:
+        case proto::CITEMTYPE_TNXRP:
+        case proto::CITEMTYPE_TNLTC:
+        case proto::CITEMTYPE_TNXEM:
+        case proto::CITEMTYPE_TNDASH:
+        case proto::CITEMTYPE_TNMAID:
+        case proto::CITEMTYPE_TNLSK:
+        case proto::CITEMTYPE_TNDOGE:
+        case proto::CITEMTYPE_TNXMR:
+        case proto::CITEMTYPE_TNWAVES:
+        case proto::CITEMTYPE_TNNXT:
+        case proto::CITEMTYPE_TNSC:
+        case proto::CITEMTYPE_TNSTEEM: {
+            return Bip44Type::TESTNET;
+        }
+        default: {
+            OT_FAIL;
+        }
+    }
+
+    return {};
+}
+
+std::string Blockchain::calculate_address(
+    const proto::Bip44Account& account,
+    const BIP44Chain chain,
+    const std::uint32_t index) const
+{
+    const auto& path = account.path();
+
+    if (3 != path.child_size()) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Invalid HD path." << std::endl;
+
+        return {};
+    }
+
+    auto fingerprint = path.root();
+    const auto accountIndex = path.child(2);
+    const auto type = bip44_type(account.type());
+    auto serialized =
+        crypto_.BIP32().Bip44(fingerprint, type, accountIndex, chain, index);
+
+    if (false == bool(serialized)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Unable to derive key."
+              << std::endl;
+
+        return {};
+    }
+
+    std::unique_ptr<OTAsymmetricKey> key{nullptr};
+    std::unique_ptr<AsymmetricKeySecp256k1> ecKey{nullptr};
+    key.reset(OTAsymmetricKey::KeyFactory(*serialized));
+
+    if (false == bool(key)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Unable to instantiate key."
+              << std::endl;
+
+        return {};
+    }
+
+    ecKey.reset(dynamic_cast<AsymmetricKeySecp256k1*>(key.release()));
+
+    if (false == bool(ecKey)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Incorrect key type."
+              << std::endl;
+
+        return {};
+    }
+
+    Data pubkey{};
+
+    if (false == ecKey->GetPublicKey(pubkey)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Unable to extract public key."
+              << std::endl;
+
+        return {};
+    }
+
+    if (COMPRESSED_PUBKEY_SIZE != pubkey.GetSize()) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Incorrect pubkey size ("
+              << pubkey.GetSize() << ")." << std::endl;
+
+        return {};
+    }
+
+    Data sha256{};
+    Data ripemd160{};
+    Data pubkeyHash{};
+
+    if (!crypto_.Hash().Digest(proto::HASHTYPE_SHA256, pubkey, sha256)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Unable to calculate sha256."
+              << std::endl;
+
+        return {};
+    }
+
+    if (!crypto_.Hash().Digest(proto::HASHTYPE_RIMEMD160, sha256, pubkeyHash)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Unable to calculate rimemd160."
+              << std::endl;
+
+        return {};
+    }
+
+    const auto prefix = address_prefix(account.type());
+    Data preimage(&prefix, sizeof(prefix));
+
+    OT_ASSERT(1 == preimage.GetSize());
+
+    preimage += pubkeyHash;
+
+    OT_ASSERT(21 == preimage.GetSize());
+
+    return crypto_.Encode().IdentifierEncode(preimage);
+}
+
+proto::Bip44Address& Blockchain::find_address(
+    const std::uint32_t index,
+    const BIP44Chain chain,
+    proto::Bip44Account& account) const
+{
+    // TODO: determine if we can prove the addresses were inserted in index
+    // order. Then we don't need to do a linear search here.
+    // Perhaps opentxs-proto should fail validation for improperly sorted
+    // Bip44Accounts
+
+    if (chain) {
+        for (auto& address : *account.mutable_internaladdress()) {
+            if (address.index() == index) {
+
+                return address;
+            }
+        }
+    } else {
+        for (auto& address : *account.mutable_externaladdress()) {
+            if (address.index() == index) {
+
+                return address;
+            }
+        }
+    }
+
+    OT_FAIL;
+}
+
+std::unique_ptr<proto::Bip44Address> Blockchain::LoadAddress(
+    const Identifier& nymID,
+    const Identifier& accountID,
+    const std::uint32_t index,
+    const BIP44Chain chain) const
+{
+    LOCK_ACCOUNT()
+
+    std::unique_ptr<proto::Bip44Address> output{};
+    const std::string sNymID = String(nymID).Get();
+    const std::string sAccountID = String(accountID).Get();
+    std::shared_ptr<proto::Bip44Account> account{nullptr};
+    const bool loaded = storage_.Load(sNymID, sAccountID, account);
+
+    if (false == loaded) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Account does not exist."
+              << std::endl;
+
+        return output;
+    }
+
+    const auto allocatedIndex =
+        chain ? account->internalindex() : account->externalindex();
+
+    if (index > allocatedIndex) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Address has not been allocated." << std::endl;
+
+        return output;
+    }
+
+    auto& address = find_address(index, chain, *account);
+    output.reset(new proto::Bip44Address(address));
+
+    return output;
+}
+
+Identifier Blockchain::NewAccount(
+    const Identifier& nymID,
+    const proto::ContactItemType type) const
+{
+    LOCK_NYM()
+
+    const std::string sNymID = String(nymID).Get();
+    auto existing = storage_.BlockchainAccountList(sNymID, type);
+
+    if (0 < existing.size()) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Account already exists."
+              << std::endl;
+
+        return Identifier(*existing.begin());
+    }
+
+    auto nym = wallet_.Nym(nymID);
+
+    if (false == bool(nym)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Nym does not exist."
+              << std::endl;
+
+        return {};
+    }
+
+    proto::HDPath nymPath{};
+
+    if (false == nym->Path(nymPath)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": No nym path." << std::endl;
+
+        return {};
+    }
+
+    if (0 == nymPath.root().size()) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Missing root." << std::endl;
+
+        return {};
+    }
+
+    if (2 > nymPath.child().size()) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Invalid path." << std::endl;
+
+        return {};
+    }
+
+    const auto& index = nymPath.child(1);
+    proto::HDPath accountPath{};
+    accountPath.set_version(PATH_VERSION);
+    accountPath.set_root(nymPath.root());
+    accountPath.add_child(
+        static_cast<std::uint32_t>(Bip43Purpose::HDWALLET) |
+        static_cast<std::uint32_t>(Bip32Child::HARDENED));
+    accountPath.add_child(
+        static_cast<std::uint32_t>(bip44_type(type)) |
+        static_cast<std::uint32_t>(Bip32Child::HARDENED));
+    accountPath.add_child(index);
+    const Identifier accountID(accountPath);
+    Lock accountLock(account_lock_[accountID]);
+    proto::Bip44Account account{};
+    account.set_version(ACCOUNT_VERSION);
+    account.set_id(String(accountID).Get());
+    account.set_type(type);
+    account.set_revision(0);
+    *account.mutable_path() = accountPath;
+    account.set_internalindex(0);
+    account.set_externalindex(0);
+    account.clear_internaladdress();
+    account.clear_externaladdress();
+
+    const bool saved = storage_.Store(sNymID, type, account);
+
+    if (saved) {
+
+        return accountID;
+    }
+
+    otErr << OT_METHOD << __FUNCTION__ << ": Failed to save account."
+          << std::endl;
+
+    return {};
+}
+}  // namespace opentxs

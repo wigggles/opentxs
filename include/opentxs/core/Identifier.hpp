@@ -64,9 +64,11 @@ private:
 
     static const ID DefaultType{ID::BLAKE2B};
     static const size_t MinimumSize{10};
-    static proto::HashType IDToHashType(const ID type);
 
     ID type_{DefaultType};
+
+    static proto::HashType IDToHashType(const ID type);
+    static Data path_to_data(const proto::HDPath& path);
 
 public:
     EXPORT friend std::ostream& operator<<(std::ostream& os, const String& obj);
@@ -81,6 +83,7 @@ public:
     EXPORT explicit Identifier(const Contract& theContract);
     EXPORT explicit Identifier(const OTSymmetricKey& theKey);
     EXPORT explicit Identifier(const OTCachedKey& theKey);
+    EXPORT explicit Identifier(const proto::HDPath& path);
 
     EXPORT Identifier& operator=(const Identifier& rhs);
     EXPORT Identifier& operator=(Identifier&& rhs);
