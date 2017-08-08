@@ -1095,6 +1095,8 @@ public:
     EXPORT static bool Wallet_ChangePassphrase();  //  (true for success and
                                                    // false for error.)
 
+    EXPORT static bool Wallet_CheckPassword();
+
     //! Returns the exported Nym, if success. (Else nullptr.)
     EXPORT static std::string Wallet_ExportNym(const std::string& NYM_ID);
 

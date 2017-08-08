@@ -47,6 +47,7 @@
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/core/crypto/CryptoEncodingEngine.hpp"
 #include "opentxs/core/crypto/CryptoEngine.hpp"
+#include "opentxs/core/crypto/OTCachedKey.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Log.hpp"
@@ -64,15 +65,16 @@
 #include <sstream>
 #include <string>
 
-namespace opentxs
-{
-
 #ifndef OT_BOOL
 #define OT_BOOL int32_t
 #endif
 
 #define DEFAULT_NODE_NAME "Stash Node Pro"
 
+#define OT_METHOD "opentxs::OTAPI_Wrap::"
+
+namespace opentxs
+{
 bool OTAPI_Wrap::networkFailure(const std::string& notaryID)
 {
     return ConnectionState::ACTIVE != OT::App().ZMQ().Status(notaryID);
@@ -608,6 +610,23 @@ std::string OTAPI_Wrap::Wallet_ImportNym(const std::string& FILE_CONTENTS)
 bool OTAPI_Wrap::Wallet_ChangePassphrase()
 {
     return Exec()->Wallet_ChangePassphrase();
+}
+
+bool OTAPI_Wrap::Wallet_CheckPassword()
+{
+    auto key = OTCachedKey::It();
+
+    if (false == bool(key)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": No master key." << std::endl;
+
+        return false;
+    }
+
+    const std::string message{};
+    OTPassword null;
+    key->Reset();
+
+    return key->GetMasterPassword(key, null, message.c_str(), false);
 }
 
 std::string OTAPI_Wrap::Wallet_GetNymIDFromPartial(

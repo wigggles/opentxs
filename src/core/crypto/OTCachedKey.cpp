@@ -52,6 +52,7 @@
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/core/Types.hpp"
 
 #if OT_CRYPTO_USING_OPENSSL
 extern "C" {
@@ -298,11 +299,6 @@ void OTCachedKey::LowLevelReleaseThread()
     if (thread_) {
         thread_->join();
     }
-}
-
-OTCachedKey::~OTCachedKey()
-{
-    LowLevelReleaseThread();
 }
 
 std::int32_t OTCachedKey::GetTimeoutSeconds() const { return timeout_.load(); }
@@ -981,11 +977,10 @@ void OTCachedKey::ThreadTimeout()
         if (limit >= std::chrono::seconds(0)) {
             if (duration > limit) {
                 if (GetTimeoutSeconds() != (-1)) {
-                    std::unique_lock<std::mutex> lock(m_Mutex);
+                    Lock lock(m_Mutex);
                     master_password_.reset();
                     lock.unlock();
                 }
-
             }
         }
 
@@ -1018,6 +1013,13 @@ void OTCachedKey::ResetMasterPassword(const std::lock_guard<std::mutex>&)
     }
 }
 
+void OTCachedKey::Reset()
+{
+    Lock lock(m_Mutex);
+    master_password_.reset();
+    ResetTimer();
+}
+
 void OTCachedKey::ResetTimer() const { time_.store(std::time(nullptr)); }
 
 bool OTCachedKey::IsUsingSystemKeyring() const
@@ -1029,4 +1031,6 @@ void OTCachedKey::UseSystemKeyring(const bool bUsing) const
 {
     use_system_keyring_.store(bUsing);
 }
+
+OTCachedKey::~OTCachedKey() { LowLevelReleaseThread(); }
 }  // namespace opentxs

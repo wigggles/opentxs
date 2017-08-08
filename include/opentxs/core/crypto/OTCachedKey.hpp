@@ -260,6 +260,7 @@ public:
     EXPORT bool Pause() const;
     EXPORT bool Unpause() const;
     EXPORT bool isPaused() const;
+    EXPORT void Reset();
     EXPORT bool SerializeTo(OTASCIIArmor& ascOutput);
     EXPORT bool SerializeFrom(const OTASCIIArmor& ascInput);
 
