@@ -91,8 +91,9 @@ void OTSymmetricKey::GetIdentifier(String& strIdentifier) const
 
 // Changes the passphrase on an existing symmetric key.
 //
-bool OTSymmetricKey::ChangePassphrase(const OTPassword& oldPassphrase,
-                                      const OTPassword& newPassphrase)
+bool OTSymmetricKey::ChangePassphrase(
+    const OTPassword& oldPassphrase,
+    const OTPassword& newPassphrase)
 {
     OT_ASSERT(m_uIterationCount > 1000);
     OT_ASSERT(m_bIsGenerated);
@@ -140,8 +141,8 @@ bool OTSymmetricKey::ChangePassphrase(const OTPassword& oldPassphrase,
     // Generate the new derived key from the new passphrase.
     //
     std::unique_ptr<OTPassword> pNewDerivedKey(
-        CalculateNewDerivedKeyFromPassphrase(newPassphrase)); // asserts
-                                                              // already.
+        CalculateNewDerivedKeyFromPassphrase(newPassphrase));  // asserts
+                                                               // already.
 
     // Below this point, pNewDerivedKey is NOT null. (And will be cleaned up
     // automatically.)
@@ -162,14 +163,14 @@ bool OTSymmetricKey::ChangePassphrase(const OTPassword& oldPassphrase,
     // Put the result into the Data m_dataEncryptedKey.
     //
     const bool bEncryptedKey = OT::App().Crypto().AES().Encrypt(
-        *pNewDerivedKey, // pNewDerivedKey is a symmetric key, in clear form.
-                         // Used for encrypting theActualKey.
+        *pNewDerivedKey,  // pNewDerivedKey is a symmetric key, in clear form.
+                          // Used for encrypting theActualKey.
         reinterpret_cast<const char*>(
-            theActualKey.getMemory_uint8()), // This is the Plaintext that's
-                                             // being encrypted.
+            theActualKey.getMemory_uint8()),  // This is the Plaintext that's
+                                              // being encrypted.
         theActualKey.getMemorySize(),
-        m_dataIV,            // generated above.
-        m_dataEncryptedKey); // OUTPUT. (Ciphertext.)
+        m_dataIV,             // generated above.
+        m_dataEncryptedKey);  // OUTPUT. (Ciphertext.)
     m_bIsGenerated = bEncryptedKey;
 
     otInfo << "  End: " << __FUNCTION__
@@ -191,8 +192,9 @@ bool OTSymmetricKey::ChangePassphrase(const OTPassword& oldPassphrase,
 // ppDerivedKey: CALLER RESPONSIBLE TO DELETE.  (optional arg.)
 
 // Output. If you want, I can pass this back to you.
-bool OTSymmetricKey::GenerateKey(const OTPassword& thePassphrase,
-                                 OTPassword** ppDerivedKey)
+bool OTSymmetricKey::GenerateKey(
+    const OTPassword& thePassphrase,
+    OTPassword** ppDerivedKey)
 {
     OT_ASSERT(m_uIterationCount > 1000);
     OT_ASSERT(!m_bIsGenerated);
@@ -225,7 +227,7 @@ bool OTSymmetricKey::GenerateKey(const OTPassword& thePassphrase,
             OT_FAIL;
         }
         uint32_t uRes =
-            static_cast<uint32_t>(nRes); // we need an uint32_t value.
+            static_cast<uint32_t>(nRes);  // we need an uint32_t value.
 
         if (CryptoConfig::SymmetricKeySize() != uRes) {
             otErr << __FUNCTION__
@@ -262,14 +264,15 @@ bool OTSymmetricKey::GenerateKey(const OTPassword& thePassphrase,
     // Put the result into the Data m_dataEncryptedKey.
     //
     const bool bEncryptedKey = OT::App().Crypto().AES().Encrypt(
-        *pDerivedKey, // pDerivedKey is a symmetric key, in clear form. Used for
-                      // encrypting theActualKey.
+        *pDerivedKey,  // pDerivedKey is a symmetric key, in clear form. Used
+                       // for
+                       // encrypting theActualKey.
         reinterpret_cast<const char*>(
-            theActualKey.getMemory_uint8()), // This is the Plaintext that's
-                                             // being encrypted.
+            theActualKey.getMemory_uint8()),  // This is the Plaintext that's
+                                              // being encrypted.
         theActualKey.getMemorySize(),
-        m_dataIV,            // generated above.
-        m_dataEncryptedKey); // OUTPUT. (Ciphertext.)
+        m_dataIV,             // generated above.
+        m_dataEncryptedKey);  // OUTPUT. (Ciphertext.)
     m_bIsGenerated = bEncryptedKey;
 
     otInfo << "  End: " << __FUNCTION__
@@ -302,12 +305,12 @@ bool OTSymmetricKey::GenerateHashCheck(const OTPassword& thePassphrase)
 
     OT_ASSERT(m_dataHashCheck.IsEmpty());
 
-    OTPassword* pDerivedKey =
-        CalculateNewDerivedKeyFromPassphrase(thePassphrase); // asserts already.
+    OTPassword* pDerivedKey = CalculateNewDerivedKeyFromPassphrase(
+        thePassphrase);  // asserts already.
 
     if (nullptr ==
-        pDerivedKey) // A pointerpointer was passed in... (caller will
-                     // be responsible then, to delete.)
+        pDerivedKey)  // A pointerpointer was passed in... (caller will
+                      // be responsible then, to delete.)
     {
         otErr << __FUNCTION__ << ": failed to calculate derived key";
         return false;
@@ -365,7 +368,8 @@ bool OTSymmetricKey::GenerateHashCheck(const OTPassword& thePassphrase)
 // CALLER IS RESPONSIBLE TO DELETE.
 //
 OTPassword* OTSymmetricKey::CalculateDerivedKeyFromPassphrase(
-    const OTPassword& thePassphrase, bool bCheckForHashCheck /*= true*/) const
+    const OTPassword& thePassphrase,
+    bool bCheckForHashCheck /*= true*/) const
 {
     Data tmpDataHashCheck = m_dataHashCheck;
 
@@ -376,8 +380,7 @@ OTPassword* OTSymmetricKey::CalculateDerivedKeyFromPassphrase(
             OT_FAIL;
         }
         OT_ASSERT(!tmpDataHashCheck.IsEmpty());
-    }
-    else {
+    } else {
         if (!HasHashCheck()) {
             otOut << __FUNCTION__ << ": Warning!! No hash check, ignoring... "
                                      "(since bCheckForHashCheck was set false)";
@@ -395,19 +398,17 @@ OTPassword* OTSymmetricKey::CalculateNewDerivedKeyFromPassphrase(
 {
     std::unique_ptr<OTPassword> pDerivedKey;
 
-    if (!HasHashCheck()) {
-        m_dataHashCheck.zeroMemory();
-
+    if (false == HasHashCheck()) {
+        m_dataHashCheck = Data{};
         pDerivedKey.reset(OT::App().Crypto().AES().DeriveNewKey(
             thePassphrase, m_dataSalt, m_uIterationCount, m_dataHashCheck));
-    }
-    else {
+    } else {
         otErr << __FUNCTION__
               << ": Calling Wrong function!! Hash check already exists!";
     }
 
     OT_ASSERT(pDerivedKey);
-    OT_ASSERT(!m_dataHashCheck.IsEmpty());
+    OT_ASSERT(false == m_dataHashCheck.IsEmpty());
 
     m_bHasHashCheck = true;
 
@@ -419,8 +420,10 @@ OTPassword* OTSymmetricKey::CalculateNewDerivedKeyFromPassphrase(
 // purpose.
 //
 bool OTSymmetricKey::GetRawKeyFromPassphrase(
-    const OTPassword& thePassphrase, OTPassword& theRawKeyOutput,
-    OTPassword* pDerivedKey) const // Optionally pass this, to save me the step.
+    const OTPassword& thePassphrase,
+    OTPassword& theRawKeyOutput,
+    OTPassword* pDerivedKey) const  // Optionally pass this, to save me the
+                                    // step.
 {
     OT_ASSERT(m_bIsGenerated);
 
@@ -435,7 +438,9 @@ bool OTSymmetricKey::GetRawKeyFromPassphrase(
         theDerivedAngel.reset(pDerivedKey);
     }
 
-    if (nullptr == pDerivedKey) { return false; }
+    if (nullptr == pDerivedKey) {
+        return false;
+    }
 
     // Below this point, pDerivedKey contains a derived symmetric key, from the
     // salt, the iteration count, and the password that was passed in. The salt
@@ -453,8 +458,9 @@ bool OTSymmetricKey::GetRawKeyFromPassphrase(
 // an OTPassword object.
 // Otherwise returns false if failure.
 //
-bool OTSymmetricKey::GetRawKeyFromDerivedKey(const OTPassword& theDerivedKey,
-                                             OTPassword& theRawKeyOutput) const
+bool OTSymmetricKey::GetRawKeyFromDerivedKey(
+    const OTPassword& theDerivedKey,
+    OTPassword& theRawKeyOutput) const
 {
     OT_ASSERT(m_bIsGenerated);
     OT_ASSERT(theDerivedKey.isMemory());
@@ -472,20 +478,20 @@ bool OTSymmetricKey::GetRawKeyFromDerivedKey(const OTPassword& theDerivedKey,
         << szFunc
         << ": *Begin) Attempting to recover actual key using derived key...\n";
 
-        CryptoSymmetricDecryptOutput plaintext(theRawKeyOutput);
+    CryptoSymmetricDecryptOutput plaintext(theRawKeyOutput);
     const bool bDecryptedKey = OT::App().Crypto().AES().Decrypt(
-        theDerivedKey, // We're using theDerivedKey to decrypt
-                       // m_dataEncryptedKey.
+        theDerivedKey,  // We're using theDerivedKey to decrypt
+                        // m_dataEncryptedKey.
         // Here's what we're trying to decrypt: the encrypted
         // form of the symmetric key.
         static_cast<const char*>(
-            m_dataEncryptedKey.GetPointer()), // The Ciphertext.
+            m_dataEncryptedKey.GetPointer()),  // The Ciphertext.
         m_dataEncryptedKey.GetSize(),
-        m_dataIV, // Created when *this symmetric key was generated. Both are
-                  // already stored.
-        plaintext); // OUTPUT. (Recovered plaintext of symmetric key.) You
-                          // can pass OTPassword& OR Data& here (either
-                          // will work.)
+        m_dataIV,    // Created when *this symmetric key was generated. Both are
+                     // already stored.
+        plaintext);  // OUTPUT. (Recovered plaintext of symmetric key.) You
+                     // can pass OTPassword& OR Data& here (either
+                     // will work.)
 
     otInfo << szFunc
            << ": (End) attempt to recover actual key using derived key...\n";
@@ -495,16 +501,17 @@ bool OTSymmetricKey::GetRawKeyFromDerivedKey(const OTPassword& theDerivedKey,
 // The highest-level possible interface (used by the API)
 //
 // static  NOTE: this version circumvents the master key.
-OTPassword* OTSymmetricKey::GetPassphraseFromUser(const String* pstrDisplay,
-                                                  bool bAskTwice) // returns a
-                                                                  // text
-                                                                  // OTPassword,
-                                                                  // or nullptr.
+OTPassword* OTSymmetricKey::GetPassphraseFromUser(
+    const String* pstrDisplay,
+    bool bAskTwice)  // returns a
+                     // text
+                     // OTPassword,
+                     // or nullptr.
 {
     // Caller MUST delete!
 
     OTPassword* pPassUserInput =
-        OTPassword::CreateTextBuffer(); // already asserts.
+        OTPassword::CreateTextBuffer();  // already asserts.
     //  pPassUserInput->zeroMemory(); // This was causing the password to come
     // out blank.
     //
@@ -512,29 +519,30 @@ OTPassword* OTSymmetricKey::GetPassphraseFromUser(const String* pstrDisplay,
     // will leak.)
 
     const char* szDisplay = "OTSymmetricKey::GetPassphraseFromUser";
-    OTPasswordData thePWData((nullptr == pstrDisplay) ? szDisplay
-                                                      : pstrDisplay->Get());
+    OTPasswordData thePWData(
+        (nullptr == pstrDisplay) ? szDisplay : pstrDisplay->Get());
     // -------------------------------------------------------------------
     //
     // OLD SYSTEM! (NO MASTER KEY INVOLVEMENT.)
     //
-    thePWData.setUsingOldSystem(); // So the cached key doesn't interfere, since
-                                   // this is for a plain symmetric key.
+    thePWData.setUsingOldSystem();  // So the cached key doesn't interfere,
+                                    // since
+                                    // this is for a plain symmetric key.
     // -------------------------------------------------------------------
-    const int32_t nCallback =
-        souped_up_pass_cb(pPassUserInput->getPasswordWritable_char(),
-                          pPassUserInput->getBlockSize(), bAskTwice ? 1 : 0,
-                          static_cast<void*>(&thePWData));
+    const int32_t nCallback = souped_up_pass_cb(
+        pPassUserInput->getPasswordWritable_char(),
+        pPassUserInput->getBlockSize(),
+        bAskTwice ? 1 : 0,
+        static_cast<void*>(&thePWData));
     const uint32_t uCallback = static_cast<uint32_t>(nCallback);
-    if ((nCallback > 0) && // Success retrieving the passphrase from the user.
+    if ((nCallback > 0) &&  // Success retrieving the passphrase from the user.
         pPassUserInput->SetSize(uCallback)) {
         //      otOut << "%s: Retrieved passphrase (blocksize %d, actual size
         // %d) from user: %s\n", __FUNCTION__,
         //                     pPassUserInput->getBlockSize(), nCallback,
         // pPassUserInput->getPassword());
-        return pPassUserInput; // Caller MUST delete!
-    }
-    else {
+        return pPassUserInput;  // Caller MUST delete!
+    } else {
         delete pPassUserInput;
         pPassUserInput = nullptr;
         otOut
@@ -546,26 +554,27 @@ OTPassword* OTSymmetricKey::GetPassphraseFromUser(const String* pstrDisplay,
 }
 
 // static
-bool OTSymmetricKey::CreateNewKey(String& strOutput, const String* pstrDisplay,
-                                  const OTPassword* pAlreadyHavePW)
+bool OTSymmetricKey::CreateNewKey(
+    String& strOutput,
+    const String* pstrDisplay,
+    const OTPassword* pAlreadyHavePW)
 {
     std::unique_ptr<OTPassword> pPassUserInput;
 
     if (nullptr == pAlreadyHavePW) {
         const char* szDisplay = "Creating new symmetric key.";
-        const String strDisplay((nullptr == pstrDisplay) ? szDisplay
-                                                         : pstrDisplay->Get());
+        const String strDisplay(
+            (nullptr == pstrDisplay) ? szDisplay : pstrDisplay->Get());
 
         pPassUserInput.reset(OTSymmetricKey::GetPassphraseFromUser(
-            &strDisplay, true)); // bAskTwice=false by default.
-    }
-    else
+            &strDisplay, true));  // bAskTwice=false by default.
+    } else
         pPassUserInput.reset(new OTPassword(*pAlreadyHavePW));
 
     bool bSuccess = false;
 
-    if (pPassUserInput) // Success retrieving the passphrase from the
-                        // user. (Now let's generate the key...)
+    if (pPassUserInput)  // Success retrieving the passphrase from the
+                         // user. (Now let's generate the key...)
     {
         otLog3 << __FUNCTION__
                << ": Calling OTSymmetricKey theKey.GenerateKey()...\n";
@@ -579,8 +588,7 @@ bool OTSymmetricKey::CreateNewKey(String& strOutput, const String* pstrDisplay,
         else
             otWarn << __FUNCTION__
                    << ": Sorry, unable to generate key. (Failure.)\n";
-    }
-    else
+    } else
         otWarn
             << __FUNCTION__
             << ": Sorry, unable to retrieve password from user. (Failure.)\n";
@@ -589,9 +597,13 @@ bool OTSymmetricKey::CreateNewKey(String& strOutput, const String* pstrDisplay,
 }
 
 // static
-bool OTSymmetricKey::Encrypt(const String& strKey, const String& strPlaintext,
-                             String& strOutput, const String* pstrDisplay,
-                             bool bBookends, const OTPassword* pAlreadyHavePW)
+bool OTSymmetricKey::Encrypt(
+    const String& strKey,
+    const String& strPlaintext,
+    String& strOutput,
+    const String* pstrDisplay,
+    bool bBookends,
+    const OTPassword* pAlreadyHavePW)
 {
     if (!strKey.Exists() || !strPlaintext.Exists()) {
         otWarn << __FUNCTION__ << ": Nonexistent: either the key or the "
@@ -609,15 +621,23 @@ bool OTSymmetricKey::Encrypt(const String& strKey, const String& strPlaintext,
 
     // By this point, we know we have a plaintext and a symmetric Key.
     //
-    return OTSymmetricKey::Encrypt(theKey, strPlaintext, strOutput, pstrDisplay,
-                                   bBookends, pAlreadyHavePW);
+    return OTSymmetricKey::Encrypt(
+        theKey,
+        strPlaintext,
+        strOutput,
+        pstrDisplay,
+        bBookends,
+        pAlreadyHavePW);
 }
 
 // static
-bool OTSymmetricKey::Encrypt(const OTSymmetricKey& theKey,
-                             const String& strPlaintext, String& strOutput,
-                             const String* pstrDisplay, bool bBookends,
-                             const OTPassword* pAlreadyHavePW)
+bool OTSymmetricKey::Encrypt(
+    const OTSymmetricKey& theKey,
+    const String& strPlaintext,
+    String& strOutput,
+    const String* pstrDisplay,
+    bool bBookends,
+    const OTPassword* pAlreadyHavePW)
 {
     if (!theKey.IsGenerated()) {
         otWarn << __FUNCTION__
@@ -638,43 +658,42 @@ bool OTSymmetricKey::Encrypt(const OTSymmetricKey& theKey,
 
     if (nullptr == pAlreadyHavePW) {
         const char* szDisplay = "Password-protecting a plaintext.";
-        const String strDisplay((nullptr == pstrDisplay) ? szDisplay
-                                                         : pstrDisplay->Get());
+        const String strDisplay(
+            (nullptr == pstrDisplay) ? szDisplay : pstrDisplay->Get());
 
         pPassUserInput.reset(OTSymmetricKey::GetPassphraseFromUser(
-            &strDisplay)); // bAskTwice=false by default.
-    }
-    else
+            &strDisplay));  // bAskTwice=false by default.
+    } else
         pPassUserInput.reset(new OTPassword(*pAlreadyHavePW));
 
     OTASCIIArmor ascOutput;
     bool bSuccess = false;
 
-    if (nullptr != pPassUserInput) // Success retrieving the passphrase from the
-                                   // user. (Now let's encrypt...)
+    if (nullptr !=
+        pPassUserInput)  // Success retrieving the passphrase from the
+                         // user. (Now let's encrypt...)
     {
         OTEnvelope theEnvelope;
 
-        if (theEnvelope.Encrypt(strPlaintext,
-                                const_cast<OTSymmetricKey&>(theKey),
-                                *pPassUserInput) &&
+        if (theEnvelope.Encrypt(
+                strPlaintext,
+                const_cast<OTSymmetricKey&>(theKey),
+                *pPassUserInput) &&
             theEnvelope.GetCiphertext(ascOutput)) {
             bSuccess = true;
 
             if (bBookends) {
                 return ascOutput.WriteArmoredString(
-                    strOutput, "SYMMETRIC MSG", // todo hardcoding.
-                    false);                     // bEscaped=false
-            }
-            else {
+                    strOutput,
+                    "SYMMETRIC MSG",  // todo hardcoding.
+                    false);           // bEscaped=false
+            } else {
                 strOutput.Set(ascOutput.Get());
             }
-        }
-        else {
+        } else {
             otWarn << __FUNCTION__ << ": Failed trying to encrypt. (Sorry.)\n";
         }
-    }
-    else
+    } else
         otWarn
             << __FUNCTION__
             << ": Sorry, unable to retrieve passphrase from user. (Failure.)\n";
@@ -683,9 +702,12 @@ bool OTSymmetricKey::Encrypt(const OTSymmetricKey& theKey,
 }
 
 // static
-bool OTSymmetricKey::Decrypt(const String& strKey, String& strCiphertext,
-                             String& strOutput, const String* pstrDisplay,
-                             const OTPassword* pAlreadyHavePW)
+bool OTSymmetricKey::Decrypt(
+    const String& strKey,
+    String& strCiphertext,
+    String& strOutput,
+    const String* pstrDisplay,
+    const OTPassword* pAlreadyHavePW)
 {
 
     if (!strKey.Exists()) {
@@ -705,15 +727,17 @@ bool OTSymmetricKey::Decrypt(const String& strKey, String& strCiphertext,
 
     // By this point, we know we have a ciphertext envelope and a symmetric Key.
     //
-    return OTSymmetricKey::Decrypt(theKey, strCiphertext, strOutput,
-                                   pstrDisplay, pAlreadyHavePW);
+    return OTSymmetricKey::Decrypt(
+        theKey, strCiphertext, strOutput, pstrDisplay, pAlreadyHavePW);
 }
 
 // static
-bool OTSymmetricKey::Decrypt(const OTSymmetricKey& theKey,
-                             const String& strCiphertext, String& strOutput,
-                             const String* pstrDisplay,
-                             const OTPassword* pAlreadyHavePW)
+bool OTSymmetricKey::Decrypt(
+    const OTSymmetricKey& theKey,
+    const String& strCiphertext,
+    String& strOutput,
+    const String* pstrDisplay,
+    const OTPassword* pAlreadyHavePW)
 {
     if (!theKey.IsGenerated()) {
         otWarn << __FUNCTION__
@@ -724,7 +748,7 @@ bool OTSymmetricKey::Decrypt(const OTSymmetricKey& theKey,
 
     OTASCIIArmor ascArmor;
     const bool bLoadedArmor = OTASCIIArmor::LoadFromString(
-        ascArmor, strCiphertext); // str_bookend="-----BEGIN" by default
+        ascArmor, strCiphertext);  // str_bookend="-----BEGIN" by default
 
     if (!bLoadedArmor || !ascArmor.Exists()) {
         otErr << __FUNCTION__ << ": Failure loading ciphertext envelope:\n\n"
@@ -738,30 +762,29 @@ bool OTSymmetricKey::Decrypt(const OTSymmetricKey& theKey,
 
     if (nullptr == pAlreadyHavePW) {
         const char* szDisplay = "Decrypting a password-protected ciphertext.";
-        const String strDisplay((nullptr == pstrDisplay) ? szDisplay
-                                                         : pstrDisplay->Get());
+        const String strDisplay(
+            (nullptr == pstrDisplay) ? szDisplay : pstrDisplay->Get());
 
         pPassUserInput.reset(OTSymmetricKey::GetPassphraseFromUser(
-            &strDisplay)); // bAskTwice=false by default.
+            &strDisplay));  // bAskTwice=false by default.
     }
 
     bool bSuccess = false;
 
-    if (pPassUserInput || // Success retrieving the passphrase from the
-        pAlreadyHavePW)   // user, or passphrase was provided out of scope.
+    if (pPassUserInput ||  // Success retrieving the passphrase from the
+        pAlreadyHavePW)    // user, or passphrase was provided out of scope.
     {
         OTEnvelope theEnvelope(ascArmor);
 
-        if (theEnvelope.Decrypt(strOutput, theKey, pPassUserInput
-                                                       ? *pPassUserInput
-                                                       : *pAlreadyHavePW)) {
+        if (theEnvelope.Decrypt(
+                strOutput,
+                theKey,
+                pPassUserInput ? *pPassUserInput : *pAlreadyHavePW)) {
             bSuccess = true;
-        }
-        else {
+        } else {
             otWarn << __FUNCTION__ << ": Failed trying to decrypt. (Sorry.)\n";
         }
-    }
-    else
+    } else
         otWarn
             << __FUNCTION__
             << ": Sorry, unable to retrieve passphrase from user. (Failure.)\n";
@@ -774,8 +797,8 @@ bool OTSymmetricKey::SerializeTo(String& strOutput, bool bEscaped) const
     OTASCIIArmor ascOutput;
 
     if (SerializeTo(ascOutput))
-        return ascOutput.WriteArmoredString(strOutput, "SYMMETRIC KEY",
-                                            bEscaped);
+        return ascOutput.WriteArmoredString(
+            strOutput, "SYMMETRIC KEY", bEscaped);
 
     return false;
 }
@@ -785,8 +808,10 @@ bool OTSymmetricKey::SerializeFrom(const String& strInput, bool bEscaped)
     OTASCIIArmor ascInput;
 
     if (strInput.Exists() &&
-        ascInput.LoadFromString(const_cast<String&>(strInput), bEscaped,
-                                "-----BEGIN OT ARMORED SYMMETRIC KEY")) {
+        ascInput.LoadFromString(
+            const_cast<String&>(strInput),
+            bEscaped,
+            "-----BEGIN OT ARMORED SYMMETRIC KEY")) {
         return SerializeFrom(ascInput);
     }
 
@@ -835,47 +860,54 @@ bool OTSymmetricKey::SerializeTo(Data& theOutput) const
            << "   key_size_bits: "
            << static_cast<int32_t>(ntohs(n_key_size_bits))
            << "   iteration_count: "
-           << static_cast<int64_t>(ntohl(n_iteration_count))
-           << "   \n  "
-              "salt_size: " << static_cast<int64_t>(ntohl(n_salt_size))
+           << static_cast<int64_t>(ntohl(n_iteration_count)) << "   \n  "
+                                                                "salt_size: "
+           << static_cast<int64_t>(ntohl(n_salt_size))
            << "   iv_size: " << static_cast<int64_t>(ntohl(n_iv_size))
            << "   enc_key_size: " << static_cast<int64_t>(ntohl(n_enc_key_size))
            << "   \n";
 
-    theOutput.Concatenate(reinterpret_cast<void*>(&n_is_generated),
-                          static_cast<uint32_t>(sizeof(n_is_generated)));
+    theOutput.Concatenate(
+        reinterpret_cast<void*>(&n_is_generated),
+        static_cast<uint32_t>(sizeof(n_is_generated)));
 
-    theOutput.Concatenate(reinterpret_cast<void*>(&n_key_size_bits),
-                          static_cast<uint32_t>(sizeof(n_key_size_bits)));
+    theOutput.Concatenate(
+        reinterpret_cast<void*>(&n_key_size_bits),
+        static_cast<uint32_t>(sizeof(n_key_size_bits)));
 
-    theOutput.Concatenate(reinterpret_cast<void*>(&n_iteration_count),
-                          static_cast<uint32_t>(sizeof(n_iteration_count)));
+    theOutput.Concatenate(
+        reinterpret_cast<void*>(&n_iteration_count),
+        static_cast<uint32_t>(sizeof(n_iteration_count)));
 
-    theOutput.Concatenate(reinterpret_cast<void*>(&n_salt_size),
-                          static_cast<uint32_t>(sizeof(n_salt_size)));
+    theOutput.Concatenate(
+        reinterpret_cast<void*>(&n_salt_size),
+        static_cast<uint32_t>(sizeof(n_salt_size)));
 
     OT_ASSERT(nullptr != m_dataSalt.GetPointer());
     theOutput.Concatenate(m_dataSalt.GetPointer(), m_dataSalt.GetSize());
 
-    theOutput.Concatenate(reinterpret_cast<void*>(&n_iv_size),
-                          static_cast<uint32_t>(sizeof(n_iv_size)));
+    theOutput.Concatenate(
+        reinterpret_cast<void*>(&n_iv_size),
+        static_cast<uint32_t>(sizeof(n_iv_size)));
 
     OT_ASSERT(nullptr != m_dataIV.GetPointer());
     theOutput.Concatenate(m_dataIV.GetPointer(), m_dataIV.GetSize());
 
-    theOutput.Concatenate(reinterpret_cast<void*>(&n_enc_key_size),
-                          static_cast<uint32_t>(sizeof(n_enc_key_size)));
+    theOutput.Concatenate(
+        reinterpret_cast<void*>(&n_enc_key_size),
+        static_cast<uint32_t>(sizeof(n_enc_key_size)));
 
     OT_ASSERT(nullptr != m_dataEncryptedKey.GetPointer());
-    theOutput.Concatenate(m_dataEncryptedKey.GetPointer(),
-                          m_dataEncryptedKey.GetSize());
+    theOutput.Concatenate(
+        m_dataEncryptedKey.GetPointer(), m_dataEncryptedKey.GetSize());
 
-    theOutput.Concatenate(reinterpret_cast<void*>(&n_hash_check_size),
-                          static_cast<uint32_t>(sizeof(n_hash_check_size)));
+    theOutput.Concatenate(
+        reinterpret_cast<void*>(&n_hash_check_size),
+        static_cast<uint32_t>(sizeof(n_hash_check_size)));
 
     OT_ASSERT(nullptr != m_dataHashCheck.GetPointer());
-    theOutput.Concatenate(m_dataHashCheck.GetPointer(),
-                          m_dataHashCheck.GetSize());
+    theOutput.Concatenate(
+        m_dataHashCheck.GetPointer(), m_dataHashCheck.GetSize());
 
     return true;
 }
@@ -983,9 +1015,10 @@ bool OTSymmetricKey::SerializeFrom(Data& theInput)
     //
     m_dataSalt.SetSize(lSaltSize);
 
-    if (0 == (nRead = theInput.OTfread(static_cast<uint8_t*>(const_cast<void*>(
-                                           m_dataSalt.GetPointer())),
-                                       static_cast<uint32_t>(lSaltSize)))) {
+    if (0 ==
+        (nRead = theInput.OTfread(
+             static_cast<uint8_t*>(const_cast<void*>(m_dataSalt.GetPointer())),
+             static_cast<uint32_t>(lSaltSize)))) {
         otErr << szFunc << ": Error reading salt for symmetric key.\n";
         return false;
     }
@@ -998,9 +1031,9 @@ bool OTSymmetricKey::SerializeFrom(Data& theInput)
     //
     uint32_t n_iv_size = 0;
 
-    if (0 ==
-        (nRead = theInput.OTfread(reinterpret_cast<uint8_t*>(&n_iv_size),
-                                  static_cast<uint32_t>(sizeof(n_iv_size))))) {
+    if (0 == (nRead = theInput.OTfread(
+                  reinterpret_cast<uint8_t*>(&n_iv_size),
+                  static_cast<uint32_t>(sizeof(n_iv_size))))) {
         otErr << szFunc << ": Error reading n_iv_size.\n";
         return false;
     }
@@ -1018,9 +1051,10 @@ bool OTSymmetricKey::SerializeFrom(Data& theInput)
     //
     m_dataIV.SetSize(lIVSize);
 
-    if (0 == (nRead = theInput.OTfread(static_cast<uint8_t*>(const_cast<void*>(
-                                           m_dataIV.GetPointer())),
-                                       static_cast<uint32_t>(lIVSize)))) {
+    if (0 ==
+        (nRead = theInput.OTfread(
+             static_cast<uint8_t*>(const_cast<void*>(m_dataIV.GetPointer())),
+             static_cast<uint32_t>(lIVSize)))) {
         otErr << szFunc << ": Error reading IV for symmetric key.\n";
         return false;
     }
@@ -1055,9 +1089,10 @@ bool OTSymmetricKey::SerializeFrom(Data& theInput)
     //
     m_dataEncryptedKey.SetSize(lEncKeySize);
 
-    if (0 == (nRead = theInput.OTfread(static_cast<uint8_t*>(const_cast<void*>(
-                                           m_dataEncryptedKey.GetPointer())),
-                                       static_cast<uint32_t>(lEncKeySize)))) {
+    if (0 == (nRead = theInput.OTfread(
+                  static_cast<uint8_t*>(
+                      const_cast<void*>(m_dataEncryptedKey.GetPointer())),
+                  static_cast<uint32_t>(lEncKeySize)))) {
         otErr << szFunc << ": Error reading encrypted symmetric key.\n";
         return false;
     }
@@ -1094,10 +1129,10 @@ bool OTSymmetricKey::SerializeFrom(Data& theInput)
     //
     m_dataHashCheck.SetSize(lHashCheckSize);
 
-    if (0 ==
-        (nRead = theInput.OTfread(static_cast<uint8_t*>(const_cast<void*>(
-                                      m_dataHashCheck.GetPointer())),
-                                  static_cast<uint32_t>(lHashCheckSize)))) {
+    if (0 == (nRead = theInput.OTfread(
+                  static_cast<uint8_t*>(
+                      const_cast<void*>(m_dataHashCheck.GetPointer())),
+                  static_cast<uint32_t>(lHashCheckSize)))) {
         otErr << szFunc << ": Error reading hash check data.\n";
         return false;
     }
@@ -1117,7 +1152,7 @@ OTSymmetricKey::OTSymmetricKey()
     : m_bIsGenerated(false)
     , m_bHasHashCheck(false)
     , m_nKeySize(CryptoConfig::SymmetricKeySize() * 8)
-    , // 128 (in bits)
+    ,  // 128 (in bits)
     m_uIterationCount(CryptoConfig::IterationCount())
 {
 }
@@ -1126,23 +1161,20 @@ OTSymmetricKey::OTSymmetricKey(const OTPassword& thePassword)
     : m_bIsGenerated(false)
     , m_bHasHashCheck(false)
     , m_nKeySize(CryptoConfig::SymmetricKeySize() * 8)
-    , // 128 (in bits)
+    ,  // 128 (in bits)
     m_uIterationCount(CryptoConfig::IterationCount())
 {
     //  const bool bGenerated =
     GenerateKey(thePassword);
 }
 
-OTSymmetricKey::~OTSymmetricKey()
-{
-    Release_SymmetricKey();
-}
+OTSymmetricKey::~OTSymmetricKey() { Release_SymmetricKey(); }
 
 void OTSymmetricKey::Release_SymmetricKey()
 {
     m_bIsGenerated = false;
     m_uIterationCount = CryptoConfig::IterationCount();
-    m_nKeySize = CryptoConfig::SymmetricKeySize() * 8; // 128 (in bits)
+    m_nKeySize = CryptoConfig::SymmetricKeySize() * 8;  // 128 (in bits)
 
     m_dataSalt.Release();
     m_dataIV.Release();
@@ -1157,4 +1189,4 @@ void OTSymmetricKey::Release()
     // (currently with no children...)
 }
 
-} // namespace opentxs
+}  // namespace opentxs
