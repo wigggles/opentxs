@@ -4553,6 +4553,10 @@ public:
 
     EXPORT static bool CheckConnection(const std::string& server);
 
+    EXPORT static bool ChangeConnectionType(
+        const std::string& server,
+        const std::uint32_t type);
+
     EXPORT static std::string AddChildEd25519Credential(
         const std::string& nymID,
         const std::string& masterID);

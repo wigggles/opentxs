@@ -50,11 +50,14 @@
 #include "opentxs/core/crypto/OTCachedKey.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/NumList.hpp"
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/Types.hpp"
+#include "opentxs/network/ServerConnection.hpp"
+#include "opentxs/network/ZMQ.hpp"
 #include "opentxs/storage/Storage.hpp"
 
 #include <stdint.h>
@@ -3355,6 +3358,22 @@ void OTAPI_Wrap::SetZMQKeepAlive(const std::uint64_t seconds)
 bool OTAPI_Wrap::CheckConnection(const std::string& server)
 {
     return Exec()->CheckConnection(server);
+}
+
+bool OTAPI_Wrap::ChangeConnectionType(
+    const std::string& server,
+    const std::uint32_t type)
+{
+    Identifier serverID(server);
+
+    if (serverID.empty()) {
+
+        return false;
+    }
+
+    auto& connection = OT::App().ZMQ().Server(server);
+
+    return connection.ChangeAddressType(static_cast<proto::AddressType>(type));
 }
 
 std::string OTAPI_Wrap::AddChildEd25519Credential(
