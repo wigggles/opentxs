@@ -42,6 +42,10 @@
 #include <cstddef>
 #include <exception>
 
+#define OT_TRACE                                                               \
+    {                                                                          \
+        Assert::doAssert(__FILE__, __LINE__, nullptr);                         \
+    };
 #define OT_FAIL                                                                \
     {                                                                          \
         Assert::doAssert(__FILE__, __LINE__, nullptr);                         \
@@ -52,7 +56,6 @@
         Assert::doAssert(__FILE__, __LINE__, (s));                             \
         std::terminate();                                                      \
     };
-
 #define OT_ASSERT(x)                                                           \
     if (false == static_cast<bool>(x)) {                                       \
         Assert::doAssert(__FILE__, __LINE__, nullptr);                         \
@@ -80,7 +83,7 @@ public:
 
     EXPORT Assert(fpt_Assert_sz_n_sz& fp1);
 
-    EXPORT static fpt_Assert_sz_n_sz(doAssert); // assert
+    EXPORT static fpt_Assert_sz_n_sz(doAssert);  // assert
 };
 
-#endif // OPENTXS_CORE_ASSERT_HPP
+#endif  // OPENTXS_CORE_ASSERT_HPP
