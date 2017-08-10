@@ -415,11 +415,22 @@ Messagability OTME_too::can_message(
         return Messagability::CONTACT_LACKS_NYM;
     }
 
-    const auto& recipientNymID = *nyms.begin();
-    auto recipientNym = wallet_.Nym(Identifier(recipientNymID));
+    std::shared_ptr<const Nym> recipientNym{nullptr};
+    Identifier recipientNymID{};
+
+    for (const auto& it : nyms) {
+        recipientNym = wallet_.Nym(it);
+
+        if (recipientNym) {
+            recipientNymID = it;
+            break;
+        }
+    }
 
     if (false == bool(recipientNym)) {
-        mailability(senderNymID, String(recipientNymID).Get());
+        for (const auto& id : nyms) {
+            mailability(senderNymID, String(id).Get());
+        }
 
         return Messagability::MISSING_RECIPIENT;
     }
@@ -1439,8 +1450,25 @@ void OTME_too::message_contact(
         return;
     }
 
+    std::shared_ptr<const Nym> recipientNym{nullptr};
+    Identifier recipientNymID{};
+
+    for (const auto& it : nyms) {
+        recipientNym = wallet_.Nym(it);
+
+        if (recipientNym) {
+            recipientNymID = it;
+            break;
+        }
+    }
+
+    if (false == bool(recipientNym)) {
+
+        return;
+    }
+
     const auto result = otme_.send_user_msg(
-        server, senderNymID, String(*nyms.begin()).Get(), message);
+        server, senderNymID, String(recipientNymID).Get(), message);
     const bool success = (1 == otme_.VerifyMessageSuccess(result));
     exitStatus->store(success);
 }
