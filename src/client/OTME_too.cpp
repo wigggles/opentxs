@@ -1448,6 +1448,8 @@ void OTME_too::message_contact(
     const auto contact = contacts_.Contact(Identifier(contactID));
 
     if (false == bool(contact)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Contact does not exist."
+              << std::endl;
 
         return;
     }
@@ -1455,6 +1457,8 @@ void OTME_too::message_contact(
     const auto nyms = contact->Nyms();
 
     if (0 == nyms.size()) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Contact does not have a nym id." << std::endl;
 
         return;
     }
@@ -1472,6 +1476,8 @@ void OTME_too::message_contact(
     }
 
     if (false == bool(recipientNym)) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Recipient nym credentials not found." << std::endl;
 
         return;
     }
@@ -1480,6 +1486,11 @@ void OTME_too::message_contact(
         server, senderNymID, String(recipientNymID).Get(), message);
     const bool success = (1 == otme_.VerifyMessageSuccess(result));
     exitStatus->store(success);
+
+    if (false == success) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to message nym "
+              << String(recipientNymID) << " on server " << server << std::endl;
+    }
 }
 
 Identifier OTME_too::MessageContact(
