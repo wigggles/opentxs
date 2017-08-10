@@ -2377,6 +2377,22 @@ void OTME_too::Refresh(const std::string&)
     }
 }
 
+void OTME_too::register_nym(
+    const std::string& nymID,
+    const std::string& server,
+    std::atomic<bool>* running,
+    std::atomic<bool>* exitStatus)
+{
+    OT_ASSERT(nullptr != running)
+    OT_ASSERT(nullptr != exitStatus)
+
+    Cleanup threadStatus(*running);
+    exitStatus->store(false);
+    const auto result = otme_.register_nym(server, nymID);
+    const bool registered = (1 == otme_.VerifyMessageSuccess(result));
+    exitStatus->store(registered);
+}
+
 bool OTME_too::RegisterNym(
     const std::string& nymID,
     const std::string& server,
@@ -2387,18 +2403,26 @@ bool OTME_too::RegisterNym(
     }
 
     const auto result = otme_.register_nym(server, nymID);
-
-    if (!yield()) {
-        return false;
-    }
-
     const bool registered = (1 == otme_.VerifyMessageSuccess(result));
 
-    if (!yield()) {
-        return false;
+    return registered;
+}
+
+Identifier OTME_too::RegisterNym_async(
+    const std::string& nymID,
+    const std::string& server,
+    const bool setContactData)
+{
+    if (setContactData) {
+        publish_server_registration(nymID, server, false);
     }
 
-    return registered;
+    OTME_too::BackgroundThread thread =
+        [=](std::atomic<bool>* running, std::atomic<bool>* exit) -> void {
+        register_nym(nymID, server, running, exit);
+    };
+
+    return add_background_thread(thread);
 }
 
 std::uint64_t OTME_too::RefreshCount() const { return refresh_count_.load(); }

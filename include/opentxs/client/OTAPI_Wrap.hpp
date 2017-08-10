@@ -4648,6 +4648,11 @@ public:
         const std::string& nym,
         const std::string& server);
 
+    /// Registers nym and updates public contact data, background thread
+    EXPORT static std::string Register_Nym_Public_async(
+        const std::string& nym,
+        const std::string& server);
+
     EXPORT static std::string Set_Introduction_Server(
         const std::string& contract);
 

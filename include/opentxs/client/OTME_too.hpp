@@ -287,6 +287,11 @@ private:
         const bool forcePrimary) const;
     void refresh_contacts(nymAccountMap& nymsToCheck);
     void refresh_thread();
+    void register_nym(
+        const std::string& nym,
+        const std::string& server,
+        std::atomic<bool>* running,
+        std::atomic<bool>* exitStatus);
     bool request_connection(
         const std::string& nym,
         const std::string& server,
@@ -386,6 +391,10 @@ public:
         const std::string& nymID,
         const std::string& server,
         const bool setContactData) const;
+    Identifier RegisterNym_async(
+        const std::string& nymID,
+        const std::string& server,
+        const bool setContactData);
     bool RequestConnection(
         const std::string& nym,
         const std::string& node,

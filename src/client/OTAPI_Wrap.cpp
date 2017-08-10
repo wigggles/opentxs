@@ -3628,6 +3628,16 @@ bool OTAPI_Wrap::Register_Nym_Public(
     return OT::App().API().OTME_TOO().RegisterNym(nym, server, true);
 }
 
+std::string OTAPI_Wrap::Register_Nym_Public_async(
+    const std::string& nym,
+    const std::string& server)
+{
+    const auto taskID =
+        OT::App().API().OTME_TOO().RegisterNym_async(nym, server, true);
+
+    return String(taskID).Get();
+}
+
 bool OTAPI_Wrap::Rename_Contact(const std::string& id, const std::string& name)
 {
     auto contact = OT::App().Contact().mutable_Contact(Identifier(id));
