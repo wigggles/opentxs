@@ -42,6 +42,7 @@
 
 #include "opentxs/api/Activity.hpp"
 #include "opentxs/api/Api.hpp"
+#include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Identity.hpp"
 #include "opentxs/api/OT.hpp"
 #include "opentxs/api/Wallet.hpp"
@@ -669,6 +670,8 @@ std::string OTAPI_Exec::CreateNymHD(
     pNym->SetAlias(name);
     pNym->SaveSignedNymfile(*pSignerNym);
     pWallet->SaveWallet();
+    OT::App().Contact().NewContact(
+        name, pNym->ID(), PaymentCode(pNym->PaymentCode()));
 
     return id;
 #else
