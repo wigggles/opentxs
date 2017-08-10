@@ -829,8 +829,8 @@ void OTME_too::establish_mailability(
     auto recipientNym = wallet_.Nym(Identifier(recipient));
 
     if (!recipientNym) {
-        otInfo << OT_METHOD << __FUNCTION__ << ": Searching for recipient nym."
-               << std::endl;
+        otErr << OT_METHOD << __FUNCTION__ << ": Searching for recipient nym "
+              << recipient << std::endl;
 
         FindNym(recipient, "");
 
@@ -841,9 +841,9 @@ void OTME_too::establish_mailability(
     const auto serverID = claims.PreferredOTServer();
     const std::string server = String(serverID).Get();
 
-    if (server.empty()) {
-        otInfo << OT_METHOD << __FUNCTION__
-               << ": Searching for server contract." << std::endl;
+    if (false == server.empty()) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Searching for server contract"
+              << server << std::endl;
 
         FindServer(server);
 
@@ -854,9 +854,9 @@ void OTME_too::establish_mailability(
 
     bool exit = false;
 
-    if (!registered) {
-        otInfo << OT_METHOD << __FUNCTION__ << ": Registering on target server."
-               << std::endl;
+    if (false == registered) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Registering on target server "
+              << server << std::endl;
 
         exit = RegisterNym(sender, server, true);
     }
@@ -1130,6 +1130,12 @@ void OTME_too::find_nym(
         }
     }
 
+    if (0 == serverList.size()) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": No servers available to search for nym " << remoteNymID
+              << std::endl;
+    }
+
     for (const auto& it : serverList) {
         const auto& serverID = it.first;
         const auto& nymID = it.second;
@@ -1138,11 +1144,14 @@ void OTME_too::find_nym(
         const bool found = (1 == otme_.VerifyMessageSuccess(response));
 
         if (found) {
-            otErr << __FUNCTION__ << ": nym " << remoteNymID << " found on "
-                  << serverID << "." << std::endl;
+            otErr << OT_METHOD << __FUNCTION__ << ": nym " << remoteNymID
+                  << " found on " << serverID << "." << std::endl;
             exitStatus->store(true);
 
             break;
+        } else {
+            otErr << OT_METHOD << __FUNCTION__ << ": nym " << remoteNymID
+                  << " not found on " << serverID << "." << std::endl;
         }
 
         if (shutdown_.load()) {
