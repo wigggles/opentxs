@@ -1043,5 +1043,16 @@ void OTCachedKey::UseSystemKeyring(const bool bUsing) const
     use_system_keyring_.store(bUsing);
 }
 
-OTCachedKey::~OTCachedKey() { LowLevelReleaseThread(); }
+OTCachedKey::~OTCachedKey()
+{
+    Lock outer(outer_lock_, std::defer_lock);
+    Lock inner(inner_lock_, std::defer_lock);
+    std::lock(outer, inner);
+
+    shutdown_.store(true);
+
+    if ((false == thread_exited_.load()) && thread_ && thread_->joinable()) {
+        thread_->join();
+    }
+}
 }  // namespace opentxs
