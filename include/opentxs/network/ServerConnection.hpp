@@ -75,6 +75,7 @@ private:
     std::unique_ptr<std::thread> thread_{nullptr};
     std::atomic<std::time_t> last_activity_{0};
     std::atomic<bool> status_{false};
+    std::atomic<bool> use_proxy_{true};
 
     std::string GetRemoteEndpoint(
         const std::string& server,
@@ -103,6 +104,8 @@ private:
 
 public:
     bool ChangeAddressType(const proto::AddressType type);
+    bool ClearProxy();
+    bool EnableProxy();
     NetworkReplyRaw Send(const std::string& message);
     NetworkReplyString Send(const String& message);
     NetworkReplyMessage Send(const Message& message);

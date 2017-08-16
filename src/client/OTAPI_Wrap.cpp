@@ -3376,6 +3376,20 @@ bool OTAPI_Wrap::ChangeConnectionType(
     return connection.ChangeAddressType(static_cast<proto::AddressType>(type));
 }
 
+bool OTAPI_Wrap::ClearProxy(const std::string& server)
+{
+    Identifier serverID(server);
+
+    if (serverID.empty()) {
+
+        return false;
+    }
+
+    auto& connection = OT::App().ZMQ().Server(server);
+
+    return connection.ClearProxy();
+}
+
 std::string OTAPI_Wrap::AddChildEd25519Credential(
     const std::string& nymID,
     const std::string& masterID)

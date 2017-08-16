@@ -4557,6 +4557,8 @@ public:
         const std::string& server,
         const std::uint32_t type);
 
+    EXPORT static bool ClearProxy(const std::string& server);
+
     EXPORT static std::string AddChildEd25519Credential(
         const std::string& nymID,
         const std::string& masterID);

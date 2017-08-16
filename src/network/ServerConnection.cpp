@@ -76,6 +76,7 @@ ServerConnection::ServerConnection(
     , thread_(nullptr)
     , last_activity_(0)
     , status_(false)
+    , use_proxy_(true)
 {
     shutdown_.store(false);
 
@@ -113,6 +114,29 @@ bool ServerConnection::ChangeAddressType(const proto::AddressType type)
     endpoint = "tcp://" + hostname + ":" + std::to_string(port);
     otErr << OT_METHOD << __FUNCTION__
           << ": Changing endpoint to: " << remote_endpoint_ << std::endl;
+    ResetSocket();
+
+    return true;
+}
+
+bool ServerConnection::ClearProxy()
+{
+    Lock lock(*lock_);
+
+    use_proxy_.store(false);
+    ResetSocket();
+
+    return true;
+}
+
+bool ServerConnection::EnableProxy()
+{
+    Lock lock(*lock_);
+
+    use_proxy_.store(true);
+
+    OT_ASSERT(nullptr != request_socket_);
+
     ResetSocket();
 
     return true;
@@ -310,7 +334,7 @@ void ServerConnection::SetProxy()
 {
     std::string proxy;
 
-    if (zmq_.SocksProxy(proxy)) {
+    if (zmq_.SocksProxy(proxy) && use_proxy_.load()) {
         OT_ASSERT(nullptr != request_socket_);
 
         zsock_set_socks_proxy(request_socket_, proxy.c_str());
