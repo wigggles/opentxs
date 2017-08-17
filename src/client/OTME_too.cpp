@@ -91,6 +91,7 @@
 #define CONTACT_REVISION_KEY "revision"
 #define CONTACT_LABEL_KEY "label"
 #define CONTACT_REFRESH_DAYS 1
+#define SERVER_NYM_INTERVAL 10
 #define ALL_SERVERS "all"
 
 #define OT_METHOD "opentxs::OTME_too::"
@@ -181,6 +182,7 @@ OTME_too::OTME_too(
     , refreshing_(false)
     , shutdown_(false)
     , introduction_server_set_(false)
+    , need_server_nyms_(false)
     , refresh_count_(0)
 {
     scan_pairing();
@@ -764,18 +766,16 @@ void OTME_too::clean_background_threads()
     }
 }
 
-std::uint64_t OTME_too::legacy_contact_count() const
+bool OTME_too::do_i_download_server_nym() const
 {
-    std::int64_t result = 0;
-    bool notUsed = false;
-    std::lock_guard<std::recursive_mutex> apiLock(api_lock_);
-    config_.Check_long(MASTER_SECTION, CONTACT_COUNT_KEY, result, notUsed);
+    if (need_server_nyms_.load()) {
 
-    if (1 > result) {
-        return 0;
+        return true;
     }
 
-    return result;
+    const bool output = (0 == (refresh_count_.load() % SERVER_NYM_INTERVAL));
+
+    return output;
 }
 
 bool OTME_too::download_nym(
@@ -1359,6 +1359,20 @@ std::string OTME_too::ImportNym(const std::string& input) const
     }
 
     return {};
+}
+
+std::uint64_t OTME_too::legacy_contact_count() const
+{
+    std::int64_t result = 0;
+    bool notUsed = false;
+    std::lock_guard<std::recursive_mutex> apiLock(api_lock_);
+    config_.Check_long(MASTER_SECTION, CONTACT_COUNT_KEY, result, notUsed);
+
+    if (1 > result) {
+        return 0;
+    }
+
+    return result;
 }
 
 void OTME_too::load_introduction_server() const
@@ -2289,7 +2303,7 @@ void OTME_too::refresh_thread()
           << std::endl;
 
     for (const auto server : accounts) {
-        bool updateServerNym = true;
+        bool updateServerNym = do_i_download_server_nym();
         const auto& serverID = server.first;
         const auto& tasks = server.second;
         const auto& accountList = tasks.first;
@@ -2741,6 +2755,9 @@ std::string OTME_too::set_introduction_server(
 
 void OTME_too::set_server_names(const ServerNameData& servers)
 {
+    const auto serverCount = servers.size();
+    std::size_t goodServers{0};
+
     for (const auto server : servers) {
         const auto& notaryID = server.first;
         const auto& myNymID = std::get<0>(server.second);
@@ -2764,6 +2781,7 @@ void OTME_too::set_server_names(const ServerNameData& servers)
 
         if (localName == originalName) {
             // Never attempted to rename this server. Nothing to do
+            goodServers++;
             continue;
         }
 
@@ -2781,6 +2799,7 @@ void OTME_too::set_server_names(const ServerNameData& servers)
                     return;
                 }
 
+                goodServers++;
                 done = true;
             }
 
@@ -2815,6 +2834,8 @@ void OTME_too::set_server_names(const ServerNameData& servers)
             mark_renamed(bridgeNymID);
         }
     }
+
+    need_server_nyms_.store(serverCount != goodServers);
 }
 
 std::string OTME_too::SetIntroductionServer(const std::string& contract) const

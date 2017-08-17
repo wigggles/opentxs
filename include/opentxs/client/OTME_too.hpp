@@ -145,6 +145,7 @@ private:
     mutable std::atomic<bool> refreshing_{false};
     mutable std::atomic<bool> shutdown_{false};
     mutable std::atomic<bool> introduction_server_set_{false};
+    mutable std::atomic<bool> need_server_nyms_{false};
     mutable std::atomic<std::uint64_t> refresh_count_{0};
     mutable std::mutex pair_initiate_lock_;
     mutable std::mutex pair_lock_;
@@ -182,6 +183,7 @@ private:
         const bool force,
         const bool publish) const;
     void clean_background_threads();
+    bool do_i_download_server_nym() const;
     bool download_nym(
         const std::string& localNym,
         const std::string& remoteNym,

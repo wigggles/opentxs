@@ -446,20 +446,25 @@ std::shared_ptr<const class Contact> ContactManager::Update(
             Contact::ExtractLabel(*nym),
             nymID,
             PaymentCode(nym->PaymentCode()));
-    } else {
-        const auto& contactID = it->second;
-        auto contact = obtain_contact(lock, contactID);
-
-        OT_ASSERT(contact_map_.end() != contact);
-
-        auto& output = contact->second.second;
-
-        OT_ASSERT(output);
-
-        output->Update(serialized);
-
-        return output;
     }
+
+    const auto& contactID = it->second;
+
+    {
+        auto contact = mutable_contact(lock, contactID);
+        contact->It().Update(serialized);
+        contact.reset();
+    }
+
+    auto contact = obtain_contact(lock, contactID);
+
+    OT_ASSERT(contact_map_.end() != contact);
+
+    auto& output = contact->second.second;
+
+    OT_ASSERT(output);
+
+    return output;
 }
 
 std::shared_ptr<const class Contact> ContactManager::update_existing_contact(
