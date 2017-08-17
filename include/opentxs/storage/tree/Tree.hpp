@@ -55,6 +55,7 @@ class Storage;
 namespace storage
 {
 
+class Contacts;
 class Credentials;
 class Nyms;
 class Root;
@@ -68,39 +69,42 @@ private:
     friend class opentxs::Storage;
     friend class Root;
 
-    std::string credential_root_;
-    std::string nym_root_;
-    std::string seed_root_;
-    std::string server_root_;
-    std::string unit_root_;
+    std::string contact_root_{Node::BLANK_HASH};
+    std::string credential_root_{Node::BLANK_HASH};
+    std::string nym_root_{Node::BLANK_HASH};
+    std::string seed_root_{Node::BLANK_HASH};
+    std::string server_root_{Node::BLANK_HASH};
+    std::string unit_root_{Node::BLANK_HASH};
 
-    mutable std::mutex credential_lock_;
-    mutable std::unique_ptr<Credentials> credentials_;
-    mutable std::mutex nym_lock_;
-    mutable std::unique_ptr<Nyms> nyms_;
-    mutable std::mutex seed_lock_;
-    mutable std::unique_ptr<Seeds> seeds_;
-    mutable std::mutex server_lock_;
-    mutable std::unique_ptr<Servers> servers_;
-    mutable std::mutex unit_lock_;
-    mutable std::unique_ptr<Units> units_;
+    mutable std::mutex contact_lock_{};
+    mutable std::unique_ptr<Contacts> contacts_{nullptr};
+    mutable std::mutex credential_lock_{};
+    mutable std::unique_ptr<Credentials> credentials_{nullptr};
+    mutable std::mutex nym_lock_{};
+    mutable std::unique_ptr<Nyms> nyms_{nullptr};
+    mutable std::mutex seed_lock_{};
+    mutable std::unique_ptr<Seeds> seeds_{nullptr};
+    mutable std::mutex server_lock_{};
+    mutable std::unique_ptr<Servers> servers_{nullptr};
+    mutable std::mutex unit_lock_{};
+    mutable std::unique_ptr<Units> units_{nullptr};
 
+    Contacts* contacts() const;
     Credentials* credentials() const;
     Nyms* nyms() const;
     Seeds* seeds() const;
     Servers* servers() const;
     Units* units() const;
 
-    void save(
-        Credentials* credentials,
-        const std::unique_lock<std::mutex>& lock);
-    void save(Nyms* nyms, const std::unique_lock<std::mutex>& lock);
-    void save(Seeds* seeds, const std::unique_lock<std::mutex>& lock);
-    void save(Servers* servers, const std::unique_lock<std::mutex>& lock);
-    void save(Units* units, const std::unique_lock<std::mutex>& lock);
+    void save(Contacts* contacts, const Lock& lock);
+    void save(Credentials* credentials, const Lock& lock);
+    void save(Nyms* nyms, const Lock& lock);
+    void save(Seeds* seeds, const Lock& lock);
+    void save(Servers* servers, const Lock& lock);
+    void save(Units* units, const Lock& lock);
 
     void init(const std::string& hash) override;
-    bool save(const std::unique_lock<std::mutex>& lock) const override;
+    bool save(const Lock& lock) const override;
     proto::StorageItems serialize() const;
     bool update_root(const std::string& hash);
 
@@ -112,12 +116,14 @@ private:
     Tree operator=(Tree&&) = delete;
 
 public:
+    const Contacts& ContactNode() const;
     const Credentials& CredentialNode() const;
     const Nyms& NymNode() const;
     const Seeds& SeedNode() const;
     const Servers& ServerNode() const;
     const Units& UnitNode() const;
 
+    Editor<Contacts> mutable_Contacts();
     Editor<Credentials> mutable_Credentials();
     Editor<Nyms> mutable_Nyms();
     Editor<Seeds> mutable_Seeds();

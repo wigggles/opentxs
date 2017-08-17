@@ -69,10 +69,37 @@ std::string ContactCredential::ClaimID(
     preimage.set_end(item.end());
     preimage.set_value(item.value());
 
+    return String(ClaimID(preimage)).Get();
+}
+
+// static
+std::string ContactCredential::ClaimID(
+    const std::string& nymid,
+    const proto::ContactSectionName section,
+    const proto::ContactItemType type,
+    const std::int64_t start,
+    const std::int64_t end,
+    const std::string& value)
+{
+    proto::Claim preimage;
+    preimage.set_version(1);
+    preimage.set_nymid(nymid);
+    preimage.set_section(section);
+    preimage.set_type(type);
+    preimage.set_start(start);
+    preimage.set_end(end);
+    preimage.set_value(value);
+
+    return String(ClaimID(preimage)).Get();
+}
+
+// static
+Identifier ContactCredential::ClaimID(const proto::Claim& preimage)
+{
     Identifier output;
     output.CalculateDigest(proto::ProtoAsData<proto::Claim>(preimage));
 
-    return String(output).Get();
+    return output;
 }
 
 // static
@@ -109,7 +136,7 @@ ContactCredential::ContactCredential(
 ContactCredential::ContactCredential(
     CredentialSet& parent,
     const NymParameters& nymParameters)
-    : ot_super(parent, 2, nymParameters)
+    : ot_super(parent, CONTACT_DATA_VERSION, nymParameters)
 {
     mode_ = proto::KEYMODE_NULL;
     role_ = proto::CREDROLE_CONTACT;

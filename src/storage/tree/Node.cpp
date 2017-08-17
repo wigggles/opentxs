@@ -76,6 +76,21 @@ bool Node::delete_item(const std::string& id)
     return save(lock);
 }
 
+std::uint64_t Node::extract_revision(const proto::Contact& input) const
+{
+    return input.revision();
+}
+
+std::uint64_t Node::extract_revision(const proto::CredentialIndex& input) const
+{
+    return input.revision();
+}
+
+std::uint64_t Node::extract_revision(const proto::Seed& input) const
+{
+    return input.index();
+}
+
 std::string Node::get_alias(const std::string& id) const
 {
     std::string output;

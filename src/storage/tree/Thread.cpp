@@ -62,7 +62,7 @@ Thread::Thread(
     , index_(0)
     , mail_inbox_(mailInbox)
     , mail_outbox_(mailOutbox)
-    , participants_({id})
+    , participants_()
 {
     if (check_hash(hash)) {
         init(hash);
@@ -74,10 +74,12 @@ Thread::Thread(
 
 Thread::Thread(
     const StorageDriver& storage,
+    const std::string& id,
     const std::set<std::string>& participants,
     Mailbox& mailInbox,
     Mailbox& mailOutbox)
     : Node(storage, Node::BLANK_HASH)
+    , id_(id)
     , mail_inbox_(mailInbox)
     , mail_outbox_(mailOutbox)
     , participants_(participants)
@@ -167,6 +169,10 @@ void Thread::init(const std::string& hash)
         version_ = 1;
     }
 
+    for (const auto& participant : serialized->participant()) {
+        participants_.emplace(participant);
+    }
+
     for (const auto& it : serialized->item()) {
         const auto& index = it.index();
         items_.emplace(it.id(), it);
@@ -184,25 +190,7 @@ bool Thread::Check(const std::string& id) const
     return items_.end() != items_.find(id);
 }
 
-std::string Thread::ID() const
-{
-    std::unique_lock<std::mutex> lock(write_lock_);
-
-    if (id_.empty()) {
-        String plaintext;
-
-        for (const auto& id : participants_) {
-            plaintext.Concatenate(String(id.c_str()));
-        }
-
-        Identifier id;
-        id.CalculateDigest(plaintext);
-
-        id_ = String(id).Get();
-    }
-
-    return id_;
-}
+std::string Thread::ID() const { return id_; }
 
 proto::StorageThread Thread::Items() const
 {
@@ -257,6 +245,20 @@ bool Thread::Remove(const std::string& id)
         default: {
             std::cerr << __FUNCTION__ << ": Warning: unknown box." << std::endl;
         }
+    }
+
+    return save(lock);
+}
+
+bool Thread::Rename(const std::string& newID)
+{
+    Lock lock(write_lock_);
+    const auto oldID = id_;
+    id_ = newID;
+
+    if (0 != participants_.count(oldID)) {
+        participants_.erase(oldID);
+        participants_.emplace(newID);
     }
 
     return save(lock);

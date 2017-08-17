@@ -48,7 +48,7 @@
 namespace opentxs
 {
 
-template<class C>
+template <class C>
 class Editor
 {
 private:
@@ -107,10 +107,15 @@ public:
 
     ~Editor()
     {
+        if (nullptr == object_) {
+            // A move constructor must have been called on this object
+
+            return;
+        }
+
         if (locked_) {
             auto& callback = *locked_save_callback_;
             callback(object_, *object_lock_);
-
             object_lock_->unlock();
         } else {
             auto& callback = *unlocked_save_callback_;
@@ -118,7 +123,7 @@ public:
         }
     }
 
-}; // class Editor
-} // namespace opentxs
+};  // class Editor
+}  // namespace opentxs
 
-#endif // OPENTXS_API_EDITOR_HPP
+#endif  // OPENTXS_API_EDITOR_HPP

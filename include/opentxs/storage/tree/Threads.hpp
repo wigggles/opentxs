@@ -67,18 +67,22 @@ private:
     Mailbox& mail_inbox_;
     Mailbox& mail_outbox_;
 
+    bool save(const std::unique_lock<std::mutex>& lock) const override;
+    proto::StorageNymList serialize() const;
     class Thread* thread(const std::string& id) const;
     class Thread* thread(
         const std::string& id,
         const std::unique_lock<std::mutex>& lock) const;
+
+    std::string create(
+        const Lock& lock,
+        const std::string& id,
+        const std::set<std::string>& participants);
+    void init(const std::string& hash) override;
     void save(
         class Thread* thread,
         const std::unique_lock<std::mutex>& lock,
         const std::string& id);
-
-    void init(const std::string& hash) override;
-    bool save(const std::unique_lock<std::mutex>& lock) const override;
-    proto::StorageNymList serialize() const;
 
     Threads(
         const StorageDriver& storage,
@@ -96,9 +100,12 @@ public:
     bool Migrate(const StorageDriver& to) const override;
     const class Thread& Thread(const std::string& id) const;
 
-    std::string Create(const std::set<std::string>& participants);
+    std::string Create(
+        const std::string& id,
+        const std::set<std::string>& participants);
     bool FindAndDeleteItem(const std::string& itemID);
     Editor<class Thread> mutable_Thread(const std::string& id);
+    bool Rename(const std::string& existingID, const std::string& newID);
 
     ~Threads() = default;
 };

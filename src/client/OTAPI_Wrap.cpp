@@ -40,20 +40,28 @@
 
 #include "opentxs/client/OTAPI_Wrap.hpp"
 
+#include "opentxs/api/Activity.hpp"
 #include "opentxs/api/Api.hpp"
+#include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/OT.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
 #include "opentxs/client/OTME_too.hpp"
 #include "opentxs/client/OT_API.hpp"
+#include "opentxs/contact/Contact.hpp"
+#include "opentxs/contact/ContactData.hpp"
 #include "opentxs/core/crypto/CryptoEncodingEngine.hpp"
 #include "opentxs/core/crypto/CryptoEngine.hpp"
+#include "opentxs/core/crypto/OTCachedKey.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/NumList.hpp"
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/Types.hpp"
+#include "opentxs/network/ServerConnection.hpp"
+#include "opentxs/network/ZMQ.hpp"
 #include "opentxs/storage/Storage.hpp"
 
 #include <stdint.h>
@@ -64,15 +72,16 @@
 #include <sstream>
 #include <string>
 
-namespace opentxs
-{
-
 #ifndef OT_BOOL
 #define OT_BOOL int32_t
 #endif
 
 #define DEFAULT_NODE_NAME "Stash Node Pro"
 
+#define OT_METHOD "opentxs::OTAPI_Wrap::"
+
+namespace opentxs
+{
 bool OTAPI_Wrap::networkFailure(const std::string& notaryID)
 {
     return ConnectionState::ACTIVE != OT::App().ZMQ().Status(notaryID);
@@ -610,6 +619,23 @@ bool OTAPI_Wrap::Wallet_ChangePassphrase()
     return Exec()->Wallet_ChangePassphrase();
 }
 
+bool OTAPI_Wrap::Wallet_CheckPassword()
+{
+    auto key = OTCachedKey::It();
+
+    if (false == bool(key)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": No master key." << std::endl;
+
+        return false;
+    }
+
+    const std::string message{};
+    OTPassword null;
+    key->Reset();
+
+    return key->GetMasterPassword(key, null, message.c_str(), false);
+}
+
 std::string OTAPI_Wrap::Wallet_GetNymIDFromPartial(
     const std::string& PARTIAL_ID)
 {
@@ -688,14 +714,11 @@ std::string OTAPI_Wrap::GetNym_MailThread_base64(
     const std::string& nymId,
     const std::string& threadId)
 {
-    std::string output;
-    std::shared_ptr<proto::StorageThread> thread;
+    std::string output{};
+    const auto thread =
+        OT::App().Activity().Thread(Identifier(nymId), Identifier(threadId));
 
-    const bool loaded = OT::App().DB().Load(nymId, threadId, thread);
-
-    if (loaded) {
-
-        OT_ASSERT(thread);
+    if (thread) {
 
         return OT::App().Crypto().Encode().DataEncode(
             proto::ProtoAsData(*thread));
@@ -2614,6 +2637,25 @@ std::string OTAPI_Wrap::comma(const std::list<std::string>& list)
     return output;
 }
 
+std::string OTAPI_Wrap::comma(const ObjectList& list)
+{
+    std::ostringstream stream;
+
+    for (const auto& it : list) {
+        const auto& item = it.first;
+        stream << item;
+        stream << ",";
+    }
+
+    std::string output = stream.str();
+
+    if (0 < output.size()) {
+        output.erase(output.size() - 1, 1);
+    }
+
+    return output;
+}
+
 std::string OTAPI_Wrap::getSentRequests(const std::string& nymID)
 {
     return comma(Exec()->getSentRequests(nymID));
@@ -3338,6 +3380,36 @@ bool OTAPI_Wrap::CheckConnection(const std::string& server)
     return Exec()->CheckConnection(server);
 }
 
+bool OTAPI_Wrap::ChangeConnectionType(
+    const std::string& server,
+    const std::uint32_t type)
+{
+    Identifier serverID(server);
+
+    if (serverID.empty()) {
+
+        return false;
+    }
+
+    auto& connection = OT::App().ZMQ().Server(server);
+
+    return connection.ChangeAddressType(static_cast<proto::AddressType>(type));
+}
+
+bool OTAPI_Wrap::ClearProxy(const std::string& server)
+{
+    Identifier serverID(server);
+
+    if (serverID.empty()) {
+
+        return false;
+    }
+
+    auto& connection = OT::App().ZMQ().Server(server);
+
+    return connection.ClearProxy();
+}
+
 std::string OTAPI_Wrap::AddChildEd25519Credential(
     const std::string& nymID,
     const std::string& masterID)
@@ -3363,34 +3435,75 @@ std::string OTAPI_Wrap::AddChildRSACredential(
         Identifier(nymID), Identifier(masterID), keysize);
 }
 
-bool OTAPI_Wrap::Add_Contact(
-    const std::string& contactNymID,
-    const std::string label)
+std::string OTAPI_Wrap::Add_Contact(
+    const std::string label,
+    const std::string& nymID,
+    const std::string& paymentCode)
 {
-    return OT::App().API().OTME_TOO().AddContact(contactNymID, label);
+    const bool noLabel = label.empty();
+    const bool noNym = nymID.empty();
+    const bool noPaymentCode = paymentCode.empty();
+
+    if (noLabel && noNym && noPaymentCode) {
+
+        return {};
+    }
+
+    Identifier nym(nymID);
+    PaymentCode code(paymentCode);
+
+    if (nym.empty() && code.VerifyInternally()) {
+        nym = code.ID();
+    }
+
+    auto output = OT::App().Contact().NewContact(label, nym, code);
+
+    if (false == bool(output)) {
+
+        return {};
+    }
+
+    return String(output->ID()).Get();
 }
 
 std::uint8_t OTAPI_Wrap::Can_Message(
-    const std::string& sender,
-    const std::string& recipient)
+    const std::string& senderNymID,
+    const std::string& recipientContactID)
 {
     return static_cast<std::uint8_t>(
-        OT::App().API().OTME_TOO().CanMessage(sender, recipient));
+        OT::App().API().OTME_TOO().CanMessage(senderNymID, recipientContactID));
 }
 
 std::string OTAPI_Wrap::Contact_List()
 {
-    return comma(OT::App().API().OTME_TOO().ContactList());
+    return comma(OT::App().Contact().ContactList());
 }
 
-std::string OTAPI_Wrap::Contact_Name(const std::string& contactNymID)
+std::string OTAPI_Wrap::Contact_Name(const std::string& id)
 {
-    return OT::App().API().OTME_TOO().ContactName(contactNymID);
+    auto contact = OT::App().Contact().Contact(Identifier(id));
+
+    if (contact) {
+
+        return contact->Label();
+    }
+
+    return {};
 }
 
-std::string OTAPI_Wrap::Contact_PaymentCode(const std::string& contactNymID)
+std::string OTAPI_Wrap::Contact_PaymentCode(
+    const std::string& id,
+    const std::uint32_t currency)
 {
-    return OT::App().API().OTME_TOO().ContactPaymentCode(contactNymID);
+    auto contact = OT::App().Contact().Contact(Identifier(id));
+
+    if (contact) {
+
+        return contact->PaymentCode(
+            static_cast<proto::ContactItemType>(currency));
+    }
+
+    return {};
 }
 
 std::string OTAPI_Wrap::Find_Nym(const std::string& nymID)
@@ -3415,18 +3528,25 @@ std::string OTAPI_Wrap::Get_Introduction_Server()
     return String(OT::App().API().OTME_TOO().GetIntroductionServer()).Get();
 }
 
-bool OTAPI_Wrap::Have_Contact(const std::string& nymID)
+bool OTAPI_Wrap::Have_Contact(const std::string& id)
 {
-    return OT::App().API().OTME_TOO().HaveContact(nymID);
+    auto contact = OT::App().Contact().Contact(Identifier(id));
+
+    return bool(contact);
+}
+
+std::string OTAPI_Wrap::Import_Nym(const std::string& armored)
+{
+    return OT::App().API().OTME_TOO().ImportNym(armored);
 }
 
 std::string OTAPI_Wrap::Message_Contact(
-    const std::string& sender,
-    const std::string& recipient,
+    const std::string& senderNymID,
+    const std::string& contactID,
     const std::string& message)
 {
-    const auto output =
-        OT::App().API().OTME_TOO().MessageContact(sender, recipient, message);
+    const auto output = OT::App().API().OTME_TOO().MessageContact(
+        senderNymID, contactID, message);
 
     return String(output).Get();
 }
@@ -3508,11 +3628,27 @@ bool OTAPI_Wrap::Register_Nym_Public(
     return OT::App().API().OTME_TOO().RegisterNym(nym, server, true);
 }
 
-bool OTAPI_Wrap::Rename_Contact(
-    const std::string& nymID,
-    const std::string& name)
+std::string OTAPI_Wrap::Register_Nym_Public_async(
+    const std::string& nym,
+    const std::string& server)
 {
-    return OT::App().API().OTME_TOO().RenameContact(nymID, name);
+    const auto taskID =
+        OT::App().API().OTME_TOO().RegisterNym_async(nym, server, true);
+
+    return String(taskID).Get();
+}
+
+bool OTAPI_Wrap::Rename_Contact(const std::string& id, const std::string& name)
+{
+    auto contact = OT::App().Contact().mutable_Contact(Identifier(id));
+
+    if (contact) {
+        contact->It().SetLabel(name);
+
+        return true;
+    }
+
+    return false;
 }
 
 std::string OTAPI_Wrap::Set_Introduction_Server(const std::string& contract)
@@ -3534,5 +3670,29 @@ void OTAPI_Wrap::Trigger_Refresh(const std::string& wallet)
 void OTAPI_Wrap::Update_Pairing(const std::string& wallet)
 {
     OT::App().API().OTME_TOO().UpdatePairing(wallet);
+}
+
+std::string OTAPI_Wrap::Contact_to_Nym(const std::string& contactID)
+{
+    const auto contact = OT::App().Contact().Contact(Identifier(contactID));
+
+    if (false == bool(contact)) {
+
+        return {};
+    }
+
+    const auto nyms = contact->Nyms();
+
+    if (0 == nyms.size()) {
+
+        return {};
+    }
+
+    return String(*nyms.begin()).Get();
+}
+
+std::string OTAPI_Wrap::Nym_to_Contact(const std::string& nymID)
+{
+    return String(OT::App().Contact().ContactID(Identifier(nymID))).Get();
 }
 }  // namespace opentxs

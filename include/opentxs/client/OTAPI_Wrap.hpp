@@ -41,6 +41,7 @@
 
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Proto.hpp"
+#include "opentxs/core/Types.hpp"
 
 #include <list>
 #include <stdint.h>
@@ -57,6 +58,7 @@ class OTAPI_Wrap
 
 private:
     static std::string comma(const std::list<std::string>& list);
+    static std::string comma(const ObjectList& list);
 
 public:
     EXPORT static OTAPI_Exec* Exec();
@@ -1094,6 +1096,8 @@ public:
     */
     EXPORT static bool Wallet_ChangePassphrase();  //  (true for success and
                                                    // false for error.)
+
+    EXPORT static bool Wallet_CheckPassword();
 
     //! Returns the exported Nym, if success. (Else nullptr.)
     EXPORT static std::string Wallet_ExportNym(const std::string& NYM_ID);
@@ -4551,6 +4555,12 @@ public:
 
     EXPORT static bool CheckConnection(const std::string& server);
 
+    EXPORT static bool ChangeConnectionType(
+        const std::string& server,
+        const std::uint32_t type);
+
+    EXPORT static bool ClearProxy(const std::string& server);
+
     EXPORT static std::string AddChildEd25519Credential(
         const std::string& nymID,
         const std::string& masterID);
@@ -4566,20 +4576,23 @@ public:
 
     // Wrapped OTME_too methods
 
-    EXPORT static bool Add_Contact(
-        const std::string& contactNymID,
-        const std::string label = "");
+    EXPORT static std::string Add_Contact(
+        const std::string label,
+        const std::string& nymID,
+        const std::string& paymentCode);
 
     EXPORT static std::uint8_t Can_Message(
-        const std::string& sender,
-        const std::string& recipient);
+        const std::string& senderNymID,
+        const std::string& recipientContactID);
 
     EXPORT static std::string Contact_List();
 
-    EXPORT static std::string Contact_Name(const std::string& contactNymID);
+    EXPORT static std::string Contact_Name(const std::string& contactID);
 
     EXPORT static std::string Contact_PaymentCode(
-        const std::string& contactNymID);
+        const std::string& contactID,
+        const std::uint32_t currency =
+            static_cast<std::uint32_t>(proto::CITEMTYPE_BTC));
 
     EXPORT static std::string Find_Nym(const std::string& nymID);
 
@@ -4591,11 +4604,13 @@ public:
 
     EXPORT static std::string Get_Introduction_Server();
 
-    EXPORT static bool Have_Contact(const std::string& nymID);
+    EXPORT static bool Have_Contact(const std::string& contactID);
+
+    EXPORT static std::string Import_Nym(const std::string& armored);
 
     EXPORT static std::string Message_Contact(
-        const std::string& sender,
-        const std::string& recipient,
+        const std::string& senderNymID,
+        const std::string& contactID,
         const std::string& message);
 
     EXPORT static bool Node_Request_Connection(
@@ -4625,11 +4640,16 @@ public:
     EXPORT static std::uint64_t Refresh_Counter();
 
     EXPORT static bool Rename_Contact(
-        const std::string& nymID,
+        const std::string& contactID,
         const std::string& name);
 
     /// Registers nym and updates public contact data
     EXPORT static bool Register_Nym_Public(
+        const std::string& nym,
+        const std::string& server);
+
+    /// Registers nym and updates public contact data, background thread
+    EXPORT static std::string Register_Nym_Public_async(
         const std::string& nym,
         const std::string& server);
 
@@ -4641,6 +4661,12 @@ public:
     EXPORT static void Trigger_Refresh(const std::string& wallet = "");
 
     EXPORT static void Update_Pairing(const std::string& wallet = "");
+
+    // Wrapped ContactManager methods
+
+    EXPORT static std::string Contact_to_Nym(const std::string& contactID);
+
+    EXPORT static std::string Nym_to_Contact(const std::string& nymID);
 
 private:
     OTAPI_Wrap();

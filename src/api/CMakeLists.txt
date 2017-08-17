@@ -1,5 +1,7 @@
 set(cxx-sources
+  Activity.cpp
   Api.cpp
+  ContactManager.cpp
   Dht.cpp
   Identity.cpp
   OT.cpp

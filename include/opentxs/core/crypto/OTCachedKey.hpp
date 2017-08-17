@@ -40,6 +40,7 @@
 #define OPENTXS_CORE_CRYPTO_OTCACHEDKEY_HPP
 
 #include "opentxs/core/String.hpp"
+#include "opentxs/core/Types.hpp"
 
 #include <atomic>
 #include <chrono>
@@ -177,7 +178,8 @@ private:
     static std::shared_ptr<OTCachedKey> singleton_;
 
     /** Mutex used for serializing access to this instance. */
-    mutable std::mutex m_Mutex;
+    mutable std::mutex outer_lock_;
+    mutable std::mutex inner_lock_;
     mutable std::atomic<bool> shutdown_;
     /** if set to true, then additionally use the local OS's standard API for
      * storing/retrieving secrets. (Store the master key here whenever it's
@@ -189,6 +191,8 @@ private:
     /** If you want to force the old system, PAUSE the master key (REMEMBER to
      * Unpause when done!) */
     mutable std::atomic<bool> paused_;
+    mutable std::atomic<bool> thread_exited_{false};
+
     mutable std::atomic<std::time_t> time_;
 
     /** The master password will be stored internally for X seconds, and then
@@ -219,7 +223,7 @@ private:
      * NOTE: Make SURE you have all your Nyms loaded up and unlocked before you
      * call this. Then Save them all again so they will be properly stored with
      * the new master key. */
-    void ResetMasterPassword(const std::lock_guard<std::mutex>& lock);
+    void ResetMasterPassword(const Lock& lock);
     void ResetTimer() const;
 
     /** The cleartext version (m_pMasterPassword) is deleted and set nullptr
@@ -260,6 +264,7 @@ public:
     EXPORT bool Pause() const;
     EXPORT bool Unpause() const;
     EXPORT bool isPaused() const;
+    EXPORT void Reset();
     EXPORT bool SerializeTo(OTASCIIArmor& ascOutput);
     EXPORT bool SerializeFrom(const OTASCIIArmor& ascInput);
 

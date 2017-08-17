@@ -5,6 +5,7 @@ if (OT_STORAGE_SQLITE)
 endif()
 
 set(cxx-sources
+  Contacts.cpp
   Contexts.cpp
   Credentials.cpp
   Node.cpp

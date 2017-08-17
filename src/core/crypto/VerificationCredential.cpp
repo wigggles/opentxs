@@ -91,7 +91,7 @@ VerificationCredential::VerificationCredential(
 VerificationCredential::VerificationCredential(
     CredentialSet& parent,
     const NymParameters& nymParameters)
-    : ot_super(parent, 1, nymParameters)
+    : ot_super(parent, VERIFICATION_CREDENTIAL_VERSION, nymParameters)
 {
     mode_ = proto::KEYMODE_NULL;
     role_ = proto::CREDROLE_VERIFY;
@@ -147,7 +147,9 @@ serializedCredential VerificationCredential::serialize(
 bool VerificationCredential::verify_internally(const Lock& lock) const
 {
     // Perform common Credential verifications
-    if (!ot_super::verify_internally(lock)) { return false; }
+    if (!ot_super::verify_internally(lock)) {
+        return false;
+    }
 
     if (data_) {
         for (auto& nym : data_->internal().identity()) {

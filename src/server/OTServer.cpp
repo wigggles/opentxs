@@ -211,6 +211,7 @@ void OTServer::CreateMainFile(
 {
 #if OT_CRYPTO_WITH_BIP39
     const auto backup = OTDB::QueryPlainString(SEED_BACKUP_FILE);
+    std::string seed{};
 
     if (false == backup.empty()) {
         otErr << OT_METHOD << __FUNCTION__ << ": Seed backup found. Restoring."
@@ -220,7 +221,7 @@ void OTServer::CreateMainFile(
         OTPassword words;
         phrase.setPassword(parsed.first);
         words.setPassword(parsed.second);
-        auto seed = OT::App().Crypto().BIP39().ImportSeed(words, phrase);
+        seed = OT::App().Crypto().BIP39().ImportSeed(words, phrase);
 
         if (seed.empty()) {
             otErr << OT_METHOD << __FUNCTION__ << ": Seed restoration failed."
@@ -234,6 +235,9 @@ void OTServer::CreateMainFile(
 
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     NymParameters nymParameters(proto::CREDTYPE_HD);
+    nymParameters.SetSeed(seed);
+    nymParameters.SetNym(0);
+    nymParameters.SetDefault(false);
 #else
     NymParameters nymParameters();
 #endif
@@ -443,27 +447,11 @@ void OTServer::CreateMainFile(
         OT_FAIL;
     }
 
-    const Claim nameClaim{"",
-                          proto::CONTACTSECTION_SCOPE,
-                          proto::CITEMTYPE_SERVER,
-                          name,
-                          0,
-                          0,
-                          {proto::CITEMATTR_ACTIVE, proto::CITEMATTR_PRIMARY}};
-    const Claim serverClaim{
-        "",
-        proto::CONTACTSECTION_IDENTIFIER,
-        proto::CITEMTYPE_COMMONNAME,
-        String(pContract->ID()).Get(),
-        0,
-        0,
-        {proto::CITEMATTR_ACTIVE, proto::CITEMATTR_PRIMARY}};
-
-    if (!OT::App().Identity().AddClaim(*newNym, nameClaim)) {
+    if (false == newNym->SetScope(proto::CITEMTYPE_SERVER, name, true)) {
         OT_FAIL
     }
 
-    if (!OT::App().Identity().AddClaim(*newNym, serverClaim)) {
+    if (false == newNym->SetCommonName(String(pContract->ID()).Get())) {
         OT_FAIL
     }
 
@@ -603,7 +591,7 @@ void OTServer::Init(std::map<std::string, std::string>& args, bool readOnly)
                               ? OTDB::Exists(".", m_strWalletFilename.Get())
                               : false;
 
-    if (!mainFileExists) {
+    if (false == mainFileExists) {
         if (readOnly) {
             Log::vError(
                 "Error: Main file non-existent (%s). "
@@ -616,9 +604,16 @@ void OTServer::Init(std::map<std::string, std::string>& args, bool readOnly)
     }
 
     if (mainFileExists) {
-        if (!mainFile_.LoadMainFile(readOnly)) {
-            Log::vError("Error in Loading Main File!\n");
-            OT_FAIL;
+        if (false == mainFile_.LoadMainFile(readOnly)) {
+            Log::vError("Error in Loading Main File, re-creating.\n");
+            OTDB::EraseValueByKey(".", m_strWalletFilename.Get());
+            CreateMainFile(mainFileExists, args);
+
+            OT_ASSERT(mainFileExists);
+
+            if (!mainFile_.LoadMainFile(readOnly)) {
+                OT_FAIL;
+            }
         }
     }
 

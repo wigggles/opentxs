@@ -57,6 +57,7 @@ namespace opentxs
 {
 
 class Account;
+class Activity;
 class Api;
 class Basket;
 class BasketContract;
@@ -1294,6 +1295,7 @@ private:
 
     class Pid;
 
+    Activity& activity_;
     Settings& config_;
     Identity& identity_;
     Storage& storage_;
@@ -1357,6 +1359,7 @@ private:
     bool LoadConfigFile();
 
     OT_API(
+        Activity& activity,
         Settings& config,
         Identity& identity,
         Storage& storage,

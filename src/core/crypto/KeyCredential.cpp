@@ -121,8 +121,8 @@ bool KeyCredential::VerifySignedBySelf(const Lock& lock) const
         auto privateSig = SelfSignature(PRIVATE_VERSION);
 
         if (!privateSig) {
-            otErr << __FUNCTION__
-                  << ": Could not find private self signature." << std::endl;
+            otErr << __FUNCTION__ << ": Could not find private self signature."
+                  << std::endl;
 
             return false;
         }
@@ -246,7 +246,9 @@ int32_t KeyCredential::GetPublicKeysBySignature(
 bool KeyCredential::verify_internally(const Lock& lock) const
 {
     // Perform common Credential verifications
-    if (!ot_super::verify_internally(lock)) { return false; }
+    if (!ot_super::verify_internally(lock)) {
+        return false;
+    }
 
     // All KeyCredentials must sign themselves
     if (!VerifySignedBySelf(lock)) {
@@ -310,7 +312,7 @@ KeyCredential::KeyCredential(
 KeyCredential::KeyCredential(
     CredentialSet& theOwner,
     const NymParameters& nymParameters)
-        : ot_super(theOwner, 1, nymParameters)
+    : ot_super(theOwner, KEY_CREDENTIAL_VERSION, nymParameters)
 {
     if (proto::CREDTYPE_HD != nymParameters.credentialType()) {
         m_AuthentKey =
@@ -354,8 +356,7 @@ KeyCredential::KeyCredential(
     }
 }
 
-bool KeyCredential::New(
-    const NymParameters& nymParameters)
+bool KeyCredential::New(const NymParameters& nymParameters)
 {
     bool output = false;
 
@@ -384,21 +385,17 @@ std::shared_ptr<OTKeypair> KeyCredential::DeriveHDKeypair(
 {
     proto::HDPath keyPath;
     keyPath.set_version(1);
-    std::string input (fingerprint);
+    std::string input(fingerprint);
     keyPath.set_root(input.c_str(), input.size());
 
     keyPath.add_child(
         static_cast<std::uint32_t>(Bip43Purpose::NYM) |
         static_cast<std::uint32_t>(Bip32Child::HARDENED));
+    keyPath.add_child(nym | static_cast<std::uint32_t>(Bip32Child::HARDENED));
     keyPath.add_child(
-        nym |
-        static_cast<std::uint32_t>(Bip32Child::HARDENED));
+        credset | static_cast<std::uint32_t>(Bip32Child::HARDENED));
     keyPath.add_child(
-        credset |
-        static_cast<std::uint32_t>(Bip32Child::HARDENED));
-    keyPath.add_child(
-        credindex |
-        static_cast<std::uint32_t>(Bip32Child::HARDENED));
+        credindex | static_cast<std::uint32_t>(Bip32Child::HARDENED));
 
     switch (role) {
         case proto::KEYROLE_AUTH:
@@ -423,27 +420,32 @@ std::shared_ptr<OTKeypair> KeyCredential::DeriveHDKeypair(
     std::shared_ptr<OTKeypair> newKeypair;
     auto privateKey = OT::App().Crypto().BIP32().GetHDKey(curve, seed, keyPath);
 
-    if (!privateKey) { return newKeypair; }
+    if (!privateKey) {
+        return newKeypair;
+    }
 
     privateKey->set_role(role);
     Ecdsa* engine = nullptr;
 
     switch (curve) {
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-        case (EcdsaCurve::SECP256K1) : {
+        case (EcdsaCurve::SECP256K1): {
             engine =
                 static_cast<Libsecp256k1*>(&OT::App().Crypto().SECP256K1());
             break;
         }
 #endif
-        case (EcdsaCurve::ED25519) : {
+        case (EcdsaCurve::ED25519): {
             engine = static_cast<Libsodium*>(&OT::App().Crypto().ED25519());
             break;
         }
-        default : {}
+        default: {
+        }
     }
 
-    if (nullptr == engine) { return newKeypair; }
+    if (nullptr == engine) {
+        return newKeypair;
+    }
 
     proto::AsymmetricKey publicKey;
     const bool haveKey = engine->PrivateToPublic(*privateKey, publicKey);
@@ -546,7 +548,7 @@ bool KeyCredential::addKeyCredentialtoSerializedCredential(
         return false;
     }
 
-    keyCredential->set_version(1);
+    keyCredential->set_version(KEY_CREDENTIAL_VERSION);
 
     // These must be serialized in this order
     bool auth = addKeytoSerializedKeyCredential(
@@ -615,11 +617,8 @@ bool KeyCredential::SelfSign(
             serialize(lock, AS_PUBLIC, WITHOUT_SIGNATURES);
         auto& signature = *publicVersion->add_signature();
         signature.set_role(proto::SIGROLE_PUBCREDENTIAL);
-        havePublicSig = SignProto(
-            *publicVersion,
-            signature,
-            proto::KEYROLE_SIGN,
-            pPWData);
+        havePublicSig =
+            SignProto(*publicVersion, signature, proto::KEYROLE_SIGN, pPWData);
 
         OT_ASSERT(havePublicSig);
 
@@ -633,11 +632,8 @@ bool KeyCredential::SelfSign(
         serialize(lock, AS_PRIVATE, WITHOUT_SIGNATURES);
     auto& signature = *privateVersion->add_signature();
     signature.set_role(proto::SIGROLE_PRIVCREDENTIAL);
-    const bool havePrivateSig = SignProto(
-        *privateVersion,
-        signature,
-        proto::KEYROLE_SIGN,
-        pPWData);
+    const bool havePrivateSig =
+        SignProto(*privateVersion, signature, proto::KEYROLE_SIGN, pPWData);
 
     OT_ASSERT(havePrivateSig);
 
@@ -677,9 +673,8 @@ bool KeyCredential::VerifySig(
     return Verify(plaintext, sig);
 }
 
-bool KeyCredential::TransportKey(
-    Data& publicKey,
-    OTPassword& privateKey) const
+bool KeyCredential::TransportKey(Data& publicKey, OTPassword& privateKey)
+    const
 {
     OT_ASSERT(m_AuthentKey);
 
@@ -689,28 +684,29 @@ bool KeyCredential::TransportKey(
 bool KeyCredential::hasCapability(const NymCapability& capability) const
 {
     switch (capability) {
-        case (NymCapability::SIGN_MESSAGE) : {
+        case (NymCapability::SIGN_MESSAGE): {
             if (m_SigningKey) {
                 return m_SigningKey->hasCapability(capability);
             }
 
             break;
         }
-        case (NymCapability::ENCRYPT_MESSAGE) : {
+        case (NymCapability::ENCRYPT_MESSAGE): {
             if (m_EncryptKey) {
                 return m_EncryptKey->hasCapability(capability);
             }
 
             break;
         }
-        case (NymCapability::AUTHENTICATE_CONNECTION) : {
+        case (NymCapability::AUTHENTICATE_CONNECTION): {
             if (m_AuthentKey) {
                 return m_AuthentKey->hasCapability(capability);
             }
 
             break;
         }
-        default : {}
+        default: {
+        }
     }
 
     return false;

@@ -179,8 +179,23 @@ protected:
 
 public:
     static const std::uint32_t HASH_TYPE;
+    std::string ContactAlias(const std::string& id);
+    ObjectList ContactList();
     ObjectList ContextList(const std::string& nymID);
+    bool CreateThread(
+        const std::string& nymID,
+        const std::string& threadID,
+        const std::set<std::string>& participants);
     std::string DefaultSeed();
+    bool Load(
+        const std::string& id,
+        std::shared_ptr<proto::Contact>& contact,
+        const bool checking = false);  // If true, suppress "not found" errors
+    bool Load(
+        const std::string& id,
+        std::shared_ptr<proto::Contact>& contact,
+        std::string& alias,
+        const bool checking = false);  // If true, suppress "not found" errors
     bool Load(
         const std::string& nym,
         const std::string& id,
@@ -261,9 +276,14 @@ public:
         const std::string& itemID);
     bool RemoveServer(const std::string& id);
     bool RemoveUnitDefinition(const std::string& id);
+    bool RenameThread(
+        const std::string& nymId,
+        const std::string& threadId,
+        const std::string& newID);
     void RunGC();
     std::string ServerAlias(const std::string& id);
     ObjectList ServerList() const;
+    bool SetContactAlias(const std::string& id, const std::string& alias);
     bool SetDefaultSeed(const std::string& id);
     bool SetNymAlias(const std::string& id, const std::string& alias);
     bool SetPeerRequestTime(
@@ -279,6 +299,7 @@ public:
     bool SetUnitDefinitionAlias(
         const std::string& id,
         const std::string& alias);
+    bool Store(const proto::Contact& data);
     bool Store(const proto::Context& data);
     bool Store(const proto::Credential& data);
     bool Store(

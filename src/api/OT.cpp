@@ -40,7 +40,9 @@
 
 #include "opentxs/api/OT.hpp"
 
+#include "opentxs/api/Activity.hpp"
 #include "opentxs/api/Api.hpp"
+#include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Dht.hpp"
 #include "opentxs/api/Identity.hpp"
 #include "opentxs/api/Settings.hpp"
@@ -111,24 +113,46 @@ void OT::Init()
     Init_ZMQ();      // requires Init_Config()
     Init_Contracts();
     Init_Identity();
+    Init_Contacts();  // requires Init_Contracts(), Init_Storage()
+    Init_Activity();  // requires Init_Storage(), Init_Contacts(),
+                      // Init_Contracts()
     Init_Api();  // requires Init_Config(), Init_Crypto(), Init_Contracts(),
-                 // Init_Identity(), Init_Storage(), Init_ZMQ()
+                 // Init_Identity(), Init_Storage(), Init_ZMQ(), Init_Contacts()
+                 // Init_Activity()
     storage_->InitBackup();
     Init_Periodic();  // requires Init_Dht(), Init_Storage()
+
+    OT_ASSERT(contract_manager_);
+
+    activity_->MigrateLegacyThreads();
+}
+
+void OT::Init_Activity()
+{
+    OT_ASSERT(contacts_);
+    OT_ASSERT(contract_manager_);
+    OT_ASSERT(storage_);
+
+    activity_.reset(
+        new class Activity(*contacts_, *storage_, *contract_manager_));
 }
 
 void OT::Init_Api()
 {
     auto& config = config_[""];
 
+    OT_ASSERT(activity_);
     OT_ASSERT(config);
+    OT_ASSERT(contacts_);
     OT_ASSERT(contract_manager_);
     OT_ASSERT(crypto_);
     OT_ASSERT(identity_);
 
     if (!server_mode_) {
         api_.reset(new Api(
+            *activity_,
             *config,
+            *contacts_,
             *crypto_,
             *identity_,
             *storage_,
@@ -150,6 +174,14 @@ void OT::Init_Config()
     String strConfigFilePath;
     OTDataFolder::GetConfigFilePath(strConfigFilePath);
     config_[""].reset(new Settings(strConfigFilePath));
+}
+
+void OT::Init_Contacts()
+{
+    OT_ASSERT(storage_)
+    OT_ASSERT(contract_manager_)
+
+    contacts_.reset(new ContactManager(*storage_, *contract_manager_));
 }
 
 void OT::Init_Contracts() { contract_manager_.reset(new class Wallet(*this)); }
@@ -535,6 +567,13 @@ const OT& OT::App()
     return *instance_pointer_;
 }
 
+class Activity& OT::Activity() const
+{
+    OT_ASSERT(activity_)
+
+    return *activity_;
+}
+
 Api& OT::API() const
 {
     if (server_mode_) {
@@ -560,6 +599,13 @@ Settings& OT::Config(const std::string& path) const
     lock.unlock();
 
     return *config;
+}
+
+ContactManager& OT::Contact() const
+{
+    OT_ASSERT(contacts_)
+
+    return *contacts_;
 }
 
 Wallet& OT::Contract() const
@@ -628,7 +674,9 @@ void OT::Shutdown()
     }
 
     api_.reset();
+    activity_.reset();
     identity_.reset();
+    contacts_.reset();
     contract_manager_.reset();
     zeromq_.reset();
     dht_.reset();

@@ -56,6 +56,8 @@
 #include <thread>
 #include <vector>
 
+#define ROOT_FILE_EXTENSION ".hash"
+
 //#define OT_METHOD "opentxs::StorageFSArchive::"
 
 namespace opentxs
@@ -133,8 +135,8 @@ bool StorageFSArchive::LoadFromBucket(
 std::string StorageFSArchive::LoadRoot() const
 {
     if (ready_.load() && (false == folder_.empty())) {
-        std::string filename =
-            folder_ + path_seperator_ + config_.fs_root_file_;
+        std::string filename = folder_ + path_seperator_ +
+                               config_.fs_root_file_ + ROOT_FILE_EXTENSION;
 
         return read_file(filename);
     }
@@ -185,8 +187,9 @@ bool StorageFSArchive::Store(
 bool StorageFSArchive::StoreRoot(const std::string& hash) const
 {
     if (ready_.load() && (false == folder_.empty())) {
-        const std::string filename =
-            folder_ + path_seperator_ + config_.fs_root_file_;
+        const std::string filename = folder_ + path_seperator_ +
+                                     config_.fs_root_file_ +
+                                     ROOT_FILE_EXTENSION;
 
         return write_file(filename, hash);
     }

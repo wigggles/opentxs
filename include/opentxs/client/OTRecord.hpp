@@ -53,11 +53,19 @@ class OTRecordList;
 class OTRecord
 {
 public:
-    enum OTRecordType { Mail = 0, Transfer, Receipt, Instrument, Notice, ErrorState };
+    enum OTRecordType {
+        Mail = 0,
+        Transfer,
+        Receipt,
+        Instrument,
+        Notice,
+        ErrorState
+    };
 
 private:
-    OTRecordList & backlink_;
+    OTRecordList& backlink_;
     int32_t m_nBoxIndex{-1};
+    std::string m_strThreadItemId;  // Will eventually replace Box Index.
     time64_t m_ValidFrom;
     time64_t m_ValidTo;
     const std::string& m_str_notary_id;
@@ -87,18 +95,18 @@ private:
     // or receive. There will also be the message type "bitmessage" with the
     // type display string "Bitmessage", and the sender and recipient addresses.
     //
-    bool m_bIsSpecialMail{false}; // Meaning a bitmessage vs an OT message.
-    int32_t m_nMethodID{0};       // A Nym in Moneychanger might have 2 Bitmessage
-                                  // addresses, each used on different BM nodes with
-                                  // different connection strings. The Method ID is used
-                                  // to lookup the connection string.
-    std::string m_str_my_address;    // My Bitmessage address.
-    std::string m_str_other_address; // The sender or recipient's Bitmessage
-                                     // address.
-    std::string m_str_msg_id;   // If you want to delete a Bitmessage, you must
-                                // know the message ID.
-    std::string m_str_msg_type; // "bitmessage"
-    std::string m_str_msg_type_display; // "Bitmessage"
+    bool m_bIsSpecialMail{false};  // Meaning a bitmessage vs an OT message.
+    int32_t m_nMethodID{0};  // A Nym in Moneychanger might have 2 Bitmessage
+                             // addresses, each used on different BM nodes with
+    // different connection strings. The Method ID is used
+    // to lookup the connection string.
+    std::string m_str_my_address;     // My Bitmessage address.
+    std::string m_str_other_address;  // The sender or recipient's Bitmessage
+                                      // address.
+    std::string m_str_msg_id;    // If you want to delete a Bitmessage, you must
+                                 // know the message ID.
+    std::string m_str_msg_type;  // "bitmessage"
+    std::string m_str_msg_type_display;  // "Bitmessage"
     // Contains transaction number of actual receipt in inbox,
     // or payment inbox, or record box. (If outpayment, contains
     // transaction number on outgoing instrument.)
@@ -109,8 +117,8 @@ private:
 
     bool m_bIsPending;
     bool m_bIsOutgoing;
-    bool m_bIsRecord;  // record box (closed, finished, historical only.)
-    bool m_bIsReceipt; // It's a receipt, not a payment.
+    bool m_bIsRecord;   // record box (closed, finished, historical only.)
+    bool m_bIsReceipt;  // It's a receipt, not a payment.
     bool m_bIsPaymentPlan{false};
     bool m_bIsSmartContract{false};
     bool m_bIsVoucher{false};
@@ -122,12 +130,12 @@ private:
     bool m_bIsCanceled{false};
     bool m_bIsFinalReceipt{false};
     bool m_bHasOriginType{false};
-    originType   m_originType{originType::not_applicable};
+    originType m_originType{originType::not_applicable};
     OTRecordType m_RecordType{ErrorState};
 
     bool m_bHasSuccess{false};  // Does it even HAVE a "success" state?
                                 // (Incoming cheque, for example, does NOT.)
-    bool m_bIsSuccess {false};  // If it DOES have a "success" state, then
+    bool m_bIsSuccess{false};   // If it DOES have a "success" state, then
                                 // is it set to a success or a failure?
     bool AcceptIncomingTransferOrReceipt() const;
 
@@ -150,10 +158,10 @@ public:
     EXPORT bool IsOriginTypeSmartContract() const;
 
     EXPORT void SetSuccess(const bool bIsSuccess);
-    EXPORT bool HasSuccess(bool & bIsSuccess) const;
+    EXPORT bool HasSuccess(bool& bIsSuccess) const;
 
     EXPORT void SetClosingNum(const int64_t lClosingNum);
-    EXPORT bool GetClosingNum(int64_t & lClosingNum) const;
+    EXPORT bool GetClosingNum(int64_t& lClosingNum) const;
 
     EXPORT void SetSpecialMail(bool bIsSpecial = true);
     EXPORT bool IsSpecialMail() const;
@@ -177,83 +185,91 @@ public:
     EXPORT bool IsCanceled() const;
     EXPORT void SetExpired();
     EXPORT void SetCanceled();
-    EXPORT void SetFinalReceipt(bool bValue=true);
+    EXPORT void SetFinalReceipt(bool bValue = true);
     EXPORT time64_t GetValidFrom() const;
     EXPORT time64_t GetValidTo() const;
-    EXPORT void SetDateRange(time64_t tValidFrom,
-                             time64_t tValidTo);
-    EXPORT bool CanDeleteRecord() const; // For completed records (not pending.)
-    EXPORT bool CanAcceptIncoming() const;  // For incoming, pending
-                                            // (not-yet-accepted) instruments.
-    EXPORT bool CanDiscardIncoming() const; // For INcoming, pending
-                                            // (not-yet-accepted) instruments.
-    EXPORT bool CanCancelOutgoing() const;  // For OUTgoing, pending
-                                            // (not-yet-accepted) instruments.
-    EXPORT bool CanDiscardOutgoingCash() const; // For OUTgoing cash. (No way to
-                                                // see if it's been accepted, so
-                                                // this lets you erase the
-                                                // record of sending it.)
-    EXPORT bool CancelOutgoing(std::string str_via_acct) const; // For outgoing, pending
-                                                                // (not-yet-accepted) instruments.
-                                                                // NOTE: str_via_acct can be blank if a
-                                                                // cheque. But if voucher, smart
-                                                                // contract, payment plan, you must
-                                                                // provide.
+    EXPORT void SetDateRange(time64_t tValidFrom, time64_t tValidTo);
+    EXPORT bool CanDeleteRecord() const;     // For completed records (not
+                                             // pending.)
+    EXPORT bool CanAcceptIncoming() const;   // For incoming, pending
+                                             // (not-yet-accepted) instruments.
+    EXPORT bool CanDiscardIncoming() const;  // For INcoming, pending
+                                             // (not-yet-accepted) instruments.
+    EXPORT bool CanCancelOutgoing() const;   // For OUTgoing, pending
+                                             // (not-yet-accepted) instruments.
+    EXPORT bool CanDiscardOutgoingCash() const;  // For OUTgoing cash. (No way
+                                                 // to see if it's been
+                                                 // accepted, so this lets you
+                                                 // erase the record of sending
+                                                 // it.)
+    EXPORT bool CancelOutgoing(std::string str_via_acct) const;  // For
+                                                                 // outgoing,
+                                                                 // pending
+    // (not-yet-accepted) instruments.
+    // NOTE: str_via_acct can be blank if a
+    // cheque. But if voucher, smart
+    // contract, payment plan, you must
+    // provide.
     EXPORT bool AcceptIncomingInstrument(
-        const std::string& str_into_acct) const; // For incoming, pending
-                                                 // (not-yet-accepted) instruments.
+        const std::string& str_into_acct) const;  // For incoming, pending
+    // (not-yet-accepted) instruments.
     EXPORT bool AcceptIncomingTransfer() const;  // For incoming, pending
-                                                 // (not-yet-accepted) transfers.
+                                                 // (not-yet-accepted)
+                                                 // transfers.
     EXPORT bool AcceptIncomingReceipt() const;   // For incoming,
                                                  // (not-yet-accepted)
                                                  // receipts.
     EXPORT bool DiscardIncoming() const;         // For incoming, pending
                                                  // (not-yet-accepted)
                                                  // instruments.
-    EXPORT bool DeleteRecord() const; // For completed records (not pending.)
-    EXPORT bool DiscardOutgoingCash() const; // For OUTgoing cash. (No way to
-                                             // see if it's been accepted, so this lets you
-                                             // erase the record of sending it.)
-    EXPORT int32_t GetBoxIndex() const; // If this is set to 3, for example, for
-                                        // a payment in the payments inbox, then
-                                        // index 3 in that same box refers to
-                                        // the payment corresponding to this
-                                        // record.
+    EXPORT bool DeleteRecord() const;  // For completed records (not pending.)
+    EXPORT bool DiscardOutgoingCash() const;  // For OUTgoing cash. (No way to
+                                              // see if it's been accepted, so
+                                              // this lets you erase the record
+                                              // of sending it.)
+    EXPORT int32_t GetBoxIndex() const;  // If this is set to 3, for example,
+                                         // for a payment in the payments inbox,
+                                         // then index 3 in that same box refers
+                                         // to the payment corresponding to this
+                                         // record.
     EXPORT void SetBoxIndex(int32_t nBoxIndex);
-    EXPORT int32_t GetMethodID() const; // Used by "special mail."
+    EXPORT const std::string GetThreadItemId() const;
+    EXPORT void SetThreadItemId(const std::string& strThreadItemId);
+    EXPORT int32_t GetMethodID() const;  // Used by "special mail."
     EXPORT void SetMethodID(int32_t nMethodID);
-    EXPORT const std::string& GetMsgID() const; // Used by "special mail."
+    EXPORT const std::string& GetMsgID() const;  // Used by "special mail."
     EXPORT void SetMsgID(const std::string& str_id);
-    EXPORT const std::string& GetMsgType() const; // Used by "special mail."
+    EXPORT const std::string& GetMsgType() const;  // Used by "special mail."
     EXPORT void SetMsgType(const std::string& str_type);
-    EXPORT const std::string& GetMsgTypeDisplay() const; // Used by "special
-                                                         // mail."
+    EXPORT const std::string& GetMsgTypeDisplay() const;  // Used by "special
+                                                          // mail."
     EXPORT void SetMsgTypeDisplay(const std::string& str_type);
-    EXPORT int64_t GetTransactionNum() const; // Trans Num of receipt in the
-                                              // box. (Unless outpayment,
-                                              // contains number for
-                                              // instrument.)
+    EXPORT int64_t GetTransactionNum() const;  // Trans Num of receipt in the
+                                               // box. (Unless outpayment,
+                                               // contains number for
+                                               // instrument.)
     EXPORT void SetTransactionNum(int64_t lTransNum);
-    EXPORT int64_t GetTransNumForDisplay() const; // Trans Num of the cheque
-                                                  // inside the receipt in the
-                                                  // box.
+    EXPORT int64_t GetTransNumForDisplay() const;  // Trans Num of the cheque
+                                                   // inside the receipt in the
+                                                   // box.
     EXPORT void SetTransNumForDisplay(int64_t lTransNum);
     EXPORT OTRecordType GetRecordType() const;
     EXPORT const std::string& GetNotaryID() const;
     EXPORT const std::string& GetInstrumentDefinitionID() const;
-    EXPORT const std::string& GetCurrencyTLA() const; // BTC, USD, etc.
+    EXPORT const std::string& GetCurrencyTLA() const;  // BTC, USD, etc.
     EXPORT const std::string& GetNymID() const;
     EXPORT const std::string& GetAccountID() const;
-    EXPORT const std::string& GetAddress() const;    // Used by "special mail"
-    EXPORT const std::string& GetOtherNymID() const; // Could be sender OR
-                                                     // recipient depending on
-                                                     // whether
-                                                     // incoming/outgoing.
-    EXPORT const std::string& GetOtherAccountID() const; // Could be sender OR
-                                                         // recipient depending
-                                                         // on whether
-                                                         // incoming/outgoing.
-    EXPORT const std::string& GetOtherAddress() const; // Used by "special mail"
+    EXPORT const std::string& GetAddress() const;     // Used by "special mail"
+    EXPORT const std::string& GetOtherNymID() const;  // Could be sender OR
+                                                      // recipient depending on
+                                                      // whether
+                                                      // incoming/outgoing.
+    EXPORT const std::string& GetOtherAccountID() const;  // Could be sender OR
+                                                          // recipient depending
+                                                          // on whether
+                                                          // incoming/outgoing.
+    EXPORT const std::string& GetOtherAddress() const;    // Used by "special
+                                                          // mail"
     EXPORT const std::string& GetName() const;
     EXPORT const std::string& GetDate() const;
     EXPORT const std::string& GetAmount() const;
@@ -262,11 +278,11 @@ public:
     EXPORT const std::string& GetContents() const;
     EXPORT void SetOtherNymID(const std::string& str_ID);
     EXPORT void SetOtherAccountID(const std::string& str_ID);
-    EXPORT void SetAddress(const std::string& str_Address); // Used by "special
-                                                            // mail"
-    EXPORT void SetOtherAddress(const std::string& str_Address); // Used by
-                                                                 // "special
-                                                                 // mail"
+    EXPORT void SetAddress(const std::string& str_Address);  // Used by "special
+                                                             // mail"
+    EXPORT void SetOtherAddress(const std::string& str_Address);  // Used by
+                                                                  // "special
+                                                                  // mail"
     EXPORT void SetMemo(const std::string& str_memo);
     EXPORT void SetContents(const std::string& str_contents);
     // These don't work unless the record is for a pending
@@ -285,26 +301,36 @@ public:
     EXPORT int32_t GetMaximumNoPayments() const;
     EXPORT bool FormatAmount(std::string& str_output) const;
     EXPORT bool FormatAmountWithoutSymbol(std::string& str_output);
-    EXPORT bool FormatAmountLocale(std::string& str_output,
-                                   const std::string& str_thousands,
-                                   const std::string& str_decimal) const;
+    EXPORT bool FormatAmountLocale(
+        std::string& str_output,
+        const std::string& str_thousands,
+        const std::string& str_decimal) const;
     EXPORT bool FormatAmountWithoutSymbolLocale(
-        std::string& str_output, const std::string& str_thousands,
+        std::string& str_output,
+        const std::string& str_thousands,
         const std::string& str_decimal);
     EXPORT bool FormatDescription(std::string& str_output) const;
     EXPORT bool FormatShortMailDescription(std::string& str_output) const;
     EXPORT bool FormatMailSubject(std::string& str_output) const;
     bool operator<(const OTRecord& rhs);
-    OTRecord(OTRecordList & backlink,
-             const std::string& str_notary_id,
-             const std::string& str_instrument_definition_id,
-             const std::string& str_currency_tla, const std::string& str_nym_id,
-             const std::string& str_account_id, const std::string& str_name,
-             const std::string& str_date, const std::string& str_amount,
-             const std::string& str_type, bool bIsPending, bool bIsOutgoing,
-             bool bIsRecord, bool bIsReceipt, OTRecordType eRecordType);
+    OTRecord(
+        OTRecordList& backlink,
+        const std::string& str_notary_id,
+        const std::string& str_instrument_definition_id,
+        const std::string& str_currency_tla,
+        const std::string& str_nym_id,
+        const std::string& str_account_id,
+        const std::string& str_name,
+        const std::string& str_date,
+        const std::string& str_amount,
+        const std::string& str_type,
+        bool bIsPending,
+        bool bIsOutgoing,
+        bool bIsRecord,
+        bool bIsReceipt,
+        OTRecordType eRecordType);
 };
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CLIENT_OTRECORD_HPP
+#endif  // OPENTXS_CLIENT_OTRECORD_HPP

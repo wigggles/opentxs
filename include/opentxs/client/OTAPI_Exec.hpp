@@ -52,6 +52,7 @@
 namespace opentxs
 {
 
+class Activity;
 class Api;
 class CryptoEngine;
 class Settings;
@@ -65,6 +66,7 @@ class OTAPI_Exec
 private:
     friend class Api;
 
+    Activity& activity_;
     Settings& config_;
     CryptoEngine& crypto_;
     Identity& identity_;
@@ -74,6 +76,7 @@ private:
     std::recursive_mutex& lock_;
 
     OTAPI_Exec(
+        Activity& activity,
         Settings& config,
         CryptoEngine& crypto,
         Identity& identity,

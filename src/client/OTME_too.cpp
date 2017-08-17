@@ -41,6 +41,7 @@
 #include "opentxs/client/OTME_too.hpp"
 
 #include "opentxs/api/Api.hpp"
+#include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Identity.hpp"
 #include "opentxs/api/OT.hpp"
 #include "opentxs/api/Settings.hpp"
@@ -49,6 +50,10 @@
 #include "opentxs/client/OTAPI_Exec.hpp"
 #include "opentxs/client/OTAPI_Wrap.hpp"
 #include "opentxs/client/OT_ME.hpp"
+#include "opentxs/contact/Contact.hpp"
+#include "opentxs/contact/ContactData.hpp"
+#include "opentxs/contact/ContactGroup.hpp"
+#include "opentxs/contact/ContactItem.hpp"
 #include "opentxs/core/crypto/CryptoEncodingEngine.hpp"
 #include "opentxs/core/crypto/PaymentCode.hpp"
 #include "opentxs/core/Data.hpp"
@@ -85,10 +90,11 @@
 #define CONTACT_UPDATED_KEY "updated"
 #define CONTACT_REVISION_KEY "revision"
 #define CONTACT_LABEL_KEY "label"
-#define CONTACT_REFRESH_DAYS 7
+#define CONTACT_REFRESH_DAYS 1
+#define SERVER_NYM_INTERVAL 10
 #define ALL_SERVERS "all"
 
-#define OT_METHOD "OTME_too::"
+#define OT_METHOD "opentxs::OTME_too::"
 
 namespace opentxs
 {
@@ -154,6 +160,7 @@ OTME_too::Cleanup::~Cleanup() { run_.store(false); }
 OTME_too::OTME_too(
     std::recursive_mutex& lock,
     Settings& config,
+    ContactManager& contacts,
     OT_API& otapi,
     OTAPI_Exec& exec,
     const MadeEasy& madeEasy,
@@ -163,6 +170,7 @@ OTME_too::OTME_too(
     Identity& identity)
     : api_lock_(lock)
     , config_(config)
+    , contacts_(contacts)
     , ot_api_(otapi)
     , exec_(exec)
     , made_easy_(madeEasy)
@@ -174,6 +182,7 @@ OTME_too::OTME_too(
     , refreshing_(false)
     , shutdown_(false)
     , introduction_server_set_(false)
+    , need_server_nyms_(false)
     , refresh_count_(0)
 {
     scan_pairing();
@@ -318,93 +327,6 @@ void OTME_too::add_checknym_tasks(
     }
 }
 
-bool OTME_too::add_update_contact(
-    const Lock& lock,
-    const std::string& nymID,
-    const std::string& paymentCode,
-    const std::string& label)
-{
-    OT_ASSERT(verify_lock(lock, contact_lock_));
-
-    if (nymID.empty()) {
-        otErr << __FUNCTION__ << ": Empty contact nym id." << std::endl;
-
-        return false;
-    }
-
-    std::string bip47 = paymentCode;
-    std::uint64_t version = 0;
-    auto nym = wallet_.Nym(Identifier(nymID));
-
-    if (nym) {
-        version = nym->Revision();
-
-        if (bip47.empty()) {
-            bip47 = nym->PaymentCode();
-        }
-    }
-
-    const auto now = std::time(nullptr);
-    // Negative number means "not found"
-    auto index = find_contact(nymID, lock);
-
-    if (0 > index) {
-        // This is the next index value
-        index = contact_map_.size();
-    }
-
-    auto& meta = contact_map_[index];
-    auto& mapNymID = std::get<0>(meta);
-    auto& mapRevision = std::get<1>(meta);
-    auto& checked = std::get<2>(meta);
-    auto& task = std::get<3>(meta);
-    auto& name = std::get<4>(meta);
-    auto& code = std::get<5>(meta);
-    mapNymID = nymID;
-    mapRevision = version;
-    checked = now;
-
-    if (!label.empty()) {
-        name = label;
-    }
-
-    if (!bip47.empty()) {
-        code = bip47;
-    }
-
-    if (!nym) {
-        find_nym_if_necessary(nymID, task);
-    }
-
-    return write_contact_data(lock);
-}
-
-bool OTME_too::AddContact(const std::string& id, const std::string label)
-{
-    Lock lock(contact_lock_);
-
-    std::string nymID;
-    std::string paymentCode;
-    PaymentCode code(id);
-
-    const bool isNymID = Identifier::validateID(id);
-    const bool isPaymentCode = code.VerifyInternally();
-
-    if (isNymID) {
-        nymID = id;
-        paymentCode = "";
-    } else if (isPaymentCode) {
-        nymID = String(code.ID()).Get();
-        paymentCode = code.asBase58();
-    } else {
-        otErr << __FUNCTION__ << ": Invalid contact id." << std::endl;
-
-        return false;
-    }
-
-    return add_update_contact(lock, nymID, paymentCode, label);
-}
-
 void OTME_too::build_account_list(serverTaskMap& output) const
 {
     // Make sure no nyms, servers, or accounts are added or removed while
@@ -463,46 +385,71 @@ void OTME_too::build_nym_list(std::list<std::string>& output) const
 }
 
 Messagability OTME_too::can_message(
-    const std::string& sender,
-    const std::string& recipient,
+    const std::string& senderNymID,
+    const std::string& recipientContactID,
     std::string& server)
 {
-    auto senderNym = wallet_.Nym(Identifier(sender));
+    auto senderNym = wallet_.Nym(Identifier(senderNymID));
 
     if (!senderNym) {
+
         return Messagability::MISSING_SENDER;
     }
 
     const bool canSign = senderNym->hasCapability(NymCapability::SIGN_MESSAGE);
 
     if (!canSign) {
+
         return Messagability::INVALID_SENDER;
     }
 
-    auto recipientNym = wallet_.Nym(Identifier(recipient));
+    const auto contact = contacts_.Contact(Identifier(recipientContactID));
 
-    if (!recipientNym) {
-        mailability(sender, recipient);
+    if (false == bool(contact)) {
+
+        return Messagability::MISSING_CONTACT;
+    }
+
+    const auto nyms = contact->Nyms();
+
+    if (0 == nyms.size()) {
+
+        return Messagability::CONTACT_LACKS_NYM;
+    }
+
+    std::shared_ptr<const Nym> recipientNym{nullptr};
+    Identifier recipientNymID{};
+
+    for (const auto& it : nyms) {
+        recipientNym = wallet_.Nym(it);
+
+        if (recipientNym) {
+            recipientNymID = it;
+            break;
+        }
+    }
+
+    if (false == bool(recipientNym)) {
+        for (const auto& id : nyms) {
+            mailability(senderNymID, String(id).Get());
+        }
 
         return Messagability::MISSING_RECIPIENT;
     }
 
-    const auto claims = recipientNym->ContactData();
-
-    if (!claims) {
-        return Messagability::NO_SERVER_CLAIM;
-    }
-
-    server = extract_server(*claims);
+    const auto claims = recipientNym->Claims();
+    auto serverID = claims.PreferredOTServer();
+    server = String(serverID).Get();
 
     if (server.empty()) {
+
         return Messagability::NO_SERVER_CLAIM;
     }
 
-    const bool registered = exec_.IsNym_RegisteredAtServer(sender, server);
+    const bool registered = exec_.IsNym_RegisteredAtServer(senderNymID, server);
 
     if (!registered) {
-        mailability(sender, recipient);
+        mailability(senderNymID, String(recipientNymID).Get());
 
         return Messagability::UNREGISTERED;
     }
@@ -618,7 +565,7 @@ bool OTME_too::check_bridge_nym(const std::string& bridgeNym, PairedNode& node)
         return false;
     }
 
-    auto server = obtain_server_id(ownerNym, bridgeNym, *claims);
+    auto server = obtain_server_id(ownerNym, *bridge);
 
     if (server.empty()) {
         otErr << __FUNCTION__ << ": Bridge nym does not advertise a notary."
@@ -819,101 +766,14 @@ void OTME_too::clean_background_threads()
     }
 }
 
-std::uint64_t OTME_too::ContactCount() const
+bool OTME_too::do_i_download_server_nym() const
 {
-    std::int64_t result = 0;
-    bool notUsed = false;
-    std::lock_guard<std::recursive_mutex> apiLock(api_lock_);
-    config_.Check_long(MASTER_SECTION, CONTACT_COUNT_KEY, result, notUsed);
+    if (need_server_nyms_.load()) {
 
-    if (1 > result) {
-        return 0;
+        return true;
     }
 
-    return result;
-}
-
-std::list<std::string> OTME_too::ContactList() const
-{
-    Lock lock(contact_lock_);
-
-    std::list<std::string> output;
-
-    for (const auto& contact : contact_map_) {
-        const auto& nymID = std::get<0>(contact.second);
-        output.emplace_back(nymID);
-    }
-
-    return output;
-}
-
-std::string OTME_too::ContactName(const std::string& nymID)
-{
-    Lock lock(contact_lock_);
-    std::string output;
-    std::string code;
-
-    const auto index = find_contact(nymID, lock);
-    const bool haveContact = (-1 != index);
-
-    if (haveContact) {
-        output = std::get<4>(contact_map_.at(index));
-
-        if (output.empty()) {
-            const auto nym = wallet_.Nym(Identifier(nymID));
-
-            if (nym) {
-                output = nym->Alias();
-                code = nym->PaymentCode();
-            }
-
-            if (!output.empty()) {
-                add_update_contact(lock, nymID, code, output);
-            }
-        }
-    } else {
-        const auto nym = wallet_.Nym(Identifier(nymID));
-
-        if (nym) {
-            output = nym->Alias();
-            code = nym->PaymentCode();
-            add_update_contact(lock, nymID, code, output);
-        }
-    }
-
-    return output;
-}
-
-std::string OTME_too::ContactPaymentCode(const std::string& nymID)
-{
-    Lock lock(contact_lock_);
-    std::string output;
-
-    const auto index = find_contact(nymID, lock);
-    const bool haveContact = (-1 != index);
-
-    if (haveContact) {
-        output = std::get<5>(contact_map_.at(index));
-
-        if (output.empty()) {
-            const auto nym = wallet_.Nym(Identifier(nymID));
-
-            if (nym) {
-                output = nym->PaymentCode();
-            }
-
-            if (!output.empty()) {
-                add_update_contact(lock, nymID, output, "");
-            }
-        }
-    } else {
-        const auto nym = wallet_.Nym(Identifier(nymID));
-
-        if (nym) {
-            output = nym->PaymentCode();
-            add_update_contact(lock, nymID, output, "");
-        }
-    }
+    const bool output = (0 == (refresh_count_.load() % SERVER_NYM_INTERVAL));
 
     return output;
 }
@@ -969,28 +829,21 @@ void OTME_too::establish_mailability(
     auto recipientNym = wallet_.Nym(Identifier(recipient));
 
     if (!recipientNym) {
-        otInfo << OT_METHOD << __FUNCTION__ << ": Searching for recipient nym."
-               << std::endl;
+        otErr << OT_METHOD << __FUNCTION__ << ": Searching for recipient nym "
+              << recipient << std::endl;
 
         FindNym(recipient, "");
 
         return;
     }
 
-    const auto claims = recipientNym->ContactData();
+    const auto claims = recipientNym->Claims();
+    const auto serverID = claims.PreferredOTServer();
+    const std::string server = String(serverID).Get();
 
-    if (!claims) {
-        otInfo << OT_METHOD << __FUNCTION__ << ": Recipient nym has no claims."
-               << std::endl;
-
-        return;
-    }
-
-    auto server = extract_server(*claims);
-
-    if (server.empty()) {
-        otInfo << OT_METHOD << __FUNCTION__
-               << ": Searching for server contract." << std::endl;
+    if (false == server.empty()) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Searching for server contract"
+              << server << std::endl;
 
         FindServer(server);
 
@@ -1001,9 +854,9 @@ void OTME_too::establish_mailability(
 
     bool exit = false;
 
-    if (!registered) {
-        otInfo << OT_METHOD << __FUNCTION__ << ": Registering on target server."
-               << std::endl;
+    if (false == registered) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Registering on target server "
+              << server << std::endl;
 
         exit = RegisterNym(sender, server, true);
     }
@@ -1049,58 +902,6 @@ std::uint64_t OTME_too::extract_assets(
     return output;
 }
 
-std::string OTME_too::extract_nym_name(const Nym& nym) const
-{
-    std::string output;
-
-    const auto type = identity_.NymType(nym);
-
-    std::list<std::string> names;
-    const bool found = identity_.ExtractClaims(
-        nym, proto::CONTACTSECTION_SCOPE, type, names, true);
-
-    if (found) {
-        output = names.front();
-    }
-
-    return output;
-}
-
-std::string OTME_too::extract_server(const std::string& nymID) const
-{
-    const auto nym = wallet_.Nym(Identifier(nymID));
-
-    if (!nym) {
-        return "";
-    }
-
-    const auto claims = nym->ContactData();
-
-    if (!claims) {
-        return "";
-    }
-
-    return extract_server(*claims);
-}
-
-std::string OTME_too::extract_server(const proto::ContactData& claims) const
-{
-    std::string output;
-
-    std::list<std::string> servers;
-    const bool found = identity_.ExtractClaims(
-        claims,
-        proto::CONTACTSECTION_COMMUNICATION,
-        proto::CITEMTYPE_OPENTXS,
-        servers);
-
-    if (found) {
-        output = servers.front();
-    }
-
-    return output;
-}
-
 std::string OTME_too::extract_server_name(const std::string& serverNymID) const
 {
     std::string output;
@@ -1108,20 +909,11 @@ std::string OTME_too::extract_server_name(const std::string& serverNymID) const
     const auto serverNym = wallet_.Nym(Identifier(serverNymID));
 
     if (!serverNym) {
+
         return output;
     }
 
-    std::list<std::string> names;
-    const bool found = identity_.ExtractClaims(
-        *serverNym,
-        proto::CONTACTSECTION_SCOPE,
-        proto::CITEMTYPE_SERVER,
-        names,
-        true);
-
-    if (found) {
-        output = names.front();
-    }
+    output = serverNym->Claims().Name();
 
     return output;
 }
@@ -1129,22 +921,21 @@ std::string OTME_too::extract_server_name(const std::string& serverNymID) const
 std::set<std::string> OTME_too::extract_message_servers(
     const std::string& nymID) const
 {
-    std::list<std::string> output;
-
     const auto nym = wallet_.Nym(Identifier(nymID));
 
     if (!nym) {
         return {};
     }
 
-    identity_.ExtractClaims(
-        *nym,
-        proto::CONTACTSECTION_COMMUNICATION,
-        proto::CITEMTYPE_OPENTXS,
-        output,
-        false);
+    const auto group = nym->Claims().Group(
+        proto::CONTACTSECTION_COMMUNICATION, proto::CITEMTYPE_OPENTXS);
 
-    return unique_servers(output);
+    if (false == bool(group)) {
+
+        return {};
+    }
+
+    return unique_servers(*group);
 }
 
 void OTME_too::fill_existing_accounts(
@@ -1267,28 +1058,6 @@ void OTME_too::fill_viable_servers(
     }
 }
 
-std::int64_t OTME_too::find_contact(const std::string& nymID, const Lock& lock)
-    const
-{
-    OT_ASSERT(verify_lock(lock, contact_lock_));
-
-    std::uint64_t output = -1;
-
-    for (auto it : contact_map_) {
-        const auto& index = it.first;
-        const auto& meta = it.second;
-        const auto& id = std::get<0>(meta);
-
-        if (nymID == id) {
-            output = index;
-
-            return output;
-        }
-    }
-
-    return output;
-}
-
 std::unique_ptr<OTME_too::PairedNode> OTME_too::find_node(
     const std::string& identifier) const
 {
@@ -1361,6 +1130,12 @@ void OTME_too::find_nym(
         }
     }
 
+    if (0 == serverList.size()) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": No servers available to search for nym " << remoteNymID
+              << std::endl;
+    }
+
     for (const auto& it : serverList) {
         const auto& serverID = it.first;
         const auto& nymID = it.second;
@@ -1369,11 +1144,14 @@ void OTME_too::find_nym(
         const bool found = (1 == otme_.VerifyMessageSuccess(response));
 
         if (found) {
-            otErr << __FUNCTION__ << ": nym " << remoteNymID << " found on "
-                  << serverID << "." << std::endl;
+            otErr << OT_METHOD << __FUNCTION__ << ": nym " << remoteNymID
+                  << " found on " << serverID << "." << std::endl;
             exitStatus->store(true);
 
             break;
+        } else {
+            otErr << OT_METHOD << __FUNCTION__ << ": nym " << remoteNymID
+                  << " not found on " << serverID << "." << std::endl;
         }
 
         if (shutdown_.load()) {
@@ -1503,46 +1281,6 @@ const Identifier& OTME_too::GetIntroductionServer() const
     return introduction_server_;
 }
 
-bool OTME_too::HaveContact(const std::string& nymID) const
-{
-    Lock lock(contact_lock_);
-
-    return (-1 != find_contact(nymID, lock));
-}
-
-void OTME_too::import_contacts(const Lock& lock)
-{
-    OT_ASSERT(verify_lock(lock, contact_lock_));
-
-    auto nyms = wallet_.NymList();
-
-    for (const auto& it : nyms) {
-        const auto& nymid = it.first;
-        const auto nym = wallet_.Nym(Identifier(nymid));
-
-        OT_ASSERT(nym);
-
-        const auto nymType = identity_.NymType(*nym);
-
-        switch (nymType) {
-            case proto::CITEMTYPE_INDIVIDUAL:
-            case proto::CITEMTYPE_ORGANIZATION:
-            case proto::CITEMTYPE_BUSINESS:
-            case proto::CITEMTYPE_GOVERNMENT: {
-                add_update_contact(
-                    lock, nymid, nym->PaymentCode(), nym->Alias());
-            } break;
-            case proto::CITEMTYPE_SERVER:
-            default: {
-            }
-        }
-
-        if (!yield()) {
-            return;
-        };
-    }
-}
-
 std::string OTME_too::import_default_introduction_server(const Lock& lock) const
 {
     return set_introduction_server(lock, OTME_too::DEFAULT_INTRODUCTION_SERVER);
@@ -1608,6 +1346,33 @@ std::string OTME_too::GetPairedServer(const std::string& identifier) const
     }
 
     return output;
+}
+
+std::string OTME_too::ImportNym(const std::string& input) const
+{
+    const auto serialized =
+        proto::StringToProto<proto::CredentialIndex>(String(input.c_str()));
+    const auto nym = wallet_.Nym(serialized);
+
+    if (nym) {
+        return String(nym->ID()).Get();
+    }
+
+    return {};
+}
+
+std::uint64_t OTME_too::legacy_contact_count() const
+{
+    std::int64_t result = 0;
+    bool notUsed = false;
+    std::lock_guard<std::recursive_mutex> apiLock(api_lock_);
+    config_.Check_long(MASTER_SECTION, CONTACT_COUNT_KEY, result, notUsed);
+
+    if (1 > result) {
+        return 0;
+    }
+
+    return result;
 }
 
 void OTME_too::load_introduction_server() const
@@ -1683,8 +1448,8 @@ void OTME_too::mark_renamed(const std::string& bridgeNymID)
 
 void OTME_too::message_contact(
     const std::string& server,
-    const std::string& sender,
-    const std::string& contact,
+    const std::string& senderNymID,
+    const std::string& contactID,
     const std::string& message,
     std::atomic<bool>* running,
     std::atomic<bool>* exitStatus)
@@ -1694,18 +1459,61 @@ void OTME_too::message_contact(
 
     Cleanup threadStatus(*running);
     exitStatus->store(false);
-    const auto result = otme_.send_user_msg(server, sender, contact, message);
+    const auto contact = contacts_.Contact(Identifier(contactID));
+
+    if (false == bool(contact)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Contact does not exist."
+              << std::endl;
+
+        return;
+    }
+
+    const auto nyms = contact->Nyms();
+
+    if (0 == nyms.size()) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Contact does not have a nym id." << std::endl;
+
+        return;
+    }
+
+    std::shared_ptr<const Nym> recipientNym{nullptr};
+    Identifier recipientNymID{};
+
+    for (const auto& it : nyms) {
+        recipientNym = wallet_.Nym(it);
+
+        if (recipientNym) {
+            recipientNymID = it;
+            break;
+        }
+    }
+
+    if (false == bool(recipientNym)) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Recipient nym credentials not found." << std::endl;
+
+        return;
+    }
+
+    const auto result = otme_.send_user_msg(
+        server, senderNymID, String(recipientNymID).Get(), message);
     const bool success = (1 == otme_.VerifyMessageSuccess(result));
     exitStatus->store(success);
+
+    if (false == success) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to message nym "
+              << String(recipientNymID) << " on server " << server << std::endl;
+    }
 }
 
 Identifier OTME_too::MessageContact(
-    const std::string& sender,
-    const std::string& contact,
+    const std::string& senderNymID,
+    const std::string& contactID,
     const std::string& message)
 {
     std::string server;
-    const auto messagability = can_message(sender, contact, server);
+    const auto messagability = can_message(senderNymID, contactID, server);
 
     if (Messagability::READY != messagability) {
         otWarn << OT_METHOD << __FUNCTION__ << ": Unable to message ("
@@ -1717,7 +1525,7 @@ Identifier OTME_too::MessageContact(
 
     OTME_too::BackgroundThread thread =
         [=](std::atomic<bool>* running, std::atomic<bool>* exit) -> void {
-        message_contact(server, sender, contact, message, running, exit);
+        message_contact(server, senderNymID, contactID, message, running, exit);
     };
 
     return add_background_thread(thread);
@@ -1849,7 +1657,7 @@ std::unique_ptr<proto::ContactData> OTME_too::obtain_contact_data(
     bool retry = false;
 
     while (true) {
-        output.reset(identity_.Claims(remoteNym).release());
+        output.reset(new proto::ContactData(remoteNym.Claims().Serialize()));
 
         if (output) {
             break;
@@ -1939,14 +1747,12 @@ bool OTME_too::obtain_server_contract(
 
 std::string OTME_too::obtain_server_id(
     const std::string& ownerNym,
-    const std::string& bridgeNym,
-    const proto::ContactData& claims) const
+    const Nym& bridgeNym) const
 {
-    std::string output;
-    output = extract_server(claims);
+    std::string output = String(bridgeNym.Claims().PreferredOTServer()).Get();
 
     if (output.empty()) {
-        download_nym(ownerNym, bridgeNym, "");
+        download_nym(ownerNym, String(bridgeNym.ID()).Get(), "");
     }
 
     return output;
@@ -1954,23 +1760,14 @@ std::string OTME_too::obtain_server_id(
 
 std::string OTME_too::obtain_server_id(const std::string& nymID) const
 {
-    std::string output;
-
     auto nym = wallet_.Nym(Identifier(nymID));
 
     if (!nym) {
-        return output;
+
+        return {};
     }
 
-    auto data = nym->ContactData();
-
-    if (!data) {
-        return output;
-    }
-
-    output = extract_server(*data);
-
-    return output;
+    return String(nym->Claims().PreferredOTServer()).Get();
 }
 
 void OTME_too::pair(const std::string& bridgeNymID)
@@ -2147,7 +1944,7 @@ std::string OTME_too::PairingStatus(const std::string& identifier) const
     for (const auto& it : unitmap) {
         const auto& type = it.first;
         const auto& unitID = it.second;
-        const auto typeName = identity_.ContactTypeName(type);
+        const auto typeName = proto::TranslateItemType(type);
         output << "* " << typeName << " unit defininition ID: " << unitID
                << "\n";
     }
@@ -2164,7 +1961,7 @@ std::string OTME_too::PairingStatus(const std::string& identifier) const
     for (const auto& it : accountmap) {
         const auto& type = it.first;
         const auto& accountID = it.second;
-        const auto typeName = identity_.ContactTypeName(type);
+        const auto typeName = proto::TranslateItemType(type);
         output << "* " << typeName << " account ID: " << accountID << "\n";
     }
 
@@ -2290,14 +2087,11 @@ bool OTME_too::PairNode(
     return true;
 }
 
-void OTME_too::parse_contact_section(
-    const Lock& lock,
-    const std::uint64_t index)
+void OTME_too::parse_contact_section(const std::uint64_t index)
 {
-    verify_lock(lock, contact_lock_);
-    std::lock_guard<std::recursive_mutex> apiLock(api_lock_);
+    rLock apiLock(api_lock_);
     bool notUsed = false;
-    String nymID;
+    String nym;
     String name;
     String paymentCode;
     std::int64_t checked = 0;
@@ -2305,12 +2099,12 @@ void OTME_too::parse_contact_section(
     String section = CONTACT_SECTION_PREFIX;
     String key = std::to_string(index).c_str();
     section.Concatenate(key);
-    config_.Check_str(section, CONTACT_NYMID_KEY, nymID, notUsed);
+    config_.Check_str(section, CONTACT_NYMID_KEY, nym, notUsed);
     config_.Check_long(section, CONTACT_UPDATED_KEY, checked, notUsed);
     config_.Check_long(section, CONTACT_REVISION_KEY, version, notUsed);
     config_.Check_str(section, CONTACT_LABEL_KEY, name, notUsed);
     config_.Check_str(section, CONTACT_PAYMENTCODE_KEY, paymentCode, notUsed);
-    const bool ready = nymID.Exists();
+    const bool ready = nym.Exists();
 
     if (!ready) {
         return;
@@ -2320,18 +2114,26 @@ void OTME_too::parse_contact_section(
         version = 0;
     }
 
-    auto& contactMetadata = contact_map_[index];
-    auto& mapNymID = std::get<0>(contactMetadata);
-    auto& revision = std::get<1>(contactMetadata);
-    auto& checkedTime = std::get<2>(contactMetadata);
-    auto& label = std::get<4>(contactMetadata);
-    auto& code = std::get<5>(contactMetadata);
+    const Identifier nymID(nym);
+    auto contactID = contacts_.ContactID(nymID);
 
-    mapNymID = nymID.Get();
-    revision = version;
-    checkedTime = static_cast<std::time_t>(checked);
-    label = name.Get();
-    code = paymentCode.Get();
+    if (contactID.empty()) {
+        contacts_.NewContact(name.Get(), nymID, PaymentCode(paymentCode.Get()));
+    } else {
+        auto contactEditor = contacts_.mutable_Contact(contactID);
+
+        OT_ASSERT(contactEditor);
+
+        auto& contact = contactEditor->It();
+
+        if (contact.Label().empty()) {
+            contact.SetLabel(name.Get());
+        }
+
+        if (contact.PaymentCode().empty()) {
+            contact.AddPaymentCode(PaymentCode(paymentCode.Get()), true);
+        }
+    }
 }
 
 void OTME_too::parse_pairing_section(std::uint64_t index)
@@ -2416,116 +2218,92 @@ bool OTME_too::publish_server_registration(
 
     OT_ASSERT(nullptr != nym);
 
-    std::string claimID;
-    const bool alreadyExists = identity_.ClaimExists(
-        *nym,
-        proto::CONTACTSECTION_COMMUNICATION,
-        proto::CITEMTYPE_OPENTXS,
-        server,
-        claimID);
-
-    if (alreadyExists) {
-        return true;
-    }
-
-    bool setPrimary = false;
-
-    if (forcePrimary) {
-        setPrimary = true;
-    } else {
-        std::string primary;
-        const bool hasPrimary = identity_.HasPrimary(
-            *nym,
-            proto::CONTACTSECTION_COMMUNICATION,
-            proto::CITEMTYPE_OPENTXS,
-            primary);
-        setPrimary = !hasPrimary;
-    }
-
-    std::set<std::uint32_t> attribute;
-    attribute.insert(proto::CITEMATTR_ACTIVE);
-
-    if (setPrimary) {
-        attribute.insert(proto::CITEMATTR_PRIMARY);
-    }
-
-    const Claim input{"",
-                      proto::CONTACTSECTION_COMMUNICATION,
-                      proto::CITEMTYPE_OPENTXS,
-                      server,
-                      0,
-                      0,
-                      attribute};
-
-    const bool claimIsSet = identity_.AddClaim(*nym, input);
+    const auto output =
+        nym->AddPreferredOTServer(Identifier(server), forcePrimary);
     apiLock.unlock();
     yield();
 
-    return claimIsSet;
+    return output;
 }
 
 void OTME_too::refresh_contacts(nymAccountMap& nymsToCheck)
 {
-    Lock lock(contact_lock_);
-    bool updated{false};
+    for (const auto& it : contacts_.ContactList()) {
+        const auto& contactID = it.first;
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Considering contact: " << contactID << std::endl;
 
-    for (auto& contact : contact_map_) {
-        auto& meta = contact.second;
-        const auto& nymID = std::get<0>(meta);
-        auto& revision = std::get<1>(meta);
-        auto& checked = std::get<2>(meta);
-        auto& name = std::get<4>(meta);
+        const auto contact = contacts_.Contact(Identifier(contactID));
 
-        otErr << "Contact: " << contact.first << "\nLabel: " << name
-              << std::endl;
-
+        OT_ASSERT(contact);
         const auto now = std::time(nullptr);
-        const std::chrono::seconds interval(now - checked);
+        const std::chrono::seconds interval(now - contact->LastUpdated());
         const std::chrono::hours limit(24 * CONTACT_REFRESH_DAYS);
-        const bool haveNym = (0 < revision);
-        const auto nym = wallet_.Nym(Identifier(nymID));
+        const auto nymList = contact->Nyms();
 
-        if (bool(nym) && name.empty()) {
-            name = extract_nym_name(*nym);
-            otErr << "Updated contact label to: " << name << std::endl;
-            updated = true;
+        if (nymList.empty()) {
+            otErr << OT_METHOD << __FUNCTION__
+                  << ": No nyms associated with this contact." << std::endl;
+
+            continue;
         }
 
-        if (!haveNym) {
+        for (const auto& it : nymList) {
+            const auto nym = wallet_.Nym(it);
+            const std::string nymID = String(it).Get();
+            otErr << OT_METHOD << __FUNCTION__ << ": Considering nym: " << nymID
+                  << std::endl;
+
             if (nym) {
-                revision = nym->Revision();
-                checked = now;
-                updated = true;
+                contacts_.Update(nym->asPublicNym());
             } else {
+                otErr << OT_METHOD << __FUNCTION__
+                      << ": We don't have credentials for this nym. "
+                      << " Will search on all servers." << std::endl;
                 nymsToCheck[ALL_SERVERS].push_back(nymID);
+
+                continue;
             }
-        } else {
+
             if (interval > limit) {
+                otErr << OT_METHOD << __FUNCTION__
+                      << ": Hours since last update (" << interval.count()
+                      << ") exceeds the limit (" << limit.count() << ")"
+                      << std::endl;
                 const auto servers = extract_message_servers(nymID);
 
                 for (const auto& server : servers) {
+                    otErr << OT_METHOD << __FUNCTION__ << ": Will download nym "
+                          << nymID << " from server " << server << std::endl;
                     nymsToCheck[server].push_back(nymID);
                 }
+            } else {
+                otErr << OT_METHOD << __FUNCTION__
+                      << ": No need to update this nym." << std::endl;
             }
         }
-    }
-
-    if (updated) {
-        write_contact_data(lock);
     }
 }
 
 void OTME_too::refresh_thread()
 {
     Cleanup cleanup(refreshing_);
+    otErr << OT_METHOD << __FUNCTION__ << ": Starting refresh loop."
+          << std::endl;
     serverTaskMap accounts;
     build_account_list(accounts);
+    otErr << OT_METHOD << __FUNCTION__ << ": Account list created."
+          << std::endl;
     nymAccountMap nymsToCheck;
     refresh_contacts(nymsToCheck);
+    otErr << OT_METHOD << __FUNCTION__ << ": Checknym task list created."
+          << std::endl;
     add_checknym_tasks(nymsToCheck, accounts);
+    otErr << OT_METHOD << __FUNCTION__ << ": Server operation list finished."
+          << std::endl;
 
     for (const auto server : accounts) {
-        bool updateServerNym = true;
+        bool updateServerNym = do_i_download_server_nym();
         const auto& serverID = server.first;
         const auto& tasks = server.second;
         const auto& accountList = tasks.first;
@@ -2533,23 +2311,29 @@ void OTME_too::refresh_thread()
         bool nymsChecked = false;
 
         if (false == need_to_refresh(serverID)) {
-            otInfo << OT_METHOD << __FUNCTION__
-                   << ": Skipping update for server " << serverID << std::endl;
+            otErr << OT_METHOD << __FUNCTION__
+                  << ": Skipping update for server " << serverID << std::endl;
 
             continue;
         } else {
-            otInfo << OT_METHOD << __FUNCTION__ << ": Updating server "
-                   << serverID << std::endl;
+            otErr << OT_METHOD << __FUNCTION__ << ": Updating server "
+                  << serverID << std::endl;
         }
 
         for (const auto nym : accountList) {
-            if (!yield()) {
+            if (false == yield()) {
                 return;
             }
 
             const auto& nymID = nym.first;
 
+            otErr << OT_METHOD << __FUNCTION__ << ": Refreshing nym " << nymID
+                  << " on " << serverID << std::endl;
+
             if (updateServerNym) {
+                otErr << OT_METHOD << __FUNCTION__
+                      << ": Downloading updated server nym." << std::endl;
+
                 auto contract = wallet_.Server(Identifier(serverID));
 
                 if (contract) {
@@ -2558,21 +2342,31 @@ void OTME_too::refresh_thread()
                         serverID, nymID, String(serverNymID).Get());
                     // If multiple nyms are registered on this server, we only
                     // need to successfully download the nym once.
-                    updateServerNym =
-                        !(1 == otme_.VerifyMessageSuccess(result));
+                    updateServerNym = (1 != otme_.VerifyMessageSuccess(result));
 
-                    if (false == updateServerNym) {
+                    if (updateServerNym) {
+                        otErr << OT_METHOD << __FUNCTION__
+                              << ": Check nym for server nym "
+                              << String(serverNymID) << " failed." << std::endl;
                         otme_.register_nym(serverID, nymID);
                     }
+                } else {
+                    OT_FAIL;
                 }
             }
 
             bool notUsed = false;
+
+            otErr << OT_METHOD << __FUNCTION__ << ": Downloading nymbox."
+                  << std::endl;
+
             made_easy_.retrieve_nym(serverID, nymID, notUsed, true);
 
             // If the nym's credentials have been updated since the last time
             // it was registered on the server, upload the new credentials
-            if (!check_nym_revision(nymID, serverID)) {
+            if (false == check_nym_revision(nymID, serverID)) {
+                otErr << OT_METHOD << __FUNCTION__
+                      << ": Uploading new credentials to server." << std::endl;
                 check_server_registration(nymID, serverID, true, false);
             }
 
@@ -2581,11 +2375,15 @@ void OTME_too::refresh_thread()
                     return;
                 }
 
+                otErr << OT_METHOD << __FUNCTION__ << ": Downloading account "
+                      << account << std::endl;
                 made_easy_.retrieve_account(serverID, nymID, account, true);
             }
 
             if (!nymsChecked) {
                 for (const auto& nym : checkNym) {
+                    otErr << OT_METHOD << __FUNCTION__ << ": Downloading nym "
+                          << nym << std::endl;
                     made_easy_.check_nym(serverID, nymID, nym);
 
                     if (!yield()) {
@@ -2599,9 +2397,14 @@ void OTME_too::refresh_thread()
     }
 
     refresh_count_++;
+    otErr << OT_METHOD << __FUNCTION__ << ": Updating pairing state machine."
+          << std::endl;
     UpdatePairing();
+    otErr << OT_METHOD << __FUNCTION__ << ": Resending pending peer requests."
+          << std::endl;
     resend_peer_requests();
     refreshing_.store(false);
+    otErr << OT_METHOD << __FUNCTION__ << ": Refresh complete." << std::endl;
 }
 
 void OTME_too::Refresh(const std::string&)
@@ -2618,48 +2421,55 @@ void OTME_too::Refresh(const std::string&)
     }
 }
 
+void OTME_too::register_nym(
+    const std::string& nymID,
+    const std::string& server,
+    std::atomic<bool>* running,
+    std::atomic<bool>* exitStatus)
+{
+    OT_ASSERT(nullptr != running)
+    OT_ASSERT(nullptr != exitStatus)
+
+    Cleanup threadStatus(*running);
+    exitStatus->store(false);
+    const auto result = otme_.register_nym(server, nymID);
+    const bool registered = (1 == otme_.VerifyMessageSuccess(result));
+    exitStatus->store(registered);
+}
+
 bool OTME_too::RegisterNym(
     const std::string& nymID,
     const std::string& server,
     const bool setContactData) const
 {
-    const auto result = otme_.register_nym(server, nymID);
-
-    if (!yield()) {
-        return false;
+    if (setContactData) {
+        publish_server_registration(nymID, server, false);
     }
 
+    const auto result = otme_.register_nym(server, nymID);
     const bool registered = (1 == otme_.VerifyMessageSuccess(result));
 
-    if (!yield()) {
-        return false;
+    return registered;
+}
+
+Identifier OTME_too::RegisterNym_async(
+    const std::string& nymID,
+    const std::string& server,
+    const bool setContactData)
+{
+    if (setContactData) {
+        publish_server_registration(nymID, server, false);
     }
 
-    if (registered) {
-        if (setContactData) {
+    OTME_too::BackgroundThread thread =
+        [=](std::atomic<bool>* running, std::atomic<bool>* exit) -> void {
+        register_nym(nymID, server, running, exit);
+    };
 
-            return publish_server_registration(nymID, server, false);
-        } else {
-
-            return true;
-        }
-    }
-
-    return false;
+    return add_background_thread(thread);
 }
 
 std::uint64_t OTME_too::RefreshCount() const { return refresh_count_.load(); }
-
-bool OTME_too::RenameContact(
-    const std::string& contactNymID,
-    const std::string& name)
-{
-    Lock lock(contact_lock_);
-
-    wallet_.SetNymAlias(Identifier(contactNymID), name);
-
-    return add_update_contact(lock, contactNymID, "", name);
-}
 
 bool OTME_too::request_connection(
     const std::string& nym,
@@ -2945,6 +2755,9 @@ std::string OTME_too::set_introduction_server(
 
 void OTME_too::set_server_names(const ServerNameData& servers)
 {
+    const auto serverCount = servers.size();
+    std::size_t goodServers{0};
+
     for (const auto server : servers) {
         const auto& notaryID = server.first;
         const auto& myNymID = std::get<0>(server.second);
@@ -2968,6 +2781,7 @@ void OTME_too::set_server_names(const ServerNameData& servers)
 
         if (localName == originalName) {
             // Never attempted to rename this server. Nothing to do
+            goodServers++;
             continue;
         }
 
@@ -2985,6 +2799,7 @@ void OTME_too::set_server_names(const ServerNameData& servers)
                     return;
                 }
 
+                goodServers++;
                 done = true;
             }
 
@@ -3019,6 +2834,8 @@ void OTME_too::set_server_names(const ServerNameData& servers)
             mark_renamed(bridgeNymID);
         }
     }
+
+    need_server_nyms_.store(serverCount != goodServers);
 }
 
 std::string OTME_too::SetIntroductionServer(const std::string& contract) const
@@ -3039,26 +2856,21 @@ void OTME_too::SetInterval(
 
 void OTME_too::scan_contacts()
 {
-    Lock lock(contact_lock_);
+    const auto contactCount = legacy_contact_count();
 
-    for (std::uint64_t n = 0; n < ContactCount(); n++) {
+    if (0 == contactCount) {
 
-        if (!yield()) {
-            return;
-        }
-
-        parse_contact_section(lock, n);
-    }
-
-    if (!yield()) {
         return;
     }
 
-    import_contacts(lock);
-
-    if (!yield()) {
-        return;
+    for (std::uint64_t n = 0; n < contactCount; n++) {
+        parse_contact_section(n);
     }
+
+    rLock apiLock(api_lock_);
+    bool notUsed = false;
+    config_.Set_long(MASTER_SECTION, CONTACT_COUNT_KEY, 0, notUsed);
+    config_.Save();
 }
 
 std::int64_t OTME_too::scan_incomplete_pairing(const std::string& bridgeNym)
@@ -3168,13 +2980,15 @@ ThreadStatus OTME_too::Status(const Identifier& thread)
     return ThreadStatus::FINISHED_FAILED;
 }
 
-std::set<std::string> OTME_too::unique_servers(
-    const std::list<std::string>& input) const
+std::set<std::string> OTME_too::unique_servers(const ContactGroup& group) const
 {
     std::set<std::string> output;
 
-    for (const auto& it : input) {
-        output.insert(it);
+    for (const auto& it : group) {
+        OT_ASSERT(it.second);
+
+        const auto& item = *it.second;
+        output.insert(item.Value());
     }
 
     return output;
@@ -3378,59 +3192,6 @@ bool OTME_too::verify_lock(const Lock& lock, const std::mutex& mutex) const
     }
 
     return true;
-}
-
-bool OTME_too::write_contact_data()
-{
-    Lock lock(contact_lock_);
-
-    return write_contact_data(lock);
-}
-
-bool OTME_too::write_contact_data(const Lock& lock)
-{
-    OT_ASSERT(verify_lock(lock, contact_lock_));
-
-    std::lock_guard<std::recursive_mutex> apiLock(api_lock_);
-    bool dontCare = false;
-
-    if (!config_.Set_long(
-            MASTER_SECTION, CONTACT_COUNT_KEY, contact_map_.size(), dontCare)) {
-
-        return false;
-    }
-
-    bool output = true;
-    std::uint64_t index = 0;
-
-    for (const auto& contact : contact_map_) {
-        const auto& meta = contact.second;
-        const auto& nymID = std::get<0>(meta);
-        const auto& revision = std::get<1>(meta);
-        const auto& checked = std::get<2>(meta);
-        const auto& label = std::get<4>(meta);
-        const auto& code = std::get<5>(meta);
-        String section = CONTACT_SECTION_PREFIX;
-        String key = std::to_string(index).c_str();
-        section.Concatenate(key);
-
-        output &= config_.Set_str(
-            section, CONTACT_NYMID_KEY, String(nymID), dontCare);
-        output &=
-            config_.Set_long(section, CONTACT_UPDATED_KEY, checked, dontCare);
-        output &=
-            config_.Set_long(section, CONTACT_REVISION_KEY, revision, dontCare);
-        output &= config_.Set_str(
-            section, CONTACT_LABEL_KEY, label.c_str(), dontCare);
-        output &= config_.Set_str(
-            section, CONTACT_PAYMENTCODE_KEY, code.c_str(), dontCare);
-
-        index++;
-    }
-
-    config_.Save();
-
-    return output;
 }
 
 bool OTME_too::yield() const

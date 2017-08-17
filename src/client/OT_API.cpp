@@ -40,6 +40,7 @@
 
 #include "opentxs/client/OT_API.hpp"
 
+#include "opentxs/api/Activity.hpp"
 #include "opentxs/api/Identity.hpp"
 #include "opentxs/api/OT.hpp"
 #include "opentxs/api/Settings.hpp"
@@ -54,6 +55,7 @@
 #include "opentxs/client/OTMessageOutbuffer.hpp"
 #include "opentxs/client/OTWallet.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
+#include "opentxs/contact/ContactData.hpp"
 #include "opentxs/core/contract/basket/Basket.hpp"
 #include "opentxs/core/contract/basket/BasketContract.hpp"
 #if OT_CRYPTO_WITH_BIP32
@@ -513,13 +515,15 @@ bool OT_API::Pid::IsPidOpen() const { return m_bIsPidOpen; }
 
 // The API begins here...
 OT_API::OT_API(
+    Activity& activity,
     Settings& config,
     Identity& identity,
     Storage& storage,
     Wallet& wallet,
     ZMQ& zmq,
     std::recursive_mutex& lock)
-    : config_(config)
+    : activity_(activity)
+    , config_(config)
     , identity_(identity)
     , storage_(storage)
     , wallet_(wallet)
@@ -4036,7 +4040,7 @@ bool OT_API::Rename_Nym(
     proto::ContactItemType realType = proto::CITEMTYPE_ERROR;
 
     if (proto::CITEMTYPE_ERROR == type) {
-        const auto existingType = identity_.NymType(*nym);
+        const auto existingType = nym->Claims().Type();
 
         if (proto::CITEMTYPE_ERROR == existingType) {
             return false;
@@ -4047,7 +4051,7 @@ bool OT_API::Rename_Nym(
         realType = type;
     }
 
-    const bool renamed = identity_.SetScope(*nym, realType, name, primary);
+    const bool renamed = nym->SetScope(realType, name, primary);
 
     if (!renamed) {
         return false;
@@ -4544,8 +4548,6 @@ bool OT_API::AddClaim(
     const std::uint64_t end,
     const std::uint32_t) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     std::set<std::uint32_t> attribute;
 
     if (active) {
@@ -4557,8 +4559,9 @@ bool OT_API::AddClaim(
     }
 
     const Claim claim{"", section, type, value, start, end, attribute};
+    toNym.AddClaim(claim);
 
-    return identity_.AddClaim(toNym, claim);
+    return true;
 }
 
 /** Tries to get the account from the wallet.
@@ -13319,7 +13322,7 @@ int32_t OT_API::sendNymMessage(
 
         pMessage->SignContract(*context->Nym());
         pMessage->SaveContract();
-        wallet_.Mail(NYM_ID, *pMessage, StorageBox::MAILOUTBOX);
+        activity_.Mail(NYM_ID, *pMessage, StorageBox::MAILOUTBOX);
     }
 
     return nReturnValue;
@@ -14048,15 +14051,11 @@ std::string OT_API::AddChildKeyCredential(
 std::unique_ptr<proto::ContactData> OT_API::GetContactData(
     const Identifier& nymID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     std::unique_ptr<proto::ContactData> output;
-    OTPasswordData thePWData(OT_PW_DISPLAY);
+    const auto nym = wallet_.Nym(nymID);
 
-    const Nym* pNym = GetOrLoadNym(nymID, false, __FUNCTION__, &thePWData);
-
-    if (nullptr != pNym) {
-        output.reset(identity_.Claims(*pNym).release());
+    if (nym) {
+        output.reset(new proto::ContactData(nym->Claims().Serialize(true)));
     }
 
     return output;
@@ -14066,7 +14065,7 @@ std::list<std::string> OT_API::BoxItemCount(
     const Identifier& NYM_ID,
     const StorageBox box) const
 {
-    const auto list = wallet_.Mail(NYM_ID, box);
+    const auto list = activity_.Mail(NYM_ID, box);
     std::list<std::string> output;
 
     for (auto& item : list) {
@@ -14081,7 +14080,7 @@ std::string OT_API::BoxContents(
     const Identifier& id,
     const StorageBox box) const
 {
-    const auto message = wallet_.Mail(nymID, id, box);
+    const auto message = activity_.Mail(nymID, id, box);
 
     if (!message) {
         otErr << OT_METHOD << __FUNCTION__ << ": Unable to load message "

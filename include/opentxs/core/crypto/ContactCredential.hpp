@@ -39,11 +39,13 @@
 #ifndef OPENTXS_CORE_CRYPTO_CONTACTCREDENTIAL_HPP
 #define OPENTXS_CORE_CRYPTO_CONTACTCREDENTIAL_HPP
 
-#include "opentxs/core/Proto.hpp"
-#include "opentxs/core/Types.hpp"
 #include "opentxs/core/crypto/Credential.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Proto.hpp"
+#include "opentxs/core/Types.hpp"
 
+#include <cstdint>
 #include <memory>
 
 namespace opentxs
@@ -79,11 +81,19 @@ private:
 public:
     static std::string ClaimID(
         const std::string& nymid,
-        const uint32_t section,
+        const std::uint32_t section,
         const proto::ContactItem& item);
+    static std::string ClaimID(
+        const std::string& nymid,
+        const proto::ContactSectionName section,
+        const proto::ContactItemType type,
+        const std::int64_t start,
+        const std::int64_t end,
+        const std::string& value);
+    static Identifier ClaimID(const proto::Claim& preimage);
     static Claim asClaim(
         const String& nymid,
-        const uint32_t section,
+        const std::uint32_t section,
         const proto::ContactItem& item);
 
     bool GetContactData(
@@ -92,6 +102,6 @@ public:
     virtual ~ContactCredential() = default;
 };
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CORE_CRYPTO_CONTACTCREDENTIAL_HPP
+#endif  // OPENTXS_CORE_CRYPTO_CONTACTCREDENTIAL_HPP

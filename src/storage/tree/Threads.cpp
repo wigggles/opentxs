@@ -38,12 +38,18 @@
 
 #include "opentxs/core/stdafx.hpp"
 
+#include "opentxs/storage/tree/Thread.hpp"
 #include "opentxs/storage/tree/Threads.hpp"
 
-#include "opentxs/storage/tree/Thread.hpp"
 #include "opentxs/storage/StoragePlugin.hpp"
 
+#include <utility>
+#include <string>
+#include <memory>
 #include <functional>
+#include <map>
+
+#define OT_METHOD "opentxs::storage::Threads::"
 
 namespace opentxs
 {
@@ -66,10 +72,15 @@ Threads::Threads(
     }
 }
 
-std::string Threads::Create(const std::set<std::string>& participants)
+std::string Threads::create(
+    const Lock& lock,
+    const std::string& id,
+    const std::set<std::string>& participants)
 {
+    OT_ASSERT(verify_write_lock(lock));
+
     std::unique_ptr<class Thread> newThread(
-        new class Thread(driver_, participants, mail_inbox_, mail_outbox_));
+        new class Thread(driver_, id, participants, mail_inbox_, mail_outbox_));
 
     if (!newThread) {
         std::cerr << __FUNCTION__ << ": Failed to instantiate thread."
@@ -77,25 +88,31 @@ std::string Threads::Create(const std::set<std::string>& participants)
         abort();
     }
 
-    const std::string id = newThread->ID();
-
-    std::unique_lock<std::mutex> lock(write_lock_);
-
     const auto index = item_map_[id];
     const auto hash = std::get<0>(index);
     const auto alias = std::get<1>(index);
     auto& node = threads_[id];
 
-    if (!node) {
-        std::unique_lock<std::mutex> threadLock(newThread->write_lock_);
+    if (false == bool(node)) {
+        Lock threadLock(newThread->write_lock_);
         newThread->save(threadLock);
         node.swap(newThread);
         save(lock);
+    } else {
+        otErr << OT_METHOD << __FUNCTION__ << ": Thread already exists."
+              << std::endl;
     }
 
-    lock.unlock();
-
     return id;
+}
+
+std::string Threads::Create(
+    const std::string& id,
+    const std::set<std::string>& participants)
+{
+    Lock lock(write_lock_);
+
+    return create(lock, id, participants);
 }
 
 bool Threads::Exists(const std::string& id) const
@@ -214,6 +231,53 @@ const class Thread& Threads::Thread(const std::string& id) const
     return *thread(id);
 }
 
+bool Threads::Rename(const std::string& existingID, const std::string& newID)
+{
+    Lock lock(write_lock_);
+
+    auto it = item_map_.find(existingID);
+
+    if (item_map_.end() == it) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Thread " << existingID
+              << " does not exist." << std::endl;
+
+        return false;
+    }
+
+    auto meta = it->second;
+
+    if (nullptr == thread(existingID, lock)) {
+
+        return false;
+    }
+
+    auto threadItem = threads_.find(existingID);
+
+    OT_ASSERT(threads_.end() != threadItem);
+
+    auto& oldThread = threadItem->second;
+
+    OT_ASSERT(oldThread);
+
+    std::unique_ptr<class Thread> newThread{nullptr};
+
+    if (false == oldThread->Rename(newID)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to rename thread "
+              << existingID << std::endl;
+
+        return false;
+    }
+
+    newThread.reset(oldThread.release());
+    threads_.erase(threadItem);
+    threads_.emplace(
+        newID, std::unique_ptr<opentxs::storage::Thread>(newThread.release()));
+    item_map_.erase(it);
+    item_map_.emplace(newID, meta);
+
+    return save(lock);
+}
+
 bool Threads::save(const std::unique_lock<std::mutex>& lock) const
 {
     if (!verify_write_lock(lock)) {
@@ -224,6 +288,7 @@ bool Threads::save(const std::unique_lock<std::mutex>& lock) const
     auto serialized = serialize();
 
     if (!proto::Validate(serialized, VERBOSE)) {
+
         return false;
     }
 

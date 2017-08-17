@@ -88,6 +88,9 @@ OTCachedKey::OTCachedKey(const OTASCIIArmor& ascCachedKey)
 
 OTCachedKey::OTCachedKey(const OTCachedKey& rhs)
 {
+    Lock outer(rhs.outer_lock_, std::defer_lock);
+    Lock inner(rhs.inner_lock_, std::defer_lock);
+    std::lock(outer, inner);
     shutdown_.store(false);
     use_system_keyring_.store(rhs.use_system_keyring_.load());
     paused_.store(rhs.paused_.load());
@@ -115,7 +118,7 @@ void OTCachedKey::init(const std::int32_t& timeout, const bool useKeyring) const
 
 bool OTCachedKey::IsGenerated()
 {
-    std::lock_guard<std::mutex> lock(m_Mutex);
+    Lock lock(outer_lock_);
 
     if (key_) {
         return key_->IsGenerated();
@@ -126,7 +129,7 @@ bool OTCachedKey::IsGenerated()
 
 bool OTCachedKey::HasHashCheck()
 {
-    std::lock_guard<std::mutex> lock(m_Mutex);
+    Lock lock(outer_lock_);
 
     if (key_) {
         return key_->HasHashCheck();
@@ -145,7 +148,7 @@ std::shared_ptr<OTCachedKey> OTCachedKey::It(Identifier* pIdentifier)
     // For now we're only allowing a single global instance, unless you pass in
     // an ID, in which case we keep a map.
 
-    std::lock_guard<std::mutex> lock(OTCachedKey::s_mutexCachedKeys);
+    Lock lock(OTCachedKey::s_mutexCachedKeys);
 
     if (!singleton_) {
         // Default is 0 ("you have to type your PW a million times"), but it's
@@ -216,7 +219,7 @@ std::shared_ptr<OTCachedKey> OTCachedKey::It(OTCachedKey& theSourceKey)
         return output;
     }
 
-    std::lock_guard<std::mutex> lock_keys(OTCachedKey::s_mutexCachedKeys);
+    Lock lock_keys(OTCachedKey::s_mutexCachedKeys);
 
     const std::string id(String(Identifier(theSourceKey)).Get());
 
@@ -254,7 +257,7 @@ std::shared_ptr<OTCachedKey> OTCachedKey::It(OTCachedKey& theSourceKey)
 // static
 void OTCachedKey::Cleanup()
 {
-    std::lock_guard<std::mutex> lock(OTCachedKey::s_mutexCachedKeys);
+    Lock lock(OTCachedKey::s_mutexCachedKeys);
 
     s_mapCachedKeys.clear();
 }
@@ -267,7 +270,7 @@ bool OTCachedKey::isPaused() const { return paused_.load(); }
 // after each one, and THEN convert them to the master key.
 bool OTCachedKey::Pause() const
 {
-    std::lock_guard<std::mutex> lock(m_Mutex);
+    Lock lock(outer_lock_);
 
     if (!paused_.load()) {
         paused_.store(false);
@@ -280,7 +283,7 @@ bool OTCachedKey::Pause() const
 
 bool OTCachedKey::Unpause() const
 {
-    std::lock_guard<std::mutex> lock(m_Mutex);
+    Lock lock(outer_lock_);
 
     if (paused_.load()) {
         paused_.store(false);
@@ -295,14 +298,9 @@ void OTCachedKey::LowLevelReleaseThread()
 {
     shutdown_.store(true);
 
-    if (thread_) {
-        thread_->join();
+    while (false == thread_exited_.load() && thread_) {
+        Log::Sleep(std::chrono::milliseconds(100));
     }
-}
-
-OTCachedKey::~OTCachedKey()
-{
-    LowLevelReleaseThread();
 }
 
 std::int32_t OTCachedKey::GetTimeoutSeconds() const { return timeout_.load(); }
@@ -319,10 +317,9 @@ void OTCachedKey::SetTimeoutSeconds(std::int64_t nTimeoutSeconds)
 }
 
 // Called by OTServer or OTWallet, or whatever instantiates those.
-//
 void OTCachedKey::SetCachedKey(const OTASCIIArmor& ascCachedKey)
 {
-    std::lock_guard<std::mutex> lock(m_Mutex);
+    Lock lock(outer_lock_);
 
     OT_ASSERT(ascCachedKey.Exists());
 
@@ -342,10 +339,9 @@ void OTCachedKey::SetCachedKey(const OTASCIIArmor& ascCachedKey)
 
 // Apparently SerializeFrom (as of this writing) is only used in OTEnvelope.cpp
 // whereas SetCachedKey (above) is used in OTWallet and OTServer.
-//
 bool OTCachedKey::SerializeFrom(const OTASCIIArmor& ascInput)
 {
-    std::lock_guard<std::mutex> lock(m_Mutex);
+    Lock lock(outer_lock_);
 
     if (key_) {
         return key_->SerializeFrom(ascInput);
@@ -356,7 +352,7 @@ bool OTCachedKey::SerializeFrom(const OTASCIIArmor& ascInput)
 
 bool OTCachedKey::SerializeTo(OTASCIIArmor& ascOutput)
 {
-    std::lock_guard<std::mutex> lock(m_Mutex);
+    Lock lock(outer_lock_);
 
     if (key_) {
         return key_->SerializeTo(ascOutput);
@@ -370,7 +366,7 @@ bool OTCachedKey::SerializeTo(OTASCIIArmor& ascOutput)
 // generating the hash for the ID.
 bool OTCachedKey::GetIdentifier(Identifier& theIdentifier) const
 {
-    std::lock_guard<std::mutex> lock((const_cast<OTCachedKey*>(this))->m_Mutex);
+    Lock lock(this->outer_lock_);
 
     if (key_) {
         if (key_->IsGenerated()) {
@@ -448,7 +444,9 @@ std::shared_ptr<OTCachedKey> OTCachedKey::CreateMasterPassword(
 // returned. It is merely re-encrypted.
 bool OTCachedKey::ChangeUserPassphrase()
 {
-    if (!key_) {
+    Lock lock(outer_lock_);
+
+    if (false == bool(key_)) {
         otErr << __FUNCTION__ << ": The Master Key does not appear yet to "
                                  "exist. Try creating a Nym first.\n";
         return false;
@@ -479,10 +477,8 @@ bool OTCachedKey::ChangeUserPassphrase()
                                  "passphrase from user.\n";
         return false;
     }
-    // --------------------------------------------------------------------
+
     LowLevelReleaseThread();
-    std::lock_guard<std::mutex> lock(m_Mutex);
-    ResetMasterPassword(lock);
 
     return key_->ChangePassphrase(*pOldUserPassphrase, *pNewUserPassphrase);
 }
@@ -497,12 +493,12 @@ bool OTCachedKey::GetMasterPassword(
     const char* szDisplay,
     __attribute__((unused)) bool bVerifyTwice)
 {
-    std::lock_guard<std::mutex> lock(m_Mutex);
-
+    Lock lock(outer_lock_);
     std::string str_display(
         nullptr != szDisplay ? szDisplay : "(Display string was blank.)");
 
     const char* szFunc = "OTCachedKey::GetMasterPassword";
+    Lock inner(inner_lock_);
 
     if (master_password_) {
         otInfo << szFunc
@@ -522,7 +518,9 @@ bool OTCachedKey::GetMasterPassword(
     // but m_pThread isn't, and still needs cleaning up before we
     // instantiate another one!
 
+    inner.unlock();
     LowLevelReleaseThread();
+    inner.lock();
     master_password_.reset(OT::App().Crypto().AES().InstantiateBinarySecret());
 
     /*
@@ -972,7 +970,9 @@ bool OTCachedKey::GetMasterPassword(
 
 void OTCachedKey::ThreadTimeout()
 {
-    while (!shutdown_.load()) {
+    thread_exited_.store(false);
+
+    while (false == shutdown_.load()) {
         const auto limit = std::chrono::seconds(GetTimeoutSeconds());
         const auto now = std::chrono::seconds(std::time(nullptr));
         const auto last = std::chrono::seconds(time_.load());
@@ -981,11 +981,10 @@ void OTCachedKey::ThreadTimeout()
         if (limit >= std::chrono::seconds(0)) {
             if (duration > limit) {
                 if (GetTimeoutSeconds() != (-1)) {
-                    std::unique_lock<std::mutex> lock(m_Mutex);
+                    Lock lock(inner_lock_);
                     master_password_.reset();
                     lock.unlock();
                 }
-
             }
         }
 
@@ -997,6 +996,8 @@ void OTCachedKey::ThreadTimeout()
     if (IsUsingSystemKeyring()) {
         OTKeyring::DeleteSecret(secret_id_, "");
     }
+
+    thread_exited_.store(true);
 }
 
 // If you actually want to create a new key, and a new passphrase, then use this
@@ -1005,9 +1006,11 @@ void OTCachedKey::ThreadTimeout()
 // Make SURE you have all your Nyms loaded up and unlocked before you call this.
 // Then save them all again so they will be properly stored with the new master
 // key.
-void OTCachedKey::ResetMasterPassword(const std::lock_guard<std::mutex>&)
+void OTCachedKey::ResetMasterPassword(const Lock&)
 {
+    Lock inner(inner_lock_);
     master_password_.reset();
+    inner.unlock();
 
     if (key_) {
         if (IsUsingSystemKeyring()) {
@@ -1016,6 +1019,16 @@ void OTCachedKey::ResetMasterPassword(const std::lock_guard<std::mutex>&)
 
         key_.reset();
     }
+}
+
+void OTCachedKey::Reset()
+{
+    Lock outer(outer_lock_, std::defer_lock);
+    Lock inner(inner_lock_, std::defer_lock);
+    std::lock(outer, inner);
+    master_password_.reset();
+    inner.unlock();
+    ResetTimer();
 }
 
 void OTCachedKey::ResetTimer() const { time_.store(std::time(nullptr)); }
@@ -1028,5 +1041,18 @@ bool OTCachedKey::IsUsingSystemKeyring() const
 void OTCachedKey::UseSystemKeyring(const bool bUsing) const
 {
     use_system_keyring_.store(bUsing);
+}
+
+OTCachedKey::~OTCachedKey()
+{
+    Lock outer(outer_lock_, std::defer_lock);
+    Lock inner(inner_lock_, std::defer_lock);
+    std::lock(outer, inner);
+
+    shutdown_.store(true);
+
+    if ((false == thread_exited_.load()) && thread_ && thread_->joinable()) {
+        thread_->join();
+    }
 }
 }  // namespace opentxs
