@@ -90,7 +90,7 @@
 #define CONTACT_UPDATED_KEY "updated"
 #define CONTACT_REVISION_KEY "revision"
 #define CONTACT_LABEL_KEY "label"
-#define CONTACT_REFRESH_DAYS 7
+#define CONTACT_REFRESH_DAYS 1
 #define ALL_SERVERS "all"
 
 #define OT_METHOD "opentxs::OTME_too::"
@@ -2216,6 +2216,9 @@ void OTME_too::refresh_contacts(nymAccountMap& nymsToCheck)
 {
     for (const auto& it : contacts_.ContactList()) {
         const auto& contactID = it.first;
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Considering contact: " << contactID << std::endl;
+
         const auto contact = contacts_.Contact(Identifier(contactID));
 
         OT_ASSERT(contact);
@@ -2225,6 +2228,8 @@ void OTME_too::refresh_contacts(nymAccountMap& nymsToCheck)
         const auto nymList = contact->Nyms();
 
         if (nymList.empty()) {
+            otErr << OT_METHOD << __FUNCTION__
+                  << ": No nyms associated with this contact." << std::endl;
 
             continue;
         }
@@ -2232,21 +2237,35 @@ void OTME_too::refresh_contacts(nymAccountMap& nymsToCheck)
         for (const auto& it : nymList) {
             const auto nym = wallet_.Nym(it);
             const std::string nymID = String(it).Get();
+            otErr << OT_METHOD << __FUNCTION__ << ": Considering nym: " << nymID
+                  << std::endl;
 
             if (nym) {
                 contacts_.Update(nym->asPublicNym());
             } else {
+                otErr << OT_METHOD << __FUNCTION__
+                      << ": We don't have credentials for this nym. "
+                      << " Will search on all servers." << std::endl;
                 nymsToCheck[ALL_SERVERS].push_back(nymID);
 
                 continue;
             }
 
             if (interval > limit) {
+                otErr << OT_METHOD << __FUNCTION__
+                      << ": Hours since last update (" << interval.count()
+                      << ") exceeds the limit (" << limit.count() << ")"
+                      << std::endl;
                 const auto servers = extract_message_servers(nymID);
 
                 for (const auto& server : servers) {
+                    otErr << OT_METHOD << __FUNCTION__ << ": Will download nym "
+                          << nymID << " from server " << server << std::endl;
                     nymsToCheck[server].push_back(nymID);
                 }
+            } else {
+                otErr << OT_METHOD << __FUNCTION__
+                      << ": No need to update this nym." << std::endl;
             }
         }
     }

@@ -617,6 +617,15 @@ void Contact::Update(const proto::CredentialIndex& serialized)
     }
 
     update_label(lock, *nym);
+    std::shared_ptr<ContactItem> claim(new ContactItem(
+        String(id_).Get(),
+        proto::CONTACTSECTION_EVENT,
+        proto::CITEMTYPE_REFRESHED,
+        std::to_string(std::time(nullptr)),
+        {proto::CITEMATTR_PRIMARY,
+         proto::CITEMATTR_ACTIVE,
+         proto::CITEMATTR_LOCAL}));
+    add_claim(lock, claim);
 }
 
 void Contact::update_label(const Lock& lock, const Nym& nym)
