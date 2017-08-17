@@ -392,6 +392,8 @@ Messagability OTME_too::can_message(
     auto senderNym = wallet_.Nym(Identifier(senderNymID));
 
     if (!senderNym) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Unable to load sender nym "
+              << senderNymID << std::endl;
 
         return Messagability::MISSING_SENDER;
     }
@@ -399,6 +401,8 @@ Messagability OTME_too::can_message(
     const bool canSign = senderNym->hasCapability(NymCapability::SIGN_MESSAGE);
 
     if (!canSign) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Sender nym " << senderNymID
+              << " can not sign messages (no private key)." << std::endl;
 
         return Messagability::INVALID_SENDER;
     }
@@ -406,6 +410,8 @@ Messagability OTME_too::can_message(
     const auto contact = contacts_.Contact(Identifier(recipientContactID));
 
     if (false == bool(contact)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Recipient contact "
+              << recipientContactID << " does not exist." << std::endl;
 
         return Messagability::MISSING_CONTACT;
     }
@@ -413,6 +419,8 @@ Messagability OTME_too::can_message(
     const auto nyms = contact->Nyms();
 
     if (0 == nyms.size()) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Recipient contact "
+              << recipientContactID << " does not have a nym." << std::endl;
 
         return Messagability::CONTACT_LACKS_NYM;
     }
@@ -434,6 +442,10 @@ Messagability OTME_too::can_message(
             mailability(senderNymID, String(id).Get());
         }
 
+        otErr << OT_METHOD << __FUNCTION__ << ": Recipient contact "
+              << recipientContactID << " credentials not available."
+              << std::endl;
+
         return Messagability::MISSING_RECIPIENT;
     }
 
@@ -442,6 +454,10 @@ Messagability OTME_too::can_message(
     server = String(serverID).Get();
 
     if (server.empty()) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Recipient contact "
+              << recipientContactID << ", nym " << String(recipientNymID)
+              << ": credentials do not specify a server." << std::endl;
+        mailability(senderNymID, String(recipientNymID).Get());
 
         return Messagability::NO_SERVER_CLAIM;
     }
@@ -450,6 +466,8 @@ Messagability OTME_too::can_message(
 
     if (!registered) {
         mailability(senderNymID, String(recipientNymID).Get());
+        otErr << OT_METHOD << __FUNCTION__ << ": Sender nym " << senderNymID
+              << " not registered on server " << server << std::endl;
 
         return Messagability::UNREGISTERED;
     }
@@ -846,6 +864,10 @@ void OTME_too::establish_mailability(
               << server << std::endl;
 
         FindServer(server);
+
+        return;
+    } else {
+        FindNym(recipient, "");
 
         return;
     }
