@@ -201,26 +201,29 @@ const Data PaymentCode::Pubkey() const
 
 const std::string PaymentCode::asBase58() const
 {
-    OT_ASSERT(chain_code_);
+    if (chain_code_) {
+        Data pubkey = Pubkey();
+        std::array<std::uint8_t, 81> serialized{};
+        serialized[0] = PaymentCode::BIP47_VERSION_BYTE;
+        serialized[1] = version_;
+        serialized[2] = hasBitmessage_ ? 0x80 : 0;
+        OTPassword::safe_memcpy(
+            &serialized[3], 33, pubkey.GetPointer(), pubkey.GetSize(), false);
+        OTPassword::safe_memcpy(
+            &serialized[36],
+            32,
+            chain_code_->getMemory(),
+            chain_code_->getMemorySize(),
+            false);
+        serialized[68] = bitmessage_version_;
+        serialized[69] = bitmessage_stream_;
+        Data binaryVersion(serialized.data(), serialized.size());
 
-    Data pubkey = Pubkey();
-    std::array<std::uint8_t, 81> serialized{};
-    serialized[0] = PaymentCode::BIP47_VERSION_BYTE;
-    serialized[1] = version_;
-    serialized[2] = hasBitmessage_ ? 0x80 : 0;
-    OTPassword::safe_memcpy(
-        &serialized[3], 33, pubkey.GetPointer(), pubkey.GetSize(), false);
-    OTPassword::safe_memcpy(
-        &serialized[36],
-        32,
-        chain_code_->getMemory(),
-        chain_code_->getMemorySize(),
-        false);
-    serialized[68] = bitmessage_version_;
-    serialized[69] = bitmessage_stream_;
-    Data binaryVersion(serialized.data(), serialized.size());
+        return OT::App().Crypto().Encode().IdentifierEncode(binaryVersion);
+    } else {
 
-    return OT::App().Crypto().Encode().IdentifierEncode(binaryVersion);
+        return {};
+    }
 }
 
 SerializedPaymentCode PaymentCode::Serialize() const
