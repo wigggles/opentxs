@@ -134,12 +134,12 @@ void OT::Init()
     Init_Dht();      // requires Init_Config()
     Init_ZMQ();      // requires Init_Config()
     Init_Contracts();
-    Init_Blockchain();  // requires Init_Storage(), Init_Crypto(),
-                        // Init_Contracts()
     Init_Identity();
-    Init_Contacts();  // requires Init_Contracts(), Init_Storage()
-    Init_Activity();  // requires Init_Storage(), Init_Contacts(),
-                      // Init_Contracts()
+    Init_Contacts();    // requires Init_Contracts(), Init_Storage()
+    Init_Activity();    // requires Init_Storage(), Init_Contacts(),
+                        // Init_Contracts()
+    Init_Blockchain();  // requires Init_Storage(), Init_Crypto(),
+                        // Init_Contracts(), Init_Activity()
     Init_Api();  // requires Init_Config(), Init_Crypto(), Init_Contracts(),
                  // Init_Identity(), Init_Storage(), Init_ZMQ(), Init_Contacts()
                  // Init_Activity()
@@ -186,11 +186,13 @@ void OT::Init_Api()
 
 void OT::Init_Blockchain()
 {
-    OT_ASSERT(storage_);
+    OT_ASSERT(activity_);
     OT_ASSERT(crypto_);
+    OT_ASSERT(storage_);
     OT_ASSERT(wallet_)
 
-    blockchain_.reset(new class Blockchain(*crypto_, *storage_, *wallet_));
+    blockchain_.reset(
+        new class Blockchain(*activity_, *crypto_, *storage_, *wallet_));
 }
 
 void OT::Init_Config()
@@ -713,10 +715,10 @@ void OT::Shutdown()
     }
 
     api_.reset();
+    blockchain_.reset();
     activity_.reset();
     identity_.reset();
     contacts_.reset();
-    blockchain_.reset();
     wallet_.reset();
     zeromq_.reset();
     dht_.reset();

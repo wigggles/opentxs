@@ -159,7 +159,9 @@ enum class StorageBox : std::uint8_t {
     PROCESSEDPEERREQUEST = 6,
     PROCESSEDPEERREPLY = 7,
     MAILINBOX = 8,
-    MAILOUTBOX = 9
+    MAILOUTBOX = 9,
+    INCOMINGBLOCKCHAIN = 10,
+    OUTGOINGBLOCKCHAIN = 11,
 };
 
 enum class Bip43Purpose : std::uint32_t {

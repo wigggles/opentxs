@@ -40,6 +40,7 @@
 
 #include "opentxs/api/Blockchain.hpp"
 
+#include "opentxs/api/Activity.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/crypto/AsymmetricKeySecp256k1.hpp"
 #include "opentxs/core/crypto/Bip32.hpp"
@@ -79,14 +80,37 @@
 
 namespace opentxs
 {
-Blockchain::Blockchain(CryptoEngine& crypto, Storage& storage, Wallet& wallet)
-    : crypto_(crypto)
+Blockchain::Blockchain(
+    Activity& activity,
+    CryptoEngine& crypto,
+    Storage& storage,
+    Wallet& wallet)
+    : activity_(activity)
+    , crypto_(crypto)
     , storage_(storage)
     , wallet_(wallet)
     , lock_()
     , nym_lock_()
     , account_lock_()
 {
+}
+
+std::shared_ptr<proto::Bip44Account> Blockchain::Account(
+    const Identifier& nymID,
+    const Identifier& accountID) const
+{
+    LOCK_ACCOUNT()
+
+    const std::string sNymID = String(nymID).Get();
+    const std::string sAccountID = String(accountID).Get();
+    auto account = load_account(accountLock, sNymID, sAccountID);
+
+    if (false == bool(account)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Account does not exist."
+              << std::endl;
+    }
+
+    return account;
 }
 
 std::set<Identifier> Blockchain::AccountList(
@@ -172,10 +196,9 @@ std::unique_ptr<proto::Bip44Address> Blockchain::AllocateAddress(
     const std::string sNymID = String(nymID).Get();
     const std::string sAccountID = String(accountID).Get();
     std::unique_ptr<proto::Bip44Address> output{nullptr};
-    std::shared_ptr<proto::Bip44Account> account{nullptr};
-    const bool loaded = storage_.Load(sNymID, sAccountID, account);
+    auto account = load_account(accountLock, sNymID, sAccountID);
 
-    if (false == loaded) {
+    if (false == bool(account)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Account does not exist."
               << std::endl;
 
@@ -222,10 +245,10 @@ bool Blockchain::AssignAddress(
 
     const std::string sNymID = String(nymID).Get();
     const std::string sAccountID = String(accountID).Get();
-    std::shared_ptr<proto::Bip44Account> account{nullptr};
-    const bool loaded = storage_.Load(sNymID, sAccountID, account);
+    const std::string sContactID = String(contactID).Get();
+    auto account = load_account(accountLock, sNymID, sAccountID);
 
-    if (false == loaded) {
+    if (false == bool(account)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Account does not exist."
               << std::endl;
 
@@ -244,7 +267,13 @@ bool Blockchain::AssignAddress(
     }
 
     auto& address = find_address(index, chain, *account);
-    address.set_contact(String(contactID).Get());
+    const auto& existing = address.contact();
+
+    if (false == existing.empty()) {
+        move_transactions(nymID, address, existing, sContactID);
+    }
+
+    address.set_contact(sContactID);
     account->set_revision(account->revision() + 1);
 
     return storage_.Store(sNymID, type, *account);
@@ -409,6 +438,17 @@ proto::Bip44Address& Blockchain::find_address(
     OT_FAIL;
 }
 
+std::shared_ptr<proto::Bip44Account> Blockchain::load_account(
+    const Lock&,
+    const std::string& nymID,
+    const std::string& accountID) const
+{
+    std::shared_ptr<proto::Bip44Account> account{nullptr};
+    storage_.Load(nymID, accountID, account);
+
+    return account;
+}
+
 std::unique_ptr<proto::Bip44Address> Blockchain::LoadAddress(
     const Identifier& nymID,
     const Identifier& accountID,
@@ -420,10 +460,9 @@ std::unique_ptr<proto::Bip44Address> Blockchain::LoadAddress(
     std::unique_ptr<proto::Bip44Address> output{};
     const std::string sNymID = String(nymID).Get();
     const std::string sAccountID = String(accountID).Get();
-    std::shared_ptr<proto::Bip44Account> account{nullptr};
-    const bool loaded = storage_.Load(sNymID, sAccountID, account);
+    auto account = load_account(accountLock, sNymID, sAccountID);
 
-    if (false == loaded) {
+    if (false == bool(account)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Account does not exist."
               << std::endl;
 
@@ -442,6 +481,22 @@ std::unique_ptr<proto::Bip44Address> Blockchain::LoadAddress(
 
     auto& address = find_address(index, chain, *account);
     output.reset(new proto::Bip44Address(address));
+
+    return output;
+}
+
+bool Blockchain::move_transactions(
+    const Identifier& nymID,
+    const proto::Bip44Address& address,
+    const std::string& fromContact,
+    const std::string& toContact) const
+{
+    bool output{true};
+
+    for (const auto& txid : address.incoming()) {
+        output &= activity_.MoveIncomingBlockchainTransaction(
+            nymID, Identifier(fromContact), Identifier(toContact), txid);
+    }
 
     return output;
 }
@@ -526,5 +581,142 @@ Identifier Blockchain::NewAccount(
           << std::endl;
 
     return {};
+}
+
+bool Blockchain::StoreIncoming(
+    const Identifier& nymID,
+    const Identifier& accountID,
+    const std::uint32_t index,
+    const BIP44Chain chain,
+    const proto::BlockchainTransaction& transaction) const
+{
+    LOCK_ACCOUNT()
+
+    const std::string sNymID = String(nymID).Get();
+    const std::string sAccountID = String(accountID).Get();
+    auto account = load_account(accountLock, sNymID, sAccountID);
+
+    if (false == bool(account)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Account does not exist."
+              << std::endl;
+
+        return false;
+    }
+
+    const auto allocatedIndex =
+        chain ? account->internalindex() : account->externalindex();
+
+    if (index > allocatedIndex) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Address has not been allocated." << std::endl;
+
+        return false;
+    }
+
+    auto& address = find_address(index, chain, *account);
+    bool exists = false;
+
+    for (const auto& txid : address.incoming()) {
+        if (txid == transaction.txid()) {
+            exists = true;
+            break;
+        }
+    }
+
+    if (false == exists) {
+        address.add_incoming(transaction.txid());
+    }
+
+    auto saved = storage_.Store(sNymID, account->type(), *account);
+
+    if (false == saved) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to save account."
+              << std::endl;
+
+        return false;
+    }
+
+    saved = storage_.Store(transaction);
+
+    if (false == saved) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to save transaction."
+              << std::endl;
+
+        return false;
+    }
+
+    if (address.contact().empty()) {
+
+        return true;
+    }
+
+    const Identifier contactID(address.contact());
+
+    return activity_.AddBlockchainTransaction(
+        nymID, contactID, StorageBox::INCOMINGBLOCKCHAIN, transaction);
+}
+
+bool Blockchain::StoreOutgoing(
+    const Identifier& senderNymID,
+    const Identifier& accountID,
+    const Identifier& recipientContactID,
+    const proto::BlockchainTransaction& transaction) const
+{
+    LOCK_ACCOUNT()
+
+    const std::string sNymID = String(senderNymID).Get();
+    const std::string sAccountID = String(accountID).Get();
+    auto account = load_account(accountLock, sNymID, sAccountID);
+
+    if (false == bool(account)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Account does not exist."
+              << std::endl;
+
+        return false;
+    }
+
+    const auto& txid = transaction.txid();
+    account->add_outgoing(txid);
+    auto saved = storage_.Store(sNymID, account->type(), *account);
+
+    if (false == saved) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to save account."
+              << std::endl;
+
+        return false;
+    }
+
+    saved = storage_.Store(transaction);
+
+    if (false == saved) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to save transaction."
+              << std::endl;
+
+        return false;
+    }
+
+    if (recipientContactID.empty()) {
+
+        return true;
+    }
+
+    return activity_.AddBlockchainTransaction(
+        senderNymID,
+        recipientContactID,
+        StorageBox::OUTGOINGBLOCKCHAIN,
+        transaction);
+}
+
+std::shared_ptr<proto::BlockchainTransaction> Blockchain::Transaction(
+    const Identifier& id) const
+{
+    std::shared_ptr<proto::BlockchainTransaction> output;
+
+    if (false == storage_.Load(String(id).Get(), output, false)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to load transaction."
+              << std::endl;
+    }
+
+    return output;
 }
 }  // namespace opentxs

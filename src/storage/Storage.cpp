@@ -117,6 +117,13 @@ std::set<std::string> Storage::BlockchainAccountList(
     return Meta().Tree().NymNode().Nym(nymID).BlockchainAccountList(type);
 }
 
+std::string Storage::BlockchainAddressOwner(
+    proto::ContactItemType chain,
+    std::string address)
+{
+    return Meta().Tree().ContactNode().AddressOwner(chain, address);
+}
+
 ObjectList Storage::BlockchainTransactionList()
 {
 
@@ -624,6 +631,96 @@ bool Storage::Migrate(const std::string& key, const StorageDriver& to) const
     }
 
     return false;
+}
+
+bool Storage::MoveThreadItem(
+    const std::string& nymId,
+    const std::string& fromThreadID,
+    const std::string& toThreadID,
+    const std::string& itemID)
+{
+    const bool fromExists =
+        Meta().Tree().NymNode().Nym(nymId).Threads().Exists(fromThreadID);
+
+    if (false == fromExists) {
+        otErr << OT_METHOD << __FUNCTION__ << ": From thread does not exist."
+              << std::endl;
+
+        return false;
+    }
+
+    const bool toExists =
+        Meta().Tree().NymNode().Nym(nymId).Threads().Exists(toThreadID);
+
+    if (false == toExists) {
+        otErr << OT_METHOD << __FUNCTION__ << ": To thread does not exist."
+              << std::endl;
+
+        return false;
+    }
+
+    auto& fromThread = mutable_Meta()
+                           .It()
+                           .mutable_Tree()
+                           .It()
+                           .mutable_Nyms()
+                           .It()
+                           .mutable_Nym(nymId)
+                           .It()
+                           .mutable_Threads()
+                           .It()
+                           .mutable_Thread(fromThreadID)
+                           .It();
+    const auto thread = fromThread.Items();
+    bool found = false;
+    std::uint64_t time{};
+    StorageBox box{};
+
+    for (const auto& item : thread.item()) {
+        if (item.id() == itemID) {
+            found = true;
+            time = item.time();
+            box = static_cast<StorageBox>(item.box());
+
+            break;
+        }
+    }
+
+    if (false == found) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Item does not exist."
+              << std::endl;
+
+        return false;
+    }
+
+    if (false == fromThread.Remove(itemID)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to remove item."
+              << std::endl;
+
+        return false;
+    }
+
+    auto& toThread = mutable_Meta()
+                         .It()
+                         .mutable_Tree()
+                         .It()
+                         .mutable_Nyms()
+                         .It()
+                         .mutable_Nym(nymId)
+                         .It()
+                         .mutable_Threads()
+                         .It()
+                         .mutable_Thread(toThreadID)
+                         .It();
+
+    if (false == toThread.Add(itemID, time, box, {}, {})) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to insert item."
+              << std::endl;
+
+        return false;
+    }
+
+    return true;
 }
 
 Editor<storage::Root> Storage::mutable_Meta()

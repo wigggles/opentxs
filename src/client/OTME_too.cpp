@@ -2378,10 +2378,8 @@ void OTME_too::refresh_thread()
             }
 
             bool notUsed = false;
-
             otErr << OT_METHOD << __FUNCTION__ << ": Downloading nymbox."
                   << std::endl;
-
             made_easy_.retrieve_nym(serverID, nymID, notUsed, true);
 
             // If the nym's credentials have been updated since the last time

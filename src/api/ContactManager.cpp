@@ -59,14 +59,16 @@ ContactManager::ContactManager(Storage& storage, Wallet& wallet)
     , wallet_(wallet)
     , lock_()
     , contact_map_()
+    , nym_contact_map_()
+    , address_contact_map_()
 {
-    Lock lock(lock_);
+    rLock lock(lock_);
     init_nym_map(lock);
     import_contacts(lock);
 }
 
 ContactManager::ContactMap::iterator ContactManager::add_contact(
-    const Lock& lock,
+    const rLock& lock,
     class Contact* contact)
 {
     OT_ASSERT(nullptr != contact);
@@ -79,6 +81,34 @@ ContactManager::ContactMap::iterator ContactManager::add_contact(
     it.second.reset(contact);
 
     return contact_map_.find(id);
+}
+
+Identifier ContactManager::address_to_contact(
+    const rLock& lock,
+    const std::string& address,
+    const proto::ContactItemType currency) const
+{
+    if (false == verify_write_lock(lock)) {
+        throw std::runtime_error("lock error");
+    }
+
+    auto it = address_contact_map_.find({currency, address});
+
+    if (address_contact_map_.end() == it) {
+
+        return {};
+    }
+
+    return it->second;
+}
+
+Identifier ContactManager::BlockchainAddressToContact(
+    const std::string& address,
+    const proto::ContactItemType currency) const
+{
+    rLock lock(lock_);
+
+    return address_to_contact(lock, address, currency);
 }
 
 void ContactManager::check_identifiers(
@@ -102,7 +132,7 @@ void ContactManager::check_identifiers(
 }
 
 std::shared_ptr<const class Contact> ContactManager::contact(
-    const Lock& lock,
+    const rLock& lock,
     const Identifier& id)
 {
     if (false == verify_write_lock(lock)) {
@@ -120,7 +150,7 @@ std::shared_ptr<const class Contact> ContactManager::contact(
 }
 
 std::shared_ptr<const class Contact> ContactManager::contact(
-    const Lock& lock,
+    const rLock& lock,
     const std::string& label)
 {
     std::unique_ptr<class Contact> contact(new class Contact(wallet_, label));
@@ -157,14 +187,14 @@ std::shared_ptr<const class Contact> ContactManager::contact(
 std::shared_ptr<const class Contact> ContactManager::Contact(
     const Identifier& id)
 {
-    Lock lock(lock_);
+    rLock lock(lock_);
 
     return contact(lock, id);
 }
 
 Identifier ContactManager::ContactID(const Identifier& nymID) const
 {
-    Lock lock(lock_);
+    rLock lock(lock_);
 
     auto it = nym_contact_map_.find(nymID);
 
@@ -181,7 +211,7 @@ ObjectList ContactManager::ContactList() const
     return storage_.ContactList();
 }
 
-void ContactManager::import_contacts(const Lock& lock)
+void ContactManager::import_contacts(const rLock& lock)
 {
     auto nyms = wallet_.NymList();
 
@@ -211,7 +241,7 @@ void ContactManager::import_contacts(const Lock& lock)
     }
 }
 
-void ContactManager::init_nym_map(const Lock& lock)
+void ContactManager::init_nym_map(const rLock& lock)
 {
     for (const auto& it : storage_.ContactList()) {
         const auto& contactID = Identifier(it.first);
@@ -234,11 +264,17 @@ void ContactManager::init_nym_map(const Lock& lock)
         for (const auto& nym : nyms) {
             update_nym_map(lock, nym, *contact);
         }
+
+        const auto addresses = contact->BlockchainAddresses();
+
+        for (const auto& address : addresses) {
+            address_contact_map_[address] = contact->ID();
+        }
     }
 }
 
 ContactManager::ContactMap::iterator ContactManager::load_contact(
-    const Lock& lock,
+    const rLock& lock,
     const Identifier& id)
 {
     if (false == verify_write_lock(lock)) {
@@ -271,7 +307,7 @@ ContactManager::ContactMap::iterator ContactManager::load_contact(
 }
 
 std::unique_ptr<Editor<class Contact>> ContactManager::mutable_contact(
-    const Lock& lock,
+    const rLock& lock,
     const Identifier& id)
 {
     if (false == verify_write_lock(lock)) {
@@ -301,13 +337,15 @@ std::unique_ptr<Editor<class Contact>> ContactManager::mutable_contact(
 std::unique_ptr<Editor<class Contact>> ContactManager::mutable_Contact(
     const Identifier& id)
 {
-    Lock lock(lock_);
+    rLock lock(lock_);
+    auto output = mutable_contact(lock, id);
+    lock.unlock();
 
-    return mutable_contact(lock, id);
+    return output;
 }
 
 std::shared_ptr<const class Contact> ContactManager::new_contact(
-    const Lock& lock,
+    const rLock& lock,
     const std::string& label,
     const Identifier& nymID,
     const PaymentCode& code)
@@ -372,7 +410,7 @@ std::shared_ptr<const class Contact> ContactManager::new_contact(
 std::shared_ptr<const class Contact> ContactManager::NewContact(
     const std::string& label)
 {
-    Lock lock(lock_);
+    rLock lock(lock_);
 
     return contact(lock, label);
 }
@@ -382,25 +420,54 @@ std::shared_ptr<const class Contact> ContactManager::NewContact(
     const Identifier& nymID,
     const PaymentCode& paymentCode)
 {
-    Lock lock(lock_);
+    rLock lock(lock_);
 
     return new_contact(lock, label, nymID, paymentCode);
 }
 
-void ContactManager::save(class Contact* contact)
+std::shared_ptr<const class Contact> ContactManager::NewContactFromAddress(
+    const std::string& address,
+    const std::string& label,
+    const proto::ContactItemType currency)
 {
-    OT_ASSERT(nullptr != contact);
+    rLock lock(lock_);
 
-    if (false == storage_.Store(*contact)) {
+    const auto existingID = address_to_contact(lock, address, currency);
+
+    if (false == existingID.empty()) {
+
+        return contact(lock, existingID);
+    }
+
+    auto newContact = contact(lock, label);
+
+    OT_ASSERT(newContact);
+
+    const auto newContactID = newContact->ID();
+    auto& it = contact_map_.at(newContactID);
+    auto& contact = *it.second;
+
+    if (false == contact.AddBlockchainAddress(address, currency)) {
         otErr << OT_METHOD << __FUNCTION__
-              << ": Unable to create or save contact." << std::endl;
+              << ": Failed to add address to contact." << std::endl;
 
         OT_FAIL;
     }
+
+    address_contact_map_[{currency, address}] = newContactID;
+
+    if (false == storage_.Store(contact)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Unable to save contact."
+              << std::endl;
+
+        OT_FAIL;
+    }
+
+    return newContact;
 }
 
 ContactManager::ContactMap::iterator ContactManager::obtain_contact(
-    const Lock& lock,
+    const rLock& lock,
     const Identifier& id)
 {
     if (false == verify_write_lock(lock)) {
@@ -415,6 +482,40 @@ ContactManager::ContactMap::iterator ContactManager::obtain_contact(
     }
 
     return load_contact(lock, id);
+}
+
+void ContactManager::refresh_indices(const rLock& lock, class Contact& contact)
+{
+    if (false == verify_write_lock(lock)) {
+        throw std::runtime_error("lock error");
+    }
+
+    const auto nyms = contact.Nyms();
+
+    for (const auto& nymid : nyms) {
+        update_nym_map(lock, nymid, contact, true);
+    }
+
+    const auto addresses = contact.BlockchainAddresses();
+
+    for (const auto& address : addresses) {
+        address_contact_map_[address] = contact.ID();
+    }
+}
+
+void ContactManager::save(class Contact* contact)
+{
+    OT_ASSERT(nullptr != contact);
+
+    if (false == storage_.Store(*contact)) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Unable to create or save contact." << std::endl;
+
+        OT_FAIL;
+    }
+
+    rLock lock(lock_);
+    refresh_indices(lock, *contact);
 }
 
 std::shared_ptr<const class Contact> ContactManager::Update(
@@ -436,7 +537,7 @@ std::shared_ptr<const class Contact> ContactManager::Update(
     }
 
     const auto& nymID = nym->ID();
-    Lock lock(lock_);
+    rLock lock(lock_);
     auto it = nym_contact_map_.find(nymID);
 
     if (nym_contact_map_.end() == it) {
@@ -468,7 +569,7 @@ std::shared_ptr<const class Contact> ContactManager::Update(
 }
 
 std::shared_ptr<const class Contact> ContactManager::update_existing_contact(
-    const Lock& lock,
+    const rLock& lock,
     const std::string& label,
     const PaymentCode& code,
     ContactManager::NymMap::iterator& existing)
@@ -502,7 +603,7 @@ std::shared_ptr<const class Contact> ContactManager::update_existing_contact(
 }
 
 void ContactManager::update_nym_map(
-    const Lock& lock,
+    const rLock& lock,
     const Identifier nymID,
     class Contact& contact,
     const bool replace)
@@ -532,12 +633,24 @@ void ContactManager::update_nym_map(
             }
 
             oldContact->RemoveNym(nymID);
-            save(oldContact.get());
+
+            if (false == storage_.Store(*oldContact)) {
+                otErr << OT_METHOD << __FUNCTION__
+                      << ": Unable to create or save contact." << std::endl;
+
+                OT_FAIL;
+            }
         } else {
             otErr << OT_METHOD << __FUNCTION__ << ": Duplicate nym found."
                   << std::endl;
             contact.RemoveNym(nymID);
-            save(&contact);
+
+            if (false == storage_.Store(contact)) {
+                otErr << OT_METHOD << __FUNCTION__
+                      << ": Unable to create or save contact." << std::endl;
+
+                OT_FAIL;
+            }
 
             return;
         }
@@ -548,7 +661,7 @@ void ContactManager::update_nym_map(
     }
 }
 
-bool ContactManager::verify_write_lock(const Lock& lock) const
+bool ContactManager::verify_write_lock(const rLock& lock) const
 {
     if (lock.mutex() != &lock_) {
         otErr << OT_METHOD << __FUNCTION__ << ": Incorrect mutex." << std::endl;

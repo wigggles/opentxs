@@ -60,6 +60,49 @@ Activity::Activity(ContactManager& contact, Storage& storage, Wallet& wallet)
 {
 }
 
+bool Activity::AddBlockchainTransaction(
+    const Identifier& nymID,
+    const Identifier& threadID,
+    const StorageBox box,
+    const proto::BlockchainTransaction& transaction) const
+{
+    const std::string sNymID = String(nymID).Get();
+    const std::string sthreadID = String(threadID).Get();
+    const auto threadList = storage_.ThreadList(sNymID);
+    bool threadExists = false;
+
+    for (const auto it : threadList) {
+        const auto& id = it.first;
+
+        if (id == sthreadID) {
+            threadExists = true;
+            break;
+        }
+    }
+
+    if (false == threadExists) {
+        storage_.CreateThread(sNymID, sthreadID, {sthreadID});
+    }
+
+    const bool saved = storage_.Store(
+        sNymID, sthreadID, transaction.txid(), transaction.time(), {}, {}, box);
+
+    return saved;
+}
+
+bool Activity::MoveIncomingBlockchainTransaction(
+    const Identifier& nymID,
+    const Identifier& fromThreadID,
+    const Identifier& toThreadID,
+    const std::string& txid) const
+{
+    return storage_.MoveThreadItem(
+        String(nymID).Get(),
+        String(fromThreadID).Get(),
+        String(toThreadID).Get(),
+        txid);
+}
+
 std::shared_ptr<const Contact> Activity::nym_to_contact(const std::string& id)
 {
     const Identifier nymID(id);

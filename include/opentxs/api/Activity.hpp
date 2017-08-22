@@ -59,6 +59,18 @@ class Wallet;
 class Activity
 {
 public:
+    bool AddBlockchainTransaction(
+        const Identifier& nymID,
+        const Identifier& threadID,
+        const StorageBox box,
+        const proto::BlockchainTransaction& transaction) const;
+
+    bool MoveIncomingBlockchainTransaction(
+        const Identifier& nymID,
+        const Identifier& fromThreadID,
+        const Identifier& toThreadID,
+        const std::string& txid) const;
+
     /**   Load a mail object
      *
      *    \param[in] nym the identifier of the nym who owns the mail box

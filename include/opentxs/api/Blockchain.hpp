@@ -52,6 +52,7 @@
 namespace opentxs
 {
 
+class Activity;
 class CryptoEngine;
 class Storage;
 class Wallet;
@@ -59,6 +60,9 @@ class Wallet;
 class Blockchain
 {
 public:
+    std::shared_ptr<proto::Bip44Account> Account(
+        const Identifier& nymID,
+        const Identifier& accountID) const;
     std::set<Identifier> AccountList(
         const Identifier& nymID,
         const proto::ContactItemType type) const;
@@ -81,6 +85,19 @@ public:
     Identifier NewAccount(
         const Identifier& nymID,
         const proto::ContactItemType type) const;
+    bool StoreIncoming(
+        const Identifier& nymID,
+        const Identifier& accountID,
+        const std::uint32_t index,
+        const BIP44Chain chain,
+        const proto::BlockchainTransaction& transaction) const;
+    bool StoreOutgoing(
+        const Identifier& senderNymID,
+        const Identifier& accountID,
+        const Identifier& recipientContactID,
+        const proto::BlockchainTransaction& transaction) const;
+    std::shared_ptr<proto::BlockchainTransaction> Transaction(
+        const Identifier& id) const;
 
     ~Blockchain() = default;
 
@@ -88,6 +105,7 @@ private:
     typedef std::map<Identifier, std::mutex> IDLock;
     friend class OT;
 
+    Activity& activity_;
     CryptoEngine& crypto_;
     Storage& storage_;
     Wallet& wallet_;
@@ -109,13 +127,21 @@ private:
         const std::uint32_t index,
         const BIP44Chain chain,
         proto::Bip44Account& account) const;
-    std::unique_ptr<proto::Bip44Address> load_address(
+    std::shared_ptr<proto::Bip44Account> load_account(
+        const Lock& lock,
+        const std::string& nymID,
+        const std::string& accountID) const;
+    bool move_transactions(
         const Identifier& nymID,
-        const Identifier& accountID,
-        const std::uint32_t index,
-        const BIP44Chain chain) const;
+        const proto::Bip44Address& address,
+        const std::string& fromContact,
+        const std::string& toContact) const;
 
-    Blockchain(CryptoEngine& crypto, Storage& storage, Wallet& wallet);
+    Blockchain(
+        Activity& activity,
+        CryptoEngine& crypto,
+        Storage& storage,
+        Wallet& wallet);
     Blockchain() = delete;
     Blockchain(const Blockchain&) = delete;
     Blockchain(Blockchain&&) = delete;

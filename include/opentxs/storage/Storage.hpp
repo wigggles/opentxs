@@ -183,6 +183,9 @@ public:
     std::set<std::string> BlockchainAccountList(
         const std::string& nymID,
         const proto::ContactItemType type);
+    std::string BlockchainAddressOwner(
+        proto::ContactItemType chain,
+        std::string address);
     ObjectList BlockchainTransactionList();
     std::string ContactAlias(const std::string& id);
     ObjectList ContactList();
@@ -282,6 +285,11 @@ public:
     void MapPublicNyms(NymLambda& lambda);
     void MapServers(ServerLambda& lambda);
     void MapUnitDefinitions(UnitLambda& lambda);
+    bool MoveThreadItem(
+        const std::string& nymId,
+        const std::string& fromThreadID,
+        const std::string& toThreadID,
+        const std::string& itemID);
     ObjectList NymBoxList(const std::string& nymID, const StorageBox box) const;
     ObjectList NymList() const;
     bool RemoveNymBoxItem(
