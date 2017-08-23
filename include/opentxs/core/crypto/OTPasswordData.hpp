@@ -72,14 +72,15 @@ class String;
 class OTPasswordData
 {
 private:
-    OTPassword* m_pMasterPW{nullptr}; // Used only when isForCachedKey is true, for
-                             // output. Points to output value from original
-                             // caller (not owned.)
+    OTPassword* m_pMasterPW{
+        nullptr};  // Used only when isForCachedKey is true, for
+                   // output. Points to output value from original
+                   // caller (not owned.)
     const std::string m_strDisplay;
-    bool m_bUsingOldSystem{false}; // "Do NOT use CachedKey if this is true."
+    bool m_bUsingOldSystem{false};  // "Do NOT use CachedKey if this is true."
 
     // If m_pMasterPW is set, this must be set as well.
-    std::shared_ptr<OTCachedKey> m_pCachedKey;
+    const OTCachedKey* m_pCachedKey{nullptr};
 
     std::unique_ptr<OTPassword> password_override_;
 
@@ -89,29 +90,20 @@ public:
     EXPORT const char* GetDisplayString() const;
     EXPORT bool isUsingOldSystem() const;
     EXPORT void setUsingOldSystem(bool bUsing = true);
-    OTPassword* GetMasterPW() const
-    {
-        return m_pMasterPW;
-    }
-    std::shared_ptr<OTCachedKey> GetCachedKey() const
-    {
-        return m_pCachedKey;
-    }
+    OTPassword* GetMasterPW() const { return m_pMasterPW; }
+    const OTCachedKey* GetCachedKey() const { return m_pCachedKey; }
     EXPORT OTPasswordData(
         const char* szDisplay,
         OTPassword* pMasterPW = nullptr,
-        const std::shared_ptr<OTCachedKey>& pCachedKey =
-            std::shared_ptr<OTCachedKey>());
+        const OTCachedKey* pCachedKey = nullptr);
     EXPORT OTPasswordData(
         const std::string& str_Display,
         OTPassword* pMasterPW = nullptr,
-        const std::shared_ptr<OTCachedKey>& pCachedKey =
-            std::shared_ptr<OTCachedKey>());
+        const OTCachedKey* pCachedKey = nullptr);
     EXPORT OTPasswordData(
         const String& strDisplay,
         OTPassword* pMasterPW = nullptr,
-        const std::shared_ptr<OTCachedKey>& pCachedKey =
-            std::shared_ptr<OTCachedKey>());
+        const OTCachedKey* pCachedKey = nullptr);
 
     EXPORT bool ClearOverride();
     EXPORT bool SetOverride(const OTPassword& password);
@@ -120,6 +112,6 @@ public:
     EXPORT ~OTPasswordData();
 };
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CORE_CRYPTO_OTPASSWORDDATA_HPP
+#endif  // OPENTXS_CORE_CRYPTO_OTPASSWORDDATA_HPP

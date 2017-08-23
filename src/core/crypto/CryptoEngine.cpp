@@ -60,11 +60,13 @@
 #include "opentxs/core/crypto/OpenSSL.hpp"
 #endif
 #if OT_CRYPTO_USING_TREZOR
+#include "opentxs/core/crypto/OTCachedKey.hpp"
 #include "opentxs/core/crypto/TrezorCrypto.hpp"
 #endif
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Log.hpp"
 
+#include <functional>
 #include <ostream>
 
 extern "C" {
@@ -82,14 +84,128 @@ namespace opentxs
 CryptoEngine* CryptoEngine::instance_ = nullptr;
 
 CryptoEngine::CryptoEngine()
-{
-    ed25519_.reset(new Curve25519);
-    ssl_.reset(new SSLImplementation);
+    : cached_key_lock_()
+    , primary_key_(nullptr)
+    , cached_keys_()
 #if OT_CRYPTO_USING_TREZOR
-    bitcoincrypto_.reset(new TrezorCrypto);
+    , bitcoincrypto_(new TrezorCrypto)
+#endif
+    , ed25519_(new Curve25519)
+    , ssl_(new SSLImplementation)
+{
+    Init();
+}
+
+#if OT_CRYPTO_SUPPORTED_ALGO_AES
+CryptoSymmetric& CryptoEngine::AES() const
+{
+    OT_ASSERT(nullptr != ssl_);
+
+    return *ssl_;
+}
 #endif
 
-    Init();
+#if OT_CRYPTO_WITH_BIP32
+Bip32& CryptoEngine::BIP32() const
+{
+    OT_ASSERT(nullptr != bitcoincrypto_);
+
+    return *bitcoincrypto_;
+}
+#endif
+
+#if OT_CRYPTO_WITH_BIP39
+Bip39& CryptoEngine::BIP39() const
+{
+    OT_ASSERT(nullptr != bitcoincrypto_);
+
+    return *bitcoincrypto_;
+}
+#endif
+
+const OTCachedKey& CryptoEngine::CachedKey(const Identifier& id) const
+{
+    Lock lock(cached_key_lock_);
+
+    auto& output = cached_keys_[id];
+
+    if (false == bool(output)) {
+        output.reset(new OTCachedKey(OT_MASTER_KEY_TIMEOUT));
+    }
+
+    OT_ASSERT(output);
+
+    return *output;
+}
+
+const OTCachedKey& CryptoEngine::CachedKey(const OTCachedKey& source) const
+{
+    Lock lock(cached_key_lock_);
+    const Identifier id(source);
+    auto& output = cached_keys_[id];
+
+    if (false == bool(output)) {
+        OTASCIIArmor serialized{};
+        const bool haveSerialized = source.SerializeTo(serialized);
+
+        OT_ASSERT(haveSerialized);
+
+        output.reset(new OTCachedKey(serialized));
+    }
+
+    OT_ASSERT(output);
+
+    return *output;
+}
+
+void CryptoEngine::Cleanup()
+{
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+    secp256k1_->Cleanup();
+#endif
+    ssl_->Cleanup();
+}
+
+const OTCachedKey& CryptoEngine::DefaultKey() const
+{
+    Lock lock(cached_key_lock_);
+
+    init_default_key(lock);
+
+    OT_ASSERT(primary_key_);
+
+    return *primary_key_;
+}
+
+Editor<OTCachedKey> CryptoEngine::mutable_DefaultKey() const
+{
+    OT_ASSERT(primary_key_);
+
+    std::function<void(OTCachedKey*, Lock&)> callback =
+        [&](OTCachedKey*, Lock&) -> void {};
+
+    return Editor<OTCachedKey>(cached_key_lock_, primary_key_.get(), callback);
+}
+
+CryptoAsymmetric& CryptoEngine::ED25519() const
+{
+    OT_ASSERT(nullptr != ed25519_);
+
+    return *ed25519_;
+}
+
+CryptoEncodingEngine& CryptoEngine::Encode() const
+{
+    OT_ASSERT(encode_);
+
+    return *encode_;
+}
+
+CryptoHashEngine& CryptoEngine::Hash() const
+{
+    OT_ASSERT(hash_);
+
+    return *hash_;
 }
 
 void CryptoEngine::Init()
@@ -97,9 +213,9 @@ void CryptoEngine::Init()
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
     secp256k1_.reset(new secp256k1(*ssl_, *bitcoincrypto_));
 #endif
+    encode_.reset(new CryptoEncodingEngine(*this));
     hash_.reset(new CryptoHashEngine(*this));
     symmetric_.reset(new CryptoSymmetricEngine(*this));
-    encode_.reset(new CryptoEncodingEngine(*this));
 
     otWarn << OT_METHOD << __FUNCTION__
            << ": Setting up rlimits, and crypto libraries...\n";
@@ -126,25 +242,34 @@ void CryptoEngine::Init()
     ed25519_->Init();
 }
 
-CryptoUtil& CryptoEngine::Util() const
+void CryptoEngine::init_default_key(const Lock&) const
 {
-    OT_ASSERT(nullptr != ssl_);
-
-    return *ssl_;
+    if (false == bool(primary_key_)) {
+        primary_key_.reset(new OTCachedKey(OT_MASTER_KEY_TIMEOUT));
+    }
 }
 
-CryptoEncodingEngine& CryptoEngine::Encode() const
+CryptoEngine& CryptoEngine::It()
 {
-    OT_ASSERT(encode_);
+    if (nullptr == instance_) {
+        instance_ = new CryptoEngine;
+    }
 
-    return *encode_;
+    return *instance_;
 }
 
-CryptoHashEngine& CryptoEngine::Hash() const
+const OTCachedKey& CryptoEngine::LoadDefaultKey(
+    const OTASCIIArmor& serialized) const
 {
-    OT_ASSERT(hash_);
+    Lock lock(cached_key_lock_);
 
-    return *hash_;
+    init_default_key(lock);
+
+    OT_ASSERT(primary_key_);
+
+    primary_key_->SetCachedKey(serialized);
+
+    return *primary_key_;
 }
 
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
@@ -165,56 +290,26 @@ CryptoAsymmetric& CryptoEngine::SECP256K1() const
 }
 #endif
 
-CryptoAsymmetric& CryptoEngine::ED25519() const
+void CryptoEngine::SetTimeout(const std::chrono::seconds& timeout) const
 {
-    OT_ASSERT(nullptr != ed25519_);
+    Lock lock(cached_key_lock_);
 
-    return *ed25519_;
+    init_default_key(lock);
+
+    OT_ASSERT(primary_key_);
+
+    primary_key_->SetTimeoutSeconds(timeout.count());
 }
 
-#if OT_CRYPTO_SUPPORTED_ALGO_AES
-CryptoSymmetric& CryptoEngine::AES() const
+void CryptoEngine::SetSystemKeyring(const bool useKeyring) const
 {
-    OT_ASSERT(nullptr != ssl_);
+    Lock lock(cached_key_lock_);
 
-    return *ssl_;
-}
-#endif
+    init_default_key(lock);
 
-#if OT_CRYPTO_WITH_BIP39
-Bip39& CryptoEngine::BIP39() const
-{
-    OT_ASSERT(nullptr != bitcoincrypto_);
+    OT_ASSERT(primary_key_);
 
-    return *bitcoincrypto_;
-}
-#endif
-
-#if OT_CRYPTO_WITH_BIP32
-Bip32& CryptoEngine::BIP32() const
-{
-    OT_ASSERT(nullptr != bitcoincrypto_);
-
-    return *bitcoincrypto_;
-}
-#endif
-
-CryptoEngine& CryptoEngine::It()
-{
-    if (nullptr == instance_) {
-        instance_ = new CryptoEngine;
-    }
-
-    return *instance_;
-}
-
-void CryptoEngine::Cleanup()
-{
-#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-    secp256k1_->Cleanup();
-#endif
-
-    ssl_->Cleanup();
+    primary_key_->UseSystemKeyring(useKeyring);
 }
 
 CryptoSymmetricEngine& CryptoEngine::Symmetric() const
@@ -222,6 +317,13 @@ CryptoSymmetricEngine& CryptoEngine::Symmetric() const
     OT_ASSERT(symmetric_);
 
     return *symmetric_;
+}
+
+CryptoUtil& CryptoEngine::Util() const
+{
+    OT_ASSERT(nullptr != ssl_);
+
+    return *ssl_;
 }
 
 CryptoEngine::~CryptoEngine() { Cleanup(); }

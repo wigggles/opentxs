@@ -40,6 +40,7 @@
 
 #include "opentxs/cash/Purse.hpp"
 
+#include "opentxs/api/OT.hpp"
 #include "opentxs/cash/Token.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -48,6 +49,7 @@
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/OTStringXML.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/core/crypto/CryptoEngine.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/OTCachedKey.hpp"
 #include "opentxs/core/crypto/OTEnvelope.hpp"
@@ -79,14 +81,12 @@ bool Purse::GetNymID(Identifier& theOutput) const
     theOutput.Release();
 
     if (IsPasswordProtected()) {
-        bSuccess = false; // optimizer will remove automatically anyway, I
-                          // assume. Might as well have it here for clarity.
-    }
-    else if (IsNymIDIncluded() && !m_NymID.IsEmpty()) {
+        bSuccess = false;  // optimizer will remove automatically anyway, I
+                           // assume. Might as well have it here for clarity.
+    } else if (IsNymIDIncluded() && !m_NymID.IsEmpty()) {
         bSuccess = true;
         theOutput = m_NymID;
-    }
-    else if (!m_NymID.IsEmpty()) {
+    } else if (!m_NymID.IsEmpty()) {
         bSuccess = true;
         theOutput = m_NymID;
     }
@@ -108,13 +108,12 @@ bool Purse::GetPassphrase(OTPassword& theOutput, const char* szDisplay)
         return false;
     }
 
-    std::shared_ptr<OTCachedKey> pCachedKey(GetInternalMaster());
-    if (!pCachedKey) OT_FAIL;
+    const auto& cachedKey = GetInternalMaster();
 
     const String strReason((nullptr == szDisplay) ? szFunc : szDisplay);
+    const bool bGotMasterPassword = cachedKey.GetMasterPassword(
+        cachedKey, theOutput, strReason.Get());  // bVerifyTwice=false
 
-    const bool bGotMasterPassword = pCachedKey->GetMasterPassword(
-        pCachedKey, theOutput, strReason.Get()); // bVerifyTwice=false
     return bGotMasterPassword;
 }
 
@@ -126,45 +125,36 @@ bool Purse::GetPassphrase(OTPassword& theOutput, const char* szDisplay)
 // by using the cached one.)
 
 // stores the passphrase for the symmetric key.
-std::shared_ptr<OTCachedKey> Purse::GetInternalMaster()
+const OTCachedKey& Purse::GetInternalMaster()
 {
 
-    if (!IsPasswordProtected() ||
-        (!m_pCachedKey)) // this second half of the logic should never happen.
-    {
+    if (false == IsPasswordProtected() || (false == bool(m_pCachedKey))) {
         otOut << __FUNCTION__
               << ": Failed: no internal master key exists, in this purse.\n";
-        return std::shared_ptr<OTCachedKey>();
+
+        OT_FAIL;
     }
 
-    if (!m_pCachedKey->IsGenerated()) // should never happen, since the purse IS
-                                      // password-protected... then where's the
-                                      // master key?
-    {
+    if (false == m_pCachedKey->IsGenerated()) {
         otOut << __FUNCTION__
               << ": Error: internal master key has not yet been generated.\n";
-        return std::shared_ptr<OTCachedKey>();
+
+        OT_FAIL;
     }
 
     // By this point we know the purse is password protected, the internal
-    // master key
-    // exists (not nullptr) and it's been properly generated, so we won't be
-    // inadvertantly sticking
-    // a copy of it on the CachedKey map indexed to some nonexistent ID for an
-    // ungenerated key.
-    // The caller will be forced to make sure the master key is real and
-    // generated, before passing
-    // it in here where it could get copied.
+    // master key exists (not nullptr) and it's been properly generated, so we
+    // won't be inadvertantly sticking a copy of it on the CachedKey map indexed
+    // to some nonexistent ID for an ungenerated key. The caller will be forced
+    // to make sure the master key is real and generated, before passing it in
+    // here where it could get copied.
     //
     // Why is that important? BECAUSE THE COPY is all the caller will ever
-    // actually use! So if it's
-    // not ENTIRELY loaded up properly BEFORE it's copied, the caller will never
-    // see the properly
-    // loaded version of that master key.
-    //
-    return OTCachedKey::It(*m_pCachedKey); // here we return a cached copy of
-                                           // the master key (so it's available
-                                           // between instances of this purse.)
+    // actually use! So if it's not ENTIRELY loaded up properly BEFORE it's
+    // copied, the caller will never see the properly loaded version of that
+    // master key.
+
+    return OT::App().Crypto().CachedKey(*m_pCachedKey);
 }
 
 // INTERNAL KEY: For adding a PASSPHRASE to a PURSE.
@@ -179,7 +169,7 @@ std::shared_ptr<OTCachedKey> Purse::GetInternalMaster()
 bool Purse::GenerateInternalKey()
 {
     if (IsPasswordProtected() ||
-        (nullptr != m_pSymmetricKey) || // GetInternalKey())
+        (nullptr != m_pSymmetricKey) ||  // GetInternalKey())
         (m_pCachedKey)) {
         otOut << __FUNCTION__
               << ": Failed: internal Key  or master key already exists. "
@@ -216,19 +206,19 @@ bool Purse::GenerateInternalKey()
     OTPassword thePassphrase;
     const String strDisplay(
         "Enter the new passphrase for this new password-protected "
-        "purse."); // todo internationalization / hardcoding.
+        "purse.");  // todo internationalization / hardcoding.
 
     // thePassphrase and m_pCachedKey are BOTH output from the below function.
     //
     m_pCachedKey = OTCachedKey::CreateMasterPassword(
         thePassphrase,
-        strDisplay.Get()); // int32_t nTimeoutSeconds=OT_MASTER_KEY_TIMEOUT)
+        strDisplay.Get());  // int32_t nTimeoutSeconds=OT_MASTER_KEY_TIMEOUT)
 
-    if ((!m_pCachedKey) || !m_pCachedKey->IsGenerated()) // This one is
-                                                         // unnecessary because
-                                                         // CreateMasterPassword
-                                                         // already checks it.
-                                                         // todo optimize.
+    if ((!m_pCachedKey) || !m_pCachedKey->IsGenerated())  // This one is
+                                                          // unnecessary because
+    // CreateMasterPassword
+    // already checks it.
+    // todo optimize.
     {
         otOut << __FUNCTION__
               << ": Failed: While calling OTCachedKey::CreateMasterPassword.\n";
@@ -236,9 +226,9 @@ bool Purse::GenerateInternalKey()
     }
 
     m_pSymmetricKey =
-        new OTSymmetricKey(thePassphrase); // Creates the symmetric key here
-                                           // based on the passphrase from
-                                           // purse's master key.
+        new OTSymmetricKey(thePassphrase);  // Creates the symmetric key here
+                                            // based on the passphrase from
+                                            // purse's master key.
     OT_ASSERT(nullptr != m_pSymmetricKey);
 
     if (!m_pSymmetricKey->IsGenerated()) {
@@ -256,11 +246,7 @@ bool Purse::GenerateInternalKey()
            << ": Successfully created a purse's internal key.\n";
 
     m_bPasswordProtected = true;
-
-    std::shared_ptr<OTCachedKey> pCachedMaster(Purse::GetInternalMaster());
-    if (!pCachedMaster)
-        otErr << __FUNCTION__
-              << ": Failed trying to cache the master key for this purse.\n";
+    GetInternalMaster();
 
     return true;
 }
@@ -268,19 +254,21 @@ bool Purse::GenerateInternalKey()
 // Take all the tokens from a purse and add them to this purse.
 // Don't allow duplicates.
 //
-bool Purse::Merge(const Nym& theSigner,
-                  OTNym_or_SymmetricKey theOldNym, // must be private, if a nym.
-                  OTNym_or_SymmetricKey theNewNym, // must be private, if a nym.
-                  Purse& theNewPurse)
+bool Purse::Merge(
+    const Nym& theSigner,
+    OTNym_or_SymmetricKey theOldNym,  // must be private, if a nym.
+    OTNym_or_SymmetricKey theNewNym,  // must be private, if a nym.
+    Purse& theNewPurse)
 {
     const char* szFunc = "Purse::Merge";
 
     mapOfTokenPointers theMap;
 
     while (Count() > 0) {
-        Token* pToken = Pop(theOldNym); // must be private, if a Nym.
-        OT_ASSERT_MSG(nullptr != pToken,
-                      "Purse::Merge: Assert: nullptr != Pop(theOldNym) \n");
+        Token* pToken = Pop(theOldNym);  // must be private, if a Nym.
+        OT_ASSERT_MSG(
+            nullptr != pToken,
+            "Purse::Merge: Assert: nullptr != Pop(theOldNym) \n");
 
         const OTASCIIArmor& ascTokenID = pToken->GetSpendable();
 
@@ -387,13 +375,13 @@ bool Purse::Merge(const Nym& theSigner,
         // FYI.
         //
         if (false ==
-            pToken->ReassignOwnership(theNewNym,  // must be private, if a Nym.
-                                      theOldNym)) // can be public, if a Nym.
+            pToken->ReassignOwnership(
+                theNewNym,   // must be private, if a Nym.
+                theOldNym))  // can be public, if a Nym.
         {
             otErr << szFunc << ": Error: Failed while attempting to re-assign "
                                "ownership of token during purse merge.\n";
-        }
-        else {
+        } else {
             otWarn << szFunc << ": FYI: Success re-assigning ownership of "
                                 "token during purse merge.\n";
 
@@ -419,9 +407,10 @@ bool Purse::Merge(const Nym& theSigner,
         Token* pToken = it.second;
         OT_ASSERT(nullptr != pToken);
 
-        bool bPush = Push(theOldNym, // can be public, if a Nym.
-                          *pToken);  // The purse makes it's own copy of
-                                     // the token, into string form.
+        bool bPush = Push(
+            theOldNym,  // can be public, if a Nym.
+            *pToken);   // The purse makes it's own copy of
+                        // the token, into string form.
 
         if (!bPush) {
             otErr << szFunc << ": Error: Failure pushing token into purse.\n";
@@ -454,15 +443,17 @@ bool Purse::Merge(const Nym& theSigner,
 
 // static -- class factory.
 //
-Purse* Purse::LowLevelInstantiate(const String& strFirstLine,
-                                  const Identifier& NOTARY_ID,
-                                  const Identifier& INSTRUMENT_DEFINITION_ID)
+Purse* Purse::LowLevelInstantiate(
+    const String& strFirstLine,
+    const Identifier& NOTARY_ID,
+    const Identifier& INSTRUMENT_DEFINITION_ID)
 {
     Purse* pPurse = nullptr;
-    if (strFirstLine.Contains("-----BEGIN SIGNED PURSE-----")) // this string is
-                                                               // 28 chars long.
-                                                               // todo
-                                                               // hardcoding.
+    if (strFirstLine.Contains("-----BEGIN SIGNED PURSE-----"))  // this string
+                                                                // is
+    // 28 chars long.
+    // todo
+    // hardcoding.
     {
         pPurse = new Purse(NOTARY_ID, INSTRUMENT_DEFINITION_ID);
         OT_ASSERT(nullptr != pPurse);
@@ -470,14 +461,16 @@ Purse* Purse::LowLevelInstantiate(const String& strFirstLine,
     return pPurse;
 }
 
-Purse* Purse::LowLevelInstantiate(const String& strFirstLine,
-                                  const Identifier& NOTARY_ID)
+Purse* Purse::LowLevelInstantiate(
+    const String& strFirstLine,
+    const Identifier& NOTARY_ID)
 {
     Purse* pPurse = nullptr;
-    if (strFirstLine.Contains("-----BEGIN SIGNED PURSE-----")) // this string is
-                                                               // 28 chars long.
-                                                               // todo
-                                                               // hardcoding.
+    if (strFirstLine.Contains("-----BEGIN SIGNED PURSE-----"))  // this string
+                                                                // is
+    // 28 chars long.
+    // todo
+    // hardcoding.
     {
         pPurse = new Purse(NOTARY_ID);
         OT_ASSERT(nullptr != pPurse);
@@ -488,10 +481,11 @@ Purse* Purse::LowLevelInstantiate(const String& strFirstLine,
 Purse* Purse::LowLevelInstantiate(const String& strFirstLine)
 {
     Purse* pPurse = nullptr;
-    if (strFirstLine.Contains("-----BEGIN SIGNED PURSE-----")) // this string is
-                                                               // 28 chars long.
-                                                               // todo
-                                                               // hardcoding.
+    if (strFirstLine.Contains("-----BEGIN SIGNED PURSE-----"))  // this string
+                                                                // is
+    // 28 chars long.
+    // todo
+    // hardcoding.
     {
         pPurse = new Purse;
         OT_ASSERT(nullptr != pPurse);
@@ -503,16 +497,18 @@ Purse* Purse::LowLevelInstantiate(const String& strFirstLine)
 //
 // Checks the notaryID / InstrumentDefinitionID, so you don't have to.
 //
-Purse* Purse::PurseFactory(String strInput, const Identifier& NOTARY_ID,
-                           const Identifier& INSTRUMENT_DEFINITION_ID)
+Purse* Purse::PurseFactory(
+    String strInput,
+    const Identifier& NOTARY_ID,
+    const Identifier& INSTRUMENT_DEFINITION_ID)
 {
-    String strContract, strFirstLine; // output for the below function.
+    String strContract, strFirstLine;  // output for the below function.
     const bool bProcessed =
         Contract::DearmorAndTrim(strInput, strContract, strFirstLine);
 
     if (bProcessed) {
-        Purse* pPurse = Purse::LowLevelInstantiate(strFirstLine, NOTARY_ID,
-                                                   INSTRUMENT_DEFINITION_ID);
+        Purse* pPurse = Purse::LowLevelInstantiate(
+            strFirstLine, NOTARY_ID, INSTRUMENT_DEFINITION_ID);
 
         // The string didn't match any of the options in the factory.
         if (nullptr == pPurse) return nullptr;
@@ -525,13 +521,13 @@ Purse* Purse::PurseFactory(String strInput, const Identifier& NOTARY_ID,
                     strPurseNotaryID(pPurse->GetNotaryID());
                 otErr << szFunc << ": Failure: NotaryID on purse ("
                       << strPurseNotaryID << ") doesn't match expected "
-                                             "server ID (" << strNotaryID
-                      << ").\n";
+                                             "server ID ("
+                      << strNotaryID << ").\n";
                 delete pPurse;
                 pPurse = nullptr;
-            }
-            else if (INSTRUMENT_DEFINITION_ID !=
-                       pPurse->GetInstrumentDefinitionID()) {
+            } else if (
+                INSTRUMENT_DEFINITION_ID !=
+                pPurse->GetInstrumentDefinitionID()) {
                 const String strInstrumentDefinitionID(
                     INSTRUMENT_DEFINITION_ID),
                     strPurseInstrumentDefinitionID(
@@ -544,11 +540,9 @@ Purse* Purse::PurseFactory(String strInput, const Identifier& NOTARY_ID,
                       << strInstrumentDefinitionID << ").\n";
                 delete pPurse;
                 pPurse = nullptr;
-            }
-            else
+            } else
                 return pPurse;
-        }
-        else {
+        } else {
             delete pPurse;
             pPurse = nullptr;
         }
@@ -561,7 +555,7 @@ Purse* Purse::PurseFactory(String strInput, const Identifier& NOTARY_ID,
 //
 Purse* Purse::PurseFactory(String strInput, const Identifier& NOTARY_ID)
 {
-    String strContract, strFirstLine; // output for the below function.
+    String strContract, strFirstLine;  // output for the below function.
     const bool bProcessed =
         Contract::DearmorAndTrim(strInput, strContract, strFirstLine);
 
@@ -582,11 +576,9 @@ Purse* Purse::PurseFactory(String strInput, const Identifier& NOTARY_ID)
                       << ").\n";
                 delete pPurse;
                 pPurse = nullptr;
-            }
-            else
+            } else
                 return pPurse;
-        }
-        else {
+        } else {
             delete pPurse;
             pPurse = nullptr;
         }
@@ -599,7 +591,7 @@ Purse* Purse::PurseFactory(String strInput)
 {
     //  const char * szFunc = "Purse::PurseFactory";
 
-    String strContract, strFirstLine; // output for the below function.
+    String strContract, strFirstLine;  // output for the below function.
     const bool bProcessed =
         Contract::DearmorAndTrim(strInput, strContract, strFirstLine);
 
@@ -667,8 +659,9 @@ Purse::Purse(const Identifier& NOTARY_ID)
     InitPurse();
 }
 
-Purse::Purse(const Identifier& NOTARY_ID,
-             const Identifier& INSTRUMENT_DEFINITION_ID)
+Purse::Purse(
+    const Identifier& NOTARY_ID,
+    const Identifier& INSTRUMENT_DEFINITION_ID)
     : Contract()
     , m_NotaryID(NOTARY_ID)
     , m_InstrumentDefinitionID(INSTRUMENT_DEFINITION_ID)
@@ -682,9 +675,10 @@ Purse::Purse(const Identifier& NOTARY_ID,
     InitPurse();
 }
 
-Purse::Purse(const Identifier& NOTARY_ID,
-             const Identifier& INSTRUMENT_DEFINITION_ID,
-             const Identifier& NYM_ID)
+Purse::Purse(
+    const Identifier& NOTARY_ID,
+    const Identifier& INSTRUMENT_DEFINITION_ID,
+    const Identifier& NYM_ID)
     : Contract()
     , m_NymID(NYM_ID)
     , m_NotaryID(NOTARY_ID)
@@ -709,16 +703,13 @@ void Purse::InitPurse()
     m_bIsNymIDIncluded = false;
 }
 
-Purse::~Purse()
-{
-    Release_Purse();
-}
+Purse::~Purse() { Release_Purse(); }
 
 void Purse::Release_Purse()
 {
     // This sets m_lTotalValue to 0 already.
     ReleaseTokens();
-//  m_lTotalValue = 0;
+    //  m_lTotalValue = 0;
 
     m_bPasswordProtected = false;
     m_bIsNymIDIncluded = false;
@@ -732,11 +723,11 @@ void Purse::Release_Purse()
         m_pSymmetricKey = nullptr;
     }
 
-//  if (m_pCachedKey)
-//  {
-//      delete m_pCachedKey;
-//      m_pCachedKey = nullptr;
-//  }
+    //  if (m_pCachedKey)
+    //  {
+    //      delete m_pCachedKey;
+    //      m_pCachedKey = nullptr;
+    //  }
 }
 
 void Purse::Release()
@@ -754,13 +745,12 @@ void Purse::Release()
  OTIdentifier    m_InstrumentDefinitionID;    // Mandatory
  */
 
-bool Purse::LoadContract()
-{
-    return LoadPurse();
-}
+bool Purse::LoadContract() { return LoadPurse(); }
 
-bool Purse::LoadPurse(const char* szNotaryID, const char* szNymID,
-                      const char* szInstrumentDefinitionID)
+bool Purse::LoadPurse(
+    const char* szNotaryID,
+    const char* szNymID,
+    const char* szInstrumentDefinitionID)
 {
     OT_ASSERT(!IsPasswordProtected());
 
@@ -776,18 +766,21 @@ bool Purse::LoadPurse(const char* szNotaryID, const char* szNymID,
         strInstrumentDefinitionID = szInstrumentDefinitionID;
 
     if (!m_strFilename.Exists()) {
-        m_strFilename.Format("%s%s%s%s%s", strNotaryID.Get(),
-                             Log::PathSeparator(), strNymID.Get(),
-                             Log::PathSeparator(),
-                             strInstrumentDefinitionID.Get());
+        m_strFilename.Format(
+            "%s%s%s%s%s",
+            strNotaryID.Get(),
+            Log::PathSeparator(),
+            strNymID.Get(),
+            Log::PathSeparator(),
+            strInstrumentDefinitionID.Get());
     }
 
-    const char* szFolder1name = OTFolders::Purse().Get(); // purse
-    const char* szFolder2name = strNotaryID.Get();        // purse/NOTARY_ID
-    const char* szFolder3name = strNymID.Get(); // purse/NOTARY_ID/NYM_ID
+    const char* szFolder1name = OTFolders::Purse().Get();  // purse
+    const char* szFolder2name = strNotaryID.Get();         // purse/NOTARY_ID
+    const char* szFolder3name = strNymID.Get();  // purse/NOTARY_ID/NYM_ID
     const char* szFilename =
         strInstrumentDefinitionID
-            .Get(); // purse/NOTARY_ID/NYM_ID/INSTRUMENT_DEFINITION_ID
+            .Get();  // purse/NOTARY_ID/NYM_ID/INSTRUMENT_DEFINITION_ID
 
     if (false ==
         OTDB::Exists(szFolder1name, szFolder2name, szFolder3name, szFilename)) {
@@ -797,9 +790,11 @@ bool Purse::LoadPurse(const char* szNotaryID, const char* szNymID,
         return false;
     }
 
-    std::string strFileContents(
-        OTDB::QueryPlainString(szFolder1name, szFolder2name, szFolder3name,
-                               szFilename)); // <=== LOADING FROM DATA STORE.
+    std::string strFileContents(OTDB::QueryPlainString(
+        szFolder1name,
+        szFolder2name,
+        szFolder3name,
+        szFilename));  // <=== LOADING FROM DATA STORE.
 
     if (strFileContents.length() < 2) {
         otErr << "Purse::LoadPurse: Error reading file: " << szFolder1name
@@ -817,8 +812,10 @@ bool Purse::LoadPurse(const char* szNotaryID, const char* szNymID,
     return LoadContractFromString(strRawFile);
 }
 
-bool Purse::SavePurse(const char* szNotaryID, const char* szNymID,
-                      const char* szInstrumentDefinitionID)
+bool Purse::SavePurse(
+    const char* szNotaryID,
+    const char* szNymID,
+    const char* szInstrumentDefinitionID)
 {
     OT_ASSERT(!IsPasswordProtected());
 
@@ -834,18 +831,21 @@ bool Purse::SavePurse(const char* szNotaryID, const char* szNymID,
         strInstrumentDefinitionID = szInstrumentDefinitionID;
 
     if (!m_strFilename.Exists()) {
-        m_strFilename.Format("%s%s%s%s%s", strNotaryID.Get(),
-                             Log::PathSeparator(), strNymID.Get(),
-                             Log::PathSeparator(),
-                             strInstrumentDefinitionID.Get());
+        m_strFilename.Format(
+            "%s%s%s%s%s",
+            strNotaryID.Get(),
+            Log::PathSeparator(),
+            strNymID.Get(),
+            Log::PathSeparator(),
+            strInstrumentDefinitionID.Get());
     }
 
-    const char* szFolder1name = OTFolders::Purse().Get(); // purse
-    const char* szFolder2name = strNotaryID.Get();        // purse/NOTARY_ID
-    const char* szFolder3name = strNymID.Get(); // purse/NOTARY_ID/NYM_ID
+    const char* szFolder1name = OTFolders::Purse().Get();  // purse
+    const char* szFolder2name = strNotaryID.Get();         // purse/NOTARY_ID
+    const char* szFolder3name = strNymID.Get();  // purse/NOTARY_ID/NYM_ID
     const char* szFilename =
         strInstrumentDefinitionID
-            .Get(); // purse/NOTARY_ID/NYM_ID/INSTRUMENT_DEFINITION_ID
+            .Get();  // purse/NOTARY_ID/NYM_ID/INSTRUMENT_DEFINITION_ID
 
     String strRawFile;
 
@@ -863,15 +863,19 @@ bool Purse::SavePurse(const char* szNotaryID, const char* szNymID,
     if (false ==
         ascTemp.WriteArmoredString(strFinal, m_strContractType.Get())) {
         otErr << "Purse::SavePurse: Error saving Pursefile (failed writing "
-                 "armored string):\n" << szFolder1name << Log::PathSeparator()
-              << szFolder2name << Log::PathSeparator() << szFolder3name
-              << Log::PathSeparator() << szFilename << "\n";
+                 "armored string):\n"
+              << szFolder1name << Log::PathSeparator() << szFolder2name
+              << Log::PathSeparator() << szFolder3name << Log::PathSeparator()
+              << szFilename << "\n";
         return false;
     }
 
     bool bSaved = OTDB::StorePlainString(
-        strFinal.Get(), szFolder1name, szFolder2name, szFolder3name,
-        szFilename); // <=== SAVING TO DATA STORE.
+        strFinal.Get(),
+        szFolder1name,
+        szFolder2name,
+        szFolder3name,
+        szFilename);  // <=== SAVING TO DATA STORE.
     if (!bSaved) {
         otErr << "Purse::SavePurse: Error writing to file: " << szFolder1name
               << Log::PathSeparator() << szFolder2name << Log::PathSeparator()
@@ -882,8 +886,8 @@ bool Purse::SavePurse(const char* szNotaryID, const char* szNymID,
     return true;
 }
 
-void Purse::UpdateContents() // Before transmission or serialization, this is
-                             // where the Purse saves its contents
+void Purse::UpdateContents()  // Before transmission or serialization, this is
+                              // where the Purse saves its contents
 {
     const String NOTARY_ID(m_NotaryID), NYM_ID(m_NymID),
         INSTRUMENT_DEFINITION_ID(m_InstrumentDefinitionID);
@@ -902,9 +906,9 @@ void Purse::UpdateContents() // Before transmission or serialization, this is
     tag.add_attribute(
         "nymID",
         (m_bIsNymIDIncluded &&
-         !m_NymID.IsEmpty()) // (Provided that the ID even exists, of course.)
+         !m_NymID.IsEmpty())  // (Provided that the ID even exists, of course.)
             ? NYM_ID.Get()
-            : ""); // Then print the ID (otherwise print an empty string.)
+            : "");  // Then print the ID (otherwise print an empty string.)
     tag.add_attribute("instrumentDefinitionID", INSTRUMENT_DEFINITION_ID.Get());
     tag.add_attribute("notaryID", NOTARY_ID.Get());
 
@@ -922,8 +926,8 @@ void Purse::UpdateContents() // Before transmission or serialization, this is
             otErr << __FUNCTION__ << ": Error: m_pSymmetricKey is unexpectedly "
                                      "nullptr, even though "
                                      "m_bPasswordProtected is true!\n";
-        else // m_pCachedKey and m_pSymmetricKey are good pointers. (Or at
-             // least, not-null.)
+        else  // m_pCachedKey and m_pSymmetricKey are good pointers. (Or at
+              // least, not-null.)
         {
             if (!m_pCachedKey->IsGenerated())
                 otErr << __FUNCTION__ << ": Error: m_pCachedKey wasn't a "
@@ -1037,9 +1041,10 @@ int32_t Purse::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         }
 
         const String strNymID =
-            xml->getAttributeValue("nymID"); // (May not exist.)
-        if (m_bIsNymIDIncluded) // Nym ID **is** included.  (It's optional. Even
-                                // if you use one, you don't have to list it.)
+            xml->getAttributeValue("nymID");  // (May not exist.)
+        if (m_bIsNymIDIncluded)  // Nym ID **is** included.  (It's optional.
+                                 // Even
+                                 // if you use one, you don't have to list it.)
         {
             if (strNymID.Exists())
                 m_NymID.SetString(strNymID);
@@ -1050,13 +1055,12 @@ int32_t Purse::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                 m_NymID.Release();
                 return (-1);
             }
-        }
-        else // NymID SUPPOSED to be blank here. (Thus the Release.) Maybe
-               // later,
+        } else  // NymID SUPPOSED to be blank here. (Thus the Release.) Maybe
+            // later,
             // we might consider trying to read it, in order to validate this.
             //
-            m_NymID.Release(); // For now, just assume it's not there to be
-                               // read, and Release my own value to match it.
+            m_NymID.Release();  // For now, just assume it's not there to be
+                                // read, and Release my own value to match it.
 
         otLog4 << szFunc << ": Loaded purse... ("
                << (m_bPasswordProtected ? "Password-protected"
@@ -1081,23 +1085,23 @@ int32_t Purse::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     // (or neither will be.)
     //
     else if (strNodeName.Compare("internalKey")) {
-        if (!m_bPasswordProtected) // If we're NOT using the internal key, then
-                                   // why am I in the middle of loading one
-                                   // here?
+        if (!m_bPasswordProtected)  // If we're NOT using the internal key, then
+                                    // why am I in the middle of loading one
+                                    // here?
         {
             otErr << szFunc << ": Error: Unexpected 'internalKey' data, "
                                "since m_bPasswordProtected is set to false!\n";
-            return (-1); // error condition
+            return (-1);  // error condition
         }
 
-        if (!m_NymID.IsEmpty()) // If the NymID isn't empty, then why am I in
-                                // the middle of loading an internal Key?
+        if (!m_NymID.IsEmpty())  // If the NymID isn't empty, then why am I in
+                                 // the middle of loading an internal Key?
         {
             otErr << szFunc << ": Error: Unexpected 'internalKey' data, since "
                                "m_NymID is not blank! "
                                "(The NymID should have loaded before THIS "
                                "node ever popped up...)\n";
-            return (-1); // error condition
+            return (-1);  // error condition
         }
 
         OTASCIIArmor ascValue;
@@ -1107,7 +1111,7 @@ int32_t Purse::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             otErr << szFunc << ": Error: Expected "
                   << "internalKey"
                   << " element to have text field.\n";
-            return (-1); // error condition
+            return (-1);  // error condition
         }
 
         // Let's see if the internal key is already loaded somehow... (Shouldn't
@@ -1133,9 +1137,11 @@ int32_t Purse::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         // (It's only now that I bother instantiating.)
         //
         OTSymmetricKey* pSymmetricKey = new OTSymmetricKey;
-        OT_ASSERT_MSG(nullptr != pSymmetricKey, "Purse::ProcessXMLNode: "
-                                                "Assert: nullptr != new "
-                                                "OTSymmetricKey \n");
+        OT_ASSERT_MSG(
+            nullptr != pSymmetricKey,
+            "Purse::ProcessXMLNode: "
+            "Assert: nullptr != new "
+            "OTSymmetricKey \n");
 
         // NOTE: In the event of any error, need to delete pSymmetricKey before
         // returning.
@@ -1162,23 +1168,23 @@ int32_t Purse::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         m_pSymmetricKey = pSymmetricKey;
 
         return 1;
-    }
-    else if (strNodeName.Compare("cachedKey")) {
-        if (!m_bPasswordProtected) // If we're NOT using the internal and master
-                                   // keys, then why am I in the middle of
-                                   // loading one here?
+    } else if (strNodeName.Compare("cachedKey")) {
+        if (!m_bPasswordProtected)  // If we're NOT using the internal and
+                                    // master
+                                    // keys, then why am I in the middle of
+                                    // loading one here?
         {
             otErr << szFunc << ": Error: Unexpected 'cachedKey' data, "
                                "since m_bPasswordProtected is set to false!\n";
-            return (-1); // error condition
+            return (-1);  // error condition
         }
 
-        if (!m_NymID.IsEmpty()) // If the NymID isn't empty, then why am I in
-                                // the middle of loading an internal Key?
+        if (!m_NymID.IsEmpty())  // If the NymID isn't empty, then why am I in
+                                 // the middle of loading an internal Key?
         {
             otErr << szFunc << ": Error: Unexpected 'cachedKey' data, since "
                                "m_NymID is not blank!\n";
-            return (-1); // error condition
+            return (-1);  // error condition
         }
 
         OTASCIIArmor ascValue;
@@ -1188,7 +1194,7 @@ int32_t Purse::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             otErr << szFunc << ": Error: Expected "
                   << "cachedKey"
                   << " element to have text field.\n";
-            return (-1); // error condition
+            return (-1);  // error condition
         }
 
         // Let's see if the master key is already loaded somehow... (Shouldn't
@@ -1200,7 +1206,7 @@ int32_t Purse::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                      "noticed the pointer was ALREADY set! (I'm deleting old "
                      "one to make room, "
                      "and then allowing this one to load instead...)\n";
-//          return (-1); // error condition
+            //          return (-1); // error condition
 
             m_pCachedKey.reset();
         }
@@ -1251,8 +1257,7 @@ int32_t Purse::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         // method, which handles that for you.
 
         return 1;
-    }
-    else if (strNodeName.Compare("token")) {
+    } else if (strNodeName.Compare("token")) {
         OTASCIIArmor* pArmor = new OTASCIIArmor;
         OT_ASSERT(nullptr != pArmor);
 
@@ -1263,9 +1268,8 @@ int32_t Purse::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             delete pArmor;
             pArmor = nullptr;
 
-            return (-1); // error condition
-        }
-        else {
+            return (-1);  // error condition
+        } else {
             m_dequeTokens.push_front(pArmor);
         }
 
@@ -1275,15 +1279,9 @@ int32_t Purse::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     return 0;
 }
 
-time64_t Purse::GetLatestValidFrom() const
-{
-    return m_tLatestValidFrom;
-}
+time64_t Purse::GetLatestValidFrom() const { return m_tLatestValidFrom; }
 
-time64_t Purse::GetEarliestValidTo() const
-{
-    return m_tEarliestValidTo;
-}
+time64_t Purse::GetEarliestValidTo() const { return m_tEarliestValidTo; }
 
 // Verify whether the CURRENT date is AFTER the the VALID TO date.
 // Notice, this will return false, if the instrument is NOT YET VALID.
@@ -1338,9 +1336,9 @@ Token* Purse::Peek(OTNym_or_SymmetricKey theOwner) const
     // Open the envelope into a string.
     //
     String strToken;
-    const String strDisplay(__FUNCTION__); // this is the passphrase string
-                                           // that will display if theOwner
-                                           // doesn't have one already.
+    const String strDisplay(__FUNCTION__);  // this is the passphrase string
+                                            // that will display if theOwner
+                                            // doesn't have one already.
 
     const bool bSuccess =
         theOwner.Open_or_Decrypt(theEnvelope, strToken, &strDisplay);
@@ -1358,13 +1356,11 @@ Token* Purse::Peek(OTNym_or_SymmetricKey theOwner) const
 
             otErr << __FUNCTION__ << ": ERROR: Cash token with wrong server or "
                                      "instrument definition.\n";
-        }
-        else {
+        } else {
             // CALLER is responsible to delete this token.
             return pToken;
         }
-    }
-    else
+    } else
         otErr << __FUNCTION__ << ": Failure: theOwner.Open_or_Decrypt.\n";
 
     return nullptr;
@@ -1439,10 +1435,10 @@ void Purse::RecalculateExpirationDates(OTNym_or_SymmetricKey& theOwner)
         // Open the envelope into a string.
         //
         String strToken;
-        const String strDisplay(__FUNCTION__); // this is the passphrase
-                                               // string that will display if
-                                               // theOwner doesn't have one
-                                               // already.
+        const String strDisplay(__FUNCTION__);  // this is the passphrase
+                                                // string that will display if
+                                                // theOwner doesn't have one
+                                                // already.
 
         const bool bSuccess =
             theOwner.Open_or_Decrypt(theEnvelope, strToken, &strDisplay);
@@ -1470,8 +1466,7 @@ void Purse::RecalculateExpirationDates(OTNym_or_SymmetricKey& theOwner)
                          "(due to different tokens with different date "
                          "ranges...)\n";
 
-        }
-        else
+        } else
             otErr << __FUNCTION__
                   << ": Failure while trying to decrypt a token.\n";
     }
@@ -1485,10 +1480,10 @@ void Purse::RecalculateExpirationDates(OTNym_or_SymmetricKey& theOwner)
 bool Purse::Push(OTNym_or_SymmetricKey theOwner, const Token& theToken)
 {
     if (theToken.GetInstrumentDefinitionID() == m_InstrumentDefinitionID) {
-        const String strDisplay(__FUNCTION__); // this is the passphrase
-                                               // string that will display if
-                                               // theOwner doesn't have one
-                                               // already.
+        const String strDisplay(__FUNCTION__);  // this is the passphrase
+                                                // string that will display if
+                                                // theOwner doesn't have one
+                                                // already.
 
         String strToken(theToken);
         OTEnvelope theEnvelope;
@@ -1523,8 +1518,7 @@ bool Purse::Push(OTNym_or_SymmetricKey theOwner, const Token& theToken)
                          "ranges...)\n";
 
             return true;
-        }
-        else {
+        } else {
             String strPurseAssetType(m_InstrumentDefinitionID),
                 strTokenAssetType(theToken.GetInstrumentDefinitionID());
             otErr << __FUNCTION__ << ": Failed while calling: "
@@ -1534,15 +1528,14 @@ bool Purse::Push(OTNym_or_SymmetricKey theOwner, const Token& theToken)
                                           "Token Asset Type:\n"
                   << strTokenAssetType << "\n";
         }
-    }
-    else {
+    } else {
         String strPurseAssetType(m_InstrumentDefinitionID),
             strTokenAssetType(theToken.GetInstrumentDefinitionID());
         otErr << __FUNCTION__ << ": ERROR: Tried to push token with wrong "
                                  "instrument definition.\nPurse Asset Type:\n"
               << strPurseAssetType << "\n"
-                                      "Token Asset Type:\n" << strTokenAssetType
-              << "\n";
+                                      "Token Asset Type:\n"
+              << strTokenAssetType << "\n";
     }
 
     return false;
@@ -1553,10 +1546,7 @@ int32_t Purse::Count() const
     return static_cast<int32_t>(m_dequeTokens.size());
 }
 
-bool Purse::IsEmpty() const
-{
-    return m_dequeTokens.empty();
-}
+bool Purse::IsEmpty() const { return m_dequeTokens.empty(); }
 
 void Purse::ReleaseTokens()
 {
@@ -1569,4 +1559,4 @@ void Purse::ReleaseTokens()
     m_lTotalValue = 0;
 }
 
-} // namespace opentxs
+}  // namespace opentxs

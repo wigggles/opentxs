@@ -842,20 +842,21 @@ bool OTWallet::SaveContract(String& strContract)
     // Name is in the clear in memory,
     // and base64 in storage.
     OTASCIIArmor ascName;
+
     if (m_strName.Exists()) {
         ascName.SetString(m_strName, false);  // linebreaks == false
     }
 
+    auto& cachedKey = OT::App().Crypto().DefaultKey();
     tag.add_attribute("name", m_strName.Exists() ? ascName.Get() : "");
     tag.add_attribute(
-        "version",
-        OTCachedKey::It()->IsGenerated() ? "2.0" : m_strVersion.Get());
+        "version", cachedKey.IsGenerated() ? "2.0" : m_strVersion.Get());
 
-    if (OTCachedKey::It()->IsGenerated())  // If it exists, then serialize it.
+    if (cachedKey.IsGenerated())  // If it exists, then serialize it.
     {
         OTASCIIArmor ascMasterContents;
 
-        if (OTCachedKey::It()->SerializeTo(ascMasterContents)) {
+        if (cachedKey.SerializeTo(ascMasterContents)) {
             tag.add_tag("cachedKey", ascMasterContents.Get());
         } else
             otErr << "OTWallet::SaveContract: Failed trying to write master "
@@ -959,32 +960,26 @@ std::shared_ptr<OTSymmetricKey> OTWallet::getOrCreateExtraKey(
         // Thus, to create a new extra symmetrical key, we need to get the
         // master key from OTCachedKey...
         //
-        std::shared_ptr<OTCachedKey> pMasterCredential(OTCachedKey::It());
+        auto& cachedKey = OT::App().Crypto().DefaultKey();
+        OTPassword master_password;
+        const bool bGotMasterPW = cachedKey.GetMasterPassword(
+            cachedKey,
+            master_password,
+            (nullptr == pReason) ? "" : pReason->c_str());
+        String strNewKeyOutput;
 
-        if (pMasterCredential) {
-            OTPassword master_password;
-            const bool bGotMasterPW = pMasterCredential->GetMasterPassword(
-                pMasterCredential,
-                master_password,
-                (nullptr == pReason) ? "" : pReason->c_str());
-            String strNewKeyOutput;
+        if (bGotMasterPW && OTSymmetricKey::CreateNewKey(
+                                strNewKeyOutput, nullptr, &master_password)) {
+            std::shared_ptr<OTSymmetricKey> pNewExtraKey(new OTSymmetricKey);
 
-            if (bGotMasterPW &&
-                OTSymmetricKey::CreateNewKey(
-                    strNewKeyOutput, nullptr, &master_password)) {
-                std::shared_ptr<OTSymmetricKey> pNewExtraKey(
-                    new OTSymmetricKey);
+            if (pNewExtraKey && pNewExtraKey->SerializeFrom(strNewKeyOutput) &&
+                addExtraKey(str_KeyID, pNewExtraKey)) {
 
-                if (pNewExtraKey &&
-                    pNewExtraKey->SerializeFrom(strNewKeyOutput) &&
-                    addExtraKey(str_KeyID, pNewExtraKey)) {
+                pExtraKey = pNewExtraKey;
 
-                    pExtraKey = pNewExtraKey;
-
-                    SaveWallet();
-                }
-            }  // if (bGotMasterPW)
-        }      // if (pMasterCredential)
+                SaveWallet();
+            }
+        }  // if (bGotMasterPW)
     }
 
     // Then:
@@ -1068,22 +1063,21 @@ bool OTWallet::Encrypt_ByKeyID(
         OTWallet::getOrCreateExtraKey(key_id, &str_Reason);
 
     if (pKey) {
-        std::shared_ptr<OTCachedKey> pMasterCredential(OTCachedKey::It());
+        auto& cachedKey = OT::App().Crypto().DefaultKey();
+        OTPassword master_password;
 
-        if (pMasterCredential) {
-            OTPassword master_password;
+        if (cachedKey.GetMasterPassword(cachedKey, master_password)) {
 
-            if (pMasterCredential->GetMasterPassword(
-                    pMasterCredential, master_password))
-                return OTSymmetricKey::Encrypt(
-                    *pKey,
-                    strPlaintext,
-                    strOutput,
-                    pstrDisplay,
-                    bBookends,
-                    &master_password);
+            return OTSymmetricKey::Encrypt(
+                *pKey,
+                strPlaintext,
+                strOutput,
+                pstrDisplay,
+                bBookends,
+                &master_password);
         }
     }
+
     return false;
 }
 bool OTWallet::Decrypt_ByKeyID(
@@ -1092,26 +1086,24 @@ bool OTWallet::Decrypt_ByKeyID(
     String& strOutput,
     const String* pstrDisplay)
 {
-    if (key_id.empty() || !strCiphertext.Exists()) return false;
+    if (key_id.empty() || !strCiphertext.Exists()) {
+
+        return false;
+    }
 
     std::shared_ptr<OTSymmetricKey> pKey = OTWallet::getExtraKey(key_id);
 
     if (pKey) {
-        std::shared_ptr<OTCachedKey> pMasterCredential(OTCachedKey::It());
+        auto& cachedKey = OT::App().Crypto().DefaultKey();
+        OTPassword master_password;
 
-        if (pMasterCredential) {
-            OTPassword master_password;
+        if (cachedKey.GetMasterPassword(cachedKey, master_password)) {
 
-            if (pMasterCredential->GetMasterPassword(
-                    pMasterCredential, master_password))
-                return OTSymmetricKey::Decrypt(
-                    *pKey,
-                    strCiphertext,
-                    strOutput,
-                    pstrDisplay,
-                    &master_password);
+            return OTSymmetricKey::Decrypt(
+                *pKey, strCiphertext, strOutput, pstrDisplay, &master_password);
         }
     }
+
     return false;
 }
 
@@ -1281,16 +1273,12 @@ bool OTWallet::LoadWallet(const char* szFilename)
             // strings for storing the data that we want to read out of the file
             String NymName;
             String NymID;
-
             String AssetName;
             String InstrumentDefinitionID;
-
             String ServerName;
             String NotaryID;
-
             String AcctName;
             String AcctID;
-
             const String strNodeName(xml->getNodeName());
 
             switch (xml->getNodeType()) {
@@ -1326,20 +1314,15 @@ bool OTWallet::LoadWallet(const char* szFilename)
 
                         if (Contract::LoadEncodedTextField(xml, ascCachedKey)) {
                             // We successfully loaded the cachedKey from file,
-                            // so
-                            // let's SET it as the cached key globally...
-                            //
-                            OTCachedKey::It()->SetCachedKey(ascCachedKey);
+                            // so let's SET it as the cached key globally...
+                            auto& cachedKey =
+                                OT::App().Crypto().LoadDefaultKey(ascCachedKey);
 
-                            if (!OTCachedKey::It()->HasHashCheck()) {
+                            if (!cachedKey.HasHashCheck()) {
                                 OTPassword tempPassword;
                                 tempPassword.zeroMemory();
-
-                                std::shared_ptr<OTCachedKey> sharedPtr(
-                                    OTCachedKey::It());
-
-                                bNeedToSaveAgain = sharedPtr->GetMasterPassword(
-                                    sharedPtr,
+                                bNeedToSaveAgain = cachedKey.GetMasterPassword(
+                                    cachedKey,
                                     tempPassword,
                                     "We do not have a check hash yet for this "
                                     "password, please enter your password",
@@ -1440,13 +1423,15 @@ bool OTWallet::LoadWallet(const char* szFilename)
 
                         const bool bIsOldStyleNym =
                             (false == IsNymOnCachedKey(theNymID));
+                        auto key = OT::App().Crypto().mutable_DefaultKey();
+                        auto& cachedKey = key.It();
 
-                        if (bIsOldStyleNym && !(OTCachedKey::It()->isPaused()))
+                        if (bIsOldStyleNym && !(cachedKey.isPaused()))
                         //                  if (m_strVersion.Compare("1.0")) //
                         // This means this Nym has not been converted yet to
                         // master password.
                         {
-                            OTCachedKey::It()->Pause();
+                            cachedKey.Pause();
                         }
 
                         Nym* pNym =
@@ -1460,8 +1445,8 @@ bool OTWallet::LoadWallet(const char* szFilename)
                                 *pNym);  // Nym loaded. Insert to wallet's
                                          // list of Nyms.
 
-                        if (bIsOldStyleNym && OTCachedKey::It()->isPaused()) {
-                            OTCachedKey::It()->Unpause();
+                        if (bIsOldStyleNym && cachedKey.isPaused()) {
+                            cachedKey.Unpause();
                         }
                         // (Here we set it back again, so any new-style Nyms
                         // will

@@ -84,8 +84,8 @@ private:  // Private prevents erroneous use by other classes.
 
 protected:
     void UpdateContents() override;  // Before transmission or serialization,
-                                    // this
-                                    // is where the Purse saves its contents
+                                     // this
+                                     // is where the Purse saves its contents
 
     dequeOfTokens m_dequeTokens;
 
@@ -96,10 +96,10 @@ protected:
     Identifier m_NymID;                   // Optional
     Identifier m_NotaryID;                // Mandatory
     Identifier m_InstrumentDefinitionID;  // Mandatory
-    int64_t m_lTotalValue{0};      // Push increments this by denomination, and Pop
-                                // decrements it by denomination.
+    int64_t m_lTotalValue{0};  // Push increments this by denomination, and Pop
+                               // decrements it by denomination.
     bool m_bPasswordProtected{false};  // this purse might be encrypted to a
-                                // passphrase, instead of a Nym.
+                                       // passphrase, instead of a Nym.
     // If that's the case, BTW, then there will be a Symmetric Key and a Master
     // Key. The symmetric key is used to store the actual key for
     // encrypting/decrypting the tokens in this purse. Whereas the master key is
@@ -110,22 +110,25 @@ protected:
     // which is used to derived a key to unlock it. This key may then be cached
     // in memory by OTCachedKey until a timeout, and later be zapped by a thread
     // for that purpose.
-    bool m_bIsNymIDIncluded{false};  // It's possible to use a purse WITHOUT attaching
-                              // the relevant NymID. (The holder of the purse
-                              // just has to "know" what the correct NymID is,
-                              // or it won't work.) This bool tells us whether
-                              // the ID is attached, or not.
+    bool m_bIsNymIDIncluded{
+        false};  // It's possible to use a purse WITHOUT attaching
+                 // the relevant NymID. (The holder of the purse
+                 // just has to "know" what the correct NymID is,
+                 // or it won't work.) This bool tells us whether
+                 // the ID is attached, or not.
     OTSymmetricKey* m_pSymmetricKey{nullptr};  // If this purse contains its own
-                                      // symmetric key (instead of using an
-                                      // owner Nym)...
+    // symmetric key (instead of using an
+    // owner Nym)...
     // ...then it will have a master key as well, for unlocking that symmetric
     // key, and managing timeouts, etc.
     std::shared_ptr<OTCachedKey> m_pCachedKey;
-    time64_t m_tLatestValidFrom{0};  // The tokens in the purse may become valid on
-                                  // different dates. This stores the latest
-                                  // one.
-    time64_t m_tEarliestValidTo{0};  // The tokens in the purse may have different
-                                  // expirations. This stores the earliest one.
+    time64_t m_tLatestValidFrom{
+        0};  // The tokens in the purse may become valid on
+             // different dates. This stores the latest
+             // one.
+    time64_t m_tEarliestValidTo{
+        0};  // The tokens in the purse may have different
+             // expirations. This stores the earliest one.
     void RecalculateExpirationDates(OTNym_or_SymmetricKey& theOwner);
     Purse();  // private
 
@@ -160,7 +163,7 @@ public:
     /** symmetric key for this purse.*/
     EXPORT OTSymmetricKey* GetInternalKey() { return m_pSymmetricKey; }
     /** stores the passphrase for the symmetric key.*/
-    EXPORT std::shared_ptr<OTCachedKey> GetInternalMaster();
+    EXPORT const OTCachedKey& GetInternalMaster();
     /** Retrieves the passphrase for this purse (which is cached by the master
      * key.) Prompts the user to enter his actual passphrase, if necessary to
      * unlock it. (May not need unlocking yet -- there is a timeout.)*/

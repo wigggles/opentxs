@@ -72,7 +72,7 @@ public:
     OT_ME& OTME(const std::string& wallet = "");
     OTME_too& OTME_TOO(const std::string& wallet = "");
 
-    ~Api();
+    ~Api() = default;
 
 private:
     friend class OT;
