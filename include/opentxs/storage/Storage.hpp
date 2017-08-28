@@ -67,6 +67,7 @@ namespace opentxs
 class CryptoEngine;
 class OT;
 class StoragePlugin;
+class SymmetricKey;
 
 namespace storage
 {
@@ -129,6 +130,7 @@ private:
     void CollectGarbage();
     bool EmptyBucket(const bool bucket) const override;
     void InitBackup();
+    void InitEncryptedBackup(std::unique_ptr<SymmetricKey>& key);
     void InitPlugins();
     bool Load(const std::string& key, const bool checking, std::string& value)
         const override;

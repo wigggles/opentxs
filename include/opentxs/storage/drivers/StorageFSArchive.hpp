@@ -49,6 +49,7 @@ namespace opentxs
 
 class Storage;
 class StorageConfig;
+class SymmetricKey;
 
 class StorageFSArchive : public virtual StoragePlugin_impl,
                          public virtual StorageDriver
@@ -78,9 +79,13 @@ private:
 
     const std::string folder_{};
     const std::string path_seperator_{};
+    const std::unique_ptr<SymmetricKey> encryption_key_;
+    const bool encrypted_{false};
     std::atomic<bool> ready_{false};
 
     std::string calculate_path(const std::string& key) const;
+    std::string decrypt(const std::string&& ciphertext) const;
+    std::string encrypt(const std::string& plaintext) const;
     std::string read_file(const std::string& filename) const;
     bool write_file(const std::string& filename, const std::string& contents)
         const;
@@ -93,7 +98,8 @@ private:
         const Digest& hash,
         const Random& random,
         std::atomic<bool>& bucket,
-        const std::string& folder);
+        const std::string& folder,
+        std::unique_ptr<SymmetricKey>& key);
     StorageFSArchive() = delete;
     StorageFSArchive(const StorageFSArchive&) = delete;
     StorageFSArchive(StorageFSArchive&&) = delete;

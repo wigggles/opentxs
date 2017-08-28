@@ -82,7 +82,8 @@ public:
      */
     EXPORT static bool AppInit(
         const std::string& storagePlugin = "",
-        const std::string& archiveDirectory = "");
+        const std::string& archiveDirectory = "",
+        const std::string& encryptedDirectory = "");
     EXPORT static bool AppCleanup();  // Call this ONLY ONCE, when your App is
                                       // shutting down.
 

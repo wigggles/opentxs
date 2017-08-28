@@ -92,9 +92,10 @@ OTAPI_Exec* OTAPI_Wrap::Exec() { return &OT::App().API().Exec(); }
 
 bool OTAPI_Wrap::AppInit(
     const std::string& storagePlugin,
-    const std::string& archiveDirectory)
+    const std::string& archiveDirectory,
+    const std::string& encryptedDirectory)
 {
-    OT::Factory(false, storagePlugin, archiveDirectory);
+    OT::Factory(false, storagePlugin, archiveDirectory, encryptedDirectory);
 
     return true;
 }

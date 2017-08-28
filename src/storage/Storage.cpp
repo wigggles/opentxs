@@ -217,13 +217,34 @@ void Storage::InitBackup()
     }
 
 #if OT_STORAGE_FS
+    std::unique_ptr<SymmetricKey> null(nullptr);
     backup_plugins_.emplace_back(new StorageFSArchive(
         config_,
         digest_,
         random_,
         primary_bucket_,
-        config_.fs_backup_directory_));
-    InitPlugins();
+        config_.fs_backup_directory_,
+        null));
+#else
+    return;
+#endif
+}
+
+void Storage::InitEncryptedBackup(std::unique_ptr<SymmetricKey>& key)
+{
+    if (config_.fs_encrypted_backup_directory_.empty()) {
+
+        return;
+    }
+
+#if OT_STORAGE_FS
+    backup_plugins_.emplace_back(new StorageFSArchive(
+        config_,
+        digest_,
+        random_,
+        primary_bucket_,
+        config_.fs_encrypted_backup_directory_,
+        key));
 #else
     return;
 #endif

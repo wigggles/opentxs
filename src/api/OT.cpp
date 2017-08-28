@@ -52,10 +52,13 @@
 #include "opentxs/client/OT_ME.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
 #include "opentxs/client/OTME_too.hpp"
+#include "opentxs/client/OTWallet.hpp"
 #include "opentxs/client/MadeEasy.hpp"
+#include "opentxs/core/crypto/Bip39.hpp"
 #include "opentxs/core/crypto/CryptoEncodingEngine.hpp"
 #include "opentxs/core/crypto/CryptoEngine.hpp"
 #include "opentxs/core/crypto/CryptoHashEngine.hpp"
+#include "opentxs/core/crypto/SymmetricKey.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/OTDataFolder.hpp"
@@ -79,6 +82,8 @@
 #define CLIENT_CONFIG_KEY "client"
 #define STORAGE_CONFIG_KEY "storage"
 
+#define OT_METHOD "opentxs::OT::"
+
 namespace opentxs
 {
 
@@ -87,7 +92,8 @@ OT* OT::instance_pointer_ = nullptr;
 OT::OT(
     const bool serverMode,
     const std::string& storagePlugin,
-    const std::string& backupDirectory)
+    const std::string& backupDirectory,
+    const std::string& encryptedDirectory)
     : server_mode_(serverMode)
     , nym_publish_interval_(std::numeric_limits<std::int64_t>::max())
     , nym_refresh_interval_(std::numeric_limits<std::int64_t>::max())
@@ -96,7 +102,8 @@ OT::OT(
     , unit_publish_interval_(std::numeric_limits<std::int64_t>::max())
     , unit_refresh_interval_(std::numeric_limits<std::int64_t>::max())
     , primary_storage_plugin_(storagePlugin)
-    , archive_directory(backupDirectory)
+    , archive_directory_(backupDirectory)
+    , encrypted_directory_(encryptedDirectory)
     , config_lock_()
     , task_list_lock_()
     , periodic_task_list()
@@ -119,11 +126,13 @@ OT::OT(
 void OT::Factory(
     const bool serverMode,
     const std::string& storagePlugin,
-    const std::string& backupDirectory)
+    const std::string& backupDirectory,
+    const std::string& encryptedDirectory)
 {
     assert(nullptr == instance_pointer_);
 
-    instance_pointer_ = new OT(serverMode, storagePlugin, backupDirectory);
+    instance_pointer_ =
+        new OT(serverMode, storagePlugin, backupDirectory, encryptedDirectory);
 
     assert(nullptr != instance_pointer_);
 
@@ -148,7 +157,7 @@ void OT::Init()
     Init_Api();  // requires Init_Config(), Init_Crypto(), Init_Contracts(),
                  // Init_Identity(), Init_Storage(), Init_ZMQ(), Init_Contacts()
                  // Init_Activity()
-    storage_->InitBackup();
+    Init_StorageBackup();
     Init_Periodic();  // requires Init_Dht(), Init_Storage()
 
     OT_ASSERT(wallet_);
@@ -176,17 +185,24 @@ void OT::Init_Api()
     OT_ASSERT(crypto_);
     OT_ASSERT(identity_);
 
-    if (!server_mode_) {
-        api_.reset(new Api(
-            *activity_,
-            *config,
-            *contacts_,
-            *crypto_,
-            *identity_,
-            *storage_,
-            *wallet_,
-            *zeromq_));
+    if (server_mode_) {
+
+        return;
     }
+
+    api_.reset(new Api(
+        *activity_,
+        *config,
+        *contacts_,
+        *crypto_,
+        *identity_,
+        *storage_,
+        *wallet_,
+        *zeromq_));
+
+    OT_ASSERT(api_);
+
+    set_storage_encryption();
 }
 
 void OT::Init_Blockchain()
@@ -274,6 +290,7 @@ void OT::Init_Storage()
     bool notUsed;
     String defaultPlugin{};
     String archiveDirectory{};
+    String encryptedDirectory{};
 
     if (primary_storage_plugin_.empty()) {
         defaultPlugin = config.primary_plugin_.c_str();
@@ -281,10 +298,16 @@ void OT::Init_Storage()
         defaultPlugin = primary_storage_plugin_.c_str();
     }
 
-    if (archive_directory.empty()) {
+    if (archive_directory_.empty()) {
         archiveDirectory = config.fs_backup_directory_.c_str();
     } else {
-        archiveDirectory = archive_directory.c_str();
+        archiveDirectory = archive_directory_.c_str();
+    }
+
+    if (encrypted_directory_.empty()) {
+        encryptedDirectory = config.fs_encrypted_backup_directory_.c_str();
+    } else {
+        encryptedDirectory = encrypted_directory_.c_str();
     }
 
     Config().CheckSet_bool(
@@ -317,15 +340,6 @@ void OT::Init_Storage()
         String(config.path_),
         config.path_,
         notUsed);
-
-    if (defaultPlugin.Exists()) {
-        Config().Set_str(
-            STORAGE_CONFIG_KEY,
-            STORAGE_CONFIG_PRIMARY_PLUGIN_KEY,
-            defaultPlugin,
-            notUsed);
-    }
-
     Config().CheckSet_str(
         STORAGE_CONFIG_KEY,
         STORAGE_CONFIG_PRIMARY_PLUGIN_KEY,
@@ -351,21 +365,20 @@ void OT::Init_Storage()
         String(config.fs_root_file_),
         config.fs_root_file_,
         notUsed);
-
-    if (archiveDirectory.Exists()) {
-        Config().Set_str(
-            STORAGE_CONFIG_KEY,
-            STORAGE_CONFIG_FS_BACKUP_DIRECTORY_KEY,
-            archiveDirectory,
-            notUsed);
-    }
-
     Config().CheckSet_str(
         STORAGE_CONFIG_KEY,
         STORAGE_CONFIG_FS_BACKUP_DIRECTORY_KEY,
         archiveDirectory,
         config.fs_backup_directory_,
         notUsed);
+    archiveDirectory = String(config.fs_backup_directory_.c_str());
+    Config().CheckSet_str(
+        STORAGE_CONFIG_KEY,
+        STORAGE_CONFIG_FS_ENCRYPTED_BACKUP_DIRECTORY_KEY,
+        encryptedDirectory,
+        config.fs_encrypted_backup_directory_,
+        notUsed);
+    encryptedDirectory = String(config.fs_encrypted_backup_directory_.c_str());
 #endif
 #if OT_STORAGE_SQLITE
     Config().CheckSet_str(
@@ -412,6 +425,19 @@ void OT::Init_Storage()
     OT_ASSERT(crypto_);
 
     storage_.reset(new Storage(config, *crypto_, hash, random));
+}
+
+void OT::Init_StorageBackup()
+{
+    OT_ASSERT(storage_);
+
+    storage_->InitBackup();
+
+    if (storage_encryption_key_) {
+        storage_->InitEncryptedBackup(storage_encryption_key_);
+    }
+
+    storage_->InitPlugins();
 }
 
 void OT::Init_Dht()
@@ -597,6 +623,39 @@ void OT::Periodic()
             Log::Sleep(std::chrono::milliseconds(100));
         }
     }
+}
+
+void OT::set_storage_encryption()
+{
+    OT_ASSERT(api_);
+
+    api_->OTAPI().LoadWallet();
+    auto wallet = api_->OTAPI().GetWallet(nullptr);
+
+    OT_ASSERT(nullptr != wallet);
+    OT_ASSERT(crypto_);
+
+    auto seed = crypto_->BIP39().DefaultSeed();
+
+    if (seed.empty()) {
+        otWarn << OT_METHOD << __FUNCTION__ << ": No default seed."
+               << std::endl;
+    } else {
+        otWarn << OT_METHOD << __FUNCTION__ << ": Default seed is: " << seed
+               << std::endl;
+    }
+
+    storage_encryption_key_ = crypto_->GetStorageKey(seed);
+
+    if (storage_encryption_key_) {
+        otWarn << OT_METHOD << __FUNCTION__ << ": Obtained storage key "
+               << String(storage_encryption_key_->ID()) << std::endl;
+    } else {
+        otWarn << OT_METHOD << __FUNCTION__ << ": Failed to load storage key "
+               << seed << std::endl;
+    }
+
+    wallet->SaveWallet();
 }
 
 const OT& OT::App()

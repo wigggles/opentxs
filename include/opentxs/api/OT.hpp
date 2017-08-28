@@ -71,6 +71,7 @@ class OTAPI_Wrap;
 class ServerLoader;
 class Settings;
 class Storage;
+class SymmetricKey;
 class Wallet;
 class ZMQ;
 
@@ -102,7 +103,8 @@ private:
     std::int64_t unit_publish_interval_{0};
     std::int64_t unit_refresh_interval_{0};
     const std::string primary_storage_plugin_{};
-    const std::string archive_directory{};
+    const std::string archive_directory_{};
+    const std::string encrypted_directory_{};
     mutable std::mutex config_lock_;
     mutable std::mutex task_list_lock_;
     mutable TaskList periodic_task_list;
@@ -119,17 +121,20 @@ private:
     std::unique_ptr<Wallet> wallet_;
     std::unique_ptr<class ZMQ> zeromq_;
     std::unique_ptr<std::thread> periodic_;
+    std::unique_ptr<SymmetricKey> storage_encryption_key_;
 
     static void Factory(
         const bool serverMode,
         const std::string& storagePlugin = "",
-        const std::string& backupDirectory = "");
+        const std::string& backupDirectory = "",
+        const std::string& encryptedDirectory = "");
     static void Cleanup();
 
     explicit OT(
         const bool serverMode,
         const std::string& storagePlugin,
-        const std::string& backupDirectory);
+        const std::string& backupDirectory,
+        const std::string& encryptedDirectory);
     OT() = delete;
     OT(const OT&) = delete;
     OT(OT&&) = delete;
@@ -148,10 +153,11 @@ private:
     void Init_Log();
     void Init_Periodic();
     void Init_Storage();
+    void Init_StorageBackup();
     void Init_ZMQ();
     void Init();
-
     void Periodic();
+    void set_storage_encryption();
     void Shutdown();
 
     ~OT() = default;
