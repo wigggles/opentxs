@@ -134,6 +134,7 @@ private:
         const PaymentCode& paymentCode);
     void refresh_indices(const rLock& lock, class Contact& contact);
     void save(class Contact* contact);
+    void start();
     std::shared_ptr<const class Contact> update_existing_contact(
         const rLock& lock,
         const std::string& label,

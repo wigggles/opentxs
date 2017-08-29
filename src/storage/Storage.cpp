@@ -92,6 +92,8 @@ Storage::Storage(
     , config_(config)
     , digest_(hash)
     , random_(random)
+    , write_lock_()
+    , shutdown_(false)
 {
     if (OT_STORAGE_PRIMARY_PLUGIN_SQLITE == config_.primary_plugin_) {
 #if OT_STORAGE_SQLITE
@@ -106,8 +108,6 @@ Storage::Storage(
     }
 
     OT_ASSERT(primary_plugin_);
-
-    Init();
 }
 
 std::set<std::string> Storage::BlockchainAccountList(
@@ -201,12 +201,6 @@ bool Storage::EmptyBucket(const bool bucket) const
     }
 
     return primary_plugin_->EmptyBucket(bucket);
-}
-
-void Storage::Init()
-{
-    shutdown_.store(false);
-    InitPlugins();
 }
 
 void Storage::InitBackup()
@@ -1240,6 +1234,8 @@ ObjectList Storage::ServerList() const
 {
     return Meta().Tree().ServerNode().List();
 }
+
+void Storage::start() { InitPlugins(); }
 
 bool Storage::Store(
     const std::string& key,

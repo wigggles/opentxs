@@ -123,6 +123,98 @@ OT::OT(
 {
 }
 
+const OT& OT::App()
+{
+    OT_ASSERT(nullptr != instance_pointer_);
+
+    return *instance_pointer_;
+}
+
+class Activity& OT::Activity() const
+{
+    OT_ASSERT(activity_)
+
+    return *activity_;
+}
+
+Api& OT::API() const
+{
+    if (server_mode_) {
+        OT_FAIL;
+    }
+
+    OT_ASSERT(api_);
+
+    return *api_;
+}
+
+class Blockchain& OT::Blockchain() const
+{
+    OT_ASSERT(blockchain_)
+
+    return *blockchain_;
+}
+
+void OT::Cleanup()
+{
+    if (nullptr != instance_pointer_) {
+        instance_pointer_->Shutdown();
+        delete instance_pointer_;
+        instance_pointer_ = nullptr;
+    }
+}
+
+Settings& OT::Config(const std::string& path) const
+{
+    std::unique_lock<std::mutex> lock(config_lock_);
+    auto& config = config_[path];
+
+    if (!config) {
+        config.reset(new Settings(String(path)));
+    }
+
+    OT_ASSERT(config);
+
+    lock.unlock();
+
+    return *config;
+}
+
+ContactManager& OT::Contact() const
+{
+    OT_ASSERT(contacts_)
+
+    return *contacts_;
+}
+
+Wallet& OT::Contract() const
+{
+    OT_ASSERT(wallet_)
+
+    return *wallet_;
+}
+
+CryptoEngine& OT::Crypto() const
+{
+    OT_ASSERT(crypto_)
+
+    return *crypto_;
+}
+
+Storage& OT::DB() const
+{
+    OT_ASSERT(storage_)
+
+    return *storage_;
+}
+
+Dht& OT::DHT() const
+{
+    OT_ASSERT(dht_)
+
+    return *dht_;
+}
+
 void OT::Factory(
     const bool serverMode,
     const std::string& storagePlugin,
@@ -137,6 +229,13 @@ void OT::Factory(
     assert(nullptr != instance_pointer_);
 
     instance_pointer_->Init();
+}
+
+class Identity& OT::Identity() const
+{
+    OT_ASSERT(identity_)
+
+    return *identity_;
 }
 
 void OT::Init()
@@ -157,12 +256,7 @@ void OT::Init()
     Init_Api();  // requires Init_Config(), Init_Crypto(), Init_Contracts(),
                  // Init_Identity(), Init_Storage(), Init_ZMQ(), Init_Contacts()
                  // Init_Activity()
-    Init_StorageBackup();
-    Init_Periodic();  // requires Init_Dht(), Init_Storage()
-
-    OT_ASSERT(wallet_);
-
-    activity_->MigrateLegacyThreads();
+    start();
 }
 
 void OT::Init_Activity()
@@ -199,10 +293,6 @@ void OT::Init_Api()
         *storage_,
         *wallet_,
         *zeromq_));
-
-    OT_ASSERT(api_);
-
-    set_storage_encryption();
 }
 
 void OT::Init_Blockchain()
@@ -242,6 +332,74 @@ void OT::Init_Contacts()
 void OT::Init_Contracts() { wallet_.reset(new class Wallet(*this)); }
 
 void OT::Init_Crypto() { crypto_.reset(new CryptoEngine(*this)); }
+
+void OT::Init_Dht()
+{
+    DhtConfig config;
+    bool notUsed;
+    Config().CheckSet_bool(
+        "OpenDHT",
+        "enable_dht",
+        server_mode_ ? true : false,
+        config.enable_dht_,
+        notUsed);
+    Config().CheckSet_long(
+        "OpenDHT",
+        "nym_publish_interval",
+        config.nym_publish_interval_,
+        nym_publish_interval_,
+        notUsed);
+    Config().CheckSet_long(
+        "OpenDHT",
+        "nym_refresh_interval",
+        config.nym_refresh_interval_,
+        nym_refresh_interval_,
+        notUsed);
+    Config().CheckSet_long(
+        "OpenDHT",
+        "server_publish_interval",
+        config.server_publish_interval_,
+        server_publish_interval_,
+        notUsed);
+    Config().CheckSet_long(
+        "OpenDHT",
+        "server_refresh_interval",
+        config.server_refresh_interval_,
+        server_refresh_interval_,
+        notUsed);
+    Config().CheckSet_long(
+        "OpenDHT",
+        "unit_publish_interval",
+        config.unit_publish_interval_,
+        unit_publish_interval_,
+        notUsed);
+    Config().CheckSet_long(
+        "OpenDHT",
+        "unit_refresh_interval",
+        config.unit_refresh_interval_,
+        unit_refresh_interval_,
+        notUsed);
+    Config().CheckSet_long(
+        "OpenDHT",
+        "listen_port",
+        config.default_port_,
+        config.listen_port_,
+        notUsed);
+    Config().CheckSet_str(
+        "OpenDHT",
+        "bootstrap_url",
+        String(config.bootstrap_url_),
+        config.bootstrap_url_,
+        notUsed);
+    Config().CheckSet_str(
+        "OpenDHT",
+        "bootstrap_port",
+        String(config.bootstrap_port_),
+        config.bootstrap_port_,
+        notUsed);
+
+    dht_.reset(Dht::It(config));
+}
 
 void OT::Init_Identity() { identity_.reset(new class Identity); }
 
@@ -437,75 +595,7 @@ void OT::Init_StorageBackup()
         storage_->InitEncryptedBackup(storage_encryption_key_);
     }
 
-    storage_->InitPlugins();
-}
-
-void OT::Init_Dht()
-{
-    DhtConfig config;
-    bool notUsed;
-    Config().CheckSet_bool(
-        "OpenDHT",
-        "enable_dht",
-        server_mode_ ? true : false,
-        config.enable_dht_,
-        notUsed);
-    Config().CheckSet_long(
-        "OpenDHT",
-        "nym_publish_interval",
-        config.nym_publish_interval_,
-        nym_publish_interval_,
-        notUsed);
-    Config().CheckSet_long(
-        "OpenDHT",
-        "nym_refresh_interval",
-        config.nym_refresh_interval_,
-        nym_refresh_interval_,
-        notUsed);
-    Config().CheckSet_long(
-        "OpenDHT",
-        "server_publish_interval",
-        config.server_publish_interval_,
-        server_publish_interval_,
-        notUsed);
-    Config().CheckSet_long(
-        "OpenDHT",
-        "server_refresh_interval",
-        config.server_refresh_interval_,
-        server_refresh_interval_,
-        notUsed);
-    Config().CheckSet_long(
-        "OpenDHT",
-        "unit_publish_interval",
-        config.unit_publish_interval_,
-        unit_publish_interval_,
-        notUsed);
-    Config().CheckSet_long(
-        "OpenDHT",
-        "unit_refresh_interval",
-        config.unit_refresh_interval_,
-        unit_refresh_interval_,
-        notUsed);
-    Config().CheckSet_long(
-        "OpenDHT",
-        "listen_port",
-        config.default_port_,
-        config.listen_port_,
-        notUsed);
-    Config().CheckSet_str(
-        "OpenDHT",
-        "bootstrap_url",
-        String(config.bootstrap_url_),
-        config.bootstrap_url_,
-        notUsed);
-    Config().CheckSet_str(
-        "OpenDHT",
-        "bootstrap_port",
-        String(config.bootstrap_port_),
-        config.bootstrap_port_,
-        notUsed);
-
-    dht_.reset(Dht::It(config));
+    storage_->start();
 }
 
 void OT::Init_Periodic()
@@ -625,15 +715,26 @@ void OT::Periodic()
     }
 }
 
+void OT::Schedule(
+    const time64_t& interval,
+    const PeriodicTask& task,
+    const time64_t& last) const
+{
+    // Make sure nobody is iterating while we add to the list
+    std::lock_guard<std::mutex> listLock(task_list_lock_);
+
+    periodic_task_list.push_back(TaskItem{last, interval, task});
+}
+
 void OT::set_storage_encryption()
 {
     OT_ASSERT(api_);
+    OT_ASSERT(crypto_);
 
     api_->OTAPI().LoadWallet();
     auto wallet = api_->OTAPI().GetWallet(nullptr);
 
     OT_ASSERT(nullptr != wallet);
-    OT_ASSERT(crypto_);
 
     auto seed = crypto_->BIP39().DefaultSeed();
 
@@ -656,114 +757,6 @@ void OT::set_storage_encryption()
     }
 
     wallet->SaveWallet();
-}
-
-const OT& OT::App()
-{
-    OT_ASSERT(nullptr != instance_pointer_);
-
-    return *instance_pointer_;
-}
-
-class Activity& OT::Activity() const
-{
-    OT_ASSERT(activity_)
-
-    return *activity_;
-}
-
-Api& OT::API() const
-{
-    if (server_mode_) {
-        OT_FAIL;
-    }
-
-    OT_ASSERT(api_);
-
-    return *api_;
-}
-
-class Blockchain& OT::Blockchain() const
-{
-    OT_ASSERT(blockchain_)
-
-    return *blockchain_;
-}
-
-Settings& OT::Config(const std::string& path) const
-{
-    std::unique_lock<std::mutex> lock(config_lock_);
-    auto& config = config_[path];
-
-    if (!config) {
-        config.reset(new Settings(String(path)));
-    }
-
-    OT_ASSERT(config);
-
-    lock.unlock();
-
-    return *config;
-}
-
-ContactManager& OT::Contact() const
-{
-    OT_ASSERT(contacts_)
-
-    return *contacts_;
-}
-
-Wallet& OT::Contract() const
-{
-    OT_ASSERT(wallet_)
-
-    return *wallet_;
-}
-
-CryptoEngine& OT::Crypto() const
-{
-    OT_ASSERT(crypto_)
-
-    return *crypto_;
-}
-
-Storage& OT::DB() const
-{
-    OT_ASSERT(storage_)
-
-    return *storage_;
-}
-
-Dht& OT::DHT() const
-{
-    OT_ASSERT(dht_)
-
-    return *dht_;
-}
-
-class Identity& OT::Identity() const
-{
-    OT_ASSERT(identity_)
-
-    return *identity_;
-}
-
-class ZMQ& OT::ZMQ() const
-{
-    OT_ASSERT(zeromq_)
-
-    return *zeromq_;
-}
-
-void OT::Schedule(
-    const time64_t& interval,
-    const PeriodicTask& task,
-    const time64_t& last) const
-{
-    // Make sure nobody is iterating while we add to the list
-    std::lock_guard<std::mutex> listLock(task_list_lock_);
-
-    periodic_task_list.push_back(TaskItem{last, interval, task});
 }
 
 void OT::Shutdown()
@@ -797,12 +790,25 @@ void OT::Shutdown()
     config_.clear();
 }
 
-void OT::Cleanup()
+void OT::start()
 {
-    if (nullptr != instance_pointer_) {
-        instance_pointer_->Shutdown();
-        delete instance_pointer_;
-        instance_pointer_ = nullptr;
+    OT_ASSERT(activity_);
+    OT_ASSERT(contacts_);
+
+    if (false == server_mode_) {
+        set_storage_encryption();
     }
+
+    Init_StorageBackup();
+    contacts_->start();
+    activity_->MigrateLegacyThreads();
+    Init_Periodic();
+}
+
+class ZMQ& OT::ZMQ() const
+{
+    OT_ASSERT(zeromq_)
+
+    return *zeromq_;
 }
 }  // namespace opentxs

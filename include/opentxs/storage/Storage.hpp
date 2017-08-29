@@ -172,8 +172,6 @@ protected:
     mutable std::mutex write_lock_;
     std::atomic<bool> shutdown_;
 
-    void Init();
-
     Storage(
         const StorageConfig& config,
         CryptoEngine& crypto,
@@ -323,6 +321,7 @@ public:
     bool SetUnitDefinitionAlias(
         const std::string& id,
         const std::string& alias);
+    void start();
     bool Store(
         const std::string& nymID,
         const proto::ContactItemType type,

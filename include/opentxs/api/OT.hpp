@@ -159,6 +159,7 @@ private:
     void Periodic();
     void set_storage_encryption();
     void Shutdown();
+    void start();
 
     ~OT() = default;
 
