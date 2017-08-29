@@ -41,6 +41,7 @@
 #ifndef OPENTXS_CORE_API_OT_HPP
 #define OPENTXS_CORE_API_OT_HPP
 
+#include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/util/Common.hpp"
 
 #include <atomic>
@@ -95,6 +96,7 @@ private:
 
     static OT* instance_pointer_;
 
+    const bool recover_{false};
     const bool server_mode_{false};
     std::int64_t nym_publish_interval_{0};
     std::int64_t nym_refresh_interval_{0};
@@ -102,6 +104,8 @@ private:
     std::int64_t server_refresh_interval_{0};
     std::int64_t unit_publish_interval_{0};
     std::int64_t unit_refresh_interval_{0};
+    const OTPassword word_list_{};
+    const OTPassword passphrase_{};
     const std::string primary_storage_plugin_{};
     const std::string archive_directory_{};
     const std::string encrypted_directory_{};
@@ -128,9 +132,20 @@ private:
         const std::string& storagePlugin = "",
         const std::string& backupDirectory = "",
         const std::string& encryptedDirectory = "");
+    static void Factory(
+        const bool recover,
+        const std::string& words,
+        const std::string& passphrase,
+        const bool serverMode,
+        const std::string& storagePlugin = "",
+        const std::string& backupDirectory = "",
+        const std::string& encryptedDirectory = "");
     static void Cleanup();
 
     explicit OT(
+        const bool recover,
+        const std::string& words,
+        const std::string& passphrase,
         const bool serverMode,
         const std::string& storagePlugin,
         const std::string& backupDirectory,
@@ -157,6 +172,7 @@ private:
     void Init_ZMQ();
     void Init();
     void Periodic();
+    void recover();
     void set_storage_encryption();
     void Shutdown();
     void start();

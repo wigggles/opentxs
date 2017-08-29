@@ -84,6 +84,12 @@ public:
         const std::string& storagePlugin = "",
         const std::string& archiveDirectory = "",
         const std::string& encryptedDirectory = "");
+    EXPORT static bool AppRecover(
+        const std::string& words,
+        const std::string& passphrase,
+        const std::string& storagePlugin = "",
+        const std::string& archiveDirectory = "",
+        const std::string& encryptedDirectory = "");
     EXPORT static bool AppCleanup();  // Call this ONLY ONCE, when your App is
                                       // shutting down.
 

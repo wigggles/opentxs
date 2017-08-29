@@ -100,6 +100,25 @@ bool OTAPI_Wrap::AppInit(
     return true;
 }
 
+bool OTAPI_Wrap::AppRecover(
+    const std::string& words,
+    const std::string& passphrase,
+    const std::string& storagePlugin,
+    const std::string& archiveDirectory,
+    const std::string& encryptedDirectory)
+{
+    OT::Factory(
+        true,
+        words,
+        passphrase,
+        false,
+        storagePlugin,
+        archiveDirectory,
+        encryptedDirectory);
+
+    return true;
+}
+
 bool OTAPI_Wrap::AppCleanup()
 {
     OT::Cleanup();

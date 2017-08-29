@@ -90,17 +90,23 @@ namespace opentxs
 OT* OT::instance_pointer_ = nullptr;
 
 OT::OT(
+    const bool recover,
+    const std::string& words,
+    const std::string& passphrase,
     const bool serverMode,
     const std::string& storagePlugin,
     const std::string& backupDirectory,
     const std::string& encryptedDirectory)
-    : server_mode_(serverMode)
+    : recover_(recover)
+    , server_mode_(serverMode)
     , nym_publish_interval_(std::numeric_limits<std::int64_t>::max())
     , nym_refresh_interval_(std::numeric_limits<std::int64_t>::max())
     , server_publish_interval_(std::numeric_limits<std::int64_t>::max())
     , server_refresh_interval_(std::numeric_limits<std::int64_t>::max())
     , unit_publish_interval_(std::numeric_limits<std::int64_t>::max())
     , unit_refresh_interval_(std::numeric_limits<std::int64_t>::max())
+    , word_list_(words.c_str(), words.size())
+    , passphrase_(passphrase.c_str(), passphrase.size())
     , primary_storage_plugin_(storagePlugin)
     , archive_directory_(backupDirectory)
     , encrypted_directory_(encryptedDirectory)
@@ -221,10 +227,35 @@ void OT::Factory(
     const std::string& backupDirectory,
     const std::string& encryptedDirectory)
 {
+    Factory(
+        false,
+        "",
+        "",
+        serverMode,
+        storagePlugin,
+        backupDirectory,
+        encryptedDirectory);
+}
+
+void OT::Factory(
+    const bool recover,
+    const std::string& words,
+    const std::string& passphrase,
+    const bool serverMode,
+    const std::string& storagePlugin,
+    const std::string& backupDirectory,
+    const std::string& encryptedDirectory)
+{
     assert(nullptr == instance_pointer_);
 
-    instance_pointer_ =
-        new OT(serverMode, storagePlugin, backupDirectory, encryptedDirectory);
+    instance_pointer_ = new OT(
+        recover,
+        words,
+        passphrase,
+        serverMode,
+        storagePlugin,
+        backupDirectory,
+        encryptedDirectory);
 
     assert(nullptr != instance_pointer_);
 
@@ -256,6 +287,11 @@ void OT::Init()
     Init_Api();  // requires Init_Config(), Init_Crypto(), Init_Contracts(),
                  // Init_Identity(), Init_Storage(), Init_ZMQ(), Init_Contacts()
                  // Init_Activity()
+
+    if (recover_) {
+        recover();
+    }
+
     start();
 }
 
@@ -293,6 +329,12 @@ void OT::Init_Api()
         *storage_,
         *wallet_,
         *zeromq_));
+
+    OT_ASSERT(api_);
+
+    const bool loaded = api_->OTAPI().LoadWallet();
+
+    OT_ASSERT(loaded);
 }
 
 void OT::Init_Blockchain()
@@ -715,6 +757,26 @@ void OT::Periodic()
     }
 }
 
+void OT::recover()
+{
+    OT_ASSERT(api_);
+    OT_ASSERT(crypto_);
+    OT_ASSERT(recover_);
+    OT_ASSERT(storage_);
+    OT_ASSERT(0 < word_list_.getPasswordSize());
+
+    auto& api = api_->OTAPI();
+    const auto fingerprint = api.Wallet_ImportSeed(word_list_, passphrase_);
+
+    if (fingerprint.empty()) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to import seed."
+              << std::endl;
+    } else {
+        otErr << OT_METHOD << __FUNCTION__ << ": Imported seed " << fingerprint
+              << std::endl;
+    }
+}
+
 void OT::Schedule(
     const time64_t& interval,
     const PeriodicTask& task,
@@ -731,7 +793,6 @@ void OT::set_storage_encryption()
     OT_ASSERT(api_);
     OT_ASSERT(crypto_);
 
-    api_->OTAPI().LoadWallet();
     auto wallet = api_->OTAPI().GetWallet(nullptr);
 
     OT_ASSERT(nullptr != wallet);
@@ -752,8 +813,8 @@ void OT::set_storage_encryption()
         otWarn << OT_METHOD << __FUNCTION__ << ": Obtained storage key "
                << String(storage_encryption_key_->ID()) << std::endl;
     } else {
-        otWarn << OT_METHOD << __FUNCTION__ << ": Failed to load storage key "
-               << seed << std::endl;
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to load storage key "
+              << seed << std::endl;
     }
 
     wallet->SaveWallet();
