@@ -224,7 +224,8 @@ void Storage::InitBackup()
 #endif
 }
 
-void Storage::InitEncryptedBackup(std::unique_ptr<SymmetricKey>& key)
+void Storage::InitEncryptedBackup(__attribute__((unused))
+                                  std::unique_ptr<SymmetricKey>& key)
 {
     if (config_.fs_encrypted_backup_directory_.empty()) {
 
