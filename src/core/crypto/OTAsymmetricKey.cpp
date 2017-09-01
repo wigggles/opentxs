@@ -486,21 +486,12 @@ extern "C" int32_t souped_up_pass_cb(
     bool bGotPassword = false;
 
     // Sometimes it's passed in, otherwise we use the global one.
-    std::shared_ptr<OTCachedKey> pCachedKey(pPWData->GetCachedKey());
-
-    if (!pCachedKey) {
-        // Global one.
-        pCachedKey = OTCachedKey::It();  // Used to only use this one (global
-                                         // one) but now
-        // I allow pPWData to contain a pointer to the
-        // exact instance. (To enable multiple
-        // instances...) If that's not found then here we
-        // set it to the global one.
-    }
-    if (!pCachedKey) OT_FAIL;
+    const auto providedKey = pPWData->GetCachedKey();
+    auto& cachedKey = (nullptr == providedKey) ? OT::App().Crypto().DefaultKey()
+                                               : *providedKey;
 
     const bool b1 = pPWData->isForNormalNym();
-    const bool b3 = !(pCachedKey->isPaused());
+    const bool b3 = !(cachedKey.isPaused());
 
     // For example, perhaps we need to collect a password for a symmetric key.
     // In that case, it has nothing to do with any master key, or any
@@ -563,8 +554,8 @@ extern "C" int32_t souped_up_pass_cb(
         //
         otLog3 << __FUNCTION__ << ": Using GetMasterPassword() call. \n";
 
-        bGotPassword = pCachedKey->GetMasterPassword(
-            pCachedKey,
+        bGotPassword = cachedKey.GetMasterPassword(
+            cachedKey,
             thePassword,
             str_userdata.c_str());  // bool bVerifyTwice=false
 

@@ -57,51 +57,20 @@
 // a real Nym. (Thus making it possible to skip any "password caching"
 // code that normally happens for real nyms, when it's the wallet nym.)
 //
-/*
-
-class OTPasswordData
-{
-private:
-    OTPassword *       m_pMasterPW; // Used only when isForCachedKey is true.
-    const std::string  m_strDisplay;
-
-public:
-
-    bool            isForCachedKey()   const;
-    const char *    GetDisplayString() const;
-
-    OTPasswordData(const char* szDisplay, OTPassword *
-pMasterPW=nullptr);
-    OTPasswordData(const std::string& str_Display, OTPassword *
-pMasterPW=nullptr);
-    OTPasswordData(const OTString& strDisplay, OTPassword *
-pMasterPW=nullptr);
-    ~OTPasswordData();
-};
- */
 
 namespace opentxs
 {
 
-bool OTPasswordData::isUsingOldSystem() const
-{
-    return m_bUsingOldSystem;
-}
+bool OTPasswordData::isUsingOldSystem() const { return m_bUsingOldSystem; }
 
 void OTPasswordData::setUsingOldSystem(bool bUsing)
 {
     m_bUsingOldSystem = bUsing;
 }
 
-bool OTPasswordData::isForNormalNym() const
-{
-    return (nullptr == m_pMasterPW);
-}
+bool OTPasswordData::isForNormalNym() const { return (nullptr == m_pMasterPW); }
 
-bool OTPasswordData::isForCachedKey() const
-{
-    return (nullptr != m_pMasterPW);
-}
+bool OTPasswordData::isForCachedKey() const { return (nullptr != m_pMasterPW); }
 
 const char* OTPasswordData::GetDisplayString() const
 {
@@ -111,53 +80,56 @@ const char* OTPasswordData::GetDisplayString() const
 OTPasswordData::OTPasswordData(
     const char* szDisplay,
     OTPassword* pMasterPW,
-    const std::shared_ptr<OTCachedKey>& pCachedKey)
-        : m_pMasterPW(pMasterPW)
-        , m_strDisplay(nullptr == szDisplay ? "(Sorry, no user data provided.)"
-                                            : szDisplay)
-        , m_bUsingOldSystem(false)
-        , m_pCachedKey(pCachedKey)
+    const OTCachedKey* pCachedKey)
+    : m_pMasterPW(pMasterPW)
+    , m_strDisplay(
+          nullptr == szDisplay ? "(Sorry, no user data provided.)" : szDisplay)
+    , m_bUsingOldSystem(false)
+    , m_pCachedKey(pCachedKey)
 {
     // They can both be nullptr, or they can both be not nullptr.
     // But you can't have one nullptr, and the other not.
-    OT_ASSERT(((nullptr == pMasterPW) && (!pCachedKey)) ||
-              ((nullptr != pMasterPW) && (pCachedKey)));
+    OT_ASSERT(
+        ((nullptr == pMasterPW) && (nullptr == pCachedKey)) ||
+        ((nullptr != pMasterPW) && (nullptr != pCachedKey)));
 }
 
 OTPasswordData::OTPasswordData(
     const std::string& str_Display,
     OTPassword* pMasterPW,
-    const std::shared_ptr<OTCachedKey>& pCachedKey)
-        : m_pMasterPW(pMasterPW)
-        , m_strDisplay(str_Display)
-        , m_bUsingOldSystem(false)
-        , m_pCachedKey(pCachedKey)
+    const OTCachedKey* pCachedKey)
+    : m_pMasterPW(pMasterPW)
+    , m_strDisplay(str_Display)
+    , m_bUsingOldSystem(false)
+    , m_pCachedKey(pCachedKey)
 {
     // They can both be nullptr, or they can both be not nullptr.
     // But you can't have one nullptr, and the other not.
-    OT_ASSERT(((nullptr == pMasterPW) && (!pCachedKey)) ||
-              ((nullptr != pMasterPW) && (pCachedKey)));
+    OT_ASSERT(
+        ((nullptr == pMasterPW) && (nullptr == pCachedKey)) ||
+        ((nullptr != pMasterPW) && (nullptr != pCachedKey)));
 }
 
 OTPasswordData::OTPasswordData(
     const String& strDisplay,
     OTPassword* pMasterPW,
-    const std::shared_ptr<OTCachedKey>& pCachedKey)
-        : m_pMasterPW(pMasterPW)
-        , m_strDisplay(strDisplay.Get())
-        , m_bUsingOldSystem(false)
-        , m_pCachedKey(pCachedKey)
+    const OTCachedKey* pCachedKey)
+    : m_pMasterPW(pMasterPW)
+    , m_strDisplay(strDisplay.Get())
+    , m_bUsingOldSystem(false)
+    , m_pCachedKey(pCachedKey)
 {
     // They can both be nullptr, or they can both be  not nullptr.
     // But you can't have one nullptr, and the other not.
-    OT_ASSERT(((nullptr == pMasterPW) && (!pCachedKey)) ||
-              ((nullptr != pMasterPW) && (pCachedKey)));
+    OT_ASSERT(
+        ((nullptr == pMasterPW) && (nullptr == pCachedKey)) ||
+        ((nullptr != pMasterPW) && (nullptr != pCachedKey)));
 }
 
 OTPasswordData::~OTPasswordData()
 {
-    m_pMasterPW = nullptr; // not owned
-                           //    m_pCachedKey = nullptr; // not owned
+    m_pMasterPW = nullptr;   // not owned
+    m_pCachedKey = nullptr;  // not owned
 }
 
 bool OTPasswordData::ClearOverride()
@@ -178,4 +150,4 @@ const std::unique_ptr<OTPassword>& OTPasswordData::Override() const
 {
     return password_override_;
 }
-} // namespace opentxs
+}  // namespace opentxs

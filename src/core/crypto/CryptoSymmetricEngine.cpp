@@ -81,7 +81,7 @@ std::unique_ptr<SymmetricKey> CryptoSymmetricEngine::Key(
 }
 
 std::unique_ptr<SymmetricKey> CryptoSymmetricEngine::Key(
-    const proto::SymmetricKey serialized,
+    const proto::SymmetricKey& serialized,
     const proto::SymmetricMode mode)
 {
     auto engine = GetEngine(mode);
@@ -95,7 +95,6 @@ std::unique_ptr<SymmetricKey> CryptoSymmetricEngine::Key(
     const OTPassword& seed,
     const std::uint64_t operations,
     const std::uint64_t difficulty,
-    const std::size_t size,
     const proto::SymmetricMode mode,
     const proto::SymmetricKeyType type)
 {
@@ -104,6 +103,6 @@ std::unique_ptr<SymmetricKey> CryptoSymmetricEngine::Key(
     OT_ASSERT(nullptr != engine);
 
     return SymmetricKey::Factory(
-        *engine, seed, operations, difficulty, size, type);
+        *engine, seed, operations, difficulty, engine->KeySize(mode), type);
 }
 }  // namespace opentxs

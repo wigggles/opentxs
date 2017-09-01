@@ -39,9 +39,13 @@
 #ifndef OPENTXS_CORE_CRYPTO_CRYPTOENGINE_HPP
 #define OPENTXS_CORE_CRYPTO_CRYPTOENGINE_HPP
 
+#include "opentxs/api/Editor.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Proto.hpp"
 
+#include <map>
 #include <memory>
+#include <mutex>
 
 namespace opentxs
 {
@@ -58,7 +62,10 @@ class CryptoUtil;
 class Libsecp256k1;
 class Libsodium;
 class OpenSSL;
+class OTASCIIArmor;
+class OTCachedKey;
 class TrezorCrypto;
+class SymmetricKey;
 
 // Choose your OpenSSL-compatible library here.
 #if OT_CRYPTO_USING_OPENSSL
@@ -85,30 +92,45 @@ class CryptoEngine
     friend class CryptoSymmetricEngine;
 
 private:
+    OT& ot_;
+    mutable std::mutex cached_key_lock_;
+    mutable std::unique_ptr<OTCachedKey> primary_key_;
+    mutable std::map<Identifier, std::unique_ptr<OTCachedKey>> cached_keys_;
 #if OT_CRYPTO_USING_TREZOR
     std::unique_ptr<bitcoincrypto> bitcoincrypto_;
 #endif
     std::unique_ptr<Curve25519> ed25519_;
-    static CryptoEngine* instance_;
+    std::unique_ptr<SSLImplementation> ssl_;
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
     std::unique_ptr<secp256k1> secp256k1_;
 #endif
     std::unique_ptr<CryptoEncodingEngine> encode_;
     std::unique_ptr<CryptoHashEngine> hash_;
-    std::unique_ptr<SSLImplementation> ssl_;
     std::unique_ptr<CryptoSymmetricEngine> symmetric_;
 
-    static CryptoEngine& It();
+    void init_default_key(const Lock& lock) const;
 
     void Init();
     void Cleanup();
 
-    CryptoEngine();
+    CryptoEngine(OT& ot);
+    CryptoEngine() = delete;
     CryptoEngine(const CryptoEngine&) = delete;
+    CryptoEngine(CryptoEngine&&) = delete;
     CryptoEngine& operator=(const CryptoEngine&) = delete;
+    CryptoEngine& operator=(CryptoEngine&&) = delete;
 
 public:
     static const proto::HashType StandardHash{proto::HASHTYPE_BLAKE2B256};
+
+    EXPORT const OTCachedKey& DefaultKey() const;
+    EXPORT Editor<OTCachedKey> mutable_DefaultKey() const;
+    EXPORT const OTCachedKey& CachedKey(const Identifier& id) const;
+    EXPORT const OTCachedKey& CachedKey(const OTCachedKey& source) const;
+    EXPORT const OTCachedKey& LoadDefaultKey(
+        const OTASCIIArmor& serialized) const;
+    EXPORT void SetTimeout(const std::chrono::seconds& timeout) const;
+    EXPORT void SetSystemKeyring(const bool useKeyring) const;
 
     // Encoding function interface
     EXPORT CryptoEncodingEngine& Encode() const;
@@ -140,6 +162,8 @@ public:
 #if OT_CRYPTO_WITH_BIP39
     EXPORT Bip39& BIP39() const;
 #endif
+
+    std::unique_ptr<SymmetricKey> GetStorageKey(std::string& seed) const;
 
     ~CryptoEngine();
 };

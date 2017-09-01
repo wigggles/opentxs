@@ -92,9 +92,29 @@ OTAPI_Exec* OTAPI_Wrap::Exec() { return &OT::App().API().Exec(); }
 
 bool OTAPI_Wrap::AppInit(
     const std::string& storagePlugin,
-    const std::string& archiveDirectory)
+    const std::string& archiveDirectory,
+    const std::string& encryptedDirectory)
 {
-    OT::Factory(false, storagePlugin, archiveDirectory);
+    OT::Factory(false, storagePlugin, archiveDirectory, encryptedDirectory);
+
+    return true;
+}
+
+bool OTAPI_Wrap::AppRecover(
+    const std::string& words,
+    const std::string& passphrase,
+    const std::string& storagePlugin,
+    const std::string& archiveDirectory,
+    const std::string& encryptedDirectory)
+{
+    OT::Factory(
+        true,
+        words,
+        passphrase,
+        false,
+        storagePlugin,
+        archiveDirectory,
+        encryptedDirectory);
 
     return true;
 }
@@ -622,9 +642,9 @@ bool OTAPI_Wrap::Wallet_ChangePassphrase()
 
 bool OTAPI_Wrap::Wallet_CheckPassword()
 {
-    auto key = OTCachedKey::It();
+    auto key = OT::App().Crypto().mutable_DefaultKey();
 
-    if (false == bool(key)) {
+    if (false == key.It().IsGenerated()) {
         otErr << OT_METHOD << __FUNCTION__ << ": No master key." << std::endl;
 
         return false;
@@ -632,9 +652,9 @@ bool OTAPI_Wrap::Wallet_CheckPassword()
 
     const std::string message{};
     OTPassword null;
-    key->Reset();
+    key.It().Reset();
 
-    return key->GetMasterPassword(key, null, message.c_str(), false);
+    return key.It().GetMasterPassword(key.It(), null, message.c_str(), false);
 }
 
 std::string OTAPI_Wrap::Wallet_GetNymIDFromPartial(

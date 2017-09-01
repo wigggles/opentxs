@@ -83,18 +83,18 @@ bool MainFile::SaveMainFileToString(String& strMainFile)
     Tag tag("notaryServer");
 
     // We're on version 2.0 since adding the master key.
-    tag.add_attribute(
-        "version", OTCachedKey::It()->IsGenerated() ? "2.0" : version_);
+    auto& cachedKey = OT::App().Crypto().DefaultKey();
+    tag.add_attribute("version", cachedKey.IsGenerated() ? "2.0" : version_);
     tag.add_attribute("notaryID", String(server_->m_strNotaryID).Get());
     tag.add_attribute("serverNymID", server_->m_strServerNymID.Get());
     tag.add_attribute(
         "transactionNum", formatLong(server_->transactor_.transactionNumber()));
 
-    if (OTCachedKey::It()->IsGenerated())  // If it exists, then serialize it.
+    if (cachedKey.IsGenerated())  // If it exists, then serialize it.
     {
         OTASCIIArmor ascMasterContents;
 
-        if (OTCachedKey::It()->SerializeTo(ascMasterContents)) {
+        if (cachedKey.SerializeTo(ascMasterContents)) {
             tag.add_tag("cachedKey", ascMasterContents.Get());
         } else
             Log::vError(
@@ -245,14 +245,13 @@ bool MainFile::CreateMainFile(
     }
     OTASCIIArmor ascCachedKey;
     ascCachedKey.Set(strCachedKey.c_str());
-    OTCachedKey::It()->SetCachedKey(ascCachedKey);
+    auto& cachedKey = OT::App().Crypto().LoadDefaultKey(ascCachedKey);
 
-    if (!OTCachedKey::It()->HasHashCheck()) {
+    if (!cachedKey.HasHashCheck()) {
         OTPassword tempPassword;
         tempPassword.zeroMemory();
-        std::shared_ptr<OTCachedKey> sharedPtr(OTCachedKey::It());
-        sharedPtr->GetMasterPassword(
-            sharedPtr,
+        cachedKey.GetMasterPassword(
+            cachedKey,
             tempPassword,
             "We do not have a check hash yet for this password, "
             "please enter your password",
@@ -399,19 +398,15 @@ bool MainFile::LoadMainFile(bool bReadOnly)
 
                         if (Contract::LoadEncodedTextField(xml, ascCachedKey)) {
                             // We successfully loaded the masterKey from file,
-                            // so
-                            // let's SET it
-                            // as the master key globally...
-                            //
-                            OTCachedKey::It()->SetCachedKey(ascCachedKey);
+                            // so let's SET it as the master key globally...
+                            auto& cachedKey =
+                                OT::App().Crypto().LoadDefaultKey(ascCachedKey);
 
-                            if (!OTCachedKey::It()->HasHashCheck()) {
+                            if (!cachedKey.HasHashCheck()) {
                                 OTPassword tempPassword;
                                 tempPassword.zeroMemory();
-                                std::shared_ptr<OTCachedKey> sharedPtr(
-                                    OTCachedKey::It());
-                                bNeedToSaveAgain = sharedPtr->GetMasterPassword(
-                                    sharedPtr,
+                                bNeedToSaveAgain = cachedKey.GetMasterPassword(
+                                    cachedKey,
                                     tempPassword,
                                     "We do not have a check hash yet for this "
                                     "password, "

@@ -92,6 +92,8 @@ Storage::Storage(
     , config_(config)
     , digest_(hash)
     , random_(random)
+    , write_lock_()
+    , shutdown_(false)
 {
     if (OT_STORAGE_PRIMARY_PLUGIN_SQLITE == config_.primary_plugin_) {
 #if OT_STORAGE_SQLITE
@@ -106,8 +108,6 @@ Storage::Storage(
     }
 
     OT_ASSERT(primary_plugin_);
-
-    Init();
 }
 
 std::set<std::string> Storage::BlockchainAccountList(
@@ -203,15 +203,30 @@ bool Storage::EmptyBucket(const bool bucket) const
     return primary_plugin_->EmptyBucket(bucket);
 }
 
-void Storage::Init()
-{
-    shutdown_.store(false);
-    InitPlugins();
-}
-
 void Storage::InitBackup()
 {
     if (config_.fs_backup_directory_.empty()) {
+
+        return;
+    }
+
+#if OT_STORAGE_FS
+    std::unique_ptr<SymmetricKey> null(nullptr);
+    backup_plugins_.emplace_back(new StorageFSArchive(
+        config_,
+        digest_,
+        random_,
+        primary_bucket_,
+        config_.fs_backup_directory_,
+        null));
+#else
+    return;
+#endif
+}
+
+void Storage::InitEncryptedBackup(std::unique_ptr<SymmetricKey>& key)
+{
+    if (config_.fs_encrypted_backup_directory_.empty()) {
 
         return;
     }
@@ -222,8 +237,8 @@ void Storage::InitBackup()
         digest_,
         random_,
         primary_bucket_,
-        config_.fs_backup_directory_));
-    InitPlugins();
+        config_.fs_encrypted_backup_directory_,
+        key));
 #else
     return;
 #endif
@@ -1219,6 +1234,8 @@ ObjectList Storage::ServerList() const
 {
     return Meta().Tree().ServerNode().List();
 }
+
+void Storage::start() { InitPlugins(); }
 
 bool Storage::Store(
     const std::string& key,

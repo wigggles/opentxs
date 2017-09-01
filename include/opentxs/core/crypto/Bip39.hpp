@@ -47,11 +47,35 @@
 
 namespace opentxs
 {
+
+class OT;
 class OTPassword;
 
 class Bip39
 {
+public:
+    static const std::string DEFAULT_PASSPHRASE;
+
+    std::string DefaultSeed() const;
+    std::string ImportSeed(
+        const OTPassword& words,
+        const OTPassword& passphrase) const;
+    std::string NewSeed() const;
+    std::string Passphrase(const std::string& fingerprint = "") const;
+    std::shared_ptr<OTPassword> Seed(
+        std::string& fingerprint,
+        std::uint32_t& index) const;
+    bool UpdateIndex(std::string& seed, const std::uint32_t index) const;
+    std::string Words(const std::string& fingerprint = "") const;
+
+    ~Bip39() = default;
+
+protected:
+    Bip39(OT& ot);
+
 private:
+    OT& ot_;
+
     static const proto::SymmetricMode DEFAULT_ENCRYPTION_MODE;
 
     bool DecryptSeed(
@@ -74,19 +98,11 @@ private:
         OTPassword& seed,
         const OTPassword& passphrase) const = 0;
 
-public:
-    static const std::string DEFAULT_PASSPHRASE;
-
-    std::string ImportSeed(
-        const OTPassword& words,
-        const OTPassword& passphrase) const;
-    std::string NewSeed() const;
-    std::string Passphrase(const std::string& fingerprint = "") const;
-    std::shared_ptr<OTPassword> Seed(
-        std::string& fingerprint,
-        std::uint32_t& index) const;
-    bool UpdateIndex(std::string& seed, const std::uint32_t index) const;
-    std::string Words(const std::string& fingerprint = "") const;
+    Bip39() = delete;
+    Bip39(const Bip39&) = delete;
+    Bip39(Bip39&&) = delete;
+    Bip39& operator=(const Bip39&) = delete;
+    Bip39& operator=(Bip39&&) = delete;
 };
 }  // namespace opentxs
 #endif  // OPENTXS_CORE_CRYPTO_BIP39_HPP

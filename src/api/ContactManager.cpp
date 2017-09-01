@@ -62,9 +62,6 @@ ContactManager::ContactManager(Storage& storage, Wallet& wallet)
     , nym_contact_map_()
     , address_contact_map_()
 {
-    rLock lock(lock_);
-    init_nym_map(lock);
-    import_contacts(lock);
 }
 
 ContactManager::ContactMap::iterator ContactManager::add_contact(
@@ -516,6 +513,13 @@ void ContactManager::save(class Contact* contact)
 
     rLock lock(lock_);
     refresh_indices(lock, *contact);
+}
+
+void ContactManager::start()
+{
+    rLock lock(lock_);
+    init_nym_map(lock);
+    import_contacts(lock);
 }
 
 std::shared_ptr<const class Contact> ContactManager::Update(

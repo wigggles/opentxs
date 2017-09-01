@@ -54,6 +54,7 @@
 namespace opentxs
 {
 
+class CryptoEngine;
 class Identifier;
 class OTASCIIArmor;
 class OTCachedKey;
@@ -158,128 +159,18 @@ techniques such as canaries, etc etc. This is always a moving target. */
 // This is only the hard-coded default; it's also configurable in the opt file.
 #define OT_MASTER_KEY_TIMEOUT 300
 
-typedef std::map<std::string, std::shared_ptr<OTCachedKey>> mapOfCachedKeys;
-
 class OTCachedKey
 {
-private:
-    /** Now we have many "master keys," mapped by their symmetric key ID. These
-     * are actually temps, just so we can safely cache the passphrases for
-     * various symmetric keys, between uses of that symmetric key. Such as
-     * Pop'ing tokens off of a purse, over and over again. Normally in the API,
-     * this would have to load the key each time. By caching here, we can
-     * exploit all the cool master key code, with its security, and threads, and
-     * timeouts, etc for every symmetric key we use. Just pass an ID into It()
-     * and if it's on the map, a pointer will be returned. Pass nullptr into
-     * It() (no arguments) to get a pointer to the global Master Key (for Nyms.)
-     */
-    static mapOfCachedKeys s_mapCachedKeys;
-    static std::mutex s_mutexCachedKeys;
-    static std::shared_ptr<OTCachedKey> singleton_;
-
-    /** Mutex used for serializing access to this instance. */
-    mutable std::mutex outer_lock_;
-    mutable std::mutex inner_lock_;
-    mutable std::atomic<bool> shutdown_;
-    /** if set to true, then additionally use the local OS's standard API for
-     * storing/retrieving secrets. (Store the master key here whenever it's
-     * decrypted, and try to retrieve from here whenever it's needed, before
-     * resorting to asking the user to type his passphrase.) This is
-     * configurable in the config file. */
-    mutable std::atomic<bool> use_system_keyring_;
-
-    /** If you want to force the old system, PAUSE the master key (REMEMBER to
-     * Unpause when done!) */
-    mutable std::atomic<bool> paused_;
-    mutable std::atomic<bool> thread_exited_{false};
-
-    mutable std::atomic<std::time_t> time_;
-
-    /** The master password will be stored internally for X seconds, and then
-     * destroyed. */
-    mutable std::atomic<std::uint64_t> timeout_;
-
-    /** The thread used for destroying the password after the timeout period. */
-    std::unique_ptr<std::thread> thread_;
-
-    /** Created when password is passed in; destroyed by Timer after X seconds.
-     */
-    std::unique_ptr<OTPassword> master_password_;
-
-    /** Encrypted form of the master key. Serialized by OTWallet or OTServer. */
-    std::unique_ptr<OTSymmetricKey> key_;
-
-    String secret_id_;
-
-    std::int32_t GetTimeoutSeconds() const;
-    void init(const std::int32_t& timeout = 0, const bool useKeyring = false)
-        const;
-    void LowLevelReleaseThread();
-
-    /** If you actually want to create a new key, and a new passphrase, then use
-     * this to destroy every last vestige of the old one. (Which will cause a
-     * new one to be automatically generated the next time OT requests the
-     * master key.)
-     * NOTE: Make SURE you have all your Nyms loaded up and unlocked before you
-     * call this. Then Save them all again so they will be properly stored with
-     * the new master key. */
-    void ResetMasterPassword(const Lock& lock);
-    void ResetTimer() const;
-
-    /** The cleartext version (m_pMasterPassword) is deleted and set nullptr
-     * after a Timer of X seconds. (Timer thread calls this.) The INSTANCE that
-     * owns the thread also passes a pointer to ITSELF. (So we can access
-     * password, mutex, timeout value, etc.) This function calls
-     * DestroyMasterPassword. */
-    void ThreadTimeout();
-
-    OTCachedKey(std::int32_t nTimeoutSeconds = OT_MASTER_KEY_TIMEOUT);
-
 public:
-    EXPORT OTCachedKey(const OTASCIIArmor& ascCachedKey);
-    EXPORT OTCachedKey(const OTCachedKey&);
+    EXPORT static std::shared_ptr<OTCachedKey> CreateMasterPassword(
+        OTPassword& theOutput,
+        const char* szDisplay = nullptr,
+        std::int32_t nTimeoutSeconds = OT_MASTER_KEY_TIMEOUT);
 
-    /** if you pass in a master key ID, it will look it up on an existing cached
-     * map of master keys. Otherwise it will use "the" global Master Key (the
-     * one used for the Nyms.) */
-    EXPORT static std::shared_ptr<OTCachedKey> It(
-        Identifier* pIdentifier = nullptr);
+    EXPORT explicit OTCachedKey(const OTASCIIArmor& ascCachedKey);
 
-    /** if you pass in a master key, it will look it up on an existing cached
-     * map of master keys, based on the ID of the master key passed in. If not
-     * there, it copies the one passed in, and returns a pointer to the copy.
-     * (Do NOT delete it.) */
-    EXPORT static std::shared_ptr<OTCachedKey> It(OTCachedKey& theSourceKey);
-
-    /** Call on application shutdown. Called in CleanupOTAPI and also in
-     * OTServer wherever it cleans up. */
-    EXPORT static void Cleanup();
     EXPORT bool GetIdentifier(Identifier& theIdentifier) const;
     EXPORT bool GetIdentifier(String& strIdentifier) const;
-    EXPORT bool IsGenerated();
-    EXPORT bool HasHashCheck();
-    EXPORT bool IsUsingSystemKeyring() const;
-    /** Start using system keyring. */
-    EXPORT void UseSystemKeyring(const bool bUsing = true) const;
-    EXPORT bool Pause() const;
-    EXPORT bool Unpause() const;
-    EXPORT bool isPaused() const;
-    EXPORT void Reset();
-    EXPORT bool SerializeTo(OTASCIIArmor& ascOutput);
-    EXPORT bool SerializeFrom(const OTASCIIArmor& ascInput);
-
-    /* These two functions are used by the OTServer or OTWallet that
-     * actually keeps the master key. The owner sets the master key pointer on
-     * initialization, and then later when the password callback code in
-     * OTAsymmetricKey needs to access the master key, it can use
-     * GetMasterPassword to access it. */
-
-    /** OTServer/OTWallet calls this, I instantiate. */
-    EXPORT void SetCachedKey(const OTASCIIArmor& ascCachedKey);
-
-    /** So we can load from the config file. */
-    EXPORT void SetTimeoutSeconds(std::int64_t nTimeoutSeconds);
-
     /** For Nyms, which have a global master key serving as their "passphrase"
      * (for that wallet), The password callback uses OTCachedKey::It() to get
      * the instance, and then GetMasterPassword to get the passphrase for any
@@ -294,15 +185,15 @@ public:
      * internal master key to get its passphrase (also retrieving from the user
      * if necessary.) */
     EXPORT bool GetMasterPassword(
-        std::shared_ptr<OTCachedKey>& mySharedPtr,
+        const OTCachedKey& passwordPassword,
         OTPassword& theOutput,
         const char* szDisplay = nullptr,
-        bool bVerifyTwice = false);
-
-    EXPORT static std::shared_ptr<OTCachedKey> CreateMasterPassword(
-        OTPassword& theOutput,
-        const char* szDisplay = nullptr,
-        std::int32_t nTimeoutSeconds = OT_MASTER_KEY_TIMEOUT);
+        bool bVerifyTwice = false) const;
+    EXPORT bool HasHashCheck() const;
+    EXPORT bool IsGenerated() const;
+    EXPORT bool isPaused() const;
+    EXPORT bool IsUsingSystemKeyring() const;
+    EXPORT bool SerializeTo(OTASCIIArmor& ascOutput) const;
 
     /** GetMasterPassword USES the User Passphrase to decrypt the cached key and
      * return a decrypted plaintext of that cached symmetric key. Whereas
@@ -310,8 +201,68 @@ public:
      * that cached key. The cached key itself is not changed, nor returned. It
      * is merely re-encrypted. */
     EXPORT bool ChangeUserPassphrase();
+    EXPORT bool Pause();
+    EXPORT void Reset();
+    EXPORT bool SerializeFrom(const OTASCIIArmor& ascInput);
+    /* These two functions are used by the OTServer or OTWallet that
+     * actually keeps the master key. The owner sets the master key pointer on
+     * initialization, and then later when the password callback code in
+     * OTAsymmetricKey needs to access the master key, it can use
+     * GetMasterPassword to access it. */
+    EXPORT void SetCachedKey(const OTASCIIArmor& ascCachedKey);
+    EXPORT void SetTimeoutSeconds(const std::int64_t nTimeoutSeconds);
+    EXPORT void UseSystemKeyring(const bool bUsing = true);
+    EXPORT bool Unpause();
 
     EXPORT ~OTCachedKey();
+
+private:
+    friend class CryptoEngine;
+
+    mutable std::mutex general_lock_;
+    mutable std::mutex master_password_lock_;
+    mutable std::atomic<bool> shutdown_{false};
+    /** if set to true, then additionally use the local OS's standard API for
+     * storing/retrieving secrets. (Store the master key here whenever it's
+     * decrypted, and try to retrieve from here whenever it's needed, before
+     * resorting to asking the user to type his passphrase.) This is
+     * configurable in the config file. */
+    mutable std::atomic<bool> use_system_keyring_{false};
+    /** If you want to force the old system, PAUSE the master key (REMEMBER to
+     * Unpause when done!) */
+    mutable std::atomic<bool> paused_{false};
+    mutable std::atomic<bool> thread_exited_{false};
+    mutable std::atomic<std::time_t> time_{0};
+    /** The master password will be stored internally for X seconds, and then
+     * destroyed. */
+    mutable std::atomic<std::int64_t> timeout_{0};
+    /** The thread used for destroying the password after the timeout period. */
+    mutable std::unique_ptr<std::thread> thread_;
+    /** Created when password is passed in; destroyed by Timer after X seconds.
+     */
+    mutable std::unique_ptr<OTPassword> master_password_;
+    /** Encrypted form of the master key. Serialized by OTWallet or OTServer. */
+    mutable std::unique_ptr<OTSymmetricKey> key_;
+    mutable String secret_id_{""};
+
+    void release_thread() const;
+    /** The cleartext version (m_pMasterPassword) is deleted and set nullptr
+     * after a Timer of X seconds. (Timer thread calls this.) The INSTANCE that
+     * owns the thread also passes a pointer to ITSELF. (So we can access
+     * password, mutex, timeout value, etc.) This function calls
+     * DestroyMasterPassword. */
+    void reset_timer() const;
+    void timeout_thread() const;
+
+    void reset_master_password();
+
+    explicit OTCachedKey(
+        const std::int32_t nTimeoutSeconds = OT_MASTER_KEY_TIMEOUT);
+    OTCachedKey() = delete;
+    OTCachedKey(const OTCachedKey&) = delete;
+    OTCachedKey(OTCachedKey&&) = delete;
+    OTCachedKey& operator=(const OTCachedKey&) = delete;
+    OTCachedKey& operator=(OTCachedKey&&) = delete;
 };
 }  // namespace opentxs
 #endif  // OPENTXS_CORE_CRYPTO_OTCACHEDKEY_HPP

@@ -167,6 +167,7 @@ enum class StorageBox : std::uint8_t {
 enum class Bip43Purpose : std::uint32_t {
     HDWALLET = 44,    // BIP-44
     PAYCODE = 47,     // BIP-47
+    FS = 0x4f544653,  // OTFS
     NYM = 0x4f544e4d  // OTNM
 };
 

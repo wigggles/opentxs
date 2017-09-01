@@ -39,6 +39,7 @@
 #ifndef OPENTXS_CORE_CRYPTO_SYMMETRICKEY_HPP
 #define OPENTXS_CORE_CRYPTO_SYMMETRICKEY_HPP
 
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Proto.hpp"
 
 #include <cstddef>
@@ -75,8 +76,11 @@ private:
     /// The encrypted form of the plaintext key
     std::unique_ptr<proto::Ciphertext> encrypted_key_;
 
-    bool Allocate(const std::size_t size, Data& container);
-    bool Allocate(const std::size_t size, std::string& container);
+    static bool Allocate(const std::size_t size, Data& container);
+    static bool Allocate(
+        const std::size_t size,
+        std::string& container,
+        const bool random);
     bool Allocate(
         const std::size_t size,
         OTPassword& container,
@@ -109,8 +113,8 @@ private:
         const OTPassword& seed,
         const std::string& salt,
         const std::size_t size,
-        const std::uint64_t operations = 3,
-        const std::uint64_t difficulty = 8388608,
+        const std::uint64_t operations,
+        const std::uint64_t difficulty,
         const proto::SymmetricKeyType type = proto::SKEYTYPE_ARGON2);
     SymmetricKey() = delete;
     SymmetricKey(const SymmetricKey&) = delete;
@@ -143,7 +147,6 @@ public:
     /** Derive a symmetric key from a seed
      *
      *  \param[in] seed A binary or text seed to be expanded into a secret key
-     *  \param[in] salt A nonce to be used for encrypting the derived key
      *  \param[in] operations The number of iterations/operations the KDF should
      *                        perform
      *  \param[in] difficulty A type-specific difficulty parameter used by the
@@ -183,6 +186,10 @@ public:
     bool Decrypt(
         const proto::Ciphertext& ciphertext,
         const OTPasswordData& keyPassword,
+        std::string& plaintext);
+    bool Decrypt(
+        const proto::Ciphertext& ciphertext,
+        const OTPasswordData& keyPassword,
         Data& plaintext);
     bool Decrypt(
         const proto::Ciphertext& ciphertext,
@@ -200,6 +207,13 @@ public:
      *  \param[in] mode The symmetric algorithm to use for encryption
      */
     bool Encrypt(
+        const std::string& plaintext,
+        const Data& iv,
+        const OTPasswordData& keyPassword,
+        proto::Ciphertext& ciphertext,
+        const bool attachKey = true,
+        const proto::SymmetricMode mode = proto::SMODE_ERROR);
+    bool Encrypt(
         const String& plaintext,
         const Data& iv,
         const OTPasswordData& keyPassword,
@@ -213,6 +227,8 @@ public:
         proto::Ciphertext& ciphertext,
         const bool attachKey = true,
         const proto::SymmetricMode mode = proto::SMODE_ERROR);
+
+    Identifier ID();
 
     bool Serialize(proto::SymmetricKey& output) const;
 

@@ -47,6 +47,10 @@
 #include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/Log.hpp"
 
+#define OT_METHOD "opentxs::SymmetricKey::"
+#define OT_SYMMETRIC_KEY_DEFAULT_OPERATIONS 3
+#define OT_SYMMETRIC_KEY_DEFAULT_DIFFICULTY 8388608
+
 namespace opentxs
 {
 SymmetricKey::SymmetricKey(const CryptoSymmetricNew& engine)
@@ -89,6 +93,9 @@ SymmetricKey::SymmetricKey(
 {
     OT_ASSERT(salt_);
     OT_ASSERT(plaintext_key_);
+    OT_ASSERT(0 != operations);
+    OT_ASSERT(0 != difficulty);
+    OT_ASSERT(0 != size);
 
     Allocate(key_size_, *plaintext_key_, false);
 
@@ -103,7 +110,7 @@ SymmetricKey::SymmetricKey(
         inputSize = seed.getPasswordSize();
     }
 
-    engine.Derive(
+    const bool derived = engine.Derive(
         input,
         inputSize,
         reinterpret_cast<const std::uint8_t*>(salt_->data()),
@@ -113,6 +120,8 @@ SymmetricKey::SymmetricKey(
         type_,
         static_cast<std::uint8_t*>(plaintext_key_->getMemoryWritable()),
         plaintext_key_->getMemorySize());
+
+    OT_ASSERT(derived);
 }
 
 std::unique_ptr<SymmetricKey> SymmetricKey::Factory(
@@ -171,9 +180,15 @@ std::unique_ptr<SymmetricKey> SymmetricKey::Factory(
     const proto::SymmetricKeyType type)
 {
     std::unique_ptr<SymmetricKey> output;
-    std::string empty;
-    output.reset(new SymmetricKey(
-        engine, seed, empty, size, operations, difficulty, type));
+    std::string salt{};
+    Allocate(engine.SaltSize(type), salt, false);
+
+    const std::uint64_t ops =
+        (0 == operations) ? OT_SYMMETRIC_KEY_DEFAULT_OPERATIONS : operations;
+    const std::uint64_t mem =
+        (0 == difficulty) ? OT_SYMMETRIC_KEY_DEFAULT_DIFFICULTY : difficulty;
+
+    output.reset(new SymmetricKey(engine, seed, salt, size, ops, mem, type));
 
     return output;
 }
@@ -208,13 +223,18 @@ bool SymmetricKey::Allocate(const std::size_t size, Data& container)
     return (size == container.GetSize());
 }
 
-bool SymmetricKey::Allocate(const std::size_t size, std::string& container)
+bool SymmetricKey::Allocate(
+    const std::size_t size,
+    std::string& container,
+    const bool random)
 {
     container.resize(size, 0x0);
 
-    OTPassword::randomizeMemory(
-        static_cast<void*>(const_cast<char*>(container.data())),
-        container.size());
+    if (random) {
+        OTPassword::randomizeMemory(
+            static_cast<void*>(const_cast<char*>(container.data())),
+            container.size());
+    }
 
     return (size == container.size());
 }
@@ -250,6 +270,9 @@ bool SymmetricKey::ChangePassword(
         return EncryptKey(*plaintext_key_, password);
     }
 
+    otErr << OT_METHOD << __FUNCTION__ << ": Unable to unlock master key."
+          << std::endl;
+
     return false;
 }
 
@@ -258,8 +281,11 @@ bool SymmetricKey::Decrypt(
     const OTPasswordData& keyPassword,
     std::uint8_t* plaintext)
 {
-    if (!plaintext_key_) {
-        if (!Unlock(keyPassword)) {
+    if (false == bool(plaintext_key_)) {
+        if (false == Unlock(keyPassword)) {
+            otErr << OT_METHOD << __FUNCTION__
+                  << ": Unable to unlock master key." << std::endl;
+
             return false;
         }
     }
@@ -276,9 +302,29 @@ bool SymmetricKey::Decrypt(
 bool SymmetricKey::Decrypt(
     const proto::Ciphertext& ciphertext,
     const OTPasswordData& keyPassword,
+    std::string& plaintext)
+{
+    if (false == Allocate(ciphertext.data().size(), plaintext, true)) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Unable to allocate space for decryption." << std::endl;
+
+        return false;
+    }
+
+    return (Decrypt(
+        ciphertext,
+        keyPassword,
+        reinterpret_cast<std::uint8_t*>(const_cast<char*>(plaintext.data()))));
+}
+
+bool SymmetricKey::Decrypt(
+    const proto::Ciphertext& ciphertext,
+    const OTPasswordData& keyPassword,
     Data& plaintext)
 {
-    if (!Allocate(ciphertext.data().size(), plaintext)) {
+    if (false == Allocate(ciphertext.data().size(), plaintext)) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Unable to allocate space for decryption." << std::endl;
 
         return false;
     }
@@ -295,6 +341,8 @@ bool SymmetricKey::Decrypt(
     OTPassword& plaintext)
 {
     if (!Allocate(ciphertext.data().size(), plaintext, ciphertext.text())) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Unable to allocate space for decryption." << std::endl;
 
         return false;
     }
@@ -321,11 +369,16 @@ bool SymmetricKey::Encrypt(
     const bool text)
 {
     if (nullptr == input) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Null input" << std::endl;
+
         return false;
     }
 
-    if (!plaintext_key_) {
-        if (!Unlock(keyPassword)) {
+    if (false == bool(plaintext_key_)) {
+        if (false == Unlock(keyPassword)) {
+            otErr << OT_METHOD << __FUNCTION__
+                  << ": Unable to unlock master key." << std::endl;
+
             return false;
         }
     }
@@ -347,6 +400,8 @@ bool SymmetricKey::Encrypt(
     }
 
     ciphertext.set_text(text);
+
+    OT_ASSERT(nullptr != plaintext_key_->getMemory_uint8());
 
     return engine_.Encrypt(
         input,
@@ -417,6 +472,31 @@ bool SymmetricKey::Encrypt(
     return success;
 }
 
+bool SymmetricKey::Encrypt(
+    const std::string& plaintext,
+    const Data& iv,
+    const OTPasswordData& keyPassword,
+    proto::Ciphertext& ciphertext,
+    const bool attachKey,
+    const proto::SymmetricMode mode)
+{
+    const bool success = Encrypt(
+        reinterpret_cast<const uint8_t*>(plaintext.c_str()),
+        plaintext.size(),
+        static_cast<const std::uint8_t*>(iv.GetPointer()),
+        iv.GetSize(),
+        mode,
+        keyPassword,
+        ciphertext,
+        true);
+
+    if (success && attachKey) {
+        Serialize(*ciphertext.mutable_key());
+    }
+
+    return success;
+}
+
 bool SymmetricKey::EncryptKey(
     const OTPassword& plaintextKey,
     const OTPasswordData& keyPassword,
@@ -442,14 +522,19 @@ bool SymmetricKey::EncryptKey(
     OT_ASSERT(salt_);
 
     if (salt_->size() != saltSize) {
-        if (!Allocate(saltSize, *salt_)) {
+        if (!Allocate(saltSize, *salt_, true)) {
 
             return false;
         }
     }
 
     SymmetricKey secondaryKey(
-        engine_, key, *salt_, engine_.KeySize(encrypted_key_->mode()));
+        engine_,
+        key,
+        *salt_,
+        engine_.KeySize(encrypted_key_->mode()),
+        OT_SYMMETRIC_KEY_DEFAULT_OPERATIONS,
+        OT_SYMMETRIC_KEY_DEFAULT_DIFFICULTY);
 
     return engine_.Encrypt(
         plaintextKey.getMemory_uint8(),
@@ -489,6 +574,26 @@ bool SymmetricKey::GetPassword(
     }
 }
 
+Identifier SymmetricKey::ID()
+{
+    OTPasswordData keyPassword("");
+
+    if (false == bool(plaintext_key_)) {
+        if (false == Unlock(keyPassword)) {
+            otErr << OT_METHOD << __FUNCTION__
+                  << ": Unable to unlock master key." << std::endl;
+
+            return {};
+        }
+    }
+
+    Identifier output;
+    output.CalculateDigest(
+        Data(plaintext_key_->getMemory(), plaintext_key_->getMemorySize()));
+
+    return output;
+}
+
 bool SymmetricKey::Serialize(proto::SymmetricKey& output) const
 {
     output.set_version(version_);
@@ -514,26 +619,44 @@ bool SymmetricKey::Serialize(proto::SymmetricKey& output) const
 
 bool SymmetricKey::Unlock(const OTPasswordData& keyPassword)
 {
-    if (!encrypted_key_) {
+    if (false == bool(encrypted_key_)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Master key not loaded."
+              << std::endl;
+
         return false;
     }
 
-    if (!plaintext_key_) {
+    if (false == bool(plaintext_key_)) {
         plaintext_key_.reset(new OTPassword);
 
         OT_ASSERT(plaintext_key_);
 
         // Allocate space for plaintext (same size as ciphertext)
         if (!Allocate(encrypted_key_->data().size(), *plaintext_key_)) {
+            otErr << OT_METHOD << __FUNCTION__
+                  << ": Unable to allocate space for plaintext master key."
+                  << std::endl;
 
             return false;
         }
     }
 
     OTPassword key;
-    GetPassword(keyPassword, key);
+
+    if (false == GetPassword(keyPassword, key)) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Unable to obtain master password." << std::endl;
+
+        return false;
+    }
+
     SymmetricKey secondaryKey(
-        engine_, key, *salt_, engine_.KeySize(encrypted_key_->mode()));
+        engine_,
+        key,
+        *salt_,
+        engine_.KeySize(encrypted_key_->mode()),
+        OT_SYMMETRIC_KEY_DEFAULT_OPERATIONS,
+        OT_SYMMETRIC_KEY_DEFAULT_DIFFICULTY);
 
     return engine_.Decrypt(
         *encrypted_key_,

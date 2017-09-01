@@ -434,11 +434,12 @@ void OTServer::CreateMainFile(
     }
 
     std::string strCachedKey;
+    auto& cachedKey = OT::App().Crypto().DefaultKey();
 
-    if (OTCachedKey::It()->IsGenerated()) {
+    if (cachedKey.IsGenerated()) {
         OTASCIIArmor ascMasterContents;
 
-        if (OTCachedKey::It()->SerializeTo(ascMasterContents)) {
+        if (cachedKey.SerializeTo(ascMasterContents)) {
             strCachedKey.assign(
                 ascMasterContents.Get(), ascMasterContents.GetLength());
         } else

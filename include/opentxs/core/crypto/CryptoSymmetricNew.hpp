@@ -46,11 +46,13 @@
 namespace opentxs
 {
 
+class CryptoSymmetricEngine;
 class SymmetricKey;
 
 class CryptoSymmetricNew
 {
     friend class SymmetricKey;
+    friend class CryptoSymmetricEngine;
 
 protected:
     virtual bool Decrypt(
@@ -83,5 +85,5 @@ protected:
     CryptoSymmetricNew() = default;
     ~CryptoSymmetricNew() = default;
 };
-} // namespace opentxs
-#endif // OPENTXS_CORE_CRYPTO_CRYPTOSYMMETRICNEW_HPP
+}  // namespace opentxs
+#endif  // OPENTXS_CORE_CRYPTO_CRYPTOSYMMETRICNEW_HPP

@@ -168,6 +168,4 @@ void Api::Cleanup()
     otapi_exec_.reset();
     ot_api_.reset();
 }
-
-Api::~Api() { OTCachedKey::Cleanup(); }
 }  // namespace opentxs

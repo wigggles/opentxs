@@ -40,6 +40,9 @@
 
 #include "opentxs/storage/drivers/StorageFSArchive.hpp"
 
+#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/crypto/OTPasswordData.hpp"
+#include "opentxs/core/crypto/SymmetricKey.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Proto.hpp"
@@ -58,7 +61,7 @@
 
 #define ROOT_FILE_EXTENSION ".hash"
 
-//#define OT_METHOD "opentxs::StorageFSArchive::"
+#define OT_METHOD "opentxs::StorageFSArchive::"
 
 namespace opentxs
 {
@@ -68,10 +71,13 @@ StorageFSArchive::StorageFSArchive(
     const Digest& hash,
     const Random& random,
     std::atomic<bool>& bucket,
-    const std::string& folder)
+    const std::string& folder,
+    std::unique_ptr<SymmetricKey>& key)
     : ot_super(config, hash, random, bucket)
     , folder_(folder)
     , path_seperator_("/")
+    , encryption_key_(key.release())
+    , encrypted_(bool(encryption_key_))
     , ready_(false)
 {
     Init_StorageFSArchive();
@@ -103,7 +109,52 @@ void StorageFSArchive::Cleanup_StorageFSArchive()
     // future cleanup actions go here
 }
 
+std::string StorageFSArchive::decrypt(const std::string&& input) const
+{
+    if (false == encrypted_) {
+
+        return input;
+    }
+
+    const auto ciphertext = proto::TextToProto<proto::Ciphertext>(input);
+
+    OT_ASSERT(encryption_key_);
+
+    std::string output{};
+    OTPasswordData reason("");
+
+    if (false == encryption_key_->Decrypt(ciphertext, reason, output)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to decrypt value."
+              << std::endl;
+    }
+
+    return output;
+}
+
 bool StorageFSArchive::EmptyBucket(const bool) const { return true; }
+
+std::string StorageFSArchive::encrypt(const std::string& plaintext) const
+{
+    if (false == encrypted_) {
+
+        return plaintext;
+    }
+
+    OT_ASSERT(encryption_key_);
+
+    proto::Ciphertext ciphertext{};
+    Data iv{};
+    OTPasswordData reason("");
+    const bool encrypted =
+        encryption_key_->Encrypt(plaintext, iv, reason, ciphertext, false);
+
+    if (false == encrypted) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to encrypt value."
+              << std::endl;
+    }
+
+    return proto::ProtoAsString(ciphertext);
+}
 
 void StorageFSArchive::Init_StorageFSArchive()
 {
@@ -165,7 +216,7 @@ std::string StorageFSArchive::read_file(const std::string& filename) const
         std::vector<char> bytes(size);
         file.read(&bytes[0], size);
 
-        return std::string(&bytes[0], size);
+        return decrypt(std::string(&bytes[0], size));
     }
 
     return {};
@@ -204,13 +255,20 @@ bool StorageFSArchive::write_file(
     if (false == filename.empty()) {
         std::ofstream file(
             filename, std::ios::out | std::ios::trunc | std::ios::binary);
+        const std::string data = encrypt(contents);
 
         if (file.good()) {
-            file.write(contents.c_str(), contents.size());
+            file.write(data.c_str(), data.size());
             file.close();
 
             return true;
+        } else {
+            otErr << OT_METHOD << __FUNCTION__ << ": Failed to write file."
+                  << std::endl;
         }
+    } else {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Failed to write empty filename." << std::endl;
     }
 
     return false;

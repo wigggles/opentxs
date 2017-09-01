@@ -740,7 +740,7 @@ bool OT_API::LoadConfigFile()
             lValue,
             bIsNewKey,
             szComment);
-        OTCachedKey::It()->SetTimeoutSeconds(lValue);
+        OT::App().Crypto().SetTimeout(std::chrono::seconds(lValue));
     }
 
     // Use System Keyring
@@ -752,7 +752,7 @@ bool OT_API::LoadConfigFile()
             CLIENT_USE_SYSTEM_KEYRING,
             bValue,
             bIsNewKey);
-        OTCachedKey::It()->UseSystemKeyring(bValue);
+        OT::App().Crypto().SetSystemKeyring(bValue);
 
 #if defined(OT_KEYRING_FLATFILE)
         // Is there a password folder? (There shouldn't be, but we allow it...)
@@ -1085,44 +1085,48 @@ bool OT_API::Wallet_ChangePassphrase() const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    OTWallet* pWallet =
-        GetWallet(__FUNCTION__);  // This logs and ASSERTs already.
-    if (nullptr == pWallet) return false;
-    // By this point, pWallet is a good pointer.  (No need to cleanup.)
-    // --------------------------------------------------------------------
-    std::shared_ptr<OTCachedKey> pCachedKey(OTCachedKey::It());
+    OTWallet* pWallet = GetWallet(__FUNCTION__);
 
-    if (!pCachedKey) {
-        otOut << __FUNCTION__ << ": Failed to get wallet master cached key.\n";
+    if (nullptr == pWallet) {
+
         return false;
     }
-    // --------------------------------------------------------------------
-    if (!pCachedKey->IsGenerated()) {
+
+    // By this point, pWallet is a good pointer.  (No need to cleanup.)
+    auto key = OT::App().Crypto().mutable_DefaultKey();
+    auto& cachedKey = key.It();
+
+    if (!cachedKey.IsGenerated()) {
         otOut << __FUNCTION__ << ": Wallet master cached key doesn't exist. "
                                  "Try creating a new Nym first.\n";
         return false;
     }
-    // --------------------------------------------------------------------
+
     OTASCIIArmor ascBackup;
-    OTCachedKey::It()->SerializeTo(ascBackup);  // Just in case!
-    // --------------------------------------------------------------------
-    const bool bSuccess = pCachedKey->ChangeUserPassphrase();
+    cachedKey.SerializeTo(ascBackup);  // Just in case!
+
+    const bool bSuccess = cachedKey.ChangeUserPassphrase();
 
     if (!bSuccess) {
         otOut << __FUNCTION__
               << ": Failed trying to change the user master passphrase.\n";
         return false;
     }
-    // --------------------------------------------------------------------
+
     const bool bSaved = pWallet->SaveWallet();
 
     if (!bSaved) {
         otErr << __FUNCTION__ << ": Failed saving wallet (reverting.)\n";
-        if (OTCachedKey::It()->SerializeFrom(ascBackup)) pWallet->SaveWallet();
+
+        if (cachedKey.SerializeFrom(ascBackup)) {
+            pWallet->SaveWallet();
+        }
+
         return false;
-    } else
+    } else {
         otOut << "\nSuccess changing master passphrase for wallet!\n";
-    // --------------------------------------------------------------------
+    }
+
     return true;
 }
 
@@ -1131,26 +1135,19 @@ std::string OT_API::Wallet_GetPhrase()
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
 #if OT_CRYPTO_WITH_BIP32
-    OTWallet* pWallet =
-        GetWallet(__FUNCTION__);  // This logs and ASSERTs already.
+    OTWallet* pWallet = GetWallet(__FUNCTION__);
+
     if (nullptr == pWallet) {
         return "";
     };
     // By this point, pWallet is a good pointer.  (No need to cleanup.)
-    // --------------------------------------------------------------------
-    std::shared_ptr<OTCachedKey> pCachedKey(OTCachedKey::It());
+    auto& cachedKey = OT::App().Crypto().DefaultKey();
 
-    if (!pCachedKey) {
-        otOut << __FUNCTION__ << ": Failed to get wallet master cached key.\n";
-        return "";
-    }
-    // --------------------------------------------------------------------
-    if (!pCachedKey->IsGenerated()) {
+    if (!cachedKey.IsGenerated()) {
         otOut << __FUNCTION__ << ": Wallet master cached key doesn't exist. "
                                  "Try creating a new Nym first.\n";
         return "";
     }
-    // --------------------------------------------------------------------
 
     return pWallet->GetPhrase();
 #else
@@ -1163,26 +1160,20 @@ std::string OT_API::Wallet_GetSeed()
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
 #if OT_CRYPTO_WITH_BIP32
-    OTWallet* pWallet =
-        GetWallet(__FUNCTION__);  // This logs and ASSERTs already.
+    OTWallet* pWallet = GetWallet(__FUNCTION__);
+
     if (nullptr == pWallet) {
         return "";
-    };
-    // By this point, pWallet is a good pointer.  (No need to cleanup.)
-    // --------------------------------------------------------------------
-    std::shared_ptr<OTCachedKey> pCachedKey(OTCachedKey::It());
-
-    if (!pCachedKey) {
-        otOut << __FUNCTION__ << ": Failed to get wallet master cached key.\n";
-        return "";
     }
-    // --------------------------------------------------------------------
-    if (!pCachedKey->IsGenerated()) {
+
+    // By this point, pWallet is a good pointer.  (No need to cleanup.)
+    auto& cachedKey = OT::App().Crypto().DefaultKey();
+
+    if (!cachedKey.IsGenerated()) {
         otOut << __FUNCTION__ << ": Wallet master cached key doesn't exist. "
                                  "Try creating a new Nym first.\n";
         return "";
     }
-    // --------------------------------------------------------------------
 
     return pWallet->GetSeed();
 #else
@@ -1195,26 +1186,19 @@ std::string OT_API::Wallet_GetWords()
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
 #if OT_CRYPTO_WITH_BIP39
-    OTWallet* pWallet =
-        GetWallet(__FUNCTION__);  // This logs and ASSERTs already.
+    OTWallet* pWallet = GetWallet(__FUNCTION__);
+
     if (nullptr == pWallet) {
         return "";
     };
     // By this point, pWallet is a good pointer.  (No need to cleanup.)
-    // --------------------------------------------------------------------
-    std::shared_ptr<OTCachedKey> pCachedKey(OTCachedKey::It());
+    auto& cachedKey = OT::App().Crypto().DefaultKey();
 
-    if (!pCachedKey) {
-        otOut << __FUNCTION__ << ": Failed to get wallet master cached key.\n";
-        return "";
-    }
-    // --------------------------------------------------------------------
-    if (!pCachedKey->IsGenerated()) {
+    if (!cachedKey.IsGenerated()) {
         otOut << __FUNCTION__ << ": Wallet master cached key doesn't exist. "
                                  "Try creating a new Nym first.\n";
         return "";
     }
-    // --------------------------------------------------------------------
 
     return pWallet->GetWords();
 #else
@@ -1822,10 +1806,12 @@ bool OT_API::Wallet_ImportNym(const String& FILE_CONTENTS, Identifier* pNymID)
     // outside, and doesn't use it anyway.)
     // This is true regardless of whether we load via the old system or
     // the new credentials system.
-    //
-    if (!(OTCachedKey::It()->isPaused())) {
-        OTCachedKey::It()->Pause();  // BELOW THIS POINT, CACHED MASTER KEY IS
-                                     // DISABLED.
+    auto key = OT::App().Crypto().mutable_DefaultKey();
+    auto& cachedKey = key.It();
+
+    if (!(cachedKey.isPaused())) {
+        cachedKey.Pause();  // BELOW THIS POINT, CACHED MASTER KEY IS
+                            // DISABLED.
     }
     // Set the credentials or keys on the new Nym object based on the
     // certfile from the StringMap.
@@ -1897,12 +1883,12 @@ bool OT_API::Wallet_ImportNym(const String& FILE_CONTENTS, Identifier* pNymID)
     // we now resume normal wallet master key operations so that when
     // we save the Nym, it will be saved using the wallet master key.
     // (Henceforth, it has been "imported.")
-    //
-    if (OTCachedKey::It()->isPaused()) {
-        OTCachedKey::It()->Unpause();  // BELOW THIS POINT, CACHED MASTER KEY IS
-                                       // BACK IN EFFECT. (Disabled above.)
+
+    if (cachedKey.isPaused()) {
+        cachedKey.Unpause();  // BELOW THIS POINT, CACHED MASTER KEY IS
+                              // BACK IN EFFECT. (Disabled above.)
     }
-    //
+
     if (bIfNymLoadKeys && pNym->VerifyPseudonym()) {
         // Before we go on switching the credentials around, let's make sure
         // this Nym we're

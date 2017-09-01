@@ -131,8 +131,8 @@ bool Libsodium::Derive(
 
     if (requiredSize != saltSize) {
         otErr << OT_METHOD << __FUNCTION__ << ": Incorrect salt size ("
-              << saltSize << "). "
-              << "Required: (" << requiredSize << ")." << std::endl;
+              << saltSize << "). Required: (" << requiredSize << ")."
+              << std::endl;
 
         return false;
     }
