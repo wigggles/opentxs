@@ -167,6 +167,10 @@ public:
         const std::size_t& inputSize) const override;
     bool Base58CheckDecode(const std::string&& input, RawData& output)
         const override;
+    bool RIPEMD160(
+        const std::uint8_t* input,
+        const size_t inputSize,
+        std::uint8_t* output) const;
 
     ~TrezorCrypto() = default;
 };

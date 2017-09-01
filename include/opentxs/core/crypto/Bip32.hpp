@@ -44,6 +44,7 @@
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/Types.hpp"
 
+#include <cstdint>
 #include <string>
 
 namespace opentxs
@@ -61,7 +62,7 @@ public:
         const OTPassword& seed) const = 0;
     virtual serializedAsymmetricKey GetChild(
         const proto::AsymmetricKey& parent,
-        const uint32_t index) const = 0;
+        const std::uint32_t index) const = 0;
     virtual serializedAsymmetricKey GetHDKey(
         const EcdsaCurve& curve,
         const OTPassword& seed,
@@ -70,7 +71,13 @@ public:
     std::string Seed(const std::string& fingerprint = "") const;
     serializedAsymmetricKey GetPaymentCode(
         std::string& fingerprint,
-        const uint32_t nym) const;
+        const std::uint32_t nym) const;
+    serializedAsymmetricKey Bip44(
+        std::string& fingerprint,
+        const Bip44Type coinType,
+        const std::uint32_t nym,
+        const BIP44Chain internal,
+        const std::uint32_t index) const;
 };
 
 }  // namespace opentxs

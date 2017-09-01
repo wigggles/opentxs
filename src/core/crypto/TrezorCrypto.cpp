@@ -63,6 +63,7 @@ extern "C" {
 #include <trezor-crypto/curves.h>
 #endif
 #endif
+#include <trezor-crypto/ripemd160.h>
 }
 
 #include <stdint.h>
@@ -542,6 +543,16 @@ bool TrezorCrypto::Base58CheckDecode(const std::string&& input, RawData& output)
     OT_ASSERT(outputSize <= output.size());
 
     output.resize(outputSize);
+
+    return true;
+}
+
+bool TrezorCrypto::RIPEMD160(
+    const std::uint8_t* input,
+    const size_t inputSize,
+    std::uint8_t* output) const
+{
+    ripemd160(input, inputSize, output);
 
     return true;
 }

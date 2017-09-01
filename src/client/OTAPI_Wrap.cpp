@@ -42,6 +42,7 @@
 
 #include "opentxs/api/Activity.hpp"
 #include "opentxs/api/Api.hpp"
+#include "opentxs/api/Blockchain.hpp"
 #include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/OT.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
@@ -2656,6 +2657,24 @@ std::string OTAPI_Wrap::comma(const ObjectList& list)
     return output;
 }
 
+std::string OTAPI_Wrap::comma(const std::set<Identifier>& list)
+{
+    std::ostringstream stream;
+
+    for (const auto& item : list) {
+        stream << String(item).Get();
+        stream << ",";
+    }
+
+    std::string output = stream.str();
+
+    if (0 < output.size()) {
+        output.erase(output.size() - 1, 1);
+    }
+
+    return output;
+}
+
 std::string OTAPI_Wrap::getSentRequests(const std::string& nymID)
 {
     return comma(Exec()->getSentRequests(nymID));
@@ -3435,6 +3454,156 @@ std::string OTAPI_Wrap::AddChildRSACredential(
         Identifier(nymID), Identifier(masterID), keysize);
 }
 
+//-----------------------------------------------------------------------------
+
+std::string OTAPI_Wrap::Blockchain_Account(
+    const std::string& nymID,
+    const std::string& accountID)
+{
+    const auto output = OT::App().Blockchain().Account(
+        Identifier(nymID), Identifier(accountID));
+
+    if (false == bool(output)) {
+
+        return {};
+    }
+
+    return proto::ProtoAsString(*output);
+}
+
+std::string OTAPI_Wrap::Blockchain_Account_List(
+    const std::string& nymID,
+    const std::uint32_t chain)
+{
+    const auto output = OT::App().Blockchain().AccountList(
+        Identifier(nymID), static_cast<proto::ContactItemType>(chain));
+
+    return comma(output);
+}
+
+std::string OTAPI_Wrap::Blockchain_Allocate_Address(
+    const std::string& nymID,
+    const std::string& accountID,
+    const std::string& label,
+    const bool internal)
+{
+    const auto output = OT::App().Blockchain().AllocateAddress(
+        Identifier(nymID), Identifier(accountID), label, internal);
+
+    if (false == bool(output)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to allocate address"
+              << std::endl;
+
+        return {};
+    }
+
+    return proto::ProtoAsString(*output);
+}
+
+bool OTAPI_Wrap::Blockchain_Assign_Address(
+    const std::string& nymID,
+    const std::string& accountID,
+    const std::uint32_t index,
+    const std::string& contact,
+    const bool internal)
+{
+    return OT::App().Blockchain().AssignAddress(
+        Identifier(nymID),
+        Identifier(accountID),
+        index,
+        Identifier(contact),
+        internal);
+}
+
+std::string OTAPI_Wrap::Blockchain_Load_Address(
+    const std::string& nymID,
+    const std::string& accountID,
+    const std::uint32_t index,
+    const bool internal)
+{
+    const auto output = OT::App().Blockchain().LoadAddress(
+        Identifier(nymID), Identifier(accountID), index, internal);
+
+    if (false == bool(output)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to load address"
+              << std::endl;
+
+        return {};
+    }
+
+    return proto::ProtoAsString(*output);
+}
+
+std::string OTAPI_Wrap::Blockchain_New_Account(
+    const std::string& nymID,
+    const std::uint32_t chain)
+{
+    return String(OT::App().Blockchain().NewAccount(
+                      Identifier(nymID),
+                      static_cast<proto::ContactItemType>(chain)))
+        .Get();
+}
+
+bool OTAPI_Wrap::Blockchain_Store_Incoming(
+    const std::string& nymID,
+    const std::string& accountID,
+    const std::uint32_t index,
+    const bool internal,
+    const std::string& transaction)
+{
+    const auto input =
+        proto::TextToProto<proto::BlockchainTransaction>(transaction);
+    const auto valid = proto::Validate(input, VERBOSE);
+
+    if (false == valid) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Invalid transaction."
+              << std::endl;
+
+        return false;
+    }
+
+    return OT::App().Blockchain().StoreIncoming(
+        Identifier(nymID), Identifier(accountID), index, internal, input);
+}
+
+bool OTAPI_Wrap::Blockchain_Store_Outgoing(
+    const std::string& nymID,
+    const std::string& accountID,
+    const std::string& recipientContactID,
+    const std::string& transaction)
+{
+    const auto input =
+        proto::TextToProto<proto::BlockchainTransaction>(transaction);
+    const auto valid = proto::Validate(input, VERBOSE);
+
+    if (false == valid) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Invalid transaction."
+              << std::endl;
+
+        return false;
+    }
+
+    return OT::App().Blockchain().StoreOutgoing(
+        Identifier(nymID),
+        Identifier(accountID),
+        Identifier(recipientContactID),
+        input);
+}
+
+std::string OTAPI_Wrap::Blockchain_Transaction(const std::string& txid)
+{
+    const auto output = OT::App().Blockchain().Transaction(Identifier(txid));
+
+    if (false == bool(output)) {
+
+        return {};
+    }
+
+    return proto::ProtoAsString(*output);
+}
+
+//-----------------------------------------------------------------------------
+
 std::string OTAPI_Wrap::Add_Contact(
     const std::string label,
     const std::string& nymID,
@@ -3466,12 +3635,50 @@ std::string OTAPI_Wrap::Add_Contact(
     return String(output->ID()).Get();
 }
 
-std::uint8_t OTAPI_Wrap::Can_Message(
-    const std::string& senderNymID,
-    const std::string& recipientContactID)
+std::string OTAPI_Wrap::Blockchain_Address_To_Contact(
+    const std::string& address,
+    const std::uint32_t chain,
+    const std::string& label)
 {
-    return static_cast<std::uint8_t>(
-        OT::App().API().OTME_TOO().CanMessage(senderNymID, recipientContactID));
+    const proto::ContactItemType type =
+        static_cast<proto::ContactItemType>(chain);
+    const auto existing =
+        OT::App().Contact().BlockchainAddressToContact(address, type);
+
+    if (false == existing.empty()) {
+
+        return String(existing).Get();
+    }
+
+    const auto contact =
+        OT::App().Contact().NewContactFromAddress(address, label, type);
+
+    if (false == bool(contact)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to create new contact."
+              << std::endl;
+
+        return {};
+    }
+
+    return String(contact->ID()).Get();
+}
+
+bool OTAPI_Wrap::Contact_Add_Blockchain_Address(
+    const std::string& contactID,
+    const std::string& address,
+    const std::uint32_t chain)
+{
+    auto contact = OT::App().Contact().mutable_Contact(Identifier(contactID));
+
+    if (false == bool(contact)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Contact does not exist."
+              << std::endl;
+
+        return false;
+    }
+
+    return contact->It().AddBlockchainAddress(
+        address, static_cast<proto::ContactItemType>(chain));
 }
 
 std::string OTAPI_Wrap::Contact_List()
@@ -3506,6 +3713,60 @@ std::string OTAPI_Wrap::Contact_PaymentCode(
     return {};
 }
 
+std::string OTAPI_Wrap::Contact_to_Nym(const std::string& contactID)
+{
+    const auto contact = OT::App().Contact().Contact(Identifier(contactID));
+
+    if (false == bool(contact)) {
+
+        return {};
+    }
+
+    const auto nyms = contact->Nyms();
+
+    if (0 == nyms.size()) {
+
+        return {};
+    }
+
+    return String(*nyms.begin()).Get();
+}
+
+bool OTAPI_Wrap::Have_Contact(const std::string& id)
+{
+    auto contact = OT::App().Contact().Contact(Identifier(id));
+
+    return bool(contact);
+}
+
+bool OTAPI_Wrap::Rename_Contact(const std::string& id, const std::string& name)
+{
+    auto contact = OT::App().Contact().mutable_Contact(Identifier(id));
+
+    if (contact) {
+        contact->It().SetLabel(name);
+
+        return true;
+    }
+
+    return false;
+}
+
+std::string OTAPI_Wrap::Nym_to_Contact(const std::string& nymID)
+{
+    return String(OT::App().Contact().ContactID(Identifier(nymID))).Get();
+}
+
+//-----------------------------------------------------------------------------
+
+std::uint8_t OTAPI_Wrap::Can_Message(
+    const std::string& senderNymID,
+    const std::string& recipientContactID)
+{
+    return static_cast<std::uint8_t>(
+        OT::App().API().OTME_TOO().CanMessage(senderNymID, recipientContactID));
+}
+
 std::string OTAPI_Wrap::Find_Nym(const std::string& nymID)
 {
     return String(OT::App().API().OTME_TOO().FindNym(nymID, "")).Get();
@@ -3526,13 +3787,6 @@ std::string OTAPI_Wrap::Find_Server(const std::string& serverID)
 std::string OTAPI_Wrap::Get_Introduction_Server()
 {
     return String(OT::App().API().OTME_TOO().GetIntroductionServer()).Get();
-}
-
-bool OTAPI_Wrap::Have_Contact(const std::string& id)
-{
-    auto contact = OT::App().Contact().Contact(Identifier(id));
-
-    return bool(contact);
 }
 
 std::string OTAPI_Wrap::Import_Nym(const std::string& armored)
@@ -3638,19 +3892,6 @@ std::string OTAPI_Wrap::Register_Nym_Public_async(
     return String(taskID).Get();
 }
 
-bool OTAPI_Wrap::Rename_Contact(const std::string& id, const std::string& name)
-{
-    auto contact = OT::App().Contact().mutable_Contact(Identifier(id));
-
-    if (contact) {
-        contact->It().SetLabel(name);
-
-        return true;
-    }
-
-    return false;
-}
-
 std::string OTAPI_Wrap::Set_Introduction_Server(const std::string& contract)
 {
     return OT::App().API().OTME_TOO().SetIntroductionServer(contract);
@@ -3670,29 +3911,5 @@ void OTAPI_Wrap::Trigger_Refresh(const std::string& wallet)
 void OTAPI_Wrap::Update_Pairing(const std::string& wallet)
 {
     OT::App().API().OTME_TOO().UpdatePairing(wallet);
-}
-
-std::string OTAPI_Wrap::Contact_to_Nym(const std::string& contactID)
-{
-    const auto contact = OT::App().Contact().Contact(Identifier(contactID));
-
-    if (false == bool(contact)) {
-
-        return {};
-    }
-
-    const auto nyms = contact->Nyms();
-
-    if (0 == nyms.size()) {
-
-        return {};
-    }
-
-    return String(*nyms.begin()).Get();
-}
-
-std::string OTAPI_Wrap::Nym_to_Contact(const std::string& nymID)
-{
-    return String(OT::App().Contact().ContactID(Identifier(nymID))).Get();
 }
 }  // namespace opentxs

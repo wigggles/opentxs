@@ -42,6 +42,8 @@
 
 #include "opentxs/storage/StoragePlugin.hpp"
 
+#include <set>
+
 #define CURRENT_VERSION 1
 
 #define OT_METHOD "opentxs::storage::Contacts::"
@@ -52,6 +54,7 @@ namespace storage
 {
 Contacts::Contacts(const StorageDriver& storage, const std::string& hash)
     : Node(storage, hash)
+    , address_index_()
 {
     if (check_hash(hash)) {
         init(hash);
@@ -61,12 +64,63 @@ Contacts::Contacts(const StorageDriver& storage, const std::string& hash)
     }
 }
 
+std::string Contacts::AddressOwner(
+    proto::ContactItemType chain,
+    std::string address) const
+{
+    Lock lock(write_lock_);
+
+    const auto it = address_index_.find({chain, address});
+
+    if (address_index_.end() == it) {
+
+        return {};
+    }
+
+    return it->second;
+}
+
 std::string Contacts::Alias(const std::string& id) const
 {
     return get_alias(id);
 }
 
 bool Contacts::Delete(const std::string& id) { return delete_item(id); }
+
+void Contacts::extract_addresses(const Lock& lock, const proto::Contact& data)
+{
+    const auto& contact = data.id();
+
+    if (false == verify_write_lock(lock)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Lock failure." << std::endl;
+
+        abort();
+    }
+
+    if (false == data.has_contactdata()) {
+
+        return;
+    }
+
+    for (const auto& section : data.contactdata().section()) {
+        if (section.name() != proto::CONTACTSECTION_ADDRESS) {
+            break;
+        }
+
+        for (const auto& item : section.item()) {
+            const auto& type = item.type();
+            const bool validChain = proto::ValidContactItemType(
+                {CONTACT_VERSION, proto::CONTACTSECTION_CONTRACT}, type);
+
+            if (false == validChain) {
+                break;
+            }
+
+            const auto& address = item.value();
+            address_index_[{type, address}] = contact;
+        }
+    }
+}
 
 void Contacts::init(const std::string& hash)
 {
@@ -100,6 +154,15 @@ void Contacts::init(const std::string& hash)
     for (const auto& it : serialized->contact()) {
         item_map_.emplace(
             it.itemid(), Metadata{it.hash(), it.alias(), 0, false});
+    }
+
+    for (const auto& index : serialized->address()) {
+        const auto& type = index.chain();
+        const auto& contact = index.contact();
+
+        for (const auto& address : index.address()) {
+            address_index_[{type, address}] = contact;
+        }
     }
 }
 
@@ -219,6 +282,33 @@ proto::StorageContacts Contacts::serialize() const
         }
     }
 
+    std::map<
+        std::pair<std::string, proto::ContactItemType>,
+        std::set<std::string>>
+        addresses;
+
+    for (const auto& it : address_index_) {
+        const auto& type = it.first.first;
+        const auto& address = it.first.second;
+        const auto& contact = it.second;
+        auto& list = addresses[{contact, type}];
+        list.insert(address);
+    }
+
+    for (const auto& it : addresses) {
+        const auto& contact = it.first.first;
+        const auto& type = it.first.second;
+        const auto& addressList = it.second;
+        auto& index = *serialized.add_address();
+        index.set_version(CURRENT_VERSION);
+        index.set_contact(contact);
+        index.set_chain(type);
+
+        for (const auto& address : addressList) {
+            index.add_address(address);
+        }
+    }
+
     return serialized;
 }
 
@@ -270,6 +360,7 @@ bool Contacts::Store(const proto::Contact& data, const std::string& alias)
     }
 
     reconcile_maps(lock, data);
+    extract_addresses(lock, data);
 
     return save(lock);
 }

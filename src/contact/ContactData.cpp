@@ -361,6 +361,19 @@ std::string ContactData::PrintContactData(const proto::ContactData& data)
     return output.str();
 }
 
+std::shared_ptr<ContactSection> ContactData::Section(
+    const proto::ContactSectionName& section) const
+{
+    const auto it = sections_.find(section);
+
+    if (sections_.end() == it) {
+
+        return {};
+    }
+
+    return it->second;
+}
+
 ContactData ContactData::SetCommonName(const std::string& name) const
 {
     const proto::ContactSectionName section{proto::CONTACTSECTION_IDENTIFIER};

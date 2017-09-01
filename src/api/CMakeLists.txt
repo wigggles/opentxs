@@ -1,6 +1,7 @@
 set(cxx-sources
   Activity.cpp
   Api.cpp
+  Blockchain.cpp
   ContactManager.cpp
   Dht.cpp
   Identity.cpp

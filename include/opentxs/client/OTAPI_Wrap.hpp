@@ -40,10 +40,12 @@
 #define OPENTXS_CLIENT_OTAPI_HPP
 
 #include "opentxs/core/util/Common.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/Types.hpp"
 
 #include <list>
+#include <set>
 #include <stdint.h>
 #include <string>
 
@@ -59,6 +61,7 @@ class OTAPI_Wrap
 private:
     static std::string comma(const std::list<std::string>& list);
     static std::string comma(const ObjectList& list);
+    static std::string comma(const std::set<Identifier>& list);
 
 public:
     EXPORT static OTAPI_Exec* Exec();
@@ -4574,16 +4577,129 @@ public:
         const std::string& masterID,
         const std::uint32_t keysize);
 
-    // Wrapped OTME_too methods
+    // Wrapped Blockchain methods
+
+    /**  Retrieve a blockchain account
+     *    \param[in]  nymID owner of the account
+     *    \param[in]  accountID blockchain account ID
+     *    \return binary serialized proto::Bip44Account
+     */
+    EXPORT static std::string Blockchain_Account(
+        const std::string& nymID,
+        const std::string& accountID);
+
+    /**  Retrieve a list of blockchain accounts for a nym
+     *    \param[in]  nymID owner of the account
+     *    \param[in]  chain currency type (proto::CITEMTYPE enum)
+     *    \return comma-seperated account ID list
+     */
+    EXPORT static std::string Blockchain_Account_List(
+        const std::string& nymID,
+        const std::uint32_t chain);
+
+    /**  Allocate the next address in a blockchain account
+     *    \param[in]  nymID owner of the account
+     *    \param[in]  accountID blockchain account owning the address
+     *    \param[in]  label optional text label for the address
+     *    \param[in]  internal allocate on internal chain (false for external)
+     *    \return binary serialized proto::Bip44Address
+     */
+    EXPORT static std::string Blockchain_Allocate_Address(
+        const std::string& nymID,
+        const std::string& accountID,
+        const std::string& label = "",
+        const bool internal = false);
+
+    /**  Assign a contact id to blockchain address
+     *    \param[in]  nymID owner of the account
+     *    \param[in]  accountID blockchain account owning the address
+     *    \param[in]  index index of the address
+     *    \param[in]  contact contact id to be assigned
+     *    \param[in]  internal allocate on internal chain (false for external)
+     */
+    EXPORT static bool Blockchain_Assign_Address(
+        const std::string& nymID,
+        const std::string& accountID,
+        const std::uint32_t index,
+        const std::string& contact,
+        const bool internal = false);
+
+    /**  Load metadata for a blockchain address
+     *    \param[in]  nymID owner of the account
+     *    \param[in]  accountID blockchain account owning the address
+     *    \param[in]  index index of the address
+     *    \param[in]  internal allocate on internal chain (false for external)
+     *    \return binary serialized proto::Bip44Address
+     */
+    EXPORT static std::string Blockchain_Load_Address(
+        const std::string& nymID,
+        const std::string& accountID,
+        const std::uint32_t index,
+        const bool internal = false);
+
+    /**  Allocate a blockchain account for a nym
+     *    \param[in]  nymID owner of the account
+     *    \param[in]  chain currency type (proto::CITEMTYPE enum)
+     *    \return account ID
+     */
+    EXPORT static std::string Blockchain_New_Account(
+        const std::string& nymID,
+        const std::uint32_t chain);
+
+    /**  Store an incoming blockchain transaction
+     *    \param[in]  nymID owner of the incoming address
+     *    \param[in]  accountID blockchain account owning the incoming address
+     *    \param[in]  index index of the incoming address
+     *    \param[in]  internal true for chain address, false for deposit address
+     *    \param[in]  transaction serialized proto::BlockchainTransaction
+     */
+    EXPORT static bool Blockchain_Store_Incoming(
+        const std::string& nymID,
+        const std::string& accountID,
+        const std::uint32_t index,
+        const bool internal,
+        const std::string& transaction);
+
+    /**  Store an incoming blockchain transaction
+     *    \param[in]  nymID owner of the incoming address
+     *    \param[in]  accountID blockchain account owning the incoming address
+     *    \param[in]  recipientContactID recipient contact
+     *    \param[in]  transaction serialized proto::BlockchainTransaction
+     */
+    EXPORT static bool Blockchain_Store_Outgoing(
+        const std::string& nymID,
+        const std::string& accountID,
+        const std::string& recipientContactID,
+        const std::string& transaction);
+
+    /**  Retrieve a blockchain transaction
+     *    \param[in]  txid blockchain transaction ID
+     *    \return binary serialized proto::BlockchainTransaction
+     */
+    EXPORT static std::string Blockchain_Transaction(const std::string& txid);
+
+    // Wrapped ContactManager methods
 
     EXPORT static std::string Add_Contact(
         const std::string label,
         const std::string& nymID,
         const std::string& paymentCode);
 
-    EXPORT static std::uint8_t Can_Message(
-        const std::string& senderNymID,
-        const std::string& recipientContactID);
+    /**  Retrieve or create contact ID for a blockchain address
+     *    \param[in]  address blockchain address
+     *    \param[in]  chain currency type (proto::CITEMTYPE enum)
+     *    \param[in]  label Label for the contact, if a new one is created
+     *    \return Existing or newly-created contact ID.
+     */
+    EXPORT static std::string Blockchain_Address_To_Contact(
+        const std::string& address,
+        const std::uint32_t chain,
+        const std::string& label = "");
+
+    EXPORT static bool Contact_Add_Blockchain_Address(
+        const std::string& contactID,
+        const std::string& address,
+        const std::uint32_t chain);
 
     EXPORT static std::string Contact_List();
 
@@ -4594,6 +4710,22 @@ public:
         const std::uint32_t currency =
             static_cast<std::uint32_t>(proto::CITEMTYPE_BTC));
 
+    EXPORT static std::string Contact_to_Nym(const std::string& contactID);
+
+    EXPORT static bool Have_Contact(const std::string& contactID);
+
+    EXPORT static std::string Nym_to_Contact(const std::string& nymID);
+
+    EXPORT static bool Rename_Contact(
+        const std::string& contactID,
+        const std::string& name);
+
+    // Wrapped OTME_too methods
+
+    EXPORT static std::uint8_t Can_Message(
+        const std::string& senderNymID,
+        const std::string& recipientContactID);
+
     EXPORT static std::string Find_Nym(const std::string& nymID);
 
     EXPORT static std::string Find_Nym_Hint(
@@ -4603,8 +4735,6 @@ public:
     EXPORT static std::string Find_Server(const std::string& serverID);
 
     EXPORT static std::string Get_Introduction_Server();
-
-    EXPORT static bool Have_Contact(const std::string& contactID);
 
     EXPORT static std::string Import_Nym(const std::string& armored);
 
@@ -4639,10 +4769,6 @@ public:
 
     EXPORT static std::uint64_t Refresh_Counter();
 
-    EXPORT static bool Rename_Contact(
-        const std::string& contactID,
-        const std::string& name);
-
     /// Registers nym and updates public contact data
     EXPORT static bool Register_Nym_Public(
         const std::string& nym,
@@ -4661,12 +4787,6 @@ public:
     EXPORT static void Trigger_Refresh(const std::string& wallet = "");
 
     EXPORT static void Update_Pairing(const std::string& wallet = "");
-
-    // Wrapped ContactManager methods
-
-    EXPORT static std::string Contact_to_Nym(const std::string& contactID);
-
-    EXPORT static std::string Nym_to_Contact(const std::string& nymID);
 
 private:
     OTAPI_Wrap();

@@ -36,8 +36,8 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_STORAGE_TREE_CONTACTS_HPP
-#define OPENTXS_STORAGE_TREE_CONTACTS_HPP
+#ifndef OPENTXS_STORAGE_TREE_BLOCKCHAIN_TRANSACTIONS_HPP
+#define OPENTXS_STORAGE_TREE_BLOCKCHAIN_TRANSACTIONS_HPP
 
 #include "opentxs/api/Editor.hpp"
 #include "opentxs/storage/tree/Node.hpp"
@@ -45,8 +45,6 @@
 #include <cstdint>
 #include <map>
 #include <set>
-#include <string>
-#include <tuple>
 
 namespace opentxs
 {
@@ -55,48 +53,36 @@ namespace storage
 
 class Tree;
 
-class Contacts : public Node
+class BlockchainTransactions : public Node
 {
 public:
-    std::string Alias(const std::string& id) const;
-    std::string AddressOwner(proto::ContactItemType chain, std::string address)
-        const;
     bool Load(
         const std::string& id,
-        std::shared_ptr<proto::Contact>& output,
-        std::string& alias,
+        std::shared_ptr<proto::BlockchainTransaction>& output,
         const bool checking) const;
 
     bool Delete(const std::string& id);
-    bool SetAlias(const std::string& id, const std::string& alias);
-    bool Store(const proto::Contact& data, const std::string& alias);
+    bool Store(const proto::BlockchainTransaction& data);
 
-    ~Contacts() = default;
+    ~BlockchainTransactions() = default;
 
 private:
     friend class Tree;
-    typedef std::pair<proto::ContactItemType, std::string> Address;
 
-    std::map<Address, std::string> address_index_{};
-    std::map<std::string, std::set<std::string>> merge_{};
-    std::map<std::string, std::string> merged_{};
-
-    const std::string& nomalize_id(const std::string& input) const;
     bool save(const std::unique_lock<std::mutex>& lock) const override;
-    proto::StorageContacts serialize() const;
+    proto::StorageBlockchainTransactions serialize() const;
 
-    void extract_addresses(const Lock& lock, const proto::Contact& data);
     void init(const std::string& hash) override;
-    void reconcile_maps(const Lock& lock, const proto::Contact& data);
-    void reverse_merged();
 
-    Contacts(const StorageDriver& storage, const std::string& hash);
-    Contacts() = delete;
-    Contacts(const Contacts&) = delete;
-    Contacts(Contacts&&) = delete;
-    Contacts operator=(const Contacts&) = delete;
-    Contacts operator=(Contacts&&) = delete;
+    BlockchainTransactions(
+        const StorageDriver& storage,
+        const std::string& hash);
+    BlockchainTransactions() = delete;
+    BlockchainTransactions(const BlockchainTransactions&) = delete;
+    BlockchainTransactions(BlockchainTransactions&&) = delete;
+    BlockchainTransactions operator=(const BlockchainTransactions&) = delete;
+    BlockchainTransactions operator=(BlockchainTransactions&&) = delete;
 };
 }  // namespace storage
 }  // namespace opentxs
-#endif  // OPENTXS_STORAGE_TREE_CONTACTS_HPP
+#endif  // OPENTXS_STORAGE_TREE_BLOCKCHAIN_TRANSACTIONS_HPP

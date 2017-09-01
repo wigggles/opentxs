@@ -49,15 +49,21 @@
 #include "opentxs/core/crypto/OpenSSL.hpp"
 #endif
 #include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/crypto/TrezorCrypto.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
+
+#define OT_METHOD "opentxs::CryptoHashEngine::"
 
 namespace opentxs
 {
 CryptoHashEngine::CryptoHashEngine(CryptoEngine& parent)
     : ssl_(*parent.ssl_)
     , sodium_(*parent.ed25519_)
+#if OT_CRYPTO_USING_TREZOR
+    , bitcoin_(*parent.bitcoincrypto_)
+#endif
 {
 }
 
@@ -70,10 +76,7 @@ CryptoHash& CryptoHashEngine::SHA2() const
 #endif
 }
 
-CryptoHash& CryptoHashEngine::Sodium() const
-{
-    return sodium_;
-}
+CryptoHash& CryptoHashEngine::Sodium() const { return sodium_; }
 
 bool CryptoHashEngine::Allocate(
     const proto::HashType hashType,
@@ -82,9 +85,7 @@ bool CryptoHashEngine::Allocate(
     return input.randomizeMemory(CryptoHash::HashSize(hashType));
 }
 
-bool CryptoHashEngine::Allocate(
-    const proto::HashType hashType,
-    Data& input)
+bool CryptoHashEngine::Allocate(const proto::HashType hashType, Data& input)
 {
     return input.Randomize(CryptoHash::HashSize(hashType));
 }
@@ -96,19 +97,26 @@ bool CryptoHashEngine::Digest(
     std::uint8_t* output) const
 {
     switch (hashType) {
-        case (proto::HASHTYPE_SHA256) :
-        case (proto::HASHTYPE_SHA512) : {
+        case (proto::HASHTYPE_SHA256):
+        case (proto::HASHTYPE_SHA512): {
             return SHA2().Digest(hashType, input, inputSize, output);
         }
-        case (proto::HASHTYPE_BLAKE2B160) :
-        case (proto::HASHTYPE_BLAKE2B256) :
-        case (proto::HASHTYPE_BLAKE2B512) : {
+        case (proto::HASHTYPE_BLAKE2B160):
+        case (proto::HASHTYPE_BLAKE2B256):
+        case (proto::HASHTYPE_BLAKE2B512): {
             return Sodium().Digest(hashType, input, inputSize, output);
         }
-        default : {}
+        case (proto::HASHTYPE_RIMEMD160): {
+#if OT_CRYPTO_USING_TREZOR
+            return bitcoin_.RIPEMD160(input, inputSize, output);
+#endif
+        }
+        default: {
+        }
     }
 
-    otErr << __FUNCTION__ << ": Unsupported hash type." << std::endl;
+    otErr << OT_METHOD << __FUNCTION__ << ": Unsupported hash type."
+          << std::endl;
 
     return false;
 }
@@ -122,21 +130,23 @@ bool CryptoHashEngine::HMAC(
     std::uint8_t* output) const
 {
     switch (hashType) {
-        case (proto::HASHTYPE_SHA256) :
-        case (proto::HASHTYPE_SHA512) : {
+        case (proto::HASHTYPE_SHA256):
+        case (proto::HASHTYPE_SHA512): {
             return SHA2().HMAC(
                 hashType, input, inputSize, key, keySize, output);
         }
-        case (proto::HASHTYPE_BLAKE2B160) :
-        case (proto::HASHTYPE_BLAKE2B256) :
-        case (proto::HASHTYPE_BLAKE2B512) : {
+        case (proto::HASHTYPE_BLAKE2B160):
+        case (proto::HASHTYPE_BLAKE2B256):
+        case (proto::HASHTYPE_BLAKE2B512): {
             return Sodium().HMAC(
                 hashType, input, inputSize, key, keySize, output);
         }
-        default : {}
+        default: {
+        }
     }
 
-    otErr << __FUNCTION__ << ": Unsupported hash type." << std::endl;
+    otErr << OT_METHOD << __FUNCTION__ << ": Unsupported hash type."
+          << std::endl;
 
     return false;
 }
@@ -146,9 +156,19 @@ bool CryptoHashEngine::Digest(
     const OTPassword& data,
     OTPassword& digest) const
 {
-    if (!Allocate(hashType, digest)) { return false; }
+    if (false == Allocate(hashType, digest)) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Unable to allocate output space." << std::endl;
 
-    if (!data.isMemory()) { return false; }
+        return false;
+    }
+
+    if (false == data.isMemory()) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Wrong OTPassword mode."
+              << std::endl;
+
+        return false;
+    }
 
     return Digest(
         hashType,
@@ -162,7 +182,12 @@ bool CryptoHashEngine::Digest(
     const Data& data,
     Data& digest) const
 {
-    if (!Allocate(hashType, digest)) { return false; }
+    if (false == Allocate(hashType, digest)) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Unable to allocate output space." << std::endl;
+
+        return false;
+    }
 
     return Digest(
         hashType,
@@ -176,7 +201,12 @@ bool CryptoHashEngine::Digest(
     const String& data,
     Data& digest) const
 {
-    if (!Allocate(hashType, digest)) { return false; }
+    if (false == Allocate(hashType, digest)) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Unable to allocate output space." << std::endl;
+
+        return false;
+    }
 
     return Digest(
         hashType,
@@ -193,7 +223,12 @@ bool CryptoHashEngine::Digest(
     proto::HashType hashType = static_cast<proto::HashType>(type);
     Data result;
 
-    if (!Allocate(hashType, result)) { return false; }
+    if (false == Allocate(hashType, result)) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Unable to allocate output space." << std::endl;
+
+        return false;
+    }
 
     const bool success = Digest(
         hashType,
@@ -215,9 +250,19 @@ bool CryptoHashEngine::HMAC(
     const Data& data,
     OTPassword& digest) const
 {
-    if (!key.isMemory()) { return false; }
+    if (false == Allocate(hashType, digest)) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Unable to allocate output space." << std::endl;
 
-    if (!Allocate(hashType, digest)) { return false; }
+        return false;
+    }
+
+    if (false == key.isMemory()) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Wrong OTPassword mode."
+              << std::endl;
+
+        return false;
+    }
 
     return HMAC(
         hashType,
@@ -227,4 +272,4 @@ bool CryptoHashEngine::HMAC(
         key.getMemorySize(),
         static_cast<std::uint8_t*>(digest.getMemoryWritable()));
 }
-} // namespace opentxs
+}  // namespace opentxs

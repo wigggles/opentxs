@@ -140,6 +140,12 @@ Identifier::Identifier(const OTCachedKey& theKey)
     // would not happen, before constructing like this.)
 }
 
+Identifier::Identifier(const proto::HDPath& path)
+    : ot_super()
+{
+    CalculateDigest(path_to_data(path), DefaultType);
+}
+
 Identifier& Identifier::operator=(const Identifier& rhs)
 {
     Assign(rhs);
@@ -274,6 +280,17 @@ void Identifier::GetString(String& id) const
     output.Concatenate(
         String(OT::App().Crypto().Encode().IdentifierEncode(data).c_str()));
     id.swap(output);
+}
+
+Data Identifier::path_to_data(const proto::HDPath& path)
+{
+    Data output(path.root().c_str(), path.root().size());
+
+    for (const auto& child : path.child()) {
+        output += Data(&child, sizeof(child));
+    }
+
+    return output;
 }
 
 void Identifier::swap(Identifier&& rhs)

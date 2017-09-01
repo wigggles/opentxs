@@ -50,6 +50,8 @@
 #include "opentxs/storage/tree/Threads.hpp"
 
 #include <cstdint>
+#include <map>
+#include <set>
 #include <string>
 
 namespace opentxs
@@ -107,6 +109,11 @@ private:
     mutable std::mutex contexts_lock_;
     mutable std::unique_ptr<class Contexts> contexts_;
     std::string contexts_root_;
+    mutable std::mutex blockchain_lock_;
+    std::map<proto::ContactItemType, std::set<std::string>>
+        blockchain_account_types_{};
+    std::map<std::string, std::shared_ptr<proto::Bip44Account>>
+        blockchain_accounts_{};
 
     PeerRequests* sent_request_box() const;
     PeerRequests* incoming_request_box() const;
@@ -164,6 +171,8 @@ public:
     const Mailbox& MailOutbox() const;
     const class Threads& Threads() const;
     const class Contexts& Contexts() const;
+    std::set<std::string> BlockchainAccountList(
+        const proto::ContactItemType type) const;
 
     Editor<PeerRequests> mutable_SentRequestBox();
     Editor<PeerRequests> mutable_IncomingRequestBox();
@@ -180,12 +189,19 @@ public:
 
     std::string Alias() const;
     bool Load(
+        const std::string& id,
+        std::shared_ptr<proto::Bip44Account>& output,
+        const bool checking) const;
+    bool Load(
         std::shared_ptr<proto::CredentialIndex>& output,
         std::string& alias,
         const bool checking) const;
     bool Migrate(const StorageDriver& to) const override;
 
     bool SetAlias(const std::string& alias);
+    bool Store(
+        const proto::ContactItemType type,
+        const proto::Bip44Account& data);
     bool Store(
         const proto::CredentialIndex& data,
         const std::string& alias,

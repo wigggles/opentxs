@@ -45,6 +45,7 @@
 #include "opentxs/contact/ContactData.hpp"
 #include "opentxs/contact/ContactGroup.hpp"
 #include "opentxs/contact/ContactItem.hpp"
+#include "opentxs/contact/ContactSection.hpp"
 #include "opentxs/core/crypto/CryptoEncodingEngine.hpp"
 #include "opentxs/core/crypto/CryptoEngine.hpp"
 #include "opentxs/core/crypto/PaymentCode.hpp"
@@ -241,6 +242,23 @@ void Contact::add_verified_claim(
     cached_contact_data_.reset();
 }
 
+bool Contact::AddBlockchainAddress(
+    const std::string& address,
+    const proto::ContactItemType currency)
+{
+    Lock lock(lock_);
+
+    std::shared_ptr<ContactItem> claim{nullptr};
+    claim.reset(new ContactItem(
+        String(id_).Get(),
+        proto::CONTACTSECTION_ADDRESS,
+        currency,
+        address,
+        {proto::CITEMATTR_LOCAL, proto::CITEMATTR_ACTIVE}));
+
+    return add_claim(lock, claim);
+}
+
 bool Contact::AddNym(const std::shared_ptr<const Nym>& nym, const bool primary)
 {
     Lock lock(lock_);
@@ -299,6 +317,51 @@ bool Contact::AddPaymentCode(
     }
 
     return true;
+}
+
+std::vector<Contact::BlockchainAddress> Contact::BlockchainAddresses() const
+{
+    std::vector<BlockchainAddress> output;
+    Lock lock(lock_);
+    auto data = merged_data(lock);
+    lock.unlock();
+
+    if (false == bool(data)) {
+
+        return {};
+    }
+
+    const auto section = data->Section(proto::CONTACTSECTION_ADDRESS);
+
+    if (false == bool(section)) {
+
+        return {};
+    }
+
+    for (const auto& it : *section) {
+        const auto& type = it.first;
+        const auto& group = it.second;
+
+        OT_ASSERT(group);
+
+        const bool currency = proto::ValidContactItemType(
+            {CONTACT_VERSION, proto::CONTACTSECTION_CONTRACT}, type);
+
+        if (false == currency) {
+
+            continue;
+        }
+
+        for (const auto& it : *group) {
+            const auto& item = it.second;
+
+            OT_ASSERT(item);
+
+            output.push_back({type, item->Value()});
+        }
+    }
+
+    return output;
 }
 
 std::shared_ptr<ContactData> Contact::Data() const
@@ -521,18 +584,25 @@ std::vector<Identifier> Contact::Nyms(const bool includeInactive) const
     return output;
 }
 
-std::string Contact::PaymentCode(const proto::ContactItemType currency) const
+std::shared_ptr<ContactGroup> Contact::payment_codes(
+    const Lock& lock,
+    const proto::ContactItemType currency) const
 {
-    Lock lock(lock_);
     const auto data = merged_data(lock);
-    lock.unlock();
 
     if (false == bool(data)) {
 
         return {};
     }
 
-    const auto group = data->Group(proto::CONTACTSECTION_PROCEDURE, currency);
+    return data->Group(proto::CONTACTSECTION_PROCEDURE, currency);
+}
+
+std::string Contact::PaymentCode(const proto::ContactItemType currency) const
+{
+    Lock lock(lock_);
+    const auto group = payment_codes(lock, currency);
+    lock.unlock();
 
     if (false == bool(group)) {
 
@@ -547,6 +617,30 @@ std::string Contact::PaymentCode(const proto::ContactItemType currency) const
     }
 
     return item->Value();
+}
+
+std::vector<std::string> Contact::PaymentCodes(
+    const proto::ContactItemType currency) const
+{
+    Lock lock(lock_);
+    const auto group = payment_codes(lock, currency);
+    lock.unlock();
+
+    if (false == bool(group)) {
+
+        return {};
+    }
+
+    std::vector<std::string> output{};
+
+    for (const auto& it : *group) {
+        OT_ASSERT(it.second);
+
+        const auto& item = *it.second;
+        output.emplace_back(item.Value());
+    }
+
+    return output;
 }
 
 bool Contact::RemoveNym(const Identifier& nymID)

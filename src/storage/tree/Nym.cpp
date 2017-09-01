@@ -44,6 +44,11 @@
 
 #include <functional>
 
+#define CURRENT_VERSION 4
+#define BLOCKCHAIN_INDEX_VERSION 1
+
+#define OT_METHOD "opentxs::storage::Nym::"
+
 namespace opentxs
 {
 namespace storage
@@ -56,30 +61,54 @@ Nym::Nym(
     : Node(storage, hash)
     , alias_(alias)
     , nymid_(id)
+    , credentials_(Node::BLANK_HASH)
+    , checked_(false)
+    , private_(false)
+    , revision_(0)
+    , sent_request_box_lock_()
+    , sent_request_box_(nullptr)
+    , sent_peer_request_(Node::BLANK_HASH)
+    , incoming_request_box_lock_()
+    , incoming_request_box_(nullptr)
+    , incoming_peer_request_(Node::BLANK_HASH)
+    , sent_reply_box_lock_()
+    , sent_reply_box_(nullptr)
+    , sent_peer_reply_(Node::BLANK_HASH)
+    , incoming_reply_box_lock_()
+    , incoming_reply_box_(nullptr)
+    , incoming_peer_reply_(Node::BLANK_HASH)
+    , finished_request_box_lock_()
+    , finished_request_box_(nullptr)
+    , finished_peer_request_(Node::BLANK_HASH)
+    , finished_reply_box_lock_()
+    , finished_reply_box_(nullptr)
+    , finished_peer_reply_(Node::BLANK_HASH)
+    , processed_request_box_lock_()
+    , processed_request_box_(nullptr)
+    , processed_peer_request_(Node::BLANK_HASH)
+    , processed_reply_box_lock_()
+    , processed_reply_box_(nullptr)
+    , processed_peer_reply_(Node::BLANK_HASH)
+    , mail_inbox_lock_()
+    , mail_inbox_(nullptr)
+    , mail_inbox_root_(Node::BLANK_HASH)
+    , mail_outbox_lock_()
+    , mail_outbox_(nullptr)
+    , mail_outbox_root_(Node::BLANK_HASH)
+    , threads_lock_()
+    , threads_(nullptr)
+    , threads_root_(Node::BLANK_HASH)
+    , contexts_lock_()
+    , contexts_(nullptr)
+    , contexts_root_(Node::BLANK_HASH)
+    , blockchain_lock_()
 {
     if (check_hash(hash)) {
         init(hash);
     } else {
-        version_ = 3;
+        version_ = CURRENT_VERSION;
         root_ = Node::BLANK_HASH;
-        credentials_ = Node::BLANK_HASH;
-        sent_peer_request_ = Node::BLANK_HASH;
-        incoming_peer_request_ = Node::BLANK_HASH;
-        sent_peer_reply_ = Node::BLANK_HASH;
-        incoming_peer_reply_ = Node::BLANK_HASH;
-        finished_peer_request_ = Node::BLANK_HASH;
-        finished_peer_reply_ = Node::BLANK_HASH;
-        processed_peer_request_ = Node::BLANK_HASH;
-        processed_peer_reply_ = Node::BLANK_HASH;
-        mail_inbox_root_ = Node::BLANK_HASH;
-        mail_outbox_root_ = Node::BLANK_HASH;
-        threads_root_ = Node::BLANK_HASH;
-        contexts_root_ = Node::BLANK_HASH;
     }
-
-    checked_.store(false);
-    private_.store(false);
-    revision_.store(0);
 }
 
 std::string Nym::Alias() const { return alias_; }
@@ -101,6 +130,21 @@ class Contexts* Nym::contexts() const
     lock.unlock();
 
     return contexts_.get();
+}
+
+std::set<std::string> Nym::BlockchainAccountList(
+    const proto::ContactItemType type) const
+{
+    Lock lock(blockchain_lock_);
+
+    auto it = blockchain_account_types_.find(type);
+
+    if (blockchain_account_types_.end() == it) {
+
+        return {};
+    }
+
+    return it->second;
 }
 
 const class Contexts& Nym::Contexts() const { return *contexts(); }
@@ -218,9 +262,9 @@ void Nym::init(const std::string& hash)
 
     version_ = serialized->version();
 
-    // Upgrade to version 3
-    if (3 > version_) {
-        version_ = 3;
+    // Upgrade version
+    if (CURRENT_VERSION > version_) {
+        version_ = CURRENT_VERSION;
     }
 
     nymid_ = serialized->nymid();
@@ -253,11 +297,51 @@ void Nym::init(const std::string& hash)
         threads_root_ = Node::BLANK_HASH;
     }
 
+    // Fields added in version 3
     if (serialized->has_contexts()) {
         contexts_root_ = serialized->contexts().hash();
     } else {
         contexts_root_ = Node::BLANK_HASH;
     }
+
+    // Fields added in version 4
+    for (const auto& it : serialized->blockchainaccountindex()) {
+        const auto& id = it.id();
+        auto& accountSet = blockchain_account_types_[id];
+
+        for (const auto& accountID : it.list()) {
+            accountSet.emplace(accountID);
+        }
+    }
+
+    for (const auto& account : serialized->blockchainaccount()) {
+        const auto& id = account.id();
+        blockchain_accounts_.emplace(
+            id, std::make_shared<proto::Bip44Account>(account));
+    }
+}
+
+bool Nym::Load(
+    const std::string& id,
+    std::shared_ptr<proto::Bip44Account>& output,
+    const bool checking) const
+{
+    Lock lock(blockchain_lock_);
+
+    const auto it = blockchain_accounts_.find(id);
+
+    if (blockchain_accounts_.end() == it) {
+        if (false == checking) {
+            otErr << OT_METHOD << __FUNCTION__ << ": Account does not exist."
+                  << std::endl;
+        }
+
+        return false;
+    }
+
+    output = it->second;
+
+    return bool(output);
 }
 
 bool Nym::Load(
@@ -333,59 +417,23 @@ const Mailbox& Nym::MailOutbox() const { return *mail_outbox(); }
 
 bool Nym::Migrate(const StorageDriver& to) const
 {
-    if (!Node::migrate(credentials_, to)) {
-        return false;
-    }
+    bool output{true};
+    output &= migrate(credentials_, to);
+    output &= sent_request_box()->Migrate(to);
+    output &= incoming_request_box()->Migrate(to);
+    output &= sent_reply_box()->Migrate(to);
+    output &= incoming_reply_box()->Migrate(to);
+    output &= finished_request_box()->Migrate(to);
+    output &= finished_reply_box()->Migrate(to);
+    output &= processed_request_box()->Migrate(to);
+    output &= processed_reply_box()->Migrate(to);
+    output &= mail_inbox()->Migrate(to);
+    output &= mail_outbox()->Migrate(to);
+    output &= threads()->Migrate(to);
+    output &= contexts()->Migrate(to);
+    output &= migrate(root_, to);
 
-    if (!sent_request_box()->Migrate(to)) {
-        return false;
-    }
-
-    if (!incoming_request_box()->Migrate(to)) {
-        return false;
-    }
-
-    if (!sent_reply_box()->Migrate(to)) {
-        return false;
-    }
-
-    if (!incoming_reply_box()->Migrate(to)) {
-        return false;
-    }
-
-    if (!finished_request_box()->Migrate(to)) {
-        return false;
-    }
-
-    if (!finished_reply_box()->Migrate(to)) {
-        return false;
-    }
-
-    if (!processed_request_box()->Migrate(to)) {
-        return false;
-    }
-
-    if (!processed_reply_box()->Migrate(to)) {
-        return false;
-    }
-
-    if (!mail_inbox()->Migrate(to)) {
-        return false;
-    }
-
-    if (!mail_outbox()->Migrate(to)) {
-        return false;
-    }
-
-    if (!threads()->Migrate(to)) {
-        return false;
-    }
-
-    if (!contexts()->Migrate(to)) {
-        return false;
-    }
-
-    return Node::migrate(root_, to);
+    return output;
 }
 
 Editor<PeerRequests> Nym::mutable_SentRequestBox()
@@ -861,6 +909,25 @@ proto::StorageNym Nym::serialize() const
     set_hash(version_, nymid_, threads_root_, *serialized.mutable_threads());
     set_hash(version_, nymid_, contexts_root_, *serialized.mutable_contexts());
 
+    for (const auto& it : blockchain_account_types_) {
+        const auto& chainType = it.first;
+        const auto& accountSet = it.second;
+        auto& index = *serialized.add_blockchainaccountindex();
+        index.set_version(BLOCKCHAIN_INDEX_VERSION);
+        index.set_id(chainType);
+
+        for (const auto& accountID : accountSet) {
+            index.add_list(accountID);
+        }
+    }
+
+    for (const auto& it : blockchain_accounts_) {
+        OT_ASSERT(it.second);
+
+        const auto& account = *it.second;
+        *serialized.add_blockchainaccount() = account;
+    }
+
     return serialized;
 }
 
@@ -871,6 +938,50 @@ bool Nym::SetAlias(const std::string& alias)
     alias_ = alias;
 
     return true;
+}
+
+bool Nym::Store(
+    const proto::ContactItemType type,
+    const proto::Bip44Account& data)
+{
+    const auto& accountID = data.id();
+
+    if (accountID.empty()) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Invalid account ID."
+              << std::endl;
+
+        return false;
+    }
+
+    if (false == proto::Validate(data, VERBOSE)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Invalid account." << std::endl;
+
+        return false;
+    }
+
+    Lock writeLock(write_lock_, std::defer_lock);
+    Lock blockchainLock(blockchain_lock_, std::defer_lock);
+    std::lock(writeLock, blockchainLock);
+    auto accountItem = blockchain_accounts_.find(accountID);
+
+    if (blockchain_accounts_.end() == accountItem) {
+        blockchain_accounts_[accountID] =
+            std::make_shared<proto::Bip44Account>(data);
+    } else {
+        auto& existing = accountItem->second;
+
+        if (existing->revision() > data.revision()) {
+            otErr << OT_METHOD << __FUNCTION__
+                  << ": Not saving object with older revision." << std::endl;
+        } else {
+            existing = std::make_shared<proto::Bip44Account>(data);
+        }
+    }
+
+    blockchain_account_types_[type].insert(accountID);
+    blockchainLock.unlock();
+
+    return save(writeLock);
 }
 
 bool Nym::Store(

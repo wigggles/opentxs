@@ -110,13 +110,17 @@ void Nyms::Map(NymLambda lambda) const
 
 bool Nyms::Migrate(const StorageDriver& to) const
 {
+    bool output{true};
+
     for (const auto index : item_map_) {
         const auto& id = index.first;
         const auto& node = *nym(id);
-        node.Migrate(to);
+        output &= node.Migrate(to);
     }
 
-    return Node::migrate(root_, to);
+    output &= migrate(root_, to);
+
+    return output;
 }
 
 Editor<class Nym> Nyms::mutable_Nym(const std::string& id)

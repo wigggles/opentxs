@@ -172,13 +172,17 @@ void Threads::init(const std::string& hash)
 
 bool Threads::Migrate(const StorageDriver& to) const
 {
+    bool output{true};
+
     for (const auto index : item_map_) {
         const auto& id = index.first;
         const auto& node = *thread(id);
-        node.Migrate(to);
+        output &= node.Migrate(to);
     }
 
-    return Node::migrate(root_, to);
+    output &= migrate(root_, to);
+
+    return output;
 }
 
 Editor<class Thread> Threads::mutable_Thread(const std::string& id)

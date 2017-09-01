@@ -108,6 +108,12 @@ bool Thread::Add(
         case StorageBox::MAILOUTBOX: {
             saved = mail_outbox_.Store(id, contents, alias);
         } break;
+        case StorageBox::INCOMINGBLOCKCHAIN: {
+            saved = true;
+        } break;
+        case StorageBox::OUTGOINGBLOCKCHAIN: {
+            saved = true;
+        } break;
         default: {
             std::cerr << __FUNCTION__ << ": Warning: unknown box." << std::endl;
         }

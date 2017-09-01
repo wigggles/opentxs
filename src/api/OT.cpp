@@ -42,6 +42,7 @@
 
 #include "opentxs/api/Activity.hpp"
 #include "opentxs/api/Api.hpp"
+#include "opentxs/api/Blockchain.hpp"
 #include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Dht.hpp"
 #include "opentxs/api/Identity.hpp"
@@ -83,10 +84,31 @@ OT::OT(
     const std::string& storagePlugin,
     const std::string& backupDirectory)
     : server_mode_(serverMode)
+    , nym_publish_interval_(std::numeric_limits<std::int64_t>::max())
+    , nym_refresh_interval_(std::numeric_limits<std::int64_t>::max())
+    , server_publish_interval_(std::numeric_limits<std::int64_t>::max())
+    , server_refresh_interval_(std::numeric_limits<std::int64_t>::max())
+    , unit_publish_interval_(std::numeric_limits<std::int64_t>::max())
+    , unit_refresh_interval_(std::numeric_limits<std::int64_t>::max())
     , primary_storage_plugin_(storagePlugin)
     , archive_directory(backupDirectory)
+    , config_lock_()
+    , task_list_lock_()
+    , periodic_task_list()
+    , shutdown_(false)
+    , activity_(nullptr)
+    , api_(nullptr)
+    , blockchain_(nullptr)
+    , config_()
+    , contacts_(nullptr)
+    , crypto_(nullptr)
+    , dht_(nullptr)
+    , identity_(nullptr)
+    , storage_(nullptr)
+    , wallet_(nullptr)
+    , zeromq_(nullptr)
+    , periodic_(nullptr)
 {
-    shutdown_.store(false);
 }
 
 void OT::Factory(
@@ -113,16 +135,18 @@ void OT::Init()
     Init_ZMQ();      // requires Init_Config()
     Init_Contracts();
     Init_Identity();
-    Init_Contacts();  // requires Init_Contracts(), Init_Storage()
-    Init_Activity();  // requires Init_Storage(), Init_Contacts(),
-                      // Init_Contracts()
+    Init_Contacts();    // requires Init_Contracts(), Init_Storage()
+    Init_Activity();    // requires Init_Storage(), Init_Contacts(),
+                        // Init_Contracts()
+    Init_Blockchain();  // requires Init_Storage(), Init_Crypto(),
+                        // Init_Contracts(), Init_Activity()
     Init_Api();  // requires Init_Config(), Init_Crypto(), Init_Contracts(),
                  // Init_Identity(), Init_Storage(), Init_ZMQ(), Init_Contacts()
                  // Init_Activity()
     storage_->InitBackup();
     Init_Periodic();  // requires Init_Dht(), Init_Storage()
 
-    OT_ASSERT(contract_manager_);
+    OT_ASSERT(wallet_);
 
     activity_->MigrateLegacyThreads();
 }
@@ -130,11 +154,10 @@ void OT::Init()
 void OT::Init_Activity()
 {
     OT_ASSERT(contacts_);
-    OT_ASSERT(contract_manager_);
+    OT_ASSERT(wallet_);
     OT_ASSERT(storage_);
 
-    activity_.reset(
-        new class Activity(*contacts_, *storage_, *contract_manager_));
+    activity_.reset(new class Activity(*contacts_, *storage_, *wallet_));
 }
 
 void OT::Init_Api()
@@ -144,7 +167,7 @@ void OT::Init_Api()
     OT_ASSERT(activity_);
     OT_ASSERT(config);
     OT_ASSERT(contacts_);
-    OT_ASSERT(contract_manager_);
+    OT_ASSERT(wallet_);
     OT_ASSERT(crypto_);
     OT_ASSERT(identity_);
 
@@ -156,9 +179,20 @@ void OT::Init_Api()
             *crypto_,
             *identity_,
             *storage_,
-            *contract_manager_,
+            *wallet_,
             *zeromq_));
     }
+}
+
+void OT::Init_Blockchain()
+{
+    OT_ASSERT(activity_);
+    OT_ASSERT(crypto_);
+    OT_ASSERT(storage_);
+    OT_ASSERT(wallet_)
+
+    blockchain_.reset(
+        new class Blockchain(*activity_, *crypto_, *storage_, *wallet_));
 }
 
 void OT::Init_Config()
@@ -179,12 +213,12 @@ void OT::Init_Config()
 void OT::Init_Contacts()
 {
     OT_ASSERT(storage_)
-    OT_ASSERT(contract_manager_)
+    OT_ASSERT(wallet_)
 
-    contacts_.reset(new ContactManager(*storage_, *contract_manager_));
+    contacts_.reset(new ContactManager(*storage_, *wallet_));
 }
 
-void OT::Init_Contracts() { contract_manager_.reset(new class Wallet(*this)); }
+void OT::Init_Contracts() { wallet_.reset(new class Wallet(*this)); }
 
 void OT::Init_Crypto() { crypto_.reset(&CryptoEngine::It()); }
 
@@ -585,6 +619,13 @@ Api& OT::API() const
     return *api_;
 }
 
+class Blockchain& OT::Blockchain() const
+{
+    OT_ASSERT(blockchain_)
+
+    return *blockchain_;
+}
+
 Settings& OT::Config(const std::string& path) const
 {
     std::unique_lock<std::mutex> lock(config_lock_);
@@ -610,9 +651,9 @@ ContactManager& OT::Contact() const
 
 Wallet& OT::Contract() const
 {
-    OT_ASSERT(contract_manager_)
+    OT_ASSERT(wallet_)
 
-    return *contract_manager_;
+    return *wallet_;
 }
 
 CryptoEngine& OT::Crypto() const
@@ -674,10 +715,11 @@ void OT::Shutdown()
     }
 
     api_.reset();
+    blockchain_.reset();
     activity_.reset();
     identity_.reset();
     contacts_.reset();
-    contract_manager_.reset();
+    wallet_.reset();
     zeromq_.reset();
     dht_.reset();
     storage_.reset();

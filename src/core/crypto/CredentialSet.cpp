@@ -97,6 +97,19 @@
 namespace opentxs
 {
 
+bool CredentialSet::Path(proto::HDPath& output) const
+{
+    if (m_MasterCredential) {
+
+        return m_MasterCredential->Path(output);
+    }
+
+    otErr << OT_METHOD << __FUNCTION__
+          << ": Master credential not instantiated." << std::endl;
+
+    return false;
+}
+
 int32_t CredentialSet::GetPublicKeysBySignature(
     listOfAsymmetricKeys& listOutput,
     const OTSignature& theSignature,

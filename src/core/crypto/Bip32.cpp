@@ -56,6 +56,37 @@
 namespace opentxs
 {
 
+serializedAsymmetricKey Bip32::Bip44(
+    std::string& fingerprint,
+    const Bip44Type coinType,
+    const std::uint32_t nym,
+    const BIP44Chain internal,
+    const std::uint32_t index) const
+{
+    serializedAsymmetricKey output;
+    std::uint32_t notUsed = 0;
+    auto seed = OT::App().Crypto().BIP39().Seed(fingerprint, notUsed);
+
+    if (false == bool(seed)) {
+
+        return output;
+    }
+
+    const std::uint32_t change = internal ? 1 : 0;
+    proto::HDPath path;
+    path.add_child(
+        static_cast<std::uint32_t>(Bip43Purpose::HDWALLET) |
+        static_cast<std::uint32_t>(Bip32Child::HARDENED));
+    path.add_child(
+        static_cast<std::uint32_t>(coinType) |
+        static_cast<std::uint32_t>(Bip32Child::HARDENED));
+    path.add_child(nym | static_cast<std::uint32_t>(Bip32Child::HARDENED));
+    path.add_child(change);
+    path.add_child(index);
+
+    return GetHDKey(EcdsaCurve::SECP256K1, *seed, path);
+}
+
 std::string Bip32::Seed(const std::string& fingerprint) const
 {
     // TODO: make fingerprint non-const

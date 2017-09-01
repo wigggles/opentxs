@@ -65,10 +65,11 @@ bool Ecdsa::AsymmetricKeyToECPrivatekey(
     proto::Ciphertext dataPrivkey;
     const bool havePrivateKey = asymmetricKey.GetKey(dataPrivkey);
 
-    if (!havePrivateKey) { return false; }
+    if (!havePrivateKey) {
+        return false;
+    }
 
-    return AsymmetricKeyToECPrivkey(
-        dataPrivkey, passwordData, privkey);
+    return AsymmetricKeyToECPrivkey(dataPrivkey, passwordData, privkey);
 }
 
 bool Ecdsa::AsymmetricKeyToECPrivkey(
@@ -95,8 +96,7 @@ bool Ecdsa::DecryptPrivateKey(
     OTPassword& plaintextKey)
 {
     auto key = OT::App().Crypto().Symmetric().Key(
-        encryptedKey.key(),
-        encryptedKey.mode());
+        encryptedKey.key(), encryptedKey.mode());
 
     if (!key) {
         return false;
@@ -113,11 +113,9 @@ bool Ecdsa::DecryptPrivateKey(
     OTPassword& chaincode)
 {
     auto sessionKey = OT::App().Crypto().Symmetric().Key(
-        encryptedKey.key(),
-        encryptedKey.mode());
+        encryptedKey.key(), encryptedKey.mode());
 
-    const bool keyDecrypted =
-        sessionKey->Decrypt(encryptedKey, password, key);
+    const bool keyDecrypted = sessionKey->Decrypt(encryptedKey, password, key);
     const bool chaincodeDecrypted =
         sessionKey->Decrypt(encryptedChaincode, password, chaincode);
 
@@ -133,8 +131,7 @@ bool Ecdsa::DecryptSessionKeyECDH(
     Data publicDHKey;
 
     if (!publicKey.GetKey(publicDHKey)) {
-        otErr << __FUNCTION__ << ": Failed to get public key."
-              << std::endl;
+        otErr << __FUNCTION__ << ": Failed to get public key." << std::endl;
 
         return false;
     }
@@ -142,8 +139,7 @@ bool Ecdsa::DecryptSessionKeyECDH(
     OTPassword privateDHKey;
 
     if (!AsymmetricKeyToECPrivatekey(privateKey, password, privateDHKey)) {
-        otErr << __FUNCTION__ << ": Failed to get private key."
-              << std::endl;
+        otErr << __FUNCTION__ << ": Failed to get private key." << std::endl;
 
         return false;
     }
@@ -163,7 +159,7 @@ bool Ecdsa::DecryptSessionKeyECDH(
     OTPasswordData unlockPassword("");
     unlockPassword.SetOverride(*ECDHSecret);
 
-    return sessionKey.Unlock(unlockPassword) ;
+    return sessionKey.Unlock(unlockPassword);
 }
 
 bool Ecdsa::ECPrivatekeyToAsymmetricKey(
@@ -178,7 +174,9 @@ bool Ecdsa::ECPubkeyToAsymmetricKey(
     std::unique_ptr<Data>& pubkey,
     AsymmetricKeyEC& asymmetricKey) const
 {
-    if (!pubkey) { return false; }
+    if (!pubkey) {
+        return false;
+    }
 
     return asymmetricKey.SetKey(pubkey);
 }
@@ -190,16 +188,13 @@ bool Ecdsa::EncryptPrivateKey(
 {
     auto key = OT::App().Crypto().Symmetric().Key(password);
 
-    if (!key) { return false; }
+    if (!key) {
+        return false;
+    }
 
     Data blank;
 
-    return key->Encrypt(
-        plaintextKey,
-        blank,
-        password,
-        encryptedKey,
-        true);
+    return key->Encrypt(plaintextKey, blank, password, encryptedKey, true);
 }
 
 bool Ecdsa::EncryptPrivateKey(
@@ -211,23 +206,17 @@ bool Ecdsa::EncryptPrivateKey(
 {
     auto sessionKey = OT::App().Crypto().Symmetric().Key(password);
 
-    if (!sessionKey) { return false; }
+    if (!sessionKey) {
+        return false;
+    }
 
     Data blank;
 
-    const bool keyEncrypted = sessionKey->Encrypt(
-        key,
-        blank,
-        password,
-        encryptedKey,
-        true);
+    const bool keyEncrypted =
+        sessionKey->Encrypt(key, blank, password, encryptedKey, true);
 
     const bool chaincodeEncrypted = sessionKey->Encrypt(
-        chaincode,
-        blank,
-        password,
-        encryptedChaincode,
-        false);
+        chaincode, blank, password, encryptedChaincode, false);
 
     return (keyEncrypted && chaincodeEncrypted);
 }
@@ -257,10 +246,8 @@ bool Ecdsa::EncryptSessionKeyECDH(
     OT_ASSERT(dhPrivateKey);
 
     OTPasswordData privatePassword("");
-    const bool havePrivateKey = AsymmetricKeyToECPrivatekey(
-        privateKey,
-        privatePassword,
-        *dhPrivateKey);
+    const bool havePrivateKey =
+        AsymmetricKeyToECPrivatekey(privateKey, privatePassword, *dhPrivateKey);
 
     if (!havePrivateKey) {
         otErr << __FUNCTION__ << ": Failed to get private key." << std::endl;
@@ -278,9 +265,8 @@ bool Ecdsa::EncryptSessionKeyECDH(
         return false;
     }
 
-    const bool encrypted = sessionKey.ChangePassword(
-        passwordData,
-        newKeyPassword);
+    const bool encrypted =
+        sessionKey.ChangePassword(passwordData, newKeyPassword);
 
     if (!encrypted) {
         otErr << __FUNCTION__ << ": Session key encryption failed."
@@ -320,26 +306,33 @@ bool Ecdsa::PrivateToPublic(
     publicKey.clear_chaincode();
     publicKey.clear_key();
     publicKey.set_mode(proto::KEYMODE_PUBLIC);
+    Data key{};
+
+    if (false == PrivateToPublic(privateKey.encryptedkey(), key)) {
+
+        return false;
+    }
+
+    publicKey.set_key(key.GetPointer(), key.GetSize());
+
+    return true;
+}
+
+bool Ecdsa::PrivateToPublic(
+    const proto::Ciphertext& privateKey,
+    Data& publicKey) const
+{
     BinarySecret plaintextKey(
         OT::App().Crypto().AES().InstantiateBinarySecretSP());
     OTPasswordData password(__FUNCTION__);
-    const bool decrypted = DecryptPrivateKey(
-        privateKey.encryptedkey(),
-        password,
-        *plaintextKey);
+    const bool decrypted =
+        DecryptPrivateKey(privateKey, password, *plaintextKey);
 
-    if (!decrypted) { return false; }
-
-    Data key;
-    const bool output = ScalarBaseMultiply(*plaintextKey, key);
-
-    if (output) {
-        publicKey.set_key(key.GetPointer(), key.GetSize());
-
-        return true;
+    if (!decrypted) {
+        return false;
     }
 
-    return false;
+    return ScalarBaseMultiply(*plaintextKey, publicKey);
 }
 
 bool Ecdsa::SeedToCurveKey(
@@ -352,4 +345,4 @@ bool Ecdsa::SeedToCurveKey(
 
     return false;
 }
-} // namespace opentxs
+}  // namespace opentxs

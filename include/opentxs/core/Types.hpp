@@ -89,6 +89,10 @@ typedef bool ProtoValidationVerbosity;
 static const ProtoValidationVerbosity SILENT = true;
 static const ProtoValidationVerbosity VERBOSE = false;
 
+typedef bool BIP44Chain;
+static const BIP44Chain INTERNAL_CHAIN = true;
+static const BIP44Chain EXTERNAL_CHAIN = false;
+
 typedef std::vector<std::shared_ptr<std::string>> DhtResults;
 
 typedef std::function<void(bool)> DhtDoneCallback;
@@ -155,15 +159,30 @@ enum class StorageBox : std::uint8_t {
     PROCESSEDPEERREQUEST = 6,
     PROCESSEDPEERREPLY = 7,
     MAILINBOX = 8,
-    MAILOUTBOX = 9
+    MAILOUTBOX = 9,
+    INCOMINGBLOCKCHAIN = 10,
+    OUTGOINGBLOCKCHAIN = 11,
 };
 
 enum class Bip43Purpose : std::uint32_t {
+    HDWALLET = 44,    // BIP-44
     PAYCODE = 47,     // BIP-47
     NYM = 0x4f544e4d  // OTNM
 };
 
-enum class Bip44Type : std::uint32_t { BITCOIN = 0 };
+enum class Bip44Type : std::uint32_t {
+    BITCOIN = 0,
+    TESTNET = 1,
+    LITECOIN = 2,
+    DOGECOIN = 3,
+    REDDCOIN = 4,
+    DASH = 5,
+    PEERCOIN = 6,
+    NAMECOIN = 7,
+    FEATHERCOIN = 8,
+    COUNTERPARTY = 9,
+    BLACKCOIN = 10,
+};
 
 enum class Bip32Child : std::uint32_t {
     AUTH_KEY = 0x41555448,

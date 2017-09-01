@@ -52,6 +52,9 @@ class CryptoEngine;
 class Data;
 class OTPassword;
 class String;
+#if OT_CRYPTO_USING_TREZOR
+class TrezorCrypto;
+#endif
 
 // Singlton class for providing an interface to external crypto hashing
 // libraries and hold the state required by those libraries.
@@ -62,6 +65,9 @@ private:
 
     CryptoHash& ssl_;
     CryptoHash& sodium_;
+#if OT_CRYPTO_USING_TREZOR
+    TrezorCrypto& bitcoin_;
+#endif
 
     CryptoHash& SHA2() const;
     CryptoHash& Sodium() const;
@@ -87,15 +93,12 @@ private:
     CryptoHashEngine& operator=(const CryptoHashEngine&) = delete;
 
 public:
-
     bool Digest(
         const proto::HashType hashType,
         const OTPassword& data,
         OTPassword& digest) const;
-    bool Digest(
-        const proto::HashType hashType,
-        const Data& data,
-        Data& digest) const;
+    bool Digest(const proto::HashType hashType, const Data& data, Data& digest)
+        const;
     bool Digest(
         const proto::HashType hashType,
         const String& data,
@@ -114,4 +117,4 @@ public:
     ~CryptoHashEngine() = default;
 };
 }  // namespace opentxs
-#endif // OPENTXS_CORE_CRYPTO_CRYPTOHASHENGINE_HPP
+#endif  // OPENTXS_CORE_CRYPTO_CRYPTOHASHENGINE_HPP

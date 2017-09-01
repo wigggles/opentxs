@@ -47,6 +47,7 @@
 #include <mutex>
 #include <set>
 #include <string>
+#include <tuple>
 #include <vector>
 
 namespace opentxs
@@ -61,6 +62,8 @@ class Wallet;
 class Contact
 {
 public:
+    typedef std::pair<proto::ContactItemType, std::string> BlockchainAddress;
+
     static std::string ExtractLabel(const Nym& nym);
     static proto::ContactItemType ExtractType(const Nym& nym);
 
@@ -69,6 +72,7 @@ public:
 
     operator proto::Contact() const;
 
+    std::vector<BlockchainAddress> BlockchainAddresses() const;
     std::shared_ptr<ContactData> Data() const;
     const Identifier& ID() const;
     const std::string& Label() const;
@@ -76,8 +80,13 @@ public:
     std::vector<Identifier> Nyms(const bool includeInactive = false) const;
     std::string PaymentCode(
         const proto::ContactItemType currency = proto::CITEMTYPE_BTC) const;
+    std::vector<std::string> PaymentCodes(
+        const proto::ContactItemType currency = proto::CITEMTYPE_BTC) const;
     proto::ContactItemType Type() const;
 
+    bool AddBlockchainAddress(
+        const std::string& address,
+        const proto::ContactItemType currency = proto::CITEMTYPE_BTC);
     bool AddNym(const std::shared_ptr<const Nym>& nym, const bool primary);
     bool AddNym(const Identifier& nymID, const bool primary);
     bool AddPaymentCode(
@@ -85,6 +94,9 @@ public:
         const bool primary,
         const proto::ContactItemType currency = proto::CITEMTYPE_BTC,
         const bool active = true);
+    bool RemoveBlockchainAddress(
+        const std::string& address,
+        const proto::ContactItemType currency = proto::CITEMTYPE_BTC);
     bool RemoveNym(const Identifier& nymID);
     void SetLabel(const std::string& label);
     void Update(const proto::CredentialIndex& nym);
@@ -104,7 +116,9 @@ private:
     std::unique_ptr<ContactData> contact_data_{};
     mutable std::shared_ptr<ContactData> cached_contact_data_{};
     std::atomic<std::uint64_t> revision_{0};
-
+    std::shared_ptr<ContactGroup> payment_codes(
+        const Lock& lock,
+        const proto::ContactItemType currency) const;
     Identifier generate_id() const;
     std::shared_ptr<ContactItem> get_best_claim(
         const ContactGroup& group) const;

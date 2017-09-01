@@ -165,6 +165,7 @@ public:
     EXPORT bool IsMarkedForDeletion() const { return m_bMarkForDeletion; }
     EXPORT std::shared_ptr<const proto::Credential> MasterCredentialContents(
         const std::string& id) const;
+    EXPORT bool Path(proto::HDPath& output) const;
     EXPORT std::uint64_t Revision() const;
     EXPORT std::shared_ptr<const proto::Credential> RevokedCredentialContents(
         const std::string& id) const;

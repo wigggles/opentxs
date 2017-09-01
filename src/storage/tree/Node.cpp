@@ -153,13 +153,15 @@ bool Node::migrate(const std::string& hash, const StorageDriver& to) const
 
 bool Node::Migrate(const StorageDriver& to) const
 {
+    bool output{true};
+
     for (const auto item : item_map_) {
-        if (!migrate(std::get<0>(item.second), to)) {
-            return false;
-        }
+        output &= migrate(std::get<0>(item.second), to);
     }
 
-    return migrate(root_, to);
+    output &= migrate(root_, to);
+
+    return output;
 }
 
 std::string Node::Root() const

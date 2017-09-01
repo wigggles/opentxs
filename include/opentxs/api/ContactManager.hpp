@@ -59,6 +59,9 @@ class Wallet;
 class ContactManager
 {
 public:
+    Identifier BlockchainAddressToContact(
+        const std::string& address,
+        const proto::ContactItemType currency = proto::CITEMTYPE_BTC) const;
     Identifier ContactID(const Identifier& nymID) const;
     ObjectList ContactList() const;
 
@@ -70,6 +73,10 @@ public:
         const std::string& label,
         const Identifier& nymID,
         const PaymentCode& paymentCode);
+    std::shared_ptr<const class Contact> NewContactFromAddress(
+        const std::string& address,
+        const std::string& label,
+        const proto::ContactItemType currency = proto::CITEMTYPE_BTC);
     std::shared_ptr<const class Contact> Update(
         const proto::CredentialIndex& nym);
 
@@ -79,14 +86,17 @@ private:
     friend class OT;
 
     typedef std::pair<std::mutex, std::shared_ptr<class Contact>> ContactLock;
+    typedef std::pair<proto::ContactItemType, std::string> Address;
     typedef std::map<Identifier, ContactLock> ContactMap;
     typedef std::map<Identifier, Identifier> NymMap;
+    typedef std::map<Address, Identifier> AddressMap;
 
     Storage& storage_;
     Wallet& wallet_;
-    mutable std::mutex lock_{};
+    mutable std::recursive_mutex lock_{};
     ContactMap contact_map_{};
     NymMap nym_contact_map_{};
+    AddressMap address_contact_map_{};
 
     void check_identifiers(
         const Identifier& inputNymID,
@@ -94,36 +104,43 @@ private:
         bool& haveNymID,
         bool& havePaymentCode,
         Identifier& outputNymID) const;
-    bool verify_write_lock(const Lock& lock) const;
+    bool verify_write_lock(const rLock& lock) const;
 
     // takes ownership
-    ContactMap::iterator add_contact(const Lock& lock, class Contact* contact);
+    ContactMap::iterator add_contact(const rLock& lock, class Contact* contact);
+    Identifier address_to_contact(
+        const rLock& lock,
+        const std::string& address,
+        const proto::ContactItemType currency) const;
     std::shared_ptr<const class Contact> contact(
-        const Lock& lock,
+        const rLock& lock,
         const std::string& label);
     std::shared_ptr<const class Contact> contact(
-        const Lock& lock,
+        const rLock& lock,
         const Identifier& id);
-    void import_contacts(const Lock& lock);
-    void init_nym_map(const Lock& lock);
-    ContactMap::iterator load_contact(const Lock& lock, const Identifier& id);
+    void import_contacts(const rLock& lock);
+    void init_nym_map(const rLock& lock);
+    ContactMap::iterator load_contact(const rLock& lock, const Identifier& id);
     std::unique_ptr<Editor<class Contact>> mutable_contact(
-        const Lock& lock,
+        const rLock& lock,
         const Identifier& id);
-    ContactMap::iterator obtain_contact(const Lock& lock, const Identifier& id);
+    ContactMap::iterator obtain_contact(
+        const rLock& lock,
+        const Identifier& id);
     std::shared_ptr<const class Contact> new_contact(
-        const Lock& lock,
+        const rLock& lock,
         const std::string& label,
         const Identifier& nymID,
         const PaymentCode& paymentCode);
+    void refresh_indices(const rLock& lock, class Contact& contact);
     void save(class Contact* contact);
     std::shared_ptr<const class Contact> update_existing_contact(
-        const Lock& lock,
+        const rLock& lock,
         const std::string& label,
         const PaymentCode& code,
         NymMap::iterator& existing);
     void update_nym_map(
-        const Lock& lock,
+        const rLock& lock,
         const Identifier nymID,
         class Contact& contact,
         const bool replace = false);
