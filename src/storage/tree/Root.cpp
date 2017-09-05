@@ -158,13 +158,13 @@ void Root::init(const std::string& hash)
         version_ = 2;
     }
 
-    gc_root_ = serialized->gcroot();
+    gc_root_ = normalize_hash(serialized->gcroot());
     current_bucket_.store(serialized->altlocation());
     gc_running_.store(false);
     gc_resume_.store(serialized->gc());
     last_gc_.store(serialized->lastgc());
     sequence_.store(serialized->sequence());
-    tree_root_ = serialized->items();
+    tree_root_ = normalize_hash(serialized->items());
 }
 
 bool Root::Migrate(const StorageDriver& to) const

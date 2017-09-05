@@ -203,6 +203,8 @@ protected:
     mutable std::mutex write_lock_;
     mutable Index item_map_;
 
+    static std::string normalize_hash(const std::string& hash);
+
     bool check_hash(const std::string& hash) const;
     std::uint64_t extract_revision(const proto::Contact& input) const;
     std::uint64_t extract_revision(const proto::CredentialIndex& input) const;

@@ -268,38 +268,44 @@ void Nym::init(const std::string& hash)
     }
 
     nymid_ = serialized->nymid();
-    credentials_ = serialized->credlist().hash();
-    sent_peer_request_ = serialized->sentpeerrequests().hash();
-    incoming_peer_request_ = serialized->incomingpeerrequests().hash();
-    sent_peer_reply_ = serialized->sentpeerreply().hash();
-    incoming_peer_reply_ = serialized->incomingpeerreply().hash();
-    finished_peer_request_ = serialized->finishedpeerrequest().hash();
-    finished_peer_reply_ = serialized->finishedpeerreply().hash();
-    processed_peer_request_ = serialized->processedpeerrequest().hash();
-    processed_peer_reply_ = serialized->processedpeerreply().hash();
+    credentials_ = normalize_hash(serialized->credlist().hash());
+    sent_peer_request_ = normalize_hash(serialized->sentpeerrequests().hash());
+    incoming_peer_request_ =
+        normalize_hash(serialized->incomingpeerrequests().hash());
+    sent_peer_reply_ = normalize_hash(serialized->sentpeerreply().hash());
+    incoming_peer_reply_ =
+        normalize_hash(serialized->incomingpeerreply().hash());
+    finished_peer_request_ =
+        normalize_hash(serialized->finishedpeerrequest().hash());
+    finished_peer_reply_ =
+        normalize_hash(serialized->finishedpeerreply().hash());
+    processed_peer_request_ =
+        normalize_hash(serialized->processedpeerrequest().hash());
+    processed_peer_reply_ =
+        normalize_hash(serialized->processedpeerreply().hash());
 
     // Fields added in version 2
     if (serialized->has_mailinbox()) {
-        mail_inbox_root_ = serialized->mailinbox().hash();
+        mail_inbox_root_ = normalize_hash(serialized->mailinbox().hash());
     } else {
         mail_inbox_root_ = Node::BLANK_HASH;
     }
 
     if (serialized->has_mailoutbox()) {
-        mail_outbox_root_ = serialized->mailoutbox().hash();
+        mail_outbox_root_ = normalize_hash(serialized->mailoutbox().hash());
     } else {
         mail_outbox_root_ = Node::BLANK_HASH;
     }
 
     if (serialized->has_threads()) {
-        threads_root_ = serialized->threads().hash();
+        threads_root_ = normalize_hash(serialized->threads().hash());
     } else {
         threads_root_ = Node::BLANK_HASH;
     }
 
     // Fields added in version 3
     if (serialized->has_contexts()) {
-        contexts_root_ = serialized->contexts().hash();
+        contexts_root_ = normalize_hash(serialized->contexts().hash());
     } else {
         contexts_root_ = Node::BLANK_HASH;
     }
