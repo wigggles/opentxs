@@ -359,4 +359,19 @@ ObjectList Activity::Threads(const Identifier& nym) const
 
     return output;
 }
+
+std::size_t Activity::UnreadCount(const Identifier& nymId) const
+{
+    const std::string nym = String(nymId).Get();
+    std::size_t output{0};
+
+    const auto& threads = storage_.ThreadList(nym);
+
+    for (const auto& it : threads) {
+        const auto& threadId = it.first;
+        output += storage_.UnreadCount(nym, threadId);
+    }
+
+    return output;
+}
 }  // namespace opentxs

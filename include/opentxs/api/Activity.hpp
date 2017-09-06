@@ -151,6 +151,12 @@ public:
      */
     ObjectList Threads(const Identifier& nym) const;
 
+    /**   Return the total number of unread thread items for a nym
+     *
+     *    \param[in] nymId
+     */
+    std::size_t UnreadCount(const Identifier& nym) const;
+
     ~Activity() = default;
 
 private:
