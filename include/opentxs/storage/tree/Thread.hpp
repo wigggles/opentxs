@@ -41,6 +41,7 @@
 
 #include "opentxs/api/Editor.hpp"
 #include "opentxs/core/Proto.hpp"
+#include "opentxs/core/Types.hpp"
 #include "opentxs/storage/tree/Node.hpp"
 #include "opentxs/storage/Storage.hpp"
 
@@ -114,7 +115,7 @@ public:
         const std::string& contents,
         const std::uint64_t index = 0,
         const std::string& account = std::string(""));
-    bool Read(const std::string& id);
+    bool Read(const std::string& id, const bool unread);
     bool Rename(const std::string& newID);
     bool Remove(const std::string& id);
     bool SetAlias(const std::string& alias);

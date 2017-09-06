@@ -312,6 +312,11 @@ public:
         const std::string& nymID,
         const std::string& id,
         const StorageBox box);
+    bool SetReadState(
+        const std::string& nymId,
+        const std::string& threadId,
+        const std::string& itemId,
+        const bool unread);
     bool SetSeedAlias(const std::string& id, const std::string& alias);
     bool SetServerAlias(const std::string& id, const std::string& alias);
     bool SetThreadAlias(

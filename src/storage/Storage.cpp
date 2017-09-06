@@ -1171,6 +1171,33 @@ bool Storage::SetPeerRequestTime(
     }
 }
 
+bool Storage::SetReadState(
+    const std::string& nymId,
+    const std::string& threadId,
+    const std::string& itemId,
+    const bool unread)
+{
+    auto& nyms = mutable_Meta().It().mutable_Tree().It().mutable_Nyms().It();
+
+    if (false == nyms.Exists(nymId)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Nym " << nymId
+              << " does not exist." << std::endl;
+
+        return false;
+    }
+
+    auto& threads = nyms.mutable_Nym(nymId).It().mutable_Threads().It();
+
+    if (false == threads.Exists(threadId)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Thread " << threadId
+              << " does not exist." << std::endl;
+
+        return false;
+    }
+
+    return threads.mutable_Thread(threadId).It().Read(itemId, unread);
+}
+
 bool Storage::SetSeedAlias(const std::string& id, const std::string& alias)
 {
     return mutable_Meta()

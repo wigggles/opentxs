@@ -43,7 +43,6 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/core/Types.hpp"
 #include "opentxs/storage/tree/Mailbox.hpp"
 #include "opentxs/storage/StoragePlugin.hpp"
 
@@ -222,7 +221,7 @@ bool Thread::Migrate(const StorageDriver& to) const
     return Node::migrate(root_, to);
 }
 
-bool Thread::Read(const std::string& id)
+bool Thread::Read(const std::string& id, const bool unread)
 {
     Lock lock(write_lock_);
 
@@ -234,7 +233,7 @@ bool Thread::Read(const std::string& id)
 
     auto& item = it->second;
 
-    item.set_unread(false);
+    item.set_unread(unread);
 
     return save(lock);
 }

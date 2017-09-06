@@ -40,6 +40,7 @@
 #define OPENTXS_STORAGE_TREE_NYMS_HPP
 
 #include "opentxs/api/Editor.hpp"
+#include "opentxs/core/Types.hpp"
 #include "opentxs/storage/tree/Node.hpp"
 #include "opentxs/storage/Storage.hpp"
 
@@ -64,13 +65,10 @@ private:
     mutable std::map<std::string, std::unique_ptr<class Nym>> nyms_;
 
     class Nym* nym(const std::string& id) const;
-    void save(
-        class Nym* nym,
-        const std::unique_lock<std::mutex>& lock,
-        const std::string& id);
+    void save(class Nym* nym, const Lock& lock, const std::string& id);
 
     void init(const std::string& hash) override;
-    bool save(const std::unique_lock<std::mutex>& lock) const override;
+    bool save(const Lock& lock) const override;
     proto::StorageNymList serialize() const;
 
     Nyms(const StorageDriver& storage, const std::string& hash);
@@ -81,6 +79,7 @@ private:
     Nyms operator=(Nyms&&) = delete;
 
 public:
+    bool Exists(const std::string& id) const;
     void Map(NymLambda lambda) const;
     const class Nym& Nym(const std::string& id) const;
 
