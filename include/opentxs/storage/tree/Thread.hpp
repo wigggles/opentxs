@@ -106,6 +106,7 @@ public:
     std::string ID() const;
     proto::StorageThread Items() const;
     bool Migrate(const StorageDriver& to) const override;
+    std::size_t UnreadCount() const;
 
     bool Add(
         const std::string& id,

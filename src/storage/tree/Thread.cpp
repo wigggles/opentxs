@@ -349,6 +349,22 @@ Thread::SortedItems Thread::sort(const Lock& lock) const
     return output;
 }
 
+std::size_t Thread::UnreadCount() const
+{
+    Lock lock(write_lock_);
+    std::size_t output{0};
+
+    for (const auto& it : items_) {
+        const auto& item = it.second;
+
+        if (item.unread()) {
+            ++output;
+        }
+    }
+
+    return output;
+}
+
 void Thread::upgrade(const Lock& lock)
 {
     OT_ASSERT(verify_write_lock(lock));
