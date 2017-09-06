@@ -369,6 +369,9 @@ public:
         const std::string& threadID);
     std::string UnitDefinitionAlias(const std::string& id);
     ObjectList UnitDefinitionList() const;
+    std::size_t UnreadCount(
+        const std::string& nymId,
+        const std::string& threadId);
 
     void Cleanup();
     ~Storage();

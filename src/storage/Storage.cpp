@@ -1721,5 +1721,30 @@ bool Storage::verify_write_lock(const std::unique_lock<std::mutex>& lock) const
     return true;
 }
 
+std::size_t Storage::UnreadCount(
+    const std::string& nymId,
+    const std::string& threadId)
+{
+    auto& nyms = Meta().Tree().NymNode();
+
+    if (false == nyms.Exists(nymId)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Nym " << nymId
+              << " does not exist." << std::endl;
+
+        return 0;
+    }
+
+    auto& threads = nyms.Nym(nymId).Threads();
+
+    if (false == threads.Exists(threadId)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Thread " << threadId
+              << " does not exist." << std::endl;
+
+        return 0;
+    }
+
+    return threads.Thread(threadId).UnreadCount();
+}
+
 Storage::~Storage() { Cleanup_Storage(); }
 }  // namespace opentxs
