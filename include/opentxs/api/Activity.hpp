@@ -117,6 +117,30 @@ public:
         const Identifier& id,
         const StorageBox box) const;
 
+    /**   Mark a thread item as read
+     *
+     *    \param[in] nymId the identifier of the nym who owns the thread
+     *    \param[in] threadId the thread containing the item to be marked
+     *    \param[in] itemId the identifier of the item to be marked read
+     *    \returns False if the nym, thread, or item does not exist
+     */
+    bool MarkRead(
+        const Identifier& nymId,
+        const Identifier& threadId,
+        const Identifier& itemId) const;
+
+    /**   Mark a thread item as unread
+     *
+     *    \param[in] nymId the identifier of the nym who owns the thread
+     *    \param[in] threadId the thread containing the item to be marked
+     *    \param[in] itemId the identifier of the item to be marked unread
+     *    \returns False if the nym, thread, or item does not exist
+     */
+    bool MarkUnread(
+        const Identifier& nymId,
+        const Identifier& threadId,
+        const Identifier& itemId) const;
+
     std::shared_ptr<proto::StorageThread> Thread(
         const Identifier& nymID,
         const Identifier& threadID) const;
