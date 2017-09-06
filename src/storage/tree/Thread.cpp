@@ -41,9 +41,13 @@
 #include "opentxs/storage/tree/Thread.hpp"
 
 #include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/core/Types.hpp"
 #include "opentxs/storage/tree/Mailbox.hpp"
 #include "opentxs/storage/StoragePlugin.hpp"
+
+#define OT_METHOD "opentxs::storage::Thread::"
 
 namespace opentxs
 {
@@ -97,9 +101,10 @@ bool Thread::Add(
     const std::uint64_t index,
     const std::string& account)
 {
-    std::unique_lock<std::mutex> lock(write_lock_);
+    Lock lock(write_lock_);
 
-    bool saved = false;
+    bool saved{false};
+    bool unread{true};
 
     switch (box) {
         case StorageBox::MAILINBOX: {
@@ -107,20 +112,24 @@ bool Thread::Add(
         } break;
         case StorageBox::MAILOUTBOX: {
             saved = mail_outbox_.Store(id, contents, alias);
+            unread = false;
         } break;
         case StorageBox::INCOMINGBLOCKCHAIN: {
             saved = true;
         } break;
         case StorageBox::OUTGOINGBLOCKCHAIN: {
             saved = true;
+            unread = false;
         } break;
         default: {
-            std::cerr << __FUNCTION__ << ": Warning: unknown box." << std::endl;
+            otErr << OT_METHOD << __FUNCTION__ << ": Warning: unknown box."
+                  << std::endl;
         }
     }
 
     if (!saved) {
-        std::cerr << __FUNCTION__ << ": Unable to save item." << std::endl;
+        otErr << OT_METHOD << __FUNCTION__ << ": Unable to save item."
+              << std::endl;
 
         return false;
     }
@@ -138,7 +147,7 @@ bool Thread::Add(
     item.set_time(time);
     item.set_box(static_cast<std::uint32_t>(box));
     item.set_account(account);
-    item.set_unread(true);
+    item.set_unread(unread);
 
     const bool valid = proto::Validate(item, VERBOSE);
 
@@ -153,7 +162,7 @@ bool Thread::Add(
 
 std::string Thread::Alias() const
 {
-    std::unique_lock<std::mutex> lock(write_lock_);
+    Lock lock(write_lock_);
 
     return alias_;
 }
@@ -163,10 +172,10 @@ void Thread::init(const std::string& hash)
     std::shared_ptr<proto::StorageThread> serialized;
     driver_.LoadProto(hash, serialized);
 
-    if (!serialized) {
-        std::cerr << __FUNCTION__ << ": Failed to load thread index file."
-                  << std::endl;
-        abort();
+    if (false == bool(serialized)) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Failed to load thread index file." << std::endl;
+        OT_FAIL;
     }
 
     version_ = serialized->version();
@@ -187,11 +196,14 @@ void Thread::init(const std::string& hash)
             index_ = index + 1;
         }
     }
+
+    Lock lock(write_lock_);
+    upgrade(lock);
 }
 
 bool Thread::Check(const std::string& id) const
 {
-    std::unique_lock<std::mutex> lock(write_lock_);
+    Lock lock(write_lock_);
 
     return items_.end() != items_.find(id);
 }
@@ -200,7 +212,7 @@ std::string Thread::ID() const { return id_; }
 
 proto::StorageThread Thread::Items() const
 {
-    std::unique_lock<std::mutex> lock(write_lock_);
+    Lock lock(write_lock_);
 
     return serialize(lock);
 }
@@ -212,7 +224,7 @@ bool Thread::Migrate(const StorageDriver& to) const
 
 bool Thread::Read(const std::string& id)
 {
-    std::unique_lock<std::mutex> lock(write_lock_);
+    Lock lock(write_lock_);
 
     auto it = items_.find(id);
 
@@ -229,7 +241,7 @@ bool Thread::Read(const std::string& id)
 
 bool Thread::Remove(const std::string& id)
 {
-    std::unique_lock<std::mutex> lock(write_lock_);
+    Lock lock(write_lock_);
 
     auto it = items_.find(id);
 
@@ -249,7 +261,8 @@ bool Thread::Remove(const std::string& id)
             mail_outbox_.Delete(id);
         } break;
         default: {
-            std::cerr << __FUNCTION__ << ": Warning: unknown box." << std::endl;
+            otErr << OT_METHOD << __FUNCTION__ << ": Warning: unknown box."
+                  << std::endl;
         }
     }
 
@@ -270,12 +283,9 @@ bool Thread::Rename(const std::string& newID)
     return save(lock);
 }
 
-bool Thread::save(const std::unique_lock<std::mutex>& lock) const
+bool Thread::save(const Lock& lock) const
 {
-    if (!verify_write_lock(lock)) {
-        std::cerr << __FUNCTION__ << ": Lock failure." << std::endl;
-        abort();
-    }
+    OT_ASSERT(verify_write_lock(lock));
 
     auto serialized = serialize(lock);
 
@@ -286,13 +296,9 @@ bool Thread::save(const std::unique_lock<std::mutex>& lock) const
     return driver_.StoreProto(serialized, root_);
 }
 
-proto::StorageThread Thread::serialize(
-    const std::unique_lock<std::mutex>& lock) const
+proto::StorageThread Thread::serialize(const Lock& lock) const
 {
-    if (!verify_write_lock(lock)) {
-        std::cerr << __FUNCTION__ << ": Lock failure." << std::endl;
-        abort();
-    }
+    OT_ASSERT(verify_write_lock(lock));
 
     proto::StorageThread serialized;
     serialized.set_version(version_);
@@ -318,19 +324,16 @@ proto::StorageThread Thread::serialize(
 
 bool Thread::SetAlias(const std::string& alias)
 {
-    std::unique_lock<std::mutex> lock(write_lock_);
+    Lock lock(write_lock_);
 
     alias_ = alias;
 
     return true;
 }
 
-Thread::SortedItems Thread::sort(const std::unique_lock<std::mutex>& lock) const
+Thread::SortedItems Thread::sort(const Lock& lock) const
 {
-    if (!verify_write_lock(lock)) {
-        std::cerr << __FUNCTION__ << ": Lock failure." << std::endl;
-        abort();
-    }
+    OT_ASSERT(verify_write_lock(lock));
 
     SortedItems output;
 
@@ -345,6 +348,34 @@ Thread::SortedItems Thread::sort(const std::unique_lock<std::mutex>& lock) const
     }
 
     return output;
+}
+
+void Thread::upgrade(const Lock& lock)
+{
+    OT_ASSERT(verify_write_lock(lock));
+
+    bool changed{false};
+
+    for (auto& it : items_) {
+        auto& item = it.second;
+        const auto box = static_cast<StorageBox>(item.box());
+
+        switch (box) {
+            case StorageBox::MAILOUTBOX:
+            case StorageBox::OUTGOINGBLOCKCHAIN: {
+                if (item.unread()) {
+                    item.set_unread(false);
+                    changed = true;
+                }
+            } break;
+            default: {
+            }
+        }
+    }
+
+    if (changed) {
+        save(lock);
+    }
 }
 }  // namespace storage
 }  // namespace opentxs
