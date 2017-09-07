@@ -1171,6 +1171,33 @@ bool Storage::SetPeerRequestTime(
     }
 }
 
+bool Storage::SetReadState(
+    const std::string& nymId,
+    const std::string& threadId,
+    const std::string& itemId,
+    const bool unread)
+{
+    auto& nyms = mutable_Meta().It().mutable_Tree().It().mutable_Nyms().It();
+
+    if (false == nyms.Exists(nymId)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Nym " << nymId
+              << " does not exist." << std::endl;
+
+        return false;
+    }
+
+    auto& threads = nyms.mutable_Nym(nymId).It().mutable_Threads().It();
+
+    if (false == threads.Exists(threadId)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Thread " << threadId
+              << " does not exist." << std::endl;
+
+        return false;
+    }
+
+    return threads.mutable_Thread(threadId).It().Read(itemId, unread);
+}
+
 bool Storage::SetSeedAlias(const std::string& id, const std::string& alias)
 {
     return mutable_Meta()
@@ -1692,6 +1719,31 @@ bool Storage::verify_write_lock(const std::unique_lock<std::mutex>& lock) const
     }
 
     return true;
+}
+
+std::size_t Storage::UnreadCount(
+    const std::string& nymId,
+    const std::string& threadId)
+{
+    auto& nyms = Meta().Tree().NymNode();
+
+    if (false == nyms.Exists(nymId)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Nym " << nymId
+              << " does not exist." << std::endl;
+
+        return 0;
+    }
+
+    auto& threads = nyms.Nym(nymId).Threads();
+
+    if (false == threads.Exists(threadId)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Thread " << threadId
+              << " does not exist." << std::endl;
+
+        return 0;
+    }
+
+    return threads.Thread(threadId).UnreadCount();
 }
 
 Storage::~Storage() { Cleanup_Storage(); }

@@ -41,6 +41,7 @@
 
 #include "opentxs/api/Editor.hpp"
 #include "opentxs/core/Proto.hpp"
+#include "opentxs/core/Types.hpp"
 #include "opentxs/storage/tree/Node.hpp"
 #include "opentxs/storage/Storage.hpp"
 
@@ -75,10 +76,10 @@ private:
     std::set<std::string> participants_;
 
     void init(const std::string& hash) override;
-    bool save(const std::unique_lock<std::mutex>& lock) const override;
-    proto::StorageThread serialize(
-        const std::unique_lock<std::mutex>& lock) const;
-    SortedItems sort(const std::unique_lock<std::mutex>& lock) const;
+    bool save(const Lock& lock) const override;
+    proto::StorageThread serialize(const Lock& lock) const;
+    SortedItems sort(const Lock& lock) const;
+    void upgrade(const Lock& lock);
 
     Thread(
         const StorageDriver& storage,
@@ -105,6 +106,7 @@ public:
     std::string ID() const;
     proto::StorageThread Items() const;
     bool Migrate(const StorageDriver& to) const override;
+    std::size_t UnreadCount() const;
 
     bool Add(
         const std::string& id,
@@ -114,7 +116,7 @@ public:
         const std::string& contents,
         const std::uint64_t index = 0,
         const std::string& account = std::string(""));
-    bool Read(const std::string& id);
+    bool Read(const std::string& id, const bool unread);
     bool Rename(const std::string& newID);
     bool Remove(const std::string& id);
     bool SetAlias(const std::string& alias);

@@ -216,12 +216,13 @@ void Tree::init(const std::string& hash)
         version_ = CURRENT_VERSION;
     }
 
-    contact_root_ = serialized->contacts();
-    credential_root_ = serialized->creds();
-    nym_root_ = serialized->nyms();
-    server_root_ = serialized->servers();
-    unit_root_ = serialized->units();
-    seed_root_ = serialized->seeds();
+    blockchain_root_ = normalize_hash(serialized->blockchaintransactions());
+    contact_root_ = normalize_hash(serialized->contacts());
+    credential_root_ = normalize_hash(serialized->creds());
+    nym_root_ = normalize_hash(serialized->nyms());
+    seed_root_ = normalize_hash(serialized->seeds());
+    server_root_ = normalize_hash(serialized->servers());
+    unit_root_ = normalize_hash(serialized->units());
 }
 
 bool Tree::Migrate(const StorageDriver& to) const

@@ -40,7 +40,10 @@
 
 #include "opentxs/storage/tree/Node.hpp"
 
+#include "opentxs/core/Log.hpp"
 #include "opentxs/storage/StoragePlugin.hpp"
+
+#define OT_METHOD "opentxs::Node::"
 
 namespace opentxs
 {
@@ -162,6 +165,32 @@ bool Node::Migrate(const StorageDriver& to) const
     output &= migrate(root_, to);
 
     return output;
+}
+
+std::string Node::normalize_hash(const std::string& hash)
+{
+    if (hash.empty()) {
+
+        return BLANK_HASH;
+    }
+
+    if (proto::MIN_PLAUSIBLE_IDENTIFIER > hash.size()) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Blanked out short hash "
+              << hash << "\n"
+              << std::endl;
+
+        return BLANK_HASH;
+    }
+
+    if (proto::MAX_PLAUSIBLE_IDENTIFIER < hash.size()) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Blanked out long hash " << hash
+              << "\n"
+              << std::endl;
+
+        return BLANK_HASH;
+    }
+
+    return hash;
 }
 
 std::string Node::Root() const

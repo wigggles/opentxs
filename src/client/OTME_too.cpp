@@ -859,15 +859,19 @@ void OTME_too::establish_mailability(
     const auto serverID = claims.PreferredOTServer();
     const std::string server = String(serverID).Get();
 
-    if (false == server.empty()) {
+    if (server.empty()) {
+        FindNym(recipient, "");
+
+        return;
+    }
+
+    const auto serverContract = wallet_.Server(Identifier(server));
+
+    if (false == bool(serverContract)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Searching for server contract"
               << server << std::endl;
 
         FindServer(server);
-
-        return;
-    } else {
-        FindNym(recipient, "");
 
         return;
     }

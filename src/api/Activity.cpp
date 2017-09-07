@@ -247,6 +247,30 @@ bool Activity::MailRemove(
     return storage_.RemoveNymBoxItem(nymid, box, mail);
 }
 
+bool Activity::MarkRead(
+    const Identifier& nymId,
+    const Identifier& threadId,
+    const Identifier& itemId) const
+{
+    const std::string nym = String(nymId).Get();
+    const std::string thread = String(threadId).Get();
+    const std::string item = String(itemId).Get();
+
+    return storage_.SetReadState(nym, thread, item, false);
+}
+
+bool Activity::MarkUnread(
+    const Identifier& nymId,
+    const Identifier& threadId,
+    const Identifier& itemId) const
+{
+    const std::string nym = String(nymId).Get();
+    const std::string thread = String(threadId).Get();
+    const std::string item = String(itemId).Get();
+
+    return storage_.SetReadState(nym, thread, item, true);
+}
+
 void Activity::MigrateLegacyThreads() const
 {
     std::set<std::string> contacts{};
@@ -331,6 +355,21 @@ ObjectList Activity::Threads(const Identifier& nym) const
                 label = name;
             }
         }
+    }
+
+    return output;
+}
+
+std::size_t Activity::UnreadCount(const Identifier& nymId) const
+{
+    const std::string nym = String(nymId).Get();
+    std::size_t output{0};
+
+    const auto& threads = storage_.ThreadList(nym);
+
+    for (const auto& it : threads) {
+        const auto& threadId = it.first;
+        output += storage_.UnreadCount(nym, threadId);
     }
 
     return output;

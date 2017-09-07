@@ -61,6 +61,13 @@ Nyms::Nyms(const StorageDriver& storage, const std::string& hash)
     }
 }
 
+bool Nyms::Exists(const std::string& id) const
+{
+    Lock lock(write_lock_);
+
+    return nyms_.find(id) != nyms_.end();
+}
+
 void Nyms::init(const std::string& hash)
 {
     std::shared_ptr<proto::StorageNymList> serialized;
@@ -87,7 +94,7 @@ void Nyms::init(const std::string& hash)
 
 void Nyms::Map(NymLambda lambda) const
 {
-    std::unique_lock<std::mutex> lock(write_lock_);
+    Lock lock(write_lock_);
     const auto copy = item_map_;
     write_lock_.unlock();
 
@@ -125,17 +132,15 @@ bool Nyms::Migrate(const StorageDriver& to) const
 
 Editor<class Nym> Nyms::mutable_Nym(const std::string& id)
 {
-    std::function<void(class Nym*, std::unique_lock<std::mutex>&)> callback =
-        [&](class Nym* in, std::unique_lock<std::mutex>& lock) -> void {
-        this->save(in, lock, id);
-    };
+    std::function<void(class Nym*, Lock&)> callback =
+        [&](class Nym* in, Lock& lock) -> void { this->save(in, lock, id); };
 
     return Editor<class Nym>(write_lock_, nym(id), callback);
 }
 
 class Nym* Nyms::nym(const std::string& id) const
 {
-    std::unique_lock<std::mutex> lock(write_lock_);
+    Lock lock(write_lock_);
 
     const auto index = item_map_[id];
     const auto hash = std::get<0>(index);
@@ -159,7 +164,7 @@ class Nym* Nyms::nym(const std::string& id) const
 
 const class Nym& Nyms::Nym(const std::string& id) const { return *nym(id); }
 
-bool Nyms::save(const std::unique_lock<std::mutex>& lock) const
+bool Nyms::save(const Lock& lock) const
 {
     if (!verify_write_lock(lock)) {
         std::cerr << __FUNCTION__ << ": Lock failure." << std::endl;
@@ -175,10 +180,7 @@ bool Nyms::save(const std::unique_lock<std::mutex>& lock) const
     return driver_.StoreProto(serialized, root_);
 }
 
-void Nyms::save(
-    class Nym* nym,
-    const std::unique_lock<std::mutex>& lock,
-    const std::string& id)
+void Nyms::save(class Nym* nym, const Lock& lock, const std::string& id)
 {
     if (!verify_write_lock(lock)) {
         std::cerr << __FUNCTION__ << ": Lock failure." << std::endl;
