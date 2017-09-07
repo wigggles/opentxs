@@ -190,6 +190,17 @@ std::string Storage::DefaultSeed()
     return Meta().Tree().SeedNode().Default();
 }
 
+bool Storage::DeleteContact(const std::string& id)
+{
+    return mutable_Meta()
+        .It()
+        .mutable_Tree()
+        .It()
+        .mutable_Contacts()
+        .It()
+        .Delete(id);
+}
+
 bool Storage::EmptyBucket(const bool bucket) const
 {
     OT_ASSERT(primary_plugin_);

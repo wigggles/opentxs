@@ -230,6 +230,7 @@ void ContactManager::import_contacts(const rLock& lock)
                     PaymentCode code(nym->PaymentCode());
                     new_contact(lock, nym->Alias(), nymID, code);
                 } break;
+                case proto::CITEMTYPE_ERROR:
                 case proto::CITEMTYPE_SERVER:
                 default: {
                 }
@@ -254,6 +255,14 @@ void ContactManager::init_nym_map(const rLock& lock)
         if (false == bool(contact)) {
 
             throw std::runtime_error("null contact pointer");
+        }
+
+        const auto type = contact->Type();
+
+        if (proto::CITEMTYPE_ERROR == type) {
+            otErr << OT_METHOD << __FUNCTION__ << ": Invalid contact "
+                  << it.first << std::endl;
+            storage_.DeleteContact(it.first);
         }
 
         const auto nyms = contact->Nyms();
@@ -535,9 +544,16 @@ std::shared_ptr<const class Contact> ContactManager::Update(
 
     auto& data = nym->Claims();
 
-    if (proto::CITEMTYPE_SERVER == data.Type()) {
-
-        return {};
+    switch (data.Type()) {
+        case proto::CITEMTYPE_INDIVIDUAL:
+        case proto::CITEMTYPE_ORGANIZATION:
+        case proto::CITEMTYPE_BUSINESS:
+        case proto::CITEMTYPE_GOVERNMENT: {
+            break;
+        }
+        default: {
+            return {};
+        }
     }
 
     const auto& nymID = nym->ID();
