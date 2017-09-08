@@ -107,10 +107,40 @@ ContactSection ContactSection::operator+(const ContactSection& rhs) const
     return ContactSection(nym_, section_, map, version_);
 }
 
+ContactSection ContactSection::add_scope(
+    const std::shared_ptr<ContactItem>& item) const
+{
+    OT_ASSERT(item);
+
+    auto scope = item;
+
+    if (false == scope->isPrimary()) {
+        scope.reset(new ContactItem(scope->SetPrimary(true)));
+    }
+
+    if (false == scope->isActive()) {
+        scope.reset(new ContactItem(scope->SetActive(true)));
+    }
+
+    GroupMap groups{};
+    const auto& groupID = scope->Type();
+    const auto& claimID = scope->ID();
+    groups[groupID].reset(new ContactGroup(nym_, section_, claimID, scope));
+
+    return ContactSection(nym_, section_, groups);
+}
+
 ContactSection ContactSection::AddItem(
     const std::shared_ptr<ContactItem>& item) const
 {
     OT_ASSERT(item);
+
+    const bool specialCaseScope = (proto::CONTACTSECTION_SCOPE == section_);
+
+    if (specialCaseScope) {
+
+        return add_scope(item);
+    }
 
     const auto& groupID = item->Type();
     const bool groupExists = groups_.count(groupID);
