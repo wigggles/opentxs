@@ -635,6 +635,11 @@ bool OTCachedKey::GetMasterPassword(
                << ": Starting thread for Master Key...\n";
         reset_timer();
         shutdown_.store(false);
+
+        if (thread_ && thread_->joinable()) {
+            thread_->join();
+        }
+
         thread_.reset(new std::thread(&OTCachedKey::timeout_thread, this));
 
     } else if (timeout_.load() != (-1)) {
