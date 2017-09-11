@@ -4595,6 +4595,15 @@ public:
         const std::string& nymID,
         const std::string& accountID);
 
+    /**  Retrieve a blockchain account
+     *    \param[in]  nymID owner of the account
+     *    \param[in]  accountID blockchain account ID
+     *    \return base64 serialized proto::Bip44Account
+     */
+    EXPORT static std::string Blockchain_Account_base64(
+        const std::string& nymID,
+        const std::string& accountID);
+
     /**  Retrieve a list of blockchain accounts for a nym
      *    \param[in]  nymID owner of the account
      *    \param[in]  chain currency type (proto::CITEMTYPE enum)
@@ -4612,6 +4621,19 @@ public:
      *    \return binary serialized proto::Bip44Address
      */
     EXPORT static std::string Blockchain_Allocate_Address(
+        const std::string& nymID,
+        const std::string& accountID,
+        const std::string& label = "",
+        const bool internal = false);
+
+    /**  Allocate the next address in a blockchain account
+     *    \param[in]  nymID owner of the account
+     *    \param[in]  accountID blockchain account owning the address
+     *    \param[in]  label optional text label for the address
+     *    \param[in]  internal allocate on internal chain (false for external)
+     *    \return base64 serialized proto::Bip44Address
+     */
+    EXPORT static std::string Blockchain_Allocate_Address_base64(
         const std::string& nymID,
         const std::string& accountID,
         const std::string& label = "",
@@ -4639,6 +4661,19 @@ public:
      *    \return binary serialized proto::Bip44Address
      */
     EXPORT static std::string Blockchain_Load_Address(
+        const std::string& nymID,
+        const std::string& accountID,
+        const std::uint32_t index,
+        const bool internal = false);
+
+    /**  Load metadata for a blockchain address
+     *    \param[in]  nymID owner of the account
+     *    \param[in]  accountID blockchain account owning the address
+     *    \param[in]  index index of the address
+     *    \param[in]  internal allocate on internal chain (false for external)
+     *    \return base64 serialized proto::Bip44Address
+     */
+    EXPORT static std::string Blockchain_Load_Address_base64(
         const std::string& nymID,
         const std::string& accountID,
         const std::uint32_t index,
@@ -4679,10 +4714,36 @@ public:
     /**  Store an incoming blockchain transaction
      *    \param[in]  nymID owner of the incoming address
      *    \param[in]  accountID blockchain account owning the incoming address
+     *    \param[in]  index index of the incoming address
+     *    \param[in]  internal true for chain address, false for deposit address
+     *    \param[in]  transaction base64 serialized proto::BlockchainTransaction
+     */
+    EXPORT static bool Blockchain_Store_Incoming_base64(
+        const std::string& nymID,
+        const std::string& accountID,
+        const std::uint32_t index,
+        const bool internal,
+        const std::string& transaction);
+
+    /**  Store an incoming blockchain transaction
+     *    \param[in]  nymID owner of the incoming address
+     *    \param[in]  accountID blockchain account owning the incoming address
      *    \param[in]  recipientContactID recipient contact
      *    \param[in]  transaction serialized proto::BlockchainTransaction
      */
     EXPORT static bool Blockchain_Store_Outgoing(
+        const std::string& nymID,
+        const std::string& accountID,
+        const std::string& recipientContactID,
+        const std::string& transaction);
+
+    /**  Store an incoming blockchain transaction
+     *    \param[in]  nymID owner of the incoming address
+     *    \param[in]  accountID blockchain account owning the incoming address
+     *    \param[in]  recipientContactID recipient contact
+     *    \param[in]  transaction base64 serialized proto::BlockchainTransaction
+     */
+    EXPORT static bool Blockchain_Store_Outgoing_base64(
         const std::string& nymID,
         const std::string& accountID,
         const std::string& recipientContactID,
@@ -4693,6 +4754,13 @@ public:
      *    \return binary serialized proto::BlockchainTransaction
      */
     EXPORT static std::string Blockchain_Transaction(const std::string& txid);
+
+    /**  Retrieve a blockchain transaction
+     *    \param[in]  txid blockchain transaction ID
+     *    \return base64 serialized proto::BlockchainTransaction
+     */
+    EXPORT static std::string Blockchain_Transaction_base64(
+        const std::string& txid);
 
     // Wrapped ContactManager methods
 
