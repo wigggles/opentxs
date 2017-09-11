@@ -68,16 +68,14 @@ public:
         const OTPassword& seed,
         proto::HDPath& path) const = 0;
 
+    serializedAsymmetricKey AccountChildKey(
+        const proto::HDPath& path,
+        const BIP44Chain internal,
+        const std::uint32_t index) const;
     std::string Seed(const std::string& fingerprint = "") const;
     serializedAsymmetricKey GetPaymentCode(
         std::string& fingerprint,
         const std::uint32_t nym) const;
-    serializedAsymmetricKey Bip44(
-        std::string& fingerprint,
-        const Bip44Type coinType,
-        const std::uint32_t nym,
-        const BIP44Chain internal,
-        const std::uint32_t index) const;
     serializedAsymmetricKey GetStorageKey(std::string& seed) const;
 };
 }  // namespace opentxs

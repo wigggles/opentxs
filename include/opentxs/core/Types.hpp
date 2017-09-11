@@ -417,6 +417,12 @@ enum class Messagability : std::int8_t {
     MISSING_RECIPIENT = 1,
     UNREGISTERED = 2,
 };
+
+enum class BlockchainAccountType : std::uint8_t {
+    ERROR = 0,
+    BIP32 = 1,
+    BIP44 = 2,
+};
 }  // namespace opentxs
 
 #endif  // OPENTXS_CORE_TYPES_HPP

@@ -3495,8 +3495,11 @@ std::string OTAPI_Wrap::Blockchain_Account_List(
     const std::string& nymID,
     const std::uint32_t chain)
 {
-    const auto output = OT::App().Blockchain().AccountList(
-        Identifier(nymID), static_cast<proto::ContactItemType>(chain));
+    const Identifier nym(nymID);
+    const auto type = static_cast<proto::ContactItemType>(chain);
+    otInfo << OT_METHOD << __FUNCTION__ << ": Loading account list for "
+           << proto::TranslateItemType(type) << std::endl;
+    const auto output = OT::App().Blockchain().AccountList(nym, type);
 
     return comma(output);
 }
@@ -3554,12 +3557,24 @@ std::string OTAPI_Wrap::Blockchain_Load_Address(
     return proto::ProtoAsString(*output);
 }
 
-std::string OTAPI_Wrap::Blockchain_New_Account(
+std::string OTAPI_Wrap::Blockchain_New_Bip44_Account(
     const std::string& nymID,
     const std::uint32_t chain)
 {
     return String(OT::App().Blockchain().NewAccount(
                       Identifier(nymID),
+                      BlockchainAccountType::BIP44,
+                      static_cast<proto::ContactItemType>(chain)))
+        .Get();
+}
+
+std::string OTAPI_Wrap::Blockchain_New_Bip32_Account(
+    const std::string& nymID,
+    const std::uint32_t chain)
+{
+    return String(OT::App().Blockchain().NewAccount(
+                      Identifier(nymID),
+                      BlockchainAccountType::BIP32,
                       static_cast<proto::ContactItemType>(chain)))
         .Get();
 }

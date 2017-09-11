@@ -4644,12 +4644,21 @@ public:
         const std::uint32_t index,
         const bool internal = false);
 
-    /**  Allocate a blockchain account for a nym
+    /**  Allocate a blockchain account using BIP-44
      *    \param[in]  nymID owner of the account
      *    \param[in]  chain currency type (proto::CITEMTYPE enum)
      *    \return account ID
      */
-    EXPORT static std::string Blockchain_New_Account(
+    EXPORT static std::string Blockchain_New_Bip44_Account(
+        const std::string& nymID,
+        const std::uint32_t chain);
+
+    /**  Allocate a blockchain account using BIP-32
+     *    \param[in]  nymID owner of the account
+     *    \param[in]  chain currency type (proto::CITEMTYPE enum)
+     *    \return account ID
+     */
+    EXPORT static std::string Blockchain_New_Bip32_Account(
         const std::string& nymID,
         const std::uint32_t chain);
 

@@ -84,6 +84,7 @@ public:
         const BIP44Chain chain) const;
     Identifier NewAccount(
         const Identifier& nymID,
+        const BlockchainAccountType standard,
         const proto::ContactItemType type) const;
     bool StoreIncoming(
         const Identifier& nymID,
@@ -127,6 +128,12 @@ private:
         const std::uint32_t index,
         const BIP44Chain chain,
         proto::Bip44Account& account) const;
+    void init_path(
+        const std::string& root,
+        const proto::ContactItemType chain,
+        const std::uint32_t account,
+        const BlockchainAccountType standard,
+        proto::HDPath& path) const;
     std::shared_ptr<proto::Bip44Account> load_account(
         const Lock& lock,
         const std::string& nymID,
