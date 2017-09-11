@@ -103,6 +103,8 @@ private:
         const std::string& nym,
         const proto::ContactSection& serialized);
 
+    ContactSection add_scope(const std::shared_ptr<ContactItem>& item) const;
+
     ContactSection() = delete;
     ContactSection& operator=(const ContactSection&) = delete;
     ContactSection& operator=(ContactSection&&) = delete;

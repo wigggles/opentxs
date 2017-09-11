@@ -195,6 +195,7 @@ public:
         const std::string& threadID,
         const std::set<std::string>& participants);
     std::string DefaultSeed();
+    bool DeleteContact(const std::string& id);
     bool Load(
         const std::string& nymID,
         const std::string& accountID,

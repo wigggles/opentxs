@@ -183,6 +183,7 @@ private:
         const bool force,
         const bool publish) const;
     void clean_background_threads();
+    void clear_paired_section(const std::size_t index) const;
     bool do_i_download_server_nym() const;
     bool download_nym(
         const std::string& localNym,
@@ -318,6 +319,7 @@ private:
         const Identifier& nymID,
         const Identifier& requestID) const;
     void resend_peer_requests() const;
+    void rewrite_pairing(const Lock& lock);
     bool send_backup(const std::string& bridgeNymID, PairedNode& node) const;
     bool send_server_name(
         const std::string& nym,
@@ -342,6 +344,18 @@ private:
     proto::ContactItemType validate_unit(const std::int64_t type);
     bool yield() const;
     bool verify_lock(const Lock& lock, const std::mutex& mutex) const;
+    void write_pair_section(
+        const String& section,
+        const String& bridgeNymID,
+        const String& adminPassword,
+        const String& ownerNymID,
+        const String& notaryID,
+        const bool backup,
+        const bool connected,
+        const bool renamed,
+        const bool done,
+        unitTypeMap& units,
+        unitTypeMap& accounts);
 
     OTME_too(
         std::recursive_mutex& lock,

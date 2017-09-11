@@ -331,7 +331,7 @@ void OTME_too::build_account_list(serverTaskMap& output) const
 {
     // Make sure no nyms, servers, or accounts are added or removed while
     // creating the list
-    std::unique_lock<std::recursive_mutex> apiLock(api_lock_);
+    rLock apiLock(api_lock_);
     const auto serverList = wallet_.ServerList();
     const auto nymCount = exec_.GetNymCount();
     const auto accountCount = exec_.GetAccountCount();
@@ -374,7 +374,7 @@ void OTME_too::build_nym_list(std::list<std::string>& output) const
     output.clear();
 
     // Make sure no nyms are added or removed while creating the list
-    std::unique_lock<std::recursive_mutex> apiLock(api_lock_);
+    rLock apiLock(api_lock_);
     const auto nymCount = exec_.GetNymCount();
 
     for (std::int32_t n = 0; n < nymCount; n++) {
@@ -558,7 +558,7 @@ bool OTME_too::check_backup(const std::string& bridgeNymID, PairedNode& node)
     String section = PAIRED_SECTION_PREFIX;
     String sectionKey = std::to_string(std::get<0>(node)).c_str();
     section.Concatenate(sectionKey);
-    std::lock_guard<std::recursive_mutex> apiLock(api_lock_);
+    rLock apiLock(api_lock_);
 
     if (!config_.Set_bool(section, BACKUP_KEY, true, dontCare)) {
 
@@ -651,7 +651,7 @@ bool OTME_too::check_nym_revision(
     const std::string& nymID,
     const std::string& server) const
 {
-    std::lock_guard<std::recursive_mutex> apiLock(api_lock_);
+    rLock apiLock(api_lock_);
 
     auto nym = wallet_.Nym(Identifier(nymID));
 
@@ -679,7 +679,7 @@ bool OTME_too::check_pairing(
 {
     bool output = false;
 
-    std::lock_guard<std::mutex> lock(pair_lock_);
+    Lock lock(pair_lock_);
 
     auto it = paired_nodes_.find(bridgeNym);
 
@@ -782,6 +782,49 @@ void OTME_too::clean_background_threads()
             }
         }
     }
+}
+
+void OTME_too::clear_paired_section(const std::size_t nodeIndex) const
+{
+    bool notUsed{false};
+    const String empty{"deleted"};
+    const std::int64_t zero{0};
+    String section = PAIRED_SECTION_PREFIX;
+    String sectionKey = std::to_string(nodeIndex).c_str();
+    section.Concatenate(sectionKey);
+    config_.Set_str(section, BRIDGE_NYM_KEY, empty, notUsed);
+    config_.Set_str(section, ADMIN_PASSWORD_KEY, empty, notUsed);
+    config_.Set_str(section, ADMIN_PASSWORD_KEY, empty, notUsed);
+    config_.Set_str(section, OWNER_NYM_KEY, empty, notUsed);
+    config_.Set_str(section, NOTARY_ID_KEY, empty, notUsed);
+    config_.Set_bool(section, BACKUP_KEY, false, notUsed);
+    config_.Set_bool(section, CONNECTED_KEY, false, notUsed);
+    config_.Set_bool(section, RENAME_KEY, false, notUsed);
+    config_.Set_bool(section, DONE_KEY, false, notUsed);
+    std::int64_t issued{0};
+    config_.Check_long(section, ISSUED_UNITS_KEY, issued, notUsed);
+
+    for (std::int64_t n = 0; n < issued; n++) {
+        std::int64_t type{0};
+        String key = ISSUED_UNIT_PREFIX_KEY;
+        String index = std::to_string(n).c_str();
+        key.Concatenate(index);
+        config_.Check_long(section, key, type, notUsed);
+
+        if (0 != type) {
+            String contract, account;
+            String unitKey = ASSET_ID_PREFIX_KEY;
+            String accountKey = ACCOUNT_ID_PREFIX_KEY;
+            String unitIndex = std::to_string(type).c_str();
+            unitKey.Concatenate(unitIndex);
+            accountKey.Concatenate(unitIndex);
+            config_.Set_str(section, unitKey, empty, notUsed);
+            config_.Set_str(section, accountKey, empty, notUsed);
+            config_.Set_long(section, key, zero, notUsed);
+        }
+    }
+
+    config_.Set_long(section, ISSUED_UNITS_KEY, zero, notUsed);
 }
 
 bool OTME_too::do_i_download_server_nym() const
@@ -972,7 +1015,7 @@ void OTME_too::fill_existing_accounts(
     PairedNode& node)
 {
     const auto& notaryID = std::get<3>(node);
-    std::lock_guard<std::recursive_mutex> apiLock(api_lock_);
+    rLock apiLock(api_lock_);
     const auto count = exec_.GetAccountCount();
 
     for (std::int32_t n = 0; n < count; n++) {
@@ -1006,7 +1049,7 @@ void OTME_too::fill_paired_servers(
     std::set<std::string>& serverList,
     std::list<std::pair<std::string, std::string>>& serverNymList) const
 {
-    std::lock_guard<std::mutex> pairLock(pair_lock_);
+    Lock pairLock(pair_lock_);
 
     for (const auto& it : paired_nodes_) {
         const auto& node = it.second;
@@ -1098,7 +1141,7 @@ std::unique_ptr<OTME_too::PairedNode> OTME_too::find_node(
 {
     std::unique_ptr<OTME_too::PairedNode> output;
 
-    std::lock_guard<std::mutex> lock(pair_lock_);
+    Lock lock(pair_lock_);
     const auto it = paired_nodes_.find(identifier);
 
     if (paired_nodes_.end() != it) {
@@ -1268,7 +1311,7 @@ std::string OTME_too::get_introduction_server(const Lock& lock) const
 {
     bool keyFound = false;
     String serverID;
-    std::lock_guard<std::recursive_mutex> apiLock(api_lock_);
+    rLock apiLock(api_lock_);
     const bool config = config_.Check_str(
         MASTER_SECTION, INTRODUCTION_SERVER_KEY, serverID, keyFound);
 
@@ -1319,7 +1362,7 @@ bool OTME_too::insert_at_index(
     const std::string& bridgeNym,
     std::string& password) const
 {
-    std::lock_guard<std::recursive_mutex> apiLock(api_lock_);
+    rLock apiLock(api_lock_);
     bool dontCare = false;
 
     if (!config_.Set_long(MASTER_SECTION, PAIRED_NODES_KEY, total, dontCare)) {
@@ -1391,7 +1434,7 @@ std::uint64_t OTME_too::legacy_contact_count() const
 {
     std::int64_t result = 0;
     bool notUsed = false;
-    std::lock_guard<std::recursive_mutex> apiLock(api_lock_);
+    rLock apiLock(api_lock_);
     config_.Check_long(MASTER_SECTION, CONTACT_COUNT_KEY, result, notUsed);
 
     if (1 > result) {
@@ -1432,7 +1475,7 @@ void OTME_too::mark_connected(PairedNode& node)
     String section = PAIRED_SECTION_PREFIX;
     String sectionKey = std::to_string(std::get<0>(node)).c_str();
     section.Concatenate(sectionKey);
-    std::lock_guard<std::recursive_mutex> apiLock(api_lock_);
+    rLock apiLock(api_lock_);
     connected = true;
     config_.Set_bool(section, CONNECTED_KEY, connected, dontCare);
     config_.Save();
@@ -1449,7 +1492,7 @@ void OTME_too::mark_finished(const std::string& bridgeNymID)
     String sectionKey = std::to_string(std::get<0>(node)).c_str();
     section.Concatenate(sectionKey);
     done = true;
-    std::lock_guard<std::recursive_mutex> apiLock(api_lock_);
+    rLock apiLock(api_lock_);
     config_.Set_bool(section, DONE_KEY, done, dontCare);
     config_.Save();
 }
@@ -1465,7 +1508,7 @@ void OTME_too::mark_renamed(const std::string& bridgeNymID)
     String sectionKey = std::to_string(std::get<0>(node)).c_str();
     section.Concatenate(sectionKey);
     renamed = true;
-    std::unique_lock<std::recursive_mutex> apiLock(api_lock_);
+    rLock apiLock(api_lock_);
     config_.Set_bool(section, RENAME_KEY, renamed, dontCare);
     config_.Save();
     apiLock.unlock();
@@ -1836,7 +1879,7 @@ void OTME_too::pair(const std::string& bridgeNymID)
         }
     }
 
-    std::lock_guard<std::recursive_mutex> apiLock(api_lock_);
+    rLock apiLock(api_lock_);
     config_.Save();
 }
 
@@ -1844,7 +1887,7 @@ std::uint64_t OTME_too::PairedNodeCount() const
 {
     std::int64_t result = 0;
     bool notUsed = false;
-    std::lock_guard<std::recursive_mutex> apiLock(api_lock_);
+    rLock apiLock(api_lock_);
     config_.Check_long(MASTER_SECTION, PAIRED_NODES_KEY, result, notUsed);
 
     if (1 > result) {
@@ -2042,19 +2085,39 @@ bool OTME_too::PairNode(
     const std::string& password)
 {
     if (myNym.empty()) {
-        otErr << __FUNCTION__ << ": missing nym." << std::endl;
+        otErr << OT_METHOD << __FUNCTION__ << ": missing nym." << std::endl;
 
         return false;
     }
 
     if (bridgeNym.empty()) {
-        otErr << __FUNCTION__ << ": missing bridge nym." << std::endl;
+        otErr << OT_METHOD << __FUNCTION__ << ": missing bridge nym."
+              << std::endl;
 
         return false;
     }
 
     if (password.empty()) {
-        otErr << __FUNCTION__ << ": missing password." << std::endl;
+        otErr << OT_METHOD << __FUNCTION__ << ": missing password."
+              << std::endl;
+
+        return false;
+    }
+
+    const Identifier myNymID(myNym);
+
+    if (myNymID.empty()) {
+        otErr << OT_METHOD << __FUNCTION__ << ": invalid local nym."
+              << std::endl;
+
+        return false;
+    }
+
+    const Identifier bridgeNymID(bridgeNym);
+
+    if (bridgeNymID.empty()) {
+        otErr << OT_METHOD << __FUNCTION__ << ": invalid bridge nym."
+              << std::endl;
 
         return false;
     }
@@ -2164,7 +2227,7 @@ void OTME_too::parse_contact_section(const std::uint64_t index)
 
 void OTME_too::parse_pairing_section(std::uint64_t index)
 {
-    std::lock_guard<std::recursive_mutex> apiLock(api_lock_);
+    rLock apiLock(api_lock_);
     bool notUsed = false;
     String bridgeNym, adminPassword, ownerNym;
     String section = PAIRED_SECTION_PREFIX;
@@ -2177,6 +2240,18 @@ void OTME_too::parse_pairing_section(std::uint64_t index)
         (bridgeNym.Exists() && adminPassword.Exists() && ownerNym.Exists());
 
     if (!ready) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Skipping incomplete pairing section." << std::endl;
+
+        return;
+    }
+
+    Identifier bridgeNymID(bridgeNym);
+
+    if (bridgeNymID.empty()) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Skipping invalid pairing section." << std::endl;
+
         return;
     }
 
@@ -2210,7 +2285,7 @@ void OTME_too::parse_pairing_section(std::uint64_t index)
 
     for (std::int64_t n = 0; n < issued; n++) {
         bool exists = false;
-        std::int64_t type;
+        std::int64_t type{0};
         String key = ISSUED_UNIT_PREFIX_KEY;
         String index = std::to_string(n).c_str();
         key.Concatenate(index);
@@ -2239,7 +2314,7 @@ bool OTME_too::publish_server_registration(
     const std::string& server,
     const bool forcePrimary) const
 {
-    std::unique_lock<std::recursive_mutex> apiLock(api_lock_);
+    rLock apiLock(api_lock_);
     auto nym = ot_api_.GetOrLoadPrivateNym(Identifier(nymID), false);
 
     OT_ASSERT(nullptr != nym);
@@ -2633,7 +2708,7 @@ void OTME_too::resend_peer_request(
     const Identifier& nymID,
     const Identifier& requestID) const
 {
-    std::unique_lock<std::recursive_mutex> apiLock(api_lock_);
+    rLock apiLock(api_lock_);
     std::time_t notUsed;
 
     auto request = wallet_.PeerRequest(
@@ -2706,6 +2781,54 @@ void OTME_too::resend_peer_requests() const
     }
 }
 
+void OTME_too::rewrite_pairing(const Lock& lock)
+{
+    OT_ASSERT(verify_lock(lock, pair_lock_));
+
+    const std::size_t originalCount = PairedNodeCount();
+    rLock(api_lock_);
+    std::size_t newCount{0};
+
+    for (auto& it : paired_nodes_) {
+        const auto& bridgeNymID = it.first;
+        auto& node = it.second;
+        auto& nodeIndex = std::get<0>(node);
+        const auto& owner = std::get<1>(node);
+        const auto& password = std::get<2>(node);
+        const auto& notaryID = std::get<3>(node);
+        auto& unitMap = std::get<4>(node);
+        auto& accountMap = std::get<5>(node);
+        const auto& backup = std::get<6>(node);
+        const auto& connected = std::get<7>(node);
+        const auto& rename = std::get<8>(node);
+        const auto& done = std::get<9>(node);
+        nodeIndex = newCount++;
+        String section = PAIRED_SECTION_PREFIX;
+        String key = std::to_string(nodeIndex).c_str();
+        section.Concatenate(key);
+        write_pair_section(
+            section,
+            bridgeNymID.c_str(),
+            password.c_str(),
+            owner.c_str(),
+            notaryID.c_str(),
+            backup,
+            connected,
+            rename,
+            done,
+            unitMap,
+            accountMap);
+    }
+
+    for (std::size_t i = newCount; i < originalCount; ++i) {
+        clear_paired_section(i);
+    }
+
+    bool notUsed{false};
+    config_.Set_long(MASTER_SECTION, PAIRED_NODES_KEY, newCount, notUsed);
+    config_.Save();
+}
+
 bool OTME_too::send_backup(const std::string& bridgeNymID, PairedNode& node)
     const
 {
@@ -2763,7 +2886,7 @@ std::string OTME_too::set_introduction_server(
         introduction_server_set_.store(true);
 
         bool dontCare = false;
-        std::lock_guard<std::recursive_mutex> apiLock(api_lock_);
+        rLock apiLock(api_lock_);
         const bool set = config_.Set_str(
             MASTER_SECTION, INTRODUCTION_SERVER_KEY, String(id), dontCare);
 
@@ -2912,7 +3035,7 @@ std::int64_t OTME_too::scan_incomplete_pairing(const std::string& bridgeNym)
         String section = PAIRED_SECTION_PREFIX;
         const String key = std::to_string(n).c_str();
         section.Concatenate(key);
-        std::lock_guard<std::recursive_mutex> apiLock(api_lock_);
+        rLock apiLock(api_lock_);
         config_.Check_str(section, BRIDGE_NYM_KEY, existing, notUsed);
         const std::string compareNym(existing.Get());
 
@@ -2928,7 +3051,7 @@ std::int64_t OTME_too::scan_incomplete_pairing(const std::string& bridgeNym)
 
 void OTME_too::scan_pairing()
 {
-    std::lock_guard<std::mutex> lock(pair_lock_);
+    Lock lock(pair_lock_);
 
     for (std::uint64_t n = 0; n < PairedNodeCount(); n++) {
 
@@ -2940,6 +3063,8 @@ void OTME_too::scan_pairing()
     }
 
     yield();
+
+    rewrite_pairing(lock);
 }
 
 void OTME_too::Shutdown()
@@ -3025,7 +3150,7 @@ bool OTME_too::update_accounts(const PairedNode& node)
     String sectionKey = std::to_string(std::get<0>(node)).c_str();
     section.Concatenate(sectionKey);
     const auto& accountMap = std::get<5>(node);
-    std::lock_guard<std::recursive_mutex> apiLock(api_lock_);
+    rLock apiLock(api_lock_);
 
     for (const auto account : accountMap) {
         const auto& type = account.first;
@@ -3051,7 +3176,7 @@ bool OTME_too::update_assets(PairedNode& node)
     section.Concatenate(sectionKey);
     auto& unitMap = std::get<4>(node);
     const auto count = unitMap.size();
-    std::lock_guard<std::recursive_mutex> apiLock(api_lock_);
+    rLock apiLock(api_lock_);
 
     if (!config_.Set_long(section, ISSUED_UNITS_KEY, count, dontCare)) {
 
@@ -3092,7 +3217,7 @@ bool OTME_too::update_notary(const std::string& id, PairedNode& node)
     String section = PAIRED_SECTION_PREFIX;
     String key = std::to_string(std::get<0>(node)).c_str();
     section.Concatenate(key);
-    std::lock_guard<std::recursive_mutex> apiLock(api_lock_);
+    rLock apiLock(api_lock_);
 
     const bool set =
         config_.Set_str(section, NOTARY_ID_KEY, String(id), dontCare);
@@ -3111,7 +3236,7 @@ bool OTME_too::update_nym_revision(
     const std::string& nymID,
     const std::string& server) const
 {
-    std::lock_guard<std::recursive_mutex> apiLock(api_lock_);
+    rLock apiLock(api_lock_);
 
     auto nym = wallet_.Nym(Identifier(nymID));
 
@@ -3216,6 +3341,52 @@ bool OTME_too::verify_lock(const Lock& lock, const std::mutex& mutex) const
     }
 
     return true;
+}
+
+void OTME_too::write_pair_section(
+    const String& section,
+    const String& bridgeNymID,
+    const String& adminPassword,
+    const String& ownerNymID,
+    const String& notaryID,
+    const bool backup,
+    const bool connected,
+    const bool renamed,
+    const bool done,
+    unitTypeMap& units,
+    unitTypeMap& accounts)
+{
+    bool notUsed{false};
+    config_.Set_str(section, BRIDGE_NYM_KEY, bridgeNymID, notUsed);
+    config_.Set_str(section, ADMIN_PASSWORD_KEY, adminPassword, notUsed);
+    config_.Set_str(section, ADMIN_PASSWORD_KEY, adminPassword, notUsed);
+    config_.Set_str(section, OWNER_NYM_KEY, ownerNymID, notUsed);
+    config_.Set_str(section, NOTARY_ID_KEY, notaryID, notUsed);
+    config_.Set_bool(section, BACKUP_KEY, backup, notUsed);
+    config_.Set_bool(section, CONNECTED_KEY, connected, notUsed);
+    config_.Set_bool(section, RENAME_KEY, renamed, notUsed);
+    config_.Set_bool(section, DONE_KEY, done, notUsed);
+    std::int64_t issued{0};
+
+    for (auto& it : units) {
+        const auto& key = it.first;
+        const auto& unit = it.second;
+        const String issuedIndex(std::to_string(issued++).c_str());
+        const auto& account = accounts[key];
+        const auto unitType = static_cast<std::int64_t>(key);
+        const String unitTypeIndex(std::to_string(unitType).c_str());
+        String unitKey = ISSUED_UNIT_PREFIX_KEY;
+        unitKey.Concatenate(issuedIndex);
+        config_.Set_long(section, unitKey, unitType, notUsed);
+        String unitIDKey = ASSET_ID_PREFIX_KEY;
+        unitIDKey.Concatenate(unitTypeIndex);
+        config_.Set_str(section, unitIDKey, unit.c_str(), notUsed);
+        String accountKey = ACCOUNT_ID_PREFIX_KEY;
+        accountKey.Concatenate(unitTypeIndex);
+        config_.Set_str(section, accountKey, account.c_str(), notUsed);
+    }
+
+    config_.Set_long(section, ISSUED_UNITS_KEY, issued, notUsed);
 }
 
 bool OTME_too::yield() const
