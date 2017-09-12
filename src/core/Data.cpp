@@ -44,6 +44,10 @@
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/util/Assert.hpp"
 
+#include <cstdio>
+#include <iomanip>
+#include <sstream>
+
 namespace opentxs
 {
 Data::Data(const OTASCIIArmor& source)
@@ -101,6 +105,19 @@ Data& Data::operator+=(const Data& rhs)
     concatenate(rhs.data_);
 
     return *this;
+}
+
+std::string Data::asHex() const
+{
+    const std::size_t size = 2 * data_.size();
+    std::vector<char> output{};
+    output.resize(size, 0x0);
+
+    for (std::size_t i = 0; i < data_.size(); i++) {
+        std::sprintf(&output[2 * i], "%02X", data_.at(i));
+    }
+
+    return std::string(output.data(), output.size());
 }
 
 void Data::Assign(const Data& rhs)

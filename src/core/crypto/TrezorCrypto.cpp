@@ -197,7 +197,7 @@ std::unique_ptr<HDNode> TrezorCrypto::DeriveChild(
     const OTPassword& seed,
     proto::HDPath& path) const
 {
-    uint32_t depth = path.child_size();
+    std::uint32_t depth = path.child_size();
 
     if (0 == depth) {
 
@@ -206,11 +206,13 @@ std::unique_ptr<HDNode> TrezorCrypto::DeriveChild(
         proto::HDPath newpath = path;
         newpath.mutable_child()->RemoveLast();
         auto parentnode = DeriveChild(curve, seed, newpath);
-        std::unique_ptr<HDNode> output;
+        std::unique_ptr<HDNode> output{nullptr};
 
         if (parentnode) {
             const auto child = path.child(depth - 1);
             output = GetChild(*parentnode, child, DERIVE_PRIVATE);
+        } else {
+            OT_FAIL;
         }
 
         return output;
@@ -222,10 +224,15 @@ serializedAsymmetricKey TrezorCrypto::GetHDKey(
     const OTPassword& seed,
     proto::HDPath& path) const
 {
-    serializedAsymmetricKey output;
+    otInfo << OT_METHOD << __FUNCTION__ << ": Deriving child:\n"
+           << Print(path) << std::endl;
+    serializedAsymmetricKey output{nullptr};
     auto node = DeriveChild(curve, seed, path);
 
     if (!node) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to derive child."
+              << std::endl;
+
         return output;
     }
 

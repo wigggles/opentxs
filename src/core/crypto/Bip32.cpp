@@ -120,6 +120,7 @@ serializedAsymmetricKey Bip32::GetPaymentCode(
     }
 
     proto::HDPath path;
+    path.set_root(fingerprint);
     path.add_child(
         static_cast<std::uint32_t>(Bip43Purpose::PAYCODE) |
         static_cast<std::uint32_t>(Bip32Child::HARDENED));
@@ -146,6 +147,7 @@ serializedAsymmetricKey Bip32::GetStorageKey(std::string& fingerprint) const
     }
 
     proto::HDPath path;
+    path.set_root(fingerprint);
     path.add_child(
         static_cast<std::uint32_t>(Bip43Purpose::FS) |
         static_cast<std::uint32_t>(Bip32Child::HARDENED));
@@ -154,6 +156,25 @@ serializedAsymmetricKey Bip32::GetStorageKey(std::string& fingerprint) const
         static_cast<std::uint32_t>(Bip32Child::HARDENED));
 
     return GetHDKey(EcdsaCurve::SECP256K1, *seed, path);
+}
+
+std::string Print(const proto::HDPath& node)
+{
+    std::stringstream output{};
+    output << node.root();
+
+    for (const auto& child : node.child()) {
+        output << " / ";
+        const auto max = static_cast<std::uint32_t>(Bip32Child::HARDENED);
+
+        if (max > child) {
+            output << std::to_string(child);
+        } else {
+            output << std::to_string(child - max) << "'";
+        }
+    }
+
+    return output.str();
 }
 }  // namespace opentxs
 #endif

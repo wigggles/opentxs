@@ -50,8 +50,9 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
 
-#if !(defined(_WIN32) || (defined(TARGET_OS_IPHONE) && TARGET_OS_IPHONE) ||    \
-      defined(ANDROID))
+#if !(                                                                         \
+    defined(_WIN32) || (defined(TARGET_OS_IPHONE) && TARGET_OS_IPHONE) ||      \
+    defined(ANDROID))
 #include <wordexp.h>
 #endif
 
@@ -74,8 +75,7 @@ std::ostream& operator<<(std::ostream& os, const String& obj)
     return os;
 }
 
-
-//static
+// static
 std::string String::LongToString(const int64_t& lNumber)
 {
     std::string strNumber;
@@ -87,7 +87,7 @@ std::string String::LongToString(const int64_t& lNumber)
     return strNumber;
 }
 
-//static
+// static
 std::string String::UlongToString(const uint64_t& uNumber)
 {
     std::string strNumber;
@@ -98,8 +98,6 @@ std::string String::UlongToString(const uint64_t& uNumber)
 
     return strNumber;
 }
-
-
 
 /*
  int32_t vsnprintf(char* str, size_t size, const char* format, va_list ap);
@@ -147,7 +145,7 @@ bool String::vformat(const char* fmt, va_list* pvl, std::string& str_Output)
     va_list args;
 
 #ifdef _WIN32
-    va_list args_2 = *pvl; // windows only.
+    va_list args_2 = *pvl;  // windows only.
 
     args = *pvl;
     size = _vscprintf(fmt, args) + 1;
@@ -259,9 +257,11 @@ errno_t strcpy_s(char* strDestination,
 // static
 size_t String::safe_strlen(const char* s, size_t max)
 {
-    OT_ASSERT_MSG(max <= MAX_STRING_LENGTH, "OT_String::safe_strlen: ASSERT: "
-                                            "max length passed in is longer "
-                                            "than allowed.\n");
+    OT_ASSERT_MSG(
+        max <= MAX_STRING_LENGTH,
+        "OT_String::safe_strlen: ASSERT: "
+        "max length passed in is longer "
+        "than allowed.\n");
 
     return strnlen(s, max);
 }
@@ -289,9 +289,10 @@ std::string& String::trim(std::string& str)
     return str;
 }
 
-std::string String::replace_chars(const std::string& str,
-                                  const std::string& charsFrom,
-                                  const char& charTo)
+std::string String::replace_chars(
+    const std::string& str,
+    const std::string& charsFrom,
+    const char& charTo)
 {
     std::string l_str(str);
     size_t found;
@@ -393,8 +394,9 @@ bool String::operator>=(const String& s2) const
 bool String::TokenizeIntoKeyValuePairs(
     std::map<std::string, std::string>& mapOutput) const
 {
-#if !(defined(_WIN32) || (defined(TARGET_OS_IPHONE) && TARGET_OS_IPHONE) ||    \
-      defined(ANDROID))
+#if !(                                                                         \
+    defined(_WIN32) || (defined(TARGET_OS_IPHONE) && TARGET_OS_IPHONE) ||      \
+    defined(ANDROID))
     // fabcy-pansy parser that allows for multiple level of quotes nesting and
     // escaped quotes
     if (!Exists()) return true;
@@ -405,11 +407,11 @@ bool String::TokenizeIntoKeyValuePairs(
     exp_result.we_wordv = nullptr;
     exp_result.we_offs = 0;
 
-    if (wordexp(Get(), &exp_result, 0)) // non-zero == failure.
+    if (wordexp(Get(), &exp_result, 0))  // non-zero == failure.
     {
         otErr << "OTString::TokenizeIntoKeyValuePairs: Error calling wordexp() "
-                 "(to expand user-defined script args.)\nData: " << *this
-              << "\n";
+                 "(to expand user-defined script args.)\nData: "
+              << *this << "\n";
         //        wordfree(&exp_result);
         return false;
     }
@@ -423,9 +425,9 @@ bool String::TokenizeIntoKeyValuePairs(
         //
         for (uint32_t i = 0;
              (i < (exp_result.we_wordc - 1)) &&
-                 (exp_result.we_wordv[i] != nullptr) &&
-                 (exp_result.we_wordv[i + 1] !=
-                  nullptr); // odd man out. Only PAIRS of strings are processed!
+             (exp_result.we_wordv[i] != nullptr) &&
+             (exp_result.we_wordv[i + 1] !=
+              nullptr);  // odd man out. Only PAIRS of strings are processed!
              i += 2) {
             const std::string str_key = exp_result.we_wordv[i];
             const std::string str_val = exp_result.we_wordv[i + 1];
@@ -463,8 +465,7 @@ bool String::TokenizeIntoKeyValuePairs(
             }
             k2 = i;
             i++;
-        }
-        else {
+        } else {
             while (txt[i] != ' ' && txt[i] != 0) i++;
             k2 = i;
         }
@@ -485,8 +486,7 @@ bool String::TokenizeIntoKeyValuePairs(
             }
             v2 = i;
             i++;
-        }
-        else {
+        } else {
             while (txt[i] != ' ' && txt[i] != 0) i++;
             v2 = i;
         }
@@ -549,7 +549,6 @@ int64_t String::ToLong() const
 
     return String::StringToLong(str_number);
 }
-
 
 // static
 uint32_t String::StringToUint(const std::string& strNumber)
@@ -664,10 +663,7 @@ void String::Release(void)
 
 // ***** Construction -- Destruction *****
 
-String::~String()
-{
-    Release_String();
-}
+String::~String() { Release_String(); }
 
 void String::Initialize()
 {
@@ -785,18 +781,19 @@ String::String(const std::string& new_string)
 
 void String::LowLevelSetStr(const String& strBuf)
 {
-    OT_ASSERT(nullptr == data_); // otherwise memory leak.
+    OT_ASSERT(nullptr == data_);  // otherwise memory leak.
 
     if (strBuf.Exists()) {
         length_ = (MAX_STRING_LENGTH > strBuf.length_)
                       ? strBuf.length_
                       : (MAX_STRING_LENGTH - 1);
 
-        OT_ASSERT_MSG(length_ < (MAX_STRING_LENGTH - 10),
-                      "ASSERT: OTString::LowLevelSetStr: Exceeded "
-                      "MAX_STRING_LENGTH! (String would not have fully fit "
-                      "anyway--it would have been truncated here, potentially "
-                      "causing data corruption.)"); // 10 being a buffer.
+        OT_ASSERT_MSG(
+            length_ < (MAX_STRING_LENGTH - 10),
+            "ASSERT: OTString::LowLevelSetStr: Exceeded "
+            "MAX_STRING_LENGTH! (String would not have fully fit "
+            "anyway--it would have been truncated here, potentially "
+            "causing data corruption.)");  // 10 being a buffer.
 
         data_ = str_dup2(strBuf.data_, length_);
     }
@@ -816,7 +813,7 @@ void String::LowLevelSetStr(const String& strBuf)
 //
 void String::LowLevelSet(const char* new_string, uint32_t nEnforcedMaxLength)
 {
-    OT_ASSERT(nullptr == data_); // otherwise memory leak.
+    OT_ASSERT(nullptr == data_);  // otherwise memory leak.
 
     if (nullptr != new_string) {
         uint32_t nLength =
@@ -824,17 +821,19 @@ void String::LowLevelSet(const char* new_string, uint32_t nEnforcedMaxLength)
                 ? static_cast<uint32_t>(String::safe_strlen(
                       new_string, static_cast<size_t>(nEnforcedMaxLength)))
                 : static_cast<uint32_t>(String::safe_strlen(
-                      new_string, static_cast<size_t>(MAX_STRING_LENGTH -
-                                                      1))); // room for \0
+                      new_string,
+                      static_cast<size_t>(MAX_STRING_LENGTH - 1)));  // room for
+                                                                     // \0
 
         // don't bother allocating memory for a 0 length string.
         if (0 == nLength) return;
 
-        OT_ASSERT_MSG(nLength < (MAX_STRING_LENGTH - 10),
-                      "ASSERT: OTString::LowLevelSet: Exceeded "
-                      "MAX_STRING_LENGTH! (String would not have fully fit "
-                      "anyway--it would have been truncated here, potentially "
-                      "causing data corruption.)"); // 10 being a buffer.
+        OT_ASSERT_MSG(
+            nLength < (MAX_STRING_LENGTH - 10),
+            "ASSERT: OTString::LowLevelSet: Exceeded "
+            "MAX_STRING_LENGTH! (String would not have fully fit "
+            "anyway--it would have been truncated here, potentially "
+            "causing data corruption.)");  // 10 being a buffer.
 
         // Add null terminator to source string JUST IN CASE...
         // Update: this is const, so we can't change it. However, the strnlen
@@ -857,13 +856,13 @@ void String::LowLevelSet(const char* new_string, uint32_t nEnforcedMaxLength)
 // The source is probably NOT null-terminated.
 // Size must be exact (not a max.)
 //
-bool String::MemSet(const char* pMem, uint32_t theSize) // if theSize is 10...
+bool String::MemSet(const char* pMem, uint32_t theSize)  // if theSize is 10...
 {
     Release();
     // -------------------
     if ((nullptr == pMem) || (theSize < 1)) return true;
 
-    char* str_new = new char[theSize + 1]; // then we allocate 11
+    char* str_new = new char[theSize + 1];  // then we allocate 11
     OT_ASSERT(nullptr != str_new);
     // -------------------
     OTPassword::zeroMemory(str_new, theSize + 1);
@@ -875,17 +874,17 @@ bool String::MemSet(const char* pMem, uint32_t theSize) // if theSize is 10...
     //                                 uint32_t src_length,
     //                                 bool     bZeroSource)
 
-    OTPassword::safe_memcpy(static_cast<void*>(str_new), theSize + 1, pMem,
-                            theSize);
+    OTPassword::safe_memcpy(
+        static_cast<void*>(str_new), theSize + 1, pMem, theSize);
     //    memcpy(static_cast<void*>(str_new), pMem, theSize); // then we copy 10
     // bytes
 
     // todo optimize: This is probably superfluous due to the zeroMemory above.
     // Then again, we might want to remove that, and then keep this.
-    str_new[theSize] = '\0'; // add null-terminator. (I deliberately made this
-                             // buffer 1 byte larger so I could put the 0 at the
-                             // end.) Here the index[10] is the 11th byte, since
-                             // we're counting from 0.
+    str_new[theSize] = '\0';  // add null-terminator. (I deliberately made this
+    // buffer 1 byte larger so I could put the 0 at the
+    // end.) Here the index[10] is the 11th byte, since
+    // we're counting from 0.
 
     // Calculate the length (in case there was a null terminator in the
     // middle...)
@@ -893,9 +892,9 @@ bool String::MemSet(const char* pMem, uint32_t theSize) // if theSize is 10...
     //
     uint32_t nLength = static_cast<uint32_t>(
         String::safe_strlen(str_new, static_cast<size_t>(theSize)));
-    str_new[nLength] = '\0'; // This SHOULD be superfluous as well...
+    str_new[nLength] = '\0';  // This SHOULD be superfluous as well...
 
-    length_ = nLength; // the length doesn't count the 0.
+    length_ = nLength;  // the length doesn't count the 0.
     data_ = str_new;
 
     return true;
@@ -903,8 +902,8 @@ bool String::MemSet(const char* pMem, uint32_t theSize) // if theSize is 10...
 
 String& String::operator=(String rhs)
 {
-    if (this != &rhs) // Compare addresses.
-        swap(rhs);    // Only swap if they are different objects.
+    if (this != &rhs)  // Compare addresses.
+        swap(rhs);     // Only swap if they are different objects.
     return *this;
 }
 
@@ -920,25 +919,18 @@ bool String::At(uint32_t lIndex, char& c) const
     if (lIndex < length_) {
         c = data_[lIndex];
         return true;
-    }
-    else
+    } else
         return false;
 }
 
-bool String::empty(void) const
-{
-    return (nullptr == data_) ? true : false;
-}
+bool String::empty(void) const { return (nullptr == data_) ? true : false; }
 
-bool String::Exists(void) const // Deprecated
+bool String::Exists(void) const  // Deprecated
 {
     return !empty();
 }
 
-uint32_t String::GetLength(void) const
-{
-    return length_;
-}
+uint32_t String::GetLength(void) const { return length_; }
 
 const char* String::Get(void) const
 {
@@ -952,7 +944,7 @@ const char* String::Get(void) const
 
 void String::Set(const char* new_string, uint32_t nEnforcedMaxLength)
 {
-    if (new_string == data_) // Already the same string.
+    if (new_string == data_)  // Already the same string.
         return;
 
     Release();
@@ -964,7 +956,7 @@ void String::Set(const char* new_string, uint32_t nEnforcedMaxLength)
 
 void String::Set(const String& strBuf)
 {
-    if (this == &strBuf) // Already the same string.
+    if (this == &strBuf)  // Already the same string.
         return;
 
     Release();
@@ -988,7 +980,7 @@ bool String::operator==(const String& s2) const
     // At this point we have 2 identical-length strings.
     // Now we call strcmp and convert it to true or false.
     if (strcmp(data_, s2.data_) ==
-        0) { // TODO security: use a replacement for strcmp.
+        0) {  // TODO security: use a replacement for strcmp.
         return (true);
     }
     return (false);
@@ -1057,7 +1049,7 @@ bool String::Contains(const String& strCompare) const
 void String::OTfgets(std::istream& ifs)
 {
     std::stringbuf sb;
-    ifs.get(sb); // delimiter defaults to '\n'
+    ifs.get(sb);  // delimiter defaults to '\n'
 
     if (ifs.good()) {
         const std::string str_output = sb.str();
@@ -1100,10 +1092,10 @@ bool String::DecodeIfArmored(bool bEscapedIsAllowed)
 {
     if (!Exists()) return false;
 
-    bool bArmoredAndALSOescaped = false; // "- -----BEGIN OT ARMORED"
-    bool bArmoredButNOTescaped = false;  // "-----BEGIN OT ARMORED"
+    bool bArmoredAndALSOescaped = false;  // "- -----BEGIN OT ARMORED"
+    bool bArmoredButNOTescaped = false;   // "-----BEGIN OT ARMORED"
 
-    if (Contains(OT_BEGIN_ARMORED_escaped)) // check this one first...
+    if (Contains(OT_BEGIN_ARMORED_escaped))  // check this one first...
     {
         bArmoredAndALSOescaped = true;
 
@@ -1113,8 +1105,7 @@ bool String::DecodeIfArmored(bool bEscapedIsAllowed)
                                      "(Returning.)\n";
             return false;
         }
-    }
-    else if (Contains(OT_BEGIN_ARMORED)) {
+    } else if (Contains(OT_BEGIN_ARMORED)) {
         bArmoredButNOTescaped = true;
     }
 
@@ -1125,39 +1116,39 @@ bool String::DecodeIfArmored(bool bEscapedIsAllowed)
     //
     std::string str_Trim;
 
-    if (bArmored) // it's armored, we have to decode it first.
+    if (bArmored)  // it's armored, we have to decode it first.
     {
         OTASCIIArmor ascTemp;
         if (false ==
             (ascTemp.LoadFromString(
-                *this, bArmoredAndALSOescaped, // if it IS escaped or not, this
-                                               // variable will be true or false
-                                               // to show it.
+                *this,
+                bArmoredAndALSOescaped,  // if it IS escaped or not, this
+                                         // variable will be true or false
+                                         // to show it.
                 // The below szOverride sub-string determines where the content
                 // starts, when loading.
-                OT_BEGIN_ARMORED))) // Default is:       "-----BEGIN"
+                OT_BEGIN_ARMORED)))  // Default is:       "-----BEGIN"
         // We're doing this: "-----BEGIN OT ARMORED" (Should worked for
         // escaped as well, here.)
         {
             otErr << __FUNCTION__ << ": Error loading string contents from "
                                      "ascii-armored encoding. "
-                                     "Contents: \n" << Get() << "\n";
+                                     "Contents: \n"
+                  << Get() << "\n";
             return false;
-        }
-        else // success loading the actual contents out of the ascii-armored
-               // version.
+        } else  // success loading the actual contents out of the ascii-armored
+                // version.
         {
-            String strTemp(ascTemp); // <=== ascii-decoded here.
+            String strTemp(ascTemp);  // <=== ascii-decoded here.
             std::string str_temp(strTemp.Get(), strTemp.GetLength());
             str_Trim = String::trim(
-                str_temp); // This is the std::string for the trim process.
+                str_temp);  // This is the std::string for the trim process.
         }
-    }
-    else {
+    } else {
         std::string str_temp(Get(), GetLength());
-        str_Trim = String::trim(str_temp); // This is the std::string for the
-                                           // trim process. (Wasn't armored,
-                                           // so here we use it as passed in.)
+        str_Trim = String::trim(str_temp);  // This is the std::string for the
+                                            // trim process. (Wasn't armored,
+                                            // so here we use it as passed in.)
     }
 
     // At this point, str_Trim contains the actual contents, whether they
@@ -1278,27 +1269,27 @@ bool String::sgets(char* szBuffer, uint32_t nBufSize)
     // and lIndex hasn't reached the end of the destination buffer,
     //
     while (0 != *pChar && (position_ < length_) &&
-           lIndex < (nBufSize - 1)) // the -1 leaves room for a forced null
-                                    // terminator.
+           lIndex < (nBufSize - 1))  // the -1 leaves room for a forced null
+                                     // terminator.
     {
         // If the current character isn't a newline, then copy it...
         if ('\n' != *pChar) {
             szBuffer[lIndex] = *pChar;
-            lIndex++;    // increment the buffer
-            position_++; // increment the string's internal memory of where it
-                         // stopped.
-            pChar++;     // increment this for convenience (could calcuate from
-                         // position)
+            lIndex++;     // increment the buffer
+            position_++;  // increment the string's internal memory of where it
+                          // stopped.
+            pChar++;      // increment this for convenience (could calcuate from
+                          // position)
         }
         // Until we reach a newline...
         else {
             // IT'S A NEWLINE!
 
             szBuffer[lIndex] =
-                0; // destination buffer, this is the end of the line for him.
-            position_++; // This still moves past the newline, so the next
-                         // call will get the next
-                         // string.
+                0;  // destination buffer, this is the end of the line for him.
+            position_++;  // This still moves past the newline, so the next
+                          // call will get the next
+                          // string.
             // lIndex does NOT increment here because we reach the end of this
             // string.
             // neither does pChar. These local variables go away since we are
@@ -1307,8 +1298,8 @@ bool String::sgets(char* szBuffer, uint32_t nBufSize)
             if (0 == *(pChar + 1))
                 return false;
             else
-                return true; // there was more to read, but we stopped at the
-                             // newline.
+                return true;  // there was more to read, but we stopped at the
+                              // newline.
         }
     }
 
@@ -1347,9 +1338,5 @@ void String::sungetc(void)
     }
 }
 
-void String::reset(void)
-{
-    position_ = 0;
-}
-
-} // namespace opentxs
+void String::reset(void) { position_ = 0; }
+}  // namespace opentxs

@@ -51,6 +51,8 @@ namespace opentxs
 {
 class OTPassword;
 
+std::string Print(const proto::HDPath& node);
+
 class Bip32
 {
 public:

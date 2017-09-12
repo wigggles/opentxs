@@ -219,6 +219,11 @@ std::unique_ptr<proto::Bip44Address> Blockchain::AllocateAddress(
     newAddress.set_version(BLOCKCHAIN_VERSION);
     newAddress.set_index(index);
     newAddress.set_address(calculate_address(*account, chain, index));
+
+    OT_ASSERT(false == newAddress.address().empty());
+
+    otErr << OT_METHOD << __FUNCTION__ << ": Address " << newAddress.address()
+          << " allocated." << std::endl;
     newAddress.set_label(label);
     const auto saved = storage_.Store(sNymID, type, *account);
 
@@ -323,13 +328,6 @@ std::string Blockchain::calculate_address(
     const std::uint32_t index) const
 {
     const auto& path = account.path();
-
-    if (3 != path.child_size()) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Invalid HD path." << std::endl;
-
-        return {};
-    }
-
     auto fingerprint = path.root();
     auto serialized = crypto_.BIP32().AccountChildKey(path, chain, index);
 
