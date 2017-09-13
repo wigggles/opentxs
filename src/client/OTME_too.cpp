@@ -2459,7 +2459,15 @@ void OTME_too::refresh_thread()
             bool notUsed = false;
             otErr << OT_METHOD << __FUNCTION__ << ": Downloading nymbox."
                   << std::endl;
-            made_easy_.retrieve_nym(serverID, nymID, notUsed, true);
+            const auto retrieve =
+                made_easy_.retrieve_nym(serverID, nymID, notUsed, true);
+
+            if (1 != retrieve) {
+                otErr << OT_METHOD << __FUNCTION__
+                      << ": Downloading nymbox failed (" << retrieve << ")"
+                      << std::endl;
+                otme_.register_nym(serverID, nymID);
+            }
 
             // If the nym's credentials have been updated since the last time
             // it was registered on the server, upload the new credentials

@@ -40,6 +40,7 @@
 #define OPENTXS_CORE_DATA_HPP
 
 #include <cstdint>
+#include <string>
 #include <vector>
 
 namespace opentxs
@@ -75,6 +76,7 @@ public:
     EXPORT bool operator!=(const Data& rhs) const;
     EXPORT Data& operator+=(const Data& rhs);
 
+    EXPORT std::string asHex() const;
     EXPORT bool empty() const;
     EXPORT bool IsEmpty() const;
     EXPORT const void* GetPointer() const;

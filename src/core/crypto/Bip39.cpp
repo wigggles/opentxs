@@ -255,17 +255,19 @@ std::shared_ptr<OTPassword> Bip39::Seed(
 
         OT_ASSERT(seed);
 
-        OTPassword words, passphrase;
+        OTPassword words, phrase;
 
-        if (false == DecryptSeed(*serialized, words, passphrase)) {
+        if (false == DecryptSeed(*serialized, words, phrase)) {
 
             return {};
         }
 
-        bool extracted = SeedToData(words, passphrase, *seed);
+        bool extracted = SeedToData(words, phrase, *seed);
 
         if (extracted) {
             output.reset(seed.release());
+        } else {
+            OT_FAIL;
         }
     }
 

@@ -183,6 +183,7 @@ enum class Bip44Type : std::uint32_t {
     FEATHERCOIN = 8,
     COUNTERPARTY = 9,
     BLACKCOIN = 10,
+    BITCOINCASH = 145,
 };
 
 enum class Bip32Child : std::uint32_t {
@@ -416,6 +417,12 @@ enum class Messagability : std::int8_t {
     READY = 0,
     MISSING_RECIPIENT = 1,
     UNREGISTERED = 2,
+};
+
+enum class BlockchainAccountType : std::uint8_t {
+    ERROR = 0,
+    BIP32 = 1,
+    BIP44 = 2,
 };
 }  // namespace opentxs
 

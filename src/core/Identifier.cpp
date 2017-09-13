@@ -140,10 +140,12 @@ Identifier::Identifier(const OTCachedKey& theKey)
     // would not happen, before constructing like this.)
 }
 
-Identifier::Identifier(const proto::HDPath& path)
+Identifier::Identifier(
+    const proto::ContactItemType type,
+    const proto::HDPath& path)
     : ot_super()
 {
-    CalculateDigest(path_to_data(path), DefaultType);
+    CalculateDigest(path_to_data(type, path), DefaultType);
 }
 
 Identifier& Identifier::operator=(const Identifier& rhs)
@@ -282,9 +284,12 @@ void Identifier::GetString(String& id) const
     id.swap(output);
 }
 
-Data Identifier::path_to_data(const proto::HDPath& path)
+Data Identifier::path_to_data(
+    const proto::ContactItemType type,
+    const proto::HDPath& path)
 {
-    Data output(path.root().c_str(), path.root().size());
+    Data output(static_cast<const void*>(&type), sizeof(type));
+    output += Data(path.root().c_str(), path.root().size());
 
     for (const auto& child : path.child()) {
         output += Data(&child, sizeof(child));

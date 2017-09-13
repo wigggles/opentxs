@@ -97,13 +97,23 @@ Storage::Storage(
 {
     if (OT_STORAGE_PRIMARY_PLUGIN_SQLITE == config_.primary_plugin_) {
 #if OT_STORAGE_SQLITE
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Initializing primary sqlite3 plugin." << std::endl;
         primary_plugin_.reset(
             new StorageSqlite3(config_, digest_, random_, primary_bucket_));
+#else
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Sqlite3 driver not compiled in." << std::endl;
 #endif
     } else if (OT_STORAGE_PRIMARY_PLUGIN_FS == config_.primary_plugin_) {
 #if OT_STORAGE_FS
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Initializing primary filesystem plugin." << std::endl;
         primary_plugin_.reset(
             new StorageFS(config_, digest_, random_, primary_bucket_));
+#else
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Filesystem driver not compiled in." << std::endl;
 #endif
     }
 

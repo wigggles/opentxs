@@ -58,16 +58,17 @@
 namespace opentxs
 {
 
-serializedAsymmetricKey Bip32::Bip44(
-    std::string& fingerprint,
-    const Bip44Type coinType,
-    const std::uint32_t nym,
+serializedAsymmetricKey Bip32::AccountChildKey(
+    const proto::HDPath& rootPath,
     const BIP44Chain internal,
     const std::uint32_t index) const
 {
+    auto path = rootPath;
+    auto fingerprint = rootPath.root();
     serializedAsymmetricKey output;
     std::uint32_t notUsed = 0;
     auto seed = OT::App().Crypto().BIP39().Seed(fingerprint, notUsed);
+    path.set_root(fingerprint);
 
     if (false == bool(seed)) {
 
@@ -75,14 +76,6 @@ serializedAsymmetricKey Bip32::Bip44(
     }
 
     const std::uint32_t change = internal ? 1 : 0;
-    proto::HDPath path;
-    path.add_child(
-        static_cast<std::uint32_t>(Bip43Purpose::HDWALLET) |
-        static_cast<std::uint32_t>(Bip32Child::HARDENED));
-    path.add_child(
-        static_cast<std::uint32_t>(coinType) |
-        static_cast<std::uint32_t>(Bip32Child::HARDENED));
-    path.add_child(nym | static_cast<std::uint32_t>(Bip32Child::HARDENED));
     path.add_child(change);
     path.add_child(index);
 
@@ -127,6 +120,7 @@ serializedAsymmetricKey Bip32::GetPaymentCode(
     }
 
     proto::HDPath path;
+    path.set_root(fingerprint);
     path.add_child(
         static_cast<std::uint32_t>(Bip43Purpose::PAYCODE) |
         static_cast<std::uint32_t>(Bip32Child::HARDENED));
@@ -153,6 +147,7 @@ serializedAsymmetricKey Bip32::GetStorageKey(std::string& fingerprint) const
     }
 
     proto::HDPath path;
+    path.set_root(fingerprint);
     path.add_child(
         static_cast<std::uint32_t>(Bip43Purpose::FS) |
         static_cast<std::uint32_t>(Bip32Child::HARDENED));
@@ -161,6 +156,25 @@ serializedAsymmetricKey Bip32::GetStorageKey(std::string& fingerprint) const
         static_cast<std::uint32_t>(Bip32Child::HARDENED));
 
     return GetHDKey(EcdsaCurve::SECP256K1, *seed, path);
+}
+
+std::string Print(const proto::HDPath& node)
+{
+    std::stringstream output{};
+    output << node.root();
+
+    for (const auto& child : node.child()) {
+        output << " / ";
+        const auto max = static_cast<std::uint32_t>(Bip32Child::HARDENED);
+
+        if (max > child) {
+            output << std::to_string(child);
+        } else {
+            output << std::to_string(child - max) << "'";
+        }
+    }
+
+    return output.str();
 }
 }  // namespace opentxs
 #endif

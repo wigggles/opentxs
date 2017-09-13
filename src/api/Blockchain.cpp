@@ -150,6 +150,7 @@ proto::Bip44Address& Blockchain::add_address(
 std::uint8_t Blockchain::address_prefix(const proto::ContactItemType type) const
 {
     switch (type) {
+        case proto::CITEMTYPE_BCH:
         case proto::CITEMTYPE_BTC: {
             return BITCOIN_PUBKEY_HASH;
         }
@@ -162,6 +163,7 @@ std::uint8_t Blockchain::address_prefix(const proto::ContactItemType type) const
         case proto::CITEMTYPE_DASH: {
             return DASH_PUBKEY_HASH;
         }
+        case proto::CITEMTYPE_TNBCH:
         case proto::CITEMTYPE_TNBTC:
         case proto::CITEMTYPE_TNXRP:
         case proto::CITEMTYPE_TNLTC:
@@ -219,6 +221,11 @@ std::unique_ptr<proto::Bip44Address> Blockchain::AllocateAddress(
     newAddress.set_version(BLOCKCHAIN_VERSION);
     newAddress.set_index(index);
     newAddress.set_address(calculate_address(*account, chain, index));
+
+    OT_ASSERT(false == newAddress.address().empty());
+
+    otErr << OT_METHOD << __FUNCTION__ << ": Address " << newAddress.address()
+          << " allocated." << std::endl;
     newAddress.set_label(label);
     const auto saved = storage_.Store(sNymID, type, *account);
 
@@ -283,17 +290,26 @@ Bip44Type Blockchain::bip44_type(const proto::ContactItemType type) const
 {
     switch (type) {
         case proto::CITEMTYPE_BTC: {
+
             return Bip44Type::BITCOIN;
         }
         case proto::CITEMTYPE_LTC: {
+
             return Bip44Type::LITECOIN;
         }
         case proto::CITEMTYPE_DOGE: {
+
             return Bip44Type::DOGECOIN;
         }
         case proto::CITEMTYPE_DASH: {
+
             return Bip44Type::DASH;
         }
+        case proto::CITEMTYPE_BCH: {
+
+            return Bip44Type::BITCOINCASH;
+        }
+        case proto::CITEMTYPE_TNBCH:
         case proto::CITEMTYPE_TNBTC:
         case proto::CITEMTYPE_TNXRP:
         case proto::CITEMTYPE_TNLTC:
@@ -323,18 +339,8 @@ std::string Blockchain::calculate_address(
     const std::uint32_t index) const
 {
     const auto& path = account.path();
-
-    if (3 != path.child_size()) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Invalid HD path." << std::endl;
-
-        return {};
-    }
-
     auto fingerprint = path.root();
-    const auto accountIndex = path.child(2);
-    const auto type = bip44_type(account.type());
-    auto serialized =
-        crypto_.BIP32().Bip44(fingerprint, type, accountIndex, chain, index);
+    auto serialized = crypto_.BIP32().AccountChildKey(path, chain, index);
 
     if (false == bool(serialized)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Unable to derive key."
@@ -438,6 +444,36 @@ proto::Bip44Address& Blockchain::find_address(
     OT_FAIL;
 }
 
+void Blockchain::init_path(
+    const std::string& root,
+    const proto::ContactItemType chain,
+    const std::uint32_t account,
+    const BlockchainAccountType standard,
+    proto::HDPath& path) const
+{
+    path.set_version(PATH_VERSION);
+    path.set_root(root);
+
+    switch (standard) {
+        case BlockchainAccountType::BIP32: {
+            path.add_child(
+                account | static_cast<std::uint32_t>(Bip32Child::HARDENED));
+        } break;
+        case BlockchainAccountType::BIP44: {
+            path.add_child(
+                static_cast<std::uint32_t>(Bip43Purpose::HDWALLET) |
+                static_cast<std::uint32_t>(Bip32Child::HARDENED));
+            path.add_child(
+                static_cast<std::uint32_t>(bip44_type(chain)) |
+                static_cast<std::uint32_t>(Bip32Child::HARDENED));
+            path.add_child(account);
+        } break;
+        default: {
+            OT_FAIL;
+        }
+    }
+}
+
 std::shared_ptr<proto::Bip44Account> Blockchain::load_account(
     const Lock&,
     const std::string& nymID,
@@ -503,6 +539,7 @@ bool Blockchain::move_transactions(
 
 Identifier Blockchain::NewAccount(
     const Identifier& nymID,
+    const BlockchainAccountType standard,
     const proto::ContactItemType type) const
 {
     LOCK_NYM()
@@ -546,18 +583,9 @@ Identifier Blockchain::NewAccount(
         return {};
     }
 
-    const auto& index = nymPath.child(1);
     proto::HDPath accountPath{};
-    accountPath.set_version(PATH_VERSION);
-    accountPath.set_root(nymPath.root());
-    accountPath.add_child(
-        static_cast<std::uint32_t>(Bip43Purpose::HDWALLET) |
-        static_cast<std::uint32_t>(Bip32Child::HARDENED));
-    accountPath.add_child(
-        static_cast<std::uint32_t>(bip44_type(type)) |
-        static_cast<std::uint32_t>(Bip32Child::HARDENED));
-    accountPath.add_child(index);
-    const Identifier accountID(accountPath);
+    init_path(nymPath.root(), type, nymPath.child(1), standard, accountPath);
+    const Identifier accountID(type, accountPath);
     Lock accountLock(account_lock_[accountID]);
     proto::Bip44Account account{};
     account.set_version(ACCOUNT_VERSION);

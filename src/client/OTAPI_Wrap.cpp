@@ -3491,12 +3491,29 @@ std::string OTAPI_Wrap::Blockchain_Account(
     return proto::ProtoAsString(*output);
 }
 
+std::string OTAPI_Wrap::Blockchain_Account_base64(
+    const std::string& nymID,
+    const std::string& accountID)
+{
+    const auto account = Blockchain_Account(nymID, accountID);
+
+    if (account.empty()) {
+
+        return {};
+    }
+
+    return OT::App().Crypto().Encode().DataEncode(account);
+}
+
 std::string OTAPI_Wrap::Blockchain_Account_List(
     const std::string& nymID,
     const std::uint32_t chain)
 {
-    const auto output = OT::App().Blockchain().AccountList(
-        Identifier(nymID), static_cast<proto::ContactItemType>(chain));
+    const Identifier nym(nymID);
+    const auto type = static_cast<proto::ContactItemType>(chain);
+    otInfo << OT_METHOD << __FUNCTION__ << ": Loading account list for "
+           << proto::TranslateItemType(type) << std::endl;
+    const auto output = OT::App().Blockchain().AccountList(nym, type);
 
     return comma(output);
 }
@@ -3518,6 +3535,23 @@ std::string OTAPI_Wrap::Blockchain_Allocate_Address(
     }
 
     return proto::ProtoAsString(*output);
+}
+
+std::string OTAPI_Wrap::Blockchain_Allocate_Address_base64(
+    const std::string& nymID,
+    const std::string& accountID,
+    const std::string& label,
+    const bool internal)
+{
+    const auto address =
+        Blockchain_Allocate_Address(nymID, accountID, label, internal);
+
+    if (address.empty()) {
+
+        return {};
+    }
+
+    return OT::App().Crypto().Encode().DataEncode(address);
 }
 
 bool OTAPI_Wrap::Blockchain_Assign_Address(
@@ -3554,12 +3588,41 @@ std::string OTAPI_Wrap::Blockchain_Load_Address(
     return proto::ProtoAsString(*output);
 }
 
-std::string OTAPI_Wrap::Blockchain_New_Account(
+std::string OTAPI_Wrap::Blockchain_Load_Address_base64(
+    const std::string& nymID,
+    const std::string& accountID,
+    const std::uint32_t index,
+    const bool internal)
+{
+    const auto address =
+        Blockchain_Load_Address(nymID, accountID, index, internal);
+
+    if (address.empty()) {
+
+        return {};
+    }
+
+    return OT::App().Crypto().Encode().DataEncode(address);
+}
+
+std::string OTAPI_Wrap::Blockchain_New_Bip44_Account(
     const std::string& nymID,
     const std::uint32_t chain)
 {
     return String(OT::App().Blockchain().NewAccount(
                       Identifier(nymID),
+                      BlockchainAccountType::BIP44,
+                      static_cast<proto::ContactItemType>(chain)))
+        .Get();
+}
+
+std::string OTAPI_Wrap::Blockchain_New_Bip32_Account(
+    const std::string& nymID,
+    const std::uint32_t chain)
+{
+    return String(OT::App().Blockchain().NewAccount(
+                      Identifier(nymID),
+                      BlockchainAccountType::BIP32,
                       static_cast<proto::ContactItemType>(chain)))
         .Get();
 }
@@ -3586,6 +3649,18 @@ bool OTAPI_Wrap::Blockchain_Store_Incoming(
         Identifier(nymID), Identifier(accountID), index, internal, input);
 }
 
+bool OTAPI_Wrap::Blockchain_Store_Incoming_base64(
+    const std::string& nymID,
+    const std::string& accountID,
+    const std::uint32_t index,
+    const bool internal,
+    const std::string& transaction)
+{
+    const auto input = OT::App().Crypto().Encode().DataDecode(transaction);
+
+    return Blockchain_Store_Incoming(nymID, accountID, index, internal, input);
+}
+
 bool OTAPI_Wrap::Blockchain_Store_Outgoing(
     const std::string& nymID,
     const std::string& accountID,
@@ -3610,6 +3685,18 @@ bool OTAPI_Wrap::Blockchain_Store_Outgoing(
         input);
 }
 
+bool OTAPI_Wrap::Blockchain_Store_Outgoing_base64(
+    const std::string& nymID,
+    const std::string& accountID,
+    const std::string& recipientContactID,
+    const std::string& transaction)
+{
+    const auto input = OT::App().Crypto().Encode().DataDecode(transaction);
+
+    return Blockchain_Store_Outgoing(
+        nymID, accountID, recipientContactID, input);
+}
+
 std::string OTAPI_Wrap::Blockchain_Transaction(const std::string& txid)
 {
     const auto output = OT::App().Blockchain().Transaction(Identifier(txid));
@@ -3620,6 +3707,18 @@ std::string OTAPI_Wrap::Blockchain_Transaction(const std::string& txid)
     }
 
     return proto::ProtoAsString(*output);
+}
+
+std::string OTAPI_Wrap::Blockchain_Transaction_base64(const std::string& txid)
+{
+    const auto transaction = Blockchain_Transaction(txid);
+
+    if (transaction.empty()) {
+
+        return {};
+    }
+
+    return OT::App().Crypto().Encode().DataEncode(transaction);
 }
 
 //-----------------------------------------------------------------------------
