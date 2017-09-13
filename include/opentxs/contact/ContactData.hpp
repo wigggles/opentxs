@@ -53,6 +53,7 @@ namespace opentxs
 class ContactGroup;
 class ContactItem;
 class ContactSection;
+class Identifier;
 
 class ContactData
 {
@@ -78,6 +79,11 @@ public:
 
     ContactData AddItem(const Claim& claim) const;
     ContactData AddItem(const std::shared_ptr<ContactItem>& item) const;
+    ContactData AddPaymentCode(
+        const std::string& code,
+        const proto::ContactItemType currency,
+        const bool primary,
+        const bool active) const;
     ContactData AddPreferredOTServer(const Identifier& id, const bool primary)
         const;
     std::shared_ptr<ContactItem> Claim(Identifier& item) const;

@@ -19,6 +19,7 @@ set(cxx-sources
   commands/CmdWithdrawCash.cpp
   Helpers.cpp
   MadeEasy.cpp
+  NymData.cpp
   OT_API.cpp
   OT_ME.cpp
   OTAPI_Exec.cpp

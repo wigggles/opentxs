@@ -39,6 +39,7 @@
 #ifndef OPENTXS_CLIENT_OTAPI_HPP
 #define OPENTXS_CLIENT_OTAPI_HPP
 
+#include "opentxs/client/NymData.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Proto.hpp"
@@ -4539,6 +4540,8 @@ public:
      */
     EXPORT static std::uint32_t GetReciprocalRelationship(
         const std::uint32_t relationship);
+
+    EXPORT static NymData Wallet_GetNym(const std::string& nymID);
 
     /** Get the wallet BIP32 seed as a hex string
      */

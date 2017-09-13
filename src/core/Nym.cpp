@@ -273,6 +273,33 @@ void Nym::AddOutpayments(Message& theMessage)
     m_dequeOutpayments.push_front(&theMessage);
 }
 
+bool Nym::AddPaymentCode(
+    const class PaymentCode& code,
+    const proto::ContactItemType currency,
+    const bool primary,
+    const bool active)
+{
+    const auto paymentCode = code.asBase58();
+
+    if (paymentCode.empty()) {
+
+        return false;
+    }
+
+    Lock lock(lock_);
+
+    if (false == bool(contact_data_)) {
+        init_claims(lock);
+    }
+
+    contact_data_.reset(new ContactData(
+        contact_data_->AddPaymentCode(paymentCode, currency, primary, active)));
+
+    OT_ASSERT(contact_data_);
+
+    return set_contact_data(lock, contact_data_->Serialize());
+}
+
 bool Nym::AddPreferredOTServer(const Identifier& id, const bool primary)
 {
     Lock lock(lock_);

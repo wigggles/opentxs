@@ -64,8 +64,12 @@ class Contact
 public:
     typedef std::pair<proto::ContactItemType, std::string> BlockchainAddress;
 
+    static std::shared_ptr<ContactItem> Best(const ContactGroup& group);
     static std::string ExtractLabel(const Nym& nym);
     static proto::ContactItemType ExtractType(const Nym& nym);
+    static std::string PaymentCode(
+        const ContactData& data,
+        const proto::ContactItemType currency);
 
     Contact(Wallet& wallet, const proto::Contact& serialized);
     Contact(Wallet& wallet, const std::string& label);
@@ -120,8 +124,6 @@ private:
         const Lock& lock,
         const proto::ContactItemType currency) const;
     Identifier generate_id() const;
-    std::shared_ptr<ContactItem> get_best_claim(
-        const ContactGroup& group) const;
     std::shared_ptr<ContactData> merged_data(const Lock& lock) const;
     proto::ContactItemType type(const Lock& lock) const;
     bool verify_write_lock(const Lock& lock) const;
