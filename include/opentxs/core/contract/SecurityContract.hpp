@@ -66,11 +66,15 @@ private:
 
 public:
     EXPORT proto::UnitType Type() const override
-        { return proto::UNITTYPE_SECURITY; }
+    {
+        return proto::UNITTYPE_SECURITY;
+    }
+
+    EXPORT std::string TLA() const override { return primary_unit_symbol_; }
 
     virtual ~SecurityContract() = default;
 };
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CORE_SECURITYCONTRACT_HPP
+#endif  // OPENTXS_CORE_SECURITYCONTRACT_HPP

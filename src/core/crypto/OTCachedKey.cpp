@@ -512,7 +512,7 @@ bool OTCachedKey::GetMasterPassword(
                         if (!OTAsymmetricKey::GetPasswordCallback()(
                                 nullptr,
                                 0,
-                                false,
+                                0,  // false
                                 static_cast<void*>(&thePWData))) {
                             otErr << "\n\n"
                                   << __FUNCTION__
