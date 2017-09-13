@@ -42,6 +42,7 @@
 
 #include "opentxs/api/Activity.hpp"
 #include "opentxs/api/Api.hpp"
+#include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/OT.hpp"
 #include "opentxs/client/Helpers.hpp"
 #include "opentxs/client/OTAPI_Wrap.hpp"
@@ -50,6 +51,7 @@
 #include "opentxs/client/OTWallet.hpp"
 #include "opentxs/client/OT_ME.hpp"
 #include "opentxs/client/OT_API.hpp"
+#include "opentxs/contact/Contact.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Account.hpp"
@@ -149,9 +151,10 @@ OTNameLookup::~OTNameLookup()
     // and pass that instance to C++ so that OTRecordList can make calls to it
     // from inside OT, that
     // doesn't mean that C++ apps like Moneychanger won't make as many instances
-    // as they want. Bottom
-    // line? No error message necessary here as we have with the password
-    // callback.
+    // as they want.
+    //
+    // Bottom line? No error message necessary here like we have with the
+    // password callback.
     //
     //    otErr << "OTNameLookup::~OTNameLookup:  (This should only happen ONCE
     // ONLY -- as the application is closing.)\n";
@@ -160,12 +163,45 @@ OTNameLookup::~OTNameLookup()
 
 // virtual
 std::string OTNameLookup::GetNymName(
-    const std::string& str_id,
+    const std::string& str_id,  // Nym ID
     const std::string) const
 {
-    if (str_id.empty()) return "";
+    if (str_id.empty()) return {};
+    // ---------------------------
+    std::string display_label{OTAPI_Wrap::GetNym_Name(str_id)};
 
-    return OTAPI_Wrap::GetNym_Name(str_id);
+    if (display_label.empty()) {
+        const Identifier contactId =  // Lookup ContactID based on Nym Id.
+            OT::App().Contact().ContactID(Identifier{str_id});
+        const String strContactId{contactId};
+
+        if (Identifier::validateID(strContactId.Get())) {
+            const auto pContact = OT::App().Contact().Contact(contactId);
+
+            if (pContact && !(pContact->Label().empty())) {
+                display_label = pContact->Label();
+            }
+        }
+    }
+    if (!display_label.empty()) {
+        return display_label;
+    }
+    // ---------------------------
+    return {};
+}
+
+// virtual
+std::string OTNameLookup::GetContactName(
+    const std::string& str_id) const  // Contact ID
+{
+    if (str_id.empty()) return {};
+
+    const auto pContact =
+        OT::App().Contact().Contact(opentxs::Identifier{str_id});
+
+    if (!pContact || pContact->Label().empty()) return {};
+
+    return pContact->Label();
 }
 
 // virtual
@@ -175,7 +211,7 @@ std::string OTNameLookup::GetAcctName(
     const std::string,
     const std::string) const
 {
-    if (str_id.empty()) return "";
+    if (str_id.empty()) return {};
 
     return OTAPI_Wrap::GetAccountWallet_Name(str_id);
 }
@@ -183,9 +219,8 @@ std::string OTNameLookup::GetAcctName(
 // virtual
 std::string OTNameLookup::GetAddressName(const std::string&) const
 {
-    return "";  // There are no native OT lookups for a Bitmessage address.
-                // (Only
-                // useful when overriding.)
+    return {};  // There are no native OT lookups for a Bitmessage address.
+                // (Only useful when overriding.)
 }
 
 // virtual
@@ -264,6 +299,21 @@ std::string OTLookupCaller::GetNymName(
     return "";
 }
 
+std::string OTLookupCaller::GetContactName(
+    const std::string& str_id) const  // ContactId
+{
+    if (isCallbackSet()) {
+        otWarn << "OTLookupCaller::GetContactName: FYI, Executing address "
+                  "book callback...\n";
+        return _callback->GetContactName(str_id);
+    } else {
+        otOut << "OTLookupCaller::GetContactName: "
+                 "WARNING: Failed attempt to trigger address book "
+                 "callback, due to \"it hasn't been set yet.\"\n";
+    }
+    return "";
+}
+
 std::string OTLookupCaller::GetAcctName(
     const std::string& str_id,  // AcctID
     const std::string p_nym_id,
@@ -297,6 +347,7 @@ std::string OTLookupCaller::GetAddressName(const std::string& str_address) const
     return "";
 }
 
+// ---------------------------
 // static
 
 const std::string OTRecordList::s_blank("");

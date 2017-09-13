@@ -984,7 +984,8 @@ bool UnitDefinition::FormatAmountLocale(
         amount,
         std::pow(10, DecimalPower()),
         DecimalPower(),
-        primary_unit_symbol_.c_str(),
+        (proto::UNITTYPE_CURRENCY == Type()) ? primary_unit_symbol_.c_str()
+                                             : nullptr,
         strSeparator.Get(),
         strDecimalPoint.Get());
     return true;  // Note: might want to return false if str_output is empty.
@@ -1019,7 +1020,7 @@ bool UnitDefinition::FormatAmountWithoutSymbolLocale(
         amount,
         std::pow(10, DecimalPower()),
         DecimalPower(),
-        NULL,
+        nullptr,
         strSeparator.Get(),
         strDecimalPoint.Get());
     return true;  // Note: might want to return false if str_output is empty.

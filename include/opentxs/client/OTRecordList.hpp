@@ -62,6 +62,8 @@ public:
     EXPORT virtual std::string GetNymName(
         const std::string& str_id,  // NymID
         const std::string p_notary_id) const;
+    EXPORT virtual std::string GetContactName(
+        const std::string& str_id) const;  // ContactId
     EXPORT virtual std::string GetAcctName(
         const std::string& str_id,  // AcctID
         const std::string p_nym_id,
@@ -103,6 +105,8 @@ public:
  };
  */
 
+// ---------------------------------------------------------------------
+
 // Client app makes an instance of its own subclass of OTNameLookup.
 // Client app also makes an instance of OTLookupCaller (below.)
 // Client app then gives the caller a pointer to the namelookup.
@@ -128,6 +132,10 @@ public:
     EXPORT std::string GetNymName(
         const std::string& str_id,  // NymID
         const std::string notary_id) const;
+
+    EXPORT virtual std::string GetContactName(
+        const std::string& str_id  // ContactId
+        ) const;
 
     EXPORT std::string GetAcctName(
         const std::string& str_id,  // AcctID
