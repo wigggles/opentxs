@@ -183,6 +183,7 @@ enum class Bip44Type : std::uint32_t {
     FEATHERCOIN = 8,
     COUNTERPARTY = 9,
     BLACKCOIN = 10,
+    BITCOINCASH = 145,
 };
 
 enum class Bip32Child : std::uint32_t {

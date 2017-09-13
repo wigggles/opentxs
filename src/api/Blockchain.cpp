@@ -150,6 +150,7 @@ proto::Bip44Address& Blockchain::add_address(
 std::uint8_t Blockchain::address_prefix(const proto::ContactItemType type) const
 {
     switch (type) {
+        case proto::CITEMTYPE_BCH:
         case proto::CITEMTYPE_BTC: {
             return BITCOIN_PUBKEY_HASH;
         }
@@ -162,6 +163,7 @@ std::uint8_t Blockchain::address_prefix(const proto::ContactItemType type) const
         case proto::CITEMTYPE_DASH: {
             return DASH_PUBKEY_HASH;
         }
+        case proto::CITEMTYPE_TNBCH:
         case proto::CITEMTYPE_TNBTC:
         case proto::CITEMTYPE_TNXRP:
         case proto::CITEMTYPE_TNLTC:
@@ -288,17 +290,26 @@ Bip44Type Blockchain::bip44_type(const proto::ContactItemType type) const
 {
     switch (type) {
         case proto::CITEMTYPE_BTC: {
+
             return Bip44Type::BITCOIN;
         }
         case proto::CITEMTYPE_LTC: {
+
             return Bip44Type::LITECOIN;
         }
         case proto::CITEMTYPE_DOGE: {
+
             return Bip44Type::DOGECOIN;
         }
         case proto::CITEMTYPE_DASH: {
+
             return Bip44Type::DASH;
         }
+        case proto::CITEMTYPE_BCH: {
+
+            return Bip44Type::BITCOINCASH;
+        }
+        case proto::CITEMTYPE_TNBCH:
         case proto::CITEMTYPE_TNBTC:
         case proto::CITEMTYPE_TNXRP:
         case proto::CITEMTYPE_TNLTC:
