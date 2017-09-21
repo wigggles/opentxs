@@ -331,10 +331,6 @@ void OT::Init_Api()
         *zeromq_));
 
     OT_ASSERT(api_);
-
-    const bool loaded = api_->OTAPI().LoadWallet();
-
-    OT_ASSERT(loaded);
 }
 
 void OT::Init_Blockchain()
@@ -509,6 +505,8 @@ void OT::Init_Storage()
     } else {
         encryptedDirectory = encrypted_directory_.c_str();
     }
+
+    encrypted_directory_ = encryptedDirectory.Get();
 
     Config().CheckSet_bool(
         STORAGE_CONFIG_KEY,
@@ -793,6 +791,10 @@ void OT::set_storage_encryption()
     OT_ASSERT(api_);
     OT_ASSERT(crypto_);
 
+    const bool loaded = api_->OTAPI().LoadWallet();
+
+    OT_ASSERT(loaded);
+
     auto wallet = api_->OTAPI().GetWallet(nullptr);
 
     OT_ASSERT(nullptr != wallet);
@@ -856,7 +858,7 @@ void OT::start()
     OT_ASSERT(activity_);
     OT_ASSERT(contacts_);
 
-    if (false == server_mode_) {
+    if ((false == server_mode_) && (false == encrypted_directory_.empty())) {
         set_storage_encryption();
     }
 

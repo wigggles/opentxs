@@ -108,7 +108,7 @@ private:
     const OTPassword passphrase_{};
     const std::string primary_storage_plugin_{};
     const std::string archive_directory_{};
-    const std::string encrypted_directory_{};
+    std::string encrypted_directory_{};
     mutable std::mutex config_lock_;
     mutable std::mutex task_list_lock_;
     mutable TaskList periodic_task_list;
