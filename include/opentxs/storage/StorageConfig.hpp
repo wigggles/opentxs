@@ -39,6 +39,7 @@
 #ifndef OPENTXS_STORAGE_STORAGECONFIG_HPP
 #define OPENTXS_STORAGE_STORAGECONFIG_HPP
 
+#include <chrono>
 #include <cstdint>
 #include <functional>
 #include <string>
@@ -48,6 +49,8 @@
 #define STORAGE_CONFIG_PRIMARY_PLUGIN_KEY "primary_plugin"
 #define STORAGE_CONFIG_FS_BACKUP_DIRECTORY_KEY "fs_backup_directory"
 #define STORAGE_CONFIG_FS_ENCRYPTED_BACKUP_DIRECTORY_KEY "fs_encrypted_backup"
+
+namespace C = std::chrono;
 
 namespace opentxs
 {
@@ -60,7 +63,8 @@ public:
     bool auto_publish_nyms_ = true;
     bool auto_publish_servers_ = true;
     bool auto_publish_units_ = true;
-    std::int64_t gc_interval_ = 60 * 60 * 24 * 30;
+    std::int64_t gc_interval_ =
+        C::duration_cast<C::seconds>(C::hours(1)).count();
     std::string path_{};
     InsertCB dht_callback_{};
 
