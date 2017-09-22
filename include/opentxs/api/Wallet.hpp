@@ -40,6 +40,7 @@
 #define OPENTXS_API_WALLET_HPP
 
 #include "opentxs/api/Editor.hpp"
+#include "opentxs/client/NymData.hpp"
 #include "opentxs/core/contract/ServerContract.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -250,6 +251,8 @@ public:
      *    \param[in] nym the serialized version of the contract
      */
     ConstNym Nym(const proto::CredentialIndex& nym);
+
+    NymData mutable_Nym(const Identifier& id);
 
     /**   Returns a list of all known nyms and their aliases
      */

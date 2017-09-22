@@ -3393,6 +3393,11 @@ std::uint32_t OTAPI_Wrap::GetReciprocalRelationship(
         static_cast<proto::ContactItemType>(relationship));
 }
 
+NymData OTAPI_Wrap::Wallet_GetNym(const std::string& nymID)
+{
+    return OT::App().Contract().mutable_Nym(Identifier(nymID));
+}
+
 std::string OTAPI_Wrap::Wallet_GetSeed() { return Exec()->Wallet_GetSeed(); }
 
 std::string OTAPI_Wrap::Wallet_GetPassphrase()

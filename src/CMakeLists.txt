@@ -17,6 +17,10 @@ include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/../include
 )
 
+if(LIBBITCOIN_EXPORT)
+  include_directories(SYSTEM ${LIBBITCOIN_INCLUDE_DIRS})
+endif()
+
 if(KEYRING_GNOME)
   set(keyring libgnome-keyring.so)
 endif()
@@ -102,6 +106,10 @@ if (LIBSECP256K1_EXPORT)
   else()
     target_link_libraries(${MODULE_NAME} PRIVATE ${LIBSECP256K1_LIBRARY})
   endif()
+endif()
+
+if (LIBBITCOIN_EXPORT)
+  target_link_libraries(${MODULE_NAME} PRIVATE ${LIBBITCOIN_LIBRARIES})
 endif()
 
 if(OT_DHT)

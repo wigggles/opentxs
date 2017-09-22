@@ -42,6 +42,7 @@
 #include "opentxs/contact/ContactGroup.hpp"
 #include "opentxs/contact/ContactSection.hpp"
 #include "opentxs/contact/ContactItem.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 
 #include <sstream>
@@ -128,6 +129,38 @@ ContactData ContactData::AddItem(const std::shared_ptr<ContactItem>& item) const
     }
 
     return ContactData(nym_, map, version_);
+}
+
+ContactData ContactData::AddPaymentCode(
+    const std::string& code,
+    const proto::ContactItemType currency,
+    const bool primary,
+    const bool active) const
+{
+    bool needPrimary{true};
+    const proto::ContactSectionName section{proto::CONTACTSECTION_PROCEDURE};
+    auto group = Group(section, currency);
+
+    if (group) {
+        needPrimary = group->Primary().empty();
+    }
+
+    std::set<proto::ContactItemAttribute> attrib{};
+
+    if (active) {
+        attrib.emplace(proto::CITEMATTR_ACTIVE);
+    }
+
+    if (primary || needPrimary) {
+        attrib.emplace(proto::CITEMATTR_PRIMARY);
+    }
+
+    auto item =
+        std::make_shared<ContactItem>(nym_, section, currency, code, attrib);
+
+    OT_ASSERT(item);
+
+    return AddItem(item);
 }
 
 ContactData ContactData::AddPreferredOTServer(

@@ -252,7 +252,7 @@ Editor<class ClientContext> Wallet::mutable_ClientContext(
     const auto& serverID = server->GetServerID();
     const auto& serverNymID = server->GetServerNym().ID();
 
-    std::unique_lock<std::mutex> lock(context_map_lock_);
+    Lock lock(context_map_lock_);
 
     auto base = context(serverNymID, remoteNymID);
 
@@ -292,7 +292,7 @@ Editor<class ServerContext> Wallet::mutable_ServerContext(
     const Identifier& localNymID,
     const Identifier& remoteID)
 {
-    std::unique_lock<std::mutex> lock(context_map_lock_);
+    Lock lock(context_map_lock_);
 
     Identifier serverID = remoteID;
     Identifier remoteNymID = ServerToNym(serverID);
@@ -340,7 +340,7 @@ void Wallet::save(class Context* context) const
         return;
     }
 
-    std::unique_lock<std::mutex> lock(context->lock_);
+    Lock lock(context->lock_);
 
     context->update_signature(lock);
 
@@ -354,7 +354,7 @@ ConstNym Wallet::Nym(
     const std::chrono::milliseconds& timeout)
 {
     const std::string nym = String(id).Get();
-    std::unique_lock<std::mutex> mapLock(nym_map_lock_);
+    Lock mapLock(nym_map_lock_);
     bool inMap = (nym_map_.find(nym) != nym_map_.end());
     bool valid = false;
 
@@ -433,7 +433,7 @@ ConstNym Wallet::Nym(const proto::CredentialIndex& publicNym)
 
         if (candidate->VerifyPseudonym()) {
             candidate->WriteCredentials();
-            std::unique_lock<std::mutex> mapLock(nym_map_lock_);
+            Lock mapLock(nym_map_lock_);
             nym_map_.erase(id);
             mapLock.unlock();
         }
@@ -442,11 +442,25 @@ ConstNym Wallet::Nym(const proto::CredentialIndex& publicNym)
     return Nym(nym);
 }
 
+NymData Wallet::mutable_Nym(const Identifier& id)
+{
+    const std::string nym = String(id).Get();
+    Lock mapLock(nym_map_lock_);
+    auto it = nym_map_.find(nym);
+
+    if (nym_map_.end() == it) {
+
+        return NymData(nullptr);
+    }
+
+    return NymData(it->second.second);
+}
+
 ObjectList Wallet::NymList() const { return ot_.DB().NymList(); }
 
 std::mutex& Wallet::peer_lock(const std::string& nymID) const
 {
-    std::unique_lock<std::mutex> map_lock(peer_map_lock_);
+    Lock map_lock(peer_map_lock_);
     auto& output = peer_lock_[nymID];
     map_lock.unlock();
 
@@ -459,7 +473,7 @@ std::shared_ptr<proto::PeerReply> Wallet::PeerReply(
     const StorageBox& box) const
 {
     const std::string nymID = String(nym).Get();
-    std::lock_guard<std::mutex> lock(peer_lock(nymID));
+    Lock lock(peer_lock(nymID));
     std::shared_ptr<proto::PeerReply> output;
 
     ot_.DB().Load(nymID, String(reply).Get(), box, output);
@@ -471,7 +485,7 @@ bool Wallet::PeerReplyComplete(const Identifier& nym, const Identifier& replyID)
     const
 {
     const std::string nymID = String(nym).Get();
-    std::lock_guard<std::mutex> lock(peer_lock(nymID));
+    Lock lock(peer_lock(nymID));
     std::shared_ptr<proto::PeerReply> reply;
     const bool haveReply = ot_.DB().Load(
         nymID, String(replyID).Get(), StorageBox::SENTPEERREPLY, reply, false);
@@ -514,7 +528,7 @@ bool Wallet::PeerReplyCreate(
     const proto::PeerReply& reply) const
 {
     const std::string nymID = String(nym).Get();
-    std::lock_guard<std::mutex> lock(peer_lock(nymID));
+    Lock lock(peer_lock(nymID));
 
     if (reply.cookie() != request.id()) {
         otErr << OT_METHOD << __FUNCTION__
@@ -568,7 +582,7 @@ bool Wallet::PeerReplyCreateRollback(
     const Identifier& reply) const
 {
     const std::string nymID = String(nym).Get();
-    std::lock_guard<std::mutex> lock(peer_lock(nymID));
+    Lock lock(peer_lock(nymID));
     const std::string requestID = String(request).Get();
     const std::string replyID = String(reply).Get();
     std::shared_ptr<proto::PeerRequest> requestItem;
@@ -621,7 +635,7 @@ bool Wallet::PeerReplyCreateRollback(
 ObjectList Wallet::PeerReplySent(const Identifier& nym) const
 {
     const std::string nymID = String(nym).Get();
-    std::lock_guard<std::mutex> lock(peer_lock(nymID));
+    Lock lock(peer_lock(nymID));
 
     return ot_.DB().NymBoxList(nymID, StorageBox::SENTPEERREPLY);
 }
@@ -629,7 +643,7 @@ ObjectList Wallet::PeerReplySent(const Identifier& nym) const
 ObjectList Wallet::PeerReplyIncoming(const Identifier& nym) const
 {
     const std::string nymID = String(nym).Get();
-    std::lock_guard<std::mutex> lock(peer_lock(nymID));
+    Lock lock(peer_lock(nymID));
 
     return ot_.DB().NymBoxList(nymID, StorageBox::INCOMINGPEERREPLY);
 }
@@ -637,7 +651,7 @@ ObjectList Wallet::PeerReplyIncoming(const Identifier& nym) const
 ObjectList Wallet::PeerReplyFinished(const Identifier& nym) const
 {
     const std::string nymID = String(nym).Get();
-    std::lock_guard<std::mutex> lock(peer_lock(nymID));
+    Lock lock(peer_lock(nymID));
 
     return ot_.DB().NymBoxList(nymID, StorageBox::FINISHEDPEERREPLY);
 }
@@ -645,7 +659,7 @@ ObjectList Wallet::PeerReplyFinished(const Identifier& nym) const
 ObjectList Wallet::PeerReplyProcessed(const Identifier& nym) const
 {
     const std::string nymID = String(nym).Get();
-    std::lock_guard<std::mutex> lock(peer_lock(nymID));
+    Lock lock(peer_lock(nymID));
 
     return ot_.DB().NymBoxList(nymID, StorageBox::PROCESSEDPEERREPLY);
 }
@@ -673,7 +687,7 @@ bool Wallet::PeerReplyReceive(const Identifier& nym, const PeerObject& reply)
     }
 
     const std::string nymID = String(nym).Get();
-    std::lock_guard<std::mutex> lock(peer_lock(nymID));
+    Lock lock(peer_lock(nymID));
     auto requestID = reply.Request()->ID();
 
     std::shared_ptr<proto::PeerRequest> request;
@@ -733,7 +747,7 @@ std::shared_ptr<proto::PeerRequest> Wallet::PeerRequest(
     std::time_t& time) const
 {
     const std::string nymID = String(nym).Get();
-    std::lock_guard<std::mutex> lock(peer_lock(nymID));
+    Lock lock(peer_lock(nymID));
     std::shared_ptr<proto::PeerRequest> output;
 
     ot_.DB().Load(nymID, String(request).Get(), box, output, time);
@@ -746,7 +760,7 @@ bool Wallet::PeerRequestComplete(
     const Identifier& replyID) const
 {
     const std::string nymID = String(nym).Get();
-    std::lock_guard<std::mutex> lock(peer_lock(nymID));
+    Lock lock(peer_lock(nymID));
     std::shared_ptr<proto::PeerReply> reply;
     const bool haveReply = ot_.DB().Load(
         nymID,
@@ -792,7 +806,7 @@ bool Wallet::PeerRequestCreate(
     const proto::PeerRequest& request) const
 {
     const std::string nymID = String(nym).Get();
-    std::lock_guard<std::mutex> lock(peer_lock(nymID));
+    Lock lock(peer_lock(nymID));
 
     return ot_.DB().Store(
         request, String(nym).Get(), StorageBox::SENTPEERREQUEST);
@@ -803,7 +817,7 @@ bool Wallet::PeerRequestCreateRollback(
     const Identifier& request) const
 {
     const std::string nymID = String(nym).Get();
-    std::lock_guard<std::mutex> lock(peer_lock(nymID));
+    Lock lock(peer_lock(nymID));
 
     return ot_.DB().RemoveNymBoxItem(
         String(nym).Get(), StorageBox::SENTPEERREQUEST, String(request).Get());
@@ -831,7 +845,7 @@ bool Wallet::PeerRequestDelete(
 ObjectList Wallet::PeerRequestSent(const Identifier& nym) const
 {
     const std::string nymID = String(nym).Get();
-    std::lock_guard<std::mutex> lock(peer_lock(nymID));
+    Lock lock(peer_lock(nymID));
 
     return ot_.DB().NymBoxList(String(nym).Get(), StorageBox::SENTPEERREQUEST);
 }
@@ -839,7 +853,7 @@ ObjectList Wallet::PeerRequestSent(const Identifier& nym) const
 ObjectList Wallet::PeerRequestIncoming(const Identifier& nym) const
 {
     const std::string nymID = String(nym).Get();
-    std::lock_guard<std::mutex> lock(peer_lock(nymID));
+    Lock lock(peer_lock(nymID));
 
     return ot_.DB().NymBoxList(
         String(nym).Get(), StorageBox::INCOMINGPEERREQUEST);
@@ -848,7 +862,7 @@ ObjectList Wallet::PeerRequestIncoming(const Identifier& nym) const
 ObjectList Wallet::PeerRequestFinished(const Identifier& nym) const
 {
     const std::string nymID = String(nym).Get();
-    std::lock_guard<std::mutex> lock(peer_lock(nymID));
+    Lock lock(peer_lock(nymID));
 
     return ot_.DB().NymBoxList(
         String(nym).Get(), StorageBox::FINISHEDPEERREQUEST);
@@ -857,7 +871,7 @@ ObjectList Wallet::PeerRequestFinished(const Identifier& nym) const
 ObjectList Wallet::PeerRequestProcessed(const Identifier& nym) const
 {
     const std::string nymID = String(nym).Get();
-    std::lock_guard<std::mutex> lock(peer_lock(nymID));
+    Lock lock(peer_lock(nymID));
 
     return ot_.DB().NymBoxList(
         String(nym).Get(), StorageBox::PROCESSEDPEERREQUEST);
@@ -881,7 +895,7 @@ bool Wallet::PeerRequestReceive(
     }
 
     const std::string nymID = String(nym).Get();
-    std::lock_guard<std::mutex> lock(peer_lock(nymID));
+    Lock lock(peer_lock(nymID));
 
     return ot_.DB().Store(
         request.Request()->Contract(), nymID, StorageBox::INCOMINGPEERREQUEST);
@@ -909,7 +923,7 @@ bool Wallet::PeerRequestUpdate(
 bool Wallet::RemoveServer(const Identifier& id)
 {
     std::string server(String(id).Get());
-    std::unique_lock<std::mutex> mapLock(server_map_lock_);
+    Lock mapLock(server_map_lock_);
     auto deleted = server_map_.erase(server);
 
     if (0 != deleted) {
@@ -922,7 +936,7 @@ bool Wallet::RemoveServer(const Identifier& id)
 bool Wallet::RemoveUnitDefinition(const Identifier& id)
 {
     std::string unit(String(id).Get());
-    std::unique_lock<std::mutex> mapLock(unit_map_lock_);
+    Lock mapLock(unit_map_lock_);
     auto deleted = unit_map_.erase(unit);
 
     if (0 != deleted) {
@@ -938,7 +952,7 @@ ConstServerContract Wallet::Server(
 {
     const String strID(id);
     const std::string server = strID.Get();
-    std::unique_lock<std::mutex> mapLock(server_map_lock_);
+    Lock mapLock(server_map_lock_);
     bool inMap = (server_map_.find(server) != server_map_.end());
     bool valid = false;
 
@@ -1011,7 +1025,7 @@ ConstServerContract Wallet::Server(
     if (contract) {
         if (contract->Validate()) {
             if (ot_.DB().Store(contract->Contract(), contract->Alias())) {
-                std::unique_lock<std::mutex> mapLock(server_map_lock_);
+                Lock mapLock(server_map_lock_);
                 server_map_[server].reset(contract.release());
                 mapLock.unlock();
             }
@@ -1037,7 +1051,7 @@ ConstServerContract Wallet::Server(const proto::ServerContract& contract)
         if (candidate) {
             if (candidate->Validate()) {
                 if (ot_.DB().Store(candidate->Contract(), candidate->Alias())) {
-                    std::unique_lock<std::mutex> mapLock(server_map_lock_);
+                    Lock mapLock(server_map_lock_);
                     server_map_[server].reset(candidate.release());
                     mapLock.unlock();
                 }
@@ -1081,7 +1095,7 @@ ObjectList Wallet::ServerList() { return ot_.DB().ServerList(); }
 
 bool Wallet::SetNymAlias(const Identifier& id, const std::string& alias)
 {
-    std::lock_guard<std::mutex> mapLock(nym_map_lock_);
+    Lock mapLock(nym_map_lock_);
 
     auto it = nym_map_.find(String(id).Get());
 
@@ -1137,7 +1151,7 @@ bool Wallet::SetServerAlias(const Identifier& id, const std::string& alias)
     const bool saved = ot_.DB().SetServerAlias(server, alias);
 
     if (saved) {
-        std::lock_guard<std::mutex> mapLock(server_map_lock_);
+        Lock mapLock(server_map_lock_);
         server_map_.erase(server);
 
         return true;
@@ -1154,7 +1168,7 @@ bool Wallet::SetUnitDefinitionAlias(
     const bool saved = ot_.DB().SetUnitDefinitionAlias(unit, alias);
 
     if (saved) {
-        std::lock_guard<std::mutex> mapLock(unit_map_lock_);
+        Lock mapLock(unit_map_lock_);
         unit_map_.erase(unit);
 
         return true;
@@ -1174,7 +1188,7 @@ ConstUnitDefinition Wallet::UnitDefinition(
 {
     const String strID(id);
     const std::string unit = strID.Get();
-    std::unique_lock<std::mutex> mapLock(unit_map_lock_);
+    Lock mapLock(unit_map_lock_);
     bool inMap = (unit_map_.find(unit) != unit_map_.end());
     bool valid = false;
 
@@ -1246,7 +1260,7 @@ ConstUnitDefinition Wallet::UnitDefinition(
     if (contract) {
         if (contract->Validate()) {
             if (ot_.DB().Store(contract->Contract(), contract->Alias())) {
-                std::unique_lock<std::mutex> mapLock(unit_map_lock_);
+                Lock mapLock(unit_map_lock_);
                 unit_map_[unit].reset(contract.release());
                 mapLock.unlock();
             }
@@ -1273,7 +1287,7 @@ ConstUnitDefinition Wallet::UnitDefinition(
         if (candidate) {
             if (candidate->Validate()) {
                 if (ot_.DB().Store(candidate->Contract(), candidate->Alias())) {
-                    std::unique_lock<std::mutex> mapLock(unit_map_lock_);
+                    Lock mapLock(unit_map_lock_);
                     unit_map_[unit].reset(candidate.release());
                     mapLock.unlock();
                 }

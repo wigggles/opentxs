@@ -319,6 +319,32 @@ bool Contact::AddPaymentCode(
     return true;
 }
 
+std::shared_ptr<ContactItem> Contact::Best(const ContactGroup& group)
+{
+    if (0 == group.Size()) {
+
+        return {};
+    }
+
+    const auto primary = group.PrimaryClaim();
+
+    if (primary) {
+
+        return primary;
+    }
+
+    for (const auto& it : group) {
+        const auto& claim = it.second;
+
+        if (claim->isActive()) {
+
+            return claim;
+        }
+    }
+
+    return group.begin()->second;
+}
+
 std::vector<Contact::BlockchainAddress> Contact::BlockchainAddresses() const
 {
     std::vector<BlockchainAddress> output;
@@ -390,33 +416,6 @@ std::string Contact::ExtractLabel(const Nym& nym)
 proto::ContactItemType Contact::ExtractType(const Nym& nym)
 {
     return nym.Claims().Type();
-}
-
-std::shared_ptr<ContactItem> Contact::get_best_claim(
-    const ContactGroup& group) const
-{
-    if (0 == group.Size()) {
-
-        return {};
-    }
-
-    const auto primary = group.PrimaryClaim();
-
-    if (primary) {
-
-        return primary;
-    }
-
-    for (const auto& it : group) {
-        const auto& claim = it.second;
-
-        if (claim->isActive()) {
-
-            return claim;
-        }
-    }
-
-    return group.begin()->second;
 }
 
 const Identifier& Contact::ID() const { return id_; }
@@ -598,18 +597,18 @@ std::shared_ptr<ContactGroup> Contact::payment_codes(
     return data->Group(proto::CONTACTSECTION_PROCEDURE, currency);
 }
 
-std::string Contact::PaymentCode(const proto::ContactItemType currency) const
+std::string Contact::PaymentCode(
+    const ContactData& data,
+    const proto::ContactItemType currency)
 {
-    Lock lock(lock_);
-    const auto group = payment_codes(lock, currency);
-    lock.unlock();
+    auto group = data.Group(proto::CONTACTSECTION_PROCEDURE, currency);
 
     if (false == bool(group)) {
 
         return {};
     }
 
-    const auto item = get_best_claim(*group);
+    const auto item = Best(*group);
 
     if (false == bool(item)) {
 
@@ -617,6 +616,20 @@ std::string Contact::PaymentCode(const proto::ContactItemType currency) const
     }
 
     return item->Value();
+}
+
+std::string Contact::PaymentCode(const proto::ContactItemType currency) const
+{
+    Lock lock(lock_);
+    const auto data = merged_data(lock);
+    lock.unlock();
+
+    if (false == bool(data)) {
+
+        return {};
+    }
+
+    return PaymentCode(*data, currency);
 }
 
 std::vector<std::string> Contact::PaymentCodes(

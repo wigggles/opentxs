@@ -180,6 +180,11 @@ public:
         const Identifier& strMasterID,
         const NymParameters& nymParameters);
     EXPORT bool AddClaim(const Claim& claim);
+    EXPORT bool AddPaymentCode(
+        const class PaymentCode& code,
+        const proto::ContactItemType currency,
+        const bool primary,
+        const bool active = true);
     EXPORT bool AddPreferredOTServer(const Identifier& id, const bool primary);
     EXPORT bool DeleteClaim(const Identifier& id);
     EXPORT void DisplayStatistics(String& strOutput);
