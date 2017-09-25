@@ -63,6 +63,7 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/ext/OTPayment.hpp"
 #include "opentxs/server/ConfigLoader.hpp"
+#include "opentxs/server/ServerLoader.hpp"
 #include "opentxs/server/Transactor.hpp"
 
 #include <inttypes.h>
@@ -75,6 +76,10 @@
 #define SERVER_PID_FILENAME "ot.pid"
 #define SEED_BACKUP_FILE "seed_backup.json"
 #define SERVER_CONTRACT_FILE "NEW_SERVER_CONTRACT.otc"
+#define SERVER_CONFIG_LISTEN_SECTION "listen"
+#define SERVER_CONFIG_BIND_KEY "bindip"
+#define SERVER_CONFIG_COMMAND_KEY "command"
+#define SERVER_CONFIG_NOTIFY_KEY "notification"
 
 #define OT_METHOD "opentxs::OTServer::"
 
@@ -261,7 +266,7 @@ void OTServer::CreateMainFile(
     const std::string strNymID(serverNymID.Get(), serverNymID.GetLength());
 
     const std::string defaultTerms = "This is an example server contract.";
-    const std::string& userTerms = args["terms"];
+    const std::string& userTerms = args[OT_SERVER_OPTION_TERMS];
     std::string terms = userTerms;
 
     if (1 > userTerms.size()) {
@@ -269,7 +274,7 @@ void OTServer::CreateMainFile(
     }
 
     const std::string defaultExternalIP = DEFAULT_EXTERNAL_IP;
-    const std::string& userExternalIP = args["externalip"];
+    const std::string& userExternalIP = args[OT_SERVER_OPTION_EXTERNALIP];
     std::string hostname = userExternalIP;
 
     if (5 > hostname.size()) {
@@ -277,7 +282,7 @@ void OTServer::CreateMainFile(
     }
 
     const std::string defaultBindIP = DEFAULT_BIND_IP;
-    const std::string& userBindIP = args["bindip"];
+    const std::string& userBindIP = args[OT_SERVER_OPTION_BINDIP];
     std::string bindIP = userBindIP;
 
     if (5 > bindIP.size()) {
@@ -285,10 +290,14 @@ void OTServer::CreateMainFile(
     }
 
     bool notUsed = false;
-    OT::App().Config().Set_str("Listen", "bindip", String(bindIP), notUsed);
+    OT::App().Config().Set_str(
+        SERVER_CONFIG_LISTEN_SECTION,
+        SERVER_CONFIG_BIND_KEY,
+        String(bindIP),
+        notUsed);
 
     const std::uint32_t defaultCommandPort = DEFAULT_COMMAND_PORT;
-    const std::string& userCommandPort = args["commandport"];
+    const std::string& userCommandPort = args[OT_SERVER_OPTION_COMMANDPORT];
     std::uint32_t commandPort = 0;
     bool needPort = true;
 
@@ -309,7 +318,7 @@ void OTServer::CreateMainFile(
         needPort = false;
     }
 
-    const std::string& userListenCommand = args["listencommand"];
+    const std::string& userListenCommand = args[OT_SERVER_OPTION_LISTENCOMMAND];
     uint32_t listenCommand = 0;
     bool needListenCommand = true;
 
@@ -331,11 +340,15 @@ void OTServer::CreateMainFile(
     }
 
     OT::App().Config().Set_str(
-        "Listen", "command", String(std::to_string(listenCommand)), notUsed);
+        SERVER_CONFIG_LISTEN_SECTION,
+        SERVER_CONFIG_COMMAND_KEY,
+        String(std::to_string(listenCommand)),
+        notUsed);
 
     const uint32_t defaultNotificationPort = DEFAULT_NOTIFY_PORT;
 
-    const std::string& userListenNotification = args["listennotify"];
+    const std::string& userListenNotification =
+        args[OT_SERVER_OPTION_LISTENNOTIFY];
     uint32_t listenNotification = 0;
     bool needListenNotification = true;
 
@@ -359,13 +372,13 @@ void OTServer::CreateMainFile(
     }
 
     OT::App().Config().Set_str(
-        "Listen",
-        "notification",
+        SERVER_CONFIG_LISTEN_SECTION,
+        SERVER_CONFIG_NOTIFY_KEY,
         String(std::to_string(listenNotification)),
         notUsed);
 
     const std::string defaultName = DEFAULT_NAME;
-    const std::string& userName = args["name"];
+    const std::string& userName = args[OT_SERVER_OPTION_NAME];
     std::string name = userName;
 
     if (1 > name.size()) {
@@ -379,7 +392,7 @@ void OTServer::CreateMainFile(
                                   commandPort,
                                   1};
     endpoints.push_back(ipv4);
-    const std::string& onion = args["onion"];
+    const std::string& onion = args[OT_SERVER_OPTION_ONION];
 
     if (0 < onion.size()) {
         ServerContract::Endpoint tor{proto::ADDRESSTYPE_ONION,
@@ -390,7 +403,7 @@ void OTServer::CreateMainFile(
         endpoints.push_back(tor);
     }
 
-    const std::string& eep = args["eep"];
+    const std::string& eep = args[OT_SERVER_OPTION_EEP];
 
     if (0 < eep.size()) {
         ServerContract::Endpoint i2p{proto::ADDRESSTYPE_EEP,
@@ -985,10 +998,18 @@ bool OTServer::GetConnectInfo(std::string& strHostname, uint32_t& nPort) const
     int64_t port = 0;
 
     const bool haveIP = OT::App().Config().CheckSet_str(
-        "Listen", "bindip", String(DEFAULT_BIND_IP), strHostname, notUsed);
+        SERVER_CONFIG_LISTEN_SECTION,
+        "bindip",
+        String(DEFAULT_BIND_IP),
+        strHostname,
+        notUsed);
 
     const bool havePort = OT::App().Config().CheckSet_long(
-        "Listen", "command", DEFAULT_COMMAND_PORT, port, notUsed);
+        SERVER_CONFIG_LISTEN_SECTION,
+        SERVER_CONFIG_COMMAND_KEY,
+        DEFAULT_COMMAND_PORT,
+        port,
+        notUsed);
 
     port = (MAX_TCP_PORT < port) ? DEFAULT_COMMAND_PORT : port;
     port = (MIN_TCP_PORT > port) ? DEFAULT_COMMAND_PORT : port;

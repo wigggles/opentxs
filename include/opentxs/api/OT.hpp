@@ -104,6 +104,7 @@ private:
     std::int64_t server_refresh_interval_{0};
     std::int64_t unit_publish_interval_{0};
     std::int64_t unit_refresh_interval_{0};
+    const std::chrono::seconds gc_interval_{0};
     const OTPassword word_list_{};
     const OTPassword passphrase_{};
     const std::string primary_storage_plugin_{};
@@ -129,6 +130,7 @@ private:
 
     static void Factory(
         const bool serverMode,
+        const std::chrono::seconds gcInterval = std::chrono::seconds(0),
         const std::string& storagePlugin = "",
         const std::string& backupDirectory = "",
         const std::string& encryptedDirectory = "");
@@ -137,6 +139,7 @@ private:
         const std::string& words,
         const std::string& passphrase,
         const bool serverMode,
+        const std::chrono::seconds gcInterval = std::chrono::seconds(0),
         const std::string& storagePlugin = "",
         const std::string& backupDirectory = "",
         const std::string& encryptedDirectory = "");
@@ -147,6 +150,7 @@ private:
         const std::string& words,
         const std::string& passphrase,
         const bool serverMode,
+        const std::chrono::seconds gcInterval,
         const std::string& storagePlugin,
         const std::string& backupDirectory,
         const std::string& encryptedDirectory);
