@@ -45,10 +45,9 @@
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/Types.hpp"
 
-#include <chrono>
+#include <cstdint>
 #include <list>
 #include <set>
-#include <stdint.h>
 #include <string>
 
 namespace opentxs
@@ -83,7 +82,7 @@ public:
      Call this once per run of the application.
      */
     EXPORT static bool AppInit(
-        const std::chrono::seconds gcInterval = std::chrono::seconds(0),
+        const std::uint64_t gcInterval = 0,
         const std::string& storagePlugin = "",
         const std::string& archiveDirectory = "",
         const std::string& encryptedDirectory = "");
