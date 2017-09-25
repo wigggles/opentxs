@@ -94,6 +94,7 @@ OT::OT(
     const std::string& words,
     const std::string& passphrase,
     const bool serverMode,
+    const std::chrono::seconds gcInterval,
     const std::string& storagePlugin,
     const std::string& backupDirectory,
     const std::string& encryptedDirectory)
@@ -105,6 +106,7 @@ OT::OT(
     , server_refresh_interval_(std::numeric_limits<std::int64_t>::max())
     , unit_publish_interval_(std::numeric_limits<std::int64_t>::max())
     , unit_refresh_interval_(std::numeric_limits<std::int64_t>::max())
+    , gc_interval_(gcInterval)
     , word_list_(words.c_str(), words.size())
     , passphrase_(passphrase.c_str(), passphrase.size())
     , primary_storage_plugin_(storagePlugin)
@@ -223,6 +225,7 @@ Dht& OT::DHT() const
 
 void OT::Factory(
     const bool serverMode,
+    const std::chrono::seconds gcInterval,
     const std::string& storagePlugin,
     const std::string& backupDirectory,
     const std::string& encryptedDirectory)
@@ -232,6 +235,7 @@ void OT::Factory(
         "",
         "",
         serverMode,
+        gcInterval,
         storagePlugin,
         backupDirectory,
         encryptedDirectory);
@@ -242,6 +246,7 @@ void OT::Factory(
     const std::string& words,
     const std::string& passphrase,
     const bool serverMode,
+    const std::chrono::seconds gcInterval,
     const std::string& storagePlugin,
     const std::string& backupDirectory,
     const std::string& encryptedDirectory)
@@ -253,6 +258,7 @@ void OT::Factory(
         words,
         passphrase,
         serverMode,
+        gcInterval,
         storagePlugin,
         backupDirectory,
         encryptedDirectory);
@@ -506,6 +512,16 @@ void OT::Init_Storage()
         encryptedDirectory = encrypted_directory_.c_str();
     }
 
+    const bool haveGCInterval = (0 != gc_interval_.count());
+    std::int64_t defaultGcInterval{0};
+    std::int64_t configGcInterval{0};
+
+    if (haveGCInterval) {
+        defaultGcInterval = gc_interval_.count();
+    } else {
+        defaultGcInterval = config.gc_interval_;
+    }
+
     encrypted_directory_ = encryptedDirectory.Get();
 
     Config().CheckSet_bool(
@@ -529,8 +545,8 @@ void OT::Init_Storage()
     Config().CheckSet_long(
         STORAGE_CONFIG_KEY,
         "gc_interval",
-        config.gc_interval_,
-        config.gc_interval_,
+        defaultGcInterval,
+        configGcInterval,
         notUsed);
     Config().CheckSet_str(
         STORAGE_CONFIG_KEY,
@@ -611,6 +627,14 @@ void OT::Init_Storage()
         notUsed);
 #endif
 
+    if (haveGCInterval) {
+        config.gc_interval_ = defaultGcInterval;
+        Config().Set_long(
+            STORAGE_CONFIG_KEY, "gc_interval", defaultGcInterval, notUsed);
+    } else {
+        config.gc_interval_ = configGcInterval;
+    }
+
     if (dht_) {
         config.dht_callback_ = std::bind(
             static_cast<void (Dht::*)(const std::string&, const std::string&)>(
@@ -623,6 +647,7 @@ void OT::Init_Storage()
     OT_ASSERT(crypto_);
 
     storage_.reset(new Storage(config, *crypto_, hash, random));
+    Config().Save();
 }
 
 void OT::Init_StorageBackup()

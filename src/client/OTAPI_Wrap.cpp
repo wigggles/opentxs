@@ -91,11 +91,13 @@ bool OTAPI_Wrap::networkFailure(const std::string& notaryID)
 OTAPI_Exec* OTAPI_Wrap::Exec() { return &OT::App().API().Exec(); }
 
 bool OTAPI_Wrap::AppInit(
+    const std::chrono::seconds gcInterval,
     const std::string& storagePlugin,
     const std::string& archiveDirectory,
     const std::string& encryptedDirectory)
 {
-    OT::Factory(false, storagePlugin, archiveDirectory, encryptedDirectory);
+    OT::Factory(
+        false, gcInterval, storagePlugin, archiveDirectory, encryptedDirectory);
 
     return true;
 }
@@ -103,6 +105,7 @@ bool OTAPI_Wrap::AppInit(
 bool OTAPI_Wrap::AppRecover(
     const std::string& words,
     const std::string& passphrase,
+    const std::chrono::seconds gcInterval,
     const std::string& storagePlugin,
     const std::string& archiveDirectory,
     const std::string& encryptedDirectory)
@@ -112,6 +115,7 @@ bool OTAPI_Wrap::AppRecover(
         words,
         passphrase,
         false,
+        gcInterval,
         storagePlugin,
         archiveDirectory,
         encryptedDirectory);

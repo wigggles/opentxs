@@ -47,6 +47,10 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/server/OTServer.hpp"
 
+#include <chrono>
+
+#define OT_METHOD "opentxs::ServerLoader::"
+
 namespace opentxs
 {
 OTServer* ServerLoader::server_ = nullptr;
@@ -86,18 +90,35 @@ ServerLoader::ServerLoader(std::map<std::string, std::string>& args)
 
     std::string plugin{};
     std::string backup{};
-    auto pluginOption = args.find("storage");
-    auto backupOption = args.find("backup");
+    std::chrono::seconds gcInterval{0};
+    auto pluginOption = args.find(OT_SERVER_OPTION_STORAGE);
+    auto backupOption = args.find(OT_SERVER_OPTION_BACKUP);
+    auto gcOption = args.find(OT_SERVER_OPTION_GC);
 
     if (args.end() != pluginOption) {
         plugin = pluginOption->second;
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Setting primary storage plugin to " << plugin << std::endl;
     }
 
     if (args.end() != backupOption) {
         backup = backupOption->second;
+        otErr << OT_METHOD << __FUNCTION__ << ": Setting backup directory to "
+              << backup << std::endl;
     }
 
-    OT::Factory(true, plugin, backup);
+    if (args.end() != gcOption) {
+        try {
+            gcInterval = std::chrono::seconds(std::stoll(gcOption->second));
+            otErr << OT_METHOD << __FUNCTION__
+                  << ": Setting storage garbage collection interval to "
+                  << gcInterval.count() << " seconds" << std::endl;
+        } catch (const std::invalid_argument&) {
+        } catch (const std::out_of_range&) {
+        }
+    }
+
+    OT::Factory(true, gcInterval, plugin, backup);
 
     // OTServer::Init loads up server's nym so it can decrypt messages sent
     // in envelopes. It also does various other initialization work.
