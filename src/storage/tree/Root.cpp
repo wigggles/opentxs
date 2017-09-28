@@ -169,6 +169,13 @@ void Root::init(const std::string& hash)
 
 bool Root::Migrate(const StorageDriver& to) const
 {
+    if (0 == gc_interval_) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Garbage collection disabled"
+              << std::endl;
+
+        return false;
+    }
+
     const std::uint64_t time = std::time(nullptr);
     const bool intervalExceeded = ((time - last_gc_.load()) > gc_interval_);
     const bool resume = gc_resume_.load();
