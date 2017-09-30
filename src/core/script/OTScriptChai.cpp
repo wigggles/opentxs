@@ -302,8 +302,8 @@ bool OTScriptChai::ExecuteScript(OTVariable* pReturnVar)
                   << ee.reason << ". \n   File: " << ee.filename
                   << "\n"
                      "   Start position, line: "
-                  << ee.start_position.line << " column: "
-                  << ee.start_position.column
+                  << ee.start_position.line
+                  << " column: " << ee.start_position.column
                   //                  << "\n"
                   //                     "   End position,   line: " <<
                   //                     ee.end_position.line
@@ -313,8 +313,8 @@ bool OTScriptChai::ExecuteScript(OTVariable* pReturnVar)
             std::cout << ee.what();
             if (ee.call_stack.size() > 0) {
                 std::cout << "during evaluation at ("
-                          << ee.call_stack[0]->start().line << ", "
-                          << ee.call_stack[0]->start().column << ")";
+                          << ee.call_stack[0].start().line << ", "
+                          << ee.call_stack[0].start().column << ")";
             }
             std::cout << std::endl;
             std::cout << std::endl;
@@ -330,16 +330,16 @@ bool OTScriptChai::ExecuteScript(OTVariable* pReturnVar)
                 //                boost::shared_ptr<const std::string> filename;
 
                 for (size_t j = 1; j < ee.call_stack.size(); ++j) {
-                    if (ee.call_stack[j]->identifier !=
+                    if (ee.call_stack[j].identifier !=
                             chaiscript::AST_Node_Type::Block &&
-                        ee.call_stack[j]->identifier !=
+                        ee.call_stack[j].identifier !=
                             chaiscript::AST_Node_Type::File) {
                         std::cout << std::endl;
-                        std::cout << "  from " << ee.call_stack[j]->filename()
-                                  << " (" << ee.call_stack[j]->start().line
-                                  << ", " << ee.call_stack[j]->start().column
+                        std::cout << "  from " << ee.call_stack[j].filename()
+                                  << " (" << ee.call_stack[j].start().line
+                                  << ", " << ee.call_stack[j].start().column
                                   << ") : ";
-                        std::cout << ee.call_stack[j]->text << std::endl;
+                        std::cout << ee.call_stack[j].text << std::endl;
                     }
                 }
             }
@@ -378,31 +378,31 @@ bool OTScriptChai::ExecuteScript(OTVariable* pReturnVar)
 
 OTScriptChai::OTScriptChai()
     : OTScript()
-    , chai_(new chaiscript::ChaiScript())
+    , chai_(new chaiscript::ChaiScript)
 {
 }
 
 OTScriptChai::OTScriptChai(const OTString& strValue)
     : OTScript(strValue)
-    , chai_(new chaiscript::ChaiScript())
+    , chai_(new chaiscript::ChaiScript)
 {
 }
 
 OTScriptChai::OTScriptChai(const char* new_string)
     : OTScript(new_string)
-    , chai_(new chaiscript::ChaiScript())
+    , chai_(new chaiscript::ChaiScript)
 {
 }
 
 OTScriptChai::OTScriptChai(const char* new_string, size_t sizeLength)
     : OTScript(new_string, sizeLength)
-    , chai_(new chaiscript::ChaiScript())
+    , chai_(new chaiscript::ChaiScript)
 {
 }
 
 OTScriptChai::OTScriptChai(const std::string& new_string)
     : OTScript(new_string)
-    , chai_(new chaiscript::ChaiScript())
+    , chai_(new chaiscript::ChaiScript)
 {
 }
 
@@ -410,31 +410,31 @@ OTScriptChai::OTScriptChai(const std::string& new_string)
 
 OTScriptChai::OTScriptChai()
     : OTScript()
-    , chai_(new chaiscript::ChaiScript(chaiscript::Std_Lib::library()))
+    , chai_(new chaiscript::ChaiScript)
 {
 }
 
 OTScriptChai::OTScriptChai(const String& strValue)
     : OTScript(strValue)
-    , chai_(new chaiscript::ChaiScript(chaiscript::Std_Lib::library()))
+    , chai_(new chaiscript::ChaiScript)
 {
 }
 
 OTScriptChai::OTScriptChai(const char* new_string)
     : OTScript(new_string)
-    , chai_(new chaiscript::ChaiScript(chaiscript::Std_Lib::library()))
+    , chai_(new chaiscript::ChaiScript)
 {
 }
 
 OTScriptChai::OTScriptChai(const char* new_string, size_t sizeLength)
     : OTScript(new_string, sizeLength)
-    , chai_(new chaiscript::ChaiScript(chaiscript::Std_Lib::library()))
+    , chai_(new chaiscript::ChaiScript)
 {
 }
 
 OTScriptChai::OTScriptChai(const std::string& new_string)
     : OTScript(new_string)
-    , chai_(new chaiscript::ChaiScript(chaiscript::Std_Lib::library()))
+    , chai_(new chaiscript::ChaiScript)
 {
 }
 
