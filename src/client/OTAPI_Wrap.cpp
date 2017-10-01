@@ -65,8 +65,8 @@
 #include "opentxs/network/ZMQ.hpp"
 #include "opentxs/storage/Storage.hpp"
 
-#include <stdint.h>
 #include <algorithm>
+#include <chrono>
 #include <iostream>
 #include <iterator>
 #include <ostream>
@@ -91,13 +91,17 @@ bool OTAPI_Wrap::networkFailure(const std::string& notaryID)
 OTAPI_Exec* OTAPI_Wrap::Exec() { return &OT::App().API().Exec(); }
 
 bool OTAPI_Wrap::AppInit(
-    const std::chrono::seconds gcInterval,
+    const std::uint64_t gcInterval,
     const std::string& storagePlugin,
     const std::string& archiveDirectory,
     const std::string& encryptedDirectory)
 {
     OT::Factory(
-        false, gcInterval, storagePlugin, archiveDirectory, encryptedDirectory);
+        false,
+        std::chrono::seconds(gcInterval),
+        storagePlugin,
+        archiveDirectory,
+        encryptedDirectory);
 
     return true;
 }

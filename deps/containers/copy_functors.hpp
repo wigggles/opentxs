@@ -33,7 +33,7 @@ namespace stlplus
   class constructor_copy
   {
   public:
-    T* operator() (const T& from) throw()
+    T* operator() (const T& from) noexcept
       {
         return new T(from);
       }
@@ -45,7 +45,7 @@ namespace stlplus
   class clone_copy
   {
   public:
-    T* operator() (const T& from) throw()
+    T* operator() (const T& from) noexcept
       {
         return from.clone();
       }
@@ -57,7 +57,7 @@ namespace stlplus
   class no_copy
   {
   public:
-    T* operator() (const T& from) throw(illegal_copy)
+    T* operator() (const T& from) noexcept(false)
       {
         throw illegal_copy("no_copy functor called");
         return 0;
