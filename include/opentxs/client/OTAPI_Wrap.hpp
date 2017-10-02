@@ -89,7 +89,7 @@ public:
     EXPORT static bool AppRecover(
         const std::string& words,
         const std::string& passphrase,
-        const std::chrono::seconds gcInterval = std::chrono::seconds(0),
+        const std::uint64_t gcInterval = 0,
         const std::string& storagePlugin = "",
         const std::string& archiveDirectory = "",
         const std::string& encryptedDirectory = "");
@@ -4882,5 +4882,4 @@ private:
     ~OTAPI_Wrap() = default;
 };
 }  // namespace opentxs
-
 #endif  // OPENTXS_CLIENT_OTAPI_HPP

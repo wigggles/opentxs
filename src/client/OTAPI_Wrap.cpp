@@ -109,7 +109,7 @@ bool OTAPI_Wrap::AppInit(
 bool OTAPI_Wrap::AppRecover(
     const std::string& words,
     const std::string& passphrase,
-    const std::chrono::seconds gcInterval,
+    const std::uint64_t gcInterval,
     const std::string& storagePlugin,
     const std::string& archiveDirectory,
     const std::string& encryptedDirectory)
@@ -119,7 +119,7 @@ bool OTAPI_Wrap::AppRecover(
         words,
         passphrase,
         false,
-        gcInterval,
+        std::chrono::seconds(gcInterval),
         storagePlugin,
         archiveDirectory,
         encryptedDirectory);
