@@ -55,7 +55,7 @@
 
 #include <stdexcept>
 
-#define CURRENT_VERSION 1
+#define CURRENT_VERSION 2
 #define ID_BYTES 32
 
 #define OT_METHOD "opentxs::Contact::"
@@ -64,7 +64,7 @@ namespace opentxs
 {
 Contact::Contact(Wallet& wallet, const proto::Contact& serialized)
     : wallet_(wallet)
-    , version_(serialized.version())
+    , version_(check_version(serialized.version(), CURRENT_VERSION))
     , label_(serialized.label())
     , lock_()
     , id_(serialized.id())
@@ -72,12 +72,18 @@ Contact::Contact(Wallet& wallet, const proto::Contact& serialized)
     , primary_nym_()
     , nyms_()
     , merged_children_()
-    , contact_data_(new ContactData(serialized.id(), ContactData::SectionMap{}))
+    , contact_data_(new ContactData(
+          serialized.id(),
+          CONTACT_CONTACT_DATA_VERSION,
+          CONTACT_CONTACT_DATA_VERSION,
+          ContactData::SectionMap{}))
     , revision_(serialized.revision())
 {
     if (serialized.has_contactdata()) {
-        contact_data_.reset(
-            new ContactData(serialized.id(), serialized.contactdata()));
+        contact_data_.reset(new ContactData(
+            serialized.id(),
+            CONTACT_CONTACT_DATA_VERSION,
+            serialized.contactdata()));
     }
 
     OT_ASSERT(contact_data_);
@@ -102,8 +108,11 @@ Contact::Contact(Wallet& wallet, const std::string& label)
     , contact_data_(nullptr)
     , revision_(1)
 {
-    contact_data_.reset(
-        new ContactData(String(id_).Get(), ContactData::SectionMap{}));
+    contact_data_.reset(new ContactData(
+        String(id_).Get(),
+        CONTACT_CONTACT_DATA_VERSION,
+        CONTACT_CONTACT_DATA_VERSION,
+        ContactData::SectionMap{}));
 
     OT_ASSERT(contact_data_);
 }
@@ -111,7 +120,6 @@ Contact::Contact(Wallet& wallet, const std::string& label)
 Contact::operator proto::Contact() const
 {
     Lock lock(lock_);
-
     proto::Contact output{};
     output.set_version(version_);
     output.set_id(String(id_).Get());
@@ -119,7 +127,8 @@ Contact::operator proto::Contact() const
     output.set_label(label_);
 
     if (contact_data_) {
-        *output.mutable_contactdata() = contact_data_->Serialize();
+        auto& data = *output.mutable_contactdata();
+        data = contact_data_->Serialize();
     }
 
     output.set_mergedto(String(parent_).Get());
@@ -179,7 +188,8 @@ bool Contact::add_nym(
 
     const auto contactType = type(lock);
     const auto nymType = ExtractType(*nym);
-    const bool haveType = (proto::CITEMTYPE_ERROR != contactType);
+    const bool haveType = (proto::CITEMTYPE_ERROR != contactType) &&
+                          (proto::CITEMTYPE_UNKNOWN != contactType);
     const bool typeMismatch = (contactType != nymType);
 
     if (haveType && typeMismatch) {
@@ -219,10 +229,14 @@ void Contact::add_nym_claim(
     std::shared_ptr<ContactItem> claim{nullptr};
     claim.reset(new ContactItem(
         String(id_).Get(),
+        CONTACT_CONTACT_DATA_VERSION,
+        CONTACT_CONTACT_DATA_VERSION,
         proto::CONTACTSECTION_RELATIONSHIP,
         proto::CITEMTYPE_CONTACT,
         String(nymID).Get(),
-        attr));
+        attr,
+        NULL_START,
+        NULL_END));
 
     add_claim(lock, claim);
 }
@@ -251,10 +265,14 @@ bool Contact::AddBlockchainAddress(
     std::shared_ptr<ContactItem> claim{nullptr};
     claim.reset(new ContactItem(
         String(id_).Get(),
+        CONTACT_CONTACT_DATA_VERSION,
+        CONTACT_CONTACT_DATA_VERSION,
         proto::CONTACTSECTION_ADDRESS,
         currency,
         address,
-        {proto::CITEMATTR_LOCAL, proto::CITEMATTR_ACTIVE}));
+        {proto::CITEMATTR_LOCAL, proto::CITEMATTR_ACTIVE},
+        NULL_START,
+        NULL_END));
 
     return add_claim(lock, claim);
 }
@@ -304,10 +322,14 @@ bool Contact::AddPaymentCode(
     std::shared_ptr<ContactItem> claim{nullptr};
     claim.reset(new ContactItem(
         String(id_).Get(),
+        CONTACT_CONTACT_DATA_VERSION,
+        CONTACT_CONTACT_DATA_VERSION,
         proto::CONTACTSECTION_PROCEDURE,
         currency,
         value,
-        attr));
+        attr,
+        NULL_START,
+        NULL_END));
 
     if (false == add_claim(claim)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Unable to add claim."
@@ -357,6 +379,7 @@ std::vector<Contact::BlockchainAddress> Contact::BlockchainAddresses() const
         return {};
     }
 
+    const auto& version = data->Version();
     const auto section = data->Section(proto::CONTACTSECTION_ADDRESS);
 
     if (false == bool(section)) {
@@ -371,7 +394,7 @@ std::vector<Contact::BlockchainAddress> Contact::BlockchainAddresses() const
         OT_ASSERT(group);
 
         const bool currency = proto::ValidContactItemType(
-            {CONTACT_VERSION, proto::CONTACTSECTION_CONTRACT}, type);
+            {version, proto::CONTACTSECTION_CONTRACT}, type);
 
         if (false == currency) {
 
@@ -388,6 +411,19 @@ std::vector<Contact::BlockchainAddress> Contact::BlockchainAddresses() const
     }
 
     return output;
+}
+
+std::uint32_t Contact::check_version(
+    const std::uint32_t in,
+    const std::uint32_t targetVersion)
+{
+    // Upgrade version
+    if (targetVersion > in) {
+
+        return targetVersion;
+    }
+
+    return in;
 }
 
 std::shared_ptr<ContactData> Contact::Data() const
@@ -726,12 +762,16 @@ void Contact::Update(const proto::CredentialIndex& serialized)
     update_label(lock, *nym);
     std::shared_ptr<ContactItem> claim(new ContactItem(
         String(id_).Get(),
+        CONTACT_CONTACT_DATA_VERSION,
+        CONTACT_CONTACT_DATA_VERSION,
         proto::CONTACTSECTION_EVENT,
         proto::CITEMTYPE_REFRESHED,
         std::to_string(std::time(nullptr)),
         {proto::CITEMATTR_PRIMARY,
          proto::CITEMATTR_ACTIVE,
-         proto::CITEMATTR_LOCAL}));
+         proto::CITEMATTR_LOCAL},
+        NULL_START,
+        NULL_END));
     add_claim(lock, claim);
 }
 

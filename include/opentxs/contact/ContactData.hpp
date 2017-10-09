@@ -65,17 +65,19 @@ public:
 
     ContactData(
         const std::string& nym,
-        const SectionMap& sections,
-        const std::uint32_t version = CONTACT_DATA_VERSION);
-    ContactData(const std::string& nym, const proto::ContactData& serialized);
+        const std::uint32_t version,
+        const std::uint32_t targetVersion,
+        const SectionMap& sections);
+    ContactData(
+        const std::string& nym,
+        const std::uint32_t targetVersion,
+        const proto::ContactData& serialized);
     ContactData(const ContactData&) = default;
     ContactData(ContactData&&) = default;
 
     ContactData operator+(const ContactData& rhs) const;
 
     operator std::string() const;
-
-    static std::uint32_t check_version(const std::uint32_t in);
 
     ContactData AddItem(const Claim& claim) const;
     ContactData AddItem(const std::shared_ptr<ContactItem>& item) const;
@@ -107,6 +109,7 @@ public:
         const std::string& name,
         const bool primary) const;
     proto::ContactItemType Type() const;
+    std::uint32_t Version() const;
 
     ~ContactData() = default;
 
@@ -119,8 +122,12 @@ private:
     const std::string nym_{};
     const SectionMap sections_{};
 
+    static std::uint32_t check_version(
+        const std::uint32_t in,
+        const std::uint32_t targetVersion);
     static SectionMap extract_sections(
         const std::string& nym,
+        const std::uint32_t targetVersion,
         const proto::ContactData& serialized);
 
     Scope scope() const;

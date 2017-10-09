@@ -864,9 +864,12 @@ void Nym::init_claims(const Lock& lock) const
 {
     OT_ASSERT(verify_lock(lock));
 
-    const proto::ContactData blank{};
     const std::string nymID = String(m_nymID).Get();
-    contact_data_.reset(new class ContactData(nymID, blank));
+    contact_data_.reset(new class ContactData(
+        nymID,
+        NYM_CONTACT_DATA_VERSION,
+        NYM_CONTACT_DATA_VERSION,
+        ContactData::SectionMap()));
 
     OT_ASSERT(contact_data_);
 
@@ -879,7 +882,11 @@ void Nym::init_claims(const Lock& lock) const
         credSet.GetContactData(serialized);
 
         if (serialized) {
-            class ContactData claimCred(nymID, *serialized);
+            OT_ASSERT(
+                proto::Validate(*serialized, VERBOSE, proto::CLAIMS_NORMAL));
+
+            class ContactData claimCred(
+                nymID, NYM_CONTACT_DATA_VERSION, *serialized);
             contact_data_.reset(
                 new class ContactData(*contact_data_ + claimCred));
             serialized.reset();
@@ -2602,7 +2609,8 @@ bool Nym::SetContactData(const proto::ContactData& data)
 {
     Lock lock(lock_);
 
-    contact_data_.reset(new ContactData(String(m_nymID).Get(), data));
+    contact_data_.reset(
+        new ContactData(String(m_nymID).Get(), NYM_CONTACT_DATA_VERSION, data));
 
     return set_contact_data(lock, data);
 }

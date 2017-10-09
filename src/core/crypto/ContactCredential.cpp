@@ -136,7 +136,7 @@ ContactCredential::ContactCredential(
 ContactCredential::ContactCredential(
     CredentialSet& parent,
     const NymParameters& nymParameters)
-    : ot_super(parent, CONTACT_DATA_VERSION, nymParameters)
+    : ot_super(parent, CONTACT_CREDENTIAL_VERSION, nymParameters)
 {
     mode_ = proto::KEYMODE_NULL;
     role_ = proto::CREDROLE_CONTACT;

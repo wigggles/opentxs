@@ -47,22 +47,34 @@
 
 #include <sstream>
 
+#define OT_METHOD "opentxs::ContactData::"
+
 namespace opentxs
 {
 ContactData::ContactData(
     const std::string& nym,
-    const SectionMap& sections,
-    const std::uint32_t version)
-    : version_(check_version(version))
+    const std::uint32_t version,
+    const std::uint32_t targetVersion,
+    const SectionMap& sections)
+    : version_(check_version(version, targetVersion))
     , nym_(nym)
     , sections_(sections)
 {
+    if (0 == version) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Warning: malformed version. "
+              << "Setting to " << targetVersion << std::endl;
+    }
 }
 
 ContactData::ContactData(
     const std::string& nym,
+    const std::uint32_t targetVersion,
     const proto::ContactData& serialized)
-    : ContactData(nym, extract_sections(nym, serialized), serialized.version())
+    : ContactData(
+          nym,
+          serialized.version(),
+          targetVersion,
+          extract_sections(nym, targetVersion, serialized))
 {
 }
 
@@ -90,7 +102,7 @@ ContactData ContactData::operator+(const ContactData& rhs) const
         }
     }
 
-    return ContactData(nym_, map, version_);
+    return ContactData(nym_, version_, version_, map);
 }
 
 ContactData::operator std::string() const
@@ -100,7 +112,7 @@ ContactData::operator std::string() const
 
 ContactData ContactData::AddItem(const ClaimTuple& claim) const
 {
-    auto item = std::make_shared<ContactItem>(nym_, claim);
+    auto item = std::make_shared<ContactItem>(nym_, version_, version_, claim);
 
     return AddItem(item);
 }
@@ -115,7 +127,8 @@ ContactData ContactData::AddItem(const std::shared_ptr<ContactItem>& item) const
 
     if (map.end() == it) {
         auto& section = map[sectionID];
-        section.reset(new ContactSection(nym_, sectionID, item, version_));
+        section.reset(
+            new ContactSection(nym_, version_, version_, sectionID, item));
 
         OT_ASSERT(section);
     } else {
@@ -128,7 +141,7 @@ ContactData ContactData::AddItem(const std::shared_ptr<ContactItem>& item) const
         OT_ASSERT(section);
     }
 
-    return ContactData(nym_, map, version_);
+    return ContactData(nym_, version_, version_, map);
 }
 
 ContactData ContactData::AddPaymentCode(
@@ -155,8 +168,16 @@ ContactData ContactData::AddPaymentCode(
         attrib.emplace(proto::CITEMATTR_PRIMARY);
     }
 
-    auto item =
-        std::make_shared<ContactItem>(nym_, section, currency, code, attrib);
+    auto item = std::make_shared<ContactItem>(
+        nym_,
+        version_,
+        version_,
+        section,
+        currency,
+        code,
+        attrib,
+        NULL_START,
+        NULL_END);
 
     OT_ASSERT(item);
 
@@ -184,19 +205,29 @@ ContactData ContactData::AddPreferredOTServer(
     }
 
     auto item = std::make_shared<ContactItem>(
-        nym_, section, type, String(id).Get(), attrib);
+        nym_,
+        version_,
+        version_,
+        section,
+        type,
+        String(id).Get(),
+        attrib,
+        NULL_START,
+        NULL_END);
 
     OT_ASSERT(item);
 
     return AddItem(item);
 }
 
-std::uint32_t ContactData::check_version(const std::uint32_t in)
+std::uint32_t ContactData::check_version(
+    const std::uint32_t in,
+    const std::uint32_t targetVersion)
 {
     // Upgrade version
-    if (CONTACT_DATA_VERSION > in) {
+    if (targetVersion > in) {
 
-        return CONTACT_DATA_VERSION;
+        return targetVersion;
     }
 
     return in;
@@ -250,17 +281,21 @@ ContactData ContactData::Delete(const Identifier& id) const
         return *this;
     }
 
-    return ContactData(nym_, map, version_);
+    return ContactData(nym_, version_, version_, map);
 }
 
 ContactData::SectionMap ContactData::extract_sections(
     const std::string& nym,
+    const std::uint32_t targetVersion,
     const proto::ContactData& serialized)
 {
     SectionMap sectionMap{};
 
     for (const auto it : serialized.section()) {
-        sectionMap[it.name()].reset(new ContactSection(nym, it));
+        if (0 != it.version()) {
+            sectionMap[it.name()].reset(new ContactSection(
+                nym, check_version(serialized.version(), targetVersion), it));
+        }
     }
 
     return sectionMap;
@@ -414,8 +449,16 @@ ContactData ContactData::SetCommonName(const std::string& name) const
     std::set<proto::ContactItemAttribute> attrib{proto::CITEMATTR_ACTIVE,
                                                  proto::CITEMATTR_PRIMARY};
 
-    auto item =
-        std::make_shared<ContactItem>(nym_, section, type, name, attrib);
+    auto item = std::make_shared<ContactItem>(
+        nym_,
+        version_,
+        version_,
+        section,
+        type,
+        name,
+        attrib,
+        NULL_START,
+        NULL_END);
 
     OT_ASSERT(item);
 
@@ -434,19 +477,27 @@ ContactData ContactData::SetScope(
         mapCopy.erase(section);
         std::set<proto::ContactItemAttribute> attrib{proto::CITEMATTR_ACTIVE,
                                                      proto::CITEMATTR_PRIMARY};
-        auto item =
-            std::make_shared<ContactItem>(nym_, section, type, name, attrib);
+        auto item = std::make_shared<ContactItem>(
+            nym_,
+            version_,
+            version_,
+            section,
+            type,
+            name,
+            attrib,
+            NULL_START,
+            NULL_END);
 
         OT_ASSERT(item);
 
-        auto newSection =
-            std::make_shared<ContactSection>(nym_, section, item, version_);
+        auto newSection = std::make_shared<ContactSection>(
+            nym_, version_, version_, section, item);
 
         OT_ASSERT(newSection);
 
         mapCopy[section] = newSection;
 
-        return ContactData(nym_, mapCopy, version_);
+        return ContactData(nym_, version_, version_, mapCopy);
     }
 
     std::set<proto::ContactItemAttribute> attrib{proto::CITEMATTR_ACTIVE};
@@ -455,8 +506,16 @@ ContactData ContactData::SetScope(
         attrib.emplace(proto::CITEMATTR_PRIMARY);
     }
 
-    auto item =
-        std::make_shared<ContactItem>(nym_, section, type, name, attrib);
+    auto item = std::make_shared<ContactItem>(
+        nym_,
+        version_,
+        version_,
+        section,
+        type,
+        name,
+        attrib,
+        NULL_START,
+        NULL_END);
 
     OT_ASSERT(item);
 
@@ -501,4 +560,6 @@ proto::ContactData ContactData::Serialize(const bool withID) const
 }
 
 proto::ContactItemType ContactData::Type() const { return scope().first; }
+
+std::uint32_t ContactData::Version() const { return version_; }
 }  // namespace opentxs
