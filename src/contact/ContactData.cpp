@@ -528,7 +528,7 @@ ContactData::Scope ContactData::scope() const
 
     if (sections_.end() == it) {
 
-        return {proto::CITEMTYPE_ERROR, nullptr};
+        return {proto::CITEMTYPE_UNKNOWN, nullptr};
     }
 
     OT_ASSERT(it->second);
