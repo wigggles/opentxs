@@ -520,6 +520,15 @@ void ContactManager::save(class Contact* contact)
         OT_FAIL;
     }
 
+    const auto& id = contact->ID();
+
+    if (false == storage_.SetContactAlias(String(id).Get(), contact->Label())) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Unable to create or save contact." << std::endl;
+
+        OT_FAIL;
+    }
+
     rLock lock(lock_);
     refresh_indices(lock, *contact);
 }

@@ -25,19 +25,17 @@ typedef int64_t time64_t;
 #define IMPORT
 #endif
 
-#include <opentxs-proto/Types.hpp>
-
-#include "opentxs/core/crypto/OTCaller.hpp"
-#include "opentxs/core/crypto/OTCallback.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
-#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
-#include "opentxs/core/OTStorage.hpp"
-#include "opentxs/core/Proto.hpp"
 #include "opentxs/client/NymData.hpp"
-#include "opentxs/client/OTAPI_Wrap.hpp"
 #include "opentxs/client/OT_ME.hpp"
+#include "opentxs/client/OTAPI_Wrap.hpp"
 #include "opentxs/client/OTRecord.hpp"
 #include "opentxs/client/OTRecordList.hpp"
+#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
+#include "opentxs/core/crypto/OTCallback.hpp"
+#include "opentxs/core/crypto/OTCaller.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/OTStorage.hpp"
+#include "opentxs/core/Types.hpp"
 
 #include <string>
 #include <vector>
@@ -118,16 +116,16 @@ namespace std {
 #define EXPORT
 #endif
 
-%include "../../include/opentxs/core/crypto/OTCaller.hpp"
-%include "../../include/opentxs/core/crypto/OTCallback.hpp"
-%include "../../include/opentxs/core/crypto/OTPassword.hpp"
-%include "../../include/opentxs/core/crypto/OTAsymmetricKey.hpp"
-%include "../../include/opentxs/core/OTStorage.hpp"
 %include "../../include/opentxs/client/NymData.hpp"
-%include "../../include/opentxs/client/OTAPI_Wrap.hpp"
 %include "../../include/opentxs/client/OT_ME.hpp"
+%include "../../include/opentxs/client/OTAPI_Wrap.hpp"
 %include "../../include/opentxs/client/OTRecord.hpp"
 %include "../../include/opentxs/client/OTRecordList.hpp"
+%include "../../include/opentxs/core/crypto/OTAsymmetricKey.hpp"
+%include "../../include/opentxs/core/crypto/OTCallback.hpp"
+%include "../../include/opentxs/core/crypto/OTCaller.hpp"
+%include "../../include/opentxs/core/crypto/OTPassword.hpp"
+%include "../../include/opentxs/core/OTStorage.hpp"
 
 
 bool opentxs::OT_API_Set_PasswordCallback(OTCaller & theCaller);
