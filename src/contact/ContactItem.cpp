@@ -41,19 +41,23 @@
 #include "opentxs/contact/ContactItem.hpp"
 
 #include "opentxs/core/crypto/ContactCredential.hpp"
+#include "opentxs/core/Log.hpp"
+
+#define OT_METHOD "opentxs::ContactItem::"
 
 namespace opentxs
 {
 ContactItem::ContactItem(
     const std::string& nym,
+    const std::uint32_t version,
+    const std::uint32_t parentVersion,
     const proto::ContactSectionName section,
     const proto::ContactItemType& type,
     const std::string& value,
     const std::set<proto::ContactItemAttribute>& attributes,
     const std::time_t start,
-    const std::time_t end,
-    const std::uint32_t version)
-    : version_(version)
+    const std::time_t end)
+    : version_(check_version(version, parentVersion))
     , nym_(nym)
     , section_(section)
     , type_(type)
@@ -63,11 +67,21 @@ ContactItem::ContactItem(
     , attributes_(attributes)
     , id_(ContactCredential::ClaimID(nym, section, type, start, end, value))
 {
+    if (0 == version) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Warning: malformed version. "
+              << "Setting to " << parentVersion << std::endl;
+    }
 }
 
-ContactItem::ContactItem(const std::string& nym, const Claim& claim)
+ContactItem::ContactItem(
+    const std::string& nym,
+    const std::uint32_t version,
+    const std::uint32_t parentVersion,
+    const Claim& claim)
     : ContactItem(
           nym,
+          version,
+          parentVersion,
           static_cast<proto::ContactSectionName>(std::get<1>(claim)),
           static_cast<proto::ContactItemType>(std::get<2>(claim)),
           std::get<3>(claim),
@@ -79,17 +93,19 @@ ContactItem::ContactItem(const std::string& nym, const Claim& claim)
 
 ContactItem::ContactItem(
     const std::string& nym,
+    const std::uint32_t parentVersion,
     const proto::ContactSectionName section,
     const proto::ContactItem& data)
     : ContactItem(
           nym,
+          data.version(),
+          parentVersion,
           section,
           data.type(),
           data.value(),
           extract_attributes(data),
           data.start(),
-          data.end(),
-          data.version())
+          data.end())
 {
 }
 
@@ -144,6 +160,19 @@ bool ContactItem::operator==(const ContactItem& rhs) const
 }
 
 ContactItem::operator proto::ContactItem() const { return Serialize(true); }
+
+std::uint32_t ContactItem::check_version(
+    const std::uint32_t in,
+    const std::uint32_t targetVersion)
+{
+    // Upgrade version
+    if (targetVersion > in) {
+
+        return targetVersion;
+    }
+
+    return in;
+}
 
 const std::time_t& ContactItem::End() const { return end_; }
 
@@ -238,7 +267,15 @@ ContactItem ContactItem::set_attribute(
     }
 
     return ContactItem(
-        nym_, section_, type_, value_, attributes, start_, end_, version_);
+        nym_,
+        version_,
+        version_,
+        section_,
+        type_,
+        value_,
+        attributes,
+        start_,
+        end_);
 }
 
 ContactItem ContactItem::SetActive(const bool active) const
@@ -254,7 +291,15 @@ ContactItem ContactItem::SetEnd(const std::time_t end) const
     }
 
     return ContactItem(
-        nym_, section_, type_, value_, attributes_, end, version_);
+        nym_,
+        version_,
+        version_,
+        section_,
+        type_,
+        value_,
+        attributes_,
+        start_,
+        end);
 }
 
 ContactItem ContactItem::SetLocal(const bool local) const
@@ -275,7 +320,15 @@ ContactItem ContactItem::SetStart(const std::time_t start) const
     }
 
     return ContactItem(
-        nym_, section_, type_, value_, attributes_, start, end_, version_);
+        nym_,
+        version_,
+        version_,
+        section_,
+        type_,
+        value_,
+        attributes_,
+        start,
+        end_);
 }
 
 ContactItem ContactItem::SetValue(const std::string& value) const
@@ -285,7 +338,15 @@ ContactItem ContactItem::SetValue(const std::string& value) const
     }
 
     return ContactItem(
-        nym_, section_, type_, value, attributes_, start_, end_, version_);
+        nym_,
+        version_,
+        version_,
+        section_,
+        type_,
+        value,
+        attributes_,
+        start_,
+        end_);
 }
 
 const std::time_t& ContactItem::Start() const { return start_; }

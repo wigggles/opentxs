@@ -44,16 +44,17 @@
 #include "opentxs/contact/ContactItem.hpp"
 #include "opentxs/core/Log.hpp"
 
-//#define OT_METHOD "opentxs::ContactSection::"
+#define OT_METHOD "opentxs::ContactSection::"
 
 namespace opentxs
 {
 ContactSection::ContactSection(
     const std::string& nym,
+    const std::uint32_t version,
+    const std::uint32_t parentVersion,
     const proto::ContactSectionName section,
-    const GroupMap& groups,
-    const std::uint32_t version)
-    : version_(version)
+    const GroupMap& groups)
+    : version_(check_version(version, parentVersion))
     , nym_(nym)
     , section_(section)
     , groups_(groups)
@@ -62,21 +63,33 @@ ContactSection::ContactSection(
 
 ContactSection::ContactSection(
     const std::string& nym,
+    const std::uint32_t version,
+    const std::uint32_t parentVersion,
     const proto::ContactSectionName section,
-    const std::shared_ptr<ContactItem>& item,
-    const std::uint32_t version)
-    : ContactSection(nym, section, create_group(nym, section, item), version)
+    const std::shared_ptr<ContactItem>& item)
+    : ContactSection(
+          nym,
+          version,
+          parentVersion,
+          section,
+          create_group(nym, section, item))
 {
+    if (0 == version) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Warning: malformed version. "
+              << "Setting to " << parentVersion << std::endl;
+    }
 }
 
 ContactSection::ContactSection(
     const std::string& nym,
+    const std::uint32_t parentVersion,
     const proto::ContactSection& serialized)
     : ContactSection(
           nym,
+          serialized.version(),
+          parentVersion,
           serialized.name(),
-          extract_groups(nym, serialized),
-          serialized.version())
+          extract_groups(nym, parentVersion, serialized))
 {
 }
 
@@ -104,7 +117,7 @@ ContactSection ContactSection::operator+(const ContactSection& rhs) const
         }
     }
 
-    return ContactSection(nym_, section_, map, version_);
+    return ContactSection(nym_, version_, version_, section_, map);
 }
 
 ContactSection ContactSection::add_scope(
@@ -127,7 +140,7 @@ ContactSection ContactSection::add_scope(
     const auto& claimID = scope->ID();
     groups[groupID].reset(new ContactGroup(nym_, section_, claimID, scope));
 
-    return ContactSection(nym_, section_, groups);
+    return ContactSection(nym_, version_, version_, section_, groups);
 }
 
 ContactSection ContactSection::AddItem(
@@ -163,12 +176,25 @@ ContactSection ContactSection::AddItem(
         map[groupID].reset(new ContactGroup(nym_, section_, primary, item));
     }
 
-    return ContactSection(nym_, section_, map);
+    return ContactSection(nym_, version_, version_, section_, map);
 }
 
 ContactSection::GroupMap::const_iterator ContactSection::begin() const
 {
     return groups_.cbegin();
+}
+
+std::uint32_t ContactSection::check_version(
+    const std::uint32_t in,
+    const std::uint32_t targetVersion)
+{
+    // Upgrade version
+    if (targetVersion > in) {
+
+        return targetVersion;
+    }
+
+    return in;
 }
 
 std::shared_ptr<ContactItem> ContactSection::Claim(Identifier& item) const
@@ -234,7 +260,7 @@ ContactSection ContactSection::Delete(const Identifier& id)
         return *this;
     }
 
-    return ContactSection(nym_, section_, map, version_);
+    return ContactSection(nym_, version_, version_, section_, map);
 }
 
 ContactSection::GroupMap::const_iterator ContactSection::end() const
@@ -244,6 +270,7 @@ ContactSection::GroupMap::const_iterator ContactSection::end() const
 
 ContactSection::GroupMap ContactSection::extract_groups(
     const std::string& nym,
+    const std::uint32_t parentVersion,
     const proto::ContactSection& serialized)
 {
     GroupMap groupMap{};
@@ -253,7 +280,11 @@ ContactSection::GroupMap ContactSection::extract_groups(
 
     for (const auto& item : serialized.item()) {
         const auto& itemType = item.type();
-        auto instantiated = std::make_shared<ContactItem>(nym, section, item);
+        auto instantiated = std::make_shared<ContactItem>(
+            nym,
+            check_version(serialized.version(), parentVersion),
+            section,
+            item);
 
         OT_ASSERT(instantiated);
 

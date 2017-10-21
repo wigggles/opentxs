@@ -59,16 +59,19 @@ public:
 
     ContactSection(
         const std::string& nym,
+        const std::uint32_t version,
+        const std::uint32_t parentVersion,
         const proto::ContactSectionName section,
-        const GroupMap& groups,
-        const std::uint32_t version = CONTACT_DATA_VERSION);
+        const GroupMap& groups);
     ContactSection(
         const std::string& nym,
+        const std::uint32_t version,
+        const std::uint32_t parentVersion,
         const proto::ContactSectionName section,
-        const std::shared_ptr<ContactItem>& item,
-        const std::uint32_t version = CONTACT_DATA_VERSION);
+        const std::shared_ptr<ContactItem>& item);
     ContactSection(
         const std::string& nym,
+        const std::uint32_t parentVersion,
         const proto::ContactSection& serialized);
     ContactSection(const ContactSection&) = default;
     ContactSection(ContactSection&&) = default;
@@ -95,12 +98,16 @@ private:
     const proto::ContactSectionName section_{proto::CONTACTSECTION_ERROR};
     const GroupMap groups_{};
 
+    static std::uint32_t check_version(
+        const std::uint32_t in,
+        const std::uint32_t targetVersion);
     static GroupMap create_group(
         const std::string& nym,
         const proto::ContactSectionName section,
         const std::shared_ptr<ContactItem>& item);
     static GroupMap extract_groups(
         const std::string& nym,
+        const std::uint32_t parentVersion,
         const proto::ContactSection& serialized);
 
     ContactSection add_scope(const std::shared_ptr<ContactItem>& item) const;

@@ -39,6 +39,9 @@
 #ifndef OPENTXS_CONTACT_CONTACT_ITEM_HPP
 #define OPENTXS_CONTACT_CONTACT_ITEM_HPP
 
+#define NULL_START 0
+#define NULL_END 0
+
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/Types.hpp"
@@ -55,16 +58,22 @@ class ContactItem
 public:
     ContactItem(
         const std::string& nym,
+        const std::uint32_t version,
+        const std::uint32_t parentVersion,
         const proto::ContactSectionName section,
         const proto::ContactItemType& type,
         const std::string& value,
         const std::set<proto::ContactItemAttribute>& attributes,
-        const std::time_t start = 0,
-        const std::time_t end = 0,
-        const std::uint32_t version = CONTACT_DATA_VERSION);
-    ContactItem(const std::string& nym, const Claim& claim);
+        const std::time_t start,
+        const std::time_t end);
     ContactItem(
         const std::string& nym,
+        const std::uint32_t version,
+        const std::uint32_t parentVersion,
+        const Claim& claim);
+    ContactItem(
+        const std::string& nym,
+        const std::uint32_t parentVersion,
         const proto::ContactSectionName section,
         const proto::ContactItem& serialized);
     ContactItem(const ContactItem&) = default;
@@ -106,6 +115,9 @@ private:
     const std::set<proto::ContactItemAttribute> attributes_{};
     const Identifier id_{};
 
+    static std::uint32_t check_version(
+        const std::uint32_t in,
+        const std::uint32_t targetVersion);
     static std::set<proto::ContactItemAttribute> extract_attributes(
         const proto::ContactItem& serialized);
     static std::set<proto::ContactItemAttribute> extract_attributes(

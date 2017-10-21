@@ -570,6 +570,9 @@ std::shared_ptr<const class Contact> ContactManager::Update(
     auto it = nym_contact_map_.find(nymID);
 
     if (nym_contact_map_.end() == it) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Nym " << String(nymID)
+              << " is not associated with a contact. Creating a new contact."
+              << std::endl;
 
         return new_contact(
             lock,

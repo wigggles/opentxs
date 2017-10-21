@@ -90,6 +90,7 @@ bool Contacts::Delete(const std::string& id) { return delete_item(id); }
 void Contacts::extract_addresses(const Lock& lock, const proto::Contact& data)
 {
     const auto& contact = data.id();
+    const auto& version = data.version();
 
     if (false == verify_write_lock(lock)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Lock failure." << std::endl;
@@ -110,7 +111,7 @@ void Contacts::extract_addresses(const Lock& lock, const proto::Contact& data)
         for (const auto& item : section.item()) {
             const auto& type = item.type();
             const bool validChain = proto::ValidContactItemType(
-                {CONTACT_VERSION, proto::CONTACTSECTION_CONTRACT}, type);
+                {version, proto::CONTACTSECTION_CONTRACT}, type);
 
             if (false == validChain) {
                 break;

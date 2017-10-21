@@ -422,6 +422,7 @@ void OT_API::Pid::OpenPid(const String& strPidFilePath)
 
             // There was a real PID in there.
             if ((old_pid != 0) && PIDAutorecoverImpossible(old_pid)) {
+#if !(defined(ANDROID) || (defined(TARGET_OS_IPHONE) && TARGET_OS_IPHONE))
                 const uint64_t lPID = old_pid;
                 otErr
                     << "\n\n\nIS OPEN-TRANSACTIONS ALREADY RUNNING?\n\n"
@@ -437,7 +438,6 @@ void OT_API::Pid::OpenPid(const String& strPidFilePath)
                        "cleaned "
                        "up during AppCleanup / AppShutdown. (Or should be.)\n";
 
-#if !(defined(ANDROID) || (defined(TARGET_OS_IPHONE) && TARGET_OS_IPHONE))
                 m_bIsPidOpen = false;
                 return;
 #endif
