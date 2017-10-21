@@ -98,6 +98,13 @@ const ContactData& NymData::data() const
     return nym_->Claims();
 }
 
+std::string NymData::Name() const
+{
+    OT_ASSERT(nym_);
+
+    return nym_->Name();
+}
+
 Nym& NymData::nym()
 {
     OT_ASSERT(nym_);
@@ -124,6 +131,18 @@ std::string NymData::PreferredOTServer() const
 std::string NymData::PrintContactData() const
 {
     return ContactData::PrintContactData(data().Serialize(true));
+}
+
+bool NymData::SetType(const std::uint32_t type, const std::string& name)
+{
+    return SetType(static_cast<proto::ContactItemType>(type), name);
+}
+
+bool NymData::SetType(
+    const proto::ContactItemType type,
+    const std::string& name)
+{
+    return nym().SetScope(type, name, true);
 }
 
 proto::ContactItemType NymData::Type() const { return data().Type(); }

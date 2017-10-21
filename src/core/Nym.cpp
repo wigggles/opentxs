@@ -1950,6 +1950,26 @@ std::shared_ptr<const proto::Credential> Nym::MasterCredentialContents(
     return output;
 }
 
+std::string Nym::Name() const
+{
+    Lock lock(lock_);
+
+    if (false == bool(contact_data_)) {
+        init_claims(lock);
+    }
+
+    OT_ASSERT(contact_data_);
+
+    std::string output = contact_data_->Name();
+
+    if (false == output.empty()) {
+
+        return output;
+    }
+
+    return alias_;
+}
+
 bool Nym::Path(proto::HDPath& output) const
 {
     Lock lock(lock_);
@@ -2561,6 +2581,13 @@ bool Nym::set_contact_data(const Lock& lock, const proto::ContactData& data)
 
     if (false == hasCapability(NymCapability::SIGN_CHILDCRED)) {
         otErr << OT_METHOD << __FUNCTION__ << ": This nym can not be modified."
+              << std::endl;
+
+        return false;
+    }
+
+    if (false == proto::Validate(data, VERBOSE, false)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Invalid contact data."
               << std::endl;
 
         return false;

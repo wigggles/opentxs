@@ -445,11 +445,17 @@ ConstNym Wallet::Nym(const proto::CredentialIndex& publicNym)
 NymData Wallet::mutable_Nym(const Identifier& id)
 {
     const std::string nym = String(id).Get();
+    auto exists = Nym(id);
+
+    if (false == bool(exists)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Nym " << nym << " not found."
+              << std::endl;
+    }
+
     Lock mapLock(nym_map_lock_);
     auto it = nym_map_.find(nym);
 
     if (nym_map_.end() == it) {
-
         return NymData(nullptr);
     }
 
