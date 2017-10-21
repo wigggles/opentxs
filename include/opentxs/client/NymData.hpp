@@ -58,6 +58,7 @@ public:
     NymData(const NymData&) = default;
     NymData(NymData&&) = default;
 
+    std::string Name() const;
     std::string PaymentCode(const std::uint32_t currency) const;
     std::string PaymentCode(const proto::ContactItemType currency) const;
     std::string PreferredOTServer() const;
@@ -76,6 +77,8 @@ public:
         const bool primary,
         const bool active);
     bool AddPreferredOTServer(const std::string& id, const bool primary);
+    bool SetType(const proto::ContactItemType type, const std::string& name);
+    bool SetType(const std::uint32_t type, const std::string& name);
 
     ~NymData() = default;
 
@@ -98,7 +101,8 @@ private:
 #ifdef SWIG
 // clang-format off
 %ignore NymData::PaymentCode(const proto::ContactItemType);
-%ignore NymData::AddPaymentCode(const std::string&, const std::uint32_t, const bool, const bool);
+%ignore NymData::AddPaymentCode(const std::string&, const std::ContactItemType, const bool, const bool);
+%ignore NymData::SetType(const proto::ContactItemType);
 // clang-format on
 #endif  // SWIG
 #endif  // OPENTXS_CLIENT_NYMDATA_HPP
