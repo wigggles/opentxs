@@ -48,11 +48,8 @@
 #include <string>
 #include <tuple>
 
-namespace opentxs
+namespace opentxs::storage
 {
-namespace storage
-{
-
 class Tree;
 
 class Contacts : public Node
@@ -66,6 +63,8 @@ public:
         std::shared_ptr<proto::Contact>& output,
         std::string& alias,
         const bool checking) const;
+    std::string NymOwner(std::string nym) const;
+    bool Save() const;
 
     bool Delete(const std::string& id);
     bool SetAlias(const std::string& id, const std::string& alias);
@@ -77,15 +76,17 @@ private:
     friend class Tree;
     typedef std::pair<proto::ContactItemType, std::string> Address;
 
-    std::map<Address, std::string> address_index_{};
+    mutable std::map<Address, std::string> address_index_{};
     std::map<std::string, std::set<std::string>> merge_{};
     std::map<std::string, std::string> merged_{};
+    mutable std::map<std::string, std::string> nym_contact_index_{};
 
+    void extract_addresses(const Lock& lock, const proto::Contact& data) const;
+    void extract_nyms(const Lock& lock, const proto::Contact& data) const;
     const std::string& nomalize_id(const std::string& input) const;
     bool save(const std::unique_lock<std::mutex>& lock) const override;
     proto::StorageContacts serialize() const;
 
-    void extract_addresses(const Lock& lock, const proto::Contact& data);
     void init(const std::string& hash) override;
     void reconcile_maps(const Lock& lock, const proto::Contact& data);
     void reverse_merged();
@@ -97,6 +98,5 @@ private:
     Contacts operator=(const Contacts&) = delete;
     Contacts operator=(Contacts&&) = delete;
 };
-}  // namespace storage
-}  // namespace opentxs
+}  // namespace opentxs::storage
 #endif  // OPENTXS_STORAGE_TREE_CONTACTS_HPP

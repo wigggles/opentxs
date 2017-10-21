@@ -169,9 +169,23 @@ std::string Storage::ContactAlias(const std::string& id)
 
 ObjectList Storage::ContactList() { return Meta().Tree().ContactNode().List(); }
 
+std::string Storage::ContactOwnerNym(const std::string& nymID)
+{
+    return Meta().Tree().ContactNode().NymOwner(nymID);
+}
+
+void Storage::ContactSaveIndices()
+{
+    mutable_Meta().It().mutable_Tree().It().mutable_Contacts().It().Save();
+}
+
+std::uint32_t Storage::ContactUpgradeLevel() const
+{
+    return Meta().Tree().ContactNode().UpgradeLevel();
+}
+
 ObjectList Storage::ContextList(const std::string& nymID)
 {
-
     return Meta().Tree().NymNode().Nym(nymID).Contexts().List();
 }
 

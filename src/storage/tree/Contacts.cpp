@@ -44,13 +44,12 @@
 
 #include <set>
 
-#define CURRENT_VERSION 1
+#define CURRENT_VERSION 2
+#define NYM_INDEX_VERSION 1
 
 #define OT_METHOD "opentxs::storage::Contacts::"
 
-namespace opentxs
-{
-namespace storage
+namespace opentxs::storage
 {
 Contacts::Contacts(const StorageDriver& storage, const std::string& hash)
     : Node(storage, hash)
@@ -88,6 +87,7 @@ std::string Contacts::Alias(const std::string& id) const
 bool Contacts::Delete(const std::string& id) { return delete_item(id); }
 
 void Contacts::extract_addresses(const Lock& lock, const proto::Contact& data)
+    const
 {
     const auto& contact = data.id();
     const auto& version = data.version();
@@ -123,6 +123,32 @@ void Contacts::extract_addresses(const Lock& lock, const proto::Contact& data)
     }
 }
 
+void Contacts::extract_nyms(const Lock& lock, const proto::Contact& data) const
+{
+    if (false == verify_write_lock(lock)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Lock failure." << std::endl;
+
+        abort();
+    }
+
+    const auto& contact = data.id();
+
+    for (const auto& section : data.contactdata().section()) {
+        if (section.name() != proto::CONTACTSECTION_RELATIONSHIP) {
+            break;
+        }
+
+        for (const auto& item : section.item()) {
+            if (item.type() != proto::CITEMTYPE_CONTACT) {
+                break;
+            }
+
+            const auto& nymID = item.value();
+            nym_contact_index_[nymID] = contact;
+        }
+    }
+}
+
 void Contacts::init(const std::string& hash)
 {
     std::shared_ptr<proto::StorageContacts> serialized{nullptr};
@@ -135,11 +161,15 @@ void Contacts::init(const std::string& hash)
         abort();
     }
 
-    version_ = serialized->version();
+    original_version_ = serialized->version();
 
     // Upgrade version
-    if (CURRENT_VERSION > version_) {
+    if (CURRENT_VERSION > original_version_) {
         version_ = CURRENT_VERSION;
+        otErr << OT_METHOD << __FUNCTION__ << ": Upgrading from version "
+              << original_version_ << " to " << version_ << std::endl;
+    } else {
+        version_ = original_version_;
     }
 
     for (const auto& parent : serialized->merge()) {
@@ -165,6 +195,14 @@ void Contacts::init(const std::string& hash)
             address_index_[{type, address}] = contact;
         }
     }
+
+    for (const auto& index : serialized->nym()) {
+        const auto& contact = index.contact();
+
+        for (const auto& nym : index.nym()) {
+            nym_contact_index_[nym] = contact;
+        }
+    }
 }
 
 bool Contacts::Load(
@@ -174,8 +212,18 @@ bool Contacts::Load(
     const bool checking) const
 {
     const auto& normalized = nomalize_id(id);
+    const bool loaded =
+        load_proto<proto::Contact>(normalized, output, alias, checking);
 
-    return load_proto<proto::Contact>(normalized, output, alias, checking);
+    if (loaded) {
+        OT_ASSERT(output);
+
+        Lock lock(write_lock_);
+        extract_addresses(lock, *output);
+        extract_nyms(lock, *output);
+    }
+
+    return loaded;
 }
 
 const std::string& Contacts::nomalize_id(const std::string& input) const
@@ -187,6 +235,20 @@ const std::string& Contacts::nomalize_id(const std::string& input) const
     if (merged_.end() == it) {
 
         return input;
+    }
+
+    return it->second;
+}
+
+std::string Contacts::NymOwner(std::string nym) const
+{
+    Lock lock(write_lock_);
+
+    const auto it = nym_contact_index_.find(nym);
+
+    if (nym_contact_index_.end() == it) {
+
+        return {};
     }
 
     return it->second;
@@ -256,6 +318,13 @@ bool Contacts::save(const Lock& lock) const
     return driver_.StoreProto(serialized, root_);
 }
 
+bool Contacts::Save() const
+{
+    Lock lock(write_lock_);
+
+    return save(lock);
+}
+
 proto::StorageContacts Contacts::serialize() const
 {
     proto::StorageContacts serialized;
@@ -307,6 +376,27 @@ proto::StorageContacts Contacts::serialize() const
 
         for (const auto& address : addressList) {
             index.add_address(address);
+        }
+    }
+
+    std::map<std::string, std::set<std::string>> nyms;
+
+    for (const auto& it : nym_contact_index_) {
+        const auto& nym = it.first;
+        const auto& contact = it.second;
+        auto& list = nyms[contact];
+        list.insert(nym);
+    }
+
+    for (const auto& it : nyms) {
+        const auto& contact = it.first;
+        const auto& nymList = it.second;
+        auto& index = *serialized.add_nym();
+        index.set_version(NYM_INDEX_VERSION);
+        index.set_contact(contact);
+
+        for (const auto& nym : nymList) {
+            index.add_nym(nym);
         }
     }
 
@@ -362,8 +452,8 @@ bool Contacts::Store(const proto::Contact& data, const std::string& alias)
 
     reconcile_maps(lock, data);
     extract_addresses(lock, data);
+    extract_nyms(lock, data);
 
     return save(lock);
 }
-}  // namespace storage
-}  // namespace opentxs
+}  // namespace opentxs::storage

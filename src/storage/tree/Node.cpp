@@ -43,13 +43,10 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/storage/StoragePlugin.hpp"
 
-#define OT_METHOD "opentxs::Node::"
+#define OT_METHOD "opentxs::storage::Node::"
 
-namespace opentxs
+namespace opentxs::storage
 {
-namespace storage
-{
-
 const std::string Node::BLANK_HASH = "blankblankblankblankblank";
 
 Node::Node(const StorageDriver& storage, const std::string& key)
@@ -133,8 +130,8 @@ bool Node::load_raw(
 
     if (!exists) {
         if (!checking) {
-            std::cout << __FUNCTION__ << ": Error: item with id " << id
-                      << " does not exist." << std::endl;
+            otErr << OT_METHOD << __FUNCTION__ << ": Error: item with id " << id
+                  << " does not exist." << std::endl;
         }
 
         return false;
@@ -151,18 +148,26 @@ bool Node::migrate(const std::string& hash, const StorageDriver& to) const
         return true;
     }
 
+    otErr << OT_METHOD << __FUNCTION__ << ": Migrating hash " << hash
+          << std::endl;
+
     return driver_.Migrate(hash, to);
 }
 
 bool Node::Migrate(const StorageDriver& to) const
 {
     bool output{true};
-
-    for (const auto item : item_map_) {
-        output &= migrate(std::get<0>(item.second), to);
-    }
-
+    otErr << OT_METHOD << __FUNCTION__
+          << ": Migrating container root: " << root_ << std::endl;
     output &= migrate(root_, to);
+
+    for (const auto& item : item_map_) {
+        const auto& id = item.first;
+        const auto& hash = std::get<0>(item.second);
+        otErr << OT_METHOD << __FUNCTION__ << ": Migrating item id: " << id
+              << std::endl;
+        output &= migrate(hash, to);
+    }
 
     return output;
 }
@@ -275,21 +280,22 @@ bool Node::store_raw(
     return save(lock);
 }
 
+std::uint32_t Node::UpgradeLevel() const { return original_version_; }
+
 bool Node::verify_write_lock(const std::unique_lock<std::mutex>& lock) const
 {
     if (lock.mutex() != &write_lock_) {
-        std::cerr << __FUNCTION__ << ": Incorrect mutex." << std::endl;
+        otErr << OT_METHOD << __FUNCTION__ << ": Incorrect mutex." << std::endl;
 
         return false;
     }
 
     if (false == lock.owns_lock()) {
-        std::cerr << __FUNCTION__ << ": Lock not owned." << std::endl;
+        otErr << OT_METHOD << __FUNCTION__ << ": Lock not owned." << std::endl;
 
         return false;
     }
 
     return true;
 }
-}  // namespace storage
-}  // namespace opentxs
+}  // namespace opentxs::storage
