@@ -190,6 +190,9 @@ public:
     std::string ContactAlias(const std::string& id);
     ObjectList ContactList();
     ObjectList ContextList(const std::string& nymID);
+    std::string ContactOwnerNym(const std::string& nymID);
+    void ContactSaveIndices();
+    std::uint32_t ContactUpgradeLevel() const;
     bool CreateThread(
         const std::string& nymID,
         const std::string& threadID,

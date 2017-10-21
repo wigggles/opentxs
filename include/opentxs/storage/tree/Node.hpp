@@ -50,12 +50,8 @@
 #include <string>
 #include <tuple>
 
-namespace opentxs
+namespace opentxs::storage
 {
-
-namespace storage
-{
-
 typedef std::function<bool(const std::string&)> keyFunction;
 /** A set of metadata associated with a stored object
     *  * string: hash
@@ -198,6 +194,7 @@ protected:
     const StorageDriver& driver_;
 
     std::uint32_t version_{0};
+    std::uint32_t original_version_{0};
     mutable std::string root_;
 
     mutable std::mutex write_lock_;
@@ -245,9 +242,9 @@ public:
     ObjectList List() const;
     virtual bool Migrate(const StorageDriver& to) const;
     std::string Root() const;
+    std::uint32_t UpgradeLevel() const;
 
     virtual ~Node() = default;
 };
-}  // namespace storage
-}  // namespace opentxs
+}  // namespace opentxs::storage
 #endif  // OPENTXS_STORAGE_TREE_NODE_HPP

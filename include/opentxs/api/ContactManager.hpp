@@ -88,15 +88,11 @@ private:
     typedef std::pair<std::mutex, std::shared_ptr<class Contact>> ContactLock;
     typedef std::pair<proto::ContactItemType, std::string> Address;
     typedef std::map<Identifier, ContactLock> ContactMap;
-    typedef std::map<Identifier, Identifier> NymMap;
-    typedef std::map<Address, Identifier> AddressMap;
 
     Storage& storage_;
     Wallet& wallet_;
     mutable std::recursive_mutex lock_{};
     ContactMap contact_map_{};
-    NymMap nym_contact_map_{};
-    AddressMap address_contact_map_{};
 
     void check_identifiers(
         const Identifier& inputNymID,
@@ -139,7 +135,7 @@ private:
         const rLock& lock,
         const std::string& label,
         const PaymentCode& code,
-        NymMap::iterator& existing);
+        const Identifier& contactID);
     void update_nym_map(
         const rLock& lock,
         const Identifier nymID,
