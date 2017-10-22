@@ -75,6 +75,7 @@ public:
     Contact(Wallet& wallet, const std::string& label);
 
     operator proto::Contact() const;
+    Contact& operator+=(Contact& rhs);
 
     std::vector<BlockchainAddress> BlockchainAddresses() const;
     std::shared_ptr<ContactData> Data() const;
@@ -86,6 +87,7 @@ public:
         const proto::ContactItemType currency = proto::CITEMTYPE_BTC) const;
     std::vector<std::string> PaymentCodes(
         const proto::ContactItemType currency = proto::CITEMTYPE_BTC) const;
+    std::string Print() const;
     proto::ContactItemType Type() const;
 
     bool AddBlockchainAddress(

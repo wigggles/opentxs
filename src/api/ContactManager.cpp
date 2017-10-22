@@ -295,6 +295,75 @@ ContactManager::ContactMap::iterator ContactManager::load_contact(
     return add_contact(lock, contact.release());
 }
 
+std::shared_ptr<const class Contact> ContactManager::Merge(
+    const Identifier& parent,
+    const Identifier& child)
+{
+    rLock lock(lock_);
+    auto childContact = contact(lock, child);
+
+    if (false == bool(childContact)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Child contact "
+              << String(child).Get() << " can not be loaded." << std::endl;
+
+        return {};
+    }
+
+    const auto& childID = childContact->ID();
+
+    if (childID != child) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Child contact "
+              << String(child).Get() << " is already merged into "
+              << String(childID).Get() << std::endl;
+
+        return {};
+    }
+
+    auto parentContact = contact(lock, parent);
+
+    if (false == bool(parentContact)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Parent contact "
+              << String(parent).Get() << " can not be loaded." << std::endl;
+
+        return {};
+    }
+
+    const auto& parentID = parentContact->ID();
+
+    if (parentID != parent) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Parent contact "
+              << String(parent).Get() << " is merged into "
+              << String(parentID).Get() << std::endl;
+
+        return {};
+    }
+
+    OT_ASSERT(childContact);
+    OT_ASSERT(parentContact);
+
+    auto& lhs = const_cast<class Contact&>(*parentContact);
+    auto& rhs = const_cast<class Contact&>(*childContact);
+    lhs += rhs;
+
+    if (false == storage_.Store(rhs)) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Unable to create save child contact." << std::endl;
+
+        OT_FAIL;
+    }
+
+    if (false == storage_.Store(lhs)) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Unable to create save parent contact." << std::endl;
+
+        OT_FAIL;
+    }
+
+    contact_map_.erase(child);
+
+    return parentContact;
+}
+
 std::unique_ptr<Editor<class Contact>> ContactManager::mutable_contact(
     const rLock& lock,
     const Identifier& id)

@@ -98,6 +98,11 @@ const ContactData& NymData::data() const
     return nym_->Claims();
 }
 
+std::uint32_t NymData::GetType() const
+{
+    return static_cast<std::uint32_t>(Type());
+}
+
 std::string NymData::Name() const
 {
     OT_ASSERT(nym_);

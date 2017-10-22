@@ -66,6 +66,9 @@ public:
     ObjectList ContactList() const;
 
     std::shared_ptr<const class Contact> Contact(const Identifier& id);
+    std::shared_ptr<const class Contact> Merge(
+        const Identifier& parent,
+        const Identifier& child);
     std::unique_ptr<Editor<class Contact>> mutable_Contact(
         const Identifier& id);
     std::shared_ptr<const class Contact> NewContact(const std::string& label);

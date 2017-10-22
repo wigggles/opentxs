@@ -4792,6 +4792,10 @@ public:
 
     EXPORT static std::string Contact_List();
 
+    EXPORT static bool Contact_Merge(
+        const std::string& parent,
+        const std::string& child);
+
     EXPORT static std::string Contact_Name(const std::string& contactID);
 
     EXPORT static std::string Contact_PaymentCode(

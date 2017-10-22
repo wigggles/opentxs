@@ -53,6 +53,7 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Types.hpp"
 
+#include <sstream>
 #include <stdexcept>
 
 #define CURRENT_VERSION 2
@@ -138,6 +139,58 @@ Contact::operator proto::Contact() const
     }
 
     return output;
+}
+
+Contact& Contact::operator+=(Contact& rhs)
+{
+    Lock rLock(rhs.lock_, std::defer_lock);
+    Lock lock(lock_, std::defer_lock);
+    std::lock(rLock, lock);
+
+    if (label_.empty()) {
+        label_ = rhs.label_;
+    }
+
+    rhs.parent_ = id_;
+
+    if (primary_nym_.empty()) {
+        primary_nym_ = rhs.primary_nym_;
+    }
+
+    for (const auto& it : rhs.nyms_) {
+        const auto& id = it.first;
+        const auto& nym = it.second;
+
+        if (0 == nyms_.count(id)) {
+            nyms_[id] = nym;
+        }
+    }
+
+    rhs.nyms_.clear();
+
+    for (const auto& it : rhs.merged_children_) {
+        merged_children_.insert(it);
+    }
+
+    merged_children_.insert(rhs.id_);
+    rhs.merged_children_.clear();
+
+    if (contact_data_) {
+        if (rhs.contact_data_) {
+            contact_data_.reset(
+                new ContactData(*contact_data_ + *rhs.contact_data_));
+        }
+    } else {
+        if (rhs.contact_data_) {
+            contact_data_.reset(new ContactData(*rhs.contact_data_));
+        }
+    }
+
+    rhs.contact_data_.reset();
+    cached_contact_data_.reset();
+    rhs.cached_contact_data_.reset();
+
+    return *this;
 }
 
 bool Contact::add_claim(const std::shared_ptr<ContactItem>& item)
@@ -690,6 +743,52 @@ std::vector<std::string> Contact::PaymentCodes(
     }
 
     return output;
+}
+
+std::string Contact::Print() const
+{
+    Lock lock(lock_);
+    std::stringstream out{};
+    out << "Contact: " << String(id_).Get() << ", version " << version_
+        << "revision " << revision_ << "\n"
+        << "Label: " << label_ << "\n";
+
+    if (false == parent_.empty()) {
+        out << "Merged to: " << String(parent_).Get() << "\n";
+    }
+
+    if (false == merged_children_.empty()) {
+        out << "Merged contacts:\n";
+
+        for (const auto& id : merged_children_) {
+            out << " * " << String(id).Get() << "\n";
+        }
+    }
+
+    if (0 < nyms_.size()) {
+        out << "Contains nyms:\n";
+
+        for (const auto& it : nyms_) {
+            const auto& id = it.first;
+            out << " * " << String(id).Get();
+
+            if (id == primary_nym_) {
+                out << " (primary)";
+            }
+
+            out << "\n";
+        }
+    }
+
+    auto data = merged_data(lock);
+
+    if (data) {
+        out << std::string(*data);
+    }
+
+    out << std::endl;
+
+    return out.str();
 }
 
 bool Contact::RemoveNym(const Identifier& nymID)
