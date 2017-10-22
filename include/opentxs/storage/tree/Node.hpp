@@ -239,7 +239,7 @@ protected:
     Node(const StorageDriver& storage, const std::string& key);
 
 public:
-    ObjectList List() const;
+    virtual ObjectList List() const;
     virtual bool Migrate(const StorageDriver& to) const;
     std::string Root() const;
     std::uint32_t UpgradeLevel() const;

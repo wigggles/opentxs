@@ -46,6 +46,7 @@
 
 #define CURRENT_VERSION 2
 #define NYM_INDEX_VERSION 1
+#define MERGE_VERSION 1
 
 #define OT_METHOD "opentxs::storage::Contacts::"
 
@@ -205,6 +206,18 @@ void Contacts::init(const std::string& hash)
     }
 }
 
+ObjectList Contacts::List() const
+{
+    auto list = ot_super::List();
+
+    for (const auto& it : merged_) {
+        const auto& child = it.first;
+        list.remove_if([&](const auto& i) { return i.first == child; });
+    }
+
+    return list;
+}
+
 bool Contacts::Load(
     const std::string& id,
     std::shared_ptr<proto::Contact>& output,
@@ -286,6 +299,8 @@ void Contacts::reconcile_maps(const Lock& lock, const proto::Contact& data)
 
         merge_[newParent].emplace(contactID);
     }
+
+    reverse_merged();
 }
 
 void Contacts::reverse_merged()
@@ -334,7 +349,7 @@ proto::StorageContacts Contacts::serialize() const
         const auto& parentID = parent.first;
         const auto& list = parent.second;
         auto& item = *serialized.add_merge();
-        item.set_version(version_);
+        item.set_version(MERGE_VERSION);
         item.set_id(parentID);
 
         for (const auto& child : list) {

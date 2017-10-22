@@ -3818,6 +3818,16 @@ std::string OTAPI_Wrap::Contact_List()
     return comma(OT::App().Contact().ContactList());
 }
 
+bool OTAPI_Wrap::Contact_Merge(
+    const std::string& parent,
+    const std::string& child)
+{
+    auto contact =
+        OT::App().Contact().Merge(Identifier(parent), Identifier(child));
+
+    return bool(contact);
+}
+
 std::string OTAPI_Wrap::Contact_Name(const std::string& id)
 {
     auto contact = OT::App().Contact().Contact(Identifier(id));

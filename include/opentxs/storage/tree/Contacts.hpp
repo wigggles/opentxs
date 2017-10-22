@@ -58,6 +58,7 @@ public:
     std::string Alias(const std::string& id) const;
     std::string AddressOwner(proto::ContactItemType chain, std::string address)
         const;
+    ObjectList List() const override;
     bool Load(
         const std::string& id,
         std::shared_ptr<proto::Contact>& output,
@@ -74,6 +75,7 @@ public:
 
 private:
     friend class Tree;
+    typedef Node ot_super;
     typedef std::pair<proto::ContactItemType, std::string> Address;
 
     mutable std::map<Address, std::string> address_index_{};

@@ -140,6 +140,58 @@ Contact::operator proto::Contact() const
     return output;
 }
 
+Contact& Contact::operator+=(Contact& rhs)
+{
+    Lock rLock(rhs.lock_, std::defer_lock);
+    Lock lock(lock_, std::defer_lock);
+    std::lock(rLock, lock);
+
+    if (label_.empty()) {
+        label_ = rhs.label_;
+    }
+
+    rhs.parent_ = id_;
+
+    if (primary_nym_.empty()) {
+        primary_nym_ = rhs.primary_nym_;
+    }
+
+    for (const auto& it : rhs.nyms_) {
+        const auto& id = it.first;
+        const auto& nym = it.second;
+
+        if (0 == nyms_.count(id)) {
+            nyms_[id] = nym;
+        }
+    }
+
+    rhs.nyms_.clear();
+
+    for (const auto& it : rhs.merged_children_) {
+        merged_children_.insert(it);
+    }
+
+    merged_children_.insert(rhs.id_);
+    rhs.merged_children_.clear();
+
+    if (contact_data_) {
+        if (rhs.contact_data_) {
+            contact_data_.reset(
+                new ContactData(*contact_data_ + *rhs.contact_data_));
+        }
+    } else {
+        if (rhs.contact_data_) {
+            contact_data_.reset(new ContactData(*rhs.contact_data_));
+        }
+    }
+
+    rhs.contact_data_.reset();
+    cached_contact_data_.reset();
+    rhs.cached_contact_data_.reset();
+
+    return *this;
+}
+
 bool Contact::add_claim(const std::shared_ptr<ContactItem>& item)
 {
     Lock lock(lock_);

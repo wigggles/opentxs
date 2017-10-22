@@ -75,6 +75,7 @@ public:
     Contact(Wallet& wallet, const std::string& label);
 
     operator proto::Contact() const;
+    Contact& operator+=(Contact& rhs);
 
     std::vector<BlockchainAddress> BlockchainAddresses() const;
     std::shared_ptr<ContactData> Data() const;
