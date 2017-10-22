@@ -53,6 +53,7 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Types.hpp"
 
+#include <sstream>
 #include <stdexcept>
 
 #define CURRENT_VERSION 2
@@ -742,6 +743,52 @@ std::vector<std::string> Contact::PaymentCodes(
     }
 
     return output;
+}
+
+std::string Contact::Print() const
+{
+    Lock lock(lock_);
+    std::stringstream out{};
+    out << "Contact: " << String(id_).Get() << ", version " << version_
+        << "revision " << revision_ << "\n"
+        << "Label: " << label_ << "\n";
+
+    if (false == parent_.empty()) {
+        out << "Merged to: " << String(parent_).Get() << "\n";
+    }
+
+    if (false == merged_children_.empty()) {
+        out << "Merged contacts:\n";
+
+        for (const auto& id : merged_children_) {
+            out << " * " << String(id).Get() << "\n";
+        }
+    }
+
+    if (0 < nyms_.size()) {
+        out << "Contains nyms:\n";
+
+        for (const auto& it : nyms_) {
+            const auto& id = it.first;
+            out << " * " << String(id).Get();
+
+            if (id == primary_nym_) {
+                out << " (primary)";
+            }
+
+            out << "\n";
+        }
+    }
+
+    auto data = merged_data(lock);
+
+    if (data) {
+        out << std::string(*data);
+    }
+
+    out << std::endl;
+
+    return out.str();
 }
 
 bool Contact::RemoveNym(const Identifier& nymID)

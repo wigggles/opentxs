@@ -87,6 +87,7 @@ public:
         const proto::ContactItemType currency = proto::CITEMTYPE_BTC) const;
     std::vector<std::string> PaymentCodes(
         const proto::ContactItemType currency = proto::CITEMTYPE_BTC) const;
+    std::string Print() const;
     proto::ContactItemType Type() const;
 
     bool AddBlockchainAddress(
