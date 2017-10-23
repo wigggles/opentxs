@@ -44,6 +44,7 @@
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/contact/Contact.hpp"
 #include "opentxs/contact/ContactData.hpp"
+#include "opentxs/core/contract/peer/PeerObject.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/String.hpp"
@@ -57,6 +58,8 @@ Activity::Activity(ContactManager& contact, Storage& storage, Wallet& wallet)
     : contact_(contact)
     , storage_(storage)
     , wallet_(wallet)
+    , mail_cache_lock_()
+    , mail_cache_()
 {
 }
 
@@ -247,6 +250,59 @@ bool Activity::MailRemove(
     return storage_.RemoveNymBoxItem(nymid, box, mail);
 }
 
+std::shared_ptr<const std::string> Activity::MailText(
+    const Identifier& nymID,
+    const Identifier& id,
+    const StorageBox& box) const
+{
+    Lock lock(mail_cache_lock_);
+    auto it = mail_cache_.find(id);
+
+    if (mail_cache_.end() != it) {
+
+        return it->second;
+    }
+
+    const auto message = Mail(nymID, id, box);
+
+    if (!message) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Unable to load message "
+              << String(id) << std::endl;
+
+        return {};
+    }
+
+    auto nym = wallet_.Nym(nymID);
+
+    if (false == bool(nym)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Unable to load recipent nym."
+              << std::endl;
+
+        return {};
+    }
+
+    auto peerObject = PeerObject::Factory(nym, message->m_ascPayload);
+
+    if (!peerObject) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Unable to instantiate peer object." << std::endl;
+
+        return {};
+    }
+
+    if (!peerObject->Message()) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Peer object does not contain a message." << std::endl;
+
+        return {};
+    }
+
+    auto& output = mail_cache_[id];
+    output.reset(new std::string(*peerObject->Message()));
+
+    return output;
+}
+
 bool Activity::MarkRead(
     const Identifier& nymId,
     const Identifier& threadId,
@@ -327,6 +383,39 @@ void Activity::MigrateLegacyThreads() const
     }
 }
 
+void Activity::activity_preload_thread(
+    const Identifier nym,
+    const std::size_t count) const
+{
+    const std::string nymID = String(nym).Get();
+    auto threads = storage_.ThreadList(nymID);
+
+    for (const auto& it : threads) {
+        const auto& threadID = it.first;
+        thread_preload_thread(nymID, threadID, 0, count);
+    }
+}
+
+void Activity::PreloadActivity(const Identifier& nymID, const std::size_t count)
+    const
+{
+    std::thread preload(&Activity::activity_preload_thread, this, nymID, count);
+    preload.detach();
+}
+
+void Activity::PreloadThread(
+    const Identifier& nymID,
+    const Identifier& threadID,
+    const std::size_t start,
+    const std::size_t count) const
+{
+    const std::string nym = String(nymID).Get();
+    const std::string thread = String(threadID).Get();
+    std::thread preload(
+        &Activity::thread_preload_thread, this, nym, thread, start, count);
+    preload.detach();
+}
+
 std::shared_ptr<proto::StorageThread> Activity::Thread(
     const Identifier& nymID,
     const Identifier& threadID) const
@@ -335,6 +424,56 @@ std::shared_ptr<proto::StorageThread> Activity::Thread(
     storage_.Load(String(nymID).Get(), String(threadID).Get(), output);
 
     return output;
+}
+
+void Activity::thread_preload_thread(
+    const std::string nymID,
+    const std::string threadID,
+    const std::size_t start,
+    const std::size_t count) const
+{
+    std::shared_ptr<proto::StorageThread> thread{};
+    const bool loaded = storage_.Load(nymID, threadID, thread);
+
+    if (false == loaded) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Unable to load thread "
+              << threadID << " for nym " << nymID << std::endl;
+
+        return;
+    }
+
+    const std::size_t size = thread->item_size();
+    std::size_t cached{0};
+
+    if (start > size) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Error: start larger than size "
+              << "(" << std::to_string(start) << "/" << std::to_string(size)
+              << ")" << std::endl;
+
+        return;
+    }
+
+    for (auto i = (size - start); i > 0; --i) {
+        if (cached >= count) {
+            break;
+        }
+
+        const auto& item = thread->item(i - 1);
+        const auto& box = static_cast<StorageBox>(item.box());
+
+        switch (box) {
+            case StorageBox::MAILINBOX:
+            case StorageBox::MAILOUTBOX: {
+                otErr << OT_METHOD << __FUNCTION__ << ": Preloading item "
+                      << item.id() << " in thread " << threadID << std::endl;
+                MailText(Identifier(nymID), Identifier(item.id()), box);
+                ++cached;
+            } break;
+            default: {
+                continue;
+            }
+        }
+    }
 }
 
 ObjectList Activity::Threads(const Identifier& nym) const

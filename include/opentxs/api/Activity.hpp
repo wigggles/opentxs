@@ -42,7 +42,9 @@
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/Types.hpp"
 
+#include <map>
 #include <memory>
+#include <mutex>
 #include <string>
 
 namespace opentxs
@@ -117,6 +119,19 @@ public:
         const Identifier& id,
         const StorageBox box) const;
 
+    /**   Retrieve the text from a message
+     *
+     *    \param[in] nym the identifier of the nym who owns the mail box
+     *    \param[in] id the identifier of the mail object
+     *    \param[in] box the box from which to retrieve the mail object
+     *    \returns A smart pointer to the object. The smart pointer will not be
+     *             instantiated if the object does not exist or is invalid.
+     */
+    std::shared_ptr<const std::string> MailText(
+        const Identifier& nym,
+        const Identifier& id,
+        const StorageBox& box) const;
+
     /**   Mark a thread item as read
      *
      *    \param[in] nymId the identifier of the nym who owns the thread
@@ -141,6 +156,27 @@ public:
         const Identifier& threadId,
         const Identifier& itemId) const;
 
+    /**   Asynchronously cache the most recent items in each of a nym's threads
+     *
+     *    \param[in] nymID the identifier of the nym who owns the thread
+     *    \param[in] count the number of items to preload in each thread
+     */
+    void PreloadActivity(const Identifier& nymID, const std::size_t count)
+        const;
+
+    /**   Asynchronously cache the items in an activity thread
+     *
+     *    \param[in] nymID the identifier of the nym who owns the thread
+     *    \param[in] threadID the thread containing the items to be cached
+     *    \param[in] start the first item to be cached
+     *    \param[in] count the number of items to cache
+     */
+    void PreloadThread(
+        const Identifier& nymID,
+        const Identifier& threadID,
+        const std::size_t start,
+        const std::size_t count) const;
+
     std::shared_ptr<proto::StorageThread> Thread(
         const Identifier& nymID,
         const Identifier& threadID) const;
@@ -162,15 +198,27 @@ public:
 private:
     friend class OT;
 
+    typedef std::map<Identifier, std::shared_ptr<const std::string>> MailCache;
+
     ContactManager& contact_;
     Storage& storage_;
     Wallet& wallet_;
+    mutable std::mutex mail_cache_lock_;
+    mutable MailCache mail_cache_;
 
     /**   Migrate nym-based thread IDs to contact-based thread IDs
      *
      *    This method should only be called by the ContactManager on startup
      */
     void MigrateLegacyThreads() const;
+    void activity_preload_thread(
+        const Identifier nymID,
+        const std::size_t count) const;
+    void thread_preload_thread(
+        const std::string nymID,
+        const std::string threadID,
+        const std::size_t start,
+        const std::size_t count) const;
 
     std::shared_ptr<const Contact> nym_to_contact(const std::string& nymID);
 

@@ -739,6 +739,23 @@ std::string OTAPI_Wrap::GetNym_OutboxHash(
     return Exec()->GetNym_OutboxHash(ACCOUNT_ID, NYM_ID);
 }
 
+void OTAPI_Wrap::Activity_Preload(
+    const std::string& nymID,
+    const std::uint32_t& items)
+{
+    OT::App().Activity().PreloadActivity(Identifier(nymID), items);
+}
+
+void OTAPI_Wrap::Thread_Preload(
+    const std::string& nymID,
+    const std::string& threadID,
+    const std::uint32_t start,
+    const std::uint32_t items)
+{
+    OT::App().Activity().PreloadThread(
+        Identifier(nymID), Identifier(threadID), start, items);
+}
+
 std::string OTAPI_Wrap::GetNym_MailThread_base64(
     const std::string& nymId,
     const std::string& threadId)

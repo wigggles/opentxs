@@ -940,6 +940,15 @@ public:
 
     */
 
+    EXPORT static void Activity_Preload(
+        const std::string& nymID,
+        const std::uint32_t& items);
+    EXPORT static void Thread_Preload(
+        const std::string& nymID,
+        const std::string& threadID,
+        const std::uint32_t start,
+        const std::uint32_t items);
+
     EXPORT static std::string GetNym_MailThread_base64(
         const std::string& nymId,
         const std::string& threadId);
