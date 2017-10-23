@@ -14066,41 +14066,7 @@ std::string OT_API::BoxContents(
     const Identifier& id,
     const StorageBox box) const
 {
-    const auto message = activity_.Mail(nymID, id, box);
-
-    if (!message) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Unable to load message "
-              << String(id) << std::endl;
-
-        return "";
-    }
-
-    auto nym = wallet_.Nym(nymID);
-
-    if (false == bool(nym)) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Unable to load recipent nym."
-              << std::endl;
-
-        return "";
-    }
-
-    auto peerObject = PeerObject::Factory(nym, message->m_ascPayload);
-
-    if (!peerObject) {
-        otErr << OT_METHOD << __FUNCTION__
-              << ": Unable to instantiate peer object." << std::endl;
-
-        return "";
-    }
-
-    if (!peerObject->Message()) {
-        otErr << OT_METHOD << __FUNCTION__
-              << ": Peer object does not contain a message." << std::endl;
-
-        return "";
-    }
-
-    return *peerObject->Message();
+    return *activity_.MailText(nymID, id, box);
 }
 
 OT_API::ProcessInbox OT_API::CreateProcessInbox(
