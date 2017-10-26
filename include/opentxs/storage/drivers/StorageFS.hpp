@@ -54,6 +54,22 @@ class StorageFS : public virtual StoragePlugin_impl,
 private:
     typedef StoragePlugin_impl ot_super;
 
+public:
+    std::string LoadRoot() const override;
+    bool StoreRoot(const std::string& hash) const override;
+
+    bool LoadFromBucket(
+        const std::string& key,
+        std::string& value,
+        const bool bucket) const override;
+
+    bool EmptyBucket(const bool bucket) const override;
+
+    void Cleanup() override;
+
+    ~StorageFS();
+
+private:
     friend class Storage;
 
     std::string folder_;
@@ -63,6 +79,11 @@ private:
     void Init_StorageFS();
     void Purge(const std::string& path) const;
     std::string read_file(const std::string& filename) const;
+    void store(
+        const std::string& key,
+        const std::string& value,
+        const bool bucket,
+        std::promise<bool>* promise) const override;
     bool write_file(const std::string& filename, const std::string& contents)
         const;
 
@@ -78,25 +99,6 @@ private:
     StorageFS(StorageFS&&) = delete;
     StorageFS& operator=(const StorageFS&) = delete;
     StorageFS& operator=(StorageFS&&) = delete;
-
-public:
-    std::string LoadRoot() const override;
-    bool StoreRoot(const std::string& hash) const override;
-
-    bool LoadFromBucket(
-        const std::string& key,
-        std::string& value,
-        const bool bucket) const override;
-    using ot_super::Store;
-    bool Store(
-        const std::string& key,
-        const std::string& value,
-        const bool bucket) const override;
-
-    bool EmptyBucket(const bool bucket) const override;
-
-    void Cleanup() override;
-    ~StorageFS();
 };
 
 }  // namespace opentxs

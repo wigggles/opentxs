@@ -65,7 +65,12 @@ public:
     bool Store(
         const std::string& key,
         const std::string& value,
-        const bool bucket) const override = 0;
+        const bool bucket) const override;
+    void Store(
+        const std::string& key,
+        const std::string& value,
+        const bool bucket,
+        std::promise<bool>& promise) const override;
     bool Store(const std::string& value, std::string& key) const override;
 
     bool Migrate(const std::string& key, const StorageDriver& to)
@@ -88,6 +93,12 @@ protected:
         const Random& random,
         std::atomic<bool>& bucket);
     StoragePlugin_impl() = delete;
+
+    virtual void store(
+        const std::string& key,
+        const std::string& value,
+        const bool bucket,
+        std::promise<bool>* promise) const = 0;
 
 private:
     const Digest& digest_;

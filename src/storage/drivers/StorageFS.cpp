@@ -180,20 +180,22 @@ std::string StorageFS::read_file(const std::string& filename) const
     return {};
 }
 
-bool StorageFS::Store(
+void StorageFS::store(
     const std::string& key,
     const std::string& value,
-    const bool bucket) const
+    const bool bucket,
+    std::promise<bool>* promise) const
 {
+    OT_ASSERT(nullptr != promise);
+
     std::string folder = folder_ + "/" + GetBucketName(bucket);
     std::string filename = folder + "/" + key;
 
     if (false == folder_.empty()) {
-
-        return write_file(filename, value);
+        promise->set_value(write_file(filename, value));
+    } else {
+        promise->set_value(false);
     }
-
-    return false;
 }
 
 bool StorageFS::StoreRoot(const std::string& hash) const

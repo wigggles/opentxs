@@ -61,7 +61,8 @@ class StorageConfig;
  *  specified buckets: primary or secondary.
  *
  *  \par
- *  The parent class guarentees that all key-value pairs accessed via the \ref Load
+ *  The parent class guarentees that all key-value pairs accessed via the \ref
+ *Load
  *  and \ref Store methods satisfy the following conditions:
  *
  *  \par
@@ -79,12 +80,14 @@ class StorageConfig;
  *   * \ref Store and \ref Load calls are idempotent.
  *
  *  \par
- *  \note The parent class will rely on the idempotence of \ref Store and \ref Load
+ *  \note The parent class will rely on the idempotence of \ref Store and \ref
+ *Load
  *  methods. Ensure these methods are thread safe.
  *
  *  \par Root Hash
  *  The root hash is the only exception to the general rule of immutable values.
- *  See the description of the \ref LoadRoot and \ref StoreRoot methods for details.
+ *  See the description of the \ref LoadRoot and \ref StoreRoot methods for
+ *details.
  *: ot_super(config, hash random)
  *  \par Configuration
  *  Define all needed runtime configuration parameters in the
@@ -94,14 +97,13 @@ class StorageConfig;
  *  Instantate these parameters in the \ref OT::Init_Storage method,
  *  using the existing sections as a template.
  */
-class StorageExample
-    : public virtual StoragePlugin_impl
-    , public virtual StorageDriver
+class StorageExample : public virtual StoragePlugin_impl,
+                       public virtual StorageDriver
 {
 private:
-    typedef StoragePlugin_impl ot_super; // Used for constructor delegation
+    typedef StoragePlugin_impl ot_super;  // Used for constructor delegation
 
-    friend Storage; // Allows access private constructor
+    friend Storage;  // Allows access private constructor
 
     /** The default constructor can not be used because any implementation
     *   of \ref StorageDriver will require arguments.
@@ -192,7 +194,7 @@ public:
         std::string& value,
         const bool bucket) const override;
 
-    using ot_super::Store; // Needed for overload resolution
+    using ot_super::Store;  // Needed for overload resolution
     /** Record a new value in the backend
      *
      *  \param[in] key the key of the object to be stored
@@ -207,6 +209,22 @@ public:
         const std::string& key,
         const std::string& value,
         const bool bucket) const override;
+
+    /** Asynchronously record a new value in the backend
+     *
+     *  \param[in] key the key of the object to be stored
+     *  \param[in] value the value of the specified key
+     *  \param[in] bucket save the key in either the primary (true) or
+     *                    secondary (false) bucket
+     *  \param[in] promise promise object from which to construct a future
+     *
+     *  \warning This method is required to be thread safe
+     */
+    void Store(
+        const std::string& key,
+        const std::string& value,
+        const bool bucket,
+        std::promise<bool>& promise) const override;
 
     /** Completely erase the contents of the specified bucket
      *
@@ -234,18 +252,12 @@ public:
 
     /** Polymorphic cleanup method.
      */
-    void Cleanup() override
-    {
-        Cleanup_StorageExample();
-    }
+    void Cleanup() override { Cleanup_StorageExample(); }
 
     /** Polymorphic destructor.
      */
-    ~StorageExample()
-    {
-        Cleanup_StorageExample();
-    }
+    ~StorageExample() { Cleanup_StorageExample(); }
 };
 
 }  // namespace opentxs
-#endif // OPENTXS_STORAGE_STORAGEEXAMPLE_HPP
+#endif  // OPENTXS_STORAGE_STORAGEEXAMPLE_HPP

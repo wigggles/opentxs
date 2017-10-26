@@ -1307,15 +1307,40 @@ bool Storage::Store(
 {
     OT_ASSERT(primary_plugin_);
 
-    bool output = primary_plugin_->Store(key, value, bucket);
+    std::vector<std::promise<bool>> promises{};
+    std::vector<std::future<bool>> futures{};
+    promises.push_back(std::promise<bool>());
+    auto& primaryPromise = promises.back();
+    futures.push_back(primaryPromise.get_future());
+    primary_plugin_->Store(key, value, bucket, primaryPromise);
 
     for (const auto& plugin : backup_plugins_) {
         OT_ASSERT(plugin);
 
-        output |= plugin->Store(key, value, bucket);
+        promises.push_back(std::promise<bool>());
+        auto& promise = promises.back();
+        futures.push_back(promise.get_future());
+        plugin->Store(key, value, bucket, promise);
+    }
+
+    bool output = false;
+
+    for (auto& future : futures) {
+        output |= future.get();
     }
 
     return output;
+}
+
+void Storage::Store(
+    const std::string&,
+    const std::string&,
+    const bool,
+    std::promise<bool>&) const
+{
+    // This method should never be called
+
+    OT_FAIL;
 }
 
 bool Storage::Store(const std::string& key, std::string& value) const

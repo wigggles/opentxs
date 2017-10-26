@@ -228,17 +228,19 @@ std::string StorageFSArchive::read_file(const std::string& filename) const
     return {};
 }
 
-bool StorageFSArchive::Store(
+void StorageFSArchive::store(
     const std::string& key,
     const std::string& value,
-    const bool) const
+    const bool,
+    std::promise<bool>* promise) const
 {
+    OT_ASSERT(nullptr != promise);
+
     if (ready_.load() && false == folder_.empty()) {
-
-        return write_file(calculate_path(key), value);
+        promise->set_value(write_file(calculate_path(key), value));
+    } else {
+        promise->set_value(false);
     }
-
-    return false;
 }
 
 bool StorageFSArchive::StoreRoot(const std::string& hash) const

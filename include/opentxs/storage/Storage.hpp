@@ -147,6 +147,11 @@ private:
         const std::string& key,
         const std::string& value,
         const bool bucket) const override;
+    void Store(
+        const std::string& key,
+        const std::string& value,
+        const bool bucket,
+        std::promise<bool>& promise) const override;
     bool Store(const std::string& value, std::string& key) const override;
     bool StoreRoot(const std::string& hash) const override;
     bool verify_write_lock(const std::unique_lock<std::mutex>& lock) const;

@@ -41,9 +41,8 @@
 
 #include "opentxs/storage/StoragePlugin.hpp"
 
-extern "C"
-{
-    #include <sqlite3.h>
+extern "C" {
+#include <sqlite3.h>
 }
 
 namespace opentxs
@@ -53,9 +52,8 @@ class Storage;
 class StorageConfig;
 
 // SQLite3 implementation of opentxs::storage
-class StorageSqlite3
-    : public virtual StoragePlugin_impl
-    , public virtual StorageDriver
+class StorageSqlite3 : public virtual StoragePlugin_impl,
+                       public virtual StorageDriver
 {
 private:
     typedef StoragePlugin_impl ot_super;
@@ -71,6 +69,11 @@ private:
         const std::string& key,
         const std::string& tablename,
         std::string& value) const;
+    void store(
+        const std::string& key,
+        const std::string& value,
+        const bool bucket,
+        std::promise<bool>* promise) const override;
     bool Upsert(
         const std::string& key,
         const std::string& tablename,
@@ -98,11 +101,6 @@ public:
         const std::string& key,
         std::string& value,
         const bool bucket) const override;
-    using ot_super::Store;
-    bool Store(
-        const std::string& key,
-        const std::string& value,
-        const bool bucket) const override;
     bool EmptyBucket(const bool bucket) const override;
 
     void Cleanup_StorageSqlite3();
@@ -111,4 +109,4 @@ public:
 };
 
 }  // namespace opentxs
-#endif // OPENTXS_STORAGE_STORAGESQLITE3_HPP
+#endif  // OPENTXS_STORAGE_STORAGESQLITE3_HPP

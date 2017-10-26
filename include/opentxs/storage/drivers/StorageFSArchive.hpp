@@ -65,11 +65,6 @@ public:
         std::string& value,
         const bool bucket) const override;
     std::string LoadRoot() const override;
-    using ot_super::Store;
-    bool Store(
-        const std::string& key,
-        const std::string& value,
-        const bool bucket) const override;
     bool StoreRoot(const std::string& hash) const override;
 
     ~StorageFSArchive();
@@ -87,6 +82,11 @@ private:
     std::string decrypt(const std::string&& ciphertext) const;
     std::string encrypt(const std::string& plaintext) const;
     std::string read_file(const std::string& filename) const;
+    void store(
+        const std::string& key,
+        const std::string& value,
+        const bool bucket,
+        std::promise<bool>* promise) const override;
     bool write_file(const std::string& filename, const std::string& contents)
         const;
 
