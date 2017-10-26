@@ -53,7 +53,7 @@ namespace opentxs
 {
 StorageSqlite3::StorageSqlite3(
     const StorageConfig& config,
-    const Digest&hash,
+    const Digest& hash,
     const Random& random,
     std::atomic<bool>& bucket)
     : ot_super(config, hash, random, bucket)
@@ -92,10 +92,9 @@ bool StorageSqlite3::Upsert(
     const std::string& tablename,
     const std::string& value) const
 {
-    sqlite3_stmt *statement;
+    sqlite3_stmt* statement;
     const std::string query =
-        "insert or replace into `" + tablename +
-        "` (k, v) values (?1, ?2);";
+        "insert or replace into `" + tablename + "` (k, v) values (?1, ?2);";
 
     sqlite3_prepare_v2(db_, query.c_str(), -1, &statement, 0);
     sqlite3_bind_text(statement, 1, key.c_str(), key.size(), SQLITE_STATIC);
@@ -112,8 +111,8 @@ bool StorageSqlite3::Create(const std::string& tablename) const
     const std::string tableFormat = " (k text PRIMARY KEY, v BLOB);";
     const std::string sql = createTable + "`" + tablename + "`" + tableFormat;
 
-    return (SQLITE_OK ==
-        sqlite3_exec(db_, sql.c_str(), nullptr, nullptr, nullptr));
+    return (
+        SQLITE_OK == sqlite3_exec(db_, sql.c_str(), nullptr, nullptr, nullptr));
 }
 
 bool StorageSqlite3::Purge(const std::string& tablename) const
@@ -122,7 +121,7 @@ bool StorageSqlite3::Purge(const std::string& tablename) const
 
     if (SQLITE_OK ==
         sqlite3_exec(db_, sql.c_str(), nullptr, nullptr, nullptr)) {
-            return Create(tablename);
+        return Create(tablename);
     }
 
     return false;
@@ -132,16 +131,17 @@ void StorageSqlite3::Init_StorageSqlite3()
 {
     const std::string filename = folder_ + "/" + config_.sqlite3_db_file_;
 
-    if (SQLITE_OK == sqlite3_open_v2(
-        filename.c_str(),
-        &db_,
-        SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX,
-        nullptr)) {
-            Create(config_.sqlite3_primary_bucket_);
-            Create(config_.sqlite3_secondary_bucket_);
-            Create(config_.sqlite3_control_table_);
-            sqlite3_exec(
-                db_, "PRAGMA journal_mode=WAL;", nullptr, nullptr, nullptr);
+    if (SQLITE_OK ==
+        sqlite3_open_v2(
+            filename.c_str(),
+            &db_,
+            SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX,
+            nullptr)) {
+        Create(config_.sqlite3_primary_bucket_);
+        Create(config_.sqlite3_secondary_bucket_);
+        Create(config_.sqlite3_control_table_);
+        sqlite3_exec(
+            db_, "PRAGMA journal_mode=WAL;", nullptr, nullptr, nullptr);
     } else {
         std::cout << "Failed to initialize database." << std::endl;
         assert(false);
@@ -152,7 +152,7 @@ std::string StorageSqlite3::LoadRoot() const
 {
     std::string value;
     if (Select(
-        config_.sqlite3_root_key_, config_.sqlite3_control_table_, value)) {
+            config_.sqlite3_root_key_, config_.sqlite3_control_table_, value)) {
 
         return value;
     }
@@ -174,12 +174,15 @@ bool StorageSqlite3::StoreRoot(const std::string& hash) const
         config_.sqlite3_root_key_, config_.sqlite3_control_table_, hash);
 }
 
-bool StorageSqlite3::Store(
+void StorageSqlite3::store(
     const std::string& key,
     const std::string& value,
-    const bool bucket) const
+    const bool bucket,
+    std::promise<bool>* promise) const
 {
-    return Upsert(key, GetTableName(bucket), value);
+    OT_ASSERT(nullptr != promise);
+
+    promise->set_value(Upsert(key, GetTableName(bucket), value));
 }
 
 bool StorageSqlite3::EmptyBucket(const bool bucket) const
@@ -187,26 +190,16 @@ bool StorageSqlite3::EmptyBucket(const bool bucket) const
     return Purge(GetTableName(bucket));
 }
 
-void StorageSqlite3::Cleanup_StorageSqlite3()
-{
-    sqlite3_close(db_);
-}
+void StorageSqlite3::Cleanup_StorageSqlite3() { sqlite3_close(db_); }
 
-void StorageSqlite3::Cleanup()
-{
-    Cleanup_StorageSqlite3();
-}
+void StorageSqlite3::Cleanup() { Cleanup_StorageSqlite3(); }
 
-StorageSqlite3::~StorageSqlite3()
-{
-    Cleanup_StorageSqlite3();
-}
+StorageSqlite3::~StorageSqlite3() { Cleanup_StorageSqlite3(); }
 
 std::string StorageSqlite3::GetTableName(const bool bucket) const
 {
-    return bucket
-            ? config_.sqlite3_secondary_bucket_
-            : config_.sqlite3_primary_bucket_;
+    return bucket ? config_.sqlite3_secondary_bucket_
+                  : config_.sqlite3_primary_bucket_;
 }
-} // namespace opentxs
+}  // namespace opentxs
 #endif

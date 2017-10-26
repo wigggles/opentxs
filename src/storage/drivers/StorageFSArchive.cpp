@@ -50,6 +50,8 @@
 #include "opentxs/storage/StorageConfig.hpp"
 
 #include <boost/filesystem.hpp>
+#include <boost/iostreams/device/file_descriptor.hpp>
+#include <boost/iostreams/stream.hpp>
 
 #include <cstdio>
 #include <cstdint>
@@ -58,6 +60,10 @@
 #include <iostream>
 #include <thread>
 #include <vector>
+
+extern "C" {
+#include <unistd.h>
+}
 
 #define ROOT_FILE_EXTENSION ".hash"
 
@@ -197,7 +203,7 @@ std::string StorageFSArchive::LoadRoot() const
 
 std::string StorageFSArchive::read_file(const std::string& filename) const
 {
-    if (!boost::filesystem::exists(filename)) {
+    if (false == boost::filesystem::exists(filename)) {
         return {};
     }
 
@@ -222,17 +228,19 @@ std::string StorageFSArchive::read_file(const std::string& filename) const
     return {};
 }
 
-bool StorageFSArchive::Store(
+void StorageFSArchive::store(
     const std::string& key,
     const std::string& value,
-    const bool) const
+    const bool,
+    std::promise<bool>* promise) const
 {
+    OT_ASSERT(nullptr != promise);
+
     if (ready_.load() && false == folder_.empty()) {
-
-        return write_file(calculate_path(key), value);
+        promise->set_value(write_file(calculate_path(key), value));
+    } else {
+        promise->set_value(false);
     }
-
-    return false;
 }
 
 bool StorageFSArchive::StoreRoot(const std::string& hash) const
@@ -253,12 +261,20 @@ bool StorageFSArchive::write_file(
     const std::string& contents) const
 {
     if (false == filename.empty()) {
-        std::ofstream file(
-            filename, std::ios::out | std::ios::trunc | std::ios::binary);
+        boost::filesystem::path filePath(filename);
+        boost::iostreams::stream<boost::iostreams::file_descriptor_sink> file(
+            filePath);
         const std::string data = encrypt(contents);
 
         if (file.good()) {
             file.write(data.c_str(), data.size());
+            const auto synced = ::fdatasync(file->handle());
+
+            if (0 != synced) {
+                otErr << OT_METHOD << __FUNCTION__
+                      << ": Failed to flush file buffer." << std::endl;
+            }
+
             file.close();
 
             return true;

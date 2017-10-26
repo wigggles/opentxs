@@ -154,6 +154,29 @@ bool StoragePlugin_impl::Migrate(
     return true;
 }
 
+bool StoragePlugin_impl::Store(
+    const std::string& key,
+    const std::string& value,
+    const bool bucket) const
+{
+    std::promise<bool> promise;
+    auto future = promise.get_future();
+    store(key, value, bucket, &promise);
+
+    return future.get();
+}
+
+void StoragePlugin_impl::Store(
+    const std::string& key,
+    const std::string& value,
+    const bool bucket,
+    std::promise<bool>& promise) const
+{
+    std::thread thread(
+        &StoragePlugin_impl::store, this, key, value, bucket, &promise);
+    thread.detach();
+}
+
 bool StoragePlugin_impl::Store(const std::string& value, std::string& key) const
 {
     const bool bucket = current_bucket_.load();
