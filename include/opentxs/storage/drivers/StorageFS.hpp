@@ -48,9 +48,8 @@ class Storage;
 class StorageConfig;
 
 // Simple filesystem implementation of opentxs::storage
-class StorageFS
-    : public virtual StoragePlugin_impl
-    , public virtual StorageDriver
+class StorageFS : public virtual StoragePlugin_impl,
+                  public virtual StorageDriver
 {
 private:
     typedef StoragePlugin_impl ot_super;
@@ -63,6 +62,9 @@ private:
 
     void Init_StorageFS();
     void Purge(const std::string& path) const;
+    std::string read_file(const std::string& filename) const;
+    bool write_file(const std::string& filename, const std::string& contents)
+        const;
 
     void Cleanup_StorageFS();
 
@@ -98,4 +100,4 @@ public:
 };
 
 }  // namespace opentxs
-#endif // OPENTXS_STORAGE_STORAGEFS_HPP
+#endif  // OPENTXS_STORAGE_STORAGEFS_HPP

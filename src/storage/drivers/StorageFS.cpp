@@ -43,6 +43,8 @@
 #include "opentxs/storage/StorageConfig.hpp"
 
 #include <boost/filesystem.hpp>
+#include <boost/iostreams/device/file_descriptor.hpp>
+#include <boost/iostreams/stream.hpp>
 
 #include <cstdio>
 #include <fstream>
@@ -51,12 +53,18 @@
 #include <thread>
 #include <vector>
 
+extern "C" {
+#include <unistd.h>
+}
+
+#define OT_METHOD "opentxs::StorageFS::"
+
 namespace opentxs
 {
 
 StorageFS::StorageFS(
     const StorageConfig& config,
-    const Digest&hash,
+    const Digest& hash,
     const Random& random,
     std::atomic<bool>& bucket)
     : ot_super(config, hash, random, bucket)
@@ -65,133 +73,12 @@ StorageFS::StorageFS(
     Init_StorageFS();
 }
 
-std::string StorageFS::GetBucketName(const bool bucket) const
+void StorageFS::Cleanup_StorageFS()
 {
-    return bucket ? config_.fs_secondary_bucket_ : config_.fs_primary_bucket_;
+    // future cleanup actions go here
 }
 
-void StorageFS::Init_StorageFS()
-{
-    boost::filesystem::create_directory(
-        folder_ + "/" + config_.fs_primary_bucket_);
-    boost::filesystem::create_directory(
-        folder_+ "/" + config_.fs_secondary_bucket_);
-}
-
-void StorageFS::Purge(const std::string& path) const
-{
-    if (path.empty()) { return; }
-
-    boost::filesystem::remove_all(path);
-}
-
-std::string StorageFS::LoadRoot() const
-{
-    if (!folder_.empty()) {
-        std::string filename = folder_ + "/" + config_.fs_root_file_;
-
-        if (!boost::filesystem::exists(filename)) { return ""; }
-
-        std::ifstream file(
-            filename,
-            std::ios::in | std::ios::ate | std::ios::binary);
-
-        if (file.good()) {
-            std::ifstream::pos_type pos = file.tellg();
-
-            if ((0 >= pos) || (0xFFFFFFFF <= pos)) { return ""; }
-
-            uint32_t size(pos);
-
-            file.seekg(0, std::ios::beg);
-
-            std::vector<char> bytes(size);
-            file.read(&bytes[0], size);
-
-            return std::string(&bytes[0], size);
-        }
-    }
-
-    return "";
-}
-
-bool StorageFS::LoadFromBucket(
-    const std::string& key,
-    std::string& value,
-    const bool bucket) const
-{
-    std::string folder =  folder_ + "/" + GetBucketName(bucket);
-    std::string filename = folder + "/" + key;
-
-    if (!boost::filesystem::exists(filename)) { return false; }
-
-    if (!folder_.empty()) {
-        std::ifstream file(
-            filename,
-            std::ios::in | std::ios::ate | std::ios::binary);
-
-        if (file.good()) {
-            std::ifstream::pos_type pos = file.tellg();
-
-            if ((0 >= pos) || (0xFFFFFFFF <= pos)) { return false; }
-
-            uint32_t size(pos);
-
-            file.seekg(0, std::ios::beg);
-
-            std::vector<char> bytes(size);
-            file.read(&bytes[0], size);
-
-            value.assign(&bytes[0], size);
-
-            return true;
-        }
-    }
-
-    return false;
-}
-
-bool StorageFS::StoreRoot(const std::string& hash) const
-{
-    if (!folder_.empty()) {
-        std::string filename = folder_ + "/" + config_.fs_root_file_;
-        std::ofstream file(
-            filename,
-            std::ios::out | std::ios::trunc | std::ios::binary);
-
-        if (file.good()) {
-            file.write(hash.c_str(), hash.size());
-            file.close();
-
-            return true;
-        }
-    }
-
-    return false;
-}
-
-bool StorageFS::Store(
-    const std::string& key,
-    const std::string& value,
-    const bool bucket) const
-{
-    std::string folder =  folder_ + "/" + GetBucketName(bucket);
-    std::string filename = folder + "/" + key;
-
-    if (!folder_.empty()) {
-        std::ofstream file(
-            filename,
-            std::ios::out | std::ios::trunc | std::ios::binary);
-        if (file.good()) {
-            file.write(value.c_str(), value.size());
-            file.close();
-
-            return true;
-        }
-    }
-
-    return false;
-}
+void StorageFS::Cleanup() { Cleanup_StorageFS(); }
 
 bool StorageFS::EmptyBucket(const bool bucket) const
 {
@@ -211,20 +98,149 @@ bool StorageFS::EmptyBucket(const bool bucket) const
     return boost::filesystem::create_directory(oldDirectory);
 }
 
-void StorageFS::Cleanup_StorageFS()
+std::string StorageFS::GetBucketName(const bool bucket) const
 {
-    // future cleanup actions go here
+    return bucket ? config_.fs_secondary_bucket_ : config_.fs_primary_bucket_;
 }
 
-void StorageFS::Cleanup()
+void StorageFS::Init_StorageFS()
 {
-    Cleanup_StorageFS();
+    boost::filesystem::create_directory(
+        folder_ + "/" + config_.fs_primary_bucket_);
+    boost::filesystem::create_directory(
+        folder_ + "/" + config_.fs_secondary_bucket_);
 }
 
-StorageFS::~StorageFS()
+bool StorageFS::LoadFromBucket(
+    const std::string& key,
+    std::string& value,
+    const bool bucket) const
 {
-    Cleanup_StorageFS();
+    std::string folder = folder_ + "/" + GetBucketName(bucket);
+    std::string filename = folder + "/" + key;
+
+    if (false == boost::filesystem::exists(filename)) {
+        return false;
+    }
+
+    if (false == folder_.empty()) {
+        value = read_file(filename);
+
+        return (false == value.empty());
+    }
+
+    return false;
 }
 
-} // namespace opentxs
+std::string StorageFS::LoadRoot() const
+{
+    if (false == folder_.empty()) {
+        std::string filename = folder_ + "/" + config_.fs_root_file_;
+
+        return read_file(filename);
+    }
+
+    return "";
+}
+
+void StorageFS::Purge(const std::string& path) const
+{
+    if (path.empty()) {
+        return;
+    }
+
+    boost::filesystem::remove_all(path);
+}
+
+std::string StorageFS::read_file(const std::string& filename) const
+{
+    if (false == boost::filesystem::exists(filename)) {
+
+        return {};
+    }
+
+    std::ifstream file(
+        filename, std::ios::in | std::ios::ate | std::ios::binary);
+
+    if (file.good()) {
+        std::ifstream::pos_type pos = file.tellg();
+
+        if ((0 >= pos) || (0xFFFFFFFF <= pos)) {
+            return {};
+        }
+
+        std::uint32_t size(pos);
+        file.seekg(0, std::ios::beg);
+        std::vector<char> bytes(size);
+        file.read(&bytes[0], size);
+
+        return std::string(&bytes[0], size);
+    }
+
+    return {};
+}
+
+bool StorageFS::Store(
+    const std::string& key,
+    const std::string& value,
+    const bool bucket) const
+{
+    std::string folder = folder_ + "/" + GetBucketName(bucket);
+    std::string filename = folder + "/" + key;
+
+    if (false == folder_.empty()) {
+
+        return write_file(filename, value);
+    }
+
+    return false;
+}
+
+bool StorageFS::StoreRoot(const std::string& hash) const
+{
+    if (false == folder_.empty()) {
+        std::string filename = folder_ + "/" + config_.fs_root_file_;
+
+        return write_file(filename, hash);
+    }
+
+    return false;
+}
+
+bool StorageFS::write_file(
+    const std::string& filename,
+    const std::string& contents) const
+{
+    if (false == filename.empty()) {
+        boost::filesystem::path filePath(filename);
+        boost::iostreams::stream<boost::iostreams::file_descriptor_sink> file(
+            filePath);
+
+        if (file.good()) {
+            file.write(contents.c_str(), contents.size());
+            const auto synced = ::fdatasync(file->handle());
+
+            if (0 != synced) {
+                otErr << OT_METHOD << __FUNCTION__
+                      << ": Failed to flush file buffer." << std::endl;
+            }
+
+            file.close();
+
+            return true;
+        } else {
+            otErr << OT_METHOD << __FUNCTION__ << ": Failed to write file."
+                  << std::endl;
+        }
+    } else {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Failed to write empty filename." << std::endl;
+    }
+
+    return false;
+}
+
+StorageFS::~StorageFS() { Cleanup_StorageFS(); }
+
+}  // namespace opentxs
 #endif
