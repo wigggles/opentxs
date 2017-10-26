@@ -121,7 +121,7 @@ if (OT_STORAGE_SQLITE)
 endif()
 
 if (OT_STORAGE_FS)
-    target_link_libraries(${MODULE_NAME} PRIVATE ${Boost_SYSTEM_LIBRARIES} ${Boost_FILESYSTEM_LIBRARIES})
+    target_link_libraries(${MODULE_NAME} PRIVATE ${Boost_SYSTEM_LIBRARIES} ${Boost_FILESYSTEM_LIBRARIES} ${Boost_IOSTREAMS_LIBRARIES})
 endif()
 
 if(WIN32)
