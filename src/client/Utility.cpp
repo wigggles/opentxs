@@ -42,8 +42,10 @@
 
 #include "opentxs/api/OT.hpp"
 #include "opentxs/client/OTAPI_Wrap.hpp"
+#include "opentxs/client/OT_API.hpp"
 #include "opentxs/client/OT_ME.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
+#include "opentxs/core/Ledger.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/network/ZMQ.hpp"
 
@@ -439,51 +441,48 @@ std::int32_t Utility::getNymbox(
         //      If the hashes do NOT match, then I DO need to download nymbox
         // and box receipts.
         /*
-        *      ===> If the NymboxHash is changed from what I expected, then I
-        *need to re-download the
-        *      nymbox (and any box receipts I don't already have.)
-        *
-        *      Then I need to process the Nymbox. But first, see if my missing
-        *server reply is in there.
-        *      If it is, then I have the server reply! (As if we had succeeded
-        *in the first place!!)
-        *      Next, process the Nymbox (which processes that reply) and then
-        *return strReply;
-        *
-        *      (Clearly this is just going to be a normal part of the
-        *getRequestNumber
-        *syncronization.)
-        *
-        *      By the time that much is done, I will KNOW the request number,
-        *the nymbox, the box receipts,
-        *      etc are ALL syncronized properly, and that I THEN processed the
-        *Nymbox successfully.
-        *
-        *
-        *      NOTICE: In this example I do NOT want to pull out my sent message
-        *from the outbuffer (using
-        *      the request number) and try to harvest all the transaction
-        *numbers. Why not? Because possibly the
-        *      server DID reply! And if I processed that reply properly, it
-        *would sync my transaction numbers
-        *      properly just from that! ===>
-        *
-        *      ===> Therefore, I need to see FIRST if the old message has a
-        *reply WAITING in the Nymbox. THEN
-        *      I need to process the Nymbox. ONLY if the reply wasn't there, can
-        *I THEN pull out the message
-        *      from my outbuffer and harvest it. (Which I am reticent to do,
-        *until I am SURE the server
-        *      really never saw that message in the first place.)
-        *
-        *      However, as long as my NymboxHash hasn't changed, then I'm safe!
-        *But if it HAS changed,
-        *      then I HAVE to A. download it B. SEE if the reply is there for
-        *the request number, then
-        *      C. process it. ... If the reply wasn't there, THEN Harvest the
-        *transaction #s (for transaction
-        *      messages) and then re-try.
-        */
+         *      ===> If the NymboxHash is changed from what I expected, then I
+         *need to re-download the
+         *      nymbox (and any box receipts I don't already have.)
+         *
+         *      Then I need to process the Nymbox. But first, see if my missing
+         *server reply is in there.
+         *      If it is, then I have the server reply! (As if we had succeeded
+         *in the first place!!)
+         *      Next, process the Nymbox (which processes that reply) and then
+         *return strReply;
+         *
+         *      (Clearly this is just going to be a normal part of the
+         *getRequestNumber
+         *syncronization.)
+         *
+         *      By the time that much is done, I will KNOW the request number,
+         *the nymbox, the box receipts,
+         *      etc are ALL syncronized properly, and that I THEN processed the
+         *Nymbox successfully.
+         *
+         *
+         *      NOTICE: In this example I do NOT want to pull out my sent
+         *message from the outbuffer (using the request number) and try to
+         *harvest all the transaction numbers. Why not? Because possibly
+         *the server DID reply! And if I processed that reply properly, it would
+         *sync my transaction numbers properly just from that! ===>
+         *
+         *      ===> Therefore, I need to see FIRST if the old message has a
+         *reply WAITING in the Nymbox. THEN
+         *      I need to process the Nymbox. ONLY if the reply wasn't there,
+         *can I THEN pull out the message from my outbuffer and harvest it.
+         *(Which I am reticent to do, until I am SURE the server really
+         *never saw that message in the first place.)
+         *
+         *      However, as long as my NymboxHash hasn't changed, then I'm safe!
+         *But if it HAS changed,
+         *      then I HAVE to A. download it B. SEE if the reply is there for
+         *the request number, then
+         *      C. process it. ... If the reply wasn't there, THEN Harvest the
+         *transaction #s (for transaction
+         *      messages) and then re-try.
+         */
 
         // Grabbing again in case it's changed.
         std::string strServerHash =
@@ -704,21 +703,21 @@ std::int32_t Utility::getAndProcessNymbox_8(
     // was successfully received.
     //
     /*
-    *  FYI: nRequestNumber is the request number, if >0, for whatever command
-    * is causing this getAndProcessNymbox to occur (like a cash withdrawal, or
-    * a cheque deposit, etc.) We pass it in here so we can verify whether it's
-    *on
-    * the Nymbox, before we process it out (so the caller knows whether to
-    *clawback.)
-    *
-    * FYI: nGetNymbox is the request number from getNymboxLowLevel() (above.) We
-    * know for a FACT, by this point, this number is >0.
-    *
-    * FYI: nProcess (just below) is the request number for the PROCESS NYMBOX
-    *message.
-    * Below the switch block just down there, we know for a fact this number is
-    *>0.
-    */
+     *  FYI: nRequestNumber is the request number, if >0, for whatever command
+     * is causing this getAndProcessNymbox to occur (like a cash withdrawal, or
+     * a cheque deposit, etc.) We pass it in here so we can verify whether it's
+     *on
+     * the Nymbox, before we process it out (so the caller knows whether to
+     *clawback.)
+     *
+     * FYI: nGetNymbox is the request number from getNymboxLowLevel() (above.)
+     *We know for a FACT, by this point, this number is >0.
+     *
+     * FYI: nProcess (just below) is the request number for the PROCESS NYMBOX
+     *message.
+     * Below the switch block just down there, we know for a fact this number is
+     *>0.
+     */
 
     // -- SECTION 2: "SEND PROCESS NYMBOX"
     //
@@ -1734,6 +1733,276 @@ bool Utility::insureHaveAllBoxReceipts(
 {
     std::string strLocation = "Utility::insureHaveAllBoxReceipts";
 
+    const Identifier theNotaryID(notaryID), theNymID(nymID),
+        theAccountID(accountID);
+
+    std::unique_ptr<Ledger> pLedger;
+
+    if (0 == nBoxType) {
+        pLedger.reset(
+            OTAPI_Wrap::OTAPI()->LoadNymboxNoVerify(theNotaryID, theNymID));
+    } else if (1 == nBoxType) {
+        pLedger.reset(OTAPI_Wrap::OTAPI()->LoadInboxNoVerify(
+            theNotaryID, theNymID, theAccountID));
+    } else if (2 == nBoxType) {
+        pLedger.reset(OTAPI_Wrap::OTAPI()->LoadOutboxNoVerify(
+            theNotaryID, theNymID, theAccountID));
+    } else {
+        otOut << strLocation << ": Error. Expected nBoxType of 0,1,2 (nymbox, "
+                                "inbox, or outbox.)\n";
+        return false;
+    }
+
+    // Unable to load or verify inbox/outbox/nymbox
+    // Notice I don't call VerifyAccount() here (not that the API even exposes
+    // that method) but why not? Because that method tries to load up all the
+    // box receipts, in addition to verifying the signature. Therefore I call
+    // "Load XXXX NoVerify()", avoiding all that, then I verify the Signature
+    // itself.
+    //
+    // That's because this function's whole point is to find out what the box
+    // receipts are, and download them from the server. No point trying to load
+    // them before that time, when I know it will fail.
+    //
+    if (!pLedger
+        //      || !pLedger->VerifySignature(nymID, ledger)
+        ) {
+        otOut << strLocation << ": Unable to load "  // or verify signature on "
+                                "ledger. (Failure.)\n";
+        return false;
+    }
+    // ----------------------------------------------------------------
+    bool bReturnValue = true;  // Assuming an empty box, we return success;
+
+    // At this point, the box is definitely loaded.
+    //
+    // Next we'll iterate the receipts within, and for each, verify that the
+    // Box Receipt already exists. If not, then we'll download it using
+    // getBoxReceiptLowLevel(). If any download fails, then we break out of the
+    // loop (WITHOUT continuing on to try the rest.)
+    //
+    auto& map_receipts = pLedger->GetTransactionMap();
+
+    for (auto& receipt_entry : map_receipts) {
+        const auto& lTransactionNum = receipt_entry.first;
+        auto& pTransaction = receipt_entry.second;
+
+        if (lTransactionNum <= 0 || nullptr == pTransaction) {
+            otOut << strLocation << ": Error: Transaction null or has ID "
+                                    "less-than-or-equal-to 0.\n";
+            continue;
+        }
+
+        const bool bIsReplyNotice =
+            (OTTransaction::replyNotice == pTransaction->GetType());
+
+        const RequestNumber lRequestNum =
+            bIsReplyNotice ? pTransaction->GetRequestNum() : 0;
+
+        const bool bShouldDownload =
+            (!bIsReplyNotice || (bIsReplyNotice && (0 < lRequestNum) &&
+                                 !OTAPI_Wrap::OTAPI()->HaveAlreadySeenReply(
+                                     theNotaryID, theNymID, lRequestNum)));
+
+        // This block executes if we should download it (assuming we
+        // haven't already, which it also checks for.)
+        //
+        if (bShouldDownload) {
+            bool bHaveBoxReceipt = OTAPI_Wrap::OTAPI()->DoesBoxReceiptExist(
+                theNotaryID, theNymID, theAccountID, nBoxType, lTransactionNum);
+            if (!bHaveBoxReceipt) {
+                otWarn << strLocation
+                       << ": Downloading box receipt to add to my collection..."
+                          "\n";
+                const bool bDownloaded = getBoxReceiptWithErrorCorrection(
+                    notaryID, nymID, accountID, nBoxType, lTransactionNum);
+                if (!bDownloaded) {
+                    otOut << strLocation
+                          << ": Failed downloading box receipt. "
+                             "(Skipping any others.) Transaction "
+                             "number: "
+                          << lTransactionNum << "\n";
+
+                    bReturnValue = false;
+                    break;
+                    // No point continuing to loop and fail 500
+                    // times, when
+                    // getBoxReceiptWithErrorCorrection()
+                    // already failed
+                    // even doing the getRequestNumber() trick
+                    // and everything, and whatever retries are
+                    // inside OT, before it finally
+                    // gave up.
+                }
+                // else (Download success.)
+            }  // if (!bHaveBoxReceipt)
+        }
+
+        // else we already have the box receipt, no need to
+        // download again.
+    }  // for
+    // ----------------------------------------------------------------
+    //
+    // if nRequestSeeking is >0, that means the caller wants to know if there is
+    // a receipt present for that request number.
+    // (which is only a valid option ifnBoxType = = 0 for Nymbox.);
+    // IF the receipt is found, then bFoundIt is set to true.
+    //
+    if ((nRequestSeeking > 0) && (0 == nBoxType)) {
+
+        // NOTE: the below call to OTAPI_Wrap::Nymbox_GetReplyNotice
+        // will succeed even if only the abbreviated receipt is
+        // available, because the caller mainly just wants to know
+        // if it is there. Technically the full receipt SHOULD
+        // always be there, with the above loop, but since the above
+        // loop can break in case of error, it's still possible that
+        // box receipts haven't been downloaded by the time you
+        // reach this code. Nevertheless, we will see if the reply
+        // is there for the appropriate request number, whether
+        // abbreviated or not.
+        // // //
+        // UPDATE: I am now adding specific cases where the
+        // replyNotice is NOT downloaded. You still use it, through
+        // its abbreviated version -- and the actual version IS
+        // still available for download through the server's API.
+        // But with a replyNotice, just knowing that it exists is
+        // usually enough for the client, who probably still has a
+        // cached copy of the original sent message anyway. Only in
+        // cases where he doesn't, would he need to download it.
+        // (Why? So he can process the server's reply.) Therefore
+        // the cached sent message is useless, since it doesn't
+        // contain the server's reply! Hmm. So I need that reply BUT
+        // ONLY IN CASES where I didn't already receive it as a
+        // normal part of processing (and that is MOST of the time,
+        // meaning most cases can thus entirely eliminate the
+        // download.)
+        // // //
+        // PROTOCOL FOR NOT DOWNLOADING MOST OF THE BOX RECEIPTS
+        // // //
+        // Solution: User messages should contain a list of the last
+        // X number of request numbers that they have DEFINITELY
+        // seen the response to. The server, meanwhile, since the
+        // user has DEFINITELY seen the response, can now safely
+        // remove the replyNotice from the Nymbox. The only reason
+        // it was there in the first place was to make sure the user
+        // got the reply. Since the user is straight-up
+        // acknowledging that he received it, the server no longer
+        // needs to "make sure" and thus it can remove that reply
+        // from the Nymbox, and mark the box receipt for deletion.
+        // This will be MOST REPLIES! We'll eliminate the step of
+        // having to download the box receipt. The above call to
+        // getBoxReceiptWithErrorCorrection should also be smart
+        // enough not to bother downloading any replyNotice Box
+        // Receipts if their request number appears on that list.
+        // Again: the list means I DEFINITELY already responded to
+        // it--if the request # is on that list, then NO NEED
+        // downloading the Box Receipt -- I DEFINITELY already got
+        // that reply!
+        // // //
+        // Therefore, Something like
+        // OTAPI_Wrap::HaveAlreadySeenReply( notaryID, nymID,
+        // requestNum);
+        // // //
+        // Perhaps also, on the server side, send a list of request
+        // numbers for that Nym that the server KNOWS the Nym saw
+        // the reply to. This way, the Nym can remove the number
+        // from his list, and thus won't be continually causing the
+        // server to load up the Nymbox and try to remove the
+        // replyNotice (since it's already been removed.)
+        // // //
+        // The Nym doesn't have to keep a list of ALL request
+        // numbers he's seen the reply to. Rather, just the past X
+        // number of them, and with the number explicitly removed
+        // once he sees the server acknowledgment.
+        // (ServerAckOfAlreadyGotReply.)
+        // // //
+        // The server, meanwhile, is free to remove the ACK for any
+        // request # once he sees that the client has as well.
+        // Server also only needs to store a list of the past X
+        // request #s. Also: since both sides REMOVE the number,
+        // there need not necessarily be a limit on the size of the
+        // list, since it grows and shrinks as needed.
+        // // //
+        // Whenever Wallet processes a server reply, just see if
+        // it's on that "replied to already" list already on client
+        // side. If so, discard the reply.
+        // OTClient::ProcessServerReply probably best place to do
+        // (We replied to it already, so discard it.) Also, for any
+        // server reply, look at the list of numbers on it. The
+        // server is acknowledging to us that it KNOWS we got those
+        // replies, and that it ALREADY has removed them from the
+        // Nymbox as a result. Therefore we can remove ALL of those
+        // numbers from our own list as well. No need for an API
+        // call to do this, since it will happen internally to OT.
+        // // //
+        // On the server side, any numbers on its own list were only
+        // there to acknowledge numbers that had been on the client
+        // side list. Therefore, when those numbers disappear from
+        // the client side list, the server simply removes them.
+        // Again: ANY NUMBERS on the server list, which do NOT
+        // appear on the client list, are REMOVED From the server
+        // list. After all, the client has clearly now removed them,
+        // so the server doesn't have to keep them around either.
+        // // //
+        // These are useful for synchronization but also there's a
+        // std::int64_t term benefit, if we include them in the
+        // signed receipt (which they will be already, if the
+        // receipt contains the entire message and not just the
+        // transaction.) That benefit is that we can prove receipt
+        // of notice. At least, notice of server replies. But for
+        // other notice types, such as notice of upcoming meeting.
+        // Or notice of upcoming election. Or notice of election
+        // outcome. Or notice of petition to put X issue on the next
+        // ballot, or to nominate Y Nym for some corporate role.
+        // Sometimes you want to be able to PROVE that notice was
+        // received. Does this prove that? Hmm, not necessarily.
+        // Currently I'm using this as an optimization scheme, which
+        // is useful even if not provable. How to make it provable?
+        // // //
+        // Back from tangent: Wait a sec! If I notice the server
+        // that I saw the reply, the server will remove that reply
+        // from my Nymbox -- but it's still in my Nymbox on the
+        // client side! Until I download the latest Nymbox. Thus if
+        // I try to PROCESS MY NYMBOX, I will be attempting to
+        // accept a receipt that's already gone! (And the
+        // processNymbox will therefore FAIL!) Solution: be smart
+        // enough, when processing Nymbox, to IGNORE any
+        // replyNotices when the request Number appears on the
+        // client's list! As the wallet processes the Nymbox it
+        // should already know to skip the ones that were already
+        // replied-to. Meanwhile the server side will deliberately
+        // NOT update the Nymbox hash just because the receipt was
+        // removed. Otherwise it could trigger an unnecessary
+        // download of the Nymbox, when the whole point of this
+        // exercise was to prevent unnecessary downloads. It only
+        // updates the Nymbox hash when it WANTS me to download the
+        // Nymbox, and that certainly does NOT apply to cases where
+        // the only change involved the removal of some old receipt
+        // I already acknowledged. (No need to force any downloads
+        // based on THAT case, after all.)
+        //
+        std::string strReplyNotice = OTAPI_Wrap::Nymbox_GetReplyNotice(
+            notaryID, nymID, std::int64_t(nRequestSeeking));
+
+        if (VerifyStringVal(strReplyNotice)) {
+            bFoundIt = true;
+        }
+    }
+
+    return bReturnValue;
+}
+
+/*
+bool Utility::insureHaveAllBoxReceipts(
+    const std::string& notaryID,
+    const std::string& nymID,
+    const std::string& accountID,
+    std::int32_t nBoxType,
+    std::int32_t nRequestSeeking,
+    bool& bFoundIt)
+{
+    std::string strLocation = "Utility::insureHaveAllBoxReceipts";
+
     std::string ledger = "";
 
     if (0 == nBoxType) {
@@ -1810,8 +2079,9 @@ bool Utility::insureHaveAllBoxReceipts(
                               << " which came originally as lTransactionNum: "
                               << lTransactionNum << " for index: " << i_loop
                               << " with the contents:\n\n"
-                              << strTransaction << "\n\n";
-                        return false;
+                              << strTransaction << "\n\n"
+                              << "HERE IS THE LEDGER ITSELF:\n\n" << ledger <<
+"\n\n"; return false;
                     }
 
                     // This block might have a full version, OR an abbreviated
@@ -2076,6 +2346,7 @@ bool Utility::insureHaveAllBoxReceipts(
 
     return bReturnValue;
 }
+ */
 
 /*
 static void getBoxReceipt( std::string NOTARY_ID, std::string NYM_ID,

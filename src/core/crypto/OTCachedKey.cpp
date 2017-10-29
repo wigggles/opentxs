@@ -869,4 +869,5 @@ OTCachedKey::~OTCachedKey()
         thread_->join();
     }
 }
+
 }  // namespace opentxs
