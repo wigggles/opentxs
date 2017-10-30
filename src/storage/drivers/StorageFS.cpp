@@ -53,6 +53,12 @@
 #include <thread>
 #include <vector>
 
+#if defined(__APPLE__)
+extern "C" {
+#include <fcntl.h>
+}
+#endif
+
 extern "C" {
 #include <unistd.h>
 }
@@ -220,8 +226,14 @@ bool StorageFS::write_file(
 
         if (file.good()) {
             file.write(contents.c_str(), contents.size());
-            const auto synced = ::fdatasync(file->handle());
 
+#ifdef F_FULLFSYNC
+            // This is a Mac OS X system which does not implement
+            // fdatasync as such.
+            const auto synced = fcntl(file->handle(), F_FULLFSYNC);
+#else
+            const auto synced = ::fdatasync(file->handle());
+#endif
             if (0 != synced) {
                 otErr << OT_METHOD << __FUNCTION__
                       << ": Failed to flush file buffer." << std::endl;
