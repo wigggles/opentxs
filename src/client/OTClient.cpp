@@ -3980,9 +3980,8 @@ bool OTClient::processServerReplyProcessNymbox(
             // the balance statement or transaction statement has not succeeded.
             //
             // Thus, if the ITEM ITSELF has succeeded, that means the balance or
-            // transaction statement MUST have succeeded! Because server\
-            // wouldn't have even bothered to process the item
-            // otherwise.
+            // transaction statement MUST have succeeded! Because server
+            // wouldn't have even bothered to process the item otherwise.
             //
             // There still might be some future application in doing something
             // with these statements when they come in.
@@ -4641,7 +4640,7 @@ bool OTClient::processServerReplyProcessNymbox(
                                         }
                                         // -------------------------------------
                                         const std::set<int64_t> set_receipt_ids{
-                                            thePmntBox.GetTransactionNums()};
+                                            thePmntInbox.GetTransactionNums()};
                                         for (const auto& receipt_id :
                                              set_receipt_ids) {
                                             std::unique_ptr<OTPayment> pPayment(
