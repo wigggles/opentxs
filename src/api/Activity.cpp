@@ -73,7 +73,7 @@ bool Activity::AddBlockchainTransaction(
 {
     const std::string sNymID = String(nymID).Get();
     const std::string sthreadID = String(threadID).Get();
-    const auto threadList = storage_.ThreadList(sNymID);
+    const auto threadList = storage_.ThreadList(sNymID, false);
     bool threadExists = false;
 
     for (const auto it : threadList) {
@@ -204,7 +204,7 @@ std::string Activity::Mail(
     std::string alias = contact->Label();
     const std::string contactID = String(contact->ID()).Get();
     const auto& threadID = contactID;
-    const auto threadList = storage_.ThreadList(nymID);
+    const auto threadList = storage_.ThreadList(nymID, false);
     bool threadExists = false;
 
     for (const auto it : threadList) {
@@ -367,7 +367,7 @@ void Activity::MigrateLegacyThreads() const
 
     for (const auto& it1 : nymlist) {
         const auto& nymID = it1.first;
-        const auto threadList = storage_.ThreadList(nymID);
+        const auto threadList = storage_.ThreadList(nymID, false);
 
         for (const auto& it2 : threadList) {
             const auto& originalThreadID = it2.first;
@@ -416,7 +416,7 @@ void Activity::activity_preload_thread(
     const std::size_t count) const
 {
     const std::string nymID = String(nym).Get();
-    auto threads = storage_.ThreadList(nymID);
+    auto threads = storage_.ThreadList(nymID, false);
 
     for (const auto& it : threads) {
         const auto& threadID = it.first;
@@ -504,10 +504,10 @@ void Activity::thread_preload_thread(
     }
 }
 
-ObjectList Activity::Threads(const Identifier& nym) const
+ObjectList Activity::Threads(const Identifier& nym, const bool unreadOnly) const
 {
     const std::string nymID = String(nym).Get();
-    auto output = storage_.ThreadList(nymID);
+    auto output = storage_.ThreadList(nymID, unreadOnly);
 
     for (auto& it : output) {
         const auto& threadID = it.first;
@@ -535,7 +535,7 @@ std::size_t Activity::UnreadCount(const Identifier& nymId) const
     const std::string nym = String(nymId).Get();
     std::size_t output{0};
 
-    const auto& threads = storage_.ThreadList(nym);
+    const auto& threads = storage_.ThreadList(nym, true);
 
     for (const auto& it : threads) {
         const auto& threadId = it.first;

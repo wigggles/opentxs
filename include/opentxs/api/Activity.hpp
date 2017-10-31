@@ -184,8 +184,10 @@ public:
     /**   Obtain a list of thread ids for the specified nym
      *
      *    \param[in] nym the identifier of the nym
+     *    \param[in] unreadOnly if true, only return threads with unread items
      */
-    ObjectList Threads(const Identifier& nym) const;
+    ObjectList Threads(const Identifier& nym, const bool unreadOnly = false)
+        const;
 
     /**   Return the total number of unread thread items for a nym
      *

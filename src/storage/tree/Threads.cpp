@@ -170,6 +170,31 @@ void Threads::init(const std::string& hash)
     }
 }
 
+ObjectList Threads::List(const bool unreadOnly) const
+{
+    if (false == unreadOnly) {
+
+        return ot_super::List();
+    }
+
+    ObjectList output{};
+    Lock lock(write_lock_);
+
+    for (const auto& it : item_map_) {
+        const auto& threadID = it.first;
+        const auto& alias = std::get<1>(it.second);
+        auto thread = Threads::thread(threadID, lock);
+
+        OT_ASSERT(nullptr != thread);
+
+        if (0 < thread->UnreadCount()) {
+            output.push_back({threadID, alias});
+        }
+    }
+
+    return output;
+}
+
 bool Threads::Migrate(const StorageDriver& to) const
 {
     bool output{true};

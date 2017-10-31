@@ -1749,9 +1749,10 @@ void Storage::synchronize_root()
     primary_plugin_->StoreRoot(bestRoot);
 }
 
-ObjectList Storage::ThreadList(const std::string& nymID) const
+ObjectList Storage::ThreadList(const std::string& nymID, const bool unreadOnly)
+    const
 {
-    return Meta().Tree().NymNode().Nym(nymID).Threads().List();
+    return Meta().Tree().NymNode().Nym(nymID).Threads().List(unreadOnly);
 }
 
 std::string Storage::ThreadAlias(
