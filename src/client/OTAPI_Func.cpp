@@ -40,8 +40,8 @@
 
 #include "opentxs/client/OTAPI_Func.hpp"
 
-#include "opentxs/client/OTAPI_Wrap.hpp"
 #include "opentxs/client/OT_ME.hpp"
+#include "opentxs/client/SwigWrap.hpp"
 #include "opentxs/client/Utility.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/core/script/OTVariable.hpp"
@@ -187,7 +187,7 @@ OTAPI_Func::OTAPI_Func(
         nTransNumsNeeded = 0;
         nymID2 = p_strParam;
         instrumentDefinitionID = p_strData;
-        strData = OTAPI_Wrap::initiateBailment(
+        strData = SwigWrap::initiateBailment(
             String(context_.Server()).Get(),
             String(context_.Nym()->ID()).Get(),
             instrumentDefinitionID);
@@ -222,7 +222,7 @@ OTAPI_Func::OTAPI_Func(
         } break;
         case (REQUEST_CONNECTION): {
             nymID2 = p_strParam;
-            strData = OTAPI_Wrap::requestConnection(
+            strData = SwigWrap::requestConnection(
                 String(context_.Nym()->ID()).Get(),
                 nymID2,
                 String(context_.Server()).Get(),
@@ -258,7 +258,7 @@ OTAPI_Func::OTAPI_Func(
         funcType = theType;
         nymID2 = p_nymID2;
         instrumentDefinitionID = p_strData;
-        strData = OTAPI_Wrap::acknowledgeNotice(
+        strData = SwigWrap::acknowledgeNotice(
             String(context_.Nym()->ID()).Get(),
             instrumentDefinitionID,
             String(context_.Server()).Get(),
@@ -313,7 +313,7 @@ OTAPI_Func::OTAPI_Func(
         strData2 = p_strData2;  // the smart contract itself.;
 
         std::int32_t nNumsNeeded =
-            OTAPI_Wrap::SmartContract_CountNumsNeeded(p_strData2, p_strData);
+            SwigWrap::SmartContract_CountNumsNeeded(p_strData2, p_strData);
 
         if (nNumsNeeded > 0) {
             nTransNumsNeeded = nNumsNeeded;
@@ -328,7 +328,7 @@ OTAPI_Func::OTAPI_Func(
         nTransNumsNeeded = 0;
         nymID2 = p_nymID2;
         instrumentDefinitionID = p_strData;
-        strData = OTAPI_Wrap::acknowledgeBailment(
+        strData = SwigWrap::acknowledgeBailment(
             String(context_.Nym()->ID()).Get(),
             instrumentDefinitionID,
             String(context_.Server()).Get(),
@@ -337,7 +337,7 @@ OTAPI_Func::OTAPI_Func(
         nTransNumsNeeded = 0;
         nymID2 = p_nymID2;
         instrumentDefinitionID = p_strData;
-        strData = OTAPI_Wrap::acknowledgeOutBailment(
+        strData = SwigWrap::acknowledgeOutBailment(
             String(context_.Nym()->ID()).Get(),
             instrumentDefinitionID,
             String(context_.Server()).Get(),
@@ -346,7 +346,7 @@ OTAPI_Func::OTAPI_Func(
         nTransNumsNeeded = 0;
         nymID2 = p_nymID2;
         instrumentDefinitionID = p_strData;
-        strData = OTAPI_Wrap::notifyBailment(
+        strData = SwigWrap::notifyBailment(
             String(context_.Server()).Get(),
             String(context_.Nym()->ID()).Get(),
             nymID2,
@@ -392,7 +392,7 @@ OTAPI_Func::OTAPI_Func(
     } else if (theType == INITIATE_OUTBAILMENT) {
         nymID2 = p_accountID;
         instrumentDefinitionID = p_strParam;
-        strData = OTAPI_Wrap::initiateOutBailment(
+        strData = SwigWrap::initiateOutBailment(
             String(context_.Server()).Get(),
             String(context_.Nym()->ID()).Get(),
             instrumentDefinitionID,
@@ -442,7 +442,7 @@ OTAPI_Func::OTAPI_Func(
         case (STORE_SECRET): {
             nTransNumsNeeded = 0;
             nymID2 = p_accountID;
-            strData2 = OTAPI_Wrap::storeSecret(
+            strData2 = SwigWrap::storeSecret(
                 String(context_.Nym()->ID()).Get(),
                 nymID2,
                 String(context_.Server()).Get(),
@@ -627,7 +627,7 @@ OTAPI_Func::OTAPI_Func(
             nTransNumsNeeded = 3;
         } break;
         case (ACKNOWLEDGE_CONNECTION): {
-            strData5 = OTAPI_Wrap::acknowledge_connection(
+            strData5 = SwigWrap::acknowledge_connection(
                 String(context_.Nym()->ID()).Get(),
                 accountID2,
                 String(context_.Server()).Get(),
@@ -652,20 +652,20 @@ std::int32_t OTAPI_Func::Run() const
     //
     switch (funcType) {
         case CHECK_NYM:
-            return OTAPI_Wrap::checkNym(
+            return SwigWrap::checkNym(
                 String(context_.Server()).Get(),
                 String(context_.Nym()->ID()).Get(),
                 nymID2);
         case REGISTER_NYM:
-            return OTAPI_Wrap::registerNym(
+            return SwigWrap::registerNym(
                 String(context_.Server()).Get(),
                 String(context_.Nym()->ID()).Get());
         case DELETE_NYM:
-            return OTAPI_Wrap::unregisterNym(
+            return SwigWrap::unregisterNym(
                 String(context_.Server()).Get(),
                 String(context_.Nym()->ID()).Get());
         case SEND_USER_MESSAGE:
-            return OTAPI_Wrap::sendNymMessage(
+            return SwigWrap::sendNymMessage(
                 String(context_.Server()).Get(),
                 String(context_.Nym()->ID()).Get(),
                 nymID2,
@@ -674,121 +674,121 @@ std::int32_t OTAPI_Func::Run() const
             // accountID stores here the sender's copy of the instrument, which
             // is
             // used only in the case of a cash purse.
-            return OTAPI_Wrap::sendNymInstrument(
+            return SwigWrap::sendNymInstrument(
                 String(context_.Server()).Get(),
                 String(context_.Nym()->ID()).Get(),
                 nymID2,
                 strData2,
                 accountID);
         case GET_NYM_MARKET_OFFERS:
-            return OTAPI_Wrap::getNymMarketOffers(
+            return SwigWrap::getNymMarketOffers(
                 String(context_.Server()).Get(),
                 String(context_.Nym()->ID()).Get());
         case CREATE_ASSET_ACCT:
-            return OTAPI_Wrap::registerAccount(
+            return SwigWrap::registerAccount(
                 String(context_.Server()).Get(),
                 String(context_.Nym()->ID()).Get(),
                 instrumentDefinitionID);
         case DELETE_ASSET_ACCT:
-            return OTAPI_Wrap::deleteAssetAccount(
+            return SwigWrap::deleteAssetAccount(
                 String(context_.Server()).Get(),
                 String(context_.Nym()->ID()).Get(),
                 accountID);
         case ACTIVATE_SMART_CONTRACT:
-            return OTAPI_Wrap::activateSmartContract(
+            return SwigWrap::activateSmartContract(
                 String(context_.Server()).Get(),
                 String(context_.Nym()->ID()).Get(),
                 strData2);
         case TRIGGER_CLAUSE:
-            return OTAPI_Wrap::triggerClause(
+            return SwigWrap::triggerClause(
                 String(context_.Server()).Get(),
                 String(context_.Nym()->ID()).Get(),
                 stoll(strData),
                 strData2,
                 strData3);
         case EXCHANGE_BASKET:
-            return OTAPI_Wrap::exchangeBasket(
+            return SwigWrap::exchangeBasket(
                 String(context_.Server()).Get(),
                 String(context_.Nym()->ID()).Get(),
                 instrumentDefinitionID,
                 basket,
                 bBool);
         case GET_CONTRACT:
-            return OTAPI_Wrap::getInstrumentDefinition(
+            return SwigWrap::getInstrumentDefinition(
                 String(context_.Server()).Get(),
                 String(context_.Nym()->ID()).Get(),
                 instrumentDefinitionID);
         case GET_MINT:
-            return OTAPI_Wrap::getMint(
+            return SwigWrap::getMint(
                 String(context_.Server()).Get(),
                 String(context_.Nym()->ID()).Get(),
                 instrumentDefinitionID);
         case ISSUE_ASSET_TYPE:
-            return OTAPI_Wrap::registerInstrumentDefinition(
+            return SwigWrap::registerInstrumentDefinition(
                 String(context_.Server()).Get(),
                 String(context_.Nym()->ID()).Get(),
                 strData);
         case ISSUE_BASKET:
-            return OTAPI_Wrap::issueBasket(
+            return SwigWrap::issueBasket(
                 String(context_.Server()).Get(),
                 String(context_.Nym()->ID()).Get(),
                 basket);
         case EXCHANGE_CASH:
-            return OTAPI_Wrap::exchangePurse(
+            return SwigWrap::exchangePurse(
                 String(context_.Server()).Get(),
                 instrumentDefinitionID,
                 String(context_.Nym()->ID()).Get(),
                 strData);
         case KILL_MARKET_OFFER:
-            return OTAPI_Wrap::killMarketOffer(
+            return SwigWrap::killMarketOffer(
                 String(context_.Server()).Get(),
                 String(context_.Nym()->ID()).Get(),
                 accountID,
                 stoll(strData));
         case KILL_PAYMENT_PLAN:
-            return OTAPI_Wrap::killPaymentPlan(
+            return SwigWrap::killPaymentPlan(
                 String(context_.Server()).Get(),
                 String(context_.Nym()->ID()).Get(),
                 accountID,
                 stoll(strData));
         case GET_BOX_RECEIPT:
-            return OTAPI_Wrap::getBoxReceipt(
+            return SwigWrap::getBoxReceipt(
                 String(context_.Server()).Get(),
                 String(context_.Nym()->ID()).Get(),
                 accountID,
                 nData,
                 stoll(strData));
         case PROCESS_INBOX:
-            return OTAPI_Wrap::processInbox(
+            return SwigWrap::processInbox(
                 String(context_.Server()).Get(),
                 String(context_.Nym()->ID()).Get(),
                 accountID,
                 strData);
         case DEPOSIT_CASH:
-            return OTAPI_Wrap::notarizeDeposit(
+            return SwigWrap::notarizeDeposit(
                 String(context_.Server()).Get(),
                 String(context_.Nym()->ID()).Get(),
                 accountID,
                 strData);
         case DEPOSIT_CHEQUE:
-            return OTAPI_Wrap::depositCheque(
+            return SwigWrap::depositCheque(
                 String(context_.Server()).Get(),
                 String(context_.Nym()->ID()).Get(),
                 accountID,
                 strData);
         case DEPOSIT_PAYMENT_PLAN:
-            return OTAPI_Wrap::depositPaymentPlan(
+            return SwigWrap::depositPaymentPlan(
                 String(context_.Server()).Get(),
                 String(context_.Nym()->ID()).Get(),
                 strData);
         case WITHDRAW_CASH:
-            return OTAPI_Wrap::notarizeWithdrawal(
+            return SwigWrap::notarizeWithdrawal(
                 String(context_.Server()).Get(),
                 String(context_.Nym()->ID()).Get(),
                 accountID,
                 lData);
         case WITHDRAW_VOUCHER:
-            return OTAPI_Wrap::withdrawVoucher(
+            return SwigWrap::withdrawVoucher(
                 String(context_.Server()).Get(),
                 String(context_.Nym()->ID()).Get(),
                 accountID,
@@ -796,7 +796,7 @@ std::int32_t OTAPI_Func::Run() const
                 strData,
                 lData);
         case PAY_DIVIDEND:
-            return OTAPI_Wrap::payDividend(
+            return SwigWrap::payDividend(
                 String(context_.Server()).Get(),
                 String(context_.Nym()->ID()).Get(),
                 accountID,
@@ -804,7 +804,7 @@ std::int32_t OTAPI_Func::Run() const
                 strData,
                 lData);
         case SEND_TRANSFER:
-            return OTAPI_Wrap::notarizeTransfer(
+            return SwigWrap::notarizeTransfer(
                 String(context_.Server()).Get(),
                 String(context_.Nym()->ID()).Get(),
                 accountID,
@@ -812,22 +812,22 @@ std::int32_t OTAPI_Func::Run() const
                 lData,
                 strData);
         case GET_MARKET_LIST:
-            return OTAPI_Wrap::getMarketList(
+            return SwigWrap::getMarketList(
                 String(context_.Server()).Get(),
                 String(context_.Nym()->ID()).Get());
         case GET_MARKET_OFFERS:
-            return OTAPI_Wrap::getMarketOffers(
+            return SwigWrap::getMarketOffers(
                 String(context_.Server()).Get(),
                 String(context_.Nym()->ID()).Get(),
                 strData,
                 lData);
         case GET_MARKET_RECENT_TRADES:
-            return OTAPI_Wrap::getMarketRecentTrades(
+            return SwigWrap::getMarketRecentTrades(
                 String(context_.Server()).Get(),
                 String(context_.Nym()->ID()).Get(),
                 strData);
         case CREATE_MARKET_OFFER:
-            return OTAPI_Wrap::issueMarketOffer(
+            return SwigWrap::issueMarketOffer(
                 accountID,
                 accountID2,
                 stoll(strData),
@@ -839,7 +839,7 @@ std::int32_t OTAPI_Func::Run() const
                 strData5,
                 lData);
         case ADJUST_USAGE_CREDITS:
-            return OTAPI_Wrap::usageCredits(
+            return SwigWrap::usageCredits(
                 String(context_.Server()).Get(),
                 String(context_.Nym()->ID()).Get(),
                 nymID2,
@@ -848,13 +848,13 @@ std::int32_t OTAPI_Func::Run() const
         case INITIATE_OUTBAILMENT:
         case NOTIFY_BAILMENT:
         case REQUEST_CONNECTION:
-            return OTAPI_Wrap::initiatePeerRequest(
+            return SwigWrap::initiatePeerRequest(
                 String(context_.Nym()->ID()).Get(),
                 nymID2,
                 String(context_.Server()).Get(),
                 strData);
         case STORE_SECRET:
-            return OTAPI_Wrap::initiatePeerRequest(
+            return SwigWrap::initiatePeerRequest(
                 String(context_.Nym()->ID()).Get(),
                 nymID2,
                 String(context_.Server()).Get(),
@@ -862,41 +862,41 @@ std::int32_t OTAPI_Func::Run() const
         case ACKNOWLEDGE_BAILMENT:
         case ACKNOWLEDGE_OUTBAILMENT:
         case ACKNOWLEDGE_NOTICE:
-            return OTAPI_Wrap::initiatePeerReply(
+            return SwigWrap::initiatePeerReply(
                 String(context_.Nym()->ID()).Get(),
                 nymID2,
                 String(context_.Server()).Get(),
                 instrumentDefinitionID,
                 strData);
         case ACKNOWLEDGE_CONNECTION:
-            return OTAPI_Wrap::initiatePeerReply(
+            return SwigWrap::initiatePeerReply(
                 String(context_.Nym()->ID()).Get(),
                 accountID,
                 String(context_.Server()).Get(),
                 accountID2,
                 strData5);
         case REGISTER_CONTRACT_NYM:
-            return OTAPI_Wrap::registerContractNym(
+            return SwigWrap::registerContractNym(
                 String(context_.Server()).Get(),
                 String(context_.Nym()->ID()).Get(),
                 nymID2);
         case REGISTER_CONTRACT_SERVER:
-            return OTAPI_Wrap::registerContractServer(
+            return SwigWrap::registerContractServer(
                 String(context_.Server()).Get(),
                 String(context_.Nym()->ID()).Get(),
                 strData);
         case REGISTER_CONTRACT_UNIT:
-            return OTAPI_Wrap::registerContractUnit(
+            return SwigWrap::registerContractUnit(
                 String(context_.Server()).Get(),
                 String(context_.Nym()->ID()).Get(),
                 instrumentDefinitionID);
         case REQUEST_ADMIN:
-            return OTAPI_Wrap::requestAdmin(
+            return SwigWrap::requestAdmin(
                 String(context_.Server()).Get(),
                 String(context_.Nym()->ID()).Get(),
                 strData);
         case SERVER_ADD_CLAIM:
-            return OTAPI_Wrap::serverAddClaim(
+            return SwigWrap::serverAddClaim(
                 String(context_.Server()).Get(),
                 String(context_.Nym()->ID()).Get(),
                 strData,
@@ -920,7 +920,7 @@ std::int32_t OTAPI_Func::SendRequestLowLevel(
     Utility MsgUtil(context_);
     std::string strLocation = "OTAPI_Func::SendRequestLowLevel: " + IN_FUNCTION;
 
-    OTAPI_Wrap::FlushMessageBuffer();
+    SwigWrap::FlushMessageBuffer();
 
     std::int32_t nRun =
         theFunction.Run();  // <===== ATTEMPT TO SEND THE MESSAGE HERE...;
@@ -985,7 +985,7 @@ std::string OTAPI_Func::SendTransaction(
 
     // GET TRANSACTION NUMBERS HERE IF NECESSARY.
     //
-    std::int32_t getnym_trnsnum_count = OTAPI_Wrap::GetNym_TransactionNumCount(
+    std::int32_t getnym_trnsnum_count = SwigWrap::GetNym_TransactionNumCount(
         String(theFunction.context_.Server()).Get(),
         String(theFunction.context_.Nym()->ID()).Get());
     std::int32_t configTxnCount = MsgUtil.getNbrTransactionCount();
@@ -1010,7 +1010,7 @@ std::string OTAPI_Func::SendTransaction(
     }
 
     // second try
-    getnym_trnsnum_count = OTAPI_Wrap::GetNym_TransactionNumCount(
+    getnym_trnsnum_count = SwigWrap::GetNym_TransactionNumCount(
         String(context_.Server()).Get(), String(context_.Nym()->ID()).Get());
     if (getnym_trnsnum_count < comparative) {
         otOut
@@ -1029,7 +1029,7 @@ std::string OTAPI_Func::SendTransaction(
     }
 
     // third try
-    getnym_trnsnum_count = OTAPI_Wrap::GetNym_TransactionNumCount(
+    getnym_trnsnum_count = SwigWrap::GetNym_TransactionNumCount(
         String(context_.Server()).Get(), String(context_.Nym()->ID()).Get());
     if (getnym_trnsnum_count < comparative) {
         otOut
@@ -1049,7 +1049,7 @@ std::string OTAPI_Func::SendTransaction(
 
     // Giving up, if still a failure by this point.
     //
-    getnym_trnsnum_count = OTAPI_Wrap::GetNym_TransactionNumCount(
+    getnym_trnsnum_count = SwigWrap::GetNym_TransactionNumCount(
         String(theFunction.context_.Server()).Get(),
         String(theFunction.context_.Nym()->ID()).Get());
 
@@ -1089,7 +1089,7 @@ std::string OTAPI_Func::SendTransaction(
     // TODO!!  SECURITY:  This is where a GOOD CLIENT (vs. a test client)
     // will verify these std::intermediary files against your LAST SIGNED
     // RECEIPT,
-    // using OTAPI_Wrap::VerifySomethingorother().
+    // using SwigWrap::VerifySomethingorother().
     // See verifyFiles() at the bottom of this file.
     // Add some kind of warning Modal Dialog here, since it's actually
     // normal for a NEW account (never had any receipts yet.) But for
@@ -1114,7 +1114,7 @@ std::string OTAPI_Func::SendTransaction(
             bWillRetryAfterThis = false;
         }
 
-        if (OTAPI_Wrap::CheckConnection(
+        if (SwigWrap::CheckConnection(
                 String(theFunction.context_.Server()).Get())) {
             strResult = SendRequestOnce(
                 theFunction,
@@ -1158,7 +1158,7 @@ std::string OTAPI_Func::SendRequest(
         theFunction, IN_FUNCTION, false, true, bCanRetryAfterThis);
 
     if (!VerifyStringVal(strResult) && bCanRetryAfterThis) {
-        if (OTAPI_Wrap::CheckConnection(
+        if (SwigWrap::CheckConnection(
                 String(theFunction.context_.Server()).Get())) {
             strResult = SendRequestOnce(
                 theFunction, IN_FUNCTION, false, false, bCanRetryAfterThis);
@@ -1241,7 +1241,7 @@ std::string OTAPI_Func::SendRequestOnce(
         if (bMsgReplySuccess)  // If message was success, then let's see if the
                                // transaction was, too.
         {
-            nBalanceSuccess = OTAPI_Wrap::Message_GetBalanceAgreementSuccess(
+            nBalanceSuccess = SwigWrap::Message_GetBalanceAgreementSuccess(
                 String(theFunction.context_.Server()).Get(),
                 String(theFunction.context_.Nym()->ID()).Get(),
                 theFunction.accountID,
@@ -1264,7 +1264,7 @@ std::string OTAPI_Func::SendRequestOnce(
                 // transaction numbers were harvested from it.
                 //
                 std::int32_t nTransCancelled =
-                    OTAPI_Wrap::Message_IsTransactionCanceled(
+                    SwigWrap::Message_IsTransactionCanceled(
                         String(theFunction.context_.Server()).Get(),
                         String(theFunction.context_.Nym()->ID()).Get(),
                         theFunction.accountID,
@@ -1275,7 +1275,7 @@ std::string OTAPI_Func::SendRequestOnce(
                 // and we check for success/failure as normal...
                 //
                 if (1 != nTransCancelled) {
-                    nTransSuccess = OTAPI_Wrap::Message_GetTransactionSuccess(
+                    nTransSuccess = SwigWrap::Message_GetTransactionSuccess(
                         String(theFunction.context_.Server()).Get(),
                         String(theFunction.context_.Nym()->ID()).Get(),
                         theFunction.accountID,
@@ -1365,7 +1365,7 @@ std::string OTAPI_Func::SendRequestOnce(
         // I'm totally done with it now. NO NEED TO HARVEST anything, either.)
         //
         //          var nRemoved =
-        // OTAPI_Wrap::RemoveSentMessage(Integer.toString(nlocalRequestNum),
+        // SwigWrap::RemoveSentMessage(Integer.toString(nlocalRequestNum),
         // String(theFunction.context_.Server()).Get(),
         // String(theFunction.context_.Nym()->ID()).Get());
         //
@@ -1478,14 +1478,14 @@ std::string OTAPI_Func::SendRequestOnce(
                 // or flush it.
                 //
                 else if (bWasSent && (nProcessNymboxResult > 1)) {
-                    std::string strNymbox = OTAPI_Wrap::LoadNymboxNoVerify(
+                    std::string strNymbox = SwigWrap::LoadNymboxNoVerify(
                         String(theFunction.context_.Server()).Get(),
                         String(theFunction.context_.Nym()->ID())
                             .Get());  // FLUSH SENT MESSAGES!!!!  (AND
                                       // HARVEST.);
 
                     if (VerifyStringVal(strNymbox)) {
-                        OTAPI_Wrap::FlushSentMessages(
+                        SwigWrap::FlushSentMessages(
                             false,
                             String(theFunction.context_.Server()).Get(),
                             String(theFunction.context_.Nym()->ID()).Get(),

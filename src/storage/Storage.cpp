@@ -862,6 +862,19 @@ storage::Root* Storage::meta() const
 
 const storage::Root& Storage::Meta() const { return *meta(); }
 
+bool Storage::RelabelThread(
+    const std::string& threadID,
+    const std::string& label)
+{
+    return mutable_Meta()
+        .It()
+        .mutable_Tree()
+        .It()
+        .mutable_Nyms()
+        .It()
+        .RelabelThread(threadID, label);
+}
+
 bool Storage::RemoveNymBoxItem(
     const std::string& nymID,
     const StorageBox box,
@@ -1736,9 +1749,10 @@ void Storage::synchronize_root()
     primary_plugin_->StoreRoot(bestRoot);
 }
 
-ObjectList Storage::ThreadList(const std::string& nymID) const
+ObjectList Storage::ThreadList(const std::string& nymID, const bool unreadOnly)
+    const
 {
-    return Meta().Tree().NymNode().Nym(nymID).Threads().List();
+    return Meta().Tree().NymNode().Nym(nymID).Threads().List(unreadOnly);
 }
 
 std::string Storage::ThreadAlias(

@@ -40,14 +40,14 @@
 
 #include "opentxs/client/commands/CmdBaseAccept.hpp"
 
-#include "opentxs/client/OTAPI_Wrap.hpp"
-#include "opentxs/client/OT_API.hpp"
-#include "opentxs/client/OT_ME.hpp"
+#include "opentxs/api/Api.hpp"
+#include "opentxs/api/OT.hpp"
 #include "opentxs/client/commands/CmdConfirm.hpp"
 #include "opentxs/client/commands/CmdPayInvoice.hpp"
+#include "opentxs/client/OT_API.hpp"
+#include "opentxs/client/OT_ME.hpp"
 #include "opentxs/client/MadeEasy.hpp"
-#include "opentxs/api/OT.hpp"
-#include "opentxs/api/Api.hpp"
+#include "opentxs/client/SwigWrap.hpp"
 #include "opentxs/core/Ledger.hpp"
 #include "opentxs/core/Log.hpp"
 
@@ -59,32 +59,32 @@ using namespace opentxs;
 using namespace std;
 
 /*
-call OTAPI_Wrap::LoadInbox() to load the inbox ledger from local storage.
+call SwigWrap::LoadInbox() to load the inbox ledger from local storage.
 
 During this time, your user has the opportunity to peruse the inbox, and to
 decide which transactions therein he wishes to accept or reject. Usually the
 inbox is displayed on the screen, then the user selects various items to accept
 or reject, and then the user clicks Process Inbox and then you do this:
-Then call OTAPI_Wrap::Ledger_CreateResponse() in order to create a response
+Then call SwigWrap::Ledger_CreateResponse() in order to create a response
 ledger for that inbox, which will be sent to the server to signal your responses
 to the various inbox transactions.
-Then call OTAPI_Wrap::Ledger_GetCount() (pass it the inbox) to find out how many
+Then call SwigWrap::Ledger_GetCount() (pass it the inbox) to find out how many
 transactions are inside of it. Use that count to LOOP through them
-Use OTAPI_Wrap::Ledger_GetTransactionByIndex() to grab each transaction as you
+Use SwigWrap::Ledger_GetTransactionByIndex() to grab each transaction as you
 iterate through the inbox. (There are various introspection functions you can
 use in the API here if you wish to display the inbox items on the screen for the
 user.)
-Next call OTAPI_Wrap::Transaction_CreateResponse() for each transaction in the
+Next call SwigWrap::Transaction_CreateResponse() for each transaction in the
 inbox, to create a response to it, accepting or rejecting it. This function
 creates the response and adds it to the response ledger.
-Next, call OTAPI_Wrap::Ledger_FinalizeResponse() which will create a Balance
+Next, call SwigWrap::Ledger_FinalizeResponse() which will create a Balance
 Agreement for the ledger.
-Finally, call OTAPI_Wrap::processInbox() to send your message to the server and
+Finally, call SwigWrap::processInbox() to send your message to the server and
 process the various items.
 
 If the message was successful, then use
-OTAPI_Wrap::Message_GetBalanceAgreementSuccess() and
-OTAPI_Wrap::Message_GetTransactionSuccess() as described above in the deposit
+SwigWrap::Message_GetBalanceAgreementSuccess() and
+SwigWrap::Message_GetTransactionSuccess() as described above in the deposit
 cash instructions.
 */
 
@@ -121,13 +121,13 @@ int32_t CmdBaseAccept::acceptFromInbox(
     const string& indices,
     const int32_t itemTypeFilter) const
 {
-    string server = OTAPI_Wrap::GetAccountWallet_NotaryID(myacct);
+    string server = SwigWrap::GetAccountWallet_NotaryID(myacct);
     if ("" == server) {
         otOut << "Error: cannot determine server from myacct.\n";
         return -1;
     }
 
-    string mynym = OTAPI_Wrap::GetAccountWallet_NymID(myacct);
+    string mynym = SwigWrap::GetAccountWallet_NymID(myacct);
     if ("" == mynym) {
         otOut << "Error: cannot determine mynym from myacct.\n";
         return -1;
@@ -154,7 +154,7 @@ int32_t CmdBaseAccept::acceptFromInbox(
     // smart enough, when sending server transaction requests, to grab new
     // transaction numbers if it is running low. But in this case, we need the
     // numbers available BEFORE sending the transaction request, because the
-    // call to OTAPI_Wrap::Ledger_CreateResponse is where the number is first
+    // call to SwigWrap::Ledger_CreateResponse is where the number is first
     // needed, and that call is made before the server transaction request is
     // actually sent.
     //
@@ -175,13 +175,13 @@ int32_t CmdBaseAccept::acceptFromInbox(
     int32_t item_count = pInbox->GetTransactionCount();
 
     // -----------------------------------------------------------
-    //    string inbox = OTAPI_Wrap::LoadInbox(server, mynym, myacct);
+    //    string inbox = SwigWrap::LoadInbox(server, mynym, myacct);
     //    if ("" == inbox) {
     //        otOut << "Error: cannot load inbox.\n";
     //        return -1;
     //    }
 
-    //    int32_t item_count = OTAPI_Wrap::Ledger_GetCount(server, mynym,
+    //    int32_t item_count = SwigWrap::Ledger_GetCount(server, mynym,
     //    myacct, inbox);
 
     if (0 > item_count) {
@@ -256,7 +256,7 @@ int32_t CmdBaseAccept::acceptFromInbox(
                 pReceipt->GetType()};
 
             //            string type =
-            //                OTAPI_Wrap::Transaction_GetType(server, mynym,
+            //                SwigWrap::Transaction_GetType(server, mynym,
             //                myacct, tx);
 
             const bool transfer = (OTTransaction::pending == receipt_type);
@@ -276,7 +276,7 @@ int32_t CmdBaseAccept::acceptFromInbox(
         // GetTransactionNums. Can delete this now.
         //
         //        // do we want this index?
-        //        if (!all && !OTAPI_Wrap::NumList_VerifyQuery(indices,
+        //        if (!all && !SwigWrap::NumList_VerifyQuery(indices,
         //        to_string(i))) {
         //            continue;
         //        }
@@ -285,7 +285,7 @@ int32_t CmdBaseAccept::acceptFromInbox(
         //        // need to create response ledger?
         //        if ("" == ledger) {
         //            ledger =
-        //            OTAPI_Wrap::Ledger_CreateResponse(server, mynym, myacct,
+        //            SwigWrap::Ledger_CreateResponse(server, mynym, myacct,
         //            inbox); if ("" == ledger) {
         //                otOut << "Error: cannot create response ledger.\n";
         //                return -1;
@@ -295,7 +295,7 @@ int32_t CmdBaseAccept::acceptFromInbox(
         // pointed to by "processInbox".
         // ------------------------
 
-        //        ledger = OTAPI_Wrap::Transaction_CreateResponse(
+        //        ledger = SwigWrap::Transaction_CreateResponse(
         //            server, mynym, myacct, ledger, tx, true);
         //        if ("" == ledger) {
         //            otOut << "Error: cannot create transaction response.\n";
@@ -324,13 +324,13 @@ int32_t CmdBaseAccept::acceptFromInbox(
 
     //    string ledger = "";
     //    for (int32_t i = 0; i < item_count; i++) {
-    //        string tx = OTAPI_Wrap::Ledger_GetTransactionByIndex(
+    //        string tx = SwigWrap::Ledger_GetTransactionByIndex(
     //            server, mynym, myacct, inbox, i);
     //
     //        // itemType == 0 for all, 1 for transfers only, 2 for receipts
     //        only. if (0 != itemType) {
     //            string type =
-    //                OTAPI_Wrap::Transaction_GetType(server, mynym, myacct,
+    //                SwigWrap::Transaction_GetType(server, mynym, myacct,
     //                tx);
     //            bool transfer = "pending" == type;
     //            if (1 == itemType && !transfer) {
@@ -344,7 +344,7 @@ int32_t CmdBaseAccept::acceptFromInbox(
     //        }
     //
     //        // do we want this index?
-    //        if (!all && !OTAPI_Wrap::NumList_VerifyQuery(indices,
+    //        if (!all && !SwigWrap::NumList_VerifyQuery(indices,
     //        to_string(i))) {
     //            continue;
     //        }
@@ -352,7 +352,7 @@ int32_t CmdBaseAccept::acceptFromInbox(
     //        // need to create response ledger?
     //        if ("" == ledger) {
     //            ledger =
-    //                OTAPI_Wrap::Ledger_CreateResponse(server, mynym, myacct,
+    //                SwigWrap::Ledger_CreateResponse(server, mynym, myacct,
     //                inbox);
     //            if ("" == ledger) {
     //                otOut << "Error: cannot create response ledger.\n";
@@ -360,7 +360,7 @@ int32_t CmdBaseAccept::acceptFromInbox(
     //            }
     //        }
     //
-    //        ledger = OTAPI_Wrap::Transaction_CreateResponse(
+    //        ledger = SwigWrap::Transaction_CreateResponse(
     //            server, mynym, myacct, ledger, tx, true);
     //        if ("" == ledger) {
     //            otOut << "Error: cannot create transaction response.\n";
@@ -378,7 +378,7 @@ int32_t CmdBaseAccept::acceptFromInbox(
     // ----------------------------------------------
 
     //    string response =
-    //        OTAPI_Wrap::Ledger_FinalizeResponse(server, mynym, myacct,
+    //        SwigWrap::Ledger_FinalizeResponse(server, mynym, myacct,
     //        ledger);
     //    if ("" == response) {
     //        otOut << "Error: cannot finalize response.\n";
@@ -431,25 +431,25 @@ int32_t CmdBaseAccept::acceptFromPaymentbox(
         return -1;
     }
 
-    string server = OTAPI_Wrap::GetAccountWallet_NotaryID(myacct);
+    string server = SwigWrap::GetAccountWallet_NotaryID(myacct);
     if ("" == server) {
         otOut << "Error: cannot determine server from myacct.\n";
         return -1;
     }
 
-    string mynym = OTAPI_Wrap::GetAccountWallet_NymID(myacct);
+    string mynym = SwigWrap::GetAccountWallet_NymID(myacct);
     if ("" == mynym) {
         otOut << "Error: cannot determine mynym from myacct.\n";
         return -1;
     }
 
-    string inbox = OTAPI_Wrap::LoadPaymentInbox(server, mynym);
+    string inbox = SwigWrap::LoadPaymentInbox(server, mynym);
     if ("" == inbox) {
         otOut << "Error: cannot load payment inbox.\n";
         return -1;
     }
 
-    int32_t items = OTAPI_Wrap::Ledger_GetCount(server, mynym, mynym, inbox);
+    int32_t items = SwigWrap::Ledger_GetCount(server, mynym, mynym, inbox);
     if (0 > items) {
         otOut << "Error: cannot load payment inbox item count.\n";
         return -1;
@@ -498,7 +498,7 @@ int32_t CmdBaseAccept::acceptFromPaymentbox(
     // ----------
     bool all = "" == indices || "all" == indices;
 
-    const int32_t nNumlistCount = all ? 0 : OTAPI_Wrap::NumList_Count(indices);
+    const int32_t nNumlistCount = all ? 0 : SwigWrap::NumList_Count(indices);
 
     // NOTE: If we are processing multiple indices, then the return value
     // is 1, since some indices may succeed and some may fail. So our return
@@ -512,7 +512,7 @@ int32_t CmdBaseAccept::acceptFromPaymentbox(
     int32_t nReturnValue = 1;
 
     for (int32_t i = items - 1; 0 <= i; i--) {
-        if (all || OTAPI_Wrap::NumList_VerifyQuery(indices, to_string(i))) {
+        if (all || SwigWrap::NumList_VerifyQuery(indices, to_string(i))) {
             if (bIsDefinitelyPaymentPlan) {
                 string instrument =
                     OT_ME::It().get_payment_instrument(server, mynym, i, inbox);
@@ -525,7 +525,7 @@ int32_t CmdBaseAccept::acceptFromPaymentbox(
 
                 CmdConfirm cmd;
                 string recipient =
-                    OTAPI_Wrap::Instrmnt_GetRecipientNymID(instrument);
+                    SwigWrap::Instrmnt_GetRecipientNymID(instrument);
                 int32_t nTemp = cmd.confirmInstrument(
                     server,
                     mynym,

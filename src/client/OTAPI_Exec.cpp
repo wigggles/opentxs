@@ -1059,7 +1059,7 @@ bool OTAPI_Exec::RevokeChildCredential(
 
     const String strCredID(MASTER_CRED_ID);
 
-    otErr << "\n\n\nOTAPI_Wrap::" << __FUNCTION__
+    otErr << "\n\n\nSwigWrap::" << __FUNCTION__
           << ": TODO: REVOKING IS NOT YET CODED. ADD FUNCTION CALL "
           << "HERE TO REVOKE SUB-CREDENTIAL!\n\n\n";
 
@@ -1086,7 +1086,7 @@ bool OTAPI_Exec::RevokeChildCredential(
             // it...
             //
 
-            otErr << "\n\n\nOTAPI_Wrap::" << __FUNCTION__
+            otErr << "\n\n\nSwigWrap::" << __FUNCTION__
                   << ": TODO: REVOKING IS NOT YET CODED. ADD FUNCTION CALL "
                      "HERE TO REVOKE SUB-CREDENTIAL!\n\n\n";
 
@@ -2786,10 +2786,11 @@ std::string OTAPI_Exec::GetNym_OutboxHash(
 }
 
 std::list<std::string> OTAPI_Exec::GetNym_MailThreads(
-    const std::string& NYM_ID) const
+    const std::string& NYM_ID,
+    const bool unreadOnly) const
 {
     const Identifier nym(NYM_ID);
-    const auto threads = activity_.Threads(nym);
+    const auto threads = activity_.Threads(nym, unreadOnly);
     std::list<std::string> output;
 
     for (auto& item : threads) {
@@ -2946,7 +2947,7 @@ bool OTAPI_Exec::Nym_VerifyOutmailByIndex(
 //
 // Todo: Move these and all functions to OpenTransactions.cpp.  This should ONLY
 // be a wrapper for that class.  That way we can eventually phase this file out
-// entirely and replace it with OTAPI_Wrapper.cpp directly on
+// entirely and replace it with SwigWrapper.cpp directly on
 // OpenTransactions.cpp
 
 int32_t OTAPI_Exec::GetNym_OutpaymentsCount(const std::string& NYM_ID) const

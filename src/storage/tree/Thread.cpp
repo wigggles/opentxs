@@ -228,6 +228,9 @@ bool Thread::Read(const std::string& id, const bool unread)
     auto it = items_.find(id);
 
     if (items_.end() == it) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Item does not exist."
+              << std::endl;
+
         return false;
     }
 

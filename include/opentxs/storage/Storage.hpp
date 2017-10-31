@@ -301,6 +301,7 @@ public:
         const std::string& itemID);
     ObjectList NymBoxList(const std::string& nymID, const StorageBox box) const;
     ObjectList NymList() const;
+    bool RelabelThread(const std::string& threadID, const std::string& label);
     bool RemoveNymBoxItem(
         const std::string& nymID,
         const StorageBox box,
@@ -372,7 +373,8 @@ public:
     bool Store(
         const proto::UnitDefinition& data,
         const std::string& alias = std::string(""));
-    ObjectList ThreadList(const std::string& nymID) const;
+    ObjectList ThreadList(const std::string& nymID, const bool unreadOnly)
+        const;
     std::string ThreadAlias(
         const std::string& nymID,
         const std::string& threadID);

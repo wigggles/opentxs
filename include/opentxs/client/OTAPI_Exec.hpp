@@ -1089,7 +1089,8 @@ public:
     */
 
     EXPORT std::list<std::string> GetNym_MailThreads(
-        const std::string& NYM_ID) const;
+        const std::string& NYM_ID,
+        const bool unreadOnly) const;
 
     EXPORT std::list<std::string> GetNym_MailCount(
         const std::string& NYM_ID) const;

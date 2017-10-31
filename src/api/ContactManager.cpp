@@ -652,6 +652,8 @@ std::shared_ptr<const class Contact> ContactManager::Update(
 
     OT_ASSERT(output);
 
+    storage_.RelabelThread(String(output->ID()).Get(), output->Label());
+
     return output;
 }
 

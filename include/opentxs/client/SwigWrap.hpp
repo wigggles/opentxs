@@ -36,8 +36,8 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_CLIENT_OTAPI_HPP
-#define OPENTXS_CLIENT_OTAPI_HPP
+#ifndef OPENTXS_CLIENT_SWIG_HPP
+#define OPENTXS_CLIENT_SWIG_HPP
 
 #include "opentxs/client/NymData.hpp"
 #include "opentxs/core/util/Common.hpp"
@@ -56,7 +56,7 @@ namespace opentxs
 class OTAPI_Exec;
 class OT_API;
 
-class OTAPI_Wrap
+class SwigWrap
 {
 
 private:
@@ -916,43 +916,6 @@ public:
         const std::string& NYM_ID,
         const std::string& NOTARY_ID);
 
-    /** Each Nym has mail messages, they can come from different servers.
-    // This allows you to peruse the mail for a given Nym, and erase messages.
-    //
-
-
-    So how would you actually USE this to browse a Nym's mail?
-
-    -- Call GetNym_MailCount() to find out how many mail items there are.
-
-    -- Then LOOP through them, and use GetNym_MailSenderIDByIndex and
-    GetNym_MailNotaryIDByIndex to populate the list.
-
-    -- If you want to add a subject display, you'll have to call
-    GetNym_MailContentsByIndex()
-    and check for a first line beginning in Subject: (there may not be one.)
-
-    -- GetNym_MailContentsByIndex returns the body of the mail regardless.
-
-    -- Use Nym_VerifyMailByIndex() to verify the signature on the mail,
-
-    -- and use Nym_RemoveMailByIndex() to erase mail (when you want to.)
-
-    */
-
-    EXPORT static void Activity_Preload(
-        const std::string& nymID,
-        const std::uint32_t& items);
-    EXPORT static void Thread_Preload(
-        const std::string& nymID,
-        const std::string& threadID,
-        const std::uint32_t start,
-        const std::uint32_t items);
-
-    EXPORT static std::string GetNym_MailThread_base64(
-        const std::string& nymId,
-        const std::string& threadId);
-    EXPORT static std::string GetNym_MailThreads(const std::string& NYM_ID);
     EXPORT static std::string GetNym_MailCount(const std::string& NYM_ID);
     EXPORT static std::string GetNym_MailContentsByIndex(
         const std::string& NYM_ID,
@@ -4610,6 +4573,44 @@ public:
         const std::string& masterID,
         const std::uint32_t keysize);
 
+    // Wrapped Activity methods
+
+    EXPORT static bool Activity_Mark_Read(
+        const std::string& nymID,
+        const std::string& threadID,
+        const std::string& itemID);
+    EXPORT static bool Activity_Mark_Unread(
+        const std::string& nymID,
+        const std::string& threadID,
+        const std::string& itemID);
+    EXPORT static void Activity_Preload(
+        const std::string& nymID,
+        const std::uint32_t& items);
+
+    /**  Retrieve an activity thread
+     *    \param[in]  nymId owner of the thread
+     *    \param[in]  threadId thread ID
+     *    \return base64 serialized proto::StorageThread
+     */
+    EXPORT static std::string Activity_Thread_base64(
+        const std::string& nymId,
+        const std::string& threadId);
+
+    /**  Retrieve a list of activity threads
+     *    \param[in]  nymId owner of the threads
+     *    \param[in]  unreadOnly if true, ignore threads without unread items
+     *    \return comma seperated list of thread IDs
+     */
+    EXPORT static std::string Activity_Threads(
+        const std::string& nymID,
+        const bool unreadOnly);
+    EXPORT static std::uint64_t Activity_Unread_Count(const std::string& nymID);
+    EXPORT static void Thread_Preload(
+        const std::string& nymID,
+        const std::string& threadID,
+        const std::uint32_t start,
+        const std::uint32_t items);
+
     // Wrapped Blockchain methods
 
     /**  Retrieve a blockchain account
@@ -4903,8 +4904,8 @@ public:
     EXPORT static void Update_Pairing(const std::string& wallet = "");
 
 private:
-    OTAPI_Wrap();
-    ~OTAPI_Wrap() = default;
+    SwigWrap();
+    ~SwigWrap() = default;
 };
 }  // namespace opentxs
-#endif  // OPENTXS_CLIENT_OTAPI_HPP
+#endif  // OPENTXS_CLIENT_SWIG_HPP

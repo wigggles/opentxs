@@ -46,6 +46,8 @@
 
 #include <functional>
 
+#define OT_METHOD "opentxs::storage::Nyms::"
+
 namespace opentxs
 {
 namespace storage
@@ -74,8 +76,8 @@ void Nyms::init(const std::string& hash)
     driver_.LoadProto(hash, serialized);
 
     if (!serialized) {
-        std::cerr << __FUNCTION__ << ": Failed to load nym list index file."
-                  << std::endl;
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Failed to load nym list index file." << std::endl;
         abort();
     }
 
@@ -142,6 +144,13 @@ class Nym* Nyms::nym(const std::string& id) const
 {
     Lock lock(write_lock_);
 
+    return nym(lock, id);
+}
+
+class Nym* Nyms::nym(const Lock& lock, const std::string& id) const
+{
+    OT_ASSERT(verify_write_lock(lock))
+
     const auto index = item_map_[id];
     const auto hash = std::get<0>(index);
     const auto alias = std::get<1>(index);
@@ -151,23 +160,55 @@ class Nym* Nyms::nym(const std::string& id) const
         node.reset(new class Nym(driver_, id, hash, alias));
 
         if (!node) {
-            std::cerr << __FUNCTION__ << ": Failed to instantiate nym."
-                      << std::endl;
+            otErr << OT_METHOD << __FUNCTION__ << ": Failed to instantiate nym."
+                  << std::endl;
             abort();
         }
     }
-
-    lock.unlock();
 
     return node.get();
 }
 
 const class Nym& Nyms::Nym(const std::string& id) const { return *nym(id); }
 
+bool Nyms::RelabelThread(const std::string& threadID, const std::string label)
+{
+    Lock lock(write_lock_);
+    std::set<std::string> nyms{};
+
+    for (const auto& it : item_map_) {
+        const auto& nymID = it.first;
+        auto nym = Nyms::nym(lock, nymID);
+
+        OT_ASSERT(nym);
+
+        const auto& threads = nym->Threads();
+
+        if (threads.Exists(threadID)) {
+            nyms.insert(nymID);
+        }
+    }
+
+    lock.unlock();
+    bool output{false};
+
+    for (const auto& nymID : nyms) {
+        auto nym = mutable_Nym(nymID);
+        output |= nym.It()
+                      .mutable_Threads()
+                      .It()
+                      .mutable_Thread(threadID)
+                      .It()
+                      .SetAlias(label);
+    }
+
+    return output;
+}
+
 bool Nyms::save(const Lock& lock) const
 {
     if (!verify_write_lock(lock)) {
-        std::cerr << __FUNCTION__ << ": Lock failure." << std::endl;
+        otErr << OT_METHOD << __FUNCTION__ << ": Lock failure." << std::endl;
         abort();
     }
 
@@ -183,12 +224,12 @@ bool Nyms::save(const Lock& lock) const
 void Nyms::save(class Nym* nym, const Lock& lock, const std::string& id)
 {
     if (!verify_write_lock(lock)) {
-        std::cerr << __FUNCTION__ << ": Lock failure." << std::endl;
+        otErr << OT_METHOD << __FUNCTION__ << ": Lock failure." << std::endl;
         abort();
     }
 
     if (nullptr == nym) {
-        std::cerr << __FUNCTION__ << ": Null target" << std::endl;
+        otErr << OT_METHOD << __FUNCTION__ << ": Null target" << std::endl;
         abort();
     }
 
@@ -199,7 +240,7 @@ void Nyms::save(class Nym* nym, const Lock& lock, const std::string& id)
     alias = nym->Alias();
 
     if (!save(lock)) {
-        std::cerr << __FUNCTION__ << ": Save error" << std::endl;
+        otErr << OT_METHOD << __FUNCTION__ << ": Save error" << std::endl;
         abort();
     }
 }
