@@ -475,12 +475,14 @@ int32_t SwigWrap::GetCurrencyDecimalPower(
     return Exec()->GetCurrencyDecimalPower(INSTRUMENT_DEFINITION_ID);
 }
 
-std::string SwigWrap::GetCurrencyTLA(const std::string& INSTRUMENT_DEFINITION_ID)
+std::string SwigWrap::GetCurrencyTLA(
+    const std::string& INSTRUMENT_DEFINITION_ID)
 {
     return Exec()->GetCurrencyTLA(INSTRUMENT_DEFINITION_ID);
 }
 
-std::string SwigWrap::GetCurrencySymbol(const std::string& INSTRUMENT_DEFINITION_ID)
+std::string SwigWrap::GetCurrencySymbol(
+    const std::string& INSTRUMENT_DEFINITION_ID)
 {
     return Exec()->GetCurrencySymbol(INSTRUMENT_DEFINITION_ID);
 }
@@ -557,7 +559,10 @@ int32_t SwigWrap::GetNymCount(void) { return Exec()->GetNymCount(); }
 
 int32_t SwigWrap::GetServerCount(void) { return Exec()->GetServerCount(); }
 
-int32_t SwigWrap::GetAssetTypeCount(void) { return Exec()->GetAssetTypeCount(); }
+int32_t SwigWrap::GetAssetTypeCount(void)
+{
+    return Exec()->GetAssetTypeCount();
+}
 
 int32_t SwigWrap::GetAccountCount(void) { return Exec()->GetAccountCount(); }
 
@@ -577,7 +582,8 @@ bool SwigWrap::Wallet_CanRemoveAssetType(
     return Exec()->Wallet_CanRemoveAssetType(INSTRUMENT_DEFINITION_ID);
 }
 
-bool SwigWrap::Wallet_RemoveAssetType(const std::string& INSTRUMENT_DEFINITION_ID)
+bool SwigWrap::Wallet_RemoveAssetType(
+    const std::string& INSTRUMENT_DEFINITION_ID)
 {
     return Exec()->Wallet_RemoveAssetType(INSTRUMENT_DEFINITION_ID);
 }
@@ -664,7 +670,8 @@ std::string SwigWrap::Wallet_GetNymIDFromPartial(const std::string& PARTIAL_ID)
     return Exec()->Wallet_GetNymIDFromPartial(PARTIAL_ID);
 }
 
-std::string SwigWrap::Wallet_GetNotaryIDFromPartial(const std::string& PARTIAL_ID)
+std::string SwigWrap::Wallet_GetNotaryIDFromPartial(
+    const std::string& PARTIAL_ID)
 {
     return Exec()->Wallet_GetNotaryIDFromPartial(PARTIAL_ID);
 }
@@ -675,7 +682,8 @@ std::string SwigWrap::Wallet_GetInstrumentDefinitionIDFromPartial(
     return Exec()->Wallet_GetInstrumentDefinitionIDFromPartial(PARTIAL_ID);
 }
 
-std::string SwigWrap::Wallet_GetAccountIDFromPartial(const std::string& PARTIAL_ID)
+std::string SwigWrap::Wallet_GetAccountIDFromPartial(
+    const std::string& PARTIAL_ID)
 {
     return Exec()->Wallet_GetAccountIDFromPartial(PARTIAL_ID);
 }
@@ -728,45 +736,6 @@ std::string SwigWrap::GetNym_OutboxHash(
     const std::string& NYM_ID)
 {
     return Exec()->GetNym_OutboxHash(ACCOUNT_ID, NYM_ID);
-}
-
-void SwigWrap::Activity_Preload(
-    const std::string& nymID,
-    const std::uint32_t& items)
-{
-    OT::App().Activity().PreloadActivity(Identifier(nymID), items);
-}
-
-void SwigWrap::Thread_Preload(
-    const std::string& nymID,
-    const std::string& threadID,
-    const std::uint32_t start,
-    const std::uint32_t items)
-{
-    OT::App().Activity().PreloadThread(
-        Identifier(nymID), Identifier(threadID), start, items);
-}
-
-std::string SwigWrap::GetNym_MailThread_base64(
-    const std::string& nymId,
-    const std::string& threadId)
-{
-    std::string output{};
-    const auto thread =
-        OT::App().Activity().Thread(Identifier(nymId), Identifier(threadId));
-
-    if (thread) {
-
-        return OT::App().Crypto().Encode().DataEncode(
-            proto::ProtoAsData(*thread));
-    }
-
-    return output;
-}
-
-std::string SwigWrap::GetNym_MailThreads(const std::string& NYM_ID)
-{
-    return comma(Exec()->GetNym_MailThreads(NYM_ID));
 }
 
 std::string SwigWrap::GetNym_MailCount(const std::string& NYM_ID)
@@ -930,12 +899,14 @@ std::string SwigWrap::Instrmnt_GetInstrumentDefinitionID(
     return Exec()->Instrmnt_GetInstrumentDefinitionID(THE_INSTRUMENT);
 }
 
-std::string SwigWrap::Instrmnt_GetRemitterNymID(const std::string& THE_INSTRUMENT)
+std::string SwigWrap::Instrmnt_GetRemitterNymID(
+    const std::string& THE_INSTRUMENT)
 {
     return Exec()->Instrmnt_GetRemitterNymID(THE_INSTRUMENT);
 }
 
-std::string SwigWrap::Instrmnt_GetRemitterAcctID(const std::string& THE_INSTRUMENT)
+std::string SwigWrap::Instrmnt_GetRemitterAcctID(
+    const std::string& THE_INSTRUMENT)
 {
     return Exec()->Instrmnt_GetRemitterAcctID(THE_INSTRUMENT);
 }
@@ -945,17 +916,20 @@ std::string SwigWrap::Instrmnt_GetSenderNymID(const std::string& THE_INSTRUMENT)
     return Exec()->Instrmnt_GetSenderNymID(THE_INSTRUMENT);
 }
 
-std::string SwigWrap::Instrmnt_GetSenderAcctID(const std::string& THE_INSTRUMENT)
+std::string SwigWrap::Instrmnt_GetSenderAcctID(
+    const std::string& THE_INSTRUMENT)
 {
     return Exec()->Instrmnt_GetSenderAcctID(THE_INSTRUMENT);
 }
 
-std::string SwigWrap::Instrmnt_GetRecipientNymID(const std::string& THE_INSTRUMENT)
+std::string SwigWrap::Instrmnt_GetRecipientNymID(
+    const std::string& THE_INSTRUMENT)
 {
     return Exec()->Instrmnt_GetRecipientNymID(THE_INSTRUMENT);
 }
 
-std::string SwigWrap::Instrmnt_GetRecipientAcctID(const std::string& THE_INSTRUMENT)
+std::string SwigWrap::Instrmnt_GetRecipientAcctID(
+    const std::string& THE_INSTRUMENT)
 {
     return Exec()->Instrmnt_GetRecipientAcctID(THE_INSTRUMENT);
 }
@@ -1053,7 +1027,9 @@ std::string SwigWrap::Encode(
     return Exec()->Encode(strPlaintext, bLineBreaks);
 }
 
-std::string SwigWrap::Decode(const std::string& strEncoded, const bool& bLineBreaks)
+std::string SwigWrap::Decode(
+    const std::string& strEncoded,
+    const bool& bLineBreaks)
 {
     return Exec()->Decode(strEncoded, bLineBreaks);
 }
@@ -1072,7 +1048,10 @@ std::string SwigWrap::Decrypt(
     return Exec()->Decrypt(RECIPIENT_NYM_ID, strCiphertext);
 }
 
-std::string SwigWrap::CreateSymmetricKey() { return Exec()->CreateSymmetricKey(); }
+std::string SwigWrap::CreateSymmetricKey()
+{
+    return Exec()->CreateSymmetricKey();
+}
 
 std::string SwigWrap::SymmetricEncrypt(
     const std::string& SYMMETRIC_KEY,
@@ -2420,7 +2399,8 @@ time64_t SwigWrap::Token_GetValidTo(
         NOTARY_ID, INSTRUMENT_DEFINITION_ID, THE_TOKEN);
 }
 
-std::string SwigWrap::Token_GetInstrumentDefinitionID(const std::string& THE_TOKEN)
+std::string SwigWrap::Token_GetInstrumentDefinitionID(
+    const std::string& THE_TOKEN)
 {
     return Exec()->Token_GetInstrumentDefinitionID(THE_TOKEN);
 }
@@ -2435,7 +2415,8 @@ bool SwigWrap::IsBasketCurrency(const std::string& INSTRUMENT_DEFINITION_ID)
     return Exec()->IsBasketCurrency(INSTRUMENT_DEFINITION_ID);
 }
 
-int32_t SwigWrap::Basket_GetMemberCount(const std::string& INSTRUMENT_DEFINITION_ID)
+int32_t SwigWrap::Basket_GetMemberCount(
+    const std::string& INSTRUMENT_DEFINITION_ID)
 {
     return Exec()->Basket_GetMemberCount(INSTRUMENT_DEFINITION_ID);
 }
@@ -2948,7 +2929,9 @@ int32_t SwigWrap::notarizeTransfer(
         NOTARY_ID, NYM_ID, ACCT_FROM, ACCT_TO, AMOUNT, NOTE);
 }
 
-int32_t SwigWrap::getNymbox(const std::string& NOTARY_ID, const std::string& NYM_ID)
+int32_t SwigWrap::getNymbox(
+    const std::string& NOTARY_ID,
+    const std::string& NYM_ID)
 {
     return Exec()->getNymbox(NOTARY_ID, NYM_ID);
 }
@@ -3392,13 +3375,16 @@ std::string SwigWrap::GetContactSectionTypes(
     return output.Get();
 }
 
-std::string SwigWrap::GetContactTypeName(const std::uint32_t type, std::string lang)
+std::string SwigWrap::GetContactTypeName(
+    const std::uint32_t type,
+    std::string lang)
 {
     return Exec()->ContactTypeName(
         static_cast<proto::ContactItemType>(type), lang);
 }
 
-std::uint32_t SwigWrap::GetReciprocalRelationship(const std::uint32_t relationship)
+std::uint32_t SwigWrap::GetReciprocalRelationship(
+    const std::uint32_t relationship)
 {
     return Exec()->ReciprocalRelationship(
         static_cast<proto::ContactItemType>(relationship));
@@ -3488,6 +3474,72 @@ std::string SwigWrap::AddChildRSACredential(
 {
     return Exec()->AddChildRSACredential(
         Identifier(nymID), Identifier(masterID), keysize);
+}
+
+//-----------------------------------------------------------------------------
+
+void SwigWrap::Activity_Preload(
+    const std::string& nymID,
+    const std::uint32_t& items)
+{
+    OT::App().Activity().PreloadActivity(Identifier(nymID), items);
+}
+
+bool SwigWrap::Activity_Mark_Read(
+    const std::string& nymID,
+    const std::string& threadID,
+    const std::string& itemID)
+{
+    return OT::App().Activity().MarkRead(
+        Identifier(nymID), Identifier(threadID), Identifier(itemID));
+}
+
+bool SwigWrap::Activity_Mark_Unread(
+    const std::string& nymID,
+    const std::string& threadID,
+    const std::string& itemID)
+{
+    return OT::App().Activity().MarkUnread(
+        Identifier(nymID), Identifier(threadID), Identifier(itemID));
+}
+
+std::string SwigWrap::Activity_Thread_base64(
+    const std::string& nymId,
+    const std::string& threadId)
+{
+    std::string output{};
+    const auto thread =
+        OT::App().Activity().Thread(Identifier(nymId), Identifier(threadId));
+
+    if (thread) {
+
+        return OT::App().Crypto().Encode().DataEncode(
+            proto::ProtoAsData(*thread));
+    }
+
+    return output;
+}
+
+std::string SwigWrap::Activity_Threads(
+    const std::string& nymID,
+    const bool unreadOnly)
+{
+    return comma(Exec()->GetNym_MailThreads(nymID, unreadOnly));
+}
+
+std::uint64_t SwigWrap::Activity_Unread_Count(const std::string& nymID)
+{
+    return OT::App().Activity().UnreadCount(Identifier(nymID));
+}
+
+void SwigWrap::Thread_Preload(
+    const std::string& nymID,
+    const std::string& threadID,
+    const std::uint32_t start,
+    const std::uint32_t items)
+{
+    OT::App().Activity().PreloadThread(
+        Identifier(nymID), Identifier(threadID), start, items);
 }
 
 //-----------------------------------------------------------------------------
@@ -3821,7 +3873,9 @@ std::string SwigWrap::Contact_List()
     return comma(OT::App().Contact().ContactList());
 }
 
-bool SwigWrap::Contact_Merge(const std::string& parent, const std::string& child)
+bool SwigWrap::Contact_Merge(
+    const std::string& parent,
+    const std::string& child)
 {
     auto contact =
         OT::App().Contact().Merge(Identifier(parent), Identifier(child));

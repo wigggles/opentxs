@@ -2786,10 +2786,11 @@ std::string OTAPI_Exec::GetNym_OutboxHash(
 }
 
 std::list<std::string> OTAPI_Exec::GetNym_MailThreads(
-    const std::string& NYM_ID) const
+    const std::string& NYM_ID,
+    const bool unreadOnly) const
 {
     const Identifier nym(NYM_ID);
-    const auto threads = activity_.Threads(nym);
+    const auto threads = activity_.Threads(nym, unreadOnly);
     std::list<std::string> output;
 
     for (auto& item : threads) {
