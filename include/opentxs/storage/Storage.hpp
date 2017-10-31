@@ -301,6 +301,7 @@ public:
         const std::string& itemID);
     ObjectList NymBoxList(const std::string& nymID, const StorageBox box) const;
     ObjectList NymList() const;
+    bool RelabelThread(const std::string& threadID, const std::string& label);
     bool RemoveNymBoxItem(
         const std::string& nymID,
         const StorageBox box,

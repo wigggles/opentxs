@@ -484,14 +484,17 @@ ObjectList Activity::Threads(const Identifier& nym) const
     for (auto& it : output) {
         const auto& threadID = it.first;
         auto& label = it.second;
-        auto contact = contact_.Contact(Identifier(threadID));
 
-        if (contact) {
-            const auto& name = contact->Label();
+        if (label.empty()) {
+            auto contact = contact_.Contact(Identifier(threadID));
 
-            if (label != name) {
-                storage_.SetThreadAlias(nymID, threadID, name);
-                label = name;
+            if (contact) {
+                const auto& name = contact->Label();
+
+                if (label != name) {
+                    storage_.SetThreadAlias(nymID, threadID, name);
+                    label = name;
+                }
             }
         }
     }

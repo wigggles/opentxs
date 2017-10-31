@@ -65,6 +65,7 @@ private:
     mutable std::map<std::string, std::unique_ptr<class Nym>> nyms_;
 
     class Nym* nym(const std::string& id) const;
+    class Nym* nym(const Lock& lock, const std::string& id) const;
     void save(class Nym* nym, const Lock& lock, const std::string& id);
 
     void init(const std::string& hash) override;
@@ -81,11 +82,11 @@ private:
 public:
     bool Exists(const std::string& id) const;
     void Map(NymLambda lambda) const;
+    bool Migrate(const StorageDriver& to) const override;
     const class Nym& Nym(const std::string& id) const;
 
     Editor<class Nym> mutable_Nym(const std::string& id);
-
-    bool Migrate(const StorageDriver& to) const override;
+    bool RelabelThread(const std::string& threadID, const std::string label);
 
     ~Nyms() = default;
 };
