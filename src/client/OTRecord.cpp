@@ -42,11 +42,11 @@
 
 #include "opentxs/api/Api.hpp"
 #include "opentxs/api/OT.hpp"
-#include "opentxs/client/OTAPI_Wrap.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
 #include "opentxs/client/OTRecordList.hpp"
 #include "opentxs/client/OT_ME.hpp"
 #include "opentxs/client/OT_API.hpp"
+#include "opentxs/client/SwigWrap.hpp"
 #include "opentxs/core/recurring/OTPaymentPlan.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -718,8 +718,7 @@ bool OTRecord::CanCancelOutgoing() const
 bool OTRecord::DiscardOutgoingCash() const
 {
     if (!CanDiscardOutgoingCash()) return false;
-    return OTAPI_Wrap::Nym_RemoveOutpaymentsByIndex(
-        m_str_nym_id, GetBoxIndex());
+    return SwigWrap::Nym_RemoveOutpaymentsByIndex(m_str_nym_id, GetBoxIndex());
 }
 
 // For completed records (not pending.)
@@ -818,7 +817,7 @@ bool OTRecord::DeleteRecord() const
                                        // (see above.)
 
     Ledger* pRecordbox =
-        OTAPI_Wrap::OTAPI()->LoadRecordBox(theNotaryID, theNymID, theAcctID);
+        SwigWrap::OTAPI()->LoadRecordBox(theNotaryID, theNymID, theAcctID);
     std::unique_ptr<Ledger> theRecordBoxAngel(pRecordbox);
     if (nullptr == pRecordbox) {
         otErr << __FUNCTION__ << ": Failed loading record box for server ID ("
@@ -841,7 +840,7 @@ bool OTRecord::DeleteRecord() const
     }
     // Accept it.
     //
-    return OTAPI_Wrap::ClearRecord(
+    return SwigWrap::ClearRecord(
         m_str_notary_id,
         m_str_nym_id,
         str_using_account,
@@ -886,8 +885,8 @@ bool OTRecord::AcceptIncomingTransferOrReceipt() const
                 theNymID(m_str_nym_id), theAcctID(m_str_account_id);
 
             // Open the Nym's asset account inbox.
-            Ledger* pInbox = OTAPI_Wrap::OTAPI()->LoadInbox(
-                theNotaryID, theNymID, theAcctID);
+            Ledger* pInbox =
+                SwigWrap::OTAPI()->LoadInbox(theNotaryID, theNymID, theAcctID);
             std::unique_ptr<Ledger> theInboxAngel(pInbox);
             if (nullptr == pInbox) {
                 otErr << __FUNCTION__
@@ -956,7 +955,7 @@ bool OTRecord::AcceptIncomingInstrument(const std::string& str_into_acct) const
 
             // Open the Nym's payments inbox.
             Ledger* pInbox =
-                OTAPI_Wrap::OTAPI()->LoadPaymentInbox(theNotaryID, theNymID);
+                SwigWrap::OTAPI()->LoadPaymentInbox(theNotaryID, theNymID);
             std::unique_ptr<Ledger> theInboxAngel(pInbox);
             if (nullptr == pInbox) {
                 otErr << __FUNCTION__
@@ -1062,7 +1061,7 @@ bool OTRecord::DiscardIncoming() const
 
             // Open the Nym's payments inbox.
             Ledger* pInbox =
-                OTAPI_Wrap::OTAPI()->LoadPaymentInbox(theNotaryID, theNymID);
+                SwigWrap::OTAPI()->LoadPaymentInbox(theNotaryID, theNymID);
             std::unique_ptr<Ledger> theInboxAngel(pInbox);
             if (nullptr == pInbox) {
                 otErr << __FUNCTION__
@@ -1160,7 +1159,7 @@ bool OTRecord::CancelOutgoing(std::string str_via_acct) const  // This can be
                 if (IsCash()) {
                     // Maybe it's cash...
                     std::string strOutpayment(
-                        OTAPI_Wrap::GetNym_OutpaymentsContentsByIndex(
+                        SwigWrap::GetNym_OutpaymentsContentsByIndex(
                             m_str_nym_id, GetBoxIndex()));
 
                     if (strOutpayment.empty()) {
@@ -1212,11 +1211,11 @@ bool OTRecord::CancelOutgoing(std::string str_via_acct) const  // This can be
             // Find the payment in the Nym's outpayments box that correlates to
             // this OTRecord.
             //
-            int32_t nCount = OTAPI_Wrap::GetNym_OutpaymentsCount(m_str_nym_id);
+            int32_t nCount = SwigWrap::GetNym_OutpaymentsCount(m_str_nym_id);
 
             for (int32_t nIndex = 0; nIndex < nCount; ++nIndex) {
                 std::string strOutpayment(
-                    OTAPI_Wrap::GetNym_OutpaymentsContentsByIndex(
+                    SwigWrap::GetNym_OutpaymentsContentsByIndex(
                         m_str_nym_id, nIndex));
 
                 if (strOutpayment.empty()) {
@@ -1409,7 +1408,7 @@ void OTRecord::SetDateRange(time64_t tValidFrom, time64_t tValidTo)
 {
     m_ValidFrom = tValidFrom;
     m_ValidTo = tValidTo;
-    time64_t tCurrentTime = OTAPI_Wrap::GetTime();
+    time64_t tCurrentTime = SwigWrap::GetTime();
     if ((tValidTo > OT_TIME_ZERO) && (tCurrentTime > tValidTo) && !IsMail() &&
         !IsRecord())
         SetExpired();

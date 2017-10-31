@@ -36,8 +36,8 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_CLIENT_OTAPI_HPP
-#define OPENTXS_CLIENT_OTAPI_HPP
+#ifndef OPENTXS_CLIENT_SWIG_HPP
+#define OPENTXS_CLIENT_SWIG_HPP
 
 #include "opentxs/client/NymData.hpp"
 #include "opentxs/core/util/Common.hpp"
@@ -56,7 +56,7 @@ namespace opentxs
 class OTAPI_Exec;
 class OT_API;
 
-class OTAPI_Wrap
+class SwigWrap
 {
 
 private:
@@ -4903,8 +4903,8 @@ public:
     EXPORT static void Update_Pairing(const std::string& wallet = "");
 
 private:
-    OTAPI_Wrap();
-    ~OTAPI_Wrap() = default;
+    SwigWrap();
+    ~SwigWrap() = default;
 };
 }  // namespace opentxs
-#endif  // OPENTXS_CLIENT_OTAPI_HPP
+#endif  // OPENTXS_CLIENT_SWIG_HPP

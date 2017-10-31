@@ -48,8 +48,8 @@
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/client/MadeEasy.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
-#include "opentxs/client/OTAPI_Wrap.hpp"
 #include "opentxs/client/OT_ME.hpp"
+#include "opentxs/client/SwigWrap.hpp"
 #include "opentxs/contact/Contact.hpp"
 #include "opentxs/contact/ContactData.hpp"
 #include "opentxs/contact/ContactGroup.hpp"
@@ -1643,11 +1643,11 @@ std::string OTME_too::obtain_account(
 {
     const std::string result = otme_.create_asset_acct(server, nym, id);
 
-    if (1 != OTAPI_Wrap::Message_GetSuccess(result)) {
+    if (1 != SwigWrap::Message_GetSuccess(result)) {
         return "";
     }
 
-    return OTAPI_Wrap::Message_GetNewAcctID(result);
+    return SwigWrap::Message_GetNewAcctID(result);
 }
 
 bool OTME_too::obtain_asset_contract(

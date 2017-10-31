@@ -229,7 +229,7 @@ OTPayment* extract_payment_instrument_from_notice(
         // Now we need to decrypt the payment on that message (which contains
         // the instrument
         // itself that we need to return.) We decrypt it the same way as we do
-        // in OTAPI_Wrap::GetNym_MailContentsByIndex():
+        // in SwigWrap::GetNym_MailContentsByIndex():
         //
 
         // SENDER:     pMsg->m_strNymID

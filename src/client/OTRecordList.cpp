@@ -45,12 +45,12 @@
 #include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/OT.hpp"
 #include "opentxs/client/Helpers.hpp"
-#include "opentxs/client/OTAPI_Wrap.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
 #include "opentxs/client/OTRecord.hpp"
 #include "opentxs/client/OTWallet.hpp"
 #include "opentxs/client/OT_ME.hpp"
 #include "opentxs/client/OT_API.hpp"
+#include "opentxs/client/SwigWrap.hpp"
 #include "opentxs/contact/Contact.hpp"
 #include "opentxs/contact/ContactData.hpp"
 #include "opentxs/core/util/Assert.hpp"
@@ -169,7 +169,7 @@ std::string OTNameLookup::GetNymName(
 {
     if (str_id.empty()) return {};
     // ---------------------------
-    std::string display_label{OTAPI_Wrap::GetNym_Name(str_id)};
+    std::string display_label{SwigWrap::GetNym_Name(str_id)};
 
     if (display_label.empty()) {
         const Identifier contactId =  // Lookup ContactID based on Nym Id.
@@ -213,7 +213,7 @@ std::string OTNameLookup::GetAcctName(
 {
     if (str_id.empty()) return {};
 
-    return OTAPI_Wrap::GetAccountWallet_Name(str_id);
+    return SwigWrap::GetAccountWallet_Name(str_id);
 }
 
 // virtual
@@ -431,7 +431,7 @@ void OTRecordList::SetInstrumentDefinitionID(std::string str_id)
 
 void OTRecordList::AddInstrumentDefinitionID(std::string str_id)
 {
-    OTWallet* pWallet = OTAPI_Wrap::OTAPI()->GetWallet(
+    OTWallet* pWallet = SwigWrap::OTAPI()->GetWallet(
         __FUNCTION__);  // This logs and ASSERTs already.
     OT_ASSERT_MSG(
         nullptr != pWallet, "Wallet was nullptr. Should never happen.");
@@ -457,7 +457,7 @@ void OTRecordList::AddInstrumentDefinitionID(std::string str_id)
                                                      // "dollars".
     }
     if (str_asset_name.empty())
-        str_asset_name = OTAPI_Wrap::GetAssetType_Name(
+        str_asset_name = SwigWrap::GetAssetType_Name(
             str_id);  // Otherwise we try to grab the name.
     // (Otherwise we just leave it blank. The ID is too big to cram in here.)
     m_assets.insert(
@@ -559,7 +559,7 @@ typedef std::map<int32_t, OTPayment*> mapOfPayments;
 
 bool OTRecordList::PerformAutoAccept()
 {
-    OTWallet* pWallet = OTAPI_Wrap::OTAPI()->GetWallet(
+    OTWallet* pWallet = SwigWrap::OTAPI()->GetWallet(
         __FUNCTION__);  // This logs and ASSERTs already.
     if (nullptr == pWallet) {
         otErr << "OTRecordList::" << __FUNCTION__
@@ -580,7 +580,7 @@ bool OTRecordList::PerformAutoAccept()
             const std::string& str_nym_id(it_nym);
             const Identifier theNymID(str_nym_id);
             const String strNymID(theNymID);
-            Nym* pNym = OTAPI_Wrap::OTAPI()->GetNym(theNymID);
+            Nym* pNym = SwigWrap::OTAPI()->GetNym(theNymID);
             if (nullptr == pNym) continue;
             // LOOP SERVERS
             //
@@ -618,9 +618,9 @@ bool OTRecordList::PerformAutoAccept()
                 //
                 Ledger* pInbox =
                     m_bRunFast
-                        ? OTAPI_Wrap::OTAPI()->LoadPaymentInboxNoVerify(
+                        ? SwigWrap::OTAPI()->LoadPaymentInboxNoVerify(
                               theNotaryID, theNymID)
-                        : OTAPI_Wrap::OTAPI()->LoadPaymentInbox(
+                        : SwigWrap::OTAPI()->LoadPaymentInbox(
                               theNotaryID, theNymID);
                 std::unique_ptr<Ledger> theInboxAngel(pInbox);
 
@@ -1011,9 +1011,9 @@ bool OTRecordList::PerformAutoAccept()
             // Populating.
             //
             Ledger* pInbox = m_bRunFast
-                                 ? OTAPI_Wrap::OTAPI()->LoadInboxNoVerify(
+                                 ? SwigWrap::OTAPI()->LoadInboxNoVerify(
                                        theNotaryID, theNymID, theAccountID)
-                                 : OTAPI_Wrap::OTAPI()->LoadInbox(
+                                 : SwigWrap::OTAPI()->LoadInbox(
                                        theNotaryID, theNymID, theAccountID);
             std::unique_ptr<Ledger> theInboxAngel(pInbox);
             if (nullptr == pInbox) {
@@ -1176,12 +1176,12 @@ bool OTRecordList::Populate()
     // Loop through all the accounts.
     //
     // From Open-Transactions.h:
-    // OTAPI_Wrap::OTAPI()->GetServerCount()
+    // SwigWrap::OTAPI()->GetServerCount()
     //
     // From OTAPI.h:
-    // OTAPI_Wrap::GetServerCount()  // wraps the above call.
+    // SwigWrap::GetServerCount()  // wraps the above call.
     //
-    OTWallet* pWallet = OTAPI_Wrap::OTAPI()->GetWallet(
+    OTWallet* pWallet = SwigWrap::OTAPI()->GetWallet(
         __FUNCTION__);  // This logs and ASSERTs already.
     if (nullptr == pWallet) {
         otErr << "OTRecordList::" << __FUNCTION__
@@ -1204,12 +1204,12 @@ bool OTRecordList::Populate()
         const std::string& str_nym_id(it_nym);
         const Identifier theNymID(str_nym_id);
         const String strNymID(theNymID);
-        Nym* pNym = OTAPI_Wrap::OTAPI()->GetNym(theNymID);
+        Nym* pNym = SwigWrap::OTAPI()->GetNym(theNymID);
         if (nullptr == pNym) continue;
         // For each Nym, loop through his OUTPAYMENTS box.
         //
         const int32_t nOutpaymentsCount =
-            OTAPI_Wrap::GetNym_OutpaymentsCount(str_nym_id);
+            SwigWrap::GetNym_OutpaymentsCount(str_nym_id);
 
         otInfo << "--------\n"
                << __FUNCTION__ << ": Nym " << nNymIndex
@@ -1221,7 +1221,7 @@ bool OTRecordList::Populate()
             otInfo << __FUNCTION__
                    << ": Outpayment instrument: " << nCurrentOutpayment << "\n";
             const String strOutpayment(
-                OTAPI_Wrap::GetNym_OutpaymentsContentsByIndex(
+                SwigWrap::GetNym_OutpaymentsContentsByIndex(
                     str_nym_id, nCurrentOutpayment));
             std::string str_memo;
             OTPayment theOutPayment(strOutpayment);
@@ -1369,23 +1369,23 @@ bool OTRecordList::Populate()
             // strOutpayment contains the actual outgoing payment instrument.
             //
             const std::string str_outpmt_server =
-                OTAPI_Wrap::GetNym_OutpaymentsNotaryIDByIndex(
+                SwigWrap::GetNym_OutpaymentsNotaryIDByIndex(
                     str_nym_id, nCurrentOutpayment);
             const std::string str_outpmt_recipientID =  // Notice here, unlike
                                                         // the sender account id
                                                         // above (which is
                                                         // gleaned from the
                                                         // instrument itself)
-                OTAPI_Wrap::GetNym_OutpaymentsRecipientIDByIndex(  // instead we
-                                                                   // get the
-                                                                   // recipient
-                                                                   // Nym ID
-                                                                   // from the
-                                                                   // outgoing
-                                                                   // message.
-                                                                   // This is
-                                                                   // good,
-                                                                   // because
+                SwigWrap::GetNym_OutpaymentsRecipientIDByIndex(  // instead we
+                                                                 // get the
+                                                                 // recipient
+                                                                 // Nym ID
+                                                                 // from the
+                                                                 // outgoing
+                                                                 // message.
+                                                                 // This is
+                                                                 // good,
+                                                                 // because
                     str_nym_id,
                     nCurrentOutpayment);  // otherwise we'd have to check to see
                                           // if it's a payment plan here, and
@@ -1627,7 +1627,7 @@ bool OTRecordList::Populate()
                     false,  // IsReceipt
                     OTRecord::Mail));
                 const String strMail(
-                    OTAPI_Wrap::GetNym_MailContentsByIndex(str_nym_id, id));
+                    SwigWrap::GetNym_MailContentsByIndex(str_nym_id, id));
                 sp_Record->SetContents(strMail.Get());
                 sp_Record->SetOtherNymID(str_mail_senderID);
                 sp_Record->SetBoxIndex(index);
@@ -1669,9 +1669,9 @@ bool OTRecordList::Populate()
             OT_ASSERT(message);
 
             const std::string str_mail_server =
-                OTAPI_Wrap::GetNym_OutmailNotaryIDByIndex(str_nym_id, id);
+                SwigWrap::GetNym_OutmailNotaryIDByIndex(str_nym_id, id);
             const std::string str_mail_recipientID =
-                OTAPI_Wrap::GetNym_OutmailRecipientIDByIndex(str_nym_id, id);
+                SwigWrap::GetNym_OutmailRecipientIDByIndex(str_nym_id, id);
             // str_mail_server is the server for this mail.
             // But is that server on our list of servers that we care about?
             // Let's see if that server is on m_servers (otherwise we can skip
@@ -1750,7 +1750,7 @@ bool OTRecordList::Populate()
                     false,  // IsReceipt
                     OTRecord::Mail));
                 const String strOutmail(
-                    OTAPI_Wrap::GetNym_OutmailContentsByIndex(str_nym_id, id));
+                    SwigWrap::GetNym_OutmailContentsByIndex(str_nym_id, id));
                 sp_Record->SetContents(strOutmail.Get());
                 sp_Record->SetThreadItemId(id);
                 sp_Record->SetBoxIndex(index);
@@ -1789,12 +1789,11 @@ bool OTRecordList::Populate()
             // will, however, work
             // either way.
             //
-            Ledger* pInbox =
-                m_bRunFast
-                    ? OTAPI_Wrap::OTAPI()->LoadPaymentInboxNoVerify(
-                          theNotaryID, theNymID)
-                    : OTAPI_Wrap::OTAPI()->LoadPaymentInbox(
-                          theNotaryID, theNymID);
+            Ledger* pInbox = m_bRunFast
+                                 ? SwigWrap::OTAPI()->LoadPaymentInboxNoVerify(
+                                       theNotaryID, theNymID)
+                                 : SwigWrap::OTAPI()->LoadPaymentInbox(
+                                       theNotaryID, theNymID);
             std::unique_ptr<Ledger> theInboxAngel(pInbox);
 
             int32_t nIndex = (-1);
@@ -2116,9 +2115,9 @@ bool OTRecordList::Populate()
             // OPTIMIZE FYI: m_bRunFast impacts run speed here.
             Ledger* pRecordbox =
                 m_bRunFast
-                    ? OTAPI_Wrap::OTAPI()->LoadRecordBoxNoVerify(
+                    ? SwigWrap::OTAPI()->LoadRecordBoxNoVerify(
                           theNotaryID, theNymID, theNymID)  // twice.
-                    : OTAPI_Wrap::OTAPI()->LoadRecordBox(
+                    : SwigWrap::OTAPI()->LoadRecordBox(
                           theNotaryID, theNymID, theNymID);
             std::unique_ptr<Ledger> theRecordBoxAngel(pRecordbox);
 
@@ -2726,10 +2725,9 @@ bool OTRecordList::Populate()
             // OPTIMIZE FYI: m_bRunFast impacts run speed here.
             Ledger* pExpiredbox =
                 m_bRunFast
-                    ? OTAPI_Wrap::OTAPI()->LoadExpiredBoxNoVerify(
+                    ? SwigWrap::OTAPI()->LoadExpiredBoxNoVerify(
                           theNotaryID, theNymID)
-                    : OTAPI_Wrap::OTAPI()->LoadExpiredBox(
-                          theNotaryID, theNymID);
+                    : SwigWrap::OTAPI()->LoadExpiredBox(theNotaryID, theNymID);
             std::unique_ptr<Ledger> theExpiredBoxAngel(pExpiredbox);
 
             // It loaded up, so let's loop through it.
@@ -3378,9 +3376,9 @@ bool OTRecordList::Populate()
         // Populating.
         //
         Ledger* pInbox = m_bRunFast
-                             ? OTAPI_Wrap::OTAPI()->LoadInboxNoVerify(
+                             ? SwigWrap::OTAPI()->LoadInboxNoVerify(
                                    theNotaryID, theNymID, theAccountID)
-                             : OTAPI_Wrap::OTAPI()->LoadInbox(
+                             : SwigWrap::OTAPI()->LoadInbox(
                                    theNotaryID, theNymID, theAccountID);
         std::unique_ptr<Ledger> theInboxAngel(pInbox);
 
@@ -3419,7 +3417,7 @@ bool OTRecordList::Populate()
                         //                      strBoxTrans(*pBoxTrans);
                         //                      if (strBoxTrans.Exists())
                         //                         str_memo =
-                        //                         OTAPI_Wrap::Pending_GetNote(*pstr_notary_id,
+                        //                         SwigWrap::Pending_GetNote(*pstr_notary_id,
                         //                                                     *pstr_nym_id, str_account_id, strBoxTrans.Get());
                         Identifier theSenderID, theSenderAcctID;
 
@@ -3490,7 +3488,7 @@ bool OTRecordList::Populate()
                             str_name = strNameTemp.Get();
                             str_other_nym_id = str_sender_id;
                         } else {
-                            String strName(OTAPI_Wrap::GetAccountWallet_Name(
+                            String strName(SwigWrap::GetAccountWallet_Name(
                                 str_account_id)),
                                 strNameTemp;
 
@@ -3666,9 +3664,9 @@ bool OTRecordList::Populate()
         // Populate.
         //
         Ledger* pOutbox = m_bRunFast
-                              ? OTAPI_Wrap::OTAPI()->LoadOutboxNoVerify(
+                              ? SwigWrap::OTAPI()->LoadOutboxNoVerify(
                                     theNotaryID, theNymID, theAccountID)
-                              : OTAPI_Wrap::OTAPI()->LoadOutbox(
+                              : SwigWrap::OTAPI()->LoadOutbox(
                                     theNotaryID, theNymID, theAccountID);
         std::unique_ptr<Ledger> theOutboxAngel(pOutbox);
 
@@ -3757,7 +3755,7 @@ bool OTRecordList::Populate()
                         //
                         //                    if (strBoxTrans.Exists())
                         //                        str_memo =
-                        // OTAPI_Wrap::Pending_GetNote(*pstr_notary_id,
+                        // SwigWrap::Pending_GetNote(*pstr_notary_id,
                         // *pstr_nym_id, str_account_id, strBoxTrans.Get());
                     }
                 }
@@ -3860,9 +3858,9 @@ bool OTRecordList::Populate()
         // Populating.
         //
         Ledger* pRecordbox = m_bRunFast
-                                 ? OTAPI_Wrap::OTAPI()->LoadRecordBoxNoVerify(
+                                 ? SwigWrap::OTAPI()->LoadRecordBoxNoVerify(
                                        theNotaryID, theNymID, theAccountID)
-                                 : OTAPI_Wrap::OTAPI()->LoadRecordBox(
+                                 : SwigWrap::OTAPI()->LoadRecordBox(
                                        theNotaryID, theNymID, theAccountID);
         std::unique_ptr<Ledger> theRecordBoxAngel(pRecordbox);
 

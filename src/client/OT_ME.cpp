@@ -43,7 +43,6 @@
 #include "opentxs/api/Api.hpp"
 #include "opentxs/api/OT.hpp"
 #include "opentxs/api/Wallet.hpp"
-#include "opentxs/client/OTAPI_Wrap.hpp"
 #include "opentxs/client/commands/CmdAcceptInbox.hpp"
 #include "opentxs/client/commands/CmdAcceptPayments.hpp"
 #include "opentxs/client/commands/CmdAcceptReceipts.hpp"
@@ -56,6 +55,7 @@
 #include "opentxs/client/commands/CmdWithdrawCash.hpp"
 #include "opentxs/client/MadeEasy.hpp"
 #include "opentxs/client/OTAPI_Func.hpp"
+#include "opentxs/client/SwigWrap.hpp"
 #include "opentxs/client/Utility.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/core/util/Assert.hpp"
@@ -101,7 +101,7 @@ bool OT_ME::make_sure_enough_trans_nums(
     // cheque...)
     //
     std::int32_t nTransCount =
-        OTAPI_Wrap::GetNym_TransactionNumCount(strMyNotaryID, strMyNymID);
+        SwigWrap::GetNym_TransactionNumCount(strMyNotaryID, strMyNymID);
 
     if (nTransCount < nNumberNeeded) {
         otOut << "insure_enough_nums: I don't have enough "
@@ -120,7 +120,7 @@ bool OT_ME::make_sure_enough_trans_nums(
         // Try again.
         //
         nTransCount =
-            OTAPI_Wrap::GetNym_TransactionNumCount(strMyNotaryID, strMyNymID);
+            SwigWrap::GetNym_TransactionNumCount(strMyNotaryID, strMyNymID);
 
         if (nTransCount < nNumberNeeded) {
             otOut
@@ -297,7 +297,7 @@ std::string OT_ME::acknowledge_bailment(
     if (1 != nSuccess) {
         otOut << "Failed to " << __FUNCTION__ << "." << std::endl;
     } else {
-        OTAPI_Wrap::completePeerReply(NYM_ID, REQUEST_ID);
+        SwigWrap::completePeerReply(NYM_ID, REQUEST_ID);
     }
 
     return strResponse;
@@ -328,7 +328,7 @@ std::string OT_ME::acknowledge_outbailment(
     if (1 != nSuccess) {
         otOut << "Failed to " << __FUNCTION__ << "." << std::endl;
     } else {
-        OTAPI_Wrap::completePeerReply(NYM_ID, REQUEST_ID);
+        SwigWrap::completePeerReply(NYM_ID, REQUEST_ID);
     }
 
     return strResponse;
@@ -355,7 +355,7 @@ std::string OT_ME::acknowledge_notice(
     if (1 != nSuccess) {
         otOut << "Failed to " << __FUNCTION__ << "." << std::endl;
     } else {
-        OTAPI_Wrap::completePeerReply(NYM_ID, REQUEST_ID);
+        SwigWrap::completePeerReply(NYM_ID, REQUEST_ID);
     }
 
     return strResponse;
@@ -394,7 +394,7 @@ std::string OT_ME::acknowledge_connection(
     if (1 != nSuccess) {
         otOut << "Failed to " << __FUNCTION__ << "." << std::endl;
     } else {
-        OTAPI_Wrap::completePeerReply(NYM_ID, REQUEST_ID);
+        SwigWrap::completePeerReply(NYM_ID, REQUEST_ID);
     }
 
     return strResponse;
@@ -974,7 +974,7 @@ std::string OT_ME::get_payment_instrument(
     std::string strInbox =
         VerifyStringVal(PRELOADED_INBOX)
             ? PRELOADED_INBOX
-            : OTAPI_Wrap::LoadPaymentInbox(
+            : SwigWrap::LoadPaymentInbox(
                   NOTARY_ID, NYM_ID);  // Returns nullptr, or an inbox.
 
     if (!VerifyStringVal(strInbox)) {
@@ -985,7 +985,7 @@ std::string OT_ME::get_payment_instrument(
     }
 
     std::int32_t nCount =
-        OTAPI_Wrap::Ledger_GetCount(NOTARY_ID, NYM_ID, NYM_ID, strInbox);
+        SwigWrap::Ledger_GetCount(NOTARY_ID, NYM_ID, NYM_ID, strInbox);
     if (0 > nCount) {
         otOut
             << "Unable to retrieve size of payments inbox ledger. (Failure.)\n";
@@ -998,7 +998,7 @@ std::string OT_ME::get_payment_instrument(
         return "";
     }
 
-    strInstrument = OTAPI_Wrap::Ledger_GetInstrument(
+    strInstrument = SwigWrap::Ledger_GetInstrument(
         NOTARY_ID, NYM_ID, NYM_ID, strInbox, nIndex);
     if (!VerifyStringVal(strInstrument)) {
         otOut << "Failed trying to get payment instrument from payments box.\n";
@@ -1083,8 +1083,8 @@ std::string OT_ME::create_market_offer(
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
     std::string strNotaryID =
-        OTAPI_Wrap::GetAccountWallet_NotaryID(ASSET_ACCT_ID);
-    std::string strNymID = OTAPI_Wrap::GetAccountWallet_NymID(ASSET_ACCT_ID);
+        SwigWrap::GetAccountWallet_NotaryID(ASSET_ACCT_ID);
+    std::string strNymID = SwigWrap::GetAccountWallet_NymID(ASSET_ACCT_ID);
     auto context = OT::App().Contract().mutable_ServerContext(
         Identifier(strNymID), Identifier(strNotaryID));
     OTAPI_Func request(
@@ -1163,7 +1163,7 @@ std::string OT_ME::cancel_payment_plan(
     // sync duties. (FYI.)
 
     std::string strRecipientAcctID =
-        OTAPI_Wrap::Instrmnt_GetRecipientAcctID(THE_PAYMENT_PLAN);
+        SwigWrap::Instrmnt_GetRecipientAcctID(THE_PAYMENT_PLAN);
 
     // NOTE: Normally the SENDER (PAYER) is the one who deposits a payment plan.
     // But in this case, the RECIPIENT (PAYEE) deposits it -- which means
@@ -1448,7 +1448,7 @@ int32_t OT_ME::VerifyMessageSuccess(const std::string& str_Message) const
         return -1;
     }
 
-    std::int32_t nStatus = OTAPI_Wrap::Message_GetSuccess(str_Message);
+    std::int32_t nStatus = SwigWrap::Message_GetSuccess(str_Message);
 
     switch (nStatus) {
         case (-1):
@@ -1490,7 +1490,7 @@ int32_t OT_ME::VerifyMsgBalanceAgrmntSuccess(
         return -1;
     }
 
-    std::int32_t nStatus = OTAPI_Wrap::Message_GetBalanceAgreementSuccess(
+    std::int32_t nStatus = SwigWrap::Message_GetBalanceAgreementSuccess(
         NOTARY_ID, NYM_ID, ACCOUNT_ID, str_Message);
 
     switch (nStatus) {
@@ -1533,7 +1533,7 @@ int32_t OT_ME::VerifyMsgTrnxSuccess(
         return -1;
     }
 
-    std::int32_t nStatus = OTAPI_Wrap::Message_GetTransactionSuccess(
+    std::int32_t nStatus = SwigWrap::Message_GetTransactionSuccess(
         NOTARY_ID, NYM_ID, ACCOUNT_ID, str_Message);
 
     switch (nStatus) {

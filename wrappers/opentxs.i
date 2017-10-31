@@ -27,9 +27,9 @@ typedef int64_t time64_t;
 
 #include "opentxs/client/NymData.hpp"
 #include "opentxs/client/OT_ME.hpp"
-#include "opentxs/client/OTAPI_Wrap.hpp"
 #include "opentxs/client/OTRecord.hpp"
 #include "opentxs/client/OTRecordList.hpp"
+#include "opentxs/client/SwigWrap.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 #include "opentxs/core/crypto/OTCallback.hpp"
 #include "opentxs/core/crypto/OTCaller.hpp"
@@ -118,9 +118,9 @@ namespace std {
 
 %include "../../include/opentxs/client/NymData.hpp"
 %include "../../include/opentxs/client/OT_ME.hpp"
-%include "../../include/opentxs/client/OTAPI_Wrap.hpp"
 %include "../../include/opentxs/client/OTRecord.hpp"
 %include "../../include/opentxs/client/OTRecordList.hpp"
+%include "../../include/opentxs/client/SwigWrap.hpp"
 %include "../../include/opentxs/core/crypto/OTAsymmetricKey.hpp"
 %include "../../include/opentxs/core/crypto/OTCallback.hpp"
 %include "../../include/opentxs/core/crypto/OTCaller.hpp"
@@ -137,4 +137,3 @@ bool opentxs::OT_API_Set_AddrBookCallback(OTLookupCaller & theCaller);
   using namespace opentxs;
   using namespace OTDB;
 %}
-

@@ -68,7 +68,7 @@ class ContactManager;
 class CryptoEngine;
 class Dht;
 class Identity;
-class OTAPI_Wrap;
+class SwigWrap;
 class ServerLoader;
 class Settings;
 class Storage;
@@ -86,7 +86,7 @@ public:
 
 private:
     friend class AppLoader;
-    friend class OTAPI_Wrap;
+    friend class SwigWrap;
     friend class ServerLoader;
 
     /** Last performed, Interval, Task */

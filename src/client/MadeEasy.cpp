@@ -42,8 +42,8 @@
 
 #include "opentxs/api/OT.hpp"
 #include "opentxs/api/Wallet.hpp"
-#include "opentxs/client/OTAPI_Wrap.hpp"
 #include "opentxs/client/OTAPI_Func.hpp"
+#include "opentxs/client/SwigWrap.hpp"
 #include "opentxs/client/Utility.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -155,7 +155,7 @@ std::string MadeEasy::exchange_basket_currency(
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
     std::int32_t nTransNumsNeeded =
-        (OTAPI_Wrap::Basket_GetMemberCount(THE_BASKET) + 1);
+        (SwigWrap::Basket_GetMemberCount(THE_BASKET) + 1);
     auto context = OT::App().Contract().mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func theRequest(
@@ -193,14 +193,14 @@ std::string MadeEasy::load_or_retrieve_contract(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    std::string strContract = OTAPI_Wrap::GetAssetType_Contract(CONTRACT_ID);
+    std::string strContract = SwigWrap::GetAssetType_Contract(CONTRACT_ID);
 
     if (!VerifyStringVal(strContract)) {
         std::string strResponse =
             retrieve_contract(NOTARY_ID, NYM_ID, CONTRACT_ID);
 
         if (1 == VerifyMessageSuccess(strResponse)) {
-            strContract = OTAPI_Wrap::GetAssetType_Contract(CONTRACT_ID);
+            strContract = SwigWrap::GetAssetType_Contract(CONTRACT_ID);
         }
     }
 
@@ -259,7 +259,7 @@ std::string MadeEasy::stat_asset_account(const std::string& ACCOUNT_ID) const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    std::string strNymID = OTAPI_Wrap::GetAccountWallet_NymID(ACCOUNT_ID);
+    std::string strNymID = SwigWrap::GetAccountWallet_NymID(ACCOUNT_ID);
     if (!VerifyStringVal(strNymID)) {
         otOut << "\nstat_asset_account: Cannot find account wallet for: "
               << ACCOUNT_ID << "\n";
@@ -267,7 +267,7 @@ std::string MadeEasy::stat_asset_account(const std::string& ACCOUNT_ID) const
     }
 
     std::string strInstrumentDefinitionID =
-        OTAPI_Wrap::GetAccountWallet_InstrumentDefinitionID(ACCOUNT_ID);
+        SwigWrap::GetAccountWallet_InstrumentDefinitionID(ACCOUNT_ID);
     if (!VerifyStringVal(strInstrumentDefinitionID)) {
         otOut << "\nstat_asset_account: Cannot cannot determine instrument "
                  "definition for: "
@@ -275,16 +275,16 @@ std::string MadeEasy::stat_asset_account(const std::string& ACCOUNT_ID) const
         return "";
     }
 
-    std::string strName = OTAPI_Wrap::GetAccountWallet_Name(ACCOUNT_ID);
-    std::string strNotaryID = OTAPI_Wrap::GetAccountWallet_NotaryID(ACCOUNT_ID);
-    std::int64_t lBalance = OTAPI_Wrap::GetAccountWallet_Balance(ACCOUNT_ID);
+    std::string strName = SwigWrap::GetAccountWallet_Name(ACCOUNT_ID);
+    std::string strNotaryID = SwigWrap::GetAccountWallet_NotaryID(ACCOUNT_ID);
+    std::int64_t lBalance = SwigWrap::GetAccountWallet_Balance(ACCOUNT_ID);
     std::string strAssetTypeName =
-        OTAPI_Wrap::GetAssetType_Name(strInstrumentDefinitionID);
-    std::string strNymName = OTAPI_Wrap::GetNym_Name(strNymID);
-    std::string strServerName = OTAPI_Wrap::GetServer_Name(strNotaryID);
+        SwigWrap::GetAssetType_Name(strInstrumentDefinitionID);
+    std::string strNymName = SwigWrap::GetNym_Name(strNymID);
+    std::string strServerName = SwigWrap::GetServer_Name(strNotaryID);
 
     return "   Balance: " +
-           OTAPI_Wrap::FormatAmount(strInstrumentDefinitionID, lBalance) +
+           SwigWrap::FormatAmount(strInstrumentDefinitionID, lBalance) +
            "   (" + strName + ")\nAccount ID: " + ACCOUNT_ID + " ( " + strName +
            " )\nAsset Type: " + strInstrumentDefinitionID + " ( " +
            strAssetTypeName + " )\nOwner Nym : " + strNymID + " ( " +
@@ -364,14 +364,14 @@ std::string MadeEasy::load_public_encryption_key(
     otOut << "\nload_public_encryption_key: Trying to load public "
              "key, assuming Nym isn't in the local wallet...\n";
 
-    std::string strPubkey = OTAPI_Wrap::LoadPubkey_Encryption(
+    std::string strPubkey = SwigWrap::LoadPubkey_Encryption(
         NYM_ID);  // This version is for "other people";
 
     if (!VerifyStringVal(strPubkey)) {
         otOut << "\nload_public_encryption_key: Didn't find the Nym (" << NYM_ID
               << ") as an 'other' user, so next, checking to see if there's "
                  "a pubkey available for one of the local private Nyms...\n";
-        strPubkey = OTAPI_Wrap::LoadUserPubkey_Encryption(
+        strPubkey = SwigWrap::LoadUserPubkey_Encryption(
             NYM_ID);  // This version is for "the user sitting at the machine.";
 
         if (!VerifyStringVal(strPubkey)) {
@@ -389,11 +389,11 @@ std::string MadeEasy::load_public_signing_key(const std::string& NYM_ID) const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    std::string strPubkey = OTAPI_Wrap::LoadPubkey_Signing(
+    std::string strPubkey = SwigWrap::LoadPubkey_Signing(
         NYM_ID);  // This version is for "other people";
 
     if (!VerifyStringVal(strPubkey)) {
-        strPubkey = OTAPI_Wrap::LoadUserPubkey_Signing(
+        strPubkey = SwigWrap::LoadUserPubkey_Signing(
             NYM_ID);  // This version is for "the user sitting at the machine.";
     }
     return strPubkey;  // might be null.;
@@ -537,7 +537,7 @@ std::string MadeEasy::retrieve_mint(
 //
 // To load a mint withOUT retrieving it from server, call:
 //
-// var strMint = OTAPI_Wrap::LoadMint(NOTARY_ID, INSTRUMENT_DEFINITION_ID);
+// var strMint = SwigWrap::LoadMint(NOTARY_ID, INSTRUMENT_DEFINITION_ID);
 // It returns the mint, or null.
 
 // LOAD MINT (from local storage).
@@ -568,7 +568,7 @@ std::string MadeEasy::load_or_retrieve_mint(
     // works.)
 
     // expired or missing.
-    if (!OTAPI_Wrap::Mint_IsStillGood(NOTARY_ID, INSTRUMENT_DEFINITION_ID)) {
+    if (!SwigWrap::Mint_IsStillGood(NOTARY_ID, INSTRUMENT_DEFINITION_ID)) {
         otWarn << "OT_ME_load_or_retrieve_mint: Mint file is "
                   "missing or expired. Downloading from "
                   "server...\n";
@@ -585,8 +585,7 @@ std::string MadeEasy::load_or_retrieve_mint(
             return "";
         }
 
-        if (!OTAPI_Wrap::Mint_IsStillGood(
-                NOTARY_ID, INSTRUMENT_DEFINITION_ID)) {
+        if (!SwigWrap::Mint_IsStillGood(NOTARY_ID, INSTRUMENT_DEFINITION_ID)) {
             otOut << "OT_ME_load_or_retrieve_mint: Retrieved "
                      "mint, but still 'not good' for IDs: \n";
             otOut << "  Notary ID: " << NOTARY_ID << "\n";
@@ -604,7 +603,7 @@ std::string MadeEasy::load_or_retrieve_mint(
     // It's here, and it's NOT expired. (Or we would have returned already.)
 
     std::string strMint =
-        OTAPI_Wrap::LoadMint(NOTARY_ID, INSTRUMENT_DEFINITION_ID);
+        SwigWrap::LoadMint(NOTARY_ID, INSTRUMENT_DEFINITION_ID);
     if (!VerifyStringVal(strMint)) {
         otOut << "OT_ME_load_or_retrieve_mint: Unable to load mint for IDs: \n";
         otOut << "  Notary ID: " << NOTARY_ID << "\n";
@@ -633,7 +632,7 @@ std::string MadeEasy::deposit_payment_plan(
     // intermediary files, as part of its automated sync duties. (FYI.)
     //
     std::string strSenderAcctID =
-        OTAPI_Wrap::Instrmnt_GetSenderAcctID(THE_PAYMENT_PLAN);
+        SwigWrap::Instrmnt_GetSenderAcctID(THE_PAYMENT_PLAN);
 
     auto context = OT::App().Contract().mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
@@ -667,7 +666,7 @@ bool MadeEasy::importCashPurse(
         //      otOut << "OT_ME_importCashPurse, isPurse:" +
         // isPurse)
 
-        std::string purse = OTAPI_Wrap::CreatePurse(
+        std::string purse = SwigWrap::CreatePurse(
             notaryID,
             instrumentDefinitionID,
             nymID,
@@ -681,7 +680,7 @@ bool MadeEasy::importCashPurse(
         //      otOut << "OT_ME_importCashPurse, OT_API_CreatePurse
         // return :" + purse);
 
-        std::string newPurse = OTAPI_Wrap::Purse_Push(
+        std::string newPurse = SwigWrap::Purse_Push(
             notaryID, instrumentDefinitionID, nymID, nymID, purse, userInput);
         if (!VerifyStringVal(newPurse)) {
             otOut << "OT_ME_importCashPurse: Error: "
@@ -704,7 +703,7 @@ bool MadeEasy::importCashPurse(
     // now, so
     // let's import it into the wallet.
     //
-    return 1 == OTAPI_Wrap::Wallet_ImportPurse(
+    return 1 == SwigWrap::Wallet_ImportPurse(
                     notaryID, instrumentDefinitionID, nymID, userInput);
 }
 
@@ -777,9 +776,9 @@ bool MadeEasy::processCashPurse(
         // newPurse is created, OWNED BY RECIPIENT.
         //
         newPurse =
-            (bPWProtectNewPurse ? OTAPI_Wrap::CreatePurse_Passphrase(
+            (bPWProtectNewPurse ? SwigWrap::CreatePurse_Passphrase(
                                       notaryID, instrumentDefinitionID, nymID)
-                                : OTAPI_Wrap::CreatePurse(
+                                : SwigWrap::CreatePurse(
                                       notaryID,
                                       instrumentDefinitionID,
                                       recipientNymID,
@@ -800,7 +799,7 @@ bool MadeEasy::processCashPurse(
         // sender can later have the option to recover
         // the cash from his outbox.
         //
-        newPurseForSender = OTAPI_Wrap::CreatePurse(
+        newPurseForSender = SwigWrap::CreatePurse(
             notaryID,
             instrumentDefinitionID,
             nymID,
@@ -815,21 +814,21 @@ bool MadeEasy::processCashPurse(
         // Iterate through the OLD PURSE. (as tempOldPurse.)
         //
         std::int32_t count =
-            OTAPI_Wrap::Purse_Count(notaryID, instrumentDefinitionID, oldPurse);
+            SwigWrap::Purse_Count(notaryID, instrumentDefinitionID, oldPurse);
         std::string tempOldPurse = oldPurse;
 
         for (std::int32_t i = 0; i < count; ++i) {
             // Peek into TOKEN, from the top token on the stack. (And it's STILL
             // on top after this call.)
             //
-            std::string token = OTAPI_Wrap::Purse_Peek(
+            std::string token = SwigWrap::Purse_Peek(
                 notaryID, instrumentDefinitionID, nymID, tempOldPurse);
 
             // Now pop the token off of tempOldPurse (our iterator for the old
             // purse).
             // Store updated copy of purse (sans token) into "str1".
             //
-            std::string str1 = OTAPI_Wrap::Purse_Pop(
+            std::string str1 = SwigWrap::Purse_Pop(
                 notaryID, instrumentDefinitionID, nymID, tempOldPurse);
 
             if (!VerifyStringVal(token) || !VerifyStringVal(str1)) {
@@ -859,7 +858,7 @@ bool MadeEasy::processCashPurse(
             // Change the OWNER on token, from NymID to RECIPIENT.
             // (In this block, we change ALL the tokens in the purse.)
             //
-            std::string exportedToken = OTAPI_Wrap::Token_ChangeOwner(
+            std::string exportedToken = SwigWrap::Token_ChangeOwner(
                 notaryID,
                 instrumentDefinitionID,
                 token,
@@ -877,7 +876,7 @@ bool MadeEasy::processCashPurse(
 
             // SAVE A COPY FOR THE SENDER...
             //
-            std::string retainedToken = OTAPI_Wrap::Token_ChangeOwner(
+            std::string retainedToken = SwigWrap::Token_ChangeOwner(
                 notaryID,
                 instrumentDefinitionID,
                 token,
@@ -902,7 +901,7 @@ bool MadeEasy::processCashPurse(
             // "strPushedForRecipient".
             // Results are, FYI, newPurse+exportedToken.
             //
-            std::string strPushedForRecipient = OTAPI_Wrap::Purse_Push(
+            std::string strPushedForRecipient = SwigWrap::Purse_Push(
                 notaryID,
                 instrumentDefinitionID,
                 nymID,         // server, asset, signer
@@ -924,7 +923,7 @@ bool MadeEasy::processCashPurse(
             // newPurseForSender and save results in "strPushedForRetention".
             // Results are, FYI, newPurseForSender+retainedToken.
             //
-            std::string strPushedForRetention = OTAPI_Wrap::Purse_Push(
+            std::string strPushedForRetention = SwigWrap::Purse_Push(
                 notaryID,
                 instrumentDefinitionID,
                 nymID,                 // server, asset, signer
@@ -966,7 +965,7 @@ bool MadeEasy::processCashPurse(
                                   // (that
                                   // is, it's encrypted to a Nym.)
         {
-            if (!OTAPI_Wrap::SavePurse(
+            if (!SwigWrap::SavePurse(
                     notaryID,
                     instrumentDefinitionID,
                     nymID,
@@ -1005,21 +1004,21 @@ bool MadeEasy::processCashPurse(
         // newPurseUnSelectedTokens is created (CORRECTLY) with NymID as owner.
         // (Unselected tokens aren't being exported...)
         //
-        std::string newPurseUnSelectedTokens = OTAPI_Wrap::Purse_Empty(
+        std::string newPurseUnSelectedTokens = SwigWrap::Purse_Empty(
             notaryID,
             instrumentDefinitionID,
             nymID,
             oldPurse);  // Creates an empty copy of oldPurse.;
         std::string newPurseSelectedTokens =
-            (bPWProtectNewPurse ? OTAPI_Wrap::CreatePurse_Passphrase(
+            (bPWProtectNewPurse ? SwigWrap::CreatePurse_Passphrase(
                                       notaryID, instrumentDefinitionID, nymID)
-                                : OTAPI_Wrap::CreatePurse(
+                                : SwigWrap::CreatePurse(
                                       notaryID,
                                       instrumentDefinitionID,
                                       recipientNymID,
                                       nymID));  // recipientNymID = owner,
                                                 // nymID = signer;
-        std::string newPurseSelectedForSender = OTAPI_Wrap::CreatePurse(
+        std::string newPurseSelectedForSender = SwigWrap::CreatePurse(
             notaryID,
             instrumentDefinitionID,
             nymID,
@@ -1046,20 +1045,20 @@ bool MadeEasy::processCashPurse(
         // Iterate through oldPurse, using tempOldPurse as iterator.
         //
         std::int32_t count =
-            OTAPI_Wrap::Purse_Count(notaryID, instrumentDefinitionID, oldPurse);
+            SwigWrap::Purse_Count(notaryID, instrumentDefinitionID, oldPurse);
         std::string tempOldPurse = oldPurse;
 
         for (std::int32_t i = 0; i < count; ++i) {
             // Peek at the token on top of the stack.
             // (Without removing it.)
             //
-            std::string token = OTAPI_Wrap::Purse_Peek(
+            std::string token = SwigWrap::Purse_Peek(
                 notaryID, instrumentDefinitionID, nymID, tempOldPurse);
 
             // Remove the top token from the stack, and return the updated stack
             // in "str1".
             //
-            std::string str1 = OTAPI_Wrap::Purse_Pop(
+            std::string str1 = SwigWrap::Purse_Pop(
                 notaryID, instrumentDefinitionID, nymID, tempOldPurse);
 
             if (!VerifyStringVal(str1) || !VerifyStringVal(token)) {
@@ -1077,8 +1076,8 @@ bool MadeEasy::processCashPurse(
 
             // Grab the TokenID for that token. (Token still has OLD OWNER.)
             //
-            std::string tokenID = OTAPI_Wrap::Token_GetID(
-                notaryID, instrumentDefinitionID, token);
+            std::string tokenID =
+                SwigWrap::Token_GetID(notaryID, instrumentDefinitionID, token);
 
             if (!VerifyStringVal(tokenID)) {
                 otOut << strLocation
@@ -1110,7 +1109,7 @@ bool MadeEasy::processCashPurse(
                 // (So the sender can recover his sent coins that got
                 // encrypted to someone else's key.);
 
-                std::string exportedToken = OTAPI_Wrap::Token_ChangeOwner(
+                std::string exportedToken = SwigWrap::Token_ChangeOwner(
                     notaryID,
                     instrumentDefinitionID,
                     token,          // server, asset, token,;
@@ -1124,7 +1123,7 @@ bool MadeEasy::processCashPurse(
                     return false;
                 }
 
-                std::string retainedToken = OTAPI_Wrap::Token_ChangeOwner(
+                std::string retainedToken = SwigWrap::Token_ChangeOwner(
                     notaryID,
                     instrumentDefinitionID,
                     token,                  // server, asset, token,;
@@ -1145,7 +1144,7 @@ bool MadeEasy::processCashPurse(
                 // // unused here. Not needed.
                 strRecipient = bPWProtectNewPurse ? "" : recipientNymID;
 
-                std::string strPushedForRecipient = OTAPI_Wrap::Purse_Push(
+                std::string strPushedForRecipient = SwigWrap::Purse_Push(
                     notaryID,
                     instrumentDefinitionID,
                     nymID,         // server, asset, signer;
@@ -1170,7 +1169,7 @@ bool MadeEasy::processCashPurse(
                 // worthless and can be discarded, although its existence may be
                 // valuable to you as a receipt.
                 //
-                std::string strPushedForRetention = OTAPI_Wrap::Purse_Push(
+                std::string strPushedForRetention = SwigWrap::Purse_Push(
                     notaryID,
                     instrumentDefinitionID,
                     nymID,  // server, asset, signer;
@@ -1193,7 +1192,7 @@ bool MadeEasy::processCashPurse(
             {
                 std::string strSender = bPWProtectOldPurse ? "" : nymID;
 
-                std::string str = OTAPI_Wrap::Purse_Push(
+                std::string str = SwigWrap::Purse_Push(
                     notaryID,
                     instrumentDefinitionID,
                     nymID,      // server, asset, signer;
@@ -1218,7 +1217,7 @@ bool MadeEasy::processCashPurse(
                                   // (that
                                   // is, it's encrypted to a Nym.)
         {
-            if (!OTAPI_Wrap::SavePurse(
+            if (!SwigWrap::SavePurse(
                     notaryID,
                     instrumentDefinitionID,
                     nymID,
@@ -1357,14 +1356,14 @@ std::int32_t MadeEasy::depositCashPurse(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    std::string recipientNymID = OTAPI_Wrap::GetAccountWallet_NymID(accountID);
+    std::string recipientNymID = SwigWrap::GetAccountWallet_NymID(accountID);
     if (!VerifyStringVal(recipientNymID)) {
         otOut << "\ndepositCashPurse: Unable to find recipient Nym based on "
                  "myacct. \n";
         return -1;
     }
 
-    bool bPasswordProtected = OTAPI_Wrap::Purse_HasPassword(notaryID, oldPurse);
+    bool bPasswordProtected = SwigWrap::Purse_HasPassword(notaryID, oldPurse);
 
     std::string newPurse;                // being deposited.;
     std::string newPurseForSender = "";  // Probably unused in this case.;
@@ -1422,7 +1421,7 @@ std::int32_t MadeEasy::depositCashPurse(
     {
 
         if (!bPasswordProtected && bReimportIfFailure) {
-            bool importStatus = OTAPI_Wrap::Wallet_ImportPurse(
+            bool importStatus = SwigWrap::Wallet_ImportPurse(
                 notaryID, instrumentDefinitionID, recipientNymID, newPurse);
             otOut << "Since failure in OT_ME_depositCashPurse, "
                      "OT_API_Wallet_ImportPurse called. Status of "
@@ -1510,7 +1509,7 @@ bool MadeEasy::exchangeCashPurse(
         otOut << "IN OT_ME_exchangeCashPurse: theRequest.SendTransaction(() "
                  "failed. (I give up.) \n";
 
-        bool importStatus = OTAPI_Wrap::Wallet_ImportPurse(
+        bool importStatus = SwigWrap::Wallet_ImportPurse(
             notaryID, instrumentDefinitionID, nymID, newPurse);
         otOut << "Since failure in OT_ME_exchangeCashPurse, "
                  "OT_API_Wallet_ImportPurse called, status of import: "
@@ -1622,49 +1621,49 @@ Here are parameters for the first group above.
 (They are called in OTAPI_Func, this code is from there):
 
 else if (funcType == DELETE_NYM)
-{ OTAPI_Wrap::unregisterNym(notaryID, nymID); }
+{ SwigWrap::unregisterNym(notaryID, nymID); }
 else if (funcType == GET_NYM_MARKET_OFFERS)
-{ OTAPI_Wrap::getNymMarketOffers(notaryID, nymID); }
+{ SwigWrap::getNymMarketOffers(notaryID, nymID); }
 else if (funcType == CREATE_ASSET_ACCT)
-{ OTAPI_Wrap::registerAccount(notaryID, nymID, instrumentDefinitionID); }
+{ SwigWrap::registerAccount(notaryID, nymID, instrumentDefinitionID); }
 else if (funcType == DELETE_ASSET_ACCT)
-{ OTAPI_Wrap::unregisterAccount(notaryID, nymID, accountID); }
+{ SwigWrap::unregisterAccount(notaryID, nymID, accountID); }
 else if (funcType == EXCHANGE_BASKET)
-{ OTAPI_Wrap::exchangeBasket(notaryID, nymID, instrumentDefinitionID, basket,
+{ SwigWrap::exchangeBasket(notaryID, nymID, instrumentDefinitionID, basket,
 bBool); }
 else if (funcType == GET_CONTRACT)
-{ OTAPI_Wrap::getInstrumentDefinition(notaryID, nymID, instrumentDefinitionID);
+{ SwigWrap::getInstrumentDefinition(notaryID, nymID, instrumentDefinitionID);
 }
 else if (funcType == ISSUE_ASSET_TYPE)
-{ OTAPI_Wrap::registerInstrumentDefinition(notaryID, nymID, strData); }
+{ SwigWrap::registerInstrumentDefinition(notaryID, nymID, strData); }
 else if (funcType == ISSUE_BASKET)
-{ OTAPI_Wrap::issueBasket(notaryID, nymID, basket); }
+{ SwigWrap::issueBasket(notaryID, nymID, basket); }
 else if (funcType == EXCHANGE_CASH)
-{ OTAPI_Wrap::exchangePurse(notaryID, instrumentDefinitionID, nymID, strData); }
+{ SwigWrap::exchangePurse(notaryID, instrumentDefinitionID, nymID, strData); }
 else if (funcType == KILL_MARKET_OFFER)
-{ OTAPI_Wrap::cancelMarketOffer(notaryID, nymID, accountID, strData); }
+{ SwigWrap::cancelMarketOffer(notaryID, nymID, accountID, strData); }
 else if (funcType == PROCESS_INBOX)
-{ OTAPI_Wrap::processInbox(notaryID, nymID, accountID, strData); }
+{ SwigWrap::processInbox(notaryID, nymID, accountID, strData); }
 else if (funcType == DEPOSIT_CASH)
-{ OTAPI_Wrap::notarizeDeposit(notaryID, nymID, accountID, strData); }
+{ SwigWrap::notarizeDeposit(notaryID, nymID, accountID, strData); }
 else if (funcType == DEPOSIT_CHEQUE)
-{ OTAPI_Wrap::depositCheque(notaryID, nymID, accountID, strData); }
+{ SwigWrap::depositCheque(notaryID, nymID, accountID, strData); }
 else if (funcType == WITHDRAW_CASH)
-{ OTAPI_Wrap::notarizeWithdrawal(notaryID, nymID, accountID, strData); }
+{ SwigWrap::notarizeWithdrawal(notaryID, nymID, accountID, strData); }
 else if (funcType == WITHDRAW_VOUCHER)
-{ OTAPI_Wrap::withdrawVoucher(notaryID, nymID, accountID, nymID2, strData,
+{ SwigWrap::withdrawVoucher(notaryID, nymID, accountID, nymID2, strData,
 strData2); }
 else if (funcType == SEND_TRANSFER)
-{ OTAPI_Wrap::notarizeTransfer(notaryID, nymID, accountID, accountID2,
+{ SwigWrap::notarizeTransfer(notaryID, nymID, accountID, accountID2,
 strData, strData2); } // amount and note, for the last two.
 else if (funcType == GET_MARKET_LIST)
-{ OTAPI_Wrap::getMarketList(notaryID, nymID); }
+{ SwigWrap::getMarketList(notaryID, nymID); }
 else if (funcType == GET_MARKET_OFFERS)
-{ OTAPI_Wrap::getMarketOffers(notaryID, nymID, strData, strData2); }
+{ SwigWrap::getMarketOffers(notaryID, nymID, strData, strData2); }
 else if (funcType == GET_MARKET_RECENT_TRADES)
-{ OTAPI_Wrap::getMarketRecentTrades(notaryID, nymID, strData); }
+{ SwigWrap::getMarketRecentTrades(notaryID, nymID, strData); }
 else if (funcType == CREATE_MARKET_OFFER)
-{ OTAPI_Wrap::issueMarketOffer(notaryID, nymID, instrumentDefinitionID,
+{ SwigWrap::issueMarketOffer(notaryID, nymID, instrumentDefinitionID,
 accountID, instrumentDefinitionID2,
 accountID2,
 strData, strData2, strData3, strData4, bBool);

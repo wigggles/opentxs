@@ -24,7 +24,6 @@ set(cxx-sources
   OT_ME.cpp
   OTAPI_Exec.cpp
   OTAPI_Func.cpp
-  OTAPI_Wrap.cpp
   OTClient.cpp
   OTMessageBuffer.cpp
   OTMessageOutbuffer.cpp
@@ -32,6 +31,7 @@ set(cxx-sources
   OTRecord.cpp
   OTRecordList.cpp
   OTWallet.cpp
+  SwigWrap.cpp
   Utility.cpp
 )
 

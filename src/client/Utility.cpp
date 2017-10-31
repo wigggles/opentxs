@@ -41,9 +41,9 @@
 #include "opentxs/client/Utility.hpp"
 
 #include "opentxs/api/OT.hpp"
-#include "opentxs/client/OTAPI_Wrap.hpp"
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/client/OT_ME.hpp"
+#include "opentxs/client/SwigWrap.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/core/Ledger.hpp"
 #include "opentxs/core/Log.hpp"
@@ -76,7 +76,7 @@ NetworkOperationStatus VerifyMessageSuccess(const std::string& message)
         return REPLY_NOT_RECEIVED;
     }
 
-    const auto status = OTAPI_Wrap::Message_GetSuccess(message);
+    const auto status = SwigWrap::Message_GetSuccess(message);
 
     switch (status) {
         case REPLY_NOT_RECEIVED: {
@@ -113,7 +113,7 @@ std::int32_t VerifyMsgBalanceAgrmntSuccess(
         return -1;
     }
 
-    std::int32_t nSuccess = OTAPI_Wrap::Message_GetBalanceAgreementSuccess(
+    std::int32_t nSuccess = SwigWrap::Message_GetBalanceAgreementSuccess(
         NOTARY_ID, NYM_ID, ACCOUNT_ID, strMessage);
     switch (nSuccess) {
         case -1:
@@ -152,7 +152,7 @@ std::int32_t VerifyMsgTrnxSuccess(
         return -1;
     }
 
-    std::int32_t nSuccess = OTAPI_Wrap::Message_GetTransactionSuccess(
+    std::int32_t nSuccess = SwigWrap::Message_GetTransactionSuccess(
         NOTARY_ID, NYM_ID, ACCOUNT_ID, strMessage);
     switch (nSuccess) {
         case -1:
@@ -238,9 +238,9 @@ Utility::Utility(ServerContext& context)
 {
 }
 
-void Utility::delay() const { OTAPI_Wrap::Sleep(delay_ms); }
+void Utility::delay() const { SwigWrap::Sleep(delay_ms); }
 
-void Utility::longDelay() const { OTAPI_Wrap::Sleep(delay_ms + 200); }
+void Utility::longDelay() const { SwigWrap::Sleep(delay_ms + 200); }
 
 std::int32_t Utility::getNbrTransactionCount() const { return max_trans_dl; }
 
@@ -275,12 +275,12 @@ std::int32_t Utility::getNymboxLowLevel(
     const std::string& nymID,
     bool& bWasSent)
 {
-    OTAPI_Wrap::FlushMessageBuffer();
+    SwigWrap::FlushMessageBuffer();
     bWasSent = false;
 
-    std::int32_t nRequestNum = OTAPI_Wrap::getNymbox(notaryID, nymID);
+    std::int32_t nRequestNum = SwigWrap::getNymbox(notaryID, nymID);
 
-    if (OTAPI_Wrap::networkFailure(notaryID)) {
+    if (SwigWrap::networkFailure(notaryID)) {
         otOut << OT_METHOD << __FUNCTION__
               << ": getNymbox message failed due to network error.\n";
         return -1;
@@ -315,7 +315,7 @@ std::int32_t Utility::getNymboxLowLevel(
     const auto nResult =
         receive_reply_success(notaryID, nymID, nRequestNum, __FUNCTION__);
 
-    if (OTAPI_Wrap::networkFailure(notaryID)) {
+    if (SwigWrap::networkFailure(notaryID)) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Failed to due to network error." << std::endl;
 
@@ -344,7 +344,7 @@ std::int32_t Utility::getNymbox(
 {
     std::string strLocation = "Utility::getNymbox";
 
-    std::string strRecentHash = OTAPI_Wrap::GetNym_RecentHash(notaryID, nymID);
+    std::string strRecentHash = SwigWrap::GetNym_RecentHash(notaryID, nymID);
     bool bRecentHash = VerifyStringVal(strRecentHash);
     if (!bRecentHash) {
         otOut << strLocation << ": Warning: Unable to retrieve recent cached "
@@ -353,7 +353,7 @@ std::int32_t Utility::getNymbox(
                                 "downloaded it before?)\n\n";
     }
 
-    std::string strLocalHash = OTAPI_Wrap::GetNym_NymboxHash(notaryID, nymID);
+    std::string strLocalHash = SwigWrap::GetNym_NymboxHash(notaryID, nymID);
     bool bLocalHash = VerifyStringVal(strLocalHash);
     if (!bLocalHash) {
         otWarn << strLocation << ": Warning: Unable to retrieve client-side "
@@ -381,7 +381,7 @@ std::int32_t Utility::getNymbox(
                                                           // output from this
                                                           // call.;
 
-    if (OTAPI_Wrap::networkFailure(notaryID)) return -1;
+    if (SwigWrap::networkFailure(notaryID)) return -1;
 
     if (bWasMsgSent) {
         otWarn << strLocation
@@ -486,7 +486,7 @@ std::int32_t Utility::getNymbox(
 
         // Grabbing again in case it's changed.
         std::string strServerHash =
-            OTAPI_Wrap::Message_GetNymboxHash(lastReplyReceived);
+            SwigWrap::Message_GetNymboxHash(lastReplyReceived);
         bool bServerHash = VerifyStringVal(strServerHash);
         if (!bServerHash) {
             otOut << strLocation
@@ -495,7 +495,7 @@ std::int32_t Utility::getNymbox(
                   << lastReplyReceived << "\n";
         }
 
-        strLocalHash = OTAPI_Wrap::GetNym_NymboxHash(notaryID, nymID);
+        strLocalHash = SwigWrap::GetNym_NymboxHash(notaryID, nymID);
         bLocalHash = VerifyStringVal(strLocalHash);
         if (!bLocalHash) {
             otOut << strLocation
@@ -766,7 +766,7 @@ std::int32_t Utility::getAndProcessNymbox_8(
                 // FIRST, before trying to remove.
                 // (Might want different messages in either case.)
                 //
-                bool nRemovedMsg = OTAPI_Wrap::RemoveSentMessage(
+                bool nRemovedMsg = SwigWrap::RemoveSentMessage(
                     std::int64_t(nRequestNumber), notaryID, nymID);
                 otInfo << strLocation
                        << ": OT_API_RemoveSentMessage: (Found server reply in "
@@ -779,7 +779,7 @@ std::int32_t Utility::getAndProcessNymbox_8(
                 otLog3 << strLocation
                        << ": FYI: Calling OT_API_GetSentMessage...\n";
 
-                std::string strSentMsg = OTAPI_Wrap::GetSentMessage(
+                std::string strSentMsg = SwigWrap::GetSentMessage(
                     std::int64_t(nRequestNumber), notaryID, nymID);
 
                 if (!VerifyStringVal(strSentMsg)) {
@@ -789,13 +789,13 @@ std::int32_t Utility::getAndProcessNymbox_8(
                               "OT uses deliberate redundancy, though optimizes "
                               "this wherever possible.) Request number: "
                            << nRequestNumber << "\n";
-                } else  // OTAPI_Wrap::GetSentMessage success.
+                } else  // SwigWrap::GetSentMessage success.
                 {
                     otOut << strLocation << ": FYI: Harvesting transaction "
                                             "numbers from failed Msg "
                                             "attempt...\n";
 
-                    bool nHarvested = OTAPI_Wrap::Msg_HarvestTransactionNumbers(
+                    bool nHarvested = SwigWrap::Msg_HarvestTransactionNumbers(
                         strSentMsg,
                         nymID,
                         bHarvestingForRetry,  // bHarvestingForRetry.
@@ -816,7 +816,7 @@ std::int32_t Utility::getAndProcessNymbox_8(
                           << ": OT_API_Msg_HarvestTransactionNumbers: "
                           << nHarvested << "\n";
 
-                    bool nRemovedMsg = OTAPI_Wrap::RemoveSentMessage(
+                    bool nRemovedMsg = SwigWrap::RemoveSentMessage(
                         std::int64_t(nRequestNumber), notaryID, nymID);
                     otInfo << strLocation
                            << ": OT_API_RemoveSentMessage: " << nRemovedMsg
@@ -848,7 +848,7 @@ std::int32_t Utility::getAndProcessNymbox_8(
         // just the getNymbox msg.)
         //
         //
-        //            void OTAPI_Wrap::FlushSentMessages( std::int32_t //
+        //            void SwigWrap::FlushSentMessages( std::int32_t //
         // bHarvestingForRetry, // bHarvestingForRetry is actually OT_BOOL
         //                              const char * NOTARY_ID,
         //                              const char * NYM_ID,
@@ -862,12 +862,12 @@ std::int32_t Utility::getAndProcessNymbox_8(
         // record already
         // for each one, that we will have the info we need already.)
         //
-        std::string strNymbox = OTAPI_Wrap::LoadNymboxNoVerify(
+        std::string strNymbox = SwigWrap::LoadNymboxNoVerify(
             notaryID, nymID);  // FLUSH SENT MESSAGES!!!!  (AND HARVEST.);
 
         if (VerifyStringVal(strNymbox)) {
 
-            OTAPI_Wrap::FlushSentMessages(
+            SwigWrap::FlushSentMessages(
                 false,  // harvesting for retry = = OT_FALSE. None of the things
                 // are being re-tried by the time they are being flushed.
                 // They were already old news.;
@@ -967,8 +967,8 @@ std::int32_t Utility::getAndProcessNymbox_8(
 
         return const;
 
-        char *    OTAPI_Wrap::GetSentMessage(const char* REQUEST_NUMBER)
-        OT_BOOL   OTAPI_Wrap::RemoveSentMessage(const char* REQUEST_NUMBER)
+        char *    SwigWrap::GetSentMessage(const char* REQUEST_NUMBER)
+        OT_BOOL   SwigWrap::RemoveSentMessage(const char* REQUEST_NUMBER)
 
         */
         // All of these booleans (except "error") represent RECEIVED ANSWERS
@@ -1066,7 +1066,7 @@ std::int32_t Utility::getAndProcessNymbox_8(
             // I'm totally done with it now.)
             //
             //         std::int32_t nRemoved =
-            // OTAPI_Wrap::RemoveSentMessage(Integer.toString(nProcess),
+            // SwigWrap::RemoveSentMessage(Integer.toString(nProcess),
             // notaryID, nymID);
 
             // NOTE: The above call is unnecessary, since a successful process
@@ -1126,7 +1126,7 @@ std::int32_t Utility::getAndProcessNymbox_8(
                     // in my Nymbox.
                     //
                     //                       std::int32_t nRemoved =
-                    // OTAPI_Wrap::RemoveSentMessage(Integer.toString(nProcess),
+                    // SwigWrap::RemoveSentMessage(Integer.toString(nProcess),
                     // notaryID, nymID);
                     //
                     // NOTE: The above call is unnecessary, since a successful
@@ -1160,7 +1160,7 @@ std::int32_t Utility::getAndProcessNymbox_8(
                            << ": FYI: Calling OT_API_GetSentMessage...\n";
 
                     std::string strSentProcessNymboxMsg =
-                        OTAPI_Wrap::GetSentMessage(
+                        SwigWrap::GetSentMessage(
                             std::int64_t(nProcess), notaryID, nymID);
 
                     if (!VerifyStringVal(strSentProcessNymboxMsg)) {
@@ -1177,7 +1177,7 @@ std::int32_t Utility::getAndProcessNymbox_8(
                                                 "numbers from failed "
                                                 "processNymbox attempt...\n";
 
-                        nHarvested = OTAPI_Wrap::Msg_HarvestTransactionNumbers(
+                        nHarvested = SwigWrap::Msg_HarvestTransactionNumbers(
                             strSentProcessNymboxMsg,
                             nymID,
                             false,  // bHarvestingForRetry = = false;
@@ -1203,7 +1203,7 @@ std::int32_t Utility::getAndProcessNymbox_8(
                               << nHarvested << "\n";
 
                         bool nRemovedProcessNymboxMsg =
-                            OTAPI_Wrap::RemoveSentMessage(
+                            SwigWrap::RemoveSentMessage(
                                 std::int64_t(nProcess), notaryID, nymID);
 
                         otInfo << strLocation << ": OT_API_RemoveSentMessage: "
@@ -1212,11 +1212,11 @@ std::int32_t Utility::getAndProcessNymbox_8(
                 }  // a specific receipt was not found in the nymbox (need to
                    // clawback the transaction numbers on that receipt.)
 
-                strNymbox = OTAPI_Wrap::LoadNymboxNoVerify(
+                strNymbox = SwigWrap::LoadNymboxNoVerify(
                     notaryID,
                     nymID);  // FLUSH SENT MESSAGES!!!!  (AND HARVEST.);
                 if (VerifyStringVal(strNymbox)) {
-                    OTAPI_Wrap::FlushSentMessages(
+                    SwigWrap::FlushSentMessages(
                         false,  // harvesting for retry = = OT_FALSE
                         notaryID,
                         nymID,
@@ -1443,13 +1443,13 @@ std::int32_t Utility::processNymbox(
     if (nReplySuccess > 0)  // If message was success, then let's see if the
                             // transaction was, too.
     {
-        nBalanceSuccess = OTAPI_Wrap::Message_GetBalanceAgreementSuccess(
+        nBalanceSuccess = SwigWrap::Message_GetBalanceAgreementSuccess(
             notaryID,
             nymID,
             nymID,
             strReplyProcess);  // the processNymbox transaction.;
         if (nBalanceSuccess > 0) {
-            nTransSuccess = OTAPI_Wrap::Message_GetTransactionSuccess(
+            nTransSuccess = SwigWrap::Message_GetTransactionSuccess(
                 notaryID,
                 nymID,
                 nymID,
@@ -1461,7 +1461,7 @@ std::int32_t Utility::processNymbox(
     nBalanceSuccessOut = nBalanceSuccess;
     nTransSuccessOut = nTransSuccess;
 
-    // NOTE: The caller MUST have a call to OTAPI_Wrap::RemoveSentMessage
+    // NOTE: The caller MUST have a call to SwigWrap::RemoveSentMessage
     // to correspond to THIS function's call of sendProcessNymboxLowLevel().
     //
     if (nTransSuccess > 0) {
@@ -1487,9 +1487,9 @@ std::int32_t Utility::sendProcessNymboxLowLevel(
     std::string strLocation = "Utility::sendProcessNymboxLowLevel";
 
     // Send message..
-    OTAPI_Wrap::FlushMessageBuffer();
+    SwigWrap::FlushMessageBuffer();
 
-    std::int32_t nRequestNum = OTAPI_Wrap::processNymbox(notaryID, nymID);
+    std::int32_t nRequestNum = SwigWrap::processNymbox(notaryID, nymID);
     if (-1 == nRequestNum) {
         otOut << strLocation
               << ": Failure sending. OT_API_processNymbox() returned -1. \n";
@@ -1552,7 +1552,7 @@ std::string Utility::ReceiveReplyLowLevel(
         return "";
     }
 
-    std::string strResponseMessage = OTAPI_Wrap::PopMessageBuffer(
+    std::string strResponseMessage = SwigWrap::PopMessageBuffer(
         std::int64_t(nRequestNumber8), notaryID17, nymID);
     if (!VerifyStringVal(strResponseMessage)) {
         otOut << "ReceiveReplyLowLevel (" << IN_FUNCTION
@@ -1577,16 +1577,16 @@ bool Utility::getBoxReceiptLowLevel(
 
     bWasSent = false;
 
-    OTAPI_Wrap::FlushMessageBuffer();
+    SwigWrap::FlushMessageBuffer();
 
-    std::int32_t nRequestNum = OTAPI_Wrap::getBoxReceipt(
+    std::int32_t nRequestNum = SwigWrap::getBoxReceipt(
         notaryID,
         nymID,
         accountID,
         nBoxType,
         strTransactionNum);  // <===== ATTEMPT TO SEND THE MESSAGE HERE...;
 
-    if (OTAPI_Wrap::networkFailure(notaryID)) {
+    if (SwigWrap::networkFailure(notaryID)) {
         otOut << strLocation
               << ": getBoxReceipt message failed due to network error.\n";
         return false;
@@ -1624,14 +1624,14 @@ bool Utility::getBoxReceiptLowLevel(
     otWarn << strLocation << ": nRequestNum: " << nRequestNum
            << " /  nReturn: " << nReturn << "\n";
 
-    if (OTAPI_Wrap::networkFailure(notaryID)) {
+    if (SwigWrap::networkFailure(notaryID)) {
         otOut << strLocation << ": Failed to receive_reply_success due "
                                 "to network error.\n";
         return -1;
     }
 
     //     std::int32_t nRemovedGetBoxReceipt =
-    // OTAPI_Wrap::RemoveSentMessage(Integer.toString(nRequestNum), notaryID,
+    // SwigWrap::RemoveSentMessage(Integer.toString(nRequestNum), notaryID,
     // nymID);
     //
     //      // NOTE: The above call is unnecessary, since a successful reply
@@ -1740,12 +1740,12 @@ bool Utility::insureHaveAllBoxReceipts(
 
     if (0 == nBoxType) {
         pLedger.reset(
-            OTAPI_Wrap::OTAPI()->LoadNymboxNoVerify(theNotaryID, theNymID));
+            SwigWrap::OTAPI()->LoadNymboxNoVerify(theNotaryID, theNymID));
     } else if (1 == nBoxType) {
-        pLedger.reset(OTAPI_Wrap::OTAPI()->LoadInboxNoVerify(
+        pLedger.reset(SwigWrap::OTAPI()->LoadInboxNoVerify(
             theNotaryID, theNymID, theAccountID));
     } else if (2 == nBoxType) {
-        pLedger.reset(OTAPI_Wrap::OTAPI()->LoadOutboxNoVerify(
+        pLedger.reset(SwigWrap::OTAPI()->LoadOutboxNoVerify(
             theNotaryID, theNymID, theAccountID));
     } else {
         otOut << strLocation << ": Error. Expected nBoxType of 0,1,2 (nymbox, "
@@ -1801,14 +1801,14 @@ bool Utility::insureHaveAllBoxReceipts(
 
         const bool bShouldDownload =
             (!bIsReplyNotice || (bIsReplyNotice && (0 < lRequestNum) &&
-                                 !OTAPI_Wrap::OTAPI()->HaveAlreadySeenReply(
+                                 !SwigWrap::OTAPI()->HaveAlreadySeenReply(
                                      theNotaryID, theNymID, lRequestNum)));
 
         // This block executes if we should download it (assuming we
         // haven't already, which it also checks for.)
         //
         if (bShouldDownload) {
-            bool bHaveBoxReceipt = OTAPI_Wrap::OTAPI()->DoesBoxReceiptExist(
+            bool bHaveBoxReceipt = SwigWrap::OTAPI()->DoesBoxReceiptExist(
                 theNotaryID, theNymID, theAccountID, nBoxType, lTransactionNum);
             if (!bHaveBoxReceipt) {
                 otWarn << strLocation
@@ -1850,7 +1850,7 @@ bool Utility::insureHaveAllBoxReceipts(
     //
     if ((nRequestSeeking > 0) && (0 == nBoxType)) {
 
-        // NOTE: the below call to OTAPI_Wrap::Nymbox_GetReplyNotice
+        // NOTE: the below call to SwigWrap::Nymbox_GetReplyNotice
         // will succeed even if only the abbreviated receipt is
         // available, because the caller mainly just wants to know
         // if it is there. Technically the full receipt SHOULD
@@ -1900,7 +1900,7 @@ bool Utility::insureHaveAllBoxReceipts(
         // that reply!
         // // //
         // Therefore, Something like
-        // OTAPI_Wrap::HaveAlreadySeenReply( notaryID, nymID,
+        // SwigWrap::HaveAlreadySeenReply( notaryID, nymID,
         // requestNum);
         // // //
         // Perhaps also, on the server side, send a list of request
@@ -1981,7 +1981,7 @@ bool Utility::insureHaveAllBoxReceipts(
         // I already acknowledged. (No need to force any downloads
         // based on THAT case, after all.)
         //
-        std::string strReplyNotice = OTAPI_Wrap::Nymbox_GetReplyNotice(
+        std::string strReplyNotice = SwigWrap::Nymbox_GetReplyNotice(
             notaryID, nymID, std::int64_t(nRequestSeeking));
 
         if (VerifyStringVal(strReplyNotice)) {
@@ -2006,11 +2006,11 @@ bool Utility::insureHaveAllBoxReceipts(
     std::string ledger = "";
 
     if (0 == nBoxType) {
-        ledger = OTAPI_Wrap::LoadNymboxNoVerify(notaryID, nymID);
+        ledger = SwigWrap::LoadNymboxNoVerify(notaryID, nymID);
     } else if (1 == nBoxType) {
-        ledger = OTAPI_Wrap::LoadInboxNoVerify(notaryID, nymID, accountID);
+        ledger = SwigWrap::LoadInboxNoVerify(notaryID, nymID, accountID);
     } else if (2 == nBoxType) {
-        ledger = OTAPI_Wrap::LoadOutboxNoVerify(notaryID, nymID, accountID);
+        ledger = SwigWrap::LoadOutboxNoVerify(notaryID, nymID, accountID);
     } else {
         otOut << strLocation << ": Error. Expected nBoxType of 0,1,2 (nymbox, "
                                 "inbox, or outbox.)\n";
@@ -2027,7 +2027,7 @@ bool Utility::insureHaveAllBoxReceipts(
     // to load them before that time, when I know it will fail.
     //
     if (!VerifyStringVal(ledger) ||
-        (!OTAPI_Wrap::VerifySignature(nymID, ledger))) {
+        (!SwigWrap::VerifySignature(nymID, ledger))) {
         otOut << strLocation << ": Unable to load or verify signature on "
                                 "ledger. (Failure.) Contents:\n"
               << ledger << "\n";
@@ -2044,23 +2044,23 @@ bool Utility::insureHaveAllBoxReceipts(
     bool bReturnValue = true;  // Assuming an empty box, we return success;
 
     std::int32_t nReceiptCount =
-        OTAPI_Wrap::Ledger_GetCount(notaryID, nymID, accountID, ledger);
+        SwigWrap::Ledger_GetCount(notaryID, nymID, accountID, ledger);
     if (nReceiptCount > 0) {
         for (std::int32_t i_loop = 0; i_loop < nReceiptCount; ++i_loop) {
             std::int64_t lTransactionNum =
-                OTAPI_Wrap::Ledger_GetTransactionIDByIndex(
+                SwigWrap::Ledger_GetTransactionIDByIndex(
                     notaryID, nymID, accountID, ledger, i_loop);
             if (lTransactionNum != -1) {
                 if (lTransactionNum > 0) {
                     std::string strTransaction =
-                        OTAPI_Wrap::Ledger_GetTransactionByID(
+                        SwigWrap::Ledger_GetTransactionByID(
                             notaryID,
                             nymID,
                             accountID,
                             ledger,
                             lTransactionNum);
 
-                    // Note: OTAPI_Wrap::Ledger_GetTransactionByID tries to get
+                    // Note: SwigWrap::Ledger_GetTransactionByID tries to get
                     // the full transaction from the ledger and
                     // return it;
                     // and pass the full version back to us. Failing that
@@ -2092,21 +2092,21 @@ bool Utility::insureHaveAllBoxReceipts(
                     // side.
                     {
                         std::string strTransType =
-                            OTAPI_Wrap::Transaction_GetType(
+                            SwigWrap::Transaction_GetType(
                                 notaryID, nymID, accountID, strTransaction);
                         bool bIsReplyNotice =
                             (VerifyStringVal(strTransType) &&
                              (strTransType == "replyNotice"));
                         std::int64_t lRequestNum = 0;
                         if (bIsReplyNotice) {
-                            lRequestNum = OTAPI_Wrap::ReplyNotice_GetRequestNum(
+                            lRequestNum = SwigWrap::ReplyNotice_GetRequestNum(
                                 notaryID, nymID, strTransaction);
                         }
 
                         bool bShouldDownload =
                             (!bIsReplyNotice ||
                              (bIsReplyNotice && (0 < lRequestNum) &&
-                              !OTAPI_Wrap::HaveAlreadySeenReply(
+                              !SwigWrap::HaveAlreadySeenReply(
                                   notaryID, nymID, lRequestNum)));
 
                         if (bShouldDownload)  // This block executes if we
@@ -2116,7 +2116,7 @@ bool Utility::insureHaveAllBoxReceipts(
                         // for.)
                         {
                             bool bHaveBoxReceipt =
-                                OTAPI_Wrap::DoesBoxReceiptExist(
+                                SwigWrap::DoesBoxReceiptExist(
                                     notaryID,
                                     nymID,
                                     accountID,
@@ -2182,7 +2182,7 @@ bool Utility::insureHaveAllBoxReceipts(
     // IF the receipt is found, then bFoundIt is set to true.
     //
     if ((nRequestSeeking > 0) && (0 == nBoxType)) {
-        // NOTE: the below call to OTAPI_Wrap::Nymbox_GetReplyNotice will
+        // NOTE: the below call to SwigWrap::Nymbox_GetReplyNotice will
         // succeed even if
         // only the abbreviated receipt is available, because the caller mainly
         // just
@@ -2242,7 +2242,7 @@ bool Utility::insureHaveAllBoxReceipts(
         // that list, then NO NEED downloading the Box Receipt -- I DEFINITELY
         // already got that reply!
         //
-        // Therefore, Something like OTAPI_Wrap::HaveAlreadySeenReply(notaryID,
+        // Therefore, Something like SwigWrap::HaveAlreadySeenReply(notaryID,
         // nymID, requestNum);
         //
         // Perhaps also, on the server side, send a list of request numbers for
@@ -2336,7 +2336,7 @@ bool Utility::insureHaveAllBoxReceipts(
         // acknowledged. (No need to force
         // any downloads based on THAT case, after all.)
         //
-        std::string strReplyNotice = OTAPI_Wrap::Nymbox_GetReplyNotice(
+        std::string strReplyNotice = SwigWrap::Nymbox_GetReplyNotice(
             notaryID, nymID, std::int64_t(nRequestSeeking));
 
         if (VerifyStringVal(strReplyNotice)) {
@@ -2377,13 +2377,13 @@ std::int32_t Utility::getTransactionNumLowLevel(
 {
     std::string strLocation = "Utility::getTransactionNumLowLevel";
 
-    OTAPI_Wrap::FlushMessageBuffer();
+    SwigWrap::FlushMessageBuffer();
     bWasSent = false;
 
-    std::int32_t nRequestNum = OTAPI_Wrap::getTransactionNumbers(
+    std::int32_t nRequestNum = SwigWrap::getTransactionNumbers(
         notaryID, nymID);  // <===== ATTEMPT TO SEND THE MESSAGE HERE...;
 
-    if (OTAPI_Wrap::networkFailure(notaryID)) {
+    if (SwigWrap::networkFailure(notaryID)) {
         otOut
             << strLocation
             << ": getTransactionNumbers message failed due to network error.\n";
@@ -2416,7 +2416,7 @@ std::int32_t Utility::getTransactionNumLowLevel(
     std::int32_t nReturn = receive_reply_success(
         notaryID, nymID, nRequestNum, "getTransactionNumbers");
 
-    if (OTAPI_Wrap::networkFailure(notaryID)) {
+    if (SwigWrap::networkFailure(notaryID)) {
         otOut << strLocation << ": Failed to receive_reply_success due "
                                 "to network error.\n";
         return -1;
@@ -2438,7 +2438,7 @@ std::int32_t Utility::getTransactionNumLowLevel(
     // THIS MUST BE DUE TO THE PROCESS SERVER REPLY THAT OCCURS **IMMEDIATELY**
     // after the message was originally sent!
     // (The reply came in and was sent to OT's "ProcessServerReply", INSIDE the
-    // call to OTAPI_Wrap::getTransactionNumber.)
+    // call to SwigWrap::getTransactionNumber.)
     // Our subsequent "receive" (above) is nothing of the sort, but actually
     // pops the incoming message buffer where
     // the server's reply was ALREADY SITTING, since it was put there in OT's
@@ -2469,7 +2469,7 @@ std::int32_t Utility::getTransactionNumLowLevel(
     //
     //
     //     std::int32_t nRemovedSentMsg =
-    // OTAPI_Wrap::RemoveSentMessage(Integer.toString(nRequestNum), notaryID,
+    // SwigWrap::RemoveSentMessage(Integer.toString(nRequestNum), notaryID,
     // nymID);
     //
     //      if (nRemovedSentMsg < 1)
@@ -2595,12 +2595,12 @@ bool Utility::getTransactionNumbers(
             //
             //
             if (bWasProcessSent && (nProcessNymbox > 1)) {
-                std::string strNymbox = OTAPI_Wrap::LoadNymboxNoVerify(
+                std::string strNymbox = SwigWrap::LoadNymboxNoVerify(
                     notaryID,
                     nymID);  // FLUSH SENT MESSAGES!!!!  (AND HARVEST.);
 
                 if (VerifyStringVal(strNymbox)) {
-                    OTAPI_Wrap::FlushSentMessages(
+                    SwigWrap::FlushSentMessages(
                         false,  // harvesting for retry = = OT_FALSE
                         notaryID,
                         nymID,
@@ -2675,12 +2675,12 @@ bool Utility::getTransactionNumbers(
                                  // RequestNum is returned.
             {
                 if (bWasProcessSent && (nLast > 1)) {
-                    std::string strNymbox = OTAPI_Wrap::LoadNymboxNoVerify(
+                    std::string strNymbox = SwigWrap::LoadNymboxNoVerify(
                         notaryID,
                         nymID);  // FLUSH SENT MESSAGES!!!!  (AND HARVEST.);
 
                     if (VerifyStringVal(strNymbox)) {
-                        OTAPI_Wrap::FlushSentMessages(
+                        SwigWrap::FlushSentMessages(
                             false,  // harvesting for retry = = OT_FALSE
                             notaryID,
                             nymID,
@@ -2762,7 +2762,7 @@ bool Utility::getTransactionNumbers(
     // already had on my client-side Nym... (So we can compare them.)
     //
     std::string strServerHash =
-        OTAPI_Wrap::Message_GetNymboxHash(lastReplyReceived);
+        SwigWrap::Message_GetNymboxHash(lastReplyReceived);
     bool bServerhash = VerifyStringVal(strServerHash);
     if (!bServerhash) {
         otOut << strLocation
@@ -2772,7 +2772,7 @@ bool Utility::getTransactionNumbers(
         //          return false;
     }
 
-    std::string strLocalHash = OTAPI_Wrap::GetNym_NymboxHash(notaryID, nymID);
+    std::string strLocalHash = SwigWrap::GetNym_NymboxHash(notaryID, nymID);
     bool bLocalhash = VerifyStringVal(strLocalHash);
     if (!bLocalhash) {
         otOut << strLocation
@@ -2804,12 +2804,12 @@ bool Utility::getTransactionNumbers(
         if (((!bWasProcessSent) && ((nGetNymbox < 0) || (nGetNymbox > 1))) ||
             ((true == bWasProcessSent) && (nGetNymbox != 1))) {
             if (nGetNymbox > 1) {
-                std::string strNymbox = OTAPI_Wrap::LoadNymboxNoVerify(
+                std::string strNymbox = SwigWrap::LoadNymboxNoVerify(
                     notaryID,
                     nymID);  // FLUSH SENT MESSAGES!!!!  (AND HARVEST.);
 
                 if (VerifyStringVal(strNymbox)) {
-                    OTAPI_Wrap::FlushSentMessages(
+                    SwigWrap::FlushSentMessages(
                         false,  // harvesting for retry = = OT_FALSE
                         notaryID,
                         nymID,
@@ -2976,12 +2976,12 @@ std::int32_t Utility::getInboxAccount(
     //
     // GET ACCOUNT
     //
-    OTAPI_Wrap::FlushMessageBuffer();
+    SwigWrap::FlushMessageBuffer();
 
-    std::int32_t nRequestNum = OTAPI_Wrap::getAccountData(
+    std::int32_t nRequestNum = SwigWrap::getAccountData(
         notaryID, nymID, accountID);  // <===== ATTEMPT TO SEND MESSAGE;
 
-    if (OTAPI_Wrap::networkFailure(notaryID)) {
+    if (SwigWrap::networkFailure(notaryID)) {
         otOut << strLocation
               << ": getAccountData message failed due to network error.\n";
         return -1;
@@ -3017,7 +3017,7 @@ std::int32_t Utility::getInboxAccount(
         nRequestNum,
         "getInboxAccount");  // <============ RETURN VALUE;
 
-    if (OTAPI_Wrap::networkFailure(notaryID)) {
+    if (SwigWrap::networkFailure(notaryID)) {
         otOut << strLocation << ": Failed to receive_reply_success due "
                                 "to network error.\n";
         return -1;
@@ -3084,8 +3084,8 @@ bool Utility::getInboxOutboxAccount(
         return false;
     }
 
-    std::string notaryID = OTAPI_Wrap::GetAccountWallet_NotaryID(accountID);
-    std::string nymID = OTAPI_Wrap::GetAccountWallet_NymID(accountID);
+    std::string notaryID = SwigWrap::GetAccountWallet_NotaryID(accountID);
+    std::string nymID = SwigWrap::GetAccountWallet_NymID(accountID);
     if (!getIntermediaryFiles(notaryID, nymID, accountID, bForceDownload)) {
         otOut << strLocation << ": getIntermediaryFiles failed. (Returning.)\n";
         return false;
