@@ -50,6 +50,8 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/storage/Storage.hpp"
 
+#include <thread>
+
 #define OT_METHOD "opentxs::Activity::"
 
 namespace opentxs
@@ -106,7 +108,8 @@ bool Activity::MoveIncomingBlockchainTransaction(
         txid);
 }
 
-std::shared_ptr<const Contact> Activity::nym_to_contact(const std::string& id)
+std::shared_ptr<const Contact> Activity::nym_to_contact(
+    const std::string& id) const
 {
     const Identifier nymID(id);
     auto contactID = contact_.ContactID(nymID);
@@ -176,7 +179,7 @@ std::unique_ptr<Message> Activity::Mail(
 std::string Activity::Mail(
     const Identifier& nym,
     const Message& mail,
-    const StorageBox box)
+    const StorageBox box) const
 {
     const std::string nymID = String(nym).Get();
     Identifier id{};
@@ -227,6 +230,8 @@ std::string Activity::Mail(
         box);
 
     if (saved) {
+        std::thread preload(&Activity::preload, this, nym, id, box);
+        preload.detach();
 
         return output;
     }
@@ -257,19 +262,38 @@ std::shared_ptr<const std::string> Activity::MailText(
 {
     Lock lock(mail_cache_lock_);
     auto it = mail_cache_.find(id);
+    lock.unlock();
 
     if (mail_cache_.end() != it) {
 
         return it->second;
     }
 
+    preload(nymID, id, box);
+    lock.lock();
+    it = mail_cache_.find(id);
+    lock.unlock();
+
+    if (mail_cache_.end() == it) {
+
+        return {};
+    }
+
+    return it->second;
+}
+
+void Activity::preload(
+    const Identifier nymID,
+    const Identifier id,
+    const StorageBox box) const
+{
     const auto message = Mail(nymID, id, box);
 
     if (!message) {
         otErr << OT_METHOD << __FUNCTION__ << ": Unable to load message "
               << String(id) << std::endl;
 
-        return {};
+        return;
     }
 
     auto nym = wallet_.Nym(nymID);
@@ -278,29 +302,33 @@ std::shared_ptr<const std::string> Activity::MailText(
         otErr << OT_METHOD << __FUNCTION__ << ": Unable to load recipent nym."
               << std::endl;
 
-        return {};
+        return;
     }
 
+    otErr << OT_METHOD << __FUNCTION__ << ": Decrypting message "
+          << String(id).Get() << std::endl;
     auto peerObject = PeerObject::Factory(nym, message->m_ascPayload);
+    otErr << OT_METHOD << __FUNCTION__ << ": Message " << String(id).Get()
+          << " decrypted." << std::endl;
 
     if (!peerObject) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Unable to instantiate peer object." << std::endl;
 
-        return {};
+        return;
     }
 
     if (!peerObject->Message()) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Peer object does not contain a message." << std::endl;
 
-        return {};
+        return;
     }
 
+    Lock lock(mail_cache_lock_);
     auto& output = mail_cache_[id];
+    lock.unlock();
     output.reset(new std::string(*peerObject->Message()));
-
-    return output;
 }
 
 bool Activity::MarkRead(

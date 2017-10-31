@@ -97,7 +97,7 @@ public:
     std::string Mail(
         const Identifier& nym,
         const Message& mail,
-        const StorageBox box);
+        const StorageBox box) const;
 
     /**   Obtain a list of mail objects in a specified box
      *
@@ -214,13 +214,18 @@ private:
     void activity_preload_thread(
         const Identifier nymID,
         const std::size_t count) const;
+    void preload(
+        const Identifier nym,
+        const Identifier id,
+        const StorageBox box) const;
     void thread_preload_thread(
         const std::string nymID,
         const std::string threadID,
         const std::size_t start,
         const std::size_t count) const;
 
-    std::shared_ptr<const Contact> nym_to_contact(const std::string& nymID);
+    std::shared_ptr<const Contact> nym_to_contact(
+        const std::string& nymID) const;
 
     Activity(ContactManager& contact, Storage& storage, Wallet& wallet);
     Activity() = delete;
