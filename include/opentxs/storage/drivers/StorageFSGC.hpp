@@ -36,21 +36,19 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_STORAGE_STORAGEFSARCHIVE_HPP
-#define OPENTXS_STORAGE_STORAGEFSARCHIVE_HPP
+#ifndef OPENTXS_STORAGE_STORAGEFSGC_HPP
+#define OPENTXS_STORAGE_STORAGEFSGC_HPP
 
 #include "opentxs/storage/drivers/StorageFS.hpp"
-
-#include <memory>
 
 namespace opentxs
 {
 
 class Storage;
 class StorageConfig;
-class SymmetricKey;
 
-class StorageFSArchive : public StorageFS, public virtual StorageDriver
+// Simple filesystem implementation of opentxs::storage
+class StorageFSGC : public StorageFS, public virtual StorageDriver
 {
 private:
     typedef StorageFS ot_super;
@@ -60,38 +58,33 @@ public:
 
     void Cleanup() override;
 
-    ~StorageFSArchive();
+    ~StorageFSGC();
 
 private:
     friend class Storage;
 
-    const std::unique_ptr<SymmetricKey> encryption_key_;
-    const bool encrypted_{false};
-
+    std::string bucket_name(const bool bucket) const;
     std::string calculate_path(
         const std::string& key,
         const bool bucket,
         std::string& directory) const override;
-    std::string prepare_read(const std::string& ciphertext) const override;
-    std::string prepare_write(const std::string& plaintext) const override;
+    void purge(const std::string& path) const;
     std::string root_filename() const override;
 
-    void Init_StorageFSArchive();
-    void Cleanup_StorageFSArchive();
+    void Cleanup_StorageFSGC();
+    void Init_StorageFSGC();
 
-    StorageFSArchive(
+    StorageFSGC(
         const StorageConfig& config,
         const Digest& hash,
         const Random& random,
-        std::atomic<bool>& bucket,
-        const std::string& folder,
-        std::unique_ptr<SymmetricKey>& key);
-    StorageFSArchive() = delete;
-    StorageFSArchive(const StorageFSArchive&) = delete;
-    StorageFSArchive(StorageFSArchive&&) = delete;
-    StorageFSArchive& operator=(const StorageFSArchive&) = delete;
-    StorageFSArchive& operator=(StorageFSArchive&&) = delete;
+        std::atomic<bool>& bucket);
+    StorageFSGC() = delete;
+    StorageFSGC(const StorageFSGC&) = delete;
+    StorageFSGC(StorageFSGC&&) = delete;
+    StorageFSGC& operator=(const StorageFSGC&) = delete;
+    StorageFSGC& operator=(StorageFSGC&&) = delete;
 };
 
 }  // namespace opentxs
-#endif  // OPENTXS_STORAGE_STORAGEFSARCHIVE_HPP
+#endif  // OPENTXS_STORAGE_STORAGEFSGC_HPP

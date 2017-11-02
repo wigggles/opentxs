@@ -43,8 +43,6 @@
 #include "opentxs/storage/StorageConfig.hpp"
 
 #include <boost/filesystem.hpp>
-#include <boost/iostreams/device/file_descriptor.hpp>
-#include <boost/iostreams/stream.hpp>
 
 #include <cstdio>
 #include <fstream>
@@ -53,15 +51,12 @@
 #include <thread>
 #include <vector>
 
-#if defined(__APPLE__)
 extern "C" {
 #include <fcntl.h>
-}
-#endif
-
-extern "C" {
 #include <unistd.h>
 }
+
+#define PATH_SEPERATOR "/"
 
 #define OT_METHOD "opentxs::StorageFS::"
 
@@ -72,49 +67,26 @@ StorageFS::StorageFS(
     const StorageConfig& config,
     const Digest& hash,
     const Random& random,
+    const std::string& folder,
     std::atomic<bool>& bucket)
     : ot_super(config, hash, random, bucket)
-    , folder_(config.path_)
+    , folder_(folder)
+    , path_seperator_(PATH_SEPERATOR)
+    , ready_(false)
 {
     Init_StorageFS();
 }
+
+void StorageFS::Cleanup() { Cleanup_StorageFS(); }
 
 void StorageFS::Cleanup_StorageFS()
 {
     // future cleanup actions go here
 }
 
-void StorageFS::Cleanup() { Cleanup_StorageFS(); }
-
-bool StorageFS::EmptyBucket(const bool bucket) const
-{
-    assert(random_);
-
-    std::string oldDirectory = folder_ + "/" + GetBucketName(bucket);
-    std::string random = random_();
-    std::string newName = folder_ + "/" + random;
-
-    if (0 != std::rename(oldDirectory.c_str(), newName.c_str())) {
-        return false;
-    }
-
-    std::thread backgroundDelete(&StorageFS::Purge, this, newName);
-    backgroundDelete.detach();
-
-    return boost::filesystem::create_directory(oldDirectory);
-}
-
-std::string StorageFS::GetBucketName(const bool bucket) const
-{
-    return bucket ? config_.fs_secondary_bucket_ : config_.fs_primary_bucket_;
-}
-
 void StorageFS::Init_StorageFS()
 {
-    boost::filesystem::create_directory(
-        folder_ + "/" + config_.fs_primary_bucket_);
-    boost::filesystem::create_directory(
-        folder_ + "/" + config_.fs_secondary_bucket_);
+    // future init actions go here
 }
 
 bool StorageFS::LoadFromBucket(
@@ -122,40 +94,40 @@ bool StorageFS::LoadFromBucket(
     std::string& value,
     const bool bucket) const
 {
-    std::string folder = folder_ + "/" + GetBucketName(bucket);
-    std::string filename = folder + "/" + key;
+    value.clear();
+    std::string directory{};
+    const auto filename = calculate_path(key, bucket, directory);
 
     if (false == boost::filesystem::exists(filename)) {
+
         return false;
     }
 
-    if (false == folder_.empty()) {
+    if (ready_.load() && false == folder_.empty()) {
         value = read_file(filename);
-
-        return (false == value.empty());
     }
 
-    return false;
+    return false == value.empty();
 }
 
 std::string StorageFS::LoadRoot() const
 {
-    if (false == folder_.empty()) {
-        std::string filename = folder_ + "/" + config_.fs_root_file_;
+    if (ready_.load() && false == folder_.empty()) {
 
-        return read_file(filename);
+        return read_file(root_filename());
     }
 
     return "";
 }
 
-void StorageFS::Purge(const std::string& path) const
+std::string StorageFS::prepare_read(const std::string& input) const
 {
-    if (path.empty()) {
-        return;
-    }
+    return input;
+}
 
-    boost::filesystem::remove_all(path);
+std::string StorageFS::prepare_write(const std::string& input) const
+{
+    return input;
 }
 
 std::string StorageFS::read_file(const std::string& filename) const
@@ -180,7 +152,7 @@ std::string StorageFS::read_file(const std::string& filename) const
         std::vector<char> bytes(size);
         file.read(&bytes[0], size);
 
-        return std::string(&bytes[0], size);
+        return prepare_read(std::string(&bytes[0], size));
     }
 
     return {};
@@ -194,11 +166,10 @@ void StorageFS::store(
 {
     OT_ASSERT(nullptr != promise);
 
-    std::string folder = folder_ + "/" + GetBucketName(bucket);
-    std::string filename = folder + "/" + key;
-
-    if (false == folder_.empty()) {
-        promise->set_value(write_file(filename, value));
+    if (ready_.load() && false == folder_.empty()) {
+        std::string directory{};
+        const auto filename = calculate_path(key, bucket, directory);
+        promise->set_value(write_file(directory, filename, value));
     } else {
         promise->set_value(false);
     }
@@ -206,37 +177,93 @@ void StorageFS::store(
 
 bool StorageFS::StoreRoot(const std::string& hash) const
 {
-    if (false == folder_.empty()) {
-        std::string filename = folder_ + "/" + config_.fs_root_file_;
+    if (ready_.load() && false == folder_.empty()) {
 
-        return write_file(filename, hash);
+        return write_file(folder_, root_filename(), hash);
     }
 
     return false;
 }
 
+bool StorageFS::sync(const std::string& path) const
+{
+    class FileDescriptor
+    {
+    public:
+        FileDescriptor(const std::string& path)
+            : fd_(::open(path.c_str(), O_DIRECTORY | O_RDONLY))
+        {
+        }
+
+        operator bool() const { return good(); }
+        operator int() const { return fd_; }
+
+        ~FileDescriptor()
+        {
+            if (good()) {
+                ::close(fd_);
+            }
+        }
+
+    private:
+        int fd_{-1};
+
+        bool good() const { return (-1 != fd_); }
+
+        FileDescriptor() = delete;
+        FileDescriptor(const FileDescriptor&) = delete;
+        FileDescriptor(FileDescriptor&&) = delete;
+        FileDescriptor& operator=(const FileDescriptor&) = delete;
+        FileDescriptor& operator=(FileDescriptor&&) = delete;
+    };
+
+    FileDescriptor fd(path);
+
+    if (!fd) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to open " << path
+              << std::endl;
+
+        return false;
+    }
+
+    return sync(fd);
+}
+
+bool StorageFS::sync(File& file) const { return sync(file->handle()); }
+
+bool StorageFS::sync(int fd) const
+{
+#if defined(__APPLE__)
+    // This is a Mac OS X system which does not implement
+    // fsync as such.
+    return 0 == ::fcntl(fd, F_FULLFSYNC);
+#else
+    return 0 == ::fsync(fd);
+#endif
+}
+
 bool StorageFS::write_file(
+    const std::string& directory,
     const std::string& filename,
     const std::string& contents) const
 {
     if (false == filename.empty()) {
         boost::filesystem::path filePath(filename);
-        boost::iostreams::stream<boost::iostreams::file_descriptor_sink> file(
-            filePath);
+        File file(filePath);
+        const auto data = prepare_write(contents);
 
         if (file.good()) {
-            file.write(contents.c_str(), contents.size());
+            file.write(data.c_str(), data.size());
 
-#ifdef F_FULLFSYNC
-            // This is a Mac OS X system which does not implement
-            // fdatasync as such.
-            const auto synced = fcntl(file->handle(), F_FULLFSYNC);
-#else
-            const auto synced = ::fdatasync(file->handle());
-#endif
-            if (0 != synced) {
+            if (false == sync(file)) {
+                otErr << OT_METHOD << __FUNCTION__ << ": Failed to sync file "
+                      << filename << std::endl;
+            }
+
+            if (false == sync(directory)) {
                 otErr << OT_METHOD << __FUNCTION__
-                      << ": Failed to flush file buffer." << std::endl;
+                      << ": Failed to sync directory " << directory
+                      << std::endl;
             }
 
             file.close();

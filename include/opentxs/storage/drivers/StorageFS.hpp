@@ -41,59 +41,75 @@
 
 #include "opentxs/storage/StoragePlugin.hpp"
 
+#include <boost/iostreams/device/file_descriptor.hpp>
+#include <boost/iostreams/stream.hpp>
+
+#include <atomic>
+
 namespace opentxs
 {
 
-class Storage;
 class StorageConfig;
 
 // Simple filesystem implementation of opentxs::storage
-class StorageFS : public virtual StoragePlugin_impl,
-                  public virtual StorageDriver
+class StorageFS : public StoragePlugin_impl
 {
 private:
     typedef StoragePlugin_impl ot_super;
 
 public:
-    std::string LoadRoot() const override;
-    bool StoreRoot(const std::string& hash) const override;
-
     bool LoadFromBucket(
         const std::string& key,
         std::string& value,
         const bool bucket) const override;
-
-    bool EmptyBucket(const bool bucket) const override;
+    std::string LoadRoot() const override;
+    bool StoreRoot(const std::string& hash) const override;
 
     void Cleanup() override;
 
     ~StorageFS();
 
-private:
-    friend class Storage;
+protected:
+    const std::string folder_;
+    const std::string path_seperator_{};
+    std::atomic<bool> ready_{false};
 
-    std::string folder_;
-
-    std::string GetBucketName(const bool bucket) const;
-
-    void Init_StorageFS();
-    void Purge(const std::string& path) const;
-    std::string read_file(const std::string& filename) const;
-    void store(
-        const std::string& key,
-        const std::string& value,
-        const bool bucket,
-        std::promise<bool>* promise) const override;
-    bool write_file(const std::string& filename, const std::string& contents)
-        const;
-
-    void Cleanup_StorageFS();
+    bool sync(const std::string& path) const;
 
     StorageFS(
         const StorageConfig& config,
         const Digest& hash,
         const Random& random,
+        const std::string& folder,
         std::atomic<bool>& bucket);
+
+private:
+    typedef boost::iostreams::stream<boost::iostreams::file_descriptor_sink>
+        File;
+
+    virtual std::string calculate_path(
+        const std::string& key,
+        const bool bucket,
+        std::string& directory) const = 0;
+    virtual std::string prepare_read(const std::string& input) const;
+    virtual std::string prepare_write(const std::string& input) const;
+    std::string read_file(const std::string& filename) const;
+    virtual std::string root_filename() const = 0;
+    void store(
+        const std::string& key,
+        const std::string& value,
+        const bool bucket,
+        std::promise<bool>* promise) const override;
+    bool sync(File& file) const;
+    bool sync(int fd) const;
+    bool write_file(
+        const std::string& directory,
+        const std::string& filename,
+        const std::string& contents) const;
+
+    void Cleanup_StorageFS();
+    void Init_StorageFS();
+
     StorageFS() = delete;
     StorageFS(const StorageFS&) = delete;
     StorageFS(StorageFS&&) = delete;

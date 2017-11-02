@@ -47,7 +47,7 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/interface/storage/StoragePlugin.hpp"
 #if OT_STORAGE_FS
-#include "opentxs/storage/drivers/StorageFS.hpp"
+#include "opentxs/storage/drivers/StorageFSGC.hpp"
 #include "opentxs/storage/drivers/StorageFSArchive.hpp"
 #endif
 #if OT_STORAGE_SQLITE
@@ -110,7 +110,7 @@ Storage::Storage(
         otErr << OT_METHOD << __FUNCTION__
               << ": Initializing primary filesystem plugin." << std::endl;
         primary_plugin_.reset(
-            new StorageFS(config_, digest_, random_, primary_bucket_));
+            new StorageFSGC(config_, digest_, random_, primary_bucket_));
 #else
         otErr << OT_METHOD << __FUNCTION__
               << ": Filesystem driver not compiled in." << std::endl;

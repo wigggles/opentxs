@@ -6,6 +6,7 @@ endif()
 
 set(cxx-sources
   StorageFS.cpp
+  StorageFSGC.cpp
   StorageFSArchive.cpp
   StorageSqlite3.cpp
 )
