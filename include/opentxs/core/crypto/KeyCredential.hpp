@@ -131,9 +131,7 @@ protected:
         const OTPasswordData* pPWData = nullptr,
         const bool onlyPrivate = false);
 
-    KeyCredential(
-        CredentialSet& owner,
-        const NymParameters& nymParameters);
+    KeyCredential(CredentialSet& owner, const NymParameters& nymParameters);
     KeyCredential(
         CredentialSet& owner,
         const proto::Credential& serializedCred);
@@ -145,11 +143,12 @@ public:
 
     bool ReEncryptKeys(const OTPassword& theExportPassword, bool bImporting);
     EXPORT int32_t GetPublicKeysBySignature(
-        listOfAsymmetricKeys& listOutput, const OTSignature& theSignature,
-        char cKeyType = '0') const; // 'S' (signing key) or
-                                    // 'E' (encryption key)
-                                    // or 'A'
-                                    // (authentication key)
+        listOfAsymmetricKeys& listOutput,
+        const OTSignature& theSignature,
+        char cKeyType = '0') const;  // 'S' (signing key) or
+                                     // 'E' (encryption key)
+                                     // or 'A'
+                                     // (authentication key)
 
     bool hasCapability(const NymCapability& capability) const override;
 
@@ -162,39 +161,38 @@ public:
 
     virtual ~KeyCredential() = default;
 
-    template<class C>
+    template <class C>
     bool SignProto(
         C& serialized,
         proto::Signature& signature,
         proto::KeyRole key = proto::KEYROLE_SIGN,
         const OTPasswordData* pPWData = nullptr) const
-            {
-                const OTKeypair* keyToUse = nullptr;
+    {
+        const OTKeypair* keyToUse = nullptr;
 
-                switch (key) {
-                    case (proto::KEYROLE_AUTH) :
-                        keyToUse = m_AuthentKey.get();
-                        break;
-                    case (proto::KEYROLE_SIGN) :
-                        keyToUse = m_SigningKey.get();
-                        break;
-                    default :
-                        otErr << __FUNCTION__ << ": Can not sign with the "
-                              << "specified key." << std::endl;
-                        return false;
-                }
-
-                if (nullptr != keyToUse) {
-                    return keyToUse->SignProto<C>(
-                        serialized,
-                        signature,
-                        String(id_),
-                        pPWData);
-                }
-
+        switch (key) {
+            case (proto::KEYROLE_AUTH):
+                keyToUse = m_AuthentKey.get();
+                break;
+            case (proto::KEYROLE_SIGN):
+                keyToUse = m_SigningKey.get();
+                break;
+            case (proto::KEYROLE_ERROR):
+            case (proto::KEYROLE_ENCRYPT):
+            default:
+                otErr << __FUNCTION__ << ": Can not sign with the "
+                      << "specified key." << std::endl;
                 return false;
-            }
-};
-} // namespace opentxs
+        }
 
-#endif // OPENTXS_CORE_CRYPTO_KEYCREDENTIAL_HPP
+        if (nullptr != keyToUse) {
+            return keyToUse->SignProto<C>(
+                serialized, signature, String(id_), pPWData);
+        }
+
+        return false;
+    }
+};
+}  // namespace opentxs
+
+#endif  // OPENTXS_CORE_CRYPTO_KEYCREDENTIAL_HPP

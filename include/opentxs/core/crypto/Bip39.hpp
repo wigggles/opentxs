@@ -68,7 +68,7 @@ public:
     bool UpdateIndex(std::string& seed, const std::uint32_t index) const;
     std::string Words(const std::string& fingerprint = "") const;
 
-    ~Bip39() = default;
+    virtual ~Bip39() = default;
 
 protected:
     Bip39(OT& ot);

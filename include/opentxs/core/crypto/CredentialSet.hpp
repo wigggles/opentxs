@@ -302,6 +302,17 @@ public:
 
                 return false;
             }
+
+            // TODO Justus
+            case (proto::SIGROLE_ERROR):
+            case (proto::SIGROLE_CLAIM):
+            case (proto::SIGROLE_SERVERCONTRACT):
+            case (proto::SIGROLE_UNITDEFINITION):
+            case (proto::SIGROLE_PEERREQUEST):
+            case (proto::SIGROLE_PEERREPLY):
+            case (proto::SIGROLE_CONTEXT):
+            case (proto::SIGROLE_ACCOUNT):
+
             default: {
                 bool haveSignature = false;
 

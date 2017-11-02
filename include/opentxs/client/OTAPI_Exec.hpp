@@ -3312,7 +3312,7 @@ public:
     *   -- When sender gets outmail contents, original user message string is
     *   returned from (2) payload, with no decryption necessary.
     *
-    *   \Returns int32_t:
+    *   \returns int32_t:
     *   -1 means error; no message was sent.
     *   0 means NO error, but also: no message was sent.
     *   >0 means NO error, and the message was sent, and the request number fits
@@ -3467,7 +3467,7 @@ public:
     (by way
     of his nymbox.)
 
-    \Returns int32_t:
+    \returns int32_t:
     -1 means error; no message was sent.
     0 means NO error, but also: no message was sent.
     >0 means NO error, and the message was sent, and the request number fits

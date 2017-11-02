@@ -71,7 +71,7 @@ class OTKeypair
     friend class LowLevelKeyGenerator;
 
 private:
-    EXPORT OTKeypair(){};
+    EXPORT OTKeypair() {}
     std::shared_ptr<OTAsymmetricKey> m_pkeyPublic;   // This nym's public key
     std::shared_ptr<OTAsymmetricKey> m_pkeyPrivate;  // This nym's private key
     proto::KeyRole role_{proto::KEYROLE_ERROR};
@@ -120,26 +120,23 @@ public:
     bool Verify(const Data& plaintext, const proto::Signature& sig) const;
     bool TransportKey(Data& publicKey, OTPassword& privateKey) const;
 
-    template<class C>
+    template <class C>
     bool SignProto(
         C& serialized,
         proto::Signature& signature,
         const String& credID = String(""),
         const OTPasswordData* pPWData = nullptr) const
-            {
-                if (!m_pkeyPrivate) {
-                    otErr << __FUNCTION__ << ": Missing private key. Can not "
-                          << "sign." << std::endl;
+    {
+        if (!m_pkeyPrivate) {
+            otErr << __FUNCTION__ << ": Missing private key. Can not "
+                  << "sign." << std::endl;
 
-                    return false;
-                }
+            return false;
+        }
 
-                return m_pkeyPrivate->SignProto<C>(
-                    serialized,
-                    signature,
-                    credID,
-                    pPWData);
-            }
+        return m_pkeyPrivate->SignProto<C>(
+            serialized, signature, credID, pPWData);
+    }
 };
 
 }  // namespace opentxs
