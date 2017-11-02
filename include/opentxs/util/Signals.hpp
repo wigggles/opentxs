@@ -36,56 +36,41 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_SERVER_SERVERLOADER_HPP
-#define OPENTXS_SERVER_SERVERLOADER_HPP
+#ifndef OPENTXS_UTIL_SIGNALS_HPP
+#define OPENTXS_UTIL_SIGNALS_HPP
 
-#include "opentxs/network/ZMQ.hpp"
-
-#include <map>
-#include <string>
-
-#define OT_SERVER_OPTION_BACKUP "backup"
-#define OT_SERVER_OPTION_BINDIP "bindip"
-#define OT_SERVER_OPTION_COMMANDPORT "commandport"
-#define OT_SERVER_OPTION_EEP "eep"
-#define OT_SERVER_OPTION_GC "gc"
-#define OT_SERVER_OPTION_EXTERNALIP "externalip"
-#define OT_SERVER_OPTION_LISTENCOMMAND "listencommand"
-#define OT_SERVER_OPTION_LISTENNOTIFY "listennotify"
-#define OT_SERVER_OPTION_NAME "name"
-#define OT_SERVER_OPTION_NOTIFICATIONPORT "notificationport"
-#define OT_SERVER_OPTION_ONION "onion"
-#define OT_SERVER_OPTION_STORAGE "storage"
-#define OT_SERVER_OPTION_TERMS "terms"
-
-#define SERVER_CONFIG_KEY "server"
+#include <atomic>
+#include <memory>
+#include <thread>
 
 namespace opentxs
 {
 
-class OTServer;
-
-class ServerLoader
+class Signals
 {
-private:
-    static OTServer* server_;
-
-    ServerLoader() = delete;
-    ServerLoader(const ServerLoader&) = delete;
-    ServerLoader(ServerLoader&&) = delete;
-    ServerLoader& operator=(const ServerLoader&) = delete;
-    ServerLoader& operator=(ServerLoader&&) = delete;
-
 public:
-    ServerLoader(std::map<std::string, std::string>& args);
+    static void Block();
 
-    int getPort() const;
-    zcert_t* getTransportKey() const;
+    Signals(std::atomic<bool>& shutdown);
 
-    static OTServer* getServer();
+    virtual ~Signals();
 
-    ~ServerLoader();
+protected:
+    void shutdown();
+
+private:
+    std::atomic<bool>& shutdown_;
+    std::unique_ptr<std::thread> thread_{nullptr};
+
+    void handle();
+    virtual void process(const int signal);
+
+    Signals() = delete;
+    Signals(const Signals&) = delete;
+    Signals(Signals&&) = delete;
+    Signals& operator=(const Signals&) = delete;
+    Signals& operator=(Signals&&) = delete;
 };
 }  // namespace opentxs
 
-#endif  // OPENTXS_SERVER_SERVERLOADER_HPP
+#endif  // OPENTXS_UTIL_SIGNALS_HPP

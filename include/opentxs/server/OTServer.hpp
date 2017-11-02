@@ -85,7 +85,7 @@ public:
 
     EXPORT void ActivateCron();
     EXPORT void Init(
-        std::map<std::string, std::string>& args,
+        const std::map<std::string, std::string>& args,
         bool readOnly = false);
     EXPORT void ProcessCron();
     EXPORT std::int64_t computeTimeout() { return m_Cron.computeTimeout(); }
@@ -98,7 +98,7 @@ private:
 
     void CreateMainFile(
         bool& mainFileExists,
-        std::map<std::string, std::string>& args);
+        const std::map<std::string, std::string>& args);
     // Note: SendInstrumentToNym and SendMessageToNym CALL THIS.
     // They are higher-level, this is lower-level.
     bool DropMessageToNymbox(

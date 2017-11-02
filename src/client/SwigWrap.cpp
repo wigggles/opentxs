@@ -94,8 +94,7 @@ bool SwigWrap::AppInit(
     const std::string& archiveDirectory,
     const std::string& encryptedDirectory)
 {
-    OT::Factory(
-        false,
+    OT::ClientFactory(
         std::chrono::seconds(gcInterval),
         storagePlugin,
         archiveDirectory,
@@ -112,11 +111,10 @@ bool SwigWrap::AppRecover(
     const std::string& archiveDirectory,
     const std::string& encryptedDirectory)
 {
-    OT::Factory(
+    OT::ClientFactory(
         true,
         words,
         passphrase,
-        false,
         std::chrono::seconds(gcInterval),
         storagePlugin,
         archiveDirectory,

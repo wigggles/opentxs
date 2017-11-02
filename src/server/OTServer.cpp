@@ -42,6 +42,7 @@
 
 #include "opentxs/api/Identity.hpp"
 #include "opentxs/api/OT.hpp"
+#include "opentxs/api/Server.hpp"
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/cron/OTCron.hpp"
@@ -63,7 +64,6 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/ext/OTPayment.hpp"
 #include "opentxs/server/ConfigLoader.hpp"
-#include "opentxs/server/ServerLoader.hpp"
 #include "opentxs/server/Transactor.hpp"
 
 #include <inttypes.h>
@@ -212,8 +212,10 @@ std::pair<std::string, std::string> OTServer::parse_seed_backup(
 
 void OTServer::CreateMainFile(
     bool& mainFileExists,
-    std::map<std::string, std::string>& args)
+    const std::map<std::string, std::string>& arguments)
 {
+    std::map<std::string, std::string> args(arguments);
+
 #if OT_CRYPTO_WITH_BIP39
     const auto backup = OTDB::QueryPlainString(SEED_BACKUP_FILE);
     std::string seed{};
@@ -506,7 +508,9 @@ void OTServer::CreateMainFile(
     OT::App().Config().Save();
 }
 
-void OTServer::Init(std::map<std::string, std::string>& args, bool readOnly)
+void OTServer::Init(
+    const std::map<std::string, std::string>& args,
+    bool readOnly)
 {
     m_bReadOnly = readOnly;
 

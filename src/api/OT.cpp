@@ -46,6 +46,7 @@
 #include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Dht.hpp"
 #include "opentxs/api/Identity.hpp"
+#include "opentxs/api/Server.hpp"
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/client/OT_API.hpp"
@@ -71,6 +72,7 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/util/Signals.hpp"
 
 #include <atomic>
 #include <ctime>
@@ -80,6 +82,7 @@
 #include <thread>
 
 #define CLIENT_CONFIG_KEY "client"
+#define SERVER_CONFIG_KEY "server"
 #define STORAGE_CONFIG_KEY "storage"
 
 #define OT_METHOD "opentxs::OT::"
@@ -97,7 +100,8 @@ OT::OT(
     const std::chrono::seconds gcInterval,
     const std::string& storagePlugin,
     const std::string& backupDirectory,
-    const std::string& encryptedDirectory)
+    const std::string& encryptedDirectory,
+    const std::map<std::string, std::string>& serverArgs)
     : recover_(recover)
     , server_mode_(serverMode)
     , nym_publish_interval_(std::numeric_limits<std::int64_t>::max())
@@ -114,6 +118,7 @@ OT::OT(
     , encrypted_directory_(encryptedDirectory)
     , config_lock_()
     , task_list_lock_()
+    , signal_handler_lock_()
     , periodic_task_list()
     , shutdown_(false)
     , activity_(nullptr)
@@ -128,6 +133,10 @@ OT::OT(
     , wallet_(nullptr)
     , zeromq_(nullptr)
     , periodic_(nullptr)
+    , storage_encryption_key_(nullptr)
+    , server_(nullptr)
+    , signal_handler_(nullptr)
+    , server_args_(serverArgs)
 {
 }
 
@@ -166,10 +175,53 @@ class Blockchain& OT::Blockchain() const
 void OT::Cleanup()
 {
     if (nullptr != instance_pointer_) {
-        instance_pointer_->Shutdown();
+        instance_pointer_->shutdown();
         delete instance_pointer_;
         instance_pointer_ = nullptr;
     }
+}
+
+void OT::ClientFactory(
+    const std::chrono::seconds gcInterval,
+    const std::string& storagePlugin,
+    const std::string& backupDirectory,
+    const std::string& encryptedDirectory)
+{
+    ClientFactory(
+        false,
+        "",
+        "",
+        gcInterval,
+        storagePlugin,
+        backupDirectory,
+        encryptedDirectory);
+}
+
+void OT::ClientFactory(
+    const bool recover,
+    const std::string& words,
+    const std::string& passphrase,
+    const std::chrono::seconds gcInterval,
+    const std::string& storagePlugin,
+    const std::string& backupDirectory,
+    const std::string& encryptedDirectory)
+{
+    assert(nullptr == instance_pointer_);
+
+    instance_pointer_ = new OT(
+        recover,
+        words,
+        passphrase,
+        false,
+        gcInterval,
+        storagePlugin,
+        backupDirectory,
+        encryptedDirectory,
+        {});
+
+    assert(nullptr != instance_pointer_);
+
+    instance_pointer_->Init();
 }
 
 Settings& OT::Config(const std::string& path) const
@@ -223,49 +275,13 @@ Dht& OT::DHT() const
     return *dht_;
 }
 
-void OT::Factory(
-    const bool serverMode,
-    const std::chrono::seconds gcInterval,
-    const std::string& storagePlugin,
-    const std::string& backupDirectory,
-    const std::string& encryptedDirectory)
+void OT::HandleSignals() const
 {
-    Factory(
-        false,
-        "",
-        "",
-        serverMode,
-        gcInterval,
-        storagePlugin,
-        backupDirectory,
-        encryptedDirectory);
-}
+    Lock lock(signal_handler_lock_);
 
-void OT::Factory(
-    const bool recover,
-    const std::string& words,
-    const std::string& passphrase,
-    const bool serverMode,
-    const std::chrono::seconds gcInterval,
-    const std::string& storagePlugin,
-    const std::string& backupDirectory,
-    const std::string& encryptedDirectory)
-{
-    assert(nullptr == instance_pointer_);
-
-    instance_pointer_ = new OT(
-        recover,
-        words,
-        passphrase,
-        serverMode,
-        gcInterval,
-        storagePlugin,
-        backupDirectory,
-        encryptedDirectory);
-
-    assert(nullptr != instance_pointer_);
-
-    instance_pointer_->Init();
+    if (false == bool(signal_handler_)) {
+        signal_handler_.reset(new Signals(shutdown_));
+    }
 }
 
 class Identity& OT::Identity() const
@@ -297,6 +313,8 @@ void OT::Init()
     if (recover_) {
         recover();
     }
+
+    Init_Server();  // requires Init_Config(), Init_Log()
 
     start();
 }
@@ -352,13 +370,22 @@ void OT::Init_Blockchain()
 
 void OT::Init_Config()
 {
-    if (!server_mode_) {
-        if (!OTDataFolder::Init(CLIENT_CONFIG_KEY)) {
-            otErr << __FUNCTION__ << ": Unable to Init data folders";
+    bool setupPathsSuccess{false};
 
-            abort();
-        }
+    if (server_mode_) {
+        setupPathsSuccess = OTDataFolder::Init(SERVER_CONFIG_KEY);
+    } else {
+        setupPathsSuccess = OTDataFolder::Init(CLIENT_CONFIG_KEY);
     }
+
+    if (false == setupPathsSuccess) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Unable to initialize data folders" << std::endl;
+
+        OT_FAIL;
+    }
+
+    OT_ASSERT(OTDataFolder::IsInitialized());
 
     String strConfigFilePath;
     OTDataFolder::GetConfigFilePath(strConfigFilePath);
@@ -460,6 +487,24 @@ void OT::Init_Log()
     if (false == Log::Init(Config(), type.c_str())) {
         abort();
     }
+}
+
+void OT::Init_Server()
+{
+    if (false == server_mode_) {
+
+        return;
+    }
+
+#if defined(OT_SIGNAL_HANDLING)
+    Log::SetupSignalHandler();
+#endif
+
+    server_.reset(new class Server(server_args_, shutdown_));
+
+    OT_ASSERT(server_);
+
+    server_->Init();
 }
 
 void OT::Init_Storage()
@@ -748,6 +793,13 @@ void OT::Init_ZMQ()
     zeromq_.reset(new class ZMQ(*config));
 }
 
+void OT::Join()
+{
+    while (nullptr != instance_pointer_) {
+        Log::Sleep(std::chrono::milliseconds(250));
+    }
+}
+
 void OT::Periodic()
 {
     while (!shutdown_.load()) {
@@ -811,6 +863,39 @@ void OT::Schedule(
     periodic_task_list.push_back(TaskItem{last, interval, task});
 }
 
+const class Server& OT::Server() const
+{
+    OT_ASSERT(server_);
+
+    return *server_;
+}
+
+void OT::ServerFactory(
+    const std::map<std::string, std::string>& serverArgs,
+    const std::chrono::seconds gcInterval,
+    const std::string& storagePlugin,
+    const std::string& backupDirectory)
+{
+    assert(nullptr == instance_pointer_);
+
+    instance_pointer_ = new OT(
+        false,
+        "",
+        "",
+        true,
+        gcInterval,
+        storagePlugin,
+        backupDirectory,
+        "",
+        serverArgs);
+
+    assert(nullptr != instance_pointer_);
+
+    instance_pointer_->Init();
+}
+
+bool OT::ServerMode() const { return server_mode_; }
+
 void OT::set_storage_encryption()
 {
     OT_ASSERT(api_);
@@ -847,7 +932,7 @@ void OT::set_storage_encryption()
     wallet->SaveWallet();
 }
 
-void OT::Shutdown()
+void OT::shutdown()
 {
     shutdown_.store(true);
 
@@ -855,10 +940,15 @@ void OT::Shutdown()
         periodic_->join();
     }
 
+    if (server_) {
+        server_->Cleanup();
+    }
+
     if (api_) {
         api_->Cleanup();
     }
 
+    server_.reset();
     api_.reset();
     blockchain_.reset();
     activity_.reset();
@@ -891,6 +981,12 @@ void OT::start()
     contacts_->start();
     activity_->MigrateLegacyThreads();
     Init_Periodic();
+
+    if (server_mode_) {
+        OT_ASSERT(server_);
+
+        server_->Start();
+    }
 }
 
 class ZMQ& OT::ZMQ() const

@@ -42,6 +42,7 @@
 
 #include "opentxs/api/Activity.hpp"
 #include "opentxs/api/OT.hpp"
+#include "opentxs/api/Server.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
@@ -73,8 +74,6 @@
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/ext/OTPayment.hpp"
-#include "opentxs/server/OTServer.hpp"      // TODO remove this
-#include "opentxs/server/ServerLoader.hpp"  // TODO remove this
 
 #include <irrxml/irrXML.hpp>
 #include <sodium/crypto_box.h>
@@ -1031,13 +1030,11 @@ bool Nym::LoadNymFromString(
     irr::io::IrrXMLReader* xml = irr::io::createIrrXMLReader(strNymXML);
     OT_ASSERT(nullptr != xml);
     std::unique_ptr<irr::io::IrrXMLReader> theCleanup(xml);
-
-    auto server = ServerLoader::getServer();
-    const bool serverMode = (nullptr != server);
-    Identifier serverID;
+    const auto serverMode = OT::App().ServerMode();
+    Identifier serverID{};
 
     if (serverMode) {
-        serverID = server->GetServerNym().ID();
+        serverID = OT::App().Server().ID();
     }
 
     // parse the file until end reached

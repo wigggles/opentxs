@@ -1,23 +1,11 @@
-# Copyright (c) Monetas AG, 2014
+set(MODULE_NAME opentxs-util)
 
 set(cxx-sources
-  ConfigLoader.cpp
-  MainFile.cpp
-  MessageProcessor.cpp
-  Notary.cpp
-  OTServer.cpp
-  PayDividendVisitor.cpp
-  ReplyMessage.cpp
-  ServerSettings.cpp
-  Transactor.cpp
-  UserCommandProcessor.cpp
+  Signals.cpp
 )
 
-file(GLOB cxx-headers "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/server/*.hpp")
+file(GLOB cxx-headers "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/util/*.hpp")
 
-include_directories(SYSTEM ${CZMQ_INCLUDE_DIRS})
-
-set(MODULE_NAME opentxs-server)
 if(WIN32)
   configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/windll.rc.in

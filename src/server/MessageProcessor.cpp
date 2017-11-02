@@ -48,7 +48,6 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/network/ZMQ.hpp"
 #include "opentxs/server/OTServer.hpp"
-#include "opentxs/server/ServerLoader.hpp"
 #include "opentxs/server/UserCommandProcessor.hpp"
 
 #include <stddef.h>
@@ -61,24 +60,32 @@
 namespace opentxs
 {
 
-MessageProcessor::MessageProcessor(ServerLoader& loader)
-    : server_(loader.getServer())
+MessageProcessor::MessageProcessor(
+    OTServer& server,
+    std::atomic<bool>& shutdown)
+    : server_(server)
+    , shutdown_(shutdown)
     , zmqSocket_(zsock_new_rep(NULL))
     , zmqAuth_(zactor_new(zauth, NULL))
     , zmqPoller_(zpoller_new(zmqSocket_, NULL))
+    , thread_(nullptr)
 {
-    init(loader.getPort(), loader.getTransportKey());
 }
 
-MessageProcessor::~MessageProcessor()
+void MessageProcessor::Cleanup()
 {
+    if (thread_) {
+        thread_->join();
+        thread_.reset();
+    }
+
     zpoller_remove(zmqPoller_, zmqSocket_);
     zpoller_destroy(&zmqPoller_);
     zactor_destroy(&zmqAuth_);
     zsock_destroy(&zmqSocket_);
 }
 
-void MessageProcessor::init(int port, zcert_t* transportKey)
+void MessageProcessor::Init(int port, zcert_t* transportKey)
 {
     if (port == 0) {
         OT_FAIL;
@@ -98,11 +105,13 @@ void MessageProcessor::init(int port, zcert_t* transportKey)
 
 void MessageProcessor::run()
 {
-    for (;;) {
+    while (false == shutdown_.load()) {
         // timeout is the time left until the next cron should execute.
-        int64_t timeout = server_->computeTimeout();
+        const auto timeout = server_.computeTimeout();
+
         if (timeout <= 0) {
-            server_->ProcessCron();
+            server_.ProcessCron();
+
             continue;
         }
 
@@ -110,16 +119,20 @@ void MessageProcessor::run()
         // i.e. stop polling in time for the next cron execution.
         if (zpoller_wait(zmqPoller_, timeout)) {
             processSocket();
+
             continue;
         }
+
         if (zpoller_terminated(zmqPoller_)) {
             otErr << __FUNCTION__
                   << ": zpoller_terminated - process interrupted or"
                   << " parent context destroyed\n";
-            break;
+            shutdown_.store(true);
+
+            continue;
         }
 
-        if (!zpoller_expired(zmqPoller_)) {
+        if (false == zpoller_expired(zmqPoller_)) {
             otErr << __FUNCTION__ << ": zpoller_wait error\n";
         }
 
@@ -188,7 +201,7 @@ bool MessageProcessor::processMessage(
 
     Message repy{};
     const bool processed =
-        server_->userCommandProcessor_.ProcessUserCommand(request, repy);
+        server_.userCommandProcessor_.ProcessUserCommand(request, repy);
 
     if (false == processed) {
         otWarn << OT_METHOD << __FUNCTION__
@@ -224,4 +237,12 @@ bool MessageProcessor::processMessage(
     return false;
 }
 
+void MessageProcessor::Start()
+{
+    if (false == bool(thread_)) {
+        thread_.reset(new std::thread(&MessageProcessor::run, this));
+    }
+}
+
+MessageProcessor::~MessageProcessor() {}
 }  // namespace opentxs
