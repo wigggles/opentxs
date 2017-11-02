@@ -39,9 +39,8 @@
 #ifndef OPENTXS_STORAGE_STORAGEFSARCHIVE_HPP
 #define OPENTXS_STORAGE_STORAGEFSARCHIVE_HPP
 
-#include "opentxs/storage/StoragePlugin.hpp"
+#include "opentxs/storage/drivers/StorageFS.hpp"
 
-#include <atomic>
 #include <memory>
 
 namespace opentxs
@@ -51,43 +50,31 @@ class Storage;
 class StorageConfig;
 class SymmetricKey;
 
-class StorageFSArchive : public StoragePlugin_impl, public virtual StorageDriver
+class StorageFSArchive : public StorageFS, public virtual StorageDriver
 {
 private:
-    typedef StoragePlugin_impl ot_super;
+    typedef StorageFS ot_super;
 
 public:
-    void Cleanup() override;
     bool EmptyBucket(const bool bucket) const override;
-    bool LoadFromBucket(
-        const std::string& key,
-        std::string& value,
-        const bool bucket) const override;
-    std::string LoadRoot() const override;
-    bool StoreRoot(const std::string& hash) const override;
+
+    void Cleanup() override;
 
     ~StorageFSArchive();
 
 private:
     friend class Storage;
 
-    const std::string folder_{};
-    const std::string path_seperator_{};
     const std::unique_ptr<SymmetricKey> encryption_key_;
     const bool encrypted_{false};
-    std::atomic<bool> ready_{false};
 
-    std::string calculate_path(const std::string& key) const;
-    std::string decrypt(const std::string&& ciphertext) const;
-    std::string encrypt(const std::string& plaintext) const;
-    std::string read_file(const std::string& filename) const;
-    void store(
+    std::string calculate_path(
         const std::string& key,
-        const std::string& value,
         const bool bucket,
-        std::promise<bool>* promise) const override;
-    bool write_file(const std::string& filename, const std::string& contents)
-        const;
+        std::string& directory) const override;
+    std::string prepare_read(const std::string& ciphertext) const override;
+    std::string prepare_write(const std::string& plaintext) const override;
+    std::string root_filename() const override;
 
     void Init_StorageFSArchive();
     void Cleanup_StorageFSArchive();

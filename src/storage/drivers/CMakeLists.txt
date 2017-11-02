@@ -5,6 +5,7 @@ if (OT_STORAGE_SQLITE)
 endif()
 
 set(cxx-sources
+  StorageFS.cpp
   StorageFSGC.cpp
   StorageFSArchive.cpp
   StorageSqlite3.cpp

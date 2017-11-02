@@ -39,7 +39,7 @@
 #ifndef OPENTXS_STORAGE_STORAGEFSGC_HPP
 #define OPENTXS_STORAGE_STORAGEFSGC_HPP
 
-#include "opentxs/storage/StoragePlugin.hpp"
+#include "opentxs/storage/drivers/StorageFS.hpp"
 
 namespace opentxs
 {
@@ -48,20 +48,12 @@ class Storage;
 class StorageConfig;
 
 // Simple filesystem implementation of opentxs::storage
-class StorageFSGC : public StoragePlugin_impl, public virtual StorageDriver
+class StorageFSGC : public StorageFS, public virtual StorageDriver
 {
 private:
-    typedef StoragePlugin_impl ot_super;
+    typedef StorageFS ot_super;
 
 public:
-    std::string LoadRoot() const override;
-    bool StoreRoot(const std::string& hash) const override;
-
-    bool LoadFromBucket(
-        const std::string& key,
-        std::string& value,
-        const bool bucket) const override;
-
     bool EmptyBucket(const bool bucket) const override;
 
     void Cleanup() override;
@@ -71,22 +63,16 @@ public:
 private:
     friend class Storage;
 
-    std::string folder_;
-
-    std::string GetBucketName(const bool bucket) const;
-
-    void Init_StorageFSGC();
-    void Purge(const std::string& path) const;
-    std::string read_file(const std::string& filename) const;
-    void store(
+    std::string bucket_name(const bool bucket) const;
+    std::string calculate_path(
         const std::string& key,
-        const std::string& value,
         const bool bucket,
-        std::promise<bool>* promise) const override;
-    bool write_file(const std::string& filename, const std::string& contents)
-        const;
+        std::string& directory) const override;
+    void purge(const std::string& path) const;
+    std::string root_filename() const override;
 
     void Cleanup_StorageFSGC();
+    void Init_StorageFSGC();
 
     StorageFSGC(
         const StorageConfig& config,

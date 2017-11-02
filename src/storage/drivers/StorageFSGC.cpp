@@ -43,40 +43,40 @@
 #include "opentxs/storage/StorageConfig.hpp"
 
 #include <boost/filesystem.hpp>
-#include <boost/iostreams/device/file_descriptor.hpp>
-#include <boost/iostreams/stream.hpp>
 
-#include <cstdio>
-#include <fstream>
-#include <ios>
-#include <iostream>
-#include <thread>
-#include <vector>
-
-#if defined(__APPLE__)
-extern "C" {
-#include <fcntl.h>
-}
-#endif
-
-extern "C" {
-#include <unistd.h>
-}
-
-#define OT_METHOD "opentxs::StorageFSGC::"
+//#define OT_METHOD "opentxs::StorageFSGC::"
 
 namespace opentxs
 {
-
 StorageFSGC::StorageFSGC(
     const StorageConfig& config,
     const Digest& hash,
     const Random& random,
     std::atomic<bool>& bucket)
-    : ot_super(config, hash, random, bucket)
-    , folder_(config.path_)
+    : ot_super(config, hash, random, config.path_, bucket)
 {
     Init_StorageFSGC();
+}
+
+std::string StorageFSGC::bucket_name(const bool bucket) const
+{
+    return bucket ? config_.fs_secondary_bucket_ : config_.fs_primary_bucket_;
+}
+
+std::string StorageFSGC::calculate_path(
+    const std::string& key,
+    const bool bucket,
+    std::string& directory) const
+{
+    directory = folder_ + path_seperator_ + bucket_name(bucket);
+
+    return directory + path_seperator_ + key;
+}
+
+void StorageFSGC::Cleanup()
+{
+    Cleanup_StorageFSGC();
+    ot_super::Cleanup();
 }
 
 void StorageFSGC::Cleanup_StorageFSGC()
@@ -84,72 +84,35 @@ void StorageFSGC::Cleanup_StorageFSGC()
     // future cleanup actions go here
 }
 
-void StorageFSGC::Cleanup() { Cleanup_StorageFSGC(); }
-
 bool StorageFSGC::EmptyBucket(const bool bucket) const
 {
     assert(random_);
 
-    std::string oldDirectory = folder_ + "/" + GetBucketName(bucket);
+    std::string oldDirectory{};
+    calculate_path("", bucket, oldDirectory);
     std::string random = random_();
-    std::string newName = folder_ + "/" + random;
+    std::string newName = folder_ + path_seperator_ + random;
 
     if (0 != std::rename(oldDirectory.c_str(), newName.c_str())) {
         return false;
     }
 
-    std::thread backgroundDelete(&StorageFSGC::Purge, this, newName);
+    std::thread backgroundDelete(&StorageFSGC::purge, this, newName);
     backgroundDelete.detach();
 
     return boost::filesystem::create_directory(oldDirectory);
 }
 
-std::string StorageFSGC::GetBucketName(const bool bucket) const
-{
-    return bucket ? config_.fs_secondary_bucket_ : config_.fs_primary_bucket_;
-}
-
 void StorageFSGC::Init_StorageFSGC()
 {
     boost::filesystem::create_directory(
-        folder_ + "/" + config_.fs_primary_bucket_);
+        folder_ + path_seperator_ + config_.fs_primary_bucket_);
     boost::filesystem::create_directory(
-        folder_ + "/" + config_.fs_secondary_bucket_);
+        folder_ + path_seperator_ + config_.fs_secondary_bucket_);
+    ready_.store(true);
 }
 
-bool StorageFSGC::LoadFromBucket(
-    const std::string& key,
-    std::string& value,
-    const bool bucket) const
-{
-    std::string folder = folder_ + "/" + GetBucketName(bucket);
-    std::string filename = folder + "/" + key;
-
-    if (false == boost::filesystem::exists(filename)) {
-        return false;
-    }
-
-    if (false == folder_.empty()) {
-        value = read_file(filename);
-
-        return (false == value.empty());
-    }
-
-    return false;
-}
-
-std::string StorageFSGC::LoadRoot() const
-{
-    if (false == folder_.empty()) {
-        std::string filename = folder_ + "/" + config_.fs_root_file_;
-
-        return read_file(filename);
-    }
-
-    return "";
-}
-
-void StorageFSGC::Purge(const std::string& path) const
+void StorageFSGC::purge(const std::string& path) const
 {
     if (path.empty()) {
         return;
@@ -158,103 +121,12 @@ void StorageFSGC::Purge(const std::string& path) const
     boost::filesystem::remove_all(path);
 }
 
-std::string StorageFSGC::read_file(const std::string& filename) const
+std::string StorageFSGC::root_filename() const
 {
-    if (false == boost::filesystem::exists(filename)) {
-
-        return {};
-    }
-
-    std::ifstream file(
-        filename, std::ios::in | std::ios::ate | std::ios::binary);
-
-    if (file.good()) {
-        std::ifstream::pos_type pos = file.tellg();
-
-        if ((0 >= pos) || (0xFFFFFFFF <= pos)) {
-            return {};
-        }
-
-        std::uint32_t size(pos);
-        file.seekg(0, std::ios::beg);
-        std::vector<char> bytes(size);
-        file.read(&bytes[0], size);
-
-        return std::string(&bytes[0], size);
-    }
-
-    return {};
-}
-
-void StorageFSGC::store(
-    const std::string& key,
-    const std::string& value,
-    const bool bucket,
-    std::promise<bool>* promise) const
-{
-    OT_ASSERT(nullptr != promise);
-
-    std::string folder = folder_ + "/" + GetBucketName(bucket);
-    std::string filename = folder + "/" + key;
-
-    if (false == folder_.empty()) {
-        promise->set_value(write_file(filename, value));
-    } else {
-        promise->set_value(false);
-    }
-}
-
-bool StorageFSGC::StoreRoot(const std::string& hash) const
-{
-    if (false == folder_.empty()) {
-        std::string filename = folder_ + "/" + config_.fs_root_file_;
-
-        return write_file(filename, hash);
-    }
-
-    return false;
-}
-
-bool StorageFSGC::write_file(
-    const std::string& filename,
-    const std::string& contents) const
-{
-    if (false == filename.empty()) {
-        boost::filesystem::path filePath(filename);
-        boost::iostreams::stream<boost::iostreams::file_descriptor_sink> file(
-            filePath);
-
-        if (file.good()) {
-            file.write(contents.c_str(), contents.size());
-
-#ifdef F_FULLFSYNC
-            // This is a Mac OS X system which does not implement
-            // fdatasync as such.
-            const auto synced = fcntl(file->handle(), F_FULLFSYNC);
-#else
-            const auto synced = ::fdatasync(file->handle());
-#endif
-            if (0 != synced) {
-                otErr << OT_METHOD << __FUNCTION__
-                      << ": Failed to flush file buffer." << std::endl;
-            }
-
-            file.close();
-
-            return true;
-        } else {
-            otErr << OT_METHOD << __FUNCTION__ << ": Failed to write file."
-                  << std::endl;
-        }
-    } else {
-        otErr << OT_METHOD << __FUNCTION__
-              << ": Failed to write empty filename." << std::endl;
-    }
-
-    return false;
+    return folder_ + path_seperator_ + config_.fs_root_file_;
 }
 
 StorageFSGC::~StorageFSGC() { Cleanup_StorageFSGC(); }
-
 }  // namespace opentxs
+
 #endif

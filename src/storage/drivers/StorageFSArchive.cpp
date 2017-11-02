@@ -85,43 +85,62 @@ StorageFSArchive::StorageFSArchive(
     std::atomic<bool>& bucket,
     const std::string& folder,
     std::unique_ptr<SymmetricKey>& key)
-    : ot_super(config, hash, random, bucket)
-    , folder_(folder)
-    , path_seperator_("/")
+    : ot_super(config, hash, random, folder, bucket)
     , encryption_key_(key.release())
     , encrypted_(bool(encryption_key_))
-    , ready_(false)
 {
     Init_StorageFSArchive();
 }
 
-std::string StorageFSArchive::calculate_path(const std::string& key) const
+std::string StorageFSArchive::calculate_path(
+    const std::string& key,
+    const bool,
+    std::string& directory) const
 {
-    std::string folder(folder_);
+    directory = folder_;
 
     if (4 < key.size()) {
-        folder += path_seperator_;
-        folder += key.substr(0, 4);
+        directory += path_seperator_;
+        directory += key.substr(0, 4);
     }
 
     if (8 < key.size()) {
-        folder += path_seperator_;
-        folder += key.substr(4, 4);
+        directory += path_seperator_;
+        directory += key.substr(4, 4);
     }
 
-    boost::filesystem::create_directories(folder);
+    boost::filesystem::create_directories(directory);
 
-    return {folder + path_seperator_ + key};
+    return {directory + path_seperator_ + key};
 }
 
-void StorageFSArchive::Cleanup() { Cleanup_StorageFSArchive(); }
+void StorageFSArchive::Cleanup()
+{
+    Cleanup_StorageFSArchive();
+    ot_super::Cleanup();
+}
 
 void StorageFSArchive::Cleanup_StorageFSArchive()
 {
     // future cleanup actions go here
 }
 
-std::string StorageFSArchive::decrypt(const std::string&& input) const
+bool StorageFSArchive::EmptyBucket(const bool) const { return true; }
+
+void StorageFSArchive::Init_StorageFSArchive()
+{
+    OT_ASSERT(false == folder_.empty());
+
+    try {
+        boost::filesystem::create_directory(folder_);
+    } catch (boost::filesystem::filesystem_error&) {
+        return;
+    }
+
+    ready_.store(true);
+}
+
+std::string StorageFSArchive::prepare_read(const std::string& input) const
 {
     if (false == encrypted_) {
 
@@ -143,9 +162,7 @@ std::string StorageFSArchive::decrypt(const std::string&& input) const
     return output;
 }
 
-bool StorageFSArchive::EmptyBucket(const bool) const { return true; }
-
-std::string StorageFSArchive::encrypt(const std::string& plaintext) const
+std::string StorageFSArchive::prepare_write(const std::string& plaintext) const
 {
     if (false == encrypted_) {
 
@@ -168,138 +185,10 @@ std::string StorageFSArchive::encrypt(const std::string& plaintext) const
     return proto::ProtoAsString(ciphertext);
 }
 
-void StorageFSArchive::Init_StorageFSArchive()
+std::string StorageFSArchive::root_filename() const
 {
-    OT_ASSERT(false == folder_.empty());
-
-    try {
-        boost::filesystem::create_directory(folder_);
-    } catch (boost::filesystem::filesystem_error&) {
-        return;
-    }
-
-    ready_.store(true);
-}
-
-bool StorageFSArchive::LoadFromBucket(
-    const std::string& key,
-    std::string& value,
-    const bool) const
-{
-    value.clear();
-
-    if (ready_.load() && (false == folder_.empty())) {
-        value = read_file(calculate_path(key));
-    }
-
-    return (false == value.empty());
-}
-
-std::string StorageFSArchive::LoadRoot() const
-{
-    if (ready_.load() && (false == folder_.empty())) {
-        std::string filename = folder_ + path_seperator_ +
-                               config_.fs_root_file_ + ROOT_FILE_EXTENSION;
-
-        return read_file(filename);
-    }
-
-    return "";
-}
-
-std::string StorageFSArchive::read_file(const std::string& filename) const
-{
-    if (false == boost::filesystem::exists(filename)) {
-        return {};
-    }
-
-    std::ifstream file(
-        filename, std::ios::in | std::ios::ate | std::ios::binary);
-
-    if (file.good()) {
-        std::ifstream::pos_type pos = file.tellg();
-
-        if ((0 >= pos) || (0xFFFFFFFF <= pos)) {
-            return {};
-        }
-
-        std::uint32_t size(pos);
-        file.seekg(0, std::ios::beg);
-        std::vector<char> bytes(size);
-        file.read(&bytes[0], size);
-
-        return decrypt(std::string(&bytes[0], size));
-    }
-
-    return {};
-}
-
-void StorageFSArchive::store(
-    const std::string& key,
-    const std::string& value,
-    const bool,
-    std::promise<bool>* promise) const
-{
-    OT_ASSERT(nullptr != promise);
-
-    if (ready_.load() && false == folder_.empty()) {
-        promise->set_value(write_file(calculate_path(key), value));
-    } else {
-        promise->set_value(false);
-    }
-}
-
-bool StorageFSArchive::StoreRoot(const std::string& hash) const
-{
-    if (ready_.load() && (false == folder_.empty())) {
-        const std::string filename = folder_ + path_seperator_ +
-                                     config_.fs_root_file_ +
-                                     ROOT_FILE_EXTENSION;
-
-        return write_file(filename, hash);
-    }
-
-    return false;
-}
-
-bool StorageFSArchive::write_file(
-    const std::string& filename,
-    const std::string& contents) const
-{
-    if (false == filename.empty()) {
-        boost::filesystem::path filePath(filename);
-        boost::iostreams::stream<boost::iostreams::file_descriptor_sink> file(
-            filePath);
-        const std::string data = encrypt(contents);
-
-        if (file.good()) {
-            file.write(data.c_str(), data.size());
-
-#ifdef F_FULLFSYNC
-            // This is a Mac OS X system which does not implement
-            // fdatasync as such.
-            const auto synced = fcntl(file->handle(), F_FULLFSYNC);
-#else
-            const auto synced = ::fdatasync(file->handle());
-#endif
-            if (0 != synced) {
-                otErr << OT_METHOD << __FUNCTION__
-                      << ": Failed to flush file buffer." << std::endl;
-            }
-
-            file.close();
-
-            return true;
-        } else {
-            otErr << OT_METHOD << __FUNCTION__ << ": Failed to write file."
-                  << std::endl;
-        }
-    } else {
-        otErr << OT_METHOD << __FUNCTION__
-              << ": Failed to write empty filename." << std::endl;
-    }
-
-    return false;
+    return folder_ + path_seperator_ + config_.fs_root_file_ +
+           ROOT_FILE_EXTENSION;
 }
 
 StorageFSArchive::~StorageFSArchive() { Cleanup_StorageFSArchive(); }
