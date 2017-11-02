@@ -43,8 +43,6 @@
 #include "opentxs/storage/StorageConfig.hpp"
 
 #include <boost/filesystem.hpp>
-#include <boost/iostreams/device/file_descriptor.hpp>
-#include <boost/iostreams/stream.hpp>
 
 #include <cstdio>
 #include <fstream>
@@ -54,11 +52,8 @@
 #include <vector>
 
 extern "C" {
-#if defined(__APPLE__)
 #include <fcntl.h>
-#else
 #include <unistd.h>
-#endif
 }
 
 #define PATH_SEPERATOR "/"
@@ -172,8 +167,9 @@ void StorageFS::store(
     OT_ASSERT(nullptr != promise);
 
     if (ready_.load() && false == folder_.empty()) {
-        std::string dir{};
-        promise->set_value(write_file(calculate_path(key, bucket, dir), value));
+        std::string directory{};
+        const auto filename = calculate_path(key, bucket, directory);
+        promise->set_value(write_file(directory, filename, value));
     } else {
         promise->set_value(false);
     }
@@ -183,35 +179,91 @@ bool StorageFS::StoreRoot(const std::string& hash) const
 {
     if (ready_.load() && false == folder_.empty()) {
 
-        return write_file(root_filename(), hash);
+        return write_file(folder_, root_filename(), hash);
     }
 
     return false;
 }
 
+bool StorageFS::sync(const std::string& path) const
+{
+    class FileDescriptor
+    {
+    public:
+        FileDescriptor(const std::string& path)
+            : fd_(::open(path.c_str(), O_DIRECTORY | O_RDONLY))
+        {
+        }
+
+        operator bool() const { return good(); }
+        operator int() const { return fd_; }
+
+        ~FileDescriptor()
+        {
+            if (good()) {
+                ::close(fd_);
+            }
+        }
+
+    private:
+        int fd_{-1};
+
+        bool good() const { return (-1 != fd_); }
+
+        FileDescriptor() = delete;
+        FileDescriptor(const FileDescriptor&) = delete;
+        FileDescriptor(FileDescriptor&&) = delete;
+        FileDescriptor& operator=(const FileDescriptor&) = delete;
+        FileDescriptor& operator=(FileDescriptor&&) = delete;
+    };
+
+    FileDescriptor fd(path);
+
+    if (!fd) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to open " << path
+              << std::endl;
+
+        return false;
+    }
+
+    return sync(fd);
+}
+
+bool StorageFS::sync(File& file) const { return sync(file->handle()); }
+
+bool StorageFS::sync(int fd) const
+{
+#if defined(__APPLE__)
+    // This is a Mac OS X system which does not implement
+    // fsync as such.
+    return 0 == ::fcntl(fd, F_FULLFSYNC);
+#else
+    return 0 == ::fsync(fd);
+#endif
+}
+
 bool StorageFS::write_file(
+    const std::string& directory,
     const std::string& filename,
     const std::string& contents) const
 {
     if (false == filename.empty()) {
         boost::filesystem::path filePath(filename);
-        boost::iostreams::stream<boost::iostreams::file_descriptor_sink> file(
-            filePath);
+        File file(filePath);
         const auto data = prepare_write(contents);
 
         if (file.good()) {
             file.write(data.c_str(), data.size());
 
-#ifdef F_FULLFSYNC
-            // This is a Mac OS X system which does not implement
-            // fdatasync as such.
-            const auto synced = fcntl(file->handle(), F_FULLFSYNC);
-#else
-            const auto synced = ::fdatasync(file->handle());
-#endif
-            if (0 != synced) {
+            if (false == sync(file)) {
+                otErr << OT_METHOD << __FUNCTION__ << ": Failed to sync file "
+                      << filename << std::endl;
+            }
+
+            if (false == sync(directory)) {
                 otErr << OT_METHOD << __FUNCTION__
-                      << ": Failed to flush file buffer." << std::endl;
+                      << ": Failed to sync directory " << directory
+                      << std::endl;
             }
 
             file.close();

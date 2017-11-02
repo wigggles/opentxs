@@ -41,6 +41,9 @@
 
 #include "opentxs/storage/StoragePlugin.hpp"
 
+#include <boost/iostreams/device/file_descriptor.hpp>
+#include <boost/iostreams/stream.hpp>
+
 #include <atomic>
 
 namespace opentxs
@@ -71,9 +74,7 @@ protected:
     const std::string path_seperator_{};
     std::atomic<bool> ready_{false};
 
-    std::string read_file(const std::string& filename) const;
-    bool write_file(const std::string& filename, const std::string& contents)
-        const;
+    bool sync(const std::string& path) const;
 
     StorageFS(
         const StorageConfig& config,
@@ -83,18 +84,28 @@ protected:
         std::atomic<bool>& bucket);
 
 private:
+    typedef boost::iostreams::stream<boost::iostreams::file_descriptor_sink>
+        File;
+
     virtual std::string calculate_path(
         const std::string& key,
         const bool bucket,
         std::string& directory) const = 0;
     virtual std::string prepare_read(const std::string& input) const;
     virtual std::string prepare_write(const std::string& input) const;
+    std::string read_file(const std::string& filename) const;
     virtual std::string root_filename() const = 0;
     void store(
         const std::string& key,
         const std::string& value,
         const bool bucket,
         std::promise<bool>* promise) const override;
+    bool sync(File& file) const;
+    bool sync(int fd) const;
+    bool write_file(
+        const std::string& directory,
+        const std::string& filename,
+        const std::string& contents) const;
 
     void Cleanup_StorageFS();
     void Init_StorageFS();

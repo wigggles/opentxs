@@ -98,10 +98,13 @@ std::string StorageFSArchive::calculate_path(
     std::string& directory) const
 {
     directory = folder_;
+    auto& level1 = folder_;
+    std::string level2{};
 
     if (4 < key.size()) {
         directory += path_seperator_;
         directory += key.substr(0, 4);
+        level2 = directory;
     }
 
     if (8 < key.size()) {
@@ -110,6 +113,18 @@ std::string StorageFSArchive::calculate_path(
     }
 
     boost::filesystem::create_directories(directory);
+
+    if (8 < key.size()) {
+        if (false == sync(level2)) {
+            otErr << OT_METHOD << __FUNCTION__ << ": Unable to sync directory"
+                  << level2 << std::endl;
+        }
+    }
+
+    if (false == sync(level1)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Unable to sync directory"
+              << level1 << std::endl;
+    }
 
     return {directory + path_seperator_ + key};
 }
