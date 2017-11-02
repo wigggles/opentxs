@@ -41,13 +41,14 @@
 
 // IWYU pragma: begin_exports
 extern "C" {
-    #ifndef __STDC_VERSION__
-    #define __STDC_VERSION__ 0
-    #endif
-    #ifndef _ZMALLOC_PEDANTIC
-    #define _ZMALLOC_PEDANTIC 0
-    #endif
-    #include <czmq.h>
+#ifndef __STDC_VERSION__
+#define __STDC_VERSION__ 0
+#endif
+#ifndef _ZMALLOC_PEDANTIC
+#define _ZMALLOC_PEDANTIC 0
+#endif
+
+#include <czmq.h>
 }
 // IWYU pragma: end_exports
 
@@ -87,7 +88,8 @@ private:
 
     std::string socks_proxy_;
 
-    std::map<std::string,std::unique_ptr<ServerConnection>> server_connections_;
+    std::map<std::string, std::unique_ptr<ServerConnection>>
+        server_connections_;
 
     void Init();
 
@@ -113,4 +115,4 @@ public:
     ~ZMQ();
 };
 }  // namespace opentxs
-#endif // OPENTXS_NETWORK_ZMQ_HPP
+#endif  // OPENTXS_NETWORK_ZMQ_HPP

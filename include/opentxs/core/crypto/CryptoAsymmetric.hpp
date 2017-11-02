@@ -60,14 +60,13 @@ class CryptoAsymmetric
 {
 
 public:
-
     static proto::AsymmetricKeyType CurveToKeyType(const EcdsaCurve& curve);
     static EcdsaCurve KeyTypeToCurve(const proto::AsymmetricKeyType& type);
 
     bool SignContract(
         const String& strContractUnsigned,
         const OTAsymmetricKey& theKey,
-        OTSignature& theSignature, // output
+        OTSignature& theSignature,  // output
         const proto::HashType hashType,
         const OTPasswordData* pPWData = nullptr) const;
     virtual bool VerifyContractSignature(
@@ -81,7 +80,7 @@ public:
         const Data& plaintext,
         const OTAsymmetricKey& theKey,
         const proto::HashType hashType,
-        Data& signature, // output
+        Data& signature,  // output
         const OTPasswordData* pPWData = nullptr,
         const OTPassword* exportPassword = nullptr) const = 0;
     virtual bool Verify(
@@ -90,8 +89,10 @@ public:
         const Data& signature,
         const proto::HashType hashType,
         const OTPasswordData* pPWData = nullptr) const = 0;
+
+    virtual ~CryptoAsymmetric() = default;
 };
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CORE_CRYPTO_CRYPTOASYMMETRIC_HPP
+#endif  // OPENTXS_CORE_CRYPTO_CRYPTOASYMMETRIC_HPP
