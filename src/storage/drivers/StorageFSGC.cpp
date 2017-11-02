@@ -38,7 +38,7 @@
 #if OT_STORAGE_FS
 #include "opentxs/core/stdafx.hpp"
 
-#include "opentxs/storage/drivers/StorageFS.hpp"
+#include "opentxs/storage/drivers/StorageFSGC.hpp"
 
 #include "opentxs/storage/StorageConfig.hpp"
 
@@ -63,12 +63,12 @@ extern "C" {
 #include <unistd.h>
 }
 
-#define OT_METHOD "opentxs::StorageFS::"
+#define OT_METHOD "opentxs::StorageFSGC::"
 
 namespace opentxs
 {
 
-StorageFS::StorageFS(
+StorageFSGC::StorageFSGC(
     const StorageConfig& config,
     const Digest& hash,
     const Random& random,
@@ -76,17 +76,17 @@ StorageFS::StorageFS(
     : ot_super(config, hash, random, bucket)
     , folder_(config.path_)
 {
-    Init_StorageFS();
+    Init_StorageFSGC();
 }
 
-void StorageFS::Cleanup_StorageFS()
+void StorageFSGC::Cleanup_StorageFSGC()
 {
     // future cleanup actions go here
 }
 
-void StorageFS::Cleanup() { Cleanup_StorageFS(); }
+void StorageFSGC::Cleanup() { Cleanup_StorageFSGC(); }
 
-bool StorageFS::EmptyBucket(const bool bucket) const
+bool StorageFSGC::EmptyBucket(const bool bucket) const
 {
     assert(random_);
 
@@ -98,18 +98,18 @@ bool StorageFS::EmptyBucket(const bool bucket) const
         return false;
     }
 
-    std::thread backgroundDelete(&StorageFS::Purge, this, newName);
+    std::thread backgroundDelete(&StorageFSGC::Purge, this, newName);
     backgroundDelete.detach();
 
     return boost::filesystem::create_directory(oldDirectory);
 }
 
-std::string StorageFS::GetBucketName(const bool bucket) const
+std::string StorageFSGC::GetBucketName(const bool bucket) const
 {
     return bucket ? config_.fs_secondary_bucket_ : config_.fs_primary_bucket_;
 }
 
-void StorageFS::Init_StorageFS()
+void StorageFSGC::Init_StorageFSGC()
 {
     boost::filesystem::create_directory(
         folder_ + "/" + config_.fs_primary_bucket_);
@@ -117,7 +117,7 @@ void StorageFS::Init_StorageFS()
         folder_ + "/" + config_.fs_secondary_bucket_);
 }
 
-bool StorageFS::LoadFromBucket(
+bool StorageFSGC::LoadFromBucket(
     const std::string& key,
     std::string& value,
     const bool bucket) const
@@ -138,7 +138,7 @@ bool StorageFS::LoadFromBucket(
     return false;
 }
 
-std::string StorageFS::LoadRoot() const
+std::string StorageFSGC::LoadRoot() const
 {
     if (false == folder_.empty()) {
         std::string filename = folder_ + "/" + config_.fs_root_file_;
@@ -149,7 +149,7 @@ std::string StorageFS::LoadRoot() const
     return "";
 }
 
-void StorageFS::Purge(const std::string& path) const
+void StorageFSGC::Purge(const std::string& path) const
 {
     if (path.empty()) {
         return;
@@ -158,7 +158,7 @@ void StorageFS::Purge(const std::string& path) const
     boost::filesystem::remove_all(path);
 }
 
-std::string StorageFS::read_file(const std::string& filename) const
+std::string StorageFSGC::read_file(const std::string& filename) const
 {
     if (false == boost::filesystem::exists(filename)) {
 
@@ -186,7 +186,7 @@ std::string StorageFS::read_file(const std::string& filename) const
     return {};
 }
 
-void StorageFS::store(
+void StorageFSGC::store(
     const std::string& key,
     const std::string& value,
     const bool bucket,
@@ -204,7 +204,7 @@ void StorageFS::store(
     }
 }
 
-bool StorageFS::StoreRoot(const std::string& hash) const
+bool StorageFSGC::StoreRoot(const std::string& hash) const
 {
     if (false == folder_.empty()) {
         std::string filename = folder_ + "/" + config_.fs_root_file_;
@@ -215,7 +215,7 @@ bool StorageFS::StoreRoot(const std::string& hash) const
     return false;
 }
 
-bool StorageFS::write_file(
+bool StorageFSGC::write_file(
     const std::string& filename,
     const std::string& contents) const
 {
@@ -254,7 +254,7 @@ bool StorageFS::write_file(
     return false;
 }
 
-StorageFS::~StorageFS() { Cleanup_StorageFS(); }
+StorageFSGC::~StorageFSGC() { Cleanup_StorageFSGC(); }
 
 }  // namespace opentxs
 #endif

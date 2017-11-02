@@ -36,8 +36,8 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_STORAGE_STORAGEFS_HPP
-#define OPENTXS_STORAGE_STORAGEFS_HPP
+#ifndef OPENTXS_STORAGE_STORAGEFSGC_HPP
+#define OPENTXS_STORAGE_STORAGEFSGC_HPP
 
 #include "opentxs/storage/StoragePlugin.hpp"
 
@@ -48,8 +48,7 @@ class Storage;
 class StorageConfig;
 
 // Simple filesystem implementation of opentxs::storage
-class StorageFS : public virtual StoragePlugin_impl,
-                  public virtual StorageDriver
+class StorageFSGC : public StoragePlugin_impl, public virtual StorageDriver
 {
 private:
     typedef StoragePlugin_impl ot_super;
@@ -67,7 +66,7 @@ public:
 
     void Cleanup() override;
 
-    ~StorageFS();
+    ~StorageFSGC();
 
 private:
     friend class Storage;
@@ -76,7 +75,7 @@ private:
 
     std::string GetBucketName(const bool bucket) const;
 
-    void Init_StorageFS();
+    void Init_StorageFSGC();
     void Purge(const std::string& path) const;
     std::string read_file(const std::string& filename) const;
     void store(
@@ -87,19 +86,19 @@ private:
     bool write_file(const std::string& filename, const std::string& contents)
         const;
 
-    void Cleanup_StorageFS();
+    void Cleanup_StorageFSGC();
 
-    StorageFS(
+    StorageFSGC(
         const StorageConfig& config,
         const Digest& hash,
         const Random& random,
         std::atomic<bool>& bucket);
-    StorageFS() = delete;
-    StorageFS(const StorageFS&) = delete;
-    StorageFS(StorageFS&&) = delete;
-    StorageFS& operator=(const StorageFS&) = delete;
-    StorageFS& operator=(StorageFS&&) = delete;
+    StorageFSGC() = delete;
+    StorageFSGC(const StorageFSGC&) = delete;
+    StorageFSGC(StorageFSGC&&) = delete;
+    StorageFSGC& operator=(const StorageFSGC&) = delete;
+    StorageFSGC& operator=(StorageFSGC&&) = delete;
 };
 
 }  // namespace opentxs
-#endif  // OPENTXS_STORAGE_STORAGEFS_HPP
+#endif  // OPENTXS_STORAGE_STORAGEFSGC_HPP

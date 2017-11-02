@@ -51,8 +51,7 @@ class Storage;
 class StorageConfig;
 class SymmetricKey;
 
-class StorageFSArchive : public virtual StoragePlugin_impl,
-                         public virtual StorageDriver
+class StorageFSArchive : public StoragePlugin_impl, public virtual StorageDriver
 {
 private:
     typedef StoragePlugin_impl ot_super;
