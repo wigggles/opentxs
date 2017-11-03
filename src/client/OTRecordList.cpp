@@ -431,7 +431,7 @@ void OTRecordList::SetInstrumentDefinitionID(std::string str_id)
 
 void OTRecordList::AddInstrumentDefinitionID(std::string str_id)
 {
-    OTWallet* pWallet = SwigWrap::OTAPI()->GetWallet(
+    OTWallet* pWallet = OT::App().API().OTAPI().GetWallet(
         __FUNCTION__);  // This logs and ASSERTs already.
     OT_ASSERT_MSG(
         nullptr != pWallet, "Wallet was nullptr. Should never happen.");
@@ -559,7 +559,7 @@ typedef std::map<int32_t, OTPayment*> mapOfPayments;
 
 bool OTRecordList::PerformAutoAccept()
 {
-    OTWallet* pWallet = SwigWrap::OTAPI()->GetWallet(
+    OTWallet* pWallet = OT::App().API().OTAPI().GetWallet(
         __FUNCTION__);  // This logs and ASSERTs already.
     if (nullptr == pWallet) {
         otErr << "OTRecordList::" << __FUNCTION__
@@ -580,7 +580,7 @@ bool OTRecordList::PerformAutoAccept()
             const std::string& str_nym_id(it_nym);
             const Identifier theNymID(str_nym_id);
             const String strNymID(theNymID);
-            Nym* pNym = SwigWrap::OTAPI()->GetNym(theNymID);
+            Nym* pNym = OT::App().API().OTAPI().GetNym(theNymID);
             if (nullptr == pNym) continue;
             // LOOP SERVERS
             //
@@ -618,9 +618,9 @@ bool OTRecordList::PerformAutoAccept()
                 //
                 Ledger* pInbox =
                     m_bRunFast
-                        ? SwigWrap::OTAPI()->LoadPaymentInboxNoVerify(
+                        ? OT::App().API().OTAPI().LoadPaymentInboxNoVerify(
                               theNotaryID, theNymID)
-                        : SwigWrap::OTAPI()->LoadPaymentInbox(
+                        : OT::App().API().OTAPI().LoadPaymentInbox(
                               theNotaryID, theNymID);
                 std::unique_ptr<Ledger> theInboxAngel(pInbox);
 
@@ -1011,9 +1011,9 @@ bool OTRecordList::PerformAutoAccept()
             // Populating.
             //
             Ledger* pInbox = m_bRunFast
-                                 ? SwigWrap::OTAPI()->LoadInboxNoVerify(
+                                 ? OT::App().API().OTAPI().LoadInboxNoVerify(
                                        theNotaryID, theNymID, theAccountID)
-                                 : SwigWrap::OTAPI()->LoadInbox(
+                                 : OT::App().API().OTAPI().LoadInbox(
                                        theNotaryID, theNymID, theAccountID);
             std::unique_ptr<Ledger> theInboxAngel(pInbox);
             if (nullptr == pInbox) {
@@ -1176,12 +1176,12 @@ bool OTRecordList::Populate()
     // Loop through all the accounts.
     //
     // From Open-Transactions.h:
-    // SwigWrap::OTAPI()->GetServerCount()
+    // OT::App().API().OTAPI().GetServerCount()
     //
     // From OTAPI.h:
     // SwigWrap::GetServerCount()  // wraps the above call.
     //
-    OTWallet* pWallet = SwigWrap::OTAPI()->GetWallet(
+    OTWallet* pWallet = OT::App().API().OTAPI().GetWallet(
         __FUNCTION__);  // This logs and ASSERTs already.
     if (nullptr == pWallet) {
         otErr << "OTRecordList::" << __FUNCTION__
@@ -1204,7 +1204,7 @@ bool OTRecordList::Populate()
         const std::string& str_nym_id(it_nym);
         const Identifier theNymID(str_nym_id);
         const String strNymID(theNymID);
-        Nym* pNym = SwigWrap::OTAPI()->GetNym(theNymID);
+        Nym* pNym = OT::App().API().OTAPI().GetNym(theNymID);
         if (nullptr == pNym) continue;
         // For each Nym, loop through his OUTPAYMENTS box.
         //
@@ -1789,11 +1789,12 @@ bool OTRecordList::Populate()
             // will, however, work
             // either way.
             //
-            Ledger* pInbox = m_bRunFast
-                                 ? SwigWrap::OTAPI()->LoadPaymentInboxNoVerify(
-                                       theNotaryID, theNymID)
-                                 : SwigWrap::OTAPI()->LoadPaymentInbox(
-                                       theNotaryID, theNymID);
+            Ledger* pInbox =
+                m_bRunFast
+                    ? OT::App().API().OTAPI().LoadPaymentInboxNoVerify(
+                          theNotaryID, theNymID)
+                    : OT::App().API().OTAPI().LoadPaymentInbox(
+                          theNotaryID, theNymID);
             std::unique_ptr<Ledger> theInboxAngel(pInbox);
 
             int32_t nIndex = (-1);
@@ -2115,9 +2116,9 @@ bool OTRecordList::Populate()
             // OPTIMIZE FYI: m_bRunFast impacts run speed here.
             Ledger* pRecordbox =
                 m_bRunFast
-                    ? SwigWrap::OTAPI()->LoadRecordBoxNoVerify(
+                    ? OT::App().API().OTAPI().LoadRecordBoxNoVerify(
                           theNotaryID, theNymID, theNymID)  // twice.
-                    : SwigWrap::OTAPI()->LoadRecordBox(
+                    : OT::App().API().OTAPI().LoadRecordBox(
                           theNotaryID, theNymID, theNymID);
             std::unique_ptr<Ledger> theRecordBoxAngel(pRecordbox);
 
@@ -2725,9 +2726,10 @@ bool OTRecordList::Populate()
             // OPTIMIZE FYI: m_bRunFast impacts run speed here.
             Ledger* pExpiredbox =
                 m_bRunFast
-                    ? SwigWrap::OTAPI()->LoadExpiredBoxNoVerify(
+                    ? OT::App().API().OTAPI().LoadExpiredBoxNoVerify(
                           theNotaryID, theNymID)
-                    : SwigWrap::OTAPI()->LoadExpiredBox(theNotaryID, theNymID);
+                    : OT::App().API().OTAPI().LoadExpiredBox(
+                          theNotaryID, theNymID);
             std::unique_ptr<Ledger> theExpiredBoxAngel(pExpiredbox);
 
             // It loaded up, so let's loop through it.
@@ -3376,9 +3378,9 @@ bool OTRecordList::Populate()
         // Populating.
         //
         Ledger* pInbox = m_bRunFast
-                             ? SwigWrap::OTAPI()->LoadInboxNoVerify(
+                             ? OT::App().API().OTAPI().LoadInboxNoVerify(
                                    theNotaryID, theNymID, theAccountID)
-                             : SwigWrap::OTAPI()->LoadInbox(
+                             : OT::App().API().OTAPI().LoadInbox(
                                    theNotaryID, theNymID, theAccountID);
         std::unique_ptr<Ledger> theInboxAngel(pInbox);
 
@@ -3664,9 +3666,9 @@ bool OTRecordList::Populate()
         // Populate.
         //
         Ledger* pOutbox = m_bRunFast
-                              ? SwigWrap::OTAPI()->LoadOutboxNoVerify(
+                              ? OT::App().API().OTAPI().LoadOutboxNoVerify(
                                     theNotaryID, theNymID, theAccountID)
-                              : SwigWrap::OTAPI()->LoadOutbox(
+                              : OT::App().API().OTAPI().LoadOutbox(
                                     theNotaryID, theNymID, theAccountID);
         std::unique_ptr<Ledger> theOutboxAngel(pOutbox);
 
@@ -3857,11 +3859,12 @@ bool OTRecordList::Populate()
         // return for FASTER PERFORMANCE, then call SetFastMode() before
         // Populating.
         //
-        Ledger* pRecordbox = m_bRunFast
-                                 ? SwigWrap::OTAPI()->LoadRecordBoxNoVerify(
-                                       theNotaryID, theNymID, theAccountID)
-                                 : SwigWrap::OTAPI()->LoadRecordBox(
-                                       theNotaryID, theNymID, theAccountID);
+        Ledger* pRecordbox =
+            m_bRunFast
+                ? OT::App().API().OTAPI().LoadRecordBoxNoVerify(
+                      theNotaryID, theNymID, theAccountID)
+                : OT::App().API().OTAPI().LoadRecordBox(
+                      theNotaryID, theNymID, theAccountID);
         std::unique_ptr<Ledger> theRecordBoxAngel(pRecordbox);
 
         // It loaded up, so let's loop through it.
