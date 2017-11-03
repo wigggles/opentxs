@@ -53,26 +53,19 @@
 namespace opentxs
 {
 
-class OTAPI_Exec;
-class OT_API;
-
 class SwigWrap
 {
-
 private:
     static std::string comma(const std::list<std::string>& list);
     static std::string comma(const ObjectList& list);
     static std::string comma(const std::set<Identifier>& list);
 
 public:
-    EXPORT static OTAPI_Exec* Exec();
-    EXPORT static OT_API* OTAPI();
+    EXPORT static std::int64_t StringToLong(const std::string& strNumber);
+    EXPORT static std::string LongToString(const std::int64_t& lNumber);
 
-    EXPORT static int64_t StringToLong(const std::string& strNumber);
-    EXPORT static std::string LongToString(const int64_t& lNumber);
-
-    EXPORT static uint64_t StringToUlong(const std::string& strNumber);
-    EXPORT static std::string UlongToString(const uint64_t& lNumber);
+    EXPORT static std::uint64_t StringToUlong(const std::string& strNumber);
+    EXPORT static std::string UlongToString(const std::uint64_t& lNumber);
 
     EXPORT static bool IsValidID(const std::string& strPurportedID);
 
@@ -207,7 +200,7 @@ public:
     EXPORT static std::string GetConfig_str(
         const std::string& strSection,
         const std::string& strKey);
-    EXPORT static int64_t GetConfig_long(
+    EXPORT static std::int64_t GetConfig_long(
         const std::string& strSection,
         const std::string& strKey);
     EXPORT static bool GetConfig_bool(
@@ -221,7 +214,7 @@ public:
     EXPORT static bool SetConfig_long(
         const std::string& strSection,
         const std::string& strKey,
-        const int64_t& lValue);
+        const std::int64_t& lValue);
     EXPORT static bool SetConfig_bool(
         const std::string& strSection,
         const std::string& strKey,
@@ -253,7 +246,8 @@ public:
 
     // OTNumList is a class that encapsulates working with a comma-separated
     // list
-    // of int64_t integers, stored in a std::set and easily serializable in/out
+    // of std::int64_t integers, stored in a std::set and easily serializable
+    // in/out
     // of a string.
     // (It's useful.)
     //
@@ -547,7 +541,7 @@ public:
         const std::string& NOTARY_ID);
     EXPORT static std::string GetActiveCronItem(
         const std::string& NOTARY_ID,
-        int64_t lTransNum);
+        std::int64_t lTransNum);
 
     EXPORT static std::string GetNym_SourceForID(const std::string& NYM_ID);
     EXPORT static std::string GetNym_Description(const std::string& NYM_ID);
@@ -600,7 +594,7 @@ public:
         const std::string& name,
         const std::string& symbol,
         const std::string& tla,
-        const uint32_t power,
+        const std::uint32_t power,
         const std::string& fraction);
 
     // Use these below functions to get the new contract ITSELF, using its ID
@@ -752,21 +746,21 @@ public:
      */
     EXPORT static std::string FormatAmount(
         const std::string& INSTRUMENT_DEFINITION_ID,
-        const int64_t& THE_AMOUNT);
+        const std::int64_t& THE_AMOUNT);
 
     EXPORT static std::string FormatAmountWithoutSymbol(
         const std::string& INSTRUMENT_DEFINITION_ID,
-        const int64_t& THE_AMOUNT);
+        const std::int64_t& THE_AMOUNT);
 
     EXPORT static std::string FormatAmountLocale(
         const std::string& INSTRUMENT_DEFINITION_ID,
-        const int64_t& THE_AMOUNT,
+        const std::int64_t& THE_AMOUNT,
         const std::string& THOUSANDS_SEP,
         const std::string& DECIMAL_POINT);
 
     EXPORT static std::string FormatAmountWithoutSymbolLocale(
         const std::string& INSTRUMENT_DEFINITION_ID,
-        const int64_t& THE_AMOUNT,
+        const std::int64_t& THE_AMOUNT,
         const std::string& THOUSANDS_SEP,
         const std::string& DECIMAL_POINT);
 
@@ -782,11 +776,11 @@ public:
      // Returns amount from formatted string, based on currency contract and
      locale.
      */
-    EXPORT static int64_t StringToAmount(
+    EXPORT static std::int64_t StringToAmount(
         const std::string& INSTRUMENT_DEFINITION_ID,
         const std::string& str_input);
 
-    EXPORT static int64_t StringToAmountLocale(
+    EXPORT static std::int64_t StringToAmountLocale(
         const std::string& INSTRUMENT_DEFINITION_ID,
         const std::string& str_input,
         const std::string& THOUSANDS_SEP,
@@ -827,7 +821,7 @@ public:
     EXPORT static std::string GetAccountWallet_Name(
         const std::string& ACCOUNT_ID);  // returns the account name, based on
                                          // account ID.
-    EXPORT static int64_t GetAccountWallet_Balance(
+    EXPORT static std::int64_t GetAccountWallet_Balance(
         const std::string& ACCOUNT_ID);  // returns the account balance, based
                                          // on
                                          // account ID.
@@ -1188,7 +1182,7 @@ public:
 
     theCheque.IssueCheque( AMOUNT // The amount of the cheque, in string form,
     which OTAPI
-    // will convert to a int64_t integer. Negative amounts
+    // will convert to a std::int64_t integer. Negative amounts
     // allowed, since that is how OT implements invoices.
     // (An invoice is just a cheque with a negative amount.)
 
@@ -1207,7 +1201,7 @@ public:
     */
     EXPORT static std::string WriteCheque(
         const std::string& NOTARY_ID,
-        const int64_t& CHEQUE_AMOUNT,
+        const std::int64_t& CHEQUE_AMOUNT,
         const time64_t& VALID_FROM,
         const time64_t& VALID_TO,
         const std::string& SENDER_ACCT_ID,
@@ -1295,7 +1289,8 @@ public:
 
     ----------------------------------------------------------------------------------------
     (Optional initial payment):
-    bool    OTPaymentPlan::SetInitialPayment(const int64_t& lAmount, time64_t
+    bool    OTPaymentPlan::SetInitialPayment(const std::int64_t& lAmount,
+    time64_t
     tTimeUntilInitialPayment=0); // default: now.
     ----------------------------------------------------------------------------------------
 
@@ -1304,7 +1299,7 @@ public:
 
     ----------------------------------------------------------------------------------------
     (Optional regular payments):
-    bool    OTPaymentPlan::SetPaymentPlan(const int64_t& lPaymentAmount,
+    bool    OTPaymentPlan::SetPaymentPlan(const std::int64_t& lPaymentAmount,
                 time64_t tTimeUntilPlanStart  =OT_TIME_MONTH_IN_SECONDS, //
     Default: 1st payment in 30 days
                 time64_t tBetweenPayments     =OT_TIME_MONTH_IN_SECONDS, //
@@ -1327,13 +1322,15 @@ public:
         const std::string& RECIPIENT_ACCT_ID,   // NOT optional.
         const std::string& RECIPIENT_NYM_ID,  // Both sender and recipient must
                                               // sign before submitting.
-        const int64_t& INITIAL_PAYMENT_AMOUNT,  // zero or nullptr == no initial
-                                                // payment.
-        const time64_t& INITIAL_PAYMENT_DELAY,  // seconds from creation date.
-                                                // Default is zero or nullptr.
-        const int64_t& PAYMENT_PLAN_AMOUNT,     // Zero or nullptr == no regular
-                                                // payments.
-        const time64_t& PAYMENT_PLAN_DELAY,     // No. of seconds from creation
+        const std::int64_t& INITIAL_PAYMENT_AMOUNT,  // zero or nullptr == no
+                                                     // initial
+                                                     // payment.
+        const time64_t& INITIAL_PAYMENT_DELAY,    // seconds from creation date.
+                                                  // Default is zero or nullptr.
+        const std::int64_t& PAYMENT_PLAN_AMOUNT,  // Zero or nullptr == no
+                                                  // regular
+                                                  // payments.
+        const time64_t& PAYMENT_PLAN_DELAY,  // No. of seconds from creation
         // date. Default is zero or nullptr.
         // (Causing 30 days.)
         const time64_t& PAYMENT_PLAN_PERIOD,  // No. of seconds between
@@ -1516,9 +1513,10 @@ public:
         const std::string& VAR_ACCESS,  // "constant", "persistent", or
                                         // "important".
         const std::string& VAR_TYPE,    // "string", "int64_t", or "bool"
-        const std::string& VAR_VALUE  // Contains a string. If type is int64_t,
+        const std::string& VAR_VALUE    // Contains a string. If type is
+                                        // std::int64_t,
         // atol() will be used to convert value to
-        // a int64_t. If type is bool, the strings
+        // a std::int64_t. If type is bool, the strings
         // "true" or "false" are expected here in
         // order to convert to a bool.
         );
@@ -1870,7 +1868,7 @@ public:
     EXPORT static int32_t triggerClause(
         const std::string& NOTARY_ID,
         const std::string& NYM_ID,
-        const int64_t& TRANSACTION_NUMBER,
+        const std::int64_t& TRANSACTION_NUMBER,
         const std::string& CLAUSE_NAME,
         const std::string& STR_PARAM);
 
@@ -2056,7 +2054,7 @@ public:
     /** ----------------------------------------------------
     // GET BASKET MINIMUM TRANSFER AMOUNT
     //
-    // Returns a int64_t containing the minimum transfer
+    // Returns a std::int64_t containing the minimum transfer
     // amount for the entire basket.
     //
     // FOR EXAMPLE:
@@ -2064,13 +2062,13 @@ public:
     // then the minimum transfer amount for the basket is 10. This function
     // would return a string containing "10", in that example.
     */
-    EXPORT static int64_t Basket_GetMinimumTransferAmount(
+    EXPORT static std::int64_t Basket_GetMinimumTransferAmount(
         const std::string& BASKET_INSTRUMENT_DEFINITION_ID);
 
     /** ----------------------------------------------------
     // GET BASKET MEMBER's MINIMUM TRANSFER AMOUNT
     //
-    // Returns a int64_t containing the minimum transfer
+    // Returns a std::int64_t containing the minimum transfer
     // amount for one of the member currencies in the basket.
     //
     // FOR EXAMPLE:
@@ -2080,7 +2078,7 @@ public:
     // index 1 is 5, and the minimum transfer amount for the member
     // currency at index 2 is 8.
     */
-    EXPORT static int64_t Basket_GetMemberMinimumTransferAmount(
+    EXPORT static std::int64_t Basket_GetMemberMinimumTransferAmount(
         const std::string& BASKET_INSTRUMENT_DEFINITION_ID,
         const int32_t& nIndex);
 
@@ -2220,9 +2218,9 @@ public:
         const std::string& NYM_ID,
         const std::string& ACCOUNT_ID,
         const std::string& THE_LEDGER,
-        const int64_t& TRANSACTION_NUMBER);  // returns transaction by ID.
+        const std::int64_t& TRANSACTION_NUMBER);  // returns transaction by ID.
 
-    EXPORT static int64_t Ledger_GetTransactionIDByIndex(
+    EXPORT static std::int64_t Ledger_GetTransactionIDByIndex(
         const std::string& NOTARY_ID,
         const std::string& NYM_ID,
         const std::string& ACCOUNT_ID,
@@ -2335,7 +2333,7 @@ public:
         const std::string& NYM_ID,
         const std::string& ACCOUNT_ID,
         const std::string& THE_LEDGER,
-        const int64_t& lReceiptId);
+        const std::int64_t& lReceiptId);
 
     // NOTE: If an instrument is already expired when this function is called,
     // it will be moved
@@ -2369,7 +2367,7 @@ public:
     //! Used for calling HaveAlreadySeenReply() in order to see if we've already
     //! processed the reply for that message.
     //
-    EXPORT static int64_t ReplyNotice_GetRequestNum(
+    EXPORT static std::int64_t ReplyNotice_GetRequestNum(
         const std::string& NOTARY_ID,
         const std::string& NYM_ID,
         const std::string& THE_TRANSACTION);
@@ -2455,7 +2453,7 @@ public:
         const std::string& ACCOUNT_ID,
         const std::string& THE_TRANSACTION);
 
-    EXPORT static int64_t Transaction_GetAmount(
+    EXPORT static std::int64_t Transaction_GetAmount(
         const std::string& NOTARY_ID,
         const std::string& NYM_ID,
         const std::string& ACCOUNT_ID,
@@ -2508,7 +2506,7 @@ public:
     // this function queries a pending transaction to see what transaction
     // it is "in reference to."
     */
-    EXPORT static int64_t Transaction_GetDisplayReferenceToNum(
+    EXPORT static std::int64_t Transaction_GetDisplayReferenceToNum(
         const std::string& NOTARY_ID,
         const std::string& NYM_ID,
         const std::string& ACCOUNT_ID,
@@ -2580,7 +2578,7 @@ public:
     //
     //! Returns the purported sum of all the tokens within.
     //
-    EXPORT static int64_t Purse_GetTotalValue(
+    EXPORT static std::int64_t Purse_GetTotalValue(
         const std::string& NOTARY_ID,
         const std::string& INSTRUMENT_DEFINITION_ID,
         const std::string& THE_PURSE);
@@ -2769,9 +2767,9 @@ public:
         const std::string& INSTRUMENT_DEFINITION_ID,
         const std::string& THE_TOKEN);
 
-    //! The actual cash value of the token. Returns a int64_t.
+    //! The actual cash value of the token. Returns a std::int64_t.
     //
-    EXPORT static int64_t Token_GetDenomination(
+    EXPORT static std::int64_t Token_GetDenomination(
         const std::string& NOTARY_ID,
         const std::string& INSTRUMENT_DEFINITION_ID,
         const std::string& THE_TOKEN);
@@ -2814,8 +2812,9 @@ public:
     // to handle any of those types.
     //
     */
-    EXPORT static int64_t Instrmnt_GetAmount(const std::string& THE_INSTRUMENT);
-    EXPORT static int64_t Instrmnt_GetTransNum(
+    EXPORT static std::int64_t Instrmnt_GetAmount(
+        const std::string& THE_INSTRUMENT);
+    EXPORT static std::int64_t Instrmnt_GetTransNum(
         const std::string& THE_INSTRUMENT);
     EXPORT static time64_t Instrmnt_GetValidFrom(
         const std::string& THE_INSTRUMENT);
@@ -3010,7 +3009,7 @@ public:
     balance of
     the usage credits for the second nym_id. You may also adjust this balance
     up or
-    down (+ or - any int64_t value in string format). If you do, the server
+    down (+ or - any std::int64_t value in string format). If you do, the server
     reply will
     contain the updated usage credits, AFTER the adjustment.
 
@@ -3045,16 +3044,17 @@ public:
         const std::string& NOTARY_ID,
         const std::string& NYM_ID,
         const std::string& NYM_ID_CHECK,
-        const int64_t& ADJUSTMENT);
+        const std::int64_t& ADJUSTMENT);
 
     /** IF THE_MESSAGE is of command type usageCreditsResponse, and IF it was a
     SUCCESS,
-    // then this function returns the usage credits BALANCE (it's a int64_t, but
+    // then this function returns the usage credits BALANCE (it's a
+    std::int64_t, but
     // passed as a string). If you adjusted the balance using the usageCredits
     // command (THE_MESSAGE being the server's reply to that) then you will see
     // the balance AFTER the adjustment. (The current "Usage Credits" balance.)
     */
-    EXPORT static int64_t Message_GetUsageCredits(
+    EXPORT static std::int64_t Message_GetUsageCredits(
         const std::string& THE_MESSAGE);
 
     /**
@@ -3408,7 +3408,7 @@ public:
         const std::string& name,
         const std::string& symbol,
         const std::string& terms,
-        const uint64_t weight);
+        const std::uint64_t weight);
 
     /** ----------------------------------------------------
     // ADD BASKET CREATION ITEM
@@ -3423,7 +3423,7 @@ public:
     EXPORT static std::string AddBasketCreationItem(
         const std::string& basketTemplate,
         const std::string& currencyID,
-        const uint64_t& weight);
+        const std::uint64_t& weight);
 
     /**
     --------------------------------------------------------------------------
@@ -3573,7 +3573,7 @@ public:
         const std::string& NOTARY_ID,
         const std::string& NYM_ID,
         const std::string& ACCT_ID,
-        const int64_t& AMOUNT);
+        const std::int64_t& AMOUNT);
 
     /**
     --------------------------------------------------------------------------
@@ -3623,7 +3623,7 @@ public:
         const std::string& NYM_ID,
         const std::string& ACCT_FROM,
         const std::string& ACCT_TO,
-        const int64_t& AMOUNT,
+        const std::int64_t& AMOUNT,
         const std::string& NOTE);
 
     // from server (pop message buf for the response)
@@ -3670,8 +3670,9 @@ public:
     EXPORT static std::string Nymbox_GetReplyNotice(
         const std::string& NOTARY_ID,
         const std::string& NYM_ID,
-        const int64_t& REQUEST_NUMBER);  // returns replyNotice transaction by
-                                         // requestNumber.
+        const std::int64_t& REQUEST_NUMBER);  // returns replyNotice transaction
+                                              // by
+                                              // requestNumber.
 
     /** If the client-side has ALREADY seen the server's reply to a specific
     // request number, he stores that number in a list which can be queried
@@ -3709,7 +3710,7 @@ public:
     EXPORT static bool HaveAlreadySeenReply(
         const std::string& NOTARY_ID,
         const std::string& NYM_ID,
-        const int64_t& REQUEST_NUMBER);  // returns OT_BOOL
+        const std::int64_t& REQUEST_NUMBER);  // returns OT_BOOL
 
     /** The Nymbox/Inbox/Outbox only contain abbreviated receipts, with a hash
     for zero-knowledge
@@ -3740,7 +3741,7 @@ public:
         const std::string& ACCOUNT_ID,  // If for Nymbox (vs inbox/outbox) then
                                         // pass NYM_ID in this field also.
         const int32_t& nBoxType,        // 0/nymbox, 1/inbox, 2/outbox
-        const int64_t& TRANSACTION_NUMBER);
+        const std::int64_t& TRANSACTION_NUMBER);
 
     //
     EXPORT static bool DoesBoxReceiptExist(
@@ -3750,7 +3751,7 @@ public:
         const std::string& ACCOUNT_ID,  // If for Nymbox (vs inbox/outbox) then
                                         // pass NYM_ID in this field also.
         const int32_t& nBoxType,        // 0/nymbox, 1/inbox, 2/outbox
-        const int64_t& TRANSACTION_NUMBER);
+        const std::int64_t& TRANSACTION_NUMBER);
 
     /**
     PROCESS INBOX
@@ -3827,7 +3828,7 @@ public:
         const std::string& ACCT_ID,
         const std::string& RECIPIENT_NYM_ID,
         const std::string& CHEQUE_MEMO,
-        const int64_t& AMOUNT);
+        const std::int64_t& AMOUNT);
 
     //! PAY DIVIDEND -- to shareholders
     //
@@ -3842,12 +3843,13 @@ public:
                                                              // for pepsi
         // shares, then this is the
         // pepsi shares instrument definition id.
-        const std::string& DIVIDEND_MEMO,  // user-configurable note that's
-                                           // added
-                                           // to the payout request message.
-        const int64_t& AMOUNT_PER_SHARE  // number of dollars to be paid out PER
-                                         // SHARE (multiplied by total number of
-                                         // shares issued.)
+        const std::string& DIVIDEND_MEMO,     // user-configurable note that's
+                                              // added
+                                              // to the payout request message.
+        const std::int64_t& AMOUNT_PER_SHARE  // number of dollars to be paid
+                                              // out PER
+        // SHARE (multiplied by total number of
+        // shares issued.)
         );
 
     /**
@@ -3910,25 +3912,28 @@ public:
         const std::string& ASSET_ACCT_ID,  // Perhaps this is the wheat market.
         const std::string& CURRENCY_ACCT_ID,  // Perhaps I'm buying the wheat
                                               // with rubles.
-        const int64_t& MARKET_SCALE,       // Defaults to minimum of 1. Market
+        const std::int64_t& MARKET_SCALE,  // Defaults to minimum of 1. Market
                                            // granularity.
-        const int64_t& MINIMUM_INCREMENT,  // This will be multiplied by the
-                                           // Scale. Min 1.
-        const int64_t& TOTAL_ASSETS_ON_OFFER,  // Total assets available for
-                                               // sale
+        const std::int64_t& MINIMUM_INCREMENT,  // This will be multiplied by
+                                                // the
+                                                // Scale. Min 1.
+        const std::int64_t& TOTAL_ASSETS_ON_OFFER,  // Total assets available
+                                                    // for
+                                                    // sale
         // or purchase. Will be multiplied
         // by minimum increment.
-        const int64_t& PRICE_LIMIT,    // Per Minimum Increment...
-        const bool& bBuyingOrSelling,  // SELLING == true, BUYING == false.
+        const std::int64_t& PRICE_LIMIT,  // Per Minimum Increment...
+        const bool& bBuyingOrSelling,     // SELLING == true, BUYING == false.
         const time64_t& LIFESPAN_IN_SECONDS,  // Pass 0 for the default
                                               // behavior:
                                               // 86400 seconds aka 1 day.
         const std::string& STOP_SIGN,  // Must be "" (for market/limit orders)
                                        // or
                                        // "<" or ">"  (for stop orders.)
-        const int64_t& ACTIVATION_PRICE);  // Must be provided if STOP_SIGN is
-                                           // also set. Determines the price
-                                           // threshold for stop orders.
+        const std::int64_t& ACTIVATION_PRICE);  // Must be provided if STOP_SIGN
+                                                // is
+    // also set. Determines the price
+    // threshold for stop orders.
 
     /**
 
@@ -3988,7 +3993,7 @@ public:
         const std::string& NOTARY_ID,
         const std::string& NYM_ID,
         const std::string& MARKET_ID,
-        const int64_t& MAX_DEPTH  // Market Depth
+        const std::int64_t& MAX_DEPTH  // Market Depth
         );
 
     //! Gets all recent trades (up until maximum depth)
@@ -4032,7 +4037,7 @@ public:
         const std::string& NOTARY_ID,
         const std::string& NYM_ID,
         const std::string& ASSET_ACCT_ID,
-        const int64_t& TRANSACTION_NUMBER);
+        const std::int64_t& TRANSACTION_NUMBER);
 
     // Returns int32_t:
     // -1 means error; no message was sent.
@@ -4046,7 +4051,7 @@ public:
         const std::string& NOTARY_ID,
         const std::string& NYM_ID,
         const std::string& FROM_ACCT_ID,
-        const int64_t& TRANSACTION_NUMBER);
+        const std::int64_t& TRANSACTION_NUMBER);
 
     EXPORT static int32_t requestAdmin(
         const std::string& NOTARY_ID,
@@ -4092,7 +4097,7 @@ public:
     // necessary -- only discarding the ones where the IDs match.
     */
     EXPORT static std::string PopMessageBuffer(
-        const int64_t& REQUEST_NUMBER,
+        const std::int64_t& REQUEST_NUMBER,
         const std::string& NOTARY_ID,
         const std::string& NYM_ID);
 
@@ -4101,12 +4106,12 @@ public:
     // Outgoing:
 
     EXPORT static std::string GetSentMessage(
-        const int64_t& REQUEST_NUMBER,
+        const std::int64_t& REQUEST_NUMBER,
         const std::string& NOTARY_ID,
         const std::string& NYM_ID);
 
     EXPORT static bool RemoveSentMessage(
-        const int64_t& REQUEST_NUMBER,
+        const std::int64_t& REQUEST_NUMBER,
         const std::string& NOTARY_ID,
         const std::string& NYM_ID);
 
@@ -4180,7 +4185,7 @@ public:
     function.
 
     */
-    EXPORT static void Sleep(const int64_t& MILLISECONDS);
+    EXPORT static void Sleep(const std::int64_t& MILLISECONDS);
 
     /* For emergency/testing use only. This call forces you to trust the server.
     You should never need to call this for any normal use, and hopefully

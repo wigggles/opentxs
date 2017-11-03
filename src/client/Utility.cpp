@@ -40,6 +40,7 @@
 
 #include "opentxs/client/Utility.hpp"
 
+#include "opentxs/api/Api.hpp"
 #include "opentxs/api/OT.hpp"
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/client/OT_ME.hpp"
@@ -1740,12 +1741,12 @@ bool Utility::insureHaveAllBoxReceipts(
 
     if (0 == nBoxType) {
         pLedger.reset(
-            SwigWrap::OTAPI()->LoadNymboxNoVerify(theNotaryID, theNymID));
+            OT::App().API().OTAPI().LoadNymboxNoVerify(theNotaryID, theNymID));
     } else if (1 == nBoxType) {
-        pLedger.reset(SwigWrap::OTAPI()->LoadInboxNoVerify(
+        pLedger.reset(OT::App().API().OTAPI().LoadInboxNoVerify(
             theNotaryID, theNymID, theAccountID));
     } else if (2 == nBoxType) {
-        pLedger.reset(SwigWrap::OTAPI()->LoadOutboxNoVerify(
+        pLedger.reset(OT::App().API().OTAPI().LoadOutboxNoVerify(
             theNotaryID, theNymID, theAccountID));
     } else {
         otOut << strLocation << ": Error. Expected nBoxType of 0,1,2 (nymbox, "
@@ -1801,14 +1802,14 @@ bool Utility::insureHaveAllBoxReceipts(
 
         const bool bShouldDownload =
             (!bIsReplyNotice || (bIsReplyNotice && (0 < lRequestNum) &&
-                                 !SwigWrap::OTAPI()->HaveAlreadySeenReply(
+                                 !OT::App().API().OTAPI().HaveAlreadySeenReply(
                                      theNotaryID, theNymID, lRequestNum)));
 
         // This block executes if we should download it (assuming we
         // haven't already, which it also checks for.)
         //
         if (bShouldDownload) {
-            bool bHaveBoxReceipt = SwigWrap::OTAPI()->DoesBoxReceiptExist(
+            bool bHaveBoxReceipt = OT::App().API().OTAPI().DoesBoxReceiptExist(
                 theNotaryID, theNymID, theAccountID, nBoxType, lTransactionNum);
             if (!bHaveBoxReceipt) {
                 otWarn << strLocation

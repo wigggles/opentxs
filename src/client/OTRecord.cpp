@@ -817,7 +817,7 @@ bool OTRecord::DeleteRecord() const
                                        // (see above.)
 
     Ledger* pRecordbox =
-        SwigWrap::OTAPI()->LoadRecordBox(theNotaryID, theNymID, theAcctID);
+        OT::App().API().OTAPI().LoadRecordBox(theNotaryID, theNymID, theAcctID);
     std::unique_ptr<Ledger> theRecordBoxAngel(pRecordbox);
     if (nullptr == pRecordbox) {
         otErr << __FUNCTION__ << ": Failed loading record box for server ID ("
@@ -885,8 +885,8 @@ bool OTRecord::AcceptIncomingTransferOrReceipt() const
                 theNymID(m_str_nym_id), theAcctID(m_str_account_id);
 
             // Open the Nym's asset account inbox.
-            Ledger* pInbox =
-                SwigWrap::OTAPI()->LoadInbox(theNotaryID, theNymID, theAcctID);
+            Ledger* pInbox = OT::App().API().OTAPI().LoadInbox(
+                theNotaryID, theNymID, theAcctID);
             std::unique_ptr<Ledger> theInboxAngel(pInbox);
             if (nullptr == pInbox) {
                 otErr << __FUNCTION__
@@ -955,7 +955,7 @@ bool OTRecord::AcceptIncomingInstrument(const std::string& str_into_acct) const
 
             // Open the Nym's payments inbox.
             Ledger* pInbox =
-                SwigWrap::OTAPI()->LoadPaymentInbox(theNotaryID, theNymID);
+                OT::App().API().OTAPI().LoadPaymentInbox(theNotaryID, theNymID);
             std::unique_ptr<Ledger> theInboxAngel(pInbox);
             if (nullptr == pInbox) {
                 otErr << __FUNCTION__
@@ -1061,7 +1061,7 @@ bool OTRecord::DiscardIncoming() const
 
             // Open the Nym's payments inbox.
             Ledger* pInbox =
-                SwigWrap::OTAPI()->LoadPaymentInbox(theNotaryID, theNymID);
+                OT::App().API().OTAPI().LoadPaymentInbox(theNotaryID, theNymID);
             std::unique_ptr<Ledger> theInboxAngel(pInbox);
             if (nullptr == pInbox) {
                 otErr << __FUNCTION__
