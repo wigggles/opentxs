@@ -61,6 +61,7 @@ namespace opentxs
 {
 ServerConnection::ServerConnection(
     const std::string& server,
+    const std::string& proxy,
     std::atomic<bool>& shutdown,
     std::atomic<std::chrono::seconds>& keepAlive,
     ZMQ& zmq,
@@ -90,7 +91,7 @@ ServerConnection::ServerConnection(
     OT_ASSERT(lock_);
 
     ResetTimer();
-    Init();
+    Init(proxy);
     thread_.reset(new std::thread(&ServerConnection::Thread, this));
 }
 
@@ -142,10 +143,14 @@ bool ServerConnection::EnableProxy()
     return true;
 }
 
-void ServerConnection::Init()
+void ServerConnection::Init(const std::string& proxy)
 {
     status_.store(false);
-    SetProxy();
+
+    if (use_proxy_.load()) {
+        SetProxy(proxy);
+    }
+
     SetTimeouts();
     SetRemoteKey();
 
@@ -167,7 +172,13 @@ void ServerConnection::ResetSocket()
         OT_FAIL;
     }
 
-    Init();
+    std::string proxy{};
+
+    if (use_proxy_.load()) {
+        zmq_.SocksProxy(proxy);
+    }
+
+    Init(proxy);
 }
 
 std::string ServerConnection::GetRemoteEndpoint(
@@ -330,22 +341,24 @@ void ServerConnection::SetRemoteKey()
         request_socket_, remote_contract_->PublicTransportKey());
 }
 
-void ServerConnection::SetProxy()
+void ServerConnection::SetProxy(const std::string& proxy)
 {
-    std::string proxy;
+    OT_ASSERT(nullptr != request_socket_);
 
-    if (zmq_.SocksProxy(proxy) && use_proxy_.load()) {
-        OT_ASSERT(nullptr != request_socket_);
-
-        zsock_set_socks_proxy(request_socket_, proxy.c_str());
-    }
+    zsock_set_socks_proxy(request_socket_, proxy.c_str());
+    otErr << OT_METHOD << __FUNCTION__ << ": Proxy set to " << proxy
+          << std::endl;
 }
 
 void ServerConnection::SetTimeouts()
 {
-    zsock_set_linger(request_socket_, zmq_.Linger().count());
-    zsock_set_sndtimeo(request_socket_, zmq_.SendTimeout().count());
-    zsock_set_rcvtimeo(request_socket_, zmq_.ReceiveTimeout().count());
+    zsock_set_linger(
+        request_socket_, std::chrono::milliseconds(zmq_.Linger()).count());
+    zsock_set_sndtimeo(
+        request_socket_, std::chrono::milliseconds(zmq_.SendTimeout()).count());
+    zsock_set_rcvtimeo(
+        request_socket_,
+        std::chrono::milliseconds(zmq_.ReceiveTimeout()).count());
     zcert_apply(zcert_new(), request_socket_);
 }
 

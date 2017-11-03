@@ -81,18 +81,19 @@ private:
         const std::string& server,
         std::shared_ptr<const ServerContract>& contract) const;
 
-    void Init();
+    void Init(const std::string& proxy);
     bool Receive(std::string& reply);
     void ResetSocket();
     void ResetTimer();
     void SetRemoteKey();
-    void SetProxy();
+    void SetProxy(const std::string& proxy);
     void SetTimeouts();
     void Thread();
 
     ServerConnection() = delete;
     ServerConnection(
         const std::string& server,
+        const std::string& proxy,
         std::atomic<bool>& shutdown,
         std::atomic<std::chrono::seconds>& keepAlive,
         ZMQ& zmq,

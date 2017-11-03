@@ -80,9 +80,9 @@ private:
     friend class OT;
 
     Settings& config_;
-    std::chrono::seconds linger_;
-    std::chrono::seconds receive_timeout_;
-    std::chrono::seconds send_timeout_;
+    std::atomic<std::chrono::seconds> linger_;
+    std::atomic<std::chrono::seconds> receive_timeout_;
+    std::atomic<std::chrono::seconds> send_timeout_;
     mutable std::atomic<std::chrono::seconds> keep_alive_;
     mutable std::atomic<bool> shutdown_;
     mutable std::mutex lock_;
@@ -106,6 +106,7 @@ public:
     void KeepAlive(const std::chrono::seconds duration) const;
     std::chrono::seconds Linger();
     std::chrono::seconds ReceiveTimeout();
+    void RefreshConfig();
     std::chrono::seconds SendTimeout();
 
     bool SetSocksProxy(const std::string& proxy);
