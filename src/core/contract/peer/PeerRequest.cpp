@@ -90,7 +90,7 @@ PeerRequest::PeerRequest(
     const Identifier& recipient,
     const Identifier& server,
     const proto::PeerRequestType& type)
-    : ot_super(nym, 2)
+    : ot_super(nym, PEER_REQUEST_VERSION)
     , initiator_(nym->ID())
     , recipient_(recipient)
     , server_(server)
@@ -98,8 +98,7 @@ PeerRequest::PeerRequest(
 {
     auto random = OT::App().Crypto().AES().InstantiateBinarySecretSP();
     random->randomizeMemory(32);
-    cookie_.CalculateDigest(
-        Data(random->getMemory(), random->getMemorySize()));
+    cookie_.CalculateDigest(Data(random->getMemory(), random->getMemorySize()));
 }
 
 PeerRequest::PeerRequest(
@@ -108,7 +107,7 @@ PeerRequest::PeerRequest(
     const Identifier& server,
     const std::string& conditions,
     const proto::PeerRequestType& type)
-    : ot_super(nym, 2, conditions)
+    : ot_super(nym, PEER_REQUEST_VERSION, conditions)
     , initiator_(nym->ID())
     , recipient_(recipient)
     , server_(server)
@@ -116,8 +115,7 @@ PeerRequest::PeerRequest(
 {
     auto random = OT::App().Crypto().AES().InstantiateBinarySecretSP();
     random->randomizeMemory(32);
-    cookie_.CalculateDigest(
-        Data(random->getMemory(), random->getMemorySize()));
+    cookie_.CalculateDigest(Data(random->getMemory(), random->getMemorySize()));
 }
 
 proto::PeerRequest PeerRequest::contract(const Lock& lock) const

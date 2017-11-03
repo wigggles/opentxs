@@ -48,10 +48,6 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
 
-#define PEER_VERSION 4
-#define MESSAGE_VERSION 2
-#define PAYMENT_VERSION 5
-
 #define OT_METHOD "opentxs::PeerObject::"
 
 namespace opentxs
@@ -101,7 +97,7 @@ PeerObject::PeerObject(const ConstNym& senderNym, const std::string& message)
     : nym_(senderNym)
     , message_(new std::string{message})
     , type_(proto::PEEROBJECT_MESSAGE)
-    , version_(MESSAGE_VERSION)
+    , version_(PEER_MESSAGE_VERSION)
 {
 }
 
@@ -109,7 +105,7 @@ PeerObject::PeerObject(const std::string& payment, const ConstNym& senderNym)
     : nym_(senderNym)
     , payment_(new std::string{payment})
     , type_(proto::PEEROBJECT_PAYMENT)
-    , version_(PAYMENT_VERSION)
+    , version_(PEER_PAYMENT_VERSION)
 {
 }
 
@@ -117,7 +113,7 @@ PeerObject::PeerObject(
     std::unique_ptr<PeerRequest>& request,
     std::unique_ptr<PeerReply>& reply)
     : type_(proto::PEEROBJECT_RESPONSE)
-    , version_(PEER_VERSION)
+    , version_(PEER_REQUEST_VERSION)
 {
     request_.swap(request);
     reply_.swap(reply);
@@ -125,7 +121,7 @@ PeerObject::PeerObject(
 
 PeerObject::PeerObject(std::unique_ptr<PeerRequest>& request)
     : type_(proto::PEEROBJECT_REQUEST)
-    , version_(PEER_VERSION)
+    , version_(PEER_REQUEST_VERSION)
 {
     request_.swap(request);
 }
@@ -236,8 +232,8 @@ proto::PeerObject PeerObject::Serialize() const
 
     switch (type_) {
         case (proto::PEEROBJECT_MESSAGE): {
-            if (MESSAGE_VERSION > version_) {
-                output.set_version(MESSAGE_VERSION);
+            if (PEER_MESSAGE_VERSION > version_) {
+                output.set_version(PEER_MESSAGE_VERSION);
             } else {
                 output.set_version(version_);
             }
@@ -251,8 +247,8 @@ proto::PeerObject PeerObject::Serialize() const
             break;
         }
         case (proto::PEEROBJECT_PAYMENT): {
-            if (PAYMENT_VERSION > version_) {
-                output.set_version(PAYMENT_VERSION);
+            if (PEER_PAYMENT_VERSION > version_) {
+                output.set_version(PEER_PAYMENT_VERSION);
             } else {
                 output.set_version(version_);
             }
@@ -266,8 +262,8 @@ proto::PeerObject PeerObject::Serialize() const
             break;
         }
         case (proto::PEEROBJECT_REQUEST): {
-            if (PEER_VERSION > version_) {
-                output.set_version(PEER_VERSION);
+            if (PEER_REQUEST_VERSION > version_) {
+                output.set_version(PEER_REQUEST_VERSION);
             } else {
                 output.set_version(version_);
             }
@@ -283,8 +279,8 @@ proto::PeerObject PeerObject::Serialize() const
             break;
         }
         case (proto::PEEROBJECT_RESPONSE): {
-            if (PEER_VERSION > version_) {
-                output.set_version(PEER_VERSION);
+            if (PEER_REQUEST_VERSION > version_) {
+                output.set_version(PEER_REQUEST_VERSION);
             } else {
                 output.set_version(version_);
             }

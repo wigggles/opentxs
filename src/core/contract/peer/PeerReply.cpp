@@ -74,7 +74,7 @@ PeerReply::PeerReply(
     const Identifier& server,
     const proto::PeerRequestType& type,
     const Identifier& request)
-    : ot_super(nym, 2)
+    : ot_super(nym, PEER_REQUEST_VERSION)
     , initiator_(initiator)
     , recipient_(nym->ID())
     , server_(server)
