@@ -57,6 +57,9 @@ class Message;
 class Nym;
 class String;
 
+#define PEER_REQUEST_VERSION 4
+#define PEER_MESSAGE_VERSION 2
+#define PEER_PAYMENT_VERSION 5
 #define NYM_VERSION 4
 #define CONTACT_CREDENTIAL_VERSION 4
 #define NYM_CONTACT_DATA_VERSION 4
