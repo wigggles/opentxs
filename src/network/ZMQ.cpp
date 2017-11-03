@@ -44,19 +44,14 @@
 #include "opentxs/network/ServerConnection.hpp"
 #include "opentxs/network/ZMQ.hpp"
 
-
 #define CLIENT_SEND_TIMEOUT_TOR 20000
 #define CLIENT_RECV_TIMEOUT_TOR 40000
-
-
 #define CLIENT_SOCKET_LINGER 1000
-///#define CLIENT_SEND_TIMEOUT 1000
 #define CLIENT_SEND_TIMEOUT CLIENT_SEND_TIMEOUT_TOR
-//#define CLIENT_RECV_TIMEOUT 10000
 #define CLIENT_RECV_TIMEOUT CLIENT_RECV_TIMEOUT_TOR
 #define KEEP_ALIVE 30
 
-
+#define OT_METHOD "opentxs::ZMQ::"
 
 namespace opentxs
 {
@@ -66,69 +61,51 @@ ZMQ::ZMQ(Settings& config)
     , linger_(CLIENT_SOCKET_LINGER)
     , receive_timeout_(CLIENT_RECV_TIMEOUT)
     , send_timeout_(CLIENT_SEND_TIMEOUT)
+    , keep_alive_(std::chrono::seconds(0))
+    , shutdown_(false)
+    , lock_()
+    , socks_proxy_()
+    , server_connections_()
 {
-    shutdown_.store(false);
-    Init();
-    config_.Save();
+    Lock lock(lock_);
+
+    init(lock);
 }
 
-void ZMQ::Init()
+void ZMQ::init(const Lock& lock)
 {
-    bool notUsed = false;
+    OT_ASSERT(verify_lock(lock));
 
-    int64_t linger;
+    bool notUsed{false};
+    std::int64_t linger{0};
     config_.CheckSet_long(
-        "latency",
-        "linger",
-        CLIENT_SOCKET_LINGER,
-        linger,
-        notUsed);
+        "latency", "linger", CLIENT_SOCKET_LINGER, linger, notUsed);
     linger_ = std::chrono::seconds(linger);
-
-    int64_t send;
+    std::int64_t send{0};
     config_.CheckSet_long(
-        "latency",
-        "send_timeout",
-        CLIENT_SEND_TIMEOUT,
-        send,
-        notUsed);
+        "latency", "send_timeout", CLIENT_SEND_TIMEOUT, send, notUsed);
     send_timeout_ = std::chrono::seconds(send);
-
-    int64_t receive;
+    std::int64_t receive{0};
     config_.CheckSet_long(
-        "latency",
-        "recv_timeout",
-        CLIENT_RECV_TIMEOUT,
-        receive,
-        notUsed);
+        "latency", "recv_timeout", CLIENT_RECV_TIMEOUT, receive, notUsed);
     receive_timeout_ = std::chrono::seconds(receive);
-
-    String socks;
-    bool haveSocksConfig = false;
-    const bool configChecked = config_.Check_str(
-        "Connection",
-        "socks_proxy",
-        socks,
-        haveSocksConfig);
-
-    int64_t keepAlive;
+    String socks{};
+    bool haveSocksConfig{false};
+    const bool configChecked =
+        config_.Check_str("Connection", "socks_proxy", socks, haveSocksConfig);
+    std::int64_t keepAlive{0};
     config_.CheckSet_long(
-        "Connection",
-        "keep_alive",
-        KEEP_ALIVE,
-        keepAlive,
-        notUsed);
+        "Connection", "keep_alive", KEEP_ALIVE, keepAlive, notUsed);
     keep_alive_.store(std::chrono::seconds(keepAlive));
 
     if (configChecked && haveSocksConfig && socks.Exists()) {
         socks_proxy_ = socks.Get();
     }
+
+    config_.Save();
 }
 
-std::chrono::seconds ZMQ::KeepAlive() const
-{
-    return keep_alive_.load();
-}
+std::chrono::seconds ZMQ::KeepAlive() const { return keep_alive_.load(); }
 
 void ZMQ::KeepAlive(const std::chrono::seconds duration) const
 {
@@ -137,27 +114,31 @@ void ZMQ::KeepAlive(const std::chrono::seconds duration) const
 
 std::chrono::seconds ZMQ::Linger()
 {
-    Init();
+    Lock lock(lock_);
+    init(lock);
 
     return linger_;
 }
 
 std::chrono::seconds ZMQ::ReceiveTimeout()
 {
-    Init();
+    Lock lock(lock_);
+    init(lock);
 
     return receive_timeout_;
 }
 
 std::chrono::seconds ZMQ::SendTimeout()
 {
-    Init();
+    Lock lock(lock_);
+    init(lock);
 
     return send_timeout_;
 }
 
 ServerConnection& ZMQ::Server(const std::string& id)
 {
+    Lock lock(lock_);
     auto& connection = server_connections_[id];
 
     if (!connection) {
@@ -170,19 +151,70 @@ ServerConnection& ZMQ::Server(const std::string& id)
     return *connection;
 }
 
+bool ZMQ::SetSocksProxy(const std::string& proxy)
+{
+    bool notUsed{false};
+    bool set =
+        config_.Set_str("Connection", "socks_proxy", String{proxy}, notUsed);
+
+    if (false == set) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Unable to set socks proxy."
+              << std::endl;
+
+        return false;
+    }
+
+    if (false == config_.Save()) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Unable to set save config."
+              << std::endl;
+
+        return false;
+    }
+
+    Lock lock(lock_);
+    socks_proxy_ = proxy;
+
+    for (auto& it : server_connections_) {
+        OT_ASSERT(it.second);
+
+        auto& connection = *it.second;
+
+        if (proxy.empty()) {
+            set &= connection.ClearProxy();
+        } else {
+            set &= connection.EnableProxy();
+        }
+    }
+
+    if (false == set) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Unable to reset connection."
+              << std::endl;
+    }
+
+    return set;
+}
+
 bool ZMQ::SocksProxy(std::string& proxy)
 {
-    Init();
     proxy = socks_proxy_;
 
     return (!socks_proxy_.empty());
 }
 
+std::string ZMQ::SocksProxy()
+{
+    std::string output{};
+    SocksProxy(output);
+
+    return output;
+}
+
 ConnectionState ZMQ::Status(const std::string& server) const
 {
-    const auto it =
-        server_connections_.find(server);
-    const bool haveConnection = it !=  server_connections_.end();
+    Lock lock(lock_);
+    const auto it = server_connections_.find(server);
+    const bool haveConnection = it != server_connections_.end();
+    lock.unlock();
 
     if (haveConnection) {
         if (it->second->Status()) {
@@ -197,6 +229,22 @@ ConnectionState ZMQ::Status(const std::string& server) const
     return ConnectionState::NOT_ESTABLISHED;
 }
 
+bool ZMQ::verify_lock(const Lock& lock) const
+{
+    if (lock.mutex() != &lock_) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Incorrect mutex." << std::endl;
+
+        return false;
+    }
+
+    if (false == lock.owns_lock()) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Lock not owned." << std::endl;
+
+        return false;
+    }
+
+    return true;
+}
 ZMQ::~ZMQ()
 {
     shutdown_.store(true);
