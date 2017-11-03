@@ -1332,11 +1332,6 @@ public:
 
     EXPORT ConnectionState CheckConnection(const std::string& server) const;
 
-    EXPORT std::string GetSocksProxy();
-
-    EXPORT bool SetSocksProxy(const std::string& proxy_str, const bool bOnOrOff)
-        const;
-
     EXPORT std::string AddChildKeyCredential(
         const Identifier& nymID,
         const Identifier& masterID,
