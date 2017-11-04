@@ -52,7 +52,7 @@ class String;
 
 namespace server
 {
-class OTServer;
+class Server;
 }
 
 // Note: from OTUnitDefinition.h and .cpp.
@@ -61,7 +61,7 @@ class OTServer;
 // loop through all the accounts for a given instrument definition (its own.)
 // This subclass
 // needs to
-// call OTServer method to do its job, so it can't be defined in otlib, but must
+// call Server method to do its job, so it can't be defined in otlib, but must
 // be defined
 // here in otserver (so it can see the methods that it needs...)
 //
@@ -74,7 +74,7 @@ class PayDividendVisitor : public AccountVisitor
         nullptr};  // contains the original payDividend item from the
                    // payDividend transaction request. (Stored in the
                    // memo field for each voucher.)
-    server::OTServer* m_pServer{
+    server::Server* m_pServer{
         nullptr};  // no need to cleanup. It's here for convenience only.
     int64_t m_lPayoutPerShare{0};
     int64_t m_lAmountPaidOut{
@@ -91,7 +91,7 @@ public:
         const Identifier& thePayoutInstrumentDefinitionID,
         const Identifier& theVoucherAcctID,
         const String& strMemo,
-        server::OTServer& theServer,
+        server::Server& theServer,
         int64_t lPayoutPerShare,
         mapOfAccounts* pLoadedAccounts = nullptr);
     virtual ~PayDividendVisitor();
@@ -103,7 +103,7 @@ public:
     }
     Identifier* GetVoucherAcctID() { return m_pVoucherAcctID; }
     String* GetMemo() { return m_pstrMemo; }
-    server::OTServer* GetServer() { return m_pServer; }
+    server::Server* GetServer() { return m_pServer; }
     int64_t GetPayoutPerShare() { return m_lPayoutPerShare; }
     int64_t GetAmountPaidOut() { return m_lAmountPaidOut; }
     int64_t GetAmountReturned() { return m_lAmountReturned; }

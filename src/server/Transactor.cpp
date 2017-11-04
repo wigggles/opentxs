@@ -53,7 +53,7 @@
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/server/MainFile.hpp"
-#include "opentxs/server/OTServer.hpp"
+#include "opentxs/server/Server.hpp"
 
 #include <inttypes.h>
 #include <stdint.h>
@@ -65,7 +65,7 @@
 namespace opentxs::server
 {
 
-Transactor::Transactor(OTServer* server)
+Transactor::Transactor(Server* server)
     : transactionNumber_(0)
     , server_(server)
 {
@@ -276,13 +276,13 @@ std::shared_ptr<Account> Transactor::getVoucherAccount(
 
         Log::vOutput(
             0,
-            "OTServer::GetVoucherAccount: Successfully created "
+            "Server::GetVoucherAccount: Successfully created "
             "voucher account ID: %s Instrument Definition ID: %s\n",
             strAcctID.Get(),
             strInstrumentDefinitionID.Get());
 
         if (!server_->mainFile_.SaveMainFile()) {
-            Log::Error("OTServer::GetVoucherAccount: Error saving main "
+            Log::Error("Server::GetVoucherAccount: Error saving main "
                        "server file containing new account ID!!\n");
         }
     }

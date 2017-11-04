@@ -5,9 +5,9 @@ set(cxx-sources
   MainFile.cpp
   MessageProcessor.cpp
   Notary.cpp
-  OTServer.cpp
   PayDividendVisitor.cpp
   ReplyMessage.cpp
+  Server.cpp
   ServerSettings.cpp
   Transactor.cpp
   UserCommandProcessor.cpp

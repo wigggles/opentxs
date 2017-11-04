@@ -544,7 +544,7 @@ extern "C" int32_t souped_up_pass_cb(
         // passphrase for the
         // OTSymmetricKey, and then use it to GET the actual key from that
         // OTSymmetricKey.
-        // The OTSymmetricKey should be stored in the OTWallet or OTServer,
+        // The OTSymmetricKey should be stored in the OTWallet or Server,
         // which sets a pointer
         // to itself inside the OTPasswordData class statically, on
         // initialization.

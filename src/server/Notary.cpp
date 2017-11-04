@@ -71,7 +71,7 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/ext/OTPayment.hpp"
 #include "opentxs/server/Macros.hpp"
-#include "opentxs/server/OTServer.hpp"
+#include "opentxs/server/Server.hpp"
 #include "opentxs/server/PayDividendVisitor.hpp"
 #include "opentxs/server/ServerSettings.hpp"
 #include "opentxs/server/Transactor.hpp"
@@ -93,7 +93,7 @@ namespace opentxs::server
 typedef std::list<Account*> listOfAccounts;
 typedef std::deque<Token*> dequeOfTokenPtrs;
 
-Notary::Notary(OTServer* server)
+Notary::Notary(Server* server)
     : server_(server)
 {
 }
@@ -2153,7 +2153,7 @@ void Notary::NotarizePayDividend(
                                                 &NYM_ID);
 
                                         // All account crediting / debiting
-                                        // happens in the caller, in OTServer.
+                                        // happens in the caller, in Server.
                                         //    (AND it happens only ONCE, to
                                         // cover ALL vouchers.)
                                         // Then in here, the voucher either gets

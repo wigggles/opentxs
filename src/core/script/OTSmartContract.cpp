@@ -4286,9 +4286,9 @@ bool OTSmartContract::CanRemoveItemFromCron(const ClientContext& context)
 // theNym is trying to activate the smart contract, and has
 // supplied transaction numbers and a user/acct ID. ==> theNym definitely IS the
 // owner of the account... that is
-// verified in OTServer::NotarizeTransaction(), before it even knows what KIND
+// verified in Server::NotarizeTransaction(), before it even knows what KIND
 // of transaction it is processing!
-// (For all transactions.) So by the time OTServer::NotarizeSmartContract() is
+// (For all transactions.) So by the time Server::NotarizeSmartContract() is
 // called, we know that much.
 //
 // But for all other parties, we do not know this, so we still need to loop them
@@ -4337,7 +4337,7 @@ bool OTSmartContract::VerifySmartContract(
 
     const String strNotaryID(
         GetNotaryID());  // the notaryID has already been verified by this time,
-                         // in OTServer::NotarizeSmartContract()
+                         // in Server::NotarizeSmartContract()
 
     mapOfConstNyms map_Nyms_Already_Loaded;  // The list of Nyms that were
                                              // already instantiated before this
@@ -4431,7 +4431,7 @@ bool OTSmartContract::VerifySmartContract(
             // already burned, when
             // the activating party (pParty) activated the smart contract. At
             // that time, the normal
-            // transaction system inside OTServer burned the # as part of its
+            // transaction system inside Server burned the # as part of its
             // process before even
             // calling NotarizeSmartContract().  Therefore, by this point, we
             // ASSUME that party's

@@ -49,12 +49,12 @@ class String;
 namespace server
 {
 
-class OTServer;
+class Server;
 
 class MainFile
 {
 public:
-    explicit MainFile(OTServer* server);
+    explicit MainFile(Server* server);
 
     bool CreateMainFile(
         const std::string& strContract,
@@ -69,7 +69,7 @@ public:
 
 private:
     std::string version_;
-    OTServer* server_;  // TODO: remove when feasible
+    Server* server_;  // TODO: remove when feasible
 };
 }  // namespace server
 }  // namespace opentxs

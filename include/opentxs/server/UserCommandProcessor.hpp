@@ -61,7 +61,7 @@ class String;
 namespace server
 {
 
-class OTServer;
+class Server;
 class ReplyMessage;
 
 class UserCommandProcessor
@@ -79,11 +79,11 @@ public:
         const std::int64_t& requestNum,
         const bool replyTransSuccess,
         ClientContext& context,
-        OTServer& server,
+        Server& server,
         Nym* actualNym = nullptr);
     static bool isAdmin(const Identifier& nymID);
 
-    UserCommandProcessor(OTServer* server);
+    UserCommandProcessor(Server* server);
 
     bool ProcessUserCommand(const Message& msgIn, Message& msgOut);
 
@@ -112,7 +112,7 @@ private:
         std::size_t counter_{0};
     };
 
-    OTServer* server_{nullptr};
+    Server* server_{nullptr};
 
     bool add_numbers_to_nymbox(
         const TransactionNumber transactionNumber,

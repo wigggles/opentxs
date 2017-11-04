@@ -51,13 +51,13 @@ namespace opentxs
 namespace server
 {
 
-class OTServer;
+class Server;
 
 class MessageProcessor
 {
 public:
     EXPORT explicit MessageProcessor(
-        OTServer& server,
+        Server& server,
         std::atomic<bool>& shutdown);
 
     EXPORT void Cleanup();
@@ -67,7 +67,7 @@ public:
     EXPORT ~MessageProcessor();
 
 private:
-    OTServer& server_;
+    Server& server_;
     std::atomic<bool>& shutdown_;
     zsock_t* zmqSocket_{nullptr};
     zactor_t* zmqAuth_{nullptr};

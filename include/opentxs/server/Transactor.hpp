@@ -60,14 +60,14 @@ namespace server
 {
 
 class MainFile;
-class OTServer;
+class Server;
 
 class Transactor
 {
     friend class MainFile;
 
 public:
-    explicit Transactor(OTServer* server);
+    explicit Transactor(Server* server);
     ~Transactor();
 
     bool issueNextTransactionNumber(TransactionNumber& txNumber);
@@ -151,7 +151,7 @@ private:
     // The mints for each instrument definition.
     MintsMap mintsMap_;
 
-    OTServer* server_;  // TODO: remove later when feasible
+    Server* server_;  // TODO: remove later when feasible
 };
 }  // namespace server
 }  // namespace opentxs

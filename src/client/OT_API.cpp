@@ -166,7 +166,7 @@ extern "C" {
 #define OT_METHOD "opentxs::OT_API::"
 // -------------------------------------------------------
 
-// The #defines for the latency values can be found in OTServerConnection.cpp.
+// The #defines for the latency values can be found in ServerConnection.cpp.
 
 namespace opentxs
 {

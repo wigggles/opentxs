@@ -954,16 +954,17 @@ bool OTParty::DropFinalReceiptToInboxes(
             nullptr != pAcct,
             "Unexpected nullptr partyaccount pointer in party map.");
 
-        if (false == pAcct->DropFinalReceiptToInbox(
-                         pNymMap,  // contains any Nyms who might already be
-                                   // loaded, mapped by ID.
-                         strNotaryID,
-                         theServerNym,
-                         *pSmartContract,
-                         lNewTransactionNumber,
-                         strOrigCronItem,
-                         pstrNote,
-                         pstrAttachment)) {
+        if (false ==
+            pAcct->DropFinalReceiptToInbox(
+                pNymMap,  // contains any Nyms who might already be
+                          // loaded, mapped by ID.
+                strNotaryID,
+                theServerNym,
+                *pSmartContract,
+                lNewTransactionNumber,
+                strOrigCronItem,
+                pstrNote,
+                pstrAttachment)) {
             otErr << szFunc
                   << ": Failed dropping final Receipt to agent's Inbox.\n";
             bSuccess = false;  // Notice: no break. We still try to notify them
@@ -1008,13 +1009,14 @@ bool OTParty::DropFinalReceiptToNymboxes(
             nullptr != pAgent,
             "Unexpected nullptr agent pointer in party map.");
 
-        if (false == pAgent->DropFinalReceiptToNymbox(
-                         *pSmartContract,
-                         lNewTransactionNumber,
-                         strOrigCronItem,
-                         pstrNote,
-                         pstrAttachment,
-                         pActualNym))
+        if (false ==
+            pAgent->DropFinalReceiptToNymbox(
+                *pSmartContract,
+                lNewTransactionNumber,
+                strOrigCronItem,
+                pstrNote,
+                pstrAttachment,
+                pActualNym))
             otErr << "OTParty::DropFinalReceiptToNymboxes: Failed dropping "
                      "final Receipt to agent's Nymbox.\n";
         else
@@ -1051,16 +1053,17 @@ bool OTParty::SendNoticeToParty(
                 nullptr != pAgent,
                 "Unexpected nullptr agent pointer in party map.");
 
-            if (false == pAgent->DropServerNoticeToNymbox(
-                             bSuccessMsg,
-                             theServerNym,
-                             theNotaryID,
-                             lNewTransactionNumber,
-                             lOpeningTransNo,  // lInReferenceTo
-                             strReference,
-                             pstrNote,
-                             pstrAttachment,
-                             pActualNym))
+            if (false ==
+                pAgent->DropServerNoticeToNymbox(
+                    bSuccessMsg,
+                    theServerNym,
+                    theNotaryID,
+                    lNewTransactionNumber,
+                    lOpeningTransNo,  // lInReferenceTo
+                    strReference,
+                    pstrNote,
+                    pstrAttachment,
+                    pActualNym))
                 otErr << __FUNCTION__
                       << ": Failed dropping server notice to agent's Nymbox.\n";
             else
@@ -1147,13 +1150,12 @@ bool OTParty::LoadAndVerifyAssetAccounts(
         // Let's load it up...
         //
         if (bHadToLoadtheAcctMyself == true) {
-            if (nullptr ==
-                (pAccount = pPartyAcct->LoadAccount(
-                     theServerNym, strNotaryID)))  // This calls
-                                                   // VerifyAccount(),
-                                                   // AND it sets
-                                                   // pPartyAcct's
-                                                   // internal ptr.
+            if (nullptr == (pAccount = pPartyAcct->LoadAccount(
+                                theServerNym, strNotaryID)))  // This calls
+            // VerifyAccount(),
+            // AND it sets
+            // pPartyAcct's
+            // internal ptr.
             {
                 otOut << "OTParty::LoadAndVerifyAssetAccounts: Failed loading "
                          "Account with name: "
@@ -1281,11 +1283,10 @@ bool OTParty::LoadAndVerifyAgentNyms(
             // Now we KNOW the Nym is "already loaded" and we KNOW the agent has
             // a POINTER to that Nym:
             //
-            OT_ASSERT(
-                pAgent->IsValidSigner(*pNym));  // assert because the Nym
-                                                // was already mapped by
-                                                // ID, so it should already
-                                                // have been validated.
+            OT_ASSERT(pAgent->IsValidSigner(*pNym));  // assert because the Nym
+                                                      // was already mapped by
+            // ID, so it should already
+            // have been validated.
 
             bHadToLoadtheNymMyself =
                 false;  // Whew. He was already loaded. Found him.
@@ -1378,7 +1379,7 @@ bool OTParty::VerifyAccountsWithTheirAgents(
             strNotaryID,    // For verifying issued num, need the notaryID the #
                             // goes with.
             bBurnTransNo);  // bBurnTransNo=false ) // In
-                            // OTServer::VerifySmartContract(), it not only
+                            // Server::VerifySmartContract(), it not only
                             // wants to verify the closing # is properly issued,
                             // but it additionally wants to see that it hasn't
                             // been USED yet -- AND it wants to burn it, so it
@@ -1849,12 +1850,13 @@ bool OTParty::CopyAcctsToConfirmingParty(OTParty& theParty) const
         OTPartyAccount* pAcct = it.second;
         OT_ASSERT(nullptr != pAcct);
 
-        if (false == theParty.AddAccount(
-                         pAcct->GetAgentName(),
-                         pAcct->GetName(),
-                         pAcct->GetAcctID(),
-                         pAcct->GetInstrumentDefinitionID(),
-                         pAcct->GetClosingTransNo())) {
+        if (false ==
+            theParty.AddAccount(
+                pAcct->GetAgentName(),
+                pAcct->GetName(),
+                pAcct->GetAcctID(),
+                pAcct->GetInstrumentDefinitionID(),
+                pAcct->GetClosingTransNo())) {
             otOut
                 << "OTParty::CopyAcctsToConfirmingParty: Unable to add Account "
                 << str_acct_name << ", when copying from *this party "

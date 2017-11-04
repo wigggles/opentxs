@@ -43,7 +43,7 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/server/MessageProcessor.hpp"
-#include "opentxs/server/OTServer.hpp"
+#include "opentxs/server/Server.hpp"
 
 #define OT_METHOD "opentxs::Server::"
 
@@ -54,7 +54,7 @@ Server::Server(
     std::atomic<bool>& shutdown)
     : args_(args)
     , shutdown_(shutdown)
-    , server_p_(new server::OTServer)
+    , server_p_(new server::Server)
     , server_(*server_p_)
     , message_processor_p_(new server::MessageProcessor(server_, shutdown_))
     , message_processor_(*message_processor_p_)

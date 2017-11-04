@@ -204,7 +204,7 @@ public:
     EXPORT bool Pause();
     EXPORT void Reset();
     EXPORT bool SerializeFrom(const OTASCIIArmor& ascInput);
-    /* These two functions are used by the OTServer or OTWallet that
+    /* These two functions are used by the Server or OTWallet that
      * actually keeps the master key. The owner sets the master key pointer on
      * initialization, and then later when the password callback code in
      * OTAsymmetricKey needs to access the master key, it can use
@@ -241,7 +241,7 @@ private:
     /** Created when password is passed in; destroyed by Timer after X seconds.
      */
     mutable std::unique_ptr<OTPassword> master_password_;
-    /** Encrypted form of the master key. Serialized by OTWallet or OTServer. */
+    /** Encrypted form of the master key. Serialized by OTWallet or Server. */
     mutable std::unique_ptr<OTSymmetricKey> key_;
     mutable String secret_id_{""};
 

@@ -398,7 +398,7 @@ OTOffer* OTTrade::GetOffer(Identifier* offerMarketId, OTMarket** market)
 
     // No need to do any additional security verification here on the Offer,
     // since the Offer is already heavily verified in
-    // OTServer::NotarizeMarketOffer().
+    // Server::NotarizeMarketOffer().
     // So as long as you feel safe about the Trade, then you can feel safe about
     // the Offer already, with no further checks.
     // *Also remember we saved a copy of the original in the cron folder.

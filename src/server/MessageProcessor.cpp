@@ -47,7 +47,7 @@
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/network/ZMQ.hpp"
-#include "opentxs/server/OTServer.hpp"
+#include "opentxs/server/Server.hpp"
 #include "opentxs/server/UserCommandProcessor.hpp"
 
 #include <stddef.h>
@@ -60,9 +60,7 @@
 namespace opentxs::server
 {
 
-MessageProcessor::MessageProcessor(
-    OTServer& server,
-    std::atomic<bool>& shutdown)
+MessageProcessor::MessageProcessor(Server& server, std::atomic<bool>& shutdown)
     : server_(server)
     , shutdown_(shutdown)
     , zmqSocket_(zsock_new_rep(NULL))

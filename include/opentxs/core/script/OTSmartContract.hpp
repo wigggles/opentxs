@@ -259,9 +259,9 @@ public:
     // theNym is trying to activate the smart contract, and has
     // supplied transaction numbers and a user/acct ID. theNym definitely IS the
     // owner of the account... that is
-    // verified in OTServer::NotarizeTransaction(), before it even knows what
+    // verified in Server::NotarizeTransaction(), before it even knows what
     // KIND of transaction it is processing!
-    // (For all transactions.) So by the time OTServer::NotarizeSmartContract()
+    // (For all transactions.) So by the time Server::NotarizeSmartContract()
     // is called, we know that much.
     //
     // But for all other parties, we do not know this, so we still need to loop

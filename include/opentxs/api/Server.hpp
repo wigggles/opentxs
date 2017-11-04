@@ -71,7 +71,7 @@ namespace server
 {
 
 class MessageProcessor;
-class OTServer;
+class Server;
 
 }  // namespace server
 
@@ -95,8 +95,8 @@ private:
 
     const std::map<std::string, std::string>& args_;
     std::atomic<bool>& shutdown_;
-    std::unique_ptr<server::OTServer> server_p_;
-    server::OTServer& server_;
+    std::unique_ptr<server::Server> server_p_;
+    server::Server& server_;
     std::unique_ptr<server::MessageProcessor> message_processor_p_;
     server::MessageProcessor& message_processor_;
 

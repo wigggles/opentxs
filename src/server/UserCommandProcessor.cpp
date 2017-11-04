@@ -71,7 +71,7 @@
 #include "opentxs/server/Macros.hpp"
 #include "opentxs/server/MainFile.hpp"
 #include "opentxs/server/Notary.hpp"
-#include "opentxs/server/OTServer.hpp"
+#include "opentxs/server/Server.hpp"
 #include "opentxs/server/ReplyMessage.hpp"
 #include "opentxs/server/ServerSettings.hpp"
 #include "opentxs/server/Transactor.hpp"
@@ -179,7 +179,7 @@ UserCommandProcessor::FinalizeResponse::~FinalizeResponse()
     reply_.SetPayload(String(ledger_));
 }
 
-UserCommandProcessor::UserCommandProcessor(OTServer* server)
+UserCommandProcessor::UserCommandProcessor(Server* server)
     : server_(server)
 {
 }
@@ -2624,7 +2624,7 @@ void UserCommandProcessor::drop_reply_notice_to_nymbox(
     const std::int64_t& lRequestNum,
     const bool bReplyTransSuccess,
     ClientContext& context,
-    OTServer& server,
+    Server& server,
     Nym* pActualNym)
 {
     const auto& nymID = context.RemoteNym().ID();

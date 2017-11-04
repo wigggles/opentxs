@@ -3514,7 +3514,7 @@ bool OTClient::processServerReplyProcessInbox(
                             }
 
                             // NOTE: Apparently CronItem::GetLastProcessDate is
-                            // used internally in OTServer but not actually
+                            // used internally in Server but not actually
                             // saved onto the updated Trade object. Therefore
                             // it contains a zero. Might have to change the
                             // server to save this date, so we don't display a

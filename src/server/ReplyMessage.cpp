@@ -45,7 +45,7 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/server/OTServer.hpp"
+#include "opentxs/server/Server.hpp"
 #include "opentxs/server/ReplyMessage.hpp"
 #include "opentxs/server/UserCommandProcessor.hpp"
 
@@ -58,7 +58,7 @@ ReplyMessage::ReplyMessage(
     const Identifier& notaryID,
     const Nym& signer,
     const Message& input,
-    OTServer& server,
+    Server& server,
     const MessageType& type,
     Message& output)
     : signer_(signer)

@@ -68,12 +68,12 @@ typedef std::map<std::string, OTClause*> mapOfClauses;
 typedef std::map<std::string, OTParty*> mapOfParties;
 typedef std::map<std::string, OTVariable*> mapOfVariables;
 
-std::string          vectorToString(const std::vector<int64_t> & v);
-std::vector<int64_t> stringToVector(const std::string & s);
+std::string vectorToString(const std::vector<int64_t>& v);
+std::vector<int64_t> stringToVector(const std::string& s);
 
 class OTScriptable : public Contract
 {
-private: // Private prevents erroneous use by other classes.
+private:  // Private prevents erroneous use by other classes.
     typedef Contract ot_super;
 
     static bool is_ot_namechar_invalid(char c);
@@ -83,9 +83,10 @@ protected:
     // that they signed.
     std::vector<int64_t> openingNumsInOrderOfSigning_;
 
-    mapOfParties m_mapParties; // The parties to the contract. Could be Nyms, or
-                               // other entities. May be rep'd by an Agent.
-    mapOfBylaws m_mapBylaws;   // The Bylaws for this contract.
+    mapOfParties m_mapParties;  // The parties to the contract. Could be Nyms,
+                                // or
+                                // other entities. May be rep'd by an Agent.
+    mapOfBylaws m_mapBylaws;    // The Bylaws for this contract.
 
     // While calculating the ID of smart contracts (and presumably other
     // scriptables)
@@ -163,22 +164,25 @@ protected:
     // name is kept.)
     // m_bPartyIsNym is conditional and so is m_lOpeningTransNo.
     //
-    bool m_bCalculatingID{false}; // NOT serialized. Used during ID calculation.
+    bool m_bCalculatingID{
+        false};  // NOT serialized. Used during ID calculation.
 
-    bool m_bSpecifyInstrumentDefinitionID{false}; // Serialized. See above note.
-    bool m_bSpecifyParties{false};                // Serialized. See above note.
+    bool m_bSpecifyInstrumentDefinitionID{
+        false};                     // Serialized. See above note.
+    bool m_bSpecifyParties{false};  // Serialized. See above note.
 
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
     int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
 
-    String m_strLabel; // OTSmartContract can put its trans# here. (Allowing
-                       // us to use it in the OTScriptable methods where any
-                       // smart contract would normally want to log its
-                       // transaction #, not just the clause name.)
+    String m_strLabel;  // OTSmartContract can put its trans# here. (Allowing
+                        // us to use it in the OTScriptable methods where any
+                        // smart contract would normally want to log its
+                        // transaction #, not just the clause name.)
 public:
-
-    EXPORT const std::vector<int64_t> & openingNumsInOrderOfSigning() const
-    { return openingNumsInOrderOfSigning_; }
+    EXPORT const std::vector<int64_t>& openingNumsInOrderOfSigning() const
+    {
+        return openingNumsInOrderOfSigning_;
+    }
 
     EXPORT void specifyParties(bool bNewState);
     EXPORT void specifyAssetTypes(bool bNewState);
@@ -194,10 +198,10 @@ public:
     {
         return static_cast<int32_t>(m_mapBylaws.size());
     }
-    EXPORT virtual bool AddParty(OTParty& theParty);     // Takes ownership.
-    EXPORT virtual bool AddBylaw(OTBylaw& theBylaw);     // takes ownership.
+    EXPORT virtual bool AddParty(OTParty& theParty);  // Takes ownership.
+    EXPORT virtual bool AddBylaw(OTBylaw& theBylaw);  // takes ownership.
     EXPORT virtual bool ConfirmParty(
-        OTParty& theParty, // Takes ownership.
+        OTParty& theParty,  // Takes ownership.
         ServerContext& context);
     EXPORT bool RemoveParty(std::string str_Name);
     EXPORT bool RemoveBylaw(std::string str_Name);
@@ -207,15 +211,20 @@ public:
     EXPORT OTParty* GetPartyByIndex(int32_t nIndex) const;
     EXPORT OTBylaw* GetBylawByIndex(int32_t nIndex) const;
     EXPORT OTParty* FindPartyBasedOnNymAsAgent(
-        const Nym& theNym, OTAgent** ppAgent = nullptr) const;
+        const Nym& theNym,
+        OTAgent** ppAgent = nullptr) const;
     EXPORT OTParty* FindPartyBasedOnNymAsAuthAgent(
-        Nym& theNym, OTAgent** ppAgent = nullptr) const;
+        Nym& theNym,
+        OTAgent** ppAgent = nullptr) const;
     OTParty* FindPartyBasedOnAccount(
-        Account& theAccount, OTPartyAccount** ppPartyAccount = nullptr) const;
-    OTParty* FindPartyBasedOnNymIDAsAgent(const Identifier& theNymID,
-                                          OTAgent** ppAgent = nullptr) const;
+        Account& theAccount,
+        OTPartyAccount** ppPartyAccount = nullptr) const;
+    OTParty* FindPartyBasedOnNymIDAsAgent(
+        const Identifier& theNymID,
+        OTAgent** ppAgent = nullptr) const;
     OTParty* FindPartyBasedOnNymIDAsAuthAgent(
-        const Identifier& theNymID, OTAgent** ppAgent = nullptr) const;
+        const Identifier& theNymID,
+        OTAgent** ppAgent = nullptr) const;
     OTParty* FindPartyBasedOnAccountID(
         const Identifier& theAcctID,
         OTPartyAccount** ppPartyAccount = nullptr) const;
@@ -231,7 +240,7 @@ public:
     // authorized agent.)
     //
     EXPORT int32_t
-        GetCountTransNumsNeededForAgent(std::string str_agent_name) const;
+    GetCountTransNumsNeededForAgent(std::string str_agent_name) const;
     // Verifies that Nym is actually an agent for this agreement.
     // (Verifies that Nym has signed this agreement, if it's a trade or a
     // payment plan, OR
@@ -255,37 +264,38 @@ public:
         const Nym& theNym,
         Account& theAccount) const;
     bool VerifyPartyAuthorization(
-        OTParty& theParty, // The party that supposedly is authorized for this
-                           // supposedly executed agreement.
-        Nym& theSignerNym, // For verifying signature on the authorizing
-                           // Nym, when loading it
-        const String& strNotaryID, // For verifying issued num, need the
-                                   // notaryID the # goes with.
-        mapOfConstNyms* pmap_ALREADY_LOADED = nullptr, // If some nyms are already
-                                                  // loaded, pass them here so
-                                                  // we don't
+        OTParty& theParty,  // The party that supposedly is authorized for this
+                            // supposedly executed agreement.
+        Nym& theSignerNym,  // For verifying signature on the authorizing
+                            // Nym, when loading it
+        const String& strNotaryID,  // For verifying issued num, need the
+                                    // notaryID the # goes with.
+        mapOfConstNyms* pmap_ALREADY_LOADED = nullptr,  // If some nyms are
+                                                        // already
+        // loaded, pass them here so
+        // we don't
         // load them twice on accident.
-        mapOfConstNyms* pmap_NEWLY_LOADED = nullptr, // If some nyms had to be
-                                                // loaded, then they will be
-                                                // deleted,
+        mapOfConstNyms* pmap_NEWLY_LOADED = nullptr,  // If some nyms had to be
+        // loaded, then they will be
+        // deleted,
         // too. UNLESS you pass a map here, in which case they will
         // instead be added to this map. (But if you do that, then you
         // must delete them yourself after calling this function.)
-        bool bBurnTransNo = false); // In OTServer::VerifySmartContract(), it
-                                    // not only wants to
+        bool bBurnTransNo = false);  // In Server::VerifySmartContract(), it
+                                     // not only wants to
     // verify the # is properly issued, but it additionally
     // wants to see that it hasn't been USED yet -- AND it wants
     // to burn it, so it can't be used again!  This bool allows
     // you to tell the function whether or not to do that.
 
     bool VerifyPartyAcctAuthorization(
-        OTPartyAccount& thePartyAcct, // The party is assumed to have been
-                                      // verified already via
-                                      // VerifyPartyAuthorization()
-        const String& strNotaryID,  // For verifying issued num, need the
-                                    // notaryID the # goes with.
-        bool bBurnTransNo = false); // In OTServer::VerifySmartContract(), it
-                                    // not only wants to
+        OTPartyAccount& thePartyAcct,  // The party is assumed to have been
+                                       // verified already via
+                                       // VerifyPartyAuthorization()
+        const String& strNotaryID,     // For verifying issued num, need the
+                                       // notaryID the # goes with.
+        bool bBurnTransNo = false);    // In Server::VerifySmartContract(), it
+                                       // not only wants to
     // verify the closing # is properly issued, but it
     // additionally wants to see that it hasn't been USED yet --
     // AND it wants to burn it, so it can't be used again!  This
@@ -314,32 +324,36 @@ public:
     // multiple times in theResults. Each clause can only trigger once.
     //
     bool GetHooks(std::string str_HookName, mapOfClauses& theResults);
-    OTClause* GetCallback(std::string str_CallbackName); // See if a
-                                                         // scripted
-                                                         // clause was
-                                                         // provided for
-                                                         // any given
-                                                         // callback name.
-    OTVariable* GetVariable(std::string str_VarName);    // See if a variable
-                                                         // exists for a
-                                                         // given variable
-                                                         // name.
-    bool IsDirty() const; // So you can tell if any of the persistent or
-                          // important variables have CHANGED since it was last
-                          // set clean.
-    bool IsDirtyImportant() const; // So you can tell if ONLY the IMPORTANT
-                                   // variables have CHANGED since it was last
-                                   // set clean.
-    void SetAsClean(); // Sets the variables as clean, so you can check later
-                       // and see if any have been changed (if it's DIRTY
-                       // again.)
+    OTClause* GetCallback(std::string str_CallbackName);  // See if a
+                                                          // scripted
+                                                          // clause was
+                                                          // provided for
+                                                          // any given
+                                                          // callback name.
+    OTVariable* GetVariable(std::string str_VarName);     // See if a variable
+                                                          // exists for a
+                                                          // given variable
+                                                          // name.
+    bool IsDirty() const;  // So you can tell if any of the persistent or
+                           // important variables have CHANGED since it was last
+                           // set clean.
+    bool IsDirtyImportant() const;  // So you can tell if ONLY the IMPORTANT
+                                    // variables have CHANGED since it was last
+                                    // set clean.
+    void SetAsClean();  // Sets the variables as clean, so you can check later
+                        // and see if any have been changed (if it's DIRTY
+                        // again.)
     EXPORT bool SendNoticeToAllParties(
-        bool bSuccessMsg, Nym& theServerNym, const Identifier& theNotaryID,
+        bool bSuccessMsg,
+        Nym& theServerNym,
+        const Identifier& theNotaryID,
         const int64_t& lNewTransactionNumber,
         // const int64_t& lInReferenceTo, //
         // each party has its own opening trans #.
-        const String& strReference, String* pstrNote = nullptr,
-        String* pstrAttachment = nullptr, Nym* pActualNym = nullptr) const;
+        const String& strReference,
+        String* pstrNote = nullptr,
+        String* pstrAttachment = nullptr,
+        Nym* pActualNym = nullptr) const;
     // This is an OT Native call party_may_execute_clause
     // It returns true/false whether party is allowed to execute clause.
     // The default return value, for a legitimate party, is true.
@@ -348,9 +362,10 @@ public:
     // CanExecuteClause will call ExecuteCallback() if that script exists, so
     // the script can reply true/false.
     //
-    EXPORT bool CanExecuteClause(std::string str_party_name,
-                                 std::string str_clause_name); // This calls (if
-                                                               // available) the
+    EXPORT bool CanExecuteClause(
+        std::string str_party_name,
+        std::string str_clause_name);  // This calls (if
+                                       // available) the
     // scripted clause:
     // bool party_may_execute_clause(party_name,
     // clause_name)
@@ -360,9 +375,10 @@ public:
     // param_party_name and param_clause_name, both strings.
     // Also: callback_party_may_execute_clause should return a bool.
 
-    bool ExecuteCallback(OTClause& theCallbackClause,
-                         mapOfVariables& theParameters,
-                         OTVariable& varReturnVal);
+    bool ExecuteCallback(
+        OTClause& theCallbackClause,
+        mapOfVariables& theParameters,
+        OTVariable& varReturnVal);
 
     EXPORT virtual void RegisterOTNativeCallsWithScript(OTScript& theScript);
     EXPORT virtual bool Compare(OTScriptable& rhs) const;
@@ -384,8 +400,8 @@ public:
 
     // For use from inside server-side scripts.
     //
-    static std::string GetTime(); // Returns a string, containing seconds as
-                                  // int32_t. (Time in seconds.)
+    static std::string GetTime();  // Returns a string, containing seconds as
+                                   // int32_t. (Time in seconds.)
     OTScriptable();
     virtual ~OTScriptable();
 
@@ -397,6 +413,6 @@ public:
     void UpdateContents() override;
 };
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CORE_SCRIPT_OTSCRIPTABLE_HPP
+#endif  // OPENTXS_CORE_SCRIPT_OTSCRIPTABLE_HPP

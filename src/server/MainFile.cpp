@@ -57,7 +57,7 @@
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/OTStringXML.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/server/OTServer.hpp"
+#include "opentxs/server/Server.hpp"
 #include "opentxs/server/Transactor.hpp"
 
 #include <inttypes.h>
@@ -72,7 +72,7 @@
 namespace opentxs::server
 {
 
-MainFile::MainFile(OTServer* server)
+MainFile::MainFile(Server* server)
     : version_()
     , server_(server)
 {

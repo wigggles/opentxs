@@ -68,7 +68,7 @@ class ServerContract;
 namespace server
 {
 
-class OTServer
+class Server
 {
     friend class Transactor;
     friend class MessageProcessor;
@@ -78,7 +78,7 @@ class OTServer
     friend class Notary;
 
 public:
-    EXPORT OTServer();
+    EXPORT Server();
 
     EXPORT bool GetConnectInfo(std::string& hostname, std::uint32_t& port)
         const;
@@ -94,7 +94,7 @@ public:
     EXPORT void ProcessCron();
     EXPORT std::int64_t computeTimeout() { return m_Cron.computeTimeout(); }
 
-    EXPORT ~OTServer();
+    EXPORT ~Server();
 
 private:
     std::pair<std::string, std::string> parse_seed_backup(

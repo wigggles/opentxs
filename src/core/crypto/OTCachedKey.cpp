@@ -761,7 +761,7 @@ void OTCachedKey::reset_master_password()
 // up from some input, call the above function, SetCachedKey().
 
 // Apparently SerializeFrom (as of this writing) is only used in OTEnvelope.cpp
-// whereas SetCachedKey (above) is used in OTWallet and OTServer.
+// whereas SetCachedKey (above) is used in OTWallet and Server.
 bool OTCachedKey::SerializeFrom(const OTASCIIArmor& ascInput)
 {
     Lock lock(general_lock_);

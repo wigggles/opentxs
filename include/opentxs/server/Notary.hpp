@@ -50,12 +50,12 @@ class OTTransaction;
 namespace server
 {
 
-class OTServer;
+class Server;
 
 class Notary
 {
 private:
-    OTServer* server_{nullptr};
+    Server* server_{nullptr};
 
     void NotarizeCancelCronItem(
         Nym& nym,
@@ -128,7 +128,7 @@ private:
     Notary& operator=(Notary&&) = delete;
 
 public:
-    explicit Notary(OTServer* server);
+    explicit Notary(Server* server);
 
     void NotarizeProcessInbox(
         Nym& nym,

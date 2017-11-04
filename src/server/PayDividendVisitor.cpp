@@ -52,7 +52,7 @@
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/ext/OTPayment.hpp"
-#include "opentxs/server/OTServer.hpp"
+#include "opentxs/server/Server.hpp"
 #include "opentxs/server/Transactor.hpp"
 
 #include <inttypes.h>
@@ -67,7 +67,7 @@ PayDividendVisitor::PayDividendVisitor(
     const Identifier& thePayoutInstrumentDefinitionID,
     const Identifier& theVoucherAcctID,
     const String& strMemo,
-    server::OTServer& theServer,
+    server::Server& theServer,
     int64_t lPayoutPerShare,
     mapOfAccounts* pLoadedAccounts)
     : AccountVisitor(theNotaryID, pLoadedAccounts)
@@ -132,7 +132,7 @@ bool PayDividendVisitor::Trigger(Account& theSharesAccount)  // theSharesAccount
     OT_ASSERT(nullptr != GetVoucherAcctID());
     const Identifier& theVoucherAcctID = *(GetVoucherAcctID());
     OT_ASSERT(nullptr != GetServer());
-    server::OTServer& theServer = *(GetServer());
+    server::Server& theServer = *(GetServer());
     Nym& theServerNym = const_cast<Nym&>(theServer.GetServerNym());
     const Identifier theServerNymID(theServerNym);
     const Identifier& RECIPIENT_ID = theSharesAccount.GetNymID();
@@ -193,7 +193,7 @@ bool PayDividendVisitor::Trigger(Account& theSharesAccount)  // theSharesAccount
             &RECIPIENT_ID);
 
         // All account crediting / debiting happens in the caller, in
-        // server::OTServer.
+        // server::Server.
         //    (AND it happens only ONCE, to cover ALL vouchers.)
         // Then in here, the voucher either gets send to the recipient, or if
         // error, sent back home to
