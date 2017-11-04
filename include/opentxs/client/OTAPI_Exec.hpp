@@ -52,36 +52,42 @@
 namespace opentxs
 {
 
+class CryptoEngine;
+class OT_API;
+
+namespace api
+{
+
 class Activity;
 class Api;
-class CryptoEngine;
 class Settings;
 class Identity;
-class OT_API;
 class Wallet;
 class ZMQ;
+
+}  // namespace api
 
 class OTAPI_Exec
 {
 private:
-    friend class Api;
+    friend class api::Api;
 
-    Activity& activity_;
-    Settings& config_;
+    api::Activity& activity_;
+    api::Settings& config_;
     CryptoEngine& crypto_;
-    Identity& identity_;
-    Wallet& wallet_;
-    ZMQ& zeromq_;
+    api::Identity& identity_;
+    api::Wallet& wallet_;
+    api::ZMQ& zeromq_;
     OT_API& ot_api_;
     std::recursive_mutex& lock_;
 
     OTAPI_Exec(
-        Activity& activity,
-        Settings& config,
+        api::Activity& activity,
+        api::Settings& config,
         CryptoEngine& crypto,
-        Identity& identity,
-        Wallet& wallet,
-        ZMQ& zeromq,
+        api::Identity& identity,
+        api::Wallet& wallet,
+        api::ZMQ& zeromq,
         OT_API& otapi,
         std::recursive_mutex& lock);
     OTAPI_Exec() = delete;

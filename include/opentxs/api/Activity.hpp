@@ -51,10 +51,14 @@ namespace opentxs
 {
 
 class Contact;
-class ContactManager;
 class Identifier;
 class Message;
 class OT;
+
+namespace api
+{
+
+class ContactManager;
 class Storage;
 class Wallet;
 
@@ -198,7 +202,7 @@ public:
     ~Activity() = default;
 
 private:
-    friend class OT;
+    friend class opentxs::OT;
 
     typedef std::map<Identifier, std::shared_ptr<const std::string>> MailCache;
 
@@ -236,5 +240,6 @@ private:
     Activity operator=(const Activity&) = delete;
     Activity operator=(Activity&&) = delete;
 };
+}  // namespace api
 }  // namespace opentxs
 #endif  // OPENTXS_API_ACTIVITY_HPP

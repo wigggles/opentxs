@@ -48,8 +48,14 @@ extern "C" {
 namespace opentxs
 {
 
-class Storage;
 class StorageConfig;
+
+namespace api
+{
+
+class Storage;
+
+}  // namespace api
 
 // SQLite3 implementation of opentxs::storage
 class StorageSqlite3 : public virtual StoragePlugin_impl,
@@ -58,7 +64,7 @@ class StorageSqlite3 : public virtual StoragePlugin_impl,
 private:
     typedef StoragePlugin_impl ot_super;
 
-    friend class Storage;
+    friend class api::Storage;
 
     std::string folder_;
     sqlite3* db_{nullptr};

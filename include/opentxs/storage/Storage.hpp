@@ -78,6 +78,8 @@ typedef std::function<void(const proto::CredentialIndex&)> NymLambda;
 typedef std::function<void(const proto::ServerContract&)> ServerLambda;
 typedef std::function<void(const proto::UnitDefinition&)> UnitLambda;
 
+namespace api
+{
 // Content-aware storage module for opentxs
 //
 // Storage accepts serialized opentxs objects in protobuf form, writes them
@@ -102,7 +104,7 @@ typedef std::function<void(const proto::UnitDefinition&)> UnitLambda;
 class Storage : public virtual StorageDriver
 {
 private:
-    friend class OT;
+    friend class opentxs::OT;
     typedef std::unique_lock<std::mutex> Lock;
 
     /** A set of metadata associated with a stored object
@@ -387,5 +389,6 @@ public:
     void Cleanup();
     ~Storage();
 };
+}  // namespace api
 }  // namespace opentxs
 #endif  // OPENTXS_STORAGE_STORAGE_HPP

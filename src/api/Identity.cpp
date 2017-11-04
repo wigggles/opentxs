@@ -60,7 +60,7 @@
 // error from being unused.
 //#define OT_METHOD "opentxs::Identity::"
 
-namespace opentxs
+namespace opentxs::api
 {
 bool Identity::AddInternalVerification(
     bool& changed,
@@ -380,4 +380,4 @@ std::unique_ptr<proto::VerificationSet> Identity::Verify(
 
     return nullptr;
 }
-}  // namespace opentxs
+}  // namespace opentxs::api

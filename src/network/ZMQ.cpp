@@ -51,12 +51,12 @@
 #define CLIENT_RECV_TIMEOUT CLIENT_RECV_TIMEOUT_SECONDS
 #define KEEP_ALIVE_SECONDS 30
 
-#define OT_METHOD "opentxs::ZMQ::"
+#define OT_METHOD "opentxs::api::ZMQ::"
 
-namespace opentxs
+namespace opentxs::api
 {
 
-ZMQ::ZMQ(Settings& config)
+ZMQ::ZMQ(api::Settings& config)
     : config_(config)
     , linger_(std::chrono::seconds(CLIENT_SOCKET_LINGER_SECONDS))
     , receive_timeout_(std::chrono::seconds(CLIENT_RECV_TIMEOUT))
@@ -235,9 +235,10 @@ bool ZMQ::verify_lock(const Lock& lock) const
 
     return true;
 }
+
 ZMQ::~ZMQ()
 {
     shutdown_.store(true);
     server_connections_.clear();
 }
-}  // namespace opentxs
+}  // namespace opentxs::api

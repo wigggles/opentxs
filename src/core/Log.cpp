@@ -175,7 +175,7 @@ int OTLogStream::overflow(int c)
     return 0;
 }
 
-Log::Log(Settings& config)
+Log::Log(api::Settings& config)
     : config_(config)
 {
     bool notUsed{false};
@@ -187,7 +187,7 @@ Log::Log(Settings& config)
 
 // static
 bool Log::Init(
-    Settings& config,
+    api::Settings& config,
     const String& strThreadContext,
     const int32_t& nLogLevel)
 {
@@ -214,7 +214,7 @@ bool Log::Init(
             pLogger->m_strLogFileName.Format(
                 "%s%s%s", LOGFILE_PRE, strThreadContext.Get(), LOGFILE_EXT);
 
-            Settings config(OTPaths::GlobalConfigFile());
+            api::Settings config(OTPaths::GlobalConfigFile());
 
             config.Reset();
             if (!config.Load()) {

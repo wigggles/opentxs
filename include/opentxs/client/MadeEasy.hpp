@@ -46,13 +46,15 @@
 
 namespace opentxs
 {
-
+namespace api
+{
 class Api;
+}  // namespace api
 
 class MadeEasy
 {
 private:
-    friend class Api;
+    friend class api::Api;
 
     std::recursive_mutex& lock_;
 

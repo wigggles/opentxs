@@ -60,21 +60,26 @@
 namespace opentxs
 {
 
+class CryptoEngine;
+class Signals;
+class SymmetricKey;
+
+namespace api
+{
+
 class Activity;
 class Api;
 class Blockchain;
 class ContactManager;
-class CryptoEngine;
 class Dht;
 class Identity;
 class Server;
-class ServerLoader;
 class Settings;
-class Signals;
 class Storage;
-class SymmetricKey;
 class Wallet;
 class ZMQ;
+
+}  // namespace api
 
 /** \brief Singlton class for providing an interface to process-level resources.
  *  \ingroup native
@@ -117,17 +122,17 @@ public:
         const std::string& storagePlugin = "",
         const std::string& backupDirectory = "");
 
-    class Activity& Activity() const;
-    Api& API() const;
-    class Blockchain& Blockchain() const;
-    Settings& Config(const std::string& path = std::string("")) const;
-    ContactManager& Contact() const;
-    Wallet& Contract() const;
+    api::Activity& Activity() const;
+    api::Api& API() const;
+    api::Blockchain& Blockchain() const;
+    api::Settings& Config(const std::string& path = std::string("")) const;
+    api::ContactManager& Contact() const;
+    api::Wallet& Contract() const;
     CryptoEngine& Crypto() const;
-    Storage& DB() const;
-    Dht& DHT() const;
+    api::Storage& DB() const;
+    api::Dht& DHT() const;
     void HandleSignals() const;
-    class Identity& Identity() const;
+    api::Identity& Identity() const;
 
     /** Adds a task to the periodic task list with the specified interval. By
      * default, schedules for immediate execution. */
@@ -135,15 +140,15 @@ public:
         const time64_t& interval,
         const PeriodicTask& task,
         const time64_t& last = 0) const;
-    const class Server& Server() const;
+    const api::Server& Server() const;
     bool ServerMode() const;
-    class ZMQ& ZMQ() const;
+    api::ZMQ& ZMQ() const;
 
 private:
     /** Last performed, Interval, Task */
     typedef std::tuple<time64_t, time64_t, PeriodicTask> TaskItem;
     typedef std::list<TaskItem> TaskList;
-    typedef std::map<std::string, std::unique_ptr<Settings>> ConfigMap;
+    typedef std::map<std::string, std::unique_ptr<api::Settings>> ConfigMap;
 
     static OT* instance_pointer_;
 
@@ -166,20 +171,20 @@ private:
     mutable std::mutex signal_handler_lock_;
     mutable TaskList periodic_task_list;
     mutable std::atomic<bool> shutdown_{false};
-    std::unique_ptr<class Activity> activity_;
-    std::unique_ptr<Api> api_;
-    std::unique_ptr<class Blockchain> blockchain_;
+    std::unique_ptr<api::Activity> activity_;
+    std::unique_ptr<api::Api> api_;
+    std::unique_ptr<api::Blockchain> blockchain_;
     mutable ConfigMap config_;
-    std::unique_ptr<ContactManager> contacts_;
+    std::unique_ptr<api::ContactManager> contacts_;
     std::unique_ptr<CryptoEngine> crypto_;
-    std::unique_ptr<Dht> dht_;
-    std::unique_ptr<class Identity> identity_;
-    std::unique_ptr<Storage> storage_;
-    std::unique_ptr<Wallet> wallet_;
-    std::unique_ptr<class ZMQ> zeromq_;
+    std::unique_ptr<api::Dht> dht_;
+    std::unique_ptr<api::Identity> identity_;
+    std::unique_ptr<api::Storage> storage_;
+    std::unique_ptr<api::Wallet> wallet_;
+    std::unique_ptr<api::ZMQ> zeromq_;
     std::unique_ptr<std::thread> periodic_;
     std::unique_ptr<SymmetricKey> storage_encryption_key_;
-    std::unique_ptr<class Server> server_;
+    std::unique_ptr<api::Server> server_;
     mutable std::unique_ptr<Signals> signal_handler_;
     const std::map<std::string, std::string> server_args_{};
 

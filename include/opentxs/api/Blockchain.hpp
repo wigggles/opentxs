@@ -52,8 +52,13 @@
 namespace opentxs
 {
 
-class Activity;
 class CryptoEngine;
+class OT;
+
+namespace api
+{
+
+class Activity;
 class Storage;
 class Wallet;
 
@@ -104,7 +109,7 @@ public:
 
 private:
     typedef std::map<Identifier, std::mutex> IDLock;
-    friend class OT;
+    friend class opentxs::OT;
 
     Activity& activity_;
     CryptoEngine& crypto_;
@@ -155,5 +160,7 @@ private:
     Blockchain operator=(const Blockchain&) = delete;
     Blockchain operator=(Blockchain&&) = delete;
 };
+}  // namespace api
 }  // namespace opentxs
+
 #endif  // OPENTXS_API_BLOCKCHAIN_HPP

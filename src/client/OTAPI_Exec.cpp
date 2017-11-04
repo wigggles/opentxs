@@ -121,12 +121,12 @@ const int32_t OT_ERROR = (-1);
 #endif
 
 OTAPI_Exec::OTAPI_Exec(
-    Activity& activity,
-    Settings& config,
+    api::Activity& activity,
+    api::Settings& config,
     CryptoEngine& crypto,
-    Identity& identity,
-    Wallet& wallet,
-    ZMQ& zeromq,
+    api::Identity& identity,
+    api::Wallet& wallet,
+    api::ZMQ& zeromq,
     OT_API& otapi,
     std::recursive_mutex& lock)
     : activity_(activity)

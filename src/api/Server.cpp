@@ -47,7 +47,7 @@
 
 #define OT_METHOD "opentxs::Server::"
 
-namespace opentxs
+namespace opentxs::api
 {
 Server::Server(
     const std::map<std::string, std::string>& args,
@@ -91,4 +91,4 @@ const Identifier& Server::NymID() const { return server_.GetServerNym().ID(); }
 void Server::Start() { message_processor_.Start(); }
 
 Server::~Server() {}
-}  // namespace opentxs
+}  // namespace opentxs::api

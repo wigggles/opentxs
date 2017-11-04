@@ -52,7 +52,7 @@
 
 #define OT_METHOD "opentxs::ContactManager::"
 
-namespace opentxs
+namespace opentxs::api
 {
 ContactManager::ContactManager(Storage& storage, Wallet& wallet)
     : storage_(storage)
@@ -762,4 +762,4 @@ bool ContactManager::verify_write_lock(const rLock& lock) const
 
     return true;
 }
-}  // namespace opentxs
+}  // namespace opentxs::api

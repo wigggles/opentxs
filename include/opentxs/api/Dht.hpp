@@ -54,6 +54,9 @@ class OpenDHT;
 class ServerContract;
 class UnitDefinition;
 
+namespace api
+{
+
 /** High level interface to OpenDHT. Supports opentxs types. */
 class Dht
 {
@@ -68,7 +71,7 @@ public:
     typedef std::map<Callback, NotifyCB> CallbackMap;
 
 private:
-    friend class OT;
+    friend class opentxs::OT;
 
     static Dht* instance_;
 
@@ -114,6 +117,7 @@ public:
     void Cleanup();
     ~Dht();
 };
-
+}  // namespace api
 }  // namespace opentxs
+
 #endif  // OPENTXS_API_DHT_HPP

@@ -182,7 +182,7 @@ bool StoragePlugin_impl::Store(const std::string& value, std::string& key) const
     const bool bucket = current_bucket_.load();
 
     if (digest_) {
-        digest_(Storage::HASH_TYPE, value, key);
+        digest_(api::Storage::HASH_TYPE, value, key);
 
         return Store(key, value, bucket);
     }

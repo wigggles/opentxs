@@ -64,8 +64,8 @@ ServerConnection::ServerConnection(
     const std::string& proxy,
     std::atomic<bool>& shutdown,
     std::atomic<std::chrono::seconds>& keepAlive,
-    ZMQ& zmq,
-    Settings& config)
+    api::ZMQ& zmq,
+    api::Settings& config)
     : shutdown_(shutdown)
     , keep_alive_(keepAlive)
     , zmq_(zmq)

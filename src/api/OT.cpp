@@ -147,14 +147,14 @@ const OT& OT::App()
     return *instance_pointer_;
 }
 
-class Activity& OT::Activity() const
+api::Activity& OT::Activity() const
 {
     OT_ASSERT(activity_)
 
     return *activity_;
 }
 
-Api& OT::API() const
+api::Api& OT::API() const
 {
     if (server_mode_) {
         OT_FAIL;
@@ -165,7 +165,7 @@ Api& OT::API() const
     return *api_;
 }
 
-class Blockchain& OT::Blockchain() const
+api::Blockchain& OT::Blockchain() const
 {
     OT_ASSERT(blockchain_)
 
@@ -224,13 +224,13 @@ void OT::ClientFactory(
     instance_pointer_->Init();
 }
 
-Settings& OT::Config(const std::string& path) const
+api::Settings& OT::Config(const std::string& path) const
 {
     std::unique_lock<std::mutex> lock(config_lock_);
     auto& config = config_[path];
 
     if (!config) {
-        config.reset(new Settings(String(path)));
+        config.reset(new api::Settings(String(path)));
     }
 
     OT_ASSERT(config);
@@ -240,14 +240,14 @@ Settings& OT::Config(const std::string& path) const
     return *config;
 }
 
-ContactManager& OT::Contact() const
+api::ContactManager& OT::Contact() const
 {
     OT_ASSERT(contacts_)
 
     return *contacts_;
 }
 
-Wallet& OT::Contract() const
+api::Wallet& OT::Contract() const
 {
     OT_ASSERT(wallet_)
 
@@ -261,14 +261,14 @@ CryptoEngine& OT::Crypto() const
     return *crypto_;
 }
 
-Storage& OT::DB() const
+api::Storage& OT::DB() const
 {
     OT_ASSERT(storage_)
 
     return *storage_;
 }
 
-Dht& OT::DHT() const
+api::Dht& OT::DHT() const
 {
     OT_ASSERT(dht_)
 
@@ -284,7 +284,7 @@ void OT::HandleSignals() const
     }
 }
 
-class Identity& OT::Identity() const
+api::Identity& OT::Identity() const
 {
     OT_ASSERT(identity_)
 
@@ -325,7 +325,7 @@ void OT::Init_Activity()
     OT_ASSERT(wallet_);
     OT_ASSERT(storage_);
 
-    activity_.reset(new class Activity(*contacts_, *storage_, *wallet_));
+    activity_.reset(new api::Activity(*contacts_, *storage_, *wallet_));
 }
 
 void OT::Init_Api()
@@ -344,7 +344,7 @@ void OT::Init_Api()
         return;
     }
 
-    api_.reset(new Api(
+    api_.reset(new api::Api(
         *activity_,
         *config,
         *contacts_,
@@ -365,7 +365,7 @@ void OT::Init_Blockchain()
     OT_ASSERT(wallet_)
 
     blockchain_.reset(
-        new class Blockchain(*activity_, *crypto_, *storage_, *wallet_));
+        new api::Blockchain(*activity_, *crypto_, *storage_, *wallet_));
 }
 
 void OT::Init_Config()
@@ -389,7 +389,7 @@ void OT::Init_Config()
 
     String strConfigFilePath;
     OTDataFolder::GetConfigFilePath(strConfigFilePath);
-    config_[""].reset(new Settings(strConfigFilePath));
+    config_[""].reset(new api::Settings(strConfigFilePath));
 }
 
 void OT::Init_Contacts()
@@ -397,10 +397,10 @@ void OT::Init_Contacts()
     OT_ASSERT(storage_)
     OT_ASSERT(wallet_)
 
-    contacts_.reset(new ContactManager(*storage_, *wallet_));
+    contacts_.reset(new api::ContactManager(*storage_, *wallet_));
 }
 
-void OT::Init_Contracts() { wallet_.reset(new class Wallet(*this)); }
+void OT::Init_Contracts() { wallet_.reset(new api::Wallet(*this)); }
 
 void OT::Init_Crypto() { crypto_.reset(new CryptoEngine(*this)); }
 
@@ -469,10 +469,10 @@ void OT::Init_Dht()
         config.bootstrap_port_,
         notUsed);
 
-    dht_.reset(Dht::It(config));
+    dht_.reset(api::Dht::It(config));
 }
 
-void OT::Init_Identity() { identity_.reset(new class Identity); }
+void OT::Init_Identity() { identity_.reset(new api::Identity); }
 
 void OT::Init_Log()
 {
@@ -500,7 +500,7 @@ void OT::Init_Server()
     Log::SetupSignalHandler();
 #endif
 
-    server_.reset(new class Server(server_args_, shutdown_));
+    server_.reset(new api::Server(server_args_, shutdown_));
 
     OT_ASSERT(server_);
 
@@ -682,8 +682,8 @@ void OT::Init_Storage()
 
     if (dht_) {
         config.dht_callback_ = std::bind(
-            static_cast<void (Dht::*)(const std::string&, const std::string&)>(
-                &Dht::Insert),
+            static_cast<void (api::Dht::*)(
+                const std::string&, const std::string&)>(&api::Dht::Insert),
             dht_.get(),
             std::placeholders::_1,
             std::placeholders::_2);
@@ -691,7 +691,7 @@ void OT::Init_Storage()
 
     OT_ASSERT(crypto_);
 
-    storage_.reset(new Storage(config, *crypto_, hash, random));
+    storage_.reset(new api::Storage(config, *crypto_, hash, random));
     Config().Save();
 }
 
@@ -790,7 +790,7 @@ void OT::Init_ZMQ()
 
     OT_ASSERT(config);
 
-    zeromq_.reset(new class ZMQ(*config));
+    zeromq_.reset(new api::ZMQ(*config));
 }
 
 void OT::Join()
@@ -863,7 +863,7 @@ void OT::Schedule(
     periodic_task_list.push_back(TaskItem{last, interval, task});
 }
 
-const class Server& OT::Server() const
+const api::Server& OT::Server() const
 {
     OT_ASSERT(server_);
 
@@ -989,7 +989,7 @@ void OT::start()
     }
 }
 
-class ZMQ& OT::ZMQ() const
+api::ZMQ& OT::ZMQ() const
 {
     OT_ASSERT(zeromq_)
 

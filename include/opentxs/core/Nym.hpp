@@ -73,7 +73,13 @@ class OTPayment;
 class OTTransaction;
 class ServerContract;
 class Tag;
+
+namespace api
+{
+
 class Wallet;
+
+}  // namespace api
 
 typedef std::deque<Message*> dequeOfMail;
 typedef std::deque<std::int64_t> dequeOfTransNums;
@@ -85,7 +91,7 @@ typedef bool CredentialIndexModeFlag;
 
 class Nym
 {
-    friend class Wallet;
+    friend class api::Wallet;
 
 public:
     static const CredentialIndexModeFlag ONLY_IDS = true;

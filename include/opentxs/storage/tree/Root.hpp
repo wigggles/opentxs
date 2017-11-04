@@ -51,8 +51,12 @@
 
 namespace opentxs
 {
+namespace api
+{
 
 class Storage;
+
+}  // namespace api
 
 namespace storage
 {
@@ -63,7 +67,7 @@ class Root : public Node
 {
 private:
     typedef Node ot_super;
-    friend class opentxs::Storage;
+    friend class api::Storage;
 
     const std::uint64_t gc_interval_{std::numeric_limits<int64_t>::max()};
 

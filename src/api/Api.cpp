@@ -52,7 +52,7 @@
 #include "opentxs/core/crypto/OTCachedKey.hpp"
 #include "opentxs/core/Log.hpp"
 
-namespace opentxs
+namespace opentxs::api
 {
 
 Api::Api(
@@ -168,4 +168,4 @@ void Api::Cleanup()
     otapi_exec_.reset();
     ot_api_.reset();
 }
-}  // namespace opentxs
+}  // namespace opentxs::api

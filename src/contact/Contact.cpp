@@ -63,7 +63,7 @@
 
 namespace opentxs
 {
-Contact::Contact(Wallet& wallet, const proto::Contact& serialized)
+Contact::Contact(api::Wallet& wallet, const proto::Contact& serialized)
     : wallet_(wallet)
     , version_(check_version(serialized.version(), CURRENT_VERSION))
     , label_(serialized.label())
@@ -96,7 +96,7 @@ Contact::Contact(Wallet& wallet, const proto::Contact& serialized)
     init_nyms();
 }
 
-Contact::Contact(Wallet& wallet, const std::string& label)
+Contact::Contact(api::Wallet& wallet, const std::string& label)
     : wallet_(wallet)
     , version_(CURRENT_VERSION)
     , label_(label)

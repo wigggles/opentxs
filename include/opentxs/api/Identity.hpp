@@ -54,6 +54,9 @@ class OT;
 class Nym;
 class OTPasswordData;
 
+namespace api
+{
+
 class Identity
 {
 private:
@@ -125,5 +128,7 @@ public:
         const std::int64_t end = 0,
         const OTPasswordData* pPWData = nullptr) const;
 };
+}  // namespace api
 }  // namespace opentxs
+
 #endif  // OPENTXS_CORE_API_IDENTITY_HPP

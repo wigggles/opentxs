@@ -50,7 +50,12 @@ namespace opentxs
 
 class ContactData;
 class Nym;
+
+namespace api
+{
+
 class Wallet;
+}
 
 class NymData
 {
@@ -84,7 +89,7 @@ public:
     ~NymData() = default;
 
 private:
-    friend class Wallet;
+    friend class api::Wallet;
 
     std::shared_ptr<Nym> nym_;
 

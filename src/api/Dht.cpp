@@ -51,7 +51,7 @@
 
 #include <string>
 
-namespace opentxs
+namespace opentxs::api
 {
 
 Dht* Dht::instance_ = nullptr;
@@ -129,10 +129,9 @@ void Dht::GetPublicNym(__attribute__((unused)) const std::string& key)
         notifyCB = it->second;
     }
 
-    DhtResultsCallback gcb(
-        [notifyCB, key](const DhtResults& values) -> bool {
-            return ProcessPublicNym(key, values, notifyCB);
-        });
+    DhtResultsCallback gcb([notifyCB, key](const DhtResults& values) -> bool {
+        return ProcessPublicNym(key, values, notifyCB);
+    });
 
     node_->Retrieve(key, gcb);
 #endif
@@ -151,10 +150,9 @@ void Dht::GetServerContract(__attribute__((unused)) const std::string& key)
         notifyCB = it->second;
     }
 
-    DhtResultsCallback gcb(
-        [notifyCB, key](const DhtResults& values) -> bool {
-            return ProcessServerContract(key, values, notifyCB);
-        });
+    DhtResultsCallback gcb([notifyCB, key](const DhtResults& values) -> bool {
+        return ProcessServerContract(key, values, notifyCB);
+    });
 
     node_->Retrieve(key, gcb);
 #endif
@@ -173,10 +171,9 @@ void Dht::GetUnitDefinition(__attribute__((unused)) const std::string& key)
         notifyCB = it->second;
     }
 
-    DhtResultsCallback gcb(
-        [notifyCB, key](const DhtResults& values) -> bool {
-            return ProcessUnitDefinition(key, values, notifyCB);
-        });
+    DhtResultsCallback gcb([notifyCB, key](const DhtResults& values) -> bool {
+        return ProcessUnitDefinition(key, values, notifyCB);
+    });
 
     node_->Retrieve(key, gcb);
 #endif
@@ -192,25 +189,35 @@ bool Dht::ProcessPublicNym(
     bool foundData = false;
     bool foundValid = false;
 
-    if (key.empty()) { return false; }
+    if (key.empty()) {
+        return false;
+    }
 
     for (const auto& it : values) {
-        if (nullptr == it) { continue; }
+        if (nullptr == it) {
+            continue;
+        }
 
         auto& data = *it;
         foundData = data.size() > 0;
 
-        if (0 == data.size()) { continue; }
+        if (0 == data.size()) {
+            continue;
+        }
 
         auto publicNym = proto::DataToProto<proto::CredentialIndex>(
             Data(data.c_str(), data.size()));
 
-        if (key != publicNym.nymid()) { continue; }
+        if (key != publicNym.nymid()) {
+            continue;
+        }
 
         auto existing = OT::App().Contract().Nym(Identifier(key));
 
         if (existing) {
-            if (existing->Revision() >= publicNym.revision()) { continue; }
+            if (existing->Revision() >= publicNym.revision()) {
+                continue;
+            }
         }
 
         auto saved = OT::App().Contract().Nym(publicNym);
@@ -248,24 +255,34 @@ bool Dht::ProcessServerContract(
     bool foundData = false;
     bool foundValid = false;
 
-    if (key.empty()) { return false; }
+    if (key.empty()) {
+        return false;
+    }
 
     for (const auto& it : values) {
-        if (nullptr == it) { continue; }
+        if (nullptr == it) {
+            continue;
+        }
 
         auto& data = *it;
         foundData = data.size() > 0;
 
-        if (0 == data.size()) { continue; }
+        if (0 == data.size()) {
+            continue;
+        }
 
         auto contract = proto::DataToProto<proto::ServerContract>(
             Data(data.c_str(), data.size()));
 
-        if (key != contract.id()) { continue; }
+        if (key != contract.id()) {
+            continue;
+        }
 
         auto saved = OT::App().Contract().Server(contract);
 
-        if (!saved) { continue; }
+        if (!saved) {
+            continue;
+        }
 
         otLog3 << "Saved contract: " << key << std::endl;
         foundValid = true;
@@ -298,24 +315,34 @@ bool Dht::ProcessUnitDefinition(
     bool foundData = false;
     bool foundValid = false;
 
-    if (key.empty()) { return false; }
+    if (key.empty()) {
+        return false;
+    }
 
     for (const auto& it : values) {
-        if (nullptr == it) { continue; }
+        if (nullptr == it) {
+            continue;
+        }
 
         auto& data = *it;
         foundData = data.size() > 0;
 
-        if (0 == data.size()) { continue; }
+        if (0 == data.size()) {
+            continue;
+        }
 
         auto contract = proto::DataToProto<proto::UnitDefinition>(
             Data(data.c_str(), data.size()));
 
-        if (key != contract.id()) { continue; }
+        if (key != contract.id()) {
+            continue;
+        }
 
         auto saved = OT::App().Contract().UnitDefinition(contract);
 
-        if (!saved) { continue; }
+        if (!saved) {
+            continue;
+        }
 
         otLog3 << "Saved unit definition: " << key << std::endl;
         foundValid = true;
@@ -355,5 +382,4 @@ void Dht::RegisterCallbacks(const CallbackMap& callbacks)
 }
 
 Dht::~Dht() { Cleanup(); }
-
-}  // namespace opentxs
+}  // namespace opentxs::api

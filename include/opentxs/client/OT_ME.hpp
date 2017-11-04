@@ -47,14 +47,19 @@
 namespace opentxs
 {
 
-class Api;
 class MadeEasy;
 class String;
+
+namespace api
+{
+
+class Api;
+}
 
 class OT_ME
 {
 private:
-    friend class Api;
+    friend class api::Api;
 
     std::recursive_mutex& lock_;
     const MadeEasy& made_easy_;

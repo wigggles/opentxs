@@ -59,23 +59,28 @@
 namespace opentxs
 {
 
-class Api;
 class ContactGroup;
-class ContactManager;
 class CryptoEncodingEngine;
-class Identity;
 class MadeEasy;
 class Nym;
 class OT_API;
 class OT_ME;
 class OTAPI_Exec;
+
+namespace api
+{
+
+class Api;
+class ContactManager;
+class Identity;
 class Settings;
 class Wallet;
+}
 
 class OTME_too
 {
 private:
-    friend class Api;
+    friend class api::Api;
 
     typedef std::unique_lock<std::mutex> Lock;
     typedef std::unique_lock<std::recursive_mutex> rLock;
@@ -131,15 +136,15 @@ private:
     static const std::string DEFAULT_INTRODUCTION_SERVER;
 
     std::recursive_mutex& api_lock_;
-    Settings& config_;
-    ContactManager& contacts_;
+    api::Settings& config_;
+    api::ContactManager& contacts_;
     OT_API& ot_api_;
     OTAPI_Exec& exec_;
     const MadeEasy& made_easy_;
     const OT_ME& otme_;
-    Wallet& wallet_;
+    api::Wallet& wallet_;
     CryptoEncodingEngine& encoding_;
-    Identity& identity_;
+    api::Identity& identity_;
 
     mutable std::atomic<bool> pairing_{false};
     mutable std::atomic<bool> refreshing_{false};
@@ -359,15 +364,15 @@ private:
 
     OTME_too(
         std::recursive_mutex& lock,
-        Settings& config,
-        ContactManager& contacts,
+        api::Settings& config,
+        api::ContactManager& contacts,
         OT_API& otapi,
         OTAPI_Exec& exec,
         const MadeEasy& madeEasy,
         const OT_ME& otme,
-        Wallet& wallet,
+        api::Wallet& wallet,
         CryptoEncodingEngine& encoding,
-        Identity& identity);
+        api::Identity& identity);
     OTME_too() = delete;
     OTME_too(const OTME_too&) = delete;
     OTME_too(OTME_too&&) = delete;

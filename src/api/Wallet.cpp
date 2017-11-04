@@ -63,7 +63,7 @@
 
 #define OT_METHOD "opentxs::Wallet::"
 
-namespace opentxs
+namespace opentxs::api
 {
 
 Wallet::Wallet(OT& ot)
@@ -1353,5 +1353,4 @@ ConstUnitDefinition Wallet::UnitDefinition(
 
     return UnitDefinition(Identifier(unit));
 }
-
-}  // namespace opentxs
+}  // namespace opentxs::api

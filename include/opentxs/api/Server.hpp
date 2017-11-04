@@ -69,6 +69,9 @@ class MessageProcessor;
 class OT;
 class OTServer;
 
+namespace api
+{
+
 class Server
 {
 public:
@@ -82,7 +85,7 @@ public:
     ~Server();
 
 private:
-    friend class OT;
+    friend class opentxs::OT;
 
     const std::map<std::string, std::string>& args_;
     std::atomic<bool>& shutdown_;
@@ -100,5 +103,7 @@ private:
     Server operator=(const Server&) = delete;
     Server operator=(Server&&) = delete;
 };
+}  // namespace api
 }  // namespace opentxs
+
 #endif  // OPENTXS_API_SERVER_HPP

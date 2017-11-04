@@ -44,8 +44,14 @@
 namespace opentxs
 {
 
-class Storage;
 class StorageConfig;
+
+namespace api
+{
+
+class Storage;
+
+}  // namespace api
 
 // Simple filesystem implementation of opentxs::storage
 class StorageFSGC : public StorageFS, public virtual StorageDriver
@@ -61,7 +67,7 @@ public:
     ~StorageFSGC();
 
 private:
-    friend class Storage;
+    friend class api::Storage;
 
     std::string bucket_name(const bool bucket) const;
     std::string calculate_path(

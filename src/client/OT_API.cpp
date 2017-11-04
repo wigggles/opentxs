@@ -516,12 +516,12 @@ bool OT_API::Pid::IsPidOpen() const { return m_bIsPidOpen; }
 
 // The API begins here...
 OT_API::OT_API(
-    Activity& activity,
-    Settings& config,
-    Identity& identity,
-    Storage& storage,
-    Wallet& wallet,
-    ZMQ& zmq,
+    api::Activity& activity,
+    api::Settings& config,
+    api::Identity& identity,
+    api::Storage& storage,
+    api::Wallet& wallet,
+    api::ZMQ& zmq,
     std::recursive_mutex& lock)
     : activity_(activity)
     , config_(config)

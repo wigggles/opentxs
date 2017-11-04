@@ -55,7 +55,13 @@ namespace opentxs
 
 class Nym;
 class TransactionStatement;
+
+namespace api
+{
+
 class Wallet;
+
+}  // namespace api
 
 class Context : public Signable
 {
@@ -131,7 +137,7 @@ protected:
 
 private:
     friend class Nym;
-    friend class Wallet;
+    friend class api::Wallet;
 
     typedef Signable ot_super;
 

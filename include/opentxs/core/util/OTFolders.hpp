@@ -57,7 +57,7 @@ private:
     static bool GetSetAll();
 
     static inline bool GetSetFolderName(
-        Settings& config,
+        api::Settings& config,
         std::string strKeyName,
         std::string strDefaultName,
         String& ret_strName)
