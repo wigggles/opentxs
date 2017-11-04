@@ -866,7 +866,7 @@ void UnitDefinition::SetAlias(const std::string& alias)
 {
     ot_super::SetAlias(alias);
 
-    OT::App().Contract().SetUnitDefinitionAlias(id_, alias);
+    OT::App().Wallet().SetUnitDefinitionAlias(id_, alias);
 }
 
 bool UnitDefinition::update_signature(const Lock& lock)

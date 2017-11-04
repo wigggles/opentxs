@@ -212,7 +212,7 @@ bool Dht::ProcessPublicNym(
             continue;
         }
 
-        auto existing = OT::App().Contract().Nym(Identifier(key));
+        auto existing = OT::App().Wallet().Nym(Identifier(key));
 
         if (existing) {
             if (existing->Revision() >= publicNym.revision()) {
@@ -220,7 +220,7 @@ bool Dht::ProcessPublicNym(
             }
         }
 
-        auto saved = OT::App().Contract().Nym(publicNym);
+        auto saved = OT::App().Wallet().Nym(publicNym);
 
         if (!saved) {
             continue;
@@ -278,7 +278,7 @@ bool Dht::ProcessServerContract(
             continue;
         }
 
-        auto saved = OT::App().Contract().Server(contract);
+        auto saved = OT::App().Wallet().Server(contract);
 
         if (!saved) {
             continue;
@@ -338,7 +338,7 @@ bool Dht::ProcessUnitDefinition(
             continue;
         }
 
-        auto saved = OT::App().Contract().UnitDefinition(contract);
+        auto saved = OT::App().Wallet().UnitDefinition(contract);
 
         if (!saved) {
             continue;

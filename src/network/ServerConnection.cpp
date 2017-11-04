@@ -198,7 +198,7 @@ std::string ServerConnection::GetRemoteEndpoint(
         config_.Save();
     }
 
-    contract = OT::App().Contract().Server(Identifier(server));
+    contract = OT::App().Wallet().Server(Identifier(server));
 
     std::uint32_t port = 0;
     std::string hostname;

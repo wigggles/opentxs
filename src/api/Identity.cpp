@@ -363,7 +363,7 @@ std::unique_ptr<proto::VerificationSet> Identity::Verify(
             const bool updated = onNym.SetVerificationSet(*revised);
 
             if (updated) {
-                OT::App().Contract().Nym(onNym.asPublicNym());
+                OT::App().Wallet().Nym(onNym.asPublicNym());
 
                 return revised;
             } else {

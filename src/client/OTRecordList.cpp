@@ -442,7 +442,7 @@ void OTRecordList::AddInstrumentDefinitionID(std::string str_id)
     // Symbol is $ (for example.) Here, we're grabbing the TLA.
     //
     auto pUnitDefinition =
-        OT::App().Contract().UnitDefinition(theInstrumentDefinitionID);
+        OT::App().Wallet().UnitDefinition(theInstrumentDefinitionID);
     // Wallet owns this object
     if (nullptr != pUnitDefinition) {
         str_asset_name = pUnitDefinition->TLA();  // This might be "USD" --
@@ -591,7 +591,7 @@ bool OTRecordList::PerformAutoAccept()
                 ++nServerIndex;
                 const std::string& str_notary_id(it_server);
                 const Identifier theNotaryID(str_notary_id);
-                auto pServer = OT::App().Contract().Server(theNotaryID);
+                auto pServer = OT::App().Wallet().Server(theNotaryID);
                 if (!pServer) {
                     // This can happen if the user erases the server contract
                     // from the wallet. Therefore we just need to skip it.
@@ -1769,7 +1769,7 @@ bool OTRecordList::Populate()
         for (auto& it_server : m_servers) {
             ++nServerIndex;
             const Identifier theNotaryID(it_server);
-            auto pServer = OT::App().Contract().Server(theNotaryID);
+            auto pServer = OT::App().Wallet().Server(theNotaryID);
             if (!pServer) {
                 // This can happen if the user erases the server contract
                 // from the wallet. Therefore we just need to skip it.

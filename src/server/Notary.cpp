@@ -1635,7 +1635,7 @@ void Notary::NotarizePayDividend(
             // definition as theSourceAccount.)
             const Identifier SHARES_INSTRUMENT_DEFINITION_ID =
                 theVoucherRequest.GetInstrumentDefinitionID();
-            auto pSharesContract = OT::App().Contract().UnitDefinition(
+            auto pSharesContract = OT::App().Wallet().UnitDefinition(
                 theVoucherRequest.GetInstrumentDefinitionID());
             Account* pSharesIssuerAccount = nullptr;
             std::unique_ptr<Account> theAcctAngel;
@@ -2993,7 +2993,7 @@ void Notary::NotarizeDeposit(
                     }
                 }
 
-                auto sContext = OT::App().Contract().mutable_ClientContext(
+                auto sContext = OT::App().Wallet().mutable_ClientContext(
                     server_->GetServerNym().ID(),
                     (bHasRemitter ? pRemitterNym : pSenderNym)->ID());
 
@@ -4474,7 +4474,7 @@ void Notary::NotarizePaymentPlan(
                     // (When doing a transfer, normally 2nd acct is the Payee.)
                     const Identifier RECIPIENT_ACCT_ID(
                         pPlan->GetRecipientAcctID());
-                    auto rContext = OT::App().Contract().mutable_ClientContext(
+                    auto rContext = OT::App().Wallet().mutable_ClientContext(
                         server_->GetServerNym().ID(),
                         pPlan->GetRecipientNymID());
                     if (!bCancelling &&
@@ -6048,7 +6048,7 @@ void Notary::NotarizeExchangeBasket(
                 } else {
                     // Now we get a pointer to its asset contract...
                     auto pContract =
-                        OT::App().Contract().UnitDefinition(BASKET_CONTRACT_ID);
+                        OT::App().Wallet().UnitDefinition(BASKET_CONTRACT_ID);
 
                     const BasketContract* basket = nullptr;
 
@@ -8238,7 +8238,7 @@ void Notary::NotarizeProcessNymbox(
     tranOut.SaveContract();
 
     if (bNymboxHashRegenerated) {
-        auto context = OT::App().Contract().mutable_ClientContext(
+        auto context = OT::App().Wallet().mutable_ClientContext(
             server_->GetServerNym().ID(), theNym.ID());
         context.It().SetLocalNymboxHash(NYMBOX_HASH);
         theNym.SaveSignedNymfile(server_->m_nymServer);  // TODO remove this

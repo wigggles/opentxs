@@ -247,13 +247,6 @@ api::ContactManager& OT::Contact() const
     return *contacts_;
 }
 
-api::Wallet& OT::Contract() const
-{
-    OT_ASSERT(wallet_)
-
-    return *wallet_;
-}
-
 CryptoEngine& OT::Crypto() const
 {
     OT_ASSERT(crypto_)
@@ -987,6 +980,13 @@ void OT::start()
 
         server_->Start();
     }
+}
+
+api::Wallet& OT::Wallet() const
+{
+    OT_ASSERT(wallet_)
+
+    return *wallet_;
 }
 
 api::ZMQ& OT::ZMQ() const

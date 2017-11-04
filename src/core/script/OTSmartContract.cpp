@@ -3458,7 +3458,7 @@ void OTSmartContract::onFinalReceipt(
 
         OT_ASSERT(nullptr != pPartyNym);
 
-        auto context = OT::App().Contract().mutable_ClientContext(
+        auto context = OT::App().Wallet().mutable_ClientContext(
             GetNotaryID(), pPartyNym->ID());
         const auto opening = pParty->GetOpeningTransNo();
         const bool haveOpening = pParty->GetOpeningTransNo() > 0;

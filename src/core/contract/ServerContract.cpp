@@ -262,7 +262,7 @@ void ServerContract::SetAlias(const std::string& alias)
 {
     ot_super::SetAlias(alias);
 
-    OT::App().Contract().SetServerAlias(id_, alias);
+    OT::App().Wallet().SetServerAlias(id_, alias);
 }
 
 proto::ServerContract ServerContract::SigVersion(const Lock& lock) const

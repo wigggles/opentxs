@@ -312,7 +312,7 @@ bool OTClient::AcceptEntireNymbox(
         return false;
     }
 
-    auto context = OT::App().Contract().mutable_ServerContext(
+    auto context = OT::App().Wallet().mutable_ServerContext(
         nymfile.GetConstID(), theNotaryID);
     const auto& nym = *context.It().Nym();
     const auto& nymID = nym.ID();
@@ -466,7 +466,7 @@ bool OTClient::AcceptEntireNymbox(
             //            // pNym's mail.
             //            if (pMessage->LoadContractFromString(strRespTo)) {
             //                auto recipientNym =
-            //                    OT::App().Contract().Nym(Identifier(pMessage->m_strNymID2));
+            //                    OT::App().Wallet().Nym(Identifier(pMessage->m_strNymID2));
             //                if (recipientNym) {
             //                    const auto peerObject = PeerObject::Factory(
             //                        recipientNym, pMessage->m_ascPayload);
@@ -504,12 +504,12 @@ bool OTClient::AcceptEntireNymbox(
             //                            break;
             //                        }
             //                        case (proto::PEEROBJECT_REQUEST): {
-            //                            OT::App().Contract().PeerRequestReceive(
+            //                            OT::App().Wallet().PeerRequestReceive(
             //                                recipientNym->ID(), *peerObject);
             //                            break;
             //                        }
             //                        case (proto::PEEROBJECT_RESPONSE): {
-            //                            OT::App().Contract().PeerReplyReceive(
+            //                            OT::App().Wallet().PeerReplyReceive(
             //                                recipientNym->ID(), *peerObject);
             //                            break;
             //                        }
@@ -2424,7 +2424,7 @@ void OTClient::setRecentHash(
 
         RECENT_HASH.SetString(theReply.m_strNymboxHash);
 
-        auto context = OT::App().Contract().mutable_ServerContext(
+        auto context = OT::App().Wallet().mutable_ServerContext(
             pNym->ID(), Identifier(strNotaryID));
         context.It().SetRemoteNymboxHash(RECENT_HASH);
 
@@ -2453,7 +2453,7 @@ bool OTClient::processServerReplyCheckNym(
     auto serialized =
         proto::DataToProto<proto::CredentialIndex>(Data(theReply.m_ascPayload));
 
-    auto nym = OT::App().Contract().Nym(serialized);
+    auto nym = OT::App().Wallet().Nym(serialized);
 
     if (nym) {
         OT::App().Contact().Update(serialized);
@@ -2726,7 +2726,7 @@ bool OTClient::processServerReplyGetBoxReceipt(
                     if (pMessage->LoadContractFromString(strOTMessage)) {
                         auto recipientNymId = Identifier(pMessage->m_strNymID2);
                         auto recipientNym =
-                            OT::App().Contract().Nym(recipientNymId);
+                            OT::App().Wallet().Nym(recipientNymId);
                         if (recipientNym) {
                             const auto peerObject = PeerObject::Factory(
                                 recipientNym, pMessage->m_ascPayload);
@@ -2760,12 +2760,12 @@ bool OTClient::processServerReplyGetBoxReceipt(
                                     break;
                                 }
                                 case (proto::PEEROBJECT_REQUEST): {
-                                    OT::App().Contract().PeerRequestReceive(
+                                    OT::App().Wallet().PeerRequestReceive(
                                         recipientNymId, *peerObject);
                                     break;
                                 }
                                 case (proto::PEEROBJECT_RESPONSE): {
-                                    OT::App().Contract().PeerReplyReceive(
+                                    OT::App().Wallet().PeerReplyReceive(
                                         recipientNymId, *peerObject);
                                     break;
                                 }
@@ -5805,7 +5805,7 @@ bool OTClient::processServerReplyGetInstrumentDefinition(
     proto::UnitDefinition serialized =
         proto::DataToProto<proto::UnitDefinition>(raw);
 
-    auto contract = OT::App().Contract().UnitDefinition(serialized);
+    auto contract = OT::App().Wallet().UnitDefinition(serialized);
 
     if (contract) {
 
@@ -5815,7 +5815,7 @@ bool OTClient::processServerReplyGetInstrumentDefinition(
         proto::ServerContract serialized =
             proto::DataToProto<proto::ServerContract>(raw);
 
-        auto contract = OT::App().Contract().Server(serialized);
+        auto contract = OT::App().Wallet().Server(serialized);
 
         if (contract) {
 
@@ -6377,7 +6377,7 @@ bool OTClient::processServerReply(
     }
 
     auto context =
-        OT::App().Contract().mutable_ServerContext(sender->ID(), server);
+        OT::App().Wallet().mutable_ServerContext(sender->ID(), server);
 
     Message& theReply = *reply;
     ProcessServerReplyArgs args(context.It());
@@ -6389,7 +6389,7 @@ bool OTClient::processServerReply(
     const String senderID(args.NYM_ID);
     args.strNotaryID = serverID;
     args.strNymID = senderID;
-    auto notary = OT::App().Contract().Server(server);
+    auto notary = OT::App().Wallet().Server(server);
     args.pServerNym = const_cast<Nym*>(notary->Nym().get());
 
     Nym& senderNym = *sender;
@@ -6627,7 +6627,7 @@ int32_t OTClient::ProcessUserCommand(
     }
 
     auto context =
-        OT::App().Contract().mutable_ServerContext(theNym.ID(), NOTARY_ID);
+        OT::App().Wallet().mutable_ServerContext(theNym.ID(), NOTARY_ID);
 
     int64_t lReturnValue = 0;
 

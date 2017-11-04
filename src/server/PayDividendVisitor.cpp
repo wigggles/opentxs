@@ -166,7 +166,7 @@ bool PayDividendVisitor::Trigger(Account& theSharesAccount)  // theSharesAccount
     // 180 days (6 months).
     // Todo hardcoding.
     TransactionNumber lNewTransactionNumber = 0;
-    auto context = OT::App().Contract().mutable_ClientContext(
+    auto context = OT::App().Wallet().mutable_ClientContext(
         theServerNym.ID(), theServerNym.ID());
     bool bGotNextTransNum =
         theServer.transactor_.issueNextTransactionNumberToNym(

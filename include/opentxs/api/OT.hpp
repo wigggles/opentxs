@@ -127,7 +127,6 @@ public:
     api::Blockchain& Blockchain() const;
     api::Settings& Config(const std::string& path = std::string("")) const;
     api::ContactManager& Contact() const;
-    api::Wallet& Contract() const;
     CryptoEngine& Crypto() const;
     api::Storage& DB() const;
     api::Dht& DHT() const;
@@ -142,6 +141,7 @@ public:
         const time64_t& last = 0) const;
     const api::Server& Server() const;
     bool ServerMode() const;
+    api::Wallet& Wallet() const;
     api::ZMQ& ZMQ() const;
 
 private:

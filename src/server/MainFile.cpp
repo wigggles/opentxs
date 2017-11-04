@@ -575,7 +575,7 @@ bool MainFile::LoadServerUserAndContract()
             szFunc);
     Log::vOutput(0, "%s: Loading the server contract...\n", szFunc);
 
-    auto pContract = OT::App().Contract().Server(NOTARY_ID);
+    auto pContract = OT::App().Wallet().Server(NOTARY_ID);
 
     if (pContract) {
         Log::Output(0, "\n** Main Server Contract Verified **\n");

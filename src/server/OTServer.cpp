@@ -417,7 +417,7 @@ void OTServer::CreateMainFile(
     }
 
     std::shared_ptr<const ServerContract> pContract{};
-    auto& wallet = OT::App().Contract();
+    auto& wallet = OT::App().Wallet();
     const String existing = OTDB::QueryPlainString(SERVER_CONTRACT_FILE).data();
 
     if (existing.empty()) {
@@ -1021,7 +1021,7 @@ bool OTServer::GetConnectInfo(std::string& strHostname, uint32_t& nPort) const
 
 zcert_t* OTServer::GetTransportKey() const
 {
-    auto contract = OT::App().Contract().Server(Identifier(m_strNotaryID));
+    auto contract = OT::App().Wallet().Server(Identifier(m_strNotaryID));
 
     OT_ASSERT(contract);
 

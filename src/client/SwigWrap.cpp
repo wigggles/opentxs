@@ -3504,7 +3504,7 @@ std::uint32_t SwigWrap::GetReciprocalRelationship(
 
 NymData SwigWrap::Wallet_GetNym(const std::string& nymID)
 {
-    return OT::App().Contract().mutable_Nym(Identifier(nymID));
+    return OT::App().Wallet().mutable_Nym(Identifier(nymID));
 }
 
 std::string SwigWrap::Wallet_GetSeed()
