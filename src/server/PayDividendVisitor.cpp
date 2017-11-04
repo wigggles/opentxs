@@ -67,7 +67,7 @@ PayDividendVisitor::PayDividendVisitor(
     const Identifier& thePayoutInstrumentDefinitionID,
     const Identifier& theVoucherAcctID,
     const String& strMemo,
-    OTServer& theServer,
+    server::OTServer& theServer,
     int64_t lPayoutPerShare,
     mapOfAccounts* pLoadedAccounts)
     : AccountVisitor(theNotaryID, pLoadedAccounts)
@@ -132,7 +132,7 @@ bool PayDividendVisitor::Trigger(Account& theSharesAccount)  // theSharesAccount
     OT_ASSERT(nullptr != GetVoucherAcctID());
     const Identifier& theVoucherAcctID = *(GetVoucherAcctID());
     OT_ASSERT(nullptr != GetServer());
-    OTServer& theServer = *(GetServer());
+    server::OTServer& theServer = *(GetServer());
     Nym& theServerNym = const_cast<Nym&>(theServer.GetServerNym());
     const Identifier theServerNymID(theServerNym);
     const Identifier& RECIPIENT_ID = theSharesAccount.GetNymID();
@@ -192,7 +192,8 @@ bool PayDividendVisitor::Trigger(Account& theSharesAccount)  // theSharesAccount
                       // memo.
             &RECIPIENT_ID);
 
-        // All account crediting / debiting happens in the caller, in OTServer.
+        // All account crediting / debiting happens in the caller, in
+        // server::OTServer.
         //    (AND it happens only ONCE, to cover ALL vouchers.)
         // Then in here, the voucher either gets send to the recipient, or if
         // error, sent back home to

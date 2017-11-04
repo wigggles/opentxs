@@ -43,7 +43,12 @@
 
 namespace opentxs
 {
+
 class String;
+
+namespace server
+{
+
 class OTServer;
 
 class MainFile
@@ -51,10 +56,12 @@ class MainFile
 public:
     explicit MainFile(OTServer* server);
 
-    bool CreateMainFile(const std::string& strContract,
-                        const std::string& strNotaryID,
-                        const std::string& strCert, const std::string& strNymID,
-                        const std::string& strCachedKey);
+    bool CreateMainFile(
+        const std::string& strContract,
+        const std::string& strNotaryID,
+        const std::string& strCert,
+        const std::string& strNymID,
+        const std::string& strCachedKey);
     bool LoadMainFile(bool readOnly = false);
     bool LoadServerUserAndContract();
     bool SaveMainFile();
@@ -62,9 +69,9 @@ public:
 
 private:
     std::string version_;
-    OTServer* server_; // TODO: remove when feasible
+    OTServer* server_;  // TODO: remove when feasible
 };
+}  // namespace server
+}  // namespace opentxs
 
-} // namespace opentxs
-
-#endif // OPENTXS_SERVER_MAINFILE_HPP
+#endif  // OPENTXS_SERVER_MAINFILE_HPP

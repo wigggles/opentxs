@@ -59,7 +59,7 @@
 #define SERVER_MASTER_KEY_TIMEOUT_DEFAULT -1
 #define SERVER_USE_SYSTEM_KEYRING false
 
-namespace opentxs
+namespace opentxs::server
 {
 
 bool ConfigLoader::load(String& walletFilename)
@@ -464,4 +464,4 @@ bool ConfigLoader::load(String& walletFilename)
     return true;
 }
 
-}  // namespace opentxs
+}  // namespace opentxs::server

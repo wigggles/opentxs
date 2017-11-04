@@ -44,20 +44,15 @@
 
 namespace opentxs
 {
-
-struct ServerSettings
+namespace server
 {
-    static int64_t GetMinMarketScale()
-    {
-        return __min_market_scale;
-    }
 
-    static void SetMinMarketScale(int64_t value)
-    {
-        __min_market_scale = value;
-    }
+struct ServerSettings {
+    static std::int64_t GetMinMarketScale() { return __min_market_scale; }
 
-    static int32_t GetHeartbeatNoRequests()
+    static void SetMinMarketScale(int64_t value) { __min_market_scale = value; }
+
+    static std::int32_t GetHeartbeatNoRequests()
     {
         return __heartbeat_no_requests;
     }
@@ -67,7 +62,7 @@ struct ServerSettings
         __heartbeat_no_requests = value;
     }
 
-    static int32_t GetHeartbeatMsBetweenBeats()
+    static std::int32_t GetHeartbeatMsBetweenBeats()
     {
         return __heartbeat_ms_between_beats;
     }
@@ -77,20 +72,17 @@ struct ServerSettings
         __heartbeat_ms_between_beats = value;
     }
 
-    static const std::string& GetOverrideNymID()
-    {
-        return __override_nym_id;
-    }
+    static const std::string& GetOverrideNymID() { return __override_nym_id; }
 
     static void SetOverrideNymID(const std::string& id)
     {
         __override_nym_id = id;
     }
 
-    static int64_t __min_market_scale;
+    static std::int64_t __min_market_scale;
 
-    static int32_t __heartbeat_no_requests;
-    static int32_t __heartbeat_ms_between_beats;
+    static std::int32_t __heartbeat_no_requests;
+    static std::int32_t __heartbeat_ms_between_beats;
 
     // The Nym who's allowed to do certain commands even if they are turned off.
     static std::string __override_nym_id;
@@ -151,7 +143,7 @@ struct ServerSettings
 
     static bool __cmd_request_admin;
 };
+}  // namespace server
+}  // namespace opentxs
 
-} // namespace opentxs
-
-#endif // OPENTXS_SERVER_SERVERSETTINGS_HPP
+#endif  // OPENTXS_SERVER_SERVERSETTINGS_HPP

@@ -65,9 +65,15 @@ namespace opentxs
 {
 
 class Identifier;
-class MessageProcessor;
 class OT;
+
+namespace server
+{
+
+class MessageProcessor;
 class OTServer;
+
+}  // namespace server
 
 namespace api
 {
@@ -89,10 +95,10 @@ private:
 
     const std::map<std::string, std::string>& args_;
     std::atomic<bool>& shutdown_;
-    std::unique_ptr<OTServer> server_p_;
-    OTServer& server_;
-    std::unique_ptr<MessageProcessor> message_processor_p_;
-    MessageProcessor& message_processor_;
+    std::unique_ptr<server::OTServer> server_p_;
+    server::OTServer& server_;
+    std::unique_ptr<server::MessageProcessor> message_processor_p_;
+    server::MessageProcessor& message_processor_;
 
     Server(
         const std::map<std::string, std::string>& args,

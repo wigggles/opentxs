@@ -54,6 +54,10 @@ class OTASCIIArmor;
 class ClientContext;
 class Identifier;
 class Message;
+
+namespace server
+{
+
 class OTServer;
 
 class ReplyMessage
@@ -124,6 +128,7 @@ private:
     ReplyMessage& operator=(const ReplyMessage&) = delete;
     ReplyMessage& operator=(ReplyMessage&&) = delete;
 };
+}  // namespace server
 }  // namespace opentxs
 
 #endif  // OPENTXS_SERVER_REPLYMESSAGE_HPP

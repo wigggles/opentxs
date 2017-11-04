@@ -55,10 +55,14 @@ class Ledger;
 class Message;
 class Nym;
 class NumList;
-class OTServer;
 class OTTransaction;
-class ReplyMessage;
 class String;
+
+namespace server
+{
+
+class OTServer;
+class ReplyMessage;
 
 class UserCommandProcessor
 {
@@ -204,6 +208,7 @@ private:
     bool verify_transaction(const OTTransaction* transaction, const Nym& signer)
         const;
 };
+}  // namespace server
 }  // namespace opentxs
 
 #endif  // OPENTXS_SERVER_USERCOMMANDPROCESSOR_HPP

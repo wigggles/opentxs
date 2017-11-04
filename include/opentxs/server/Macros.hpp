@@ -44,6 +44,8 @@
 
 namespace opentxs
 {
+namespace server
+{
 
 // For NYM_IS_ALLOWED() to evaluate to TRUE, either the boolean value itself is
 // set to true (meaning, "YES any Nym is allowed..") OR (it only continues if
@@ -69,7 +71,7 @@ namespace opentxs
             return false;                                                      \
         }                                                                      \
     }
-
+}  // namespace server
 }  // namespace opentxs
 
 #endif  // OPENTXS_SERVER_MACROS_HPP

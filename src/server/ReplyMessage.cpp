@@ -51,7 +51,7 @@
 
 #define OT_METHOD "opentxs::ReplyMessage::"
 
-namespace opentxs
+namespace opentxs::server
 {
 
 ReplyMessage::ReplyMessage(
@@ -378,4 +378,4 @@ ReplyMessage::~ReplyMessage()
         SetNymboxHash(context_->It().LocalNymboxHash());
     }
 }
-}  // namespace opentxs
+}  // namespace opentxs::server

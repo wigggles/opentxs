@@ -69,7 +69,7 @@
 
 #define OT_METHOD "opentxs::Mainfile::"
 
-namespace opentxs
+namespace opentxs::server
 {
 
 MainFile::MainFile(OTServer* server)
@@ -588,4 +588,4 @@ bool MainFile::LoadServerUserAndContract()
     return bSuccess;
 }
 
-}  // namespace opentxs
+}  // namespace opentxs::server

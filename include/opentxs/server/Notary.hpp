@@ -45,8 +45,12 @@ namespace opentxs
 class Account;
 class ClientContext;
 class Nym;
-class OTServer;
 class OTTransaction;
+
+namespace server
+{
+
+class OTServer;
 
 class Notary
 {
@@ -146,6 +150,7 @@ public:
         OTTransaction& tranOut,
         bool& outSuccess);
 };
+}  // namespace server
 }  // namespace opentxs
 
 #endif  // OPENTXS_SERVER_NOTARY_HPP

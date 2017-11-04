@@ -53,9 +53,13 @@ namespace opentxs
 class Account;
 class ClientContext;
 class Identifier;
-class MainFile;
 class Mint;
 class Nym;
+
+namespace server
+{
+
+class MainFile;
 class OTServer;
 
 class Transactor
@@ -71,26 +75,27 @@ public:
         ClientContext& context,
         TransactionNumber& txNumber);
 
-    TransactionNumber transactionNumber() const
-    {
-        return transactionNumber_;
-    }
+    TransactionNumber transactionNumber() const { return transactionNumber_; }
 
     void transactionNumber(TransactionNumber value)
     {
         transactionNumber_ = value;
     }
 
-    bool addBasketAccountID(const Identifier& basketId,
-                            const Identifier& basketAccountId,
-                            const Identifier& basketContractId);
-    bool lookupBasketAccountID(const Identifier& basketId,
-                               Identifier& basketAccountId);
+    bool addBasketAccountID(
+        const Identifier& basketId,
+        const Identifier& basketAccountId,
+        const Identifier& basketContractId);
+    bool lookupBasketAccountID(
+        const Identifier& basketId,
+        Identifier& basketAccountId);
 
-    bool lookupBasketAccountIDByContractID(const Identifier& basketContractId,
-                                           Identifier& basketAccountId);
-    bool lookupBasketContractIDByAccountID(const Identifier& basketAccountId,
-                                           Identifier& basketContractId);
+    bool lookupBasketAccountIDByContractID(
+        const Identifier& basketContractId,
+        Identifier& basketAccountId);
+    bool lookupBasketContractIDByAccountID(
+        const Identifier& basketAccountId,
+        Identifier& basketContractId);
 
     // Whenever the server issues a voucher (like a cashier's cheque), it puts
     // the funds in one
@@ -110,8 +115,9 @@ public:
         const Identifier& instrumentDefinitionID);
 
     // Each asset contract has its own series of Mints
-    Mint* getMint(const Identifier& instrumentDefinitionID,
-                  int32_t seriesCount);
+    Mint* getMint(
+        const Identifier& instrumentDefinitionID,
+        int32_t seriesCount);
 
 private:
     // Why does the map of mints use multimap instead of map?
@@ -145,9 +151,9 @@ private:
     // The mints for each instrument definition.
     MintsMap mintsMap_;
 
-    OTServer* server_; // TODO: remove later when feasible
+    OTServer* server_;  // TODO: remove later when feasible
 };
+}  // namespace server
+}  // namespace opentxs
 
-} // namespace opentxs
-
-#endif // OPENTXS_SERVER_TRANSACTOR_HPP
+#endif  // OPENTXS_SERVER_TRANSACTOR_HPP

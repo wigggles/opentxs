@@ -48,6 +48,8 @@
 
 namespace opentxs
 {
+namespace server
+{
 
 class OTServer;
 
@@ -76,6 +78,7 @@ private:
     void processSocket();
     void run();
 };
+}  // namespace server
 }  // namespace opentxs
 
 #endif  // OPENTXS_SERVER_MESSAGEPROCESSOR_HPP

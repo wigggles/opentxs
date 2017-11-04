@@ -57,7 +57,7 @@
 
 #define OT_METHOD "opentxs::MessageProcessor::"
 
-namespace opentxs
+namespace opentxs::server
 {
 
 MessageProcessor::MessageProcessor(
@@ -245,4 +245,4 @@ void MessageProcessor::Start()
 }
 
 MessageProcessor::~MessageProcessor() {}
-}  // namespace opentxs
+}  // namespace opentxs::server

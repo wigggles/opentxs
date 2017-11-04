@@ -54,9 +54,9 @@ Server::Server(
     std::atomic<bool>& shutdown)
     : args_(args)
     , shutdown_(shutdown)
-    , server_p_(new OTServer)
+    , server_p_(new server::OTServer)
     , server_(*server_p_)
-    , message_processor_p_(new MessageProcessor(server_, shutdown_))
+    , message_processor_p_(new server::MessageProcessor(server_, shutdown_))
     , message_processor_(*message_processor_p_)
 {
     OT_ASSERT(server_p_);

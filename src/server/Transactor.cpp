@@ -62,7 +62,7 @@
 #include <string>
 #include <utility>
 
-namespace opentxs
+namespace opentxs::server
 {
 
 Transactor::Transactor(OTServer* server)
@@ -379,4 +379,4 @@ Mint* Transactor::getMint(
     return nullptr;
 }
 
-}  // namespace opentxs
+}  // namespace opentxs::server

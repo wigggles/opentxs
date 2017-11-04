@@ -88,7 +88,7 @@
 #define INBOX_DEPTH 1
 #define OUTBOX_DEPTH 2
 
-namespace opentxs
+namespace opentxs::server
 {
 
 UserCommandProcessor::FinalizeResponse::FinalizeResponse(
@@ -3299,4 +3299,4 @@ bool UserCommandProcessor::verify_transaction(
 
     return transaction->VerifySignature(signer);
 }
-}  // namespace opentxs
+}  // namespace opentxs::server

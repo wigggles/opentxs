@@ -62,7 +62,11 @@ namespace opentxs
 class Identifier;
 class Message;
 class OTPayment;
+class PayDividendVisitor;
 class ServerContract;
+
+namespace server
+{
 
 class OTServer
 {
@@ -70,7 +74,7 @@ class OTServer
     friend class MessageProcessor;
     friend class UserCommandProcessor;
     friend class MainFile;
-    friend class PayDividendVisitor;
+    friend class opentxs::PayDividendVisitor;
     friend class Notary;
 
 public:
@@ -159,7 +163,7 @@ private:
 
     OTCron m_Cron;  // This is where re-occurring and expiring tasks go.
 };
-
+}  // namespace server
 }  // namespace opentxs
 
 #endif  // OPENTXS_SERVER_OTSERVER_HPP

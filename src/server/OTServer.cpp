@@ -83,7 +83,7 @@
 
 #define OT_METHOD "opentxs::OTServer::"
 
-namespace opentxs
+namespace opentxs::server
 {
 
 #ifdef _WIN32
@@ -1028,4 +1028,4 @@ zcert_t* OTServer::GetTransportKey() const
     return contract->PrivateTransportKey();
 }
 
-}  // namespace opentxs
+}  // namespace opentxs::server

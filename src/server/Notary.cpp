@@ -87,7 +87,7 @@
 
 #define OT_METHOD "opentxs::Notary::"
 
-namespace opentxs
+namespace opentxs::server
 {
 
 typedef std::list<Account*> listOfAccounts;
@@ -9602,4 +9602,4 @@ send_message:
     // request that triggered it.)
     processInboxResponse.SaveContract(szFoldername, strPath.Get());
 }
-}  // namespace opentxs
+}  // namespace opentxs::server
