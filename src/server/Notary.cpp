@@ -44,6 +44,7 @@
 #include "opentxs/cash/Purse.hpp"
 #include "opentxs/cash/Token.hpp"
 #include "opentxs/api/OT.hpp"
+#include "opentxs/api/Server.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/core/contract/basket/Basket.hpp"
@@ -1060,7 +1061,7 @@ void Notary::NotarizeWithdrawal(
         std::unique_ptr<Ledger> pOutbox(
             theAccount.LoadOutbox(server_->m_nymServer));
 
-        Mint* pMint = nullptr;
+        std::shared_ptr<Mint> pMint{nullptr};
         Account* pMintCashReserveAcct = nullptr;
 
         if (0 > pItem->GetAmount()) {
@@ -1165,10 +1166,10 @@ void Notary::NotarizeWithdrawal(
                     // So I grab a copy here for later...
                     theDeque.push_front(pToken);
 
-                    pMint = server_->transactor_.getMint(
+                    pMint = OT::App().Server().GetPrivateMint(
                         INSTRUMENT_DEFINITION_ID, pToken->GetSeries());
 
-                    if (nullptr == pMint) {
+                    if (false == bool(pMint)) {
                         Log::vError(
                             "Notary::NotarizeWithdrawal: Unable to "
                             "find Mint (series %d): %s\n",
@@ -2327,7 +2328,7 @@ void Notary::NotarizeDeposit(
 
     const String strNymID(NYM_ID), strAccountID(ACCOUNT_ID);
 
-    Mint* pMint = nullptr;  // the Mint itself.
+    std::shared_ptr<Mint> pMint{nullptr};
     Account* pMintCashReserveAcct =
         nullptr;  // the Mint's funds for cash withdrawals.
     // Here we find out if we're depositing cash, or a cheque
@@ -3945,10 +3946,10 @@ void Notary::NotarizeDeposit(
                         break;
                     }
 
-                    pMint = server_->transactor_.getMint(
+                    pMint = OT::App().Server().GetPrivateMint(
                         INSTRUMENT_DEFINITION_ID, pToken->GetSeries());
 
-                    if (nullptr == pMint) {
+                    if (false == bool(pMint)) {
                         Log::Error("Notary::NotarizeDeposit: Unable to get "
                                    "or load Mint.\n");
                         break;

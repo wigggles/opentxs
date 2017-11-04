@@ -39,8 +39,12 @@
 #ifndef OPENTXS_API_SERVER_HPP
 #define OPENTXS_API_SERVER_HPP
 
+#include "opentxs/core/Types.hpp"
+
+#include <atomic>
 #include <map>
 #include <memory>
+#include <mutex>
 #include <string>
 
 #define OT_SERVER_OPTION_BACKUP "backup"
@@ -59,12 +63,11 @@
 #define OT_SERVER_OPTION_VERSION "version"
 #define OT_SERVER_OPTION_INIT "only-init"
 
-#include <atomic>
-
 namespace opentxs
 {
 
 class Identifier;
+class Mint;
 class OT;
 
 namespace server
@@ -81,6 +84,10 @@ namespace api
 class Server
 {
 public:
+    std::shared_ptr<Mint> GetPrivateMint(
+        const Identifier& unitID,
+        std::uint32_t series) const;
+    std::shared_ptr<const Mint> GetPublicMint(const Identifier& unitID) const;
     const Identifier& ID() const;
     const Identifier& NymID() const;
 
@@ -93,12 +100,32 @@ public:
 private:
     friend class opentxs::OT;
 
+    typedef std::map<std::string, std::shared_ptr<Mint>> MintSeries;
+
     const std::map<std::string, std::string>& args_;
     std::atomic<bool>& shutdown_;
     std::unique_ptr<server::Server> server_p_;
     server::Server& server_;
     std::unique_ptr<server::MessageProcessor> message_processor_p_;
     server::MessageProcessor& message_processor_;
+    mutable std::mutex mint_lock_;
+    mutable std::mutex mint_update_lock_;
+    mutable std::map<std::string, MintSeries> mints_;
+
+    std::shared_ptr<Mint> load_private_mint(
+        const Lock& lock,
+        const std::string& unitID,
+        const std::string seriesID) const;
+    std::shared_ptr<Mint> load_public_mint(
+        const Lock& lock,
+        const std::string& unitID,
+        const std::string seriesID) const;
+    bool verify_lock(const Lock& lock, const std::mutex& mutex) const;
+    std::shared_ptr<Mint> verify_mint(
+        const Lock& lock,
+        const std::string& unitID,
+        const std::string seriesID,
+        std::shared_ptr<Mint>& mint) const;
 
     Server(
         const std::map<std::string, std::string>& args,

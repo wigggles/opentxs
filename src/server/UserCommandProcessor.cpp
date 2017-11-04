@@ -42,6 +42,7 @@
 
 #include "opentxs/api/Identity.hpp"
 #include "opentxs/api/OT.hpp"
+#include "opentxs/api/Server.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/cash/Mint.hpp"
 #include "opentxs/consensus/ClientContext.hpp"
@@ -1076,28 +1077,11 @@ bool UserCommandProcessor::cmd_get_mint(ReplyMessage& reply) const
     OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_get_mint);
 
     const auto& unitID = msgIn.m_strInstrumentDefinitionID;
-    const auto& context = reply.Context();
-    const auto& serverID = context.Server();
-    bool loaded = false;
+    auto mint = OT::App().Server().GetPublicMint(Identifier(unitID));
 
-    std::unique_ptr<Mint> mint(Mint::MintFactory(String(serverID), unitID));
-
-    OT_ASSERT(mint);
-
-    loaded = mint->LoadMint(".PUBLIC");
-
-    if (loaded) {
-        // You cannot hash the Mint to get its ID. (The ID is a hash of the
-        // asset contract, not the mint contract.) Instead, you must READ the ID
-        // from the Mint file, and then compare it to the one expected to see if
-        // they match (similar to how Account IDs are verified.)
-        loaded = mint->VerifyMint(server_->m_nymServer);
-
-        // Yup the asset contract exists.
-        if (loaded) {
-            reply.SetSuccess(true);
-            reply.SetPayload(String(*mint));
-        }
+    if (mint) {
+        reply.SetSuccess(true);
+        reply.SetPayload(String(*mint));
     }
 
     return true;
