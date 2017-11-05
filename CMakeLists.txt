@@ -52,8 +52,6 @@ set(PACKAGE_CONTACT        ""                             CACHE <TYPE>  "Package
 set(PACKAGE_VENDOR         "Open Transactions Developers" CACHE <TYPE>  "Package Vendor")
 option(AUTOCOMPLETION      "CL autocompletion to opentxs CL client" OFF)
 
-option(SIGNAL_HANLDER      "Enable Signal Handler" OFF)
-
 option(KEYRING_WINDOWS     "Build with Windows Keyring" OFF)
 option(KEYRING_MAC         "Build with Mac OSX Keyring" OFF)
 option(KEYRING_IOS         "Build with iOS Keyring" OFF)
@@ -133,7 +131,6 @@ message(STATUS "Testing:                ${BUILD_TESTS}")
 message(STATUS "Documentation:          ${BUILD_DOCUMENTATION}")
 message(STATUS "Using ccache            ${USE_CCACHE}")
 message(STATUS "Pedantic compilation:   ${OT_STRICT}")
-message(STATUS "Signal handling:        ${SIGNAL_HANLDER}")
 
 message(STATUS "Packaging -----------------------------------")
 message(STATUS "Build RPM:              ${RPM}")
@@ -403,10 +400,6 @@ if(WIN32)
     add_definitions(-DOT_API_NAME="Open Transactions API")
     add_definitions(-DOT_LIBRARY_NAME="Open Transactions Library")
     add_definitions(-DOT_PROMPT_NAME="Open Transactions Prompt")
-endif()
-
-if(SIGNAL_HANLDER)
-  add_definitions(-DOT_SIGNAL_HANDLING)
 endif()
 
 if(ANDROID)

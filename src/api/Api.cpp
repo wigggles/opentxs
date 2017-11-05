@@ -84,13 +84,6 @@ void Api::Init()
 
     otLog4 << "(transport build: OTMessage -> OTEnvelope -> ZMQ )\n";
 
-// SIGNALS
-#if defined(OT_SIGNAL_HANDLING)
-    Log::SetupSignalHandler();
-// This is optional! You can always remove it using the OT_NO_SIGNAL_HANDLING
-// option, and plus, the internals only execute once anyway. (It keeps count.)
-#endif
-
     // TODO in the case of Windows, figure err into this return val somehow.
     // (Or log it or something.)
 

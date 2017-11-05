@@ -222,10 +222,6 @@ public:
         const char* szString,
         int32_t iLength,
         const char* szAppend = nullptr);
-
-    /** OPTIONAL. Therefore I will call it in xmlrpcxx_client.cpp just above
-     * OT_Init. */
-    EXPORT static void SetupSignalHandler();
 };
 
 }  // namespace opentxs

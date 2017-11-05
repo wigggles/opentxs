@@ -489,10 +489,6 @@ void OT::Init_Server()
         return;
     }
 
-#if defined(OT_SIGNAL_HANDLING)
-    Log::SetupSignalHandler();
-#endif
-
     OT_ASSERT(wallet_);
 
     server_.reset(new api::Server(server_args_, *wallet_, shutdown_));
