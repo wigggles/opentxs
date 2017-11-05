@@ -44,12 +44,12 @@
 #include "opentxs/network/ServerConnection.hpp"
 #include "opentxs/network/ZMQ.hpp"
 
-#define CLIENT_SEND_TIMEOUT_TOR 2
-#define CLIENT_RECV_TIMEOUT_TOR 4
-#define CLIENT_SOCKET_LINGER 1
-#define CLIENT_SEND_TIMEOUT CLIENT_SEND_TIMEOUT_TOR
-#define CLIENT_RECV_TIMEOUT CLIENT_RECV_TIMEOUT_TOR
-#define KEEP_ALIVE 30
+#define CLIENT_SEND_TIMEOUT_SECONDS 20
+#define CLIENT_RECV_TIMEOUT_SECONDS 40
+#define CLIENT_SOCKET_LINGER_SECONDS 10
+#define CLIENT_SEND_TIMEOUT CLIENT_SEND_TIMEOUT_SECONDS
+#define CLIENT_RECV_TIMEOUT CLIENT_RECV_TIMEOUT_SECONDS
+#define KEEP_ALIVE_SECONDS 30
 
 #define OT_METHOD "opentxs::ZMQ::"
 
@@ -58,7 +58,7 @@ namespace opentxs
 
 ZMQ::ZMQ(Settings& config)
     : config_(config)
-    , linger_(std::chrono::seconds(CLIENT_SOCKET_LINGER))
+    , linger_(std::chrono::seconds(CLIENT_SOCKET_LINGER_SECONDS))
     , receive_timeout_(std::chrono::seconds(CLIENT_RECV_TIMEOUT))
     , send_timeout_(std::chrono::seconds(CLIENT_SEND_TIMEOUT))
     , keep_alive_(std::chrono::seconds(0))
@@ -79,7 +79,7 @@ void ZMQ::init(const Lock& lock)
     bool notUsed{false};
     std::int64_t linger{0};
     config_.CheckSet_long(
-        "latency", "linger", CLIENT_SOCKET_LINGER, linger, notUsed);
+        "latency", "linger", CLIENT_SOCKET_LINGER_SECONDS, linger, notUsed);
     linger_.store(std::chrono::seconds(linger));
     std::int64_t send{0};
     config_.CheckSet_long(
@@ -95,7 +95,7 @@ void ZMQ::init(const Lock& lock)
         config_.Check_str("Connection", "socks_proxy", socks, haveSocksConfig);
     std::int64_t keepAlive{0};
     config_.CheckSet_long(
-        "Connection", "keep_alive", KEEP_ALIVE, keepAlive, notUsed);
+        "Connection", "keep_alive", KEEP_ALIVE_SECONDS, keepAlive, notUsed);
     keep_alive_.store(std::chrono::seconds(keepAlive));
 
     if (configChecked && haveSocksConfig && socks.Exists()) {
