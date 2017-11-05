@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/core/script/OTStash.hpp"
 
@@ -75,13 +75,15 @@ void OTStash::Serialize(Tag& parent) const
     for (auto& it : m_mapStashItems) {
         const std::string str_instrument_definition_id = it.first;
         OTStashItem* pStashItem = it.second;
-        OT_ASSERT((str_instrument_definition_id.size() > 0) &&
-                  (nullptr != pStashItem));
+        OT_ASSERT(
+            (str_instrument_definition_id.size() > 0) &&
+            (nullptr != pStashItem));
 
         TagPtr pTagItem(new Tag("stashItem"));
 
-        pTagItem->add_attribute("instrumentDefinitionID",
-                                pStashItem->GetInstrumentDefinitionID().Get());
+        pTagItem->add_attribute(
+            "instrumentDefinitionID",
+            pStashItem->GetInstrumentDefinitionID().Get());
         pTagItem->add_attribute("balance", formatLong(pStashItem->GetAmount()));
 
         pTag->add_tag(pTagItem);
@@ -90,9 +92,10 @@ void OTStash::Serialize(Tag& parent) const
     parent.add_tag(pTag);
 }
 
-int32_t OTStash::ReadFromXMLNode(irr::io::IrrXMLReader*& xml,
-                                 const String& strStashName,
-                                 const String& strItemCount)
+int32_t OTStash::ReadFromXMLNode(
+    irr::io::IrrXMLReader*& xml,
+    const String& strStashName,
+    const String& strItemCount)
 {
     if (!strStashName.Exists()) {
         otErr << "OTStash::ReadFromXMLNode: Failed: Empty stash 'name' "
@@ -118,10 +121,10 @@ int32_t OTStash::ReadFromXMLNode(irr::io::IrrXMLReader*& xml,
             if ((xml->getNodeType() == irr::io::EXN_ELEMENT) &&
                 (!strcmp("stashItem", xml->getNodeName()))) {
                 String strInstrumentDefinitionID = xml->getAttributeValue(
-                    "instrumentDefinitionID"); // Instrument Definition ID of
-                                               // this account.
+                    "instrumentDefinitionID");  // Instrument Definition ID of
+                                                // this account.
                 String strAmount = xml->getAttributeValue(
-                    "balance"); // Account ID for this account.
+                    "balance");  // Account ID for this account.
 
                 if (!strInstrumentDefinitionID.Exists() ||
                     !strAmount.Exists()) {
@@ -132,28 +135,28 @@ int32_t OTStash::ReadFromXMLNode(irr::io::IrrXMLReader*& xml,
                     return (-1);
                 }
 
-                if (!CreditStash(strInstrumentDefinitionID.Get(),
-                                 strAmount.ToLong())) // <===============
+                if (!CreditStash(
+                        strInstrumentDefinitionID.Get(),
+                        strAmount.ToLong()))  // <===============
                 {
                     otErr << "OTStash::ReadFromXMLNode: Failed crediting "
-                             "stashItem for stash " << strStashName
-                          << ". instrumentDefinitionID ("
+                             "stashItem for stash "
+                          << strStashName << ". instrumentDefinitionID ("
                           << strInstrumentDefinitionID << "), balance ("
                           << strAmount << ").\n";
                     return (-1);
                 }
 
                 // (Success)
-            }
-            else {
+            } else {
                 otErr << "OTStash::ReadFromXMLNode: Expected stashItem "
                          "element.\n";
-                return (-1); // error condition
+                return (-1);  // error condition
             }
-        } // while
+        }  // while
     }
 
-    if (!Contract::SkipAfterLoadingField(xml)) // </stash>
+    if (!Contract::SkipAfterLoadingField(xml))  // </stash>
     {
         otOut << "*** OTStash::ReadFromXMLNode: Bad data? Expected "
                  "EXN_ELEMENT_END here, but "
@@ -208,7 +211,7 @@ OTStashItem* OTStash::GetStash(const std::string& str_instrument_definition_id)
     auto it = m_mapStashItems.find(str_instrument_definition_id);
 
     if (m_mapStashItems.end() ==
-        it) // It's not already there for this instrument definition.
+        it)  // It's not already there for this instrument definition.
     {
         const String strInstrumentDefinitionID(
             str_instrument_definition_id.c_str());
@@ -228,31 +231,36 @@ OTStashItem* OTStash::GetStash(const std::string& str_instrument_definition_id)
 
 int64_t OTStash::GetAmount(const std::string& str_instrument_definition_id)
 {
-    OTStashItem* pStashItem = GetStash(
-        str_instrument_definition_id); // (Always succeeds, and will OT_ASSERT()
-                                       // if failure.)
+    OTStashItem* pStashItem =
+        GetStash(str_instrument_definition_id);  // (Always succeeds, and will
+                                                 // OT_ASSERT()
+                                                 // if failure.)
 
     return pStashItem->GetAmount();
 }
 
-bool OTStash::CreditStash(const std::string& str_instrument_definition_id,
-                          const int64_t& lAmount)
+bool OTStash::CreditStash(
+    const std::string& str_instrument_definition_id,
+    const int64_t& lAmount)
 {
-    OTStashItem* pStashItem = GetStash(
-        str_instrument_definition_id); // (Always succeeds, and will OT_ASSERT()
-                                       // if failure.)
+    OTStashItem* pStashItem =
+        GetStash(str_instrument_definition_id);  // (Always succeeds, and will
+                                                 // OT_ASSERT()
+                                                 // if failure.)
 
     return pStashItem->CreditStash(lAmount);
 }
 
-bool OTStash::DebitStash(const std::string& str_instrument_definition_id,
-                         const int64_t& lAmount)
+bool OTStash::DebitStash(
+    const std::string& str_instrument_definition_id,
+    const int64_t& lAmount)
 {
-    OTStashItem* pStashItem = GetStash(
-        str_instrument_definition_id); // (Always succeeds, and will OT_ASSERT()
-                                       // if failure.)
+    OTStashItem* pStashItem =
+        GetStash(str_instrument_definition_id);  // (Always succeeds, and will
+                                                 // OT_ASSERT()
+                                                 // if failure.)
 
     return pStashItem->DebitStash(lAmount);
 }
 
-} // namespace opentxs
+}  // namespace opentxs

@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_OTCHEQUE_HPP
 #define OPENTXS_CORE_OTCHEQUE_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -52,7 +54,7 @@ namespace opentxs
 
 class Cheque : public OTTrackable
 {
-private: // Private prevents erroneous use by other classes.
+private:  // Private prevents erroneous use by other classes.
     typedef OTTrackable ot_super;
 
 protected:
@@ -60,39 +62,31 @@ protected:
 
     int64_t m_lAmount{0};
     String m_strMemo;
-    Identifier m_RECIPIENT_NYM_ID; // Optional. If present, must match
-                                   // depositor's user ID.
+    Identifier m_RECIPIENT_NYM_ID;  // Optional. If present, must match
+                                    // depositor's user ID.
     bool m_bHasRecipient{false};
-    Identifier m_REMITTER_NYM_ID; // In the case of vouchers (cashier's
-                                  // cheques) we store the Remitter's ID.
+    Identifier m_REMITTER_NYM_ID;  // In the case of vouchers (cashier's
+                                   // cheques) we store the Remitter's ID.
     Identifier m_REMITTER_ACCT_ID;
     bool m_bHasRemitter{false};
 
 public:
-    inline void SetAsVoucher(const Identifier& remitterNymID,
-                             const Identifier& remitterAcctID)
+    inline void SetAsVoucher(
+        const Identifier& remitterNymID,
+        const Identifier& remitterAcctID)
     {
         m_REMITTER_NYM_ID = remitterNymID;
         m_REMITTER_ACCT_ID = remitterAcctID;
         m_bHasRemitter = true;
         m_strContractType = "VOUCHER";
     }
-    inline const String& GetMemo() const
-    {
-        return m_strMemo;
-    }
-    inline const int64_t& GetAmount() const
-    {
-        return m_lAmount;
-    }
+    inline const String& GetMemo() const { return m_strMemo; }
+    inline const int64_t& GetAmount() const { return m_lAmount; }
     inline const Identifier& GetRecipientNymID() const
     {
         return m_RECIPIENT_NYM_ID;
     }
-    inline bool HasRecipient() const
-    {
-        return m_bHasRecipient;
-    }
+    inline bool HasRecipient() const { return m_bHasRecipient; }
     inline const Identifier& GetRemitterNymID() const
     {
         return m_REMITTER_NYM_ID;
@@ -101,10 +95,7 @@ public:
     {
         return m_REMITTER_ACCT_ID;
     }
-    inline bool HasRemitter() const
-    {
-        return m_bHasRemitter;
-    }
+    inline bool HasRemitter() const { return m_bHasRemitter; }
 
     // A cheque HAS NO "Recipient Asset Acct ID", since the recipient's account
     // (where he deposits
@@ -114,22 +105,23 @@ public:
 
     // Calling this function is like writing a check...
     EXPORT bool IssueCheque(
-        const int64_t& lAmount, const int64_t& lTransactionNum,
+        const int64_t& lAmount,
+        const int64_t& lTransactionNum,
         const time64_t& VALID_FROM,
-        const time64_t& VALID_TO, // The expiration date (valid from/to dates.)
-        const Identifier& SENDER_ACCT_ID, // The asset account the cheque is
-                                          // drawn on.
-        const Identifier& SENDER_NYM_ID,  // This ID must match the user ID on
-                                          // the asset account,
+        const time64_t& VALID_TO,  // The expiration date (valid from/to dates.)
+        const Identifier& SENDER_ACCT_ID,  // The asset account the cheque is
+                                           // drawn on.
+        const Identifier& SENDER_NYM_ID,   // This ID must match the user ID on
+                                           // the asset account,
         // AND must verify the cheque signature with that user's key.
-        const String& strMemo,                          // Optional memo field.
-        const Identifier* pRECIPIENT_NYM_ID = nullptr); // Recipient
-                                                        // optional. (Might
-                                                        // be a blank
-                                                        // cheque.)
+        const String& strMemo,                           // Optional memo field.
+        const Identifier* pRECIPIENT_NYM_ID = nullptr);  // Recipient
+                                                         // optional. (Might
+                                                         // be a blank
+                                                         // cheque.)
 
-    EXPORT void CancelCheque(); // You still need to re-sign the cheque after
-                                // doing this.
+    EXPORT void CancelCheque();  // You still need to re-sign the cheque after
+                                 // doing this.
 
     // From OTTrackable (parent class of this)
     /*
@@ -160,17 +152,19 @@ public:
      / TO dates.
      */
     EXPORT Cheque();
-    EXPORT Cheque(const Identifier& NOTARY_ID,
-                  const Identifier& INSTRUMENT_DEFINITION_ID);
+    EXPORT Cheque(
+        const Identifier& NOTARY_ID,
+        const Identifier& INSTRUMENT_DEFINITION_ID);
     EXPORT virtual ~Cheque();
 
     void InitCheque();
     void Release() override;
     void Release_Cheque();
-    void UpdateContents() override; // Before transmission or serialization, this
-                                   // is where the token saves its contents
+    void UpdateContents() override;  // Before transmission or serialization,
+                                     // this
+                                     // is where the token saves its contents
 };
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CORE_OTCHEQUE_HPP
+#endif  // OPENTXS_CORE_OTCHEQUE_HPP

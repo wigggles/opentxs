@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/core/cron/OTCron.hpp"
 
@@ -71,16 +71,18 @@ namespace opentxs
 
 // Note: these are only code defaults -- the values are actually loaded from
 // ~/.ot/server.cfg.
-int32_t OTCron::__trans_refill_amount =
-    500; // The number of transaction numbers Cron will grab for itself, when it
-         // gets low, before each round.
-int32_t OTCron::__cron_ms_between_process = 10000; // The number of milliseconds
-                                                   // (ideally) between each
-                                                   // "Cron Process" event.
+int32_t OTCron::__trans_refill_amount = 500;  // The number of transaction
+                                              // numbers Cron will grab for
+                                              // itself, when it
+                                              // gets low, before each round.
+int32_t OTCron::__cron_ms_between_process =
+    10000;  // The number of milliseconds
+            // (ideally) between each
+            // "Cron Process" event.
 
-int32_t OTCron::__cron_max_items_per_nym = 10; // The maximum number of cron
-                                               // items any given Nym can have
-                                               // active at the same time.
+int32_t OTCron::__cron_max_items_per_nym = 10;  // The maximum number of cron
+                                                // items any given Nym can have
+                                                // active at the same time.
 
 Timer OTCron::tCron(true);
 
@@ -90,7 +92,7 @@ Timer OTCron::tCron(true);
 bool OTCron::LoadCron()
 {
     const char* szFoldername = OTFolders::Cron().Get();
-    const char* szFilename = "OT-CRON.crn"; // todo stop hardcoding filenames.
+    const char* szFilename = "OT-CRON.crn";  // todo stop hardcoding filenames.
 
     OT_ASSERT(nullptr != GetServerNym());
 
@@ -104,7 +106,7 @@ bool OTCron::LoadCron()
 bool OTCron::SaveCron()
 {
     const char* szFoldername = OTFolders::Cron().Get();
-    const char* szFilename = "OT-CRON.crn"; // todo stop hardcoding filenames.
+    const char* szFilename = "OT-CRON.crn";  // todo stop hardcoding filenames.
 
     OT_ASSERT(nullptr != GetServerNym());
 
@@ -114,11 +116,10 @@ bool OTCron::SaveCron()
     // file.
     if (!SignContract(*m_pServerNym) || !SaveContract() ||
         !SaveContract(szFoldername, szFilename)) {
-        otErr << "Error saving main Cronfile:\n" << szFoldername
-              << Log::PathSeparator() << szFilename << "\n";
+        otErr << "Error saving main Cronfile:\n"
+              << szFoldername << Log::PathSeparator() << szFilename << "\n";
         return false;
-    }
-    else
+    } else
         return true;
 }
 
@@ -126,10 +127,12 @@ bool OTCron::SaveCron()
 // *pOfferList) for each.
 // Returns a list of all the offers that a specific Nym has on all the markets.
 //
-bool OTCron::GetNym_OfferList(OTASCIIArmor& ascOutput, const Identifier& NYM_ID,
-                              int32_t& nOfferCount)
+bool OTCron::GetNym_OfferList(
+    OTASCIIArmor& ascOutput,
+    const Identifier& NYM_ID,
+    int32_t& nOfferCount)
 {
-    nOfferCount = 0; // Outputs the number of offers on this nym.
+    nOfferCount = 0;  // Outputs the number of offers on this nym.
 
     std::unique_ptr<OTDB::OfferListNym> pOfferList(
         dynamic_cast<OTDB::OfferListNym*>(
@@ -142,34 +145,35 @@ bool OTCron::GetNym_OfferList(OTASCIIArmor& ascOutput, const Identifier& NYM_ID,
         int32_t nNymOfferCount = 0;
 
         if (false ==
-            pMarket->GetNym_OfferList(NYM_ID, *pOfferList,
-                                      nNymOfferCount)) // appends to
-                                                       // *pOfferList,
-                                                       // each
-                                                       // iteration.
+            pMarket->GetNym_OfferList(
+                NYM_ID,
+                *pOfferList,
+                nNymOfferCount))  // appends to
+                                  // *pOfferList,
+                                  // each
+                                  // iteration.
         {
             // may wish to add a log later. Anyway, keep iterationg and
             // appending, then send back whatever we have.
-        }
-        else // Success!
+        } else  // Success!
             nOfferCount += nNymOfferCount;
     }
 
     // Now pack the list into strOutput...
     if (nOfferCount == 0)
-        return true; // Success, but 0 offers being returned. (List is empty.)
+        return true;  // Success, but 0 offers being returned. (List is empty.)
 
     else if (nOfferCount > 0) {
         OTDB::Storage* pStorage = OTDB::GetDefaultStorage();
         OT_ASSERT(nullptr != pStorage);
 
         OTDB::OTPacker* pPacker =
-            pStorage->GetPacker(); // No need to check for failure, since this
-                                   // already ASSERTS. No need to cleanup
-                                   // either.
+            pStorage->GetPacker();  // No need to check for failure, since this
+                                    // already ASSERTS. No need to cleanup
+                                    // either.
 
         std::unique_ptr<OTDB::PackedBuffer> pBuffer(
-            pPacker->Pack(*pOfferList)); // Now we PACK our nym's offer list.
+            pPacker->Pack(*pOfferList));  // Now we PACK our nym's offer list.
 
         if (nullptr == pBuffer) {
             otErr
@@ -190,12 +194,10 @@ bool OTCron::GetNym_OfferList(OTASCIIArmor& ascOutput, const Identifier& NYM_ID,
             ascOutput.SetData(theData);
 
             return true;
-        }
-        else
+        } else
             otErr << "Null returned, or bad size, while getting buffer data in "
                      "OTCron::GetNym_OfferList.\n";
-    }
-    else
+    } else
         otErr
             << "Error: Less-than-zero nOfferCount in OTCron::GetNym_OfferList: "
             << nOfferCount << ".\n";
@@ -205,8 +207,8 @@ bool OTCron::GetNym_OfferList(OTASCIIArmor& ascOutput, const Identifier& NYM_ID,
 
 bool OTCron::GetMarketList(OTASCIIArmor& ascOutput, int32_t& nMarketCount)
 {
-    nMarketCount = 0; // This parameter is set to zero here, and incremented in
-                      // the loop below.
+    nMarketCount = 0;  // This parameter is set to zero here, and incremented in
+                       // the loop below.
 
     OTMarket* pMarket = nullptr;
 
@@ -284,19 +286,18 @@ bool OTCron::GetMarketList(OTASCIIArmor& ascOutput, int32_t& nMarketCount)
 
     // Now pack the list into strOutput...
     if (0 == nMarketCount) {
-        return true; // Success, but the list contains 0 markets.
-    }
-    else if (nMarketCount > 0) {
+        return true;  // Success, but the list contains 0 markets.
+    } else if (nMarketCount > 0) {
         OTDB::Storage* pStorage = OTDB::GetDefaultStorage();
         OT_ASSERT(nullptr != pStorage);
 
         OTDB::OTPacker* pPacker =
-            pStorage->GetPacker(); // No need to check for failure, since this
-                                   // already ASSERTS. No need to cleanup
-                                   // either.
+            pStorage->GetPacker();  // No need to check for failure, since this
+                                    // already ASSERTS. No need to cleanup
+                                    // either.
 
         std::unique_ptr<OTDB::PackedBuffer> pBuffer(
-            pPacker->Pack(*pMarketList)); // Now we PACK our market list.
+            pPacker->Pack(*pMarketList));  // Now we PACK our market list.
 
         if (nullptr == pBuffer) {
             otErr << "Failed packing pMarketList in OTCron::GetMarketList. \n";
@@ -320,12 +321,10 @@ bool OTCron::GetMarketList(OTASCIIArmor& ascOutput, int32_t& nMarketCount)
             //            bSuccessSetData = ascOutput.SetData(theData);
 
             return true;
-        }
-        else
+        } else
             otErr << "OTCron::GetMarketList: 0 size, or null return value, "
                      "while getting raw data from packed buffer.\n";
-    }
-    else
+    } else
         otErr << "OTCron::GetMarketList: nMarketCount is less than zero: "
               << nMarketCount << ".\n";
 
@@ -385,21 +384,19 @@ int32_t OTCron::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         otOut << "\n\nLoading OTCron for NotaryID: " << strNotaryID << "\n";
 
         nReturnVal = 1;
-    }
-    else if (!strcmp("transactionNum", xml->getNodeName())) {
+    } else if (!strcmp("transactionNum", xml->getNodeName())) {
         const int64_t lTransactionNum =
             String::StringToLong(xml->getAttributeValue("value"));
 
         otWarn << "Transaction Number " << lTransactionNum
                << " available for Cron.\n";
 
-        AddTransactionNumber(lTransactionNum); // This doesn't save to disk.
-                                               // Make sure to save Cron when it
-                                               // changes.
+        AddTransactionNumber(lTransactionNum);  // This doesn't save to disk.
+        // Make sure to save Cron when it
+        // changes.
 
         nReturnVal = 1;
-    }
-    else if (!strcmp("cronItem", xml->getNodeName())) {
+    } else if (!strcmp("cronItem", xml->getNodeName())) {
         const String str_date_added = xml->getAttributeValue("dateAdded");
         const int64_t lDateAdded =
             (!str_date_added.Exists() ? 0
@@ -412,9 +409,8 @@ int32_t OTCron::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             !strData.Exists()) {
             otErr << "Error in OTCron::ProcessXMLNode: cronItem field without "
                      "value.\n";
-            return (-1); // error condition
-        }
-        else {
+            return (-1);  // error condition
+        } else {
             OTCronItem* pItem = OTCronItem::NewCronItem(strData);
 
             if (nullptr == pItem) {
@@ -435,15 +431,16 @@ int32_t OTCron::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                 delete pItem;
                 pItem = nullptr;
                 return (-1);
-            }
-            else if (AddCronItem(*pItem, nullptr,
-                                   false, // bSaveReceipt=false. The receipt is
-                                          // only saved once: When item FIRST
-                                          // added to cron...
-                                   tDateAdded)) { // ...But here, the item was
-                                                  // ALREADY in cron, and is
-                                                  // merely being loaded from
-                                                  // disk.
+            } else if (AddCronItem(
+                           *pItem,
+                           nullptr,
+                           false,          // bSaveReceipt=false. The receipt is
+                                           // only saved once: When item FIRST
+                                           // added to cron...
+                           tDateAdded)) {  // ...But here, the item was
+                                           // ALREADY in cron, and is
+                                           // merely being loaded from
+                                           // disk.
                 // Thus, it would be wrong to try to create the "original
                 // record" as if it were brand
                 // new and still had the user's signature on it. (Once added to
@@ -453,8 +450,7 @@ int32_t OTCron::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                 // as a receipt in the first place -- so we have a record of the
                 // user's authorization.)
                 otInfo << "Successfully loaded cron item and added to list.\n";
-            }
-            else {
+            } else {
                 otErr << "OTCron::ProcessXMLNode: Though loaded / verified "
                          "successfully, "
                          "unable to add cron item (from cron file) to cron "
@@ -466,8 +462,7 @@ int32_t OTCron::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         }
 
         nReturnVal = 1;
-    }
-    else if (!strcmp("market", xml->getNodeName())) {
+    } else if (!strcmp("market", xml->getNodeName())) {
         const String strMarketID(xml->getAttributeValue("marketID"));
         const String strInstrumentDefinitionID(
             xml->getAttributeValue("instrumentDefinitionID"));
@@ -482,28 +477,27 @@ int32_t OTCron::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         otWarn << "Loaded cron entry for Market:\n" << strMarketID << ".\n";
 
         // LoadMarket() needs this info to do its thing.
-        OTMarket* pMarket = new OTMarket(m_NOTARY_ID, INSTRUMENT_DEFINITION_ID,
-                                         CURRENCY_ID, lScale);
+        OTMarket* pMarket = new OTMarket(
+            m_NOTARY_ID, INSTRUMENT_DEFINITION_ID, CURRENCY_ID, lScale);
 
         OT_ASSERT(nullptr != pMarket);
 
         pMarket->SetCronPointer(
-            *this); // This way every Market has a pointer to Cron.
+            *this);  // This way every Market has a pointer to Cron.
 
         //    AddMarket normally saves to file, but we don't want that when
         // we're LOADING from file, now do we?
         if (!pMarket->LoadMarket() ||
             !pMarket->VerifySignature(*GetServerNym()) ||
-            !AddMarket(*pMarket, false)) // bSaveFile=false: don't save this
-                                         // file WHILE loading it!!!
+            !AddMarket(*pMarket, false))  // bSaveFile=false: don't save this
+                                          // file WHILE loading it!!!
         {
             otErr << "Somehow error while loading, verifying, or adding market "
                      "while loading Cron file.\n";
             delete pMarket;
             pMarket = nullptr;
             return (-1);
-        }
-        else {
+        } else {
             otWarn << "Loaded market entry from cronfile, and also loaded the "
                       "market file itself.\n";
         }
@@ -540,11 +534,11 @@ void OTCron::UpdateContents()
 
         TagPtr tagMarket(new Tag("market"));
         tagMarket->add_attribute("marketID", str_MARKET_ID.Get());
-        tagMarket->add_attribute("instrumentDefinitionID",
-                                 str_INSTRUMENT_DEFINITION_ID.Get());
+        tagMarket->add_attribute(
+            "instrumentDefinitionID", str_INSTRUMENT_DEFINITION_ID.Get());
         tagMarket->add_attribute("currencyID", str_CURRENCY_ID.Get());
-        tagMarket->add_attribute("marketScale",
-                                 formatLong(pMarket->GetScale()));
+        tagMarket->add_attribute(
+            "marketScale", formatLong(pMarket->GetScale()));
         tag.add_tag(tagMarket);
     }
 
@@ -555,8 +549,8 @@ void OTCron::UpdateContents()
 
         time64_t tDateAdded = it.first;
         String strItem(
-            *pItem); // Extract the cron item contract into string form.
-        OTASCIIArmor ascItem(strItem); // Base64-encode that for storage.
+            *pItem);  // Extract the cron item contract into string form.
+        OTASCIIArmor ascItem(strItem);  // Base64-encode that for storage.
 
         TagPtr tagCronItem(new Tag("cronItem", ascItem.Get()));
         tagCronItem->add_attribute("dateAdded", formatTimestamp(tDateAdded));
@@ -569,7 +563,7 @@ void OTCron::UpdateContents()
         TagPtr tagNumber(new Tag("transactionNum"));
         tagNumber->add_attribute("value", formatLong(lTransactionNumber));
         tag.add_tag(tagNumber);
-    } // for
+    }  // for
 
     std::string str_result;
     tag.output(str_result);
@@ -602,7 +596,8 @@ void OTCron::ProcessCronItems()
         otErr << "WARNING: Cron has fewer than 20 percent of its normal "
                  "transaction number count available since the previous round! "
                  "\n"
-                 "That is, " << GetTransactionCount()
+                 "That is, "
+              << GetTransactionCount()
               << " are currently available, with a max of "
               << OTCron::GetCronRefillAmount() << ", meaning "
               << OTCron::GetCronRefillAmount() - GetTransactionCount()
@@ -623,7 +618,8 @@ void OTCron::ProcessCronItems()
                      "transaction "
                      "number count available since the previous cron item "
                      "alone! \n"
-                     "That is, " << GetTransactionCount()
+                     "That is, "
+                  << GetTransactionCount()
                   << " are currently available, with a max of "
                   << OTCron::GetCronRefillAmount() << ", meaning "
                   << OTCron::GetCronRefillAmount() - GetTransactionCount()
@@ -661,8 +657,11 @@ void OTCron::ProcessCronItems()
 // OTCron IS responsible for cleaning up theItem, and takes ownership.
 // So make SURE it is allocated on the HEAP before you pass it in here, and
 // also make sure to delete it again if this call fails!
-bool OTCron::AddCronItem(OTCronItem& theItem, Nym* pActivator,
-                         bool bSaveReceipt, time64_t tDateAdded)
+bool OTCron::AddCronItem(
+    OTCronItem& theItem,
+    Nym* pActivator,
+    bool bSaveReceipt,
+    time64_t tDateAdded)
 {
     OT_ASSERT(nullptr != GetServerNym());
 
@@ -682,16 +681,17 @@ bool OTCron::AddCronItem(OTCronItem& theItem, Nym* pActivator,
         // already there, then THAT is the
         // real problem.
         //
-        if (bSaveReceipt &&
-            (!theItem.SignContract(*GetServerNym()) || // Notice the server adds
-                                                       // its signature
-             // before saving the cron receipt to local
-             // storage. This way, the server can
-             // verify its own signature later, as
-             // evidence the file hasn't been tampered
-             // with. (BOTH signatures are there
-             // now--user's and server's.)
-             !theItem.SaveContract() || !theItem.SaveCronReceipt())) {
+        if (bSaveReceipt && (!theItem.SignContract(
+                                 *GetServerNym()) ||  // Notice the server adds
+                                                      // its signature
+                             // before saving the cron receipt to local
+                             // storage. This way, the server can
+                             // verify its own signature later, as
+                             // evidence the file hasn't been tampered
+                             // with. (BOTH signatures are there
+                             // now--user's and server's.)
+                             !theItem.SaveContract() ||
+                             !theItem.SaveCronReceipt())) {
             otErr << __FUNCTION__ << ": Error saving receipt while adding new "
                                      "CronItem to Cron.\n";
             return false;
@@ -715,9 +715,10 @@ bool OTCron::AddCronItem(OTCronItem& theItem, Nym* pActivator,
         bool bSuccess = true;
 
         theItem.HookActivationOnCron(
-            pActivator,    // (OTPseudonym* pActivator) // sometimes nullptr.
-            bSaveReceipt); // If merely being reloaded after server reboot, this
-                           // is false.
+            pActivator,     // (OTPseudonym* pActivator) // sometimes nullptr.
+            bSaveReceipt);  // If merely being reloaded after server reboot,
+                            // this
+                            // is false.
         // But if actually being activated for the first time, then this is
         // true.
 
@@ -729,8 +730,8 @@ bool OTCron::AddCronItem(OTCronItem& theItem, Nym* pActivator,
         // occurs
         // wherever this function is called with bSaveReceipt=true.
         //
-        if (bSaveReceipt) // This executes only the first time that an item is
-                          // added to Cron.
+        if (bSaveReceipt)  // This executes only the first time that an item is
+                           // added to Cron.
         // (versus when it's just being reloaded from file and added back to
         // the internal list.)
         {
@@ -763,15 +764,17 @@ bool OTCron::AddCronItem(OTCronItem& theItem, Nym* pActivator,
     else {
         otErr << __FUNCTION__
               << ": Failed attempt to add CronItem with pre-existing "
-                 "transaction number: " << theItem.GetTransactionNum() << "\n";
+                 "transaction number: "
+              << theItem.GetTransactionNum() << "\n";
     }
 
     return false;
 }
 
-bool OTCron::RemoveCronItem(int64_t lTransactionNum,
-                            Nym& theRemover) // if returns false, item
-                                             // wasn't found.
+bool OTCron::RemoveCronItem(
+    int64_t lTransactionNum,
+    Nym& theRemover)  // if returns false, item
+                      // wasn't found.
 {
     // See if there's a cron item with that transaction number.
     auto it_map = FindItemOnMap(lTransactionNum);
@@ -780,7 +783,8 @@ bool OTCron::RemoveCronItem(int64_t lTransactionNum,
     if (m_mapCronItems.end() == it_map) {
         otErr << __FUNCTION__
               << ": Attempt to remove non-existent CronItem from OTCron. "
-                 "Transaction #: " << lTransactionNum << "\n";
+                 "Transaction #: "
+              << lTransactionNum << "\n";
     }
 
     // Otherwise, if it WAS already there, remove it properly.
@@ -790,13 +794,14 @@ bool OTCron::RemoveCronItem(int64_t lTransactionNum,
 
         // We have to remove it from the multimap as well.
         auto it_multimap = FindItemOnMultimap(lTransactionNum);
-        OT_ASSERT(m_multimapCronItems.end() !=
-                  it_multimap); // If found on map, MUST be on multimap also.
+        OT_ASSERT(m_multimapCronItems.end() != it_multimap);  // If found on
+                                                              // map, MUST be on
+                                                              // multimap also.
 
         pItem->HookRemovalFromCron(&theRemover, GetNextTransactionNumber());
 
-        m_mapCronItems.erase(it_map);           // Remove from MAP.
-        m_multimapCronItems.erase(it_multimap); // Remove from MULTIMAP.
+        m_mapCronItems.erase(it_map);            // Remove from MAP.
+        m_multimapCronItems.erase(it_multimap);  // Remove from MULTIMAP.
 
         delete pItem;
 
@@ -822,7 +827,7 @@ mapOfCronItems::iterator OTCron::FindItemOnMap(int64_t lTransactionNum)
     //
     auto itt = m_mapCronItems.find(lTransactionNum);
 
-    if (itt != m_mapCronItems.end()) // Found it!
+    if (itt != m_mapCronItems.end())  // Found it!
     {
         OTCronItem* pItem = itt->second;
         OT_ASSERT((nullptr != pItem));
@@ -875,7 +880,7 @@ OTCronItem* OTCron::GetItemByOfficialNum(int64_t lTransactionNum)
     //
     auto itt = m_mapCronItems.find(lTransactionNum);
 
-    if (itt != m_mapCronItems.end()) // Found it!
+    if (itt != m_mapCronItems.end())  // Found it!
     {
         OTCronItem* pItem = itt->second;
         OT_ASSERT((nullptr != pItem));
@@ -914,9 +919,9 @@ OTCronItem* OTCron::GetItemByValidOpeningNum(int64_t lOpeningNum)
             OTCronItem* pItem = it.second;
             OT_ASSERT((nullptr != pItem));
 
-            if (pItem->IsValidOpeningNumber(lOpeningNum)) // Todo optimization.
-                                                          // Probably can remove
-                                                          // this check.
+            if (pItem->IsValidOpeningNumber(lOpeningNum))  // Todo optimization.
+                // Probably can remove
+                // this check.
                 return pItem;
         }
     }
@@ -924,8 +929,11 @@ OTCronItem* OTCron::GetItemByValidOpeningNum(int64_t lOpeningNum)
     else {
         OTCronItem* pItem = itt->second;
         OT_ASSERT((nullptr != pItem));
-        OT_ASSERT(pItem->IsValidOpeningNumber(
-            lOpeningNum)); // Todo optimization. Probably can remove this check.
+        OT_ASSERT(pItem->IsValidOpeningNumber(lOpeningNum));  // Todo
+                                                              // optimization.
+                                                              // Probably can
+                                                              // remove this
+                                                              // check.
 
         return pItem;
     }
@@ -941,7 +949,7 @@ bool OTCron::AddMarket(OTMarket& theMarket, bool bSaveMarketFile)
     OT_ASSERT(nullptr != GetServerNym());
 
     theMarket.SetCronPointer(
-        *this); // This way every Market has a pointer to Cron.
+        *this);  // This way every Market has a pointer to Cron.
 
     Identifier MARKET_ID(theMarket);
     String str_MARKET_ID(MARKET_ID);
@@ -972,15 +980,15 @@ bool OTCron::AddMarket(OTMarket& theMarket, bool bSaveMarketFile)
         // The actual markets themselves serialize separately to the market
         // folder.
         //
-        if (bSaveMarketFile) // This executes only the first time that a market
-                             // is added to Cron.
+        if (bSaveMarketFile)  // This executes only the first time that a market
+                              // is added to Cron.
         // (versus when it's just being reloaded from file and added back to
         // the internal list.)
         {
             // Since we added a market to the Cron, we SAVE it.
-            bSuccess = SaveCron(); // If we're loading from file, and
-                                   // bSaveMarketFile is false, I don't want to
-                                   // save here. that's why it's in this block.
+            bSuccess = SaveCron();  // If we're loading from file, and
+                                    // bSaveMarketFile is false, I don't want to
+                                    // save here. that's why it's in this block.
 
             if (bSuccess)
                 otLog3 << "New Market has been added to Cron.\n";
@@ -1000,12 +1008,13 @@ bool OTCron::AddMarket(OTMarket& theMarket, bool bSaveMarketFile)
 }
 
 // Create it if it's not there.
-OTMarket* OTCron::GetOrCreateMarket(const Identifier& INSTRUMENT_DEFINITION_ID,
-                                    const Identifier& CURRENCY_ID,
-                                    const int64_t& lScale)
+OTMarket* OTCron::GetOrCreateMarket(
+    const Identifier& INSTRUMENT_DEFINITION_ID,
+    const Identifier& CURRENCY_ID,
+    const int64_t& lScale)
 {
-    OTMarket* pMarket = new OTMarket(GetNotaryID(), INSTRUMENT_DEFINITION_ID,
-                                     CURRENCY_ID, lScale);
+    OTMarket* pMarket = new OTMarket(
+        GetNotaryID(), INSTRUMENT_DEFINITION_ID, CURRENCY_ID, lScale);
 
     OT_ASSERT(nullptr != pMarket);
 
@@ -1023,13 +1032,12 @@ OTMarket* OTCron::GetOrCreateMarket(const Identifier& INSTRUMENT_DEFINITION_ID,
     // If we got this far, it means the Market does NOT already exist in this
     // Cron.
     // So let's add it...
-    bool bAdded = AddMarket(
-        *pMarket, true); // bool bSaveMarketFile=true, since it was created new.
+    bool bAdded = AddMarket(*pMarket, true);  // bool bSaveMarketFile=true,
+                                              // since it was created new.
 
     if (bAdded) {
         otOut << "New market created and added to Cron.\n";
-    }
-    else {
+    } else {
         otErr << "Error trying to add new market to Cron.\n";
         delete pMarket;
         pMarket = nullptr;
@@ -1064,8 +1072,9 @@ OTMarket* OTCron::GetMarket(const Identifier& MARKET_ID)
         if (MARKET_ID == LOOP_MARKET_ID)
             return pMarket;
         else
-            otErr << "Expected Market with ID:\n" << std_MARKET_ID
-                  << "\n but found " << str_LOOP_MARKET_ID << "\n";
+            otErr << "Expected Market with ID:\n"
+                  << std_MARKET_ID << "\n but found " << str_LOOP_MARKET_ID
+                  << "\n";
     }
 
     return nullptr;
@@ -1074,8 +1083,8 @@ OTMarket* OTCron::GetMarket(const Identifier& MARKET_ID)
 OTCron::OTCron()
     : Contract()
     , m_bIsActivated(false)
-    , m_pServerNym(nullptr) // just here for convenience, not responsible to
-                            // cleanup this pointer.
+    , m_pServerNym(nullptr)  // just here for convenience, not responsible to
+                             // cleanup this pointer.
 {
     InitCron();
     otLog3 << "OTCron::OTCron: Finished calling InitCron 0.\n";
@@ -1084,8 +1093,8 @@ OTCron::OTCron()
 OTCron::OTCron(const Identifier& NOTARY_ID)
     : Contract()
     , m_bIsActivated(false)
-    , m_pServerNym(nullptr) // just here for convenience, not responsible to
-                            // cleanup this pointer.
+    , m_pServerNym(nullptr)  // just here for convenience, not responsible to
+                             // cleanup this pointer.
 {
     InitCron();
     SetNotaryID(NOTARY_ID);
@@ -1095,8 +1104,8 @@ OTCron::OTCron(const Identifier& NOTARY_ID)
 OTCron::OTCron(const char* szFilename)
     : Contract()
     , m_bIsActivated(false)
-    , m_pServerNym(nullptr) // just here for convenience, not responsible to
-                            // cleanup this pointer.
+    , m_pServerNym(nullptr)  // just here for convenience, not responsible to
+                             // cleanup this pointer.
 {
     OT_ASSERT(nullptr != szFilename);
     InitCron();
@@ -1113,10 +1122,7 @@ OTCron::~OTCron()
     m_pServerNym = nullptr;
 }
 
-void OTCron::InitCron()
-{
-    m_strContractType = "CRON";
-}
+void OTCron::InitCron() { m_strContractType = "CRON"; }
 
 void OTCron::Release()
 {
@@ -1154,4 +1160,4 @@ void OTCron::Release_Cron()
     }
 }
 
-} // namespace opentxs
+}  // namespace opentxs

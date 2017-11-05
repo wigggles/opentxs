@@ -494,7 +494,7 @@ receipts directly in response to their server messages, they can still compare
 various sequence numbers. Hm.
  */
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/core/script/OTSmartContract.hpp"
 
@@ -518,7 +518,7 @@ various sequence numbers. Hm.
 #include "opentxs/core/script/OTClause.hpp"
 #include "opentxs/core/script/OTParty.hpp"
 #include "opentxs/core/script/OTPartyAccount.hpp"
-#ifdef OT_USE_SCRIPT_CHAI
+#if OT_SCRIPT_CHAI
 #include "opentxs/core/script/OTScriptChai.hpp"
 #else
 #include "opentxs/core/script/OTScript.hpp"
@@ -527,7 +527,7 @@ various sequence numbers. Hm.
 #include "opentxs/core/script/OTStash.hpp"
 #include "opentxs/core/script/OTStashItem.hpp"
 #include "opentxs/core/script/OTVariable.hpp"
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/Tag.hpp"
@@ -543,7 +543,7 @@ various sequence numbers. Hm.
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
 
-#ifdef OT_USE_SCRIPT_CHAI
+#if OT_SCRIPT_CHAI
 #include <chaiscript/chaiscript.hpp>
 #ifdef OT_USE_CHAI_STDLIB
 #include <chaiscript/chaiscript_stdlib.hpp>
@@ -762,7 +762,7 @@ void OTSmartContract::RegisterOTNativeCallsWithScript(OTScript& theScript)
     // CALL THE PARENT
     OTScriptable::RegisterOTNativeCallsWithScript(theScript);
 
-#ifdef OT_USE_SCRIPT_CHAI
+#if OT_SCRIPT_CHAI
     using namespace chaiscript;
 
     OTScriptChai* pScript = dynamic_cast<OTScriptChai*>(&theScript);
@@ -865,7 +865,7 @@ void OTSmartContract::RegisterOTNativeCallsWithScript(OTScript& theScript)
         // FYI:    #define SMARTCONTRACT_HOOK_ON_ACTIVATE        "cron_activate"
         // // Done. This is called when the contract is first activated.
     } else
-#endif  // OT_USE_SCRIPT_CHAI
+#endif  // OT_SCRIPT_CHAI
     {
         otErr << "OTSmartContract::RegisterOTNativeCallsWithScript: Failed "
                  "dynamic casting OTScript to OTScriptChai \n";
@@ -3458,7 +3458,7 @@ void OTSmartContract::onFinalReceipt(
 
         OT_ASSERT(nullptr != pPartyNym);
 
-        auto context = OT::App().Contract().mutable_ClientContext(
+        auto context = OT::App().Wallet().mutable_ClientContext(
             GetNotaryID(), pPartyNym->ID());
         const auto opening = pParty->GetOpeningTransNo();
         const bool haveOpening = pParty->GetOpeningTransNo() > 0;
@@ -4286,9 +4286,9 @@ bool OTSmartContract::CanRemoveItemFromCron(const ClientContext& context)
 // theNym is trying to activate the smart contract, and has
 // supplied transaction numbers and a user/acct ID. ==> theNym definitely IS the
 // owner of the account... that is
-// verified in OTServer::NotarizeTransaction(), before it even knows what KIND
+// verified in Server::NotarizeTransaction(), before it even knows what KIND
 // of transaction it is processing!
-// (For all transactions.) So by the time OTServer::NotarizeSmartContract() is
+// (For all transactions.) So by the time Server::NotarizeSmartContract() is
 // called, we know that much.
 //
 // But for all other parties, we do not know this, so we still need to loop them
@@ -4337,7 +4337,7 @@ bool OTSmartContract::VerifySmartContract(
 
     const String strNotaryID(
         GetNotaryID());  // the notaryID has already been verified by this time,
-                         // in OTServer::NotarizeSmartContract()
+                         // in Server::NotarizeSmartContract()
 
     mapOfConstNyms map_Nyms_Already_Loaded;  // The list of Nyms that were
                                              // already instantiated before this
@@ -4431,7 +4431,7 @@ bool OTSmartContract::VerifySmartContract(
             // already burned, when
             // the activating party (pParty) activated the smart contract. At
             // that time, the normal
-            // transaction system inside OTServer burned the # as part of its
+            // transaction system inside Server burned the # as part of its
             // process before even
             // calling NotarizeSmartContract().  Therefore, by this point, we
             // ASSUME that party's

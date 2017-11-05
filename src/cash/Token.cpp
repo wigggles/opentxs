@@ -36,13 +36,13 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/cash/Token.hpp"
 
 #include "opentxs/cash/Mint.hpp"
 #include "opentxs/cash/Purse.hpp"
-#if defined(OT_CASH_USING_LUCRE)
+#if OT_CASH_USING_LUCRE
 #include "opentxs/cash/TokenLucre.hpp"
 #endif
 #include "opentxs/core/Contract.hpp"
@@ -134,7 +134,7 @@ void Token::InitToken()
     //    m_State            = blankToken;
     //    m_bSavePrivateKeys = false;
 
-    m_strContractType.Set("CASH TOKEN"); // todo internationalization.
+    m_strContractType.Set("CASH TOKEN");  // todo internationalization.
 }
 
 Token::Token()
@@ -158,8 +158,9 @@ Token::Token()
 // bool                m_bSavePrivateKeys; // Determines whether it serializes
 // private keys 1 time (yes if true)
 
-Token::Token(const Identifier& NOTARY_ID,
-             const Identifier& INSTRUMENT_DEFINITION_ID)
+Token::Token(
+    const Identifier& NOTARY_ID,
+    const Identifier& INSTRUMENT_DEFINITION_ID)
     : Instrument(NOTARY_ID, INSTRUMENT_DEFINITION_ID)
     , m_bPasswordProtected(false)
     , m_lDenomination(0)
@@ -210,8 +211,8 @@ void Token::Release()
 {
     Release_Token();
 
-    Instrument::Release(); // since I've overridden the base class, I call it
-                           // now...
+    Instrument::Release();  // since I've overridden the base class, I call it
+                            // now...
 }
 
 Token::~Token()
@@ -260,29 +261,29 @@ void Token::ReleasePrototokens()
 
 // static -- class factory.
 //
-Token* Token::LowLevelInstantiate(const String& strFirstLine,
-                                  const Identifier& NOTARY_ID,
-                                  const Identifier& INSTRUMENT_DEFINITION_ID)
+Token* Token::LowLevelInstantiate(
+    const String& strFirstLine,
+    const Identifier& NOTARY_ID,
+    const Identifier& INSTRUMENT_DEFINITION_ID)
 {
     Token* pToken = nullptr;
 
-#if defined(OT_CASH_USING_LUCRE)
-    if (strFirstLine.Contains("-----BEGIN SIGNED CASH-----")) // this string is
-                                                              // 27 chars long.
+#if OT_CASH_USING_LUCRE
+    if (strFirstLine.Contains("-----BEGIN SIGNED CASH-----"))  // this string is
+                                                               // 27 chars long.
     {
         pToken = new Token_Lucre(NOTARY_ID, INSTRUMENT_DEFINITION_ID);
         OT_ASSERT(nullptr != pToken);
-    }
-    else if (strFirstLine.Contains(
-                   "-----BEGIN SIGNED CASH TOKEN-----")) // this string is 33
-                                                         // chars long.
+    } else if (strFirstLine.Contains(
+                   "-----BEGIN SIGNED CASH TOKEN-----"))  // this string is 33
+                                                          // chars long.
     {
         pToken = new Token_Lucre(NOTARY_ID, INSTRUMENT_DEFINITION_ID);
         OT_ASSERT(nullptr != pToken);
-    }
-    else if (strFirstLine.Contains(
-                   "-----BEGIN SIGNED LUCRE CASH TOKEN-----")) // this string is
-                                                               // 39 chars long.
+    } else if (strFirstLine.Contains(
+                   "-----BEGIN SIGNED LUCRE CASH TOKEN-----"))  // this string
+                                                                // is
+    // 39 chars long.
     {
         pToken = new Token_Lucre(NOTARY_ID, INSTRUMENT_DEFINITION_ID);
         OT_ASSERT(nullptr != pToken);
@@ -290,33 +291,33 @@ Token* Token::LowLevelInstantiate(const String& strFirstLine,
 #else
     otErr << __FUNCTION__ << ": Open-Transactions is not built for any digital "
                              "cash algorithms. (Failure.)";
-#endif // defined (OT_CASH_USING_LUCRE)
+#endif  // OT_CASH_USING_LUCRE
 
     return pToken;
 }
 
-Token* Token::LowLevelInstantiate(const String& strFirstLine,
-                                  const Purse& thePurse)
+Token* Token::LowLevelInstantiate(
+    const String& strFirstLine,
+    const Purse& thePurse)
 {
     Token* pToken = nullptr;
 
-#if defined(OT_CASH_USING_LUCRE)
-    if (strFirstLine.Contains("-----BEGIN SIGNED CASH-----")) // this string is
-                                                              // 27 chars long.
+#if OT_CASH_USING_LUCRE
+    if (strFirstLine.Contains("-----BEGIN SIGNED CASH-----"))  // this string is
+                                                               // 27 chars long.
     {
         pToken = new Token_Lucre(thePurse);
         OT_ASSERT(nullptr != pToken);
-    }
-    else if (strFirstLine.Contains(
-                   "-----BEGIN SIGNED CASH TOKEN-----")) // this string is 33
-                                                         // chars long.
+    } else if (strFirstLine.Contains(
+                   "-----BEGIN SIGNED CASH TOKEN-----"))  // this string is 33
+                                                          // chars long.
     {
         pToken = new Token_Lucre(thePurse);
         OT_ASSERT(nullptr != pToken);
-    }
-    else if (strFirstLine.Contains(
-                   "-----BEGIN SIGNED LUCRE CASH TOKEN-----")) // this string is
-                                                               // 39 chars long.
+    } else if (strFirstLine.Contains(
+                   "-----BEGIN SIGNED LUCRE CASH TOKEN-----"))  // this string
+                                                                // is
+    // 39 chars long.
     {
         pToken = new Token_Lucre(thePurse);
         OT_ASSERT(nullptr != pToken);
@@ -324,7 +325,7 @@ Token* Token::LowLevelInstantiate(const String& strFirstLine,
 #else
     otErr << __FUNCTION__ << ": Open-Transactions is not built for any digital "
                              "cash algorithms. (Failure.)";
-#endif // defined (OT_CASH_USING_LUCRE)
+#endif  // OT_CASH_USING_LUCRE
 
     return pToken;
 }
@@ -333,13 +334,13 @@ Token* Token::LowLevelInstantiate(const Purse& thePurse)
 {
     Token* pToken = nullptr;
 
-#if defined(OT_CASH_USING_LUCRE)
+#if OT_CASH_USING_LUCRE
     pToken = new Token_Lucre(thePurse);
     OT_ASSERT(nullptr != pToken);
 #else
     otErr << __FUNCTION__ << ": Open-Transactions is not built for any digital "
                              "cash algorithms. (Failure.)";
-#endif // defined (OT_CASH_USING_LUCRE)
+#endif  // OT_CASH_USING_LUCRE
 
     return pToken;
 }
@@ -348,23 +349,22 @@ Token* Token::LowLevelInstantiate(const String& strFirstLine)
 {
     Token* pToken = nullptr;
 
-#if defined(OT_CASH_USING_LUCRE)
-    if (strFirstLine.Contains("-----BEGIN SIGNED CASH-----")) // this string is
-                                                              // 27 chars long.
+#if OT_CASH_USING_LUCRE
+    if (strFirstLine.Contains("-----BEGIN SIGNED CASH-----"))  // this string is
+                                                               // 27 chars long.
     {
         pToken = new Token_Lucre;
         OT_ASSERT(nullptr != pToken);
-    }
-    else if (strFirstLine.Contains(
-                   "-----BEGIN SIGNED CASH TOKEN-----")) // this string is 33
-                                                         // chars long.
+    } else if (strFirstLine.Contains(
+                   "-----BEGIN SIGNED CASH TOKEN-----"))  // this string is 33
+                                                          // chars long.
     {
         pToken = new Token_Lucre;
         OT_ASSERT(nullptr != pToken);
-    }
-    else if (strFirstLine.Contains(
-                   "-----BEGIN SIGNED LUCRE CASH TOKEN-----")) // this string is
-                                                               // 39 chars long.
+    } else if (strFirstLine.Contains(
+                   "-----BEGIN SIGNED LUCRE CASH TOKEN-----"))  // this string
+                                                                // is
+    // 39 chars long.
     {
         pToken = new Token_Lucre;
         OT_ASSERT(nullptr != pToken);
@@ -372,25 +372,27 @@ Token* Token::LowLevelInstantiate(const String& strFirstLine)
 #else
     otErr << __FUNCTION__ << ": Open-Transactions is not built for any digital "
                              "cash algorithms. (Failure.)";
-#endif // defined (OT_CASH_USING_LUCRE)
+#endif  // OT_CASH_USING_LUCRE
 
     return pToken;
 }
 
 // static -- class factory.
 //
-Token* Token::TokenFactory(String strInput, const Identifier& NOTARY_ID,
-                           const Identifier& INSTRUMENT_DEFINITION_ID)
+Token* Token::TokenFactory(
+    String strInput,
+    const Identifier& NOTARY_ID,
+    const Identifier& INSTRUMENT_DEFINITION_ID)
 {
     //  const char * szFunc = "Token::TokenFactory";
 
-    String strContract, strFirstLine; // output for the below function.
+    String strContract, strFirstLine;  // output for the below function.
     const bool bProcessed =
         Contract::DearmorAndTrim(strInput, strContract, strFirstLine);
 
     if (bProcessed) {
-        Token* pToken = Token::LowLevelInstantiate(strFirstLine, NOTARY_ID,
-                                                   INSTRUMENT_DEFINITION_ID);
+        Token* pToken = Token::LowLevelInstantiate(
+            strFirstLine, NOTARY_ID, INSTRUMENT_DEFINITION_ID);
 
         // The string didn't match any of the options in the factory.
         if (nullptr == pToken) return nullptr;
@@ -409,7 +411,7 @@ Token* Token::TokenFactory(String strInput, const Purse& thePurse)
 {
     //  const char * szFunc = "Token::TokenFactory";
 
-    String strContract, strFirstLine; // output for the below function.
+    String strContract, strFirstLine;  // output for the below function.
     const bool bProcessed =
         Contract::DearmorAndTrim(strInput, strContract, strFirstLine);
 
@@ -433,7 +435,7 @@ Token* Token::TokenFactory(String strInput)
 {
     //  const char * szFunc = "Token::TokenFactory";
 
-    String strContract, strFirstLine; // output for the below function.
+    String strContract, strFirstLine;  // output for the below function.
     const bool bProcessed =
         Contract::DearmorAndTrim(strInput, strContract, strFirstLine);
 
@@ -480,8 +482,8 @@ bool Token::IsTokenAlreadySpent(String& theCleartextToken)
     String strTokenHash(theTokenHash);
 
     String strAssetFolder;
-    strAssetFolder.Format("%s.%d", strInstrumentDefinitionID.Get(),
-                          GetSeries());
+    strAssetFolder.Format(
+        "%s.%d", strInstrumentDefinitionID.Get(), GetSeries());
 
     bool bTokenIsPresent = OTDB::Exists(
         OTFolders::Spent().Get(), strAssetFolder.Get(), strTokenHash.Get());
@@ -490,10 +492,10 @@ bool Token::IsTokenAlreadySpent(String& theCleartextToken)
         otOut << "\nToken::IsTokenAlreadySpent: Token was already spent: "
               << OTFolders::Spent() << Log::PathSeparator() << strAssetFolder
               << Log::PathSeparator() << strTokenHash << "\n";
-        return true; // all errors must return true in this function.
-                     // But this is not an error. Token really WAS already
-    }                // spent, and this true is for real. The others are just
-                     // for security reasons because of this one.
+        return true;  // all errors must return true in this function.
+                      // But this is not an error. Token really WAS already
+    }                 // spent, and this true is for real. The others are just
+                      // for security reasons because of this one.
 
     // This is the ideal case: the token was NOT already spent, it was good,
     // so we can return false and the depositor can be credited appropriately.
@@ -514,8 +516,8 @@ bool Token::RecordTokenAsSpent(String& theCleartextToken)
     String strTokenHash(theTokenHash);
 
     String strAssetFolder;
-    strAssetFolder.Format("%s.%d", strInstrumentDefinitionID.Get(),
-                          GetSeries());
+    strAssetFolder.Format(
+        "%s.%d", strInstrumentDefinitionID.Get(), GetSeries());
 
     // See if the spent token file ALREADY EXISTS...
     bool bTokenIsPresent = OTDB::Exists(
@@ -524,9 +526,9 @@ bool Token::RecordTokenAsSpent(String& theCleartextToken)
     // If so, we're trying to record a token that was already recorded...
     if (bTokenIsPresent) {
         otErr << "Token::RecordTokenAsSpent: Trying to record token as spent,"
-                 " but it was already recorded: " << OTFolders::Spent()
-              << Log::PathSeparator() << strAssetFolder << Log::PathSeparator()
-              << strTokenHash << "\n";
+                 " but it was already recorded: "
+              << OTFolders::Spent() << Log::PathSeparator() << strAssetFolder
+              << Log::PathSeparator() << strTokenHash << "\n";
         return false;
     }
 
@@ -548,9 +550,11 @@ bool Token::RecordTokenAsSpent(String& theCleartextToken)
         return false;
     }
 
-    const bool bSaved =
-        OTDB::StorePlainString(strFinal.Get(), OTFolders::Spent().Get(),
-                               strAssetFolder.Get(), strTokenHash.Get());
+    const bool bSaved = OTDB::StorePlainString(
+        strFinal.Get(),
+        OTFolders::Spent().Get(),
+        strAssetFolder.Get(),
+        strTokenHash.Get());
     if (!bSaved) {
         otErr << "Token::RecordTokenAsSpent: Error saving file: "
               << OTFolders::Spent() << Log::PathSeparator() << strAssetFolder
@@ -630,20 +634,20 @@ bool Token::RecordTokenAsSpent(String& theCleartextToken)
  anything each time.
  */
 bool Token::ReassignOwnership(
-    OTNym_or_SymmetricKey& oldOwner, // must be private, if a Nym.
-    OTNym_or_SymmetricKey& newOwner) // can be public, if a Nym.
+    OTNym_or_SymmetricKey& oldOwner,  // must be private, if a Nym.
+    OTNym_or_SymmetricKey& newOwner)  // can be public, if a Nym.
 {
     const char* szFunc = "Token::ReassignOwnership";
     const String strDisplay(szFunc);
 
     bool bSuccess = true;
 
-    if (!oldOwner.CompareID(newOwner)) // only re-assign if they don't ALREADY
-                                       // have the same owner.
+    if (!oldOwner.CompareID(newOwner))  // only re-assign if they don't ALREADY
+                                        // have the same owner.
     {
         OTEnvelope theEnvelope(m_ascSpendable);
-        String theString; // output from opening/decrypting (and eventually
-                          // input for sealing/encrypting) envelope.
+        String theString;  // output from opening/decrypting (and eventually
+                           // input for sealing/encrypting) envelope.
 
         // Remember, OTPurse can store its own internal symmetric key, for cases
         // where the purse is "password protected" instead of belonging to a
@@ -655,8 +659,8 @@ bool Token::ReassignOwnership(
             oldOwner.Open_or_Decrypt(theEnvelope, theString, &strDisplay);
         if (bSuccess) {
             OTEnvelope theNewEnvelope;
-            bSuccess = newOwner.Seal_or_Encrypt(theNewEnvelope, theString,
-                                                &strDisplay);
+            bSuccess = newOwner.Seal_or_Encrypt(
+                theNewEnvelope, theString, &strDisplay);
             if (bSuccess)
                 bSuccess = theNewEnvelope.GetCiphertext(m_ascSpendable);
         }
@@ -664,8 +668,9 @@ bool Token::ReassignOwnership(
     return bSuccess;
 }
 
-bool Token::GetSpendableString(OTNym_or_SymmetricKey theOwner,
-                               String& theString) const
+bool Token::GetSpendableString(
+    OTNym_or_SymmetricKey theOwner,
+    String& theString) const
 {
     const char* szFunc = "Token::GetSpendableString";
 
@@ -677,8 +682,7 @@ bool Token::GetSpendableString(OTNym_or_SymmetricKey theOwner,
 
         if (theOwner.Open_or_Decrypt(theEnvelope, theString, &strDisplay))
             return true;
-    }
-    else
+    } else
         otErr << szFunc << ": m_ascSpendable is empty... (failure.)\n";
 
     return false;
@@ -693,24 +697,24 @@ void Token::UpdateContents()
 
     String strState;
     switch (m_State) {
-    case Token::blankToken:
-        strState.Set("blankToken");
-        break;
-    case Token::protoToken:
-        strState.Set("protoToken");
-        break;
-    case Token::signedToken:
-        strState.Set("signedToken");
-        break;
-    case Token::spendableToken:
-        strState.Set("spendableToken");
-        break;
-    case Token::verifiedToken:
-        strState.Set("verifiedToken");
-        break;
-    default:
-        strState.Set("errorToken");
-        break;
+        case Token::blankToken:
+            strState.Set("blankToken");
+            break;
+        case Token::protoToken:
+            strState.Set("protoToken");
+            break;
+        case Token::signedToken:
+            strState.Set("signedToken");
+            break;
+        case Token::spendableToken:
+            strState.Set("spendableToken");
+            break;
+        case Token::verifiedToken:
+            strState.Set("verifiedToken");
+            break;
+        default:
+            strState.Set("errorToken");
+            break;
     }
 
     // I release this because I'm about to repopulate it.
@@ -759,15 +763,15 @@ void Token::UpdateContents()
     }
 
     if (m_bSavePrivateKeys) {
-        m_bSavePrivateKeys = false; // set it back to false;
+        m_bSavePrivateKeys = false;  // set it back to false;
 
         TagPtr tagPrivateProtoPurse(new Tag("privateProtopurse"));
 
         for (auto& it : m_mapPrivate) {
             OTASCIIArmor* pPrototoken = it.second;
             OT_ASSERT(nullptr != pPrototoken);
-            tagPrivateProtoPurse->add_tag("privatePrototoken",
-                                          pPrototoken->Get());
+            tagPrivateProtoPurse->add_tag(
+                "privatePrototoken", pPrototoken->Get());
         }
         tag.add_tag(tagPrivateProtoPurse);
     }
@@ -844,33 +848,32 @@ int32_t Token::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             "\n\nToken State: " << strState
                << "\n Denomination: " << GetDenomination()
                << "\n"
-                  " InstrumentDefinitionID: " << strInstrumentDefinitionID
-               << "\nNotaryID: " << strNotaryID << "\n";
+                  " InstrumentDefinitionID: "
+               << strInstrumentDefinitionID << "\nNotaryID: " << strNotaryID
+               << "\n";
 
         nReturnVal = 1;
-    }
-    else if (strNodeName.Compare("tokenID")) {
+    } else if (strNodeName.Compare("tokenID")) {
         if (!Contract::LoadEncodedTextField(xml, m_ascSpendable)) {
             otErr << "Error in Token::ProcessXMLNode: token ID without "
                      "value.\n";
-            return (-1); // error condition
+            return (-1);  // error condition
         }
 
         return 1;
-    }
-    else if (strNodeName.Compare("tokenSignature")) {
+    } else if (strNodeName.Compare("tokenSignature")) {
         if (!Contract::LoadEncodedTextField(xml, m_Signature)) {
             otErr << "Error in Token::ProcessXMLNode: token Signature "
                      "without value.\n";
-            return (-1); // error condition
+            return (-1);  // error condition
         }
 
         return 1;
-    }
-    else if (strNodeName.Compare("protopurse")) { // TODO for security, if the
-                                                    // count here doesn't match
-                                                    // what's loaded up, that
-                                                    // should be part of
+    } else if (strNodeName.Compare(
+                   "protopurse")) {  // TODO for security, if the
+                                     // count here doesn't match
+                                     // what's loaded up, that
+                                     // should be part of
         // what is verified in each token when it's verified..
         m_nTokenCount = atoi(xml->getAttributeValue("count"));
         m_nChosenIndex = atoi(xml->getAttributeValue("chosenIndex"));
@@ -878,8 +881,7 @@ int32_t Token::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         nPublicTokenCount = 0;
 
         return 1;
-    }
-    else if (strNodeName.Compare("prototoken")) {
+    } else if (strNodeName.Compare("prototoken")) {
         OTASCIIArmor* pArmoredPrototoken = new OTASCIIArmor;
         OT_ASSERT(nullptr != pArmoredPrototoken);
 
@@ -891,21 +893,18 @@ int32_t Token::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             delete pArmoredPrototoken;
             pArmoredPrototoken = nullptr;
 
-            return (-1); // error condition
-        }
-        else {
+            return (-1);  // error condition
+        } else {
             m_mapPublic[nPublicTokenCount] = pArmoredPrototoken;
             nPublicTokenCount++;
         }
 
         return 1;
-    }
-    else if (strNodeName.Compare("privateProtopurse")) {
+    } else if (strNodeName.Compare("privateProtopurse")) {
         nPrivateTokenCount = 0;
 
         return 1;
-    }
-    else if (strNodeName.Compare("privatePrototoken")) {
+    } else if (strNodeName.Compare("privatePrototoken")) {
         OTASCIIArmor* pArmoredPrototoken = new OTASCIIArmor;
         OT_ASSERT(nullptr != pArmoredPrototoken);
 
@@ -917,9 +916,8 @@ int32_t Token::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             delete pArmoredPrototoken;
             pArmoredPrototoken = nullptr;
 
-            return (-1); // error condition
-        }
-        else {
+            return (-1);  // error condition
+        } else {
             m_mapPrivate[nPrivateTokenCount] = pArmoredPrototoken;
             nPrivateTokenCount++;
 
@@ -969,8 +967,9 @@ bool Token::GetPrototoken(OTASCIIArmor& ascPrototoken, int32_t nTokenIndex)
     return false;
 }
 
-bool Token::GetPrivatePrototoken(OTASCIIArmor& ascPrototoken,
-                                 int32_t nTokenIndex)
+bool Token::GetPrivatePrototoken(
+    OTASCIIArmor& ascPrototoken,
+    int32_t nTokenIndex)
 {
     // out of bounds. For a count 10 element array, index 10 is out of bounds.
     // thus if attempted index is equal or larger to the count, out of bounds.
@@ -993,14 +992,15 @@ bool Token::GetPrivatePrototoken(OTASCIIArmor& ascPrototoken,
 }
 
 // static
-Token* Token::InstantiateAndGenerateTokenRequest(const Purse& thePurse,
-                                                 const Nym& theNym,
-                                                 Mint& theMint,
-                                                 int64_t lDenomination,
-                                                 int32_t nTokenCount)
+Token* Token::InstantiateAndGenerateTokenRequest(
+    const Purse& thePurse,
+    const Nym& theNym,
+    Mint& theMint,
+    int64_t lDenomination,
+    int32_t nTokenCount)
 {
-    Token* pToken = Token::LowLevelInstantiate(thePurse); // already asserts.
-    OT_ASSERT(nullptr != pToken); // Just for good measure.
+    Token* pToken = Token::LowLevelInstantiate(thePurse);  // already asserts.
+    OT_ASSERT(nullptr != pToken);  // Just for good measure.
 
     const bool bGeneratedRequest = pToken->GenerateTokenRequest(
         theNym, theMint, lDenomination, nTokenCount);
@@ -1088,10 +1088,10 @@ bool Token::VerifyToken(Nym& theNotary, Mint& theMint)
     // first before I can use it.
     OTEnvelope theEnvelope(m_ascSpendable);
 
-    String strContents; // output from opening the envelope.
+    String strContents;  // output from opening the envelope.
     // Decrypt the Envelope into strContents
     if (!theEnvelope.Open(theNotary, strContents))
-        return false; // todo log error, etc.
+        return false;  // todo log error, etc.
 
     // Verify that the series is correct...
     // (Otherwise, someone passed us the wrong Mint and the
@@ -1122,14 +1122,15 @@ bool Token::VerifyToken(Nym& theNotary, Mint& theMint)
     }
 
     // pass the cleartext Lucre spendable coin data to the Mint to be verified.
-    if (theMint.VerifyToken(theNotary, strContents,
-                            GetDenomination())) // Here's the boolean output:
-                                                // coin is verified!
+    if (theMint.VerifyToken(
+            theNotary,
+            strContents,
+            GetDenomination()))  // Here's the boolean output:
+                                 // coin is verified!
     {
         otOut << "Token verified!\n";
         return true;
-    }
-    else {
+    } else {
         otOut << "Bad coin!\n";
         return false;
     }
@@ -1137,8 +1138,8 @@ bool Token::VerifyToken(Nym& theNotary, Mint& theMint)
 
 // SUBCLASSES OF OTTOKEN FOR EACH DIGITAL CASH ALGORITHM.
 
-#if defined(OT_CASH_USING_MAGIC_MONEY)
+#if OT_CASH_USING_MAGIC_MONEY
 // Todo:  Someday...
-#endif // Magic Money
+#endif  // Magic Money
 
-} // namespace opentxs
+}  // namespace opentxs

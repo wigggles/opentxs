@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/core/contract/peer/PeerReply.hpp"
 
@@ -371,11 +371,11 @@ std::shared_ptr<proto::PeerRequest> PeerReply::LoadRequest(
     std::shared_ptr<proto::PeerRequest> output;
     std::time_t notUsed = 0;
 
-    output = OT::App().Contract().PeerRequest(
+    output = OT::App().Wallet().PeerRequest(
         nym->ID(), requestID, StorageBox::INCOMINGPEERREQUEST, notUsed);
 
     if (!output) {
-        output = OT::App().Contract().PeerRequest(
+        output = OT::App().Wallet().PeerRequest(
             nym->ID(), requestID, StorageBox::PROCESSEDPEERREQUEST, notUsed);
 
         if (output) {

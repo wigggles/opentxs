@@ -39,11 +39,13 @@
 #ifndef OPENTXS_CORE_OTPSEUDONYM_HPP
 #define OPENTXS_CORE_OTPSEUDONYM_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/crypto/CredentialSet.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/core/Proto.hpp"
-#include "opentxs/core/Types.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
 #include "opentxs/network/ZMQ.hpp"
 
 #include <atomic>
@@ -73,7 +75,13 @@ class OTPayment;
 class OTTransaction;
 class ServerContract;
 class Tag;
+
+namespace api
+{
+
 class Wallet;
+
+}  // namespace api
 
 typedef std::deque<Message*> dequeOfMail;
 typedef std::deque<std::int64_t> dequeOfTransNums;
@@ -85,7 +93,7 @@ typedef bool CredentialIndexModeFlag;
 
 class Nym
 {
-    friend class Wallet;
+    friend class api::Wallet;
 
 public:
     static const CredentialIndexModeFlag ONLY_IDS = true;

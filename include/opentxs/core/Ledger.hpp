@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_OTLEDGER_HPP
 #define OPENTXS_CORE_OTLEDGER_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/OTTransactionType.hpp"

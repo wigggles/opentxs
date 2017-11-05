@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/core/crypto/OTSignedFile.hpp"
 
@@ -58,20 +58,14 @@
 namespace opentxs
 {
 
-String& OTSignedFile::GetFilePayload()
-{
-    return m_strSignedFilePayload;
-}
+String& OTSignedFile::GetFilePayload() { return m_strSignedFilePayload; }
 
 void OTSignedFile::SetFilePayload(const String& strArg)
 {
     m_strSignedFilePayload = strArg;
 }
 
-String& OTSignedFile::GetSignerNymID()
-{
-    return m_strSignerNymID;
-}
+String& OTSignedFile::GetSignerNymID() { return m_strSignerNymID; }
 
 void OTSignedFile::SetSignerNymID(const String& strArg)
 {
@@ -127,13 +121,12 @@ int32_t OTSignedFile::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         m_strSignerNymID = xml->getAttributeValue("signer");
 
         nReturnVal = 1;
-    }
-    else if (!strcmp("filePayload", xml->getNodeName())) {
+    } else if (!strcmp("filePayload", xml->getNodeName())) {
         if (false ==
             Contract::LoadEncodedTextField(xml, m_strSignedFilePayload)) {
             otErr << "Error in OTSignedFile::ProcessXMLNode: filePayload field "
                      "without value.\n";
-            return (-1); // error condition
+            return (-1);  // error condition
         }
 
         return 1;
@@ -158,11 +151,12 @@ bool OTSignedFile::VerifyFile()
         return true;
 
     otErr << __FUNCTION__ << ": Failed verifying signed file:\n"
-                             "Expected directory: " << m_strLocalDir
-          << "  Found: " << m_strPurportedLocalDir
+                             "Expected directory: "
+          << m_strLocalDir << "  Found: " << m_strPurportedLocalDir
           << "\n"
-             "Expected filename:  " << m_strSignedFilename
-          << "  Found: " << m_strPurportedFilename << "\n";
+             "Expected filename:  "
+          << m_strSignedFilename << "  Found: " << m_strPurportedFilename
+          << "\n";
     return false;
 }
 
@@ -229,8 +223,9 @@ bool OTSignedFile::LoadFile()
     return false;
 }
 
-void OTSignedFile::SetFilename(const String& LOCAL_SUBDIR,
-                               const String& FILE_NAME)
+void OTSignedFile::SetFilename(
+    const String& LOCAL_SUBDIR,
+    const String& FILE_NAME)
 {
     // OTSignedFile specific variables.
     m_strLocalDir = LOCAL_SUBDIR;
@@ -259,20 +254,19 @@ OTSignedFile::OTSignedFile()
     m_strContractType.Set("FILE");
 }
 
-OTSignedFile::~OTSignedFile()
-{
-    Release_SignedFile();
-}
+OTSignedFile::~OTSignedFile() { Release_SignedFile(); }
 
 void OTSignedFile::Release_SignedFile()
 {
-    m_strSignedFilePayload.Release(); // This is the file contents we were
-                                      // wrapping.
-                                      // We can release this now.
+    m_strSignedFilePayload.Release();  // This is the file contents we were
+                                       // wrapping.
+                                       // We can release this now.
 
-//  m_strLocalDir.Release();          // We KEEP these, *not* release, because LoadContract()
-//  m_strSignedFilename.Release();    // calls Release(), and these are our core values. We
-                                      // don't want to lose them when the file is loaded.
+    //  m_strLocalDir.Release();          // We KEEP these, *not* release,
+    //  because LoadContract()
+    //  m_strSignedFilename.Release();    // calls Release(), and these are our
+    //  core values. We
+    // don't want to lose them when the file is loaded.
 
     // Note: Additionally, neither does Contract release m_strFilename here,
     // for the SAME reason.
@@ -290,4 +284,4 @@ void OTSignedFile::Release()
     m_strContractType.Set("FILE");
 }
 
-} // namespace opentxs
+}  // namespace opentxs

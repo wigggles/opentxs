@@ -39,6 +39,8 @@
 #ifndef OPENTXS_STORAGE_TREE_TREE_HPP
 #define OPENTXS_STORAGE_TREE_TREE_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/api/Editor.hpp"
 #include "opentxs/storage/tree/Node.hpp"
 
@@ -49,8 +51,12 @@
 
 namespace opentxs
 {
+namespace api
+{
 
 class Storage;
+
+}  // namespace api
 
 namespace storage
 {
@@ -67,7 +73,7 @@ class Units;
 class Tree : public Node
 {
 private:
-    friend class opentxs::Storage;
+    friend class api::Storage;
     friend class Root;
 
     std::string blockchain_root_{Node::BLANK_HASH};

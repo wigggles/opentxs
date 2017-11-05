@@ -36,13 +36,13 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/network/OpenDHT.hpp"
 
 #include "opentxs/network/DhtConfig.hpp"
 
-#ifdef OT_DHT
+#if OT_DHT
 #include <opendht.h>
 #endif
 
@@ -53,7 +53,7 @@
 
 namespace opentxs
 {
-#ifdef OT_DHT
+#if OT_DHT
 
 OpenDHT* OpenDHT::instance_ = nullptr;
 
@@ -70,11 +70,17 @@ bool OpenDHT::Init() const
 {
     std::lock_guard<std::mutex> initLock(init_);
 
-    if (!config_->enable_dht_) { return true; }
+    if (!config_->enable_dht_) {
+        return true;
+    }
 
-    if (ready_.load()) { return true; }
+    if (ready_.load()) {
+        return true;
+    }
 
-    if (!node_) { return false; }
+    if (!node_) {
+        return false;
+    }
 
     int64_t listenPort = config_->listen_port_;
 
@@ -85,8 +91,7 @@ bool OpenDHT::Init() const
     if (!loaded_.load()) {
         try {
             node_->run(listenPort, dht::crypto::generateIdentity(), true);
-        }
-        catch (dht::DhtException& e) {
+        } catch (dht::DhtException& e) {
             std::cout << e.what() << std::endl;
 
             return false;
@@ -97,11 +102,9 @@ bool OpenDHT::Init() const
 
     try {
         node_->bootstrap(
-            config_->bootstrap_url_.c_str(),
-            config_->bootstrap_port_.c_str());
-            ready_.store(true);
-    }
-    catch (std::invalid_argument& e) {
+            config_->bootstrap_url_.c_str(), config_->bootstrap_port_.c_str());
+        ready_.store(true);
+    } catch (std::invalid_argument& e) {
         std::cout << e.what() << std::endl;
 
         return false;
@@ -127,18 +130,20 @@ void OpenDHT::Insert(
     DhtDoneCallback cb) const
 {
     if (!ready_.load()) {
-        if (!Init()) { return; }
+        if (!Init()) {
+            return;
+        }
     }
 
     dht::InfoHash infoHash = dht::InfoHash::get(
-        reinterpret_cast<const uint8_t*>(key.c_str()),
-        key.size());
+        reinterpret_cast<const uint8_t*>(key.c_str()), key.size());
 
     std::shared_ptr<dht::Value> pValue = std::make_shared<dht::Value>(
-        reinterpret_cast<const uint8_t*>(value.c_str()),
-        value.size());
+        reinterpret_cast<const uint8_t*>(value.c_str()), value.size());
 
-    if (!pValue) { return; }
+    if (!pValue) {
+        return;
+    }
 
     node_->put(infoHash, pValue, cb);
 }
@@ -149,7 +154,9 @@ void OpenDHT::Retrieve(
     DhtDoneCallback dcb) const
 {
     if (!ready_.load()) {
-        if (!Init()) { return; }
+        if (!Init()) {
+            return;
+        }
     }
 
     // The OpenDHT get method wants a lambda function that accepts an
@@ -161,7 +168,9 @@ void OpenDHT::Retrieve(
             DhtResults input;
 
             for (const auto& it : results) {
-                if (nullptr == it) { continue; }
+                if (nullptr == it) {
+                    continue;
+                }
 
                 input.emplace(input.end(), new std::string(it->toString()));
             }
@@ -181,10 +190,7 @@ void OpenDHT::Cleanup()
     instance_ = nullptr;
 }
 
-OpenDHT::~OpenDHT()
-{
-    Cleanup();
-}
+OpenDHT::~OpenDHT() { Cleanup(); }
 
 #endif
-} // namespace opentxs
+}  // namespace opentxs

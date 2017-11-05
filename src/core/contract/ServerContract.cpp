@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/core/contract/ServerContract.hpp"
 
@@ -48,7 +48,7 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
-#include "opentxs/core/Proto.hpp"
+#include "opentxs/Proto.hpp"
 #include "opentxs/core/String.hpp"
 
 #include <stdint.h>
@@ -262,7 +262,7 @@ void ServerContract::SetAlias(const std::string& alias)
 {
     ot_super::SetAlias(alias);
 
-    OT::App().Contract().SetServerAlias(id_, alias);
+    OT::App().Wallet().SetServerAlias(id_, alias);
 }
 
 proto::ServerContract ServerContract::SigVersion(const Lock& lock) const

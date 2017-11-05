@@ -36,14 +36,14 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/server/ServerSettings.hpp"
 
 #include <stdint.h>
 #include <string>
 
-namespace opentxs
+namespace opentxs::server
 {
 
 // These are default values. There are configurable in ~/.ot/server.cfg
@@ -62,11 +62,13 @@ std::string ServerSettings::__override_nym_id;
 //       (The ACTUAL values are configured in ~/.ot/server.cfg)
 //
 bool ServerSettings::__admin_usage_credits =
-    false; // Are usage credits REQUIRED in order to use this server?
+    false;  // Are usage credits REQUIRED in order to use this server?
 bool ServerSettings::__admin_server_locked =
-    false; // Is server currently locked to non-override Nyms?
+    false;  // Is server currently locked to non-override Nyms?
 bool ServerSettings::__cmd_usage_credits =
-    true; // Command for setting / viewing usage credits. (Keep this true even if usage credits are turned off. Otherwise the users won't get a server response when they ask it for the policy.)
+    true;  // Command for setting / viewing usage credits. (Keep this true even
+           // if usage credits are turned off. Otherwise the users won't get a
+           // server response when they ask it for the policy.)
 bool ServerSettings::__cmd_issue_asset = true;
 bool ServerSettings::__cmd_get_contract = true;
 bool ServerSettings::__cmd_check_notary_id = true;
@@ -114,4 +116,4 @@ bool ServerSettings::__cmd_request_admin = true;
 // folder was found, before you start unlocking the server messages!
 //
 
-} // namespace opentxs
+}  // namespace opentxs::server

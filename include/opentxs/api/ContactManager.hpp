@@ -39,6 +39,8 @@
 #ifndef OPENTXS_API_CONTACT_MANAGER_HPP
 #define OPENTXS_API_CONTACT_MANAGER_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/api/Editor.hpp"
 #include "opentxs/core/Identifier.hpp"
 
@@ -53,6 +55,10 @@ namespace opentxs
 class Contact;
 class OT;
 class PaymentCode;
+
+namespace api
+{
+
 class Storage;
 class Wallet;
 
@@ -86,7 +92,7 @@ public:
     ~ContactManager() = default;
 
 private:
-    friend class OT;
+    friend class opentxs::OT;
 
     typedef std::pair<std::mutex, std::shared_ptr<class Contact>> ContactLock;
     typedef std::pair<proto::ContactItemType, std::string> Address;
@@ -152,5 +158,7 @@ private:
     ContactManager operator=(const ContactManager&) = delete;
     ContactManager operator=(ContactManager&&) = delete;
 };
+}  // namespace api
 }  // namespace opentxs
+
 #endif  // OPENTXS_API_CONTACT_MANAGER_HPP

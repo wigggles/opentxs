@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_OTLOG_HPP
 #define OPENTXS_CORE_OTLOG_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/String.hpp"
 
@@ -64,7 +66,13 @@ namespace opentxs
 typedef std::deque<String*> dequeOfStrings;
 
 class OTLogStream;
+
+namespace api
+{
+
 class Settings;
+
+}  // namespace api
 
 #ifdef _WIN32
 #ifdef OTLOG_IMPORT
@@ -108,7 +116,7 @@ private:
     static const String m_strVersion;
     static const String m_strPathSeparator;
 
-    Settings& config_;
+    api::Settings& config_;
     std::int32_t m_nLogLevel{0};
     bool m_bInitialized{false};
     bool write_log_file_{false};
@@ -123,7 +131,7 @@ private:
     static Assert::fpt_Assert_sz_n_sz(logAssert);
     static bool CheckLogger(Log* pLogger);
 
-    Log(Settings& config);
+    Log(api::Settings& config);
     Log() = delete;
     Log(const Log&) = delete;
     Log(Log&&) = delete;
@@ -134,7 +142,7 @@ public:
     /** now the logger checks the global config file itself for the
      * log-filename. */
     EXPORT static bool Init(
-        Settings& config,
+        api::Settings& config,
         const String& strThreadContext = "",
         const int32_t& nLogLevel = 0);
 
@@ -216,10 +224,6 @@ public:
         const char* szString,
         int32_t iLength,
         const char* szAppend = nullptr);
-
-    /** OPTIONAL. Therefore I will call it in xmlrpcxx_client.cpp just above
-     * OT_Init. */
-    EXPORT static void SetupSignalHandler();
 };
 
 }  // namespace opentxs

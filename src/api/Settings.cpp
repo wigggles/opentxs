@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/api/Settings.hpp"
 
@@ -55,7 +55,7 @@
 #include <ostream>
 #include <string>
 
-namespace opentxs
+namespace opentxs::api
 {
 
 class Settings::SettingsPvt
@@ -220,7 +220,8 @@ Settings::Settings()
 {
 }
 
-Settings::~Settings() {
+Settings::~Settings()
+{
     Save();
     Reset();
 }
@@ -795,5 +796,4 @@ bool Settings::SetOption_bool(
     return CheckSet_bool(
         strSection, strKey, bVariableName, bVariableName, bNewOrUpdate);
 }
-
-}  // namespace opentxs
+}  // namespace opentxs::api

@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/core/contract/peer/PeerRequest.hpp"
 
@@ -141,7 +141,7 @@ std::unique_ptr<PeerRequest> PeerRequest::Create(
     const Identifier& recipient,
     const std::string& txid)
 {
-    auto unit = OT::App().Contract().UnitDefinition(unitID);
+    auto unit = OT::App().Wallet().UnitDefinition(unitID);
 
     if (!unit) {
         otErr << __FUNCTION__ << ": failed to load unit definition."
@@ -174,7 +174,7 @@ std::unique_ptr<PeerRequest> PeerRequest::Create(
     const Identifier& unitID,
     const Identifier& serverID)
 {
-    auto unit = OT::App().Contract().UnitDefinition(unitID);
+    auto unit = OT::App().Wallet().UnitDefinition(unitID);
 
     if (!unit) {
         otErr << __FUNCTION__ << ": failed to load unit definition."
@@ -209,7 +209,7 @@ std::unique_ptr<PeerRequest> PeerRequest::Create(
     const std::uint64_t& amount,
     const std::string& terms)
 {
-    auto unit = OT::App().Contract().UnitDefinition(unitID);
+    auto unit = OT::App().Wallet().UnitDefinition(unitID);
 
     if (!unit) {
         otErr << __FUNCTION__ << ": failed to load unit definition."

@@ -39,8 +39,10 @@
 #ifndef OPENTXS_CONSENSUS_TRANSACTIONSTATEMENT_HPP
 #define OPENTXS_CONSENSUS_TRANSACTIONSTATEMENT_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/String.hpp"
-#include "opentxs/core/Types.hpp"
+#include "opentxs/Types.hpp"
 
 #include <set>
 #include <string>
@@ -79,6 +81,6 @@ public:
 
     ~TransactionStatement() = default;
 };
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CONSENSUS_TRANSACTIONSTATEMENT_HPP
+#endif  // OPENTXS_CONSENSUS_TRANSACTIONSTATEMENT_HPP

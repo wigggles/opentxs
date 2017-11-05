@@ -39,6 +39,8 @@
 #ifndef OPENTXS_API_EDITOR_HPP
 #define OPENTXS_API_EDITOR_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/Log.hpp"
 
 #include <functional>

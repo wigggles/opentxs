@@ -36,12 +36,13 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
-#include "opentxs/server/OTServer.hpp"
+#include "opentxs/server/Server.hpp"
 
 #include "opentxs/api/Identity.hpp"
 #include "opentxs/api/OT.hpp"
+#include "opentxs/api/Server.hpp"
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/cron/OTCron.hpp"
@@ -63,7 +64,6 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/ext/OTPayment.hpp"
 #include "opentxs/server/ConfigLoader.hpp"
-#include "opentxs/server/ServerLoader.hpp"
 #include "opentxs/server/Transactor.hpp"
 
 #include <inttypes.h>
@@ -81,9 +81,9 @@
 #define SERVER_CONFIG_COMMAND_KEY "command"
 #define SERVER_CONFIG_NOTIFY_KEY "notification"
 
-#define OT_METHOD "opentxs::OTServer::"
+#define OT_METHOD "opentxs::Server::"
 
-namespace opentxs
+namespace opentxs::server
 {
 
 #ifdef _WIN32
@@ -100,11 +100,11 @@ int32_t OTCron::__cron_max_items_per_nym = 10;  // The maximum number of cron
 // active at the same time.
 #endif
 
-void OTServer::ActivateCron()
+void Server::ActivateCron()
 {
     Log::vOutput(
         1,
-        "OTServer::ActivateCron: %s \n",
+        "Server::ActivateCron: %s \n",
         m_Cron.ActivateCron() ? "(STARTED)" : "FAILED");
 }
 
@@ -113,7 +113,7 @@ void OTServer::ActivateCron()
 /// It sleeps in between. (See testserver.cpp for the call
 /// and OTLog::Sleep() for the sleep code.)
 ///
-void OTServer::ProcessCron()
+void Server::ProcessCron()
 {
     if (!m_Cron.IsActivated()) return;
 
@@ -145,13 +145,13 @@ void OTServer::ProcessCron()
     // Such as sweeping server accounts after expiration dates, etc.
 }
 
-const Identifier& OTServer::GetServerID() const { return m_strNotaryID; }
+const Identifier& Server::GetServerID() const { return m_strNotaryID; }
 
-const Nym& OTServer::GetServerNym() const { return m_nymServer; }
+const Nym& Server::GetServerNym() const { return m_nymServer; }
 
-bool OTServer::IsFlaggedForShutdown() const { return m_bShutdownFlag; }
+bool Server::IsFlaggedForShutdown() const { return m_bShutdownFlag; }
 
-OTServer::OTServer()
+Server::Server()
     : mainFile_(this)
     , notary_(this)
     , transactor_(this)
@@ -161,7 +161,7 @@ OTServer::OTServer()
 {
 }
 
-OTServer::~OTServer()
+Server::~Server()
 {
     // PID -- Set it to 0 in the lock file so the next time we run OT, it knows
     // there isn't
@@ -192,7 +192,7 @@ OTServer::~OTServer()
     }
 }
 
-std::pair<std::string, std::string> OTServer::parse_seed_backup(
+std::pair<std::string, std::string> Server::parse_seed_backup(
     const std::string& input) const
 {
     std::pair<std::string, std::string> output{};
@@ -210,10 +210,12 @@ std::pair<std::string, std::string> OTServer::parse_seed_backup(
     return output;
 }
 
-void OTServer::CreateMainFile(
+void Server::CreateMainFile(
     bool& mainFileExists,
-    std::map<std::string, std::string>& args)
+    const std::map<std::string, std::string>& arguments)
 {
+    std::map<std::string, std::string> args(arguments);
+
 #if OT_CRYPTO_WITH_BIP39
     const auto backup = OTDB::QueryPlainString(SEED_BACKUP_FILE);
     std::string seed{};
@@ -415,7 +417,7 @@ void OTServer::CreateMainFile(
     }
 
     std::shared_ptr<const ServerContract> pContract{};
-    auto& wallet = OT::App().Contract();
+    auto& wallet = OT::App().Wallet();
     const String existing = OTDB::QueryPlainString(SERVER_CONTRACT_FILE).data();
 
     if (existing.empty()) {
@@ -506,7 +508,7 @@ void OTServer::CreateMainFile(
     OT::App().Config().Save();
 }
 
-void OTServer::Init(std::map<std::string, std::string>& args, bool readOnly)
+void Server::Init(const std::map<std::string, std::string>& args, bool readOnly)
 {
     m_bReadOnly = readOnly;
 
@@ -600,7 +602,7 @@ void OTServer::Init(std::map<std::string, std::string>& args, bool readOnly)
     }
     OTDB::InitDefaultStorage(OTDB_DEFAULT_STORAGE, OTDB_DEFAULT_PACKER);
 
-    // Load up the transaction number and other OTServer data members.
+    // Load up the transaction number and other Server data members.
     bool mainFileExists = m_strWalletFilename.Exists()
                               ? OTDB::Exists(".", m_strWalletFilename.Get())
                               : false;
@@ -649,7 +651,7 @@ void OTServer::Init(std::map<std::string, std::string>& args, bool readOnly)
 // inside) to be attached to the receipt.
 // szCommand for passing payDividend (as the message command instead of
 // sendNymInstrument, the default.)
-bool OTServer::SendInstrumentToNym(
+bool Server::SendInstrumentToNym(
     const Identifier& NOTARY_ID,
     const Identifier& SENDER_NYM_ID,
     const Identifier& RECIPIENT_NYM_ID,
@@ -680,7 +682,7 @@ bool OTServer::SendInstrumentToNym(
     return bDropped;
 }
 
-bool OTServer::SendInstrumentToNym(
+bool Server::SendInstrumentToNym(
     const Identifier& NOTARY_ID,
     const Identifier& SENDER_NYM_ID,
     const Identifier& RECIPIENT_NYM_ID,
@@ -694,7 +696,7 @@ bool OTServer::SendInstrumentToNym(
         pMsg);
 }
 
-bool OTServer::DropMessageToNymbox(
+bool Server::DropMessageToNymbox(
     const Identifier& notaryID,
     const Identifier& senderNymID,
     const Identifier& recipientNymID,
@@ -766,7 +768,7 @@ bool OTServer::DropMessageToNymbox(
 // pass it in here and attach it to the new message. Or maybe we just set it as
 // the voucher memo.
 //
-bool OTServer::DropMessageToNymbox(
+bool Server::DropMessageToNymbox(
     const Identifier& NOTARY_ID,
     const Identifier& SENDER_NYM_ID,
     const Identifier& RECIPIENT_NYM_ID,
@@ -986,7 +988,7 @@ bool OTServer::DropMessageToNymbox(
     return false;
 }
 
-bool OTServer::GetConnectInfo(std::string& strHostname, uint32_t& nPort) const
+bool Server::GetConnectInfo(std::string& strHostname, uint32_t& nPort) const
 {
     bool notUsed = false;
     int64_t port = 0;
@@ -1015,13 +1017,13 @@ bool OTServer::GetConnectInfo(std::string& strHostname, uint32_t& nPort) const
     return (haveIP && havePort);
 }
 
-zcert_t* OTServer::GetTransportKey() const
+zcert_t* Server::GetTransportKey() const
 {
-    auto contract = OT::App().Contract().Server(Identifier(m_strNotaryID));
+    auto contract = OT::App().Wallet().Server(Identifier(m_strNotaryID));
 
     OT_ASSERT(contract);
 
     return contract->PrivateTransportKey();
 }
 
-}  // namespace opentxs
+}  // namespace opentxs::server

@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/core/crypto/CryptoSymmetric.hpp"
 
@@ -79,7 +79,7 @@ CryptoSymmetricDecryptOutput::~CryptoSymmetricDecryptOutput()
 }
 
 CryptoSymmetricDecryptOutput::CryptoSymmetricDecryptOutput(
-    const CryptoSymmetricDecryptOutput& rhs) // passed
+    const CryptoSymmetricDecryptOutput& rhs)  // passed
     : m_pPassword(nullptr),
       m_pPayload(nullptr)
 {
@@ -87,7 +87,8 @@ CryptoSymmetricDecryptOutput::CryptoSymmetricDecryptOutput(
     m_pPayload = rhs.m_pPayload;
 }
 
-CryptoSymmetricDecryptOutput::CryptoSymmetricDecryptOutput(OTPassword& thePassword)
+CryptoSymmetricDecryptOutput::CryptoSymmetricDecryptOutput(
+    OTPassword& thePassword)
     : m_pPassword(&thePassword)
     , m_pPayload(nullptr)
 {
@@ -99,12 +100,13 @@ CryptoSymmetricDecryptOutput::CryptoSymmetricDecryptOutput(Data& thePayload)
 {
 }
 
-void CryptoSymmetricDecryptOutput::swap(CryptoSymmetricDecryptOutput& other) // the swap
-                                                                   // member
-                                                                   // function
-                                                                   // (should
-                                                                   // never
-                                                                   // fail!)
+void CryptoSymmetricDecryptOutput::swap(
+    CryptoSymmetricDecryptOutput& other)  // the swap
+                                          // member
+                                          // function
+                                          // (should
+                                          // never
+                                          // fail!)
 {
     if (&other != this) {
         std::swap(m_pPassword, other.m_pPassword);
@@ -113,7 +115,7 @@ void CryptoSymmetricDecryptOutput::swap(CryptoSymmetricDecryptOutput& other) // 
 }
 
 CryptoSymmetricDecryptOutput& CryptoSymmetricDecryptOutput::operator=(
-    CryptoSymmetricDecryptOutput other) // note: argument passed by value!
+    CryptoSymmetricDecryptOutput other)  // note: argument passed by value!
 {
     // swap this with other
     swap(other);
@@ -141,8 +143,9 @@ void CryptoSymmetricDecryptOutput::Release_Envelope_Decrypt_Output() const
     if (nullptr != m_pPayload) m_pPayload->Release();
 }
 
-bool CryptoSymmetricDecryptOutput::Concatenate(const void* pAppendData,
-                                          uint32_t lAppendSize) const
+bool CryptoSymmetricDecryptOutput::Concatenate(
+    const void* pAppendData,
+    uint32_t lAppendSize) const
 {
     OT_ASSERT((m_pPassword != nullptr) || (m_pPayload != nullptr));
 
@@ -166,40 +169,35 @@ String CryptoSymmetric::ModeToString(const Mode Mode)
     String modeString;
 
     switch (Mode) {
-        case CryptoSymmetric::AES_128_CBC :
-            modeString="aes-128-cbc";
+        case CryptoSymmetric::AES_128_CBC:
+            modeString = "aes-128-cbc";
             break;
-        case CryptoSymmetric::AES_256_CBC :
-            modeString="aes-256-cbc";
+        case CryptoSymmetric::AES_256_CBC:
+            modeString = "aes-256-cbc";
             break;
-        case CryptoSymmetric::AES_256_ECB  :
-            modeString="aes-256-ecb";
+        case CryptoSymmetric::AES_256_ECB:
+            modeString = "aes-256-ecb";
             break;
-        case CryptoSymmetric::AES_128_GCM  :
-            modeString="aes-128-gcm";
+        case CryptoSymmetric::AES_128_GCM:
+            modeString = "aes-128-gcm";
             break;
-        case CryptoSymmetric::AES_256_GCM  :
-            modeString="aes-256-gcm";
+        case CryptoSymmetric::AES_256_GCM:
+            modeString = "aes-256-gcm";
             break;
-        default :
-            modeString="error";
+        default:
+            modeString = "error";
     }
     return modeString;
 }
 
 CryptoSymmetric::Mode CryptoSymmetric::StringToMode(const String& Mode)
 {
-    if (Mode.Compare("aes-128-cbc"))
-        return CryptoSymmetric::AES_128_CBC ;
-    if (Mode.Compare("aes-256-cbc"))
-        return CryptoSymmetric::AES_256_CBC ;
-    if (Mode.Compare("aes-256-ecb"))
-        return CryptoSymmetric::AES_256_ECB ;
-    if (Mode.Compare("aes-128-gcm"))
-        return CryptoSymmetric::AES_128_GCM ;
-    if (Mode.Compare("aes-256-gcm"))
-        return CryptoSymmetric::AES_256_GCM ;
-    return CryptoSymmetric::ERROR_MODE ;
+    if (Mode.Compare("aes-128-cbc")) return CryptoSymmetric::AES_128_CBC;
+    if (Mode.Compare("aes-256-cbc")) return CryptoSymmetric::AES_256_CBC;
+    if (Mode.Compare("aes-256-ecb")) return CryptoSymmetric::AES_256_ECB;
+    if (Mode.Compare("aes-128-gcm")) return CryptoSymmetric::AES_128_GCM;
+    if (Mode.Compare("aes-256-gcm")) return CryptoSymmetric::AES_256_GCM;
+    return CryptoSymmetric::ERROR_MODE;
 }
 
 uint32_t CryptoSymmetric::KeySize(const Mode Mode)
@@ -207,46 +205,43 @@ uint32_t CryptoSymmetric::KeySize(const Mode Mode)
     uint32_t keySize;
 
     switch (Mode) {
-        case CryptoSymmetric::AES_128_CBC :
-            keySize= 16;
+        case CryptoSymmetric::AES_128_CBC:
+            keySize = 16;
             break;
-        case CryptoSymmetric::AES_256_CBC :
-            keySize= 32;
+        case CryptoSymmetric::AES_256_CBC:
+            keySize = 32;
             break;
-        case CryptoSymmetric::AES_256_ECB  :
-            keySize= 32;
+        case CryptoSymmetric::AES_256_ECB:
+            keySize = 32;
             break;
-        case CryptoSymmetric::AES_128_GCM  :
-            keySize= 16;
+        case CryptoSymmetric::AES_128_GCM:
+            keySize = 16;
             break;
-        case CryptoSymmetric::AES_256_GCM  :
-            keySize= 32;
+        case CryptoSymmetric::AES_256_GCM:
+            keySize = 32;
             break;
-        default :
-            keySize= 0;
+        default:
+            keySize = 0;
     }
     return keySize;
 }
 
-uint32_t CryptoSymmetric::IVSize(const Mode Mode)
-{
-    return KeySize(Mode);
-}
+uint32_t CryptoSymmetric::IVSize(const Mode Mode) { return KeySize(Mode); }
 
 uint32_t CryptoSymmetric::TagSize(const Mode Mode)
 {
     uint32_t tagSize;
 
     switch (Mode) {
-        case CryptoSymmetric::AES_128_GCM  :
-            tagSize= 16;
+        case CryptoSymmetric::AES_128_GCM:
+            tagSize = 16;
             break;
-        case CryptoSymmetric::AES_256_GCM  :
-            tagSize= 16;
+        case CryptoSymmetric::AES_256_GCM:
+            tagSize = 16;
             break;
-        default :
-            tagSize= 0;
+        default:
+            tagSize = 0;
     }
     return tagSize;
 }
-} // namespace opentxs
+}  // namespace opentxs

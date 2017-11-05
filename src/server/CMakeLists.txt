@@ -1,17 +1,16 @@
 # Copyright (c) Monetas AG, 2014
 
 set(cxx-sources
-  ServerSettings.cpp
   ConfigLoader.cpp
-  PayDividendVisitor.cpp
-  MessageProcessor.cpp
   MainFile.cpp
-  UserCommandProcessor.cpp
+  MessageProcessor.cpp
   Notary.cpp
-  Transactor.cpp
-  OTServer.cpp
+  PayDividendVisitor.cpp
   ReplyMessage.cpp
-  ServerLoader.cpp
+  Server.cpp
+  ServerSettings.cpp
+  Transactor.cpp
+  UserCommandProcessor.cpp
 )
 
 file(GLOB cxx-headers "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/server/*.hpp")

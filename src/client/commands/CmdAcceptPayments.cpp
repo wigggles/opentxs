@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/client/commands/CmdAcceptPayments.hpp"
 
@@ -58,9 +58,7 @@ CmdAcceptPayments::CmdAcceptPayments()
     usage = "Omitting --indices is the same as specifying --indices all.";
 }
 
-CmdAcceptPayments::~CmdAcceptPayments()
-{
-}
+CmdAcceptPayments::~CmdAcceptPayments() {}
 
 int32_t CmdAcceptPayments::runWithOptions()
 {

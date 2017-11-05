@@ -39,19 +39,25 @@
 #ifndef OPENTXS_SERVER_NOTARY_HPP
 #define OPENTXS_SERVER_NOTARY_HPP
 
+#include "opentxs/Version.hpp"
+
 namespace opentxs
 {
 
 class Account;
 class ClientContext;
 class Nym;
-class OTServer;
 class OTTransaction;
+
+namespace server
+{
+
+class Server;
 
 class Notary
 {
 private:
-    OTServer* server_{nullptr};
+    Server* server_{nullptr};
 
     void NotarizeCancelCronItem(
         Nym& nym,
@@ -124,7 +130,7 @@ private:
     Notary& operator=(Notary&&) = delete;
 
 public:
-    explicit Notary(OTServer* server);
+    explicit Notary(Server* server);
 
     void NotarizeProcessInbox(
         Nym& nym,
@@ -146,6 +152,7 @@ public:
         OTTransaction& tranOut,
         bool& outSuccess);
 };
+}  // namespace server
 }  // namespace opentxs
 
 #endif  // OPENTXS_SERVER_NOTARY_HPP

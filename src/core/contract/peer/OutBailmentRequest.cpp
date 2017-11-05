@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/core/contract/peer/OutBailmentRequest.hpp"
 
@@ -47,10 +47,10 @@ namespace opentxs
 OutBailmentRequest::OutBailmentRequest(
     const ConstNym& nym,
     const proto::PeerRequest& serialized)
-        : ot_super(nym, serialized, serialized.outbailment().instructions())
-        , unit_(serialized.outbailment().unitid())
-        , server_(serialized.outbailment().serverid())
-        , amount_(serialized.outbailment().amount())
+    : ot_super(nym, serialized, serialized.outbailment().instructions())
+    , unit_(serialized.outbailment().unitid())
+    , server_(serialized.outbailment().serverid())
+    , amount_(serialized.outbailment().amount())
 {
 }
 
@@ -61,10 +61,15 @@ OutBailmentRequest::OutBailmentRequest(
     const Identifier& serverID,
     const std::uint64_t& amount,
     const std::string& terms)
-        : ot_super(nym, recipientID, serverID, terms, proto::PEERREQUEST_OUTBAILMENT)
-        , unit_(unitID)
-        , server_(serverID)
-        , amount_(amount)
+    : ot_super(
+          nym,
+          recipientID,
+          serverID,
+          terms,
+          proto::PEERREQUEST_OUTBAILMENT)
+    , unit_(unitID)
+    , server_(serverID)
+    , amount_(amount)
 {
 }
 
@@ -81,4 +86,4 @@ proto::PeerRequest OutBailmentRequest::IDVersion(const Lock& lock) const
 
     return contract;
 }
-} // namespace opentxs
+}  // namespace opentxs

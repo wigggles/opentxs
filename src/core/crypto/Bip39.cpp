@@ -35,11 +35,11 @@
  *   for more details.
  *
  ************************************************************/
-#if OT_CRYPTO_WITH_BIP39
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/core/crypto/Bip39.hpp"
 
+#if OT_CRYPTO_WITH_BIP39
 #include "opentxs/api/OT.hpp"
 #include "opentxs/core/crypto/Bip32.hpp"
 #include "opentxs/core/crypto/CryptoEngine.hpp"

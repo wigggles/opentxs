@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_OTACCTFUNCTOR_HPP
 #define OPENTXS_CORE_OTACCTFUNCTOR_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/Identifier.hpp"
 
 #include <map>
@@ -54,26 +56,19 @@ typedef std::map<std::string, Account*> mapOfAccounts;
 class AccountVisitor
 {
 public:
-    EXPORT AccountVisitor(const Identifier& notaryID,
-                          mapOfAccounts* loadedAccounts = nullptr)
+    EXPORT AccountVisitor(
+        const Identifier& notaryID,
+        mapOfAccounts* loadedAccounts = nullptr)
         : notaryID_(notaryID)
         , loadedAccounts_(loadedAccounts)
     {
     }
 
-    EXPORT virtual ~AccountVisitor()
-    {
-    }
+    EXPORT virtual ~AccountVisitor() {}
 
-    EXPORT Identifier* GetNotaryID()
-    {
-        return &notaryID_;
-    }
+    EXPORT Identifier* GetNotaryID() { return &notaryID_; }
 
-    EXPORT mapOfAccounts* GetLoadedAccts()
-    {
-        return loadedAccounts_;
-    }
+    EXPORT mapOfAccounts* GetLoadedAccts() { return loadedAccounts_; }
 
     EXPORT virtual bool Trigger(Account& account) = 0;
 
@@ -82,6 +77,6 @@ protected:
     mapOfAccounts* loadedAccounts_;
 };
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CORE_OTACCTFUNCTOR_HPP
+#endif  // OPENTXS_CORE_OTACCTFUNCTOR_HPP

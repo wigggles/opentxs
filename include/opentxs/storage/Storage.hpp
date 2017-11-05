@@ -39,9 +39,11 @@
 #ifndef OPENTXS_STORAGE_STORAGE_HPP
 #define OPENTXS_STORAGE_STORAGE_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/api/Editor.hpp"
-#include "opentxs/core/Proto.hpp"
-#include "opentxs/core/Types.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
 #include "opentxs/interface/storage/StorageDriver.hpp"
 #include "opentxs/storage/StorageConfig.hpp"
 
@@ -78,6 +80,8 @@ typedef std::function<void(const proto::CredentialIndex&)> NymLambda;
 typedef std::function<void(const proto::ServerContract&)> ServerLambda;
 typedef std::function<void(const proto::UnitDefinition&)> UnitLambda;
 
+namespace api
+{
 // Content-aware storage module for opentxs
 //
 // Storage accepts serialized opentxs objects in protobuf form, writes them
@@ -102,7 +106,7 @@ typedef std::function<void(const proto::UnitDefinition&)> UnitLambda;
 class Storage : public virtual StorageDriver
 {
 private:
-    friend class OT;
+    friend class opentxs::OT;
     typedef std::unique_lock<std::mutex> Lock;
 
     /** A set of metadata associated with a stored object
@@ -387,5 +391,6 @@ public:
     void Cleanup();
     ~Storage();
 };
+}  // namespace api
 }  // namespace opentxs
 #endif  // OPENTXS_STORAGE_STORAGE_HPP

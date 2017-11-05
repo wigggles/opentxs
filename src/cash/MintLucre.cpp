@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/cash/MintLucre.hpp"
 
@@ -44,7 +44,7 @@
 #include "opentxs/cash/Mint.hpp"
 #include "opentxs/cash/Token.hpp"
 #include "opentxs/core/String.hpp"
-#if defined(OT_CASH_USING_LUCRE)
+#if OT_CASH_USING_LUCRE
 #include "opentxs/core/crypto/OpenSSL_BIO.hpp"
 #endif
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
@@ -67,33 +67,36 @@
 namespace opentxs
 {
 
-#if defined(OT_CASH_USING_LUCRE)
+#if OT_CASH_USING_LUCRE
 
 MintLucre::MintLucre()
     : ot_super()
 {
 }
 
-MintLucre::MintLucre(const String& strNotaryID,
-                     const String& strInstrumentDefinitionID)
+MintLucre::MintLucre(
+    const String& strNotaryID,
+    const String& strInstrumentDefinitionID)
     : ot_super(strNotaryID, strInstrumentDefinitionID)
 {
 }
 
-MintLucre::MintLucre(const String& strNotaryID, const String& strServerNymID,
-                     const String& strInstrumentDefinitionID)
+MintLucre::MintLucre(
+    const String& strNotaryID,
+    const String& strServerNymID,
+    const String& strInstrumentDefinitionID)
     : ot_super(strNotaryID, strServerNymID, strInstrumentDefinitionID)
 {
 }
 
-MintLucre::~MintLucre()
-{
-}
+MintLucre::~MintLucre() {}
 
 // The mint has a different key pair for each denomination.
 // Pass the actual denomination such as 5, 10, 20, 50, 100...
-bool MintLucre::AddDenomination(Nym& theNotary, int64_t lDenomination,
-                                int32_t nPrimeLength)
+bool MintLucre::AddDenomination(
+    const Nym& theNotary,
+    int64_t lDenomination,
+    int32_t nPrimeLength)
 {
     bool bReturnValue = false;
 
@@ -142,13 +145,14 @@ bool MintLucre::AddDenomination(Nym& theNotary, int64_t lDenomination,
 
     // Copy from BIO back to a normal OTString or Ascii-Armor
     char privateBankBuffer[4096],
-        publicBankBuffer[4096]; // todo stop hardcoding these string lengths
+        publicBankBuffer[4096];  // todo stop hardcoding these string lengths
     int32_t privatebankLen =
-        BIO_read(bio, privateBankBuffer, 4000); // cutting it a little short on
-                                                // purpose, with the buffer.
-    int32_t publicbankLen =
-        BIO_read(bioPublic, publicBankBuffer,
-                 4000); // Just makes me feel more comfortable for some reason.
+        BIO_read(bio, privateBankBuffer, 4000);  // cutting it a little short on
+                                                 // purpose, with the buffer.
+    int32_t publicbankLen = BIO_read(
+        bioPublic,
+        publicBankBuffer,
+        4000);  // Just makes me feel more comfortable for some reason.
 
     if (privatebankLen && publicbankLen) {
         // With this, we have the Lucre public and private bank info converted
@@ -165,14 +169,14 @@ bool MintLucre::AddDenomination(Nym& theNotary, int64_t lDenomination,
         OT_ASSERT(nullptr != pPrivate);
 
         // Set the public bank info onto pPublic
-        pPublic->SetString(strPublicBank, true); // linebreaks = true
+        pPublic->SetString(strPublicBank, true);  // linebreaks = true
 
         // Seal the private bank info up into an encrypted Envelope
         // and set it onto pPrivate
         OTEnvelope theEnvelope;
-        theEnvelope.Seal(theNotary, strPrivateBank); // Todo check the return
-                                                     // values on these two
-                                                     // functions
+        theEnvelope.Seal(theNotary, strPrivateBank);  // Todo check the return
+                                                      // values on these two
+                                                      // functions
         theEnvelope.GetCiphertext(*pPrivate);
 
         // Add the new key pair to the maps, using denomination as the key
@@ -193,16 +197,19 @@ bool MintLucre::AddDenomination(Nym& theNotary, int64_t lDenomination,
 
 // Lucre step 3: the mint signs the token
 //
-bool MintLucre::SignToken(Nym& theNotary, Token& theToken, String& theOutput,
-                          int32_t nTokenIndex)
+bool MintLucre::SignToken(
+    const Nym& theNotary,
+    Token& theToken,
+    String& theOutput,
+    int32_t nTokenIndex)
 {
     bool bReturnValue = false;
 
     LucreDumper setDumper;
 
-    OpenSSL_BIO bioBank = BIO_new(BIO_s_mem());      // input
-    OpenSSL_BIO bioRequest = BIO_new(BIO_s_mem());   // input
-    OpenSSL_BIO bioSignature = BIO_new(BIO_s_mem()); // output
+    OpenSSL_BIO bioBank = BIO_new(BIO_s_mem());       // input
+    OpenSSL_BIO bioRequest = BIO_new(BIO_s_mem());    // input
+    OpenSSL_BIO bioSignature = BIO_new(BIO_s_mem());  // output
 
     OTASCIIArmor thePrivate;
     GetPrivate(thePrivate, theToken.GetDenomination());
@@ -212,7 +219,7 @@ bool MintLucre::SignToken(Nym& theNotary, Token& theToken, String& theOutput,
     // So I need to extract that first before I can use it.
     OTEnvelope theEnvelope(thePrivate);
 
-    String strContents; // output from opening the envelope.
+    String strContents;  // output from opening the envelope.
     // Decrypt the Envelope into strContents
     if (!theEnvelope.Open(theNotary, strContents)) return false;
 
@@ -243,24 +250,27 @@ bool MintLucre::SignToken(Nym& theNotary, Token& theToken, String& theOutput,
         if (nullptr == bnSignature) {
             otErr << "MAJOR ERROR!: Bank.SignRequest failed in "
                      "MintLucre::SignToken\n";
-        }
-        else {
+        } else {
 
             // Write the request contents, followed by the signature contents,
             // to the Signature bio. Then free the BIGNUM.
-            req.WriteBIO(bioSignature); // the original request contents
-            DumpNumber(bioSignature, "signature=",
-                       bnSignature); // the new signature contents
+            req.WriteBIO(bioSignature);  // the original request contents
+            DumpNumber(
+                bioSignature,
+                "signature=",
+                bnSignature);  // the new signature contents
             BN_free(bnSignature);
 
             // Read the signature bio into a C-style buffer...
-            char sig_buf[1024]; // todo stop hardcoding these string lengths
+            char sig_buf[1024];  // todo stop hardcoding these string lengths
 
-            int32_t sig_len = BIO_read(bioSignature, sig_buf,
-                                       1000); // cutting it a little short on
-                                              // purpose, with the buffer. Just
-                                              // makes me feel more comfortable
-                                              // for some reason.
+            int32_t sig_len = BIO_read(
+                bioSignature,
+                sig_buf,
+                1000);  // cutting it a little short on
+                        // purpose, with the buffer. Just
+                        // makes me feel more comfortable
+                        // for some reason.
 
             // Add the null terminator by hand (just in case.)
             sig_buf[sig_len] = '\0';
@@ -285,8 +295,8 @@ bool MintLucre::SignToken(Nym& theNotary, Token& theToken, String& theOutput,
                 // The client should have already done this, but we are
                 // explicitly
                 // setting the values here to prevent any funny business.
-                theToken.SetSeriesAndExpiration(m_nSeries, m_VALID_FROM,
-                                                m_VALID_TO);
+                theToken.SetSeriesAndExpiration(
+                    m_nSeries, m_VALID_FROM, m_VALID_TO);
             }
         }
     }
@@ -297,14 +307,16 @@ bool MintLucre::SignToken(Nym& theNotary, Token& theToken, String& theOutput,
 // Lucre step 5: mint verifies token when it is redeemed by merchant.
 // This function is called by OTToken::VerifyToken.
 // That's the one you should be calling, most likely, not this one.
-bool MintLucre::VerifyToken(Nym& theNotary, String& theCleartextToken,
-                            int64_t lDenomination)
+bool MintLucre::VerifyToken(
+    const Nym& theNotary,
+    String& theCleartextToken,
+    int64_t lDenomination)
 {
     bool bReturnValue = false;
     LucreDumper setDumper;
 
-    OpenSSL_BIO bioBank = BIO_new(BIO_s_mem()); // input
-    OpenSSL_BIO bioCoin = BIO_new(BIO_s_mem()); // input
+    OpenSSL_BIO bioBank = BIO_new(BIO_s_mem());  // input
+    OpenSSL_BIO bioCoin = BIO_new(BIO_s_mem());  // input
 
     // --- copy theCleartextToken to bioCoin so lucre can load it
     BIO_puts(bioCoin, theCleartextToken.Get());
@@ -315,7 +327,7 @@ bool MintLucre::VerifyToken(Nym& theNotary, String& theCleartextToken,
     GetPrivate(theArmor, lDenomination);
     OTEnvelope theEnvelope(theArmor);
 
-    String strContents; // will contain output from opening the envelope.
+    String strContents;  // will contain output from opening the envelope.
     // Decrypt the Envelope into strContents
     if (theEnvelope.Open(theNotary, strContents)) {
         // copy strContents to a BIO
@@ -326,7 +338,7 @@ bool MintLucre::VerifyToken(Nym& theNotary, String& theCleartextToken,
         Bank bank(bioBank);
         Coin coin(bioCoin);
 
-        if (bank.Verify(coin)) // Here's the boolean output: coin is verified!
+        if (bank.Verify(coin))  // Here's the boolean output: coin is verified!
         {
             bReturnValue = true;
 
@@ -358,8 +370,6 @@ bool MintLucre::VerifyToken(Nym& theNotary, String& theCleartextToken,
 
     return bReturnValue;
 }
-
-#endif // defined(OT_CRYPTO_USING_OPENSSL)
-#endif // defined(OT_CASH_USING_LUCRE)
-
-} // namespace opentxs
+#endif  // OT_CRYPTO_USING_OPENSSL
+#endif  // OT_CASH_USING_LUCRE
+}  // namespace opentxs

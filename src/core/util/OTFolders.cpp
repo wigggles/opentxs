@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/core/util/OTFolders.hpp"
 
@@ -110,7 +110,7 @@ String OTFolders::s_strUserAcct("");
 
 bool OTFolders::GetSetAll()
 {
-    Settings config(OTPaths::GlobalConfigFile());
+    api::Settings config(OTPaths::GlobalConfigFile());
 
     config.Reset();
 
@@ -122,8 +122,8 @@ bool OTFolders::GetSetAll()
         return false;
     if (!GetSetFolderName(config, KEY_COMMON, DEFAULT_COMMON, s_strCommon))
         return false;
-    if (!GetSetFolderName(config, KEY_CONTRACT, DEFAULT_CONTRACT,
-                          s_strContract))
+    if (!GetSetFolderName(
+            config, KEY_CONTRACT, DEFAULT_CONTRACT, s_strContract))
         return false;
     if (!GetSetFolderName(config, KEY_CRON, DEFAULT_CRON, s_strCron))
         return false;
@@ -138,28 +138,31 @@ bool OTFolders::GetSetAll()
         return false;
     if (!GetSetFolderName(config, KEY_OUTBOX, DEFAULT_OUTBOX, s_strOutbox))
         return false;
-    if (!GetSetFolderName(config, KEY_PAYMENTINBOX, DEFAULT_PAYMENTINBOX,
-                          s_strPaymentInbox))
+    if (!GetSetFolderName(
+            config, KEY_PAYMENTINBOX, DEFAULT_PAYMENTINBOX, s_strPaymentInbox))
         return false;
     if (!GetSetFolderName(config, KEY_PURSE, DEFAULT_PURSE, s_strPurse))
         return false;
     if (!GetSetFolderName(config, KEY_RECEIPT, DEFAULT_RECEIPT, s_strReceipt))
         return false;
-    if (!GetSetFolderName(config, KEY_RECORDBOX, DEFAULT_RECORDBOX,
-                          s_strRecordBox))
+    if (!GetSetFolderName(
+            config, KEY_RECORDBOX, DEFAULT_RECORDBOX, s_strRecordBox))
         return false;
-    if (!GetSetFolderName(config, KEY_EXPIREDBOX, DEFAULT_EXPIREDBOX,
-                          s_strExpiredBox))
+    if (!GetSetFolderName(
+            config, KEY_EXPIREDBOX, DEFAULT_EXPIREDBOX, s_strExpiredBox))
         return false;
     if (!GetSetFolderName(config, KEY_SCRIPT, DEFAULT_SCRIPT, s_strScript))
         return false;
-    if (!GetSetFolderName(config, KEY_SMARTCONTRACTS, DEFAULT_SMARTCONTRACTS,
-                          s_strSmartContracts))
+    if (!GetSetFolderName(
+            config,
+            KEY_SMARTCONTRACTS,
+            DEFAULT_SMARTCONTRACTS,
+            s_strSmartContracts))
         return false;
     if (!GetSetFolderName(config, KEY_SPENT, DEFAULT_SPENT, s_strSpent))
         return false;
-    if (!GetSetFolderName(config, KEY_USERACCT, DEFAULT_USERACCT,
-                          s_strUserAcct))
+    if (!GetSetFolderName(
+            config, KEY_USERACCT, DEFAULT_USERACCT, s_strUserAcct))
         return false;
 
     if (!config.Save()) return false;
@@ -169,85 +172,28 @@ bool OTFolders::GetSetAll()
     return true;
 }
 
-const String& OTFolders::Account()
-{
-    return GetFolder(s_strAccount);
-}
-const String& OTFolders::Cert()
-{
-    return GetFolder(s_strCert);
-}
-const String& OTFolders::Common()
-{
-    return GetFolder(s_strCommon);
-}
-const String& OTFolders::Contract()
-{
-    return GetFolder(s_strContract);
-}
-const String& OTFolders::Cron()
-{
-    return GetFolder(s_strCron);
-}
-const String& OTFolders::Inbox()
-{
-    return GetFolder(s_strInbox);
-}
-const String& OTFolders::Market()
-{
-    return GetFolder(s_strMarket);
-}
-const String& OTFolders::Mint()
-{
-    return GetFolder(s_strMint);
-}
-const String& OTFolders::Nym()
-{
-    return GetFolder(s_strNym);
-}
-const String& OTFolders::Nymbox()
-{
-    return GetFolder(s_strNymbox);
-}
-const String& OTFolders::Outbox()
-{
-    return GetFolder(s_strOutbox);
-}
-const String& OTFolders::PaymentInbox()
-{
-    return GetFolder(s_strPaymentInbox);
-}
-const String& OTFolders::Purse()
-{
-    return GetFolder(s_strPurse);
-}
-const String& OTFolders::Receipt()
-{
-    return GetFolder(s_strReceipt);
-}
-const String& OTFolders::RecordBox()
-{
-    return GetFolder(s_strRecordBox);
-}
-const String& OTFolders::ExpiredBox()
-{
-    return GetFolder(s_strExpiredBox);
-}
-const String& OTFolders::Script()
-{
-    return GetFolder(s_strScript);
-}
+const String& OTFolders::Account() { return GetFolder(s_strAccount); }
+const String& OTFolders::Cert() { return GetFolder(s_strCert); }
+const String& OTFolders::Common() { return GetFolder(s_strCommon); }
+const String& OTFolders::Contract() { return GetFolder(s_strContract); }
+const String& OTFolders::Cron() { return GetFolder(s_strCron); }
+const String& OTFolders::Inbox() { return GetFolder(s_strInbox); }
+const String& OTFolders::Market() { return GetFolder(s_strMarket); }
+const String& OTFolders::Mint() { return GetFolder(s_strMint); }
+const String& OTFolders::Nym() { return GetFolder(s_strNym); }
+const String& OTFolders::Nymbox() { return GetFolder(s_strNymbox); }
+const String& OTFolders::Outbox() { return GetFolder(s_strOutbox); }
+const String& OTFolders::PaymentInbox() { return GetFolder(s_strPaymentInbox); }
+const String& OTFolders::Purse() { return GetFolder(s_strPurse); }
+const String& OTFolders::Receipt() { return GetFolder(s_strReceipt); }
+const String& OTFolders::RecordBox() { return GetFolder(s_strRecordBox); }
+const String& OTFolders::ExpiredBox() { return GetFolder(s_strExpiredBox); }
+const String& OTFolders::Script() { return GetFolder(s_strScript); }
 const String& OTFolders::SmartContracts()
 {
     return GetFolder(s_strSmartContracts);
 }
-const String& OTFolders::Spent()
-{
-    return GetFolder(s_strSpent);
-}
-const String& OTFolders::UserAcct()
-{
-    return GetFolder(s_strUserAcct);
-}
+const String& OTFolders::Spent() { return GetFolder(s_strSpent); }
+const String& OTFolders::UserAcct() { return GetFolder(s_strUserAcct); }
 
-} // namespace opentxs
+}  // namespace opentxs

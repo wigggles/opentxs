@@ -39,7 +39,9 @@
 #ifndef OPENTXS_CORE_CRYPTO_CRYPTOENCODING_HPP
 #define OPENTXS_CORE_CRYPTO_CRYPTOENCODING_HPP
 
-#include "opentxs/core/Types.hpp"
+#include "opentxs/Version.hpp"
+
+#include "opentxs/Types.hpp"
 
 #include <cstddef>
 #include <cstdint>
@@ -57,11 +59,10 @@ public:
     virtual std::string Base58CheckEncode(
         const std::uint8_t* inputStart,
         const std::size_t& inputSize) const = 0;
-    virtual bool Base58CheckDecode(
-        const std::string&& input,
-        RawData& output) const = 0;
+    virtual bool Base58CheckDecode(const std::string&& input, RawData& output)
+        const = 0;
 
     virtual ~CryptoEncoding() = default;
 };
-} // namespace opentxs
-#endif // OPENTXS_CORE_CRYPTO_CRYPTOENCODING_HPP
+}  // namespace opentxs
+#endif  // OPENTXS_CORE_CRYPTO_CRYPTOENCODING_HPP

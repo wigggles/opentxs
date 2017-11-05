@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/client/commands/CmdBase.hpp"
 
@@ -262,16 +262,15 @@ bool CmdBase::checkPurse(const char* name, string& purse) const
     ConstUnitDefinition pUnit;  // shared_ptr to const.
 
     // See if it's available using the full length ID.
-    if (!theID.empty()) pUnit = OT::App().Contract().UnitDefinition(theID);
+    if (!theID.empty()) pUnit = OT::App().Wallet().UnitDefinition(theID);
 
     if (!pUnit) {
-        const auto units = OT::App().Contract().UnitDefinitionList();
+        const auto units = OT::App().Wallet().UnitDefinitionList();
 
         // See if it's available using the partial length ID.
         for (auto& it : units) {
             if (0 == it.first.compare(0, purse.length(), purse)) {
-                pUnit =
-                    OT::App().Contract().UnitDefinition(Identifier(it.first));
+                pUnit = OT::App().Wallet().UnitDefinition(Identifier(it.first));
                 break;
             }
         }
@@ -279,8 +278,8 @@ bool CmdBase::checkPurse(const char* name, string& purse) const
             // See if it's available using the full length name.
             for (auto& it : units) {
                 if (0 == it.second.compare(0, it.second.length(), purse)) {
-                    pUnit = OT::App().Contract().UnitDefinition(
-                        Identifier(it.first));
+                    pUnit =
+                        OT::App().Wallet().UnitDefinition(Identifier(it.first));
                     break;
                 }
             }
@@ -289,7 +288,7 @@ bool CmdBase::checkPurse(const char* name, string& purse) const
                 // See if it's available using the partial name.
                 for (auto& it : units) {
                     if (0 == it.second.compare(0, purse.length(), purse)) {
-                        pUnit = OT::App().Contract().UnitDefinition(
+                        pUnit = OT::App().Wallet().UnitDefinition(
                             Identifier(it.first));
                         break;
                     }
@@ -317,15 +316,15 @@ bool CmdBase::checkServer(const char* name, string& server) const
     ConstServerContract pServer;  // shared_ptr to const.
 
     // See if it's available using the full length ID.
-    if (!theID.empty()) pServer = OT::App().Contract().Server(theID);
+    if (!theID.empty()) pServer = OT::App().Wallet().Server(theID);
 
     if (!pServer) {
-        const auto servers = OT::App().Contract().ServerList();
+        const auto servers = OT::App().Wallet().ServerList();
 
         // See if it's available using the partial length ID.
         for (auto& it : servers) {
             if (0 == it.first.compare(0, server.length(), server)) {
-                pServer = OT::App().Contract().Server(Identifier(it.first));
+                pServer = OT::App().Wallet().Server(Identifier(it.first));
                 break;
             }
         }
@@ -333,7 +332,7 @@ bool CmdBase::checkServer(const char* name, string& server) const
             // See if it's available using the full length name.
             for (auto& it : servers) {
                 if (0 == it.second.compare(0, it.second.length(), server)) {
-                    pServer = OT::App().Contract().Server(Identifier(it.first));
+                    pServer = OT::App().Wallet().Server(Identifier(it.first));
                     break;
                 }
             }
@@ -343,7 +342,7 @@ bool CmdBase::checkServer(const char* name, string& server) const
                 for (auto& it : servers) {
                     if (0 == it.second.compare(0, server.length(), server)) {
                         pServer =
-                            OT::App().Contract().Server(Identifier(it.first));
+                            OT::App().Wallet().Server(Identifier(it.first));
                         break;
                     }
                 }

@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/client/OT_API.hpp"
 
@@ -106,7 +106,7 @@
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/OTTransactionType.hpp"
-#include "opentxs/core/Proto.hpp"
+#include "opentxs/Proto.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/ext/InstantiateContract.hpp"
 #include "opentxs/ext/OTPayment.hpp"
@@ -166,7 +166,7 @@ extern "C" {
 #define OT_METHOD "opentxs::OT_API::"
 // -------------------------------------------------------
 
-// The #defines for the latency values can be found in OTServerConnection.cpp.
+// The #defines for the latency values can be found in ServerConnection.cpp.
 
 namespace opentxs
 {
@@ -516,12 +516,12 @@ bool OT_API::Pid::IsPidOpen() const { return m_bIsPidOpen; }
 
 // The API begins here...
 OT_API::OT_API(
-    Activity& activity,
-    Settings& config,
-    Identity& identity,
-    Storage& storage,
-    Wallet& wallet,
-    ZMQ& zmq,
+    api::Activity& activity,
+    api::Settings& config,
+    api::Identity& identity,
+    api::Storage& storage,
+    api::Wallet& wallet,
+    api::ZMQ& zmq,
     std::recursive_mutex& lock)
     : activity_(activity)
     , config_(config)

@@ -39,10 +39,12 @@
 #ifndef OPENTXS_CORE_CONTRACT_PEER_PEERREPLY_HPP
 #define OPENTXS_CORE_CONTRACT_PEER_PEERREPLY_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Proto.hpp"
+#include "opentxs/Proto.hpp"
 
 #include <string>
 
@@ -79,13 +81,10 @@ private:
 protected:
     virtual proto::PeerReply IDVersion(const Lock& lock) const;
     bool validate(const Lock& lock) const override;
-    bool verify_signature(
-        const Lock& lock,
-        const proto::Signature& signature) const override;
+    bool verify_signature(const Lock& lock, const proto::Signature& signature)
+        const override;
 
-    PeerReply(
-        const ConstNym& nym,
-        const proto::PeerReply& serialized);
+    PeerReply(const ConstNym& nym, const proto::PeerReply& serialized);
     PeerReply(
         const ConstNym& nym,
         const Identifier& initiator,
@@ -127,6 +126,6 @@ public:
 
     ~PeerReply() = default;
 };
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CORE_CONTRACT_PEER_PEERREPLY_HPP
+#endif  // OPENTXS_CORE_CONTRACT_PEER_PEERREPLY_HPP

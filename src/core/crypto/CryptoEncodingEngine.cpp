@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/core/crypto/CryptoEncodingEngine.hpp"
 
@@ -81,11 +81,12 @@ bool CryptoEncodingEngine::Base64Decode(
 {
     output.resize(::Base64decode_len(input.data()), 0x0);
 
-    const size_t decoded = ::Base64decode(
-        reinterpret_cast<char*>(output.data()),
-        input.data());
+    const size_t decoded =
+        ::Base64decode(reinterpret_cast<char*>(output.data()), input.data());
 
-    if (0 == decoded) { return false; }
+    if (0 == decoded) {
+        return false;
+    }
 
     OT_ASSERT(decoded <= output.size());
 
@@ -98,7 +99,9 @@ std::string CryptoEncodingEngine::BreakLines(const std::string& input) const
 {
     std::string output;
 
-    if (0 == input.size()) { return output; }
+    if (0 == input.size()) {
+        return output;
+    }
 
     std::size_t width = 0;
 
@@ -121,15 +124,13 @@ std::string CryptoEncodingEngine::BreakLines(const std::string& input) const
 std::string CryptoEncodingEngine::DataEncode(const std::string& input) const
 {
     return Base64Encode(
-        reinterpret_cast<const uint8_t*>(input.data()),
-        input.size());
+        reinterpret_cast<const uint8_t*>(input.data()), input.size());
 }
 
 std::string CryptoEncodingEngine::DataEncode(const Data& input) const
 {
     return Base64Encode(
-        static_cast<const uint8_t*>(input.GetPointer()),
-        input.GetSize());
+        static_cast<const uint8_t*>(input.GetPointer()), input.GetSize());
 }
 
 std::string CryptoEncodingEngine::DataDecode(const std::string& input) const
@@ -145,15 +146,14 @@ std::string CryptoEncodingEngine::DataDecode(const std::string& input) const
     return "";
 }
 
-std::string CryptoEncodingEngine::IdentifierEncode(
-    const Data& input) const
+std::string CryptoEncodingEngine::IdentifierEncode(const Data& input) const
 {
     return base58_.Base58CheckEncode(
-        static_cast<const uint8_t*>(input.GetPointer()),
-        input.GetSize());
+        static_cast<const uint8_t*>(input.GetPointer()), input.GetSize());
 }
 
-std::string CryptoEncodingEngine::IdentifierEncode(const OTPassword& input) const
+std::string CryptoEncodingEngine::IdentifierEncode(
+    const OTPassword& input) const
 {
     if (input.isMemory()) {
         return base58_.Base58CheckEncode(
@@ -166,7 +166,8 @@ std::string CryptoEncodingEngine::IdentifierEncode(const OTPassword& input) cons
     }
 }
 
-std::string CryptoEncodingEngine::IdentifierDecode(const std::string& input) const
+std::string CryptoEncodingEngine::IdentifierDecode(
+    const std::string& input) const
 {
     RawData decoded;
 
@@ -181,9 +182,8 @@ std::string CryptoEncodingEngine::IdentifierDecode(const std::string& input) con
 
 bool CryptoEncodingEngine::IsBase62(const std::string& str) const
 {
-    return str.find_first_not_of(
-               "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHI"
-               "JKLMNOPQRSTUVWXYZ") == std::string::npos;
+    return str.find_first_not_of("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHI"
+                                 "JKLMNOPQRSTUVWXYZ") == std::string::npos;
 }
 
 String CryptoEncodingEngine::Nonce(const uint32_t size) const

@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CASH_TOKEN_HPP
 #define OPENTXS_CASH_TOKEN_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Contract.hpp"
@@ -115,7 +117,7 @@ public:
 
 protected:
     bool m_bPasswordProtected{false};  // this token might be encrypted to a
-                                // passphrase, instead of a Nym.
+                                       // passphrase, instead of a Nym.
 
     OTASCIIArmor m_ascSpendable;  // This is the final, signed, unblinded token
                                   // ID, ready to be spent. (But still in
@@ -124,8 +126,9 @@ protected:
     OTASCIIArmor m_Signature;     // This is the Mint's signature on the blinded
                                   // prototoken.
 
-    int64_t m_lDenomination{0};  // The actual value of the token is between issuer
-                              // and trader.
+    int64_t m_lDenomination{
+        0};  // The actual value of the token is between issuer
+             // and trader.
     // The token must have a denomination so we know which Mint Key to verify it
     // with.
 
@@ -137,10 +140,10 @@ protected:
                                     // mapPublic[2] corresponds to
                                     // map_Private[2], etc.
 
-    int32_t m_nTokenCount{0};   // Official token count is stored here for
-                             // serialization, etc. The maps' size should match.
+    int32_t m_nTokenCount{0};  // Official token count is stored here for
+    // serialization, etc. The maps' size should match.
     int32_t m_nChosenIndex{0};  // When the client submits N prototokens, the
-                             // server randomly chooses one to sign.
+                                // server randomly chooses one to sign.
     // (The server opens the other (N-1) prototokens to verify the amount is
     // correct and that the IDs are random enough.) Expiration dates are
     // necessary because otherwise the spent token database must be stored
@@ -158,8 +161,9 @@ protected:
     // Tokens (and Mints) also have a SERIES:
     int32_t m_nSeries{0};
     tokenState m_State{errorToken};
-    bool m_bSavePrivateKeys{false};  // Determines whether it serializes private keys 1
-                              // time (yes if true)
+    bool m_bSavePrivateKeys{
+        false};  // Determines whether it serializes private keys 1
+                 // time (yes if true)
     int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
     void InitToken();
     bool ChooseIndex(int32_t nIndex);

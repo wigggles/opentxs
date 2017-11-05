@@ -39,10 +39,12 @@
 #ifndef OPENTXS_CORE_CONTRACT_PEER_PEERREQUEST_HPP
 #define OPENTXS_CORE_CONTRACT_PEER_PEERREQUEST_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Proto.hpp"
+#include "opentxs/Proto.hpp"
 
 #include <string>
 
@@ -76,13 +78,10 @@ private:
 protected:
     virtual proto::PeerRequest IDVersion(const Lock& lock) const;
     bool validate(const Lock& lock) const override;
-    bool verify_signature(
-        const Lock& lock,
-        const proto::Signature& signature) const override;
+    bool verify_signature(const Lock& lock, const proto::Signature& signature)
+        const override;
 
-    PeerRequest(
-        const ConstNym& nym,
-        const proto::PeerRequest& serialized);
+    PeerRequest(const ConstNym& nym, const proto::PeerRequest& serialized);
     PeerRequest(
         const ConstNym& nym,
         const proto::PeerRequest& serialized,
@@ -148,6 +147,6 @@ public:
 
     ~PeerRequest() = default;
 };
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CORE_CONTRACT_PEER_PEERREQUEST_HPP
+#endif  // OPENTXS_CORE_CONTRACT_PEER_PEERREQUEST_HPP

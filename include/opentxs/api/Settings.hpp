@@ -39,6 +39,8 @@
 #ifndef OPENTXS_API_SETTINGS_HPP
 #define OPENTXS_API_SETTINGS_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/String.hpp"
 
 #include <stdint.h>
@@ -50,18 +52,21 @@ namespace opentxs
 
 class OT;
 class Log;
-class OTDataFoldes;
+class OTDataFolder;
 class OTFolders;
 class OTPaths;
+
+namespace api
+{
 
 class Settings
 {
 private:
-    friend class OT;
-    friend class Log;
-    friend class OTDataFolder;
-    friend class OTFolders;
-    friend class OTPaths;
+    friend class opentxs::OT;
+    friend class opentxs::Log;
+    friend class opentxs::OTDataFolder;
+    friend class opentxs::OTFolders;
+    friend class opentxs::OTPaths;
 
     class SettingsPvt;
 
@@ -189,6 +194,7 @@ public:
 
     EXPORT ~Settings();
 };
+}  // namespace api
 }  // namespace opentxs
 
 #endif  // OPENTXS_API_SETTINGS_HPP

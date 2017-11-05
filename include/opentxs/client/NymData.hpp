@@ -39,7 +39,9 @@
 #ifndef OPENTXS_CLIENT_NYMDATA_HPP
 #define OPENTXS_CLIENT_NYMDATA_HPP
 
-#include "opentxs/core/Proto.hpp"
+#include "opentxs/Version.hpp"
+
+#include "opentxs/Proto.hpp"
 
 #include <cstdint>
 #include <memory>
@@ -50,7 +52,12 @@ namespace opentxs
 
 class ContactData;
 class Nym;
+
+namespace api
+{
+
 class Wallet;
+}
 
 class NymData
 {
@@ -84,7 +91,7 @@ public:
     ~NymData() = default;
 
 private:
-    friend class Wallet;
+    friend class api::Wallet;
 
     std::shared_ptr<Nym> nym_;
 

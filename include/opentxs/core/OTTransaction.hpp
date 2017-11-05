@@ -39,9 +39,11 @@
 #ifndef OPENTXS_CORE_TRANSACTION_HPP
 #define OPENTXS_CORE_TRANSACTION_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/OTTransactionType.hpp"
 #include "opentxs/core/Item.hpp"
-#include "opentxs/core/Types.hpp"
+#include "opentxs/Types.hpp"
 
 namespace opentxs
 {
@@ -352,107 +354,124 @@ class OTTransaction : public OTTransactionType
         String strInput);
 
 public:
-// a transaction can be blank (issued from server)
-// or pending (in the inbox/outbox)
-// or it can be a "process inbox" transaction
-// might also be in the nymbox.
-enum transactionType {
-    // ***** INBOX / OUTBOX / NYMBOX
+    // a transaction can be blank (issued from server)
+    // or pending (in the inbox/outbox)
+    // or it can be a "process inbox" transaction
+    // might also be in the nymbox.
+    enum transactionType {
+        // ***** INBOX / OUTBOX / NYMBOX
 
-    // NYMBOX
-    blank,       // freshly issued transaction number, not used yet
-                 // (the server drops these into the nymbox.)
-    message,     // A message from one user to another, also in the nymbox.
-    notice,      // A notice from the server. Used in Nymbox.
-    replyNotice, // A copy of a server reply to a previous request you sent.
-                 // (To make SURE you get the reply.)
-    successNotice, // A transaction # has successfully been signed out.
+        // NYMBOX
+        blank,        // freshly issued transaction number, not used yet
+                      // (the server drops these into the nymbox.)
+        message,      // A message from one user to another, also in the nymbox.
+        notice,       // A notice from the server. Used in Nymbox.
+        replyNotice,  // A copy of a server reply to a previous request you
+                      // sent.
+                      // (To make SURE you get the reply.)
+        successNotice,  // A transaction # has successfully been signed out.
 
-    // INBOX / OUTBOX (pending transfer)
-    pending, // Server puts this in your outbox (when sending) and
-             // recipient's inbox.
+        // INBOX / OUTBOX (pending transfer)
+        pending,  // Server puts this in your outbox (when sending) and
+                  // recipient's inbox.
 
-    // INBOX / receipts
-    transferReceipt, // the server drops this into your inbox, when someone
-                     // accepts your transfer.
-    chequeReceipt,   // the server drops this into your inbox, when someone
-                     // deposits your cheque.
-    voucherReceipt,  // the server drops this into your inbox, when someone
-                     // deposits your voucher.
-    marketReceipt,   // server periodically drops this into your inbox if an
-                     // offer is live.
-    paymentReceipt,  // the server drops this into people's inboxes, every
-                     // time a payment processes. (from a payment plan or a
-                     // smart contract)
-    finalReceipt,  // the server drops this into your in/nym box(es), when a
-                   // CronItem expires or is canceled.
-    basketReceipt, // the server drops this into your inboxes, when a basket
-                   // exchange is processed.
+        // INBOX / receipts
+        transferReceipt,  // the server drops this into your inbox, when someone
+                          // accepts your transfer.
+        chequeReceipt,    // the server drops this into your inbox, when someone
+                          // deposits your cheque.
+        voucherReceipt,   // the server drops this into your inbox, when someone
+                          // deposits your voucher.
+        marketReceipt,   // server periodically drops this into your inbox if an
+                         // offer is live.
+        paymentReceipt,  // the server drops this into people's inboxes, every
+                         // time a payment processes. (from a payment plan or a
+                         // smart contract)
+        finalReceipt,  // the server drops this into your in/nym box(es), when a
+                       // CronItem expires or is canceled.
+        basketReceipt,  // the server drops this into your inboxes, when a
+                        // basket
+                        // exchange is processed.
 
-    // PAYMENT INBOX / PAYMENT OUTBOX / RECORD BOX
-    instrumentNotice, // Receive these in paymentInbox (by way of Nymbox),
-                      // and send in Outpayments (like Outmail).) (When
-                      // done, they go to recordBox or expiredBox to await
-                      // deletion.)
-    instrumentRejection, // When someone rejects your invoice from his
-                         // paymentInbox, you get one of these in YOUR
-                         // paymentInbox.
+        // PAYMENT INBOX / PAYMENT OUTBOX / RECORD BOX
+        instrumentNotice,  // Receive these in paymentInbox (by way of Nymbox),
+                           // and send in Outpayments (like Outmail).) (When
+                           // done, they go to recordBox or expiredBox to await
+                           // deletion.)
+        instrumentRejection,  // When someone rejects your invoice from his
+                              // paymentInbox, you get one of these in YOUR
+                              // paymentInbox.
 
-    // **** MESSAGES ****
-    processNymbox,   // process nymbox transaction    // comes from client
-    atProcessNymbox, // process nymbox reply          // comes from server
-    processInbox,    // process inbox transaction     // comes from client
-    atProcessInbox,  // process inbox reply           // comes from server
-    transfer, // or "spend". This transaction is a request to transfer from
-              // one account to another
-    atTransfer,      // reply from the server regarding a transfer request
-    deposit,         // this transaction is a deposit (cash or cheque)
-    atDeposit,       // reply from the server regarding a deposit request
-    withdrawal,      // this transaction is a withdrawal (cash or voucher)
-    atWithdrawal,    // reply from the server regarding a withdrawal request
-    marketOffer,     // this transaction is a market offer
-    atMarketOffer,   // reply from the server regarding a market offer
-    paymentPlan,     // this transaction is a payment plan
-    atPaymentPlan,   // reply from the server regarding a payment plan
-    smartContract,   // this transaction is a smart contract
-    atSmartContract, // reply from the server regarding a smart contract
-    cancelCronItem, // this transaction is intended to cancel a market offer
-                    // or payment plan.
-    atCancelCronItem, // reply from the server regarding said cancellation.
-    exchangeBasket,   // this transaction is an exchange in/out of a basket
-                      // currency.
-    atExchangeBasket, // reply from the server regarding said exchange.
-    payDividend,      // this transaction is dividend payment (to all
-                      // shareholders...)
-    atPayDividend, // reply from the server regarding said dividend payment.
-    error_state
-}; // If you add any types to this list, update the list of strings at the
-   // top of the .CPP file.
+        // **** MESSAGES ****
+        processNymbox,    // process nymbox transaction    // comes from client
+        atProcessNymbox,  // process nymbox reply          // comes from server
+        processInbox,     // process inbox transaction     // comes from client
+        atProcessInbox,   // process inbox reply           // comes from server
+        transfer,  // or "spend". This transaction is a request to transfer from
+                   // one account to another
+        atTransfer,     // reply from the server regarding a transfer request
+        deposit,        // this transaction is a deposit (cash or cheque)
+        atDeposit,      // reply from the server regarding a deposit request
+        withdrawal,     // this transaction is a withdrawal (cash or voucher)
+        atWithdrawal,   // reply from the server regarding a withdrawal request
+        marketOffer,    // this transaction is a market offer
+        atMarketOffer,  // reply from the server regarding a market offer
+        paymentPlan,    // this transaction is a payment plan
+        atPaymentPlan,  // reply from the server regarding a payment plan
+        smartContract,  // this transaction is a smart contract
+        atSmartContract,   // reply from the server regarding a smart contract
+        cancelCronItem,    // this transaction is intended to cancel a market
+                           // offer
+                           // or payment plan.
+        atCancelCronItem,  // reply from the server regarding said cancellation.
+        exchangeBasket,    // this transaction is an exchange in/out of a basket
+                           // currency.
+        atExchangeBasket,  // reply from the server regarding said exchange.
+        payDividend,       // this transaction is dividend payment (to all
+                           // shareholders...)
+        atPayDividend,     // reply from the server regarding said dividend
+                           // payment.
+        error_state
+    };  // If you add any types to this list, update the list of strings at the
+    // top of the .CPP file.
 
     OTTransaction(const Ledger& theOwner);
 
-    EXPORT explicit OTTransaction(const Identifier& theNymID,
-                         const Identifier& theAccountID,
-                         const Identifier& theNotaryID,
-                         originType theOriginType=originType::not_applicable);
+    EXPORT explicit OTTransaction(
+        const Identifier& theNymID,
+        const Identifier& theAccountID,
+        const Identifier& theNotaryID,
+        originType theOriginType = originType::not_applicable);
 
-    explicit OTTransaction(const Identifier& theNymID, const Identifier& theAccountID,
-                  const Identifier& theNotaryID, int64_t lTransactionNum,
-                  originType theOriginType=originType::not_applicable);
+    explicit OTTransaction(
+        const Identifier& theNymID,
+        const Identifier& theAccountID,
+        const Identifier& theNotaryID,
+        int64_t lTransactionNum,
+        originType theOriginType = originType::not_applicable);
 
     // THIS constructor only used when loading an abbreviated box receipt
     // (inbox, nymbox, or outbox receipt).
     // The full receipt is loaded only after the abbreviated ones are loaded,
     // and verified against them.
-    OTTransaction(const Identifier& theNymID, const Identifier& theAccountID,
-                  const Identifier& theNotaryID, const int64_t& lNumberOfOrigin,
-                  originType theOriginType,
-                  const int64_t& lTransactionNum, const int64_t& lInRefTo,
-                  const int64_t& lInRefDisplay, time64_t the_DATE_SIGNED,
-                  transactionType theType, const String& strHash,
-                  const int64_t& lAdjustment, const int64_t& lDisplayValue,
-                  const int64_t& lClosingNum, const int64_t& lRequestNum,
-                  bool bReplyTransSuccess, NumList* pNumList = nullptr);
+    OTTransaction(
+        const Identifier& theNymID,
+        const Identifier& theAccountID,
+        const Identifier& theNotaryID,
+        const int64_t& lNumberOfOrigin,
+        originType theOriginType,
+        const int64_t& lTransactionNum,
+        const int64_t& lInRefTo,
+        const int64_t& lInRefDisplay,
+        time64_t the_DATE_SIGNED,
+        transactionType theType,
+        const String& strHash,
+        const int64_t& lAdjustment,
+        const int64_t& lDisplayValue,
+        const int64_t& lClosingNum,
+        const int64_t& lRequestNum,
+        bool bReplyTransSuccess,
+        NumList* pNumList = nullptr);
 
     EXPORT virtual ~OTTransaction();
 
@@ -467,91 +486,49 @@ enum transactionType {
 
     void InitTransaction();
 
-    EXPORT bool IsCancelled()
-    {
-        return m_bCancelled;
-    }
+    EXPORT bool IsCancelled() { return m_bCancelled; }
 
-    EXPORT void SetAsCancelled()
-    {
-        m_bCancelled = true;
-    }
+    EXPORT void SetAsCancelled() { m_bCancelled = true; }
 
-    void SetParent(const Ledger& theParent)
-    {
-        m_pParent = &theParent;
-    }
+    void SetParent(const Ledger& theParent) { m_pParent = &theParent; }
 
     EXPORT bool AddNumbersToTransaction(const NumList& theAddition);
 
-    bool IsAbbreviated() const
-    {
-        return m_bIsAbbreviated;
-    }
+    bool IsAbbreviated() const { return m_bIsAbbreviated; }
 
-    int64_t GetAbbrevAdjustment() const
-    {
-        return m_lAbbrevAmount;
-    }
+    int64_t GetAbbrevAdjustment() const { return m_lAbbrevAmount; }
 
-    void SetAbbrevAdjustment(int64_t lAmount)
-    {
-        m_lAbbrevAmount = lAmount;
-    }
+    void SetAbbrevAdjustment(int64_t lAmount) { m_lAbbrevAmount = lAmount; }
 
-    int64_t GetAbbrevDisplayAmount() const
-    {
-        return m_lDisplayAmount;
-    }
+    int64_t GetAbbrevDisplayAmount() const { return m_lDisplayAmount; }
 
-    void SetAbbrevDisplayAmount(int64_t lAmount)
-    {
-        m_lDisplayAmount = lAmount;
-    }
+    void SetAbbrevDisplayAmount(int64_t lAmount) { m_lDisplayAmount = lAmount; }
 
-    int64_t GetAbbrevInRefDisplay() const
-    {
-        return m_lInRefDisplay;
-    }
+    int64_t GetAbbrevInRefDisplay() const { return m_lInRefDisplay; }
 
-    void SetAbbrevInRefDisplay(int64_t lVal)
-    {
-        m_lInRefDisplay = lVal;
-    }
+    void SetAbbrevInRefDisplay(int64_t lVal) { m_lInRefDisplay = lVal; }
 
     // These are used exclusively by replyNotice (so you can tell
     // which reply message it's a notice of.)
-    const int64_t& GetRequestNum() const
-    {
-        return m_lRequestNumber;
-    }
+    const int64_t& GetRequestNum() const { return m_lRequestNumber; }
 
-    void SetRequestNum(const int64_t& lNum)
-    {
-        m_lRequestNumber = lNum;
-    }
+    void SetRequestNum(const int64_t& lNum) { m_lRequestNumber = lNum; }
 
-    bool GetReplyTransSuccess()
-    {
-        return m_bReplyTransSuccess;
-    }
+    bool GetReplyTransSuccess() { return m_bReplyTransSuccess; }
 
-    void SetReplyTransSuccess(bool bVal)
-    {
-        m_bReplyTransSuccess = bVal;
-    }
+    void SetReplyTransSuccess(bool bVal) { m_bReplyTransSuccess = bVal; }
 
     // These are used for finalReceipt and basketReceipt
     EXPORT int64_t GetClosingNum() const;
     EXPORT void SetClosingNum(int64_t lClosingNum);
-    EXPORT int64_t GetReferenceNumForDisplay(); /// For display purposes. The
-                                                /// "ref #" you actually display
-                                                /// (versus the one you use
-                                                /// internally) might change
-                                                /// based on transaction type.
-                                                /// (Like with a cheque receipt
-                                                /// you actually have to load up
-                                                /// the original cheque.)
+    EXPORT int64_t GetReferenceNumForDisplay();  /// For display purposes. The
+    /// "ref #" you actually display
+    /// (versus the one you use
+    /// internally) might change
+    /// based on transaction type.
+    /// (Like with a cheque receipt
+    /// you actually have to load up
+    /// the original cheque.)
 
     EXPORT bool GetSenderNymIDForDisplay(Identifier& theReturnID);
     EXPORT bool GetRecipientNymIDForDisplay(Identifier& theReturnID);
@@ -560,10 +537,7 @@ enum transactionType {
     EXPORT bool GetRecipientAcctIDForDisplay(Identifier& theReturnID);
     EXPORT bool GetMemo(String& strMemo);
 
-    inline time64_t GetDateSigned() const
-    {
-        return m_DATE_SIGNED;
-    }
+    inline time64_t GetDateSigned() const { return m_DATE_SIGNED; }
 
     // Tries to determine, based on items within,
     // whether the transaction was a success or fail.
@@ -582,26 +556,31 @@ enum transactionType {
     // so I'm using these paramters to return that information.
     //
     // WARNING: returns FALSE for notices and receipts, even if the 2 parameters
-    // come back as TRUE. That's because it ONLY returns TRUE in the event that this
-    // transaction is an actual transaction. (And a receipt or notice is not an actual
+    // come back as TRUE. That's because it ONLY returns TRUE in the event that
+    // this
+    // transaction is an actual transaction. (And a receipt or notice is not an
+    // actual
     // transaction.)
-    EXPORT bool GetSuccess(bool * pbHasSuccess = nullptr,
-                           bool * pbIsSuccess  = nullptr);
+    EXPORT bool GetSuccess(
+        bool* pbHasSuccess = nullptr,
+        bool* pbIsSuccess = nullptr);
 
-    EXPORT int64_t GetReceiptAmount(); // Tries to determine IF there is an
-                                       // amount (depending on type) and return
-                                       // it.
+    EXPORT int64_t GetReceiptAmount();  // Tries to determine IF there is an
+                                        // amount (depending on type) and return
+                                        // it.
 
     EXPORT static OTTransaction* GenerateTransaction(
-        const Identifier& theNymID, const Identifier& theAccountID,
-        const Identifier& theNotaryID, transactionType theType,
-        originType theOriginType=originType::not_applicable,
+        const Identifier& theNymID,
+        const Identifier& theAccountID,
+        const Identifier& theNotaryID,
+        transactionType theType,
+        originType theOriginType = originType::not_applicable,
         int64_t lTransactionNum = 0);
 
     EXPORT static OTTransaction* GenerateTransaction(
         const Ledger& theOwner,
         transactionType theType,
-        originType theOriginType=originType::not_applicable,
+        originType theOriginType = originType::not_applicable,
         int64_t lTransactionNum = 0);
 
     transactionType GetType() const;
@@ -632,10 +611,10 @@ enum transactionType {
         return static_cast<int32_t>(m_listItems.size());
     }
 
-    int32_t GetItemCountInRefTo(int64_t lReference); // Count the number
-                                                     // of items that are
-                                                     // IN REFERENCE TO
-                                                     // some transaction#.
+    int32_t GetItemCountInRefTo(int64_t lReference);  // Count the number
+                                                      // of items that are
+                                                      // IN REFERENCE TO
+                                                      // some transaction#.
 
     // While processing a transaction, you may wish to query it for items of a
     // certain type.
@@ -643,16 +622,13 @@ enum transactionType {
 
     EXPORT Item* GetItemInRefTo(int64_t lReference);
 
-    EXPORT void AddItem(Item& theItem); // You have to allocate the item on
-                                        // the heap and then pass it in as a
-                                        // reference.
+    EXPORT void AddItem(Item& theItem);  // You have to allocate the item on
+                                         // the heap and then pass it in as a
+                                         // reference.
     // OTTransaction will take care of it from there and will delete it in
     // destructor.
     // used for looping through the items in a few places.
-    inline listOfItems& GetItemList()
-    {
-        return m_listItems;
-    }
+    inline listOfItems& GetItemList() { return m_listItems; }
 
     // Because all of the actual receipts cannot fit into the single inbox
     // file, you must put their hash, and then store the receipt itself
@@ -682,15 +658,15 @@ enum transactionType {
     bool HarvestOpeningNumber(
         ServerContext& context,
         Nym& theNym,
-        bool bHarvestingForRetry,     // exchangeBasket, on retry, needs to
-                                      // clawback the opening # because it
-                                      // will be using another opening # the
-                                      // next time OT_API_exchangeBasket() is
-                                      // called.
-        bool bReplyWasSuccess,        // false until positively asserted.
-        bool bReplyWasFailure,        // false until positively asserted.
-        bool bTransactionWasSuccess,  // false until positively asserted.
-        bool bTransactionWasFailure); // false until positively asserted.
+        bool bHarvestingForRetry,      // exchangeBasket, on retry, needs to
+                                       // clawback the opening # because it
+                                       // will be using another opening # the
+                                       // next time OT_API_exchangeBasket() is
+                                       // called.
+        bool bReplyWasSuccess,         // false until positively asserted.
+        bool bReplyWasFailure,         // false until positively asserted.
+        bool bTransactionWasSuccess,   // false until positively asserted.
+        bool bTransactionWasFailure);  // false until positively asserted.
 
     // NOTE: IN CASE it's not obvious, the NYM is harvesting numbers from the
     // TRANSACTION, and not the other way around!
@@ -701,25 +677,26 @@ enum transactionType {
     bool HarvestClosingNumbers(
         ServerContext& context,
         Nym& theNym,
-        bool bHarvestingForRetry,     // exchangeBasket, on retry, needs to
-                                      // clawback the opening # because it
-                                      // will be using another opening # the
-                                      // next time OT_API_exchangeBasket() is
-                                      // called.
-        bool bReplyWasSuccess,        // false until positively asserted.
-        bool bReplyWasFailure,        // false until positively asserted.
-        bool bTransactionWasSuccess,  // false until positively asserted.
-        bool bTransactionWasFailure); // false until positively asserted.
+        bool bHarvestingForRetry,      // exchangeBasket, on retry, needs to
+                                       // clawback the opening # because it
+                                       // will be using another opening # the
+                                       // next time OT_API_exchangeBasket() is
+                                       // called.
+        bool bReplyWasSuccess,         // false until positively asserted.
+        bool bReplyWasFailure,         // false until positively asserted.
+        bool bTransactionWasSuccess,   // false until positively asserted.
+        bool bTransactionWasFailure);  // false until positively asserted.
 
 protected:
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
     int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
 
-    void UpdateContents() override; // Before transmission or serialization, this
-                                   // is where the transaction saves its
-                                   // contents
+    void UpdateContents() override;  // Before transmission or serialization,
+                                     // this
+                                     // is where the transaction saves its
+                                     // contents
 
-    OTTransaction(); // only the factory gets to use this one.
+    OTTransaction();  // only the factory gets to use this one.
 
 protected:
     // Usually a transaction object is inside a ledger object.
@@ -787,17 +764,18 @@ protected:
     // longer care about this variable at all, and do not save it again, since
     // it can be re-calculated the next time we
     // save again in abbreviated form.
-    Identifier m_Hash; // todo: make this const and force it to be set during
-                       // construction.
+    Identifier m_Hash;  // todo: make this const and force it to be set during
+                        // construction.
 
     time64_t m_DATE_SIGNED{0};  // The date, in seconds, when the instrument was
-                             // last signed.
-    transactionType m_Type{error_state};  // blank, pending, processInbox, transfer, deposit,
-                                          // withdrawal, trade, etc.
-    listOfItems m_listItems; // the various items in this transaction.
+                                // last signed.
+    transactionType m_Type{
+        error_state};  // blank, pending, processInbox, transfer, deposit,
+                       // withdrawal, trade, etc.
+    listOfItems m_listItems;  // the various items in this transaction.
 
-    int64_t m_lClosingTransactionNo{0};       // used by finalReceipt
-    OTASCIIArmor m_ascCancellationRequest; // used by finalReceipt
+    int64_t m_lClosingTransactionNo{0};     // used by finalReceipt
+    OTASCIIArmor m_ascCancellationRequest;  // used by finalReceipt
 
     // ONLY the "replyNotice" transaction uses this field.
     // When replyNotices are dropped into your Nymbox (server notices
@@ -809,7 +787,7 @@ protected:
     // replyNotices in the Nymbox can directly finger the messages they
     // came from.
     int64_t m_lRequestNumber{0};  // Unused except by "replyNotice" in Nymbox.
-    bool m_bReplyTransSuccess{false}; // Used only by replyNotice
+    bool m_bReplyTransSuccess{false};  // Used only by replyNotice
     // Unused except for notarizeTransactionResponse, specifically for
     // @paymentPlan
     // and @smartContract. (And maybe @depositCheque...) There are specific
@@ -841,6 +819,6 @@ protected:
     bool m_bCancelled{false};
 };
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CORE_TRANSACTION_HPP
+#endif  // OPENTXS_CORE_TRANSACTION_HPP

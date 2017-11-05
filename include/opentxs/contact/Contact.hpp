@@ -39,8 +39,10 @@
 #ifndef OPENTXS_CONTACT_CONTACT_HPP
 #define OPENTXS_CONTACT_CONTACT_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Proto.hpp"
+#include "opentxs/Proto.hpp"
 
 #include <atomic>
 #include <cstdint>
@@ -57,7 +59,13 @@ class ContactData;
 class ContactGroup;
 class ContactItem;
 class PaymentCode;
+
+namespace api
+{
+
 class Wallet;
+
+}  // namespace api
 
 class Contact
 {
@@ -71,8 +79,8 @@ public:
         const ContactData& data,
         const proto::ContactItemType currency);
 
-    Contact(Wallet& wallet, const proto::Contact& serialized);
-    Contact(Wallet& wallet, const std::string& label);
+    Contact(api::Wallet& wallet, const proto::Contact& serialized);
+    Contact(api::Wallet& wallet, const std::string& label);
 
     operator proto::Contact() const;
     Contact& operator+=(Contact& rhs);
@@ -110,7 +118,7 @@ public:
     ~Contact() = default;
 
 private:
-    Wallet& wallet_;
+    api::Wallet& wallet_;
     std::uint32_t version_{0};
     std::string label_{""};
     mutable std::mutex lock_{};

@@ -36,12 +36,12 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/core/contract/CurrencyContract.hpp"
 
 #include "opentxs/core/contract/Signable.hpp"
-#include "opentxs/core/Proto.hpp"
+#include "opentxs/Proto.hpp"
 
 #include <stdint.h>
 #include <string>
@@ -52,10 +52,10 @@ namespace opentxs
 CurrencyContract::CurrencyContract(
     const ConstNym& nym,
     const proto::UnitDefinition serialized)
-        : ot_super(nym, serialized)
-        , tla_(serialized.currency().tla())
-        , power_(serialized.currency().power())
-        , fractional_unit_name_(serialized.currency().fraction())
+    : ot_super(nym, serialized)
+    , tla_(serialized.currency().tla())
+    , power_(serialized.currency().power())
+    , fractional_unit_name_(serialized.currency().fraction())
 {
 }
 
@@ -68,9 +68,9 @@ CurrencyContract::CurrencyContract(
     const std::string& tla,
     const uint32_t& power,
     const std::string& fraction)
-        : ot_super(nym, shortname, name, symbol, terms)
-        , tla_(tla)
-        , fractional_unit_name_(fraction)
+    : ot_super(nym, shortname, name, symbol, terms)
+    , tla_(tla)
+    , fractional_unit_name_(fraction)
 {
     power_ = power;
 }
@@ -88,4 +88,4 @@ proto::UnitDefinition CurrencyContract::IDVersion(const Lock& lock) const
     return contract;
 }
 
-} // namespace opentxs
+}  // namespace opentxs

@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/core/Account.hpp"
 
@@ -462,13 +462,14 @@ Account* Account::GenerateNewAccount(
     std::unique_ptr<Account> output(new Account(nymID, notaryID));
 
     if (output) {
-        if (false == output->GenerateNewAccount(
-                         serverNym,
-                         userNymID,
-                         notaryID,
-                         instrumentDefinitionID,
-                         acctType,
-                         stashTransNum)) {
+        if (false ==
+            output->GenerateNewAccount(
+                serverNym,
+                userNymID,
+                notaryID,
+                instrumentDefinitionID,
+                acctType,
+                stashTransNum)) {
             output.reset();
         }
     }

@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/storage/Storage.hpp"
 
@@ -78,7 +78,7 @@
 
 #define OT_METHOD "opentxs::Storage::"
 
-namespace opentxs
+namespace opentxs::api
 {
 const std::uint32_t Storage::HASH_TYPE = 2;  // BTC160
 
@@ -1821,4 +1821,4 @@ std::size_t Storage::UnreadCount(
 }
 
 Storage::~Storage() { Cleanup_Storage(); }
-}  // namespace opentxs
+}  // namespace opentxs::api

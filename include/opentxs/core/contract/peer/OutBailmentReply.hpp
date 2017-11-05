@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_CONTRACT_PEER_OUTBAILMENTREPLY_HPP
 #define OPENTXS_CORE_CONTRACT_PEER_OUTBAILMENTREPLY_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/contract/peer/PeerReply.hpp"
 #include "opentxs/core/Identifier.hpp"
 
@@ -55,9 +57,7 @@ private:
 
     proto::PeerReply IDVersion(const Lock& lock) const override;
 
-    OutBailmentReply(
-        const ConstNym& nym,
-        const proto::PeerReply& serialized);
+    OutBailmentReply(const ConstNym& nym, const proto::PeerReply& serialized);
     OutBailmentReply(
         const ConstNym& nym,
         const Identifier& initiator,
@@ -67,9 +67,8 @@ private:
     OutBailmentReply() = delete;
 
 public:
-
     ~OutBailmentReply() = default;
 };
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CORE_CONTRACT_PEER_OUTBAILMENTREPLY_HPP
+#endif  // OPENTXS_CORE_CONTRACT_PEER_OUTBAILMENTREPLY_HPP

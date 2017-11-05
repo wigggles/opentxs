@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/client/OTME_too.hpp"
 
@@ -159,15 +159,15 @@ OTME_too::Cleanup::~Cleanup() { run_.store(false); }
 
 OTME_too::OTME_too(
     std::recursive_mutex& lock,
-    Settings& config,
-    ContactManager& contacts,
+    api::Settings& config,
+    api::ContactManager& contacts,
     OT_API& otapi,
     OTAPI_Exec& exec,
     const MadeEasy& madeEasy,
     const OT_ME& otme,
-    Wallet& wallet,
+    api::Wallet& wallet,
     CryptoEncodingEngine& encoding,
-    Identity& identity)
+    api::Identity& identity)
     : api_lock_(lock)
     , config_(config)
     , contacts_(contacts)

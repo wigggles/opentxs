@@ -39,6 +39,8 @@
 #ifndef OPENTXS_STORAGE_STORAGECONFIG_HPP
 #define OPENTXS_STORAGE_STORAGECONFIG_HPP
 
+#include "opentxs/Version.hpp"
+
 #include <chrono>
 #include <cstdint>
 #include <functional>

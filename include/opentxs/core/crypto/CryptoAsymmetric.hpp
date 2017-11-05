@@ -39,9 +39,11 @@
 #ifndef OPENTXS_CORE_CRYPTO_CRYPTOASYMMETRIC_HPP
 #define OPENTXS_CORE_CRYPTO_CRYPTOASYMMETRIC_HPP
 
-#include "opentxs/core/Proto.hpp"
+#include "opentxs/Version.hpp"
+
+#include "opentxs/Proto.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/core/Types.hpp"
+#include "opentxs/Types.hpp"
 
 #include <set>
 

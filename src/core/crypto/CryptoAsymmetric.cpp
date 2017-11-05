@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/core/crypto/CryptoAsymmetric.hpp"
 
@@ -53,17 +53,18 @@ proto::AsymmetricKeyType CryptoAsymmetric::CurveToKeyType(
     proto::AsymmetricKeyType output = proto::AKEYTYPE_ERROR;
 
     switch (curve) {
-        case (EcdsaCurve::SECP256K1) : {
+        case (EcdsaCurve::SECP256K1): {
             output = proto::AKEYTYPE_SECP256K1;
 
             break;
         }
-        case (EcdsaCurve::ED25519) : {
+        case (EcdsaCurve::ED25519): {
             output = proto::AKEYTYPE_ED25519;
 
             break;
         }
-        default : {}
+        default: {
+        }
     }
 
     return output;
@@ -72,45 +73,43 @@ proto::AsymmetricKeyType CryptoAsymmetric::CurveToKeyType(
 EcdsaCurve CryptoAsymmetric::KeyTypeToCurve(
     const proto::AsymmetricKeyType& type)
 {
-   EcdsaCurve output = EcdsaCurve::ERROR;
+    EcdsaCurve output = EcdsaCurve::ERROR;
 
-   switch (type) {
-       case (proto::AKEYTYPE_SECP256K1) : {
-           output = EcdsaCurve::SECP256K1;
+    switch (type) {
+        case (proto::AKEYTYPE_SECP256K1): {
+            output = EcdsaCurve::SECP256K1;
 
-           break;
-       }
-       case (proto::AKEYTYPE_ED25519) : {
-           output = EcdsaCurve::ED25519;
+            break;
+        }
+        case (proto::AKEYTYPE_ED25519): {
+            output = EcdsaCurve::ED25519;
 
-           break;
-       }
-       default : {}
-   }
+            break;
+        }
+        default: {
+        }
+    }
 
-   return output;
+    return output;
 }
 
 bool CryptoAsymmetric::SignContract(
     const String& strContractUnsigned,
     const OTAsymmetricKey& theKey,
-    OTSignature& theSignature, // output
+    OTSignature& theSignature,  // output
     const proto::HashType hashType,
     const OTPasswordData* pPWData) const
 {
-    Data plaintext(strContractUnsigned.Get(), strContractUnsigned.GetLength()+1); //include null terminator
+    Data plaintext(
+        strContractUnsigned.Get(),
+        strContractUnsigned.GetLength() + 1);  // include null terminator
     Data signature;
 
-    bool success = Sign(
-                        plaintext,
-                        theKey,
-                        hashType,
-                        signature,
-                        pPWData);
+    bool success = Sign(plaintext, theKey, hashType, signature, pPWData);
 
-    theSignature.SetData(signature, true); // true means, "yes, with newlines
-                                              // in the b64-encoded output,
-                                              // please."
+    theSignature.SetData(signature, true);  // true means, "yes, with newlines
+                                            // in the b64-encoded output,
+                                            // please."
     return success;
 }
 
@@ -121,17 +120,13 @@ bool CryptoAsymmetric::VerifyContractSignature(
     const proto::HashType hashType,
     const OTPasswordData* pPWData) const
 {
-    Data plaintext(strContractToVerify.Get(), strContractToVerify.GetLength()+1); //include null terminator
+    Data plaintext(
+        strContractToVerify.Get(),
+        strContractToVerify.GetLength() + 1);  // include null terminator
     Data signature;
     theSignature.GetData(signature);
 
-    return Verify(
-            plaintext,
-            theKey,
-            signature,
-            hashType,
-            pPWData);
-
+    return Verify(plaintext, theKey, signature, hashType, pPWData);
 }
 
-} // namespace opentxs
+}  // namespace opentxs

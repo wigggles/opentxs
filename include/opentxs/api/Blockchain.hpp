@@ -39,9 +39,11 @@
 #ifndef OPENTXS_API_BLOCKCHAIN_HPP
 #define OPENTXS_API_BLOCKCHAIN_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Proto.hpp"
-#include "opentxs/core/Types.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
 
 #include <cstdint>
 #include <map>
@@ -52,8 +54,13 @@
 namespace opentxs
 {
 
-class Activity;
 class CryptoEngine;
+class OT;
+
+namespace api
+{
+
+class Activity;
 class Storage;
 class Wallet;
 
@@ -104,7 +111,7 @@ public:
 
 private:
     typedef std::map<Identifier, std::mutex> IDLock;
-    friend class OT;
+    friend class opentxs::OT;
 
     Activity& activity_;
     CryptoEngine& crypto_;
@@ -155,5 +162,7 @@ private:
     Blockchain operator=(const Blockchain&) = delete;
     Blockchain operator=(Blockchain&&) = delete;
 };
+}  // namespace api
 }  // namespace opentxs
+
 #endif  // OPENTXS_API_BLOCKCHAIN_HPP

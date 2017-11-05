@@ -39,6 +39,8 @@
 #ifndef OPENTXS_STORAGE_STORAGEDRIVER_HPP
 #define OPENTXS_STORAGE_STORAGEDRIVER_HPP
 
+#include "opentxs/Version.hpp"
+
 #include <future>
 #include <memory>
 #include <string>

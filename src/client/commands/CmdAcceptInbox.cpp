@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/client/commands/CmdAcceptInbox.hpp"
 
@@ -59,9 +59,7 @@ CmdAcceptInbox::CmdAcceptInbox()
     usage = "Omitting --indices is the same as specifying --indices all.";
 }
 
-CmdAcceptInbox::~CmdAcceptInbox()
-{
-}
+CmdAcceptInbox::~CmdAcceptInbox() {}
 
 int32_t CmdAcceptInbox::runWithOptions()
 {

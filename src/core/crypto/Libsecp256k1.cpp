@@ -35,11 +35,11 @@
  *   for more details.
  *
  ************************************************************/
-#if OT_CRYPTO_USING_LIBSECP256K1
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/core/crypto/Libsecp256k1.hpp"
 
+#if OT_CRYPTO_USING_LIBSECP256K1
 #include "opentxs/api/OT.hpp"
 #include "opentxs/core/crypto/AsymmetricKeySecp256k1.hpp"
 #include "opentxs/core/crypto/Crypto.hpp"
@@ -68,22 +68,22 @@ namespace opentxs
 Libsecp256k1::Libsecp256k1(CryptoUtil& ssl, Ecdsa& ecdsa)
     : Crypto()
     , context_(secp256k1_context_create(
-        SECP256K1_CONTEXT_SIGN | SECP256K1_CONTEXT_VERIFY))
+          SECP256K1_CONTEXT_SIGN | SECP256K1_CONTEXT_VERIFY))
     , ecdsa_(ecdsa)
     , ssl_(ssl)
 {
     OT_ASSERT_MSG(nullptr != context_, "secp256k1_context_create failed.");
 }
 
-bool Libsecp256k1::RandomKeypair(
-    OTPassword& privateKey,
-    Data& publicKey) const
+bool Libsecp256k1::RandomKeypair(OTPassword& privateKey, Data& publicKey) const
 {
-    if (nullptr == context_) { return false; }
+    if (nullptr == context_) {
+        return false;
+    }
 
     bool validPrivkey = false;
-    std::uint8_t candidateKey [PrivateKeySize]{};
-    std::uint8_t nullKey [PrivateKeySize]{};
+    std::uint8_t candidateKey[PrivateKeySize]{};
+    std::uint8_t nullKey[PrivateKeySize]{};
     std::uint8_t counter = 0;
 
     while (!validPrivkey) {
@@ -95,8 +95,8 @@ bool Libsecp256k1::RandomKeypair(
         // This loop should almost always run exactly one time (about 1/(2^128)
         // chance of randomly generating an invalid key thus requiring a second
         // attempt)
-        validPrivkey = secp256k1_ec_privkey_tweak_add(
-            context_, candidateKey, nullKey);
+        validPrivkey =
+            secp256k1_ec_privkey_tweak_add(context_, candidateKey, nullKey);
 
         OT_ASSERT(3 > ++counter);
     }
@@ -109,12 +109,13 @@ bool Libsecp256k1::Sign(
     const Data& plaintext,
     const OTAsymmetricKey& theKey,
     const proto::HashType hashType,
-    Data& signature, // output
+    Data& signature,  // output
     const OTPasswordData* pPWData,
     const OTPassword* exportPassword) const
 {
     Data hash;
-    bool haveDigest = OT::App().Crypto().Hash().Digest(hashType, plaintext, hash);
+    bool haveDigest =
+        OT::App().Crypto().Hash().Digest(hashType, plaintext, hash);
 
     if (!haveDigest) {
         otErr << __FUNCTION__ << ": Failed to obtain the contract hash."
@@ -131,16 +132,17 @@ bool Libsecp256k1::Sign(
     const AsymmetricKeyEC* key =
         dynamic_cast<const AsymmetricKeySecp256k1*>(&theKey);
 
-    if (nullptr == key) { return false; }
+    if (nullptr == key) {
+        return false;
+    }
 
     if (nullptr == pPWData) {
-        OTPasswordData passwordData
-            ("Please enter your password to sign this document.");
+        OTPasswordData passwordData(
+            "Please enter your password to sign this document.");
         havePrivateKey =
             AsymmetricKeyToECPrivatekey(*key, passwordData, privKey);
     } else {
-        havePrivateKey =
-            AsymmetricKeyToECPrivatekey(*key, *pPWData, privKey);
+        havePrivateKey = AsymmetricKeyToECPrivatekey(*key, *pPWData, privKey);
     }
 
     if (havePrivateKey) {
@@ -155,19 +157,20 @@ bool Libsecp256k1::Sign(
             nullptr);
 
         if (signatureCreated) {
-            signature.Assign(ecdsaSignature.data, sizeof(secp256k1_ecdsa_signature));
+            signature.Assign(
+                ecdsaSignature.data, sizeof(secp256k1_ecdsa_signature));
             return true;
         } else {
-                otErr << __FUNCTION__ << ": "
-                << "Call to secp256k1_ecdsa_sign() failed.\n";
-
-                return false;
-        }
-    } else {
             otErr << __FUNCTION__ << ": "
-            << "Can not extract ecdsa private key from OTAsymmetricKey.\n";
+                  << "Call to secp256k1_ecdsa_sign() failed.\n";
 
             return false;
+        }
+    } else {
+        otErr << __FUNCTION__ << ": "
+              << "Can not extract ecdsa private key from OTAsymmetricKey.\n";
+
+        return false;
     }
 }
 
@@ -179,29 +182,40 @@ bool Libsecp256k1::Verify(
     __attribute__((unused)) const OTPasswordData* pPWData) const
 {
     Data hash;
-    bool haveDigest = OT::App().Crypto().Hash().Digest(hashType, plaintext, hash);
+    bool haveDigest =
+        OT::App().Crypto().Hash().Digest(hashType, plaintext, hash);
 
-    if (!haveDigest) { return false; }
+    if (!haveDigest) {
+        return false;
+    }
 
     const AsymmetricKeyEC* key =
         dynamic_cast<const AsymmetricKeySecp256k1*>(&theKey);
 
-    if (nullptr == key) { return false; }
+    if (nullptr == key) {
+        return false;
+    }
 
     Data ecdsaPubkey;
     const bool havePublicKey = AsymmetricKeyToECPubkey(*key, ecdsaPubkey);
 
-    if (!havePublicKey) { return false; }
+    if (!havePublicKey) {
+        return false;
+    }
 
     secp256k1_pubkey point;
     const bool pubkeyParsed = ParsePublicKey(ecdsaPubkey, point);
 
-    if (!pubkeyParsed) { return false; }
+    if (!pubkeyParsed) {
+        return false;
+    }
 
     secp256k1_ecdsa_signature ecdsaSignature;
     const bool haveSignature = DataToECSignature(signature, ecdsaSignature);
 
-    if (!haveSignature) { return false; }
+    if (!haveSignature) {
+        return false;
+    }
 
     return secp256k1_ecdsa_verify(
         context_,
@@ -214,14 +228,15 @@ bool Libsecp256k1::DataToECSignature(
     const Data& inSignature,
     secp256k1_ecdsa_signature& outSignature) const
 {
-    const uint8_t* sigStart = static_cast<const uint8_t*>(inSignature.GetPointer());
+    const uint8_t* sigStart =
+        static_cast<const uint8_t*>(inSignature.GetPointer());
 
     if (nullptr != sigStart) {
 
         if (sizeof(secp256k1_ecdsa_signature) == inSignature.GetSize()) {
             secp256k1_ecdsa_signature ecdsaSignature;
 
-            for(uint32_t i=0; i < inSignature.GetSize(); i++) {
+            for (uint32_t i = 0; i < inSignature.GetSize(); i++) {
                 ecdsaSignature.data[i] = *(sigStart + i);
             }
 
@@ -249,23 +264,28 @@ bool Libsecp256k1::ECDH(
 void Libsecp256k1::Init_Override() const
 {
     static bool bNotAlreadyInitialized = true;
-    OT_ASSERT_MSG(bNotAlreadyInitialized, "Libsecp256k1::Init_Override: Tried to initialize twice.");
+    OT_ASSERT_MSG(
+        bNotAlreadyInitialized,
+        "Libsecp256k1::Init_Override: Tried to initialize twice.");
     bNotAlreadyInitialized = false;
     // --------------------------------
-    uint8_t randomSeed [32]{};
+    uint8_t randomSeed[32]{};
     ssl_.RandomizeMemory(randomSeed, 32);
 
-    OT_ASSERT_MSG(nullptr != context_, "Libsecp256k1::Libsecp256k1: secp256k1_context_create failed.");
+    OT_ASSERT_MSG(
+        nullptr != context_,
+        "Libsecp256k1::Libsecp256k1: secp256k1_context_create failed.");
 
-    int __attribute__((unused)) randomize = secp256k1_context_randomize(context_,
-                                                                        randomSeed);
+    int __attribute__((unused)) randomize =
+        secp256k1_context_randomize(context_, randomSeed);
 }
 
-bool Libsecp256k1::ParsePublicKey(
-    const Data& input,
-    secp256k1_pubkey& output) const
+bool Libsecp256k1::ParsePublicKey(const Data& input, secp256k1_pubkey& output)
+    const
 {
-    if (nullptr == context_) { return false; }
+    if (nullptr == context_) {
+        return false;
+    }
 
     return secp256k1_ec_pubkey_parse(
         context_,
@@ -278,9 +298,13 @@ bool Libsecp256k1::ScalarBaseMultiply(
     const OTPassword& privateKey,
     Data& publicKey) const
 {
-    if (nullptr == context_) { return false; }
+    if (nullptr == context_) {
+        return false;
+    }
 
-    if (!privateKey.isMemory()) { return false; }
+    if (!privateKey.isMemory()) {
+        return false;
+    }
 
     secp256k1_pubkey key;
 
@@ -289,19 +313,19 @@ bool Libsecp256k1::ScalarBaseMultiply(
         &key,
         static_cast<const unsigned char*>(privateKey.getMemory()));
 
-    if (1 != created) { return false; }
+    if (1 != created) {
+        return false;
+    }
 
     unsigned char output[PublicKeySize]{};
     size_t outputSize = sizeof(output);
 
     const auto serialized = secp256k1_ec_pubkey_serialize(
-        context_,
-        output,
-        &outputSize,
-        &key,
-        SECP256K1_EC_COMPRESSED);
+        context_, output, &outputSize, &key, SECP256K1_EC_COMPRESSED);
 
-    if (1 != serialized) { return false; }
+    if (1 != serialized) {
+        return false;
+    }
 
     publicKey.Assign(output, outputSize);
 
@@ -315,5 +339,5 @@ Libsecp256k1::~Libsecp256k1()
         context_ = nullptr;
     }
 }
-} // namespace opentxs
-# endif
+}  // namespace opentxs
+#endif

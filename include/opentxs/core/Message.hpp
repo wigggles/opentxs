@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_OTMESSAGE_HPP
 #define OPENTXS_CORE_OTMESSAGE_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/NumList.hpp"

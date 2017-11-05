@@ -39,10 +39,12 @@
 #ifndef OPENTXS_CORE_CRYPTO_CHILDKEYCREDENTIAL_HPP
 #define OPENTXS_CORE_CRYPTO_CHILDKEYCREDENTIAL_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/crypto/Credential.hpp"
 #include "opentxs/core/crypto/KeyCredential.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
-#include "opentxs/core/Proto.hpp"
+#include "opentxs/Proto.hpp"
 
 #include <memory>
 
@@ -69,7 +71,6 @@
 //
 // ChildCredentials are used for all other actions, and never sign other
 // Credentials
-
 
 namespace opentxs
 {
@@ -104,6 +105,6 @@ public:
     virtual ~ChildKeyCredential() = default;
 };
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CORE_CRYPTO_CHILDKEYCREDENTIAL_HPP
+#endif  // OPENTXS_CORE_CRYPTO_CHILDKEYCREDENTIAL_HPP

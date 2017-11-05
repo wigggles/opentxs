@@ -133,6 +133,8 @@
 #ifndef OPENTXS_CLIENT_CMDBASEINSTRUMENT_HPP
 #define OPENTXS_CLIENT_CMDBASEINSTRUMENT_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "CmdBase.hpp"
 
 namespace opentxs
@@ -143,17 +145,26 @@ protected:
     CmdBaseInstrument();
     virtual ~CmdBaseInstrument() = 0;
 
-    int32_t getTokens(std::vector<std::string>& tokens,
-                      const std::string& server, const std::string& mynym,
-                      const std::string& assetType, std::string purse,
-                      const std::string& indices) const;
-    int32_t sendPayment(const std::string& cheque, std::string sender,
-                        const char* what) const;
-    std::string writeCheque(std::string myacct, std::string hisnym,
-                            std::string amount, std::string memo,
-                            std::string validfor, bool isInvoice) const;
+    int32_t getTokens(
+        std::vector<std::string>& tokens,
+        const std::string& server,
+        const std::string& mynym,
+        const std::string& assetType,
+        std::string purse,
+        const std::string& indices) const;
+    int32_t sendPayment(
+        const std::string& cheque,
+        std::string sender,
+        const char* what) const;
+    std::string writeCheque(
+        std::string myacct,
+        std::string hisnym,
+        std::string amount,
+        std::string memo,
+        std::string validfor,
+        bool isInvoice) const;
 };
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CLIENT_CMDBASEINSTRUMENT_HPP
+#endif  // OPENTXS_CLIENT_CMDBASEINSTRUMENT_HPP

@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/core/contract/UnitDefinition.hpp"
 
@@ -55,7 +55,7 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/OTStorage.hpp"
-#include "opentxs/core/Proto.hpp"
+#include "opentxs/Proto.hpp"
 #include "opentxs/core/String.hpp"
 
 #include <ctype.h>
@@ -866,7 +866,7 @@ void UnitDefinition::SetAlias(const std::string& alias)
 {
     ot_super::SetAlias(alias);
 
-    OT::App().Contract().SetUnitDefinitionAlias(id_, alias);
+    OT::App().Wallet().SetUnitDefinitionAlias(id_, alias);
 }
 
 bool UnitDefinition::update_signature(const Lock& lock)

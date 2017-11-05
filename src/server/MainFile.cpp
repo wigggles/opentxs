@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/server/MainFile.hpp"
 
@@ -57,7 +57,7 @@
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/OTStringXML.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/server/OTServer.hpp"
+#include "opentxs/server/Server.hpp"
 #include "opentxs/server/Transactor.hpp"
 
 #include <inttypes.h>
@@ -69,10 +69,10 @@
 
 #define OT_METHOD "opentxs::Mainfile::"
 
-namespace opentxs
+namespace opentxs::server
 {
 
-MainFile::MainFile(OTServer* server)
+MainFile::MainFile(Server* server)
     : version_()
     , server_(server)
 {
@@ -575,7 +575,7 @@ bool MainFile::LoadServerUserAndContract()
             szFunc);
     Log::vOutput(0, "%s: Loading the server contract...\n", szFunc);
 
-    auto pContract = OT::App().Contract().Server(NOTARY_ID);
+    auto pContract = OT::App().Wallet().Server(NOTARY_ID);
 
     if (pContract) {
         Log::Output(0, "\n** Main Server Contract Verified **\n");
@@ -588,4 +588,4 @@ bool MainFile::LoadServerUserAndContract()
     return bSuccess;
 }
 
-}  // namespace opentxs
+}  // namespace opentxs::server

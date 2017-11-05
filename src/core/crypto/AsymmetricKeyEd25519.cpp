@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/core/crypto/AsymmetricKeyEd25519.hpp"
 
@@ -60,7 +60,7 @@ AsymmetricKeyEd25519::AsymmetricKeyEd25519(const proto::KeyRole role)
 
 AsymmetricKeyEd25519::AsymmetricKeyEd25519(
     const proto::AsymmetricKey& serializedKey)
-        : ot_super(serializedKey)
+    : ot_super(serializedKey)
 {
 }
 
@@ -81,11 +81,11 @@ CryptoAsymmetric& AsymmetricKeyEd25519::engine() const
 
 void AsymmetricKeyEd25519::Release()
 {
-    Release_AsymmetricKeyEd25519(); // My own cleanup is performed here.
+    Release_AsymmetricKeyEd25519();  // My own cleanup is performed here.
 
     // Next give the base class a chance to do the same...
-    ot_super::Release(); // since I've overridden the base class, I call it
-                         // now...
+    ot_super::Release();  // since I've overridden the base class, I call it
+                          // now...
 }
 
 AsymmetricKeyEd25519::~AsymmetricKeyEd25519()
@@ -98,13 +98,13 @@ AsymmetricKeyEd25519::~AsymmetricKeyEd25519()
 bool AsymmetricKeyEd25519::hasCapability(const NymCapability& capability) const
 {
     switch (capability) {
-        case (NymCapability::AUTHENTICATE_CONNECTION) : {
+        case (NymCapability::AUTHENTICATE_CONNECTION): {
 
             return true;
         }
-        default : {
+        default: {
             return ot_super::hasCapability(capability);
         }
     }
 }
-} // namespace opentxs
+}  // namespace opentxs

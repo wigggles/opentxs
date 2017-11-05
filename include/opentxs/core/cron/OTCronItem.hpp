@@ -42,9 +42,11 @@
 #ifndef OPENTXS_CORE_CRON_OTCRONITEM_HPP
 #define OPENTXS_CORE_CRON_OTCRONITEM_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/OTTransactionType.hpp"
 #include "opentxs/core/OTTrackable.hpp"
-#include "opentxs/core/Types.hpp"
+#include "opentxs/Types.hpp"
 
 #include <deque>
 
@@ -65,55 +67,57 @@ public:
 
     virtual originType GetOriginType() const = 0;
 
-private: // Private prevents erroneous use by other classes.
+private:  // Private prevents erroneous use by other classes.
     typedef OTTrackable ot_super;
 
 private:
     OTCron* m_pCron{nullptr};
     Nym* serverNym_{nullptr};
     Identifier* notaryID_{nullptr};
-    time64_t m_CREATION_DATE{0};     // The date, in seconds, when the CronItem was
+    time64_t m_CREATION_DATE{0};  // The date, in seconds, when the CronItem was
                                   // authorized.
-    time64_t m_LAST_PROCESS_DATE{0}; // The last time this item was processed.
-    int64_t m_PROCESS_INTERVAL{0};   // How often to Process Cron on this item.
+    time64_t m_LAST_PROCESS_DATE{0};  // The last time this item was processed.
+    int64_t m_PROCESS_INTERVAL{0};    // How often to Process Cron on this item.
 
 protected:
-    std::deque<int64_t> m_dequeClosingNumbers; // Numbers used for CLOSING a
-                                               // transaction. (finalReceipt.)
+    std::deque<int64_t> m_dequeClosingNumbers;  // Numbers used for CLOSING a
+                                                // transaction. (finalReceipt.)
 
 protected:
-    OTCronItem(const Identifier& NOTARY_ID,
-               const Identifier& INSTRUMENT_DEFINITION_ID);
-    OTCronItem(const Identifier& NOTARY_ID,
-               const Identifier& INSTRUMENT_DEFINITION_ID,
-               const Identifier& ACCT_ID, const Identifier& NYM_ID);
+    OTCronItem(
+        const Identifier& NOTARY_ID,
+        const Identifier& INSTRUMENT_DEFINITION_ID);
+    OTCronItem(
+        const Identifier& NOTARY_ID,
+        const Identifier& INSTRUMENT_DEFINITION_ID,
+        const Identifier& ACCT_ID,
+        const Identifier& NYM_ID);
 
     Identifier* m_pCancelerNymID{nullptr};
 
-    bool m_bCanceled{false}; // This defaults to false. But if someone cancels it
-                      // (BEFORE it is ever activated, just to nip it in the bud
-                      // and harvest the numbers, and send the notices, etc) --
-                      // then we set this to true, and we also set the canceler
-                      // Nym ID. (So we can see these values later and know
-                      // whether it was canceled before activation, and if so,
-                      // who did it.)
+    bool m_bCanceled{
+        false};  // This defaults to false. But if someone cancels it
+                 // (BEFORE it is ever activated, just to nip it in the bud
+                 // and harvest the numbers, and send the notices, etc) --
+                 // then we set this to true, and we also set the canceler
+                 // Nym ID. (So we can see these values later and know
+                 // whether it was canceled before activation, and if so,
+                 // who did it.)
 
-    bool m_bRemovalFlag{false}; // Set this to true and the cronitem will be removed
-                         // from Cron on next process.
+    bool m_bRemovalFlag{
+        false};  // Set this to true and the cronitem will be removed
+                 // from Cron on next process.
     // (And its offer will be removed from the Market as well, if appropriate.)
-    virtual void onActivate()
-    {
-    } // called by HookActivationOnCron().
+    virtual void onActivate() {}  // called by HookActivationOnCron().
 
-    virtual void onFinalReceipt(OTCronItem& theOrigCronItem,
-                                const int64_t& lNewTransactionNumber,
-                                Nym& theOriginator,
-                                Nym* pRemover); // called by
-                                                // HookRemovalFromCron().
+    virtual void onFinalReceipt(
+        OTCronItem& theOrigCronItem,
+        const int64_t& lNewTransactionNumber,
+        Nym& theOriginator,
+        Nym* pRemover);  // called by
+                         // HookRemovalFromCron().
 
-    virtual void onRemovalFromCron()
-    {
-    } // called by HookRemovalFromCron().
+    virtual void onRemovalFromCron() {}  // called by HookRemovalFromCron().
     void ClearClosingNumbers();
 
 public:
@@ -147,53 +151,45 @@ public:
     // choose.
 
     // Called in OTCron::AddCronItem.
-    void HookActivationOnCron(Nym* pActivator,
-                              bool bForTheFirstTime = false); // This calls
-                                                              // onActivate,
-                                                              // which is
-                                                              // virtual.
+    void HookActivationOnCron(
+        Nym* pActivator,
+        bool bForTheFirstTime = false);  // This calls
+                                         // onActivate,
+                                         // which is
+                                         // virtual.
 
     // Called in OTCron::RemoveCronItem as well as OTCron::ProcessCron.
     // This calls onFinalReceipt, then onRemovalFromCron. Both are virtual.
     void HookRemovalFromCron(Nym* pRemover, int64_t newTransactionNo);
 
-    inline bool IsFlaggedForRemoval() const
-    {
-        return m_bRemovalFlag;
-    }
-    inline void FlagForRemoval()
-    {
-        m_bRemovalFlag = true;
-    }
-    inline void SetCronPointer(OTCron& theCron)
-    {
-        m_pCron = &theCron;
-    }
+    inline bool IsFlaggedForRemoval() const { return m_bRemovalFlag; }
+    inline void FlagForRemoval() { m_bRemovalFlag = true; }
+    inline void SetCronPointer(OTCron& theCron) { m_pCron = &theCron; }
 
     EXPORT static OTCronItem* NewCronItem(const String& strCronItem);
     EXPORT static OTCronItem* LoadCronReceipt(
-        const int64_t& lTransactionNum); // Server-side only.
+        const int64_t& lTransactionNum);  // Server-side only.
     EXPORT static OTCronItem* LoadActiveCronReceipt(
         const int64_t& lTransactionNum,
-        const Identifier& notaryID); // Client-side only.
+        const Identifier& notaryID);  // Client-side only.
     EXPORT static bool EraseActiveCronReceipt(
-        const int64_t& lTransactionNum, const Identifier& nymID,
-        const Identifier& notaryID); // Client-side only.
-    EXPORT static bool GetActiveCronTransNums(NumList& output, // Client-side
-                                                               // only.
-                                              const Identifier& nymID,
-                                              const Identifier& notaryID);
+        const int64_t& lTransactionNum,
+        const Identifier& nymID,
+        const Identifier& notaryID);  // Client-side only.
+    EXPORT static bool GetActiveCronTransNums(
+        NumList& output,  // Client-side
+                          // only.
+        const Identifier& nymID,
+        const Identifier& notaryID);
     inline void SetCreationDate(const time64_t& CREATION_DATE)
     {
         m_CREATION_DATE = CREATION_DATE;
     }
-    inline const time64_t& GetCreationDate() const
-    {
-        return m_CREATION_DATE;
-    }
+    inline const time64_t& GetCreationDate() const { return m_CREATION_DATE; }
 
-    EXPORT bool SetDateRange(time64_t VALID_FROM = OT_TIME_ZERO,
-                             time64_t VALID_TO = OT_TIME_ZERO);
+    EXPORT bool SetDateRange(
+        time64_t VALID_FROM = OT_TIME_ZERO,
+        time64_t VALID_TO = OT_TIME_ZERO);
     inline void SetLastProcessDate(const time64_t& THE_DATE)
     {
         m_LAST_PROCESS_DATE = THE_DATE;
@@ -212,30 +208,21 @@ public:
         return m_PROCESS_INTERVAL;
     }
 
-    inline OTCron* GetCron() const
-    {
-        return m_pCron;
-    }
-    void setServerNym(Nym* serverNym)
-    {
-        serverNym_ = serverNym;
-    }
-    void setNotaryID(Identifier* notaryID)
-    {
-        notaryID_ = notaryID;
-    }
+    inline OTCron* GetCron() const { return m_pCron; }
+    void setServerNym(Nym* serverNym) { serverNym_ = serverNym; }
+    void setNotaryID(Identifier* notaryID) { notaryID_ = notaryID; }
     // When first adding anything to Cron, a copy needs to be saved in a folder
     // somewhere.
-    EXPORT bool SaveCronReceipt(); // server side only
-    EXPORT bool SaveActiveCronReceipt(const Identifier& theNymID); // client
-                                                                   // side
-                                                                   // only
+    EXPORT bool SaveCronReceipt();  // server side only
+    EXPORT bool SaveActiveCronReceipt(const Identifier& theNymID);  // client
+                                                                    // side
+                                                                    // only
 
     // Return True if should stay on OTCron's list for more processing.
     // Return False if expired or otherwise should be removed.
-    virtual bool ProcessCron(); // OTCron calls this regularly, which is my
-                                // chance to expire, etc.
-                                // From OTTrackable (parent class of this)
+    virtual bool ProcessCron();  // OTCron calls this regularly, which is my
+                                 // chance to expire, etc.
+                                 // From OTTrackable (parent class of this)
     virtual ~OTCronItem();
 
     void InitCronItem();
@@ -243,10 +230,7 @@ public:
     void Release() override;
     void Release_CronItem();
     EXPORT bool GetCancelerID(Identifier& theOutput) const;
-    EXPORT bool IsCanceled() const
-    {
-        return m_bCanceled;
-    }
+    EXPORT bool IsCanceled() const { return m_bCanceled; }
 
     // When canceling a cron item before it
     // has been activated, use this.
@@ -270,6 +254,6 @@ public:
     //  virtual void UpdateContents();
 };
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CORE_CRON_OTCRONITEM_HPP
+#endif  // OPENTXS_CORE_CRON_OTCRONITEM_HPP

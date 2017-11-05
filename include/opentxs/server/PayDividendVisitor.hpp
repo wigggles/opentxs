@@ -39,6 +39,8 @@
 #ifndef OPENTXS_SERVER_ACCTFUNCTOR_PAYDIVIDEND_HPP
 #define OPENTXS_SERVER_ACCTFUNCTOR_PAYDIVIDEND_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/AccountVisitor.hpp"
 
 #include <cstdint>
@@ -48,8 +50,12 @@ namespace opentxs
 
 class Account;
 class Identifier;
-class OTServer;
 class String;
+
+namespace server
+{
+class Server;
+}
 
 // Note: from OTUnitDefinition.h and .cpp.
 // This is a subclass of AccountVisitor, which is used whenever OTUnitDefinition
@@ -57,7 +63,7 @@ class String;
 // loop through all the accounts for a given instrument definition (its own.)
 // This subclass
 // needs to
-// call OTServer method to do its job, so it can't be defined in otlib, but must
+// call Server method to do its job, so it can't be defined in otlib, but must
 // be defined
 // here in otserver (so it can see the methods that it needs...)
 //
@@ -66,62 +72,47 @@ class PayDividendVisitor : public AccountVisitor
     Identifier* m_pNymID{nullptr};
     Identifier* m_pPayoutInstrumentDefinitionID{nullptr};
     Identifier* m_pVoucherAcctID{nullptr};
-    String* m_pstrMemo{nullptr};  // contains the original payDividend item from the
-                         // payDividend transaction request. (Stored in the
-                         // memo field for each voucher.)
-    OTServer* m_pServer{nullptr}; // no need to cleanup. It's here for convenience only.
+    String* m_pstrMemo{
+        nullptr};  // contains the original payDividend item from the
+                   // payDividend transaction request. (Stored in the
+                   // memo field for each voucher.)
+    server::Server* m_pServer{
+        nullptr};  // no need to cleanup. It's here for convenience only.
     int64_t m_lPayoutPerShare{0};
-    int64_t m_lAmountPaidOut{0};  // as we pay each voucher out, we keep a running
-                               // count.
-    int64_t m_lAmountReturned{0}; // as we pay each voucher out, we keep a running
-                               // count.
+    int64_t m_lAmountPaidOut{
+        0};  // as we pay each voucher out, we keep a running
+             // count.
+    int64_t m_lAmountReturned{
+        0};  // as we pay each voucher out, we keep a running
+             // count.
 
 public:
-    PayDividendVisitor(const Identifier& theNotaryID,
-                       const Identifier& theNymID,
-                       const Identifier& thePayoutInstrumentDefinitionID,
-                       const Identifier& theVoucherAcctID,
-                       const String& strMemo, OTServer& theServer,
-                       int64_t lPayoutPerShare,
-                       mapOfAccounts* pLoadedAccounts = nullptr);
+    PayDividendVisitor(
+        const Identifier& theNotaryID,
+        const Identifier& theNymID,
+        const Identifier& thePayoutInstrumentDefinitionID,
+        const Identifier& theVoucherAcctID,
+        const String& strMemo,
+        server::Server& theServer,
+        int64_t lPayoutPerShare,
+        mapOfAccounts* pLoadedAccounts = nullptr);
     virtual ~PayDividendVisitor();
 
-    Identifier* GetNymID()
-    {
-        return m_pNymID;
-    }
+    Identifier* GetNymID() { return m_pNymID; }
     Identifier* GetPayoutInstrumentDefinitionID()
     {
         return m_pPayoutInstrumentDefinitionID;
     }
-    Identifier* GetVoucherAcctID()
-    {
-        return m_pVoucherAcctID;
-    }
-    String* GetMemo()
-    {
-        return m_pstrMemo;
-    }
-    OTServer* GetServer()
-    {
-        return m_pServer;
-    }
-    int64_t GetPayoutPerShare()
-    {
-        return m_lPayoutPerShare;
-    }
-    int64_t GetAmountPaidOut()
-    {
-        return m_lAmountPaidOut;
-    }
-    int64_t GetAmountReturned()
-    {
-        return m_lAmountReturned;
-    }
+    Identifier* GetVoucherAcctID() { return m_pVoucherAcctID; }
+    String* GetMemo() { return m_pstrMemo; }
+    server::Server* GetServer() { return m_pServer; }
+    int64_t GetPayoutPerShare() { return m_lPayoutPerShare; }
+    int64_t GetAmountPaidOut() { return m_lAmountPaidOut; }
+    int64_t GetAmountReturned() { return m_lAmountReturned; }
 
     bool Trigger(Account& theAccount) override;
 };
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_SERVER_ACCTFUNCTOR_PAYDIVIDEND_HPP
+#endif  // OPENTXS_SERVER_ACCTFUNCTOR_PAYDIVIDEND_HPP

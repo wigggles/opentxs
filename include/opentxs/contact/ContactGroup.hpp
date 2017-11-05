@@ -39,8 +39,10 @@
 #ifndef OPENTXS_CONTACT_CONTACT_GROUP_HPP
 #define OPENTXS_CONTACT_CONTACT_GROUP_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Proto.hpp"
+#include "opentxs/Proto.hpp"
 
 #include <map>
 #include <memory>

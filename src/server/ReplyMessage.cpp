@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/api/OT.hpp"
 #include "opentxs/api/Wallet.hpp"
@@ -45,20 +45,20 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/server/OTServer.hpp"
+#include "opentxs/server/Server.hpp"
 #include "opentxs/server/ReplyMessage.hpp"
 #include "opentxs/server/UserCommandProcessor.hpp"
 
 #define OT_METHOD "opentxs::ReplyMessage::"
 
-namespace opentxs
+namespace opentxs::server
 {
 
 ReplyMessage::ReplyMessage(
     const Identifier& notaryID,
     const Nym& signer,
     const Message& input,
-    OTServer& server,
+    Server& server,
     const MessageType& type,
     Message& output)
     : signer_(signer)
@@ -226,7 +226,7 @@ const bool& ReplyMessage::Init() const { return init_; }
 
 bool ReplyMessage::init_nym()
 {
-    sender_nym_ = OT::App().Contract().Nym(Identifier(original_.m_strNymID));
+    sender_nym_ = OT::App().Wallet().Nym(Identifier(original_.m_strNymID));
 
     return bool(sender_nym_);
 }
@@ -249,7 +249,7 @@ bool ReplyMessage::LoadContext()
     }
 
     context_.reset(
-        new Editor<ClientContext>(OT::App().Contract().mutable_ClientContext(
+        new Editor<ClientContext>(OT::App().Wallet().mutable_ClientContext(
             signer_.ID(), sender_nym_->ID())));
 
     return bool(context_);
@@ -259,7 +259,7 @@ bool ReplyMessage::LoadNym()
 {
     auto serialized = proto::DataToProto<proto::CredentialIndex>(
         Data(original_.m_ascPayload));
-    sender_nym_ = OT::App().Contract().Nym(serialized);
+    sender_nym_ = OT::App().Wallet().Nym(serialized);
 
     return bool(sender_nym_);
 }
@@ -378,4 +378,4 @@ ReplyMessage::~ReplyMessage()
         SetNymboxHash(context_->It().LocalNymboxHash());
     }
 }
-}  // namespace opentxs
+}  // namespace opentxs::server

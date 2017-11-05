@@ -39,16 +39,20 @@
 #ifndef OPENTXS_SERVER_CONFIGLOADER_HPP
 #define OPENTXS_SERVER_CONFIGLOADER_HPP
 
+#include "opentxs/Version.hpp"
+
 namespace opentxs
 {
 
 class String;
 
-struct ConfigLoader
+namespace server
 {
+
+struct ConfigLoader {
     static bool load(String& walletFilename);
 };
+}  // namespace server
+}  // namespace opentxs
 
-} // namespace opentxs
-
-#endif // OPENTXS_SERVER_CONFIGLOADER_HPP
+#endif  // OPENTXS_SERVER_CONFIGLOADER_HPP

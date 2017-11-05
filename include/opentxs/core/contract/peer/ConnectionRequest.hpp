@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_CONTRACT_PEER_CONNECTIONREQUEST_HPP
 #define OPENTXS_CORE_CONTRACT_PEER_CONNECTIONREQUEST_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/contract/peer/PeerRequest.hpp"
 #include "opentxs/core/Identifier.hpp"
 
@@ -68,6 +70,6 @@ private:
 public:
     ~ConnectionRequest() = default;
 };
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CORE_CONTRACT_PEER_CONNECTIONREQUEST_HPP
+#endif  // OPENTXS_CORE_CONTRACT_PEER_CONNECTIONREQUEST_HPP

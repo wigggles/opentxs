@@ -35,17 +35,17 @@
  *   for more details.
  *
  ************************************************************/
-#if OT_STORAGE_FS
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/storage/drivers/StorageFSArchive.hpp"
 
+#if OT_STORAGE_FS
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/crypto/SymmetricKey.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/core/Proto.hpp"
+#include "opentxs/Proto.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/storage/StorageConfig.hpp"
 

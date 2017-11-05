@@ -39,7 +39,11 @@
 #ifndef OPENTXS_CORE_CRYPTO_BIP39_HPP
 #define OPENTXS_CORE_CRYPTO_BIP39_HPP
 
-#include "opentxs/core/Proto.hpp"
+#include "opentxs/Version.hpp"
+
+#if OT_CRYPTO_WITH_BIP39
+
+#include "opentxs/Proto.hpp"
 
 #include <cstdint>
 #include <memory>
@@ -105,4 +109,6 @@ private:
     Bip39& operator=(Bip39&&) = delete;
 };
 }  // namespace opentxs
+
+#endif  // OT_CRYPTO_WITH_BIP39
 #endif  // OPENTXS_CORE_CRYPTO_BIP39_HPP

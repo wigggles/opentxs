@@ -39,22 +39,31 @@
 #ifndef OPENTXS_SERVER_MAINFILE_HPP
 #define OPENTXS_SERVER_MAINFILE_HPP
 
+#include "opentxs/Version.hpp"
+
 #include <string>
 
 namespace opentxs
 {
+
 class String;
-class OTServer;
+
+namespace server
+{
+
+class Server;
 
 class MainFile
 {
 public:
-    explicit MainFile(OTServer* server);
+    explicit MainFile(Server* server);
 
-    bool CreateMainFile(const std::string& strContract,
-                        const std::string& strNotaryID,
-                        const std::string& strCert, const std::string& strNymID,
-                        const std::string& strCachedKey);
+    bool CreateMainFile(
+        const std::string& strContract,
+        const std::string& strNotaryID,
+        const std::string& strCert,
+        const std::string& strNymID,
+        const std::string& strCachedKey);
     bool LoadMainFile(bool readOnly = false);
     bool LoadServerUserAndContract();
     bool SaveMainFile();
@@ -62,9 +71,9 @@ public:
 
 private:
     std::string version_;
-    OTServer* server_; // TODO: remove when feasible
+    Server* server_;  // TODO: remove when feasible
 };
+}  // namespace server
+}  // namespace opentxs
 
-} // namespace opentxs
-
-#endif // OPENTXS_SERVER_MAINFILE_HPP
+#endif  // OPENTXS_SERVER_MAINFILE_HPP

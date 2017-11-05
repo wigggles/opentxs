@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/server/Notary.hpp"
 
@@ -44,6 +44,7 @@
 #include "opentxs/cash/Purse.hpp"
 #include "opentxs/cash/Token.hpp"
 #include "opentxs/api/OT.hpp"
+#include "opentxs/api/Server.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/core/contract/basket/Basket.hpp"
@@ -71,7 +72,7 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/ext/OTPayment.hpp"
 #include "opentxs/server/Macros.hpp"
-#include "opentxs/server/OTServer.hpp"
+#include "opentxs/server/Server.hpp"
 #include "opentxs/server/PayDividendVisitor.hpp"
 #include "opentxs/server/ServerSettings.hpp"
 #include "opentxs/server/Transactor.hpp"
@@ -87,13 +88,13 @@
 
 #define OT_METHOD "opentxs::Notary::"
 
-namespace opentxs
+namespace opentxs::server
 {
 
 typedef std::list<Account*> listOfAccounts;
 typedef std::deque<Token*> dequeOfTokenPtrs;
 
-Notary::Notary(OTServer* server)
+Notary::Notary(Server* server)
     : server_(server)
 {
 }
@@ -1060,7 +1061,7 @@ void Notary::NotarizeWithdrawal(
         std::unique_ptr<Ledger> pOutbox(
             theAccount.LoadOutbox(server_->m_nymServer));
 
-        Mint* pMint = nullptr;
+        std::shared_ptr<Mint> pMint{nullptr};
         Account* pMintCashReserveAcct = nullptr;
 
         if (0 > pItem->GetAmount()) {
@@ -1165,10 +1166,10 @@ void Notary::NotarizeWithdrawal(
                     // So I grab a copy here for later...
                     theDeque.push_front(pToken);
 
-                    pMint = server_->transactor_.getMint(
+                    pMint = OT::App().Server().GetPrivateMint(
                         INSTRUMENT_DEFINITION_ID, pToken->GetSeries());
 
-                    if (nullptr == pMint) {
+                    if (false == bool(pMint)) {
                         Log::vError(
                             "Notary::NotarizeWithdrawal: Unable to "
                             "find Mint (series %d): %s\n",
@@ -1635,7 +1636,7 @@ void Notary::NotarizePayDividend(
             // definition as theSourceAccount.)
             const Identifier SHARES_INSTRUMENT_DEFINITION_ID =
                 theVoucherRequest.GetInstrumentDefinitionID();
-            auto pSharesContract = OT::App().Contract().UnitDefinition(
+            auto pSharesContract = OT::App().Wallet().UnitDefinition(
                 theVoucherRequest.GetInstrumentDefinitionID());
             Account* pSharesIssuerAccount = nullptr;
             std::unique_ptr<Account> theAcctAngel;
@@ -2153,7 +2154,7 @@ void Notary::NotarizePayDividend(
                                                 &NYM_ID);
 
                                         // All account crediting / debiting
-                                        // happens in the caller, in OTServer.
+                                        // happens in the caller, in Server.
                                         //    (AND it happens only ONCE, to
                                         // cover ALL vouchers.)
                                         // Then in here, the voucher either gets
@@ -2327,7 +2328,7 @@ void Notary::NotarizeDeposit(
 
     const String strNymID(NYM_ID), strAccountID(ACCOUNT_ID);
 
-    Mint* pMint = nullptr;  // the Mint itself.
+    std::shared_ptr<Mint> pMint{nullptr};
     Account* pMintCashReserveAcct =
         nullptr;  // the Mint's funds for cash withdrawals.
     // Here we find out if we're depositing cash, or a cheque
@@ -2993,7 +2994,7 @@ void Notary::NotarizeDeposit(
                     }
                 }
 
-                auto sContext = OT::App().Contract().mutable_ClientContext(
+                auto sContext = OT::App().Wallet().mutable_ClientContext(
                     server_->GetServerNym().ID(),
                     (bHasRemitter ? pRemitterNym : pSenderNym)->ID());
 
@@ -3945,10 +3946,10 @@ void Notary::NotarizeDeposit(
                         break;
                     }
 
-                    pMint = server_->transactor_.getMint(
+                    pMint = OT::App().Server().GetPrivateMint(
                         INSTRUMENT_DEFINITION_ID, pToken->GetSeries());
 
-                    if (nullptr == pMint) {
+                    if (false == bool(pMint)) {
                         Log::Error("Notary::NotarizeDeposit: Unable to get "
                                    "or load Mint.\n");
                         break;
@@ -4474,7 +4475,7 @@ void Notary::NotarizePaymentPlan(
                     // (When doing a transfer, normally 2nd acct is the Payee.)
                     const Identifier RECIPIENT_ACCT_ID(
                         pPlan->GetRecipientAcctID());
-                    auto rContext = OT::App().Contract().mutable_ClientContext(
+                    auto rContext = OT::App().Wallet().mutable_ClientContext(
                         server_->GetServerNym().ID(),
                         pPlan->GetRecipientNymID());
                     if (!bCancelling &&
@@ -6048,7 +6049,7 @@ void Notary::NotarizeExchangeBasket(
                 } else {
                     // Now we get a pointer to its asset contract...
                     auto pContract =
-                        OT::App().Contract().UnitDefinition(BASKET_CONTRACT_ID);
+                        OT::App().Wallet().UnitDefinition(BASKET_CONTRACT_ID);
 
                     const BasketContract* basket = nullptr;
 
@@ -8238,7 +8239,7 @@ void Notary::NotarizeProcessNymbox(
     tranOut.SaveContract();
 
     if (bNymboxHashRegenerated) {
-        auto context = OT::App().Contract().mutable_ClientContext(
+        auto context = OT::App().Wallet().mutable_ClientContext(
             server_->GetServerNym().ID(), theNym.ID());
         context.It().SetLocalNymboxHash(NYMBOX_HASH);
         theNym.SaveSignedNymfile(server_->m_nymServer);  // TODO remove this
@@ -9602,4 +9603,4 @@ send_message:
     // request that triggered it.)
     processInboxResponse.SaveContract(szFoldername, strPath.Get());
 }
-}  // namespace opentxs
+}  // namespace opentxs::server

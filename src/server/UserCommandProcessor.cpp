@@ -36,12 +36,13 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/server/UserCommandProcessor.hpp"
 
 #include "opentxs/api/Identity.hpp"
 #include "opentxs/api/OT.hpp"
+#include "opentxs/api/Server.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/cash/Mint.hpp"
 #include "opentxs/consensus/ClientContext.hpp"
@@ -71,7 +72,7 @@
 #include "opentxs/server/Macros.hpp"
 #include "opentxs/server/MainFile.hpp"
 #include "opentxs/server/Notary.hpp"
-#include "opentxs/server/OTServer.hpp"
+#include "opentxs/server/Server.hpp"
 #include "opentxs/server/ReplyMessage.hpp"
 #include "opentxs/server/ServerSettings.hpp"
 #include "opentxs/server/Transactor.hpp"
@@ -88,7 +89,7 @@
 #define INBOX_DEPTH 1
 #define OUTBOX_DEPTH 2
 
-namespace opentxs
+namespace opentxs::server
 {
 
 UserCommandProcessor::FinalizeResponse::FinalizeResponse(
@@ -179,7 +180,7 @@ UserCommandProcessor::FinalizeResponse::~FinalizeResponse()
     reply_.SetPayload(String(ledger_));
 }
 
-UserCommandProcessor::UserCommandProcessor(OTServer* server)
+UserCommandProcessor::UserCommandProcessor(Server* server)
     : server_(server)
 {
 }
@@ -565,7 +566,7 @@ bool UserCommandProcessor::cmd_add_claim(ReplyMessage& reply) const
     if (isAdmin) {
         auto& serverNym = const_cast<Nym&>(server_->GetServerNym());
         reply.SetSuccess(serverNym.AddClaim(claim));
-        auto nym = OT::App().Contract().Nym(serverNym.asPublicNym());
+        auto nym = OT::App().Wallet().Nym(serverNym.asPublicNym());
     }
 
     return true;
@@ -579,7 +580,7 @@ bool UserCommandProcessor::cmd_check_nym(ReplyMessage& reply) const
 
     OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_check_nym);
 
-    auto nym = OT::App().Contract().Nym(Identifier(targetNym));
+    auto nym = OT::App().Wallet().Nym(Identifier(targetNym));
 
     if (nym) {
         reply.SetPayload(proto::ProtoAsData(nym->asPublicNym()));
@@ -670,7 +671,7 @@ bool UserCommandProcessor::cmd_delete_asset_account(ReplyMessage& reply) const
     }
 
     const auto& contractID = account->GetInstrumentDefinitionID();
-    auto contract = OT::App().Contract().UnitDefinition(contractID);
+    auto contract = OT::App().Wallet().UnitDefinition(contractID);
 
     if (false == bool(contract)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Unable to load unit definition"
@@ -956,10 +957,10 @@ bool UserCommandProcessor::cmd_get_instrument_definition(
     const Identifier contractID(msgIn.m_strInstrumentDefinitionID);
 
     Data serialized{};
-    auto unitDefiniton = OT::App().Contract().UnitDefinition(contractID);
+    auto unitDefiniton = OT::App().Wallet().UnitDefinition(contractID);
     // Perhaps the provided ID is actually a server contract, not an
     // instrument definition?
-    auto server = OT::App().Contract().Server(contractID);
+    auto server = OT::App().Wallet().Server(contractID);
 
     if (unitDefiniton) {
         reply.SetSuccess(true);
@@ -1076,28 +1077,11 @@ bool UserCommandProcessor::cmd_get_mint(ReplyMessage& reply) const
     OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_get_mint);
 
     const auto& unitID = msgIn.m_strInstrumentDefinitionID;
-    const auto& context = reply.Context();
-    const auto& serverID = context.Server();
-    bool loaded = false;
+    auto mint = OT::App().Server().GetPublicMint(Identifier(unitID));
 
-    std::unique_ptr<Mint> mint(Mint::MintFactory(String(serverID), unitID));
-
-    OT_ASSERT(mint);
-
-    loaded = mint->LoadMint(".PUBLIC");
-
-    if (loaded) {
-        // You cannot hash the Mint to get its ID. (The ID is a hash of the
-        // asset contract, not the mint contract.) Instead, you must READ the ID
-        // from the Mint file, and then compare it to the one expected to see if
-        // they match (similar to how Account IDs are verified.)
-        loaded = mint->VerifyMint(server_->m_nymServer);
-
-        // Yup the asset contract exists.
-        if (loaded) {
-            reply.SetSuccess(true);
-            reply.SetPayload(String(*mint));
-        }
+    if (mint) {
+        reply.SetSuccess(true);
+        reply.SetPayload(String(*mint));
     }
 
     return true;
@@ -1354,7 +1338,7 @@ bool UserCommandProcessor::cmd_issue_basket(ReplyMessage& reply) const
     for (auto& it : serialized.basket().item()) {
         const auto& subcontractID = it.unit();
         auto contract =
-            OT::App().Contract().UnitDefinition(Identifier(subcontractID));
+            OT::App().Wallet().UnitDefinition(Identifier(subcontractID));
 
         if (!contract) {
             otErr << OT_METHOD << __FUNCTION__ << ": Missing subcurrency "
@@ -1410,7 +1394,7 @@ bool UserCommandProcessor::cmd_issue_basket(ReplyMessage& reply) const
         return false;
     }
 
-    const auto contract = OT::App().Contract().UnitDefinition(serialized);
+    const auto contract = OT::App().Wallet().UnitDefinition(serialized);
 
     if (false == bool(contract)) {
         otErr << OT_METHOD << __FUNCTION__
@@ -1463,6 +1447,7 @@ bool UserCommandProcessor::cmd_issue_basket(ReplyMessage& reply) const
     server_->transactor_.addBasketAccountID(
         BASKET_ID, basketAccountID, contractID);
     server_->mainFile_.SaveMainFile();
+    OT::App().Server().UpdateMint(basketAccountID);
 
     return true;
 }
@@ -1843,7 +1828,7 @@ bool UserCommandProcessor::cmd_query_instrument_definitions(
         // might include "issue", "audit", "contract", etc.
         if (0 == status.compare("exists")) {
             auto pContract =
-                OT::App().Contract().UnitDefinition(Identifier(unitID));
+                OT::App().Wallet().UnitDefinition(Identifier(unitID));
 
             if (pContract) {
                 newMap[unitID] = "true";
@@ -1889,8 +1874,8 @@ bool UserCommandProcessor::cmd_register_account(ReplyMessage& reply) const
         return false;
     }
 
-    auto contract = OT::App().Contract().UnitDefinition(
-        account->GetInstrumentDefinitionID());
+    auto contract =
+        OT::App().Wallet().UnitDefinition(account->GetInstrumentDefinitionID());
 
     if (false == bool(contract)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Unable to load unit definition"
@@ -2000,21 +1985,21 @@ bool UserCommandProcessor::cmd_register_contract(ReplyMessage& reply) const
         case (ContractType::NYM): {
             const auto nym = proto::DataToProto<proto::CredentialIndex>(
                 Data(msgIn.m_ascPayload));
-            reply.SetSuccess(bool(OT::App().Contract().Nym(nym)));
+            reply.SetSuccess(bool(OT::App().Wallet().Nym(nym)));
 
             break;
         }
         case (ContractType::SERVER): {
             const auto server = proto::DataToProto<proto::ServerContract>(
                 Data(msgIn.m_ascPayload));
-            reply.SetSuccess(bool(OT::App().Contract().Server(server)));
+            reply.SetSuccess(bool(OT::App().Wallet().Server(server)));
 
             break;
         }
         case (ContractType::UNIT): {
             const auto unit = proto::DataToProto<proto::UnitDefinition>(
                 Data(msgIn.m_ascPayload));
-            reply.SetSuccess(bool(OT::App().Contract().UnitDefinition(unit)));
+            reply.SetSuccess(bool(OT::App().Wallet().UnitDefinition(unit)));
 
             break;
         }
@@ -2037,7 +2022,7 @@ bool UserCommandProcessor::cmd_register_instrument_definition(
 
     OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_issue_asset);
 
-    auto contract = OT::App().Contract().UnitDefinition(contractID);
+    auto contract = OT::App().Wallet().UnitDefinition(contractID);
 
     // Make sure the contract isn't already available on this server.
     if (contract) {
@@ -2057,10 +2042,16 @@ bool UserCommandProcessor::cmd_register_instrument_definition(
         return false;
     }
 
-    contract = OT::App().Contract().UnitDefinition(serialized);
+    contract = OT::App().Wallet().UnitDefinition(serialized);
 
     if (false == bool(contract)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Invalid contract" << std::endl;
+
+        return false;
+    }
+
+    if (contract->ID() != contractID) {
+        otErr << OT_METHOD << __FUNCTION__ << ": ID mismatch" << std::endl;
 
         return false;
     }
@@ -2155,6 +2146,7 @@ bool UserCommandProcessor::cmd_register_instrument_definition(
     theAccountSet.insert(String(accountID).Get());
     nymfile.SaveSignedNymfile(serverNym);
     reply.DropToNymbox(false);
+    OT::App().Server().UpdateMint(contractID);
 
     return true;
 }
@@ -2624,7 +2616,7 @@ void UserCommandProcessor::drop_reply_notice_to_nymbox(
     const std::int64_t& lRequestNum,
     const bool bReplyTransSuccess,
     ClientContext& context,
-    OTServer& server,
+    Server& server,
     Nym* pActualNym)
 {
     const auto& nymID = context.RemoteNym().ID();
@@ -3299,4 +3291,4 @@ bool UserCommandProcessor::verify_transaction(
 
     return transaction->VerifySignature(signer);
 }
-}  // namespace opentxs
+}  // namespace opentxs::server

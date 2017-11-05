@@ -39,11 +39,13 @@
 #ifndef OPENTXS_CORE_OTTRANSACTIONTYPE_HPP
 #define OPENTXS_CORE_OTTRANSACTIONTYPE_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/NumList.hpp"
-#include "opentxs/core/Types.hpp"
+#include "opentxs/Types.hpp"
 
 #include <stdint.h>
 
@@ -57,7 +59,7 @@ class String;
 // OTTransactionType is a base class for OTLedger, OTTransaction, and OTItem.
 class OTTransactionType : public Contract
 {
-private: // Private prevents erroneous use by other classes.
+private:  // Private prevents erroneous use by other classes.
     typedef Contract ot_super;
 
 protected:
@@ -546,30 +548,30 @@ protected:
     // That's really the whole point of this software -- comparing IDs and
     // verifying signatures.
 
-//  OTIdentifier    m_ID;            // Account ID. This is in Contract
+    //  OTIdentifier    m_ID;            // Account ID. This is in Contract
     // (parent class). Here we use it for the REAL ACCOUNT ID (set before
     // loading.)
-    Identifier m_AcctID; // Compare m_AcctID to m_ID after loading it from
-                         // string or file. They should match, and signature
-                         // should verify.
+    Identifier m_AcctID;  // Compare m_AcctID to m_ID after loading it from
+                          // string or file. They should match, and signature
+                          // should verify.
 
-    Identifier m_NotaryID;     // Notary ID as used to instantiate the
-                               // transaction, based on expected NotaryID.
-    Identifier m_AcctNotaryID; // Actual NotaryID within the signed portion.
-                               // (Compare to m_NotaryID upon loading.)
+    Identifier m_NotaryID;      // Notary ID as used to instantiate the
+                                // transaction, based on expected NotaryID.
+    Identifier m_AcctNotaryID;  // Actual NotaryID within the signed portion.
+                                // (Compare to m_NotaryID upon loading.)
 
     // Update: instead of in the child classes, like OTLedger, OTTransaction,
     // OTItem, etc, I put the
     // "purported acct ID" and "purported server ID" here in the base class, to
     // manage it all centrally.
 
-    Identifier m_AcctNymID; // NymID of the user who created this item. (In
-                            // the future, this item
+    Identifier m_AcctNymID;  // NymID of the user who created this item. (In
+                             // the future, this item
     // might be the only reference someone has. They'll want my NymID.)
     // I put this in protected because there are now Get/Set methods...so use
     // them!
-    int64_t m_lTransactionNum{0}; // The server issues this and it must be sent
-                               // with transaction request.
+    int64_t m_lTransactionNum{0};  // The server issues this and it must be sent
+                                   // with transaction request.
     int64_t m_lInReferenceToTransaction{0};
     // Sometimes an item is in reference to some other transaction, which does
     // NOT need to be
@@ -588,12 +590,14 @@ protected:
     // them.
     // This:
     //
-    int64_t m_lNumberOfOrigin{0}; // In reference to in reference to in reference
-                                  // to in reference to the origin.
-    originType m_originType{originType::not_applicable}; // (See originType comment.)
-    OTASCIIArmor m_ascInReferenceTo; // This item may be in reference to a
-                                     // different item.
-    bool m_bLoadSecurely{true}; // Defaults to true.
+    int64_t m_lNumberOfOrigin{
+        0};  // In reference to in reference to in reference
+             // to in reference to the origin.
+    originType m_originType{
+        originType::not_applicable};  // (See originType comment.)
+    OTASCIIArmor m_ascInReferenceTo;  // This item may be in reference to a
+                                      // different item.
+    bool m_bLoadSecurely{true};       // Defaults to true.
     // For a "blank" or "successNotice" transaction, this contains the list of
     // transaction
     // numbers that are either about to be signed out (blank) or have already
@@ -618,8 +622,8 @@ protected:
     //
     // THIS is where that list is stored:
     //
-    NumList m_Numlist; // blanks and successNotice use this instead of having
-                       // a separate transaction for EVERY NUMBER.
+    NumList m_Numlist;  // blanks and successNotice use this instead of having
+                        // a separate transaction for EVERY NUMBER.
     // (Had to fix that... way too many box receipts were being downloaded.)
     // Note: I moved this to OTTransactionType so I can use it from within
     // OTItem as well, so when I accept transaction
@@ -627,10 +631,11 @@ protected:
 public:
     EXPORT void GetNumList(NumList& theOutput);
     EXPORT static OTTransactionType* TransactionFactory(String strInput);
-    bool Contains(const String& strContains);     // Allows you to string-search
-                                                  // the raw contract.
-    EXPORT bool Contains(const char* szContains); // Allows you to string-search
-                                                  // the raw contract.
+    bool Contains(const String& strContains);  // Allows you to string-search
+                                               // the raw contract.
+    EXPORT bool Contains(const char* szContains);  // Allows you to
+                                                   // string-search
+                                                   // the raw contract.
     // OTAccount, OTTransaction, OTItem, and OTLedger are all derived from
     // this class (OTTransactionType). Therefore they can all quickly identify
     // whether one of the other components belongs to the same account.
@@ -649,53 +654,29 @@ public:
     // the IDs are correct, or when you have no "real" ID other than what is in
     // the file itself.)
     //
-    void SetLoadInsecure()
-    {
-        m_bLoadSecurely = false;
-    }
+    void SetLoadInsecure() { m_bLoadSecurely = false; }
 
     // Someday I'll add EntityID and RoleID here (in lieu of NymID,
     // in cases when the account is owned by an Entity and not a Nym.)
     //
-    inline const Identifier& GetNymID() const
-    {
-        return m_AcctNymID;
-    }
-    inline void SetNymID(const Identifier& theID)
-    {
-        m_AcctNymID = theID;
-    }
+    inline const Identifier& GetNymID() const { return m_AcctNymID; }
+    inline void SetNymID(const Identifier& theID) { m_AcctNymID = theID; }
 
     // Used for: Load an account based on this ID
-    inline const Identifier& GetRealAccountID() const
-    {
-        return m_ID;
-    }
-    inline void SetRealAccountID(const Identifier& theID)
-    {
-        m_ID = theID;
-    }
+    inline const Identifier& GetRealAccountID() const { return m_ID; }
+    inline void SetRealAccountID(const Identifier& theID) { m_ID = theID; }
 
     // Used for: Verify this ID on a transaction to make sure it matches the one
     // above.
-    inline const Identifier& GetPurportedAccountID() const
-    {
-        return m_AcctID;
-    }
+    inline const Identifier& GetPurportedAccountID() const { return m_AcctID; }
     inline void SetPurportedAccountID(const Identifier& theID)
     {
         m_AcctID = theID;
     }
 
     // Used for: Load or save a filename based on this ID.
-    inline const Identifier& GetRealNotaryID() const
-    {
-        return m_NotaryID;
-    }
-    inline void SetRealNotaryID(const Identifier& theID)
-    {
-        m_NotaryID = theID;
-    }
+    inline const Identifier& GetRealNotaryID() const { return m_NotaryID; }
+    inline void SetRealNotaryID(const Identifier& theID) { m_NotaryID = theID; }
 
     // Used for: Load or save the ID in the file contents into/out of this ID.
     inline const Identifier& GetPurportedNotaryID() const
@@ -729,16 +710,16 @@ public:
     // OTTransactionType will require
     // both the Account ID and the NotaryID.
     explicit OTTransactionType(
-                      const Identifier& theNymID,
-                      const Identifier& theAccountID,
-                      const Identifier& theNotaryID,
-                      originType theOriginType=originType::not_applicable);
+        const Identifier& theNymID,
+        const Identifier& theAccountID,
+        const Identifier& theNotaryID,
+        originType theOriginType = originType::not_applicable);
     explicit OTTransactionType(
-                      const Identifier& theNymID,
-                      const Identifier& theAccountID,
-                      const Identifier& theNotaryID,
-                      int64_t lTransactionNum,
-                      originType theOriginType=originType::not_applicable);
+        const Identifier& theNymID,
+        const Identifier& theAccountID,
+        const Identifier& theNotaryID,
+        int64_t lTransactionNum,
+        originType theOriginType = originType::not_applicable);
 
     void InitTransactionType();
     virtual ~OTTransactionType();
@@ -754,19 +735,21 @@ public:
     EXPORT int64_t GetTransactionNum() const;
     void SetTransactionNum(int64_t lTransactionNum);
 
-    EXPORT virtual void CalculateNumberOfOrigin(); // Calculates number of
-                                                   // origin.
-    EXPORT virtual int64_t GetNumberOfOrigin();    // Calculates IF NECESSARY.
+    EXPORT virtual void CalculateNumberOfOrigin();  // Calculates number of
+                                                    // origin.
+    EXPORT virtual int64_t GetNumberOfOrigin();     // Calculates IF NECESSARY.
 
-    EXPORT int64_t GetRawNumberOfOrigin() const; // Gets WITHOUT calculating.
+    EXPORT int64_t GetRawNumberOfOrigin() const;  // Gets WITHOUT calculating.
 
     EXPORT void SetNumberOfOrigin(int64_t lTransactionNum);
     EXPORT void SetNumberOfOrigin(OTTransactionType& setFrom);
 
     EXPORT bool VerifyNumberOfOrigin(OTTransactionType& compareTo);
     // --------------------------------------------------------
-    originType GetOriginType() const; // NOTE: used for GUI display purposes only.
-    void SetOriginType(originType theOriginType); // (For paymentReceipts and finalReceipts.)
+    originType GetOriginType() const;  // NOTE: used for GUI display purposes
+                                       // only.
+    void SetOriginType(originType theOriginType);  // (For paymentReceipts and
+                                                   // finalReceipts.)
 
     static originType GetOriginTypeFromString(const String& strOriginType);
 
@@ -779,6 +762,6 @@ public:
     EXPORT void SetReferenceString(const String& theStr);
 };
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CORE_OTTRANSACTIONTYPE_HPP
+#endif  // OPENTXS_CORE_OTTRANSACTIONTYPE_HPP

@@ -39,8 +39,10 @@
 #ifndef OPENTXS_CORE_CRYPTO_CRYPTOENCODINGENGINE_HPP
 #define OPENTXS_CORE_CRYPTO_CRYPTOENCODINGENGINE_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/String.hpp"
-#include "opentxs/core/Types.hpp"
+#include "opentxs/Types.hpp"
 
 #include <cstddef>
 #include <cstdint>
@@ -69,16 +71,13 @@ protected:
     std::string Base64Encode(
         const std::uint8_t* inputStart,
         const std::size_t& inputSize) const;
-    bool Base64Decode(
-        const std::string&& input,
-         RawData& output) const;
+    bool Base64Decode(const std::string&& input, RawData& output) const;
     std::string BreakLines(const std::string& input) const;
 
     CryptoEncodingEngine() = delete;
     CryptoEncodingEngine(CryptoEngine& parent);
     CryptoEncodingEngine(const CryptoEncodingEngine&) = delete;
     CryptoEncodingEngine& operator=(const CryptoEncodingEngine&) = delete;
-
 
 public:
     static std::string SanatizeBase58(const std::string& input);
@@ -96,5 +95,5 @@ public:
 
     ~CryptoEncodingEngine() = default;
 };
-} // namespace opentxs
-#endif // OPENTXS_CORE_CRYPTO_CRYPTOENCODINGENGINE_HPP
+}  // namespace opentxs
+#endif  // OPENTXS_CORE_CRYPTO_CRYPTOENCODINGENGINE_HPP

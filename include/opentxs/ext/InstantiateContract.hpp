@@ -47,6 +47,8 @@
 //
 // CALLER IS RESPONSIBLE to cleanup!
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/cash/Mint.hpp"
 #include "opentxs/cash/Token.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
@@ -70,7 +72,7 @@ opentxs::Contract* InstantiateContract(opentxs::String strInput)
 {
 
     using namespace opentxs;
-    String strContract, strFirstLine; // output for the below function.
+    String strContract, strFirstLine;  // output for the below function.
     const bool bProcessed =
         Contract::DearmorAndTrim(strInput, strContract, strFirstLine);
 
@@ -79,64 +81,53 @@ opentxs::Contract* InstantiateContract(opentxs::String strInput)
         std::unique_ptr<Contract> pContract;
 
         if (strFirstLine.Contains(
-                "-----BEGIN SIGNED SMARTCONTRACT-----")) // this string is 36
-                                                         // chars long.
+                "-----BEGIN SIGNED SMARTCONTRACT-----"))  // this string is 36
+                                                          // chars long.
         {
             pContract.reset(new OTSmartContract());
             OT_ASSERT(pContract);
         }
 
         if (strFirstLine.Contains(
-                "-----BEGIN SIGNED PAYMENT PLAN-----")) // this string is 35
-                                                        // chars long.
+                "-----BEGIN SIGNED PAYMENT PLAN-----"))  // this string is 35
+                                                         // chars long.
         {
             pContract.reset(new OTPaymentPlan());
             OT_ASSERT(pContract);
-        }
-        else if (strFirstLine.Contains(
-                       "-----BEGIN SIGNED TRADE-----")) // this string is 28
-                                                        // chars long.
+        } else if (strFirstLine.Contains(
+                       "-----BEGIN SIGNED TRADE-----"))  // this string is 28
+                                                         // chars long.
         {
             pContract.reset(new OTTrade());
             OT_ASSERT(pContract);
-        }
-        else if (strFirstLine.Contains("-----BEGIN SIGNED OFFER-----")) {
+        } else if (strFirstLine.Contains("-----BEGIN SIGNED OFFER-----")) {
             pContract.reset(new OTOffer());
             OT_ASSERT(pContract);
-        }
-        else if (strFirstLine.Contains("-----BEGIN SIGNED INVOICE-----")) {
+        } else if (strFirstLine.Contains("-----BEGIN SIGNED INVOICE-----")) {
             pContract.reset(new Cheque());
             OT_ASSERT(pContract);
-        }
-        else if (strFirstLine.Contains("-----BEGIN SIGNED VOUCHER-----")) {
+        } else if (strFirstLine.Contains("-----BEGIN SIGNED VOUCHER-----")) {
             pContract.reset(new Cheque());
             OT_ASSERT(pContract);
-        }
-        else if (strFirstLine.Contains("-----BEGIN SIGNED CHEQUE-----")) {
+        } else if (strFirstLine.Contains("-----BEGIN SIGNED CHEQUE-----")) {
             pContract.reset(new Cheque());
             OT_ASSERT(pContract);
-        }
-        else if (strFirstLine.Contains("-----BEGIN SIGNED MESSAGE-----")) {
+        } else if (strFirstLine.Contains("-----BEGIN SIGNED MESSAGE-----")) {
             pContract.reset(new Message());
             OT_ASSERT(pContract);
-        }
-        else if (strFirstLine.Contains("-----BEGIN SIGNED MINT-----")) {
+        } else if (strFirstLine.Contains("-----BEGIN SIGNED MINT-----")) {
             pContract.reset(Mint::MintFactory());
             OT_ASSERT(pContract);
-        }
-        else if (strFirstLine.Contains("-----BEGIN SIGNED FILE-----")) {
+        } else if (strFirstLine.Contains("-----BEGIN SIGNED FILE-----")) {
             pContract.reset(new OTSignedFile());
             OT_ASSERT(pContract);
-        }
-        else if (strFirstLine.Contains("-----BEGIN SIGNED CASH-----")) {
+        } else if (strFirstLine.Contains("-----BEGIN SIGNED CASH-----")) {
             pContract.reset(Token::LowLevelInstantiate(strFirstLine));
             OT_ASSERT(pContract);
-        }
-        else if (strFirstLine.Contains("-----BEGIN SIGNED CASH TOKEN-----")) {
+        } else if (strFirstLine.Contains("-----BEGIN SIGNED CASH TOKEN-----")) {
             pContract.reset(Token::LowLevelInstantiate(strFirstLine));
             OT_ASSERT(pContract);
-        }
-        else if (strFirstLine.Contains(
+        } else if (strFirstLine.Contains(
                        "-----BEGIN SIGNED LUCRE CASH TOKEN-----")) {
             pContract.reset(Token::LowLevelInstantiate(strFirstLine));
             OT_ASSERT(pContract);
@@ -148,7 +139,7 @@ opentxs::Contract* InstantiateContract(opentxs::String strInput)
             otOut << __FUNCTION__
                   << ": Object type not yet supported by class factory: "
                   << strFirstLine << "\n";
-        // Does the contract successfully load from the string passed in?
+            // Does the contract successfully load from the string passed in?
         } else if (!pContract->LoadContractFromString(strContract)) {
             otOut << __FUNCTION__
                   << ": Failed loading contract from string (first line): "
@@ -160,6 +151,6 @@ opentxs::Contract* InstantiateContract(opentxs::String strInput)
     return nullptr;
 }
 
-} // unnamed namespace
+}  // unnamed namespace
 
-#endif // OPENTXS_EXT_INSTANTIATECONTRACT_HPP
+#endif  // OPENTXS_EXT_INSTANTIATECONTRACT_HPP

@@ -39,8 +39,10 @@
 #ifndef OPENTXS_CORE_SCRIPT_OTPARTYACCOUNT_HPP
 #define OPENTXS_CORE_SCRIPT_OTPARTYACCOUNT_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/String.hpp"
-#include "opentxs/core/Types.hpp"
+#include "opentxs/Types.hpp"
 
 #include <stdint.h>
 #include <map>
@@ -94,29 +96,29 @@ class Tag;
 //
 class OTPartyAccount
 {
-    OTParty* m_pForParty; // When being added to a party, this pointer will be
-                          // set.
+    OTParty* m_pForParty;  // When being added to a party, this pointer will be
+                           // set.
     // NOTE: each party needs to have a list of partyaccounts, AND each account
     // on that list needs to have a CLOSING #!!! Ahh...
     Account* m_pAccount;
-    int64_t m_lClosingTransNo; // Any account that is party to an agreement,
-                               // must have a closing transaction # for
-                               // finalReceipt.
+    int64_t m_lClosingTransNo;  // Any account that is party to an agreement,
+                                // must have a closing transaction # for
+                                // finalReceipt.
     // account name (inside the script language, "gold_acct_A" could be used to
     // reference this acct.)
     //
-    String m_strName;   // Name of the account (for use in scripts.)
-    String m_strAcctID; // The Account ID itself.
-    String m_strInstrumentDefinitionID; // The instrument definition ID for the
-                                        // account.
-                                        // Stored
+    String m_strName;    // Name of the account (for use in scripts.)
+    String m_strAcctID;  // The Account ID itself.
+    String m_strInstrumentDefinitionID;  // The instrument definition ID for the
+                                         // account.
+                                         // Stored
     // because parties agree on this even before the
     // account ID is selected. Compare() uses this
     // even when the account ID is blank, and when
     // acct ID *is* added, its instrument definition must match
     // this.
-    String m_strAgentName; // The name of the agent who has rights to this
-                           // account.
+    String m_strAgentName;  // The name of the agent who has rights to this
+                            // account.
     // Entity, role, and Nym information are not stored here.
     // Entity is already known on the party who owns this account (and I should
     // have a ptr to him.)
@@ -132,65 +134,56 @@ class OTPartyAccount
 public:
     EXPORT void RegisterForExecution(OTScript& theScript);
 
-    OTParty* GetParty() const
-    {
-        return m_pForParty;
-    }
-    void SetParty(OTParty& theOwnerParty); // This happens when the partyaccount
-                                           // is added to the party. (so I have
-                                           // a ptr back)
+    OTParty* GetParty() const { return m_pForParty; }
+    void SetParty(OTParty& theOwnerParty);  // This happens when the
+                                            // partyaccount
+                                            // is added to the party. (so I have
+                                            // a ptr back)
 
     EXPORT const String& GetName() const
     {
         return m_strName;
-    } // account's name as used in a script.
+    }  // account's name as used in a script.
     const String& GetAgentName() const
     {
         return m_strAgentName;
-    } // agent's name as used in a script.
+    }  // agent's name as used in a script.
     const String& GetAcctID() const
     {
         return m_strAcctID;
-    } // account's ID as used internal to OT.
+    }  // account's ID as used internal to OT.
     const String& GetInstrumentDefinitionID() const
     {
         return m_strInstrumentDefinitionID;
-    } // instrument definition ID for the account.
+    }  // instrument definition ID for the account.
 
     void SetAgentName(const String& strAgentName)
     {
         m_strAgentName = strAgentName;
     }
-    void SetAcctID(const String& strAccountID)
-    {
-        m_strAcctID = strAccountID;
-    }
+    void SetAcctID(const String& strAccountID) { m_strAcctID = strAccountID; }
     EXPORT OTAgent* GetAuthorizedAgent();
     Account* LoadAccount(Nym& theSignerNym, const String& strNotaryID);
     bool IsAccount(Account& theAccount);
     bool IsAccountByID(const Identifier& theAcctID) const;
-    bool VerifyOwnership() const; // I have a ptr to my owner (party), as well
-                                  // as to the actual account. I will ask him to
-                                  // verify whether he actually owns it.
-    bool VerifyAgency(); // I can get a ptr to my agent, and I have one to the
-                         // actual account. I will ask him to verify whether he
-                         // actually has agency over it.
-    int64_t GetClosingTransNo() const
-    {
-        return m_lClosingTransNo;
-    }
-    void SetClosingTransNo(int64_t lTransNo)
-    {
-        m_lClosingTransNo = lTransNo;
-    }
+    bool VerifyOwnership() const;  // I have a ptr to my owner (party), as well
+    // as to the actual account. I will ask him to
+    // verify whether he actually owns it.
+    bool VerifyAgency();  // I can get a ptr to my agent, and I have one to the
+                          // actual account. I will ask him to verify whether he
+                          // actually has agency over it.
+    int64_t GetClosingTransNo() const { return m_lClosingTransNo; }
+    void SetClosingTransNo(int64_t lTransNo) { m_lClosingTransNo = lTransNo; }
     bool Compare(const OTPartyAccount& rhs) const;
-    bool DropFinalReceiptToInbox(mapOfNyms* pNymMap, const String& strNotaryID,
-                                 Nym& theServerNym,
-                                 OTSmartContract& theSmartContract,
-                                 const int64_t& lNewTransactionNumber,
-                                 const String& strOrigCronItem,
-                                 String* pstrNote = nullptr,
-                                 String* pstrAttachment = nullptr);
+    bool DropFinalReceiptToInbox(
+        mapOfNyms* pNymMap,
+        const String& strNotaryID,
+        Nym& theServerNym,
+        OTSmartContract& theSmartContract,
+        const int64_t& lNewTransactionNumber,
+        const String& strOrigCronItem,
+        String* pstrNote = nullptr,
+        String* pstrAttachment = nullptr);
     OTPartyAccount();
     OTPartyAccount(
         const std::string& str_account_name,
@@ -206,19 +199,18 @@ public:
 
     virtual ~OTPartyAccount();
 
-    void Serialize(Tag& parent, bool bCalculatingID = false,
-                   bool bSpecifyInstrumentDefinitionID = false) const;
+    void Serialize(
+        Tag& parent,
+        bool bCalculatingID = false,
+        bool bSpecifyInstrumentDefinitionID = false) const;
 
     // For pointers I don't own, but store for convenience.
     // This clears them once we're done processing, so I don't
     // end up stuck with bad pointers on the next go-around.
     //
-    void ClearTemporaryPointers()
-    {
-        m_pAccount = nullptr;
-    }
+    void ClearTemporaryPointers() { m_pAccount = nullptr; }
 };
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CORE_SCRIPT_OTPARTYACCOUNT_HPP
+#endif  // OPENTXS_CORE_SCRIPT_OTPARTYACCOUNT_HPP

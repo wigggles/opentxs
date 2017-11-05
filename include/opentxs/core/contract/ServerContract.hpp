@@ -39,9 +39,11 @@
 #ifndef OPENTXS_CORE_CONTRACT_SERVERCONTRACT_HPP
 #define OPENTXS_CORE_CONTRACT_SERVERCONTRACT_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/Nym.hpp"
-#include "opentxs/core/Proto.hpp"
+#include "opentxs/Proto.hpp"
 #include "opentxs/network/ZMQ.hpp"
 
 #include <cstdint>
@@ -60,11 +62,12 @@ class ServerContract : public Signable
 {
 public:
     /** A server listen address */
-    typedef std::tuple<proto::AddressType,
-                       proto::ProtocolVersion,
-                       std::string,    // hostname / address
-                       std::uint32_t,  // port
-                       std::uint32_t>  // version
+    typedef std::tuple<
+        proto::AddressType,
+        proto::ProtocolVersion,
+        std::string,    // hostname / address
+        std::uint32_t,  // port
+        std::uint32_t>  // version
         Endpoint;
 
 private:
@@ -79,9 +82,8 @@ private:
     proto::ServerContract IDVersion(const Lock& lock) const;
     proto::ServerContract SigVersion(const Lock& lock) const;
     bool validate(const Lock& lock) const override;
-    bool verify_signature(
-        const Lock& lock,
-        const proto::Signature& signature) const override;
+    bool verify_signature(const Lock& lock, const proto::Signature& signature)
+        const override;
 
     bool update_signature(const Lock& lock) override;
 

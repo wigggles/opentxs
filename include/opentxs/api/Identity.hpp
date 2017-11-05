@@ -39,8 +39,10 @@
 #ifndef OPENTXS_CORE_API_IDENTITY_HPP
 #define OPENTXS_CORE_API_IDENTITY_HPP
 
-#include "opentxs/core/Proto.hpp"
-#include "opentxs/core/Types.hpp"
+#include "opentxs/Version.hpp"
+
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
 
 #include <cstdint>
 #include <list>
@@ -53,6 +55,9 @@ namespace opentxs
 class OT;
 class Nym;
 class OTPasswordData;
+
+namespace api
+{
 
 class Identity
 {
@@ -125,5 +130,7 @@ public:
         const std::int64_t end = 0,
         const OTPasswordData* pPWData = nullptr) const;
 };
+}  // namespace api
 }  // namespace opentxs
+
 #endif  // OPENTXS_CORE_API_IDENTITY_HPP

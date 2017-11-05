@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/core/contract/peer/ConnectionReply.hpp"
 
@@ -45,12 +45,12 @@ namespace opentxs
 ConnectionReply::ConnectionReply(
     const ConstNym& nym,
     const proto::PeerReply& serialized)
-      : ot_super(nym, serialized)
-      , success_(serialized.connectioninfo().success())
-      , url_(serialized.connectioninfo().url())
-      , login_(serialized.connectioninfo().login())
-      , password_(serialized.connectioninfo().password())
-      , key_(serialized.connectioninfo().key())
+    : ot_super(nym, serialized)
+    , success_(serialized.connectioninfo().success())
+    , url_(serialized.connectioninfo().url())
+    , login_(serialized.connectioninfo().login())
+    , password_(serialized.connectioninfo().password())
+    , key_(serialized.connectioninfo().key())
 {
 }
 
@@ -64,13 +64,17 @@ ConnectionReply::ConnectionReply(
     const std::string& login,
     const std::string& password,
     const std::string& key)
-      : ot_super(
-          nym, initiator, server, proto::PEERREQUEST_CONNECTIONINFO, request)
-      , success_(ack)
-      , url_(url)
-      , login_(login)
-      , password_(password)
-      , key_(key)
+    : ot_super(
+          nym,
+          initiator,
+          server,
+          proto::PEERREQUEST_CONNECTIONINFO,
+          request)
+    , success_(ack)
+    , url_(url)
+    , login_(login)
+    , password_(password)
+    , key_(key)
 {
 }
 
@@ -88,4 +92,4 @@ proto::PeerReply ConnectionReply::IDVersion(const Lock& lock) const
 
     return contract;
 }
-} // namespace opentxs
+}  // namespace opentxs

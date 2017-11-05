@@ -39,10 +39,14 @@
 #ifndef OPENTXS_SERVER_MACROS_HPP
 #define OPENTXS_SERVER_MACROS_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/Log.hpp"
 #include "opentxs/server/ServerSettings.hpp"
 
 namespace opentxs
+{
+namespace server
 {
 
 // For NYM_IS_ALLOWED() to evaluate to TRUE, either the boolean value itself is
@@ -69,7 +73,7 @@ namespace opentxs
             return false;                                                      \
         }                                                                      \
     }
-
+}  // namespace server
 }  // namespace opentxs
 
 #endif  // OPENTXS_SERVER_MACROS_HPP

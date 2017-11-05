@@ -39,8 +39,10 @@
 #ifndef OPENTXS_NETWORK_SERVERCONNECTION_HPP
 #define OPENTXS_NETWORK_SERVERCONNECTION_HPP
 
-#include "opentxs/core/Proto.hpp"
-#include "opentxs/core/Types.hpp"
+#include "opentxs/Version.hpp"
+
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
 #include "opentxs/network/ZMQ.hpp"
 
 #include <atomic>
@@ -54,19 +56,23 @@ namespace opentxs
 {
 
 class ServerContract;
-class Settings;
 class String;
+
+namespace api
+{
+class Settings;
 class ZMQ;
+}  // namespace api
 
 class ServerConnection
 {
 private:
-    friend class ZMQ;
+    friend class api::ZMQ;
 
     std::atomic<bool>& shutdown_;
     std::atomic<std::chrono::seconds>& keep_alive_;
-    ZMQ& zmq_;
-    Settings& config_;
+    api::ZMQ& zmq_;
+    api::Settings& config_;
 
     std::shared_ptr<const ServerContract> remote_contract_{nullptr};
     const std::string remote_endpoint_{""};
@@ -96,8 +102,8 @@ private:
         const std::string& proxy,
         std::atomic<bool>& shutdown,
         std::atomic<std::chrono::seconds>& keepAlive,
-        ZMQ& zmq,
-        Settings& config);
+        api::ZMQ& zmq,
+        api::Settings& config);
     ServerConnection(const ServerConnection&) = delete;
     ServerConnection(ServerConnection&&) = delete;
     ServerConnection& operator=(const ServerConnection&) = delete;

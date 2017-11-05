@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CLIENT_OPENTRANSACTIONS_HPP
 #define OPENTXS_CLIENT_OPENTRANSACTIONS_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/contract/peer/PeerObject.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
@@ -46,7 +48,7 @@
 #include "opentxs/core/Item.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/core/Types.hpp"
+#include "opentxs/Types.hpp"
 
 #include <memory>
 #include <mutex>
@@ -57,13 +59,10 @@ namespace opentxs
 {
 
 class Account;
-class Activity;
-class Api;
 class Basket;
 class BasketContract;
 class Cheque;
 class CurrencyContract;
-class Identity;
 class Ledger;
 class Message;
 class Mint;
@@ -79,12 +78,21 @@ class OTPaymentPlan;
 class OTWallet;
 class Purse;
 class ServerContract;
-class Settings;
-class Storage;
 class Token;
 class UnitDefinition;
+
+namespace api
+{
+
+class Activity;
+class Api;
+class Identity;
+class Settings;
+class Storage;
 class Wallet;
 class ZMQ;
+
+}  // namespace api
 
 // The C++ high-level interface to the Open Transactions client-side.
 class OT_API
@@ -1351,16 +1359,16 @@ public:
     EXPORT ~OT_API();  // calls Cleanup();
 
 private:
-    friend class Api;
+    friend class api::Api;
 
     class Pid;
 
-    Activity& activity_;
-    Settings& config_;
-    Identity& identity_;
-    Storage& storage_;
-    Wallet& wallet_;
-    ZMQ& zeromq_;
+    api::Activity& activity_;
+    api::Settings& config_;
+    api::Identity& identity_;
+    api::Storage& storage_;
+    api::Wallet& wallet_;
+    api::ZMQ& zeromq_;
 
     bool m_bDefaultStore{false};
 
@@ -1419,12 +1427,12 @@ private:
     bool LoadConfigFile();
 
     OT_API(
-        Activity& activity,
-        Settings& config,
-        Identity& identity,
-        Storage& storage,
-        Wallet& wallet,
-        ZMQ& zmq,
+        api::Activity& activity,
+        api::Settings& config,
+        api::Identity& identity,
+        api::Storage& storage,
+        api::Wallet& wallet,
+        api::ZMQ& zmq,
         std::recursive_mutex& lock);
     OT_API() = delete;
     OT_API(const OT_API&) = delete;

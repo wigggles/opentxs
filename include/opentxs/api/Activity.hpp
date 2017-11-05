@@ -39,8 +39,10 @@
 #ifndef OPENTXS_API_ACTIVITY_HPP
 #define OPENTXS_API_ACTIVITY_HPP
 
-#include "opentxs/core/Proto.hpp"
-#include "opentxs/core/Types.hpp"
+#include "opentxs/Version.hpp"
+
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
 
 #include <map>
 #include <memory>
@@ -51,10 +53,14 @@ namespace opentxs
 {
 
 class Contact;
-class ContactManager;
 class Identifier;
 class Message;
 class OT;
+
+namespace api
+{
+
+class ContactManager;
 class Storage;
 class Wallet;
 
@@ -198,7 +204,7 @@ public:
     ~Activity() = default;
 
 private:
-    friend class OT;
+    friend class opentxs::OT;
 
     typedef std::map<Identifier, std::shared_ptr<const std::string>> MailCache;
 
@@ -236,5 +242,6 @@ private:
     Activity operator=(const Activity&) = delete;
     Activity operator=(Activity&&) = delete;
 };
+}  // namespace api
 }  // namespace opentxs
 #endif  // OPENTXS_API_ACTIVITY_HPP

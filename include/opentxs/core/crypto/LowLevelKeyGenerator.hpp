@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_CRYPTO_LOWLEVELKEYGENERATOR_HPP
 #define OPENTXS_CORE_CRYPTO_LOWLEVELKEYGENERATOR_HPP
 
+#include "opentxs/Version.hpp"
+
 #include <memory>
 
 namespace opentxs

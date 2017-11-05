@@ -36,10 +36,12 @@
 
 #pragma once
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/util/Common.hpp"
 
-#include <stdexcept> // std::runtime_error
-#include <string>    // STL string classes
+#include <stdexcept>  // std::runtime_error
+#include <string>     // STL string classes
 
 namespace utf8util
 {
@@ -62,20 +64,23 @@ public:
 
     // Type of conversion
     enum conversion_type {
-        conversion_utf8_from_utf16, // UTF-16 ---> UTF-8
-        conversion_utf16_from_utf8  // UTF-8  ---> UTF-16
+        conversion_utf8_from_utf16,  // UTF-16 ---> UTF-8
+        conversion_utf16_from_utf8   // UTF-8  ---> UTF-16
     };
 
     // Constructs an UTF-8 conversion error exception
     // with a raw C string message, conversion type and error code.
-    utf8_conversion_error(const char* message, conversion_type conversion,
-                          error_code_type error_code);
+    utf8_conversion_error(
+        const char* message,
+        conversion_type conversion,
+        error_code_type error_code);
 
     // Constructs an UTF-8 conversion error exception
     // with a std::string message, conversion type and error code.
-    utf8_conversion_error(const std::string& message,
-                          conversion_type conversion,
-                          error_code_type error_code);
+    utf8_conversion_error(
+        const std::string& message,
+        conversion_type conversion,
+        error_code_type error_code);
 
     // Returns the type of conversion (UTF-8 from UTF-16, or vice versa)
     conversion_type conversion() const;
@@ -88,8 +93,8 @@ public:
     // IMPLEMENTATION
     //
 private:
-    conversion_type m_conversion; // kind of conversion
-    error_code_type m_error_code; // error code
+    conversion_type m_conversion;  // kind of conversion
+    error_code_type m_error_code;  // error code
 };
 
 // Converts a string from UTF-8 to UTF-16.
@@ -110,8 +115,8 @@ EXPORT std::string UTF8FromUTF16(const std::wstring& utf16);
 // If the input pointer is nullptr, an empty string is returned.
 EXPORT std::string UTF8FromUTF16(const wchar_t* utf16);
 
-} // namespace utf8util
+}  // namespace utf8util
 
-#include "win32_utf8conv_inl.hpp" // inline implementations
+#include "win32_utf8conv_inl.hpp"  // inline implementations
 
 //////////////////////////////////////////////////////////////////////////

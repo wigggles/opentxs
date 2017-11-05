@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/client/OTMessageBuffer.hpp"
 
@@ -77,9 +77,10 @@ void OTMessageBuffer::Push(std::shared_ptr<Message> theMessage)
 // Therefore, we do NOT want to discard THOSE replies, but put them back if
 // necessary -- only discarding the ones where the IDs match.
 //
-std::shared_ptr<Message> OTMessageBuffer::Pop(const int64_t& lRequestNum,
-                                              const String& strNotaryID,
-                                              const String& strNymID)
+std::shared_ptr<Message> OTMessageBuffer::Pop(
+    const int64_t& lRequestNum,
+    const String& strNotaryID,
+    const String& strNymID)
 {
     std::shared_ptr<Message> pReturnValue;
 
@@ -120,17 +121,17 @@ std::shared_ptr<Message> OTMessageBuffer::Pop(const int64_t& lRequestNum,
         if (lMsgRequest == lRequestNum) {
             pReturnValue = pMsg;
             break;
-        }
-        else // Server/Nym IDs match, BUT -- Wrong request num! (Discard
-               // message and skip.)
+        } else  // Server/Nym IDs match, BUT -- Wrong request num! (Discard
+                // message and skip.)
         {
             otOut << "OTMessageBuffer::Pop: Warning: While looking for server ("
                   << strNotaryID << ") reply to request number " << lRequestNum
                   << " for Nym (" << strNymID
                   << "), "
                      "discovered (and discarded) an old server reply for "
-                     "request number " << lMsgRequest << " "
-                                                         "(A "
+                     "request number "
+                  << lMsgRequest << " "
+                                    "(A "
                   << pMsg->m_strCommand
                   << " command. The client should have flushed it by now "
                      "anyway, so it was probably slow on the network "
@@ -140,7 +141,7 @@ std::shared_ptr<Message> OTMessageBuffer::Pop(const int64_t& lRequestNum,
             continue;
         }
 
-    } // while
+    }  // while
 
     // Put the other messages back, in order...
     //
@@ -153,14 +154,8 @@ std::shared_ptr<Message> OTMessageBuffer::Pop(const int64_t& lRequestNum,
     return pReturnValue;
 }
 
-OTMessageBuffer::~OTMessageBuffer()
-{
-    Clear();
-}
+OTMessageBuffer::~OTMessageBuffer() { Clear(); }
 
-void OTMessageBuffer::Clear()
-{
-    messages_.clear();
-}
+void OTMessageBuffer::Clear() { messages_.clear(); }
 
-} // namespace opentxs
+}  // namespace opentxs

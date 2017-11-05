@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_API_API_HPP
 #define OPENTXS_CORE_API_API_HPP
 
+#include "opentxs/Version.hpp"
+
 #include <memory>
 #include <mutex>
 #include <string>
@@ -46,16 +48,20 @@
 namespace opentxs
 {
 
-class Activity;
-class ContactManager;
 class CryptoEngine;
-class Identity;
 class MadeEasy;
 class OT;
 class OT_API;
 class OT_ME;
 class OTAPI_Exec;
 class OTME_too;
+
+namespace api
+{
+
+class Activity;
+class ContactManager;
+class Identity;
 class Settings;
 class Storage;
 class Wallet;
@@ -75,7 +81,7 @@ public:
     ~Api() = default;
 
 private:
-    friend class OT;
+    friend class opentxs::OT;
 
     Activity& activity_;
     Settings& config_;
@@ -111,6 +117,7 @@ private:
     Api& operator=(const Api&) = delete;
     Api& operator=(Api&&) = delete;
 };
-
+}  // namespace api
 }  // namespace opentxs
+
 #endif  // OPENTXS_CORE_API_API_HPP

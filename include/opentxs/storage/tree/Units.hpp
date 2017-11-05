@@ -39,6 +39,8 @@
 #ifndef OPENTXS_STORAGE_TREE_UNITS_HPP
 #define OPENTXS_STORAGE_TREE_UNITS_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/api/Editor.hpp"
 #include "opentxs/storage/Storage.hpp"
 #include "opentxs/storage/tree/Node.hpp"

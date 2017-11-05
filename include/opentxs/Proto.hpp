@@ -54,13 +54,14 @@ namespace opentxs
 {
 namespace proto
 {
-template<class T>
+template <class T>
 Data ProtoAsData(const T& serialized)
 {
     auto size = serialized.ByteSize();
-    char* protoArray = new char [size];
+    char* protoArray = new char[size];
 
-    OT_ASSERT_MSG(nullptr != protoArray, "protoArray failed to dynamically allocate.");
+    OT_ASSERT_MSG(
+        nullptr != protoArray, "protoArray failed to dynamically allocate.");
 
     serialized.SerializeToArray(protoArray, size);
     Data serializedData(protoArray, size);
@@ -68,13 +69,14 @@ Data ProtoAsData(const T& serialized)
     return serializedData;
 }
 
-template<class T>
+template <class T>
 std::string ProtoAsString(const T& serialized)
 {
     auto size = serialized.ByteSize();
-    char* protoArray = new char [size];
+    char* protoArray = new char[size];
 
-    OT_ASSERT_MSG(nullptr != protoArray, "protoArray failed to dynamically allocate.");
+    OT_ASSERT_MSG(
+        nullptr != protoArray, "protoArray failed to dynamically allocate.");
 
     serialized.SerializeToArray(protoArray, size);
     std::string serializedData(protoArray, size);
@@ -82,7 +84,7 @@ std::string ProtoAsString(const T& serialized)
     return serializedData;
 }
 
-template<class T>
+template <class T>
 String ProtoAsArmored(const T& serialized, const String& header)
 {
     auto data = ProtoAsData<T>(serialized);
@@ -93,7 +95,7 @@ String ProtoAsArmored(const T& serialized, const String& header)
     return output;
 }
 
-template<class T>
+template <class T>
 T RawToProto(const char* input, const size_t size)
 {
     T serialized;
@@ -102,21 +104,20 @@ T RawToProto(const char* input, const size_t size)
     return serialized;
 }
 
-template<class T>
+template <class T>
 T TextToProto(const std::string& input)
 {
     return RawToProto<T>(input.data(), input.size());
 }
 
-template<class T>
+template <class T>
 T DataToProto(const Data& input)
 {
     return RawToProto<T>(
-        static_cast<const char*>(input.GetPointer()),
-        input.GetSize());
+        static_cast<const char*>(input.GetPointer()), input.GetSize());
 }
 
-template<class T>
+template <class T>
 T StringToProto(const String& input)
 {
     OTASCIIArmor armored;
@@ -133,7 +134,7 @@ T StringToProto(const String& input)
     }
 }
 
-} // namespace proto
-} // namespace opentxs
+}  // namespace proto
+}  // namespace opentxs
 
-#endif // OPENTXS_CORE_PROTO_HPP
+#endif  // OPENTXS_CORE_PROTO_HPP

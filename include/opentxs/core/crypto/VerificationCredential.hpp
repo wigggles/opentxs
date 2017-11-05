@@ -39,9 +39,11 @@
 #ifndef OPENTXS_CORE_CRYPTO_VERIFICATIONCREDENTIAL_HPP
 #define OPENTXS_CORE_CRYPTO_VERIFICATIONCREDENTIAL_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/crypto/Credential.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
-#include "opentxs/core/Proto.hpp"
+#include "opentxs/Proto.hpp"
 
 #include <memory>
 
@@ -78,12 +80,12 @@ public:
     static proto::Verification SigningForm(const proto::Verification& item);
     static std::string VerificationID(const proto::Verification& item);
 
-    bool GetVerificationSet(
-        std::unique_ptr<proto::VerificationSet>& verificationSet) const override;
+    bool GetVerificationSet(std::unique_ptr<proto::VerificationSet>&
+                                verificationSet) const override;
 
     virtual ~VerificationCredential() = default;
 };
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CORE_CRYPTO_VERIFICATIONCREDENTIAL_HPP
+#endif  // OPENTXS_CORE_CRYPTO_VERIFICATIONCREDENTIAL_HPP

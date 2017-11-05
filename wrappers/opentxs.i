@@ -35,7 +35,7 @@ typedef int64_t time64_t;
 #include "opentxs/core/crypto/OTCaller.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/OTStorage.hpp"
-#include "opentxs/core/Types.hpp"
+#include "opentxs/Types.hpp"
 
 #include <string>
 #include <vector>

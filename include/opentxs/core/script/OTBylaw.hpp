@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_SCRIPT_OTBYLAW_HPP
 #define OPENTXS_CORE_SCRIPT_OTBYLAW_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/script/OTVariable.hpp"
 #include "opentxs/core/String.hpp"
 
@@ -71,53 +73,55 @@ typedef std::multimap<std::string, std::string> mapOfHooks;
 //
 class OTBylaw
 {
-    String m_strName;     // Name of this Bylaw.
-    String m_strLanguage; // Language that the scripts are written in, for
-                          // this bylaw.
+    String m_strName;      // Name of this Bylaw.
+    String m_strLanguage;  // Language that the scripts are written in, for
+                           // this bylaw.
 
-    mapOfVariables m_mapVariables; // constant, persistant, and important
-                                   // variables (strings and longs)
-    mapOfClauses m_mapClauses;     // map of scripts associated with this bylaw.
+    mapOfVariables m_mapVariables;  // constant, persistant, and important
+                                    // variables (strings and longs)
+    mapOfClauses m_mapClauses;  // map of scripts associated with this bylaw.
 
-    mapOfHooks m_mapHooks; // multimap of server hooks associated with clauses.
-                           // string / string
-    mapOfCallbacks m_mapCallbacks; // map of standard callbacks associated with
-                                   // script clauses. string / string
+    mapOfHooks m_mapHooks;  // multimap of server hooks associated with clauses.
+                            // string / string
+    mapOfCallbacks m_mapCallbacks;  // map of standard callbacks associated with
+                                    // script clauses. string / string
 
-    OTScriptable* m_pOwnerAgreement; // This Bylaw is owned by an agreement
-                                     // (OTScriptable-derived.)
+    OTScriptable* m_pOwnerAgreement;  // This Bylaw is owned by an agreement
+                                      // (OTScriptable-derived.)
 public:
-    EXPORT const String& GetName() const
-    {
-        return m_strName;
-    }
+    EXPORT const String& GetName() const { return m_strName; }
     EXPORT const char* GetLanguage() const;
     EXPORT bool AddVariable(OTVariable& theVariable);
     EXPORT bool AddVariable(
-        std::string str_Name, std::string str_Value,
+        std::string str_Name,
+        std::string str_Value,
         OTVariable::OTVariable_Access theAccess = OTVariable::Var_Persistent);
     EXPORT bool AddVariable(
-        std::string str_Name, int32_t nValue,
+        std::string str_Name,
+        int32_t nValue,
         OTVariable::OTVariable_Access theAccess = OTVariable::Var_Persistent);
     EXPORT bool AddVariable(
-        std::string str_Name, bool bValue,
+        std::string str_Name,
+        bool bValue,
         OTVariable::OTVariable_Access theAccess = OTVariable::Var_Persistent);
     EXPORT bool AddClause(OTClause& theClause);
     EXPORT bool AddClause(const char* szName, const char* szCode);
-    EXPORT bool AddHook(std::string str_HookName,
-                        std::string str_ClauseName); // name of hook such
-                                                     // as cron_process or
-                                                     // hook_activate, and
-                                                     // name of clause,
-                                                     // such as sectionA
-                                                     // (corresponding to
-                                                     // an actual script
-                                                     // in the clauses
-                                                     // map.)
-    EXPORT bool AddCallback(std::string str_CallbackName,
-                            std::string str_ClauseName); // name of
-                                                         // callback such
-                                                         // as
+    EXPORT bool AddHook(
+        std::string str_HookName,
+        std::string str_ClauseName);  // name of hook such
+                                      // as cron_process or
+                                      // hook_activate, and
+                                      // name of clause,
+                                      // such as sectionA
+                                      // (corresponding to
+                                      // an actual script
+                                      // in the clauses
+                                      // map.)
+    EXPORT bool AddCallback(
+        std::string str_CallbackName,
+        std::string str_ClauseName);  // name of
+                                      // callback such
+                                      // as
     // callback_party_may_execute_clause,
     // and name of clause, such as
     // custom_party_may_execute_clause
@@ -131,19 +135,20 @@ public:
 
     EXPORT bool UpdateClause(std::string str_Name, std::string str_Code);
 
-    EXPORT OTVariable* GetVariable(std::string str_Name); // not a
-                                                          // reference, so
-                                                          // you can pass
-                                                          // in char *.
-                                                          // Maybe that's
-                                                          // bad? todo:
-                                                          // research
-                                                          // that.
+    EXPORT OTVariable* GetVariable(std::string str_Name);  // not a
+                                                           // reference, so
+                                                           // you can pass
+                                                           // in char *.
+                                                           // Maybe that's
+                                                           // bad? todo:
+                                                           // research
+                                                           // that.
     EXPORT OTClause* GetClause(std::string str_Name) const;
     EXPORT OTClause* GetCallback(std::string str_CallbackName);
-    EXPORT bool GetHooks(std::string str_HookName,
-                         mapOfClauses& theResults); // Look up all clauses
-                                                    // matching a specific hook.
+    EXPORT bool GetHooks(
+        std::string str_HookName,
+        mapOfClauses& theResults);  // Look up all clauses
+                                    // matching a specific hook.
     EXPORT int32_t GetVariableCount() const
     {
         return static_cast<int32_t>(m_mapVariables.size());
@@ -167,21 +172,18 @@ public:
     EXPORT const std::string GetCallbackNameByIndex(int32_t nIndex);
     EXPORT const std::string GetHookNameByIndex(int32_t nIndex);
     EXPORT void RegisterVariablesForExecution(OTScript& theScript);
-    EXPORT bool IsDirty() const; // So you can tell if any of the persistent or
-                                 // important variables have CHANGED since it
-                                 // was last set clean.
-    EXPORT bool IsDirtyImportant() const; // So you can tell if ONLY the
-                                          // IMPORTANT variables have CHANGED
-                                          // since it was last set clean.
-    EXPORT void SetAsClean(); // Sets the variables as clean, so you can check
-                              // later and see if any have been changed (if it's
-                              // DIRTY again.)
+    EXPORT bool IsDirty() const;  // So you can tell if any of the persistent or
+                                  // important variables have CHANGED since it
+                                  // was last set clean.
+    EXPORT bool IsDirtyImportant() const;  // So you can tell if ONLY the
+                                           // IMPORTANT variables have CHANGED
+                                           // since it was last set clean.
+    EXPORT void SetAsClean();  // Sets the variables as clean, so you can check
+    // later and see if any have been changed (if it's
+    // DIRTY again.)
     // This pointer isn't owned -- just stored for convenience.
     //
-    EXPORT OTScriptable* GetOwnerAgreement()
-    {
-        return m_pOwnerAgreement;
-    }
+    EXPORT OTScriptable* GetOwnerAgreement() { return m_pOwnerAgreement; }
     EXPORT void SetOwnerAgreement(OTScriptable& theOwner)
     {
         m_pOwnerAgreement = &theOwner;
@@ -195,6 +197,6 @@ public:
     EXPORT void Serialize(Tag& parent, bool bCalculatingID = false) const;
 };
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CORE_SCRIPT_OTBYLAW_HPP
+#endif  // OPENTXS_CORE_SCRIPT_OTBYLAW_HPP

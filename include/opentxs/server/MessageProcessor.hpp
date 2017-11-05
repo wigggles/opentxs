@@ -39,36 +39,48 @@
 #ifndef OPENTXS_SERVER_MESSAGEPROCESSOR_HPP
 #define OPENTXS_SERVER_MESSAGEPROCESSOR_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/network/ZMQ.hpp"
 
+#include <atomic>
 #include <memory>
 #include <string>
+#include <thread>
 
 namespace opentxs
 {
+namespace server
+{
 
-class ServerLoader;
-class OTServer;
+class Server;
 
 class MessageProcessor
 {
 public:
-    EXPORT explicit MessageProcessor(ServerLoader& loader);
-    ~MessageProcessor();
-    EXPORT void run();
+    EXPORT explicit MessageProcessor(
+        Server& server,
+        std::atomic<bool>& shutdown);
+
+    EXPORT void Cleanup();
+    EXPORT void Init(int port, zcert_t* transportKey);
+    EXPORT void Start();
+
+    EXPORT ~MessageProcessor();
 
 private:
-    void init(int port, zcert_t* transportKey);
+    Server& server_;
+    std::atomic<bool>& shutdown_;
+    zsock_t* zmqSocket_{nullptr};
+    zactor_t* zmqAuth_{nullptr};
+    zpoller_t* zmqPoller_{nullptr};
+    std::unique_ptr<std::thread> thread_{nullptr};
+
     bool processMessage(const std::string& messageString, std::string& reply);
     void processSocket();
-
-private:
-    OTServer* server_;
-    zsock_t* zmqSocket_;
-    zactor_t* zmqAuth_;
-    zpoller_t* zmqPoller_;
+    void run();
 };
+}  // namespace server
+}  // namespace opentxs
 
-} // namespace opentxs
-
-#endif // OPENTXS_SERVER_MESSAGEPROCESSOR_HPP
+#endif  // OPENTXS_SERVER_MESSAGEPROCESSOR_HPP

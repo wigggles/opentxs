@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_OTSTORAGEPB_HPP
 #define OPENTXS_CORE_OTSTORAGEPB_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/util/Assert.hpp"
 
 #include <deque>
@@ -83,9 +85,7 @@ namespace OTDB
 class IStorablePB : public IStorable
 {
 public:
-    virtual ~IStorablePB()
-    {
-    }
+    virtual ~IStorablePB() {}
 
     virtual ::google::protobuf::MessageLite* getPBMessage();
     virtual bool onPack(PackedBuffer& theBuffer, Storable& inObj);
@@ -108,9 +108,7 @@ public:
         : PackedBuffer()
     {
     }
-    virtual ~BufferPB()
-    {
-    }
+    virtual ~BufferPB() {}
     bool PackString(const std::string& theString) override;
     bool UnpackString(std::string& theString) override;
     bool ReadFromIStream(std::istream& inStream, int64_t lFilesize) override;
@@ -118,10 +116,7 @@ public:
     const uint8_t* GetData() override;
     size_t GetSize() override;
     void SetData(const uint8_t* pData, size_t theSize) override;
-    std::string& GetBuffer()
-    {
-        return m_buffer;
-    }
+    std::string& GetBuffer() { return m_buffer; }
 };
 
 // Protocol Buffers packer.
@@ -130,8 +125,10 @@ typedef PackerSubclass<BufferPB> PackerPB;
 
 // Used for subclassing IStorablePB:
 //
-template <class theBaseType, class theInternalType,
-          StoredObjectType theObjectType>
+template <
+    class theBaseType,
+    class theInternalType,
+    StoredObjectType theObjectType>
 class ProtobufSubclass : public theBaseType, public IStorablePB
 {
 private:
@@ -153,130 +150,208 @@ public:
         m_Type += "PB";
         /*std::cout << m_Type << " -- Constructor" << std::endl;*/ }
 
-    ProtobufSubclass(const ProtobufSubclass<theBaseType, theInternalType,
-                                            theObjectType>& rhs)
-        : theBaseType()
-        , IStorablePB()
-        , m_Type(StoredObjectTypeStrings[static_cast<int32_t>(theObjectType)])
-    {
-        m_Type += "PB";
-        /*std::cout << m_Type << " -- Copy Constructor" << std::endl; */ rhs
-            .CopyToObject(*this);
-    }
+        ProtobufSubclass(
+            const ProtobufSubclass<theBaseType, theInternalType, theObjectType>&
+                rhs)
+            : theBaseType()
+            , IStorablePB()
+            , m_Type(
+                  StoredObjectTypeStrings[static_cast<int32_t>(theObjectType)])
+        {
+            m_Type += "PB";
+            /*std::cout << m_Type << " -- Copy Constructor" << std::endl; */ rhs
+                .CopyToObject(*this);
+        }
 
-    ProtobufSubclass<theBaseType, theInternalType, theObjectType>& operator=(
-        const ProtobufSubclass<theBaseType, theInternalType, theObjectType>&
-            rhs)
-    {
-        rhs.CopyToObject(*this);
-        return *this;
-    }
+        ProtobufSubclass<theBaseType, theInternalType, theObjectType>&
+        operator=(
+            const ProtobufSubclass<theBaseType, theInternalType, theObjectType>&
+                rhs)
+        {
+            rhs.CopyToObject(*this);
+            return *this;
+        }
 
-    void CopyToObject(ProtobufSubclass<theBaseType, theInternalType,
-                                       theObjectType>& theNewStorable) const
-    {
-        std::unique_ptr<OTPacker>
-            pPacker(OTPacker::Create(PACK_PROTOCOL_BUFFERS));
-        const OTDB::Storable* pIntermediate =
-            dynamic_cast<const OTDB::Storable*>(this);
+        void CopyToObject(
+            ProtobufSubclass<theBaseType, theInternalType, theObjectType>&
+                theNewStorable) const
+        {
+            std::unique_ptr<OTPacker> pPacker(
+                OTPacker::Create(PACK_PROTOCOL_BUFFERS));
+            const OTDB::Storable* pIntermediate =
+                dynamic_cast<const OTDB::Storable*>(this);
 
-        if (!pPacker) { OT_FAIL; }
+            if (!pPacker) {
+                OT_FAIL;
+            }
 
-        std::unique_ptr<PackedBuffer> pBuffer(
-            pPacker->Pack(*(const_cast<OTDB::Storable*>(pIntermediate))));
+            std::unique_ptr<PackedBuffer> pBuffer(
+                pPacker->Pack(*(const_cast<OTDB::Storable*>(pIntermediate))));
 
-        if (!pBuffer) { OT_FAIL; }
+            if (!pBuffer) {
+                OT_FAIL;
+            }
 
-        if (!pPacker->Unpack(*pBuffer, theNewStorable)) { OT_FAIL; }
-    }
+            if (!pPacker->Unpack(*pBuffer, theNewStorable)) {
+                OT_FAIL;
+            }
+        }
 
-    virtual ::google::protobuf::MessageLite* getPBMessage();
+        virtual ::google::protobuf::MessageLite* getPBMessage();
 
-    virtual theBaseType* clone(void) const
-    {
-        return dynamic_cast<theBaseType*>(do_clone());
-    }
+        virtual theBaseType* clone(void) const
+        {
+            return dynamic_cast<theBaseType*>(do_clone());
+        }
 
-    IStorable* do_clone(void) const
-    {
-        Storable* pNewStorable =
-            Storable::Create(theObjectType, PACK_PROTOCOL_BUFFERS);
-        if (nullptr == pNewStorable) OT_FAIL;
-        CopyToObject(*(dynamic_cast<
-            ProtobufSubclass<theBaseType, theInternalType, theObjectType>*>(
-            pNewStorable)));
-        return dynamic_cast<IStorable*>(pNewStorable);
-    }
+        IStorable* do_clone(void) const
+        {
+            Storable* pNewStorable =
+                Storable::Create(theObjectType, PACK_PROTOCOL_BUFFERS);
+            if (nullptr == pNewStorable) OT_FAIL;
+            CopyToObject(*(dynamic_cast<ProtobufSubclass<
+                               theBaseType,
+                               theInternalType,
+                               theObjectType>*>(pNewStorable)));
+            return dynamic_cast<IStorable*>(pNewStorable);
+        }
 
-    virtual ~ProtobufSubclass()
-    {
-    }
-    OT_USING_ISTORABLE_HOOKS;
-    virtual void hookBeforePack();  // <=== Implement this if you subclass.
-    virtual void hookAfterUnpack(); // <=== Implement this if you subclass.
+        virtual ~ProtobufSubclass() {}
+        OT_USING_ISTORABLE_HOOKS;
+        virtual void hookBeforePack();   // <=== Implement this if you subclass.
+        virtual void hookAfterUnpack();  // <=== Implement this if you subclass.
 };
 
-#define DECLARE_PROTOBUF_SUBCLASS(theBaseType, theInternalType, theNewType,    \
-                                  theObjectType)                               \
+#define DECLARE_PROTOBUF_SUBCLASS(                                             \
+    theBaseType, theInternalType, theNewType, theObjectType)                   \
     template <>                                                                \
-    void ProtobufSubclass<theBaseType, theInternalType,                        \
-                          theObjectType>::hookBeforePack();                    \
+    void ProtobufSubclass<theBaseType, theInternalType, theObjectType>::       \
+        hookBeforePack();                                                      \
     template <>                                                                \
-    void ProtobufSubclass<theBaseType, theInternalType,                        \
-                          theObjectType>::hookAfterUnpack();                   \
+    void ProtobufSubclass<theBaseType, theInternalType, theObjectType>::       \
+        hookAfterUnpack();                                                     \
     typedef ProtobufSubclass<theBaseType, theInternalType, theObjectType>      \
         theNewType
 
 // THE ACTUAL SUBCLASSES:
 
-DECLARE_PROTOBUF_SUBCLASS(OTDBString, String_InternalPB, StringPB,
-                          STORED_OBJ_STRING);
+DECLARE_PROTOBUF_SUBCLASS(
+    OTDBString,
+    String_InternalPB,
+    StringPB,
+    STORED_OBJ_STRING);
 DECLARE_PROTOBUF_SUBCLASS(Blob, Blob_InternalPB, BlobPB, STORED_OBJ_BLOB);
-DECLARE_PROTOBUF_SUBCLASS(StringMap, StringMap_InternalPB, StringMapPB,
-                          STORED_OBJ_STRING_MAP);
-DECLARE_PROTOBUF_SUBCLASS(BitcoinAcct, BitcoinAcct_InternalPB, BitcoinAcctPB,
-                          STORED_OBJ_BITCOIN_ACCT);
-DECLARE_PROTOBUF_SUBCLASS(BitcoinServer, BitcoinServer_InternalPB,
-                          BitcoinServerPB, STORED_OBJ_BITCOIN_SERVER);
-DECLARE_PROTOBUF_SUBCLASS(RippleServer, RippleServer_InternalPB, RippleServerPB,
-                          STORED_OBJ_RIPPLE_SERVER);
-DECLARE_PROTOBUF_SUBCLASS(LoomServer, LoomServer_InternalPB, LoomServerPB,
-                          STORED_OBJ_LOOM_SERVER);
-DECLARE_PROTOBUF_SUBCLASS(ServerInfo, ServerInfo_InternalPB, ServerInfoPB,
-                          STORED_OBJ_SERVER_INFO);
-DECLARE_PROTOBUF_SUBCLASS(ContactAcct, ContactAcct_InternalPB, ContactAcctPB,
-                          STORED_OBJ_CONTACT_ACCT);
-DECLARE_PROTOBUF_SUBCLASS(ContactNym, ContactNym_InternalPB, ContactNymPB,
-                          STORED_OBJ_CONTACT_NYM);
-DECLARE_PROTOBUF_SUBCLASS(Contact, Contact_InternalPB, ContactPB,
-                          STORED_OBJ_CONTACT);
-DECLARE_PROTOBUF_SUBCLASS(AddressBook, AddressBook_InternalPB, AddressBookPB,
-                          STORED_OBJ_ADDRESS_BOOK);
-DECLARE_PROTOBUF_SUBCLASS(WalletData, WalletData_InternalPB, WalletDataPB,
-                          STORED_OBJ_WALLET_DATA);
-DECLARE_PROTOBUF_SUBCLASS(MarketData, MarketData_InternalPB, MarketDataPB,
-                          STORED_OBJ_MARKET_DATA);
-DECLARE_PROTOBUF_SUBCLASS(MarketList, MarketList_InternalPB, MarketListPB,
-                          STORED_OBJ_MARKET_LIST);
+DECLARE_PROTOBUF_SUBCLASS(
+    StringMap,
+    StringMap_InternalPB,
+    StringMapPB,
+    STORED_OBJ_STRING_MAP);
+DECLARE_PROTOBUF_SUBCLASS(
+    BitcoinAcct,
+    BitcoinAcct_InternalPB,
+    BitcoinAcctPB,
+    STORED_OBJ_BITCOIN_ACCT);
+DECLARE_PROTOBUF_SUBCLASS(
+    BitcoinServer,
+    BitcoinServer_InternalPB,
+    BitcoinServerPB,
+    STORED_OBJ_BITCOIN_SERVER);
+DECLARE_PROTOBUF_SUBCLASS(
+    RippleServer,
+    RippleServer_InternalPB,
+    RippleServerPB,
+    STORED_OBJ_RIPPLE_SERVER);
+DECLARE_PROTOBUF_SUBCLASS(
+    LoomServer,
+    LoomServer_InternalPB,
+    LoomServerPB,
+    STORED_OBJ_LOOM_SERVER);
+DECLARE_PROTOBUF_SUBCLASS(
+    ServerInfo,
+    ServerInfo_InternalPB,
+    ServerInfoPB,
+    STORED_OBJ_SERVER_INFO);
+DECLARE_PROTOBUF_SUBCLASS(
+    ContactAcct,
+    ContactAcct_InternalPB,
+    ContactAcctPB,
+    STORED_OBJ_CONTACT_ACCT);
+DECLARE_PROTOBUF_SUBCLASS(
+    ContactNym,
+    ContactNym_InternalPB,
+    ContactNymPB,
+    STORED_OBJ_CONTACT_NYM);
+DECLARE_PROTOBUF_SUBCLASS(
+    Contact,
+    Contact_InternalPB,
+    ContactPB,
+    STORED_OBJ_CONTACT);
+DECLARE_PROTOBUF_SUBCLASS(
+    AddressBook,
+    AddressBook_InternalPB,
+    AddressBookPB,
+    STORED_OBJ_ADDRESS_BOOK);
+DECLARE_PROTOBUF_SUBCLASS(
+    WalletData,
+    WalletData_InternalPB,
+    WalletDataPB,
+    STORED_OBJ_WALLET_DATA);
+DECLARE_PROTOBUF_SUBCLASS(
+    MarketData,
+    MarketData_InternalPB,
+    MarketDataPB,
+    STORED_OBJ_MARKET_DATA);
+DECLARE_PROTOBUF_SUBCLASS(
+    MarketList,
+    MarketList_InternalPB,
+    MarketListPB,
+    STORED_OBJ_MARKET_LIST);
 
-DECLARE_PROTOBUF_SUBCLASS(BidData, OfferDataMarket_InternalPB, BidDataPB,
-                          STORED_OBJ_BID_DATA);
-DECLARE_PROTOBUF_SUBCLASS(AskData, OfferDataMarket_InternalPB, AskDataPB,
-                          STORED_OBJ_ASK_DATA);
-DECLARE_PROTOBUF_SUBCLASS(OfferListMarket, OfferListMarket_InternalPB,
-                          OfferListMarketPB, STORED_OBJ_OFFER_LIST_MARKET);
-DECLARE_PROTOBUF_SUBCLASS(TradeDataMarket, TradeDataMarket_InternalPB,
-                          TradeDataMarketPB, STORED_OBJ_TRADE_DATA_MARKET);
-DECLARE_PROTOBUF_SUBCLASS(TradeListMarket, TradeListMarket_InternalPB,
-                          TradeListMarketPB, STORED_OBJ_TRADE_LIST_MARKET);
-DECLARE_PROTOBUF_SUBCLASS(OfferDataNym, OfferDataNym_InternalPB, OfferDataNymPB,
-                          STORED_OBJ_OFFER_DATA_NYM);
-DECLARE_PROTOBUF_SUBCLASS(OfferListNym, OfferListNym_InternalPB, OfferListNymPB,
-                          STORED_OBJ_OFFER_LIST_NYM);
-DECLARE_PROTOBUF_SUBCLASS(TradeDataNym, TradeDataNym_InternalPB, TradeDataNymPB,
-                          STORED_OBJ_TRADE_DATA_NYM);
-DECLARE_PROTOBUF_SUBCLASS(TradeListNym, TradeListNym_InternalPB, TradeListNymPB,
-                          STORED_OBJ_TRADE_LIST_NYM);
+DECLARE_PROTOBUF_SUBCLASS(
+    BidData,
+    OfferDataMarket_InternalPB,
+    BidDataPB,
+    STORED_OBJ_BID_DATA);
+DECLARE_PROTOBUF_SUBCLASS(
+    AskData,
+    OfferDataMarket_InternalPB,
+    AskDataPB,
+    STORED_OBJ_ASK_DATA);
+DECLARE_PROTOBUF_SUBCLASS(
+    OfferListMarket,
+    OfferListMarket_InternalPB,
+    OfferListMarketPB,
+    STORED_OBJ_OFFER_LIST_MARKET);
+DECLARE_PROTOBUF_SUBCLASS(
+    TradeDataMarket,
+    TradeDataMarket_InternalPB,
+    TradeDataMarketPB,
+    STORED_OBJ_TRADE_DATA_MARKET);
+DECLARE_PROTOBUF_SUBCLASS(
+    TradeListMarket,
+    TradeListMarket_InternalPB,
+    TradeListMarketPB,
+    STORED_OBJ_TRADE_LIST_MARKET);
+DECLARE_PROTOBUF_SUBCLASS(
+    OfferDataNym,
+    OfferDataNym_InternalPB,
+    OfferDataNymPB,
+    STORED_OBJ_OFFER_DATA_NYM);
+DECLARE_PROTOBUF_SUBCLASS(
+    OfferListNym,
+    OfferListNym_InternalPB,
+    OfferListNymPB,
+    STORED_OBJ_OFFER_LIST_NYM);
+DECLARE_PROTOBUF_SUBCLASS(
+    TradeDataNym,
+    TradeDataNym_InternalPB,
+    TradeDataNymPB,
+    STORED_OBJ_TRADE_DATA_NYM);
+DECLARE_PROTOBUF_SUBCLASS(
+    TradeListNym,
+    TradeListNym_InternalPB,
+    TradeListNymPB,
+    STORED_OBJ_TRADE_LIST_NYM);
 
 typedef OfferDataMarket_InternalPB BidData_InternalPB;
 typedef OfferDataMarket_InternalPB AskData_InternalPB;
@@ -295,10 +370,10 @@ PROPERTY_NAME_GOES_HERE    = __pb_obj.PROPERTY_NAME_GOES_HERE();
 }
 */
 
-} // namespace OTDB
+}  // namespace OTDB
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // defined(OTDB_PROTOCOL_BUFFERS)
+#endif  // defined(OTDB_PROTOCOL_BUFFERS)
 
-#endif // OPENTXS_CORE_OTSTORAGEPB_HPP
+#endif  // OPENTXS_CORE_OTSTORAGEPB_HPP

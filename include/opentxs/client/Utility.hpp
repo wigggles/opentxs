@@ -39,8 +39,10 @@
 #ifndef OPENTXS_CLIENT_UTILITY_HPP
 #define OPENTXS_CLIENT_UTILITY_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/util/Common.hpp"
-#include "opentxs/core/Types.hpp"
+#include "opentxs/Types.hpp"
 
 #include <cstdint>
 #include <array>

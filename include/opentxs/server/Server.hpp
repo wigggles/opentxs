@@ -39,6 +39,8 @@
 #ifndef OPENTXS_SERVER_OTSERVER_HPP
 #define OPENTXS_SERVER_OTSERVER_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/cron/OTCron.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -62,19 +64,23 @@ namespace opentxs
 class Identifier;
 class Message;
 class OTPayment;
+class PayDividendVisitor;
 class ServerContract;
 
-class OTServer
+namespace server
+{
+
+class Server
 {
     friend class Transactor;
     friend class MessageProcessor;
     friend class UserCommandProcessor;
     friend class MainFile;
-    friend class PayDividendVisitor;
+    friend class opentxs::PayDividendVisitor;
     friend class Notary;
 
 public:
-    EXPORT OTServer();
+    EXPORT Server();
 
     EXPORT bool GetConnectInfo(std::string& hostname, std::uint32_t& port)
         const;
@@ -85,12 +91,12 @@ public:
 
     EXPORT void ActivateCron();
     EXPORT void Init(
-        std::map<std::string, std::string>& args,
+        const std::map<std::string, std::string>& args,
         bool readOnly = false);
     EXPORT void ProcessCron();
     EXPORT std::int64_t computeTimeout() { return m_Cron.computeTimeout(); }
 
-    EXPORT ~OTServer();
+    EXPORT ~Server();
 
 private:
     std::pair<std::string, std::string> parse_seed_backup(
@@ -98,7 +104,7 @@ private:
 
     void CreateMainFile(
         bool& mainFileExists,
-        std::map<std::string, std::string>& args);
+        const std::map<std::string, std::string>& args);
     // Note: SendInstrumentToNym and SendMessageToNym CALL THIS.
     // They are higher-level, this is lower-level.
     bool DropMessageToNymbox(
@@ -159,7 +165,7 @@ private:
 
     OTCron m_Cron;  // This is where re-occurring and expiring tasks go.
 };
-
+}  // namespace server
 }  // namespace opentxs
 
 #endif  // OPENTXS_SERVER_OTSERVER_HPP

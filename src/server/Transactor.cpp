@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/server/Transactor.hpp"
 
@@ -53,7 +53,7 @@
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/server/MainFile.hpp"
-#include "opentxs/server/OTServer.hpp"
+#include "opentxs/server/Server.hpp"
 
 #include <inttypes.h>
 #include <stdint.h>
@@ -62,26 +62,16 @@
 #include <string>
 #include <utility>
 
-namespace opentxs
+namespace opentxs::server
 {
 
-Transactor::Transactor(OTServer* server)
+Transactor::Transactor(Server* server)
     : transactionNumber_(0)
     , server_(server)
 {
 }
 
-Transactor::~Transactor()
-{
-    while (!mintsMap_.empty()) {
-        auto it = mintsMap_.begin();
-        Mint* pMint = it->second;
-        OT_ASSERT(nullptr != pMint);
-        mintsMap_.erase(it);
-        delete pMint;
-        pMint = nullptr;
-    }
-}
+Transactor::~Transactor() {}
 
 /// Just as every request must be accompanied by a request number, so
 /// every transaction request must be accompanied by a transaction number.
@@ -276,107 +266,17 @@ std::shared_ptr<Account> Transactor::getVoucherAccount(
 
         Log::vOutput(
             0,
-            "OTServer::GetVoucherAccount: Successfully created "
+            "Server::GetVoucherAccount: Successfully created "
             "voucher account ID: %s Instrument Definition ID: %s\n",
             strAcctID.Get(),
             strInstrumentDefinitionID.Get());
 
         if (!server_->mainFile_.SaveMainFile()) {
-            Log::Error("OTServer::GetVoucherAccount: Error saving main "
+            Log::Error("Server::GetVoucherAccount: Error saving main "
                        "server file containing new account ID!!\n");
         }
     }
 
     return pAccount;
 }
-
-/// Lookup the current mint for any given instrument definition ID and series.
-Mint* Transactor::getMint(
-    const Identifier& INSTRUMENT_DEFINITION_ID,
-    int32_t nSeries)  // Each asset contract has its own
-                      // Mint.
-{
-    Mint* pMint = nullptr;
-
-    for (auto& it : mintsMap_) {
-        pMint = it.second;
-        OT_ASSERT_MSG(
-            nullptr != pMint, "nullptr mint pointer in Transactor::getMint\n");
-
-        Identifier theID;
-        pMint->GetIdentifier(theID);
-
-        if ((INSTRUMENT_DEFINITION_ID ==
-             theID) &&  // if the ID on the Mint matches the ID passed in
-            (nSeries == pMint->GetSeries()))  // and the series also matches...
-            return pMint;  // return the pointer right here, we're done.
-    }
-    // The mint isn't in memory for the series requested.
-    const String INSTRUMENT_DEFINITION_ID_STR(INSTRUMENT_DEFINITION_ID);
-
-    String strMintFilename;
-    strMintFilename.Format(
-        "%s%s%s%s%d",
-        String(server_->m_strNotaryID).Get(),
-        Log::PathSeparator(),
-        INSTRUMENT_DEFINITION_ID_STR.Get(),
-        ".",
-        nSeries);
-
-    const char* szFoldername = OTFolders::Mint().Get();
-    const char* szFilename = strMintFilename.Get();
-    pMint = Mint::MintFactory(
-        String(server_->m_strNotaryID),
-        server_->m_strServerNymID,
-        INSTRUMENT_DEFINITION_ID_STR);
-
-    // You cannot hash the Mint to get its ID. (The ID is a hash of the asset
-    // contract.)
-    // Instead, you must READ the ID from the Mint file, and then compare it to
-    // the one expected
-    // to see if they match (similar to how Account IDs are verified.)
-
-    OT_ASSERT_MSG(
-        nullptr != pMint,
-        "Error allocating memory for Mint in Transactor::getMint");
-    String strSeries;
-    strSeries.Format("%s%d", ".", nSeries);
-    //
-    if (pMint->LoadMint(strSeries.Get())) {
-        if (pMint->VerifyMint(server_->m_nymServer))  // I don't verify the
-                                                      // Mint's
-        // expiration date here, just its
-        // signature, ID, etc.
-        {  // (Expiry dates are enforced on tokens during deposit--and checked
-            // against mint--
-            // but expiry dates are only enforced on the Mint itself during a
-            // withdrawal.)
-            // It's a multimap now...
-            // mintsMap_[INSTRUMENT_DEFINITION_ID_STR.Get()] = pMint;
-
-            mintsMap_.insert(std::pair<std::string, Mint*>(
-                INSTRUMENT_DEFINITION_ID_STR.Get(), pMint));
-
-            return pMint;
-        } else {
-            Log::vError(
-                "Error verifying Mint in Transactor::getMint:\n%s%s%s\n",
-                szFoldername,
-                Log::PathSeparator(),
-                szFilename);
-        }
-    } else {
-        Log::vError(
-            "Error loading Mint in Transactor::getMint:\n%s%s%s\n",
-            szFoldername,
-            Log::PathSeparator(),
-            szFilename);
-    }
-
-    if (nullptr != pMint) delete pMint;
-    pMint = nullptr;
-
-    return nullptr;
-}
-
-}  // namespace opentxs
+}  // namespace opentxs::server

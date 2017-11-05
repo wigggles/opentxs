@@ -60,7 +60,7 @@
 // ChildCredentials are used for all other actions, and never sign other
 // Credentials
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/core/crypto/OTKeypair.hpp"
 
@@ -118,37 +118,34 @@ OTKeypair::OTKeypair(
 OTKeypair::OTKeypair(
     const proto::AsymmetricKey& serializedPubkey,
     const proto::AsymmetricKey& serializedPrivkey)
-        : m_pkeyPublic(OTAsymmetricKey::KeyFactory(serializedPubkey))
-        , m_pkeyPrivate(OTAsymmetricKey::KeyFactory(serializedPrivkey))
+    : m_pkeyPublic(OTAsymmetricKey::KeyFactory(serializedPubkey))
+    , m_pkeyPrivate(OTAsymmetricKey::KeyFactory(serializedPrivkey))
 {
     role_ = m_pkeyPrivate->Role();
 }
 
-OTKeypair::OTKeypair(
-    const proto::AsymmetricKey& serializedPubkey)
-        : m_pkeyPublic(OTAsymmetricKey::KeyFactory(serializedPubkey))
+OTKeypair::OTKeypair(const proto::AsymmetricKey& serializedPubkey)
+    : m_pkeyPublic(OTAsymmetricKey::KeyFactory(serializedPubkey))
 {
     role_ = m_pkeyPublic->Role();
 }
 
-OTKeypair::~OTKeypair()
-{
-}
+OTKeypair::~OTKeypair() {}
 
 bool OTKeypair::HasPublicKey() const
 {
     OT_ASSERT(m_pkeyPublic);
 
-    return m_pkeyPublic->IsPublic(); // This means it actually has a public key
-                                     // in it, or tried to.
+    return m_pkeyPublic->IsPublic();  // This means it actually has a public key
+                                      // in it, or tried to.
 }
 
 bool OTKeypair::HasPrivateKey() const
 {
     OT_ASSERT(m_pkeyPrivate);
 
-    return m_pkeyPrivate->IsPrivate(); // This means it actually has a private
-                                       // key in it, or tried to.
+    return m_pkeyPrivate->IsPrivate();  // This means it actually has a private
+                                        // key in it, or tried to.
 }
 
 // Return the public key as an OTAsymmetricKey object
@@ -171,21 +168,20 @@ const OTAsymmetricKey& OTKeypair::GetPrivateKey() const
 
 bool OTKeypair::MakeNewKeypair(const NymParameters& nymParameters)
 {
-    if(!m_pkeyPrivate) {
-        m_pkeyPrivate.reset(OTAsymmetricKey::KeyFactory(
-                                                        nymParameters,
-                                                        proto::KEYROLE_ERROR));
+    if (!m_pkeyPrivate) {
+        m_pkeyPrivate.reset(
+            OTAsymmetricKey::KeyFactory(nymParameters, proto::KEYROLE_ERROR));
     }
-    if(!m_pkeyPublic) {
-        m_pkeyPublic.reset(OTAsymmetricKey::KeyFactory(
-            nymParameters,
-            proto::KEYROLE_ERROR));
+    if (!m_pkeyPublic) {
+        m_pkeyPublic.reset(
+            OTAsymmetricKey::KeyFactory(nymParameters, proto::KEYROLE_ERROR));
     }
 
     LowLevelKeyGenerator lowLevelKeys(nymParameters);
 
     if (!lowLevelKeys.MakeNewKeypair()) {
-        otErr << "OTKeypair::MakeNewKeypair"
+        otErr
+            << "OTKeypair::MakeNewKeypair"
             << ": Failed in a call to LowLevelKeyGenerator::MakeNewKeypair.\n";
         return false;
     }
@@ -214,13 +210,14 @@ bool OTKeypair::CalculateID(Identifier& theOutput) const
 {
     OT_ASSERT(m_pkeyPublic);
 
-    return m_pkeyPublic->CalculateID(theOutput); // Only works for public keys.
+    return m_pkeyPublic->CalculateID(theOutput);  // Only works for public keys.
 }
 
 int32_t OTKeypair::GetPublicKeyBySignature(
-    listOfAsymmetricKeys& listOutput, // Inclusive means, return the key even
-                                      // when theSignature has no metadata.
-    const OTSignature& theSignature, bool bInclusive) const
+    listOfAsymmetricKeys& listOutput,  // Inclusive means, return the key even
+                                       // when theSignature has no metadata.
+    const OTSignature& theSignature,
+    bool bInclusive) const
 {
     OT_ASSERT(m_pkeyPublic);
     OT_ASSERT(nullptr != m_pkeyPublic->m_pMetadata);
@@ -314,7 +311,7 @@ bool OTKeypair::ReEncrypt(const OTPassword& theExportPassword, bool bImporting)
     // to do this. Hmm...
 
     const bool bReEncrypted = m_pkeyPrivate->ReEncryptPrivateKey(
-        theExportPassword, bImporting); // <==== IMPORT or EXPORT occurs here.
+        theExportPassword, bImporting);  // <==== IMPORT or EXPORT occurs here.
 
     if (!(bReEncrypted)) {
         otErr << __FUNCTION__ << ": Failure, either when re-encrypting, or "
@@ -338,9 +335,7 @@ serializedAsymmetricKey OTKeypair::Serialize(bool privateKey) const
     }
 }
 
-bool OTKeypair::Verify(
-    const Data& plaintext,
-    const proto::Signature& sig) const
+bool OTKeypair::Verify(const Data& plaintext, const proto::Signature& sig) const
 {
     if (!m_pkeyPublic) {
         otErr << __FUNCTION__ << ": Missing public key. Can not verify.\n";
@@ -366,4 +361,4 @@ bool OTKeypair::hasCapability(const NymCapability& capability) const
 
     return false;
 }
-} // namespace opentxs
+}  // namespace opentxs

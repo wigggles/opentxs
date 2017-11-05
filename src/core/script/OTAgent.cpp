@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/core/script/OTAgent.hpp"
 
@@ -59,7 +59,7 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/core/Types.hpp"
+#include "opentxs/Types.hpp"
 
 #include <cstdint>
 #include <memory>
@@ -223,11 +223,11 @@ OTAgent::OTAgent(
     Nym& theNym,
     const bool bNymRepresentsSelf)
     /*IF false, then: ROLE parameter goes here.*/
-    : m_bNymRepresentsSelf(bNymRepresentsSelf)
-    , m_bIsAnIndividual(true)
-    , m_pNym(&theNym)
-    , m_pForParty(nullptr)
-    , m_strName(str_agent_name.c_str())
+    : m_bNymRepresentsSelf(bNymRepresentsSelf),
+      m_bIsAnIndividual(true),
+      m_pNym(&theNym),
+      m_pForParty(nullptr),
+      m_strName(str_agent_name.c_str())
 {
     // Grab m_strNymID
     Identifier theNymID;
@@ -699,7 +699,7 @@ bool OTAgent::DropFinalReceiptToInbox(
             return false;
         }
 
-        auto context = OT::App().Contract().ClientContext(
+        auto context = OT::App().Wallet().ClientContext(
             Identifier(strNotaryID), pNym->ID());
 
         OT_ASSERT(context);
@@ -854,7 +854,7 @@ bool OTAgent::VerifyIssuedNumber(
 
     if (nullptr != m_pNym) {
         auto context =
-            OT::App().Contract().Context(Identifier(strNotaryID), m_pNym->ID());
+            OT::App().Wallet().Context(Identifier(strNotaryID), m_pNym->ID());
 
         OT_ASSERT(context);
 
@@ -882,7 +882,7 @@ bool OTAgent::VerifyTransactionNumber(
 
     if (nullptr != m_pNym) {
         auto context =
-            OT::App().Contract().Context(Identifier(strNotaryID), m_pNym->ID());
+            OT::App().Wallet().Context(Identifier(strNotaryID), m_pNym->ID());
 
         OT_ASSERT(context);
 
@@ -943,7 +943,7 @@ bool OTAgent::RecoverTransactionNumber(
     const String& strNotaryID)
 {
     if (nullptr != m_pNym) {
-        auto context = OT::App().Contract().mutable_Context(
+        auto context = OT::App().Wallet().mutable_Context(
             Identifier(strNotaryID), m_pNym->ID());
 
         return RecoverTransactionNumber(lNumber, context.It());
@@ -979,7 +979,7 @@ bool OTAgent::RemoveTransactionNumber(
         return false;
     }
 
-    auto context = OT::App().Contract().mutable_Context(
+    auto context = OT::App().Wallet().mutable_Context(
         Identifier(strNotaryID), m_pNym->ID());
 
     if (context.It().ConsumeAvailable(lNumber)) {
@@ -1019,7 +1019,7 @@ bool OTAgent::RemoveIssuedNumber(
         return false;
     }
 
-    auto context = OT::App().Contract().mutable_Context(
+    auto context = OT::App().Wallet().mutable_Context(
         Identifier(strNotaryID), m_pNym->ID());
 
     if (context.It().ConsumeIssued(lNumber)) {

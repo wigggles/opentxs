@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/core/OTStringXML.hpp"
 
@@ -63,10 +63,7 @@ public:
         return super->read(buffer, sizeToRead);
     }
 
-    int getSize()
-    {
-        return super->getSize();
-    }
+    int getSize() { return super->getSize(); }
 };
 
 OTStringXML::OTStringXML()
@@ -103,15 +100,9 @@ OTStringXML& OTStringXML::operator=(const OTStringXML& rhs)
     return *this;
 }
 
-OTStringXML::~OTStringXML()
-{
-    delete pvt_;
-}
+OTStringXML::~OTStringXML() { delete pvt_; }
 
-OTStringXML::operator irr::io::IFileReadCallBack*()
-{
-    return pvt_;
-}
+OTStringXML::operator irr::io::IFileReadCallBack*() { return pvt_; }
 
 int32_t OTStringXML::read(void* buffer, uint32_t sizeToRead)
 {
@@ -125,15 +116,11 @@ int32_t OTStringXML::read(void* buffer, uint32_t sizeToRead)
             pBuf[i] = sgetc();
         }
         return i;
-    }
-    else {
+    } else {
         return 0;
     }
 }
 
-int32_t OTStringXML::getSize()
-{
-    return GetLength();
-}
+int32_t OTStringXML::getSize() { return GetLength(); }
 
-} // namespace opentxs
+}  // namespace opentxs

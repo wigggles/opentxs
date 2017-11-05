@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/core/contract/peer/StoreSecret.hpp"
 
@@ -47,10 +47,10 @@ namespace opentxs
 StoreSecret::StoreSecret(
     const ConstNym& nym,
     const proto::PeerRequest& serialized)
-      : ot_super(nym, serialized)
-      , secret_type_(serialized.storesecret().type())
-      , primary_(serialized.storesecret().primary())
-      , secondary_(serialized.storesecret().secondary())
+    : ot_super(nym, serialized)
+    , secret_type_(serialized.storesecret().type())
+    , primary_(serialized.storesecret().primary())
+    , secondary_(serialized.storesecret().secondary())
 {
 }
 
@@ -61,10 +61,10 @@ StoreSecret::StoreSecret(
     const std::string& primary,
     const std::string& secondary,
     const Identifier& serverID)
-      : ot_super(nym, recipientID, serverID, proto::PEERREQUEST_STORESECRET)
-      , secret_type_(type)
-      , primary_(primary)
-      , secondary_(secondary)
+    : ot_super(nym, recipientID, serverID, proto::PEERREQUEST_STORESECRET)
+    , secret_type_(type)
+    , primary_(primary)
+    , secondary_(secondary)
 {
 }
 
@@ -80,4 +80,4 @@ proto::PeerRequest StoreSecret::IDVersion(const Lock& lock) const
 
     return contract;
 }
-} // namespace opentxs
+}  // namespace opentxs

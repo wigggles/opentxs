@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/api/Blockchain.hpp"
 
@@ -78,7 +78,7 @@
 
 #define OT_METHOD "opentxs::Blockchain::"
 
-namespace opentxs
+namespace opentxs::api
 {
 Blockchain::Blockchain(
     Activity& activity,
@@ -747,4 +747,4 @@ std::shared_ptr<proto::BlockchainTransaction> Blockchain::Transaction(
 
     return output;
 }
-}  // namespace opentxs
+}  // namespace opentxs::api

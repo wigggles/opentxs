@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_SCRIPT_OTSMARTCONTRACT_HPP
 #define OPENTXS_CORE_SCRIPT_OTSMARTCONTRACT_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/cron/OTCronItem.hpp"
 #include "opentxs/core/script/OTScriptable.hpp"
 #include "opentxs/core/util/Common.hpp"
@@ -47,7 +49,7 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/OTTransactionType.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/core/Types.hpp"
+#include "opentxs/Types.hpp"
 
 #include <cstdint>
 #include <map>
@@ -259,9 +261,9 @@ public:
     // theNym is trying to activate the smart contract, and has
     // supplied transaction numbers and a user/acct ID. theNym definitely IS the
     // owner of the account... that is
-    // verified in OTServer::NotarizeTransaction(), before it even knows what
+    // verified in Server::NotarizeTransaction(), before it even knows what
     // KIND of transaction it is processing!
-    // (For all transactions.) So by the time OTServer::NotarizeSmartContract()
+    // (For all transactions.) So by the time Server::NotarizeSmartContract()
     // is called, we know that much.
     //
     // But for all other parties, we do not know this, so we still need to loop

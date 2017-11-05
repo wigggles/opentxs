@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_OTFOLDERS_HPP
 #define OPENTXS_CORE_OTFOLDERS_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/String.hpp"
@@ -57,7 +59,7 @@ private:
     static bool GetSetAll();
 
     static inline bool GetSetFolderName(
-        Settings& config,
+        api::Settings& config,
         std::string strKeyName,
         std::string strDefaultName,
         String& ret_strName)

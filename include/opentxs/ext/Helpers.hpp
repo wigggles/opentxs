@@ -39,6 +39,8 @@
 #ifndef OPENTXS_EXT_HELPERS_HPP
 #define OPENTXS_EXT_HELPERS_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/Log.hpp"
 
 #include <iostream>
@@ -66,13 +68,12 @@ inline std::string OT_CLI_ReadUntilEOF()
         if (std::getline(std::cin, input_line, '\n')) {
             input_line += "\n";
 
-            if (input_line[0] == '~') // This is our special "break" character
-                                      // for multi-line input.
+            if (input_line[0] == '~')  // This is our special "break" character
+                                       // for multi-line input.
                 break;
 
             result += input_line;
-        }
-        else {
+        } else {
             opentxs::otErr << "OT_CLI_ReadUntilEOF: getline() was unable to "
                               "read a string from std::cin\n";
             break;
@@ -86,4 +87,4 @@ inline std::string OT_CLI_ReadUntilEOF()
     return result;
 }
 
-#endif // OPENTXS_EXT_HELPERS_HPP
+#endif  // OPENTXS_EXT_HELPERS_HPP

@@ -39,8 +39,10 @@
 #ifndef OPENTXS_API_DHT_HPP
 #define OPENTXS_API_DHT_HPP
 
-#include "opentxs/core/Proto.hpp"
-#include "opentxs/core/Types.hpp"
+#include "opentxs/Version.hpp"
+
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
 
 #include <string>
 
@@ -53,6 +55,9 @@ class DhtConfig;
 class OpenDHT;
 class ServerContract;
 class UnitDefinition;
+
+namespace api
+{
 
 /** High level interface to OpenDHT. Supports opentxs types. */
 class Dht
@@ -68,19 +73,19 @@ public:
     typedef std::map<Callback, NotifyCB> CallbackMap;
 
 private:
-    friend class OT;
+    friend class opentxs::OT;
 
     static Dht* instance_;
 
     CallbackMap callback_map_;
     std::unique_ptr<const DhtConfig> config_;
-#ifdef OT_DHT
+#if OT_DHT
     OpenDHT* node_ = nullptr;
 #endif
 
     static Dht* It(DhtConfig& config);
 
-#ifdef OT_DHT
+#if OT_DHT
     static bool ProcessPublicNym(
         const std::string key,
         const DhtResults& values,
@@ -114,6 +119,7 @@ public:
     void Cleanup();
     ~Dht();
 };
-
+}  // namespace api
 }  // namespace opentxs
+
 #endif  // OPENTXS_API_DHT_HPP

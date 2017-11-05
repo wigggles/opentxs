@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/core/contract/Signable.hpp"
 
@@ -60,9 +60,9 @@ Signable::Signable(
     const ConstNym& nym,
     const std::uint32_t version,
     const std::string& conditions)
-        : nym_(nym)
-        , version_(version)
-        , conditions_(conditions)
+    : nym_(nym)
+    , version_(version)
+    , conditions_(conditions)
 {
 }
 
@@ -80,10 +80,7 @@ bool Signable::CalculateID(const Lock& lock)
     return true;
 }
 
-bool Signable::CheckID(const Lock& lock) const
-{
-    return (GetID(lock) == id_);
-}
+bool Signable::CheckID(const Lock& lock) const { return (GetID(lock) == id_); }
 
 Identifier Signable::id(const Lock& lock) const
 {
@@ -99,10 +96,7 @@ Identifier Signable::ID() const
     return id(lock);
 }
 
-ConstNym Signable::Nym() const
-{
-    return nym_;
-}
+ConstNym Signable::Nym() const { return nym_; }
 
 void Signable::SetAlias(const std::string& alias)
 {
@@ -155,9 +149,7 @@ bool Signable::verify_write_lock(const Lock& lock) const
     return true;
 }
 
-bool Signable::verify_signature(
-    const Lock& lock,
-    const proto::Signature&) const
+bool Signable::verify_signature(const Lock& lock, const proto::Signature&) const
 {
     OT_ASSERT(verify_write_lock(lock));
 
@@ -169,4 +161,4 @@ bool Signable::verify_signature(
 
     return true;
 }
-} // namespace opentxs
+}  // namespace opentxs

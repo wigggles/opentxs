@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/core/util/Assert.hpp"
 
@@ -47,7 +47,7 @@
 #include <exception>
 #include <iostream>
 
-#if defined (ANDROID)
+#if defined(ANDROID)
 
 #include <iomanip>
 
@@ -57,19 +57,18 @@
 #include <sstream>
 #include <android/log.h>
 
-
-
-struct BacktraceState
-{
+struct BacktraceState {
     void** current;
     void** end;
 };
 
-//namespace {
+// namespace {
 size_t captureBacktrace(void** buffer, size_t max);
-//void dumpBacktrace(std::ostream& os, void** buffer, size_t count);
+// void dumpBacktrace(std::ostream& os, void** buffer, size_t count);
 
-static _Unwind_Reason_Code unwindCallback(struct _Unwind_Context* context, void* arg)
+static _Unwind_Reason_Code unwindCallback(
+    struct _Unwind_Context* context,
+    void* arg)
 {
     BacktraceState* state = static_cast<BacktraceState*>(arg);
     uintptr_t pc = _Unwind_GetIP(context);
@@ -102,11 +101,12 @@ static inline void dumpBacktrace(std::ostream& os, void** buffer, size_t count)
             symbol = info.dli_sname;
         }
 
-        os << "  #" << std::setw(2) << idx << ": " << addr << "  " << symbol << "\n";
+        os << "  #" << std::setw(2) << idx << ": " << addr << "  " << symbol
+           << "\n";
     }
 }
 
-//void backtraceToLogcat()
+// void backtraceToLogcat()
 //{
 //    const size_t max = 30;
 //    void* buffer[max];
@@ -114,7 +114,8 @@ static inline void dumpBacktrace(std::ostream& os, void** buffer, size_t count)
 //
 //    dumpBacktrace(oss, buffer, captureBacktrace(buffer, max));
 //
-//    __android_log_print(ANDROID_LOG_INFO, "app_name", "%s", oss.str().c_str());
+//    __android_log_print(ANDROID_LOG_INFO, "app_name", "%s",
+//    oss.str().c_str());
 //}
 
 //}
@@ -127,8 +128,10 @@ Assert::Assert(fpt_Assert_sz_n_sz& fp1)
 {
 }
 
-size_t Assert::m_AssertDefault(const char* filename, size_t linenumber,
-                               const char* message)
+size_t Assert::m_AssertDefault(
+    const char* filename,
+    size_t linenumber,
+    const char* message)
 {
     if (message) {
         if (std::strcmp(message, "") != 0) {
@@ -143,9 +146,9 @@ size_t Assert::m_AssertDefault(const char* filename, size_t linenumber,
 
     std::cerr << "OT_ASSERT in " << file << " at line " << linenumber << "\n";
 
-#if defined (ANDROID)
+#if defined(ANDROID)
 
-    //backtraceToLogcat();
+    // backtraceToLogcat();
 
     const size_t max = 30;
     void* buffer[max];
@@ -161,11 +164,13 @@ size_t Assert::m_AssertDefault(const char* filename, size_t linenumber,
 
     std::cerr.flush();
 
-    return 0; // since we are not logging.
+    return 0;  // since we are not logging.
 }
 
-size_t Assert::doAssert(const char* filename, size_t linenumber,
-                        const char* message)
+size_t Assert::doAssert(
+    const char* filename,
+    size_t linenumber,
+    const char* message)
 {
     if (Assert::s_pAssert == nullptr) std::terminate();
     return Assert::s_pAssert->m_fpt_Assert(filename, linenumber, message);

@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_CRYPTO_OTSIGNEDFILE_HPP
 #define OPENTXS_CORE_CRYPTO_OTSIGNEDFILE_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/String.hpp"
 
@@ -49,28 +51,28 @@ namespace opentxs
 
 class OTSignedFile : public Contract
 {
-private: // Private prevents erroneous use by other classes.
+private:  // Private prevents erroneous use by other classes.
     typedef Contract ot_super;
 
 protected:
-    String m_strSignedFilePayload; // This class exists to wrap another and
-                                   // save it in signed form.
+    String m_strSignedFilePayload;  // This class exists to wrap another and
+                                    // save it in signed form.
     // The "payload" (the wrapped contents) are stored in this member.
 
-    String m_strLocalDir; // The local subdirectory where the file is, such as
-                          // "nyms" or "certs"
-    String m_strSignedFilename; // The file stores its own name. Later, when
-                                // loading it back up, you can
+    String m_strLocalDir;  // The local subdirectory where the file is, such as
+                           // "nyms" or "certs"
+    String m_strSignedFilename;  // The file stores its own name. Later, when
+                                 // loading it back up, you can
     // see that the name matches internally, and that the signature matches,
     // therefore, no one has switched the file or meddled with its contents.
 
-    String m_strPurportedLocalDir; // This is the subdirectory according to
-                                   // the file.
-    String m_strPurportedFilename; // This is the filename according to the
-                                   // file.
+    String m_strPurportedLocalDir;  // This is the subdirectory according to
+                                    // the file.
+    String m_strPurportedFilename;  // This is the filename according to the
+                                    // file.
 
-    String m_strSignerNymID; // Optional. Here in case you ever
-                             // want to use it.
+    String m_strSignerNymID;  // Optional. Here in case you ever
+                              // want to use it.
 
     // THOUGHT: What if someone switched the file for an older version of
     // itself? Seems to me that he could
@@ -98,8 +100,8 @@ public:
     EXPORT OTSignedFile(const char* LOCAL_SUBDIR, const char* FILE_NAME);
     EXPORT bool LoadFile();
     EXPORT bool SaveFile();
-    bool VerifyFile(); // Returns true or false, whether actual subdir/file
-                       // matches purported subdir/file.
+    bool VerifyFile();  // Returns true or false, whether actual subdir/file
+                        // matches purported subdir/file.
     // (You should still verify the signature on it as well, if you are doing
     // this.)
     void SetFilename(const String& LOCAL_SUBDIR, const String& FILE_NAME);
@@ -113,6 +115,6 @@ public:
     void UpdateContents() override;
 };
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CORE_CRYPTO_OTSIGNEDFILE_HPP
+#endif  // OPENTXS_CORE_CRYPTO_OTSIGNEDFILE_HPP

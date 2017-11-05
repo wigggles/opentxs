@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_CONTRACT_PEER_BAILMENTREQUEST_HPP
 #define OPENTXS_CORE_CONTRACT_PEER_BAILMENTREQUEST_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/contract/peer/PeerRequest.hpp"
 #include "opentxs/core/Identifier.hpp"
 
@@ -56,9 +58,7 @@ private:
 
     proto::PeerRequest IDVersion(const Lock& lock) const override;
 
-    BailmentRequest(
-        const ConstNym& nym,
-        const proto::PeerRequest& serialized);
+    BailmentRequest(const ConstNym& nym, const proto::PeerRequest& serialized);
     BailmentRequest(
         const ConstNym& nym,
         const Identifier& recipientID,
@@ -67,9 +67,8 @@ private:
     BailmentRequest() = delete;
 
 public:
-
     ~BailmentRequest() = default;
 };
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CORE_CONTRACT_PEER_BAILMENTREQUEST_HPP
+#endif  // OPENTXS_CORE_CONTRACT_PEER_BAILMENTREQUEST_HPP

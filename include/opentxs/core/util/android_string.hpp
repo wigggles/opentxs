@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_UTIL_ANDROID_STRING_HPP
 #define OPENTXS_CORE_UTIL_ANDROID_STRING_HPP
 
+#include "opentxs/Version.hpp"
+
 #ifdef ANDROID
 
 #include <cstdlib>
@@ -46,20 +48,11 @@
 
 namespace std
 {
-inline long int stoll(const string& s)
-{
-    return atoll(s.c_str());
-}
+inline long int stoll(const string& s) { return atoll(s.c_str()); }
 
-inline long int stol(const string& s)
-{
-    return atol(s.c_str());
-}
+inline long int stol(const string& s) { return atol(s.c_str()); }
 
-inline int stoi(const string& s)
-{
-    return atoi(s.c_str());
-}
+inline int stoi(const string& s) { return atoi(s.c_str()); }
 
 template <typename T>
 string to_string(T value)
@@ -70,5 +63,5 @@ string to_string(T value)
 }
 }
 
-#endif // ANDROID
-#endif // OPENTXS_CORE_COMMON_HPP
+#endif  // ANDROID
+#endif  // OPENTXS_CORE_COMMON_HPP

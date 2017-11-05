@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/consensus/Context.hpp"
 
@@ -107,9 +107,7 @@ std::set<RequestNumber> Context::AcknowledgedNumbers() const
     return acknowledged_request_numbers_;
 }
 
-bool Context::add_acknowledged_number(
-    const Lock& lock,
-    const RequestNumber req)
+bool Context::add_acknowledged_number(const Lock& lock, const RequestNumber req)
 {
     OT_ASSERT(verify_write_lock(lock));
 

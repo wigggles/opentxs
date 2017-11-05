@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/core/script/OTStashItem.hpp"
 
@@ -62,23 +62,23 @@ OTStashItem::OTStashItem()
 {
 }
 
-OTStashItem::OTStashItem(const String& strInstrumentDefinitionID,
-                         int64_t lAmount)
+OTStashItem::OTStashItem(
+    const String& strInstrumentDefinitionID,
+    int64_t lAmount)
     : m_strInstrumentDefinitionID(strInstrumentDefinitionID)
     , m_lAmount(lAmount)
 {
 }
 
-OTStashItem::OTStashItem(const Identifier& theInstrumentDefinitionID,
-                         int64_t lAmount)
+OTStashItem::OTStashItem(
+    const Identifier& theInstrumentDefinitionID,
+    int64_t lAmount)
     : m_strInstrumentDefinitionID(theInstrumentDefinitionID)
     , m_lAmount(lAmount)
 {
 }
 
-OTStashItem::~OTStashItem()
-{
-}
+OTStashItem::~OTStashItem() {}
 
 /*
  IDEA: todo security.
@@ -105,8 +105,9 @@ bool OTStashItem::CreditStash(const int64_t& lAmount)
 {
     if (lAmount < 0) {
         otOut << "OTStashItem::CreditStash: Failed attempt to credit a "
-                 "negative amount (" << lAmount
-              << "). Asset Type: " << m_strInstrumentDefinitionID << " \n";
+                 "negative amount ("
+              << lAmount << "). Asset Type: " << m_strInstrumentDefinitionID
+              << " \n";
         return false;
     }
 
@@ -119,8 +120,9 @@ bool OTStashItem::DebitStash(const int64_t& lAmount)
 {
     if (lAmount < 0) {
         otOut << "OTStashItem::DebitStash: Failed attempt to debit a negative "
-                 "amount (" << lAmount
-              << "). Asset Type: " << m_strInstrumentDefinitionID << " \n";
+                 "amount ("
+              << lAmount << "). Asset Type: " << m_strInstrumentDefinitionID
+              << " \n";
         return false;
     }
 
@@ -129,7 +131,8 @@ bool OTStashItem::DebitStash(const int64_t& lAmount)
     if (lTentativeNewBalance < 0) {
         otOut << "OTStashItem::DebitStash: Failed attempt to debit (amount of) "
               << lAmount << ": New stash balance would have been a negative "
-                            "amount (" << lTentativeNewBalance
+                            "amount ("
+              << lTentativeNewBalance
               << "). Asset Type: " << m_strInstrumentDefinitionID << " \n";
         return false;
     }
@@ -139,4 +142,4 @@ bool OTStashItem::DebitStash(const int64_t& lAmount)
     return true;
 }
 
-} // namespace opentxs
+}  // namespace opentxs

@@ -39,13 +39,15 @@
 #ifndef OPENTXS_API_WALLET_HPP
 #define OPENTXS_API_WALLET_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/api/Editor.hpp"
 #include "opentxs/client/NymData.hpp"
 #include "opentxs/core/contract/ServerContract.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Nym.hpp"
-#include "opentxs/core/Types.hpp"
+#include "opentxs/Types.hpp"
 #include "opentxs/storage/Storage.hpp"
 
 #include <chrono>
@@ -61,6 +63,7 @@
 namespace opentxs
 {
 
+class ClientContext;
 class Context;
 class OT;
 class Message;
@@ -70,6 +73,9 @@ class ServerContext;
 typedef std::shared_ptr<const class Nym> ConstNym;
 typedef std::shared_ptr<const class ServerContract> ConstServerContract;
 typedef std::shared_ptr<const class UnitDefinition> ConstUnitDefinition;
+
+namespace api
+{
 
 /** \brief This class manages instantiated contracts and provides easy access
  *  to them.
@@ -154,7 +160,7 @@ public:
      *    \returns A smart pointer to the object. The smart pointer will not be
      *             instantiated if the object does not exist or is invalid.
      */
-    std::shared_ptr<const class Context> Context(
+    std::shared_ptr<const opentxs::Context> Context(
         const Identifier& notaryID,
         const Identifier& clientNymID);
 
@@ -166,7 +172,7 @@ public:
      *    \returns A smart pointer to the object. The smart pointer will not be
      *             instantiated if the object does not exist or is invalid.
      */
-    std::shared_ptr<const class ClientContext> ClientContext(
+    std::shared_ptr<const opentxs::ClientContext> ClientContext(
         const Identifier& localNymID,
         const Identifier& remoteNymID);
 
@@ -178,7 +184,7 @@ public:
      *    \returns A smart pointer to the object. The smart pointer will not be
      *             instantiated if the object does not exist or is invalid.
      */
-    std::shared_ptr<const class ServerContext> ServerContext(
+    std::shared_ptr<const opentxs::ServerContext> ServerContext(
         const Identifier& localNymID,
         const Identifier& remoteID);
 
@@ -195,7 +201,7 @@ public:
      *    \param[in] clientNymID context identifier (usually the other party's
      *                           nym id)
      */
-    Editor<class Context> mutable_Context(
+    Editor<opentxs::Context> mutable_Context(
         const Identifier& notaryID,
         const Identifier& clientNymID);
 
@@ -205,7 +211,7 @@ public:
      *    \param[in] remoteNymID context identifier (usually the other party's
      *                           nym id)
      */
-    Editor<class ClientContext> mutable_ClientContext(
+    Editor<opentxs::ClientContext> mutable_ClientContext(
         const Identifier& localNymID,
         const Identifier& remoteNymID);
 
@@ -215,7 +221,7 @@ public:
      *    \param[in] remoteID context identifier (usually the other party's nym
      *                        id)
      */
-    Editor<class ServerContext> mutable_ServerContext(
+    Editor<opentxs::ServerContext> mutable_ServerContext(
         const Identifier& localNymID,
         const Identifier& remoteID);
 
@@ -658,5 +664,7 @@ public:
 
     ~Wallet() = default;
 };
+}  // namespace api
 }  // namespace opentxs
+
 #endif  // OPENTXS_API_WALLET_HPP

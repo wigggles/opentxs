@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_CRYPTO_OTNYMORSYMMETRICKEY_HPP
 #define OPENTXS_CORE_CRYPTO_OTNYMORSYMMETRICKEY_HPP
 
+#include "opentxs/Version.hpp"
+
 namespace opentxs
 {
 
@@ -59,7 +61,7 @@ private:
     Nym* m_pNym;
 
     OTSymmetricKey* m_pKey{nullptr};
-    OTPassword* m_pPassword{nullptr}; // optional. Goes with m_pKey.
+    OTPassword* m_pPassword{nullptr};  // optional. Goes with m_pKey.
 
     // m_pPassword is usually not owned. But if we create it and keep it around
     // to avoid
@@ -74,31 +76,19 @@ private:
     OTNym_or_SymmetricKey();
 
 public:
-    EXPORT Nym* GetNym() const
-    {
-        return m_pNym;
-    }
-    EXPORT OTSymmetricKey* GetKey() const
-    {
-        return m_pKey;
-    }
+    EXPORT Nym* GetNym() const { return m_pNym; }
+    EXPORT OTSymmetricKey* GetKey() const { return m_pKey; }
     EXPORT OTPassword* GetPassword() const
     {
         return m_pPassword;
-    } // for symmetric key (optional)
+    }  // for symmetric key (optional)
 
-    EXPORT bool IsNym() const
-    {
-        return (nullptr != m_pNym);
-    }
-    EXPORT bool IsKey() const
-    {
-        return (nullptr != m_pKey);
-    }
+    EXPORT bool IsNym() const { return (nullptr != m_pNym); }
+    EXPORT bool IsKey() const { return (nullptr != m_pKey); }
     EXPORT bool HasPassword() const
     {
         return (nullptr != m_pPassword);
-    } // for symmetric key (optional)
+    }  // for symmetric key (optional)
 
     EXPORT void GetIdentifier(Identifier& theIdentifier) const;
     EXPORT void GetIdentifier(String& strIdentifier) const;
@@ -109,36 +99,42 @@ public:
     // OTAsymmetricKey.)
     // Whereas Encrypt/Decrypt is for symmetric key crypto (With
     // OTSymmetricKey.)
-    EXPORT bool Seal_or_Encrypt(OTEnvelope& outputEnvelope,
-                                const String& strInput,
-                                const String* pstrDisplay = nullptr);
-    EXPORT bool Open_or_Decrypt(const OTEnvelope& inputEnvelope,
-                                String& strOutput,
-                                const String* pstrDisplay = nullptr);
+    EXPORT bool Seal_or_Encrypt(
+        OTEnvelope& outputEnvelope,
+        const String& strInput,
+        const String* pstrDisplay = nullptr);
+    EXPORT bool Open_or_Decrypt(
+        const OTEnvelope& inputEnvelope,
+        String& strOutput,
+        const String* pstrDisplay = nullptr);
 
     EXPORT ~OTNym_or_SymmetricKey();
 
     EXPORT OTNym_or_SymmetricKey(const OTNym_or_SymmetricKey& rhs);
 
-    EXPORT OTNym_or_SymmetricKey(const Nym& theNym,
-                                 const String* pstrDisplay = nullptr);
-    EXPORT OTNym_or_SymmetricKey(const OTSymmetricKey& theKey,
-                                 const String* pstrDisplay = nullptr);
-    EXPORT OTNym_or_SymmetricKey(const OTSymmetricKey& theKey,
-                                 const OTPassword& thePassword,
-                                 const String* pstrDisplay = nullptr);
+    EXPORT OTNym_or_SymmetricKey(
+        const Nym& theNym,
+        const String* pstrDisplay = nullptr);
+    EXPORT OTNym_or_SymmetricKey(
+        const OTSymmetricKey& theKey,
+        const String* pstrDisplay = nullptr);
+    EXPORT OTNym_or_SymmetricKey(
+        const OTSymmetricKey& theKey,
+        const OTPassword& thePassword,
+        const String* pstrDisplay = nullptr);
 
     EXPORT void swap(OTNym_or_SymmetricKey& other);
 
     EXPORT OTNym_or_SymmetricKey& operator=(
-        OTNym_or_SymmetricKey other); // passed by value.
+        OTNym_or_SymmetricKey other);  // passed by value.
 
-    EXPORT void Release(); // Someday make this virtual, if we ever subclass it.
-    EXPORT void Release_Nym_or_SymmetricKey(); // NOT called in the destructor,
-                                               // since this normally doesn't
-                                               // own its contents.
+    EXPORT void Release();  // Someday make this virtual, if we ever subclass
+                            // it.
+    EXPORT void Release_Nym_or_SymmetricKey();  // NOT called in the destructor,
+                                                // since this normally doesn't
+                                                // own its contents.
 };
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CORE_CRYPTO_OTNYMORSYMMETRICKEY_HPP
+#endif  // OPENTXS_CORE_CRYPTO_OTNYMORSYMMETRICKEY_HPP

@@ -39,8 +39,10 @@
 #ifndef OPENTXS_STORAGE_TREE_ROOT_HPP
 #define OPENTXS_STORAGE_TREE_ROOT_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/api/Editor.hpp"
-#include "opentxs/core/Types.hpp"
+#include "opentxs/Types.hpp"
 #include "opentxs/storage/tree/Node.hpp"
 
 #include <atomic>
@@ -51,8 +53,12 @@
 
 namespace opentxs
 {
+namespace api
+{
 
 class Storage;
+
+}  // namespace api
 
 namespace storage
 {
@@ -63,7 +69,7 @@ class Root : public Node
 {
 private:
     typedef Node ot_super;
-    friend class opentxs::Storage;
+    friend class api::Storage;
 
     const std::uint64_t gc_interval_{std::numeric_limits<int64_t>::max()};
 

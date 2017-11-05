@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/core/crypto/OTCallback.hpp"
 
@@ -54,4 +54,4 @@ OTCallback::~OTCallback()
     //    std::cout << "OTCallback::~OTCallback()" << std:: endl;
 }
 
-} // namespace opentxs
+}  // namespace opentxs

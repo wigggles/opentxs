@@ -52,8 +52,6 @@ set(PACKAGE_CONTACT        ""                             CACHE <TYPE>  "Package
 set(PACKAGE_VENDOR         "Open Transactions Developers" CACHE <TYPE>  "Package Vendor")
 option(AUTOCOMPLETION      "CL autocompletion to opentxs CL client" OFF)
 
-option(SIGNAL_HANLDER      "Enable Signal Handler" OFF)
-
 option(KEYRING_WINDOWS     "Build with Windows Keyring" OFF)
 option(KEYRING_MAC         "Build with Mac OSX Keyring" OFF)
 option(KEYRING_IOS         "Build with iOS Keyring" OFF)
@@ -133,7 +131,6 @@ message(STATUS "Testing:                ${BUILD_TESTS}")
 message(STATUS "Documentation:          ${BUILD_DOCUMENTATION}")
 message(STATUS "Using ccache            ${USE_CCACHE}")
 message(STATUS "Pedantic compilation:   ${OT_STRICT}")
-message(STATUS "Signal handling:        ${SIGNAL_HANLDER}")
 
 message(STATUS "Packaging -----------------------------------")
 message(STATUS "Build RPM:              ${RPM}")
@@ -405,10 +402,6 @@ if(WIN32)
     add_definitions(-DOT_PROMPT_NAME="Open Transactions Prompt")
 endif()
 
-if(SIGNAL_HANLDER)
-  add_definitions(-DOT_SIGNAL_HANDLING)
-endif()
-
 if(ANDROID)
   add_definitions(-DANDROID)
 endif()
@@ -416,7 +409,9 @@ endif()
 #Network
 
 if(OT_DHT)
-  add_definitions(-DOT_DHT=1)
+    set(DHT_EXPORT 1)
+else()
+    set(DHT_EXPORT 0)
 endif()
 
 #Storage backends
@@ -555,22 +550,17 @@ else()
   set(LIBBITCOIN_EXPORT 0)
 endif()
 
-add_definitions(-DOT_STORAGE_FS=${FS_EXPORT})
-add_definitions(-DOT_STORAGE_SQLITE=${SQLITE_EXPORT})
-add_definitions(-DOT_CRYPTO_SUPPORTED_SOURCE_BIP47=${BIP47_EXPORT})
-add_definitions(-DOT_CRYPTO_SUPPORTED_ALGO_AES=${AES_EXPORT})
-add_definitions(-DOT_CRYPTO_SUPPORTED_KEY_HD=${HD_EXPORT})
-add_definitions(-DOT_CRYPTO_WITH_BIP32=${BIP32_EXPORT})
-add_definitions(-DOT_CRYPTO_WITH_BIP39=${BIP39_EXPORT})
-add_definitions(-DOT_CRYPTO_SUPPORTED_KEY_ED25519=${ED25519_EXPORT})
-add_definitions(-DOT_CRYPTO_SUPPORTED_KEY_RSA=${RSA_EXPORT})
-add_definitions(-DOT_CRYPTO_SUPPORTED_KEY_SECP256K1=${SECP256K1_EXPORT})
-add_definitions(-DOT_CRYPTO_USING_OPENSSL=${OPENSSL_EXPORT})
-add_definitions(-DOT_CRYPTO_USING_LIBSECP256K1=${LIBSECP256K1_EXPORT})
-add_definitions(-DOT_CRYPTO_USING_TREZOR=${TREZORCRYPTO_EXPORT})
-add_definitions(-DOT_CRYPTO_USING_LIBBITCOIN=${LIBBITCOIN_EXPORT})
-add_definitions(-DOT_CRYPTO_SHA2_VIA_OPENSSL=${SHA2_VIA_OPENSSL_EXPORT})
-add_definitions(-DOT_CASH_USING_LUCRE)
+if (TRUE)
+    set(CASH_LUCRE_EXPORT 1)
+else()
+    set(CASH_LUCRE_EXPORT 0)
+endif()
+
+if (FALSE)
+    set(CASH_MM_EXPORT 1)
+else()
+    set(CASH_MM_EXPORT 0)
+endif()
 
 #Keyrings
 if(KEYRING_WINDOWS AND WIN32)
@@ -608,20 +598,21 @@ else()
 endif()
 
 #Script engines
-if(OT_SCRIPT_USING_CHAI)
-  add_definitions(-DOT_USE_SCRIPT_CHAI)
-  add_definitions(-DCHAISCRIPT_NO_THREADS)
+if(OT_SCRIPT_USING_CHAI AND NOT ANDROID AND NOT KEYRING_IOS)
+  set(SCRIPT_CHAI_EXPORT 1)
+else()
+  set(SCRIPT_CHAI_EXPORT 0)
 endif()
-
-add_definitions(-DOPENTXS_INTERNAL_BUILD=1)
 
 #-----------------------------------------------------------------------------
 # Set in-source Version
-configure_file("include/opentxs/core/Version.hpp" "${CMAKE_CURRENT_BINARY_DIR}/include/opentxs/core/Version.hpp" @ONLY)
+configure_file("Version.hpp" "${CMAKE_CURRENT_BINARY_DIR}/include/opentxs/Version.hpp" @ONLY)
 
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/include/opentxs/core/Version.hpp
-        DESTINATION include/opentxs/core/
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/include/opentxs/Version.hpp
+        DESTINATION include/opentxs/
         COMPONENT dev)
+
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
 
 #-----------------------------------------------------------------------------
 # Build source
@@ -722,7 +713,7 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/
         DESTINATION include
         COMPONENT dev
         FILES_MATCHING PATTERN "*.hpp"
-        PATTERN "Version.hpp" EXCLUDE)
+        PATTERN "stdafx.hpp" EXCLUDE)
 
 install(FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/deps/containers/simple_ptr.hpp

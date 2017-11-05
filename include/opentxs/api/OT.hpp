@@ -41,6 +41,8 @@
 #ifndef OPENTXS_CORE_API_OT_HPP
 #define OPENTXS_CORE_API_OT_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/util/Common.hpp"
 
@@ -60,21 +62,26 @@
 namespace opentxs
 {
 
+class CryptoEngine;
+class Signals;
+class SymmetricKey;
+
+namespace api
+{
+
 class Activity;
 class Api;
-class AppLoader;
 class Blockchain;
 class ContactManager;
-class CryptoEngine;
 class Dht;
 class Identity;
-class SwigWrap;
-class ServerLoader;
+class Server;
 class Settings;
 class Storage;
-class SymmetricKey;
 class Wallet;
 class ZMQ;
+
+}  // namespace api
 
 /** \brief Singlton class for providing an interface to process-level resources.
  *  \ingroup native
@@ -84,15 +91,67 @@ class OT
 public:
     typedef std::function<void()> PeriodicTask;
 
-private:
-    friend class AppLoader;
-    friend class SwigWrap;
-    friend class ServerLoader;
+    /** Native API accessor
+     *
+     *  Returns a reference to the native API singleton after it has been
+     *  initialized.
+     */
+    static const OT& App();
 
+    /** OT shutdown method
+     *
+     *  Call this when the application is closing, after all OT operations
+     *  are complete.
+     */
+    static void Cleanup();
+    static void ClientFactory(
+        const std::chrono::seconds gcInterval = std::chrono::seconds(0),
+        const std::string& storagePlugin = "",
+        const std::string& backupDirectory = "",
+        const std::string& encryptedDirectory = "");
+    static void ClientFactory(
+        const bool recover,
+        const std::string& words,
+        const std::string& passphrase,
+        const std::chrono::seconds gcInterval = std::chrono::seconds(0),
+        const std::string& storagePlugin = "",
+        const std::string& backupDirectory = "",
+        const std::string& encryptedDirectory = "");
+    static void Join();
+    static void ServerFactory(
+        const std::map<std::string, std::string>& serverArgs,
+        const std::chrono::seconds gcInterval = std::chrono::seconds(0),
+        const std::string& storagePlugin = "",
+        const std::string& backupDirectory = "");
+
+    api::Activity& Activity() const;
+    api::Api& API() const;
+    api::Blockchain& Blockchain() const;
+    api::Settings& Config(const std::string& path = std::string("")) const;
+    api::ContactManager& Contact() const;
+    CryptoEngine& Crypto() const;
+    api::Storage& DB() const;
+    api::Dht& DHT() const;
+    void HandleSignals() const;
+    api::Identity& Identity() const;
+
+    /** Adds a task to the periodic task list with the specified interval. By
+     * default, schedules for immediate execution. */
+    void Schedule(
+        const time64_t& interval,
+        const PeriodicTask& task,
+        const time64_t& last = 0) const;
+    const api::Server& Server() const;
+    bool ServerMode() const;
+    const std::atomic<bool>& Shutdown() const;
+    api::Wallet& Wallet() const;
+    api::ZMQ& ZMQ() const;
+
+private:
     /** Last performed, Interval, Task */
     typedef std::tuple<time64_t, time64_t, PeriodicTask> TaskItem;
     typedef std::list<TaskItem> TaskList;
-    typedef std::map<std::string, std::unique_ptr<Settings>> ConfigMap;
+    typedef std::map<std::string, std::unique_ptr<api::Settings>> ConfigMap;
 
     static OT* instance_pointer_;
 
@@ -112,38 +171,25 @@ private:
     std::string encrypted_directory_{};
     mutable std::mutex config_lock_;
     mutable std::mutex task_list_lock_;
+    mutable std::mutex signal_handler_lock_;
     mutable TaskList periodic_task_list;
-    mutable std::atomic<bool> shutdown_;
-    std::unique_ptr<class Activity> activity_;
-    std::unique_ptr<Api> api_;
-    std::unique_ptr<class Blockchain> blockchain_;
+    mutable std::atomic<bool> shutdown_{false};
+    std::unique_ptr<api::Activity> activity_;
+    std::unique_ptr<api::Api> api_;
+    std::unique_ptr<api::Blockchain> blockchain_;
     mutable ConfigMap config_;
-    std::unique_ptr<ContactManager> contacts_;
+    std::unique_ptr<api::ContactManager> contacts_;
     std::unique_ptr<CryptoEngine> crypto_;
-    std::unique_ptr<Dht> dht_;
-    std::unique_ptr<class Identity> identity_;
-    std::unique_ptr<Storage> storage_;
-    std::unique_ptr<Wallet> wallet_;
-    std::unique_ptr<class ZMQ> zeromq_;
+    std::unique_ptr<api::Dht> dht_;
+    std::unique_ptr<api::Identity> identity_;
+    std::unique_ptr<api::Storage> storage_;
+    std::unique_ptr<api::Wallet> wallet_;
+    std::unique_ptr<api::ZMQ> zeromq_;
     std::unique_ptr<std::thread> periodic_;
     std::unique_ptr<SymmetricKey> storage_encryption_key_;
-
-    static void Factory(
-        const bool serverMode,
-        const std::chrono::seconds gcInterval = std::chrono::seconds(0),
-        const std::string& storagePlugin = "",
-        const std::string& backupDirectory = "",
-        const std::string& encryptedDirectory = "");
-    static void Factory(
-        const bool recover,
-        const std::string& words,
-        const std::string& passphrase,
-        const bool serverMode,
-        const std::chrono::seconds gcInterval = std::chrono::seconds(0),
-        const std::string& storagePlugin = "",
-        const std::string& backupDirectory = "",
-        const std::string& encryptedDirectory = "");
-    static void Cleanup();
+    std::unique_ptr<api::Server> server_;
+    mutable std::unique_ptr<Signals> signal_handler_;
+    const std::map<std::string, std::string> server_args_{};
 
     explicit OT(
         const bool recover,
@@ -153,7 +199,8 @@ private:
         const std::chrono::seconds gcInterval,
         const std::string& storagePlugin,
         const std::string& backupDirectory,
-        const std::string& encryptedDirectory);
+        const std::string& encryptedDirectory,
+        const std::map<std::string, std::string>& serverArgs);
     OT() = delete;
     OT(const OT&) = delete;
     OT(OT&&) = delete;
@@ -171,6 +218,7 @@ private:
     void Init_Identity();
     void Init_Log();
     void Init_Periodic();
+    void Init_Server();
     void Init_Storage();
     void Init_StorageBackup();
     void Init_ZMQ();
@@ -178,41 +226,10 @@ private:
     void Periodic();
     void recover();
     void set_storage_encryption();
-    void Shutdown();
+    void shutdown();
     void start();
 
     ~OT() = default;
-
-public:
-    static const OT& App();
-
-    class Activity& Activity() const;
-    Api& API() const;
-    class Blockchain& Blockchain() const;
-    Settings& Config(const std::string& path = std::string("")) const;
-    ContactManager& Contact() const;
-    Wallet& Contract() const;
-    CryptoEngine& Crypto() const;
-    Storage& DB() const;
-    Dht& DHT() const;
-    class Identity& Identity() const;
-    class ZMQ& ZMQ() const;
-
-    /** Adds a task to the periodic task list with the specified interval. By
-     * default, schedules for immediate execution. */
-    void Schedule(
-        const time64_t& interval,
-        const PeriodicTask& task,
-        const time64_t& last = 0) const;
-};
-
-// Temporary workaround for OT createmint command. Will be removed once
-// createmint is incorporated into the server process as a periodic task
-class AppLoader
-{
-public:
-    AppLoader() { OT::Factory(true); }
-    ~AppLoader() { OT::Cleanup(); }
 };
 }  // namespace opentxs
 #endif  // OPENTXS_CORE_API_OT_HPP

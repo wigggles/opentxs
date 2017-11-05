@@ -36,10 +36,11 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/core/script/OTScriptChai.hpp"
 
+#if OT_SCRIPT_CHAI
 #include "opentxs/core/script/OTParty.hpp"
 #include "opentxs/core/script/OTPartyAccount.hpp"
 #include "opentxs/core/script/OTScript.hpp"
@@ -48,15 +49,10 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
 
-// -----------------------------------------------------------------
-#ifdef OT_USE_SCRIPT_CHAI
 #include <chaiscript/chaiscript.hpp>
-
 #ifdef OT_USE_CHAI_STDLIB
 #include <chaiscript/chaiscript_stdlib.hpp>
 #endif
-// -----------------------------------------------------------------
-// NOTE: We are still INSIDE "OT_USE_SCRIPT_CHAI" at this point...
 
 #include <stddef.h>
 #include <stdint.h>
@@ -446,7 +442,5 @@ OTScriptChai::~OTScriptChai()
 
     // chai = nullptr;  (It's const).
 }
-
 }  // namespace opentxs
-
-#endif  // OT_USE_SCRIPT_CHAI
+#endif  // OT_SCRIPT_CHAI

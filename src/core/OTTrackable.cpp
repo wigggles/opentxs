@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/core/OTTrackable.hpp"
 
@@ -57,17 +57,20 @@ OTTrackable::OTTrackable()
     InitTrackable();
 }
 
-OTTrackable::OTTrackable(const Identifier& NOTARY_ID,
-                         const Identifier& INSTRUMENT_DEFINITION_ID)
+OTTrackable::OTTrackable(
+    const Identifier& NOTARY_ID,
+    const Identifier& INSTRUMENT_DEFINITION_ID)
     : Instrument(NOTARY_ID, INSTRUMENT_DEFINITION_ID)
     , m_lTransactionNum(0)
 {
     InitTrackable();
 }
 
-OTTrackable::OTTrackable(const Identifier& NOTARY_ID,
-                         const Identifier& INSTRUMENT_DEFINITION_ID,
-                         const Identifier& ACCT_ID, const Identifier& NYM_ID)
+OTTrackable::OTTrackable(
+    const Identifier& NOTARY_ID,
+    const Identifier& INSTRUMENT_DEFINITION_ID,
+    const Identifier& ACCT_ID,
+    const Identifier& NYM_ID)
     : Instrument(NOTARY_ID, INSTRUMENT_DEFINITION_ID)
     , m_lTransactionNum(0)
 {
@@ -77,10 +80,7 @@ OTTrackable::OTTrackable(const Identifier& NOTARY_ID,
     SetSenderNymID(NYM_ID);
 }
 
-OTTrackable::~OTTrackable()
-{
-    Release_Trackable();
-}
+OTTrackable::~OTTrackable() { Release_Trackable(); }
 
 void OTTrackable::InitTrackable()
 {
@@ -114,8 +114,6 @@ void OTTrackable::Release()
     InitTrackable();
 }
 
-void OTTrackable::UpdateContents()
-{
-}
+void OTTrackable::UpdateContents() {}
 
-} // namespace opentxs
+}  // namespace opentxs

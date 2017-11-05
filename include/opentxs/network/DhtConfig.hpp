@@ -39,6 +39,8 @@
 #ifndef OPENTXS_NETWORK_DHTCONFIG_HPP
 #define OPENTXS_NETWORK_DHTCONFIG_HPP
 
+#include "opentxs/Version.hpp"
+
 #include <string>
 
 namespace opentxs
@@ -61,4 +63,4 @@ public:
 };
 
 }  // namespace opentxs
-#endif // OPENTXS_NETWORK_DHTCONFIG_HPP
+#endif  // OPENTXS_NETWORK_DHTCONFIG_HPP

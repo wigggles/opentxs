@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_OTTRACKABLE_HPP
 #define OPENTXS_CORE_OTTRACKABLE_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Instrument.hpp"
 
@@ -57,11 +59,14 @@ class OTTrackable : public Instrument
 {
 public:
     OTTrackable();
-    OTTrackable(const Identifier& NOTARY_ID,
-                const Identifier& INSTRUMENT_DEFINITION_ID);
-    OTTrackable(const Identifier& NOTARY_ID,
-                const Identifier& INSTRUMENT_DEFINITION_ID,
-                const Identifier& ACCT_ID, const Identifier& NYM_ID);
+    OTTrackable(
+        const Identifier& NOTARY_ID,
+        const Identifier& INSTRUMENT_DEFINITION_ID);
+    OTTrackable(
+        const Identifier& NOTARY_ID,
+        const Identifier& INSTRUMENT_DEFINITION_ID,
+        const Identifier& ACCT_ID,
+        const Identifier& NYM_ID);
 
     virtual ~OTTrackable();
 
@@ -74,10 +79,7 @@ public:
     virtual bool HasTransactionNum(const int64_t& lInput) const;
     virtual void GetAllTransactionNumbers(NumList& numlistOutput) const;
 
-    inline int64_t GetTransactionNum() const
-    {
-        return m_lTransactionNum;
-    }
+    inline int64_t GetTransactionNum() const { return m_lTransactionNum; }
 
     inline void SetTransactionNum(int64_t lTransactionNum)
     {
@@ -89,10 +91,7 @@ public:
         return m_SENDER_ACCT_ID;
     }
 
-    inline const Identifier& GetSenderNymID() const
-    {
-        return m_SENDER_NYM_ID;
-    }
+    inline const Identifier& GetSenderNymID() const { return m_SENDER_NYM_ID; }
 
 protected:
     inline void SetSenderAcctID(const Identifier& ACCT_ID)
@@ -114,6 +113,6 @@ protected:
     Identifier m_SENDER_NYM_ID;
 };
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CORE_OTTRACKABLE_HPP
+#endif  // OPENTXS_CORE_OTTRACKABLE_HPP

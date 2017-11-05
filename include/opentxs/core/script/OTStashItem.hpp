@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_SCRIPT_OTSTASHITEM_HPP
 #define OPENTXS_CORE_SCRIPT_OTSTASHITEM_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/String.hpp"
 
 #include <stdint.h>
@@ -54,14 +56,8 @@ class OTStashItem
     int64_t m_lAmount;
 
 public:
-    int64_t GetAmount() const
-    {
-        return m_lAmount;
-    }
-    void SetAmount(int64_t lAmount)
-    {
-        m_lAmount = lAmount;
-    }
+    int64_t GetAmount() const { return m_lAmount; }
+    void SetAmount(int64_t lAmount) { m_lAmount = lAmount; }
     bool CreditStash(const int64_t& lAmount);
     bool DebitStash(const int64_t& lAmount);
     const String& GetInstrumentDefinitionID()
@@ -70,11 +66,12 @@ public:
     }
     OTStashItem();
     OTStashItem(const String& strInstrumentDefinitionID, int64_t lAmount = 0);
-    OTStashItem(const Identifier& theInstrumentDefinitionID,
-                int64_t lAmount = 0);
+    OTStashItem(
+        const Identifier& theInstrumentDefinitionID,
+        int64_t lAmount = 0);
     virtual ~OTStashItem();
 };
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CORE_SCRIPT_OTSTASHITEM_HPP
+#endif  // OPENTXS_CORE_SCRIPT_OTSTASHITEM_HPP

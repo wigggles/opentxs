@@ -39,11 +39,13 @@
 #ifndef OPENTXS_CORE_CRYPTO_OTASYMMETRICKEYOPENSSL_HPP
 #define OPENTXS_CORE_CRYPTO_OTASYMMETRICKEYOPENSSL_HPP
 
+#include "opentxs/Version.hpp"
+
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
 
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
-#include "opentxs/core/Proto.hpp"
+#include "opentxs/Proto.hpp"
 #include "opentxs/core/String.hpp"
 
 namespace opentxs
@@ -145,5 +147,5 @@ protected:
     void ReleaseKeyLowLevel_Hook() const override;
 };
 }  // namespace opentxs
-#endif // OT_CRYPTO_SUPPORTED_KEY_RSA
-#endif // OPENTXS_CORE_CRYPTO_OTASYMMETRICKEYOPENSSL_HPP
+#endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
+#endif  // OPENTXS_CORE_CRYPTO_OTASYMMETRICKEYOPENSSL_HPP

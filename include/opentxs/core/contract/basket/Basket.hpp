@@ -39,6 +39,8 @@
 #ifndef OPENTXS_BASKET_BASKET_HPP
 #define OPENTXS_BASKET_BASKET_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/contract/basket/BasketItem.hpp"
 #include "opentxs/core/Contract.hpp"
 
@@ -101,19 +103,22 @@ class Basket : public Contract
 protected:
     int32_t m_nSubCount{0};
     int64_t m_lMinimumTransfer{0};  // used in the actual basket
-    int32_t m_nTransferMultiple{0}; // used in a request basket. If non-zero, that
-                                 // means this is a request basket.
-    Identifier m_RequestAccountID; // used in a request basket so the server
-                                   // knows your acct ID.
+    int32_t m_nTransferMultiple{
+        0};  // used in a request basket. If non-zero, that
+             // means this is a request basket.
+    Identifier m_RequestAccountID;  // used in a request basket so the server
+                                    // knows your acct ID.
     dequeOfBasketItems m_dequeItems;
-    bool m_bHideAccountID{false}; // When saving, we might wish to produce a version
-                           // without Account IDs
+    bool m_bHideAccountID{
+        false};  // When saving, we might wish to produce a version
+                 // without Account IDs
     // So that the resulting hash will be a consistent ID across different
     // servers.
-    bool m_bExchangingIn{false}; // True if exchanging INTO the basket, False if
-                          // exchanging OUT of the basket.
-    int64_t m_lClosingTransactionNo{0}; // For the main (basket) account, in a
-                                     // request basket (for exchanges.)
+    bool m_bExchangingIn{
+        false};  // True if exchanging INTO the basket, False if
+                 // exchanging OUT of the basket.
+    int64_t m_lClosingTransactionNo{0};  // For the main (basket) account, in a
+                                         // request basket (for exchanges.)
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
     int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
 
@@ -126,29 +131,17 @@ public:
 
     EXPORT void CalculateContractID(Identifier& newID) const override;
 
-    inline int64_t GetMinimumTransfer() const
-    {
-        return m_lMinimumTransfer;
-    }
+    inline int64_t GetMinimumTransfer() const { return m_lMinimumTransfer; }
 
-    inline int32_t GetTransferMultiple() const
-    {
-        return m_nTransferMultiple;
-    }
+    inline int32_t GetTransferMultiple() const { return m_nTransferMultiple; }
     inline void SetTransferMultiple(int32_t nTransferMultiple)
     {
         m_nTransferMultiple = nTransferMultiple;
     }
 
-    inline bool IsExchanging() const
-    {
-        return (m_nTransferMultiple > 0);
-    }
+    inline bool IsExchanging() const { return (m_nTransferMultiple > 0); }
 
-    inline bool GetExchangingIn() const
-    {
-        return m_bExchangingIn;
-    }
+    inline bool GetExchangingIn() const { return m_bExchangingIn; }
     inline void SetExchangingIn(bool bDirection)
     {
         m_bExchangingIn = bDirection;
@@ -159,10 +152,7 @@ public:
 
     int64_t GetClosingTransactionNoAt(uint32_t nIndex);
 
-    inline int64_t GetClosingNum() const
-    {
-        return m_lClosingTransactionNo;
-    }
+    inline int64_t GetClosingNum() const { return m_lClosingTransactionNo; }
     inline void SetClosingNum(const int64_t& lClosingNum)
     {
         m_lClosingTransactionNo = lClosingNum;
@@ -171,18 +161,17 @@ public:
     // For generating a real basket.  The user does this part, and the server
     // creates Account ID later
     // (That's why you don't see the account ID being passed in to the method.)
-    EXPORT void AddSubContract(const Identifier& SUB_CONTRACT_ID,
-                               int64_t lMinimumTransferAmount);
-    inline void IncrementSubCount()
-    {
-        m_nSubCount++;
-    }
+    EXPORT void AddSubContract(
+        const Identifier& SUB_CONTRACT_ID,
+        int64_t lMinimumTransferAmount);
+    inline void IncrementSubCount() { m_nSubCount++; }
 
     // For generating a user request to exchange in/out of a basket.
     // Assumes that SetTransferMultiple has already been called.
-    EXPORT void AddRequestSubContract(const Identifier& SUB_CONTRACT_ID,
-                                      const Identifier& SUB_ACCOUNT_ID,
-                                      const int64_t& lClosingTransactionNo);
+    EXPORT void AddRequestSubContract(
+        const Identifier& SUB_CONTRACT_ID,
+        const Identifier& SUB_ACCOUNT_ID,
+        const int64_t& lClosingTransactionNo);
 
     inline void SetRequestAccountID(const Identifier& theAccountID)
     {
@@ -212,6 +201,6 @@ private:
     void GenerateContents(OTStringXML& xmlUnsigned, bool bHideAccountID) const;
 };
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_BASKET_BASKET_HPP
+#endif  // OPENTXS_BASKET_BASKET_HPP

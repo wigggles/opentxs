@@ -39,7 +39,9 @@
 #ifndef OPENTXS_SERVER_USERCOMMANDPROCESSOR_HPP
 #define OPENTXS_SERVER_USERCOMMANDPROCESSOR_HPP
 
-#include "opentxs/core/Types.hpp"
+#include "opentxs/Version.hpp"
+
+#include "opentxs/Types.hpp"
 
 #include <cstdint>
 #include <memory>
@@ -55,10 +57,14 @@ class Ledger;
 class Message;
 class Nym;
 class NumList;
-class OTServer;
 class OTTransaction;
-class ReplyMessage;
 class String;
+
+namespace server
+{
+
+class Server;
+class ReplyMessage;
 
 class UserCommandProcessor
 {
@@ -75,11 +81,11 @@ public:
         const std::int64_t& requestNum,
         const bool replyTransSuccess,
         ClientContext& context,
-        OTServer& server,
+        Server& server,
         Nym* actualNym = nullptr);
     static bool isAdmin(const Identifier& nymID);
 
-    UserCommandProcessor(OTServer* server);
+    UserCommandProcessor(Server* server);
 
     bool ProcessUserCommand(const Message& msgIn, Message& msgOut);
 
@@ -108,7 +114,7 @@ private:
         std::size_t counter_{0};
     };
 
-    OTServer* server_{nullptr};
+    Server* server_{nullptr};
 
     bool add_numbers_to_nymbox(
         const TransactionNumber transactionNumber,
@@ -204,6 +210,7 @@ private:
     bool verify_transaction(const OTTransaction* transaction, const Nym& signer)
         const;
 };
+}  // namespace server
 }  // namespace opentxs
 
 #endif  // OPENTXS_SERVER_USERCOMMANDPROCESSOR_HPP

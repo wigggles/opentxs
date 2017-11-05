@@ -35,11 +35,11 @@
  *   for more details.
  *
  ************************************************************/
-#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/core/crypto/AsymmetricKeySecp256k1.hpp"
 
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 #include "opentxs/api/OT.hpp"
 #include "opentxs/core/crypto/CryptoAsymmetric.hpp"
 #include "opentxs/core/crypto/CryptoEngine.hpp"
@@ -63,7 +63,7 @@ AsymmetricKeySecp256k1::AsymmetricKeySecp256k1(const proto::KeyRole role)
 
 AsymmetricKeySecp256k1::AsymmetricKeySecp256k1(
     const proto::AsymmetricKey& serializedKey)
-        : ot_super(serializedKey)
+    : ot_super(serializedKey)
 {
 }
 
@@ -85,11 +85,11 @@ CryptoAsymmetric& AsymmetricKeySecp256k1::engine() const
 
 void AsymmetricKeySecp256k1::Release()
 {
-    Release_AsymmetricKeySecp256k1(); // My own cleanup is performed here.
+    Release_AsymmetricKeySecp256k1();  // My own cleanup is performed here.
 
     // Next give the base class a chance to do the same...
-    ot_super::Release(); // since I've overridden the base class, I call it
-                         // now...
+    ot_super::Release();  // since I've overridden the base class, I call it
+                          // now...
 }
 
 AsymmetricKeySecp256k1::~AsymmetricKeySecp256k1()
@@ -98,5 +98,5 @@ AsymmetricKeySecp256k1::~AsymmetricKeySecp256k1()
 
     ReleaseKeyLowLevel_Hook();
 }
-} // namespace opentxs
+}  // namespace opentxs
 #endif

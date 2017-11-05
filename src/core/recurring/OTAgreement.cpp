@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/core/recurring/OTAgreement.hpp"
 
@@ -58,7 +58,7 @@
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/core/Types.hpp"
+#include "opentxs/Types.hpp"
 
 #include <irrxml/irrXML.hpp>
 #include <string.h>
@@ -386,7 +386,7 @@ bool OTAgreement::DropServerNoticeToNymbox(
         // By this point we've made every possible effort to get the proper Nym
         // loaded, so that we can update his NymboxHash appropriately.
         if (nullptr != pActualNym) {
-            auto context = OT::App().Contract().mutable_ClientContext(
+            auto context = OT::App().Wallet().mutable_ClientContext(
                 theServerNym.ID(), pActualNym->ID());
             context.It().SetLocalNymboxHash(theNymboxHash);
         }
@@ -551,7 +551,7 @@ void OTAgreement::onFinalReceipt(
     const String strNotaryID(GetNotaryID());
     // unused unless it's really not already loaded. (use pActualNym.)
     Nym theActualNym;
-    auto oContext = OT::App().Contract().mutable_ClientContext(
+    auto oContext = OT::App().Wallet().mutable_ClientContext(
         pServerNym->ID(), theOriginator.ID());
 
     if ((lSenderOpeningNumber > 0) &&
@@ -662,7 +662,7 @@ void OTAgreement::onFinalReceipt(
         return;
     }
 
-    auto rContext = OT::App().Contract().mutable_ClientContext(
+    auto rContext = OT::App().Wallet().mutable_ClientContext(
         pServerNym->ID(), pRecipient->ID());
 
     if ((lRecipientOpeningNumber > 0) &&

@@ -60,7 +60,7 @@
 // ChildCredentials are used for all other actions, and never sign other
 // Credentials
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/core/crypto/KeyCredential.hpp"
 
@@ -85,7 +85,7 @@
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/core/Types.hpp"
+#include "opentxs/Types.hpp"
 
 #include <stdint.h>
 #include <cstdint>
@@ -673,8 +673,7 @@ bool KeyCredential::VerifySig(
     return Verify(plaintext, sig);
 }
 
-bool KeyCredential::TransportKey(Data& publicKey, OTPassword& privateKey)
-    const
+bool KeyCredential::TransportKey(Data& publicKey, OTPassword& privateKey) const
 {
     OT_ASSERT(m_AuthentKey);
 

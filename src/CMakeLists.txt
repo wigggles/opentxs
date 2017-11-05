@@ -35,6 +35,7 @@ add_subdirectory(client)
 add_subdirectory(api)
 add_subdirectory(server)
 add_subdirectory(contact)
+add_subdirectory(util)
 
 if (TREZORCRYPTO_EXPORT)
   set(trezor $<TARGET_OBJECTS:TrezorCrypto>)
@@ -64,6 +65,7 @@ set(object-deps
   $<TARGET_OBJECTS:opentxs-storage-tree>
   $<TARGET_OBJECTS:opentxs-trade>
   $<TARGET_OBJECTS:opentxs-contact>
+  $<TARGET_OBJECTS:opentxs-util>
 )
 
 set(MODULE_NAME opentxs)

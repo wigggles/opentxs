@@ -39,6 +39,10 @@
 #ifndef OPENTXS_NETWORK_ZMQ_HPP
 #define OPENTXS_NETWORK_ZMQ_HPP
 
+#include "opentxs/Version.hpp"
+
+#include "opentxs/Types.hpp"
+
 // IWYU pragma: begin_exports
 extern "C" {
 #ifndef __STDC_VERSION__
@@ -51,8 +55,6 @@ extern "C" {
 #include <czmq.h>
 }
 // IWYU pragma: end_exports
-
-#include "opentxs/core/Types.hpp"
 
 #include <atomic>
 #include <chrono>
@@ -71,15 +73,18 @@ namespace opentxs
 
 class OT;
 class ServerConnection;
+
+namespace api
+{
+
 class Settings;
-class Wallet;
 
 class ZMQ
 {
 private:
-    friend class OT;
+    friend class opentxs::OT;
 
-    Settings& config_;
+    api::Settings& config_;
     std::atomic<std::chrono::seconds> linger_;
     std::atomic<std::chrono::seconds> receive_timeout_;
     std::atomic<std::chrono::seconds> send_timeout_;
@@ -95,7 +100,7 @@ private:
     void init(const Lock& lock);
 
     ZMQ() = delete;
-    ZMQ(Settings& config);
+    ZMQ(api::Settings& config);
     ZMQ(const ZMQ&) = delete;
     ZMQ(ZMQ&&) = delete;
     ZMQ& operator=(const ZMQ&) = delete;
@@ -118,5 +123,6 @@ public:
 
     ~ZMQ();
 };
+}  // namespace api
 }  // namespace opentxs
 #endif  // OPENTXS_NETWORK_ZMQ_HPP

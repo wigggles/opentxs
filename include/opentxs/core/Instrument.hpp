@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_OTINSTRUMENT_HPP
 #define OPENTXS_CORE_OTINSTRUMENT_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/script/OTScriptable.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Contract.hpp"
@@ -53,47 +55,34 @@ class Instrument : public OTScriptable
 {
 public:
     EXPORT Instrument();
-    EXPORT Instrument(const Identifier& NOTARY_ID,
-                      const Identifier& INSTRUMENT_DEFINITION_ID);
+    EXPORT Instrument(
+        const Identifier& NOTARY_ID,
+        const Identifier& INSTRUMENT_DEFINITION_ID);
     EXPORT virtual ~Instrument();
 
     EXPORT void Release() override;
 
     void Release_Instrument();
-    EXPORT bool VerifyCurrentDate(); // Verify whether the CURRENT date is
-                                     // WITHIN the VALID FROM / TO dates.
-    EXPORT bool IsExpired(); // Verify whether the CURRENT date is AFTER the the
-                             // "VALID TO" date.
-    inline time64_t GetValidFrom() const
-    {
-        return m_VALID_FROM;
-    }
-    inline time64_t GetValidTo() const
-    {
-        return m_VALID_TO;
-    }
+    EXPORT bool VerifyCurrentDate();  // Verify whether the CURRENT date is
+                                      // WITHIN the VALID FROM / TO dates.
+    EXPORT bool IsExpired();  // Verify whether the CURRENT date is AFTER the
+                              // the
+                              // "VALID TO" date.
+    inline time64_t GetValidFrom() const { return m_VALID_FROM; }
+    inline time64_t GetValidTo() const { return m_VALID_TO; }
 
     inline const Identifier& GetInstrumentDefinitionID() const
     {
         return m_InstrumentDefinitionID;
     }
-    inline const Identifier& GetNotaryID() const
-    {
-        return m_NotaryID;
-    }
+    inline const Identifier& GetNotaryID() const { return m_NotaryID; }
     void InitInstrument();
 
 protected:
     int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
 
-    inline void SetValidFrom(time64_t TIME_FROM)
-    {
-        m_VALID_FROM = TIME_FROM;
-    }
-    inline void SetValidTo(time64_t TIME_TO)
-    {
-        m_VALID_TO = TIME_TO;
-    }
+    inline void SetValidFrom(time64_t TIME_FROM) { m_VALID_FROM = TIME_FROM; }
+    inline void SetValidTo(time64_t TIME_TO) { m_VALID_TO = TIME_TO; }
     inline void SetInstrumentDefinitionID(
         const Identifier& INSTRUMENT_DEFINITION_ID)
     {
@@ -105,15 +94,17 @@ protected:
     }
 
 protected:
-    Identifier m_InstrumentDefinitionID; // Every cheque or cash note has an
-                                         // Asset Type
-    Identifier m_NotaryID;               // ...As well as a Notary ID...
+    Identifier m_InstrumentDefinitionID;  // Every cheque or cash note has an
+                                          // Asset Type
+    Identifier m_NotaryID;                // ...As well as a Notary ID...
     // Expiration Date (valid from/to date)
-    time64_t m_VALID_FROM{0}; // The date, in seconds, when the instrument is valid
-                           // FROM.
-    time64_t m_VALID_TO{0};   // The date, in seconds, when the instrument expires.
+    time64_t m_VALID_FROM{
+        0};  // The date, in seconds, when the instrument is valid
+             // FROM.
+    time64_t m_VALID_TO{
+        0};  // The date, in seconds, when the instrument expires.
 };
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CORE_OTINSTRUMENT_HPP
+#endif  // OPENTXS_CORE_OTINSTRUMENT_HPP

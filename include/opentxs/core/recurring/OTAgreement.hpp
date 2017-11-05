@@ -41,12 +41,14 @@
 #ifndef OPENTXS_CORE_OTAGREEMENT_HPP
 #define OPENTXS_CORE_OTAGREEMENT_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/cron/OTCronItem.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/core/Types.hpp"
+#include "opentxs/Types.hpp"
 #include "opentxs/core/OTTransactionType.hpp"
 
 #include <stdint.h>
@@ -63,23 +65,29 @@ class Nym;
 // Thus, we add the RECIPIENT (already have SENDER from OTTrackable.)
 //
 // While other instruments are derived from OTTrackable (like OTCheque) in order
-// to gain a transaction number and sender user/acct, Agreements are derived from
+// to gain a transaction number and sender user/acct, Agreements are derived
+// from
 // a further subclass of trackable: OTCronItem.
 //
-// OTCronItems are allowed to be posted on the OTCron object, which performs regular
+// OTCronItems are allowed to be posted on the OTCron object, which performs
+// regular
 // processing on a timely basis to the items that are posted there. In this way,
 // payment authorizations can be posted (and expire properly), and trades can be
-// posted with valid date ranges, and payment plans can be instituted, and so on.
+// posted with valid date ranges, and payment plans can be instituted, and so
+// on.
 //
-// OTAgreement is derived from OTCronItem because it allows people to post Agreements
-// on OTCron until a certain expiration period, so that third parties can query the
-// server and verify the agreements, and so that copies of the agreement, stamped
+// OTAgreement is derived from OTCronItem because it allows people to post
+// Agreements
+// on OTCron until a certain expiration period, so that third parties can query
+// the
+// server and verify the agreements, and so that copies of the agreement,
+// stamped
 // with the server's signature, can be made available to the parties and to 3rd
 // parties.
 //
 class OTAgreement : public OTCronItem
 {
-private: // Private prevents erroneous use by other classes.
+private:  // Private prevents erroneous use by other classes.
     typedef OTCronItem ot_super;
 
 private:
@@ -87,11 +95,11 @@ private:
     Identifier m_RECIPIENT_NYM_ID;
 
 protected:
-    String m_strConsideration; // Presumably an agreement is in return for
-                               // some consideration. Memo here.
+    String m_strConsideration;  // Presumably an agreement is in return for
+                                // some consideration. Memo here.
 
-    String m_strMerchantSignedCopy; // The merchant sends it over, then the
-                                    // payer confirms it, which adds
+    String m_strMerchantSignedCopy;  // The merchant sends it over, then the
+                                     // payer confirms it, which adds
     // his own transaction numbers and signs it. This, unfortunately,
     // invalidates the merchant's version, so we store
     // a copy of the merchant's signed agreement INSIDE our own. The server can
@@ -99,26 +107,27 @@ protected:
     // such will probably occur through a comparison function I'll have to add
     // right here in this class.
 
-    void onFinalReceipt(OTCronItem& theOrigCronItem,
-                                const int64_t& lNewTransactionNumber,
-                                Nym& theOriginator, Nym* pRemover) override;
+    void onFinalReceipt(
+        OTCronItem& theOrigCronItem,
+        const int64_t& lNewTransactionNumber,
+        Nym& theOriginator,
+        Nym* pRemover) override;
     void onRemovalFromCron() override;
 
-    std::deque<int64_t> m_dequeRecipientClosingNumbers; // Numbers used for
-                                                        // CLOSING a
-                                                        // transaction.
-                                                        // (finalReceipt.)
+    std::deque<int64_t> m_dequeRecipientClosingNumbers;  // Numbers used for
+                                                         // CLOSING a
+                                                         // transaction.
+                                                         // (finalReceipt.)
 
 public:
     originType GetOriginType() const override
-    { return originType::origin_payment_plan; }
+    {
+        return originType::origin_payment_plan;
+    }
 
     void setCustomerNymId(const Identifier& NYM_ID);
 
-    const String& GetConsideration() const
-    {
-        return m_strConsideration;
-    }
+    const String& GetConsideration() const { return m_strConsideration; }
     void SetMerchantSignedCopy(const String& strMerchantCopy)
     {
         m_strMerchantSignedCopy = strMerchantCopy;
@@ -160,9 +169,12 @@ public:
      OTAgreement(const OTIdentifier& NOTARY_ID,
                  const OTIdentifier& INSTRUMENT_DEFINITION_ID);
        OR:
-     OTAgreement(const OTIdentifier& NOTARY_ID, const OTIdentifier& INSTRUMENT_DEFINITION_ID,
-                 const OTIdentifier& SENDER_ACCT_ID, const OTIdentifier& SENDER_NYM_ID,
-                 const OTIdentifier& RECIPIENT_ACCT_ID, const OTIdentifier& RECIPIENT_NYM_ID);
+     OTAgreement(const OTIdentifier& NOTARY_ID, const OTIdentifier&
+    INSTRUMENT_DEFINITION_ID,
+                 const OTIdentifier& SENDER_ACCT_ID, const OTIdentifier&
+    SENDER_NYM_ID,
+                 const OTIdentifier& RECIPIENT_ACCT_ID, const OTIdentifier&
+    RECIPIENT_NYM_ID);
        OR:
      OTPaymentPlan * pPlan = new OTPaymentPlan(pAccount->GetRealNotaryID(),
                                     pAccount->GetInstrumentDefinitionID(),
@@ -172,16 +184,19 @@ public:
      THEN:  (Agreement)
 
      bool bSuccessSetAgreement = pPlan->SetAgreement(lTransactionNumber,
-                                                    PLAN_CONSIDERATION, VALID_FROM, VALID_TO);
+                                                    PLAN_CONSIDERATION,
+    VALID_FROM, VALID_TO);
 
-     THEN, (OTPaymentPlan) adds TWO OPTIONS (additional and independent of each other):
+     THEN, (OTPaymentPlan) adds TWO OPTIONS (additional and independent of each
+    other):
 
      bool        SetInitialPayment(const int64_t& lAmount, time64_t
                     tTimeUntilInitialPayment=0); // default: now.
      bool        SetPaymentPlan(const int64_t& lPaymentAmount, time64_t
                                 tTimeUntilPlanStart=OT_TIME_MONTH_IN_SECONDS,
                                 time64_t
-                                tBetweenPayments=OT_TIME_MONTH_IN_SECONDS, // Default: 30 days.
+                                tBetweenPayments=OT_TIME_MONTH_IN_SECONDS, //
+    Default: 30 days.
                                 time64_t tPlanLength=0, int32_t nMaxPayments=0);
 
 
@@ -220,8 +235,10 @@ public:
      THE RECIPIENT:
 
      3) bool bConfirmation =  pPlan->Confirm(OTPseudonym& PAYER_NYM,
-                                             OTPseudonym * pMERCHANT_NYM=nullptr,
-                                             OTIdentifier * p_id_MERCHANT_NYM=nullptr);
+                                             OTPseudonym *
+    pMERCHANT_NYM=nullptr,
+                                             OTIdentifier *
+    p_id_MERCHANT_NYM=nullptr);
 
      (Transaction number and closing number are retrieved from Nym at this
     time.)
@@ -319,8 +336,8 @@ public:
 
     // Return True if should stay on OTCron's list for more processing.
     // Return False if expired or otherwise should be removed.
-    bool ProcessCron() override; // OTCron calls this regularly, which is my
-                                // chance to expire, etc.
+    bool ProcessCron() override;  // OTCron calls this regularly, which is my
+                                  // chance to expire, etc.
 
     // From OTTrackable (parent class of OTCronItem, parent class of this)
     /*
@@ -384,9 +401,8 @@ public:
         const Nym& theSignerNym,
         mapOfConstNyms* pmap_ALREADY_LOADED = nullptr) const override;
 
-    bool VerifyNymAsAgentForAccount(
-        const Nym& theNym,
-        Account& theAccount) const override;
+    bool VerifyNymAsAgentForAccount(const Nym& theNym, Account& theAccount)
+        const override;
 
     /*
      From Contract, I have:
@@ -395,12 +411,16 @@ public:
 
      */
     EXPORT bool SendNoticeToAllParties(
-        bool bSuccessMsg, Nym& theServerNym, const Identifier& theNotaryID,
+        bool bSuccessMsg,
+        Nym& theServerNym,
+        const Identifier& theNotaryID,
         const int64_t& lNewTransactionNumber,
         // const int64_t& lInReferenceTo, //
         // each party has its own opening trans #.
-        const String& strReference, String* pstrNote = nullptr,
-        String* pstrAttachment = nullptr, Nym* pActualNym = nullptr) const;
+        const String& strReference,
+        String* pstrNote = nullptr,
+        String* pstrAttachment = nullptr,
+        Nym* pActualNym = nullptr) const;
 
     // Nym receives an OTItem::acknowledgment or OTItem::rejection.
     EXPORT static bool DropServerNoticeToNymbox(
@@ -417,14 +437,16 @@ public:
         const Nym* pActualNym = nullptr);
 
     OTAgreement();
-    OTAgreement(const Identifier& NOTARY_ID,
-                const Identifier& INSTRUMENT_DEFINITION_ID);
-    OTAgreement(const Identifier& NOTARY_ID,
-                const Identifier& INSTRUMENT_DEFINITION_ID,
-                const Identifier& SENDER_ACCT_ID,
-                const Identifier& SENDER_NYM_ID,
-                const Identifier& RECIPIENT_ACCT_ID,
-                const Identifier& RECIPIENT_NYM_ID);
+    OTAgreement(
+        const Identifier& NOTARY_ID,
+        const Identifier& INSTRUMENT_DEFINITION_ID);
+    OTAgreement(
+        const Identifier& NOTARY_ID,
+        const Identifier& INSTRUMENT_DEFINITION_ID,
+        const Identifier& SENDER_ACCT_ID,
+        const Identifier& SENDER_NYM_ID,
+        const Identifier& RECIPIENT_ACCT_ID,
+        const Identifier& RECIPIENT_NYM_ID);
     virtual ~OTAgreement();
 
     void InitAgreement();
@@ -436,10 +458,11 @@ public:
     int64_t GetClosingNumber(const Identifier& theAcctID) const override;
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
     int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
-    void UpdateContents() override; // Before transmission or serialization, this
-                                   // is where the ledger saves its contents
+    void UpdateContents() override;  // Before transmission or serialization,
+                                     // this
+                                     // is where the ledger saves its contents
 };
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CORE_OTAGREEMENT_HPP
+#endif  // OPENTXS_CORE_OTAGREEMENT_HPP

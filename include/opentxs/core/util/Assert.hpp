@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_ASSERT_HPP
 #define OPENTXS_CORE_ASSERT_HPP
 
+#include "opentxs/Version.hpp"
+
 #include <cstddef>
 #include <exception>
 #include <string>

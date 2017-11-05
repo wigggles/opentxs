@@ -39,10 +39,14 @@
 #ifndef OPENTXS_CORE_CRYPTO_BIP32_HPP
 #define OPENTXS_CORE_CRYPTO_BIP32_HPP
 
+#include "opentxs/Version.hpp"
+
+#if OT_CRYPTO_WITH_BIP32
+
 #include "opentxs/core/crypto/CryptoSymmetric.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
-#include "opentxs/core/Proto.hpp"
-#include "opentxs/core/Types.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
 
 #include <cstdint>
 #include <string>
@@ -82,4 +86,5 @@ public:
 };
 }  // namespace opentxs
 
+#endif  // OT_CRYPTO_WITH_BIP32
 #endif  // OPENTXS_CORE_CRYPTO_BIP32_HPP

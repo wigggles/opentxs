@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/client/OT_ME.hpp"
 
@@ -66,7 +66,7 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/core/Types.hpp"
+#include "opentxs/Types.hpp"
 #include "opentxs/ext/Helpers.hpp"
 
 #define OT_METHOD "opentxs::OT_ME::"
@@ -92,7 +92,7 @@ bool OT_ME::make_sure_enough_trans_nums(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    auto context = OT::App().Contract().mutable_ServerContext(
+    auto context = OT::App().Wallet().mutable_ServerContext(
         Identifier(strMyNymID), Identifier(strMyNotaryID));
     Utility MsgUtil(context.It());
     bool bReturnVal = true;
@@ -147,7 +147,7 @@ std::string OT_ME::notify_bailment(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    auto context = OT::App().Contract().mutable_ServerContext(
+    auto context = OT::App().Wallet().mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func theRequest(
         NOTIFY_BAILMENT,
@@ -175,7 +175,7 @@ std::string OT_ME::initiate_bailment(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    auto context = OT::App().Contract().mutable_ServerContext(
+    auto context = OT::App().Wallet().mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func theRequest(
         INITIATE_BAILMENT,
@@ -204,7 +204,7 @@ std::string OT_ME::initiate_outbailment(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    auto context = OT::App().Contract().mutable_ServerContext(
+    auto context = OT::App().Wallet().mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func theRequest(
         INITIATE_OUTBAILMENT,
@@ -232,7 +232,7 @@ std::string OT_ME::request_connection(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    auto context = OT::App().Contract().mutable_ServerContext(
+    auto context = OT::App().Wallet().mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func theRequest(
         REQUEST_CONNECTION, context.It(), TARGET_NYM_ID, TYPE);
@@ -257,7 +257,7 @@ std::string OT_ME::store_secret(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    auto context = OT::App().Contract().mutable_ServerContext(
+    auto context = OT::App().Wallet().mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func theRequest(
         STORE_SECRET, context.It(), TARGET_NYM_ID, PRIMARY, SECONDARY, TYPE);
@@ -282,7 +282,7 @@ std::string OT_ME::acknowledge_bailment(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    auto context = OT::App().Contract().mutable_ServerContext(
+    auto context = OT::App().Wallet().mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func theRequest(
         ACKNOWLEDGE_BAILMENT,
@@ -313,7 +313,7 @@ std::string OT_ME::acknowledge_outbailment(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    auto context = OT::App().Contract().mutable_ServerContext(
+    auto context = OT::App().Wallet().mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func theRequest(
         ACKNOWLEDGE_OUTBAILMENT,
@@ -344,7 +344,7 @@ std::string OT_ME::acknowledge_notice(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    auto context = OT::App().Contract().mutable_ServerContext(
+    auto context = OT::App().Wallet().mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func theRequest(
         ACKNOWLEDGE_NOTICE, context.It(), TARGET_NYM_ID, REQUEST_ID, ACK);
@@ -375,7 +375,7 @@ std::string OT_ME::acknowledge_connection(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    auto context = OT::App().Contract().mutable_ServerContext(
+    auto context = OT::App().Wallet().mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func theRequest(
         ACKNOWLEDGE_CONNECTION,
@@ -407,7 +407,7 @@ std::string OT_ME::register_contract_nym(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    auto context = OT::App().Contract().mutable_ServerContext(
+    auto context = OT::App().Wallet().mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func theRequest(REGISTER_CONTRACT_NYM, context.It(), CONTRACT);
     std::string strResponse =
@@ -428,7 +428,7 @@ std::string OT_ME::register_contract_server(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    auto context = OT::App().Contract().mutable_ServerContext(
+    auto context = OT::App().Wallet().mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func theRequest(REGISTER_CONTRACT_SERVER, context.It(), CONTRACT);
     std::string strResponse =
@@ -449,7 +449,7 @@ std::string OT_ME::register_contract_unit(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    auto context = OT::App().Contract().mutable_ServerContext(
+    auto context = OT::App().Wallet().mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func theRequest(REGISTER_CONTRACT_UNIT, context.It(), CONTRACT);
     std::string strResponse =
@@ -471,7 +471,7 @@ std::string OT_ME::register_nym(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    auto context = OT::App().Contract().mutable_ServerContext(
+    auto context = OT::App().Wallet().mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func theRequest(REGISTER_NYM, context.It());
     std::string strResponse =
@@ -502,7 +502,7 @@ std::string OT_ME::request_admin(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    auto context = OT::App().Contract().mutable_ServerContext(
+    auto context = OT::App().Wallet().mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func theRequest(REQUEST_ADMIN, context.It(), PASSWORD);
     std::string strResponse =
@@ -526,7 +526,7 @@ std::string OT_ME::server_add_claim(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    auto context = OT::App().Contract().mutable_ServerContext(
+    auto context = OT::App().Wallet().mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func theRequest(
         SERVER_ADD_CLAIM, context.It(), PRIMARY, SECTION, TYPE, VALUE);
@@ -557,7 +557,7 @@ std::string OT_ME::ping_notary(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID) const
 {
-    auto context = OT::App().Contract().mutable_ServerContext(
+    auto context = OT::App().Wallet().mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
     const auto response = context.It().PingNotary();
     const auto& reply = response.second;
@@ -1024,7 +1024,7 @@ std::string OT_ME::get_box_receipt(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    auto context = OT::App().Contract().mutable_ServerContext(
+    auto context = OT::App().Wallet().mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func request(
         GET_BOX_RECEIPT,
@@ -1085,7 +1085,7 @@ std::string OT_ME::create_market_offer(
     std::string strNotaryID =
         SwigWrap::GetAccountWallet_NotaryID(ASSET_ACCT_ID);
     std::string strNymID = SwigWrap::GetAccountWallet_NymID(ASSET_ACCT_ID);
-    auto context = OT::App().Contract().mutable_ServerContext(
+    auto context = OT::App().Wallet().mutable_ServerContext(
         Identifier(strNymID), Identifier(strNotaryID));
     OTAPI_Func request(
         CREATE_MARKET_OFFER,
@@ -1120,7 +1120,7 @@ std::string OT_ME::kill_market_offer(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    auto context = OT::App().Contract().mutable_ServerContext(
+    auto context = OT::App().Wallet().mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func request(
         KILL_MARKET_OFFER,
@@ -1140,7 +1140,7 @@ std::string OT_ME::kill_payment_plan(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    auto context = OT::App().Contract().mutable_ServerContext(
+    auto context = OT::App().Wallet().mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func request(
         KILL_PAYMENT_PLAN, context.It(), ACCT_ID, std::to_string(TRANS_NUM));
@@ -1178,7 +1178,7 @@ std::string OT_ME::cancel_payment_plan(
     //
     // (Therefore theRequest.SendTransaction is smart enough to check for that.)
 
-    auto context = OT::App().Contract().mutable_ServerContext(
+    auto context = OT::App().Wallet().mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func request(
         DEPOSIT_PAYMENT_PLAN,
@@ -1199,7 +1199,7 @@ std::string OT_ME::activate_smart_contract(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    auto context = OT::App().Contract().mutable_ServerContext(
+    auto context = OT::App().Wallet().mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func request(
         ACTIVATE_SMART_CONTRACT,
@@ -1221,7 +1221,7 @@ std::string OT_ME::trigger_clause(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    auto context = OT::App().Contract().mutable_ServerContext(
+    auto context = OT::App().Wallet().mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func request(
         TRIGGER_CLAUSE,
@@ -1242,7 +1242,7 @@ std::string OT_ME::withdraw_cash(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    auto context = OT::App().Contract().mutable_ServerContext(
+    auto context = OT::App().Wallet().mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func request(WITHDRAW_CASH, context.It(), ACCT_ID, AMOUNT);
     return request.SendTransaction(request, "WITHDRAW_CASH");
@@ -1298,7 +1298,7 @@ std::string OT_ME::withdraw_voucher(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    auto context = OT::App().Contract().mutable_ServerContext(
+    auto context = OT::App().Wallet().mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func request(
         WITHDRAW_VOUCHER,
@@ -1322,7 +1322,7 @@ std::string OT_ME::pay_dividend(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    auto context = OT::App().Contract().mutable_ServerContext(
+    auto context = OT::App().Wallet().mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func request(
         PAY_DIVIDEND,
@@ -1342,7 +1342,7 @@ std::string OT_ME::deposit_cheque(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    auto context = OT::App().Contract().mutable_ServerContext(
+    auto context = OT::App().Wallet().mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func request(DEPOSIT_CHEQUE, context.It(), ACCT_ID, STR_CHEQUE);
     return request.SendTransaction(request, "DEPOSIT_CHEQUE");
@@ -1378,7 +1378,7 @@ std::string OT_ME::get_market_list(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    auto context = OT::App().Contract().mutable_ServerContext(
+    auto context = OT::App().Wallet().mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func request(GET_MARKET_LIST, context.It());
     return request.SendRequest(request, "GET_MARKET_LIST");
@@ -1392,7 +1392,7 @@ std::string OT_ME::get_market_offers(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    auto context = OT::App().Contract().mutable_ServerContext(
+    auto context = OT::App().Wallet().mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func request(GET_MARKET_OFFERS, context.It(), MARKET_ID, MAX_DEPTH);
     return request.SendRequest(request, "GET_MARKET_OFFERS");
@@ -1404,7 +1404,7 @@ std::string OT_ME::get_nym_market_offers(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    auto context = OT::App().Contract().mutable_ServerContext(
+    auto context = OT::App().Wallet().mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func request(GET_NYM_MARKET_OFFERS, context.It());
     return request.SendRequest(request, "GET_NYM_MARKET_OFFERS");
@@ -1417,7 +1417,7 @@ std::string OT_ME::get_market_recent_trades(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    auto context = OT::App().Contract().mutable_ServerContext(
+    auto context = OT::App().Wallet().mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func request(GET_MARKET_RECENT_TRADES, context.It(), MARKET_ID);
     return request.SendRequest(request, "GET_MARKET_RECENT_TRADES");
@@ -1431,7 +1431,7 @@ std::string OT_ME::adjust_usage_credits(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    auto context = OT::App().Contract().mutable_ServerContext(
+    auto context = OT::App().Wallet().mutable_ServerContext(
         Identifier(USER_NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func request(
         ADJUST_USAGE_CREDITS, context.It(), TARGET_NYM_ID, ADJUSTMENT);

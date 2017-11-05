@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/api/Activity.hpp"
 
@@ -54,7 +54,7 @@
 
 #define OT_METHOD "opentxs::Activity::"
 
-namespace opentxs
+namespace opentxs::api
 {
 Activity::Activity(ContactManager& contact, Storage& storage, Wallet& wallet)
     : contact_(contact)
@@ -544,4 +544,4 @@ std::size_t Activity::UnreadCount(const Identifier& nymId) const
 
     return output;
 }
-}  // namespace opentxs
+}  // namespace opentxs::api

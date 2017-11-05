@@ -6,6 +6,7 @@ set(cxx-sources
   Dht.cpp
   Identity.cpp
   OT.cpp
+  Server.cpp
   Settings.cpp
   Wallet.cpp
 )

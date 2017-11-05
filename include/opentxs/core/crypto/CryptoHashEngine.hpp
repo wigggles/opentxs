@@ -39,7 +39,9 @@
 #ifndef OPENTXS_CORE_CRYPTO_CRYPTOHASHENGINE_HPP
 #define OPENTXS_CORE_CRYPTO_CRYPTOHASHENGINE_HPP
 
-#include "opentxs/core/Proto.hpp"
+#include "opentxs/Version.hpp"
+
+#include "opentxs/Proto.hpp"
 
 #include <cstdint>
 #include <string>

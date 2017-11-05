@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/core/script/OTClause.hpp"
 
@@ -83,10 +83,10 @@ OTClause::~OTClause()
     // nothing to delete.
 
     m_pBylaw =
-        nullptr; // I wasn't the owner, it was a pointer for convenience only.
+        nullptr;  // I wasn't the owner, it was a pointer for convenience only.
 }
 
-void OTClause::SetCode(const std::string & str_code)
+void OTClause::SetCode(const std::string& str_code)
 {
     m_strCode.Set(str_code.c_str());
 }
@@ -95,7 +95,7 @@ const char* OTClause::GetCode() const
 {
     if (m_strCode.Exists()) return m_strCode.Get();
 
-    return "print(\"(Empty script.)\")"; // todo hardcoding
+    return "print(\"(Empty script.)\")";  // todo hardcoding
 }
 
 void OTClause::Serialize(Tag& parent) const
@@ -125,11 +125,12 @@ bool OTClause::Compare(const OTClause& rhs) const
 
     if (!(m_strCode.Compare(rhs.GetCode()))) {
         otOut << "OTClause::Compare: Source code for interpreted script fails "
-                 "to match, on clause: " << GetName() << " \n";
+                 "to match, on clause: "
+              << GetName() << " \n";
         return false;
     }
 
     return true;
 }
 
-} // namespace opentxs
+}  // namespace opentxs

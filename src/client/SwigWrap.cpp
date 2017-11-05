@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/client/SwigWrap.hpp"
 
@@ -58,9 +58,9 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/NumList.hpp"
-#include "opentxs/core/Proto.hpp"
+#include "opentxs/Proto.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/core/Types.hpp"
+#include "opentxs/Types.hpp"
 #include "opentxs/network/ServerConnection.hpp"
 #include "opentxs/network/ZMQ.hpp"
 #include "opentxs/storage/Storage.hpp"
@@ -94,8 +94,7 @@ bool SwigWrap::AppInit(
     const std::string& archiveDirectory,
     const std::string& encryptedDirectory)
 {
-    OT::Factory(
-        false,
+    OT::ClientFactory(
         std::chrono::seconds(gcInterval),
         storagePlugin,
         archiveDirectory,
@@ -112,11 +111,10 @@ bool SwigWrap::AppRecover(
     const std::string& archiveDirectory,
     const std::string& encryptedDirectory)
 {
-    OT::Factory(
+    OT::ClientFactory(
         true,
         words,
         passphrase,
-        false,
         std::chrono::seconds(gcInterval),
         storagePlugin,
         archiveDirectory,
@@ -3506,7 +3504,7 @@ std::uint32_t SwigWrap::GetReciprocalRelationship(
 
 NymData SwigWrap::Wallet_GetNym(const std::string& nymID)
 {
-    return OT::App().Contract().mutable_Nym(Identifier(nymID));
+    return OT::App().Wallet().mutable_Nym(Identifier(nymID));
 }
 
 std::string SwigWrap::Wallet_GetSeed()

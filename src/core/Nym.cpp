@@ -36,12 +36,13 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/core/Nym.hpp"
 
 #include "opentxs/api/Activity.hpp"
 #include "opentxs/api/OT.hpp"
+#include "opentxs/api/Server.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
@@ -73,8 +74,6 @@
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/ext/OTPayment.hpp"
-#include "opentxs/server/OTServer.hpp"      // TODO remove this
-#include "opentxs/server/ServerLoader.hpp"  // TODO remove this
 
 #include <irrxml/irrXML.hpp>
 #include <sodium/crypto_box.h>
@@ -1031,13 +1030,11 @@ bool Nym::LoadNymFromString(
     irr::io::IrrXMLReader* xml = irr::io::createIrrXMLReader(strNymXML);
     OT_ASSERT(nullptr != xml);
     std::unique_ptr<irr::io::IrrXMLReader> theCleanup(xml);
-
-    auto server = ServerLoader::getServer();
-    const bool serverMode = (nullptr != server);
-    Identifier serverID;
+    const auto serverMode = OT::App().ServerMode();
+    Identifier serverID{};
 
     if (serverMode) {
-        serverID = server->GetServerNym().ID();
+        serverID = OT::App().Server().ID();
     }
 
     // parse the file until end reached
@@ -1309,16 +1306,14 @@ bool Nym::LoadNymFromString(
                     if (serverMode) {
                         local = serverID;
                         remote = m_nymID;
-                        auto context =
-                            OT::App().Contract().mutable_ClientContext(
-                                local, remote);
+                        auto context = OT::App().Wallet().mutable_ClientContext(
+                            local, remote);
                         context.It().SetRequest(ReqNumCurrent.ToLong());
                     } else {
                         local = m_nymID;
                         remote = Identifier(ReqNumNotaryID);
-                        auto context =
-                            OT::App().Contract().mutable_ServerContext(
-                                local, remote);
+                        auto context = OT::App().Wallet().mutable_ServerContext(
+                            local, remote);
                         context.It().SetRequest(ReqNumCurrent.ToLong());
                     }
 
@@ -1330,9 +1325,8 @@ bool Nym::LoadNymFromString(
 
                     if (strValue.Exists()) {
                         // Migrate to Context class.
-                        auto context =
-                            OT::App().Contract().mutable_ClientContext(
-                                serverID, m_nymID);
+                        auto context = OT::App().Wallet().mutable_ClientContext(
+                            serverID, m_nymID);
                         context.It().SetLocalNymboxHash(Identifier(strValue));
                     }
 
@@ -1348,9 +1342,8 @@ bool Nym::LoadNymFromString(
 
                     // Convert to Context class
                     if (strNotaryID.Exists() && strNymboxHash.Exists()) {
-                        auto context =
-                            OT::App().Contract().mutable_ServerContext(
-                                m_nymID, Identifier(strNotaryID));
+                        auto context = OT::App().Wallet().mutable_ServerContext(
+                            m_nymID, Identifier(strNotaryID));
                         context.It().SetLocalNymboxHash(
                             Identifier(strNymboxHash));
                     }
@@ -1367,9 +1360,8 @@ bool Nym::LoadNymFromString(
 
                     // Convert to Context class
                     if (strNotaryID.Exists() && strRecentHash.Exists()) {
-                        auto context =
-                            OT::App().Contract().mutable_ServerContext(
-                                m_nymID, Identifier(strNotaryID));
+                        auto context = OT::App().Wallet().mutable_ServerContext(
+                            m_nymID, Identifier(strNotaryID));
                         context.It().SetRemoteNymboxHash(
                             Identifier(strRecentHash));
                     }
@@ -1422,7 +1414,7 @@ bool Nym::LoadNymFromString(
                            << " for NotaryID: " << HighNumNotaryID << "\n";
 
                     // Migrate to Context class.
-                    auto context = OT::App().Contract().mutable_ServerContext(
+                    auto context = OT::App().Wallet().mutable_ServerContext(
                         m_nymID, Identifier(HighNumNotaryID));
                     context.It().SetHighest(HighNumRecent.ToLong());
 
@@ -1456,14 +1448,14 @@ bool Nym::LoadNymFromString(
                             local = serverID;
                             remote = m_nymID;
                             auto context =
-                                OT::App().Contract().mutable_ClientContext(
+                                OT::App().Wallet().mutable_ClientContext(
                                     local, remote);
                             context.It().insert_available_number(lTemp);
                         } else {
                             local = m_nymID;
                             remote = Identifier(tempNotaryID);
                             auto context =
-                                OT::App().Contract().mutable_ServerContext(
+                                OT::App().Wallet().mutable_ServerContext(
                                     local, remote);
                             context.It().insert_available_number(lTemp);
                         }
@@ -1499,7 +1491,7 @@ bool Nym::LoadNymFromString(
                             local = serverID;
                             remote = m_nymID;
                             auto context =
-                                OT::App().Contract().mutable_ClientContext(
+                                OT::App().Wallet().mutable_ClientContext(
                                     local, remote);
                             auto existing = context.It().Request();
 
@@ -1510,7 +1502,7 @@ bool Nym::LoadNymFromString(
                             local = m_nymID;
                             remote = Identifier(tempNotaryID);
                             auto context =
-                                OT::App().Contract().mutable_ServerContext(
+                                OT::App().Wallet().mutable_ServerContext(
                                     local, remote);
                             auto existing = context.It().Request();
 
@@ -1546,9 +1538,8 @@ bool Nym::LoadNymFromString(
                             << "\n";
 
                         // Convert to Context class
-                        auto context =
-                            OT::App().Contract().mutable_ServerContext(
-                                m_nymID, Identifier(tempNotaryID));
+                        auto context = OT::App().Wallet().mutable_ServerContext(
+                            m_nymID, Identifier(tempNotaryID));
                         context.It().AddTentativeNumber(lTemp);
                     }
 
@@ -1597,14 +1588,14 @@ bool Nym::LoadNymFromString(
                             local = serverID;
                             remote = m_nymID;
                             auto context =
-                                OT::App().Contract().mutable_ClientContext(
+                                OT::App().Wallet().mutable_ClientContext(
                                     local, remote);
                             context.It().AddAcknowledgedNumber(lTemp);
                         } else {
                             local = m_nymID;
                             remote = Identifier(tempNotaryID);
                             auto context =
-                                OT::App().Contract().mutable_ServerContext(
+                                OT::App().Wallet().mutable_ServerContext(
                                     local, remote);
                             context.It().AddAcknowledgedNumber(lTemp);
                         }
@@ -1619,9 +1610,8 @@ bool Nym::LoadNymFromString(
                     String strID = xml->getAttributeValue("ID");
 
                     if (strID.Exists()) {
-                        auto context =
-                            OT::App().Contract().mutable_ClientContext(
-                                serverID, m_nymID);
+                        auto context = OT::App().Wallet().mutable_ClientContext(
+                            serverID, m_nymID);
                         context.It().OpenCronItem(strID.ToLong());
                         otLog3 << "This nym has an open cron item with ID: "
                                << strID << "\n";
@@ -2213,7 +2203,7 @@ bool Nym::ResyncWithServer(const Ledger& theNymbox, const Nym& theMessageNym)
     const String strNymID(m_nymID);
 
     auto context =
-        OT::App().Contract().mutable_ServerContext(m_nymID, theNotaryID);
+        OT::App().Wallet().mutable_ServerContext(m_nymID, theNotaryID);
 
     // Remove all issued, transaction, and tentative numbers for a specific
     // server ID,
@@ -2677,7 +2667,7 @@ bool Nym::SetAlias(const std::string& alias)
 
     if (SaveCredentialIDs()) {
 
-        return OT::App().Contract().SetNymAlias(m_nymID, alias);
+        return OT::App().Wallet().SetNymAlias(m_nymID, alias);
     }
 
     return false;

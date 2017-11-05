@@ -39,13 +39,23 @@
 #ifndef OPENTXS_STORAGE_STORAGEFSGC_HPP
 #define OPENTXS_STORAGE_STORAGEFSGC_HPP
 
+#include "opentxs/Version.hpp"
+
+#if OT_STORAGE_FS
+
 #include "opentxs/storage/drivers/StorageFS.hpp"
 
 namespace opentxs
 {
 
-class Storage;
 class StorageConfig;
+
+namespace api
+{
+
+class Storage;
+
+}  // namespace api
 
 // Simple filesystem implementation of opentxs::storage
 class StorageFSGC : public StorageFS, public virtual StorageDriver
@@ -61,7 +71,7 @@ public:
     ~StorageFSGC();
 
 private:
-    friend class Storage;
+    friend class api::Storage;
 
     std::string bucket_name(const bool bucket) const;
     std::string calculate_path(
@@ -85,6 +95,7 @@ private:
     StorageFSGC& operator=(const StorageFSGC&) = delete;
     StorageFSGC& operator=(StorageFSGC&&) = delete;
 };
-
 }  // namespace opentxs
+
+#endif  // OT_STORAGE_FS
 #endif  // OPENTXS_STORAGE_STORAGEFSGC_HPP

@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/network/ServerConnection.hpp"
 
@@ -48,7 +48,7 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Message.hpp"
-#include "opentxs/core/Proto.hpp"
+#include "opentxs/Proto.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/network/ZMQ.hpp"
 
@@ -64,8 +64,8 @@ ServerConnection::ServerConnection(
     const std::string& proxy,
     std::atomic<bool>& shutdown,
     std::atomic<std::chrono::seconds>& keepAlive,
-    ZMQ& zmq,
-    Settings& config)
+    api::ZMQ& zmq,
+    api::Settings& config)
     : shutdown_(shutdown)
     , keep_alive_(keepAlive)
     , zmq_(zmq)
@@ -198,7 +198,7 @@ std::string ServerConnection::GetRemoteEndpoint(
         config_.Save();
     }
 
-    contract = OT::App().Contract().Server(Identifier(server));
+    contract = OT::App().Wallet().Server(Identifier(server));
 
     std::uint32_t port = 0;
     std::string hostname;

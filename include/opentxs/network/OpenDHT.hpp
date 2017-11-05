@@ -39,9 +39,11 @@
 #ifndef OPENTXS_NETWORK_OPENDHT_HPP
 #define OPENTXS_NETWORK_OPENDHT_HPP
 
-#ifdef OT_DHT
+#include "opentxs/Version.hpp"
 
-#include "opentxs/core/Types.hpp"
+#if OT_DHT
+
+#include "opentxs/Types.hpp"
 
 #include <atomic>
 #include <memory>
@@ -58,7 +60,7 @@ namespace opentxs
 class DhtConfig;
 class Data;
 
-//Low interface to OpenDHT. Does not depend on opentxs.
+// Low interface to OpenDHT. Does not depend on opentxs.
 class OpenDHT
 {
 private:
@@ -82,15 +84,15 @@ public:
     void Insert(
         const std::string& key,
         const std::string& value,
-        DhtDoneCallback cb={}) const;
+        DhtDoneCallback cb = {}) const;
     void Retrieve(
         const std::string& key,
         DhtResultsCallback vcb,
-        DhtDoneCallback dcb={}) const;
+        DhtDoneCallback dcb = {}) const;
     void Cleanup();
     ~OpenDHT();
 };
 
 }  // namespace opentxs
-#endif // OT_DHT
-#endif // OPENTXS_NETWORK_OPENDHT_HPP
+#endif  // OT_DHT
+#endif  // OPENTXS_NETWORK_OPENDHT_HPP

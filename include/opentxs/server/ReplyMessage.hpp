@@ -39,9 +39,11 @@
 #ifndef OPENTXS_SERVER_REPLYMESSAGE_HPP
 #define OPENTXS_SERVER_REPLYMESSAGE_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/api/Editor.hpp"
 #include "opentxs/core/Nym.hpp"
-#include "opentxs/core/Types.hpp"
+#include "opentxs/Types.hpp"
 
 #include <cstdint>
 #include <memory>
@@ -54,7 +56,11 @@ class OTASCIIArmor;
 class ClientContext;
 class Identifier;
 class Message;
-class OTServer;
+
+namespace server
+{
+
+class Server;
 
 class ReplyMessage
 {
@@ -63,7 +69,7 @@ public:
         const Identifier& notaryID,
         const Nym& signer,
         const Message& input,
-        OTServer& server,
+        Server& server,
         const MessageType& type,
         Message& output);
 
@@ -105,7 +111,7 @@ private:
     const Message& original_;
     const Identifier notary_id_;
     Message& message_;
-    OTServer& server_;
+    Server& server_;
     Nym nymfile_;
     bool init_{false};
     bool drop_{false};
@@ -124,6 +130,7 @@ private:
     ReplyMessage& operator=(const ReplyMessage&) = delete;
     ReplyMessage& operator=(ReplyMessage&&) = delete;
 };
+}  // namespace server
 }  // namespace opentxs
 
 #endif  // OPENTXS_SERVER_REPLYMESSAGE_HPP

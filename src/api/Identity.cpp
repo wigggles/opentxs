@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/api/Identity.hpp"
 
@@ -48,7 +48,7 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/core/Types.hpp"
+#include "opentxs/Types.hpp"
 
 #include <stdint.h>
 #include <memory>
@@ -60,7 +60,7 @@
 // error from being unused.
 //#define OT_METHOD "opentxs::Identity::"
 
-namespace opentxs
+namespace opentxs::api
 {
 bool Identity::AddInternalVerification(
     bool& changed,
@@ -363,7 +363,7 @@ std::unique_ptr<proto::VerificationSet> Identity::Verify(
             const bool updated = onNym.SetVerificationSet(*revised);
 
             if (updated) {
-                OT::App().Contract().Nym(onNym.asPublicNym());
+                OT::App().Wallet().Nym(onNym.asPublicNym());
 
                 return revised;
             } else {
@@ -380,4 +380,4 @@ std::unique_ptr<proto::VerificationSet> Identity::Verify(
 
     return nullptr;
 }
-}  // namespace opentxs
+}  // namespace opentxs::api

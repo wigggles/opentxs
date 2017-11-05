@@ -39,11 +39,13 @@
 #ifndef OPENTXS_CORE_OTASSETCONTRACT_HPP
 #define OPENTXS_CORE_OTASSETCONTRACT_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Nym.hpp"
-#include "opentxs/core/Proto.hpp"
+#include "opentxs/Proto.hpp"
 #include "opentxs/core/String.hpp"
 
 #include <stdint.h>
@@ -68,9 +70,8 @@ private:
 
     proto::UnitDefinition contract(const Lock& lock) const;
     Identifier GetID(const Lock& lock) const override;
-    bool verify_signature(
-        const Lock& lock,
-        const proto::Signature& signature) const override;
+    bool verify_signature(const Lock& lock, const proto::Signature& signature)
+        const override;
 
 protected:
     std::string primary_unit_symbol_;
@@ -83,9 +84,7 @@ protected:
 
     bool update_signature(const Lock& lock) override;
 
-    UnitDefinition(
-        const ConstNym& nym,
-        const proto::UnitDefinition serialized);
+    UnitDefinition(const ConstNym& nym, const proto::UnitDefinition serialized);
     UnitDefinition(
         const ConstNym& nym,
         const std::string& shortname,
@@ -138,15 +137,19 @@ public:
     EXPORT bool VisitAccountRecords(AccountVisitor& visitor) const;
 
     EXPORT static std::string formatLongAmount(
-        int64_t lValue, int32_t nFactor = 100, int32_t nPower = 2,
+        int64_t lValue,
+        int32_t nFactor = 100,
+        int32_t nPower = 2,
         const char* szCurrencySymbol = "",
         const char* szThousandSeparator = ",",
         const char* szDecimalPoint = ".");
-    EXPORT static bool ParseFormatted(int64_t& lResult,
-                                      const std::string& str_input,
-                                      int32_t nFactor = 100, int32_t nPower = 2,
-                                      const char* szThousandSeparator = ",",
-                                      const char* szDecimalPoint = ".");
+    EXPORT static bool ParseFormatted(
+        int64_t& lResult,
+        const std::string& str_input,
+        int32_t nFactor = 100,
+        int32_t nPower = 2,
+        const char* szThousandSeparator = ",",
+        const char* szDecimalPoint = ".");
     EXPORT const std::string& GetCurrencyName() const
     {
         return primary_unit_name_;
@@ -158,16 +161,21 @@ public:
 
     EXPORT virtual bool DisplayStatistics(String& strContents) const;
     EXPORT proto::UnitDefinition Contract() const;
-    EXPORT bool FormatAmountLocale(int64_t amount, std::string& str_output,
-                                   const std::string& str_thousand,
-                                   const std::string& str_decimal) const;
+    EXPORT bool FormatAmountLocale(
+        int64_t amount,
+        std::string& str_output,
+        const std::string& str_thousand,
+        const std::string& str_decimal) const;
     EXPORT bool FormatAmountWithoutSymbolLocale(
-        int64_t amount, std::string& str_output,
-        const std::string& str_thousand, const std::string& str_decimal) const;
-    EXPORT bool StringToAmountLocale(int64_t& amount,
-                                     const std::string& str_input,
-                                     const std::string& str_thousand,
-                                     const std::string& str_decimal) const;
+        int64_t amount,
+        std::string& str_output,
+        const std::string& str_thousand,
+        const std::string& str_decimal) const;
+    EXPORT bool StringToAmountLocale(
+        int64_t& amount,
+        const std::string& str_input,
+        const std::string& str_thousand,
+        const std::string& str_decimal) const;
     EXPORT Data Serialize() const override;
     EXPORT std::string Name() const override { return short_name_; }
     EXPORT proto::UnitDefinition PublicContract() const;
@@ -182,6 +190,6 @@ public:
     EXPORT virtual ~UnitDefinition() = default;
 };
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CORE_OTASSETCONTRACT_HPP
+#endif  // OPENTXS_CORE_OTASSETCONTRACT_HPP

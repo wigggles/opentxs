@@ -39,10 +39,12 @@
 #ifndef OPENTXS_CONSENSUS_CONTEXT_HPP
 #define OPENTXS_CONSENSUS_CONTEXT_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Proto.hpp"
-#include "opentxs/core/Types.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
 
 #include <atomic>
 #include <cstdint>
@@ -55,7 +57,13 @@ namespace opentxs
 
 class Nym;
 class TransactionStatement;
+
+namespace api
+{
+
 class Wallet;
+
+}  // namespace api
 
 class Context : public Signable
 {
@@ -131,7 +139,7 @@ protected:
 
 private:
     friend class Nym;
-    friend class Wallet;
+    friend class api::Wallet;
 
     typedef Signable ot_super;
 

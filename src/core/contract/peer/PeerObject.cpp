@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/core/contract/peer/PeerObject.hpp"
 
@@ -61,7 +61,7 @@ PeerObject::PeerObject(
     if (signerNym) {
         nym_ = signerNym;
     } else if (serialized.has_nym()) {
-        nym_ = OT::App().Contract().Nym(serialized.nym());
+        nym_ = OT::App().Wallet().Nym(serialized.nym());
     }
 
     switch (serialized.type()) {
@@ -72,12 +72,12 @@ PeerObject::PeerObject(
             request_ = PeerRequest::Factory(nym_, serialized.otrequest());
         } break;
         case (proto::PEEROBJECT_RESPONSE): {
-            auto senderNym = OT::App().Contract().Nym(
+            auto senderNym = OT::App().Wallet().Nym(
                 Identifier(serialized.otrequest().initiator()));
             request_ = PeerRequest::Factory(senderNym, serialized.otrequest());
 
             if (false == bool(nym_)) {
-                nym_ = OT::App().Contract().Nym(
+                nym_ = OT::App().Wallet().Nym(
                     Identifier(serialized.otrequest().recipient()));
             }
 
@@ -270,7 +270,7 @@ proto::PeerObject PeerObject::Serialize() const
 
             if (request_) {
                 *(output.mutable_otrequest()) = request_->Contract();
-                auto nym = OT::App().Contract().Nym(request_->Initiator());
+                auto nym = OT::App().Wallet().Nym(request_->Initiator());
 
                 if (nym) {
                     *output.mutable_nym() = nym->asPublicNym();

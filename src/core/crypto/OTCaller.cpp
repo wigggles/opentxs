@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/core/crypto/OTCaller.hpp"
 
@@ -79,26 +79,26 @@ void OTCaller::SetDisplay(const char* szDisplay, int32_t nLength)
     // to
     // storing the password itself. (For convenience.)
     //
-    m_Display.setPassword_uint8(reinterpret_cast<const uint8_t*>(szDisplay),
-                                nLength);
+    m_Display.setPassword_uint8(
+        reinterpret_cast<const uint8_t*>(szDisplay), nLength);
 }
 
 // The password will be stored here by the Java dialog, so that the C callback
 // can retrieve it and pass it to OpenSSL
 //
-bool OTCaller::GetPassword(OTPassword& theOutput) const // Get the password....
+bool OTCaller::GetPassword(OTPassword& theOutput) const  // Get the password....
 {
     otOut << "OTCaller::GetPassword: FYI, returning password after invoking a "
              "(probably Java) password dialog.\n";
 
-    theOutput.setPassword_uint8(m_Password.getPassword_uint8(),
-                                m_Password.getPasswordSize());
+    theOutput.setPassword_uint8(
+        m_Password.getPassword_uint8(), m_Password.getPasswordSize());
 
     return true;
 }
 
-void OTCaller::ZeroOutPassword() // Then ZERO IT OUT so copies aren't floating
-                                 // around.
+void OTCaller::ZeroOutPassword()  // Then ZERO IT OUT so copies aren't floating
+                                  // around.
 {
     if (m_Password.getPasswordSize() > 0) m_Password.zeroMemory();
 }
@@ -129,9 +129,9 @@ void OTCaller::setCallback(OTCallback* cb)
         return;
     }
 
-    delCallback(); // Sets _callback to nullptr, but LOGS first, if it was
-                   // already
-                   // set.
+    delCallback();  // Sets _callback to nullptr, but LOGS first, if it was
+                    // already
+                    // set.
 
     _callback = cb;
     otOut << "OTCaller::setCallback: FYI, the password OTCallback pointer was "
@@ -145,14 +145,14 @@ bool OTCaller::isCallbackSet() const
 
 void OTCaller::callOne()
 {
-    ZeroOutPassword(); // Make sure there isn't some old password still in here.
+    ZeroOutPassword();  // Make sure there isn't some old password still in
+                        // here.
 
     if (isCallbackSet()) {
         otOut
             << "OTCaller::callOne: FYI, Executing password callback (one)...\n";
         _callback->runOne(GetDisplay(), m_Password);
-    }
-    else {
+    } else {
         otOut << "OTCaller::callOne: WARNING: Failed attempt to trigger "
                  "password callback (one), due to \"it hasn't been set "
                  "yet.\"\n";
@@ -161,14 +161,14 @@ void OTCaller::callOne()
 
 void OTCaller::callTwo()
 {
-    ZeroOutPassword(); // Make sure there isn't some old password still in here.
+    ZeroOutPassword();  // Make sure there isn't some old password still in
+                        // here.
 
     if (isCallbackSet()) {
         otOut
             << "OTCaller::callTwo: FYI, Executing password callback (two)...\n";
         _callback->runTwo(GetDisplay(), m_Password);
-    }
-    else {
+    } else {
         otOut << "OTCaller::callTwo: WARNING: Failed attempt to trigger "
                  "password callback (two), due to \"it hasn't been set "
                  "yet.\"\n";
@@ -269,4 +269,4 @@ qualified objects can still be optimized out
 not work.
  */
 
-} // namespace opentxs
+}  // namespace opentxs

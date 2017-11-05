@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_OTACCOUNT_HPP
 #define OPENTXS_CORE_OTACCOUNT_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/OTTransactionType.hpp"

@@ -39,6 +39,10 @@
 #ifndef OPENTXS_STORAGE_STORAGESQLITE3_HPP
 #define OPENTXS_STORAGE_STORAGESQLITE3_HPP
 
+#include "opentxs/Version.hpp"
+
+#if OT_STORAGE_SQLITE
+
 #include "opentxs/storage/StoragePlugin.hpp"
 
 extern "C" {
@@ -48,8 +52,14 @@ extern "C" {
 namespace opentxs
 {
 
-class Storage;
 class StorageConfig;
+
+namespace api
+{
+
+class Storage;
+
+}  // namespace api
 
 // SQLite3 implementation of opentxs::storage
 class StorageSqlite3 : public virtual StoragePlugin_impl,
@@ -58,7 +68,7 @@ class StorageSqlite3 : public virtual StoragePlugin_impl,
 private:
     typedef StoragePlugin_impl ot_super;
 
-    friend class Storage;
+    friend class api::Storage;
 
     std::string folder_;
     sqlite3* db_{nullptr};
@@ -109,4 +119,5 @@ public:
 };
 
 }  // namespace opentxs
+#endif  // OT_STORAGE_SQLITE
 #endif  // OPENTXS_STORAGE_STORAGESQLITE3_HPP

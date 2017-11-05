@@ -133,6 +133,8 @@
 #ifndef OPENTXS_CLIENT_CMDEXPORTCASH_HPP
 #define OPENTXS_CLIENT_CMDEXPORTCASH_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "CmdBaseInstrument.hpp"
 
 namespace opentxs
@@ -144,21 +146,27 @@ public:
     EXPORT CmdExportCash();
     virtual ~CmdExportCash();
 
-    EXPORT int32_t run(std::string server, std::string mynym,
-                       std::string mypurse, std::string hisnym,
-                       std::string indices, std::string password);
+    EXPORT int32_t
+    run(std::string server,
+        std::string mynym,
+        std::string mypurse,
+        std::string hisnym,
+        std::string indices,
+        std::string password);
 
-    EXPORT std::string exportCash(const std::string& server,
-                                  const std::string& mynym,
-                                  const std::string& assetType,
-                                  std::string& hisnym,
-                                  const std::string& indices, bool hasPassword,
-                                  std::string& retainedCopy) const;
+    EXPORT std::string exportCash(
+        const std::string& server,
+        const std::string& mynym,
+        const std::string& assetType,
+        std::string& hisnym,
+        const std::string& indices,
+        bool hasPassword,
+        std::string& retainedCopy) const;
 
 protected:
     int32_t runWithOptions() override;
 };
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CLIENT_CMDEXPORTCASH_HPP
+#endif  // OPENTXS_CLIENT_CMDEXPORTCASH_HPP

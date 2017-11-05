@@ -35,11 +35,11 @@
  *   for more details.
  *
  ************************************************************/
-#if OT_STORAGE_FS
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/storage/drivers/StorageFSGC.hpp"
 
+#if OT_STORAGE_FS
 #include "opentxs/storage/StorageConfig.hpp"
 
 #include <boost/filesystem.hpp>

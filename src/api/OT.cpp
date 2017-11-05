@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/api/OT.hpp"
 
@@ -46,6 +46,7 @@
 #include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Dht.hpp"
 #include "opentxs/api/Identity.hpp"
+#include "opentxs/api/Server.hpp"
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/client/OT_API.hpp"
@@ -71,6 +72,7 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/util/Signals.hpp"
 
 #include <atomic>
 #include <ctime>
@@ -80,6 +82,7 @@
 #include <thread>
 
 #define CLIENT_CONFIG_KEY "client"
+#define SERVER_CONFIG_KEY "server"
 #define STORAGE_CONFIG_KEY "storage"
 
 #define OT_METHOD "opentxs::OT::"
@@ -97,7 +100,8 @@ OT::OT(
     const std::chrono::seconds gcInterval,
     const std::string& storagePlugin,
     const std::string& backupDirectory,
-    const std::string& encryptedDirectory)
+    const std::string& encryptedDirectory,
+    const std::map<std::string, std::string>& serverArgs)
     : recover_(recover)
     , server_mode_(serverMode)
     , nym_publish_interval_(std::numeric_limits<std::int64_t>::max())
@@ -114,6 +118,7 @@ OT::OT(
     , encrypted_directory_(encryptedDirectory)
     , config_lock_()
     , task_list_lock_()
+    , signal_handler_lock_()
     , periodic_task_list()
     , shutdown_(false)
     , activity_(nullptr)
@@ -128,6 +133,10 @@ OT::OT(
     , wallet_(nullptr)
     , zeromq_(nullptr)
     , periodic_(nullptr)
+    , storage_encryption_key_(nullptr)
+    , server_(nullptr)
+    , signal_handler_(nullptr)
+    , server_args_(serverArgs)
 {
 }
 
@@ -138,14 +147,14 @@ const OT& OT::App()
     return *instance_pointer_;
 }
 
-class Activity& OT::Activity() const
+api::Activity& OT::Activity() const
 {
     OT_ASSERT(activity_)
 
     return *activity_;
 }
 
-Api& OT::API() const
+api::Api& OT::API() const
 {
     if (server_mode_) {
         OT_FAIL;
@@ -156,7 +165,7 @@ Api& OT::API() const
     return *api_;
 }
 
-class Blockchain& OT::Blockchain() const
+api::Blockchain& OT::Blockchain() const
 {
     OT_ASSERT(blockchain_)
 
@@ -166,86 +175,32 @@ class Blockchain& OT::Blockchain() const
 void OT::Cleanup()
 {
     if (nullptr != instance_pointer_) {
-        instance_pointer_->Shutdown();
+        instance_pointer_->shutdown();
         delete instance_pointer_;
         instance_pointer_ = nullptr;
     }
 }
 
-Settings& OT::Config(const std::string& path) const
-{
-    std::unique_lock<std::mutex> lock(config_lock_);
-    auto& config = config_[path];
-
-    if (!config) {
-        config.reset(new Settings(String(path)));
-    }
-
-    OT_ASSERT(config);
-
-    lock.unlock();
-
-    return *config;
-}
-
-ContactManager& OT::Contact() const
-{
-    OT_ASSERT(contacts_)
-
-    return *contacts_;
-}
-
-Wallet& OT::Contract() const
-{
-    OT_ASSERT(wallet_)
-
-    return *wallet_;
-}
-
-CryptoEngine& OT::Crypto() const
-{
-    OT_ASSERT(crypto_)
-
-    return *crypto_;
-}
-
-Storage& OT::DB() const
-{
-    OT_ASSERT(storage_)
-
-    return *storage_;
-}
-
-Dht& OT::DHT() const
-{
-    OT_ASSERT(dht_)
-
-    return *dht_;
-}
-
-void OT::Factory(
-    const bool serverMode,
+void OT::ClientFactory(
     const std::chrono::seconds gcInterval,
     const std::string& storagePlugin,
     const std::string& backupDirectory,
     const std::string& encryptedDirectory)
 {
-    Factory(
+    ClientFactory(
         false,
         "",
         "",
-        serverMode,
         gcInterval,
         storagePlugin,
         backupDirectory,
         encryptedDirectory);
 }
 
-void OT::Factory(
+void OT::ClientFactory(
     const bool recover,
     const std::string& words,
     const std::string& passphrase,
-    const bool serverMode,
     const std::chrono::seconds gcInterval,
     const std::string& storagePlugin,
     const std::string& backupDirectory,
@@ -257,18 +212,72 @@ void OT::Factory(
         recover,
         words,
         passphrase,
-        serverMode,
+        false,
         gcInterval,
         storagePlugin,
         backupDirectory,
-        encryptedDirectory);
+        encryptedDirectory,
+        {});
 
     assert(nullptr != instance_pointer_);
 
     instance_pointer_->Init();
 }
 
-class Identity& OT::Identity() const
+api::Settings& OT::Config(const std::string& path) const
+{
+    std::unique_lock<std::mutex> lock(config_lock_);
+    auto& config = config_[path];
+
+    if (!config) {
+        config.reset(new api::Settings(String(path)));
+    }
+
+    OT_ASSERT(config);
+
+    lock.unlock();
+
+    return *config;
+}
+
+api::ContactManager& OT::Contact() const
+{
+    OT_ASSERT(contacts_)
+
+    return *contacts_;
+}
+
+CryptoEngine& OT::Crypto() const
+{
+    OT_ASSERT(crypto_)
+
+    return *crypto_;
+}
+
+api::Storage& OT::DB() const
+{
+    OT_ASSERT(storage_)
+
+    return *storage_;
+}
+
+api::Dht& OT::DHT() const
+{
+    OT_ASSERT(dht_)
+
+    return *dht_;
+}
+
+void OT::HandleSignals() const
+{
+    Lock lock(signal_handler_lock_);
+
+    if (false == bool(signal_handler_)) {
+        signal_handler_.reset(new Signals(shutdown_));
+    }
+}
+
+api::Identity& OT::Identity() const
 {
     OT_ASSERT(identity_)
 
@@ -298,6 +307,8 @@ void OT::Init()
         recover();
     }
 
+    Init_Server();  // requires Init_Config(), Init_Log(), Init_Contracts()
+
     start();
 }
 
@@ -307,7 +318,7 @@ void OT::Init_Activity()
     OT_ASSERT(wallet_);
     OT_ASSERT(storage_);
 
-    activity_.reset(new class Activity(*contacts_, *storage_, *wallet_));
+    activity_.reset(new api::Activity(*contacts_, *storage_, *wallet_));
 }
 
 void OT::Init_Api()
@@ -326,7 +337,7 @@ void OT::Init_Api()
         return;
     }
 
-    api_.reset(new Api(
+    api_.reset(new api::Api(
         *activity_,
         *config,
         *contacts_,
@@ -347,22 +358,31 @@ void OT::Init_Blockchain()
     OT_ASSERT(wallet_)
 
     blockchain_.reset(
-        new class Blockchain(*activity_, *crypto_, *storage_, *wallet_));
+        new api::Blockchain(*activity_, *crypto_, *storage_, *wallet_));
 }
 
 void OT::Init_Config()
 {
-    if (!server_mode_) {
-        if (!OTDataFolder::Init(CLIENT_CONFIG_KEY)) {
-            otErr << __FUNCTION__ << ": Unable to Init data folders";
+    bool setupPathsSuccess{false};
 
-            abort();
-        }
+    if (server_mode_) {
+        setupPathsSuccess = OTDataFolder::Init(SERVER_CONFIG_KEY);
+    } else {
+        setupPathsSuccess = OTDataFolder::Init(CLIENT_CONFIG_KEY);
     }
+
+    if (false == setupPathsSuccess) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Unable to initialize data folders" << std::endl;
+
+        OT_FAIL;
+    }
+
+    OT_ASSERT(OTDataFolder::IsInitialized());
 
     String strConfigFilePath;
     OTDataFolder::GetConfigFilePath(strConfigFilePath);
-    config_[""].reset(new Settings(strConfigFilePath));
+    config_[""].reset(new api::Settings(strConfigFilePath));
 }
 
 void OT::Init_Contacts()
@@ -370,10 +390,10 @@ void OT::Init_Contacts()
     OT_ASSERT(storage_)
     OT_ASSERT(wallet_)
 
-    contacts_.reset(new ContactManager(*storage_, *wallet_));
+    contacts_.reset(new api::ContactManager(*storage_, *wallet_));
 }
 
-void OT::Init_Contracts() { wallet_.reset(new class Wallet(*this)); }
+void OT::Init_Contracts() { wallet_.reset(new api::Wallet(*this)); }
 
 void OT::Init_Crypto() { crypto_.reset(new CryptoEngine(*this)); }
 
@@ -442,10 +462,10 @@ void OT::Init_Dht()
         config.bootstrap_port_,
         notUsed);
 
-    dht_.reset(Dht::It(config));
+    dht_.reset(api::Dht::It(config));
 }
 
-void OT::Init_Identity() { identity_.reset(new class Identity); }
+void OT::Init_Identity() { identity_.reset(new api::Identity); }
 
 void OT::Init_Log()
 {
@@ -460,6 +480,22 @@ void OT::Init_Log()
     if (false == Log::Init(Config(), type.c_str())) {
         abort();
     }
+}
+
+void OT::Init_Server()
+{
+    if (false == server_mode_) {
+
+        return;
+    }
+
+    OT_ASSERT(wallet_);
+
+    server_.reset(new api::Server(server_args_, *wallet_, shutdown_));
+
+    OT_ASSERT(server_);
+
+    server_->Init();
 }
 
 void OT::Init_Storage()
@@ -637,8 +673,8 @@ void OT::Init_Storage()
 
     if (dht_) {
         config.dht_callback_ = std::bind(
-            static_cast<void (Dht::*)(const std::string&, const std::string&)>(
-                &Dht::Insert),
+            static_cast<void (api::Dht::*)(
+                const std::string&, const std::string&)>(&api::Dht::Insert),
             dht_.get(),
             std::placeholders::_1,
             std::placeholders::_2);
@@ -646,7 +682,7 @@ void OT::Init_Storage()
 
     OT_ASSERT(crypto_);
 
-    storage_.reset(new Storage(config, *crypto_, hash, random));
+    storage_.reset(new api::Storage(config, *crypto_, hash, random));
     Config().Save();
 }
 
@@ -745,7 +781,14 @@ void OT::Init_ZMQ()
 
     OT_ASSERT(config);
 
-    zeromq_.reset(new class ZMQ(*config));
+    zeromq_.reset(new api::ZMQ(*config));
+}
+
+void OT::Join()
+{
+    while (nullptr != instance_pointer_) {
+        Log::Sleep(std::chrono::milliseconds(250));
+    }
 }
 
 void OT::Periodic()
@@ -811,6 +854,39 @@ void OT::Schedule(
     periodic_task_list.push_back(TaskItem{last, interval, task});
 }
 
+const api::Server& OT::Server() const
+{
+    OT_ASSERT(server_);
+
+    return *server_;
+}
+
+void OT::ServerFactory(
+    const std::map<std::string, std::string>& serverArgs,
+    const std::chrono::seconds gcInterval,
+    const std::string& storagePlugin,
+    const std::string& backupDirectory)
+{
+    assert(nullptr == instance_pointer_);
+
+    instance_pointer_ = new OT(
+        false,
+        "",
+        "",
+        true,
+        gcInterval,
+        storagePlugin,
+        backupDirectory,
+        "",
+        serverArgs);
+
+    assert(nullptr != instance_pointer_);
+
+    instance_pointer_->Init();
+}
+
+bool OT::ServerMode() const { return server_mode_; }
+
 void OT::set_storage_encryption()
 {
     OT_ASSERT(api_);
@@ -847,7 +923,7 @@ void OT::set_storage_encryption()
     wallet->SaveWallet();
 }
 
-void OT::Shutdown()
+void OT::shutdown()
 {
     shutdown_.store(true);
 
@@ -855,10 +931,15 @@ void OT::Shutdown()
         periodic_->join();
     }
 
+    if (server_) {
+        server_->Cleanup();
+    }
+
     if (api_) {
         api_->Cleanup();
     }
 
+    server_.reset();
     api_.reset();
     blockchain_.reset();
     activity_.reset();
@@ -878,6 +959,8 @@ void OT::Shutdown()
     config_.clear();
 }
 
+const std::atomic<bool>& OT::Shutdown() const { return shutdown_; }
+
 void OT::start()
 {
     OT_ASSERT(activity_);
@@ -891,9 +974,22 @@ void OT::start()
     contacts_->start();
     activity_->MigrateLegacyThreads();
     Init_Periodic();
+
+    if (server_mode_) {
+        OT_ASSERT(server_);
+
+        server_->Start();
+    }
 }
 
-class ZMQ& OT::ZMQ() const
+api::Wallet& OT::Wallet() const
+{
+    OT_ASSERT(wallet_)
+
+    return *wallet_;
+}
+
+api::ZMQ& OT::ZMQ() const
 {
     OT_ASSERT(zeromq_)
 

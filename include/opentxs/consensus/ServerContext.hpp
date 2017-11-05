@@ -39,10 +39,12 @@
 #ifndef OPENTXS_CONSENSUS_SERVERCONTEXT_HPP
 #define OPENTXS_CONSENSUS_SERVERCONTEXT_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/consensus/Context.hpp"
 #include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Proto.hpp"
-#include "opentxs/core/Types.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
 
 #include <atomic>
 #include <set>

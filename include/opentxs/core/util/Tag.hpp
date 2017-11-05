@@ -39,6 +39,8 @@
 #ifndef CLASS_TAG_HEADER
 #define CLASS_TAG_HEADER
 
+#include "opentxs/Version.hpp"
+
 #include <string>
 #include <map>
 #include <vector>
@@ -62,41 +64,26 @@ private:
     vector_tags tags_;
 
 public:
-    const std::string& name() const
-    {
-        return name_;
-    }
-    const std::string& text() const
-    {
-        return text_;
-    }
-    const map_strings& attributes() const
-    {
-        return attributes_;
-    }
-    const vector_tags& tags() const
-    {
-        return tags_;
-    }
+    const std::string& name() const { return name_; }
+    const std::string& text() const { return text_; }
+    const map_strings& attributes() const { return attributes_; }
+    const vector_tags& tags() const { return tags_; }
 
-    void set_name(const std::string& str_name)
-    {
-        name_ = str_name;
-    }
-    void set_text(const std::string& str_text)
-    {
-        text_ = str_text;
-    }
+    void set_name(const std::string& str_name) { name_ = str_name; }
+    void set_text(const std::string& str_text) { text_ = str_text; }
 
-    void add_attribute(const std::string& str_att_name,
-                       const std::string& str_att_value);
+    void add_attribute(
+        const std::string& str_att_name,
+        const std::string& str_att_value);
 
-    void add_attribute(const std::string& str_att_name,
-                       const char* sz_att_value);
+    void add_attribute(
+        const std::string& str_att_name,
+        const char* sz_att_value);
 
     void add_tag(TagPtr& tag_input);
-    void add_tag(const std::string& str_tag_name,
-                 const std::string& str_tag_value);
+    void add_tag(
+        const std::string& str_tag_name,
+        const std::string& str_tag_value);
 
     Tag(const std::string& str_name);
 
@@ -108,9 +95,9 @@ public:
     void outputXML(std::string& str_output) const;
 };
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // CLASS_TAG_HEADER
+#endif  // CLASS_TAG_HEADER
 
 /*
 
