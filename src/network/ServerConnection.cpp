@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/network/ServerConnection.hpp"
 
@@ -48,7 +48,7 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Message.hpp"
-#include "opentxs/core/Proto.hpp"
+#include "opentxs/Proto.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/network/ZMQ.hpp"
 

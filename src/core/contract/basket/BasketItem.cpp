@@ -36,10 +36,10 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/core/contract/basket/BasketItem.hpp"
 
 namespace opentxs
 {
-} // namespace opentxs
+}  // namespace opentxs

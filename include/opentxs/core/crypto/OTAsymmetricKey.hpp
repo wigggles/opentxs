@@ -46,7 +46,7 @@
 #include "opentxs/core/util/Timer.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/core/Proto.hpp"
+#include "opentxs/Proto.hpp"
 #include "opentxs/core/String.hpp"
 
 #include <stdint.h>

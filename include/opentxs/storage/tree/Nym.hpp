@@ -42,7 +42,7 @@
 #include "opentxs/Version.hpp"
 
 #include "opentxs/api/Editor.hpp"
-#include "opentxs/core/Types.hpp"
+#include "opentxs/Types.hpp"
 #include "opentxs/storage/tree/Contexts.hpp"
 #include "opentxs/storage/tree/Mailbox.hpp"
 #include "opentxs/storage/tree/Node.hpp"

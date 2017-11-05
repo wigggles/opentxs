@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/core/util/Tag.hpp"
 
@@ -47,16 +47,18 @@
 namespace opentxs
 {
 
-void Tag::add_attribute(const std::string& str_att_name,
-                        const char* sz_att_value)
+void Tag::add_attribute(
+    const std::string& str_att_name,
+    const char* sz_att_value)
 {
     std::string str_temp(sz_att_value);
 
     add_attribute(str_att_name, str_temp);
 }
 
-void Tag::add_attribute(const std::string& str_att_name,
-                        const std::string& str_att_value)
+void Tag::add_attribute(
+    const std::string& str_att_name,
+    const std::string& str_att_value)
 {
     std::pair<std::string, std::string> temp =
         std::make_pair(str_att_name, str_att_value);
@@ -64,10 +66,7 @@ void Tag::add_attribute(const std::string& str_att_name,
     attributes_.insert(temp);
 }
 
-void Tag::output(std::string& str_output) const
-{
-    outputXML(str_output);
-}
+void Tag::output(std::string& str_output) const { outputXML(str_output); }
 
 void Tag::outputXML(std::string& str_output) const
 {
@@ -81,14 +80,12 @@ void Tag::outputXML(std::string& str_output) const
 
     if (text_.empty() && tags_.empty()) {
         str_output += " />\n";
-    }
-    else {
+    } else {
         str_output += ">\n";
 
         if (!text_.empty()) {
             str_output += text_;
-        }
-        else if (!tags_.empty()) {
+        } else if (!tags_.empty()) {
             for (auto& kv : tags_) {
                 kv->output(str_output);
             }
@@ -98,13 +95,11 @@ void Tag::outputXML(std::string& str_output) const
     }
 }
 
-void Tag::add_tag(TagPtr& tag_input)
-{
-    tags_.push_back(tag_input);
-}
+void Tag::add_tag(TagPtr& tag_input) { tags_.push_back(tag_input); }
 
-void Tag::add_tag(const std::string& str_tag_name,
-                  const std::string& str_tag_value)
+void Tag::add_tag(
+    const std::string& str_tag_name,
+    const std::string& str_tag_value)
 {
     TagPtr p1 = std::make_shared<Tag>(str_tag_name, str_tag_value);
 
@@ -128,4 +123,4 @@ Tag::Tag(const std::string& str_name, const char* sztext)
 {
 }
 
-} // namespace
+}  // namespace

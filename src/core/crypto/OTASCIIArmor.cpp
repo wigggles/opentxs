@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 
@@ -303,8 +303,7 @@ bool OTASCIIArmor::SetData(const Data& theData, bool bLineBreaks)
 
     if (theData.GetSize() < 1) return true;
 
-    auto string =
-        OT::App().Crypto().Encode().DataEncode(theData);
+    auto string = OT::App().Crypto().Encode().DataEncode(theData);
 
     if (string.empty()) {
         otErr << __FUNCTION__ << "Base64Encode failed" << std::endl;

@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 
@@ -65,7 +65,7 @@
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/core/Types.hpp"
+#include "opentxs/Types.hpp"
 
 #include <stdint.h>
 #include <cstdint>

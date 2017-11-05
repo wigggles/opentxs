@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/core/contract/peer/BailmentNotice.hpp"
 
@@ -47,10 +47,10 @@ namespace opentxs
 BailmentNotice::BailmentNotice(
     const ConstNym& nym,
     const proto::PeerRequest& serialized)
-        : ot_super(nym, serialized)
-        , unit_(serialized.pendingbailment().unitid())
-        , server_(serialized.pendingbailment().serverid())
-        , txid_(serialized.pendingbailment().txid())
+    : ot_super(nym, serialized)
+    , unit_(serialized.pendingbailment().unitid())
+    , server_(serialized.pendingbailment().serverid())
+    , txid_(serialized.pendingbailment().txid())
 {
 }
 
@@ -60,10 +60,10 @@ BailmentNotice::BailmentNotice(
     const Identifier& unitID,
     const Identifier& serverID,
     const std::string& txid)
-        : ot_super(nym, recipientID, serverID, proto::PEERREQUEST_PENDINGBAILMENT)
-        , unit_(unitID)
-        , server_(serverID)
-        , txid_(txid)
+    : ot_super(nym, recipientID, serverID, proto::PEERREQUEST_PENDINGBAILMENT)
+    , unit_(unitID)
+    , server_(serverID)
+    , txid_(txid)
 {
 }
 
@@ -79,4 +79,4 @@ proto::PeerRequest BailmentNotice::IDVersion(const Lock& lock) const
 
     return contract;
 }
-} // namespace opentxs
+}  // namespace opentxs

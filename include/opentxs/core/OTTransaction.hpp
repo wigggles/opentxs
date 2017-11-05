@@ -43,7 +43,7 @@
 
 #include "opentxs/core/OTTransactionType.hpp"
 #include "opentxs/core/Item.hpp"
-#include "opentxs/core/Types.hpp"
+#include "opentxs/Types.hpp"
 
 namespace opentxs
 {

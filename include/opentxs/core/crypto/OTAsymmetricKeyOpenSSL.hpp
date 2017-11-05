@@ -45,7 +45,7 @@
 
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
-#include "opentxs/core/Proto.hpp"
+#include "opentxs/Proto.hpp"
 #include "opentxs/core/String.hpp"
 
 namespace opentxs

@@ -44,7 +44,7 @@
 #include "opentxs/core/contract/peer/PeerReply.hpp"
 #include "opentxs/core/contract/peer/PeerRequest.hpp"
 #include "opentxs/core/contract/Signable.hpp"
-#include "opentxs/core/Proto.hpp"
+#include "opentxs/Proto.hpp"
 
 #include <cstdint>
 #include <memory>

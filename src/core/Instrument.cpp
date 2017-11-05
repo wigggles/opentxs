@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/core/Instrument.hpp"
 
@@ -83,10 +83,7 @@ bool Instrument::VerifyCurrentDate()
         return false;
 }
 
-void Instrument::InitInstrument()
-{
-    m_strContractType.Set("INSTRUMENT");
-}
+void Instrument::InitInstrument() { m_strContractType.Set("INSTRUMENT"); }
 
 Instrument::Instrument()
     : OTScriptable()
@@ -96,8 +93,9 @@ Instrument::Instrument()
     InitInstrument();
 }
 
-Instrument::Instrument(const Identifier& NOTARY_ID,
-                       const Identifier& INSTRUMENT_DEFINITION_ID)
+Instrument::Instrument(
+    const Identifier& NOTARY_ID,
+    const Identifier& INSTRUMENT_DEFINITION_ID)
     : OTScriptable()
     , m_InstrumentDefinitionID(INSTRUMENT_DEFINITION_ID)
     , m_NotaryID(NOTARY_ID)
@@ -122,7 +120,7 @@ void Instrument::Release_Instrument()
 
 void Instrument::Release()
 {
-    Release_Instrument(); // My own cleanup is performed here.
+    Release_Instrument();  // My own cleanup is performed here.
     // Next give the base class a chance to do the same...
     // since I've overridden the base class, I call it now
     OTScriptable::Release();
@@ -149,7 +147,7 @@ int32_t Instrument::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
     // -1 is error, and 1 is "found it". Either way, return.
     if (nReturnVal != 0) {
-        return nReturnVal; // 0 means "nothing happened, keep going."
+        return nReturnVal;  // 0 means "nothing happened, keep going."
     }
     // This is from OTCronItem. It's only here as sample code.
     //
@@ -176,4 +174,4 @@ int32_t Instrument::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     return nReturnVal;
 }
 
-} // namespace opentxs
+}  // namespace opentxs

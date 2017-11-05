@@ -43,8 +43,8 @@
 
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/core/util/Common.hpp"
-#include "opentxs/core/Proto.hpp"
-#include "opentxs/core/Types.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
 
 #include <mutex>
 #include <stdint.h>

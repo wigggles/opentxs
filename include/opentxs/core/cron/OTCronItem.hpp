@@ -46,7 +46,7 @@
 
 #include "opentxs/core/OTTransactionType.hpp"
 #include "opentxs/core/OTTrackable.hpp"
-#include "opentxs/core/Types.hpp"
+#include "opentxs/Types.hpp"
 
 #include <deque>
 

@@ -48,7 +48,7 @@
 #include "opentxs/core/Item.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/core/Types.hpp"
+#include "opentxs/Types.hpp"
 
 #include <memory>
 #include <mutex>

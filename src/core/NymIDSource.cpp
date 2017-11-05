@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/core/NymIDSource.hpp"
 
@@ -54,9 +54,9 @@
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/core/Proto.hpp"
+#include "opentxs/Proto.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/core/Types.hpp"
+#include "opentxs/Types.hpp"
 
 #include <memory>
 #include <ostream>
@@ -69,20 +69,21 @@ NymIDSource::NymIDSource(const proto::NymIDSource& serializedSource)
     , type_(serializedSource.type())
 {
     switch (type_) {
-        case proto::SOURCETYPE_PUBKEY : {
+        case proto::SOURCETYPE_PUBKEY: {
             pubkey_.reset(OTAsymmetricKey::KeyFactory(serializedSource.key()));
 
             break;
         }
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-        case proto::SOURCETYPE_BIP47 : {
+        case proto::SOURCETYPE_BIP47: {
             payment_code_.reset(
                 new PaymentCode(serializedSource.paymentcode()));
 
             break;
         }
 #endif
-        default : {}
+        default: {
+        }
     }
 }
 
@@ -126,7 +127,9 @@ std::unique_ptr<proto::AsymmetricKey> NymIDSource::ExtractKey(
     const bool child = (proto::CREDROLE_CHILDKEY == credential.role());
     const bool keyCredential = master || child;
 
-    if (!keyCredential) { return output; }
+    if (!keyCredential) {
+        return output;
+    }
 
     const auto& publicCred = credential.publiccredential();
 
@@ -212,7 +215,9 @@ bool NymIDSource::Verify(
 
     switch (type_) {
         case proto::SOURCETYPE_PUBKEY:
-            if (!pubkey_) { return false; }
+            if (!pubkey_) {
+                return false;
+            }
 
             isSelfSigned =
                 (proto::SOURCEPROOFTYPE_SELF_SIGNATURE ==
@@ -341,8 +346,5 @@ String NymIDSource::Description() const
     return description;
 }
 
-proto::SourceType NymIDSource::Type() const
-{
-    return type_;
-}
+proto::SourceType NymIDSource::Type() const { return type_; }
 }  // namespace opentxs

@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/core/contract/peer/ConnectionRequest.hpp"
 
@@ -47,8 +47,8 @@ namespace opentxs
 ConnectionRequest::ConnectionRequest(
     const ConstNym& nym,
     const proto::PeerRequest& serialized)
-      : ot_super(nym, serialized)
-      , connection_type_(serialized.connectioninfo().type())
+    : ot_super(nym, serialized)
+    , connection_type_(serialized.connectioninfo().type())
 {
 }
 
@@ -57,8 +57,8 @@ ConnectionRequest::ConnectionRequest(
     const Identifier& recipientID,
     const proto::ConnectionInfoType type,
     const Identifier& serverID)
-      : ot_super(nym, recipientID, serverID, proto::PEERREQUEST_CONNECTIONINFO)
-      , connection_type_(type)
+    : ot_super(nym, recipientID, serverID, proto::PEERREQUEST_CONNECTIONINFO)
+    , connection_type_(type)
 {
 }
 
@@ -72,4 +72,4 @@ proto::PeerRequest ConnectionRequest::IDVersion(const Lock& lock) const
 
     return contract;
 }
-} // namespace opentxs
+}  // namespace opentxs

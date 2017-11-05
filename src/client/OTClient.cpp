@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/client/OTClient.hpp"
 
@@ -82,9 +82,9 @@
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/OTTransactionType.hpp"
-#include "opentxs/core/Proto.hpp"
+#include "opentxs/Proto.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/core/Types.hpp"
+#include "opentxs/Types.hpp"
 #include "opentxs/ext/OTPayment.hpp"
 
 #include <stdint.h>

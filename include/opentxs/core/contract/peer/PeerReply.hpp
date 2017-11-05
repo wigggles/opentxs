@@ -44,7 +44,7 @@
 #include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Proto.hpp"
+#include "opentxs/Proto.hpp"
 
 #include <string>
 

@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/client/OTMessageOutbuffer.hpp"
 
@@ -87,16 +87,16 @@ OTMessageOutbuffer::OTMessageOutbuffer()
     OT_ASSERT(dataFolder_.Exists());
 }
 
-void OTMessageOutbuffer::AddSentMessage(Message& theMessage) // must be heap
-                                                             // allocated.
+void OTMessageOutbuffer::AddSentMessage(Message& theMessage)  // must be heap
+                                                              // allocated.
 {
     int64_t lRequestNum = 0;
 
     if (theMessage.m_strRequestNum.Exists())
-        lRequestNum = theMessage.m_strRequestNum.ToLong(); // The map index
-                                                           // is the request
-                                                           // number on the
-                                                           // message itself.
+        lRequestNum = theMessage.m_strRequestNum.ToLong();  // The map index
+                                                            // is the request
+                                                            // number on the
+                                                            // message itself.
 
     // It's technically possible to have TWO messages (from two different
     // servers) that happen to have the same request number. So we verify
@@ -123,8 +123,7 @@ void OTMessageOutbuffer::AddSentMessage(Message& theMessage) // must be heap
         if (!theMessage.m_strNotaryID.Compare(pMsg->m_strNotaryID) ||
             !theMessage.m_strNymID.Compare(pMsg->m_strNymID)) {
             continue;
-        }
-        else {
+        } else {
             delete pMsg;
             pMsg = nullptr;
             messagesMap_.erase(it);
@@ -146,13 +145,22 @@ void OTMessageOutbuffer::AddSentMessage(Message& theMessage) // must be heap
     //
     bool bAlreadyExists = false, bIsNewFolder = false;
     String strFolder, strFolder1, strFolder2;
-    strFolder1.Format("%s%s%s", OTFolders::Nym().Get(), Log::PathSeparator(),
-                      theMessage.m_strNotaryID.Get());
-    strFolder2.Format("%s%s%s", strFolder1.Get(), Log::PathSeparator(),
-                      "sent" /*todo hardcoding*/);
+    strFolder1.Format(
+        "%s%s%s",
+        OTFolders::Nym().Get(),
+        Log::PathSeparator(),
+        theMessage.m_strNotaryID.Get());
+    strFolder2.Format(
+        "%s%s%s",
+        strFolder1.Get(),
+        Log::PathSeparator(),
+        "sent" /*todo hardcoding*/);
 
-    strFolder.Format("%s%s%s", strFolder2.Get(), Log::PathSeparator(),
-                     theMessage.m_strNymID.Get());
+    strFolder.Format(
+        "%s%s%s",
+        strFolder2.Get(),
+        Log::PathSeparator(),
+        theMessage.m_strNymID.Get());
 
     String strFolderPath = "", strFolder1Path = "", strFolder2Path = "";
 
@@ -174,15 +182,15 @@ void OTMessageOutbuffer::AddSentMessage(Message& theMessage) // must be heap
     // to that list, and then save it again.
     //
     NumList theNumList;
-    std::string str_data_filename("sent.dat"); // todo hardcoding.
+    std::string str_data_filename("sent.dat");  // todo hardcoding.
     if (OTDB::Exists(strFolder.Get(), str_data_filename)) {
         String strNumList(
             OTDB::QueryPlainString(strFolder.Get(), str_data_filename));
         if (strNumList.Exists()) theNumList.Add(strNumList);
-        theNumList.Add(lRequestNum); // Add the new request number to it.
-    }
-    else // it doesn't exist on disk, so let's just create it from the list we
-           // have in RAM so we can store it to disk.
+        theNumList.Add(lRequestNum);  // Add the new request number to it.
+    } else  // it doesn't exist on disk, so let's just create it from the list
+            // we
+            // have in RAM so we can store it to disk.
     {
         it = messagesMap_.begin();
         while (it != messagesMap_.end()) {
@@ -201,13 +209,12 @@ void OTMessageOutbuffer::AddSentMessage(Message& theMessage) // must be heap
                 !theMessage.m_strNymID.Compare(pMsg->m_strNymID)) {
                 ++it;
                 continue;
-            }
-            else {
+            } else {
                 theNumList.Add(lTempReqNum);
             }
             ++it;
         }
-    } // else
+    }  // else
 
     // By this point, theNumList has either been loaded from local storage and
     // had the new number added,
@@ -218,8 +225,10 @@ void OTMessageOutbuffer::AddSentMessage(Message& theMessage) // must be heap
     String strOutput;
     theNumList.Output(strOutput);
 
-    if (!OTDB::StorePlainString(strOutput.Get(), strFolder.Get(),
-                                str_data_filename)) // todo hardcoding.
+    if (!OTDB::StorePlainString(
+            strOutput.Get(),
+            strFolder.Get(),
+            str_data_filename))  // todo hardcoding.
     {
         otErr << "OTMessageOutbuffer::AddSentMessage: Error: failed writing "
                  "list of request numbers to storage.\n";
@@ -230,9 +239,10 @@ void OTMessageOutbuffer::AddSentMessage(Message& theMessage) // must be heap
 // that comes back from this function. The buffer maintains
 // ownership until you call RemoveSentMessage().
 
-Message* OTMessageOutbuffer::GetSentMessage(const int64_t& lRequestNum,
-                                            const String& strNotaryID,
-                                            const String& strNymID)
+Message* OTMessageOutbuffer::GetSentMessage(
+    const int64_t& lRequestNum,
+    const String& strNotaryID,
+    const String& strNymID)
 {
     auto it = messagesMap_.begin();
 
@@ -254,8 +264,7 @@ Message* OTMessageOutbuffer::GetSentMessage(const int64_t& lRequestNum,
         if (!strNotaryID.Compare(pMsg->m_strNotaryID) ||
             !strNymID.Compare(pMsg->m_strNymID)) {
             continue;
-        }
-        else {
+        } else {
             return pMsg;
         }
     }
@@ -263,17 +272,22 @@ Message* OTMessageOutbuffer::GetSentMessage(const int64_t& lRequestNum,
     // Didn't find it? Okay let's load it from local storage, if it's there...
     //
     String strFolder, strFile;
-    strFolder.Format("%s%s%s%s%s%s%s", OTFolders::Nym().Get(),
-                     Log::PathSeparator(), strNotaryID.Get(),
-                     Log::PathSeparator(), "sent",
-                     /*todo hardcoding*/ Log::PathSeparator(), strNymID.Get());
+    strFolder.Format(
+        "%s%s%s%s%s%s%s",
+        OTFolders::Nym().Get(),
+        Log::PathSeparator(),
+        strNotaryID.Get(),
+        Log::PathSeparator(),
+        "sent",
+        /*todo hardcoding*/ Log::PathSeparator(),
+        strNymID.Get());
     strFile.Format("%" PRId64 ".msg", lRequestNum);
 
     // Check the existing list, if it exists.
     //
     NumList theNumList;
     std::string str_data_filename("sent.dat");
-    if (OTDB::Exists(strFolder.Get(), str_data_filename)) // todo hardcoding.
+    if (OTDB::Exists(strFolder.Get(), str_data_filename))  // todo hardcoding.
     {
         String strNumList(
             OTDB::QueryPlainString(strFolder.Get(), str_data_filename));
@@ -382,7 +396,6 @@ void OTMessageOutbuffer::Clear(
         even had a chance to run.
         */
 
-
         /*
         getNymbox            -- client is NOT sending hash, server is NOT
                                 rejecting bad hashes, server IS SENDING HASH in
@@ -420,9 +433,9 @@ void OTMessageOutbuffer::Clear(
 
         if (pThisMsg->m_ascPayload.Exists() &&
             (pThisMsg->m_strCommand.Compare("processNymbox") ||
-                pThisMsg->m_strCommand.Compare("processInbox") ||
-                pThisMsg->m_strCommand.Compare("notarizeTransaction") ||
-                pThisMsg->m_strCommand.Compare("triggerClause"))) {
+             pThisMsg->m_strCommand.Compare("processInbox") ||
+             pThisMsg->m_strCommand.Compare("notarizeTransaction") ||
+             pThisMsg->m_strCommand.Compare("triggerClause"))) {
 
             // If we are here in the first place (i.e. after getNymboxResponse
             // just removed all the messages in this sent buffer that already
@@ -471,7 +484,7 @@ void OTMessageOutbuffer::Clear(
                 bReplyWasFailure,
                 bTransactionWasSuccess,
                 bTransactionWasFailure);
-        } // if there's a transaction to be harvested inside this message.
+        }  // if there's a transaction to be harvested inside this message.
 
         String strFolder, strFile;
         strFolder.Format(
@@ -505,7 +518,7 @@ void OTMessageOutbuffer::Clear(
 
         if (!saved) {
             otErr << "OTMessageOutbuffer::Clear: Error: failed writing list of "
-                << "request numbers to storage." << std::endl;
+                  << "request numbers to storage." << std::endl;
         }
 
         // Make sure any messages being erased here, are also erased from local
@@ -516,7 +529,7 @@ void OTMessageOutbuffer::Clear(
 
         if (OTDB::Exists(strFolder.Get(), strFile.Get()) &&
             storedMessage->LoadContract(strFolder.Get(), strFile.Get())) {
-                OTDB::EraseValueByKey(strFolder.Get(), strFile.Get());
+            OTDB::EraseValueByKey(strFolder.Get(), strFile.Get());
         }
 
         delete pThisMsg;
@@ -528,15 +541,21 @@ void OTMessageOutbuffer::Clear(
 
 // OTMessageOutbuffer deletes the OTMessage when you call this.
 //
-bool OTMessageOutbuffer::RemoveSentMessage(const int64_t& lRequestNum,
-                                           const String& strNotaryID,
-                                           const String& strNymID)
+bool OTMessageOutbuffer::RemoveSentMessage(
+    const int64_t& lRequestNum,
+    const String& strNotaryID,
+    const String& strNymID)
 {
     String strFolder, strFile;
-    strFolder.Format("%s%s%s%s%s%s%s", OTFolders::Nym().Get(),
-                     Log::PathSeparator(), strNotaryID.Get(),
-                     Log::PathSeparator(), "sent",
-                     /*todo hardcoding*/ Log::PathSeparator(), strNymID.Get());
+    strFolder.Format(
+        "%s%s%s%s%s%s%s",
+        OTFolders::Nym().Get(),
+        Log::PathSeparator(),
+        strNotaryID.Get(),
+        Log::PathSeparator(),
+        "sent",
+        /*todo hardcoding*/ Log::PathSeparator(),
+        strNymID.Get());
     strFile.Format("%" PRId64 ".msg", lRequestNum);
 
     auto it = messagesMap_.begin();
@@ -563,16 +582,15 @@ bool OTMessageOutbuffer::RemoveSentMessage(const int64_t& lRequestNum,
             !strNymID.Compare(pMsg->m_strNymID)) {
             ++it;
             continue;
-        }
-        else {
+        } else {
             delete pMsg;
             pMsg = nullptr;
 
             auto temp_it = it;
             ++temp_it;
             messagesMap_.erase(it);
-            it = temp_it; // here's where it gets incremented. (During the
-                          // erase, basically.)
+            it = temp_it;  // here's where it gets incremented. (During the
+                           // erase, basically.)
 
             bReturnValue = true;
             break;
@@ -588,15 +606,15 @@ bool OTMessageOutbuffer::RemoveSentMessage(const int64_t& lRequestNum,
     // from that list, and then save it again.
 
     NumList theNumList;
-    std::string str_data_filename("sent.dat"); // todo hardcoding.
+    std::string str_data_filename("sent.dat");  // todo hardcoding.
     if (OTDB::Exists(strFolder.Get(), str_data_filename)) {
         String strNumList(
             OTDB::QueryPlainString(strFolder.Get(), str_data_filename));
         if (strNumList.Exists()) theNumList.Add(strNumList);
         theNumList.Remove(lRequestNum);
-    }
-    else // it doesn't exist on disk, so let's just create it from the list we
-           // have in RAM so we can store it to disk.
+    } else  // it doesn't exist on disk, so let's just create it from the list
+            // we
+            // have in RAM so we can store it to disk.
     {
         it = messagesMap_.begin();
         while (it != messagesMap_.end()) {
@@ -615,13 +633,12 @@ bool OTMessageOutbuffer::RemoveSentMessage(const int64_t& lRequestNum,
                 !strNymID.Compare(pMsg->m_strNymID)) {
                 ++it;
                 continue;
-            }
-            else {
+            } else {
                 theNumList.Add(lTempReqNum);
             }
             ++it;
         }
-    } // else
+    }  // else
 
     // By this point, theNumList has either been loaded from local storage and
     // had the number removed,
@@ -635,8 +652,8 @@ bool OTMessageOutbuffer::RemoveSentMessage(const int64_t& lRequestNum,
     //
     String strOutput;
     theNumList.Output(strOutput);
-    if (!OTDB::StorePlainString(strOutput.Get(), strFolder.Get(),
-                                str_data_filename)) {
+    if (!OTDB::StorePlainString(
+            strOutput.Get(), strFolder.Get(), str_data_filename)) {
         otErr << "OTMessageOutbuffer::RemoveSentMessage: Error: failed writing "
                  "list of request numbers to storage.\n";
     }
@@ -677,9 +694,6 @@ bool OTMessageOutbuffer::RemoveSentMessage(const OTTransaction& theTransaction)
     return RemoveSentMessage(lRequestNum, strNotaryID, strNymID);
 }
 
-OTMessageOutbuffer::~OTMessageOutbuffer()
-{
-    messagesMap_.clear();
-}
+OTMessageOutbuffer::~OTMessageOutbuffer() { messagesMap_.clear(); }
 
-} // namespace opentxs
+}  // namespace opentxs

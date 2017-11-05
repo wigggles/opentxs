@@ -43,7 +43,7 @@
 
 #if OT_CRYPTO_WITH_BIP39
 
-#include "opentxs/core/Proto.hpp"
+#include "opentxs/Proto.hpp"
 
 #include <cstdint>
 #include <memory>

@@ -60,7 +60,7 @@
 // ChildCredentials are used for all other actions, and never sign other
 // Credentials
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/core/crypto/CredentialSet.hpp"
 
@@ -80,7 +80,7 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/NymIDSource.hpp"
-#include "opentxs/core/Proto.hpp"
+#include "opentxs/Proto.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/storage/Storage.hpp"
 

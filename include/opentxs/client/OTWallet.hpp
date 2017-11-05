@@ -42,7 +42,7 @@
 #include "opentxs/Version.hpp"
 
 #include "opentxs/core/crypto/NymParameters.hpp"
-#include "opentxs/core/Types.hpp"
+#include "opentxs/Types.hpp"
 
 #include <map>
 #include <memory>

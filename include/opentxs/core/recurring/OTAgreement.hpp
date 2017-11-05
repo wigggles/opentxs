@@ -48,7 +48,7 @@
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/core/Types.hpp"
+#include "opentxs/Types.hpp"
 #include "opentxs/core/OTTransactionType.hpp"
 
 #include <stdint.h>

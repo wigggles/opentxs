@@ -43,7 +43,7 @@
 
 #include "opentxs/api/Editor.hpp"
 #include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Proto.hpp"
+#include "opentxs/Proto.hpp"
 
 #include <map>
 #include <memory>

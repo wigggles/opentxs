@@ -42,7 +42,7 @@
 #include "opentxs/Version.hpp"
 
 #include "opentxs/core/crypto/CryptoSymmetric.hpp"
-#include "opentxs/core/Proto.hpp"
+#include "opentxs/Proto.hpp"
 #include "opentxs/core/String.hpp"
 
 #include <list>

@@ -42,7 +42,7 @@
 #include "opentxs/Version.hpp"
 
 #include "opentxs/core/String.hpp"
-#include "opentxs/core/Types.hpp"
+#include "opentxs/Types.hpp"
 
 #include <atomic>
 #include <chrono>

@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/core/contract/peer/BailmentReply.hpp"
 
@@ -45,7 +45,7 @@ namespace opentxs
 BailmentReply::BailmentReply(
     const ConstNym& nym,
     const proto::PeerReply& serialized)
-      : ot_super(nym, serialized)
+    : ot_super(nym, serialized)
 {
     conditions_ = serialized.bailment().instructions();
 }
@@ -56,7 +56,7 @@ BailmentReply::BailmentReply(
     const Identifier& request,
     const Identifier& server,
     const std::string& terms)
-      : ot_super(nym, initiator, server, proto::PEERREQUEST_BAILMENT, request)
+    : ot_super(nym, initiator, server, proto::PEERREQUEST_BAILMENT, request)
 {
     conditions_ = terms;
 }
@@ -70,4 +70,4 @@ proto::PeerReply BailmentReply::IDVersion(const Lock& lock) const
 
     return contract;
 }
-} // namespace opentxs
+}  // namespace opentxs

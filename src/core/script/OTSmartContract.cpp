@@ -494,7 +494,7 @@ receipts directly in response to their server messages, they can still compare
 various sequence numbers. Hm.
  */
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/core/script/OTSmartContract.hpp"
 
@@ -527,7 +527,7 @@ various sequence numbers. Hm.
 #include "opentxs/core/script/OTStash.hpp"
 #include "opentxs/core/script/OTStashItem.hpp"
 #include "opentxs/core/script/OTVariable.hpp"
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/Tag.hpp"

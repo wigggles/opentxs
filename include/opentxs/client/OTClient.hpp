@@ -43,7 +43,7 @@
 
 #include "opentxs/client/OTMessageBuffer.hpp"
 #include "opentxs/client/OTMessageOutbuffer.hpp"
-#include "opentxs/core/Types.hpp"
+#include "opentxs/Types.hpp"
 
 #include <memory>
 #include <string>

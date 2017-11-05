@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/client/commands/CmdAcceptTransfers.hpp"
 
@@ -59,9 +59,7 @@ CmdAcceptTransfers::CmdAcceptTransfers()
     usage = "Omitting --indices is the same as specifying --indices all.";
 }
 
-CmdAcceptTransfers::~CmdAcceptTransfers()
-{
-}
+CmdAcceptTransfers::~CmdAcceptTransfers() {}
 
 int32_t CmdAcceptTransfers::runWithOptions()
 {

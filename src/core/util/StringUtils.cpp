@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/core/util/StringUtils.hpp"
 
@@ -60,12 +60,12 @@ namespace opentxs
 // then the data is copied, and then the result[10] (11th element)
 // is set to 0. This way the original 10-length string is untouched.
 //
-char* str_dup2(const char* str, uint32_t length) // length doesn't/shouldn't
-                                                 // include the byte for the
-                                                 // terminating 0.
+char* str_dup2(const char* str, uint32_t length)  // length doesn't/shouldn't
+                                                  // include the byte for the
+                                                  // terminating 0.
 {
-    char* str_new = new char[length + 1]; // CREATE EXTRA BYTE OF SPACE FOR \0
-                                          // (NOT PART OF LENGTH)
+    char* str_new = new char[length + 1];  // CREATE EXTRA BYTE OF SPACE FOR \0
+                                           // (NOT PART OF LENGTH)
     OT_ASSERT(nullptr != str_new);
 
 #ifdef _WIN32
@@ -91,18 +91,17 @@ char* str_dup2(const char* str, uint32_t length) // length doesn't/shouldn't
     return str_new;
 }
 
-} // namespace opentxs
+}  // namespace opentxs
 
 std::string formatTimestamp(time64_t tt)
 {
-    char buf[255]="";
+    char buf[255] = "";
     struct tm tm;
-    // -------------
+// -------------
 #if defined(_WIN32) || defined(_WIN64)
-    if (0 ==_gmtime64_s(&tm, &tt))
-        strftime(buf, sizeof(buf), "%FT%T", &tm);
+    if (0 == _gmtime64_s(&tm, &tt)) strftime(buf, sizeof(buf), "%FT%T", &tm);
 #else
-    time_t t = tt; // Todo why go backwards here? Prefer time64_t.
+    time_t t = tt;  // Todo why go backwards here? Prefer time64_t.
     strftime(buf, sizeof(buf), "%FT%T", gmtime_r(&t, &tm));
 #endif
     return std::string(buf);
@@ -153,15 +152,9 @@ std::string formatUlong(uint64_t tt)
     return temp.Get();
 }
 
-std::string formatBool(bool tt)
-{
-    return tt ? "true" : "false";
-}
+std::string formatBool(bool tt) { return tt ? "true" : "false"; }
 
-std::string getTimestamp()
-{
-    return formatTimestamp(time(NULL));
-}
+std::string getTimestamp() { return formatTimestamp(time(NULL)); }
 
 time64_t parseTimestamp(std::string extendedTimeString)
 {

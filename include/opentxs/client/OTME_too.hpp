@@ -42,8 +42,8 @@
 #include "opentxs/Version.hpp"
 
 #include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Proto.hpp"
-#include "opentxs/core/Types.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
 
 #include <atomic>
 #include <cstdint>

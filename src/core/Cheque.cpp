@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/core/Cheque.hpp"
 
@@ -85,13 +85,13 @@ void Cheque::UpdateContents()
     tag.add_attribute("senderAcctID", SENDER_ACCT_ID.Get());
     tag.add_attribute("senderNymID", SENDER_NYM_ID.Get());
     tag.add_attribute("hasRecipient", formatBool(m_bHasRecipient));
-    tag.add_attribute("recipientNymID",
-                      m_bHasRecipient ? RECIPIENT_NYM_ID.Get() : "");
+    tag.add_attribute(
+        "recipientNymID", m_bHasRecipient ? RECIPIENT_NYM_ID.Get() : "");
     tag.add_attribute("hasRemitter", formatBool(m_bHasRemitter));
-    tag.add_attribute("remitterNymID",
-                      m_bHasRemitter ? REMITTER_NYM_ID.Get() : "");
-    tag.add_attribute("remitterAcctID",
-                      m_bHasRemitter ? REMITTER_ACCT_ID.Get() : "");
+    tag.add_attribute(
+        "remitterNymID", m_bHasRemitter ? REMITTER_NYM_ID.Get() : "");
+    tag.add_attribute(
+        "remitterAcctID", m_bHasRemitter ? REMITTER_ACCT_ID.Get() : "");
 
     tag.add_attribute("validFrom", from);
     tag.add_attribute("validTo", to);
@@ -170,8 +170,7 @@ int32_t Cheque::ProcessXMLNode(IrrXMLReader*& xml)
         if (m_bHasRemitter) {
             m_REMITTER_NYM_ID.SetString(strRemitterNymID);
             m_REMITTER_ACCT_ID.SetString(strRemitterAcctID);
-        }
-        else {
+        } else {
             m_REMITTER_NYM_ID.Release();
             m_REMITTER_ACCT_ID.Release();
         }
@@ -181,25 +180,25 @@ int32_t Cheque::ProcessXMLNode(IrrXMLReader*& xml)
                << "\n Valid From: " << str_valid_from
                << "\n Valid To: " << str_valid_to
                << "\n InstrumentDefinitionID: " << strInstrumentDefinitionID
-               << "\n NotaryID: " << strNotaryID
-               << "\n"
-                  " senderAcctID: " << strSenderAcctID
-               << "\n senderNymID: " << strSenderNymID << "\n "
-                                                          " Has Recipient? "
+               << "\n NotaryID: " << strNotaryID << "\n"
+                                                    " senderAcctID: "
+               << strSenderAcctID << "\n senderNymID: " << strSenderNymID
+               << "\n "
+                  " Has Recipient? "
                << (m_bHasRecipient ? "Yes" : "No")
                << ". If yes, NymID of Recipient: " << strRecipientNymID
                << "\n"
-                  " Has Remitter? " << (m_bHasRemitter ? "Yes" : "No")
+                  " Has Remitter? "
+               << (m_bHasRemitter ? "Yes" : "No")
                << ". If yes, NymID/Acct of Remitter: " << strRemitterNymID
                << " / " << strRemitterAcctID << "\n";
 
         nReturnVal = 1;
-    }
-    else if (!strcmp("memo", xml->getNodeName())) {
+    } else if (!strcmp("memo", xml->getNodeName())) {
         if (!Contract::LoadEncodedTextField(xml, m_strMemo)) {
             otErr << "Error in OTCheque::ProcessXMLNode: memo field without "
                      "value.\n";
-            return (-1); // error condition
+            return (-1);  // error condition
         }
 
         return 1;
@@ -237,19 +236,20 @@ void Cheque::CancelCheque()
 // That's basically what this function does.
 // Make sure to sign it afterwards.
 bool Cheque::IssueCheque(
-    const int64_t& lAmount, const int64_t& lTransactionNum,
+    const int64_t& lAmount,
+    const int64_t& lTransactionNum,
     const time64_t& VALID_FROM,
-    const time64_t& VALID_TO, // The expiration date (valid from/to dates) of
-                              // the cheque
-    const Identifier& SENDER_ACCT_ID, // The asset account the cheque is drawn
-                                      // on.
-    const Identifier& SENDER_NYM_ID,  // This ID must match the user ID on the
-                                      // asset account,
+    const time64_t& VALID_TO,  // The expiration date (valid from/to dates) of
+                               // the cheque
+    const Identifier& SENDER_ACCT_ID,  // The asset account the cheque is drawn
+                                       // on.
+    const Identifier& SENDER_NYM_ID,   // This ID must match the user ID on the
+                                       // asset account,
     // AND must verify the cheque signature with that user's key.
-    const String& strMemo,               // Optional memo field.
-    const Identifier* pRECIPIENT_NYM_ID) // Recipient optional.
-                                         // (Might be a blank
-                                         // cheque.)
+    const String& strMemo,                // Optional memo field.
+    const Identifier* pRECIPIENT_NYM_ID)  // Recipient optional.
+                                          // (Might be a blank
+                                          // cheque.)
 {
     m_lAmount = lAmount;
     m_strMemo = strMemo;
@@ -265,13 +265,12 @@ bool Cheque::IssueCheque(
     if (nullptr == pRECIPIENT_NYM_ID) {
         m_bHasRecipient = false;
         m_RECIPIENT_NYM_ID.Release();
-    }
-    else {
+    } else {
         m_bHasRecipient = true;
         m_RECIPIENT_NYM_ID = *pRECIPIENT_NYM_ID;
     }
 
-    m_bHasRemitter = false; // OTCheque::SetAsVoucher() will set this to true.
+    m_bHasRemitter = false;  // OTCheque::SetAsVoucher() will set this to true.
 
     if (m_lAmount < 0) m_strContractType.Set("INVOICE");
 
@@ -296,8 +295,9 @@ Cheque::Cheque()
     InitCheque();
 }
 
-Cheque::Cheque(const Identifier& NOTARY_ID,
-               const Identifier& INSTRUMENT_DEFINITION_ID)
+Cheque::Cheque(
+    const Identifier& NOTARY_ID,
+    const Identifier& INSTRUMENT_DEFINITION_ID)
     : ot_super(NOTARY_ID, INSTRUMENT_DEFINITION_ID)
     , m_lAmount(0)
     , m_bHasRecipient(false)
@@ -319,21 +319,15 @@ void Cheque::Release_Cheque()
     //    m_SENDER_NYM_ID.Release();     // in parent class now.
     m_RECIPIENT_NYM_ID.Release();
 
-    ot_super::Release(); // since I've overridden the base class, I call it
-                         // now...
+    ot_super::Release();  // since I've overridden the base class, I call it
+                          // now...
 
     // Then I call this to re-initialize everything
     InitCheque();
 }
 
-void Cheque::Release()
-{
-    Release_Cheque();
-}
+void Cheque::Release() { Release_Cheque(); }
 
-Cheque::~Cheque()
-{
-    Release_Cheque();
-}
+Cheque::~Cheque() { Release_Cheque(); }
 
-} // namespace opentxs
+}  // namespace opentxs

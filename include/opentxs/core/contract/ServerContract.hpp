@@ -43,7 +43,7 @@
 
 #include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/Nym.hpp"
-#include "opentxs/core/Proto.hpp"
+#include "opentxs/Proto.hpp"
 #include "opentxs/network/ZMQ.hpp"
 
 #include <cstdint>

@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/storage/tree/Root.hpp"
 
@@ -52,7 +52,7 @@
 #include "opentxs/storage/tree/Units.hpp"
 #include "opentxs/storage/StoragePlugin.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/core/Proto.hpp"
+#include "opentxs/Proto.hpp"
 
 #define OT_METHOD "opentxs::storage::Root::"
 

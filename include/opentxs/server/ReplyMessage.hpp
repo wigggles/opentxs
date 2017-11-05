@@ -43,7 +43,7 @@
 
 #include "opentxs/api/Editor.hpp"
 #include "opentxs/core/Nym.hpp"
-#include "opentxs/core/Types.hpp"
+#include "opentxs/Types.hpp"
 
 #include <cstdint>
 #include <memory>

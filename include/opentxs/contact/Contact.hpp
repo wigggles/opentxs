@@ -42,7 +42,7 @@
 #include "opentxs/Version.hpp"
 
 #include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Proto.hpp"
+#include "opentxs/Proto.hpp"
 
 #include <atomic>
 #include <cstdint>

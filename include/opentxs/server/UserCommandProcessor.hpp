@@ -41,7 +41,7 @@
 
 #include "opentxs/Version.hpp"
 
-#include "opentxs/core/Types.hpp"
+#include "opentxs/Types.hpp"
 
 #include <cstdint>
 #include <memory>

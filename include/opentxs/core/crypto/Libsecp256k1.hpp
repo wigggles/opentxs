@@ -49,7 +49,7 @@
 #include "opentxs/core/crypto/Ecdsa.hpp"
 #include "opentxs/core/crypto/OTEnvelope.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
-#include "opentxs/core/Proto.hpp"
+#include "opentxs/Proto.hpp"
 
 extern "C" {
 #include "secp256k1.h"

@@ -46,7 +46,7 @@
 #include "opentxs/core/crypto/CryptoHash.hpp"
 #include "opentxs/core/crypto/CryptoSymmetricNew.hpp"
 #include "opentxs/core/crypto/Ecdsa.hpp"
-#include "opentxs/core/Proto.hpp"
+#include "opentxs/Proto.hpp"
 
 #include <cstddef>
 

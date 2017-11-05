@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/core/script/OTBylaw.hpp"
 
@@ -141,7 +141,7 @@ bool OTBylaw::IsDirty() const
                 bIsDirty = true;
                 break;
             } else  // If it's not persistent (which also includes important)
-                    // the only other option is CONSTANT. Then why is it dirty?
+                // the only other option is CONSTANT. Then why is it dirty?
                 otErr << "OTBylaw::IsDirty: Error: Why is it that a variable "
                          "is CONSTANT, yet DIRTY at the same time?\n";
         }
@@ -800,10 +800,11 @@ bool OTBylaw::GetHooks(std::string str_HookName, mapOfClauses& theResults)
                 // clauses are inserted into
                 // the result map, the duplicates are automatically weeded out.
                 //
-                if (theResults.end() != theResults.insert(
-                                            theResults.begin(),
-                                            std::pair<std::string, OTClause*>(
-                                                str_clause_name, pClause)))
+                if (theResults.end() !=
+                    theResults.insert(
+                        theResults.begin(),
+                        std::pair<std::string, OTClause*>(
+                            str_clause_name, pClause)))
                     bReturnVal = true;
             } else {
                 otOut << __FUNCTION__ << ": Couldn't find clause ("

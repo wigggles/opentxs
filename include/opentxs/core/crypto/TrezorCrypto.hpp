@@ -51,7 +51,7 @@
 #include "opentxs/core/crypto/CryptoAsymmetric.hpp"
 #include "opentxs/core/crypto/CryptoEncoding.hpp"
 #include "opentxs/core/crypto/Ecdsa.hpp"
-#include "opentxs/core/Types.hpp"
+#include "opentxs/Types.hpp"
 
 extern "C" {
 #include <trezor-crypto/base58.h>

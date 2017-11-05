@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/core/contract/basket/Basket.hpp"
 
@@ -141,7 +141,9 @@ void Basket::HarvestClosingNumbers(
     // list.)
     const bool bClawedBack = context.RecoverAvailableNumber(lClosingTransNo);
 
-    if (bClawedBack) { bNeedToSave = true; }
+    if (bClawedBack) {
+        bNeedToSave = true;
+    }
 
     // Until I put this down here, there were subtle cases where the Nym
     // wouldn't get saved.
@@ -154,14 +156,16 @@ void Basket::HarvestClosingNumbers(
 
 // For generating a user request to EXCHANGE in/out of a basket.
 // Assumes that SetTransferMultiple has already been called.
-void Basket::AddRequestSubContract(const Identifier& SUB_CONTRACT_ID,
-                                   const Identifier& SUB_ACCOUNT_ID,
-                                   const int64_t& lClosingTransactionNo)
+void Basket::AddRequestSubContract(
+    const Identifier& SUB_CONTRACT_ID,
+    const Identifier& SUB_ACCOUNT_ID,
+    const int64_t& lClosingTransactionNo)
 {
     BasketItem* pItem = new BasketItem;
 
-    OT_ASSERT_MSG(nullptr != pItem,
-                  "Error allocating memory in Basket::AddRequestSubContract\n");
+    OT_ASSERT_MSG(
+        nullptr != pItem,
+        "Error allocating memory in Basket::AddRequestSubContract\n");
 
     // Minimum transfer amount is not set on a request. The server already knows
     // its value.
@@ -181,13 +185,15 @@ void Basket::AddRequestSubContract(const Identifier& SUB_CONTRACT_ID,
 }
 
 // For generating a real basket
-void Basket::AddSubContract(const Identifier& SUB_CONTRACT_ID,
-                            int64_t lMinimumTransferAmount)
+void Basket::AddSubContract(
+    const Identifier& SUB_CONTRACT_ID,
+    int64_t lMinimumTransferAmount)
 {
     BasketItem* pItem = new BasketItem;
 
-    OT_ASSERT_MSG(nullptr != pItem,
-                  "Error allocating memory in Basket::AddSubContract\n");
+    OT_ASSERT_MSG(
+        nullptr != pItem,
+        "Error allocating memory in Basket::AddSubContract\n");
 
     pItem->SUB_CONTRACT_ID = SUB_CONTRACT_ID;
     pItem->lMinimumTransferAmount = lMinimumTransferAmount;
@@ -203,13 +209,16 @@ void Basket::AddSubContract(const Identifier& SUB_CONTRACT_ID,
 //
 int64_t Basket::GetClosingTransactionNoAt(uint32_t nIndex)
 {
-    OT_ASSERT_MSG((nIndex < m_dequeItems.size()),
-                  "Basket::GetClosingTransactionNoAt: index out of bounds.");
+    OT_ASSERT_MSG(
+        (nIndex < m_dequeItems.size()),
+        "Basket::GetClosingTransactionNoAt: index out of bounds.");
 
     BasketItem* pItem = m_dequeItems.at(nIndex);
 
-    OT_ASSERT_MSG(nullptr != pItem, "Basket::GetClosingTransactionNoAt: basket "
-                                    "item was nullptr at that index.");
+    OT_ASSERT_MSG(
+        nullptr != pItem,
+        "Basket::GetClosingTransactionNoAt: basket "
+        "item was nullptr at that index.");
 
     return pItem->lClosingTransactionNo;
 }
@@ -242,8 +251,7 @@ int32_t Basket::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         otWarn << "Loading currency basket...\n";
 
         return 1;
-    }
-    else if (strNodeName.Compare("requestExchange")) {
+    } else if (strNodeName.Compare("requestExchange")) {
         String strTransferMultiple, strRequestAccountID, strDirection, strTemp;
 
         strTransferMultiple = xml->getAttributeValue("transferMultiple");
@@ -264,12 +272,12 @@ int32_t Basket::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                << strRequestAccountID << "\n";
 
         return 1;
-    }
-    else if (strNodeName.Compare("basketItem")) {
+    } else if (strNodeName.Compare("basketItem")) {
         BasketItem* pItem = new BasketItem;
 
-        OT_ASSERT_MSG(nullptr != pItem,
-                      "Error allocating memory in Basket::ProcessXMLNode\n");
+        OT_ASSERT_MSG(
+            nullptr != pItem,
+            "Error allocating memory in Basket::ProcessXMLNode\n");
 
         String strTemp;
 
@@ -301,8 +309,8 @@ void Basket::UpdateContents()
     GenerateContents(m_xmlUnsigned, m_bHideAccountID);
 }
 
-void Basket::GenerateContents(OTStringXML& xmlUnsigned,
-                              bool bHideAccountID) const
+void Basket::GenerateContents(OTStringXML& xmlUnsigned, bool bHideAccountID)
+    const
 {
     // I release this because I'm about to repopulate it.
     xmlUnsigned.Release();
@@ -321,11 +329,11 @@ void Basket::GenerateContents(OTStringXML& xmlUnsigned,
 
         TagPtr tagRequest(new Tag("requestExchange"));
 
-        tagRequest->add_attribute("transferMultiple",
-                                  formatInt(m_nTransferMultiple));
+        tagRequest->add_attribute(
+            "transferMultiple", formatInt(m_nTransferMultiple));
         tagRequest->add_attribute("transferAccountID", strRequestAcctID.Get());
-        tagRequest->add_attribute("closingTransactionNo",
-                                  formatLong(m_lClosingTransactionNo));
+        tagRequest->add_attribute(
+            "closingTransactionNo", formatLong(m_lClosingTransactionNo));
         tagRequest->add_attribute("direction", m_bExchangingIn ? "in" : "out");
 
         tag.add_tag(tagRequest);
@@ -334,23 +342,25 @@ void Basket::GenerateContents(OTStringXML& xmlUnsigned,
     for (int32_t i = 0; i < Count(); i++) {
         BasketItem* pItem = m_dequeItems[i];
 
-        OT_ASSERT_MSG(nullptr != pItem,
-                      "Error allocating memory in Basket::UpdateContents\n");
+        OT_ASSERT_MSG(
+            nullptr != pItem,
+            "Error allocating memory in Basket::UpdateContents\n");
 
         String strAcctID(pItem->SUB_ACCOUNT_ID),
             strContractID(pItem->SUB_CONTRACT_ID);
 
         TagPtr tagItem(new Tag("basketItem"));
 
-        tagItem->add_attribute("minimumTransfer",
-                               formatLong(pItem->lMinimumTransferAmount));
-        tagItem->add_attribute("accountID",
-                               bHideAccountID ? "" : strAcctID.Get());
+        tagItem->add_attribute(
+            "minimumTransfer", formatLong(pItem->lMinimumTransferAmount));
+        tagItem->add_attribute(
+            "accountID", bHideAccountID ? "" : strAcctID.Get());
         tagItem->add_attribute("instrumentDefinitionID", strContractID.Get());
 
         if (IsExchanging()) {
-            tagItem->add_attribute("closingTransactionNo",
-                                   formatLong(pItem->lClosingTransactionNo));
+            tagItem->add_attribute(
+                "closingTransactionNo",
+                formatLong(pItem->lClosingTransactionNo));
         }
 
         tag.add_tag(tagItem);
@@ -401,10 +411,7 @@ Basket::Basket()
 {
 }
 
-Basket::~Basket()
-{
-    Release_Basket();
-}
+Basket::~Basket() { Release_Basket(); }
 
 void Basket::Release_Basket()
 {
@@ -431,4 +438,4 @@ void Basket::Release()
     Contract::Release();
 }
 
-} // namespace opentxs
+}  // namespace opentxs

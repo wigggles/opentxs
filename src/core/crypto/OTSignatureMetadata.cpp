@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/core/crypto/OTSignatureMetadata.hpp"
 
@@ -51,24 +51,27 @@
 namespace opentxs
 {
 
-bool OTSignatureMetadata::SetMetadata(char metaKeyType, char metaNymID,
-                                      char metaMasterCredID, char metaChildCredID)
+bool OTSignatureMetadata::SetMetadata(
+    char metaKeyType,
+    char metaNymID,
+    char metaMasterCredID,
+    char metaChildCredID)
 {
     switch (metaKeyType) {
-    // authentication (used for signing transmissions and stored files.)
-    case 'A':
-    // encryption (unusual BTW, to see this in a signature. Should
-    // never actually happen, or at least should be rare and strange
-    // when it does.)
-    case 'E':
-    // signing (a "legal signature.")
-    case 'S':
-        break;
-    default:
-        otErr << __FUNCTION__
-              << ": Expected key type of A, E, or S, but instead found: "
-              << metaKeyType << " (bad data or error)\n";
-        return false;
+        // authentication (used for signing transmissions and stored files.)
+        case 'A':
+        // encryption (unusual BTW, to see this in a signature. Should
+        // never actually happen, or at least should be rare and strange
+        // when it does.)
+        case 'E':
+        // signing (a "legal signature.")
+        case 'S':
+            break;
+        default:
+            otErr << __FUNCTION__
+                  << ": Expected key type of A, E, or S, but instead found: "
+                  << metaKeyType << " (bad data or error)\n";
+            return false;
     }
 
     // Todo: really should verify base58 here now, instead of base62.
@@ -105,11 +108,12 @@ OTSignatureMetadata::OTSignatureMetadata()
 
 bool OTSignatureMetadata::operator==(const OTSignatureMetadata& rhs) const
 {
-    return ((HasMetadata() == rhs.HasMetadata()) &&
-            (GetKeyType() == rhs.GetKeyType()) &&
-            (FirstCharNymID() == rhs.FirstCharNymID()) &&
-            (FirstCharMasterCredID() == rhs.FirstCharMasterCredID()) &&
-            (FirstCharChildCredID() == rhs.FirstCharChildCredID()));
+    return (
+        (HasMetadata() == rhs.HasMetadata()) &&
+        (GetKeyType() == rhs.GetKeyType()) &&
+        (FirstCharNymID() == rhs.FirstCharNymID()) &&
+        (FirstCharMasterCredID() == rhs.FirstCharMasterCredID()) &&
+        (FirstCharChildCredID() == rhs.FirstCharChildCredID()));
 }
 
-} // namespace opentxs
+}  // namespace opentxs

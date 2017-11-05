@@ -36,12 +36,12 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/core/contract/SecurityContract.hpp"
 
 #include "opentxs/core/contract/Signable.hpp"
-#include "opentxs/core/Proto.hpp"
+#include "opentxs/Proto.hpp"
 
 #include <string>
 
@@ -51,7 +51,7 @@ namespace opentxs
 SecurityContract::SecurityContract(
     const ConstNym& nym,
     const proto::UnitDefinition serialized)
-        : ot_super(nym, serialized)
+    : ot_super(nym, serialized)
 {
 }
 
@@ -61,7 +61,7 @@ SecurityContract::SecurityContract(
     const std::string& name,
     const std::string& symbol,
     const std::string& terms)
-        : ot_super(nym, shortname, name, symbol, terms)
+    : ot_super(nym, shortname, name, symbol, terms)
 {
 }
 
@@ -76,4 +76,4 @@ proto::UnitDefinition SecurityContract::IDVersion(const Lock& lock) const
     return contract;
 }
 
-} // namespace opentxs
+}  // namespace opentxs

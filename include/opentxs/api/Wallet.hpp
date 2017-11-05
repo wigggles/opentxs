@@ -47,7 +47,7 @@
 #include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Nym.hpp"
-#include "opentxs/core/Types.hpp"
+#include "opentxs/Types.hpp"
 #include "opentxs/storage/Storage.hpp"
 
 #include <chrono>

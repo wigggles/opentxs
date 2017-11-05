@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/core/crypto/NymParameters.hpp"
 
@@ -80,9 +80,7 @@ NymParameters::NymParameters(const NymParameters& rhs)
 #endif
 }
 
-NymParameterType NymParameters::nymParameterType() {
-    return nymType_;
-}
+NymParameterType NymParameters::nymParameterType() { return nymType_; }
 
 proto::AsymmetricKeyType NymParameters::AsymmetricKeyType() const
 {
@@ -90,45 +88,46 @@ proto::AsymmetricKeyType NymParameters::AsymmetricKeyType() const
 
     switch (nymType_) {
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
-        case NymParameterType::RSA :
+        case NymParameterType::RSA:
             newKeyType = proto::AKEYTYPE_LEGACY;
             break;
 #endif
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-        case NymParameterType::SECP256K1 :
+        case NymParameterType::SECP256K1:
             newKeyType = proto::AKEYTYPE_SECP256K1;
             break;
 #endif
-        case NymParameterType::ED25519 :
+        case NymParameterType::ED25519:
             newKeyType = proto::AKEYTYPE_ED25519;
             break;
-        default :
+        default:
             newKeyType = proto::AKEYTYPE_ERROR;
     }
     return newKeyType;
 }
 
-void NymParameters::setNymParameterType(NymParameterType theKeytype) {
+void NymParameters::setNymParameterType(NymParameterType theKeytype)
+{
     nymType_ = theKeytype;
 }
 
-proto::CredentialType NymParameters::credentialType() const {
+proto::CredentialType NymParameters::credentialType() const
+{
     return credentialType_;
 }
 
-void NymParameters::setCredentialType(
-    proto::CredentialType theCredentialtype)
+void NymParameters::setCredentialType(proto::CredentialType theCredentialtype)
 {
     credentialType_ = theCredentialtype;
 
     switch (theCredentialtype) {
-        case (proto::CREDTYPE_LEGACY) :
+        case (proto::CREDTYPE_LEGACY):
             SetSourceType(proto::SOURCETYPE_PUBKEY);
             SetSourceProofType(proto::SOURCEPROOFTYPE_SELF_SIGNATURE);
 
             break;
 #if OT_CRYPTO_SUPPORTED_KEY_HD
-        case (proto::CREDTYPE_HD) :
+        case (proto::CREDTYPE_HD):
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
             SetSourceType(proto::SOURCETYPE_BIP47);
             SetSourceProofType(proto::SOURCEPROOFTYPE_SIGNATURE);
@@ -139,7 +138,7 @@ void NymParameters::setCredentialType(
 
             break;
 #endif
-        default :
+        default:
 
             break;
     }
@@ -164,13 +163,9 @@ NymParameters::NymParameters(const int32_t keySize)
 {
 }
 
-int32_t NymParameters::keySize() {
-    return nBits_;
-}
+int32_t NymParameters::keySize() { return nBits_; }
 
-void NymParameters::setKeySize(int32_t keySize) {
-    nBits_ = keySize;
-}
+void NymParameters::setKeySize(int32_t keySize) { nBits_ = keySize; }
 #endif
 
 #if OT_CRYPTO_SUPPORTED_KEY_HD
@@ -184,4 +179,4 @@ void NymParameters::SetEntropy(const OTPassword& entropy)
     entropy_.reset(new OTPassword(entropy));
 }
 #endif
-} // namespace opentxs
+}  // namespace opentxs

@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/core/contract/peer/NoticeAcknowledgement.hpp"
 
@@ -45,8 +45,8 @@ namespace opentxs
 NoticeAcknowledgement::NoticeAcknowledgement(
     const ConstNym& nym,
     const proto::PeerReply& serialized)
-        : ot_super(nym, serialized)
-        , ack_(serialized.notice().ack())
+    : ot_super(nym, serialized)
+    , ack_(serialized.notice().ack())
 {
 }
 
@@ -57,8 +57,8 @@ NoticeAcknowledgement::NoticeAcknowledgement(
     const Identifier& server,
     const proto::PeerRequestType type,
     const bool& ack)
-        : ot_super(nym, initiator, server, type, request)
-        , ack_(ack)
+    : ot_super(nym, initiator, server, type, request)
+    , ack_(ack)
 {
 }
 
@@ -72,4 +72,4 @@ proto::PeerReply NoticeAcknowledgement::IDVersion(const Lock& lock) const
 
     return contract;
 }
-} // namespace opentxs
+}  // namespace opentxs

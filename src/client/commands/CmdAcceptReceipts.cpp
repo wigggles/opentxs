@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/client/commands/CmdAcceptReceipts.hpp"
 
@@ -59,9 +59,7 @@ CmdAcceptReceipts::CmdAcceptReceipts()
     usage = "Omitting --indices is the same as specifying --indices all.";
 }
 
-CmdAcceptReceipts::~CmdAcceptReceipts()
-{
-}
+CmdAcceptReceipts::~CmdAcceptReceipts() {}
 
 int32_t CmdAcceptReceipts::runWithOptions()
 {

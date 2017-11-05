@@ -43,7 +43,7 @@
 
 #if OT_DHT
 
-#include "opentxs/core/Types.hpp"
+#include "opentxs/Types.hpp"
 
 #include <atomic>
 #include <memory>

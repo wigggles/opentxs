@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/core/OTStorage.hpp"
 
@@ -692,8 +692,7 @@ bool StoreObject(
 {
     String ot_strFolder(strFolder), ot_oneStr(oneStr), ot_twoStr(twoStr),
         ot_threeStr(threeStr);
-    OT_ASSERT_MSG(
-        ot_strFolder.Exists(), "OTDB:StoreObject: strFolder is null");
+    OT_ASSERT_MSG(ot_strFolder.Exists(), "OTDB:StoreObject: strFolder is null");
 
     if (!ot_oneStr.Exists()) {
         OT_ASSERT_MSG(
@@ -1297,12 +1296,14 @@ AddressBook::~AddressBook()
     return nullptr;
 }
 
-template <class theBaseType,
-          class theInternalType,
-          StoredObjectType theObjectType>
-::google::protobuf::MessageLite* ProtobufSubclass<theBaseType,
-                                                  theInternalType,
-                                                  theObjectType>::getPBMessage()
+template <
+    class theBaseType,
+    class theInternalType,
+    StoredObjectType theObjectType>
+::google::protobuf::MessageLite* ProtobufSubclass<
+    theBaseType,
+    theInternalType,
+    theObjectType>::getPBMessage()
 {
     return (&__pb_obj);
 }
@@ -1550,9 +1551,8 @@ void StringMapPB::hookAfterUnpack()
     for (int32_t i = 0; i < __pb_obj.node_size(); i++) {
         const KeyValue_InternalPB& theNode = __pb_obj.node(i);
 
-        the_map.insert(
-            std::pair<std::string, std::string>(
-                theNode.key(), theNode.value()));
+        the_map.insert(std::pair<std::string, std::string>(
+            theNode.key(), theNode.value()));
     }
 }
 
@@ -2188,13 +2188,8 @@ bool Storage::StoreString(
 
     if (nullptr == pBuffer) return false;
 
-    const bool bSuccess =
-        onStorePackedBuffer(
-            *pBuffer,
-            ot_strFolder.Get(),
-            ot_oneStr.Get(),
-            twoStr,
-            threeStr);
+    const bool bSuccess = onStorePackedBuffer(
+        *pBuffer, ot_strFolder.Get(), ot_oneStr.Get(), twoStr, threeStr);
 
     // Don't want any leaks here, do we?
     delete pBuffer;

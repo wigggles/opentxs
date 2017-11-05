@@ -60,7 +60,7 @@
 // ChildCredentials are used for all other actions, and never sign other
 // Credentials
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/core/crypto/ChildKeyCredential.hpp"
 
@@ -79,7 +79,7 @@ namespace opentxs
 ChildKeyCredential::ChildKeyCredential(
     CredentialSet& owner,
     const proto::Credential& serializedCred)
-        : ot_super(owner, serializedCred)
+    : ot_super(owner, serializedCred)
 {
     role_ = proto::CREDROLE_CHILDKEY;
     master_id_ = String(serializedCred.childdata().masterid());
@@ -88,7 +88,7 @@ ChildKeyCredential::ChildKeyCredential(
 ChildKeyCredential::ChildKeyCredential(
     CredentialSet& owner,
     const NymParameters& nymParameters)
-        : ot_super(owner, nymParameters)
+    : ot_super(owner, nymParameters)
 {
     role_ = proto::CREDROLE_CHILDKEY;
 

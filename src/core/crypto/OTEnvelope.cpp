@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include "opentxs/stdafx.hpp"
 
 #include "opentxs/core/crypto/OTEnvelope.hpp"
 
@@ -69,12 +69,13 @@ extern "C" {
 #include <stdint.h>
 #include <ostream>
 
-
 namespace opentxs
 {
 bool OTEnvelope::GetCiphertext(OTASCIIArmor& theArmoredText) const
 {
-    if (!ciphertext_) { return false; }
+    if (!ciphertext_) {
+        return false;
+    }
 
     return theArmoredText.SetData(*ciphertext_, true);
 }
@@ -93,8 +94,10 @@ bool OTEnvelope::SetCiphertext(const OTASCIIArmor& theArmoredText)
 // kept encrypted in an OTSymmetricKey (encrypted using another key derived from
 // thePassword.)
 
-bool OTEnvelope::Encrypt(const String& theInput, OTSymmetricKey& theKey,
-                         const OTPassword& thePassword)
+bool OTEnvelope::Encrypt(
+    const String& theInput,
+    OTSymmetricKey& theKey,
+    const OTPassword& thePassword)
 {
     OT_ASSERT(
         (thePassword.isPassword() && (thePassword.getPasswordSize() > 0)) ||
@@ -144,11 +147,11 @@ bool OTEnvelope::Encrypt(const String& theInput, OTSymmetricKey& theKey,
     Data theCipherText;
 
     const bool bEncrypted = OT::App().Crypto().AES().Encrypt(
-        theRawSymmetricKey,       // The symmetric key, in clear form.
-        theInput.Get(),           // This is the Plaintext.
-        theInput.GetLength() + 1, // for null terminator
-        theIV,                    // Initialization vector.
-        theCipherText);           // OUTPUT. (Ciphertext.)
+        theRawSymmetricKey,        // The symmetric key, in clear form.
+        theInput.Get(),            // This is the Plaintext.
+        theInput.GetLength() + 1,  // for null terminator
+        theIV,                     // Initialization vector.
+        theCipherText);            // OUTPUT. (Ciphertext.)
 
     //
     // Success?
@@ -176,22 +179,24 @@ bool OTEnvelope::Encrypt(const String& theInput, OTSymmetricKey& theKey,
     // Calculate "network-order" version of envelope type 2.
     uint16_t env_type_n = htons(static_cast<uint16_t>(2));
 
-    ciphertext_->Concatenate(reinterpret_cast<void*>(&env_type_n),
-                               // (uint32_t here is the 2nd parameter to
-                               // Concatenate, and has nothing to do with
-                               // env_type_n being uint16_t)
-                               static_cast<uint32_t>(sizeof(env_type_n)));
+    ciphertext_->Concatenate(
+        reinterpret_cast<void*>(&env_type_n),
+        // (uint32_t here is the 2nd parameter to
+        // Concatenate, and has nothing to do with
+        // env_type_n being uint16_t)
+        static_cast<uint32_t>(sizeof(env_type_n)));
 
     // Write IV size (in network-order)
     //
     uint32_t ivlen =
-        CryptoConfig::SymmetricIvSize(); // Length of IV for this cipher...
+        CryptoConfig::SymmetricIvSize();  // Length of IV for this cipher...
     OT_ASSERT(ivlen >= theIV.GetSize());
     uint32_t ivlen_n = htonl(
-        theIV.GetSize()); // Calculate "network-order" version of iv length.
+        theIV.GetSize());  // Calculate "network-order" version of iv length.
 
-    ciphertext_->Concatenate(reinterpret_cast<void*>(&ivlen_n),
-                               static_cast<uint32_t>(sizeof(ivlen_n)));
+    ciphertext_->Concatenate(
+        reinterpret_cast<void*>(&ivlen_n),
+        static_cast<uint32_t>(sizeof(ivlen_n)));
 
     // Write the IV itself.
     //
@@ -199,8 +204,8 @@ bool OTEnvelope::Encrypt(const String& theInput, OTSymmetricKey& theKey,
 
     // Write the Ciphertext.
     //
-    ciphertext_->Concatenate(theCipherText.GetPointer(),
-                               theCipherText.GetSize());
+    ciphertext_->Concatenate(
+        theCipherText.GetPointer(), theCipherText.GetSize());
 
     // We don't write the size of the ciphertext before the ciphertext itself,
     // since the decryption is able to deduce the size based on the total
@@ -212,8 +217,10 @@ bool OTEnvelope::Encrypt(const String& theInput, OTSymmetricKey& theKey,
     return true;
 }
 
-bool OTEnvelope::Decrypt(String& theOutput, const OTSymmetricKey& theKey,
-                         const OTPassword& thePassword)
+bool OTEnvelope::Decrypt(
+    String& theOutput,
+    const OTSymmetricKey& theKey,
+    const OTPassword& thePassword)
 {
     const char* szFunc = "OTEnvelope::Decrypt";
 
@@ -236,7 +243,7 @@ bool OTEnvelope::Decrypt(String& theOutput, const OTSymmetricKey& theKey,
 
     OT_ASSERT(ciphertext_);
 
-    ciphertext_->reset();    // Reset the fread position on this object to 0.
+    ciphertext_->reset();  // Reset the fread position on this object to 0.
 
     //
     // Read the ENVELOPE TYPE (as network order version -- and convert to host
@@ -268,16 +275,17 @@ bool OTEnvelope::Decrypt(String& theOutput, const OTSymmetricKey& theKey,
     if (2 != env_type) {
         const uint32_t l_env_type = static_cast<uint32_t>(env_type);
         otErr << szFunc << ": Error: Expected Envelope for Symmetric key (type "
-                           "2) but instead found type: " << l_env_type << ".\n";
+                           "2) but instead found type: "
+              << l_env_type << ".\n";
         return false;
     }
 
     // Read network-order IV size (and convert to host version)
     //
     const uint32_t max_iv_length =
-        CryptoConfig::SymmetricIvSize(); // I believe this is a max length, so
-                                           // it may not match the actual length
-                                           // of the IV.
+        CryptoConfig::SymmetricIvSize();  // I believe this is a max length, so
+                                          // it may not match the actual length
+                                          // of the IV.
 
     // Read the IV SIZE (network order version -- convert to host version.)
     //
@@ -336,17 +344,18 @@ bool OTEnvelope::Decrypt(String& theOutput, const OTSymmetricKey& theKey,
 
     // Now we've got all the pieces together, let's try to decrypt it...
     //
-    Data thePlaintext; // for output.
+    Data thePlaintext;  // for output.
     CryptoSymmetricDecryptOutput plaintext(thePlaintext);
 
     const bool bDecrypted = OT::App().Crypto().AES().Decrypt(
-        theRawSymmetricKey, // The symmetric key, in clear form.
+        theRawSymmetricKey,  // The symmetric key, in clear form.
         static_cast<const char*>(
-            theCipherText.GetPointer()), // This is the Ciphertext.
+            theCipherText.GetPointer()),  // This is the Ciphertext.
         theCipherText.GetSize(),
-        theIV, plaintext); // OUTPUT. (Recovered plaintext.) You can pass
-                              // OTPassword& OR Data& here (either will
-                              // work.)
+        theIV,
+        plaintext);  // OUTPUT. (Recovered plaintext.) You can pass
+                     // OTPassword& OR Data& here (either will
+                     // work.)
 
     // theOutput is where we'll put the decrypted data.
     //
@@ -368,14 +377,15 @@ bool OTEnvelope::Decrypt(String& theOutput, const OTSymmetricKey& theKey,
     return bDecrypted;
 }
 
-EXPORT bool OTEnvelope::Seal(const setOfNyms& recipients,
-                 const String& theInput)
+EXPORT bool OTEnvelope::Seal(
+    const setOfNyms& recipients,
+    const String& theInput)
 {
     mapOfAsymmetricKeys recipientKeys;
 
     for (auto& it : recipients) {
         recipientKeys.insert(std::pair<std::string, OTAsymmetricKey*>(
-            "",const_cast<OTAsymmetricKey*>(&(it->GetPublicEncrKey()))));
+            "", const_cast<OTAsymmetricKey*>(&(it->GetPublicEncrKey()))));
     }
 
     if (!recipientKeys.empty()) {
@@ -390,21 +400,24 @@ bool OTEnvelope::Seal(const Nym& theRecipient, const String& theInput)
     return Seal(theRecipient.GetPublicEncrKey(), theInput);
 }
 
-bool OTEnvelope::Seal(const OTAsymmetricKey& RecipPubKey,
-                      const String& theInput)
+bool OTEnvelope::Seal(
+    const OTAsymmetricKey& RecipPubKey,
+    const String& theInput)
 {
     mapOfAsymmetricKeys recipientKeys;
     recipientKeys.insert(std::pair<std::string, OTAsymmetricKey*>(
-        "",const_cast<OTAsymmetricKey*>(&RecipPubKey)));
+        "", const_cast<OTAsymmetricKey*>(&RecipPubKey)));
 
     return Seal(recipientKeys, theInput);
 }
 
-bool OTEnvelope::Seal(const mapOfAsymmetricKeys& recipientKeys,
-                      const String& theInput)
+bool OTEnvelope::Seal(
+    const mapOfAsymmetricKeys& recipientKeys,
+    const String& theInput)
 {
-    OT_ASSERT_MSG(!recipientKeys.empty(),
-                  "OTEnvelope::Seal: ASSERT: RecipPubKeys.size() > 0");
+    OT_ASSERT_MSG(
+        !recipientKeys.empty(),
+        "OTEnvelope::Seal: ASSERT: RecipPubKeys.size() > 0");
 
     ciphertext_.reset(new Data);
 
@@ -418,7 +431,9 @@ bool OTEnvelope::Open(
     String& theOutput,
     const OTPasswordData* pPWData)
 {
-    if (!ciphertext_) { return false; }
+    if (!ciphertext_) {
+        return false;
+    }
 
     if (nullptr == pPWData) {
         OTPasswordData password("Decrypt this document.");
@@ -433,4 +448,4 @@ OTEnvelope::OTEnvelope(const OTASCIIArmor& theArmoredText)
 {
     SetCiphertext(theArmoredText);
 }
-} // namespace opentxs
+}  // namespace opentxs

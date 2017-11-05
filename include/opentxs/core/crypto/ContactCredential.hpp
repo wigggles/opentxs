@@ -44,8 +44,8 @@
 #include "opentxs/core/crypto/Credential.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Proto.hpp"
-#include "opentxs/core/Types.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
 
 #include <cstdint>
 #include <memory>
