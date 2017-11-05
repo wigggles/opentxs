@@ -345,9 +345,11 @@ void ServerConnection::SetProxy(const std::string& proxy)
 {
     OT_ASSERT(nullptr != request_socket_);
 
-    zsock_set_socks_proxy(request_socket_, proxy.c_str());
-    otErr << OT_METHOD << __FUNCTION__ << ": Proxy set to " << proxy
-          << std::endl;
+    if (false == proxy.empty()) {
+        zsock_set_socks_proxy(request_socket_, proxy.c_str());
+        otErr << OT_METHOD << __FUNCTION__ << ": Proxy set to " << proxy
+              << std::endl;
+    }
 }
 
 void ServerConnection::SetTimeouts()
