@@ -39,6 +39,8 @@
 #ifndef OPENTXS_SERVER_MAINFILE_HPP
 #define OPENTXS_SERVER_MAINFILE_HPP
 
+#include "opentxs/Version.hpp"
+
 #include <string>
 
 namespace opentxs

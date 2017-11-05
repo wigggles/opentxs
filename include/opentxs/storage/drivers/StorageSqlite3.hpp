@@ -39,6 +39,10 @@
 #ifndef OPENTXS_STORAGE_STORAGESQLITE3_HPP
 #define OPENTXS_STORAGE_STORAGESQLITE3_HPP
 
+#include "opentxs/Version.hpp"
+
+#if OT_STORAGE_SQLITE
+
 #include "opentxs/storage/StoragePlugin.hpp"
 
 extern "C" {
@@ -115,4 +119,5 @@ public:
 };
 
 }  // namespace opentxs
+#endif  // OT_STORAGE_SQLITE
 #endif  // OPENTXS_STORAGE_STORAGESQLITE3_HPP

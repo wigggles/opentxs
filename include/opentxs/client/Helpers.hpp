@@ -133,6 +133,8 @@
 #ifndef OPENTXS_CLIENT_HELPERS_HPP
 #define OPENTXS_CLIENT_HELPERS_HPP
 
+#include "opentxs/Version.hpp"
+
 #include <cstdint>
 
 namespace opentxs

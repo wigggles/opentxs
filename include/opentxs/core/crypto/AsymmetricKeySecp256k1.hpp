@@ -39,6 +39,10 @@
 #ifndef OPENTXS_CORE_CRYPTO_ASYMMETRICKEYSECP256K1_HPP
 #define OPENTXS_CORE_CRYPTO_ASYMMETRICKEYSECP256K1_HPP
 
+#include "opentxs/Version.hpp"
+
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+
 #include "opentxs/core/crypto/AsymmetricKeyEC.hpp"
 #include "opentxs/core/crypto/Ecdsa.hpp"
 #include "opentxs/core/Proto.hpp"
@@ -63,12 +67,11 @@ private:
 public:
     Ecdsa& ECDSA() const override;
     CryptoAsymmetric& engine() const override;
-    void Release_AsymmetricKeySecp256k1() {};
+    void Release_AsymmetricKeySecp256k1(){};
     void Release() override;
 
     virtual ~AsymmetricKeySecp256k1();
 };
-
 }  // namespace opentxs
-
+#endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 #endif  // OPENTXS_CORE_CRYPTO_ASYMMETRICKEYSECP256K1_HPP

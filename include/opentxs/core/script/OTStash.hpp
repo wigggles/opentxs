@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_SCRIPT_OTSTASH_HPP
 #define OPENTXS_CORE_SCRIPT_OTSTASH_HPP
 
+#include "opentxs/Version.hpp"
+
 #include <map>
 #include <string>
 #include <cstdint>
@@ -51,8 +53,8 @@ template <class char_type, class super_class>
 class IIrrXMLReader;
 class IXMLBase;
 typedef IIrrXMLReader<char, IXMLBase> IrrXMLReader;
-} // namespace io
-} // namespace irr
+}  // namespace io
+}  // namespace irr
 
 namespace opentxs
 {
@@ -68,26 +70,26 @@ class OTStash
 {
     std::string m_str_stash_name;
 
-    mapOfStashItems m_mapStashItems; // map of stash items by instrument
-                                     // definition ID.
-                                     // owned.
+    mapOfStashItems m_mapStashItems;  // map of stash items by instrument
+                                      // definition ID.
+                                      // owned.
 public:
-    const std::string GetName() const
-    {
-        return m_str_stash_name;
-    }
+    const std::string GetName() const { return m_str_stash_name; }
     OTStashItem* GetStash(const std::string& str_instrument_definition_id);
 
     int64_t GetAmount(const std::string& str_instrument_definition_id);
-    bool CreditStash(const std::string& str_instrument_definition_id,
-                     const int64_t& lAmount);
-    bool DebitStash(const std::string& str_instrument_definition_id,
-                    const int64_t& lAmount);
+    bool CreditStash(
+        const std::string& str_instrument_definition_id,
+        const int64_t& lAmount);
+    bool DebitStash(
+        const std::string& str_instrument_definition_id,
+        const int64_t& lAmount);
 
     void Serialize(Tag& parent) const;
-    int32_t ReadFromXMLNode(irr::io::IrrXMLReader*& xml,
-                            const String& strStashName,
-                            const String& strItemCount);
+    int32_t ReadFromXMLNode(
+        irr::io::IrrXMLReader*& xml,
+        const String& strStashName,
+        const String& strItemCount);
 
     OTStash();
     OTStash(const std::string& str_stash_name)
@@ -99,6 +101,6 @@ public:
     virtual ~OTStash();
 };
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CORE_SCRIPT_OTSTASH_HPP
+#endif  // OPENTXS_CORE_SCRIPT_OTSTASH_HPP

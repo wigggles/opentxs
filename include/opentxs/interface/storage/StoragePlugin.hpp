@@ -39,14 +39,15 @@
 #ifndef OPENTXS_STORAGE_STORAGEPLUGIN_HPP
 #define OPENTXS_STORAGE_STORAGEPLUGIN_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/interface/storage/StorageDriver.hpp"
 
 #include <string>
 
 namespace opentxs
 {
-class StoragePlugin
-    : public virtual StorageDriver
+class StoragePlugin : public virtual StorageDriver
 {
 public:
     virtual bool EmptyBucket(const bool bucket) const = 0;

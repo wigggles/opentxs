@@ -45,7 +45,7 @@
 namespace opentxs
 {
 
-#ifdef OT_CASH_USING_MAGIC_MONEY
+#if OT_CASH_USING_MAGIC_MONEY
 
 // Todo:  Someday...
 
@@ -91,26 +91,27 @@ LucreDumper::LucreDumper()
 #ifdef _WIN32
 #ifdef _DEBUG
     String strOpenSSLDumpFilename("openssl.dumpfile"), strOpenSSLDumpFilePath,
-        strDataPath; // todo security. We shouldn't necessarily be dumping this
-                     // info to file AT ALL.
+        strDataPath;  // todo security. We shouldn't necessarily be dumping this
+                      // info to file AT ALL.
     bool bGetDataFolderSuccess = OTDataFolder::Get(strDataPath);
-    OT_ASSERT_MSG(bGetDataFolderSuccess,
-                  "_OT_LucreDumper(): Failed to Get Data Path");
+    OT_ASSERT_MSG(
+        bGetDataFolderSuccess, "_OT_LucreDumper(): Failed to Get Data Path");
     bool bRelativeToCanonicalSuccess = OTPaths::RelativeToCanonical(
         strOpenSSLDumpFilePath, strDataPath, strOpenSSLDumpFilename);
-    OT_ASSERT_MSG(bRelativeToCanonicalSuccess,
-                  "_OT_LucreDumper(): Unable To Build Full Path");
+    OT_ASSERT_MSG(
+        bRelativeToCanonicalSuccess,
+        "_OT_LucreDumper(): Unable To Build Full Path");
 
     strOpenSSLDumpFilename.Set("");
     strDataPath.Set("");
-    SetDumper(strOpenSSLDumpFilePath.Get()); // We are only dumping this way
-                                             // currently as a temporary
-                                             // solution to the applink.c
-                                             // openssl thing that can cause
-                                             // crashes in Lucre when
-                                             // withdrawing cash. (Caused by
-                                             // da2ce7 removing Lucre from OT
-                                             // and moving it into a dylib.)
+    SetDumper(strOpenSSLDumpFilePath.Get());  // We are only dumping this way
+                                              // currently as a temporary
+                                              // solution to the applink.c
+                                              // openssl thing that can cause
+                                              // crashes in Lucre when
+                                              // withdrawing cash. (Caused by
+                                              // da2ce7 removing Lucre from OT
+                                              // and moving it into a dylib.)
     m_str_dumpfile = strOpenSSLDumpFilePath.Get();
     strOpenSSLDumpFilePath.Set("");
 #endif
@@ -128,8 +129,8 @@ LucreDumper::~LucreDumper()
 #endif
 }
 
-#else // No digital cash lib is selected? Perhaps error message here?
+#else  // No digital cash lib is selected? Perhaps error message here?
 
-#endif // Which digital cash library we're using.
+#endif  // Which digital cash library we're using.
 
-} // namespace opentxs
+}  // namespace opentxs

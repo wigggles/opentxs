@@ -39,6 +39,8 @@
 #ifndef OPENTXS_STORAGE_STORAGEEXAMPLE_HPP
 #define OPENTXS_STORAGE_STORAGEEXAMPLE_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/storage/StoragePlugin.hpp"
 
 namespace opentxs

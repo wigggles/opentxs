@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_STRINGUTILS_HPP
 #define OPENTXS_CORE_STRINGUTILS_HPP
 
+#include "opentxs/Version.hpp"
+
 #include <stdint.h>
 #include <cinttypes>
 #include <cstring>
@@ -50,23 +52,23 @@ namespace opentxs
 
 // from: http://www.cplusplus.com/faq/sequences/strings/split/
 //
-struct split
-{
+struct split {
     enum empties_t { empties_ok, no_empties };
 };
 
 template <typename Container>
-static Container& split_byChar(Container& result,
-                               const typename Container::value_type& s,
-                               const typename Container::value_type& delimiters,
-                               split::empties_t empties)
+static Container& split_byChar(
+    Container& result,
+    const typename Container::value_type& s,
+    const typename Container::value_type& delimiters,
+    split::empties_t empties)
 {
     result.clear();
     int64_t next = -1;
     do {
         if (empties == split::no_empties) {
-            next = s.find_first_not_of(delimiters,
-                                       static_cast<uint32_t>(next) + 1);
+            next = s.find_first_not_of(
+                delimiters, static_cast<uint32_t>(next) + 1);
             if (static_cast<size_t>(next) == Container::value_type::npos) {
                 break;
             }
@@ -172,6 +174,6 @@ inline size_t strlcat(char* dst, const char* src, size_t siz)
 }
 // (End of the Todd Miller code.)
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CORE_STRINGUTILS_HPP
+#endif  // OPENTXS_CORE_STRINGUTILS_HPP

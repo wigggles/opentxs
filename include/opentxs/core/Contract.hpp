@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_CONTRACT_HPP
 #define OPENTXS_CORE_CONTRACT_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Nym.hpp"

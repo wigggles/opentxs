@@ -39,6 +39,8 @@
 #ifndef OPENTXS_STORAGE_TREE_PEERREPLIES_HPP
 #define OPENTXS_STORAGE_TREE_PEERREPLIES_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/api/Editor.hpp"
 #include "opentxs/storage/tree/Node.hpp"
 
@@ -58,9 +60,7 @@ private:
     bool save(const std::unique_lock<std::mutex>& lock) const override;
     proto::StorageNymList serialize() const;
 
-    PeerReplies(
-        const StorageDriver& storage,
-        const std::string& hash);
+    PeerReplies(const StorageDriver& storage, const std::string& hash);
     PeerReplies() = delete;
     PeerReplies(const PeerReplies&) = delete;
     PeerReplies(PeerReplies&&) = delete;

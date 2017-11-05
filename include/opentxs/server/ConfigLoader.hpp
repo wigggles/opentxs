@@ -39,6 +39,8 @@
 #ifndef OPENTXS_SERVER_CONFIGLOADER_HPP
 #define OPENTXS_SERVER_CONFIGLOADER_HPP
 
+#include "opentxs/Version.hpp"
+
 namespace opentxs
 {
 

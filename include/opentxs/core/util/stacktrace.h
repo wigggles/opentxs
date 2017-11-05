@@ -4,36 +4,39 @@
 #ifndef STACKTRACE_H
 #define STACKTRACE_H
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/util/Common.hpp"
 
 #include <cstdio>
 #include <cstdlib>
 // -----------------------------------------------------
-#ifndef _WIN32 // Not Windows
+#ifndef _WIN32  // Not Windows
 // ------------------------
 #ifdef ANDROID
-//#include <utils/CallStack.h>  // Android can't find this while building, for some reason.
+//#include <utils/CallStack.h>  // Android can't find this while building, for
+// some reason.
 
 // ------------------------
-#else // not Android
+#else  // not Android
 #include <execinfo.h>
 #include <cxxabi.h>
-#endif // not Android
+#endif  // not Android
 // ------------------------
-#endif // Not Windows
+#endif  // Not Windows
 // -----------------------------------------------------
 
 /** Print a demangled stack backtrace of the caller function to FILE* out. */
-static inline void print_stacktrace(ANDROID_UNUSED FILE *out = stderr)
+static inline void print_stacktrace(ANDROID_UNUSED FILE* out = stderr)
 {
 #ifdef _WIN32
-	//TODO: Write Winodws Code
-    
+// TODO: Write Winodws Code
+
 #elif defined(ANDROID)
 //    android::CallStack cs;
 //    cs.update();
 //    cs.dump();
-    
+
 #else
 
     fprintf(out, "stack trace:\n");
@@ -45,8 +48,8 @@ static inline void print_stacktrace(ANDROID_UNUSED FILE *out = stderr)
     int32_t addrlen = backtrace(addrlist, sizeof(addrlist) / sizeof(void*));
 
     if (addrlen == 0) {
-	fprintf(out, "  <empty, possibly corrupt>\n");
-	return;
+        fprintf(out, "  <empty, possibly corrupt>\n");
+        return;
     }
 
     // resolve addresses into strings containing "filename(function+address)",
@@ -59,27 +62,24 @@ static inline void print_stacktrace(ANDROID_UNUSED FILE *out = stderr)
 
     // iterate over the returned symbol lines. skip the first, it is the
     // address of this function.
-    for (int32_t i = 1; i < addrlen; i++)
-    {
+    for (int32_t i = 1; i < addrlen; i++) {
         char *begin_name = 0, *begin_offset = 0, *end_offset = 0;
 
         // find parentheses and +address offset surrounding the mangled name:
         // ./module(function+0x15c) [0x8048a6d]
-        for (char *p = symbollist[i]; *p; ++p)
-        {
+        for (char* p = symbollist[i]; *p; ++p) {
             if (*p == '(')
-            begin_name = p;
+                begin_name = p;
             else if (*p == '+')
-            begin_offset = p;
+                begin_offset = p;
             else if (*p == ')' && begin_offset) {
-            end_offset = p;
-            break;
+                end_offset = p;
+                break;
             }
         }
 
-        if (begin_name && begin_offset && end_offset
-            && begin_name < begin_offset)
-        {
+        if (begin_name && begin_offset && end_offset &&
+            begin_name < begin_offset) {
             *begin_name++ = '\0';
             *begin_offset++ = '\0';
             *end_offset = '\0';
@@ -89,22 +89,27 @@ static inline void print_stacktrace(ANDROID_UNUSED FILE *out = stderr)
             // __cxa_demangle():
 
             int32_t status;
-            char* ret = abi::__cxa_demangle(begin_name,
-                            funcname, &funcnamesize, &status);
+            char* ret = abi::__cxa_demangle(
+                begin_name, funcname, &funcnamesize, &status);
             if (status == 0) {
-            funcname = ret; // use possibly realloc()-ed string
-            fprintf(out, "  %s : %s+%s\n",
-                symbollist[i], funcname, begin_offset);
+                funcname = ret;  // use possibly realloc()-ed string
+                fprintf(
+                    out,
+                    "  %s : %s+%s\n",
+                    symbollist[i],
+                    funcname,
+                    begin_offset);
+            } else {
+                // demangling failed. Output function name as a C function with
+                // no arguments.
+                fprintf(
+                    out,
+                    "  %s : %s()+%s\n",
+                    symbollist[i],
+                    begin_name,
+                    begin_offset);
             }
-            else {
-            // demangling failed. Output function name as a C function with
-            // no arguments.
-            fprintf(out, "  %s : %s()+%s\n",
-                symbollist[i], begin_name, begin_offset);
-            }
-        }
-        else
-        {
+        } else {
             // couldn't parse the line? print the whole line.
             fprintf(out, "  %s\n", symbollist[i]);
         }
@@ -115,4 +120,4 @@ static inline void print_stacktrace(ANDROID_UNUSED FILE *out = stderr)
 #endif
 }
 
-#endif // STACKTRACE_H
+#endif  // STACKTRACE_H

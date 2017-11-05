@@ -39,6 +39,8 @@
 #ifndef OPENTXS_SERVER_OTSERVER_HPP
 #define OPENTXS_SERVER_OTSERVER_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/cron/OTCron.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Identifier.hpp"

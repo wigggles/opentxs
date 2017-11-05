@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_CONTRACT_PEER_CONNECTIONREPLY_HPP
 #define OPENTXS_CORE_CONTRACT_PEER_CONNECTIONREPLY_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/contract/peer/PeerReply.hpp"
 #include "opentxs/core/Identifier.hpp"
 
@@ -61,9 +63,7 @@ private:
 
     proto::PeerReply IDVersion(const Lock& lock) const override;
 
-    ConnectionReply(
-        const ConstNym& nym,
-        const proto::PeerReply& serialized);
+    ConnectionReply(const ConstNym& nym, const proto::PeerReply& serialized);
     ConnectionReply(
         const ConstNym& nym,
         const Identifier& initiator,
@@ -79,6 +79,6 @@ private:
 public:
     ~ConnectionReply() = default;
 };
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CORE_CONTRACT_PEER_CONNECTIONREPLY_HPP
+#endif  // OPENTXS_CORE_CONTRACT_PEER_CONNECTIONREPLY_HPP

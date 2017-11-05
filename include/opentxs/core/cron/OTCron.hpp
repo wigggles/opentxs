@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_CRON_OTCRON_HPP
 #define OPENTXS_CORE_CRON_OTCRON_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/StringUtils.hpp"
 #include "opentxs/core/util/Timer.hpp"

@@ -35,11 +35,11 @@
  *   for more details.
  *
  ************************************************************/
-#if OT_CRYPTO_USING_TREZOR
 #include "opentxs/core/stdafx.hpp"
 
 #include "opentxs/core/crypto/TrezorCrypto.hpp"
 
+#if OT_CRYPTO_USING_TREZOR
 #include "opentxs/api/OT.hpp"
 #include "opentxs/core/crypto/CryptoEngine.hpp"
 #include "opentxs/core/crypto/CryptoHashEngine.hpp"

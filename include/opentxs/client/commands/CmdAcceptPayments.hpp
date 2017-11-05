@@ -133,6 +133,8 @@
 #ifndef OPENTXS_CLIENT_CMDACCEPTPAYMENTS_HPP
 #define OPENTXS_CLIENT_CMDACCEPTPAYMENTS_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "CmdBaseAccept.hpp"
 
 namespace opentxs
@@ -150,6 +152,6 @@ protected:
     int32_t runWithOptions() override;
 };
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CLIENT_CMDACCEPTPAYMENTS_HPP
+#endif  // OPENTXS_CLIENT_CMDACCEPTPAYMENTS_HPP

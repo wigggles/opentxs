@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_CONTRACT_PEER_PEEROBJECT_HPP
 #define OPENTXS_CORE_CONTRACT_PEER_PEEROBJECT_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/contract/peer/PeerReply.hpp"
 #include "opentxs/core/contract/peer/PeerRequest.hpp"
 #include "opentxs/core/contract/Signable.hpp"

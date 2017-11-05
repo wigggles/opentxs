@@ -39,6 +39,8 @@
 #ifndef OPENTXS_API_WALLET_HPP
 #define OPENTXS_API_WALLET_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/api/Editor.hpp"
 #include "opentxs/client/NymData.hpp"
 #include "opentxs/core/contract/ServerContract.hpp"

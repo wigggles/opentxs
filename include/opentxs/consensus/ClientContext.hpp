@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CONSENSUS_CLIENTCONTEXT_HPP
 #define OPENTXS_CONSENSUS_CLIENTCONTEXT_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/consensus/Context.hpp"
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/Types.hpp"

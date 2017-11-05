@@ -39,6 +39,8 @@
 #ifndef OPENTXS_API_DHT_HPP
 #define OPENTXS_API_DHT_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/Types.hpp"
 
@@ -77,13 +79,13 @@ private:
 
     CallbackMap callback_map_;
     std::unique_ptr<const DhtConfig> config_;
-#ifdef OT_DHT
+#if OT_DHT
     OpenDHT* node_ = nullptr;
 #endif
 
     static Dht* It(DhtConfig& config);
 
-#ifdef OT_DHT
+#if OT_DHT
     static bool ProcessPublicNym(
         const std::string key,
         const DhtResults& values,

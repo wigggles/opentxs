@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_CRYPTO_CRYPTOUTIL_HPP
 #define OPENTXS_CORE_CRYPTO_CRYPTOUTIL_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/String.hpp"
 
 #include <stdint.h>
@@ -56,15 +58,16 @@ class CryptoUtil
 protected:
     CryptoUtil() = default;
     virtual bool GetPasswordFromConsole(
-        OTPassword& theOutput, const char* szPrompt) const = 0;
+        OTPassword& theOutput,
+        const char* szPrompt) const = 0;
 
 public:
-    virtual bool RandomizeMemory(uint8_t* szDestination,
-                                 uint32_t nNewSize) const = 0;
-    bool GetPasswordFromConsole(OTPassword& theOutput,
-                                       bool bRepeat = false) const;
+    virtual bool RandomizeMemory(uint8_t* szDestination, uint32_t nNewSize)
+        const = 0;
+    bool GetPasswordFromConsole(OTPassword& theOutput, bool bRepeat = false)
+        const;
 
     virtual ~CryptoUtil() = default;
 };
-} // namespace opentxs
-#endif // OPENTXS_CORE_CRYPTO_CRYPTOUTIL_HPP
+}  // namespace opentxs
+#endif  // OPENTXS_CORE_CRYPTO_CRYPTOUTIL_HPP

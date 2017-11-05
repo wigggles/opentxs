@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_OTPSEUDONYM_HPP
 #define OPENTXS_CORE_OTPSEUDONYM_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/crypto/CredentialSet.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"

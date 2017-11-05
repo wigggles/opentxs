@@ -41,6 +41,8 @@
 #ifndef OPENTXS_CORE_API_OT_HPP
 #define OPENTXS_CORE_API_OT_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/util/Common.hpp"
 

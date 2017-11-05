@@ -39,6 +39,10 @@
 #ifndef OPENTXS_STORAGE_STORAGEFS_HPP
 #define OPENTXS_STORAGE_STORAGEFS_HPP
 
+#include "opentxs/Version.hpp"
+
+#if OT_STORAGE_FS
+
 #include "opentxs/storage/StoragePlugin.hpp"
 
 #include <boost/iostreams/device/file_descriptor.hpp>
@@ -116,6 +120,7 @@ private:
     StorageFS& operator=(const StorageFS&) = delete;
     StorageFS& operator=(StorageFS&&) = delete;
 };
-
 }  // namespace opentxs
+
+#endif  // OT_STORAGE_FS
 #endif  // OPENTXS_STORAGE_STORAGEFS_HPP

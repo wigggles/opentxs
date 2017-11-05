@@ -39,6 +39,10 @@
 #ifndef OPENTXS_NETWORK_ZMQ_HPP
 #define OPENTXS_NETWORK_ZMQ_HPP
 
+#include "opentxs/Version.hpp"
+
+#include "opentxs/core/Types.hpp"
+
 // IWYU pragma: begin_exports
 extern "C" {
 #ifndef __STDC_VERSION__
@@ -51,8 +55,6 @@ extern "C" {
 #include <czmq.h>
 }
 // IWYU pragma: end_exports
-
-#include "opentxs/core/Types.hpp"
 
 #include <atomic>
 #include <chrono>

@@ -44,6 +44,8 @@
 #ifndef OPENTXS_CORE_TRADE_OTMARKET_HPP
 #define OPENTXS_CORE_TRADE_OTMARKET_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/cron/OTCron.hpp"
 #include "opentxs/core/trade/OTOffer.hpp"
 #include "opentxs/core/util/Common.hpp"
@@ -64,13 +66,14 @@ class OTCron;
 class OTOffer;
 class OTTrade;
 class String;
-namespace OTDB {
+namespace OTDB
+{
 class OfferListNym;
 class TradeListMarket;
 }  // namespace OTDB
 
 #define MAX_MARKET_QUERY_DEPTH                                                 \
-    50 // todo add this to the ini file. (Now that we actually have one.)
+    50  // todo add this to the ini file. (Now that we actually have one.)
 
 // Multiple offers, mapped by price limit.
 // Using multi-map since there will be more than one offer for each single
@@ -83,31 +86,31 @@ typedef std::map<int64_t, OTOffer*> mapOfOffersTrnsNum;
 
 class OTMarket : public Contract
 {
-private: // Private prevents erroneous use by other classes.
+private:  // Private prevents erroneous use by other classes.
     typedef Contract ot_super;
 
 private:
-    OTCron* m_pCron{nullptr}; // The Cron object that owns this Market.
+    OTCron* m_pCron{nullptr};  // The Cron object that owns this Market.
 
     OTDB::TradeListMarket* m_pTradeList{nullptr};
 
-    mapOfOffers m_mapBids; // The buyers, ordered by price limit
-    mapOfOffers m_mapAsks; // The sellers, ordered by price limit
+    mapOfOffers m_mapBids;  // The buyers, ordered by price limit
+    mapOfOffers m_mapAsks;  // The sellers, ordered by price limit
 
-    mapOfOffersTrnsNum m_mapOffers; // All of the offers on a single list,
-                                    // ordered by transaction number.
+    mapOfOffersTrnsNum m_mapOffers;  // All of the offers on a single list,
+                                     // ordered by transaction number.
 
-    Identifier m_NOTARY_ID; // Always store this in any object that's
-                            // associated with a specific server.
+    Identifier m_NOTARY_ID;  // Always store this in any object that's
+                             // associated with a specific server.
 
     // Every market involves a certain instrument definition being traded in a
     // certain
     // currency.
-    Identifier m_INSTRUMENT_DEFINITION_ID; // This is the GOLD market. (Say.)
-                                           // | (GOLD
-                                           // for
-    Identifier m_CURRENCY_TYPE_ID; // Gold is trading for DOLLARS.        |
-                                   // DOLLARS, for example.)
+    Identifier m_INSTRUMENT_DEFINITION_ID;  // This is the GOLD market. (Say.)
+                                            // | (GOLD
+                                            // for
+    Identifier m_CURRENCY_TYPE_ID;  // Gold is trading for DOLLARS.        |
+                                    // DOLLARS, for example.)
 
     // Each Offer on the market must have a minimum increment that this divides
     // equally into.
@@ -138,30 +141,49 @@ private:
     // two are technically
     // interchangeable.
 
-    void cleanup_four_accounts(Account* p1, Account* p2, Account* p3,
-                               Account* p4);
-    void rollback_four_accounts(Account& p1, bool b1, const int64_t& a1,
-                                Account& p2, bool b2, const int64_t& a2,
-                                Account& p3, bool b3, const int64_t& a3,
-                                Account& p4, bool b4, const int64_t& a4);
+    void cleanup_four_accounts(
+        Account* p1,
+        Account* p2,
+        Account* p3,
+        Account* p4);
+    void rollback_four_accounts(
+        Account& p1,
+        bool b1,
+        const int64_t& a1,
+        Account& p2,
+        bool b2,
+        const int64_t& a2,
+        Account& p3,
+        bool b3,
+        const int64_t& a3,
+        Account& p4,
+        bool b4,
+        const int64_t& a4);
 
 public:
     bool ValidateOfferForMarket(OTOffer& theOffer, String* pReason = nullptr);
 
     OTOffer* GetOffer(const int64_t& lTransactionNum);
-    bool AddOffer(OTTrade* pTrade, OTOffer& theOffer, bool bSaveFile = true,
-                  time64_t tDateAddedToMarket = OT_TIME_ZERO);
+    bool AddOffer(
+        OTTrade* pTrade,
+        OTOffer& theOffer,
+        bool bSaveFile = true,
+        time64_t tDateAddedToMarket = OT_TIME_ZERO);
     bool RemoveOffer(const int64_t& lTransactionNum);
     // returns general information about offers on the market
-    EXPORT bool GetOfferList(OTASCIIArmor& ascOutput, int64_t lDepth,
-                             int32_t& nOfferCount);
-    EXPORT bool GetRecentTradeList(OTASCIIArmor& ascOutput,
-                                   int32_t& nTradeCount);
+    EXPORT bool GetOfferList(
+        OTASCIIArmor& ascOutput,
+        int64_t lDepth,
+        int32_t& nOfferCount);
+    EXPORT bool GetRecentTradeList(
+        OTASCIIArmor& ascOutput,
+        int32_t& nTradeCount);
 
     // Returns more detailed information about offers for a specific Nym.
-    bool GetNym_OfferList(const Identifier& NYM_ID,
-                          OTDB::OfferListNym& theOutputList,
-                          int32_t& nNymOfferCount);
+    bool GetNym_OfferList(
+        const Identifier& NYM_ID,
+        OTDB::OfferListNym& theOutputList,
+        int32_t& nNymOfferCount);
 
     // Assumes a few things: Offer is part of Trade, and both have been
     // proven already to be a part of this market.
@@ -169,21 +191,17 @@ public:
     // then both are passed in here.
     // --Returns True if Trade should stay on the Cron list for more processing.
     // --Returns False if it should be removed and deleted.
-    void ProcessTrade(OTTrade& theTrade, OTOffer& theOffer,
-                      OTOffer& theOtherOffer);
+    void ProcessTrade(
+        OTTrade& theTrade,
+        OTOffer& theOffer,
+        OTOffer& theOtherOffer);
     bool ProcessTrade(OTTrade& theTrade, OTOffer& theOffer);
 
     int64_t GetHighestBidPrice();
     int64_t GetLowestAskPrice();
 
-    mapOfOffers::size_type GetBidCount()
-    {
-        return m_mapBids.size();
-    }
-    mapOfOffers::size_type GetAskCount()
-    {
-        return m_mapAsks.size();
-    }
+    mapOfOffers::size_type GetBidCount() { return m_mapBids.size(); }
+    mapOfOffers::size_type GetAskCount() { return m_mapAsks.size(); }
     void SetInstrumentDefinitionID(const Identifier& INSTRUMENT_DEFINITION_ID)
     {
         m_INSTRUMENT_DEFINITION_ID = INSTRUMENT_DEFINITION_ID;
@@ -192,10 +210,7 @@ public:
     {
         m_CURRENCY_TYPE_ID = CURRENCY_ID;
     }
-    void SetNotaryID(const Identifier& NOTARY_ID)
-    {
-        m_NOTARY_ID = NOTARY_ID;
-    }
+    void SetNotaryID(const Identifier& NOTARY_ID) { m_NOTARY_ID = NOTARY_ID; }
 
     inline const Identifier& GetInstrumentDefinitionID() const
     {
@@ -205,15 +220,9 @@ public:
     {
         return m_CURRENCY_TYPE_ID;
     }
-    inline const Identifier& GetNotaryID() const
-    {
-        return m_NOTARY_ID;
-    }
+    inline const Identifier& GetNotaryID() const { return m_NOTARY_ID; }
 
-    inline const int64_t& GetScale() const
-    {
-        return m_lScale;
-    }
+    inline const int64_t& GetScale() const { return m_lScale; }
     inline void SetScale(const int64_t& lScale)
     {
         m_lScale = lScale;
@@ -231,29 +240,22 @@ public:
         if (m_lLastSalePrice < 1) m_lLastSalePrice = 1;
     }
 
-    const std::string& GetLastSaleDate()
-    {
-        return m_strLastSaleDate;
-    }
+    const std::string& GetLastSaleDate() { return m_strLastSaleDate; }
     int64_t GetTotalAvailableAssets();
     OTMarket();
     OTMarket(const char* szFilename);
-    OTMarket(const Identifier& NOTARY_ID,
-             const Identifier& INSTRUMENT_DEFINITION_ID,
-             const Identifier& CURRENCY_TYPE_ID, const int64_t& lScale);
+    OTMarket(
+        const Identifier& NOTARY_ID,
+        const Identifier& INSTRUMENT_DEFINITION_ID,
+        const Identifier& CURRENCY_TYPE_ID,
+        const int64_t& lScale);
 
     virtual ~OTMarket();
 
     void GetIdentifier(Identifier& theIdentifier) const override;
 
-    inline void SetCronPointer(OTCron& theCron)
-    {
-        m_pCron = &theCron;
-    }
-    inline OTCron* GetCron()
-    {
-        return m_pCron;
-    }
+    inline void SetCronPointer(OTCron& theCron) { m_pCron = &theCron; }
+    inline OTCron* GetCron() { return m_pCron; }
     bool LoadMarket();
     bool SaveMarket();
 
@@ -265,10 +267,11 @@ public:
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
     int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
 
-    void UpdateContents() override; // Before transmission or serialization, this
-                                   // is where the ledger saves its contents
+    void UpdateContents() override;  // Before transmission or serialization,
+                                     // this
+                                     // is where the ledger saves its contents
 };
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CORE_TRADE_OTMARKET_HPP
+#endif  // OPENTXS_CORE_TRADE_OTMARKET_HPP

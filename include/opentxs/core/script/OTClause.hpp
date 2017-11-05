@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_SCRIPT_OTCLAUSE_HPP
 #define OPENTXS_CORE_SCRIPT_OTCLAUSE_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/String.hpp"
 
 #include <string>
@@ -51,30 +53,21 @@ class Tag;
 
 class OTClause
 {
-    String m_strName;  // Name of this Clause.
-    String m_strCode;  // script code.
-    OTBylaw* m_pBylaw; // the Bylaw that this clause belongs to.
+    String m_strName;   // Name of this Clause.
+    String m_strCode;   // script code.
+    OTBylaw* m_pBylaw;  // the Bylaw that this clause belongs to.
 
 public:
-    void SetBylaw(OTBylaw& theBylaw)
-    {
-        m_pBylaw = &theBylaw;
-    }
+    void SetBylaw(OTBylaw& theBylaw) { m_pBylaw = &theBylaw; }
 
-    EXPORT const String& GetName() const
-    {
-        return m_strName;
-    }
+    EXPORT const String& GetName() const { return m_strName; }
 
-    OTBylaw* GetBylaw() const
-    {
-        return m_pBylaw;
-    }
+    OTBylaw* GetBylaw() const { return m_pBylaw; }
 
     EXPORT const char* GetCode() const;
 
     EXPORT void SetCode(const std::string& str_code);
-    
+
     bool Compare(const OTClause& rhs) const;
 
     OTClause();
@@ -84,6 +77,6 @@ public:
     void Serialize(Tag& parent) const;
 };
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CORE_SCRIPT_OTCLAUSE_HPP
+#endif  // OPENTXS_CORE_SCRIPT_OTCLAUSE_HPP

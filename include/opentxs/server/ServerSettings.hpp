@@ -39,6 +39,8 @@
 #ifndef OPENTXS_SERVER_SERVERSETTINGS_HPP
 #define OPENTXS_SERVER_SERVERSETTINGS_HPP
 
+#include "opentxs/Version.hpp"
+
 #include <cstdint>
 #include <string>
 

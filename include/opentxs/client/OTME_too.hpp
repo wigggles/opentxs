@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CLIENT_OTME_TOO_HPP
 #define OPENTXS_CLIENT_OTME_TOO_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/Types.hpp"

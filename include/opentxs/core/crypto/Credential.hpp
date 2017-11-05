@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_CRYPTO_CREDENTIAL_HPP
 #define OPENTXS_CORE_CRYPTO_CREDENTIAL_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/Data.hpp"
@@ -101,7 +103,7 @@ public:
         const proto::KeyMode& mode,
         const proto::CredentialRole& role = proto::CREDROLE_ERROR);
 
-    template<class C>
+    template <class C>
     static std::unique_ptr<C> Create(
         CredentialSet& owner,
         const NymParameters& nymParameters)
@@ -153,7 +155,7 @@ protected:
     proto::CredentialType type_ = proto::CREDTYPE_ERROR;
     proto::CredentialRole role_ = proto::CREDROLE_ERROR;
     proto::KeyMode mode_ = proto::KEYMODE_ERROR;
-    CredentialSet* owner_backlink_ = nullptr; // Do not cleanup.
+    CredentialSet* owner_backlink_ = nullptr;  // Do not cleanup.
     String master_id_;
     String nym_id_;
 
@@ -215,6 +217,6 @@ public:
     virtual ~Credential() = default;
 };
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CORE_CRYPTO_CREDENTIAL_HPP
+#endif  // OPENTXS_CORE_CRYPTO_CREDENTIAL_HPP

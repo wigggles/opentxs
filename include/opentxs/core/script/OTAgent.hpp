@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_SCRIPT_OTAGENT_HPP
 #define OPENTXS_CORE_SCRIPT_OTAGENT_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/Types.hpp"
 
@@ -73,20 +75,20 @@ class Tag;
 class OTAgent
 {
 private:
-    bool m_bNymRepresentsSelf; // Whether this agent represents himself (a nym)
-                               // or whether he represents an entity of some
-                               // sort.
-    bool m_bIsAnIndividual;    // Whether this agent is a voting group or Nym
-                               // (whether Nym acting for himself or for some
-                               // entity.)
+    bool m_bNymRepresentsSelf;  // Whether this agent represents himself (a nym)
+                                // or whether he represents an entity of some
+                                // sort.
+    bool m_bIsAnIndividual;     // Whether this agent is a voting group or Nym
+                                // (whether Nym acting for himself or for some
+                                // entity.)
 
     // If agent is active (has a nym), here is the sometimes-available pointer
     // to said Agent Nym. This pointer is not owned by this object, and is here
     // for convenience only. someday may add a "role" pointer here.
     const Nym* m_pNym;
 
-    OTParty* m_pForParty; // The agent probably has a pointer to the party it
-                          // acts on behalf of.
+    OTParty* m_pForParty;  // The agent probably has a pointer to the party it
+                           // acts on behalf of.
 
     /*
      <Agent type=“group”// could be “nym”, or “role”, or “group”.
@@ -98,22 +100,22 @@ private:
      that controls this agent.
      */
 
-    String m_strName; // agent name (accessible within script language.)
+    String m_strName;  // agent name (accessible within script language.)
 
     // info about agent.
     //
-    String m_strNymID; // If agent is a Nym, then this is the NymID of that
-                       // Nym (whether that Nym is owner or not.)
+    String m_strNymID;  // If agent is a Nym, then this is the NymID of that
+                        // Nym (whether that Nym is owner or not.)
     // If agent is a group (IsAGroup()) then this will be blank. This is
     // different than the
     // Nym stored in OTParty, which if present ALWAYS refers to the OWNER Nym
     // (Though this Nym
     // MAY ALSO be the owner, that fact is purely incidental here AND this NymID
     // could be blank.)
-    String m_strRoleID;    // If agent is Nym working in a role on behalf of an
-                           // entity, then this is its RoleID in Entity.
-    String m_strGroupName; // If agent is a voting group in an Entity, this is
-                           // group's Name (inside Entity.)
+    String m_strRoleID;     // If agent is Nym working in a role on behalf of an
+                            // entity, then this is its RoleID in Entity.
+    String m_strGroupName;  // If agent is a voting group in an Entity, this is
+                            // group's Name (inside Entity.)
 
 public:
     OTAgent();
@@ -126,9 +128,13 @@ public:
     // Someday another constructor here like the above, for
     // instantiating with an Entity/Group instead of with a Nym.
 
-    OTAgent(bool bNymRepresentsSelf, bool bIsAnIndividual,
-            const String& strName, const String& strNymID,
-            const String& strRoleID, const String& strGroupName);
+    OTAgent(
+        bool bNymRepresentsSelf,
+        bool bIsAnIndividual,
+        const String& strName,
+        const String& strNymID,
+        const String& strRoleID,
+        const String& strGroupName);
 
     virtual ~OTAgent();
 
@@ -167,72 +173,69 @@ public:
     bool ReserveOpeningTransNum(ServerContext& context);
     bool ReserveClosingTransNum(
         ServerContext& context,
-            OTPartyAccount& thePartyAcct);
+        OTPartyAccount& thePartyAcct);
     EXPORT bool SignContract(Contract& theInput) const;
 
     // Verify that this agent somehow has legitimate agency over this account.
     // (According to the account.)
     //
     bool VerifyAgencyOfAccount(const Account& theAccount) const;
-    bool VerifySignature(const Contract& theContract) const; // Have the agent
-                                                             // try
-                                                             // to
+    bool VerifySignature(const Contract& theContract) const;  // Have the agent
+                                                              // try
+                                                              // to
     // verify his own signature
     // against any contract.
 
-    void SetParty(OTParty& theOwnerParty); // This happens when the agent is
-                                           // added to the party.
+    void SetParty(OTParty& theOwnerParty);  // This happens when the agent is
+                                            // added to the party.
 
-    void SetNymPointer(const Nym& theNym)
-    {
-        m_pNym = &theNym;
-    }
+    void SetNymPointer(const Nym& theNym) { m_pNym = &theNym; }
 
     EXPORT bool IsValidSigner(const Nym& theNym);
     EXPORT bool IsValidSignerID(const Identifier& theNymID);
 
-    bool IsAuthorizingAgentForParty(); // true/false whether THIS agent is the
-                                       // authorizing agent for his party.
-    int32_t GetCountAuthorizedAccts(); // The number of accounts, owned by this
-                                       // agent's party, that this agent is the
-                                       // authorized agent FOR.
+    bool IsAuthorizingAgentForParty();  // true/false whether THIS agent is the
+                                        // authorizing agent for his party.
+    int32_t GetCountAuthorizedAccts();  // The number of accounts, owned by this
+                                        // agent's party, that this agent is the
+                                        // authorized agent FOR.
 
     // Only one of these can be true:
     // (I wrestle with making these 2 calls private, since technically it should
     // be irrelevant to the external.)
     //
-    bool DoesRepresentHimself() const; // If the agent is a Nym acting for
-                                       // himself, this will be true. Otherwise,
-                                       // if agent is a Nym acting in a role for
-                                       // an entity, or if agent is a voting
-                                       // group acting for the entity to which
-                                       // it belongs, either way, this will be
-                                       // false.
+    bool DoesRepresentHimself() const;  // If the agent is a Nym acting for
+    // himself, this will be true. Otherwise,
+    // if agent is a Nym acting in a role for
+    // an entity, or if agent is a voting
+    // group acting for the entity to which
+    // it belongs, either way, this will be
+    // false.
     // ** OR **
-    bool DoesRepresentAnEntity() const; // Whether the agent is a voting group
-                                        // acting for an entity, or is a Nym
-                                        // acting in a Role for an entity, this
-                                        // will be true either way. (Otherwise,
-                                        // if agent is a Nym acting for himself,
-                                        // then this will be false.)
+    bool DoesRepresentAnEntity() const;  // Whether the agent is a voting group
+                                         // acting for an entity, or is a Nym
+                                         // acting in a Role for an entity, this
+                                         // will be true either way. (Otherwise,
+    // if agent is a Nym acting for himself,
+    // then this will be false.)
 
     // Only one of these can be true:
     // - Agent is either a Nym acting for himself or some entity,
     // - or agent is a group acting for some entity.
 
-    EXPORT bool IsAnIndividual() const; // Agent is an individual Nym. (Meaning
-                                        // either he IS ALSO the party and thus
-                                        // represents himself, OR he is an agent
-                                        // for an entity who is the party, and
-                                        // he's acting in a role for that
-                                        // entity.) If agent were a group, this
-                                        // would be false.
+    EXPORT bool IsAnIndividual() const;  // Agent is an individual Nym. (Meaning
+                                         // either he IS ALSO the party and thus
+    // represents himself, OR he is an agent
+    // for an entity who is the party, and
+    // he's acting in a role for that
+    // entity.) If agent were a group, this
+    // would be false.
     // ** OR **
-    bool IsAGroup() const; // OR: Agent is a voting group, which cannot take
-                           // proactive or instant action, but only passive and
-                           // delayed. Entity-ONLY. (A voting group cannot
-                           // decide on behalf of individual, but only on behalf
-                           // of the entity it belongs to.)
+    bool IsAGroup() const;  // OR: Agent is a voting group, which cannot take
+                            // proactive or instant action, but only passive and
+                            // delayed. Entity-ONLY. (A voting group cannot
+    // decide on behalf of individual, but only on behalf
+    // of the entity it belongs to.)
 
     // FYI: A Nym cannot act as agent for another Nym.
     // Nor can a Group act as agent for a Nym.
@@ -244,19 +247,19 @@ public:
 
     // For when the agent is an individual:
     //
-    EXPORT bool GetNymID(Identifier& theOutput) const; // If IsIndividual(),
-                                                       // then this is his own
-                                                       // personal NymID,
+    EXPORT bool GetNymID(Identifier& theOutput) const;  // If IsIndividual(),
+                                                        // then this is his own
+                                                        // personal NymID,
     // (whether he DoesRepresentHimself() or DoesRepresentAnEntity()
     // -- either way). Otherwise if IsGroup(), this returns false.
 
-    bool GetRoleID(Identifier& theOutput) const; // IF IsIndividual() AND
-                                                 // DoesRepresentAnEntity(),
-                                                 // then this is his RoleID
-                                                 // within that Entity.
-                                                 // Otherwise, if IsGroup() or
-                                                 // DoesRepresentHimself(),
-                                                 // then this returns false.
+    bool GetRoleID(Identifier& theOutput) const;  // IF IsIndividual() AND
+                                                  // DoesRepresentAnEntity(),
+                                                  // then this is his RoleID
+                                                  // within that Entity.
+                                                  // Otherwise, if IsGroup() or
+                                                  // DoesRepresentHimself(),
+                                                  // then this returns false.
 
     // Notice if the agent is a voting group, then it has no signer. (Instead it
     // will have an election.)
@@ -290,18 +293,18 @@ public:
     // I'm debating making this function private along with DoesRepresentHimself
     // / DoesRepresentAnEntity().
     //
-    bool GetEntityID(Identifier& theOutput) const; // IF represents an entity,
-                                                   // this is its ID. Else
-                                                   // fail.
+    bool GetEntityID(Identifier& theOutput) const;  // IF represents an entity,
+                                                    // this is its ID. Else
+                                                    // fail.
 
     EXPORT const String& GetName()
     {
         return m_strName;
-    } // agent's name as used in a script.
+    }  // agent's name as used in a script.
     // For when the agent is a voting group:
     //
-    bool GetGroupName(String& strGroupName); // The GroupName group will be
-                                             // found in the EntityID entity.
+    bool GetGroupName(String& strGroupName);  // The GroupName group will be
+                                              // found in the EntityID entity.
     //
     // If !IsGroup() aka IsIndividual(), then this will return false.
     //
@@ -320,10 +323,7 @@ public:
     //
     bool GetPartyID(Identifier& theOutput) const;
 
-    OTParty* GetParty() const
-    {
-        return m_pForParty;
-    }
+    OTParty* GetParty() const { return m_pForParty; }
 
     // IDEA: Put a Nym in the Nyms folder for each entity. While it may
     // not have a public key in the pubkey folder, or embedded within it,
@@ -347,28 +347,38 @@ public:
 
     Nym* LoadNym(const Nym& theServerNym);
 
-    bool DropFinalReceiptToNymbox(OTSmartContract& theSmartContract,
-                                  const int64_t& lNewTransactionNumber,
-                                  const String& strOrigCronItem,
-                                  String* pstrNote = nullptr,
-                                  String* pstrAttachment = nullptr,
-                                  Nym* pActualNym = nullptr);
+    bool DropFinalReceiptToNymbox(
+        OTSmartContract& theSmartContract,
+        const int64_t& lNewTransactionNumber,
+        const String& strOrigCronItem,
+        String* pstrNote = nullptr,
+        String* pstrAttachment = nullptr,
+        Nym* pActualNym = nullptr);
 
     bool DropFinalReceiptToInbox(
-        mapOfNyms* pNymMap, const String& strNotaryID, Nym& theServerNym,
-        OTSmartContract& theSmartContract, const Identifier& theAccountID,
-        const int64_t& lNewTransactionNumber, const int64_t& lClosingNumber,
-        const String& strOrigCronItem, String* pstrNote = nullptr,
+        mapOfNyms* pNymMap,
+        const String& strNotaryID,
+        Nym& theServerNym,
+        OTSmartContract& theSmartContract,
+        const Identifier& theAccountID,
+        const int64_t& lNewTransactionNumber,
+        const int64_t& lClosingNumber,
+        const String& strOrigCronItem,
+        String* pstrNote = nullptr,
         String* pstrAttachment = nullptr);
 
     bool DropServerNoticeToNymbox(
-        bool bSuccessMsg, // the notice can be "acknowledgment" or "rejection"
-        Nym& theServerNym, const Identifier& theNotaryID,
-        const int64_t& lNewTransactionNumber, const int64_t& lInReferenceTo,
-        const String& strReference, String* pstrNote = nullptr,
-        String* pstrAttachment = nullptr, Nym* pActualNym = nullptr);
+        bool bSuccessMsg,  // the notice can be "acknowledgment" or "rejection"
+        Nym& theServerNym,
+        const Identifier& theNotaryID,
+        const int64_t& lNewTransactionNumber,
+        const int64_t& lInReferenceTo,
+        const String& strReference,
+        String* pstrNote = nullptr,
+        String* pstrAttachment = nullptr,
+        Nym* pActualNym = nullptr);
 };
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CORE_SCRIPT_OTAGENT_HPP
+#endif  // OPENTXS_CORE_SCRIPT_OTAGENT_HPP

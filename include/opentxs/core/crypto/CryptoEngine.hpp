@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_CRYPTO_CRYPTOENGINE_HPP
 #define OPENTXS_CORE_CRYPTO_CRYPTOENGINE_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/api/Editor.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Proto.hpp"

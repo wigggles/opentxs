@@ -39,6 +39,9 @@
 #ifndef OPENTXS_CORE_CRYPTO_TREZOR_CRYPTO_HPP
 #define OPENTXS_CORE_CRYPTO_TREZOR_CRYPTO_HPP
 
+#include "opentxs/Version.hpp"
+
+#if OT_CRYPTO_USING_TREZOR
 #if OT_CRYPTO_WITH_BIP32
 #include "opentxs/core/crypto/Bip32.hpp"
 #endif
@@ -177,4 +180,5 @@ public:
     ~TrezorCrypto() = default;
 };
 }  // namespace opentxs
+#endif  // OT_CRYPTO_USING_TREZOR
 #endif  // OPENTXS_CORE_CRYPTO_TREZOR_CRYPTO_HPP

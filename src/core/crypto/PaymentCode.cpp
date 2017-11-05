@@ -35,11 +35,11 @@
  *   for more details.
  *
  ************************************************************/
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 #include "opentxs/core/stdafx.hpp"
 
 #include "opentxs/core/crypto/PaymentCode.hpp"
 
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 #include "opentxs/api/OT.hpp"
 #include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/crypto/Bip32.hpp"

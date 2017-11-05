@@ -39,6 +39,10 @@
 #ifndef OPENTXS_STORAGE_STORAGEFSGC_HPP
 #define OPENTXS_STORAGE_STORAGEFSGC_HPP
 
+#include "opentxs/Version.hpp"
+
+#if OT_STORAGE_FS
+
 #include "opentxs/storage/drivers/StorageFS.hpp"
 
 namespace opentxs
@@ -91,6 +95,7 @@ private:
     StorageFSGC& operator=(const StorageFSGC&) = delete;
     StorageFSGC& operator=(StorageFSGC&&) = delete;
 };
-
 }  // namespace opentxs
+
+#endif  // OT_STORAGE_FS
 #endif  // OPENTXS_STORAGE_STORAGEFSGC_HPP

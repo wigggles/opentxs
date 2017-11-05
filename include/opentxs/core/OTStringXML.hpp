@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_OTSTRINGXML_HPP
 #define OPENTXS_CORE_OTSTRINGXML_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/String.hpp"
 
 #include <stdint.h>
@@ -77,6 +79,6 @@ private:
     OTStringXMLPvt* const pvt_;
 };
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CORE_OTSTRINGXML_HPP
+#endif  // OPENTXS_CORE_OTSTRINGXML_HPP

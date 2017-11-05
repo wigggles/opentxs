@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CONTACT_CONTACT_HPP
 #define OPENTXS_CONTACT_CONTACT_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Proto.hpp"
 

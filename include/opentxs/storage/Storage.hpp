@@ -39,6 +39,8 @@
 #ifndef OPENTXS_STORAGE_STORAGE_HPP
 #define OPENTXS_STORAGE_STORAGE_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/api/Editor.hpp"
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/Types.hpp"

@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_CRYPTO_OTSIGNATURE_HPP
 #define OPENTXS_CORE_CRYPTO_OTSIGNATURE_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/OTSignatureMetadata.hpp"
 

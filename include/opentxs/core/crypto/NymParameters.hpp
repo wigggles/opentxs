@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_CRYPTO_NYMPARAMETERS_HPP
 #define OPENTXS_CORE_CRYPTO_NYMPARAMETERS_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/crypto/Credential.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 #if OT_CRYPTO_SUPPORTED_KEY_HD

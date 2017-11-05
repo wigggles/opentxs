@@ -39,6 +39,8 @@
 #ifndef OPENTXS_SERVER_USERCOMMANDPROCESSOR_HPP
 #define OPENTXS_SERVER_USERCOMMANDPROCESSOR_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/Types.hpp"
 
 #include <cstdint>

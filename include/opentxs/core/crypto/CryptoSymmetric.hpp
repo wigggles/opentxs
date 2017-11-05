@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_CRYPTO_CRYPTOSYMMETRIC_HPP
 #define OPENTXS_CORE_CRYPTO_CRYPTOSYMMETRIC_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTEnvelope.hpp"
 #include "opentxs/core/util/Assert.hpp"
@@ -57,7 +59,8 @@ class OTPassword;
 class OTPasswordData;
 class Data;
 
-typedef std::tuple<String, String, String, String, std::shared_ptr<OTEnvelope> > symmetricEnvelope;
+typedef std::tuple<String, String, String, String, std::shared_ptr<OTEnvelope>>
+    symmetricEnvelope;
 typedef std::shared_ptr<OTPassword> BinarySecret;
 // Sometimes I want to decrypt into an OTPassword (for encrypted symmetric
 // keys being decrypted) and sometimes I want to decrypt into an Data
@@ -76,7 +79,8 @@ private:
 public:
     EXPORT ~CryptoSymmetricDecryptOutput();
 
-    EXPORT CryptoSymmetricDecryptOutput(const CryptoSymmetricDecryptOutput& rhs);
+    EXPORT CryptoSymmetricDecryptOutput(
+        const CryptoSymmetricDecryptOutput& rhs);
 
     EXPORT CryptoSymmetricDecryptOutput(OTPassword& thePassword);
     EXPORT CryptoSymmetricDecryptOutput(Data& thePayload);
@@ -84,19 +88,20 @@ public:
     EXPORT void swap(CryptoSymmetricDecryptOutput& other);
 
     EXPORT CryptoSymmetricDecryptOutput& operator=(
-        CryptoSymmetricDecryptOutput other); // passed by value.
+        CryptoSymmetricDecryptOutput other);  // passed by value.
 
-    EXPORT bool Concatenate(const void* pAppendData,
-                            uint32_t lAppendSize) const;
+    EXPORT bool Concatenate(const void* pAppendData, uint32_t lAppendSize)
+        const;
 
-    EXPORT void Release(); // Someday make this virtual, if we ever subclass it.
+    EXPORT void Release();  // Someday make this virtual, if we ever subclass
+                            // it.
     EXPORT void Release_Envelope_Decrypt_Output() const;
 };
 
 class CryptoSymmetric
 {
 public:
-    enum Mode: int32_t {
+    enum Mode : int32_t {
         ERROR_MODE,
         AES_128_CBC,
         AES_256_CBC,
@@ -141,23 +146,24 @@ public:
     // IS RESPONSIBLE TO DELETE!
     // Todo: return a smart pointer here.
     //
-    virtual OTPassword* DeriveNewKey(const OTPassword& userPassword,
-                                     const Data& dataSalt,
-                                     uint32_t uIterations,
-                                     Data& dataCheckHash) const = 0;
+    virtual OTPassword* DeriveNewKey(
+        const OTPassword& userPassword,
+        const Data& dataSalt,
+        uint32_t uIterations,
+        Data& dataCheckHash) const = 0;
 
     // ENCRYPT / DECRYPT
     //
     // Symmetric (secret key) encryption / decryption
     //
     virtual bool Encrypt(
-        const OTPassword& theRawSymmetricKey, // The symmetric key, in clear
-                                              // form.
-        const char* szInput,                  // This is the Plaintext.
+        const OTPassword& theRawSymmetricKey,  // The symmetric key, in clear
+                                               // form.
+        const char* szInput,                   // This is the Plaintext.
         uint32_t lInputLength,
-        const Data& theIV, // (We assume this IV is already generated and
-                             // passed in.)
-        Data& theEncryptedOutput) const = 0; // OUTPUT. (Ciphertext.)
+        const Data& theIV,  // (We assume this IV is already generated and
+                            // passed in.)
+        Data& theEncryptedOutput) const = 0;  // OUTPUT. (Ciphertext.)
     virtual bool Encrypt(
         const CryptoSymmetric::Mode cipher,
         const OTPassword& key,
@@ -180,17 +186,19 @@ public:
         Data& ciphertext,
         Data& tag) const = 0;
 
-    virtual bool Decrypt(const OTPassword& theRawSymmetricKey, // The symmetric
-                                                               // key, in clear
-                                                               // form.
-                         const char* szInput, // This is the Ciphertext.
-                         uint32_t lInputLength,
-                         const Data& theIV, // (We assume this IV is
-                                              // already generated and passed
-                                              // in.)
-                         CryptoSymmetricDecryptOutput& theDecryptedOutput)
-        const = 0; // OUTPUT. (Recovered plaintext.) You can pass OTPassword& OR
-                   // Data& here (either will work.)
+    virtual bool Decrypt(
+        const OTPassword& theRawSymmetricKey,  // The symmetric
+                                               // key, in clear
+                                               // form.
+        const char* szInput,                   // This is the Ciphertext.
+        uint32_t lInputLength,
+        const Data& theIV,  // (We assume this IV is
+                            // already generated and passed
+                            // in.)
+        CryptoSymmetricDecryptOutput& theDecryptedOutput)
+        const = 0;  // OUTPUT. (Recovered plaintext.) You can pass OTPassword&
+                    // OR
+                    // Data& here (either will work.)
     virtual bool Decrypt(
         const CryptoSymmetric::Mode cipher,
         const OTPassword& key,
@@ -214,7 +222,7 @@ public:
         CryptoSymmetricDecryptOutput& plaintext) const = 0;
 };
 
-} // namespace opentxs
+}  // namespace opentxs
 
 /*
  ftp://ftp.rsasecurity.com/pub/pkcs/pkcs-5v2/pkcs5v2_1.pdf
@@ -271,4 +279,4 @@ public:
 )
 */
 
-#endif // OPENTXS_CORE_CRYPTO_CRYPTOSYMMETRIC_HPP
+#endif  // OPENTXS_CORE_CRYPTO_CRYPTOSYMMETRIC_HPP

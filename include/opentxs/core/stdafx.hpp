@@ -40,33 +40,19 @@ typedef uint16_t USHORT;
 #define OT_THOUSANDS_SEP ","
 #define OT_DECIMAL_POINT "."
 
-#ifndef OPENTXS_CHAISCRIPT_5
-#define OPENTXS_CHAISCRIPT_5
-#endif
-
-#if defined(ANDROID) || defined(OT_KEYRING_IOS)
-// DON'T use ChaiScript on mobile devices
-#undef OT_USE_SCRIPT_CHAI
-
-#ifdef OPENTXS_CHAISCRIPT_5
-#undef OPENTXS_CHAISCRIPT_5
-#endif
-
-#endif
-
-#ifdef OT_USE_CHAI_STDLIB
-#undef OT_USE_CHAI_STDLIB
-#endif
-
-#ifdef OPENTXS_CHAISCRIPT_5
-#define OT_USE_CHAI_STDLIB
-#endif
-
 #ifdef _WIN32
 #ifndef NO_OT_PCH
 #else
 #undef NO_OT_PCH
 #endif
+#endif
+
+#ifndef CHAISCRIPT_NO_THREADS
+#define CHAISCRIPT_NO_THREADS
+#endif
+
+#ifndef OT_USE_CHAI_STDLIB
+#define OT_USE_CHAI_STDLIB
 #endif
 
 #endif  // OPENTXS_CORE_STDAFX_HPP

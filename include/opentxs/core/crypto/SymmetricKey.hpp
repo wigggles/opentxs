@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_CRYPTO_SYMMETRICKEY_HPP
 #define OPENTXS_CORE_CRYPTO_SYMMETRICKEY_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Proto.hpp"
 

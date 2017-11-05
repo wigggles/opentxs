@@ -39,6 +39,8 @@
 #ifndef OPENTXS_API_BLOCKCHAIN_HPP
 #define OPENTXS_API_BLOCKCHAIN_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/Types.hpp"

@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_CRYPTO_LIBSODIUM_HPP
 #define OPENTXS_CORE_CRYPTO_LIBSODIUM_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/crypto/Crypto.hpp"
 #include "opentxs/core/crypto/CryptoAsymmetric.hpp"
 #include "opentxs/core/crypto/CryptoHash.hpp"
@@ -56,18 +58,17 @@ class Data;
 class OTPassword;
 class OTPasswordData;
 
-class Libsodium
-  : public Crypto
-  , public CryptoAsymmetric
-  , public CryptoSymmetricNew
-  , public Ecdsa
-  , public CryptoHash
+class Libsodium : public Crypto,
+                  public CryptoAsymmetric,
+                  public CryptoSymmetricNew,
+                  public Ecdsa,
+                  public CryptoHash
 {
     friend class CryptoEngine;
 
 private:
-    static const proto::SymmetricMode DEFAULT_MODE
-        {proto::SMODE_CHACHA20POLY1305};
+    static const proto::SymmetricMode DEFAULT_MODE{
+        proto::SMODE_CHACHA20POLY1305};
 
     void Cleanup_Override() const override {}
     bool Decrypt(
@@ -86,10 +87,8 @@ private:
         const proto::SymmetricKeyType type,
         std::uint8_t* output,
         std::size_t outputSize) const override;
-    bool ECDH(
-        const Data& publicKey,
-        const OTPassword& seed,
-        OTPassword& secret) const override;
+    bool ECDH(const Data& publicKey, const OTPassword& seed, OTPassword& secret)
+        const override;
     bool Encrypt(
         const std::uint8_t* input,
         const std::size_t inputSize,
@@ -103,9 +102,8 @@ private:
     void Init_Override() const override;
     std::size_t IvSize(const proto::SymmetricMode mode) const override;
     std::size_t KeySize(const proto::SymmetricMode mode) const override;
-    bool ScalarBaseMultiply(
-        const OTPassword& seed,
-        Data& publicKey) const override;
+    bool ScalarBaseMultiply(const OTPassword& seed, Data& publicKey)
+        const override;
     std::size_t SaltSize(const proto::SymmetricKeyType type) const override;
     std::size_t TagSize(const proto::SymmetricMode mode) const override;
 
@@ -124,14 +122,12 @@ public:
         const std::uint8_t* key,
         const size_t keySize,
         std::uint8_t* output) const override;
-    bool RandomKeypair(
-        OTPassword& privateKey,
-        Data& publicKey) const override;
+    bool RandomKeypair(OTPassword& privateKey, Data& publicKey) const override;
     bool Sign(
         const Data& plaintext,
         const OTAsymmetricKey& theKey,
         const proto::HashType hashType,
-        Data& signature, // output
+        Data& signature,  // output
         const OTPasswordData* pPWData = nullptr,
         const OTPassword* exportPassword = nullptr) const override;
     bool SeedToCurveKey(

@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_CRYPTO_OTCALLBACK_HPP
 #define OPENTXS_CORE_CRYPTO_OTCALLBACK_HPP
 
+#include "opentxs/Version.hpp"
+
 namespace opentxs
 {
 
@@ -47,21 +49,19 @@ class OTPassword;
 class OTCallback
 {
 public:
-    OTCallback()
-    {
-    }
+    OTCallback() {}
     EXPORT virtual ~OTCallback();
 
     // Asks for password once. (For authentication when using nym.)
-    EXPORT virtual void runOne(const char* szDisplay,
-                               OTPassword& theOutput) const = 0;
+    EXPORT virtual void runOne(const char* szDisplay, OTPassword& theOutput)
+        const = 0;
 
     // Asks for password twice. (For confirmation when changing password or
     // creating nym.)
-    EXPORT virtual void runTwo(const char* szDisplay,
-                               OTPassword& theOutput) const = 0;
+    EXPORT virtual void runTwo(const char* szDisplay, OTPassword& theOutput)
+        const = 0;
 };
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CORE_CRYPTO_OTCALLBACK_HPP
+#endif  // OPENTXS_CORE_CRYPTO_OTCALLBACK_HPP

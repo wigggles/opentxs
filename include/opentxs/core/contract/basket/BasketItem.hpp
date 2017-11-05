@@ -39,6 +39,8 @@
 #ifndef OPENTXS_BASKET_BASKETITEM_HPP
 #define OPENTXS_BASKET_BASKETITEM_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/Identifier.hpp"
 
 #include <stdint.h>
@@ -73,6 +75,6 @@ public:
     ~BasketItem() = default;
 };
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_BASKET_BASKETITEM_HPP
+#endif  // OPENTXS_BASKET_BASKETITEM_HPP

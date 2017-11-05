@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_CRYPTO_OTCRYPTOOPENSSL_HPP
 #define OPENTXS_CORE_CRYPTO_OTCRYPTOOPENSSL_HPP
 
+#include "opentxs/Version.hpp"
+
 #if OT_CRYPTO_USING_OPENSSL
 
 #include "opentxs/core/crypto/Crypto.hpp"
@@ -76,13 +78,16 @@ class OTSignature;
 
 class OpenSSL : public Crypto
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
-  , public CryptoAsymmetric
+                ,
+                public CryptoAsymmetric
 #endif
 #if OT_CRYPTO_SUPPORTED_ALGO_AES
-  , public CryptoSymmetric
+                ,
+                public CryptoSymmetric
 #endif
-  , public CryptoUtil
-  , public CryptoHash
+                ,
+                public CryptoUtil,
+                public CryptoHash
 {
 private:
     friend class CryptoEngine;
@@ -102,9 +107,8 @@ private:
         bool& AEAD,
         bool& ECB) const;
     void Cleanup_Override() const override;
-    bool GetPasswordFromConsole(
-        OTPassword& theOutput,
-        const char* szPrompt) const override;
+    bool GetPasswordFromConsole(OTPassword& theOutput, const char* szPrompt)
+        const override;
     void Init_Override() const override;
 
     OpenSSL();
@@ -117,9 +121,8 @@ public:
     BinarySecret InstantiateBinarySecretSP() const override;
 
     // RANDOM NUMBERS
-    bool RandomizeMemory(
-        uint8_t* szDestination,
-        uint32_t nNewSize) const override;
+    bool RandomizeMemory(uint8_t* szDestination, uint32_t nNewSize)
+        const override;
 
     OTPassword* DeriveNewKey(
         const OTPassword& userPassword,
@@ -130,12 +133,12 @@ public:
     // ENCRYPT / DECRYPT
     // Symmetric (secret key) encryption / decryption
     bool Encrypt(
-        const OTPassword& theRawSymmetricKey, // The symmetric key, in clear
-                                              // form.
-        const char* szInput,                  // This is the Plaintext.
+        const OTPassword& theRawSymmetricKey,  // The symmetric key, in clear
+                                               // form.
+        const char* szInput,                   // This is the Plaintext.
         uint32_t lInputLength,
-        const Data& theIV, // (We assume this IV is already generated and
-                             // passed in.)
+        const Data& theIV,  // (We assume this IV is already generated and
+                            // passed in.)
         Data& theEncryptedOutput) const override;
     bool Encrypt(
         const CryptoSymmetric::Mode cipher,
@@ -206,7 +209,7 @@ public:
         const Data& plaintext,
         const OTAsymmetricKey& theKey,
         const proto::HashType hashType,
-        Data& signature, // output
+        Data& signature,  // output
         const OTPasswordData* pPWData = nullptr,
         const OTPassword* exportPassword = nullptr) const override;
     bool Verify(
@@ -227,13 +230,13 @@ public:
         const Nym& theRecipient,
         Data& plaintext,
         const OTPasswordData* pPWData = nullptr) const;
-#endif // OT_CRYPTO_SUPPORTED_KEY_RSA
+#endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
 
     void thread_setup() const;
     void thread_cleanup() const;
 
     ~OpenSSL();
 };
-} // namespace opentxs
-#endif // OT_CRYPTO_USING_OPENSSL
-#endif // OPENTXS_CORE_CRYPTO_OTCRYPTO_HPP
+}  // namespace opentxs
+#endif  // OT_CRYPTO_USING_OPENSSL
+#endif  // OPENTXS_CORE_CRYPTO_OTCRYPTO_HPP

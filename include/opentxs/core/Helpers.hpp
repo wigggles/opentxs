@@ -133,6 +133,8 @@
 #ifndef OPENTXS_CORE_HELPERS_HPP
 #define OPENTXS_CORE_HELPERS_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/Log.hpp"
 
 namespace
@@ -164,36 +166,37 @@ opentxs::Account::AccountType TranslateAccountTypeStringToEnum(
     return acctType;
 }
 
-void TranslateAccountTypeToString(opentxs::Account::AccountType type,
-                                  opentxs::String& acctType)
+void TranslateAccountTypeToString(
+    opentxs::Account::AccountType type,
+    opentxs::String& acctType)
 {
     switch (type) {
-    case opentxs::Account::user:
-        acctType.Set("user");
-        break;
-    case opentxs::Account::issuer:
-        acctType.Set("issuer");
-        break;
-    case opentxs::Account::basket:
-        acctType.Set("basket");
-        break;
-    case opentxs::Account::basketsub:
-        acctType.Set("basketsub");
-        break;
-    case opentxs::Account::mint:
-        acctType.Set("mint");
-        break;
-    case opentxs::Account::voucher:
-        acctType.Set("voucher");
-        break;
-    case opentxs::Account::stash:
-        acctType.Set("stash");
-        break;
-    default:
-        acctType.Set("err_acct");
-        break;
+        case opentxs::Account::user:
+            acctType.Set("user");
+            break;
+        case opentxs::Account::issuer:
+            acctType.Set("issuer");
+            break;
+        case opentxs::Account::basket:
+            acctType.Set("basket");
+            break;
+        case opentxs::Account::basketsub:
+            acctType.Set("basketsub");
+            break;
+        case opentxs::Account::mint:
+            acctType.Set("mint");
+            break;
+        case opentxs::Account::voucher:
+            acctType.Set("voucher");
+            break;
+        case opentxs::Account::stash:
+            acctType.Set("stash");
+            break;
+        default:
+            acctType.Set("err_acct");
+            break;
     }
 }
-} // namespace
+}  // namespace
 
-#endif // OPENTXS_CORE_HELPERS_HPP
+#endif  // OPENTXS_CORE_HELPERS_HPP

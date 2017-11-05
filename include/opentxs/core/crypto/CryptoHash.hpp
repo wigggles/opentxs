@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_CRYPTO_CRYPTOHASH_HPP
 #define OPENTXS_CORE_CRYPTO_CRYPTOHASH_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/Proto.hpp"
 
 #include <cstdint>
@@ -77,6 +79,6 @@ public:
     virtual ~CryptoHash() = default;
 };
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CORE_CRYPTO_CRYPTOHASH_HPP
+#endif  // OPENTXS_CORE_CRYPTO_CRYPTOHASH_HPP

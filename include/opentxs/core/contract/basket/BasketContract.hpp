@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_BASKET_BASKETCONTRACT_HPP
 #define OPENTXS_CORE_BASKET_BASKETCONTRACT_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/core/Identifier.hpp"
 
@@ -85,22 +87,16 @@ public:
         proto::UnitDefinition& serialized);
 
     EXPORT Identifier BasketID() const;
-    EXPORT const MapOfSubcontracts& Currencies() const
-    {
-        return subcontracts_;
-    }
+    EXPORT const MapOfSubcontracts& Currencies() const { return subcontracts_; }
     EXPORT proto::UnitType Type() const override
     {
         return proto::UNITTYPE_BASKET;
     }
-    EXPORT uint64_t Weight() const
-    {
-        return weight_;
-    }
+    EXPORT uint64_t Weight() const { return weight_; }
 
     virtual ~BasketContract() = default;
 };
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CORE_BASKET_BASKETCONTRACT_HPP
+#endif  // OPENTXS_CORE_BASKET_BASKETCONTRACT_HPP

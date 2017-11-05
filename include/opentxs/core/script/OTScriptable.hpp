@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_SCRIPT_OTSCRIPTABLE_HPP
 #define OPENTXS_CORE_SCRIPT_OTSCRIPTABLE_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/String.hpp"

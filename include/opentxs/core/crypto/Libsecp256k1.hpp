@@ -39,6 +39,10 @@
 #ifndef OPENTXS_CORE_CRYPTO_LIBSECP256K1_HPP
 #define OPENTXS_CORE_CRYPTO_LIBSECP256K1_HPP
 
+#include "opentxs/Version.hpp"
+
+#if OT_CRYPTO_USING_LIBSECP256K1
+
 #include "opentxs/core/crypto/Crypto.hpp"
 #include "opentxs/core/crypto/CryptoAsymmetric.hpp"
 #include "opentxs/core/crypto/CryptoSymmetric.hpp"
@@ -76,7 +80,7 @@ private:
 
     bool ParsePublicKey(const Data& input, secp256k1_pubkey& output) const;
     void Init_Override() const override;
-    void Cleanup_Override() const override {};
+    void Cleanup_Override() const override{};
     bool ECDH(
         const Data& publicKey,
         const OTPassword& privateKey,
@@ -84,17 +88,14 @@ private:
     bool DataToECSignature(
         const Data& inSignature,
         secp256k1_ecdsa_signature& outSignature) const;
-    bool ScalarBaseMultiply(
-        const OTPassword& privateKey,
-        Data& publicKey) const override;
+    bool ScalarBaseMultiply(const OTPassword& privateKey, Data& publicKey)
+        const override;
 
     Libsecp256k1() = delete;
     explicit Libsecp256k1(CryptoUtil& ssl, Ecdsa& ecdsa);
 
 public:
-    bool RandomKeypair(
-        OTPassword& privateKey,
-        Data& publicKey) const override;
+    bool RandomKeypair(OTPassword& privateKey, Data& publicKey) const override;
     bool Sign(
         const Data& plaintext,
         const OTAsymmetricKey& theKey,
@@ -113,4 +114,5 @@ public:
 };
 }  // namespace opentxs
 
+#endif  // OT_CRYPTO_USING_LIBSECP256K1
 #endif  // OPENTXS_CORE_CRYPTO_OTCRYPTO_HPP

@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CLIENT_MADEEASY_HPP
 #define OPENTXS_CLIENT_MADEEASY_HPP
 
+#include "opentxs/Version.hpp"
+
 #include <cstdint>
 #include <mutex>
 #include <string>

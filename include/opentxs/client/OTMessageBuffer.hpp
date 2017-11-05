@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CLIENT_OTMESSAGEBUFFER_HPP
 #define OPENTXS_CLIENT_OTMESSAGEBUFFER_HPP
 
+#include "opentxs/Version.hpp"
+
 #include <stdint.h>
 #include <list>
 #include <memory>
@@ -52,9 +54,7 @@ class String;
 class OTMessageBuffer
 {
 public:
-    OTMessageBuffer()
-    {
-    }
+    OTMessageBuffer() {}
 
     EXPORT ~OTMessageBuffer();
 
@@ -62,9 +62,10 @@ public:
     // message must be heap-allocated. Takes ownership.
     EXPORT void Push(std::shared_ptr<Message> message);
     // Caller IS responsible to delete.
-    EXPORT std::shared_ptr<Message> Pop(const int64_t& requestNum,
-                                        const String& notaryID,
-                                        const String& nymId);
+    EXPORT std::shared_ptr<Message> Pop(
+        const int64_t& requestNum,
+        const String& notaryID,
+        const String& nymId);
 
 private:
     OTMessageBuffer(const OTMessageBuffer&);
@@ -77,6 +78,6 @@ private:
     Messages messages_;
 };
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CLIENT_OTMESSAGEBUFFER_HPP
+#endif  // OPENTXS_CLIENT_OTMESSAGEBUFFER_HPP

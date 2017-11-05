@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_API_API_HPP
 #define OPENTXS_CORE_API_API_HPP
 
+#include "opentxs/Version.hpp"
+
 #include <memory>
 #include <mutex>
 #include <string>

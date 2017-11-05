@@ -72,9 +72,9 @@ Mint* Mint::MintFactory()
 {
     Mint* pMint = nullptr;
 
-#if defined(OT_CASH_USING_LUCRE)
+#if OT_CASH_USING_LUCRE
     pMint = new MintLucre;
-#elif defined(OT_CASH_USING_MAGIC_MONEY)
+#elif OT_CASH_USING_MAGIC_MONEY
     //  pMint = new Mint_MagicMoney;
     otErr << __FUCNTION__ << ": Open-Transactions doesn't support Magic Money "
                              "by Pr0duct Cypher (yet), "
@@ -95,9 +95,9 @@ Mint* Mint::MintFactory(
 {
     Mint* pMint = nullptr;
 
-#if defined(OT_CASH_USING_LUCRE)
+#if OT_CASH_USING_LUCRE
     pMint = new MintLucre(strNotaryID, strInstrumentDefinitionID);
-#elif defined(OT_CASH_USING_MAGIC_MONEY)
+#elif OT_CASH_USING_MAGIC_MONEY
     //  pMint = new OTMint_MagicMoney;
     otErr << __FUNCTION__ << ": Open-Transactions doesn't support Magic Money "
                              "by Pr0duct Cypher (yet), "
@@ -119,10 +119,10 @@ Mint* Mint::MintFactory(
 {
     Mint* pMint = nullptr;
 
-#if defined(OT_CASH_USING_LUCRE)
+#if OT_CASH_USING_LUCRE
     pMint =
         new MintLucre(strNotaryID, strServerNymID, strInstrumentDefinitionID);
-#elif defined(OT_CASH_USING_MAGIC_MONEY)
+#elif OT_CASH_USING_MAGIC_MONEY
     //  pMint = new OTMint_MagicMoney;
     otErr << __FUNCTION__ << ": Open-Transactions doesn't support Magic Money "
                              "by Pr0duct Cypher (yet), "
@@ -138,7 +138,7 @@ Mint* Mint::MintFactory(
 
 // SUBCLASSES OF OTMINT FOR EACH DIGITAL CASH ALGORITHM.
 
-#if defined(OT_CASH_USING_MAGIC_MONEY)
+#if OT_CASH_USING_MAGIC_MONEY
 // Todo:  Someday...
 #endif  // Magic Money
 

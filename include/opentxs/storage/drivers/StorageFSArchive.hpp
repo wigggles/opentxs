@@ -39,6 +39,10 @@
 #ifndef OPENTXS_STORAGE_STORAGEFSARCHIVE_HPP
 #define OPENTXS_STORAGE_STORAGEFSARCHIVE_HPP
 
+#include "opentxs/Version.hpp"
+
+#if OT_STORAGE_FS
+
 #include "opentxs/storage/drivers/StorageFS.hpp"
 
 #include <memory>
@@ -98,6 +102,7 @@ private:
     StorageFSArchive& operator=(const StorageFSArchive&) = delete;
     StorageFSArchive& operator=(StorageFSArchive&&) = delete;
 };
-
 }  // namespace opentxs
+
+#endif  // OT_STORAGE_FS
 #endif  // OPENTXS_STORAGE_STORAGEFSARCHIVE_HPP

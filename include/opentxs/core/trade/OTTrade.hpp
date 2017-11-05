@@ -42,6 +42,8 @@
 #ifndef OPENTXS_CORE_TRADE_OTTRADE_HPP
 #define OPENTXS_CORE_TRADE_OTTRADE_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/cron/OTCronItem.hpp"
 #include "opentxs/core/trade/OTMarket.hpp"
 #include "opentxs/core/trade/OTOffer.hpp"
@@ -94,42 +96,50 @@ class OTTrade : public OTCronItem
 private:
     typedef OTCronItem ot_super;
 
-    Identifier currencyTypeID_; // GOLD (Asset) is trading for DOLLARS
-                                // (Currency).
-    Identifier currencyAcctID_; // My Dollar account, used for paying for
-                                // my Gold (say) trades.
+    Identifier currencyTypeID_;  // GOLD (Asset) is trading for DOLLARS
+                                 // (Currency).
+    Identifier currencyAcctID_;  // My Dollar account, used for paying for
+                                 // my Gold (say) trades.
 
-    OTOffer* offer_{nullptr}; // The pointer to the Offer (NOT responsible for cleaning
-                     // this up!!!
+    OTOffer* offer_{
+        nullptr};  // The pointer to the Offer (NOT responsible for cleaning
+                   // this up!!!
     // The offer is owned by the market and I only keep a pointer here for
     // convenience.
 
-    bool hasTradeActivated_{false}; // Has the offer yet been first added to a
-                             // market?
+    bool hasTradeActivated_{false};  // Has the offer yet been first added to a
+                                     // market?
 
     int64_t stopPrice_{0};  // The price limit that activates the STOP order.
-    char stopSign_{0x0};      // Value is 0, or '<', or '>'.
-    bool stopActivated_{false}; // If the Stop Order has already activated, I need
-                         // to know that.
+    char stopSign_{0x0};    // Value is 0, or '<', or '>'.
+    bool stopActivated_{
+        false};  // If the Stop Order has already activated, I need
+                 // to know that.
 
-    int32_t tradesAlreadyDone_{0}; // How many trades have already processed
-                                // through this order? We keep track.
+    int32_t tradesAlreadyDone_{0};  // How many trades have already processed
+                                    // through this order? We keep track.
 
-    String marketOffer_; // The market offer associated with this trade.
+    String marketOffer_;  // The market offer associated with this trade.
 
 protected:
-    void onFinalReceipt(OTCronItem& origCronItem,
-                                const int64_t& newTransactionNumber,
-                                Nym& originator, Nym* remover) override;
+    void onFinalReceipt(
+        OTCronItem& origCronItem,
+        const int64_t& newTransactionNumber,
+        Nym& originator,
+        Nym* remover) override;
     void onRemovalFromCron() override;
 
 public:
     originType GetOriginType() const override
-    { return originType::origin_market_offer; }
+    {
+        return originType::origin_market_offer;
+    }
 
     EXPORT bool VerifyOffer(OTOffer& offer) const;
-    EXPORT bool IssueTrade(OTOffer& offer, char stopSign = 0,
-                           int64_t stopPrice = 0);
+    EXPORT bool IssueTrade(
+        OTOffer& offer,
+        char stopSign = 0,
+        int64_t stopPrice = 0);
 
     // The Trade always stores the original, signed version of its Offer.
     // This method allows you to grab a copy of it.
@@ -150,10 +160,7 @@ public:
         return false;
     }
 
-    inline const int64_t& GetStopPrice() const
-    {
-        return stopPrice_;
-    }
+    inline const int64_t& GetStopPrice() const { return stopPrice_; }
 
     inline bool IsGreaterThan() const
     {
@@ -172,13 +179,11 @@ public:
     }
 
     // optionally returns the offer's market ID and a pointer to the market.
-    OTOffer* GetOffer(Identifier* offerMarketId = nullptr,
-                      OTMarket* *market = nullptr);
+    OTOffer* GetOffer(
+        Identifier* offerMarketId = nullptr,
+        OTMarket** market = nullptr);
 
-    inline const Identifier& GetCurrencyID() const
-    {
-        return currencyTypeID_;
-    }
+    inline const Identifier& GetCurrencyID() const { return currencyTypeID_; }
 
     inline void SetCurrencyID(const Identifier& currencyId)
     {
@@ -195,23 +200,17 @@ public:
         currencyAcctID_ = currencyAcctID;
     }
 
-    inline void IncrementTradesAlreadyDone()
-    {
-        tradesAlreadyDone_++;
-    }
+    inline void IncrementTradesAlreadyDone() { tradesAlreadyDone_++; }
 
-    inline int32_t GetCompletedCount()
-    {
-        return tradesAlreadyDone_;
-    }
+    inline int32_t GetCompletedCount() { return tradesAlreadyDone_; }
 
     EXPORT int64_t GetAssetAcctClosingNum() const;
     EXPORT int64_t GetCurrencyAcctClosingNum() const;
 
     // Return True if should stay on OTCron's list for more processing.
     // Return False if expired or otherwise should be removed.
-    bool ProcessCron() override; // OTCron calls this regularly, which is my
-                                // chance to expire, etc.
+    bool ProcessCron() override;  // OTCron calls this regularly, which is my
+                                  // chance to expire, etc.
     bool CanRemoveItemFromCron(const ClientContext& context) override;
 
     // From OTScriptable, we override this function. OTScriptable now does fancy
@@ -227,15 +226,16 @@ public:
         const Nym& signerNym,
         mapOfConstNyms* preloadedMap = nullptr) const override;
 
-    bool VerifyNymAsAgentForAccount(
-        const Nym& nym,
-        Account& account) const override;
+    bool VerifyNymAsAgentForAccount(const Nym& nym, Account& account)
+        const override;
     EXPORT OTTrade();
-    EXPORT OTTrade(const Identifier& notaryID,
-                   const Identifier& instrumentDefinitionID,
-                   const Identifier& assetAcctId, const Identifier& nymID,
-                   const Identifier& currencyId,
-                   const Identifier& currencyAcctId);
+    EXPORT OTTrade(
+        const Identifier& notaryID,
+        const Identifier& instrumentDefinitionID,
+        const Identifier& assetAcctId,
+        const Identifier& nymID,
+        const Identifier& currencyId,
+        const Identifier& currencyAcctId);
     EXPORT virtual ~OTTrade();
 
     void InitTrade();
@@ -246,10 +246,11 @@ public:
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
     int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
 
-    void UpdateContents() override; // Before transmission or serialization, this
-                                   // is where the ledger saves its contents
+    void UpdateContents() override;  // Before transmission or serialization,
+                                     // this
+                                     // is where the ledger saves its contents
 };
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CORE_TRADE_OTTRADE_HPP
+#endif  // OPENTXS_CORE_TRADE_OTTRADE_HPP

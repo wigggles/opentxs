@@ -133,6 +133,8 @@
 #ifndef OPENTXS_CLIENT_CMDDEPOSIT_HPP
 #define OPENTXS_CLIENT_CMDDEPOSIT_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "CmdBaseInstrument.hpp"
 
 namespace opentxs
@@ -145,21 +147,25 @@ public:
     virtual ~CmdDeposit();
 
     EXPORT int32_t
-        run(std::string mynym, std::string myacct, std::string indices);
-    EXPORT int32_t depositCheque(const std::string& server,
-                                 const std::string& myacct,
-                                 const std::string& mynym,
-                                 const std::string& instrument,
-                                 std::string * pOptionalOutput=nullptr) const;
-    EXPORT int32_t
-        depositPurse(const std::string& server, const std::string& myacct,
-                     const std::string& mynym, std::string instrument,
-                     const std::string& indices, std::string * pOptionalOutput=nullptr) const;
+    run(std::string mynym, std::string myacct, std::string indices);
+    EXPORT int32_t depositCheque(
+        const std::string& server,
+        const std::string& myacct,
+        const std::string& mynym,
+        const std::string& instrument,
+        std::string* pOptionalOutput = nullptr) const;
+    EXPORT int32_t depositPurse(
+        const std::string& server,
+        const std::string& myacct,
+        const std::string& mynym,
+        std::string instrument,
+        const std::string& indices,
+        std::string* pOptionalOutput = nullptr) const;
 
 protected:
     int32_t runWithOptions() override;
 };
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CLIENT_CMDDEPOSIT_HPP
+#endif  // OPENTXS_CLIENT_CMDDEPOSIT_HPP

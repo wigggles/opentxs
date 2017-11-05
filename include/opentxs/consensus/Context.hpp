@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CONSENSUS_CONTEXT_HPP
 #define OPENTXS_CONSENSUS_CONTEXT_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Proto.hpp"

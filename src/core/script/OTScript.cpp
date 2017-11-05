@@ -41,7 +41,7 @@
 #include "opentxs/core/script/OTScript.hpp"
 
 #include "opentxs/core/script/OTParty.hpp"
-#ifdef OT_USE_SCRIPT_CHAI
+#if OT_SCRIPT_CHAI
 #include "opentxs/core/script/OTScriptChai.hpp"
 #endif
 #include "opentxs/core/script/OTVariable.hpp"
@@ -56,7 +56,6 @@
 #include <ostream>
 #include <string>
 #include <utility>
-
 
 namespace opentxs
 {
@@ -119,9 +118,9 @@ namespace opentxs
 std::shared_ptr<OTScript> OTScriptFactory(const std::string& script_type)
 {
 
-#ifdef OT_USE_SCRIPT_CHAI
+#if OT_SCRIPT_CHAI
     // default or explicit chai script interpreter
-    if (script_type == "" || script_type == "chai") // todo no hardcoding.
+    if (script_type == "" || script_type == "chai")  // todo no hardcoding.
     {
         std::shared_ptr<OTScript> pChaiScript(new OTScriptChai);
         return pChaiScript;
@@ -156,9 +155,9 @@ std::shared_ptr<OTScript> OTScriptFactory(
     ANDROID_UNUSED const std::string& script_contents)
 {
 
-#ifdef OT_USE_SCRIPT_CHAI
+#if OT_SCRIPT_CHAI
     // default or explicit chai script interpreter
-    if (script_type == "" || script_type == "chai") // todo no hardcoding.
+    if (script_type == "" || script_type == "chai")  // todo no hardcoding.
     {
         std::shared_ptr<OTScript> pChaiScript(
             new OTScriptChai(script_contents));
@@ -189,9 +188,7 @@ std::shared_ptr<OTScript> OTScriptFactory(
     return retVal;
 }
 
-OTScript::OTScript()
-{
-}
+OTScript::OTScript() {}
 
 OTScript::OTScript(const String& strValue)
     : m_str_script(strValue.Get())
@@ -325,8 +322,8 @@ void OTScript::RemoveVariable(OTVariable& theVar)
     auto it_var = m_mapVariables.find(str_var_name);
 
     if (it_var != m_mapVariables.end()) {
-        m_mapVariables.erase(it_var); // no need to delete the variable pointer
-                                      // since the script doesn't own it anyway.
+        m_mapVariables.erase(it_var);  // no need to delete the variable pointer
+        // since the script doesn't own it anyway.
     }
 }
 
@@ -336,4 +333,4 @@ bool OTScript::ExecuteScript(OTVariable*)
     return true;
 }
 
-} // namespace opentxs
+}  // namespace opentxs

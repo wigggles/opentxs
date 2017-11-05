@@ -39,6 +39,8 @@
 #ifndef OPENTXS_STORAGE_STORAGEDRIVERIMPLEMTNATION_HPP
 #define OPENTXS_STORAGE_STORAGEDRIVERIMPLEMTNATION_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/interface/storage/StoragePlugin.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Proto.hpp"

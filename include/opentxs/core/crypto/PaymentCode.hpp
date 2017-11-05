@@ -39,6 +39,9 @@
 #ifndef OPENTXS_CORE_CRYPTO_PAYMENTCODE_HPP
 #define OPENTXS_CORE_CRYPTO_PAYMENTCODE_HPP
 
+#include "opentxs/Version.hpp"
+
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Proto.hpp"
@@ -101,4 +104,5 @@ public:
         const OTPasswordData* pPWData = nullptr) const;
 };
 }  // namespace opentxs
+#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 #endif  // OPENTXS_CORE_CRYPTO_PAYMENTCODE_HPP

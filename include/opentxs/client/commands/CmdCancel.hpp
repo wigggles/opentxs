@@ -133,6 +133,8 @@
 #ifndef OPENTXS_CLIENT_CMDCANCEL_HPP
 #define OPENTXS_CLIENT_CMDCANCEL_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "CmdBase.hpp"
 
 namespace opentxs
@@ -145,12 +147,12 @@ public:
     virtual ~CmdCancel();
 
     EXPORT int32_t
-        run(std::string mynym, std::string myacct, std::string indices);
+    run(std::string mynym, std::string myacct, std::string indices);
 
 protected:
     int32_t runWithOptions() override;
 };
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CLIENT_CMDCANCEL_HPP
+#endif  // OPENTXS_CLIENT_CMDCANCEL_HPP

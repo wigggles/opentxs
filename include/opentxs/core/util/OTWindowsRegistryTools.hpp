@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_UTIL_WINDOWSREGISTRYTOOLS_HPP
 #define OPENTXS_CORE_UTIL_WINDOWSREGISTRYTOOLS_HPP
 
+#include "opentxs/Version.hpp"
+
 #ifdef _WIN32
 
 #ifndef _WINDOWS_
@@ -52,15 +54,23 @@
 class WindowsRegistryTools
 {
 public:
-    LONG GetDWORDRegKey(HKEY hKey, const std::wstring& strValueName,
-                        DWORD& nValue, DWORD nDefaultValue);
-    LONG GetBoolRegKey(HKEY hKey, const std::wstring& strValueName,
-                       bool& bValue, bool bDefaultValue);
-    LONG GetStringRegKey(HKEY hKey, const std::wstring& strValueName,
-                         std::wstring& strValue,
-                         const std::wstring& strDefaultValue);
+    LONG GetDWORDRegKey(
+        HKEY hKey,
+        const std::wstring& strValueName,
+        DWORD& nValue,
+        DWORD nDefaultValue);
+    LONG GetBoolRegKey(
+        HKEY hKey,
+        const std::wstring& strValueName,
+        bool& bValue,
+        bool bDefaultValue);
+    LONG GetStringRegKey(
+        HKEY hKey,
+        const std::wstring& strValueName,
+        std::wstring& strValue,
+        const std::wstring& strDefaultValue);
 };
 
 #endif
 
-#endif // OPENTXS_CORE_UTIL_WINDOWSREGISTRYTOOLS_HPP
+#endif  // OPENTXS_CORE_UTIL_WINDOWSREGISTRYTOOLS_HPP

@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_CRYPTO_CREDENTIALSET_HPP
 #define OPENTXS_CORE_CRYPTO_CREDENTIALSET_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/crypto/Credential.hpp"
 #include "opentxs/core/crypto/MasterCredential.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"

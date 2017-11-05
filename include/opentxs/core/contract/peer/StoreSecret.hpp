@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_CONTRACT_PEER_STORESECRET_HPP
 #define OPENTXS_CORE_CONTRACT_PEER_STORESECRET_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/contract/peer/PeerRequest.hpp"
 #include "opentxs/core/Identifier.hpp"
 
@@ -57,9 +59,7 @@ private:
 
     proto::PeerRequest IDVersion(const Lock& lock) const override;
 
-    StoreSecret(
-        const ConstNym& nym,
-        const proto::PeerRequest& serialized);
+    StoreSecret(const ConstNym& nym, const proto::PeerRequest& serialized);
     StoreSecret(
         const ConstNym& nym,
         const Identifier& recipientID,
@@ -72,6 +72,6 @@ private:
 public:
     ~StoreSecret() = default;
 };
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CORE_CONTRACT_PEER_STORESECRET_HPP
+#endif  // OPENTXS_CORE_CONTRACT_PEER_STORESECRET_HPP

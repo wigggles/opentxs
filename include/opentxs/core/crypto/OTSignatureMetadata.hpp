@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_CRYPTO_OTSIGNATUREMETADATA_HPP
 #define OPENTXS_CORE_CRYPTO_OTSIGNATUREMETADATA_HPP
 
+#include "opentxs/Version.hpp"
+
 namespace opentxs
 {
 
@@ -54,33 +56,21 @@ public:
         return !(operator==(rhs));
     }
 
-    bool SetMetadata(char metaKeyType, char metaNymID, char metaMasterCredID,
-                     char metaChildCredID);
+    bool SetMetadata(
+        char metaKeyType,
+        char metaNymID,
+        char metaMasterCredID,
+        char metaChildCredID);
 
-    inline bool HasMetadata() const
-    {
-        return hasMetadata_;
-    }
+    inline bool HasMetadata() const { return hasMetadata_; }
 
-    inline char GetKeyType() const
-    {
-        return metaKeyType_;
-    }
+    inline char GetKeyType() const { return metaKeyType_; }
 
-    inline char FirstCharNymID() const
-    {
-        return metaNymID_;
-    }
+    inline char FirstCharNymID() const { return metaNymID_; }
 
-    inline char FirstCharMasterCredID() const
-    {
-        return metaMasterCredID_;
-    }
+    inline char FirstCharMasterCredID() const { return metaMasterCredID_; }
 
-    inline char FirstCharChildCredID() const
-    {
-        return metaChildCredID_;
-    }
+    inline char FirstCharChildCredID() const { return metaChildCredID_; }
 
 private:
     // Defaults to false. Is set true by calling SetMetadata
@@ -100,6 +90,6 @@ private:
     char metaChildCredID_{0x0};
 };
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CORE_CRYPTO_OTSIGNATUREMETADATA_HPP
+#endif  // OPENTXS_CORE_CRYPTO_OTSIGNATUREMETADATA_HPP

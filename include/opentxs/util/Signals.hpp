@@ -39,6 +39,8 @@
 #ifndef OPENTXS_UTIL_SIGNALS_HPP
 #define OPENTXS_UTIL_SIGNALS_HPP
 
+#include "opentxs/Version.hpp"
+
 #include <atomic>
 #include <functional>
 #include <map>

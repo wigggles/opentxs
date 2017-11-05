@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_CRYPTO_OTENVELOPE_HPP
 #define OPENTXS_CORE_CRYPTO_OTENVELOPE_HPP
 
+#include "opentxs/Version.hpp"
+
 #include <map>
 #include <memory>
 #include <set>

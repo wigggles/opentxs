@@ -518,7 +518,7 @@ various sequence numbers. Hm.
 #include "opentxs/core/script/OTClause.hpp"
 #include "opentxs/core/script/OTParty.hpp"
 #include "opentxs/core/script/OTPartyAccount.hpp"
-#ifdef OT_USE_SCRIPT_CHAI
+#if OT_SCRIPT_CHAI
 #include "opentxs/core/script/OTScriptChai.hpp"
 #else
 #include "opentxs/core/script/OTScript.hpp"
@@ -543,7 +543,7 @@ various sequence numbers. Hm.
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
 
-#ifdef OT_USE_SCRIPT_CHAI
+#if OT_SCRIPT_CHAI
 #include <chaiscript/chaiscript.hpp>
 #ifdef OT_USE_CHAI_STDLIB
 #include <chaiscript/chaiscript_stdlib.hpp>
@@ -762,7 +762,7 @@ void OTSmartContract::RegisterOTNativeCallsWithScript(OTScript& theScript)
     // CALL THE PARENT
     OTScriptable::RegisterOTNativeCallsWithScript(theScript);
 
-#ifdef OT_USE_SCRIPT_CHAI
+#if OT_SCRIPT_CHAI
     using namespace chaiscript;
 
     OTScriptChai* pScript = dynamic_cast<OTScriptChai*>(&theScript);
@@ -865,7 +865,7 @@ void OTSmartContract::RegisterOTNativeCallsWithScript(OTScript& theScript)
         // FYI:    #define SMARTCONTRACT_HOOK_ON_ACTIVATE        "cron_activate"
         // // Done. This is called when the contract is first activated.
     } else
-#endif  // OT_USE_SCRIPT_CHAI
+#endif  // OT_SCRIPT_CHAI
     {
         otErr << "OTSmartContract::RegisterOTNativeCallsWithScript: Failed "
                  "dynamic casting OTScript to OTScriptChai \n";

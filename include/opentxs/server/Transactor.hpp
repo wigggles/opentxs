@@ -39,6 +39,8 @@
 #ifndef OPENTXS_SERVER_TRANSACTOR_HPP
 #define OPENTXS_SERVER_TRANSACTOR_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/AccountList.hpp"
 #include "opentxs/core/Types.hpp"
 

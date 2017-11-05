@@ -46,7 +46,7 @@
 #include "opentxs/core/script/OTClause.hpp"
 #include "opentxs/core/script/OTParty.hpp"
 #include "opentxs/core/script/OTPartyAccount.hpp"
-#ifdef OT_USE_SCRIPT_CHAI
+#if OT_SCRIPT_CHAI
 #include "opentxs/core/script/OTScriptChai.hpp"
 #else
 #include "opentxs/core/script/OTScript.hpp"
@@ -62,7 +62,7 @@
 #include "opentxs/core/OTStringXML.hpp"
 #include "opentxs/core/String.hpp"
 
-#ifdef OT_USE_SCRIPT_CHAI
+#if OT_SCRIPT_CHAI
 #include <chaiscript/chaiscript.hpp>
 #ifdef OT_USE_CHAI_STDLIB
 #include <chaiscript/chaiscript_stdlib.hpp>
@@ -317,7 +317,7 @@ bool OTScriptable::ValidateCallbackName(const std::string& str_name)
 void OTScriptable::RegisterOTNativeCallsWithScript(
     ANDROID_UNUSED OTScript& theScript)
 {
-#ifdef OT_USE_SCRIPT_CHAI
+#if OT_SCRIPT_CHAI
     using namespace chaiscript;
 
     // In the future, this will be polymorphic.
@@ -334,7 +334,7 @@ void OTScriptable::RegisterOTNativeCallsWithScript(
             fun(&OTScriptable::CanExecuteClause, this),
             "party_may_execute_clause");
     } else
-#endif  // OT_USE_SCRIPT_CHAI
+#endif  // OT_SCRIPT_CHAI
     {
         otErr << "OTScriptable::RegisterOTNativeCallsWithScript: Failed "
                  "dynamic casting OTScript to OTScriptChai \n";

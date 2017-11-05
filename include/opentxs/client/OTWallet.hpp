@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CLIENT_OTWALLET_HPP
 #define OPENTXS_CLIENT_OTWALLET_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/Types.hpp"
 
@@ -73,31 +75,36 @@ public:
     EXPORT OTWallet();
     ~OTWallet();
 
-    EXPORT bool IsNymOnCachedKey(const Identifier& needle) const; // needle
-                                                                  // and
-                                                                  // haystack.
+    EXPORT bool IsNymOnCachedKey(const Identifier& needle) const;  // needle
+                                                                   // and
+                                                                   // haystack.
     EXPORT bool ConvertNymToCachedKey(Nym& theNym);
 
     EXPORT Nym* GetOrLoadPrivateNym(
-        const Identifier& NYM_ID, bool bChecking = false,
+        const Identifier& NYM_ID,
+        bool bChecking = false,
         const char* szFuncName = nullptr,
         const OTPasswordData* pPWData = nullptr,
         const OTPassword* pImportPassword = nullptr);
 
     EXPORT Nym* reloadAndGetPrivateNym(
-        const Identifier& NYM_ID, bool bChecking = false,
+        const Identifier& NYM_ID,
+        bool bChecking = false,
         const char* szFuncName = nullptr,
         const OTPasswordData* pPWData = nullptr,
         const OTPassword* pImportPassword = nullptr);
 
-    EXPORT Account* LoadAccount(const Nym& theNym, const Identifier& ACCT_ID,
-                                const Identifier& NOTARY_ID,
-                                const char* szFuncName = nullptr);
+    EXPORT Account* LoadAccount(
+        const Nym& theNym,
+        const Identifier& ACCT_ID,
+        const Identifier& NOTARY_ID,
+        const char* szFuncName = nullptr);
 
-    EXPORT Account* GetOrLoadAccount(const Nym& theNym,
-                                     const Identifier& ACCT_ID,
-                                     const Identifier& NOTARY_ID,
-                                     const char* szFuncName = nullptr);
+    EXPORT Account* GetOrLoadAccount(
+        const Nym& theNym,
+        const Identifier& ACCT_ID,
+        const Identifier& NOTARY_ID,
+        const char* szFuncName = nullptr);
     // Used by high-level wrapper.
 
     EXPORT std::string GetPhrase();
@@ -108,30 +115,34 @@ public:
         const OTPassword& passphrase) const;
     EXPORT int32_t GetNymCount();
     EXPORT int32_t GetAccountCount();
-    EXPORT Nym * CreateNym(const NymParameters& nymParameters);
+    EXPORT Nym* CreateNym(const NymParameters& nymParameters);
     EXPORT bool GetNym(int32_t iIndex, Identifier& NYM_ID, String& NYM_NAME);
-    EXPORT bool GetAccount(int32_t iIndex, Identifier& THE_ID,
-                           String& THE_NAME);
+    EXPORT bool GetAccount(
+        int32_t iIndex,
+        Identifier& THE_ID,
+        String& THE_NAME);
 
     EXPORT void DisplayStatistics(String& strOutput);
 
     EXPORT Nym* GetPrivateNymByID(const Identifier& NYM_ID);
-    EXPORT Nym* GetNymByIDPartialMatch(std::string PARTIAL_ID); // wallet name
-                                                                // for nym also
-                                                                // accepted.
+    EXPORT Nym* GetNymByIDPartialMatch(std::string PARTIAL_ID);  // wallet name
+                                                                 // for nym also
+                                                                 // accepted.
     EXPORT void AddPrivateNym(const Nym& theNym);
     EXPORT void AddAccount(const Account& theAcct);
 
-    bool VerifyAssetAccount(const Nym& theNym, Account& theAcct,
-                            const Identifier& NOTARY_ID,
-                            const String& strAcctID,
-                            const char* szFuncName = nullptr);
+    bool VerifyAssetAccount(
+        const Nym& theNym,
+        Account& theAcct,
+        const Identifier& NOTARY_ID,
+        const String& strAcctID,
+        const char* szFuncName = nullptr);
     EXPORT Account* GetAccount(const Identifier& theAccountID);
-    EXPORT Account* GetAccountPartialMatch(std::string PARTIAL_ID); // wallet
-                                                                    // name for
-                                                                    // account
-                                                                    // also
-                                                                    // accepted.
+    EXPORT Account* GetAccountPartialMatch(std::string PARTIAL_ID);  // wallet
+                                                                     // name for
+                                                                     // account
+                                                                     // also
+    // accepted.
     EXPORT Account* GetIssuerAccount(
         const Identifier& theInstrumentDefinitionID);
     // While waiting on server response to a withdrawal, we keep the private
@@ -142,22 +153,20 @@ public:
     // away.
     EXPORT void AddPendingWithdrawal(const Purse& thePurse);
     void RemovePendingWithdrawal();
-    inline Purse* GetPendingWithdrawal() const
-    {
-        return m_pWithdrawalPurse;
-    }
+    inline Purse* GetPendingWithdrawal() const { return m_pWithdrawalPurse; }
     EXPORT bool LoadWallet(const char* szFilename = nullptr);
     EXPORT bool SaveWallet(const char* szFilename = nullptr);
-    bool SaveContract(String& strContract); // For saving the wallet to a
-                                            // string.
+    bool SaveContract(String& strContract);  // For saving the wallet to a
+                                             // string.
 
     EXPORT bool SignContractWithFirstNymOnList(
-        Contract& theContract); // todo : follow-up on this and see what it's
-                                // about.
+        Contract& theContract);  // todo : follow-up on this and see what it's
+                                 // about.
     // When the wallet's master passphrase changes, the extra symmetric keys
     // need to be updated to reflect that.
-    EXPORT bool ChangePassphrasesOnExtraKeys(const OTPassword& oldPassphrase,
-                                             const OTPassword& newPassphrase);
+    EXPORT bool ChangePassphrasesOnExtraKeys(
+        const OTPassword& oldPassphrase,
+        const OTPassword& newPassphrase);
     // These allow the client application to encrypt its own sensitive data.
     // For example, let's say the client application is storing your Bitmessage
     // username and password in its database. It can't store those in the clear,
@@ -172,24 +181,29 @@ public:
     // functionality for symmetric keys as we already had for the wallet's
     // Nyms.)
     //
-    EXPORT bool Encrypt_ByKeyID(const std::string& key_id,
-                                const String& strPlaintext, String& strOutput,
-                                const String* pstrDisplay = nullptr,
-                                bool bBookends = true);
+    EXPORT bool Encrypt_ByKeyID(
+        const std::string& key_id,
+        const String& strPlaintext,
+        String& strOutput,
+        const String* pstrDisplay = nullptr,
+        bool bBookends = true);
 
-    EXPORT bool Decrypt_ByKeyID(const std::string& key_id,
-                                const String& strCiphertext, String& strOutput,
-                                const String* pstrDisplay = nullptr);
+    EXPORT bool Decrypt_ByKeyID(
+        const std::string& key_id,
+        const String& strCiphertext,
+        String& strOutput,
+        const String* pstrDisplay = nullptr);
 
     EXPORT std::shared_ptr<OTSymmetricKey> getOrCreateExtraKey(
         const std::string& str_KeyID,
-        const std::string* pReason = nullptr); // Use this one.
+        const std::string* pReason = nullptr);  // Use this one.
 
     EXPORT std::shared_ptr<OTSymmetricKey> getExtraKey(
-        const std::string& str_id) const; // Low level.
+        const std::string& str_id) const;  // Low level.
 
-    EXPORT bool addExtraKey(const std::string& str_id,
-                            std::shared_ptr<OTSymmetricKey> pKey); // Low level.
+    EXPORT bool addExtraKey(
+        const std::string& str_id,
+        std::shared_ptr<OTSymmetricKey> pKey);  // Low level.
     // These functions are low-level. They don't check for dependent data before
     // deleting,
     // and they don't save the wallet after they do.
@@ -199,25 +213,28 @@ public:
     // in addition to removing from wallet. (To delete them on server side.)
     //
     EXPORT bool RemoveAccount(const Identifier& theTargetID);
-    EXPORT bool RemovePrivateNym(const Identifier& theTargetID,
-                                 bool bRemoveFromCachedKey=true,
-                                 String * pStrOutputName=nullptr);
+    EXPORT bool RemovePrivateNym(
+        const Identifier& theTargetID,
+        bool bRemoveFromCachedKey = true,
+        String* pStrOutputName = nullptr);
 
 private:
     void AddNym(const Nym& theNym, mapOfNymsSP& map);
-    bool RemoveNym(const Identifier& theTargetID, mapOfNymsSP& map,
-                   bool bRemoveFromCachedKey=true,
-                   String * pStrOutputName=nullptr);
+    bool RemoveNym(
+        const Identifier& theTargetID,
+        mapOfNymsSP& map,
+        bool bRemoveFromCachedKey = true,
+        String* pStrOutputName = nullptr);
     void Release();
 
 private:
     mapOfNymsSP m_mapPrivateNyms;
     mapOfAccounts m_mapAccounts;
 
-    setOfIdentifiers m_setNymsOnCachedKey; // All the Nyms that use the Master
-                                           // key are listed here (makes it easy
-                                           // to see which ones are converted
-                                           // already.)
+    setOfIdentifiers m_setNymsOnCachedKey;  // All the Nyms that use the Master
+    // key are listed here (makes it easy
+    // to see which ones are converted
+    // already.)
 
     String m_strName;
     String m_strVersion;
@@ -258,6 +275,6 @@ public:
     String m_strDataFolder;
 };
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CLIENT_OTWALLET_HPP
+#endif  // OPENTXS_CLIENT_OTWALLET_HPP

@@ -39,13 +39,15 @@
 #ifndef OPENTXS_CORE_SCRIPT_OTSCRIPT_HPP
 #define OPENTXS_CORE_SCRIPT_OTSCRIPT_HPP
 
+#include "opentxs/Version.hpp"
+
 #include <map>
 #include <string>
 #include <memory>
 
 #ifdef _MSC_VER
 #pragma warning(push)
-#pragma warning(disable : 4702) // warning C4702: unreachable code
+#pragma warning(disable : 4702)  // warning C4702: unreachable code
 #endif
 
 #ifdef _MSC_VER
@@ -80,16 +82,16 @@ typedef std::map<std::string, OTVariable*> mapOfVariables;
 class OTScript
 {
 protected:
-    std::string m_str_script;           // the script itself.
-    std::string m_str_display_filename; // for error handling, there is option
-                                        // to set this string for display.
-    mapOfParties m_mapParties; // no need to clean this up. Script doesn't own
-                               // the parties, just references them.
-    mapOfPartyAccounts m_mapAccounts; // no need to clean this up. Script
-                                      // doesn't own the accounts, just
-                                      // references them.
-    mapOfVariables m_mapVariables; // no need to clean this up. Script doesn't
-                                   // own the variables, just references them.
+    std::string m_str_script;            // the script itself.
+    std::string m_str_display_filename;  // for error handling, there is option
+                                         // to set this string for display.
+    mapOfParties m_mapParties;  // no need to clean this up. Script doesn't own
+                                // the parties, just references them.
+    mapOfPartyAccounts m_mapAccounts;  // no need to clean this up. Script
+                                       // doesn't own the accounts, just
+                                       // references them.
+    mapOfVariables m_mapVariables;  // no need to clean this up. Script doesn't
+                                    // own the variables, just references them.
 
     // List
     // Construction -- Destruction
@@ -144,8 +146,9 @@ public:
 EXPORT std::shared_ptr<OTScript> OTScriptFactory(
     const std::string& script_type = "");
 EXPORT std::shared_ptr<OTScript> OTScriptFactory(
-    const std::string& script_type, const std::string& script_contents);
+    const std::string& script_type,
+    const std::string& script_contents);
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CORE_SCRIPT_OTSCRIPT_HPP
+#endif  // OPENTXS_CORE_SCRIPT_OTSCRIPT_HPP

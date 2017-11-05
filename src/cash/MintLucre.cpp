@@ -44,7 +44,7 @@
 #include "opentxs/cash/Mint.hpp"
 #include "opentxs/cash/Token.hpp"
 #include "opentxs/core/String.hpp"
-#if defined(OT_CASH_USING_LUCRE)
+#if OT_CASH_USING_LUCRE
 #include "opentxs/core/crypto/OpenSSL_BIO.hpp"
 #endif
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
@@ -67,7 +67,7 @@
 namespace opentxs
 {
 
-#if defined(OT_CASH_USING_LUCRE)
+#if OT_CASH_USING_LUCRE
 
 MintLucre::MintLucre()
     : ot_super()
@@ -370,8 +370,6 @@ bool MintLucre::VerifyToken(
 
     return bReturnValue;
 }
-
-#endif  // defined(OT_CRYPTO_USING_OPENSSL)
-#endif  // defined(OT_CASH_USING_LUCRE)
-
+#endif  // OT_CRYPTO_USING_OPENSSL
+#endif  // OT_CASH_USING_LUCRE
 }  // namespace opentxs

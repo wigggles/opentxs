@@ -39,6 +39,8 @@
 #ifndef OPENTXS_API_SETTINGS_HPP
 #define OPENTXS_API_SETTINGS_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/String.hpp"
 
 #include <stdint.h>

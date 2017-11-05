@@ -1,15 +1,14 @@
 /* Certificate creation. Demonstrates some certificate related
 * operations.
 */
-#if OT_CRYPTO_SUPPORTED_KEY_RSA
-
-#ifdef __APPLE__
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#endif
-
 #include "opentxs/core/stdafx.hpp"
 
 #include "opentxs/core/crypto/mkcert.hpp"
+
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
+#ifdef __APPLE__
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
 
 extern "C" {
 #if OT_CRYPTO_USING_OPENSSL
@@ -37,14 +36,20 @@ extern "C" {
 
 #include <cassert>
 
-bool safe_strcpy(char* dest, const char* src, size_t dest_size,
-                 bool bZeroSource = false);
+bool safe_strcpy(
+    char* dest,
+    const char* src,
+    size_t dest_size,
+    bool bZeroSource = false);
 
-bool safe_strcpy(char* dest, const char* src, size_t dest_size,
-                 bool bZeroSource) // if true, initializes
-                                   // the source buffer to
-                                   // zero after the
-                                   // copying is done.
+bool safe_strcpy(
+    char* dest,
+    const char* src,
+    size_t dest_size,
+    bool bZeroSource)  // if true, initializes
+                       // the source buffer to
+                       // zero after the
+                       // copying is done.
 {
     // Make sure they don't overlap.
     //
@@ -94,8 +99,12 @@ static void callback(int32_t p, int32_t, void*)
 }
 #endif
 
-int32_t mkcert(X509** x509p, EVP_PKEY** pkeyp, int32_t bits, int32_t serial,
-               int32_t days)
+int32_t mkcert(
+    X509** x509p,
+    EVP_PKEY** pkeyp,
+    int32_t bits,
+    int32_t serial,
+    int32_t days)
 {
     bool bCreatedKey = false;
     bool bCreatedX509 = false;
@@ -109,8 +118,7 @@ int32_t mkcert(X509** x509p, EVP_PKEY** pkeyp, int32_t bits, int32_t serial,
             abort();
         }
         bCreatedKey = true;
-    }
-    else
+    } else
         pk = *pkeyp;
     if ((x509p == nullptr) || (*x509p == nullptr)) {
         if ((x = X509_new()) == nullptr) {
@@ -121,19 +129,18 @@ int32_t mkcert(X509** x509p, EVP_PKEY** pkeyp, int32_t bits, int32_t serial,
         }
 
         bCreatedX509 = true;
-    }
-    else
+    } else
         x = *x509p;
 
 #ifdef ANDROID
     rsa = RSA_new();
     BIGNUM* e1 = BN_new();
 
-    if ((nullptr == rsa) || (nullptr == e1)) abort(); // todo
+    if ((nullptr == rsa) || (nullptr == e1)) abort();  // todo
 
     BN_set_word(e1, RSA_F4);
 
-    if (!RSA_generate_key_ex(rsa, bits, e1, nullptr)) abort(); // todo
+    if (!RSA_generate_key_ex(rsa, bits, e1, nullptr)) abort();  // todo
 
     BN_free(e1);
 #else
@@ -147,8 +154,8 @@ int32_t mkcert(X509** x509p, EVP_PKEY** pkeyp, int32_t bits, int32_t serial,
     X509_set_version(x, 2);
     ASN1_INTEGER_set(X509_get_serialNumber(x), serial);
     X509_gmtime_adj(X509_get_notBefore(x), 0);
-    X509_gmtime_adj(X509_get_notAfter(x),
-                    static_cast<int64_t>(60 * 60 * 24 * days));
+    X509_gmtime_adj(
+        X509_get_notAfter(x), static_cast<int64_t>(60 * 60 * 24 * days));
     X509_set_pubkey(x, pk);
 
     name = X509_get_subject_name(x);
@@ -157,12 +164,22 @@ int32_t mkcert(X509** x509p, EVP_PKEY** pkeyp, int32_t bits, int32_t serial,
      * correct string type and performing checks on its length.
      * Normally we'd check the return value for errors...
      */
-    X509_NAME_add_entry_by_txt(name, "C", MBSTRING_ASC,
-                               reinterpret_cast<const uint8_t*>("UK"), -1, -1,
-                               0);
     X509_NAME_add_entry_by_txt(
-        name, "CN", MBSTRING_ASC,
-        reinterpret_cast<const uint8_t*>("OpenSSL Group"), -1, -1, 0);
+        name,
+        "C",
+        MBSTRING_ASC,
+        reinterpret_cast<const uint8_t*>("UK"),
+        -1,
+        -1,
+        0);
+    X509_NAME_add_entry_by_txt(
+        name,
+        "CN",
+        MBSTRING_ASC,
+        reinterpret_cast<const uint8_t*>("OpenSSL Group"),
+        -1,
+        -1,
+        0);
 
     /* Its self signed so set the issuer name to be the same as the
      * subject.
@@ -183,10 +200,14 @@ int32_t mkcert(X509** x509p, EVP_PKEY** pkeyp, int32_t bits, int32_t serial,
     add_ext(x, NID_basic_constraints, szConstraints);
     add_ext(x, NID_key_usage, szKeyUsage);
     add_ext(x, NID_subject_key_identifier, szSubjectKeyID);
-    add_ext(x, NID_netscape_cert_type,
-            szCertType); // Some Netscape specific extensions
-    add_ext(x, NID_netscape_comment,
-            szComment); // Some Netscape specific extensions
+    add_ext(
+        x,
+        NID_netscape_cert_type,
+        szCertType);  // Some Netscape specific extensions
+    add_ext(
+        x,
+        NID_netscape_comment,
+        szComment);  // Some Netscape specific extensions
     delete[] szConstraints;
     szConstraints = nullptr;
     delete[] szKeyUsage;
@@ -207,8 +228,9 @@ int32_t mkcert(X509** x509p, EVP_PKEY** pkeyp, int32_t bits, int32_t serial,
         add_ext(x, nid, "example comment alias");
     }
 #endif
-    if (!X509_sign(x, pk, EVP_md5()) || // TODO security:  md5 ???
-        (nullptr == x509p) || (nullptr == pkeyp)) {
+    if (!X509_sign(x, pk, EVP_md5()) ||  // TODO security:  md5 ???
+        (nullptr == x509p) ||
+        (nullptr == pkeyp)) {
         // ERROR
         //
         if (bCreatedX509) X509_free(x);
@@ -255,5 +277,5 @@ int32_t add_ext(X509* cert, int32_t nid, char* value)
     return 1;
 }
 
-} // closing brace for extern "C"
-#endif // OT_CRYPTO_SUPPORTED_KEY_RSA
+}  // closing brace for extern "C"
+#endif  // OT_CRYPTO_SUPPORTED_KEY_RSA

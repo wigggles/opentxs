@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_CRYPTO_ASYMMETRICKEYEC_HPP
 #define OPENTXS_CORE_CRYPTO_ASYMMETRICKEYEC_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 
 #include <memory>

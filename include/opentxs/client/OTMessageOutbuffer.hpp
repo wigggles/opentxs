@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CLIENT_OTMESSAGEOUTBUFFER_HPP
 #define OPENTXS_CLIENT_OTMESSAGEOUTBUFFER_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/String.hpp"
 
 #include <map>
@@ -91,11 +93,15 @@ public:
     // becomes desired over uniqueness.)
     EXPORT void AddSentMessage(Message& message);
     // null == not found. caller NOT responsible to delete.
-    EXPORT Message* GetSentMessage(const int64_t& requestNum,
-                                   const String& notaryID, const String& nymId);
+    EXPORT Message* GetSentMessage(
+        const int64_t& requestNum,
+        const String& notaryID,
+        const String& nymId);
     // true == it was removed. false == it wasn't found.
-    EXPORT bool RemoveSentMessage(const int64_t& requestNum,
-                                  const String& notaryID, const String& nymId);
+    EXPORT bool RemoveSentMessage(
+        const int64_t& requestNum,
+        const String& notaryID,
+        const String& nymId);
     // null == not found. caller NOT responsible to delete.
     EXPORT Message* GetSentMessage(const OTTransaction& transaction);
     // true == it was removed. false == it wasn't found.
@@ -110,6 +116,6 @@ private:
     String dataFolder_;
 };
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CLIENT_OTMESSAGEOUTBUFFER_HPP
+#endif  // OPENTXS_CLIENT_OTMESSAGEOUTBUFFER_HPP

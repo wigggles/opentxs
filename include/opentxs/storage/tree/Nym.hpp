@@ -39,6 +39,8 @@
 #ifndef OPENTXS_STORAGE_TREE_NYM_HPP
 #define OPENTXS_STORAGE_TREE_NYM_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/api/Editor.hpp"
 #include "opentxs/core/Types.hpp"
 #include "opentxs/storage/tree/Contexts.hpp"

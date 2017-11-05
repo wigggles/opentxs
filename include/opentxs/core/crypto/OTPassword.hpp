@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_CRYPTO_OTPASSWORD_HPP
 #define OPENTXS_CORE_CRYPTO_OTPASSWORD_HPP
 
+#include "opentxs/Version.hpp"
+
 #include <cstddef>
 #include <string>
 
@@ -122,8 +124,9 @@ public:
     EXPORT int32_t setPassword_uint8(const uint8_t* input, uint32_t size);
     EXPORT bool addChar(uint8_t c);
     EXPORT int32_t randomizePassword(uint32_t size = OT_DEFAULT_BLOCKSIZE);
-    EXPORT static bool randomizePassword_uint8(uint8_t* destination,
-                                               uint32_t size);
+    EXPORT static bool randomizePassword_uint8(
+        uint8_t* destination,
+        uint32_t size);
     EXPORT static bool randomizePassword(char* destination, uint32_t size);
     EXPORT bool isMemory() const;
     EXPORT const void* getMemory() const;
@@ -136,8 +139,9 @@ public:
     // getBlockSize.)
     EXPORT int32_t addMemory(const void* append, uint32_t size);
     EXPORT int32_t randomizeMemory(uint32_t size = OT_DEFAULT_BLOCKSIZE);
-    EXPORT static bool randomizeMemory_uint8(uint8_t* destination,
-                                             uint32_t size);
+    EXPORT static bool randomizeMemory_uint8(
+        uint8_t* destination,
+        uint32_t size);
     EXPORT static bool randomizeMemory(void* destination, uint32_t size);
     EXPORT std::size_t getBlockSize() const;
     EXPORT bool Compare(OTPassword& rhs) const;
@@ -146,12 +150,13 @@ public:
     EXPORT void zeroMemory();
     EXPORT static void zeroMemory(uint8_t* szMemory, uint32_t size);
     EXPORT static void zeroMemory(void* vMemory, uint32_t size);
-    EXPORT static void* safe_memcpy(void* dest, uint32_t dsize, const void* src,
-                                    uint32_t ssize, bool zeroSource = false);
-    inline void reset()
-    {
-        position_ = 0;
-    }
+    EXPORT static void* safe_memcpy(
+        void* dest,
+        uint32_t dsize,
+        const void* src,
+        uint32_t ssize,
+        bool zeroSource = false);
+    inline void reset() { position_ = 0; }
     EXPORT uint32_t OTfread(uint8_t* data, uint32_t size);
 
     // OTPassword thePass; will create a text password.
@@ -190,6 +195,6 @@ private:
     bool ot_unlockPage(void* addr, size_t len);
 };
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CORE_CRYPTO_OTPASSWORD_HPP
+#endif  // OPENTXS_CORE_CRYPTO_OTPASSWORD_HPP

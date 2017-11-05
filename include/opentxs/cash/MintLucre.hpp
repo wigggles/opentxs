@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CASH_MINTLUCRE_HPP
 #define OPENTXS_CASH_MINTLUCRE_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/cash/Mint.hpp"
 #include "opentxs/core/String.hpp"
 
@@ -52,11 +54,11 @@ class Token;
 
 // SUBCLASSES OF OTMINT FOR EACH DIGITAL CASH ALGORITHM.
 
-#if defined(OT_CASH_USING_MAGIC_MONEY)
+#if OT_CASH_USING_MAGIC_MONEY
 // Todo:  Someday...
 #endif  // Magic Money
 
-#if defined(OT_CASH_USING_LUCRE)
+#if OT_CASH_USING_LUCRE
 
 class MintLucre : public Mint
 {

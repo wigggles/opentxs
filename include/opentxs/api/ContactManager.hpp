@@ -39,6 +39,8 @@
 #ifndef OPENTXS_API_CONTACT_MANAGER_HPP
 #define OPENTXS_API_CONTACT_MANAGER_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/api/Editor.hpp"
 #include "opentxs/core/Identifier.hpp"
 

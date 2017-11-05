@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_CRYPTO_OTCRYPTO_HPP
 #define OPENTXS_CORE_CRYPTO_OTCRYPTO_HPP
 
+#include "opentxs/Version.hpp"
+
 #include <mutex>
 
 namespace opentxs
@@ -83,8 +85,8 @@ class Crypto
 protected:
     Crypto() = default;
 
-    virtual void Init_Override() const=0;
-    virtual void Cleanup_Override() const=0;
+    virtual void Init_Override() const = 0;
+    virtual void Cleanup_Override() const = 0;
 
 public:
     virtual ~Crypto() = default;
@@ -92,6 +94,6 @@ public:
     void Cleanup() const;
 };
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CORE_CRYPTO_OTCRYPTO_HPP
+#endif  // OPENTXS_CORE_CRYPTO_OTCRYPTO_HPP

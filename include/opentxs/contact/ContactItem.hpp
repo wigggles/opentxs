@@ -42,6 +42,8 @@
 #define NULL_START 0
 #define NULL_END 0
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/Types.hpp"

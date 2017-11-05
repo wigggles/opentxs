@@ -133,6 +133,8 @@
 #ifndef OPENTXS_CLIENT_CMDSENDCASH_HPP
 #define OPENTXS_CLIENT_CMDSENDCASH_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "CmdBaseInstrument.hpp"
 
 namespace opentxs
@@ -144,27 +146,38 @@ public:
     EXPORT CmdSendCash();
     virtual ~CmdSendCash();
 
-    EXPORT int32_t run(std::string server, std::string mynym,
-                       std::string myacct, std::string mypurse,
-                       std::string hisnym, std::string amount,
-                       std::string indices, std::string password);
-    EXPORT int32_t sendCash(std::string& response, const std::string& server,
-                            const std::string& mynym,
-                            const std::string& assetType,
-                            const std::string& myacct, std::string& hisnym,
-                            const std::string& amount, std::string& indices,
-                            bool hasPassword) const;
+    EXPORT int32_t
+    run(std::string server,
+        std::string mynym,
+        std::string myacct,
+        std::string mypurse,
+        std::string hisnym,
+        std::string amount,
+        std::string indices,
+        std::string password);
+    EXPORT int32_t sendCash(
+        std::string& response,
+        const std::string& server,
+        const std::string& mynym,
+        const std::string& assetType,
+        const std::string& myacct,
+        std::string& hisnym,
+        const std::string& amount,
+        std::string& indices,
+        bool hasPassword) const;
 
 protected:
     int32_t runWithOptions() override;
 
 private:
-    bool getPurseIndicesOrAmount(const std::string& server,
-                                 const std::string& mynym,
-                                 const std::string& assetType, int64_t& lAmount,
-                                 std::string& indices) const;
+    bool getPurseIndicesOrAmount(
+        const std::string& server,
+        const std::string& mynym,
+        const std::string& assetType,
+        int64_t& lAmount,
+        std::string& indices) const;
 };
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CLIENT_CMDSENDCASH_HPP
+#endif  // OPENTXS_CLIENT_CMDSENDCASH_HPP

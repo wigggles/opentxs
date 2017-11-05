@@ -133,6 +133,8 @@
 #ifndef OPENTXS_CLIENT_CMDBASE_HPP
 #define OPENTXS_CLIENT_CMDBASE_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/util/Common.hpp"
 
 #include <vector>
@@ -140,7 +142,7 @@
 
 #ifdef ANDROID
 #include "opentxs/core/util/android_string.hpp"
-#endif // ANDROID
+#endif  // ANDROID
 
 namespace opentxs
 {
@@ -184,52 +186,66 @@ protected:
     const char* usage;
 
     bool checkAccount(const char* name, std::string& account) const;
-    int64_t checkAmount(const char* name, const std::string& amount,
-                        const std::string& myacct) const;
+    int64_t checkAmount(
+        const char* name,
+        const std::string& amount,
+        const std::string& myacct) const;
     bool checkFlag(const char* name, const std::string& value) const;
-    int32_t checkIndex(const char* name, const std::string& index,
-                       int32_t items) const;
+    int32_t checkIndex(
+        const char* name,
+        const std::string& index,
+        int32_t items) const;
     bool checkIndices(const char* name, const std::string& indices) const;
-    bool checkIndicesRange(const char* name, const std::string& indices,
-                           int32_t items) const;
+    bool checkIndicesRange(
+        const char* name,
+        const std::string& indices,
+        int32_t items) const;
     bool checkMandatory(const char* name, const std::string& value) const;
-    bool checkNym(const char* name, std::string& nym,
-                  bool checkExistance = true) const;
+    bool checkNym(
+        const char* name,
+        std::string& nym,
+        bool checkExistance = true) const;
     bool checkPurse(const char* name, std::string& purse) const;
     bool checkServer(const char* name, std::string& server) const;
     int64_t checkTransNum(const char* name, const std::string& id) const;
     bool checkValue(const char* name, const std::string& index) const;
     void dashLine() const;
-    std::string formatAmount(const std::string& assetType,
-                             int64_t amount) const;
+    std::string formatAmount(const std::string& assetType, int64_t amount)
+        const;
     std::string getAccountAssetType(const std::string& myacct) const;
     std::string getOption(std::string optionName) const;
     OTWallet* getWallet() const;
-    int32_t harvestTxNumbers(const std::string& contract,
-                             const std::string& mynym);
+    int32_t harvestTxNumbers(
+        const std::string& contract,
+        const std::string& mynym);
     std::string inputLine();
     std::string inputText(const char* what);
-    int32_t processResponse(const std::string& response,
-                            const char* what) const;
-    int32_t processTxResponse(const std::string& server,
-                              const std::string& mynym,
-                              const std::string& myacct,
-                              const std::string& response,
-                              const char* what) const;
-    int32_t responseReply(const std::string& response,
-                          const std::string& server, const std::string& mynym,
-                          const std::string& myacct,
-                          const char* function) const;
+    int32_t processResponse(const std::string& response, const char* what)
+        const;
+    int32_t processTxResponse(
+        const std::string& server,
+        const std::string& mynym,
+        const std::string& myacct,
+        const std::string& response,
+        const char* what) const;
+    int32_t responseReply(
+        const std::string& response,
+        const std::string& server,
+        const std::string& mynym,
+        const std::string& myacct,
+        const char* function) const;
     int32_t responseStatus(const std::string& response) const;
     virtual int32_t runWithOptions() = 0;
-    std::vector<std::string> tokenize(const std::string& str, char delim,
-                                      bool noEmpty) const;
+    std::vector<std::string> tokenize(
+        const std::string& str,
+        char delim,
+        bool noEmpty) const;
 
 private:
     std::vector<std::string> argNames;
     std::map<std::string, std::string> options;
 };
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CLIENT_CMDBASE_HPP
+#endif  // OPENTXS_CLIENT_CMDBASE_HPP

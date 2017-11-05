@@ -133,6 +133,8 @@
 #ifndef OPENTXS_CLIENT_CMDWITHDRAWCASH_HPP
 #define OPENTXS_CLIENT_CMDWITHDRAWCASH_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "CmdBase.hpp"
 
 namespace opentxs
@@ -147,12 +149,12 @@ public:
     EXPORT int32_t run(std::string myacct, std::string amount);
 
     EXPORT int32_t
-        withdrawCash(const std::string& myacct, int64_t amount) const;
+    withdrawCash(const std::string& myacct, int64_t amount) const;
 
 protected:
     int32_t runWithOptions() override;
 };
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CLIENT_CMDWITHDRAWCASH_HPP
+#endif  // OPENTXS_CLIENT_CMDWITHDRAWCASH_HPP

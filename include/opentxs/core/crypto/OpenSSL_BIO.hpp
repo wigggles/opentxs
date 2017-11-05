@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_CRYPTO_OPENSSL_BIO_HPP
 #define OPENTXS_CORE_CRYPTO_OPENSSL_BIO_HPP
 
+#include "opentxs/Version.hpp"
+
 extern "C" {
 #include <openssl/bio.h>
 }
@@ -66,6 +68,6 @@ public:
     EXPORT void setFreeOnly();
 };
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CORE_CRYPTO_OPENSSL_BIO_HPP
+#endif  // OPENTXS_CORE_CRYPTO_OPENSSL_BIO_HPP

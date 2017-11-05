@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_CRYPTO_OTPASSWORDDATA_HPP
 #define OPENTXS_CORE_CRYPTO_OTPASSWORDDATA_HPP
 
+#include "opentxs/Version.hpp"
+
 #include <string>
 #include <memory>
 

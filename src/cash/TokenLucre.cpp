@@ -47,7 +47,7 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/String.hpp"
-#if defined(OT_CASH_USING_LUCRE)
+#if OT_CASH_USING_LUCRE
 #include "opentxs/core/crypto/OpenSSL_BIO.hpp"
 #endif
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
@@ -65,24 +65,25 @@
 
 // SUBCLASSES OF OTTOKEN FOR EACH DIGITAL CASH ALGORITHM.
 
-#if defined(OT_CASH_USING_MAGIC_MONEY)
+#if OT_CASH_USING_MAGIC_MONEY
 // Todo:  Someday...
-#endif // Magic Money
+#endif  // Magic Money
 
 namespace opentxs
 {
 
 class Purse;
 
-#if defined(OT_CASH_USING_LUCRE) && OT_CRYPTO_USING_OPENSSL
+#if OT_CASH_USING_LUCRE && OT_CRYPTO_USING_OPENSSL
 
 Token_Lucre::Token_Lucre()
     : ot_super()
 {
 }
 
-Token_Lucre::Token_Lucre(const Identifier& NOTARY_ID,
-                         const Identifier& INSTRUMENT_DEFINITION_ID)
+Token_Lucre::Token_Lucre(
+    const Identifier& NOTARY_ID,
+    const Identifier& INSTRUMENT_DEFINITION_ID)
     : ot_super(NOTARY_ID, INSTRUMENT_DEFINITION_ID)
 {
 }
@@ -92,17 +93,17 @@ Token_Lucre::Token_Lucre(const Purse& thePurse)
 {
 }
 
-Token_Lucre::~Token_Lucre()
-{
-}
+Token_Lucre::~Token_Lucre() {}
 
 // Lucre step 2 (client generates coin request)
 // nDenomination must be one of the denominations supported by the mint.
 // sets m_nTokenCount and populates the maps with prototokens (in ASCII-armored
 // format.)
-bool Token_Lucre::GenerateTokenRequest(const Nym& theNym, Mint& theMint,
-                                       int64_t lDenomination,
-                                       int32_t nTokenCount)
+bool Token_Lucre::GenerateTokenRequest(
+    const Nym& theNym,
+    Mint& theMint,
+    int64_t lDenomination,
+    int32_t nTokenCount)
 {
     //    otErr << "%s <bank public info> <coin request private output file>
     // <coin request public output file>\n", argv[0]);
@@ -112,10 +113,10 @@ bool Token_Lucre::GenerateTokenRequest(const Nym& theNym, Mint& theMint,
         return false;
     }
 
-    LucreDumper setDumper; // todo security.
+    LucreDumper setDumper;  // todo security.
 
     OpenSSL_BIO bioBank = BIO_new(
-        BIO_s_mem()); // Input. We must supply the bank's public lucre info
+        BIO_s_mem());  // Input. We must supply the bank's public lucre info
 
     // This version base64-DECODES the ascii-armored string passed in,
     // and then sets the decoded plaintext string onto the string.
@@ -137,17 +138,17 @@ bool Token_Lucre::GenerateTokenRequest(const Nym& theNym, Mint& theMint,
     PublicBank bank;
     bank.ReadBIO(bioBank);
 
-    Release(); // note: why is this here? I guess to release the prototokens,
-               // the signature (is there one?) and m_ascSpendable (exists?
-               // doubt it.) This WAS also doing "InitToken" (no longer) which
-               // WAS setting series and expiration range back to 0 (no longer.)
-               // Which was causing problems for all series above 0. I'm leaving
-               // this call here, to do the stuff I guess it was put here for.
-               // But things such as the series, expiration date range, and
-               // token count, etc are no longer (inadvertantly) set to 0 here
-               // on this line. I'm also moving the SetSeriesAndExpiration call
-               // to be BELOW this line, since it's not apparently needed above
-               // this line anyway.
+    Release();  // note: why is this here? I guess to release the prototokens,
+                // the signature (is there one?) and m_ascSpendable (exists?
+                // doubt it.) This WAS also doing "InitToken" (no longer) which
+    // WAS setting series and expiration range back to 0 (no longer.)
+    // Which was causing problems for all series above 0. I'm leaving
+    // this call here, to do the stuff I guess it was put here for.
+    // But things such as the series, expiration date range, and
+    // token count, etc are no longer (inadvertantly) set to 0 here
+    // on this line. I'm also moving the SetSeriesAndExpiration call
+    // to be BELOW this line, since it's not apparently needed above
+    // this line anyway.
 
     // We are supposed to set these values here.
     // The server actually sets them again, for security reasons.
@@ -167,8 +168,8 @@ bool Token_Lucre::GenerateTokenRequest(const Nym& theNym, Mint& theMint,
     // call. (I've also
     // stopped wiping them in Release.)
     //
-    SetSeriesAndExpiration(theMint.GetSeries(), theMint.GetValidFrom(),
-                           theMint.GetValidTo());
+    SetSeriesAndExpiration(
+        theMint.GetSeries(), theMint.GetValidFrom(), theMint.GetValidTo());
 
     const int32_t nFinalTokenCount =
         (nTokenCount < Token::GetMinimumPrototokenCount())
@@ -180,11 +181,11 @@ bool Token_Lucre::GenerateTokenRequest(const Nym& theNym, Mint& theMint,
     // multiple proto-tokens, you can see this loop as though it always executes
     // just once.
     for (int32_t i = 0; i < nFinalTokenCount; i++) {
-        OpenSSL_BIO bioCoin = BIO_new(BIO_s_mem()); // These two are output. We
-                                                    // must write these bios,
-                                                    // after
+        OpenSSL_BIO bioCoin = BIO_new(BIO_s_mem());  // These two are output. We
+                                                     // must write these bios,
+                                                     // after
         OpenSSL_BIO bioPublicCoin = BIO_new(
-            BIO_s_mem()); // the operation, back into some form we can use
+            BIO_s_mem());  // the operation, back into some form we can use
 
         CoinRequest req(bank);
 
@@ -196,12 +197,15 @@ bool Token_Lucre::GenerateTokenRequest(const Nym& theNym, Mint& theMint,
 
         // Convert the two bios to our format
         char privateCoinBuffer[4096],
-            publicCoinBuffer[4096]; // todo stop hardcoding these string lengths
-        int32_t privatecoinLen = BIO_read(bioCoin, privateCoinBuffer,
-                                          4000); // cutting it a little short on
-                                                 // purpose, with the buffer.
-                                                 // Just makes me feel more
-                                                 // comfortable for some reason.
+            publicCoinBuffer[4096];  // todo stop hardcoding these string
+                                     // lengths
+        int32_t privatecoinLen = BIO_read(
+            bioCoin,
+            privateCoinBuffer,
+            4000);  // cutting it a little short on
+                    // purpose, with the buffer.
+                    // Just makes me feel more
+                    // comfortable for some reason.
         int32_t publiccoinLen = BIO_read(bioPublicCoin, publicCoinBuffer, 4000);
 
         if (privatecoinLen && publiccoinLen) {
@@ -227,9 +231,9 @@ bool Token_Lucre::GenerateTokenRequest(const Nym& theNym, Mint& theMint,
             // and set it onto pArmoredPrivate (which was just added to our
             // internal map, above.)
             OTEnvelope theEnvelope;
-            theEnvelope.Seal(theNym, strPrivateCoin); // Todo check the return
-                                                      // values on these two
-                                                      // functions
+            theEnvelope.Seal(theNym, strPrivateCoin);  // Todo check the return
+                                                       // values on these two
+                                                       // functions
             theEnvelope.GetCiphertext(*pArmoredPrivate);
 
             m_mapPublic[i] = pArmoredPublic;
@@ -237,8 +241,7 @@ bool Token_Lucre::GenerateTokenRequest(const Nym& theNym, Mint& theMint,
 
             m_nTokenCount = nFinalTokenCount;
             SetDenomination(lDenomination);
-        }
-        else {
+        } else {
             // Error condition todo
         }
     }
@@ -249,8 +252,10 @@ bool Token_Lucre::GenerateTokenRequest(const Nym& theNym, Mint& theMint,
 // Lucre step 4: client unblinds token -- now it's ready for use.
 // Final unblinded spendable token is encrypted to theNym for safe storage.
 //
-bool Token_Lucre::ProcessToken(const Nym& theNym, Mint& theMint,
-                               Token& theRequest)
+bool Token_Lucre::ProcessToken(
+    const Nym& theNym,
+    Mint& theMint,
+    Token& theRequest)
 {
     //    otErr << "%s <bank public info> <private coin request> <signed coin
     // request> <coin>\n",
@@ -265,12 +270,12 @@ bool Token_Lucre::ProcessToken(const Nym& theNym, Mint& theMint,
     }
 
     // Lucre
-    LucreDumper setDumper; // todo security.
+    LucreDumper setDumper;  // todo security.
 
-    OpenSSL_BIO bioBank = BIO_new(BIO_s_mem());           // input
-    OpenSSL_BIO bioSignature = BIO_new(BIO_s_mem());      // input
-    OpenSSL_BIO bioPrivateRequest = BIO_new(BIO_s_mem()); // input
-    OpenSSL_BIO bioCoin = BIO_new(BIO_s_mem());           // output
+    OpenSSL_BIO bioBank = BIO_new(BIO_s_mem());            // input
+    OpenSSL_BIO bioSignature = BIO_new(BIO_s_mem());       // input
+    OpenSSL_BIO bioPrivateRequest = BIO_new(BIO_s_mem());  // input
+    OpenSSL_BIO bioCoin = BIO_new(BIO_s_mem());            // output
 
     // Get the bank's public key (decoded into strPublicMint)
     // and put it into bioBank so we can use it with Lucre.
@@ -288,8 +293,8 @@ bool Token_Lucre::ProcessToken(const Nym& theNym, Mint& theMint,
 
     // I need the Private coin request also. (Only the client has this private
     // coin request data.)
-    OTASCIIArmor thePrototoken; // The server sets m_nChosenIndex when it signs
-                                // the token.
+    OTASCIIArmor thePrototoken;  // The server sets m_nChosenIndex when it signs
+                                 // the token.
     bool bFoundToken =
         theRequest.GetPrivatePrototoken(thePrototoken, m_nChosenIndex);
 
@@ -301,7 +306,7 @@ bool Token_Lucre::ProcessToken(const Nym& theNym, Mint& theMint,
         // Decrypt the prototoken
         String strPrototoken;
         OTEnvelope theEnvelope(thePrototoken);
-        theEnvelope.Open(theNym, strPrototoken); // todo check return value.
+        theEnvelope.Open(theNym, strPrototoken);  // todo check return value.
 
         //        otErr << "THE PRIVATE REQUEST
         // CONTENTS:\n------------------>%s<-----------------------\n",
@@ -327,20 +332,21 @@ bool Token_Lucre::ProcessToken(const Nym& theNym, Mint& theMint,
 
         // Produce the final unblinded token in Coin coin, and write it to
         // bioCoin...
-        Coin coin; // Coin Request, processes into Coin, with Bank and Signature
-                   // passed in.
-        req.ProcessResponse(&coin, bank, bnSignature); // Notice still
-                                                       // apparently "request"
-                                                       // info is discarded.
+        Coin coin;  // Coin Request, processes into Coin, with Bank and
+                    // Signature
+                    // passed in.
+        req.ProcessResponse(&coin, bank, bnSignature);  // Notice still
+                                                        // apparently "request"
+                                                        // info is discarded.
         coin.WriteBIO(bioCoin);
 
         // convert bioCoin to a C-style string...
-        char CoinBuffer[1024]; // todo stop hardcoding these string lengths
-        int32_t coinLen =
-            BIO_read(bioCoin, CoinBuffer, 1000); // cutting it a little short on
-                                                 // purpose, with the buffer.
-                                                 // Just makes me feel more
-                                                 // comfortable for some reason.
+        char CoinBuffer[1024];  // todo stop hardcoding these string lengths
+        int32_t coinLen = BIO_read(
+            bioCoin, CoinBuffer, 1000);  // cutting it a little short on
+                                         // purpose, with the buffer.
+                                         // Just makes me feel more
+                                         // comfortable for some reason.
 
         if (coinLen) {
             // ...to OTString...
@@ -379,6 +385,6 @@ bool Token_Lucre::ProcessToken(const Nym& theNym, Mint& theMint,
     return bReturnValue;
 }
 
-#endif // defined(OT_CASH_USING_LUCRE) && defined(OT_CRYPTO_USING_OPENSSL)
+#endif  // OT_CASH_USING_LUCRE && OT_CRYPTO_USING_OPENSSL
 
-} // namespace opentxs
+}  // namespace opentxs

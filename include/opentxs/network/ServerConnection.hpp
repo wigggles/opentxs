@@ -39,6 +39,8 @@
 #ifndef OPENTXS_NETWORK_SERVERCONNECTION_HPP
 #define OPENTXS_NETWORK_SERVERCONNECTION_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/Proto.hpp"
 #include "opentxs/core/Types.hpp"
 #include "opentxs/network/ZMQ.hpp"

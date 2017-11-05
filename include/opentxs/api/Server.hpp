@@ -39,6 +39,8 @@
 #ifndef OPENTXS_API_SERVER_HPP
 #define OPENTXS_API_SERVER_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/Types.hpp"
 
 #include <atomic>

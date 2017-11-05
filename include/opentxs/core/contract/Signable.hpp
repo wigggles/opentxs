@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_SIGNABLE_HPP
 #define OPENTXS_CORE_SIGNABLE_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Proto.hpp"
@@ -88,11 +90,8 @@ protected:
     virtual Identifier GetID(const Lock& lock) const = 0;
 
     Signable() = delete;
-    explicit Signable(
-        const ConstNym& nym);
-    explicit Signable(
-        const ConstNym& nym,
-        const std::uint32_t version);
+    explicit Signable(const ConstNym& nym);
+    explicit Signable(const ConstNym& nym, const std::uint32_t version);
     explicit Signable(
         const ConstNym& nym,
         const std::uint32_t version,

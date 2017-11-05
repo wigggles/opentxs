@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_CRYPTO_OTKEYPAIR_HPP
 #define OPENTXS_CORE_CRYPTO_OTKEYPAIR_HPP
 
+#include "opentxs/Version.hpp"
+
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 #include "opentxs/core/Data.hpp"

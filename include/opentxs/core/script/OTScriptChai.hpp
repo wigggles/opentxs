@@ -39,6 +39,9 @@
 #ifndef OPENTXS_CORE_SCRIPT_OTSCRIPTCHAI_HPP
 #define OPENTXS_CORE_SCRIPT_OTSCRIPTCHAI_HPP
 
+#include "opentxs/Version.hpp"
+
+#if OT_SCRIPT_CHAI
 #include "opentxs/core/script/OTScript.hpp"
 
 #ifdef _MSC_VER
@@ -49,8 +52,6 @@
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
-
-#ifdef OT_USE_SCRIPT_CHAI
 
 // SUBCLASS:  CHAI SCRIPT
 
@@ -76,9 +77,6 @@ public:
     bool ExecuteScript(OTVariable* pReturnVar = nullptr) override;
     chaiscript::ChaiScript* const chai_{nullptr};
 };
-
 }  // namespace opentxs
-
-#endif  // OT_USE_SCRIPT_CHAI
-
+#endif  // OT_SCRIPT_CHAI
 #endif  // OPENTXS_CORE_SCRIPT_OTSCRIPTCHAI_HPP
