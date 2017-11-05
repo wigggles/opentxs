@@ -959,6 +959,8 @@ void OT::shutdown()
     config_.clear();
 }
 
+const std::atomic<bool>& OT::Shutdown() const { return shutdown_; }
+
 void OT::start()
 {
     OT_ASSERT(activity_);

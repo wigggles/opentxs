@@ -143,6 +143,7 @@ public:
         const time64_t& last = 0) const;
     const api::Server& Server() const;
     bool ServerMode() const;
+    const std::atomic<bool>& Shutdown() const;
     api::Wallet& Wallet() const;
     api::ZMQ& ZMQ() const;
 
