@@ -307,7 +307,7 @@ void OT::Init()
         recover();
     }
 
-    Init_Server();  // requires Init_Config(), Init_Log()
+    Init_Server();  // requires Init_Config(), Init_Log(), Init_Contracts()
 
     start();
 }
@@ -493,7 +493,9 @@ void OT::Init_Server()
     Log::SetupSignalHandler();
 #endif
 
-    server_.reset(new api::Server(server_args_, shutdown_));
+    OT_ASSERT(wallet_);
+
+    server_.reset(new api::Server(server_args_, *wallet_, shutdown_));
 
     OT_ASSERT(server_);
 

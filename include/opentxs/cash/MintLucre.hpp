@@ -54,36 +54,46 @@ class Token;
 
 #if defined(OT_CASH_USING_MAGIC_MONEY)
 // Todo:  Someday...
-#endif // Magic Money
+#endif  // Magic Money
 
 #if defined(OT_CASH_USING_LUCRE)
 
 class MintLucre : public Mint
 {
-private: // Private prevents erroneous use by other classes.
+private:  // Private prevents erroneous use by other classes.
     typedef Mint ot_super;
-    friend class Mint; // for the factory.
+    friend class Mint;  // for the factory.
 protected:
     MintLucre();
-    EXPORT MintLucre(const String& strNotaryID,
-                     const String& strInstrumentDefinitionID);
-    EXPORT MintLucre(const String& strNotaryID, const String& strServerNymID,
-                     const String& strInstrumentDefinitionID);
+    EXPORT MintLucre(
+        const String& strNotaryID,
+        const String& strInstrumentDefinitionID);
+    EXPORT MintLucre(
+        const String& strNotaryID,
+        const String& strServerNymID,
+        const String& strInstrumentDefinitionID);
 
 public:
-    bool AddDenomination(Nym& theNotary, int64_t lDenomination,
-                                 int32_t nPrimeLength = 1024) override;
+    bool AddDenomination(
+        const Nym& theNotary,
+        int64_t lDenomination,
+        int32_t nPrimeLength = 1024) override;
 
-    EXPORT bool SignToken(Nym& theNotary, Token& theToken,
-                                  String& theOutput, int32_t nTokenIndex) override;
-    EXPORT bool VerifyToken(Nym& theNotary, String& theCleartextToken,
-                                    int64_t lDenomination) override;
+    EXPORT bool SignToken(
+        const Nym& theNotary,
+        Token& theToken,
+        String& theOutput,
+        int32_t nTokenIndex) override;
+    EXPORT bool VerifyToken(
+        const Nym& theNotary,
+        String& theCleartextToken,
+        int64_t lDenomination) override;
 
     EXPORT virtual ~MintLucre();
 };
 
-#endif // Lucre
+#endif  // Lucre
 
-} // namespace opentxs
+}  // namespace opentxs
 
-#endif // OPENTXS_CASH_MINTLUCRE_HPP
+#endif  // OPENTXS_CASH_MINTLUCRE_HPP

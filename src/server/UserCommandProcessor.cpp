@@ -1447,6 +1447,7 @@ bool UserCommandProcessor::cmd_issue_basket(ReplyMessage& reply) const
     server_->transactor_.addBasketAccountID(
         BASKET_ID, basketAccountID, contractID);
     server_->mainFile_.SaveMainFile();
+    OT::App().Server().UpdateMint(basketAccountID);
 
     return true;
 }
@@ -2049,6 +2050,12 @@ bool UserCommandProcessor::cmd_register_instrument_definition(
         return false;
     }
 
+    if (contract->ID() != contractID) {
+        otErr << OT_METHOD << __FUNCTION__ << ": ID mismatch" << std::endl;
+
+        return false;
+    }
+
     // Create an ISSUER account (like a normal account, except it can go
     // negative)
     const auto& context = reply.Context();
@@ -2139,6 +2146,7 @@ bool UserCommandProcessor::cmd_register_instrument_definition(
     theAccountSet.insert(String(accountID).Get());
     nymfile.SaveSignedNymfile(serverNym);
     reply.DropToNymbox(false);
+    OT::App().Server().UpdateMint(contractID);
 
     return true;
 }

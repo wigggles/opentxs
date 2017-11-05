@@ -42,10 +42,12 @@
 #include "opentxs/core/Types.hpp"
 
 #include <atomic>
+#include <deque>
 #include <map>
 #include <memory>
 #include <mutex>
 #include <string>
+#include <thread>
 
 #define OT_SERVER_OPTION_BACKUP "backup"
 #define OT_SERVER_OPTION_BINDIP "bindip"
@@ -81,6 +83,8 @@ class Server;
 namespace api
 {
 
+class Wallet;
+
 class Server
 {
 public:
@@ -90,6 +94,8 @@ public:
     std::shared_ptr<const Mint> GetPublicMint(const Identifier& unitID) const;
     const Identifier& ID() const;
     const Identifier& NymID() const;
+    void ScanMints() const;
+    void UpdateMint(const Identifier& unitID) const;
 
     void Cleanup();
     void Init();
@@ -103,15 +109,26 @@ private:
     typedef std::map<std::string, std::shared_ptr<Mint>> MintSeries;
 
     const std::map<std::string, std::string>& args_;
+    Wallet& wallet_;
     std::atomic<bool>& shutdown_;
     std::unique_ptr<server::Server> server_p_;
     server::Server& server_;
     std::unique_ptr<server::MessageProcessor> message_processor_p_;
     server::MessageProcessor& message_processor_;
+    std::unique_ptr<std::thread> mint_thread_;
     mutable std::mutex mint_lock_;
     mutable std::mutex mint_update_lock_;
+    mutable std::mutex mint_scan_lock_;
     mutable std::map<std::string, MintSeries> mints_;
+    mutable std::deque<std::string> mints_to_check_;
 
+    void generate_mint(
+        const std::string& serverID,
+        const std::string& unitID,
+        const std::uint32_t series) const;
+    std::int32_t last_generated_series(
+        const std::string& serverID,
+        const std::string& unitID) const;
     std::shared_ptr<Mint> load_private_mint(
         const Lock& lock,
         const std::string& unitID,
@@ -120,15 +137,18 @@ private:
         const Lock& lock,
         const std::string& unitID,
         const std::string seriesID) const;
+    void mint() const;
     bool verify_lock(const Lock& lock, const std::mutex& mutex) const;
     std::shared_ptr<Mint> verify_mint(
         const Lock& lock,
         const std::string& unitID,
         const std::string seriesID,
         std::shared_ptr<Mint>& mint) const;
+    bool verify_mint_directory(const std::string& serverID) const;
 
     Server(
         const std::map<std::string, std::string>& args,
+        Wallet& wallet,
         std::atomic<bool>& shutdown);
     Server() = delete;
     Server(const Server&) = delete;

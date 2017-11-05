@@ -791,7 +791,7 @@ void Mint::GenerateNewMint(
     time64_t MINT_EXPIRATION,
     const Identifier& theInstrumentDefinitionID,
     const Identifier& theNotaryID,
-    Nym& theNotary,
+    const Nym& theNotary,
     int64_t nDenom1,
     int64_t nDenom2,
     int64_t nDenom3,
