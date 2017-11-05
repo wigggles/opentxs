@@ -40,6 +40,8 @@
 #define OPENTXS_UTIL_SIGNALS_HPP
 
 #include <atomic>
+#include <functional>
+#include <map>
 #include <memory>
 #include <thread>
 
@@ -53,17 +55,81 @@ public:
 
     Signals(std::atomic<bool>& shutdown);
 
-    virtual ~Signals();
-
-protected:
-    void shutdown();
+    ~Signals();
 
 private:
+    static const std::map<int, std::function<void()>> handler_;
+
     std::atomic<bool>& shutdown_;
     std::unique_ptr<std::thread> thread_{nullptr};
 
+    /** SIGHUP */
+    static void handle_1() { ignore(); };
+    /** SIGINT */
+    static void handle_2() { shutdown(); };
+    /** SIGQUIT */
+    static void handle_3() { shutdown(); };
+    /** SIGILL */
+    static void handle_4() { shutdown(); };
+    /** SIGTRAP */
+    static void handle_5() { ignore(); };
+    /** SIGABRT, SIGIOT */
+    static void handle_6() { ignore(); };
+    /** SIGBUS */
+    static void handle_7() { ignore(); };
+    /** SIGFPE */
+    static void handle_8() { ignore(); };
+    /** SIGKILL */
+    static void handle_9() { shutdown(); };
+    /** SIGUSR1 */
+    static void handle_10() { ignore(); };
+    /** SIGSEGV */
+    static void handle_11() { ignore(); };
+    /** SIGUSR2 */
+    static void handle_12() { ignore(); };
+    /** SIGPIPE */
+    static void handle_13() { ignore(); };
+    /** SIGALRM */
+    static void handle_14() { ignore(); };
+    /** SIGTERM */
+    static void handle_15() { shutdown(); };
+    /** SIGSTKFLT */
+    static void handle_16() { ignore(); };
+    /** SIGCLD, SIGCHLD */
+    static void handle_17() { ignore(); };
+    /** SIGCONT */
+    static void handle_18() { ignore(); };
+    /** SIGSTOP */
+    static void handle_19() { shutdown(); };
+    /** SIGTSTP */
+    static void handle_20() { ignore(); };
+    /** SIGTTIN */
+    static void handle_21() { ignore(); };
+    /** SIGTTOU */
+    static void handle_22() { ignore(); };
+    /** SIGURG */
+    static void handle_23() { ignore(); };
+    /** SIGXCPU */
+    static void handle_24() { ignore(); };
+    /** SIGXFSZ */
+    static void handle_25() { ignore(); };
+    /** SIGVTALRM */
+    static void handle_26() { ignore(); };
+    /** SIGPROF */
+    static void handle_27() { ignore(); };
+    /** SIGWINCH */
+    static void handle_28() { ignore(); };
+    /** SIGPOLL, SIGIO */
+    static void handle_29() { ignore(); };
+    /** SIGPWR */
+    static void handle_30() { ignore(); };
+    /** SIGSYS, SIGUNUSED */
+    static void handle_31() { shutdown(); };
+    static void ignore(){};
+    static void shutdown();
+
     void handle();
-    virtual void process(const int signal);
+    void process(const int signal);
 
     Signals() = delete;
     Signals(const Signals&) = delete;

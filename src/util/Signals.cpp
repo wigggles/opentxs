@@ -50,6 +50,26 @@ extern "C" {
 
 namespace opentxs
 {
+
+const std::map<int, std::function<void()>> Signals::handler_{
+    {1, &Signals::handle_1},   {2, &Signals::handle_2},
+    {3, &Signals::handle_3},   {4, &Signals::handle_4},
+    {5, &Signals::handle_5},   {6, &Signals::handle_6},
+    {7, &Signals::handle_7},   {8, &Signals::handle_8},
+    {9, &Signals::handle_9},   {10, &Signals::handle_10},
+    {11, &Signals::handle_11}, {12, &Signals::handle_12},
+    {13, &Signals::handle_13}, {14, &Signals::handle_14},
+    {15, &Signals::handle_15}, {16, &Signals::handle_16},
+    {17, &Signals::handle_17}, {18, &Signals::handle_18},
+    {19, &Signals::handle_19}, {20, &Signals::handle_20},
+    {21, &Signals::handle_21}, {22, &Signals::handle_22},
+    {23, &Signals::handle_23}, {24, &Signals::handle_24},
+    {25, &Signals::handle_25}, {26, &Signals::handle_26},
+    {27, &Signals::handle_27}, {28, &Signals::handle_28},
+    {29, &Signals::handle_29}, {30, &Signals::handle_30},
+    {31, &Signals::handle_31},
+};
+
 Signals::Signals(std::atomic<bool>& shutdown)
     : shutdown_(shutdown)
     , thread_(nullptr)
@@ -83,43 +103,16 @@ void Signals::handle()
 
 void Signals::process(const int signal)
 {
-    switch (signal) {
-        case SIGINT:
-        case SIGQUIT:
-        case SIGKILL:
-        case SIGSEGV:
-        case SIGSTOP:
-        case SIGSYS: {
-            shutdown();
-        } break;
-        case SIGHUP:
-        case SIGILL:
-        case SIGTRAP:
-        case SIGABRT:
-        case SIGBUS:
-        case SIGFPE:
-        case SIGUSR1:
-        case SIGUSR2:
-        case SIGPIPE:
-        case SIGALRM:
-        case SIGTERM:
-        case SIGSTKFLT:
-        case SIGCLD:
-        case SIGCONT:
-        case SIGTSTP:
-        case SIGTTIN:
-        case SIGTTOU:
-        case SIGURG:
-        case SIGXCPU:
-        case SIGXFSZ:
-        case SIGVTALRM:
-        case SIGPROF:
-        case SIGWINCH:
-        case SIGPOLL:
-        case SIGPWR:
-        default: {
-        }
+    auto handler = handler_.find(signal);
+
+    if (handler_.end() == handler) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Unhandled signal "
+              << std::to_string(signal) << " received." << std::endl;
+
+        return;
     }
+
+    std::get<1> (*handler)();
 }
 
 void Signals::shutdown() { OT::App().Cleanup(); }
