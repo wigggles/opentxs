@@ -54,6 +54,9 @@
 
 namespace opentxs::storage
 {
+
+class Root;
+
 typedef std::function<bool(const std::string&)> keyFunction;
 /** A set of metadata associated with a stored object
     *  * string: hash
@@ -189,6 +192,7 @@ private:
     Node& operator=(Node&&) = delete;
 
 protected:
+    friend class Root;
     typedef std::unique_lock<std::mutex> Lock;
 
     static const std::string BLANK_HASH;

@@ -44,6 +44,7 @@
 #include "opentxs/storage/tree/BlockchainTransactions.hpp"
 #include "opentxs/storage/tree/Contacts.hpp"
 #include "opentxs/storage/tree/Credentials.hpp"
+#include "opentxs/storage/tree/Node.hpp"
 #include "opentxs/storage/tree/Nym.hpp"
 #include "opentxs/storage/tree/Nyms.hpp"
 #include "opentxs/storage/tree/Seeds.hpp"
@@ -112,12 +113,13 @@ void Root::collect_garbage(const StorageDriver* to) const
         oldLocation = current_bucket_.load();
         current_bucket_.store(!oldLocation);
         save(lock);
+        driver_.StoreRoot(root_);
     }
 
     lock.unlock();
-    bool success = false;
+    bool success{false};
 
-    if (!gc_root_.empty()) {
+    if (Node::check_hash(gc_root_)) {
         const class Tree tree(driver_, gc_root_);
         success = tree.Migrate(*to);
     }
@@ -135,6 +137,7 @@ void Root::collect_garbage(const StorageDriver* to) const
     gc_root_ = "";
     last_gc_.store(std::time(nullptr));
     save(lock);
+    driver_.StoreRoot(root_);
     lock.unlock();
     gcLock.unlock();
     otErr << OT_METHOD << __FUNCTION__ << ": Finished garbage collection."

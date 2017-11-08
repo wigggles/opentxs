@@ -144,28 +144,33 @@ bool Node::load_raw(
 
 bool Node::migrate(const std::string& hash, const StorageDriver& to) const
 {
-    if (!check_hash(hash)) {
+    if (false == check_hash(hash)) {
+
         return true;
     }
-
-    otErr << OT_METHOD << __FUNCTION__ << ": Migrating hash " << hash
-          << std::endl;
 
     return driver_.Migrate(hash, to);
 }
 
 bool Node::Migrate(const StorageDriver& to) const
 {
+    if (std::string(BLANK_HASH) == root_) {
+        if (0 < item_map_.size()) {
+            otErr << OT_METHOD << __FUNCTION__
+                  << ": Items present in object with blank root hash."
+                  << std::endl;
+
+            OT_FAIL;
+        }
+
+        return true;
+    }
+
     bool output{true};
-    otErr << OT_METHOD << __FUNCTION__
-          << ": Migrating container root: " << root_ << std::endl;
     output &= migrate(root_, to);
 
     for (const auto& item : item_map_) {
-        const auto& id = item.first;
         const auto& hash = std::get<0>(item.second);
-        otErr << OT_METHOD << __FUNCTION__ << ": Migrating item id: " << id
-              << std::endl;
         output &= migrate(hash, to);
     }
 
