@@ -148,16 +148,21 @@ private:
     bool Migrate(const std::string& key, const StorageDriver& to)
         const override;
     bool Store(
+        const bool isTransaction,
         const std::string& key,
         const std::string& value,
         const bool bucket) const override;
     void Store(
+        const bool isTransaction,
         const std::string& key,
         const std::string& value,
         const bool bucket,
         std::promise<bool>& promise) const override;
-    bool Store(const std::string& value, std::string& key) const override;
-    bool StoreRoot(const std::string& hash) const override;
+    bool Store(
+        const bool isTransaction,
+        const std::string& value,
+        std::string& key) const override;
+    bool StoreRoot(const bool commit, const std::string& hash) const override;
     bool verify_write_lock(const std::unique_lock<std::mutex>& lock) const;
 
     Editor<storage::Root> mutable_Meta();

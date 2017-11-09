@@ -130,7 +130,7 @@ bool StoragePlugin_impl::Migrate(
     if (LoadFromBucket(key, value, sourceBucket)) {
 
         // save to the target bucket
-        if (to.Store(key, value, targetBucket)) {
+        if (to.Store(false, key, value, targetBucket)) {
             return true;
         } else {
             otErr << OT_METHOD << __FUNCTION__ << ": Save failure."
@@ -155,36 +155,47 @@ bool StoragePlugin_impl::Migrate(
 }
 
 bool StoragePlugin_impl::Store(
+    const bool isTransaction,
     const std::string& key,
     const std::string& value,
     const bool bucket) const
 {
     std::promise<bool> promise;
     auto future = promise.get_future();
-    store(key, value, bucket, &promise);
+    store(isTransaction, key, value, bucket, &promise);
 
     return future.get();
 }
 
 void StoragePlugin_impl::Store(
+    const bool isTransaction,
     const std::string& key,
     const std::string& value,
     const bool bucket,
     std::promise<bool>& promise) const
 {
     std::thread thread(
-        &StoragePlugin_impl::store, this, key, value, bucket, &promise);
+        &StoragePlugin_impl::store,
+        this,
+        isTransaction,
+        key,
+        value,
+        bucket,
+        &promise);
     thread.detach();
 }
 
-bool StoragePlugin_impl::Store(const std::string& value, std::string& key) const
+bool StoragePlugin_impl::Store(
+    const bool isTransaction,
+    const std::string& value,
+    std::string& key) const
 {
     const bool bucket = current_bucket_.load();
 
     if (digest_) {
         digest_(api::Storage::HASH_TYPE, value, key);
 
-        return Store(key, value, bucket);
+        return Store(isTransaction, key, value, bucket);
     }
 
     return false;

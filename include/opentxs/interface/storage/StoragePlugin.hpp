@@ -54,7 +54,8 @@ public:
 
     virtual std::string LoadRoot() const = 0;
 
-    virtual bool StoreRoot(const std::string& hash) const = 0;
+    virtual bool StoreRoot(const bool commit, const std::string& hash)
+        const = 0;
 
     virtual ~StoragePlugin() = default;
 

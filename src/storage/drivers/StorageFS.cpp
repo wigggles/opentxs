@@ -159,6 +159,7 @@ std::string StorageFS::read_file(const std::string& filename) const
 }
 
 void StorageFS::store(
+    const bool,
     const std::string& key,
     const std::string& value,
     const bool bucket,
@@ -175,7 +176,7 @@ void StorageFS::store(
     }
 }
 
-bool StorageFS::StoreRoot(const std::string& hash) const
+bool StorageFS::StoreRoot(const bool, const std::string& hash) const
 {
     if (ready_.load() && false == folder_.empty()) {
 

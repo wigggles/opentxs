@@ -274,7 +274,7 @@ bool Node::store_raw(
     auto& metadata = item_map_[id];
     auto& hash = std::get<0>(metadata);
 
-    if (!driver_.Store(data, hash)) {
+    if (!driver_.Store(true, data, hash)) {
         return false;
     }
 

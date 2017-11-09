@@ -113,7 +113,7 @@ void Root::collect_garbage(const StorageDriver* to) const
         oldLocation = current_bucket_.load();
         current_bucket_.store(!oldLocation);
         save(lock);
-        driver_.StoreRoot(root_);
+        driver_.StoreRoot(true, root_);
     }
 
     lock.unlock();
@@ -137,7 +137,7 @@ void Root::collect_garbage(const StorageDriver* to) const
     gc_root_ = "";
     last_gc_.store(std::time(nullptr));
     save(lock);
-    driver_.StoreRoot(root_);
+    driver_.StoreRoot(true, root_);
     lock.unlock();
     gcLock.unlock();
     otErr << OT_METHOD << __FUNCTION__ << ": Finished garbage collection."

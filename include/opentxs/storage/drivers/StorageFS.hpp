@@ -67,7 +67,7 @@ public:
         std::string& value,
         const bool bucket) const override;
     std::string LoadRoot() const override;
-    bool StoreRoot(const std::string& hash) const override;
+    bool StoreRoot(const bool commit, const std::string& hash) const override;
 
     void Cleanup() override;
 
@@ -100,6 +100,7 @@ private:
     std::string read_file(const std::string& filename) const;
     virtual std::string root_filename() const = 0;
     void store(
+        const bool isTransaction,
         const std::string& key,
         const std::string& value,
         const bool bucket,

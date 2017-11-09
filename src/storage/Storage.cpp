@@ -319,7 +319,7 @@ bool Storage::Load(
 
         if (plugin->Load(key, checking, value)) {
             auto notUsed = key;
-            primary_plugin_->Store(value, notUsed);
+            primary_plugin_->Store(false, value, notUsed);
 
             return true;
         }
@@ -1115,7 +1115,7 @@ void Storage::save(storage::Root* in, const Lock& lock)
     OT_ASSERT(verify_write_lock(lock));
     OT_ASSERT(nullptr != in);
 
-    StoreRoot(in->root_);
+    StoreRoot(true, in->root_);
 }
 
 bool Storage::SetContactAlias(const std::string& id, const std::string& alias)
@@ -1314,6 +1314,7 @@ ObjectList Storage::ServerList() const
 void Storage::start() { InitPlugins(); }
 
 bool Storage::Store(
+    const bool isTransaction,
     const std::string& key,
     const std::string& value,
     const bool bucket) const
@@ -1325,7 +1326,7 @@ bool Storage::Store(
     promises.push_back(std::promise<bool>());
     auto& primaryPromise = promises.back();
     futures.push_back(primaryPromise.get_future());
-    primary_plugin_->Store(key, value, bucket, primaryPromise);
+    primary_plugin_->Store(isTransaction, key, value, bucket, primaryPromise);
 
     for (const auto& plugin : backup_plugins_) {
         OT_ASSERT(plugin);
@@ -1333,7 +1334,7 @@ bool Storage::Store(
         promises.push_back(std::promise<bool>());
         auto& promise = promises.back();
         futures.push_back(promise.get_future());
-        plugin->Store(key, value, bucket, promise);
+        plugin->Store(isTransaction, key, value, bucket, promise);
     }
 
     bool output = false;
@@ -1346,6 +1347,7 @@ bool Storage::Store(
 }
 
 void Storage::Store(
+    const bool,
     const std::string&,
     const std::string&,
     const bool,
@@ -1356,16 +1358,19 @@ void Storage::Store(
     OT_FAIL;
 }
 
-bool Storage::Store(const std::string& key, std::string& value) const
+bool Storage::Store(
+    const bool isTransaction,
+    const std::string& key,
+    std::string& value) const
 {
     OT_ASSERT(primary_plugin_);
 
-    bool output = primary_plugin_->Store(key, value);
+    bool output = primary_plugin_->Store(isTransaction, key, value);
 
     for (const auto& plugin : backup_plugins_) {
         OT_ASSERT(plugin);
 
-        output |= plugin->Store(key, value);
+        output |= plugin->Store(isTransaction, key, value);
     }
 
     return output;
@@ -1667,17 +1672,17 @@ bool Storage::Store(const proto::UnitDefinition& data, const std::string& alias)
     return false;
 }
 
-bool Storage::StoreRoot(const std::string& hash) const
+bool Storage::StoreRoot(const bool commit, const std::string& hash) const
 {
     OT_ASSERT(primary_plugin_);
 
     for (const auto& plugin : backup_plugins_) {
         OT_ASSERT(plugin);
 
-        plugin->StoreRoot(hash);
+        plugin->StoreRoot(commit, hash);
     }
 
-    return primary_plugin_->StoreRoot(hash);
+    return primary_plugin_->StoreRoot(commit, hash);
 }
 
 void Storage::synchronize_plugins()
@@ -1746,7 +1751,7 @@ void Storage::synchronize_root()
         bestRoot = "";
     }
 
-    primary_plugin_->StoreRoot(bestRoot);
+    primary_plugin_->StoreRoot(false, bestRoot);
 }
 
 ObjectList Storage::ThreadList(const std::string& nymID, const bool unreadOnly)
