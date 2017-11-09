@@ -112,7 +112,8 @@ std::string StorageFSArchive::calculate_path(
         directory += key.substr(4, 4);
     }
 
-    boost::filesystem::create_directories(directory);
+    boost::system::error_code ec{};
+    boost::filesystem::create_directories(directory, ec);
 
     if (8 < key.size()) {
         if (false == sync(level2)) {
