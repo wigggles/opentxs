@@ -82,7 +82,7 @@ StorageFSArchive::StorageFSArchive(
     const StorageConfig& config,
     const Digest& hash,
     const Random& random,
-    std::atomic<bool>& bucket,
+    const std::atomic<bool>& bucket,
     const std::string& folder,
     std::unique_ptr<SymmetricKey>& key)
     : ot_super(config, hash, random, folder, bucket)

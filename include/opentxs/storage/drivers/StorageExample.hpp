@@ -128,7 +128,7 @@ private:
         const StorageConfig& config,
         const Digest& hash,
         const Random& random,
-        std::atomic<bool>& bucket)
+        const std::atomic<bool>& bucket)
         : ot_super(config, hash random, bucket)
     {
         Init_StorageExample();

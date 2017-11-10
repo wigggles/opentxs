@@ -51,14 +51,8 @@ namespace opentxs
 {
 
 class StorageConfig;
+class StorageMultiplex;
 class SymmetricKey;
-
-namespace api
-{
-
-class Storage;
-
-}  // namespace api
 
 class StorageFSArchive : public StorageFS, public virtual StorageDriver
 {
@@ -73,7 +67,7 @@ public:
     ~StorageFSArchive();
 
 private:
-    friend class api::Storage;
+    friend class StorageMultiplex;
 
     const std::unique_ptr<SymmetricKey> encryption_key_;
     const bool encrypted_{false};
@@ -93,7 +87,7 @@ private:
         const StorageConfig& config,
         const Digest& hash,
         const Random& random,
-        std::atomic<bool>& bucket,
+        const std::atomic<bool>& bucket,
         const std::string& folder,
         std::unique_ptr<SymmetricKey>& key);
     StorageFSArchive() = delete;

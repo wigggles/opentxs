@@ -99,7 +99,7 @@ protected:
         const StorageConfig& config,
         const Digest& hash,
         const Random& random,
-        std::atomic<bool>& bucket);
+        const std::atomic<bool>& bucket);
     StoragePlugin_impl() = delete;
 
     virtual void store(
@@ -111,7 +111,7 @@ protected:
 
 private:
     const Digest& digest_;
-    std::atomic<bool>& current_bucket_;
+    const std::atomic<bool>& current_bucket_;
 
     StoragePlugin_impl(const StoragePlugin_impl&) = delete;
     StoragePlugin_impl(StoragePlugin_impl&&) = delete;

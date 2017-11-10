@@ -52,7 +52,7 @@ StorageFSGC::StorageFSGC(
     const StorageConfig& config,
     const Digest& hash,
     const Random& random,
-    std::atomic<bool>& bucket)
+    const std::atomic<bool>& bucket)
     : ot_super(config, hash, random, config.path_, bucket)
 {
     Init_StorageFSGC();
@@ -123,6 +123,10 @@ void StorageFSGC::purge(const std::string& path) const
 
 std::string StorageFSGC::root_filename() const
 {
+    OT_ASSERT(false == folder_.empty());
+    OT_ASSERT(false == path_seperator_.empty());
+    OT_ASSERT(false == config_.fs_root_file_.empty());
+
     return folder_ + path_seperator_ + config_.fs_root_file_;
 }
 

@@ -58,13 +58,7 @@ namespace opentxs
 {
 
 class StorageConfig;
-
-namespace api
-{
-
-class Storage;
-
-}  // namespace api
+class StorageMultiplex;
 
 // SQLite3 implementation of opentxs::storage
 class StorageSqlite3 : public virtual StoragePlugin_impl,
@@ -87,7 +81,7 @@ public:
 private:
     typedef StoragePlugin_impl ot_super;
 
-    friend class api::Storage;
+    friend class StorageMultiplex;
 
     std::string folder_;
     mutable std::mutex transaction_lock_;
@@ -127,7 +121,7 @@ private:
         const StorageConfig& config,
         const Digest& hash,
         const Random& random,
-        std::atomic<bool>& bucket);
+        const std::atomic<bool>& bucket);
     StorageSqlite3() = delete;
     StorageSqlite3(const StorageSqlite3&) = delete;
     StorageSqlite3(StorageSqlite3&&) = delete;

@@ -58,7 +58,7 @@ StorageSqlite3::StorageSqlite3(
     const StorageConfig& config,
     const Digest& hash,
     const Random& random,
-    std::atomic<bool>& bucket)
+    const std::atomic<bool>& bucket)
     : ot_super(config, hash, random, bucket)
     , folder_(config.path_)
     , transaction_lock_()

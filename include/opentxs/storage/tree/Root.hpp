@@ -53,6 +53,9 @@
 
 namespace opentxs
 {
+
+class StorageMultiplex;
+
 namespace api
 {
 
@@ -69,6 +72,7 @@ class Root : public Node
 {
 private:
     typedef Node ot_super;
+    friend class opentxs::StorageMultiplex;
     friend class api::Storage;
 
     const std::uint64_t gc_interval_{std::numeric_limits<int64_t>::max()};
@@ -92,7 +96,8 @@ private:
     void cleanup() const;
     void collect_garbage(const StorageDriver* to) const;
     void init(const std::string& hash) override;
-    bool save(const std::unique_lock<std::mutex>& lock) const override;
+    bool save(const Lock& lock, const StorageDriver& to) const;
+    bool save(const Lock& lock) const override;
     void save(class Tree* tree, const Lock& lock);
 
     Root(
@@ -112,6 +117,7 @@ public:
     Editor<class Tree> mutable_Tree();
 
     bool Migrate(const StorageDriver& to) const override;
+    bool Save(const StorageDriver& to) const;
     std::uint64_t Sequence() const;
 
     ~Root() = default;

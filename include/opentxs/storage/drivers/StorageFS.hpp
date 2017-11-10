@@ -85,7 +85,7 @@ protected:
         const Digest& hash,
         const Random& random,
         const std::string& folder,
-        std::atomic<bool>& bucket);
+        const std::atomic<bool>& bucket);
 
 private:
     typedef boost::iostreams::stream<boost::iostreams::file_descriptor_sink>

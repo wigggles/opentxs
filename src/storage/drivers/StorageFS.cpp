@@ -68,7 +68,7 @@ StorageFS::StorageFS(
     const Digest& hash,
     const Random& random,
     const std::string& folder,
-    std::atomic<bool>& bucket)
+    const std::atomic<bool>& bucket)
     : ot_super(config, hash, random, bucket)
     , folder_(folder)
     , path_seperator_(PATH_SEPERATOR)

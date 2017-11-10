@@ -682,7 +682,7 @@ void OT::Init_Storage()
 
     OT_ASSERT(crypto_);
 
-    storage_.reset(new api::Storage(config, *crypto_, hash, random));
+    storage_.reset(new api::Storage(shutdown_, config, *crypto_, hash, random));
     Config().Save();
 }
 
@@ -903,11 +903,10 @@ void OT::set_storage_encryption()
     auto seed = crypto_->BIP39().DefaultSeed();
 
     if (seed.empty()) {
-        otWarn << OT_METHOD << __FUNCTION__ << ": No default seed."
-               << std::endl;
+        otErr << OT_METHOD << __FUNCTION__ << ": No default seed." << std::endl;
     } else {
-        otWarn << OT_METHOD << __FUNCTION__ << ": Default seed is: " << seed
-               << std::endl;
+        otErr << OT_METHOD << __FUNCTION__ << ": Default seed is: " << seed
+              << std::endl;
     }
 
     storage_encryption_key_ = crypto_->GetStorageKey(seed);
