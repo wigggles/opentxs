@@ -82,7 +82,7 @@ StorageFSArchive::StorageFSArchive(
     const StorageConfig& config,
     const Digest& hash,
     const Random& random,
-    std::atomic<bool>& bucket,
+    const std::atomic<bool>& bucket,
     const std::string& folder,
     std::unique_ptr<SymmetricKey>& key)
     : ot_super(config, hash, random, folder, bucket)
@@ -112,7 +112,8 @@ std::string StorageFSArchive::calculate_path(
         directory += key.substr(4, 4);
     }
 
-    boost::filesystem::create_directories(directory);
+    boost::system::error_code ec{};
+    boost::filesystem::create_directories(directory, ec);
 
     if (8 < key.size()) {
         if (false == sync(level2)) {

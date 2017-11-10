@@ -89,7 +89,6 @@ Server::Server(
     OT_ASSERT(message_processor_p_);
 
     mint_thread_.reset(new std::thread(&Server::mint, this));
-    ScanMints();
 }
 
 void Server::Cleanup()
@@ -228,18 +227,7 @@ std::shared_ptr<const Mint> Server::GetPublicMint(
 
 const Identifier& Server::ID() const { return server_.GetServerID(); }
 
-void Server::Init()
-{
-    server_.Init(args_);
-    server_.ActivateCron();
-    std::string hostname{};
-    std::uint32_t port{0};
-    const auto connectInfo = server_.GetConnectInfo(hostname, port);
-
-    OT_ASSERT(connectInfo);
-
-    message_processor_.Init(port, server_.GetTransportKey());
-}
+void Server::Init() {}
 
 std::int32_t Server::last_generated_series(
     const std::string& serverID,
@@ -375,7 +363,20 @@ void Server::ScanMints() const
     }
 }
 
-void Server::Start() { message_processor_.Start(); }
+void Server::Start()
+{
+    server_.Init(args_);
+    server_.ActivateCron();
+    std::string hostname{};
+    std::uint32_t port{0};
+    const auto connectInfo = server_.GetConnectInfo(hostname, port);
+
+    OT_ASSERT(connectInfo);
+
+    message_processor_.Init(port, server_.GetTransportKey());
+    message_processor_.Start();
+    ScanMints();
+}
 
 void Server::UpdateMint(const Identifier& unitID) const
 {

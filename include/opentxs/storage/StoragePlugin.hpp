@@ -65,21 +65,27 @@ public:
         std::string& value,
         const bool bucket) const override = 0;
     bool Store(
+        const bool isTransaction,
         const std::string& key,
         const std::string& value,
         const bool bucket) const override;
     void Store(
+        const bool isTransaction,
         const std::string& key,
         const std::string& value,
         const bool bucket,
         std::promise<bool>& promise) const override;
-    bool Store(const std::string& value, std::string& key) const override;
+    bool Store(
+        const bool isTransaction,
+        const std::string& value,
+        std::string& key) const override;
 
     bool Migrate(const std::string& key, const StorageDriver& to)
         const override;
 
     std::string LoadRoot() const override = 0;
-    bool StoreRoot(const std::string& hash) const override = 0;
+    bool StoreRoot(const bool commit, const std::string& hash) const override =
+        0;
 
     virtual void Cleanup() = 0;
 
@@ -93,10 +99,11 @@ protected:
         const StorageConfig& config,
         const Digest& hash,
         const Random& random,
-        std::atomic<bool>& bucket);
+        const std::atomic<bool>& bucket);
     StoragePlugin_impl() = delete;
 
     virtual void store(
+        const bool isTransaction,
         const std::string& key,
         const std::string& value,
         const bool bucket,
@@ -104,7 +111,7 @@ protected:
 
 private:
     const Digest& digest_;
-    std::atomic<bool>& current_bucket_;
+    const std::atomic<bool>& current_bucket_;
 
     StoragePlugin_impl(const StoragePlugin_impl&) = delete;
     StoragePlugin_impl(StoragePlugin_impl&&) = delete;
@@ -159,7 +166,7 @@ bool StorageDriver::StoreProto(
 
     plaintext = proto::ProtoAsString<T>(data);
 
-    return Store(plaintext, key);
+    return Store(true, plaintext, key);
 }
 
 template <class T>

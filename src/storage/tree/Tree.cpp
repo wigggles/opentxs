@@ -583,5 +583,7 @@ Units* Tree::units() const
 
     return units_.get();
 }
+
+Tree::~Tree() {}
 }  // namespace storage
 }  // namespace opentxs

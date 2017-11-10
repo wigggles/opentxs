@@ -42,10 +42,9 @@
 #include "opentxs/Version.hpp"
 
 #include "opentxs/api/Editor.hpp"
+#include "opentxs/storage/StorageConfig.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
-#include "opentxs/interface/storage/StorageDriver.hpp"
-#include "opentxs/storage/StorageConfig.hpp"
 
 #include <atomic>
 #include <cstdint>
@@ -68,6 +67,8 @@ namespace opentxs
 
 class CryptoEngine;
 class OT;
+class StorageDriver;
+class StorageMultiplex;
 class StoragePlugin;
 class SymmetricKey;
 
@@ -103,90 +104,8 @@ namespace api
 // Objects are either stored and retrieved from either the primary bucket, or
 // the alternate bucket. This allows for garbage collection of outdated keys
 // to be implemented.
-class Storage : public virtual StorageDriver
+class Storage
 {
-private:
-    friend class opentxs::OT;
-    typedef std::unique_lock<std::mutex> Lock;
-
-    /** A set of metadata associated with a stored object
-     *  * string: hash
-     *  * string: alias
-     */
-    typedef std::pair<std::string, std::string> Metadata;
-
-    /** Maps a logical id to the stored metadata for the object
-     *  * string: id of the stored object
-     *  * Metadata: metadata for the stored object
-     */
-    typedef std::map<std::string, Metadata> Index;
-
-    CryptoEngine& crypto_;
-    std::uint32_t version_{0};
-    std::int64_t gc_interval_{std::numeric_limits<int64_t>::max()};
-    mutable std::unique_ptr<storage::Root> meta_;
-    std::unique_ptr<StoragePlugin> primary_plugin_;
-    std::vector<std::unique_ptr<StoragePlugin>> backup_plugins_;
-    mutable std::atomic<bool> primary_bucket_;
-    std::vector<std::thread> background_threads_;
-
-    void Cleanup_Storage();
-    void CollectGarbage();
-    bool EmptyBucket(const bool bucket) const override;
-    void InitBackup();
-    void InitEncryptedBackup(std::unique_ptr<SymmetricKey>& key);
-    void InitPlugins();
-    bool Load(const std::string& key, const bool checking, std::string& value)
-        const override;
-    bool LoadFromBucket(
-        const std::string& key,
-        std::string& value,
-        const bool bucket) const override;
-    std::string LoadRoot() const override;
-    storage::Root* meta() const;
-    const storage::Root& Meta() const;
-    bool Migrate(const std::string& key, const StorageDriver& to)
-        const override;
-    bool Store(
-        const std::string& key,
-        const std::string& value,
-        const bool bucket) const override;
-    void Store(
-        const std::string& key,
-        const std::string& value,
-        const bool bucket,
-        std::promise<bool>& promise) const override;
-    bool Store(const std::string& value, std::string& key) const override;
-    bool StoreRoot(const std::string& hash) const override;
-    bool verify_write_lock(const std::unique_lock<std::mutex>& lock) const;
-
-    Editor<storage::Root> mutable_Meta();
-    void RunMapPublicNyms(NymLambda lambda);
-    void RunMapServers(ServerLambda lambda);
-    void RunMapUnits(UnitLambda lambda);
-    void save(storage::Root* in, const Lock& lock);
-    void synchronize_plugins();
-    void synchronize_root();
-
-    Storage(const Storage&) = delete;
-    Storage(Storage&&) = delete;
-    Storage& operator=(const Storage&) = delete;
-    Storage& operator=(Storage&&) = delete;
-
-protected:
-    StorageConfig config_;
-    Digest digest_;
-    Random random_;
-
-    mutable std::mutex write_lock_;
-    std::atomic<bool> shutdown_;
-
-    Storage(
-        const StorageConfig& config,
-        CryptoEngine& crypto,
-        const Digest& hash,
-        const Random& random);
-
 public:
     static const std::uint32_t HASH_TYPE;
     std::set<std::string> BlockchainAccountList(
@@ -388,8 +307,48 @@ public:
         const std::string& nymId,
         const std::string& threadId);
 
-    void Cleanup();
     ~Storage();
+
+private:
+    friend class opentxs::OT;
+
+    CryptoEngine& crypto_;
+    const std::atomic<bool>& shutdown_;
+    std::int64_t gc_interval_{std::numeric_limits<std::int64_t>::max()};
+    mutable std::mutex write_lock_;
+    mutable std::unique_ptr<storage::Root> root_;
+    mutable std::atomic<bool> primary_bucket_;
+    std::vector<std::thread> background_threads_;
+    StorageConfig config_;
+    std::unique_ptr<StorageMultiplex> multiplex_p_;
+    StorageMultiplex& multiplex_;
+
+    storage::Root* root() const;
+    const storage::Root& Root() const;
+    bool verify_write_lock(const Lock& lock) const;
+
+    void Cleanup();
+    void Cleanup_Storage();
+    void CollectGarbage();
+    void InitBackup();
+    void InitEncryptedBackup(std::unique_ptr<SymmetricKey>& key);
+    void InitPlugins();
+    Editor<storage::Root> mutable_Root();
+    void RunMapPublicNyms(NymLambda lambda);
+    void RunMapServers(ServerLambda lambda);
+    void RunMapUnits(UnitLambda lambda);
+    void save(storage::Root* in, const Lock& lock);
+
+    Storage(
+        const std::atomic<bool>& shutdown,
+        const StorageConfig& config,
+        CryptoEngine& crypto,
+        const Digest& hash,
+        const Random& random);
+    Storage(const Storage&) = delete;
+    Storage(Storage&&) = delete;
+    Storage& operator=(const Storage&) = delete;
+    Storage& operator=(Storage&&) = delete;
 };
 }  // namespace api
 }  // namespace opentxs

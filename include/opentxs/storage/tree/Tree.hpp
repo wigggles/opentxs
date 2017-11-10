@@ -146,7 +146,7 @@ public:
 
     bool Migrate(const StorageDriver& to) const override;
 
-    ~Tree() = default;
+    ~Tree();
 };
 }  // namespace storage
 }  // namespace opentxs

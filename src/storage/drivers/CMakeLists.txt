@@ -8,6 +8,7 @@ set(cxx-sources
   StorageFS.cpp
   StorageFSGC.cpp
   StorageFSArchive.cpp
+  StorageMultiplex.cpp
   StorageSqlite3.cpp
 )
 

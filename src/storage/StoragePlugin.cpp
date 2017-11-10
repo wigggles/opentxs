@@ -52,19 +52,12 @@ StoragePlugin_impl::StoragePlugin_impl(
     const StorageConfig& config,
     const Digest& hash,
     const Random& random,
-    std::atomic<bool>& bucket)
+    const std::atomic<bool>& bucket)
     : config_(config)
     , random_(random)
     , digest_(hash)
     , current_bucket_(bucket)
 {
-    // There's a bootstrapping problem with regard to this setting. This value
-    // must be set to a value in order to load the root object, However we don't
-    // know the correct value until after the root object is loaded and
-    // deserialized. The value of "false" here is arbitrary. It means that the
-    // initial load action for obtaining the root object will search the wrong
-    // bucket first about half the time.
-    current_bucket_.store(false);
 }
 
 bool StoragePlugin_impl::Load(
@@ -130,7 +123,7 @@ bool StoragePlugin_impl::Migrate(
     if (LoadFromBucket(key, value, sourceBucket)) {
 
         // save to the target bucket
-        if (to.Store(key, value, targetBucket)) {
+        if (to.Store(false, key, value, targetBucket)) {
             return true;
         } else {
             otErr << OT_METHOD << __FUNCTION__ << ": Save failure."
@@ -145,8 +138,7 @@ bool StoragePlugin_impl::Migrate(
     const bool exists = to.LoadFromBucket(key, value, targetBucket);
 
     if (!exists) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Missing key (" << key << ")."
-              << std::endl;
+        otInfo << OT_METHOD << __FUNCTION__ << ": Missing key." << std::endl;
 
         return false;
     }
@@ -155,36 +147,47 @@ bool StoragePlugin_impl::Migrate(
 }
 
 bool StoragePlugin_impl::Store(
+    const bool isTransaction,
     const std::string& key,
     const std::string& value,
     const bool bucket) const
 {
     std::promise<bool> promise;
     auto future = promise.get_future();
-    store(key, value, bucket, &promise);
+    store(isTransaction, key, value, bucket, &promise);
 
     return future.get();
 }
 
 void StoragePlugin_impl::Store(
+    const bool isTransaction,
     const std::string& key,
     const std::string& value,
     const bool bucket,
     std::promise<bool>& promise) const
 {
     std::thread thread(
-        &StoragePlugin_impl::store, this, key, value, bucket, &promise);
+        &StoragePlugin_impl::store,
+        this,
+        isTransaction,
+        key,
+        value,
+        bucket,
+        &promise);
     thread.detach();
 }
 
-bool StoragePlugin_impl::Store(const std::string& value, std::string& key) const
+bool StoragePlugin_impl::Store(
+    const bool isTransaction,
+    const std::string& value,
+    std::string& key) const
 {
     const bool bucket = current_bucket_.load();
 
     if (digest_) {
         digest_(api::Storage::HASH_TYPE, value, key);
 
-        return Store(key, value, bucket);
+        return Store(isTransaction, key, value, bucket);
     }
 
     return false;

@@ -1,0 +1,487 @@
+/************************************************************
+ *
+ *                 OPEN TRANSACTIONS
+ *
+ *       Financial Cryptography and Digital Cash
+ *       Library, Protocol, API, Server, CLI, GUI
+ *
+ *       -- Anonymous Numbered Accounts.
+ *       -- Untraceable Digital Cash.
+ *       -- Triple-Signed Receipts.
+ *       -- Cheques, Vouchers, Transfers, Inboxes.
+ *       -- Basket Currencies, Markets, Payment Plans.
+ *       -- Signed, XML, Ricardian-style Contracts.
+ *       -- Scripted smart contracts.
+ *
+ *  EMAIL:
+ *  fellowtraveler@opentransactions.org
+ *
+ *  WEBSITE:
+ *  http://www.opentransactions.org/
+ *
+ *  -----------------------------------------------------
+ *
+ *   LICENSE:
+ *   This Source Code Form is subject to the terms of the
+ *   Mozilla Public License, v. 2.0. If a copy of the MPL
+ *   was not distributed with this file, You can obtain one
+ *   at http://mozilla.org/MPL/2.0/.
+ *
+ *   DISCLAIMER:
+ *   This program is distributed in the hope that it will
+ *   be useful, but WITHOUT ANY WARRANTY; without even the
+ *   implied warranty of MERCHANTABILITY or FITNESS FOR A
+ *   PARTICULAR PURPOSE.  See the Mozilla Public License
+ *   for more details.
+ *
+ ************************************************************/
+#include "opentxs/stdafx.hpp"
+
+#include "opentxs/storage/drivers/StorageMultiplex.hpp"
+
+#if OT_STORAGE_FS
+#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/crypto/SymmetricKey.hpp"
+#endif
+#include "opentxs/core/Log.hpp"
+#include "opentxs/interface/storage/StoragePlugin.hpp"
+#if OT_STORAGE_FS
+#include "opentxs/storage/drivers/StorageFSGC.hpp"
+#include "opentxs/storage/drivers/StorageFSArchive.hpp"
+#endif
+#if OT_STORAGE_SQLITE
+#include "opentxs/storage/drivers/StorageSqlite3.hpp"
+#endif
+#include "opentxs/storage/tree/Root.hpp"
+#include "opentxs/storage/tree/Tree.hpp"
+#include "opentxs/storage/StorageConfig.hpp"
+
+#include <limits>
+
+#define OT_METHOD "opentxs::StorageMultiplex::"
+
+namespace opentxs
+{
+StorageMultiplex::StorageMultiplex(
+    const std::atomic<bool>& primary_bucket_,
+    const StorageConfig& config,
+    const Digest& hash,
+    const Random& random)
+    : primary_bucket_(primary_bucket_)
+    , config_(config)
+    , primary_plugin_()
+    , backup_plugins_()
+    , digest_(hash)
+    , random_(random)
+{
+    Init_StorageMultiplex();
+}
+
+std::string StorageMultiplex::best_root(bool& primaryOutOfSync)
+{
+    OT_ASSERT(primary_plugin_);
+
+    const std::string originalHash = primary_plugin_->LoadRoot();
+    std::shared_ptr<storage::Root> bestRoot{nullptr};
+    std::shared_ptr<storage::Root> localRoot{nullptr};
+    std::string bestHash{originalHash};
+    std::uint64_t bestVersion{0};
+    std::atomic<bool> bucket{false};
+
+    try {
+        localRoot.reset(new storage::Root(
+            *this, bestHash, std::numeric_limits<std::int64_t>::max(), bucket));
+        bestVersion = localRoot->Sequence();
+        bestRoot = localRoot;
+    } catch (std::runtime_error&) {
+    }
+
+    for (const auto& plugin : backup_plugins_) {
+        OT_ASSERT(plugin);
+
+        std::string rootHash = plugin->LoadRoot();
+        std::uint64_t localVersion{0};
+
+        try {
+            localRoot.reset(new storage::Root(
+                *this,
+                rootHash,
+                std::numeric_limits<std::int64_t>::max(),
+                bucket));
+            localVersion = localRoot->Sequence();
+        } catch (std::runtime_error&) {
+        }
+
+        if (localVersion > bestVersion) {
+            bestVersion = localVersion;
+            bestHash = rootHash;
+            bestRoot = localRoot;
+        }
+    }
+
+    if (0 == bestVersion) {
+        bestHash = "";
+    }
+
+    if (originalHash != bestHash) {
+        primary_plugin_->StoreRoot(false, bestHash);
+        bestRoot->Save(*primary_plugin_);
+        primaryOutOfSync = true;
+    } else {
+        primaryOutOfSync = false;
+    }
+
+    return bestHash;
+}
+
+void StorageMultiplex::Cleanup() { Cleanup_StorageMultiplex(); }
+
+void StorageMultiplex::Cleanup_StorageMultiplex() {}
+
+bool StorageMultiplex::EmptyBucket(const bool bucket) const
+{
+    OT_ASSERT(primary_plugin_);
+
+    for (const auto& plugin : backup_plugins_) {
+        OT_ASSERT(plugin);
+
+        plugin->EmptyBucket(bucket);
+    }
+
+    return primary_plugin_->EmptyBucket(bucket);
+}
+
+void StorageMultiplex::Init_StorageMultiplex()
+{
+    if (OT_STORAGE_PRIMARY_PLUGIN_SQLITE == config_.primary_plugin_) {
+#if OT_STORAGE_SQLITE
+        otInfo << OT_METHOD << __FUNCTION__
+               << ": Initializing primary sqlite3 plugin." << std::endl;
+        primary_plugin_.reset(
+            new StorageSqlite3(config_, digest_, random_, primary_bucket_));
+#else
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Sqlite3 driver not compiled in." << std::endl;
+#endif
+    } else if (OT_STORAGE_PRIMARY_PLUGIN_FS == config_.primary_plugin_) {
+#if OT_STORAGE_FS
+        otInfo << OT_METHOD << __FUNCTION__
+               << ": Initializing primary filesystem plugin." << std::endl;
+        primary_plugin_.reset(
+            new StorageFSGC(config_, digest_, random_, primary_bucket_));
+#else
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Filesystem driver not compiled in." << std::endl;
+#endif
+    }
+
+    OT_ASSERT(primary_plugin_);
+}
+
+void StorageMultiplex::InitBackup()
+{
+    if (config_.fs_backup_directory_.empty()) {
+
+        return;
+    }
+
+#if OT_STORAGE_FS
+    std::unique_ptr<SymmetricKey> null(nullptr);
+    backup_plugins_.emplace_back(new StorageFSArchive(
+        config_,
+        digest_,
+        random_,
+        primary_bucket_,
+        config_.fs_backup_directory_,
+        null));
+#else
+    return;
+#endif
+}
+
+void StorageMultiplex::InitEncryptedBackup(__attribute__((unused))
+                                           std::unique_ptr<SymmetricKey>& key)
+{
+    if (config_.fs_encrypted_backup_directory_.empty()) {
+
+        return;
+    }
+
+#if OT_STORAGE_FS
+    backup_plugins_.emplace_back(new StorageFSArchive(
+        config_,
+        digest_,
+        random_,
+        primary_bucket_,
+        config_.fs_encrypted_backup_directory_,
+        key));
+#else
+    return;
+#endif
+}
+
+bool StorageMultiplex::Load(
+    const std::string& key,
+    const bool checking,
+    std::string& value) const
+{
+    OT_ASSERT(primary_plugin_);
+
+    if (primary_plugin_->Load(key, checking, value)) {
+
+        return true;
+    }
+
+    if (false == checking) {
+        otInfo << OT_METHOD << __FUNCTION__
+               << ": key not found by primary storage plugin." << std::endl;
+    }
+
+    std::size_t count{0};
+
+    for (const auto& plugin : backup_plugins_) {
+        OT_ASSERT(plugin);
+
+        if (plugin->Load(key, checking, value)) {
+            auto notUsed = key;
+            primary_plugin_->Store(false, value, notUsed);
+
+            return true;
+        }
+
+        if (false == checking) {
+            otInfo << OT_METHOD << __FUNCTION__
+                   << ": key not found by backup storage plugin " << count
+                   << std::endl;
+        }
+
+        ++count;
+    }
+
+    if (false == checking) {
+        otErr << OT_METHOD << __FUNCTION__ << ": key not found by any plugin."
+              << std::endl;
+
+        throw std::runtime_error("");
+    }
+
+    return false;
+}
+
+bool StorageMultiplex::LoadFromBucket(
+    const std::string& key,
+    std::string& value,
+    const bool bucket) const
+{
+    OT_ASSERT(primary_plugin_);
+
+    if (primary_plugin_->LoadFromBucket(key, value, bucket)) {
+
+        return true;
+    }
+
+    for (const auto& plugin : backup_plugins_) {
+        OT_ASSERT(plugin);
+
+        if (plugin->LoadFromBucket(key, value, bucket)) {
+
+            return true;
+        }
+    }
+
+    return false;
+}
+
+std::string StorageMultiplex::LoadRoot() const
+{
+    OT_ASSERT(primary_plugin_);
+
+    std::string root = primary_plugin_->LoadRoot();
+
+    if (false == root.empty()) {
+
+        return root;
+    }
+
+    for (const auto& plugin : backup_plugins_) {
+        OT_ASSERT(plugin);
+
+        root = plugin->LoadRoot();
+
+        if (false == root.empty()) {
+
+            return root;
+        }
+    }
+
+    return root;
+}
+
+bool StorageMultiplex::Migrate(const std::string& key, const StorageDriver& to)
+    const
+{
+    OT_ASSERT(primary_plugin_);
+
+    if (primary_plugin_->Migrate(key, to)) {
+
+        return true;
+    }
+
+    for (const auto& plugin : backup_plugins_) {
+        OT_ASSERT(plugin);
+
+        if (plugin->Migrate(key, to)) {
+
+            return true;
+        }
+    }
+
+    return false;
+}
+
+StorageDriver& StorageMultiplex::Primary()
+{
+    OT_ASSERT(primary_plugin_);
+
+    return *primary_plugin_;
+}
+
+bool StorageMultiplex::Store(
+    const bool isTransaction,
+    const std::string& key,
+    const std::string& value,
+    const bool bucket) const
+{
+    OT_ASSERT(primary_plugin_);
+
+    std::vector<std::promise<bool>> promises{};
+    std::vector<std::future<bool>> futures{};
+    promises.push_back(std::promise<bool>());
+    auto& primaryPromise = promises.back();
+    futures.push_back(primaryPromise.get_future());
+    primary_plugin_->Store(isTransaction, key, value, bucket, primaryPromise);
+
+    for (const auto& plugin : backup_plugins_) {
+        OT_ASSERT(plugin);
+
+        promises.push_back(std::promise<bool>());
+        auto& promise = promises.back();
+        futures.push_back(promise.get_future());
+        plugin->Store(isTransaction, key, value, bucket, promise);
+    }
+
+    bool output = false;
+
+    for (auto& future : futures) {
+        output |= future.get();
+    }
+
+    return output;
+}
+
+void StorageMultiplex::Store(
+    const bool,
+    const std::string&,
+    const std::string&,
+    const bool,
+    std::promise<bool>&) const
+{
+    // This method should never be called
+
+    OT_FAIL;
+}
+
+bool StorageMultiplex::Store(
+    const bool isTransaction,
+    const std::string& key,
+    std::string& value) const
+{
+    OT_ASSERT(primary_plugin_);
+
+    bool output = primary_plugin_->Store(isTransaction, key, value);
+
+    for (const auto& plugin : backup_plugins_) {
+        OT_ASSERT(plugin);
+
+        output |= plugin->Store(isTransaction, key, value);
+    }
+
+    return output;
+}
+
+bool StorageMultiplex::StoreRoot(const bool commit, const std::string& hash)
+    const
+{
+    OT_ASSERT(primary_plugin_);
+
+    for (const auto& plugin : backup_plugins_) {
+        OT_ASSERT(plugin);
+
+        plugin->StoreRoot(commit, hash);
+    }
+
+    return primary_plugin_->StoreRoot(commit, hash);
+}
+
+void StorageMultiplex::synchronize_plugins(
+    const std::string& hash,
+    const storage::Root& root,
+    const bool syncPrimary)
+{
+    const auto& tree = root.Tree();
+
+    if (syncPrimary) {
+        OT_ASSERT(primary_plugin_);
+
+        otErr << OT_METHOD << __FUNCTION__ << ": Primary plugin is out of sync."
+              << std::endl;
+
+        const auto migrated = tree.Migrate(*primary_plugin_);
+
+        if (migrated) {
+            otErr << OT_METHOD << __FUNCTION__
+                  << ": Successfully restored primary plugin from backup."
+                  << std::endl;
+        } else {
+            otErr << OT_METHOD << __FUNCTION__
+                  << ": Failed to restore primary plugin from backup."
+                  << std::endl;
+        }
+    }
+
+    for (const auto& plugin : backup_plugins_) {
+        OT_ASSERT(plugin);
+
+        if (hash == plugin->LoadRoot()) {
+
+            continue;
+        }
+
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Backup plugin is uninitialized or out of sync."
+              << std::endl;
+
+        if (tree.Migrate(*plugin)) {
+            otErr << OT_METHOD << __FUNCTION__
+                  << ": Successfully initialized backup plugin." << std::endl;
+        } else {
+            otErr << OT_METHOD << __FUNCTION__
+                  << ": Failed to initialize backup plugin." << std::endl;
+        }
+
+        if (false == root.Save(*plugin)) {
+            otErr << OT_METHOD << __FUNCTION__
+                  << ": Failed to update root index object for backup plugin."
+                  << std::endl;
+        }
+
+        if (false == plugin->StoreRoot(false, hash)) {
+            otErr << OT_METHOD << __FUNCTION__
+                  << ": Failed to update root hash for backup plugin."
+                  << std::endl;
+        }
+    }
+}
+
+StorageMultiplex::~StorageMultiplex() { Cleanup_StorageMultiplex(); }
+}  // namespace opentxs

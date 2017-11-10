@@ -113,7 +113,7 @@ void Root::collect_garbage(const StorageDriver* to) const
         oldLocation = current_bucket_.load();
         current_bucket_.store(!oldLocation);
         save(lock);
-        driver_.StoreRoot(root_);
+        driver_.StoreRoot(true, root_);
     }
 
     lock.unlock();
@@ -137,7 +137,7 @@ void Root::collect_garbage(const StorageDriver* to) const
     gc_root_ = "";
     last_gc_.store(std::time(nullptr));
     save(lock);
-    driver_.StoreRoot(root_);
+    driver_.StoreRoot(true, root_);
     lock.unlock();
     gcLock.unlock();
     otErr << OT_METHOD << __FUNCTION__ << ": Finished garbage collection."
@@ -207,18 +207,27 @@ Editor<class Tree> Root::mutable_Tree()
     return Editor<class Tree>(write_lock_, tree(), callback);
 }
 
-bool Root::save(const std::unique_lock<std::mutex>& lock) const
+bool Root::save(const Lock& lock, const StorageDriver& to) const
+{
+    OT_ASSERT(verify_write_lock(lock));
+
+    auto serialized = serialize();
+
+    if (false == proto::Validate(serialized, VERBOSE)) {
+
+        return false;
+    }
+
+    return to.StoreProto(serialized, root_);
+}
+
+bool Root::save(const Lock& lock) const
 {
     OT_ASSERT(verify_write_lock(lock));
 
     sequence_++;
-    auto serialized = serialize();
 
-    if (!proto::Validate(serialized, VERBOSE)) {
-        return false;
-    }
-
-    return driver_.StoreProto(serialized, root_);
+    return save(lock, driver_);
 }
 
 void Root::save(class Tree* tree, const Lock& lock)
@@ -234,6 +243,13 @@ void Root::save(class Tree* tree, const Lock& lock)
     const bool saved = save(lock);
 
     OT_ASSERT(saved);
+}
+
+bool Root::Save(const StorageDriver& to) const
+{
+    Lock lock(write_lock_);
+
+    return save(lock, to);
 }
 
 std::uint64_t Root::Sequence() const { return sequence_.load(); }

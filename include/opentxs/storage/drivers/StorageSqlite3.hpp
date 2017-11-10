@@ -49,37 +49,63 @@ extern "C" {
 #include <sqlite3.h>
 }
 
+#include <atomic>
+#include <mutex>
+#include <tuple>
+#include <vector>
+
 namespace opentxs
 {
 
 class StorageConfig;
-
-namespace api
-{
-
-class Storage;
-
-}  // namespace api
+class StorageMultiplex;
 
 // SQLite3 implementation of opentxs::storage
 class StorageSqlite3 : public virtual StoragePlugin_impl,
                        public virtual StorageDriver
 {
+public:
+    bool EmptyBucket(const bool bucket) const override;
+    bool LoadFromBucket(
+        const std::string& key,
+        std::string& value,
+        const bool bucket) const override;
+    std::string LoadRoot() const override;
+    bool StoreRoot(const bool commit, const std::string& hash) const override;
+
+    void Cleanup() override;
+    void Cleanup_StorageSqlite3();
+
+    ~StorageSqlite3();
+
 private:
     typedef StoragePlugin_impl ot_super;
 
-    friend class api::Storage;
+    friend class StorageMultiplex;
 
     std::string folder_;
+    mutable std::mutex transaction_lock_;
+    mutable std::atomic<bool> transaction_bucket_;
+    mutable std::vector<std::pair<const std::string, const std::string>>
+        pending_;
     sqlite3* db_{nullptr};
 
     std::string GetTableName(const bool bucket) const;
 
+    bool commit() const;
+    bool commit_transaction(const std::string& rootHash) const;
+    bool Create(const std::string& tablename) const;
     bool Select(
         const std::string& key,
         const std::string& tablename,
         std::string& value) const;
+    bool Purge(const std::string& tablename) const;
+    void rollback() const;
+    bool set_data() const;
+    bool set_root(const std::string& rootHash) const;
+    bool start_transaction() const;
     void store(
+        const bool isTransaction,
         const std::string& key,
         const std::string& value,
         const bool bucket,
@@ -88,8 +114,6 @@ private:
         const std::string& key,
         const std::string& tablename,
         const std::string& value) const;
-    bool Create(const std::string& tablename) const;
-    bool Purge(const std::string& tablename) const;
 
     void Init_StorageSqlite3();
 
@@ -97,27 +121,13 @@ private:
         const StorageConfig& config,
         const Digest& hash,
         const Random& random,
-        std::atomic<bool>& bucket);
+        const std::atomic<bool>& bucket);
     StorageSqlite3() = delete;
     StorageSqlite3(const StorageSqlite3&) = delete;
     StorageSqlite3(StorageSqlite3&&) = delete;
     StorageSqlite3& operator=(const StorageSqlite3&) = delete;
     StorageSqlite3& operator=(StorageSqlite3&&) = delete;
-
-public:
-    std::string LoadRoot() const override;
-    bool StoreRoot(const std::string& hash) const override;
-    bool LoadFromBucket(
-        const std::string& key,
-        std::string& value,
-        const bool bucket) const override;
-    bool EmptyBucket(const bool bucket) const override;
-
-    void Cleanup_StorageSqlite3();
-    void Cleanup() override;
-    ~StorageSqlite3();
 };
-
 }  // namespace opentxs
 #endif  // OT_STORAGE_SQLITE
 #endif  // OPENTXS_STORAGE_STORAGESQLITE3_HPP

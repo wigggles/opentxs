@@ -62,21 +62,27 @@ public:
         const bool bucket) const = 0;
 
     virtual bool Store(
+        const bool isTransaction,
         const std::string& key,
         const std::string& value,
         const bool bucket) const = 0;
     virtual void Store(
+        const bool isTransaction,
         const std::string& key,
         const std::string& value,
         const bool bucket,
         std::promise<bool>& promise) const = 0;
-    virtual bool Store(const std::string& value, std::string& key) const = 0;
+    virtual bool Store(
+        const bool isTransaction,
+        const std::string& value,
+        std::string& key) const = 0;
 
     virtual bool Migrate(const std::string& key, const StorageDriver& to)
         const = 0;
 
     virtual std::string LoadRoot() const = 0;
-    virtual bool StoreRoot(const std::string& hash) const = 0;
+    virtual bool StoreRoot(const bool commit, const std::string& hash)
+        const = 0;
 
     virtual ~StorageDriver() = default;
 

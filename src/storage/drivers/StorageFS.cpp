@@ -68,7 +68,7 @@ StorageFS::StorageFS(
     const Digest& hash,
     const Random& random,
     const std::string& folder,
-    std::atomic<bool>& bucket)
+    const std::atomic<bool>& bucket)
     : ot_super(config, hash, random, bucket)
     , folder_(folder)
     , path_seperator_(PATH_SEPERATOR)
@@ -159,6 +159,7 @@ std::string StorageFS::read_file(const std::string& filename) const
 }
 
 void StorageFS::store(
+    const bool,
     const std::string& key,
     const std::string& value,
     const bool bucket,
@@ -175,7 +176,7 @@ void StorageFS::store(
     }
 }
 
-bool StorageFS::StoreRoot(const std::string& hash) const
+bool StorageFS::StoreRoot(const bool, const std::string& hash) const
 {
     if (ready_.load() && false == folder_.empty()) {
 
