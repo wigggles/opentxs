@@ -41,6 +41,7 @@
 #include "opentxs/client/commands/CmdBaseAccept.hpp"
 
 #include "opentxs/api/Api.hpp"
+#include "opentxs/api/Native.hpp"
 #include "opentxs/api/OT.hpp"
 #include "opentxs/client/commands/CmdConfirm.hpp"
 #include "opentxs/client/commands/CmdPayInvoice.hpp"

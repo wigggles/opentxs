@@ -40,6 +40,7 @@
 #include "opentxs/core/crypto/TrezorCrypto.hpp"
 
 #if OT_CRYPTO_USING_TREZOR
+#include "opentxs/api/Native.hpp"
 #include "opentxs/api/OT.hpp"
 #include "opentxs/core/crypto/CryptoEngine.hpp"
 #include "opentxs/core/crypto/CryptoHashEngine.hpp"
@@ -98,8 +99,9 @@ void TrezorCrypto::WordsToSeed(
 }
 #endif  // OT_CRYPTO_WITH_BIP39
 
-TrezorCrypto::TrezorCrypto(OT& ot)
-    : Bip39(ot)
+TrezorCrypto::TrezorCrypto(api::Native& native)
+    : Bip39(native)
+    , native_(native)
 {
 #if OT_CRYPTO_WITH_BIP32
     secp256k1_ = get_curve_by_name(CurveName(EcdsaCurve::SECP256K1).c_str());
@@ -144,7 +146,7 @@ serializedAsymmetricKey TrezorCrypto::SeedToPrivateKey(
 
         if (derivedKey) {
             OTPassword root;
-            OT::App().Crypto().Hash().Digest(
+            native_.Crypto().Hash().Digest(
                 proto::HASHTYPE_BLAKE2B160, seed, root);
             derivedKey->mutable_path()->set_root(
                 root.getMemory(), root.getMemorySize());

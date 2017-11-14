@@ -1,4 +1,5 @@
 set(cxx-sources
+  implementation/Native.cpp
   Activity.cpp
   Api.cpp
   Blockchain.cpp
@@ -17,6 +18,7 @@ file(GLOB cxx-install-headers
 
 set(cxx-headers
   ${cxx-install-headers}
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/api/implementation/Native.hpp
 )
 
 set(MODULE_NAME opentxs-api)

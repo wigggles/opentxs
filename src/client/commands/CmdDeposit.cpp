@@ -41,6 +41,7 @@
 #include "opentxs/client/commands/CmdDeposit.hpp"
 
 #include "opentxs/api/Api.hpp"
+#include "opentxs/api/Native.hpp"
 #include "opentxs/api/OT.hpp"
 #include "opentxs/client/commands/CmdBase.hpp"
 #include "opentxs/client/MadeEasy.hpp"

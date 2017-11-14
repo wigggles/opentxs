@@ -82,13 +82,13 @@ extern "C" {
 namespace opentxs
 {
 
-CryptoEngine::CryptoEngine(OT& ot)
-    : ot_(ot)
+CryptoEngine::CryptoEngine(api::Native& native)
+    : native_(native)
     , cached_key_lock_()
     , primary_key_(nullptr)
     , cached_keys_()
 #if OT_CRYPTO_USING_TREZOR
-    , bitcoincrypto_(new TrezorCrypto(ot_))
+    , bitcoincrypto_(new TrezorCrypto(native_))
 #endif
     , ed25519_(new Curve25519)
     , ssl_(new SSLImplementation)

@@ -41,6 +41,7 @@
 #include "opentxs/client/OT_ME.hpp"
 
 #include "opentxs/api/Api.hpp"
+#include "opentxs/api/Native.hpp"
 #include "opentxs/api/OT.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/client/commands/CmdAcceptInbox.hpp"

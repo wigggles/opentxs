@@ -40,6 +40,7 @@
 #include "opentxs/core/crypto/OpenSSL.hpp"
 
 #if OT_CRYPTO_USING_OPENSSL
+#include "opentxs/api/Native.hpp"
 #include "opentxs/api/OT.hpp"
 #include "opentxs/core/crypto/Crypto.hpp"
 #include "opentxs/core/crypto/CryptoEngine.hpp"

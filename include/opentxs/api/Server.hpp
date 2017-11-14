@@ -72,7 +72,6 @@ namespace opentxs
 
 class Identifier;
 class Mint;
-class OT;
 
 namespace server
 {
@@ -86,6 +85,11 @@ namespace api
 {
 
 class Wallet;
+
+namespace implementation
+{
+class Native;
+}
 
 class Server
 {
@@ -106,7 +110,7 @@ public:
     ~Server();
 
 private:
-    friend class opentxs::OT;
+    friend class implementation::Native;
 
     typedef std::map<std::string, std::shared_ptr<Mint>> MintSeries;
 

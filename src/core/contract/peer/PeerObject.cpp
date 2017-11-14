@@ -40,6 +40,7 @@
 
 #include "opentxs/core/contract/peer/PeerObject.hpp"
 
+#include "opentxs/api/Native.hpp"
 #include "opentxs/api/OT.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"

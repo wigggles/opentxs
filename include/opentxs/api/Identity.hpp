@@ -52,19 +52,27 @@
 namespace opentxs
 {
 
-class OT;
 class Nym;
 class OTPasswordData;
 
 namespace api
 {
+class Wallet;
+
+namespace implementation
+{
+class Native;
+}
 
 class Identity
 {
 private:
-    friend OT;
+    friend class implementation::Native;
 
-    Identity() = default;
+    api::Wallet& wallet_;
+
+    Identity(api::Wallet& wallet);
+    Identity() = delete;
     Identity(const Identity&) = delete;
     Identity& operator=(const Identity&) = delete;
 

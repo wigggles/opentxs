@@ -40,6 +40,7 @@
 
 #include "opentxs/core/crypto/AsymmetricKeyEd25519.hpp"
 
+#include "opentxs/api/Native.hpp"
 #include "opentxs/api/OT.hpp"
 #include "opentxs/core/crypto/CryptoAsymmetric.hpp"
 #include "opentxs/core/crypto/CryptoEngine.hpp"

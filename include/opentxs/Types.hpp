@@ -108,6 +108,8 @@ typedef std::function<
     Digest;
 typedef std::function<std::string()> Random;
 
+typedef std::function<void()> PeriodicTask;
+
 /** C++11 representation of a claim. This version is more useful than the
  *  protobuf version, since it contains the claim ID.
  */

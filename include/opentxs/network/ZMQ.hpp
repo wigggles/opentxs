@@ -70,19 +70,21 @@ typedef struct _zpoller_t zpoller_t;
 
 namespace opentxs
 {
-
-class OT;
 class ServerConnection;
 
 namespace api
 {
-
 class Settings;
+
+namespace implementation
+{
+class Native;
+}
 
 class ZMQ
 {
 private:
-    friend class opentxs::OT;
+    friend class implementation::Native;
 
     api::Settings& config_;
     std::atomic<std::chrono::seconds> linger_;

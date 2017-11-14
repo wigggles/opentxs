@@ -50,7 +50,6 @@
 namespace opentxs
 {
 
-class OT;
 class Log;
 class OTDataFolder;
 class OTFolders;
@@ -59,10 +58,15 @@ class OTPaths;
 namespace api
 {
 
+namespace implementation
+{
+class Native;
+}
+
 class Settings
 {
 private:
-    friend class opentxs::OT;
+    friend class implementation::Native;
     friend class opentxs::Log;
     friend class opentxs::OTDataFolder;
     friend class opentxs::OTFolders;

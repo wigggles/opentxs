@@ -40,6 +40,7 @@
 
 #include "opentxs/contact/Contact.hpp"
 
+#include "opentxs/api/Native.hpp"
 #include "opentxs/api/OT.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/contact/ContactData.hpp"

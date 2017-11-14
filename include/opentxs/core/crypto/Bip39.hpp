@@ -52,8 +52,12 @@
 namespace opentxs
 {
 
-class OT;
 class OTPassword;
+
+namespace api
+{
+class Native;
+}  // namespace api
 
 class Bip39
 {
@@ -75,10 +79,10 @@ public:
     virtual ~Bip39() = default;
 
 protected:
-    Bip39(OT& ot);
+    Bip39(api::Native& native);
 
 private:
-    OT& ot_;
+    api::Native& native_;
 
     static const proto::SymmetricMode DEFAULT_ENCRYPTION_MODE;
 

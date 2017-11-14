@@ -40,6 +40,7 @@
 
 #include "opentxs/cash/Purse.hpp"
 
+#include "opentxs/api/Native.hpp"
 #include "opentxs/api/OT.hpp"
 #include "opentxs/cash/Token.hpp"
 #include "opentxs/core/Contract.hpp"

@@ -499,6 +499,7 @@ various sequence numbers. Hm.
 #include "opentxs/core/script/OTSmartContract.hpp"
 
 #include "opentxs/api/Identity.hpp"
+#include "opentxs/api/Native.hpp"
 #include "opentxs/api/OT.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/consensus/ClientContext.hpp"

@@ -53,7 +53,6 @@ namespace opentxs
 {
 
 class Contact;
-class OT;
 class PaymentCode;
 
 namespace api
@@ -61,6 +60,11 @@ namespace api
 
 class Storage;
 class Wallet;
+
+namespace implementation
+{
+class Native;
+}
 
 class ContactManager
 {
@@ -92,7 +96,7 @@ public:
     ~ContactManager() = default;
 
 private:
-    friend class opentxs::OT;
+    friend class implementation::Native;
 
     typedef std::pair<std::mutex, std::shared_ptr<class Contact>> ContactLock;
     typedef std::pair<proto::ContactItemType, std::string> Address;

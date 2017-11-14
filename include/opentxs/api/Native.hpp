@@ -36,92 +36,73 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_CORE_API_API_HPP
-#define OPENTXS_CORE_API_API_HPP
+/** \defgroup native Native API */
+
+#ifndef OPENTXS_CORE_API_NATIVE_HPP
+#define OPENTXS_CORE_API_NATIVE_HPP
 
 #include "opentxs/Version.hpp"
 
-#include <memory>
-#include <mutex>
+#include "opentxs/Types.hpp"
+
+#include <chrono>
+#include <functional>
 #include <string>
 
 namespace opentxs
 {
-
 class CryptoEngine;
-class MadeEasy;
-class OT_API;
-class OT_ME;
-class OTAPI_Exec;
-class OTME_too;
 
 namespace api
 {
-
 class Activity;
+class Api;
+class Blockchain;
 class ContactManager;
+class Dht;
 class Identity;
+class Server;
 class Settings;
 class Storage;
 class Wallet;
 class ZMQ;
 
-namespace implementation
-{
-class Native;
-}
-
-class Api
+class Native
 {
 public:
-    std::recursive_mutex& Lock() const;
+    virtual class Activity& Activity() const = 0;
+    virtual class Api& API() const = 0;
+    virtual class Blockchain& Blockchain() const = 0;
+    virtual class Settings& Config(
+        const std::string& path = std::string("")) const = 0;
+    virtual class ContactManager& Contact() const = 0;
+    virtual opentxs::CryptoEngine& Crypto() const = 0;
+    virtual class Storage& DB() const = 0;
+    virtual class Dht& DHT() const = 0;
+    virtual void HandleSignals() const = 0;
+    virtual class Identity& Identity() const = 0;
+    /** Adds a task to the periodic task list with the specified interval. By
+     * default, schedules for immediate execution. */
+    virtual void Schedule(
+        const std::chrono::seconds& interval,
+        const opentxs::PeriodicTask& task,
+        const std::chrono::seconds& last = std::chrono::seconds(0)) const = 0;
+    virtual const class Server& Server() const = 0;
+    virtual bool ServerMode() const = 0;
+    virtual class Wallet& Wallet() const = 0;
+    virtual class ZMQ& ZMQ() const = 0;
 
-    OTAPI_Exec& Exec(const std::string& wallet = "");
-    MadeEasy& ME(const std::string& wallet = "");
-    OT_API& OTAPI(const std::string& wallet = "");
-    OT_ME& OTME(const std::string& wallet = "");
-    OTME_too& OTME_TOO(const std::string& wallet = "");
+    virtual ~Native() = default;
 
-    ~Api() = default;
+protected:
+    Native() = default;
 
 private:
-    friend class implementation::Native;
-
-    Activity& activity_;
-    Settings& config_;
-    ContactManager& contacts_;
-    CryptoEngine& crypto_engine_;
-    Identity& identity_;
-    Storage& storage_;
-    Wallet& wallet_;
-    ZMQ& zmq_;
-
-    std::unique_ptr<OT_API> ot_api_;
-    std::unique_ptr<OTAPI_Exec> otapi_exec_;
-    std::unique_ptr<MadeEasy> made_easy_;
-    std::unique_ptr<OT_ME> ot_me_;
-    std::unique_ptr<OTME_too> otme_too_;
-
-    mutable std::recursive_mutex lock_;
-
-    void Cleanup();
-    void Init();
-
-    Api(Activity& activity,
-        Settings& config,
-        ContactManager& contacts,
-        CryptoEngine& crypto,
-        Identity& identity,
-        Storage& storage,
-        Wallet& wallet,
-        ZMQ& zmq);
-    Api() = delete;
-    Api(const Api&) = delete;
-    Api(Api&&) = delete;
-    Api& operator=(const Api&) = delete;
-    Api& operator=(Api&&) = delete;
+    Native(const Native&) = delete;
+    Native(Native&&) = delete;
+    Native& operator=(const Native&) = delete;
+    Native& operator=(Native&&) = delete;
 };
 }  // namespace api
 }  // namespace opentxs
-
-#endif  // OPENTXS_CORE_API_API_HPP
+#endif  // OPENTXS_CORE_API_NATIVE_HPP
