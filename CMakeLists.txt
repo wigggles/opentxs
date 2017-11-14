@@ -709,12 +709,6 @@ endif()
 #-----------------------------------------------------------------------------
 # Install
 
-install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/
-        DESTINATION include
-        COMPONENT dev
-        FILES_MATCHING PATTERN "*.hpp"
-        PATTERN "stdafx.hpp" EXCLUDE)
-
 install(FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/deps/containers/simple_ptr.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/deps/containers/containers_fixes.hpp

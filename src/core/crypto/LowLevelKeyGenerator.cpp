@@ -40,6 +40,7 @@
 
 #include "opentxs/core/crypto/LowLevelKeyGenerator.hpp"
 
+#include "opentxs/api/Native.hpp"
 #include "opentxs/api/OT.hpp"
 #include "opentxs/core/crypto/AsymmetricKeyEd25519.hpp"
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1

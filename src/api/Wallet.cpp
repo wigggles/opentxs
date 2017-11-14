@@ -43,7 +43,7 @@
 #include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Dht.hpp"
 #include "opentxs/api/Identity.hpp"
-#include "opentxs/api/OT.hpp"
+#include "opentxs/api/Native.hpp"
 #include "opentxs/api/Server.hpp"
 #include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/consensus/Context.hpp"
@@ -66,7 +66,7 @@
 namespace opentxs::api
 {
 
-Wallet::Wallet(OT& ot)
+Wallet::Wallet(Native& ot)
     : ot_(ot)
 {
 }
@@ -137,9 +137,9 @@ std::shared_ptr<class Context> Wallet::context(
                 *serialized, localNym, remoteNym, connection));
         } break;
         case proto::CONSENSUSTYPE_CLIENT: {
-            OT_ASSERT(OT::App().ServerMode());
+            OT_ASSERT(ot_.ServerMode());
 
-            const auto& serverID = OT::App().Server().ID();
+            const auto& serverID = ot_.Server().ID();
             entry.reset(new class ClientContext(
                 *serialized, localNym, remoteNym, serverID));
         } break;
@@ -171,8 +171,8 @@ std::shared_ptr<const class Context> Wallet::Context(
     Identifier serverID = notaryID;
     Identifier local, remote;
 
-    if (OT::App().ServerMode()) {
-        local = OT::App().Server().NymID();
+    if (ot_.ServerMode()) {
+        local = ot_.Server().NymID();
         remote = clientNymID;
     } else {
         local = clientNymID;
@@ -186,9 +186,9 @@ std::shared_ptr<const class ClientContext> Wallet::ClientContext(
     const Identifier&,  // Not used for now.
     const Identifier& remoteNymID)
 {
-    OT_ASSERT(OT::App().ServerMode());
+    OT_ASSERT(ot_.ServerMode());
 
-    const auto& serverNymID = OT::App().Server().NymID();
+    const auto& serverNymID = ot_.Server().NymID();
     auto base = context(serverNymID, remoteNymID);
     auto output = std::dynamic_pointer_cast<const class ClientContext>(base);
 
@@ -213,11 +213,11 @@ Editor<class Context> Wallet::mutable_Context(
     const Identifier& clientNymID)
 {
     Identifier serverID = notaryID;
-    const bool serverMode = OT::App().ServerMode();
+    const bool serverMode = ot_.ServerMode();
     Identifier local, remote;
 
     if (serverMode) {
-        local = OT::App().Server().NymID();
+        local = ot_.Server().NymID();
         remote = clientNymID;
     } else {
         local = clientNymID;
@@ -237,10 +237,10 @@ Editor<class ClientContext> Wallet::mutable_ClientContext(
     const Identifier&,  // Not used for now.
     const Identifier& remoteNymID)
 {
-    OT_ASSERT(OT::App().ServerMode());
+    OT_ASSERT(ot_.ServerMode());
 
-    const auto& serverID = OT::App().Server().ID();
-    const auto& serverNymID = OT::App().Server().NymID();
+    const auto& serverID = ot_.Server().ID();
+    const auto& serverNymID = ot_.Server().NymID();
     Lock lock(context_map_lock_);
     auto base = context(serverNymID, remoteNymID);
     std::function<void(class Context*)> callback =

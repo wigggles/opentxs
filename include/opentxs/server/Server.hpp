@@ -60,18 +60,27 @@
 
 namespace opentxs
 {
-
+class CryptoEngine;
 class Identifier;
 class Message;
 class OTPayment;
 class PayDividendVisitor;
 class ServerContract;
 
+namespace api
+{
+class Server;
+class Settings;
+class Storage;
+class Wallet;
+}  // namespace api
+
 namespace server
 {
 
 class Server
 {
+    friend class opentxs::api::Server;
     friend class Transactor;
     friend class MessageProcessor;
     friend class UserCommandProcessor;
@@ -80,8 +89,6 @@ class Server
     friend class Notary;
 
 public:
-    EXPORT Server();
-
     EXPORT bool GetConnectInfo(std::string& hostname, std::uint32_t& port)
         const;
     EXPORT const Identifier& GetServerID() const;
@@ -99,8 +106,44 @@ public:
     EXPORT ~Server();
 
 private:
-    std::pair<std::string, std::string> parse_seed_backup(
-        const std::string& input) const;
+    const std::string DEFAULT_EXTERNAL_IP = "127.0.0.1";
+    const std::string DEFAULT_BIND_IP = "127.0.0.1";
+    const std::string DEFAULT_NAME = "localhost";
+    const std::uint32_t DEFAULT_COMMAND_PORT = 7085;
+    const std::uint32_t DEFAULT_NOTIFY_PORT = 7086;
+    const std::uint32_t MIN_TCP_PORT = 1024;
+    const std::uint32_t MAX_TCP_PORT = 63356;
+
+    opentxs::CryptoEngine& crypto_;
+    opentxs::api::Settings& config_;
+    opentxs::api::Server& mint_;
+    opentxs::api::Storage& storage_;
+    opentxs::api::Wallet& wallet_;
+    MainFile mainFile_;
+    Notary notary_;
+    Transactor transactor_;
+    UserCommandProcessor userCommandProcessor_;
+    String m_strWalletFilename;
+    // Used at least for whether or not to write to the PID.
+    bool m_bReadOnly{false};
+    // If the server wants to be shut down, it can set
+    // this flag so the caller knows to do so.
+    bool m_bShutdownFlag{false};
+    // A hash of the server contract
+    Identifier m_strNotaryID;
+    // A hash of the public key that signed the server contract
+    String m_strServerNymID;
+    // This is the server's own contract, containing its public key and
+    // connect info.
+    Nym m_nymServer;
+    OTCron m_Cron;  // This is where re-occurring and expiring tasks go.
+
+    Server(
+        opentxs::CryptoEngine& crypto,
+        opentxs::api::Settings& config,
+        opentxs::api::Server& mint,
+        opentxs::api::Storage& storage,
+        opentxs::api::Wallet& wallet);
 
     void CreateMainFile(
         bool& mainFileExists,
@@ -121,6 +164,8 @@ private:
         const Identifier& recipientNymID,
         OTTransaction::transactionType transactionType,
         const Message& msg);
+    std::pair<std::string, std::string> parse_seed_backup(
+        const std::string& input) const;
     bool SendInstrumentToNym(
         const Identifier& notaryID,
         const Identifier& senderNymID,
@@ -133,37 +178,11 @@ private:
         const Identifier& recipientNymID,
         const Message& msg);
 
-private:
-    const std::string DEFAULT_EXTERNAL_IP = "127.0.0.1";
-    const std::string DEFAULT_BIND_IP = "127.0.0.1";
-    const std::string DEFAULT_NAME = "localhost";
-    const std::uint32_t DEFAULT_COMMAND_PORT = 7085;
-    const std::uint32_t DEFAULT_NOTIFY_PORT = 7086;
-    const std::uint32_t MIN_TCP_PORT = 1024;
-    const std::uint32_t MAX_TCP_PORT = 63356;
-
-    MainFile mainFile_;
-    Notary notary_;
-    Transactor transactor_;
-    UserCommandProcessor userCommandProcessor_;
-
-    String m_strWalletFilename;
-    // Used at least for whether or not to write to the PID.
-    bool m_bReadOnly{false};
-    // If the server wants to be shut down, it can set
-    // this flag so the caller knows to do so.
-    bool m_bShutdownFlag{false};
-
-    // A hash of the server contract
-    Identifier m_strNotaryID;
-    // A hash of the public key that signed the server contract
-    String m_strServerNymID;
-    // This is the server's own contract, containing its public key and
-    // connect info.
-
-    Nym m_nymServer;
-
-    OTCron m_Cron;  // This is where re-occurring and expiring tasks go.
+    Server() = delete;
+    Server(const Server&) = delete;
+    Server(Server&&) = delete;
+    Server& operator=(const Server&) = delete;
+    Server& operator=(Server&&) = delete;
 };
 }  // namespace server
 }  // namespace opentxs

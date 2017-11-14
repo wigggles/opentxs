@@ -65,7 +65,6 @@ namespace opentxs
 
 class ClientContext;
 class Context;
-class OT;
 class Message;
 class PeerObject;
 class ServerContext;
@@ -76,6 +75,12 @@ typedef std::shared_ptr<const class UnitDefinition> ConstUnitDefinition;
 
 namespace api
 {
+class Native;
+
+namespace implementation
+{
+class Native;
+}  // namespace implementation
 
 /** \brief This class manages instantiated contracts and provides easy access
  *  to them.
@@ -99,9 +104,9 @@ private:
     typedef std::pair<std::string, std::string> ContextID;
     typedef std::map<ContextID, std::shared_ptr<class Context>> ContextMap;
 
-    friend OT;
+    friend class implementation::Native;
 
-    OT& ot_;
+    Native& ot_;
 
     NymMap nym_map_;
     ServerMap server_map_;
@@ -143,7 +148,7 @@ private:
     ConstUnitDefinition UnitDefinition(
         std::unique_ptr<class UnitDefinition>& contract);
 
-    Wallet(OT& ot);
+    Wallet(Native& ot);
     Wallet() = delete;
     Wallet(const Wallet&) = delete;
     Wallet operator=(const Wallet&) = delete;

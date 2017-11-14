@@ -44,7 +44,7 @@
 #include "opentxs/api/Api.hpp"
 #include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Identity.hpp"
-#include "opentxs/api/OT.hpp"
+#include "opentxs/api/Native.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/cash/Purse.hpp"
 #include "opentxs/client/Helpers.hpp"
@@ -101,9 +101,8 @@
 #include <memory>
 #include <sstream>
 #include <string>
-// -------------------------------------------------------
+
 #define OT_METHOD "opentxs::OTAPI_Exec::"
-// -------------------------------------------------------
 
 namespace opentxs
 {
@@ -123,6 +122,7 @@ const int32_t OT_ERROR = (-1);
 OTAPI_Exec::OTAPI_Exec(
     api::Activity& activity,
     api::Settings& config,
+    api::ContactManager& contacts,
     CryptoEngine& crypto,
     api::Identity& identity,
     api::Wallet& wallet,
@@ -131,6 +131,7 @@ OTAPI_Exec::OTAPI_Exec(
     std::recursive_mutex& lock)
     : activity_(activity)
     , config_(config)
+    , contacts_(contacts)
     , crypto_(crypto)
     , identity_(identity)
     , wallet_(wallet)
@@ -676,8 +677,7 @@ std::string OTAPI_Exec::CreateNymHD(
     pNym->SetAlias(name);
     pNym->SaveSignedNymfile(*pSignerNym);
     pWallet->SaveWallet();
-    OT::App().Contact().NewContact(
-        name, pNym->ID(), PaymentCode(pNym->PaymentCode()));
+    contacts_.NewContact(name, pNym->ID(), PaymentCode(pNym->PaymentCode()));
 
     return id;
 #else

@@ -66,7 +66,6 @@ namespace opentxs
 {
 
 class CryptoEngine;
-class OT;
 class StorageDriver;
 class StorageMultiplex;
 class StoragePlugin;
@@ -83,6 +82,11 @@ typedef std::function<void(const proto::UnitDefinition&)> UnitLambda;
 
 namespace api
 {
+namespace implementation
+{
+class Native;
+}
+
 // Content-aware storage module for opentxs
 //
 // Storage accepts serialized opentxs objects in protobuf form, writes them
@@ -310,7 +314,7 @@ public:
     ~Storage();
 
 private:
-    friend class opentxs::OT;
+    friend class implementation::Native;
 
     CryptoEngine& crypto_;
     const std::atomic<bool>& shutdown_;

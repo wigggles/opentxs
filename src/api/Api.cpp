@@ -88,18 +88,30 @@ void Api::Init()
     // (Or log it or something.)
 
     ot_api_.reset(new OT_API(
-        activity_, config_, identity_, storage_, wallet_, zmq_, lock_));
+        activity_,
+        config_,
+        contacts_,
+        crypto_engine_,
+        identity_,
+        storage_,
+        wallet_,
+        zmq_,
+        lock_));
+
+    OT_ASSERT(ot_api_);
+
     otapi_exec_.reset(new OTAPI_Exec(
         activity_,
         config_,
+        contacts_,
         crypto_engine_,
         identity_,
         wallet_,
         zmq_,
         *ot_api_,
         lock_));
-    made_easy_.reset(new MadeEasy(lock_));
-    ot_me_.reset(new OT_ME(lock_, *made_easy_));
+    made_easy_.reset(new MadeEasy(lock_, *ot_api_, wallet_));
+    ot_me_.reset(new OT_ME(lock_, *ot_api_, *made_easy_, wallet_));
     otme_too_.reset(new OTME_too(
         lock_,
         config_,

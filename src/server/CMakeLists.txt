@@ -13,7 +13,11 @@ set(cxx-sources
   UserCommandProcessor.cpp
 )
 
-file(GLOB cxx-headers "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/server/*.hpp")
+file(GLOB cxx-install-headers "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/server/*.hpp")
+
+set(cxx-headers
+  ${cxx-install-headers}
+)
 
 include_directories(SYSTEM ${CZMQ_INCLUDE_DIRS})
 
@@ -37,6 +41,10 @@ else()
     ${cxx-headers}
   )
 endif()
+
+install(FILES ${cxx-install-headers}
+        DESTINATION include/opentxs/server
+        COMPONENT dev)
 
 set_property(TARGET ${MODULE_NAME} PROPERTY POSITION_INDEPENDENT_CODE 1)
 set_lib_property(${MODULE_NAME})

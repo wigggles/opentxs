@@ -40,6 +40,7 @@
 #include "opentxs/core/crypto/Bip32.hpp"
 
 #if OT_CRYPTO_WITH_BIP32
+#include "opentxs/api/Native.hpp"
 #include "opentxs/api/OT.hpp"
 #include "opentxs/core/crypto/Bip39.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"

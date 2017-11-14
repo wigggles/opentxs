@@ -60,6 +60,13 @@ class NumList;
 class OTTransaction;
 class String;
 
+namespace api
+{
+class Server;
+class Settings;
+class Wallet;
+}  // namespace api
+
 namespace server
 {
 
@@ -85,11 +92,11 @@ public:
         Nym* actualNym = nullptr);
     static bool isAdmin(const Identifier& nymID);
 
-    UserCommandProcessor(Server* server);
-
     bool ProcessUserCommand(const Message& msgIn, Message& msgOut);
 
 private:
+    friend class Server;
+
     class FinalizeResponse
     {
     public:
@@ -114,7 +121,10 @@ private:
         std::size_t counter_{0};
     };
 
-    Server* server_{nullptr};
+    Server& server_;
+    opentxs::api::Settings& config_;
+    opentxs::api::Server& mint_;
+    opentxs::api::Wallet& wallet_;
 
     bool add_numbers_to_nymbox(
         const TransactionNumber transactionNumber,
@@ -209,6 +219,17 @@ private:
         const bool full) const;
     bool verify_transaction(const OTTransaction* transaction, const Nym& signer)
         const;
+
+    explicit UserCommandProcessor(
+        Server& server,
+        opentxs::api::Settings& config,
+        opentxs::api::Server& mint,
+        opentxs::api::Wallet& wallet);
+    UserCommandProcessor() = delete;
+    UserCommandProcessor(const UserCommandProcessor&) = delete;
+    UserCommandProcessor(UserCommandProcessor&&) = delete;
+    UserCommandProcessor& operator=(const UserCommandProcessor&) = delete;
+    UserCommandProcessor& operator=(UserCommandProcessor&&) = delete;
 };
 }  // namespace server
 }  // namespace opentxs

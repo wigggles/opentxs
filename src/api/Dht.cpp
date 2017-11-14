@@ -40,7 +40,7 @@
 
 #include "opentxs/api/Dht.hpp"
 
-#include "opentxs/api/OT.hpp"
+#include "opentxs/api/Native.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
@@ -53,11 +53,9 @@
 
 namespace opentxs::api
 {
-
-Dht* Dht::instance_ = nullptr;
-
-Dht::Dht(DhtConfig& config)
-    : config_(new DhtConfig(config))
+Dht::Dht(DhtConfig& config, api::Wallet& wallet)
+    : wallet_(wallet)
+    , config_(new DhtConfig(config))
 {
     Init();
 }
@@ -67,15 +65,6 @@ void Dht::Init()
 #if OT_DHT
     node_ = &OpenDHT::It(*config_);
 #endif
-}
-
-Dht* Dht::It(DhtConfig& config)
-{
-    if (nullptr == instance_) {
-        instance_ = new Dht(config);
-    }
-
-    return instance_;
 }
 
 void Dht::Insert(
@@ -129,9 +118,10 @@ void Dht::GetPublicNym(__attribute__((unused)) const std::string& key)
         notifyCB = it->second;
     }
 
-    DhtResultsCallback gcb([notifyCB, key](const DhtResults& values) -> bool {
-        return ProcessPublicNym(key, values, notifyCB);
-    });
+    DhtResultsCallback gcb(
+        [this, notifyCB, key](const DhtResults& values) -> bool {
+            return ProcessPublicNym(wallet_, key, values, notifyCB);
+        });
 
     node_->Retrieve(key, gcb);
 #endif
@@ -150,9 +140,10 @@ void Dht::GetServerContract(__attribute__((unused)) const std::string& key)
         notifyCB = it->second;
     }
 
-    DhtResultsCallback gcb([notifyCB, key](const DhtResults& values) -> bool {
-        return ProcessServerContract(key, values, notifyCB);
-    });
+    DhtResultsCallback gcb(
+        [this, notifyCB, key](const DhtResults& values) -> bool {
+            return ProcessServerContract(wallet_, key, values, notifyCB);
+        });
 
     node_->Retrieve(key, gcb);
 #endif
@@ -171,9 +162,10 @@ void Dht::GetUnitDefinition(__attribute__((unused)) const std::string& key)
         notifyCB = it->second;
     }
 
-    DhtResultsCallback gcb([notifyCB, key](const DhtResults& values) -> bool {
-        return ProcessUnitDefinition(key, values, notifyCB);
-    });
+    DhtResultsCallback gcb(
+        [this, notifyCB, key](const DhtResults& values) -> bool {
+            return ProcessUnitDefinition(wallet_, key, values, notifyCB);
+        });
 
     node_->Retrieve(key, gcb);
 #endif
@@ -181,6 +173,7 @@ void Dht::GetUnitDefinition(__attribute__((unused)) const std::string& key)
 
 #if OT_DHT
 bool Dht::ProcessPublicNym(
+    api::Wallet& wallet,
     const std::string key,
     const DhtResults& values,
     NotifyCB notifyCB)
@@ -212,7 +205,7 @@ bool Dht::ProcessPublicNym(
             continue;
         }
 
-        auto existing = OT::App().Wallet().Nym(Identifier(key));
+        auto existing = wallet.Nym(Identifier(key));
 
         if (existing) {
             if (existing->Revision() >= publicNym.revision()) {
@@ -220,7 +213,7 @@ bool Dht::ProcessPublicNym(
             }
         }
 
-        auto saved = OT::App().Wallet().Nym(publicNym);
+        auto saved = wallet.Nym(publicNym);
 
         if (!saved) {
             continue;
@@ -247,6 +240,7 @@ bool Dht::ProcessPublicNym(
 }
 
 bool Dht::ProcessServerContract(
+    api::Wallet& wallet,
     const std::string key,
     const DhtResults& values,
     NotifyCB notifyCB)
@@ -278,7 +272,7 @@ bool Dht::ProcessServerContract(
             continue;
         }
 
-        auto saved = OT::App().Wallet().Server(contract);
+        auto saved = wallet.Server(contract);
 
         if (!saved) {
             continue;
@@ -307,6 +301,7 @@ bool Dht::ProcessServerContract(
 }
 
 bool Dht::ProcessUnitDefinition(
+    api::Wallet& wallet,
     const std::string key,
     const DhtResults& values,
     NotifyCB notifyCB)
@@ -338,7 +333,7 @@ bool Dht::ProcessUnitDefinition(
             continue;
         }
 
-        auto saved = OT::App().Wallet().UnitDefinition(contract);
+        auto saved = wallet.UnitDefinition(contract);
 
         if (!saved) {
             continue;
@@ -372,7 +367,6 @@ void Dht::Cleanup()
 #if OT_DHT
     if (nullptr != node_) delete node_;
     node_ = nullptr;
-    instance_ = nullptr;
 #endif
 }
 

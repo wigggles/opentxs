@@ -55,7 +55,6 @@ namespace opentxs
 {
 
 class CryptoEngine;
-class OT;
 
 namespace api
 {
@@ -63,6 +62,11 @@ namespace api
 class Activity;
 class Storage;
 class Wallet;
+
+namespace implementation
+{
+class Native;
+}
 
 class Blockchain
 {
@@ -111,7 +115,8 @@ public:
 
 private:
     typedef std::map<Identifier, std::mutex> IDLock;
-    friend class opentxs::OT;
+
+    friend class implementation::Native;
 
     Activity& activity_;
     CryptoEngine& crypto_;

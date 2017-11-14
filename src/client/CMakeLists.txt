@@ -35,7 +35,44 @@ set(cxx-sources
   Utility.cpp
 )
 
-file(GLOB_RECURSE cxx-headers "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/*.hpp" "${CMAKE_CURRENT_SOURCE_DIR}/*.hpp")
+set(cxx-install-headers
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/Helpers.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/MadeEasy.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/NymData.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/OTAPI_Exec.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/OTAPI_Func.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/OT_API.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/OTClient.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/OT_ME.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/OTMessageBuffer.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/OTMessageOutbuffer.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/OTME_too.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/OTRecord.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/OTRecordList.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/OTWallet.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/SwigWrap.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/Utility.hpp
+)
+
+set(cxx-headers
+  ${cxx-install-headers}
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/commands/CmdAcceptInbox.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/commands/CmdAcceptPayments.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/commands/CmdAcceptReceipts.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/commands/CmdAcceptTransfers.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/commands/CmdBaseAccept.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/commands/CmdBase.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/commands/CmdBaseInstrument.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/commands/CmdCancel.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/commands/CmdConfirm.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/commands/CmdDeposit.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/commands/CmdDiscard.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/commands/CmdExportCash.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/commands/CmdPayInvoice.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/commands/CmdSendCash.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/commands/CmdShowNyms.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/commands/CmdWithdrawCash.hpp
+)
 
 set(MODULE_NAME opentxs-client)
 if(WIN32)
@@ -60,6 +97,10 @@ else()
     ${cxx-headers}
   )
 endif()
+
+install(FILES ${cxx-install-headers}
+        DESTINATION include/opentxs/client
+        COMPONENT dev)
 
 set_property(TARGET ${MODULE_NAME} PROPERTY POSITION_INDEPENDENT_CODE 1)
 set_lib_property(${MODULE_NAME})

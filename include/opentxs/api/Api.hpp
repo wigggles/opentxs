@@ -47,10 +47,8 @@
 
 namespace opentxs
 {
-
 class CryptoEngine;
 class MadeEasy;
-class OT;
 class OT_API;
 class OT_ME;
 class OTAPI_Exec;
@@ -58,7 +56,6 @@ class OTME_too;
 
 namespace api
 {
-
 class Activity;
 class ContactManager;
 class Identity;
@@ -66,6 +63,11 @@ class Settings;
 class Storage;
 class Wallet;
 class ZMQ;
+
+namespace implementation
+{
+class Native;
+}
 
 class Api
 {
@@ -81,7 +83,7 @@ public:
     ~Api() = default;
 
 private:
-    friend class opentxs::OT;
+    friend class implementation::Native;
 
     Activity& activity_;
     Settings& config_;

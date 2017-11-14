@@ -41,6 +41,7 @@
 #include "opentxs/client/commands/CmdSendCash.hpp"
 
 #include "opentxs/api/Api.hpp"
+#include "opentxs/api/Native.hpp"
 #include "opentxs/api/OT.hpp"
 #include "opentxs/client/commands/CmdBase.hpp"
 #include "opentxs/client/commands/CmdExportCash.hpp"
@@ -245,7 +246,7 @@ int32_t CmdSendCash::sendCash(
         return -1;
     }
 
-    response = OT_ME::It().send_user_cash(
+    response = OT::App().API().OTME().send_user_cash(
         server, mynym, hisnym, exportedCash, retainedCopy);
     if (1 != responseStatus(response)) {
         // cannot send cash so try to re-import into sender's purse

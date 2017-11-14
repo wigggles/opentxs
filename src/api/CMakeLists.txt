@@ -1,4 +1,5 @@
 set(cxx-sources
+  implementation/Native.cpp
   Activity.cpp
   Api.cpp
   Blockchain.cpp
@@ -11,8 +12,13 @@ set(cxx-sources
   Wallet.cpp
 )
 
-file(GLOB cxx-headers
+file(GLOB cxx-install-headers
      "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/api/*.hpp"
+)
+
+set(cxx-headers
+  ${cxx-install-headers}
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/api/implementation/Native.hpp
 )
 
 set(MODULE_NAME opentxs-api)
@@ -43,6 +49,10 @@ else()
     ${cxx-headers}
   )
 endif()
+
+install(FILES ${cxx-install-headers}
+        DESTINATION include/opentxs/api
+        COMPONENT dev)
 
 set_property(TARGET ${MODULE_NAME} PROPERTY POSITION_INDEPENDENT_CODE 1)
 set_lib_property(${MODULE_NAME})

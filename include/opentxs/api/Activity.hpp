@@ -55,7 +55,6 @@ namespace opentxs
 class Contact;
 class Identifier;
 class Message;
-class OT;
 
 namespace api
 {
@@ -63,6 +62,11 @@ namespace api
 class ContactManager;
 class Storage;
 class Wallet;
+
+namespace implementation
+{
+class Native;
+}
 
 class Activity
 {
@@ -204,7 +208,7 @@ public:
     ~Activity() = default;
 
 private:
-    friend class opentxs::OT;
+    friend class implementation::Native;
 
     typedef std::map<Identifier, std::shared_ptr<const std::string>> MailCache;
 

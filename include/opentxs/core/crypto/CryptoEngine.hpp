@@ -52,7 +52,6 @@
 namespace opentxs
 {
 
-class OT;
 class Bip32;
 class Bip39;
 class CryptoAsymmetric;
@@ -84,17 +83,27 @@ typedef TrezorCrypto bitcoincrypto;
 
 typedef Libsodium Curve25519;
 
+namespace api
+{
+class Native;
+
+namespace implementation
+{
+class Native;
+}  // namespace implementation
+}  // namespace api
+
 // Singlton class for providing an interface to external crypto libraries
 // and hold the state required by those libraries.
 class CryptoEngine
 {
-    friend class OT;
+    friend class api::implementation::Native;
     friend class CryptoEncodingEngine;
     friend class CryptoHashEngine;
     friend class CryptoSymmetricEngine;
 
 private:
-    OT& ot_;
+    api::Native& native_;
     mutable std::mutex cached_key_lock_;
     mutable std::unique_ptr<OTCachedKey> primary_key_;
     mutable std::map<Identifier, std::unique_ptr<OTCachedKey>> cached_keys_;
@@ -115,7 +124,7 @@ private:
     void Init();
     void Cleanup();
 
-    CryptoEngine(OT& ot);
+    CryptoEngine(api::Native& native);
     CryptoEngine() = delete;
     CryptoEngine(const CryptoEngine&) = delete;
     CryptoEngine(CryptoEngine&&) = delete;

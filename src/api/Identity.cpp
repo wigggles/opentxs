@@ -40,7 +40,7 @@
 
 #include "opentxs/api/Identity.hpp"
 
-#include "opentxs/api/OT.hpp"
+#include "opentxs/api/Native.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/crypto/ContactCredential.hpp"
 #include "opentxs/core/crypto/VerificationCredential.hpp"
@@ -62,6 +62,12 @@
 
 namespace opentxs::api
 {
+
+Identity::Identity(api::Wallet& wallet)
+    : wallet_(wallet)
+{
+}
+
 bool Identity::AddInternalVerification(
     bool& changed,
     proto::VerificationSet& verifications,
@@ -363,7 +369,7 @@ std::unique_ptr<proto::VerificationSet> Identity::Verify(
             const bool updated = onNym.SetVerificationSet(*revised);
 
             if (updated) {
-                OT::App().Wallet().Nym(onNym.asPublicNym());
+                wallet_.Nym(onNym.asPublicNym());
 
                 return revised;
             } else {

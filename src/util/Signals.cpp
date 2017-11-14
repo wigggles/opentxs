@@ -115,7 +115,7 @@ void Signals::process(const int signal)
     std::get<1> (*handler)();
 }
 
-void Signals::shutdown() { OT::App().Cleanup(); }
+void Signals::shutdown() { OT::Cleanup(); }
 
 Signals::~Signals()
 {

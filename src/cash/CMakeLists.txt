@@ -9,7 +9,11 @@ set(cxx-sources
   TokenLucre.cpp
 )
 
-file(GLOB cxx-headers "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/cash/*.hpp")
+file(GLOB cxx-install-headers "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/cash/*.hpp")
+
+set(cxx-headers
+  ${cxx-install-headers}
+)
 
 set(dependency_include_dir
   ${CMAKE_CURRENT_SOURCE_DIR}/../../deps/
@@ -44,6 +48,10 @@ else()
     ${cxx-headers}
   )
 endif()
+
+install(FILES ${cxx-install-headers}
+        DESTINATION include/opentxs/cash
+        COMPONENT dev)
 
 set_property(TARGET ${MODULE_NAME} PROPERTY POSITION_INDEPENDENT_CODE 1)
 set_lib_property(${MODULE_NAME})

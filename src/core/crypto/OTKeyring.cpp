@@ -50,6 +50,7 @@
 
 #include "opentxs/core/crypto/OTKeyring.hpp"
 
+#include "opentxs/api/Native.hpp"
 #include "opentxs/api/OT.hpp"
 #include "opentxs/core/crypto/CryptoEngine.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"

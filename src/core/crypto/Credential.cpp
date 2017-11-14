@@ -64,6 +64,7 @@
 
 #include "opentxs/core/crypto/Credential.hpp"
 
+#include "opentxs/api/Native.hpp"
 #include "opentxs/api/OT.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/contract/Signable.hpp"

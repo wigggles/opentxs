@@ -69,8 +69,12 @@ namespace opentxs
 {
 class CryptoEngine;
 class Libsecp256k1;
-class OT;
 class OTPassword;
+
+namespace api
+{
+class Native;
+}  // namespace api
 
 class TrezorCrypto : public CryptoEncoding
 #if OT_CRYPTO_WITH_BIP39
@@ -98,6 +102,8 @@ private:
         0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
         0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
         0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFE, 0xFF, 0xFF, 0xFC, 0x2F};
+
+    api::Native& native_;
 
 #if OT_CRYPTO_WITH_BIP39
     bool toWords(const OTPassword& seed, OTPassword& words) const override;
@@ -143,7 +149,7 @@ private:
         const override;
 #endif
 
-    TrezorCrypto(OT& ot);
+    TrezorCrypto(api::Native& native);
     TrezorCrypto() = delete;
     TrezorCrypto(const TrezorCrypto&) = delete;
     TrezorCrypto(TrezorCrypto&&) = delete;

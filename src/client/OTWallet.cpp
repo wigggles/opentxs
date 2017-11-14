@@ -40,7 +40,7 @@
 
 #include "opentxs/client/OTWallet.hpp"
 
-#include "opentxs/api/OT.hpp"
+#include "opentxs/api/Native.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/cash/Purse.hpp"
 #include "opentxs/core/crypto/Bip32.hpp"
@@ -78,8 +78,10 @@
 namespace opentxs
 {
 
-OTWallet::OTWallet()
+OTWallet::OTWallet(CryptoEngine& crypto, api::Storage& storage)
     : m_strDataFolder(OTDataFolder::Get())
+    , crypto_(crypto)
+    , storage_(storage)
 {
     m_pWithdrawalPurse = nullptr;
 }
@@ -158,14 +160,14 @@ bool OTWallet::SignContractWithFirstNymOnList(Contract& theContract)
 std::string OTWallet::GetPhrase()
 {
 #if OT_CRYPTO_SUPPORTED_KEY_HD
-    const std::string defaultFingerprint = OT::App().DB().DefaultSeed();
+    const std::string defaultFingerprint = storage_.DefaultSeed();
     const bool firstTime = defaultFingerprint.empty();
 
     if (firstTime) {
         SaveWallet();
     }
 
-    return OT::App().Crypto().BIP39().Passphrase(defaultFingerprint);
+    return crypto_.BIP39().Passphrase(defaultFingerprint);
 #else
     return "";
 #endif
@@ -174,14 +176,14 @@ std::string OTWallet::GetPhrase()
 std::string OTWallet::GetSeed()
 {
 #if OT_CRYPTO_SUPPORTED_KEY_HD
-    const std::string defaultFingerprint = OT::App().DB().DefaultSeed();
+    const std::string defaultFingerprint = storage_.DefaultSeed();
     const bool firstTime = defaultFingerprint.empty();
 
     if (firstTime) {
         SaveWallet();
     }
 
-    return OT::App().Crypto().BIP32().Seed(defaultFingerprint);
+    return crypto_.BIP32().Seed(defaultFingerprint);
 #else
     return "";
 #endif
@@ -190,14 +192,14 @@ std::string OTWallet::GetSeed()
 std::string OTWallet::GetWords()
 {
 #if OT_CRYPTO_SUPPORTED_KEY_HD
-    const std::string defaultFingerprint = OT::App().DB().DefaultSeed();
+    const std::string defaultFingerprint = storage_.DefaultSeed();
     const bool firstTime = defaultFingerprint.empty();
 
     if (firstTime) {
         SaveWallet();
     }
 
-    return OT::App().Crypto().BIP39().Words(defaultFingerprint);
+    return crypto_.BIP39().Words(defaultFingerprint);
 #else
     return "";
 #endif
@@ -208,7 +210,7 @@ std::string OTWallet::ImportSeed(
     const OTPassword& passphrase) const
 {
 #if OT_CRYPTO_WITH_BIP39
-    return OT::App().Crypto().BIP39().ImportSeed(words, passphrase);
+    return crypto_.BIP39().ImportSeed(words, passphrase);
 #else
     return "";
 #endif
@@ -847,7 +849,7 @@ bool OTWallet::SaveContract(String& strContract)
         ascName.SetString(m_strName, false);  // linebreaks == false
     }
 
-    auto& cachedKey = OT::App().Crypto().DefaultKey();
+    auto& cachedKey = crypto_.DefaultKey();
     tag.add_attribute("name", m_strName.Exists() ? ascName.Get() : "");
     tag.add_attribute(
         "version", cachedKey.IsGenerated() ? "2.0" : m_strVersion.Get());
@@ -960,7 +962,7 @@ std::shared_ptr<OTSymmetricKey> OTWallet::getOrCreateExtraKey(
         // Thus, to create a new extra symmetrical key, we need to get the
         // master key from OTCachedKey...
         //
-        auto& cachedKey = OT::App().Crypto().DefaultKey();
+        auto& cachedKey = crypto_.DefaultKey();
         OTPassword master_password;
         const bool bGotMasterPW = cachedKey.GetMasterPassword(
             cachedKey,
@@ -1063,7 +1065,7 @@ bool OTWallet::Encrypt_ByKeyID(
         OTWallet::getOrCreateExtraKey(key_id, &str_Reason);
 
     if (pKey) {
-        auto& cachedKey = OT::App().Crypto().DefaultKey();
+        auto& cachedKey = crypto_.DefaultKey();
         OTPassword master_password;
 
         if (cachedKey.GetMasterPassword(cachedKey, master_password)) {
@@ -1094,7 +1096,7 @@ bool OTWallet::Decrypt_ByKeyID(
     std::shared_ptr<OTSymmetricKey> pKey = OTWallet::getExtraKey(key_id);
 
     if (pKey) {
-        auto& cachedKey = OT::App().Crypto().DefaultKey();
+        auto& cachedKey = crypto_.DefaultKey();
         OTPassword master_password;
 
         if (cachedKey.GetMasterPassword(cachedKey, master_password)) {
@@ -1316,7 +1318,7 @@ bool OTWallet::LoadWallet(const char* szFilename)
                             // We successfully loaded the cachedKey from file,
                             // so let's SET it as the cached key globally...
                             auto& cachedKey =
-                                OT::App().Crypto().LoadDefaultKey(ascCachedKey);
+                                crypto_.LoadDefaultKey(ascCachedKey);
 
                             if (!cachedKey.HasHashCheck()) {
                                 OTPassword tempPassword;
@@ -1423,7 +1425,7 @@ bool OTWallet::LoadWallet(const char* szFilename)
 
                         const bool bIsOldStyleNym =
                             (false == IsNymOnCachedKey(theNymID));
-                        auto key = OT::App().Crypto().mutable_DefaultKey();
+                        auto key = crypto_.mutable_DefaultKey();
                         auto& cachedKey = key.It();
 
                         if (bIsOldStyleNym && !(cachedKey.isPaused()))
@@ -1498,7 +1500,7 @@ bool OTWallet::LoadWallet(const char* szFilename)
                             xml->getAttributeValue("index"));
                         // An empty string will load the default seed
                         std::string seed = "";
-                        OT::App().Crypto().BIP39().UpdateIndex(seed, index);
+                        crypto_.BIP39().UpdateIndex(seed, index);
                     } else {
                         // unknown element type
                         otErr << __FUNCTION__ << ": unknown element type: "

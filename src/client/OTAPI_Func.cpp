@@ -61,6 +61,7 @@ namespace opentxs
 {
 OTAPI_Func::OTAPI_Func(
     opentxs::ServerContext& context,
+    OT_API& otapi,
     const OTAPI_Func_Type type)
     : funcType(type)
     , nymID2("")
@@ -81,11 +82,15 @@ OTAPI_Func::OTAPI_Func(
     , nTransNumsNeeded(0)
     , nRequestNum(-1)
     , context_(context)
+    , otapi_(otapi)
 {
 }
 
-OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, opentxs::ServerContext& context)
-    : OTAPI_Func(context, theType)
+OTAPI_Func::OTAPI_Func(
+    OTAPI_Func_Type theType,
+    opentxs::ServerContext& context,
+    OT_API& otapi)
+    : OTAPI_Func(context, otapi, theType)
 {
     if (theType == DELETE_NYM) {
         nTransNumsNeeded = 0;            // Is this true?
@@ -104,8 +109,9 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, opentxs::ServerContext& context)
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
     opentxs::ServerContext& context,
+    OT_API& otapi,
     const std::string& p_strParam)
-    : OTAPI_Func(context, theType)
+    : OTAPI_Func(context, otapi, theType)
 {
     std::string strError =
         "Warning: Empty std::string passed to OTAPI_Func.OTAPI_Func() as: ";
@@ -152,9 +158,10 @@ OTAPI_Func::OTAPI_Func(
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
     opentxs::ServerContext& context,
+    OT_API& otapi,
     const std::string& p_strParam,
     const std::string& p_strData)
-    : OTAPI_Func(context, theType)
+    : OTAPI_Func(context, otapi, theType)
 {
     std::string strError =
         "Warning: Empty std::string passed to OTAPI_Func.OTAPI_Func() as: ";
@@ -199,9 +206,10 @@ OTAPI_Func::OTAPI_Func(
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
     opentxs::ServerContext& context,
+    OT_API& otapi,
     const std::string& p_strParam,
     std::int64_t p_lData)
-    : OTAPI_Func(context, theType)
+    : OTAPI_Func(context, otapi, theType)
 {
     lData = p_lData;
 
@@ -238,10 +246,11 @@ OTAPI_Func::OTAPI_Func(
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
     opentxs::ServerContext& context,
+    OT_API& otapi,
     const std::string& p_nymID2,
     const std::string& p_strData,
     const bool p_Bool)
-    : OTAPI_Func(context, theType)
+    : OTAPI_Func(context, otapi, theType)
 {
     std::string strError =
         "Warning: Empty std::string passed to OTAPI_Func.OTAPI_Func() as: ";
@@ -273,10 +282,11 @@ OTAPI_Func::OTAPI_Func(
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
     opentxs::ServerContext& context,
+    OT_API& otapi,
     const std::string& p_nymID2,
     const std::string& p_strData,
     const std::string& p_strData2)
-    : OTAPI_Func(context, theType)
+    : OTAPI_Func(context, otapi, theType)
 {
     std::string strError =
         "Warning: Empty std::string passed to OTAPI_Func.OTAPI_Func() as: ";
@@ -361,11 +371,12 @@ OTAPI_Func::OTAPI_Func(
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
     opentxs::ServerContext& context,
+    OT_API& otapi,
     const std::string& p_accountID,
     const std::string& p_strParam,
     std::int64_t p_lData,
     const std::string& p_strData2)
-    : OTAPI_Func(context, theType)
+    : OTAPI_Func(context, otapi, theType)
 {
     std::string strError =
         "Warning: Empty std::string passed to OTAPI_Func.OTAPI_Func() as: ";
@@ -407,11 +418,12 @@ OTAPI_Func::OTAPI_Func(
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
     opentxs::ServerContext& context,
+    OT_API& otapi,
     const std::string& p_accountID,
     const std::string& p_strParam,
     const std::string& p_strData,
     std::int64_t p_lData2)
-    : OTAPI_Func(context, theType)
+    : OTAPI_Func(context, otapi, theType)
 {
     strData = p_strData;
     lData = p_lData2;
@@ -460,11 +472,12 @@ OTAPI_Func::OTAPI_Func(
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
     opentxs::ServerContext& context,
+    OT_API& otapi,
     const std::string& p_accountID,
     const std::string& p_strParam,
     const std::string& p_strData,
     const std::string& p_strData2)
-    : OTAPI_Func(context, theType)
+    : OTAPI_Func(context, otapi, theType)
 {
     std::string strError =
         "Warning: Empty std::string passed to OTAPI_Func.OTAPI_Func() as: ";
@@ -505,11 +518,12 @@ OTAPI_Func::OTAPI_Func(
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
     opentxs::ServerContext& context,
+    OT_API& otapi,
     bool boolInput,
     const std::string& data,
     const std::string& data2,
     const std::string& data3)
-    : OTAPI_Func(context, theType)
+    : OTAPI_Func(context, otapi, theType)
 {
     strData = data;
     strData2 = data2;
@@ -543,12 +557,13 @@ OTAPI_Func::OTAPI_Func(
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
     opentxs::ServerContext& context,
+    OT_API& otapi,
     const std::string& p_instrumentDefinitionID,
     const std::string& p_basket,
     const std::string& p_accountID,
     bool p_bBool,
     std::int32_t p_nTransNumsNeeded)
-    : OTAPI_Func(context, theType)
+    : OTAPI_Func(context, otapi, theType)
 {
     std::string strError =
         "Warning: Empty std::string passed to OTAPI_Func.OTAPI_Func() as: ";
@@ -579,6 +594,7 @@ OTAPI_Func::OTAPI_Func(
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
     opentxs::ServerContext& context,
+    OT_API& otapi,
     const std::string& account,
     const std::string& account2,
     const std::string& data,
@@ -586,7 +602,7 @@ OTAPI_Func::OTAPI_Func(
     const std::string& data3,
     const std::string& data4,
     bool boolInput)
-    : OTAPI_Func(context, theType)
+    : OTAPI_Func(context, otapi, theType)
 {
     accountID = account;
     accountID2 = account2;
@@ -917,7 +933,7 @@ std::int32_t OTAPI_Func::SendRequestLowLevel(
     OTAPI_Func& theFunction,
     const std::string& IN_FUNCTION) const
 {
-    Utility MsgUtil(context_);
+    Utility MsgUtil(context_, otapi_);
     std::string strLocation = "OTAPI_Func::SendRequestLowLevel: " + IN_FUNCTION;
 
     SwigWrap::FlushMessageBuffer();
@@ -969,7 +985,7 @@ std::string OTAPI_Func::SendTransaction(
     const std::string& IN_FUNCTION,
     std::int32_t nTotalRetries) const
 {
-    Utility MsgUtil(context_);
+    Utility MsgUtil(context_, otapi_);
     std::string strLocation = "OTAPI_Func::SendTransaction: " + IN_FUNCTION;
 
     if (!MsgUtil.getIntermediaryFiles(
@@ -1150,7 +1166,7 @@ std::string OTAPI_Func::SendRequest(
     OTAPI_Func& theFunction,
     const std::string& IN_FUNCTION) const
 {
-    Utility MsgUtil(context_);
+    Utility MsgUtil(context_, otapi_);
 
     bool bCanRetryAfterThis = false;
 
@@ -1174,7 +1190,7 @@ std::string OTAPI_Func::SendRequestOnce(
     bool bWillRetryAfterThis,
     bool& bCanRetryAfterThis) const
 {
-    Utility MsgUtil(context_);
+    Utility MsgUtil(context_, otapi_);
     std::string strLocation = "OTAPI_Func::SendRequestOnce: " + IN_FUNCTION;
 
     bCanRetryAfterThis = false;

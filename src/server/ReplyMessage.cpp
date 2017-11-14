@@ -38,7 +38,7 @@
 
 #include "opentxs/stdafx.hpp"
 
-#include "opentxs/api/OT.hpp"
+#include "opentxs/api/Native.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
@@ -55,13 +55,15 @@ namespace opentxs::server
 {
 
 ReplyMessage::ReplyMessage(
+    opentxs::api::Wallet& wallet,
     const Identifier& notaryID,
     const Nym& signer,
     const Message& input,
     Server& server,
     const MessageType& type,
     Message& output)
-    : signer_(signer)
+    : wallet_(wallet)
+    , signer_(signer)
     , original_(input)
     , notary_id_(notaryID)
     , message_(output)
@@ -226,7 +228,7 @@ const bool& ReplyMessage::Init() const { return init_; }
 
 bool ReplyMessage::init_nym()
 {
-    sender_nym_ = OT::App().Wallet().Nym(Identifier(original_.m_strNymID));
+    sender_nym_ = wallet_.Nym(Identifier(original_.m_strNymID));
 
     return bool(sender_nym_);
 }
@@ -248,9 +250,8 @@ bool ReplyMessage::LoadContext()
         return false;
     }
 
-    context_.reset(
-        new Editor<ClientContext>(OT::App().Wallet().mutable_ClientContext(
-            signer_.ID(), sender_nym_->ID())));
+    context_.reset(new Editor<ClientContext>(
+        wallet_.mutable_ClientContext(signer_.ID(), sender_nym_->ID())));
 
     return bool(context_);
 }
@@ -259,7 +260,7 @@ bool ReplyMessage::LoadNym()
 {
     auto serialized = proto::DataToProto<proto::CredentialIndex>(
         Data(original_.m_ascPayload));
-    sender_nym_ = OT::App().Wallet().Nym(serialized);
+    sender_nym_ = wallet_.Nym(serialized);
 
     return bool(sender_nym_);
 }

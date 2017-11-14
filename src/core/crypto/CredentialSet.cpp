@@ -64,6 +64,7 @@
 
 #include "opentxs/core/crypto/CredentialSet.hpp"
 
+#include "opentxs/api/Native.hpp"
 #include "opentxs/api/OT.hpp"
 #include "opentxs/core/crypto/ChildKeyCredential.hpp"
 #include "opentxs/core/crypto/ContactCredential.hpp"
@@ -75,14 +76,15 @@
 #include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/crypto/VerificationCredential.hpp"
 #include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/Tag.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/NymIDSource.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/storage/Storage.hpp"
+#include "opentxs/Proto.hpp"
 
 #include <stddef.h>
 #include <stdint.h>

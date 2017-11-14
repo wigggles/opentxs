@@ -43,7 +43,7 @@
 #include "opentxs/api/Activity.hpp"
 #include "opentxs/api/Api.hpp"
 #include "opentxs/api/ContactManager.hpp"
-#include "opentxs/api/OT.hpp"
+#include "opentxs/api/Native.hpp"
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/cash/Mint.hpp"
@@ -113,8 +113,15 @@ struct OTClient::ProcessServerReplyArgs {
     }
 };
 
-OTClient::OTClient(OTWallet* theWallet)
+OTClient::OTClient(
+    OTWallet& theWallet,
+    api::Activity& activity,
+    api::ContactManager& contacts,
+    api::Wallet& wallet)
     : m_pWallet(theWallet)
+    , activity_(activity)
+    , contacts_(contacts)
+    , wallet_(wallet)
     , m_MessageBuffer()
     , m_MessageOutbuffer()
 {
@@ -312,8 +319,8 @@ bool OTClient::AcceptEntireNymbox(
         return false;
     }
 
-    auto context = OT::App().Wallet().mutable_ServerContext(
-        nymfile.GetConstID(), theNotaryID);
+    auto context =
+        wallet_.mutable_ServerContext(nymfile.GetConstID(), theNotaryID);
     const auto& nym = *context.It().Nym();
     const auto& nymID = nym.ID();
     // get the last/current highest transaction number for the notaryID. (making
@@ -438,100 +445,6 @@ bool OTClient::AcceptEntireNymbox(
             otInfo << OT_METHOD << __FUNCTION__
                    << ": Received an encrypted peer object in your Nymbox:\n"
                    << strRespTo << "\n";
-
-            // NOTE: I just moved all this to the process download box receipt
-            // response function. Search for peerObject to find it.
-            //
-            //            // TODO: really shouldn't do this until we get a
-            //            successful REPLY
-            //            // from the server. That's when I do a lot of other
-            //            things. But this
-            //            // is a no-biggie thing. It will almost always succeed
-            //            and in the
-            //            // odd-event that it fails, I'll end up with a
-            //            duplicate message
-            //            // in my mail. So what?
-            //            std::unique_ptr<Message> pMessage(new Message);
-            //
-            //            OT_ASSERT(pMessage);
-            //
-            //            // The original message that was sent to me (with an
-            //            encrypted
-            //            // envelope in the payload, and with the sender's ID
-            //            and recipient
-            //            // IDs as m_strNymID and m_strNymID2) is stored within
-            //            strRespTo.
-            //            // Let's load it up into an OTMessage instance,  and
-            //            add it to
-            //            // pNym's mail.
-            //            if (pMessage->LoadContractFromString(strRespTo)) {
-            //                auto recipientNym =
-            //                    OT::App().Wallet().Nym(Identifier(pMessage->m_strNymID2));
-            //                if (recipientNym) {
-            //                    const auto peerObject = PeerObject::Factory(
-            //                        recipientNym, pMessage->m_ascPayload);
-            //                    proto::PeerObjectType type =
-            //                    proto::PEEROBJECT_ERROR;
-            //
-            //                    if (peerObject) {
-            //                        type = peerObject->Type();
-            //                    }
-            //
-            //                    switch (type) {
-            //                        case (proto::PEEROBJECT_MESSAGE): {
-            //                            OT::App().Activity().Mail(
-            //                                nymID, *pMessage,
-            //                                StorageBox::MAILINBOX);
-            //                            break;
-            //                        }
-            //
-            //                            //resume
-            //
-            //                        case (proto::PEEROBJECT_PAYMENT): {
-            //                            const bool bCreated =
-            //                                createInstrumentNoticeFromPeerObject(
-            //                                     peerObject,
-            //                                     pTransaction,
-            //                                     theNotaryID,
-            //                                     nymID,
-            //                                     nym);
-            //                            if (!bCreated)
-            //                                otErr << OT_METHOD << __FUNCTION__
-            //                                      << ": Failed unexpectedly in
-            //                                      "
-            //                                         "createInstrumentNoticeFromPeerObject."
-            //                                      << std::endl;
-            //                            break;
-            //                        }
-            //                        case (proto::PEEROBJECT_REQUEST): {
-            //                            OT::App().Wallet().PeerRequestReceive(
-            //                                recipientNym->ID(), *peerObject);
-            //                            break;
-            //                        }
-            //                        case (proto::PEEROBJECT_RESPONSE): {
-            //                            OT::App().Wallet().PeerReplyReceive(
-            //                                recipientNym->ID(), *peerObject);
-            //                            break;
-            //                        }
-            //                        default: {
-            //                            otErr << OT_METHOD << __FUNCTION__
-            //                                  << ": Unable to decode peer
-            //                                  object: "
-            //                                  << "unknown peer object type."
-            //                                  << std::endl;
-            //                        }
-            //                    }
-            //                } else {
-            //                    otErr << OT_METHOD << __FUNCTION__
-            //                          << ": Missing recipient nym." <<
-            //                          std::endl;
-            //                }
-            //            } else {
-            //                otErr << OT_METHOD << __FUNCTION__
-            //                      << ": Unable to decode peer object: "
-            //                      << "failed to deserialize message." <<
-            //                      std::endl;
-            //            }
         }
 
         // INSTRUMENT (From Another Nym)
@@ -2312,7 +2225,7 @@ void OTClient::ProcessWithdrawalResponse(
                 // wallet so that we could get to the private coin unblinding
                 // data when we
                 // needed it (now).
-                Purse* pRequestPurse = m_pWallet->GetPendingWithdrawal();
+                Purse* pRequestPurse = m_pWallet.GetPendingWithdrawal();
 
                 String strInstrumentDefinitionID(
                     thePurse.GetInstrumentDefinitionID());
@@ -2424,8 +2337,8 @@ void OTClient::setRecentHash(
 
         RECENT_HASH.SetString(theReply.m_strNymboxHash);
 
-        auto context = OT::App().Wallet().mutable_ServerContext(
-            pNym->ID(), Identifier(strNotaryID));
+        auto context =
+            wallet_.mutable_ServerContext(pNym->ID(), Identifier(strNotaryID));
         context.It().SetRemoteNymboxHash(RECENT_HASH);
 
         if (setNymboxHash) {
@@ -2453,10 +2366,10 @@ bool OTClient::processServerReplyCheckNym(
     auto serialized =
         proto::DataToProto<proto::CredentialIndex>(Data(theReply.m_ascPayload));
 
-    auto nym = OT::App().Wallet().Nym(serialized);
+    auto nym = wallet_.Nym(serialized);
 
     if (nym) {
-        OT::App().Contact().Update(serialized);
+        contacts_.Update(serialized);
 
         return true;
     } else {
@@ -2725,8 +2638,7 @@ bool OTClient::processServerReplyGetBoxReceipt(
                     //
                     if (pMessage->LoadContractFromString(strOTMessage)) {
                         auto recipientNymId = Identifier(pMessage->m_strNymID2);
-                        auto recipientNym =
-                            OT::App().Wallet().Nym(recipientNymId);
+                        auto recipientNym = wallet_.Nym(recipientNymId);
                         if (recipientNym) {
                             const auto peerObject = PeerObject::Factory(
                                 recipientNym, pMessage->m_ascPayload);
@@ -2737,7 +2649,7 @@ bool OTClient::processServerReplyGetBoxReceipt(
                             }
                             switch (type) {
                                 case (proto::PEEROBJECT_MESSAGE): {
-                                    OT::App().Activity().Mail(
+                                    activity_.Mail(
                                         recipientNymId,
                                         *pMessage,
                                         StorageBox::MAILINBOX);
@@ -2760,12 +2672,12 @@ bool OTClient::processServerReplyGetBoxReceipt(
                                     break;
                                 }
                                 case (proto::PEEROBJECT_REQUEST): {
-                                    OT::App().Wallet().PeerRequestReceive(
+                                    wallet_.PeerRequestReceive(
                                         recipientNymId, *peerObject);
                                     break;
                                 }
                                 case (proto::PEEROBJECT_RESPONSE): {
-                                    OT::App().Wallet().PeerReplyReceive(
+                                    wallet_.PeerReplyReceive(
                                         recipientNymId, *peerObject);
                                     break;
                                 }
@@ -5619,8 +5531,8 @@ bool OTClient::processServerReplyGetAccountData(
             pAccount->SaveContract();
             pAccount->SaveAccount();
 
-            m_pWallet->AddAccount(*(pAccount.release()));
-            m_pWallet->SaveWallet();
+            m_pWallet.AddAccount(*(pAccount.release()));
+            m_pWallet.SaveWallet();
         }
     }
 
@@ -5805,7 +5717,7 @@ bool OTClient::processServerReplyGetInstrumentDefinition(
     proto::UnitDefinition serialized =
         proto::DataToProto<proto::UnitDefinition>(raw);
 
-    auto contract = OT::App().Wallet().UnitDefinition(serialized);
+    auto contract = wallet_.UnitDefinition(serialized);
 
     if (contract) {
 
@@ -5815,7 +5727,7 @@ bool OTClient::processServerReplyGetInstrumentDefinition(
         proto::ServerContract serialized =
             proto::DataToProto<proto::ServerContract>(raw);
 
-        auto contract = OT::App().Wallet().Server(serialized);
+        auto contract = wallet_.Server(serialized);
 
         if (contract) {
 
@@ -6215,7 +6127,7 @@ bool OTClient::processServerReplyUnregisterAccount(
 
         const Identifier theAccountID(theReply.m_strAcctID);
 
-        Account* pDeletedAcct = m_pWallet->GetAccount(theAccountID);
+        Account* pDeletedAcct = m_pWallet.GetAccount(theAccountID);
 
         if (nullptr != pDeletedAcct) {
             pDeletedAcct->MarkForDeletion();
@@ -6228,8 +6140,8 @@ bool OTClient::processServerReplyUnregisterAccount(
 
             // Remove the account from the wallet:
             //
-            if (m_pWallet->RemoveAccount(theAccountID)) {
-                m_pWallet->SaveWallet();
+            if (m_pWallet.RemoveAccount(theAccountID)) {
+                m_pWallet.SaveWallet();
             }
         }
 
@@ -6281,8 +6193,8 @@ bool OTClient::processServerReplyRegisterInstrumentDefinition(
             // message
             // in the first place.
 
-            m_pWallet->AddAccount(*pAccount);
-            m_pWallet->SaveWallet();
+            m_pWallet.AddAccount(*pAccount);
+            m_pWallet.SaveWallet();
 
             return true;
         } else {
@@ -6341,8 +6253,8 @@ bool OTClient::processServerReplyRegisterAccount(
             // message
             // in the first place.
 
-            m_pWallet->AddAccount(*pAccount);
-            m_pWallet->SaveWallet();
+            m_pWallet.AddAccount(*pAccount);
+            m_pWallet.SaveWallet();
 
             return true;
         } else {
@@ -6376,8 +6288,7 @@ bool OTClient::processServerReply(
         return false;
     }
 
-    auto context =
-        OT::App().Wallet().mutable_ServerContext(sender->ID(), server);
+    auto context = wallet_.mutable_ServerContext(sender->ID(), server);
 
     Message& theReply = *reply;
     ProcessServerReplyArgs args(context.It());
@@ -6389,7 +6300,7 @@ bool OTClient::processServerReply(
     const String senderID(args.NYM_ID);
     args.strNotaryID = serverID;
     args.strNymID = senderID;
-    auto notary = OT::App().Wallet().Server(server);
+    auto notary = wallet_.Server(server);
     args.pServerNym = const_cast<Nym*>(notary->Nym().get());
 
     Nym& senderNym = *sender;
@@ -6626,8 +6537,7 @@ int32_t OTClient::ProcessUserCommand(
         }
     }
 
-    auto context =
-        OT::App().Wallet().mutable_ServerContext(theNym.ID(), NOTARY_ID);
+    auto context = wallet_.mutable_ServerContext(theNym.ID(), NOTARY_ID);
 
     int64_t lReturnValue = 0;
 

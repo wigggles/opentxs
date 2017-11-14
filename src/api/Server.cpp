@@ -69,12 +69,18 @@ namespace opentxs::api
 {
 Server::Server(
     const std::map<std::string, std::string>& args,
+    opentxs::CryptoEngine& crypto,
+    Settings& config,
+    Storage& storage,
     Wallet& wallet,
     std::atomic<bool>& shutdown)
     : args_(args)
+    , config_(config)
+    , crypto_(crypto)
+    , storage_(storage)
     , wallet_(wallet)
     , shutdown_(shutdown)
-    , server_p_(new server::Server)
+    , server_p_(new server::Server(crypto_, config_, *this, storage_, wallet_))
     , server_(*server_p_)
     , message_processor_p_(new server::MessageProcessor(server_, shutdown_))
     , message_processor_(*message_processor_p_)

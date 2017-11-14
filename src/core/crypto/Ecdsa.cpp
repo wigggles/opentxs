@@ -40,6 +40,7 @@
 
 #include "opentxs/core/crypto/Ecdsa.hpp"
 
+#include "opentxs/api/Native.hpp"
 #include "opentxs/api/OT.hpp"
 #include "opentxs/core/crypto/AsymmetricKeyEC.hpp"
 #include "opentxs/core/crypto/Crypto.hpp"

@@ -40,6 +40,9 @@
 
 #include "opentxs/client/commands/CmdPayInvoice.hpp"
 
+#include "opentxs/api/Api.hpp"
+#include "opentxs/api/Native.hpp"
+#include "opentxs/api/OT.hpp"
 #include "opentxs/client/commands/CmdBase.hpp"
 #include "opentxs/client/commands/CmdConfirm.hpp"
 #include "opentxs/client/commands/CmdDeposit.hpp"
@@ -200,8 +203,8 @@ int32_t CmdPayInvoice::processPayment(
             return -1;
         }
     } else {
-        instrument =
-            OT_ME::It().get_payment_instrument(server, mynym, index, inbox);
+        instrument = OT::App().API().OTME().get_payment_instrument(
+            server, mynym, index, inbox);
         if ("" == instrument) {
             otOut << "Error: cannot get payment instrument.\n";
             return -1;

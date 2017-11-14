@@ -5,7 +5,11 @@ set(cxx-sources
   TransactionStatement.cpp
 )
 
-file(GLOB_RECURSE cxx-headers "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/consensus/*.hpp")
+file(GLOB_RECURSE cxx-install-headers "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/consensus/*.hpp")
+
+set(cxx-headers
+  ${cxx-install-headers}
+)
 
 set(MODULE_NAME opentxs-consensus)
 if(WIN32)
@@ -30,6 +34,10 @@ else()
     ${cxx-headers}
   )
 endif()
+
+install(FILES ${cxx-install-headers}
+        DESTINATION include/opentxs/consensus
+        COMPONENT dev)
 
 set_property(TARGET ${MODULE_NAME} PROPERTY POSITION_INDEPENDENT_CODE 1)
 set_lib_property(${MODULE_NAME})

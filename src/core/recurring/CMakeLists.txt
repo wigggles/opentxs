@@ -5,7 +5,11 @@ set(cxx-sources
   OTPaymentPlan.cpp
 )
 
-file(GLOB cxx-headers "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/recurring/*.hpp")
+file(GLOB cxx-install-headers "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/recurring/*.hpp")
+
+set(cxx-headers
+  ${cxx-install-headers}
+)
 
 set(dependency_include_dir
   ${CMAKE_CURRENT_SOURCE_DIR}/../../../deps/
@@ -21,5 +25,9 @@ add_library(${MODULE_NAME}
   ${cxx-sources}
   ${cxx-headers}
 )
+
+install(FILES ${cxx-install-headers}
+        DESTINATION include/opentxs/core/recurring
+        COMPONENT dev)
 
 set_property(TARGET ${MODULE_NAME} PROPERTY POSITION_INDEPENDENT_CODE 1)

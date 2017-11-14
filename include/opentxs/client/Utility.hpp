@@ -77,6 +77,7 @@ EXPORT std::int32_t VerifyMsgTrnxSuccess(
 
 typedef std::array<bool, 4> OTfourbool;
 
+class OT_API;
 class ServerContext;
 class ZMQ;
 
@@ -87,8 +88,7 @@ public:
     std::int32_t delay_ms{};
     std::int32_t max_trans_dl{};
 
-    EXPORT Utility(ServerContext& context);
-    EXPORT ~Utility() = default;
+    EXPORT Utility(ServerContext& context, OT_API& otapi);
 
     EXPORT void delay() const;
     EXPORT std::int32_t getAndProcessNymbox_3(
@@ -207,8 +207,11 @@ public:
     EXPORT void setLastReplyReceived(const std::string& strReply);
     EXPORT void setNbrTransactionCount(std::int32_t new_trans_dl);
 
+    EXPORT ~Utility() = default;
+
 private:
     ServerContext& context_;
+    OT_API& otapi_;
 
     NetworkOperationStatus receive_reply_success(
         const std::string& notaryID,
@@ -217,8 +220,11 @@ private:
         const std::string& IN_FUNCTION);
 
     Utility() = delete;
+    Utility(const Utility&) = delete;
+    Utility(Utility&&) = delete;
+    Utility& operator=(const Utility&) = delete;
+    Utility& operator=(Utility&&) = delete;
 };
-
 }  // namespace opentxs
 
 #endif  // OPENTXS_CLIENT_UTILITY_HPP

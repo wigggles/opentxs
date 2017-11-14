@@ -40,6 +40,7 @@
 #include "opentxs/core/crypto/OTAsymmetricKeyOpenSSL.hpp"
 
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
+#include "opentxs/api/Native.hpp"
 #include "opentxs/api/OT.hpp"
 #include "opentxs/core/crypto/CryptoEngine.hpp"
 #include "opentxs/core/crypto/CryptoHashEngine.hpp"

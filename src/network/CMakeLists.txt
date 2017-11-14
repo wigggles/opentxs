@@ -4,8 +4,12 @@ set(cxx-sources
   ZMQ.cpp
 )
 
-file(GLOB cxx-headers
+file(GLOB cxx-install-headers
      "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/network/*.hpp"
+)
+
+set(cxx-headers
+  ${cxx-install-headers}
 )
 
 include_directories(SYSTEM
@@ -40,6 +44,10 @@ else()
     ${cxx-headers}
   )
 endif()
+
+install(FILES ${cxx-install-headers}
+        DESTINATION include/opentxs/network
+        COMPONENT dev)
 
 set_property(TARGET ${MODULE_NAME} PROPERTY POSITION_INDEPENDENT_CODE 1)
 set_lib_property(${MODULE_NAME})

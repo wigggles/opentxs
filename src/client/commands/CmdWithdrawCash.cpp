@@ -41,6 +41,7 @@
 #include "opentxs/client/commands/CmdWithdrawCash.hpp"
 
 #include "opentxs/api/Api.hpp"
+#include "opentxs/api/Native.hpp"
 #include "opentxs/api/OT.hpp"
 #include "opentxs/client/commands/CmdBase.hpp"
 #include "opentxs/client/MadeEasy.hpp"
@@ -129,7 +130,8 @@ int32_t CmdWithdrawCash::withdrawCash(const string& myacct, int64_t amount)
         return -1;
     }
 
-    string response = OT_ME::It().withdraw_cash(server, mynym, myacct, amount);
+    string response =
+        OT::App().API().OTME().withdraw_cash(server, mynym, myacct, amount);
     int32_t reply =
         responseReply(response, server, mynym, myacct, "withdraw_cash");
     if (1 != reply) {

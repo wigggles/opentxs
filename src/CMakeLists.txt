@@ -53,6 +53,12 @@ set(object-deps
   $<TARGET_OBJECTS:opentxs-cash>
   $<TARGET_OBJECTS:opentxs-client>
   $<TARGET_OBJECTS:opentxs-consensus>
+  $<TARGET_OBJECTS:opentxs-core-contract-basket>
+  $<TARGET_OBJECTS:opentxs-core-contract-peer>
+  $<TARGET_OBJECTS:opentxs-core-contract>
+  $<TARGET_OBJECTS:opentxs-core-crypto>
+  $<TARGET_OBJECTS:opentxs-core-transaction>
+  $<TARGET_OBJECTS:opentxs-core-util>
   $<TARGET_OBJECTS:opentxs-core>
   $<TARGET_OBJECTS:opentxs-cron>
   $<TARGET_OBJECTS:opentxs-ext>
@@ -68,13 +74,25 @@ set(object-deps
   $<TARGET_OBJECTS:opentxs-util>
 )
 
+set(cxx-install-headers
+  "${CMAKE_CURRENT_SOURCE_DIR}/../include/opentxs/Proto.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../include/opentxs/Types.hpp"
+)
+
+set(cxx-headers
+  ${cxx-install-headers}
+  "${CMAKE_CURRENT_SOURCE_DIR}/../include/opentxs/stdafx.hpp"
+)
+
 set(MODULE_NAME opentxs)
 
 add_library(${MODULE_NAME} SHARED
+  ${cxx-headers}
   ${object-deps}
 )
 
 add_library(${MODULE_NAME}_static STATIC
+  ${cxx-headers}
   ${object-deps}
 )
 
@@ -145,3 +163,13 @@ if(NOT WIN32)
           EXPORT opentxsTargets
           COMPONENT main)
 endif()
+
+install(FILES ${cxx-install-headers}
+        DESTINATION include/opentxs
+        COMPONENT dev)
+
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}../include/opentxs/interface
+        DESTINATION include/opentxs/interface
+        COMPONENT dev
+        FILES_MATCHING PATTERN "*.hpp")
+

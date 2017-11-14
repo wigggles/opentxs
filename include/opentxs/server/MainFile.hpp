@@ -45,8 +45,14 @@
 
 namespace opentxs
 {
-
+class CryptoEngine;
 class String;
+
+namespace api
+{
+class Server;
+class Wallet;
+}  // namespace api
 
 namespace server
 {
@@ -56,7 +62,10 @@ class Server;
 class MainFile
 {
 public:
-    explicit MainFile(Server* server);
+    explicit MainFile(
+        Server& server,
+        opentxs::CryptoEngine& crypto_,
+        opentxs::api::Wallet& wallet_);
 
     bool CreateMainFile(
         const std::string& strContract,
@@ -70,8 +79,16 @@ public:
     bool SaveMainFileToString(String& filename);
 
 private:
+    Server& server_;  // TODO: remove when feasible
+    opentxs::CryptoEngine& crypto_;
+    opentxs::api::Wallet& wallet_;
     std::string version_;
-    Server* server_;  // TODO: remove when feasible
+
+    MainFile() = delete;
+    MainFile(const MainFile&) = delete;
+    MainFile(MainFile&&) = delete;
+    MainFile& operator=(const MainFile&) = delete;
+    MainFile& operator=(MainFile&&) = delete;
 };
 }  // namespace server
 }  // namespace opentxs
