@@ -24,8 +24,12 @@ set(cxx-sources
   Units.cpp
 )
 
-file(GLOB cxx-headers
+file(GLOB cxx-install-headers
      "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/storage/tree/*.hpp"
+)
+
+set(cxx-headers
+  ${cxx-install-headers}
 )
 
 set(MODULE_NAME opentxs-storage-tree)
@@ -54,6 +58,10 @@ else()
     ${cxx-headers}
   )
 endif()
+
+install(FILES ${cxx-install-headers}
+        DESTINATION include/opentxs/storage/tree
+        COMPONENT dev)
 
 set_property(TARGET ${MODULE_NAME} PROPERTY POSITION_INDEPENDENT_CODE 1)
 set_lib_property(${MODULE_NAME})

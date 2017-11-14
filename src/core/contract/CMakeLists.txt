@@ -1,25 +1,23 @@
+add_subdirectory(basket)
+add_subdirectory(peer)
+
 set(cxx-sources
-  Activity.cpp
-  Api.cpp
-  Blockchain.cpp
-  ContactManager.cpp
-  Dht.cpp
-  Identity.cpp
-  OT.cpp
-  Server.cpp
-  Settings.cpp
-  Wallet.cpp
+  CurrencyContract.cpp
+  SecurityContract.cpp
+  ServerContract.cpp
+  Signable.cpp
+  UnitDefinition.cpp
 )
 
 file(GLOB cxx-install-headers
-     "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/api/*.hpp"
+     "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/contract/*.hpp"
 )
 
 set(cxx-headers
   ${cxx-install-headers}
 )
 
-set(MODULE_NAME opentxs-api)
+set(MODULE_NAME opentxs-core-contract)
 
 if(WIN32)
   # suppress warnings about exported internal symbols (global log stream objects)
@@ -38,7 +36,6 @@ if(WIN32)
   add_library(${MODULE_NAME} OBJECT
     ${cxx-sources}
     ${cxx-headers}
-    util/OTWindowsRegistryTools.cpp
     ${CMAKE_CURRENT_BINARY_DIR}/module.rc
   )
 else()
@@ -49,7 +46,7 @@ else()
 endif()
 
 install(FILES ${cxx-install-headers}
-        DESTINATION include/opentxs/api
+        DESTINATION include/opentxs/core/contract
         COMPONENT dev)
 
 set_property(TARGET ${MODULE_NAME} PROPERTY POSITION_INDEPENDENT_CODE 1)

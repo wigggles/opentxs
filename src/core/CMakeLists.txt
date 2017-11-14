@@ -1,88 +1,16 @@
 # Copyright (c) Monetas AG, 2014
 
-add_subdirectory(otprotob)
-add_subdirectory(trade)
+add_subdirectory(contract)
 add_subdirectory(cron)
-add_subdirectory(script)
+add_subdirectory(crypto)
+add_subdirectory(otprotob)
 add_subdirectory(recurring)
+add_subdirectory(script)
+add_subdirectory(trade)
+add_subdirectory(transaction)
+add_subdirectory(util)
 
 set(cxx-sources
-  contract/basket/Basket.cpp
-  contract/basket/BasketContract.cpp
-  contract/basket/BasketItem.cpp
-  contract/peer/BailmentNotice.cpp
-  contract/peer/BailmentReply.cpp
-  contract/peer/BailmentRequest.cpp
-  contract/peer/ConnectionReply.cpp
-  contract/peer/ConnectionRequest.cpp
-  contract/peer/NoticeAcknowledgement.cpp
-  contract/peer/OutBailmentReply.cpp
-  contract/peer/OutBailmentRequest.cpp
-  contract/peer/PeerObject.cpp
-  contract/peer/PeerReply.cpp
-  contract/peer/PeerRequest.cpp
-  contract/peer/StoreSecret.cpp
-  contract/CurrencyContract.cpp
-  contract/SecurityContract.cpp
-  contract/ServerContract.cpp
-  contract/Signable.cpp
-  contract/UnitDefinition.cpp
-  crypto/AsymmetricKeyEC.cpp
-  crypto/AsymmetricKeyEd25519.cpp
-  crypto/AsymmetricKeySecp256k1.cpp
-  crypto/Bip32.cpp
-  crypto/Bip39.cpp
-  crypto/ChildKeyCredential.cpp
-  crypto/ContactCredential.cpp
-  crypto/Credential.cpp
-  crypto/CredentialSet.cpp
-  crypto/Crypto.cpp
-  crypto/CryptoAsymmetric.cpp
-  crypto/CryptoEncodingEngine.cpp
-  crypto/CryptoEngine.cpp
-  crypto/CryptoHash.cpp
-  crypto/CryptoHashEngine.cpp
-  crypto/CryptoSymmetric.cpp
-  crypto/CryptoSymmetricEngine.cpp
-  crypto/CryptoUtil.cpp
-  crypto/Ecdsa.cpp
-  crypto/KeyCredential.cpp
-  crypto/Letter.cpp
-  crypto/Libsecp256k1.cpp
-  crypto/Libsodium.cpp
-  crypto/LowLevelKeyGenerator.cpp
-  crypto/MasterCredential.cpp
-  crypto/NymParameters.cpp
-  crypto/OTASCIIArmor.cpp
-  crypto/OTAsymmetricKey.cpp
-  crypto/OTAsymmetricKeyOpenSSL.cpp
-  crypto/OTAsymmetricKeyOpenSSLPrivdp.cpp
-  crypto/OTCachedKey.cpp
-  crypto/OTCallback.cpp
-  crypto/OTCaller.cpp
-  crypto/OTEnvelope.cpp
-  crypto/OTKeypair.cpp
-  crypto/OTKeyring.cpp
-  crypto/OTNymOrSymmetricKey.cpp
-  crypto/OTPassword.cpp
-  crypto/OTPasswordData.cpp
-  crypto/OTSignatureMetadata.cpp
-  crypto/OTSignedFile.cpp
-  crypto/OTSymmetricKey.cpp
-  crypto/OpenSSL.cpp
-  crypto/PaymentCode.cpp
-  crypto/SymmetricKey.cpp
-  crypto/TrezorCrypto.cpp
-  crypto/VerificationCredential.cpp
-  crypto/mkcert.cpp
-  transaction/Helpers.cpp
-  util/Assert.cpp
-  util/OTDataFolder.cpp
-  util/OTFolders.cpp
-  util/OTPaths.cpp
-  util/StringUtils.cpp
-  util/Tag.cpp
-  util/Timer.cpp
   Account.cpp
   AccountList.cpp
   Cheque.cpp
@@ -105,14 +33,12 @@ set(cxx-sources
   String.cpp
 )
 
-file(GLOB cxx-headers
-     "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/contract/basket/*.hpp"
-     "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/contract/peer/*.hpp"
-     "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/contract/*.hpp"
-     "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/crypto/*.hpp"
-     "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/transaction/*.hpp"
-     "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/util/*.hpp"
+file(GLOB cxx-install-headers
      "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/*.hpp"
+)
+
+set(cxx-headers
+  ${cxx-install-headers}
 )
 
 include_directories(${ProtobufIncludePath})
@@ -161,6 +87,10 @@ else()
     ${cxx-headers}
   )
 endif()
+
+install(FILES ${cxx-install-headers}
+        DESTINATION include/opentxs/core
+        COMPONENT dev)
 
 set_property(TARGET ${MODULE_NAME} PROPERTY POSITION_INDEPENDENT_CODE 1)
 set_lib_property(${MODULE_NAME})

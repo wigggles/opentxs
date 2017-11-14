@@ -6,8 +6,14 @@ set(cxx-sources
   StoragePlugin.cpp
 )
 
-file(GLOB cxx-headers
-     "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/storage/*.hpp"
+file(GLOB cxx-install-headers
+     "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/storage/Storage.hpp"
+     "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/storage/StorageConfig.hpp"
+     "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/storage/StoragePlugins.hpp"
+)
+
+set(cxx-headers
+  ${cxx-install-headers}
 )
 
 set(MODULE_NAME opentxs-storage)
@@ -36,6 +42,10 @@ else()
     ${cxx-headers}
   )
 endif()
+
+install(FILES ${cxx-install-headers}
+        DESTINATION include/opentxs/storage
+        COMPONENT dev)
 
 set_property(TARGET ${MODULE_NAME} PROPERTY POSITION_INDEPENDENT_CODE 1)
 set_lib_property(${MODULE_NAME})
