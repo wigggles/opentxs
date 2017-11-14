@@ -40,6 +40,9 @@
 
 #include "opentxs/client/commands/CmdCancel.hpp"
 
+#include "opentxs/api/Api.hpp"
+#include "opentxs/api/Native.hpp"
+#include "opentxs/api/OT.hpp"
 #include "opentxs/client/commands/CmdBase.hpp"
 #include "opentxs/client/commands/CmdDeposit.hpp"
 #include "opentxs/client/OT_ME.hpp"
@@ -195,7 +198,7 @@ int32_t CmdCancel::run(string mynym, string myacct, string indices)
             // So while we expect this 'activation' to fail, it should have the
             // desired effect of cancelling the smart contract and sending
             // failure notices to all the parties.
-            string response = OT_ME::It().activate_smart_contract(
+            string response = OT::App().API().OTME().activate_smart_contract(
                 server, mynym, myacct, "acct_agent_name", payment);
             if ("" == response) {
                 otOut << "Error: cannot cancel smart contract.\n";
@@ -222,8 +225,8 @@ int32_t CmdCancel::run(string mynym, string myacct, string indices)
             // propagated to the other party to the contract. (Which will result
             // in its automatic removal from the outpayment box.)
 
-            string response =
-                OT_ME::It().cancel_payment_plan(server, mynym, payment);
+            string response = OT::App().API().OTME().cancel_payment_plan(
+                server, mynym, payment);
             if ("" == response) {
                 otOut << "Error: cannot cancel payment plan.\n";
                 retVal = -1;

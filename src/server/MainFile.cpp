@@ -41,7 +41,6 @@
 #include "opentxs/server/MainFile.hpp"
 
 #include "opentxs/api/Native.hpp"
-#include "opentxs/api/OT.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/cron/OTCron.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
@@ -73,9 +72,14 @@
 namespace opentxs::server
 {
 
-MainFile::MainFile(Server* server)
-    : version_()
-    , server_(server)
+MainFile::MainFile(
+    Server& server,
+    opentxs::CryptoEngine& crypto,
+    opentxs::api::Wallet& wallet)
+    : server_(server)
+    , crypto_(crypto)
+    , wallet_(wallet)
+    , version_()
 {
 }
 
@@ -84,12 +88,12 @@ bool MainFile::SaveMainFileToString(String& strMainFile)
     Tag tag("notaryServer");
 
     // We're on version 2.0 since adding the master key.
-    auto& cachedKey = OT::App().Crypto().DefaultKey();
+    auto& cachedKey = crypto_.DefaultKey();
     tag.add_attribute("version", cachedKey.IsGenerated() ? "2.0" : version_);
-    tag.add_attribute("notaryID", String(server_->m_strNotaryID).Get());
-    tag.add_attribute("serverNymID", server_->m_strServerNymID.Get());
+    tag.add_attribute("notaryID", String(server_.m_strNotaryID).Get());
+    tag.add_attribute("serverNymID", server_.m_strServerNymID.Get());
     tag.add_attribute(
-        "transactionNum", formatLong(server_->transactor_.transactionNumber()));
+        "transactionNum", formatLong(server_.transactor_.transactionNumber()));
 
     if (cachedKey.IsGenerated())  // If it exists, then serialize it.
     {
@@ -105,7 +109,7 @@ bool MainFile::SaveMainFileToString(String& strMainFile)
 
     // Save the basket account information
 
-    for (auto& it : server_->transactor_.idToBasketMap_) {
+    for (auto& it : server_.transactor_.idToBasketMap_) {
         String strBasketID = it.first.c_str();
         String strBasketAcctID = it.second.c_str();
 
@@ -113,7 +117,7 @@ bool MainFile::SaveMainFileToString(String& strMainFile)
         Identifier BASKET_CONTRACT_ID;
 
         bool bContractID =
-            server_->transactor_.lookupBasketContractIDByAccountID(
+            server_.transactor_.lookupBasketContractIDByAccountID(
                 BASKET_ACCOUNT_ID, BASKET_CONTRACT_ID);
 
         if (!bContractID) {
@@ -135,7 +139,7 @@ bool MainFile::SaveMainFileToString(String& strMainFile)
         tag.add_tag(pTag);
     }
 
-    server_->transactor_.voucherAccounts_.Serialize(tag);
+    server_.transactor_.voucherAccounts_.Serialize(tag);
 
     std::string str_result;
     tag.output(str_result);
@@ -179,13 +183,13 @@ bool MainFile::SaveMainFile()
     // being used).
     //
     const bool bSaved = OTDB::StorePlainString(
-        strFinal.Get(), ".", server_->m_strWalletFilename.Get());
+        strFinal.Get(), ".", server_.m_strWalletFilename.Get());
 
     if (!bSaved) {
         Log::vError(
             "%s: Error saving main file: %s\n",
             __FUNCTION__,
-            server_->m_strWalletFilename.Get());
+            server_.m_strWalletFilename.Get());
     }
     return bSaved;
 }
@@ -246,7 +250,7 @@ bool MainFile::CreateMainFile(
     }
     OTASCIIArmor ascCachedKey;
     ascCachedKey.Set(strCachedKey.c_str());
-    auto& cachedKey = OT::App().Crypto().LoadDefaultKey(ascCachedKey);
+    auto& cachedKey = crypto_.LoadDefaultKey(ascCachedKey);
 
     if (!cachedKey.HasHashCheck()) {
         OTPassword tempPassword;
@@ -267,21 +271,21 @@ bool MainFile::CreateMainFile(
 
     const String strServerNymID(strNymID.c_str());
 
-    server_->m_nymServer.SetIdentifier(strServerNymID);
+    server_.m_nymServer.SetIdentifier(strServerNymID);
 
-    if (!server_->m_nymServer.LoadCredentials(true)) {
+    if (!server_.m_nymServer.LoadCredentials(true)) {
         Log::vOutput(
             0,
             "%s: Error loading server credentials, or "
             "certificate and private key.\n",
             __FUNCTION__);
-    } else if (!server_->m_nymServer.VerifyPseudonym()) {
+    } else if (!server_.m_nymServer.VerifyPseudonym()) {
         Log::vOutput(
             0,
             "%s: Error verifying server nym. Are you sure you "
             "have the right ID?\n",
             __FUNCTION__);
-    } else if (!server_->m_nymServer.SaveSignedNymfile(server_->m_nymServer)) {
+    } else if (!server_.m_nymServer.SaveSignedNymfile(server_.m_nymServer)) {
         Log::vOutput(
             0, "%s: Error saving new nymfile for server nym.\n", __FUNCTION__);
     } else {
@@ -299,22 +303,22 @@ bool MainFile::CreateMainFile(
 
 bool MainFile::LoadMainFile(bool bReadOnly)
 {
-    if (!OTDB::Exists(".", server_->m_strWalletFilename.Get())) {
+    if (!OTDB::Exists(".", server_.m_strWalletFilename.Get())) {
         Log::vError(
             "%s: Error finding file: %s\n",
             __FUNCTION__,
-            server_->m_strWalletFilename.Get());
+            server_.m_strWalletFilename.Get());
         return false;
     }
     String strFileContents(OTDB::QueryPlainString(
         ".",
-        server_->m_strWalletFilename.Get()));  // <=== LOADING FROM DATA STORE.
+        server_.m_strWalletFilename.Get()));  // <=== LOADING FROM DATA STORE.
 
     if (!strFileContents.Exists()) {
         Log::vError(
             "%s: Unable to read main file: %s\n",
             __FUNCTION__,
-            server_->m_strWalletFilename.Get());
+            server_.m_strWalletFilename.Get());
         return false;
     }
 
@@ -334,7 +338,7 @@ bool MainFile::LoadMainFile(bool bReadOnly)
                 "then failed decoding. Filename: %s \n"
                 "Contents: \n%s\n",
                 __FUNCTION__,
-                server_->m_strWalletFilename.Get(),
+                server_.m_strWalletFilename.Get(),
                 strFileContents.Get());
             return false;
         }
@@ -358,9 +362,9 @@ bool MainFile::LoadMainFile(bool bReadOnly)
                 case irr::io::EXN_ELEMENT: {
                     if (strNodeName.Compare("notaryServer")) {
                         version_ = xml->getAttributeValue("version");
-                        server_->m_strNotaryID = Identifier(
+                        server_.m_strNotaryID = Identifier(
                             String(xml->getAttributeValue("notaryID")));
-                        server_->m_strServerNymID =
+                        server_.m_strServerNymID =
                             xml->getAttributeValue("serverNymID");
 
                         String strTransactionNumber;  // The server issues
@@ -369,7 +373,7 @@ bool MainFile::LoadMainFile(bool bReadOnly)
                                                       // for the latest one.
                         strTransactionNumber =
                             xml->getAttributeValue("transactionNum");
-                        server_->transactor_.transactionNumber(
+                        server_.transactor_.transactionNumber(
                             strTransactionNumber.ToLong());
 
                         Log::vOutput(
@@ -380,9 +384,9 @@ bool MainFile::LoadMainFile(bool bReadOnly)
                             "\n Notary ID:     "
                             " %s\n Server Nym ID: %s\n",
                             version_.c_str(),
-                            server_->transactor_.transactionNumber(),
-                            String(server_->m_strNotaryID).Get(),
-                            server_->m_strServerNymID.Get());
+                            server_.transactor_.transactionNumber(),
+                            String(server_.m_strNotaryID).Get(),
+                            server_.m_strServerNymID.Get());
 
                     }
                     // todo in the future just remove masterkey. I'm leaving it
@@ -401,7 +405,7 @@ bool MainFile::LoadMainFile(bool bReadOnly)
                             // We successfully loaded the masterKey from file,
                             // so let's SET it as the master key globally...
                             auto& cachedKey =
-                                OT::App().Crypto().LoadDefaultKey(ascCachedKey);
+                                crypto_.LoadDefaultKey(ascCachedKey);
 
                             if (!cachedKey.HasHashCheck()) {
                                 OTPassword tempPassword;
@@ -451,7 +455,7 @@ bool MainFile::LoadMainFile(bool bReadOnly)
                             xml->getAttributeValue("count");
 
                         if ((-1) ==
-                            server_->transactor_.voucherAccounts_
+                            server_.transactor_.voucherAccounts_
                                 .ReadFromXMLNode(
                                     xml, strAcctType, strAcctCount))
                             Log::vError(
@@ -468,7 +472,7 @@ bool MainFile::LoadMainFile(bool bReadOnly)
                             BASKET_ACCT_ID(strBasketAcctID),
                             BASKET_CONTRACT_ID(strBasketContractID);
 
-                        if (server_->transactor_.addBasketAccountID(
+                        if (server_.transactor_.addBasketAccountID(
                                 BASKET_ID, BASKET_ACCT_ID, BASKET_CONTRACT_ID))
                             Log::vOutput(
                                 0,
@@ -511,13 +515,13 @@ bool MainFile::LoadServerUserAndContract()
 {
     const char* szFunc = "MainFile::LoadServerUserAndContract";
     bool bSuccess = false;
-    auto& serverNym = server_->m_nymServer;
+    auto& serverNym = server_.m_nymServer;
 
     OT_ASSERT(!version_.empty());
-    OT_ASSERT(String(server_->m_strNotaryID).Exists());
-    OT_ASSERT(server_->m_strServerNymID.Exists());
+    OT_ASSERT(String(server_.m_strNotaryID).Exists());
+    OT_ASSERT(server_.m_strServerNymID.Exists());
 
-    serverNym.SetIdentifier(server_->m_strServerNymID);
+    serverNym.SetIdentifier(server_.m_strServerNymID);
 
     if (false == serverNym.LoadCredentials(true)) {
         Log::vOutput(
@@ -561,22 +565,22 @@ bool MainFile::LoadServerUserAndContract()
     // (I WAS loading this erroneously in Server.Init(), before
     // the Nym had actually been loaded from disk. That didn't work.)
     //
-    const Identifier NOTARY_ID(server_->m_strNotaryID);
+    const Identifier NOTARY_ID(server_.m_strNotaryID);
 
     // Make sure the Cron object has a pointer to the server's Nym.
     // (For signing stuff...)
     //
-    server_->m_Cron.SetNotaryID(NOTARY_ID);
-    server_->m_Cron.SetServerNym(&serverNym);
+    server_.m_Cron.SetNotaryID(NOTARY_ID);
+    server_.m_Cron.SetServerNym(&serverNym);
 
-    if (!server_->m_Cron.LoadCron())
+    if (!server_.m_Cron.LoadCron())
         Log::vError(
             "%s: Failed loading Cron file. (Did you just create "
             "this server?)\n",
             szFunc);
     Log::vOutput(0, "%s: Loading the server contract...\n", szFunc);
 
-    auto pContract = OT::App().Wallet().Server(NOTARY_ID);
+    auto pContract = wallet_.Server(NOTARY_ID);
 
     if (pContract) {
         Log::Output(0, "\n** Main Server Contract Verified **\n");

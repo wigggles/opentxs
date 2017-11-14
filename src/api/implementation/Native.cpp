@@ -247,7 +247,8 @@ void Native::Init()
         recover();
     }
 
-    Init_Server();  // requires Init_Config(), Init_Log(), Init_Contracts()
+    Init_Server();  // requires Init_Config(), Init_Storage(), Init_Crypto(),
+                    // Init_Contracts(), Init_Log(), Init_Contracts()
 
     start();
 }
@@ -436,9 +437,12 @@ void Native::Init_Server()
         return;
     }
 
+    OT_ASSERT(crypto_);
+    OT_ASSERT(storage_);
     OT_ASSERT(wallet_);
 
-    server_.reset(new api::Server(server_args_, *wallet_, shutdown_));
+    server_.reset(new api::Server(
+        server_args_, *crypto_, Config(), *storage_, *wallet_, shutdown_));
 
     OT_ASSERT(server_);
 

@@ -49,6 +49,12 @@ class ClientContext;
 class Nym;
 class OTTransaction;
 
+namespace api
+{
+class Server;
+class Wallet;
+}  // namespace api
+
 namespace server
 {
 
@@ -56,8 +62,33 @@ class Server;
 
 class Notary
 {
+public:
+    void NotarizeProcessInbox(
+        Nym& nym,
+        ClientContext& context,
+        Account& account,
+        OTTransaction& tranIn,
+        OTTransaction& tranOut,
+        bool& outSuccess);
+    void NotarizeProcessNymbox(
+        Nym& nym,
+        ClientContext& context,
+        OTTransaction& tranIn,
+        OTTransaction& tranOut,
+        bool& outSuccess);
+    void NotarizeTransaction(
+        Nym& nym,
+        ClientContext& context,
+        OTTransaction& tranIn,
+        OTTransaction& tranOut,
+        bool& outSuccess);
+
 private:
-    Server* server_{nullptr};
+    friend class Server;
+
+    Server& server_;
+    opentxs::api::Server& mint_;
+    opentxs::api::Wallet& wallet_;
 
     void NotarizeCancelCronItem(
         Nym& nym,
@@ -123,34 +154,15 @@ private:
         OTTransaction& tranOut,
         bool& outSuccess);
 
+    explicit Notary(
+        Server& server,
+        opentxs::api::Server& mint,
+        opentxs::api::Wallet& wallet);
     Notary() = delete;
     Notary(const Notary&) = delete;
     Notary(Notary&&) = delete;
     Notary& operator=(const Notary&) = delete;
     Notary& operator=(Notary&&) = delete;
-
-public:
-    explicit Notary(Server* server);
-
-    void NotarizeProcessInbox(
-        Nym& nym,
-        ClientContext& context,
-        Account& account,
-        OTTransaction& tranIn,
-        OTTransaction& tranOut,
-        bool& outSuccess);
-    void NotarizeProcessNymbox(
-        Nym& nym,
-        ClientContext& context,
-        OTTransaction& tranIn,
-        OTTransaction& tranOut,
-        bool& outSuccess);
-    void NotarizeTransaction(
-        Nym& nym,
-        ClientContext& context,
-        OTTransaction& tranIn,
-        OTTransaction& tranOut,
-        bool& outSuccess);
 };
 }  // namespace server
 }  // namespace opentxs

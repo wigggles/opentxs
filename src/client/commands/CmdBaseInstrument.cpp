@@ -138,8 +138,8 @@ int32_t CmdBaseInstrument::sendPayment(
         return -1;
     }
 
-    string response =
-        OT_ME::It().send_user_payment(server, sender, recipient, cheque);
+    string response = OT::App().API().OTME().send_user_payment(
+        server, sender, recipient, cheque);
     return processResponse(response, what);
 }
 
@@ -189,7 +189,8 @@ string CmdBaseInstrument::writeCheque(
         }
     }
 
-    if (!OT_ME::It().make_sure_enough_trans_nums(10, server, mynym)) {
+    if (!OT::App().API().OTME().make_sure_enough_trans_nums(
+            10, server, mynym)) {
         otOut << "Error: cannot reserve transaction numbers.\n";
         return "";
     }

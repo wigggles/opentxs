@@ -48,25 +48,16 @@
 
 namespace opentxs
 {
+class OT_API;
+
 namespace api
 {
 class Api;
+class Wallet;
 }  // namespace api
 
 class MadeEasy
 {
-private:
-    friend class api::Api;
-
-    std::recursive_mutex& lock_;
-
-    MadeEasy(std::recursive_mutex& lock);
-    MadeEasy() = delete;
-    MadeEasy(const MadeEasy&) = delete;
-    MadeEasy(const MadeEasy&&) = delete;
-    MadeEasy& operator=(const MadeEasy&) = delete;
-    MadeEasy& operator=(const MadeEasy&&) = delete;
-
 public:
     EXPORT std::string check_nym(
         const std::string& NOTARY_ID,
@@ -222,8 +213,21 @@ public:
     EXPORT std::string stat_asset_account(const std::string& ACCOUNT_ID) const;
 
     ~MadeEasy() = default;
-};
 
+private:
+    friend class api::Api;
+
+    std::recursive_mutex& lock_;
+    OT_API& otapi_;
+    api::Wallet& wallet_;
+
+    MadeEasy(std::recursive_mutex& lock, OT_API& otapi, api::Wallet& wallet);
+    MadeEasy() = delete;
+    MadeEasy(const MadeEasy&) = delete;
+    MadeEasy(const MadeEasy&&) = delete;
+    MadeEasy& operator=(const MadeEasy&) = delete;
+    MadeEasy& operator=(const MadeEasy&&) = delete;
+};
 }  // namespace opentxs
 
 #endif  // OPENTXS_CLIENT_MADEEASY_HPP

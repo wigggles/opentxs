@@ -60,12 +60,62 @@ class OTCronItem;
 class OTWallet;
 class PeerObject;
 
+namespace api
+{
+class Activity;
+class ContactManager;
+class Wallet;
+}  // namespace api
+
 class OTClient
 {
+public:
+    explicit OTClient(
+        OTWallet& theWallet,
+        api::Activity& activity,
+        api::ContactManager& contacts,
+        api::Wallet& wallet);
+
+    inline OTMessageBuffer& GetMessageBuffer() { return m_MessageBuffer; }
+
+    inline OTMessageOutbuffer& GetMessageOutbuffer()
+    {
+        return m_MessageOutbuffer;
+    }
+
+    void QueueOutgoingMessage(const Message& theMessage);
+
+    EXPORT int32_t ProcessUserCommand(
+        MessageType requestedCommand,
+        Message& theMessage,
+        Nym& theNym,
+        const ServerContract& theServer,
+        const Account* pAccount = nullptr,
+        int64_t lTransactionAmount = 0,
+        const UnitDefinition* pMyUnitDefinition = nullptr,
+        const Identifier* pHisNymID = nullptr,
+        const Identifier* pHisAcctID = nullptr);
+
+    bool processServerReply(
+        const Identifier& server,
+        Nym* sender,
+        std::unique_ptr<Message>& reply,
+        Ledger* pNymbox = nullptr);
+
+    bool AcceptEntireNymbox(
+        Ledger& theNymbox,
+        const Identifier& theNotaryID,
+        const ServerContract& theServerContract,
+        Nym& theNym,
+        Message& theMessage);
+
 private:
     struct ProcessServerReplyArgs;
 
-    OTWallet* m_pWallet{nullptr};
+    OTWallet& m_pWallet;
+    api::Activity& activity_;
+    api::ContactManager& contacts_;
+    api::Wallet& wallet_;
     OTMessageBuffer m_MessageBuffer;
     OTMessageOutbuffer m_MessageOutbuffer;
 
@@ -181,42 +231,6 @@ private:
         const int64_t& lNymOpeningNumber,
         OTTransaction* pTransaction,
         const String& strCronItem) const;
-
-public:
-    explicit OTClient(OTWallet* theWallet);
-
-    inline OTMessageBuffer& GetMessageBuffer() { return m_MessageBuffer; }
-
-    inline OTMessageOutbuffer& GetMessageOutbuffer()
-    {
-        return m_MessageOutbuffer;
-    }
-
-    void QueueOutgoingMessage(const Message& theMessage);
-
-    EXPORT int32_t ProcessUserCommand(
-        MessageType requestedCommand,
-        Message& theMessage,
-        Nym& theNym,
-        const ServerContract& theServer,
-        const Account* pAccount = nullptr,
-        int64_t lTransactionAmount = 0,
-        const UnitDefinition* pMyUnitDefinition = nullptr,
-        const Identifier* pHisNymID = nullptr,
-        const Identifier* pHisAcctID = nullptr);
-
-    bool processServerReply(
-        const Identifier& server,
-        Nym* sender,
-        std::unique_ptr<Message>& reply,
-        Ledger* pNymbox = nullptr);
-
-    bool AcceptEntireNymbox(
-        Ledger& theNymbox,
-        const Identifier& theNotaryID,
-        const ServerContract& theServerContract,
-        Nym& theNym,
-        Message& theMessage);
 };
 }  // namespace opentxs
 

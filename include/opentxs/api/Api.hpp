@@ -47,7 +47,6 @@
 
 namespace opentxs
 {
-
 class CryptoEngine;
 class MadeEasy;
 class OT_API;
@@ -57,7 +56,6 @@ class OTME_too;
 
 namespace api
 {
-
 class Activity;
 class ContactManager;
 class Identity;

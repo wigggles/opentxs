@@ -55,6 +55,7 @@ namespace opentxs
 class Account;
 class UnitDefinition;
 class Contract;
+class CryptoEngine;
 class Identifier;
 class Message;
 class OTPassword;
@@ -64,6 +65,11 @@ class Purse;
 class String;
 class OTSymmetricKey;
 
+namespace api
+{
+class Storage;
+}  // namespace api
+
 typedef std::map<std::string, Account*> mapOfAccounts;
 typedef std::map<std::string, std::shared_ptr<OTSymmetricKey>>
     mapOfSymmetricKeys;
@@ -72,7 +78,7 @@ typedef std::set<Identifier> setOfIdentifiers;
 class OTWallet
 {
 public:
-    EXPORT OTWallet();
+    EXPORT OTWallet(CryptoEngine& crypto, api::Storage& storage);
     ~OTWallet();
 
     EXPORT bool IsNymOnCachedKey(const Identifier& needle) const;  // needle
@@ -273,8 +279,17 @@ private:
 public:
     String m_strFilename;
     String m_strDataFolder;
-};
 
+private:
+    CryptoEngine& crypto_;
+    api::Storage& storage_;
+
+    OTWallet() = delete;
+    OTWallet(const OTWallet&) = delete;
+    OTWallet(OTWallet&&) = delete;
+    OTWallet& operator=(const OTWallet&) = delete;
+    OTWallet& operator=(OTWallet&&) = delete;
+};
 }  // namespace opentxs
 
 #endif  // OPENTXS_CLIENT_OTWALLET_HPP

@@ -42,7 +42,6 @@
 
 #include "opentxs/api/Api.hpp"
 #include "opentxs/api/Native.hpp"
-#include "opentxs/api/OT.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/client/commands/CmdAcceptInbox.hpp"
 #include "opentxs/client/commands/CmdAcceptPayments.hpp"
@@ -75,15 +74,16 @@
 namespace opentxs
 {
 
-OT_ME::OT_ME(std::recursive_mutex& lock, MadeEasy& madeEasy)
+OT_ME::OT_ME(
+    std::recursive_mutex& lock,
+    OT_API& otapi,
+    MadeEasy& madeEasy,
+    api::Wallet& wallet)
     : lock_(lock)
+    , otapi_(otapi)
     , made_easy_(madeEasy)
+    , wallet_(wallet)
 {
-}
-
-class OT_ME& OT_ME::It(const std::string wallet)
-{
-    return OT::App().API().OTME(wallet);
 }
 
 bool OT_ME::make_sure_enough_trans_nums(
@@ -91,11 +91,11 @@ bool OT_ME::make_sure_enough_trans_nums(
     const std::string& strMyNotaryID,
     const std::string& strMyNymID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
-    auto context = OT::App().Wallet().mutable_ServerContext(
+    auto context = wallet_.mutable_ServerContext(
         Identifier(strMyNymID), Identifier(strMyNotaryID));
-    Utility MsgUtil(context.It());
+    Utility MsgUtil(context.It(), otapi_);
     bool bReturnVal = true;
 
     // Make sure we have at least one transaction number (to write the
@@ -146,13 +146,14 @@ std::string OT_ME::notify_bailment(
     const std::string& INSTRUMENT_DEFINITION_ID,
     const std::string& TXID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
-    auto context = OT::App().Wallet().mutable_ServerContext(
+    auto context = wallet_.mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func theRequest(
         NOTIFY_BAILMENT,
         context.It(),
+        otapi_,
         TARGET_NYM_ID,
         INSTRUMENT_DEFINITION_ID,
         TXID);
@@ -174,13 +175,14 @@ std::string OT_ME::initiate_bailment(
     const std::string& TARGET_NYM_ID,
     const std::string& INSTRUMENT_DEFINITION_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
-    auto context = OT::App().Wallet().mutable_ServerContext(
+    auto context = wallet_.mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func theRequest(
         INITIATE_BAILMENT,
         context.It(),
+        otapi_,
         TARGET_NYM_ID,
         INSTRUMENT_DEFINITION_ID);
     std::string strResponse =
@@ -203,13 +205,14 @@ std::string OT_ME::initiate_outbailment(
     const std::int64_t& AMOUNT,
     const std::string& THE_MESSAGE) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
-    auto context = OT::App().Wallet().mutable_ServerContext(
+    auto context = wallet_.mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func theRequest(
         INITIATE_OUTBAILMENT,
         context.It(),
+        otapi_,
         TARGET_NYM_ID,
         INSTRUMENT_DEFINITION_ID,
         AMOUNT,
@@ -231,12 +234,12 @@ std::string OT_ME::request_connection(
     const std::string& TARGET_NYM_ID,
     const std::int64_t TYPE) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
-    auto context = OT::App().Wallet().mutable_ServerContext(
+    auto context = wallet_.mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func theRequest(
-        REQUEST_CONNECTION, context.It(), TARGET_NYM_ID, TYPE);
+        REQUEST_CONNECTION, context.It(), otapi_, TARGET_NYM_ID, TYPE);
     std::string strResponse =
         theRequest.SendRequest(theRequest, "REQUEST_CONNECTION");
     std::int32_t nSuccess = VerifyMessageSuccess(strResponse);
@@ -256,12 +259,18 @@ std::string OT_ME::store_secret(
     const std::string& PRIMARY,
     const std::string& SECONDARY) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
-    auto context = OT::App().Wallet().mutable_ServerContext(
+    auto context = wallet_.mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func theRequest(
-        STORE_SECRET, context.It(), TARGET_NYM_ID, PRIMARY, SECONDARY, TYPE);
+        STORE_SECRET,
+        context.It(),
+        otapi_,
+        TARGET_NYM_ID,
+        PRIMARY,
+        SECONDARY,
+        TYPE);
     std::string strResponse =
         theRequest.SendRequest(theRequest, "STORE_SECRET");
     std::int32_t nSuccess = VerifyMessageSuccess(strResponse);
@@ -281,13 +290,14 @@ std::string OT_ME::acknowledge_bailment(
     const std::string& REQUEST_ID,
     const std::string& THE_MESSAGE) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
-    auto context = OT::App().Wallet().mutable_ServerContext(
+    auto context = wallet_.mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func theRequest(
         ACKNOWLEDGE_BAILMENT,
         context.It(),
+        otapi_,
         TARGET_NYM_ID,
         REQUEST_ID,
         THE_MESSAGE);
@@ -312,13 +322,14 @@ std::string OT_ME::acknowledge_outbailment(
     const std::string& REQUEST_ID,
     const std::string& THE_MESSAGE) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
-    auto context = OT::App().Wallet().mutable_ServerContext(
+    auto context = wallet_.mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func theRequest(
         ACKNOWLEDGE_OUTBAILMENT,
         context.It(),
+        otapi_,
         TARGET_NYM_ID,
         REQUEST_ID,
         THE_MESSAGE);
@@ -343,12 +354,17 @@ std::string OT_ME::acknowledge_notice(
     const std::string& REQUEST_ID,
     const bool ACK) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
-    auto context = OT::App().Wallet().mutable_ServerContext(
+    auto context = wallet_.mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func theRequest(
-        ACKNOWLEDGE_NOTICE, context.It(), TARGET_NYM_ID, REQUEST_ID, ACK);
+        ACKNOWLEDGE_NOTICE,
+        context.It(),
+        otapi_,
+        TARGET_NYM_ID,
+        REQUEST_ID,
+        ACK);
     std::string strResponse =
         theRequest.SendRequest(theRequest, "ACKNOWLEDGE_NOTICE");
     std::int32_t nSuccess = VerifyMessageSuccess(strResponse);
@@ -374,13 +390,14 @@ std::string OT_ME::acknowledge_connection(
     const std::string& PASSWORD,
     const std::string& KEY) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
-    auto context = OT::App().Wallet().mutable_ServerContext(
+    auto context = wallet_.mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func theRequest(
         ACKNOWLEDGE_CONNECTION,
         context.It(),
+        otapi_,
         TARGET_NYM_ID,
         REQUEST_ID,
         URL,
@@ -406,11 +423,12 @@ std::string OT_ME::register_contract_nym(
     const std::string& NYM_ID,
     const std::string& CONTRACT) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
-    auto context = OT::App().Wallet().mutable_ServerContext(
+    auto context = wallet_.mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
-    OTAPI_Func theRequest(REGISTER_CONTRACT_NYM, context.It(), CONTRACT);
+    OTAPI_Func theRequest(
+        REGISTER_CONTRACT_NYM, context.It(), otapi_, CONTRACT);
     std::string strResponse =
         theRequest.SendRequest(theRequest, "REGISTER_CONTRACT_NYM");
     std::int32_t nSuccess = VerifyMessageSuccess(strResponse);
@@ -427,11 +445,12 @@ std::string OT_ME::register_contract_server(
     const std::string& NYM_ID,
     const std::string& CONTRACT) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
-    auto context = OT::App().Wallet().mutable_ServerContext(
+    auto context = wallet_.mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
-    OTAPI_Func theRequest(REGISTER_CONTRACT_SERVER, context.It(), CONTRACT);
+    OTAPI_Func theRequest(
+        REGISTER_CONTRACT_SERVER, context.It(), otapi_, CONTRACT);
     std::string strResponse =
         theRequest.SendRequest(theRequest, "REGISTER_CONTRACT_SERVER");
     std::int32_t nSuccess = VerifyMessageSuccess(strResponse);
@@ -448,11 +467,12 @@ std::string OT_ME::register_contract_unit(
     const std::string& NYM_ID,
     const std::string& CONTRACT) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
-    auto context = OT::App().Wallet().mutable_ServerContext(
+    auto context = wallet_.mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
-    OTAPI_Func theRequest(REGISTER_CONTRACT_UNIT, context.It(), CONTRACT);
+    OTAPI_Func theRequest(
+        REGISTER_CONTRACT_UNIT, context.It(), otapi_, CONTRACT);
     std::string strResponse =
         theRequest.SendRequest(theRequest, "REGISTER_CONTRACT_UNIT");
     std::int32_t nSuccess = VerifyMessageSuccess(strResponse);
@@ -470,11 +490,11 @@ std::string OT_ME::register_nym(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
-    auto context = OT::App().Wallet().mutable_ServerContext(
+    auto context = wallet_.mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
-    OTAPI_Func theRequest(REGISTER_NYM, context.It());
+    OTAPI_Func theRequest(REGISTER_NYM, context.It(), otapi_);
     std::string strResponse =
         theRequest.SendRequest(theRequest, "REGISTER_NYM");
 
@@ -501,11 +521,11 @@ std::string OT_ME::request_admin(
     const std::string& NYM_ID,
     const std::string& PASSWORD) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
-    auto context = OT::App().Wallet().mutable_ServerContext(
+    auto context = wallet_.mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
-    OTAPI_Func theRequest(REQUEST_ADMIN, context.It(), PASSWORD);
+    OTAPI_Func theRequest(REQUEST_ADMIN, context.It(), otapi_, PASSWORD);
     std::string strResponse =
         theRequest.SendRequest(theRequest, "REQUEST_ADMIN");
     std::int32_t nSuccess = VerifyMessageSuccess(strResponse);
@@ -525,12 +545,12 @@ std::string OT_ME::server_add_claim(
     const std::string& VALUE,
     const bool PRIMARY) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
-    auto context = OT::App().Wallet().mutable_ServerContext(
+    auto context = wallet_.mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func theRequest(
-        SERVER_ADD_CLAIM, context.It(), PRIMARY, SECTION, TYPE, VALUE);
+        SERVER_ADD_CLAIM, context.It(), otapi_, PRIMARY, SECTION, TYPE, VALUE);
     const std::string strResponse =
         theRequest.SendRequest(theRequest, "SERVER_ADD_CLAIM");
     const std::int32_t nSuccess = VerifyMessageSuccess(strResponse);
@@ -558,7 +578,7 @@ std::string OT_ME::ping_notary(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID) const
 {
-    auto context = OT::App().Wallet().mutable_ServerContext(
+    auto context = wallet_.mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
     const auto response = context.It().PingNotary();
     const auto& reply = response.second;
@@ -723,7 +743,7 @@ bool OT_ME::accept_inbox_items(
     std::int32_t nItemType,
     const std::string& INDICES) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     switch (nItemType) {
         case 0: {
@@ -754,7 +774,7 @@ bool OT_ME::discard_incoming_payments(
     const std::string& NYM_ID,
     const std::string& INDICES) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     CmdDiscard discard;
     return 1 == discard.run(NOTARY_ID, NYM_ID, INDICES);
@@ -765,7 +785,7 @@ bool OT_ME::cancel_outgoing_payments(
     const std::string& ACCOUNT_ID,
     const std::string& INDICES) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     CmdCancel cancel;
     return 1 == cancel.run(NYM_ID, ACCOUNT_ID, INDICES);
@@ -776,7 +796,7 @@ bool OT_ME::accept_from_paymentbox(
     const std::string& INDICES,
     const std::string& PAYMENT_TYPE) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     CmdAcceptPayments cmd;
     return 1 == cmd.acceptFromPaymentbox(ACCOUNT_ID, INDICES, PAYMENT_TYPE);
@@ -788,7 +808,7 @@ bool OT_ME::accept_from_paymentbox_overload(
     const std::string& PAYMENT_TYPE,
     std::string* pOptionalOutput /*=nullptr*/) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     CmdAcceptPayments cmd;
     return 1 ==
@@ -894,7 +914,7 @@ std::string OT_ME::send_user_payment(
     const std::string& RECIPIENT_NYM_ID,
     const std::string& THE_PAYMENT) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     std::string strRecipientPubkey =
         load_or_retrieve_encrypt_key(NOTARY_ID, NYM_ID, RECIPIENT_NYM_ID);
@@ -920,7 +940,7 @@ std::string OT_ME::send_user_cash(
     const std::string& THE_PAYMENT,
     const std::string& SENDERS_COPY) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     std::string strRecipientPubkey =
         load_or_retrieve_encrypt_key(NOTARY_ID, NYM_ID, RECIPIENT_NYM_ID);
@@ -946,7 +966,7 @@ bool OT_ME::withdraw_and_send_cash(
     const std::string& RECIPIENT_NYM_ID,
     std::int64_t AMOUNT) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     CmdSendCash sendCash;
     return 1 ==
@@ -969,7 +989,7 @@ std::string OT_ME::get_payment_instrument(
     std::int32_t nIndex,
     const std::string& PRELOADED_INBOX) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     std::string strInstrument;
     std::string strInbox =
@@ -1023,13 +1043,14 @@ std::string OT_ME::get_box_receipt(
     std::int32_t nBoxType,
     std::int64_t TRANS_NUM) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
-    auto context = OT::App().Wallet().mutable_ServerContext(
+    auto context = wallet_.mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func request(
         GET_BOX_RECEIPT,
         context.It(),
+        otapi_,
         ACCT_ID,
         std::to_string(nBoxType),
         std::to_string(TRANS_NUM));
@@ -1081,16 +1102,17 @@ std::string OT_ME::create_market_offer(
     const std::string& STOP_SIGN,
     std::int64_t ACTIVATION_PRICE) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     std::string strNotaryID =
         SwigWrap::GetAccountWallet_NotaryID(ASSET_ACCT_ID);
     std::string strNymID = SwigWrap::GetAccountWallet_NymID(ASSET_ACCT_ID);
-    auto context = OT::App().Wallet().mutable_ServerContext(
+    auto context = wallet_.mutable_ServerContext(
         Identifier(strNymID), Identifier(strNotaryID));
     OTAPI_Func request(
         CREATE_MARKET_OFFER,
         context.It(),
+        otapi_,
         ASSET_ACCT_ID,
         CURRENCY_ACCT_ID,
         std::to_string(scale),
@@ -1119,13 +1141,14 @@ std::string OT_ME::kill_market_offer(
     const std::string& ASSET_ACCT_ID,
     std::int64_t TRANS_NUM) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
-    auto context = OT::App().Wallet().mutable_ServerContext(
+    auto context = wallet_.mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func request(
         KILL_MARKET_OFFER,
         context.It(),
+        otapi_,
         ASSET_ACCT_ID,
         std::to_string(TRANS_NUM));
     return request.SendTransaction(request, "KILL_MARKET_OFFER");
@@ -1139,12 +1162,16 @@ std::string OT_ME::kill_payment_plan(
     const std::string& ACCT_ID,
     std::int64_t TRANS_NUM) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
-    auto context = OT::App().Wallet().mutable_ServerContext(
+    auto context = wallet_.mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func request(
-        KILL_PAYMENT_PLAN, context.It(), ACCT_ID, std::to_string(TRANS_NUM));
+        KILL_PAYMENT_PLAN,
+        context.It(),
+        otapi_,
+        ACCT_ID,
+        std::to_string(TRANS_NUM));
     return request.SendTransaction(request, "KILL_PAYMENT_PLAN");
 }
 
@@ -1155,7 +1182,7 @@ std::string OT_ME::cancel_payment_plan(
     const std::string& NYM_ID,
     const std::string& THE_PAYMENT_PLAN) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     // NOTE: We have to include the account ID as well. Even though the API call
     // itself doesn't need it (it retrieves it from the plan itself, as we are
@@ -1179,11 +1206,12 @@ std::string OT_ME::cancel_payment_plan(
     //
     // (Therefore theRequest.SendTransaction is smart enough to check for that.)
 
-    auto context = OT::App().Wallet().mutable_ServerContext(
+    auto context = wallet_.mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func request(
         DEPOSIT_PAYMENT_PLAN,
         context.It(),
+        otapi_,
         strRecipientAcctID,
         THE_PAYMENT_PLAN);
     return request.SendTransaction(request, "CANCEL_PAYMENT_PLAN");
@@ -1198,13 +1226,14 @@ std::string OT_ME::activate_smart_contract(
     const std::string& AGENT_NAME,
     const std::string& THE_SMART_CONTRACT) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
-    auto context = OT::App().Wallet().mutable_ServerContext(
+    auto context = wallet_.mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func request(
         ACTIVATE_SMART_CONTRACT,
         context.It(),
+        otapi_,
         ACCT_ID,
         AGENT_NAME,
         THE_SMART_CONTRACT);
@@ -1220,13 +1249,14 @@ std::string OT_ME::trigger_clause(
     const std::string& CLAUSE_NAME,
     const std::string& STR_PARAM) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
-    auto context = OT::App().Wallet().mutable_ServerContext(
+    auto context = wallet_.mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func request(
         TRIGGER_CLAUSE,
         context.It(),
+        otapi_,
         std::to_string(TRANS_NUM),
         CLAUSE_NAME,
         STR_PARAM);
@@ -1241,11 +1271,11 @@ std::string OT_ME::withdraw_cash(
     const std::string& ACCT_ID,
     std::int64_t AMOUNT) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
-    auto context = OT::App().Wallet().mutable_ServerContext(
+    auto context = wallet_.mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
-    OTAPI_Func request(WITHDRAW_CASH, context.It(), ACCT_ID, AMOUNT);
+    OTAPI_Func request(WITHDRAW_CASH, context.It(), otapi_, ACCT_ID, AMOUNT);
     return request.SendTransaction(request, "WITHDRAW_CASH");
 }
 
@@ -1256,7 +1286,7 @@ std::string OT_ME::withdraw_cash(
 bool OT_ME::easy_withdraw_cash(const std::string& ACCT_ID, std::int64_t AMOUNT)
     const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     CmdWithdrawCash cmd;
     return 1 == cmd.withdrawCash(ACCT_ID, AMOUNT);
@@ -1273,7 +1303,7 @@ std::string OT_ME::export_cash(
     bool bPasswordProtected,
     std::string& STR_RETAINED_COPY) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     std::string to_nym_id = TO_NYM_ID;
     CmdExportCash cmd;
@@ -1297,13 +1327,14 @@ std::string OT_ME::withdraw_voucher(
     const std::string& STR_MEMO,
     std::int64_t AMOUNT) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
-    auto context = OT::App().Wallet().mutable_ServerContext(
+    auto context = wallet_.mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func request(
         WITHDRAW_VOUCHER,
         context.It(),
+        otapi_,
         ACCT_ID,
         RECIP_NYM_ID,
         STR_MEMO,
@@ -1321,13 +1352,14 @@ std::string OT_ME::pay_dividend(
     const std::string& STR_MEMO,
     std::int64_t AMOUNT_PER_SHARE) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
-    auto context = OT::App().Wallet().mutable_ServerContext(
+    auto context = wallet_.mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func request(
         PAY_DIVIDEND,
         context.It(),
+        otapi_,
         SOURCE_ACCT_ID,
         SHARES_INSTRUMENT_DEFINITION_ID,
         STR_MEMO,
@@ -1341,11 +1373,12 @@ std::string OT_ME::deposit_cheque(
     const std::string& ACCT_ID,
     const std::string& STR_CHEQUE) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
-    auto context = OT::App().Wallet().mutable_ServerContext(
+    auto context = wallet_.mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
-    OTAPI_Func request(DEPOSIT_CHEQUE, context.It(), ACCT_ID, STR_CHEQUE);
+    OTAPI_Func request(
+        DEPOSIT_CHEQUE, context.It(), otapi_, ACCT_ID, STR_CHEQUE);
     return request.SendTransaction(request, "DEPOSIT_CHEQUE");
 }
 
@@ -1355,7 +1388,7 @@ bool OT_ME::deposit_cash(
     const std::string& ACCT_ID,
     const std::string& STR_PURSE) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     CmdDeposit cmd;
     return 1 == cmd.depositPurse(NOTARY_ID, ACCT_ID, NYM_ID, STR_PURSE, "");
@@ -1367,7 +1400,7 @@ bool OT_ME::deposit_local_purse(
     const std::string& ACCT_ID,
     const std::string& STR_INDICES) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     CmdDeposit cmd;
     return 1 == cmd.depositPurse(NOTARY_ID, ACCT_ID, NYM_ID, "", STR_INDICES);
@@ -1377,11 +1410,11 @@ std::string OT_ME::get_market_list(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
-    auto context = OT::App().Wallet().mutable_ServerContext(
+    auto context = wallet_.mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
-    OTAPI_Func request(GET_MARKET_LIST, context.It());
+    OTAPI_Func request(GET_MARKET_LIST, context.It(), otapi_);
     return request.SendRequest(request, "GET_MARKET_LIST");
 }
 
@@ -1391,11 +1424,12 @@ std::string OT_ME::get_market_offers(
     const std::string& MARKET_ID,
     std::int64_t MAX_DEPTH) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
-    auto context = OT::App().Wallet().mutable_ServerContext(
+    auto context = wallet_.mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
-    OTAPI_Func request(GET_MARKET_OFFERS, context.It(), MARKET_ID, MAX_DEPTH);
+    OTAPI_Func request(
+        GET_MARKET_OFFERS, context.It(), otapi_, MARKET_ID, MAX_DEPTH);
     return request.SendRequest(request, "GET_MARKET_OFFERS");
 }
 
@@ -1403,11 +1437,11 @@ std::string OT_ME::get_nym_market_offers(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
-    auto context = OT::App().Wallet().mutable_ServerContext(
+    auto context = wallet_.mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
-    OTAPI_Func request(GET_NYM_MARKET_OFFERS, context.It());
+    OTAPI_Func request(GET_NYM_MARKET_OFFERS, context.It(), otapi_);
     return request.SendRequest(request, "GET_NYM_MARKET_OFFERS");
 }
 
@@ -1416,11 +1450,12 @@ std::string OT_ME::get_market_recent_trades(
     const std::string& NYM_ID,
     const std::string& MARKET_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
-    auto context = OT::App().Wallet().mutable_ServerContext(
+    auto context = wallet_.mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
-    OTAPI_Func request(GET_MARKET_RECENT_TRADES, context.It(), MARKET_ID);
+    OTAPI_Func request(
+        GET_MARKET_RECENT_TRADES, context.It(), otapi_, MARKET_ID);
     return request.SendRequest(request, "GET_MARKET_RECENT_TRADES");
 }
 
@@ -1430,18 +1465,18 @@ std::string OT_ME::adjust_usage_credits(
     const std::string& TARGET_NYM_ID,
     const std::string& ADJUSTMENT) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
-    auto context = OT::App().Wallet().mutable_ServerContext(
+    auto context = wallet_.mutable_ServerContext(
         Identifier(USER_NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func request(
-        ADJUST_USAGE_CREDITS, context.It(), TARGET_NYM_ID, ADJUSTMENT);
+        ADJUST_USAGE_CREDITS, context.It(), otapi_, TARGET_NYM_ID, ADJUSTMENT);
     return request.SendRequest(request, "ADJUST_USAGE_CREDITS");
 }
 
 int32_t OT_ME::VerifyMessageSuccess(const std::string& str_Message) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     if (str_Message.size() < 10) {
         otWarn << __FUNCTION__ << ": Error str_Message is: Too Short: \n"
@@ -1483,7 +1518,7 @@ int32_t OT_ME::VerifyMsgBalanceAgrmntSuccess(
     const std::string& ACCOUNT_ID,
     const std::string& str_Message) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     if (str_Message.size() < 10) {
         otWarn << __FUNCTION__ << ": Error str_Message is: Too Short: \n"
@@ -1526,7 +1561,7 @@ int32_t OT_ME::VerifyMsgTrnxSuccess(
     const std::string& ACCOUNT_ID,
     const std::string& str_Message) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     if (str_Message.size() < 10) {
         otWarn << __FUNCTION__ << ": Error str_Message is: Too Short: \n"
@@ -1574,7 +1609,7 @@ int32_t OT_ME::InterpretTransactionMsgReply(
     const std::string& str_Attempt,
     const std::string& str_Response) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     std::int32_t nMessageSuccess = VerifyMessageSuccess(str_Response);
 

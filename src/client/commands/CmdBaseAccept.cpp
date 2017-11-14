@@ -159,7 +159,8 @@ int32_t CmdBaseAccept::acceptFromInbox(
     // needed, and that call is made before the server transaction request is
     // actually sent.
     //
-    if (!OT_ME::It().make_sure_enough_trans_nums(10, server, mynym)) {
+    if (!OT::App().API().OTME().make_sure_enough_trans_nums(
+            10, server, mynym)) {
         otOut << "Error: cannot reserve transaction numbers.\n";
         return -1;
     }
@@ -516,7 +517,8 @@ int32_t CmdBaseAccept::acceptFromPaymentbox(
         if (all || SwigWrap::NumList_VerifyQuery(indices, to_string(i))) {
             if (bIsDefinitelyPaymentPlan) {
                 string instrument =
-                    OT_ME::It().get_payment_instrument(server, mynym, i, inbox);
+                    OT::App().API().OTME().get_payment_instrument(
+                        server, mynym, i, inbox);
                 if ("" == instrument) {
                     otOut << "CmdBaseAccept::acceptFromPaymentbox: "
                              "Error: cannot get payment instrument from "

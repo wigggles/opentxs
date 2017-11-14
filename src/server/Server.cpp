@@ -42,7 +42,6 @@
 
 #include "opentxs/api/Identity.hpp"
 #include "opentxs/api/Native.hpp"
-#include "opentxs/api/OT.hpp"
 #include "opentxs/api/Server.hpp"
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/api/Wallet.hpp"
@@ -101,6 +100,26 @@ int32_t OTCron::__cron_max_items_per_nym = 10;  // The maximum number of cron
 // active at the same time.
 #endif
 
+Server::Server(
+    opentxs::CryptoEngine& crypto,
+    opentxs::api::Settings& config,
+    opentxs::api::Server& mint,
+    opentxs::api::Storage& storage,
+    opentxs::api::Wallet& wallet)
+    : crypto_(crypto)
+    , config_(config)
+    , mint_(mint)
+    , storage_(storage)
+    , wallet_(wallet)
+    , mainFile_(*this, crypto_, wallet_)
+    , notary_(*this, mint_, wallet_)
+    , transactor_(this)
+    , userCommandProcessor_(*this, config_, mint_, wallet_)
+    , m_bReadOnly(false)
+    , m_bShutdownFlag(false)
+{
+}
+
 void Server::ActivateCron()
 {
     Log::vOutput(
@@ -152,47 +171,6 @@ const Nym& Server::GetServerNym() const { return m_nymServer; }
 
 bool Server::IsFlaggedForShutdown() const { return m_bShutdownFlag; }
 
-Server::Server()
-    : mainFile_(this)
-    , notary_(this)
-    , transactor_(this)
-    , userCommandProcessor_(this)
-    , m_bReadOnly(false)
-    , m_bShutdownFlag(false)
-{
-}
-
-Server::~Server()
-{
-    // PID -- Set it to 0 in the lock file so the next time we run OT, it knows
-    // there isn't
-    // another copy already running (otherwise we might wind up with two copies
-    // trying to write
-    // to the same data folder simultaneously, which could corrupt the data...)
-    //
-    //    OTLog::vError("m_strDataPath: %s\n", m_strDataPath.Get());
-    //    OTLog::vError("SERVER_PID_FILENAME: %s\n", SERVER_PID_FILENAME);
-
-    String strDataPath;
-    const bool bGetDataFolderSuccess = OTDataFolder::Get(strDataPath);
-    if (!m_bReadOnly && bGetDataFolderSuccess) {
-        String strPIDPath;
-        OTPaths::AppendFile(strPIDPath, strDataPath, SERVER_PID_FILENAME);
-
-        std::ofstream pid_outfile(strPIDPath.Get());
-
-        if (pid_outfile.is_open()) {
-            uint32_t the_pid = 0;
-            pid_outfile << the_pid;
-            pid_outfile.close();
-        } else
-            Log::vError(
-                "Failed trying to open data locking file (to wipe "
-                "PID back to 0): %s\n",
-                strPIDPath.Get());
-    }
-}
-
 std::pair<std::string, std::string> Server::parse_seed_backup(
     const std::string& input) const
 {
@@ -229,7 +207,7 @@ void Server::CreateMainFile(
         OTPassword words;
         phrase.setPassword(parsed.first);
         words.setPassword(parsed.second);
-        seed = OT::App().Crypto().BIP39().ImportSeed(words, phrase);
+        seed = crypto_.BIP39().ImportSeed(words, phrase);
 
         if (seed.empty()) {
             otErr << OT_METHOD << __FUNCTION__ << ": Seed restoration failed."
@@ -293,7 +271,7 @@ void Server::CreateMainFile(
     }
 
     bool notUsed = false;
-    OT::App().Config().Set_str(
+    config_.Set_str(
         SERVER_CONFIG_LISTEN_SECTION,
         SERVER_CONFIG_BIND_KEY,
         String(bindIP),
@@ -342,7 +320,7 @@ void Server::CreateMainFile(
         needListenCommand = false;
     }
 
-    OT::App().Config().Set_str(
+    config_.Set_str(
         SERVER_CONFIG_LISTEN_SECTION,
         SERVER_CONFIG_COMMAND_KEY,
         String(std::to_string(listenCommand)),
@@ -374,7 +352,7 @@ void Server::CreateMainFile(
         needListenNotification = false;
     }
 
-    OT::App().Config().Set_str(
+    config_.Set_str(
         SERVER_CONFIG_LISTEN_SECTION,
         SERVER_CONFIG_NOTIFY_KEY,
         String(std::to_string(listenNotification)),
@@ -418,7 +396,7 @@ void Server::CreateMainFile(
     }
 
     std::shared_ptr<const ServerContract> pContract{};
-    auto& wallet = OT::App().Wallet();
+    auto& wallet = wallet_;
     const String existing = OTDB::QueryPlainString(SERVER_CONTRACT_FILE).data();
 
     if (existing.empty()) {
@@ -450,7 +428,7 @@ void Server::CreateMainFile(
     }
 
     std::string strCachedKey;
-    auto& cachedKey = OT::App().Crypto().DefaultKey();
+    auto& cachedKey = crypto_.DefaultKey();
 
     if (cachedKey.IsGenerated()) {
         OTASCIIArmor ascMasterContents;
@@ -483,12 +461,11 @@ void Server::CreateMainFile(
     otOut << "Your server contract has been saved as " << SERVER_CONTRACT_FILE
           << " in the server data directory." << std::endl;
 #if OT_CRYPTO_SUPPORTED_KEY_HD
-    const std::string defaultFingerprint = OT::App().DB().DefaultSeed();
+    const std::string defaultFingerprint = storage_.DefaultSeed();
 
-    const std::string words =
-        OT::App().Crypto().BIP39().Words(defaultFingerprint);
+    const std::string words = crypto_.BIP39().Words(defaultFingerprint);
     const std::string passphrase =
-        OT::App().Crypto().BIP39().Passphrase(defaultFingerprint);
+        crypto_.BIP39().Passphrase(defaultFingerprint);
 #else
     const std::string words;
     const std::string passphrase;
@@ -506,7 +483,7 @@ void Server::CreateMainFile(
     mainFileExists = mainFile_.CreateMainFile(
         strBookended.Get(), strNotaryID, "", strNymID, strCachedKey);
 
-    OT::App().Config().Save();
+    config_.Save();
 }
 
 void Server::Init(const std::map<std::string, std::string>& args, bool readOnly)
@@ -517,7 +494,7 @@ void Server::Init(const std::map<std::string, std::string>& args, bool readOnly)
         Log::vError("Unable to Init data folders!");
         OT_FAIL;
     }
-    if (!ConfigLoader::load(m_strWalletFilename)) {
+    if (!ConfigLoader::load(crypto_, config_, m_strWalletFilename)) {
         Log::vError("Unable to Load Config File!");
         OT_FAIL;
     }
@@ -634,12 +611,12 @@ void Server::Init(const std::map<std::string, std::string>& args, bool readOnly)
         }
     }
 
-    auto password = OT::App().Crypto().Encode().Nonce(16);
+    auto password = crypto_.Encode().Nonce(16);
     String notUsed;
     bool ignored;
-    OT::App().Config().CheckSet_str(
+    config_.CheckSet_str(
         "permissions", "admin_password", password, notUsed, ignored);
-    OT::App().Config().Save();
+    config_.Save();
 
     // With the Server's private key loaded, and the latest transaction number
     // loaded, and all the various other data (contracts, etc) the server is now
@@ -994,14 +971,14 @@ bool Server::GetConnectInfo(std::string& strHostname, uint32_t& nPort) const
     bool notUsed = false;
     int64_t port = 0;
 
-    const bool haveIP = OT::App().Config().CheckSet_str(
+    const bool haveIP = config_.CheckSet_str(
         SERVER_CONFIG_LISTEN_SECTION,
         "bindip",
         String(DEFAULT_BIND_IP),
         strHostname,
         notUsed);
 
-    const bool havePort = OT::App().Config().CheckSet_long(
+    const bool havePort = config_.CheckSet_long(
         SERVER_CONFIG_LISTEN_SECTION,
         SERVER_CONFIG_COMMAND_KEY,
         DEFAULT_COMMAND_PORT,
@@ -1013,18 +990,48 @@ bool Server::GetConnectInfo(std::string& strHostname, uint32_t& nPort) const
 
     nPort = port;
 
-    OT::App().Config().Save();
+    config_.Save();
 
     return (haveIP && havePort);
 }
 
 zcert_t* Server::GetTransportKey() const
 {
-    auto contract = OT::App().Wallet().Server(Identifier(m_strNotaryID));
+    auto contract = wallet_.Server(Identifier(m_strNotaryID));
 
     OT_ASSERT(contract);
 
     return contract->PrivateTransportKey();
 }
 
+Server::~Server()
+{
+    // PID -- Set it to 0 in the lock file so the next time we run OT, it knows
+    // there isn't
+    // another copy already running (otherwise we might wind up with two copies
+    // trying to write
+    // to the same data folder simultaneously, which could corrupt the data...)
+    //
+    //    OTLog::vError("m_strDataPath: %s\n", m_strDataPath.Get());
+    //    OTLog::vError("SERVER_PID_FILENAME: %s\n", SERVER_PID_FILENAME);
+
+    String strDataPath;
+    const bool bGetDataFolderSuccess = OTDataFolder::Get(strDataPath);
+    if (!m_bReadOnly && bGetDataFolderSuccess) {
+        String strPIDPath;
+        OTPaths::AppendFile(strPIDPath, strDataPath, SERVER_PID_FILENAME);
+
+        std::ofstream pid_outfile(strPIDPath.Get());
+
+        if (pid_outfile.is_open()) {
+            uint32_t the_pid = 0;
+            pid_outfile << the_pid;
+            pid_outfile.close();
+        } else
+            Log::vError(
+                "Failed trying to open data locking file (to wipe "
+                "PID back to 0): %s\n",
+                strPIDPath.Get());
+    }
+}
 }  // namespace opentxs::server

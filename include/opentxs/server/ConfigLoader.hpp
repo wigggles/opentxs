@@ -43,14 +43,22 @@
 
 namespace opentxs
 {
-
+class CryptoEngine;
 class String;
+
+namespace api
+{
+class Settings;
+}  // namespace api
 
 namespace server
 {
 
 struct ConfigLoader {
-    static bool load(String& walletFilename);
+    static bool load(
+        opentxs::CryptoEngine& crypto,
+        api::Settings& config,
+        String& walletFilename);
 };
 }  // namespace server
 }  // namespace opentxs

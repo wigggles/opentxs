@@ -40,8 +40,6 @@
 
 #include "opentxs/server/Transactor.hpp"
 
-#include "opentxs/api/OT.hpp"
-#include "opentxs/api/Wallet.hpp"
 #include "opentxs/cash/Mint.hpp"
 #include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/core/Account.hpp"

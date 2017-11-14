@@ -62,6 +62,7 @@ namespace api
 
 class Activity;
 class Api;
+class ContactManager;
 class Settings;
 class Identity;
 class Wallet;
@@ -76,6 +77,7 @@ private:
 
     api::Activity& activity_;
     api::Settings& config_;
+    api::ContactManager& contacts_;
     CryptoEngine& crypto_;
     api::Identity& identity_;
     api::Wallet& wallet_;
@@ -86,6 +88,7 @@ private:
     OTAPI_Exec(
         api::Activity& activity,
         api::Settings& config,
+        api::ContactManager& contacts,
         CryptoEngine& crypto,
         api::Identity& identity,
         api::Wallet& wallet,

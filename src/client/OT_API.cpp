@@ -43,7 +43,6 @@
 #include "opentxs/api/Activity.hpp"
 #include "opentxs/api/Identity.hpp"
 #include "opentxs/api/Native.hpp"
-#include "opentxs/api/OT.hpp"
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/cash/Mint.hpp"
@@ -171,7 +170,6 @@ extern "C" {
 
 namespace opentxs
 {
-
 namespace
 {
 
@@ -515,10 +513,11 @@ void OT_API::Pid::ClosePid()
 
 bool OT_API::Pid::IsPidOpen() const { return m_bIsPidOpen; }
 
-// The API begins here...
 OT_API::OT_API(
     api::Activity& activity,
     api::Settings& config,
+    api::ContactManager& contacts,
+    CryptoEngine& crypto,
     api::Identity& identity,
     api::Storage& storage,
     api::Wallet& wallet,
@@ -526,6 +525,8 @@ OT_API::OT_API(
     std::recursive_mutex& lock)
     : activity_(activity)
     , config_(config)
+    , contacts_(contacts)
+    , crypto_(crypto)
     , identity_(identity)
     , storage_(storage)
     , wallet_(wallet)
@@ -546,19 +547,6 @@ OT_API::OT_API(
         Cleanup();
         OT_FAIL;
     }
-}
-
-OT_API::~OT_API()
-{
-    if (nullptr != m_pWallet) delete m_pWallet;
-    m_pWallet = nullptr;
-    if (nullptr != m_pClient) delete m_pClient;
-    m_pClient = nullptr;
-
-    Cleanup();
-
-    // this must be last!
-    pid_.reset();
 }
 
 // Call this once per INSTANCE of OT_API.
@@ -619,8 +607,11 @@ bool OT_API::Init()
     if (m_bDefaultStore) {
         otWarn << __FUNCTION__ << ": Success invoking OTDB::InitDefaultStorage";
 
-        m_pWallet = new OTWallet;
-        m_pClient = new OTClient(m_pWallet);
+        m_pWallet = new OTWallet(crypto_, storage_);
+        m_pClient.reset(
+            new OTClient(*m_pWallet, activity_, contacts_, wallet_));
+
+        OT_ASSERT(m_pClient);
 
         return true;
     } else {
@@ -742,7 +733,7 @@ bool OT_API::LoadConfigFile()
             lValue,
             bIsNewKey,
             szComment);
-        OT::App().Crypto().SetTimeout(std::chrono::seconds(lValue));
+        crypto_.SetTimeout(std::chrono::seconds(lValue));
     }
 
     // Use System Keyring
@@ -754,7 +745,7 @@ bool OT_API::LoadConfigFile()
             CLIENT_USE_SYSTEM_KEYRING,
             bValue,
             bIsNewKey);
-        OT::App().Crypto().SetSystemKeyring(bValue);
+        crypto_.SetSystemKeyring(bValue);
 
 #if defined(OT_KEYRING_FLATFILE)
         // Is there a password folder? (There shouldn't be, but we allow it...)
@@ -1085,7 +1076,7 @@ bool OT_API::Wallet_ChangePassphrase() const
     }
 
     // By this point, pWallet is a good pointer.  (No need to cleanup.)
-    auto key = OT::App().Crypto().mutable_DefaultKey();
+    auto key = crypto_.mutable_DefaultKey();
     auto& cachedKey = key.It();
 
     if (!cachedKey.IsGenerated()) {
@@ -1133,7 +1124,7 @@ std::string OT_API::Wallet_GetPhrase()
         return "";
     };
     // By this point, pWallet is a good pointer.  (No need to cleanup.)
-    auto& cachedKey = OT::App().Crypto().DefaultKey();
+    auto& cachedKey = crypto_.DefaultKey();
 
     if (!cachedKey.IsGenerated()) {
         otOut << __FUNCTION__ << ": Wallet master cached key doesn't exist. "
@@ -1159,7 +1150,7 @@ std::string OT_API::Wallet_GetSeed()
     }
 
     // By this point, pWallet is a good pointer.  (No need to cleanup.)
-    auto& cachedKey = OT::App().Crypto().DefaultKey();
+    auto& cachedKey = crypto_.DefaultKey();
 
     if (!cachedKey.IsGenerated()) {
         otOut << __FUNCTION__ << ": Wallet master cached key doesn't exist. "
@@ -1184,7 +1175,7 @@ std::string OT_API::Wallet_GetWords()
         return "";
     };
     // By this point, pWallet is a good pointer.  (No need to cleanup.)
-    auto& cachedKey = OT::App().Crypto().DefaultKey();
+    auto& cachedKey = crypto_.DefaultKey();
 
     if (!cachedKey.IsGenerated()) {
         otOut << __FUNCTION__ << ": Wallet master cached key doesn't exist. "
@@ -1798,7 +1789,7 @@ bool OT_API::Wallet_ImportNym(const String& FILE_CONTENTS, Identifier* pNymID)
     // outside, and doesn't use it anyway.)
     // This is true regardless of whether we load via the old system or
     // the new credentials system.
-    auto key = OT::App().Crypto().mutable_DefaultKey();
+    auto key = crypto_.mutable_DefaultKey();
     auto& cachedKey = key.It();
 
     if (!(cachedKey.isPaused())) {
@@ -15400,5 +15391,15 @@ TransactionNumber OT_API::get_origin(
     }
 
     return originNumber;
+}
+
+OT_API::~OT_API()
+{
+    if (nullptr != m_pWallet) delete m_pWallet;
+    m_pWallet = nullptr;
+    m_pClient.reset();
+    Cleanup();
+    // this must be last!
+    pid_.reset();
 }
 }  // namespace opentxs

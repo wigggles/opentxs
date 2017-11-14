@@ -246,7 +246,7 @@ int32_t CmdSendCash::sendCash(
         return -1;
     }
 
-    response = OT_ME::It().send_user_cash(
+    response = OT::App().API().OTME().send_user_cash(
         server, mynym, hisnym, exportedCash, retainedCopy);
     if (1 != responseStatus(response)) {
         // cannot send cash so try to re-import into sender's purse

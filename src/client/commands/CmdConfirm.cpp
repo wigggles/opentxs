@@ -135,8 +135,8 @@ int32_t CmdConfirm::run(
     }
 
     // use specified payment instrument from inpayments
-    string instrument =
-        OT_ME::It().get_payment_instrument(server, mynym, messageNr, "");
+    string instrument = OT::App().API().OTME().get_payment_instrument(
+        server, mynym, messageNr, "");
     if ("" == instrument) {
         otOut << "Error: cannot load payment instrument.\n";
         return -1;
@@ -245,7 +245,8 @@ int32_t CmdConfirm::confirmPaymentPlan(
         return -1;
     }
 
-    if (!OT_ME::It().make_sure_enough_trans_nums(2, server, senderUser)) {
+    if (!OT::App().API().OTME().make_sure_enough_trans_nums(
+            2, server, senderUser)) {
         otOut << "Error: cannot reserve transaction numbers.\n";
         return -1;
     }
@@ -516,7 +517,7 @@ int32_t CmdConfirm::activateContract(
         }
     }
 
-    string response = OT_ME::It().activate_smart_contract(
+    string response = OT::App().API().OTME().activate_smart_contract(
         server, mynym, myAcctID, myAcctAgentName, contract);
     if (1 != responseStatus(response)) {
         otOut << "Error: cannot activate smart contract.\n";
@@ -584,8 +585,8 @@ int32_t CmdConfirm::sendToNextParty(
         }
     }
 
-    string response =
-        OT_ME::It().send_user_payment(server, mynym, hisNymID, contract);
+    string response = OT::App().API().OTME().send_user_payment(
+        server, mynym, hisNymID, contract);
     if (1 != responseStatus(response)) {
         otOut << "\nFor whatever reason, our attempt to send the instrument on "
                  "to the next user has failed.\n";
@@ -867,7 +868,7 @@ int32_t CmdConfirm::confirmAccounts(
         int32_t needed = SwigWrap::SmartContract_CountNumsNeeded(
             contract, mapAgents[x->first]);
 
-        if (!OT_ME::It().make_sure_enough_trans_nums(
+        if (!OT::App().API().OTME().make_sure_enough_trans_nums(
                 needed + 1, server, mynym)) {
             otOut << "Error: cannot reserve transaction numbers.\n";
             return -1;

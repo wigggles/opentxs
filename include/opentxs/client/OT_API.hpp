@@ -62,6 +62,7 @@ class Account;
 class Basket;
 class BasketContract;
 class Cheque;
+class CryptoEngine;
 class CurrencyContract;
 class Ledger;
 class Message;
@@ -83,15 +84,14 @@ class UnitDefinition;
 
 namespace api
 {
-
 class Activity;
 class Api;
+class ContactManager;
 class Identity;
 class Settings;
 class Storage;
 class Wallet;
 class ZMQ;
-
 }  // namespace api
 
 // The C++ high-level interface to the Open Transactions client-side.
@@ -106,7 +106,7 @@ public:
     EXPORT bool SetWalletFilename(const String& strPath);
     EXPORT OTWallet* GetWallet(const char* szFuncName = nullptr) const;
 
-    inline OTClient* GetClient() const { return m_pClient; }
+    inline OTClient* GetClient() const { return m_pClient.get(); }
 
     EXPORT bool SetWallet(const String& strFilename);
     EXPORT bool WalletExists() const;
@@ -1365,6 +1365,8 @@ private:
 
     api::Activity& activity_;
     api::Settings& config_;
+    api::ContactManager& contacts_;
+    CryptoEngine& crypto_;
     api::Identity& identity_;
     api::Storage& storage_;
     api::Wallet& wallet_;
@@ -1380,7 +1382,7 @@ private:
 
     std::unique_ptr<Pid> pid_;
     OTWallet* m_pWallet{nullptr};
-    OTClient* m_pClient{nullptr};
+    std::unique_ptr<OTClient> m_pClient;
 
     std::recursive_mutex& lock_;
 
@@ -1429,6 +1431,8 @@ private:
     OT_API(
         api::Activity& activity,
         api::Settings& config,
+        api::ContactManager& contacts,
+        CryptoEngine& crypto,
         api::Identity& identity,
         api::Storage& storage,
         api::Wallet& wallet,

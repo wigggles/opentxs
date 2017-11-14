@@ -42,7 +42,6 @@
 
 #include "opentxs/api/Api.hpp"
 #include "opentxs/api/Native.hpp"
-#include "opentxs/api/OT.hpp"
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/client/OT_ME.hpp"
 #include "opentxs/client/SwigWrap.hpp"
@@ -232,11 +231,12 @@ std::int32_t InterpretTransactionMsgReply(
     return 1;
 }
 
-Utility::Utility(ServerContext& context)
+Utility::Utility(ServerContext& context, OT_API& otapi)
     : strLastReplyReceived("")
     , delay_ms(50)
     , max_trans_dl(10)
     , context_(context)
+    , otapi_(otapi)
 {
 }
 
@@ -1741,14 +1741,13 @@ bool Utility::insureHaveAllBoxReceipts(
     std::unique_ptr<Ledger> pLedger;
 
     if (0 == nBoxType) {
-        pLedger.reset(
-            OT::App().API().OTAPI().LoadNymboxNoVerify(theNotaryID, theNymID));
+        pLedger.reset(otapi_.LoadNymboxNoVerify(theNotaryID, theNymID));
     } else if (1 == nBoxType) {
-        pLedger.reset(OT::App().API().OTAPI().LoadInboxNoVerify(
-            theNotaryID, theNymID, theAccountID));
+        pLedger.reset(
+            otapi_.LoadInboxNoVerify(theNotaryID, theNymID, theAccountID));
     } else if (2 == nBoxType) {
-        pLedger.reset(OT::App().API().OTAPI().LoadOutboxNoVerify(
-            theNotaryID, theNymID, theAccountID));
+        pLedger.reset(
+            otapi_.LoadOutboxNoVerify(theNotaryID, theNymID, theAccountID));
     } else {
         otOut << strLocation << ": Error. Expected nBoxType of 0,1,2 (nymbox, "
                                 "inbox, or outbox.)\n";
@@ -1803,14 +1802,14 @@ bool Utility::insureHaveAllBoxReceipts(
 
         const bool bShouldDownload =
             (!bIsReplyNotice || (bIsReplyNotice && (0 < lRequestNum) &&
-                                 !OT::App().API().OTAPI().HaveAlreadySeenReply(
+                                 !otapi_.HaveAlreadySeenReply(
                                      theNotaryID, theNymID, lRequestNum)));
 
         // This block executes if we should download it (assuming we
         // haven't already, which it also checks for.)
         //
         if (bShouldDownload) {
-            bool bHaveBoxReceipt = OT::App().API().OTAPI().DoesBoxReceiptExist(
+            bool bHaveBoxReceipt = otapi_.DoesBoxReceiptExist(
                 theNotaryID, theNymID, theAccountID, nBoxType, lTransactionNum);
             if (!bHaveBoxReceipt) {
                 otWarn << strLocation
