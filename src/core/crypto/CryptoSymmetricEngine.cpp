@@ -40,17 +40,16 @@
 
 #include "opentxs/core/crypto/CryptoSymmetricEngine.hpp"
 
-#include "opentxs/core/crypto/CryptoEngine.hpp"
 #include "opentxs/core/crypto/CryptoSymmetric.hpp"
-#include "opentxs/core/crypto/Libsodium.hpp"
+#include "opentxs/core/crypto/CryptoSymmetricNew.hpp"
 #include "opentxs/core/crypto/SymmetricKey.hpp"
 
 #include <string>
 
 namespace opentxs
 {
-CryptoSymmetricEngine::CryptoSymmetricEngine(CryptoEngine& parent)
-    : sodium_(static_cast<Libsodium&>(*parent.ed25519_))
+CryptoSymmetricEngine::CryptoSymmetricEngine(CryptoSymmetricNew& sodium)
+    : sodium_(sodium)
 {
 }
 

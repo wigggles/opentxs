@@ -73,11 +73,9 @@ const std::uint32_t Storage::HASH_TYPE = 2;  // BTC160
 Storage::Storage(
     const std::atomic<bool>& shutdown,
     const StorageConfig& config,
-    CryptoEngine& crypto,
     const Digest& hash,
     const Random& random)
-    : crypto_(crypto)
-    , shutdown_(shutdown)
+    : shutdown_(shutdown)
     , gc_interval_(config.gc_interval_)
     , write_lock_()
     , root_(nullptr)

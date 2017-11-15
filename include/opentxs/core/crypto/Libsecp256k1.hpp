@@ -57,8 +57,6 @@ extern "C" {
 
 namespace opentxs
 {
-
-class CryptoEngine;
 class OTAsymmetricKey;
 class Data;
 class OTPassword;
@@ -66,9 +64,17 @@ class OTPasswordData;
 class Nym;
 class CryptoUtil;
 
+namespace api
+{
+namespace implementation
+{
+class Crypto;
+}  // namespace implementation
+}  // namespace api
+
 class Libsecp256k1 : public Crypto, public CryptoAsymmetric, public Ecdsa
 {
-    friend class CryptoEngine;
+    friend class api::implementation::Crypto;
 
 private:
     static const int PrivateKeySize = 32;

@@ -49,23 +49,30 @@
 namespace opentxs
 {
 
-class CryptoEngine;
 class CryptoSymmetricNew;
 class SymmetricKey;
 class OTPassword;
 class OTPasswordData;
 
+namespace api
+{
+namespace implementation
+{
+class Crypto;
+}  // namespace implementation
+}  // namespace api
+
 // Singlton class for providing an interface to symmetric key methods
 class CryptoSymmetricEngine
 {
 private:
-    friend class CryptoEngine;
+    friend class api::implementation::Crypto;
 
     CryptoSymmetricNew& sodium_;
 
     CryptoSymmetricNew* GetEngine(const proto::SymmetricMode mode);
 
-    CryptoSymmetricEngine(CryptoEngine& parent);
+    CryptoSymmetricEngine(CryptoSymmetricNew& sodium);
     CryptoSymmetricEngine(const CryptoSymmetricEngine&) = delete;
     CryptoSymmetricEngine& operator=(const CryptoSymmetricEngine&) = delete;
 

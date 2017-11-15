@@ -40,6 +40,7 @@
 
 #include "opentxs/core/Nym.hpp"
 
+#include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/Activity.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/api/OT.hpp"

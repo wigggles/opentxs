@@ -1,29 +1,17 @@
-add_subdirectory(crypto)
-
 set(cxx-sources
-  implementation/Native.cpp
-  Activity.cpp
-  Api.cpp
-  Blockchain.cpp
-  ContactManager.cpp
-  Dht.cpp
-  Identity.cpp
-  OT.cpp
-  Server.cpp
-  Settings.cpp
-  Wallet.cpp
+  Crypto.cpp
 )
 
 file(GLOB cxx-install-headers
-     "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/api/*.hpp"
+     "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/api/crypto/*.hpp"
 )
 
 set(cxx-headers
   ${cxx-install-headers}
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/api/implementation/Native.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/api/crypto/implementation/Crypto.hpp
 )
 
-set(MODULE_NAME opentxs-api)
+set(MODULE_NAME opentxs-api-crypto)
 
 if(WIN32)
   # suppress warnings about exported internal symbols (global log stream objects)
@@ -53,7 +41,7 @@ else()
 endif()
 
 install(FILES ${cxx-install-headers}
-        DESTINATION include/opentxs/api
+        DESTINATION include/opentxs/api/crypto
         COMPONENT dev)
 
 set_property(TARGET ${MODULE_NAME} PROPERTY POSITION_INDEPENDENT_CODE 1)

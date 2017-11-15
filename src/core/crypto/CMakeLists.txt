@@ -11,7 +11,6 @@ set(cxx-sources
   Crypto.cpp
   CryptoAsymmetric.cpp
   CryptoEncodingEngine.cpp
-  CryptoEngine.cpp
   CryptoHash.cpp
   CryptoHashEngine.cpp
   CryptoSymmetric.cpp

@@ -40,6 +40,7 @@
 
 #include "opentxs/api/implementation/Native.hpp"
 
+#include "opentxs/api/crypto/implementation/Crypto.hpp"
 #include "opentxs/api/Activity.hpp"
 #include "opentxs/api/Api.hpp"
 #include "opentxs/api/Blockchain.hpp"
@@ -58,7 +59,6 @@
 #include "opentxs/client/MadeEasy.hpp"
 #include "opentxs/core/crypto/Bip39.hpp"
 #include "opentxs/core/crypto/CryptoEncodingEngine.hpp"
-#include "opentxs/core/crypto/CryptoEngine.hpp"
 #include "opentxs/core/crypto/CryptoHashEngine.hpp"
 #include "opentxs/core/crypto/SymmetricKey.hpp"
 #include "opentxs/core/util/Assert.hpp"
@@ -187,7 +187,7 @@ api::ContactManager& Native::Contact() const
     return *contacts_;
 }
 
-CryptoEngine& Native::Crypto() const
+api::Crypto& Native::Crypto() const
 {
     OT_ASSERT(crypto_)
 
@@ -336,7 +336,7 @@ void Native::Init_Contacts()
 
 void Native::Init_Contracts() { wallet_.reset(new api::Wallet(*this)); }
 
-void Native::Init_Crypto() { crypto_.reset(new CryptoEngine(*this)); }
+void Native::Init_Crypto() { crypto_.reset(new class Crypto(*this)); }
 
 void Native::Init_Dht()
 {
@@ -633,7 +633,7 @@ void Native::Init_Storage()
 
     OT_ASSERT(crypto_);
 
-    storage_.reset(new api::Storage(shutdown_, config, *crypto_, hash, random));
+    storage_.reset(new api::Storage(shutdown_, config, hash, random));
     Config().Save();
 }
 

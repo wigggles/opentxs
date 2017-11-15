@@ -49,6 +49,7 @@ set(object-deps
   $<TARGET_OBJECTS:lucre>
   ${trezor}
   $<TARGET_OBJECTS:otprotob>
+  $<TARGET_OBJECTS:opentxs-api-crypto>
   $<TARGET_OBJECTS:opentxs-api>
   $<TARGET_OBJECTS:opentxs-cash>
   $<TARGET_OBJECTS:opentxs-client>

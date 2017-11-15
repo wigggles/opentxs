@@ -36,14 +36,15 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_CORE_CRYPTO_CRYPTOENGINE_HPP
-#define OPENTXS_CORE_CRYPTO_CRYPTOENGINE_HPP
+#ifndef OPENTXS_API_CRYPTO_IMPLEMENTATION_CRYPTO_HPP
+#define OPENTXS_API_CRYPTO_IMPLEMENTATION_CRYPTO_HPP
 
 #include "opentxs/Version.hpp"
 
+#include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/Editor.hpp"
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
 
 #include <map>
 #include <memory>
@@ -90,19 +91,62 @@ class Native;
 namespace implementation
 {
 class Native;
-}  // namespace implementation
-}  // namespace api
 
-// Singlton class for providing an interface to external crypto libraries
-// and hold the state required by those libraries.
-class CryptoEngine
+class Crypto : virtual public opentxs::api::Crypto
 {
+public:
+    EXPORT const OTCachedKey& DefaultKey() const override;
+    EXPORT Editor<OTCachedKey> mutable_DefaultKey() const override;
+    EXPORT const OTCachedKey& CachedKey(const Identifier& id) const override;
+    EXPORT const OTCachedKey& CachedKey(
+        const OTCachedKey& source) const override;
+    EXPORT const OTCachedKey& LoadDefaultKey(
+        const OTASCIIArmor& serialized) const override;
+    EXPORT void SetTimeout(const std::chrono::seconds& timeout) const override;
+    EXPORT void SetSystemKeyring(const bool useKeyring) const override;
+
+    // Encoding function interface
+    EXPORT CryptoEncodingEngine& Encode() const override;
+
+    // Hash function interface
+    EXPORT CryptoHashEngine& Hash() const override;
+
+    // Utility class for misc OpenSSL-provided functions
+    EXPORT CryptoUtil& Util() const override;
+
+    // Asymmetric encryption engines
+    EXPORT CryptoAsymmetric& ED25519() const override;
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
+    EXPORT CryptoAsymmetric& RSA() const override;
+#endif
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+    EXPORT CryptoAsymmetric& SECP256K1() const override;
+#endif
+
+    // Symmetric encryption engines
+    EXPORT CryptoSymmetricEngine& Symmetric() const override;
+
+#if OT_CRYPTO_SUPPORTED_ALGO_AES
+    EXPORT CryptoSymmetric& AES() const override;
+#endif
+#if OT_CRYPTO_WITH_BIP32
+    EXPORT Bip32& BIP32() const override;
+#endif
+#if OT_CRYPTO_WITH_BIP39
+    EXPORT Bip39& BIP39() const override;
+#endif
+
+    std::unique_ptr<SymmetricKey> GetStorageKey(
+        std::string& seed) const override;
+
+    ~Crypto();
+
+private:
     friend class api::implementation::Native;
     friend class CryptoEncodingEngine;
     friend class CryptoHashEngine;
     friend class CryptoSymmetricEngine;
 
-private:
     api::Native& native_;
     mutable std::mutex cached_key_lock_;
     mutable std::unique_ptr<OTCachedKey> primary_key_;
@@ -124,59 +168,14 @@ private:
     void Init();
     void Cleanup();
 
-    CryptoEngine(api::Native& native);
-    CryptoEngine() = delete;
-    CryptoEngine(const CryptoEngine&) = delete;
-    CryptoEngine(CryptoEngine&&) = delete;
-    CryptoEngine& operator=(const CryptoEngine&) = delete;
-    CryptoEngine& operator=(CryptoEngine&&) = delete;
-
-public:
-    static const proto::HashType StandardHash{proto::HASHTYPE_BLAKE2B256};
-
-    EXPORT const OTCachedKey& DefaultKey() const;
-    EXPORT Editor<OTCachedKey> mutable_DefaultKey() const;
-    EXPORT const OTCachedKey& CachedKey(const Identifier& id) const;
-    EXPORT const OTCachedKey& CachedKey(const OTCachedKey& source) const;
-    EXPORT const OTCachedKey& LoadDefaultKey(
-        const OTASCIIArmor& serialized) const;
-    EXPORT void SetTimeout(const std::chrono::seconds& timeout) const;
-    EXPORT void SetSystemKeyring(const bool useKeyring) const;
-
-    // Encoding function interface
-    EXPORT CryptoEncodingEngine& Encode() const;
-
-    // Hash function interface
-    EXPORT CryptoHashEngine& Hash() const;
-
-    // Utility class for misc OpenSSL-provided functions
-    EXPORT CryptoUtil& Util() const;
-
-    // Asymmetric encryption engines
-    EXPORT CryptoAsymmetric& ED25519() const;
-#if OT_CRYPTO_SUPPORTED_KEY_RSA
-    EXPORT CryptoAsymmetric& RSA() const;
-#endif
-#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-    EXPORT CryptoAsymmetric& SECP256K1() const;
-#endif
-
-    // Symmetric encryption engines
-    EXPORT CryptoSymmetricEngine& Symmetric() const;
-
-#if OT_CRYPTO_SUPPORTED_ALGO_AES
-    EXPORT CryptoSymmetric& AES() const;
-#endif
-#if OT_CRYPTO_WITH_BIP32
-    EXPORT Bip32& BIP32() const;
-#endif
-#if OT_CRYPTO_WITH_BIP39
-    EXPORT Bip39& BIP39() const;
-#endif
-
-    std::unique_ptr<SymmetricKey> GetStorageKey(std::string& seed) const;
-
-    ~CryptoEngine();
+    Crypto(api::Native& native);
+    Crypto() = delete;
+    Crypto(const Crypto&) = delete;
+    Crypto(Crypto&&) = delete;
+    Crypto& operator=(const Crypto&) = delete;
+    Crypto& operator=(Crypto&&) = delete;
 };
+}  // namespace implementation
+}  // namespace api
 }  // namespace opentxs
-#endif  // OPENTXS_CORE_CRYPTO_CRYPTOENGINE_HPP
+#endif  // OPENTXS_API_CRYPTO_IMPLEMENTATION_CRYPTO_HPP

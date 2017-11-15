@@ -45,11 +45,11 @@
 
 namespace opentxs
 {
-class CryptoEngine;
 class String;
 
 namespace api
 {
+class Crypto;
 class Server;
 class Wallet;
 }  // namespace api
@@ -64,7 +64,7 @@ class MainFile
 public:
     explicit MainFile(
         Server& server,
-        opentxs::CryptoEngine& crypto_,
+        opentxs::api::Crypto& crypto_,
         opentxs::api::Wallet& wallet_);
 
     bool CreateMainFile(
@@ -80,7 +80,7 @@ public:
 
 private:
     Server& server_;  // TODO: remove when feasible
-    opentxs::CryptoEngine& crypto_;
+    opentxs::api::Crypto& crypto_;
     opentxs::api::Wallet& wallet_;
     std::string version_;
 

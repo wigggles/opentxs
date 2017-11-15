@@ -40,6 +40,7 @@
 
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 
+#include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/api/OT.hpp"
 #include "opentxs/core/crypto/AsymmetricKeyEd25519.hpp"
@@ -50,7 +51,6 @@
 #include "opentxs/core/crypto/Bip32.hpp"
 #endif
 #include "opentxs/core/crypto/CryptoAsymmetric.hpp"
-#include "opentxs/core/crypto/CryptoEngine.hpp"
 #include "opentxs/core/crypto/CryptoUtil.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #if OT_CRYPTO_SUPPORTED_KEY_RSA

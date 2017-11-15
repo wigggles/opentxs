@@ -47,7 +47,6 @@
 
 namespace opentxs
 {
-class CryptoEngine;
 class MadeEasy;
 class OT_API;
 class OT_ME;
@@ -58,6 +57,7 @@ namespace api
 {
 class Activity;
 class ContactManager;
+class Crypto;
 class Identity;
 class Settings;
 class Storage;
@@ -88,7 +88,7 @@ private:
     Activity& activity_;
     Settings& config_;
     ContactManager& contacts_;
-    CryptoEngine& crypto_engine_;
+    Crypto& crypto_;
     Identity& identity_;
     Storage& storage_;
     Wallet& wallet_;
@@ -108,7 +108,7 @@ private:
     Api(Activity& activity,
         Settings& config,
         ContactManager& contacts,
-        CryptoEngine& crypto,
+        Crypto& crypto,
         Identity& identity,
         Storage& storage,
         Wallet& wallet,

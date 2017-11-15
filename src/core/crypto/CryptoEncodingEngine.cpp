@@ -41,7 +41,6 @@
 #include "opentxs/core/crypto/CryptoEncodingEngine.hpp"
 
 #include "opentxs/core/crypto/CryptoEncoding.hpp"
-#include "opentxs/core/crypto/CryptoEngine.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #if OT_CRYPTO_USING_TREZOR
 #include "opentxs/core/crypto/TrezorCrypto.hpp"
@@ -56,8 +55,8 @@
 namespace opentxs
 {
 
-CryptoEncodingEngine::CryptoEncodingEngine(CryptoEngine& parent)
-    : base58_(*static_cast<CryptoEncoding*>(parent.bitcoincrypto_.get()))
+CryptoEncodingEngine::CryptoEncodingEngine(CryptoEncoding& base58)
+    : base58_(base58)
 {
 }
 

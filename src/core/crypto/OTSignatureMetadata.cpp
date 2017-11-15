@@ -40,10 +40,10 @@
 
 #include "opentxs/core/crypto/OTSignatureMetadata.hpp"
 
+#include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/api/OT.hpp"
 #include "opentxs/core/crypto/CryptoEncodingEngine.hpp"
-#include "opentxs/core/crypto/CryptoEngine.hpp"
 #include "opentxs/core/Log.hpp"
 
 #include <ostream>

@@ -43,7 +43,6 @@
 #include "opentxs/api/Native.hpp"
 #include "opentxs/api/OT.hpp"
 #include "opentxs/core/crypto/CryptoEncodingEngine.hpp"
-#include "opentxs/core/crypto/CryptoEngine.hpp"
 #include "opentxs/core/crypto/CryptoHash.hpp"
 #include "opentxs/core/crypto/Libsodium.hpp"
 #if OT_CRYPTO_USING_OPENSSL
@@ -59,11 +58,20 @@
 
 namespace opentxs
 {
-CryptoHashEngine::CryptoHashEngine(CryptoEngine& parent)
-    : ssl_(*parent.ssl_)
-    , sodium_(*parent.ed25519_)
+CryptoHashEngine::CryptoHashEngine(
+    CryptoEncodingEngine& encode,
+    CryptoHash& ssl,
+    CryptoHash& sodium
 #if OT_CRYPTO_USING_TREZOR
-    , bitcoin_(*parent.bitcoincrypto_)
+    ,
+    TrezorCrypto& bitcoin
+#endif
+    )
+    : encode_(encode)
+    , ssl_(ssl)
+    , sodium_(sodium)
+#if OT_CRYPTO_USING_TREZOR
+    , bitcoin_(bitcoin)
 #endif
 {
 }
@@ -238,8 +246,7 @@ bool CryptoHashEngine::Digest(
         static_cast<std::uint8_t*>(const_cast<void*>(result.GetPointer())));
 
     if (success) {
-        encodedDigest.assign(
-            OT::App().Crypto().Encode().IdentifierEncode(result));
+        encodedDigest.assign(encode_.IdentifierEncode(result));
     }
 
     return success;

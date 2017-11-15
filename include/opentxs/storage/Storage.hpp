@@ -64,8 +64,6 @@
 
 namespace opentxs
 {
-
-class CryptoEngine;
 class StorageDriver;
 class StorageMultiplex;
 class StoragePlugin;
@@ -82,10 +80,12 @@ typedef std::function<void(const proto::UnitDefinition&)> UnitLambda;
 
 namespace api
 {
+class Crypto;
+
 namespace implementation
 {
 class Native;
-}
+}  // namespace implementation
 
 // Content-aware storage module for opentxs
 //
@@ -316,7 +316,6 @@ public:
 private:
     friend class implementation::Native;
 
-    CryptoEngine& crypto_;
     const std::atomic<bool>& shutdown_;
     std::int64_t gc_interval_{std::numeric_limits<std::int64_t>::max()};
     mutable std::mutex write_lock_;
@@ -346,7 +345,6 @@ private:
     Storage(
         const std::atomic<bool>& shutdown,
         const StorageConfig& config,
-        CryptoEngine& crypto,
         const Digest& hash,
         const Random& random);
     Storage(const Storage&) = delete;

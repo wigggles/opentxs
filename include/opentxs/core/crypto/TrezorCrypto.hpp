@@ -67,13 +67,17 @@ extern "C" {
 
 namespace opentxs
 {
-class CryptoEngine;
 class Libsecp256k1;
 class OTPassword;
 
 namespace api
 {
 class Native;
+
+namespace implementation
+{
+class Crypto;
+}  // namespace implementation
 }  // namespace api
 
 class TrezorCrypto : public CryptoEncoding
@@ -91,7 +95,7 @@ class TrezorCrypto : public CryptoEncoding
 #endif
 {
 private:
-    friend class CryptoEngine;
+    friend class api::implementation::Crypto;
     friend class Libsecp256k1;
 
     typedef bool DerivationMode;

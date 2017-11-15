@@ -40,6 +40,7 @@
 #include "opentxs/core/crypto/PaymentCode.hpp"
 
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+#include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/api/OT.hpp"
 #include "opentxs/core/contract/Signable.hpp"
@@ -48,7 +49,6 @@
 #include "opentxs/core/crypto/AsymmetricKeySecp256k1.hpp"
 #include "opentxs/core/crypto/Credential.hpp"
 #include "opentxs/core/crypto/CryptoEncodingEngine.hpp"
-#include "opentxs/core/crypto/CryptoEngine.hpp"
 #include "opentxs/core/crypto/CryptoSymmetricEngine.hpp"
 #include "opentxs/core/crypto/Libsecp256k1.hpp"
 #include "opentxs/core/crypto/MasterCredential.hpp"

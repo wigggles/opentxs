@@ -52,14 +52,21 @@ namespace opentxs
 {
 
 class CryptoEncoding;
-class CryptoEngine;
 class Data;
 class OTPassword;
+
+namespace api
+{
+namespace implementation
+{
+class Crypto;
+}  // namespace implementation
+}  // namespace api
 
 class CryptoEncodingEngine
 {
 private:
-    friend class CryptoEngine;
+    friend class api::implementation::Crypto;
 
     CryptoEncoding& base58_;
 
@@ -75,7 +82,7 @@ protected:
     std::string BreakLines(const std::string& input) const;
 
     CryptoEncodingEngine() = delete;
-    CryptoEncodingEngine(CryptoEngine& parent);
+    CryptoEncodingEngine(CryptoEncoding& base58);
     CryptoEncodingEngine(const CryptoEncodingEngine&) = delete;
     CryptoEncodingEngine& operator=(const CryptoEncodingEngine&) = delete;
 

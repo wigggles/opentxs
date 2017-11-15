@@ -76,6 +76,14 @@ class Nym;
 class Settings;
 class OTSignature;
 
+namespace api
+{
+namespace implementation
+{
+class Crypto;
+}  // namespace implementation
+}  // namespace api
+
 class OpenSSL : public Crypto
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
                 ,
@@ -90,7 +98,7 @@ class OpenSSL : public Crypto
                 public CryptoHash
 {
 private:
-    friend class CryptoEngine;
+    friend class api::implementation::Crypto;
 
     class OpenSSLdp;
 

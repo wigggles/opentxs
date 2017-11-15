@@ -60,7 +60,6 @@
 
 namespace opentxs
 {
-class CryptoEngine;
 class Identifier;
 class Message;
 class OTPayment;
@@ -69,6 +68,7 @@ class ServerContract;
 
 namespace api
 {
+class Crypto;
 class Server;
 class Settings;
 class Storage;
@@ -114,7 +114,7 @@ private:
     const std::uint32_t MIN_TCP_PORT = 1024;
     const std::uint32_t MAX_TCP_PORT = 63356;
 
-    opentxs::CryptoEngine& crypto_;
+    opentxs::api::Crypto& crypto_;
     opentxs::api::Settings& config_;
     opentxs::api::Server& mint_;
     opentxs::api::Storage& storage_;
@@ -139,7 +139,7 @@ private:
     OTCron m_Cron;  // This is where re-occurring and expiring tasks go.
 
     Server(
-        opentxs::CryptoEngine& crypto,
+        opentxs::api::Crypto& crypto,
         opentxs::api::Settings& config,
         opentxs::api::Server& mint,
         opentxs::api::Storage& storage,

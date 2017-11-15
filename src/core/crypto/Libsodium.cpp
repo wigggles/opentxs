@@ -42,7 +42,6 @@
 
 #include "opentxs/api/OT.hpp"
 #include "opentxs/core/crypto/AsymmetricKeyEd25519.hpp"
-#include "opentxs/core/crypto/CryptoEngine.hpp"
 #include "opentxs/core/crypto/CryptoSymmetric.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"

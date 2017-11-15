@@ -69,7 +69,6 @@
 
 namespace opentxs
 {
-class CryptoEngine;
 class Identifier;
 class Mint;
 
@@ -81,6 +80,7 @@ class Server;
 
 namespace api
 {
+class Crypto;
 class Settings;
 class Storage;
 class Wallet;
@@ -115,7 +115,7 @@ private:
 
     const std::map<std::string, std::string>& args_;
     Settings& config_;
-    opentxs::CryptoEngine& crypto_;
+    Crypto& crypto_;
     Storage& storage_;
     Wallet& wallet_;
     std::atomic<bool>& shutdown_;
@@ -156,7 +156,7 @@ private:
 
     Server(
         const std::map<std::string, std::string>& args,
-        opentxs::CryptoEngine& crypto,
+        Crypto& crypto,
         Settings& config,
         Storage& storage,
         Wallet& wallet,

@@ -40,9 +40,9 @@
 #include "opentxs/core/crypto/OTAsymmetricKeyOpenSSL.hpp"
 
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
+#include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/api/OT.hpp"
-#include "opentxs/core/crypto/CryptoEngine.hpp"
 #include "opentxs/core/crypto/CryptoHashEngine.hpp"
 #include "opentxs/core/crypto/Libsodium.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
@@ -848,7 +848,7 @@ bool OTAsymmetricKey_OpenSSL::TransportKey(
     Data key, hash;
     m_p_ascKey->GetData(key);
 
-    OT::App().Crypto().Hash().Digest(CryptoEngine::StandardHash, key, hash);
+    OT::App().Crypto().Hash().Digest(StandardHash, key, hash);
     OTPassword seed;
     seed.setMemory(hash.GetPointer(), hash.GetSize());
     Ecdsa& engine = static_cast<Libsodium&>(OT::App().Crypto().ED25519());

@@ -40,6 +40,7 @@
 
 #include "opentxs/core/crypto/Letter.hpp"
 
+#include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/api/OT.hpp"
 #include "opentxs/core/crypto/AsymmetricKeyEC.hpp"
@@ -47,7 +48,6 @@
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 #include "opentxs/core/crypto/AsymmetricKeySecp256k1.hpp"
 #endif
-#include "opentxs/core/crypto/CryptoEngine.hpp"
 #include "opentxs/core/crypto/CryptoHash.hpp"
 #include "opentxs/core/crypto/CryptoSymmetric.hpp"
 #include "opentxs/core/crypto/CryptoSymmetricEngine.hpp"

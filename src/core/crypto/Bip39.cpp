@@ -40,9 +40,9 @@
 #include "opentxs/core/crypto/Bip39.hpp"
 
 #if OT_CRYPTO_WITH_BIP39
+#include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/core/crypto/Bip32.hpp"
-#include "opentxs/core/crypto/CryptoEngine.hpp"
 #include "opentxs/core/crypto/CryptoHashEngine.hpp"
 #include "opentxs/core/crypto/CryptoSymmetric.hpp"
 #include "opentxs/core/crypto/CryptoSymmetricEngine.hpp"

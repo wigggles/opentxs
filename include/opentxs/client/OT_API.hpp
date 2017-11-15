@@ -62,7 +62,6 @@ class Account;
 class Basket;
 class BasketContract;
 class Cheque;
-class CryptoEngine;
 class CurrencyContract;
 class Ledger;
 class Message;
@@ -87,6 +86,7 @@ namespace api
 class Activity;
 class Api;
 class ContactManager;
+class Crypto;
 class Identity;
 class Settings;
 class Storage;
@@ -1366,7 +1366,7 @@ private:
     api::Activity& activity_;
     api::Settings& config_;
     api::ContactManager& contacts_;
-    CryptoEngine& crypto_;
+    api::Crypto& crypto_;
     api::Identity& identity_;
     api::Storage& storage_;
     api::Wallet& wallet_;
@@ -1432,7 +1432,7 @@ private:
         api::Activity& activity,
         api::Settings& config,
         api::ContactManager& contacts,
-        CryptoEngine& crypto,
+        api::Crypto& crypto,
         api::Identity& identity,
         api::Storage& storage,
         api::Wallet& wallet,
