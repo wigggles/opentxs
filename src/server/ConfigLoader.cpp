@@ -40,6 +40,7 @@
 
 #include "opentxs/server/ConfigLoader.hpp"
 
+#include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/core/cron/OTCron.hpp"
@@ -63,7 +64,7 @@ namespace opentxs::server
 {
 
 bool ConfigLoader::load(
-    opentxs::CryptoEngine& crypto,
+    api::Crypto& crypto,
     api::Settings& config,
     String& walletFilename)
 {

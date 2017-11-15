@@ -40,6 +40,8 @@
 
 #include "opentxs/client/OTAPI_Exec.hpp"
 
+#include "opentxs/api/crypto/Crypto.hpp"
+#include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/Activity.hpp"
 #include "opentxs/api/Api.hpp"
 #include "opentxs/api/ContactManager.hpp"
@@ -59,8 +61,6 @@
 #include "opentxs/core/crypto/Bip39.hpp"
 #endif
 #include "opentxs/core/crypto/CredentialSet.hpp"
-#include "opentxs/core/crypto/CryptoEncodingEngine.hpp"
-#include "opentxs/core/crypto/CryptoEngine.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
@@ -123,7 +123,7 @@ OTAPI_Exec::OTAPI_Exec(
     api::Activity& activity,
     api::Settings& config,
     api::ContactManager& contacts,
-    CryptoEngine& crypto,
+    api::Crypto& crypto,
     api::Identity& identity,
     api::Wallet& wallet,
     api::ZMQ& zeromq,

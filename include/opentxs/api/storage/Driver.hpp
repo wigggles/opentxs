@@ -36,8 +36,8 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_STORAGE_STORAGEDRIVER_HPP
-#define OPENTXS_STORAGE_STORAGEDRIVER_HPP
+#ifndef OPENTXS_API_STORAGE_DRIVER_HPP
+#define OPENTXS_API_STORAGE_DRIVER_HPP
 
 #include "opentxs/Version.hpp"
 
@@ -47,7 +47,12 @@
 
 namespace opentxs
 {
-class StorageDriver
+namespace api
+{
+namespace storage
+{
+
+class Driver
 {
 public:
     virtual bool EmptyBucket(const bool bucket) const = 0;
@@ -77,14 +82,13 @@ public:
         const std::string& value,
         std::string& key) const = 0;
 
-    virtual bool Migrate(const std::string& key, const StorageDriver& to)
-        const = 0;
+    virtual bool Migrate(const std::string& key, const Driver& to) const = 0;
 
     virtual std::string LoadRoot() const = 0;
     virtual bool StoreRoot(const bool commit, const std::string& hash)
         const = 0;
 
-    virtual ~StorageDriver() = default;
+    virtual ~Driver() = default;
 
     template <class T>
     bool LoadProto(
@@ -103,13 +107,15 @@ public:
     bool StoreProto(const T& data) const;
 
 protected:
-    StorageDriver() = default;
+    Driver() = default;
 
 private:
-    StorageDriver(const StorageDriver&) = delete;
-    StorageDriver(StorageDriver&&) = delete;
-    StorageDriver& operator=(const StorageDriver&) = delete;
-    StorageDriver& operator=(StorageDriver&&) = delete;
+    Driver(const Driver&) = delete;
+    Driver(Driver&&) = delete;
+    Driver& operator=(const Driver&) = delete;
+    Driver& operator=(Driver&&) = delete;
 };
+}  // namespace storage
+}  // namespace api
 }  // namespace opentxs
-#endif  // OPENTXS_STORAGE_STORAGEDRIVER_HPP
+#endif  // OPENTXS_API_STORAGE_DRIVER_HPP

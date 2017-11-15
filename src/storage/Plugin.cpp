@@ -38,29 +38,31 @@
 
 #include "opentxs/stdafx.hpp"
 
-#include "opentxs/storage/StoragePlugin.hpp"
+#include "opentxs/storage/Plugin.hpp"
 
+#include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/storage/Storage.hpp"
 
-#define OT_METHOD "opentxs::StoragePlugin_impl::"
+#define OT_METHOD "opentxs::Plugin::"
 
 namespace opentxs
 {
 
-StoragePlugin_impl::StoragePlugin_impl(
+Plugin::Plugin(
+    const api::storage::Storage& storage,
     const StorageConfig& config,
     const Digest& hash,
     const Random& random,
     const std::atomic<bool>& bucket)
     : config_(config)
     , random_(random)
+    , storage_(storage)
     , digest_(hash)
     , current_bucket_(bucket)
 {
 }
 
-bool StoragePlugin_impl::Load(
+bool Plugin::Load(
     const std::string& key,
     const bool checking,
     std::string& value) const
@@ -103,9 +105,9 @@ bool StoragePlugin_impl::Load(
     return valid;
 }
 
-bool StoragePlugin_impl::Migrate(
+bool Plugin::Migrate(
     const std::string& key,
-    const StorageDriver& to) const
+    const opentxs::api::storage::Driver& to) const
 {
     if (key.empty()) {
         return false;
@@ -146,7 +148,7 @@ bool StoragePlugin_impl::Migrate(
     return true;
 }
 
-bool StoragePlugin_impl::Store(
+bool Plugin::Store(
     const bool isTransaction,
     const std::string& key,
     const std::string& value,
@@ -159,7 +161,7 @@ bool StoragePlugin_impl::Store(
     return future.get();
 }
 
-void StoragePlugin_impl::Store(
+void Plugin::Store(
     const bool isTransaction,
     const std::string& key,
     const std::string& value,
@@ -167,17 +169,11 @@ void StoragePlugin_impl::Store(
     std::promise<bool>& promise) const
 {
     std::thread thread(
-        &StoragePlugin_impl::store,
-        this,
-        isTransaction,
-        key,
-        value,
-        bucket,
-        &promise);
+        &Plugin::store, this, isTransaction, key, value, bucket, &promise);
     thread.detach();
 }
 
-bool StoragePlugin_impl::Store(
+bool Plugin::Store(
     const bool isTransaction,
     const std::string& value,
     std::string& key) const
@@ -185,7 +181,7 @@ bool StoragePlugin_impl::Store(
     const bool bucket = current_bucket_.load();
 
     if (digest_) {
-        digest_(api::Storage::HASH_TYPE, value, key);
+        digest_(storage_.HashType(), value, key);
 
         return Store(isTransaction, key, value, bucket);
     }

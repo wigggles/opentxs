@@ -12,16 +12,8 @@ set(cxx-sources
   StorageSqlite3.cpp
 )
 
-file(GLOB cxx-install-headers
-     "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/storage/drivers/*.hpp"
-)
-
-file(GLOB cxx-interface-install-headers
-     "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/interface/storage/*.hpp"
-)
-
-set(cxx-headers
-  ${cxx-install-headers}
+file(GLOB cxx-headers
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/storage/drivers/*.hpp"
 )
 
 set(MODULE_NAME opentxs-storage-drivers)
@@ -50,14 +42,6 @@ else()
     ${cxx-headers}
   )
 endif()
-
-install(FILES ${cxx-install-headers}
-        DESTINATION include/opentxs/storage/drivers
-        COMPONENT dev)
-
-install(FILES ${cxx-interface-install-headers}
-        DESTINATION include/opentxs/interface/storage
-        COMPONENT dev)
 
 set_property(TARGET ${MODULE_NAME} PROPERTY POSITION_INDEPENDENT_CODE 1)
 set_lib_property(${MODULE_NAME})

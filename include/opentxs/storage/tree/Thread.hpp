@@ -45,7 +45,6 @@
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/storage/tree/Node.hpp"
-#include "opentxs/storage/Storage.hpp"
 
 #include <list>
 #include <map>
@@ -84,14 +83,14 @@ private:
     void upgrade(const Lock& lock);
 
     Thread(
-        const StorageDriver& storage,
+        const opentxs::api::storage::Driver& storage,
         const std::string& id,
         const std::string& hash,
         const std::string& alias,
         Mailbox& mailInbox,
         Mailbox& mailOutbox);
     Thread(
-        const StorageDriver& storage,
+        const opentxs::api::storage::Driver& storage,
         const std::string& id,
         const std::set<std::string>& participants,
         Mailbox& mailInbox,
@@ -107,7 +106,7 @@ public:
     bool Check(const std::string& id) const;
     std::string ID() const;
     proto::StorageThread Items() const;
-    bool Migrate(const StorageDriver& to) const override;
+    bool Migrate(const opentxs::api::storage::Driver& to) const override;
     std::size_t UnreadCount() const;
 
     bool Add(

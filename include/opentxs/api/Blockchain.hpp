@@ -53,15 +53,16 @@
 
 namespace opentxs
 {
-
-class CryptoEngine;
-
 namespace api
 {
-
 class Activity;
-class Storage;
+class Crypto;
 class Wallet;
+
+namespace storage
+{
+class Storage;
+}  // namespace storage
 
 namespace implementation
 {
@@ -119,8 +120,8 @@ private:
     friend class implementation::Native;
 
     Activity& activity_;
-    CryptoEngine& crypto_;
-    Storage& storage_;
+    Crypto& crypto_;
+    storage::Storage& storage_;
     Wallet& wallet_;
     mutable std::mutex lock_;
     mutable IDLock nym_lock_;
@@ -158,8 +159,8 @@ private:
 
     Blockchain(
         Activity& activity,
-        CryptoEngine& crypto,
-        Storage& storage,
+        Crypto& crypto,
+        storage::Storage& storage,
         Wallet& wallet);
     Blockchain() = delete;
     Blockchain(const Blockchain&) = delete;

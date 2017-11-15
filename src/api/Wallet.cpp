@@ -40,6 +40,7 @@
 
 #include "opentxs/api/Wallet.hpp"
 
+#include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Dht.hpp"
 #include "opentxs/api/Identity.hpp"
@@ -57,7 +58,6 @@
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/storage/Storage.hpp"
 
 #include <functional>
 

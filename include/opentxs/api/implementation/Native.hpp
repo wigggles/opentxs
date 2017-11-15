@@ -81,8 +81,8 @@ public:
     api::Settings& Config(
         const std::string& path = std::string("")) const override;
     api::ContactManager& Contact() const override;
-    CryptoEngine& Crypto() const override;
-    api::Storage& DB() const override;
+    api::Crypto& Crypto() const override;
+    api::storage::Storage& DB() const override;
     api::Dht& DHT() const override;
     void HandleSignals() const override;
     api::Identity& Identity() const override;
@@ -130,10 +130,10 @@ private:
     std::unique_ptr<api::Blockchain> blockchain_;
     mutable ConfigMap config_;
     std::unique_ptr<api::ContactManager> contacts_;
-    std::unique_ptr<CryptoEngine> crypto_;
+    std::unique_ptr<api::Crypto> crypto_;
     std::unique_ptr<api::Dht> dht_;
     std::unique_ptr<api::Identity> identity_;
-    std::unique_ptr<api::Storage> storage_;
+    std::unique_ptr<api::storage::Storage> storage_;
     std::unique_ptr<api::Wallet> wallet_;
     std::unique_ptr<api::ZMQ> zeromq_;
     std::unique_ptr<std::thread> periodic_;

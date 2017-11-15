@@ -51,15 +51,17 @@
 
 namespace opentxs
 {
-
 class Contact;
 class PaymentCode;
 
 namespace api
 {
-
-class Storage;
 class Wallet;
+
+namespace storage
+{
+class Storage;
+}  // namespace storage
 
 namespace implementation
 {
@@ -102,7 +104,7 @@ private:
     typedef std::pair<proto::ContactItemType, std::string> Address;
     typedef std::map<Identifier, ContactLock> ContactMap;
 
-    Storage& storage_;
+    storage::Storage& storage_;
     Wallet& wallet_;
     mutable std::recursive_mutex lock_{};
     ContactMap contact_map_{};
@@ -155,7 +157,7 @@ private:
         class Contact& contact,
         const bool replace = false);
 
-    ContactManager(Storage& storage, Wallet& wallet);
+    ContactManager(storage::Storage& storage, Wallet& wallet);
     ContactManager() = delete;
     ContactManager(const ContactManager&) = delete;
     ContactManager(ContactManager&&) = delete;

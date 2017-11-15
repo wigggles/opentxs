@@ -41,49 +41,60 @@
 
 #include "opentxs/Version.hpp"
 
-#include "opentxs/Proto.hpp"
-
-#include <cstddef>
-#include <cstdint>
+#include "opentxs/api/crypto/Symmetric.hpp"
 
 namespace opentxs
 {
 
-class CryptoEngine;
 class CryptoSymmetricNew;
-class SymmetricKey;
-class OTPassword;
-class OTPasswordData;
 
-// Singlton class for providing an interface to symmetric key methods
-class CryptoSymmetricEngine
+namespace api
 {
-private:
-    friend class CryptoEngine;
+namespace implementation
+{
+class Crypto;
+}  // namespace implementation
 
-    CryptoSymmetricNew& sodium_;
+namespace crypto
+{
+namespace implementation
+{
 
-    CryptoSymmetricNew* GetEngine(const proto::SymmetricMode mode);
-
-    CryptoSymmetricEngine(CryptoEngine& parent);
-    CryptoSymmetricEngine(const CryptoSymmetricEngine&) = delete;
-    CryptoSymmetricEngine& operator=(const CryptoSymmetricEngine&) = delete;
-
+class Symmetric : virtual public api::crypto::Symmetric
+{
 public:
     std::unique_ptr<SymmetricKey> Key(
         const OTPasswordData& password,
-        const proto::SymmetricMode mode = proto::SMODE_CHACHA20POLY1305);
+        const proto::SymmetricMode mode =
+            proto::SMODE_CHACHA20POLY1305) override;
     std::unique_ptr<SymmetricKey> Key(
         const proto::SymmetricKey& serialized,
-        const proto::SymmetricMode mode);
+        const proto::SymmetricMode mode) override;
     std::unique_ptr<SymmetricKey> Key(
         const OTPassword& seed,
         const std::uint64_t operations = 0,
         const std::uint64_t difficulty = 0,
         const proto::SymmetricMode mode = proto::SMODE_CHACHA20POLY1305,
-        const proto::SymmetricKeyType type = proto::SKEYTYPE_ARGON2);
+        const proto::SymmetricKeyType type = proto::SKEYTYPE_ARGON2) override;
 
-    ~CryptoSymmetricEngine() = default;
+    ~Symmetric() = default;
+
+private:
+    friend class api::implementation::Crypto;
+
+    CryptoSymmetricNew& sodium_;
+
+    CryptoSymmetricNew* GetEngine(const proto::SymmetricMode mode);
+
+    Symmetric(CryptoSymmetricNew& sodium);
+    Symmetric() = delete;
+    Symmetric(const Symmetric&) = delete;
+    Symmetric(Symmetric&&) = delete;
+    Symmetric& operator=(const Symmetric&) = delete;
+    Symmetric& operator=(Symmetric&&) = delete;
 };
+}  // namespace implementation
+}  // namespace crypto
+}  // namespace api
 }  // namespace opentxs
 #endif  // OPENTXS_CORE_CRYPTO_CRYPTOSYMMETRICENGINE_HPP

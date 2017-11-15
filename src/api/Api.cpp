@@ -40,6 +40,7 @@
 
 #include "opentxs/api/Api.hpp"
 
+#include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/Activity.hpp"
 #include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Settings.hpp"
@@ -48,7 +49,6 @@
 #include "opentxs/client/OT_ME.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
 #include "opentxs/client/OTME_too.hpp"
-#include "opentxs/core/crypto/CryptoEngine.hpp"
 #include "opentxs/core/crypto/OTCachedKey.hpp"
 #include "opentxs/core/Log.hpp"
 
@@ -59,15 +59,15 @@ Api::Api(
     Activity& activity,
     Settings& config,
     ContactManager& contacts,
-    CryptoEngine& crypto,
+    Crypto& crypto,
     Identity& identity,
-    Storage& storage,
+    storage::Storage& storage,
     Wallet& wallet,
     ZMQ& zmq)
     : activity_(activity)
     , config_(config)
     , contacts_(contacts)
-    , crypto_engine_(crypto)
+    , crypto_(crypto)
     , identity_(identity)
     , storage_(storage)
     , wallet_(wallet)
@@ -91,7 +91,7 @@ void Api::Init()
         activity_,
         config_,
         contacts_,
-        crypto_engine_,
+        crypto_,
         identity_,
         storage_,
         wallet_,
@@ -104,7 +104,7 @@ void Api::Init()
         activity_,
         config_,
         contacts_,
-        crypto_engine_,
+        crypto_,
         identity_,
         wallet_,
         zmq_,
@@ -121,7 +121,7 @@ void Api::Init()
         *made_easy_,
         *ot_me_,
         wallet_,
-        crypto_engine_.Encode(),
+        crypto_.Encode(),
         identity_));
 }
 

@@ -36,64 +36,68 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_CORE_CRYPTO_CRYPTOENCODINGENGINE_HPP
-#define OPENTXS_CORE_CRYPTO_CRYPTOENCODINGENGINE_HPP
+#ifndef OPENTXS_API_CRYPTO_IMPLEMENTATION_ENCODE_HPP
+#define OPENTXS_API_CRYPTO_IMPLEMENTATION_ENCODE_HPP
 
 #include "opentxs/Version.hpp"
 
-#include "opentxs/core/String.hpp"
+#include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/Types.hpp"
-
-#include <cstddef>
-#include <cstdint>
-#include <string>
 
 namespace opentxs
 {
-
 class CryptoEncoding;
-class CryptoEngine;
-class Data;
 class OTPassword;
 
-class CryptoEncodingEngine
+namespace api
 {
+namespace implementation
+{
+class Crypto;
+}  // namespace implementation
+
+namespace crypto
+{
+namespace implementation
+{
+class Encode : virtual public api::crypto::Encode
+{
+public:
+    std::string DataEncode(const std::string& input) const override;
+    std::string DataEncode(const Data& input) const override;
+    std::string DataDecode(const std::string& input) const override;
+    std::string IdentifierEncode(const Data& input) const override;
+    std::string IdentifierDecode(const std::string& input) const override;
+    bool IsBase62(const std::string& str) const override;
+    String Nonce(const std::uint32_t size) const override;
+    String Nonce(const std::uint32_t size, Data& rawOutput) const override;
+    std::string RandomFilename() const override;
+    std::string SanatizeBase58(const std::string& input) const override;
+    std::string SanatizeBase64(const std::string& input) const override;
+
+    ~Encode() = default;
+
 private:
-    friend class CryptoEngine;
+    friend class api::implementation::Crypto;
+
+    static const std::uint8_t LineWidth{72};
 
     CryptoEncoding& base58_;
-
-    std::string IdentifierEncode(const OTPassword& input) const;
-
-protected:
-    static const std::uint8_t LineWidth{72};
 
     std::string Base64Encode(
         const std::uint8_t* inputStart,
         const std::size_t& inputSize) const;
     bool Base64Decode(const std::string&& input, RawData& output) const;
     std::string BreakLines(const std::string& input) const;
+    std::string IdentifierEncode(const OTPassword& input) const;
 
-    CryptoEncodingEngine() = delete;
-    CryptoEncodingEngine(CryptoEngine& parent);
-    CryptoEncodingEngine(const CryptoEncodingEngine&) = delete;
-    CryptoEncodingEngine& operator=(const CryptoEncodingEngine&) = delete;
-
-public:
-    static std::string SanatizeBase58(const std::string& input);
-    static std::string SanatizeBase64(const std::string& input);
-
-    std::string DataEncode(const std::string& input) const;
-    std::string DataEncode(const Data& input) const;
-    std::string DataDecode(const std::string& input) const;
-    std::string IdentifierEncode(const Data& input) const;
-    std::string IdentifierDecode(const std::string& input) const;
-    bool IsBase62(const std::string& str) const;
-    String Nonce(const uint32_t size) const;
-    String Nonce(const uint32_t size, Data& rawOutput) const;
-    std::string RandomFilename() const;
-
-    ~CryptoEncodingEngine() = default;
+    Encode() = delete;
+    Encode(CryptoEncoding& base58);
+    Encode(const Encode&) = delete;
+    Encode& operator=(const Encode&) = delete;
 };
+}  // namespace implementation
+}  // namespace crypto
+}  // namespace api
 }  // namespace opentxs
-#endif  // OPENTXS_CORE_CRYPTO_CRYPTOENCODINGENGINE_HPP
+#endif  // OPENTXS_API_CRYPTO_IMPLEMENTATION_ENCODE_HPP

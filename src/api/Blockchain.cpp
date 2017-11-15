@@ -40,18 +40,18 @@
 
 #include "opentxs/api/Blockchain.hpp"
 
+#include "opentxs/api/storage/Storage.hpp"
+#include "opentxs/api/crypto/Crypto.hpp"
+#include "opentxs/api/crypto/Encode.hpp"
+#include "opentxs/api/crypto/Hash.hpp"
 #include "opentxs/api/Activity.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/crypto/AsymmetricKeySecp256k1.hpp"
 #include "opentxs/core/crypto/Bip32.hpp"
-#include "opentxs/core/crypto/CryptoEncodingEngine.hpp"
-#include "opentxs/core/crypto/CryptoEngine.hpp"
-#include "opentxs/core/crypto/CryptoHashEngine.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/storage/Storage.hpp"
 
 #define LOCK_ACCOUNT()                                                         \
     Lock mapLock(lock_);                                                       \
@@ -82,8 +82,8 @@ namespace opentxs::api
 {
 Blockchain::Blockchain(
     Activity& activity,
-    CryptoEngine& crypto,
-    Storage& storage,
+    Crypto& crypto,
+    storage::Storage& storage,
     Wallet& wallet)
     : activity_(activity)
     , crypto_(crypto)

@@ -55,7 +55,6 @@ namespace opentxs
 class Account;
 class UnitDefinition;
 class Contract;
-class CryptoEngine;
 class Identifier;
 class Message;
 class OTPassword;
@@ -67,7 +66,12 @@ class OTSymmetricKey;
 
 namespace api
 {
+class Crypto;
+
+namespace storage
+{
 class Storage;
+}  // namespace storage
 }  // namespace api
 
 typedef std::map<std::string, Account*> mapOfAccounts;
@@ -78,7 +82,7 @@ typedef std::set<Identifier> setOfIdentifiers;
 class OTWallet
 {
 public:
-    EXPORT OTWallet(CryptoEngine& crypto, api::Storage& storage);
+    EXPORT OTWallet(api::Crypto& crypto, api::storage::Storage& storage);
     ~OTWallet();
 
     EXPORT bool IsNymOnCachedKey(const Identifier& needle) const;  // needle
@@ -281,8 +285,8 @@ public:
     String m_strDataFolder;
 
 private:
-    CryptoEngine& crypto_;
-    api::Storage& storage_;
+    api::Crypto& crypto_;
+    api::storage::Storage& storage_;
 
     OTWallet() = delete;
     OTWallet(const OTWallet&) = delete;

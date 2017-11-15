@@ -58,13 +58,21 @@ class Data;
 class OTPassword;
 class OTPasswordData;
 
+namespace api
+{
+namespace implementation
+{
+class Crypto;
+}  // namespace implementation
+}  // namespace api
+
 class Libsodium : public Crypto,
                   public CryptoAsymmetric,
                   public CryptoSymmetricNew,
                   public Ecdsa,
                   public CryptoHash
 {
-    friend class CryptoEngine;
+    friend class api::implementation::Crypto;
 
 private:
     static const proto::SymmetricMode DEFAULT_MODE{

@@ -41,7 +41,7 @@
 #include "opentxs/storage/tree/Node.hpp"
 
 #include "opentxs/core/Log.hpp"
-#include "opentxs/storage/StoragePlugin.hpp"
+#include "opentxs/storage/Plugin.hpp"
 
 #define OT_METHOD "opentxs::storage::Node::"
 
@@ -49,7 +49,7 @@ namespace opentxs::storage
 {
 const std::string Node::BLANK_HASH = "blankblankblankblankblank";
 
-Node::Node(const StorageDriver& storage, const std::string& key)
+Node::Node(const opentxs::api::storage::Driver& storage, const std::string& key)
     : driver_(storage)
     , root_(key)
 {
@@ -142,7 +142,9 @@ bool Node::load_raw(
     return driver_.Load(std::get<0>(it->second), checking, output);
 }
 
-bool Node::migrate(const std::string& hash, const StorageDriver& to) const
+bool Node::migrate(
+    const std::string& hash,
+    const opentxs::api::storage::Driver& to) const
 {
     if (false == check_hash(hash)) {
 
@@ -152,7 +154,7 @@ bool Node::migrate(const std::string& hash, const StorageDriver& to) const
     return driver_.Migrate(hash, to);
 }
 
-bool Node::Migrate(const StorageDriver& to) const
+bool Node::Migrate(const opentxs::api::storage::Driver& to) const
 {
     if (std::string(BLANK_HASH) == root_) {
         if (0 < item_map_.size()) {

@@ -77,7 +77,7 @@ private:
     void init(const std::string& hash) override;
 
     BlockchainTransactions(
-        const StorageDriver& storage,
+        const opentxs::api::storage::Driver& storage,
         const std::string& hash);
     BlockchainTransactions() = delete;
     BlockchainTransactions(const BlockchainTransactions&) = delete;

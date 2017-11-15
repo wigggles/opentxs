@@ -40,6 +40,9 @@
 
 #include "opentxs/server/Server.hpp"
 
+#include "opentxs/api/crypto/Crypto.hpp"
+#include "opentxs/api/crypto/Encode.hpp"
+#include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Identity.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/api/Server.hpp"
@@ -47,7 +50,6 @@
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/cron/OTCron.hpp"
 #include "opentxs/core/crypto/Bip39.hpp"
-#include "opentxs/core/crypto/CryptoEncodingEngine.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/OTCachedKey.hpp"
 #include "opentxs/core/crypto/OTEnvelope.hpp"
@@ -101,10 +103,10 @@ int32_t OTCron::__cron_max_items_per_nym = 10;  // The maximum number of cron
 #endif
 
 Server::Server(
-    opentxs::CryptoEngine& crypto,
+    opentxs::api::Crypto& crypto,
     opentxs::api::Settings& config,
     opentxs::api::Server& mint,
-    opentxs::api::Storage& storage,
+    opentxs::api::storage::Storage& storage,
     opentxs::api::Wallet& wallet)
     : crypto_(crypto)
     , config_(config)

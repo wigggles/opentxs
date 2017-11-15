@@ -79,13 +79,14 @@ namespace opentxs
 {
 
 StorageFSArchive::StorageFSArchive(
+    const api::storage::Storage& storage,
     const StorageConfig& config,
     const Digest& hash,
     const Random& random,
     const std::atomic<bool>& bucket,
     const std::string& folder,
     std::unique_ptr<SymmetricKey>& key)
-    : ot_super(config, hash, random, folder, bucket)
+    : ot_super(storage, config, hash, random, folder, bucket)
     , encryption_key_(key.release())
     , encrypted_(bool(encryption_key_))
 {

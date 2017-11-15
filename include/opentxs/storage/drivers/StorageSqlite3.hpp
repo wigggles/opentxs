@@ -43,7 +43,7 @@
 
 #if OT_STORAGE_SQLITE
 
-#include "opentxs/storage/StoragePlugin.hpp"
+#include "opentxs/storage/Plugin.hpp"
 
 extern "C" {
 #include <sqlite3.h>
@@ -56,13 +56,12 @@ extern "C" {
 
 namespace opentxs
 {
-
 class StorageConfig;
 class StorageMultiplex;
 
 // SQLite3 implementation of opentxs::storage
-class StorageSqlite3 : public virtual StoragePlugin_impl,
-                       public virtual StorageDriver
+class StorageSqlite3 : public virtual Plugin,
+                       public virtual opentxs::api::storage::Driver
 {
 public:
     bool EmptyBucket(const bool bucket) const override;
@@ -79,7 +78,7 @@ public:
     ~StorageSqlite3();
 
 private:
-    typedef StoragePlugin_impl ot_super;
+    typedef Plugin ot_super;
 
     friend class StorageMultiplex;
 
@@ -118,6 +117,7 @@ private:
     void Init_StorageSqlite3();
 
     StorageSqlite3(
+        const api::storage::Storage& storage,
         const StorageConfig& config,
         const Digest& hash,
         const Random& random,

@@ -40,7 +40,7 @@
 
 #include "opentxs/storage/tree/Seeds.hpp"
 
-#include "opentxs/storage/StoragePlugin.hpp"
+#include "opentxs/storage/Plugin.hpp"
 
 #define CURRENT_VERSION 2
 
@@ -50,7 +50,9 @@ namespace opentxs
 {
 namespace storage
 {
-Seeds::Seeds(const StorageDriver& storage, const std::string& hash)
+Seeds::Seeds(
+    const opentxs::api::storage::Driver& storage,
+    const std::string& hash)
     : Node(storage, hash)
 {
     if (check_hash(hash)) {

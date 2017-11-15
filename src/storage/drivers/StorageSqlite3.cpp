@@ -41,7 +41,6 @@
 
 #if OT_STORAGE_SQLITE
 #include "opentxs/core/Log.hpp"
-#include "opentxs/storage/Storage.hpp"
 #include "opentxs/storage/StorageConfig.hpp"
 
 #include <sqlite3.h>
@@ -55,11 +54,12 @@
 namespace opentxs
 {
 StorageSqlite3::StorageSqlite3(
+    const api::storage::Storage& storage,
     const StorageConfig& config,
     const Digest& hash,
     const Random& random,
     const std::atomic<bool>& bucket)
-    : ot_super(config, hash, random, bucket)
+    : ot_super(storage, config, hash, random, bucket)
     , folder_(config.path_)
     , transaction_lock_()
     , transaction_bucket_(false)

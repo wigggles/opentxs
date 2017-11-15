@@ -38,7 +38,7 @@
 
 #include "opentxs/stdafx.hpp"
 
-#include "opentxs/storage/Storage.hpp"
+#include "opentxs/api/storage/implementation/Storage.hpp"
 
 #include "opentxs/storage/drivers/StorageMultiplex.hpp"
 #include "opentxs/storage/tree/BlockchainTransactions.hpp"
@@ -64,27 +64,26 @@
 #include <stdexcept>
 #include <utility>
 
-#define OT_METHOD "opentxs::Storage::"
+#define OT_METHOD "opentxs::api::storage::implementation::Storage::"
 
-namespace opentxs::api
+namespace opentxs::api::storage::implementation
 {
 const std::uint32_t Storage::HASH_TYPE = 2;  // BTC160
 
 Storage::Storage(
     const std::atomic<bool>& shutdown,
     const StorageConfig& config,
-    CryptoEngine& crypto,
     const Digest& hash,
     const Random& random)
-    : crypto_(crypto)
-    , shutdown_(shutdown)
+    : shutdown_(shutdown)
     , gc_interval_(config.gc_interval_)
     , write_lock_()
     , root_(nullptr)
     , primary_bucket_(false)
     , background_threads_()
     , config_(config)
-    , multiplex_p_(new StorageMultiplex(primary_bucket_, config_, hash, random))
+    , multiplex_p_(
+          new StorageMultiplex(*this, primary_bucket_, config_, hash, random))
     , multiplex_(*multiplex_p_)
 {
     OT_ASSERT(multiplex_p_);
@@ -190,6 +189,8 @@ bool Storage::DeleteContact(const std::string& id)
         .Delete(id);
 }
 
+std::uint32_t Storage::HashType() const { return HASH_TYPE; }
+
 void Storage::InitBackup() { multiplex_.InitBackup(); }
 
 void Storage::InitEncryptedBackup(std::unique_ptr<SymmetricKey>& key)
@@ -207,7 +208,7 @@ void Storage::InitPlugins()
         return;
     }
 
-    std::unique_ptr<storage::Root> root{new storage::Root(
+    std::unique_ptr<opentxs::storage::Root> root{new opentxs::storage::Root(
         multiplex_,
         hash,
         std::numeric_limits<std::int64_t>::max(),
@@ -498,12 +499,12 @@ void Storage::MapUnitDefinitions(UnitLambda& lambda)
     bgMap.detach();
 }
 
-storage::Root* Storage::root() const
+opentxs::storage::Root* Storage::root() const
 {
     Lock lock(write_lock_);
 
     if (!root_) {
-        root_.reset(new storage::Root(
+        root_.reset(new opentxs::storage::Root(
             multiplex_, multiplex_.LoadRoot(), gc_interval_, primary_bucket_));
     }
 
@@ -514,7 +515,7 @@ storage::Root* Storage::root() const
     return root_.get();
 }
 
-const storage::Root& Storage::Root() const { return *root(); }
+const opentxs::storage::Root& Storage::Root() const { return *root(); }
 
 bool Storage::MoveThreadItem(
     const std::string& nymId,
@@ -606,12 +607,14 @@ bool Storage::MoveThreadItem(
     return true;
 }
 
-Editor<storage::Root> Storage::mutable_Root()
+Editor<opentxs::storage::Root> Storage::mutable_Root()
 {
-    std::function<void(storage::Root*, Lock&)> callback =
-        [&](storage::Root* in, Lock& lock) -> void { this->save(in, lock); };
+    std::function<void(opentxs::storage::Root*, Lock&)> callback =
+        [&](opentxs::storage::Root* in, Lock& lock) -> void {
+        this->save(in, lock);
+    };
 
-    return Editor<storage::Root>(write_lock_, root(), callback);
+    return Editor<opentxs::storage::Root>(write_lock_, root(), callback);
 }
 
 ObjectList Storage::NymBoxList(const std::string& nymID, const StorageBox box)
@@ -924,7 +927,7 @@ void Storage::RunMapUnits(UnitLambda lambda)
     return Root().Tree().UnitNode().Map(lambda);
 }
 
-void Storage::save(storage::Root* in, const Lock& lock)
+void Storage::save(opentxs::storage::Root* in, const Lock& lock)
 {
     OT_ASSERT(verify_write_lock(lock));
     OT_ASSERT(nullptr != in);
@@ -1495,4 +1498,4 @@ bool Storage::verify_write_lock(const Lock& lock) const
 }
 
 Storage::~Storage() { Cleanup_Storage(); }
-}  // namespace opentxs::api
+}  // namespace opentxs::api::storage::implementation

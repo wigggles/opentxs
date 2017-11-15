@@ -40,14 +40,14 @@
 
 #include "opentxs/storage/tree/PeerRequests.hpp"
 
-#include "opentxs/storage/StoragePlugin.hpp"
+#include "opentxs/storage/Plugin.hpp"
 
 namespace opentxs
 {
 namespace storage
 {
 PeerRequests::PeerRequests(
-    const StorageDriver& storage,
+    const opentxs::api::storage::Driver& storage,
     const std::string& hash)
     : Node(storage, hash)
 {

@@ -60,9 +60,7 @@
 
 namespace opentxs
 {
-
 class ContactGroup;
-class CryptoEncodingEngine;
 class MadeEasy;
 class Nym;
 class OT_API;
@@ -71,13 +69,17 @@ class OTAPI_Exec;
 
 namespace api
 {
-
 class Api;
 class ContactManager;
 class Identity;
 class Settings;
 class Wallet;
-}
+
+namespace crypto
+{
+class Encode;
+}  // namespace crypto
+}  // namespace api
 
 class OTME_too
 {
@@ -145,7 +147,7 @@ private:
     const MadeEasy& made_easy_;
     const OT_ME& otme_;
     api::Wallet& wallet_;
-    CryptoEncodingEngine& encoding_;
+    api::crypto::Encode& encoding_;
     api::Identity& identity_;
 
     mutable std::atomic<bool> pairing_{false};
@@ -373,7 +375,7 @@ private:
         const MadeEasy& madeEasy,
         const OT_ME& otme,
         api::Wallet& wallet,
-        CryptoEncodingEngine& encoding,
+        api::crypto::Encode& encoding,
         api::Identity& identity);
     OTME_too() = delete;
     OTME_too(const OTME_too&) = delete;

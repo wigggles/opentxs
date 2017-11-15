@@ -41,7 +41,6 @@
 #include "opentxs/core/contract/UnitDefinition.hpp"
 
 #include "opentxs/api/Native.hpp"
-#include "opentxs/api/OT.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/contract/CurrencyContract.hpp"
 #include "opentxs/core/contract/SecurityContract.hpp"
@@ -56,8 +55,9 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/OTStorage.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/OT.hpp"
+#include "opentxs/Proto.hpp"
 
 #include <ctype.h>
 #include <stddef.h>

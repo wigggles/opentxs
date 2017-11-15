@@ -64,8 +64,8 @@
 
 #include "opentxs/core/crypto/Credential.hpp"
 
+#include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Native.hpp"
-#include "opentxs/api/OT.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/crypto/ChildKeyCredential.hpp"
@@ -78,8 +78,9 @@
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/OT.hpp"
+#include "opentxs/Proto.hpp"
 
 #include <list>
 #include <memory>

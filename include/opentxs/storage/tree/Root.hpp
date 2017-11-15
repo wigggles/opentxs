@@ -53,19 +53,21 @@
 
 namespace opentxs
 {
-
 class StorageMultiplex;
 
 namespace api
 {
-
+namespace storage
+{
+namespace implementation
+{
 class Storage;
-
+}  // namespace implementation
+}  // namespace storage
 }  // namespace api
 
 namespace storage
 {
-
 class Tree;
 
 class Root : public Node
@@ -73,7 +75,7 @@ class Root : public Node
 private:
     typedef Node ot_super;
     friend class opentxs::StorageMultiplex;
-    friend class api::Storage;
+    friend class api::storage::implementation::Storage;
 
     const std::uint64_t gc_interval_{std::numeric_limits<int64_t>::max()};
 
@@ -94,14 +96,14 @@ private:
     class Tree* tree() const;
 
     void cleanup() const;
-    void collect_garbage(const StorageDriver* to) const;
+    void collect_garbage(const opentxs::api::storage::Driver* to) const;
     void init(const std::string& hash) override;
-    bool save(const Lock& lock, const StorageDriver& to) const;
+    bool save(const Lock& lock, const opentxs::api::storage::Driver& to) const;
     bool save(const Lock& lock) const override;
     void save(class Tree* tree, const Lock& lock);
 
     Root(
-        const StorageDriver& storage,
+        const opentxs::api::storage::Driver& storage,
         const std::string& hash,
         const std::int64_t interval,
         std::atomic<bool>& bucket);
@@ -116,8 +118,8 @@ public:
 
     Editor<class Tree> mutable_Tree();
 
-    bool Migrate(const StorageDriver& to) const override;
-    bool Save(const StorageDriver& to) const;
+    bool Migrate(const opentxs::api::storage::Driver& to) const override;
+    bool Save(const opentxs::api::storage::Driver& to) const;
     std::uint64_t Sequence() const;
 
     ~Root() = default;

@@ -60,7 +60,9 @@ private:
     bool save(const std::unique_lock<std::mutex>& lock) const override;
     proto::StorageNymList serialize() const;
 
-    PeerRequests(const StorageDriver& storage, const std::string& hash);
+    PeerRequests(
+        const opentxs::api::storage::Driver& storage,
+        const std::string& hash);
     PeerRequests() = delete;
     PeerRequests(const PeerRequests&) = delete;
     PeerRequests(PeerRequests&&) = delete;

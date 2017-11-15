@@ -38,10 +38,9 @@
 
 #include "opentxs/stdafx.hpp"
 
-#include "opentxs/core/crypto/CryptoEncodingEngine.hpp"
+#include "opentxs/api/crypto/implementation/Encode.hpp"
 
 #include "opentxs/core/crypto/CryptoEncoding.hpp"
-#include "opentxs/core/crypto/CryptoEngine.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #if OT_CRYPTO_USING_TREZOR
 #include "opentxs/core/crypto/TrezorCrypto.hpp"
@@ -53,15 +52,15 @@
 #include <iostream>
 #include <regex>
 
-namespace opentxs
+namespace opentxs::api::crypto::implementation
 {
 
-CryptoEncodingEngine::CryptoEncodingEngine(CryptoEngine& parent)
-    : base58_(*static_cast<CryptoEncoding*>(parent.bitcoincrypto_.get()))
+Encode::Encode(CryptoEncoding& base58)
+    : base58_(base58)
 {
 }
 
-std::string CryptoEncodingEngine::Base64Encode(
+std::string Encode::Base64Encode(
     const std::uint8_t* inputStart,
     const std::size_t& size) const
 {
@@ -75,7 +74,7 @@ std::string CryptoEncodingEngine::Base64Encode(
     return BreakLines(output);
 }
 
-bool CryptoEncodingEngine::Base64Decode(
+bool Encode::Base64Decode(
     const std::string&& input,
     RawData& output) const
 {
@@ -95,7 +94,7 @@ bool CryptoEncodingEngine::Base64Decode(
     return true;
 }
 
-std::string CryptoEncodingEngine::BreakLines(const std::string& input) const
+std::string Encode::BreakLines(const std::string& input) const
 {
     std::string output;
 
@@ -121,19 +120,19 @@ std::string CryptoEncodingEngine::BreakLines(const std::string& input) const
     return output;
 }
 
-std::string CryptoEncodingEngine::DataEncode(const std::string& input) const
+std::string Encode::DataEncode(const std::string& input) const
 {
     return Base64Encode(
         reinterpret_cast<const uint8_t*>(input.data()), input.size());
 }
 
-std::string CryptoEncodingEngine::DataEncode(const Data& input) const
+std::string Encode::DataEncode(const Data& input) const
 {
     return Base64Encode(
         static_cast<const uint8_t*>(input.GetPointer()), input.GetSize());
 }
 
-std::string CryptoEncodingEngine::DataDecode(const std::string& input) const
+std::string Encode::DataDecode(const std::string& input) const
 {
     RawData decoded;
 
@@ -146,13 +145,13 @@ std::string CryptoEncodingEngine::DataDecode(const std::string& input) const
     return "";
 }
 
-std::string CryptoEncodingEngine::IdentifierEncode(const Data& input) const
+std::string Encode::IdentifierEncode(const Data& input) const
 {
     return base58_.Base58CheckEncode(
         static_cast<const uint8_t*>(input.GetPointer()), input.GetSize());
 }
 
-std::string CryptoEncodingEngine::IdentifierEncode(
+std::string Encode::IdentifierEncode(
     const OTPassword& input) const
 {
     if (input.isMemory()) {
@@ -166,7 +165,7 @@ std::string CryptoEncodingEngine::IdentifierEncode(
     }
 }
 
-std::string CryptoEncodingEngine::IdentifierDecode(
+std::string Encode::IdentifierDecode(
     const std::string& input) const
 {
     RawData decoded;
@@ -180,20 +179,20 @@ std::string CryptoEncodingEngine::IdentifierDecode(
     return "";
 }
 
-bool CryptoEncodingEngine::IsBase62(const std::string& str) const
+bool Encode::IsBase62(const std::string& str) const
 {
     return str.find_first_not_of("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHI"
                                  "JKLMNOPQRSTUVWXYZ") == std::string::npos;
 }
 
-String CryptoEncodingEngine::Nonce(const uint32_t size) const
+String Encode::Nonce(const uint32_t size) const
 {
     Data unusedOutput;
 
     return Nonce(size, unusedOutput);
 }
 
-String CryptoEncodingEngine::Nonce(const uint32_t size, Data& rawOutput) const
+String Encode::Nonce(const uint32_t size, Data& rawOutput) const
 {
     rawOutput.zeroMemory();
     rawOutput.SetSize(size);
@@ -205,18 +204,18 @@ String CryptoEncodingEngine::Nonce(const uint32_t size, Data& rawOutput) const
     return nonce;
 }
 
-std::string CryptoEncodingEngine::RandomFilename() const
+std::string Encode::RandomFilename() const
 {
     return Nonce(16).Get();
 }
 
-std::string CryptoEncodingEngine::SanatizeBase58(const std::string& input)
+std::string Encode::SanatizeBase58(const std::string& input) const
 {
     return std::regex_replace(input, std::regex("[^1-9A-HJ-NP-Za-km-z]"), "");
 }
 
-std::string CryptoEncodingEngine::SanatizeBase64(const std::string& input)
+std::string Encode::SanatizeBase64(const std::string& input) const
 {
     return std::regex_replace(input, std::regex("[^0-9A-Za-z+/=]"), "");
 }
-}  // namespace opentxs
+}  // namespace opentxs::api::crypto::implementation

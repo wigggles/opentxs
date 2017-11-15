@@ -36,38 +36,55 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_CORE_CRYPTO_CRYPTOUTIL_HPP
-#define OPENTXS_CORE_CRYPTO_CRYPTOUTIL_HPP
+#ifndef OPENTXS_API_CRYPTO_SYMMETRIC_HPP
+#define OPENTXS_API_CRYPTO_SYMMETRIC_HPP
 
 #include "opentxs/Version.hpp"
 
-#include "opentxs/core/String.hpp"
+#include "opentxs/Proto.hpp"
 
-#include <stdint.h>
-#include <string>
+#include <cstdint>
 
 namespace opentxs
 {
 
-class Data;
+class SymmetricKey;
 class OTPassword;
-class String;
+class OTPasswordData;
 
-class CryptoUtil
+namespace api
 {
-protected:
-    CryptoUtil() = default;
-    virtual bool GetPasswordFromConsole(
-        OTPassword& theOutput,
-        const char* szPrompt) const = 0;
+namespace crypto
+{
 
+class Symmetric
+{
 public:
-    virtual bool RandomizeMemory(uint8_t* szDestination, uint32_t nNewSize)
-        const = 0;
-    bool GetPasswordFromConsole(OTPassword& theOutput, bool bRepeat = false)
-        const;
+    virtual std::unique_ptr<SymmetricKey> Key(
+        const OTPasswordData& password,
+        const proto::SymmetricMode mode = proto::SMODE_CHACHA20POLY1305) = 0;
+    virtual std::unique_ptr<SymmetricKey> Key(
+        const proto::SymmetricKey& serialized,
+        const proto::SymmetricMode mode) = 0;
+    virtual std::unique_ptr<SymmetricKey> Key(
+        const OTPassword& seed,
+        const std::uint64_t operations = 0,
+        const std::uint64_t difficulty = 0,
+        const proto::SymmetricMode mode = proto::SMODE_CHACHA20POLY1305,
+        const proto::SymmetricKeyType type = proto::SKEYTYPE_ARGON2) = 0;
 
-    virtual ~CryptoUtil() = default;
+    virtual ~Symmetric() = default;
+
+protected:
+    Symmetric() = default;
+
+private:
+    Symmetric(const Symmetric&) = delete;
+    Symmetric(Symmetric&&) = delete;
+    Symmetric& operator=(const Symmetric&) = delete;
+    Symmetric& operator=(Symmetric&&) = delete;
 };
+}  // namespace crypto
+}  // namespace api
 }  // namespace opentxs
-#endif  // OPENTXS_CORE_CRYPTO_CRYPTOUTIL_HPP
+#endif  // OPENTXS_API_CRYPTO_SYMMETRIC_HPP

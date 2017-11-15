@@ -42,7 +42,6 @@
 
 #include "opentxs/api/Api.hpp"
 #include "opentxs/api/Native.hpp"
-#include "opentxs/api/OT.hpp"
 #include "opentxs/client/commands/CmdBase.hpp"
 #include "opentxs/client/commands/CmdShowNyms.hpp"
 #include "opentxs/client/MadeEasy.hpp"
@@ -50,6 +49,7 @@
 #include "opentxs/client/SwigWrap.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/OT.hpp"
 
 #include <stdint.h>
 #include <iostream>

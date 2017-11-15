@@ -36,18 +36,23 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_STORAGE_STORAGEPLUGIN_HPP
-#define OPENTXS_STORAGE_STORAGEPLUGIN_HPP
+#ifndef OPENTXS_API_STORAGE_PLUGIN_HPP
+#define OPENTXS_API_STORAGE_PLUGIN_HPP
 
 #include "opentxs/Version.hpp"
 
-#include "opentxs/interface/storage/StorageDriver.hpp"
+#include "opentxs/api/storage/Driver.hpp"
 
 #include <string>
 
 namespace opentxs
 {
-class StoragePlugin : public virtual StorageDriver
+namespace api
+{
+namespace storage
+{
+
+class Plugin : public virtual Driver
 {
 public:
     virtual bool EmptyBucket(const bool bucket) const = 0;
@@ -57,16 +62,18 @@ public:
     virtual bool StoreRoot(const bool commit, const std::string& hash)
         const = 0;
 
-    virtual ~StoragePlugin() = default;
+    virtual ~Plugin() = default;
 
 protected:
-    StoragePlugin() = default;
+    Plugin() = default;
 
 private:
-    StoragePlugin(const StoragePlugin&) = delete;
-    StoragePlugin(StoragePlugin&&) = delete;
-    StoragePlugin& operator=(const StoragePlugin&) = delete;
-    StoragePlugin& operator=(StoragePlugin&&) = delete;
+    Plugin(const Plugin&) = delete;
+    Plugin(Plugin&&) = delete;
+    Plugin& operator=(const Plugin&) = delete;
+    Plugin& operator=(Plugin&&) = delete;
 };
+}  // namespace storage
+}  // namespace api
 }  // namespace opentxs
-#endif  // OPENTXS_STORAGE_STORAGEPLUGIN_HPP
+#endif  // OPENTXS_API_STORAGE_PLUGIN_HPP

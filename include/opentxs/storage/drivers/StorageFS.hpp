@@ -43,7 +43,7 @@
 
 #if OT_STORAGE_FS
 
-#include "opentxs/storage/StoragePlugin.hpp"
+#include "opentxs/storage/Plugin.hpp"
 
 #include <boost/iostreams/device/file_descriptor.hpp>
 #include <boost/iostreams/stream.hpp>
@@ -56,10 +56,10 @@ namespace opentxs
 class StorageConfig;
 
 // Simple filesystem implementation of opentxs::storage
-class StorageFS : public StoragePlugin_impl
+class StorageFS : public Plugin
 {
 private:
-    typedef StoragePlugin_impl ot_super;
+    typedef Plugin ot_super;
 
 public:
     bool LoadFromBucket(
@@ -81,6 +81,7 @@ protected:
     bool sync(const std::string& path) const;
 
     StorageFS(
+        const api::storage::Storage& storage,
         const StorageConfig& config,
         const Digest& hash,
         const Random& random,

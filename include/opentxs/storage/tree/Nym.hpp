@@ -150,7 +150,7 @@ private:
     void update_hash(const StorageBox type, const std::string& root);
     proto::StorageNym serialize() const;
 
-    Nym(const StorageDriver& storage,
+    Nym(const opentxs::api::storage::Driver& storage,
         const std::string& id,
         const std::string& hash,
         const std::string& alias);
@@ -198,7 +198,7 @@ public:
         std::shared_ptr<proto::CredentialIndex>& output,
         std::string& alias,
         const bool checking) const;
-    bool Migrate(const StorageDriver& to) const override;
+    bool Migrate(const opentxs::api::storage::Driver& to) const override;
 
     bool SetAlias(const std::string& alias);
     bool Store(

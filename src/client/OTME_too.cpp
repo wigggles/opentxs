@@ -40,6 +40,7 @@
 
 #include "opentxs/client/OTME_too.hpp"
 
+#include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/Api.hpp"
 #include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Identity.hpp"
@@ -53,7 +54,6 @@
 #include "opentxs/contact/ContactData.hpp"
 #include "opentxs/contact/ContactGroup.hpp"
 #include "opentxs/contact/ContactItem.hpp"
-#include "opentxs/core/crypto/CryptoEncodingEngine.hpp"
 #include "opentxs/core/crypto/PaymentCode.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Ledger.hpp"
@@ -165,7 +165,7 @@ OTME_too::OTME_too(
     const MadeEasy& madeEasy,
     const OT_ME& otme,
     api::Wallet& wallet,
-    CryptoEncodingEngine& encoding,
+    api::crypto::Encode& encoding,
     api::Identity& identity)
     : api_lock_(lock)
     , config_(config)
@@ -2121,8 +2121,7 @@ bool OTME_too::PairNode(
         return false;
     }
 
-    auto pw = CryptoEncodingEngine::SanatizeBase58(password);
-
+    auto pw = encoding_.SanatizeBase58(password);
     std::unique_lock<std::mutex> startLock(pair_initiate_lock_);
     const bool alreadyPairing = check_pairing(bridgeNym, pw);
 

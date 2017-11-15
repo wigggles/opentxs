@@ -64,7 +64,9 @@ private:
     bool save(const std::unique_lock<std::mutex>& lock) const override;
     proto::StorageCredentials serialize() const;
 
-    Credentials(const StorageDriver& storage, const std::string& hash);
+    Credentials(
+        const opentxs::api::storage::Driver& storage,
+        const std::string& hash);
     Credentials() = delete;
     Credentials(const Credentials&) = delete;
     Credentials(Credentials&&) = delete;

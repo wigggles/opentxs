@@ -56,12 +56,19 @@
 namespace opentxs
 {
 
-class CryptoEngine;
 class Identifier;
 class OTASCIIArmor;
 class OTCachedKey;
 class OTPassword;
 class OTSymmetricKey;
+
+namespace api
+{
+namespace implementation
+{
+class Crypto;
+}  // namespace implementation
+}  // namespace api
 
 /**
 This class handles the functionality of caching the master key for X seconds as
@@ -219,7 +226,7 @@ public:
     EXPORT ~OTCachedKey();
 
 private:
-    friend class CryptoEngine;
+    friend class api::implementation::Crypto;
 
     mutable std::mutex general_lock_;
     mutable std::mutex master_password_lock_;

@@ -40,11 +40,10 @@
 #include "opentxs/core/crypto/OpenSSL.hpp"
 
 #if OT_CRYPTO_USING_OPENSSL
+#include "opentxs/api/crypto/Crypto.hpp"
+#include "opentxs/api/crypto/Hash.hpp"
 #include "opentxs/api/Native.hpp"
-#include "opentxs/api/OT.hpp"
 #include "opentxs/core/crypto/Crypto.hpp"
-#include "opentxs/core/crypto/CryptoEngine.hpp"
-#include "opentxs/core/crypto/CryptoHashEngine.hpp"
 #include "opentxs/core/crypto/CryptoSymmetric.hpp"
 #include "opentxs/core/crypto/OpenSSL_BIO.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
@@ -61,6 +60,7 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/OT.hpp"
 
 extern "C" {
 #include <netinet/in.h>
@@ -586,9 +586,7 @@ BinarySecret OpenSSL::InstantiateBinarySecretSP() const
 #define _PASSWORD_LEN 128
 #endif
 
-bool OpenSSL::GetPasswordFromConsole(
-    OTPassword& theOutput,
-    const char* szPrompt) const
+bool OpenSSL::get_password(OTPassword& theOutput, const char* szPrompt) const
 {
     OT_ASSERT(nullptr != szPrompt);
 

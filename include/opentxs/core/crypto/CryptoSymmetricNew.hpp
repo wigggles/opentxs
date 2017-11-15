@@ -47,14 +47,23 @@
 
 namespace opentxs
 {
+namespace api
+{
+namespace crypto
+{
+namespace implementation
+{
+class Symmetric;
+}  // namespace implementation
+}  // namespace crypto
+}  // namespace api
 
-class CryptoSymmetricEngine;
 class SymmetricKey;
 
 class CryptoSymmetricNew
 {
     friend class SymmetricKey;
-    friend class CryptoSymmetricEngine;
+    friend class api::crypto::implementation::Symmetric;
 
 protected:
     virtual bool Decrypt(

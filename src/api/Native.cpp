@@ -40,13 +40,16 @@
 
 #include "opentxs/api/implementation/Native.hpp"
 
+#include "opentxs/api/crypto/implementation/Crypto.hpp"
+#include "opentxs/api/crypto/Encode.hpp"
+#include "opentxs/api/crypto/Hash.hpp"
+#include "opentxs/api/storage/implementation/Storage.hpp"
 #include "opentxs/api/Activity.hpp"
 #include "opentxs/api/Api.hpp"
 #include "opentxs/api/Blockchain.hpp"
 #include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Dht.hpp"
 #include "opentxs/api/Identity.hpp"
-#include "opentxs/api/OT.hpp"
 #include "opentxs/api/Server.hpp"
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/api/Wallet.hpp"
@@ -57,9 +60,6 @@
 #include "opentxs/client/OTWallet.hpp"
 #include "opentxs/client/MadeEasy.hpp"
 #include "opentxs/core/crypto/Bip39.hpp"
-#include "opentxs/core/crypto/CryptoEncodingEngine.hpp"
-#include "opentxs/core/crypto/CryptoEngine.hpp"
-#include "opentxs/core/crypto/CryptoHashEngine.hpp"
 #include "opentxs/core/crypto/SymmetricKey.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
@@ -68,12 +68,12 @@
 #include "opentxs/network/DhtConfig.hpp"
 #include "opentxs/network/ServerConnection.hpp"
 #include "opentxs/network/ZMQ.hpp"
-#include "opentxs/storage/Storage.hpp"
 #include "opentxs/storage/StorageConfig.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/util/Signals.hpp"
+#include "opentxs/OT.hpp"
 
 #include <atomic>
 #include <ctime>
@@ -187,14 +187,14 @@ api::ContactManager& Native::Contact() const
     return *contacts_;
 }
 
-CryptoEngine& Native::Crypto() const
+api::Crypto& Native::Crypto() const
 {
     OT_ASSERT(crypto_)
 
     return *crypto_;
 }
 
-api::Storage& Native::DB() const
+api::storage::Storage& Native::DB() const
 {
     OT_ASSERT(storage_)
 
@@ -336,7 +336,7 @@ void Native::Init_Contacts()
 
 void Native::Init_Contracts() { wallet_.reset(new api::Wallet(*this)); }
 
-void Native::Init_Crypto() { crypto_.reset(new CryptoEngine(*this)); }
+void Native::Init_Crypto() { crypto_.reset(new class Crypto(*this)); }
 
 void Native::Init_Dht()
 {
@@ -454,17 +454,15 @@ void Native::Init_Storage()
     OT_ASSERT(crypto_);
 
     Digest hash = std::bind(
-        static_cast<bool (CryptoHashEngine::*)(
+        static_cast<bool (api::crypto::Hash::*)(
             const uint32_t, const std::string&, std::string&) const>(
-            &CryptoHashEngine::Digest),
+            &api::crypto::Hash::Digest),
         &(Crypto().Hash()),
         std::placeholders::_1,
         std::placeholders::_2,
         std::placeholders::_3);
-
     Random random =
-        std::bind(&CryptoEncodingEngine::RandomFilename, &(Crypto().Encode()));
-
+        std::bind(&api::crypto::Encode::RandomFilename, &(Crypto().Encode()));
     std::shared_ptr<OTDB::StorageFS> storage(OTDB::StorageFS::Instantiate());
     std::string root_path = OTFolders::Common().Get();
     std::string path;
@@ -633,7 +631,8 @@ void Native::Init_Storage()
 
     OT_ASSERT(crypto_);
 
-    storage_.reset(new api::Storage(shutdown_, config, *crypto_, hash, random));
+    storage_.reset(new api::storage::implementation::Storage(
+        shutdown_, config, hash, random));
     Config().Save();
 }
 
@@ -641,13 +640,18 @@ void Native::Init_StorageBackup()
 {
     OT_ASSERT(storage_);
 
-    storage_->InitBackup();
+    auto storage =
+        dynamic_cast<api::storage::implementation::Storage*>(storage_.get());
+
+    OT_ASSERT(nullptr != storage);
+
+    storage->InitBackup();
 
     if (storage_encryption_key_) {
-        storage_->InitEncryptedBackup(storage_encryption_key_);
+        storage->InitEncryptedBackup(storage_encryption_key_);
     }
 
-    storage_->start();
+    storage->start();
 }
 
 void Native::Init_Periodic()

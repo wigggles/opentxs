@@ -40,10 +40,9 @@
 
 #include "opentxs/core/crypto/AsymmetricKeyEC.hpp"
 
+#include "opentxs/api/crypto/Crypto.hpp"
+#include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/Native.hpp"
-#include "opentxs/api/OT.hpp"
-#include "opentxs/core/crypto/CryptoEncodingEngine.hpp"
-#include "opentxs/core/crypto/CryptoEngine.hpp"
 #include "opentxs/core/crypto/Ecdsa.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
@@ -51,8 +50,9 @@
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/OT.hpp"
+#include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 
 extern "C" {

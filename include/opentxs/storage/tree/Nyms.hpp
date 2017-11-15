@@ -41,10 +41,10 @@
 
 #include "opentxs/Version.hpp"
 
+#include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Editor.hpp"
-#include "opentxs/Types.hpp"
 #include "opentxs/storage/tree/Node.hpp"
-#include "opentxs/storage/Storage.hpp"
+#include "opentxs/Types.hpp"
 
 #include <map>
 #include <mutex>
@@ -74,7 +74,7 @@ private:
     bool save(const Lock& lock) const override;
     proto::StorageNymList serialize() const;
 
-    Nyms(const StorageDriver& storage, const std::string& hash);
+    Nyms(const opentxs::api::storage::Driver& storage, const std::string& hash);
     Nyms() = delete;
     Nyms(const Nyms&) = delete;
     Nyms(Nyms&&) = delete;
@@ -84,7 +84,7 @@ private:
 public:
     bool Exists(const std::string& id) const;
     void Map(NymLambda lambda) const;
-    bool Migrate(const StorageDriver& to) const override;
+    bool Migrate(const opentxs::api::storage::Driver& to) const override;
     const class Nym& Nym(const std::string& id) const;
 
     Editor<class Nym> mutable_Nym(const std::string& id);

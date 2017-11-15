@@ -42,12 +42,11 @@
 #include "opentxs/Version.hpp"
 
 #include "opentxs/core/crypto/CryptoAsymmetric.hpp"
-#include "opentxs/core/crypto/CryptoEngine.hpp"
 #include "opentxs/core/util/Timer.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/Proto.hpp"
 
 #include <stdint.h>
 #include <list>
@@ -56,7 +55,6 @@
 
 namespace opentxs
 {
-
 class CryptoAsymmetric;
 class Identifier;
 class NymParameters;
@@ -286,10 +284,7 @@ public:
     virtual serializedAsymmetricKey Serialize() const;
     virtual bool Verify(const Data& plaintext, const proto::Signature& sig)
         const;
-    virtual proto::HashType SigHashType() const
-    {
-        return CryptoEngine::StandardHash;
-    }
+    virtual proto::HashType SigHashType() const { return StandardHash; }
     virtual bool Sign(
         const Data& plaintext,
         proto::Signature& sig,

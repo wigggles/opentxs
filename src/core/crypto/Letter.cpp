@@ -40,18 +40,17 @@
 
 #include "opentxs/core/crypto/Letter.hpp"
 
+#include "opentxs/api/crypto/Crypto.hpp"
+#include "opentxs/api/crypto/Symmetric.hpp"
+#include "opentxs/api/crypto/Util.hpp"
 #include "opentxs/api/Native.hpp"
-#include "opentxs/api/OT.hpp"
 #include "opentxs/core/crypto/AsymmetricKeyEC.hpp"
 #include "opentxs/core/crypto/AsymmetricKeyEd25519.hpp"
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 #include "opentxs/core/crypto/AsymmetricKeySecp256k1.hpp"
 #endif
-#include "opentxs/core/crypto/CryptoEngine.hpp"
 #include "opentxs/core/crypto/CryptoHash.hpp"
 #include "opentxs/core/crypto/CryptoSymmetric.hpp"
-#include "opentxs/core/crypto/CryptoSymmetricEngine.hpp"
-#include "opentxs/core/crypto/CryptoUtil.hpp"
 #include "opentxs/core/crypto/Ecdsa.hpp"
 #if OT_CRYPTO_USING_LIBSECP256K1
 #include "opentxs/core/crypto/Libsecp256k1.hpp"
@@ -72,8 +71,9 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/OTStringXML.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/OT.hpp"
+#include "opentxs/Proto.hpp"
 
 #include <irrxml/irrXML.hpp>
 #include <stdint.h>

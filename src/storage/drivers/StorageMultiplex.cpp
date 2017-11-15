@@ -39,12 +39,12 @@
 
 #include "opentxs/storage/drivers/StorageMultiplex.hpp"
 
+#include "opentxs/api/storage/Plugin.hpp"
 #if OT_STORAGE_FS
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/SymmetricKey.hpp"
 #endif
 #include "opentxs/core/Log.hpp"
-#include "opentxs/interface/storage/StoragePlugin.hpp"
 #if OT_STORAGE_FS
 #include "opentxs/storage/drivers/StorageFSGC.hpp"
 #include "opentxs/storage/drivers/StorageFSArchive.hpp"
@@ -63,11 +63,13 @@
 namespace opentxs
 {
 StorageMultiplex::StorageMultiplex(
+    const api::storage::Storage& storage,
     const std::atomic<bool>& primary_bucket_,
     const StorageConfig& config,
     const Digest& hash,
     const Random& random)
-    : primary_bucket_(primary_bucket_)
+    : storage_(storage)
+    , primary_bucket_(primary_bucket_)
     , config_(config)
     , primary_plugin_()
     , backup_plugins_()
@@ -157,8 +159,8 @@ void StorageMultiplex::Init_StorageMultiplex()
 #if OT_STORAGE_SQLITE
         otInfo << OT_METHOD << __FUNCTION__
                << ": Initializing primary sqlite3 plugin." << std::endl;
-        primary_plugin_.reset(
-            new StorageSqlite3(config_, digest_, random_, primary_bucket_));
+        primary_plugin_.reset(new StorageSqlite3(
+            storage_, config_, digest_, random_, primary_bucket_));
 #else
         otErr << OT_METHOD << __FUNCTION__
               << ": Sqlite3 driver not compiled in." << std::endl;
@@ -167,8 +169,8 @@ void StorageMultiplex::Init_StorageMultiplex()
 #if OT_STORAGE_FS
         otInfo << OT_METHOD << __FUNCTION__
                << ": Initializing primary filesystem plugin." << std::endl;
-        primary_plugin_.reset(
-            new StorageFSGC(config_, digest_, random_, primary_bucket_));
+        primary_plugin_.reset(new StorageFSGC(
+            storage_, config_, digest_, random_, primary_bucket_));
 #else
         otErr << OT_METHOD << __FUNCTION__
               << ": Filesystem driver not compiled in." << std::endl;
@@ -188,6 +190,7 @@ void StorageMultiplex::InitBackup()
 #if OT_STORAGE_FS
     std::unique_ptr<SymmetricKey> null(nullptr);
     backup_plugins_.emplace_back(new StorageFSArchive(
+        storage_,
         config_,
         digest_,
         random_,
@@ -209,6 +212,7 @@ void StorageMultiplex::InitEncryptedBackup(__attribute__((unused))
 
 #if OT_STORAGE_FS
     backup_plugins_.emplace_back(new StorageFSArchive(
+        storage_,
         config_,
         digest_,
         random_,
@@ -317,8 +321,9 @@ std::string StorageMultiplex::LoadRoot() const
     return root;
 }
 
-bool StorageMultiplex::Migrate(const std::string& key, const StorageDriver& to)
-    const
+bool StorageMultiplex::Migrate(
+    const std::string& key,
+    const opentxs::api::storage::Driver& to) const
 {
     OT_ASSERT(primary_plugin_);
 
@@ -339,7 +344,7 @@ bool StorageMultiplex::Migrate(const std::string& key, const StorageDriver& to)
     return false;
 }
 
-StorageDriver& StorageMultiplex::Primary()
+opentxs::api::storage::Driver& StorageMultiplex::Primary()
 {
     OT_ASSERT(primary_plugin_);
 

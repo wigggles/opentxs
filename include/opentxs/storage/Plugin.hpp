@@ -41,7 +41,7 @@
 
 #include "opentxs/Version.hpp"
 
-#include "opentxs/interface/storage/StoragePlugin.hpp"
+#include "opentxs/api/storage/Plugin.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
@@ -53,7 +53,15 @@ namespace opentxs
 {
 class StorageConfig;
 
-class StoragePlugin_impl : public virtual StoragePlugin
+namespace api
+{
+namespace storage
+{
+class Storage;
+}  // namespace storage
+}  // namespace api
+
+class Plugin : virtual public opentxs::api::storage::Plugin
 {
 public:
     bool EmptyBucket(const bool bucket) const override = 0;
@@ -80,8 +88,9 @@ public:
         const std::string& value,
         std::string& key) const override;
 
-    bool Migrate(const std::string& key, const StorageDriver& to)
-        const override;
+    bool Migrate(
+        const std::string& key,
+        const opentxs::api::storage::Driver& to) const override;
 
     std::string LoadRoot() const override = 0;
     bool StoreRoot(const bool commit, const std::string& hash) const override =
@@ -89,18 +98,19 @@ public:
 
     virtual void Cleanup() = 0;
 
-    virtual ~StoragePlugin_impl() = default;
+    virtual ~Plugin() = default;
 
 protected:
     const StorageConfig& config_;
     const Random& random_;
 
-    StoragePlugin_impl(
+    Plugin(
+        const api::storage::Storage& storage,
         const StorageConfig& config,
         const Digest& hash,
         const Random& random,
         const std::atomic<bool>& bucket);
-    StoragePlugin_impl() = delete;
+    Plugin() = delete;
 
     virtual void store(
         const bool isTransaction,
@@ -110,17 +120,18 @@ protected:
         std::promise<bool>* promise) const = 0;
 
 private:
+    const api::storage::Storage& storage_;
     const Digest& digest_;
     const std::atomic<bool>& current_bucket_;
 
-    StoragePlugin_impl(const StoragePlugin_impl&) = delete;
-    StoragePlugin_impl(StoragePlugin_impl&&) = delete;
-    StoragePlugin_impl& operator=(const StoragePlugin_impl&) = delete;
-    StoragePlugin_impl& operator=(StoragePlugin_impl&&) = delete;
+    Plugin(const Plugin&) = delete;
+    Plugin(Plugin&&) = delete;
+    Plugin& operator=(const Plugin&) = delete;
+    Plugin& operator=(Plugin&&) = delete;
 };
 
 template <class T>
-bool StorageDriver::LoadProto(
+bool opentxs::api::storage::Driver::LoadProto(
     const std::string& hash,
     std::shared_ptr<T>& serialized,
     const bool checking) const
@@ -154,7 +165,7 @@ bool StorageDriver::LoadProto(
 }
 
 template <class T>
-bool StorageDriver::StoreProto(
+bool opentxs::api::storage::Driver::StoreProto(
     const T& data,
     std::string& key,
     std::string& plaintext) const
@@ -170,7 +181,8 @@ bool StorageDriver::StoreProto(
 }
 
 template <class T>
-bool StorageDriver::StoreProto(const T& data, std::string& key) const
+bool opentxs::api::storage::Driver::StoreProto(const T& data, std::string& key)
+    const
 {
     std::string notUsed;
 
@@ -178,7 +190,7 @@ bool StorageDriver::StoreProto(const T& data, std::string& key) const
 }
 
 template <class T>
-bool StorageDriver::StoreProto(const T& data) const
+bool opentxs::api::storage::Driver::StoreProto(const T& data) const
 {
     std::string notUsed;
 

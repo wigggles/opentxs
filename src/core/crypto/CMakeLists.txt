@@ -10,13 +10,8 @@ set(cxx-sources
   CredentialSet.cpp
   Crypto.cpp
   CryptoAsymmetric.cpp
-  CryptoEncodingEngine.cpp
-  CryptoEngine.cpp
   CryptoHash.cpp
-  CryptoHashEngine.cpp
   CryptoSymmetric.cpp
-  CryptoSymmetricEngine.cpp
-  CryptoUtil.cpp
   Ecdsa.cpp
   KeyCredential.cpp
   Letter.cpp

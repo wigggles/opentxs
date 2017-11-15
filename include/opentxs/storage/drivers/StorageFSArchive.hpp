@@ -54,7 +54,8 @@ class StorageConfig;
 class StorageMultiplex;
 class SymmetricKey;
 
-class StorageFSArchive : public StorageFS, public virtual StorageDriver
+class StorageFSArchive : public StorageFS,
+                         public virtual opentxs::api::storage::Driver
 {
 private:
     typedef StorageFS ot_super;
@@ -84,6 +85,7 @@ private:
     void Cleanup_StorageFSArchive();
 
     StorageFSArchive(
+        const api::storage::Storage& storage,
         const StorageConfig& config,
         const Digest& hash,
         const Random& random,

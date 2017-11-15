@@ -57,18 +57,28 @@ extern "C" {
 
 namespace opentxs
 {
-
-class CryptoEngine;
 class OTAsymmetricKey;
 class Data;
 class OTPassword;
 class OTPasswordData;
 class Nym;
-class CryptoUtil;
+
+namespace api
+{
+namespace implementation
+{
+class Crypto;
+}  // namespace implementation
+
+namespace crypto
+{
+class Util;
+}  // namespace crypto
+}  // namespace api
 
 class Libsecp256k1 : public Crypto, public CryptoAsymmetric, public Ecdsa
 {
-    friend class CryptoEngine;
+    friend class api::implementation::Crypto;
 
 private:
     static const int PrivateKeySize = 32;
@@ -76,7 +86,7 @@ private:
 
     secp256k1_context* context_{nullptr};
     Ecdsa& ecdsa_;
-    CryptoUtil& ssl_;
+    api::crypto::Util& ssl_;
 
     bool ParsePublicKey(const Data& input, secp256k1_pubkey& output) const;
     void Init_Override() const override;
@@ -92,7 +102,7 @@ private:
         const override;
 
     Libsecp256k1() = delete;
-    explicit Libsecp256k1(CryptoUtil& ssl, Ecdsa& ecdsa);
+    explicit Libsecp256k1(api::crypto::Util& ssl, Ecdsa& ecdsa);
 
 public:
     bool RandomKeypair(OTPassword& privateKey, Data& publicKey) const override;

@@ -40,6 +40,8 @@
 
 #include "opentxs/client/OT_API.hpp"
 
+#include "opentxs/api/crypto/Crypto.hpp"
+#include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Activity.hpp"
 #include "opentxs/api/Identity.hpp"
 #include "opentxs/api/Native.hpp"
@@ -64,7 +66,6 @@
 #if OT_CRYPTO_WITH_BIP39
 #include "opentxs/core/crypto/Bip39.hpp"
 #endif
-#include "opentxs/core/crypto/CryptoEngine.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/OTCachedKey.hpp"
@@ -106,12 +107,12 @@
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/OTTransactionType.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/ext/InstantiateContract.hpp"
 #include "opentxs/ext/OTPayment.hpp"
 #include "opentxs/network/ServerConnection.hpp"
 #include "opentxs/network/ZMQ.hpp"
+#include "opentxs/Proto.hpp"
 
 #include <inttypes.h>
 #include <signal.h>
@@ -517,9 +518,9 @@ OT_API::OT_API(
     api::Activity& activity,
     api::Settings& config,
     api::ContactManager& contacts,
-    CryptoEngine& crypto,
+    api::Crypto& crypto,
     api::Identity& identity,
-    api::Storage& storage,
+    api::storage::Storage& storage,
     api::Wallet& wallet,
     api::ZMQ& zmq,
     std::recursive_mutex& lock)

@@ -41,8 +41,7 @@
 #include "opentxs/storage/tree/Nyms.hpp"
 
 #include "opentxs/storage/tree/Nym.hpp"
-#include "opentxs/storage/Storage.hpp"
-#include "opentxs/storage/StoragePlugin.hpp"
+#include "opentxs/storage/Plugin.hpp"
 
 #include <functional>
 
@@ -52,7 +51,9 @@ namespace opentxs
 {
 namespace storage
 {
-Nyms::Nyms(const StorageDriver& storage, const std::string& hash)
+Nyms::Nyms(
+    const opentxs::api::storage::Driver& storage,
+    const std::string& hash)
     : Node(storage, hash)
 {
     if (check_hash(hash)) {
@@ -117,7 +118,7 @@ void Nyms::Map(NymLambda lambda) const
     }
 }
 
-bool Nyms::Migrate(const StorageDriver& to) const
+bool Nyms::Migrate(const opentxs::api::storage::Driver& to) const
 {
     bool output{true};
 

@@ -40,7 +40,6 @@
 
 #include "opentxs/core/Item.hpp"
 
-#include "opentxs/api/OT.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/consensus/TransactionStatement.hpp"
@@ -61,6 +60,7 @@
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/OTTransactionType.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/OT.hpp"
 #include "opentxs/Types.hpp"
 
 #include <irrxml/irrXML.hpp>

@@ -40,7 +40,7 @@
 
 #include "opentxs/storage/tree/Contacts.hpp"
 
-#include "opentxs/storage/StoragePlugin.hpp"
+#include "opentxs/storage/Plugin.hpp"
 
 #include <set>
 
@@ -52,7 +52,9 @@
 
 namespace opentxs::storage
 {
-Contacts::Contacts(const StorageDriver& storage, const std::string& hash)
+Contacts::Contacts(
+    const opentxs::api::storage::Driver& storage,
+    const std::string& hash)
     : Node(storage, hash)
     , address_index_()
 {

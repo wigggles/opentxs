@@ -40,15 +40,14 @@
 
 #include "opentxs/core/crypto/Libsodium.hpp"
 
-#include "opentxs/api/OT.hpp"
 #include "opentxs/core/crypto/AsymmetricKeyEd25519.hpp"
-#include "opentxs/core/crypto/CryptoEngine.hpp"
 #include "opentxs/core/crypto/CryptoSymmetric.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/OT.hpp"
 
 #include <array>
 

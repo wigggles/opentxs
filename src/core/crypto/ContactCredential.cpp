@@ -40,7 +40,6 @@
 
 #include "opentxs/core/crypto/ContactCredential.hpp"
 
-#include "opentxs/api/OT.hpp"
 #include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/crypto/Credential.hpp"
 #include "opentxs/core/crypto/CredentialSet.hpp"
@@ -48,6 +47,7 @@
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/OT.hpp"
 
 #include <ostream>
 #include <string>

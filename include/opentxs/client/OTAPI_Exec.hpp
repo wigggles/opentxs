@@ -53,8 +53,6 @@
 
 namespace opentxs
 {
-
-class CryptoEngine;
 class OT_API;
 
 namespace api
@@ -63,6 +61,7 @@ namespace api
 class Activity;
 class Api;
 class ContactManager;
+class Crypto;
 class Settings;
 class Identity;
 class Wallet;
@@ -78,7 +77,7 @@ private:
     api::Activity& activity_;
     api::Settings& config_;
     api::ContactManager& contacts_;
-    CryptoEngine& crypto_;
+    api::Crypto& crypto_;
     api::Identity& identity_;
     api::Wallet& wallet_;
     api::ZMQ& zeromq_;
@@ -89,7 +88,7 @@ private:
         api::Activity& activity,
         api::Settings& config,
         api::ContactManager& contacts,
-        CryptoEngine& crypto,
+        api::Crypto& crypto,
         api::Identity& identity,
         api::Wallet& wallet,
         api::ZMQ& zeromq,

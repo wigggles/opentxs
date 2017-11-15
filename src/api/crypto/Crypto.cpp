@@ -38,8 +38,11 @@
 
 #include "opentxs/stdafx.hpp"
 
-#include "opentxs/core/crypto/CryptoEngine.hpp"
+#include "opentxs/api/crypto/implementation/Crypto.hpp"
 
+#include "opentxs/api/crypto/implementation/Encode.hpp"
+#include "opentxs/api/crypto/implementation/Hash.hpp"
+#include "opentxs/api/crypto/implementation/Symmetric.hpp"
 #if OT_CRYPTO_WITH_BIP32
 #include "opentxs/core/crypto/Bip32.hpp"
 #endif
@@ -47,11 +50,7 @@
 #include "opentxs/core/crypto/Bip39.hpp"
 #endif
 #include "opentxs/core/crypto/CryptoAsymmetric.hpp"
-#include "opentxs/core/crypto/CryptoEncodingEngine.hpp"
-#include "opentxs/core/crypto/CryptoHashEngine.hpp"
 #include "opentxs/core/crypto/CryptoSymmetric.hpp"
-#include "opentxs/core/crypto/CryptoSymmetricEngine.hpp"
-#include "opentxs/core/crypto/CryptoUtil.hpp"
 #if OT_CRYPTO_USING_LIBSECP256K1
 #include "opentxs/core/crypto/Libsecp256k1.hpp"
 #endif
@@ -65,10 +64,12 @@
 #include "opentxs/core/crypto/TrezorCrypto.hpp"
 #endif
 #include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 
 #include <functional>
 #include <ostream>
+#include <vector>
 
 extern "C" {
 #ifdef _WIN32
@@ -77,12 +78,12 @@ extern "C" {
 #endif
 }
 
-#define OT_METHOD "opentxs::CryptoEngine::"
+#define OT_METHOD "opentxs::Crypto::"
 
-namespace opentxs
+namespace opentxs::api::implementation
 {
 
-CryptoEngine::CryptoEngine(api::Native& native)
+Crypto::Crypto(api::Native& native)
     : native_(native)
     , cached_key_lock_()
     , primary_key_(nullptr)
@@ -97,7 +98,7 @@ CryptoEngine::CryptoEngine(api::Native& native)
 }
 
 #if OT_CRYPTO_SUPPORTED_ALGO_AES
-CryptoSymmetric& CryptoEngine::AES() const
+CryptoSymmetric& Crypto::AES() const
 {
     OT_ASSERT(nullptr != ssl_);
 
@@ -106,7 +107,7 @@ CryptoSymmetric& CryptoEngine::AES() const
 #endif
 
 #if OT_CRYPTO_WITH_BIP32
-Bip32& CryptoEngine::BIP32() const
+Bip32& Crypto::BIP32() const
 {
     OT_ASSERT(nullptr != bitcoincrypto_);
 
@@ -115,7 +116,7 @@ Bip32& CryptoEngine::BIP32() const
 #endif
 
 #if OT_CRYPTO_WITH_BIP39
-Bip39& CryptoEngine::BIP39() const
+Bip39& Crypto::BIP39() const
 {
     OT_ASSERT(nullptr != bitcoincrypto_);
 
@@ -123,7 +124,7 @@ Bip39& CryptoEngine::BIP39() const
 }
 #endif
 
-const OTCachedKey& CryptoEngine::CachedKey(const Identifier& id) const
+const OTCachedKey& Crypto::CachedKey(const Identifier& id) const
 {
     Lock lock(cached_key_lock_);
 
@@ -138,7 +139,7 @@ const OTCachedKey& CryptoEngine::CachedKey(const Identifier& id) const
     return *output;
 }
 
-const OTCachedKey& CryptoEngine::CachedKey(const OTCachedKey& source) const
+const OTCachedKey& Crypto::CachedKey(const OTCachedKey& source) const
 {
     Lock lock(cached_key_lock_);
     const Identifier id(source);
@@ -158,7 +159,7 @@ const OTCachedKey& CryptoEngine::CachedKey(const OTCachedKey& source) const
     return *output;
 }
 
-void CryptoEngine::Cleanup()
+void Crypto::Cleanup()
 {
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
     secp256k1_->Cleanup();
@@ -166,7 +167,7 @@ void CryptoEngine::Cleanup()
     ssl_->Cleanup();
 }
 
-const OTCachedKey& CryptoEngine::DefaultKey() const
+const OTCachedKey& Crypto::DefaultKey() const
 {
     Lock lock(cached_key_lock_);
 
@@ -177,7 +178,7 @@ const OTCachedKey& CryptoEngine::DefaultKey() const
     return *primary_key_;
 }
 
-Editor<OTCachedKey> CryptoEngine::mutable_DefaultKey() const
+Editor<OTCachedKey> Crypto::mutable_DefaultKey() const
 {
     OT_ASSERT(primary_key_);
 
@@ -187,35 +188,43 @@ Editor<OTCachedKey> CryptoEngine::mutable_DefaultKey() const
     return Editor<OTCachedKey>(cached_key_lock_, primary_key_.get(), callback);
 }
 
-CryptoAsymmetric& CryptoEngine::ED25519() const
+CryptoAsymmetric& Crypto::ED25519() const
 {
     OT_ASSERT(nullptr != ed25519_);
 
     return *ed25519_;
 }
 
-CryptoEncodingEngine& CryptoEngine::Encode() const
+crypto::Encode& Crypto::Encode() const
 {
     OT_ASSERT(encode_);
 
     return *encode_;
 }
 
-CryptoHashEngine& CryptoEngine::Hash() const
+crypto::Hash& Crypto::Hash() const
 {
     OT_ASSERT(hash_);
 
     return *hash_;
 }
 
-void CryptoEngine::Init()
+void Crypto::Init()
 {
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
     secp256k1_.reset(new secp256k1(*ssl_, *bitcoincrypto_));
 #endif
-    encode_.reset(new CryptoEncodingEngine(*this));
-    hash_.reset(new CryptoHashEngine(*this));
-    symmetric_.reset(new CryptoSymmetricEngine(*this));
+    encode_.reset(new api::crypto::implementation::Encode(*bitcoincrypto_));
+    hash_.reset(new api::crypto::implementation::Hash(
+        *encode_,
+        *ssl_,
+        *ed25519_
+#if OT_CRYPTO_USING_TREZOR
+        ,
+        *bitcoincrypto_
+#endif
+        ));
+    symmetric_.reset(new api::crypto::implementation::Symmetric(*ed25519_));
 
     otWarn << OT_METHOD << __FUNCTION__
            << ": Setting up rlimits, and crypto libraries...\n";
@@ -242,15 +251,14 @@ void CryptoEngine::Init()
     ed25519_->Init();
 }
 
-void CryptoEngine::init_default_key(const Lock&) const
+void Crypto::init_default_key(const Lock&) const
 {
     if (false == bool(primary_key_)) {
         primary_key_.reset(new OTCachedKey(OT_MASTER_KEY_TIMEOUT));
     }
 }
 
-const OTCachedKey& CryptoEngine::LoadDefaultKey(
-    const OTASCIIArmor& serialized) const
+const OTCachedKey& Crypto::LoadDefaultKey(const OTASCIIArmor& serialized) const
 {
     Lock lock(cached_key_lock_);
 
@@ -264,7 +272,7 @@ const OTCachedKey& CryptoEngine::LoadDefaultKey(
 }
 
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
-CryptoAsymmetric& CryptoEngine::RSA() const
+CryptoAsymmetric& Crypto::RSA() const
 {
     OT_ASSERT(nullptr != ssl_);
 
@@ -273,7 +281,7 @@ CryptoAsymmetric& CryptoEngine::RSA() const
 #endif
 
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-CryptoAsymmetric& CryptoEngine::SECP256K1() const
+CryptoAsymmetric& Crypto::SECP256K1() const
 {
     OT_ASSERT(nullptr != secp256k1_);
 
@@ -281,7 +289,7 @@ CryptoAsymmetric& CryptoEngine::SECP256K1() const
 }
 #endif
 
-void CryptoEngine::SetTimeout(const std::chrono::seconds& timeout) const
+void Crypto::SetTimeout(const std::chrono::seconds& timeout) const
 {
     Lock lock(cached_key_lock_);
 
@@ -292,7 +300,7 @@ void CryptoEngine::SetTimeout(const std::chrono::seconds& timeout) const
     primary_key_->SetTimeoutSeconds(timeout.count());
 }
 
-void CryptoEngine::SetSystemKeyring(const bool useKeyring) const
+void Crypto::SetSystemKeyring(const bool useKeyring) const
 {
     Lock lock(cached_key_lock_);
 
@@ -303,22 +311,22 @@ void CryptoEngine::SetSystemKeyring(const bool useKeyring) const
     primary_key_->UseSystemKeyring(useKeyring);
 }
 
-CryptoSymmetricEngine& CryptoEngine::Symmetric() const
+crypto::Symmetric& Crypto::Symmetric() const
 {
     OT_ASSERT(symmetric_);
 
     return *symmetric_;
 }
 
-CryptoUtil& CryptoEngine::Util() const
+crypto::Util& Crypto::Util() const
 {
     OT_ASSERT(nullptr != ssl_);
 
     return *ssl_;
 }
 
-std::unique_ptr<SymmetricKey> CryptoEngine::GetStorageKey(
-    __attribute__((unused)) std::string& seed) const
+std::unique_ptr<SymmetricKey> Crypto::GetStorageKey(__attribute__((unused))
+                                                    std::string& seed) const
 {
 #if OT_CRYPTO_WITH_BIP39
     auto serialized = BIP32().GetStorageKey(seed);
@@ -348,5 +356,5 @@ std::unique_ptr<SymmetricKey> CryptoEngine::GetStorageKey(
 #endif
 }
 
-CryptoEngine::~CryptoEngine() { Cleanup(); }
-}  // namespace opentxs
+Crypto::~Crypto() { Cleanup(); }
+}  // namespace opentxs::api::implementation

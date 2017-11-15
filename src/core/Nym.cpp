@@ -40,9 +40,10 @@
 
 #include "opentxs/core/Nym.hpp"
 
+#include "opentxs/api/crypto/Crypto.hpp"
+#include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Activity.hpp"
 #include "opentxs/api/Native.hpp"
-#include "opentxs/api/OT.hpp"
 #include "opentxs/api/Server.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/consensus/ClientContext.hpp"
@@ -62,7 +63,6 @@
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/util/Tag.hpp"
-#include "opentxs/storage/Storage.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -75,6 +75,7 @@
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/ext/OTPayment.hpp"
+#include "opentxs/OT.hpp"
 
 #include <irrxml/irrXML.hpp>
 #include <sodium/crypto_box.h>

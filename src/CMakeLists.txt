@@ -49,6 +49,8 @@ set(object-deps
   $<TARGET_OBJECTS:lucre>
   ${trezor}
   $<TARGET_OBJECTS:otprotob>
+  $<TARGET_OBJECTS:opentxs-api-crypto>
+  $<TARGET_OBJECTS:opentxs-api-storage>
   $<TARGET_OBJECTS:opentxs-api>
   $<TARGET_OBJECTS:opentxs-cash>
   $<TARGET_OBJECTS:opentxs-client>
@@ -75,6 +77,7 @@ set(object-deps
 )
 
 set(cxx-install-headers
+  "${CMAKE_CURRENT_SOURCE_DIR}/../include/opentxs/OT.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../include/opentxs/Proto.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../include/opentxs/Types.hpp"
 )
@@ -89,6 +92,7 @@ set(MODULE_NAME opentxs)
 add_library(${MODULE_NAME} SHARED
   ${cxx-headers}
   ${object-deps}
+  ${CMAKE_CURRENT_SOURCE_DIR}/OT.cpp
 )
 
 add_library(${MODULE_NAME}_static STATIC

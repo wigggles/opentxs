@@ -40,7 +40,7 @@
 
 #include "opentxs/storage/tree/BlockchainTransactions.hpp"
 
-#include "opentxs/storage/StoragePlugin.hpp"
+#include "opentxs/storage/Plugin.hpp"
 
 #define CURRENT_VERSION 1
 
@@ -51,7 +51,7 @@ namespace opentxs
 namespace storage
 {
 BlockchainTransactions::BlockchainTransactions(
-    const StorageDriver& storage,
+    const opentxs::api::storage::Driver& storage,
     const std::string& hash)
     : Node(storage, hash)
 {

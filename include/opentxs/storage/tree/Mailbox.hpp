@@ -60,7 +60,9 @@ private:
     bool save(const std::unique_lock<std::mutex>& lock) const override;
     proto::StorageNymList serialize() const;
 
-    Mailbox(const StorageDriver& storage, const std::string& hash);
+    Mailbox(
+        const opentxs::api::storage::Driver& storage,
+        const std::string& hash);
     Mailbox() = delete;
     Mailbox(const Mailbox&) = delete;
     Mailbox(Mailbox&&) = delete;

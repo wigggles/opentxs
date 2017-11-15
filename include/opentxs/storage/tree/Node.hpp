@@ -41,10 +41,10 @@
 
 #include "opentxs/Version.hpp"
 
+#include "opentxs/api/storage/Driver.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
-#include "opentxs/interface/storage/StorageDriver.hpp"
 
 #include <functional>
 #include <map>
@@ -52,9 +52,10 @@
 #include <string>
 #include <tuple>
 
-namespace opentxs::storage
+namespace opentxs
 {
-
+namespace storage
+{
 class Root;
 
 typedef std::function<bool(const std::string&)> keyFunction;
@@ -197,7 +198,7 @@ protected:
 
     static const std::string BLANK_HASH;
 
-    const StorageDriver& driver_;
+    const opentxs::api::storage::Driver& driver_;
 
     std::uint32_t version_{0};
     std::uint32_t original_version_{0};
@@ -218,7 +219,9 @@ protected:
         std::string& output,
         std::string& alias,
         const bool checking) const;
-    bool migrate(const std::string& hash, const StorageDriver& to) const;
+    bool migrate(
+        const std::string& hash,
+        const opentxs::api::storage::Driver& to) const;
     virtual bool save(const std::unique_lock<std::mutex>& lock) const = 0;
     void serialize_index(
         const std::string& id,
@@ -242,15 +245,16 @@ protected:
 
     virtual void init(const std::string& hash) = 0;
 
-    Node(const StorageDriver& storage, const std::string& key);
+    Node(const opentxs::api::storage::Driver& storage, const std::string& key);
 
 public:
     virtual ObjectList List() const;
-    virtual bool Migrate(const StorageDriver& to) const;
+    virtual bool Migrate(const opentxs::api::storage::Driver& to) const;
     std::string Root() const;
     std::uint32_t UpgradeLevel() const;
 
     virtual ~Node() = default;
 };
-}  // namespace opentxs::storage
+}  // namespace storage
+}  // namespace opentxs
 #endif  // OPENTXS_STORAGE_TREE_NODE_HPP

@@ -50,15 +50,15 @@
 
 #include "opentxs/core/crypto/OTKeyring.hpp"
 
+#include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/Native.hpp"
-#include "opentxs/api/OT.hpp"
-#include "opentxs/core/crypto/CryptoEngine.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/OTCachedKey.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/OT.hpp"
 
 #include <fstream>
 #include <memory>

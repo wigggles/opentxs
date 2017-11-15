@@ -49,11 +49,12 @@
 namespace opentxs
 {
 StorageFSGC::StorageFSGC(
+    const api::storage::Storage& storage,
     const StorageConfig& config,
     const Digest& hash,
     const Random& random,
     const std::atomic<bool>& bucket)
-    : ot_super(config, hash, random, config.path_, bucket)
+    : ot_super(storage, config, hash, random, config.path_, bucket)
 {
     Init_StorageFSGC();
 }

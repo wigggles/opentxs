@@ -38,12 +38,10 @@
 
 #include "opentxs/stdafx.hpp"
 
-#include "opentxs/core/crypto/CryptoHashEngine.hpp"
+#include "opentxs/api/crypto/implementation/Hash.hpp"
 
+#include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/Native.hpp"
-#include "opentxs/api/OT.hpp"
-#include "opentxs/core/crypto/CryptoEncodingEngine.hpp"
-#include "opentxs/core/crypto/CryptoEngine.hpp"
 #include "opentxs/core/crypto/CryptoHash.hpp"
 #include "opentxs/core/crypto/Libsodium.hpp"
 #if OT_CRYPTO_USING_OPENSSL
@@ -54,21 +52,31 @@
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/OT.hpp"
 
-#define OT_METHOD "opentxs::CryptoHashEngine::"
+#define OT_METHOD "opentxs::api::crypto::implementation::Hash::"
 
-namespace opentxs
+namespace opentxs::api::crypto::implementation
 {
-CryptoHashEngine::CryptoHashEngine(CryptoEngine& parent)
-    : ssl_(*parent.ssl_)
-    , sodium_(*parent.ed25519_)
+Hash::Hash(
+    api::crypto::Encode& encode,
+    CryptoHash& ssl,
+    CryptoHash& sodium
 #if OT_CRYPTO_USING_TREZOR
-    , bitcoin_(*parent.bitcoincrypto_)
+    ,
+    TrezorCrypto& bitcoin
+#endif
+    )
+    : encode_(encode)
+    , ssl_(ssl)
+    , sodium_(sodium)
+#if OT_CRYPTO_USING_TREZOR
+    , bitcoin_(bitcoin)
 #endif
 {
 }
 
-CryptoHash& CryptoHashEngine::SHA2() const
+CryptoHash& Hash::SHA2() const
 {
 #if OT_CRYPTO_SHA2_VIA_OPENSSL
     return ssl_;
@@ -77,21 +85,19 @@ CryptoHash& CryptoHashEngine::SHA2() const
 #endif
 }
 
-CryptoHash& CryptoHashEngine::Sodium() const { return sodium_; }
+CryptoHash& Hash::Sodium() const { return sodium_; }
 
-bool CryptoHashEngine::Allocate(
-    const proto::HashType hashType,
-    OTPassword& input)
+bool Hash::Allocate(const proto::HashType hashType, OTPassword& input)
 {
     return input.randomizeMemory(CryptoHash::HashSize(hashType));
 }
 
-bool CryptoHashEngine::Allocate(const proto::HashType hashType, Data& input)
+bool Hash::Allocate(const proto::HashType hashType, Data& input)
 {
     return input.Randomize(CryptoHash::HashSize(hashType));
 }
 
-bool CryptoHashEngine::Digest(
+bool Hash::Digest(
     const proto::HashType hashType,
     const std::uint8_t* input,
     const size_t inputSize,
@@ -122,7 +128,7 @@ bool CryptoHashEngine::Digest(
     return false;
 }
 
-bool CryptoHashEngine::HMAC(
+bool Hash::HMAC(
     const proto::HashType hashType,
     const std::uint8_t* input,
     const size_t inputSize,
@@ -152,7 +158,7 @@ bool CryptoHashEngine::HMAC(
     return false;
 }
 
-bool CryptoHashEngine::Digest(
+bool Hash::Digest(
     const proto::HashType hashType,
     const OTPassword& data,
     OTPassword& digest) const
@@ -178,7 +184,7 @@ bool CryptoHashEngine::Digest(
         static_cast<std::uint8_t*>(digest.getMemoryWritable()));
 }
 
-bool CryptoHashEngine::Digest(
+bool Hash::Digest(
     const proto::HashType hashType,
     const Data& data,
     Data& digest) const
@@ -197,7 +203,7 @@ bool CryptoHashEngine::Digest(
         static_cast<std::uint8_t*>(const_cast<void*>(digest.GetPointer())));
 }
 
-bool CryptoHashEngine::Digest(
+bool Hash::Digest(
     const proto::HashType hashType,
     const String& data,
     Data& digest) const
@@ -216,7 +222,7 @@ bool CryptoHashEngine::Digest(
         static_cast<std::uint8_t*>(const_cast<void*>(digest.GetPointer())));
 }
 
-bool CryptoHashEngine::Digest(
+bool Hash::Digest(
     const uint32_t type,
     const std::string& data,
     std::string& encodedDigest) const
@@ -238,14 +244,13 @@ bool CryptoHashEngine::Digest(
         static_cast<std::uint8_t*>(const_cast<void*>(result.GetPointer())));
 
     if (success) {
-        encodedDigest.assign(
-            OT::App().Crypto().Encode().IdentifierEncode(result));
+        encodedDigest.assign(encode_.IdentifierEncode(result));
     }
 
     return success;
 }
 
-bool CryptoHashEngine::HMAC(
+bool Hash::HMAC(
     const proto::HashType hashType,
     const OTPassword& key,
     const Data& data,
@@ -273,4 +278,4 @@ bool CryptoHashEngine::HMAC(
         key.getMemorySize(),
         static_cast<std::uint8_t*>(digest.getMemoryWritable()));
 }
-}  // namespace opentxs
+}  // namespace opentxs::api::crypto::implementation

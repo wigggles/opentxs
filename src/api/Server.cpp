@@ -69,9 +69,9 @@ namespace opentxs::api
 {
 Server::Server(
     const std::map<std::string, std::string>& args,
-    opentxs::CryptoEngine& crypto,
+    opentxs::api::Crypto& crypto,
     Settings& config,
-    Storage& storage,
+    storage::Storage& storage,
     Wallet& wallet,
     std::atomic<bool>& shutdown)
     : args_(args)

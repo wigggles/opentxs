@@ -40,7 +40,6 @@
 
 #include "opentxs/core/Log.hpp"
 
-#include "opentxs/api/OT.hpp"
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
@@ -48,6 +47,7 @@
 #include "opentxs/core/util/stacktrace.h"
 #include "opentxs/core/String.hpp"
 #include "opentxs/Version.hpp"
+#include "opentxs/OT.hpp"
 
 #ifndef _WIN32
 #include <unistd.h>

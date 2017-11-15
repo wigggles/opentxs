@@ -51,21 +51,24 @@
 
 namespace opentxs
 {
-class CryptoEngine;
-
 namespace api
 {
 class Activity;
 class Api;
 class Blockchain;
 class ContactManager;
+class Crypto;
 class Dht;
 class Identity;
 class Server;
 class Settings;
-class Storage;
 class Wallet;
 class ZMQ;
+
+namespace storage
+{
+class Storage;
+}  // namespace storage
 
 class Native
 {
@@ -76,8 +79,8 @@ public:
     virtual class Settings& Config(
         const std::string& path = std::string("")) const = 0;
     virtual class ContactManager& Contact() const = 0;
-    virtual opentxs::CryptoEngine& Crypto() const = 0;
-    virtual class Storage& DB() const = 0;
+    virtual class Crypto& Crypto() const = 0;
+    virtual storage::Storage& DB() const = 0;
     virtual class Dht& DHT() const = 0;
     virtual void HandleSignals() const = 0;
     virtual class Identity& Identity() const = 0;

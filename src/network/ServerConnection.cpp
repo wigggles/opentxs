@@ -41,7 +41,6 @@
 #include "opentxs/network/ServerConnection.hpp"
 
 #include "opentxs/api/Native.hpp"
-#include "opentxs/api/OT.hpp"
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/contract/ServerContract.hpp"
@@ -49,9 +48,10 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Message.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/network/ZMQ.hpp"
+#include "opentxs/OT.hpp"
+#include "opentxs/Proto.hpp"
 
 #include <chrono>
 #include <cstdint>

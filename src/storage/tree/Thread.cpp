@@ -44,7 +44,7 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/storage/tree/Mailbox.hpp"
-#include "opentxs/storage/StoragePlugin.hpp"
+#include "opentxs/storage/Plugin.hpp"
 
 #define OT_METHOD "opentxs::storage::Thread::"
 
@@ -53,7 +53,7 @@ namespace opentxs
 namespace storage
 {
 Thread::Thread(
-    const StorageDriver& storage,
+    const opentxs::api::storage::Driver& storage,
     const std::string& id,
     const std::string& hash,
     const std::string& alias,
@@ -76,7 +76,7 @@ Thread::Thread(
 }
 
 Thread::Thread(
-    const StorageDriver& storage,
+    const opentxs::api::storage::Driver& storage,
     const std::string& id,
     const std::set<std::string>& participants,
     Mailbox& mailInbox,
@@ -216,7 +216,7 @@ proto::StorageThread Thread::Items() const
     return serialize(lock);
 }
 
-bool Thread::Migrate(const StorageDriver& to) const
+bool Thread::Migrate(const opentxs::api::storage::Driver& to) const
 {
     return Node::migrate(root_, to);
 }

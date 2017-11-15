@@ -41,7 +41,7 @@
 
 #include "opentxs/Version.hpp"
 
-#include "opentxs/interface/storage/StorageDriver.hpp"
+#include "opentxs/api/storage/Driver.hpp"
 #include "opentxs/Types.hpp"
 
 #include <memory>
@@ -49,14 +49,21 @@
 
 namespace opentxs
 {
-
-class StoragePlugin;
 class StorageConfig;
 class SymmetricKey;
 
 namespace api
 {
+namespace storage
+{
+class Plugin;
 class Storage;
+
+namespace implementation
+{
+class Storage;
+}  // namespace implementation
+}  // namespace storage
 }  // namespace api
 
 namespace storage
@@ -65,7 +72,7 @@ class Root;
 class Tree;
 }  // namespace storage
 
-class StorageMultiplex : public virtual StorageDriver
+class StorageMultiplex : virtual public opentxs::api::storage::Driver
 {
 public:
     bool EmptyBucket(const bool bucket) const override;
@@ -76,8 +83,9 @@ public:
     bool Load(const std::string& key, const bool checking, std::string& value)
         const override;
     std::string LoadRoot() const override;
-    bool Migrate(const std::string& key, const StorageDriver& to)
-        const override;
+    bool Migrate(
+        const std::string& key,
+        const opentxs::api::storage::Driver& to) const override;
     bool Store(
         const bool isTransaction,
         const std::string& key,
@@ -98,16 +106,18 @@ public:
     ~StorageMultiplex();
 
 private:
-    friend class api::Storage;
+    friend class api::storage::implementation::Storage;
 
+    const api::storage::Storage& storage_;
     const std::atomic<bool>& primary_bucket_;
     const StorageConfig& config_;
-    std::unique_ptr<StoragePlugin> primary_plugin_;
-    std::vector<std::unique_ptr<StoragePlugin>> backup_plugins_;
+    std::unique_ptr<opentxs::api::storage::Plugin> primary_plugin_;
+    std::vector<std::unique_ptr<opentxs::api::storage::Plugin>> backup_plugins_;
     const Digest digest_;
     const Random random_;
 
     StorageMultiplex(
+        const api::storage::Storage& storage,
         const std::atomic<bool>& primary_bucket_,
         const StorageConfig& config,
         const Digest& hash,
@@ -123,7 +133,7 @@ private:
     void Init_StorageMultiplex();
     void InitBackup();
     void InitEncryptedBackup(std::unique_ptr<SymmetricKey>& key);
-    StorageDriver& Primary();
+    opentxs::api::storage::Driver& Primary();
     void synchronize_plugins(
         const std::string& hash,
         const storage::Root& root,

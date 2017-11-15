@@ -40,8 +40,8 @@
 
 #include "opentxs/core/contract/peer/PeerRequest.hpp"
 
+#include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/Native.hpp"
-#include "opentxs/api/OT.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/contract/peer/BailmentNotice.hpp"
 #include "opentxs/core/contract/peer/BailmentRequest.hpp"
@@ -52,6 +52,7 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/OT.hpp"
 
 namespace opentxs
 {

@@ -43,7 +43,6 @@
 
 #include "opentxs/api/Editor.hpp"
 #include "opentxs/storage/tree/Node.hpp"
-#include "opentxs/storage/Storage.hpp"
 
 namespace opentxs
 {
@@ -61,7 +60,9 @@ private:
     bool save(const std::unique_lock<std::mutex>& lock) const override;
     proto::StorageNymList serialize() const;
 
-    Contexts(const StorageDriver& storage, const std::string& hash);
+    Contexts(
+        const opentxs::api::storage::Driver& storage,
+        const std::string& hash);
     Contexts() = delete;
     Contexts(const Contexts&) = delete;
     Contexts(Contexts&&) = delete;

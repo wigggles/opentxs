@@ -52,6 +52,8 @@
 
 namespace opentxs
 {
+static const proto::HashType StandardHash{proto::HASHTYPE_BLAKE2B256};
+
 namespace proto
 {
 template <class T>

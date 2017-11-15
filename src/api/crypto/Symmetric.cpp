@@ -38,24 +38,22 @@
 
 #include "opentxs/stdafx.hpp"
 
-#include "opentxs/core/crypto/CryptoSymmetricEngine.hpp"
+#include "opentxs/api/crypto/implementation/Symmetric.hpp"
 
-#include "opentxs/core/crypto/CryptoEngine.hpp"
 #include "opentxs/core/crypto/CryptoSymmetric.hpp"
-#include "opentxs/core/crypto/Libsodium.hpp"
+#include "opentxs/core/crypto/CryptoSymmetricNew.hpp"
 #include "opentxs/core/crypto/SymmetricKey.hpp"
 
 #include <string>
 
-namespace opentxs
+namespace opentxs::api::crypto::implementation
 {
-CryptoSymmetricEngine::CryptoSymmetricEngine(CryptoEngine& parent)
-    : sodium_(static_cast<Libsodium&>(*parent.ed25519_))
+Symmetric::Symmetric(CryptoSymmetricNew& sodium)
+    : sodium_(sodium)
 {
 }
 
-CryptoSymmetricNew* CryptoSymmetricEngine::GetEngine(
-    const proto::SymmetricMode mode)
+CryptoSymmetricNew* Symmetric::GetEngine(const proto::SymmetricMode mode)
 {
     CryptoSymmetricNew* engine = nullptr;
 
@@ -69,7 +67,7 @@ CryptoSymmetricNew* CryptoSymmetricEngine::GetEngine(
     return engine;
 }
 
-std::unique_ptr<SymmetricKey> CryptoSymmetricEngine::Key(
+std::unique_ptr<SymmetricKey> Symmetric::Key(
     const OTPasswordData& password,
     const proto::SymmetricMode mode)
 {
@@ -80,7 +78,7 @@ std::unique_ptr<SymmetricKey> CryptoSymmetricEngine::Key(
     return SymmetricKey::Factory(*engine, password, mode);
 }
 
-std::unique_ptr<SymmetricKey> CryptoSymmetricEngine::Key(
+std::unique_ptr<SymmetricKey> Symmetric::Key(
     const proto::SymmetricKey& serialized,
     const proto::SymmetricMode mode)
 {
@@ -91,7 +89,7 @@ std::unique_ptr<SymmetricKey> CryptoSymmetricEngine::Key(
     return SymmetricKey::Factory(*engine, serialized);
 }
 
-std::unique_ptr<SymmetricKey> CryptoSymmetricEngine::Key(
+std::unique_ptr<SymmetricKey> Symmetric::Key(
     const OTPassword& seed,
     const std::uint64_t operations,
     const std::uint64_t difficulty,
@@ -105,4 +103,4 @@ std::unique_ptr<SymmetricKey> CryptoSymmetricEngine::Key(
     return SymmetricKey::Factory(
         *engine, seed, operations, difficulty, engine->KeySize(mode), type);
 }
-}  // namespace opentxs
+}  // namespace opentxs::api::crypto::implementation
