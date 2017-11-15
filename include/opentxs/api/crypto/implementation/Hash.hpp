@@ -41,38 +41,56 @@
 
 #include "opentxs/Version.hpp"
 
-#include "opentxs/Proto.hpp"
-
-#include <cstdint>
-#include <string>
+#include "opentxs/api/crypto/Hash.hpp"
 
 namespace opentxs
 {
 class CryptoHash;
-class Data;
-class OTPassword;
-class String;
 #if OT_CRYPTO_USING_TREZOR
 class TrezorCrypto;
 #endif
 
 namespace api
 {
-namespace crypto
-{
-class Encode;
-}  // namespace crypto
-
 namespace implementation
 {
 class Crypto;
 }  // namespace implementation
-}  // namespace api
 
-// Singlton class for providing an interface to external crypto hashing
-// libraries and hold the state required by those libraries.
-class CryptoHashEngine
+namespace crypto
 {
+class Encode;
+
+namespace implementation
+{
+
+class Hash : public api::crypto::Hash
+{
+public:
+    bool Digest(
+        const proto::HashType hashType,
+        const OTPassword& data,
+        OTPassword& digest) const override;
+    bool Digest(
+        const proto::HashType hashType,
+        const Data& data,
+        Data& digest) const override;
+    bool Digest(
+        const proto::HashType hashType,
+        const String& data,
+        Data& digest) const override;
+    bool Digest(
+        const std::uint32_t type,
+        const std::string& data,
+        std::string& encodedDigest) const override;
+    bool HMAC(
+        const proto::HashType hashType,
+        const OTPassword& key,
+        const Data& data,
+        OTPassword& digest) const override;
+
+    ~Hash() = default;
+
 private:
     friend class api::implementation::Crypto;
 
@@ -83,9 +101,6 @@ private:
     TrezorCrypto& bitcoin_;
 #endif
 
-    CryptoHash& SHA2() const;
-    CryptoHash& Sodium() const;
-
     static bool Allocate(const proto::HashType hashType, OTPassword& input);
     static bool Allocate(const proto::HashType hashType, Data& input);
 
@@ -94,15 +109,7 @@ private:
         const std::uint8_t* input,
         const size_t inputSize,
         std::uint8_t* output) const;
-    bool HMAC(
-        const proto::HashType hashType,
-        const std::uint8_t* input,
-        const size_t inputSize,
-        const std::uint8_t* key,
-        const size_t keySize,
-        std::uint8_t* output) const;
-
-    CryptoHashEngine(
+    Hash(
         api::crypto::Encode& encode,
         CryptoHash& ssl,
         CryptoHash& sodium
@@ -111,32 +118,23 @@ private:
         TrezorCrypto& bitcoin
 #endif
         );
-    CryptoHashEngine(const CryptoHashEngine&) = delete;
-    CryptoHashEngine& operator=(const CryptoHashEngine&) = delete;
-
-public:
-    bool Digest(
-        const proto::HashType hashType,
-        const OTPassword& data,
-        OTPassword& digest) const;
-    bool Digest(const proto::HashType hashType, const Data& data, Data& digest)
-        const;
-    bool Digest(
-        const proto::HashType hashType,
-        const String& data,
-        Data& digest) const;
-    bool Digest(
-        const uint32_t type,
-        const std::string& data,
-        std::string& encodedDigest) const;
-
     bool HMAC(
         const proto::HashType hashType,
-        const OTPassword& key,
-        const Data& data,
-        OTPassword& digest) const;
+        const std::uint8_t* input,
+        const size_t inputSize,
+        const std::uint8_t* key,
+        const size_t keySize,
+        std::uint8_t* output) const;
+    CryptoHash& SHA2() const;
+    CryptoHash& Sodium() const;
 
-    ~CryptoHashEngine() = default;
+    Hash(const Hash&) = delete;
+    Hash(Hash&&) = delete;
+    Hash& operator=(const Hash&) = delete;
+    Hash& operator=(Hash&&) = delete;
 };
+}  // namespace implementation
+}  // namespace crypto
+}  // namespace api
 }  // namespace opentxs
 #endif  // OPENTXS_CORE_CRYPTO_CRYPTOHASHENGINE_HPP

@@ -38,7 +38,7 @@
 
 #include "opentxs/stdafx.hpp"
 
-#include "opentxs/core/crypto/CryptoHashEngine.hpp"
+#include "opentxs/api/crypto/implementation/Hash.hpp"
 
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/Native.hpp"
@@ -54,11 +54,11 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
 
-#define OT_METHOD "opentxs::CryptoHashEngine::"
+#define OT_METHOD "opentxs::api::crypto::implementation::Hash::"
 
-namespace opentxs
+namespace opentxs::api::crypto::implementation
 {
-CryptoHashEngine::CryptoHashEngine(
+Hash::Hash(
     api::crypto::Encode& encode,
     CryptoHash& ssl,
     CryptoHash& sodium
@@ -76,7 +76,7 @@ CryptoHashEngine::CryptoHashEngine(
 {
 }
 
-CryptoHash& CryptoHashEngine::SHA2() const
+CryptoHash& Hash::SHA2() const
 {
 #if OT_CRYPTO_SHA2_VIA_OPENSSL
     return ssl_;
@@ -85,21 +85,21 @@ CryptoHash& CryptoHashEngine::SHA2() const
 #endif
 }
 
-CryptoHash& CryptoHashEngine::Sodium() const { return sodium_; }
+CryptoHash& Hash::Sodium() const { return sodium_; }
 
-bool CryptoHashEngine::Allocate(
+bool Hash::Allocate(
     const proto::HashType hashType,
     OTPassword& input)
 {
     return input.randomizeMemory(CryptoHash::HashSize(hashType));
 }
 
-bool CryptoHashEngine::Allocate(const proto::HashType hashType, Data& input)
+bool Hash::Allocate(const proto::HashType hashType, Data& input)
 {
     return input.Randomize(CryptoHash::HashSize(hashType));
 }
 
-bool CryptoHashEngine::Digest(
+bool Hash::Digest(
     const proto::HashType hashType,
     const std::uint8_t* input,
     const size_t inputSize,
@@ -130,7 +130,7 @@ bool CryptoHashEngine::Digest(
     return false;
 }
 
-bool CryptoHashEngine::HMAC(
+bool Hash::HMAC(
     const proto::HashType hashType,
     const std::uint8_t* input,
     const size_t inputSize,
@@ -160,7 +160,7 @@ bool CryptoHashEngine::HMAC(
     return false;
 }
 
-bool CryptoHashEngine::Digest(
+bool Hash::Digest(
     const proto::HashType hashType,
     const OTPassword& data,
     OTPassword& digest) const
@@ -186,7 +186,7 @@ bool CryptoHashEngine::Digest(
         static_cast<std::uint8_t*>(digest.getMemoryWritable()));
 }
 
-bool CryptoHashEngine::Digest(
+bool Hash::Digest(
     const proto::HashType hashType,
     const Data& data,
     Data& digest) const
@@ -205,7 +205,7 @@ bool CryptoHashEngine::Digest(
         static_cast<std::uint8_t*>(const_cast<void*>(digest.GetPointer())));
 }
 
-bool CryptoHashEngine::Digest(
+bool Hash::Digest(
     const proto::HashType hashType,
     const String& data,
     Data& digest) const
@@ -224,7 +224,7 @@ bool CryptoHashEngine::Digest(
         static_cast<std::uint8_t*>(const_cast<void*>(digest.GetPointer())));
 }
 
-bool CryptoHashEngine::Digest(
+bool Hash::Digest(
     const uint32_t type,
     const std::string& data,
     std::string& encodedDigest) const
@@ -252,7 +252,7 @@ bool CryptoHashEngine::Digest(
     return success;
 }
 
-bool CryptoHashEngine::HMAC(
+bool Hash::HMAC(
     const proto::HashType hashType,
     const OTPassword& key,
     const Data& data,
@@ -280,4 +280,4 @@ bool CryptoHashEngine::HMAC(
         key.getMemorySize(),
         static_cast<std::uint8_t*>(digest.getMemoryWritable()));
 }
-}  // namespace opentxs
+}  // namespace opentxs::api::crypto::implementation

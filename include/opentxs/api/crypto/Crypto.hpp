@@ -54,7 +54,6 @@ namespace opentxs
 class Bip32;
 class Bip39;
 class CryptoAsymmetric;
-class CryptoHashEngine;
 class CryptoSymmetric;
 class CryptoSymmetricEngine;
 class CryptoUtil;
@@ -68,6 +67,7 @@ namespace api
 namespace crypto
 {
 class Encode;
+class Hash;
 }  // namespace crypto
 
 class Crypto
@@ -88,7 +88,7 @@ public:
     EXPORT virtual crypto::Encode& Encode() const = 0;
 
     // Hash function interface
-    EXPORT virtual CryptoHashEngine& Hash() const = 0;
+    EXPORT virtual crypto::Hash& Hash() const = 0;
 
     // Utility class for misc OpenSSL-provided functions
     EXPORT virtual CryptoUtil& Util() const = 0;

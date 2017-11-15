@@ -41,7 +41,8 @@
 #include "opentxs/api/implementation/Native.hpp"
 
 #include "opentxs/api/crypto/implementation/Crypto.hpp"
-#include "opentxs/api/crypto/implementation/Encode.hpp"
+#include "opentxs/api/crypto/Encode.hpp"
+#include "opentxs/api/crypto/Hash.hpp"
 #include "opentxs/api/Activity.hpp"
 #include "opentxs/api/Api.hpp"
 #include "opentxs/api/Blockchain.hpp"
@@ -59,7 +60,6 @@
 #include "opentxs/client/OTWallet.hpp"
 #include "opentxs/client/MadeEasy.hpp"
 #include "opentxs/core/crypto/Bip39.hpp"
-#include "opentxs/core/crypto/CryptoHashEngine.hpp"
 #include "opentxs/core/crypto/SymmetricKey.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
@@ -454,9 +454,9 @@ void Native::Init_Storage()
     OT_ASSERT(crypto_);
 
     Digest hash = std::bind(
-        static_cast<bool (CryptoHashEngine::*)(
+        static_cast<bool (api::crypto::Hash::*)(
             const uint32_t, const std::string&, std::string&) const>(
-            &CryptoHashEngine::Digest),
+            &api::crypto::Hash::Digest),
         &(Crypto().Hash()),
         std::placeholders::_1,
         std::placeholders::_2,

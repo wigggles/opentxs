@@ -56,7 +56,6 @@ namespace opentxs
 class Bip32;
 class Bip39;
 class CryptoAsymmetric;
-class CryptoHashEngine;
 class CryptoSymmetric;
 class CryptoSymmetricEngine;
 class CryptoUtil;
@@ -90,6 +89,7 @@ class Native;
 namespace crypto
 {
 class Encode;
+class Hash;
 }  // namespace crypto
 
 namespace implementation
@@ -113,7 +113,7 @@ public:
     EXPORT crypto::Encode& Encode() const override;
 
     // Hash function interface
-    EXPORT CryptoHashEngine& Hash() const override;
+    EXPORT crypto::Hash& Hash() const override;
 
     // Utility class for misc OpenSSL-provided functions
     EXPORT CryptoUtil& Util() const override;
@@ -161,7 +161,7 @@ private:
     std::unique_ptr<secp256k1> secp256k1_;
 #endif
     std::unique_ptr<crypto::Encode> encode_;
-    std::unique_ptr<CryptoHashEngine> hash_;
+    std::unique_ptr<crypto::Hash> hash_;
     std::unique_ptr<CryptoSymmetricEngine> symmetric_;
 
     void init_default_key(const Lock& lock) const;
