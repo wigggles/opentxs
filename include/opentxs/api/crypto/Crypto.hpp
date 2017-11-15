@@ -54,7 +54,6 @@ namespace opentxs
 class Bip32;
 class Bip39;
 class CryptoAsymmetric;
-class CryptoEncodingEngine;
 class CryptoHashEngine;
 class CryptoSymmetric;
 class CryptoSymmetricEngine;
@@ -66,6 +65,10 @@ class SymmetricKey;
 
 namespace api
 {
+namespace crypto
+{
+class Encode;
+}  // namespace crypto
 
 class Crypto
 {
@@ -82,7 +85,7 @@ public:
     EXPORT virtual void SetSystemKeyring(const bool useKeyring) const = 0;
 
     // Encoding function interface
-    EXPORT virtual CryptoEncodingEngine& Encode() const = 0;
+    EXPORT virtual crypto::Encode& Encode() const = 0;
 
     // Hash function interface
     EXPORT virtual CryptoHashEngine& Hash() const = 0;

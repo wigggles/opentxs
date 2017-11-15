@@ -40,6 +40,7 @@
 
 #include "opentxs/api/crypto/implementation/Crypto.hpp"
 
+#include "opentxs/api/crypto/implementation/Encode.hpp"
 #if OT_CRYPTO_WITH_BIP32
 #include "opentxs/core/crypto/Bip32.hpp"
 #endif
@@ -47,7 +48,6 @@
 #include "opentxs/core/crypto/Bip39.hpp"
 #endif
 #include "opentxs/core/crypto/CryptoAsymmetric.hpp"
-#include "opentxs/core/crypto/CryptoEncodingEngine.hpp"
 #include "opentxs/core/crypto/CryptoHashEngine.hpp"
 #include "opentxs/core/crypto/CryptoSymmetric.hpp"
 #include "opentxs/core/crypto/CryptoSymmetricEngine.hpp"
@@ -196,7 +196,7 @@ CryptoAsymmetric& Crypto::ED25519() const
     return *ed25519_;
 }
 
-CryptoEncodingEngine& Crypto::Encode() const
+crypto::Encode& Crypto::Encode() const
 {
     OT_ASSERT(encode_);
 
@@ -215,7 +215,7 @@ void Crypto::Init()
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
     secp256k1_.reset(new secp256k1(*ssl_, *bitcoincrypto_));
 #endif
-    encode_.reset(new CryptoEncodingEngine(*bitcoincrypto_));
+    encode_.reset(new api::crypto::implementation::Encode(*bitcoincrypto_));
     hash_.reset(new CryptoHashEngine(
         *encode_,
         *ssl_,

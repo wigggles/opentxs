@@ -1,13 +1,13 @@
 add_subdirectory(crypto)
 
 set(cxx-sources
-  implementation/Native.cpp
   Activity.cpp
   Api.cpp
   Blockchain.cpp
   ContactManager.cpp
   Dht.cpp
   Identity.cpp
+  Native.cpp
   OT.cpp
   Server.cpp
   Settings.cpp

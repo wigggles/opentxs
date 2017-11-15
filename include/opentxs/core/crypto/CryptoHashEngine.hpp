@@ -48,8 +48,6 @@
 
 namespace opentxs
 {
-
-class CryptoEncodingEngine;
 class CryptoHash;
 class Data;
 class OTPassword;
@@ -60,6 +58,11 @@ class TrezorCrypto;
 
 namespace api
 {
+namespace crypto
+{
+class Encode;
+}  // namespace crypto
+
 namespace implementation
 {
 class Crypto;
@@ -73,7 +76,7 @@ class CryptoHashEngine
 private:
     friend class api::implementation::Crypto;
 
-    CryptoEncodingEngine& encode_;
+    api::crypto::Encode& encode_;
     CryptoHash& ssl_;
     CryptoHash& sodium_;
 #if OT_CRYPTO_USING_TREZOR
@@ -100,7 +103,7 @@ private:
         std::uint8_t* output) const;
 
     CryptoHashEngine(
-        CryptoEncodingEngine& encode,
+        api::crypto::Encode& encode,
         CryptoHash& ssl,
         CryptoHash& sodium
 #if OT_CRYPTO_USING_TREZOR

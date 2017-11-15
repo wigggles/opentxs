@@ -56,7 +56,6 @@ namespace opentxs
 class Bip32;
 class Bip39;
 class CryptoAsymmetric;
-class CryptoEncodingEngine;
 class CryptoHashEngine;
 class CryptoSymmetric;
 class CryptoSymmetricEngine;
@@ -88,6 +87,11 @@ namespace api
 {
 class Native;
 
+namespace crypto
+{
+class Encode;
+}  // namespace crypto
+
 namespace implementation
 {
 class Native;
@@ -106,7 +110,7 @@ public:
     EXPORT void SetSystemKeyring(const bool useKeyring) const override;
 
     // Encoding function interface
-    EXPORT CryptoEncodingEngine& Encode() const override;
+    EXPORT crypto::Encode& Encode() const override;
 
     // Hash function interface
     EXPORT CryptoHashEngine& Hash() const override;
@@ -143,9 +147,6 @@ public:
 
 private:
     friend class api::implementation::Native;
-    friend class CryptoEncodingEngine;
-    friend class CryptoHashEngine;
-    friend class CryptoSymmetricEngine;
 
     api::Native& native_;
     mutable std::mutex cached_key_lock_;
@@ -159,7 +160,7 @@ private:
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
     std::unique_ptr<secp256k1> secp256k1_;
 #endif
-    std::unique_ptr<CryptoEncodingEngine> encode_;
+    std::unique_ptr<crypto::Encode> encode_;
     std::unique_ptr<CryptoHashEngine> hash_;
     std::unique_ptr<CryptoSymmetricEngine> symmetric_;
 

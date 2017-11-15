@@ -41,6 +41,7 @@
 #include "opentxs/api/implementation/Native.hpp"
 
 #include "opentxs/api/crypto/implementation/Crypto.hpp"
+#include "opentxs/api/crypto/implementation/Encode.hpp"
 #include "opentxs/api/Activity.hpp"
 #include "opentxs/api/Api.hpp"
 #include "opentxs/api/Blockchain.hpp"
@@ -58,7 +59,6 @@
 #include "opentxs/client/OTWallet.hpp"
 #include "opentxs/client/MadeEasy.hpp"
 #include "opentxs/core/crypto/Bip39.hpp"
-#include "opentxs/core/crypto/CryptoEncodingEngine.hpp"
 #include "opentxs/core/crypto/CryptoHashEngine.hpp"
 #include "opentxs/core/crypto/SymmetricKey.hpp"
 #include "opentxs/core/util/Assert.hpp"
@@ -461,10 +461,8 @@ void Native::Init_Storage()
         std::placeholders::_1,
         std::placeholders::_2,
         std::placeholders::_3);
-
     Random random =
-        std::bind(&CryptoEncodingEngine::RandomFilename, &(Crypto().Encode()));
-
+        std::bind(&api::crypto::Encode::RandomFilename, &(Crypto().Encode()));
     std::shared_ptr<OTDB::StorageFS> storage(OTDB::StorageFS::Instantiate());
     std::string root_path = OTFolders::Common().Get();
     std::string path;

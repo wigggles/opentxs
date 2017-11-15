@@ -40,9 +40,9 @@
 
 #include "opentxs/core/crypto/CryptoHashEngine.hpp"
 
+#include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/api/OT.hpp"
-#include "opentxs/core/crypto/CryptoEncodingEngine.hpp"
 #include "opentxs/core/crypto/CryptoHash.hpp"
 #include "opentxs/core/crypto/Libsodium.hpp"
 #if OT_CRYPTO_USING_OPENSSL
@@ -59,7 +59,7 @@
 namespace opentxs
 {
 CryptoHashEngine::CryptoHashEngine(
-    CryptoEncodingEngine& encode,
+    api::crypto::Encode& encode,
     CryptoHash& ssl,
     CryptoHash& sodium
 #if OT_CRYPTO_USING_TREZOR
