@@ -42,6 +42,7 @@
 
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
+#include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Activity.hpp"
 #include "opentxs/api/Api.hpp"
 #include "opentxs/api/Blockchain.hpp"
@@ -64,7 +65,6 @@
 #include "opentxs/Types.hpp"
 #include "opentxs/network/ServerConnection.hpp"
 #include "opentxs/network/ZMQ.hpp"
-#include "opentxs/storage/Storage.hpp"
 
 #include <algorithm>
 #include <chrono>

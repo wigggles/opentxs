@@ -41,7 +41,7 @@
 
 #include "opentxs/Version.hpp"
 
-#include "opentxs/storage/StoragePlugin.hpp"
+#include "opentxs/storage/Plugin.hpp"
 
 namespace opentxs
 {
@@ -99,16 +99,16 @@ class StorageConfig;
  *  Instantate these parameters in the \ref OT::Init_Storage method,
  *  using the existing sections as a template.
  */
-class StorageExample : public virtual StoragePlugin_impl,
-                       public virtual StorageDriver
+class StorageExample : public virtual Plugin,
+                       public virtual opentxs::api::storage::Driver
 {
 private:
-    typedef StoragePlugin_impl ot_super;  // Used for constructor delegation
+    typedef Plugin ot_super;  // Used for constructor delegation
 
     friend Storage;  // Allows access private constructor
 
     /** The default constructor can not be used because any implementation
-    *   of \ref StorageDriver will require arguments.
+    *   of \ref opentxs::api::storage::Driver will require arguments.
     */
     StorageExample() = delete;
 

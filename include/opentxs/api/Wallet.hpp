@@ -48,7 +48,6 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/Types.hpp"
-#include "opentxs/storage/Storage.hpp"
 
 #include <chrono>
 #include <cstdint>

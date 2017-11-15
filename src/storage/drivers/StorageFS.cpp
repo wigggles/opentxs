@@ -64,12 +64,13 @@ namespace opentxs
 {
 
 StorageFS::StorageFS(
+    const api::storage::Storage& storage,
     const StorageConfig& config,
     const Digest& hash,
     const Random& random,
     const std::string& folder,
     const std::atomic<bool>& bucket)
-    : ot_super(config, hash, random, bucket)
+    : ot_super(storage, config, hash, random, bucket)
     , folder_(folder)
     , path_seperator_(PATH_SEPERATOR)
     , ready_(false)

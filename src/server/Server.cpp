@@ -42,6 +42,7 @@
 
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
+#include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Identity.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/api/Server.hpp"
@@ -105,7 +106,7 @@ Server::Server(
     opentxs::api::Crypto& crypto,
     opentxs::api::Settings& config,
     opentxs::api::Server& mint,
-    opentxs::api::Storage& storage,
+    opentxs::api::storage::Storage& storage,
     opentxs::api::Wallet& wallet)
     : crypto_(crypto)
     , config_(config)

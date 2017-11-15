@@ -51,17 +51,19 @@
 
 namespace opentxs
 {
-
 class Contact;
 class Identifier;
 class Message;
 
 namespace api
 {
-
 class ContactManager;
-class Storage;
 class Wallet;
+
+namespace storage
+{
+class Storage;
+}  // namespace storage
 
 namespace implementation
 {
@@ -213,7 +215,7 @@ private:
     typedef std::map<Identifier, std::shared_ptr<const std::string>> MailCache;
 
     ContactManager& contact_;
-    Storage& storage_;
+    storage::Storage& storage_;
     Wallet& wallet_;
     mutable std::mutex mail_cache_lock_;
     mutable MailCache mail_cache_;
@@ -239,7 +241,10 @@ private:
     std::shared_ptr<const Contact> nym_to_contact(
         const std::string& nymID) const;
 
-    Activity(ContactManager& contact, Storage& storage, Wallet& wallet);
+    Activity(
+        ContactManager& contact,
+        storage::Storage& storage,
+        Wallet& wallet);
     Activity() = delete;
     Activity(const Activity&) = delete;
     Activity(Activity&&) = delete;

@@ -43,6 +43,7 @@
 #include "opentxs/api/crypto/implementation/Crypto.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
+#include "opentxs/api/storage/implementation/Storage.hpp"
 #include "opentxs/api/Activity.hpp"
 #include "opentxs/api/Api.hpp"
 #include "opentxs/api/Blockchain.hpp"
@@ -68,7 +69,6 @@
 #include "opentxs/network/DhtConfig.hpp"
 #include "opentxs/network/ServerConnection.hpp"
 #include "opentxs/network/ZMQ.hpp"
-#include "opentxs/storage/Storage.hpp"
 #include "opentxs/storage/StorageConfig.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/OTStorage.hpp"
@@ -194,7 +194,7 @@ api::Crypto& Native::Crypto() const
     return *crypto_;
 }
 
-api::Storage& Native::DB() const
+api::storage::Storage& Native::DB() const
 {
     OT_ASSERT(storage_)
 
@@ -631,7 +631,8 @@ void Native::Init_Storage()
 
     OT_ASSERT(crypto_);
 
-    storage_.reset(new api::Storage(shutdown_, config, hash, random));
+    storage_.reset(new api::storage::implementation::Storage(
+        shutdown_, config, hash, random));
     Config().Save();
 }
 
@@ -639,13 +640,18 @@ void Native::Init_StorageBackup()
 {
     OT_ASSERT(storage_);
 
-    storage_->InitBackup();
+    auto storage =
+        dynamic_cast<api::storage::implementation::Storage*>(storage_.get());
+
+    OT_ASSERT(nullptr != storage);
+
+    storage->InitBackup();
 
     if (storage_encryption_key_) {
-        storage_->InitEncryptedBackup(storage_encryption_key_);
+        storage->InitEncryptedBackup(storage_encryption_key_);
     }
 
-    storage_->start();
+    storage->start();
 }
 
 void Native::Init_Periodic()

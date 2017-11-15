@@ -40,6 +40,7 @@
 
 #include "opentxs/api/Activity.hpp"
 
+#include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/contact/Contact.hpp"
@@ -48,7 +49,6 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/storage/Storage.hpp"
 
 #include <thread>
 
@@ -56,7 +56,10 @@
 
 namespace opentxs::api
 {
-Activity::Activity(ContactManager& contact, Storage& storage, Wallet& wallet)
+Activity::Activity(
+    ContactManager& contact,
+    storage::Storage& storage,
+    Wallet& wallet)
     : contact_(contact)
     , storage_(storage)
     , wallet_(wallet)

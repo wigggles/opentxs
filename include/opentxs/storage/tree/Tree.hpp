@@ -120,7 +120,7 @@ private:
     proto::StorageItems serialize() const;
     bool update_root(const std::string& hash);
 
-    Tree(const StorageDriver& storage, const std::string& key);
+    Tree(const opentxs::api::storage::Driver& storage, const std::string& key);
     Tree() = delete;
     Tree(const Tree&);
     Tree(Tree&&) = delete;
@@ -144,7 +144,7 @@ public:
     Editor<Servers> mutable_Servers();
     Editor<Units> mutable_Units();
 
-    bool Migrate(const StorageDriver& to) const override;
+    bool Migrate(const opentxs::api::storage::Driver& to) const override;
 
     ~Tree();
 };

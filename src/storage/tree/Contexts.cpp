@@ -40,13 +40,15 @@
 
 #include "opentxs/storage/tree/Contexts.hpp"
 
-#include "opentxs/storage/StoragePlugin.hpp"
+#include "opentxs/storage/Plugin.hpp"
 
 namespace opentxs
 {
 namespace storage
 {
-Contexts::Contexts(const StorageDriver& storage, const std::string& hash)
+Contexts::Contexts(
+    const opentxs::api::storage::Driver& storage,
+    const std::string& hash)
     : Node(storage, hash)
 {
     if (check_hash(hash)) {

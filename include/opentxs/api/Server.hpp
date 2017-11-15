@@ -82,8 +82,12 @@ namespace api
 {
 class Crypto;
 class Settings;
-class Storage;
 class Wallet;
+
+namespace storage
+{
+class Storage;
+}  // namespace storage
 
 namespace implementation
 {
@@ -116,7 +120,7 @@ private:
     const std::map<std::string, std::string>& args_;
     Settings& config_;
     Crypto& crypto_;
-    Storage& storage_;
+    storage::Storage& storage_;
     Wallet& wallet_;
     std::atomic<bool>& shutdown_;
     std::unique_ptr<server::Server> server_p_;
@@ -158,7 +162,7 @@ private:
         const std::map<std::string, std::string>& args,
         Crypto& crypto,
         Settings& config,
-        Storage& storage,
+        storage::Storage& storage,
         Wallet& wallet,
         std::atomic<bool>& shutdown);
     Server() = delete;

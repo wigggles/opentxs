@@ -1,4 +1,5 @@
 add_subdirectory(crypto)
+add_subdirectory(storage)
 
 set(cxx-sources
   Activity.cpp

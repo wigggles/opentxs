@@ -40,13 +40,15 @@
 
 #include "opentxs/storage/tree/Mailbox.hpp"
 
-#include "opentxs/storage/StoragePlugin.hpp"
+#include "opentxs/storage/Plugin.hpp"
 
 namespace opentxs
 {
 namespace storage
 {
-Mailbox::Mailbox(const StorageDriver& storage, const std::string& hash)
+Mailbox::Mailbox(
+    const opentxs::api::storage::Driver& storage,
+    const std::string& hash)
     : Node(storage, hash)
 {
     if (check_hash(hash)) {

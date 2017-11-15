@@ -40,13 +40,15 @@
 
 #include "opentxs/storage/tree/PeerReplies.hpp"
 
-#include "opentxs/storage/StoragePlugin.hpp"
+#include "opentxs/storage/Plugin.hpp"
 
 namespace opentxs
 {
 namespace storage
 {
-PeerReplies::PeerReplies(const StorageDriver& storage, const std::string& hash)
+PeerReplies::PeerReplies(
+    const opentxs::api::storage::Driver& storage,
+    const std::string& hash)
     : Node(storage, hash)
 {
     if (check_hash(hash)) {

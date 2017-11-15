@@ -71,8 +71,12 @@ namespace api
 class Crypto;
 class Server;
 class Settings;
-class Storage;
 class Wallet;
+
+namespace storage
+{
+class Storage;
+}  // namespace storage
 }  // namespace api
 
 namespace server
@@ -117,7 +121,7 @@ private:
     opentxs::api::Crypto& crypto_;
     opentxs::api::Settings& config_;
     opentxs::api::Server& mint_;
-    opentxs::api::Storage& storage_;
+    opentxs::api::storage::Storage& storage_;
     opentxs::api::Wallet& wallet_;
     MainFile mainFile_;
     Notary notary_;
@@ -142,7 +146,7 @@ private:
         opentxs::api::Crypto& crypto,
         opentxs::api::Settings& config,
         opentxs::api::Server& mint,
-        opentxs::api::Storage& storage,
+        opentxs::api::storage::Storage& storage,
         opentxs::api::Wallet& wallet);
 
     void CreateMainFile(

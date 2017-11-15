@@ -43,6 +43,7 @@
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
 #include "opentxs/api/crypto/Symmetric.hpp"
+#include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/core/crypto/Bip32.hpp"
 #include "opentxs/core/crypto/CryptoSymmetric.hpp"
@@ -51,7 +52,6 @@
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/storage/Storage.hpp"
 
 #include <memory>
 #include <string>

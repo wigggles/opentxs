@@ -41,6 +41,7 @@
 #include "opentxs/client/OTWallet.hpp"
 
 #include "opentxs/api/crypto/Crypto.hpp"
+#include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/cash/Purse.hpp"
@@ -78,7 +79,7 @@
 namespace opentxs
 {
 
-OTWallet::OTWallet(api::Crypto& crypto, api::Storage& storage)
+OTWallet::OTWallet(api::Crypto& crypto, api::storage::Storage& storage)
     : m_strDataFolder(OTDataFolder::Get())
     , crypto_(crypto)
     , storage_(storage)

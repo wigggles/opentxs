@@ -67,7 +67,9 @@ private:
         const std::string& id);
     proto::StorageSeeds serialize() const;
 
-    Seeds(const StorageDriver& storage, const std::string& hash);
+    Seeds(
+        const opentxs::api::storage::Driver& storage,
+        const std::string& hash);
     Seeds() = delete;
     Seeds(const Seeds&) = delete;
     Seeds(Seeds&&) = delete;

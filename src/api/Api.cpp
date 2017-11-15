@@ -61,7 +61,7 @@ Api::Api(
     ContactManager& contacts,
     Crypto& crypto,
     Identity& identity,
-    Storage& storage,
+    storage::Storage& storage,
     Wallet& wallet,
     ZMQ& zmq)
     : activity_(activity)

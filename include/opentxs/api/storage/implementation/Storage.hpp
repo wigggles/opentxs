@@ -36,28 +36,21 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_STORAGE_STORAGE_HPP
-#define OPENTXS_STORAGE_STORAGE_HPP
+#ifndef OPENTXS_API_STORAGE_IMPLEMENTATION_STORAGE_HPP
+#define OPENTXS_API_STORAGE_IMPLEMENTATION_STORAGE_HPP
 
 #include "opentxs/Version.hpp"
 
+#include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Editor.hpp"
 #include "opentxs/storage/StorageConfig.hpp"
-#include "opentxs/Proto.hpp"
-#include "opentxs/Types.hpp"
 
 #include <atomic>
-#include <cstdint>
-#include <ctime>
-#include <functional>
 #include <iostream>
 #include <limits>
 #include <list>
 #include <map>
-#include <memory>
 #include <mutex>
-#include <set>
-#include <string>
 #include <thread>
 #include <tuple>
 #include <vector>
@@ -74,10 +67,6 @@ namespace storage
 class Root;
 }  // namespace storage
 
-typedef std::function<void(const proto::CredentialIndex&)> NymLambda;
-typedef std::function<void(const proto::ServerContract&)> ServerLambda;
-typedef std::function<void(const proto::UnitDefinition&)> UnitLambda;
-
 namespace api
 {
 class Crypto;
@@ -86,6 +75,11 @@ namespace implementation
 {
 class Native;
 }  // namespace implementation
+
+namespace storage
+{
+namespace implementation
+{
 
 // Content-aware storage module for opentxs
 //
@@ -108,173 +102,175 @@ class Native;
 // Objects are either stored and retrieved from either the primary bucket, or
 // the alternate bucket. This allows for garbage collection of outdated keys
 // to be implemented.
-class Storage
+class Storage : public opentxs::api::storage::Storage
 {
 public:
-    static const std::uint32_t HASH_TYPE;
     std::set<std::string> BlockchainAccountList(
         const std::string& nymID,
-        const proto::ContactItemType type);
+        const proto::ContactItemType type) override;
     std::string BlockchainAddressOwner(
         proto::ContactItemType chain,
-        std::string address);
-    ObjectList BlockchainTransactionList();
-    std::string ContactAlias(const std::string& id);
-    ObjectList ContactList();
-    ObjectList ContextList(const std::string& nymID);
-    std::string ContactOwnerNym(const std::string& nymID);
-    void ContactSaveIndices();
-    std::uint32_t ContactUpgradeLevel() const;
+        std::string address) override;
+    ObjectList BlockchainTransactionList() override;
+    std::string ContactAlias(const std::string& id) override;
+    ObjectList ContactList() override;
+    ObjectList ContextList(const std::string& nymID) override;
+    std::string ContactOwnerNym(const std::string& nymID) override;
+    void ContactSaveIndices() override;
+    std::uint32_t ContactUpgradeLevel() const override;
     bool CreateThread(
         const std::string& nymID,
         const std::string& threadID,
-        const std::set<std::string>& participants);
-    std::string DefaultSeed();
-    bool DeleteContact(const std::string& id);
+        const std::set<std::string>& participants) override;
+    std::string DefaultSeed() override;
+    bool DeleteContact(const std::string& id) override;
+    std::uint32_t HashType() const override;
     bool Load(
         const std::string& nymID,
         const std::string& accountID,
         std::shared_ptr<proto::Bip44Account>& output,
-        const bool checking = false);  // If true, suppress "not found" errors
+        const bool checking = false) override;
     bool Load(
         const std::string& id,
         std::shared_ptr<proto::BlockchainTransaction>& transaction,
-        const bool checking = false);  // If true, suppress "not found" errors
+        const bool checking = false) override;
     bool Load(
         const std::string& id,
         std::shared_ptr<proto::Contact>& contact,
-        const bool checking = false);  // If true, suppress "not found" errors
+        const bool checking = false) override;
     bool Load(
         const std::string& id,
         std::shared_ptr<proto::Contact>& contact,
         std::string& alias,
-        const bool checking = false);  // If true, suppress "not found" errors
+        const bool checking = false) override;
     bool Load(
         const std::string& nym,
         const std::string& id,
         std::shared_ptr<proto::Context>& context,
-        const bool checking = false);  // If true, suppress "not found" errors
+        const bool checking = false) override;
     bool Load(
         const std::string& id,
         std::shared_ptr<proto::Credential>& cred,
-        const bool checking = false);  // If true, suppress "not found" errors
+        const bool checking = false) override;
     bool Load(
         const std::string& id,
         std::shared_ptr<proto::CredentialIndex>& nym,
-        const bool checking = false);  // If true, suppress "not found" errors
+        const bool checking = false) override;
     bool Load(
         const std::string& id,
         std::shared_ptr<proto::CredentialIndex>& nym,
         std::string& alias,
-        const bool checking = false);  // If true, suppress "not found" errors
+        const bool checking = false) override;
     bool Load(
         const std::string& nymID,
         const std::string& id,
         const StorageBox box,
         std::string& output,
         std::string& alias,
-        const bool checking = false);  // If true, suppress "not found" errors
+        const bool checking = false) override;
     bool Load(
         const std::string& nymID,
         const std::string& id,
         const StorageBox box,
         std::shared_ptr<proto::PeerReply>& request,
-        const bool checking = false);  // If true, suppress "not found" errors
+        const bool checking = false) override;
     bool Load(
         const std::string& nymID,
         const std::string& id,
         const StorageBox box,
         std::shared_ptr<proto::PeerRequest>& request,
         std::time_t& time,
-        const bool checking = false);  // If true, suppress "not found" errors
+        const bool checking = false) override;
     bool Load(
         const std::string& id,
         std::shared_ptr<proto::Seed>& seed,
-        const bool checking = false);  // If true, suppress "not found" errors
+        const bool checking = false) override;
     bool Load(
         const std::string& id,
         std::shared_ptr<proto::Seed>& seed,
         std::string& alias,
-        const bool checking = false);  // If true, suppress "not found" errors
+        const bool checking = false) override;
     bool Load(
         const std::string& id,
         std::shared_ptr<proto::ServerContract>& contract,
-        const bool checking = false);  // If true, suppress "not found" errors
+        const bool checking = false) override;
     bool Load(
         const std::string& id,
         std::shared_ptr<proto::ServerContract>& contract,
         std::string& alias,
-        const bool checking = false);  // If true, suppress "not found" errors
+        const bool checking = false) override;
     bool Load(
         const std::string& nymId,
         const std::string& threadId,
-        std::shared_ptr<proto::StorageThread>& thread);
+        std::shared_ptr<proto::StorageThread>& thread) override;
     bool Load(
         const std::string& id,
         std::shared_ptr<proto::UnitDefinition>& contract,
-        const bool checking = false);  // If true, suppress "not found" errors
+        const bool checking = false) override;
     bool Load(
         const std::string& id,
         std::shared_ptr<proto::UnitDefinition>& contract,
         std::string& alias,
-        const bool checking = false);  // If true, suppress "not found" errors
-    void MapPublicNyms(NymLambda& lambda);
-    void MapServers(ServerLambda& lambda);
-    void MapUnitDefinitions(UnitLambda& lambda);
+        const bool checking = false) override;
+    void MapPublicNyms(NymLambda& lambda) override;
+    void MapServers(ServerLambda& lambda) override;
+    void MapUnitDefinitions(UnitLambda& lambda) override;
     bool MoveThreadItem(
         const std::string& nymId,
         const std::string& fromThreadID,
         const std::string& toThreadID,
-        const std::string& itemID);
-    ObjectList NymBoxList(const std::string& nymID, const StorageBox box) const;
-    ObjectList NymList() const;
-    bool RelabelThread(const std::string& threadID, const std::string& label);
+        const std::string& itemID) override;
+    ObjectList NymBoxList(const std::string& nymID, const StorageBox box)
+        const override;
+    ObjectList NymList() const override;
+    bool RelabelThread(const std::string& threadID, const std::string& label)
+        override;
     bool RemoveNymBoxItem(
         const std::string& nymID,
         const StorageBox box,
-        const std::string& itemID);
-    bool RemoveServer(const std::string& id);
-    bool RemoveUnitDefinition(const std::string& id);
+        const std::string& itemID) override;
+    bool RemoveServer(const std::string& id) override;
+    bool RemoveUnitDefinition(const std::string& id) override;
     bool RenameThread(
         const std::string& nymId,
         const std::string& threadId,
-        const std::string& newID);
-    void RunGC();
-    std::string ServerAlias(const std::string& id);
-    ObjectList ServerList() const;
-    bool SetContactAlias(const std::string& id, const std::string& alias);
-    bool SetDefaultSeed(const std::string& id);
-    bool SetNymAlias(const std::string& id, const std::string& alias);
+        const std::string& newID) override;
+    void RunGC() override;
+    std::string ServerAlias(const std::string& id) override;
+    ObjectList ServerList() const override;
+    bool SetContactAlias(const std::string& id, const std::string& alias)
+        override;
+    bool SetDefaultSeed(const std::string& id) override;
+    bool SetNymAlias(const std::string& id, const std::string& alias) override;
     bool SetPeerRequestTime(
         const std::string& nymID,
         const std::string& id,
-        const StorageBox box);
+        const StorageBox box) override;
     bool SetReadState(
         const std::string& nymId,
         const std::string& threadId,
         const std::string& itemId,
-        const bool unread);
-    bool SetSeedAlias(const std::string& id, const std::string& alias);
-    bool SetServerAlias(const std::string& id, const std::string& alias);
+        const bool unread) override;
+    bool SetSeedAlias(const std::string& id, const std::string& alias) override;
+    bool SetServerAlias(const std::string& id, const std::string& alias)
+        override;
     bool SetThreadAlias(
         const std::string& nymId,
         const std::string& threadId,
-        const std::string& alias);
-    bool SetUnitDefinitionAlias(
-        const std::string& id,
-        const std::string& alias);
-    void start();
+        const std::string& alias) override;
+    bool SetUnitDefinitionAlias(const std::string& id, const std::string& alias)
+        override;
     bool Store(
         const std::string& nymID,
         const proto::ContactItemType type,
-        const proto::Bip44Account& data);
-    bool Store(const proto::BlockchainTransaction& data);
-    bool Store(const proto::Contact& data);
-    bool Store(const proto::Context& data);
-    bool Store(const proto::Credential& data);
+        const proto::Bip44Account& data) override;
+    bool Store(const proto::BlockchainTransaction& data) override;
+    bool Store(const proto::Contact& data) override;
+    bool Store(const proto::Context& data) override;
+    bool Store(const proto::Credential& data) override;
     bool Store(
         const proto::CredentialIndex& data,
-        const std::string& alias = std::string(""));
+        const std::string& alias = std::string("")) override;
     bool Store(
         const std::string& nymid,
         const std::string& threadid,
@@ -282,52 +278,54 @@ public:
         const std::uint64_t time,
         const std::string& alias,
         const std::string& data,
-        const StorageBox box);
+        const StorageBox box) override;
     bool Store(
         const proto::PeerReply& data,
         const std::string& nymid,
-        const StorageBox box);
+        const StorageBox box) override;
     bool Store(
         const proto::PeerRequest& data,
         const std::string& nymid,
-        const StorageBox box);
+        const StorageBox box) override;
     bool Store(
         const proto::Seed& data,
-        const std::string& alias = std::string(""));
+        const std::string& alias = std::string("")) override;
     bool Store(
         const proto::ServerContract& data,
-        const std::string& alias = std::string(""));
+        const std::string& alias = std::string("")) override;
     bool Store(
         const proto::UnitDefinition& data,
-        const std::string& alias = std::string(""));
+        const std::string& alias = std::string("")) override;
     ObjectList ThreadList(const std::string& nymID, const bool unreadOnly)
-        const;
+        const override;
     std::string ThreadAlias(
         const std::string& nymID,
-        const std::string& threadID);
-    std::string UnitDefinitionAlias(const std::string& id);
-    ObjectList UnitDefinitionList() const;
+        const std::string& threadID) override;
+    std::string UnitDefinitionAlias(const std::string& id) override;
+    ObjectList UnitDefinitionList() const override;
     std::size_t UnreadCount(
         const std::string& nymId,
-        const std::string& threadId);
+        const std::string& threadId) override;
 
     ~Storage();
 
 private:
-    friend class implementation::Native;
+    friend class opentxs::api::implementation::Native;
+
+    static const std::uint32_t HASH_TYPE;
 
     const std::atomic<bool>& shutdown_;
     std::int64_t gc_interval_{std::numeric_limits<std::int64_t>::max()};
     mutable std::mutex write_lock_;
-    mutable std::unique_ptr<storage::Root> root_;
+    mutable std::unique_ptr<opentxs::storage::Root> root_;
     mutable std::atomic<bool> primary_bucket_;
     std::vector<std::thread> background_threads_;
     StorageConfig config_;
     std::unique_ptr<StorageMultiplex> multiplex_p_;
     StorageMultiplex& multiplex_;
 
-    storage::Root* root() const;
-    const storage::Root& Root() const;
+    opentxs::storage::Root* root() const;
+    const opentxs::storage::Root& Root() const;
     bool verify_write_lock(const Lock& lock) const;
 
     void Cleanup();
@@ -336,11 +334,12 @@ private:
     void InitBackup();
     void InitEncryptedBackup(std::unique_ptr<SymmetricKey>& key);
     void InitPlugins();
-    Editor<storage::Root> mutable_Root();
+    Editor<opentxs::storage::Root> mutable_Root();
     void RunMapPublicNyms(NymLambda lambda);
     void RunMapServers(ServerLambda lambda);
     void RunMapUnits(UnitLambda lambda);
-    void save(storage::Root* in, const Lock& lock);
+    void save(opentxs::storage::Root* in, const Lock& lock);
+    void start();
 
     Storage(
         const std::atomic<bool>& shutdown,
@@ -352,6 +351,8 @@ private:
     Storage& operator=(const Storage&) = delete;
     Storage& operator=(Storage&&) = delete;
 };
+}  // namespace implementation
+}  // namespace storage
 }  // namespace api
 }  // namespace opentxs
-#endif  // OPENTXS_STORAGE_STORAGE_HPP
+#endif  // OPENTXS_API_STORAGE_IMPLEMENTATION_STORAGE_HPP

@@ -48,7 +48,7 @@
 #include "opentxs/storage/tree/Seeds.hpp"
 #include "opentxs/storage/tree/Servers.hpp"
 #include "opentxs/storage/tree/Units.hpp"
-#include "opentxs/storage/StoragePlugin.hpp"
+#include "opentxs/storage/Plugin.hpp"
 
 namespace opentxs
 {
@@ -59,7 +59,9 @@ namespace storage
 
 #define OT_METHOD "opentxs::storage::Tree::"
 
-Tree::Tree(const StorageDriver& storage, const std::string& hash)
+Tree::Tree(
+    const opentxs::api::storage::Driver& storage,
+    const std::string& hash)
     : Node(storage, hash)
     , blockchain_root_(Node::BLANK_HASH)
     , contact_root_(Node::BLANK_HASH)
@@ -225,7 +227,7 @@ void Tree::init(const std::string& hash)
     unit_root_ = normalize_hash(serialized->units());
 }
 
-bool Tree::Migrate(const StorageDriver& to) const
+bool Tree::Migrate(const opentxs::api::storage::Driver& to) const
 {
     bool output{true};
     output &= blockchain()->Migrate(to);

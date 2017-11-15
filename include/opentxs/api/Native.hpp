@@ -62,9 +62,13 @@ class Dht;
 class Identity;
 class Server;
 class Settings;
-class Storage;
 class Wallet;
 class ZMQ;
+
+namespace storage
+{
+class Storage;
+}  // namespace storage
 
 class Native
 {
@@ -76,7 +80,7 @@ public:
         const std::string& path = std::string("")) const = 0;
     virtual class ContactManager& Contact() const = 0;
     virtual class Crypto& Crypto() const = 0;
-    virtual class Storage& DB() const = 0;
+    virtual storage::Storage& DB() const = 0;
     virtual class Dht& DHT() const = 0;
     virtual void HandleSignals() const = 0;
     virtual class Identity& Identity() const = 0;

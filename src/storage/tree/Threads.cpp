@@ -41,7 +41,7 @@
 #include "opentxs/storage/tree/Thread.hpp"
 #include "opentxs/storage/tree/Threads.hpp"
 
-#include "opentxs/storage/StoragePlugin.hpp"
+#include "opentxs/storage/Plugin.hpp"
 
 #include <utility>
 #include <string>
@@ -56,7 +56,7 @@ namespace opentxs
 namespace storage
 {
 Threads::Threads(
-    const StorageDriver& storage,
+    const opentxs::api::storage::Driver& storage,
     const std::string& hash,
     Mailbox& mailInbox,
     Mailbox& mailOutbox)
@@ -195,7 +195,7 @@ ObjectList Threads::List(const bool unreadOnly) const
     return output;
 }
 
-bool Threads::Migrate(const StorageDriver& to) const
+bool Threads::Migrate(const opentxs::api::storage::Driver& to) const
 {
     bool output{true};
 

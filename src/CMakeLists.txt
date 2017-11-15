@@ -50,6 +50,7 @@ set(object-deps
   ${trezor}
   $<TARGET_OBJECTS:otprotob>
   $<TARGET_OBJECTS:opentxs-api-crypto>
+  $<TARGET_OBJECTS:opentxs-api-storage>
   $<TARGET_OBJECTS:opentxs-api>
   $<TARGET_OBJECTS:opentxs-cash>
   $<TARGET_OBJECTS:opentxs-client>

@@ -40,14 +40,15 @@
 
 #include "opentxs/storage/tree/Units.hpp"
 
-#include "opentxs/storage/Storage.hpp"
-#include "opentxs/storage/StoragePlugin.hpp"
+#include "opentxs/storage/Plugin.hpp"
 
 namespace opentxs
 {
 namespace storage
 {
-Units::Units(const StorageDriver& storage, const std::string& hash)
+Units::Units(
+    const opentxs::api::storage::Driver& storage,
+    const std::string& hash)
     : Node(storage, hash)
 {
     if (check_hash(hash)) {

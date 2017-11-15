@@ -43,7 +43,6 @@
 
 #include "opentxs/api/Editor.hpp"
 #include "opentxs/storage/tree/Node.hpp"
-#include "opentxs/storage/Storage.hpp"
 
 #include <map>
 #include <mutex>
@@ -88,7 +87,7 @@ private:
         const std::string& id);
 
     Threads(
-        const StorageDriver& storage,
+        const opentxs::api::storage::Driver& storage,
         const std::string& hash,
         Mailbox& mailInbox,
         Mailbox& mailOutbox);
@@ -102,7 +101,7 @@ public:
     bool Exists(const std::string& id) const;
     using ot_super::List;
     ObjectList List(const bool unreadOnly) const;
-    bool Migrate(const StorageDriver& to) const override;
+    bool Migrate(const opentxs::api::storage::Driver& to) const override;
     const class Thread& Thread(const std::string& id) const;
 
     std::string Create(

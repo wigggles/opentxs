@@ -40,13 +40,15 @@
 
 #include "opentxs/storage/tree/Credentials.hpp"
 
-#include "opentxs/storage/StoragePlugin.hpp"
+#include "opentxs/storage/Plugin.hpp"
 
 namespace opentxs
 {
 namespace storage
 {
-Credentials::Credentials(const StorageDriver& storage, const std::string& hash)
+Credentials::Credentials(
+    const opentxs::api::storage::Driver& storage,
+    const std::string& hash)
     : Node(storage, hash)
 {
     if (check_hash(hash)) {

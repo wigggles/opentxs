@@ -57,8 +57,12 @@ namespace api
 {
 class Activity;
 class Crypto;
-class Storage;
 class Wallet;
+
+namespace storage
+{
+class Storage;
+}  // namespace storage
 
 namespace implementation
 {
@@ -117,7 +121,7 @@ private:
 
     Activity& activity_;
     Crypto& crypto_;
-    Storage& storage_;
+    storage::Storage& storage_;
     Wallet& wallet_;
     mutable std::mutex lock_;
     mutable IDLock nym_lock_;
@@ -156,7 +160,7 @@ private:
     Blockchain(
         Activity& activity,
         Crypto& crypto,
-        Storage& storage,
+        storage::Storage& storage,
         Wallet& wallet);
     Blockchain() = delete;
     Blockchain(const Blockchain&) = delete;

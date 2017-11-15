@@ -40,7 +40,7 @@
 
 #include "opentxs/storage/tree/Nym.hpp"
 
-#include "opentxs/storage/StoragePlugin.hpp"
+#include "opentxs/storage/Plugin.hpp"
 
 #include <functional>
 
@@ -54,7 +54,7 @@ namespace opentxs
 namespace storage
 {
 Nym::Nym(
-    const StorageDriver& storage,
+    const opentxs::api::storage::Driver& storage,
     const std::string& id,
     const std::string& hash,
     const std::string& alias)
@@ -421,7 +421,7 @@ const Mailbox& Nym::MailInbox() const { return *mail_inbox(); }
 
 const Mailbox& Nym::MailOutbox() const { return *mail_outbox(); }
 
-bool Nym::Migrate(const StorageDriver& to) const
+bool Nym::Migrate(const opentxs::api::storage::Driver& to) const
 {
     bool output{true};
     output &= migrate(credentials_, to);

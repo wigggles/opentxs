@@ -41,6 +41,7 @@
 #include "opentxs/core/Nym.hpp"
 
 #include "opentxs/api/crypto/Crypto.hpp"
+#include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Activity.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/api/OT.hpp"
@@ -63,7 +64,6 @@
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/util/Tag.hpp"
-#include "opentxs/storage/Storage.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"

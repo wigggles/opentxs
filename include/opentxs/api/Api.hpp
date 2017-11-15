@@ -60,9 +60,13 @@ class ContactManager;
 class Crypto;
 class Identity;
 class Settings;
-class Storage;
 class Wallet;
 class ZMQ;
+
+namespace storage
+{
+class Storage;
+}  // namespace storage
 
 namespace implementation
 {
@@ -90,7 +94,7 @@ private:
     ContactManager& contacts_;
     Crypto& crypto_;
     Identity& identity_;
-    Storage& storage_;
+    storage::Storage& storage_;
     Wallet& wallet_;
     ZMQ& zmq_;
 
@@ -110,7 +114,7 @@ private:
         ContactManager& contacts,
         Crypto& crypto,
         Identity& identity,
-        Storage& storage,
+        storage::Storage& storage,
         Wallet& wallet,
         ZMQ& zmq);
     Api() = delete;

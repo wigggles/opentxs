@@ -82,7 +82,7 @@ public:
         const std::string& path = std::string("")) const override;
     api::ContactManager& Contact() const override;
     api::Crypto& Crypto() const override;
-    api::Storage& DB() const override;
+    api::storage::Storage& DB() const override;
     api::Dht& DHT() const override;
     void HandleSignals() const override;
     api::Identity& Identity() const override;
@@ -133,7 +133,7 @@ private:
     std::unique_ptr<api::Crypto> crypto_;
     std::unique_ptr<api::Dht> dht_;
     std::unique_ptr<api::Identity> identity_;
-    std::unique_ptr<api::Storage> storage_;
+    std::unique_ptr<api::storage::Storage> storage_;
     std::unique_ptr<api::Wallet> wallet_;
     std::unique_ptr<api::ZMQ> zeromq_;
     std::unique_ptr<std::thread> periodic_;

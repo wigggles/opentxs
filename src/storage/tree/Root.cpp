@@ -40,7 +40,7 @@
 
 #include "opentxs/storage/tree/Root.hpp"
 
-#include "opentxs/interface/storage/StorageDriver.hpp"
+#include "opentxs/api/storage/Driver.hpp"
 #include "opentxs/storage/tree/BlockchainTransactions.hpp"
 #include "opentxs/storage/tree/Contacts.hpp"
 #include "opentxs/storage/tree/Credentials.hpp"
@@ -51,7 +51,7 @@
 #include "opentxs/storage/tree/Servers.hpp"
 #include "opentxs/storage/tree/Tree.hpp"
 #include "opentxs/storage/tree/Units.hpp"
-#include "opentxs/storage/StoragePlugin.hpp"
+#include "opentxs/storage/Plugin.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/Proto.hpp"
 
@@ -62,7 +62,7 @@ namespace opentxs
 namespace storage
 {
 Root::Root(
-    const StorageDriver& storage,
+    const opentxs::api::storage::Driver& storage,
     const std::string& hash,
     const std::int64_t interval,
     std::atomic<bool>& bucket)
@@ -98,7 +98,7 @@ void Root::cleanup() const
     }
 }
 
-void Root::collect_garbage(const StorageDriver* to) const
+void Root::collect_garbage(const opentxs::api::storage::Driver* to) const
 {
     Lock lock(write_lock_);
     otErr << OT_METHOD << __FUNCTION__ << ": Beginning garbage collection."
@@ -170,7 +170,7 @@ void Root::init(const std::string& hash)
     tree_root_ = normalize_hash(serialized->items());
 }
 
-bool Root::Migrate(const StorageDriver& to) const
+bool Root::Migrate(const opentxs::api::storage::Driver& to) const
 {
     if (0 == gc_interval_) {
         otErr << OT_METHOD << __FUNCTION__ << ": Garbage collection disabled"
@@ -207,7 +207,7 @@ Editor<class Tree> Root::mutable_Tree()
     return Editor<class Tree>(write_lock_, tree(), callback);
 }
 
-bool Root::save(const Lock& lock, const StorageDriver& to) const
+bool Root::save(const Lock& lock, const opentxs::api::storage::Driver& to) const
 {
     OT_ASSERT(verify_write_lock(lock));
 
@@ -245,7 +245,7 @@ void Root::save(class Tree* tree, const Lock& lock)
     OT_ASSERT(saved);
 }
 
-bool Root::Save(const StorageDriver& to) const
+bool Root::Save(const opentxs::api::storage::Driver& to) const
 {
     Lock lock(write_lock_);
 

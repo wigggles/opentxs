@@ -52,7 +52,8 @@ class StorageConfig;
 class StorageMultiplex;
 
 // Simple filesystem implementation of opentxs::storage
-class StorageFSGC : public StorageFS, public virtual StorageDriver
+class StorageFSGC : public StorageFS,
+                    public virtual opentxs::api::storage::Driver
 {
 private:
     typedef StorageFS ot_super;
@@ -79,6 +80,7 @@ private:
     void Init_StorageFSGC();
 
     StorageFSGC(
+        const api::storage::Storage& storage,
         const StorageConfig& config,
         const Digest& hash,
         const Random& random,
