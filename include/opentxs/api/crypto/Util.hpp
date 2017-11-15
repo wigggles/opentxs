@@ -36,38 +36,44 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_CORE_CRYPTO_CRYPTOUTIL_HPP
-#define OPENTXS_CORE_CRYPTO_CRYPTOUTIL_HPP
+#ifndef OPENTXS_API_CRYPTO_UTIL_HPP
+#define OPENTXS_API_CRYPTO_UTIL_HPP
 
 #include "opentxs/Version.hpp"
 
-#include "opentxs/core/String.hpp"
-
-#include <stdint.h>
-#include <string>
+#include <cstdint>
 
 namespace opentxs
 {
-
-class Data;
 class OTPassword;
-class String;
 
-class CryptoUtil
+namespace api
 {
-protected:
-    CryptoUtil() = default;
+namespace crypto
+{
+
+class Util
+{
+public:
+    virtual bool RandomizeMemory(
+        std::uint8_t* szDestination,
+        std::uint32_t nNewSize) const = 0;
     virtual bool GetPasswordFromConsole(
         OTPassword& theOutput,
-        const char* szPrompt) const = 0;
+        bool bRepeat = false) const = 0;
 
-public:
-    virtual bool RandomizeMemory(uint8_t* szDestination, uint32_t nNewSize)
-        const = 0;
-    bool GetPasswordFromConsole(OTPassword& theOutput, bool bRepeat = false)
-        const;
+    virtual ~Util() = default;
 
-    virtual ~CryptoUtil() = default;
+protected:
+    Util() = default;
+
+private:
+    Util(const Util&) = delete;
+    Util(Util&&) = delete;
+    Util& operator=(const Util&) = delete;
+    Util& operator=(Util&&) = delete;
 };
+}  // namespace crypto
+}  // namespace api
 }  // namespace opentxs
-#endif  // OPENTXS_CORE_CRYPTO_CRYPTOUTIL_HPP
+#endif  // OPENTXS_API_CRYPTO_UTIL_HPP

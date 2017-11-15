@@ -12,7 +12,6 @@ set(cxx-sources
   CryptoAsymmetric.cpp
   CryptoHash.cpp
   CryptoSymmetric.cpp
-  CryptoUtil.cpp
   Ecdsa.cpp
   KeyCredential.cpp
   Letter.cpp

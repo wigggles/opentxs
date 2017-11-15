@@ -43,6 +43,7 @@
 
 #if OT_CRYPTO_USING_OPENSSL
 
+#include "opentxs/api/crypto/implementation/Util.hpp"
 #include "opentxs/core/crypto/Crypto.hpp"
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
 #include "opentxs/core/crypto/CryptoAsymmetric.hpp"
@@ -51,7 +52,6 @@
 #if OT_CRYPTO_SUPPORTED_ALGO_AES
 #include "opentxs/core/crypto/CryptoSymmetric.hpp"
 #endif
-#include "opentxs/core/crypto/CryptoUtil.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/Proto.hpp"
@@ -94,7 +94,7 @@ class OpenSSL : public Crypto
                 public CryptoSymmetric
 #endif
                 ,
-                public CryptoUtil,
+                public api::crypto::implementation::Util,
                 public CryptoHash
 {
 private:
@@ -115,7 +115,7 @@ private:
         bool& AEAD,
         bool& ECB) const;
     void Cleanup_Override() const override;
-    bool GetPasswordFromConsole(OTPassword& theOutput, const char* szPrompt)
+    bool get_password(OTPassword& theOutput, const char* szPrompt)
         const override;
     void Init_Override() const override;
 

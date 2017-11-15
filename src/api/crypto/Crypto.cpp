@@ -51,7 +51,6 @@
 #endif
 #include "opentxs/core/crypto/CryptoAsymmetric.hpp"
 #include "opentxs/core/crypto/CryptoSymmetric.hpp"
-#include "opentxs/core/crypto/CryptoUtil.hpp"
 #if OT_CRYPTO_USING_LIBSECP256K1
 #include "opentxs/core/crypto/Libsecp256k1.hpp"
 #endif
@@ -319,7 +318,7 @@ crypto::Symmetric& Crypto::Symmetric() const
     return *symmetric_;
 }
 
-CryptoUtil& Crypto::Util() const
+crypto::Util& Crypto::Util() const
 {
     OT_ASSERT(nullptr != ssl_);
 

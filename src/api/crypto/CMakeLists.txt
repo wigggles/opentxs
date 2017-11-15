@@ -3,6 +3,7 @@ set(cxx-sources
   Encode.cpp
   Hash.cpp
   Symmetric.cpp
+  Util.cpp
 )
 
 file(GLOB cxx-install-headers
@@ -15,6 +16,7 @@ set(cxx-headers
   ${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/api/crypto/implementation/Encode.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/api/crypto/implementation/Hash.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/api/crypto/implementation/Symmetric.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/api/crypto/implementation/Util.hpp
 )
 
 set(MODULE_NAME opentxs-api-crypto)

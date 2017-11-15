@@ -586,9 +586,7 @@ BinarySecret OpenSSL::InstantiateBinarySecretSP() const
 #define _PASSWORD_LEN 128
 #endif
 
-bool OpenSSL::GetPasswordFromConsole(
-    OTPassword& theOutput,
-    const char* szPrompt) const
+bool OpenSSL::get_password(OTPassword& theOutput, const char* szPrompt) const
 {
     OT_ASSERT(nullptr != szPrompt);
 

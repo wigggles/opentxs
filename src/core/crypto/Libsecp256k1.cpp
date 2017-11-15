@@ -42,12 +42,12 @@
 #if OT_CRYPTO_USING_LIBSECP256K1
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
+#include "opentxs/api/crypto/Util.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/api/OT.hpp"
 #include "opentxs/core/crypto/AsymmetricKeySecp256k1.hpp"
 #include "opentxs/core/crypto/Crypto.hpp"
 #include "opentxs/core/crypto/CryptoSymmetric.hpp"
-#include "opentxs/core/crypto/CryptoUtil.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
@@ -66,7 +66,7 @@
 namespace opentxs
 {
 
-Libsecp256k1::Libsecp256k1(CryptoUtil& ssl, Ecdsa& ecdsa)
+Libsecp256k1::Libsecp256k1(api::crypto::Util& ssl, Ecdsa& ecdsa)
     : Crypto()
     , context_(secp256k1_context_create(
           SECP256K1_CONTEXT_SIGN | SECP256K1_CONTEXT_VERIFY))

@@ -52,19 +52,10 @@
 
 namespace opentxs
 {
-
-class Bip32;
-class Bip39;
-class CryptoAsymmetric;
-class CryptoSymmetric;
-class CryptoUtil;
 class Libsecp256k1;
 class Libsodium;
 class OpenSSL;
-class OTASCIIArmor;
-class OTCachedKey;
 class TrezorCrypto;
-class SymmetricKey;
 
 // Choose your OpenSSL-compatible library here.
 #if OT_CRYPTO_USING_OPENSSL
@@ -109,7 +100,7 @@ public:
     EXPORT crypto::Hash& Hash() const override;
 
     // Utility class for misc OpenSSL-provided functions
-    EXPORT CryptoUtil& Util() const override;
+    EXPORT crypto::Util& Util() const override;
 
     // Asymmetric encryption engines
     EXPORT CryptoAsymmetric& ED25519() const override;

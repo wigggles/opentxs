@@ -36,59 +36,42 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#ifndef OPENTXS_CORE_CRYPTO_CRYPTOUTIL_HPP
+#define OPENTXS_CORE_CRYPTO_CRYPTOUTIL_HPP
 
-#include "opentxs/core/crypto/CryptoUtil.hpp"
+#include "opentxs/Version.hpp"
 
-#include "opentxs/core/crypto/OTPassword.hpp"
-#include "opentxs/core/util/Assert.hpp"
-#include "opentxs/core/Data.hpp"
-#include "opentxs/core/String.hpp"
-
-#include <cstdint>
-#include <iostream>
+#include "opentxs/api/crypto/Util.hpp"
 
 namespace opentxs
 {
-
-bool CryptoUtil::GetPasswordFromConsole(OTPassword& theOutput, bool bRepeat)
-    const
+namespace api
 {
-    int32_t nAttempts = 0;
+namespace crypto
+{
+namespace implementation
+{
 
-    for (;;) {
-        theOutput.zeroMemory();
+class Util : virtual public api::crypto::Util
+{
+public:
+    bool GetPasswordFromConsole(OTPassword& theOutput, bool bRepeat = false)
+        const override;
 
-        if (GetPasswordFromConsole(theOutput, "(OT) passphrase: ")) {
-            if (!bRepeat) {
-                std::cout << std::endl;
-                return true;
-            }
-        } else {
-            std::cout << "Sorry." << std::endl;
-            return false;
-        }
+    virtual ~Util() = default;
 
-        OTPassword tempPassword;
+protected:
+    virtual bool get_password(OTPassword& theOutput, const char* szPrompt)
+        const = 0;
 
-        if (!GetPasswordFromConsole(
-                tempPassword, "(Verifying) passphrase again: ")) {
-            std::cout << "Sorry." << std::endl;
-            return false;
-        }
-
-        if (!tempPassword.Compare(theOutput)) {
-            if (++nAttempts >= 3) break;
-
-            std::cout << "(Mismatch, try again.)\n" << std::endl;
-        } else {
-            std::cout << std::endl;
-            return true;
-        }
-    }
-
-    std::cout << "Sorry." << std::endl;
-
-    return false;
-}
+    Util() = default;
+    Util(const Util&) = delete;
+    Util(Util&&) = delete;
+    Util& operator=(const Util&) = delete;
+    Util& operator=(Util&&) = delete;
+};
+}  // namespace implementation
+}  // namespace crypto
+}  // namespace api
 }  // namespace opentxs
+#endif  // OPENTXS_CORE_CRYPTO_CRYPTOUTIL_HPP

@@ -55,7 +55,6 @@ class Bip32;
 class Bip39;
 class CryptoAsymmetric;
 class CryptoSymmetric;
-class CryptoUtil;
 class Identifier;
 class OTASCIIArmor;
 class OTCachedKey;
@@ -68,6 +67,7 @@ namespace crypto
 class Encode;
 class Hash;
 class Symmetric;
+class Util;
 }  // namespace crypto
 
 class Crypto
@@ -91,7 +91,7 @@ public:
     EXPORT virtual crypto::Hash& Hash() const = 0;
 
     // Utility class for misc OpenSSL-provided functions
-    EXPORT virtual CryptoUtil& Util() const = 0;
+    EXPORT virtual crypto::Util& Util() const = 0;
 
     // Asymmetric encryption engines
     EXPORT virtual CryptoAsymmetric& ED25519() const = 0;
