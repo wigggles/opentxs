@@ -50,7 +50,6 @@
 #include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Dht.hpp"
 #include "opentxs/api/Identity.hpp"
-#include "opentxs/api/OT.hpp"
 #include "opentxs/api/Server.hpp"
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/api/Wallet.hpp"
@@ -74,6 +73,7 @@
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/util/Signals.hpp"
+#include "opentxs/OT.hpp"
 
 #include <atomic>
 #include <ctime>

@@ -66,7 +66,6 @@
 
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Native.hpp"
-#include "opentxs/api/OT.hpp"
 #include "opentxs/core/crypto/ChildKeyCredential.hpp"
 #include "opentxs/core/crypto/ContactCredential.hpp"
 #include "opentxs/core/crypto/Credential.hpp"
@@ -84,6 +83,7 @@
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/NymIDSource.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/OT.hpp"
 #include "opentxs/Proto.hpp"
 
 #include <stddef.h>

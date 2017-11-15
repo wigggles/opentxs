@@ -41,7 +41,6 @@
 #include "opentxs/core/contract/ServerContract.hpp"
 
 #include "opentxs/api/Native.hpp"
-#include "opentxs/api/OT.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/util/Assert.hpp"
@@ -49,8 +48,9 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/OT.hpp"
+#include "opentxs/Proto.hpp"
 
 #include <stdint.h>
 #include <list>

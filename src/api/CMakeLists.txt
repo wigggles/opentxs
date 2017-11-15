@@ -9,7 +9,6 @@ set(cxx-sources
   Dht.cpp
   Identity.cpp
   Native.cpp
-  OT.cpp
   Server.cpp
   Settings.cpp
   Wallet.cpp

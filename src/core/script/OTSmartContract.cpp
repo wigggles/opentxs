@@ -500,7 +500,6 @@ various sequence numbers. Hm.
 
 #include "opentxs/api/Identity.hpp"
 #include "opentxs/api/Native.hpp"
-#include "opentxs/api/OT.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/consensus/Context.hpp"
@@ -528,7 +527,6 @@ various sequence numbers. Hm.
 #include "opentxs/core/script/OTStash.hpp"
 #include "opentxs/core/script/OTStashItem.hpp"
 #include "opentxs/core/script/OTVariable.hpp"
-#include "opentxs/stdafx.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/Tag.hpp"
@@ -543,6 +541,7 @@ various sequence numbers. Hm.
 #include "opentxs/core/OTStringXML.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/OT.hpp"
 
 #if OT_SCRIPT_CHAI
 #include <chaiscript/chaiscript.hpp>

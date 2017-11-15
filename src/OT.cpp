@@ -38,7 +38,7 @@
 
 #include "opentxs/stdafx.hpp"
 
-#include "opentxs/api/OT.hpp"
+#include "opentxs/OT.hpp"
 
 #include "opentxs/api/implementation/Native.hpp"
 #include "opentxs/api/Native.hpp"

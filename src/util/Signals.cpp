@@ -38,9 +38,10 @@
 
 #include "opentxs/stdafx.hpp"
 
-#include "opentxs/api/OT.hpp"
-#include "opentxs/core/Log.hpp"
 #include "opentxs/util/Signals.hpp"
+
+#include "opentxs/core/Log.hpp"
+#include "opentxs/OT.hpp"
 
 extern "C" {
 #include <signal.h>

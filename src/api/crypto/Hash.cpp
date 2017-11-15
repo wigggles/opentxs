@@ -42,7 +42,6 @@
 
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/Native.hpp"
-#include "opentxs/api/OT.hpp"
 #include "opentxs/core/crypto/CryptoHash.hpp"
 #include "opentxs/core/crypto/Libsodium.hpp"
 #if OT_CRYPTO_USING_OPENSSL
@@ -53,6 +52,7 @@
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/OT.hpp"
 
 #define OT_METHOD "opentxs::api::crypto::implementation::Hash::"
 
@@ -87,9 +87,7 @@ CryptoHash& Hash::SHA2() const
 
 CryptoHash& Hash::Sodium() const { return sodium_; }
 
-bool Hash::Allocate(
-    const proto::HashType hashType,
-    OTPassword& input)
+bool Hash::Allocate(const proto::HashType hashType, OTPassword& input)
 {
     return input.randomizeMemory(CryptoHash::HashSize(hashType));
 }

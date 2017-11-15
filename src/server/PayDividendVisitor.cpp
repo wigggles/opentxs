@@ -41,7 +41,6 @@
 #include "opentxs/server/PayDividendVisitor.hpp"
 
 #include "opentxs/api/Native.hpp"
-#include "opentxs/api/OT.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/core/Account.hpp"
@@ -55,6 +54,7 @@
 #include "opentxs/ext/OTPayment.hpp"
 #include "opentxs/server/Server.hpp"
 #include "opentxs/server/Transactor.hpp"
+#include "opentxs/OT.hpp"
 
 #include <inttypes.h>
 #include <stdint.h>

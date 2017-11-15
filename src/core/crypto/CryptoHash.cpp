@@ -40,9 +40,9 @@
 
 #include "opentxs/core/crypto/CryptoHash.hpp"
 
-#include "opentxs/api/OT.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/OT.hpp"
 
 #include <stdint.h>
 #include <string>

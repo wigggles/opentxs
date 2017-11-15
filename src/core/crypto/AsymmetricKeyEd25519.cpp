@@ -42,10 +42,10 @@
 
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/Native.hpp"
-#include "opentxs/api/OT.hpp"
 #include "opentxs/core/crypto/CryptoAsymmetric.hpp"
 #include "opentxs/core/crypto/Libsodium.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/OT.hpp"
 
 namespace opentxs
 {

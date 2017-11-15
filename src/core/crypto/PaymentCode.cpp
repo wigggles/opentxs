@@ -44,7 +44,6 @@
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/crypto/Symmetric.hpp"
 #include "opentxs/api/Native.hpp"
-#include "opentxs/api/OT.hpp"
 #include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/crypto/Bip32.hpp"
 #include "opentxs/core/crypto/AsymmetricKeyEC.hpp"
@@ -60,8 +59,9 @@
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/OT.hpp"
+#include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 
 #include <array>

@@ -38,11 +38,11 @@
 
 #include "opentxs/stdafx.hpp"
 
-#include "opentxs/api/OT.hpp"
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/network/ServerConnection.hpp"
 #include "opentxs/network/ZMQ.hpp"
+#include "opentxs/OT.hpp"
 
 #define CLIENT_SEND_TIMEOUT_SECONDS 20
 #define CLIENT_RECV_TIMEOUT_SECONDS 40

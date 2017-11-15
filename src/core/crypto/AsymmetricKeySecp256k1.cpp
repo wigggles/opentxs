@@ -42,12 +42,12 @@
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/Native.hpp"
-#include "opentxs/api/OT.hpp"
 #include "opentxs/core/crypto/CryptoAsymmetric.hpp"
 #if OT_CRYPTO_USING_LIBSECP256K1
 #include "opentxs/core/crypto/Libsecp256k1.hpp"
 #endif
 #include "opentxs/core/String.hpp"
+#include "opentxs/OT.hpp"
 
 namespace opentxs
 {

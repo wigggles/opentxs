@@ -44,7 +44,6 @@
 #include "opentxs/api/Api.hpp"
 #include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Native.hpp"
-#include "opentxs/api/OT.hpp"
 #include "opentxs/client/Helpers.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
 #include "opentxs/client/OTRecord.hpp"
@@ -63,8 +62,9 @@
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/Types.hpp"
 #include "opentxs/ext/OTPayment.hpp"
+#include "opentxs/OT.hpp"
+#include "opentxs/Types.hpp"
 
 #include <inttypes.h>
 #include <stdint.h>

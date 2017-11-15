@@ -42,7 +42,6 @@
 
 #include "opentxs/api/Api.hpp"
 #include "opentxs/api/Native.hpp"
-#include "opentxs/api/OT.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
 #include "opentxs/client/OTRecordList.hpp"
 #include "opentxs/client/OT_ME.hpp"
@@ -55,6 +54,7 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/ext/OTPayment.hpp"
+#include "opentxs/OT.hpp"
 
 #include <inttypes.h>
 #include <stdint.h>

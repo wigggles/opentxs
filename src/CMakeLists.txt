@@ -77,6 +77,7 @@ set(object-deps
 )
 
 set(cxx-install-headers
+  "${CMAKE_CURRENT_SOURCE_DIR}/../include/opentxs/OT.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../include/opentxs/Proto.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../include/opentxs/Types.hpp"
 )
@@ -91,6 +92,7 @@ set(MODULE_NAME opentxs)
 add_library(${MODULE_NAME} SHARED
   ${cxx-headers}
   ${object-deps}
+  ${CMAKE_CURRENT_SOURCE_DIR}/OT.cpp
 )
 
 add_library(${MODULE_NAME}_static STATIC

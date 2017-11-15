@@ -44,7 +44,6 @@
 #include "opentxs/api/crypto/Symmetric.hpp"
 #include "opentxs/api/crypto/Util.hpp"
 #include "opentxs/api/Native.hpp"
-#include "opentxs/api/OT.hpp"
 #include "opentxs/core/crypto/AsymmetricKeyEC.hpp"
 #include "opentxs/core/crypto/AsymmetricKeyEd25519.hpp"
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
@@ -72,8 +71,9 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/OTStringXML.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/OT.hpp"
+#include "opentxs/Proto.hpp"
 
 #include <irrxml/irrXML.hpp>
 #include <stdint.h>
