@@ -55,7 +55,6 @@ class Bip32;
 class Bip39;
 class CryptoAsymmetric;
 class CryptoSymmetric;
-class CryptoSymmetricEngine;
 class CryptoUtil;
 class Identifier;
 class OTASCIIArmor;
@@ -68,6 +67,7 @@ namespace crypto
 {
 class Encode;
 class Hash;
+class Symmetric;
 }  // namespace crypto
 
 class Crypto
@@ -103,7 +103,7 @@ public:
 #endif
 
     // Symmetric encryption engines
-    EXPORT virtual CryptoSymmetricEngine& Symmetric() const = 0;
+    EXPORT virtual crypto::Symmetric& Symmetric() const = 0;
 
 #if OT_CRYPTO_SUPPORTED_ALGO_AES
     EXPORT virtual CryptoSymmetric& AES() const = 0;

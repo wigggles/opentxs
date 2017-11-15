@@ -57,7 +57,6 @@ class Bip32;
 class Bip39;
 class CryptoAsymmetric;
 class CryptoSymmetric;
-class CryptoSymmetricEngine;
 class CryptoUtil;
 class Libsecp256k1;
 class Libsodium;
@@ -85,12 +84,6 @@ typedef Libsodium Curve25519;
 namespace api
 {
 class Native;
-
-namespace crypto
-{
-class Encode;
-class Hash;
-}  // namespace crypto
 
 namespace implementation
 {
@@ -128,7 +121,7 @@ public:
 #endif
 
     // Symmetric encryption engines
-    EXPORT CryptoSymmetricEngine& Symmetric() const override;
+    EXPORT crypto::Symmetric& Symmetric() const override;
 
 #if OT_CRYPTO_SUPPORTED_ALGO_AES
     EXPORT CryptoSymmetric& AES() const override;
@@ -162,7 +155,7 @@ private:
 #endif
     std::unique_ptr<crypto::Encode> encode_;
     std::unique_ptr<crypto::Hash> hash_;
-    std::unique_ptr<CryptoSymmetricEngine> symmetric_;
+    std::unique_ptr<crypto::Symmetric> symmetric_;
 
     void init_default_key(const Lock& lock) const;
 

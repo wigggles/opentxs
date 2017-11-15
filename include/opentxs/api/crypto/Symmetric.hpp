@@ -36,61 +36,55 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_CORE_CRYPTO_CRYPTOSYMMETRICENGINE_HPP
-#define OPENTXS_CORE_CRYPTO_CRYPTOSYMMETRICENGINE_HPP
+#ifndef OPENTXS_API_CRYPTO_SYMMETRIC_HPP
+#define OPENTXS_API_CRYPTO_SYMMETRIC_HPP
 
 #include "opentxs/Version.hpp"
 
 #include "opentxs/Proto.hpp"
 
-#include <cstddef>
 #include <cstdint>
 
 namespace opentxs
 {
 
-class CryptoSymmetricNew;
 class SymmetricKey;
 class OTPassword;
 class OTPasswordData;
 
 namespace api
 {
-namespace implementation
+namespace crypto
 {
-class Crypto;
-}  // namespace implementation
-}  // namespace api
 
-// Singlton class for providing an interface to symmetric key methods
-class CryptoSymmetricEngine
+class Symmetric
 {
-private:
-    friend class api::implementation::Crypto;
-
-    CryptoSymmetricNew& sodium_;
-
-    CryptoSymmetricNew* GetEngine(const proto::SymmetricMode mode);
-
-    CryptoSymmetricEngine(CryptoSymmetricNew& sodium);
-    CryptoSymmetricEngine(const CryptoSymmetricEngine&) = delete;
-    CryptoSymmetricEngine& operator=(const CryptoSymmetricEngine&) = delete;
-
 public:
-    std::unique_ptr<SymmetricKey> Key(
+    virtual std::unique_ptr<SymmetricKey> Key(
         const OTPasswordData& password,
-        const proto::SymmetricMode mode = proto::SMODE_CHACHA20POLY1305);
-    std::unique_ptr<SymmetricKey> Key(
+        const proto::SymmetricMode mode = proto::SMODE_CHACHA20POLY1305) = 0;
+    virtual std::unique_ptr<SymmetricKey> Key(
         const proto::SymmetricKey& serialized,
-        const proto::SymmetricMode mode);
-    std::unique_ptr<SymmetricKey> Key(
+        const proto::SymmetricMode mode) = 0;
+    virtual std::unique_ptr<SymmetricKey> Key(
         const OTPassword& seed,
         const std::uint64_t operations = 0,
         const std::uint64_t difficulty = 0,
         const proto::SymmetricMode mode = proto::SMODE_CHACHA20POLY1305,
-        const proto::SymmetricKeyType type = proto::SKEYTYPE_ARGON2);
+        const proto::SymmetricKeyType type = proto::SKEYTYPE_ARGON2) = 0;
 
-    ~CryptoSymmetricEngine() = default;
+    virtual ~Symmetric() = default;
+
+protected:
+    Symmetric() = default;
+
+private:
+    Symmetric(const Symmetric&) = delete;
+    Symmetric(Symmetric&&) = delete;
+    Symmetric& operator=(const Symmetric&) = delete;
+    Symmetric& operator=(Symmetric&&) = delete;
 };
+}  // namespace crypto
+}  // namespace api
 }  // namespace opentxs
-#endif  // OPENTXS_CORE_CRYPTO_CRYPTOSYMMETRICENGINE_HPP
+#endif  // OPENTXS_API_CRYPTO_SYMMETRIC_HPP

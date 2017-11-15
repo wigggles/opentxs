@@ -42,6 +42,7 @@
 
 #include "opentxs/api/crypto/implementation/Encode.hpp"
 #include "opentxs/api/crypto/implementation/Hash.hpp"
+#include "opentxs/api/crypto/implementation/Symmetric.hpp"
 #if OT_CRYPTO_WITH_BIP32
 #include "opentxs/core/crypto/Bip32.hpp"
 #endif
@@ -50,7 +51,6 @@
 #endif
 #include "opentxs/core/crypto/CryptoAsymmetric.hpp"
 #include "opentxs/core/crypto/CryptoSymmetric.hpp"
-#include "opentxs/core/crypto/CryptoSymmetricEngine.hpp"
 #include "opentxs/core/crypto/CryptoUtil.hpp"
 #if OT_CRYPTO_USING_LIBSECP256K1
 #include "opentxs/core/crypto/Libsecp256k1.hpp"
@@ -225,7 +225,7 @@ void Crypto::Init()
         *bitcoincrypto_
 #endif
         ));
-    symmetric_.reset(new CryptoSymmetricEngine(*ed25519_));
+    symmetric_.reset(new api::crypto::implementation::Symmetric(*ed25519_));
 
     otWarn << OT_METHOD << __FUNCTION__
            << ": Setting up rlimits, and crypto libraries...\n";
@@ -312,7 +312,7 @@ void Crypto::SetSystemKeyring(const bool useKeyring) const
     primary_key_->UseSystemKeyring(useKeyring);
 }
 
-CryptoSymmetricEngine& Crypto::Symmetric() const
+crypto::Symmetric& Crypto::Symmetric() const
 {
     OT_ASSERT(symmetric_);
 
