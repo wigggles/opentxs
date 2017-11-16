@@ -1,24 +1,25 @@
-add_subdirectory(zeromq)
-
 set(cxx-sources
-  OpenDHT.cpp
-  ServerConnection.cpp
+  Context.cpp
+  Message.cpp
+  ReplySocket.cpp
+  RequestSocket.cpp
+  Socket.cpp
 )
 
 file(GLOB cxx-install-headers
-     "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/network/*.hpp"
+     "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/network/zeromq/*.hpp"
 )
 
 set(cxx-headers
   ${cxx-install-headers}
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/network/zeromq/implementation/Context.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/network/zeromq/implementation/Message.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/network/zeromq/implementation/ReplySocket.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/network/zeromq/implementation/RequestSocket.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/network/zeromq/implementation/Socket.hpp
 )
 
-include_directories(SYSTEM
-  ${OPENDHT_INCLUDE_DIR}
-  ${GNUTLS_INCLUDE_DIR}
-)
-
-set(MODULE_NAME opentxs-network)
+set(MODULE_NAME opentxs-network-zeromq)
 
 if(WIN32)
   # suppress warnings about exported internal symbols (global log stream objects)
@@ -47,7 +48,7 @@ else()
 endif()
 
 install(FILES ${cxx-install-headers}
-        DESTINATION include/opentxs/network
+        DESTINATION include/opentxs/network/zeromq
         COMPONENT dev)
 
 set_property(TARGET ${MODULE_NAME} PROPERTY POSITION_INDEPENDENT_CODE 1)

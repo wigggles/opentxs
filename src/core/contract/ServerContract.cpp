@@ -43,6 +43,7 @@
 #include "opentxs/api/Native.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/contract/Signable.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -51,12 +52,6 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/OT.hpp"
 #include "opentxs/Proto.hpp"
-
-#include <stdint.h>
-#include <list>
-#include <memory>
-#include <string>
-#include <tuple>
 
 namespace opentxs
 {
@@ -99,8 +94,7 @@ ServerContract* ServerContract::Create(
     const std::string& terms,
     const std::string& name)
 {
-    OT_ASSERT(nullptr != nym);
-
+    OT_ASSERT(nym);
     OT_ASSERT(nym->hasCapability(NymCapability::AUTHENTICATE_CONNECTION));
 
     ServerContract* contract = new ServerContract(nym);
@@ -319,6 +313,15 @@ Data ServerContract::Serialize() const
     Lock lock(lock_);
 
     return proto::ProtoAsData(contract(lock));
+}
+
+const Data& ServerContract::TransportKey() const { return transport_key_; }
+
+std::unique_ptr<OTPassword> ServerContract::TransportKey(Data& pubkey) const
+{
+    OT_ASSERT(nym_);
+
+    return nym_->TransportKey(pubkey);
 }
 
 bool ServerContract::update_signature(const Lock& lock)

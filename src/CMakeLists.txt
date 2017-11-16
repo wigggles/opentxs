@@ -65,6 +65,7 @@ set(object-deps
   $<TARGET_OBJECTS:opentxs-core>
   $<TARGET_OBJECTS:opentxs-cron>
   $<TARGET_OBJECTS:opentxs-ext>
+  $<TARGET_OBJECTS:opentxs-network-zeromq>
   $<TARGET_OBJECTS:opentxs-network>
   $<TARGET_OBJECTS:opentxs-recurring>
   $<TARGET_OBJECTS:opentxs-script>

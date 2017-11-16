@@ -2830,6 +2830,31 @@ zcert_t* Nym::TransportKey() const
     return output;
 }
 
+std::unique_ptr<OTPassword> Nym::TransportKey(Data& pubkey) const
+{
+    bool found{false};
+    auto privateKey = std::make_unique<OTPassword>();
+
+    OT_ASSERT(privateKey);
+
+    for (auto& it : m_mapCredentialSets) {
+        OT_ASSERT(nullptr != it.second);
+
+        if (nullptr != it.second) {
+            const CredentialSet& credSet = *it.second;
+            found = credSet.TransportKey(pubkey, *privateKey);
+
+            if (found) {
+                break;
+            }
+        }
+    }
+
+    OT_ASSERT(found);
+
+    return privateKey;
+}
+
 bool Nym::update_nym(const Lock& lock)
 {
     OT_ASSERT(verify_lock(lock));
