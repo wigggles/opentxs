@@ -36,47 +36,53 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_API_API_HPP
-#define OPENTXS_API_API_HPP
+#ifndef OPENTXS_API_NETWORK_ZMQ_HPP
+#define OPENTXS_API_NETWORK_ZMQ_HPP
 
 #include "opentxs/Version.hpp"
 
-#include <mutex>
+#include "opentxs/Types.hpp"
+
+#include <chrono>
 #include <string>
 
 namespace opentxs
 {
-class MadeEasy;
-class OT_API;
-class OT_ME;
-class OTAPI_Exec;
-class OTME_too;
+class ServerConnection;
 
 namespace api
 {
+namespace network
+{
 
-class Api
+class ZMQ
 {
 public:
-    EXPORT virtual std::recursive_mutex& Lock() const = 0;
+    virtual std::chrono::seconds KeepAlive() const = 0;
+    virtual void KeepAlive(const std::chrono::seconds duration) const = 0;
+    virtual std::chrono::seconds Linger() = 0;
+    virtual std::chrono::seconds ReceiveTimeout() = 0;
+    virtual void RefreshConfig() = 0;
+    virtual std::chrono::seconds SendTimeout() = 0;
 
-    EXPORT virtual OTAPI_Exec& Exec(const std::string& wallet = "") = 0;
-    EXPORT virtual MadeEasy& ME(const std::string& wallet = "") = 0;
-    EXPORT virtual OT_API& OTAPI(const std::string& wallet = "") = 0;
-    EXPORT virtual OT_ME& OTME(const std::string& wallet = "") = 0;
-    EXPORT virtual OTME_too& OTME_TOO(const std::string& wallet = "") = 0;
+    virtual ServerConnection& Server(const std::string& id) = 0;
+    virtual bool SetSocksProxy(const std::string& proxy) = 0;
+    virtual std::string SocksProxy() = 0;
+    virtual bool SocksProxy(std::string& proxy) = 0;
+    virtual ConnectionState Status(const std::string& server) const = 0;
 
-    EXPORT virtual ~Api() = default;
+    virtual ~ZMQ() = default;
 
 protected:
-    Api() = default;
+    ZMQ() = default;
 
 private:
-    Api(const Api&) = delete;
-    Api(Api&&) = delete;
-    Api& operator=(const Api&) = delete;
-    Api& operator=(Api&&) = delete;
+    ZMQ(const ZMQ&) = delete;
+    ZMQ(ZMQ&&) = delete;
+    ZMQ& operator=(const ZMQ&) = delete;
+    ZMQ& operator=(const ZMQ&&) = delete;
 };
+}  // namespace network
 }  // namespace api
 }  // namespace opentxs
-#endif  // OPENTXS_API_API_HPP
+#endif  // OPENTXS_API_NETWORK_ZMQ_HPP

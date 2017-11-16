@@ -36,12 +36,12 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_NETWORK_ZMQ_HPP
-#define OPENTXS_NETWORK_ZMQ_HPP
+#ifndef OPENTXS_API_NETWORK_IMPLEMENTATION_ZMQ_HPP
+#define OPENTXS_API_NETWORK_IMPLEMENTATION_ZMQ_HPP
 
 #include "opentxs/Version.hpp"
 
-#include "opentxs/Types.hpp"
+#include "opentxs/api/network/ZMQ.hpp"
 
 // IWYU pragma: begin_exports
 extern "C" {
@@ -57,11 +57,9 @@ extern "C" {
 // IWYU pragma: end_exports
 
 #include <atomic>
-#include <chrono>
 #include <map>
 #include <memory>
 #include <mutex>
-#include <string>
 
 // forward declare czmq types
 typedef struct _zsock_t zsock_t;
@@ -79,12 +77,33 @@ class Settings;
 namespace implementation
 {
 class Native;
-}
+}  // namespace implementation
 
-class ZMQ
+namespace network
 {
+namespace implementation
+{
+
+class ZMQ : virtual public opentxs::api::network::ZMQ
+{
+public:
+    std::chrono::seconds KeepAlive() const override;
+    void KeepAlive(const std::chrono::seconds duration) const override;
+    std::chrono::seconds Linger() override;
+    std::chrono::seconds ReceiveTimeout() override;
+    void RefreshConfig() override;
+    std::chrono::seconds SendTimeout() override;
+
+    ServerConnection& Server(const std::string& id) override;
+    bool SetSocksProxy(const std::string& proxy) override;
+    std::string SocksProxy() override;
+    bool SocksProxy(std::string& proxy) override;
+    ConnectionState Status(const std::string& server) const override;
+
+    ~ZMQ();
+
 private:
-    friend class implementation::Native;
+    friend class opentxs::api::implementation::Native;
 
     api::Settings& config_;
     std::atomic<std::chrono::seconds> linger_;
@@ -107,24 +126,9 @@ private:
     ZMQ(ZMQ&&) = delete;
     ZMQ& operator=(const ZMQ&) = delete;
     ZMQ& operator=(const ZMQ&&) = delete;
-
-public:
-    std::chrono::seconds KeepAlive() const;
-    void KeepAlive(const std::chrono::seconds duration) const;
-    std::chrono::seconds Linger();
-    std::chrono::seconds ReceiveTimeout();
-    void RefreshConfig();
-    std::chrono::seconds SendTimeout();
-
-    bool SetSocksProxy(const std::string& proxy);
-    std::string SocksProxy();
-    bool SocksProxy(std::string& proxy);
-
-    ServerConnection& Server(const std::string& id);
-    ConnectionState Status(const std::string& server) const;
-
-    ~ZMQ();
 };
+}  // namespace implementation
+}  // namespace network
 }  // namespace api
 }  // namespace opentxs
-#endif  // OPENTXS_NETWORK_ZMQ_HPP
+#endif  // OPENTXS_API_NETWORK_IMPLEMENTATION_ZMQ_HPP

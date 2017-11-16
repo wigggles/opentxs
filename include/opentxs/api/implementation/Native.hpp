@@ -83,7 +83,7 @@ public:
     api::ContactManager& Contact() const override;
     api::Crypto& Crypto() const override;
     api::storage::Storage& DB() const override;
-    api::Dht& DHT() const override;
+    api::network::Dht& DHT() const override;
     void HandleSignals() const override;
     api::Identity& Identity() const override;
     /** Adds a task to the periodic task list with the specified interval. By
@@ -96,7 +96,7 @@ public:
     const api::Server& Server() const override;
     bool ServerMode() const override;
     api::Wallet& Wallet() const override;
-    api::ZMQ& ZMQ() const override;
+    api::network::ZMQ& ZMQ() const override;
 
 private:
     friend class opentxs::OT;
@@ -131,11 +131,11 @@ private:
     mutable ConfigMap config_;
     std::unique_ptr<api::ContactManager> contacts_;
     std::unique_ptr<api::Crypto> crypto_;
-    std::unique_ptr<api::Dht> dht_;
+    std::unique_ptr<api::network::Dht> dht_;
     std::unique_ptr<api::Identity> identity_;
     std::unique_ptr<api::storage::Storage> storage_;
     std::unique_ptr<api::Wallet> wallet_;
-    std::unique_ptr<api::ZMQ> zeromq_;
+    std::unique_ptr<api::network::ZMQ> zeromq_;
     std::unique_ptr<std::thread> periodic_;
     std::unique_ptr<SymmetricKey> storage_encryption_key_;
     std::unique_ptr<api::Server> server_;

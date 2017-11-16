@@ -43,14 +43,15 @@
 #include "opentxs/api/crypto/implementation/Crypto.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
+#include "opentxs/api/implementation/Api.hpp"
+#include "opentxs/api/implementation/Server.hpp"
+#include "opentxs/api/network/implementation/Dht.hpp"
+#include "opentxs/api/network/implementation/ZMQ.hpp"
 #include "opentxs/api/storage/implementation/Storage.hpp"
 #include "opentxs/api/Activity.hpp"
-#include "opentxs/api/Api.hpp"
 #include "opentxs/api/Blockchain.hpp"
 #include "opentxs/api/ContactManager.hpp"
-#include "opentxs/api/Dht.hpp"
 #include "opentxs/api/Identity.hpp"
-#include "opentxs/api/Server.hpp"
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/client/OT_API.hpp"
@@ -67,7 +68,6 @@
 #include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/network/DhtConfig.hpp"
 #include "opentxs/network/ServerConnection.hpp"
-#include "opentxs/network/ZMQ.hpp"
 #include "opentxs/storage/StorageConfig.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/OTStorage.hpp"
@@ -201,7 +201,7 @@ api::storage::Storage& Native::DB() const
     return *storage_;
 }
 
-api::Dht& Native::DHT() const
+api::network::Dht& Native::DHT() const
 {
     OT_ASSERT(dht_)
 
@@ -278,7 +278,7 @@ void Native::Init_Api()
         return;
     }
 
-    api_.reset(new api::Api(
+    api_.reset(new api::implementation::Api(
         *activity_,
         *config,
         *contacts_,
@@ -405,7 +405,7 @@ void Native::Init_Dht()
         config.bootstrap_port_,
         notUsed);
 
-    dht_.reset(new api::Dht(config, *wallet_));
+    dht_.reset(new api::network::implementation::Dht(config, *wallet_));
 }
 
 void Native::Init_Identity()
@@ -441,12 +441,16 @@ void Native::Init_Server()
     OT_ASSERT(storage_);
     OT_ASSERT(wallet_);
 
-    server_.reset(new api::Server(
+    server_.reset(new api::implementation::Server(
         server_args_, *crypto_, Config(), *storage_, *wallet_, shutdown_));
 
     OT_ASSERT(server_);
 
-    server_->Init();
+    auto server = dynamic_cast<implementation::Server*>(server_.get());
+
+    OT_ASSERT(server);
+
+    server->Init();
 }
 
 void Native::Init_Storage()
@@ -622,8 +626,9 @@ void Native::Init_Storage()
 
     if (dht_) {
         config.dht_callback_ = std::bind(
-            static_cast<void (api::Dht::*)(
-                const std::string&, const std::string&)>(&api::Dht::Insert),
+            static_cast<void (api::network::Dht::*)(
+                const std::string&, const std::string&)>(
+                &api::network::Dht::Insert),
             dht_.get(),
             std::placeholders::_1,
             std::placeholders::_2);
@@ -736,7 +741,7 @@ void Native::Init_ZMQ()
 
     OT_ASSERT(config);
 
-    zeromq_.reset(new api::ZMQ(*config));
+    zeromq_.reset(new api::network::implementation::ZMQ(*config));
 }
 
 void Native::Periodic()
@@ -856,11 +861,19 @@ void Native::shutdown()
     }
 
     if (server_) {
-        server_->Cleanup();
+        auto server = dynamic_cast<implementation::Server*>(server_.get());
+
+        OT_ASSERT(server);
+
+        server->Cleanup();
     }
 
     if (api_) {
-        api_->Cleanup();
+        auto api = dynamic_cast<implementation::Api*>(api_.get());
+
+        OT_ASSERT(api);
+
+        api->Cleanup();
     }
 
     server_.reset();
@@ -899,8 +912,11 @@ void Native::start()
 
     if (server_mode_) {
         OT_ASSERT(server_);
+        auto server = dynamic_cast<implementation::Server*>(server_.get());
 
-        server_->Start();
+        OT_ASSERT(server);
+
+        server->Start();
     }
 }
 
@@ -911,7 +927,7 @@ api::Wallet& Native::Wallet() const
     return *wallet_;
 }
 
-api::ZMQ& Native::ZMQ() const
+api::network::ZMQ& Native::ZMQ() const
 {
     OT_ASSERT(zeromq_)
 

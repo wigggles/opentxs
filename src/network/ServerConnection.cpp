@@ -40,6 +40,7 @@
 
 #include "opentxs/network/ServerConnection.hpp"
 
+#include "opentxs/api/network/ZMQ.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/api/Wallet.hpp"
@@ -49,7 +50,6 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/network/ZMQ.hpp"
 #include "opentxs/OT.hpp"
 #include "opentxs/Proto.hpp"
 
@@ -65,7 +65,7 @@ ServerConnection::ServerConnection(
     const std::string& proxy,
     std::atomic<bool>& shutdown,
     std::atomic<std::chrono::seconds>& keepAlive,
-    api::ZMQ& zmq,
+    api::network::ZMQ& zmq,
     api::Settings& config)
     : shutdown_(shutdown)
     , keep_alive_(keepAlive)

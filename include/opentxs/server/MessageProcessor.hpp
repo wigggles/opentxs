@@ -41,7 +41,7 @@
 
 #include "opentxs/Version.hpp"
 
-#include "opentxs/network/ZMQ.hpp"
+#include "opentxs/api/network/implementation/ZMQ.hpp"  // TODO remove
 
 #include <atomic>
 #include <memory>

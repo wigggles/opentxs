@@ -84,13 +84,22 @@ class UnitDefinition;
 namespace api
 {
 class Activity;
-class Api;
 class ContactManager;
 class Crypto;
 class Identity;
 class Settings;
 class Wallet;
 class ZMQ;
+
+namespace implementation
+{
+class Api;
+}  // namespace implementation
+
+namespace network
+{
+class ZMQ;
+}  // namespace network
 
 namespace storage
 {
@@ -1363,7 +1372,7 @@ public:
     EXPORT ~OT_API();  // calls Cleanup();
 
 private:
-    friend class api::Api;
+    friend class api::implementation::Api;
 
     class Pid;
 
@@ -1374,7 +1383,7 @@ private:
     api::Identity& identity_;
     api::storage::Storage& storage_;
     api::Wallet& wallet_;
-    api::ZMQ& zeromq_;
+    api::network::ZMQ& zeromq_;
 
     bool m_bDefaultStore{false};
 
@@ -1440,7 +1449,7 @@ private:
         api::Identity& identity,
         api::storage::Storage& storage,
         api::Wallet& wallet,
-        api::ZMQ& zmq,
+        api::network::ZMQ& zmq,
         std::recursive_mutex& lock);
     OT_API() = delete;
     OT_API(const OT_API&) = delete;

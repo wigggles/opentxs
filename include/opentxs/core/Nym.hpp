@@ -41,12 +41,12 @@
 
 #include "opentxs/Version.hpp"
 
+#include "opentxs/api/network/implementation/ZMQ.hpp"  // TODO remove
 #include "opentxs/core/crypto/CredentialSet.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
-#include "opentxs/network/ZMQ.hpp"
 
 #include <atomic>
 #include <cstdint>

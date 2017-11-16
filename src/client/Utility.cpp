@@ -40,6 +40,7 @@
 
 #include "opentxs/client/Utility.hpp"
 
+#include "opentxs/api/network/ZMQ.hpp"
 #include "opentxs/api/Api.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/client/OT_API.hpp"
@@ -48,7 +49,6 @@
 #include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/core/Ledger.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/network/ZMQ.hpp"
 
 #include <ostream>
 

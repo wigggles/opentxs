@@ -69,11 +69,15 @@ class OTAPI_Exec;
 
 namespace api
 {
-class Api;
 class ContactManager;
 class Identity;
 class Settings;
 class Wallet;
+
+namespace implementation
+{
+class Api;
+}  // namespace implementation
 
 namespace crypto
 {
@@ -84,7 +88,7 @@ class Encode;
 class OTME_too
 {
 private:
-    friend class api::Api;
+    friend class api::implementation::Api;
 
     typedef std::unique_lock<std::mutex> Lock;
     typedef std::unique_lock<std::recursive_mutex> rLock;

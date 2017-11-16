@@ -1,22 +1,19 @@
 set(cxx-sources
-  OpenDHT.cpp
-  ServerConnection.cpp
+  Dht.cpp
+  ZMQ.cpp
 )
 
 file(GLOB cxx-install-headers
-     "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/network/*.hpp"
+     "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/api/network/*.hpp"
 )
 
 set(cxx-headers
   ${cxx-install-headers}
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/api/network/implementation/Dht.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/api/network/implementation/ZMQ.hpp
 )
 
-include_directories(SYSTEM
-  ${OPENDHT_INCLUDE_DIR}
-  ${GNUTLS_INCLUDE_DIR}
-)
-
-set(MODULE_NAME opentxs-network)
+set(MODULE_NAME opentxs-api-network)
 
 if(WIN32)
   # suppress warnings about exported internal symbols (global log stream objects)
@@ -35,6 +32,7 @@ if(WIN32)
   add_library(${MODULE_NAME} OBJECT
     ${cxx-sources}
     ${cxx-headers}
+    util/OTWindowsRegistryTools.cpp
     ${CMAKE_CURRENT_BINARY_DIR}/module.rc
   )
 else()
@@ -45,7 +43,7 @@ else()
 endif()
 
 install(FILES ${cxx-install-headers}
-        DESTINATION include/opentxs/network
+        DESTINATION include/opentxs/api/network
         COMPONENT dev)
 
 set_property(TARGET ${MODULE_NAME} PROPERTY POSITION_INDEPENDENT_CODE 1)

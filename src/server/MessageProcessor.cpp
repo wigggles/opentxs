@@ -40,13 +40,13 @@
 
 #include "opentxs/server/MessageProcessor.hpp"
 
+#include "opentxs/api/network/ZMQ.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/network/ZMQ.hpp"
 #include "opentxs/server/Server.hpp"
 #include "opentxs/server/UserCommandProcessor.hpp"
 

@@ -40,6 +40,7 @@
 
 #include "opentxs/client/OTAPI_Exec.hpp"
 
+#include "opentxs/api/network/ZMQ.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/Activity.hpp"
@@ -93,9 +94,9 @@
 #include "opentxs/core/NymIDSource.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/Types.hpp"
 #include "opentxs/ext/InstantiateContract.hpp"
 #include "opentxs/ext/OTPayment.hpp"
+#include "opentxs/Types.hpp"
 
 #include <cstdint>
 #include <memory>
@@ -126,7 +127,7 @@ OTAPI_Exec::OTAPI_Exec(
     api::Crypto& crypto,
     api::Identity& identity,
     api::Wallet& wallet,
-    api::ZMQ& zeromq,
+    api::network::ZMQ& zeromq,
     OT_API& otapi,
     std::recursive_mutex& lock)
     : activity_(activity)

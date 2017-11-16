@@ -38,10 +38,11 @@
 
 #include "opentxs/stdafx.hpp"
 
+#include "opentxs/api/network/implementation/ZMQ.hpp"
+
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/network/ServerConnection.hpp"
-#include "opentxs/network/ZMQ.hpp"
 #include "opentxs/OT.hpp"
 
 #define CLIENT_SEND_TIMEOUT_SECONDS 20
@@ -53,7 +54,7 @@
 
 #define OT_METHOD "opentxs::api::ZMQ::"
 
-namespace opentxs::api
+namespace opentxs::api::network::implementation
 {
 
 ZMQ::ZMQ(api::Settings& config)
@@ -241,4 +242,4 @@ ZMQ::~ZMQ()
     shutdown_.store(true);
     server_connections_.clear();
 }
-}  // namespace opentxs::api
+}  // namespace opentxs::api::network::implementation

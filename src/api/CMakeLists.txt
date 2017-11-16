@@ -1,4 +1,5 @@
 add_subdirectory(crypto)
+add_subdirectory(network)
 add_subdirectory(storage)
 
 set(cxx-sources
@@ -6,7 +7,6 @@ set(cxx-sources
   Api.cpp
   Blockchain.cpp
   ContactManager.cpp
-  Dht.cpp
   Identity.cpp
   Native.cpp
   Server.cpp
@@ -20,7 +20,9 @@ file(GLOB cxx-install-headers
 
 set(cxx-headers
   ${cxx-install-headers}
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/api/implementation/Api.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/api/implementation/Native.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/api/implementation/Server.hpp
 )
 
 set(MODULE_NAME opentxs-api)

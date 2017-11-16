@@ -59,20 +59,27 @@ namespace api
 {
 
 class Activity;
-class Api;
 class ContactManager;
 class Crypto;
 class Settings;
 class Identity;
 class Wallet;
-class ZMQ;
 
+namespace implementation
+{
+class Api;
+}  // namespace implementation
+
+namespace network
+{
+class ZMQ;
+}  // namespace network
 }  // namespace api
 
 class OTAPI_Exec
 {
 private:
-    friend class api::Api;
+    friend class api::implementation::Api;
 
     api::Activity& activity_;
     api::Settings& config_;
@@ -80,7 +87,7 @@ private:
     api::Crypto& crypto_;
     api::Identity& identity_;
     api::Wallet& wallet_;
-    api::ZMQ& zeromq_;
+    api::network::ZMQ& zeromq_;
     OT_API& ot_api_;
     std::recursive_mutex& lock_;
 
@@ -91,7 +98,7 @@ private:
         api::Crypto& crypto,
         api::Identity& identity,
         api::Wallet& wallet,
-        api::ZMQ& zeromq,
+        api::network::ZMQ& zeromq,
         OT_API& otapi,
         std::recursive_mutex& lock);
     OTAPI_Exec() = delete;
