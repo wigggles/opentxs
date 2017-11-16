@@ -38,7 +38,7 @@
 
 #include "opentxs/stdafx.hpp"
 
-#include "opentxs/api/Server.hpp"
+#include "opentxs/api/implementation/Server.hpp"
 
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/cash/Mint.hpp"
@@ -63,16 +63,16 @@
 #define MINT_VALID_MONTHS 12
 #define MINT_GENERATE_DAYS 7
 
-#define OT_METHOD "opentxs::Server::"
+#define OT_METHOD "opentxs::api::implementation::Server::"
 
-namespace opentxs::api
+namespace opentxs::api::implementation
 {
 Server::Server(
     const std::map<std::string, std::string>& args,
     opentxs::api::Crypto& crypto,
-    Settings& config,
-    storage::Storage& storage,
-    Wallet& wallet,
+    opentxs::api::Settings& config,
+    opentxs::api::storage::Storage& storage,
+    opentxs::api::Wallet& wallet,
     std::atomic<bool>& shutdown)
     : args_(args)
     , config_(config)
@@ -462,4 +462,4 @@ Server::~Server()
         mint_thread_.reset();
     }
 }
-}  // namespace opentxs::api
+}  // namespace opentxs::api::implementation

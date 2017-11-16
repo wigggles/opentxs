@@ -73,6 +73,11 @@ class Server;
 class Settings;
 class Wallet;
 
+namespace implementation
+{
+class Server;
+}  // namespace implementation
+
 namespace storage
 {
 class Storage;
@@ -84,7 +89,7 @@ namespace server
 
 class Server
 {
-    friend class opentxs::api::Server;
+    friend class opentxs::api::implementation::Server;
     friend class Transactor;
     friend class MessageProcessor;
     friend class UserCommandProcessor;

@@ -43,6 +43,7 @@
 #include "opentxs/api/crypto/implementation/Crypto.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
+#include "opentxs/api/implementation/Server.hpp"
 #include "opentxs/api/storage/implementation/Storage.hpp"
 #include "opentxs/api/Activity.hpp"
 #include "opentxs/api/Api.hpp"
@@ -50,7 +51,6 @@
 #include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Dht.hpp"
 #include "opentxs/api/Identity.hpp"
-#include "opentxs/api/Server.hpp"
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/client/OT_API.hpp"
@@ -441,12 +441,16 @@ void Native::Init_Server()
     OT_ASSERT(storage_);
     OT_ASSERT(wallet_);
 
-    server_.reset(new api::Server(
+    server_.reset(new api::implementation::Server(
         server_args_, *crypto_, Config(), *storage_, *wallet_, shutdown_));
 
     OT_ASSERT(server_);
 
-    server_->Init();
+    auto server = dynamic_cast<implementation::Server*>(server_.get());
+
+    OT_ASSERT(server);
+
+    server->Init();
 }
 
 void Native::Init_Storage()
@@ -856,7 +860,11 @@ void Native::shutdown()
     }
 
     if (server_) {
-        server_->Cleanup();
+        auto server = dynamic_cast<implementation::Server*>(server_.get());
+
+        OT_ASSERT(server);
+
+        server->Cleanup();
     }
 
     if (api_) {
@@ -899,8 +907,11 @@ void Native::start()
 
     if (server_mode_) {
         OT_ASSERT(server_);
+        auto server = dynamic_cast<implementation::Server*>(server_.get());
 
-        server_->Start();
+        OT_ASSERT(server);
+
+        server->Start();
     }
 }
 
