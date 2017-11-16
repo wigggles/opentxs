@@ -43,13 +43,13 @@
 #include "opentxs/api/crypto/implementation/Crypto.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
+#include "opentxs/api/implementation/Dht.hpp"
 #include "opentxs/api/implementation/Server.hpp"
 #include "opentxs/api/storage/implementation/Storage.hpp"
 #include "opentxs/api/Activity.hpp"
 #include "opentxs/api/Api.hpp"
 #include "opentxs/api/Blockchain.hpp"
 #include "opentxs/api/ContactManager.hpp"
-#include "opentxs/api/Dht.hpp"
 #include "opentxs/api/Identity.hpp"
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/api/Wallet.hpp"
@@ -405,7 +405,7 @@ void Native::Init_Dht()
         config.bootstrap_port_,
         notUsed);
 
-    dht_.reset(new api::Dht(config, *wallet_));
+    dht_.reset(new implementation::Dht(config, *wallet_));
 }
 
 void Native::Init_Identity()

@@ -20,6 +20,7 @@ file(GLOB cxx-install-headers
 
 set(cxx-headers
   ${cxx-install-headers}
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/api/implementation/Dht.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/api/implementation/Native.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/api/implementation/Server.hpp
 )

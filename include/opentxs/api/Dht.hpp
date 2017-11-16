@@ -42,32 +42,16 @@
 #include "opentxs/Version.hpp"
 
 #include "opentxs/Proto.hpp"
-#include "opentxs/Types.hpp"
 
-#include <cstdint>
 #include <functional>
 #include <map>
 #include <string>
 
 namespace opentxs
 {
-
-class Credential;
-class DhtConfig;
-class OpenDHT;
-class ServerContract;
-class UnitDefinition;
-
 namespace api
 {
-class Wallet;
 
-namespace implementation
-{
-class Native;
-}
-
-/** High level interface to OpenDHT. Supports opentxs types. */
 class Dht
 {
 public:
@@ -80,51 +64,28 @@ public:
     typedef std::function<void(const std::string)> NotifyCB;
     typedef std::map<Callback, NotifyCB> CallbackMap;
 
-    EXPORT void Cleanup();
-    EXPORT void GetPublicNym(const std::string& key);
-    EXPORT void GetServerContract(const std::string& key);
-    EXPORT void GetUnitDefinition(const std::string& key);
-    EXPORT void Insert(const std::string& key, const std::string& value);
-    EXPORT void Insert(const proto::CredentialIndex& nym);
-    EXPORT void Insert(const proto::ServerContract& contract);
-    EXPORT void Insert(const proto::UnitDefinition& contract);
-    EXPORT void RegisterCallbacks(const CallbackMap& callbacks);
+    EXPORT virtual void Cleanup() = 0;
+    EXPORT virtual void GetPublicNym(const std::string& key) = 0;
+    EXPORT virtual void GetServerContract(const std::string& key) = 0;
+    EXPORT virtual void GetUnitDefinition(const std::string& key) = 0;
+    EXPORT virtual void Insert(
+        const std::string& key,
+        const std::string& value) = 0;
+    EXPORT virtual void Insert(const proto::CredentialIndex& nym) = 0;
+    EXPORT virtual void Insert(const proto::ServerContract& contract) = 0;
+    EXPORT virtual void Insert(const proto::UnitDefinition& contract) = 0;
+    EXPORT virtual void RegisterCallbacks(const CallbackMap& callbacks) = 0;
 
-    EXPORT ~Dht();
+    EXPORT virtual ~Dht() = default;
+
+protected:
+    Dht() = default;
 
 private:
-    friend class implementation::Native;
-
-    api::Wallet& wallet_;
-    CallbackMap callback_map_;
-    std::unique_ptr<const DhtConfig> config_;
-#if OT_DHT
-    OpenDHT* node_ = nullptr;
-#endif
-
-#if OT_DHT
-    static bool ProcessPublicNym(
-        api::Wallet& wallet,
-        const std::string key,
-        const DhtResults& values,
-        NotifyCB notifyCB);
-    static bool ProcessServerContract(
-        api::Wallet& wallet,
-        const std::string key,
-        const DhtResults& values,
-        NotifyCB notifyCB);
-    static bool ProcessUnitDefinition(
-        api::Wallet& wallet,
-        const std::string key,
-        const DhtResults& values,
-        NotifyCB notifyCB);
-#endif
-
-    explicit Dht(DhtConfig& config, api::Wallet& wallet);
-    Dht() = delete;
     Dht(const Dht&) = delete;
+    Dht(Dht&&) = delete;
     Dht& operator=(const Dht&) = delete;
-    void Init();
+    Dht& operator=(Dht&&) = delete;
 };
 }  // namespace api
 }  // namespace opentxs
