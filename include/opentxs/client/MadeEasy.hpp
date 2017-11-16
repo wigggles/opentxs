@@ -52,8 +52,12 @@ class OT_API;
 
 namespace api
 {
-class Api;
 class Wallet;
+
+namespace implementation
+{
+class Api;
+}  // namespace implementation
 }  // namespace api
 
 class MadeEasy
@@ -215,7 +219,7 @@ public:
     ~MadeEasy() = default;
 
 private:
-    friend class api::Api;
+    friend class api::implementation::Api;
 
     std::recursive_mutex& lock_;
     OT_API& otapi_;

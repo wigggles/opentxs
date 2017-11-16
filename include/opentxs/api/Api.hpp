@@ -36,12 +36,11 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_CORE_API_API_HPP
-#define OPENTXS_CORE_API_API_HPP
+#ifndef OPENTXS_API_API_HPP
+#define OPENTXS_API_API_HPP
 
 #include "opentxs/Version.hpp"
 
-#include <memory>
 #include <mutex>
 #include <string>
 
@@ -55,69 +54,24 @@ class OTME_too;
 
 namespace api
 {
-class Activity;
-class ContactManager;
-class Crypto;
-class Identity;
-class Settings;
-class Wallet;
-class ZMQ;
-
-namespace storage
-{
-class Storage;
-}  // namespace storage
-
-namespace implementation
-{
-class Native;
-}
 
 class Api
 {
 public:
-    std::recursive_mutex& Lock() const;
+    EXPORT virtual std::recursive_mutex& Lock() const = 0;
 
-    OTAPI_Exec& Exec(const std::string& wallet = "");
-    MadeEasy& ME(const std::string& wallet = "");
-    OT_API& OTAPI(const std::string& wallet = "");
-    OT_ME& OTME(const std::string& wallet = "");
-    OTME_too& OTME_TOO(const std::string& wallet = "");
+    EXPORT virtual OTAPI_Exec& Exec(const std::string& wallet = "") = 0;
+    EXPORT virtual MadeEasy& ME(const std::string& wallet = "") = 0;
+    EXPORT virtual OT_API& OTAPI(const std::string& wallet = "") = 0;
+    EXPORT virtual OT_ME& OTME(const std::string& wallet = "") = 0;
+    EXPORT virtual OTME_too& OTME_TOO(const std::string& wallet = "") = 0;
 
-    ~Api() = default;
+    EXPORT virtual ~Api() = default;
+
+protected:
+    Api() = default;
 
 private:
-    friend class implementation::Native;
-
-    Activity& activity_;
-    Settings& config_;
-    ContactManager& contacts_;
-    Crypto& crypto_;
-    Identity& identity_;
-    storage::Storage& storage_;
-    Wallet& wallet_;
-    ZMQ& zmq_;
-
-    std::unique_ptr<OT_API> ot_api_;
-    std::unique_ptr<OTAPI_Exec> otapi_exec_;
-    std::unique_ptr<MadeEasy> made_easy_;
-    std::unique_ptr<OT_ME> ot_me_;
-    std::unique_ptr<OTME_too> otme_too_;
-
-    mutable std::recursive_mutex lock_;
-
-    void Cleanup();
-    void Init();
-
-    Api(Activity& activity,
-        Settings& config,
-        ContactManager& contacts,
-        Crypto& crypto,
-        Identity& identity,
-        storage::Storage& storage,
-        Wallet& wallet,
-        ZMQ& zmq);
-    Api() = delete;
     Api(const Api&) = delete;
     Api(Api&&) = delete;
     Api& operator=(const Api&) = delete;
@@ -125,5 +79,4 @@ private:
 };
 }  // namespace api
 }  // namespace opentxs
-
-#endif  // OPENTXS_CORE_API_API_HPP
+#endif  // OPENTXS_API_API_HPP

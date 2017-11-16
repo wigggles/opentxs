@@ -43,11 +43,11 @@
 #include "opentxs/api/crypto/implementation/Crypto.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
+#include "opentxs/api/implementation/Api.hpp"
 #include "opentxs/api/implementation/Dht.hpp"
 #include "opentxs/api/implementation/Server.hpp"
 #include "opentxs/api/storage/implementation/Storage.hpp"
 #include "opentxs/api/Activity.hpp"
-#include "opentxs/api/Api.hpp"
 #include "opentxs/api/Blockchain.hpp"
 #include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Identity.hpp"
@@ -278,7 +278,7 @@ void Native::Init_Api()
         return;
     }
 
-    api_.reset(new api::Api(
+    api_.reset(new api::implementation::Api(
         *activity_,
         *config,
         *contacts_,
@@ -868,7 +868,11 @@ void Native::shutdown()
     }
 
     if (api_) {
-        api_->Cleanup();
+        auto api = dynamic_cast<implementation::Api*>(api_.get());
+
+        OT_ASSERT(api);
+
+        api->Cleanup();
     }
 
     server_.reset();

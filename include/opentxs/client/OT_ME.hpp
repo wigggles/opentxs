@@ -54,8 +54,12 @@ class String;
 
 namespace api
 {
-class Api;
 class Wallet;
+
+namespace implementation
+{
+class Api;
+}  // namespace implementation
 }
 
 class OT_ME
@@ -497,7 +501,7 @@ public:
     ~OT_ME() = default;
 
 private:
-    friend class api::Api;
+    friend class api::implementation::Api;
 
     std::recursive_mutex& lock_;
     OT_API& otapi_;

@@ -59,7 +59,6 @@ namespace api
 {
 
 class Activity;
-class Api;
 class ContactManager;
 class Crypto;
 class Settings;
@@ -67,12 +66,16 @@ class Identity;
 class Wallet;
 class ZMQ;
 
+namespace implementation
+{
+class Api;
+}  // namespace implementation
 }  // namespace api
 
 class OTAPI_Exec
 {
 private:
-    friend class api::Api;
+    friend class api::implementation::Api;
 
     api::Activity& activity_;
     api::Settings& config_;

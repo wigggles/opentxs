@@ -84,13 +84,17 @@ class UnitDefinition;
 namespace api
 {
 class Activity;
-class Api;
 class ContactManager;
 class Crypto;
 class Identity;
 class Settings;
 class Wallet;
 class ZMQ;
+
+namespace implementation
+{
+class Api;
+}  // namespace implementation
 
 namespace storage
 {
@@ -1363,7 +1367,7 @@ public:
     EXPORT ~OT_API();  // calls Cleanup();
 
 private:
-    friend class api::Api;
+    friend class api::implementation::Api;
 
     class Pid;
 

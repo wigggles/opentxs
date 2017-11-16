@@ -38,7 +38,7 @@
 
 #include "opentxs/stdafx.hpp"
 
-#include "opentxs/api/Api.hpp"
+#include "opentxs/api/implementation/Api.hpp"
 
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/Activity.hpp"
@@ -52,18 +52,17 @@
 #include "opentxs/core/crypto/OTCachedKey.hpp"
 #include "opentxs/core/Log.hpp"
 
-namespace opentxs::api
+namespace opentxs::api::implementation
 {
-
 Api::Api(
-    Activity& activity,
-    Settings& config,
-    ContactManager& contacts,
-    Crypto& crypto,
-    Identity& identity,
-    storage::Storage& storage,
-    Wallet& wallet,
-    ZMQ& zmq)
+    api::Activity& activity,
+    api::Settings& config,
+    api::ContactManager& contacts,
+    api::Crypto& crypto,
+    api::Identity& identity,
+    api::storage::Storage& storage,
+    api::Wallet& wallet,
+    api::ZMQ& zmq)
     : activity_(activity)
     , config_(config)
     , contacts_(contacts)
@@ -173,4 +172,4 @@ void Api::Cleanup()
     otapi_exec_.reset();
     ot_api_.reset();
 }
-}  // namespace opentxs::api
+}  // namespace opentxs::api::implementation
