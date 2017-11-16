@@ -63,7 +63,11 @@ class Crypto;
 class Identity;
 class Settings;
 class Wallet;
+
+namespace network
+{
 class ZMQ;
+}  // namespace network
 
 namespace storage
 {
@@ -97,7 +101,7 @@ private:
     Identity& identity_;
     storage::Storage& storage_;
     Wallet& wallet_;
-    ZMQ& zmq_;
+    api::network::ZMQ& zmq_;
 
     std::unique_ptr<OT_API> ot_api_;
     std::unique_ptr<OTAPI_Exec> otapi_exec_;
@@ -117,7 +121,7 @@ private:
         api::Identity& identity,
         api::storage::Storage& storage,
         api::Wallet& wallet,
-        api::ZMQ& zmq);
+        api::network::ZMQ& zmq);
     Api() = delete;
     Api(const Api&) = delete;
     Api(Api&&) = delete;

@@ -40,6 +40,7 @@
 
 #include "opentxs/client/SwigWrap.hpp"
 
+#include "opentxs/api/network/ZMQ.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/storage/Storage.hpp"
@@ -61,7 +62,6 @@
 #include "opentxs/core/NumList.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/network/ServerConnection.hpp"
-#include "opentxs/network/ZMQ.hpp"
 #include "opentxs/OT.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"

@@ -41,9 +41,9 @@
 
 #include "opentxs/Version.hpp"
 
+#include "opentxs/api/network/implementation/ZMQ.hpp"  // TODO remove
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
-#include "opentxs/network/ZMQ.hpp"
 
 #include <atomic>
 #include <ctime>
@@ -61,17 +61,26 @@ class String;
 namespace api
 {
 class Settings;
+
+namespace network
+{
 class ZMQ;
+
+namespace implementation
+{
+class ZMQ;
+}  // namespace implementation
+}  // namespace network
 }  // namespace api
 
 class ServerConnection
 {
 private:
-    friend class api::ZMQ;
+    friend class api::network::implementation::ZMQ;
 
     std::atomic<bool>& shutdown_;
     std::atomic<std::chrono::seconds>& keep_alive_;
-    api::ZMQ& zmq_;
+    api::network::ZMQ& zmq_;
     api::Settings& config_;
 
     std::shared_ptr<const ServerContract> remote_contract_{nullptr};
@@ -102,7 +111,7 @@ private:
         const std::string& proxy,
         std::atomic<bool>& shutdown,
         std::atomic<std::chrono::seconds>& keepAlive,
-        api::ZMQ& zmq,
+        api::network::ZMQ& zmq,
         api::Settings& config);
     ServerConnection(const ServerConnection&) = delete;
     ServerConnection(ServerConnection&&) = delete;

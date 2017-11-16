@@ -36,51 +36,61 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_SERVER_MESSAGEPROCESSOR_HPP
-#define OPENTXS_SERVER_MESSAGEPROCESSOR_HPP
+#ifndef OPENTXS_API_DHT_HPP
+#define OPENTXS_API_DHT_HPP
 
 #include "opentxs/Version.hpp"
 
-#include "opentxs/api/network/implementation/ZMQ.hpp"  // TODO remove
+#include "opentxs/Proto.hpp"
 
-#include <atomic>
-#include <memory>
+#include <functional>
+#include <map>
 #include <string>
-#include <thread>
 
 namespace opentxs
 {
-namespace server
+namespace api
+{
+namespace network
 {
 
-class Server;
-
-class MessageProcessor
+class Dht
 {
 public:
-    EXPORT explicit MessageProcessor(
-        Server& server,
-        std::atomic<bool>& shutdown);
+    enum class Callback : std::uint8_t {
+        SERVER_CONTRACT = 0,
+        ASSET_CONTRACT = 1,
+        PUBLIC_NYM = 2
+    };
 
-    EXPORT void Cleanup();
-    EXPORT void Init(int port, zcert_t* transportKey);
-    EXPORT void Start();
+    typedef std::function<void(const std::string)> NotifyCB;
+    typedef std::map<Callback, NotifyCB> CallbackMap;
 
-    EXPORT ~MessageProcessor();
+    EXPORT virtual void Cleanup() = 0;
+    EXPORT virtual void GetPublicNym(const std::string& key) = 0;
+    EXPORT virtual void GetServerContract(const std::string& key) = 0;
+    EXPORT virtual void GetUnitDefinition(const std::string& key) = 0;
+    EXPORT virtual void Insert(
+        const std::string& key,
+        const std::string& value) = 0;
+    EXPORT virtual void Insert(const proto::CredentialIndex& nym) = 0;
+    EXPORT virtual void Insert(const proto::ServerContract& contract) = 0;
+    EXPORT virtual void Insert(const proto::UnitDefinition& contract) = 0;
+    EXPORT virtual void RegisterCallbacks(const CallbackMap& callbacks) = 0;
+
+    EXPORT virtual ~Dht() = default;
+
+protected:
+    Dht() = default;
 
 private:
-    Server& server_;
-    std::atomic<bool>& shutdown_;
-    zsock_t* zmqSocket_{nullptr};
-    zactor_t* zmqAuth_{nullptr};
-    zpoller_t* zmqPoller_{nullptr};
-    std::unique_ptr<std::thread> thread_{nullptr};
-
-    bool processMessage(const std::string& messageString, std::string& reply);
-    void processSocket();
-    void run();
+    Dht(const Dht&) = delete;
+    Dht(Dht&&) = delete;
+    Dht& operator=(const Dht&) = delete;
+    Dht& operator=(Dht&&) = delete;
 };
-}  // namespace server
+}  // namespace network
+}  // namespace api
 }  // namespace opentxs
 
-#endif  // OPENTXS_SERVER_MESSAGEPROCESSOR_HPP
+#endif  // OPENTXS_API_DHT_HPP

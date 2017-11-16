@@ -62,7 +62,7 @@ Api::Api(
     api::Identity& identity,
     api::storage::Storage& storage,
     api::Wallet& wallet,
-    api::ZMQ& zmq)
+    api::network::ZMQ& zmq)
     : activity_(activity)
     , config_(config)
     , contacts_(contacts)

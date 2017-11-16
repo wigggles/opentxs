@@ -40,6 +40,7 @@
 
 #include "opentxs/client/OT_API.hpp"
 
+#include "opentxs/api/network/ZMQ.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Activity.hpp"
@@ -111,7 +112,6 @@
 #include "opentxs/ext/InstantiateContract.hpp"
 #include "opentxs/ext/OTPayment.hpp"
 #include "opentxs/network/ServerConnection.hpp"
-#include "opentxs/network/ZMQ.hpp"
 #include "opentxs/Proto.hpp"
 
 #include <inttypes.h>
@@ -522,7 +522,7 @@ OT_API::OT_API(
     api::Identity& identity,
     api::storage::Storage& storage,
     api::Wallet& wallet,
-    api::ZMQ& zmq,
+    api::network::ZMQ& zmq,
     std::recursive_mutex& lock)
     : activity_(activity)
     , config_(config)

@@ -36,58 +36,53 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_API_DHT_HPP
-#define OPENTXS_API_DHT_HPP
+#ifndef OPENTXS_API_NETWORK_ZMQ_HPP
+#define OPENTXS_API_NETWORK_ZMQ_HPP
 
 #include "opentxs/Version.hpp"
 
-#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
 
-#include <functional>
-#include <map>
+#include <chrono>
 #include <string>
 
 namespace opentxs
 {
+class ServerConnection;
+
 namespace api
 {
+namespace network
+{
 
-class Dht
+class ZMQ
 {
 public:
-    enum class Callback : std::uint8_t {
-        SERVER_CONTRACT = 0,
-        ASSET_CONTRACT = 1,
-        PUBLIC_NYM = 2
-    };
+    virtual std::chrono::seconds KeepAlive() const = 0;
+    virtual void KeepAlive(const std::chrono::seconds duration) const = 0;
+    virtual std::chrono::seconds Linger() = 0;
+    virtual std::chrono::seconds ReceiveTimeout() = 0;
+    virtual void RefreshConfig() = 0;
+    virtual std::chrono::seconds SendTimeout() = 0;
 
-    typedef std::function<void(const std::string)> NotifyCB;
-    typedef std::map<Callback, NotifyCB> CallbackMap;
+    virtual ServerConnection& Server(const std::string& id) = 0;
+    virtual bool SetSocksProxy(const std::string& proxy) = 0;
+    virtual std::string SocksProxy() = 0;
+    virtual bool SocksProxy(std::string& proxy) = 0;
+    virtual ConnectionState Status(const std::string& server) const = 0;
 
-    EXPORT virtual void Cleanup() = 0;
-    EXPORT virtual void GetPublicNym(const std::string& key) = 0;
-    EXPORT virtual void GetServerContract(const std::string& key) = 0;
-    EXPORT virtual void GetUnitDefinition(const std::string& key) = 0;
-    EXPORT virtual void Insert(
-        const std::string& key,
-        const std::string& value) = 0;
-    EXPORT virtual void Insert(const proto::CredentialIndex& nym) = 0;
-    EXPORT virtual void Insert(const proto::ServerContract& contract) = 0;
-    EXPORT virtual void Insert(const proto::UnitDefinition& contract) = 0;
-    EXPORT virtual void RegisterCallbacks(const CallbackMap& callbacks) = 0;
-
-    EXPORT virtual ~Dht() = default;
+    virtual ~ZMQ() = default;
 
 protected:
-    Dht() = default;
+    ZMQ() = default;
 
 private:
-    Dht(const Dht&) = delete;
-    Dht(Dht&&) = delete;
-    Dht& operator=(const Dht&) = delete;
-    Dht& operator=(Dht&&) = delete;
+    ZMQ(const ZMQ&) = delete;
+    ZMQ(ZMQ&&) = delete;
+    ZMQ& operator=(const ZMQ&) = delete;
+    ZMQ& operator=(const ZMQ&&) = delete;
 };
+}  // namespace network
 }  // namespace api
 }  // namespace opentxs
-
-#endif  // OPENTXS_API_DHT_HPP
+#endif  // OPENTXS_API_NETWORK_ZMQ_HPP

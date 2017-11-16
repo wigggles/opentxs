@@ -41,7 +41,7 @@
 
 #include "opentxs/Version.hpp"
 
-#include "opentxs/api/Dht.hpp"
+#include "opentxs/api/network/Dht.hpp"
 #include "opentxs/Types.hpp"
 
 #include <cstdint>
@@ -62,8 +62,14 @@ class Wallet;
 namespace implementation
 {
 class Native;
+}  // namespace implementation
 
-class Dht : virtual public opentxs::api::Dht
+namespace network
+{
+namespace implementation
+{
+
+class Dht : virtual public opentxs::api::network::Dht
 {
 public:
     void Cleanup() override;
@@ -79,7 +85,7 @@ public:
     ~Dht();
 
 private:
-    friend class implementation::Native;
+    friend class api::implementation::Native;
 
     api::Wallet& wallet_;
     CallbackMap callback_map_;
@@ -113,6 +119,7 @@ private:
     void Init();
 };
 }  // namespace implementation
+}  // namespace network
 }  // namespace api
 }  // namespace opentxs
 

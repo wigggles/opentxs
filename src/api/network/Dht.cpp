@@ -38,7 +38,7 @@
 
 #include "opentxs/stdafx.hpp"
 
-#include "opentxs/api/implementation/Dht.hpp"
+#include "opentxs/api/network/implementation/Dht.hpp"
 
 #include "opentxs/api/Native.hpp"
 #include "opentxs/api/Wallet.hpp"
@@ -51,7 +51,7 @@
 
 #include <string>
 
-namespace opentxs::api::implementation
+namespace opentxs::api::network::implementation
 {
 Dht::Dht(DhtConfig& config, api::Wallet& wallet)
     : wallet_(wallet)
@@ -376,4 +376,4 @@ void Dht::RegisterCallbacks(const CallbackMap& callbacks)
 }
 
 Dht::~Dht() { Cleanup(); }
-}  // opentxs::api::implementation
+}  // opentxs::api::network::implementation

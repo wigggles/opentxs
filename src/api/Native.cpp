@@ -44,8 +44,9 @@
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
 #include "opentxs/api/implementation/Api.hpp"
-#include "opentxs/api/implementation/Dht.hpp"
 #include "opentxs/api/implementation/Server.hpp"
+#include "opentxs/api/network/implementation/Dht.hpp"
+#include "opentxs/api/network/implementation/ZMQ.hpp"
 #include "opentxs/api/storage/implementation/Storage.hpp"
 #include "opentxs/api/Activity.hpp"
 #include "opentxs/api/Blockchain.hpp"
@@ -67,7 +68,6 @@
 #include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/network/DhtConfig.hpp"
 #include "opentxs/network/ServerConnection.hpp"
-#include "opentxs/network/ZMQ.hpp"
 #include "opentxs/storage/StorageConfig.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/OTStorage.hpp"
@@ -201,7 +201,7 @@ api::storage::Storage& Native::DB() const
     return *storage_;
 }
 
-api::Dht& Native::DHT() const
+api::network::Dht& Native::DHT() const
 {
     OT_ASSERT(dht_)
 
@@ -405,7 +405,7 @@ void Native::Init_Dht()
         config.bootstrap_port_,
         notUsed);
 
-    dht_.reset(new implementation::Dht(config, *wallet_));
+    dht_.reset(new api::network::implementation::Dht(config, *wallet_));
 }
 
 void Native::Init_Identity()
@@ -626,8 +626,9 @@ void Native::Init_Storage()
 
     if (dht_) {
         config.dht_callback_ = std::bind(
-            static_cast<void (api::Dht::*)(
-                const std::string&, const std::string&)>(&api::Dht::Insert),
+            static_cast<void (api::network::Dht::*)(
+                const std::string&, const std::string&)>(
+                &api::network::Dht::Insert),
             dht_.get(),
             std::placeholders::_1,
             std::placeholders::_2);
@@ -740,7 +741,7 @@ void Native::Init_ZMQ()
 
     OT_ASSERT(config);
 
-    zeromq_.reset(new api::ZMQ(*config));
+    zeromq_.reset(new api::network::implementation::ZMQ(*config));
 }
 
 void Native::Periodic()
@@ -926,7 +927,7 @@ api::Wallet& Native::Wallet() const
     return *wallet_;
 }
 
-api::ZMQ& Native::ZMQ() const
+api::network::ZMQ& Native::ZMQ() const
 {
     OT_ASSERT(zeromq_)
 

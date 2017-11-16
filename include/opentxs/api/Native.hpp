@@ -58,16 +58,20 @@ class Api;
 class Blockchain;
 class ContactManager;
 class Crypto;
-class Dht;
 class Identity;
 class Server;
 class Settings;
 class Wallet;
-class ZMQ;
 
 namespace storage
 {
 class Storage;
+}  // namespace storage
+
+namespace network
+{
+class Dht;
+class ZMQ;
 }  // namespace storage
 
 class Native
@@ -81,7 +85,7 @@ public:
     virtual class ContactManager& Contact() const = 0;
     virtual class Crypto& Crypto() const = 0;
     virtual storage::Storage& DB() const = 0;
-    virtual class Dht& DHT() const = 0;
+    virtual network::Dht& DHT() const = 0;
     virtual void HandleSignals() const = 0;
     virtual class Identity& Identity() const = 0;
     /** Adds a task to the periodic task list with the specified interval. By
@@ -93,7 +97,7 @@ public:
     virtual const class Server& Server() const = 0;
     virtual bool ServerMode() const = 0;
     virtual class Wallet& Wallet() const = 0;
-    virtual class ZMQ& ZMQ() const = 0;
+    virtual network::ZMQ& ZMQ() const = 0;
 
     virtual ~Native() = default;
 

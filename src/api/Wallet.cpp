@@ -40,9 +40,9 @@
 
 #include "opentxs/api/Wallet.hpp"
 
+#include "opentxs/api/network/Dht.hpp"
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/ContactManager.hpp"
-#include "opentxs/api/Dht.hpp"
 #include "opentxs/api/Identity.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/api/Server.hpp"
