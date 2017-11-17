@@ -56,6 +56,13 @@ namespace zeromq
 {
 class Message;
 
+#ifdef SWIG
+// clang-format off
+%ignore ReplySocket::SendReply(const opentxs::Data&);
+%ignore ReplySocket::SetCurve(const OTPassword& key);
+// clang-format on
+#endif  // SWIG
+
 class ReplySocket : virtual public Socket
 {
 public:

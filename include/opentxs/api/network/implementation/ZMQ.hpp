@@ -81,6 +81,8 @@ public:
     std::chrono::seconds KeepAlive() const override;
     void KeepAlive(const std::chrono::seconds duration) const override;
     std::chrono::seconds Linger() override;
+    std::shared_ptr<opentxs::network::zeromq::Context> NewContext()
+        const override;
     std::chrono::seconds ReceiveTimeout() override;
     void RefreshConfig() override;
     std::chrono::seconds SendTimeout() override;

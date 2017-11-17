@@ -42,6 +42,7 @@
 
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/network/zeromq/implementation/Context.hpp"
 #include "opentxs/network/ServerConnection.hpp"
 #include "opentxs/OT.hpp"
 
@@ -122,6 +123,14 @@ void ZMQ::KeepAlive(const std::chrono::seconds duration) const
 }
 
 std::chrono::seconds ZMQ::Linger() { return linger_.load(); }
+
+std::shared_ptr<opentxs::network::zeromq::Context> ZMQ::NewContext() const
+{
+    std::shared_ptr<opentxs::network::zeromq::Context> output{nullptr};
+    output.reset(new opentxs::network::zeromq::implementation::Context());
+
+    return output;
+}
 
 std::chrono::seconds ZMQ::ReceiveTimeout() { return receive_timeout_.load(); }
 

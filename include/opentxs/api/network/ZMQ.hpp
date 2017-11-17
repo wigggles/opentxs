@@ -44,6 +44,7 @@
 #include "opentxs/Types.hpp"
 
 #include <chrono>
+#include <memory>
 #include <string>
 
 namespace opentxs
@@ -70,6 +71,8 @@ public:
     virtual std::chrono::seconds KeepAlive() const = 0;
     virtual void KeepAlive(const std::chrono::seconds duration) const = 0;
     virtual std::chrono::seconds Linger() = 0;
+    virtual std::shared_ptr<opentxs::network::zeromq::Context> NewContext()
+        const = 0;
     virtual std::chrono::seconds ReceiveTimeout() = 0;
     virtual void RefreshConfig() = 0;
     virtual std::chrono::seconds SendTimeout() = 0;

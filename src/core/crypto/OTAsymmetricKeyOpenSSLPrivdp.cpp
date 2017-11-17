@@ -39,6 +39,7 @@
 
 #include "opentxs/core/crypto/OTAsymmetricKey_OpenSSLPrivdp.hpp"
 
+#include "opentxs/client/SwigWrap.hpp"
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
@@ -274,7 +275,7 @@ EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::CopyPublicKey(
                     pReturnKey = PEM_read_bio_PUBKEY(
                         keyBio,
                         nullptr,
-                        OTAsymmetricKey::GetPasswordCallback(),
+                        SwigWrap::GetPasswordCallback(),
                         nullptr == pPWData
                             ? &thePWData
                             : const_cast<OTPasswordData*>(pPWData));
@@ -354,7 +355,7 @@ EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::
             pCipher,
             nullptr,
             0,
-            OTAsymmetricKey::GetPasswordCallback(),
+            SwigWrap::GetPasswordCallback(),
             nullptr == pPWData ? &thePWDataWrite
                                : const_cast<OTPasswordData*>(pPWData));
     else
@@ -424,7 +425,7 @@ EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::
                     pReturnKey = PEM_read_bio_PrivateKey(
                         keyBio,
                         nullptr,
-                        OTAsymmetricKey::GetPasswordCallback(),
+                        SwigWrap::GetPasswordCallback(),
                         nullptr == pPWData
                             ? &thePWData
                             : const_cast<OTPasswordData*>(pPWData));
@@ -564,7 +565,7 @@ EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::
         pReturnKey = PEM_read_bio_PUBKEY(
             keyBio,
             nullptr,
-            OTAsymmetricKey::GetPasswordCallback(),
+            SwigWrap::GetPasswordCallback(),
             const_cast<OTPasswordData*>(pPWData));
 
         backlink->ReleaseKeyLowLevel();  // Release whatever loaded key I might
@@ -638,7 +639,7 @@ EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::
         pReturnKey = PEM_read_bio_PrivateKey(
             keyBio,
             nullptr,
-            OTAsymmetricKey::GetPasswordCallback(),
+            SwigWrap::GetPasswordCallback(),
             const_cast<OTPasswordData*>(pPWData));
 
         // Free the BIO and related buffers, filters, etc.
@@ -707,7 +708,7 @@ bool OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::ArmorPrivateKey(
             EVP_des_ede3_cbc(),  // todo should this algorithm be hardcoded?
             nullptr,
             0,
-            OTAsymmetricKey::GetPasswordCallback(),
+            SwigWrap::GetPasswordCallback(),
             const_cast<OTPasswordData*>(pPWData));
     else
         nWriteBio = PEM_write_bio_PrivateKey(

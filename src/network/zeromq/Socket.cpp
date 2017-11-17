@@ -115,6 +115,17 @@ bool Socket::SetTimeouts(
     return true;
 }
 
+bool Socket::SetTimeouts(
+    const std::uint64_t& lingerMilliseconds,
+    const std::uint64_t& sendMilliseconds,
+    const std::uint64_t& receiveMilliseconds)
+{
+    return SetTimeouts(
+        std::chrono::milliseconds(lingerMilliseconds),
+        std::chrono::milliseconds(sendMilliseconds),
+        std::chrono::milliseconds(receiveMilliseconds));
+}
+
 SocketType Socket::Type() const { return type_; }
 
 Socket::~Socket()

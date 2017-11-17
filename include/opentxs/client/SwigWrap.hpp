@@ -49,20 +49,49 @@
 
 #include <cstdint>
 #include <list>
+#include <memory>
 #include <set>
 #include <string>
 
 namespace opentxs
 {
+class OTCaller;
+
+namespace network
+{
+namespace zeromq
+{
+class Context;
+}  // namespace zeromq
+}  // namespace network
+
+/** For getting the password from the user, for using his private key. */
+extern "C" {
+typedef int32_t OT_OPENSSL_CALLBACK(
+    char* buf,
+    int32_t size,
+    int32_t rwflag,
+    void* userdata);  // <== Callback type, used for declaring.
+
+EXPORT OT_OPENSSL_CALLBACK default_pass_cb;
+EXPORT OT_OPENSSL_CALLBACK souped_up_pass_cb;
+}
+
+/** Caller must have Callback attached already. */
+EXPORT bool OT_API_Set_PasswordCallback(OTCaller& theCaller);
 
 class SwigWrap
 {
-private:
-    static std::string comma(const std::list<std::string>& list);
-    static std::string comma(const ObjectList& list);
-    static std::string comma(const std::set<Identifier>& list);
-
 public:
+    EXPORT static void SetPasswordCallback(OT_OPENSSL_CALLBACK* pCallback);
+    EXPORT static OT_OPENSSL_CALLBACK* GetPasswordCallback();
+    EXPORT static bool IsPasswordCallbackSet()
+    {
+        return (nullptr == s_pwCallback) ? false : true;
+    }
+    EXPORT static bool SetPasswordCaller(OTCaller& theCaller);
+    EXPORT static OTCaller* GetPasswordCaller();
+
     EXPORT static std::int64_t StringToLong(const std::string& strNumber);
     EXPORT static std::string LongToString(const std::int64_t& lNumber);
 
@@ -4910,7 +4939,18 @@ public:
 
     EXPORT static void Update_Pairing(const std::string& wallet = "");
 
+    // Wrapped Blockchain methods
+
+    EXPORT static std::shared_ptr<network::zeromq::Context> ZeroMQ();
+
 private:
+    static OT_OPENSSL_CALLBACK* s_pwCallback;
+    static OTCaller* s_pCaller;
+
+    static std::string comma(const std::list<std::string>& list);
+    static std::string comma(const ObjectList& list);
+    static std::string comma(const std::set<Identifier>& list);
+
     SwigWrap();
     ~SwigWrap() = default;
 };

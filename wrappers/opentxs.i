@@ -17,6 +17,7 @@
 %include "std_vector.i";
 %include "std_map.i"
 %include "typemaps.i"
+%include <std_shared_ptr.i>
 
 typedef int64_t time64_t;
 
@@ -30,11 +31,14 @@ typedef int64_t time64_t;
 #include "opentxs/client/OTRecord.hpp"
 #include "opentxs/client/OTRecordList.hpp"
 #include "opentxs/client/SwigWrap.hpp"
-#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 #include "opentxs/core/crypto/OTCallback.hpp"
 #include "opentxs/core/crypto/OTCaller.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
-#include "opentxs/core/OTStorage.hpp"
+#include "opentxs/network/zeromq/Context.hpp"
+#include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/network/zeromq/ReplySocket.hpp"
+#include "opentxs/network/zeromq/RequestSocket.hpp"
+#include "opentxs/network/zeromq/Socket.hpp"
 #include "opentxs/Types.hpp"
 
 #include <string>
@@ -68,16 +72,6 @@ namespace std {
    %template(VectorUnsignedChar) vector<unsigned char>;
    %template(MapStringString) map<string,string>;
 };
-
-/* Some of these may actually belong to the Java wrapper?
-*/
-%newobject CreateObject(StoredObjectType eType);
-%newobject QueryObject(StoredObjectType theObjectType, std::string strFolder, std::string oneStr="", std::string twoStr="", std::string threeStr="");
-%newobject DecodeObject(StoredObjectType theObjectType, std::string strInput);
-%newobject Storage::QueryObject(StoredObjectType theObjectType, std::string strFolder, std::string oneStr="", std::string twoStr="", std::string threeStr="");
-%newobject Storage::DecodeObject(StoredObjectType theObjectType, std::string strInput);
-%newobject Storage::CreateObject(StoredObjectType eType);
-%newobject CreateStorageContext(StorageType eStoreType, PackType ePackType=OTDB_DEFAULT_PACKER);
 
 %ignore OTRecord::operator<(const OTRecord & rhs);
 %ignore OTPassword::operator=(const OTPassword & rhs);
@@ -116,17 +110,18 @@ namespace std {
 #define EXPORT
 #endif
 
+%include "../../include/opentxs/network/zeromq/Message.hpp"
+%include "../../include/opentxs/network/zeromq/Socket.hpp"
+%include "../../include/opentxs/network/zeromq/ReplySocket.hpp"
+%include "../../include/opentxs/network/zeromq/RequestSocket.hpp"
+%include "../../include/opentxs/network/zeromq/Context.hpp"
 %include "../../include/opentxs/client/NymData.hpp"
-%include "../../include/opentxs/client/OT_ME.hpp"
 %include "../../include/opentxs/client/OTRecord.hpp"
 %include "../../include/opentxs/client/OTRecordList.hpp"
 %include "../../include/opentxs/client/SwigWrap.hpp"
-%include "../../include/opentxs/core/crypto/OTAsymmetricKey.hpp"
 %include "../../include/opentxs/core/crypto/OTCallback.hpp"
 %include "../../include/opentxs/core/crypto/OTCaller.hpp"
 %include "../../include/opentxs/core/crypto/OTPassword.hpp"
-%include "../../include/opentxs/core/OTStorage.hpp"
-
 
 bool opentxs::OT_API_Set_PasswordCallback(OTCaller & theCaller);
 bool opentxs::OT_API_Set_AddrBookCallback(OTLookupCaller & theCaller);
@@ -135,5 +130,4 @@ bool opentxs::OT_API_Set_AddrBookCallback(OTLookupCaller & theCaller);
 // add the following to every .cxx file.
 %inline %{
   using namespace opentxs;
-  using namespace OTDB;
 %}

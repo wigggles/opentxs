@@ -51,6 +51,14 @@ namespace implementation
 {
 class Native;
 }  // namespace implementation
+
+namespace network
+{
+namespace implementation
+{
+class ZMQ;
+}  // namespace implementation
+}  // namespace network
 }  // namespace api
 
 namespace network
@@ -68,18 +76,19 @@ class Context : virtual public zeromq::Context
 public:
     operator void*() const override;
 
-    std::unique_ptr<zeromq::Message> NewMessage() const override;
-    std::unique_ptr<zeromq::Message> NewMessage(
+    std::shared_ptr<zeromq::Message> NewMessage() const override;
+    std::shared_ptr<zeromq::Message> NewMessage(
         const Data& input) const override;
-    std::unique_ptr<zeromq::Message> NewMessage(
+    std::shared_ptr<zeromq::Message> NewMessage(
         const std::string& input) const override;
-    std::unique_ptr<zeromq::ReplySocket> NewReplySocket() const override;
-    std::unique_ptr<zeromq::RequestSocket> NewRequestSocket() const override;
+    std::shared_ptr<zeromq::ReplySocket> NewReplySocket() const override;
+    std::shared_ptr<zeromq::RequestSocket> NewRequestSocket() const override;
 
     ~Context();
 
 private:
     friend class api::implementation::Native;
+    friend class api::network::implementation::ZMQ;
 
     void* context_{nullptr};
 

@@ -104,7 +104,7 @@ private:
 
     std::shared_ptr<const ServerContract> remote_contract_{nullptr};
     const std::string remote_endpoint_{""};
-    std::unique_ptr<network::zeromq::RequestSocket> request_socket_;
+    std::shared_ptr<network::zeromq::RequestSocket> request_socket_;
     std::unique_ptr<std::mutex> lock_{nullptr};
     std::unique_ptr<std::thread> thread_{nullptr};
     std::atomic<std::time_t> last_activity_{0};

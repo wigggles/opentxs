@@ -42,6 +42,7 @@
 
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/Native.hpp"
+#include "opentxs/client/SwigWrap.hpp"
 #include "opentxs/core/crypto/CryptoSymmetric.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
@@ -437,7 +438,7 @@ bool OTCachedKey::GetMasterPassword(
         if (!bGenerated)  // This Symmetric Key hasn't been generated before....
         {
 #ifndef OT_NO_PASSWORD
-            if (!OTAsymmetricKey::GetPasswordCallback()(
+            if (!SwigWrap::GetPasswordCallback()(
                     nullptr,
                     0,
                     bVerifyTwice ? 1 : 0,
@@ -510,7 +511,7 @@ bool OTCachedKey::GetMasterPassword(
                     for (;;)  // bad passphase (as the calculate key returned
                               // nullptr)
                     {
-                        if (!OTAsymmetricKey::GetPasswordCallback()(
+                        if (!SwigWrap::GetPasswordCallback()(
                                 nullptr,
                                 0,
                                 0,  // false
@@ -533,7 +534,7 @@ bool OTCachedKey::GetMasterPassword(
                 otOut << "\n Please enter your current password twice, (not a "
                          "new password!!) \n";
 
-                if (!OTAsymmetricKey::GetPasswordCallback()(
+                if (!SwigWrap::GetPasswordCallback()(
                         nullptr, 0, true, static_cast<void*>(&thePWData))) {
                     otErr << __FUNCTION__
                           << ": Failed to get password from user!";

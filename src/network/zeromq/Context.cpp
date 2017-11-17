@@ -58,41 +58,41 @@ Context::Context()
 
 Context::operator void*() const { return context_; }
 
-std::unique_ptr<zeromq::Message> Context::NewMessage() const
+std::shared_ptr<zeromq::Message> Context::NewMessage() const
 {
-    std::unique_ptr<zeromq::Message> output{nullptr};
+    std::shared_ptr<zeromq::Message> output{nullptr};
     output.reset(new zeromq::implementation::Message());
 
     return output;
 }
 
-std::unique_ptr<zeromq::Message> Context::NewMessage(const Data& input) const
+std::shared_ptr<zeromq::Message> Context::NewMessage(const Data& input) const
 {
-    std::unique_ptr<zeromq::Message> output{nullptr};
+    std::shared_ptr<zeromq::Message> output{nullptr};
     output.reset(new zeromq::implementation::Message(input));
 
     return output;
 }
 
-std::unique_ptr<zeromq::Message> Context::NewMessage(
+std::shared_ptr<zeromq::Message> Context::NewMessage(
     const std::string& input) const
 {
-    std::unique_ptr<zeromq::Message> output{nullptr};
+    std::shared_ptr<zeromq::Message> output{nullptr};
     output.reset(new zeromq::implementation::Message(input));
 
     return output;
 }
 
-std::unique_ptr<zeromq::ReplySocket> Context::NewReplySocket() const
+std::shared_ptr<zeromq::ReplySocket> Context::NewReplySocket() const
 {
-    std::unique_ptr<zeromq::ReplySocket> output(new ReplySocket(*this));
+    std::shared_ptr<zeromq::ReplySocket> output(new ReplySocket(*this));
 
     return output;
 }
 
-std::unique_ptr<zeromq::RequestSocket> Context::NewRequestSocket() const
+std::shared_ptr<zeromq::RequestSocket> Context::NewRequestSocket() const
 {
-    std::unique_ptr<zeromq::RequestSocket> output(new RequestSocket(*this));
+    std::shared_ptr<zeromq::RequestSocket> output(new RequestSocket(*this));
 
     return output;
 }

@@ -52,6 +52,13 @@ namespace network
 namespace zeromq
 {
 
+#ifdef SWIG
+// clang-format off
+%ignore Message::operator zmq_msg_t*();
+%rename(string) Message::operator std::string() const;
+// clang-format on
+#endif  // SWIG
+
 class Message
 {
 public:

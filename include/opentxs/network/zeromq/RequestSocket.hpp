@@ -60,6 +60,13 @@ namespace zeromq
 {
 class Message;
 
+#ifdef SWIG
+// clang-format off
+%ignore RequestSocket::SendRequest(opentxs::Data&);
+%ignore RequestSocket::SetCurve(const ServerContract&);
+// clang-format on
+#endif  // SWIG
+
 class RequestSocket : virtual public Socket
 {
 public:

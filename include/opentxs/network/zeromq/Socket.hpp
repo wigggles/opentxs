@@ -43,6 +43,7 @@
 
 #include "opentxs/Types.hpp"
 
+#include <cstdint>
 #include <chrono>
 #include <memory>
 #include <string>
@@ -56,11 +57,18 @@ namespace zeromq
 {
 class Message;
 
+#ifdef SWIG
+// clang-format off
+%ignore Socket::operator void*();
+%ignore Socket::SetTimeouts(const std::chrono::milliseconds&, std::chrono::milliseconds&, const std::chrono::milliseconds&);
+// clang-format on
+#endif  // SWIG
+
 class Socket
 {
 public:
-    typedef std::pair<SendResult, std::unique_ptr<Message>> MessageSendResult;
-    typedef std::pair<bool, std::unique_ptr<Message>> MessageReceiveResult;
+    typedef std::pair<SendResult, std::shared_ptr<Message>> MessageSendResult;
+    typedef std::pair<bool, std::shared_ptr<Message>> MessageReceiveResult;
 
     EXPORT virtual SocketType Type() const = 0;
 
@@ -71,6 +79,10 @@ public:
         const std::chrono::milliseconds& linger,
         const std::chrono::milliseconds& send,
         const std::chrono::milliseconds& receive) = 0;
+    EXPORT virtual bool SetTimeouts(
+        const std::uint64_t& lingerMilliseconds,
+        const std::uint64_t& sendMilliseconds,
+        const std::uint64_t& receiveMilliseconds) = 0;
     EXPORT virtual bool Start(const std::string& endpoint) = 0;
 
     EXPORT virtual ~Socket() = default;

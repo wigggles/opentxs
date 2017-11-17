@@ -72,6 +72,10 @@ public:
         const std::chrono::milliseconds& linger,
         const std::chrono::milliseconds& send,
         const std::chrono::milliseconds& receive) override;
+    bool SetTimeouts(
+        const std::uint64_t& lingerMilliseconds,
+        const std::uint64_t& sendMilliseconds,
+        const std::uint64_t& receiveMilliseconds) override;
 
     virtual ~Socket();
 

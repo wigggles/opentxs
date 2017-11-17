@@ -56,18 +56,25 @@ class Message;
 class ReplySocket;
 class RequestSocket;
 
+#ifdef SWIG
+// clang-format off
+%ignore Context::operator void*() const;
+%ignore Context::NewMessage(const Data&) const;
+// clang-format on
+#endif  // SWIG
+
 class Context
 {
 public:
     EXPORT virtual operator void*() const = 0;
 
-    EXPORT virtual std::unique_ptr<Message> NewMessage() const = 0;
-    EXPORT virtual std::unique_ptr<Message> NewMessage(
+    EXPORT virtual std::shared_ptr<Message> NewMessage() const = 0;
+    EXPORT virtual std::shared_ptr<Message> NewMessage(
         const Data& input) const = 0;
-    EXPORT virtual std::unique_ptr<Message> NewMessage(
+    EXPORT virtual std::shared_ptr<Message> NewMessage(
         const std::string& input) const = 0;
-    EXPORT virtual std::unique_ptr<ReplySocket> NewReplySocket() const = 0;
-    EXPORT virtual std::unique_ptr<RequestSocket> NewRequestSocket() const = 0;
+    EXPORT virtual std::shared_ptr<ReplySocket> NewReplySocket() const = 0;
+    EXPORT virtual std::shared_ptr<RequestSocket> NewRequestSocket() const = 0;
 
     EXPORT virtual ~Context() = default;
 
