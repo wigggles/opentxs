@@ -57,8 +57,11 @@
 namespace opentxs::api::network::implementation
 {
 
-ZMQ::ZMQ(api::Settings& config)
-    : config_(config)
+ZMQ::ZMQ(
+    const opentxs::network::zeromq::Context& context,
+    api::Settings& config)
+    : context_(context)
+    , config_(config)
     , linger_(std::chrono::seconds(CLIENT_SOCKET_LINGER_SECONDS))
     , receive_timeout_(std::chrono::seconds(CLIENT_RECV_TIMEOUT))
     , send_timeout_(std::chrono::seconds(CLIENT_SEND_TIMEOUT))
@@ -71,6 +74,11 @@ ZMQ::ZMQ(api::Settings& config)
     Lock lock(lock_);
 
     init(lock);
+}
+
+const opentxs::network::zeromq::Context& ZMQ::Context() const
+{
+    return context_;
 }
 
 void ZMQ::init(const Lock& lock)

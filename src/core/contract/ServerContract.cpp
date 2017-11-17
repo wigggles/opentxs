@@ -103,11 +103,7 @@ ServerContract* ServerContract::Create(
         contract->version_ = 1;
         contract->listen_params_ = endpoints;
         contract->conditions_ = terms;
-
-        // TODO:: find the right defined constant. 32 is the correct size
-        // according to https://github.com/zeromq/czmq
-        contract->transport_key_.Assign(
-            zcert_public_key(contract->PrivateTransportKey()), 32);
+        nym->TransportKey(contract->transport_key_);
         contract->name_ = name;
 
         Lock lock(contract->lock_);
@@ -294,18 +290,6 @@ bool ServerContract::Statistics(String& strContents) const
         strID.Get());
 
     return true;
-}
-
-const unsigned char* ServerContract::PublicTransportKey() const
-{
-    return static_cast<const unsigned char*>(transport_key_.GetPointer());
-}
-
-zcert_t* ServerContract::PrivateTransportKey() const
-{
-    OT_ASSERT(nym_);
-
-    return nym_->TransportKey();
 }
 
 Data ServerContract::Serialize() const

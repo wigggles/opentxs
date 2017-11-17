@@ -10,6 +10,7 @@ include_directories(SYSTEM
   ${dependency_include_dir}
   ${dependency_include_dir}/ChaiScript/include
   ${dependency_include_dir}/lucre/include
+  ${ZMQ_INCLUDE_DIRS}
 )
 
 include_directories(
@@ -117,9 +118,8 @@ target_link_libraries(${MODULE_NAME}
   ${OPENTXS_SYSTEM_LIBRARIES}
   ${keyring}
   ${CMAKE_DL_LIBS}
+  ${ZMQ_LIBRARIES}
 )
-
-target_link_libraries(${MODULE_NAME} PUBLIC ${CZMQ_LIBRARIES})
 
 if (LIBSECP256K1_EXPORT)
   if (OT_INTERNAL_LIBSECP)

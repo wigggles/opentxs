@@ -47,6 +47,9 @@
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/network/zeromq/Context.hpp"
+#include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/network/zeromq/ReplySocket.hpp"
 #include "opentxs/server/Server.hpp"
 #include "opentxs/server/UserCommandProcessor.hpp"
 
@@ -60,45 +63,40 @@
 namespace opentxs::server
 {
 
-MessageProcessor::MessageProcessor(Server& server, std::atomic<bool>& shutdown)
+MessageProcessor::MessageProcessor(
+    Server& server,
+    const network::zeromq::Context& context,
+    std::atomic<bool>& shutdown)
     : server_(server)
     , shutdown_(shutdown)
-    , zmqSocket_(zsock_new_rep(NULL))
-    , zmqAuth_(zactor_new(zauth, NULL))
-    , zmqPoller_(zpoller_new(zmqSocket_, NULL))
+    , context_(context)
+    , reply_socket_(context.NewReplySocket())
     , thread_(nullptr)
 {
 }
 
-void MessageProcessor::Cleanup()
+void MessageProcessor::cleanup()
 {
     if (thread_) {
         thread_->join();
         thread_.reset();
     }
-
-    zpoller_remove(zmqPoller_, zmqSocket_);
-    zpoller_destroy(&zmqPoller_);
-    zactor_destroy(&zmqAuth_);
-    zsock_destroy(&zmqSocket_);
 }
 
-void MessageProcessor::Init(int port, zcert_t* transportKey)
+void MessageProcessor::init(const int port, const OTPassword& privkey)
 {
     if (port == 0) {
         OT_FAIL;
     }
-    if (!zsys_has_curve()) {
-        Log::vError("Error: libzmq has no libsodium support");
-        OT_FAIL;
-    }
-    zstr_sendx(zmqAuth_, "CURVE", CURVE_ALLOW_ANY, NULL);
-    zsock_wait(zmqAuth_);
-    zsock_set_zap_domain(zmqSocket_, "global");
-    zsock_set_curve_server(zmqSocket_, 1);
-    zcert_apply(transportKey, zmqSocket_);
-    zcert_destroy(&transportKey);
-    zsock_bind(zmqSocket_, "tcp://*:%d", port);
+
+    const auto set = reply_socket_->SetCurve(privkey);
+
+    OT_ASSERT(set);
+
+    const auto endpoint = std::string("tcp://*:") + std::to_string(port);
+    const auto bound = reply_socket_->Start(endpoint);
+
+    OT_ASSERT(bound);
 }
 
 void MessageProcessor::run()
@@ -109,62 +107,38 @@ void MessageProcessor::run()
 
         if (timeout <= 0) {
             server_.ProcessCron();
-
-            continue;
         }
 
-        // wait for incoming message or up to timeout,
-        // i.e. stop polling in time for the next cron execution.
-        if (zpoller_wait(zmqPoller_, timeout)) {
-            processSocket();
-
-            continue;
-        }
-
-        if (zpoller_terminated(zmqPoller_)) {
-            otErr << __FUNCTION__
-                  << ": zpoller_terminated - process interrupted or"
-                  << " parent context destroyed\n";
-            shutdown_.store(true);
-
-            continue;
-        }
-
-        if (false == zpoller_expired(zmqPoller_)) {
-            otErr << __FUNCTION__ << ": zpoller_wait error\n";
-        }
-
-        Log::Sleep(std::chrono::milliseconds(100));
+        processSocket();
+        Log::Sleep(std::chrono::milliseconds(50));
     }
 }
 
 void MessageProcessor::processSocket()
 {
-    char* msg = zstr_recv(zmqSocket_);
-    if (msg == nullptr) {
-        Log::Error("zeromq recv() failed\n");
+    auto input = reply_socket_->ReceiveRequest(NOBLOCK_MODE);
+    auto& received = input.first;
+
+    if (false == received) {
+
         return;
     }
-    std::string requestString(msg);
-    zstr_free(&msg);
 
-    std::string responseString;
+    OT_ASSERT(input.second)
 
-    bool error = processMessage(requestString, responseString);
+    std::string request(*input.second);
+    std::string reply{};
+    bool error = processMessage(request, reply);
 
     if (error) {
-        responseString = "";
+        reply = "";
     }
 
-    int rc = zstr_send(zmqSocket_, responseString.c_str());
+    const bool sent = reply_socket_->SendReply(reply);
 
-    if (rc != 0) {
-        Log::vError(
-            "MessageProcessor: failed to send response\n"
-            "request:\n%s\n\n"
-            "response:\n%s\n\n",
-            requestString.c_str(),
-            responseString.c_str());
+    if (false == sent) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to send response."
+              << "\nRequest: " << request << "\nReply: " << reply << std::endl;
     }
 }
 

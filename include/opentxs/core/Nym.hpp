@@ -41,7 +41,6 @@
 
 #include "opentxs/Version.hpp"
 
-#include "opentxs/api/network/implementation/ZMQ.hpp"  // TODO remove
 #include "opentxs/core/crypto/CredentialSet.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
@@ -185,7 +184,6 @@ public:
         const std::string& id) const;
     EXPORT bool SavePseudonymWallet(Tag& parent) const;
     EXPORT const NymIDSource& Source() const { return *source_; }
-    EXPORT zcert_t* TransportKey() const;
     EXPORT std::unique_ptr<OTPassword> TransportKey(Data& pubkey) const;
     EXPORT std::unique_ptr<proto::VerificationSet> VerificationSet() const;
     EXPORT bool VerifyPseudonym() const;

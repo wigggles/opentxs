@@ -41,7 +41,6 @@
 
 #include "opentxs/Version.hpp"
 
-#include "opentxs/api/network/implementation/ZMQ.hpp"  // TODO remove
 #include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/Proto.hpp"
@@ -111,7 +110,6 @@ public:
     proto::ServerContract PublicContract() const;
     bool Statistics(String& strContents) const;
     const unsigned char* PublicTransportKey() const;
-    zcert_t* PrivateTransportKey() const;
     const Data& TransportKey() const;
     std::unique_ptr<OTPassword> TransportKey(Data& pubkey) const;
 

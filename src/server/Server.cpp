@@ -68,9 +68,13 @@
 #include "opentxs/server/ConfigLoader.hpp"
 #include "opentxs/server/Transactor.hpp"
 
+#ifndef WIN32
+#include <unistd.h>
+#endif
 #include <inttypes.h>
 #include <stdint.h>
 #include <sys/types.h>
+
 #include <fstream>
 #include <string>
 #include <regex>
@@ -997,13 +1001,13 @@ bool Server::GetConnectInfo(std::string& strHostname, uint32_t& nPort) const
     return (haveIP && havePort);
 }
 
-zcert_t* Server::GetTransportKey() const
+std::unique_ptr<OTPassword> Server::TransportKey(Data& pubkey) const
 {
     auto contract = wallet_.Server(Identifier(m_strNotaryID));
 
     OT_ASSERT(contract);
 
-    return contract->PrivateTransportKey();
+    return contract->TransportKey(pubkey);
 }
 
 Server::~Server()

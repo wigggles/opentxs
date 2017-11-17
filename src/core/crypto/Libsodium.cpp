@@ -63,7 +63,7 @@ void Libsodium::Init_Override() const
 {
     auto result = ::sodium_init();
 
-    OT_ASSERT(0 == result);
+    OT_ASSERT(-1 != result);
 }
 
 bool Libsodium::Decrypt(

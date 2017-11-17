@@ -19,8 +19,6 @@ set(cxx-headers
   ${cxx-install-headers}
 )
 
-include_directories(SYSTEM ${CZMQ_INCLUDE_DIRS})
-
 set(MODULE_NAME opentxs-server)
 if(WIN32)
   configure_file(

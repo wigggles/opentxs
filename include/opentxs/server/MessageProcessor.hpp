@@ -41,8 +41,6 @@
 
 #include "opentxs/Version.hpp"
 
-#include "opentxs/api/network/implementation/ZMQ.hpp"  // TODO remove
-
 #include <atomic>
 #include <memory>
 #include <string>
@@ -50,6 +48,17 @@
 
 namespace opentxs
 {
+class OTPassword;
+
+namespace network
+{
+namespace zeromq
+{
+class Context;
+class ReplySocket;
+}  // namespace zeromq
+}  // namespace network
+
 namespace server
 {
 
@@ -60,10 +69,11 @@ class MessageProcessor
 public:
     EXPORT explicit MessageProcessor(
         Server& server,
+        const network::zeromq::Context& context,
         std::atomic<bool>& shutdown);
 
-    EXPORT void Cleanup();
-    EXPORT void Init(int port, zcert_t* transportKey);
+    EXPORT void cleanup();
+    EXPORT void init(const int port, const OTPassword& privkey);
     EXPORT void Start();
 
     EXPORT ~MessageProcessor();
@@ -71,9 +81,8 @@ public:
 private:
     Server& server_;
     std::atomic<bool>& shutdown_;
-    zsock_t* zmqSocket_{nullptr};
-    zactor_t* zmqAuth_{nullptr};
-    zpoller_t* zmqPoller_{nullptr};
+    const network::zeromq::Context& context_;
+    std::unique_ptr<network::zeromq::ReplySocket> reply_socket_;
     std::unique_ptr<std::thread> thread_{nullptr};
 
     bool processMessage(const std::string& messageString, std::string& reply);

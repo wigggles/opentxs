@@ -50,6 +50,14 @@ namespace opentxs
 {
 class ServerConnection;
 
+namespace network
+{
+namespace zeromq
+{
+class Context;
+}  // namespace zeromq
+}  // namespace network
+
 namespace api
 {
 namespace network
@@ -58,6 +66,7 @@ namespace network
 class ZMQ
 {
 public:
+    virtual const opentxs::network::zeromq::Context& Context() const = 0;
     virtual std::chrono::seconds KeepAlive() const = 0;
     virtual void KeepAlive(const std::chrono::seconds duration) const = 0;
     virtual std::chrono::seconds Linger() = 0;

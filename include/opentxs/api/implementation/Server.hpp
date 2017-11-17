@@ -56,6 +56,14 @@ namespace opentxs
 class Identifier;
 class Mint;
 
+namespace network
+{
+namespace zeromq
+{
+class Context;
+}  // namespace zeromq
+}  // namespace network
+
 namespace server
 {
 class MessageProcessor;
@@ -103,6 +111,7 @@ private:
     api::storage::Storage& storage_;
     api::Wallet& wallet_;
     std::atomic<bool>& shutdown_;
+    const opentxs::network::zeromq::Context& zmq_context_;
     std::unique_ptr<server::Server> server_p_;
     server::Server& server_;
     std::unique_ptr<server::MessageProcessor> message_processor_p_;
@@ -148,7 +157,8 @@ private:
         api::Settings& config,
         api::storage::Storage& storage,
         api::Wallet& wallet,
-        std::atomic<bool>& shutdown);
+        std::atomic<bool>& shutdown,
+        const opentxs::network::zeromq::Context& context);
     Server() = delete;
     Server(const Server&) = delete;
     Server(Server&&) = delete;

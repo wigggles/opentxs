@@ -66,6 +66,7 @@
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/OTDataFolder.hpp"
 #include "opentxs/core/util/OTFolders.hpp"
+#include "opentxs/network/zeromq/implementation/Context.hpp"
 #include "opentxs/network/DhtConfig.hpp"
 #include "opentxs/network/ServerConnection.hpp"
 #include "opentxs/storage/StorageConfig.hpp"
@@ -134,9 +135,12 @@ Native::Native(
     , periodic_(nullptr)
     , storage_encryption_key_(nullptr)
     , server_(nullptr)
+    , zmq_context_p_(new opentxs::network::zeromq::implementation::Context())
+    , zmq_context_(*zmq_context_p_)
     , signal_handler_(nullptr)
     , server_args_(serverArgs)
 {
+    OT_ASSERT(zmq_context_p_);
 }
 
 api::Activity& Native::Activity() const
@@ -442,7 +446,13 @@ void Native::Init_Server()
     OT_ASSERT(wallet_);
 
     server_.reset(new api::implementation::Server(
-        server_args_, *crypto_, Config(), *storage_, *wallet_, shutdown_));
+        server_args_,
+        *crypto_,
+        Config(),
+        *storage_,
+        *wallet_,
+        shutdown_,
+        zmq_context_));
 
     OT_ASSERT(server_);
 
@@ -741,7 +751,7 @@ void Native::Init_ZMQ()
 
     OT_ASSERT(config);
 
-    zeromq_.reset(new api::network::implementation::ZMQ(*config));
+    zeromq_.reset(new api::network::implementation::ZMQ(zmq_context_, *config));
 }
 
 void Native::Periodic()

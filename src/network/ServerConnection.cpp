@@ -50,6 +50,9 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/network/zeromq/Context.hpp"
+#include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/network/zeromq/RequestSocket.hpp"
 #include "opentxs/OT.hpp"
 #include "opentxs/Proto.hpp"
 
@@ -71,24 +74,17 @@ ServerConnection::ServerConnection(
     , keep_alive_(keepAlive)
     , zmq_(zmq)
     , config_(config)
+    , context_(zmq.Context())
     , remote_contract_(nullptr)
     , remote_endpoint_(GetRemoteEndpoint(server, remote_contract_))
-    , request_socket_(zsock_new_req(nullptr))
+    , request_socket_(context_.NewRequestSocket())
     , lock_(new std::mutex)
     , thread_(nullptr)
     , last_activity_(0)
     , status_(false)
     , use_proxy_(true)
 {
-    shutdown_.store(false);
-
-    if (false == zsys_has_curve()) {
-        otErr << OT_METHOD << __FUNCTION__
-              << ": libzmq has no libsodium support." << std::endl;
-
-        OT_FAIL;
-    }
-
+    OT_ASSERT(request_socket_);
     OT_ASSERT(lock_);
 
     ResetTimer();
@@ -136,9 +132,6 @@ bool ServerConnection::EnableProxy()
     Lock lock(*lock_);
 
     use_proxy_.store(true);
-
-    OT_ASSERT(nullptr != request_socket_);
-
     ResetSocket();
 
     return true;
@@ -153,20 +146,16 @@ void ServerConnection::Init(const std::string& proxy)
     }
 
     SetTimeouts();
-    SetRemoteKey();
-
-    if (0 != zsock_connect(request_socket_, "%s", remote_endpoint_.c_str())) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Failed to connect to "
-              << remote_endpoint_ << std::endl;
-    }
+    SetCurve();
+    request_socket_->Start(remote_endpoint_);
 }
 
 void ServerConnection::ResetSocket()
 {
-    zsock_destroy(&request_socket_);
-    request_socket_ = zsock_new_req(nullptr);
+    request_socket_->Close();
+    request_socket_ = context_.NewRequestSocket();
 
-    if (nullptr == request_socket_) {
+    if (false == bool(request_socket_)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed trying to reset socket."
               << std::endl;
 
@@ -220,28 +209,12 @@ std::string ServerConnection::GetRemoteEndpoint(
     return endpoint;
 }
 
-bool ServerConnection::Receive(std::string& reply)
-{
-    char* message = zstr_recv(request_socket_);
-
-    if (nullptr == message) {
-        otErr << OT_METHOD << __FUNCTION__ << ": No server reply." << std::endl;
-
-        return false;
-    }
-
-    reply.assign(message);
-    zstr_free(&message);
-
-    return true;
-}
-
 void ServerConnection::ResetTimer()
 {
     last_activity_.store(std::time(nullptr));
 }
 
-NetworkReplyRaw ServerConnection::Send(const std::string& message)
+NetworkReplyRaw ServerConnection::Send(const std::string& input)
 {
     OT_ASSERT(lock_);
 
@@ -254,25 +227,33 @@ NetworkReplyRaw ServerConnection::Send(const std::string& message)
 
     OT_ASSERT(reply);
 
-    const bool sent = (0 == zstr_send(request_socket_, message.c_str()));
+    auto message = context_.NewMessage(input);
 
-    if (!sent) {
-        ResetSocket();
+    OT_ASSERT(message);
 
-        return output;
-    }
+    auto result = request_socket_->SendRequest(*message);
+    status = result.first;
 
-    ResetTimer();
-    const bool received = Receive(*reply);
+    OT_ASSERT(result.second);
 
-    if (received) {
-        status_.store(true);
-        status = SendResult::VALID_REPLY;
-    } else {
-        otErr << OT_METHOD << __FUNCTION__
-              << ": Timeout waiting for server reply." << std::endl;
-        status_.store(false);
-        status = SendResult::TIMEOUT;
+    switch (status) {
+        case SendResult::ERROR: {
+            ResetSocket();
+        } break;
+        case SendResult::TIMEOUT: {
+            status_.store(false);
+            ResetTimer();
+        } break;
+        case SendResult::VALID_REPLY: {
+            status_.store(true);
+            ResetTimer();
+            reply.reset(new std::string(*result.second));
+
+            OT_ASSERT(reply);
+        } break;
+        default: {
+            OT_FAIL;
+        }
     }
 
     return output;
@@ -336,10 +317,13 @@ NetworkReplyMessage ServerConnection::Send(const Message& message)
     return output;
 }
 
-void ServerConnection::SetRemoteKey()
+void ServerConnection::SetCurve()
 {
-    zsock_set_curve_serverkey_bin(
-        request_socket_, remote_contract_->PublicTransportKey());
+    OT_ASSERT(remote_contract_);
+
+    const auto set = request_socket_->SetCurve(*remote_contract_);
+
+    OT_ASSERT(set);
 }
 
 void ServerConnection::SetProxy(const std::string& proxy)
@@ -347,22 +331,20 @@ void ServerConnection::SetProxy(const std::string& proxy)
     OT_ASSERT(nullptr != request_socket_);
 
     if (false == proxy.empty()) {
-        zsock_set_socks_proxy(request_socket_, proxy.c_str());
-        otErr << OT_METHOD << __FUNCTION__ << ": Proxy set to " << proxy
-              << std::endl;
+        const auto set = request_socket_->SetSocksProxy(proxy);
+
+        OT_ASSERT(set);
     }
 }
 
 void ServerConnection::SetTimeouts()
 {
-    zsock_set_linger(
-        request_socket_, std::chrono::milliseconds(zmq_.Linger()).count());
-    zsock_set_sndtimeo(
-        request_socket_, std::chrono::milliseconds(zmq_.SendTimeout()).count());
-    zsock_set_rcvtimeo(
-        request_socket_,
-        std::chrono::milliseconds(zmq_.ReceiveTimeout()).count());
-    zcert_apply(zcert_new(), request_socket_);
+    OT_ASSERT(nullptr != request_socket_);
+
+    const auto set = request_socket_->SetTimeouts(
+        zmq_.Linger(), zmq_.SendTimeout(), zmq_.ReceiveTimeout());
+
+    OT_ASSERT(set);
 }
 
 bool ServerConnection::Status() const { return status_.load(); }
@@ -392,7 +374,5 @@ ServerConnection::~ServerConnection()
     if (thread_) {
         thread_->join();
     }
-
-    zsock_destroy(&request_socket_);
 }
 }  // namespace opentxs
