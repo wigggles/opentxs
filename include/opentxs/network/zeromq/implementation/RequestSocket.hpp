@@ -36,60 +36,54 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_SERVER_MESSAGEPROCESSOR_HPP
-#define OPENTXS_SERVER_MESSAGEPROCESSOR_HPP
+#ifndef OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_REQUESTSOCKET_HPP
+#define OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_REQUESTSOCKET_HPP
 
 #include "opentxs/Version.hpp"
 
-#include <atomic>
-#include <memory>
-#include <string>
-#include <thread>
+#include "opentxs/network/zeromq/implementation/Socket.hpp"
+#include "opentxs/network/zeromq/RequestSocket.hpp"
 
 namespace opentxs
 {
-class OTPassword;
+class ServerContract;
 
 namespace network
 {
 namespace zeromq
 {
-class Context;
-class ReplySocket;
-}  // namespace zeromq
-}  // namespace network
-
-namespace server
+namespace implementation
 {
+class Context;
 
-class Server;
-
-class MessageProcessor
+class RequestSocket : virtual public zeromq::RequestSocket, public Socket
 {
 public:
-    EXPORT explicit MessageProcessor(
-        Server& server,
-        const network::zeromq::Context& context,
-        std::atomic<bool>& shutdown);
+    MessageSendResult SendRequest(opentxs::Data& message);
+    MessageSendResult SendRequest(std::string& message);
+    MessageSendResult SendRequest(zeromq::Message& message);
+    bool SetCurve(const ServerContract& contract);
+    bool SetSocksProxy(const std::string& proxy);
+    bool Start(const std::string& endpoint) override;
 
-    EXPORT void cleanup();
-    EXPORT void init(const int port, const OTPassword& privkey);
-    EXPORT void Start();
-
-    EXPORT ~MessageProcessor();
+    ~RequestSocket() = default;
 
 private:
-    Server& server_;
-    std::atomic<bool>& shutdown_;
-    const network::zeromq::Context& context_;
-    std::shared_ptr<network::zeromq::ReplySocket> reply_socket_;
-    std::unique_ptr<std::thread> thread_{nullptr};
+    friend class Context;
+    typedef Socket ot_super;
 
-    bool processMessage(const std::string& messageString, std::string& reply);
-    void processSocket();
-    void run();
+    bool set_local_keys(const Lock& lock);
+    bool set_remote_key(const Lock& lock, const ServerContract& contract);
+
+    RequestSocket(const zeromq::Context& context);
+    RequestSocket() = delete;
+    RequestSocket(const RequestSocket&) = delete;
+    RequestSocket(RequestSocket&&) = delete;
+    RequestSocket& operator=(const RequestSocket&) = delete;
+    RequestSocket& operator=(RequestSocket&&) = delete;
 };
-}  // namespace server
+}  // namespace implementation
+}  // namespace zeromq
+}  // namespace network
 }  // namespace opentxs
-
-#endif  // OPENTXS_SERVER_MESSAGEPROCESSOR_HPP
+#endif  // OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_REQUESTSOCKET_HPP

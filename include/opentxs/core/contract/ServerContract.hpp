@@ -41,7 +41,6 @@
 
 #include "opentxs/Version.hpp"
 
-#include "opentxs/api/network/implementation/ZMQ.hpp"  // TODO remove
 #include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/Proto.hpp"
@@ -54,8 +53,8 @@
 
 namespace opentxs
 {
-
 class Data;
+class OTPassword;
 class String;
 
 class ServerContract : public Signable
@@ -111,16 +110,15 @@ public:
     proto::ServerContract PublicContract() const;
     bool Statistics(String& strContents) const;
     const unsigned char* PublicTransportKey() const;
-    zcert_t* PrivateTransportKey() const;
+    const Data& TransportKey() const;
+    std::unique_ptr<OTPassword> TransportKey(Data& pubkey) const;
 
     std::string Name() const override { return name_; }
     Data Serialize() const override;
 
     void SetAlias(const std::string& alias) override;
 
-    EXPORT ~ServerContract() = default;
+    ~ServerContract() = default;
 };
-
 }  // namespace opentxs
-
 #endif  // OPENTXS_CORE_CONTRACT_SERVERCONTRACT_HPP

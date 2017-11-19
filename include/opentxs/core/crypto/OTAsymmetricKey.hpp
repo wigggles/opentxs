@@ -59,7 +59,6 @@ class CryptoAsymmetric;
 class Identifier;
 class NymParameters;
 class OTAsymmetricKey;
-class OTCaller;
 class OTPassword;
 class OTPasswordData;
 class OTSignatureMetadata;
@@ -89,24 +88,6 @@ typedef std::shared_ptr<proto::AsymmetricKey> serializedAsymmetricKey;
 //#define OT_MASTER_KEY_TIMEOUT 300  // This is in OTEnvelope.h
 // FYI: 1800 seconds is 30 minutes, 300 seconds is 5 mins.
 #endif  // OT_KEY_TIMER
-
-/** This is the only part of the API that actually accepts objects as
-parameters,
-since the above objects have SWIG C++ wrappers.
-Caller must have Callback attached already. */
-EXPORT bool OT_API_Set_PasswordCallback(OTCaller& theCaller);
-
-/** For getting the password from the user, for using his private key. */
-extern "C" {
-typedef int32_t OT_OPENSSL_CALLBACK(
-    char* buf,
-    int32_t size,
-    int32_t rwflag,
-    void* userdata);  // <== Callback type, used for declaring.
-
-EXPORT OT_OPENSSL_CALLBACK default_pass_cb;
-EXPORT OT_OPENSSL_CALLBACK souped_up_pass_cb;
-}
 
 class OTAsymmetricKey
 {
@@ -149,20 +130,6 @@ public:
     /** Caller IS responsible to delete! */
     EXPORT static OTAsymmetricKey* KeyFactory(
         const proto::AsymmetricKey& serializedKey);
-
-public:
-    static void SetPasswordCallback(OT_OPENSSL_CALLBACK* pCallback);
-    EXPORT static OT_OPENSSL_CALLBACK* GetPasswordCallback();
-    static bool IsPasswordCallbackSet()
-    {
-        return (nullptr == s_pwCallback) ? false : true;
-    }
-    EXPORT static bool SetPasswordCaller(OTCaller& theCaller);
-    static OTCaller* GetPasswordCaller();
-
-protected:
-    static OT_OPENSSL_CALLBACK* s_pwCallback;
-    static OTCaller* s_pCaller;
 
 protected:
     bool m_bIsPublicKey = false;

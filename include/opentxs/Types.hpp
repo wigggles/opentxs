@@ -98,6 +98,10 @@ typedef bool BIP44Chain;
 static const BIP44Chain INTERNAL_CHAIN = true;
 static const BIP44Chain EXTERNAL_CHAIN = false;
 
+typedef bool BlockMode;
+static const BlockMode BLOCK_MODE = true;
+static const BlockMode NOBLOCK_MODE = false;
+
 typedef std::vector<std::shared_ptr<std::string>> DhtResults;
 
 typedef std::function<void(bool)> DhtDoneCallback;
@@ -430,6 +434,12 @@ enum class BlockchainAccountType : std::uint8_t {
     ERROR = 0,
     BIP32 = 1,
     BIP44 = 2,
+};
+
+enum class SocketType : std::uint8_t {
+    Error = 0,
+    Request = 1,
+    Reply = 2,
 };
 }  // namespace opentxs
 

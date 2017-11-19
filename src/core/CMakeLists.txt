@@ -58,8 +58,6 @@ if (LIBSECP256K1_EXPORT AND NOT OT_INTERNAL_LIBSECP)
   include_directories(SYSTEM ${LIBSECP256K1_INCLUDE_DIR})
 endif()
 
-include_directories(SYSTEM ${CZMQ_INCLUDE_DIRS})
-
 set(MODULE_NAME opentxs-core)
 if(WIN32)
   # suppress warnings about exported internal symbols (global log stream objects)

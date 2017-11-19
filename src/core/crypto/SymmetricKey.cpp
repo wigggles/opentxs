@@ -40,6 +40,7 @@
 
 #include "opentxs/core/crypto/SymmetricKey.hpp"
 
+#include "opentxs/client/SwigWrap.hpp"
 #include "opentxs/core/crypto/AsymmetricKeyEC.hpp"
 #include "opentxs/core/crypto/CryptoSymmetric.hpp"
 #include "opentxs/core/crypto/CryptoSymmetricNew.hpp"

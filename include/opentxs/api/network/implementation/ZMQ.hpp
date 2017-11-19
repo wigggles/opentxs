@@ -43,32 +43,22 @@
 
 #include "opentxs/api/network/ZMQ.hpp"
 
-// IWYU pragma: begin_exports
-extern "C" {
-#ifndef __STDC_VERSION__
-#define __STDC_VERSION__ 0
-#endif
-#ifndef _ZMALLOC_PEDANTIC
-#define _ZMALLOC_PEDANTIC 0
-#endif
-
-#include <czmq.h>
-}
-// IWYU pragma: end_exports
-
 #include <atomic>
 #include <map>
 #include <memory>
 #include <mutex>
 
-// forward declare czmq types
-typedef struct _zsock_t zsock_t;
-typedef struct _zactor_t zactor_t;
-typedef struct _zpoller_t zpoller_t;
-
 namespace opentxs
 {
 class ServerConnection;
+
+namespace network
+{
+namespace zeromq
+{
+class Context;
+}  // namespace zeromq
+}  // namespace network
 
 namespace api
 {
@@ -87,9 +77,12 @@ namespace implementation
 class ZMQ : virtual public opentxs::api::network::ZMQ
 {
 public:
+    const opentxs::network::zeromq::Context& Context() const override;
     std::chrono::seconds KeepAlive() const override;
     void KeepAlive(const std::chrono::seconds duration) const override;
     std::chrono::seconds Linger() override;
+    std::shared_ptr<opentxs::network::zeromq::Context> NewContext()
+        const override;
     std::chrono::seconds ReceiveTimeout() override;
     void RefreshConfig() override;
     std::chrono::seconds SendTimeout() override;
@@ -105,6 +98,7 @@ public:
 private:
     friend class opentxs::api::implementation::Native;
 
+    const opentxs::network::zeromq::Context& context_;
     api::Settings& config_;
     std::atomic<std::chrono::seconds> linger_;
     std::atomic<std::chrono::seconds> receive_timeout_;
@@ -120,8 +114,9 @@ private:
 
     void init(const Lock& lock);
 
+    ZMQ(const opentxs::network::zeromq::Context& context,
+        api::Settings& config);
     ZMQ() = delete;
-    ZMQ(api::Settings& config);
     ZMQ(const ZMQ&) = delete;
     ZMQ(ZMQ&&) = delete;
     ZMQ& operator=(const ZMQ&) = delete;

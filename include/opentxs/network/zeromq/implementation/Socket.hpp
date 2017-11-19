@@ -36,60 +36,69 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_SERVER_MESSAGEPROCESSOR_HPP
-#define OPENTXS_SERVER_MESSAGEPROCESSOR_HPP
+#ifndef OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_SOCKET_HPP
+#define OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_SOCKET_HPP
 
 #include "opentxs/Version.hpp"
 
-#include <atomic>
-#include <memory>
-#include <string>
-#include <thread>
+#include "opentxs/network/zeromq/Socket.hpp"
+
+#include <map>
+#include <mutex>
+
+#define CURVE_KEY_BYTES 32
+#define CURVE_KEY_Z85_BYTES 40
 
 namespace opentxs
 {
-class OTPassword;
-
 namespace network
 {
 namespace zeromq
 {
 class Context;
-class ReplySocket;
-}  // namespace zeromq
-}  // namespace network
 
-namespace server
+namespace implementation
 {
 
-class Server;
-
-class MessageProcessor
+class Socket : virtual public zeromq::Socket
 {
 public:
-    EXPORT explicit MessageProcessor(
-        Server& server,
-        const network::zeromq::Context& context,
-        std::atomic<bool>& shutdown);
+    SocketType Type() const override;
 
-    EXPORT void cleanup();
-    EXPORT void init(const int port, const OTPassword& privkey);
-    EXPORT void Start();
+    operator void*() override;
 
-    EXPORT ~MessageProcessor();
+    bool Close() override;
+    bool SetTimeouts(
+        const std::chrono::milliseconds& linger,
+        const std::chrono::milliseconds& send,
+        const std::chrono::milliseconds& receive) override;
+    bool SetTimeouts(
+        const std::uint64_t& lingerMilliseconds,
+        const std::uint64_t& sendMilliseconds,
+        const std::uint64_t& receiveMilliseconds) override;
+
+    virtual ~Socket();
+
+protected:
+    const zeromq::Context& context_;
+    void* socket_{nullptr};
+    std::mutex lock_{};
+
+    explicit Socket(const zeromq::Context& context, const SocketType type);
 
 private:
-    Server& server_;
-    std::atomic<bool>& shutdown_;
-    const network::zeromq::Context& context_;
-    std::shared_ptr<network::zeromq::ReplySocket> reply_socket_;
-    std::unique_ptr<std::thread> thread_{nullptr};
+    static const std::map<SocketType, int> types_;
 
-    bool processMessage(const std::string& messageString, std::string& reply);
-    void processSocket();
-    void run();
+    const SocketType type_{SocketType::Error};
+
+    Socket() = delete;
+    Socket(const Socket&) = delete;
+    Socket(Socket&&) = delete;
+    Socket& operator=(const Socket&) = delete;
+    Socket& operator=(Socket&&) = delete;
 };
-}  // namespace server
+}  // namespace implementation
+}  // namespace zeromq
+}  // namespace network
 }  // namespace opentxs
-
-#endif  // OPENTXS_SERVER_MESSAGEPROCESSOR_HPP
+#endif  // OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_SOCKET_HPP

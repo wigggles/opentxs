@@ -36,60 +36,51 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_SERVER_MESSAGEPROCESSOR_HPP
-#define OPENTXS_SERVER_MESSAGEPROCESSOR_HPP
+#ifndef OPENTXS_NETWORK_ZEROMQ_MESSAGE_HPP
+#define OPENTXS_NETWORK_ZEROMQ_MESSAGE_HPP
 
 #include "opentxs/Version.hpp"
 
-#include <atomic>
-#include <memory>
 #include <string>
-#include <thread>
+
+struct zmq_msg_t;
 
 namespace opentxs
 {
-class OTPassword;
-
 namespace network
 {
 namespace zeromq
 {
-class Context;
-class ReplySocket;
-}  // namespace zeromq
-}  // namespace network
 
-namespace server
-{
+#ifdef SWIG
+// clang-format off
+%ignore Message::operator zmq_msg_t*();
+%rename(string) Message::operator std::string() const;
+// clang-format on
+#endif  // SWIG
 
-class Server;
-
-class MessageProcessor
+class Message
 {
 public:
-    EXPORT explicit MessageProcessor(
-        Server& server,
-        const network::zeromq::Context& context,
-        std::atomic<bool>& shutdown);
+    EXPORT virtual operator std::string() const = 0;
 
-    EXPORT void cleanup();
-    EXPORT void init(const int port, const OTPassword& privkey);
-    EXPORT void Start();
+    EXPORT virtual const void* data() const = 0;
+    EXPORT virtual std::size_t size() const = 0;
 
-    EXPORT ~MessageProcessor();
+    EXPORT virtual operator zmq_msg_t*() = 0;
+
+    EXPORT virtual ~Message() = default;
+
+protected:
+    Message() = default;
 
 private:
-    Server& server_;
-    std::atomic<bool>& shutdown_;
-    const network::zeromq::Context& context_;
-    std::shared_ptr<network::zeromq::ReplySocket> reply_socket_;
-    std::unique_ptr<std::thread> thread_{nullptr};
-
-    bool processMessage(const std::string& messageString, std::string& reply);
-    void processSocket();
-    void run();
+    Message(const Message&) = delete;
+    Message(Message&&) = delete;
+    Message& operator=(Message&&) = delete;
+    Message& operator=(const Message&) = delete;
 };
-}  // namespace server
+}  // namespace zeromq
+}  // namespace network
 }  // namespace opentxs
-
-#endif  // OPENTXS_SERVER_MESSAGEPROCESSOR_HPP
+#endif  // OPENTXS_NETWORK_ZEROMQ_MESSAGE_HPP

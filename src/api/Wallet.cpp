@@ -41,6 +41,7 @@
 #include "opentxs/api/Wallet.hpp"
 
 #include "opentxs/api/network/Dht.hpp"
+#include "opentxs/api/network/ZMQ.hpp"
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Identity.hpp"

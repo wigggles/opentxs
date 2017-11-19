@@ -36,65 +36,67 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_API_NETWORK_ZMQ_HPP
-#define OPENTXS_API_NETWORK_ZMQ_HPP
+#ifndef OPENTXS_NETWORK_ZEROMQ_SOCKET_HPP
+#define OPENTXS_NETWORK_ZEROMQ_SOCKET_HPP
 
 #include "opentxs/Version.hpp"
 
 #include "opentxs/Types.hpp"
 
+#include <cstdint>
 #include <chrono>
 #include <memory>
 #include <string>
+#include <tuple>
 
 namespace opentxs
 {
-class ServerConnection;
-
 namespace network
 {
 namespace zeromq
 {
-class Context;
-}  // namespace zeromq
-}  // namespace network
+class Message;
 
-namespace api
-{
-namespace network
-{
+#ifdef SWIG
+// clang-format off
+%ignore Socket::operator void*();
+%ignore Socket::SetTimeouts(const std::chrono::milliseconds&, std::chrono::milliseconds&, const std::chrono::milliseconds&);
+// clang-format on
+#endif  // SWIG
 
-class ZMQ
+class Socket
 {
 public:
-    virtual const opentxs::network::zeromq::Context& Context() const = 0;
-    virtual std::chrono::seconds KeepAlive() const = 0;
-    virtual void KeepAlive(const std::chrono::seconds duration) const = 0;
-    virtual std::chrono::seconds Linger() = 0;
-    virtual std::shared_ptr<opentxs::network::zeromq::Context> NewContext()
-        const = 0;
-    virtual std::chrono::seconds ReceiveTimeout() = 0;
-    virtual void RefreshConfig() = 0;
-    virtual std::chrono::seconds SendTimeout() = 0;
+    typedef std::pair<SendResult, std::shared_ptr<Message>> MessageSendResult;
+    typedef std::pair<bool, std::shared_ptr<Message>> MessageReceiveResult;
 
-    virtual ServerConnection& Server(const std::string& id) = 0;
-    virtual bool SetSocksProxy(const std::string& proxy) = 0;
-    virtual std::string SocksProxy() = 0;
-    virtual bool SocksProxy(std::string& proxy) = 0;
-    virtual ConnectionState Status(const std::string& server) const = 0;
+    EXPORT virtual SocketType Type() const = 0;
 
-    virtual ~ZMQ() = default;
+    EXPORT virtual operator void*() = 0;
+
+    EXPORT virtual bool Close() = 0;
+    EXPORT virtual bool SetTimeouts(
+        const std::chrono::milliseconds& linger,
+        const std::chrono::milliseconds& send,
+        const std::chrono::milliseconds& receive) = 0;
+    EXPORT virtual bool SetTimeouts(
+        const std::uint64_t& lingerMilliseconds,
+        const std::uint64_t& sendMilliseconds,
+        const std::uint64_t& receiveMilliseconds) = 0;
+    EXPORT virtual bool Start(const std::string& endpoint) = 0;
+
+    EXPORT virtual ~Socket() = default;
 
 protected:
-    ZMQ() = default;
+    Socket() = default;
 
 private:
-    ZMQ(const ZMQ&) = delete;
-    ZMQ(ZMQ&&) = delete;
-    ZMQ& operator=(const ZMQ&) = delete;
-    ZMQ& operator=(const ZMQ&&) = delete;
+    Socket(const Socket&) = delete;
+    Socket(Socket&&) = default;
+    Socket& operator=(const Socket&) = delete;
+    Socket& operator=(Socket&&) = default;
 };
+}  // namespace zeromq
 }  // namespace network
-}  // namespace api
 }  // namespace opentxs
-#endif  // OPENTXS_API_NETWORK_ZMQ_HPP
+#endif  // OPENTXS_NETWORK_ZEROMQ_SOCKET_HPP

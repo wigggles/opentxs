@@ -43,6 +43,7 @@
 #include "opentxs/api/Native.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/contract/Signable.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -51,12 +52,6 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/OT.hpp"
 #include "opentxs/Proto.hpp"
-
-#include <stdint.h>
-#include <list>
-#include <memory>
-#include <string>
-#include <tuple>
 
 namespace opentxs
 {
@@ -99,8 +94,7 @@ ServerContract* ServerContract::Create(
     const std::string& terms,
     const std::string& name)
 {
-    OT_ASSERT(nullptr != nym);
-
+    OT_ASSERT(nym);
     OT_ASSERT(nym->hasCapability(NymCapability::AUTHENTICATE_CONNECTION));
 
     ServerContract* contract = new ServerContract(nym);
@@ -109,11 +103,7 @@ ServerContract* ServerContract::Create(
         contract->version_ = 1;
         contract->listen_params_ = endpoints;
         contract->conditions_ = terms;
-
-        // TODO:: find the right defined constant. 32 is the correct size
-        // according to https://github.com/zeromq/czmq
-        contract->transport_key_.Assign(
-            zcert_public_key(contract->PrivateTransportKey()), 32);
+        nym->TransportKey(contract->transport_key_);
         contract->name_ = name;
 
         Lock lock(contract->lock_);
@@ -302,23 +292,20 @@ bool ServerContract::Statistics(String& strContents) const
     return true;
 }
 
-const unsigned char* ServerContract::PublicTransportKey() const
-{
-    return static_cast<const unsigned char*>(transport_key_.GetPointer());
-}
-
-zcert_t* ServerContract::PrivateTransportKey() const
-{
-    OT_ASSERT(nym_);
-
-    return nym_->TransportKey();
-}
-
 Data ServerContract::Serialize() const
 {
     Lock lock(lock_);
 
     return proto::ProtoAsData(contract(lock));
+}
+
+const Data& ServerContract::TransportKey() const { return transport_key_; }
+
+std::unique_ptr<OTPassword> ServerContract::TransportKey(Data& pubkey) const
+{
+    OT_ASSERT(nym_);
+
+    return nym_->TransportKey(pubkey);
 }
 
 bool ServerContract::update_signature(const Lock& lock)

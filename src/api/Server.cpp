@@ -73,16 +73,19 @@ Server::Server(
     opentxs::api::Settings& config,
     opentxs::api::storage::Storage& storage,
     opentxs::api::Wallet& wallet,
-    std::atomic<bool>& shutdown)
+    std::atomic<bool>& shutdown,
+    const opentxs::network::zeromq::Context& context)
     : args_(args)
     , config_(config)
     , crypto_(crypto)
     , storage_(storage)
     , wallet_(wallet)
     , shutdown_(shutdown)
+    , zmq_context_(context)
     , server_p_(new server::Server(crypto_, config_, *this, storage_, wallet_))
     , server_(*server_p_)
-    , message_processor_p_(new server::MessageProcessor(server_, shutdown_))
+    , message_processor_p_(
+          new server::MessageProcessor(server_, context, shutdown_))
     , message_processor_(*message_processor_p_)
     , mint_thread_(nullptr)
     , mint_lock_()
@@ -102,7 +105,7 @@ void Server::Cleanup()
     otErr << OT_METHOD << __FUNCTION__ << ": Shutting down and cleaning up."
           << std::endl;
 
-    message_processor_.Cleanup();
+    message_processor_.cleanup();
 }
 
 void Server::generate_mint(
@@ -379,7 +382,12 @@ void Server::Start()
 
     OT_ASSERT(connectInfo);
 
-    message_processor_.Init(port, server_.GetTransportKey());
+    Data pubkey{};
+    auto privateKey = server_.TransportKey(pubkey);
+
+    OT_ASSERT(privateKey);
+
+    message_processor_.init(port, *privateKey);
     message_processor_.Start();
     ScanMints();
 }

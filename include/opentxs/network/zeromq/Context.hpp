@@ -36,60 +36,58 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_SERVER_MESSAGEPROCESSOR_HPP
-#define OPENTXS_SERVER_MESSAGEPROCESSOR_HPP
+#ifndef OPENTXS_NETWORK_ZEROMQ_CONTEXT_HPP
+#define OPENTXS_NETWORK_ZEROMQ_CONTEXT_HPP
 
 #include "opentxs/Version.hpp"
 
-#include <atomic>
 #include <memory>
 #include <string>
-#include <thread>
 
 namespace opentxs
 {
-class OTPassword;
+class Data;
 
 namespace network
 {
 namespace zeromq
 {
-class Context;
+class Message;
 class ReplySocket;
-}  // namespace zeromq
-}  // namespace network
+class RequestSocket;
 
-namespace server
-{
+#ifdef SWIG
+// clang-format off
+%ignore Context::operator void*() const;
+%ignore Context::NewMessage(const Data&) const;
+// clang-format on
+#endif  // SWIG
 
-class Server;
-
-class MessageProcessor
+class Context
 {
 public:
-    EXPORT explicit MessageProcessor(
-        Server& server,
-        const network::zeromq::Context& context,
-        std::atomic<bool>& shutdown);
+    EXPORT virtual operator void*() const = 0;
 
-    EXPORT void cleanup();
-    EXPORT void init(const int port, const OTPassword& privkey);
-    EXPORT void Start();
+    EXPORT virtual std::shared_ptr<Message> NewMessage() const = 0;
+    EXPORT virtual std::shared_ptr<Message> NewMessage(
+        const Data& input) const = 0;
+    EXPORT virtual std::shared_ptr<Message> NewMessage(
+        const std::string& input) const = 0;
+    EXPORT virtual std::shared_ptr<ReplySocket> NewReplySocket() const = 0;
+    EXPORT virtual std::shared_ptr<RequestSocket> NewRequestSocket() const = 0;
 
-    EXPORT ~MessageProcessor();
+    EXPORT virtual ~Context() = default;
+
+protected:
+    Context() = default;
 
 private:
-    Server& server_;
-    std::atomic<bool>& shutdown_;
-    const network::zeromq::Context& context_;
-    std::shared_ptr<network::zeromq::ReplySocket> reply_socket_;
-    std::unique_ptr<std::thread> thread_{nullptr};
-
-    bool processMessage(const std::string& messageString, std::string& reply);
-    void processSocket();
-    void run();
+    Context(const Context&) = delete;
+    Context(Context&&) = delete;
+    Context& operator=(const Context&) = delete;
+    Context& operator=(Context&&) = delete;
 };
-}  // namespace server
+}  // namespace zeromq
+}  // namespace network
 }  // namespace opentxs
-
-#endif  // OPENTXS_SERVER_MESSAGEPROCESSOR_HPP
+#endif  // OPENTXS_NETWORK_ZEROMQ_CONTEXT_HPP

@@ -43,6 +43,7 @@
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
 #include "opentxs/api/Native.hpp"
+#include "opentxs/client/SwigWrap.hpp"
 #include "opentxs/core/crypto/Libsodium.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
@@ -330,10 +331,7 @@ bool OTAsymmetricKey_OpenSSL::SetPrivateKey(
                                // then
         {
             pkey = PEM_read_bio_PrivateKey(
-                bio,
-                nullptr,
-                OTAsymmetricKey::GetPasswordCallback(),
-                &thePWData);
+                bio, nullptr, SwigWrap::GetPasswordCallback(), &thePWData);
         } else  // Otherwise, use pImportPassword instead of the normal
                 // OTCachedKey system.
         {
@@ -418,10 +416,7 @@ bool OTAsymmetricKey_OpenSSL::SetPublicKeyFromPrivateKey(
 
     if (nullptr == pImportPassword)
         x509 = PEM_read_bio_X509(
-            keyBio,
-            nullptr,
-            OTAsymmetricKey::GetPasswordCallback(),
-            &thePWData);
+            keyBio, nullptr, SwigWrap::GetPasswordCallback(), &thePWData);
     else
         x509 = PEM_read_bio_X509(
             keyBio,
@@ -545,10 +540,7 @@ bool OTAsymmetricKey_OpenSSL::ReEncryptPrivateKey(
             //          otOut << "RE-ENCRYPT PRIVATE KEY -- READING using WALLET
             // password.\n";
             pClearKey = PEM_read_bio_PrivateKey(
-                keyBio,
-                nullptr,
-                OTAsymmetricKey::GetPasswordCallback(),
-                &thePWData);
+                keyBio, nullptr, SwigWrap::GetPasswordCallback(), &thePWData);
         }
 
         if (nullptr != pClearKey) {
@@ -585,7 +577,7 @@ bool OTAsymmetricKey_OpenSSL::ReEncryptPrivateKey(
                     pCipher,
                     nullptr,
                     0,
-                    OTAsymmetricKey::GetPasswordCallback(),
+                    SwigWrap::GetPasswordCallback(),
                     &thePWData);
             }
 
@@ -765,7 +757,7 @@ bool OTAsymmetricKey_OpenSSL::GetPrivateKey(
             pCipher,
             nullptr,
             0,
-            OTAsymmetricKey::GetPasswordCallback(),
+            SwigWrap::GetPasswordCallback(),
             &thePWData);
     else
         PEM_write_bio_PrivateKey(

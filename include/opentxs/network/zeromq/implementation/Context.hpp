@@ -36,60 +36,70 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_SERVER_MESSAGEPROCESSOR_HPP
-#define OPENTXS_SERVER_MESSAGEPROCESSOR_HPP
+#ifndef OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_CONTEXT_HPP
+#define OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_CONTEXT_HPP
 
 #include "opentxs/Version.hpp"
 
-#include <atomic>
-#include <memory>
-#include <string>
-#include <thread>
+#include "opentxs/network/zeromq/Context.hpp"
 
 namespace opentxs
 {
-class OTPassword;
+namespace api
+{
+namespace implementation
+{
+class Native;
+}  // namespace implementation
+
+namespace network
+{
+namespace implementation
+{
+class ZMQ;
+}  // namespace implementation
+}  // namespace network
+}  // namespace api
 
 namespace network
 {
 namespace zeromq
 {
-class Context;
 class ReplySocket;
-}  // namespace zeromq
-}  // namespace network
+class RequestSocket;
 
-namespace server
+namespace implementation
 {
 
-class Server;
-
-class MessageProcessor
+class Context : virtual public zeromq::Context
 {
 public:
-    EXPORT explicit MessageProcessor(
-        Server& server,
-        const network::zeromq::Context& context,
-        std::atomic<bool>& shutdown);
+    operator void*() const override;
 
-    EXPORT void cleanup();
-    EXPORT void init(const int port, const OTPassword& privkey);
-    EXPORT void Start();
+    std::shared_ptr<zeromq::Message> NewMessage() const override;
+    std::shared_ptr<zeromq::Message> NewMessage(
+        const Data& input) const override;
+    std::shared_ptr<zeromq::Message> NewMessage(
+        const std::string& input) const override;
+    std::shared_ptr<zeromq::ReplySocket> NewReplySocket() const override;
+    std::shared_ptr<zeromq::RequestSocket> NewRequestSocket() const override;
 
-    EXPORT ~MessageProcessor();
+    ~Context();
 
 private:
-    Server& server_;
-    std::atomic<bool>& shutdown_;
-    const network::zeromq::Context& context_;
-    std::shared_ptr<network::zeromq::ReplySocket> reply_socket_;
-    std::unique_ptr<std::thread> thread_{nullptr};
+    friend class api::implementation::Native;
+    friend class api::network::implementation::ZMQ;
 
-    bool processMessage(const std::string& messageString, std::string& reply);
-    void processSocket();
-    void run();
+    void* context_{nullptr};
+
+    Context();
+    Context(const Context&) = delete;
+    Context(Context&&) = delete;
+    Context& operator=(const Context&) = delete;
+    Context& operator=(Context&&) = delete;
 };
-}  // namespace server
+}  // namespace implementation
+}  // namespace zeromq
+}  // namespace network
 }  // namespace opentxs
-
-#endif  // OPENTXS_SERVER_MESSAGEPROCESSOR_HPP
+#endif  // OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_CONTEXT_HPP

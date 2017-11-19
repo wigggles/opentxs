@@ -36,60 +36,56 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_SERVER_MESSAGEPROCESSOR_HPP
-#define OPENTXS_SERVER_MESSAGEPROCESSOR_HPP
+#ifndef OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_MESSAGE_HPP
+#define OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_MESSAGE_HPP
 
 #include "opentxs/Version.hpp"
 
-#include <atomic>
-#include <memory>
+#include "opentxs/network/zeromq/Message.hpp"
+
 #include <string>
-#include <thread>
+
+struct zmq_msg_t;
 
 namespace opentxs
 {
-class OTPassword;
+class Data;
 
 namespace network
 {
 namespace zeromq
 {
-class Context;
-class ReplySocket;
-}  // namespace zeromq
-}  // namespace network
-
-namespace server
+namespace implementation
 {
+class Context;
 
-class Server;
-
-class MessageProcessor
+class Message : virtual public zeromq::Message
 {
 public:
-    EXPORT explicit MessageProcessor(
-        Server& server,
-        const network::zeromq::Context& context,
-        std::atomic<bool>& shutdown);
+    operator std::string() const override;
 
-    EXPORT void cleanup();
-    EXPORT void init(const int port, const OTPassword& privkey);
-    EXPORT void Start();
+    const void* data() const override;
+    std::size_t size() const override;
 
-    EXPORT ~MessageProcessor();
+    operator zmq_msg_t*() override;
+
+    ~Message();
 
 private:
-    Server& server_;
-    std::atomic<bool>& shutdown_;
-    const network::zeromq::Context& context_;
-    std::shared_ptr<network::zeromq::ReplySocket> reply_socket_;
-    std::unique_ptr<std::thread> thread_{nullptr};
+    friend class Context;
 
-    bool processMessage(const std::string& messageString, std::string& reply);
-    void processSocket();
-    void run();
+    zmq_msg_t* message_{nullptr};
+
+    Message();
+    explicit Message(const Data& input);
+    explicit Message(const std::string& input);
+    Message(const Message&) = delete;
+    Message(Message&&) = delete;
+    Message& operator=(Message&&) = delete;
+    Message& operator=(const Message&) = delete;
 };
-}  // namespace server
+}  // namespace implementation
+}  // namespace zeromq
+}  // namespace network
 }  // namespace opentxs
-
-#endif  // OPENTXS_SERVER_MESSAGEPROCESSOR_HPP
+#endif  // OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_MESSAGE_HPP

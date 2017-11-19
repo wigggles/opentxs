@@ -59,6 +59,16 @@ namespace api
 class Wallet;
 }
 
+#ifdef SWIG
+// clang-format off
+%ignore NymData::NymData(NymData&&);
+%ignore NymData::AddPaymentCode(const std::string&, const std::ContactItemType, const bool, const bool);
+%ignore NymData::PaymentCode(const proto::ContactItemType) const;
+%ignore NymData::SetType(const proto::ContactItemType);
+%ignore NymData::Type() const;
+// clang-format on
+#endif  // SWIG
+
 class NymData
 {
 public:
@@ -105,13 +115,4 @@ private:
     NymData& operator=(NymData&&) = delete;
 };
 }  // namespace opentxs
-
-#ifdef SWIG
-// clang-format off
-%ignore NymData::AddPaymentCode(const std::string&, const std::ContactItemType, const bool, const bool);
-%ignore NymData::PaymentCode(const proto::ContactItemType) const;
-%ignore NymData::SetType(const proto::ContactItemType);
-%ignore NymData::Type() const;
-// clang-format on
-#endif  // SWIG
 #endif  // OPENTXS_CLIENT_NYMDATA_HPP

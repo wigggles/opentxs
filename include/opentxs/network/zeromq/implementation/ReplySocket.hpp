@@ -36,15 +36,15 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_SERVER_MESSAGEPROCESSOR_HPP
-#define OPENTXS_SERVER_MESSAGEPROCESSOR_HPP
+#ifndef OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_REPLYSOCKET_HPP
+#define OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_REPLYSOCKET_HPP
 
 #include "opentxs/Version.hpp"
 
-#include <atomic>
-#include <memory>
+#include "opentxs/network/zeromq/implementation/Socket.hpp"
+#include "opentxs/network/zeromq/ReplySocket.hpp"
+
 #include <string>
-#include <thread>
 
 namespace opentxs
 {
@@ -54,42 +54,37 @@ namespace network
 {
 namespace zeromq
 {
-class Context;
-class ReplySocket;
-}  // namespace zeromq
-}  // namespace network
+class Message;
 
-namespace server
+namespace implementation
 {
+class Context;
 
-class Server;
-
-class MessageProcessor
+class ReplySocket : virtual public zeromq::ReplySocket, public Socket
 {
 public:
-    EXPORT explicit MessageProcessor(
-        Server& server,
-        const network::zeromq::Context& context,
-        std::atomic<bool>& shutdown);
+    MessageReceiveResult ReceiveRequest(BlockMode block) override;
+    bool SendReply(const std::string& reply) override;
+    bool SendReply(const opentxs::Data& reply) override;
+    bool SendReply(zeromq::Message& reply) override;
+    bool SetCurve(const OTPassword& key) override;
+    bool Start(const std::string& endpoint) override;
 
-    EXPORT void cleanup();
-    EXPORT void init(const int port, const OTPassword& privkey);
-    EXPORT void Start();
-
-    EXPORT ~MessageProcessor();
+    ~ReplySocket() = default;
 
 private:
-    Server& server_;
-    std::atomic<bool>& shutdown_;
-    const network::zeromq::Context& context_;
-    std::shared_ptr<network::zeromq::ReplySocket> reply_socket_;
-    std::unique_ptr<std::thread> thread_{nullptr};
+    friend class Context;
+    typedef Socket ot_super;
 
-    bool processMessage(const std::string& messageString, std::string& reply);
-    void processSocket();
-    void run();
+    ReplySocket(const zeromq::Context& context);
+    ReplySocket() = delete;
+    ReplySocket(const ReplySocket&) = delete;
+    ReplySocket(ReplySocket&&) = delete;
+    ReplySocket& operator=(const ReplySocket&) = delete;
+    ReplySocket& operator=(ReplySocket&&) = delete;
 };
-}  // namespace server
+}  // namespace implementation
+}  // namespace zeromq
+}  // namespace network
 }  // namespace opentxs
-
-#endif  // OPENTXS_SERVER_MESSAGEPROCESSOR_HPP
+#endif  // OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_REPLYSOCKET_HPP

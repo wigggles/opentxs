@@ -36,60 +36,58 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_SERVER_MESSAGEPROCESSOR_HPP
-#define OPENTXS_SERVER_MESSAGEPROCESSOR_HPP
+#ifndef OPENTXS_NETWORK_ZEROMQ_REQUESTSOCKET_HPP
+#define OPENTXS_NETWORK_ZEROMQ_REQUESTSOCKET_HPP
 
 #include "opentxs/Version.hpp"
 
-#include <atomic>
-#include <memory>
+#include "opentxs/network/zeromq/Socket.hpp"
+
 #include <string>
-#include <thread>
 
 namespace opentxs
 {
-class OTPassword;
+class ServerContract;
+}  // namespace opentxs
+
+namespace opentxs
+{
+class Data;
 
 namespace network
 {
 namespace zeromq
 {
-class Context;
-class ReplySocket;
-}  // namespace zeromq
-}  // namespace network
+class Message;
 
-namespace server
-{
+#ifdef SWIG
+// clang-format off
+%ignore RequestSocket::SendRequest(opentxs::Data&);
+%ignore RequestSocket::SetCurve(const ServerContract&);
+// clang-format on
+#endif  // SWIG
 
-class Server;
-
-class MessageProcessor
+class RequestSocket : virtual public Socket
 {
 public:
-    EXPORT explicit MessageProcessor(
-        Server& server,
-        const network::zeromq::Context& context,
-        std::atomic<bool>& shutdown);
+    EXPORT virtual MessageSendResult SendRequest(opentxs::Data& message) = 0;
+    EXPORT virtual MessageSendResult SendRequest(std::string& message) = 0;
+    EXPORT virtual MessageSendResult SendRequest(Message& message) = 0;
+    EXPORT virtual bool SetCurve(const ServerContract& contract) = 0;
+    EXPORT virtual bool SetSocksProxy(const std::string& proxy) = 0;
 
-    EXPORT void cleanup();
-    EXPORT void init(const int port, const OTPassword& privkey);
-    EXPORT void Start();
+    EXPORT virtual ~RequestSocket() = default;
 
-    EXPORT ~MessageProcessor();
+protected:
+    RequestSocket() = default;
 
 private:
-    Server& server_;
-    std::atomic<bool>& shutdown_;
-    const network::zeromq::Context& context_;
-    std::shared_ptr<network::zeromq::ReplySocket> reply_socket_;
-    std::unique_ptr<std::thread> thread_{nullptr};
-
-    bool processMessage(const std::string& messageString, std::string& reply);
-    void processSocket();
-    void run();
+    RequestSocket(const RequestSocket&) = delete;
+    RequestSocket(RequestSocket&&) = default;
+    RequestSocket& operator=(const RequestSocket&) = delete;
+    RequestSocket& operator=(RequestSocket&&) = default;
 };
-}  // namespace server
+}  // namespace zeromq
+}  // namespace network
 }  // namespace opentxs
-
-#endif  // OPENTXS_SERVER_MESSAGEPROCESSOR_HPP
+#endif  // OPENTXS_NETWORK_ZEROMQ_REQUESTSOCKET_HPP

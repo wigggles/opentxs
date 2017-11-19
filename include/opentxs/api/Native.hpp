@@ -72,7 +72,7 @@ namespace network
 {
 class Dht;
 class ZMQ;
-}  // namespace storage
+}  // namespace network
 
 class Native
 {

@@ -62,6 +62,7 @@ namespace opentxs
 {
 class Identifier;
 class Message;
+class OTPassword;
 class OTPayment;
 class PayDividendVisitor;
 class ServerContract;
@@ -102,7 +103,7 @@ public:
         const;
     EXPORT const Identifier& GetServerID() const;
     EXPORT const Nym& GetServerNym() const;
-    EXPORT zcert_t* GetTransportKey() const;
+    EXPORT std::unique_ptr<OTPassword> TransportKey(Data& pubkey) const;
     EXPORT bool IsFlaggedForShutdown() const;
 
     EXPORT void ActivateCron();

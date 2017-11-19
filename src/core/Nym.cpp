@@ -2799,35 +2799,29 @@ bool Nym::SetVerificationSet(const proto::VerificationSet& data)
     return false;
 }
 
-zcert_t* Nym::TransportKey() const
+std::unique_ptr<OTPassword> Nym::TransportKey(Data& pubkey) const
 {
-    OTPassword privateKey;
-    Data publicKey;
+    bool found{false};
+    auto privateKey = std::make_unique<OTPassword>();
 
-    bool generated = false;
-    zcert_t* output = nullptr;
+    OT_ASSERT(privateKey);
 
     for (auto& it : m_mapCredentialSets) {
         OT_ASSERT(nullptr != it.second);
 
         if (nullptr != it.second) {
             const CredentialSet& credSet = *it.second;
+            found = credSet.TransportKey(pubkey, *privateKey);
 
-            if (credSet.TransportKey(publicKey, privateKey)) {
-                generated = true;
+            if (found) {
                 break;
             }
         }
     }
 
-    if (generated) {
-        output = zcert_new_from(
-            static_cast<unsigned char*>(
-                const_cast<void*>(publicKey.GetPointer())),
-            static_cast<unsigned char*>(privateKey.getMemoryWritable()));
-    }
+    OT_ASSERT(found);
 
-    return output;
+    return privateKey;
 }
 
 bool Nym::update_nym(const Lock& lock)
