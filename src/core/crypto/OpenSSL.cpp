@@ -323,7 +323,7 @@ void ot_openssl_thread_id(CRYPTO_THREADID* id)
     // for certain platforms. (OpenSSL provides functions for both.)
     //
 
-    unsigned long val =
+    [[maybe_unused]] unsigned long val =
         std::hash<std::thread::id>()(std::this_thread::get_id());
 
     //    void CRYPTO_THREADID_set_numeric(CRYPTO_THREADID* id, uint64_t val);

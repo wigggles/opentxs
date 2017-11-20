@@ -2225,6 +2225,7 @@ bool OTTransaction::VerifyBalanceReceipt(const ServerContext& context)
                               << pTransaction->GetReferenceToNum() << "\n";
                         return false;
                     }
+                    [[fallthrough]];
                 // else drop-through, since marketReceipts and paymentReceipts
                 // DO affect the balance...
 
@@ -4707,9 +4708,7 @@ void OTTransaction::SaveAbbreviatedNymboxRecord(Tag& parent)
                 // This is always 0, except for blanks and successNotices.
                 if (m_Numlist.Count() > 0) m_Numlist.Output(strListOfBlanks);
             }
-
-        /* ! CONTINUES FALLING THROUGH HERE!!... */
-
+            [[fallthrough]];
         case OTTransaction::replyNotice:  // A copy of a server reply to a
                                           // previous request you sent. (To make
                                           // SURE you get the reply.)
