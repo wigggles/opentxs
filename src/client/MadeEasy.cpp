@@ -478,6 +478,7 @@ std::string MadeEasy::send_user_pmnt_pubkey(
     ;
 }
 
+#if OT_CASH
 // SEND USER CASH  (requires recipient public key)
 std::string MadeEasy::send_user_cash_pubkey(
     const std::string& NOTARY_ID,
@@ -502,6 +503,7 @@ std::string MadeEasy::send_user_cash_pubkey(
 
     return theRequest.SendRequest(theRequest, "SEND_USER_INSTRUMENT");
 }
+#endif  // OT_CASH
 
 // SEND USER MESSAGE  (only requires recipient's ID, and retrieves pubkey
 // automatically)
@@ -527,6 +529,7 @@ std::string MadeEasy::send_user_msg(
         NOTARY_ID, NYM_ID, RECIPIENT_NYM_ID, strRecipientPubkey, THE_MESSAGE);
 }
 
+#if OT_CASH
 // DOWNLOAD PUBLIC MINT
 std::string MadeEasy::retrieve_mint(
     const std::string& NOTARY_ID,
@@ -624,6 +627,7 @@ std::string MadeEasy::load_or_retrieve_mint(
 
     return strMint;
 }
+#endif  // OT_CASH
 
 // DEPOSIT PAYMENT PLAN  -- TRANSACTION
 std::string MadeEasy::deposit_payment_plan(
@@ -656,6 +660,7 @@ std::string MadeEasy::deposit_payment_plan(
     return theRequest.SendTransaction(theRequest, "DEPOSIT_PAYMENT_PLAN");
 }
 
+#if OT_CASH
 // Imports a purse into the wallet.
 // NOTE:   UNUSED currently.
 bool MadeEasy::importCashPurse(
@@ -1557,6 +1562,7 @@ std::string MadeEasy::deposit_purse(
 
     return theRequest.SendTransaction(theRequest, "DEPOSIT_CASH");
 }
+#endif  // OT_CASH
 }  // namespace opentxs
 
 /*

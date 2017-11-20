@@ -49,8 +49,10 @@
 
 #include "opentxs/Version.hpp"
 
+#if OT_CASH
 #include "opentxs/cash/Mint.hpp"
 #include "opentxs/cash/Token.hpp"
+#endif  // OT_CASH
 #include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/core/crypto/OTSignedFile.hpp"
 #include "opentxs/core/recurring/OTPaymentPlan.hpp"
@@ -116,21 +118,29 @@ opentxs::Contract* InstantiateContract(opentxs::String strInput)
             pContract.reset(new Message());
             OT_ASSERT(pContract);
         } else if (strFirstLine.Contains("-----BEGIN SIGNED MINT-----")) {
+#if OT_CASH
             pContract.reset(Mint::MintFactory());
             OT_ASSERT(pContract);
+#endif  // OT_CASH
         } else if (strFirstLine.Contains("-----BEGIN SIGNED FILE-----")) {
             pContract.reset(new OTSignedFile());
             OT_ASSERT(pContract);
         } else if (strFirstLine.Contains("-----BEGIN SIGNED CASH-----")) {
+#if OT_CASH
             pContract.reset(Token::LowLevelInstantiate(strFirstLine));
             OT_ASSERT(pContract);
+#endif  // OT_CASH
         } else if (strFirstLine.Contains("-----BEGIN SIGNED CASH TOKEN-----")) {
+#if OT_CASH
             pContract.reset(Token::LowLevelInstantiate(strFirstLine));
             OT_ASSERT(pContract);
+#endif  // OT_CASH
         } else if (strFirstLine.Contains(
                        "-----BEGIN SIGNED LUCRE CASH TOKEN-----")) {
+#if OT_CASH
             pContract.reset(Token::LowLevelInstantiate(strFirstLine));
             OT_ASSERT(pContract);
+#endif  // OT_CASH
         }
 
         // The string didn't match any of the options in the factory.

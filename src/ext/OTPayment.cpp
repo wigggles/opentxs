@@ -40,7 +40,9 @@
 
 #include "opentxs/ext/OTPayment.hpp"
 
+#if OT_CASH
 #include "opentxs/cash/Purse.hpp"
+#endif  // OT_CASH
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Cheque.hpp"
 #include "opentxs/core/Contract.hpp"
@@ -132,6 +134,7 @@ bool OTPayment::SetTempValues()  // This version for OTTrackable (all types
                                  // EXCEPT purses.)
 {
     if (OTPayment::PURSE == m_Type) {
+#if OT_CASH
         // Perform instantiation of a purse, then use it to set the temp values,
         // then cleans it up again before returning success/fail.
         //
@@ -145,6 +148,9 @@ bool OTPayment::SetTempValues()  // This version for OTTrackable (all types
         }
 
         return SetTempValuesFromPurse(*pPurse);
+#else
+        return false;
+#endif  // OT_CASH
     } else if (OTPayment::NOTICE == m_Type) {
         // Perform instantiation of a notice (OTTransaction), then use it to set
         // the temp values, then clean it up again before returning
@@ -299,6 +305,7 @@ bool OTPayment::SetTempValuesFromCheque(const Cheque& theInput)
     return false;
 }
 
+#if OT_CASH
 bool OTPayment::SetTempValuesFromPurse(const Purse& theInput)
 {
     if (OTPayment::PURSE == m_Type) {
@@ -338,6 +345,7 @@ bool OTPayment::SetTempValuesFromPurse(const Purse& theInput)
 
     return false;
 }
+#endif  // OT_CASH
 
 bool OTPayment::SetTempValuesFromNotice(const OTTransaction& theInput)
 {
@@ -1781,6 +1789,7 @@ OTTransaction* OTPayment::InstantiateNotice() const
     return nullptr;
 }
 
+#if OT_CASH
 // You need the server ID to instantiate a purse, unlike all the
 // other payment types. UPDATE: Not anymore.
 //
@@ -1815,6 +1824,7 @@ Purse* OTPayment::InstantiatePurse(const String& strPayment)
 
     return nullptr;
 }
+#endif  // OT_CASH
 
 bool OTPayment::SetPayment(const String& strPayment)
 {

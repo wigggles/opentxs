@@ -57,7 +57,9 @@ class OTPaymentPlan;
 class OTSmartContract;
 class OTTrackable;
 class OTTransaction;
+#if OT_CASH
 class Purse;
+#endif  // OT_CASH
 
 /*
   The PAYMENT can be of types:
@@ -225,8 +227,10 @@ public:
     EXPORT OTTrackable* Instantiate() const;
     EXPORT OTTrackable* Instantiate(const String& strPayment);
 
+#if OT_CASH
     EXPORT Purse* InstantiatePurse() const;
     EXPORT Purse* InstantiatePurse(const String& strPayment);
+#endif  // OT_CASH
 
     EXPORT OTTransaction* InstantiateNotice() const;
     EXPORT OTTransaction* InstantiateNotice(const String& strNotice);
@@ -250,7 +254,9 @@ public:
     EXPORT bool SetTempValuesFromCheque(const Cheque& theInput);
     EXPORT bool SetTempValuesFromPaymentPlan(const OTPaymentPlan& theInput);
     EXPORT bool SetTempValuesFromSmartContract(const OTSmartContract& theInput);
+#if OT_CASH
     EXPORT bool SetTempValuesFromPurse(const Purse& theInput);
+#endif  // OT_CASH
     EXPORT bool SetTempValuesFromNotice(const OTTransaction& theInput);
     // Once you "Instantiate" the first time, then these values are
     // set, if available, and can be queried thereafter from *this.

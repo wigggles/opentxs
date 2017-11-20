@@ -65,7 +65,9 @@ class Cheque;
 class CurrencyContract;
 class Ledger;
 class Message;
+#if OT_CASH
 class Mint;
+#endif  // OT_CASH
 class NumList;
 class Nym;
 class OTClient;
@@ -76,9 +78,13 @@ class OTPasswordData;
 class OTPayment;
 class OTPaymentPlan;
 class OTWallet;
+#if OT_CASH
 class Purse;
+#endif  // OT_CASH
 class ServerContract;
+#if OT_CASH
 class Token;
+#endif  // OT_CASH
 class UnitDefinition;
 
 namespace api
@@ -475,6 +481,7 @@ public:
         const Identifier& SENDER_ACCT_ID,
         const Identifier& RECIPIENT_NYM_ID,
         OTPaymentPlan& thePlan) const;
+#if OT_CASH
     EXPORT Purse* LoadPurse(
         const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID,
@@ -583,6 +590,7 @@ public:
     EXPORT Mint* LoadMint(
         const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID) const;
+#endif  // OT_CASH
     EXPORT bool IsBasketCurrency(
         const Identifier& BASKET_INSTRUMENT_DEFINITION_ID) const;
 
@@ -925,6 +933,7 @@ public:
         const Identifier& NOTARY_ID,
         const Identifier& NYM_ID) const;
 
+#if OT_CASH
     EXPORT int32_t notarizeWithdrawal(
         const Identifier& NOTARY_ID,
         const Identifier& NYM_ID,
@@ -936,6 +945,7 @@ public:
         const Identifier& NYM_ID,
         const Identifier& ACCT_ID,
         const String& THE_PURSE) const;
+#endif  // OT_CASH
 
     EXPORT int32_t notarizeTransfer(
         const Identifier& NOTARY_ID,

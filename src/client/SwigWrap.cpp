@@ -2393,6 +2393,7 @@ bool SwigWrap::VerifyUserPrivateKey(const std::string& NYM_ID)
     return OT::App().API().Exec().VerifyUserPrivateKey(NYM_ID);
 }
 
+#if OT_CASH
 bool SwigWrap::Mint_IsStillGood(
     const std::string& NOTARY_ID,
     const std::string& INSTRUMENT_DEFINITION_ID)
@@ -2407,6 +2408,7 @@ std::string SwigWrap::LoadMint(
 {
     return OT::App().API().Exec().LoadMint(NOTARY_ID, INSTRUMENT_DEFINITION_ID);
 }
+#endif  // OT_CASH
 
 std::string SwigWrap::LoadServerContract(const std::string& NOTARY_ID)
 {
@@ -2836,6 +2838,7 @@ OT_BOOL SwigWrap::Message_GetBalanceAgreementSuccess(
         NOTARY_ID, NYM_ID, ACCOUNT_ID, THE_MESSAGE);
 }
 
+#if OT_CASH
 bool SwigWrap::SavePurse(
     const std::string& NOTARY_ID,
     const std::string& INSTRUMENT_DEFINITION_ID,
@@ -3038,6 +3041,7 @@ std::string SwigWrap::Token_GetNotaryID(const std::string& THE_TOKEN)
 {
     return OT::App().API().Exec().Token_GetNotaryID(THE_TOKEN);
 }
+#endif  // OT_CASH
 
 bool SwigWrap::IsBasketCurrency(const std::string& INSTRUMENT_DEFINITION_ID)
 {
@@ -3543,6 +3547,7 @@ std::int32_t SwigWrap::getTransactionNumbers(
     return OT::App().API().Exec().getTransactionNumbers(NOTARY_ID, NYM_ID);
 }
 
+#if OT_CASH
 std::int32_t SwigWrap::notarizeWithdrawal(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID,
@@ -3562,6 +3567,7 @@ std::int32_t SwigWrap::notarizeDeposit(
     return OT::App().API().Exec().notarizeDeposit(
         NOTARY_ID, NYM_ID, ACCT_ID, THE_PURSE);
 }
+#endif  // OT_CASH
 
 std::int32_t SwigWrap::notarizeTransfer(
     const std::string& NOTARY_ID,

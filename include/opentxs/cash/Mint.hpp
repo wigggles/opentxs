@@ -41,6 +41,7 @@
 
 #include "opentxs/Version.hpp"
 
+#if OT_CASH
 #include "opentxs/core/Contract.hpp"
 
 #include <cstdint>
@@ -247,7 +248,6 @@ public:
         String& theCleartextToken,
         int64_t lDenomination) = 0;
 };
-
 }  // namespace opentxs
-
+#endif  // OT_CASH
 #endif  // OPENTXS_CASH_MINT_HPP

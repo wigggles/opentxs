@@ -40,9 +40,11 @@
 
 #include "opentxs/server/Notary.hpp"
 
+#if OT_CASH
 #include "opentxs/cash/Mint.hpp"
 #include "opentxs/cash/Purse.hpp"
 #include "opentxs/cash/Token.hpp"
+#endif  // OT_CASH
 #include "opentxs/api/Native.hpp"
 #include "opentxs/api/Server.hpp"
 #include "opentxs/api/Wallet.hpp"
@@ -92,7 +94,9 @@ namespace opentxs::server
 {
 
 typedef std::list<Account*> listOfAccounts;
+#if OT_CASH
 typedef std::deque<Token*> dequeOfTokenPtrs;
+#endif  // OT_CASH
 
 Notary::Notary(
     Server& server,
@@ -1024,7 +1028,7 @@ void Notary::NotarizeWithdrawal(
                 strInstrumentDefinitionID.Get());
         }
     }
-
+#if OT_CASH
     // WITHDRAW DIGITAL CASH (BLINDED TOKENS)
     //
     // For now, there should only be one of these withdrawal items inside the
@@ -1426,7 +1430,9 @@ void Notary::NotarizeWithdrawal(
 
         pResponseBalanceItem->SignContract(server_.m_nymServer);
         pResponseBalanceItem->SaveContract();
-    } else {
+    }
+#endif  // OT_CASH
+    else {
         String strTemp(tranIn);
         Log::vOutput(
             0,
@@ -2333,10 +2339,9 @@ void Notary::NotarizeDeposit(
     const String strNymID(NYM_ID), strAccountID(ACCOUNT_ID);
 
     std::shared_ptr<Mint> pMint{nullptr};
-    Account* pMintCashReserveAcct =
-        nullptr;  // the Mint's funds for cash withdrawals.
+    // the Mint's funds for cash withdrawals.
+    [[maybe_unused]] Account* pMintCashReserveAcct{nullptr};
     // Here we find out if we're depositing cash, or a cheque
-    //
     Item::itemType theReplyItemType = Item::error_state;
 
     pItemCheque = tranIn.GetItem(Item::depositCheque);
@@ -3839,9 +3844,8 @@ void Notary::NotarizeDeposit(
             }          // successfully loaded cheque from string
         }              // account ID DOES match item's account ID
     }                  // deposit cheque
-
+#if OT_CASH
     // BELOW -- DEPOSIT CASH
-
     // For now, there should only be one of these deposit items inside the
     // transaction.
     // So we treat it that way... I either get it successfully or not.
@@ -4184,7 +4188,9 @@ void Notary::NotarizeDeposit(
                 }
             }  // the purse loaded successfully from the string
         }      // the account ID matches correctly to the acct ID on the item.
-    } else {
+    }
+#endif  // OT_CASH
+    else {
         String strTemp(tranIn);
         Log::vOutput(
             0,

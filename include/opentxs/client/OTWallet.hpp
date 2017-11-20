@@ -60,7 +60,9 @@ class Message;
 class OTPassword;
 class OTPasswordData;
 class Nym;
+#if OT_CASH
 class Purse;
+#endif
 class String;
 class OTSymmetricKey;
 
@@ -155,15 +157,17 @@ public:
     // accepted.
     EXPORT Account* GetIssuerAccount(
         const Identifier& theInstrumentDefinitionID);
+#if OT_CASH
     // While waiting on server response to a withdrawal, we keep the private
-    // coin
-    // data here so we can unblind the response.
+    // coin data here so we can unblind the response.
     // This information is so important (as important as the digital cash token
     // itself, until the unblinding is done) that we need to save the file right
     // away.
     EXPORT void AddPendingWithdrawal(const Purse& thePurse);
     void RemovePendingWithdrawal();
     inline Purse* GetPendingWithdrawal() const { return m_pWithdrawalPurse; }
+#endif  // OT_CASH
+
     EXPORT bool LoadWallet(const char* szFilename = nullptr);
     EXPORT bool SaveWallet(const char* szFilename = nullptr);
     bool SaveContract(String& strContract);  // For saving the wallet to a
@@ -276,10 +280,6 @@ private:
     //
     mapOfSymmetricKeys m_mapExtraKeys;
 
-    // While waiting on server response to withdrawal,
-    // store private coin data here for unblinding
-    Purse* m_pWithdrawalPurse{nullptr};
-
 public:
     String m_strFilename;
     String m_strDataFolder;
@@ -287,6 +287,11 @@ public:
 private:
     api::Crypto& crypto_;
     api::storage::Storage& storage_;
+#if OT_CASH
+    // While waiting on server response to withdrawal, store private coin data
+    // here for unblinding
+    Purse* m_pWithdrawalPurse{nullptr};
+#endif  // OT_CASH
 
     OTWallet() = delete;
     OTWallet(const OTWallet&) = delete;

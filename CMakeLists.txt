@@ -86,6 +86,8 @@ option(OT_CRYPTO_USING_LIBBITCOIN  "Enable libbitcoin support" OFF)
 
 option(OT_CRYPTO_SHA2_PREFER_OPENSSL       "Use OpenSSL SHA2 implementation when available" OFF)
 
+option(OT_CASH_USING_LUCRE  "Enable Lucre support" ON)
+
 if(ANDROID)
   option(OT_SCRIPT_USING_CHAI  "Use chaiscript" OFF)
 else()
@@ -173,6 +175,9 @@ message(STATUS "OpenSSL:                ${OT_CRYPTO_USING_OPENSSL}")
 message(STATUS "libsecp256k1:           ${OT_CRYPTO_USING_LIBSECP256K1}")
 message(STATUS "trezor-crypto:          ${OT_CRYPTO_USING_TREZOR}")
 message(STATUS "libbitcoin:             ${OT_CRYPTO_USING_LIBBITCOIN}")
+
+message(STATUS "Cash library providers---------------------")
+message(STATUS "Lucre:                  ${OT_CASH_USING_LUCRE}")
 
 message(STATUS "Bindings ------------------------------------")
 message(STATUS "Java binding:           ${JAVA}")
@@ -550,14 +555,18 @@ else()
   set(LIBBITCOIN_EXPORT 0)
 endif()
 
-if (TRUE)
+set(OT_CASH_EXPORT 0)
+
+if (OT_CASH_USING_LUCRE)
     set(CASH_LUCRE_EXPORT 1)
+    set(OT_CASH_EXPORT 1)
 else()
     set(CASH_LUCRE_EXPORT 0)
 endif()
 
 if (FALSE)
     set(CASH_MM_EXPORT 1)
+    set(OT_CASH_EXPORT 1)
 else()
     set(CASH_MM_EXPORT 0)
 endif()

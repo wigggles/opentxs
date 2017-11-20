@@ -82,6 +82,7 @@ public:
         const std::string& NOTARY_ID,
         const std::string& NYM_ID,
         const std::string& THE_PAYMENT_PLAN) const;
+#if OT_CASH
     EXPORT std::string deposit_purse(
         const std::string& NOTARY_ID,
         const std::string& NYM_ID,
@@ -97,6 +98,7 @@ public:
         bool bReimportIfFailure,  // So we don't re-import a purse that wasn't
                                   // internal to begin with.
         std::string* pOptionalOutput = nullptr) const;
+#endif  // OT_CASH
     EXPORT std::string exchange_basket_currency(
         const std::string& NOTARY_ID,
         const std::string& NYM_ID,
@@ -104,6 +106,7 @@ public:
         const std::string& THE_BASKET,
         const std::string& ACCT_ID,
         bool IN_OR_OUT) const;
+#if OT_CASH
     EXPORT bool exchangeCashPurse(
         const std::string& notaryID,
         const std::string& instrumentDefinitionID,
@@ -125,6 +128,7 @@ public:
         const std::string& instrumentDefinitionID,
         std::string& userInput,
         bool isPurse) const;
+#endif  // OT_CASH
     EXPORT std::string issue_asset_type(
         const std::string& NOTARY_ID,
         const std::string& NYM_ID,
@@ -141,10 +145,12 @@ public:
         const std::string& NOTARY_ID,
         const std::string& NYM_ID,
         const std::string& TARGET_NYM_ID) const;
+#if OT_CASH
     EXPORT std::string load_or_retrieve_mint(
         const std::string& NOTARY_ID,
         const std::string& NYM_ID,
         const std::string& INSTRUMENT_DEFINITION_ID) const;
+#endif  // OT_CASH
     EXPORT std::string load_public_encryption_key(
         const std::string& NYM_ID) const;  // from local storage.
     EXPORT std::string load_public_signing_key(
@@ -154,6 +160,7 @@ public:
         const std::string& NYM_ID,
         const std::string& ACCOUNT_ID,
         const std::string& RESPONSE_LEDGER) const;
+#if OT_CASH
     EXPORT bool processCashPurse(
         std::string& newPurse,
         std::string& newPurseForSender,
@@ -165,6 +172,7 @@ public:
         const std::string& recipientNymID,
         bool bPWProtectOldPurse,
         bool bPWProtectNewPurse) const;
+#endif  // OT_CASH
     EXPORT bool retrieve_account(
         const std::string& NOTARY_ID,
         const std::string& NYM_ID,
@@ -174,10 +182,12 @@ public:
         const std::string& NOTARY_ID,
         const std::string& NYM_ID,
         const std::string& CONTRACT_ID) const;
+#if OT_CASH
     EXPORT std::string retrieve_mint(
         const std::string& NOTARY_ID,
         const std::string& NYM_ID,
         const std::string& INSTRUMENT_DEFINITION_ID) const;
+#endif  // OT_CASH
     EXPORT std::int32_t retrieve_nym(
         const std::string& strNotaryID,
         const std::string& strMyNymID,
@@ -190,6 +200,7 @@ public:
         const std::string& ACCT_TO,
         std::int64_t AMOUNT,
         const std::string& NOTE) const;
+#if OT_CASH
     EXPORT std::string send_user_cash_pubkey(
         const std::string& NOTARY_ID,
         const std::string& NYM_ID,
@@ -197,6 +208,7 @@ public:
         const std::string& RECIPIENT_PUBKEY,
         const std::string& THE_INSTRUMENT,
         const std::string& INSTRUMENT_FOR_SENDER) const;
+#endif  // OT_CASH
     EXPORT std::string send_user_msg(
         const std::string& NOTARY_ID,
         const std::string& NYM_ID,
