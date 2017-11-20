@@ -9,7 +9,6 @@ set(dependency_include_dir
 include_directories(SYSTEM
   ${dependency_include_dir}
   ${dependency_include_dir}/ChaiScript/include
-  ${dependency_include_dir}/lucre/include
   ${ZMQ_INCLUDE_DIRS}
 )
 
@@ -29,7 +28,6 @@ endif()
 add_subdirectory(storage)
 add_subdirectory(core)
 add_subdirectory(consensus)
-add_subdirectory(cash)
 add_subdirectory(ext)
 add_subdirectory(network)
 add_subdirectory(client)
@@ -38,23 +36,37 @@ add_subdirectory(server)
 add_subdirectory(contact)
 add_subdirectory(util)
 
-if (TREZORCRYPTO_EXPORT)
+if(TREZORCRYPTO_EXPORT)
   set(trezor $<TARGET_OBJECTS:TrezorCrypto>)
 else()
   set(trezor "")
 endif()
 
+if(CASH_LUCRE_EXPORT)
+  set(lucre $<TARGET_OBJECTS:lucre>)
+  include_directories(SYSTEM ${dependency_include_dir}/lucre/include)
+else()
+  set(lucre "")
+endif()
+
+if(OT_CASH_EXPORT)
+  set(cash $<TARGET_OBJECTS:opentxs-cash>)
+  add_subdirectory(cash)
+else()
+  set(cash "")
+endif()
+
 set(object-deps
   $<TARGET_OBJECTS:base64>
   $<TARGET_OBJECTS:irrxml>
-  $<TARGET_OBJECTS:lucre>
+  ${lucre}
   ${trezor}
   $<TARGET_OBJECTS:otprotob>
   $<TARGET_OBJECTS:opentxs-api-crypto>
   $<TARGET_OBJECTS:opentxs-api-network>
   $<TARGET_OBJECTS:opentxs-api-storage>
   $<TARGET_OBJECTS:opentxs-api>
-  $<TARGET_OBJECTS:opentxs-cash>
+  ${cash}
   $<TARGET_OBJECTS:opentxs-client>
   $<TARGET_OBJECTS:opentxs-consensus>
   $<TARGET_OBJECTS:opentxs-core-contract-basket>

@@ -41,6 +41,7 @@
 
 #include "opentxs/Version.hpp"
 
+#if OT_CASH
 // WHICH DIGITAL CASH LIBRARY?
 //
 // Many algorithms may come available. We are currently using Lucre, by Ben
@@ -87,4 +88,5 @@ public:
 
 }  // namespace opentxs
 
+#endif  // OT_CASH
 #endif  // OPENTXS_CASH_DIGITALCASH_HPP

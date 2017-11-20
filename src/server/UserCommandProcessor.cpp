@@ -44,7 +44,9 @@
 #include "opentxs/api/Native.hpp"
 #include "opentxs/api/Server.hpp"
 #include "opentxs/api/Wallet.hpp"
+#if OT_CASH
 #include "opentxs/cash/Mint.hpp"
+#endif  // OT_CASH
 #include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/core/contract/basket/BasketContract.hpp"
 #include "opentxs/core/cron/OTCron.hpp"
@@ -1075,6 +1077,7 @@ bool UserCommandProcessor::cmd_get_market_recent_trades(
     return true;
 }
 
+#if OT_CASH
 bool UserCommandProcessor::cmd_get_mint(ReplyMessage& reply) const
 {
     const auto& msgIn = reply.Original();
@@ -1092,6 +1095,7 @@ bool UserCommandProcessor::cmd_get_mint(ReplyMessage& reply) const
 
     return true;
 }
+#endif  // OT_CASH
 
 // Get the offers that a specific Nym has placed on a specific market.
 bool UserCommandProcessor::cmd_get_nym_market_offers(ReplyMessage& reply) const
@@ -1452,7 +1456,9 @@ bool UserCommandProcessor::cmd_issue_basket(ReplyMessage& reply) const
     server_.transactor_.addBasketAccountID(
         BASKET_ID, basketAccountID, contractID);
     server_.mainFile_.SaveMainFile();
+#if OT_CASH
     mint_.UpdateMint(basketAccountID);
+#endif  // OT_CASH
 
     return true;
 }
@@ -2150,7 +2156,9 @@ bool UserCommandProcessor::cmd_register_instrument_definition(
     theAccountSet.insert(String(accountID).Get());
     nymfile.SaveSignedNymfile(serverNym);
     reply.DropToNymbox(false);
+#if OT_CASH
     mint_.UpdateMint(contractID);
+#endif  // OT_CASH
 
     return true;
 }
@@ -3097,7 +3105,11 @@ bool UserCommandProcessor::ProcessUserCommand(
             return cmd_get_instrument_definition(reply);
         }
         case MessageType::getMint: {
+#if OT_CASH
             return cmd_get_mint(reply);
+#else
+            return false;
+#endif  // OT_CASH
         }
         case MessageType::getMarketList: {
             return cmd_get_market_list(reply);

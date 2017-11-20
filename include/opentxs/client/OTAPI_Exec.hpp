@@ -2190,15 +2190,16 @@ public:
     EXPORT bool VerifyUserPrivateKey(
         const std::string& NYM_ID) const;  // returns OT_BOOL
 
-    /** --------------------------------------------------------------
-    // LOAD PURSE or Mint or ASSET CONTRACT or SERVER CONTRACT -- (from local
-    storage)
-    //
-    // Based on Instrument Definition ID: load a purse, a public mint, or an
-    asset/server
-    contract
-    // and return it as a string -- or return nullptr if it wasn't found.
-    */
+/** --------------------------------------------------------------
+// LOAD PURSE or Mint or ASSET CONTRACT or SERVER CONTRACT -- (from local
+storage)
+//
+// Based on Instrument Definition ID: load a purse, a public mint, or an
+asset/server
+contract
+// and return it as a string -- or return nullptr if it wasn't found.
+*/
+#if OT_CASH
     EXPORT std::string LoadPurse(
         const std::string& NOTARY_ID,
         const std::string& INSTRUMENT_DEFINITION_ID,
@@ -2211,16 +2212,19 @@ public:
         const std::string& NOTARY_ID,
         const std::string& INSTRUMENT_DEFINITION_ID) const;  // returns nullptr,
                                                              // or a mint
+#endif                                                       // OT_CASH
 
     EXPORT std::string LoadServerContract(const std::string& NOTARY_ID)
         const;  // returns nullptr, or a server contract.
 
+#if OT_CASH
     //! Returns OT_TRUE if the mint is still usable.
     //! Returns OT_FALSE if expired or other error.
     //
     EXPORT bool Mint_IsStillGood(
         const std::string& NOTARY_ID,
         const std::string& INSTRUMENT_DEFINITION_ID) const;
+#endif  // OT_CASH
 
     /** --------------------------------------------------------------
     // IS BASKET CURRENCY ?
@@ -2730,6 +2734,7 @@ public:
         const std::string& ACCOUNT_ID,
         const std::string& THE_TRANSACTION) const;
 
+#if OT_CASH
     /**
     // PURSES (containing cash tokens.)
 
@@ -3014,6 +3019,7 @@ public:
     EXPORT std::string Token_GetInstrumentDefinitionID(
         const std::string& THE_TOKEN) const;
     EXPORT std::string Token_GetNotaryID(const std::string& THE_TOKEN) const;
+#endif  // OT_CASH
 
     /**
     //
@@ -3761,6 +3767,7 @@ public:
                                              // OT_FALSE.
         ) const;
 
+#if OT_CASH
     /**
     --------------------------------------------------------------------------
     // WITHDRAW CASH
@@ -3818,6 +3825,7 @@ public:
         const std::string& NYM_ID,
         const std::string& ACCT_ID,
         const std::string& THE_PURSE) const;
+#endif  // OT_CASH
 
     /**
     --------------------------------------------------------------------------

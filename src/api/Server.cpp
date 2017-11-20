@@ -41,7 +41,9 @@
 #include "opentxs/api/implementation/Server.hpp"
 
 #include "opentxs/api/Wallet.hpp"
+#if OT_CASH
 #include "opentxs/cash/Mint.hpp"
+#endif  // OT_CASH
 #include <opentxs/core/util/OTDataFolder.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
 #include <opentxs/core/util/OTPaths.hpp>
@@ -56,12 +58,14 @@
 #include <chrono>
 #include <ctime>
 
+#if OT_CASH
 #define SERIES_DIVIDER "."
 #define PUBLIC_SERIES ".PUBLIC"
 #define MAX_MINT_SERIES 10000
 #define MINT_EXPIRE_MONTHS 6
 #define MINT_VALID_MONTHS 12
 #define MINT_GENERATE_DAYS 7
+#endif  // OT_CASH
 
 #define OT_METHOD "opentxs::api::implementation::Server::"
 
@@ -87,17 +91,21 @@ Server::Server(
     , message_processor_p_(
           new server::MessageProcessor(server_, context, shutdown_))
     , message_processor_(*message_processor_p_)
+#if OT_CASH
     , mint_thread_(nullptr)
     , mint_lock_()
     , mint_update_lock_()
     , mint_scan_lock_()
     , mints_()
     , mints_to_check_()
+#endif  // OT_CASH
 {
     OT_ASSERT(server_p_);
     OT_ASSERT(message_processor_p_);
 
+#if OT_CASH
     mint_thread_.reset(new std::thread(&Server::mint, this));
+#endif  // OT_CASH
 }
 
 void Server::Cleanup()
@@ -108,6 +116,7 @@ void Server::Cleanup()
     message_processor_.cleanup();
 }
 
+#if OT_CASH
 void Server::generate_mint(
     const std::string& serverID,
     const std::string& unitID,
@@ -233,11 +242,13 @@ std::shared_ptr<const Mint> Server::GetPublicMint(
 
     return series->second;
 }
+#endif  // OT_CASH
 
 const Identifier& Server::ID() const { return server_.GetServerID(); }
 
 void Server::Init() {}
 
+#if OT_CASH
 std::int32_t Server::last_generated_series(
     const std::string& serverID,
     const std::string& unitID) const
@@ -355,9 +366,11 @@ void Server::mint() const
         }
     }
 }
+#endif  // OT_CASH
 
 const Identifier& Server::NymID() const { return server_.GetServerNym().ID(); }
 
+#if OT_CASH
 void Server::ScanMints() const
 {
     Lock scanLock(mint_scan_lock_);
@@ -371,6 +384,7 @@ void Server::ScanMints() const
         updateLock.unlock();
     }
 }
+#endif  // OT_CASH
 
 void Server::Start()
 {
@@ -389,14 +403,18 @@ void Server::Start()
 
     message_processor_.init(port, *privateKey);
     message_processor_.Start();
+#if OT_CASH
     ScanMints();
+#endif  // OT_CASH
 }
 
+#if OT_CASH
 void Server::UpdateMint(const Identifier& unitID) const
 {
     Lock updateLock(mint_update_lock_);
     mints_to_check_.push_front(String(unitID).Get());
 }
+#endif  // OT_CASH
 
 bool Server::verify_lock(const Lock& lock, const std::mutex& mutex) const
 {
@@ -415,6 +433,7 @@ bool Server::verify_lock(const Lock& lock, const std::mutex& mutex) const
     return true;
 }
 
+#if OT_CASH
 std::shared_ptr<Mint> Server::verify_mint(
     const Lock& lock,
     const std::string& unitID,
@@ -462,12 +481,15 @@ bool Server::verify_mint_directory(const std::string& serverID) const
 
     return OTPaths::BuildFolderPath(serverDir, created);
 }
+#endif  // OT_CASH
 
 Server::~Server()
 {
+#if OT_CASH
     if (mint_thread_) {
         mint_thread_->join();
         mint_thread_.reset();
     }
+#endif  // OT_CASH
 }
 }  // namespace opentxs::api::implementation

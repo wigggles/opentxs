@@ -41,6 +41,8 @@
 
 #include "opentxs/Version.hpp"
 
+#if OT_CASH
+
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Contract.hpp"
@@ -298,7 +300,6 @@ public:
         OTASCIIArmor& ascPrototoken,
         int32_t nTokenIndex);
 };
-
 }  // namespace opentxs
-
+#endif  // OT_CASH
 #endif  // OPENTXS_CASH_TOKEN_HPP

@@ -2020,6 +2020,7 @@ public:
     EXPORT static bool VerifyUserPrivateKey(
         const std::string& NYM_ID);  // returns OT_BOOL
 
+#if OT_CASH
     /** --------------------------------------------------------------
     // LOAD PURSE or Mint or ASSET CONTRACT or SERVER CONTRACT -- (from local
     storage)
@@ -2040,17 +2041,20 @@ public:
         const std::string& NOTARY_ID,
         const std::string& INSTRUMENT_DEFINITION_ID);  // returns nullptr, or a
                                                        // mint
+#endif                                                 // OT_CASH
 
     EXPORT static std::string LoadServerContract(
         const std::string& NOTARY_ID);  // returns nullptr, or a server
                                         // contract.
 
+#if OT_CASH
     //! Returns OT_TRUE if the mint is still usable.
     //! Returns OT_FALSE if expired or other error.
     //
     EXPORT static bool Mint_IsStillGood(
         const std::string& NOTARY_ID,
         const std::string& INSTRUMENT_DEFINITION_ID);
+#endif  // OT_CASH
 
     /** --------------------------------------------------------------
     // IS BASKET CURRENCY ?
@@ -2543,6 +2547,7 @@ public:
         const std::string& ACCOUNT_ID,
         const std::string& THE_TRANSACTION);
 
+#if OT_CASH
     /**
     // PURSES (containing cash tokens.)
 
@@ -2827,6 +2832,7 @@ public:
     EXPORT static std::string Token_GetInstrumentDefinitionID(
         const std::string& THE_TOKEN);
     EXPORT static std::string Token_GetNotaryID(const std::string& THE_TOKEN);
+#endif  // OT_CASH
 
     /**
     //
@@ -3570,6 +3576,7 @@ public:
                                              // OT_FALSE.
         );
 
+#if OT_CASH
     /**
     --------------------------------------------------------------------------
     // WITHDRAW CASH
@@ -3627,6 +3634,7 @@ public:
         const std::string& NYM_ID,
         const std::string& ACCT_ID,
         const std::string& THE_PURSE);
+#endif  // OT_CASH
 
     /**
     --------------------------------------------------------------------------

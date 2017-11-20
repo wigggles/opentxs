@@ -4,23 +4,25 @@ add_subdirectory(gtest)
 add_subdirectory(irrxml)
 add_subdirectory(base64)
 
-### Build lucre as library
-set(lucre-sources
-  ${CMAKE_CURRENT_SOURCE_DIR}/lucre/src/bankimp.cpp
-)
+if(CASH_LUCRE_EXPORT)
+  ### Build lucre as library
+  set(lucre-sources
+    ${CMAKE_CURRENT_SOURCE_DIR}/lucre/src/bankimp.cpp
+  )
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lucre/include/lucre/ ${OPENSSL_INCLUDE_DIR})
+  include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lucre/include/lucre/ ${OPENSSL_INCLUDE_DIR})
 
-if(WIN32)
-  # suppress sscanf/sprintf being unsafe warnings
-  add_definitions("/wd4996")
-endif()
+  if(WIN32)
+    # suppress sscanf/sprintf being unsafe warnings
+    add_definitions("/wd4996")
+  endif()
 
-add_library(lucre OBJECT
-  ${lucre-sources}
-)
+  add_library(lucre OBJECT
+    ${lucre-sources}
+  )
 
 set_property(TARGET lucre PROPERTY POSITION_INDEPENDENT_CODE 1)
+endif(CASH_LUCRE_EXPORT)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 

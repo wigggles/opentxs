@@ -54,7 +54,6 @@
 namespace opentxs
 {
 class Identifier;
-class Mint;
 
 namespace network
 {
@@ -88,22 +87,28 @@ class Native;
 class Server : virtual public opentxs::api::Server
 {
 public:
+#if OT_CASH
     std::shared_ptr<Mint> GetPrivateMint(
         const Identifier& unitID,
         std::uint32_t series) const override;
     std::shared_ptr<const Mint> GetPublicMint(
         const Identifier& unitID) const override;
+#endif  // OT_CASH
     const Identifier& ID() const override;
     const Identifier& NymID() const override;
+#if OT_CASH
     void ScanMints() const override;
     void UpdateMint(const Identifier& unitID) const override;
+#endif  // OT_CASH
 
     ~Server();
 
 private:
     friend class implementation::Native;
 
+#if OT_CASH
     typedef std::map<std::string, std::shared_ptr<Mint>> MintSeries;
+#endif  // OT_CASH
 
     const std::map<std::string, std::string>& args_;
     api::Settings& config_;
@@ -116,13 +121,16 @@ private:
     server::Server& server_;
     std::unique_ptr<server::MessageProcessor> message_processor_p_;
     server::MessageProcessor& message_processor_;
+#if OT_CASH
     std::unique_ptr<std::thread> mint_thread_;
     mutable std::mutex mint_lock_;
     mutable std::mutex mint_update_lock_;
     mutable std::mutex mint_scan_lock_;
     mutable std::map<std::string, MintSeries> mints_;
     mutable std::deque<std::string> mints_to_check_;
+#endif  // OT_CASH
 
+#if OT_CASH
     void generate_mint(
         const std::string& serverID,
         const std::string& unitID,
@@ -139,13 +147,16 @@ private:
         const std::string& unitID,
         const std::string seriesID) const;
     void mint() const;
+#endif  // OT_CASH
     bool verify_lock(const Lock& lock, const std::mutex& mutex) const;
+#if OT_CASH
     std::shared_ptr<Mint> verify_mint(
         const Lock& lock,
         const std::string& unitID,
         const std::string seriesID,
         std::shared_ptr<Mint>& mint) const;
     bool verify_mint_directory(const std::string& serverID) const;
+#endif  // OT_CASH
 
     void Cleanup();
     void Init();

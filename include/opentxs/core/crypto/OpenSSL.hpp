@@ -57,11 +57,25 @@
 #include "opentxs/Proto.hpp"
 #include "opentxs/core/String.hpp"
 
+extern "C" {
+#include <openssl/opensslv.h>
+#include <openssl/ossl_typ.h>
+}
+
 #include <cstdint>
 #include <memory>
 #include <mutex>
 #include <set>
 #include <string>
+
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+extern "C" {
+EVP_CIPHER_CTX* EVP_CIPHER_CTX_new();
+EVP_MD_CTX* EVP_MD_CTX_new();
+void EVP_CIPHER_CTX_free(EVP_CIPHER_CTX* context);
+void EVP_MD_CTX_free(EVP_MD_CTX* context);
+}
+#endif
 
 namespace opentxs
 {
@@ -99,8 +113,41 @@ class OpenSSL : public Crypto
 {
 private:
     friend class api::implementation::Crypto;
-
     class OpenSSLdp;
+
+    class CipherContext
+    {
+    public:
+        operator EVP_CIPHER_CTX*();
+
+        CipherContext();
+        ~CipherContext();
+
+    private:
+        EVP_CIPHER_CTX* context_{nullptr};
+
+        CipherContext(const CipherContext&) = delete;
+        CipherContext(CipherContext&&) = delete;
+        CipherContext& operator=(const CipherContext&) = delete;
+        CipherContext& operator=(CipherContext&&) = delete;
+    };
+
+    class DigestContext
+    {
+    public:
+        operator EVP_MD_CTX*();
+
+        DigestContext();
+        ~DigestContext();
+
+    private:
+        EVP_MD_CTX* context_{nullptr};
+
+        DigestContext(const DigestContext&) = delete;
+        DigestContext(DigestContext&&) = delete;
+        DigestContext& operator=(const DigestContext&) = delete;
+        DigestContext& operator=(DigestContext&&) = delete;
+    };
 
     std::unique_ptr<OpenSSLdp> dp_;
 

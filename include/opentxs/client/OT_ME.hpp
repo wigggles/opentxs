@@ -239,6 +239,7 @@ public:
         const std::string& RECIPIENT_PUBKEY,
         const std::string& THE_INSTRUMENT) const;
 
+#if OT_CASH
     EXPORT std::string send_user_cash_pubkey(
         const std::string& NOTARY_ID,
         const std::string& NYM_ID,
@@ -246,6 +247,7 @@ public:
         const std::string& RECIPIENT_PUBKEY,
         const std::string& THE_INSTRUMENT,
         const std::string& INSTRUMENT_FOR_SENDER) const;
+#endif  // OT_CASH
 
     EXPORT std::string send_user_msg(
         const std::string& NOTARY_ID,
@@ -259,12 +261,14 @@ public:
         const std::string& RECIPIENT_NYM_ID,
         const std::string& THE_PAYMENT) const;
 
+#if OT_CASH
     EXPORT std::string send_user_cash(
         const std::string& NOTARY_ID,
         const std::string& NYM_ID,
         const std::string& RECIPIENT_NYM_ID,
         const std::string& THE_PAYMENT,
         const std::string& SENDERS_COPY) const;
+#endif  // OT_CASH
 
     EXPORT bool withdraw_and_send_cash(
         const std::string& ACCT_ID,
@@ -284,6 +288,7 @@ public:
         std::int32_t nBoxType,
         std::int64_t TRANS_NUM) const;
 
+#if OT_CASH
     EXPORT std::string retrieve_mint(
         const std::string& NOTARY_ID,
         const std::string& NYM_ID,
@@ -293,6 +298,7 @@ public:
         const std::string& NOTARY_ID,
         const std::string& NYM_ID,
         const std::string& INSTRUMENT_DEFINITION_ID) const;
+#endif  // OT_CASH
 
     EXPORT std::string create_market_offer(
         const std::string& ASSET_ACCT_ID,

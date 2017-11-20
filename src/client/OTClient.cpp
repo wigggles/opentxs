@@ -46,9 +46,11 @@
 #include "opentxs/api/Native.hpp"
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/api/Wallet.hpp"
+#if OT_CASH
 #include "opentxs/cash/Mint.hpp"
 #include "opentxs/cash/Purse.hpp"
 #include "opentxs/cash/Token.hpp"
+#endif  // OT_CASH
 #include "opentxs/client/Helpers.hpp"
 #include "opentxs/client/OTME_too.hpp"
 #include "opentxs/client/OTMessageOutbuffer.hpp"
@@ -1613,8 +1615,10 @@ void OTClient::ProcessIncomingTransaction(
             }
         } break;
         case OTTransaction::atWithdrawal: {
+#if OT_CASH
             ProcessWithdrawalResponse(*pTransaction, args, theReply);
             context.ConsumeIssued(pTransaction->GetTransactionNum());
+#endif  // OT_CASH
         } break;
         case OTTransaction::atTransfer: {
             // Nothing removed here since the transaction number is
@@ -2163,6 +2167,7 @@ void OTClient::ProcessDepositResponse(
     }
 }
 
+#if OT_CASH
 /// It's definitely a withdrawal, we just need to iterate through the items in
 /// the transaction and
 /// grab any cash tokens that are inside, to save inside a purse.  Also want to
@@ -2320,6 +2325,7 @@ void OTClient::ProcessWithdrawalResponse(
         }
     }
 }
+#endif  // OT_CASH
 
 void OTClient::setRecentHash(
     const Message& theReply,
@@ -5738,6 +5744,7 @@ bool OTClient::processServerReplyGetInstrumentDefinition(
     return false;
 }
 
+#if OT_CASH
 bool OTClient::processServerReplyGetMint(const Message& theReply)
 {
     // base64-Decode the server reply's payload into strMint
@@ -5753,6 +5760,7 @@ bool OTClient::processServerReplyGetMint(const Message& theReply)
     }
     return true;
 }
+#endif  // OT_CASH
 
 bool OTClient::processServerReplyGetMarketList(const Message& theReply)
 {
@@ -6461,7 +6469,9 @@ bool OTClient::processServerReply(
         return processServerReplyGetInstrumentDefinition(theReply, args);
     }
     if (theReply.m_strCommand.Compare("getMintResponse")) {
+#if OT_CASH
         return processServerReplyGetMint(theReply);
+#endif  // OT_CASH
     }
     if (theReply.m_strCommand.Compare("getMarketListResponse")) {
         return processServerReplyGetMarketList(theReply);

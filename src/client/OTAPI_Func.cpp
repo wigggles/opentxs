@@ -750,11 +750,15 @@ std::int32_t OTAPI_Func::Run() const
                 String(context_.Nym()->ID()).Get(),
                 basket);
         case EXCHANGE_CASH:
+#if OT_CASH
             return SwigWrap::exchangePurse(
                 String(context_.Server()).Get(),
                 instrumentDefinitionID,
                 String(context_.Nym()->ID()).Get(),
                 strData);
+#else
+            return -1;
+#endif  // OT_CASH
         case KILL_MARKET_OFFER:
             return SwigWrap::killMarketOffer(
                 String(context_.Server()).Get(),
@@ -781,11 +785,15 @@ std::int32_t OTAPI_Func::Run() const
                 accountID,
                 strData);
         case DEPOSIT_CASH:
+#if OT_CASH
             return SwigWrap::notarizeDeposit(
                 String(context_.Server()).Get(),
                 String(context_.Nym()->ID()).Get(),
                 accountID,
                 strData);
+#else
+            return -1;
+#endif  // OT_CASH
         case DEPOSIT_CHEQUE:
             return SwigWrap::depositCheque(
                 String(context_.Server()).Get(),
@@ -798,11 +806,15 @@ std::int32_t OTAPI_Func::Run() const
                 String(context_.Nym()->ID()).Get(),
                 strData);
         case WITHDRAW_CASH:
+#if OT_CASH
             return SwigWrap::notarizeWithdrawal(
                 String(context_.Server()).Get(),
                 String(context_.Nym()->ID()).Get(),
                 accountID,
                 lData);
+#else
+            return -1;
+#endif  // OT_CASH
         case WITHDRAW_VOUCHER:
             return SwigWrap::withdrawVoucher(
                 String(context_.Server()).Get(),

@@ -44,7 +44,9 @@
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/api/Wallet.hpp"
+#if OT_CASH
 #include "opentxs/cash/Purse.hpp"
+#endif  // OT_CASH
 #include "opentxs/core/crypto/Bip32.hpp"
 #include "opentxs/core/crypto/Bip39.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
@@ -83,8 +85,10 @@ OTWallet::OTWallet(api::Crypto& crypto, api::storage::Storage& storage)
     : m_strDataFolder(OTDataFolder::Get())
     , crypto_(crypto)
     , storage_(storage)
+#if OT_CASH
+    , m_pWithdrawalPurse(nullptr)
+#endif
 {
-    m_pWithdrawalPurse = nullptr;
 }
 //
 OTWallet::~OTWallet() { Release(); }
@@ -111,6 +115,7 @@ void OTWallet::Release()
     m_mapExtraKeys.clear();
 }
 
+#if OT_CASH
 // While waiting on server response to a withdrawal, we keep the private coin
 // data here so we can unblind the response.
 // This information is so important (as important as the digital cash token
@@ -135,6 +140,7 @@ void OTWallet::RemovePendingWithdrawal()
 
     m_pWithdrawalPurse = nullptr;
 }
+#endif  // OT_CASH
 
 bool OTWallet::SignContractWithFirstNymOnList(Contract& theContract)
 {

@@ -63,7 +63,9 @@
 namespace opentxs
 {
 class Identifier;
+#if OT_CASH
 class Mint;
+#endif  // OT_CASH
 
 namespace api
 {
@@ -71,15 +73,19 @@ namespace api
 class Server
 {
 public:
+#if OT_CASH
     virtual std::shared_ptr<Mint> GetPrivateMint(
         const Identifier& unitid,
         std::uint32_t series) const = 0;
     virtual std::shared_ptr<const Mint> GetPublicMint(
         const Identifier& unitID) const = 0;
+#endif  // OT_CASH
     virtual const Identifier& ID() const = 0;
     virtual const Identifier& NymID() const = 0;
+#if OT_CASH
     virtual void ScanMints() const = 0;
     virtual void UpdateMint(const Identifier& unitID) const = 0;
+#endif  // OT_CASH
 
     virtual ~Server() = default;
 

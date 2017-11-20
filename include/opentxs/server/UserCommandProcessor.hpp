@@ -152,7 +152,9 @@ private:
     bool cmd_get_market_offers(ReplyMessage& reply) const;
     // Get a report of recent trades that have occurred on a specific market.
     bool cmd_get_market_recent_trades(ReplyMessage& reply) const;
+#if OT_CASH
     bool cmd_get_mint(ReplyMessage& reply) const;
+#endif  // OT_CASH
     bool cmd_get_nym_market_offers(ReplyMessage& reply) const;
     // Get the offers that a specific Nym has placed on a specific market.
     bool cmd_get_nymbox(ReplyMessage& reply) const;

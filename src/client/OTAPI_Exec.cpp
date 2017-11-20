@@ -49,7 +49,9 @@
 #include "opentxs/api/Identity.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/api/Wallet.hpp"
+#if OT_CASH
 #include "opentxs/cash/Purse.hpp"
+#endif  // OT_CASH
 #include "opentxs/client/Helpers.hpp"
 #include "opentxs/client/OTWallet.hpp"
 #include "opentxs/client/OT_API.hpp"
@@ -7777,6 +7779,7 @@ bool OTAPI_Exec::VerifyUserPrivateKey(
     return true;
 }
 
+#if OT_CASH
 //
 // Is Mint32_t Still Good ?   true  (1) == Yes, this mint32_t is still good.
 //                        false (0) == No: expired or other error.
@@ -7847,6 +7850,7 @@ std::string OTAPI_Exec::LoadMint(
     }
     return {};
 }
+#endif  // OT_CASH
 
 std::string OTAPI_Exec::LoadServerContract(
     const std::string& NOTARY_ID) const  // returns "", or an asset contract
@@ -10559,51 +10563,7 @@ int32_t OTAPI_Exec::Message_GetBalanceAgreementSuccess(
     return OT_FALSE;
 }
 
-/*
-std::string OTAPI_Exec::LoadPurse(const std::string& NOTARY_ID,
-                                  std::string INSTRUMENT_DEFINITION_ID,
-                                  std::string NYM_ID) // returns "", or a
-purse.
-{
-    OT_ASSERT_MSG("" != NOTARY_ID, "Null NOTARY_ID passed in.");
-    OT_ASSERT_MSG("" != INSTRUMENT_DEFINITION_ID, "Null INSTRUMENT_DEFINITION_ID
-passed in.");
-    OT_ASSERT_MSG("" != NYM_ID, "Null NYM_ID passed in.");
-
-    const OTIdentifier theNotaryID(NOTARY_ID);
-    const OTIdentifier theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
-    const OTIdentifier theNymID(NYM_ID);
-
-    // There is an OT_ASSERT in here for memory failure,
-    // but it still might return "" if various verification fails.
-    OTPurse * pPurse = ot_api_.LoadPurse(theNotaryID,
-theInstrumentDefinitionID, theNymID);
-
-    // Make sure it gets cleaned up when this goes out of scope.
-    OTCleanup<OTPurse>    thePurseAngel(pPurse); // I pass the pointer, in case
-it's "".
-
-    if (nullptr == pPurse)
-    {
-        otOut << "Failure calling OT_API::LoadPurse in
-OTAPI_Exec::LoadPurse.\n Server: " << NOTARY_ID << "\n Asset Type: " <<
-INSTRUMENT_DEFINITION_ID << "\n";
-    }
-    else // success
-    {
-        OTString strOutput(*pPurse); // For the output
-
-        std::string pBuf = strOutput.Get();
-
-
-
-        return pBuf;
-    }
-
-    return {};
-}
-*/
-
+#if OT_CASH
 // PURSE FUNCTIONS
 
 // Warning! This will overwrite whatever purse is there.
@@ -11590,6 +11550,7 @@ std::string OTAPI_Exec::Token_GetNotaryID(const std::string& THE_TOKEN) const
     std::string pBuf = strOutput.Get();
     return pBuf;
 }
+#endif  // OT_CASH
 
 // IS BASKET CURRENCY ?
 //
@@ -12977,6 +12938,7 @@ int32_t OTAPI_Exec::getTransactionNumbers(
     return ot_api_.getTransactionNumbers(theNotaryID, theNymID);
 }
 
+#if OT_CASH
 // Returns int32_t:
 // -1 means error; no message was sent.
 //  0 means NO error, but also: no message was sent.
@@ -13030,6 +12992,7 @@ int32_t OTAPI_Exec::notarizeDeposit(
 
     return ot_api_.notarizeDeposit(theNotaryID, theNymID, theAcctID, strPurse);
 }
+#endif  // OT_CASH
 
 // Returns int32_t:
 // -1 means error; no message was sent.

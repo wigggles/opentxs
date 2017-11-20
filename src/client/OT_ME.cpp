@@ -873,6 +873,7 @@ std::string OT_ME::send_user_pmnt_pubkey(
         NOTARY_ID, NYM_ID, RECIPIENT_NYM_ID, RECIPIENT_PUBKEY, THE_INSTRUMENT);
 }
 
+#if OT_CASH
 // SEND USER CASH (requires recipient public key)
 //
 std::string OT_ME::send_user_cash_pubkey(
@@ -891,6 +892,7 @@ std::string OT_ME::send_user_cash_pubkey(
         THE_INSTRUMENT,
         INSTRUMENT_FOR_SENDER);
 }
+#endif  // OT_CASH
 
 // SEND USER MESSAGE (only requires recipient's ID, and retrieves pubkey
 // automatically)
@@ -930,6 +932,7 @@ std::string OT_ME::send_user_payment(
         NOTARY_ID, NYM_ID, RECIPIENT_NYM_ID, strRecipientPubkey, THE_PAYMENT);
 }
 
+#if OT_CASH
 // SEND USER CASH (only requires recipient's ID, and retrieves pubkey
 // automatically)
 //
@@ -960,6 +963,7 @@ std::string OT_ME::send_user_cash(
         THE_PAYMENT,
         SENDERS_COPY);
 }
+#endif  // OT_CASH
 
 bool OT_ME::withdraw_and_send_cash(
     const std::string& ACCT_ID,
@@ -1057,8 +1061,8 @@ std::string OT_ME::get_box_receipt(
     return request.SendRequest(request, "GET_BOX_RECEIPT");
 }
 
+#if OT_CASH
 // DOWNLOAD PUBLIC MINT
-//
 std::string OT_ME::retrieve_mint(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID,
@@ -1087,6 +1091,7 @@ std::string OT_ME::load_or_retrieve_mint(
     return made_easy_.load_or_retrieve_mint(
         NOTARY_ID, NYM_ID, INSTRUMENT_DEFINITION_ID);
 }
+#endif  // OT_CASH
 
 // CREATE MARKET OFFER -- TRANSACTION
 //

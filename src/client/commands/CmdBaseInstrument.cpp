@@ -69,7 +69,7 @@ int32_t CmdBaseInstrument::getTokens(
     string purse,
     const string& indices) const
 {
-
+#if OT_CASH
     if ("" == indices) {
         return 1;
     }
@@ -111,6 +111,9 @@ int32_t CmdBaseInstrument::getTokens(
     }
 
     return 1;
+#else
+    return -1;
+#endif  // OT_CASH
 }
 
 int32_t CmdBaseInstrument::sendPayment(

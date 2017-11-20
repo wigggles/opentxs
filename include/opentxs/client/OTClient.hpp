@@ -127,10 +127,12 @@ private:
     void ProcessIncomingTransactions(
         ProcessServerReplyArgs& args,
         const Message& theReply) const;
+#if OT_CASH
     void ProcessWithdrawalResponse(
         OTTransaction& theTransaction,
         ProcessServerReplyArgs& args,
         const Message& theReply) const;
+#endif  // OT_CASH
     void ProcessDepositResponse(
         OTTransaction& theTransaction,
         ProcessServerReplyArgs& args,
@@ -199,7 +201,9 @@ private:
     bool processServerReplyGetInstrumentDefinition(
         const Message& theReply,
         ProcessServerReplyArgs& args);
+#if OT_CASH
     bool processServerReplyGetMint(const Message& theReply);
+#endif  // OT_CASH
     bool processServerReplyGetMarketList(const Message& theReply);
     bool processServerReplyGetMarketOffers(const Message& theReply);
     bool processServerReplyGetMarketRecentTrades(const Message& theReply);

@@ -208,6 +208,7 @@ int32_t CmdDeposit::depositPurse(
     const string& indices,
     string* pOptionalOutput /*=nullptr*/) const
 {
+#if OT_CASH
     string assetType = getAccountAssetType(myacct);
     if ("" == assetType) {
         return -1;
@@ -247,4 +248,7 @@ int32_t CmdDeposit::depositPurse(
         myacct,
         true,
         pOptionalOutput);
+#else
+    return -1;
+#endif  // OT_CASH
 }

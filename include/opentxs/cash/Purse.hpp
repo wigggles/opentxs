@@ -41,6 +41,8 @@
 
 #include "opentxs/Version.hpp"
 
+#if OT_CASH
+
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -237,7 +239,6 @@ public:
     EXPORT void Release_Purse();
     EXPORT void ReleaseTokens();
 };
-
 }  // namespace opentxs
-
+#endif  // OT_CASH
 #endif  // OPENTXS_CASH_PURSE_HPP

@@ -41,6 +41,8 @@
 
 #include "opentxs/Version.hpp"
 
+#if OT_CASH_USING_LUCRE
+
 #include "opentxs/cash/Token.hpp"
 
 #include <stdint.h>
@@ -86,11 +88,6 @@ blinded -- the server can clearly see the amount and only the Mint key for that
 denomination will work. */
 
 // SUBCLASSES OF OTTOKEN FOR EACH DIGITAL CASH ALGORITHM.
-#if OT_CASH_USING_MAGIC_MONEY
-// TODO:  Someday...
-#endif  // Magic Money
-
-#if OT_CASH_USING_LUCRE
 
 class Token_Lucre : public Token
 {
@@ -118,9 +115,6 @@ public:
         Token& theRequest) override;
     EXPORT virtual ~Token_Lucre();
 };
-
-#endif  // Lucre
-
 }  // namespace opentxs
-
+#endif  // OT_CASH_USING_LUCRE
 #endif  // OPENTXS_CASH_TOKENLUCRE_HPP

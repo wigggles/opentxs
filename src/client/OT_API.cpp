@@ -48,9 +48,11 @@
 #include "opentxs/api/Native.hpp"
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/api/Wallet.hpp"
+#if OT_CASH
 #include "opentxs/cash/Mint.hpp"
 #include "opentxs/cash/Purse.hpp"
 #include "opentxs/cash/Token.hpp"
+#endif  // OT_CASH
 #include "opentxs/client/Helpers.hpp"
 #include "opentxs/client/OTClient.hpp"
 #include "opentxs/client/OTMessageBuffer.hpp"
@@ -5037,6 +5039,7 @@ bool OT_API::ConfirmPaymentPlan(
     return true;
 }
 
+#if OT_CASH
 // LOAD PURSE
 //
 // Returns an Purse pointer, or nullptr.
@@ -6145,6 +6148,7 @@ Mint* OT_API::LoadMint(
     }
     return pMint;
 }
+#endif  // OT_CASH
 
 // LOAD ASSET ACCOUNT
 //
@@ -9318,6 +9322,7 @@ int32_t OT_API::getTransactionNumbers(
     return (-1);
 }
 
+#if OT_CASH
 int32_t OT_API::notarizeWithdrawal(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID,
@@ -9864,6 +9869,7 @@ int32_t OT_API::notarizeDeposit(
 
     return (-1);
 }
+#endif  // OT_CASH
 
 // Let's pretend you are paying a dollar dividend for Pepsi shares...
 // Therefore ACCT_ID needs to be a dollar account, and

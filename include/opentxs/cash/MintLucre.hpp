@@ -41,6 +41,8 @@
 
 #include "opentxs/Version.hpp"
 
+#if OT_CASH_USING_LUCRE
+
 #include "opentxs/cash/Mint.hpp"
 #include "opentxs/core/String.hpp"
 
@@ -53,12 +55,6 @@ class Nym;
 class Token;
 
 // SUBCLASSES OF OTMINT FOR EACH DIGITAL CASH ALGORITHM.
-
-#if OT_CASH_USING_MAGIC_MONEY
-// Todo:  Someday...
-#endif  // Magic Money
-
-#if OT_CASH_USING_LUCRE
 
 class MintLucre : public Mint
 {
@@ -93,9 +89,6 @@ public:
 
     EXPORT virtual ~MintLucre();
 };
-
-#endif  // Lucre
-
 }  // namespace opentxs
-
+#endif  // OT_CASH_USING_LUCRE
 #endif  // OPENTXS_CASH_MINTLUCRE_HPP
