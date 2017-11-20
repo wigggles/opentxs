@@ -59,11 +59,11 @@ class Context;
 class RequestSocket : virtual public zeromq::RequestSocket, public Socket
 {
 public:
-    MessageSendResult SendRequest(opentxs::Data& message);
-    MessageSendResult SendRequest(std::string& message);
-    MessageSendResult SendRequest(zeromq::Message& message);
-    bool SetCurve(const ServerContract& contract);
-    bool SetSocksProxy(const std::string& proxy);
+    MessageSendResult SendRequest(opentxs::Data& message) override;
+    MessageSendResult SendRequest(std::string& message) override;
+    MessageSendResult SendRequest(zeromq::Message& message) override;
+    bool SetCurve(const ServerContract& contract) override;
+    bool SetSocksProxy(const std::string& proxy) override;
     bool Start(const std::string& endpoint) override;
 
     ~RequestSocket() = default;
