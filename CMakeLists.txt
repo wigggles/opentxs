@@ -208,7 +208,7 @@ else()
 endif()
 
 if(${CMAKE_CXX_COMPILER_ID} MATCHES GNU)
-  set(GCC_WARN_FLAGS "-Wnoexcept -Wstrict-null-sentinel -Wlogical-op")
+  set(GCC_WARN_FLAGS "-Wno-attributes -Wnoexcept -Wstrict-null-sentinel -Wlogical-op")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
 
   if(ANDROID)

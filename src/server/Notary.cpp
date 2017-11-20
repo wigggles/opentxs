@@ -8562,6 +8562,7 @@ void Notary::NotarizeProcessInbox(
                         closingNum,
                         strNymID.c_str());
                 }  // else error log.
+                [[fallthrough]];
             }
             // ---- COUNT is correct and closing num is on list of open cron
             // items. (FINAL RECEIPT FALLS THROUGH HERE!!! no break)
