@@ -50,6 +50,7 @@
 namespace opentxs
 {
 class StorageConfig;
+class String;
 class SymmetricKey;
 
 namespace api
@@ -120,6 +121,9 @@ private:
         const api::storage::Storage& storage,
         const std::atomic<bool>& primary_bucket_,
         const StorageConfig& config,
+        const String& primary,
+        const bool migrate,
+        const String& previous,
         const Digest& hash,
         const Random& random);
     StorageMultiplex() = delete;
@@ -130,9 +134,18 @@ private:
 
     void Cleanup();
     void Cleanup_StorageMultiplex();
-    void Init_StorageMultiplex();
+    void init(
+        const std::string& primary,
+        std::unique_ptr<opentxs::api::storage::Plugin>& plugin);
+    void init_fs(std::unique_ptr<opentxs::api::storage::Plugin>& plugin);
+    void init_sqlite(std::unique_ptr<opentxs::api::storage::Plugin>& plugin);
+    void Init_StorageMultiplex(
+        const String& primary,
+        const bool migrate,
+        const String& previous);
     void InitBackup();
     void InitEncryptedBackup(std::unique_ptr<SymmetricKey>& key);
+    void migrate_primary(const std::string& from, const std::string& to);
     opentxs::api::storage::Driver& Primary();
     void synchronize_plugins(
         const std::string& hash,

@@ -73,6 +73,9 @@ const std::uint32_t Storage::HASH_TYPE = 2;  // BTC160
 Storage::Storage(
     const std::atomic<bool>& shutdown,
     const StorageConfig& config,
+    const String& primary,
+    const bool migrate,
+    const String& previous,
     const Digest& hash,
     const Random& random)
     : shutdown_(shutdown)
@@ -82,8 +85,15 @@ Storage::Storage(
     , primary_bucket_(false)
     , background_threads_()
     , config_(config)
-    , multiplex_p_(
-          new StorageMultiplex(*this, primary_bucket_, config_, hash, random))
+    , multiplex_p_(new StorageMultiplex(
+          *this,
+          primary_bucket_,
+          config_,
+          primary,
+          migrate,
+          previous,
+          hash,
+          random))
     , multiplex_(*multiplex_p_)
 {
     OT_ASSERT(multiplex_p_);
