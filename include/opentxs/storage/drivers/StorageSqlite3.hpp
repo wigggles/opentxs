@@ -51,6 +51,7 @@ extern "C" {
 
 #include <atomic>
 #include <mutex>
+#include <sstream>
 #include <tuple>
 #include <vector>
 
@@ -83,26 +84,29 @@ private:
     friend class StorageMultiplex;
 
     std::string folder_;
+    mutable std::mutex sql_lock_;
     mutable std::mutex transaction_lock_;
     mutable std::atomic<bool> transaction_bucket_;
     mutable std::vector<std::pair<const std::string, const std::string>>
         pending_;
     sqlite3* db_{nullptr};
 
-    std::string GetTableName(const bool bucket) const;
-
-    bool commit() const;
+    std::string bind_key(
+        const std::string& source,
+        const std::string& key,
+        const std::size_t start) const;
+    void commit(std::stringstream& sql) const;
     bool commit_transaction(const std::string& rootHash) const;
     bool Create(const std::string& tablename) const;
+    std::string GetTableName(const bool bucket) const;
     bool Select(
         const std::string& key,
         const std::string& tablename,
         std::string& value) const;
     bool Purge(const std::string& tablename) const;
-    void rollback() const;
-    bool set_data() const;
-    bool set_root(const std::string& rootHash) const;
-    bool start_transaction() const;
+    void set_data(std::stringstream& sql) const;
+    void set_root(const std::string& rootHash, std::stringstream& sql) const;
+    void start_transaction(std::stringstream& sql) const;
     void store(
         const bool isTransaction,
         const std::string& key,

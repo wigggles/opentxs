@@ -266,7 +266,7 @@ bool StorageMultiplex::Load(
         otErr << OT_METHOD << __FUNCTION__ << ": key not found by any plugin."
               << std::endl;
 
-        throw std::runtime_error("");
+        throw std::runtime_error("Key not found by any plugin");
     }
 
     return false;

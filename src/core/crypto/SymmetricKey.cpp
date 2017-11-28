@@ -602,14 +602,12 @@ bool SymmetricKey::Serialize(proto::SymmetricKey& output) const
     output.set_size(key_size_);
     *output.mutable_key() = *encrypted_key_;
 
-    if (proto::SKEYTYPE_ARGON2 == type_) {
-        if (salt_) {
-            output.set_salt(*salt_);
-        }
-
-        output.set_operations(operations_);
-        output.set_difficulty(difficulty_);
+    if (salt_) {
+        output.set_salt(*salt_);
     }
+
+    output.set_operations(operations_);
+    output.set_difficulty(difficulty_);
 
     if (!encrypted_key_) {
         return false;

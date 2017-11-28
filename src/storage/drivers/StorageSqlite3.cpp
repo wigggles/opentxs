@@ -47,7 +47,6 @@
 
 #include <iostream>
 #include <string>
-#include <sstream>
 
 #define OT_METHOD "opentxs::StorageSqlite3::"
 
@@ -61,6 +60,7 @@ StorageSqlite3::StorageSqlite3(
     const std::atomic<bool>& bucket)
     : ot_super(storage, config, hash, random, bucket)
     , folder_(config.path_)
+    , sql_lock_()
     , transaction_lock_()
     , transaction_bucket_(false)
     , pending_()
@@ -69,54 +69,45 @@ StorageSqlite3::StorageSqlite3(
     Init_StorageSqlite3();
 }
 
+std::string StorageSqlite3::bind_key(
+    const std::string& source,
+    const std::string& key,
+    const std::size_t start) const
+{
+    sqlite3_stmt* statement{nullptr};
+    sqlite3_prepare_v2(db_, source.c_str(), -1, &statement, nullptr);
+    sqlite3_bind_text(statement, start, key.c_str(), key.size(), SQLITE_STATIC);
+    const std::string output = sqlite3_expanded_sql(statement);
+    sqlite3_finalize(statement);
+
+    return output;
+}
+
 void StorageSqlite3::Cleanup() { Cleanup_StorageSqlite3(); }
 
 void StorageSqlite3::Cleanup_StorageSqlite3() { sqlite3_close(db_); }
 
-bool StorageSqlite3::commit() const
+void StorageSqlite3::commit(std::stringstream& sql) const
 {
-    sqlite3_stmt* close{nullptr};
-    const std::string closeSQL{"COMMIT TRANSACTION;"};
-    sqlite3_prepare_v2(db_, closeSQL.c_str(), -1, &close, 0);
-    const auto output = sqlite3_step(close);
-    sqlite3_finalize(close);
-
-    return (SQLITE_DONE == output);
+    sql << "COMMIT TRANSACTION;";
 }
 
 bool StorageSqlite3::commit_transaction(const std::string& rootHash) const
 {
-    Lock lock(transaction_lock_);
-    bool output{false};
-
-    if (start_transaction()) {
-        if (set_data()) {
-            if (set_root(rootHash)) {
-                if (commit()) {
-                    output = true;
-                } else {
-                    otErr << OT_METHOD << __FUNCTION__
-                          << ": Failed to commit transaction." << std::endl;
-                    rollback();
-                }
-            } else {
-                otErr << OT_METHOD << __FUNCTION__ << ": Failed to update root."
-                      << std::endl;
-                rollback();
-            }
-        } else {
-            otErr << OT_METHOD << __FUNCTION__ << ": Failed to update data."
-                  << std::endl;
-            rollback();
-        }
-    } else {
-        otErr << OT_METHOD << __FUNCTION__ << ": Failed to start transaction."
-              << std::endl;
-    }
-
+    Lock transactionLock(transaction_lock_, std::defer_lock);
+    Lock sqlLock(sql_lock_, std::defer_lock);
+    std::lock(transactionLock, sqlLock);
+    std::stringstream sql{};
+    start_transaction(sql);
+    set_data(sql);
+    set_root(rootHash, sql);
+    commit(sql);
     pending_.clear();
+    otInfo << sql.str() << std::endl;
 
-    return output;
+    return (
+        SQLITE_OK ==
+        sqlite3_exec(db_, sql.str().c_str(), nullptr, nullptr, nullptr));
 }
 
 bool StorageSqlite3::Create(const std::string& tablename) const
@@ -124,6 +115,7 @@ bool StorageSqlite3::Create(const std::string& tablename) const
     const std::string createTable = "create table if not exists ";
     const std::string tableFormat = " (k text PRIMARY KEY, v BLOB);";
     const std::string sql = createTable + "`" + tablename + "`" + tableFormat;
+    Lock lock(sql_lock_);
 
     return (
         SQLITE_OK == sqlite3_exec(db_, sql.c_str(), nullptr, nullptr, nullptr));
@@ -148,13 +140,15 @@ void StorageSqlite3::Init_StorageSqlite3()
         sqlite3_open_v2(
             filename.c_str(),
             &db_,
-            SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX,
+            SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_NOMUTEX,
             nullptr)) {
+        Lock lock(sql_lock_);
+        sqlite3_exec(
+            db_, "PRAGMA journal_mode=WAL;", nullptr, nullptr, nullptr);
+        lock.unlock();
         Create(config_.sqlite3_primary_bucket_);
         Create(config_.sqlite3_secondary_bucket_);
         Create(config_.sqlite3_control_table_);
-        sqlite3_exec(
-            db_, "PRAGMA journal_mode=WAL;", nullptr, nullptr, nullptr);
     } else {
         otErr << OT_METHOD << __FUNCTION__ << "Failed to initialize database."
               << std::endl;
@@ -187,6 +181,7 @@ std::string StorageSqlite3::LoadRoot() const
 bool StorageSqlite3::Purge(const std::string& tablename) const
 {
     const std::string sql = "DROP TABLE `" + tablename + "`;";
+    Lock lock(sql_lock_);
 
     if (SQLITE_OK ==
         sqlite3_exec(db_, sql.c_str(), nullptr, nullptr, nullptr)) {
@@ -196,33 +191,46 @@ bool StorageSqlite3::Purge(const std::string& tablename) const
     return false;
 }
 
-void StorageSqlite3::rollback() const
-{
-    sqlite3_stmt* rollback{nullptr};
-    const std::string rollbackSQL{"ROLLBACK;"};
-    sqlite3_prepare_v2(db_, rollbackSQL.c_str(), -1, &rollback, 0);
-    sqlite3_step(rollback);
-    sqlite3_finalize(rollback);
-}
-
 bool StorageSqlite3::Select(
     const std::string& key,
     const std::string& tablename,
     std::string& value) const
 {
+    Lock lock(sql_lock_);
     sqlite3_stmt* statement{nullptr};
-    const std::string query =
-        "select v from `" + tablename + "` where k=?1 LIMIT 0,1;";
-    sqlite3_prepare_v2(db_, query.c_str(), -1, &statement, 0);
-    sqlite3_bind_text(statement, 1, key.c_str(), key.size(), SQLITE_STATIC);
-    int result = sqlite3_step(statement);
+    const std::string query = "SELECT v FROM '" + tablename + "' WHERE k=?1;";
+    const auto sql = bind_key(query, key, 1);
+    sqlite3_prepare_v2(db_, sql.c_str(), -1, &statement, 0);
+    otInfo << sql << std::endl;
+    auto result = sqlite3_step(statement);
     bool success = false;
+    std::size_t retry{3};
 
-    if (result == SQLITE_ROW) {
-        const void* pResult = sqlite3_column_blob(statement, 0);
-        uint32_t size = sqlite3_column_bytes(statement, 0);
-        value.assign(static_cast<const char*>(pResult), size);
-        success = true;
+    while (0 < retry) {
+        switch (result) {
+            case SQLITE_DONE:
+            case SQLITE_ROW: {
+                retry = 0;
+                const auto size = sqlite3_column_bytes(statement, 0);
+                success = (0 < size);
+
+                if (success) {
+                    const auto pResult = sqlite3_column_blob(statement, 0);
+                    value.assign(static_cast<const char*>(pResult), size);
+                }
+            } break;
+            case SQLITE_BUSY: {
+                otErr << OT_METHOD << __FUNCTION__ << ": Busy" << std::endl;
+                result = sqlite3_step(statement);
+                --retry;
+            } break;
+            default: {
+                otErr << OT_METHOD << __FUNCTION__ << ": Unknown error ("
+                      << result << ")" << std::endl;
+                result = sqlite3_step(statement);
+                --retry;
+            }
+        }
     }
 
     sqlite3_finalize(statement);
@@ -230,7 +238,7 @@ bool StorageSqlite3::Select(
     return success;
 }
 
-bool StorageSqlite3::set_data() const
+void StorageSqlite3::set_data(std::stringstream& sql) const
 {
     sqlite3_stmt* data{nullptr};
     std::stringstream dataSQL{};
@@ -267,18 +275,18 @@ bool StorageSqlite3::set_data() const
         OT_ASSERT(SQLITE_OK == bound);
     }
 
-    const auto output = sqlite3_step(data);
+    sql << sqlite3_expanded_sql(data) << " ";
     sqlite3_finalize(data);
-
-    return (SQLITE_DONE == output);
 }
 
-bool StorageSqlite3::set_root(const std::string& rootHash) const
+void StorageSqlite3::set_root(
+    const std::string& rootHash,
+    std::stringstream& sql) const
 {
     sqlite3_stmt* root{nullptr};
     std::stringstream rootSQL{};
     rootSQL << "INSERT OR REPLACE INTO '" << config_.sqlite3_control_table_
-            << "'  (k, v) VALUES (?1, ?2);";
+            << "'  (k, v) VALUES (?1, ?2); ";
     sqlite3_prepare_v2(db_, rootSQL.str().c_str(), -1, &root, 0);
     auto bound = sqlite3_bind_text(
         root,
@@ -294,21 +302,13 @@ bool StorageSqlite3::set_root(const std::string& rootHash) const
 
     OT_ASSERT(SQLITE_OK == bound)
 
-    const auto output = sqlite3_step(root);
+    sql << sqlite3_expanded_sql(root) << " ";
     sqlite3_finalize(root);
-
-    return (SQLITE_DONE == output);
 }
 
-bool StorageSqlite3::start_transaction() const
+void StorageSqlite3::start_transaction(std::stringstream& sql) const
 {
-    sqlite3_stmt* open{nullptr};
-    const std::string openSQL{"BEGIN TRANSACTION;"};
-    sqlite3_prepare_v2(db_, openSQL.c_str(), -1, &open, 0);
-    const auto output = sqlite3_step(open);
-    sqlite3_finalize(open);
-
-    return (SQLITE_DONE == output);
+    sql << "BEGIN TRANSACTION; ";
 }
 
 void StorageSqlite3::store(
@@ -347,6 +347,7 @@ bool StorageSqlite3::Upsert(
     const std::string& tablename,
     const std::string& value) const
 {
+    Lock lock(sql_lock_);
     sqlite3_stmt* statement;
     const std::string query =
         "insert or replace into `" + tablename + "` (k, v) values (?1, ?2);";
@@ -354,7 +355,8 @@ bool StorageSqlite3::Upsert(
     sqlite3_prepare_v2(db_, query.c_str(), -1, &statement, 0);
     sqlite3_bind_text(statement, 1, key.c_str(), key.size(), SQLITE_STATIC);
     sqlite3_bind_blob(statement, 2, value.c_str(), value.size(), SQLITE_STATIC);
-    int result = sqlite3_step(statement);
+    otInfo << sqlite3_expanded_sql(statement) << std::endl;
+    const auto result = sqlite3_step(statement);
     sqlite3_finalize(statement);
 
     return (result == SQLITE_DONE);
