@@ -2329,8 +2329,8 @@ void OTME_too::refresh_contacts(nymAccountMap& nymsToCheck)
 {
     for (const auto& it : contacts_.ContactList()) {
         const auto& contactID = it.first;
-        otErr << OT_METHOD << __FUNCTION__
-              << ": Considering contact: " << contactID << std::endl;
+        otInfo << OT_METHOD << __FUNCTION__
+               << ": Considering contact: " << contactID << std::endl;
 
         const auto contact = contacts_.Contact(Identifier(contactID));
 
@@ -2341,8 +2341,8 @@ void OTME_too::refresh_contacts(nymAccountMap& nymsToCheck)
         const auto nymList = contact->Nyms();
 
         if (nymList.empty()) {
-            otErr << OT_METHOD << __FUNCTION__
-                  << ": No nyms associated with this contact." << std::endl;
+            otInfo << OT_METHOD << __FUNCTION__
+                   << ": No nyms associated with this contact." << std::endl;
 
             continue;
         }
@@ -2350,35 +2350,36 @@ void OTME_too::refresh_contacts(nymAccountMap& nymsToCheck)
         for (const auto& it : nymList) {
             const auto nym = wallet_.Nym(it);
             const std::string nymID = String(it).Get();
-            otErr << OT_METHOD << __FUNCTION__ << ": Considering nym: " << nymID
-                  << std::endl;
+            otInfo << OT_METHOD << __FUNCTION__
+                   << ": Considering nym: " << nymID << std::endl;
 
             if (nym) {
                 contacts_.Update(nym->asPublicNym());
             } else {
-                otErr << OT_METHOD << __FUNCTION__
-                      << ": We don't have credentials for this nym. "
-                      << " Will search on all servers." << std::endl;
+                otInfo << OT_METHOD << __FUNCTION__
+                       << ": We don't have credentials for this nym. "
+                       << " Will search on all servers." << std::endl;
                 nymsToCheck[ALL_SERVERS].push_back(nymID);
 
                 continue;
             }
 
             if (interval > limit) {
-                otErr << OT_METHOD << __FUNCTION__
-                      << ": Hours since last update (" << interval.count()
-                      << ") exceeds the limit (" << limit.count() << ")"
-                      << std::endl;
+                otInfo << OT_METHOD << __FUNCTION__
+                       << ": Hours since last update (" << interval.count()
+                       << ") exceeds the limit (" << limit.count() << ")"
+                       << std::endl;
                 const auto servers = extract_message_servers(nymID);
 
                 for (const auto& server : servers) {
-                    otErr << OT_METHOD << __FUNCTION__ << ": Will download nym "
-                          << nymID << " from server " << server << std::endl;
+                    otInfo << OT_METHOD << __FUNCTION__
+                           << ": Will download nym " << nymID << " from server "
+                           << server << std::endl;
                     nymsToCheck[server].push_back(nymID);
                 }
             } else {
-                otErr << OT_METHOD << __FUNCTION__
-                      << ": No need to update this nym." << std::endl;
+                otInfo << OT_METHOD << __FUNCTION__
+                       << ": No need to update this nym." << std::endl;
             }
         }
     }
@@ -2387,19 +2388,19 @@ void OTME_too::refresh_contacts(nymAccountMap& nymsToCheck)
 void OTME_too::refresh_thread()
 {
     Cleanup cleanup(refreshing_);
-    otErr << OT_METHOD << __FUNCTION__ << ": Starting refresh loop."
-          << std::endl;
+    otInfo << OT_METHOD << __FUNCTION__ << ": Starting refresh loop."
+           << std::endl;
     serverTaskMap accounts;
     build_account_list(accounts);
-    otErr << OT_METHOD << __FUNCTION__ << ": Account list created."
-          << std::endl;
+    otInfo << OT_METHOD << __FUNCTION__ << ": Account list created."
+           << std::endl;
     nymAccountMap nymsToCheck;
     refresh_contacts(nymsToCheck);
-    otErr << OT_METHOD << __FUNCTION__ << ": Checknym task list created."
-          << std::endl;
+    otInfo << OT_METHOD << __FUNCTION__ << ": Checknym task list created."
+           << std::endl;
     add_checknym_tasks(nymsToCheck, accounts);
-    otErr << OT_METHOD << __FUNCTION__ << ": Server operation list finished."
-          << std::endl;
+    otInfo << OT_METHOD << __FUNCTION__ << ": Server operation list finished."
+           << std::endl;
 
     for (const auto server : accounts) {
         bool updateServerNym = do_i_download_server_nym();
@@ -2410,13 +2411,13 @@ void OTME_too::refresh_thread()
         bool nymsChecked = false;
 
         if (false == need_to_refresh(serverID)) {
-            otErr << OT_METHOD << __FUNCTION__
-                  << ": Skipping update for server " << serverID << std::endl;
+            otInfo << OT_METHOD << __FUNCTION__
+                   << ": Skipping update for server " << serverID << std::endl;
 
             continue;
         } else {
-            otErr << OT_METHOD << __FUNCTION__ << ": Updating server "
-                  << serverID << std::endl;
+            otInfo << OT_METHOD << __FUNCTION__ << ": Updating server "
+                   << serverID << std::endl;
         }
 
         for (const auto nym : accountList) {
@@ -2426,12 +2427,12 @@ void OTME_too::refresh_thread()
 
             const auto& nymID = nym.first;
 
-            otErr << OT_METHOD << __FUNCTION__ << ": Refreshing nym " << nymID
-                  << " on " << serverID << std::endl;
+            otInfo << OT_METHOD << __FUNCTION__ << ": Refreshing nym " << nymID
+                   << " on " << serverID << std::endl;
 
             if (updateServerNym) {
-                otErr << OT_METHOD << __FUNCTION__
-                      << ": Downloading updated server nym." << std::endl;
+                otInfo << OT_METHOD << __FUNCTION__
+                       << ": Downloading updated server nym." << std::endl;
 
                 auto contract = wallet_.Server(Identifier(serverID));
 
@@ -2444,9 +2445,10 @@ void OTME_too::refresh_thread()
                     updateServerNym = (1 != otme_.VerifyMessageSuccess(result));
 
                     if (updateServerNym) {
-                        otErr << OT_METHOD << __FUNCTION__
-                              << ": Check nym for server nym "
-                              << String(serverNymID) << " failed." << std::endl;
+                        otInfo << OT_METHOD << __FUNCTION__
+                               << ": Check nym for server nym "
+                               << String(serverNymID) << " failed."
+                               << std::endl;
                         otme_.register_nym(serverID, nymID);
                     }
                 } else {
@@ -2455,23 +2457,23 @@ void OTME_too::refresh_thread()
             }
 
             bool notUsed = false;
-            otErr << OT_METHOD << __FUNCTION__ << ": Downloading nymbox."
-                  << std::endl;
+            otInfo << OT_METHOD << __FUNCTION__ << ": Downloading nymbox."
+                   << std::endl;
             const auto retrieve =
                 made_easy_.retrieve_nym(serverID, nymID, notUsed, true);
 
             if (1 != retrieve) {
-                otErr << OT_METHOD << __FUNCTION__
-                      << ": Downloading nymbox failed (" << retrieve << ")"
-                      << std::endl;
+                otInfo << OT_METHOD << __FUNCTION__
+                       << ": Downloading nymbox failed (" << retrieve << ")"
+                       << std::endl;
                 otme_.register_nym(serverID, nymID);
             }
 
             // If the nym's credentials have been updated since the last time
             // it was registered on the server, upload the new credentials
             if (false == check_nym_revision(nymID, serverID)) {
-                otErr << OT_METHOD << __FUNCTION__
-                      << ": Uploading new credentials to server." << std::endl;
+                otInfo << OT_METHOD << __FUNCTION__
+                       << ": Uploading new credentials to server." << std::endl;
                 check_server_registration(nymID, serverID, true, false);
             }
 
@@ -2480,15 +2482,15 @@ void OTME_too::refresh_thread()
                     return;
                 }
 
-                otErr << OT_METHOD << __FUNCTION__ << ": Downloading account "
-                      << account << std::endl;
+                otInfo << OT_METHOD << __FUNCTION__ << ": Downloading account "
+                       << account << std::endl;
                 made_easy_.retrieve_account(serverID, nymID, account, true);
             }
 
             if (!nymsChecked) {
                 for (const auto& nym : checkNym) {
-                    otErr << OT_METHOD << __FUNCTION__ << ": Downloading nym "
-                          << nym << std::endl;
+                    otInfo << OT_METHOD << __FUNCTION__ << ": Downloading nym "
+                           << nym << std::endl;
                     made_easy_.check_nym(serverID, nymID, nym);
 
                     if (!yield()) {
@@ -2502,14 +2504,14 @@ void OTME_too::refresh_thread()
     }
 
     refresh_count_++;
-    otErr << OT_METHOD << __FUNCTION__ << ": Updating pairing state machine."
-          << std::endl;
+    otInfo << OT_METHOD << __FUNCTION__ << ": Updating pairing state machine."
+           << std::endl;
     UpdatePairing();
-    otErr << OT_METHOD << __FUNCTION__ << ": Resending pending peer requests."
-          << std::endl;
+    otInfo << OT_METHOD << __FUNCTION__ << ": Resending pending peer requests."
+           << std::endl;
     resend_peer_requests();
     refreshing_.store(false);
-    otErr << OT_METHOD << __FUNCTION__ << ": Refresh complete." << std::endl;
+    otInfo << OT_METHOD << __FUNCTION__ << ": Refresh complete." << std::endl;
 }
 
 void OTME_too::Refresh(const std::string&)
