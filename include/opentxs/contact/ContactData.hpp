@@ -46,6 +46,7 @@
 
 #include <map>
 #include <memory>
+#include <set>
 #include <string>
 #include <tuple>
 
@@ -81,6 +82,11 @@ public:
 
     operator std::string() const;
 
+    ContactData AddContract(
+        const std::string& instrumentDefinitionID,
+        const proto::ContactItemType currency,
+        const bool primary,
+        const bool active) const;
     ContactData AddItem(const Claim& claim) const;
     ContactData AddItem(const std::shared_ptr<ContactItem>& item) const;
     ContactData AddPaymentCode(
@@ -90,7 +96,10 @@ public:
         const bool active) const;
     ContactData AddPreferredOTServer(const Identifier& id, const bool primary)
         const;
-    std::shared_ptr<ContactItem> Claim(Identifier& item) const;
+    std::shared_ptr<ContactItem> Claim(const Identifier& item) const;
+    std::set<Identifier> Contracts(
+        const proto::ContactItemType currency,
+        const bool onlyActive) const;
     ContactData Delete(const Identifier& id) const;
     std::shared_ptr<ContactGroup> Group(
         const proto::ContactSectionName& section,

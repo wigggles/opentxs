@@ -75,7 +75,7 @@ public:
 
     ItemMap::const_iterator begin() const;
     std::shared_ptr<ContactItem> Best() const;
-    std::shared_ptr<ContactItem> Claim(Identifier& item) const;
+    std::shared_ptr<ContactItem> Claim(const Identifier& item) const;
     bool HaveClaim(const Identifier& item) const;
     ContactGroup AddItem(const std::shared_ptr<ContactItem>& item) const;
     ContactGroup AddPrimary(const std::shared_ptr<ContactItem>& item) const;

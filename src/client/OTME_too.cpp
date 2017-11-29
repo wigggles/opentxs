@@ -942,26 +942,19 @@ std::uint64_t OTME_too::extract_assets(
     for (const auto& section : claims.section()) {
         if (proto::CONTACTSECTION_CONTRACT == section.name()) {
             for (const auto& item : section.item()) {
-                bool primary = false;
                 bool active = false;
 
                 for (const auto& attr : item.attribute()) {
-                    if (proto::CITEMATTR_PRIMARY == attr) {
-                        primary = true;
-                    }
-
                     if (proto::CITEMATTR_ACTIVE == attr) {
                         active = true;
                     }
                 }
 
-                if (primary && active) {
+                if (active) {
                     std::unique_lock<std::mutex> lock(pair_lock_);
                     unitMap[item.type()] = item.value();
                     lock.unlock();
                     output++;
-                } else {
-                    OT_FAIL;
                 }
             }
         }
@@ -2312,17 +2305,9 @@ bool OTME_too::publish_server_registration(
     const std::string& server,
     const bool forcePrimary) const
 {
-    rLock apiLock(api_lock_);
-    auto nym = ot_api_.GetOrLoadPrivateNym(Identifier(nymID), false);
+    auto nym = wallet_.mutable_Nym(Identifier(nymID));
 
-    OT_ASSERT(nullptr != nym);
-
-    const auto output =
-        nym->AddPreferredOTServer(Identifier(server), forcePrimary);
-    apiLock.unlock();
-    yield();
-
-    return output;
+    return nym.AddPreferredOTServer(server, forcePrimary);
 }
 
 void OTME_too::refresh_contacts(nymAccountMap& nymsToCheck)

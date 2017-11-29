@@ -266,6 +266,33 @@ bool Nym::AddClaim(const Claim& claim)
     return set_contact_data(lock, contact_data_->Serialize());
 }
 
+bool Nym::AddContract(
+    const Identifier& instrumentDefinitionID,
+    const proto::ContactItemType currency,
+    const bool primary,
+    const bool active)
+{
+    const std::string id(String(instrumentDefinitionID).Get());
+
+    if (id.empty()) {
+
+        return false;
+    }
+
+    Lock lock(lock_);
+
+    if (false == bool(contact_data_)) {
+        init_claims(lock);
+    }
+
+    contact_data_.reset(new ContactData(
+        contact_data_->AddContract(id, currency, primary, active)));
+
+    OT_ASSERT(contact_data_);
+
+    return set_contact_data(lock, contact_data_->Serialize());
+}
+
 /// a payments message is a form of transaction, transported via Nymbox
 /// Though the parameter is a reference (forcing you to pass a real object),
 /// the Nym DOES take ownership of the object. Therefore it MUST be allocated
@@ -412,6 +439,21 @@ void Nym::ClearOutpayments()
 }
 
 bool Nym::CompareID(const Nym& RHS) const { return RHS.CompareID(m_nymID); }
+
+std::set<Identifier> Nym::Contracts(
+    const proto::ContactItemType currency,
+    const bool onlyActive) const
+{
+    Lock lock(lock_);
+
+    if (false == bool(contact_data_)) {
+        init_claims(lock);
+    }
+
+    OT_ASSERT(contact_data_);
+
+    return contact_data_->Contracts(currency, onlyActive);
+}
 
 bool Nym::DeleteClaim(const Identifier& id)
 {
