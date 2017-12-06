@@ -110,6 +110,46 @@ ContactData::operator std::string() const
     return PrintContactData(Serialize(false));
 }
 
+ContactData ContactData::AddContract(
+    const std::string& instrumentDefinitionID,
+    const proto::ContactItemType currency,
+    const bool primary,
+    const bool active) const
+{
+    bool needPrimary{true};
+    const proto::ContactSectionName section{proto::CONTACTSECTION_CONTRACT};
+    auto group = Group(section, currency);
+
+    if (group) {
+        needPrimary = group->Primary().empty();
+    }
+
+    std::set<proto::ContactItemAttribute> attrib{};
+
+    if (active) {
+        attrib.emplace(proto::CITEMATTR_ACTIVE);
+    }
+
+    if (primary || needPrimary) {
+        attrib.emplace(proto::CITEMATTR_PRIMARY);
+    }
+
+    auto item = std::make_shared<ContactItem>(
+        nym_,
+        version_,
+        version_,
+        section,
+        currency,
+        instrumentDefinitionID,
+        attrib,
+        NULL_START,
+        NULL_END);
+
+    OT_ASSERT(item);
+
+    return AddItem(item);
+}
+
 ContactData ContactData::AddItem(const ClaimTuple& claim) const
 {
     auto item = std::make_shared<ContactItem>(nym_, version_, version_, claim);
@@ -233,7 +273,7 @@ std::uint32_t ContactData::check_version(
     return in;
 }
 
-std::shared_ptr<ContactItem> ContactData::Claim(Identifier& item) const
+std::shared_ptr<ContactItem> ContactData::Claim(const Identifier& item) const
 {
     for (const auto& it : sections_) {
         const auto& section = it.second;
@@ -249,6 +289,31 @@ std::shared_ptr<ContactItem> ContactData::Claim(Identifier& item) const
     }
 
     return {};
+}
+
+std::set<Identifier> ContactData::Contracts(
+    const proto::ContactItemType currency,
+    const bool onlyActive) const
+{
+    std::set<Identifier> output{};
+    const proto::ContactSectionName section{proto::CONTACTSECTION_CONTRACT};
+    auto group = Group(section, currency);
+
+    if (group) {
+        for (const auto& it : *group) {
+            const auto& id = it.first;
+
+            OT_ASSERT(it.second);
+
+            const auto& claim = *it.second;
+
+            if ((false == onlyActive) || claim.isActive()) {
+                output.insert(id);
+            }
+        }
+    }
+
+    return output;
 }
 
 ContactData ContactData::Delete(const Identifier& id) const

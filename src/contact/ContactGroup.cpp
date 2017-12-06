@@ -199,7 +199,7 @@ std::shared_ptr<ContactItem> ContactGroup::Best() const
     return items_.begin()->second;
 }
 
-std::shared_ptr<ContactItem> ContactGroup::Claim(Identifier& item) const
+std::shared_ptr<ContactItem> ContactGroup::Claim(const Identifier& item) const
 {
     auto it = items_.find(item);
 

@@ -84,7 +84,6 @@ private:
     friend class StorageMultiplex;
 
     std::string folder_;
-    mutable std::mutex sql_lock_;
     mutable std::mutex transaction_lock_;
     mutable std::atomic<bool> transaction_bucket_;
     mutable std::vector<std::pair<const std::string, const std::string>>

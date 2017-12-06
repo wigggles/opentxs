@@ -45,6 +45,7 @@
 #include "opentxs/core/crypto/SymmetricKey.hpp"
 #endif
 #include "opentxs/core/Log.hpp"
+#include "opentxs/core/String.hpp"
 #if OT_STORAGE_FS
 #include "opentxs/storage/drivers/StorageFSGC.hpp"
 #include "opentxs/storage/drivers/StorageFSArchive.hpp"
@@ -66,6 +67,9 @@ StorageMultiplex::StorageMultiplex(
     const api::storage::Storage& storage,
     const std::atomic<bool>& primary_bucket_,
     const StorageConfig& config,
+    const String& primary,
+    const bool migrate,
+    const String& previous,
     const Digest& hash,
     const Random& random)
     : storage_(storage)
@@ -76,7 +80,7 @@ StorageMultiplex::StorageMultiplex(
     , digest_(hash)
     , random_(random)
 {
-    Init_StorageMultiplex();
+    Init_StorageMultiplex(primary, migrate, previous);
 }
 
 std::string StorageMultiplex::best_root(bool& primaryOutOfSync)
@@ -153,28 +157,58 @@ bool StorageMultiplex::EmptyBucket(const bool bucket) const
     return primary_plugin_->EmptyBucket(bucket);
 }
 
-void StorageMultiplex::Init_StorageMultiplex()
+void StorageMultiplex::init(
+    const std::string& primary,
+    std::unique_ptr<opentxs::api::storage::Plugin>& plugin)
 {
-    if (OT_STORAGE_PRIMARY_PLUGIN_SQLITE == config_.primary_plugin_) {
-#if OT_STORAGE_SQLITE
-        otInfo << OT_METHOD << __FUNCTION__
-               << ": Initializing primary sqlite3 plugin." << std::endl;
-        primary_plugin_.reset(new StorageSqlite3(
-            storage_, config_, digest_, random_, primary_bucket_));
-#else
-        otErr << OT_METHOD << __FUNCTION__
-              << ": Sqlite3 driver not compiled in." << std::endl;
-#endif
-    } else if (OT_STORAGE_PRIMARY_PLUGIN_FS == config_.primary_plugin_) {
+    if (OT_STORAGE_PRIMARY_PLUGIN_SQLITE == primary) {
+        init_sqlite(plugin);
+    } else if (OT_STORAGE_PRIMARY_PLUGIN_FS == primary) {
+        init_fs(plugin);
+    }
+
+    OT_ASSERT(plugin);
+}
+
+void StorageMultiplex::init_fs(
+    std::unique_ptr<opentxs::api::storage::Plugin>& plugin)
+{
 #if OT_STORAGE_FS
-        otInfo << OT_METHOD << __FUNCTION__
-               << ": Initializing primary filesystem plugin." << std::endl;
-        primary_plugin_.reset(new StorageFSGC(
-            storage_, config_, digest_, random_, primary_bucket_));
+    otInfo << OT_METHOD << __FUNCTION__
+           << ": Initializing primary filesystem plugin." << std::endl;
+    plugin.reset(
+        new StorageFSGC(storage_, config_, digest_, random_, primary_bucket_));
 #else
-        otErr << OT_METHOD << __FUNCTION__
-              << ": Filesystem driver not compiled in." << std::endl;
+    otErr << OT_METHOD << __FUNCTION__ << ": Filesystem driver not compiled in."
+          << std::endl;
+    OT_FAIL;
 #endif
+}
+
+void StorageMultiplex::init_sqlite(
+    std::unique_ptr<opentxs::api::storage::Plugin>& plugin)
+{
+#if OT_STORAGE_SQLITE
+    otInfo << OT_METHOD << __FUNCTION__
+           << ": Initializing primary sqlite3 plugin." << std::endl;
+    plugin.reset(new StorageSqlite3(
+        storage_, config_, digest_, random_, primary_bucket_));
+#else
+    otErr << OT_METHOD << __FUNCTION__ << ": Sqlite3 driver not compiled in."
+          << std::endl;
+    OT_FAIL;
+#endif
+}
+
+void StorageMultiplex::Init_StorageMultiplex(
+    const String& primary,
+    const bool migrate,
+    const String& previous)
+{
+    if (migrate) {
+        migrate_primary(previous.Get(), primary.Get());
+    } else {
+        init(primary.Get(), primary_plugin_);
     }
 
     OT_ASSERT(primary_plugin_);
@@ -342,6 +376,48 @@ bool StorageMultiplex::Migrate(
     }
 
     return false;
+}
+
+void StorageMultiplex::migrate_primary(
+    const std::string& from,
+    const std::string& to)
+{
+    auto& old = primary_plugin_;
+
+    init(from, old);
+
+    OT_ASSERT(old);
+
+    std::unique_ptr<opentxs::api::storage::Plugin> newPlugin{nullptr};
+    init(to, newPlugin);
+
+    OT_ASSERT(newPlugin);
+
+    const std::string rootHash = old->LoadRoot();
+    std::shared_ptr<storage::Root> root{nullptr};
+    std::atomic<bool> bucket{false};
+    root.reset(new storage::Root(
+        *this, rootHash, std::numeric_limits<std::int64_t>::max(), bucket));
+
+    OT_ASSERT(root);
+
+    const auto& tree = root->Tree();
+    const auto migrated = tree.Migrate(*newPlugin);
+
+    if (migrated) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Successfully migrated to new primary plugin." << std::endl;
+    } else {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Failed to migrate primary plugin." << std::endl;
+
+        OT_FAIL;
+    }
+
+    Lock lock(root->write_lock_);
+    root->save(lock, *newPlugin);
+    newPlugin->StoreRoot(false, rootHash);
+    old.reset(newPlugin.release());
 }
 
 opentxs::api::storage::Driver& StorageMultiplex::Primary()

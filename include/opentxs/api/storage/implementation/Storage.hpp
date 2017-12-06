@@ -60,6 +60,7 @@ namespace opentxs
 class StorageDriver;
 class StorageMultiplex;
 class StoragePlugin;
+class String;
 class SymmetricKey;
 
 namespace storage
@@ -344,6 +345,9 @@ private:
     Storage(
         const std::atomic<bool>& shutdown,
         const StorageConfig& config,
+        const String& primary,
+        const bool migrate,
+        const String& previous,
         const Digest& hash,
         const Random& random);
     Storage(const Storage&) = delete;

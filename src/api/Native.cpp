@@ -87,7 +87,7 @@
 #define SERVER_CONFIG_KEY "server"
 #define STORAGE_CONFIG_KEY "storage"
 
-#define OT_METHOD "opentxs::OT::"
+#define OT_METHOD "opentxs::api::implementation::Native::"
 
 namespace opentxs::api::implementation
 {
@@ -210,6 +210,47 @@ api::network::Dht& Native::DHT() const
     OT_ASSERT(dht_)
 
     return *dht_;
+}
+
+String Native::get_primary_storage_plugin(
+    const StorageConfig& config,
+    bool& migrate,
+    String& previous) const
+{
+    const String hardcoded = config.primary_plugin_.c_str();
+    const String commandLine = primary_storage_plugin_.c_str();
+    String configured{""};
+    bool notUsed{false};
+    Config().Check_str(
+        STORAGE_CONFIG_KEY,
+        STORAGE_CONFIG_PRIMARY_PLUGIN_KEY,
+        configured,
+        notUsed);
+    const auto haveConfigured = configured.Exists();
+    const auto haveCommandline = commandLine.Exists();
+    const bool same = (configured == commandLine);
+    if (haveCommandline) {
+        if (haveConfigured && (false == same)) {
+            migrate = true;
+            previous = configured;
+            otErr << OT_METHOD << __FUNCTION__ << ": Migrating from "
+                  << previous << "." << std::endl;
+        }
+
+        return commandLine;
+    } else {
+        if (haveConfigured) {
+            otWarn << OT_METHOD << __FUNCTION__ << ": Using config file value."
+                   << std::endl;
+
+            return configured;
+        } else {
+            otWarn << OT_METHOD << __FUNCTION__ << ": Using default value."
+                   << std::endl;
+
+            return hardcoded;
+        }
+    }
 }
 
 void Native::HandleSignals() const
@@ -489,15 +530,14 @@ void Native::Init_Storage()
     StorageConfig config;
     config.path_ = path;
     bool notUsed;
-    String defaultPlugin{};
+    bool migrate{false};
+    String old{""};
+    String defaultPlugin = get_primary_storage_plugin(config, migrate, old);
     String archiveDirectory{};
     String encryptedDirectory{};
 
-    if (primary_storage_plugin_.empty()) {
-        defaultPlugin = config.primary_plugin_.c_str();
-    } else {
-        defaultPlugin = primary_storage_plugin_.c_str();
-    }
+    otWarn << OT_METHOD << __FUNCTION__ << ": Using " << defaultPlugin
+           << " as primary storage plugin." << std::endl;
 
     if (archive_directory_.empty()) {
         archiveDirectory = config.fs_backup_directory_.c_str();
@@ -552,12 +592,6 @@ void Native::Init_Storage()
         "path",
         String(config.path_),
         config.path_,
-        notUsed);
-    Config().CheckSet_str(
-        STORAGE_CONFIG_KEY,
-        STORAGE_CONFIG_PRIMARY_PLUGIN_KEY,
-        defaultPlugin,
-        config.primary_plugin_,
         notUsed);
 #if OT_STORAGE_FS
     Config().CheckSet_str(
@@ -647,7 +681,12 @@ void Native::Init_Storage()
     OT_ASSERT(crypto_);
 
     storage_.reset(new api::storage::implementation::Storage(
-        shutdown_, config, hash, random));
+        shutdown_, config, defaultPlugin, migrate, old, hash, random));
+    Config().Set_str(
+        STORAGE_CONFIG_KEY,
+        STORAGE_CONFIG_PRIMARY_PLUGIN_KEY,
+        defaultPlugin,
+        notUsed);
     Config().Save();
 }
 

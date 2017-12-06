@@ -51,6 +51,7 @@ namespace opentxs
 {
 
 class ContactData;
+class Identifier;
 class Nym;
 
 namespace api
@@ -62,7 +63,12 @@ class Wallet;
 #ifdef SWIG
 // clang-format off
 %ignore NymData::NymData(NymData&&);
-%ignore NymData::AddPaymentCode(const std::string&, const std::ContactItemType, const bool, const bool);
+%ignore NymData::AddContract(
+    const std::string&, const std::ContactItemType, const bool, const bool);
+%ignore NymData::AddPaymentCode(
+    const std::string&, const std::ContactItemType, const bool, const bool);
+%ignore NymData::HaveContract(
+    const Identifier&, const std::ContactItemType, const bool, const bool);
 %ignore NymData::PaymentCode(const proto::ContactItemType) const;
 %ignore NymData::SetType(const proto::ContactItemType);
 %ignore NymData::Type() const;
@@ -76,6 +82,16 @@ public:
     NymData(NymData&&) = default;
 
     std::uint32_t GetType() const;
+    bool HaveContract(
+        const std::string& id,
+        const std::uint32_t currency,
+        const bool primary,
+        const bool active) const;
+    bool HaveContract(
+        const Identifier& id,
+        const proto::ContactItemType currency,
+        const bool primary,
+        const bool active) const;
     std::string Name() const;
     std::string PaymentCode(const std::uint32_t currency) const;
     std::string PaymentCode(const proto::ContactItemType currency) const;
@@ -84,6 +100,16 @@ public:
     proto::ContactItemType Type() const;
     bool Valid() const;
 
+    bool AddContract(
+        const std::string& instrumentDefinitionID,
+        const std::uint32_t currency,
+        const bool primary,
+        const bool active);
+    bool AddContract(
+        const std::string& instrumentDefinitionID,
+        const proto::ContactItemType currency,
+        const bool primary,
+        const bool active);
     bool AddPaymentCode(
         const std::string& code,
         const std::uint32_t currency,

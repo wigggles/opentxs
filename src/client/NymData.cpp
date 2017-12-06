@@ -42,6 +42,7 @@
 
 #include "opentxs/contact/Contact.hpp"
 #include "opentxs/contact/ContactData.hpp"
+#include "opentxs/contact/ContactItem.hpp"
 #include "opentxs/core/crypto/PaymentCode.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
@@ -55,6 +56,37 @@ namespace opentxs
 NymData::NymData(const std::shared_ptr<Nym>& nym)
     : nym_(nym)
 {
+}
+
+bool NymData::AddContract(
+    const std::string& instrumentDefinitionID,
+    const std::uint32_t currency,
+    const bool primary,
+    const bool active)
+{
+    return AddContract(
+        instrumentDefinitionID,
+        static_cast<const proto::ContactItemType>(currency),
+        primary,
+        active);
+}
+
+bool NymData::AddContract(
+    const std::string& instrumentDefinitionID,
+    const proto::ContactItemType currency,
+    const bool primary,
+    const bool active)
+{
+    Identifier id(instrumentDefinitionID);
+
+    if (id.empty()) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Invalid instrument definition id." << std::endl;
+
+        return false;
+    }
+
+    return nym().AddContract(id, currency, primary, active);
 }
 
 bool NymData::AddPaymentCode(
@@ -81,6 +113,8 @@ bool NymData::AddPaymentCode(
     if (false == paymentCode.VerifyInternally()) {
         otErr << OT_METHOD << __FUNCTION__ << ": Invalid payment code."
               << std::endl;
+
+        return false;
     }
 
     return nym().AddPaymentCode(paymentCode, currency, primary, active);
@@ -101,6 +135,57 @@ const ContactData& NymData::data() const
 std::uint32_t NymData::GetType() const
 {
     return static_cast<std::uint32_t>(Type());
+}
+
+bool NymData::HaveContract(
+    const std::string& id,
+    const std::uint32_t currency,
+    const bool primary,
+    const bool active) const
+{
+    return HaveContract(
+        Identifier(id),
+        static_cast<const proto::ContactItemType>(currency),
+        primary,
+        active);
+}
+
+bool NymData::HaveContract(
+    const Identifier& instrumentDefinitionID,
+    const proto::ContactItemType currency,
+    const bool primary,
+    const bool active) const
+{
+    OT_ASSERT(nym_);
+
+    const auto contracts = nym_->Contracts(currency, active);
+
+    if (0 == contracts.size()) {
+
+        return false;
+    }
+
+    const auto& data = nym_->Claims();
+
+    for (const auto& id : contracts) {
+        const auto& claim = data.Claim(id);
+
+        OT_ASSERT(claim);
+
+        const Identifier value(claim->Value());
+
+        if (false == (instrumentDefinitionID == value)) {
+
+            continue;
+        }
+
+        if ((false == primary) || claim->isPrimary()) {
+
+            return true;
+        }
+    }
+
+    return false;
 }
 
 std::string NymData::Name() const

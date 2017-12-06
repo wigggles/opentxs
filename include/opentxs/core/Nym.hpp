@@ -121,6 +121,9 @@ public:
     EXPORT std::int32_t ChildCredentialCount(const std::string& masterID) const;
     EXPORT const class ContactData& Claims() const;
     EXPORT bool CompareID(const Nym& RHS) const;
+    EXPORT std::set<Identifier> Contracts(
+        const proto::ContactItemType currency,
+        const bool onlyActive) const;
     EXPORT const Credential* GetChildCredential(
         const String& strMasterID,
         const String& strChildCredID) const;
@@ -193,6 +196,11 @@ public:
         const Identifier& strMasterID,
         const NymParameters& nymParameters);
     EXPORT bool AddClaim(const Claim& claim);
+    EXPORT bool AddContract(
+        const Identifier& instrumentDefinitionID,
+        const proto::ContactItemType currency,
+        const bool primary,
+        const bool active = true);
     EXPORT bool AddPaymentCode(
         const class PaymentCode& code,
         const proto::ContactItemType currency,

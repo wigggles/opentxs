@@ -60,7 +60,6 @@ StorageSqlite3::StorageSqlite3(
     const std::atomic<bool>& bucket)
     : ot_super(storage, config, hash, random, bucket)
     , folder_(config.path_)
-    , sql_lock_()
     , transaction_lock_()
     , transaction_bucket_(false)
     , pending_()
@@ -94,9 +93,7 @@ void StorageSqlite3::commit(std::stringstream& sql) const
 
 bool StorageSqlite3::commit_transaction(const std::string& rootHash) const
 {
-    Lock transactionLock(transaction_lock_, std::defer_lock);
-    Lock sqlLock(sql_lock_, std::defer_lock);
-    std::lock(transactionLock, sqlLock);
+    Lock lock(transaction_lock_);
     std::stringstream sql{};
     start_transaction(sql);
     set_data(sql);
@@ -115,7 +112,6 @@ bool StorageSqlite3::Create(const std::string& tablename) const
     const std::string createTable = "create table if not exists ";
     const std::string tableFormat = " (k text PRIMARY KEY, v BLOB);";
     const std::string sql = createTable + "`" + tablename + "`" + tableFormat;
-    Lock lock(sql_lock_);
 
     return (
         SQLITE_OK == sqlite3_exec(db_, sql.c_str(), nullptr, nullptr, nullptr));
@@ -140,12 +136,10 @@ void StorageSqlite3::Init_StorageSqlite3()
         sqlite3_open_v2(
             filename.c_str(),
             &db_,
-            SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_NOMUTEX,
+            SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX,
             nullptr)) {
-        Lock lock(sql_lock_);
         sqlite3_exec(
             db_, "PRAGMA journal_mode=WAL;", nullptr, nullptr, nullptr);
-        lock.unlock();
         Create(config_.sqlite3_primary_bucket_);
         Create(config_.sqlite3_secondary_bucket_);
         Create(config_.sqlite3_control_table_);
@@ -181,7 +175,6 @@ std::string StorageSqlite3::LoadRoot() const
 bool StorageSqlite3::Purge(const std::string& tablename) const
 {
     const std::string sql = "DROP TABLE `" + tablename + "`;";
-    Lock lock(sql_lock_);
 
     if (SQLITE_OK ==
         sqlite3_exec(db_, sql.c_str(), nullptr, nullptr, nullptr)) {
@@ -196,9 +189,9 @@ bool StorageSqlite3::Select(
     const std::string& tablename,
     std::string& value) const
 {
-    Lock lock(sql_lock_);
     sqlite3_stmt* statement{nullptr};
-    const std::string query = "SELECT v FROM '" + tablename + "' WHERE k=?1;";
+    const std::string query =
+        "SELECT v FROM '" + tablename + "' WHERE k GLOB ?1;";
     const auto sql = bind_key(query, key, 1);
     sqlite3_prepare_v2(db_, sql.c_str(), -1, &statement, 0);
     otInfo << sql << std::endl;
@@ -347,7 +340,6 @@ bool StorageSqlite3::Upsert(
     const std::string& tablename,
     const std::string& value) const
 {
-    Lock lock(sql_lock_);
     sqlite3_stmt* statement;
     const std::string query =
         "insert or replace into `" + tablename + "` (k, v) values (?1, ?2);";

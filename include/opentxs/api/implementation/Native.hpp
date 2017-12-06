@@ -61,6 +61,8 @@ namespace opentxs
 {
 class OT;
 class Signals;
+class StorageConfig;
+class String;
 class SymmetricKey;
 
 namespace network
@@ -167,6 +169,11 @@ private:
     Native(Native&&) = delete;
     Native& operator=(const Native&) = delete;
     Native& operator=(Native&&) = delete;
+
+    String get_primary_storage_plugin(
+        const StorageConfig& config,
+        bool& migrate,
+        String& previous) const;
 
     void Init_Activity();
     void Init_Api();

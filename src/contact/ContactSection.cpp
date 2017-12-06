@@ -197,7 +197,7 @@ std::uint32_t ContactSection::check_version(
     return in;
 }
 
-std::shared_ptr<ContactItem> ContactSection::Claim(Identifier& item) const
+std::shared_ptr<ContactItem> ContactSection::Claim(const Identifier& item) const
 {
     for (const auto& group : groups_) {
         OT_ASSERT(group.second);
