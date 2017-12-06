@@ -190,7 +190,8 @@ bool StorageSqlite3::Select(
     std::string& value) const
 {
     sqlite3_stmt* statement{nullptr};
-    const std::string query = "SELECT v FROM '" + tablename + "' WHERE k=?1;";
+    const std::string query =
+        "SELECT v FROM '" + tablename + "' WHERE k GLOB ?1;";
     const auto sql = bind_key(query, key, 1);
     sqlite3_prepare_v2(db_, sql.c_str(), -1, &statement, 0);
     otInfo << sql << std::endl;
