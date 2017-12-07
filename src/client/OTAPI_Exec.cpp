@@ -1910,8 +1910,9 @@ bool OTAPI_Exec::Wallet_CanRemoveAssetType(
         if (theID == theCompareID) {
             otOut << OT_METHOD << __FUNCTION__
                   << ": Unable to remove asset contract "
-                  << INSTRUMENT_DEFINITION_ID << " from "
-                                                 "wallet: Account "
+                  << INSTRUMENT_DEFINITION_ID
+                  << " from "
+                     "wallet: Account "
                   << strAcctID << " uses it.\n";
             return false;
         }
@@ -4529,9 +4530,8 @@ std::string OTAPI_Exec::VerifyAndRetrieveXMLContents(
     const Identifier theSignerID(SIGNER_ID);
     String strOutput;
 
-    if (false ==
-        ot_api_.VerifyAndRetrieveXMLContents(
-            strContract, theSignerID, strOutput)) {
+    if (false == ot_api_.VerifyAndRetrieveXMLContents(
+                     strContract, theSignerID, strOutput)) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Failure: "
                  "ot_api_.VerifyAndRetrieveXMLContents() "
@@ -4590,9 +4590,9 @@ bool OTAPI_Exec::SetAccountWallet_Name(
     OT_ASSERT_MSG(
         !SIGNER_NYM_ID.empty(),
         "OTAPI_Exec::SetAccountWallet_Name: Null SIGNER_NYM_ID passed in.");
-    OT_ASSERT_MSG(
-        !ACCT_NEW_NAME.empty(),
-        "OTAPI_Exec::SetAccountWallet_Name: Null ACCT_NEW_NAME passed in.");
+    //  OT_ASSERT_MSG(
+    //      !ACCT_NEW_NAME.empty(),
+    //      "OTAPI_Exec::SetAccountWallet_Name: Null ACCT_NEW_NAME passed in.");
 
     Identifier theAcctID(ACCT_ID), theSignerNymID(SIGNER_NYM_ID);
     String strAcctNewName(ACCT_NEW_NAME);
@@ -14023,9 +14023,8 @@ std::string OTAPI_Exec::Message_GetNewInstrumentDefinitionID(
     // contain a ledger. (Don't want to pass back whatever it DOES contain
     // in that case, now do I?)
     //
-    if ((false ==
-         theMessage.m_strCommand.Compare(
-             "registerInstrumentDefinitionResponse")) &&
+    if ((false == theMessage.m_strCommand.Compare(
+                      "registerInstrumentDefinitionResponse")) &&
         (false == theMessage.m_strCommand.Compare("issueBasketResponse"))) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Wrong message type: " << theMessage.m_strCommand << "\n";
