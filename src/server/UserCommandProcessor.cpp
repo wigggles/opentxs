@@ -640,6 +640,24 @@ bool UserCommandProcessor::cmd_delete_asset_account(ReplyMessage& reply) const
         return false;
     }
 
+    // TODO: follow up with Justus -- account->IsIssuer() is returning true
+    // in all cases, apparently.
+    //
+    //    if (account->IsIssuer()) {
+    //        const Identifier acct_id{*account};
+    //        const Identifier& asset_id = account->GetInstrumentDefinitionID();
+    //        otErr << OT_METHOD
+    //              << __FUNCTION__
+    //              << ": Unable to delete an ISSUER account ("
+    //              << String(acct_id) << ") without first making sure no other
+    //              "
+    //                 "accounts exist for this unit type: "
+    //              << String(asset_id)
+    //              << std::endl;
+    //
+    //        return false;
+    //    }
+
     std::unique_ptr<Ledger> inbox(account->LoadInbox(serverNym));
     std::unique_ptr<Ledger> outbox(account->LoadOutbox(serverNym));
 
