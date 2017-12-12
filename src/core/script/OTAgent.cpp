@@ -224,11 +224,11 @@ OTAgent::OTAgent(
     Nym& theNym,
     const bool bNymRepresentsSelf)
     /*IF false, then: ROLE parameter goes here.*/
-    : m_bNymRepresentsSelf(bNymRepresentsSelf),
-      m_bIsAnIndividual(true),
-      m_pNym(&theNym),
-      m_pForParty(nullptr),
-      m_strName(str_agent_name.c_str())
+    : m_bNymRepresentsSelf(bNymRepresentsSelf)
+    , m_bIsAnIndividual(true)
+    , m_pNym(&theNym)
+    , m_pForParty(nullptr)
+    , m_strName(str_agent_name.c_str())
 {
     // Grab m_strNymID
     Identifier theNymID;
@@ -1051,7 +1051,8 @@ bool OTAgent::ReserveClosingTransNum(
         }
 
         // Need a closing number...
-        const auto number = context.NextTransactionNumber();
+        const auto number =
+            context.NextTransactionNumber(MessageType::notarizeTransaction);
 
         if (0 == number) {
             otErr << "OTAgent::ReserveClosingTransNum: Error: Strangely, "
@@ -1105,7 +1106,8 @@ bool OTAgent::ReserveOpeningTransNum(ServerContext& context)
         }
 
         // Need opening number...
-        const auto number = context.NextTransactionNumber();
+        const auto number =
+            context.NextTransactionNumber(MessageType::notarizeTransaction);
 
         if (0 == number) {
             otErr << "OTAgent::ReserveOpeningTransNum: Error: Strangely, "

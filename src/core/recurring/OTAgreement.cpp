@@ -1082,8 +1082,10 @@ bool OTAgreement::SetProposal(
     // Since we'll be needing 2 transaction numbers to do this, let's grab
     // 'em...
     String strNotaryID(GetNotaryID());
-    const auto openingNumber = context.NextTransactionNumber();
-    const auto closingNumber = context.NextTransactionNumber();
+    const auto openingNumber =
+        context.NextTransactionNumber(MessageType::notarizeTransaction);
+    const auto closingNumber =
+        context.NextTransactionNumber(MessageType::notarizeTransaction);
 
     if (0 == openingNumber) {
         otErr << __FUNCTION__
@@ -1226,8 +1228,10 @@ bool OTAgreement::Confirm(
     // agreement...
     //
     String strNotaryID(GetNotaryID());
-    const auto openingNumber = context.NextTransactionNumber();
-    const auto closingNumber = context.NextTransactionNumber();
+    const auto openingNumber =
+        context.NextTransactionNumber(MessageType::notarizeTransaction);
+    const auto closingNumber =
+        context.NextTransactionNumber(MessageType::notarizeTransaction);
 
     if (0 == openingNumber) {
         otErr << __FUNCTION__

@@ -4639,7 +4639,8 @@ Cheque* OT_API::WriteCheque(
     // already have a transaction number I can use to write it with. (Otherwise
     // I'd have to ask the server to send me one first.)
     String strNotaryID(NOTARY_ID);
-    const auto number = context.It().NextTransactionNumber();
+    const auto number =
+        context.It().NextTransactionNumber(MessageType::notarizeTransaction);
     const bool bGotTransNum = 0 != number;
 
     if (!bGotTransNum) {
@@ -8897,7 +8898,8 @@ bool OT_API::AddBasketExchangeItem(
     // ID.
     // pAccount is good, and no need to clean it up.
     const String strNotaryID(NOTARY_ID);
-    const auto number = context.It().NextTransactionNumber();
+    const auto number =
+        context.It().NextTransactionNumber(MessageType::notarizeTransaction);
     const bool bGotSubClosingNum = 0 != number;
 
     if (bGotSubClosingNum) {
@@ -9096,7 +9098,8 @@ std::int32_t OT_API::exchangeBasket(
             otOut << "OT_API::exchangeBasket: you don't have enough "
                      "transaction numbers to perform the exchange.\n";
         } else {
-            const auto number = context.It().NextTransactionNumber();
+            const auto number = context.It().NextTransactionNumber(
+                MessageType::notarizeTransaction);
             const bool bGotTransNum = 0 != number;
 
             if (bGotTransNum) {
@@ -9149,7 +9152,8 @@ std::int32_t OT_API::exchangeBasket(
                     // But, I DID check the count beforehand, and I know there
                     // are enough numbers.
                     const auto closingNumber =
-                        context.It().NextTransactionNumber();
+                        context.It().NextTransactionNumber(
+                            MessageType::notarizeTransaction);
                     const bool bGotClosingNum = 0 != closingNumber;
 
                     OT_ASSERT(bGotClosingNum);
@@ -9399,7 +9403,8 @@ std::int32_t OT_API::notarizeWithdrawal(
         return (-1);
     }
 
-    const auto number = context.It().NextTransactionNumber();
+    const auto number =
+        context.It().NextTransactionNumber(MessageType::notarizeTransaction);
     const bool bGotTransNum = 0 != number;
 
     if (!bGotTransNum) {
@@ -9666,7 +9671,8 @@ int32_t OT_API::notarizeDeposit(
         return (-1);
     }
 
-    const auto number = context.It().NextTransactionNumber();
+    const auto number =
+        context.It().NextTransactionNumber(MessageType::notarizeTransaction);
     const bool bGotTransNum = 0 != number;
 
     if (!bGotTransNum) {
@@ -10009,7 +10015,8 @@ std::int32_t OT_API::payDividend(
     Message theMessage;
     String strNotaryID(NOTARY_ID), strNymID(ISSUER_NYM_ID),
         strFromAcct(DIVIDEND_FROM_ACCT_ID);
-    const auto number = context.It().NextTransactionNumber();
+    const auto number =
+        context.It().NextTransactionNumber(MessageType::notarizeTransaction);
     const bool bGotTransNum = 0 != number;
 
     if (bGotTransNum) {
@@ -10265,8 +10272,10 @@ std::int32_t OT_API::withdrawVoucher(
     Message theMessage;
     const std::int64_t lAmount = AMOUNT;
     String strNotaryID(NOTARY_ID), strNymID(NYM_ID), strFromAcct(ACCT_ID);
-    const auto withdrawalNumber = context.It().NextTransactionNumber();
-    const auto voucherNumber = context.It().NextTransactionNumber();
+    const auto withdrawalNumber =
+        context.It().NextTransactionNumber(MessageType::notarizeTransaction);
+    const auto voucherNumber =
+        context.It().NextTransactionNumber(MessageType::notarizeTransaction);
     const bool bGotTransNum1 = 0 != withdrawalNumber;
     const bool bGotTransNum2 = 0 != voucherNumber;
 
@@ -10590,7 +10599,8 @@ std::int32_t OT_API::depositCheque(
     Message theMessage;
     String strNotaryID(NOTARY_ID), strNymID(NYM_ID), strDepositAcct(ACCT_ID);
     Cheque theCheque(NOTARY_ID, CONTRACT_ID);
-    const auto number = context.It().NextTransactionNumber();
+    const auto number =
+        context.It().NextTransactionNumber(MessageType::notarizeTransaction);
     const bool bGotTransNum = 0 != number;
 
     if (!bGotTransNum)
@@ -11512,7 +11522,8 @@ std::int32_t OT_API::cancelCronItem(
                  "Try requesting the server for more numbers (you are low.)\n";
         return (-1);
     }
-    const auto number = context.It().NextTransactionNumber();
+    const auto number =
+        context.It().NextTransactionNumber(MessageType::notarizeTransaction);
     const bool bGotTransNum = 0 != number;
 
     if (!bGotTransNum)
@@ -11695,9 +11706,12 @@ std::int32_t OT_API::issueMarketOffer(
                  "Try requesting the server for more (you are low.)\n";
         return (-1);
     }
-    const auto openingNumber = context.It().NextTransactionNumber();
-    const auto assetClosingNumber = context.It().NextTransactionNumber();
-    const auto currencyClosingNumber = context.It().NextTransactionNumber();
+    const auto openingNumber =
+        context.It().NextTransactionNumber(MessageType::notarizeTransaction);
+    const auto assetClosingNumber =
+        context.It().NextTransactionNumber(MessageType::notarizeTransaction);
+    const auto currencyClosingNumber =
+        context.It().NextTransactionNumber(MessageType::notarizeTransaction);
     const bool bGotTransNum = 0 != openingNumber;
     const bool bGotAssetClosingNum = 0 != assetClosingNumber;
     const bool bGotCurrencyClosingNum = 0 != currencyClosingNumber;
@@ -12234,7 +12248,8 @@ CommandResult OT_API::notarizeTransfer(
     const std::int64_t lAmount = AMOUNT;
     String strNotaryID(NOTARY_ID), strNymID(NYM_ID), strFromAcct(ACCT_FROM),
         strToAcct(ACCT_TO);
-    number = context.It().NextTransactionNumber();
+    number =
+        context.It().NextTransactionNumber(MessageType::notarizeTransaction);
     const bool bGotTransNum = 0 != number;
 
     if (bGotTransNum) {
@@ -15256,7 +15271,8 @@ OTTransaction* OT_API::get_or_create_process_inbox(
     auto processInbox = response.GetTransaction(OTTransaction::processInbox);
 
     if (nullptr == processInbox) {
-        const auto number = context.NextTransactionNumber();
+        const auto number =
+            context.NextTransactionNumber(MessageType::processInbox);
         const bool haveNumber = 0 != number;
 
         if (false == haveNumber) {

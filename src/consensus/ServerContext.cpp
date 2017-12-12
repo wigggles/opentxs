@@ -229,11 +229,13 @@ std::unique_ptr<Message> ServerContext::initialize_server_command(
     return output;
 }
 
-TransactionNumber ServerContext::NextTransactionNumber()
+TransactionNumber ServerContext::NextTransactionNumber(const MessageType reason)
 {
     Lock lock(lock_);
+    const std::size_t reserve = (MessageType::processInbox == reason) ? 0 : 1;
 
-    if (0 == available_transaction_numbers_.size()) {
+    if (reserve >= available_transaction_numbers_.size()) {
+
         return 0;
     }
 
