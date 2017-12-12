@@ -324,8 +324,9 @@ std::string MadeEasy::send_transfer(
     const std::string& NYM_ID,
     const std::string& ACCT_FROM,
     const std::string& ACCT_TO,
-    std::int64_t AMOUNT,
-    const std::string& NOTE) const
+    const std::int64_t AMOUNT,
+    const std::string& NOTE,
+    TransactionNumber& number) const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
@@ -333,8 +334,10 @@ std::string MadeEasy::send_transfer(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func theRequest(
         SEND_TRANSFER, context.It(), otapi_, ACCT_FROM, ACCT_TO, AMOUNT, NOTE);
+    const auto output = theRequest.SendTransaction(theRequest, "SEND_TRANSFER");
+    number = theRequest.transaction_number_.load();
 
-    return theRequest.SendTransaction(theRequest, "SEND_TRANSFER");
+    return output;
 }
 
 // PROCESS INBOX  -- TRANSACTION

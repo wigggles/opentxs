@@ -50,6 +50,7 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/Types.hpp"
 
+#include <cstdint>
 #include <memory>
 #include <mutex>
 #include <set>
@@ -142,16 +143,20 @@ public:
     EXPORT bool NumList_VerifyAll(
         const NumList& theList,
         const NumList& theQueryNumbers) const;
-    EXPORT int32_t NumList_Count(const NumList& theList) const;
+    EXPORT std::int32_t NumList_Count(const NumList& theList) const;
     // Reading data about the local wallet.. presumably already loaded.
 
-    EXPORT int32_t GetNymCount() const;
-    EXPORT int32_t GetAccountCount() const;
+    EXPORT std::int32_t GetNymCount() const;
+    EXPORT std::int32_t GetAccountCount() const;
 
-    EXPORT bool GetNym(int32_t iIndex, Identifier& NYM_ID, String& NYM_NAME)
-        const;
-    EXPORT bool GetAccount(int32_t iIndex, Identifier& THE_ID, String& THE_NAME)
-        const;
+    EXPORT bool GetNym(
+        std::int32_t iIndex,
+        Identifier& NYM_ID,
+        String& NYM_NAME) const;
+    EXPORT bool GetAccount(
+        std::int32_t iIndex,
+        Identifier& THE_ID,
+        String& THE_NAME) const;
     // In this case, the ID is input, the pointer is output.
     // Gets the data from Wallet.
     EXPORT Nym* GetNym(
@@ -415,7 +420,7 @@ public:
     // (Caller responsible to delete.)
     EXPORT Cheque* WriteCheque(
         const Identifier& NOTARY_ID,
-        const int64_t& CHEQUE_AMOUNT,
+        const std::int64_t& CHEQUE_AMOUNT,
         const time64_t& VALID_FROM,
         const time64_t& VALID_TO,
         const Identifier& SENDER_ACCT_ID,
@@ -458,21 +463,22 @@ public:
         const Identifier& RECIPIENT_NYM_ID,
         // ----------------------------------------  // If it's above zero, the
         // initial
-        const int64_t& INITIAL_PAYMENT_AMOUNT,  // amount will be processed
-                                                // after
+        const std::int64_t& INITIAL_PAYMENT_AMOUNT,  // amount will be processed
+                                                     // after
         const time64_t& INITIAL_PAYMENT_DELAY,  // delay (seconds from now.)
         // ----------------------------------------  // AND SEPARATELY FROM
         // THIS...
-        const int64_t& PAYMENT_PLAN_AMOUNT,   // The regular amount charged,
-        const time64_t& PAYMENT_PLAN_DELAY,   // which begins occuring after
-                                              // delay
+        const std::int64_t& PAYMENT_PLAN_AMOUNT,  // The regular amount charged,
+        const time64_t& PAYMENT_PLAN_DELAY,       // which begins occuring after
+                                                  // delay
         const time64_t& PAYMENT_PLAN_PERIOD,  // (seconds from now) and happens
         // ----------------------------------------  // every period, ad
         // infinitum, until
         time64_t PAYMENT_PLAN_LENGTH = OT_TIME_ZERO,  // after the length (in
                                                       // seconds)
-        int32_t PAYMENT_PLAN_MAX_PAYMENTS = 0  // expires, or after the maximum
-        ) const;                               // number of payments. These last
+        std::int32_t PAYMENT_PLAN_MAX_PAYMENTS = 0    // expires, or after the
+                                                      // maximum
+        ) const;  // number of payments. These last
 
     // CONFIRM PAYMENT PLAN (called by Customer)
     EXPORT bool ConfirmPaymentPlan(
@@ -594,20 +600,20 @@ public:
     EXPORT bool IsBasketCurrency(
         const Identifier& BASKET_INSTRUMENT_DEFINITION_ID) const;
 
-    EXPORT int64_t GetBasketMinimumTransferAmount(
+    EXPORT std::int64_t GetBasketMinimumTransferAmount(
         const Identifier& BASKET_INSTRUMENT_DEFINITION_ID) const;
 
-    EXPORT int32_t GetBasketMemberCount(
+    EXPORT std::int32_t GetBasketMemberCount(
         const Identifier& BASKET_INSTRUMENT_DEFINITION_ID) const;
 
     EXPORT bool GetBasketMemberType(
         const Identifier& BASKET_INSTRUMENT_DEFINITION_ID,
-        int32_t nIndex,
+        std::int32_t nIndex,
         Identifier& theOutputMemberType) const;
 
-    EXPORT int64_t GetBasketMemberMinimumTransferAmount(
+    EXPORT std::int64_t GetBasketMemberMinimumTransferAmount(
         const Identifier& BASKET_INSTRUMENT_DEFINITION_ID,
-        int32_t nIndex) const;
+        std::int32_t nIndex) const;
     EXPORT Account* LoadAssetAccount(
         const Identifier& NOTARY_ID,
         const Identifier& NYM_ID,
@@ -663,7 +669,7 @@ public:
         const Identifier& NOTARY_ID,
         const Identifier& NYM_ID,
         const Identifier& ACCOUNT_ID,  // NYM_ID can be passed here as well.
-        int32_t nIndex,
+        std::int32_t nIndex,
         bool bClearAll = false  // if true, nIndex is ignored.
         ) const;
     EXPORT Ledger* LoadExpiredBox(
@@ -677,13 +683,13 @@ public:
     EXPORT bool ClearExpired(
         const Identifier& NOTARY_ID,
         const Identifier& NYM_ID,
-        int32_t nIndex,
+        std::int32_t nIndex,
         bool bClearAll = false  // if true, nIndex is
                                 // ignored.
         ) const;
 
-    EXPORT int32_t Ledger_GetCount(const Ledger& theLedger) const;
-    EXPORT std::set<int64_t> Ledger_GetTransactionNums(
+    EXPORT std::int32_t Ledger_GetCount(const Ledger& theLedger) const;
+    EXPORT std::set<std::int64_t> Ledger_GetTransactionNums(
         const Ledger& theLedger) const;
 
     EXPORT ProcessInbox Ledger_CreateResponse(
@@ -707,31 +713,31 @@ public:
 
     EXPORT OTTransaction* Ledger_GetTransactionByIndex(
         Ledger& theLedger,
-        const int32_t& nIndex) const;
+        const std::int32_t& nIndex) const;
 
     EXPORT OTTransaction* Ledger_GetTransactionByID(
         Ledger& theLedger,
-        const int64_t& TRANSACTION_NUMBER) const;
+        const std::int64_t& TRANSACTION_NUMBER) const;
 
     EXPORT std::unique_ptr<OTPayment> Ledger_GetInstrument(
         const Identifier& theNymID,
         const Ledger& theLedger,
-        const int32_t& nIndex) const;
+        const std::int32_t& nIndex) const;
     // The functions immediately above and blow this comment
     // have good reason for having their parameters in a different order.
     EXPORT std::unique_ptr<OTPayment> Ledger_GetInstrumentByReceiptID(
         const Ledger& theLedger,
         const Identifier& theNymID,
-        const int64_t& lReceiptId) const;
+        const std::int64_t& lReceiptId) const;
 
     EXPORT std::unique_ptr<OTPayment> Ledger_GetInstrumentByReceiptID(
         const Identifier& theNymID,
         const Ledger& theLedger,
-        const int64_t& lReceiptId) const;
+        const std::int64_t& lReceiptId) const;
 
-    EXPORT int64_t Ledger_GetTransactionIDByIndex(
+    EXPORT std::int64_t Ledger_GetTransactionIDByIndex(
         const Ledger& theLedger,
-        const int32_t& nIndex) const;
+        const std::int32_t& nIndex) const;
 
     EXPORT bool Ledger_AddTransaction(
         const Identifier& theNymID,
@@ -762,9 +768,10 @@ public:
     EXPORT bool RecordPayment(
         const Identifier& NOTARY_ID,
         const Identifier& NYM_ID,
-        bool bIsInbox,   // true == payments inbox. false == payments outbox.
-        int32_t nIndex,  // removes payment instrument (from payments in or out
-                         // box) and moves to record box.
+        bool bIsInbox,  // true == payments inbox. false == payments outbox.
+        std::int32_t nIndex,  // removes payment instrument (from payments in or
+                              // out
+                              // box) and moves to record box.
         bool bSaveCopy) const;  // If false, copy of instrument will NOT be
                                 // saved.
     // So the client side knows which ones he has in storage, vs which ones he
@@ -775,21 +782,21 @@ public:
                                        // convention.
         const Identifier& ACCOUNT_ID,  // If for Nymbox (vs inbox/outbox) then
                                        // pass NYM_ID in this field also.
-        int32_t nBoxType,              // 0/nymbox, 1/inbox, 2/outbox
-        const int64_t& lTransactionNum) const;
+        std::int32_t nBoxType,         // 0/nymbox, 1/inbox, 2/outbox
+        const std::int64_t& lTransactionNum) const;
     // Incoming
     EXPORT std::shared_ptr<Message> PopMessageBuffer(
-        const int64_t& lRequestNumber,
+        const std::int64_t& lRequestNumber,
         const Identifier& NOTARY_ID,
         const Identifier& NYM_ID) const;
     void FlushMessageBuffer();
     // Outgoing
     EXPORT Message* GetSentMessage(
-        const int64_t& lRequestNumber,
+        const std::int64_t& lRequestNumber,
         const Identifier& NOTARY_ID,
         const Identifier& NYM_ID) const;
     EXPORT bool RemoveSentMessage(
-        const int64_t& lRequestNumber,
+        const std::int64_t& lRequestNumber,
         const Identifier& NOTARY_ID,
         const Identifier& NYM_ID) const;
     EXPORT void FlushSentMessages(
@@ -810,89 +817,91 @@ public:
 
     // These commands below send messages to the server:
 
-    EXPORT int32_t
-    registerNym(const Identifier& NOTARY_ID, const Identifier& NYM_ID) const;
+    EXPORT std::int32_t registerNym(
+        const Identifier& NOTARY_ID,
+        const Identifier& NYM_ID) const;
 
-    EXPORT int32_t
-    unregisterNym(const Identifier& NOTARY_ID, const Identifier& NYM_ID) const;
+    EXPORT std::int32_t unregisterNym(
+        const Identifier& NOTARY_ID,
+        const Identifier& NYM_ID) const;
 
-    EXPORT int32_t checkNym(
+    EXPORT std::int32_t checkNym(
         const Identifier& NOTARY_ID,
         const Identifier& NYM_ID,
         const Identifier& NYM_ID_CHECK) const;
 
-    EXPORT int32_t usageCredits(
+    EXPORT std::int32_t usageCredits(
         const Identifier& NOTARY_ID,
         const Identifier& NYM_ID,
         const Identifier& NYM_ID_CHECK,
-        int64_t lAdjustment = 0) const;
+        std::int64_t lAdjustment = 0) const;
 
-    EXPORT int32_t sendNymMessage(
+    EXPORT std::int32_t sendNymMessage(
         const Identifier& NOTARY_ID,
         const Identifier& NYM_ID,
         const Identifier& NYM_ID_RECIPIENT,
         const String& THE_MESSAGE) const;
 
-    EXPORT int32_t sendNymObject(
+    EXPORT std::int32_t sendNymObject(
         const Identifier& NOTARY_ID,
         const Identifier& NYM_ID,
         const Identifier& NYM_ID_RECIPIENT,
         const PeerObject& OBJECT,
-        int64_t& requestNumber) const;
+        std::int64_t& requestNumber) const;
 
-    EXPORT int32_t registerContract(
+    EXPORT std::int32_t registerContract(
         const Identifier& NOTARY_ID,
         const Identifier& NYM_ID,
         const ContractType TYPE,
         const Identifier& CONTRACT) const;
 
-    EXPORT int32_t sendNymInstrument(
+    EXPORT std::int32_t sendNymInstrument(
         const Identifier& NOTARY_ID,
         const Identifier& NYM_ID,
         const Identifier& NYM_ID_RECIPIENT,
         const OTPayment& THE_INSTRUMENT,
         const OTPayment* pINSTRUMENT_FOR_SENDER = nullptr) const;
 
-    EXPORT int32_t registerInstrumentDefinition(
+    EXPORT std::int32_t registerInstrumentDefinition(
         const Identifier& NOTARY_ID,
         const Identifier& NYM_ID,
         const String& THE_CONTRACT) const;
 
-    EXPORT int32_t getInstrumentDefinition(
+    EXPORT std::int32_t getInstrumentDefinition(
         const Identifier& NOTARY_ID,
         const Identifier& NYM_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID) const;
 
-    EXPORT int32_t getMint(
+    EXPORT std::int32_t getMint(
         const Identifier& NOTARY_ID,
         const Identifier& NYM_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID) const;
 
-    EXPORT int32_t getBoxReceipt(
+    EXPORT std::int32_t getBoxReceipt(
         const Identifier& NOTARY_ID,
         const Identifier& NYM_ID,
         const Identifier& ACCOUNT_ID,  // If for Nymbox (vs
                                        // inbox/outbox) then pass
         // NYM_ID in this field also.
-        int32_t nBoxType,  // 0/nymbox, 1/inbox, 2/outbox
-        const int64_t& lTransactionNum) const;
+        std::int32_t nBoxType,  // 0/nymbox, 1/inbox, 2/outbox
+        const std::int64_t& lTransactionNum) const;
 
-    EXPORT int32_t queryInstrumentDefinitions(
+    EXPORT std::int32_t queryInstrumentDefinitions(
         const Identifier& NOTARY_ID,
         const Identifier& NYM_ID,
         const OTASCIIArmor& ENCODED_MAP) const;
 
-    EXPORT int32_t registerAccount(
+    EXPORT std::int32_t registerAccount(
         const Identifier& NOTARY_ID,
         const Identifier& NYM_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID) const;
 
-    EXPORT int32_t deleteAssetAccount(
+    EXPORT std::int32_t deleteAssetAccount(
         const Identifier& NOTARY_ID,
         const Identifier& NYM_ID,
         const Identifier& ACCOUNT_ID) const;
 
-    EXPORT int32_t getAccountData(
+    EXPORT std::int32_t getAccountData(
         const Identifier& NOTARY_ID,
         const Identifier& NYM_ID,
         const Identifier& ACCT_ID) const;
@@ -900,9 +909,9 @@ public:
     EXPORT bool AddBasketCreationItem(
         proto::UnitDefinition& basketTemplate,
         const String& currencyID,
-        const uint64_t weight) const;
+        const std::uint64_t weight) const;
 
-    EXPORT int32_t issueBasket(
+    EXPORT std::int32_t issueBasket(
         const Identifier& NOTARY_ID,
         const Identifier& NYM_ID,
         const proto::UnitDefinition& basket) const;
@@ -912,7 +921,7 @@ public:
         const Identifier& NYM_ID,
         const Identifier& BASKET_INSTRUMENT_DEFINITION_ID,
         const Identifier& BASKET_ASSET_ACCT_ID,
-        int32_t TRANSFER_MULTIPLE) const;  // 1            2             3
+        std::int32_t TRANSFER_MULTIPLE) const;  // 1            2             3
     // 5=2,3,4  OR  10=4,6,8  OR 15=6,9,12
 
     EXPORT bool AddBasketExchangeItem(
@@ -922,64 +931,66 @@ public:
         const Identifier& INSTRUMENT_DEFINITION_ID,
         const Identifier& ASSET_ACCT_ID) const;
 
-    EXPORT int32_t exchangeBasket(
+    EXPORT std::int32_t exchangeBasket(
         const Identifier& NOTARY_ID,
         const Identifier& NYM_ID,
         const Identifier& BASKET_INSTRUMENT_DEFINITION_ID,
         const String& BASKET_INFO,
         bool bExchangeInOrOut) const;
 
-    EXPORT int32_t getTransactionNumbers(
+    EXPORT std::int32_t getTransactionNumbers(
         const Identifier& NOTARY_ID,
         const Identifier& NYM_ID) const;
 
 #if OT_CASH
-    EXPORT int32_t notarizeWithdrawal(
+    EXPORT std::int32_t notarizeWithdrawal(
         const Identifier& NOTARY_ID,
         const Identifier& NYM_ID,
         const Identifier& ACCT_ID,
-        const int64_t& AMOUNT) const;
+        const std::int64_t& AMOUNT) const;
 
-    EXPORT int32_t notarizeDeposit(
+    EXPORT std::int32_t notarizeDeposit(
         const Identifier& NOTARY_ID,
         const Identifier& NYM_ID,
         const Identifier& ACCT_ID,
         const String& THE_PURSE) const;
 #endif  // OT_CASH
 
-    EXPORT int32_t notarizeTransfer(
+    EXPORT CommandResult notarizeTransfer(
         const Identifier& NOTARY_ID,
         const Identifier& NYM_ID,
         const Identifier& ACCT_FROM,
         const Identifier& ACCT_TO,
-        const int64_t& AMOUNT,
+        const std::int64_t& AMOUNT,
         const String& NOTE) const;
 
-    EXPORT int32_t
-    getNymbox(const Identifier& NOTARY_ID, const Identifier& NYM_ID) const;
+    EXPORT std::int32_t getNymbox(
+        const Identifier& NOTARY_ID,
+        const Identifier& NYM_ID) const;
 
     // Returns:
     // -1 if error.
     //  0 if Nymbox is empty.
     //  1 or more: Count of items in Nymbox before processing.
-    EXPORT int32_t
-    processNymbox(const Identifier& NOTARY_ID, const Identifier& NYM_ID) const;
+    EXPORT std::int32_t processNymbox(
+        const Identifier& NOTARY_ID,
+        const Identifier& NYM_ID) const;
 
-    EXPORT int32_t processInbox(
+    EXPORT std::int32_t processInbox(
         const Identifier& NOTARY_ID,
         const Identifier& NYM_ID,
         const Identifier& ACCT_ID,
         const String& ACCT_LEDGER) const;
 
-    EXPORT int32_t withdrawVoucher(
+    EXPORT std::int32_t withdrawVoucher(
         const Identifier& NOTARY_ID,
         const Identifier& NYM_ID,
         const Identifier& ACCT_ID,
         const Identifier& RECIPIENT_NYM_ID,
         const String& CHEQUE_MEMO,
-        const int64_t& AMOUNT) const;
+        const std::int64_t& AMOUNT) const;
 
-    EXPORT int32_t payDividend(
+    EXPORT std::int32_t payDividend(
         const Identifier& NOTARY_ID,
         const Identifier& ISSUER_NYM_ID,  // must be issuer of
                                           // SHARES_INSTRUMENT_DEFINITION_ID
@@ -994,21 +1005,22 @@ public:
         const String& DIVIDEND_MEMO,  // user-configurable note that's added to
                                       // the
                                       // payout request message.
-        const int64_t& AMOUNT_PER_SHARE) const;  // number of dollars to be paid
-                                                 // out
+        const std::int64_t& AMOUNT_PER_SHARE) const;  // number of dollars to be
+                                                      // paid
+                                                      // out
     // PER SHARE (multiplied by total
     // number of shares issued.)
 
-    EXPORT int32_t depositCheque(
+    EXPORT std::int32_t depositCheque(
         const Identifier& NOTARY_ID,
         const Identifier& NYM_ID,
         const Identifier& ACCT_ID,
         const String& THE_CHEQUE) const;
 
-    EXPORT int32_t triggerClause(
+    EXPORT std::int32_t triggerClause(
         const Identifier& NOTARY_ID,
         const Identifier& NYM_ID,
-        const int64_t& lTransactionNum,
+        const std::int64_t& lTransactionNum,
         const String& strClauseName,
         const String* pStrParam = nullptr) const;
 
@@ -1112,7 +1124,7 @@ public:
         const String& VAR_TYPE,    // "string", "int64_t", or "bool"
         const String& VAR_VALUE,   // Contains a string. If type is int64_t,
                                    // atol() will be used to convert value to a
-                                   // int64_t. If type is bool, the strings
+                                   // std::int64_t. If type is bool, the strings
                                    // "true" or "false" are expected here in
                                    // order to convert to a bool.
         String& strOutput) const;
@@ -1241,7 +1253,7 @@ public:
                                    // smart contract
         String& strOutput) const;
 
-    EXPORT int32_t SmartContract_CountNumsNeeded(
+    EXPORT std::int32_t SmartContract_CountNumsNeeded(
         const String& THE_CONTRACT,  // The contract, about to have the bylaw
                                      // added to it.
         const String& AGENT_NAME) const;  // An AGENT will be added by default
@@ -1285,75 +1297,78 @@ public:
         const Identifier& NOTARY_ID,
         const Identifier& NYM_ID,
         const String& THE_CRON_ITEM) const;
-    EXPORT int32_t activateSmartContract(
+    EXPORT std::int32_t activateSmartContract(
         const Identifier& NOTARY_ID,
         const Identifier& NYM_ID,
         const String& THE_SMART_CONTRACT) const;
 
-    EXPORT int32_t depositPaymentPlan(
+    EXPORT std::int32_t depositPaymentPlan(
         const Identifier& NOTARY_ID,
         const Identifier& NYM_ID,
         const String& THE_PAYMENT_PLAN) const;
-    EXPORT int32_t issueMarketOffer(
+    EXPORT std::int32_t issueMarketOffer(
         const Identifier& NOTARY_ID,
         const Identifier& NYM_ID,
         const Identifier& ASSET_ACCT_ID,
         const Identifier& CURRENCY_ACCT_ID,
-        const int64_t& MARKET_SCALE,       // Defaults to minimum of 1. Market
+        const std::int64_t& MARKET_SCALE,  // Defaults to minimum of 1. Market
                                            // granularity.
-        const int64_t& MINIMUM_INCREMENT,  // This will be multiplied by the
-                                           // Scale. Min 1.
-        const int64_t& TOTAL_ASSETS_ON_OFFER,  // Total assets available for
-                                               // sale
+        const std::int64_t& MINIMUM_INCREMENT,  // This will be multiplied by
+                                                // the
+                                                // Scale. Min 1.
+        const std::int64_t& TOTAL_ASSETS_ON_OFFER,  // Total assets available
+                                                    // for
+                                                    // sale
         // or purchase. Will be multiplied
         // by minimum increment.
-        const int64_t& PRICE_LIMIT,  // Per Minimum Increment...
-        bool bBuyingOrSelling,       // BUYING == false, SELLING == true.
+        const std::int64_t& PRICE_LIMIT,  // Per Minimum Increment...
+        bool bBuyingOrSelling,            // BUYING == false, SELLING == true.
         time64_t tLifespanInSeconds = OT_TIME_DAY_IN_SECONDS,  // 86400 seconds
                                                                // == 1 day.
         char STOP_SIGN = 0,  // For stop orders, set to '<' or '>'
-        int64_t ACTIVATION_PRICE = 0) const;  // For stop orders, set the
-                                              // threshold price here.
-    EXPORT int32_t
-    getMarketList(const Identifier& NOTARY_ID, const Identifier& NYM_ID) const;
-    EXPORT int32_t getMarketOffers(
+        std::int64_t ACTIVATION_PRICE = 0) const;  // For stop orders, set the
+                                                   // threshold price here.
+    EXPORT std::int32_t getMarketList(
+        const Identifier& NOTARY_ID,
+        const Identifier& NYM_ID) const;
+    EXPORT std::int32_t getMarketOffers(
         const Identifier& NOTARY_ID,
         const Identifier& NYM_ID,
         const Identifier& MARKET_ID,
-        const int64_t& lDepth) const;
-    EXPORT int32_t getMarketRecentTrades(
+        const std::int64_t& lDepth) const;
+    EXPORT std::int32_t getMarketRecentTrades(
         const Identifier& NOTARY_ID,
         const Identifier& NYM_ID,
         const Identifier& MARKET_ID) const;
-    EXPORT int32_t getNymMarketOffers(
+    EXPORT std::int32_t getNymMarketOffers(
         const Identifier& NOTARY_ID,
         const Identifier& NYM_ID) const;
     // For cancelling market offers and payment plans.
-    EXPORT int32_t cancelCronItem(
+    EXPORT std::int32_t cancelCronItem(
         const Identifier& NOTARY_ID,
         const Identifier& NYM_ID,
         const Identifier& ASSET_ACCT_ID,
-        const int64_t& lTransactionNum) const;
+        const std::int64_t& lTransactionNum) const;
 
-    EXPORT int32_t initiatePeerRequest(
+    EXPORT std::int32_t initiatePeerRequest(
         const Identifier& sender,
         const Identifier& recipient,
         const Identifier& server,
         std::unique_ptr<PeerRequest>& request) const;
 
-    EXPORT int32_t initiatePeerReply(
+    EXPORT std::int32_t initiatePeerReply(
         const Identifier& sender,
         const Identifier& recipient,
         const Identifier& server,
         const Identifier& request,
         std::unique_ptr<PeerReply>& reply) const;
 
-    EXPORT int32_t requestAdmin(
+    EXPORT std::int32_t requestAdmin(
         const Identifier& NOTARY_ID,
         const Identifier& NYM_ID,
         const std::string& PASSWORD) const;
 
-    EXPORT int32_t serverAddClaim(
+    EXPORT std::int32_t serverAddClaim(
         const Identifier& notary,
         const Identifier& nym,
         const std::string& section,

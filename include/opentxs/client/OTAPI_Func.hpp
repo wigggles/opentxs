@@ -43,7 +43,9 @@
 
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/OTStorage.hpp"
+#include "opentxs/Types.hpp"
 
+#include <atomic>
 #include <cstdlib>
 #include <memory>
 #include <string>
@@ -199,6 +201,7 @@ public:
     time64_t tData{OT_TIME_ZERO};
     std::int32_t nTransNumsNeeded{0};
     std::int32_t nRequestNum{-1};
+    mutable std::atomic<TransactionNumber> transaction_number_{0};
 
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,

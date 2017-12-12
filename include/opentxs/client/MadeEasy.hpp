@@ -41,6 +41,8 @@
 
 #include "opentxs/Version.hpp"
 
+#include "opentxs/Types.hpp"
+
 #include <cstdint>
 #include <mutex>
 #include <string>
@@ -198,8 +200,9 @@ public:
         const std::string& NYM_ID,
         const std::string& ACCT_FROM,
         const std::string& ACCT_TO,
-        std::int64_t AMOUNT,
-        const std::string& NOTE) const;
+        const std::int64_t AMOUNT,
+        const std::string& NOTE,
+        TransactionNumber& number) const;
 #if OT_CASH
     EXPORT std::string send_user_cash_pubkey(
         const std::string& NOTARY_ID,

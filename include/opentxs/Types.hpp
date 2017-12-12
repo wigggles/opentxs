@@ -151,6 +151,8 @@ typedef std::int64_t TransactionNumber;
 typedef std::int64_t RequestNumber;
 typedef std::int64_t Amount;
 
+typedef std::pair<NetworkOperationStatus, TransactionNumber> CommandResult;
+
 typedef std::unique_lock<std::mutex> Lock;
 typedef std::unique_lock<std::recursive_mutex> rLock;
 

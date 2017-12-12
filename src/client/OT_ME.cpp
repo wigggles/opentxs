@@ -722,8 +722,10 @@ std::string OT_ME::send_transfer(
     std::int64_t AMOUNT,
     const std::string& NOTE) const
 {
+    TransactionNumber number{0};
+
     return made_easy_.send_transfer(
-        NOTARY_ID, NYM_ID, ACCT_FROM, ACCT_TO, AMOUNT, NOTE);
+        NOTARY_ID, NYM_ID, ACCT_FROM, ACCT_TO, AMOUNT, NOTE, number);
 }
 
 // PROCESS INBOX -- TRANSACTION

@@ -116,9 +116,7 @@
 #include "opentxs/network/ServerConnection.hpp"
 #include "opentxs/Proto.hpp"
 
-#include <inttypes.h>
 #include <signal.h>
-#include <stdint.h>
 #include <stdlib.h>
 #include <cassert>
 #include <fstream>
@@ -184,7 +182,7 @@ namespace
 // CALLER RESPONSIBLE TO DELETE.
 OTTransaction* GetPaymentReceipt(
     const mapOfTransactions& transactionsMap,
-    int64_t lReferenceNum,
+    std::int64_t lReferenceNum,
     OTPayment** ppPaymentOut)
 {
     // loop through the transactions that make up this ledger.
@@ -211,19 +209,17 @@ OTTransaction* GetPaymentReceipt(
                         *ppPaymentOut =
                             pPayment;  // CALLER RESPONSIBLE TO DELETE.
                     else {
-                        otErr << __FUNCTION__
-                              << ": Error: Failed loading up "
-                                 "payment instrument from "
-                                 "paymentReceipt.\n";
+                        otErr << __FUNCTION__ << ": Error: Failed loading up "
+                                                 "payment instrument from "
+                                                 "paymentReceipt.\n";
                         delete pPayment;
                         pPayment = nullptr;
                         *ppPaymentOut = nullptr;
                     }
                 } else
-                    otErr << __FUNCTION__
-                          << ": Error: Unexpected: payment "
-                             "instrument was empty string, on "
-                             "a paymentReceipt.\n";
+                    otErr << __FUNCTION__ << ": Error: Unexpected: payment "
+                                             "instrument was empty string, on "
+                                             "a paymentReceipt.\n";
             }
 
             return pTransaction;
@@ -288,20 +284,20 @@ bool VerifyBalanceReceipt(
 
     if (tranOut.IsAbbreviated())  // should never happen
     {
-        int64_t lBoxType = 0;
+        std::int64_t lBoxType = 0;
 
         if (tranOut.Contains("nymboxRecord"))
-            lBoxType = static_cast<int64_t>(Ledger::nymbox);
+            lBoxType = static_cast<std::int64_t>(Ledger::nymbox);
         else if (tranOut.Contains("inboxRecord"))
-            lBoxType = static_cast<int64_t>(Ledger::inbox);
+            lBoxType = static_cast<std::int64_t>(Ledger::inbox);
         else if (tranOut.Contains("outboxRecord"))
-            lBoxType = static_cast<int64_t>(Ledger::outbox);
+            lBoxType = static_cast<std::int64_t>(Ledger::outbox);
         else if (tranOut.Contains("paymentInboxRecord"))
-            lBoxType = static_cast<int64_t>(Ledger::paymentInbox);
+            lBoxType = static_cast<std::int64_t>(Ledger::paymentInbox);
         else if (tranOut.Contains("recordBoxRecord"))
-            lBoxType = static_cast<int64_t>(Ledger::recordBox);
+            lBoxType = static_cast<std::int64_t>(Ledger::recordBox);
         else if (tranOut.Contains("expiredBoxRecord"))
-            lBoxType = static_cast<int64_t>(Ledger::expiredBox);
+            lBoxType = static_cast<std::int64_t>(Ledger::expiredBox);
         else {
             otErr << "OTTransaction::VerifyBalanceReceipt: Error loading from "
                      "abbreviated transaction: "
@@ -345,7 +341,7 @@ public:
     void OpenPid(const String& strPidFilePath);
     void ClosePid();
     bool IsPidOpen() const;
-    static bool PIDAutorecoverImpossible(uint32_t pid);
+    static bool PIDAutorecoverImpossible(std::uint32_t pid);
 
 private:
     bool m_bIsPidOpen;
@@ -364,7 +360,7 @@ OT_API::Pid::~Pid()
 }
 
 // static
-bool OT_API::Pid::PIDAutorecoverImpossible(uint32_t pid)
+bool OT_API::Pid::PIDAutorecoverImpossible(std::uint32_t pid)
 {
 #ifdef OT_CHECK_PID
     while (waitpid(-1, 0, WNOHANG) > 0) {
@@ -379,9 +375,8 @@ bool OT_API::Pid::PIDAutorecoverImpossible(uint32_t pid)
 void OT_API::Pid::OpenPid(const String& strPidFilePath)
 {
     if (IsPidOpen()) {
-        otErr << __FUNCTION__
-              << ": strPidFilePath is OPEN, MUST CLOSE BEFORE "
-                 "OPENING A NEW ONE!\n";
+        otErr << __FUNCTION__ << ": strPidFilePath is OPEN, MUST CLOSE BEFORE "
+                                 "OPENING A NEW ONE!\n";
         OT_FAIL;
     }
 
@@ -422,21 +417,20 @@ void OT_API::Pid::OpenPid(const String& strPidFilePath)
 
         if (pid_infile.is_open())  // it existed already
         {
-            uint32_t old_pid = 0;
+            std::uint32_t old_pid = 0;
             pid_infile >> old_pid;
             pid_infile.close();
 
             // There was a real PID in there.
             if ((old_pid != 0) && PIDAutorecoverImpossible(old_pid)) {
 #if !(defined(ANDROID) || (defined(TARGET_OS_IPHONE) && TARGET_OS_IPHONE))
-                const uint64_t lPID = old_pid;
+                const std::uint64_t lPID = old_pid;
                 otErr
                     << "\n\n\nIS OPEN-TRANSACTIONS ALREADY RUNNING?\n\n"
                        "I found a PID ("
                     << lPID << ") in the data lock file, located at: "
-                    << m_strPidFilePath
-                    << "\n\n"
-                       "If the OT process with PID "
+                    << m_strPidFilePath << "\n\n"
+                                           "If the OT process with PID "
                     << lPID
                     << " is truly not running "
                        "anymore, "
@@ -458,7 +452,7 @@ void OT_API::Pid::OpenPid(const String& strPidFilePath)
 
         // 3. GET THE CURRENT (ACTUAL) PROCESS ID.
         //
-        uint64_t the_pid = 0;
+        std::uint64_t the_pid = 0;
 
 #ifdef _WIN32
         the_pid = GetCurrentProcessId();
@@ -506,7 +500,7 @@ void OT_API::Pid::ClosePid()
     std::ofstream pid_outfile(m_strPidFilePath.Get());
 
     if (pid_outfile.is_open()) {
-        uint32_t the_pid = 0;
+        std::uint32_t the_pid = 0;
         pid_outfile << the_pid;
         pid_outfile.close();
         m_bIsPidOpen = false;
@@ -886,7 +880,8 @@ int32_t OT_API::GetAccountCount() const
     return 0;
 }
 
-bool OT_API::GetNym(int32_t iIndex, Identifier& NYM_ID, String& NYM_NAME) const
+bool OT_API::GetNym(std::int32_t iIndex, Identifier& NYM_ID, String& NYM_NAME)
+    const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
@@ -897,8 +892,10 @@ bool OT_API::GetNym(int32_t iIndex, Identifier& NYM_ID, String& NYM_NAME) const
     return false;
 }
 
-bool OT_API::GetAccount(int32_t iIndex, Identifier& THE_ID, String& THE_NAME)
-    const
+bool OT_API::GetAccount(
+    std::int32_t iIndex,
+    Identifier& THE_ID,
+    String& THE_NAME) const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
@@ -986,9 +983,8 @@ Account* OT_API::GetAccount(const Identifier& THE_ID, const char* szFunc) const
             (nullptr != szFunc))  // We only log if the caller asked us to.
         {
             const String strID(THE_ID);
-            otWarn << __FUNCTION__ << " " << szFunc
-                   << ": No account found in "
-                      "wallet with ID: "
+            otWarn << __FUNCTION__ << " " << szFunc << ": No account found in "
+                                                       "wallet with ID: "
                    << strID << "\n";
         }
         return pAcct;
@@ -1088,9 +1084,8 @@ bool OT_API::Wallet_ChangePassphrase() const
     auto& cachedKey = key.It();
 
     if (!cachedKey.IsGenerated()) {
-        otOut << __FUNCTION__
-              << ": Wallet master cached key doesn't exist. "
-                 "Try creating a new Nym first.\n";
+        otOut << __FUNCTION__ << ": Wallet master cached key doesn't exist. "
+                                 "Try creating a new Nym first.\n";
         return false;
     }
 
@@ -1136,9 +1131,8 @@ std::string OT_API::Wallet_GetPhrase()
     auto& cachedKey = crypto_.DefaultKey();
 
     if (!cachedKey.IsGenerated()) {
-        otOut << __FUNCTION__
-              << ": Wallet master cached key doesn't exist. "
-                 "Try creating a new Nym first.\n";
+        otOut << __FUNCTION__ << ": Wallet master cached key doesn't exist. "
+                                 "Try creating a new Nym first.\n";
         return "";
     }
 
@@ -1163,9 +1157,8 @@ std::string OT_API::Wallet_GetSeed()
     auto& cachedKey = crypto_.DefaultKey();
 
     if (!cachedKey.IsGenerated()) {
-        otOut << __FUNCTION__
-              << ": Wallet master cached key doesn't exist. "
-                 "Try creating a new Nym first.\n";
+        otOut << __FUNCTION__ << ": Wallet master cached key doesn't exist. "
+                                 "Try creating a new Nym first.\n";
         return "";
     }
 
@@ -1189,9 +1182,8 @@ std::string OT_API::Wallet_GetWords()
     auto& cachedKey = crypto_.DefaultKey();
 
     if (!cachedKey.IsGenerated()) {
-        otOut << __FUNCTION__
-              << ": Wallet master cached key doesn't exist. "
-                 "Try creating a new Nym first.\n";
+        otOut << __FUNCTION__ << ": Wallet master cached key doesn't exist. "
+                                 "Try creating a new Nym first.\n";
         return "";
     }
 
@@ -1232,10 +1224,10 @@ bool OT_API::Wallet_CanRemoveServer(const Identifier& NOTARY_ID) const
         OT_FAIL;
     }
     String strName;
-    const int32_t nCount = GetAccountCount();
+    const std::int32_t nCount = GetAccountCount();
 
     // Loop through all the accounts.
-    for (int32_t i = 0; i < nCount; i++) {
+    for (std::int32_t i = 0; i < nCount; i++) {
         Identifier accountID;
 
         GetAccount(i, accountID, strName);
@@ -1253,11 +1245,11 @@ bool OT_API::Wallet_CanRemoveServer(const Identifier& NOTARY_ID) const
         }
     }
 
-    const int32_t nNymCount = GetNymCount();
+    const std::int32_t nNymCount = GetNymCount();
 
     // Loop through all the Nyms. (One might be registered on that server.)
     //
-    for (int32_t i = 0; i < nNymCount; i++) {
+    for (std::int32_t i = 0; i < nNymCount; i++) {
         Identifier nymID;
         bool bGetNym = GetNym(i, nymID, strName);
 
@@ -1265,12 +1257,10 @@ bool OT_API::Wallet_CanRemoveServer(const Identifier& NOTARY_ID) const
             if (IsNym_RegisteredAtServer(nymID, NOTARY_ID)) {
                 String strNymID(nymID), strNOTARY_ID(NOTARY_ID);
                 otOut << __FUNCTION__ << ": Unable to remove server contract "
-                      << strNOTARY_ID
-                      << " "
-                         "from wallet, because Nym "
-                      << strNymID
-                      << " is registered "
-                         "there. (Delete that first...)\n";
+                      << strNOTARY_ID << " "
+                                         "from wallet, because Nym "
+                      << strNymID << " is registered "
+                                     "there. (Delete that first...)\n";
                 return false;
             }
     }
@@ -1295,10 +1285,10 @@ bool OT_API::Wallet_CanRemoveAssetType(
         OT_FAIL;
     }
     String strName;
-    const int32_t nCount = GetAccountCount();
+    const std::int32_t nCount = GetAccountCount();
 
     // Loop through all the accounts.
-    for (int32_t i = 0; i < nCount; i++) {
+    for (std::int32_t i = 0; i < nCount; i++) {
         Identifier accountID;
 
         GetAccount(i, accountID, strName);
@@ -1342,10 +1332,10 @@ bool OT_API::Wallet_CanRemoveNym(const Identifier& NYM_ID) const
     // Make sure the Nym doesn't have any accounts in the wallet.
     // (Client must close those before calling this.)
     //
-    const int32_t nCount = GetAccountCount();
+    const std::int32_t nCount = GetAccountCount();
 
     // Loop through all the accounts.
-    for (int32_t i = 0; i < nCount; i++) {
+    for (std::int32_t i = 0; i < nCount; i++) {
         Identifier accountID;
         String strName;
 
@@ -1354,9 +1344,8 @@ bool OT_API::Wallet_CanRemoveNym(const Identifier& NYM_ID) const
         Identifier theNYM_ID(pAccount->GetNymID());
 
         if (theNYM_ID.IsEmpty()) {
-            otErr << __FUNCTION__
-                  << ": Bug in OT_API_Wallet_CanRemoveNym / "
-                     "OT_API_GetAccountWallet_NymID\n";
+            otErr << __FUNCTION__ << ": Bug in OT_API_Wallet_CanRemoveNym / "
+                                     "OT_API_GetAccountWallet_NymID\n";
             return false;
         }
 
@@ -1632,9 +1621,8 @@ bool OT_API::Wallet_ExportNym(const Identifier& NYM_ID, String& strOutput) const
     // It exists.
     //
     if (nullptr == pMap) {
-        otErr << __FUNCTION__
-              << ": Error: failed trying to load or create a "
-                 "STORED_OBJ_STRING_MAP.\n";
+        otErr << __FUNCTION__ << ": Error: failed trying to load or create a "
+                                 "STORED_OBJ_STRING_MAP.\n";
         return false;
     }
     String::Map& theMap = pMap->the_map;
@@ -1869,12 +1857,13 @@ bool OT_API::Wallet_ImportNym(const String& FILE_CONTENTS, Identifier* pNymID)
                     String::Map& thePrivateMap = pPrivateMap->the_map;
                     bool unused = false;
 
-                    if (false == pNym->LoadNymFromString(
-                                     strCredList,
-                                     unused,
-                                     &thePrivateMap,
-                                     &strReasonToLoad,
-                                     pExportPassphrase.get())) {
+                    if (false ==
+                        pNym->LoadNymFromString(
+                            strCredList,
+                            unused,
+                            &thePrivateMap,
+                            &strReasonToLoad,
+                            pExportPassphrase.get())) {
                         otErr << __FUNCTION__ << ": Failure loading nym "
                               << strNymID << " from credential string.\n";
                         return false;
@@ -2001,7 +1990,7 @@ bool OT_API::NumList_Remove(NumList& theList, const NumList& theOldNumbers)
     NumList tempNewList(theList), tempOldList(theOldNumbers);
 
     while (tempOldList.Count() > 0) {
-        int64_t lPeek = 0;
+        std::int64_t lPeek = 0;
 
         if (!tempOldList.Peek(lPeek) || !tempOldList.Pop()) OT_FAIL;
 
@@ -2022,7 +2011,7 @@ bool OT_API::NumList_VerifyQuery(
     NumList theTempQuery(theQueryNumbers);
 
     while (theTempQuery.Count() > 0) {
-        int64_t lPeek = 0;
+        std::int64_t lPeek = 0;
 
         if (!theTempQuery.Peek(lPeek) || !theTempQuery.Pop()) OT_FAIL;
 
@@ -2046,9 +2035,9 @@ int32_t OT_API::NumList_Count(const NumList& theList) const
     return theList.Count();
 }
 
-/** TIME (in seconds, as int64_t)
+/** TIME (in seconds, as std::int64_t)
 
- This will return the current time in seconds, as a int64_t int32_t.
+ This will return the current time in seconds, as a std::int64_t std::int32_t.
 
  Todo:  consider making this available on the server side as well,
  so the smart contracts can see what time it is.
@@ -2304,9 +2293,8 @@ bool OT_API::SignContract(
         pContract.reset(::InstantiateContract(strContract));
 
     if (nullptr == pContract) {
-        otOut << __FUNCTION__
-              << ": I tried my best. "
-                 "Unable to instantiate contract passed in:\n\n"
+        otOut << __FUNCTION__ << ": I tried my best. "
+                                 "Unable to instantiate contract passed in:\n\n"
               << strContract << "\n\n";
         return false;
     }
@@ -2570,9 +2558,8 @@ bool OT_API::Create_SmartContract(
         "while trying to instantiate blank smart "
         "contract.\n");
     if (!pContract->SetDateRange(VALID_FROM, VALID_TO)) {
-        otOut << "OT_API::" << __FUNCTION__
-              << ": Failed trying to set date "
-                 "range.\n";
+        otOut << "OT_API::" << __FUNCTION__ << ": Failed trying to set date "
+                                               "range.\n";
         return false;
     }
 
@@ -2615,9 +2602,8 @@ bool OT_API::SmartContract_SetDates(
         return false;
     }
     if (!pContract->SetDateRange(VALID_FROM, VALID_TO)) {
-        otOut << "OT_API::" << __FUNCTION__
-              << ": Failed trying to set date "
-                 "range.\n";
+        otOut << "OT_API::" << __FUNCTION__ << ": Failed trying to set date "
+                                               "range.\n";
         return false;
     }
     pContract->ReleaseSignatures();
@@ -2809,9 +2795,8 @@ bool OT_API::SmartContract_AddAccount(
     if (nullptr != pParty->GetAccount(str_name)) {
         otOut << "OT_API::SmartContract_AddAccount: Failed adding: "
                  "account is already there with that name ("
-              << str_name
-              << ") on "
-                 "party: "
+              << str_name << ") on "
+                             "party: "
               << str_party_name << " \n";
         return false;
     }
@@ -2848,12 +2833,13 @@ bool OT_API::SmartContract_AddAccount(
 
     if (nullptr != szAssetTypeID) strInstrumentDefinitionID.Set(szAssetTypeID);
 
-    if (false == pParty->AddAccount(
-                     strAgentName,
-                     strAcctName,
-                     strAcctID,
-                     strInstrumentDefinitionID,
-                     0)) {
+    if (false ==
+        pParty->AddAccount(
+            strAgentName,
+            strAcctName,
+            strAcctID,
+            strInstrumentDefinitionID,
+            0)) {
         otOut << "OT_API::SmartContract_AddAccount: Failed trying to "
                  "add account ("
               << str_name << ") to party: " << str_party_name << " \n";
@@ -2933,7 +2919,7 @@ int32_t OT_API::SmartContract_CountNumsNeeded(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    int32_t nReturnValue = 0;
+    std::int32_t nReturnValue = 0;
     const std::string str_agent_name(AGENT_NAME.Get());
     std::unique_ptr<OTScriptable> pContract(
         OTScriptable::InstantiateScriptable(THE_CONTRACT));
@@ -3009,9 +2995,8 @@ bool OT_API::SmartContract_ConfirmAccount(
     if (nullptr != pDupeAcct)  // It's already there.
     {
         otOut << __FUNCTION__ << ": Failed, since a duplicate account ID ("
-              << ACCT_ID
-              << ") was already found on this contract. (Server "
-                 "disallows, sorry.)\n";
+              << ACCT_ID << ") was already found on this contract. (Server "
+                            "disallows, sorry.)\n";
         return false;
     }
     // Find the account template based on its name, to affix the acct ID to.
@@ -3102,7 +3087,8 @@ bool OT_API::SmartContract_ConfirmAccount(
         // setting
         // the server ID, and it might slip by here (though it would eventually
         // fail some
-        // verification.) In the int64_t term we'll do a more thorough check
+        // verification.) In the std::int64_t term we'll do a more thorough
+        // check
         // here, though.
     } else if (pContract->GetNotaryID() != pAccount->GetPurportedNotaryID()) {
         const String strServer1(pContract->GetNotaryID()),
@@ -3110,9 +3096,8 @@ bool OT_API::SmartContract_ConfirmAccount(
         otOut << __FUNCTION__
               << ": Failure: The smart contract has a different "
                  "server ID on it already ("
-              << strServer1
-              << ") than the one "
-                 "that goes with this account (server "
+              << strServer1 << ") than the one "
+                               "that goes with this account (server "
               << strServer2 << ", for account " << ACCT_ID << ")\n";
         return false;
     }
@@ -3667,9 +3652,8 @@ bool OT_API::SmartContract_AddClause(
     std::unique_ptr<OTScriptable> pContract(
         OTScriptable::InstantiateScriptable(THE_CONTRACT));
     if (nullptr == pContract) {
-        otOut << "OT_API::" << __FUNCTION__
-              << ": Error loading "
-                 "smart contract:\n\n"
+        otOut << "OT_API::" << __FUNCTION__ << ": Error loading "
+                                               "smart contract:\n\n"
               << THE_CONTRACT << "\n\n";
         return false;
     }
@@ -3678,9 +3662,8 @@ bool OT_API::SmartContract_AddClause(
     OTBylaw* pBylaw = pContract->GetBylaw(str_bylaw_name);
 
     if (nullptr == pBylaw) {
-        otOut << "OT_API::" << __FUNCTION__
-              << ": Failure: Bylaw "
-                 "doesn't exist: "
+        otOut << "OT_API::" << __FUNCTION__ << ": Failure: Bylaw "
+                                               "doesn't exist: "
               << str_bylaw_name << " \n Input contract: \n\n"
               << THE_CONTRACT << "\n\n";
         return false;
@@ -3691,16 +3674,14 @@ bool OT_API::SmartContract_AddClause(
         otOut << "OT_API::" << __FUNCTION__
               << ": Failed adding: "
                  "clause is already there with that name ("
-              << str_name
-              << ") on "
-                 "bylaw: "
+              << str_name << ") on "
+                             "bylaw: "
               << str_bylaw_name << " \n";
         return false;
     }
     if (!pBylaw->AddClause(str_name.c_str(), str_code.c_str())) {
-        otOut << "OT_API::" << __FUNCTION__
-              << ": Failed trying to "
-                 "add clause ("
+        otOut << "OT_API::" << __FUNCTION__ << ": Failed trying to "
+                                               "add clause ("
               << str_name << ") to bylaw: " << str_bylaw_name << " \n";
         return false;
     }
@@ -3740,9 +3721,8 @@ bool OT_API::SmartContract_UpdateClause(
     std::unique_ptr<OTScriptable> pContract(
         OTScriptable::InstantiateScriptable(THE_CONTRACT));
     if (nullptr == pContract) {
-        otOut << "OT_API::" << __FUNCTION__
-              << ": Error loading "
-                 "smart contract:\n\n"
+        otOut << "OT_API::" << __FUNCTION__ << ": Error loading "
+                                               "smart contract:\n\n"
               << THE_CONTRACT << "\n\n";
         return false;
     }
@@ -3751,9 +3731,8 @@ bool OT_API::SmartContract_UpdateClause(
     OTBylaw* pBylaw = pContract->GetBylaw(str_bylaw_name);
 
     if (nullptr == pBylaw) {
-        otOut << "OT_API::" << __FUNCTION__
-              << ": Failure: Bylaw "
-                 "doesn't exist: "
+        otOut << "OT_API::" << __FUNCTION__ << ": Failure: Bylaw "
+                                               "doesn't exist: "
               << str_bylaw_name << " \n Input contract: \n\n"
               << THE_CONTRACT << "\n\n";
         return false;
@@ -3799,9 +3778,8 @@ bool OT_API::SmartContract_RemoveClause(
     std::unique_ptr<OTScriptable> pContract(
         OTScriptable::InstantiateScriptable(THE_CONTRACT));
     if (nullptr == pContract) {
-        otOut << "OT_API::" << __FUNCTION__
-              << ": Error loading "
-                 "smart contract:\n\n"
+        otOut << "OT_API::" << __FUNCTION__ << ": Error loading "
+                                               "smart contract:\n\n"
               << THE_CONTRACT << "\n\n";
         return false;
     }
@@ -3810,9 +3788,8 @@ bool OT_API::SmartContract_RemoveClause(
     OTBylaw* pBylaw = pContract->GetBylaw(str_bylaw_name);
 
     if (nullptr == pBylaw) {
-        otOut << "OT_API::" << __FUNCTION__
-              << ": Failure: Bylaw "
-                 "doesn't exist: "
+        otOut << "OT_API::" << __FUNCTION__ << ": Failure: Bylaw "
+                                               "doesn't exist: "
               << str_bylaw_name << " \n Input contract: \n\n"
               << THE_CONTRACT << "\n\n";
         return false;
@@ -3845,8 +3822,8 @@ bool OT_API::SmartContract_AddVariable(
                                // contract. (And the scripts...)
     const String& VAR_ACCESS,  // "constant", "persistent", or "important".
     const String& VAR_TYPE,    // "string", "int64_t", or "bool"
-    const String& VAR_VALUE,   // Contains a string. If type is int64_t, atol()
-    // will be used to convert value to a int64_t. If
+    const String& VAR_VALUE,   // Contains a string. If type is :int64_t, atol()
+    // will be used to convert value to a std::int64_t. If
     // type is bool, the strings "true" or "false"
     // are expected here in order to convert to a
     // bool.
@@ -3865,9 +3842,8 @@ bool OT_API::SmartContract_AddVariable(
     std::unique_ptr<OTScriptable> pContract(
         OTScriptable::InstantiateScriptable(THE_CONTRACT));
     if (nullptr == pContract) {
-        otOut << "OT_API::" << __FUNCTION__
-              << ": Error loading "
-                 "smart contract:\n\n"
+        otOut << "OT_API::" << __FUNCTION__ << ": Error loading "
+                                               "smart contract:\n\n"
               << THE_CONTRACT << "\n\n";
         return false;
     }
@@ -3876,9 +3852,8 @@ bool OT_API::SmartContract_AddVariable(
     OTBylaw* pBylaw = pContract->GetBylaw(str_bylaw_name);
 
     if (nullptr == pBylaw) {
-        otOut << "OT_API::" << __FUNCTION__
-              << ": Failure: Bylaw "
-                 "doesn't exist: "
+        otOut << "OT_API::" << __FUNCTION__ << ": Failure: Bylaw "
+                                               "doesn't exist: "
               << str_bylaw_name << " \n";
         return false;
     }
@@ -3886,9 +3861,8 @@ bool OT_API::SmartContract_AddVariable(
         str_type(VAR_TYPE.Get()), str_value(VAR_VALUE.Get());
 
     if (nullptr != pBylaw->GetVariable(str_name)) {
-        otOut << "OT_API::" << __FUNCTION__
-              << ": Failure: "
-                 "Variable ("
+        otOut << "OT_API::" << __FUNCTION__ << ": Failure: "
+                                               "Variable ("
               << str_name << ") already exists on bylaw: " << str_bylaw_name
               << " \n";
         return false;
@@ -3924,7 +3898,7 @@ bool OT_API::SmartContract_AddVariable(
             bAdded = pBylaw->AddVariable(str_name, bValue, theAccess);
         } break;
         case OTVariable::Var_Integer: {
-            const int32_t nValue = atoi(str_value.c_str());
+            const std::int32_t nValue = atoi(str_value.c_str());
             bAdded = pBylaw->AddVariable(str_name, nValue, theAccess);
         } break;
         case OTVariable::Var_String:
@@ -3939,9 +3913,8 @@ bool OT_API::SmartContract_AddVariable(
     }
 
     if (!bAdded) {
-        otOut << "OT_API::" << __FUNCTION__
-              << ": Failed trying to "
-                 "add variable ("
+        otOut << "OT_API::" << __FUNCTION__ << ": Failed trying to "
+                                               "add variable ("
               << str_name << ") to bylaw: " << str_bylaw_name << " \n";
         return false;
     }
@@ -3980,9 +3953,8 @@ bool OT_API::SmartContract_RemoveVariable(
     std::unique_ptr<OTScriptable> pContract(
         OTScriptable::InstantiateScriptable(THE_CONTRACT));
     if (nullptr == pContract) {
-        otOut << "OT_API::" << __FUNCTION__
-              << ": Error loading "
-                 "smart contract:\n\n"
+        otOut << "OT_API::" << __FUNCTION__ << ": Error loading "
+                                               "smart contract:\n\n"
               << THE_CONTRACT << "\n\n";
         return false;
     }
@@ -3991,9 +3963,8 @@ bool OT_API::SmartContract_RemoveVariable(
     OTBylaw* pBylaw = pContract->GetBylaw(str_bylaw_name);
 
     if (nullptr == pBylaw) {
-        otOut << "OT_API::" << __FUNCTION__
-              << ": Failure: Bylaw "
-                 "doesn't exist: "
+        otOut << "OT_API::" << __FUNCTION__ << ": Failure: Bylaw "
+                                               "doesn't exist: "
               << str_bylaw_name << " \n";
         return false;
     }
@@ -4102,9 +4073,8 @@ bool OT_API::SetAccount_Name(
     if (nullptr == pAccount) return false;
     if (!ACCT_NEW_NAME.Exists())  // Any other validation to do on the name?
     {
-        otOut << __FUNCTION__
-              << ": FYI, new name is empty. "
-                 "(Proceeding anyway)\n";
+        otOut << __FUNCTION__ << ": FYI, new name is empty. "
+                                 "(Proceeding anyway)\n";
     }
     pAccount->SetName(ACCT_NEW_NAME);
     pAccount->ReleaseSignatures();
@@ -4634,7 +4604,7 @@ Account* OT_API::GetOrLoadAccount(
 // (Caller responsible to delete.)
 Cheque* OT_API::WriteCheque(
     const Identifier& NOTARY_ID,
-    const int64_t& CHEQUE_AMOUNT,
+    const std::int64_t& CHEQUE_AMOUNT,
     const time64_t& VALID_FROM,
     const time64_t& VALID_TO,
     const Identifier& SENDER_ACCT_ID,
@@ -4788,17 +4758,18 @@ OTPaymentPlan* OT_API::ProposePaymentPlan(
     const Identifier& RECIPIENT_NYM_ID,
     // ----------------------------------------  // If it's above zero, the
     // initial
-    const int64_t& INITIAL_PAYMENT_AMOUNT,  // amount will be processed after
-    const time64_t& INITIAL_PAYMENT_DELAY,  // delay (seconds from now.)
+    const std::int64_t& INITIAL_PAYMENT_AMOUNT,  // amount will be processed
+                                                 // after
+    const time64_t& INITIAL_PAYMENT_DELAY,       // delay (seconds from now.)
     // ----------------------------------------  // AND SEPARATELY FROM THIS...
-    const int64_t& PAYMENT_PLAN_AMOUNT,   // The regular amount charged,
+    const std::int64_t& PAYMENT_PLAN_AMOUNT,  // The regular amount charged,
     const time64_t& PAYMENT_PLAN_DELAY,   // which begins occuring after delay
     const time64_t& PAYMENT_PLAN_PERIOD,  // (seconds from now) and happens
     // ----------------------------------------// every period, ad infinitum,
-    time64_t PAYMENT_PLAN_LENGTH,      // until after the length (in seconds)
-    int32_t PAYMENT_PLAN_MAX_PAYMENTS  // expires, or after the maximum
-    ) const                            // number of payments. These last
-{                                      // two arguments are optional.
+    time64_t PAYMENT_PLAN_LENGTH,  // until after the length (in seconds)
+    std::int32_t PAYMENT_PLAN_MAX_PAYMENTS  // expires, or after the maximum
+    ) const                                 // number of payments. These last
+{                                           // two arguments are optional.
     Nym* pNym = GetOrLoadPrivateNym(RECIPIENT_NYM_ID, false, __FUNCTION__);
 
     if (nullptr == pNym) {
@@ -4926,7 +4897,7 @@ OTPaymentPlan* OT_API::ProposePaymentPlan(
 
         if (PAYMENT_PLAN_LENGTH > OT_TIME_ZERO)
             PLAN_LENGTH = PAYMENT_PLAN_LENGTH;
-        int32_t nMaxPayments =
+        std::int32_t nMaxPayments =
             0;  // Defaults to 0 maximum payments (for no maximum).
 
         if (PAYMENT_PLAN_MAX_PAYMENTS > 0)
@@ -5501,11 +5472,10 @@ OTNym_or_SymmetricKey* OT_API::LoadPurseAndOwnerForMerge(
                 OT_ASSERT(nullptr != pOwner);
             }
         } else
-            otErr << __FUNCTION__
-                  << ": Failed: Somehow this purse is not "
-                     "password-protected, nor "
-                     "is it Nym-protected. (This error should "
-                     "never actually happen.)\n";
+            otErr << __FUNCTION__ << ": Failed: Somehow this purse is not "
+                                     "password-protected, nor "
+                                     "is it Nym-protected. (This error should "
+                                     "never actually happen.)\n";
         // (By this point, pOwner is all set up and ready to go.)
     } else
         otOut << __FUNCTION__ << ": Failure loading purse from string:\n"
@@ -5927,9 +5897,8 @@ bool OT_API::Wallet_ImportPurse(
     } else if (
         pOldPurse->GetInstrumentDefinitionID() !=
         pNewPurse->GetInstrumentDefinitionID()) {
-        otOut << __FUNCTION__
-              << ": Failure: InstrumentDefinitionIDs don't "
-                 "match between these two purses.\n";
+        otOut << __FUNCTION__ << ": Failure: InstrumentDefinitionIDs don't "
+                                 "match between these two purses.\n";
         return false;
     }
     //
@@ -5960,9 +5929,8 @@ bool OT_API::Wallet_ImportPurse(
         pNym->GetIdentifier(strNymID1);
         pNewOwner->GetIdentifier(strNymID2);
         otOut << __FUNCTION__ << ": (OldNymID: " << strNymID1
-              << ".) (New Owner ID: " << strNymID2
-              << ".) Failure merging new "
-                 "purse:\n\n"
+              << ".) (New Owner ID: " << strNymID2 << ".) Failure merging new "
+                                                      "purse:\n\n"
               << THE_PURSE << "\n\n";
     }
     return false;
@@ -6131,9 +6099,10 @@ Token* OT_API::Token_ChangeOwner(
     std::unique_ptr<Token> pToken(
         Token::TokenFactory(THE_TOKEN, NOTARY_ID, INSTRUMENT_DEFINITION_ID));
     OT_ASSERT(nullptr != pToken);
-    if (false == pToken->ReassignOwnership(
-                     *pOldOwner,   // must be private, if a Nym.
-                     *pNewOwner))  // can be public, if a Nym.
+    if (false ==
+        pToken->ReassignOwnership(
+            *pOldOwner,   // must be private, if a Nym.
+            *pNewOwner))  // can be public, if a Nym.
     {
         otErr << __FUNCTION__ << ": Error re-assigning ownership of token.\n";
     } else {
@@ -6636,7 +6605,7 @@ Ledger* OT_API::LoadExpiredBoxNoVerify(
 bool OT_API::ClearExpired(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID,
-    const int32_t nIndex,
+    const std::int32_t nIndex,
     bool bClearAll) const  // if true, nIndex is
                            // ignored.
 {
@@ -6672,7 +6641,7 @@ bool OT_API::ClearExpired(
     }
     // Okay, it's not "clear all" but "clear at index" ...
     //
-    const int32_t nTransCount = pExpiredBox->GetTransactionCount();
+    const std::int32_t nTransCount = pExpiredBox->GetTransactionCount();
 
     if ((nIndex < 0) || (nIndex >= nTransCount)) {
         otErr << __FUNCTION__
@@ -6685,7 +6654,7 @@ bool OT_API::ClearExpired(
     bool bRemoved = false;
 
     if (nullptr != pTransaction) {
-        const int64_t lTransactionNum = pTransaction->GetTransactionNum();
+        const std::int64_t lTransactionNum = pTransaction->GetTransactionNum();
 
         if (!pExpiredBox->DeleteBoxReceipt(lTransactionNum)) {
             otErr << __FUNCTION__
@@ -6702,7 +6671,7 @@ bool OT_API::ClearExpired(
         pExpiredBox->SaveExpiredBox();
         return true;
     } else {
-        const int32_t nTemp = static_cast<int32_t>(nIndex);
+        const std::int32_t nTemp = static_cast<std::int32_t>(nIndex);
         otOut << __FUNCTION__
               << ": Failed trying to clear an expired record from "
                  "the expired box at index: "
@@ -6713,19 +6682,21 @@ bool OT_API::ClearExpired(
 
 // From OTAPI.cpp:
 //
-// int32_t         OT_API_GetNym_OutpaymentsCount(const char * NYM_ID);
+// std::int32_t         OT_API_GetNym_OutpaymentsCount(const char * NYM_ID);
 //
 // const char *    OT_API_GetNym_OutpaymentsContentsByIndex(const char * NYM_ID,
-// int32_t nIndex); /// returns the message itself
+// std::int32_t nIndex); /// returns the message itself
 //
 // const char *    OT_API_GetNym_OutpaymentsRecipientIDByIndex(const char *
-// NYM_ID, int32_t nIndex); /// returns the NymID of the recipient.
+// NYM_ID, std::int32_t nIndex); /// returns the NymID of the recipient.
 // const char *    OT_API_GetNym_OutpaymentsNotaryIDByIndex(const char * NYM_ID,
-// int32_t nIndex); /// returns the NotaryID where the message came from.
+// std::int32_t nIndex); /// returns the NotaryID where the message came from.
 //
-// int32_t OT_API_Nym_RemoveOutpaymentsByIndex(const char * NYM_ID, int32_t
+// std::int32_t OT_API_Nym_RemoveOutpaymentsByIndex(const char * NYM_ID,
+// std::int32_t
 // nIndex); /// actually returns OT_BOOL, (1 or 0.)
-// int32_t OT_API_Nym_VerifyOutpaymentsByIndex(const char * NYM_ID, int32_t
+// std::int32_t OT_API_Nym_VerifyOutpaymentsByIndex(const char * NYM_ID,
+// std::int32_t
 // nIndex); /// actually returns OT_BOOL. OT_TRUE if signature verifies. (Sender
 // Nym MUST be in my wallet for this to work.)
 
@@ -6791,7 +6762,7 @@ bool OT_API::ClearExpired(
  - For now, I'm using the below API call, so it's available inside the scripts.
  This is "good enough"
    for now, just to get the payments inbox/outbox working for the scripts. But
- in the int64_t term, I'll need
+ in the std::int64_t term, I'll need
    to add the hooks directly into OT as described just above. (It'll be
  necessary in order to get the record
    box working.)
@@ -6900,9 +6871,9 @@ bool OT_API::ClearExpired(
 bool OT_API::RecordPayment(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID,
-    bool bIsInbox,   // true == payments inbox. false == outpayments box.
-    int32_t nIndex,  // removes payment instrument (from payments inbox or
-                     // outpayments box) and moves to record box.
+    bool bIsInbox,        // true == payments inbox. false == outpayments box.
+    std::int32_t nIndex,  // removes payment instrument (from payments inbox or
+                          // outpayments box) and moves to record box.
     bool bSaveCopy) const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
@@ -7003,7 +6974,7 @@ bool OT_API::RecordPayment(
         if (bIsExpired) pActualBox = pExpiredBox;
         // Remove it from the payments inbox...
         //
-        const int64_t lTransactionNum = pTransaction->GetTransactionNum();
+        const std::int64_t lTransactionNum = pTransaction->GetTransactionNum();
 
         if (!pPaymentInbox->DeleteBoxReceipt(lTransactionNum)) {
             otErr << __FUNCTION__
@@ -7069,8 +7040,8 @@ bool OT_API::RecordPayment(
 
             // Anything but a purse?
             //
-            int64_t lPaymentOpeningNum = 0;
-            int64_t lPaymentTransNum = 0;
+            std::int64_t lPaymentOpeningNum = 0;
+            std::int64_t lPaymentTransNum = 0;
             if (thePayment.GetOpeningNum(
                     lPaymentOpeningNum,
                     NYM_ID))  // cheques, invoices, vouchers, smart contracts,
@@ -7468,11 +7439,13 @@ bool OT_API::RecordPayment(
                 //
                 // But what if the instruments never expire? Say a voucher with
                 // a very
-                // very int64_t expiration date? It's still going to sit there,
+                // very std::int64_t expiration date? It's still going to sit
+                // there,
                 // stuck in
                 // your outpayments box, even though the recipient have have
                 // cashed it
-                // int64_t, int64_t ago! The only way to get rid of it is to
+                // std::int64_t, std::int64_t ago! The only way to get rid of it
+                // is to
                 // have the
                 // server send you a notice when it's cashed, which is only
                 // possible if
@@ -7744,9 +7717,8 @@ bool OT_API::RecordPayment(
                         if (!pTrackable) {
                             String strPaymentContents;
                             thePayment.GetPaymentContents(strPaymentContents);
-                            otErr << __FUNCTION__
-                                  << ": Failed instantiating "
-                                     "OTPayment containing:\n"
+                            otErr << __FUNCTION__ << ": Failed instantiating "
+                                                     "OTPayment containing:\n"
                                   << strPaymentContents << "\n";
                             return false;
                         }
@@ -7788,10 +7760,10 @@ bool OT_API::RecordPayment(
                                            // smart contract... We have to
                     {  // check the inbox on each, to make sure there aren't any
                         // related paymentReceipts or final receipts.
-                        const int32_t nPartyCount =
+                        const std::int32_t nPartyCount =
                             pSmartContract->GetPartyCount();
 
-                        for (int32_t nCurrentParty = 0;
+                        for (std::int32_t nCurrentParty = 0;
                              nCurrentParty < nPartyCount;
                              ++nCurrentParty) {
                             OTParty* pParty =
@@ -7799,10 +7771,10 @@ bool OT_API::RecordPayment(
                             OT_ASSERT(nullptr != pParty);
 
                             if (nullptr != pParty) {
-                                const int32_t nAcctCount =
+                                const std::int32_t nAcctCount =
                                     pParty->GetAccountCount();
 
-                                for (int32_t nCurrentAcct = 0;
+                                for (std::int32_t nCurrentAcct = 0;
                                      nCurrentAcct < nAcctCount;
                                      ++nCurrentAcct) {
                                     OTPartyAccount* pPartyAcct =
@@ -8180,7 +8152,7 @@ bool OT_API::ClearRecord(
     const Identifier& NYM_ID,
     const Identifier& ACCOUNT_ID,  // NYM_ID can be passed
                                    // here as well.
-    int32_t nIndex,
+    std::int32_t nIndex,
     bool bClearAll) const  // if true, nIndex is ignored.
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
@@ -8216,7 +8188,7 @@ bool OT_API::ClearRecord(
     }
     // Okay, it's not "clear all" but "clear at index" ...
     //
-    const int32_t nTransCount = pRecordBox->GetTransactionCount();
+    const std::int32_t nTransCount = pRecordBox->GetTransactionCount();
 
     if ((nIndex < 0) || (nIndex >= nTransCount)) {
         otOut << __FUNCTION__
@@ -8229,7 +8201,7 @@ bool OT_API::ClearRecord(
     bool bRemoved = false;
 
     if (nullptr != pTransaction) {
-        const int64_t lTransactionNum = pTransaction->GetTransactionNum();
+        const std::int64_t lTransactionNum = pTransaction->GetTransactionNum();
 
         if (!pRecordBox->DeleteBoxReceipt(lTransactionNum)) {
             otErr << __FUNCTION__
@@ -8246,7 +8218,7 @@ bool OT_API::ClearRecord(
         pRecordBox->SaveRecordBox();
         return true;
     } else {
-        const int32_t nTemp = nIndex;
+        const std::int32_t nTemp = nIndex;
         otOut << __FUNCTION__
               << ": Failed trying to clear a record from the record "
                  "box at index: "
@@ -8305,7 +8277,7 @@ bool OT_API::ResyncNymWithServer(
 // (It also might return nullptr, if there are none there.)
 //
 std::shared_ptr<Message> OT_API::PopMessageBuffer(
-    const int64_t& lRequestNumber,
+    const std::int64_t& lRequestNumber,
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID) const
 {
@@ -8350,7 +8322,7 @@ void OT_API::FlushMessageBuffer()
 //
 
 Message* OT_API::GetSentMessage(
-    const int64_t& lRequestNumber,
+    const std::int64_t& lRequestNumber,
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID) const
 {
@@ -8369,7 +8341,7 @@ Message* OT_API::GetSentMessage(
 }
 
 bool OT_API::RemoveSentMessage(
-    const int64_t& lRequestNumber,
+    const std::int64_t& lRequestNumber,
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID) const
 {
@@ -8469,9 +8441,8 @@ void OT_API::FlushSentMessages(
         (THE_NYMBOX.GetPurportedNotaryID() != NOTARY_ID)) {
         const String strLedger(THE_NYMBOX);
         otErr << __FUNCTION__ << ": Failure, Bad input data: NymID ("
-              << strNymID
-              << ") or NotaryID "
-                 "("
+              << strNymID << ") or NotaryID "
+                             "("
               << strNotaryID << ") failed to match Nymbox:\n\n"
               << strLedger << "\n\n";
         return;
@@ -8580,7 +8551,7 @@ bool OT_API::IsBasketCurrency(const Identifier& BASKET_INSTRUMENT_DEFINITION_ID)
 // Returns the number of instrument definitions that make up this basket.
 // (Or zero.)
 //
-int32_t OT_API::GetBasketMemberCount(
+std::int32_t OT_API::GetBasketMemberCount(
     const Identifier& BASKET_INSTRUMENT_DEFINITION_ID) const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
@@ -8608,7 +8579,7 @@ int32_t OT_API::GetBasketMemberCount(
 //
 bool OT_API::GetBasketMemberType(
     const Identifier& BASKET_INSTRUMENT_DEFINITION_ID,
-    int32_t nIndex,
+    std::int32_t nIndex,
     Identifier& theOutputMemberType) const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
@@ -8644,9 +8615,9 @@ bool OT_API::GetBasketMemberType(
 // makes up this basket, by index.
 // (Or 0.)
 //
-int64_t OT_API::GetBasketMemberMinimumTransferAmount(
+std::int64_t OT_API::GetBasketMemberMinimumTransferAmount(
     const Identifier& BASKET_INSTRUMENT_DEFINITION_ID,
-    int32_t nIndex) const
+    std::int32_t nIndex) const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
@@ -8676,7 +8647,7 @@ int64_t OT_API::GetBasketMemberMinimumTransferAmount(
 // Returns the minimum transfer amount for the basket.
 // (Or 0.)
 //
-int64_t OT_API::GetBasketMinimumTransferAmount(
+std::int64_t OT_API::GetBasketMinimumTransferAmount(
     const Identifier& BASKET_INSTRUMENT_DEFINITION_ID) const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
@@ -8702,7 +8673,7 @@ int64_t OT_API::GetBasketMinimumTransferAmount(
 bool OT_API::AddBasketCreationItem(
     proto::UnitDefinition& basketTemplate,
     const String& currencyID,
-    const uint64_t weight) const
+    const std::uint64_t weight) const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
@@ -8723,7 +8694,7 @@ bool OT_API::AddBasketCreationItem(
 // basket of other instrument definitions. This way, users can trade with what
 // is apparently a single currency, when in fact the issuence is delegated and
 // distributed across multiple issuers.
-int32_t OT_API::issueBasket(
+std::int32_t OT_API::issueBasket(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID,
     const proto::UnitDefinition& basket) const
@@ -8783,7 +8754,7 @@ int32_t OT_API::issueBasket(
     // (Send it)
     SendMessage(NOTARY_ID, pNym, theMessage);
 
-    return static_cast<int32_t>(lRequestNumber);
+    return static_cast<std::int32_t>(lRequestNumber);
 }
 
 // GENERATE BASKET EXCHANGE REQUEST
@@ -8798,7 +8769,7 @@ Basket* OT_API::GenerateBasketExchange(
     const Identifier& NYM_ID,
     const Identifier& BASKET_INSTRUMENT_DEFINITION_ID,
     const Identifier& BASKET_ASSET_ACCT_ID,
-    int32_t TRANSFER_MULTIPLE) const
+    std::int32_t TRANSFER_MULTIPLE) const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
@@ -8837,7 +8808,7 @@ Basket* OT_API::GenerateBasketExchange(
     // pAccount is good, and no need to clean it up.
     String strNotaryID(NOTARY_ID);
 
-    int32_t nTransferMultiple = 1;
+    std::int32_t nTransferMultiple = 1;
 
     if (TRANSFER_MULTIPLE > 0) nTransferMultiple = TRANSFER_MULTIPLE;
 
@@ -9072,7 +9043,7 @@ bool OT_API::AddBasketExchangeItem(
  */
 
 // EXCHANGE (into or out of) BASKET (request to server.)
-int32_t OT_API::exchangeBasket(
+std::int32_t OT_API::exchangeBasket(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID,
     const Identifier& BASKET_INSTRUMENT_DEFINITION_ID,
@@ -9294,7 +9265,7 @@ int32_t OT_API::exchangeBasket(
                     // (Send it)
                     SendMessage(NOTARY_ID, pNym, theMessage);
 
-                    return static_cast<int32_t>(lRequestNumber);
+                    return static_cast<std::int32_t>(lRequestNumber);
                 }  // Inbox loaded.
             }      // successfully got first transaction number.
         }
@@ -9349,7 +9320,7 @@ int32_t OT_API::getTransactionNumbers(
 
     Message theMessage;
 
-    int32_t nReturnValue = m_pClient->ProcessUserCommand(
+    std::int32_t nReturnValue = m_pClient->ProcessUserCommand(
         MessageType::getTransactionNumbers,
         theMessage,
         *pNym,
@@ -9370,11 +9341,11 @@ int32_t OT_API::getTransactionNumbers(
 }
 
 #if OT_CASH
-int32_t OT_API::notarizeWithdrawal(
+std::int32_t OT_API::notarizeWithdrawal(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID,
     const Identifier& ACCT_ID,
-    const int64_t& AMOUNT) const
+    const std::int64_t& AMOUNT) const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
@@ -9411,8 +9382,8 @@ int32_t OT_API::notarizeWithdrawal(
     OT_ASSERT(nullptr != pMint);
     Message theMessage;
 
-    const int64_t lTotalAmount = AMOUNT;
-    int64_t lAmount = lTotalAmount;
+    const std::int64_t lTotalAmount = AMOUNT;
+    std::int64_t lAmount = lTotalAmount;
 
     String strNymID(NYM_ID), strFromAcct(ACCT_ID);
 
@@ -9432,9 +9403,8 @@ int32_t OT_API::notarizeWithdrawal(
     const bool bGotTransNum = 0 != number;
 
     if (!bGotTransNum) {
-        otOut << __FUNCTION__
-              << ": Next Transaction Number Available: Suggest "
-                 "requesting the server for a new one.\n";
+        otOut << __FUNCTION__ << ": Next Transaction Number Available: Suggest "
+                                 "requesting the server for a new one.\n";
         return (-1);
     }
 
@@ -9478,7 +9448,7 @@ int32_t OT_API::notarizeWithdrawal(
         // as well as a purse to be kept for unblinding when we receive the
         // server response.  (Coin private unblinding keys are not sent to
         // the server, obviously.)
-        int64_t lTokenAmount = 0;
+        std::int64_t lTokenAmount = 0;
         while ((lTokenAmount = pMint->GetLargestDenomination(lAmount)) > 0) {
             lAmount -= lTokenAmount;
 
@@ -9626,7 +9596,7 @@ int32_t OT_API::notarizeWithdrawal(
         // (Send it)
         SendMessage(NOTARY_ID, pNym, theMessage);
 
-        return static_cast<int32_t>(lRequestNumber);
+        return static_cast<std::int32_t>(lRequestNumber);
     } else {
         // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE NUMBERS.
         context.It().RecoverAvailableNumber(number);
@@ -9700,9 +9670,8 @@ int32_t OT_API::notarizeDeposit(
     const bool bGotTransNum = 0 != number;
 
     if (!bGotTransNum) {
-        otOut << __FUNCTION__
-              << ": Next Transaction Number Available: Suggest "
-                 "requesting the server for a new one.\n";
+        otOut << __FUNCTION__ << ": Next Transaction Number Available: Suggest "
+                                 "requesting the server for a new one.\n";
         return (-1);
     }
 
@@ -9800,7 +9769,7 @@ int32_t OT_API::notarizeDeposit(
 
                     thePurse.Push(theServerNymAsOwner, *pToken);
 
-                    int64_t lTemp = pItem->GetAmount();
+                    std::int64_t lTemp = pItem->GetAmount();
                     pItem->SetAmount(lTemp += pToken->GetDenomination());
                 }
                 delete pToken;
@@ -9904,7 +9873,7 @@ int32_t OT_API::notarizeDeposit(
         // (Send it)
         SendMessage(NOTARY_ID, pNym, theMessage);
 
-        return static_cast<int32_t>(lRequestNumber);
+        return static_cast<std::int32_t>(lRequestNumber);
     }  // bSuccess
     else {
         delete pItem;
@@ -9925,7 +9894,7 @@ int32_t OT_API::notarizeDeposit(
 // SHARES_INSTRUMENT_DEFINITION_ID needs
 // to be the Pepsi instrument definition ID. (NOT the dollar instrument
 // definition ID...)
-int32_t OT_API::payDividend(
+std::int32_t OT_API::payDividend(
     const Identifier& NOTARY_ID,
     const Identifier& ISSUER_NYM_ID,          // must be issuer of
                                               // SHARES_INSTRUMENT_DEFINITION_ID
@@ -9939,8 +9908,9 @@ int32_t OT_API::payDividend(
     // then this is the pepsi shares asset
     // type id.
     const String& DIVIDEND_MEMO,  // a message attached to the payout request.
-    const int64_t& AMOUNT_PER_SHARE) const  // number of dollars to be paid out
-                                            // PER
+    const std::int64_t& AMOUNT_PER_SHARE) const  // number of dollars to be paid
+                                                 // out
+                                                 // PER
 // SHARE (multiplied by total number of
 // shares issued.)
 {
@@ -10001,13 +9971,12 @@ int32_t OT_API::payDividend(
         "higher-than-zero balance.\n");
 
     if (0 == pSharesIssuerAcct->GetBalance()) {
-        otErr << __FUNCTION__
-              << ": Failure: There are no shares issued for "
-                 "that instrument definition. "
-                 "(Therefore you cannot pay any dividend...)\n";
+        otErr << __FUNCTION__ << ": Failure: There are no shares issued for "
+                                 "that instrument definition. "
+                                 "(Therefore you cannot pay any dividend...)\n";
         return (-1);
     }
-    const int64_t lAmountPerShare = AMOUNT_PER_SHARE;
+    const std::int64_t lAmountPerShare = AMOUNT_PER_SHARE;
 
     if (lAmountPerShare <= 0) {
         otErr << __FUNCTION__
@@ -10023,7 +9992,7 @@ int32_t OT_API::payDividend(
     // available in the dollar account (in order to successfully pay this
     // dividend.)
     //
-    const int64_t lTotalCostOfDividend =
+    const std::int64_t lTotalCostOfDividend =
         ((-1) * pSharesIssuerAcct->GetBalance()) * lAmountPerShare;
     // Let's make sure we have enough money in the dividend source account, to
     // pay the total cost..
@@ -10181,7 +10150,7 @@ int32_t OT_API::payDividend(
             // vouchers to people. If any fail, or there is any left over, then
             // vouchers are sent back to pNym again, containing
             // the difference.
-            // todo failsafe: We can't just loop, int64_t-term, and send a
+            // todo failsafe: We can't just loop, std::int64_t-term, and send a
             // voucher at the end. What if it crashes halfway through
             // the loop? It seems that the dividend payout still needs to be
             // "REGISTERED" somewhere until successfully completed.
@@ -10251,7 +10220,7 @@ int32_t OT_API::payDividend(
             // (Send it)
             SendMessage(NOTARY_ID, pNym, theMessage);
 
-            return static_cast<int32_t>(lRequestNumber);
+            return static_cast<std::int32_t>(lRequestNumber);
         }
     } else
         otOut << __FUNCTION__
@@ -10263,13 +10232,13 @@ int32_t OT_API::payDividend(
 
 // Request the server to withdraw from an asset account and issue a voucher
 // (cashier's cheque)
-int32_t OT_API::withdrawVoucher(
+std::int32_t OT_API::withdrawVoucher(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID,
     const Identifier& ACCT_ID,
     const Identifier& RECIPIENT_NYM_ID,
     const String& CHEQUE_MEMO,
-    const int64_t& AMOUNT) const
+    const std::int64_t& AMOUNT) const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
@@ -10294,7 +10263,7 @@ int32_t OT_API::withdrawVoucher(
     CONTRACT_ID = pAccount->GetInstrumentDefinitionID();
     CONTRACT_ID.GetString(strContractID);
     Message theMessage;
-    const int64_t lAmount = AMOUNT;
+    const std::int64_t lAmount = AMOUNT;
     String strNotaryID(NOTARY_ID), strNymID(NYM_ID), strFromAcct(ACCT_ID);
     const auto withdrawalNumber = context.It().NextTransactionNumber();
     const auto voucherNumber = context.It().NextTransactionNumber();
@@ -10462,7 +10431,7 @@ int32_t OT_API::withdrawVoucher(
         // (Send it)
         SendMessage(NOTARY_ID, pNym, theMessage);
 
-        return static_cast<int32_t>(lRequestNumber);
+        return static_cast<std::int32_t>(lRequestNumber);
     }
 
     return (-1);
@@ -10551,9 +10520,8 @@ bool OT_API::DiscardCheque(
     Cheque theCheque(NOTARY_ID, CONTRACT_ID);
 
     if (!theCheque.LoadContractFromString(THE_CHEQUE)) {
-        otOut << __FUNCTION__
-              << ": Unable to load cheque from string. Sorry. "
-                 "Cheque contents:\n\n"
+        otOut << __FUNCTION__ << ": Unable to load cheque from string. Sorry. "
+                                 "Cheque contents:\n\n"
               << THE_CHEQUE << "\n\n";
         return false;
     } else if (
@@ -10592,7 +10560,7 @@ bool OT_API::DiscardCheque(
 // it's being deposited back into the same account that originally wrote
 // the cheque) this means the original cheque writer is CANCELLING the
 // cheque, to prevent the recipient from depositing it.
-int32_t OT_API::depositCheque(
+std::int32_t OT_API::depositCheque(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID,
     const Identifier& ACCT_ID,
@@ -10626,9 +10594,8 @@ int32_t OT_API::depositCheque(
     const bool bGotTransNum = 0 != number;
 
     if (!bGotTransNum)
-        otOut << __FUNCTION__
-              << ": No transaction numbers were available. "
-                 "Try requesting the server for a new one.\n";
+        otOut << __FUNCTION__ << ": No transaction numbers were available. "
+                                 "Try requesting the server for a new one.\n";
     else if (!theCheque.LoadContractFromString(THE_CHEQUE)) {
         otOut << __FUNCTION__
               << ": Unable to load cheque from string. Sorry. Contents:\n\n"
@@ -10862,7 +10829,7 @@ int32_t OT_API::depositCheque(
             // (Send it)
             SendMessage(NOTARY_ID, pNym, theMessage);
 
-            return static_cast<int32_t>(lRequestNumber);
+            return static_cast<std::int32_t>(lRequestNumber);
         }
     }  // bSuccess
 
@@ -10878,7 +10845,7 @@ int32_t OT_API::depositCheque(
 // This function here is the final step, where the payment plan
 // contract is now being deposited by the customer (who is also
 // the sender), in a message to the server.
-int32_t OT_API::depositPaymentPlan(
+std::int32_t OT_API::depositPaymentPlan(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID,
     const String& THE_PAYMENT_PLAN) const
@@ -10953,7 +10920,7 @@ int32_t OT_API::depositPaymentPlan(
         // and will thus
         // already have its own transaction number set on it.
         //
-        const int64_t lTransactionNum = thePlan.GetOpeningNumber(NYM_ID);
+        const std::int64_t lTransactionNum = thePlan.GetOpeningNumber(NYM_ID);
         // Create a transaction
         OTTransaction* pTransaction = OTTransaction::GenerateTransaction(
             NYM_ID,
@@ -11047,7 +11014,7 @@ int32_t OT_API::depositPaymentPlan(
         // (Send it)
         SendMessage(NOTARY_ID, pNym, theMessage);
 
-        return static_cast<int32_t>(lRequestNumber);
+        return static_cast<std::int32_t>(lRequestNumber);
     }  // thePlan.LoadContractFromString()
     else {
         otOut << "Unable to load payment plan from string, or verify it. "
@@ -11061,10 +11028,10 @@ int32_t OT_API::depositPaymentPlan(
 // question (NYM_ID) is an authorized agent for that smart contract, then he
 // can trigger clauses. All he needs is the transaction ID for the smart
 // contract, and the name of the clause.
-int32_t OT_API::triggerClause(
+std::int32_t OT_API::triggerClause(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID,
-    const int64_t& lTransactionNum,
+    const std::int64_t& lTransactionNum,
     const String& strClauseName,
     const String* pStrParam) const
 {
@@ -11119,7 +11086,7 @@ int32_t OT_API::triggerClause(
     // (Send it)
     SendMessage(NOTARY_ID, pNym, theMessage);
 
-    return static_cast<int32_t>(lRequestNumber);
+    return static_cast<std::int32_t>(lRequestNumber);
 }
 
 int32_t OT_API::activateSmartContract(
@@ -11312,12 +11279,10 @@ int32_t OT_API::activateSmartContract(
 
         if ((lOpeningTransNo <= 0) || (lClosingTransNo <= 0)) {
             otOut << __FUNCTION__ << ": Failed. Opening Transaction # ("
-                  << lOpeningTransNo
-                  << ") or "
-                     "Closing # ("
-                  << lClosingTransNo
-                  << ") were invalid "
-                     "for asset acct ("
+                  << lOpeningTransNo << ") or "
+                                        "Closing # ("
+                  << lClosingTransNo << ") were invalid "
+                                        "for asset acct ("
                   << pAcct->GetName() << ") for party ("
                   << pParty->GetPartyName()
                   << "). Did you "
@@ -11329,14 +11294,12 @@ int32_t OT_API::activateSmartContract(
 
         if (!context->VerifyIssuedNumber(lOpeningTransNo)) {
             otOut << __FUNCTION__ << ": Failed. Opening Transaction # ("
-                  << lOpeningTransNo
-                  << ") wasn't "
-                     "valid/issued to this Nym, "
-                     "for asset acct ("
+                  << lOpeningTransNo << ") wasn't "
+                                        "valid/issued to this Nym, "
+                                        "for asset acct ("
                   << pAcct->GetName() << ") for party ("
-                  << pParty->GetPartyName()
-                  << ") on server "
-                     "("
+                  << pParty->GetPartyName() << ") on server "
+                                               "("
                   << strNotaryID
                   << "). Did you confirm this account and party, "
                      "before trying to activate this contract?\n";
@@ -11346,10 +11309,9 @@ int32_t OT_API::activateSmartContract(
 
         if (!context->VerifyIssuedNumber(lClosingTransNo)) {
             otOut << __FUNCTION__ << ": Failed. Closing Transaction # ("
-                  << lClosingTransNo
-                  << ") wasn't "
-                     "issued to this Nym, "
-                     "for asset acct ("
+                  << lClosingTransNo << ") wasn't "
+                                        "issued to this Nym, "
+                                        "for asset acct ("
                   << pAcct->GetName() << ") for party ("
                   << pParty->GetPartyName()
                   << "). Did you "
@@ -11460,7 +11422,7 @@ int32_t OT_API::activateSmartContract(
         // (Send it)
         SendMessage(NOTARY_ID, pNym, theMessage);
 
-        return static_cast<int32_t>(lRequestNumber);
+        return static_cast<std::int32_t>(lRequestNumber);
     } else {
         otOut << __FUNCTION__
               << ": Unable to load smart contract from string:\n\n"
@@ -11521,12 +11483,12 @@ int32_t OT_API::activateSmartContract(
 ///-------------------------------------------------------
 /// CANCEL A SPECIFIC OFFER (THAT SAME NYM PLACED PREVIOUSLY ON SAME SERVER.)
 /// By transaction number as key.
-int32_t OT_API::cancelCronItem(
+std::int32_t OT_API::cancelCronItem(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID,
     const Identifier& ASSET_ACCT_ID,
-    const int64_t& lTransactionNum) const  // so the
-                                           // server
+    const std::int64_t& lTransactionNum) const  // so the
+                                                // server
 // can lookup the
 // offer in Cron.
 {
@@ -11661,7 +11623,7 @@ int32_t OT_API::cancelCronItem(
         // (Send it)
         SendMessage(NOTARY_ID, pNym, theMessage);
 
-        return static_cast<int32_t>(lRequestNumber);
+        return static_cast<std::int32_t>(lRequestNumber);
     }  // got transaction number.
 
     return (-1);
@@ -11671,24 +11633,26 @@ int32_t OT_API::cancelCronItem(
 // This will also create a Trade object and add it to the server's Cron
 // object. (The Trade provides the payment authorization for the Offer, as well
 // as the rules for processing and expiring it.)
-int32_t OT_API::issueMarketOffer(
+std::int32_t OT_API::issueMarketOffer(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID,
     const Identifier& ASSET_ACCT_ID,
     const Identifier& CURRENCY_ACCT_ID,
-    const int64_t& MARKET_SCALE,       // Defaults to minimum of 1. Market
-                                       // granularity.
-    const int64_t& MINIMUM_INCREMENT,  // This will be multiplied by the Scale.
-                                       // Min 1.
-    const int64_t& TOTAL_ASSETS_ON_OFFER,  // Total assets available for sale or
-                                           // purchase. Will be multiplied by
-                                           // minimum increment.
-    const int64_t& PRICE_LIMIT,            // Per Minimum Increment...
-    bool bBuyingOrSelling,                 //  BUYING == false, SELLING == true.
-    time64_t tLifespanInSeconds,           // 86400 == 1 day.
-    char STOP_SIGN,                        // For stop orders, set to '<' or '>'
-    int64_t ACTIVATION_PRICE) const        // For stop orders, this is
-                                           // threshhold price.
+    const std::int64_t& MARKET_SCALE,       // Defaults to minimum of 1. Market
+                                            // granularity.
+    const std::int64_t& MINIMUM_INCREMENT,  // This will be multiplied by the
+                                            // Scale.
+                                            // Min 1.
+    const std::int64_t& TOTAL_ASSETS_ON_OFFER,  // Total assets available for
+                                                // sale or
+    // purchase. Will be multiplied by
+    // minimum increment.
+    const std::int64_t& PRICE_LIMIT,      // Per Minimum Increment...
+    bool bBuyingOrSelling,                //  BUYING == false, SELLING == true.
+    time64_t tLifespanInSeconds,          // 86400 == 1 day.
+    char STOP_SIGN,                       // For stop orders, set to '<' or '>'
+    std::int64_t ACTIVATION_PRICE) const  // For stop orders, this is
+                                          // threshhold price.
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
@@ -11773,8 +11737,8 @@ int32_t OT_API::issueMarketOffer(
             OTTimeGetSecondsFromTime(
                 OT_TIME_ZERO == tLifespanInSeconds ? OT_TIME_DAY_IN_SECONDS
                                                    : tLifespanInSeconds));
-        int64_t lTotalAssetsOnOffer = 1, lMinimumIncrement = 1,
-                lPriceLimit = 0,  // your price limit, per scale of assets.
+        std::int64_t lTotalAssetsOnOffer = 1, lMinimumIncrement = 1,
+                     lPriceLimit = 0,  // your price limit, per scale of assets.
             lMarketScale = 1, lActivationPrice = 0;
         if (TOTAL_ASSETS_ON_OFFER > 0)
             lTotalAssetsOnOffer =
@@ -11825,12 +11789,10 @@ int32_t OT_API::issueMarketOffer(
               << strPrice << "Assets for sale/purchase: " << lTotalAssetsOnOffer
               << "\n"
                  "In minimum increments of: "
-              << lMinimumIncrement
-              << "\n"
-                 "At market of scale: "
-              << lMarketScale
-              << "\n"
-                 "Valid From: "
+              << lMinimumIncrement << "\n"
+                                      "At market of scale: "
+              << lMarketScale << "\n"
+                                 "Valid From: "
               << OTTimeGetSecondsFromTime(VALID_FROM)
               << "  To: " << OTTimeGetSecondsFromTime(VALID_TO) << "\n";
 
@@ -12005,7 +11967,7 @@ int32_t OT_API::issueMarketOffer(
             // (Send it)
             SendMessage(NOTARY_ID, pNym, theMessage);
 
-            return static_cast<int32_t>(lRequestNumber);
+            return static_cast<std::int32_t>(lRequestNumber);
         }  // if (bCreateOffer && bIssueTrade)
         else {
             otOut << __FUNCTION__
@@ -12034,7 +11996,7 @@ int32_t OT_API::issueMarketOffer(
 /// load it from
 /// storage (OT will probably auto-store the reply to storage, for your
 /// convenience.)
-int32_t OT_API::getMarketList(
+std::int32_t OT_API::getMarketList(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID) const
 {
@@ -12074,7 +12036,7 @@ int32_t OT_API::getMarketList(
     // (Send it)
     SendMessage(NOTARY_ID, pNym, theMessage);
 
-    return static_cast<int32_t>(lRequestNumber);
+    return static_cast<std::int32_t>(lRequestNumber);
 }
 
 /// GET ALL THE OFFERS ON A SPECIFIC MARKET
@@ -12083,11 +12045,11 @@ int32_t OT_API::getMarketList(
 /// specific
 /// Market ID-- the bid/ask, and prices/amounts, basically--(up to lDepth or
 /// server Max)
-int32_t OT_API::getMarketOffers(
+std::int32_t OT_API::getMarketOffers(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID,
     const Identifier& MARKET_ID,
-    const int64_t& lDepth) const
+    const std::int64_t& lDepth) const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
@@ -12127,7 +12089,7 @@ int32_t OT_API::getMarketOffers(
     // (Send it)
     SendMessage(NOTARY_ID, pNym, theMessage);
 
-    return static_cast<int32_t>(lRequestNumber);
+    return static_cast<std::int32_t>(lRequestNumber);
 }
 
 ///-------------------------------------------------------
@@ -12142,7 +12104,7 @@ int32_t OT_API::getMarketOffers(
 /// display charts, etc.
 ///
 /// (So this function is not here to usurp that purpose.)
-int32_t OT_API::getMarketRecentTrades(
+std::int32_t OT_API::getMarketRecentTrades(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID,
     const Identifier& MARKET_ID) const
@@ -12184,7 +12146,7 @@ int32_t OT_API::getMarketRecentTrades(
     // (Send it)
     SendMessage(NOTARY_ID, pNym, theMessage);
 
-    return static_cast<int32_t>(lRequestNumber);
+    return static_cast<std::int32_t>(lRequestNumber);
 }
 
 ///-------------------------------------------------------
@@ -12194,7 +12156,7 @@ int32_t OT_API::getMarketRecentTrades(
 /// Hmm for size reasons, this really will have to return a list of transaction
 /// #s,
 /// and then I request them one-by-one after that...
-int32_t OT_API::getNymMarketOffers(
+std::int32_t OT_API::getNymMarketOffers(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID) const
 {
@@ -12234,42 +12196,45 @@ int32_t OT_API::getNymMarketOffers(
     // (Send it)
     SendMessage(NOTARY_ID, pNym, theMessage);
 
-    return static_cast<int32_t>(lRequestNumber);
+    return static_cast<std::int32_t>(lRequestNumber);
 }
 
 // Request the server to transfer from one account to another.
-int32_t OT_API::notarizeTransfer(
+CommandResult OT_API::notarizeTransfer(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID,
     const Identifier& ACCT_FROM,
     const Identifier& ACCT_TO,
-    const int64_t& AMOUNT,
+    const std::int64_t& AMOUNT,
     const String& NOTE) const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
-
+    CommandResult output{-1, 0};
+    auto & [ status, number ] = output;
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
 
     if (nullptr == pNym) {
-        return (-1);
+
+        return output;
     }
 
     auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
-
     // By this point, pNym is a good pointer, and is on the wallet.
     // (No need to cleanup.)
     Account* pAccount =
         GetOrLoadAccount(*pNym, ACCT_FROM, NOTARY_ID, __FUNCTION__);
-    if (nullptr == pAccount) return (-1);
+
+    if (nullptr == pAccount) {
+
+        return output;
+    }
+
     // By this point, pAccount is a good pointer.  (No need to cleanup.)
     Message theMessage;
-
-    const int64_t lAmount = AMOUNT;
-
+    const std::int64_t lAmount = AMOUNT;
     String strNotaryID(NOTARY_ID), strNymID(NYM_ID), strFromAcct(ACCT_FROM),
         strToAcct(ACCT_TO);
-
-    const auto number = context.It().NextTransactionNumber();
+    number = context.It().NextTransactionNumber();
     const bool bGotTransNum = 0 != number;
 
     if (bGotTransNum) {
@@ -12426,20 +12391,22 @@ int32_t OT_API::notarizeTransfer(
 
             // (Send it)
             SendMessage(NOTARY_ID, pNym, theMessage);
+            status = static_cast<std::int32_t>(lRequestNumber);
 
-            return static_cast<int32_t>(lRequestNumber);
+            return output;
         }
     } else {
         otOut << "No transaction numbers were available. Suggest "
                  "requesting the server for one.\n";
     }
 
-    return -1;
+    return output;
 }
 
 // Grab a copy of my nymbox (contains messages and new transaction numbers)
-int32_t OT_API::getNymbox(const Identifier& NOTARY_ID, const Identifier& NYM_ID)
-    const
+std::int32_t OT_API::getNymbox(
+    const Identifier& NOTARY_ID,
+    const Identifier& NYM_ID) const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
@@ -12476,7 +12443,7 @@ int32_t OT_API::getNymbox(const Identifier& NOTARY_ID, const Identifier& NYM_ID)
     // (Send it)
     SendMessage(NOTARY_ID, pNym, theMessage);
 
-    return static_cast<int32_t>(lRequestNumber);
+    return static_cast<std::int32_t>(lRequestNumber);
 }
 
 // Returns:
@@ -12485,7 +12452,7 @@ int32_t OT_API::getNymbox(const Identifier& NOTARY_ID, const Identifier& NYM_ID)
 //  1 or more: Count of items in Nymbox before processing.
 //  UPDATE: This now returns the request number of the message sent, if success.
 //
-int32_t OT_API::processNymbox(
+std::int32_t OT_API::processNymbox(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID) const
 {
@@ -12505,8 +12472,8 @@ int32_t OT_API::processNymbox(
 
     Message theMessage;
     bool bSuccess = false;
-    int32_t nReceiptCount = (-1);
-    int32_t nRequestNum = (-1);
+    std::int32_t nReceiptCount = (-1);
+    std::int32_t nRequestNum = (-1);
     bool bIsEmpty = true;
 
     {
@@ -12580,7 +12547,7 @@ int32_t OT_API::processNymbox(
 
         SendMessage(NOTARY_ID, pNym, theMessage);
 
-        return static_cast<int32_t>(nRequestNum);
+        return static_cast<std::int32_t>(nRequestNum);
     }
     // if successful, ..., else if not successful--and wasn't empty--then error.
     else if (!bIsEmpty)
@@ -12660,7 +12627,7 @@ int32_t OT_API::processInbox(
     // (Send it)
     SendMessage(NOTARY_ID, pNym, theMessage);
 
-    return static_cast<int32_t>(lRequestNumber);
+    return static_cast<std::int32_t>(lRequestNumber);
 }
 
 int32_t OT_API::registerInstrumentDefinition(
@@ -12731,7 +12698,7 @@ int32_t OT_API::registerInstrumentDefinition(
     // (Send it)
     SendMessage(NOTARY_ID, pNym, theMessage);
 
-    return static_cast<int32_t>(lRequestNumber);
+    return static_cast<std::int32_t>(lRequestNumber);
 }
 
 int32_t OT_API::getInstrumentDefinition(
@@ -12779,7 +12746,7 @@ int32_t OT_API::getInstrumentDefinition(
     // (Send it)
     SendMessage(NOTARY_ID, pNym, theMessage);
 
-    return static_cast<int32_t>(lRequestNumber);
+    return static_cast<std::int32_t>(lRequestNumber);
 }
 
 int32_t OT_API::getMint(
@@ -12832,7 +12799,7 @@ int32_t OT_API::getMint(
     // (Send it)
     SendMessage(NOTARY_ID, pNym, theMessage);
 
-    return static_cast<int32_t>(lRequestNumber);
+    return static_cast<std::int32_t>(lRequestNumber);
 }
 
 // Sends a list of instrument definition ids to the server, which replies with a
@@ -12848,7 +12815,7 @@ int32_t OT_API::getMint(
 // issuer's receipts
 // in that spot.)
 //
-int32_t OT_API::queryInstrumentDefinitions(
+std::int32_t OT_API::queryInstrumentDefinitions(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID,
     const OTASCIIArmor& ENCODED_MAP) const
@@ -12889,7 +12856,7 @@ int32_t OT_API::queryInstrumentDefinitions(
     // (Send it)
     SendMessage(NOTARY_ID, pNym, theMessage);
 
-    return static_cast<int32_t>(lRequestNumber);
+    return static_cast<std::int32_t>(lRequestNumber);
 }
 
 int32_t OT_API::registerAccount(
@@ -12951,7 +12918,7 @@ int32_t OT_API::registerAccount(
     // (Send it)
     SendMessage(NOTARY_ID, pNym, theMessage);
 
-    return static_cast<int32_t>(lRequestNumber);
+    return static_cast<std::int32_t>(lRequestNumber);
 }
 
 int32_t OT_API::deleteAssetAccount(
@@ -13000,7 +12967,7 @@ int32_t OT_API::deleteAssetAccount(
     // (Send it)
     SendMessage(NOTARY_ID, pNym, theMessage);
 
-    return static_cast<int32_t>(lRequestNumber);
+    return static_cast<std::int32_t>(lRequestNumber);
 }
 
 bool OT_API::DoesBoxReceiptExist(
@@ -13008,8 +12975,8 @@ bool OT_API::DoesBoxReceiptExist(
     const Identifier& NYM_ID,      // Unused here for now, but still convention.
     const Identifier& ACCOUNT_ID,  // If for Nymbox (vs inbox/outbox) then pass
                                    // NYM_ID in this field also.
-    int32_t nBoxType,              // 0/nymbox, 1/inbox, 2/outbox
-    const int64_t& lTransactionNum) const
+    std::int32_t nBoxType,         // 0/nymbox, 1/inbox, 2/outbox
+    const std::int64_t& lTransactionNum) const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
@@ -13028,8 +12995,8 @@ int32_t OT_API::getBoxReceipt(
     const Identifier& NYM_ID,
     const Identifier& ACCOUNT_ID,  // If for Nymbox (vs inbox/outbox) then pass
                                    // NYM_ID in this field also.
-    int32_t nBoxType,              // 0/nymbox, 1/inbox, 2/outbox
-    const int64_t& lTransactionNum) const
+    std::int32_t nBoxType,         // 0/nymbox, 1/inbox, 2/outbox
+    const std::int64_t& lTransactionNum) const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
@@ -13072,7 +13039,7 @@ int32_t OT_API::getBoxReceipt(
     theMessage.m_strNotaryID = strNotaryID;
     theMessage.SetAcknowledgments(context.It());
     theMessage.m_strAcctID = strAcctID;
-    theMessage.m_lDepth = static_cast<int64_t>(nBoxType);
+    theMessage.m_lDepth = static_cast<std::int64_t>(nBoxType);
     theMessage.m_lTransactionNum = lTransactionNum;
 
     // (2) Sign the Message
@@ -13085,7 +13052,7 @@ int32_t OT_API::getBoxReceipt(
     // (Send it)
     SendMessage(NOTARY_ID, pNym, theMessage);
 
-    return static_cast<int32_t>(lRequestNumber);
+    return static_cast<std::int32_t>(lRequestNumber);
 }
 
 int32_t OT_API::getAccountData(
@@ -13134,14 +13101,14 @@ int32_t OT_API::getAccountData(
     // (Send it)
     SendMessage(NOTARY_ID, pNym, theMessage);
 
-    return static_cast<int32_t>(lRequestNumber);
+    return static_cast<std::int32_t>(lRequestNumber);
 }
 
 int32_t OT_API::usageCredits(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID,
     const Identifier& NYM_ID_CHECK,
-    int64_t lAdjustment) const
+    std::int64_t lAdjustment) const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
@@ -13182,7 +13149,7 @@ int32_t OT_API::usageCredits(
     // (Send it)
     SendMessage(NOTARY_ID, pNym, theMessage);
 
-    return static_cast<int32_t>(lRequestNumber);
+    return static_cast<std::int32_t>(lRequestNumber);
 }
 
 int32_t OT_API::checkNym(
@@ -13232,7 +13199,7 @@ int32_t OT_API::checkNym(
     // (Send it)
     SendMessage(NOTARY_ID, pNym, theMessage);
 
-    return static_cast<int32_t>(lRequestNumber);
+    return static_cast<std::int32_t>(lRequestNumber);
 }
 
 int32_t OT_API::registerContract(
@@ -13266,7 +13233,7 @@ int32_t OT_API::registerContract(
     theMessage.SetAcknowledgments(context.It());
     theMessage.enum_ = static_cast<std::uint8_t>(TYPE);
 
-    int32_t nReturnValue = -1;
+    std::int32_t nReturnValue = -1;
 
     switch (TYPE) {
         case (ContractType::NYM): {
@@ -13325,7 +13292,7 @@ int32_t OT_API::registerContract(
 
     SendMessage(NOTARY_ID, pNym, theMessage);
 
-    return static_cast<int32_t>(requestNumber);
+    return static_cast<std::int32_t>(requestNumber);
 }
 
 int32_t OT_API::sendNymObject(
@@ -13333,7 +13300,7 @@ int32_t OT_API::sendNymObject(
     const Identifier& NYM_ID,
     const Identifier& NYM_ID_RECIPIENT,
     const PeerObject& OBJECT,
-    int64_t& requestNumber) const
+    std::int64_t& requestNumber) const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
@@ -13368,7 +13335,7 @@ int32_t OT_API::sendNymObject(
     theMessage.m_strNotaryID = strNotaryID;
     theMessage.SetAcknowledgments(context.It());
 
-    int32_t nReturnValue{-1};
+    std::int32_t nReturnValue{-1};
     String plaintext = proto::ProtoAsArmored(OBJECT.Serialize(), "PEER OBJECT");
     OTEnvelope theEnvelope;
     auto pRecipient = wallet_.Nym(NYM_ID_RECIPIENT);
@@ -13401,20 +13368,20 @@ int32_t OT_API::sendNymObject(
 
     SendMessage(NOTARY_ID, pNym, theMessage);
 
-    return static_cast<int32_t>(requestNumber);
+    return static_cast<std::int32_t>(requestNumber);
 }
 
 /// WARNING: Make sure you download the public Nym of the recipient before
 /// calling this function. Just because you have someone's Nym ID doesn't mean
 /// you have his public key. Make sure you can load him up, and if you can't
 /// then download him, THEN call this function.
-int32_t OT_API::sendNymMessage(
+std::int32_t OT_API::sendNymMessage(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID,
     const Identifier& NYM_ID_RECIPIENT,
     const String& THE_MESSAGE) const
 {
-    int32_t nReturnValue = -1;
+    std::int32_t nReturnValue = -1;
 
     auto context = wallet_.ServerContext(NYM_ID, NOTARY_ID);
 
@@ -13490,7 +13457,7 @@ int32_t OT_API::sendNymMessage(
 /// This is what we put in the sender's outpayments, so he can retrieve those
 /// tokens if he needs to.
 ///
-int32_t OT_API::sendNymInstrument(
+std::int32_t OT_API::sendNymInstrument(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID,
     const Identifier& NYM_ID_RECIPIENT,
@@ -13499,7 +13466,7 @@ int32_t OT_API::sendNymInstrument(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);  // lose this yet?
     // ----------------------------------------------------
-    int32_t nReturnValue{-1};
+    std::int32_t nReturnValue{-1};
 
     auto context = wallet_.ServerContext(NYM_ID, NOTARY_ID);
 
@@ -13577,7 +13544,7 @@ int32_t OT_API::sendNymInstrument(
         //
         // Solution: Let's just make sure there's not already one there...
         //
-        int64_t lInstrumentOpeningNum{0};
+        std::int64_t lInstrumentOpeningNum{0};
         const bool bGotTransNum =
             THE_INSTRUMENT.GetOpeningNum(lInstrumentOpeningNum, NYM_ID);
         // ---------------------------------------
@@ -13777,13 +13744,13 @@ int32_t OT_API::sendNymInstrument(
 // if you look at the rest of the ledger functions here,
 // they all line up.
 //
-int32_t OT_API::Ledger_GetCount(const Ledger& theLedger) const
+std::int32_t OT_API::Ledger_GetCount(const Ledger& theLedger) const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
     return theLedger.GetTransactionCount();
 }
 
-std::set<int64_t> OT_API::Ledger_GetTransactionNums(
+std::set<std::int64_t> OT_API::Ledger_GetTransactionNums(
     const Ledger& theLedger) const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
@@ -13857,7 +13824,8 @@ OT_API::ProcessInbox OT_API::Ledger_CreateResponse(
 //
 OTTransaction* OT_API::Ledger_GetTransactionByIndex(
     Ledger& theLedger,
-    const int32_t& nIndex) const  // returns transaction by index (from ledger)
+    const std::int32_t& nIndex) const  // returns transaction by index (from
+                                       // ledger)
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
@@ -13872,7 +13840,7 @@ OTTransaction* OT_API::Ledger_GetTransactionByIndex(
         return nullptr;  // Weird. Should never happen.
     }
 
-    const int64_t lTransactionNum = pTransaction->GetTransactionNum();
+    const std::int64_t lTransactionNum = pTransaction->GetTransactionNum();
     // At this point, I actually have the transaction pointer, so let's return
     // it in string form...
 
@@ -13890,7 +13858,7 @@ OTTransaction* OT_API::Ledger_GetTransactionByIndex(
         pTransaction = nullptr;
 
         // const bool bLoadedBoxReceipt =
-        theLedger.LoadBoxReceipt(static_cast<int64_t>(lTransactionNum));
+        theLedger.LoadBoxReceipt(static_cast<std::int64_t>(lTransactionNum));
         pTransaction = theLedger.GetTransaction(lTransactionNum);
         if (nullptr == pTransaction) {
             otErr << __FUNCTION__
@@ -13906,7 +13874,7 @@ OTTransaction* OT_API::Ledger_GetTransactionByIndex(
     return pTransaction;
 }
 
-// Returns transaction by ID (transaction numbers are int64_t ints.
+// Returns transaction by ID (transaction numbers are std::int64_t ints.
 //
 // Note: If this function returns an abbreviated transaction instead of the
 // full version, then you probably just need to download it. (The box receipts
@@ -13920,7 +13888,7 @@ OTTransaction* OT_API::Ledger_GetTransactionByIndex(
 //
 OTTransaction* OT_API::Ledger_GetTransactionByID(
     Ledger& theLedger,
-    const int64_t& TRANSACTION_NUMBER) const
+    const std::int64_t& TRANSACTION_NUMBER) const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
@@ -13940,7 +13908,7 @@ OTTransaction* OT_API::Ledger_GetTransactionByID(
     // At this point, I actually have the transaction pointer, so
     // let's return it...
     //
-    const int64_t lTransactionNum = pTransaction->GetTransactionNum();
+    const std::int64_t lTransactionNum = pTransaction->GetTransactionNum();
     OT_ASSERT(lTransactionNum == TRANSACTION_NUMBER);
 
     // Update: for transactions in ABBREVIATED form, the string is empty,
@@ -13963,10 +13931,10 @@ OTTransaction* OT_API::Ledger_GetTransactionByID(
         // needs to be loaded up. Worth a shot.)
         //
         // const bool bLoadedBoxReceipt =
-        theLedger.LoadBoxReceipt(
-            static_cast<int64_t>(lTransactionNum));  // I still want it to send
-                                                     // the abbreviated form, if
-                                                     // this fails.
+        theLedger.LoadBoxReceipt(static_cast<std::int64_t>(
+            lTransactionNum));  // I still want it to send
+                                // the abbreviated form, if
+                                // this fails.
 
         // Grab this pointer again, since the object was re-instantiated
         // in the case of a successful LoadBoxReceipt.
@@ -13976,8 +13944,8 @@ OTTransaction* OT_API::Ledger_GetTransactionByID(
         // pointer is set to the abbreviated one in that case, OR NULL, if
         // it's not available for whatever reason.
         //
-        pTransaction =
-            theLedger.GetTransaction(static_cast<int64_t>(lTransactionNum));
+        pTransaction = theLedger.GetTransaction(
+            static_cast<std::int64_t>(lTransactionNum));
 
         if (nullptr == pTransaction) {
             otErr << OT_METHOD << __FUNCTION__
@@ -14038,7 +14006,7 @@ the payload on that message and returns the decrypted cleartext.
 std::unique_ptr<OTPayment> OT_API::Ledger_GetInstrument(
     const Identifier& theNymID,
     const Ledger& theLedger,
-    const int32_t& nIndex) const  // returns financial instrument by index.
+    const std::int32_t& nIndex) const  // returns financial instrument by index.
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
@@ -14072,7 +14040,7 @@ std::unique_ptr<OTPayment> OT_API::Ledger_GetInstrument(
 std::unique_ptr<OTPayment> OT_API::Ledger_GetInstrumentByReceiptID(
     const Identifier& theNymID,
     const Ledger& theLedger,
-    const int64_t& lReceiptId) const
+    const std::int64_t& lReceiptId) const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
@@ -14105,7 +14073,7 @@ std::unique_ptr<OTPayment> OT_API::Ledger_GetInstrumentByReceiptID(
 // returns the message, optionally with Subject: as first line.
 
  std::string OTAPI_Exec::GetNym_MailContentsByIndex(const std::string& NYM_ID,
-const int32_t& nIndex)
+const std::int32_t& nIndex)
 {
     OT_ASSERT_MSG("" != NYM_ID, "Null NYM_ID passed to
 OTAPI_Exec::GetNym_MailContentsByIndex");
@@ -14140,9 +14108,9 @@ OTAPI_Exec::GetNym_MailContentsByIndex");
 */
 
 // Returns a transaction number, or -1 for error.
-int64_t OT_API::Ledger_GetTransactionIDByIndex(
+std::int64_t OT_API::Ledger_GetTransactionIDByIndex(
     const Ledger& theLedger,
-    const int32_t& nIndex) const  // returns transaction number by index.
+    const std::int32_t& nIndex) const  // returns transaction number by index.
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
@@ -14153,7 +14121,7 @@ int64_t OT_API::Ledger_GetTransactionIDByIndex(
     //        "OTAPI_Exec::Ledger_GetTransactionIDByIndex: "
     //        "nIndex out of bounds.");
 
-    int64_t lTransactionNumber{0};
+    std::int64_t lTransactionNumber{0};
     OTTransaction* pTransaction = theLedger.GetTransactionByIndex(nIndex);
 
     if (nullptr == pTransaction) {
@@ -14212,9 +14180,8 @@ bool OT_API::Ledger_AddTransaction(
     if (!pTransaction->VerifyAccount(*pNym)) {
         const Identifier& theAccountID = theLedger.GetPurportedAccountID();
         String strAcctID(theAccountID);
-        otErr << OT_METHOD << __FUNCTION__
-              << ": Error verifying transaction. "
-                 "Acct ID: "
+        otErr << OT_METHOD << __FUNCTION__ << ": Error verifying transaction. "
+                                              "Acct ID: "
               << strAcctID << "\n";
         return false;
     }
@@ -14282,7 +14249,7 @@ bool OT_API::Transaction_CreateResponse(
 
     if (originalTransaction.IsAbbreviated()) {
         pOriginalTransaction = LoadBoxReceipt(
-            originalTransaction, static_cast<int64_t>(Ledger::inbox));
+            originalTransaction, static_cast<std::int64_t>(Ledger::inbox));
 
         if (nullptr == pOriginalTransaction) {
             String strAcctID(theAcctID);
@@ -14357,9 +14324,8 @@ bool OT_API::Ledger_FinalizeResponse(
 
     if (!pInbox) {
         String strAcctID(theAcctID);
-        otErr << OT_METHOD << __FUNCTION__
-              << ": Unable to load inbox."
-                 " Acct ID: "
+        otErr << OT_METHOD << __FUNCTION__ << ": Unable to load inbox."
+                                              " Acct ID: "
               << strAcctID << std::endl;
 
         return false;
@@ -14367,9 +14333,8 @@ bool OT_API::Ledger_FinalizeResponse(
     // -------------------------------------------------------
     if (false == pInbox->VerifyAccount(*nym)) {
         String strAcctID(theAcctID);
-        otErr << OT_METHOD << __FUNCTION__
-              << ": Unable to verify inbox."
-                 " Acct ID: "
+        otErr << OT_METHOD << __FUNCTION__ << ": Unable to verify inbox."
+                                              " Acct ID: "
               << strAcctID << std::endl;
 
         return false;
@@ -14434,7 +14399,7 @@ int32_t OT_API::registerNym(
 
     Message theMessage;
 
-    int32_t nReturnValue = m_pClient->ProcessUserCommand(
+    std::int32_t nReturnValue = m_pClient->ProcessUserCommand(
         MessageType::registerNym,
         theMessage,
         *pNym,
@@ -14472,7 +14437,7 @@ int32_t OT_API::unregisterNym(
     // By this point, pServer is a good pointer.  (No need to cleanup.)
     Message theMessage;
 
-    int32_t nReturnValue = m_pClient->ProcessUserCommand(
+    std::int32_t nReturnValue = m_pClient->ProcessUserCommand(
         MessageType::unregisterNym,
         theMessage,
         *pNym,
@@ -14514,8 +14479,8 @@ int32_t OT_API::initiatePeerRequest(
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
-    int64_t notUsed = 0;
-    int32_t output = -1;
+    std::int64_t notUsed = 0;
+    std::int32_t output = -1;
     if (!request) {
         otErr << __FUNCTION__ << ": Failed to create request." << std::endl;
 
@@ -14655,7 +14620,7 @@ int32_t OT_API::requestAdmin(
 
     SendMessage(NOTARY_ID, pNym, theMessage);
 
-    return static_cast<int32_t>(lRequestNumber);
+    return static_cast<std::int32_t>(lRequestNumber);
 }
 
 int32_t OT_API::serverAddClaim(
@@ -14701,7 +14666,7 @@ int32_t OT_API::serverAddClaim(
 
     SendMessage(notary, pNym, theMessage);
 
-    return static_cast<int32_t>(lRequestNumber);
+    return static_cast<std::int32_t>(lRequestNumber);
 }
 
 ConnectionState OT_API::CheckConnection(const std::string& server) const

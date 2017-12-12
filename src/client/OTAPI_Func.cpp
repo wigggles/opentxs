@@ -40,6 +40,9 @@
 
 #include "opentxs/client/OTAPI_Func.hpp"
 
+#include "opentxs/api/Api.hpp"
+#include "opentxs/api/Native.hpp"
+#include "opentxs/client/OT_API.hpp"
 #include "opentxs/client/OT_ME.hpp"
 #include "opentxs/client/SwigWrap.hpp"
 #include "opentxs/client/Utility.hpp"
@@ -49,6 +52,7 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/OTStorage.hpp"
+#include "opentxs/OT.hpp"
 
 #include <stdint.h>
 #include <iostream>
@@ -81,6 +85,7 @@ OTAPI_Func::OTAPI_Func(
     , tData(OT_TIME_ZERO)
     , nTransNumsNeeded(0)
     , nRequestNum(-1)
+    , transaction_number_(0)
     , context_(context)
     , otapi_(otapi)
 {
@@ -831,14 +836,19 @@ std::int32_t OTAPI_Func::Run() const
                 instrumentDefinitionID,
                 strData,
                 lData);
-        case SEND_TRANSFER:
-            return SwigWrap::notarizeTransfer(
-                String(context_.Server()).Get(),
-                String(context_.Nym()->ID()).Get(),
-                accountID,
-                accountID2,
-                lData,
-                strData);
+        case SEND_TRANSFER: {
+            const auto[status, number] =
+                OT::App().API().OTAPI().notarizeTransfer(
+                    context_.Server(),
+                    context_.Nym()->ID(),
+                    Identifier(accountID),
+                    Identifier(accountID2),
+                    lData,
+                    strData.c_str());
+            transaction_number_.store(number);
+
+            return status;
+        } break;
         case GET_MARKET_LIST:
             return SwigWrap::getMarketList(
                 String(context_.Server()).Get(),

@@ -359,7 +359,7 @@ bool OTAPI_Exec::LoadWallet() const { return ot_api_.LoadWallet(); }
 
 bool OTAPI_Exec::SwitchWallet() const { return ot_api_.LoadWallet(); }
 
-int32_t OTAPI_Exec::GetMemlogSize() const
+std::int32_t OTAPI_Exec::GetMemlogSize() const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
@@ -528,7 +528,7 @@ bool OTAPI_Exec::NumList_VerifyAll(
     return bVerified ? true : false;
 }
 
-int32_t OTAPI_Exec::NumList_Count(const std::string& strNumList) const
+std::int32_t OTAPI_Exec::NumList_Count(const std::string& strNumList) const
 {
     if (strNumList.empty()) {
         otErr << OT_METHOD << __FUNCTION__ << ": Null: strNumList passed in!\n";
@@ -787,7 +787,7 @@ std::string OTAPI_Exec::GetNym_Description(const std::string& NYM_ID) const
     return str_return;
 }
 
-int32_t OTAPI_Exec::GetNym_MasterCredentialCount(
+std::int32_t OTAPI_Exec::GetNym_MasterCredentialCount(
     const std::string& NYM_ID) const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
@@ -860,7 +860,8 @@ std::string OTAPI_Exec::GetNym_MasterCredentialContents(
     return {};
 }
 
-int32_t OTAPI_Exec::GetNym_RevokedCredCount(const std::string& NYM_ID) const
+std::int32_t OTAPI_Exec::GetNym_RevokedCredCount(
+    const std::string& NYM_ID) const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
@@ -936,7 +937,7 @@ std::string OTAPI_Exec::GetNym_RevokedCredContents(
     return {};
 }
 
-int32_t OTAPI_Exec::GetNym_ChildCredentialCount(
+std::int32_t OTAPI_Exec::GetNym_ChildCredentialCount(
     const std::string& NYM_ID,
     const std::string& MASTER_CRED_ID) const
 {
@@ -1554,7 +1555,7 @@ std::string OTAPI_Exec::GetServer_Contract(const std::string& NOTARY_ID)
     return strOutput.Get();
 }
 
-int32_t OTAPI_Exec::GetCurrencyDecimalPower(
+std::int32_t OTAPI_Exec::GetCurrencyDecimalPower(
     const std::string& INSTRUMENT_DEFINITION_ID) const
 {
     auto unit = wallet_.UnitDefinition(Identifier(INSTRUMENT_DEFINITION_ID));
@@ -1752,21 +1753,24 @@ std::string OTAPI_Exec::AddUnitDefinition(const std::string& strContract) const
     return {};
 }
 
-int32_t OTAPI_Exec::GetNymCount(void) const { return ot_api_.GetNymCount(); }
+std::int32_t OTAPI_Exec::GetNymCount(void) const
+{
+    return ot_api_.GetNymCount();
+}
 
-int32_t OTAPI_Exec::GetServerCount(void) const
+std::int32_t OTAPI_Exec::GetServerCount(void) const
 {
     const auto servers = wallet_.ServerList();
     return servers.size();
 }
 
-int32_t OTAPI_Exec::GetAssetTypeCount(void) const
+std::int32_t OTAPI_Exec::GetAssetTypeCount(void) const
 {
     const auto units = wallet_.UnitDefinitionList();
     return units.size();
 }
 
-int32_t OTAPI_Exec::GetAccountCount(void) const
+std::int32_t OTAPI_Exec::GetAccountCount(void) const
 {
     return ot_api_.GetAccountCount();
 }
@@ -1910,9 +1914,8 @@ bool OTAPI_Exec::Wallet_CanRemoveAssetType(
         if (theID == theCompareID) {
             otOut << OT_METHOD << __FUNCTION__
                   << ": Unable to remove asset contract "
-                  << INSTRUMENT_DEFINITION_ID
-                  << " from "
-                     "wallet: Account "
+                  << INSTRUMENT_DEFINITION_ID << " from "
+                                                 "wallet: Account "
                   << strAcctID << " uses it.\n";
             return false;
         }
@@ -2134,7 +2137,7 @@ bool OTAPI_Exec::DoesBoxReceiptExist(
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::getBoxReceipt(
+std::int32_t OTAPI_Exec::getBoxReceipt(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID,
     const std::string& ACCOUNT_ID,  // If for Nymbox (vs inbox/outbox) then pass
@@ -2197,7 +2200,7 @@ int32_t OTAPI_Exec::getBoxReceipt(
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::deleteAssetAccount(
+std::int32_t OTAPI_Exec::deleteAssetAccount(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID,
     const std::string& ACCOUNT_ID) const
@@ -2954,7 +2957,8 @@ bool OTAPI_Exec::Nym_VerifyOutmailByIndex(
 // entirely and replace it with SwigWrapper.cpp directly on
 // OpenTransactions.cpp
 
-int32_t OTAPI_Exec::GetNym_OutpaymentsCount(const std::string& NYM_ID) const
+std::int32_t OTAPI_Exec::GetNym_OutpaymentsCount(
+    const std::string& NYM_ID) const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
@@ -3889,7 +3893,7 @@ bool OTAPI_Exec::SetAssetType_Name(
 // Returns a count (0 through N numbers available),
 // or -1 for error (no nym found.)
 //
-int32_t OTAPI_Exec::GetNym_TransactionNumCount(
+std::int32_t OTAPI_Exec::GetNym_TransactionNumCount(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID) const
 {
@@ -4530,8 +4534,9 @@ std::string OTAPI_Exec::VerifyAndRetrieveXMLContents(
     const Identifier theSignerID(SIGNER_ID);
     String strOutput;
 
-    if (false == ot_api_.VerifyAndRetrieveXMLContents(
-                     strContract, theSignerID, strOutput)) {
+    if (false ==
+        ot_api_.VerifyAndRetrieveXMLContents(
+            strContract, theSignerID, strOutput)) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Failure: "
                  "ot_api_.VerifyAndRetrieveXMLContents() "
@@ -5924,7 +5929,7 @@ std::string OTAPI_Exec::SmartContract_RemoveAccount(
 // first grab however
 // many transaction#s he will need in order to confirm this smart contract.
 //
-int32_t OTAPI_Exec::SmartContract_CountNumsNeeded(
+std::int32_t OTAPI_Exec::SmartContract_CountNumsNeeded(
     const std::string& THE_CONTRACT,  // The smart contract, about to be queried
                                       // by this function.
     const std::string& AGENT_NAME) const
@@ -6156,7 +6161,8 @@ bool OTAPI_Exec::Smart_IsPartyConfirmed(
     return true;
 }
 
-int32_t OTAPI_Exec::Smart_GetPartyCount(const std::string& THE_CONTRACT) const
+std::int32_t OTAPI_Exec::Smart_GetPartyCount(
+    const std::string& THE_CONTRACT) const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
@@ -6175,7 +6181,8 @@ int32_t OTAPI_Exec::Smart_GetPartyCount(const std::string& THE_CONTRACT) const
     return pScriptable->GetPartyCount();
 }
 
-int32_t OTAPI_Exec::Smart_GetBylawCount(const std::string& THE_CONTRACT) const
+std::int32_t OTAPI_Exec::Smart_GetBylawCount(
+    const std::string& THE_CONTRACT) const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
@@ -6293,7 +6300,7 @@ std::string OTAPI_Exec::Bylaw_GetLanguage(
     return pBylaw->GetLanguage();
 }
 
-int32_t OTAPI_Exec::Bylaw_GetClauseCount(
+std::int32_t OTAPI_Exec::Bylaw_GetClauseCount(
     const std::string& THE_CONTRACT,
     const std::string& BYLAW_NAME) const
 {
@@ -6324,7 +6331,7 @@ int32_t OTAPI_Exec::Bylaw_GetClauseCount(
     return pBylaw->GetClauseCount();
 }
 
-int32_t OTAPI_Exec::Bylaw_GetVariableCount(
+std::int32_t OTAPI_Exec::Bylaw_GetVariableCount(
     const std::string& THE_CONTRACT,
     const std::string& BYLAW_NAME) const
 {
@@ -6355,7 +6362,7 @@ int32_t OTAPI_Exec::Bylaw_GetVariableCount(
     return pBylaw->GetVariableCount();
 }
 
-int32_t OTAPI_Exec::Bylaw_GetHookCount(
+std::int32_t OTAPI_Exec::Bylaw_GetHookCount(
     const std::string& THE_CONTRACT,
     const std::string& BYLAW_NAME) const
 {
@@ -6386,7 +6393,7 @@ int32_t OTAPI_Exec::Bylaw_GetHookCount(
     return pBylaw->GetHookCount();
 }
 
-int32_t OTAPI_Exec::Bylaw_GetCallbackCount(
+std::int32_t OTAPI_Exec::Bylaw_GetCallbackCount(
     const std::string& THE_CONTRACT,
     const std::string& BYLAW_NAME) const
 {
@@ -6730,7 +6737,7 @@ std::string OTAPI_Exec::Hook_GetNameByIndex(
 }
 
 /// Returns the number of clauses attached to a specific hook.
-int32_t OTAPI_Exec::Hook_GetClauseCount(
+std::int32_t OTAPI_Exec::Hook_GetClauseCount(
     const std::string& THE_CONTRACT,
     const std::string& BYLAW_NAME,
     const std::string& HOOK_NAME) const
@@ -6898,7 +6905,7 @@ std::string OTAPI_Exec::Callback_GetClause(
     return pClause->GetName().Get();
 }
 
-int32_t OTAPI_Exec::Party_GetAcctCount(
+std::int32_t OTAPI_Exec::Party_GetAcctCount(
     const std::string& THE_CONTRACT,
     const std::string& PARTY_NAME) const
 {
@@ -6929,7 +6936,7 @@ int32_t OTAPI_Exec::Party_GetAcctCount(
     return pParty->GetAccountCount();
 }
 
-int32_t OTAPI_Exec::Party_GetAgentCount(
+std::int32_t OTAPI_Exec::Party_GetAgentCount(
     const std::string& THE_CONTRACT,
     const std::string& PARTY_NAME) const
 {
@@ -7290,7 +7297,7 @@ std::string OTAPI_Exec::Party_GetAgentID(
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::activateSmartContract(
+std::int32_t OTAPI_Exec::activateSmartContract(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID,
     const std::string& THE_SMART_CONTRACT) const
@@ -7320,7 +7327,7 @@ int32_t OTAPI_Exec::activateSmartContract(
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::triggerClause(
+std::int32_t OTAPI_Exec::triggerClause(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID,
     const int64_t& TRANSACTION_NUMBER,
@@ -8551,7 +8558,7 @@ bool OTAPI_Exec::ClearExpired(
 }
 
 // Returns number of transactions within, or -1 for error.
-int32_t OTAPI_Exec::Ledger_GetCount(
+std::int32_t OTAPI_Exec::Ledger_GetCount(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID,
     const std::string& ACCOUNT_ID,
@@ -10184,7 +10191,7 @@ time64_t OTAPI_Exec::Transaction_GetDateSigned(
 //
 // Returns OT_BOOL.
 //
-int32_t OTAPI_Exec::Transaction_GetSuccess(
+std::int32_t OTAPI_Exec::Transaction_GetSuccess(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID,
     const std::string& ACCOUNT_ID,
@@ -10269,7 +10276,7 @@ int32_t OTAPI_Exec::Transaction_GetSuccess(
     return OT_FALSE;
 }
 
-int32_t OTAPI_Exec::Transaction_IsCanceled(
+std::int32_t OTAPI_Exec::Transaction_IsCanceled(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID,
     const std::string& ACCOUNT_ID,
@@ -10368,7 +10375,7 @@ int32_t OTAPI_Exec::Transaction_IsCanceled(
 //                              false (0) == rejection
 // NEW: -1 (-1) for error
 //
-int32_t OTAPI_Exec::Transaction_GetBalanceAgreementSuccess(
+std::int32_t OTAPI_Exec::Transaction_GetBalanceAgreementSuccess(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID,
     const std::string& ACCOUNT_ID,
@@ -10466,7 +10473,7 @@ int32_t OTAPI_Exec::Transaction_GetBalanceAgreementSuccess(
 // Returns true (1) for Success and false (0) for Failure.
 // New: returns -1 (-1) for error.
 //
-int32_t OTAPI_Exec::Message_GetBalanceAgreementSuccess(
+std::int32_t OTAPI_Exec::Message_GetBalanceAgreementSuccess(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID,
     const std::string& ACCOUNT_ID,
@@ -10696,7 +10703,7 @@ int64_t OTAPI_Exec::Purse_GetTotalValue(
 // Returns a count of the tokens inside this purse. (Coins.)
 // or -1 in case of error.
 //
-int32_t OTAPI_Exec::Purse_Count(
+std::int32_t OTAPI_Exec::Purse_Count(
     const std::string& NOTARY_ID,
     const std::string& INSTRUMENT_DEFINITION_ID,
     const std::string& THE_PURSE) const
@@ -11249,7 +11256,7 @@ bool OTAPI_Exec::Wallet_ImportPurse(
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::exchangePurse(
+std::int32_t OTAPI_Exec::exchangePurse(
     const std::string& NOTARY_ID,
     const std::string& INSTRUMENT_DEFINITION_ID,
     const std::string& NYM_ID,
@@ -11422,7 +11429,7 @@ int64_t OTAPI_Exec::Token_GetDenomination(
 // Returns -1 for error.
 // Otherwise returns the series number of this token. (Int.)
 //
-int32_t OTAPI_Exec::Token_GetSeries(
+std::int32_t OTAPI_Exec::Token_GetSeries(
     const std::string& NOTARY_ID,
     const std::string& INSTRUMENT_DEFINITION_ID,
     const std::string& THE_TOKEN) const
@@ -11579,7 +11586,7 @@ bool OTAPI_Exec::IsBasketCurrency(
 // Returns the number of instrument definitions that make up this basket.
 // (Or zero.)
 //
-int32_t OTAPI_Exec::Basket_GetMemberCount(
+std::int32_t OTAPI_Exec::Basket_GetMemberCount(
     const std::string& INSTRUMENT_DEFINITION_ID) const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
@@ -11689,7 +11696,7 @@ int64_t OTAPI_Exec::Basket_GetMemberMinimumTransferAmount(
     return lMinTransAmount;
 }
 
-int32_t OTAPI_Exec::registerContractNym(
+std::int32_t OTAPI_Exec::registerContractNym(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID,
     const std::string& CONTRACT) const
@@ -11707,7 +11714,7 @@ int32_t OTAPI_Exec::registerContractNym(
         Identifier(CONTRACT));
 }
 
-int32_t OTAPI_Exec::registerContractServer(
+std::int32_t OTAPI_Exec::registerContractServer(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID,
     const std::string& CONTRACT) const
@@ -11725,7 +11732,7 @@ int32_t OTAPI_Exec::registerContractServer(
         Identifier(CONTRACT));
 }
 
-int32_t OTAPI_Exec::registerContractUnit(
+std::int32_t OTAPI_Exec::registerContractUnit(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID,
     const std::string& CONTRACT) const
@@ -11751,7 +11758,7 @@ int32_t OTAPI_Exec::registerContractUnit(
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::registerNym(
+std::int32_t OTAPI_Exec::registerNym(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID) const
 {
@@ -11773,7 +11780,7 @@ int32_t OTAPI_Exec::registerNym(
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::unregisterNym(
+std::int32_t OTAPI_Exec::unregisterNym(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID) const
 {
@@ -11868,7 +11875,7 @@ int64_t OTAPI_Exec::Message_GetUsageCredits(
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::usageCredits(
+std::int32_t OTAPI_Exec::usageCredits(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID,
     const std::string& NYM_ID_CHECK,
@@ -11909,7 +11916,7 @@ int32_t OTAPI_Exec::usageCredits(
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::checkNym(
+std::int32_t OTAPI_Exec::checkNym(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID,
     const std::string& NYM_ID_CHECK) const
@@ -12124,7 +12131,7 @@ std::string OTAPI_Exec::acknowledgeConnection(
     return {};
 }
 
-int32_t OTAPI_Exec::initiatePeerRequest(
+std::int32_t OTAPI_Exec::initiatePeerRequest(
     const std::string& sender,
     const std::string& recipient,
     const std::string& server,
@@ -12145,7 +12152,7 @@ int32_t OTAPI_Exec::initiatePeerRequest(
         senderID, Identifier(recipient), Identifier(server), instantiated);
 }
 
-int32_t OTAPI_Exec::initiatePeerReply(
+std::int32_t OTAPI_Exec::initiatePeerReply(
     const std::string& sender,
     const std::string& recipient,
     const std::string& server,
@@ -12172,7 +12179,7 @@ int32_t OTAPI_Exec::initiatePeerReply(
         instantiated);
 }
 
-int32_t OTAPI_Exec::completePeerReply(
+std::int32_t OTAPI_Exec::completePeerReply(
     const std::string& nymID,
     const std::string& replyID) const
 {
@@ -12182,7 +12189,7 @@ int32_t OTAPI_Exec::completePeerReply(
     return wallet_.PeerReplyComplete(nym, reply);
 }
 
-int32_t OTAPI_Exec::completePeerRequest(
+std::int32_t OTAPI_Exec::completePeerRequest(
     const std::string& nymID,
     const std::string& requestID) const
 {
@@ -12399,7 +12406,7 @@ std::string OTAPI_Exec::getReply_Base64(
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::sendNymMessage(
+std::int32_t OTAPI_Exec::sendNymMessage(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID,
     const std::string& NYM_ID_RECIPIENT,
@@ -12428,7 +12435,7 @@ int32_t OTAPI_Exec::sendNymMessage(
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::sendNymInstrument(
+std::int32_t OTAPI_Exec::sendNymInstrument(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID,
     const std::string& NYM_ID_RECIPIENT,
@@ -12520,7 +12527,7 @@ int32_t OTAPI_Exec::sendNymInstrument(
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::registerInstrumentDefinition(
+std::int32_t OTAPI_Exec::registerInstrumentDefinition(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID,
     const std::string& THE_CONTRACT) const
@@ -12547,7 +12554,7 @@ int32_t OTAPI_Exec::registerInstrumentDefinition(
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::getInstrumentDefinition(
+std::int32_t OTAPI_Exec::getInstrumentDefinition(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID,
     const std::string& INSTRUMENT_DEFINITION_ID) const
@@ -12573,7 +12580,7 @@ int32_t OTAPI_Exec::getInstrumentDefinition(
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::getMint(
+std::int32_t OTAPI_Exec::getMint(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID,
     const std::string& INSTRUMENT_DEFINITION_ID) const
@@ -12598,7 +12605,7 @@ int32_t OTAPI_Exec::getMint(
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::registerAccount(
+std::int32_t OTAPI_Exec::registerAccount(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID,
     const std::string& INSTRUMENT_DEFINITION_ID) const
@@ -12625,7 +12632,7 @@ int32_t OTAPI_Exec::registerAccount(
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::getAccountData(
+std::int32_t OTAPI_Exec::getAccountData(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID,
     const std::string& ACCT_ID) const
@@ -12734,7 +12741,7 @@ std::string OTAPI_Exec::AddBasketCreationItem(
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::issueBasket(
+std::int32_t OTAPI_Exec::issueBasket(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID,
     const std::string& THE_BASKET) const
@@ -12882,7 +12889,7 @@ std::string OTAPI_Exec::AddBasketExchangeItem(
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
 
-int32_t OTAPI_Exec::exchangeBasket(
+std::int32_t OTAPI_Exec::exchangeBasket(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID,
     const std::string& BASKET_INSTRUMENT_DEFINITION_ID,
@@ -12924,7 +12931,7 @@ int32_t OTAPI_Exec::exchangeBasket(
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::getTransactionNumbers(
+std::int32_t OTAPI_Exec::getTransactionNumbers(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID) const
 {
@@ -12947,7 +12954,7 @@ int32_t OTAPI_Exec::getTransactionNumbers(
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::notarizeWithdrawal(
+std::int32_t OTAPI_Exec::notarizeWithdrawal(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID,
     const std::string& ACCT_ID,
@@ -12974,7 +12981,7 @@ int32_t OTAPI_Exec::notarizeWithdrawal(
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::notarizeDeposit(
+std::int32_t OTAPI_Exec::notarizeDeposit(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID,
     const std::string& ACCT_ID,
@@ -13020,13 +13027,12 @@ int32_t OTAPI_Exec::notarizeTransfer(
 
     Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID);
     Identifier theFromAcct(ACCT_FROM), theToAcct(ACCT_TO);
-
     String strNote(NOTE.empty() ? "" : NOTE);
+    const auto[status, number] = ot_api_.notarizeTransfer(
+        theNotaryID, theNymID, theFromAcct, theToAcct, AMOUNT, strNote);
+    const auto& notUsed[[maybe_unused]] = number;
 
-    int64_t lAmount = AMOUNT;
-
-    return ot_api_.notarizeTransfer(
-        theNotaryID, theNymID, theFromAcct, theToAcct, lAmount, strNote);
+    return status;
 }
 
 // Returns int32_t:
@@ -13037,7 +13043,7 @@ int32_t OTAPI_Exec::notarizeTransfer(
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::getNymbox(
+std::int32_t OTAPI_Exec::getNymbox(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID) const
 {
@@ -13059,7 +13065,7 @@ int32_t OTAPI_Exec::getNymbox(
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::processInbox(
+std::int32_t OTAPI_Exec::processInbox(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID,
     const std::string& ACCT_ID,
@@ -13098,7 +13104,7 @@ int32_t OTAPI_Exec::processInbox(
 //  1 or more: (OLD: Count of items in Nymbox before processing.)
 //  UPDATE: This now returns the request number of the message sent, if success.
 //
-int32_t OTAPI_Exec::processNymbox(
+std::int32_t OTAPI_Exec::processNymbox(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID) const
 {
@@ -13120,7 +13126,7 @@ int32_t OTAPI_Exec::processNymbox(
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::withdrawVoucher(
+std::int32_t OTAPI_Exec::withdrawVoucher(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID,
     const std::string& ACCT_ID,
@@ -13149,7 +13155,7 @@ int32_t OTAPI_Exec::withdrawVoucher(
 
 // PAY DIVIDEND -- to shareholders
 //
-int32_t OTAPI_Exec::payDividend(
+std::int32_t OTAPI_Exec::payDividend(
     const std::string& NOTARY_ID,
     const std::string& ISSUER_NYM_ID,  // must be issuer of
                                        // SHARES_INSTRUMENT_DEFINITION_ID
@@ -13200,7 +13206,7 @@ int32_t OTAPI_Exec::payDividend(
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::depositCheque(
+std::int32_t OTAPI_Exec::depositCheque(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID,
     const std::string& ACCT_ID,
@@ -13232,7 +13238,7 @@ int32_t OTAPI_Exec::depositCheque(
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::depositPaymentPlan(
+std::int32_t OTAPI_Exec::depositPaymentPlan(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID,
     const std::string& THE_PAYMENT_PLAN) const
@@ -13261,7 +13267,7 @@ int32_t OTAPI_Exec::depositPaymentPlan(
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::killMarketOffer(
+std::int32_t OTAPI_Exec::killMarketOffer(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID,
     const std::string& ASSET_ACCT_ID,
@@ -13297,7 +13303,7 @@ int32_t OTAPI_Exec::killMarketOffer(
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::killPaymentPlan(
+std::int32_t OTAPI_Exec::killPaymentPlan(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID,
     const std::string& FROM_ACCT_ID,
@@ -13322,7 +13328,7 @@ int32_t OTAPI_Exec::killPaymentPlan(
         static_cast<int64_t>(lTransactionNumber));
 }
 
-int32_t OTAPI_Exec::requestAdmin(
+std::int32_t OTAPI_Exec::requestAdmin(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID,
     const std::string& PASSWORD) const
@@ -13337,7 +13343,7 @@ int32_t OTAPI_Exec::requestAdmin(
         Identifier(NOTARY_ID), Identifier(NYM_ID), PASSWORD);
 }
 
-int32_t OTAPI_Exec::serverAddClaim(
+std::int32_t OTAPI_Exec::serverAddClaim(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID,
     const std::string& SECTION,
@@ -13372,7 +13378,7 @@ int32_t OTAPI_Exec::serverAddClaim(
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::issueMarketOffer(
+std::int32_t OTAPI_Exec::issueMarketOffer(
     const std::string& ASSET_ACCT_ID,     // Perhaps this is the wheat market.
     const std::string& CURRENCY_ACCT_ID,  // Perhaps I'm buying the wheat with
                                           // rubles.
@@ -13480,7 +13486,7 @@ int32_t OTAPI_Exec::issueMarketOffer(
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::getMarketList(
+std::int32_t OTAPI_Exec::getMarketList(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID) const
 {
@@ -13502,7 +13508,7 @@ int32_t OTAPI_Exec::getMarketList(
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::getMarketOffers(
+std::int32_t OTAPI_Exec::getMarketOffers(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID,
     const std::string& MARKET_ID,
@@ -13530,7 +13536,7 @@ int32_t OTAPI_Exec::getMarketOffers(
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::getMarketRecentTrades(
+std::int32_t OTAPI_Exec::getMarketRecentTrades(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID,
     const std::string& MARKET_ID) const
@@ -13555,7 +13561,7 @@ int32_t OTAPI_Exec::getMarketRecentTrades(
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::getNymMarketOffers(
+std::int32_t OTAPI_Exec::getNymMarketOffers(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID) const
 {
@@ -13884,7 +13890,7 @@ bool OTAPI_Exec::ResyncNymWithServer(
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::queryInstrumentDefinitions(
+std::int32_t OTAPI_Exec::queryInstrumentDefinitions(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID,
     const std::string& ENCODED_MAP) const
@@ -14023,8 +14029,9 @@ std::string OTAPI_Exec::Message_GetNewInstrumentDefinitionID(
     // contain a ledger. (Don't want to pass back whatever it DOES contain
     // in that case, now do I?)
     //
-    if ((false == theMessage.m_strCommand.Compare(
-                      "registerInstrumentDefinitionResponse")) &&
+    if ((false ==
+         theMessage.m_strCommand.Compare(
+             "registerInstrumentDefinitionResponse")) &&
         (false == theMessage.m_strCommand.Compare("issueBasketResponse"))) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Wrong message type: " << theMessage.m_strCommand << "\n";
@@ -14199,7 +14206,8 @@ std::string OTAPI_Exec::Message_GetNymboxHash(
 //
 // NEW: returns (-1) for error!
 //
-int32_t OTAPI_Exec::Message_GetSuccess(const std::string& THE_MESSAGE) const
+std::int32_t OTAPI_Exec::Message_GetSuccess(
+    const std::string& THE_MESSAGE) const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
@@ -14266,7 +14274,7 @@ int32_t OTAPI_Exec::Message_GetSuccess(const std::string& THE_MESSAGE) const
 // successful
 // reply.)
 //
-int32_t OTAPI_Exec::Message_GetDepth(const std::string& THE_MESSAGE) const
+std::int32_t OTAPI_Exec::Message_GetDepth(const std::string& THE_MESSAGE) const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
@@ -14286,7 +14294,7 @@ int32_t OTAPI_Exec::Message_GetDepth(const std::string& THE_MESSAGE) const
 // Returns true (1) for Success and false (0) for Failure.
 //         also returns (-1) for Error
 //
-int32_t OTAPI_Exec::Message_IsTransactionCanceled(
+std::int32_t OTAPI_Exec::Message_IsTransactionCanceled(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID,
     const std::string& ACCOUNT_ID,
@@ -14375,7 +14383,7 @@ int32_t OTAPI_Exec::Message_IsTransactionCanceled(
 // Returns true (1) for Success and false (0) for Failure.
 //         also returns (-1) for Error
 //
-int32_t OTAPI_Exec::Message_GetTransactionSuccess(
+std::int32_t OTAPI_Exec::Message_GetTransactionSuccess(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID,
     const std::string& ACCOUNT_ID,
