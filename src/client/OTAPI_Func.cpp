@@ -807,12 +807,30 @@ std::int32_t OTAPI_Func::Run() const
 #else
             return -1;
 #endif  // OT_CASH
-        case DEPOSIT_CHEQUE:
-            return SwigWrap::depositCheque(
-                String(context_.Server()).Get(),
-                String(context_.Nym()->ID()).Get(),
-                accountID,
-                strData);
+        case DEPOSIT_CHEQUE: {
+            auto[requestNum, transactionNum, result] =
+                OT::App().API().OTAPI().depositCheque(
+                    context_.Server(),
+                    context_.Nym()->ID(),
+                    Identifier(accountID),
+                    strData.c_str());
+            auto & [ status, reply ] = result;
+            transaction_number_.store(transactionNum);
+            last_send_status_ = status;
+            last_reply_.reset(reply.release());
+
+            if (0 == requestNum) {
+
+                return 0;
+            }
+
+            if (SendResult::VALID_REPLY != status) {
+
+                return -1;
+            }
+
+            return requestNum;
+        } break;
         case DEPOSIT_PAYMENT_PLAN:
             return SwigWrap::depositPaymentPlan(
                 String(context_.Server()).Get(),

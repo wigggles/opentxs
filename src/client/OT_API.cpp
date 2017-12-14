@@ -10541,74 +10541,65 @@ bool OT_API::DiscardCheque(
 // it's being deposited back into the same account that originally wrote
 // the cheque) this means the original cheque writer is CANCELLING the
 // cheque, to prevent the recipient from depositing it.
-std::int32_t OT_API::depositCheque(
+CommandResult OT_API::depositCheque(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID,
     const Identifier& ACCT_ID,
     const String& THE_CHEQUE) const
 {
     rLock lock(lock_);
+    CommandResult output{};
+    auto & [ requestNum, transactionNum, result ] = output;
+    auto & [ status, reply ] = result;
+    requestNum = -1;
+    transactionNum = 0;
+    status = SendResult::ERROR;
+    reply.reset(nullptr);
+    // nymfile is not owned by this function
+    auto nymfile = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
 
-    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
+    if (nullptr == nymfile) {
 
-    if (nullptr == pNym) {
-        return (-1);
+        return output;
     }
 
-    // By this point, pNym is a good pointer, and is on the wallet. (No need to
-    // cleanup.)
     auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
-    Account* pAccount =
-        GetOrLoadAccount(*pNym, ACCT_ID, NOTARY_ID, __FUNCTION__);
+    const auto& nym = *context.It().Nym();
+    // account is not owned by this function
+    auto account = GetOrLoadAccount(nym, ACCT_ID, NOTARY_ID, __FUNCTION__);
 
-    if (nullptr == pAccount) return (-1);
-    // By this point, pAccount is a good pointer, and is on the wallet. (No need
-    // to cleanup.)
-    Identifier CONTRACT_ID;
-    String strContractID;
-    CONTRACT_ID = pAccount->GetInstrumentDefinitionID();
-    CONTRACT_ID.GetString(strContractID);
-    Message theMessage;
-    String strNotaryID(NOTARY_ID), strNymID(NYM_ID), strDepositAcct(ACCT_ID);
-    Cheque theCheque(NOTARY_ID, CONTRACT_ID);
-    const auto number =
-        context.It().NextTransactionNumber(MessageType::notarizeTransaction);
+    if (nullptr == account) {
 
-    if (false == number.Valid()) {
-        otOut << __FUNCTION__ << ": No transaction numbers were available. "
-                                 "Try requesting the server for a new one.\n";
-
-        return -1;
+        return output;
     }
 
-    otErr << OT_METHOD << __FUNCTION__ << ": Allocated transaction number "
-          << number << std::endl;
+    Cheque theCheque(NOTARY_ID, account->GetInstrumentDefinitionID());
 
     if (!theCheque.LoadContractFromString(THE_CHEQUE)) {
         otOut << __FUNCTION__
               << ": Unable to load cheque from string. Sorry. Contents:\n\n"
               << THE_CHEQUE << "\n\n";
 
-        return -1;
+        return output;
     }
 
     if (theCheque.GetNotaryID() != NOTARY_ID) {
-        const String strChequeNotaryID(theCheque.GetNotaryID());
-        otOut << __FUNCTION__ << ": NotaryID on cheque (" << strChequeNotaryID
+        otOut << __FUNCTION__ << ": NotaryID on cheque ("
+              << String(theCheque.GetNotaryID())
               << ") doesn't "
                  "match notaryID where it's being deposited to ("
-              << strNotaryID << ").";
+              << String(NOTARY_ID) << ").";
 
-        return -1;
+        return output;
     }
 
-    std::unique_ptr<Ledger> pInbox(pAccount->LoadInbox(*pNym));
+    std::unique_ptr<Ledger> pInbox(account->LoadInbox(nym));
 
-    if (nullptr == pInbox) {
+    if (false == bool(pInbox)) {
         otOut << __FUNCTION__ << ": Failed loading inbox for acct "
-              << strDepositAcct << "\n";
+              << String(ACCT_ID) << "\n";
 
-        return -1;
+        return output;
     }
 
     // If bCancellingCheque==true, we're actually cancelling the cheque by
@@ -10624,7 +10615,7 @@ std::int32_t OT_API::depositCheque(
             ((theCheque.GetSenderAcctID() == ACCT_ID) &&
              (theCheque.GetSenderNymID() == NYM_ID));
         if (bCancellingCheque)
-            bCancellingCheque = theCheque.VerifySignature(*pNym);
+            bCancellingCheque = theCheque.VerifySignature(nym);
     }
 
     // By this point he's definitely TRYING to cancel the cheque.
@@ -10633,13 +10624,10 @@ std::int32_t OT_API::depositCheque(
             context.It().VerifyIssuedNumber(theCheque.GetTransactionNum());
 
         // If we TRIED to cancel the cheque (being in this block...) yet the
-        // signature fails
-        // to verify, or the transaction number isn't even issued, then our
-        // attempt to cancel
-        // the cheque is going to fail.
+        // signature fails to verify, or the transaction number isn't even
+        // issued, then our attempt to cancel the cheque is going to fail.
         if (!bCancellingCheque) {
             // This is the "tried and failed" block.
-            //
             otOut << __FUNCTION__
                   << ": Cannot cancel this cheque. Either the "
                      "signature fails to verify,\n"
@@ -10647,14 +10635,12 @@ std::int32_t OT_API::depositCheque(
                      "out. (Failure.) Cheque contents:\n\n"
                   << THE_CHEQUE << "\n\n";
 
-            return (-1);
+            return output;
         }
 
         // Else we succeeded in verifying signature and issued num.
         // Let's just make sure there isn't a chequeReceipt or
-        // voucherReceipt
-        // already sitting in the inbox, for this same cheque.
-        //
+        // voucherReceipt already sitting in the inbox, for this same cheque.
         OTTransaction* pChequeReceipt =
             pInbox->GetChequeReceipt(theCheque.GetTransactionNum());
 
@@ -10681,130 +10667,113 @@ std::int32_t OT_API::depositCheque(
         theCheque.ReleaseSignatures();  // Usually when you deposit a
                                         // cheque,
                                         // it's signed by someone else.
-        theCheque.SignContract(*pNym);  // But if we are CANCELING a cheque,
+        theCheque.SignContract(nym);    // But if we are CANCELING a cheque,
                                         // that means we wrote that cheque
         theCheque.SaveContract();       // originally, so we are the original
                                         // signer.
     }                                   // cancelling cheque
+
+    std::set<ServerContext::ManagedNumber> managed{};
+    managed.insert(
+        context.It().NextTransactionNumber(MessageType::notarizeTransaction));
+    auto& managedNumber = *managed.begin();
+
+    if (false == managedNumber.Valid()) {
+        otOut << __FUNCTION__ << ": No transaction numbers were available. "
+                                 "Try requesting the server for a new one.\n";
+
+        return output;
+    }
+
+    otErr << OT_METHOD << __FUNCTION__ << ": Allocated transaction number "
+          << managedNumber << std::endl;
+    transactionNum = managedNumber;
     // Create a transaction
-    std::unique_ptr<OTTransaction> pTransaction(
+    std::unique_ptr<OTTransaction> transaction(
         OTTransaction::GenerateTransaction(
             NYM_ID,
             ACCT_ID,
             NOTARY_ID,
             OTTransaction::deposit,
             originType::not_applicable,
-            number));
+            transactionNum));
 
     // set up the transaction item (each transaction may have multiple
     // items...)
-    Item* pItem =
-        Item::CreateItemFromTransaction(*pTransaction, Item::depositCheque);
+    std::unique_ptr<Item> item{nullptr};
+    item.reset(
+        Item::CreateItemFromTransaction(*transaction, Item::depositCheque));
 
-    String strNote(
-        bCancellingCheque ? "Cancel this cheque, please!"
-                          : "Deposit this cheque, please!");  // todo
-    pItem->SetNote(strNote);
+    if (false == bool(item)) {
 
-    String strCheque(theCheque);  // <===== THE CHEQUE
-
-    // Add the cheque string as the attachment on the transaction item.
-    pItem->SetAttachment(
-        strCheque);  // The cheque is contained in the reference string.
-
-    // sign the item
-    pItem->SignContract(*pNym);
-    pItem->SaveContract();
-
-    // the Transaction "owns" the item now and will handle cleaning it up.
-    pTransaction->AddItem(*pItem);  // the Transaction's destructor will
-                                    // cleanup the item. It "owns" it now.
-    std::unique_ptr<Ledger> pOutbox(pAccount->LoadOutbox(*pNym));
-
-    if (nullptr == pOutbox) {
-        otOut << "OT_API::depositCheque: Failed loading outbox for acct "
-              << strDepositAcct << "\n";
-
-        return -1;
+        return output;
     }
 
-    // Above this line, the transaction number will be recovered automatically
-    number.SetSuccess(true);
+    const String strNote(
+        bCancellingCheque ? "Cancel this cheque, please!"
+                          : "Deposit this cheque, please!");  // TODO
+    item->SetNote(strNote);
+    item->SetAttachment(String(theCheque));
+    item->SignContract(nym);
+    item->SaveContract();
 
-    // BALANCE AGREEMENT
-    // pBalanceItem is signed and saved within this call. No need to do
-    // that twice.
-    Item* pBalanceItem = pInbox->GenerateBalanceStatement(
-        theCheque.GetAmount(),
-        *pTransaction,
-        context.It(),
-        *pAccount,
-        *pOutbox);
+    transaction->AddItem(*item.release());
+    std::unique_ptr<Ledger> outbox(account->LoadOutbox(nym));
 
-    if (nullptr != pBalanceItem)  // will never be nullptr. Will assert above
-                                  // before it gets here.
-        pTransaction->AddItem(*pBalanceItem);  // Better not be nullptr...
-                                               // message will fail...
-                                               // But better check
-                                               // anyway.
-    // else log
-    // sign the transaction
-    pTransaction->SignContract(*pNym);
-    pTransaction->SaveContract();
+    if (false == bool(outbox)) {
+        otOut << "OT_API::depositCheque: Failed loading outbox for acct "
+              << String(ACCT_ID) << "\n";
 
-    // set up the ledger
-    Ledger theLedger(NYM_ID, ACCT_ID, NOTARY_ID);
-    theLedger.GenerateLedger(
-        ACCT_ID,
-        NOTARY_ID,
-        Ledger::message);                     // bGenerateLedger
-                                              // defaults to false,
-                                              // which is correct.
-    theLedger.AddTransaction(*pTransaction);  // now the ledger "owns"
-    // and will handle cleaning
-    // up the transaction.
-    pTransaction.release();
+        return output;
+    }
+
+    std::unique_ptr<Item> balanceItem{nullptr};
+    balanceItem.reset(pInbox->GenerateBalanceStatement(
+        theCheque.GetAmount(), *transaction, context.It(), *account, *outbox));
+
+    if (false == bool(balanceItem)) {
+
+        return output;
+    }
+
+    transaction->AddItem(*balanceItem.release());
+    transaction->SignContract(nym);
+    transaction->SaveContract();
+
+    Ledger ledger(NYM_ID, ACCT_ID, NOTARY_ID);
+    const bool generated =
+        ledger.GenerateLedger(ACCT_ID, NOTARY_ID, Ledger::message);
+
+    if (false == generated) {
+
+        return output;
+    }
+
+    ledger.AddTransaction(*transaction.release());
 
     // sign the ledger
-    theLedger.SignContract(*pNym);
-    theLedger.SaveContract();
+    ledger.SignContract(nym);
+    ledger.SaveContract();
 
-    // extract the ledger in ascii-armored form... encoding...
-    String strLedger(theLedger);
-    OTASCIIArmor ascLedger(strLedger);
+    auto[newRequestNumber, message] = context.It().InitializeServerCommand(
+        MessageType::notarizeTransaction,
+        OTASCIIArmor(String(ledger)),
+        ACCT_ID);
+    requestNum = newRequestNumber;
 
-    // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-    auto lRequestNumber = context.It().Request();
-    theMessage.m_strRequestNum.Format("%" PRId64, lRequestNumber);
-    context.It().IncrementRequest();
+    if (false == bool(message)) {
 
-    // (1) Set up member variables
-    theMessage.m_strCommand = "notarizeTransaction";
-    theMessage.m_strNymID = strNymID;
-    theMessage.m_strNotaryID = strNotaryID;
-    theMessage.SetAcknowledgments(context.It());
-    theMessage.m_strAcctID = strDepositAcct;
-    theMessage.m_ascPayload = ascLedger;
-
-    Identifier NYMBOX_HASH = context.It().LocalNymboxHash();
-    NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
-
-    if (!String(NYMBOX_HASH).Exists()) {
-        otErr << "Failed getting NymboxHash from Nym for server: "
-              << strNotaryID << std::endl;
+        return output;
     }
 
-    // (2) Sign the Message
-    theMessage.SignContract(*pNym);
+    if (false == context.It().FinalizeServerCommand(*message)) {
 
-    // (3) Save the Message (with signatures and all, back to its
-    // internal member m_strRawFile.)
-    theMessage.SaveContract();
+        return output;
+    }
 
-    // (Send it)
-    send_message(NOTARY_ID, pNym, theMessage);
+    result = send_message(NOTARY_ID, managed, nymfile, *message);
 
-    return static_cast<std::int32_t>(lRequestNumber);
+    return output;
 }
 
 // DEPOSIT PAYMENT PLAN

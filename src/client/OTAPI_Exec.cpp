@@ -13164,34 +13164,6 @@ std::int32_t OTAPI_Exec::payDividend(
         lAmount);
 }
 
-// Returns int32_t:
-// -1 means error; no message was sent.
-//  0 means NO error, but also: no message was sent.
-// >0 means NO error, and the message was sent, and the request number fits into
-// an integer...
-//  ...and in fact the requestNum IS the return value!
-//  ===> In 99% of cases, this LAST option is what actually happens!!
-//
-std::int32_t OTAPI_Exec::depositCheque(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& ACCT_ID,
-    const std::string& THE_CHEQUE) const
-{
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    OT_VERIFY_ID_STR(NOTARY_ID);
-    OT_VERIFY_ID_STR(NYM_ID);
-    OT_VERIFY_ID_STR(ACCT_ID);
-    OT_VERIFY_STD_STR(THE_CHEQUE);
-
-    Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID), theAcctID(ACCT_ID);
-
-    String strCheque(THE_CHEQUE);
-
-    return ot_api_.depositCheque(theNotaryID, theNymID, theAcctID, strCheque);
-}
-
 // DEPOSIT PAYMENT PLAN
 //
 // See OTAPI_Exec::WritePaymentPlan as well.

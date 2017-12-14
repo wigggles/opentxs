@@ -3619,16 +3619,6 @@ std::int32_t SwigWrap::payDividend(
         AMOUNT_PER_SHARE);
 }
 
-std::int32_t SwigWrap::depositCheque(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& ACCT_ID,
-    const std::string& THE_CHEQUE)
-{
-    return OT::App().API().Exec().depositCheque(
-        NOTARY_ID, NYM_ID, ACCT_ID, THE_CHEQUE);
-}
-
 std::int32_t SwigWrap::depositPaymentPlan(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID,

@@ -4051,32 +4051,6 @@ contract
                                          // shares issued.)
         ) const;
 
-    /**
-    --------------------------------------------------------------------------
-    // DEPOSIT A CHEQUE (or VOUCHER) INTO AN ASSET ACCOUNT.
-    //
-    // If someone gives you a cheque, you can use this function to message the
-    // server asking it to deposit the cheque into one of your asset accounts.
-    // (Of course the account and the cheque must be the same instrument
-    definition.)
-    //
-    // Since a voucher is simply a cheque drawn on an int32_t server account,
-    // you can deposit a voucher the same as any other cheque.
-    //
-    // Returns int32_t:
-    // -1 means error; no message was sent.
-    // 0 means NO error, but also: no message was sent.
-    // >0 means NO error, and the message was sent, and the request number fits
-    into an integer...
-    // ...and in fact the requestNum IS the return value!
-    // ===> In 99% of cases, this LAST option is what actually happens!!
-    */
-    EXPORT int32_t depositCheque(
-        const std::string& NOTARY_ID,
-        const std::string& NYM_ID,
-        const std::string& ACCT_ID,
-        const std::string& THE_CHEQUE) const;
-
     /** --------------------------------------------------
     // DEPOSIT (ACTIVATE) PAYMENT PLAN
     //

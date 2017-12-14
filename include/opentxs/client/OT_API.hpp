@@ -1012,7 +1012,7 @@ public:
     // PER SHARE (multiplied by total
     // number of shares issued.)
 
-    EXPORT std::int32_t depositCheque(
+    EXPORT CommandResult depositCheque(
         const Identifier& NOTARY_ID,
         const Identifier& NYM_ID,
         const Identifier& ACCT_ID,
