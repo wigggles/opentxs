@@ -46,12 +46,15 @@
 #include "opentxs/Types.hpp"
 
 #include <atomic>
+#include <cstdint>
 #include <cstdlib>
 #include <memory>
+#include <mutex>
 #include <string>
 
 namespace opentxs
 {
+class Message;
 class OT_API;
 class ServerContext;
 class the_lambda_struct;
@@ -301,8 +304,8 @@ public:
     std::string SendRequestOnce(
         OTAPI_Func& theFunction,
         const std::string& IN_FUNCTION,
-        bool bIsTransaction,
-        bool bWillRetryAfterThis,
+        const bool bIsTransaction,
+        const bool bWillRetryAfterThis,
         bool& bCanRetryAfterThis) const;
     std::string SendTransaction(
         OTAPI_Func& theFunction,
@@ -312,11 +315,14 @@ public:
         const std::string& IN_FUNCTION,
         std::int32_t nTotalRetries) const;
 
-    ~OTAPI_Func() = default;
+    ~OTAPI_Func();
 
 private:
     opentxs::ServerContext& context_;
     OT_API& otapi_;
+    mutable std::mutex lock_;
+    mutable std::unique_ptr<Message> last_reply_;
+    mutable SendResult last_send_status_{SendResult::ERROR};
 
     explicit OTAPI_Func(
         opentxs::ServerContext& context,

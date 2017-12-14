@@ -63,9 +63,9 @@ Context::Context(
     , available_transaction_numbers_()
     , issued_transaction_numbers_()
     , request_number_(0)
-    , remote_nymbox_hash_()
-    , local_nymbox_hash_()
     , acknowledged_request_numbers_()
+    , local_nymbox_hash_()
+    , remote_nymbox_hash_()
 {
 }
 
@@ -80,9 +80,9 @@ Context::Context(
     , available_transaction_numbers_()
     , issued_transaction_numbers_()
     , request_number_(serialized.requestnumber())
-    , remote_nymbox_hash_(serialized.remotenymboxhash())
-    , local_nymbox_hash_(serialized.localnymboxhash())
     , acknowledged_request_numbers_()
+    , local_nymbox_hash_(serialized.localnymboxhash())
+    , remote_nymbox_hash_(serialized.remotenymboxhash())
 {
     for (const auto& it : serialized.acknowledgedrequestnumber()) {
         acknowledged_request_numbers_.insert(it);
@@ -263,7 +263,7 @@ bool Context::insert_available_number(const TransactionNumber& number)
 {
     Lock lock(lock_);
 
-    return issued_transaction_numbers_.insert(number).second;
+    return available_transaction_numbers_.insert(number).second;
 }
 
 bool Context::insert_issued_number(const TransactionNumber& number)
@@ -284,6 +284,8 @@ bool Context::issue_number(const Lock& lock, const TransactionNumber& number)
     const bool output = issued && available;
 
     if (!output) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to issue number "
+              << number << std::endl;
         issued_transaction_numbers_.erase(number);
         available_transaction_numbers_.erase(number);
     }

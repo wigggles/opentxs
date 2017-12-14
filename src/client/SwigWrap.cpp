@@ -3566,18 +3566,6 @@ std::int32_t SwigWrap::notarizeDeposit(
 }
 #endif  // OT_CASH
 
-std::int32_t SwigWrap::notarizeTransfer(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& ACCT_FROM,
-    const std::string& ACCT_TO,
-    const std::int64_t& AMOUNT,
-    const std::string& NOTE)
-{
-    return OT::App().API().Exec().notarizeTransfer(
-        NOTARY_ID, NYM_ID, ACCT_FROM, ACCT_TO, AMOUNT, NOTE);
-}
-
 std::int32_t SwigWrap::getNymbox(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID)

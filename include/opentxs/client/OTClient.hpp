@@ -43,6 +43,7 @@
 
 #include "opentxs/client/OTMessageBuffer.hpp"
 #include "opentxs/client/OTMessageOutbuffer.hpp"
+#include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/Types.hpp"
 
 #include <memory>
@@ -98,7 +99,8 @@ public:
 
     bool processServerReply(
         const Identifier& server,
-        Nym* sender,
+        const std::set<ServerContext::ManagedNumber>& managed,
+        Nym* nymfile,
         std::unique_ptr<Message>& reply,
         Ledger* pNymbox = nullptr);
 

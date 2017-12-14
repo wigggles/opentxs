@@ -109,6 +109,8 @@ protected:
     std::set<TransactionNumber> available_transaction_numbers_{};
     std::set<TransactionNumber> issued_transaction_numbers_{};
     std::atomic<RequestNumber> request_number_{0};
+    std::set<RequestNumber> acknowledged_request_numbers_{};
+    Identifier local_nymbox_hash_{};
     Identifier remote_nymbox_hash_{};
 
     Identifier GetID(const Lock& lock) const override;
@@ -142,9 +144,6 @@ private:
     friend class api::Wallet;
 
     typedef Signable ot_super;
-
-    Identifier local_nymbox_hash_{};
-    std::set<RequestNumber> acknowledged_request_numbers_{};
 
     proto::Context contract(const Lock& lock) const;
     proto::Context IDVersion(const Lock& lock) const;

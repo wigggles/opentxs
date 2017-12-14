@@ -1087,31 +1087,32 @@ bool OTAgreement::SetProposal(
     const auto closingNumber =
         context.NextTransactionNumber(MessageType::notarizeTransaction);
 
-    if (0 == openingNumber) {
+    if (0 == TransactionNumber(openingNumber)) {
         otErr << __FUNCTION__
               << ": Error: Unable to get a transaction number.\n";
-        context.RecoverAvailableNumber(closingNumber);
 
         return false;
     }
 
-    if (0 == closingNumber) {
+    if (0 == TransactionNumber(closingNumber)) {
         otErr << __FUNCTION__ << ": Error: Unable to get a closing "
                                  "transaction number.\n";
         // (Since the first one was successful, we just put it back before
         // returning.)
-        context.RecoverAvailableNumber(openingNumber);
 
         return false;
     }
 
+    // Above this line, the transaction numbers will be recovered automatically
+    openingNumber.SetSuccess(true);
+    closingNumber.SetSuccess(true);
     otErr << OT_METHOD << __FUNCTION__
-          << ": Allocated opening transaction number " << openingNumber
-          << std::endl;
+          << ": Allocated opening transaction number "
+          << TransactionNumber(openingNumber) << std::endl;
 
     otErr << OT_METHOD << __FUNCTION__
-          << ": Allocated closing transaction number " << closingNumber
-          << std::endl;
+          << ": Allocated closing transaction number "
+          << TransactionNumber(closingNumber) << std::endl;
 
     // At this point we now have 2 transaction numbers...
     // We can't return without either USING THEM, or PUTTING THEM BACK.
@@ -1233,21 +1234,23 @@ bool OTAgreement::Confirm(
     const auto closingNumber =
         context.NextTransactionNumber(MessageType::notarizeTransaction);
 
-    if (0 == openingNumber) {
+    if (0 == TransactionNumber(openingNumber)) {
         otErr << __FUNCTION__
               << ": Error: Strangely unable to get a transaction number.\n";
-        context.RecoverAvailableNumber(closingNumber);
-
-        return false;
-    } else if (false == closingNumber) {
-        otErr << __FUNCTION__ << ": Error: Strangely unable to get a closing "
-                                 "transaction number.\n";
-        // (Since the first one was successful, we just put it back before
-        // returning.)
-        context.RecoverAvailableNumber(openingNumber);
 
         return false;
     }
+
+    if (false == TransactionNumber(closingNumber)) {
+        otErr << __FUNCTION__ << ": Error: Strangely unable to get a closing "
+                                 "transaction number.\n";
+
+        return false;
+    }
+
+    // Above this line, the transaction numbers will be recovered automatically
+    openingNumber.SetSuccess(true);
+    closingNumber.SetSuccess(true);
 
     // At this point we now HAVE 2 transaction numbers (for payer / sender)...
     // We can't return without USING THEM or PUTTING THEM BACK.

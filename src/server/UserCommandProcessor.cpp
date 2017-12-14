@@ -180,6 +180,12 @@ UserCommandProcessor::FinalizeResponse::~FinalizeResponse()
     }
 
     reply_.SetPayload(String(ledger_));
+    otWarn << OT_METHOD << __FUNCTION__ << ": "
+           << reply_.Context().AvailableNumbers() << " numbers available."
+           << std::endl;
+    otWarn << OT_METHOD << __FUNCTION__ << ": "
+           << reply_.Context().IssuedNumbers({}) << " numbers issued."
+           << std::endl;
 }
 
 UserCommandProcessor::UserCommandProcessor(
@@ -1665,7 +1671,7 @@ bool UserCommandProcessor::cmd_process_inbox(ReplyMessage& reply) const
     }
 
     FinalizeResponse response(serverNym, reply, *responseLedger);
-    reply.SetSuccess(true);
+    reply.SetSuccess(false);
     reply.DropToNymbox(true);
     // Returning after this point will result in the reply message
     // m_bSuccess = true, and a signed reply ledger containing at least one
@@ -1690,23 +1696,29 @@ bool UserCommandProcessor::cmd_process_inbox(ReplyMessage& reply) const
         return false;
     }
 
-    bool success{false};
+    reply.SetSuccess(true);
+    bool transactionSuccess{false};
     server_.notary_.NotarizeProcessInbox(
         nymfile,
         context,
         *account,
         *processInbox,
         *response.Response(),
-        success);
+        transactionSuccess);
 
-    if (false == context.ConsumeIssued(inputNumber)) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Error removing issued number "
-              << inputNumber << std::endl;
+    if (false == transactionSuccess) {
+        const auto consumed = context.ConsumeIssued(inputNumber);
 
-        OT_FAIL;
+        if (false == consumed) {
+            otErr << OT_METHOD << __FUNCTION__
+                  << ": Error removing issued number " << inputNumber
+                  << std::endl;
+
+            OT_FAIL;
+        }
     }
 
-    if (success) {
+    if (transactionSuccess) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Success processing process inbox " << inputNumber
               << " for nym " << String(nymID) << std::endl;

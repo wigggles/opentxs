@@ -106,11 +106,14 @@ struct OTClient::ProcessServerReplyArgs {
     Nym* pNym;
     Identifier NYM_ID;
     String strNotaryID, strNymID;
-    Nym* pServerNym;
     ServerContext& context_;
+    const std::set<ServerContext::ManagedNumber>& managed_;
 
-    ProcessServerReplyArgs(ServerContext& context)
+    ProcessServerReplyArgs(
+        ServerContext& context,
+        const std::set<ServerContext::ManagedNumber>& managed)
         : context_(context)
+        , managed_(managed)
     {
     }
 };
@@ -659,7 +662,11 @@ bool OTClient::AcceptEntireNymbox(
                             // Nymbox. Since we  already have it loaded here, we
                             // pass it in so it won't get loaded twice.
                             processServerReply(
-                                theNotaryID, &nymfile, pMessage, &theNymbox);
+                                theNotaryID,
+                                {},
+                                &nymfile,
+                                pMessage,
+                                &theNymbox);
                             pMessage = nullptr;  // We're done with it now.
 
                             // By this point, I KNOW FOR A FACT that IF there
@@ -1848,10 +1855,7 @@ void OTClient::ProcessIncomingTransactions(
     const Identifier& ACCOUNT_ID = args.ACCOUNT_ID;
     const Identifier& NOTARY_ID = args.NOTARY_ID;
     const Identifier NYM_ID = args.NYM_ID;
-    //  const String& strNymID = args.strNymID;
-    //  const String& strNotaryID = args.strNotaryID;
-    //  Nym* pNym = args.pNym;
-    const Nym* const pServerNym = args.pServerNym;
+    const auto& serverNym = args.context_.RemoteNym();
     auto& context = args.context_;
 
     // This will be user ID or acct ID depending on whether trans statement or
@@ -1873,7 +1877,7 @@ void OTClient::ProcessIncomingTransactions(
     bool bSuccess =
         theLedger.LoadLedgerFromString(strLedger);  // This is a MESSAGE ledger.
 
-    if (bSuccess) bSuccess = theLedger.VerifyAccount(*pServerNym);
+    if (bSuccess) bSuccess = theLedger.VerifyAccount(serverNym);
     if (!bSuccess) {
         otErr << "ERROR loading ledger from message payload in "
                  "OTClient::ProcessIncomingTransactions.\n";
@@ -1914,8 +1918,8 @@ void OTClient::ProcessIncomingTransactions(
         // Each transaction in the ledger is a server reply to our original
         // transaction request.
         //
-        if (pTransaction->VerifyAccount(*pServerNym))  // if valid transaction
-                                                       // reply from server
+        if (pTransaction->VerifyAccount(serverNym))  // if valid transaction
+                                                     // reply from server
         {
             ProcessIncomingTransaction(
                 args, theReply, pTransaction, strReceiptID);
@@ -2182,7 +2186,7 @@ void OTClient::ProcessWithdrawalResponse(
     const String& strNymID = args.strNymID;
     const String& strNotaryID = args.strNotaryID;
     Nym* pNym = args.pNym;
-    const Nym* const pServerNym = args.pServerNym;
+    const auto& serverNym = args.context_.RemoteNym();
 
     // loop through the ALL items that make up this transaction and check to see
     // if a response to withdrawal.
@@ -2267,8 +2271,8 @@ void OTClient::ProcessWithdrawalResponse(
 
                 bool bSuccess = false;
 
-                if ((nullptr != pRequestPurse) && (pServerNym) &&
-                    pMint->LoadMint() && pMint->VerifyMint(*pServerNym)) {
+                if ((nullptr != pRequestPurse) && pMint->LoadMint() &&
+                    pMint->VerifyMint(serverNym)) {
                     std::unique_ptr<Token> pToken(thePurse.Pop(*pNym));
 
                     while (pToken) {
@@ -2463,7 +2467,7 @@ bool OTClient::processServerReplyGetNymBox(
     // UPDATE: Keeping the server's signature, and just adding my own.
     //
     if (theNymbox.LoadNymboxFromString(
-            strNymbox))  // && theNymbox.VerifyAccount(*pServerNym)) No point
+            strNymbox))  // && theNymbox.VerifyAccount(serverNym)) No point
                          // doing this, since the client hasn't even had a
                          // chance to download the box receipts yet.
                          // (VerifyAccount will fail before then...)
@@ -2513,7 +2517,7 @@ bool OTClient::processServerReplyGetBoxReceipt(
     const auto& pNym = args.pNym;
     const auto& NOTARY_ID = args.NOTARY_ID;
     const auto& NYM_ID = args.NYM_ID;
-    const auto& pServerNym = args.pServerNym;
+    const auto& serverNym = args.context_.RemoteNym();
     const auto& strNymID = args.strNymID;
     const auto& strNotaryID = args.strNotaryID;
 
@@ -2583,7 +2587,7 @@ bool OTClient::processServerReplyGetBoxReceipt(
                          "transaction type to transaction, based on "
                          "decoded theReply.m_ascPayload:\n\n"
                       << strTransTypeObject << "\n\n";
-            else if (!pBoxReceipt->VerifyAccount(*pServerNym))
+            else if (!pBoxReceipt->VerifyAccount(serverNym))
                 otErr << __FUNCTION__
                       << ": getBoxReceiptResponse: Error: Box Receipt "
                       << pBoxReceipt->GetTransactionNum() << " in "
@@ -2877,16 +2881,13 @@ bool OTClient::processServerReplyProcessInbox(
     OTTransaction* pReplyTransaction)
 {
     OT_ASSERT(nullptr != pTransaction);
-    //  OT_ASSERT(nullptr != pReplyTransaction); // Can be nullptr.
 
     auto& context = args.context_;
-
     const auto& NYM_ID = args.NYM_ID;
     const auto& NOTARY_ID = args.NOTARY_ID;
     const auto& ACCOUNT_ID = args.ACCOUNT_ID;
     const String& strNymID = args.strNymID;
     const String& strNotaryID = args.strNotaryID;
-
     Nym* pNym = args.pNym;
 
     // pNym->RemoveTransactionNum() happened whenever I first
@@ -5185,7 +5186,7 @@ bool OTClient::processServerReplyProcessBox(
     Identifier ACCOUNT_ID = args.ACCOUNT_ID;
     const auto& NOTARY_ID = args.NOTARY_ID;
     const auto& NYM_ID = args.NYM_ID;
-    const auto& pServerNym = args.pServerNym;
+    const auto& serverNym = args.context_.RemoteNym();
     //    const auto& strNymID = args.strNymID;
     //    auto& context = args.context_;
 
@@ -5254,7 +5255,7 @@ bool OTClient::processServerReplyProcessBox(
                   << theReply.m_strCommand
                   << "), but unable to load the reply ledger from string:\n\n"
                   << strReplyLedger << "\n\n";
-        } else if (!theReplyLedger.VerifySignature(*pServerNym)) {
+        } else if (!theReplyLedger.VerifySignature(serverNym)) {
             otErr << "Strange: Received server acknowledgment ("
                   << theReply.m_strCommand
                   << "), but unable to verify server's signature on the "
@@ -5502,7 +5503,7 @@ bool OTClient::processServerReplyGetAccountData(
     const auto& ACCOUNT_ID = args.ACCOUNT_ID;
     const auto& NOTARY_ID = args.NOTARY_ID;
     const auto& NYM_ID = args.NYM_ID;
-    const auto& pServerNym = args.pServerNym;
+    const auto& serverNym = args.context_.RemoteNym();
     const auto& pNym = args.pNym;
     auto& context = args.context_;
 
@@ -5521,7 +5522,7 @@ bool OTClient::processServerReplyGetAccountData(
             new Account(NYM_ID, ACCOUNT_ID, NOTARY_ID));
 
         if (pAccount && pAccount->LoadContractFromString(strAccount) &&
-            pAccount->VerifyAccount(*pServerNym)) {
+            pAccount->VerifyAccount(serverNym)) {
             otInfo << "Saving updated account file to disk...\n";
             pAccount->ReleaseSignatures();  // So I don't get the
                                             // annoying failure to
@@ -5561,7 +5562,7 @@ bool OTClient::processServerReplyGetAccountData(
         // UPDATE: Keeping the server's signature, and just adding
         // my own.
         if (theInbox.LoadInboxFromString(strInbox) &&
-            theInbox.VerifySignature(*pServerNym))  // No VerifyAccount.
+            theInbox.VerifySignature(serverNym))  // No VerifyAccount.
         // Can't, because client hasn't had a chance yet to download the box
         // receipts that go
         // with this inbox -- and VerifyAccount() tries to load those, which
@@ -5671,8 +5672,8 @@ bool OTClient::processServerReplyGetAccountData(
         // adding my own.
         //
         if (theOutbox.LoadOutboxFromString(strOutbox) &&
-            theOutbox.VerifySignature(*pServerNym))  // No point calling
-                                                     // VerifyAccount
+            theOutbox.VerifySignature(serverNym))  // No point calling
+                                                   // VerifyAccount
         // since the client hasn't even had a
         // chance to download the box receipts yet...
         {
@@ -6170,7 +6171,7 @@ bool OTClient::processServerReplyRegisterInstrumentDefinition(
     const auto& ACCOUNT_ID = args.ACCOUNT_ID;
     const auto& NOTARY_ID = args.NOTARY_ID;
     const auto& NYM_ID = args.NYM_ID;
-    const auto& pServerNym = args.pServerNym;
+    const auto& serverNym = args.context_.RemoteNym();
     const auto& pNym = args.pNym;
     if (theReply.m_ascPayload.GetLength()) {
         Account* pAccount = nullptr;
@@ -6183,7 +6184,7 @@ bool OTClient::processServerReplyRegisterInstrumentDefinition(
         pAccount = new Account(NYM_ID, ACCOUNT_ID, NOTARY_ID);
 
         if (pAccount->LoadContractFromString(strAcctContents) &&
-            pAccount->VerifyAccount(*pServerNym)) {
+            pAccount->VerifyAccount(serverNym)) {
             // (2) Sign the Account
             pAccount->SignContract(*pNym);
             pAccount->SaveContract();
@@ -6220,7 +6221,7 @@ bool OTClient::processServerReplyRegisterAccount(
     const auto& ACCOUNT_ID = args.ACCOUNT_ID;
     const auto& NOTARY_ID = args.NOTARY_ID;
     const auto& NYM_ID = args.NYM_ID;
-    const auto& pServerNym = args.pServerNym;
+    const auto& serverNym = args.context_.RemoteNym();
     const auto& pNym = args.pNym;
     if (theReply.m_ascPayload.GetLength()) {
         Account* pAccount = nullptr;
@@ -6232,7 +6233,7 @@ bool OTClient::processServerReplyRegisterAccount(
         pAccount = new Account(NYM_ID, ACCOUNT_ID, NOTARY_ID);
 
         if (pAccount && pAccount->LoadContractFromString(strAcctContents) &&
-            pAccount->VerifyAccount(*pServerNym)) {
+            pAccount->VerifyAccount(serverNym)) {
             // (2) Sign the Account
             pAccount->ReleaseSignatures();  // So I don't get the annoying
                                             // failure to verify message from
@@ -6284,35 +6285,38 @@ bool OTClient::processServerReplyRegisterAccount(
 /// verified and processed.
 bool OTClient::processServerReply(
     const Identifier& server,
-    Nym* sender,
+    const std::set<ServerContext::ManagedNumber>& managed,
+    Nym* nymfile,
     std::unique_ptr<Message>& reply,
     Ledger* pNymbox)
 {
     if (!reply) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Invalid reply" << std::endl;
+
         return false;
     }
 
-    if (nullptr == sender) {
+    if (nullptr == nymfile) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Invalid sender nym"
+              << std::endl;
+
         return false;
     }
 
-    auto context = wallet_.mutable_ServerContext(sender->ID(), server);
-
+    auto context = wallet_.mutable_ServerContext(nymfile->ID(), server);
     Message& theReply = *reply;
-    ProcessServerReplyArgs args(context.It());
+    ProcessServerReplyArgs args(context.It(), managed);
     const String serverID(server);
     args.ACCOUNT_ID = Identifier(theReply.m_strAcctID);
     args.NOTARY_ID = server;
-    args.pNym = sender;
+    args.pNym = nymfile;
     args.NYM_ID = Identifier(*args.pNym);
     const String senderID(args.NYM_ID);
     args.strNotaryID = serverID;
     args.strNymID = senderID;
     auto notary = wallet_.Server(server);
-    args.pServerNym = const_cast<Nym*>(notary->Nym().get());
-
-    Nym& senderNym = *sender;
-    const Nym& serverNym = *args.pServerNym;
+    Nym& senderNym = *nymfile;
+    const auto& serverNym = args.context_.RemoteNym();
 
     // Just like the server verifies all messages before processing them,
     // so does the client need to verify the signatures against each message
@@ -6436,10 +6440,15 @@ bool OTClient::processServerReply(
     // Nym Wait a second, I think I have the Nym already cause there's a pointer
     // on the server connection that was passed in here...
 
-    if (!theReply.m_bSuccess) {
+    if (theReply.m_bSuccess) {
+        for (const auto& number : managed) {
+            number.SetSuccess(true);
+        }
+    } else {
 
         return false;
     }
+
     if (theReply.m_strCommand.Compare("triggerClauseResponse")) {
         return processServerReplyTriggerClause(theReply, args);
     }

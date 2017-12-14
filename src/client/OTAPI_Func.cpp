@@ -50,6 +50,7 @@
 #include "opentxs/core/script/OTVariable.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/core/Message.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/OT.hpp"
@@ -88,6 +89,8 @@ OTAPI_Func::OTAPI_Func(
     , transaction_number_(0)
     , context_(context)
     , otapi_(otapi)
+    , last_reply_(nullptr)
+    , last_send_status_(SendResult::ERROR)
 {
 }
 
@@ -179,32 +182,37 @@ OTAPI_Func::OTAPI_Func(
         otErr << strError << "p_strData" << std::endl;
     }
 
-    funcType = theType;
-    nTransNumsNeeded = 1;
-    bBool = false;
-
-    if ((theType == KILL_MARKET_OFFER) || (theType == KILL_PAYMENT_PLAN) ||
-        (theType == PROCESS_INBOX) || (theType == DEPOSIT_CASH) ||
-        (theType == DEPOSIT_CHEQUE) || (theType == DEPOSIT_PAYMENT_PLAN)) {
-        accountID = p_strParam;
-        strData = p_strData;
-    } else if (theType == ADJUST_USAGE_CREDITS) {
-        nTransNumsNeeded = 0;
-        nymID2 = p_strParam;  // target nym ID
-        strData = p_strData;  // adjustment (up or down.)
-    } else if (theType == EXCHANGE_CASH) {
-        instrumentDefinitionID = p_strParam;
-        strData = p_strData;
-    } else if (theType == INITIATE_BAILMENT) {
-        nTransNumsNeeded = 0;
-        nymID2 = p_strParam;
-        instrumentDefinitionID = p_strData;
-        strData = SwigWrap::initiateBailment(
-            String(context_.Server()).Get(),
-            String(context_.Nym()->ID()).Get(),
-            instrumentDefinitionID);
-    } else {
-        otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func()\n";
+    switch (theType) {
+        case KILL_MARKET_OFFER:
+        case KILL_PAYMENT_PLAN:
+        case DEPOSIT_CASH:
+        case DEPOSIT_CHEQUE:
+        case DEPOSIT_PAYMENT_PLAN:
+        case PROCESS_INBOX: {
+            nTransNumsNeeded = 1;
+            accountID = p_strParam;
+            strData = p_strData;
+        } break;
+        case ADJUST_USAGE_CREDITS: {
+            nymID2 = p_strParam;  // target nym ID
+            strData = p_strData;  // adjustment (up or down.)
+        } break;
+        case EXCHANGE_CASH: {
+            nTransNumsNeeded = 1;
+            instrumentDefinitionID = p_strParam;
+            strData = p_strData;
+        } break;
+        case INITIATE_BAILMENT: {
+            nymID2 = p_strParam;
+            instrumentDefinitionID = p_strData;
+            strData = SwigWrap::initiateBailment(
+                String(context_.Server()).Get(),
+                String(context_.Nym()->ID()).Get(),
+                instrumentDefinitionID);
+        } break;
+        default: {
+            otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func()\n";
+        }
     }
 }
 
@@ -665,12 +673,12 @@ OTAPI_Func::OTAPI_Func(
     }
 }
 
+// -1 means error, no message was sent.
+//  0 means NO error, yet still no message was sent.
+// >0 means (usually) the request number is being returned.
 std::int32_t OTAPI_Func::Run() const
 {
-    // -1 means error, no message was sent.
-    //  0 means NO error, yet still no message was sent.
-    // >0 means (usually) the request number is being returned.
-    //
+    Lock lock(lock_);
     switch (funcType) {
         case CHECK_NYM:
             return SwigWrap::checkNym(
@@ -837,7 +845,7 @@ std::int32_t OTAPI_Func::Run() const
                 strData,
                 lData);
         case SEND_TRANSFER: {
-            const auto[status, number] =
+            auto[requestNum, transactionNum, result] =
                 OT::App().API().OTAPI().notarizeTransfer(
                     context_.Server(),
                     context_.Nym()->ID(),
@@ -845,9 +853,22 @@ std::int32_t OTAPI_Func::Run() const
                     Identifier(accountID2),
                     lData,
                     strData.c_str());
-            transaction_number_.store(number);
+            auto & [ status, reply ] = result;
+            transaction_number_.store(transactionNum);
+            last_send_status_ = status;
+            last_reply_.reset(reply.release());
 
-            return status;
+            if (0 == requestNum) {
+
+                return 0;
+            }
+
+            if (SendResult::VALID_REPLY != status) {
+
+                return -1;
+            }
+
+            return requestNum;
         } break;
         case GET_MARKET_LIST:
             return SwigWrap::getMarketList(
@@ -1208,8 +1229,8 @@ std::string OTAPI_Func::SendRequest(
 std::string OTAPI_Func::SendRequestOnce(
     OTAPI_Func& theFunction,
     const std::string& IN_FUNCTION,
-    bool bIsTransaction,
-    bool bWillRetryAfterThis,
+    const bool bIsTransaction,
+    const bool bWillRetryAfterThis,
     bool& bCanRetryAfterThis) const
 {
     Utility MsgUtil(context_, otapi_);
@@ -1260,13 +1281,13 @@ std::string OTAPI_Func::SendRequestOnce(
     bool bMsgReplySuccess = (!bMsgReplyError && (nReplySuccess > 0));
     bool bMsgReplyFailure = (!bMsgReplyError && (nReplySuccess == 0));
 
-    bool bMsgTransSuccess;
-    bool bMsgTransFailure;
+    bool bMsgTransSuccess{false};
+    bool bMsgTransFailure{false};
 
-    bool bMsgAnyError;
-    bool bMsgAnyFailure;
+    bool bMsgAnyError{false};
+    bool bMsgAnyFailure{false};
 
-    bool bMsgAllSuccess;
+    bool bMsgAllSuccess{false};
 
     // If you EVER are in a situation where you have to harvest numbers
     // back, it will ONLY be for transactions, not normal messages. (Those
@@ -1274,8 +1295,8 @@ std::string OTAPI_Func::SendRequestOnce(
     //
     if (bIsTransaction)  // This request contains a TRANSACTION...
     {
-        std::int32_t nTransSuccess;
-        std::int32_t nBalanceSuccess;
+        std::int32_t nTransSuccess{-1};
+        std::int32_t nBalanceSuccess{-1};
         if (bMsgReplySuccess)  // If message was success, then let's see if the
                                // transaction was, too.
         {
@@ -2021,4 +2042,6 @@ std::int32_t iterate_nymoffers_maps(
 
     return 1;
 }
+
+OTAPI_Func::~OTAPI_Func() {}
 }  // namespace opentxs

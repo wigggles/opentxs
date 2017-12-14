@@ -3827,35 +3827,6 @@ contract
         const std::string& THE_PURSE) const;
 #endif  // OT_CASH
 
-    /**
-    --------------------------------------------------------------------------
-    // TRANSFER FROM ONE ASSET ACCOUNT TO ANOTHER
-    //
-    // Send a request to the server to initiate a transfer from my account to
-    // another account's inbox. (With "transfer pending" notice in my outbox).
-    // Until the recipient accepts the transfer, I have the option to cancel
-    // it while it is still sitting in my outbox. But once he accepts it, it
-    // cannot be reversed.
-    // The server has signatures from BOTH parties requesting the transfer, and
-    // each party has the signature on the other party's request. Receipts are
-    // dropped into their respective inboxes.
-    //
-    // Returns int32_t:
-    // -1 means error; no message was sent.
-    // 0 means NO error, but also: no message was sent.
-    // >0 means NO error, and the message was sent, and the request number fits
-    into an integer...
-    // ...and in fact the requestNum IS the return value!
-    // ===> In 99% of cases, this LAST option is what actually happens!!
-    */
-    EXPORT int32_t notarizeTransfer(
-        const std::string& NOTARY_ID,
-        const std::string& NYM_ID,
-        const std::string& ACCT_FROM,
-        const std::string& ACCT_TO,
-        const int64_t& AMOUNT,
-        const std::string& NOTE) const;
-
     // from server (pop message buf for the response)
     // Returns int32_t:
     // -1 means error; no message was sent.

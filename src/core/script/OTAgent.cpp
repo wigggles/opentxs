@@ -1054,16 +1054,19 @@ bool OTAgent::ReserveClosingTransNum(
         const auto number =
             context.NextTransactionNumber(MessageType::notarizeTransaction);
 
-        if (0 == number) {
+        if (0 == TransactionNumber(number)) {
             otErr << "OTAgent::ReserveClosingTransNum: Error: Strangely, "
                      "unable to get a transaction number.\n";
 
             return false;
         }
 
+        // Above this line, the transaction number will be recovered
+        // automatically
+        number.SetSuccess(true);
         otErr << OT_METHOD << __FUNCTION__
-              << ": Allocated closing transaction number " << number
-              << std::endl;
+              << ": Allocated closing transaction number "
+              << TransactionNumber(number) << std::endl;
 
         // BELOW THIS POINT, TRANSACTION # HAS BEEN RESERVED, AND MUST BE
         // SAVED...
@@ -1109,16 +1112,19 @@ bool OTAgent::ReserveOpeningTransNum(ServerContext& context)
         const auto number =
             context.NextTransactionNumber(MessageType::notarizeTransaction);
 
-        if (0 == number) {
+        if (0 == TransactionNumber(number)) {
             otErr << "OTAgent::ReserveOpeningTransNum: Error: Strangely, "
                      "unable to get a transaction number.\n";
 
             return false;
         }
 
+        // Above this line, the transaction number will be recovered
+        // automatically
+        number.SetSuccess(true);
         otErr << OT_METHOD << __FUNCTION__
-              << ": Allocated opening transaction number " << number
-              << std::endl;
+              << ": Allocated opening transaction number "
+              << TransactionNumber(number) << std::endl;
 
         // BELOW THIS POINT, TRANSACTION # HAS BEEN RESERVED, AND MUST BE
         // SAVED...

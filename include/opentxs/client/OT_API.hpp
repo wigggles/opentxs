@@ -42,6 +42,7 @@
 #include "opentxs/Version.hpp"
 
 #include "opentxs/api/Wallet.hpp"
+#include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/core/contract/peer/PeerObject.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/util/Common.hpp"
@@ -1459,8 +1460,15 @@ private:
     Item::itemType response_type(
         const OTTransaction::transactionType sourceType,
         const bool success) const;
-    SendResult SendMessage(const Identifier& server, Nym* nym, Message& message)
-        const;
+    SendResult send_message(
+        const Identifier& server,
+        Nym* nym,
+        Message& message) const;
+    NetworkReplyMessage send_message(
+        const Identifier& server,
+        const std::set<ServerContext::ManagedNumber>& pending,
+        Nym* nymfile,
+        Message& message) const;
 
     bool Cleanup();
     bool Init();

@@ -13009,40 +13009,6 @@ std::int32_t OTAPI_Exec::notarizeDeposit(
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::notarizeTransfer(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& ACCT_FROM,
-    const std::string& ACCT_TO,
-    const int64_t& AMOUNT,
-    const std::string& NOTE) const
-{
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    OT_VERIFY_ID_STR(NOTARY_ID);
-    OT_VERIFY_ID_STR(NYM_ID);
-    OT_VERIFY_ID_STR(ACCT_FROM);
-    OT_VERIFY_ID_STR(ACCT_TO);
-    OT_VERIFY_MIN_BOUND(AMOUNT, 0);
-
-    Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID);
-    Identifier theFromAcct(ACCT_FROM), theToAcct(ACCT_TO);
-    String strNote(NOTE.empty() ? "" : NOTE);
-    const auto[status, number] = ot_api_.notarizeTransfer(
-        theNotaryID, theNymID, theFromAcct, theToAcct, AMOUNT, strNote);
-    const auto& notUsed[[maybe_unused]] = number;
-
-    return status;
-}
-
-// Returns int32_t:
-// -1 means error; no message was sent.
-//  0 means NO error, but also: no message was sent.
-// >0 means NO error, and the message was sent, and the request number fits into
-// an integer...
-//  ...and in fact the requestNum IS the return value!
-//  ===> In 99% of cases, this LAST option is what actually happens!!
-//
 std::int32_t OTAPI_Exec::getNymbox(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID) const

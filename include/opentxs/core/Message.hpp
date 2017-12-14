@@ -152,6 +152,7 @@ public:
     // that should be listed as acknowledged that the server reply has already
     // been seen for those request numbers.
     EXPORT void SetAcknowledgments(const Context& context);
+    EXPORT void SetAcknowledgments(const std::set<RequestNumber>& numbers);
 
     EXPORT static void registerStrategy(
         std::string name,

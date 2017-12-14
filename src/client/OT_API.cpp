@@ -641,7 +641,7 @@ bool OT_API::Cleanup()
 // Get
 bool OT_API::GetWalletFilename(String& strPath) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     if (m_strWalletFilename.Exists()) {
         strPath = m_strWalletFilename;
@@ -655,7 +655,7 @@ bool OT_API::GetWalletFilename(String& strPath) const
 // Set
 bool OT_API::SetWalletFilename(const String& strPath)
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     if (strPath.Exists()) {
         m_strWalletFilename = strPath;
@@ -668,7 +668,7 @@ bool OT_API::SetWalletFilename(const String& strPath)
 //
 bool OT_API::LoadConfigFile()
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     // LOG LEVEL
     {
@@ -776,7 +776,7 @@ bool OT_API::LoadConfigFile()
 
 bool OT_API::SetWallet(const String& strFilename)
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     OT_NEW_ASSERT_MSG(strFilename.Exists(), "strFilename does not exist.");
     OT_NEW_ASSERT_MSG(
@@ -822,14 +822,14 @@ bool OT_API::SetWallet(const String& strFilename)
 
 bool OT_API::WalletExists() const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     return (nullptr != m_pWallet) ? true : false;
 }
 
 bool OT_API::LoadWallet() const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     OT_ASSERT_MSG(
         m_bDefaultStore,
@@ -860,7 +860,7 @@ bool OT_API::LoadWallet() const
 
 int32_t OT_API::GetNymCount() const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     OTWallet* pWallet =
         GetWallet(__FUNCTION__);  // This logs and ASSERTs already.
@@ -871,7 +871,7 @@ int32_t OT_API::GetNymCount() const
 
 int32_t OT_API::GetAccountCount() const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     OTWallet* pWallet =
         GetWallet(__FUNCTION__);  // This logs and ASSERTs already.
@@ -883,7 +883,7 @@ int32_t OT_API::GetAccountCount() const
 bool OT_API::GetNym(std::int32_t iIndex, Identifier& NYM_ID, String& NYM_NAME)
     const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     OTWallet* pWallet =
         GetWallet(__FUNCTION__);  // This logs and ASSERTs already.
@@ -897,7 +897,7 @@ bool OT_API::GetAccount(
     Identifier& THE_ID,
     String& THE_NAME) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     OTWallet* pWallet =
         GetWallet(__FUNCTION__);  // This logs and ASSERTs already.
@@ -909,7 +909,7 @@ bool OT_API::GetAccount(
 
 OTWallet* OT_API::GetWallet(const char* szFuncName) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     const char* szFunc = (nullptr != szFuncName) ? szFuncName : __FUNCTION__;
     OTWallet* pWallet = m_pWallet;  // This is where we "get" the wallet.  :P
@@ -920,7 +920,7 @@ OTWallet* OT_API::GetWallet(const char* szFuncName) const
 
 Nym* OT_API::GetNym(const Identifier& NYM_ID, const char* szFunc) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     if (NYM_ID.IsEmpty()) {
         otErr << __FUNCTION__ << ": NYM_ID is empty!";
@@ -974,7 +974,7 @@ const BasketContract* OT_API::GetBasketContract(
 
 Account* OT_API::GetAccount(const Identifier& THE_ID, const char* szFunc) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     OTWallet* pWallet = GetWallet(nullptr != szFunc ? szFunc : __FUNCTION__);
     if (nullptr != pWallet) {
@@ -996,7 +996,7 @@ Nym* OT_API::GetNymByIDPartialMatch(
     const std::string PARTIAL_ID,
     const char* szFuncName) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     const char* szFunc = (nullptr != szFuncName) ? szFuncName : __FUNCTION__;
     OTWallet* pWallet = GetWallet(szFunc);  // This logs and ASSERTs already.
@@ -1009,7 +1009,7 @@ Account* OT_API::GetAccountPartialMatch(
     const std::string PARTIAL_ID,
     const char* szFuncName) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     const char* szFunc = (nullptr != szFuncName) ? szFuncName : __FUNCTION__;
     OTWallet* pWallet = GetWallet(szFunc);  // This logs and ASSERTs already.
@@ -1025,7 +1025,7 @@ Account* OT_API::GetAccountPartialMatch(
 //
 Nym* OT_API::CreateNym(const NymParameters& nymParameters) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     OTWallet* pWallet =
         GetWallet(__FUNCTION__);  // This logs and ASSERTs already.
@@ -1070,7 +1070,7 @@ bool OT_API::IsNym_RegisteredAtServer(
  */
 bool OT_API::Wallet_ChangePassphrase() const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     OTWallet* pWallet = GetWallet(__FUNCTION__);
 
@@ -1119,7 +1119,7 @@ bool OT_API::Wallet_ChangePassphrase() const
 
 std::string OT_API::Wallet_GetPhrase()
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
 #if OT_CRYPTO_WITH_BIP32
     OTWallet* pWallet = GetWallet(__FUNCTION__);
@@ -1144,7 +1144,7 @@ std::string OT_API::Wallet_GetPhrase()
 
 std::string OT_API::Wallet_GetSeed()
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
 #if OT_CRYPTO_WITH_BIP32
     OTWallet* pWallet = GetWallet(__FUNCTION__);
@@ -1170,7 +1170,7 @@ std::string OT_API::Wallet_GetSeed()
 
 std::string OT_API::Wallet_GetWords()
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
 #if OT_CRYPTO_WITH_BIP39
     OTWallet* pWallet = GetWallet(__FUNCTION__);
@@ -1197,7 +1197,7 @@ std::string OT_API::Wallet_ImportSeed(
     __attribute__((unused)) const OTPassword& words,
     __attribute__((unused)) const OTPassword& passphrase) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     std::string output;
 #if OT_CRYPTO_WITH_BIP39
@@ -1217,7 +1217,7 @@ std::string OT_API::Wallet_ImportSeed(
 
 bool OT_API::Wallet_CanRemoveServer(const Identifier& NOTARY_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     if (NOTARY_ID.IsEmpty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -1277,7 +1277,7 @@ bool OT_API::Wallet_CanRemoveServer(const Identifier& NOTARY_ID) const
 bool OT_API::Wallet_CanRemoveAssetType(
     const Identifier& INSTRUMENT_DEFINITION_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     if (INSTRUMENT_DEFINITION_ID.IsEmpty()) {
         otErr << __FUNCTION__
@@ -1320,7 +1320,7 @@ bool OT_API::Wallet_CanRemoveAssetType(
 //
 bool OT_API::Wallet_CanRemoveNym(const Identifier& NYM_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     if (NYM_ID.IsEmpty()) {
         otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
@@ -1393,7 +1393,7 @@ bool OT_API::Wallet_CanRemoveNym(const Identifier& NYM_ID) const
 //
 bool OT_API::Wallet_CanRemoveAccount(const Identifier& ACCOUNT_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     if (ACCOUNT_ID.IsEmpty()) {
         otErr << __FUNCTION__ << ": Null: ACCOUNT_ID passed in!\n";
@@ -1464,7 +1464,7 @@ bool OT_API::Wallet_CanRemoveAccount(const Identifier& ACCOUNT_ID) const
 //
 bool OT_API::Wallet_RemoveNym(const Identifier& NYM_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     if (NYM_ID.IsEmpty()) {
         otErr << __FUNCTION__ << ": Null: ACCOUNT_ID passed in!\n";
@@ -1513,7 +1513,7 @@ bool OT_API::Wallet_RemoveNym(const Identifier& NYM_ID) const
 // Returns bool on success, and strOutput will contain the exported data.
 bool OT_API::Wallet_ExportNym(const Identifier& NYM_ID, String& strOutput) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     if (NYM_ID.IsEmpty()) {
         otErr << __FUNCTION__ << ": NYM_ID is empty!";
@@ -1665,7 +1665,7 @@ bool OT_API::Wallet_ExportNym(const Identifier& NYM_ID, String& strOutput) const
 bool OT_API::Wallet_ImportNym(const String& FILE_CONTENTS, Identifier* pNymID)
     const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     OTWallet* pWallet =
         GetWallet(__FUNCTION__);  // This logs and ASSERTs already.
@@ -2062,7 +2062,7 @@ bool OT_API::Encode(
     String& strOutput,
     bool bLineBreaks) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     OTASCIIArmor ascArmor;
     bool bSuccess = ascArmor.SetString(strPlaintext, bLineBreaks);  // encodes.
@@ -2094,7 +2094,7 @@ bool OT_API::Decode(
     String& strOutput,
     bool bLineBreaks) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     OTASCIIArmor ascArmor;
     const bool bLoadedArmor = OTASCIIArmor::LoadFromString(
@@ -2133,7 +2133,7 @@ bool OT_API::Encrypt(
     const String& strPlaintext,
     String& strOutput) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     OTPasswordData thePWData(OT_PW_DISPLAY);
     const Nym* pRecipientNym = GetOrLoadNym(
@@ -2185,7 +2185,7 @@ bool OT_API::Decrypt(
     const String& strCiphertext,
     String& strOutput) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pRecipientNym =
         GetOrLoadPrivateNym(theRecipientNymID, false, __FUNCTION__);
@@ -2222,7 +2222,7 @@ bool OT_API::FlatSign(
     const String& strContractType,
     String& strOutput) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(theSignerNymID, false, __FUNCTION__);
 
@@ -2267,7 +2267,7 @@ bool OT_API::SignContract(
     const String& strContract,
     String& strOutput) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(theSignerNymID, false, __FUNCTION__);
 
@@ -2328,7 +2328,7 @@ bool OT_API::AddSignature(
     const String& strContract,
     String& strOutput) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(theSignerNymID, false, __FUNCTION__);
 
@@ -2392,7 +2392,7 @@ bool OT_API::VerifySignature(
                                   // to clean it
                                   // up.
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     OTPasswordData thePWData(OT_PW_DISPLAY);
     const Nym* pNym = GetOrLoadNym(
@@ -2479,7 +2479,7 @@ bool OT_API::VerifyAndRetrieveXMLContents(
     const Identifier& theSignerNymID,
     String& strOutput)
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Contract* pContract = nullptr;
     const bool bSuccess =
@@ -2512,7 +2512,7 @@ bool OT_API::VerifyAccountReceipt(
     const Identifier& NYM_ID,
     const Identifier& ACCOUNT_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
 
@@ -2541,7 +2541,7 @@ bool OT_API::Create_SmartContract(
                            // party.
     String& strOutput) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(SIGNER_NYM_ID, false, __FUNCTION__);
 
@@ -2583,7 +2583,7 @@ bool OT_API::SmartContract_SetDates(
     time64_t VALID_TO,  // Default (0 or nullptr) == no expiry / cancel anytime.
     String& strOutput) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(SIGNER_NYM_ID, false, __FUNCTION__);
 
@@ -2628,7 +2628,7 @@ bool OT_API::SmartContract_AddParty(
                                  // party. Need Agent NAME.
     String& strOutput) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(SIGNER_NYM_ID, false, __FUNCTION__);
 
@@ -2718,7 +2718,7 @@ bool OT_API::SmartContract_RemoveParty(
                                // contract. (And the scripts...)
     String& strOutput) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(SIGNER_NYM_ID, false, __FUNCTION__);
 
@@ -2762,7 +2762,7 @@ bool OT_API::SmartContract_AddAccount(
                                              // Account.
     String& strOutput) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(SIGNER_NYM_ID, false, __FUNCTION__);
 
@@ -2867,7 +2867,7 @@ bool OT_API::SmartContract_RemoveAccount(
                                // contract
     String& strOutput) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(SIGNER_NYM_ID, false, __FUNCTION__);
 
@@ -2917,7 +2917,7 @@ int32_t OT_API::SmartContract_CountNumsNeeded(
                                      // this
                                      // party. Need Agent NAME.
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     std::int32_t nReturnValue = 0;
     const std::string str_agent_name(AGENT_NAME.Get());
@@ -2950,7 +2950,7 @@ bool OT_API::SmartContract_ConfirmAccount(
     const String& ACCT_ID,
     String& strOutput) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(SIGNER_NYM_ID, false, __FUNCTION__);
 
@@ -3119,7 +3119,7 @@ bool OT_API::SmartContract_ConfirmAccount(
 
 bool OT_API::Smart_ArePartiesSpecified(const String& THE_CONTRACT) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     std::unique_ptr<OTScriptable> pContract(
         OTScriptable::InstantiateScriptable(THE_CONTRACT));
@@ -3135,7 +3135,7 @@ bool OT_API::Smart_ArePartiesSpecified(const String& THE_CONTRACT) const
 
 bool OT_API::Smart_AreAssetTypesSpecified(const String& THE_CONTRACT) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     std::unique_ptr<OTScriptable> pContract(
         OTScriptable::InstantiateScriptable(THE_CONTRACT));
@@ -3160,7 +3160,7 @@ bool OT_API::SmartContract_ConfirmParty(
                               // party.
                               // (For now, until I code entities)
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
 
@@ -3282,7 +3282,7 @@ bool OT_API::SmartContract_AddBylaw(
                                // contract. (And the scripts...)
     String& strOutput) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     const char* BYLAW_LANGUAGE = "chai";  // todo hardcoding.
     Nym* pNym = GetOrLoadPrivateNym(
@@ -3343,7 +3343,7 @@ bool OT_API::SmartContract_RemoveBylaw(
                                // contract. (And the scripts...)
     String& strOutput) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(SIGNER_NYM_ID, false, __FUNCTION__);
 
@@ -3393,7 +3393,7 @@ bool OT_API::SmartContract_AddHook(
                                 // same hook.)
     String& strOutput) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(SIGNER_NYM_ID, false, __FUNCTION__);
 
@@ -3456,7 +3456,7 @@ bool OT_API::SmartContract_RemoveHook(
                                 // same hook.)
     String& strOutput) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(SIGNER_NYM_ID, false, __FUNCTION__);
 
@@ -3515,7 +3515,7 @@ bool OT_API::SmartContract_AddCallback(
                                   // the callback. (Must exist.)
     String& strOutput) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(SIGNER_NYM_ID, false, __FUNCTION__);
 
@@ -3582,7 +3582,7 @@ bool OT_API::SmartContract_RemoveCallback(
                                   // smart contract. (And the scripts...)
     String& strOutput) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(SIGNER_NYM_ID, false, __FUNCTION__);
 
@@ -3639,7 +3639,7 @@ bool OT_API::SmartContract_AddClause(
     const String& SOURCE_CODE,  // The actual source code for the clause.
     String& strOutput) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(SIGNER_NYM_ID, false, __FUNCTION__);
 
@@ -3708,7 +3708,7 @@ bool OT_API::SmartContract_UpdateClause(
     const String& SOURCE_CODE,  // The actual source code for the clause.
     String& strOutput) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(SIGNER_NYM_ID, false, __FUNCTION__);
 
@@ -3765,7 +3765,7 @@ bool OT_API::SmartContract_RemoveClause(
                                 // contract. (And the scripts...)
     String& strOutput) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(SIGNER_NYM_ID, false, __FUNCTION__);
 
@@ -3829,7 +3829,7 @@ bool OT_API::SmartContract_AddVariable(
     // bool.
     String& strOutput) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(SIGNER_NYM_ID, false, __FUNCTION__);
 
@@ -3940,7 +3940,7 @@ bool OT_API::SmartContract_RemoveVariable(
                                // contract. (And the scripts...)
     String& strOutput) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(SIGNER_NYM_ID, false, __FUNCTION__);
 
@@ -4008,7 +4008,7 @@ bool OT_API::Rename_Nym(
         return false;
     }
 
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     OTWallet* pWallet = GetWallet(__FUNCTION__);
 
@@ -4056,7 +4056,7 @@ bool OT_API::SetAccount_Name(
     const Identifier& SIGNER_NYM_ID,
     const String& ACCT_NEW_NAME) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     OTWallet* pWallet =
         GetWallet(__FUNCTION__);  // This logs and ASSERTs already.
@@ -4100,7 +4100,7 @@ Nym* OT_API::LoadPrivateNym(
     const OTPasswordData* pPWData,
     const OTPassword* pImportPassword) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     if (NYM_ID.IsEmpty()) {
         otErr << __FUNCTION__ << ": NYM_ID is empty!";
@@ -4199,7 +4199,7 @@ bool OT_API::Msg_HarvestTransactionNumbers(
     bool bTransactionWasSuccess,        // false until positively asserted.
     bool bTransactionWasFailure) const  // false until positively asserted.
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
 
@@ -4265,7 +4265,7 @@ bool OT_API::HarvestClosingNumbers(
     const Identifier& NYM_ID,
     const String& THE_CRON_ITEM) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
 
@@ -4320,7 +4320,7 @@ bool OT_API::HarvestAllNumbers(
     const Identifier& NYM_ID,
     const String& THE_CRON_ITEM) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
 
@@ -4371,7 +4371,7 @@ Nym* OT_API::GetOrLoadPrivateNym(
     const OTPasswordData* pPWData,
     const OTPassword* pImportPassword) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     OTWallet* pWallet =
         GetWallet(szFuncName);  // This logs and ASSERTs already.
@@ -4401,7 +4401,7 @@ const Nym* OT_API::GetOrLoadNym(
     const char* szFuncName,
     const OTPasswordData* pPWData) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     if (NYM_ID.IsEmpty()) {
         otErr << __FUNCTION__ << ": NYM_ID is empty!";
@@ -4442,7 +4442,7 @@ const Nym* OT_API::reloadAndGetNym(
     const char* szFuncName,
     const OTPasswordData* pPWData) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     if (NYM_ID.IsEmpty()) {
         otErr << __FUNCTION__ << ": NYM_ID is empty!";
@@ -4482,7 +4482,7 @@ Nym* OT_API::reloadAndGetPrivateNym(
     const char* szFuncName,
     const OTPasswordData* pPWData) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     if (NYM_ID.IsEmpty()) {
         otErr << __FUNCTION__ << ": NYM_ID is empty!";
@@ -4558,7 +4558,7 @@ Account* OT_API::GetOrLoadAccount(
     const Identifier& NOTARY_ID,
     const char* szFuncName) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     const char* szFunc = (nullptr != szFuncName) ? szFuncName : __FUNCTION__;
     OTWallet* pWallet = GetWallet(szFunc);  // This logs and ASSERTs already.
@@ -4580,7 +4580,7 @@ Account* OT_API::GetOrLoadAccount(
     const Identifier& NOTARY_ID,
     const char* szFuncName) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     const char* szFunc = (nullptr != szFuncName) ? szFuncName : __FUNCTION__;
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, szFunc);
@@ -4612,7 +4612,7 @@ Cheque* OT_API::WriteCheque(
     const String& CHEQUE_MEMO,
     const Identifier* pRECIPIENT_NYM_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(SENDER_NYM_ID, false, __FUNCTION__);
 
@@ -4641,9 +4641,8 @@ Cheque* OT_API::WriteCheque(
     String strNotaryID(NOTARY_ID);
     const auto number =
         context.It().NextTransactionNumber(MessageType::notarizeTransaction);
-    const bool bGotTransNum = 0 != number;
 
-    if (!bGotTransNum) {
+    if (false == number.Valid()) {
         otOut << __FUNCTION__
               << ": User attempted to write a cheque, but had no "
                  "transaction numbers.\n";
@@ -4671,15 +4670,17 @@ Cheque* OT_API::WriteCheque(
         SENDER_NYM_ID,
         CHEQUE_MEMO,
         pRECIPIENT_NYM_ID);
+
     if (!bIssueCheque) {
         otErr << __FUNCTION__ << ": Failure calling OTCheque::IssueCheque().\n";
         delete pCheque;
         pCheque = nullptr;
-        // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE NUMBERS.
-        context.It().RecoverAvailableNumber(number);
 
         return nullptr;
     }
+
+    // Above this line, the transaction number will be recovered automatically
+    number.SetSuccess(true);
     pCheque->SignContract(*pNym);
     pCheque->SaveContract();
     //
@@ -4713,6 +4714,7 @@ Cheque* OT_API::WriteCheque(
                      // It's in his "outpayments".
     Nym* pSignerNym = pNym;
     pNym->SaveSignedNymfile(*pSignerNym);
+
     return pCheque;
 }
 
@@ -4970,7 +4972,7 @@ bool OT_API::ConfirmPaymentPlan(
     const Identifier& RECIPIENT_NYM_ID,
     OTPaymentPlan& thePlan) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(SENDER_NYM_ID, false, __FUNCTION__);
 
@@ -5066,7 +5068,7 @@ Purse* OT_API::LoadPurse(
     const Identifier& NYM_ID,
     const String* pstrDisplay) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     const String strReason(
         (nullptr == pstrDisplay) ? "Loading purse from local storage."
@@ -5113,7 +5115,7 @@ bool OT_API::SavePurse(
     const Identifier& NYM_ID,
     Purse& THE_PURSE) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     if (THE_PURSE.IsPasswordProtected()) {
         otOut << __FUNCTION__
@@ -5150,7 +5152,7 @@ Purse* OT_API::CreatePurse(
     const Identifier& INSTRUMENT_DEFINITION_ID,
     const Identifier& OWNER_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Purse* pPurse = new Purse(NOTARY_ID, INSTRUMENT_DEFINITION_ID, OWNER_ID);
     OT_ASSERT_MSG(
@@ -5173,7 +5175,7 @@ Purse* OT_API::CreatePurse_Passphrase(
     const Identifier& NOTARY_ID,
     const Identifier& INSTRUMENT_DEFINITION_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Purse* pPurse = new Purse(NOTARY_ID, INSTRUMENT_DEFINITION_ID);
     OT_ASSERT_MSG(
@@ -5216,7 +5218,7 @@ OTNym_or_SymmetricKey* OT_API::LoadPurseAndOwnerFromString(
                                        // already
     const String* pstrDisplay2) const  // for password-protected purses
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     const bool bDoesOwnerIDExist =
         (nullptr !=
@@ -5370,7 +5372,7 @@ OTNym_or_SymmetricKey* OT_API::LoadPurseAndOwnerForMerge(
                                   // failing.
     const String* pstrDisplay) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     OTPasswordData thePWData(
         (nullptr == pstrDisplay) ? OT_PW_DISPLAY : pstrDisplay->Get());
@@ -5509,7 +5511,7 @@ Token* OT_API::Purse_Peek(
     // to decrypt the token.)
     const String* pstrDisplay) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     const String strReason1(
         (nullptr == pstrDisplay)
@@ -5599,7 +5601,7 @@ Purse* OT_API::Purse_Pop(
     // to decrypt the token.)
     const String* pstrDisplay) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     const String strReason1(
         (nullptr == pstrDisplay)
@@ -5674,7 +5676,7 @@ Purse* OT_API::Purse_Empty(
     const String& THE_PURSE,
     const String* pstrDisplay) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     const String strReason(
         (nullptr == pstrDisplay) ? "Making an empty copy of a cash purse."
@@ -5720,7 +5722,7 @@ Purse* OT_API::Purse_Push(
     // to encrypt the token.)
     const String* pstrDisplay) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     const String strReason1(
         (nullptr == pstrDisplay)
@@ -5816,7 +5818,7 @@ bool OT_API::Wallet_ImportPurse(
     const String& THE_PURSE,
     const String* pstrDisplay)
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     String strPurseReason(
         (nullptr == pstrDisplay) ? "Enter passphrase for purse being imported."
@@ -5963,7 +5965,7 @@ Token* OT_API::Token_ChangeOwner(
     const String& NEW_OWNER,  // Pass a NymID here, or a purse.
     const String* pstrDisplay) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     String strWalletReason(
         (nullptr == pstrDisplay)
@@ -6129,7 +6131,7 @@ Mint* OT_API::LoadMint(
     const Identifier& NOTARY_ID,
     const Identifier& INSTRUMENT_DEFINITION_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     const String strNotaryID(NOTARY_ID);
     const String strInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
@@ -6181,7 +6183,7 @@ Account* OT_API::LoadAssetAccount(
     const Identifier& NYM_ID,
     const Identifier& ACCOUNT_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     OTWallet* pWallet =
         GetWallet(__FUNCTION__);  // This logs and ASSERTs already.
@@ -6204,7 +6206,7 @@ Ledger* OT_API::LoadNymbox(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
 
@@ -6244,7 +6246,7 @@ Ledger* OT_API::LoadNymboxNoVerify(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
 
@@ -6276,7 +6278,7 @@ Ledger* OT_API::LoadInbox(
     const Identifier& NYM_ID,
     const Identifier& ACCOUNT_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
 
@@ -6316,7 +6318,7 @@ Ledger* OT_API::LoadInboxNoVerify(
     const Identifier& NYM_ID,
     const Identifier& ACCOUNT_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
 
@@ -6349,7 +6351,7 @@ Ledger* OT_API::LoadOutbox(
     const Identifier& NYM_ID,
     const Identifier& ACCOUNT_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
 
@@ -6389,7 +6391,7 @@ Ledger* OT_API::LoadOutboxNoVerify(
     const Identifier& NYM_ID,
     const Identifier& ACCOUNT_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
 
@@ -6419,7 +6421,7 @@ Ledger* OT_API::LoadPaymentInbox(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
 
@@ -6449,7 +6451,7 @@ Ledger* OT_API::LoadPaymentInboxNoVerify(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
 
@@ -6480,7 +6482,7 @@ Ledger* OT_API::LoadRecordBox(
     const Identifier& NYM_ID,
     const Identifier& ACCOUNT_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
 
@@ -6515,7 +6517,7 @@ Ledger* OT_API::LoadRecordBoxNoVerify(
     const Identifier& NYM_ID,
     const Identifier& ACCOUNT_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
 
@@ -6545,7 +6547,7 @@ Ledger* OT_API::LoadExpiredBox(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
 
@@ -6578,7 +6580,7 @@ Ledger* OT_API::LoadExpiredBoxNoVerify(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
 
@@ -6610,7 +6612,7 @@ bool OT_API::ClearExpired(
     bool bClearAll) const  // if true, nIndex is
                            // ignored.
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
 
@@ -6877,7 +6879,7 @@ bool OT_API::RecordPayment(
                           // outpayments box) and moves to record box.
     bool bSaveCopy) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
 
@@ -8156,7 +8158,7 @@ bool OT_API::ClearRecord(
     std::int32_t nIndex,
     bool bClearAll) const  // if true, nIndex is ignored.
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
 
@@ -8240,7 +8242,7 @@ bool OT_API::ResyncNymWithServer(
     const Ledger& theNymbox,
     const Nym& theMessageNym) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     if (Ledger::nymbox != theNymbox.GetType()) {
         otErr << "OT_API::ResyncNymWithServer: Error: Expected a Nymbox, "
@@ -8282,7 +8284,7 @@ std::shared_ptr<Message> OT_API::PopMessageBuffer(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     OT_ASSERT_MSG(
         (m_pClient != nullptr), "Not initialized; call OT_API::Init first.");
@@ -8300,7 +8302,7 @@ std::shared_ptr<Message> OT_API::PopMessageBuffer(
 
 void OT_API::FlushMessageBuffer()
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     OT_ASSERT_MSG(
         (m_pClient != nullptr), "Not initialized; call OT_API::Init first.");
@@ -8327,7 +8329,7 @@ Message* OT_API::GetSentMessage(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     OT_ASSERT_MSG(
         (m_pClient != nullptr), "Not initialized; call OT_API::Init first.");
@@ -8346,7 +8348,7 @@ bool OT_API::RemoveSentMessage(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     OT_ASSERT_MSG(
         m_pClient != nullptr, "Not initialized; call OT_API::Init first.");
@@ -8429,7 +8431,7 @@ void OT_API::FlushSentMessages(
     const Identifier& NYM_ID,
     const Ledger& THE_NYMBOX) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
     Nym* pNym = GetNym(NYM_ID, __FUNCTION__);  // This logs and ASSERTs already.
     if (nullptr == pNym) return;
 
@@ -8532,7 +8534,7 @@ bool OT_API::HaveAlreadySeenReply(
 bool OT_API::IsBasketCurrency(const Identifier& BASKET_INSTRUMENT_DEFINITION_ID)
     const  // returns true or false.
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     String contractID(BASKET_INSTRUMENT_DEFINITION_ID);
 
@@ -8555,7 +8557,7 @@ bool OT_API::IsBasketCurrency(const Identifier& BASKET_INSTRUMENT_DEFINITION_ID)
 std::int32_t OT_API::GetBasketMemberCount(
     const Identifier& BASKET_INSTRUMENT_DEFINITION_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     String contractID(BASKET_INSTRUMENT_DEFINITION_ID);
     std::shared_ptr<proto::UnitDefinition> serialized;
@@ -8583,7 +8585,7 @@ bool OT_API::GetBasketMemberType(
     std::int32_t nIndex,
     Identifier& theOutputMemberType) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     String contractID(BASKET_INSTRUMENT_DEFINITION_ID);
     std::shared_ptr<proto::UnitDefinition> serialized;
@@ -8620,7 +8622,7 @@ std::int64_t OT_API::GetBasketMemberMinimumTransferAmount(
     const Identifier& BASKET_INSTRUMENT_DEFINITION_ID,
     std::int32_t nIndex) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     String contractID(BASKET_INSTRUMENT_DEFINITION_ID);
     std::shared_ptr<proto::UnitDefinition> serialized;
@@ -8651,7 +8653,7 @@ std::int64_t OT_API::GetBasketMemberMinimumTransferAmount(
 std::int64_t OT_API::GetBasketMinimumTransferAmount(
     const Identifier& BASKET_INSTRUMENT_DEFINITION_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     String contractID(BASKET_INSTRUMENT_DEFINITION_ID);
     std::shared_ptr<proto::UnitDefinition> serialized;
@@ -8676,7 +8678,7 @@ bool OT_API::AddBasketCreationItem(
     const String& currencyID,
     const std::uint64_t weight) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     auto item = basketTemplate.mutable_basket()->add_item();
 
@@ -8700,7 +8702,7 @@ std::int32_t OT_API::issueBasket(
     const Identifier& NYM_ID,
     const proto::UnitDefinition& basket) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
 
@@ -8753,7 +8755,7 @@ std::int32_t OT_API::issueBasket(
     theMessage.SaveContract();
 
     // (Send it)
-    SendMessage(NOTARY_ID, pNym, theMessage);
+    send_message(NOTARY_ID, pNym, theMessage);
 
     return static_cast<std::int32_t>(lRequestNumber);
 }
@@ -8772,7 +8774,7 @@ Basket* OT_API::GenerateBasketExchange(
     const Identifier& BASKET_ASSET_ACCT_ID,
     std::int32_t TRANSFER_MULTIPLE) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
 
@@ -8859,7 +8861,7 @@ bool OT_API::AddBasketExchangeItem(
     const Identifier& INSTRUMENT_DEFINITION_ID,
     const Identifier& ASSET_ACCT_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
 
@@ -8900,24 +8902,24 @@ bool OT_API::AddBasketExchangeItem(
     const String strNotaryID(NOTARY_ID);
     const auto number =
         context.It().NextTransactionNumber(MessageType::notarizeTransaction);
-    const bool bGotSubClosingNum = 0 != number;
 
-    if (bGotSubClosingNum) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Allocated transaction number "
-              << number << std::endl;
-
-        theBasket.AddRequestSubContract(
-            INSTRUMENT_DEFINITION_ID, ASSET_ACCT_ID, number);
-        theBasket.ReleaseSignatures();
-        theBasket.SignContract(*pNym);
-        theBasket.SaveContract();
-
-        return true;
-    } else
+    if (false == number.Valid()) {
         otErr << "OT_API::AddBasketExchangeItem: Failed getting next "
                  "transaction number. \n";
 
-    return false;
+        return false;
+    }
+
+    otErr << OT_METHOD << __FUNCTION__ << ": Allocated transaction number "
+          << number << std::endl;
+    number.SetSuccess(true);
+    theBasket.AddRequestSubContract(
+        INSTRUMENT_DEFINITION_ID, ASSET_ACCT_ID, number);
+    theBasket.ReleaseSignatures();
+    theBasket.SignContract(*pNym);
+    theBasket.SaveContract();
+
+    return true;
 }
 
 // TODO!  Either stop getting the next transaction numbers above, and do it all
@@ -9053,11 +9055,11 @@ std::int32_t OT_API::exchangeBasket(
     bool bExchangeInOrOut  // exchanging in == true, out == false.
     ) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
+    rLock lock(lock_);
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
 
     if (nullptr == pNym) {
+
         return (-1);
     }
 
@@ -9075,214 +9077,213 @@ std::int32_t OT_API::exchangeBasket(
     // Next load the Basket object out of that contract, and load the
     // RequestBasket object that was passed in.
     Basket theRequestBasket;
+    bool validBasket = (0 < BASKET_INFO.GetLength());
+    validBasket &= theRequestBasket.LoadContractFromString(BASKET_INFO);
 
-    if (BASKET_INFO.GetLength() &&
-        theRequestBasket.LoadContractFromString(BASKET_INFO)) {
-        const Identifier& BASKET_ASSET_ACCT_ID(
-            theRequestBasket.GetRequestAccountID());
-        Account* pAccount = GetOrLoadAccount(
-            *pNym, BASKET_ASSET_ACCT_ID, NOTARY_ID, __FUNCTION__);
-        if (nullptr == pAccount) return (-1);
+    if (false == validBasket) {
 
-        // By this point, pAccount is a good pointer, and is on the wallet. (No
-        // need to cleanup.)
-        // We need a transaction number just to send this thing. Plus, we need a
-        // number for
-        // each sub-account to the basket, as well as the basket's main account.
-        // That is: 1 + theBasket.Count() + 1
-        // Total of 2, since theBasket.Count() worth of numbers were already
-        // added in the
-        // calls to OT_API::AddBasketExchangeItem.
-
-        if (context.It().AvailableNumbers() < 2) {
-            otOut << "OT_API::exchangeBasket: you don't have enough "
-                     "transaction numbers to perform the exchange.\n";
-        } else {
-            const auto number = context.It().NextTransactionNumber(
-                MessageType::notarizeTransaction);
-            const bool bGotTransNum = 0 != number;
-
-            if (bGotTransNum) {
-                otErr << OT_METHOD << __FUNCTION__
-                      << ": Allocated opening transaction number " << number
-                      << std::endl;
-                // LOAD the INBOX for the MAIN ACCOUNT
-                //
-                std::unique_ptr<Ledger> pInbox(pAccount->LoadInbox(*pNym));
-                std::unique_ptr<Ledger> pOutbox(pAccount->LoadOutbox(*pNym));
-
-                if (nullptr == pInbox) {
-                    otOut << "OT_API::exchangeBasket: Failed loading inbox!\n";
-
-                    // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF
-                    // AVAILABLE NUMBERS.
-                    context.It().RecoverAvailableNumber(number);
-                } else if (nullptr == pOutbox) {
-                    otOut << "OT_API::exchangeBasket: Failed loading outbox!\n";
-
-                    // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF
-                    // AVAILABLE NUMBERS.
-                    context.It().RecoverAvailableNumber(number);
-                }
-                // Set up the Request Basket! ------------------------------
-                else {
-                    // Create a transaction
-                    OTTransaction* pTransaction =
-                        OTTransaction::GenerateTransaction(
-                            NYM_ID,
-                            BASKET_ASSET_ACCT_ID,
-                            NOTARY_ID,
-                            OTTransaction::exchangeBasket,
-                            originType::not_applicable,
-                            number);
-
-                    // set up the transaction item (each transaction may have
-                    // multiple items...)
-                    Item* pItem = Item::CreateItemFromTransaction(
-                        *pTransaction, Item::exchangeBasket);
-
-                    // This pItem is where the Basket Info will be stored. (So
-                    // it ends up on receipts...)
-                    pTransaction->AddItem(*pItem);  // the Transaction's
-                                                    // destructor will cleanup
-                                                    // the item. It "owns" it
-                                                    // now.
-
-                    // NOTE: I'm not checking this call for success...
-                    // But, I DID check the count beforehand, and I know there
-                    // are enough numbers.
-                    const auto closingNumber =
-                        context.It().NextTransactionNumber(
-                            MessageType::notarizeTransaction);
-                    const bool bGotClosingNum = 0 != closingNumber;
-
-                    OT_ASSERT(bGotClosingNum);
-
-                    otErr << OT_METHOD << __FUNCTION__
-                          << ": Allocated closing transaction number "
-                          << closingNumber << std::endl;
-
-                    // This goes in the final API call.
-                    theRequestBasket.SetClosingNum(closingNumber);
-                    // (Closing Transaction Num) for main account.
-
-                    // This goes in the final API call.
-                    theRequestBasket.SetExchangingIn(bExchangeInOrOut);
-
-                    theRequestBasket.ReleaseSignatures();
-                    theRequestBasket.SignContract(*pNym);
-                    theRequestBasket.SaveContract();
-
-                    // Export the Basket object into a string, add it as
-                    // a payload on my request, and send to server.
-                    String strBasketInfo;
-                    theRequestBasket.SaveContractRaw(strBasketInfo);
-
-                    pItem->SetAttachment(strBasketInfo);
-
-                    // sign the item. save it.
-                    //
-                    pItem->SignContract(*pNym);
-                    pItem->SaveContract();
-
-                    // BALANCE AGREEMENT!
-                    //
-                    // pBalanceItem is signed and saved within this call. No
-                    // need to do that again.
-                    Item* pBalanceItem = pInbox->GenerateBalanceStatement(
-                        0,  // Change in balance is 0. (The accounts will all be
-                        // changed,
-                        *pTransaction,
-                        context.It(),
-                        *pAccount,
-                        *pOutbox);  // but basketReceipts will be used to
-                                    // account
-                                    // for it.)
-
-                    if (nullptr !=
-                        pBalanceItem)  // will never be nullptr. Will assert
-                                       // above before it gets here.
-                        pTransaction->AddItem(*pBalanceItem);  // Better not be
-                    // nullptr... message
-                    // will fail...
-                    // But better
-                    // check anyway.
-
-                    // sign the transaction
-                    pTransaction->SignContract(*pNym);
-                    pTransaction->SaveContract();
-
-                    // set up the ledger
-                    Ledger theLedger(NYM_ID, BASKET_ASSET_ACCT_ID, NOTARY_ID);
-                    theLedger.GenerateLedger(
-                        BASKET_ASSET_ACCT_ID,
-                        NOTARY_ID,
-                        Ledger::message);  // bGenerateLedger defaults to
-                                           // false, which is correct.
-                    theLedger.AddTransaction(*pTransaction);
-
-                    // sign the ledger
-                    theLedger.SignContract(*pNym);
-                    theLedger.SaveContract();
-
-                    // extract the ledger in ascii-armored form
-                    String strLedger(theLedger);
-                    OTASCIIArmor ascLedger;  // I can't pass strLedger into this
-                                             // constructor because I want to
-                                             // encode it
-
-                    // Encoding...
-                    ascLedger.SetString(strLedger);
-                    Message theMessage;
-                    auto context =
-                        wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
-
-                    // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-                    auto lRequestNumber = context.It().Request();
-                    theMessage.m_strRequestNum.Format(
-                        "%" PRId64, lRequestNumber);
-                    context.It().IncrementRequest();
-
-                    // (1) Set up member variables
-                    theMessage.m_strCommand = "notarizeTransaction";
-                    theMessage.m_strNymID = strNymID;
-                    theMessage.m_strNotaryID = strNotaryID;
-                    theMessage.SetAcknowledgments(context.It());
-                    BASKET_ASSET_ACCT_ID.GetString(theMessage.m_strAcctID);
-                    theMessage.m_ascPayload = ascLedger;
-                    Identifier NYMBOX_HASH = context.It().LocalNymboxHash();
-                    NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
-
-                    if (!String(NYMBOX_HASH).Exists()) {
-                        otErr
-                            << "Failed getting NymboxHash from Nym for server: "
-                            << strNotaryID << std::endl;
-                    }
-
-                    // (2) Sign the Message
-                    theMessage.SignContract(*pNym);
-
-                    // (3) Save the Message (with signatures and all, back to
-                    // its internal member m_strRawFile.)
-                    theMessage.SaveContract();
-
-                    // (Send it)
-                    SendMessage(NOTARY_ID, pNym, theMessage);
-
-                    return static_cast<std::int32_t>(lRequestNumber);
-                }  // Inbox loaded.
-            }      // successfully got first transaction number.
-        }
+        return -1;
     }
 
-    return (-1);
+    const Identifier& BASKET_ASSET_ACCT_ID(
+        theRequestBasket.GetRequestAccountID());
+    Account* pAccount =
+        GetOrLoadAccount(*pNym, BASKET_ASSET_ACCT_ID, NOTARY_ID, __FUNCTION__);
+
+    if (nullptr == pAccount) {
+
+        return (-1);
+    }
+
+    // By this point, pAccount is a good pointer, and is on the wallet. (No
+    // need to cleanup.)
+    // We need a transaction number just to send this thing. Plus, we need a
+    // number for
+    // each sub-account to the basket, as well as the basket's main account.
+    // That is: 1 + theBasket.Count() + 1
+    // Total of 2, since theBasket.Count() worth of numbers were already
+    // added in the
+    // calls to OT_API::AddBasketExchangeItem.
+
+    if (context.It().AvailableNumbers() < 2) {
+        otOut << "OT_API::exchangeBasket: you don't have enough "
+                 "transaction numbers to perform the exchange.\n";
+
+        return -1;
+    }
+
+    const auto number =
+        context.It().NextTransactionNumber(MessageType::notarizeTransaction);
+
+    if (false == number.Valid()) {
+
+        return -1;
+    }
+
+    otErr << OT_METHOD << __FUNCTION__
+          << ": Allocated opening transaction number " << number << std::endl;
+    // LOAD the INBOX for the MAIN ACCOUNT
+    std::unique_ptr<Ledger> pInbox(pAccount->LoadInbox(*pNym));
+    std::unique_ptr<Ledger> pOutbox(pAccount->LoadOutbox(*pNym));
+
+    if (nullptr == pInbox) {
+        otOut << "OT_API::exchangeBasket: Failed loading inbox!\n";
+
+        return -1;
+    }
+
+    if (nullptr == pOutbox) {
+        otOut << "OT_API::exchangeBasket: Failed loading outbox!\n";
+
+        return -1;
+    }
+
+    // Create a transaction
+    OTTransaction* pTransaction = OTTransaction::GenerateTransaction(
+        NYM_ID,
+        BASKET_ASSET_ACCT_ID,
+        NOTARY_ID,
+        OTTransaction::exchangeBasket,
+        originType::not_applicable,
+        number);
+
+    // set up the transaction item (each transaction may have
+    // multiple items...)
+    Item* pItem =
+        Item::CreateItemFromTransaction(*pTransaction, Item::exchangeBasket);
+
+    // This pItem is where the Basket Info will be stored. (So
+    // it ends up on receipts...)
+    pTransaction->AddItem(*pItem);  // the Transaction's
+                                    // destructor will cleanup
+                                    // the item. It "owns" it
+                                    // now.
+
+    // NOTE: I'm not checking this call for success...
+    // But, I DID check the count beforehand, and I know there
+    // are enough numbers.
+    const auto closingNumber =
+        context.It().NextTransactionNumber(MessageType::notarizeTransaction);
+
+    OT_ASSERT(closingNumber.Valid());
+
+    otErr << OT_METHOD << __FUNCTION__
+          << ": Allocated closing transaction number " << closingNumber
+          << std::endl;
+
+    // Above this line, the transaction numbers will be recovered automatically
+    number.SetSuccess(true);
+    closingNumber.SetSuccess(true);
+
+    // This goes in the final API call.
+    theRequestBasket.SetClosingNum(closingNumber);
+    // (Closing Transaction Num) for main account.
+
+    // This goes in the final API call.
+    theRequestBasket.SetExchangingIn(bExchangeInOrOut);
+
+    theRequestBasket.ReleaseSignatures();
+    theRequestBasket.SignContract(*pNym);
+    theRequestBasket.SaveContract();
+
+    // Export the Basket object into a string, add it as
+    // a payload on my request, and send to server.
+    String strBasketInfo;
+    theRequestBasket.SaveContractRaw(strBasketInfo);
+
+    pItem->SetAttachment(strBasketInfo);
+
+    // sign the item. save it.
+    //
+    pItem->SignContract(*pNym);
+    pItem->SaveContract();
+
+    // BALANCE AGREEMENT!
+    //
+    // pBalanceItem is signed and saved within this call. No
+    // need to do that again.
+    Item* pBalanceItem = pInbox->GenerateBalanceStatement(
+        0,  // Change in balance is 0. (The accounts will all be
+        // changed,
+        *pTransaction,
+        context.It(),
+        *pAccount,
+        *pOutbox);  // but basketReceipts will be used to
+                    // account
+                    // for it.)
+
+    if (nullptr != pBalanceItem)  // will never be nullptr. Will assert
+                                  // above before it gets here.
+        pTransaction->AddItem(*pBalanceItem);  // Better not be
+    // nullptr... message
+    // will fail...
+    // But better
+    // check anyway.
+
+    // sign the transaction
+    pTransaction->SignContract(*pNym);
+    pTransaction->SaveContract();
+
+    // set up the ledger
+    Ledger theLedger(NYM_ID, BASKET_ASSET_ACCT_ID, NOTARY_ID);
+    theLedger.GenerateLedger(
+        BASKET_ASSET_ACCT_ID,
+        NOTARY_ID,
+        Ledger::message);  // bGenerateLedger defaults to
+                           // false, which is correct.
+    theLedger.AddTransaction(*pTransaction);
+
+    // sign the ledger
+    theLedger.SignContract(*pNym);
+    theLedger.SaveContract();
+
+    // extract the ledger in ascii-armored form
+    String strLedger(theLedger);
+    OTASCIIArmor ascLedger;  // I can't pass strLedger into this
+                             // constructor because I want to
+                             // encode it
+    // Encoding...
+    ascLedger.SetString(strLedger);
+    Message theMessage;
+
+    // (0) Set up the REQUEST NUMBER and then INCREMENT IT
+    auto lRequestNumber = context.It().Request();
+    theMessage.m_strRequestNum.Format("%" PRId64, lRequestNumber);
+    context.It().IncrementRequest();
+
+    // (1) Set up member variables
+    theMessage.m_strCommand = "notarizeTransaction";
+    theMessage.m_strNymID = strNymID;
+    theMessage.m_strNotaryID = strNotaryID;
+    theMessage.SetAcknowledgments(context.It());
+    BASKET_ASSET_ACCT_ID.GetString(theMessage.m_strAcctID);
+    theMessage.m_ascPayload = ascLedger;
+    Identifier NYMBOX_HASH = context.It().LocalNymboxHash();
+    NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
+
+    if (!String(NYMBOX_HASH).Exists()) {
+        otErr << "Failed getting NymboxHash from Nym for server: "
+              << strNotaryID << std::endl;
+    }
+
+    // (2) Sign the Message
+    theMessage.SignContract(*pNym);
+
+    // (3) Save the Message (with signatures and all, back to
+    // its internal member m_strRawFile.)
+    theMessage.SaveContract();
+
+    // (Send it)
+    send_message(NOTARY_ID, pNym, theMessage);
+
+    return static_cast<std::int32_t>(lRequestNumber);
 }
 
 int32_t OT_API::getTransactionNumbers(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
 
@@ -9332,7 +9333,7 @@ int32_t OT_API::getTransactionNumbers(
         nullptr);  // nullptr pAccount on this command.
 
     if (0 < nReturnValue) {
-        SendMessage(NOTARY_ID, pNym, theMessage);
+        send_message(NOTARY_ID, pNym, theMessage);
 
         return nReturnValue;
     }
@@ -9351,7 +9352,7 @@ std::int32_t OT_API::notarizeWithdrawal(
     const Identifier& ACCT_ID,
     const std::int64_t& AMOUNT) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     OTWallet* pWallet =
         GetWallet(__FUNCTION__);  // This logs and ASSERTs already.
@@ -9405,9 +9406,8 @@ std::int32_t OT_API::notarizeWithdrawal(
 
     const auto number =
         context.It().NextTransactionNumber(MessageType::notarizeTransaction);
-    const bool bGotTransNum = 0 != number;
 
-    if (!bGotTransNum) {
+    if (false == number.Valid()) {
         otOut << __FUNCTION__ << ": Next Transaction Number Available: Suggest "
                                  "requesting the server for a new one.\n";
         return (-1);
@@ -9441,173 +9441,169 @@ std::int32_t OT_API::notarizeWithdrawal(
 
     auto pServerNym = pServer->Nym();
     const Identifier NOTARY_NYM_ID(*pServerNym);
+    bool validMint = bool(pServerNym);
+    validMint &= pMint->LoadMint();
+    validMint &= pMint->VerifyMint(*pServerNym);
 
-    if (pServerNym && pMint->LoadMint() &&
-        pMint->VerifyMint(const_cast<Nym&>(*pServerNym))) {
-        RequestNumber lRequestNumber = 0;
-        Purse* pPurse = new Purse(NOTARY_ID, CONTRACT_ID, NOTARY_NYM_ID);
-        Purse* pPurseMyCopy = new Purse(NOTARY_ID, CONTRACT_ID, NYM_ID);
+    if (false == validMint) {
 
-        // Create all the necessary tokens for the withdrawal amount.
-        // Push copies of each token into a purse to be sent to the server,
-        // as well as a purse to be kept for unblinding when we receive the
-        // server response.  (Coin private unblinding keys are not sent to
-        // the server, obviously.)
-        std::int64_t lTokenAmount = 0;
-        while ((lTokenAmount = pMint->GetLargestDenomination(lAmount)) > 0) {
-            lAmount -= lTokenAmount;
-
-            // Create the relevant token request with same server/instrument
-            // definition id as
-            // the purse.
-            // the purse does NOT own the token at this point. The token's
-            // constructor
-            // just uses it to copy some IDs, since they must match.
-            //
-            std::unique_ptr<Token> pToken(
-                Token::InstantiateAndGenerateTokenRequest(
-                    *pPurse, *pNym, *pMint, lTokenAmount));
-            OT_ASSERT(nullptr != pToken);
-
-            // Sign it and save it.
-            pToken->SignContract(*pNym);
-            pToken->SaveContract();
-
-            // Now the proto-token is generated, let's add it to a purse
-            // By pushing *pToken into pPurse with *pServerNym, I encrypt it to
-            // pServerNym.
-            // So now only the server Nym can decrypt that token and pop it out
-            // of that purse.
-            pPurse->Push(*pServerNym, *pToken);
-
-            // I'm saving my own copy of all this, encrypted to my nym
-            // instead of the server's, so I can get to my private coin data.
-            // The server's copy of pToken is already Pushed, so I can re-use
-            // the variable now for my own purse.
-            pToken->ReleaseSignatures();
-            pToken->SetSavePrivateKeys();  // This time it will save the private
-                                           // keys when I sign it
-            pToken->SignContract(*pNym);
-            pToken->SaveContract();
-
-            pPurseMyCopy->Push(*pNym, *pToken);  // Now my copy of the purse has
-                                                 // a version of the token,
-        }
-        // Save the purse into a string...
-        String strPurse;
-        pPurse->SignContract(*pNym);
-        pPurse->SaveContract();
-        pPurse->SaveContractRaw(strPurse);
-
-        // Add the purse string as the attachment on the transaction item.
-        pItem->SetAttachment(
-            strPurse);  // The purse is contained in the reference string.
-        pPurseMyCopy->SignContract(
-            *pNym);  // encrypted to me instead of the server, and including
-        pPurseMyCopy->SaveContract();  // the private keys for unblinding the
-                                       // server response.
-        // This thing is neat and tidy. The wallet can just save it as an
-        // ascii-armored string as a
-        // purse field inside the wallet file.  It doesn't do that for now
-        // (TODO) but it easily could.
-        // Add the purse to the wallet
-        // (We will need it to look up the private coin info for unblinding the
-        // token,
-        //  when the response comes from the server.)
-        pWallet->AddPendingWithdrawal(*pPurseMyCopy);
-
-        delete pPurse;
-        pPurse = nullptr;        // We're done with this one.
-        pPurseMyCopy = nullptr;  // The wallet owns my copy now and will handle
-                                 // cleaning it up.
-
-        // sign the item
-        pItem->SignContract(*pNym);
-        pItem->SaveContract();
-
-        pTransaction->AddItem(*pItem);  // the Transaction's destructor will
-                                        // cleanup the item. It "owns" it now.
-        // BALANCE AGREEMENT
-
-        // pBalanceItem is signed and saved within this call. No need to do that
-        // again.
-        Item* pBalanceItem = pInbox->GenerateBalanceStatement(
-            lTotalAmount * (-1),
-            *pTransaction,
-            context.It(),
-            *pAccount,
-            *pOutbox);
-
-        if (nullptr !=
-            pBalanceItem)  // will never be nullptr. Will assert above
-                           // before it gets here.
-            pTransaction->AddItem(*pBalanceItem);  // Better not be nullptr...
-                                                   // message will fail... But
-                                                   // better check anyway.
-
-        // sign the transaction
-        pTransaction->SignContract(*pNym);
-        pTransaction->SaveContract();
-
-        // set up the ledger
-        Ledger theLedger(NYM_ID, ACCT_ID, NOTARY_ID);
-        theLedger.GenerateLedger(
-            ACCT_ID,
-            NOTARY_ID,
-            Ledger::message);  // bGenerateLedger defaults
-                               // to false, which is
-                               // correct.
-        theLedger.AddTransaction(*pTransaction);
-
-        // sign the ledger
-        theLedger.SignContract(*pNym);
-        theLedger.SaveContract();
-
-        // extract the ledger in ascii-armored form
-        String strLedger(theLedger);
-        OTASCIIArmor ascLedger;  // I can't pass strLedger into this constructor
-                                 // because I want to encode it
-
-        // Encoding...
-        ascLedger.SetString(strLedger);
-
-        // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-        lRequestNumber = context.It().Request();
-        theMessage.m_strRequestNum.Format("%" PRId64, lRequestNumber);
-        context.It().IncrementRequest();
-
-        // (1) Set up member variables
-        theMessage.m_strCommand = "notarizeTransaction";
-        theMessage.m_strNymID = strNymID;
-        theMessage.m_strNotaryID = strNotaryID;
-        theMessage.SetAcknowledgments(context.It());
-        theMessage.m_strAcctID = strFromAcct;
-        theMessage.m_ascPayload = ascLedger;
-        Identifier NYMBOX_HASH = context.It().LocalNymboxHash();
-        NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
-
-        if (!String(NYMBOX_HASH).Exists()) {
-            otErr << "Failed getting NymboxHash from Nym for server: "
-                  << strNotaryID << std::endl;
-        }
-
-        // (2) Sign the Message
-        theMessage.SignContract(*pNym);
-
-        // (3) Save the Message (with signatures and all, back to its internal
-        // member m_strRawFile.)
-        theMessage.SaveContract();
-
-        // (Send it)
-        SendMessage(NOTARY_ID, pNym, theMessage);
-
-        return static_cast<std::int32_t>(lRequestNumber);
-    } else {
-        // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE NUMBERS.
-        context.It().RecoverAvailableNumber(number);
+        return -1;
     }
 
-    return (-1);
+    // Above this line, the transaction number will be recovered automatically
+    number.SetSuccess(true);
+    RequestNumber lRequestNumber = 0;
+    Purse* pPurse = new Purse(NOTARY_ID, CONTRACT_ID, NOTARY_NYM_ID);
+    Purse* pPurseMyCopy = new Purse(NOTARY_ID, CONTRACT_ID, NYM_ID);
+
+    // Create all the necessary tokens for the withdrawal amount.
+    // Push copies of each token into a purse to be sent to the server,
+    // as well as a purse to be kept for unblinding when we receive the
+    // server response.  (Coin private unblinding keys are not sent to
+    // the server, obviously.)
+    std::int64_t lTokenAmount = 0;
+    while ((lTokenAmount = pMint->GetLargestDenomination(lAmount)) > 0) {
+        lAmount -= lTokenAmount;
+
+        // Create the relevant token request with same server/instrument
+        // definition id as
+        // the purse.
+        // the purse does NOT own the token at this point. The token's
+        // constructor
+        // just uses it to copy some IDs, since they must match.
+        //
+        std::unique_ptr<Token> pToken(Token::InstantiateAndGenerateTokenRequest(
+            *pPurse, *pNym, *pMint, lTokenAmount));
+        OT_ASSERT(nullptr != pToken);
+
+        // Sign it and save it.
+        pToken->SignContract(*pNym);
+        pToken->SaveContract();
+
+        // Now the proto-token is generated, let's add it to a purse
+        // By pushing *pToken into pPurse with *pServerNym, I encrypt it to
+        // pServerNym.
+        // So now only the server Nym can decrypt that token and pop it out
+        // of that purse.
+        pPurse->Push(*pServerNym, *pToken);
+
+        // I'm saving my own copy of all this, encrypted to my nym
+        // instead of the server's, so I can get to my private coin data.
+        // The server's copy of pToken is already Pushed, so I can re-use
+        // the variable now for my own purse.
+        pToken->ReleaseSignatures();
+        pToken->SetSavePrivateKeys();  // This time it will save the private
+                                       // keys when I sign it
+        pToken->SignContract(*pNym);
+        pToken->SaveContract();
+
+        pPurseMyCopy->Push(*pNym, *pToken);  // Now my copy of the purse has
+                                             // a version of the token,
+    }
+    // Save the purse into a string...
+    String strPurse;
+    pPurse->SignContract(*pNym);
+    pPurse->SaveContract();
+    pPurse->SaveContractRaw(strPurse);
+
+    // Add the purse string as the attachment on the transaction item.
+    pItem->SetAttachment(
+        strPurse);  // The purse is contained in the reference string.
+    pPurseMyCopy->SignContract(
+        *pNym);  // encrypted to me instead of the server, and including
+    pPurseMyCopy->SaveContract();  // the private keys for unblinding the
+                                   // server response.
+    // This thing is neat and tidy. The wallet can just save it as an
+    // ascii-armored string as a
+    // purse field inside the wallet file.  It doesn't do that for now
+    // (TODO) but it easily could.
+    // Add the purse to the wallet
+    // (We will need it to look up the private coin info for unblinding the
+    // token,
+    //  when the response comes from the server.)
+    pWallet->AddPendingWithdrawal(*pPurseMyCopy);
+
+    delete pPurse;
+    pPurse = nullptr;        // We're done with this one.
+    pPurseMyCopy = nullptr;  // The wallet owns my copy now and will handle
+                             // cleaning it up.
+
+    // sign the item
+    pItem->SignContract(*pNym);
+    pItem->SaveContract();
+
+    pTransaction->AddItem(*pItem);  // the Transaction's destructor will
+                                    // cleanup the item. It "owns" it now.
+    // BALANCE AGREEMENT
+
+    // pBalanceItem is signed and saved within this call. No need to do that
+    // again.
+    Item* pBalanceItem = pInbox->GenerateBalanceStatement(
+        lTotalAmount * (-1), *pTransaction, context.It(), *pAccount, *pOutbox);
+
+    if (nullptr != pBalanceItem)  // will never be nullptr. Will assert above
+                                  // before it gets here.
+        pTransaction->AddItem(*pBalanceItem);  // Better not be nullptr...
+                                               // message will fail... But
+                                               // better check anyway.
+
+    // sign the transaction
+    pTransaction->SignContract(*pNym);
+    pTransaction->SaveContract();
+
+    // set up the ledger
+    Ledger theLedger(NYM_ID, ACCT_ID, NOTARY_ID);
+    theLedger.GenerateLedger(
+        ACCT_ID,
+        NOTARY_ID,
+        Ledger::message);  // bGenerateLedger defaults
+                           // to false, which is
+                           // correct.
+    theLedger.AddTransaction(*pTransaction);
+
+    // sign the ledger
+    theLedger.SignContract(*pNym);
+    theLedger.SaveContract();
+
+    // extract the ledger in ascii-armored form
+    String strLedger(theLedger);
+    OTASCIIArmor ascLedger;  // I can't pass strLedger into this constructor
+                             // because I want to encode it
+
+    // Encoding...
+    ascLedger.SetString(strLedger);
+
+    // (0) Set up the REQUEST NUMBER and then INCREMENT IT
+    lRequestNumber = context.It().Request();
+    theMessage.m_strRequestNum.Format("%" PRId64, lRequestNumber);
+    context.It().IncrementRequest();
+
+    // (1) Set up member variables
+    theMessage.m_strCommand = "notarizeTransaction";
+    theMessage.m_strNymID = strNymID;
+    theMessage.m_strNotaryID = strNotaryID;
+    theMessage.SetAcknowledgments(context.It());
+    theMessage.m_strAcctID = strFromAcct;
+    theMessage.m_ascPayload = ascLedger;
+    Identifier NYMBOX_HASH = context.It().LocalNymboxHash();
+    NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
+
+    if (!String(NYMBOX_HASH).Exists()) {
+        otErr << "Failed getting NymboxHash from Nym for server: "
+              << strNotaryID << std::endl;
+    }
+
+    // (2) Sign the Message
+    theMessage.SignContract(*pNym);
+
+    // (3) Save the Message (with signatures and all, back to its internal
+    // member m_strRawFile.)
+    theMessage.SaveContract();
+
+    // (Send it)
+    send_message(NOTARY_ID, pNym, theMessage);
+
+    return static_cast<std::int32_t>(lRequestNumber);
 }
 
 int32_t OT_API::notarizeDeposit(
@@ -9616,7 +9612,7 @@ int32_t OT_API::notarizeDeposit(
     const Identifier& ACCT_ID,
     const String& THE_PURSE) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     // Request the server to accept some digital cash and
     // deposit it to an asset account.
@@ -9673,9 +9669,8 @@ int32_t OT_API::notarizeDeposit(
 
     const auto number =
         context.It().NextTransactionNumber(MessageType::notarizeTransaction);
-    const bool bGotTransNum = 0 != number;
 
-    if (!bGotTransNum) {
+    if (false == number.Valid()) {
         otOut << __FUNCTION__ << ": Next Transaction Number Available: Suggest "
                                  "requesting the server for a new one.\n";
         return (-1);
@@ -9786,112 +9781,106 @@ int32_t OT_API::notarizeDeposit(
             }
         }  // while
     }
-    if (bSuccess) {
-        RequestNumber lRequestNumber = 0;
-        // Save the purse into a string...
-        String strPurse;
-        thePurse.SignContract(*pNym);
-        thePurse.SaveContract();
-        thePurse.SaveContractRaw(strPurse);
 
-        // Add the purse string as the attachment on the transaction item.
-        pItem->SetAttachment(
-            strPurse);  // The purse is contained in the reference string.
-
-        // sign the item
-        pItem->SignContract(*pNym);
-        pItem->SaveContract();
-
-        // the Transaction "owns" the item now and will handle cleaning it up.
-        pTransaction->AddItem(*pItem);  // the Transaction's destructor will
-                                        // cleanup the item. It "owns" it now.
-
-        // BALANCE AGREEMENT
-        //
-        // pBalanceItem is signed and saved within this call. No need to do that
-        // again.
-        Item* pBalanceItem = pInbox->GenerateBalanceStatement(
-            pItem->GetAmount(),
-            *pTransaction,
-            context.It(),
-            *pAccount,
-            *pOutbox);
-
-        if (nullptr !=
-            pBalanceItem)  // will never be nullptr. Will assert above
-                           // before it gets here.
-            pTransaction->AddItem(*pBalanceItem);  // Better not be nullptr...
-                                                   // message will fail... But
-                                                   // better check anyway.
-
-        // sign the transaction
-        pTransaction->SignContract(*pNym);
-        pTransaction->SaveContract();
-
-        // set up the ledger
-        Ledger theLedger(NYM_ID, ACCT_ID, NOTARY_ID);
-        theLedger.GenerateLedger(
-            ACCT_ID,
-            NOTARY_ID,
-            Ledger::message);                     // bGenerateLedger defaults
-                                                  // to false, which is
-                                                  // correct.
-        theLedger.AddTransaction(*pTransaction);  // now the ledger "owns" and
-        // will handle cleaning up the
-        // transaction.
-
-        // sign the ledger
-        theLedger.SignContract(*pNym);
-        theLedger.SaveContract();
-
-        // extract the ledger in ascii-armored form... encoding...
-        String strLedger(theLedger);
-        OTASCIIArmor ascLedger(strLedger);
-
-        // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-        lRequestNumber = context.It().Request();
-        theMessage.m_strRequestNum.Format("%" PRId64, lRequestNumber);
-        context.It().IncrementRequest();
-
-        // (1) Set up member variables
-        theMessage.m_strCommand = "notarizeTransaction";
-        theMessage.m_strNymID = strNymID;
-        theMessage.m_strNotaryID = strNotaryID;
-        theMessage.SetAcknowledgments(context.It());
-        theMessage.m_strAcctID = strFromAcct;
-        theMessage.m_ascPayload = ascLedger;
-
-        Identifier NYMBOX_HASH = context.It().LocalNymboxHash();
-        NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
-
-        if (!String(NYMBOX_HASH).Exists()) {
-            otErr << "Failed getting NymboxHash from Nym for server: "
-                  << strNotaryID << std::endl;
-        }
-
-        // (2) Sign the Message
-        theMessage.SignContract(*pNym);
-
-        // (3) Save the Message (with signatures and all, back to its internal
-        // member m_strRawFile.)
-        theMessage.SaveContract();
-
-        // (Send it)
-        SendMessage(NOTARY_ID, pNym, theMessage);
-
-        return static_cast<std::int32_t>(lRequestNumber);
-    }  // bSuccess
-    else {
+    if (false == bSuccess) {
         delete pItem;
         pItem = nullptr;
         delete pTransaction;
         pTransaction = nullptr;
 
-        // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE NUMBERS.
-        context.It().RecoverAvailableNumber(number);
+        return (-1);
     }
 
-    return (-1);
+    // Above this line, the transaction number will be recovered automatically
+    number.SetSuccess(true);
+    RequestNumber lRequestNumber = 0;
+    // Save the purse into a string...
+    String strPurse;
+    thePurse.SignContract(*pNym);
+    thePurse.SaveContract();
+    thePurse.SaveContractRaw(strPurse);
+
+    // Add the purse string as the attachment on the transaction item.
+    pItem->SetAttachment(
+        strPurse);  // The purse is contained in the reference string.
+
+    // sign the item
+    pItem->SignContract(*pNym);
+    pItem->SaveContract();
+
+    // the Transaction "owns" the item now and will handle cleaning it up.
+    pTransaction->AddItem(*pItem);  // the Transaction's destructor will
+                                    // cleanup the item. It "owns" it now.
+
+    // BALANCE AGREEMENT
+    //
+    // pBalanceItem is signed and saved within this call. No need to do that
+    // again.
+    Item* pBalanceItem = pInbox->GenerateBalanceStatement(
+        pItem->GetAmount(), *pTransaction, context.It(), *pAccount, *pOutbox);
+
+    if (nullptr != pBalanceItem)  // will never be nullptr. Will assert above
+                                  // before it gets here.
+        pTransaction->AddItem(*pBalanceItem);  // Better not be nullptr...
+                                               // message will fail... But
+                                               // better check anyway.
+
+    // sign the transaction
+    pTransaction->SignContract(*pNym);
+    pTransaction->SaveContract();
+
+    // set up the ledger
+    Ledger theLedger(NYM_ID, ACCT_ID, NOTARY_ID);
+    theLedger.GenerateLedger(
+        ACCT_ID,
+        NOTARY_ID,
+        Ledger::message);                     // bGenerateLedger defaults
+                                              // to false, which is
+                                              // correct.
+    theLedger.AddTransaction(*pTransaction);  // now the ledger "owns" and
+    // will handle cleaning up the
+    // transaction.
+
+    // sign the ledger
+    theLedger.SignContract(*pNym);
+    theLedger.SaveContract();
+
+    // extract the ledger in ascii-armored form... encoding...
+    String strLedger(theLedger);
+    OTASCIIArmor ascLedger(strLedger);
+
+    // (0) Set up the REQUEST NUMBER and then INCREMENT IT
+    lRequestNumber = context.It().Request();
+    theMessage.m_strRequestNum.Format("%" PRId64, lRequestNumber);
+    context.It().IncrementRequest();
+
+    // (1) Set up member variables
+    theMessage.m_strCommand = "notarizeTransaction";
+    theMessage.m_strNymID = strNymID;
+    theMessage.m_strNotaryID = strNotaryID;
+    theMessage.SetAcknowledgments(context.It());
+    theMessage.m_strAcctID = strFromAcct;
+    theMessage.m_ascPayload = ascLedger;
+
+    Identifier NYMBOX_HASH = context.It().LocalNymboxHash();
+    NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
+
+    if (!String(NYMBOX_HASH).Exists()) {
+        otErr << "Failed getting NymboxHash from Nym for server: "
+              << strNotaryID << std::endl;
+    }
+
+    // (2) Sign the Message
+    theMessage.SignContract(*pNym);
+
+    // (3) Save the Message (with signatures and all, back to its internal
+    // member m_strRawFile.)
+    theMessage.SaveContract();
+
+    // (Send it)
+    send_message(NOTARY_ID, pNym, theMessage);
+
+    return static_cast<std::int32_t>(lRequestNumber);
 }
 #endif  // OT_CASH
 
@@ -9920,7 +9909,7 @@ std::int32_t OT_API::payDividend(
 // SHARE (multiplied by total number of
 // shares issued.)
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(ISSUER_NYM_ID, false, __FUNCTION__);
 
@@ -10017,224 +10006,219 @@ std::int32_t OT_API::payDividend(
         strFromAcct(DIVIDEND_FROM_ACCT_ID);
     const auto number =
         context.It().NextTransactionNumber(MessageType::notarizeTransaction);
-    const bool bGotTransNum = 0 != number;
 
-    if (bGotTransNum) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Allocated transaction number "
-              << number << std::endl;
-
-        // Expiration (ignored by server -- it sets its own for its vouchers.)
-        const time64_t VALID_FROM =
-            OTTimeGetCurrentTime();  // This time is set to TODAY NOW
-        const time64_t VALID_TO = OTTimeAddTimeInterval(
-            VALID_FROM,
-            OTTimeGetSecondsFromTime(
-                OT_TIME_SIX_MONTHS_IN_SECONDS));  // 6 months.
-        // The server only uses the amount and instrument definition from this
-        // cheque when
-        // it
-        // constructs the actual voucher (to the dividend payee.) And remember
-        // there
-        // might be a hundred shareholders, so the server would create a hundred
-        // vouchers in that case.
-        //
-        Cheque theRequestVoucher(
-            NOTARY_ID,
-            SHARES_INSTRUMENT_DEFINITION_ID);  // <====== Server needs this
-        // (SHARES_INSTRUMENT_DEFINITION_ID)
-
-        bool bIssueCheque = theRequestVoucher.IssueCheque(
-            lAmountPerShare,  // <====== Server needs this (lAmountPerShare.)
-            number,           // server actually ignores this and
-            // supplies its own transaction number for
-            // any vouchers.
-            VALID_FROM,
-            VALID_TO,
-            SHARES_ISSUER_ACCT_ID,
-            ISSUER_NYM_ID,
-            DIVIDEND_MEMO);
-
-        /*
-         NOTE: The above cheque isn't actually USED for anything, except as a
-         vehicle to send additional
-         data to the server. For example, the server will need to know the asset
-         type ID for the shares.
-         It gets that information from this voucher's instrument definition ID.
-         It will
-         also need to know the amount-
-         per-share, which is also on this voucher, as its amount. The voucher
-         code already does a similar
-         thing, and this code already copied the voucher code since they were so
-         similar, so we're just
-         using the same mechanism here. It's consistent.
-         On the server side, we'll also need to know the issuer account ID for
-         the shares instrument definition, so
-         we set that as the "from" account on the request voucher (again, just
-         as a way of transmitting it.)
-         */
-        std::unique_ptr<Ledger> pInbox(
-            pDividendSourceAccount->LoadInbox(*pNym));
-        std::unique_ptr<Ledger> pOutbox(
-            pDividendSourceAccount->LoadOutbox(*pNym));
-
-        if (nullptr == pInbox) {
-            otOut << __FUNCTION__ << ": Failed loading inbox for acct "
-                  << strFromAcct << "\n";
-
-            // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE
-            // NUMBERS.
-            context.It().RecoverAvailableNumber(number);
-        } else if (nullptr == pOutbox) {
-            otOut << __FUNCTION__ << ": Failed loading outbox for acct "
-                  << strFromAcct << "\n";
-
-            // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE
-            // NUMBERS.
-            context.It().RecoverAvailableNumber(number);
-        } else if (!bIssueCheque) {
-            // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE
-            // NUMBERS.
-            context.It().RecoverAvailableNumber(number);
-        } else {
-            // Create a transaction
-            OTTransaction* pTransaction = OTTransaction::GenerateTransaction(
-                ISSUER_NYM_ID,
-                DIVIDEND_FROM_ACCT_ID,
-                NOTARY_ID,
-                OTTransaction::payDividend,
-                originType::not_applicable,
-                number);
-            // set up the transaction item (each transaction may have multiple
-            // items...)
-            Item* pItem = Item::CreateItemFromTransaction(
-                *pTransaction, Item::payDividend);
-            pItem->SetAmount(lTotalCostOfDividend);  // <=== Notice, while the
-                                                     // CHEQUE is for
-                                                     // lAmountPerShare, the
-                                                     // item's AMOUNT is set to
-                                                     // lTotalCostOfDividend.
-            String strNote("Pay Dividend: ");  // The server just needs both of
-                                               // those, so that's how we send
-                                               // them (Similar to the voucher
-                                               // code.)
-            pItem->SetNote(strNote);
-
-            // Add the voucher request string as the attachment on the
-            // transaction item.
-            theRequestVoucher.SignContract(*pNym);
-            theRequestVoucher.SaveContract();
-            String strVoucher(theRequestVoucher);
-            pItem->SetAttachment(strVoucher);  // The voucher request is
-                                               // contained in the reference
-                                               // string.
-
-            // sign the item
-            pItem->SignContract(*pNym);
-            pItem->SaveContract();
-
-            pTransaction->AddItem(*pItem);  // the Transaction's destructor will
-                                            // cleanup the item. It "owns" it
-                                            // now.
-            // BALANCE AGREEMENT
-            //
-            // The item is signed and saved within this call as well. No need to
-            // do that again.
-            Item* pBalanceItem = pInbox->GenerateBalanceStatement(
-                lTotalCostOfDividend * (-1),
-                *pTransaction,
-                context.It(),
-                *pDividendSourceAccount,
-                *pOutbox);
-
-            // Notice the balance agreement is made for the "total cost of the
-            // dividend", which we calculated as the issuer's
-            // account balance, times -1, times the amount per share. So for
-            // 100,000 shares of Pepsi, at a dividend payout of
-            // $2 per share, then $200,000 must be removed from my dollar
-            // account, in order to cover it. Therefore I sign a
-            // balance agreement for $200,000. The server removes it all at
-            // once, and then iterates through a loop, sending
-            // vouchers to people. If any fail, or there is any left over, then
-            // vouchers are sent back to pNym again, containing
-            // the difference.
-            // todo failsafe: We can't just loop, std::int64_t-term, and send a
-            // voucher at the end. What if it crashes halfway through
-            // the loop? It seems that the dividend payout still needs to be
-            // "REGISTERED" somewhere until successfully completed.
-            // (And therefore, that this concept must be repeated throughout OT
-            // for other transactions, not just this example.)
-            // This is already done with Cron, but just thinking about how to
-            // best do it for "single action" transactions.
-
-            if (nullptr != pBalanceItem)
-                pTransaction->AddItem(
-                    *pBalanceItem);  // Better not be nullptr...
-                                     // message will fail...
-                                     // But better check
-                                     // anyway.
-            // sign the transaction
-            pTransaction->SignContract(*pNym);
-            pTransaction->SaveContract();
-
-            // set up the ledger
-            Ledger theLedger(ISSUER_NYM_ID, DIVIDEND_FROM_ACCT_ID, NOTARY_ID);
-            theLedger.GenerateLedger(
-                DIVIDEND_FROM_ACCT_ID,
-                NOTARY_ID,
-                Ledger::message);  // bGenerateLedger
-                                   // defaults to false,
-                                   // which is correct.
-            theLedger.AddTransaction(*pTransaction);
-
-            // sign the ledger
-            theLedger.SignContract(*pNym);
-            theLedger.SaveContract();
-
-            // extract the ledger in ascii-armored form
-            String strLedger(theLedger);
-            OTASCIIArmor ascLedger(strLedger);
-            auto context =
-                wallet_.mutable_ServerContext(ISSUER_NYM_ID, NOTARY_ID);
-
-            // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-            auto lRequestNumber = context.It().Request();
-            theMessage.m_strRequestNum.Format("%" PRId64, lRequestNumber);
-            context.It().IncrementRequest();
-
-            // (1) Set up member variables
-            theMessage.m_strCommand = "notarizeTransaction";
-            theMessage.m_strNymID = strNymID;
-            theMessage.m_strNotaryID = strNotaryID;
-            theMessage.SetAcknowledgments(context.It());
-            theMessage.m_strAcctID = strFromAcct;
-            theMessage.m_ascPayload = ascLedger;
-
-            Identifier NYMBOX_HASH = context.It().LocalNymboxHash();
-            NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
-
-            if (!String(NYMBOX_HASH).Exists()) {
-                otErr << "Failed getting NymboxHash from Nym for server: "
-                      << strNotaryID << std::endl;
-            }
-
-            // (2) Sign the Message
-            theMessage.SignContract(*pNym);
-
-            // (3) Save the Message (with signatures and all, back to its
-            // internal member m_strRawFile.)
-            theMessage.SaveContract();
-
-            // (Send it)
-            SendMessage(NOTARY_ID, pNym, theMessage);
-
-            return static_cast<std::int32_t>(lRequestNumber);
-        }
-    } else
+    if (false == number.Valid()) {
         otOut << __FUNCTION__
               << ": No Transaction Numbers were available. "
                  "Suggest requesting the server for a new one.\n";
 
-    return (-1);
+        return (-1);
+    }
+
+    otErr << OT_METHOD << __FUNCTION__ << ": Allocated transaction number "
+          << number << std::endl;
+
+    // Expiration (ignored by server -- it sets its own for its vouchers.)
+    const time64_t VALID_FROM =
+        OTTimeGetCurrentTime();  // This time is set to TODAY NOW
+    const time64_t VALID_TO = OTTimeAddTimeInterval(
+        VALID_FROM,
+        OTTimeGetSecondsFromTime(OT_TIME_SIX_MONTHS_IN_SECONDS));  // 6 months.
+    // The server only uses the amount and instrument definition from this
+    // cheque when
+    // it
+    // constructs the actual voucher (to the dividend payee.) And remember
+    // there
+    // might be a hundred shareholders, so the server would create a hundred
+    // vouchers in that case.
+    //
+    Cheque theRequestVoucher(
+        NOTARY_ID,
+        SHARES_INSTRUMENT_DEFINITION_ID);  // <====== Server needs this
+    // (SHARES_INSTRUMENT_DEFINITION_ID)
+
+    bool bIssueCheque = theRequestVoucher.IssueCheque(
+        lAmountPerShare,  // <====== Server needs this (lAmountPerShare.)
+        number,           // server actually ignores this and
+        // supplies its own transaction number for
+        // any vouchers.
+        VALID_FROM,
+        VALID_TO,
+        SHARES_ISSUER_ACCT_ID,
+        ISSUER_NYM_ID,
+        DIVIDEND_MEMO);
+
+    /*
+        NOTE: The above cheque isn't actually USED for anything, except as a
+        vehicle to send additional
+        data to the server. For example, the server will need to know the asset
+        type ID for the shares.
+        It gets that information from this voucher's instrument definition ID.
+        It will
+        also need to know the amount-
+        per-share, which is also on this voucher, as its amount. The voucher
+        code already does a similar
+        thing, and this code already copied the voucher code since they were so
+        similar, so we're just
+        using the same mechanism here. It's consistent.
+        On the server side, we'll also need to know the issuer account ID for
+        the shares instrument definition, so
+        we set that as the "from" account on the request voucher (again, just
+        as a way of transmitting it.)
+        */
+    std::unique_ptr<Ledger> pInbox(pDividendSourceAccount->LoadInbox(*pNym));
+    std::unique_ptr<Ledger> pOutbox(pDividendSourceAccount->LoadOutbox(*pNym));
+
+    if (nullptr == pInbox) {
+        otOut << __FUNCTION__ << ": Failed loading inbox for acct "
+              << strFromAcct << "\n";
+
+        return -1;
+    }
+
+    if (nullptr == pOutbox) {
+        otOut << __FUNCTION__ << ": Failed loading outbox for acct "
+              << strFromAcct << "\n";
+
+        return -1;
+    }
+
+    if (!bIssueCheque) {
+
+        return -1;
+    }
+
+    // Above this line, the transaction number will be recovered automatically
+    number.SetSuccess(true);
+    // Create a transaction
+    OTTransaction* pTransaction = OTTransaction::GenerateTransaction(
+        ISSUER_NYM_ID,
+        DIVIDEND_FROM_ACCT_ID,
+        NOTARY_ID,
+        OTTransaction::payDividend,
+        originType::not_applicable,
+        number);
+    // set up the transaction item (each transaction may have multiple
+    // items...)
+    Item* pItem =
+        Item::CreateItemFromTransaction(*pTransaction, Item::payDividend);
+    pItem->SetAmount(lTotalCostOfDividend);  // <=== Notice, while the
+                                             // CHEQUE is for
+                                             // lAmountPerShare, the
+                                             // item's AMOUNT is set to
+                                             // lTotalCostOfDividend.
+    String strNote("Pay Dividend: ");        // The server just needs both of
+                                             // those, so that's how we send
+                                             // them (Similar to the voucher
+                                             // code.)
+    pItem->SetNote(strNote);
+
+    // Add the voucher request string as the attachment on the
+    // transaction item.
+    theRequestVoucher.SignContract(*pNym);
+    theRequestVoucher.SaveContract();
+    String strVoucher(theRequestVoucher);
+    pItem->SetAttachment(strVoucher);  // The voucher request is
+                                       // contained in the reference
+                                       // string.
+
+    // sign the item
+    pItem->SignContract(*pNym);
+    pItem->SaveContract();
+
+    pTransaction->AddItem(*pItem);  // the Transaction's destructor will
+                                    // cleanup the item. It "owns" it
+                                    // now.
+    // BALANCE AGREEMENT
+    //
+    // The item is signed and saved within this call as well. No need to
+    // do that again.
+    Item* pBalanceItem = pInbox->GenerateBalanceStatement(
+        lTotalCostOfDividend * (-1),
+        *pTransaction,
+        context.It(),
+        *pDividendSourceAccount,
+        *pOutbox);
+
+    // Notice the balance agreement is made for the "total cost of the
+    // dividend", which we calculated as the issuer's
+    // account balance, times -1, times the amount per share. So for
+    // 100,000 shares of Pepsi, at a dividend payout of
+    // $2 per share, then $200,000 must be removed from my dollar
+    // account, in order to cover it. Therefore I sign a
+    // balance agreement for $200,000. The server removes it all at
+    // once, and then iterates through a loop, sending
+    // vouchers to people. If any fail, or there is any left over, then
+    // vouchers are sent back to pNym again, containing
+    // the difference.
+    // todo failsafe: We can't just loop, std::int64_t-term, and send a
+    // voucher at the end. What if it crashes halfway through
+    // the loop? It seems that the dividend payout still needs to be
+    // "REGISTERED" somewhere until successfully completed.
+    // (And therefore, that this concept must be repeated throughout OT
+    // for other transactions, not just this example.)
+    // This is already done with Cron, but just thinking about how to
+    // best do it for "single action" transactions.
+
+    if (nullptr != pBalanceItem)
+        pTransaction->AddItem(*pBalanceItem);  // Better not be nullptr...
+                                               // message will fail...
+                                               // But better check
+                                               // anyway.
+    // sign the transaction
+    pTransaction->SignContract(*pNym);
+    pTransaction->SaveContract();
+
+    // set up the ledger
+    Ledger theLedger(ISSUER_NYM_ID, DIVIDEND_FROM_ACCT_ID, NOTARY_ID);
+    theLedger.GenerateLedger(
+        DIVIDEND_FROM_ACCT_ID,
+        NOTARY_ID,
+        Ledger::message);  // bGenerateLedger
+                           // defaults to false,
+                           // which is correct.
+    theLedger.AddTransaction(*pTransaction);
+
+    // sign the ledger
+    theLedger.SignContract(*pNym);
+    theLedger.SaveContract();
+
+    // extract the ledger in ascii-armored form
+    String strLedger(theLedger);
+    OTASCIIArmor ascLedger(strLedger);
+
+    // (0) Set up the REQUEST NUMBER and then INCREMENT IT
+    auto lRequestNumber = context.It().Request();
+    theMessage.m_strRequestNum.Format("%" PRId64, lRequestNumber);
+    context.It().IncrementRequest();
+
+    // (1) Set up member variables
+    theMessage.m_strCommand = "notarizeTransaction";
+    theMessage.m_strNymID = strNymID;
+    theMessage.m_strNotaryID = strNotaryID;
+    theMessage.SetAcknowledgments(context.It());
+    theMessage.m_strAcctID = strFromAcct;
+    theMessage.m_ascPayload = ascLedger;
+
+    Identifier NYMBOX_HASH = context.It().LocalNymboxHash();
+    NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
+
+    if (!String(NYMBOX_HASH).Exists()) {
+        otErr << "Failed getting NymboxHash from Nym for server: "
+              << strNotaryID << std::endl;
+    }
+
+    // (2) Sign the Message
+    theMessage.SignContract(*pNym);
+
+    // (3) Save the Message (with signatures and all, back to its
+    // internal member m_strRawFile.)
+    theMessage.SaveContract();
+
+    // (Send it)
+    send_message(NOTARY_ID, pNym, theMessage);
+
+    return static_cast<std::int32_t>(lRequestNumber);
 }
 
 // Request the server to withdraw from an asset account and issue a voucher
@@ -10247,7 +10231,7 @@ std::int32_t OT_API::withdrawVoucher(
     const String& CHEQUE_MEMO,
     const std::int64_t& AMOUNT) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
 
@@ -10276,21 +10260,11 @@ std::int32_t OT_API::withdrawVoucher(
         context.It().NextTransactionNumber(MessageType::notarizeTransaction);
     const auto voucherNumber =
         context.It().NextTransactionNumber(MessageType::notarizeTransaction);
-    const bool bGotTransNum1 = 0 != withdrawalNumber;
-    const bool bGotTransNum2 = 0 != voucherNumber;
 
-    if (!bGotTransNum1 || !bGotTransNum2) {
+    if ((!withdrawalNumber.Valid()) || (!voucherNumber.Valid())) {
         otOut << __FUNCTION__
               << ": Not enough Transaction Numbers were available. "
                  "(Suggest requesting the server for more.)\n";
-
-        if (bGotTransNum1) {
-            context.It().RecoverAvailableNumber(withdrawalNumber);
-        }
-
-        if (bGotTransNum2) {
-            context.It().RecoverAvailableNumber(voucherNumber);
-        }
 
         return (-1);
     }
@@ -10329,121 +10303,119 @@ std::int32_t OT_API::withdrawVoucher(
         otOut << "OT_API::" << __FUNCTION__
               << ": Failed loading inbox for acct " << strFromAcct << "\n";
 
-        // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE NUMBERS.
-        context.It().RecoverAvailableNumber(withdrawalNumber);
-        context.It().RecoverAvailableNumber(voucherNumber);
-    } else if (nullptr == pOutbox) {
+        return -1;
+    }
+
+    if (nullptr == pOutbox) {
         otOut << "OT_API::" << __FUNCTION__
               << ": Failed loading outbox for acct " << strFromAcct << "\n";
 
-        // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE NUMBERS.
-        context.It().RecoverAvailableNumber(withdrawalNumber);
-        context.It().RecoverAvailableNumber(voucherNumber);
-    } else if (!bIssueCheque) {
-        // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE NUMBERS.
-        context.It().RecoverAvailableNumber(withdrawalNumber);
-        context.It().RecoverAvailableNumber(voucherNumber);
-    } else {
-        // Create a transaction
-        OTTransaction* pTransaction = OTTransaction::GenerateTransaction(
-            NYM_ID,
-            ACCT_ID,
-            NOTARY_ID,
-            OTTransaction::withdrawal,
-            originType::not_applicable,
-            withdrawalNumber);
-        // set up the transaction item (each transaction may have multiple
-        // items...)
-        Item* pItem = Item::CreateItemFromTransaction(
-            *pTransaction, Item::withdrawVoucher);
-        pItem->SetAmount(lAmount);
-        String strNote(" ");
-        pItem->SetNote(strNote);
-
-        // Add the voucher request string as the attachment on the transaction
-        // item.
-        theRequestVoucher.SignContract(*pNym);
-        theRequestVoucher.SaveContract();
-        String strVoucher(theRequestVoucher);
-        pItem->SetAttachment(
-            strVoucher);  // The voucher request is contained in
-                          // the reference string.
-
-        // sign the item
-        pItem->SignContract(*pNym);
-        pItem->SaveContract();
-
-        pTransaction->AddItem(*pItem);  // the Transaction's destructor will
-                                        // cleanup the item. It "owns" it now.
-        // BALANCE AGREEMENT
-        //
-        // The item is signed and saved within this call as well. No need to do
-        // that again.
-        Item* pBalanceItem = pInbox->GenerateBalanceStatement(
-            lAmount * (-1), *pTransaction, context.It(), *pAccount, *pOutbox);
-
-        if (nullptr != pBalanceItem)
-            pTransaction->AddItem(*pBalanceItem);  // Better not be nullptr...
-                                                   // message will fail... But
-                                                   // better check anyway.
-        // sign the transaction
-        pTransaction->SignContract(*pNym);
-        pTransaction->SaveContract();
-
-        // set up the ledger
-        Ledger theLedger(NYM_ID, ACCT_ID, NOTARY_ID);
-        theLedger.GenerateLedger(
-            ACCT_ID,
-            NOTARY_ID,
-            Ledger::message);  // bGenerateLedger defaults
-                               // to false, which is
-                               // correct.
-        theLedger.AddTransaction(*pTransaction);
-
-        // sign the ledger
-        theLedger.SignContract(*pNym);
-        theLedger.SaveContract();
-
-        // extract the ledger in ascii-armored form
-        String strLedger(theLedger);
-        OTASCIIArmor ascLedger(strLedger);
-        auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
-
-        // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-        auto lRequestNumber = context.It().Request();
-        theMessage.m_strRequestNum.Format("%" PRId64, lRequestNumber);
-        context.It().IncrementRequest();
-
-        // (1) Set up member variables
-        theMessage.m_strCommand = "notarizeTransaction";
-        theMessage.m_strNymID = strNymID;
-        theMessage.m_strNotaryID = strNotaryID;
-        theMessage.SetAcknowledgments(context.It());
-        theMessage.m_strAcctID = strFromAcct;
-        theMessage.m_ascPayload = ascLedger;
-
-        Identifier NYMBOX_HASH = context.It().LocalNymboxHash();
-        NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
-
-        if (!String(NYMBOX_HASH).Exists()) {
-            otErr << "Failed getting NymboxHash from Nym for server: "
-                  << strNotaryID << std::endl;
-        }
-
-        // (2) Sign the Message
-        theMessage.SignContract(*pNym);
-
-        // (3) Save the Message (with signatures and all, back to its internal
-        // member m_strRawFile.)
-        theMessage.SaveContract();
-
-        // (Send it)
-        SendMessage(NOTARY_ID, pNym, theMessage);
-
-        return static_cast<std::int32_t>(lRequestNumber);
+        return -1;
     }
 
-    return (-1);
+    if (!bIssueCheque) {
+
+        return -1;
+    }
+
+    // Above this line, the transaction number will be recovered automatically
+    withdrawalNumber.SetSuccess(true);
+    voucherNumber.SetSuccess(true);
+    // Create a transaction
+    OTTransaction* pTransaction = OTTransaction::GenerateTransaction(
+        NYM_ID,
+        ACCT_ID,
+        NOTARY_ID,
+        OTTransaction::withdrawal,
+        originType::not_applicable,
+        withdrawalNumber);
+    // set up the transaction item (each transaction may have multiple
+    // items...)
+    Item* pItem =
+        Item::CreateItemFromTransaction(*pTransaction, Item::withdrawVoucher);
+    pItem->SetAmount(lAmount);
+    String strNote(" ");
+    pItem->SetNote(strNote);
+
+    // Add the voucher request string as the attachment on the transaction
+    // item.
+    theRequestVoucher.SignContract(*pNym);
+    theRequestVoucher.SaveContract();
+    String strVoucher(theRequestVoucher);
+    pItem->SetAttachment(strVoucher);  // The voucher request is contained in
+                                       // the reference string.
+
+    // sign the item
+    pItem->SignContract(*pNym);
+    pItem->SaveContract();
+
+    pTransaction->AddItem(*pItem);  // the Transaction's destructor will
+                                    // cleanup the item. It "owns" it now.
+    // BALANCE AGREEMENT
+    //
+    // The item is signed and saved within this call as well. No need to do
+    // that again.
+    Item* pBalanceItem = pInbox->GenerateBalanceStatement(
+        lAmount * (-1), *pTransaction, context.It(), *pAccount, *pOutbox);
+
+    if (nullptr != pBalanceItem)
+        pTransaction->AddItem(*pBalanceItem);  // Better not be nullptr...
+                                               // message will fail... But
+                                               // better check anyway.
+    // sign the transaction
+    pTransaction->SignContract(*pNym);
+    pTransaction->SaveContract();
+
+    // set up the ledger
+    Ledger theLedger(NYM_ID, ACCT_ID, NOTARY_ID);
+    theLedger.GenerateLedger(
+        ACCT_ID,
+        NOTARY_ID,
+        Ledger::message);  // bGenerateLedger defaults
+                           // to false, which is
+                           // correct.
+    theLedger.AddTransaction(*pTransaction);
+
+    // sign the ledger
+    theLedger.SignContract(*pNym);
+    theLedger.SaveContract();
+
+    // extract the ledger in ascii-armored form
+    String strLedger(theLedger);
+    OTASCIIArmor ascLedger(strLedger);
+
+    // (0) Set up the REQUEST NUMBER and then INCREMENT IT
+    auto lRequestNumber = context.It().Request();
+    theMessage.m_strRequestNum.Format("%" PRId64, lRequestNumber);
+    context.It().IncrementRequest();
+
+    // (1) Set up member variables
+    theMessage.m_strCommand = "notarizeTransaction";
+    theMessage.m_strNymID = strNymID;
+    theMessage.m_strNotaryID = strNotaryID;
+    theMessage.SetAcknowledgments(context.It());
+    theMessage.m_strAcctID = strFromAcct;
+    theMessage.m_ascPayload = ascLedger;
+
+    Identifier NYMBOX_HASH = context.It().LocalNymboxHash();
+    NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
+
+    if (!String(NYMBOX_HASH).Exists()) {
+        otErr << "Failed getting NymboxHash from Nym for server: "
+              << strNotaryID << std::endl;
+    }
+
+    // (2) Sign the Message
+    theMessage.SignContract(*pNym);
+
+    // (3) Save the Message (with signatures and all, back to its internal
+    // member m_strRawFile.)
+    theMessage.SaveContract();
+
+    // (Send it)
+    send_message(NOTARY_ID, pNym, theMessage);
+
+    return static_cast<std::int32_t>(lRequestNumber);
 }
 
 //
@@ -10496,7 +10468,7 @@ bool OT_API::DiscardCheque(
     const Identifier& ACCT_ID,
     const String& THE_CHEQUE) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
 
@@ -10575,7 +10547,7 @@ std::int32_t OT_API::depositCheque(
     const Identifier& ACCT_ID,
     const String& THE_CHEQUE) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
 
@@ -10601,249 +10573,238 @@ std::int32_t OT_API::depositCheque(
     Cheque theCheque(NOTARY_ID, CONTRACT_ID);
     const auto number =
         context.It().NextTransactionNumber(MessageType::notarizeTransaction);
-    const bool bGotTransNum = 0 != number;
 
-    if (!bGotTransNum)
+    if (false == number.Valid()) {
         otOut << __FUNCTION__ << ": No transaction numbers were available. "
                                  "Try requesting the server for a new one.\n";
-    else if (!theCheque.LoadContractFromString(THE_CHEQUE)) {
+
+        return -1;
+    }
+
+    otErr << OT_METHOD << __FUNCTION__ << ": Allocated transaction number "
+          << number << std::endl;
+
+    if (!theCheque.LoadContractFromString(THE_CHEQUE)) {
         otOut << __FUNCTION__
               << ": Unable to load cheque from string. Sorry. Contents:\n\n"
               << THE_CHEQUE << "\n\n";
-        // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE NUMBERS.
-        context.It().RecoverAvailableNumber(number);
-    } else if (theCheque.GetNotaryID() != NOTARY_ID) {
+
+        return -1;
+    }
+
+    if (theCheque.GetNotaryID() != NOTARY_ID) {
         const String strChequeNotaryID(theCheque.GetNotaryID());
         otOut << __FUNCTION__ << ": NotaryID on cheque (" << strChequeNotaryID
               << ") doesn't "
                  "match notaryID where it's being deposited to ("
               << strNotaryID << ").";
-        // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE NUMBERS.
-        context.It().RecoverAvailableNumber(number);
+
+        return -1;
+    }
+
+    std::unique_ptr<Ledger> pInbox(pAccount->LoadInbox(*pNym));
+
+    if (nullptr == pInbox) {
+        otOut << __FUNCTION__ << ": Failed loading inbox for acct "
+              << strDepositAcct << "\n";
+
+        return -1;
+    }
+
+    // If bCancellingCheque==true, we're actually cancelling the cheque by
+    // "depositing" it back into the same account it's drawn on.
+    bool bCancellingCheque = false;
+
+    if (theCheque.HasRemitter()) {
+        bCancellingCheque =
+            ((theCheque.GetRemitterAcctID() == ACCT_ID) &&
+             (theCheque.GetRemitterNymID() == NYM_ID));
     } else {
-        otErr << OT_METHOD << __FUNCTION__ << ": Allocated transaction number "
-              << number << std::endl;
-        std::unique_ptr<Ledger> pInbox(pAccount->LoadInbox(*pNym));
+        bCancellingCheque =
+            ((theCheque.GetSenderAcctID() == ACCT_ID) &&
+             (theCheque.GetSenderNymID() == NYM_ID));
+        if (bCancellingCheque)
+            bCancellingCheque = theCheque.VerifySignature(*pNym);
+    }
 
-        if (nullptr == pInbox) {
-            otOut << __FUNCTION__ << ": Failed loading inbox for acct "
-                  << strDepositAcct << "\n";
-            // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE
-            // NUMBERS.
-            context.It().RecoverAvailableNumber(number);
+    // By this point he's definitely TRYING to cancel the cheque.
+    if (bCancellingCheque) {
+        bCancellingCheque =
+            context.It().VerifyIssuedNumber(theCheque.GetTransactionNum());
 
-            return -1;
-        }
-        // If bCancellingCheque==true, we're actually cancelling the cheque by
-        // "depositing"
-        // it back into the same account it's drawn on.
-        //
-        bool bCancellingCheque = false;
-
-        if (theCheque.HasRemitter())
-            bCancellingCheque =
-                ((theCheque.GetRemitterAcctID() == ACCT_ID) &&
-                 (theCheque.GetRemitterNymID() == NYM_ID));
-        else {
-            bCancellingCheque =
-                ((theCheque.GetSenderAcctID() == ACCT_ID) &&
-                 (theCheque.GetSenderNymID() == NYM_ID));
-            if (bCancellingCheque)
-                bCancellingCheque = theCheque.VerifySignature(*pNym);
-        }
-        if (bCancellingCheque)  // By this point he's definitely TRYING to
-                                // cancel
-                                // the cheque.
-        {
-            bCancellingCheque =
-                context.It().VerifyIssuedNumber(theCheque.GetTransactionNum());
-
-            // If we TRIED to cancel the cheque (being in this block...) yet the
-            // signature fails
-            // to verify, or the transaction number isn't even issued, then our
-            // attempt to cancel
-            // the cheque is going to fail.
-            if (!bCancellingCheque) {
-                // This is the "tried and failed" block.
-                //
-                otOut << __FUNCTION__
-                      << ": Cannot cancel this cheque. Either the "
-                         "signature fails to verify,\n"
-                         "or the transaction number is already closed "
-                         "out. (Failure.) Cheque contents:\n\n"
-                      << THE_CHEQUE << "\n\n";
-
-                // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE
-                // NUMBERS.
-                context.It().RecoverAvailableNumber(number);
-
-                return (-1);
-            }
-            // Else we succeeded in verifying signature and issued num.
-            // Let's just make sure there isn't a chequeReceipt or
-            // voucherReceipt
-            // already sitting in the inbox, for this same cheque.
+        // If we TRIED to cancel the cheque (being in this block...) yet the
+        // signature fails
+        // to verify, or the transaction number isn't even issued, then our
+        // attempt to cancel
+        // the cheque is going to fail.
+        if (!bCancellingCheque) {
+            // This is the "tried and failed" block.
             //
-            OTTransaction* pChequeReceipt =
-                pInbox->GetChequeReceipt(theCheque.GetTransactionNum());
+            otOut << __FUNCTION__
+                  << ": Cannot cancel this cheque. Either the "
+                     "signature fails to verify,\n"
+                     "or the transaction number is already closed "
+                     "out. (Failure.) Cheque contents:\n\n"
+                  << THE_CHEQUE << "\n\n";
 
-            if (nullptr != pChequeReceipt)  // Hmm looks like there's ALREADY a
-                                            // chequeReceipt in the inbox (so we
-                                            // can't cancel it.)
-            {
-                otOut << __FUNCTION__
-                      << ": Cannot cancel this cheque. There is "
-                         "already a "
-                      << (theCheque.HasRemitter() ? "voucherReceipt"
-                                                  : "chequeReceipt")
-                      << " for it in the inbox. "
-                         "(Failure.) Cheque contents:\n\n"
-                      << THE_CHEQUE << "\n\n";
-                // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE
-                // NUMBERS.
-                context.It().RecoverAvailableNumber(number);
-            }
+            return (-1);
         }
-        // By this point, we're either NOT cancelling the cheque, or if we are,
-        // we've already
-        // verified the signature and transaction number on the cheque. (AND
-        // we've already
-        // verified that there aren't any chequeReceipts for this cheque, in the
-        // inbox.)
+
+        // Else we succeeded in verifying signature and issued num.
+        // Let's just make sure there isn't a chequeReceipt or
+        // voucherReceipt
+        // already sitting in the inbox, for this same cheque.
         //
-        if (bCancellingCheque && !theCheque.HasRemitter()) {
-            theCheque.CancelCheque();       // Sets the amount to zero.
-            theCheque.ReleaseSignatures();  // Usually when you deposit a
-                                            // cheque,
-                                            // it's signed by someone else.
-            theCheque.SignContract(*pNym);  // But if we are CANCELING a cheque,
-                                            // that means we wrote that cheque
-            theCheque.SaveContract();  // originally, so we are the original
-                                       // signer.
-        }                              // cancelling cheque
-        // Create a transaction
-        std::unique_ptr<OTTransaction> pTransaction(
-            OTTransaction::GenerateTransaction(
-                NYM_ID,
-                ACCT_ID,
-                NOTARY_ID,
-                OTTransaction::deposit,
-                originType::not_applicable,
-                number));
+        OTTransaction* pChequeReceipt =
+            pInbox->GetChequeReceipt(theCheque.GetTransactionNum());
 
-        // set up the transaction item (each transaction may have multiple
-        // items...)
-        Item* pItem =
-            Item::CreateItemFromTransaction(*pTransaction, Item::depositCheque);
-
-        String strNote(
-            bCancellingCheque ? "Cancel this cheque, please!"
-                              : "Deposit this cheque, please!");  // todo
-        pItem->SetNote(strNote);
-
-        String strCheque(theCheque);  // <===== THE CHEQUE
-
-        // Add the cheque string as the attachment on the transaction item.
-        pItem->SetAttachment(
-            strCheque);  // The cheque is contained in the reference string.
-
-        // sign the item
-        pItem->SignContract(*pNym);
-        pItem->SaveContract();
-
-        // the Transaction "owns" the item now and will handle cleaning it up.
-        pTransaction->AddItem(*pItem);  // the Transaction's destructor will
-                                        // cleanup the item. It "owns" it now.
-        std::unique_ptr<Ledger> pOutbox(pAccount->LoadOutbox(*pNym));
-
-        if (nullptr == pOutbox) {
-            otOut << "OT_API::depositCheque: Failed loading outbox for acct "
-                  << strDepositAcct << "\n";
-            // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE
-            // NUMBERS.
-            context.It().RecoverAvailableNumber(number);
-        } else {
-            // BALANCE AGREEMENT
-            // pBalanceItem is signed and saved within this call. No need to do
-            // that twice.
-            Item* pBalanceItem = pInbox->GenerateBalanceStatement(
-                theCheque.GetAmount(),
-                *pTransaction,
-                context.It(),
-                *pAccount,
-                *pOutbox);
-
-            if (nullptr !=
-                pBalanceItem)  // will never be nullptr. Will assert above
-                               // before it gets here.
-                pTransaction->AddItem(
-                    *pBalanceItem);  // Better not be nullptr...
-                                     // message will fail...
-                                     // But better check
-                                     // anyway.
-            // else log
-            // sign the transaction
-            pTransaction->SignContract(*pNym);
-            pTransaction->SaveContract();
-
-            // set up the ledger
-            Ledger theLedger(NYM_ID, ACCT_ID, NOTARY_ID);
-            theLedger.GenerateLedger(
-                ACCT_ID,
-                NOTARY_ID,
-                Ledger::message);                     // bGenerateLedger
-                                                      // defaults to false,
-                                                      // which is correct.
-            theLedger.AddTransaction(*pTransaction);  // now the ledger "owns"
-            // and will handle cleaning
-            // up the transaction.
-            pTransaction.release();
-
-            // sign the ledger
-            theLedger.SignContract(*pNym);
-            theLedger.SaveContract();
-
-            // extract the ledger in ascii-armored form... encoding...
-            String strLedger(theLedger);
-            OTASCIIArmor ascLedger(strLedger);
-            auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
-
-            // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-            auto lRequestNumber = context.It().Request();
-            theMessage.m_strRequestNum.Format("%" PRId64, lRequestNumber);
-            context.It().IncrementRequest();
-
-            // (1) Set up member variables
-            theMessage.m_strCommand = "notarizeTransaction";
-            theMessage.m_strNymID = strNymID;
-            theMessage.m_strNotaryID = strNotaryID;
-            theMessage.SetAcknowledgments(context.It());
-            theMessage.m_strAcctID = strDepositAcct;
-            theMessage.m_ascPayload = ascLedger;
-
-            Identifier NYMBOX_HASH = context.It().LocalNymboxHash();
-            NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
-
-            if (!String(NYMBOX_HASH).Exists()) {
-                otErr << "Failed getting NymboxHash from Nym for server: "
-                      << strNotaryID << std::endl;
-            }
-
-            // (2) Sign the Message
-            theMessage.SignContract(*pNym);
-
-            // (3) Save the Message (with signatures and all, back to its
-            // internal member m_strRawFile.)
-            theMessage.SaveContract();
-
-            // (Send it)
-            SendMessage(NOTARY_ID, pNym, theMessage);
-
-            return static_cast<std::int32_t>(lRequestNumber);
+        if (nullptr != pChequeReceipt)  // Hmm looks like there's ALREADY a
+                                        // chequeReceipt in the inbox (so we
+                                        // can't cancel it.)
+        {
+            otOut << __FUNCTION__ << ": Cannot cancel this cheque. There is "
+                                     "already a "
+                  << (theCheque.HasRemitter() ? "voucherReceipt"
+                                              : "chequeReceipt")
+                  << " for it in the inbox. "
+                     "(Failure.) Cheque contents:\n\n"
+                  << THE_CHEQUE << "\n\n";
         }
-    }  // bSuccess
+    }
 
-    return -1;
+    // By this point, we're either NOT cancelling the cheque, or if we are,
+    // we've already verified the signature and transaction number on the
+    // cheque. (AND we've already verified that there aren't any chequeReceipts
+    // for this cheque, in the inbox.)
+    if (bCancellingCheque && !theCheque.HasRemitter()) {
+        theCheque.CancelCheque();       // Sets the amount to zero.
+        theCheque.ReleaseSignatures();  // Usually when you deposit a
+                                        // cheque,
+                                        // it's signed by someone else.
+        theCheque.SignContract(*pNym);  // But if we are CANCELING a cheque,
+                                        // that means we wrote that cheque
+        theCheque.SaveContract();       // originally, so we are the original
+                                        // signer.
+    }                                   // cancelling cheque
+    // Create a transaction
+    std::unique_ptr<OTTransaction> pTransaction(
+        OTTransaction::GenerateTransaction(
+            NYM_ID,
+            ACCT_ID,
+            NOTARY_ID,
+            OTTransaction::deposit,
+            originType::not_applicable,
+            number));
+
+    // set up the transaction item (each transaction may have multiple
+    // items...)
+    Item* pItem =
+        Item::CreateItemFromTransaction(*pTransaction, Item::depositCheque);
+
+    String strNote(
+        bCancellingCheque ? "Cancel this cheque, please!"
+                          : "Deposit this cheque, please!");  // todo
+    pItem->SetNote(strNote);
+
+    String strCheque(theCheque);  // <===== THE CHEQUE
+
+    // Add the cheque string as the attachment on the transaction item.
+    pItem->SetAttachment(
+        strCheque);  // The cheque is contained in the reference string.
+
+    // sign the item
+    pItem->SignContract(*pNym);
+    pItem->SaveContract();
+
+    // the Transaction "owns" the item now and will handle cleaning it up.
+    pTransaction->AddItem(*pItem);  // the Transaction's destructor will
+                                    // cleanup the item. It "owns" it now.
+    std::unique_ptr<Ledger> pOutbox(pAccount->LoadOutbox(*pNym));
+
+    if (nullptr == pOutbox) {
+        otOut << "OT_API::depositCheque: Failed loading outbox for acct "
+              << strDepositAcct << "\n";
+
+        return -1;
+    }
+
+    // Above this line, the transaction number will be recovered automatically
+    number.SetSuccess(true);
+
+    // BALANCE AGREEMENT
+    // pBalanceItem is signed and saved within this call. No need to do
+    // that twice.
+    Item* pBalanceItem = pInbox->GenerateBalanceStatement(
+        theCheque.GetAmount(),
+        *pTransaction,
+        context.It(),
+        *pAccount,
+        *pOutbox);
+
+    if (nullptr != pBalanceItem)  // will never be nullptr. Will assert above
+                                  // before it gets here.
+        pTransaction->AddItem(*pBalanceItem);  // Better not be nullptr...
+                                               // message will fail...
+                                               // But better check
+                                               // anyway.
+    // else log
+    // sign the transaction
+    pTransaction->SignContract(*pNym);
+    pTransaction->SaveContract();
+
+    // set up the ledger
+    Ledger theLedger(NYM_ID, ACCT_ID, NOTARY_ID);
+    theLedger.GenerateLedger(
+        ACCT_ID,
+        NOTARY_ID,
+        Ledger::message);                     // bGenerateLedger
+                                              // defaults to false,
+                                              // which is correct.
+    theLedger.AddTransaction(*pTransaction);  // now the ledger "owns"
+    // and will handle cleaning
+    // up the transaction.
+    pTransaction.release();
+
+    // sign the ledger
+    theLedger.SignContract(*pNym);
+    theLedger.SaveContract();
+
+    // extract the ledger in ascii-armored form... encoding...
+    String strLedger(theLedger);
+    OTASCIIArmor ascLedger(strLedger);
+
+    // (0) Set up the REQUEST NUMBER and then INCREMENT IT
+    auto lRequestNumber = context.It().Request();
+    theMessage.m_strRequestNum.Format("%" PRId64, lRequestNumber);
+    context.It().IncrementRequest();
+
+    // (1) Set up member variables
+    theMessage.m_strCommand = "notarizeTransaction";
+    theMessage.m_strNymID = strNymID;
+    theMessage.m_strNotaryID = strNotaryID;
+    theMessage.SetAcknowledgments(context.It());
+    theMessage.m_strAcctID = strDepositAcct;
+    theMessage.m_ascPayload = ascLedger;
+
+    Identifier NYMBOX_HASH = context.It().LocalNymboxHash();
+    NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
+
+    if (!String(NYMBOX_HASH).Exists()) {
+        otErr << "Failed getting NymboxHash from Nym for server: "
+              << strNotaryID << std::endl;
+    }
+
+    // (2) Sign the Message
+    theMessage.SignContract(*pNym);
+
+    // (3) Save the Message (with signatures and all, back to its
+    // internal member m_strRawFile.)
+    theMessage.SaveContract();
+
+    // (Send it)
+    send_message(NOTARY_ID, pNym, theMessage);
+
+    return static_cast<std::int32_t>(lRequestNumber);
 }
 
 // DEPOSIT PAYMENT PLAN
@@ -10860,7 +10821,7 @@ std::int32_t OT_API::depositPaymentPlan(
     const Identifier& NYM_ID,
     const String& THE_PAYMENT_PLAN) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
 
@@ -11022,7 +10983,7 @@ std::int32_t OT_API::depositPaymentPlan(
         theMessage.SaveContract();
 
         // (Send it)
-        SendMessage(NOTARY_ID, pNym, theMessage);
+        send_message(NOTARY_ID, pNym, theMessage);
 
         return static_cast<std::int32_t>(lRequestNumber);
     }  // thePlan.LoadContractFromString()
@@ -11045,7 +11006,7 @@ std::int32_t OT_API::triggerClause(
     const String& strClauseName,
     const String* pStrParam) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
 
@@ -11094,7 +11055,7 @@ std::int32_t OT_API::triggerClause(
     theMessage.SaveContract();
 
     // (Send it)
-    SendMessage(NOTARY_ID, pNym, theMessage);
+    send_message(NOTARY_ID, pNym, theMessage);
 
     return static_cast<std::int32_t>(lRequestNumber);
 }
@@ -11104,7 +11065,7 @@ int32_t OT_API::activateSmartContract(
     const Identifier& NYM_ID,
     const String& THE_SMART_CONTRACT) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
 
@@ -11430,7 +11391,7 @@ int32_t OT_API::activateSmartContract(
         // member m_strRawFile.)
         theMessage.SaveContract();
         // (Send it)
-        SendMessage(NOTARY_ID, pNym, theMessage);
+        send_message(NOTARY_ID, pNym, theMessage);
 
         return static_cast<std::int32_t>(lRequestNumber);
     } else {
@@ -11502,7 +11463,7 @@ std::int32_t OT_API::cancelCronItem(
 // can lookup the
 // offer in Cron.
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
 
@@ -11524,120 +11485,119 @@ std::int32_t OT_API::cancelCronItem(
     }
     const auto number =
         context.It().NextTransactionNumber(MessageType::notarizeTransaction);
-    const bool bGotTransNum = 0 != number;
 
-    if (!bGotTransNum)
+    if (false == number.Valid()) {
         otErr << "OT_API::cancelCronItem: Supposedly there was a "
                  "transaction number available, but the call\n"
                  "still failed.\n";
-    else {
-        otErr << OT_METHOD << __FUNCTION__ << ": Allocated transaction number "
-              << number << std::endl;
 
-        RequestNumber lRequestNumber = 0;
+        return (-1);
+    }
 
-        String str_ASSET_ACCT_ID(ASSET_ACCT_ID);
+    // Above this line, the transaction number will be recovered automatically
+    number.SetSuccess(true);
+    otErr << OT_METHOD << __FUNCTION__ << ": Allocated transaction number "
+          << number << std::endl;
 
-        // Create a transaction
-        OTTransaction* pTransaction = OTTransaction::GenerateTransaction(
-            NYM_ID,
-            ASSET_ACCT_ID,
-            NOTARY_ID,
-            OTTransaction::cancelCronItem,
-            originType::not_applicable,
-            number);
-        // set up the transaction item (each transaction may have multiple
-        // items...)
-        Item* pItem = Item::CreateItemFromTransaction(
-            *pTransaction, Item::cancelCronItem);
-        OT_ASSERT_MSG(
-            nullptr != pItem, "Error allocating memory in the OT API");
+    RequestNumber lRequestNumber = 0;
 
-        pItem->SetReferenceToNum(lTransactionNum);  // This transaction is being
-                                                    // sent in order to cancel
-                                                    // another transaction.
-        pTransaction->SetReferenceToNum(lTransactionNum);  // This is where we
-                                                           // clearly show which
-                                                           // one is actually
-                                                           // being cancelled.
+    String str_ASSET_ACCT_ID(ASSET_ACCT_ID);
 
-        // sign the item
-        pItem->SignContract(*pNym);
-        pItem->SaveContract();
+    // Create a transaction
+    OTTransaction* pTransaction = OTTransaction::GenerateTransaction(
+        NYM_ID,
+        ASSET_ACCT_ID,
+        NOTARY_ID,
+        OTTransaction::cancelCronItem,
+        originType::not_applicable,
+        number);
+    // set up the transaction item (each transaction may have multiple
+    // items...)
+    Item* pItem =
+        Item::CreateItemFromTransaction(*pTransaction, Item::cancelCronItem);
+    OT_ASSERT_MSG(nullptr != pItem, "Error allocating memory in the OT API");
 
-        // the Transaction "owns" the item now and will handle cleaning it up.
-        pTransaction->AddItem(*pItem);  // the Transaction's destructor will
-                                        // cleanup the item. It "owns" it now.
-        // TRANSACTION AGREEMENT
+    pItem->SetReferenceToNum(lTransactionNum);  // This transaction is being
+                                                // sent in order to cancel
+                                                // another transaction.
+    pTransaction->SetReferenceToNum(lTransactionNum);  // This is where we
+                                                       // clearly show which
+                                                       // one is actually
+                                                       // being cancelled.
 
-        // pBalanceItem is signed and saved within this call. No need to do that
-        // again.
-        auto pStatementItem = context.It().Statement(*pTransaction);
+    // sign the item
+    pItem->SignContract(*pNym);
+    pItem->SaveContract();
 
-        if (pStatementItem) {
-            pTransaction->AddItem(*pStatementItem.release());
-        }
+    // the Transaction "owns" the item now and will handle cleaning it up.
+    pTransaction->AddItem(*pItem);  // the Transaction's destructor will
+                                    // cleanup the item. It "owns" it now.
+    // TRANSACTION AGREEMENT
 
-        // sign the transaction
-        pTransaction->SignContract(*pNym);
-        pTransaction->SaveContract();
+    // pBalanceItem is signed and saved within this call. No need to do that
+    // again.
+    auto pStatementItem = context.It().Statement(*pTransaction);
 
-        // set up the ledger
-        Ledger theLedger(NYM_ID, ASSET_ACCT_ID, NOTARY_ID);
-        theLedger.GenerateLedger(
-            ASSET_ACCT_ID,
-            NOTARY_ID,
-            Ledger::message);                     // bGenerateLedger defaults
-                                                  // to false, which is
-                                                  // correct.
-        theLedger.AddTransaction(*pTransaction);  // now the ledger "owns" and
-        // will handle cleaning up the
-        // transaction.
+    if (pStatementItem) {
+        pTransaction->AddItem(*pStatementItem.release());
+    }
 
-        // sign the ledger
-        theLedger.SignContract(*pNym);
-        theLedger.SaveContract();
+    // sign the transaction
+    pTransaction->SignContract(*pNym);
+    pTransaction->SaveContract();
 
-        // extract the ledger in ascii-armored form... encoding...
-        String strLedger(theLedger);
-        OTASCIIArmor ascLedger(strLedger);
-        auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
+    // set up the ledger
+    Ledger theLedger(NYM_ID, ASSET_ACCT_ID, NOTARY_ID);
+    theLedger.GenerateLedger(
+        ASSET_ACCT_ID,
+        NOTARY_ID,
+        Ledger::message);                     // bGenerateLedger defaults
+                                              // to false, which is
+                                              // correct.
+    theLedger.AddTransaction(*pTransaction);  // now the ledger "owns" and
+    // will handle cleaning up the
+    // transaction.
 
-        // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-        lRequestNumber = context.It().Request();
-        theMessage.m_strRequestNum.Format("%" PRId64, lRequestNumber);
-        context.It().IncrementRequest();
+    // sign the ledger
+    theLedger.SignContract(*pNym);
+    theLedger.SaveContract();
 
-        // (1) Set up member variables
-        theMessage.m_strCommand = "notarizeTransaction";
-        theMessage.m_strNymID = strNymID;
-        theMessage.m_strNotaryID = strNotaryID;
-        theMessage.SetAcknowledgments(context.It());
-        theMessage.m_strAcctID = str_ASSET_ACCT_ID;
-        theMessage.m_ascPayload = ascLedger;
+    // extract the ledger in ascii-armored form... encoding...
+    String strLedger(theLedger);
+    OTASCIIArmor ascLedger(strLedger);
 
-        Identifier NYMBOX_HASH = context.It().LocalNymboxHash();
-        NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
+    // (0) Set up the REQUEST NUMBER and then INCREMENT IT
+    lRequestNumber = context.It().Request();
+    theMessage.m_strRequestNum.Format("%" PRId64, lRequestNumber);
+    context.It().IncrementRequest();
 
-        if (!String(NYMBOX_HASH).Exists()) {
-            otErr << "Failed getting NymboxHash from Nym for server: "
-                  << strNotaryID << std::endl;
-        }
+    // (1) Set up member variables
+    theMessage.m_strCommand = "notarizeTransaction";
+    theMessage.m_strNymID = strNymID;
+    theMessage.m_strNotaryID = strNotaryID;
+    theMessage.SetAcknowledgments(context.It());
+    theMessage.m_strAcctID = str_ASSET_ACCT_ID;
+    theMessage.m_ascPayload = ascLedger;
 
-        // (2) Sign the Message
-        theMessage.SignContract(*pNym);
+    Identifier NYMBOX_HASH = context.It().LocalNymboxHash();
+    NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
 
-        // (3) Save the Message (with signatures and all, back to its internal
-        // member m_strRawFile.)
-        theMessage.SaveContract();
+    if (!String(NYMBOX_HASH).Exists()) {
+        otErr << "Failed getting NymboxHash from Nym for server: "
+              << strNotaryID << std::endl;
+    }
 
-        // (Send it)
-        SendMessage(NOTARY_ID, pNym, theMessage);
+    // (2) Sign the Message
+    theMessage.SignContract(*pNym);
 
-        return static_cast<std::int32_t>(lRequestNumber);
-    }  // got transaction number.
+    // (3) Save the Message (with signatures and all, back to its internal
+    // member m_strRawFile.)
+    theMessage.SaveContract();
 
-    return (-1);
+    // (Send it)
+    send_message(NOTARY_ID, pNym, theMessage);
+
+    return static_cast<std::int32_t>(lRequestNumber);
 }
 
 // Create an Offer object and add it to one of the server's Market objects.
@@ -11665,7 +11625,7 @@ std::int32_t OT_API::issueMarketOffer(
     std::int64_t ACTIVATION_PRICE) const  // For stop orders, this is
                                           // threshhold price.
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
 
@@ -11699,6 +11659,7 @@ std::int32_t OT_API::issueMarketOffer(
     }
     Message theMessage;
     const String strNotaryID(NOTARY_ID), strNymID(NYM_ID);
+
     if (context.It().AvailableNumbers() < 3) {
         otOut << __FUNCTION__
               << ": At least 3 Transaction Numbers are necessary to "
@@ -11706,15 +11667,16 @@ std::int32_t OT_API::issueMarketOffer(
                  "Try requesting the server for more (you are low.)\n";
         return (-1);
     }
+
     const auto openingNumber =
         context.It().NextTransactionNumber(MessageType::notarizeTransaction);
     const auto assetClosingNumber =
         context.It().NextTransactionNumber(MessageType::notarizeTransaction);
     const auto currencyClosingNumber =
         context.It().NextTransactionNumber(MessageType::notarizeTransaction);
-    const bool bGotTransNum = 0 != openingNumber;
-    const bool bGotAssetClosingNum = 0 != assetClosingNumber;
-    const bool bGotCurrencyClosingNum = 0 != currencyClosingNumber;
+    const bool bGotTransNum = openingNumber.Valid();
+    const bool bGotAssetClosingNum = assetClosingNumber.Valid();
+    const bool bGotCurrencyClosingNum = currencyClosingNumber.Valid();
 
     if (!bGotTransNum || !bGotAssetClosingNum || !bGotCurrencyClosingNum) {
         otErr << __FUNCTION__
@@ -11722,280 +11684,265 @@ std::int32_t OT_API::issueMarketOffer(
                  "available, but the call(s)\n"
                  "still failed. (Re-adding back to Nym, and failing out "
                  "of this function.)\n";
-        context.It().RecoverAvailableNumber(openingNumber);
-        context.It().RecoverAvailableNumber(assetClosingNumber);
-        context.It().RecoverAvailableNumber(currencyClosingNumber);
 
-        if (bGotTransNum || bGotAssetClosingNum || bGotCurrencyClosingNum) {
-            pNym->SaveSignedNymfile(*pNym);
-        }
-    } else {
-        otErr << OT_METHOD << __FUNCTION__
-              << ": Allocated opening transaction number " << openingNumber
-              << std::endl;
+        return -1;
+    }
 
-        otErr << OT_METHOD << __FUNCTION__
-              << ": Allocated asset account closing transaction number "
-              << assetClosingNumber << std::endl;
+    const time64_t VALID_FROM = GetTime();  // defaults to RIGHT NOW
+                                            // aka OT_API_GetTime() if
+                                            // set to 0 anyway.
+    const time64_t VALID_TO = OTTimeAddTimeInterval(
+        VALID_FROM,  // defaults to 24 hours (a "Day Order") aka
+                     // OT_API_GetTime() + 86,400
+        OTTimeGetSecondsFromTime(
+            OT_TIME_ZERO == tLifespanInSeconds ? OT_TIME_DAY_IN_SECONDS
+                                               : tLifespanInSeconds));
+    std::int64_t lTotalAssetsOnOffer = 1, lMinimumIncrement = 1,
+                 lPriceLimit = 0,  // your price limit, per scale of assets.
+        lMarketScale = 1, lActivationPrice = 0;
+    if (TOTAL_ASSETS_ON_OFFER > 0)
+        lTotalAssetsOnOffer =
+            TOTAL_ASSETS_ON_OFFER;  // otherwise, defaults to 1.
+    if (MARKET_SCALE > 0)
+        lMarketScale = MARKET_SCALE;  // otherwise, defaults to 1.
+    if (MINIMUM_INCREMENT > 0)
+        lMinimumIncrement = MINIMUM_INCREMENT;  // otherwise, defaults to 1.
+    if (PRICE_LIMIT > 0)
+        lPriceLimit = PRICE_LIMIT;  // otherwise, defaults to 0. (0 Being a
+                                    // market order.)
+    char cStopSign = 0;
 
-        otErr << OT_METHOD << __FUNCTION__
-              << ": Allocated currency account closing transaction number "
-              << currencyClosingNumber << std::endl;
+    if ((ACTIVATION_PRICE > 0) && (('<' == STOP_SIGN) || ('>' == STOP_SIGN))) {
+        cStopSign = STOP_SIGN;
+        lActivationPrice = ACTIVATION_PRICE;
+    }
+    lMinimumIncrement *= lMarketScale;  // minimum increment is PER SCALE.
+    //        lTotalAssetsOnOffer *= lMinimumIncrement;  // This was a bug.
+    // (Left as a warning.)
 
-        const time64_t VALID_FROM = GetTime();  // defaults to RIGHT NOW
-                                                // aka OT_API_GetTime() if
-                                                // set to 0 anyway.
-        const time64_t VALID_TO = OTTimeAddTimeInterval(
-            VALID_FROM,  // defaults to 24 hours (a "Day Order") aka
-                         // OT_API_GetTime() + 86,400
-            OTTimeGetSecondsFromTime(
-                OT_TIME_ZERO == tLifespanInSeconds ? OT_TIME_DAY_IN_SECONDS
-                                                   : tLifespanInSeconds));
-        std::int64_t lTotalAssetsOnOffer = 1, lMinimumIncrement = 1,
-                     lPriceLimit = 0,  // your price limit, per scale of assets.
-            lMarketScale = 1, lActivationPrice = 0;
-        if (TOTAL_ASSETS_ON_OFFER > 0)
-            lTotalAssetsOnOffer =
-                TOTAL_ASSETS_ON_OFFER;  // otherwise, defaults to 1.
-        if (MARKET_SCALE > 0)
-            lMarketScale = MARKET_SCALE;  // otherwise, defaults to 1.
-        if (MINIMUM_INCREMENT > 0)
-            lMinimumIncrement = MINIMUM_INCREMENT;  // otherwise, defaults to 1.
-        if (PRICE_LIMIT > 0)
-            lPriceLimit = PRICE_LIMIT;  // otherwise, defaults to 0. (0 Being a
-                                        // market order.)
-        char cStopSign = 0;
+    String strOfferType("market order");
 
-        if ((ACTIVATION_PRICE > 0) &&
-            (('<' == STOP_SIGN) || ('>' == STOP_SIGN))) {
-            cStopSign = STOP_SIGN;
-            lActivationPrice = ACTIVATION_PRICE;
-        }
-        lMinimumIncrement *= lMarketScale;  // minimum increment is PER SCALE.
-        //        lTotalAssetsOnOffer *= lMinimumIncrement;  // This was a bug.
-        // (Left as a warning.)
+    if (lPriceLimit > 0) strOfferType = "limit order";
 
-        String strOfferType("market order");
-
-        if (lPriceLimit > 0) strOfferType = "limit order";
-
-        if (0 != cStopSign) {
-            if (lPriceLimit > 0)
-                strOfferType.Format(
-                    "stop limit order, at threshhold: %c%" PRId64,
-                    cStopSign,
-                    lActivationPrice);
-            else
-                strOfferType.Format(
-                    "stop order, at threshhold: %c%" PRId64,
-                    cStopSign,
-                    lActivationPrice);
-        }
-
-        String strPrice("");
-
+    if (0 != cStopSign) {
         if (lPriceLimit > 0)
-            strPrice.Format("Price: %" PRId64 "\n", lPriceLimit);
+            strOfferType.Format(
+                "stop limit order, at threshhold: %c%" PRId64,
+                cStopSign,
+                lActivationPrice);
+        else
+            strOfferType.Format(
+                "stop order, at threshhold: %c%" PRId64,
+                cStopSign,
+                lActivationPrice);
+    }
 
-        otOut << "Placing market offer " << openingNumber
-              << ", type: " << (bBuyingOrSelling ? "selling" : "buying") << ", "
-              << strOfferType << "\n"
-              << strPrice << "Assets for sale/purchase: " << lTotalAssetsOnOffer
-              << "\n"
-                 "In minimum increments of: "
-              << lMinimumIncrement << "\n"
-                                      "At market of scale: "
-              << lMarketScale << "\n"
-                                 "Valid From: "
-              << OTTimeGetSecondsFromTime(VALID_FROM)
-              << "  To: " << OTTimeGetSecondsFromTime(VALID_TO) << "\n";
+    String strPrice("");
 
-        OTOffer theOffer(
-            NOTARY_ID,
-            INSTRUMENT_DEFINITION_ID,
-            CURRENCY_TYPE_ID,
-            lMarketScale);
-        OTTrade theTrade(
-            NOTARY_ID,
-            INSTRUMENT_DEFINITION_ID,
-            ASSET_ACCT_ID,
-            NYM_ID,
-            CURRENCY_TYPE_ID,
-            CURRENCY_ACCT_ID);
-        // MAKE OFFER...
-        //
-        bool bCreateOffer = theOffer.MakeOffer(
-            bBuyingOrSelling,     // True == SELLING, False == BUYING
-            lPriceLimit,          // Per Minimum Increment...
-            lTotalAssetsOnOffer,  // Total assets available for sale or
-                                  // purchase.
-            lMinimumIncrement,  // The minimum increment that must be bought or
-                                // sold for each transaction
-            openingNumber,      // Transaction number matches on
-                                // transaction, item, offer, and trade.
-            VALID_FROM,         // defaults to RIGHT NOW aka OT_API_GetTime()
-            VALID_TO);          // defaults to 24 hours (a "Day Order") aka
-                                // OT_API_GetTime() + 86,400
-        // ISSUE TRADE.
-        bool bIssueTrade = false;
+    if (lPriceLimit > 0) strPrice.Format("Price: %" PRId64 "\n", lPriceLimit);
 
+    OTOffer theOffer(
+        NOTARY_ID, INSTRUMENT_DEFINITION_ID, CURRENCY_TYPE_ID, lMarketScale);
+    OTTrade theTrade(
+        NOTARY_ID,
+        INSTRUMENT_DEFINITION_ID,
+        ASSET_ACCT_ID,
+        NYM_ID,
+        CURRENCY_TYPE_ID,
+        CURRENCY_ACCT_ID);
+    // MAKE OFFER...
+    //
+    bool bCreateOffer = theOffer.MakeOffer(
+        bBuyingOrSelling,     // True == SELLING, False == BUYING
+        lPriceLimit,          // Per Minimum Increment...
+        lTotalAssetsOnOffer,  // Total assets available for sale or
+                              // purchase.
+        lMinimumIncrement,    // The minimum increment that must be bought or
+                              // sold for each transaction
+        openingNumber,        // Transaction number matches on
+                              // transaction, item, offer, and trade.
+        VALID_FROM,           // defaults to RIGHT NOW aka OT_API_GetTime()
+        VALID_TO);            // defaults to 24 hours (a "Day Order") aka
+                              // OT_API_GetTime() + 86,400
+    // ISSUE TRADE.
+    bool bIssueTrade = false;
+
+    if (bCreateOffer) {
+        bCreateOffer = theOffer.SignContract(*pNym);
         if (bCreateOffer) {
-            bCreateOffer = theOffer.SignContract(*pNym);
+            bCreateOffer = theOffer.SaveContract();
             if (bCreateOffer) {
-                bCreateOffer = theOffer.SaveContract();
-                if (bCreateOffer) {
-                    bIssueTrade = theTrade.IssueTrade(
-                        theOffer,
-                        cStopSign,
-                        lActivationPrice);  // <==== ISSUE TRADE <=====
-                    // This is new: the closing transaction number is now used
-                    // for CLOSING recurring
-                    // cron items, like market offers and payment plans. It's
-                    // also useful for baskets.
-                    // Since this is a market offer, it needs a closing number
-                    // (for later cancellation
-                    // or expiration.)
-                    // assetClosingNumber=0, currencyClosingNumber=0;
-                    //
-                    theTrade.AddClosingTransactionNo(assetClosingNumber);
-                    theTrade.AddClosingTransactionNo(currencyClosingNumber);
+                bIssueTrade = theTrade.IssueTrade(
+                    theOffer,
+                    cStopSign,
+                    lActivationPrice);  // <==== ISSUE TRADE <=====
+                // This is new: the closing transaction number is now used
+                // for CLOSING recurring
+                // cron items, like market offers and payment plans. It's
+                // also useful for baskets.
+                // Since this is a market offer, it needs a closing number
+                // (for later cancellation
+                // or expiration.)
+                // assetClosingNumber=0, currencyClosingNumber=0;
+                //
+                theTrade.AddClosingTransactionNo(assetClosingNumber);
+                theTrade.AddClosingTransactionNo(currencyClosingNumber);
 
-                    if (bIssueTrade) {
-                        bIssueTrade = theTrade.SignContract(*pNym);
-                        if (bIssueTrade) bIssueTrade = theTrade.SaveContract();
-                    }  // if ( bIssueTrade )
-                }
+                if (bIssueTrade) {
+                    bIssueTrade = theTrade.SignContract(*pNym);
+                    if (bIssueTrade) bIssueTrade = theTrade.SaveContract();
+                }  // if ( bIssueTrade )
             }
-        }  // if ( bCreateOffer )
-        if (bCreateOffer && bIssueTrade) {
-            RequestNumber lRequestNumber = 0;
-            String str_ASSET_ACCT_ID(ASSET_ACCT_ID);
-
-            // Create a transaction
-            OTTransaction* pTransaction = OTTransaction::GenerateTransaction(
-                NYM_ID,
-                ASSET_ACCT_ID,
-                NOTARY_ID,
-                OTTransaction::marketOffer,
-                originType::origin_market_offer,
-                openingNumber);
-
-            // set up the transaction item (each transaction may have multiple
-            // items...)
-            Item* pItem = Item::CreateItemFromTransaction(
-                *pTransaction,
-                Item::marketOffer,
-                const_cast<Identifier*>((&CURRENCY_ACCT_ID)));
-            // the "To" account (normally used for a TRANSFER transaction) is
-            // used here
-            // storing the Currency Acct ID. The Server will expect the Trade
-            // object bundled
-            // within this item to have an Asset Acct ID and "Currency" Acct ID
-            // that match
-            // those on this Item. Otherwise it will reject the offer.
-            //
-            OT_ASSERT_MSG(
-                nullptr != pItem,
-                "OT_API::issueMarketOffer: Error "
-                "allocating memory in the OT API");
-
-            String strTrade;
-            theTrade.SaveContractRaw(strTrade);
-
-            // Add the trade string as the attachment on the transaction item.
-            pItem->SetAttachment(strTrade);  // The trade is contained in the
-                                             // attachment string. (The offer is
-                                             // within the trade.)
-
-            // sign the item
-            pItem->SignContract(*pNym);
-            pItem->SaveContract();
-
-            // the Transaction "owns" the item now and will handle cleaning it
-            // up.
-            pTransaction->AddItem(*pItem);  // the Transaction's destructor will
-                                            // cleanup the item. It "owns" it
-                                            // now.
-            // TRANSACTION AGREEMENT
-
-            // pBalanceItem is signed and saved within this call. No need to do
-            // that again.
-            auto pStatementItem = context.It().Statement(*pTransaction);
-
-            if (pStatementItem) {
-                pTransaction->AddItem(*pStatementItem.release());
-            }
-
-            // sign the transaction
-            pTransaction->SignContract(*pNym);
-            pTransaction->SaveContract();
-
-            // set up the ledger
-            Ledger theLedger(NYM_ID, ASSET_ACCT_ID, NOTARY_ID);
-            theLedger.GenerateLedger(
-                ASSET_ACCT_ID,
-                NOTARY_ID,
-                Ledger::message);                     // bGenerateLedger
-                                                      // defaults to false,
-                                                      // which is correct.
-            theLedger.AddTransaction(*pTransaction);  // now the ledger "owns"
-            // and will handle cleaning
-            // up the transaction.
-
-            // sign the ledger
-            theLedger.SignContract(*pNym);
-            theLedger.SaveContract();
-
-            // extract the ledger in ascii-armored form... encoding...
-            String strLedger(theLedger);
-            OTASCIIArmor ascLedger(strLedger);
-
-            // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-            lRequestNumber = context.It().Request();
-            theMessage.m_strRequestNum.Format("%" PRId64, lRequestNumber);
-            context.It().IncrementRequest();
-
-            // (1) Set up member variables
-            theMessage.m_strCommand = "notarizeTransaction";
-            theMessage.m_strNymID = strNymID;
-            theMessage.m_strNotaryID = strNotaryID;
-            theMessage.SetAcknowledgments(context.It());
-            theMessage.m_strAcctID = str_ASSET_ACCT_ID;
-            theMessage.m_ascPayload = ascLedger;
-
-            Identifier NYMBOX_HASH = context.It().LocalNymboxHash();
-            NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
-
-            if (!String(NYMBOX_HASH).Exists()) {
-                otErr << "Failed getting NymboxHash from Nym for server: "
-                      << strNotaryID << std::endl;
-            }
-
-            // (2) Sign the Message
-            theMessage.SignContract(*pNym);
-
-            // (3) Save the Message (with signatures and all, back to its
-            // internal member m_strRawFile.)
-            theMessage.SaveContract();
-
-            // (Send it)
-            SendMessage(NOTARY_ID, pNym, theMessage);
-
-            return static_cast<std::int32_t>(lRequestNumber);
-        }  // if (bCreateOffer && bIssueTrade)
-        else {
-            otOut << __FUNCTION__
-                  << ": Unable to create offer or issue trade. Sorry.\n";
-
-            // IF FAILED, add the transaction number (and closing number)
-            // BACK to the list of available numbers.
-            context.It().RecoverAvailableNumber(openingNumber);
-            context.It().RecoverAvailableNumber(assetClosingNumber);
-            context.It().RecoverAvailableNumber(currencyClosingNumber);
         }
-    }  // got transaction number.
+    }  // if ( bCreateOffer )
 
-    return (-1);
+    if ((false == bCreateOffer) || (false == bIssueTrade)) {
+        otOut << __FUNCTION__
+              << ": Unable to create offer or issue trade. Sorry.\n";
+
+        return -1;
+    }
+
+    // Above this line, the transaction numbers will be recovered automatically
+    openingNumber.SetSuccess(true);
+    assetClosingNumber.SetSuccess(true);
+    currencyClosingNumber.SetSuccess(true);
+
+    otErr << OT_METHOD << __FUNCTION__
+          << ": Allocated opening transaction number " << openingNumber
+          << std::endl;
+    otErr << OT_METHOD << __FUNCTION__
+          << ": Allocated asset account closing transaction number "
+          << assetClosingNumber << std::endl;
+    otErr << OT_METHOD << __FUNCTION__
+          << ": Allocated currency account closing transaction number "
+          << currencyClosingNumber << std::endl;
+    otOut << "Placing market offer " << openingNumber
+          << ", type: " << (bBuyingOrSelling ? "selling" : "buying") << ", "
+          << strOfferType << "\n"
+          << strPrice << "Assets for sale/purchase: " << lTotalAssetsOnOffer
+          << "\n"
+             "In minimum increments of: "
+          << lMinimumIncrement << "\n"
+                                  "At market of scale: "
+          << lMarketScale << "\n"
+                             "Valid From: "
+          << OTTimeGetSecondsFromTime(VALID_FROM)
+          << "  To: " << OTTimeGetSecondsFromTime(VALID_TO) << "\n";
+    RequestNumber lRequestNumber = 0;
+    String str_ASSET_ACCT_ID(ASSET_ACCT_ID);
+
+    // Create a transaction
+    OTTransaction* pTransaction = OTTransaction::GenerateTransaction(
+        NYM_ID,
+        ASSET_ACCT_ID,
+        NOTARY_ID,
+        OTTransaction::marketOffer,
+        originType::origin_market_offer,
+        openingNumber);
+
+    // set up the transaction item (each transaction may have multiple
+    // items...)
+    Item* pItem = Item::CreateItemFromTransaction(
+        *pTransaction,
+        Item::marketOffer,
+        const_cast<Identifier*>((&CURRENCY_ACCT_ID)));
+    // the "To" account (normally used for a TRANSFER transaction) is
+    // used here
+    // storing the Currency Acct ID. The Server will expect the Trade
+    // object bundled
+    // within this item to have an Asset Acct ID and "Currency" Acct ID
+    // that match
+    // those on this Item. Otherwise it will reject the offer.
+    //
+    OT_ASSERT_MSG(
+        nullptr != pItem,
+        "OT_API::issueMarketOffer: Error "
+        "allocating memory in the OT API");
+
+    String strTrade;
+    theTrade.SaveContractRaw(strTrade);
+
+    // Add the trade string as the attachment on the transaction item.
+    pItem->SetAttachment(strTrade);  // The trade is contained in the
+                                     // attachment string. (The offer is
+                                     // within the trade.)
+
+    // sign the item
+    pItem->SignContract(*pNym);
+    pItem->SaveContract();
+
+    // the Transaction "owns" the item now and will handle cleaning it
+    // up.
+    pTransaction->AddItem(*pItem);  // the Transaction's destructor will
+                                    // cleanup the item. It "owns" it
+                                    // now.
+    // TRANSACTION AGREEMENT
+
+    // pBalanceItem is signed and saved within this call. No need to do
+    // that again.
+    auto pStatementItem = context.It().Statement(*pTransaction);
+
+    if (pStatementItem) {
+        pTransaction->AddItem(*pStatementItem.release());
+    }
+
+    // sign the transaction
+    pTransaction->SignContract(*pNym);
+    pTransaction->SaveContract();
+
+    // set up the ledger
+    Ledger theLedger(NYM_ID, ASSET_ACCT_ID, NOTARY_ID);
+    theLedger.GenerateLedger(
+        ASSET_ACCT_ID,
+        NOTARY_ID,
+        Ledger::message);                     // bGenerateLedger
+                                              // defaults to false,
+                                              // which is correct.
+    theLedger.AddTransaction(*pTransaction);  // now the ledger "owns"
+    // and will handle cleaning
+    // up the transaction.
+
+    // sign the ledger
+    theLedger.SignContract(*pNym);
+    theLedger.SaveContract();
+
+    // extract the ledger in ascii-armored form... encoding...
+    String strLedger(theLedger);
+    OTASCIIArmor ascLedger(strLedger);
+
+    // (0) Set up the REQUEST NUMBER and then INCREMENT IT
+    lRequestNumber = context.It().Request();
+    theMessage.m_strRequestNum.Format("%" PRId64, lRequestNumber);
+    context.It().IncrementRequest();
+
+    // (1) Set up member variables
+    theMessage.m_strCommand = "notarizeTransaction";
+    theMessage.m_strNymID = strNymID;
+    theMessage.m_strNotaryID = strNotaryID;
+    theMessage.SetAcknowledgments(context.It());
+    theMessage.m_strAcctID = str_ASSET_ACCT_ID;
+    theMessage.m_ascPayload = ascLedger;
+
+    Identifier NYMBOX_HASH = context.It().LocalNymboxHash();
+    NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
+
+    if (!String(NYMBOX_HASH).Exists()) {
+        otErr << "Failed getting NymboxHash from Nym for server: "
+              << strNotaryID << std::endl;
+    }
+
+    // (2) Sign the Message
+    theMessage.SignContract(*pNym);
+
+    // (3) Save the Message (with signatures and all, back to its
+    // internal member m_strRawFile.)
+    theMessage.SaveContract();
+
+    // (Send it)
+    send_message(NOTARY_ID, pNym, theMessage);
+
+    return static_cast<std::int32_t>(lRequestNumber);
 }
 
 /// GET MARKET LIST
@@ -12014,7 +11961,7 @@ std::int32_t OT_API::getMarketList(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
 
@@ -12048,7 +11995,7 @@ std::int32_t OT_API::getMarketList(
     theMessage.SaveContract();
 
     // (Send it)
-    SendMessage(NOTARY_ID, pNym, theMessage);
+    send_message(NOTARY_ID, pNym, theMessage);
 
     return static_cast<std::int32_t>(lRequestNumber);
 }
@@ -12065,7 +12012,7 @@ std::int32_t OT_API::getMarketOffers(
     const Identifier& MARKET_ID,
     const std::int64_t& lDepth) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
 
@@ -12101,7 +12048,7 @@ std::int32_t OT_API::getMarketOffers(
     theMessage.SaveContract();
 
     // (Send it)
-    SendMessage(NOTARY_ID, pNym, theMessage);
+    send_message(NOTARY_ID, pNym, theMessage);
 
     return static_cast<std::int32_t>(lRequestNumber);
 }
@@ -12123,7 +12070,7 @@ std::int32_t OT_API::getMarketRecentTrades(
     const Identifier& NYM_ID,
     const Identifier& MARKET_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
 
@@ -12158,7 +12105,7 @@ std::int32_t OT_API::getMarketRecentTrades(
     theMessage.SaveContract();
 
     // (Send it)
-    SendMessage(NOTARY_ID, pNym, theMessage);
+    send_message(NOTARY_ID, pNym, theMessage);
 
     return static_cast<std::int32_t>(lRequestNumber);
 }
@@ -12174,7 +12121,7 @@ std::int32_t OT_API::getNymMarketOffers(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
 
@@ -12208,7 +12155,7 @@ std::int32_t OT_API::getNymMarketOffers(
     theMessage.SaveContract();
 
     // (Send it)
-    SendMessage(NOTARY_ID, pNym, theMessage);
+    send_message(NOTARY_ID, pNym, theMessage);
 
     return static_cast<std::int32_t>(lRequestNumber);
 }
@@ -12222,198 +12169,158 @@ CommandResult OT_API::notarizeTransfer(
     const std::int64_t& AMOUNT,
     const String& NOTE) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-    CommandResult output{-1, 0};
-    auto & [ status, number ] = output;
-    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
+    rLock lock(lock_);
+    CommandResult output{};
+    auto & [ requestNum, transactionNum, result ] = output;
+    auto & [ status, reply ] = result;
+    requestNum = -1;
+    transactionNum = 0;
+    status = SendResult::ERROR;
+    reply.reset(nullptr);
+    // nymfile is not owned by this function
+    auto nymfile = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
 
-    if (nullptr == pNym) {
+    if (nullptr == nymfile) {
 
         return output;
     }
 
     auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
-    // By this point, pNym is a good pointer, and is on the wallet.
-    // (No need to cleanup.)
-    Account* pAccount =
-        GetOrLoadAccount(*pNym, ACCT_FROM, NOTARY_ID, __FUNCTION__);
+    const auto& nym = *context.It().Nym();
+    auto account = GetOrLoadAccount(nym, ACCT_FROM, NOTARY_ID, __FUNCTION__);
 
-    if (nullptr == pAccount) {
+    // account is not owned by this function
+    if (nullptr == account) {
 
         return output;
     }
 
-    // By this point, pAccount is a good pointer.  (No need to cleanup.)
-    Message theMessage;
-    const std::int64_t lAmount = AMOUNT;
-    String strNotaryID(NOTARY_ID), strNymID(NYM_ID), strFromAcct(ACCT_FROM),
-        strToAcct(ACCT_TO);
-    number =
-        context.It().NextTransactionNumber(MessageType::notarizeTransaction);
-    const bool bGotTransNum = 0 != number;
+    std::set<ServerContext::ManagedNumber> managed{};
+    managed.insert(
+        context.It().NextTransactionNumber(MessageType::notarizeTransaction));
+    auto& managedNumber = *managed.begin();
 
-    if (bGotTransNum) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Allocated transaction number "
-              << number << std::endl;
-
-        // Create a transaction
-        OTTransaction* pTransaction = OTTransaction::GenerateTransaction(
-            NYM_ID,
-            ACCT_FROM,
-            NOTARY_ID,
-            OTTransaction::transfer,
-            originType::not_applicable,
-            number);
-
-        // set up the transaction item (each transaction may have multiple
-        // items...)
-        Item* pItem = Item::CreateItemFromTransaction(
-            *pTransaction, Item::transfer, &ACCT_TO);
-        pItem->SetAmount(lAmount);
-
-        // The user can include a note here for the recipient.
-        if (NOTE.Exists() && NOTE.GetLength() > 2) {
-            pItem->SetNote(NOTE);
-        }
-
-        // sign the item
-        pItem->SignContract(*pNym);
-        pItem->SaveContract();
-
-        pTransaction->AddItem(*pItem);  // the Transaction's destructor will
-                                        // cleanup the item. It "owns" it now.
-        std::unique_ptr<Ledger> pInbox(pAccount->LoadInbox(*pNym));
-        std::unique_ptr<Ledger> pOutbox(pAccount->LoadOutbox(*pNym));
-
-        if (nullptr == pInbox) {
-            otOut << "OT_API::notarizeTransfer: Failed loading inbox for acct: "
-                  << strFromAcct << "\n";
-            // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE
-            // NUMBERS.
-            context.It().RecoverAvailableNumber(number);
-        } else if (nullptr == pOutbox) {
-            otOut << "OT_API::notarizeTransfer: Failed loading outbox "
-                     "for acct: "
-                  << strFromAcct << "\n";
-            // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE
-            // NUMBERS.
-            context.It().RecoverAvailableNumber(number);
-        } else {
-            TransactionNumber lRequestNumber = 0;
-            // Need to setup a dummy outbox transaction (to mimic the one that
-            // will be on the server side when this pending transaction is
-            // actually put into the real outbox.)
-            // When the server adds its own, and then compares the two, they
-            // should both show the same pending transaction, in order for this
-            // balance agreement to be valid..
-            // Otherwise the server would have to refuse it for being inaccurate
-            // (server can't sign something inaccurate!) So I throw a dummy on
-            // there before generating balance statement.
-            //
-            OTTransaction* pOutboxTransaction = OTTransaction::GenerateTransaction(
-                *pOutbox,
-                OTTransaction::pending,
-                originType::not_applicable,
-                1 /*todo pick some number that everyone agrees doesn't matter, like 1. The referring-to is the important number in this case, and perhaps server should update this value too before signing and returning.*/);  // todo use a constant instead of '1'
-            OT_ASSERT(nullptr != pOutboxTransaction);  // for now.
-
-            String strItem(*pItem);
-            pOutboxTransaction->SetReferenceString(
-                strItem);  // So the GenerateBalanceStatement function below can
-            // get the other info off this item (like amount, etc)
-            pOutboxTransaction->SetReferenceToNum(pItem->GetTransactionNum());
-
-            //            pOutboxTransaction->SignContract(*pNym);    //
-            // Unnecessary to sign/save, since this is just a dummy data for
-            // verification purposes, and isn't being
-            //            pOutboxTransaction->SaveContract();            //
-            // serialized anywhere. (I download the actual outbox from server,
-            // and verify against last signed receipt.)
-
-            pOutbox->AddTransaction(*pOutboxTransaction);  // no need to cleanup
-                                                           // pOutboxTransaction
-                                                           // since pOutbox will
-                                                           // handle it now.
-            // BALANCE AGREEMENT
-
-            // pBalanceItem is signed and saved within this call. No need to do
-            // that twice.
-            Item* pBalanceItem = pInbox->GenerateBalanceStatement(
-                lAmount * (-1),
-                *pTransaction,
-                context.It(),
-                *pAccount,
-                *pOutbox);
-
-            if (nullptr !=
-                pBalanceItem)  // will never be nullptr. Will assert above
-                               // before it gets here.
-                pTransaction->AddItem(
-                    *pBalanceItem);  // Better not be nullptr...
-                                     // message will fail...
-                                     // But better check
-                                     // anyway.
-            // sign the transaction
-            pTransaction->SignContract(*pNym);
-            pTransaction->SaveContract();
-
-            // set up the ledger
-            Ledger theLedger(NYM_ID, ACCT_FROM, NOTARY_ID);
-            theLedger.GenerateLedger(
-                ACCT_FROM,
-                NOTARY_ID,
-                Ledger::message);  // bGenerateLedger
-                                   // defaults to false,
-                                   // which is correct.
-            theLedger.AddTransaction(*pTransaction);
-
-            // sign the ledger
-            theLedger.SignContract(*pNym);
-            theLedger.SaveContract();
-
-            // extract the ledger in ascii-armored form
-            String strLedger(theLedger);
-            OTASCIIArmor ascLedger;
-
-            // Encoding...
-            ascLedger.SetString(strLedger);
-            // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-            lRequestNumber = context.It().Request();
-            theMessage.m_strRequestNum.Format("%" PRId64, lRequestNumber);
-            context.It().IncrementRequest();
-
-            // (1) Set up member variables
-            theMessage.m_strCommand = "notarizeTransaction";
-            theMessage.m_strNymID = strNymID;
-            theMessage.m_strNotaryID = strNotaryID;
-            theMessage.SetAcknowledgments(context.It());
-            theMessage.m_strAcctID = strFromAcct;
-            theMessage.m_ascPayload = ascLedger;
-            Identifier NYMBOX_HASH = context.It().LocalNymboxHash();
-            NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
-
-            if (!String(NYMBOX_HASH).Exists()) {
-                otErr << "Failed getting NymboxHash from Nym for server: "
-                      << strNotaryID << "\n";
-            }
-
-            // (2) Sign the Message
-            theMessage.SignContract(*pNym);
-
-            // (3) Save the Message (with signatures and all, back to its
-            // internal member m_strRawFile.)
-            theMessage.SaveContract();
-
-            // (Send it)
-            SendMessage(NOTARY_ID, pNym, theMessage);
-            status = static_cast<std::int32_t>(lRequestNumber);
-
-            return output;
-        }
-    } else {
+    if (false == managedNumber.Valid()) {
         otOut << "No transaction numbers were available. Suggest "
                  "requesting the server for one.\n";
+
+        return output;
     }
+
+    otErr << OT_METHOD << __FUNCTION__ << ": Allocated transaction number "
+          << managedNumber << std::endl;
+    transactionNum = managedNumber;
+    std::unique_ptr<OTTransaction> transaction{nullptr};
+    transaction.reset(OTTransaction::GenerateTransaction(
+        NYM_ID,
+        ACCT_FROM,
+        NOTARY_ID,
+        OTTransaction::transfer,
+        originType::not_applicable,
+        transactionNum));
+    std::unique_ptr<Item> item{nullptr};
+    item.reset(Item::CreateItemFromTransaction(
+        *transaction, Item::transfer, &ACCT_TO));
+
+    OT_ASSERT(item);
+
+    item->SetAmount(AMOUNT);
+
+    // The user can include a note here for the recipient.
+    if (NOTE.Exists() && NOTE.GetLength() > 2) {
+        item->SetNote(NOTE);
+    }
+
+    // sign the item
+    item->SignContract(nym);
+    item->SaveContract();
+    transaction->AddItem(*item.release());
+    std::unique_ptr<Ledger> pInbox(account->LoadInbox(nym));
+    std::unique_ptr<Ledger> pOutbox(account->LoadOutbox(nym));
+
+    if (false == bool(pInbox)) {
+        otOut << "OT_API::notarizeTransfer: Failed loading inbox for acct: "
+              << String(ACCT_FROM) << std::endl;
+
+        return output;
+    }
+
+    if (nullptr == pOutbox) {
+        otOut << "OT_API::notarizeTransfer: Failed loading outbox for acct: "
+              << String(ACCT_FROM) << std::endl;
+        return output;
+    }
+
+    // Need to setup a dummy outbox transaction (to mimic the one that
+    // will be on the server side when this pending transaction is
+    // actually put into the real outbox.)
+    // When the server adds its own, and then compares the two, they
+    // should both show the same pending transaction, in order for this
+    // balance agreement to be valid..
+    // Otherwise the server would have to refuse it for being inaccurate
+    // (server can't sign something inaccurate!) So I throw a dummy on
+    // there before generating balance statement.
+    std::unique_ptr<OTTransaction> outboxTransaction{nullptr};
+    outboxTransaction.reset(OTTransaction::GenerateTransaction(
+        *pOutbox,
+        OTTransaction::pending,
+        originType::not_applicable,
+        /* TODO pick some number that everyone agrees doesn't matter, like
+         * 1. The referring-to is the important number in this case, and
+         * perhaps server should update this value too before signing and
+         * returning.*/
+        1));  // TODO use a constant instead of '1'
+
+    OT_ASSERT(outboxTransaction);
+
+    outboxTransaction->SetReferenceString(String(*item));
+    outboxTransaction->SetReferenceToNum(item->GetTransactionNum());
+    pOutbox->AddTransaction(*outboxTransaction.release());
+
+    // BALANCE AGREEMENT
+    // balanceItem is signed and saved within this call. No need to do
+    // that twice.
+    std::unique_ptr<Item> balanceItem{nullptr};
+    balanceItem.reset(pInbox->GenerateBalanceStatement(
+        AMOUNT * (-1), *transaction, context.It(), *account, *pOutbox));
+
+    OT_ASSERT(balanceItem);
+
+    transaction->AddItem(*balanceItem);
+    transaction->SignContract(nym);
+    transaction->SaveContract();
+
+    // set up the ledger
+    Ledger theLedger(NYM_ID, ACCT_FROM, NOTARY_ID);
+    theLedger.GenerateLedger(
+        ACCT_FROM,
+        NOTARY_ID,
+        Ledger::message);  // bGenerateLedger
+                           // defaults to false,
+                           // which is correct.
+    theLedger.AddTransaction(*transaction.release());
+
+    // sign the ledger
+    theLedger.SignContract(nym);
+    theLedger.SaveContract();
+
+    auto[newRequestNumber, message] = context.It().InitializeServerCommand(
+        MessageType::notarizeTransaction,
+        OTASCIIArmor(String(theLedger)),
+        ACCT_FROM);
+    requestNum = newRequestNumber;
+
+    if (false == bool(message)) {
+
+        return output;
+    }
+
+    if (false == context.It().FinalizeServerCommand(*message)) {
+
+        return output;
+    }
+
+    result = send_message(NOTARY_ID, managed, nymfile, *message);
 
     return output;
 }
@@ -12423,7 +12330,7 @@ std::int32_t OT_API::getNymbox(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
 
@@ -12456,7 +12363,7 @@ std::int32_t OT_API::getNymbox(
     theMessage.SaveContract();
 
     // (Send it)
-    SendMessage(NOTARY_ID, pNym, theMessage);
+    send_message(NOTARY_ID, pNym, theMessage);
 
     return static_cast<std::int32_t>(lRequestNumber);
 }
@@ -12471,7 +12378,7 @@ std::int32_t OT_API::processNymbox(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
 
@@ -12560,7 +12467,7 @@ std::int32_t OT_API::processNymbox(
         //
         nRequestNum = atoi(theMessage.m_strRequestNum.Get());
 
-        SendMessage(NOTARY_ID, pNym, theMessage);
+        send_message(NOTARY_ID, pNym, theMessage);
 
         return static_cast<std::int32_t>(nRequestNum);
     }
@@ -12578,7 +12485,7 @@ int32_t OT_API::processInbox(
     const Identifier& ACCT_ID,
     const String& ACCT_LEDGER) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
 
@@ -12640,7 +12547,7 @@ int32_t OT_API::processInbox(
     theMessage.SaveContract();
 
     // (Send it)
-    SendMessage(NOTARY_ID, pNym, theMessage);
+    send_message(NOTARY_ID, pNym, theMessage);
 
     return static_cast<std::int32_t>(lRequestNumber);
 }
@@ -12650,7 +12557,7 @@ int32_t OT_API::registerInstrumentDefinition(
     const Identifier& NYM_ID,
     const String& THE_CONTRACT) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     // Upload a currency contract to the server and create
     // an instrument definition id from a hash of that.
@@ -12711,7 +12618,7 @@ int32_t OT_API::registerInstrumentDefinition(
     theMessage.SaveContract();
 
     // (Send it)
-    SendMessage(NOTARY_ID, pNym, theMessage);
+    send_message(NOTARY_ID, pNym, theMessage);
 
     return static_cast<std::int32_t>(lRequestNumber);
 }
@@ -12721,7 +12628,7 @@ int32_t OT_API::getInstrumentDefinition(
     const Identifier& NYM_ID,
     const Identifier& INSTRUMENT_DEFINITION_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     // Grab the server's copy of any asset contract. Input is
     // the instrument definition ID.
@@ -12759,7 +12666,7 @@ int32_t OT_API::getInstrumentDefinition(
     theMessage.SaveContract();
 
     // (Send it)
-    SendMessage(NOTARY_ID, pNym, theMessage);
+    send_message(NOTARY_ID, pNym, theMessage);
 
     return static_cast<std::int32_t>(lRequestNumber);
 }
@@ -12769,7 +12676,7 @@ int32_t OT_API::getMint(
     const Identifier& NYM_ID,
     const Identifier& INSTRUMENT_DEFINITION_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     // Grab the server's copy of any mint based on Instrument Definition Id.
     // (For
@@ -12812,7 +12719,7 @@ int32_t OT_API::getMint(
     theMessage.SaveContract();
 
     // (Send it)
-    SendMessage(NOTARY_ID, pNym, theMessage);
+    send_message(NOTARY_ID, pNym, theMessage);
 
     return static_cast<std::int32_t>(lRequestNumber);
 }
@@ -12835,7 +12742,7 @@ std::int32_t OT_API::queryInstrumentDefinitions(
     const Identifier& NYM_ID,
     const OTASCIIArmor& ENCODED_MAP) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
 
@@ -12869,7 +12776,7 @@ std::int32_t OT_API::queryInstrumentDefinitions(
     theMessage.SaveContract();
 
     // (Send it)
-    SendMessage(NOTARY_ID, pNym, theMessage);
+    send_message(NOTARY_ID, pNym, theMessage);
 
     return static_cast<std::int32_t>(lRequestNumber);
 }
@@ -12879,7 +12786,7 @@ int32_t OT_API::registerAccount(
     const Identifier& NYM_ID,
     const Identifier& INSTRUMENT_DEFINITION_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     // Create an asset account for a certain notaryID,
     // NymID, and Instrument Definition ID.
@@ -12931,7 +12838,7 @@ int32_t OT_API::registerAccount(
     theMessage.SaveContract();
 
     // (Send it)
-    SendMessage(NOTARY_ID, pNym, theMessage);
+    send_message(NOTARY_ID, pNym, theMessage);
 
     return static_cast<std::int32_t>(lRequestNumber);
 }
@@ -12941,7 +12848,7 @@ int32_t OT_API::deleteAssetAccount(
     const Identifier& NYM_ID,
     const Identifier& ACCOUNT_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
 
@@ -12980,7 +12887,7 @@ int32_t OT_API::deleteAssetAccount(
     theMessage.SaveContract();
 
     // (Send it)
-    SendMessage(NOTARY_ID, pNym, theMessage);
+    send_message(NOTARY_ID, pNym, theMessage);
 
     return static_cast<std::int32_t>(lRequestNumber);
 }
@@ -12993,7 +12900,7 @@ bool OT_API::DoesBoxReceiptExist(
     std::int32_t nBoxType,         // 0/nymbox, 1/inbox, 2/outbox
     const std::int64_t& lTransactionNum) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     // static
     return VerifyBoxReceiptExists(
@@ -13013,7 +12920,7 @@ int32_t OT_API::getBoxReceipt(
     std::int32_t nBoxType,         // 0/nymbox, 1/inbox, 2/outbox
     const std::int64_t& lTransactionNum) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
 
@@ -13065,7 +12972,7 @@ int32_t OT_API::getBoxReceipt(
     theMessage.SaveContract();
 
     // (Send it)
-    SendMessage(NOTARY_ID, pNym, theMessage);
+    send_message(NOTARY_ID, pNym, theMessage);
 
     return static_cast<std::int32_t>(lRequestNumber);
 }
@@ -13075,7 +12982,7 @@ int32_t OT_API::getAccountData(
     const Identifier& NYM_ID,
     const Identifier& ACCT_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
 
@@ -13114,7 +13021,7 @@ int32_t OT_API::getAccountData(
     theMessage.SaveContract();
 
     // (Send it)
-    SendMessage(NOTARY_ID, pNym, theMessage);
+    send_message(NOTARY_ID, pNym, theMessage);
 
     return static_cast<std::int32_t>(lRequestNumber);
 }
@@ -13125,7 +13032,7 @@ int32_t OT_API::usageCredits(
     const Identifier& NYM_ID_CHECK,
     std::int64_t lAdjustment) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
 
@@ -13162,7 +13069,7 @@ int32_t OT_API::usageCredits(
     theMessage.SaveContract();
 
     // (Send it)
-    SendMessage(NOTARY_ID, pNym, theMessage);
+    send_message(NOTARY_ID, pNym, theMessage);
 
     return static_cast<std::int32_t>(lRequestNumber);
 }
@@ -13172,7 +13079,7 @@ int32_t OT_API::checkNym(
     const Identifier& NYM_ID,
     const Identifier& NYM_ID_CHECK) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     // Request a user's public key based on Nym ID included with
     // the request.
@@ -13212,7 +13119,7 @@ int32_t OT_API::checkNym(
     theMessage.SaveContract();
 
     // (Send it)
-    SendMessage(NOTARY_ID, pNym, theMessage);
+    send_message(NOTARY_ID, pNym, theMessage);
 
     return static_cast<std::int32_t>(lRequestNumber);
 }
@@ -13223,7 +13130,7 @@ int32_t OT_API::registerContract(
     const ContractType TYPE,
     const Identifier& CONTRACT) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
 
@@ -13305,7 +13212,7 @@ int32_t OT_API::registerContract(
     // internal member m_strRawFile.)
     theMessage.SaveContract();
 
-    SendMessage(NOTARY_ID, pNym, theMessage);
+    send_message(NOTARY_ID, pNym, theMessage);
 
     return static_cast<std::int32_t>(requestNumber);
 }
@@ -13317,7 +13224,7 @@ int32_t OT_API::sendNymObject(
     const PeerObject& OBJECT,
     std::int64_t& requestNumber) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
 
@@ -13381,7 +13288,7 @@ int32_t OT_API::sendNymObject(
     // internal member m_strRawFile.)
     theMessage.SaveContract();
 
-    SendMessage(NOTARY_ID, pNym, theMessage);
+    send_message(NOTARY_ID, pNym, theMessage);
 
     return static_cast<std::int32_t>(requestNumber);
 }
@@ -13479,7 +13386,7 @@ std::int32_t OT_API::sendNymInstrument(
     const OTPayment& THE_INSTRUMENT,
     const OTPayment* pINSTRUMENT_FOR_SENDER) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);  // lose this yet?
+    rLock lock(lock_);  // lose this yet?
     // ----------------------------------------------------
     std::int32_t nReturnValue{-1};
 
@@ -13761,14 +13668,14 @@ std::int32_t OT_API::sendNymInstrument(
 //
 std::int32_t OT_API::Ledger_GetCount(const Ledger& theLedger) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
     return theLedger.GetTransactionCount();
 }
 
 std::set<std::int64_t> OT_API::Ledger_GetTransactionNums(
     const Ledger& theLedger) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
     return theLedger.GetTransactionNums();
 }
 
@@ -13784,7 +13691,7 @@ OT_API::ProcessInbox OT_API::Ledger_CreateResponse(
     const Identifier& theNymID,
     const Identifier& theAccountID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     OT_VERIFY_OT_ID(theNotaryID);
     OT_VERIFY_OT_ID(theNymID);
@@ -13842,7 +13749,7 @@ OTTransaction* OT_API::Ledger_GetTransactionByIndex(
     const std::int32_t& nIndex) const  // returns transaction by index (from
                                        // ledger)
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     OT_VERIFY_BOUNDS(nIndex, 0, theLedger.GetTransactionCount());
 
@@ -13905,7 +13812,7 @@ OTTransaction* OT_API::Ledger_GetTransactionByID(
     Ledger& theLedger,
     const std::int64_t& TRANSACTION_NUMBER) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     OT_VERIFY_MIN_BOUND(TRANSACTION_NUMBER, 1);
 
@@ -14023,7 +13930,7 @@ std::unique_ptr<OTPayment> OT_API::Ledger_GetInstrument(
     const Ledger& theLedger,
     const std::int32_t& nIndex) const  // returns financial instrument by index.
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     OT_VERIFY_OT_ID(theNymID);
     OT_VERIFY_BOUNDS(nIndex, 0, theLedger.GetTransactionCount());
@@ -14057,7 +13964,7 @@ std::unique_ptr<OTPayment> OT_API::Ledger_GetInstrumentByReceiptID(
     const Ledger& theLedger,
     const std::int64_t& lReceiptId) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     OT_VERIFY_OT_ID(theNymID);
     OT_VERIFY_MIN_BOUND(lReceiptId, 1);
@@ -14127,7 +14034,7 @@ std::int64_t OT_API::Ledger_GetTransactionIDByIndex(
     const Ledger& theLedger,
     const std::int32_t& nIndex) const  // returns transaction number by index.
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     OT_VERIFY_BOUNDS(nIndex, 0, theLedger.GetTransactionCount());
 
@@ -14168,7 +14075,7 @@ bool OT_API::Ledger_AddTransaction(
     Ledger& theLedger,  // theLedger takes ownership of pTransaction.
     std::unique_ptr<OTTransaction>& pTransaction) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     OT_VERIFY_OT_ID(theNymID);
 
@@ -14241,7 +14148,7 @@ bool OT_API::Transaction_CreateResponse(
     OTTransaction& originalTransaction,  // Responding to
     const bool& BOOL_DO_I_ACCEPT) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     OT_VERIFY_OT_ID(theNotaryID);
     OT_VERIFY_OT_ID(theNymID);
@@ -14317,7 +14224,7 @@ bool OT_API::Ledger_FinalizeResponse(
     const Identifier& theAcctID,
     Ledger& responseLedger) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     OT_VERIFY_OT_ID(theNotaryID);
     OT_VERIFY_OT_ID(theNymID);
@@ -14398,7 +14305,7 @@ int32_t OT_API::registerNym(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
 
@@ -14421,7 +14328,7 @@ int32_t OT_API::registerNym(
         *pServer,
         nullptr);  // nullptr pAccount on this command.
     if (0 < nReturnValue) {
-        SendMessage(NOTARY_ID, pNym, theMessage);
+        send_message(NOTARY_ID, pNym, theMessage);
 
         return nReturnValue;
     } else
@@ -14435,7 +14342,7 @@ int32_t OT_API::unregisterNym(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
 
@@ -14459,7 +14366,7 @@ int32_t OT_API::unregisterNym(
         *pServer,
         nullptr);  // nullptr pAccount on this command.
     if (0 < nReturnValue) {
-        SendMessage(NOTARY_ID, pNym, theMessage);
+        send_message(NOTARY_ID, pNym, theMessage);
         return nReturnValue;
     } else
         otErr << "Error processing unregisterNym command in "
@@ -14468,22 +14375,33 @@ int32_t OT_API::unregisterNym(
     return -1;
 }
 
-SendResult OT_API::SendMessage(
+SendResult OT_API::send_message(
     const Identifier& server,
     Nym* nym,
     Message& message) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    const auto result = send_message(server, {}, nym, message);
+
+    return result.first;
+}
+
+NetworkReplyMessage OT_API::send_message(
+    const Identifier& server,
+    const std::set<ServerContext::ManagedNumber>& pending,
+    Nym* nymfile,
+    Message& message) const
+{
+    rLock lock(lock_);
 
     m_pClient->QueueOutgoingMessage(message);
     auto& connection = zeromq_.Server(String(server).Get());
     auto result = connection.Send(message);
 
     if (SendResult::VALID_REPLY == result.first) {
-        m_pClient->processServerReply(server, nym, result.second);
+        m_pClient->processServerReply(server, pending, nymfile, result.second);
     }
 
-    return result.first;
+    return result;
 }
 
 int32_t OT_API::initiatePeerRequest(
@@ -14492,7 +14410,7 @@ int32_t OT_API::initiatePeerRequest(
     const Identifier& server,
     std::unique_ptr<PeerRequest>& request) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     std::int64_t notUsed = 0;
     std::int32_t output = -1;
@@ -14537,7 +14455,7 @@ std::int32_t OT_API::initiatePeerReply(
     const Identifier& request,
     std::unique_ptr<PeerReply>& reply) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     std::int64_t notUsed = 0;
     std::int32_t output = -1;
@@ -14603,7 +14521,7 @@ int32_t OT_API::requestAdmin(
     const Identifier& NYM_ID,
     const std::string& PASSWORD) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
 
@@ -14633,7 +14551,7 @@ int32_t OT_API::requestAdmin(
     // internal member m_strRawFile.)
     theMessage.SaveContract();
 
-    SendMessage(NOTARY_ID, pNym, theMessage);
+    send_message(NOTARY_ID, pNym, theMessage);
 
     return static_cast<std::int32_t>(lRequestNumber);
 }
@@ -14646,7 +14564,7 @@ int32_t OT_API::serverAddClaim(
     const std::string& value,
     const bool primary) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     Nym* pNym = GetOrLoadPrivateNym(nym, false, __FUNCTION__);
 
@@ -14679,7 +14597,7 @@ int32_t OT_API::serverAddClaim(
     // internal member m_strRawFile.)
     theMessage.SaveContract();
 
-    SendMessage(notary, pNym, theMessage);
+    send_message(notary, pNym, theMessage);
 
     return static_cast<std::int32_t>(lRequestNumber);
 }
@@ -14694,7 +14612,7 @@ std::string OT_API::AddChildKeyCredential(
     const Identifier& masterID,
     const NymParameters& nymParameters) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     std::string output;
     Nym* nym = GetOrLoadPrivateNym(nymID, false, __FUNCTION__);
@@ -14752,14 +14670,8 @@ OT_API::ProcessInbox OT_API::CreateProcessInbox(
     const auto& serverID = context.Server();
     const auto& nym = *context.Nym();
     const auto& nymID = nym.GetConstID();
-    // typedef std::pair<std::unique_ptr<Ledger>, Ledger*> ProcessInbox;
     OT_API::ProcessInbox output{};
-    // processInbox: client request to server, containing client replies
-    // to various inbox receipts.
-    auto& processInbox = std::get<0>(output);
-    // The inbox we're responding to in our client request.
-    auto& inbox = std::get<1>(output);
-
+    auto & [ processInbox, inbox ] = output;
     inbox.reset(LoadInbox(serverID, nymID, accountID));
 
     if (false == bool(inbox)) {
@@ -14768,17 +14680,6 @@ OT_API::ProcessInbox OT_API::CreateProcessInbox(
 
         return {};
     }
-
-    // We already called LoadInbox above (not LoadInboxNoVerify)
-    // thus this VerifyAccount was already done (in that call).
-    //
-    //    if (false == inbox->VerifyAccount(nym)) {
-    //        otErr << OT_METHOD << __FUNCTION__ << ": Unable to verify account
-    //        "
-    //              << account << std::endl;
-    //
-    //        return {};
-    //    }
 
     processInbox.reset(
         Ledger::GenerateLedger(nymID, accountID, serverID, Ledger::message));
@@ -15273,9 +15174,8 @@ OTTransaction* OT_API::get_or_create_process_inbox(
     if (nullptr == processInbox) {
         const auto number =
             context.NextTransactionNumber(MessageType::processInbox);
-        const bool haveNumber = 0 != number;
 
-        if (false == haveNumber) {
+        if (false == number.Valid()) {
             otOut << OT_METHOD << __FUNCTION__ << ": Nym "
                   << String(nymID).Get()
                   << " is all out of transaction numbers." << std::endl;
@@ -15299,11 +15199,13 @@ OTTransaction* OT_API::get_or_create_process_inbox(
             otErr << OT_METHOD << __FUNCTION__
                   << ": Error generating processInbox transaction for AcctID: "
                   << String(accountID).Get() << std::endl;
-            context.RecoverAvailableNumber(number);
 
             return {};
         }
 
+        // Above this line, the transaction number will be recovered
+        // automatically
+        number.SetSuccess(true);
         processInbox = newProcessInbox.get();
         response.AddTransaction(*newProcessInbox.release());
     }

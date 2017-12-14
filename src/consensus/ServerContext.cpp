@@ -41,6 +41,7 @@
 #include "opentxs/consensus/ServerContext.hpp"
 
 #include "opentxs/consensus/TransactionStatement.hpp"
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/Item.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Message.hpp"
@@ -52,6 +53,52 @@
 
 namespace opentxs
 {
+ServerContext::ManagedNumber::ManagedNumber(
+    const TransactionNumber number,
+    ServerContext& context)
+    : context_(context)
+    , number_(number)
+    , success_(false)
+    , managed_(0 != number)
+{
+}
+
+ServerContext::ManagedNumber::ManagedNumber(ManagedNumber&& rhs)
+    : context_(rhs.context_)
+    , number_(rhs.number_)
+    , success_(rhs.success_.load())
+    , managed_(rhs.managed_)
+{
+    rhs.managed_ = false;
+}
+
+ServerContext::ManagedNumber::operator TransactionNumber() const
+{
+    return number_;
+}
+
+void ServerContext::ManagedNumber::SetSuccess(const bool value) const
+{
+    return success_.store(value);
+}
+
+bool ServerContext::ManagedNumber::Valid() const { return managed_; }
+
+ServerContext::ManagedNumber::~ManagedNumber()
+{
+    if (false == managed_) {
+
+        return;
+    }
+
+    if (success_.load()) {
+
+        return;
+    }
+
+    context_.RecoverAvailableNumber(number_);
+}
+
 ServerContext::ServerContext(
     const ConstNym& local,
     const ConstNym& remote,
@@ -179,6 +226,11 @@ bool ServerContext::finalize_server_command(Message& command) const
     return true;
 }
 
+bool ServerContext::FinalizeServerCommand(Message& command) const
+{
+    return finalize_server_command(command);
+}
+
 std::unique_ptr<TransactionStatement> ServerContext::generate_statement(
     const Lock& lock,
     const std::set<TransactionNumber>& adding,
@@ -229,21 +281,70 @@ std::unique_ptr<Message> ServerContext::initialize_server_command(
     return output;
 }
 
-TransactionNumber ServerContext::NextTransactionNumber(const MessageType reason)
+std::pair<RequestNumber, std::unique_ptr<Message>> ServerContext::
+    InitializeServerCommand(
+        const MessageType type,
+        const OTASCIIArmor& payload,
+        const Identifier& accountID,
+        const bool withAcknowledgments,
+        const bool withNymboxHash)
+{
+    Lock lock(lock_);
+    std::pair<RequestNumber, std::unique_ptr<Message>> output{};
+    auto & [ requestNumber, message ] = output;
+    requestNumber = request_number_++;
+    message = initialize_server_command(type);
+
+    OT_ASSERT(message);
+
+    message->m_strRequestNum = std::to_string(requestNumber).c_str();
+    message->m_ascPayload = payload;
+    message->m_strAcctID = String(accountID);
+
+    if (withAcknowledgments) {
+        message->SetAcknowledgments(acknowledged_request_numbers_);
+    }
+
+    if (withNymboxHash) {
+        local_nymbox_hash_.GetString(message->m_strNymboxHash);
+    }
+
+    return output;
+}
+
+ServerContext::ManagedNumber ServerContext::NextTransactionNumber(
+    const MessageType reason)
 {
     Lock lock(lock_);
     const std::size_t reserve = (MessageType::processInbox == reason) ? 0 : 1;
 
+    if (0 == reserve) {
+        otInfo << OT_METHOD << __FUNCTION__
+               << ": Allocating a transaction number for process inbox."
+               << std::endl;
+    } else {
+        otInfo << OT_METHOD << __FUNCTION__
+               << ": Allocating a transaction number for normal transaction."
+               << std::endl;
+    }
+
+    otInfo << OT_METHOD << __FUNCTION__ << ": "
+           << available_transaction_numbers_.size() << " numbers available."
+           << std::endl;
+    otInfo << OT_METHOD << __FUNCTION__ << ": "
+           << issued_transaction_numbers_.size() << " numbers issued."
+           << std::endl;
+
     if (reserve >= available_transaction_numbers_.size()) {
 
-        return 0;
+        return ManagedNumber(0, *this);
     }
 
     auto first = available_transaction_numbers_.begin();
     const auto output = *first;
     available_transaction_numbers_.erase(first);
 
-    return output;
+    return ManagedNumber(output, *this);
 }
 
 NetworkReplyMessage ServerContext::PingNotary()

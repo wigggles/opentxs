@@ -151,8 +151,6 @@ typedef std::int64_t TransactionNumber;
 typedef std::int64_t RequestNumber;
 typedef std::int64_t Amount;
 
-typedef std::pair<NetworkOperationStatus, TransactionNumber> CommandResult;
-
 typedef std::unique_lock<std::mutex> Lock;
 typedef std::unique_lock<std::recursive_mutex> rLock;
 
@@ -284,6 +282,9 @@ enum class ConnectionState : std::uint8_t {
 typedef std::pair<SendResult, std::unique_ptr<std::string>> NetworkReplyRaw;
 typedef std::pair<SendResult, std::unique_ptr<String>> NetworkReplyString;
 typedef std::pair<SendResult, std::unique_ptr<Message>> NetworkReplyMessage;
+
+typedef std::tuple<RequestNumber, TransactionNumber, NetworkReplyMessage>
+    CommandResult;
 
 enum class MessageType : std::uint8_t {
     badID = 0,
