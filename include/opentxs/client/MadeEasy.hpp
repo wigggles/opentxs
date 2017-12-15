@@ -51,6 +51,7 @@
 namespace opentxs
 {
 class OT_API;
+class OTAPI_Exec;
 
 namespace api
 {
@@ -237,10 +238,15 @@ private:
     friend class api::implementation::Api;
 
     std::recursive_mutex& lock_;
+    OTAPI_Exec& exec_;
     OT_API& otapi_;
     api::Wallet& wallet_;
 
-    MadeEasy(std::recursive_mutex& lock, OT_API& otapi, api::Wallet& wallet);
+    MadeEasy(
+        std::recursive_mutex& lock,
+        OTAPI_Exec& exec,
+        OT_API& otapi,
+        api::Wallet& wallet);
     MadeEasy() = delete;
     MadeEasy(const MadeEasy&) = delete;
     MadeEasy(const MadeEasy&&) = delete;

@@ -45,10 +45,12 @@
 #include "opentxs/api/Native.hpp"
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/client/OT_ME.hpp"
+#include "opentxs/client/OTAPI_Exec.hpp"
 #include "opentxs/client/SwigWrap.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/core/Ledger.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/OT.hpp"
 
 #include <ostream>
 
@@ -850,7 +852,8 @@ std::int32_t Utility::getAndProcessNymbox_8(
         // just the getNymbox msg.)
         //
         //
-        //            void SwigWrap::FlushSentMessages( std::int32_t //
+        //            void OT::App().API().Exec().FlushSentMessages(
+        //            std::int32_t //
         // bHarvestingForRetry, // bHarvestingForRetry is actually OT_BOOL
         //                              const char * NOTARY_ID,
         //                              const char * NYM_ID,
@@ -869,7 +872,7 @@ std::int32_t Utility::getAndProcessNymbox_8(
 
         if (VerifyStringVal(strNymbox)) {
 
-            SwigWrap::FlushSentMessages(
+            OT::App().API().Exec().FlushSentMessages(
                 false,  // harvesting for retry = = OT_FALSE. None of the things
                 // are being re-tried by the time they are being flushed.
                 // They were already old news.;
@@ -1218,7 +1221,7 @@ std::int32_t Utility::getAndProcessNymbox_8(
                     notaryID,
                     nymID);  // FLUSH SENT MESSAGES!!!!  (AND HARVEST.);
                 if (VerifyStringVal(strNymbox)) {
-                    SwigWrap::FlushSentMessages(
+                    OT::App().API().Exec().FlushSentMessages(
                         false,  // harvesting for retry = = OT_FALSE
                         notaryID,
                         nymID,
@@ -1581,10 +1584,10 @@ bool Utility::getBoxReceiptLowLevel(
 
     SwigWrap::FlushMessageBuffer();
 
-    std::int32_t nRequestNum = SwigWrap::getBoxReceipt(
-        notaryID,
-        nymID,
-        accountID,
+    std::int32_t nRequestNum = OT::App().API().OTAPI().getBoxReceipt(
+        Identifier(notaryID),
+        Identifier(nymID),
+        Identifier(accountID),
         nBoxType,
         strTransactionNum);  // <===== ATTEMPT TO SEND THE MESSAGE HERE...;
 
@@ -2601,7 +2604,7 @@ bool Utility::getTransactionNumbers(
                     nymID);  // FLUSH SENT MESSAGES!!!!  (AND HARVEST.);
 
                 if (VerifyStringVal(strNymbox)) {
-                    SwigWrap::FlushSentMessages(
+                    OT::App().API().Exec().FlushSentMessages(
                         false,  // harvesting for retry = = OT_FALSE
                         notaryID,
                         nymID,
@@ -2681,7 +2684,7 @@ bool Utility::getTransactionNumbers(
                         nymID);  // FLUSH SENT MESSAGES!!!!  (AND HARVEST.);
 
                     if (VerifyStringVal(strNymbox)) {
-                        SwigWrap::FlushSentMessages(
+                        OT::App().API().Exec().FlushSentMessages(
                             false,  // harvesting for retry = = OT_FALSE
                             notaryID,
                             nymID,
@@ -2810,7 +2813,7 @@ bool Utility::getTransactionNumbers(
                     nymID);  // FLUSH SENT MESSAGES!!!!  (AND HARVEST.);
 
                 if (VerifyStringVal(strNymbox)) {
-                    SwigWrap::FlushSentMessages(
+                    OT::App().API().Exec().FlushSentMessages(
                         false,  // harvesting for retry = = OT_FALSE
                         notaryID,
                         nymID,

@@ -109,8 +109,9 @@ void Api::Init()
         zmq_,
         *ot_api_,
         lock_));
-    made_easy_.reset(new MadeEasy(lock_, *ot_api_, wallet_));
-    ot_me_.reset(new OT_ME(lock_, *ot_api_, *made_easy_, wallet_));
+    made_easy_.reset(new MadeEasy(lock_, *otapi_exec_, *ot_api_, wallet_));
+    ot_me_.reset(
+        new OT_ME(lock_, *otapi_exec_, *ot_api_, *made_easy_, wallet_));
     otme_too_.reset(new OTME_too(
         lock_,
         config_,

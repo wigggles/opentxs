@@ -56,6 +56,7 @@ namespace opentxs
 {
 class Message;
 class OT_API;
+class OTAPI_Exec;
 class ServerContext;
 class the_lambda_struct;
 
@@ -209,27 +210,32 @@ public:
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         opentxs::ServerContext& context,
+        OTAPI_Exec& exec,
         OT_API& otapi);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         opentxs::ServerContext& context,
+        OTAPI_Exec& exec,
         OT_API& otapi,
         const std::string& p_strParam);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         opentxs::ServerContext& context,
+        OTAPI_Exec& exec,
         OT_API& otapi,
         const std::string& p_strParam,
         std::int64_t p_lData);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         opentxs::ServerContext& context,
+        OTAPI_Exec& exec,
         OT_API& otapi,
         const std::string& p_strParam,
         const std::string& p_strData);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         opentxs::ServerContext& context,
+        OTAPI_Exec& exec,
         OT_API& otapi,
         const std::string& p_nymID2,
         const std::string& p_strData,
@@ -237,6 +243,7 @@ public:
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         opentxs::ServerContext& context,
+        OTAPI_Exec& exec,
         OT_API& otapi,
         const std::string& p_nymID2,
         const std::string& p_strData,
@@ -244,6 +251,7 @@ public:
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         opentxs::ServerContext& context,
+        OTAPI_Exec& exec,
         OT_API& otapi,
         const std::string& p_accountID,
         const std::string& p_strParam,
@@ -252,6 +260,7 @@ public:
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         opentxs::ServerContext& context,
+        OTAPI_Exec& exec,
         OT_API& otapi,
         const std::string& p_accountID,
         const std::string& p_strParam,
@@ -260,6 +269,7 @@ public:
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         opentxs::ServerContext& context,
+        OTAPI_Exec& exec,
         OT_API& otapi,
         const std::string& p_accountID,
         const std::string& p_strParam,
@@ -268,6 +278,7 @@ public:
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         opentxs::ServerContext& context,
+        OTAPI_Exec& exec,
         OT_API& otapi,
         bool p_bBool,
         const std::string& p_strData,
@@ -276,6 +287,7 @@ public:
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         opentxs::ServerContext& context,
+        OTAPI_Exec& exec,
         OT_API& otapi,
         const std::string& p_instrumentDefinitionID,
         const std::string& p_basket,
@@ -285,6 +297,7 @@ public:
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         opentxs::ServerContext& context,
+        OTAPI_Exec& exec,
         OT_API& otapi,
         const std::string& accountID,
         const std::string& accountID2,
@@ -319,6 +332,7 @@ public:
 
 private:
     opentxs::ServerContext& context_;
+    OTAPI_Exec& exec_;
     OT_API& otapi_;
     mutable std::mutex lock_;
     mutable std::unique_ptr<Message> last_reply_;
@@ -326,6 +340,7 @@ private:
 
     explicit OTAPI_Func(
         opentxs::ServerContext& context,
+        OTAPI_Exec& exec,
         OT_API& otapi,
         const OTAPI_Func_Type type);
     OTAPI_Func() = delete;

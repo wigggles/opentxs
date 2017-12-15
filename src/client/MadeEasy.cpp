@@ -58,9 +58,11 @@ namespace opentxs
 {
 MadeEasy::MadeEasy(
     std::recursive_mutex& lock,
+    OTAPI_Exec& exec,
     OT_API& otapi,
     api::Wallet& wallet)
     : lock_(lock)
+    , exec_(exec)
     , otapi_(otapi)
     , wallet_(wallet)
 {
@@ -112,10 +114,10 @@ std::string MadeEasy::check_nym(
 
     auto context = wallet_.mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
-    OTAPI_Func theRequest(CHECK_NYM, context.It(), otapi_, TARGET_NYM_ID);
+    OTAPI_Func theRequest(
+        CHECK_NYM, context.It(), exec_, otapi_, TARGET_NYM_ID);
 
     return theRequest.SendRequest(theRequest, "CHECK_NYM");
-    ;
 }
 
 //  ISSUE ASSET TYPE
@@ -128,7 +130,8 @@ std::string MadeEasy::issue_asset_type(
 
     auto context = wallet_.mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
-    OTAPI_Func theRequest(ISSUE_ASSET_TYPE, context.It(), otapi_, THE_CONTRACT);
+    OTAPI_Func theRequest(
+        ISSUE_ASSET_TYPE, context.It(), exec_, otapi_, THE_CONTRACT);
 
     return theRequest.SendRequest(theRequest, "ISSUE_ASSET_TYPE");
 }
@@ -143,7 +146,8 @@ std::string MadeEasy::issue_basket_currency(
 
     auto context = wallet_.mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
-    OTAPI_Func theRequest(ISSUE_BASKET, context.It(), otapi_, THE_BASKET);
+    OTAPI_Func theRequest(
+        ISSUE_BASKET, context.It(), exec_, otapi_, THE_BASKET);
 
     return theRequest.SendRequest(theRequest, "ISSUE_BASKET");
 }
@@ -166,6 +170,7 @@ std::string MadeEasy::exchange_basket_currency(
     OTAPI_Func theRequest(
         EXCHANGE_BASKET,
         context.It(),
+        exec_,
         otapi_,
         ASSET_TYPE,
         THE_BASKET,
@@ -186,7 +191,8 @@ std::string MadeEasy::retrieve_contract(
 
     auto context = wallet_.mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
-    OTAPI_Func theRequest(GET_CONTRACT, context.It(), otapi_, CONTRACT_ID);
+    OTAPI_Func theRequest(
+        GET_CONTRACT, context.It(), exec_, otapi_, CONTRACT_ID);
 
     return theRequest.SendRequest(theRequest, "GET_CONTRACT");
 }
@@ -224,7 +230,11 @@ std::string MadeEasy::create_asset_acct(
     auto context = wallet_.mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func theRequest(
-        CREATE_ASSET_ACCT, context.It(), otapi_, INSTRUMENT_DEFINITION_ID);
+        CREATE_ASSET_ACCT,
+        context.It(),
+        exec_,
+        otapi_,
+        INSTRUMENT_DEFINITION_ID);
 
     return theRequest.SendRequest(theRequest, "CREATE_ASSET_ACCT");
     ;
@@ -240,7 +250,8 @@ std::string MadeEasy::unregister_account(
 
     auto context = wallet_.mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
-    OTAPI_Func theRequest(DELETE_ASSET_ACCT, context.It(), otapi_, ACCOUNT_ID);
+    OTAPI_Func theRequest(
+        DELETE_ASSET_ACCT, context.It(), exec_, otapi_, ACCOUNT_ID);
 
     return theRequest.SendRequest(theRequest, "DELETE_ASSET_ACCT");
     ;
@@ -255,7 +266,7 @@ std::string MadeEasy::unregister_nym(
 
     auto context = wallet_.mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
-    OTAPI_Func theRequest(DELETE_NYM, context.It(), otapi_);
+    OTAPI_Func theRequest(DELETE_NYM, context.It(), exec_, otapi_);
 
     return theRequest.SendRequest(theRequest, "DELETE_NYM");
     ;
@@ -333,7 +344,14 @@ std::string MadeEasy::send_transfer(
     auto context = wallet_.mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func theRequest(
-        SEND_TRANSFER, context.It(), otapi_, ACCT_FROM, ACCT_TO, AMOUNT, NOTE);
+        SEND_TRANSFER,
+        context.It(),
+        exec_,
+        otapi_,
+        ACCT_FROM,
+        ACCT_TO,
+        AMOUNT,
+        NOTE);
     const auto output = theRequest.SendTransaction(theRequest, "SEND_TRANSFER");
     number = theRequest.transaction_number_.load();
 
@@ -352,7 +370,12 @@ std::string MadeEasy::process_inbox(
     auto context = wallet_.mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func theRequest(
-        PROCESS_INBOX, context.It(), otapi_, ACCOUNT_ID, RESPONSE_LEDGER);
+        PROCESS_INBOX,
+        context.It(),
+        exec_,
+        otapi_,
+        ACCOUNT_ID,
+        RESPONSE_LEDGER);
 
     return theRequest.SendTransaction(theRequest, "PROCESS_INBOX");
     ;
@@ -448,6 +471,7 @@ std::string MadeEasy::send_user_msg_pubkey(
     OTAPI_Func theRequest(
         SEND_USER_MESSAGE,
         context.It(),
+        exec_,
         otapi_,
         RECIPIENT_NYM_ID,
         RECIPIENT_PUBKEY,
@@ -472,6 +496,7 @@ std::string MadeEasy::send_user_pmnt_pubkey(
     OTAPI_Func theRequest(
         SEND_USER_INSTRUMENT,
         context.It(),
+        exec_,
         otapi_,
         RECIPIENT_NYM_ID,
         RECIPIENT_PUBKEY,
@@ -498,6 +523,7 @@ std::string MadeEasy::send_user_cash_pubkey(
     OTAPI_Func theRequest(
         SEND_USER_INSTRUMENT,
         context.It(),
+        exec_,
         otapi_,
         RECIPIENT_NYM_ID,
         RECIPIENT_PUBKEY,
@@ -544,7 +570,7 @@ std::string MadeEasy::retrieve_mint(
     auto context = wallet_.mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func theRequest(
-        GET_MINT, context.It(), otapi_, INSTRUMENT_DEFINITION_ID);
+        GET_MINT, context.It(), exec_, otapi_, INSTRUMENT_DEFINITION_ID);
 
     return theRequest.SendRequest(theRequest, "GET_MINT");
 }
@@ -656,6 +682,7 @@ std::string MadeEasy::deposit_payment_plan(
     OTAPI_Func theRequest(
         DEPOSIT_PAYMENT_PLAN,
         context.It(),
+        exec_,
         otapi_,
         strSenderAcctID,
         THE_PAYMENT_PLAN);
@@ -1411,7 +1438,7 @@ std::int32_t MadeEasy::depositCashPurse(
     auto context =
         wallet_.mutable_ServerContext(Identifier(nymID), Identifier(notaryID));
     OTAPI_Func theRequest(
-        DEPOSIT_CASH, context.It(), otapi_, accountID, newPurse);
+        DEPOSIT_CASH, context.It(), exec_, otapi_, accountID, newPurse);
     std::string strResponse = theRequest.SendTransaction(
         theRequest, "DEPOSIT_CASH");  // <========================;
 
@@ -1524,7 +1551,12 @@ bool MadeEasy::exchangeCashPurse(
     auto context =
         wallet_.mutable_ServerContext(Identifier(nymID), Identifier(notaryID));
     OTAPI_Func theRequest(
-        EXCHANGE_CASH, context.It(), otapi_, instrumentDefinitionID, newPurse);
+        EXCHANGE_CASH,
+        context.It(),
+        exec_,
+        otapi_,
+        instrumentDefinitionID,
+        newPurse);
     std::string strResponse = theRequest.SendTransaction(
         theRequest, "EXCHANGE_CASH");  // <========================;
 
@@ -1561,7 +1593,7 @@ std::string MadeEasy::deposit_purse(
     auto context = wallet_.mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func theRequest(
-        DEPOSIT_CASH, context.It(), otapi_, ACCT_ID, STR_PURSE);
+        DEPOSIT_CASH, context.It(), exec_, otapi_, ACCT_ID, STR_PURSE);
 
     return theRequest.SendTransaction(theRequest, "DEPOSIT_CASH");
 }

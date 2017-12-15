@@ -54,6 +54,7 @@
 #include "opentxs/client/commands/CmdSendCash.hpp"
 #include "opentxs/client/commands/CmdWithdrawCash.hpp"
 #include "opentxs/client/MadeEasy.hpp"
+#include "opentxs/client/OTAPI_Exec.hpp"
 #include "opentxs/client/OTAPI_Func.hpp"
 #include "opentxs/client/SwigWrap.hpp"
 #include "opentxs/client/Utility.hpp"
@@ -66,8 +67,8 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/Types.hpp"
 #include "opentxs/ext/Helpers.hpp"
+#include "opentxs/Types.hpp"
 
 #define OT_METHOD "opentxs::OT_ME::"
 
@@ -76,10 +77,12 @@ namespace opentxs
 
 OT_ME::OT_ME(
     std::recursive_mutex& lock,
+    OTAPI_Exec& exec,
     OT_API& otapi,
     MadeEasy& madeEasy,
     api::Wallet& wallet)
     : lock_(lock)
+    , exec_(exec)
     , otapi_(otapi)
     , made_easy_(madeEasy)
     , wallet_(wallet)
@@ -102,7 +105,7 @@ bool OT_ME::make_sure_enough_trans_nums(
     // cheque...)
     //
     std::int32_t nTransCount =
-        SwigWrap::GetNym_TransactionNumCount(strMyNotaryID, strMyNymID);
+        exec_.GetNym_TransactionNumCount(strMyNotaryID, strMyNymID);
 
     if (nTransCount < nNumberNeeded) {
         otOut << "insure_enough_nums: I don't have enough "
@@ -121,7 +124,7 @@ bool OT_ME::make_sure_enough_trans_nums(
         // Try again.
         //
         nTransCount =
-            SwigWrap::GetNym_TransactionNumCount(strMyNotaryID, strMyNymID);
+            exec_.GetNym_TransactionNumCount(strMyNotaryID, strMyNymID);
 
         if (nTransCount < nNumberNeeded) {
             otOut
@@ -153,6 +156,7 @@ std::string OT_ME::notify_bailment(
     OTAPI_Func theRequest(
         NOTIFY_BAILMENT,
         context.It(),
+        exec_,
         otapi_,
         TARGET_NYM_ID,
         INSTRUMENT_DEFINITION_ID,
@@ -182,6 +186,7 @@ std::string OT_ME::initiate_bailment(
     OTAPI_Func theRequest(
         INITIATE_BAILMENT,
         context.It(),
+        exec_,
         otapi_,
         TARGET_NYM_ID,
         INSTRUMENT_DEFINITION_ID);
@@ -212,6 +217,7 @@ std::string OT_ME::initiate_outbailment(
     OTAPI_Func theRequest(
         INITIATE_OUTBAILMENT,
         context.It(),
+        exec_,
         otapi_,
         TARGET_NYM_ID,
         INSTRUMENT_DEFINITION_ID,
@@ -239,7 +245,7 @@ std::string OT_ME::request_connection(
     auto context = wallet_.mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func theRequest(
-        REQUEST_CONNECTION, context.It(), otapi_, TARGET_NYM_ID, TYPE);
+        REQUEST_CONNECTION, context.It(), exec_, otapi_, TARGET_NYM_ID, TYPE);
     std::string strResponse =
         theRequest.SendRequest(theRequest, "REQUEST_CONNECTION");
     std::int32_t nSuccess = VerifyMessageSuccess(strResponse);
@@ -266,6 +272,7 @@ std::string OT_ME::store_secret(
     OTAPI_Func theRequest(
         STORE_SECRET,
         context.It(),
+        exec_,
         otapi_,
         TARGET_NYM_ID,
         PRIMARY,
@@ -297,6 +304,7 @@ std::string OT_ME::acknowledge_bailment(
     OTAPI_Func theRequest(
         ACKNOWLEDGE_BAILMENT,
         context.It(),
+        exec_,
         otapi_,
         TARGET_NYM_ID,
         REQUEST_ID,
@@ -308,7 +316,7 @@ std::string OT_ME::acknowledge_bailment(
     if (1 != nSuccess) {
         otOut << "Failed to " << __FUNCTION__ << "." << std::endl;
     } else {
-        SwigWrap::completePeerReply(NYM_ID, REQUEST_ID);
+        exec_.completePeerReply(NYM_ID, REQUEST_ID);
     }
 
     return strResponse;
@@ -329,6 +337,7 @@ std::string OT_ME::acknowledge_outbailment(
     OTAPI_Func theRequest(
         ACKNOWLEDGE_OUTBAILMENT,
         context.It(),
+        exec_,
         otapi_,
         TARGET_NYM_ID,
         REQUEST_ID,
@@ -340,7 +349,7 @@ std::string OT_ME::acknowledge_outbailment(
     if (1 != nSuccess) {
         otOut << "Failed to " << __FUNCTION__ << "." << std::endl;
     } else {
-        SwigWrap::completePeerReply(NYM_ID, REQUEST_ID);
+        exec_.completePeerReply(NYM_ID, REQUEST_ID);
     }
 
     return strResponse;
@@ -361,6 +370,7 @@ std::string OT_ME::acknowledge_notice(
     OTAPI_Func theRequest(
         ACKNOWLEDGE_NOTICE,
         context.It(),
+        exec_,
         otapi_,
         TARGET_NYM_ID,
         REQUEST_ID,
@@ -372,7 +382,7 @@ std::string OT_ME::acknowledge_notice(
     if (1 != nSuccess) {
         otOut << "Failed to " << __FUNCTION__ << "." << std::endl;
     } else {
-        SwigWrap::completePeerReply(NYM_ID, REQUEST_ID);
+        exec_.completePeerReply(NYM_ID, REQUEST_ID);
     }
 
     return strResponse;
@@ -397,6 +407,7 @@ std::string OT_ME::acknowledge_connection(
     OTAPI_Func theRequest(
         ACKNOWLEDGE_CONNECTION,
         context.It(),
+        exec_,
         otapi_,
         TARGET_NYM_ID,
         REQUEST_ID,
@@ -412,7 +423,7 @@ std::string OT_ME::acknowledge_connection(
     if (1 != nSuccess) {
         otOut << "Failed to " << __FUNCTION__ << "." << std::endl;
     } else {
-        SwigWrap::completePeerReply(NYM_ID, REQUEST_ID);
+        exec_.completePeerReply(NYM_ID, REQUEST_ID);
     }
 
     return strResponse;
@@ -428,7 +439,7 @@ std::string OT_ME::register_contract_nym(
     auto context = wallet_.mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func theRequest(
-        REGISTER_CONTRACT_NYM, context.It(), otapi_, CONTRACT);
+        REGISTER_CONTRACT_NYM, context.It(), exec_, otapi_, CONTRACT);
     std::string strResponse =
         theRequest.SendRequest(theRequest, "REGISTER_CONTRACT_NYM");
     std::int32_t nSuccess = VerifyMessageSuccess(strResponse);
@@ -450,7 +461,7 @@ std::string OT_ME::register_contract_server(
     auto context = wallet_.mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func theRequest(
-        REGISTER_CONTRACT_SERVER, context.It(), otapi_, CONTRACT);
+        REGISTER_CONTRACT_SERVER, context.It(), exec_, otapi_, CONTRACT);
     std::string strResponse =
         theRequest.SendRequest(theRequest, "REGISTER_CONTRACT_SERVER");
     std::int32_t nSuccess = VerifyMessageSuccess(strResponse);
@@ -472,7 +483,7 @@ std::string OT_ME::register_contract_unit(
     auto context = wallet_.mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func theRequest(
-        REGISTER_CONTRACT_UNIT, context.It(), otapi_, CONTRACT);
+        REGISTER_CONTRACT_UNIT, context.It(), exec_, otapi_, CONTRACT);
     std::string strResponse =
         theRequest.SendRequest(theRequest, "REGISTER_CONTRACT_UNIT");
     std::int32_t nSuccess = VerifyMessageSuccess(strResponse);
@@ -494,7 +505,7 @@ std::string OT_ME::register_nym(
 
     auto context = wallet_.mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
-    OTAPI_Func theRequest(REGISTER_NYM, context.It(), otapi_);
+    OTAPI_Func theRequest(REGISTER_NYM, context.It(), exec_, otapi_);
     std::string strResponse =
         theRequest.SendRequest(theRequest, "REGISTER_NYM");
 
@@ -525,7 +536,7 @@ std::string OT_ME::request_admin(
 
     auto context = wallet_.mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
-    OTAPI_Func theRequest(REQUEST_ADMIN, context.It(), otapi_, PASSWORD);
+    OTAPI_Func theRequest(REQUEST_ADMIN, context.It(), exec_, otapi_, PASSWORD);
     std::string strResponse =
         theRequest.SendRequest(theRequest, "REQUEST_ADMIN");
     std::int32_t nSuccess = VerifyMessageSuccess(strResponse);
@@ -550,7 +561,14 @@ std::string OT_ME::server_add_claim(
     auto context = wallet_.mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func theRequest(
-        SERVER_ADD_CLAIM, context.It(), otapi_, PRIMARY, SECTION, TYPE, VALUE);
+        SERVER_ADD_CLAIM,
+        context.It(),
+        exec_,
+        otapi_,
+        PRIMARY,
+        SECTION,
+        TYPE,
+        VALUE);
     const std::string strResponse =
         theRequest.SendRequest(theRequest, "SERVER_ADD_CLAIM");
     const std::int32_t nSuccess = VerifyMessageSuccess(strResponse);
@@ -1001,7 +1019,7 @@ std::string OT_ME::get_payment_instrument(
     std::string strInbox =
         VerifyStringVal(PRELOADED_INBOX)
             ? PRELOADED_INBOX
-            : SwigWrap::LoadPaymentInbox(
+            : exec_.LoadPaymentInbox(
                   NOTARY_ID, NYM_ID);  // Returns nullptr, or an inbox.
 
     if (!VerifyStringVal(strInbox)) {
@@ -1012,7 +1030,7 @@ std::string OT_ME::get_payment_instrument(
     }
 
     std::int32_t nCount =
-        SwigWrap::Ledger_GetCount(NOTARY_ID, NYM_ID, NYM_ID, strInbox);
+        exec_.Ledger_GetCount(NOTARY_ID, NYM_ID, NYM_ID, strInbox);
     if (0 > nCount) {
         otOut
             << "Unable to retrieve size of payments inbox ledger. (Failure.)\n";
@@ -1025,8 +1043,8 @@ std::string OT_ME::get_payment_instrument(
         return "";
     }
 
-    strInstrument = SwigWrap::Ledger_GetInstrument(
-        NOTARY_ID, NYM_ID, NYM_ID, strInbox, nIndex);
+    strInstrument =
+        exec_.Ledger_GetInstrument(NOTARY_ID, NYM_ID, NYM_ID, strInbox, nIndex);
     if (!VerifyStringVal(strInstrument)) {
         otOut << "Failed trying to get payment instrument from payments box.\n";
         return "";
@@ -1056,6 +1074,7 @@ std::string OT_ME::get_box_receipt(
     OTAPI_Func request(
         GET_BOX_RECEIPT,
         context.It(),
+        exec_,
         otapi_,
         ACCT_ID,
         std::to_string(nBoxType),
@@ -1111,14 +1130,14 @@ std::string OT_ME::create_market_offer(
 {
     rLock lock(lock_);
 
-    std::string strNotaryID =
-        SwigWrap::GetAccountWallet_NotaryID(ASSET_ACCT_ID);
-    std::string strNymID = SwigWrap::GetAccountWallet_NymID(ASSET_ACCT_ID);
+    std::string strNotaryID = exec_.GetAccountWallet_NotaryID(ASSET_ACCT_ID);
+    std::string strNymID = exec_.GetAccountWallet_NymID(ASSET_ACCT_ID);
     auto context = wallet_.mutable_ServerContext(
         Identifier(strNymID), Identifier(strNotaryID));
     OTAPI_Func request(
         CREATE_MARKET_OFFER,
         context.It(),
+        exec_,
         otapi_,
         ASSET_ACCT_ID,
         CURRENCY_ACCT_ID,
@@ -1155,6 +1174,7 @@ std::string OT_ME::kill_market_offer(
     OTAPI_Func request(
         KILL_MARKET_OFFER,
         context.It(),
+        exec_,
         otapi_,
         ASSET_ACCT_ID,
         std::to_string(TRANS_NUM));
@@ -1176,6 +1196,7 @@ std::string OT_ME::kill_payment_plan(
     OTAPI_Func request(
         KILL_PAYMENT_PLAN,
         context.It(),
+        exec_,
         otapi_,
         ACCT_ID,
         std::to_string(TRANS_NUM));
@@ -1198,7 +1219,7 @@ std::string OT_ME::cancel_payment_plan(
     // sync duties. (FYI.)
 
     std::string strRecipientAcctID =
-        SwigWrap::Instrmnt_GetRecipientAcctID(THE_PAYMENT_PLAN);
+        exec_.Instrmnt_GetRecipientAcctID(THE_PAYMENT_PLAN);
 
     // NOTE: Normally the SENDER (PAYER) is the one who deposits a payment plan.
     // But in this case, the RECIPIENT (PAYEE) deposits it -- which means
@@ -1218,6 +1239,7 @@ std::string OT_ME::cancel_payment_plan(
     OTAPI_Func request(
         DEPOSIT_PAYMENT_PLAN,
         context.It(),
+        exec_,
         otapi_,
         strRecipientAcctID,
         THE_PAYMENT_PLAN);
@@ -1240,6 +1262,7 @@ std::string OT_ME::activate_smart_contract(
     OTAPI_Func request(
         ACTIVATE_SMART_CONTRACT,
         context.It(),
+        exec_,
         otapi_,
         ACCT_ID,
         AGENT_NAME,
@@ -1263,6 +1286,7 @@ std::string OT_ME::trigger_clause(
     OTAPI_Func request(
         TRIGGER_CLAUSE,
         context.It(),
+        exec_,
         otapi_,
         std::to_string(TRANS_NUM),
         CLAUSE_NAME,
@@ -1282,7 +1306,8 @@ std::string OT_ME::withdraw_cash(
 
     auto context = wallet_.mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
-    OTAPI_Func request(WITHDRAW_CASH, context.It(), otapi_, ACCT_ID, AMOUNT);
+    OTAPI_Func request(
+        WITHDRAW_CASH, context.It(), exec_, otapi_, ACCT_ID, AMOUNT);
     return request.SendTransaction(request, "WITHDRAW_CASH");
 }
 
@@ -1341,6 +1366,7 @@ std::string OT_ME::withdraw_voucher(
     OTAPI_Func request(
         WITHDRAW_VOUCHER,
         context.It(),
+        exec_,
         otapi_,
         ACCT_ID,
         RECIP_NYM_ID,
@@ -1366,6 +1392,7 @@ std::string OT_ME::pay_dividend(
     OTAPI_Func request(
         PAY_DIVIDEND,
         context.It(),
+        exec_,
         otapi_,
         SOURCE_ACCT_ID,
         SHARES_INSTRUMENT_DEFINITION_ID,
@@ -1385,7 +1412,7 @@ std::string OT_ME::deposit_cheque(
     auto context = wallet_.mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func request(
-        DEPOSIT_CHEQUE, context.It(), otapi_, ACCT_ID, STR_CHEQUE);
+        DEPOSIT_CHEQUE, context.It(), exec_, otapi_, ACCT_ID, STR_CHEQUE);
     return request.SendTransaction(request, "DEPOSIT_CHEQUE");
 }
 
@@ -1421,7 +1448,7 @@ std::string OT_ME::get_market_list(
 
     auto context = wallet_.mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
-    OTAPI_Func request(GET_MARKET_LIST, context.It(), otapi_);
+    OTAPI_Func request(GET_MARKET_LIST, context.It(), exec_, otapi_);
     return request.SendRequest(request, "GET_MARKET_LIST");
 }
 
@@ -1436,7 +1463,7 @@ std::string OT_ME::get_market_offers(
     auto context = wallet_.mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func request(
-        GET_MARKET_OFFERS, context.It(), otapi_, MARKET_ID, MAX_DEPTH);
+        GET_MARKET_OFFERS, context.It(), exec_, otapi_, MARKET_ID, MAX_DEPTH);
     return request.SendRequest(request, "GET_MARKET_OFFERS");
 }
 
@@ -1448,7 +1475,7 @@ std::string OT_ME::get_nym_market_offers(
 
     auto context = wallet_.mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
-    OTAPI_Func request(GET_NYM_MARKET_OFFERS, context.It(), otapi_);
+    OTAPI_Func request(GET_NYM_MARKET_OFFERS, context.It(), exec_, otapi_);
     return request.SendRequest(request, "GET_NYM_MARKET_OFFERS");
 }
 
@@ -1462,7 +1489,7 @@ std::string OT_ME::get_market_recent_trades(
     auto context = wallet_.mutable_ServerContext(
         Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func request(
-        GET_MARKET_RECENT_TRADES, context.It(), otapi_, MARKET_ID);
+        GET_MARKET_RECENT_TRADES, context.It(), exec_, otapi_, MARKET_ID);
     return request.SendRequest(request, "GET_MARKET_RECENT_TRADES");
 }
 
@@ -1477,7 +1504,12 @@ std::string OT_ME::adjust_usage_credits(
     auto context = wallet_.mutable_ServerContext(
         Identifier(USER_NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func request(
-        ADJUST_USAGE_CREDITS, context.It(), otapi_, TARGET_NYM_ID, ADJUSTMENT);
+        ADJUST_USAGE_CREDITS,
+        context.It(),
+        exec_,
+        otapi_,
+        TARGET_NYM_ID,
+        ADJUSTMENT);
     return request.SendRequest(request, "ADJUST_USAGE_CREDITS");
 }
 
@@ -1491,7 +1523,7 @@ int32_t OT_ME::VerifyMessageSuccess(const std::string& str_Message) const
         return -1;
     }
 
-    std::int32_t nStatus = SwigWrap::Message_GetSuccess(str_Message);
+    std::int32_t nStatus = exec_.Message_GetSuccess(str_Message);
 
     switch (nStatus) {
         case (-1):
@@ -1533,7 +1565,7 @@ int32_t OT_ME::VerifyMsgBalanceAgrmntSuccess(
         return -1;
     }
 
-    std::int32_t nStatus = SwigWrap::Message_GetBalanceAgreementSuccess(
+    std::int32_t nStatus = exec_.Message_GetBalanceAgreementSuccess(
         NOTARY_ID, NYM_ID, ACCOUNT_ID, str_Message);
 
     switch (nStatus) {
@@ -1576,7 +1608,7 @@ int32_t OT_ME::VerifyMsgTrnxSuccess(
         return -1;
     }
 
-    std::int32_t nStatus = SwigWrap::Message_GetTransactionSuccess(
+    std::int32_t nStatus = exec_.Message_GetTransactionSuccess(
         NOTARY_ID, NYM_ID, ACCOUNT_ID, str_Message);
 
     switch (nStatus) {
