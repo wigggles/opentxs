@@ -51,10 +51,10 @@ bool Util::GetPasswordFromConsole(OTPassword& theOutput, bool bRepeat) const
 {
     std::int32_t nAttempts = 0;
 
-    for (;;) {
+    for (int i = 0; i < 5; i++) {
         theOutput.zeroMemory();
 
-        if (GetPasswordFromConsole(theOutput, "(OT) passphrase: ")) {
+        if (get_password(theOutput, "(OT) passphrase: ")) {
             if (!bRepeat) {
                 std::cout << std::endl;
                 return true;
@@ -66,8 +66,7 @@ bool Util::GetPasswordFromConsole(OTPassword& theOutput, bool bRepeat) const
 
         OTPassword tempPassword;
 
-        if (!GetPasswordFromConsole(
-                tempPassword, "(Verifying) passphrase again: ")) {
+        if (!get_password(tempPassword, "(Verifying) passphrase again: ")) {
             std::cout << "Sorry." << std::endl;
             return false;
         }

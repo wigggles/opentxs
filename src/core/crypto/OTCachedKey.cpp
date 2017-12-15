@@ -103,8 +103,9 @@ bool OTCachedKey::ChangeUserPassphrase()
     Lock lock(general_lock_);
 
     if (false == bool(key_)) {
-        otErr << __FUNCTION__ << ": The Master Key does not appear yet to "
-                                 "exist. Try creating a Nym first.\n";
+        otErr << __FUNCTION__
+              << ": The Master Key does not appear yet to "
+                 "exist. Try creating a Nym first.\n";
         return false;
     }
 
@@ -116,8 +117,9 @@ bool OTCachedKey::ChangeUserPassphrase()
                                                               // = false
 
     if (!pOldUserPassphrase) {
-        otErr << __FUNCTION__ << ": Error: Failed while trying to get old "
-                                 "passphrase from user.\n";
+        otErr << __FUNCTION__
+              << ": Error: Failed while trying to get old "
+                 "passphrase from user.\n";
         return false;
     }
 
@@ -129,8 +131,9 @@ bool OTCachedKey::ChangeUserPassphrase()
             &strReason2, true));  // bool bAskTwice = false by default.
 
     if (!pNewUserPassphrase) {
-        otErr << __FUNCTION__ << ": Error: Failed while trying to get new "
-                                 "passphrase from user.\n";
+        otErr << __FUNCTION__
+              << ": Error: Failed while trying to get new "
+                 "passphrase from user.\n";
         return false;
     }
 
@@ -207,7 +210,12 @@ bool OTCachedKey::GetMasterPassword(
     const OTCachedKey& passwordPassword,
     OTPassword& theOutput,
     const char* szDisplay,
-    __attribute__((unused)) bool bVerifyTwice) const
+#ifndef OT_NO_PASSWORD
+    bool bVerifyTwice
+#else
+    __attribute__((unused)) bool bVerifyTwice
+#endif
+    ) const
 {
     Lock outer(general_lock_, std::defer_lock);
     Lock inner(master_password_lock_, std::defer_lock);
@@ -365,7 +373,6 @@ bool OTCachedKey::GetMasterPassword(
             // and not the master key. So for example, if an attacker obtained
             // the derived key from the system keyring,
             //
-
             if (bCachedKey)  // It works!
             {
                 otWarn << OT_METHOD << __FUNCTION__
@@ -438,21 +445,27 @@ bool OTCachedKey::GetMasterPassword(
         if (!bGenerated)  // This Symmetric Key hasn't been generated before....
         {
 #ifndef OT_NO_PASSWORD
-            if (!SwigWrap::GetPasswordCallback()(
+            OT_OPENSSL_CALLBACK* pPasswordCallback =
+                SwigWrap::GetPasswordCallback();
+
+            if ((nullptr != pPasswordCallback) &&
+                !(*pPasswordCallback)(
                     nullptr,
                     0,
                     bVerifyTwice ? 1 : 0,
                     static_cast<void*>(&thePWData))) {
+
                 otErr << __FUNCTION__ << ": Failed to get password from user!";
                 return false;
             }
 #endif  // OT_NO_PASSWORD
+
             // If the length of the user supplied password is less than 4
             // characters std::int64_t, we are going to use the default
             // password!
             bool bUsingDefaultPassword = false;
             {
-                if (4 > std::string(passUserInput.getPassword()).length()) {
+                if (4 > passUserInput.getPasswordSize()) {
                     otOut << "\n Password entered was less than 4 characters "
                              "int64_t! This is NOT secure!!\n"
                              "... Assuming password is for testing only... "
@@ -473,14 +486,13 @@ bool OTCachedKey::GetMasterPassword(
             if (nullptr != pDerivedKey)
                 theDerivedAngel.reset(pDerivedKey);
             else
-                otErr << __FUNCTION__ << ": FYI: Derived key is still nullptr "
-                                         "after calling "
-                                         "OTSymmetricKey::GenerateKey.\n";
-
+                otErr << __FUNCTION__
+                      << ": FYI: Derived key is still nullptr "
+                         "after calling "
+                         "OTSymmetricKey::GenerateKey.\n";
         } else  // key_->IsGenerated() == true. (Symmetric Key is
                 // already generated.)
         {
-
             // Generate derived key from passphrase.
             //
             // We generate the derived key here so that
@@ -511,11 +523,22 @@ bool OTCachedKey::GetMasterPassword(
                     for (;;)  // bad passphase (as the calculate key returned
                               // nullptr)
                     {
-                        if (!SwigWrap::GetPasswordCallback()(
-                                nullptr,
-                                0,
-                                0,  // false
-                                static_cast<void*>(&thePWData))) {
+                        OT_OPENSSL_CALLBACK* pPasswordCallback =
+                            SwigWrap::GetPasswordCallback();
+
+                        if (nullptr == pPasswordCallback) {
+                            otErr
+                                << "\n\n"
+                                << __FUNCTION__
+                                << ": The passphrase callback isn't set. This "
+                                   "is the responsibility of the application "
+                                   "developer\n\n";
+                            return false;
+                        } else if (!(*pPasswordCallback)(
+                                       nullptr,
+                                       0,
+                                       0,  // false
+                                       static_cast<void*>(&thePWData))) {
                             otErr << "\n\n"
                                   << __FUNCTION__
                                   << ": Failed to get password from user!\n\n";
@@ -534,8 +557,21 @@ bool OTCachedKey::GetMasterPassword(
                 otOut << "\n Please enter your current password twice, (not a "
                          "new password!!) \n";
 
-                if (!SwigWrap::GetPasswordCallback()(
-                        nullptr, 0, true, static_cast<void*>(&thePWData))) {
+                OT_OPENSSL_CALLBACK* pPasswordCallback =
+                    SwigWrap::GetPasswordCallback();
+
+                if (nullptr == pPasswordCallback) {
+                    otErr << "\n\n"
+                          << __FUNCTION__
+                          << ": The passphrase callback isn't set. This "
+                             "is the responsibility of the application "
+                             "developer\n\n";
+                    return false;
+                } else if (!(*pPasswordCallback)(
+                               nullptr,
+                               0,
+                               1,  // true
+                               static_cast<void*>(&thePWData))) {
                     otErr << __FUNCTION__
                           << ": Failed to get password from user!";
                     return false;
@@ -555,7 +591,6 @@ bool OTCachedKey::GetMasterPassword(
             // place.
             // (No need to set it twice.)
         }
-
         // Below this point, pDerivedKey could still be null.
         // (And we only clean it up later if we created it.)
         // Also, bGenerated could still be false. (Like if it wasn't
@@ -647,6 +682,7 @@ bool OTCachedKey::GetMasterPassword(
     } else if (timeout_.load() != (-1)) {
         master_password_.reset();
     }
+
     // Since we have set the cleartext master password, We also have to fire up
     // the thread
     // so it can timeout and be destroyed. In the meantime, it'll be stored in

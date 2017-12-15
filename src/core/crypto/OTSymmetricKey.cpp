@@ -120,16 +120,18 @@ bool OTSymmetricKey::ChangePassphrase(
     // OTEnvelope.
     //
     if (!dataIV.Randomize(CryptoConfig::SymmetricIvSize())) {
-        otErr << __FUNCTION__ << ": Failed generating iv for changing "
-                                 "passphrase on a symmetric key. (Returning "
-                                 "false.)\n";
+        otErr << __FUNCTION__
+              << ": Failed generating iv for changing "
+                 "passphrase on a symmetric key. (Returning "
+                 "false.)\n";
         return false;
     }
 
     if (!dataSalt.Randomize(CryptoConfig::SymmetricSaltSize())) {
-        otErr << __FUNCTION__ << ": Failed generating random salt for changing "
-                                 "passphrase on a symmetric key. (Returning "
-                                 "false.)\n";
+        otErr << __FUNCTION__
+              << ": Failed generating random salt for changing "
+                 "passphrase on a symmetric key. (Returning "
+                 "false.)\n";
         return false;
     }
 
@@ -206,8 +208,9 @@ bool OTSymmetricKey::GenerateKey(
            << ": GENERATING keys and passwords...\n";
 
     if (!m_dataIV.Randomize(CryptoConfig::SymmetricIvSize())) {
-        otErr << __FUNCTION__ << ": Failed generating iv for encrypting a "
-                                 "symmetric key. (Returning false.)\n";
+        otErr << __FUNCTION__
+              << ": Failed generating iv for encrypting a "
+                 "symmetric key. (Returning false.)\n";
         return false;
     }
 
@@ -294,8 +297,9 @@ bool OTSymmetricKey::GenerateHashCheck(const OTPassword& thePassphrase)
     OT_ASSERT(m_uIterationCount > 1000);
 
     if (!m_bIsGenerated) {
-        otErr << __FUNCTION__ << ": No Key Generated, run GenerateKey(), and "
-                                 "this function will not be needed!";
+        otErr << __FUNCTION__
+              << ": No Key Generated, run GenerateKey(), and "
+                 "this function will not be needed!";
         OT_FAIL;
     }
 
@@ -377,15 +381,17 @@ OTPassword* OTSymmetricKey::CalculateDerivedKeyFromPassphrase(
 
     if (bCheckForHashCheck) {
         if (!HasHashCheck()) {
-            otErr << __FUNCTION__ << ": Unable to calculate derived key, as "
-                                     "hash check is missing!";
+            otErr << __FUNCTION__
+                  << ": Unable to calculate derived key, as "
+                     "hash check is missing!";
             OT_FAIL;
         }
         OT_ASSERT(!tmpDataHashCheck.IsEmpty());
     } else {
         if (!HasHashCheck()) {
-            otOut << __FUNCTION__ << ": Warning!! No hash check, ignoring... "
-                                     "(since bCheckForHashCheck was set false)";
+            otOut << __FUNCTION__
+                  << ": Warning!! No hash check, ignoring... "
+                     "(since bCheckForHashCheck was set false)";
             OT_ASSERT(tmpDataHashCheck.IsEmpty());
         }
     }
@@ -540,9 +546,10 @@ OTPassword* OTSymmetricKey::GetPassphraseFromUser(
     if ((nCallback > 0) &&  // Success retrieving the passphrase from the user.
         pPassUserInput->SetSize(uCallback)) {
         //      otOut << "%s: Retrieved passphrase (blocksize %d, actual size
-        // %d) from user: %s\n", __FUNCTION__,
-        //                     pPassUserInput->getBlockSize(), nCallback,
-        // pPassUserInput->getPassword());
+        //      %d) from "
+        //               "user: %s\n", __FUNCTION__,
+        //               pPassUserInput->getBlockSize(), nCallback,
+        //               pPassUserInput->getPassword());
         return pPassUserInput;  // Caller MUST delete!
     } else {
         delete pPassUserInput;
@@ -608,16 +615,18 @@ bool OTSymmetricKey::Encrypt(
     const OTPassword* pAlreadyHavePW)
 {
     if (!strKey.Exists() || !strPlaintext.Exists()) {
-        otWarn << __FUNCTION__ << ": Nonexistent: either the key or the "
-                                  "plaintext. Please supply. (Failure.)\n";
+        otWarn << __FUNCTION__
+               << ": Nonexistent: either the key or the "
+                  "plaintext. Please supply. (Failure.)\n";
         return false;
     }
 
     OTSymmetricKey theKey;
 
     if (!theKey.SerializeFrom(strKey)) {
-        otWarn << __FUNCTION__ << ": Failed trying to load symmetric key from "
-                                  "string. (Returning false.)\n";
+        otWarn << __FUNCTION__
+               << ": Failed trying to load symmetric key from "
+                  "string. (Returning false.)\n";
         return false;
     }
 
@@ -722,8 +731,9 @@ bool OTSymmetricKey::Decrypt(
     OTSymmetricKey theKey;
 
     if (!theKey.SerializeFrom(strKey)) {
-        otWarn << __FUNCTION__ << ": Failed trying to load symmetric key from "
-                                  "string. (Returning false.)\n";
+        otWarn << __FUNCTION__
+               << ": Failed trying to load symmetric key from "
+                  "string. (Returning false.)\n";
         return false;
     }
 
@@ -809,11 +819,10 @@ bool OTSymmetricKey::SerializeFrom(const String& strInput, bool bEscaped)
 {
     OTASCIIArmor ascInput;
 
-    if (strInput.Exists() &&
-        ascInput.LoadFromString(
-            const_cast<String&>(strInput),
-            bEscaped,
-            "-----BEGIN OT ARMORED SYMMETRIC KEY")) {
+    if (strInput.Exists() && ascInput.LoadFromString(
+                                 const_cast<String&>(strInput),
+                                 bEscaped,
+                                 "-----BEGIN OT ARMORED SYMMETRIC KEY")) {
         return SerializeFrom(ascInput);
     }
 
@@ -862,8 +871,9 @@ bool OTSymmetricKey::SerializeTo(Data& theOutput) const
            << "   key_size_bits: "
            << static_cast<int32_t>(ntohs(n_key_size_bits))
            << "   iteration_count: "
-           << static_cast<int64_t>(ntohl(n_iteration_count)) << "   \n  "
-                                                                "salt_size: "
+           << static_cast<int64_t>(ntohl(n_iteration_count))
+           << "   \n  "
+              "salt_size: "
            << static_cast<int64_t>(ntohl(n_salt_size))
            << "   iv_size: " << static_cast<int64_t>(ntohl(n_iv_size))
            << "   enc_key_size: " << static_cast<int64_t>(ntohl(n_enc_key_size))
