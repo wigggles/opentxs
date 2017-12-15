@@ -205,6 +205,8 @@ bool ServerContext::AddTentativeNumber(const TransactionNumber& number)
     return output.second;
 }
 
+ServerConnection& ServerContext::Connection() { return connection_; }
+
 bool ServerContext::finalize_server_command(Message& command) const
 {
     OT_ASSERT(nym_);

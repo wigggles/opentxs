@@ -117,6 +117,7 @@ public:
     bool AcceptIssuedNumber(const TransactionNumber& number);
     bool AcceptIssuedNumbers(const TransactionStatement& statement);
     bool AddTentativeNumber(const TransactionNumber& number);
+    ServerConnection& Connection();
     std::pair<RequestNumber, std::unique_ptr<Message>> InitializeServerCommand(
         const MessageType type,
         const OTASCIIArmor& payload,

@@ -193,7 +193,6 @@ public:
     // numbers back
     EXPORT void HarvestClosingNumbers(
         ServerContext& context,
-        Nym& theNym,
         const Identifier& theNotaryID,
         bool bSave = true);
 

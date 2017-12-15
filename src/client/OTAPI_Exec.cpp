@@ -7537,7 +7537,7 @@ bool OTAPI_Exec::Msg_HarvestTransactionNumbers(
 
             auto context = wallet_.mutable_ServerContext(theNymID, serverID);
             theRequestBasket.HarvestClosingNumbers(
-                context.It(), *pNym, serverID, true);
+                context.It(), serverID, true);
 
             return true;
         } else {

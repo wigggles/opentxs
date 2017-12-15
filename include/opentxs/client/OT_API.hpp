@@ -1462,11 +1462,11 @@ private:
         const bool success) const;
     SendResult send_message(
         const Identifier& server,
-        Nym* nym,
+        Nym* nymfile,
         Message& message) const;
     NetworkReplyMessage send_message(
-        const Identifier& server,
         const std::set<ServerContext::ManagedNumber>& pending,
+        ServerContext& context,
         Nym* nymfile,
         Message& message) const;
 

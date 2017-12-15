@@ -106,12 +106,10 @@ namespace opentxs
 
 void Basket::HarvestClosingNumbers(
     ServerContext& context,
-    Nym& theNym,
     const Identifier& theNotaryID,
     bool bSave)
 {
     const String strNotaryID(theNotaryID);
-    bool bNeedToSave = false;
 
     // The SUB-CURRENCIES first...
     const uint32_t nCount = static_cast<uint32_t>(Count());
@@ -127,10 +125,7 @@ void Basket::HarvestClosingNumbers(
         // This function will only "add it back" if it was really there in the
         // first place. (Verifies it is on issued list first, before adding to
         // available list.)
-        const bool bClawedBack =
-            context.RecoverAvailableNumber(lClosingTransNo);
-
-        if (bClawedBack) bNeedToSave = true;
+        context.RecoverAvailableNumber(lClosingTransNo);
     }
 
     // Then the BASKET currency itself...
@@ -139,19 +134,7 @@ void Basket::HarvestClosingNumbers(
     // This function will only "add it back" if it was really there in the first
     // place. (Verifies it is on issued list first, before adding to available
     // list.)
-    const bool bClawedBack = context.RecoverAvailableNumber(lClosingTransNo);
-
-    if (bClawedBack) {
-        bNeedToSave = true;
-    }
-
-    // Until I put this down here, there were subtle cases where the Nym
-    // wouldn't get saved.
-    // Therefore another vote for my "dirty instances" theory.
-    //
-    if (bSave && bNeedToSave) {
-        theNym.SaveSignedNymfile(theNym);
-    }
+    context.RecoverAvailableNumber(lClosingTransNo);
 }
 
 // For generating a user request to EXCHANGE in/out of a basket.

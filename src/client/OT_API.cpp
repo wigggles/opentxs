@@ -9295,15 +9295,6 @@ int32_t OT_API::getTransactionNumbers(
     }
 
     auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
-    auto pServer = wallet_.Server(NOTARY_ID);
-
-    if (!pServer) {
-        otErr << OT_METHOD << __FUNCTION__
-              << ": Unable to load server contract: " << String(NOTARY_ID).Get()
-              << std::endl;
-
-        return (-1);
-    }
 
     const auto nCount = context.It().AvailableNumbers();
     // TODO no hardcoding. (max transaction nums allowed out at a single time.)
@@ -9326,11 +9317,7 @@ int32_t OT_API::getTransactionNumbers(
     Message theMessage;
 
     std::int32_t nReturnValue = m_pClient->ProcessUserCommand(
-        MessageType::getTransactionNumbers,
-        theMessage,
-        *pNym,
-        *pServer,
-        nullptr);  // nullptr pAccount on this command.
+        MessageType::getTransactionNumbers, context.It(), theMessage);
 
     if (0 < nReturnValue) {
         send_message(NOTARY_ID, pNym, theMessage);
@@ -10771,7 +10758,7 @@ CommandResult OT_API::depositCheque(
         return output;
     }
 
-    result = send_message(NOTARY_ID, managed, nymfile, *message);
+    result = send_message(managed, context.It(), nymfile, *message);
 
     return output;
 }
@@ -12289,7 +12276,7 @@ CommandResult OT_API::notarizeTransfer(
         return output;
     }
 
-    result = send_message(NOTARY_ID, managed, nymfile, *message);
+    result = send_message(managed, context.It(), nymfile, *message);
 
     return output;
 }
@@ -12348,82 +12335,70 @@ std::int32_t OT_API::processNymbox(
     const Identifier& NYM_ID) const
 {
     rLock lock(lock_);
+    auto nymfile = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
 
-    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
-
-    if (nullptr == pNym) {
+    if (nullptr == nymfile) {
         return (-1);
     }
 
-    auto pServer = wallet_.Server(NOTARY_ID);
-
-    if (!pServer) {
-        return (-1);
-    }
-
+    auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
+    const auto& nym = *context.It().Nym();
     Message theMessage;
     bool bSuccess = false;
     std::int32_t nReceiptCount = (-1);
     std::int32_t nRequestNum = (-1);
     bool bIsEmpty = true;
+    Ledger theNymbox(NYM_ID, NYM_ID, NOTARY_ID);
+    bool bLoadedNymbox = theNymbox.LoadNymbox();
+    bool bVerifiedNymbox = bLoadedNymbox ? theNymbox.VerifyAccount(nym) : false;
+    const String strNymID(NYM_ID);
 
-    {
-        Nym& theNym = *pNym;
-        // Load up the appropriate Nymbox...
-        Ledger theNymbox(NYM_ID, NYM_ID, NOTARY_ID);
+    if (!bLoadedNymbox) {
+        otOut << "OT_API::processNymbox: Failed loading Nymbox: " << strNymID
+              << " \n";
+    } else if (!bVerifiedNymbox) {
+        otOut << "OT_API::processNymbox: Failed verifying Nymbox: " << strNymID
+              << " \n";
+    } else {
+        nReceiptCount = theNymbox.GetTransactionCount();
+        bIsEmpty = (nReceiptCount < 1);
 
-        bool bLoadedNymbox = theNymbox.LoadNymbox();
-        bool bVerifiedNymbox =
-            bLoadedNymbox ? theNymbox.VerifyAccount(theNym) : false;
-        const String strNymID(NYM_ID);
+        if (!bIsEmpty)
+            bSuccess = m_pClient->AcceptEntireNymbox(
+                theNymbox, context.It(), *nymfile, theMessage);
 
-        if (!bLoadedNymbox)
-            otOut << "OT_API::processNymbox: Failed loading Nymbox: "
-                  << strNymID << " \n";
-        else if (!bVerifiedNymbox)
-            otOut << "OT_API::processNymbox: Failed verifying Nymbox: "
-                  << strNymID << " \n";
-        else {
-            nReceiptCount = theNymbox.GetTransactionCount();
-            bIsEmpty = (nReceiptCount < 1);
-
-            if (!bIsEmpty)
-                bSuccess = m_pClient->AcceptEntireNymbox(
-                    theNymbox, NOTARY_ID, *pServer, theNym, theMessage);
-
-            if (!bSuccess) {
-                if (bIsEmpty) {
-                    otWarn << "OT_API::processNymbox: Nymbox (" << strNymID
-                           << ") is empty (so, skipping processNymbox.)\n";
-                    nRequestNum = 0;
-                    nReceiptCount = 0;  // redundant.
-                } else {
-                    otOut << "OT_API::processNymbox: Failed trying to "
-                             "accept the entire Nymbox. (And no, it's "
-                             "not empty.)\n";
-                    nReceiptCount = (-1);
-                }
+        if (!bSuccess) {
+            if (bIsEmpty) {
+                otWarn << "OT_API::processNymbox: Nymbox (" << strNymID
+                       << ") is empty (so, skipping processNymbox.)\n";
+                nRequestNum = 0;
+                nReceiptCount = 0;  // redundant.
             } else {
-                auto context = wallet_.ServerContext(NYM_ID, NOTARY_ID);
-
-                OT_ASSERT(context);
-
-                Identifier NYMBOX_HASH = context->LocalNymboxHash();
-                const String strNotaryID(NOTARY_ID);
-                NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
-
-                if (!String(NYMBOX_HASH).Exists()) {
-                    otErr << "Failed getting NymboxHash from Nym for server: "
-                          << strNotaryID << "\n";
-                }
-
-                // (2) Sign the Message
-                theMessage.SignContract(theNym);
-
-                // (3) Save the Message (with signatures and all, back to its
-                // internal member m_strRawFile.)
-                theMessage.SaveContract();
+                otOut << "OT_API::processNymbox: Failed trying to "
+                         "accept the entire Nymbox. (And no, it's "
+                         "not empty.)\n";
+                nReceiptCount = (-1);
             }
+        } else {
+            auto context = wallet_.ServerContext(NYM_ID, NOTARY_ID);
+
+            OT_ASSERT(context);
+
+            Identifier NYMBOX_HASH = context->LocalNymboxHash();
+            const String strNotaryID(NOTARY_ID);
+            NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
+
+            if (!String(NYMBOX_HASH).Exists()) {
+                otErr << "Failed getting NymboxHash from Nym for server: "
+                      << strNotaryID << "\n";
+            }
+
+            // (2) Sign the Message
+            theMessage.SignContract(nym);
+
+            // (3) Save the Message (with signatures and all, back to its
+            // internal member m_strRawFile.)
+            theMessage.SaveContract();
         }
     }
 
@@ -12436,14 +12411,15 @@ std::int32_t OT_API::processNymbox(
         //
         nRequestNum = atoi(theMessage.m_strRequestNum.Get());
 
-        send_message(NOTARY_ID, pNym, theMessage);
+        send_message(NOTARY_ID, nymfile, theMessage);
 
         return static_cast<std::int32_t>(nRequestNum);
     }
     // if successful, ..., else if not successful--and wasn't empty--then error.
-    else if (!bIsEmpty)
+    else if (!bIsEmpty) {
         otErr << "Error performing processNymbox command in "
                  "OT_API::processNymbox\n";
+    }
 
     return nReceiptCount;
 }
@@ -14282,20 +14258,11 @@ int32_t OT_API::registerNym(
         return (-1);
     }
 
-    auto pServer = wallet_.Server(NOTARY_ID);
-
-    if (!pServer) {
-        return (-1);
-    }
-
+    auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
     Message theMessage;
 
     std::int32_t nReturnValue = m_pClient->ProcessUserCommand(
-        MessageType::registerNym,
-        theMessage,
-        *pNym,
-        *pServer,
-        nullptr);  // nullptr pAccount on this command.
+        MessageType::registerNym, context.It(), theMessage);
     if (0 < nReturnValue) {
         send_message(NOTARY_ID, pNym, theMessage);
 
@@ -14319,21 +14286,13 @@ int32_t OT_API::unregisterNym(
         return (-1);
     }
 
-    auto pServer = wallet_.Server(NOTARY_ID);
-
-    if (!pServer) {
-        return (-1);
-    }
-
-    // By this point, pServer is a good pointer.  (No need to cleanup.)
+    auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
     Message theMessage;
 
     std::int32_t nReturnValue = m_pClient->ProcessUserCommand(
         MessageType::unregisterNym,
-        theMessage,
-        *pNym,
-        *pServer,
-        nullptr);  // nullptr pAccount on this command.
+        context.It(),
+        theMessage);  // nullptr pAccount on this command.
     if (0 < nReturnValue) {
         send_message(NOTARY_ID, pNym, theMessage);
         return nReturnValue;
@@ -14346,28 +14305,30 @@ int32_t OT_API::unregisterNym(
 
 SendResult OT_API::send_message(
     const Identifier& server,
-    Nym* nym,
+    Nym* nymfile,
     Message& message) const
 {
-    const auto result = send_message(server, {}, nym, message);
+    OT_ASSERT(nullptr != nymfile);
+
+    auto context = wallet_.mutable_ServerContext(nymfile->ID(), server);
+    const auto result = send_message({}, context.It(), nymfile, message);
 
     return result.first;
 }
 
 NetworkReplyMessage OT_API::send_message(
-    const Identifier& server,
     const std::set<ServerContext::ManagedNumber>& pending,
+    ServerContext& context,
     Nym* nymfile,
     Message& message) const
 {
     rLock lock(lock_);
 
     m_pClient->QueueOutgoingMessage(message);
-    auto& connection = zeromq_.Server(String(server).Get());
-    auto result = connection.Send(message);
+    auto result = context.Connection().Send(message);
 
     if (SendResult::VALID_REPLY == result.first) {
-        m_pClient->processServerReply(server, pending, nymfile, result.second);
+        m_pClient->processServerReply(pending, context, nymfile, result.second);
     }
 
     return result;
