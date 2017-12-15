@@ -156,6 +156,7 @@ OpenSSL::CipherContext::~CipherContext()
 {
     if (nullptr != context_) {
         EVP_CIPHER_CTX_free(context_);
+        context_ = nullptr;
     }
 }
 
@@ -618,8 +619,9 @@ void OpenSSL::thread_cleanup() const
 
 void OpenSSL::Init_Override() const
 {
-    otWarn << __FUNCTION__ << ": Setting up OpenSSL:  SSL_library_init, error "
-                              "strings and algorithms, and OpenSSL config...\n";
+    otWarn << __FUNCTION__
+           << ": Setting up OpenSSL:  SSL_library_init, error "
+              "strings and algorithms, and OpenSSL config...\n";
 
     static bool bNotAlreadyInitialized = true;
 
@@ -1140,7 +1142,8 @@ bool OpenSSL::Encrypt(
 {
     const char* szFunc = "OpenSSL::Encrypt";
 
-    bool AEAD, ECB;
+    bool AEAD = false;
+    bool ECB = false;
     bool goodInputs = ArgumentCheck(
         true, cipher, key, iv, tag, plaintext, plaintextLength, AEAD, ECB);
 
@@ -1167,8 +1170,34 @@ bool OpenSSL::Encrypt(
     //
     ciphertext.Release();
     const EVP_CIPHER* cipher_type = dp_->CipherModeToOpenSSLMode(cipher);
+    OT_ASSERT(nullptr != cipher_type);
 
-    if (!EVP_EncryptInit_ex(context, cipher_type, nullptr, nullptr, nullptr)) {
+    EVP_CIPHER_CTX* pCONTEXT = (EVP_CIPHER_CTX*)(context);
+
+    //  int EVP_EncryptInit_ex(EVP_CIPHER_CTX *ctx, const EVP_CIPHER *type,
+    //                         ENGINE *impl, unsigned char *key, unsigned char
+    //                         *iv);
+
+    /*
+    EVP_EncryptInit_ex() sets up cipher context ctx for encryption with cipher
+    type from ENGINE impl. ctx must be initialized before calling this function.
+     type is normally supplied by a function such as EVP_des_cbc().
+
+     If impl is NULL then the default implementation is used.
+     key is the symmetric key to use and iv is the IV to use (if necessary),
+     the actual number of bytes used for the key and IV depends on the cipher.
+
+     It is possible to set all parameters to NULL except type in an initial call
+     and supply the remaining parameters in subsequent calls, all of which have
+     type set to NULL. This is done when the default cipher parameters are not \
+     appropriate.
+
+     EVP_EncryptInit_ex(), EVP_EncryptUpdate() and EVP_EncryptFinal_ex()
+     return 1 for success and 0 for failure.
+     */
+    if (!EVP_EncryptInit_ex(pCONTEXT, cipher_type, nullptr, nullptr, nullptr)) {
+        //  if (!EVP_EncryptInit_ex(context, cipher_type, nullptr, nullptr,
+        //  nullptr)) {
         otErr << szFunc << ": Could not set cipher type.\n";
         return false;
     }
@@ -1337,7 +1366,8 @@ bool OpenSSL::Decrypt(
 {
     const char* szFunc = "OpenSSL::Decrypt";
 
-    bool AEAD, ECB;
+    bool AEAD = false;
+    bool ECB = false;
     bool goodInputs = ArgumentCheck(
         false, cipher, key, iv, tag, ciphertext, ciphertextLength, AEAD, ECB);
 
@@ -1362,6 +1392,7 @@ bool OpenSSL::Decrypt(
     //
     plaintext.Release();
     const EVP_CIPHER* cipher_type = dp_->CipherModeToOpenSSLMode(cipher);
+    OT_ASSERT(nullptr != cipher_type);
 
     // set algorith,
     if (!EVP_DecryptInit_ex(context, cipher_type, nullptr, nullptr, nullptr)) {
@@ -1434,12 +1465,12 @@ bool OpenSSL::Decrypt(
         lCurrentIndex += len;
 
         if (len_out > 0)
-            if (false ==
-                plaintext.Concatenate(
-                    reinterpret_cast<void*>(&vBuffer_out.at(0)),
-                    static_cast<uint32_t>(len_out))) {
-                otErr << szFunc << ": Failure: theDecryptedOutput isn't large "
-                                   "enough for the decrypted output (1).\n";
+            if (false == plaintext.Concatenate(
+                             reinterpret_cast<void*>(&vBuffer_out.at(0)),
+                             static_cast<uint32_t>(len_out))) {
+                otErr << szFunc
+                      << ": Failure: theDecryptedOutput isn't large "
+                         "enough for the decrypted output (1).\n";
                 return false;
             }
     }
@@ -1464,12 +1495,12 @@ bool OpenSSL::Decrypt(
     // This is the "final" piece that is added from DecryptFinal just above.
     //
     if (len_out > 0)
-        if (false ==
-            plaintext.Concatenate(
-                reinterpret_cast<void*>(&vBuffer_out.at(0)),
-                static_cast<uint32_t>(len_out))) {
-            otErr << szFunc << ": Failure: theDecryptedOutput isn't large "
-                               "enough for the decrypted output (2).\n";
+        if (false == plaintext.Concatenate(
+                         reinterpret_cast<void*>(&vBuffer_out.at(0)),
+                         static_cast<uint32_t>(len_out))) {
+            otErr << szFunc
+                  << ": Failure: theDecryptedOutput isn't large "
+                     "enough for the decrypted output (2).\n";
             return false;
         }
 
@@ -1830,9 +1861,10 @@ bool OpenSSL::OpenSSLdp::VerifyContractDefaultHash(
     if ((theSignature.GetSize() < static_cast<uint32_t>(RSA_size(pRsaKey))) ||
         (nSignatureSize < RSA_size(pRsaKey)))  // this one probably unnecessary.
     {
-        otErr << szFunc << ": Decoded base64-encoded data for signature, but "
-                           "resulting size was < RSA_size(pRsaKey): "
-                           "Signed: "
+        otErr << szFunc
+              << ": Decoded base64-encoded data for signature, but "
+                 "resulting size was < RSA_size(pRsaKey): "
+                 "Signed: "
               << nSignatureSize << ". Unsigned: " << theSignature.GetSize()
               << ".\n";
         RSA_free(pRsaKey);
@@ -3123,8 +3155,9 @@ bool OpenSSL::DecryptSessionKey(
     if (0 == (nReadEnvType = dataInput.OTfread(
                   reinterpret_cast<uint8_t*>(&env_type_n),
                   static_cast<uint32_t>(sizeof(env_type_n))))) {
-        otErr << szFunc << ": Error reading Envelope Type. Expected "
-                           "asymmetric(1) or symmetric (2).\n";
+        otErr << szFunc
+              << ": Error reading Envelope Type. Expected "
+                 "asymmetric(1) or symmetric (2).\n";
         return false;
     }
     nRunningTotal += nReadEnvType;
@@ -3194,8 +3227,9 @@ bool OpenSSL::DecryptSessionKey(
         if (0 == (nReadNymIDSize = dataInput.OTfread(
                       reinterpret_cast<uint8_t*>(&nymid_len_n),
                       static_cast<uint32_t>(sizeof(nymid_len_n))))) {
-            otErr << szFunc << ": Error reading NymID length for an encrypted "
-                               "symmetric key.\n";
+            otErr << szFunc
+                  << ": Error reading NymID length for an encrypted "
+                     "symmetric key.\n";
             return false;
         }
         nRunningTotal += nReadNymIDSize;

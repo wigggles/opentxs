@@ -562,7 +562,7 @@ bool SymmetricKey::GetPassword(
         const auto length = souped_up_pass_cb(
             static_cast<char*>(master->getMemoryWritable()),
             master->getBlockSize(),
-            false,
+            0,
             reinterpret_cast<void*>(const_cast<OTPasswordData*>(&keyPassword)));
         bool result = false;
 

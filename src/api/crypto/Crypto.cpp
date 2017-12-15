@@ -131,6 +131,9 @@ const OTCachedKey& Crypto::CachedKey(const Identifier& id) const
     auto& output = cached_keys_[id];
 
     if (false == bool(output)) {
+        OT_FAIL_MSG("This function is broken, this never should have "
+                    "happened.");
+
         output.reset(new OTCachedKey(OT_MASTER_KEY_TIMEOUT));
     }
 
@@ -182,8 +185,8 @@ Editor<OTCachedKey> Crypto::mutable_DefaultKey() const
 {
     OT_ASSERT(primary_key_);
 
-    std::function<void(OTCachedKey*, Lock&)> callback =
-        [&](OTCachedKey*, Lock&) -> void {};
+    std::function<void(OTCachedKey*, Lock&)> callback = [&](OTCachedKey*,
+                                                            Lock&) -> void {};
 
     return Editor<OTCachedKey>(cached_key_lock_, primary_key_.get(), callback);
 }

@@ -81,7 +81,7 @@ public:
 private:
     Server& server_;
     std::atomic<bool>& shutdown_;
-    const network::zeromq::Context& context_;
+    const network::zeromq::Context& context_[[maybe_unused]];
     std::shared_ptr<network::zeromq::ReplySocket> reply_socket_;
     std::unique_ptr<std::thread> thread_{nullptr};
 
