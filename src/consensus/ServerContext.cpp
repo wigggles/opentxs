@@ -284,24 +284,28 @@ std::unique_ptr<Message> ServerContext::initialize_server_command(
 }
 
 std::pair<RequestNumber, std::unique_ptr<Message>> ServerContext::
-    InitializeServerCommand(
+    initialize_server_command(
+        const Lock& lock,
         const MessageType type,
-        const OTASCIIArmor& payload,
-        const Identifier& accountID,
+        const RequestNumber provided,
         const bool withAcknowledgments,
         const bool withNymboxHash)
 {
-    Lock lock(lock_);
+    OT_ASSERT(verify_write_lock(lock));
+
     std::pair<RequestNumber, std::unique_ptr<Message>> output{};
     auto & [ requestNumber, message ] = output;
-    requestNumber = request_number_++;
     message = initialize_server_command(type);
 
     OT_ASSERT(message);
 
+    if (-1 == provided) {
+        requestNumber = request_number_++;
+    } else {
+        requestNumber = provided;
+    }
+
     message->m_strRequestNum = std::to_string(requestNumber).c_str();
-    message->m_ascPayload = payload;
-    message->m_strAcctID = String(accountID);
 
     if (withAcknowledgments) {
         message->SetAcknowledgments(acknowledged_request_numbers_);
@@ -312,6 +316,59 @@ std::pair<RequestNumber, std::unique_ptr<Message>> ServerContext::
     }
 
     return output;
+}
+
+std::pair<RequestNumber, std::unique_ptr<Message>> ServerContext::
+    InitializeServerCommand(
+        const MessageType type,
+        const OTASCIIArmor& payload,
+        const Identifier& accountID,
+        const RequestNumber provided,
+        const bool withAcknowledgments,
+        const bool withNymboxHash)
+{
+    Lock lock(lock_);
+    auto output = initialize_server_command(
+        lock, type, provided, withAcknowledgments, withNymboxHash);
+    auto & [ requestNumber, message ] = output;
+    const auto& notUsed[[maybe_unused]] = requestNumber;
+
+    message->m_ascPayload = payload;
+    message->m_strAcctID = String(accountID);
+
+    return output;
+}
+
+std::pair<RequestNumber, std::unique_ptr<Message>> ServerContext::
+    InitializeServerCommand(
+        const MessageType type,
+        const Identifier& recipientNymID,
+        const RequestNumber provided,
+        const bool withAcknowledgments,
+        const bool withNymboxHash)
+{
+    Lock lock(lock_);
+    auto output = initialize_server_command(
+        lock, type, provided, withAcknowledgments, withNymboxHash);
+    auto & [ requestNumber, message ] = output;
+    const auto& notUsed[[maybe_unused]] = requestNumber;
+
+    message->m_strNymID2 = String(recipientNymID);
+
+    return output;
+}
+
+std::pair<RequestNumber, std::unique_ptr<Message>> ServerContext::
+    InitializeServerCommand(
+        const MessageType type,
+        const RequestNumber provided,
+        const bool withAcknowledgments,
+        const bool withNymboxHash)
+{
+    Lock lock(lock_);
+
+    return initialize_server_command(
+        lock, type, provided, withAcknowledgments, withNymboxHash);
 }
 
 ServerContext::ManagedNumber ServerContext::NextTransactionNumber(

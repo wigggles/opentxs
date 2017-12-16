@@ -288,13 +288,16 @@ bool OTClient::AcceptEntireNymbox(
     Nym& nymfile,
     Message& theMessage)
 {
+    const auto& nym = *context.Nym();
+    const auto& nymID = nym.ID();
+
     if (theNymbox.GetTransactionCount() < 1) {
         // If there aren't any notices in the nymbox, no point wasting a # to
         // process an empty box.
         otLog4 << __FUNCTION__ << ": Nymbox is empty.\n";
 
         return false;
-    } else if (!theNymbox.VerifyAccount(nymfile)) {
+    } else if (!theNymbox.VerifyAccount(nym)) {
         // If there aren't any notices in the nymbox, no point wasting a # to
         // process an empty box.
         otErr << __FUNCTION__ << ": Error: VerifyAccount() failed.\n";
@@ -302,8 +305,6 @@ bool OTClient::AcceptEntireNymbox(
         return false;
     }
 
-    const auto& nym = *context.Nym();
-    const auto& nymID = nym.ID();
     // get the last/current highest transaction number for the notaryID. (making
     // sure we're not being slipped any new ones with a lower value than this.)
     TransactionNumber lHighestNum = context.Highest();
@@ -809,7 +810,6 @@ bool OTClient::AcceptEntireNymbox(
             // of that fact sitting in my Nymbox. Until I recognize it, all my
             // transaction statements will fail. (Like the one a few lines below
             // here...)
-            nymfile.SaveSignedNymfile(nym);
         }
 
         const bool processed =
@@ -842,12 +842,6 @@ bool OTClient::AcceptEntireNymbox(
                 if (context.AddTentativeNumber(number)) {
                     tentative++;
                 }
-            }
-
-            const bool bAddedTentative = (tentative == verifiedNumbers.size());
-
-            if (bAddedTentative) {
-                nymfile.SaveSignedNymfile(nym);
             }
 
             if (pBalanceItem) {

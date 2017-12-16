@@ -784,7 +784,7 @@ public:
         const Identifier& ACCOUNT_ID,  // If for Nymbox (vs inbox/outbox) then
                                        // pass NYM_ID in this field also.
         std::int32_t nBoxType,         // 0/nymbox, 1/inbox, 2/outbox
-        const std::int64_t& lTransactionNum) const;
+        const TransactionNumber& lTransactionNum) const;
     // Incoming
     EXPORT std::shared_ptr<Message> PopMessageBuffer(
         const std::int64_t& lRequestNumber,
@@ -818,103 +818,83 @@ public:
 
     // These commands below send messages to the server:
 
-    EXPORT std::int32_t registerNym(
-        const Identifier& NOTARY_ID,
-        const Identifier& NYM_ID) const;
+    EXPORT CommandResult registerNym(ServerContext& context) const;
 
-    EXPORT std::int32_t unregisterNym(
-        const Identifier& NOTARY_ID,
-        const Identifier& NYM_ID) const;
+    EXPORT CommandResult unregisterNym(ServerContext& context) const;
 
-    EXPORT std::int32_t checkNym(
-        const Identifier& NOTARY_ID,
-        const Identifier& NYM_ID,
-        const Identifier& NYM_ID_CHECK) const;
+    EXPORT CommandResult
+    checkNym(ServerContext& context, const Identifier& targetNymID) const;
 
-    EXPORT std::int32_t usageCredits(
-        const Identifier& NOTARY_ID,
-        const Identifier& NYM_ID,
+    EXPORT CommandResult usageCredits(
+        ServerContext& context,
         const Identifier& NYM_ID_CHECK,
         std::int64_t lAdjustment = 0) const;
 
-    EXPORT std::int32_t sendNymMessage(
-        const Identifier& NOTARY_ID,
-        const Identifier& NYM_ID,
-        const Identifier& NYM_ID_RECIPIENT,
+    EXPORT CommandResult sendNymMessage(
+        ServerContext& context,
+        const Identifier& recipientNymID,
         const String& THE_MESSAGE) const;
 
-    EXPORT std::int32_t sendNymObject(
-        const Identifier& NOTARY_ID,
-        const Identifier& NYM_ID,
-        const Identifier& NYM_ID_RECIPIENT,
-        const PeerObject& OBJECT,
-        std::int64_t& requestNumber) const;
+    EXPORT CommandResult sendNymObject(
+        ServerContext& context,
+        const Identifier& recipientNymID,
+        const PeerObject& object,
+        const RequestNumber provided,
+        Nym* nymfile = nullptr) const;
 
-    EXPORT std::int32_t registerContract(
-        const Identifier& NOTARY_ID,
-        const Identifier& NYM_ID,
+    EXPORT CommandResult registerContract(
+        ServerContext& context,
         const ContractType TYPE,
         const Identifier& CONTRACT) const;
 
-    EXPORT std::int32_t sendNymInstrument(
-        const Identifier& NOTARY_ID,
-        const Identifier& NYM_ID,
-        const Identifier& NYM_ID_RECIPIENT,
-        const OTPayment& THE_INSTRUMENT,
-        const OTPayment* pINSTRUMENT_FOR_SENDER = nullptr) const;
+    EXPORT CommandResult sendNymInstrument(
+        ServerContext& context,
+        const Identifier& recipientNymID,
+        const OTPayment& instrument,
+        const OTPayment* senderCopy = nullptr) const;
 
-    EXPORT std::int32_t registerInstrumentDefinition(
-        const Identifier& NOTARY_ID,
-        const Identifier& NYM_ID,
+    EXPORT CommandResult registerInstrumentDefinition(
+        ServerContext& context,
         const String& THE_CONTRACT) const;
 
-    EXPORT std::int32_t getInstrumentDefinition(
-        const Identifier& NOTARY_ID,
-        const Identifier& NYM_ID,
+    EXPORT CommandResult getInstrumentDefinition(
+        ServerContext& context,
         const Identifier& INSTRUMENT_DEFINITION_ID) const;
 
-    EXPORT std::int32_t getMint(
-        const Identifier& NOTARY_ID,
-        const Identifier& NYM_ID,
+    EXPORT CommandResult getMint(
+        ServerContext& context,
         const Identifier& INSTRUMENT_DEFINITION_ID) const;
 
-    EXPORT std::int32_t getBoxReceipt(
-        const Identifier& NOTARY_ID,
-        const Identifier& NYM_ID,
+    EXPORT CommandResult getBoxReceipt(
+        ServerContext& context,
         const Identifier& ACCOUNT_ID,  // If for Nymbox (vs
                                        // inbox/outbox) then pass
-        // NYM_ID in this field also.
-        std::int32_t nBoxType,  // 0/nymbox, 1/inbox, 2/outbox
-        const std::int64_t& lTransactionNum) const;
+                                       // NYM_ID in this field also.
+        std::int32_t nBoxType,         // 0/nymbox, 1/inbox, 2/outbox
+        const TransactionNumber& lTransactionNum) const;
 
-    EXPORT std::int32_t queryInstrumentDefinitions(
-        const Identifier& NOTARY_ID,
-        const Identifier& NYM_ID,
+    EXPORT CommandResult queryInstrumentDefinitions(
+        ServerContext& context,
         const OTASCIIArmor& ENCODED_MAP) const;
 
-    EXPORT std::int32_t registerAccount(
-        const Identifier& NOTARY_ID,
-        const Identifier& NYM_ID,
+    EXPORT CommandResult registerAccount(
+        ServerContext& context,
         const Identifier& INSTRUMENT_DEFINITION_ID) const;
 
-    EXPORT std::int32_t deleteAssetAccount(
-        const Identifier& NOTARY_ID,
-        const Identifier& NYM_ID,
+    EXPORT CommandResult deleteAssetAccount(
+        ServerContext& context,
         const Identifier& ACCOUNT_ID) const;
 
-    EXPORT std::int32_t getAccountData(
-        const Identifier& NOTARY_ID,
-        const Identifier& NYM_ID,
-        const Identifier& ACCT_ID) const;
+    EXPORT CommandResult
+    getAccountData(ServerContext& context, const Identifier& ACCT_ID) const;
 
     EXPORT bool AddBasketCreationItem(
         proto::UnitDefinition& basketTemplate,
         const String& currencyID,
         const std::uint64_t weight) const;
 
-    EXPORT std::int32_t issueBasket(
-        const Identifier& NOTARY_ID,
-        const Identifier& NYM_ID,
+    EXPORT CommandResult issueBasket(
+        ServerContext& context,
         const proto::UnitDefinition& basket) const;
 
     EXPORT Basket* GenerateBasketExchange(
@@ -932,69 +912,51 @@ public:
         const Identifier& INSTRUMENT_DEFINITION_ID,
         const Identifier& ASSET_ACCT_ID) const;
 
-    EXPORT std::int32_t exchangeBasket(
-        const Identifier& NOTARY_ID,
-        const Identifier& NYM_ID,
+    EXPORT CommandResult exchangeBasket(
+        ServerContext& context,
         const Identifier& BASKET_INSTRUMENT_DEFINITION_ID,
         const String& BASKET_INFO,
         bool bExchangeInOrOut) const;
 
-    EXPORT std::int32_t getTransactionNumbers(
-        const Identifier& NOTARY_ID,
-        const Identifier& NYM_ID) const;
+    EXPORT CommandResult getTransactionNumbers(ServerContext& context) const;
 
 #if OT_CASH
-    EXPORT std::int32_t notarizeWithdrawal(
-        const Identifier& NOTARY_ID,
-        const Identifier& NYM_ID,
+    EXPORT CommandResult notarizeWithdrawal(
+        ServerContext& context,
         const Identifier& ACCT_ID,
-        const std::int64_t& AMOUNT) const;
+        const Amount amount) const;
 
-    EXPORT std::int32_t notarizeDeposit(
-        const Identifier& NOTARY_ID,
-        const Identifier& NYM_ID,
+    EXPORT CommandResult notarizeDeposit(
+        ServerContext& context,
         const Identifier& ACCT_ID,
         const String& THE_PURSE) const;
 #endif  // OT_CASH
 
     EXPORT CommandResult notarizeTransfer(
-        const Identifier& NOTARY_ID,
-        const Identifier& NYM_ID,
+        ServerContext& context,
         const Identifier& ACCT_FROM,
         const Identifier& ACCT_TO,
-        const std::int64_t& AMOUNT,
+        const Amount amount,
         const String& NOTE) const;
 
-    EXPORT std::int32_t getNymbox(
-        const Identifier& NOTARY_ID,
-        const Identifier& NYM_ID) const;
+    EXPORT CommandResult getNymbox(ServerContext& context) const;
 
-    // Returns:
-    // -1 if error.
-    //  0 if Nymbox is empty.
-    //  1 or more: Count of items in Nymbox before processing.
-    EXPORT std::int32_t processNymbox(
-        const Identifier& NOTARY_ID,
-        const Identifier& NYM_ID) const;
+    EXPORT CommandResult processNymbox(ServerContext& context) const;
 
-    EXPORT std::int32_t processInbox(
-        const Identifier& NOTARY_ID,
-        const Identifier& NYM_ID,
+    EXPORT CommandResult processInbox(
+        ServerContext& context,
         const Identifier& ACCT_ID,
         const String& ACCT_LEDGER) const;
 
-    EXPORT std::int32_t withdrawVoucher(
-        const Identifier& NOTARY_ID,
-        const Identifier& NYM_ID,
+    EXPORT CommandResult withdrawVoucher(
+        ServerContext& context,
         const Identifier& ACCT_ID,
         const Identifier& RECIPIENT_NYM_ID,
         const String& CHEQUE_MEMO,
-        const std::int64_t& AMOUNT) const;
+        const Amount amount) const;
 
-    EXPORT std::int32_t payDividend(
-        const Identifier& NOTARY_ID,
-        const Identifier& ISSUER_NYM_ID,  // must be issuer of
-                                          // SHARES_INSTRUMENT_DEFINITION_ID
+    EXPORT CommandResult payDividend(
+        ServerContext& context,
         const Identifier& DIVIDEND_FROM_ACCT_ID,  // if dollars paid for pepsi
                                                   // shares, then this is the
                                                   // issuer's dollars account.
@@ -1006,22 +968,19 @@ public:
         const String& DIVIDEND_MEMO,  // user-configurable note that's added to
                                       // the
                                       // payout request message.
-        const std::int64_t& AMOUNT_PER_SHARE) const;  // number of dollars to be
-                                                      // paid
-                                                      // out
+        const Amount& AMOUNT_PER_SHARE) const;  // number of dollars to be paid
+                                                // out
     // PER SHARE (multiplied by total
     // number of shares issued.)
 
     EXPORT CommandResult depositCheque(
-        const Identifier& NOTARY_ID,
-        const Identifier& NYM_ID,
+        ServerContext& context,
         const Identifier& ACCT_ID,
         const String& THE_CHEQUE) const;
 
-    EXPORT std::int32_t triggerClause(
-        const Identifier& NOTARY_ID,
-        const Identifier& NYM_ID,
-        const std::int64_t& lTransactionNum,
+    EXPORT CommandResult triggerClause(
+        ServerContext& context,
+        const TransactionNumber& lTransactionNum,
         const String& strClauseName,
         const String* pStrParam = nullptr) const;
 
@@ -1298,18 +1257,16 @@ public:
         const Identifier& NOTARY_ID,
         const Identifier& NYM_ID,
         const String& THE_CRON_ITEM) const;
-    EXPORT std::int32_t activateSmartContract(
-        const Identifier& NOTARY_ID,
-        const Identifier& NYM_ID,
+
+    EXPORT CommandResult activateSmartContract(
+        ServerContext& context,
         const String& THE_SMART_CONTRACT) const;
 
-    EXPORT std::int32_t depositPaymentPlan(
-        const Identifier& NOTARY_ID,
-        const Identifier& NYM_ID,
+    EXPORT CommandResult depositPaymentPlan(
+        ServerContext& context,
         const String& THE_PAYMENT_PLAN) const;
-    EXPORT std::int32_t issueMarketOffer(
-        const Identifier& NOTARY_ID,
-        const Identifier& NYM_ID,
+    EXPORT CommandResult issueMarketOffer(
+        ServerContext& context,
         const Identifier& ASSET_ACCT_ID,
         const Identifier& CURRENCY_ACCT_ID,
         const std::int64_t& MARKET_SCALE,  // Defaults to minimum of 1. Market
@@ -1322,56 +1279,46 @@ public:
                                                     // sale
         // or purchase. Will be multiplied
         // by minimum increment.
-        const std::int64_t& PRICE_LIMIT,  // Per Minimum Increment...
-        bool bBuyingOrSelling,            // BUYING == false, SELLING == true.
+        const Amount PRICE_LIMIT,  // Per Minimum Increment...
+        bool bBuyingOrSelling,     // BUYING == false, SELLING == true.
         time64_t tLifespanInSeconds = OT_TIME_DAY_IN_SECONDS,  // 86400 seconds
                                                                // == 1 day.
         char STOP_SIGN = 0,  // For stop orders, set to '<' or '>'
-        std::int64_t ACTIVATION_PRICE = 0) const;  // For stop orders, set the
+        const Amount ACTIVATION_PRICE = 0) const;  // For stop orders, set the
                                                    // threshold price here.
-    EXPORT std::int32_t getMarketList(
-        const Identifier& NOTARY_ID,
-        const Identifier& NYM_ID) const;
-    EXPORT std::int32_t getMarketOffers(
-        const Identifier& NOTARY_ID,
-        const Identifier& NYM_ID,
+    EXPORT CommandResult getMarketList(ServerContext& context) const;
+    EXPORT CommandResult getMarketOffers(
+        ServerContext& context,
         const Identifier& MARKET_ID,
         const std::int64_t& lDepth) const;
-    EXPORT std::int32_t getMarketRecentTrades(
-        const Identifier& NOTARY_ID,
-        const Identifier& NYM_ID,
+    EXPORT CommandResult getMarketRecentTrades(
+        ServerContext& context,
         const Identifier& MARKET_ID) const;
-    EXPORT std::int32_t getNymMarketOffers(
-        const Identifier& NOTARY_ID,
-        const Identifier& NYM_ID) const;
-    // For cancelling market offers and payment plans.
-    EXPORT std::int32_t cancelCronItem(
-        const Identifier& NOTARY_ID,
-        const Identifier& NYM_ID,
-        const Identifier& ASSET_ACCT_ID,
-        const std::int64_t& lTransactionNum) const;
 
-    EXPORT std::int32_t initiatePeerRequest(
-        const Identifier& sender,
+    EXPORT CommandResult getNymMarketOffers(ServerContext& context) const;
+
+    // For cancelling market offers and payment plans.
+    EXPORT CommandResult cancelCronItem(
+        ServerContext& context,
+        const Identifier& ASSET_ACCT_ID,
+        const TransactionNumber& lTransactionNum) const;
+
+    EXPORT CommandResult initiatePeerRequest(
+        ServerContext& context,
         const Identifier& recipient,
-        const Identifier& server,
         std::unique_ptr<PeerRequest>& request) const;
 
-    EXPORT std::int32_t initiatePeerReply(
-        const Identifier& sender,
+    EXPORT CommandResult initiatePeerReply(
+        ServerContext& context,
         const Identifier& recipient,
-        const Identifier& server,
         const Identifier& request,
         std::unique_ptr<PeerReply>& reply) const;
 
-    EXPORT std::int32_t requestAdmin(
-        const Identifier& NOTARY_ID,
-        const Identifier& NYM_ID,
-        const std::string& PASSWORD) const;
+    EXPORT CommandResult
+    requestAdmin(ServerContext& context, const std::string& PASSWORD) const;
 
-    EXPORT std::int32_t serverAddClaim(
-        const Identifier& notary,
-        const Identifier& nym,
+    EXPORT CommandResult serverAddClaim(
+        ServerContext& context,
         const std::string& section,
         const std::string& type,
         const std::string& value,
@@ -1460,10 +1407,6 @@ private:
     Item::itemType response_type(
         const OTTransaction::transactionType sourceType,
         const bool success) const;
-    SendResult send_message(
-        const Identifier& server,
-        Nym* nymfile,
-        Message& message) const;
     NetworkReplyMessage send_message(
         const std::set<ServerContext::ManagedNumber>& pending,
         ServerContext& context,

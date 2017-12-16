@@ -2870,39 +2870,6 @@ public:
         const std::string& nymID,
         const std::string& replyID);
 
-    /**
-    GET TRANSACTION NUMBER
-
-    Every TRANSACTION must be accompanied by a TRANSACTION NUMBER
-    and you can only use a transaction number that was given to you
-    previously by the server. If you run out of transaction numbers, then
-    just call the below API function to get a new one (call it a few times
-    so your wallet has a few in reserve.)
-
-    The server usually sends you new transaction numbers whenever you
-    successfully do commands, but if you run out, you just call that function.
-
-    Without understanding this, none of your transactions would ever go
-    through! This mechanism is what makes it possible to prove balances
-    and transactions, without having to store any account history!
-    */
-    // Returns int32_t:
-    // -1 means error; no message was sent.
-    // 0 means NO error, but also: no message was sent.
-    // >0 means NO error, and the message was sent, and the request number fits
-    // into an integer...
-    // ...and in fact the requestNum IS the return value!
-    // ===> In 99% of cases, this LAST option is what actually happens!!
-    //
-    EXPORT static int32_t getTransactionNumbers(
-        const std::string& NOTARY_ID,
-        const std::string& NYM_ID);
-
-    EXPORT static int32_t getAccountData(
-        const std::string& NOTARY_ID,
-        const std::string& NYM_ID,
-        const std::string& ACCT_ID);
-
     /** ----------------------------------------------------
     // GENERATE BASKET CREATION REQUEST
     //
@@ -2967,19 +2934,6 @@ public:
         const std::string& THE_BASKET,
         const std::string& INSTRUMENT_DEFINITION_ID,
         const std::string& ASSET_ACCT_ID);
-
-    // from server (pop message buf for the response)
-    // Returns int32_t:
-    // -1 means error; no message was sent.
-    // 0 means NO error, but also: no message was sent.
-    // >0 means NO error, and the message was sent, and the request number fits
-    // into an integer...
-    // ...and in fact the requestNum IS the return value!
-    // ===> In 99% of cases, this LAST option is what actually happens!!
-    //
-    EXPORT static int32_t getNymbox(
-        const std::string& NOTARY_ID,
-        const std::string& NYM_ID);
 
     // from local storage.
     EXPORT static std::string LoadNymbox(
@@ -3062,24 +3016,6 @@ public:
                                         // pass NYM_ID in this field also.
         const int32_t& nBoxType,        // 0/nymbox, 1/inbox, 2/outbox
         const std::int64_t& TRANSACTION_NUMBER);
-
-    /** I use this automatically to save the API developers the hassle (for now)
-    // added here for completeness.
-    // UPDATE: It was a mistake for me to automatically call this, which can
-    // mess up the client's expectation of which messages are being
-    sent/received.
-    // It was causing network problems. Now clients NEED to call this
-    themselves,
-    // after getting the Nymbox. I can't call it for them anymore.
-    //
-    // Returns:
-    // -1 if error.
-    // 0 if Nymbox is empty.
-    // 1 or more: Count of items in Nymbox before processing.
-    */
-    EXPORT static int32_t processNymbox(
-        const std::string& NOTARY_ID,
-        const std::string& NYM_ID);
 
     /** -----------------------------------------------------------
     // POP MESSAGE BUFFER
@@ -3181,24 +3117,6 @@ public:
     // Returns -1 for Error condition.
     */
     EXPORT static int32_t Message_GetSuccess(const std::string& THE_MESSAGE);
-    /** -----------------------------------------------------------
-    // QUERY ASSET TYPES (server message)
-    //
-    // This way you can ask the server to confirm whether various
-    // instrument definitions are issued there.
-    //
-    // Returns int32_t:
-    // -1 means error; no message was sent.
-    // 0 means NO error, but also: no message was sent.
-    // >0 means NO error, and the message was sent, and the request number fits
-    into an integer...
-    // ...and in fact the requestNum IS the return value!
-    // ===> In 99% of cases, this LAST option is what actually happens!!
-    */
-    EXPORT static int32_t queryInstrumentDefinitions(
-        const std::string& NOTARY_ID,
-        const std::string& NYM_ID,
-        const std::string& ENCODED_MAP);
     /** -----------------------------------------------------------
     // GET MESSAGE PAYLOAD
     //

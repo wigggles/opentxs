@@ -122,8 +122,20 @@ public:
         const MessageType type,
         const OTASCIIArmor& payload,
         const Identifier& accountID,
+        const RequestNumber provided,
         const bool withAcknowledgments = true,
         const bool withNymboxHash = true);
+    std::pair<RequestNumber, std::unique_ptr<Message>> InitializeServerCommand(
+        const MessageType type,
+        const Identifier& recipientNymID,
+        const RequestNumber provided,
+        const bool withAcknowledgments = true,
+        const bool withNymboxHash = false);
+    std::pair<RequestNumber, std::unique_ptr<Message>> InitializeServerCommand(
+        const MessageType type,
+        const RequestNumber provided,
+        const bool withAcknowledgments = true,
+        const bool withNymboxHash = false);
     ManagedNumber NextTransactionNumber(const MessageType reason);
     NetworkReplyMessage PingNotary();
     bool RemoveTentativeNumber(const TransactionNumber& number);
@@ -165,6 +177,13 @@ private:
         const std::set<TransactionNumber>& without) const;
     std::unique_ptr<Message> initialize_server_command(
         const MessageType type) const;
+    std::pair<RequestNumber, std::unique_ptr<Message>>
+    initialize_server_command(
+        const Lock& lock,
+        const MessageType type,
+        const RequestNumber provided,
+        const bool withAcknowledgments,
+        const bool withNymboxHash);
     using ot_super::serialize;
     proto::Context serialize(const Lock& lock) const override;
 

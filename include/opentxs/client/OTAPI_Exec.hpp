@@ -3021,80 +3021,6 @@ contract
     EXPORT int64_t
     Message_GetUsageCredits(const std::string& THE_MESSAGE) const;
 
-    EXPORT std::string notifyBailment(
-        const std::string& serverID,
-        const std::string& senderNymID,
-        const std::string& recipientNymID,
-        const std::string& unitID,
-        const std::string& txid) const;
-
-    EXPORT std::string initiateBailment(
-        const std::string& serverID,
-        const std::string& senderNymID,
-        const std::string& unitID) const;
-
-    EXPORT std::string initiateOutBailment(
-        const std::string& serverID,
-        const std::string& senderNymID,
-        const std::string& unitID,
-        const std::uint64_t& amount,
-        const std::string& terms) const;
-
-    EXPORT std::string requestConnection(
-        const std::string& senderNymID,
-        const std::string& recipientNymID,
-        const std::string& serverID,
-        const std::uint64_t type) const;
-
-    EXPORT std::string storeSecret(
-        const std::string& senderNymID,
-        const std::string& recipientNymID,
-        const std::string& serverID,
-        const std::uint64_t& type,
-        const std::string& primary,
-        const std::string& secondary);
-
-    EXPORT std::string acknowledgeBailment(
-        const std::string& senderNymID,
-        const std::string& requestID,
-        const std::string& serverID,
-        const std::string& terms) const;
-
-    EXPORT std::string acknowledgeNotice(
-        const std::string& senderNymID,
-        const std::string& requestID,
-        const std::string& serverID,
-        const bool ack) const;
-
-    EXPORT std::string acknowledgeOutBailment(
-        const std::string& senderNymID,
-        const std::string& requestID,
-        const std::string& serverID,
-        const std::string& terms) const;
-
-    EXPORT std::string acknowledgeConnection(
-        const std::string& senderNymID,
-        const std::string& requestID,
-        const std::string& serverID,
-        const bool ack,
-        const std::string& url,
-        const std::string& login,
-        const std::string& password,
-        const std::string& key) const;
-
-    EXPORT int32_t initiatePeerRequest(
-        const std::string& sender,
-        const std::string& recipient,
-        const std::string& server,
-        const std::string& request) const;
-
-    EXPORT int32_t initiatePeerReply(
-        const std::string& sender,
-        const std::string& recipient,
-        const std::string& server,
-        const std::string& request,
-        const std::string& reply) const;
-
     EXPORT int32_t completePeerReply(
         const std::string& nymID,
         const std::string& replyOrRequestID) const;
@@ -3145,75 +3071,6 @@ contract
         const std::string& nymID,
         const std::string& replyID) const;
 
-    /**
-    SEND USER INSTRUMENT --- (Send a financial instrument to another user,
-    encrypted to his pubkey.)
-
-    NotaryID -- Must be included with every message.
-    NYM_ID -- You must include your own nymID so the server can reply.
-    NYM_ID_RECIPIENT -- This is a recipient user ID.
-    RECIPIENT_PUBKEY -- Recipient's public key in base64-encoded form.
-    THE_INSTRUMENT -- plainext string of instrument (cheque, payment plan,
-    purse, invoice, voucher...)
-
-    In this message, you are requesting the server to send a financial
-    instrument to
-    another user, encrypted to his public key and dropped in his paymentInbox
-    (by way
-    of his nymbox.)
-
-    \returns int32_t:
-    -1 means error; no message was sent.
-    0 means NO error, but also: no message was sent.
-    >0 means NO error, and the message was sent, and the request number fits
-    into an integer...
-    ...and in fact the requestNum IS the return value!
-    ===> In 99% of cases, this LAST option is what actually happens!!
-    */
-    EXPORT int32_t sendNymInstrument(
-        const std::string& NOTARY_ID,
-        const std::string& NYM_ID,
-        const std::string& NYM_ID_RECIPIENT,
-        const std::string& THE_INSTRUMENT,
-        const std::string& INSTRUMENT_FOR_SENDER  // Can be empty. Optional.
-                                                  // Only
-                                                  // used in the case of cash
-                                                  // purses.
-        ) const;
-
-    /**
-    GET TRANSACTION NUMBER
-
-    Every TRANSACTION must be accompanied by a TRANSACTION NUMBER
-    and you can only use a transaction number that was given to you
-    previously by the server. If you run out of transaction numbers, then
-    just call the below API function to get a new one (call it a few times
-    so your wallet has a few in reserve.)
-
-    The server usually sends you new transaction numbers whenever you
-    successfully do commands, but if you run out, you just call that function.
-
-    Without understanding this, none of your transactions would ever go
-    through! This mechanism is what makes it possible to prove balances
-    and transactions, without having to store any account history!
-    */
-    // Returns int32_t:
-    // -1 means error; no message was sent.
-    // 0 means NO error, but also: no message was sent.
-    // >0 means NO error, and the message was sent, and the request number fits
-    // into an integer...
-    // ...and in fact the requestNum IS the return value!
-    // ===> In 99% of cases, this LAST option is what actually happens!!
-    //
-    EXPORT int32_t getTransactionNumbers(
-        const std::string& NOTARY_ID,
-        const std::string& NYM_ID) const;
-
-    EXPORT int32_t getAccountData(
-        const std::string& NOTARY_ID,
-        const std::string& NYM_ID,
-        const std::string& ACCT_ID) const;
-
     /** ----------------------------------------------------
     // GENERATE BASKET CREATION REQUEST
     //
@@ -3245,39 +3102,6 @@ contract
         const std::string& basketTemplate,
         const std::string& currencyID,
         const uint64_t& weight) const;
-
-    /**
-    --------------------------------------------------------------------------
-    // ISSUE BASKET CURRENCY
-    //
-    // Issue a new instrument definition based on a BASKET of other instrument
-    definitions!
-    // You cannot call this function until you first set up the BASKET_INFO
-    object.
-    // I will provide functions for setting up that object, so that you can then
-    // call this function to actually message the server with your request.
-    //
-    // ANYONE can issue a new basket type, but they will have no control over
-    the
-    // issuer account. Normally when issuing a currency, you therefore control
-    the
-    // issuer account. But with baskets, that is managed internally by the
-    server.
-    // This means anyone can define a basket, and all may use it -- but no one
-    // controls it except the server.
-    //
-    // Returns int32_t:
-    // -1 means error; no message was sent.
-    // 0 means NO error, but also: no message was sent.
-    // >0 means NO error, and the message was sent, and the request number fits
-    into an integer...
-    // ...and in fact the requestNum IS the return value!
-    // ===> In 99% of cases, this LAST option is what actually happens!!
-    */
-    EXPORT int32_t issueBasket(
-        const std::string& NOTARY_ID,
-        const std::string& NYM_ID,
-        const std::string& THE_BASKET) const;
 
     /** ----------------------------------------------------
     // GENERATE BASKET EXCHANGE REQUEST
@@ -3314,18 +3138,6 @@ contract
         const std::string& THE_BASKET,
         const std::string& INSTRUMENT_DEFINITION_ID,
         const std::string& ASSET_ACCT_ID) const;
-
-    // from server (pop message buf for the response)
-    // Returns int32_t:
-    // -1 means error; no message was sent.
-    // 0 means NO error, but also: no message was sent.
-    // >0 means NO error, and the message was sent, and the request number fits
-    // into an integer...
-    // ...and in fact the requestNum IS the return value!
-    // ===> In 99% of cases, this LAST option is what actually happens!!
-    //
-    EXPORT int32_t
-    getNymbox(const std::string& NOTARY_ID, const std::string& NYM_ID) const;
 
     // from local storage.
     EXPORT std::string LoadNymbox(
@@ -3409,61 +3221,6 @@ contract
                                         // pass NYM_ID in this field also.
         const int32_t& nBoxType,        // 0/nymbox, 1/inbox, 2/outbox
         const int64_t& TRANSACTION_NUMBER) const;
-
-    /** I use this automatically to save the API developers the hassle (for now)
-    // added here for completeness.
-    // UPDATE: It was a mistake for me to automatically call this, which can
-    // mess up the client's expectation of which messages are being
-    sent/received.
-    // It was causing network problems. Now clients NEED to call this
-    themselves,
-    // after getting the Nymbox. I can't call it for them anymore.
-    //
-    // Returns:
-    // -1 if error.
-    // 0 if Nymbox is empty.
-    // 1 or more: Count of items in Nymbox before processing.
-    */
-    EXPORT int32_t processNymbox(
-        const std::string& NOTARY_ID,
-        const std::string& NYM_ID) const;
-
-    /** --------------------------------------------------
-    // ISSUE MARKET OFFER
-    //
-    // Returns int32_t:
-    // -1 means error; no message was sent.
-    // 0 means NO error, but also: no message was sent.
-    // >0 means NO error, and the message was sent, and the request number fits
-    into an integer...
-    // ...and in fact the requestNum IS the return value!
-    // ===> In 99% of cases, this LAST option is what actually happens!!
-    */
-    EXPORT int32_t issueMarketOffer(
-        const std::string& ASSET_ACCT_ID,  // Perhaps this is the wheat market.
-        const std::string& CURRENCY_ACCT_ID,  // Perhaps I'm buying the wheat
-                                              // with rubles.
-        const int64_t& MARKET_SCALE,       // Defaults to minimum of 1. Market
-                                           // granularity.
-        const int64_t& MINIMUM_INCREMENT,  // This will be multiplied by the
-                                           // Scale. Min 1.
-        const int64_t& TOTAL_ASSETS_ON_OFFER,  // Total assets available for
-                                               // sale
-        // or purchase. Will be multiplied
-        // by minimum increment.
-        const int64_t& PRICE_LIMIT,    // Per Minimum Increment...
-        const bool& bBuyingOrSelling,  // SELLING == true, BUYING == false.
-        const time64_t& LIFESPAN_IN_SECONDS,  // Pass 0 for the default
-                                              // behavior:
-                                              // 86400 seconds aka 1 day.
-        const std::string& STOP_SIGN,  // Must be "" (for market/limit orders)
-                                       // or
-                                       // "<" or ">"  (for stop orders.)
-        const int64_t& ACTIVATION_PRICE) const;  // Must be provided if
-                                                 // STOP_SIGN
-                                                 // is
-    // also set. Determines the price
-    // threshold for stop orders.
 
     /** -----------------------------------------------------------
     // POP MESSAGE BUFFER
@@ -3613,25 +3370,6 @@ contract
     // Returns -1 for Error condition.
     */
     EXPORT int32_t Message_GetSuccess(const std::string& THE_MESSAGE) const;
-
-    /** -----------------------------------------------------------
-    // QUERY ASSET TYPES (server message)
-    //
-    // This way you can ask the server to confirm whether various
-    // instrument definitions are issued there.
-    //
-    // Returns int32_t:
-    // -1 means error; no message was sent.
-    // 0 means NO error, but also: no message was sent.
-    // >0 means NO error, and the message was sent, and the request number fits
-    into an integer...
-    // ...and in fact the requestNum IS the return value!
-    // ===> In 99% of cases, this LAST option is what actually happens!!
-    */
-    EXPORT int32_t queryInstrumentDefinitions(
-        const std::string& NOTARY_ID,
-        const std::string& NYM_ID,
-        const std::string& ENCODED_MAP) const;
 
     /** -----------------------------------------------------------
     // GET MESSAGE PAYLOAD

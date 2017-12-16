@@ -50,6 +50,7 @@
 #include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/core/Ledger.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/core/Message.hpp"
 #include "opentxs/OT.hpp"
 
 #include <ostream>
@@ -281,8 +282,9 @@ std::int32_t Utility::getNymboxLowLevel(
 {
     SwigWrap::FlushMessageBuffer();
     bWasSent = false;
-
-    std::int32_t nRequestNum = SwigWrap::getNymbox(notaryID, nymID);
+    auto[nRequestNum, transactionNum, result] = otapi_.getNymbox(context_);
+    const auto& notUsed1[[maybe_unused]] = transactionNum;
+    const auto& notUsed2[[maybe_unused]] = result;
 
     if (SwigWrap::networkFailure(notaryID)) {
         otOut << OT_METHOD << __FUNCTION__
@@ -1493,8 +1495,10 @@ std::int32_t Utility::sendProcessNymboxLowLevel(
 
     // Send message..
     SwigWrap::FlushMessageBuffer();
+    auto[nRequestNum, transactionNum, result] = otapi_.processNymbox(context_);
+    const auto& notUsed1[[maybe_unused]] = transactionNum;
+    const auto& notUsed2[[maybe_unused]] = result;
 
-    std::int32_t nRequestNum = SwigWrap::processNymbox(notaryID, nymID);
     if (-1 == nRequestNum) {
         otOut << strLocation
               << ": Failure sending. OT_API_processNymbox() returned -1. \n";
@@ -1579,28 +1583,30 @@ bool Utility::getBoxReceiptLowLevel(
     bool& bWasSent)  // bWasSent is OTBool
 {
     std::string strLocation = "Utility::getBoxReceiptLowLevel";
-
     bWasSent = false;
-
     SwigWrap::FlushMessageBuffer();
 
-    std::int32_t nRequestNum = OT::App().API().OTAPI().getBoxReceipt(
-        Identifier(notaryID),
-        Identifier(nymID),
-        Identifier(accountID),
-        nBoxType,
-        strTransactionNum);  // <===== ATTEMPT TO SEND THE MESSAGE HERE...;
+    auto[nRequestNum, transactionNum, result] =
+        OT::App().API().OTAPI().getBoxReceipt(
+            context_,
+            Identifier(accountID),
+            nBoxType,
+            strTransactionNum);  // <===== ATTEMPT TO SEND THE MESSAGE HERE...;
+    auto& notUsed1[[maybe_unused]] = transactionNum;
+    auto& notUsed2[[maybe_unused]] = result;
 
     if (SwigWrap::networkFailure(notaryID)) {
         otOut << strLocation
               << ": getBoxReceipt message failed due to network error.\n";
         return false;
     }
+
     if (-1 == nRequestNum) {
         otOut << strLocation
               << ": Failed to send getBoxReceipt message due to error.\n";
         return false;
     }
+
     if (0 == nRequestNum) {
         otOut << strLocation
               << ": Didn't send getBoxReceipt message, but NO error "
@@ -1610,6 +1616,7 @@ bool Utility::getBoxReceiptLowLevel(
         // convention in many places, it is actually an impossible
         // return value;
     }
+
     if (nRequestNum < 0) {
         otOut << strLocation << ": Unexpected request number: " << nRequestNum
               << "\n";
@@ -2383,9 +2390,10 @@ std::int32_t Utility::getTransactionNumLowLevel(
 
     SwigWrap::FlushMessageBuffer();
     bWasSent = false;
-
-    std::int32_t nRequestNum = SwigWrap::getTransactionNumbers(
-        notaryID, nymID);  // <===== ATTEMPT TO SEND THE MESSAGE HERE...;
+    auto[nRequestNum, transactionNum, result] =
+        otapi_.getTransactionNumbers(context_);
+    const auto& notUsed1[[maybe_unused]] = transactionNum;
+    const auto& notUsed2[[maybe_unused]] = result;
 
     if (SwigWrap::networkFailure(notaryID)) {
         otOut
@@ -2981,9 +2989,10 @@ std::int32_t Utility::getInboxAccount(
     // GET ACCOUNT
     //
     SwigWrap::FlushMessageBuffer();
-
-    std::int32_t nRequestNum = SwigWrap::getAccountData(
-        notaryID, nymID, accountID);  // <===== ATTEMPT TO SEND MESSAGE;
+    auto[nRequestNum, transactionNum, result] =
+        otapi_.getAccountData(context_, Identifier(accountID));
+    const auto& notUsed1[[maybe_unused]] = transactionNum;
+    const auto& notUsed2[[maybe_unused]] = result;
 
     if (SwigWrap::networkFailure(notaryID)) {
         otOut << strLocation

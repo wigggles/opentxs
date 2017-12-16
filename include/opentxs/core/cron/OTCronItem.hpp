@@ -234,7 +234,7 @@ public:
 
     // When canceling a cron item before it
     // has been activated, use this.
-    EXPORT bool CancelBeforeActivation(Nym& theCancelerNym);
+    EXPORT bool CancelBeforeActivation(const Nym& theCancelerNym);
 
     // These are for     std::deque<int64_t> m_dequeClosingNumbers;
     // They are numbers used for CLOSING a transaction. (finalReceipt.)

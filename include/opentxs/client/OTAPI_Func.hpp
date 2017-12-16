@@ -57,6 +57,8 @@ namespace opentxs
 class Message;
 class OT_API;
 class OTAPI_Exec;
+class PeerReply;
+class PeerRequest;
 class ServerContext;
 class the_lambda_struct;
 
@@ -337,6 +339,8 @@ private:
     mutable std::mutex lock_;
     mutable std::unique_ptr<Message> last_reply_;
     mutable SendResult last_send_status_{SendResult::ERROR};
+    mutable std::unique_ptr<PeerReply> peer_reply_;
+    mutable std::unique_ptr<PeerRequest> peer_request_;
 
     explicit OTAPI_Func(
         opentxs::ServerContext& context,

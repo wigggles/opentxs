@@ -216,7 +216,7 @@ public:
         const Nym& theNym,
         OTAgent** ppAgent = nullptr) const;
     EXPORT OTParty* FindPartyBasedOnNymAsAuthAgent(
-        Nym& theNym,
+        const Nym& theNym,
         OTAgent** ppAgent = nullptr) const;
     OTParty* FindPartyBasedOnAccount(
         Account& theAccount,
