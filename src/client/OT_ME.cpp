@@ -95,7 +95,6 @@ bool OT_ME::make_sure_enough_trans_nums(
     const std::string& strMyNymID) const
 {
     rLock lock(lock_);
-
     auto context = wallet_.mutable_ServerContext(
         Identifier(strMyNymID), Identifier(strMyNotaryID));
     Utility MsgUtil(context.It(), otapi_);
@@ -150,12 +149,11 @@ std::string OT_ME::notify_bailment(
     const std::string& TXID) const
 {
     rLock lock(lock_);
-
-    auto context = wallet_.mutable_ServerContext(
-        Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func theRequest(
         NOTIFY_BAILMENT,
-        context.It(),
+        wallet_,
+        Identifier(NYM_ID),
+        Identifier(NOTARY_ID),
         exec_,
         otapi_,
         TARGET_NYM_ID,
@@ -180,12 +178,11 @@ std::string OT_ME::initiate_bailment(
     const std::string& INSTRUMENT_DEFINITION_ID) const
 {
     rLock lock(lock_);
-
-    auto context = wallet_.mutable_ServerContext(
-        Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func theRequest(
         INITIATE_BAILMENT,
-        context.It(),
+        wallet_,
+        Identifier(NYM_ID),
+        Identifier(NOTARY_ID),
         exec_,
         otapi_,
         TARGET_NYM_ID,
@@ -211,12 +208,11 @@ std::string OT_ME::initiate_outbailment(
     const std::string& THE_MESSAGE) const
 {
     rLock lock(lock_);
-
-    auto context = wallet_.mutable_ServerContext(
-        Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func theRequest(
         INITIATE_OUTBAILMENT,
-        context.It(),
+        wallet_,
+        Identifier(NYM_ID),
+        Identifier(NOTARY_ID),
         exec_,
         otapi_,
         TARGET_NYM_ID,
@@ -241,11 +237,15 @@ std::string OT_ME::request_connection(
     const std::int64_t TYPE) const
 {
     rLock lock(lock_);
-
-    auto context = wallet_.mutable_ServerContext(
-        Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func theRequest(
-        REQUEST_CONNECTION, context.It(), exec_, otapi_, TARGET_NYM_ID, TYPE);
+        REQUEST_CONNECTION,
+        wallet_,
+        Identifier(NYM_ID),
+        Identifier(NOTARY_ID),
+        exec_,
+        otapi_,
+        TARGET_NYM_ID,
+        TYPE);
     std::string strResponse =
         theRequest.SendRequest(theRequest, "REQUEST_CONNECTION");
     std::int32_t nSuccess = VerifyMessageSuccess(strResponse);
@@ -266,12 +266,11 @@ std::string OT_ME::store_secret(
     const std::string& SECONDARY) const
 {
     rLock lock(lock_);
-
-    auto context = wallet_.mutable_ServerContext(
-        Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func theRequest(
         STORE_SECRET,
-        context.It(),
+        wallet_,
+        Identifier(NYM_ID),
+        Identifier(NOTARY_ID),
         exec_,
         otapi_,
         TARGET_NYM_ID,
@@ -298,12 +297,11 @@ std::string OT_ME::acknowledge_bailment(
     const std::string& THE_MESSAGE) const
 {
     rLock lock(lock_);
-
-    auto context = wallet_.mutable_ServerContext(
-        Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func theRequest(
         ACKNOWLEDGE_BAILMENT,
-        context.It(),
+        wallet_,
+        Identifier(NYM_ID),
+        Identifier(NOTARY_ID),
         exec_,
         otapi_,
         TARGET_NYM_ID,
@@ -331,12 +329,11 @@ std::string OT_ME::acknowledge_outbailment(
     const std::string& THE_MESSAGE) const
 {
     rLock lock(lock_);
-
-    auto context = wallet_.mutable_ServerContext(
-        Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func theRequest(
         ACKNOWLEDGE_OUTBAILMENT,
-        context.It(),
+        wallet_,
+        Identifier(NYM_ID),
+        Identifier(NOTARY_ID),
         exec_,
         otapi_,
         TARGET_NYM_ID,
@@ -364,12 +361,11 @@ std::string OT_ME::acknowledge_notice(
     const bool ACK) const
 {
     rLock lock(lock_);
-
-    auto context = wallet_.mutable_ServerContext(
-        Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func theRequest(
         ACKNOWLEDGE_NOTICE,
-        context.It(),
+        wallet_,
+        Identifier(NYM_ID),
+        Identifier(NOTARY_ID),
         exec_,
         otapi_,
         TARGET_NYM_ID,
@@ -401,12 +397,11 @@ std::string OT_ME::acknowledge_connection(
     const std::string& KEY) const
 {
     rLock lock(lock_);
-
-    auto context = wallet_.mutable_ServerContext(
-        Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func theRequest(
         ACKNOWLEDGE_CONNECTION,
-        context.It(),
+        wallet_,
+        Identifier(NYM_ID),
+        Identifier(NOTARY_ID),
         exec_,
         otapi_,
         TARGET_NYM_ID,
@@ -435,11 +430,14 @@ std::string OT_ME::register_contract_nym(
     const std::string& CONTRACT) const
 {
     rLock lock(lock_);
-
-    auto context = wallet_.mutable_ServerContext(
-        Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func theRequest(
-        REGISTER_CONTRACT_NYM, context.It(), exec_, otapi_, CONTRACT);
+        REGISTER_CONTRACT_NYM,
+        wallet_,
+        Identifier(NYM_ID),
+        Identifier(NOTARY_ID),
+        exec_,
+        otapi_,
+        CONTRACT);
     std::string strResponse =
         theRequest.SendRequest(theRequest, "REGISTER_CONTRACT_NYM");
     std::int32_t nSuccess = VerifyMessageSuccess(strResponse);
@@ -457,11 +455,14 @@ std::string OT_ME::register_contract_server(
     const std::string& CONTRACT) const
 {
     rLock lock(lock_);
-
-    auto context = wallet_.mutable_ServerContext(
-        Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func theRequest(
-        REGISTER_CONTRACT_SERVER, context.It(), exec_, otapi_, CONTRACT);
+        REGISTER_CONTRACT_SERVER,
+        wallet_,
+        Identifier(NYM_ID),
+        Identifier(NOTARY_ID),
+        exec_,
+        otapi_,
+        CONTRACT);
     std::string strResponse =
         theRequest.SendRequest(theRequest, "REGISTER_CONTRACT_SERVER");
     std::int32_t nSuccess = VerifyMessageSuccess(strResponse);
@@ -479,11 +480,14 @@ std::string OT_ME::register_contract_unit(
     const std::string& CONTRACT) const
 {
     rLock lock(lock_);
-
-    auto context = wallet_.mutable_ServerContext(
-        Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func theRequest(
-        REGISTER_CONTRACT_UNIT, context.It(), exec_, otapi_, CONTRACT);
+        REGISTER_CONTRACT_UNIT,
+        wallet_,
+        Identifier(NYM_ID),
+        Identifier(NOTARY_ID),
+        exec_,
+        otapi_,
+        CONTRACT);
     std::string strResponse =
         theRequest.SendRequest(theRequest, "REGISTER_CONTRACT_UNIT");
     std::int32_t nSuccess = VerifyMessageSuccess(strResponse);
@@ -502,14 +506,22 @@ std::string OT_ME::register_nym(
     const std::string& NYM_ID) const
 {
     rLock lock(lock_);
-
-    auto context = wallet_.mutable_ServerContext(
-        Identifier(NYM_ID), Identifier(NOTARY_ID));
-    OTAPI_Func theRequest(REGISTER_NYM, context.It(), exec_, otapi_);
-    std::string strResponse =
-        theRequest.SendRequest(theRequest, "REGISTER_NYM");
+    std::string strResponse{""};
+    // theRequest should destruct when finished
+    {
+        OTAPI_Func theRequest(
+            REGISTER_NYM,
+            wallet_,
+            Identifier(NYM_ID),
+            Identifier(NOTARY_ID),
+            exec_,
+            otapi_);
+        strResponse = theRequest.SendRequest(theRequest, "REGISTER_NYM");
+    }
 
     if (1 == VerifyMessageSuccess(strResponse)) {
+        auto context = wallet_.mutable_ServerContext(
+            Identifier(NYM_ID), Identifier(NOTARY_ID));
         // Use the getRequestNumber command, thus insuring that the request
         // number is in sync.
         if (0 >= context.It().UpdateRequestNumber()) {
@@ -533,10 +545,14 @@ std::string OT_ME::request_admin(
     const std::string& PASSWORD) const
 {
     rLock lock(lock_);
-
-    auto context = wallet_.mutable_ServerContext(
-        Identifier(NYM_ID), Identifier(NOTARY_ID));
-    OTAPI_Func theRequest(REQUEST_ADMIN, context.It(), exec_, otapi_, PASSWORD);
+    OTAPI_Func theRequest(
+        REQUEST_ADMIN,
+        wallet_,
+        Identifier(NYM_ID),
+        Identifier(NOTARY_ID),
+        exec_,
+        otapi_,
+        PASSWORD);
     std::string strResponse =
         theRequest.SendRequest(theRequest, "REQUEST_ADMIN");
     std::int32_t nSuccess = VerifyMessageSuccess(strResponse);
@@ -557,12 +573,11 @@ std::string OT_ME::server_add_claim(
     const bool PRIMARY) const
 {
     rLock lock(lock_);
-
-    auto context = wallet_.mutable_ServerContext(
-        Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func theRequest(
         SERVER_ADD_CLAIM,
-        context.It(),
+        wallet_,
+        Identifier(NYM_ID),
+        Identifier(NOTARY_ID),
         exec_,
         otapi_,
         PRIMARY,
@@ -1068,12 +1083,11 @@ std::string OT_ME::get_box_receipt(
     std::int64_t TRANS_NUM) const
 {
     rLock lock(lock_);
-
-    auto context = wallet_.mutable_ServerContext(
-        Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func request(
         GET_BOX_RECEIPT,
-        context.It(),
+        wallet_,
+        Identifier(NYM_ID),
+        Identifier(NOTARY_ID),
         exec_,
         otapi_,
         ACCT_ID,
@@ -1132,11 +1146,11 @@ std::string OT_ME::create_market_offer(
 
     std::string strNotaryID = exec_.GetAccountWallet_NotaryID(ASSET_ACCT_ID);
     std::string strNymID = exec_.GetAccountWallet_NymID(ASSET_ACCT_ID);
-    auto context = wallet_.mutable_ServerContext(
-        Identifier(strNymID), Identifier(strNotaryID));
     OTAPI_Func request(
         CREATE_MARKET_OFFER,
-        context.It(),
+        wallet_,
+        Identifier(strNymID),
+        Identifier(strNotaryID),
         exec_,
         otapi_,
         ASSET_ACCT_ID,
@@ -1168,16 +1182,16 @@ std::string OT_ME::kill_market_offer(
     std::int64_t TRANS_NUM) const
 {
     rLock lock(lock_);
-
-    auto context = wallet_.mutable_ServerContext(
-        Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func request(
         KILL_MARKET_OFFER,
-        context.It(),
+        wallet_,
+        Identifier(NYM_ID),
+        Identifier(NOTARY_ID),
         exec_,
         otapi_,
         ASSET_ACCT_ID,
         std::to_string(TRANS_NUM));
+
     return request.SendTransaction(request, "KILL_MARKET_OFFER");
 }
 
@@ -1190,16 +1204,16 @@ std::string OT_ME::kill_payment_plan(
     std::int64_t TRANS_NUM) const
 {
     rLock lock(lock_);
-
-    auto context = wallet_.mutable_ServerContext(
-        Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func request(
         KILL_PAYMENT_PLAN,
-        context.It(),
+        wallet_,
+        Identifier(NYM_ID),
+        Identifier(NOTARY_ID),
         exec_,
         otapi_,
         ACCT_ID,
         std::to_string(TRANS_NUM));
+
     return request.SendTransaction(request, "KILL_PAYMENT_PLAN");
 }
 
@@ -1211,7 +1225,6 @@ std::string OT_ME::cancel_payment_plan(
     const std::string& THE_PAYMENT_PLAN) const
 {
     rLock lock(lock_);
-
     // NOTE: We have to include the account ID as well. Even though the API call
     // itself doesn't need it (it retrieves it from the plan itself, as we are
     // about to do here) we still have to provide the accountID for OTAPI_Func,
@@ -1233,16 +1246,16 @@ std::string OT_ME::cancel_payment_plan(
     // transaction will have IsCancelled() set to true.
     //
     // (Therefore theRequest.SendTransaction is smart enough to check for that.)
-
-    auto context = wallet_.mutable_ServerContext(
-        Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func request(
         DEPOSIT_PAYMENT_PLAN,
-        context.It(),
+        wallet_,
+        Identifier(NYM_ID),
+        Identifier(NOTARY_ID),
         exec_,
         otapi_,
         strRecipientAcctID,
         THE_PAYMENT_PLAN);
+
     return request.SendTransaction(request, "CANCEL_PAYMENT_PLAN");
 }
 
@@ -1256,17 +1269,17 @@ std::string OT_ME::activate_smart_contract(
     const std::string& THE_SMART_CONTRACT) const
 {
     rLock lock(lock_);
-
-    auto context = wallet_.mutable_ServerContext(
-        Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func request(
         ACTIVATE_SMART_CONTRACT,
-        context.It(),
+        wallet_,
+        Identifier(NYM_ID),
+        Identifier(NOTARY_ID),
         exec_,
         otapi_,
         ACCT_ID,
         AGENT_NAME,
         THE_SMART_CONTRACT);
+
     return request.SendTransaction(request, "ACTIVATE_SMART_CONTRACT");
 }
 
@@ -1280,17 +1293,17 @@ std::string OT_ME::trigger_clause(
     const std::string& STR_PARAM) const
 {
     rLock lock(lock_);
-
-    auto context = wallet_.mutable_ServerContext(
-        Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func request(
         TRIGGER_CLAUSE,
-        context.It(),
+        wallet_,
+        Identifier(NYM_ID),
+        Identifier(NOTARY_ID),
         exec_,
         otapi_,
         std::to_string(TRANS_NUM),
         CLAUSE_NAME,
         STR_PARAM);
+
     return request.SendRequest(request, "TRIGGER_CLAUSE");
 }
 
@@ -1303,11 +1316,16 @@ std::string OT_ME::withdraw_cash(
     std::int64_t AMOUNT) const
 {
     rLock lock(lock_);
-
-    auto context = wallet_.mutable_ServerContext(
-        Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func request(
-        WITHDRAW_CASH, context.It(), exec_, otapi_, ACCT_ID, AMOUNT);
+        WITHDRAW_CASH,
+        wallet_,
+        Identifier(NYM_ID),
+        Identifier(NOTARY_ID),
+        exec_,
+        otapi_,
+        ACCT_ID,
+        AMOUNT);
+
     return request.SendTransaction(request, "WITHDRAW_CASH");
 }
 
@@ -1360,18 +1378,18 @@ std::string OT_ME::withdraw_voucher(
     std::int64_t AMOUNT) const
 {
     rLock lock(lock_);
-
-    auto context = wallet_.mutable_ServerContext(
-        Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func request(
         WITHDRAW_VOUCHER,
-        context.It(),
+        wallet_,
+        Identifier(NYM_ID),
+        Identifier(NOTARY_ID),
         exec_,
         otapi_,
         ACCT_ID,
         RECIP_NYM_ID,
         STR_MEMO,
         AMOUNT);
+
     return request.SendTransaction(request, "WITHDRAW_VOUCHER");
 }
 
@@ -1386,18 +1404,18 @@ std::string OT_ME::pay_dividend(
     std::int64_t AMOUNT_PER_SHARE) const
 {
     rLock lock(lock_);
-
-    auto context = wallet_.mutable_ServerContext(
-        Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func request(
         PAY_DIVIDEND,
-        context.It(),
+        wallet_,
+        Identifier(NYM_ID),
+        Identifier(NOTARY_ID),
         exec_,
         otapi_,
         SOURCE_ACCT_ID,
         SHARES_INSTRUMENT_DEFINITION_ID,
         STR_MEMO,
         AMOUNT_PER_SHARE);
+
     return request.SendTransaction(request, "PAY_DIVIDEND");
 }
 
@@ -1408,11 +1426,16 @@ std::string OT_ME::deposit_cheque(
     const std::string& STR_CHEQUE) const
 {
     rLock lock(lock_);
-
-    auto context = wallet_.mutable_ServerContext(
-        Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func request(
-        DEPOSIT_CHEQUE, context.It(), exec_, otapi_, ACCT_ID, STR_CHEQUE);
+        DEPOSIT_CHEQUE,
+        wallet_,
+        Identifier(NYM_ID),
+        Identifier(NOTARY_ID),
+        exec_,
+        otapi_,
+        ACCT_ID,
+        STR_CHEQUE);
+
     return request.SendTransaction(request, "DEPOSIT_CHEQUE");
 }
 
@@ -1445,10 +1468,14 @@ std::string OT_ME::get_market_list(
     const std::string& NYM_ID) const
 {
     rLock lock(lock_);
+    OTAPI_Func request(
+        GET_MARKET_LIST,
+        wallet_,
+        Identifier(NYM_ID),
+        Identifier(NOTARY_ID),
+        exec_,
+        otapi_);
 
-    auto context = wallet_.mutable_ServerContext(
-        Identifier(NYM_ID), Identifier(NOTARY_ID));
-    OTAPI_Func request(GET_MARKET_LIST, context.It(), exec_, otapi_);
     return request.SendRequest(request, "GET_MARKET_LIST");
 }
 
@@ -1459,11 +1486,16 @@ std::string OT_ME::get_market_offers(
     std::int64_t MAX_DEPTH) const
 {
     rLock lock(lock_);
-
-    auto context = wallet_.mutable_ServerContext(
-        Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func request(
-        GET_MARKET_OFFERS, context.It(), exec_, otapi_, MARKET_ID, MAX_DEPTH);
+        GET_MARKET_OFFERS,
+        wallet_,
+        Identifier(NYM_ID),
+        Identifier(NOTARY_ID),
+        exec_,
+        otapi_,
+        MARKET_ID,
+        MAX_DEPTH);
+
     return request.SendRequest(request, "GET_MARKET_OFFERS");
 }
 
@@ -1472,10 +1504,14 @@ std::string OT_ME::get_nym_market_offers(
     const std::string& NYM_ID) const
 {
     rLock lock(lock_);
+    OTAPI_Func request(
+        GET_NYM_MARKET_OFFERS,
+        wallet_,
+        Identifier(NYM_ID),
+        Identifier(NOTARY_ID),
+        exec_,
+        otapi_);
 
-    auto context = wallet_.mutable_ServerContext(
-        Identifier(NYM_ID), Identifier(NOTARY_ID));
-    OTAPI_Func request(GET_NYM_MARKET_OFFERS, context.It(), exec_, otapi_);
     return request.SendRequest(request, "GET_NYM_MARKET_OFFERS");
 }
 
@@ -1485,11 +1521,15 @@ std::string OT_ME::get_market_recent_trades(
     const std::string& MARKET_ID) const
 {
     rLock lock(lock_);
-
-    auto context = wallet_.mutable_ServerContext(
-        Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func request(
-        GET_MARKET_RECENT_TRADES, context.It(), exec_, otapi_, MARKET_ID);
+        GET_MARKET_RECENT_TRADES,
+        wallet_,
+        Identifier(NYM_ID),
+        Identifier(NOTARY_ID),
+        exec_,
+        otapi_,
+        MARKET_ID);
+
     return request.SendRequest(request, "GET_MARKET_RECENT_TRADES");
 }
 
@@ -1500,16 +1540,16 @@ std::string OT_ME::adjust_usage_credits(
     const std::string& ADJUSTMENT) const
 {
     rLock lock(lock_);
-
-    auto context = wallet_.mutable_ServerContext(
-        Identifier(USER_NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func request(
         ADJUST_USAGE_CREDITS,
-        context.It(),
+        wallet_,
+        Identifier(USER_NYM_ID),
+        Identifier(NOTARY_ID),
         exec_,
         otapi_,
         TARGET_NYM_ID,
         ADJUSTMENT);
+
     return request.SendRequest(request, "ADJUST_USAGE_CREDITS");
 }
 

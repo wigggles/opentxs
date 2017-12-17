@@ -41,6 +41,7 @@
 
 #include "opentxs/Version.hpp"
 
+#include "opentxs/api/Editor.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/Types.hpp"
@@ -61,6 +62,11 @@ class PeerReply;
 class PeerRequest;
 class ServerContext;
 class the_lambda_struct;
+
+namespace api
+{
+class Wallet;
+}  // namespace api
 
 typedef std::map<std::string, opentxs::OTDB::OfferDataNym*> SubMap;
 typedef std::map<std::string, SubMap*> MapOfMaps;
@@ -211,32 +217,42 @@ public:
 
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
-        opentxs::ServerContext& context,
+        api::Wallet& wallet,
+        const Identifier& nymID,
+        const Identifier& serverID,
         OTAPI_Exec& exec,
         OT_API& otapi);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
-        opentxs::ServerContext& context,
+        api::Wallet& wallet,
+        const Identifier& nymID,
+        const Identifier& serverID,
         OTAPI_Exec& exec,
         OT_API& otapi,
         const std::string& p_strParam);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
-        opentxs::ServerContext& context,
+        api::Wallet& wallet,
+        const Identifier& nymID,
+        const Identifier& serverID,
         OTAPI_Exec& exec,
         OT_API& otapi,
         const std::string& p_strParam,
         std::int64_t p_lData);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
-        opentxs::ServerContext& context,
+        api::Wallet& wallet,
+        const Identifier& nymID,
+        const Identifier& serverID,
         OTAPI_Exec& exec,
         OT_API& otapi,
         const std::string& p_strParam,
         const std::string& p_strData);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
-        opentxs::ServerContext& context,
+        api::Wallet& wallet,
+        const Identifier& nymID,
+        const Identifier& serverID,
         OTAPI_Exec& exec,
         OT_API& otapi,
         const std::string& p_nymID2,
@@ -244,7 +260,9 @@ public:
         const std::string& p_strData2);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
-        opentxs::ServerContext& context,
+        api::Wallet& wallet,
+        const Identifier& nymID,
+        const Identifier& serverID,
         OTAPI_Exec& exec,
         OT_API& otapi,
         const std::string& p_nymID2,
@@ -252,7 +270,9 @@ public:
         const bool p_Bool);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
-        opentxs::ServerContext& context,
+        api::Wallet& wallet,
+        const Identifier& nymID,
+        const Identifier& serverID,
         OTAPI_Exec& exec,
         OT_API& otapi,
         const std::string& p_accountID,
@@ -261,7 +281,9 @@ public:
         const std::string& p_strData2);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
-        opentxs::ServerContext& context,
+        api::Wallet& wallet,
+        const Identifier& nymID,
+        const Identifier& serverID,
         OTAPI_Exec& exec,
         OT_API& otapi,
         const std::string& p_accountID,
@@ -270,7 +292,9 @@ public:
         std::int64_t p_lData2);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
-        opentxs::ServerContext& context,
+        api::Wallet& wallet,
+        const Identifier& nymID,
+        const Identifier& serverID,
         OTAPI_Exec& exec,
         OT_API& otapi,
         const std::string& p_accountID,
@@ -279,7 +303,9 @@ public:
         const std::string& p_strData2);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
-        opentxs::ServerContext& context,
+        api::Wallet& wallet,
+        const Identifier& nymID,
+        const Identifier& serverID,
         OTAPI_Exec& exec,
         OT_API& otapi,
         bool p_bBool,
@@ -288,7 +314,9 @@ public:
         const std::string& p_strData3);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
-        opentxs::ServerContext& context,
+        api::Wallet& wallet,
+        const Identifier& nymID,
+        const Identifier& serverID,
         OTAPI_Exec& exec,
         OT_API& otapi,
         const std::string& p_instrumentDefinitionID,
@@ -298,7 +326,9 @@ public:
         std::int32_t p_nTransNumsNeeded);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
-        opentxs::ServerContext& context,
+        api::Wallet& wallet,
+        const Identifier& nymID,
+        const Identifier& serverID,
         OTAPI_Exec& exec,
         OT_API& otapi,
         const std::string& accountID,
@@ -333,7 +363,9 @@ public:
     ~OTAPI_Func();
 
 private:
-    opentxs::ServerContext& context_;
+    api::Wallet& wallet_;
+    Editor<ServerContext> context_editor_;
+    ServerContext& context_;
     OTAPI_Exec& exec_;
     OT_API& otapi_;
     mutable std::mutex lock_;
@@ -343,9 +375,11 @@ private:
     mutable std::unique_ptr<PeerRequest> peer_request_;
 
     explicit OTAPI_Func(
-        opentxs::ServerContext& context,
+        api::Wallet& wallet,
         OTAPI_Exec& exec,
         OT_API& otapi,
+        const Identifier& nymID,
+        const Identifier& serverID,
         const OTAPI_Func_Type type);
     OTAPI_Func() = delete;
 };

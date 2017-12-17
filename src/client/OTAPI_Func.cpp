@@ -42,6 +42,7 @@
 
 #include "opentxs/api/Api.hpp"
 #include "opentxs/api/Native.hpp"
+#include "opentxs/api/Wallet.hpp"
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/client/OT_ME.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
@@ -69,9 +70,11 @@
 namespace opentxs
 {
 OTAPI_Func::OTAPI_Func(
-    opentxs::ServerContext& context,
+    api::Wallet& wallet,
     OTAPI_Exec& exec,
     OT_API& otapi,
+    const Identifier& nymID,
+    const Identifier& serverID,
     const OTAPI_Func_Type type)
     : funcType(type)
     , nymID2("")
@@ -92,7 +95,9 @@ OTAPI_Func::OTAPI_Func(
     , nTransNumsNeeded(0)
     , nRequestNum(-1)
     , transaction_number_(0)
-    , context_(context)
+    , wallet_(wallet)
+    , context_editor_(wallet_.mutable_ServerContext(nymID, serverID))
+    , context_(context_editor_.It())
     , exec_(exec)
     , otapi_(otapi)
     , last_reply_(nullptr)
@@ -104,10 +109,12 @@ OTAPI_Func::OTAPI_Func(
 
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
-    opentxs::ServerContext& context,
+    api::Wallet& wallet,
+    const Identifier& nymID,
+    const Identifier& serverID,
     OTAPI_Exec& exec,
     OT_API& otapi)
-    : OTAPI_Func(context, exec, otapi, theType)
+    : OTAPI_Func(wallet, exec, otapi, nymID, serverID, theType)
 {
     if (theType == DELETE_NYM) {
         nTransNumsNeeded = 0;            // Is this true?
@@ -125,11 +132,13 @@ OTAPI_Func::OTAPI_Func(
 
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
-    opentxs::ServerContext& context,
+    api::Wallet& wallet,
+    const Identifier& nymID,
+    const Identifier& serverID,
     OTAPI_Exec& exec,
     OT_API& otapi,
     const std::string& p_strParam)
-    : OTAPI_Func(context, exec, otapi, theType)
+    : OTAPI_Func(wallet, exec, otapi, nymID, serverID, theType)
 {
     std::string strError =
         "Warning: Empty std::string passed to OTAPI_Func.OTAPI_Func() as: ";
@@ -175,12 +184,14 @@ OTAPI_Func::OTAPI_Func(
 
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
-    opentxs::ServerContext& context,
+    api::Wallet& wallet,
+    const Identifier& nymID,
+    const Identifier& serverID,
     OTAPI_Exec& exec,
     OT_API& otapi,
     const std::string& p_strParam,
     const std::string& p_strData)
-    : OTAPI_Func(context, exec, otapi, theType)
+    : OTAPI_Func(wallet, exec, otapi, nymID, serverID, theType)
 {
     std::string strError =
         "Warning: Empty std::string passed to OTAPI_Func.OTAPI_Func() as: ";
@@ -232,12 +243,14 @@ OTAPI_Func::OTAPI_Func(
 
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
-    opentxs::ServerContext& context,
+    api::Wallet& wallet,
+    const Identifier& nymID,
+    const Identifier& serverID,
     OTAPI_Exec& exec,
     OT_API& otapi,
     const std::string& p_strParam,
     std::int64_t p_lData)
-    : OTAPI_Func(context, exec, otapi, theType)
+    : OTAPI_Func(wallet, exec, otapi, nymID, serverID, theType)
 {
     lData = p_lData;
 
@@ -276,13 +289,15 @@ OTAPI_Func::OTAPI_Func(
 
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
-    opentxs::ServerContext& context,
+    api::Wallet& wallet,
+    const Identifier& nymID,
+    const Identifier& serverID,
     OTAPI_Exec& exec,
     OT_API& otapi,
     const std::string& p_nymID2,
     const std::string& p_strData,
     const bool p_Bool)
-    : OTAPI_Func(context, exec, otapi, theType)
+    : OTAPI_Func(wallet, exec, otapi, nymID, serverID, theType)
 {
     std::string strError =
         "Warning: Empty std::string passed to OTAPI_Func.OTAPI_Func() as: ";
@@ -311,13 +326,15 @@ OTAPI_Func::OTAPI_Func(
 
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
-    opentxs::ServerContext& context,
+    api::Wallet& wallet,
+    const Identifier& nymID,
+    const Identifier& serverID,
     OTAPI_Exec& exec,
     OT_API& otapi,
     const std::string& p_nymID2,
     const std::string& p_strData,
     const std::string& p_strData2)
-    : OTAPI_Func(context, exec, otapi, theType)
+    : OTAPI_Func(wallet, exec, otapi, nymID, serverID, theType)
 {
     std::string strError =
         "Warning: Empty std::string passed to OTAPI_Func.OTAPI_Func() as: ";
@@ -410,14 +427,16 @@ OTAPI_Func::OTAPI_Func(
 
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
-    opentxs::ServerContext& context,
+    api::Wallet& wallet,
+    const Identifier& nymID,
+    const Identifier& serverID,
     OTAPI_Exec& exec,
     OT_API& otapi,
     const std::string& p_accountID,
     const std::string& p_strParam,
     std::int64_t p_lData,
     const std::string& p_strData2)
-    : OTAPI_Func(context, exec, otapi, theType)
+    : OTAPI_Func(wallet, exec, otapi, nymID, serverID, theType)
 {
     std::string strError =
         "Warning: Empty std::string passed to OTAPI_Func.OTAPI_Func() as: ";
@@ -461,14 +480,16 @@ OTAPI_Func::OTAPI_Func(
 
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
-    opentxs::ServerContext& context,
+    api::Wallet& wallet,
+    const Identifier& nymID,
+    const Identifier& serverID,
     OTAPI_Exec& exec,
     OT_API& otapi,
     const std::string& p_accountID,
     const std::string& p_strParam,
     const std::string& p_strData,
     std::int64_t p_lData2)
-    : OTAPI_Func(context, exec, otapi, theType)
+    : OTAPI_Func(wallet, exec, otapi, nymID, serverID, theType)
 {
     strData = p_strData;
     lData = p_lData2;
@@ -519,14 +540,16 @@ OTAPI_Func::OTAPI_Func(
 
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
-    opentxs::ServerContext& context,
+    api::Wallet& wallet,
+    const Identifier& nymID,
+    const Identifier& serverID,
     OTAPI_Exec& exec,
     OT_API& otapi,
     const std::string& p_accountID,
     const std::string& p_strParam,
     const std::string& p_strData,
     const std::string& p_strData2)
-    : OTAPI_Func(context, exec, otapi, theType)
+    : OTAPI_Func(wallet, exec, otapi, nymID, serverID, theType)
 {
     std::string strError =
         "Warning: Empty std::string passed to OTAPI_Func.OTAPI_Func() as: ";
@@ -566,14 +589,16 @@ OTAPI_Func::OTAPI_Func(
 
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
-    opentxs::ServerContext& context,
+    api::Wallet& wallet,
+    const Identifier& nymID,
+    const Identifier& serverID,
     OTAPI_Exec& exec,
     OT_API& otapi,
     bool boolInput,
     const std::string& data,
     const std::string& data2,
     const std::string& data3)
-    : OTAPI_Func(context, exec, otapi, theType)
+    : OTAPI_Func(wallet, exec, otapi, nymID, serverID, theType)
 {
     strData = data;
     strData2 = data2;
@@ -606,7 +631,9 @@ OTAPI_Func::OTAPI_Func(
 
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
-    opentxs::ServerContext& context,
+    api::Wallet& wallet,
+    const Identifier& nymID,
+    const Identifier& serverID,
     OTAPI_Exec& exec,
     OT_API& otapi,
     const std::string& p_instrumentDefinitionID,
@@ -614,7 +641,7 @@ OTAPI_Func::OTAPI_Func(
     const std::string& p_accountID,
     bool p_bBool,
     std::int32_t p_nTransNumsNeeded)
-    : OTAPI_Func(context, exec, otapi, theType)
+    : OTAPI_Func(wallet, exec, otapi, nymID, serverID, theType)
 {
     std::string strError =
         "Warning: Empty std::string passed to OTAPI_Func.OTAPI_Func() as: ";
@@ -644,7 +671,9 @@ OTAPI_Func::OTAPI_Func(
 
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
-    opentxs::ServerContext& context,
+    api::Wallet& wallet,
+    const Identifier& nymID,
+    const Identifier& serverID,
     OTAPI_Exec& exec,
     OT_API& otapi,
     const std::string& account,
@@ -654,7 +683,7 @@ OTAPI_Func::OTAPI_Func(
     const std::string& data3,
     const std::string& data4,
     bool boolInput)
-    : OTAPI_Func(context, exec, otapi, theType)
+    : OTAPI_Func(wallet, exec, otapi, nymID, serverID, theType)
 {
     accountID = account;
     accountID2 = account2;
