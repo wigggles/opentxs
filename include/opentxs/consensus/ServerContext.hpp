@@ -95,12 +95,14 @@ public:
         const ConstNym& local,
         const ConstNym& remote,
         const Identifier& server,
-        ServerConnection& connection);
+        ServerConnection& connection,
+        std::mutex& nymfileLock);
     ServerContext(
         const proto::Context& serialized,
         const ConstNym& local,
         const ConstNym& remote,
-        ServerConnection& connection);
+        ServerConnection& connection,
+        std::mutex& nymfileLock);
 
     bool FinalizeServerCommand(Message& command) const;
     TransactionNumber Highest() const;

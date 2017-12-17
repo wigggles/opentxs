@@ -62,12 +62,14 @@ public:
     ClientContext(
         const ConstNym& local,
         const ConstNym& remote,
-        const Identifier& server);
+        const Identifier& server,
+        std::mutex& nymfileLock);
     ClientContext(
         const proto::Context& serialized,
         const ConstNym& local,
         const ConstNym& remote,
-        const Identifier& server);
+        const Identifier& server,
+        std::mutex& nymfileLock);
 
     bool hasOpenTransactions() const;
     std::size_t IssuedNumbers(const std::set<TransactionNumber>& exclude) const;

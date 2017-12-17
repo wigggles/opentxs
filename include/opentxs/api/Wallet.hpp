@@ -106,18 +106,20 @@ private:
     friend class implementation::Native;
 
     Native& ot_;
-
     NymMap nym_map_;
     ServerMap server_map_;
     UnitMap unit_map_;
     ContextMap context_map_;
-    std::mutex nym_map_lock_;
-    std::mutex server_map_lock_;
-    std::mutex unit_map_lock_;
-    std::mutex context_map_lock_;
+    mutable std::mutex nym_map_lock_;
+    mutable std::mutex server_map_lock_;
+    mutable std::mutex unit_map_lock_;
+    mutable std::mutex context_map_lock_;
     mutable std::mutex peer_map_lock_;
     mutable std::map<std::string, std::mutex> peer_lock_;
+    mutable std::mutex nymfile_map_lock_;
+    mutable std::map<Identifier, std::mutex> nymfile_lock_;
 
+    std::mutex& nymfile_lock(const Identifier& nymID) const;
     std::mutex& peer_lock(const std::string& nymID) const;
     void save(class Context* context) const;
 

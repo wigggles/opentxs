@@ -103,8 +103,9 @@ ServerContext::ServerContext(
     const ConstNym& local,
     const ConstNym& remote,
     const Identifier& server,
-    ServerConnection& connection)
-    : ot_super(local, remote, server)
+    ServerConnection& connection,
+    std::mutex& nymfileLock)
+    : ot_super(local, remote, server, nymfileLock)
     , connection_(connection)
     , highest_transaction_number_(0)
 {
@@ -114,12 +115,14 @@ ServerContext::ServerContext(
     const proto::Context& serialized,
     const ConstNym& local,
     const ConstNym& remote,
-    ServerConnection& connection)
+    ServerConnection& connection,
+    std::mutex& nymfileLock)
     : ot_super(
           serialized,
           local,
           remote,
-          Identifier(serialized.servercontext().serverid()))
+          Identifier(serialized.servercontext().serverid()),
+          nymfileLock)
     , connection_(connection)
     , highest_transaction_number_(
           serialized.servercontext().highesttransactionnumber())
