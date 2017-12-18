@@ -8787,15 +8787,6 @@ CommandResult OT_API::issueBasket(
     transactionNum = 0;
     status = SendResult::ERROR;
     reply.reset(nullptr);
-    const auto& nym = *context.Nym();
-    const auto& nymID = nym.ID();
-    auto nymfile = GetOrLoadPrivateNym(nymID, false, __FUNCTION__);
-
-    if (nullptr == nymfile) {
-
-        return output;
-    }
-
     auto[newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::issueBasket,
         OTASCIIArmor(proto::ProtoAsData(basket)),
@@ -8813,7 +8804,7 @@ CommandResult OT_API::issueBasket(
         return output;
     }
 
-    result = send_message({}, context, nymfile, *message);
+    result = send_message({}, context, *message);
 
     return output;
 }
@@ -9118,14 +9109,6 @@ CommandResult OT_API::exchangeBasket(
     const auto& nym = *context.Nym();
     const auto& nymID = nym.ID();
     const auto& serverID = context.Server();
-    auto nymfile = GetOrLoadPrivateNym(nymID, false, __FUNCTION__);
-
-    if (nullptr == nymfile) {
-
-        return output;
-    }
-
-    // contract is not owned by this function
     auto contract =
         GetBasketContract(BASKET_INSTRUMENT_DEFINITION_ID, __FUNCTION__);
 
@@ -9279,7 +9262,7 @@ CommandResult OT_API::exchangeBasket(
         return output;
     }
 
-    result = send_message(managed, context, nymfile, *message);
+    result = send_message(managed, context, *message);
 
     return output;
 }
@@ -9294,15 +9277,6 @@ CommandResult OT_API::getTransactionNumbers(ServerContext& context) const
     transactionNum = 0;
     status = SendResult::ERROR;
     reply.reset(nullptr);
-    const auto& nym = *context.Nym();
-    const auto& nymID = nym.ID();
-    auto nymfile = GetOrLoadPrivateNym(nymID, false, __FUNCTION__);
-
-    if (nullptr == nymfile) {
-
-        return output;
-    }
-
     const auto nCount = context.AvailableNumbers();
     // TODO no hardcoding. (max transaction nums allowed out at a single time.)
     const std::size_t nMaxCount = 50;
@@ -9329,7 +9303,7 @@ CommandResult OT_API::getTransactionNumbers(ServerContext& context) const
         return output;
     }
 
-    result = send_message({}, context, nymfile, message);
+    result = send_message({}, context, message);
 
     return output;
 }
@@ -9353,13 +9327,6 @@ CommandResult OT_API::notarizeWithdrawal(
     const auto& serverID = context.Server();
     const auto& serverNym = context.RemoteNym();
     const auto& serverNymID = serverNym.ID();
-    auto nymfile = GetOrLoadPrivateNym(nymID, false, __FUNCTION__);
-
-    if (nullptr == nymfile) {
-
-        return output;
-    }
-
     auto wallet = GetWallet(__FUNCTION__);
 
     if (nullptr == wallet) {
@@ -9491,7 +9458,7 @@ CommandResult OT_API::notarizeWithdrawal(
         // point. The token's constructor just uses it to copy some IDs, since
         // they must match.
         std::unique_ptr<Token> token(Token::InstantiateAndGenerateTokenRequest(
-            *purse, *nymfile, *mint, tokenAmount));
+            *purse, nym, *mint, tokenAmount));
 
         if (false == bool(token)) {
 
@@ -9565,7 +9532,7 @@ CommandResult OT_API::notarizeWithdrawal(
         return output;
     }
 
-    result = send_message(managed, context, nymfile, *message);
+    result = send_message(managed, context, *message);
 
     return output;
 }
@@ -9593,13 +9560,6 @@ CommandResult OT_API::notarizeDeposit(
         "Depositing a cash purse. Enter passphrase for the purse.");
     const OTPasswordData cashPasswordReason(
         "Depositing a cash purse. Enter master passphrase for wallet.");
-    auto nymfile = GetOrLoadPrivateNym(nymID, false, __FUNCTION__);
-
-    if (nullptr == nymfile) {
-
-        return output;
-    }
-
     auto account = GetOrLoadAccount(nym, accountID, serverID, __FUNCTION__);
 
     if (nullptr == account) {
@@ -9777,7 +9737,7 @@ CommandResult OT_API::notarizeDeposit(
         return output;
     }
 
-    result = send_message(managed, context, nymfile, *message);
+    result = send_message(managed, context, *message);
 
     return output;
 }
@@ -9813,14 +9773,6 @@ CommandResult OT_API::payDividend(
     const auto& nym = *context.Nym();
     const auto& nymID = nym.ID();
     const auto& serverID = context.Server();
-    auto nymfile = GetOrLoadPrivateNym(nymID, false, __FUNCTION__);
-
-    if (nullptr == nymfile) {
-
-        return output;
-    }
-
-    // dividendAccount is not owned by this function
     auto dividendAccount =
         GetOrLoadAccount(nym, DIVIDEND_FROM_accountID, serverID, __FUNCTION__);
 
@@ -10067,7 +10019,7 @@ CommandResult OT_API::payDividend(
         return output;
     }
 
-    result = send_message(managed, context, nymfile, *message);
+    result = send_message(managed, context, *message);
 
     return output;
 }
@@ -10092,13 +10044,6 @@ CommandResult OT_API::withdrawVoucher(
     const auto& nym = *context.Nym();
     const auto& nymID = nym.ID();
     const auto& serverID = context.Server();
-    auto nymfile = GetOrLoadPrivateNym(nymID, false, __FUNCTION__);
-
-    if (nullptr == nymfile) {
-
-        return output;
-    }
-
     auto account = GetOrLoadAccount(nym, accountID, serverID, __FUNCTION__);
 
     if (nullptr == account) {
@@ -10237,7 +10182,7 @@ CommandResult OT_API::withdrawVoucher(
         return output;
     }
 
-    result = send_message({}, context, nymfile, *message);
+    result = send_message({}, context, *message);
 
     return output;
 }
@@ -10382,14 +10327,6 @@ CommandResult OT_API::depositCheque(
     const auto& nym = *context.Nym();
     const auto& nymID = nym.ID();
     const auto& serverID = context.Server();
-    auto nymfile = GetOrLoadPrivateNym(nymID, false, __FUNCTION__);
-
-    if (nullptr == nymfile) {
-
-        return output;
-    }
-
-    // account is not owned by this function
     auto account = GetOrLoadAccount(nym, accountID, serverID, __FUNCTION__);
 
     if (nullptr == account) {
@@ -10598,7 +10535,7 @@ CommandResult OT_API::depositCheque(
         return output;
     }
 
-    result = send_message(managed, context, nymfile, *message);
+    result = send_message(managed, context, *message);
 
     return output;
 }
@@ -10627,13 +10564,6 @@ CommandResult OT_API::depositPaymentPlan(
     const auto& nym = *context.Nym();
     const auto& nymID = nym.ID();
     const auto& serverID = context.Server();
-    auto nymfile = GetOrLoadPrivateNym(nymID, false, __FUNCTION__);
-
-    if (nullptr == nymfile) {
-
-        return output;
-    }
-
     OTPaymentPlan plan;
     const bool validPlan = plan.LoadContractFromString(THE_PAYMENT_PLAN) &&
                            plan.VerifySignature(nym);
@@ -10656,7 +10586,11 @@ CommandResult OT_API::depositPaymentPlan(
                      "that was already set as canceled.\n";
 
             return output;
-        } else if (!plan.CancelBeforeActivation(*nymfile)) {
+        }
+
+        auto nymfile = context.mutable_Nymfile(__FUNCTION__);
+
+        if (!plan.CancelBeforeActivation(nymfile.It())) {
             otErr << OT_METHOD << __FUNCTION__
                   << ": Error: attempted to cancel (pre-emptively, "
                      "before activation) a payment plan, "
@@ -10740,7 +10674,7 @@ CommandResult OT_API::depositPaymentPlan(
         return output;
     }
 
-    result = send_message({}, context, nymfile, *message);
+    result = send_message({}, context, *message);
 
     return output;
 }
@@ -10763,15 +10697,6 @@ CommandResult OT_API::triggerClause(
     transactionNum = transactionNumber;
     status = SendResult::ERROR;
     reply.reset(nullptr);
-    const auto& nym = *context.Nym();
-    const auto& nymID = nym.ID();
-    auto nymfile = GetOrLoadPrivateNym(nymID, false, __FUNCTION__);
-
-    if (nullptr == nymfile) {
-
-        return output;
-    }
-
     OTASCIIArmor payload{};
 
     // Optional string parameter. Available as "param_string" inside the script.
@@ -10796,7 +10721,7 @@ CommandResult OT_API::triggerClause(
         return output;
     }
 
-    result = send_message({}, context, nymfile, *message);
+    result = send_message({}, context, *message);
 
     return output;
 }
@@ -10816,13 +10741,6 @@ CommandResult OT_API::activateSmartContract(
     const auto& nym = *context.Nym();
     const auto& nymID = nym.ID();
     const auto& serverID = context.Server();
-    auto nymfile = GetOrLoadPrivateNym(nymID, false, __FUNCTION__);
-
-    if (nullptr == nymfile) {
-
-        return output;
-    }
-
     OTSmartContract contract(serverID);
 
     if (false == contract.LoadContractFromString(THE_SMART_CONTRACT)) {
@@ -11101,7 +11019,7 @@ CommandResult OT_API::activateSmartContract(
         return output;
     }
 
-    result = send_message({}, context, nymfile, *message);
+    result = send_message({}, context, *message);
 
     return output;
 }
@@ -11173,12 +11091,6 @@ CommandResult OT_API::cancelCronItem(
     const auto& nym = *context.Nym();
     const auto& nymID = nym.ID();
     const auto& serverID = context.Server();
-    auto nymfile = GetOrLoadPrivateNym(nymID, false, __FUNCTION__);
-
-    if (nullptr == nymfile) {
-
-        return output;
-    }
 
     if (context.AvailableNumbers() < 1) {
         otErr << OT_METHOD << __FUNCTION__
@@ -11266,7 +11178,7 @@ CommandResult OT_API::cancelCronItem(
         return output;
     }
 
-    result = send_message(managed, context, nymfile, *message);
+    result = send_message(managed, context, *message);
 
     return output;
 }
@@ -11306,13 +11218,6 @@ CommandResult OT_API::issueMarketOffer(
     const auto& nym = *context.Nym();
     const auto& nymID = nym.ID();
     const auto& serverID = context.Server();
-    auto nymfile = GetOrLoadPrivateNym(nymID, false, __FUNCTION__);
-
-    if (nullptr == nymfile) {
-
-        return output;
-    }
-
     auto assetAccount =
         GetOrLoadAccount(nym, ASSET_ACCOUNT_ID, serverID, __FUNCTION__);
 
@@ -11607,7 +11512,7 @@ CommandResult OT_API::issueMarketOffer(
         return output;
     }
 
-    result = send_message(managed, context, nymfile, *message);
+    result = send_message(managed, context, *message);
 
     return output;
 }
@@ -11630,15 +11535,6 @@ CommandResult OT_API::getMarketList(ServerContext& context) const
     transactionNum = 0;
     status = SendResult::ERROR;
     reply.reset(nullptr);
-    const auto& nym = *context.Nym();
-    const auto& nymID = nym.ID();
-    auto nymfile = GetOrLoadPrivateNym(nymID, false, __FUNCTION__);
-
-    if (nullptr == nymfile) {
-
-        return output;
-    }
-
     auto[newRequestNumber, message] =
         context.InitializeServerCommand(MessageType::getMarketList, requestNum);
     requestNum = newRequestNumber;
@@ -11653,7 +11549,7 @@ CommandResult OT_API::getMarketList(ServerContext& context) const
         return output;
     }
 
-    result = send_message({}, context, nymfile, *message);
+    result = send_message({}, context, *message);
 
     return output;
 }
@@ -11676,15 +11572,6 @@ CommandResult OT_API::getMarketOffers(
     transactionNum = 0;
     status = SendResult::ERROR;
     reply.reset(nullptr);
-    const auto& nym = *context.Nym();
-    const auto& nymID = nym.ID();
-    auto nymfile = GetOrLoadPrivateNym(nymID, false, __FUNCTION__);
-
-    if (nullptr == nymfile) {
-
-        return output;
-    }
-
     auto[newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::getMarketOffers, requestNum);
     requestNum = newRequestNumber;
@@ -11702,7 +11589,7 @@ CommandResult OT_API::getMarketOffers(
         return output;
     }
 
-    result = send_message({}, context, nymfile, *message);
+    result = send_message({}, context, *message);
 
     return output;
 }
@@ -11728,15 +11615,6 @@ CommandResult OT_API::getMarketRecentTrades(
     transactionNum = 0;
     status = SendResult::ERROR;
     reply.reset(nullptr);
-    const auto& nym = *context.Nym();
-    const auto& nymID = nym.ID();
-    auto nymfile = GetOrLoadPrivateNym(nymID, false, __FUNCTION__);
-
-    if (nullptr == nymfile) {
-
-        return output;
-    }
-
     auto[newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::getMarketRecentTrades, requestNum);
     requestNum = newRequestNumber;
@@ -11753,7 +11631,7 @@ CommandResult OT_API::getMarketRecentTrades(
         return output;
     }
 
-    result = send_message({}, context, nymfile, *message);
+    result = send_message({}, context, *message);
 
     return output;
 }
@@ -11774,15 +11652,6 @@ CommandResult OT_API::getNymMarketOffers(ServerContext& context) const
     transactionNum = 0;
     status = SendResult::ERROR;
     reply.reset(nullptr);
-    const auto& nym = *context.Nym();
-    const auto& nymID = nym.ID();
-    auto nymfile = GetOrLoadPrivateNym(nymID, false, __FUNCTION__);
-
-    if (nullptr == nymfile) {
-
-        return output;
-    }
-
     auto[newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::getNymMarketOffers, requestNum);
     requestNum = newRequestNumber;
@@ -11797,7 +11666,7 @@ CommandResult OT_API::getNymMarketOffers(ServerContext& context) const
         return output;
     }
 
-    result = send_message({}, context, nymfile, *message);
+    result = send_message({}, context, *message);
 
     return output;
 }
@@ -11821,13 +11690,6 @@ CommandResult OT_API::notarizeTransfer(
     const auto& nym = *context.Nym();
     const auto& nymID = nym.ID();
     const auto& serverID = context.Server();
-    auto nymfile = GetOrLoadPrivateNym(nymID, false, __FUNCTION__);
-
-    if (nullptr == nymfile) {
-
-        return output;
-    }
-
     auto account = GetOrLoadAccount(nym, ACCT_FROM, serverID, __FUNCTION__);
 
     // account is not owned by this function
@@ -11969,7 +11831,7 @@ CommandResult OT_API::notarizeTransfer(
         return output;
     }
 
-    result = send_message(managed, context, nymfile, *message);
+    result = send_message(managed, context, *message);
 
     return output;
 }
@@ -11985,15 +11847,6 @@ CommandResult OT_API::getNymbox(ServerContext& context) const
     transactionNum = 0;
     status = SendResult::ERROR;
     reply.reset(nullptr);
-    const auto& nym = *context.Nym();
-    const auto& nymID = nym.ID();
-    auto nymfile = GetOrLoadPrivateNym(nymID, false, __FUNCTION__);
-
-    if (nullptr == nymfile) {
-
-        return output;
-    }
-
     auto[newRequestNumber, message] =
         context.InitializeServerCommand(MessageType::getNymbox, requestNum);
     requestNum = newRequestNumber;
@@ -12008,7 +11861,7 @@ CommandResult OT_API::getNymbox(ServerContext& context) const
         return output;
     }
 
-    result = send_message({}, context, nymfile, *message);
+    result = send_message({}, context, *message);
 
     return output;
 }
@@ -12026,13 +11879,6 @@ CommandResult OT_API::processNymbox(ServerContext& context) const
     const auto& nym = *context.Nym();
     const auto& nymID = nym.ID();
     const auto& serverID = context.Server();
-    auto nymfile = GetOrLoadPrivateNym(nymID, false, __FUNCTION__);
-
-    if (nullptr == nymfile) {
-
-        return output;
-    }
-
     Ledger nymbox(nymID, nymID, serverID);
 
     if (false == nymbox.LoadNymbox()) {
@@ -12061,7 +11907,7 @@ CommandResult OT_API::processNymbox(ServerContext& context) const
 
     Message message;
     const auto accepted =
-        m_pClient->AcceptEntireNymbox(nymbox, context, *nymfile, message);
+        m_pClient->AcceptEntireNymbox(nymbox, context, message);
     requestNum = atoi(message.m_strRequestNum.Get());
 
     if (false == accepted) {
@@ -12078,7 +11924,7 @@ CommandResult OT_API::processNymbox(ServerContext& context) const
         return output;
     }
 
-    result = send_message({}, context, nymfile, message);
+    result = send_message({}, context, message);
 
     return output;
 }
@@ -12097,15 +11943,7 @@ CommandResult OT_API::processInbox(
     status = SendResult::ERROR;
     reply.reset(nullptr);
     const auto& nym = *context.Nym();
-    const auto& nymID = nym.ID();
     const auto& serverID = context.Server();
-    auto nymfile = GetOrLoadPrivateNym(nymID, false, __FUNCTION__);
-
-    if (nullptr == nymfile) {
-
-        return output;
-    }
-
     auto account = GetOrLoadAccount(nym, accountID, serverID, __FUNCTION__);
 
     if (nullptr == account) {
@@ -12130,7 +11968,7 @@ CommandResult OT_API::processInbox(
         return output;
     }
 
-    result = send_message({}, context, nymfile, *message);
+    result = send_message({}, context, *message);
 
     return output;
 }
@@ -12147,15 +11985,6 @@ CommandResult OT_API::registerInstrumentDefinition(
     transactionNum = 0;
     status = SendResult::ERROR;
     reply.reset(nullptr);
-    const auto& nym = *context.Nym();
-    const auto& nymID = nym.ID();
-    auto nymfile = GetOrLoadPrivateNym(nymID, false, __FUNCTION__);
-
-    if (nullptr == nymfile) {
-
-        return output;
-    }
-
     auto serialized = proto::StringToProto<proto::UnitDefinition>(THE_CONTRACT);
     auto contract = wallet_.UnitDefinition(serialized);
 
@@ -12185,7 +12014,7 @@ CommandResult OT_API::registerInstrumentDefinition(
         return output;
     }
 
-    result = send_message({}, context, nymfile, *message);
+    result = send_message({}, context, *message);
 
     return output;
 }
@@ -12202,15 +12031,6 @@ CommandResult OT_API::getInstrumentDefinition(
     transactionNum = 0;
     status = SendResult::ERROR;
     reply.reset(nullptr);
-    const auto& nym = *context.Nym();
-    const auto& nymID = nym.ID();
-    auto nymfile = GetOrLoadPrivateNym(nymID, false, __FUNCTION__);
-
-    if (nullptr == nymfile) {
-
-        return output;
-    }
-
     auto[newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::getInstrumentDefinition, requestNum);
     requestNum = newRequestNumber;
@@ -12227,7 +12047,7 @@ CommandResult OT_API::getInstrumentDefinition(
         return output;
     }
 
-    result = send_message({}, context, nymfile, *message);
+    result = send_message({}, context, *message);
 
     return output;
 }
@@ -12244,15 +12064,6 @@ CommandResult OT_API::getMint(
     transactionNum = 0;
     status = SendResult::ERROR;
     reply.reset(nullptr);
-    const auto& nym = *context.Nym();
-    const auto& nymID = nym.ID();
-    auto nymfile = GetOrLoadPrivateNym(nymID, false, __FUNCTION__);
-
-    if (nullptr == nymfile) {
-
-        return output;
-    }
-
     auto unitDefinition = wallet_.UnitDefinition(INSTRUMENT_DEFINITION_ID);
 
     if (false == bool(unitDefinition)) {
@@ -12276,7 +12087,7 @@ CommandResult OT_API::getMint(
         return output;
     }
 
-    result = send_message({}, context, nymfile, *message);
+    result = send_message({}, context, *message);
 
     return output;
 }
@@ -12302,15 +12113,6 @@ CommandResult OT_API::queryInstrumentDefinitions(
     transactionNum = 0;
     status = SendResult::ERROR;
     reply.reset(nullptr);
-    const auto& nym = *context.Nym();
-    const auto& nymID = nym.ID();
-    auto nymfile = GetOrLoadPrivateNym(nymID, false, __FUNCTION__);
-
-    if (nullptr == nymfile) {
-
-        return output;
-    }
-
     auto[newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::queryInstrumentDefinitions, requestNum);
     requestNum = newRequestNumber;
@@ -12327,7 +12129,7 @@ CommandResult OT_API::queryInstrumentDefinitions(
         return output;
     }
 
-    result = send_message({}, context, nymfile, *message);
+    result = send_message({}, context, *message);
 
     return output;
 }
@@ -12349,15 +12151,6 @@ CommandResult OT_API::registerAccount(
     transactionNum = 0;
     status = SendResult::ERROR;
     reply.reset(nullptr);
-    const auto& nym = *context.Nym();
-    const auto& nymID = nym.ID();
-    auto nymfile = GetOrLoadPrivateNym(nymID, false, __FUNCTION__);
-
-    if (nullptr == nymfile) {
-
-        return output;
-    }
-
     auto contract = wallet_.UnitDefinition(INSTRUMENT_DEFINITION_ID);
 
     if (false == bool(contract)) {
@@ -12381,7 +12174,7 @@ CommandResult OT_API::registerAccount(
         return output;
     }
 
-    result = send_message({}, context, nymfile, *message);
+    result = send_message({}, context, *message);
 
     return output;
 }
@@ -12399,15 +12192,7 @@ CommandResult OT_API::deleteAssetAccount(
     status = SendResult::ERROR;
     reply.reset(nullptr);
     const auto& nym = *context.Nym();
-    const auto& nymID = nym.ID();
     const auto& serverID = context.Server();
-    auto nymfile = GetOrLoadPrivateNym(nymID, false, __FUNCTION__);
-
-    if (nullptr == nymfile) {
-
-        return output;
-    }
-
     auto account = GetOrLoadAccount(nym, ACCOUNT_ID, serverID, __FUNCTION__);
 
     if (nullptr == account) {
@@ -12431,7 +12216,7 @@ CommandResult OT_API::deleteAssetAccount(
         return output;
     }
 
-    result = send_message({}, context, nymfile, *message);
+    result = send_message({}, context, *message);
 
     return output;
 }
@@ -12474,12 +12259,6 @@ CommandResult OT_API::getBoxReceipt(
     const auto& nym = *context.Nym();
     const auto& nymID = nym.ID();
     const auto& serverID = context.Server();
-    auto nymfile = GetOrLoadPrivateNym(nymID, false, __FUNCTION__);
-
-    if (nullptr == nymfile) {
-
-        return output;
-    }
 
     if (nymID != ACCOUNT_ID) {
         auto account =
@@ -12509,7 +12288,7 @@ CommandResult OT_API::getBoxReceipt(
         return output;
     }
 
-    result = send_message({}, context, nymfile, *message);
+    result = send_message({}, context, *message);
 
     return output;
 }
@@ -12527,15 +12306,7 @@ CommandResult OT_API::getAccountData(
     status = SendResult::ERROR;
     reply.reset(nullptr);
     const auto& nym = *context.Nym();
-    const auto& nymID = nym.ID();
     const auto& serverID = context.Server();
-    auto nymfile = GetOrLoadPrivateNym(nymID, false, __FUNCTION__);
-
-    if (nullptr == nymfile) {
-
-        return output;
-    }
-
     auto account = GetOrLoadAccount(nym, accountID, serverID, __FUNCTION__);
 
     if (nullptr == account) {
@@ -12559,7 +12330,7 @@ CommandResult OT_API::getAccountData(
         return output;
     }
 
-    result = send_message({}, context, nymfile, *message);
+    result = send_message({}, context, *message);
 
     return output;
 }
@@ -12577,15 +12348,6 @@ CommandResult OT_API::usageCredits(
     transactionNum = 0;
     status = SendResult::ERROR;
     reply.reset(nullptr);
-    const auto& nym = *context.Nym();
-    const auto& nymID = nym.ID();
-    auto nymfile = GetOrLoadPrivateNym(nymID, false, __FUNCTION__);
-
-    if (nullptr == nymfile) {
-
-        return output;
-    }
-
     auto[newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::usageCredits, NYM_ID_CHECK, requestNum);
     requestNum = newRequestNumber;
@@ -12602,7 +12364,7 @@ CommandResult OT_API::usageCredits(
         return output;
     }
 
-    result = send_message({}, context, nymfile, *message);
+    result = send_message({}, context, *message);
 
     return output;
 }
@@ -12622,15 +12384,6 @@ CommandResult OT_API::checkNym(
     transactionNum = 0;
     status = SendResult::ERROR;
     reply.reset(nullptr);
-    const auto& nym = *context.Nym();
-    const auto& nymID = nym.ID();
-    auto nymfile = GetOrLoadPrivateNym(nymID, false, __FUNCTION__);
-
-    if (nullptr == nymfile) {
-
-        return output;
-    }
-
     auto[newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::checkNym, targetNymID, requestNum);
     requestNum = newRequestNumber;
@@ -12645,7 +12398,7 @@ CommandResult OT_API::checkNym(
         return output;
     }
 
-    result = send_message({}, context, nymfile, *message);
+    result = send_message({}, context, *message);
 
     return output;
 }
@@ -12663,15 +12416,6 @@ CommandResult OT_API::registerContract(
     transactionNum = 0;
     status = SendResult::ERROR;
     reply.reset(nullptr);
-    const auto& nym = *context.Nym();
-    const auto& nymID = nym.ID();
-    auto nymfile = GetOrLoadPrivateNym(nymID, false, __FUNCTION__);
-
-    if (nullptr == nymfile) {
-
-        return output;
-    }
-
     auto[newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::registerContract, requestNum);
     requestNum = newRequestNumber;
@@ -12736,7 +12480,7 @@ CommandResult OT_API::registerContract(
         return output;
     }
 
-    result = send_message({}, context, nymfile, *message);
+    result = send_message({}, context, *message);
 
     return output;
 }
@@ -12745,8 +12489,7 @@ CommandResult OT_API::sendNymObject(
     ServerContext& context,
     const Identifier& recipientNymID,
     const PeerObject& object,
-    const RequestNumber provided,
-    Nym* nymfile) const
+    const RequestNumber provided) const
 {
     rLock lock(lock_);
     CommandResult output{};
@@ -12756,18 +12499,6 @@ CommandResult OT_API::sendNymObject(
     transactionNum = 0;
     status = SendResult::ERROR;
     reply.reset(nullptr);
-    const auto& nym = *context.Nym();
-    const auto& nymID = nym.ID();
-
-    if (nullptr == nymfile) {
-        nymfile = GetOrLoadPrivateNym(nymID, false, __FUNCTION__);
-    }
-
-    if (nullptr == nymfile) {
-
-        return output;
-    }
-
     auto[newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::sendNymMessage, recipientNymID, provided);
     requestNum = newRequestNumber;
@@ -12809,7 +12540,7 @@ CommandResult OT_API::sendNymObject(
         return output;
     }
 
-    result = send_message({}, context, nymfile, *message);
+    result = send_message({}, context, *message);
 
     return output;
 }
@@ -12918,16 +12649,6 @@ CommandResult OT_API::sendNymInstrument(
     reply.reset(nullptr);
     const auto& nym = *context.Nym();
     const auto& nymID = nym.ID();
-    auto nymfile =
-        GetOrLoadPrivateNym(context.Nym()->ID(), false, __FUNCTION__);
-
-    if (nullptr == nymfile) {
-        otErr << OT_METHOD << __FUNCTION__
-              << " Unable to load nym: " << String(nymID) << std::endl;
-
-        return output;
-    }
-
     const auto recipientNym = wallet_.Nym(recipientNymID);
 
     if (false == bool(recipientNym)) {
@@ -12963,11 +12684,13 @@ CommandResult OT_API::sendNymInstrument(
 
     // REMOVE OLDER DUPLICATE (if applicable) FROM OUTPAYMENTS BOX.
     if (false == instrument.IsPurse()) {
+        auto nymfile = context.mutable_Nymfile(__FUNCTION__);
         std::int64_t lInstrumentOpeningNum{0};
         const bool bGotTransNum =
             instrument.GetOpeningNum(lInstrumentOpeningNum, nymID);
+
         if (bGotTransNum) {
-            nymfile->RemoveOutpaymentsByTransNum(lInstrumentOpeningNum);
+            nymfile.It().RemoveOutpaymentsByTransNum(lInstrumentOpeningNum);
         }
     }
 
@@ -13011,10 +12734,8 @@ CommandResult OT_API::sendNymInstrument(
                         recipientPubkey, strInstrumentForRecipient) &&
                     theEnvelope.GetCiphertext(theMessage.m_ascPayload)) {
                     context.IncrementRequest();
-                    // ----------------------------
                     theMessage.SignContract(nym);
                     theMessage.SaveContract();
-                    // -------------------------------------------------
                     // Back to the outpayments message...
                     // (We may want it saved in the outpayment box, before
                     // the reply from the above message arrives. Actually
@@ -13024,9 +12745,8 @@ CommandResult OT_API::sendNymInstrument(
                     // itself. Anyway, better safe than sorry...)
                     pMessageLocalCopy->SignContract(nym);
                     pMessageLocalCopy->SaveContract();
-
-                    nymfile->AddOutpayments(*(pMessageLocalCopy.release()));
-                    nymfile->SaveSignedNymfile(nym);
+                    auto nymfile = context.mutable_Nymfile(__FUNCTION__);
+                    nymfile.It().AddOutpayments(*(pMessageLocalCopy.release()));
                     bSendIt = true;
                 }
             }
@@ -13043,8 +12763,8 @@ CommandResult OT_API::sendNymInstrument(
             OT_NEW_ASSERT_MSG(
                 true == bool(object), "Failed trying to create a PeerObject.");
 
-            output = sendNymObject(
-                context, recipientNymID, *object, requestNum, nymfile);
+            output =
+                sendNymObject(context, recipientNymID, *object, requestNum);
         }
     } else {
         // You may be wondering why this code seems to repeat?
@@ -13072,8 +12792,8 @@ CommandResult OT_API::sendNymInstrument(
         pMessageLocalCopy->m_strRequestNum.Format("%" PRId64, requestNum);
         pMessageLocalCopy->SignContract(nym);
         pMessageLocalCopy->SaveContract();
-        nymfile->AddOutpayments(*(pMessageLocalCopy.release()));
-        nymfile->SaveSignedNymfile(nym);
+        auto nymfile = context.mutable_Nymfile(__FUNCTION__);
+        nymfile.It().AddOutpayments(*(pMessageLocalCopy.release()));
         status = SendResult::UNNECESSARY;
     }
 
@@ -13687,21 +13407,12 @@ CommandResult OT_API::registerNym(ServerContext& context) const
     transactionNum = 0;
     status = SendResult::ERROR;
     reply.reset(nullptr);
-    const auto& nym = *context.Nym();
-    const auto& nymID = nym.ID();
-    auto nymfile = GetOrLoadPrivateNym(nymID, false, __FUNCTION__);
-
-    if (nullptr == nymfile) {
-
-        return output;
-    }
-
     Message message;
     requestNum = m_pClient->ProcessUserCommand(
         MessageType::registerNym, context, message);
 
     if (0 < requestNum) {
-        result = send_message({}, context, nymfile, message);
+        result = send_message({}, context, message);
     } else {
         otErr << OT_METHOD << __FUNCTION__ << ": Error in "
               << "m_pClient->ProcessUserCommand()" << std::endl;
@@ -13720,21 +13431,12 @@ CommandResult OT_API::unregisterNym(ServerContext& context) const
     transactionNum = 0;
     status = SendResult::ERROR;
     reply.reset(nullptr);
-    const auto& nym = *context.Nym();
-    const auto& nymID = nym.ID();
-    auto nymfile = GetOrLoadPrivateNym(nymID, false, __FUNCTION__);
-
-    if (nullptr == nymfile) {
-
-        return output;
-    }
-
     Message message;
     requestNum = m_pClient->ProcessUserCommand(
         MessageType::unregisterNym, context, message);
 
     if (0 < requestNum) {
-        result = send_message({}, context, nymfile, message);
+        result = send_message({}, context, message);
     } else {
         otErr << OT_METHOD << __FUNCTION__ << ": Error in "
               << "m_pClient->ProcessUserCommand()" << std::endl;
@@ -13746,7 +13448,6 @@ CommandResult OT_API::unregisterNym(ServerContext& context) const
 NetworkReplyMessage OT_API::send_message(
     const std::set<ServerContext::ManagedNumber>& pending,
     ServerContext& context,
-    Nym* nymfile,
     Message& message) const
 {
     rLock lock(lock_);
@@ -13755,7 +13456,7 @@ NetworkReplyMessage OT_API::send_message(
     auto result = context.Connection().Send(message);
 
     if (SendResult::VALID_REPLY == result.first) {
-        m_pClient->processServerReply(pending, context, nymfile, result.second);
+        m_pClient->processServerReply(pending, context, result.second);
     }
 
     return result;
@@ -13898,15 +13599,6 @@ CommandResult OT_API::requestAdmin(
     transactionNum = 0;
     status = SendResult::ERROR;
     reply.reset(nullptr);
-    const auto& nym = *context.Nym();
-    const auto& nymID = nym.ID();
-    auto nymfile = GetOrLoadPrivateNym(nymID, false, __FUNCTION__);
-
-    if (nullptr == nymfile) {
-
-        return output;
-    }
-
     auto[newRequestNumber, message] =
         context.InitializeServerCommand(MessageType::requestAdmin, requestNum);
     requestNum = newRequestNumber;
@@ -13923,7 +13615,7 @@ CommandResult OT_API::requestAdmin(
         return output;
     }
 
-    result = send_message({}, context, nymfile, *message);
+    result = send_message({}, context, *message);
 
     return output;
 }
@@ -13943,15 +13635,6 @@ CommandResult OT_API::serverAddClaim(
     transactionNum = 0;
     status = SendResult::ERROR;
     reply.reset(nullptr);
-    const auto& nym = *context.Nym();
-    const auto& nymID = nym.ID();
-    auto nymfile = GetOrLoadPrivateNym(nymID, false, __FUNCTION__);
-
-    if (nullptr == nymfile) {
-
-        return output;
-    }
-
     auto[newRequestNumber, message] =
         context.InitializeServerCommand(MessageType::addClaim, requestNum);
     requestNum = newRequestNumber;
@@ -13971,7 +13654,7 @@ CommandResult OT_API::serverAddClaim(
         return output;
     }
 
-    result = send_message({}, context, nymfile, *message);
+    result = send_message({}, context, *message);
 
     return output;
 }

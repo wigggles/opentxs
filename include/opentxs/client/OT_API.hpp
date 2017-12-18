@@ -839,8 +839,7 @@ public:
         ServerContext& context,
         const Identifier& recipientNymID,
         const PeerObject& object,
-        const RequestNumber provided,
-        Nym* nymfile = nullptr) const;
+        const RequestNumber provided) const;
 
     EXPORT CommandResult registerContract(
         ServerContext& context,
@@ -1410,7 +1409,6 @@ private:
     NetworkReplyMessage send_message(
         const std::set<ServerContext::ManagedNumber>& pending,
         ServerContext& context,
-        Nym* nymfile,
         Message& message) const;
 
     bool Cleanup();

@@ -66,6 +66,7 @@
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 #include "opentxs/core/crypto/OTEnvelope.hpp"
 #include "opentxs/core/crypto/OTNymOrSymmetricKey.hpp"
+#include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/recurring/OTPaymentPlan.hpp"
 #include "opentxs/core/trade/OTOffer.hpp"
 #include "opentxs/core/trade/OTTrade.hpp"
@@ -285,7 +286,6 @@ bool OTClient::createInstrumentNoticeFromPeerObject(
 bool OTClient::AcceptEntireNymbox(
     Ledger& theNymbox,
     ServerContext& context,
-    Nym& nymfile,
     Message& theMessage)
 {
     const auto& nym = *context.Nym();
@@ -639,7 +639,7 @@ bool OTClient::AcceptEntireNymbox(
                             // Nymbox. Since we  already have it loaded here, we
                             // pass it in so it won't get loaded twice.
                             processServerReply(
-                                {}, context, &nymfile, pMessage, &theNymbox);
+                                {}, context, pMessage, &theNymbox);
                             pMessage = nullptr;  // We're done with it now.
 
                             // By this point, I KNOW FOR A FACT that IF there
@@ -955,9 +955,8 @@ void OTClient::load_str_trans_add_to_ledger(
 void OTClient::ProcessIncomingCronItemReply(
     Item* pReplyItem,
     std::unique_ptr<OTCronItem>& pCronItem,
-    Nym* nymfile,
     ServerContext& context,
-    const int64_t& lNymOpeningNumber,
+    const TransactionNumber& lNymOpeningNumber,
     OTTransaction* pTransaction,
     const String& strCronItem) const
 {
@@ -1016,16 +1015,17 @@ void OTClient::ProcessIncomingCronItemReply(
         pCronItem->SaveActiveCronReceipt(context.Nym()->ID());
     }
     NumList numlistOutpayment(lNymOpeningNumber);
-    Message* pMsg = nymfile->GetOutpaymentsByTransNum(lNymOpeningNumber);
+    auto nymfile = context.mutable_Nymfile("");
+    auto pMsg = nymfile.It().GetOutpaymentsByTransNum(lNymOpeningNumber);
     std::unique_ptr<Message> theMessageAngel;
 
     if (nullptr != pMsg) {
-        const bool bRemovedOutpayment = nymfile->RemoveOutpaymentsByTransNum(
-            lNymOpeningNumber,
-            false);  // bDeleteIt=false  (deleted later on.)
+        const bool bRemovedOutpayment =
+            nymfile.It().RemoveOutpaymentsByTransNum(
+                lNymOpeningNumber,
+                false);  // bDeleteIt=false  (deleted later on.)
         if (bRemovedOutpayment) {
             theMessageAngel.reset(pMsg);
-            nymfile->SaveSignedNymfile(*context.Nym());
         } else
             otErr
                 << __FUNCTION__
@@ -1412,7 +1412,6 @@ void OTClient::ProcessIncomingCronItemReply(
 
 void OTClient::ProcessIncomingTransaction(
     const Message& theReply,
-    Nym* nymfile,
     ServerContext& context,
     OTTransaction* pTransaction,
     String& strReceiptID) const
@@ -1668,7 +1667,6 @@ void OTClient::ProcessIncomingTransaction(
                         ProcessIncomingCronItemReply(
                             pReplyItem,
                             pCronItem,
-                            nymfile,
                             context,
                             lNymOpeningNumber,
                             pTransaction,
@@ -1812,7 +1810,6 @@ void OTClient::ProcessIncomingTransaction(
 void OTClient::ProcessIncomingTransactions(
     const Message& theReply,
     const Identifier& accountID,
-    Nym* nymfile,
     ServerContext& context) const
 {
     const Identifier NYM_ID = context.Nym()->ID();
@@ -1882,7 +1879,7 @@ void OTClient::ProcessIncomingTransactions(
                                                      // reply from server
         {
             ProcessIncomingTransaction(
-                theReply, nymfile, context, pTransaction, strReceiptID);
+                theReply, context, pTransaction, strReceiptID);
         } else {
             otOut
                 << __FUNCTION__
@@ -2323,12 +2320,11 @@ bool OTClient::processServerReplyCheckNym(
 bool OTClient::processServerReplyNotarizeTransaction(
     const Message& theReply,
     const Identifier& accountID,
-    Nym* nymfile,
     ServerContext& context)
 {
     otInfo << "Received server response to notarize Transactions message.\n";
     setRecentHash(theReply, false, context);
-    ProcessIncomingTransactions(theReply, accountID, nymfile, context);
+    ProcessIncomingTransactions(theReply, accountID, context);
 
     // TODO (gui):
     // This block assumes that the above "notarizeTransactionResponse", being
@@ -2355,7 +2351,6 @@ bool OTClient::processServerReplyGetTransactionNumbers(
 
 bool OTClient::processServerReplyGetNymBox(
     const Message& theReply,
-    Nym* nymfile,
     Ledger* pNymbox,
     ServerContext& context)
 {
@@ -2792,7 +2787,6 @@ bool OTClient::processServerReplyGetBoxReceipt(
 bool OTClient::processServerReplyProcessInbox(
     const Message& theReply,
     const Identifier& accountID,
-    Nym* nymfile,
     Ledger* pNymbox,
     ServerContext& context,
     OTTransaction* pTransaction,
@@ -3185,8 +3179,9 @@ bool OTClient::processServerReplyProcessInbox(
                                 // (here: YES), and if that cheque is found
                                 // inside the outpayments, then move it at that
                                 // time to the record box.
-                                Message* pMsg =
-                                    nymfile->GetOutpaymentsByTransNum(
+                                auto nymfile = context.mutable_Nymfile("");
+                                auto pMsg =
+                                    nymfile.It().GetOutpaymentsByTransNum(
                                         theCheque.GetTransactionNum());
 
                                 // Found something that matches.
@@ -3196,18 +3191,8 @@ bool OTClient::processServerReplyProcessInbox(
                                     // chequeReceipt now. (Dump it in records
                                     // for your app, but OT itself is done with
                                     // it.)
-                                    //
-                                    if (nymfile->RemoveOutpaymentsByTransNum(
-                                            theCheque.GetTransactionNum())) {
-                                        if (!nymfile->SaveSignedNymfile(
-                                                *context.Nym()))
-                                            // save Nym to local storage, since
-                                            // an outpayment was erased.
-                                            otErr << __FUNCTION__
-                                                  << ": Error saving Nym: "
-                                                  << String(context.Nym()->ID())
-                                                  << "\n";
-                                    }
+                                    nymfile.It().RemoveOutpaymentsByTransNum(
+                                        theCheque.GetTransactionNum());
                                 }
                             }
                         }
@@ -3690,7 +3675,6 @@ bool OTClient::processServerReplyProcessInbox(
 
 bool OTClient::processServerReplyProcessNymbox(
     const Message& theReply,
-    Nym* nymfile,
     Ledger* pNymbox,
     ServerContext& context,
     OTTransaction* pTransaction,
@@ -4215,18 +4199,20 @@ bool OTClient::processServerReplyProcessNymbox(
                                 //
                                 NumList numlistOutpayment(lNymOpeningNumber);
                                 String strSentInstrument;
+                                auto nymfile = context.mutable_Nymfile("");
                                 // If the instrument is in the outpayments
                                 // box, we put a copy of it here.
-                                Message* pMsg =
-                                    nymfile->GetOutpaymentsByTransNum(
+                                auto pMsg =
+                                    nymfile.It().GetOutpaymentsByTransNum(
                                         lNymOpeningNumber);
                                 std::unique_ptr<Message> theMessageAngel;
 
                                 if (nullptr != pMsg) {
                                     const bool bRemovedOutpayment =
-                                        nymfile->RemoveOutpaymentsByTransNum(
-                                            lNymOpeningNumber,
-                                            false);  // bDeleteIt=false
+                                        nymfile.It()
+                                            .RemoveOutpaymentsByTransNum(
+                                                lNymOpeningNumber,
+                                                false);  // bDeleteIt=false
                                     // (Deleted later on.)
 
                                     // Since we chose to keep pMsg alive and
@@ -4238,8 +4224,6 @@ bool OTClient::processServerReplyProcessNymbox(
                                     //
                                     if (bRemovedOutpayment) {
                                         theMessageAngel.reset(pMsg);
-                                        nymfile->SaveSignedNymfile(
-                                            *context.Nym());
                                     } else
                                         otErr << __FUNCTION__
                                               << ": Failed trying to remove "
@@ -5091,7 +5075,6 @@ bool OTClient::processServerReplyProcessNymbox(
 bool OTClient::processServerReplyProcessBox(
     const Message& theReply,
     const Identifier& accountID,
-    Nym* nymfile,
     Ledger* pNymbox,
     ServerContext& context)
 {
@@ -5226,7 +5209,6 @@ bool OTClient::processServerReplyProcessBox(
                     const bool bSuccess = processServerReplyProcessInbox(
                         theReply,
                         accountID,
-                        nymfile,
                         pNymbox,
                         context,
                         pTransaction,
@@ -5293,7 +5275,6 @@ bool OTClient::processServerReplyProcessBox(
 
                     const bool bSuccess = processServerReplyProcessNymbox(
                         theReply,
-                        nymfile,
                         pNymbox,
                         context,
                         pTransaction,
@@ -5413,7 +5394,6 @@ bool OTClient::processServerReplyProcessBox(
 bool OTClient::processServerReplyGetAccountData(
     const Message& theReply,
     const Identifier& accountID,
-    Nym* nymfile,
     Ledger* pNymbox,
     ServerContext& context)
 {
@@ -5484,17 +5464,16 @@ bool OTClient::processServerReplyGetAccountData(
             Identifier THE_HASH;
 
             if (theReply.m_strInboxHash.Exists()) {
+                auto nymfile = context.mutable_Nymfile("");
                 THE_HASH.SetString(theReply.m_strInboxHash);
+                const bool bHash =
+                    nymfile.It().SetInboxHash(str_acct_id, THE_HASH);
 
-                const bool bHash = nymfile->SetInboxHash(str_acct_id, THE_HASH);
-
-                if (!bHash)
+                if (false == bHash) {
                     otErr << __FUNCTION__
                           << ": Failed setting InboxHash on Nym "
                              "for account: "
                           << str_acct_id << "\n";
-                else {
-                    nymfile->SaveSignedNymfile(*context.Nym());
                 }
             }
 
@@ -5592,20 +5571,19 @@ bool OTClient::processServerReplyGetAccountData(
             Identifier THE_HASH;
 
             if (theReply.m_strOutboxHash.Exists()) {
+                auto nymfile = context.mutable_Nymfile("");
                 THE_HASH.SetString(theReply.m_strOutboxHash);
-
                 const bool bHash =
-                    nymfile->SetOutboxHash(str_acct_id, THE_HASH);
+                    nymfile.It().SetOutboxHash(str_acct_id, THE_HASH);
 
-                if (!bHash)
+                if (false == bHash) {
                     otErr << __FUNCTION__
                           << ": Failed setting OutboxHash on Nym "
                              "for account: "
                           << str_acct_id << "\n";
-                else {
-                    nymfile->SaveSignedNymfile(*context.Nym());
                 }
             }
+
             theOutbox.ReleaseSignatures();  // UPDATE: keeping the server's
                                             // signature, and just adding my
                                             // own.
@@ -5988,7 +5966,6 @@ bool OTClient::processServerReplyGetNymMarketOffers(const Message& theReply)
 
 bool OTClient::processServerReplyUnregisterNym(
     const Message& theReply,
-    Nym* nymfile,
     ServerContext& context)
 {
     String strOriginalMessage;
@@ -6005,10 +5982,6 @@ bool OTClient::processServerReplyUnregisterNym(
         theOriginalMessage.m_strNymID.Compare(theReply.m_strNymID) &&
         theOriginalMessage.m_strCommand.Compare("unregisterNym")) {
         context.Reset();
-
-        // SAVE the updated Nym to local storage.
-        nymfile->SaveSignedNymfile(*context.Nym());
-
         otOut << "Successfully DELETED Nym from Server: removed request "
                  "number, plus all issued and transaction numbers for Nym "
               << theReply.m_strNymID << " for Server " << strNotaryID << ".\n";
@@ -6190,19 +6163,11 @@ bool OTClient::processServerReplyRegisterAccount(
 bool OTClient::processServerReply(
     const std::set<ServerContext::ManagedNumber>& managed,
     ServerContext& context,
-    Nym* nymfile,
     std::unique_ptr<Message>& reply,
     Ledger* pNymbox)
 {
     if (!reply) {
         otErr << OT_METHOD << __FUNCTION__ << ": Invalid reply" << std::endl;
-
-        return false;
-    }
-
-    if (nullptr == nymfile) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Invalid sender nym"
-              << std::endl;
 
         return false;
     }
@@ -6343,13 +6308,13 @@ bool OTClient::processServerReply(
     }
     if (theReply.m_strCommand.Compare("notarizeTransactionResponse")) {
         return processServerReplyNotarizeTransaction(
-            theReply, accountID, nymfile, context);
+            theReply, accountID, context);
     }
     if (theReply.m_strCommand.Compare("getTransactionNumbersResponse")) {
         return processServerReplyGetTransactionNumbers(theReply, context);
     }
     if (theReply.m_strCommand.Compare("getNymboxResponse")) {
-        return processServerReplyGetNymBox(theReply, nymfile, pNymbox, context);
+        return processServerReplyGetNymBox(theReply, pNymbox, context);
     }
     if (theReply.m_strCommand.Compare("getBoxReceiptResponse")) {
         return processServerReplyGetBoxReceipt(theReply, pNymbox, context);
@@ -6357,11 +6322,11 @@ bool OTClient::processServerReply(
     if ((theReply.m_strCommand.Compare("processInboxResponse") ||
          theReply.m_strCommand.Compare("processNymboxResponse"))) {
         return processServerReplyProcessBox(
-            theReply, accountID, nymfile, pNymbox, context);
+            theReply, accountID, pNymbox, context);
     }
     if (theReply.m_strCommand.Compare("getAccountDataResponse")) {
         return processServerReplyGetAccountData(
-            theReply, accountID, nymfile, pNymbox, context);
+            theReply, accountID, pNymbox, context);
     }
     if (theReply.m_strCommand.Compare("getInstrumentDefinitionResponse")) {
         return processServerReplyGetInstrumentDefinition(theReply, context);
@@ -6384,7 +6349,7 @@ bool OTClient::processServerReply(
         return processServerReplyGetNymMarketOffers(theReply);
     }
     if (theReply.m_strCommand.Compare("unregisterNymResponse")) {
-        return processServerReplyUnregisterNym(theReply, nymfile, context);
+        return processServerReplyUnregisterNym(theReply, context);
     }
     if (theReply.m_strCommand.Compare("unregisterAccountResponse")) {
         return processServerReplyUnregisterAccount(theReply, context);

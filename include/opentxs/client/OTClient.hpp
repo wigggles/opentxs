@@ -99,14 +99,12 @@ public:
     bool processServerReply(
         const std::set<ServerContext::ManagedNumber>& managed,
         ServerContext& context,
-        Nym* nymfile,
         std::unique_ptr<Message>& reply,
         Ledger* pNymbox = nullptr);
 
     bool AcceptEntireNymbox(
         Ledger& theNymbox,
         ServerContext& context,
-        Nym& nymfile,
         Message& theMessage);
 
 private:
@@ -119,14 +117,12 @@ private:
 
     void ProcessIncomingTransaction(
         const Message& theReply,
-        Nym* nymfile,
         ServerContext& context,
         OTTransaction* pTransaction,
         String& strReceiptID) const;
     void ProcessIncomingTransactions(
         const Message& theReply,
         const Identifier& accountID,
-        Nym* nymfile,
         ServerContext& context) const;
 #if OT_CASH
     void ProcessWithdrawalResponse(
@@ -162,14 +158,12 @@ private:
     bool processServerReplyNotarizeTransaction(
         const Message& theReply,
         const Identifier& accountID,
-        Nym* nymfile,
         ServerContext& context);
     bool processServerReplyGetTransactionNumbers(
         const Message& theReply,
         ServerContext& context);
     bool processServerReplyGetNymBox(
         const Message& theReply,
-        Nym* nymfile,
         Ledger* pNymbox,
         ServerContext& context);
     bool processServerReplyGetBoxReceipt(
@@ -179,20 +173,17 @@ private:
     bool processServerReplyProcessBox(
         const Message& theReply,
         const Identifier& accountID,
-        Nym* nymfile,
         Ledger* pNymbox,
         ServerContext& context);
     bool processServerReplyProcessInbox(
         const Message& theReply,
         const Identifier& accountID,
-        Nym* nymfile,
         Ledger* pNymbox,
         ServerContext& context,
         OTTransaction* pTransaction,
         OTTransaction* pReplyTransaction);
     bool processServerReplyProcessNymbox(
         const Message& theReply,
-        Nym* nymfile,
         Ledger* pNymbox,
         ServerContext& context,
         OTTransaction* pTransaction,
@@ -200,7 +191,6 @@ private:
     bool processServerReplyGetAccountData(
         const Message& theReply,
         const Identifier& accountID,
-        Nym* nymfile,
         Ledger* pNymbox,
         ServerContext& context);
     bool processServerReplyGetInstrumentDefinition(
@@ -215,7 +205,6 @@ private:
     bool processServerReplyGetNymMarketOffers(const Message& theReply);
     bool processServerReplyUnregisterNym(
         const Message& theReply,
-        Nym* nymfile,
         ServerContext& context);
     bool processServerReplyUnregisterAccount(
         const Message& theReply,
@@ -235,9 +224,8 @@ private:
     void ProcessIncomingCronItemReply(
         Item* pReplyItem,
         std::unique_ptr<OTCronItem>& pCronItem,
-        Nym* nymfile,
         ServerContext& context,
-        const int64_t& lNymOpeningNumber,
+        const TransactionNumber& lNymOpeningNumber,
         OTTransaction* pTransaction,
         const String& strCronItem) const;
 };
