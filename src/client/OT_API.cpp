@@ -9162,6 +9162,7 @@ CommandResult OT_API::exchangeBasket(
     if (context.AvailableNumbers() < 2) {
         otErr << OT_METHOD << __FUNCTION__ << ": you don't have enough "
               << "transaction numbers to perform the exchange." << std::endl;
+        status = SendResult::TRANSACTION_NUMBERS;
 
         return output;
     }
@@ -9175,6 +9176,7 @@ CommandResult OT_API::exchangeBasket(
         otErr << OT_METHOD << __FUNCTION__
               << ": No transaction numbers were available. "
                  "Try requesting the server for a new one.\n";
+        status = SendResult::TRANSACTION_NUMBERS;
 
         return output;
     }
@@ -9398,6 +9400,7 @@ CommandResult OT_API::notarizeWithdrawal(
         otErr << OT_METHOD << __FUNCTION__
               << ": No transaction numbers were available. "
                  "Try requesting the server for a new one.\n";
+        status = SendResult::TRANSACTION_NUMBERS;
 
         return output;
     }
@@ -9594,6 +9597,7 @@ CommandResult OT_API::notarizeDeposit(
         otErr << OT_METHOD << __FUNCTION__
               << ": No transaction numbers were available. "
                  "Try requesting the server for a new one.\n";
+        status = SendResult::TRANSACTION_NUMBERS;
 
         return output;
     }
@@ -9871,6 +9875,7 @@ CommandResult OT_API::payDividend(
         otErr << OT_METHOD << __FUNCTION__
               << ": No transaction numbers were available. "
                  "Try requesting the server for a new one.\n";
+        status = SendResult::TRANSACTION_NUMBERS;
 
         return output;
     }
@@ -10444,6 +10449,7 @@ CommandResult OT_API::depositCheque(
         otErr << OT_METHOD << __FUNCTION__
               << ": No transaction numbers were available. "
                  "Try requesting the server for a new one.\n";
+        status = SendResult::TRANSACTION_NUMBERS;
 
         return output;
     }
@@ -11097,6 +11103,7 @@ CommandResult OT_API::cancelCronItem(
               << ": At least 1 Transaction Number is necessary to cancel any "
               << "cron item. Try requesting the server for more numbers (you "
               << "are low.)" << std::endl;
+        status = SendResult::TRANSACTION_NUMBERS;
 
         return output;
     }
@@ -11109,6 +11116,7 @@ CommandResult OT_API::cancelCronItem(
     if (false == managedNumber.Valid()) {
         otErr << "No transaction numbers were available. Suggest "
                  "requesting the server for one.\n";
+        status = SendResult::TRANSACTION_NUMBERS;
 
         return output;
     }
@@ -11254,6 +11262,7 @@ CommandResult OT_API::issueMarketOffer(
               << ": At least 3 Transaction Numbers are necessary to issue a "
               << "market offer. Try requesting the server for more (you are "
               << "low.)" << std::endl;
+        status = SendResult::TRANSACTION_NUMBERS;
 
         return output;
     }
@@ -11706,6 +11715,7 @@ CommandResult OT_API::notarizeTransfer(
     if (false == managedNumber.Valid()) {
         otErr << "No transaction numbers were available. Suggest "
                  "requesting the server for one.\n";
+        status = SendResult::TRANSACTION_NUMBERS;
 
         return output;
     }

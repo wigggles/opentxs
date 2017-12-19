@@ -266,12 +266,13 @@ enum class originType : std::int8_t {
     origin_error_state
 };
 
-enum class SendResult : std::uint8_t {
+enum class SendResult : std::int8_t {
+    TRANSACTION_NUMBERS = -3,
+    INVALID_REPLY = -2,
+    TIMEOUT = -1,
     ERROR = 0,
-    TIMEOUT = 1,
+    UNNECESSARY = 1,
     VALID_REPLY = 2,
-    INVALID_REPLY = 3,
-    UNNECESSARY = 4,
 };
 
 enum class ConnectionState : std::uint8_t {
