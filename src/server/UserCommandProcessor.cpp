@@ -1670,19 +1670,6 @@ bool UserCommandProcessor::cmd_process_inbox(ReplyMessage& reply) const
         return false;
     }
 
-    FinalizeResponse response(serverNym, reply, *responseLedger);
-    reply.SetSuccess(false);
-    reply.DropToNymbox(true);
-    // Returning after this point will result in the reply message
-    // m_bSuccess = true, and a signed reply ledger containing at least one
-    // transaction
-
-    response.SetResponse(OTTransaction::GenerateTransaction(
-        *responseLedger,
-        OTTransaction::error_state,
-        originType::not_applicable,
-        inputNumber));
-
     // We don't want any transaction number being used twice. (The number, at
     // this point, is STILL issued to the user, who is still responsible for
     // that number and must continue signing for it. All this means here is that
@@ -1696,7 +1683,17 @@ bool UserCommandProcessor::cmd_process_inbox(ReplyMessage& reply) const
         return false;
     }
 
+    // Returning after this point will result in the reply message
+    // m_bSuccess = true, and a signed reply ledger containing at least one
+    // transaction
+    FinalizeResponse response(serverNym, reply, *responseLedger);
     reply.SetSuccess(true);
+    reply.DropToNymbox(true);
+    response.SetResponse(OTTransaction::GenerateTransaction(
+        *responseLedger,
+        OTTransaction::error_state,
+        originType::not_applicable,
+        inputNumber));
     bool transactionSuccess{false};
     server_.notary_.NotarizeProcessInbox(
         nymfile,
@@ -1705,17 +1702,13 @@ bool UserCommandProcessor::cmd_process_inbox(ReplyMessage& reply) const
         *processInbox,
         *response.Response(),
         transactionSuccess);
+    const auto consumed = context.ConsumeIssued(inputNumber);
 
-    if (false == transactionSuccess) {
-        const auto consumed = context.ConsumeIssued(inputNumber);
+    if (false == consumed) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Error removing issued number "
+              << inputNumber << std::endl;
 
-        if (false == consumed) {
-            otErr << OT_METHOD << __FUNCTION__
-                  << ": Error removing issued number " << inputNumber
-                  << std::endl;
-
-            OT_FAIL;
-        }
+        OT_FAIL;
     }
 
     if (transactionSuccess) {
