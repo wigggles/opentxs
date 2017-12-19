@@ -69,6 +69,106 @@
 
 namespace opentxs
 {
+const std::map<OTAPI_Func_Type, std::string> OTAPI_Func::type_name_{
+    {NO_FUNC, "NO_FUNC"},
+    {REMOVED1, "REMOVED1"},
+    {REGISTER_NYM, "REGISTER_NYM"},
+    {DELETE_NYM, "DELETE_NYM"},
+    {CHECK_NYM, "CHECK_NYM"},
+    {SEND_USER_MESSAGE, "SEND_USER_MESSAGE"},
+    {SEND_USER_INSTRUMENT, "SEND_USER_INSTRUMENT"},
+    {ISSUE_ASSET_TYPE, "ISSUE_ASSET_TYPE"},
+    {ISSUE_BASKET, "ISSUE_BASKET"},
+    {CREATE_ASSET_ACCT, "CREATE_ASSET_ACCT"},
+    {DELETE_ASSET_ACCT, "DELETE_ASSET_ACCT"},
+    {ACTIVATE_SMART_CONTRACT, "ACTIVATE_SMART_CONTRACT"},
+    {TRIGGER_CLAUSE, "TRIGGER_CLAUSE"},
+    {PROCESS_INBOX, "PROCESS_INBOX"},
+    {EXCHANGE_BASKET, "EXCHANGE_BASKET"},
+    {DEPOSIT_CASH, "DEPOSIT_CASH"},
+    {EXCHANGE_CASH, "EXCHANGE_CASH"},
+    {DEPOSIT_CHEQUE, "DEPOSIT_CHEQUE"},
+    {WITHDRAW_VOUCHER, "WITHDRAW_VOUCHER"},
+    {PAY_DIVIDEND, "PAY_DIVIDEND"},
+    {WITHDRAW_CASH, "WITHDRAW_CASH"},
+    {GET_CONTRACT, "GET_CONTRACT"},
+    {SEND_TRANSFER, "SEND_TRANSFER"},
+    {GET_MARKET_LIST, "GET_MARKET_LIST"},
+    {CREATE_MARKET_OFFER, "CREATE_MARKET_OFFER"},
+    {KILL_MARKET_OFFER, "KILL_MARKET_OFFER"},
+    {KILL_PAYMENT_PLAN, "KILL_PAYMENT_PLAN"},
+    {DEPOSIT_PAYMENT_PLAN, "DEPOSIT_PAYMENT_PLAN"},
+    {GET_NYM_MARKET_OFFERS, "GET_NYM_MARKET_OFFERS"},
+    {GET_MARKET_OFFERS, "GET_MARKET_OFFERS"},
+    {GET_MARKET_RECENT_TRADES, "GET_MARKET_RECENT_TRADES"},
+    {GET_MINT, "GET_MINT"},
+    {GET_BOX_RECEIPT, "GET_BOX_RECEIPT"},
+    {ADJUST_USAGE_CREDITS, "ADJUST_USAGE_CREDITS"},
+    {INITIATE_BAILMENT, "INITIATE_BAILMENT"},
+    {INITIATE_OUTBAILMENT, "INITIATE_OUTBAILMENT"},
+    {ACKNOWLEDGE_BAILMENT, "ACKNOWLEDGE_BAILMENT"},
+    {ACKNOWLEDGE_OUTBAILMENT, "ACKNOWLEDGE_OUTBAILMENT"},
+    {NOTIFY_BAILMENT, "NOTIFY_BAILMENT"},
+    {ACKNOWLEDGE_NOTICE, "ACKNOWLEDGE_NOTICE"},
+    {REQUEST_CONNECTION, "REQUEST_CONNECTION"},
+    {ACKNOWLEDGE_CONNECTION, "ACKNOWLEDGE_CONNECTION"},
+    {REGISTER_CONTRACT_NYM, "REGISTER_CONTRACT_NYM"},
+    {REGISTER_CONTRACT_SERVER, "REGISTER_CONTRACT_SERVER"},
+    {REGISTER_CONTRACT_UNIT, "REGISTER_CONTRACT_UNIT"},
+    {REQUEST_ADMIN, "REQUEST_ADMIN"},
+    {SERVER_ADD_CLAIM, "SERVER_ADD_CLAIM"},
+    {STORE_SECRET, "STORE_SECRET"},
+};
+
+const std::map<OTAPI_Func_Type, bool> OTAPI_Func::type_type_{
+    {REGISTER_NYM, false},
+    {DELETE_NYM, false},
+    {CHECK_NYM, false},
+    {SEND_USER_MESSAGE, false},
+    {SEND_USER_INSTRUMENT, false},
+    {ISSUE_ASSET_TYPE, false},
+    {ISSUE_BASKET, false},
+    {CREATE_ASSET_ACCT, false},
+    {DELETE_ASSET_ACCT, false},
+    {ACTIVATE_SMART_CONTRACT, true},
+    {TRIGGER_CLAUSE, false},
+    {PROCESS_INBOX, true},
+    {EXCHANGE_BASKET, true},
+    {DEPOSIT_CASH, true},
+    {EXCHANGE_CASH, true},
+    {DEPOSIT_CHEQUE, true},
+    {WITHDRAW_VOUCHER, true},
+    {PAY_DIVIDEND, true},
+    {WITHDRAW_CASH, true},
+    {GET_CONTRACT, false},
+    {SEND_TRANSFER, true},
+    {GET_MARKET_LIST, false},
+    {CREATE_MARKET_OFFER, true},
+    {KILL_MARKET_OFFER, true},
+    {KILL_PAYMENT_PLAN, true},
+    {DEPOSIT_PAYMENT_PLAN, true},
+    {GET_NYM_MARKET_OFFERS, false},
+    {GET_MARKET_OFFERS, false},
+    {GET_MARKET_RECENT_TRADES, false},
+    {GET_MINT, false},
+    {GET_BOX_RECEIPT, false},
+    {ADJUST_USAGE_CREDITS, false},
+    {INITIATE_BAILMENT, false},
+    {INITIATE_OUTBAILMENT, false},
+    {ACKNOWLEDGE_BAILMENT, false},
+    {ACKNOWLEDGE_OUTBAILMENT, false},
+    {NOTIFY_BAILMENT, false},
+    {ACKNOWLEDGE_NOTICE, false},
+    {REQUEST_CONNECTION, false},
+    {ACKNOWLEDGE_CONNECTION, false},
+    {REGISTER_CONTRACT_NYM, false},
+    {REGISTER_CONTRACT_SERVER, false},
+    {REGISTER_CONTRACT_UNIT, false},
+    {REQUEST_ADMIN, false},
+    {SERVER_ADD_CLAIM, false},
+    {STORE_SECRET, false},
+};
+
 OTAPI_Func::OTAPI_Func(
     api::Wallet& wallet,
     OTAPI_Exec& exec,
@@ -76,7 +176,7 @@ OTAPI_Func::OTAPI_Func(
     const Identifier& nymID,
     const Identifier& serverID,
     const OTAPI_Func_Type type)
-    : funcType(type)
+    : type_(type)
     , nymID2("")
     , instrumentDefinitionID("")
     , instrumentDefinitionID2("")
@@ -94,14 +194,14 @@ OTAPI_Func::OTAPI_Func(
     , tData(OT_TIME_ZERO)
     , nTransNumsNeeded(0)
     , nRequestNum(-1)
-    , transaction_number_(0)
     , wallet_(wallet)
     , context_editor_(wallet_.mutable_ServerContext(nymID, serverID))
     , context_(context_editor_.It())
     , exec_(exec)
     , otapi_(otapi)
-    , last_reply_(nullptr)
-    , last_send_status_(SendResult::ERROR)
+    , lock_()
+    , last_attempt_()
+    , is_transaction_(type_type_.at(type))
     , peer_reply_(nullptr)
     , peer_request_(nullptr)
 {
@@ -722,9 +822,6 @@ OTAPI_Func::OTAPI_Func(
     }
 
     switch (theType) {
-        case (CREATE_MARKET_OFFER): {
-            nTransNumsNeeded = 3;
-        } break;
         case (ACKNOWLEDGE_CONNECTION): {
             nymID2 = account;
             instrumentDefinitionID = account2;
@@ -747,103 +844,118 @@ OTAPI_Func::OTAPI_Func(
     }
 }
 
-// -1 means error, no message was sent.
-//  0 means NO error, yet still no message was sent.
-// >0 means (usually) the request number is being returned.
-std::int32_t OTAPI_Func::Run() const
+OTAPI_Func::OTAPI_Func(
+    OTAPI_Func_Type theType,
+    api::Wallet& wallet,
+    const Identifier& nymID,
+    const Identifier& serverID,
+    OTAPI_Exec& exec,
+    OT_API& otapi,
+    const std::string& account,
+    const std::string& account2,
+    const std::string& data,
+    const std::string& data2,
+    const std::string& data3,
+    const std::string& data4,
+    bool boolInput,
+    const time64_t time,
+    const std::int64_t data5,
+    const std::string& data6)
+    : OTAPI_Func(wallet, exec, otapi, nymID, serverID, theType)
+{
+    accountID = account;
+    accountID2 = account2;
+    strData = data;
+    strData2 = data2;
+    strData3 = data3;
+    strData4 = data4;
+    bBool = boolInput;
+    tData = time;
+    lData = data5;
+    const std::string strError =
+        "Warning: Empty std::string passed to OTAPI_Func.OTAPI_Func() as: ";
+
+    if (!VerifyStringVal(accountID)) {
+        otErr << strError << "accountID" << std::endl;
+    }
+
+    if (!VerifyStringVal(accountID2)) {
+        otErr << strError << "accountID2" << std::endl;
+    }
+
+    if (!VerifyStringVal(strData)) {
+        otErr << strError << "strData" << std::endl;
+    }
+
+    if (!VerifyStringVal(strData2)) {
+        otErr << strError << "strData2" << std::endl;
+    }
+
+    if (!VerifyStringVal(strData3)) {
+        otErr << strError << "strData3" << std::endl;
+    }
+
+    if (!VerifyStringVal(strData4)) {
+        otErr << strError << "strData4" << std::endl;
+    }
+
+    if (VerifyStringVal(strData5)) {
+        strData5 = data6;
+    }
+
+    switch (theType) {
+        case (CREATE_MARKET_OFFER): {
+            nTransNumsNeeded = 3;
+        } break;
+        default: {
+            otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func()"
+                  << std::endl;
+        }
+    }
+}
+
+TransactionNumber OTAPI_Func::GetTransactionNumber() const
+{
+    return std::get<1>(last_attempt_);
+}
+
+std::string OTAPI_Func::Run(const std::size_t totalRetries)
+{
+    if (is_transaction_) {
+
+        return send_transaction(totalRetries);
+    } else {
+
+        return send_request();
+    }
+}
+
+void OTAPI_Func::run()
 {
     Lock lock(lock_);
     const String data3(strData3);
+    auto & [ requestNum, transactionNum, result ] = last_attempt_;
+    auto & [ status, reply ] = result;
+    requestNum = -1;
+    transactionNum = 0;
+    status = SendResult::ERROR;
+    reply.reset();
 
-    switch (funcType) {
+    switch (type_) {
         case CHECK_NYM: {
-            auto[requestNum, transactionNum, result] =
-                otapi_.checkNym(context_, Identifier(nymID2));
-            auto & [ status, reply ] = result;
-            transaction_number_.store(transactionNum);
-            last_send_status_ = status;
-            last_reply_.reset(reply.release());
-
-            if (0 == requestNum) {
-
-                return 0;
-            }
-
-            if (SendResult::VALID_REPLY != status) {
-
-                return -1;
-            }
-
-            return requestNum;
+            last_attempt_ = otapi_.checkNym(context_, Identifier(nymID2));
         } break;
         case REGISTER_NYM: {
-            auto[requestNum, transactionNum, result] =
-                otapi_.registerNym(context_);
-            auto & [ status, reply ] = result;
-            transaction_number_.store(transactionNum);
-            last_send_status_ = status;
-            last_reply_.reset(reply.release());
-
-            if (0 == requestNum) {
-
-                return 0;
-            }
-
-            if (SendResult::VALID_REPLY != status) {
-
-                return -1;
-            }
-
-            return requestNum;
+            last_attempt_ = otapi_.registerNym(context_);
         } break;
         case DELETE_NYM: {
-            auto[requestNum, transactionNum, result] =
-                otapi_.unregisterNym(context_);
-            auto & [ status, reply ] = result;
-            transaction_number_.store(transactionNum);
-            last_send_status_ = status;
-            last_reply_.reset(reply.release());
-
-            if (0 == requestNum) {
-
-                return 0;
-            }
-
-            if (SendResult::VALID_REPLY != status) {
-
-                return -1;
-            }
-
-            return requestNum;
+            last_attempt_ = otapi_.unregisterNym(context_);
         } break;
         case SEND_USER_MESSAGE: {
-            auto[requestNum, transactionNum, result] = otapi_.sendNymMessage(
+            last_attempt_ = otapi_.sendNymMessage(
                 context_, Identifier(nymID2), strData2.c_str());
-            auto & [ status, reply ] = result;
-            transaction_number_.store(transactionNum);
-            last_send_status_ = status;
-            last_reply_.reset(reply.release());
-
-            if (0 == requestNum) {
-
-                return 0;
-            }
-
-            if (SendResult::VALID_REPLY != status) {
-
-                return -1;
-            }
-
-            return requestNum;
         } break;
         case SEND_USER_INSTRUMENT: {
-            CommandResult send{};
-            auto & [ requestNum, transactionNum, result ] = send;
-            auto & [ status, reply ] = result;
-            requestNum = -1;
-            transactionNum = 0;
-            status = SendResult::ERROR;
-            reply.reset(nullptr);
             OTPayment thePayment(strData2.c_str());
 
             if (!thePayment.IsValid() || !thePayment.SetTempValues()) {
@@ -851,7 +963,7 @@ std::int32_t OTAPI_Func::Run() const
                       << ": Failure loading payment instrument "
                          "(intended for recipient) from string:\n\n"
                       << strData2 << "\n\n";
-                return -1;
+                return;
             }
 
             const bool bSenderCopyIncluded = (accountID.size() > 0);
@@ -866,556 +978,141 @@ std::int32_t OTAPI_Func::Run() const
                           << "intended for sender's records) from string."
                           << std::endl;
 
-                    return -1;
+                    return;
                 }
 
-                send = otapi_.sendNymInstrument(
+                last_attempt_ = otapi_.sendNymInstrument(
                     context_,
                     Identifier(nymID2),
                     thePayment,
                     &theSenderPayment);
             } else {
-                send = otapi_.sendNymInstrument(
+                last_attempt_ = otapi_.sendNymInstrument(
                     context_, Identifier(nymID2), thePayment);
             }
-
-            transaction_number_.store(transactionNum);
-            last_send_status_ = status;
-            last_reply_.reset(reply.release());
-
-            if (0 == requestNum) {
-
-                return 0;
-            }
-
-            if (SendResult::VALID_REPLY != status) {
-
-                return -1;
-            }
-
-            return requestNum;
         } break;
         case GET_NYM_MARKET_OFFERS: {
-            auto[requestNum, transactionNum, result] =
-                otapi_.getNymMarketOffers(context_);
-            auto & [ status, reply ] = result;
-            transaction_number_.store(transactionNum);
-            last_send_status_ = status;
-            last_reply_.reset(reply.release());
-
-            if (0 == requestNum) {
-
-                return 0;
-            }
-
-            if (SendResult::VALID_REPLY != status) {
-
-                return -1;
-            }
-
-            return requestNum;
+            last_attempt_ = otapi_.getNymMarketOffers(context_);
         } break;
         case CREATE_ASSET_ACCT: {
-            auto[requestNum, transactionNum, result] = otapi_.registerAccount(
+            last_attempt_ = otapi_.registerAccount(
                 context_, Identifier(instrumentDefinitionID));
-            auto & [ status, reply ] = result;
-            transaction_number_.store(transactionNum);
-            last_send_status_ = status;
-            last_reply_.reset(reply.release());
-
-            if (0 == requestNum) {
-
-                return 0;
-            }
-
-            if (SendResult::VALID_REPLY != status) {
-
-                return -1;
-            }
-
-            return requestNum;
         } break;
         case DELETE_ASSET_ACCT: {
-            auto[requestNum, transactionNum, result] =
+            last_attempt_ =
                 otapi_.deleteAssetAccount(context_, Identifier(accountID));
-            auto & [ status, reply ] = result;
-            transaction_number_.store(transactionNum);
-            last_send_status_ = status;
-            last_reply_.reset(reply.release());
-
-            if (0 == requestNum) {
-
-                return 0;
-            }
-
-            if (SendResult::VALID_REPLY != status) {
-
-                return -1;
-            }
-
-            return requestNum;
         } break;
         case ACTIVATE_SMART_CONTRACT: {
-            auto[requestNum, transactionNum, result] =
+            last_attempt_ =
                 otapi_.activateSmartContract(context_, strData2.c_str());
-            auto & [ status, reply ] = result;
-            transaction_number_.store(transactionNum);
-            last_send_status_ = status;
-            last_reply_.reset(reply.release());
-
-            if (0 == requestNum) {
-
-                return 0;
-            }
-
-            if (SendResult::VALID_REPLY != status) {
-
-                return -1;
-            }
-
-            return requestNum;
         } break;
         case TRIGGER_CLAUSE: {
-            auto[requestNum, transactionNum, result] = otapi_.triggerClause(
+            last_attempt_ = otapi_.triggerClause(
                 context_,
                 stoll(strData),
                 strData2.c_str(),
                 data3.Exists() ? &data3 : nullptr);
-            auto & [ status, reply ] = result;
-            transaction_number_.store(transactionNum);
-            last_send_status_ = status;
-            last_reply_.reset(reply.release());
-
-            if (0 == requestNum) {
-
-                return 0;
-            }
-
-            if (SendResult::VALID_REPLY != status) {
-
-                return -1;
-            }
-
-            return requestNum;
         } break;
         case EXCHANGE_BASKET: {
-            auto[requestNum, transactionNum, result] = otapi_.exchangeBasket(
+            last_attempt_ = otapi_.exchangeBasket(
                 context_,
                 Identifier(instrumentDefinitionID),
                 basket.c_str(),
                 bBool);
-            auto & [ status, reply ] = result;
-            transaction_number_.store(transactionNum);
-            last_send_status_ = status;
-            last_reply_.reset(reply.release());
-
-            if (0 == requestNum) {
-
-                return 0;
-            }
-
-            if (SendResult::VALID_REPLY != status) {
-
-                return -1;
-            }
-
-            return requestNum;
         } break;
         case GET_CONTRACT: {
-            auto[requestNum, transactionNum, result] =
-                otapi_.getInstrumentDefinition(
-                    context_, Identifier(instrumentDefinitionID));
-            auto & [ status, reply ] = result;
-            transaction_number_.store(transactionNum);
-            last_send_status_ = status;
-            last_reply_.reset(reply.release());
-
-            if (0 == requestNum) {
-
-                return 0;
-            }
-
-            if (SendResult::VALID_REPLY != status) {
-
-                return -1;
-            }
-
-            return requestNum;
+            last_attempt_ = otapi_.getInstrumentDefinition(
+                context_, Identifier(instrumentDefinitionID));
         } break;
         case GET_MINT: {
-            auto[requestNum, transactionNum, result] =
+            last_attempt_ =
                 otapi_.getMint(context_, Identifier(instrumentDefinitionID));
-            auto & [ status, reply ] = result;
-            transaction_number_.store(transactionNum);
-            last_send_status_ = status;
-            last_reply_.reset(reply.release());
-
-            if (0 == requestNum) {
-
-                return 0;
-            }
-
-            if (SendResult::VALID_REPLY != status) {
-
-                return -1;
-            }
-
-            return requestNum;
         } break;
         case ISSUE_BASKET: {
-            auto[requestNum, transactionNum, result] = otapi_.issueBasket(
+            last_attempt_ = otapi_.issueBasket(
                 context_,
                 proto::StringToProto<proto::UnitDefinition>(basket.c_str()));
-            auto & [ status, reply ] = result;
-            transaction_number_.store(transactionNum);
-            last_send_status_ = status;
-            last_reply_.reset(reply.release());
-
-            if (0 == requestNum) {
-
-                return 0;
-            }
-
-            if (SendResult::VALID_REPLY != status) {
-
-                return -1;
-            }
-
-            return requestNum;
         } break;
         case ISSUE_ASSET_TYPE: {
-            auto[requestNum, transactionNum, result] =
+            last_attempt_ =
                 otapi_.registerInstrumentDefinition(context_, strData.c_str());
-            auto & [ status, reply ] = result;
-            transaction_number_.store(transactionNum);
-            last_send_status_ = status;
-            last_reply_.reset(reply.release());
-
-            if (0 == requestNum) {
-
-                return 0;
-            }
-
-            if (SendResult::VALID_REPLY != status) {
-
-                return -1;
-            }
-
-            return requestNum;
         } break;
         case EXCHANGE_CASH: {
 #if OT_CASH
             otErr << OT_METHOD << __FUNCTION__ << ": TODO (NOT CODED YET)"
                   << std::endl;
-            transaction_number_.store(0);
-            last_send_status_ = SendResult::ERROR;
-            last_reply_.reset();
-
-            return -1;
-#else
-            return -1;
 #endif  // OT_CASH
         } break;
         case KILL_MARKET_OFFER: {
-            auto[requestNum, transactionNum, result] = otapi_.cancelCronItem(
+            last_attempt_ = otapi_.cancelCronItem(
                 context_, Identifier(accountID), stoll(strData));
-            auto & [ status, reply ] = result;
-            transaction_number_.store(transactionNum);
-            last_send_status_ = status;
-            last_reply_.reset(reply.release());
-
-            if (0 == requestNum) {
-
-                return 0;
-            }
-
-            if (SendResult::VALID_REPLY != status) {
-
-                return -1;
-            }
-
-            return requestNum;
         } break;
         case KILL_PAYMENT_PLAN: {
-            auto[requestNum, transactionNum, result] = otapi_.cancelCronItem(
+            last_attempt_ = otapi_.cancelCronItem(
                 context_, Identifier(accountID), stoll(strData));
-            auto & [ status, reply ] = result;
-            transaction_number_.store(transactionNum);
-            last_send_status_ = status;
-            last_reply_.reset(reply.release());
-
-            if (0 == requestNum) {
-
-                return 0;
-            }
-
-            if (SendResult::VALID_REPLY != status) {
-
-                return -1;
-            }
-
-            return requestNum;
         } break;
         case GET_BOX_RECEIPT: {
-            auto[requestNum, transactionNum, result] = otapi_.getBoxReceipt(
+            last_attempt_ = otapi_.getBoxReceipt(
                 context_, Identifier(accountID), nData, stoll(strData));
-            auto & [ status, reply ] = result;
-            transaction_number_.store(transactionNum);
-            last_send_status_ = status;
-            last_reply_.reset(reply.release());
-
-            if (0 == requestNum) {
-
-                return 0;
-            }
-
-            if (SendResult::VALID_REPLY != status) {
-
-                return -1;
-            }
-
-            return requestNum;
         } break;
         case PROCESS_INBOX: {
-            auto[requestNum, transactionNum, result] = otapi_.processInbox(
+            last_attempt_ = otapi_.processInbox(
                 context_, Identifier(accountID), strData.c_str());
-            auto & [ status, reply ] = result;
-            transaction_number_.store(transactionNum);
-            last_send_status_ = status;
-            last_reply_.reset(reply.release());
-
-            if (0 == requestNum) {
-
-                return 0;
-            }
-
-            if (SendResult::VALID_REPLY != status) {
-
-                return -1;
-            }
-
-            return requestNum;
         } break;
         case DEPOSIT_CASH: {
 #if OT_CASH
-            auto[requestNum, transactionNum, result] = otapi_.notarizeDeposit(
+            last_attempt_ = otapi_.notarizeDeposit(
                 context_, Identifier(accountID), strData.c_str());
-            auto & [ status, reply ] = result;
-            transaction_number_.store(transactionNum);
-            last_send_status_ = status;
-            last_reply_.reset(reply.release());
-
-            if (0 == requestNum) {
-
-                return 0;
-            }
-
-            if (SendResult::VALID_REPLY != status) {
-
-                return -1;
-            }
-
-            return requestNum;
-#else
-            return -1;
 #endif  // OT_CASH
         } break;
         case DEPOSIT_CHEQUE: {
-            auto[requestNum, transactionNum, result] = otapi_.depositCheque(
+            last_attempt_ = otapi_.depositCheque(
                 context_, Identifier(accountID), strData.c_str());
-            auto & [ status, reply ] = result;
-            transaction_number_.store(transactionNum);
-            last_send_status_ = status;
-            last_reply_.reset(reply.release());
-
-            if (0 == requestNum) {
-
-                return 0;
-            }
-
-            if (SendResult::VALID_REPLY != status) {
-
-                return -1;
-            }
-
-            return requestNum;
         } break;
         case DEPOSIT_PAYMENT_PLAN: {
-            auto[requestNum, transactionNum, result] =
+            last_attempt_ =
                 otapi_.depositPaymentPlan(context_, strData.c_str());
-            auto & [ status, reply ] = result;
-            transaction_number_.store(transactionNum);
-            last_send_status_ = status;
-            last_reply_.reset(reply.release());
-
-            if (0 == requestNum) {
-
-                return 0;
-            }
-
-            if (SendResult::VALID_REPLY != status) {
-
-                return -1;
-            }
-
-            return requestNum;
         } break;
         case WITHDRAW_CASH: {
 #if OT_CASH
-            auto[requestNum, transactionNum, result] =
-                otapi_.notarizeWithdrawal(
-                    context_, Identifier(accountID), lData);
-            auto & [ status, reply ] = result;
-            transaction_number_.store(transactionNum);
-            last_send_status_ = status;
-            last_reply_.reset(reply.release());
-
-            if (0 == requestNum) {
-
-                return 0;
-            }
-
-            if (SendResult::VALID_REPLY != status) {
-
-                return -1;
-            }
-
-            return requestNum;
-#else
-            return -1;
+            last_attempt_ = otapi_.notarizeWithdrawal(
+                context_, Identifier(accountID), lData);
 #endif  // OT_CASH
         } break;
         case WITHDRAW_VOUCHER: {
-            auto[requestNum, transactionNum, result] = otapi_.withdrawVoucher(
+            last_attempt_ = otapi_.withdrawVoucher(
                 context_,
                 Identifier(accountID),
                 Identifier(nymID2),
                 strData.c_str(),
                 lData);
-            auto & [ status, reply ] = result;
-            transaction_number_.store(transactionNum);
-            last_send_status_ = status;
-            last_reply_.reset(reply.release());
-
-            if (0 == requestNum) {
-
-                return 0;
-            }
-
-            if (SendResult::VALID_REPLY != status) {
-
-                return -1;
-            }
-
-            return requestNum;
         } break;
         case PAY_DIVIDEND: {
-            auto[requestNum, transactionNum, result] = otapi_.payDividend(
+            last_attempt_ = otapi_.payDividend(
                 context_,
                 Identifier(accountID),
                 Identifier(instrumentDefinitionID),
                 strData.c_str(),
                 lData);
-            auto & [ status, reply ] = result;
-            transaction_number_.store(transactionNum);
-            last_send_status_ = status;
-            last_reply_.reset(reply.release());
-
-            if (0 == requestNum) {
-
-                return 0;
-            }
-
-            if (SendResult::VALID_REPLY != status) {
-
-                return -1;
-            }
-
-            return requestNum;
         } break;
         case SEND_TRANSFER: {
-            auto[requestNum, transactionNum, result] = otapi_.notarizeTransfer(
+            last_attempt_ = otapi_.notarizeTransfer(
                 context_,
                 Identifier(accountID),
                 Identifier(accountID2),
                 lData,
                 strData.c_str());
-            auto & [ status, reply ] = result;
-            transaction_number_.store(transactionNum);
-            last_send_status_ = status;
-            last_reply_.reset(reply.release());
-
-            if (0 == requestNum) {
-
-                return 0;
-            }
-
-            if (SendResult::VALID_REPLY != status) {
-
-                return -1;
-            }
-
-            return requestNum;
         } break;
         case GET_MARKET_LIST: {
-            auto[requestNum, transactionNum, result] =
-                otapi_.getMarketList(context_);
-            auto & [ status, reply ] = result;
-            transaction_number_.store(transactionNum);
-            last_send_status_ = status;
-            last_reply_.reset(reply.release());
-
-            if (0 == requestNum) {
-
-                return 0;
-            }
-
-            if (SendResult::VALID_REPLY != status) {
-
-                return -1;
-            }
-
-            return requestNum;
+            last_attempt_ = otapi_.getMarketList(context_);
         } break;
         case GET_MARKET_OFFERS: {
-            auto[requestNum, transactionNum, result] =
+            last_attempt_ =
                 otapi_.getMarketOffers(context_, Identifier(strData), lData);
-            auto & [ status, reply ] = result;
-            transaction_number_.store(transactionNum);
-            last_send_status_ = status;
-            last_reply_.reset(reply.release());
-
-            if (0 == requestNum) {
-
-                return 0;
-            }
-
-            if (SendResult::VALID_REPLY != status) {
-
-                return -1;
-            }
-
-            return requestNum;
         } break;
         case GET_MARKET_RECENT_TRADES: {
-            auto[requestNum, transactionNum, result] =
+            last_attempt_ =
                 otapi_.getMarketRecentTrades(context_, Identifier(strData));
-            auto & [ status, reply ] = result;
-            transaction_number_.store(transactionNum);
-            last_send_status_ = status;
-            last_reply_.reset(reply.release());
-
-            if (0 == requestNum) {
-
-                return 0;
-            }
-
-            if (SendResult::VALID_REPLY != status) {
-
-                return -1;
-            }
-
-            return requestNum;
         } break;
         case CREATE_MARKET_OFFER: {
             const Identifier ASSET_ACCT_ID(accountID);
@@ -1444,7 +1141,7 @@ std::int32_t OTAPI_Func::Run() const
                          "or \">\", and in that case ACTIVATION_PRICE "
                          "must be non-zero.\n";
 
-                return -1;
+                return;
             }
 
             const auto str_asset_notary_id =
@@ -1462,10 +1159,10 @@ std::int32_t OTAPI_Func::Run() const
                       << ": Failed determining server or nym ID for "
                          "either asset or currency account.\n";
 
-                return -1;
+                return;
             }
 
-            auto[requestNum, transactionNum, result] = otapi_.issueMarketOffer(
+            last_attempt_ = otapi_.issueMarketOffer(
                 context_,
                 ASSET_ACCT_ID,
                 CURRENCY_ACCT_ID,
@@ -1477,273 +1174,119 @@ std::int32_t OTAPI_Func::Run() const
                 tLifespanInSeconds,
                 cStopSign,
                 ACTIVATION_PRICE);
-            auto & [ status, reply ] = result;
-            transaction_number_.store(transactionNum);
-            last_send_status_ = status;
-            last_reply_.reset(reply.release());
-
-            if (0 == requestNum) {
-
-                return 0;
-            }
-
-            if (SendResult::VALID_REPLY != status) {
-
-                return -1;
-            }
-
-            return requestNum;
         } break;
         case ADJUST_USAGE_CREDITS: {
-            auto[requestNum, transactionNum, result] = otapi_.usageCredits(
+            last_attempt_ = otapi_.usageCredits(
                 context_, Identifier(nymID2), stoll(strData));
-            auto & [ status, reply ] = result;
-            transaction_number_.store(transactionNum);
-            last_send_status_ = status;
-            last_reply_.reset(reply.release());
-
-            if (0 == requestNum) {
-
-                return 0;
-            }
-
-            if (SendResult::VALID_REPLY != status) {
-
-                return -1;
-            }
-
-            return requestNum;
         } break;
         case INITIATE_BAILMENT:
         case INITIATE_OUTBAILMENT:
         case NOTIFY_BAILMENT:
         case REQUEST_CONNECTION:
         case STORE_SECRET: {
-            auto[requestNum, transactionNum, result] =
-                otapi_.initiatePeerRequest(
-                    context_, Identifier(nymID2), peer_request_);
-            auto & [ status, reply ] = result;
-            transaction_number_.store(transactionNum);
-            last_send_status_ = status;
-            last_reply_.reset(reply.release());
-
-            if (0 == requestNum) {
-
-                return 0;
-            }
-
-            if (SendResult::VALID_REPLY != status) {
-
-                return -1;
-            }
-
-            return requestNum;
+            last_attempt_ = otapi_.initiatePeerRequest(
+                context_, Identifier(nymID2), peer_request_);
         } break;
         case ACKNOWLEDGE_BAILMENT:
         case ACKNOWLEDGE_OUTBAILMENT:
         case ACKNOWLEDGE_NOTICE:
         case ACKNOWLEDGE_CONNECTION: {
-            auto[requestNum, transactionNum, result] = otapi_.initiatePeerReply(
+            last_attempt_ = otapi_.initiatePeerReply(
                 context_,
                 Identifier(nymID2),
                 Identifier(instrumentDefinitionID),
                 peer_reply_);
-            auto & [ status, reply ] = result;
-            transaction_number_.store(transactionNum);
-            last_send_status_ = status;
-            last_reply_.reset(reply.release());
-
-            if (0 == requestNum) {
-
-                return 0;
-            }
-
-            if (SendResult::VALID_REPLY != status) {
-
-                return -1;
-            }
-
-            return requestNum;
         } break;
         case REGISTER_CONTRACT_NYM: {
-            auto[requestNum, transactionNum, result] = otapi_.registerContract(
+            last_attempt_ = otapi_.registerContract(
                 context_, ContractType::NYM, Identifier(nymID2));
-            auto & [ status, reply ] = result;
-            transaction_number_.store(transactionNum);
-            last_send_status_ = status;
-            last_reply_.reset(reply.release());
-
-            if (0 == requestNum) {
-
-                return 0;
-            }
-
-            if (SendResult::VALID_REPLY != status) {
-
-                return -1;
-            }
-
-            return requestNum;
         } break;
         case REGISTER_CONTRACT_SERVER: {
-            auto[requestNum, transactionNum, result] = otapi_.registerContract(
+            last_attempt_ = otapi_.registerContract(
                 context_, ContractType::SERVER, Identifier(strData));
-            auto & [ status, reply ] = result;
-            transaction_number_.store(transactionNum);
-            last_send_status_ = status;
-            last_reply_.reset(reply.release());
-
-            if (0 == requestNum) {
-
-                return 0;
-            }
-
-            if (SendResult::VALID_REPLY != status) {
-
-                return -1;
-            }
-
-            return requestNum;
         } break;
         case REGISTER_CONTRACT_UNIT: {
-            auto[requestNum, transactionNum, result] = otapi_.registerContract(
+            last_attempt_ = otapi_.registerContract(
                 context_,
                 ContractType::UNIT,
                 Identifier(instrumentDefinitionID));
-            auto & [ status, reply ] = result;
-            transaction_number_.store(transactionNum);
-            last_send_status_ = status;
-            last_reply_.reset(reply.release());
-
-            if (0 == requestNum) {
-
-                return 0;
-            }
-
-            if (SendResult::VALID_REPLY != status) {
-
-                return -1;
-            }
-
-            return requestNum;
         } break;
         case REQUEST_ADMIN: {
-            auto[requestNum, transactionNum, result] =
-                otapi_.requestAdmin(context_, strData.c_str());
-            auto & [ status, reply ] = result;
-            transaction_number_.store(transactionNum);
-            last_send_status_ = status;
-            last_reply_.reset(reply.release());
-
-            if (0 == requestNum) {
-
-                return 0;
-            }
-
-            if (SendResult::VALID_REPLY != status) {
-
-                return -1;
-            }
-
-            return requestNum;
+            last_attempt_ = otapi_.requestAdmin(context_, strData.c_str());
         } break;
         case SERVER_ADD_CLAIM: {
-            auto[requestNum, transactionNum, result] = otapi_.serverAddClaim(
+            last_attempt_ = otapi_.serverAddClaim(
                 context_,
                 strData.c_str(),
                 strData2.c_str(),
                 strData3.c_str(),
                 bBool);
-            auto & [ status, reply ] = result;
-            transaction_number_.store(transactionNum);
-            last_send_status_ = status;
-            last_reply_.reset(reply.release());
-
-            if (0 == requestNum) {
-
-                return 0;
-            }
-
-            if (SendResult::VALID_REPLY != status) {
-
-                return -1;
-            }
-
-            return requestNum;
         } break;
         default: {
+            otErr << OT_METHOD << __FUNCTION__ << ": Error: unhandled function "
+                  << " type: " << type_ << std::endl;
+
+            OT_FAIL;
+        }
+    }
+}
+
+std::int32_t OTAPI_Func::send()
+{
+    Utility MsgUtil(context_, otapi_);
+    std::string strLocation{OT_METHOD};
+    strLocation += __FUNCTION__;
+    strLocation += ": " + type_name_.at(type_);
+    otapi_.FlushMessageBuffer();
+    run();
+    const auto& requestNumber = std::get<0>(last_attempt_);
+    const auto& status = std::get<0>(std::get<2>(last_attempt_));
+
+    switch (status) {
+        case SendResult::TRANSACTION_NUMBERS:
+        case SendResult::INVALID_REPLY:
+        case SendResult::TIMEOUT:
+        case SendResult::ERROR: {
+            otOut << strLocation << ": Failed to send message due to error."
+                  << std::endl;
+
+            nRequestNum = -1;
+        } break;
+        case SendResult::UNNECESSARY: {
+            otOut << strLocation << ": Didn't send this message, but NO error "
+                  << "occurred, either. (For example, a request to process an "
+                  << "empty Nymbox will return 0, meaning, nothing was sent, "
+                  << "but also no error occurred.)" << std::endl;
+
+            nRequestNum = 0;
+        } break;
+        case SendResult::VALID_REPLY: {
+            // BY this point, we definitely have the request number, which means
+            // the message was actually SENT. (At least.) This also means we can
+            // use nRun later to query for a copy of that sent message (like if
+            // we need to clawback the transaction numbers from it later, once
+            // we confirm whether the server actually never got it.)
+
+            nRequestNum = requestNumber;
+        } break;
+        default: {
+            OT_FAIL
         }
     }
 
-    otOut << "ERROR! OTAPI_Func.Send() activated, with bad function type: "
-          << funcType << "\n";
-
-    return -1;
+    return nRequestNum;
 }
 
-std::int32_t OTAPI_Func::SendRequestLowLevel(
-    OTAPI_Func& theFunction,
-    const std::string& IN_FUNCTION) const
+std::string OTAPI_Func::send_transaction(std::size_t totalRetries)
 {
     Utility MsgUtil(context_, otapi_);
-    std::string strLocation = "OTAPI_Func::SendRequestLowLevel: " + IN_FUNCTION;
-
-    otapi_.FlushMessageBuffer();
-
-    std::int32_t nRun =
-        theFunction.Run();  // <===== ATTEMPT TO SEND THE MESSAGE HERE...;
-
-    if (nRun == -1)  // if the requestNumber returned by the send-attempt is -1,
-                     // that means it DIDN'T SEND (error)
-    {
-        otOut << strLocation << ": Failed to send message due to error.\n";
-
-        theFunction.nRequestNum = -1;
-    } else if (nRun == 0)  // if the requestNumber returned by the send-attempt
-                           // is 0, it means no error, but nothing was sent.
-                           // (Like processing an empty box.)
-    {
-        otOut << strLocation << ": Didn't send this message, but NO error "
-                                "occurred, either. (For example, a request to "
-                                "process an empty Nymbox will return 0, "
-                                "meaning, nothing was sent, but also no error "
-                                "occurred.)\n";
-
-        theFunction.nRequestNum = 0;
-    } else {
-        theFunction.nRequestNum = nRun;
-    }
-
-    // BY this point, we definitely have the request number, which means the
-    // message was actually SENT. (At least.) This also means we can use nRun
-    // later to query for a copy of that sent message (like if we need to
-    // clawback
-    // the transaction numbers from it later, once we confirm whether the server
-    // actually never got it.)
-    //
-    return theFunction.nRequestNum;
-}
-
-std::string OTAPI_Func::SendTransaction(
-    OTAPI_Func& theFunction,
-    const std::string& IN_FUNCTION)
-{
-    std::int32_t nTotalRetries = 2;
-    return SendTransaction(theFunction, IN_FUNCTION, nTotalRetries);
-}
-
-std::string OTAPI_Func::SendTransaction(
-    OTAPI_Func& theFunction,
-    const std::string& IN_FUNCTION,
-    std::int32_t nTotalRetries) const
-{
-    Utility MsgUtil(context_, otapi_);
-    std::string strLocation = "OTAPI_Func::SendTransaction: " + IN_FUNCTION;
+    std::string strLocation =
+        "OTAPI_Func::SendTransaction: " + type_name_.at(type_);
 
     if (!MsgUtil.getIntermediaryFiles(
-            String(theFunction.context_.Server()).Get(),
-            String(theFunction.context_.Nym()->ID()).Get(),
-            theFunction.accountID,
+            String(context_.Server()).Get(),
+            String(context_.Nym()->ID()).Get(),
+            accountID,
             false))  // bForceDownload=false))
     {
         otOut << strLocation << ", getIntermediaryFiles returned false. (It "
@@ -1754,14 +1297,13 @@ std::string OTAPI_Func::SendTransaction(
     // GET TRANSACTION NUMBERS HERE IF NECESSARY.
     //
     std::int32_t getnym_trnsnum_count = exec_.GetNym_TransactionNumCount(
-        String(theFunction.context_.Server()).Get(),
-        String(theFunction.context_.Nym()->ID()).Get());
+        String(context_.Server()).Get(), String(context_.Nym()->ID()).Get());
     std::int32_t configTxnCount = MsgUtil.getNbrTransactionCount();
-    bool b1 = (theFunction.nTransNumsNeeded > configTxnCount);
+    bool b1 = (nTransNumsNeeded > configTxnCount);
     std::int32_t comparative = 0;
 
     if (b1) {
-        comparative = theFunction.nTransNumsNeeded;
+        comparative = nTransNumsNeeded;
     } else {
         comparative = configTxnCount;
     }
@@ -1772,8 +1314,8 @@ std::string OTAPI_Func::SendTransaction(
                                 "now...\n";
         MsgUtil.setNbrTransactionCount(comparative);
         MsgUtil.getTransactionNumbers(
-            String(theFunction.context_.Server()).Get(),
-            String(theFunction.context_.Nym()->ID()).Get());
+            String(context_.Server()).Get(),
+            String(context_.Nym()->ID()).Get());
         MsgUtil.setNbrTransactionCount(configTxnCount);
     }
 
@@ -1818,8 +1360,7 @@ std::string OTAPI_Func::SendTransaction(
     // Giving up, if still a failure by this point.
     //
     getnym_trnsnum_count = exec_.GetNym_TransactionNumCount(
-        String(theFunction.context_.Server()).Get(),
-        String(theFunction.context_.Nym()->ID()).Get());
+        String(context_.Server()).Get(), String(context_.Nym()->ID()).Get());
 
     if (getnym_trnsnum_count < comparative) {
         otOut
@@ -1830,16 +1371,15 @@ std::string OTAPI_Func::SendTransaction(
 
     bool bCanRetryAfterThis = false;
 
-    std::string strResult = SendRequestOnce(
-        theFunction, IN_FUNCTION, true, true, bCanRetryAfterThis);
+    std::string strResult = send_once(true, true, bCanRetryAfterThis);
 
     if (VerifyStringVal(strResult)) {
         otOut << " Getting Intermediary files.. \n";
 
         if (!MsgUtil.getIntermediaryFiles(
-                String(theFunction.context_.Server()).Get(),
-                String(theFunction.context_.Nym()->ID()).Get(),
-                theFunction.accountID,
+                String(context_.Server()).Get(),
+                String(context_.Nym()->ID()).Get(),
+                accountID,
                 true)) {
             otOut << strLocation << ", getIntermediaryFiles returned false. "
                                     "(After a success sending the transaction. "
@@ -1870,7 +1410,7 @@ std::string OTAPI_Func::SendTransaction(
     // a future bad receipt, based on malicious, planted std::intermediary
     // files.
 
-    std::int32_t nRetries = nTotalRetries;
+    auto nRetries = totalRetries;
 
     while ((nRetries > 0) && !VerifyStringVal(strResult) &&
            bCanRetryAfterThis) {
@@ -1882,14 +1422,9 @@ std::string OTAPI_Func::SendTransaction(
             bWillRetryAfterThis = false;
         }
 
-        if (exec_.CheckConnection(
-                String(theFunction.context_.Server()).Get())) {
-            strResult = SendRequestOnce(
-                theFunction,
-                IN_FUNCTION,
-                true,
-                bWillRetryAfterThis,
-                bCanRetryAfterThis);
+        if (exec_.CheckConnection(String(context_.Server()).Get())) {
+            strResult =
+                send_once(true, bWillRetryAfterThis, bCanRetryAfterThis);
         }
 
         // In case of failure, we want to get these before we re-try.
@@ -1898,9 +1433,9 @@ std::string OTAPI_Func::SendTransaction(
         //
         if (VerifyStringVal(strResult)) {
             if (!MsgUtil.getIntermediaryFiles(
-                    String(theFunction.context_.Server()).Get(),
-                    String(theFunction.context_.Nym()->ID()).Get(),
-                    theFunction.accountID,
+                    String(context_.Server()).Get(),
+                    String(context_.Nym()->ID()).Get(),
+                    accountID,
                     true)) {
                 otOut << strLocation
                       << ", getIntermediaryFiles (loop) returned false even "
@@ -1914,42 +1449,34 @@ std::string OTAPI_Func::SendTransaction(
     return strResult;
 }
 
-std::string OTAPI_Func::SendRequest(
-    OTAPI_Func& theFunction,
-    const std::string& IN_FUNCTION) const
+std::string OTAPI_Func::send_request()
 {
     Utility MsgUtil(context_, otapi_);
-
     bool bCanRetryAfterThis = false;
-
-    std::string strResult = SendRequestOnce(
-        theFunction, IN_FUNCTION, false, true, bCanRetryAfterThis);
+    std::string strResult = send_once(false, true, bCanRetryAfterThis);
 
     if (!VerifyStringVal(strResult) && bCanRetryAfterThis) {
-        if (exec_.CheckConnection(
-                String(theFunction.context_.Server()).Get())) {
-            strResult = SendRequestOnce(
-                theFunction, IN_FUNCTION, false, false, bCanRetryAfterThis);
+        if (exec_.CheckConnection(String(context_.Server()).Get())) {
+            strResult = send_once(false, false, bCanRetryAfterThis);
         }
     }
     return strResult;
 }
 
-std::string OTAPI_Func::SendRequestOnce(
-    OTAPI_Func& theFunction,
-    const std::string& IN_FUNCTION,
+std::string OTAPI_Func::send_once(
     const bool bIsTransaction,
     const bool bWillRetryAfterThis,
-    bool& bCanRetryAfterThis) const
+    bool& bCanRetryAfterThis)
 {
     Utility MsgUtil(context_, otapi_);
-    std::string strLocation = "OTAPI_Func::SendRequestOnce: " + IN_FUNCTION;
+    std::string strLocation =
+        "OTAPI_Func::SendRequestOnce: " + type_name_.at(type_);
+    ;
 
     bCanRetryAfterThis = false;
 
     std::string strReply = "";
-    std::int32_t nlocalRequestNum = SendRequestLowLevel(
-        theFunction, IN_FUNCTION);  // <========   FIRST ATTEMPT!!!!!!;
+    std::int32_t nlocalRequestNum = send();
 
     if ((nlocalRequestNum == -1) || (nlocalRequestNum == 0)) {
         // bCanRetryAfterThis is already false here.
@@ -1961,10 +1488,10 @@ std::string OTAPI_Func::SendRequestOnce(
         }
 
         strReply = MsgUtil.ReceiveReplyLowLevel(
-            String(theFunction.context_.Server()).Get(),
-            String(theFunction.context_.Nym()->ID()).Get(),
+            String(context_.Server()).Get(),
+            String(context_.Nym()->ID()).Get(),
             nlocalRequestNum,
-            IN_FUNCTION);  // <==== Here we RECEIVE the REPLY...;
+            type_name_.at(type_));
     }
 
     // Below this point, we definitely have a request number.
@@ -2010,9 +1537,9 @@ std::string OTAPI_Func::SendRequestOnce(
                                // transaction was, too.
         {
             nBalanceSuccess = exec_.Message_GetBalanceAgreementSuccess(
-                String(theFunction.context_.Server()).Get(),
-                String(theFunction.context_.Nym()->ID()).Get(),
-                theFunction.accountID,
+                String(context_.Server()).Get(),
+                String(context_.Nym()->ID()).Get(),
+                accountID,
                 strReply);
 
             if (nBalanceSuccess > 0) {
@@ -2033,9 +1560,9 @@ std::string OTAPI_Func::SendRequestOnce(
                 //
                 std::int32_t nTransCancelled =
                     exec_.Message_IsTransactionCanceled(
-                        String(theFunction.context_.Server()).Get(),
-                        String(theFunction.context_.Nym()->ID()).Get(),
-                        theFunction.accountID,
+                        String(context_.Server()).Get(),
+                        String(context_.Nym()->ID()).Get(),
+                        accountID,
                         strReply);
 
                 // If it's not cancelled, then we assume it's a normal
@@ -2044,9 +1571,9 @@ std::string OTAPI_Func::SendRequestOnce(
                 //
                 if (1 != nTransCancelled) {
                     nTransSuccess = exec_.Message_GetTransactionSuccess(
-                        String(theFunction.context_.Server()).Get(),
-                        String(theFunction.context_.Nym()->ID()).Get(),
-                        theFunction.accountID,
+                        String(context_.Server()).Get(),
+                        String(context_.Nym()->ID()).Get(),
+                        accountID,
                         strReply);
                 } else  // If it WAS cancelled, then for the UI we say "Success"
                         // even though OT behind the scenes is harvesting as
@@ -2134,8 +1661,8 @@ std::string OTAPI_Func::SendRequestOnce(
         //
         //          var nRemoved =
         // SwigWrap::RemoveSentMessage(Integer.toString(nlocalRequestNum),
-        // String(theFunction.context_.Server()).Get(),
-        // String(theFunction.context_.Nym()->ID()).Get());
+        // String(context_.Server()).Get(),
+        // String(context_.Nym()->ID()).Get());
         //
         // NOTE: The above call is unnecessary, since a successful reply means
         // we already received the successful server reply, and OT's
@@ -2183,9 +1710,9 @@ std::string OTAPI_Func::SendRequestOnce(
                 //
                 bool bForceDownload = true;
                 if (!MsgUtil.getIntermediaryFiles(
-                        String(theFunction.context_.Server()).Get(),
-                        String(theFunction.context_.Nym()->ID()).Get(),
-                        theFunction.accountID,
+                        String(context_.Server()).Get(),
+                        String(context_.Nym()->ID()).Get(),
+                        accountID,
                         bForceDownload)) {
                     otOut << strLocation << ", getIntermediaryFiles returned "
                                             "false. (After a failure to send "
@@ -2206,8 +1733,8 @@ std::string OTAPI_Func::SendRequestOnce(
 
                 std::int32_t nProcessNymboxResult =
                     MsgUtil.getAndProcessNymbox_8(
-                        String(theFunction.context_.Server()).Get(),
-                        String(theFunction.context_.Nym()->ID()).Get(),
+                        String(context_.Server()).Get(),
+                        String(context_.Nym()->ID()).Get(),
                         bWasSent,
                         bForceDownload,
                         nlocalRequestNum,
@@ -2247,16 +1774,17 @@ std::string OTAPI_Func::SendRequestOnce(
                 //
                 else if (bWasSent && (nProcessNymboxResult > 1)) {
                     std::string strNymbox = exec_.LoadNymboxNoVerify(
-                        String(theFunction.context_.Server()).Get(),
-                        String(theFunction.context_.Nym()->ID())
-                            .Get());  // FLUSH SENT MESSAGES!!!!  (AND
-                                      // HARVEST.);
+                        String(context_.Server()).Get(),
+                        String(context_.Nym()->ID()).Get());  // FLUSH SENT
+                                                              // MESSAGES!!!!
+                                                              // (AND
+                                                              // HARVEST.);
 
                     if (VerifyStringVal(strNymbox)) {
                         exec_.FlushSentMessages(
                             false,
-                            String(theFunction.context_.Server()).Get(),
-                            String(theFunction.context_.Nym()->ID()).Get(),
+                            String(context_.Server()).Get(),
+                            String(context_.Nym()->ID()).Get(),
                             strNymbox);
                     }
                 }

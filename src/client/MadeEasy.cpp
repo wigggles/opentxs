@@ -119,7 +119,7 @@ std::string MadeEasy::check_nym(
         otapi_,
         TARGET_nymID);
 
-    return theRequest.SendRequest(theRequest, "CHECK_NYM");
+    return theRequest.Run();
 }
 
 //  ISSUE ASSET TYPE
@@ -138,7 +138,7 @@ std::string MadeEasy::issue_asset_type(
         otapi_,
         THE_CONTRACT);
 
-    return theRequest.SendRequest(theRequest, "ISSUE_ASSET_TYPE");
+    return theRequest.Run();
 }
 
 //  ISSUE BASKET CURRENCY
@@ -157,7 +157,7 @@ std::string MadeEasy::issue_basket_currency(
         otapi_,
         THE_BASKET);
 
-    return theRequest.SendRequest(theRequest, "ISSUE_BASKET");
+    return theRequest.Run();
 }
 
 //  EXCHANGE BASKET CURRENCY
@@ -185,7 +185,7 @@ std::string MadeEasy::exchange_basket_currency(
         IN_OR_OUT,
         nTransNumsNeeded);
 
-    return theRequest.SendTransaction(theRequest, "EXCHANGE_BASKET");
+    return theRequest.Run();
 }
 
 //  RETRIEVE CONTRACT
@@ -204,7 +204,7 @@ std::string MadeEasy::retrieve_contract(
         otapi_,
         CONTRACT_ID);
 
-    return theRequest.SendRequest(theRequest, "GET_CONTRACT");
+    return theRequest.Run();
 }
 
 //  LOAD OR RETRIEVE CONTRACT
@@ -245,7 +245,7 @@ std::string MadeEasy::create_asset_acct(
         otapi_,
         INSTRUMENT_DEFINITION_ID);
 
-    return theRequest.SendRequest(theRequest, "CREATE_ASSET_ACCT");
+    return theRequest.Run();
 }
 
 //  UNREGISTER ASSET ACCOUNT
@@ -264,7 +264,7 @@ std::string MadeEasy::unregister_account(
         otapi_,
         ACCOUNT_ID);
 
-    return theRequest.SendRequest(theRequest, "DELETE_ASSET_ACCT");
+    return theRequest.Run();
 }
 
 //  UNREGISTER NYM FROM SERVER
@@ -281,7 +281,7 @@ std::string MadeEasy::unregister_nym(
         exec_,
         otapi_);
 
-    return theRequest.SendRequest(theRequest, "DELETE_NYM");
+    return theRequest.Run();
 }
 
 std::string MadeEasy::stat_asset_account(const std::string& ACCOUNT_ID) const
@@ -362,8 +362,8 @@ std::string MadeEasy::send_transfer(
         ACCT_TO,
         AMOUNT,
         NOTE);
-    const auto output = theRequest.SendTransaction(theRequest, "SEND_TRANSFER");
-    number = theRequest.transaction_number_.load();
+    const auto output = theRequest.Run();
+    number = theRequest.GetTransactionNumber();
 
     return output;
 }
@@ -386,7 +386,7 @@ std::string MadeEasy::process_inbox(
         ACCOUNT_ID,
         RESPONSE_LEDGER);
 
-    return theRequest.SendTransaction(theRequest, "PROCESS_INBOX");
+    return theRequest.Run();
 }
 
 // load_public_key():
@@ -483,7 +483,7 @@ std::string MadeEasy::send_user_msg_pubkey(
         RECIPIENT_PUBKEY,
         THE_MESSAGE);
 
-    return theRequest.SendRequest(theRequest, "SEND_USER_MESSAGE");
+    return theRequest.Run();
 }
 
 // SEND USER INSTRUMENT  (requires recipient public key)
@@ -506,7 +506,7 @@ std::string MadeEasy::send_user_pmnt_pubkey(
         RECIPIENT_PUBKEY,
         THE_INSTRUMENT);
 
-    return theRequest.SendRequest(theRequest, "SEND_USER_INSTRUMENT");
+    return theRequest.Run();
 }
 
 #if OT_CASH
@@ -532,7 +532,7 @@ std::string MadeEasy::send_user_cash_pubkey(
         THE_INSTRUMENT,
         INSTRUMENT_FOR_SENDER);
 
-    return theRequest.SendRequest(theRequest, "SEND_USER_INSTRUMENT");
+    return theRequest.Run();
 }
 #endif  // OT_CASH
 
@@ -577,7 +577,7 @@ std::string MadeEasy::retrieve_mint(
         otapi_,
         INSTRUMENT_DEFINITION_ID);
 
-    return theRequest.SendRequest(theRequest, "GET_MINT");
+    return theRequest.Run();
 }
 
 // LOAD MINT (from local storage)
@@ -687,7 +687,7 @@ std::string MadeEasy::deposit_payment_plan(
         strSenderAcctID,
         THE_PAYMENT_PLAN);
 
-    return theRequest.SendTransaction(theRequest, "DEPOSIT_PAYMENT_PLAN");
+    return theRequest.Run();
 }
 
 #if OT_CASH
@@ -1444,8 +1444,7 @@ std::int32_t MadeEasy::depositCashPurse(
         otapi_,
         accountID,
         newPurse);
-    std::string strResponse = theRequest.SendTransaction(
-        theRequest, "DEPOSIT_CASH");  // <========================;
+    std::string strResponse = theRequest.Run();
 
     std::string strAttempt = "deposit_cash";
 
@@ -1557,8 +1556,7 @@ bool MadeEasy::exchangeCashPurse(
         otapi_,
         instrumentDefinitionID,
         newPurse);
-    std::string strResponse = theRequest.SendTransaction(
-        theRequest, "EXCHANGE_CASH");  // <========================;
+    std::string strResponse = theRequest.Run();
 
     if (!VerifyStringVal(strResponse)) {
         otOut << "IN OT_ME_exchangeCashPurse: theRequest.SendTransaction(() "
@@ -1599,7 +1597,7 @@ std::string MadeEasy::deposit_purse(
         ACCT_ID,
         STR_PURSE);
 
-    return theRequest.SendTransaction(theRequest, "DEPOSIT_CASH");
+    return theRequest.Run();
 }
 #endif  // OT_CASH
 }  // namespace opentxs

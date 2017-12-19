@@ -159,8 +159,7 @@ std::string OT_ME::notify_bailment(
         TARGET_NYM_ID,
         INSTRUMENT_DEFINITION_ID,
         TXID);
-    std::string strResponse =
-        theRequest.SendRequest(theRequest, "NOTIFY_BAILMENT");
+    std::string strResponse = theRequest.Run();
     std::int32_t nSuccess = VerifyMessageSuccess(strResponse);
 
     if (1 != nSuccess) {
@@ -187,8 +186,7 @@ std::string OT_ME::initiate_bailment(
         otapi_,
         TARGET_NYM_ID,
         INSTRUMENT_DEFINITION_ID);
-    std::string strResponse =
-        theRequest.SendRequest(theRequest, "INITIATE_BAILMENT");
+    std::string strResponse = theRequest.Run();
     std::int32_t nSuccess = VerifyMessageSuccess(strResponse);
 
     if (1 != nSuccess) {
@@ -219,8 +217,7 @@ std::string OT_ME::initiate_outbailment(
         INSTRUMENT_DEFINITION_ID,
         AMOUNT,
         THE_MESSAGE);
-    std::string strResponse =
-        theRequest.SendRequest(theRequest, "INITIATE_OUTBAILMENT");
+    std::string strResponse = theRequest.Run();
     std::int32_t nSuccess = VerifyMessageSuccess(strResponse);
 
     if (1 != nSuccess) {
@@ -246,8 +243,7 @@ std::string OT_ME::request_connection(
         otapi_,
         TARGET_NYM_ID,
         TYPE);
-    std::string strResponse =
-        theRequest.SendRequest(theRequest, "REQUEST_CONNECTION");
+    std::string strResponse = theRequest.Run();
     std::int32_t nSuccess = VerifyMessageSuccess(strResponse);
 
     if (1 != nSuccess) {
@@ -277,8 +273,7 @@ std::string OT_ME::store_secret(
         PRIMARY,
         SECONDARY,
         TYPE);
-    std::string strResponse =
-        theRequest.SendRequest(theRequest, "STORE_SECRET");
+    std::string strResponse = theRequest.Run();
     std::int32_t nSuccess = VerifyMessageSuccess(strResponse);
 
     if (1 != nSuccess) {
@@ -307,8 +302,7 @@ std::string OT_ME::acknowledge_bailment(
         TARGET_NYM_ID,
         REQUEST_ID,
         THE_MESSAGE);
-    std::string strResponse =
-        theRequest.SendRequest(theRequest, "ACKNOWLEDGE_BAILMENT");
+    std::string strResponse = theRequest.Run();
     std::int32_t nSuccess = VerifyMessageSuccess(strResponse);
 
     if (1 != nSuccess) {
@@ -339,8 +333,7 @@ std::string OT_ME::acknowledge_outbailment(
         TARGET_NYM_ID,
         REQUEST_ID,
         THE_MESSAGE);
-    std::string strResponse =
-        theRequest.SendRequest(theRequest, "ACKNOWLEDGE_OUTBAILMENT");
+    std::string strResponse = theRequest.Run();
     std::int32_t nSuccess = VerifyMessageSuccess(strResponse);
 
     if (1 != nSuccess) {
@@ -371,8 +364,7 @@ std::string OT_ME::acknowledge_notice(
         TARGET_NYM_ID,
         REQUEST_ID,
         ACK);
-    std::string strResponse =
-        theRequest.SendRequest(theRequest, "ACKNOWLEDGE_NOTICE");
+    std::string strResponse = theRequest.Run();
     std::int32_t nSuccess = VerifyMessageSuccess(strResponse);
 
     if (1 != nSuccess) {
@@ -411,8 +403,7 @@ std::string OT_ME::acknowledge_connection(
         PASSWORD,
         KEY,
         ACK);
-    std::string strResponse =
-        theRequest.SendRequest(theRequest, "ACKNOWLEDGE_CONNECTION");
+    std::string strResponse = theRequest.Run();
     std::int32_t nSuccess = VerifyMessageSuccess(strResponse);
 
     if (1 != nSuccess) {
@@ -438,8 +429,7 @@ std::string OT_ME::register_contract_nym(
         exec_,
         otapi_,
         CONTRACT);
-    std::string strResponse =
-        theRequest.SendRequest(theRequest, "REGISTER_CONTRACT_NYM");
+    std::string strResponse = theRequest.Run();
     std::int32_t nSuccess = VerifyMessageSuccess(strResponse);
 
     if (1 != nSuccess) {
@@ -463,8 +453,7 @@ std::string OT_ME::register_contract_server(
         exec_,
         otapi_,
         CONTRACT);
-    std::string strResponse =
-        theRequest.SendRequest(theRequest, "REGISTER_CONTRACT_SERVER");
+    std::string strResponse = theRequest.Run();
     std::int32_t nSuccess = VerifyMessageSuccess(strResponse);
 
     if (1 != nSuccess) {
@@ -488,8 +477,7 @@ std::string OT_ME::register_contract_unit(
         exec_,
         otapi_,
         CONTRACT);
-    std::string strResponse =
-        theRequest.SendRequest(theRequest, "REGISTER_CONTRACT_UNIT");
+    std::string strResponse = theRequest.Run();
     std::int32_t nSuccess = VerifyMessageSuccess(strResponse);
 
     if (1 != nSuccess) {
@@ -516,7 +504,7 @@ std::string OT_ME::register_nym(
             Identifier(NOTARY_ID),
             exec_,
             otapi_);
-        strResponse = theRequest.SendRequest(theRequest, "REGISTER_NYM");
+        strResponse = theRequest.Run();
     }
 
     if (1 == VerifyMessageSuccess(strResponse)) {
@@ -553,8 +541,7 @@ std::string OT_ME::request_admin(
         exec_,
         otapi_,
         PASSWORD);
-    std::string strResponse =
-        theRequest.SendRequest(theRequest, "REQUEST_ADMIN");
+    std::string strResponse = theRequest.Run();
     std::int32_t nSuccess = VerifyMessageSuccess(strResponse);
 
     if (1 != nSuccess) {
@@ -584,8 +571,7 @@ std::string OT_ME::server_add_claim(
         SECTION,
         TYPE,
         VALUE);
-    const std::string strResponse =
-        theRequest.SendRequest(theRequest, "SERVER_ADD_CLAIM");
+    const std::string strResponse = theRequest.Run();
     const std::int32_t nSuccess = VerifyMessageSuccess(strResponse);
 
     if (1 != nSuccess) {
@@ -1093,7 +1079,7 @@ std::string OT_ME::get_box_receipt(
         ACCT_ID,
         std::to_string(nBoxType),
         std::to_string(TRANS_NUM));
-    return request.SendRequest(request, "GET_BOX_RECEIPT");
+    return request.Run();
 }
 
 #if OT_CASH
@@ -1159,18 +1145,12 @@ std::string OT_ME::create_market_offer(
         std::to_string(minIncrement),
         std::to_string(quantity),
         std::to_string(price),
-        bSelling);
-    // Cannot have more than 10 parameters in a function call, in this script.
-    // So I am forced to set the final parameters by hand, before sending the
-    // transaction:
-    //
-    request.tData = OTTimeGetTimeFromSeconds(lLifespanInSeconds);
-    request.lData = ACTIVATION_PRICE;
-    if (VerifyStringVal(STOP_SIGN)) {
-        request.strData5 = STOP_SIGN;
-    }
+        bSelling,
+        OTTimeGetTimeFromSeconds(lLifespanInSeconds),
+        ACTIVATION_PRICE,
+        STOP_SIGN);
 
-    return request.SendTransaction(request, "CREATE_MARKET_OFFER");
+    return request.Run();
 }
 
 // KILL MARKET OFFER -- TRANSACTION
@@ -1192,7 +1172,7 @@ std::string OT_ME::kill_market_offer(
         ASSET_ACCT_ID,
         std::to_string(TRANS_NUM));
 
-    return request.SendTransaction(request, "KILL_MARKET_OFFER");
+    return request.Run();
 }
 
 // KILL (ACTIVE) PAYMENT PLAN -- TRANSACTION
@@ -1214,7 +1194,7 @@ std::string OT_ME::kill_payment_plan(
         ACCT_ID,
         std::to_string(TRANS_NUM));
 
-    return request.SendTransaction(request, "KILL_PAYMENT_PLAN");
+    return request.Run();
 }
 
 // CANCEL (NOT-YET-RUNNING) PAYMENT PLAN -- TRANSACTION
@@ -1256,7 +1236,7 @@ std::string OT_ME::cancel_payment_plan(
         strRecipientAcctID,
         THE_PAYMENT_PLAN);
 
-    return request.SendTransaction(request, "CANCEL_PAYMENT_PLAN");
+    return request.Run();
 }
 
 // ACTIVATE SMART CONTRACT -- TRANSACTION
@@ -1280,7 +1260,7 @@ std::string OT_ME::activate_smart_contract(
         AGENT_NAME,
         THE_SMART_CONTRACT);
 
-    return request.SendTransaction(request, "ACTIVATE_SMART_CONTRACT");
+    return request.Run();
 }
 
 // TRIGGER CLAUSE (on running smart contract) -- TRANSACTION
@@ -1304,7 +1284,7 @@ std::string OT_ME::trigger_clause(
         CLAUSE_NAME,
         STR_PARAM);
 
-    return request.SendRequest(request, "TRIGGER_CLAUSE");
+    return request.Run();
 }
 
 // WITHDRAW CASH -- TRANSACTION
@@ -1326,7 +1306,7 @@ std::string OT_ME::withdraw_cash(
         ACCT_ID,
         AMOUNT);
 
-    return request.SendTransaction(request, "WITHDRAW_CASH");
+    return request.Run();
 }
 
 // Difference between this function and the one above?
@@ -1390,7 +1370,7 @@ std::string OT_ME::withdraw_voucher(
         STR_MEMO,
         AMOUNT);
 
-    return request.SendTransaction(request, "WITHDRAW_VOUCHER");
+    return request.Run();
 }
 
 // PAY DIVIDEND -- TRANSACTION
@@ -1416,7 +1396,7 @@ std::string OT_ME::pay_dividend(
         STR_MEMO,
         AMOUNT_PER_SHARE);
 
-    return request.SendTransaction(request, "PAY_DIVIDEND");
+    return request.Run();
 }
 
 std::string OT_ME::deposit_cheque(
@@ -1436,7 +1416,7 @@ std::string OT_ME::deposit_cheque(
         ACCT_ID,
         STR_CHEQUE);
 
-    return request.SendTransaction(request, "DEPOSIT_CHEQUE");
+    return request.Run();
 }
 
 bool OT_ME::deposit_cash(
@@ -1476,7 +1456,7 @@ std::string OT_ME::get_market_list(
         exec_,
         otapi_);
 
-    return request.SendRequest(request, "GET_MARKET_LIST");
+    return request.Run();
 }
 
 std::string OT_ME::get_market_offers(
@@ -1496,7 +1476,7 @@ std::string OT_ME::get_market_offers(
         MARKET_ID,
         MAX_DEPTH);
 
-    return request.SendRequest(request, "GET_MARKET_OFFERS");
+    return request.Run();
 }
 
 std::string OT_ME::get_nym_market_offers(
@@ -1512,7 +1492,7 @@ std::string OT_ME::get_nym_market_offers(
         exec_,
         otapi_);
 
-    return request.SendRequest(request, "GET_NYM_MARKET_OFFERS");
+    return request.Run();
 }
 
 std::string OT_ME::get_market_recent_trades(
@@ -1530,7 +1510,7 @@ std::string OT_ME::get_market_recent_trades(
         otapi_,
         MARKET_ID);
 
-    return request.SendRequest(request, "GET_MARKET_RECENT_TRADES");
+    return request.Run();
 }
 
 std::string OT_ME::adjust_usage_credits(
@@ -1550,7 +1530,7 @@ std::string OT_ME::adjust_usage_credits(
         TARGET_NYM_ID,
         ADJUSTMENT);
 
-    return request.SendRequest(request, "ADJUST_USAGE_CREDITS");
+    return request.Run();
 }
 
 int32_t OT_ME::VerifyMessageSuccess(const std::string& str_Message) const
