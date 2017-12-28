@@ -266,11 +266,13 @@ enum class originType : std::int8_t {
     origin_error_state
 };
 
-enum class SendResult : std::uint8_t {
+enum class SendResult : std::int8_t {
+    TRANSACTION_NUMBERS = -3,
+    INVALID_REPLY = -2,
+    TIMEOUT = -1,
     ERROR = 0,
-    TIMEOUT = 1,
+    UNNECESSARY = 1,
     VALID_REPLY = 2,
-    INVALID_REPLY = 3
 };
 
 enum class ConnectionState : std::uint8_t {
@@ -282,6 +284,9 @@ enum class ConnectionState : std::uint8_t {
 typedef std::pair<SendResult, std::unique_ptr<std::string>> NetworkReplyRaw;
 typedef std::pair<SendResult, std::unique_ptr<String>> NetworkReplyString;
 typedef std::pair<SendResult, std::unique_ptr<Message>> NetworkReplyMessage;
+
+typedef std::tuple<RequestNumber, TransactionNumber, NetworkReplyMessage>
+    CommandResult;
 
 enum class MessageType : std::uint8_t {
     badID = 0,

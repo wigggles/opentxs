@@ -69,6 +69,18 @@ namespace opentxs::api
 
 Wallet::Wallet(Native& ot)
     : ot_(ot)
+    , nym_map_()
+    , server_map_()
+    , unit_map_()
+    , context_map_()
+    , nym_map_lock_()
+    , server_map_lock_()
+    , unit_map_lock_()
+    , context_map_lock_()
+    , peer_map_lock_()
+    , peer_lock_()
+    , nymfile_map_lock_()
+    , nymfile_lock_()
 {
 }
 
@@ -135,14 +147,22 @@ std::shared_ptr<class Context> Wallet::context(
             const auto& server = serialized->servercontext().serverid();
             auto& connection = zmq.Server(server);
             entry.reset(new class ServerContext(
-                *serialized, localNym, remoteNym, connection));
+                *serialized,
+                localNym,
+                remoteNym,
+                connection,
+                nymfile_lock(localNymID)));
         } break;
         case proto::CONSENSUSTYPE_CLIENT: {
             OT_ASSERT(ot_.ServerMode());
 
             const auto& serverID = ot_.Server().ID();
             entry.reset(new class ClientContext(
-                *serialized, localNym, remoteNym, serverID));
+                *serialized,
+                localNym,
+                remoteNym,
+                serverID,
+                nymfile_lock(remoteNymID)));
         } break;
         default: {
             return nullptr;
@@ -263,7 +283,8 @@ Editor<class ClientContext> Wallet::mutable_ClientContext(
         const ContextID contextID = {String(serverNymID).Get(),
                                      String(remoteNymID).Get()};
         auto& entry = context_map_[contextID];
-        entry.reset(new class ClientContext(local, remote, serverID));
+        entry.reset(new class ClientContext(
+            local, remote, serverID, nymfile_lock(remoteNymID)));
         base = entry;
     }
 
@@ -308,8 +329,12 @@ Editor<class ServerContext> Wallet::mutable_ServerContext(
         auto& entry = context_map_[contextID];
         auto& zmq = ot_.ZMQ();
         auto& connection = zmq.Server(String(serverID).Get());
-        entry.reset(
-            new class ServerContext(localNym, remoteNym, serverID, connection));
+        entry.reset(new class ServerContext(
+            localNym,
+            remoteNym,
+            serverID,
+            connection,
+            nymfile_lock(localNymID)));
         base = entry;
     }
 
@@ -448,6 +473,15 @@ NymData Wallet::mutable_Nym(const Identifier& id)
     }
 
     return NymData(it->second.second);
+}
+
+std::mutex& Wallet::nymfile_lock(const Identifier& nymID) const
+{
+    Lock map_lock(nymfile_map_lock_);
+    auto& output = nymfile_lock_[nymID];
+    map_lock.unlock();
+
+    return output;
 }
 
 ObjectList Wallet::NymList() const { return ot_.DB().NymList(); }

@@ -56,16 +56,18 @@ namespace opentxs
 Context::Context(
     const ConstNym& local,
     const ConstNym& remote,
-    const Identifier& server)
+    const Identifier& server,
+    std::mutex& nymfileLock)
     : ot_super(local, 1)
+    , nymfile_lock_(nymfileLock)
     , server_id_(server)
     , remote_nym_(remote)
     , available_transaction_numbers_()
     , issued_transaction_numbers_()
     , request_number_(0)
-    , remote_nymbox_hash_()
-    , local_nymbox_hash_()
     , acknowledged_request_numbers_()
+    , local_nymbox_hash_()
+    , remote_nymbox_hash_()
 {
 }
 
@@ -73,16 +75,18 @@ Context::Context(
     const proto::Context& serialized,
     const ConstNym& local,
     const ConstNym& remote,
-    const Identifier& server)
+    const Identifier& server,
+    std::mutex& nymfileLock)
     : ot_super(local, serialized.version())
+    , nymfile_lock_(nymfileLock)
     , server_id_(server)
     , remote_nym_(remote)
     , available_transaction_numbers_()
     , issued_transaction_numbers_()
     , request_number_(serialized.requestnumber())
-    , remote_nymbox_hash_(serialized.remotenymboxhash())
-    , local_nymbox_hash_(serialized.localnymboxhash())
     , acknowledged_request_numbers_()
+    , local_nymbox_hash_(serialized.localnymboxhash())
+    , remote_nymbox_hash_(serialized.remotenymboxhash())
 {
     for (const auto& it : serialized.acknowledgedrequestnumber()) {
         acknowledged_request_numbers_.insert(it);
@@ -263,7 +267,7 @@ bool Context::insert_available_number(const TransactionNumber& number)
 {
     Lock lock(lock_);
 
-    return issued_transaction_numbers_.insert(number).second;
+    return available_transaction_numbers_.insert(number).second;
 }
 
 bool Context::insert_issued_number(const TransactionNumber& number)
@@ -284,6 +288,8 @@ bool Context::issue_number(const Lock& lock, const TransactionNumber& number)
     const bool output = issued && available;
 
     if (!output) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to issue number "
+              << number << std::endl;
         issued_transaction_numbers_.erase(number);
         available_transaction_numbers_.erase(number);
     }
@@ -296,6 +302,16 @@ Identifier Context::LocalNymboxHash() const
     Lock lock(lock_);
 
     return local_nymbox_hash_;
+}
+
+Editor<class Nym> Context::mutable_Nymfile(const OTPasswordData& reason)
+{
+    std::function<void(class Nym*, Lock&)> callback =
+        [&](class Nym* in, Lock& lock) -> void { this->save(in, lock); };
+    auto nym = Nym::LoadPrivateNym(
+        nym_->ID(), false, nullptr, nullptr, &reason, nullptr);
+
+    return Editor<class Nym>(nymfile_lock_, nym, callback);
 }
 
 std::string Context::Name() const
@@ -316,6 +332,19 @@ bool Context::NymboxHashMatch() const
     }
 
     return (local_nymbox_hash_ == remote_nymbox_hash_);
+}
+
+std::unique_ptr<const class Nym> Context::Nymfile(
+    const OTPasswordData& reason) const
+{
+    OT_ASSERT(nym_);
+
+    Lock lock(nymfile_lock_);
+    std::unique_ptr<class Nym> output{nullptr};
+    output.reset(Nym::LoadPrivateNym(
+        nym_->ID(), false, nullptr, nullptr, &reason, nullptr));
+
+    return output;
 }
 
 bool Context::RecoverAvailableNumber(const TransactionNumber& number)
@@ -380,6 +409,18 @@ void Context::Reset()
     available_transaction_numbers_.clear();
     issued_transaction_numbers_.clear();
     request_number_.store(0);
+}
+
+void Context::save(class Nym* nym, const Lock& lock) const
+{
+    OT_ASSERT(nym_);
+    OT_ASSERT(nullptr != nym);
+    OT_ASSERT(lock.mutex() == &nymfile_lock_)
+    OT_ASSERT(lock.owns_lock())
+
+    const auto saved = nym->SaveSignedNymfile(*nym_);
+
+    OT_ASSERT(saved);
 }
 
 proto::Context Context::serialize(

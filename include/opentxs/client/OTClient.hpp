@@ -43,6 +43,7 @@
 
 #include "opentxs/client/OTMessageBuffer.hpp"
 #include "opentxs/client/OTMessageOutbuffer.hpp"
+#include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/Types.hpp"
 
 #include <memory>
@@ -85,33 +86,28 @@ public:
 
     void QueueOutgoingMessage(const Message& theMessage);
 
-    EXPORT int32_t ProcessUserCommand(
-        MessageType requestedCommand,
+    int32_t ProcessUserCommand(
+        const MessageType requestedCommand,
+        ServerContext& context,
         Message& theMessage,
-        Nym& theNym,
-        const ServerContract& theServer,
         const Account* pAccount = nullptr,
-        int64_t lTransactionAmount = 0,
+        const int64_t lTransactionAmount = 0,
         const UnitDefinition* pMyUnitDefinition = nullptr,
         const Identifier* pHisNymID = nullptr,
         const Identifier* pHisAcctID = nullptr);
 
     bool processServerReply(
-        const Identifier& server,
-        Nym* sender,
+        const std::set<ServerContext::ManagedNumber>& managed,
+        ServerContext& context,
         std::unique_ptr<Message>& reply,
         Ledger* pNymbox = nullptr);
 
     bool AcceptEntireNymbox(
         Ledger& theNymbox,
-        const Identifier& theNotaryID,
-        const ServerContract& theServerContract,
-        Nym& theNym,
+        ServerContext& context,
         Message& theMessage);
 
 private:
-    struct ProcessServerReplyArgs;
-
     OTWallet& m_pWallet;
     api::Activity& activity_;
     api::ContactManager& contacts_;
@@ -120,87 +116,86 @@ private:
     OTMessageOutbuffer m_MessageOutbuffer;
 
     void ProcessIncomingTransaction(
-        ProcessServerReplyArgs& args,
         const Message& theReply,
+        ServerContext& context,
         OTTransaction* pTransaction,
         String& strReceiptID) const;
     void ProcessIncomingTransactions(
-        ProcessServerReplyArgs& args,
-        const Message& theReply) const;
+        const Message& theReply,
+        const Identifier& accountID,
+        ServerContext& context) const;
 #if OT_CASH
     void ProcessWithdrawalResponse(
-        OTTransaction& theTransaction,
-        ProcessServerReplyArgs& args,
-        const Message& theReply) const;
+        const Message& theReply,
+        ServerContext& context,
+        OTTransaction& theTransaction) const;
 #endif  // OT_CASH
     void ProcessDepositResponse(
-        OTTransaction& theTransaction,
-        ProcessServerReplyArgs& args,
-        const Message& theReply) const;
+        const Message& theReply,
+        const ServerContext& context,
+        OTTransaction& theTransaction) const;
     void ProcessDepositChequeResponse(
-        Item* pReplyItem,
-        const Identifier& NOTARY_ID,
-        const Identifier& NYM_ID,
-        Nym* pNym) const;
-    void ProcessPayDividendResponse(
-        OTTransaction& theTransaction,
-        ProcessServerReplyArgs& args,
-        const Message& theReply) const;
+        const ServerContext& context,
+        Item* pReplyItem) const;
+    void ProcessPayDividendResponse(OTTransaction& theTransaction) const;
     void load_str_trans_add_to_ledger(
         const Identifier& the_nym_id,
         const String& str_trans,
         const String& str_box_type,
-        const int64_t& lTransNum,
+        const TransactionNumber& lTransNum,
         const Nym& the_nym,
         Ledger& ledger) const;
     void setRecentHash(
         const Message& theReply,
-        const String& strNotaryID,
-        Nym* pNym,
-        bool setNymboxHash);
+        bool setNymboxHash,
+        ServerContext& context);
     bool processServerReplyTriggerClause(
         const Message& theReply,
-        ProcessServerReplyArgs& args);
+        ServerContext& context);
     bool processServerReplyCheckNym(
         const Message& theReply,
-        ProcessServerReplyArgs& args);
+        ServerContext& context);
     bool processServerReplyNotarizeTransaction(
         const Message& theReply,
-        ProcessServerReplyArgs& args);
+        const Identifier& accountID,
+        ServerContext& context);
     bool processServerReplyGetTransactionNumbers(
         const Message& theReply,
-        ProcessServerReplyArgs& args);
+        ServerContext& context);
     bool processServerReplyGetNymBox(
         const Message& theReply,
         Ledger* pNymbox,
-        ProcessServerReplyArgs& args);
+        ServerContext& context);
     bool processServerReplyGetBoxReceipt(
         const Message& theReply,
         Ledger* pNymbox,
-        ProcessServerReplyArgs& args);
+        ServerContext& context);
     bool processServerReplyProcessBox(
         const Message& theReply,
+        const Identifier& accountID,
         Ledger* pNymbox,
-        ProcessServerReplyArgs& args);
+        ServerContext& context);
     bool processServerReplyProcessInbox(
         const Message& theReply,
+        const Identifier& accountID,
         Ledger* pNymbox,
-        ProcessServerReplyArgs& args,
+        ServerContext& context,
         OTTransaction* pTransaction,
         OTTransaction* pReplyTransaction);
     bool processServerReplyProcessNymbox(
         const Message& theReply,
         Ledger* pNymbox,
-        ProcessServerReplyArgs& args,
+        ServerContext& context,
         OTTransaction* pTransaction,
         OTTransaction* pReplyTransaction);
     bool processServerReplyGetAccountData(
         const Message& theReply,
+        const Identifier& accountID,
         Ledger* pNymbox,
-        ProcessServerReplyArgs& args);
+        ServerContext& context);
     bool processServerReplyGetInstrumentDefinition(
         const Message& theReply,
-        ProcessServerReplyArgs& args);
+        ServerContext& context);
 #if OT_CASH
     bool processServerReplyGetMint(const Message& theReply);
 #endif  // OT_CASH
@@ -210,29 +205,27 @@ private:
     bool processServerReplyGetNymMarketOffers(const Message& theReply);
     bool processServerReplyUnregisterNym(
         const Message& theReply,
-        ProcessServerReplyArgs& args);
+        ServerContext& context);
     bool processServerReplyUnregisterAccount(
         const Message& theReply,
-        ProcessServerReplyArgs& args);
+        ServerContext& context);
     bool processServerReplyRegisterInstrumentDefinition(
         const Message& theReply,
-        ProcessServerReplyArgs& args);
+        const Identifier& accountID,
+        ServerContext& context);
     bool processServerReplyRegisterAccount(
         const Message& theReply,
-        ProcessServerReplyArgs& args);
-
+        const Identifier& accountID,
+        ServerContext& context);
     bool createInstrumentNoticeFromPeerObject(
+        const ServerContext& context,
         const std::unique_ptr<PeerObject>& peerObject,
-        OTTransaction* pTxnPeerObject,
-        const Identifier& theNotaryID,
-        const Identifier& theNymID,
-        const Nym& theNym);
-
+        OTTransaction* pTxnPeerObject);
     void ProcessIncomingCronItemReply(
         Item* pReplyItem,
         std::unique_ptr<OTCronItem>& pCronItem,
-        ProcessServerReplyArgs& args,
-        const int64_t& lNymOpeningNumber,
+        ServerContext& context,
+        const TransactionNumber& lNymOpeningNumber,
         OTTransaction* pTransaction,
         const String& strCronItem) const;
 };

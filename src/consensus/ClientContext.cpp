@@ -50,8 +50,9 @@ namespace opentxs
 ClientContext::ClientContext(
     const ConstNym& local,
     const ConstNym& remote,
-    const Identifier& server)
-    : ot_super(local, remote, server)
+    const Identifier& server,
+    std::mutex& nymfileLock)
+    : ot_super(local, remote, server, nymfileLock)
 {
 }
 
@@ -59,8 +60,9 @@ ClientContext::ClientContext(
     const proto::Context& serialized,
     const ConstNym& local,
     const ConstNym& remote,
-    const Identifier& server)
-    : ot_super(serialized, local, remote, server)
+    const Identifier& server,
+    std::mutex& nymfileLock)
+    : ot_super(serialized, local, remote, server, nymfileLock)
 {
     if (serialized.has_clientcontext()) {
         for (const auto& it : serialized.clientcontext().opencronitems()) {

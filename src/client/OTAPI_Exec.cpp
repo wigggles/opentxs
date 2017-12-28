@@ -359,7 +359,7 @@ bool OTAPI_Exec::LoadWallet() const { return ot_api_.LoadWallet(); }
 
 bool OTAPI_Exec::SwitchWallet() const { return ot_api_.LoadWallet(); }
 
-int32_t OTAPI_Exec::GetMemlogSize() const
+std::int32_t OTAPI_Exec::GetMemlogSize() const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
@@ -528,7 +528,7 @@ bool OTAPI_Exec::NumList_VerifyAll(
     return bVerified ? true : false;
 }
 
-int32_t OTAPI_Exec::NumList_Count(const std::string& strNumList) const
+std::int32_t OTAPI_Exec::NumList_Count(const std::string& strNumList) const
 {
     if (strNumList.empty()) {
         otErr << OT_METHOD << __FUNCTION__ << ": Null: strNumList passed in!\n";
@@ -787,7 +787,7 @@ std::string OTAPI_Exec::GetNym_Description(const std::string& NYM_ID) const
     return str_return;
 }
 
-int32_t OTAPI_Exec::GetNym_MasterCredentialCount(
+std::int32_t OTAPI_Exec::GetNym_MasterCredentialCount(
     const std::string& NYM_ID) const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
@@ -860,7 +860,8 @@ std::string OTAPI_Exec::GetNym_MasterCredentialContents(
     return {};
 }
 
-int32_t OTAPI_Exec::GetNym_RevokedCredCount(const std::string& NYM_ID) const
+std::int32_t OTAPI_Exec::GetNym_RevokedCredCount(
+    const std::string& NYM_ID) const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
@@ -936,7 +937,7 @@ std::string OTAPI_Exec::GetNym_RevokedCredContents(
     return {};
 }
 
-int32_t OTAPI_Exec::GetNym_ChildCredentialCount(
+std::int32_t OTAPI_Exec::GetNym_ChildCredentialCount(
     const std::string& NYM_ID,
     const std::string& MASTER_CRED_ID) const
 {
@@ -1554,7 +1555,7 @@ std::string OTAPI_Exec::GetServer_Contract(const std::string& NOTARY_ID)
     return strOutput.Get();
 }
 
-int32_t OTAPI_Exec::GetCurrencyDecimalPower(
+std::int32_t OTAPI_Exec::GetCurrencyDecimalPower(
     const std::string& INSTRUMENT_DEFINITION_ID) const
 {
     auto unit = wallet_.UnitDefinition(Identifier(INSTRUMENT_DEFINITION_ID));
@@ -1752,21 +1753,24 @@ std::string OTAPI_Exec::AddUnitDefinition(const std::string& strContract) const
     return {};
 }
 
-int32_t OTAPI_Exec::GetNymCount(void) const { return ot_api_.GetNymCount(); }
+std::int32_t OTAPI_Exec::GetNymCount(void) const
+{
+    return ot_api_.GetNymCount();
+}
 
-int32_t OTAPI_Exec::GetServerCount(void) const
+std::int32_t OTAPI_Exec::GetServerCount(void) const
 {
     const auto servers = wallet_.ServerList();
     return servers.size();
 }
 
-int32_t OTAPI_Exec::GetAssetTypeCount(void) const
+std::int32_t OTAPI_Exec::GetAssetTypeCount(void) const
 {
     const auto units = wallet_.UnitDefinitionList();
     return units.size();
 }
 
-int32_t OTAPI_Exec::GetAccountCount(void) const
+std::int32_t OTAPI_Exec::GetAccountCount(void) const
 {
     return ot_api_.GetAccountCount();
 }
@@ -1910,9 +1914,8 @@ bool OTAPI_Exec::Wallet_CanRemoveAssetType(
         if (theID == theCompareID) {
             otOut << OT_METHOD << __FUNCTION__
                   << ": Unable to remove asset contract "
-                  << INSTRUMENT_DEFINITION_ID
-                  << " from "
-                     "wallet: Account "
+                  << INSTRUMENT_DEFINITION_ID << " from "
+                                                 "wallet: Account "
                   << strAcctID << " uses it.\n";
             return false;
         }
@@ -2124,102 +2127,6 @@ bool OTAPI_Exec::DoesBoxReceiptExist(
                        // also.
         nBoxType,      // 0/nymbox, 1/inbox, 2/outbox
         static_cast<int64_t>(lTransactionNum));
-}
-
-// Returns int32_t:
-// -1 means error; no message was sent.
-//  0 means NO error, but also: no message was sent.
-// >0 means NO error, and the message was sent, and the request number fits into
-// an integer...
-//  ...and in fact the requestNum IS the return value!
-//  ===> In 99% of cases, this LAST option is what actually happens!!
-//
-int32_t OTAPI_Exec::getBoxReceipt(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& ACCOUNT_ID,  // If for Nymbox (vs inbox/outbox) then pass
-                                    // NYM_ID in this field also.
-    const int32_t& nBoxType,        // 0/nymbox, 1/inbox, 2/outbox
-    const int64_t& TRANSACTION_NUMBER) const
-{
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    OT_ASSERT_MSG(
-        !NOTARY_ID.empty(),
-        "OTAPI_Exec::getBoxReceipt: Null NOTARY_ID passed in.");
-    OT_ASSERT_MSG(
-        !NYM_ID.empty(), "OTAPI_Exec::getBoxReceipt: Null NYM_ID passed in.");
-    OT_ASSERT_MSG(
-        !ACCOUNT_ID.empty(),
-        "OTAPI_Exec::getBoxReceipt: Null ACCOUNT_ID passed in.");
-
-    if (!((0 == nBoxType) || (1 == nBoxType) || (2 == nBoxType))) {
-        otErr << OT_METHOD << __FUNCTION__
-              << ": nBoxType is of wrong type: value: " << nBoxType << "\n";
-        return OT_ERROR;
-    }
-    if (0 > TRANSACTION_NUMBER) {
-        otErr << OT_METHOD << __FUNCTION__
-              << ": Negative: TRANSACTION_NUMBER passed in!\n";
-        return OT_ERROR;
-    }
-    const Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID),
-        theAccountID(ACCOUNT_ID);
-    const int64_t lTransactionNum = TRANSACTION_NUMBER;
-    switch (nBoxType) {
-        case 0:  // nymbox
-        case 1:  // inbox
-        case 2:  // outbox
-            break;
-        default:
-            otErr << OT_METHOD << __FUNCTION__
-                  << ": Error: bad nBoxType: " << nBoxType
-                  << " for NymID: " << NYM_ID << " AcctID: " << ACCOUNT_ID
-                  << "(expected one of: 0/nymbox, 1/inbox, 2/outbox)\n";
-            return OT_ERROR;
-    }
-
-    return ot_api_.getBoxReceipt(
-        theNotaryID,
-        theNymID,
-        theAccountID,  // If for Nymbox (vs
-                       // inbox/outbox) then pass
-                       // NYM_ID in this field also.
-        nBoxType,      // 0/nymbox, 1/inbox, 2/outbox
-        static_cast<int64_t>(lTransactionNum));
-}
-
-// Returns int32_t:
-// -1 means error; no message was sent.
-//  0 means NO error, but also: no message was sent.
-// >0 means NO error, and the message was sent, and the request number fits into
-// an integer...
-//  ...and in fact the requestNum IS the return value!
-//  ===> In 99% of cases, this LAST option is what actually happens!!
-//
-int32_t OTAPI_Exec::deleteAssetAccount(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& ACCOUNT_ID) const
-{
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    OT_ASSERT_MSG(
-        !NOTARY_ID.empty(),
-        "OTAPI_Exec::deleteAssetAccount: Null NOTARY_ID passed in.");
-    OT_ASSERT_MSG(
-        !NYM_ID.empty(),
-        "OTAPI_Exec::deleteAssetAccount: Null NYM_ID passed in.");
-    OT_ASSERT_MSG(
-        !ACCOUNT_ID.empty(),
-        "OTAPI_Exec::deleteAssetAccount: Null ACCOUNT_ID passed in.");
-
-    if (!OTAPI_Exec::Wallet_CanRemoveAccount(ACCOUNT_ID)) return 0;
-
-    Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID),
-        theAccountID(ACCOUNT_ID);
-
-    return ot_api_.deleteAssetAccount(theNotaryID, theNymID, theAccountID);
 }
 
 // OT has the capability to export a Nym (normally stored in several files) as
@@ -2954,7 +2861,8 @@ bool OTAPI_Exec::Nym_VerifyOutmailByIndex(
 // entirely and replace it with SwigWrapper.cpp directly on
 // OpenTransactions.cpp
 
-int32_t OTAPI_Exec::GetNym_OutpaymentsCount(const std::string& NYM_ID) const
+std::int32_t OTAPI_Exec::GetNym_OutpaymentsCount(
+    const std::string& NYM_ID) const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
@@ -3889,7 +3797,7 @@ bool OTAPI_Exec::SetAssetType_Name(
 // Returns a count (0 through N numbers available),
 // or -1 for error (no nym found.)
 //
-int32_t OTAPI_Exec::GetNym_TransactionNumCount(
+std::int32_t OTAPI_Exec::GetNym_TransactionNumCount(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID) const
 {
@@ -4530,8 +4438,9 @@ std::string OTAPI_Exec::VerifyAndRetrieveXMLContents(
     const Identifier theSignerID(SIGNER_ID);
     String strOutput;
 
-    if (false == ot_api_.VerifyAndRetrieveXMLContents(
-                     strContract, theSignerID, strOutput)) {
+    if (false ==
+        ot_api_.VerifyAndRetrieveXMLContents(
+            strContract, theSignerID, strOutput)) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Failure: "
                  "ot_api_.VerifyAndRetrieveXMLContents() "
@@ -5924,7 +5833,7 @@ std::string OTAPI_Exec::SmartContract_RemoveAccount(
 // first grab however
 // many transaction#s he will need in order to confirm this smart contract.
 //
-int32_t OTAPI_Exec::SmartContract_CountNumsNeeded(
+std::int32_t OTAPI_Exec::SmartContract_CountNumsNeeded(
     const std::string& THE_CONTRACT,  // The smart contract, about to be queried
                                       // by this function.
     const std::string& AGENT_NAME) const
@@ -6156,7 +6065,8 @@ bool OTAPI_Exec::Smart_IsPartyConfirmed(
     return true;
 }
 
-int32_t OTAPI_Exec::Smart_GetPartyCount(const std::string& THE_CONTRACT) const
+std::int32_t OTAPI_Exec::Smart_GetPartyCount(
+    const std::string& THE_CONTRACT) const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
@@ -6175,7 +6085,8 @@ int32_t OTAPI_Exec::Smart_GetPartyCount(const std::string& THE_CONTRACT) const
     return pScriptable->GetPartyCount();
 }
 
-int32_t OTAPI_Exec::Smart_GetBylawCount(const std::string& THE_CONTRACT) const
+std::int32_t OTAPI_Exec::Smart_GetBylawCount(
+    const std::string& THE_CONTRACT) const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
@@ -6293,7 +6204,7 @@ std::string OTAPI_Exec::Bylaw_GetLanguage(
     return pBylaw->GetLanguage();
 }
 
-int32_t OTAPI_Exec::Bylaw_GetClauseCount(
+std::int32_t OTAPI_Exec::Bylaw_GetClauseCount(
     const std::string& THE_CONTRACT,
     const std::string& BYLAW_NAME) const
 {
@@ -6324,7 +6235,7 @@ int32_t OTAPI_Exec::Bylaw_GetClauseCount(
     return pBylaw->GetClauseCount();
 }
 
-int32_t OTAPI_Exec::Bylaw_GetVariableCount(
+std::int32_t OTAPI_Exec::Bylaw_GetVariableCount(
     const std::string& THE_CONTRACT,
     const std::string& BYLAW_NAME) const
 {
@@ -6355,7 +6266,7 @@ int32_t OTAPI_Exec::Bylaw_GetVariableCount(
     return pBylaw->GetVariableCount();
 }
 
-int32_t OTAPI_Exec::Bylaw_GetHookCount(
+std::int32_t OTAPI_Exec::Bylaw_GetHookCount(
     const std::string& THE_CONTRACT,
     const std::string& BYLAW_NAME) const
 {
@@ -6386,7 +6297,7 @@ int32_t OTAPI_Exec::Bylaw_GetHookCount(
     return pBylaw->GetHookCount();
 }
 
-int32_t OTAPI_Exec::Bylaw_GetCallbackCount(
+std::int32_t OTAPI_Exec::Bylaw_GetCallbackCount(
     const std::string& THE_CONTRACT,
     const std::string& BYLAW_NAME) const
 {
@@ -6730,7 +6641,7 @@ std::string OTAPI_Exec::Hook_GetNameByIndex(
 }
 
 /// Returns the number of clauses attached to a specific hook.
-int32_t OTAPI_Exec::Hook_GetClauseCount(
+std::int32_t OTAPI_Exec::Hook_GetClauseCount(
     const std::string& THE_CONTRACT,
     const std::string& BYLAW_NAME,
     const std::string& HOOK_NAME) const
@@ -6898,7 +6809,7 @@ std::string OTAPI_Exec::Callback_GetClause(
     return pClause->GetName().Get();
 }
 
-int32_t OTAPI_Exec::Party_GetAcctCount(
+std::int32_t OTAPI_Exec::Party_GetAcctCount(
     const std::string& THE_CONTRACT,
     const std::string& PARTY_NAME) const
 {
@@ -6929,7 +6840,7 @@ int32_t OTAPI_Exec::Party_GetAcctCount(
     return pParty->GetAccountCount();
 }
 
-int32_t OTAPI_Exec::Party_GetAgentCount(
+std::int32_t OTAPI_Exec::Party_GetAgentCount(
     const std::string& THE_CONTRACT,
     const std::string& PARTY_NAME) const
 {
@@ -7275,81 +7186,6 @@ std::string OTAPI_Exec::Party_GetAgentID(
     return {};
 }
 
-// ACTIVATE SMART CONTRACT   (This is a transaction, and messages the server.)
-// Take an existing smart contract, which has already been set up, confirmed,
-// etc,
-// and then activate it on the server so it can start processing.
-//
-// See OTAPI_Exec::Create_SmartContract (etc.)
-//
-// Returns int32_t:
-// -1 means error; no message was sent.
-//  0 means NO error, but also: no message was sent.
-// >0 means NO error, and the message was sent, and the request number fits into
-// an integer...
-//  ...and in fact the requestNum IS the return value!
-//  ===> In 99% of cases, this LAST option is what actually happens!!
-//
-int32_t OTAPI_Exec::activateSmartContract(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& THE_SMART_CONTRACT) const
-{
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    OT_VERIFY_ID_STR(NOTARY_ID);
-    OT_VERIFY_ID_STR(NYM_ID);
-    OT_VERIFY_STD_STR(THE_SMART_CONTRACT);
-
-    const Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID);
-    const String strContract(THE_SMART_CONTRACT);
-
-    return ot_api_.activateSmartContract(theNotaryID, theNymID, strContract);
-}
-
-// If a smart contract is already running on the server, this allows a party
-// to trigger clauses on that smart contract, by name. This is NOT a
-// transaction,
-// but it DOES message the server.
-//
-// Returns int32_t:
-// -1 means error; no message was sent.
-//  0 means NO error, but also: no message was sent.
-// >0 means NO error, and the message was sent, and the request number fits into
-// an integer...
-//  ...and in fact the requestNum IS the return value!
-//  ===> In 99% of cases, this LAST option is what actually happens!!
-//
-int32_t OTAPI_Exec::triggerClause(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const int64_t& TRANSACTION_NUMBER,
-    const std::string& CLAUSE_NAME,
-    const std::string& STR_PARAM) const  // optional param
-{
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    OT_VERIFY_ID_STR(NOTARY_ID);
-    OT_VERIFY_ID_STR(NYM_ID);
-    OT_VERIFY_MIN_BOUND(TRANSACTION_NUMBER, 0);
-
-    //  if (STR_PARAM.empty()) {
-    //     otErr << OT_METHOD << __FUNCTION__ << ": Null: STR_PARAM passed
-    //     in!\n"; OT_FAIL;
-    //  }  // optional param
-
-    const Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID);
-    const String strClauseName(CLAUSE_NAME);
-    const int64_t lTransactionNum = TRANSACTION_NUMBER;
-    const String strParam((STR_PARAM.empty()) ? "" : STR_PARAM);
-    return ot_api_.triggerClause(
-        theNotaryID,
-        theNymID,
-        static_cast<int64_t>(lTransactionNum),
-        strClauseName,
-        STR_PARAM.empty() ? nullptr : &strParam);
-}
-
 /*
 OTAPI_Exec::Msg_HarvestTransactionNumbers
 
@@ -7530,7 +7366,7 @@ bool OTAPI_Exec::Msg_HarvestTransactionNumbers(
 
             auto context = wallet_.mutable_ServerContext(theNymID, serverID);
             theRequestBasket.HarvestClosingNumbers(
-                context.It(), *pNym, serverID, true);
+                context.It(), serverID, true);
 
             return true;
         } else {
@@ -8551,7 +8387,7 @@ bool OTAPI_Exec::ClearExpired(
 }
 
 // Returns number of transactions within, or -1 for error.
-int32_t OTAPI_Exec::Ledger_GetCount(
+std::int32_t OTAPI_Exec::Ledger_GetCount(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID,
     const std::string& ACCOUNT_ID,
@@ -10184,7 +10020,7 @@ time64_t OTAPI_Exec::Transaction_GetDateSigned(
 //
 // Returns OT_BOOL.
 //
-int32_t OTAPI_Exec::Transaction_GetSuccess(
+std::int32_t OTAPI_Exec::Transaction_GetSuccess(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID,
     const std::string& ACCOUNT_ID,
@@ -10269,7 +10105,7 @@ int32_t OTAPI_Exec::Transaction_GetSuccess(
     return OT_FALSE;
 }
 
-int32_t OTAPI_Exec::Transaction_IsCanceled(
+std::int32_t OTAPI_Exec::Transaction_IsCanceled(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID,
     const std::string& ACCOUNT_ID,
@@ -10368,7 +10204,7 @@ int32_t OTAPI_Exec::Transaction_IsCanceled(
 //                              false (0) == rejection
 // NEW: -1 (-1) for error
 //
-int32_t OTAPI_Exec::Transaction_GetBalanceAgreementSuccess(
+std::int32_t OTAPI_Exec::Transaction_GetBalanceAgreementSuccess(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID,
     const std::string& ACCOUNT_ID,
@@ -10466,7 +10302,7 @@ int32_t OTAPI_Exec::Transaction_GetBalanceAgreementSuccess(
 // Returns true (1) for Success and false (0) for Failure.
 // New: returns -1 (-1) for error.
 //
-int32_t OTAPI_Exec::Message_GetBalanceAgreementSuccess(
+std::int32_t OTAPI_Exec::Message_GetBalanceAgreementSuccess(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID,
     const std::string& ACCOUNT_ID,
@@ -10696,7 +10532,7 @@ int64_t OTAPI_Exec::Purse_GetTotalValue(
 // Returns a count of the tokens inside this purse. (Coins.)
 // or -1 in case of error.
 //
-int32_t OTAPI_Exec::Purse_Count(
+std::int32_t OTAPI_Exec::Purse_Count(
     const std::string& NOTARY_ID,
     const std::string& INSTRUMENT_DEFINITION_ID,
     const std::string& THE_PURSE) const
@@ -11222,56 +11058,6 @@ bool OTAPI_Exec::Wallet_ImportPurse(
     return bImported ? true : false;
 }
 
-// TODO:!!!!!  NEW!!!!!
-
-// Messages the server. If failure, make sure you didn't lose that purse!!
-// If success, the new tokens will be returned shortly and saved into the
-// appropriate purse.
-// Note that an asset account isn't necessary to do this... just a nym operating
-// cash-only.
-// The same as exchanging a 20-dollar bill at the teller window for a
-// replacement bill.
-//
-// You could also have a webpage operated by the transaction server, where a
-// dummy nym
-// performs cash exchanges using a single page with a text area (for copying and
-// pasting
-// cash tokens.) This way all cash token exchanges can go through the same Nym.
-// (Although
-// it must be stressed, that the cash is untraceable whether you use your own
-// Nym or not.)
-//
-// Returns int32_t:
-// -1 means error; no message was sent.
-//  0 means NO error, but also: no message was sent.
-// >0 means NO error, and the message was sent, and the request number fits into
-// an integer...
-//  ...and in fact the requestNum IS the return value!
-//  ===> In 99% of cases, this LAST option is what actually happens!!
-//
-int32_t OTAPI_Exec::exchangePurse(
-    const std::string& NOTARY_ID,
-    const std::string& INSTRUMENT_DEFINITION_ID,
-    const std::string& NYM_ID,
-    const std::string& THE_PURSE) const
-{
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    OT_VERIFY_ID_STR(NOTARY_ID);
-    OT_VERIFY_ID_STR(INSTRUMENT_DEFINITION_ID);
-    OT_VERIFY_ID_STR(NYM_ID);
-    OT_VERIFY_STD_STR(THE_PURSE);
-
-    // todo:  exchange message.
-    otErr << OT_METHOD << __FUNCTION__
-          << ": TODO (NOT CODED YET) OTAPI_Exec::exchangePurse: NOTARY_ID: "
-          << NOTARY_ID
-          << "\n INSTRUMENT_DEFINITION_ID: " << INSTRUMENT_DEFINITION_ID
-          << "\n NYM_ID: " << NYM_ID << "\n ";
-
-    return OT_ERROR;
-}
-
 // the GUI needs to be able to export cash from one Nym to another,
 // so a function has been provided for doing so to the actual Token IDs (not
 // just the purse.
@@ -11422,7 +11208,7 @@ int64_t OTAPI_Exec::Token_GetDenomination(
 // Returns -1 for error.
 // Otherwise returns the series number of this token. (Int.)
 //
-int32_t OTAPI_Exec::Token_GetSeries(
+std::int32_t OTAPI_Exec::Token_GetSeries(
     const std::string& NOTARY_ID,
     const std::string& INSTRUMENT_DEFINITION_ID,
     const std::string& THE_TOKEN) const
@@ -11579,7 +11365,7 @@ bool OTAPI_Exec::IsBasketCurrency(
 // Returns the number of instrument definitions that make up this basket.
 // (Or zero.)
 //
-int32_t OTAPI_Exec::Basket_GetMemberCount(
+std::int32_t OTAPI_Exec::Basket_GetMemberCount(
     const std::string& INSTRUMENT_DEFINITION_ID) const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
@@ -11689,104 +11475,6 @@ int64_t OTAPI_Exec::Basket_GetMemberMinimumTransferAmount(
     return lMinTransAmount;
 }
 
-int32_t OTAPI_Exec::registerContractNym(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& CONTRACT) const
-{
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    OT_VERIFY_ID_STR(NOTARY_ID);
-    OT_VERIFY_ID_STR(NYM_ID);
-    OT_VERIFY_STD_STR(CONTRACT);
-
-    return ot_api_.registerContract(
-        Identifier(NOTARY_ID),
-        Identifier(NYM_ID),
-        ContractType::NYM,
-        Identifier(CONTRACT));
-}
-
-int32_t OTAPI_Exec::registerContractServer(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& CONTRACT) const
-{
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    OT_VERIFY_ID_STR(NOTARY_ID);
-    OT_VERIFY_ID_STR(NYM_ID);
-    OT_VERIFY_STD_STR(CONTRACT);
-
-    return ot_api_.registerContract(
-        Identifier(NOTARY_ID),
-        Identifier(NYM_ID),
-        ContractType::SERVER,
-        Identifier(CONTRACT));
-}
-
-int32_t OTAPI_Exec::registerContractUnit(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& CONTRACT) const
-{
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    OT_VERIFY_ID_STR(NOTARY_ID);
-    OT_VERIFY_ID_STR(NYM_ID);
-    OT_VERIFY_STD_STR(CONTRACT);
-
-    return ot_api_.registerContract(
-        Identifier(NOTARY_ID),
-        Identifier(NYM_ID),
-        ContractType::UNIT,
-        Identifier(CONTRACT));
-}
-
-// Returns int32_t:
-// -1 means error; no message was sent.
-//  0 means NO error, but also: no message was sent.
-// >0 means NO error, and the message was sent, and the request number fits into
-// an integer...
-//  ...and in fact the requestNum IS the return value!
-//  ===> In 99% of cases, this LAST option is what actually happens!!
-//
-int32_t OTAPI_Exec::registerNym(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID) const
-{
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    OT_VERIFY_ID_STR(NOTARY_ID);
-    OT_VERIFY_ID_STR(NYM_ID);
-
-    Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID);
-
-    return ot_api_.registerNym(theNotaryID, theNymID);
-}
-
-// Returns int32_t:
-// -1 means error; no message was sent.
-//  0 means NO error, but also: no message was sent.
-// >0 means NO error, and the message was sent, and the request number fits into
-// an integer...
-//  ...and in fact the requestNum IS the return value!
-//  ===> In 99% of cases, this LAST option is what actually happens!!
-//
-int32_t OTAPI_Exec::unregisterNym(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID) const
-{
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    OT_VERIFY_ID_STR(NOTARY_ID);
-    OT_VERIFY_ID_STR(NYM_ID);
-
-    Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID);
-
-    return ot_api_.unregisterNym(theNotaryID, theNymID);
-}
-
 // If THE_MESSAGE is of command type usageCreditsResponse, and IF it was a
 // SUCCESS,
 // then this function returns the usage credits BALANCE (it's a int64_t int32_t,
@@ -11860,319 +11548,7 @@ int64_t OTAPI_Exec::Message_GetUsageCredits(
     return theMessage.m_lDepth;
 }
 
-// Returns int32_t:
-// -1 means error; no message was sent.
-//  0 means NO error, but also: no message was sent.
-// >0 means NO error, and the message was sent, and the request number fits into
-// an integer...
-//  ...and in fact the requestNum IS the return value!
-//  ===> In 99% of cases, this LAST option is what actually happens!!
-//
-int32_t OTAPI_Exec::usageCredits(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& NYM_ID_CHECK,
-    const int64_t& ADJUSTMENT) const  // can be "0",
-                                      // or
-// "", if you just
-// want to check the
-// current balance
-// without adjusting
-// it.
-{
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    OT_VERIFY_ID_STR(NOTARY_ID);
-    OT_VERIFY_ID_STR(NYM_ID);
-    OT_VERIFY_ID_STR(NYM_ID_CHECK);
-
-    //  OT_ASSERT_MSG("" != ADJUSTMENT, "OTAPI_Exec::usageCredits: Null
-    //    ADJUSTMENT passed in."); // "" is allowed here.
-
-    const Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID),
-        theOtherNymID(NYM_ID_CHECK);
-
-    const int64_t lAdjustment = ADJUSTMENT;  // "" resolves as 0.
-
-    return ot_api_.usageCredits(
-        theNotaryID,
-        theNymID,
-        theOtherNymID,
-        static_cast<int64_t>(lAdjustment));
-}
-
-// Returns int32_t:
-// -1 means error; no message was sent.
-//  0 means NO error, but also: no message was sent.
-// >0 means NO error, and the message was sent, and the request number fits into
-// an integer...
-//  ...and in fact the requestNum IS the return value!
-//  ===> In 99% of cases, this LAST option is what actually happens!!
-//
-int32_t OTAPI_Exec::checkNym(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& NYM_ID_CHECK) const
-{
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    OT_VERIFY_ID_STR(NOTARY_ID);
-    OT_VERIFY_ID_STR(NYM_ID);
-    OT_VERIFY_ID_STR(NYM_ID_CHECK);
-
-    Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID),
-        theOtherNymID(NYM_ID_CHECK);
-
-    return ot_api_.checkNym(theNotaryID, theNymID, theOtherNymID);
-}
-
-std::string OTAPI_Exec::notifyBailment(
-    const std::string& serverID,
-    const std::string& senderNymID,
-    const std::string& recipientNymID,
-    const std::string& unitID,
-    const std::string& txid) const
-{
-    auto senderNym = wallet_.Nym(Identifier(senderNymID));
-    std::unique_ptr<PeerRequest> request = PeerRequest::Create(
-        senderNym,
-        proto::PEERREQUEST_PENDINGBAILMENT,
-        Identifier(unitID),
-        Identifier(serverID),
-        Identifier(recipientNymID),
-        txid);
-
-    if (request) {
-        return proto::ProtoAsString(request->Contract());
-    }
-
-    return {};
-}
-
-std::string OTAPI_Exec::initiateBailment(
-    const std::string& serverID,
-    const std::string& senderNymID,
-    const std::string& unitID) const
-{
-    auto senderNym = wallet_.Nym(Identifier(senderNymID));
-    std::unique_ptr<PeerRequest> request = PeerRequest::Create(
-        senderNym,
-        proto::PEERREQUEST_BAILMENT,
-        Identifier(unitID),
-        Identifier(serverID));
-
-    if (request) {
-        return proto::ProtoAsString(request->Contract());
-    }
-
-    return {};
-}
-
-std::string OTAPI_Exec::initiateOutBailment(
-    const std::string& serverID,
-    const std::string& senderNymID,
-    const std::string& unitID,
-    const std::uint64_t& amount,
-    const std::string& terms) const
-{
-    auto senderNym = wallet_.Nym(Identifier(senderNymID));
-    std::unique_ptr<PeerRequest> request = PeerRequest::Create(
-        senderNym,
-        proto::PEERREQUEST_OUTBAILMENT,
-        Identifier(unitID),
-        Identifier(serverID),
-        amount,
-        terms);
-
-    if (request) {
-        return proto::ProtoAsString(request->Contract());
-    }
-
-    return {};
-}
-
-std::string OTAPI_Exec::storeSecret(
-    const std::string& senderNymID,
-    const std::string& recipientNymID,
-    const std::string& serverID,
-    const std::uint64_t& type,
-    const std::string& primary,
-    const std::string& secondary)
-{
-    auto senderNym = wallet_.Nym(Identifier(senderNymID));
-    std::unique_ptr<PeerRequest> request = PeerRequest::Create(
-        senderNym,
-        proto::PEERREQUEST_STORESECRET,
-        static_cast<proto::SecretType>(type),
-        Identifier(recipientNymID),
-        primary,
-        secondary,
-        Identifier(serverID));
-
-    if (request) {
-        return proto::ProtoAsString(request->Contract());
-    }
-
-    return {};
-}
-
-std::string OTAPI_Exec::requestConnection(
-    const std::string& senderNymID,
-    const std::string& recipientNymID,
-    const std::string& serverID,
-    const std::uint64_t type) const
-{
-    auto senderNym = wallet_.Nym(Identifier(senderNymID));
-    std::unique_ptr<PeerRequest> request = PeerRequest::Create(
-        senderNym,
-        proto::PEERREQUEST_CONNECTIONINFO,
-        static_cast<proto::ConnectionInfoType>(type),
-        Identifier(recipientNymID),
-        Identifier(serverID));
-
-    if (request) {
-        return proto::ProtoAsString(request->Contract());
-    }
-
-    return {};
-}
-
-std::string OTAPI_Exec::acknowledgeBailment(
-    const std::string& senderNymID,
-    const std::string& requestID,
-    const std::string& serverID,
-    const std::string& terms) const
-{
-    auto senderNym = wallet_.Nym(Identifier(senderNymID));
-    std::unique_ptr<PeerReply> reply = PeerReply::Create(
-        senderNym,
-        proto::PEERREQUEST_BAILMENT,
-        Identifier(requestID),
-        Identifier(serverID),
-        terms);
-
-    if (reply) {
-        return proto::ProtoAsString(reply->Contract());
-    }
-
-    return {};
-}
-
-std::string OTAPI_Exec::acknowledgeNotice(
-    const std::string& senderNymID,
-    const std::string& requestID,
-    const std::string& serverID,
-    const bool ack) const
-{
-    auto senderNym = wallet_.Nym(Identifier(senderNymID));
-    std::unique_ptr<PeerReply> reply = PeerReply::Create(
-        senderNym, Identifier(requestID), Identifier(serverID), ack);
-
-    if (reply) {
-        return proto::ProtoAsString(reply->Contract());
-    }
-
-    return {};
-}
-
-std::string OTAPI_Exec::acknowledgeOutBailment(
-    const std::string& senderNymID,
-    const std::string& requestID,
-    const std::string& serverID,
-    const std::string& terms) const
-{
-    auto senderNym = wallet_.Nym(Identifier(senderNymID));
-    std::unique_ptr<PeerReply> reply = PeerReply::Create(
-        senderNym,
-        proto::PEERREQUEST_OUTBAILMENT,
-        Identifier(requestID),
-        Identifier(serverID),
-        terms);
-
-    if (reply) {
-        return proto::ProtoAsString(reply->Contract());
-    }
-
-    return {};
-}
-
-std::string OTAPI_Exec::acknowledgeConnection(
-    const std::string& senderNymID,
-    const std::string& requestID,
-    const std::string& serverID,
-    const bool ack,
-    const std::string& url,
-    const std::string& login,
-    const std::string& password,
-    const std::string& key) const
-{
-    auto senderNym = wallet_.Nym(Identifier(senderNymID));
-    std::unique_ptr<PeerReply> reply = PeerReply::Create(
-        senderNym,
-        Identifier(requestID),
-        Identifier(serverID),
-        ack,
-        url,
-        login,
-        password,
-        key);
-
-    if (reply) {
-        return proto::ProtoAsString(reply->Contract());
-    }
-
-    return {};
-}
-
-int32_t OTAPI_Exec::initiatePeerRequest(
-    const std::string& sender,
-    const std::string& recipient,
-    const std::string& server,
-    const std::string& request) const
-{
-    OT_VERIFY_ID_STR(sender);
-    OT_VERIFY_ID_STR(recipient);
-    OT_VERIFY_ID_STR(server);
-    OT_VERIFY_STD_STR(request);
-
-    const Identifier senderID(sender);
-    auto senderNym = wallet_.Nym(senderID);
-
-    std::unique_ptr<PeerRequest> instantiated(PeerRequest::Factory(
-        senderNym, proto::TextToProto<proto::PeerRequest>(request)));
-
-    return ot_api_.initiatePeerRequest(
-        senderID, Identifier(recipient), Identifier(server), instantiated);
-}
-
-int32_t OTAPI_Exec::initiatePeerReply(
-    const std::string& sender,
-    const std::string& recipient,
-    const std::string& server,
-    const std::string& request,
-    const std::string& reply) const
-{
-    OT_VERIFY_ID_STR(sender);
-    OT_VERIFY_ID_STR(recipient);
-    OT_VERIFY_ID_STR(server);
-    OT_VERIFY_STD_STR(request);
-    OT_VERIFY_STD_STR(reply);
-
-    const Identifier senderID(sender);
-    auto senderNym = wallet_.Nym(senderID);
-
-    std::unique_ptr<PeerReply> instantiated(PeerReply::Factory(
-        senderNym, proto::TextToProto<proto::PeerReply>(reply)));
-
-    return ot_api_.initiatePeerReply(
-        senderID,
-        Identifier(recipient),
-        Identifier(server),
-        Identifier(request),
-        instantiated);
-}
-
-int32_t OTAPI_Exec::completePeerReply(
+std::int32_t OTAPI_Exec::completePeerReply(
     const std::string& nymID,
     const std::string& replyID) const
 {
@@ -12182,7 +11558,7 @@ int32_t OTAPI_Exec::completePeerReply(
     return wallet_.PeerReplyComplete(nym, reply);
 }
 
-int32_t OTAPI_Exec::completePeerRequest(
+std::int32_t OTAPI_Exec::completePeerRequest(
     const std::string& nymID,
     const std::string& requestID) const
 {
@@ -12391,256 +11767,6 @@ std::string OTAPI_Exec::getReply_Base64(
     return crypto_.Encode().DataEncode(output);
 }
 
-// Returns int32_t:
-// -1 means error; no message was sent.
-//  0 means NO error, but also: no message was sent.
-// >0 means NO error, and the message was sent, and the request number fits into
-// an integer...
-//  ...and in fact the requestNum IS the return value!
-//  ===> In 99% of cases, this LAST option is what actually happens!!
-//
-int32_t OTAPI_Exec::sendNymMessage(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& NYM_ID_RECIPIENT,
-    const std::string& THE_MESSAGE) const
-{
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    OT_VERIFY_ID_STR(NOTARY_ID);
-    OT_VERIFY_ID_STR(NYM_ID);
-    OT_VERIFY_ID_STR(NYM_ID_RECIPIENT);
-    OT_VERIFY_STD_STR(THE_MESSAGE);
-
-    Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID),
-        theOtherNymID(NYM_ID_RECIPIENT);
-    String strMessage(THE_MESSAGE);
-
-    return ot_api_.sendNymMessage(
-        theNotaryID, theNymID, theOtherNymID, strMessage);
-}
-
-// Returns int32_t:
-// -1 means error; no message was sent.
-//  0 means NO error, but also: no message was sent.
-// >0 means NO error, and the message was sent, and the request number fits into
-// an integer...
-//  ...and in fact the requestNum IS the return value!
-//  ===> In 99% of cases, this LAST option is what actually happens!!
-//
-int32_t OTAPI_Exec::sendNymInstrument(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& NYM_ID_RECIPIENT,
-    const std::string& THE_INSTRUMENT,
-    const std::string& INSTRUMENT_FOR_SENDER) const  // Can be empty. Special
-                                                     // version
-// for the sender's outpayments
-// box. Only used for cash:
-// THE_INSTRUMENT contains tokens
-// already encrypted to the
-// recipient's key. So this
-// version contains tokens
-// encrypted to the sender's key
-// instead.
-{
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    OT_VERIFY_ID_STR(NOTARY_ID);
-    OT_VERIFY_ID_STR(NYM_ID);
-    OT_VERIFY_ID_STR(NYM_ID_RECIPIENT);
-    OT_VERIFY_STD_STR(THE_INSTRUMENT);
-    //  OT_VERIFY_STD_STR(INSTRUMENT_FOR_SENDER);
-    // (INSTRUMENT_FOR_SENDER is optional, so we allow it to be empty.)
-
-    Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID),
-        theOtherNymID(NYM_ID_RECIPIENT);
-    String strInstrument(THE_INSTRUMENT);
-    // Note: this was removed and can be deleted from the code.
-    //
-    // Why? Because we pass the string version of the public key,
-    // not the OTASCIIArmor version. The bookends are passed intact
-    // into the OpenSSL call since the key is expected that way.
-    // Whereas loading it into ascii-armor is just going to strip off
-    // the bookends and pass the raw base64-encoded pubkey to OpenSSL
-    // which is NOT what OpenSSL is expecting. FYI.
-    //
-    // Todo, security: Should we do this anyway, just purely for validation
-    // purposes?
-    //
-    //  OTASCIIArmor ascRecipPubkey;
-    //  const bool bLoadedArmor = OTASCIIArmor::LoadFromString(ascRecipPubkey,
-    // strRecipPubkey); // str_bookend="-----BEGIN" by default
-    //
-    //  if (!bLoadedArmor || !ascRecipPubkey.Exists())
-    //  {
-    //      otErr << OT_METHOD << __FUNCTION__
-    //            << ": Failure loading string into OTASCIIArmor object:\n\n"
-    //            << strRecipPubkey << "\n\n";
-    //      return OT_ERROR;
-    //  }
-    OTPayment thePayment(strInstrument);
-
-    if (!thePayment.IsValid() || !thePayment.SetTempValues()) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Failure loading payment instrument "
-                 "(intended for recipient) from string:\n\n"
-              << strInstrument << "\n\n";
-        return OT_ERROR;
-    }
-    const bool bSenderCopyIncluded = (INSTRUMENT_FOR_SENDER.size() > 0);
-
-    if (bSenderCopyIncluded) {
-        String strInstrumentForSender(INSTRUMENT_FOR_SENDER);
-        OTPayment theSenderPayment(strInstrumentForSender);
-
-        if (!theSenderPayment.IsValid() || !theSenderPayment.SetTempValues()) {
-            otOut << OT_METHOD << __FUNCTION__
-                  << ": Failure loading payment instrument (copy intended for "
-                     "sender's records) from string:\n\n"
-                  << strInstrumentForSender << "\n\n";
-            return OT_ERROR;
-        }
-        return ot_api_.sendNymInstrument(
-            theNotaryID,
-            theNymID,
-            theOtherNymID,
-            thePayment,
-            &theSenderPayment);
-    }
-    return ot_api_.sendNymInstrument(
-        theNotaryID, theNymID, theOtherNymID, thePayment);
-}
-
-// Returns int32_t:
-// -1 means error; no message was sent.
-//  0 means NO error, but also: no message was sent.
-// >0 means NO error, and the message was sent, and the request number fits into
-// an integer...
-//  ...and in fact the requestNum IS the return value!
-//  ===> In 99% of cases, this LAST option is what actually happens!!
-//
-int32_t OTAPI_Exec::registerInstrumentDefinition(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& THE_CONTRACT) const
-{
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    OT_VERIFY_ID_STR(NOTARY_ID);
-    OT_VERIFY_ID_STR(NYM_ID);
-    OT_VERIFY_STD_STR(THE_CONTRACT);
-
-    Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID);
-
-    String strContract(THE_CONTRACT);
-
-    return ot_api_.registerInstrumentDefinition(
-        theNotaryID, theNymID, strContract);
-}
-
-// Returns int32_t:
-// -1 means error; no message was sent.
-//  0 means NO error, but also: no message was sent.
-// >0 means NO error, and the message was sent, and the request number fits into
-// an integer...
-//  ...and in fact the requestNum IS the return value!
-//  ===> In 99% of cases, this LAST option is what actually happens!!
-//
-int32_t OTAPI_Exec::getInstrumentDefinition(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& INSTRUMENT_DEFINITION_ID) const
-{
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    OT_VERIFY_ID_STR(NOTARY_ID);
-    OT_VERIFY_ID_STR(NYM_ID);
-    OT_VERIFY_ID_STR(INSTRUMENT_DEFINITION_ID);
-
-    Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID),
-        theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
-
-    return ot_api_.getInstrumentDefinition(
-        theNotaryID, theNymID, theInstrumentDefinitionID);
-}
-
-// Returns int32_t:
-// -1 means error; no message was sent.
-//  0 means NO error, but also: no message was sent.
-// >0 means NO error, and the message was sent, and the request number fits into
-// an integer...
-//  ...and in fact the requestNum IS the return value!
-//  ===> In 99% of cases, this LAST option is what actually happens!!
-//
-int32_t OTAPI_Exec::getMint(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& INSTRUMENT_DEFINITION_ID) const
-{
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    OT_VERIFY_ID_STR(NOTARY_ID);
-    OT_VERIFY_ID_STR(NYM_ID);
-    OT_VERIFY_ID_STR(INSTRUMENT_DEFINITION_ID);
-
-    Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID),
-        theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
-
-    return ot_api_.getMint(theNotaryID, theNymID, theInstrumentDefinitionID);
-}
-
-// Returns int32_t:
-// -1 means error; no message was sent.
-//  0 means NO error, but also: no message was sent.
-// >0 means NO error, and the message was sent, and the request number fits into
-// an integer...
-//  ...and in fact the requestNum IS the return value!
-//  ===> In 99% of cases, this LAST option is what actually happens!!
-//
-int32_t OTAPI_Exec::registerAccount(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& INSTRUMENT_DEFINITION_ID) const
-{
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    OT_VERIFY_ID_STR(NOTARY_ID);
-    OT_VERIFY_ID_STR(NYM_ID);
-    OT_VERIFY_ID_STR(INSTRUMENT_DEFINITION_ID);
-
-    Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID),
-        theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
-
-    return ot_api_.registerAccount(
-        theNotaryID, theNymID, theInstrumentDefinitionID);
-}
-
-// Sends a message to the server to retrieve latest copy of an asset acct.
-// Returns int32_t:
-// -1 means error; no message was sent.
-//  0 means NO error, but also: no message was sent.
-// >0 means NO error, and the message was sent, and the request number fits into
-// an integer...
-//  ...and in fact the requestNum IS the return value!
-//  ===> In 99% of cases, this LAST option is what actually happens!!
-//
-int32_t OTAPI_Exec::getAccountData(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& ACCT_ID) const
-{
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    OT_VERIFY_ID_STR(NOTARY_ID);
-    OT_VERIFY_ID_STR(NYM_ID);
-    OT_VERIFY_ID_STR(ACCT_ID);
-
-    Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID), theAcctID(ACCT_ID);
-
-    return ot_api_.getAccountData(theNotaryID, theNymID, theAcctID);
-}
-
 // GENERATE BASKET CREATION REQUEST
 //
 // (returns the basket in string form.)
@@ -12710,49 +11836,6 @@ std::string OTAPI_Exec::AddBasketCreationItem(
     }
 
     return proto::ProtoAsArmored(contract, "BASKET CONTRACT").Get();
-}
-
-// ISSUE BASKET CURRENCY
-//
-// Issue a new instrument definition based on a BASKET of other instrument
-// definitions!
-// You cannot call this function until you first set up the BASKET_INFO object.
-// I will provide functions for setting up that object, so that you can then
-// call this function to actually message the server with your request.
-//
-// ANYONE can issue a new basket type, but they will have no control over the
-// issuer account. Normally when issuing a currency, you therefore control the
-// issuer account. But with baskets, that is managed internally by the server.
-// This means anyone can define a basket, and all may use it -- but no one
-// controls it except the server.
-//
-// Returns int32_t:
-// -1 means error; no message was sent.
-//  0 means NO error, but also: no message was sent.
-// >0 means NO error, and the message was sent, and the request number fits into
-// an integer...
-//  ...and in fact the requestNum IS the return value!
-//  ===> In 99% of cases, this LAST option is what actually happens!!
-//
-int32_t OTAPI_Exec::issueBasket(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& THE_BASKET) const
-{
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    OT_VERIFY_ID_STR(NOTARY_ID);
-    OT_VERIFY_ID_STR(NYM_ID);
-    OT_VERIFY_STD_STR(THE_BASKET);
-
-    Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID);
-
-    String strBasketInfo(THE_BASKET);
-
-    return ot_api_.issueBasket(
-        theNotaryID,
-        theNymID,
-        proto::StringToProto<proto::UnitDefinition>(strBasketInfo));
 }
 
 // GENERATE BASKET EXCHANGE REQUEST
@@ -12852,721 +11935,6 @@ std::string OTAPI_Exec::AddBasketExchangeItem(
     String strOutput(theBasket);  // Extract the updated basket to string form.
     std::string pBuf = strOutput.Get();
     return pBuf;
-}
-
-// EXCHANGE BASKET
-//
-// Send a request to the server asking to exchange in or out of a basket
-// currency.
-//
-// For example, maybe you have 3 gold, 2 silver, and 5 dollars, and those are
-// the ingredients of the "Rand" basket currency. This message allows you to
-// ask the server to convert from your gold, silver, and dollar accounts into
-// your Rand account. (Or convert from your Rand account back into your gold,
-// silver, and dollar accounts.)
-//
-// Other than this conversion process, (with the reserves stored internally by
-// the server) basket accounts are identical to normal asset accounts -- they
-// are merely another instrument definition ID, and you can use them the same as
-// you would
-// use any other instrument definition (open accounts, write cheques, withdraw
-// cash, trade
-// on markets, etc.)
-//
-// Returns int32_t:
-// -1 means error; no message was sent.
-//  0 means NO error, but also: no message was sent.
-// >0 means NO error, and the message was sent, and the request number fits into
-// an integer...
-//  ...and in fact the requestNum IS the return value!
-//  ===> In 99% of cases, this LAST option is what actually happens!!
-//
-
-int32_t OTAPI_Exec::exchangeBasket(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& BASKET_INSTRUMENT_DEFINITION_ID,
-    const std::string& THE_BASKET,
-    const bool& BOOL_EXCHANGE_IN_OR_OUT) const  // exchanging in == true (1),
-                                                // out
-                                                // ==
-                                                // false (0).
-{
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    OT_VERIFY_ID_STR(NOTARY_ID);
-    OT_VERIFY_ID_STR(NYM_ID);
-    OT_VERIFY_ID_STR(BASKET_INSTRUMENT_DEFINITION_ID);
-    OT_VERIFY_STD_STR(THE_BASKET);
-
-    Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID),
-        theBasketInstrumentDefinitionID(BASKET_INSTRUMENT_DEFINITION_ID);
-
-    String strBasketInfo(THE_BASKET);
-
-    // exchanging in == true, out == false.
-    const bool& bExchangeInOrOut =
-        ((true == BOOL_EXCHANGE_IN_OR_OUT) ? true : false);
-
-    return ot_api_.exchangeBasket(
-        theNotaryID,
-        theNymID,
-        theBasketInstrumentDefinitionID,
-        strBasketInfo,
-        bExchangeInOrOut);
-}
-
-// Returns int32_t:
-// -1 means error; no message was sent.
-//  0 means NO error, but also: no message was sent.
-// >0 means NO error, and the message was sent, and the request number fits into
-// an integer...
-//  ...and in fact the requestNum IS the return value!
-//  ===> In 99% of cases, this LAST option is what actually happens!!
-//
-int32_t OTAPI_Exec::getTransactionNumbers(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID) const
-{
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    OT_VERIFY_ID_STR(NOTARY_ID);
-    OT_VERIFY_ID_STR(NYM_ID);
-
-    Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID);
-
-    return ot_api_.getTransactionNumbers(theNotaryID, theNymID);
-}
-
-#if OT_CASH
-// Returns int32_t:
-// -1 means error; no message was sent.
-//  0 means NO error, but also: no message was sent.
-// >0 means NO error, and the message was sent, and the request number fits into
-// an integer...
-//  ...and in fact the requestNum IS the return value!
-//  ===> In 99% of cases, this LAST option is what actually happens!!
-//
-int32_t OTAPI_Exec::notarizeWithdrawal(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& ACCT_ID,
-    const int64_t& AMOUNT) const
-{
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    OT_VERIFY_ID_STR(NOTARY_ID);
-    OT_VERIFY_ID_STR(NYM_ID);
-    OT_VERIFY_ID_STR(ACCT_ID);
-    OT_VERIFY_MIN_BOUND(AMOUNT, 0);
-
-    Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID), theAcctID(ACCT_ID);
-
-    return ot_api_.notarizeWithdrawal(
-        theNotaryID, theNymID, theAcctID, static_cast<int64_t>(AMOUNT));
-}
-
-// Returns int32_t:
-// -1 means error; no message was sent.
-//  0 means NO error, but also: no message was sent.
-// >0 means NO error, and the message was sent, and the request number fits into
-// an integer...
-//  ...and in fact the requestNum IS the return value!
-//  ===> In 99% of cases, this LAST option is what actually happens!!
-//
-int32_t OTAPI_Exec::notarizeDeposit(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& ACCT_ID,
-    const std::string& THE_PURSE) const
-{
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    OT_VERIFY_ID_STR(NOTARY_ID);
-    OT_VERIFY_ID_STR(NYM_ID);
-    OT_VERIFY_ID_STR(ACCT_ID);
-    OT_VERIFY_STD_STR(THE_PURSE);
-
-    Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID), theAcctID(ACCT_ID);
-    String strPurse(THE_PURSE);
-
-    return ot_api_.notarizeDeposit(theNotaryID, theNymID, theAcctID, strPurse);
-}
-#endif  // OT_CASH
-
-// Returns int32_t:
-// -1 means error; no message was sent.
-//  0 means NO error, but also: no message was sent.
-// >0 means NO error, and the message was sent, and the request number fits into
-// an integer...
-//  ...and in fact the requestNum IS the return value!
-//  ===> In 99% of cases, this LAST option is what actually happens!!
-//
-int32_t OTAPI_Exec::notarizeTransfer(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& ACCT_FROM,
-    const std::string& ACCT_TO,
-    const int64_t& AMOUNT,
-    const std::string& NOTE) const
-{
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    OT_VERIFY_ID_STR(NOTARY_ID);
-    OT_VERIFY_ID_STR(NYM_ID);
-    OT_VERIFY_ID_STR(ACCT_FROM);
-    OT_VERIFY_ID_STR(ACCT_TO);
-    OT_VERIFY_MIN_BOUND(AMOUNT, 0);
-
-    Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID);
-    Identifier theFromAcct(ACCT_FROM), theToAcct(ACCT_TO);
-
-    String strNote(NOTE.empty() ? "" : NOTE);
-
-    int64_t lAmount = AMOUNT;
-
-    return ot_api_.notarizeTransfer(
-        theNotaryID, theNymID, theFromAcct, theToAcct, lAmount, strNote);
-}
-
-// Returns int32_t:
-// -1 means error; no message was sent.
-//  0 means NO error, but also: no message was sent.
-// >0 means NO error, and the message was sent, and the request number fits into
-// an integer...
-//  ...and in fact the requestNum IS the return value!
-//  ===> In 99% of cases, this LAST option is what actually happens!!
-//
-int32_t OTAPI_Exec::getNymbox(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID) const
-{
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    OT_VERIFY_ID_STR(NOTARY_ID);
-    OT_VERIFY_ID_STR(NYM_ID);
-
-    Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID);
-
-    return ot_api_.getNymbox(theNotaryID, theNymID);
-}
-
-// Returns int32_t:
-// -1 means error; no message was sent.
-//  0 means NO error, but also: no message was sent.
-// >0 means NO error, and the message was sent, and the request number fits into
-// an integer...
-//  ...and in fact the requestNum IS the return value!
-//  ===> In 99% of cases, this LAST option is what actually happens!!
-//
-int32_t OTAPI_Exec::processInbox(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& ACCT_ID,
-    const std::string& ACCT_LEDGER) const
-{
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    OT_VERIFY_ID_STR(NOTARY_ID);
-    OT_VERIFY_ID_STR(NYM_ID);
-    OT_VERIFY_ID_STR(ACCT_ID);
-    OT_VERIFY_STD_STR(ACCT_LEDGER);
-
-    //  otOut << OT_METHOD << __FUNCTION__ << ": \n"
-    //        "NOTARY_ID: " << NOTARY_ID << " \n"
-    //        "NYM_ID: " << NYM_ID << " \n"
-    //        "ACCT_ID: " << ACCT_ID << " \n"
-    //        "ACCT_LEDGER:\n" << ACCT_LEDGER << "\n\n";
-
-    Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID), theAcctID(ACCT_ID);
-    String strLedger(ACCT_LEDGER);
-
-    //  OTString temp1(NOTARY_ID), temp2(NYM_ID), temp3(ACCT_ID),
-    //  temp4(ACCT_LEDGER);
-    //    otOut << OT_METHOD << __FUNCTION__ << ": \n"
-    //        "\n\nNOTARY_ID: " << temp1 << " \n"
-    //        "NYM_ID: " << temp2 << " \n"
-    //        "ACCT_ID: " << temp3 << " \n"
-    //        "ACCT_LEDGER:\n" << temp4 << "\n\n";
-
-    return ot_api_.processInbox(theNotaryID, theNymID, theAcctID, strLedger);
-}
-
-// Returns:
-// -1 if error.
-//  0 if Nymbox is empty.
-//  1 or more: (OLD: Count of items in Nymbox before processing.)
-//  UPDATE: This now returns the request number of the message sent, if success.
-//
-int32_t OTAPI_Exec::processNymbox(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID) const
-{
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    OT_VERIFY_ID_STR(NOTARY_ID);
-    OT_VERIFY_ID_STR(NYM_ID);
-
-    Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID);
-
-    return ot_api_.processNymbox(theNotaryID, theNymID);
-}
-
-// Returns int32_t:
-// -1 means error; no message was sent.
-//  0 means NO error, but also: no message was sent.
-// >0 means NO error, and the message was sent, and the request number fits into
-// an integer...
-//  ...and in fact the requestNum IS the return value!
-//  ===> In 99% of cases, this LAST option is what actually happens!!
-//
-int32_t OTAPI_Exec::withdrawVoucher(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& ACCT_ID,
-    const std::string& RECIPIENT_NYM_ID,
-    const std::string& CHEQUE_MEMO,
-    const int64_t& AMOUNT) const
-{
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    OT_VERIFY_ID_STR(NOTARY_ID);
-    OT_VERIFY_ID_STR(NYM_ID);
-    OT_VERIFY_ID_STR(ACCT_ID);
-    OT_VERIFY_ID_STR(RECIPIENT_NYM_ID);
-    //  OT_VERIFY_STD_STR(CHEQUE_MEMO); // Probably this should be optional.
-    OT_VERIFY_MIN_BOUND(AMOUNT, 0);
-
-    Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID), theAcctID(ACCT_ID),
-        theRecipientNymID(RECIPIENT_NYM_ID);
-
-    String strMemo(CHEQUE_MEMO);
-    int64_t lAmount = AMOUNT;
-
-    return ot_api_.withdrawVoucher(
-        theNotaryID, theNymID, theAcctID, theRecipientNymID, strMemo, lAmount);
-}
-
-// PAY DIVIDEND -- to shareholders
-//
-int32_t OTAPI_Exec::payDividend(
-    const std::string& NOTARY_ID,
-    const std::string& ISSUER_NYM_ID,  // must be issuer of
-                                       // SHARES_INSTRUMENT_DEFINITION_ID
-    const std::string& DIVIDEND_FROM_ACCT_ID,  // if dollars paid for pepsi
-                                               // shares, then this is the
-                                               // issuer's dollars account.
-    const std::string& SHARES_INSTRUMENT_DEFINITION_ID,  // if dollars paid for
-                                                         // pepsi
-    // shares, then this is the pepsi
-    // shares instrument definition id.
-    const std::string& DIVIDEND_MEMO,  // user-configurable note that's added to
-                                       // the payout request message.
-    const int64_t& AMOUNT_PER_SHARE) const  // number of dollars to be paid out
-                                            // PER
-// SHARE (multiplied by total number of
-// shares issued.)
-{
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    OT_VERIFY_ID_STR(NOTARY_ID);
-    OT_VERIFY_ID_STR(ISSUER_NYM_ID);
-    OT_VERIFY_ID_STR(DIVIDEND_FROM_ACCT_ID);
-    OT_VERIFY_ID_STR(SHARES_INSTRUMENT_DEFINITION_ID);
-    //  OT_VERIFY_STD_STR(DIVIDEND_MEMO); // Probably this should be optional.
-    OT_VERIFY_MIN_BOUND(AMOUNT_PER_SHARE, 0);
-
-    Identifier theNotaryID(NOTARY_ID), theIssuerNymID(ISSUER_NYM_ID),
-        theDividendFromAcctID(DIVIDEND_FROM_ACCT_ID),
-        theSharesInstrumentDefinitionID(SHARES_INSTRUMENT_DEFINITION_ID);
-
-    String strMemo(DIVIDEND_MEMO);
-    int64_t lAmount = AMOUNT_PER_SHARE;
-
-    return ot_api_.payDividend(
-        theNotaryID,
-        theIssuerNymID,
-        theDividendFromAcctID,
-        theSharesInstrumentDefinitionID,
-        strMemo,
-        lAmount);
-}
-
-// Returns int32_t:
-// -1 means error; no message was sent.
-//  0 means NO error, but also: no message was sent.
-// >0 means NO error, and the message was sent, and the request number fits into
-// an integer...
-//  ...and in fact the requestNum IS the return value!
-//  ===> In 99% of cases, this LAST option is what actually happens!!
-//
-int32_t OTAPI_Exec::depositCheque(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& ACCT_ID,
-    const std::string& THE_CHEQUE) const
-{
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    OT_VERIFY_ID_STR(NOTARY_ID);
-    OT_VERIFY_ID_STR(NYM_ID);
-    OT_VERIFY_ID_STR(ACCT_ID);
-    OT_VERIFY_STD_STR(THE_CHEQUE);
-
-    Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID), theAcctID(ACCT_ID);
-
-    String strCheque(THE_CHEQUE);
-
-    return ot_api_.depositCheque(theNotaryID, theNymID, theAcctID, strCheque);
-}
-
-// DEPOSIT PAYMENT PLAN
-//
-// See OTAPI_Exec::WritePaymentPlan as well.
-//
-// Returns int32_t:
-// -1 means error; no message was sent.
-//  0 means NO error, but also: no message was sent.
-// >0 means NO error, and the message was sent, and the request number fits into
-// an integer...
-//  ...and in fact the requestNum IS the return value!
-//  ===> In 99% of cases, this LAST option is what actually happens!!
-//
-int32_t OTAPI_Exec::depositPaymentPlan(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& THE_PAYMENT_PLAN) const
-{
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    OT_VERIFY_ID_STR(NOTARY_ID);
-    OT_VERIFY_ID_STR(NYM_ID);
-    OT_VERIFY_STD_STR(THE_PAYMENT_PLAN);
-
-    const Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID);
-    const String strPlan(THE_PAYMENT_PLAN);
-
-    return ot_api_.depositPaymentPlan(theNotaryID, theNymID, strPlan);
-}
-
-// DONE: Remove Market ID.
-// DONE: Change inner call from cancelNymMarketOffer to cancelCronItem
-// DONE: Make a copy of this function called cancelPaymentPlan.
-//
-// Returns int32_t:
-// -1 means error; no message was sent.
-//  0 means NO error, but also: no message was sent.
-// >0 means NO error, and the message was sent, and the request number fits into
-// an integer...
-//  ...and in fact the requestNum IS the return value!
-//  ===> In 99% of cases, this LAST option is what actually happens!!
-//
-int32_t OTAPI_Exec::killMarketOffer(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& ASSET_ACCT_ID,
-    const int64_t& TRANSACTION_NUMBER) const
-{
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    OT_VERIFY_ID_STR(NOTARY_ID);
-    OT_VERIFY_ID_STR(NYM_ID);
-    OT_VERIFY_ID_STR(ASSET_ACCT_ID);
-    OT_VERIFY_MIN_BOUND(TRANSACTION_NUMBER, 0);
-
-    const int64_t lTransactionNumber = TRANSACTION_NUMBER;
-
-    const Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID),
-        theAssetAcctID(ASSET_ACCT_ID);
-
-    return ot_api_.cancelCronItem(
-        theNotaryID,
-        theNymID,
-        theAssetAcctID,
-        static_cast<int64_t>(lTransactionNumber));
-}
-
-// OTAPI_Exec::cancelPaymentPlan
-// Cancel a payment plan by transaction number.
-//
-// Returns int32_t:
-// -1 means error; no message was sent.
-//  0 means NO error, but also: no message was sent.
-// >0 means NO error, and the message was sent, and the request number fits into
-// an integer...
-//  ...and in fact the requestNum IS the return value!
-//  ===> In 99% of cases, this LAST option is what actually happens!!
-//
-int32_t OTAPI_Exec::killPaymentPlan(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& FROM_ACCT_ID,
-    const int64_t& TRANSACTION_NUMBER) const
-{
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    OT_VERIFY_ID_STR(NOTARY_ID);
-    OT_VERIFY_ID_STR(NYM_ID);
-    OT_VERIFY_ID_STR(FROM_ACCT_ID);
-    OT_VERIFY_MIN_BOUND(TRANSACTION_NUMBER, 0);
-
-    const int64_t lTransactionNumber = TRANSACTION_NUMBER;
-
-    const Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID),
-        theFromAcctID(FROM_ACCT_ID);
-
-    return ot_api_.cancelCronItem(
-        theNotaryID,
-        theNymID,
-        theFromAcctID,
-        static_cast<int64_t>(lTransactionNumber));
-}
-
-int32_t OTAPI_Exec::requestAdmin(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& PASSWORD) const
-{
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    OT_VERIFY_ID_STR(NOTARY_ID);
-    OT_VERIFY_ID_STR(NYM_ID);
-    OT_VERIFY_STD_STR(PASSWORD);
-
-    return ot_api_.requestAdmin(
-        Identifier(NOTARY_ID), Identifier(NYM_ID), PASSWORD);
-}
-
-int32_t OTAPI_Exec::serverAddClaim(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& SECTION,
-    const std::string& TYPE,
-    const std::string& VALUE,
-    const bool PRIMARY) const
-{
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    OT_VERIFY_ID_STR(NOTARY_ID);
-    OT_VERIFY_ID_STR(NYM_ID);
-    OT_VERIFY_STD_STR(SECTION);
-    OT_VERIFY_STD_STR(TYPE);
-    OT_VERIFY_STD_STR(VALUE);
-
-    return ot_api_.serverAddClaim(
-        Identifier(NOTARY_ID),
-        Identifier(NYM_ID),
-        SECTION,
-        TYPE,
-        VALUE,
-        PRIMARY);
-}
-
-// ISSUE MARKET OFFER
-//
-// Returns int32_t:
-// -1 means error; no message was sent.
-//  0 means NO error, but also: no message was sent.
-// >0 means NO error, and the message was sent, and the request number fits into
-// an integer...
-//  ...and in fact the requestNum IS the return value!
-//  ===> In 99% of cases, this LAST option is what actually happens!!
-//
-int32_t OTAPI_Exec::issueMarketOffer(
-    const std::string& ASSET_ACCT_ID,     // Perhaps this is the wheat market.
-    const std::string& CURRENCY_ACCT_ID,  // Perhaps I'm buying the wheat with
-                                          // rubles.
-    const int64_t& MARKET_SCALE,          // Defaults to minimum of 1. Market
-                                          // granularity.
-    const int64_t& MINIMUM_INCREMENT,  // This will be multiplied by the Scale.
-                                       // Min 1.
-    const int64_t& TOTAL_ASSETS_ON_OFFER,  // Total assets available for sale or
-                                           // purchase. Will be multiplied by
-                                           // minimum increment.
-    const int64_t& PRICE_LIMIT,            // Per Minimum Increment...
-    const bool& bBuyingOrSelling,          // SELLING == true, BUYING == false.
-    const time64_t& LIFESPAN_IN_SECONDS,   // Pass 0 for the default behavior:
-                                           // 86400 seconds aka 1 day.
-    const std::string& STOP_SIGN,  // Must be "" (for market/limit orders) or
-                                   // "<"
-                                   // or ">"  (for stop orders.)
-    const int64_t& ACTIVATION_PRICE) const  // Must be provided if STOP_SIGN is
-                                            // also
-// set. Determines the price threshold for
-// stop orders.
-{
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    OT_VERIFY_ID_STR(ASSET_ACCT_ID);
-    OT_VERIFY_ID_STR(CURRENCY_ACCT_ID);
-    OT_VERIFY_MIN_BOUND(MARKET_SCALE, 0);
-    OT_VERIFY_MIN_BOUND(MINIMUM_INCREMENT, 0);
-    OT_VERIFY_MIN_BOUND(TOTAL_ASSETS_ON_OFFER, 0);
-    OT_VERIFY_MIN_BOUND(PRICE_LIMIT, 0);
-    OT_VERIFY_MIN_BOUND(ACTIVATION_PRICE, 0);
-
-    char cStopSign = 0;
-
-    if (0 == STOP_SIGN.compare("<"))
-        cStopSign = '<';
-    else if (0 == STOP_SIGN.compare(">"))
-        cStopSign = '>';
-    if (!STOP_SIGN.empty() && ((ACTIVATION_PRICE == 0) ||
-                               ((cStopSign != '<') && (cStopSign != '>')))) {
-        otErr << OT_METHOD << __FUNCTION__
-              << ": If STOP_SIGN is provided, it must be \"<\" "
-                 "or \">\", and in that case ACTIVATION_PRICE "
-                 "must be non-zero.\n";
-        return OT_ERROR;
-    }
-    const Identifier theAssetAcctID(ASSET_ACCT_ID),
-        theCurrencyAcctID(CURRENCY_ACCT_ID);
-    const std::string str_asset_notary_id =
-        OTAPI_Exec::GetAccountWallet_NotaryID(ASSET_ACCT_ID);
-    const std::string str_currency_notary_id =
-        OTAPI_Exec::GetAccountWallet_NotaryID(CURRENCY_ACCT_ID);
-    const std::string str_asset_nym_id =
-        OTAPI_Exec::GetAccountWallet_NymID(ASSET_ACCT_ID);
-    const std::string str_currency_nym_id =
-        OTAPI_Exec::GetAccountWallet_NymID(CURRENCY_ACCT_ID);
-    if (str_asset_notary_id.empty() || str_currency_notary_id.empty() ||
-        str_asset_nym_id.empty() || str_currency_nym_id.empty()) {
-        otErr << OT_METHOD << __FUNCTION__
-              << ": Failed determining server or nym ID for "
-                 "either asset or currency account.\n";
-        return OT_ERROR;
-    }
-    const Identifier theAssetNotaryID(str_asset_notary_id),
-        theAssetNymID(str_asset_nym_id),
-        theCurrencyNotaryID(str_currency_notary_id),
-        theCurrencyNymID(str_currency_nym_id);
-    if (theAssetNotaryID != theCurrencyNotaryID) {
-        otErr << OT_METHOD << __FUNCTION__
-              << ": The accounts provided are on two different servers.\n";
-        return OT_ERROR;
-    }
-    if (theAssetNymID != theCurrencyNymID) {
-        otErr << OT_METHOD << __FUNCTION__
-              << ": The accounts provided are owned by two different nyms.\n";
-        return OT_ERROR;
-    }
-    // 1 is the minimum value here.
-    //
-    int64_t lMarketScale = (0 == MARKET_SCALE) ? 1 : MARKET_SCALE;
-    int64_t lMinIncrement = (0 == MINIMUM_INCREMENT) ? 1 : MINIMUM_INCREMENT;
-    int64_t lTotalAssetsOnOffer =
-        (0 == TOTAL_ASSETS_ON_OFFER) ? 1 : TOTAL_ASSETS_ON_OFFER;
-    int64_t lPriceLimit = PRICE_LIMIT;  // 0 is allowed now, for market orders.
-    return ot_api_.issueMarketOffer(
-        theAssetNotaryID,
-        theAssetNymID,
-        theAssetAcctID,
-        theCurrencyAcctID,
-        lMarketScale,
-        lMinIncrement,
-        lTotalAssetsOnOffer,
-        lPriceLimit,
-        bBuyingOrSelling,
-        LIFESPAN_IN_SECONDS,
-        cStopSign,
-        static_cast<int64_t>(ACTIVATION_PRICE));
-}
-
-// Returns int32_t:
-// -1 means error; no message was sent.
-//  0 means NO error, but also: no message was sent.
-// >0 means NO error, and the message was sent, and the request number fits into
-// an integer...
-//  ...and in fact the requestNum IS the return value!
-//  ===> In 99% of cases, this LAST option is what actually happens!!
-//
-int32_t OTAPI_Exec::getMarketList(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID) const
-{
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    OT_VERIFY_ID_STR(NOTARY_ID);
-    OT_VERIFY_ID_STR(NYM_ID);
-
-    const Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID);
-
-    return ot_api_.getMarketList(theNotaryID, theNymID);
-}
-
-// Returns int32_t:
-// -1 means error; no message was sent.
-//  0 means NO error, but also: no message was sent.
-// >0 means NO error, and the message was sent, and the request number fits into
-// an integer...
-//  ...and in fact the requestNum IS the return value!
-//  ===> In 99% of cases, this LAST option is what actually happens!!
-//
-int32_t OTAPI_Exec::getMarketOffers(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& MARKET_ID,
-    const int64_t& MAX_DEPTH) const
-{
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    OT_VERIFY_ID_STR(NOTARY_ID);
-    OT_VERIFY_ID_STR(NYM_ID);
-    OT_VERIFY_MIN_BOUND(MAX_DEPTH, 0);
-
-    const int64_t lDepth = MAX_DEPTH;
-    const Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID),
-        theMarketID(MARKET_ID);
-
-    return ot_api_.getMarketOffers(
-        theNotaryID, theNymID, theMarketID, static_cast<int64_t>(lDepth));
-}
-
-// Returns int32_t:
-// -1 means error; no message was sent.
-//  0 means NO error, but also: no message was sent.
-// >0 means NO error, and the message was sent, and the request number fits into
-// an integer...
-//  ...and in fact the requestNum IS the return value!
-//  ===> In 99% of cases, this LAST option is what actually happens!!
-//
-int32_t OTAPI_Exec::getMarketRecentTrades(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& MARKET_ID) const
-{
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    OT_VERIFY_ID_STR(NOTARY_ID);
-    OT_VERIFY_ID_STR(NYM_ID);
-    OT_VERIFY_ID_STR(MARKET_ID);
-
-    const Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID),
-        theMarketID(MARKET_ID);
-
-    return ot_api_.getMarketRecentTrades(theNotaryID, theNymID, theMarketID);
-}
-
-// Returns int32_t:
-// -1 means error; no message was sent.
-//  0 means NO error, but also: no message was sent.
-// >0 means NO error, and the message was sent, and the request number fits into
-// an integer...
-//  ...and in fact the requestNum IS the return value!
-//  ===> In 99% of cases, this LAST option is what actually happens!!
-//
-int32_t OTAPI_Exec::getNymMarketOffers(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID) const
-{
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    OT_VERIFY_ID_STR(NOTARY_ID);
-    OT_VERIFY_ID_STR(NYM_ID);
-
-    const Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID);
-
-    return ot_api_.getNymMarketOffers(theNotaryID, theNymID);
 }
 
 // POP MESSAGE BUFFER
@@ -13869,38 +12237,6 @@ bool OTAPI_Exec::ResyncNymWithServer(
     return bSynced;
 }
 
-// QUERY ASSET TYPES (server message)
-//
-// This way you can ask the server to confirm whether various
-// instrument definitions are issued there. You must prepare the encoded
-// StringMap in advance of calling this function.
-//
-
-// Returns int32_t:
-// -1 means error; no message was sent.
-//  0 means NO error, but also: no message was sent.
-// >0 means NO error, and the message was sent, and the request number fits into
-// an integer...
-//  ...and in fact the requestNum IS the return value!
-//  ===> In 99% of cases, this LAST option is what actually happens!!
-//
-int32_t OTAPI_Exec::queryInstrumentDefinitions(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& ENCODED_MAP) const
-{
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    OT_VERIFY_ID_STR(NOTARY_ID);
-    OT_VERIFY_ID_STR(NYM_ID);
-    OT_VERIFY_STD_STR(ENCODED_MAP);
-
-    Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID);
-    OTASCIIArmor theArmor((String(ENCODED_MAP)));
-
-    return ot_api_.queryInstrumentDefinitions(theNotaryID, theNymID, theArmor);
-}
-
 // GET MESSAGE PAYLOAD
 //
 // This way you can retrieve the payload from any message.
@@ -14023,8 +12359,9 @@ std::string OTAPI_Exec::Message_GetNewInstrumentDefinitionID(
     // contain a ledger. (Don't want to pass back whatever it DOES contain
     // in that case, now do I?)
     //
-    if ((false == theMessage.m_strCommand.Compare(
-                      "registerInstrumentDefinitionResponse")) &&
+    if ((false ==
+         theMessage.m_strCommand.Compare(
+             "registerInstrumentDefinitionResponse")) &&
         (false == theMessage.m_strCommand.Compare("issueBasketResponse"))) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Wrong message type: " << theMessage.m_strCommand << "\n";
@@ -14199,7 +12536,8 @@ std::string OTAPI_Exec::Message_GetNymboxHash(
 //
 // NEW: returns (-1) for error!
 //
-int32_t OTAPI_Exec::Message_GetSuccess(const std::string& THE_MESSAGE) const
+std::int32_t OTAPI_Exec::Message_GetSuccess(
+    const std::string& THE_MESSAGE) const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
@@ -14266,7 +12604,7 @@ int32_t OTAPI_Exec::Message_GetSuccess(const std::string& THE_MESSAGE) const
 // successful
 // reply.)
 //
-int32_t OTAPI_Exec::Message_GetDepth(const std::string& THE_MESSAGE) const
+std::int32_t OTAPI_Exec::Message_GetDepth(const std::string& THE_MESSAGE) const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
@@ -14286,7 +12624,7 @@ int32_t OTAPI_Exec::Message_GetDepth(const std::string& THE_MESSAGE) const
 // Returns true (1) for Success and false (0) for Failure.
 //         also returns (-1) for Error
 //
-int32_t OTAPI_Exec::Message_IsTransactionCanceled(
+std::int32_t OTAPI_Exec::Message_IsTransactionCanceled(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID,
     const std::string& ACCOUNT_ID,
@@ -14375,7 +12713,7 @@ int32_t OTAPI_Exec::Message_IsTransactionCanceled(
 // Returns true (1) for Success and false (0) for Failure.
 //         also returns (-1) for Error
 //
-int32_t OTAPI_Exec::Message_GetTransactionSuccess(
+std::int32_t OTAPI_Exec::Message_GetTransactionSuccess(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID,
     const std::string& ACCOUNT_ID,

@@ -41,6 +41,8 @@
 
 #include "opentxs/Version.hpp"
 
+#include "opentxs/Types.hpp"
+
 #include <cstdint>
 #include <mutex>
 #include <string>
@@ -49,6 +51,7 @@
 namespace opentxs
 {
 class OT_API;
+class OTAPI_Exec;
 
 namespace api
 {
@@ -198,8 +201,9 @@ public:
         const std::string& NYM_ID,
         const std::string& ACCT_FROM,
         const std::string& ACCT_TO,
-        std::int64_t AMOUNT,
-        const std::string& NOTE) const;
+        const std::int64_t AMOUNT,
+        const std::string& NOTE,
+        TransactionNumber& number) const;
 #if OT_CASH
     EXPORT std::string send_user_cash_pubkey(
         const std::string& NOTARY_ID,
@@ -234,10 +238,15 @@ private:
     friend class api::implementation::Api;
 
     std::recursive_mutex& lock_;
+    OTAPI_Exec& exec_;
     OT_API& otapi_;
     api::Wallet& wallet_;
 
-    MadeEasy(std::recursive_mutex& lock, OT_API& otapi, api::Wallet& wallet);
+    MadeEasy(
+        std::recursive_mutex& lock,
+        OTAPI_Exec& exec,
+        OT_API& otapi,
+        api::Wallet& wallet);
     MadeEasy() = delete;
     MadeEasy(const MadeEasy&) = delete;
     MadeEasy(const MadeEasy&&) = delete;

@@ -98,8 +98,9 @@ bool StorageFS::LoadFromBucket(
     value.clear();
     std::string directory{};
     const auto filename = calculate_path(key, bucket, directory);
+    boost::system::error_code ec{};
 
-    if (false == boost::filesystem::exists(filename)) {
+    if (false == boost::filesystem::exists(filename, ec)) {
 
         return false;
     }
@@ -133,7 +134,9 @@ std::string StorageFS::prepare_write(const std::string& input) const
 
 std::string StorageFS::read_file(const std::string& filename) const
 {
-    if (false == boost::filesystem::exists(filename)) {
+    boost::system::error_code ec{};
+
+    if (false == boost::filesystem::exists(filename, ec)) {
 
         return {};
     }

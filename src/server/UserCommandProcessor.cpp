@@ -180,6 +180,12 @@ UserCommandProcessor::FinalizeResponse::~FinalizeResponse()
     }
 
     reply_.SetPayload(String(ledger_));
+    otWarn << OT_METHOD << __FUNCTION__ << ": "
+           << reply_.Context().AvailableNumbers() << " numbers available."
+           << std::endl;
+    otWarn << OT_METHOD << __FUNCTION__ << ": "
+           << reply_.Context().IssuedNumbers({}) << " numbers issued."
+           << std::endl;
 }
 
 UserCommandProcessor::UserCommandProcessor(
@@ -1664,19 +1670,6 @@ bool UserCommandProcessor::cmd_process_inbox(ReplyMessage& reply) const
         return false;
     }
 
-    FinalizeResponse response(serverNym, reply, *responseLedger);
-    reply.SetSuccess(true);
-    reply.DropToNymbox(true);
-    // Returning after this point will result in the reply message
-    // m_bSuccess = true, and a signed reply ledger containing at least one
-    // transaction
-
-    response.SetResponse(OTTransaction::GenerateTransaction(
-        *responseLedger,
-        OTTransaction::error_state,
-        originType::not_applicable,
-        inputNumber));
-
     // We don't want any transaction number being used twice. (The number, at
     // this point, is STILL issued to the user, who is still responsible for
     // that number and must continue signing for it. All this means here is that
@@ -1690,23 +1683,35 @@ bool UserCommandProcessor::cmd_process_inbox(ReplyMessage& reply) const
         return false;
     }
 
-    bool success{false};
+    // Returning after this point will result in the reply message
+    // m_bSuccess = true, and a signed reply ledger containing at least one
+    // transaction
+    FinalizeResponse response(serverNym, reply, *responseLedger);
+    reply.SetSuccess(true);
+    reply.DropToNymbox(true);
+    response.SetResponse(OTTransaction::GenerateTransaction(
+        *responseLedger,
+        OTTransaction::error_state,
+        originType::not_applicable,
+        inputNumber));
+    bool transactionSuccess{false};
     server_.notary_.NotarizeProcessInbox(
         nymfile,
         context,
         *account,
         *processInbox,
         *response.Response(),
-        success);
+        transactionSuccess);
+    const auto consumed = context.ConsumeIssued(inputNumber);
 
-    if (false == context.ConsumeIssued(inputNumber)) {
+    if (false == consumed) {
         otErr << OT_METHOD << __FUNCTION__ << ": Error removing issued number "
               << inputNumber << std::endl;
 
         OT_FAIL;
     }
 
-    if (success) {
+    if (transactionSuccess) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Success processing process inbox " << inputNumber
               << " for nym " << String(nymID) << std::endl;

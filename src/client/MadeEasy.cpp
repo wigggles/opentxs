@@ -58,9 +58,11 @@ namespace opentxs
 {
 MadeEasy::MadeEasy(
     std::recursive_mutex& lock,
+    OTAPI_Exec& exec,
     OT_API& otapi,
     api::Wallet& wallet)
     : lock_(lock)
+    , exec_(exec)
     , otapi_(otapi)
     , wallet_(wallet)
 {
@@ -79,8 +81,7 @@ std::int32_t MadeEasy::retrieve_nym(
     bool& bWasMsgSent,
     bool bForceDownload) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
+    rLock lock(lock_);
     auto context = wallet_.mutable_ServerContext(
         Identifier(strMyNymID), Identifier(strNotaryID));
     Utility MsgUtil(context.It(), otapi_);
@@ -104,68 +105,79 @@ std::int32_t MadeEasy::retrieve_nym(
 
 // CHECK USER (download a public key)
 std::string MadeEasy::check_nym(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& TARGET_NYM_ID) const
+    const std::string& notaryID,
+    const std::string& nymID,
+    const std::string& TARGET_nymID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
+    OTAPI_Func theRequest(
+        CHECK_NYM,
+        wallet_,
+        Identifier(nymID),
+        Identifier(notaryID),
+        exec_,
+        otapi_,
+        TARGET_nymID);
 
-    auto context = wallet_.mutable_ServerContext(
-        Identifier(NYM_ID), Identifier(NOTARY_ID));
-    OTAPI_Func theRequest(CHECK_NYM, context.It(), otapi_, TARGET_NYM_ID);
-
-    return theRequest.SendRequest(theRequest, "CHECK_NYM");
-    ;
+    return theRequest.Run();
 }
 
 //  ISSUE ASSET TYPE
 std::string MadeEasy::issue_asset_type(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
+    const std::string& notaryID,
+    const std::string& nymID,
     const std::string& THE_CONTRACT) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
+    OTAPI_Func theRequest(
+        ISSUE_ASSET_TYPE,
+        wallet_,
+        Identifier(nymID),
+        Identifier(notaryID),
+        exec_,
+        otapi_,
+        THE_CONTRACT);
 
-    auto context = wallet_.mutable_ServerContext(
-        Identifier(NYM_ID), Identifier(NOTARY_ID));
-    OTAPI_Func theRequest(ISSUE_ASSET_TYPE, context.It(), otapi_, THE_CONTRACT);
-
-    return theRequest.SendRequest(theRequest, "ISSUE_ASSET_TYPE");
+    return theRequest.Run();
 }
 
 //  ISSUE BASKET CURRENCY
 std::string MadeEasy::issue_basket_currency(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
+    const std::string& notaryID,
+    const std::string& nymID,
     const std::string& THE_BASKET) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
+    OTAPI_Func theRequest(
+        ISSUE_BASKET,
+        wallet_,
+        Identifier(nymID),
+        Identifier(notaryID),
+        exec_,
+        otapi_,
+        THE_BASKET);
 
-    auto context = wallet_.mutable_ServerContext(
-        Identifier(NYM_ID), Identifier(NOTARY_ID));
-    OTAPI_Func theRequest(ISSUE_BASKET, context.It(), otapi_, THE_BASKET);
-
-    return theRequest.SendRequest(theRequest, "ISSUE_BASKET");
+    return theRequest.Run();
 }
 
 //  EXCHANGE BASKET CURRENCY
 std::string MadeEasy::exchange_basket_currency(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
+    const std::string& notaryID,
+    const std::string& nymID,
     const std::string& ASSET_TYPE,
     const std::string& THE_BASKET,
     const std::string& ACCT_ID,
     bool IN_OR_OUT) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
+    rLock lock(lock_);
     std::int32_t nTransNumsNeeded =
         (SwigWrap::Basket_GetMemberCount(THE_BASKET) + 1);
-    auto context = wallet_.mutable_ServerContext(
-        Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func theRequest(
         EXCHANGE_BASKET,
-        context.It(),
+        wallet_,
+        Identifier(nymID),
+        Identifier(notaryID),
+        exec_,
         otapi_,
         ASSET_TYPE,
         THE_BASKET,
@@ -173,37 +185,41 @@ std::string MadeEasy::exchange_basket_currency(
         IN_OR_OUT,
         nTransNumsNeeded);
 
-    return theRequest.SendTransaction(theRequest, "EXCHANGE_BASKET");
+    return theRequest.Run();
 }
 
 //  RETRIEVE CONTRACT
 std::string MadeEasy::retrieve_contract(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
+    const std::string& notaryID,
+    const std::string& nymID,
     const std::string& CONTRACT_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
+    OTAPI_Func theRequest(
+        GET_CONTRACT,
+        wallet_,
+        Identifier(nymID),
+        Identifier(notaryID),
+        exec_,
+        otapi_,
+        CONTRACT_ID);
 
-    auto context = wallet_.mutable_ServerContext(
-        Identifier(NYM_ID), Identifier(NOTARY_ID));
-    OTAPI_Func theRequest(GET_CONTRACT, context.It(), otapi_, CONTRACT_ID);
-
-    return theRequest.SendRequest(theRequest, "GET_CONTRACT");
+    return theRequest.Run();
 }
 
 //  LOAD OR RETRIEVE CONTRACT
 std::string MadeEasy::load_or_retrieve_contract(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
+    const std::string& notaryID,
+    const std::string& nymID,
     const std::string& CONTRACT_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     std::string strContract = SwigWrap::GetAssetType_Contract(CONTRACT_ID);
 
     if (!VerifyStringVal(strContract)) {
         std::string strResponse =
-            retrieve_contract(NOTARY_ID, NYM_ID, CONTRACT_ID);
+            retrieve_contract(notaryID, nymID, CONTRACT_ID);
 
         if (1 == VerifyMessageSuccess(strResponse)) {
             strContract = SwigWrap::GetAssetType_Contract(CONTRACT_ID);
@@ -215,55 +231,62 @@ std::string MadeEasy::load_or_retrieve_contract(
 
 //  CREATE ASSET ACCOUNT
 std::string MadeEasy::create_asset_acct(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
+    const std::string& notaryID,
+    const std::string& nymID,
     const std::string& INSTRUMENT_DEFINITION_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    auto context = wallet_.mutable_ServerContext(
-        Identifier(NYM_ID), Identifier(NOTARY_ID));
+    rLock lock(lock_);
     OTAPI_Func theRequest(
-        CREATE_ASSET_ACCT, context.It(), otapi_, INSTRUMENT_DEFINITION_ID);
+        CREATE_ASSET_ACCT,
+        wallet_,
+        Identifier(nymID),
+        Identifier(notaryID),
+        exec_,
+        otapi_,
+        INSTRUMENT_DEFINITION_ID);
 
-    return theRequest.SendRequest(theRequest, "CREATE_ASSET_ACCT");
-    ;
+    return theRequest.Run();
 }
 
 //  UNREGISTER ASSET ACCOUNT
 std::string MadeEasy::unregister_account(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
+    const std::string& notaryID,
+    const std::string& nymID,
     const std::string& ACCOUNT_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
+    OTAPI_Func theRequest(
+        DELETE_ASSET_ACCT,
+        wallet_,
+        Identifier(nymID),
+        Identifier(notaryID),
+        exec_,
+        otapi_,
+        ACCOUNT_ID);
 
-    auto context = wallet_.mutable_ServerContext(
-        Identifier(NYM_ID), Identifier(NOTARY_ID));
-    OTAPI_Func theRequest(DELETE_ASSET_ACCT, context.It(), otapi_, ACCOUNT_ID);
-
-    return theRequest.SendRequest(theRequest, "DELETE_ASSET_ACCT");
-    ;
+    return theRequest.Run();
 }
 
 //  UNREGISTER NYM FROM SERVER
 std::string MadeEasy::unregister_nym(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID) const
+    const std::string& notaryID,
+    const std::string& nymID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
+    OTAPI_Func theRequest(
+        DELETE_NYM,
+        wallet_,
+        Identifier(nymID),
+        Identifier(notaryID),
+        exec_,
+        otapi_);
 
-    auto context = wallet_.mutable_ServerContext(
-        Identifier(NYM_ID), Identifier(NOTARY_ID));
-    OTAPI_Func theRequest(DELETE_NYM, context.It(), otapi_);
-
-    return theRequest.SendRequest(theRequest, "DELETE_NYM");
-    ;
+    return theRequest.Run();
 }
 
 std::string MadeEasy::stat_asset_account(const std::string& ACCOUNT_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     std::string strNymID = SwigWrap::GetAccountWallet_NymID(ACCOUNT_ID);
     if (!VerifyStringVal(strNymID)) {
@@ -301,58 +324,69 @@ std::string MadeEasy::stat_asset_account(const std::string& ACCOUNT_ID) const
 // DOWNLOAD ACCOUNT FILES  (account balance, inbox, outbox, etc)
 // returns true/false
 bool MadeEasy::retrieve_account(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
+    const std::string& notaryID,
+    const std::string& nymID,
     const std::string& ACCOUNT_ID,
     bool bForceDownload) const  // bForceDownload=false
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    auto context = wallet_.mutable_ServerContext(
-        Identifier(NYM_ID), Identifier(NOTARY_ID));
+    rLock lock(lock_);
+    auto context =
+        wallet_.mutable_ServerContext(Identifier(nymID), Identifier(notaryID));
     Utility MsgUtil(context.It(), otapi_);
 
     bool bResponse = MsgUtil.getIntermediaryFiles(
-        NOTARY_ID, NYM_ID, ACCOUNT_ID, bForceDownload);
+        notaryID, nymID, ACCOUNT_ID, bForceDownload);
 
     return bResponse;
 }
 
 // SEND TRANSFER  -- TRANSACTION
 std::string MadeEasy::send_transfer(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
+    const std::string& notaryID,
+    const std::string& nymID,
     const std::string& ACCT_FROM,
     const std::string& ACCT_TO,
-    std::int64_t AMOUNT,
-    const std::string& NOTE) const
+    const std::int64_t AMOUNT,
+    const std::string& NOTE,
+    TransactionNumber& number) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    auto context = wallet_.mutable_ServerContext(
-        Identifier(NYM_ID), Identifier(NOTARY_ID));
+    rLock lock(lock_);
     OTAPI_Func theRequest(
-        SEND_TRANSFER, context.It(), otapi_, ACCT_FROM, ACCT_TO, AMOUNT, NOTE);
+        SEND_TRANSFER,
+        wallet_,
+        Identifier(nymID),
+        Identifier(notaryID),
+        exec_,
+        otapi_,
+        ACCT_FROM,
+        ACCT_TO,
+        AMOUNT,
+        NOTE);
+    const auto output = theRequest.Run();
+    number = theRequest.GetTransactionNumber();
 
-    return theRequest.SendTransaction(theRequest, "SEND_TRANSFER");
+    return output;
 }
 
 // PROCESS INBOX  -- TRANSACTION
 std::string MadeEasy::process_inbox(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
+    const std::string& notaryID,
+    const std::string& nymID,
     const std::string& ACCOUNT_ID,
     const std::string& RESPONSE_LEDGER) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    auto context = wallet_.mutable_ServerContext(
-        Identifier(NYM_ID), Identifier(NOTARY_ID));
+    rLock lock(lock_);
     OTAPI_Func theRequest(
-        PROCESS_INBOX, context.It(), otapi_, ACCOUNT_ID, RESPONSE_LEDGER);
+        PROCESS_INBOX,
+        wallet_,
+        Identifier(nymID),
+        Identifier(notaryID),
+        exec_,
+        otapi_,
+        ACCOUNT_ID,
+        RESPONSE_LEDGER);
 
-    return theRequest.SendTransaction(theRequest, "PROCESS_INBOX");
-    ;
+    return theRequest.Run();
 }
 
 // load_public_key():
@@ -362,23 +396,22 @@ std::string MadeEasy::process_inbox(
 // TODO: Need to fix ugly error messages by passing a bChecking in here
 // so the calling function can try to load the pubkey just to see if it's there,
 // without causing ugly error logs when there's no error.
-std::string MadeEasy::load_public_encryption_key(
-    const std::string& NYM_ID) const
+std::string MadeEasy::load_public_encryption_key(const std::string& nymID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     otOut << "\nload_public_encryption_key: Trying to load public "
              "key, assuming Nym isn't in the local wallet...\n";
 
     std::string strPubkey = SwigWrap::LoadPubkey_Encryption(
-        NYM_ID);  // This version is for "other people";
+        nymID);  // This version is for "other people";
 
     if (!VerifyStringVal(strPubkey)) {
-        otOut << "\nload_public_encryption_key: Didn't find the Nym (" << NYM_ID
+        otOut << "\nload_public_encryption_key: Didn't find the Nym (" << nymID
               << ") as an 'other' user, so next, checking to see if there's "
                  "a pubkey available for one of the local private Nyms...\n";
         strPubkey = SwigWrap::LoadUserPubkey_Encryption(
-            NYM_ID);  // This version is for "the user sitting at the machine.";
+            nymID);  // This version is for "the user sitting at the machine.";
 
         if (!VerifyStringVal(strPubkey)) {
             otOut << "\nload_public_encryption_key: Didn't find "
@@ -391,40 +424,40 @@ std::string MadeEasy::load_public_encryption_key(
 // load_public_key():
 //
 // Load a public key from local storage, and return it (or null).
-std::string MadeEasy::load_public_signing_key(const std::string& NYM_ID) const
+std::string MadeEasy::load_public_signing_key(const std::string& nymID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     std::string strPubkey = SwigWrap::LoadPubkey_Signing(
-        NYM_ID);  // This version is for "other people";
+        nymID);  // This version is for "other people";
 
     if (!VerifyStringVal(strPubkey)) {
         strPubkey = SwigWrap::LoadUserPubkey_Signing(
-            NYM_ID);  // This version is for "the user sitting at the machine.";
+            nymID);  // This version is for "the user sitting at the machine.";
     }
     return strPubkey;  // might be null.;
 }
 
 // load_or_retrieve_pubkey()
 //
-// Load TARGET_NYM_ID from local storage.
-// If not there, then retrieve TARGET_NYM_ID from server,
-// using NYM_ID to send check_nym request. Then re-load
+// Load TARGET_nymID from local storage.
+// If not there, then retrieve TARGET_nymID from server,
+// using nymID to send check_nym request. Then re-load
 // and return. (Might still return null.)
 std::string MadeEasy::load_or_retrieve_encrypt_key(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& TARGET_NYM_ID) const
+    const std::string& notaryID,
+    const std::string& nymID,
+    const std::string& TARGET_nymID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
-    std::string strPubkey = load_public_encryption_key(TARGET_NYM_ID);
+    std::string strPubkey = load_public_encryption_key(TARGET_nymID);
 
     if (!VerifyStringVal(strPubkey)) {
-        std::string strResponse = check_nym(NOTARY_ID, NYM_ID, TARGET_NYM_ID);
+        std::string strResponse = check_nym(notaryID, nymID, TARGET_nymID);
 
         if (1 == VerifyMessageSuccess(strResponse)) {
-            strPubkey = load_public_encryption_key(TARGET_NYM_ID);
+            strPubkey = load_public_encryption_key(TARGET_nymID);
         }
     }
     return strPubkey;  // might be null.
@@ -432,125 +465,126 @@ std::string MadeEasy::load_or_retrieve_encrypt_key(
 
 // SEND USER MESSAGE  (requires recipient public key)
 std::string MadeEasy::send_user_msg_pubkey(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& RECIPIENT_NYM_ID,
+    const std::string& notaryID,
+    const std::string& nymID,
+    const std::string& RECIPIENT_nymID,
     const std::string& RECIPIENT_PUBKEY,
     const std::string& THE_MESSAGE) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    auto context = wallet_.mutable_ServerContext(
-        Identifier(NYM_ID), Identifier(NOTARY_ID));
+    rLock lock(lock_);
     OTAPI_Func theRequest(
         SEND_USER_MESSAGE,
-        context.It(),
+        wallet_,
+        Identifier(nymID),
+        Identifier(notaryID),
+        exec_,
         otapi_,
-        RECIPIENT_NYM_ID,
+        RECIPIENT_nymID,
         RECIPIENT_PUBKEY,
         THE_MESSAGE);
 
-    return theRequest.SendRequest(theRequest, "SEND_USER_MESSAGE");
-    ;
+    return theRequest.Run();
 }
 
 // SEND USER INSTRUMENT  (requires recipient public key)
 std::string MadeEasy::send_user_pmnt_pubkey(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& RECIPIENT_NYM_ID,
+    const std::string& notaryID,
+    const std::string& nymID,
+    const std::string& RECIPIENT_nymID,
     const std::string& RECIPIENT_PUBKEY,
     const std::string& THE_INSTRUMENT) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    auto context = wallet_.mutable_ServerContext(
-        Identifier(NYM_ID), Identifier(NOTARY_ID));
+    rLock lock(lock_);
     OTAPI_Func theRequest(
         SEND_USER_INSTRUMENT,
-        context.It(),
+        wallet_,
+        Identifier(nymID),
+        Identifier(notaryID),
+        exec_,
         otapi_,
-        RECIPIENT_NYM_ID,
+        RECIPIENT_nymID,
         RECIPIENT_PUBKEY,
         THE_INSTRUMENT);
 
-    return theRequest.SendRequest(theRequest, "SEND_USER_INSTRUMENT");
-    ;
+    return theRequest.Run();
 }
 
 #if OT_CASH
 // SEND USER CASH  (requires recipient public key)
 std::string MadeEasy::send_user_cash_pubkey(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& RECIPIENT_NYM_ID,
+    const std::string& notaryID,
+    const std::string& nymID,
+    const std::string& RECIPIENT_nymID,
     const std::string& RECIPIENT_PUBKEY,
     const std::string& THE_INSTRUMENT,
     const std::string& INSTRUMENT_FOR_SENDER) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    auto context = wallet_.mutable_ServerContext(
-        Identifier(NYM_ID), Identifier(NOTARY_ID));
+    rLock lock(lock_);
     OTAPI_Func theRequest(
         SEND_USER_INSTRUMENT,
-        context.It(),
+        wallet_,
+        Identifier(nymID),
+        Identifier(notaryID),
+        exec_,
         otapi_,
-        RECIPIENT_NYM_ID,
+        RECIPIENT_nymID,
         RECIPIENT_PUBKEY,
         THE_INSTRUMENT,
         INSTRUMENT_FOR_SENDER);
 
-    return theRequest.SendRequest(theRequest, "SEND_USER_INSTRUMENT");
+    return theRequest.Run();
 }
 #endif  // OT_CASH
 
 // SEND USER MESSAGE  (only requires recipient's ID, and retrieves pubkey
 // automatically)
 std::string MadeEasy::send_user_msg(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& RECIPIENT_NYM_ID,
+    const std::string& notaryID,
+    const std::string& nymID,
+    const std::string& RECIPIENT_nymID,
     const std::string& THE_MESSAGE) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     std::string strRecipientPubkey =
-        load_or_retrieve_encrypt_key(NOTARY_ID, NYM_ID, RECIPIENT_NYM_ID);
+        load_or_retrieve_encrypt_key(notaryID, nymID, RECIPIENT_nymID);
 
     if (!VerifyStringVal(strRecipientPubkey)) {
         otOut << "OT_ME_send_user_msg: Unable to load or retrieve "
                  "public encryption key for recipient: "
-              << RECIPIENT_NYM_ID << "\n";
+              << RECIPIENT_nymID << "\n";
         return strRecipientPubkey;  // basically this means "return null".
     }
 
     return send_user_msg_pubkey(
-        NOTARY_ID, NYM_ID, RECIPIENT_NYM_ID, strRecipientPubkey, THE_MESSAGE);
+        notaryID, nymID, RECIPIENT_nymID, strRecipientPubkey, THE_MESSAGE);
 }
 
 #if OT_CASH
 // DOWNLOAD PUBLIC MINT
 std::string MadeEasy::retrieve_mint(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
+    const std::string& notaryID,
+    const std::string& nymID,
     const std::string& INSTRUMENT_DEFINITION_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    auto context = wallet_.mutable_ServerContext(
-        Identifier(NYM_ID), Identifier(NOTARY_ID));
+    rLock lock(lock_);
     OTAPI_Func theRequest(
-        GET_MINT, context.It(), otapi_, INSTRUMENT_DEFINITION_ID);
+        GET_MINT,
+        wallet_,
+        Identifier(nymID),
+        Identifier(notaryID),
+        exec_,
+        otapi_,
+        INSTRUMENT_DEFINITION_ID);
 
-    return theRequest.SendRequest(theRequest, "GET_MINT");
+    return theRequest.Run();
 }
 
 // LOAD MINT (from local storage)
 //
 // To load a mint withOUT retrieving it from server, call:
 //
-// var strMint = SwigWrap::LoadMint(NOTARY_ID, INSTRUMENT_DEFINITION_ID);
+// var strMint = SwigWrap::LoadMint(notaryID, INSTRUMENT_DEFINITION_ID);
 // It returns the mint, or null.
 
 // LOAD MINT (from local storage).
@@ -558,17 +592,17 @@ std::string MadeEasy::retrieve_mint(
 //
 // Returns the mint, or null.
 std::string MadeEasy::load_or_retrieve_mint(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
+    const std::string& notaryID,
+    const std::string& nymID,
     const std::string& INSTRUMENT_DEFINITION_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
-    std::string response = check_nym(NOTARY_ID, NYM_ID, NYM_ID);
+    std::string response = check_nym(notaryID, nymID, nymID);
     if (1 != VerifyMessageSuccess(response)) {
         otOut << "OT_ME_load_or_retrieve_mint: Cannot verify nym for IDs: \n";
-        otOut << "  Notary ID: " << NOTARY_ID << "\n";
-        otOut << "     Nym ID: " << NYM_ID << "\n";
+        otOut << "  Notary ID: " << notaryID << "\n";
+        otOut << "     Nym ID: " << nymID << "\n";
         otOut << "   Instrument Definition Id: " << INSTRUMENT_DEFINITION_ID
               << "\n";
         return "";
@@ -581,28 +615,28 @@ std::string MadeEasy::load_or_retrieve_mint(
     // works.)
 
     // expired or missing.
-    if (!SwigWrap::Mint_IsStillGood(NOTARY_ID, INSTRUMENT_DEFINITION_ID)) {
+    if (!SwigWrap::Mint_IsStillGood(notaryID, INSTRUMENT_DEFINITION_ID)) {
         otWarn << "OT_ME_load_or_retrieve_mint: Mint file is "
                   "missing or expired. Downloading from "
                   "server...\n";
 
-        response = retrieve_mint(NOTARY_ID, NYM_ID, INSTRUMENT_DEFINITION_ID);
+        response = retrieve_mint(notaryID, nymID, INSTRUMENT_DEFINITION_ID);
 
         if (1 != VerifyMessageSuccess(response)) {
             otOut << "OT_ME_load_or_retrieve_mint: Unable to "
                      "retrieve mint for IDs: \n";
-            otOut << "  Notary ID: " << NOTARY_ID << "\n";
-            otOut << "     Nym ID: " << NYM_ID << "\n";
+            otOut << "  Notary ID: " << notaryID << "\n";
+            otOut << "     Nym ID: " << nymID << "\n";
             otOut << "   Instrument Definition Id: " << INSTRUMENT_DEFINITION_ID
                   << "\n";
             return "";
         }
 
-        if (!SwigWrap::Mint_IsStillGood(NOTARY_ID, INSTRUMENT_DEFINITION_ID)) {
+        if (!SwigWrap::Mint_IsStillGood(notaryID, INSTRUMENT_DEFINITION_ID)) {
             otOut << "OT_ME_load_or_retrieve_mint: Retrieved "
                      "mint, but still 'not good' for IDs: \n";
-            otOut << "  Notary ID: " << NOTARY_ID << "\n";
-            otOut << "     Nym ID: " << NYM_ID << "\n";
+            otOut << "  Notary ID: " << notaryID << "\n";
+            otOut << "     Nym ID: " << nymID << "\n";
             otOut << "   Instrument Definition Id: " << INSTRUMENT_DEFINITION_ID
                   << "\n";
             return "";
@@ -616,11 +650,11 @@ std::string MadeEasy::load_or_retrieve_mint(
     // It's here, and it's NOT expired. (Or we would have returned already.)
 
     std::string strMint =
-        SwigWrap::LoadMint(NOTARY_ID, INSTRUMENT_DEFINITION_ID);
+        SwigWrap::LoadMint(notaryID, INSTRUMENT_DEFINITION_ID);
     if (!VerifyStringVal(strMint)) {
         otOut << "OT_ME_load_or_retrieve_mint: Unable to load mint for IDs: \n";
-        otOut << "  Notary ID: " << NOTARY_ID << "\n";
-        otOut << "     Nym ID: " << NYM_ID << "\n";
+        otOut << "  Notary ID: " << notaryID << "\n";
+        otOut << "     Nym ID: " << nymID << "\n";
         otOut << "   Instrument Definition Id: " << INSTRUMENT_DEFINITION_ID
               << "\n";
     }
@@ -631,33 +665,29 @@ std::string MadeEasy::load_or_retrieve_mint(
 
 // DEPOSIT PAYMENT PLAN  -- TRANSACTION
 std::string MadeEasy::deposit_payment_plan(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
+    const std::string& notaryID,
+    const std::string& nymID,
     const std::string& THE_PAYMENT_PLAN) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
+    rLock lock(lock_);
     // NOTE: We have to include the account ID as well. Even though the API call
-    // itself
-    // doesn't need it (it retrieves it from the plan itself, as we are about to
-    // do here)
-    // we still have to provide the accountID for OTAPI_Func, which uses it to
-    // grab the
-    // intermediary files, as part of its automated sync duties. (FYI.)
-    //
-    std::string strSenderAcctID =
+    // itself doesn't need it (it retrieves it from the plan itself, as we are
+    // about to do here) we still have to provide the accountID for OTAPI_Func,
+    // which uses it to grab the intermediary files, as part of its automated
+    // sync duties. (FYI.)
+    const auto strSenderAcctID =
         SwigWrap::Instrmnt_GetSenderAcctID(THE_PAYMENT_PLAN);
-
-    auto context = wallet_.mutable_ServerContext(
-        Identifier(NYM_ID), Identifier(NOTARY_ID));
     OTAPI_Func theRequest(
         DEPOSIT_PAYMENT_PLAN,
-        context.It(),
+        wallet_,
+        Identifier(nymID),
+        Identifier(notaryID),
+        exec_,
         otapi_,
         strSenderAcctID,
         THE_PAYMENT_PLAN);
 
-    return theRequest.SendTransaction(theRequest, "DEPOSIT_PAYMENT_PLAN");
+    return theRequest.Run();
 }
 
 #if OT_CASH
@@ -670,7 +700,7 @@ bool MadeEasy::importCashPurse(
     std::string& userInput,
     bool isPurse) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     //  otOut << "OT_ME_importCashPurse, notaryID:" << notaryID << "
     // nymID:" << nymID << " instrumentDefinitionID:" <<
@@ -780,7 +810,7 @@ bool MadeEasy::processCashPurse(
     bool bPWProtectOldPurse,
     bool bPWProtectNewPurse) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     // By this point, we know that "selected tokens" has a size of 0, or MORE
     // THAN ONE. (But NOT 1 exactly.)
@@ -1293,7 +1323,7 @@ std::string MadeEasy::exportCashPurse(
     bool bPasswordProtected,
     std::string& strRetainedCopy) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     //  otOut << "OT_ME_exportCashPurse starts, selectedTokens:" <<
     // selectedTokens << "\n";
@@ -1373,7 +1403,7 @@ std::int32_t MadeEasy::depositCashPurse(
                               // internal to begin with.
     std::string* pOptionalOutput /*=nullptr*/) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     std::string recipientNymID = SwigWrap::GetAccountWallet_NymID(accountID);
     if (!VerifyStringVal(recipientNymID)) {
@@ -1405,12 +1435,16 @@ std::int32_t MadeEasy::depositCashPurse(
         return -1;
     }
 
-    auto context =
-        wallet_.mutable_ServerContext(Identifier(nymID), Identifier(notaryID));
     OTAPI_Func theRequest(
-        DEPOSIT_CASH, context.It(), otapi_, accountID, newPurse);
-    std::string strResponse = theRequest.SendTransaction(
-        theRequest, "DEPOSIT_CASH");  // <========================;
+        DEPOSIT_CASH,
+        wallet_,
+        Identifier(nymID),
+        Identifier(notaryID),
+        exec_,
+        otapi_,
+        accountID,
+        newPurse);
+    std::string strResponse = theRequest.Run();
 
     std::string strAttempt = "deposit_cash";
 
@@ -1491,12 +1525,7 @@ bool MadeEasy::exchangeCashPurse(
     std::string& oldPurse,
     const std::vector<std::string>& selectedTokens) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    //  Utility.setObj(null);
-    //  otOut << " Cash Purse exchange starts, selectedTokens:" +
-    // selectedTokens + "\n")
-
+    rLock lock(lock_);
     std::string newPurse;
     std::string newPurseForSender = "";  // Probably unused in this case.;
 
@@ -1518,12 +1547,16 @@ bool MadeEasy::exchangeCashPurse(
         return false;
     }
 
-    auto context =
-        wallet_.mutable_ServerContext(Identifier(nymID), Identifier(notaryID));
     OTAPI_Func theRequest(
-        EXCHANGE_CASH, context.It(), otapi_, instrumentDefinitionID, newPurse);
-    std::string strResponse = theRequest.SendTransaction(
-        theRequest, "EXCHANGE_CASH");  // <========================;
+        EXCHANGE_CASH,
+        wallet_,
+        Identifier(nymID),
+        Identifier(notaryID),
+        exec_,
+        otapi_,
+        instrumentDefinitionID,
+        newPurse);
+    std::string strResponse = theRequest.Run();
 
     if (!VerifyStringVal(strResponse)) {
         otOut << "IN OT_ME_exchangeCashPurse: theRequest.SendTransaction(() "
@@ -1548,19 +1581,23 @@ bool MadeEasy::exchangeCashPurse(
 }
 
 std::string MadeEasy::deposit_purse(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
+    const std::string& notaryID,
+    const std::string& nymID,
     const std::string& ACCT_ID,
     const std::string& STR_PURSE) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    auto context = wallet_.mutable_ServerContext(
-        Identifier(NYM_ID), Identifier(NOTARY_ID));
+    rLock lock(lock_);
     OTAPI_Func theRequest(
-        DEPOSIT_CASH, context.It(), otapi_, ACCT_ID, STR_PURSE);
+        DEPOSIT_CASH,
+        wallet_,
+        Identifier(nymID),
+        Identifier(notaryID),
+        exec_,
+        otapi_,
+        ACCT_ID,
+        STR_PURSE);
 
-    return theRequest.SendTransaction(theRequest, "DEPOSIT_CASH");
+    return theRequest.Run();
 }
 #endif  // OT_CASH
 }  // namespace opentxs

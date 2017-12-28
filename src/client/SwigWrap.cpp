@@ -118,9 +118,8 @@ extern "C" int32_t default_pass_cb(
     //    otWarn << "OPENSSL_CALLBACK: (Password callback hasn't been set
     // yet...) Using 'test' pass phrase for \"%s\"\n", (char *)u);
 
-    otWarn << __FUNCTION__
-           << ": Using DEFAULT TEST PASSWORD: "
-              "'test' (for \""
+    otWarn << __FUNCTION__ << ": Using DEFAULT TEST PASSWORD: "
+                              "'test' (for \""
            << str_userdata << "\")\n";
 
     // get pass phrase, length 'len' into 'tmp'
@@ -353,10 +352,9 @@ extern "C" int32_t souped_up_pass_cb(
                                            : thePassword.getMemorySize();
 
     if (len < 0) {
-        otOut << __FUNCTION__
-              << ": <0 length password was "
-                 "returned from the API password callback. "
-                 "Returning 0.\n";
+        otOut << __FUNCTION__ << ": <0 length password was "
+                                 "returned from the API password callback. "
+                                 "Returning 0.\n";
         return 0;
     }
     // --------------------------------------
@@ -467,13 +465,12 @@ bool OT_API_Set_PasswordCallback(OTCaller& theCaller)  // Caller must have
                                                        // already.
 {
     if (!theCaller.isCallbackSet()) {
-        otErr << __FUNCTION__
-              << ": ERROR:\nOTCaller::setCallback() "
-                 "MUST be called first, with an "
-                 "OTCallback-extended class passed to it,\n"
-                 "before then invoking this function (and "
-                 "passing that OTCaller as a parameter "
-                 "into this function.)\n";
+        otErr << __FUNCTION__ << ": ERROR:\nOTCaller::setCallback() "
+                                 "MUST be called first, with an "
+                                 "OTCallback-extended class passed to it,\n"
+                                 "before then invoking this function (and "
+                                 "passing that OTCaller as a parameter "
+                                 "into this function.)\n";
         return false;
     }
 
@@ -506,13 +503,11 @@ void SwigWrap::SetPasswordCallback(OT_OPENSSL_CALLBACK* pCallback)
     const char* szFunc = "SwigWrap::SetPasswordCallback";
 
     if (nullptr != s_pwCallback)
-        otOut << szFunc
-              << ": WARNING: re-setting the password callback (one "
-                 "was already there)...\n";
+        otOut << szFunc << ": WARNING: re-setting the password callback (one "
+                           "was already there)...\n";
     else
-        otWarn << szFunc
-               << ": FYI, setting the password callback to a "
-                  "non-nullptr pointer (which is what we want.)\n";
+        otWarn << szFunc << ": FYI, setting the password callback to a "
+                            "non-nullptr pointer (which is what we want.)\n";
 
     if (nullptr == pCallback)
         otErr << szFunc
@@ -532,14 +527,13 @@ OT_OPENSSL_CALLBACK* SwigWrap::GetPasswordCallback()
     const char* szFunc = "SwigWrap::GetPasswordCallback";
 
 #if defined OT_TEST_PASSWORD
-    otInfo << szFunc
-           << ": WARNING, OT_TEST_PASSWORD *is* defined. The "
-              "internal 'C'-based password callback was just "
-              "requested by OT (to pass to OpenSSL). So, returning "
-              "the default_pass_cb password callback, which will "
-              "automatically return "
-              "the 'test' password to OpenSSL, if/when it calls that "
-              "callback function.\n";
+    otInfo << szFunc << ": WARNING, OT_TEST_PASSWORD *is* defined. The "
+                        "internal 'C'-based password callback was just "
+                        "requested by OT (to pass to OpenSSL). So, returning "
+                        "the default_pass_cb password callback, which will "
+                        "automatically return "
+                        "the 'test' password to OpenSSL, if/when it calls that "
+                        "callback function.\n";
     return &default_pass_cb;
 #else
     if (IsPasswordCallbackSet()) {
@@ -583,12 +577,11 @@ bool SwigWrap::SetPasswordCaller(OTCaller& theCaller)
               "OT 'C'-based password callback is triggered by openssl.)\n";
 
     if (!theCaller.isCallbackSet()) {
-        otErr << szFunc
-              << ": ERROR: OTCaller::setCallback() "
-                 "MUST be called first, with an OTCallback-extended "
-                 "object passed to it,\n"
-                 "BEFORE calling this function with that OTCaller. "
-                 "(Returning false.)\n";
+        otErr << szFunc << ": ERROR: OTCaller::setCallback() "
+                           "MUST be called first, with an OTCallback-extended "
+                           "object passed to it,\n"
+                           "BEFORE calling this function with that OTCaller. "
+                           "(Returning false.)\n";
         return false;
     }
 
@@ -618,10 +611,9 @@ OTCaller* SwigWrap::GetPasswordCaller()
 {
     const char* szFunc = "SwigWrap::GetPasswordCaller";
 
-    otLog4 << szFunc
-           << ": FYI, this was just called by souped_up_pass_cb "
-              "(which must have just been called by OpenSSL.) "
-              "Returning s_pCaller == "
+    otLog4 << szFunc << ": FYI, this was just called by souped_up_pass_cb "
+                        "(which must have just been called by OpenSSL.) "
+                        "Returning s_pCaller == "
            << ((nullptr == s_pCaller) ? "nullptr" : "VALID POINTER")
            << " (Hopefully NOT nullptr, so the "
               "custom password dialog can be triggered.)\n";
@@ -1190,26 +1182,6 @@ bool SwigWrap::DoesBoxReceiptExist(
 {
     return OT::App().API().Exec().DoesBoxReceiptExist(
         NOTARY_ID, NYM_ID, ACCOUNT_ID, nBoxType, TRANSACTION_NUMBER);
-}
-
-std::int32_t SwigWrap::getBoxReceipt(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& ACCOUNT_ID,
-    const std::int32_t& nBoxType,
-    const std::int64_t& TRANSACTION_NUMBER)
-{
-    return OT::App().API().Exec().getBoxReceipt(
-        NOTARY_ID, NYM_ID, ACCOUNT_ID, nBoxType, TRANSACTION_NUMBER);
-}
-
-std::int32_t SwigWrap::deleteAssetAccount(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& ACCOUNT_ID)
-{
-    return OT::App().API().Exec().deleteAssetAccount(
-        NOTARY_ID, NYM_ID, ACCOUNT_ID);
 }
 
 std::string SwigWrap::Wallet_ExportNym(const std::string& NYM_ID)
@@ -2326,26 +2298,6 @@ std::string SwigWrap::Party_GetAgentID(
         THE_CONTRACT, PARTY_NAME, AGENT_NAME);
 }
 
-std::int32_t SwigWrap::activateSmartContract(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& THE_SMART_CONTRACT)
-{
-    return OT::App().API().Exec().activateSmartContract(
-        NOTARY_ID, NYM_ID, THE_SMART_CONTRACT);
-}
-
-std::int32_t SwigWrap::triggerClause(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::int64_t& TRANSACTION_NUMBER,
-    const std::string& CLAUSE_NAME,
-    const std::string& STR_PARAM)
-{
-    return OT::App().API().Exec().triggerClause(
-        NOTARY_ID, NYM_ID, TRANSACTION_NUMBER, CLAUSE_NAME, STR_PARAM);
-}
-
 bool SwigWrap::Msg_HarvestTransactionNumbers(
     const std::string& THE_MESSAGE,
     const std::string& NYM_ID,
@@ -2956,16 +2908,6 @@ bool SwigWrap::Wallet_ImportPurse(
         NOTARY_ID, INSTRUMENT_DEFINITION_ID, NYM_ID, THE_PURSE);
 }
 
-std::int32_t SwigWrap::exchangePurse(
-    const std::string& NOTARY_ID,
-    const std::string& INSTRUMENT_DEFINITION_ID,
-    const std::string& NYM_ID,
-    const std::string& THE_PURSE)
-{
-    return OT::App().API().Exec().exchangePurse(
-        NOTARY_ID, INSTRUMENT_DEFINITION_ID, NYM_ID, THE_PURSE);
-}
-
 std::string SwigWrap::Token_ChangeOwner(
     const std::string& NOTARY_ID,
     const std::string& INSTRUMENT_DEFINITION_ID,
@@ -3075,210 +3017,9 @@ std::int64_t SwigWrap::Basket_GetMemberMinimumTransferAmount(
         BASKET_INSTRUMENT_DEFINITION_ID, nIndex);
 }
 
-std::int32_t SwigWrap::registerContractNym(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& CONTRACT)
-{
-    return OT::App().API().Exec().registerContractNym(
-        NOTARY_ID, NYM_ID, CONTRACT);
-}
-
-std::int32_t SwigWrap::registerContractServer(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& CONTRACT)
-{
-    return OT::App().API().Exec().registerContractServer(
-        NOTARY_ID, NYM_ID, CONTRACT);
-}
-
-std::int32_t SwigWrap::registerContractUnit(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& CONTRACT)
-{
-    return OT::App().API().Exec().registerContractUnit(
-        NOTARY_ID, NYM_ID, CONTRACT);
-}
-
-std::int32_t SwigWrap::registerNym(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID)
-{
-    return OT::App().API().Exec().registerNym(NOTARY_ID, NYM_ID);
-}
-
-std::int32_t SwigWrap::unregisterNym(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID)
-{
-    return OT::App().API().Exec().unregisterNym(NOTARY_ID, NYM_ID);
-}
-
 std::int64_t SwigWrap::Message_GetUsageCredits(const std::string& THE_MESSAGE)
 {
     return OT::App().API().Exec().Message_GetUsageCredits(THE_MESSAGE);
-}
-
-std::int32_t SwigWrap::usageCredits(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& NYM_ID_CHECK,
-    const std::int64_t& ADJUSTMENT)
-{
-    return OT::App().API().Exec().usageCredits(
-        NOTARY_ID, NYM_ID, NYM_ID_CHECK, ADJUSTMENT);
-}
-
-std::int32_t SwigWrap::checkNym(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& NYM_ID_CHECK)
-{
-    return OT::App().API().Exec().checkNym(NOTARY_ID, NYM_ID, NYM_ID_CHECK);
-}
-
-std::int32_t SwigWrap::sendNymMessage(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& NYM_ID_RECIPIENT,
-    const std::string& THE_MESSAGE)
-{
-    return OT::App().API().Exec().sendNymMessage(
-        NOTARY_ID, NYM_ID, NYM_ID_RECIPIENT, THE_MESSAGE);
-}
-
-std::string SwigWrap::notifyBailment(
-    const std::string& serverID,
-    const std::string& senderNymID,
-    const std::string& recipientNymID,
-    const std::string& unitID,
-    const std::string& txid)
-{
-    return OT::App().API().Exec().notifyBailment(
-        serverID, senderNymID, recipientNymID, unitID, txid);
-}
-
-std::string SwigWrap::initiateBailment(
-    const std::string& serverID,
-    const std::string& senderNymID,
-    const std::string& unitID)
-{
-    return OT::App().API().Exec().initiateBailment(
-        serverID, senderNymID, unitID);
-}
-
-std::string SwigWrap::initiateOutBailment(
-    const std::string& serverID,
-    const std::string& senderNymID,
-    const std::string& unitID,
-    const std::uint64_t& amount,
-    const std::string& terms)
-{
-    return OT::App().API().Exec().initiateOutBailment(
-        serverID, senderNymID, unitID, amount, terms);
-}
-
-std::string SwigWrap::requestConnection(
-    const std::string& senderNymID,
-    const std::string& recipientNymID,
-    const std::string& serverID,
-    const std::uint64_t& type)
-{
-    return OT::App().API().Exec().requestConnection(
-        senderNymID, recipientNymID, serverID, type);
-}
-
-std::string SwigWrap::storeSecret(
-    const std::string& senderNymID,
-    const std::string& recipientNymID,
-    const std::string& serverID,
-    const std::uint64_t& type,
-    const std::string& primary,
-    const std::string& secondary)
-{
-    return OT::App().API().Exec().storeSecret(
-        senderNymID, recipientNymID, serverID, type, primary, secondary);
-}
-
-std::string SwigWrap::acknowledgeBailment(
-    const std::string& senderNymID,
-    const std::string& requestID,
-    const std::string& serverID,
-    const std::string& terms)
-{
-    return OT::App().API().Exec().acknowledgeBailment(
-        senderNymID, requestID, serverID, terms);
-}
-
-std::string SwigWrap::acknowledgeNotice(
-    const std::string& senderNymID,
-    const std::string& requestID,
-    const std::string& serverID,
-    const bool ack)
-{
-    return OT::App().API().Exec().acknowledgeNotice(
-        senderNymID, requestID, serverID, ack);
-}
-
-std::string SwigWrap::acknowledgeOutBailment(
-    const std::string& senderNymID,
-    const std::string& requestID,
-    const std::string& serverID,
-    const std::string& terms)
-{
-    return OT::App().API().Exec().acknowledgeOutBailment(
-        senderNymID, requestID, serverID, terms);
-}
-
-std::string SwigWrap::acknowledge_connection(
-    const std::string& senderNymID,
-    const std::string& requestID,
-    const std::string& serverID,
-    const bool ack,
-    const std::string& url,
-    const std::string& login,
-    const std::string& password,
-    const std::string& key)
-{
-    return OT::App().API().Exec().acknowledgeConnection(
-        senderNymID, requestID, serverID, ack, url, login, password, key);
-}
-
-std::int32_t SwigWrap::initiatePeerRequest(
-    const std::string& sender,
-    const std::string& recipient,
-    const std::string& server,
-    const std::string& request)
-{
-    return OT::App().API().Exec().initiatePeerRequest(
-        sender, recipient, server, request);
-}
-
-std::int32_t SwigWrap::initiatePeerReply(
-    const std::string& sender,
-    const std::string& recipient,
-    const std::string& server,
-    const std::string& request,
-    const std::string& reply)
-{
-    return OT::App().API().Exec().initiatePeerReply(
-        sender, recipient, server, request, reply);
-}
-
-std::int32_t SwigWrap::completePeerReply(
-    const std::string& nymID,
-    const std::string& replyID)
-{
-    return OT::App().API().Exec().completePeerReply(nymID, replyID);
-}
-
-std::int32_t SwigWrap::completePeerRequest(
-    const std::string& nymID,
-    const std::string& requestID)
-{
-    return OT::App().API().Exec().completePeerRequest(nymID, requestID);
 }
 
 std::string SwigWrap::comma(const std::list<std::string>& list)
@@ -3408,65 +3149,6 @@ std::string SwigWrap::getReply_Base64(
     return OT::App().API().Exec().getReply_Base64(nymID, replyID);
 }
 
-std::int32_t SwigWrap::sendNymInstrument(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& NYM_ID_RECIPIENT,
-    const std::string& THE_INSTRUMENT,
-    const std::string& INSTRUMENT_FOR_SENDER)
-{
-    return OT::App().API().Exec().sendNymInstrument(
-        NOTARY_ID,
-        NYM_ID,
-        NYM_ID_RECIPIENT,
-        THE_INSTRUMENT,
-        INSTRUMENT_FOR_SENDER);
-}
-
-std::int32_t SwigWrap::registerInstrumentDefinition(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& THE_CONTRACT)
-{
-    return OT::App().API().Exec().registerInstrumentDefinition(
-        NOTARY_ID, NYM_ID, THE_CONTRACT);
-}
-
-std::int32_t SwigWrap::getInstrumentDefinition(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& INSTRUMENT_DEFINITION_ID)
-{
-    return OT::App().API().Exec().getInstrumentDefinition(
-        NOTARY_ID, NYM_ID, INSTRUMENT_DEFINITION_ID);
-}
-
-std::int32_t SwigWrap::getMint(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& INSTRUMENT_DEFINITION_ID)
-{
-    return OT::App().API().Exec().getMint(
-        NOTARY_ID, NYM_ID, INSTRUMENT_DEFINITION_ID);
-}
-
-std::int32_t SwigWrap::registerAccount(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& INSTRUMENT_DEFINITION_ID)
-{
-    return OT::App().API().Exec().registerAccount(
-        NOTARY_ID, NYM_ID, INSTRUMENT_DEFINITION_ID);
-}
-
-std::int32_t SwigWrap::getAccountData(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& ACCT_ID)
-{
-    return OT::App().API().Exec().getAccountData(NOTARY_ID, NYM_ID, ACCT_ID);
-}
-
 std::string SwigWrap::GenerateBasketCreation(
     const std::string& nymID,
     const std::string& shortname,
@@ -3486,14 +3168,6 @@ std::string SwigWrap::AddBasketCreationItem(
 {
     return OT::App().API().Exec().AddBasketCreationItem(
         basketTemplate, currencyID, weight);
-}
-
-std::int32_t SwigWrap::issueBasket(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& THE_BASKET)
-{
-    return OT::App().API().Exec().issueBasket(NOTARY_ID, NYM_ID, THE_BASKET);
 }
 
 std::string SwigWrap::GenerateBasketExchange(
@@ -3520,232 +3194,6 @@ std::string SwigWrap::AddBasketExchangeItem(
 {
     return OT::App().API().Exec().AddBasketExchangeItem(
         NOTARY_ID, NYM_ID, THE_BASKET, INSTRUMENT_DEFINITION_ID, ASSET_ACCT_ID);
-}
-
-std::int32_t SwigWrap::exchangeBasket(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& BASKET_INSTRUMENT_DEFINITION_ID,
-    const std::string& THE_BASKET,
-    const bool& BOOL_EXCHANGE_IN_OR_OUT)
-{
-    return OT::App().API().Exec().exchangeBasket(
-        NOTARY_ID,
-        NYM_ID,
-        BASKET_INSTRUMENT_DEFINITION_ID,
-        THE_BASKET,
-        BOOL_EXCHANGE_IN_OR_OUT);
-}
-
-std::int32_t SwigWrap::getTransactionNumbers(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID)
-{
-    return OT::App().API().Exec().getTransactionNumbers(NOTARY_ID, NYM_ID);
-}
-
-#if OT_CASH
-std::int32_t SwigWrap::notarizeWithdrawal(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& ACCT_ID,
-    const std::int64_t& AMOUNT)
-{
-    return OT::App().API().Exec().notarizeWithdrawal(
-        NOTARY_ID, NYM_ID, ACCT_ID, AMOUNT);
-}
-
-std::int32_t SwigWrap::notarizeDeposit(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& ACCT_ID,
-    const std::string& THE_PURSE)
-{
-    return OT::App().API().Exec().notarizeDeposit(
-        NOTARY_ID, NYM_ID, ACCT_ID, THE_PURSE);
-}
-#endif  // OT_CASH
-
-std::int32_t SwigWrap::notarizeTransfer(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& ACCT_FROM,
-    const std::string& ACCT_TO,
-    const std::int64_t& AMOUNT,
-    const std::string& NOTE)
-{
-    return OT::App().API().Exec().notarizeTransfer(
-        NOTARY_ID, NYM_ID, ACCT_FROM, ACCT_TO, AMOUNT, NOTE);
-}
-
-std::int32_t SwigWrap::getNymbox(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID)
-{
-    return OT::App().API().Exec().getNymbox(NOTARY_ID, NYM_ID);
-}
-
-std::int32_t SwigWrap::processInbox(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& ACCT_ID,
-    const std::string& ACCT_LEDGER)
-{
-    return OT::App().API().Exec().processInbox(
-        NOTARY_ID, NYM_ID, ACCT_ID, ACCT_LEDGER);
-}
-
-std::int32_t SwigWrap::processNymbox(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID)
-{
-    return OT::App().API().Exec().processNymbox(NOTARY_ID, NYM_ID);
-}
-
-std::int32_t SwigWrap::withdrawVoucher(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& ACCT_ID,
-    const std::string& RECIPIENT_NYM_ID,
-    const std::string& CHEQUE_MEMO,
-    const std::int64_t& AMOUNT)
-{
-    return OT::App().API().Exec().withdrawVoucher(
-        NOTARY_ID, NYM_ID, ACCT_ID, RECIPIENT_NYM_ID, CHEQUE_MEMO, AMOUNT);
-}
-
-std::int32_t SwigWrap::payDividend(
-    const std::string& NOTARY_ID,
-    const std::string& ISSUER_NYM_ID,
-    const std::string& DIVIDEND_FROM_ACCT_ID,
-    const std::string& SHARES_INSTRUMENT_DEFINITION_ID,
-    const std::string& DIVIDEND_MEMO,
-    const std::int64_t& AMOUNT_PER_SHARE)
-{
-    return OT::App().API().Exec().payDividend(
-        NOTARY_ID,
-        ISSUER_NYM_ID,
-        DIVIDEND_FROM_ACCT_ID,
-        SHARES_INSTRUMENT_DEFINITION_ID,
-        DIVIDEND_MEMO,
-        AMOUNT_PER_SHARE);
-}
-
-std::int32_t SwigWrap::depositCheque(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& ACCT_ID,
-    const std::string& THE_CHEQUE)
-{
-    return OT::App().API().Exec().depositCheque(
-        NOTARY_ID, NYM_ID, ACCT_ID, THE_CHEQUE);
-}
-
-std::int32_t SwigWrap::depositPaymentPlan(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& THE_PAYMENT_PLAN)
-{
-    return OT::App().API().Exec().depositPaymentPlan(
-        NOTARY_ID, NYM_ID, THE_PAYMENT_PLAN);
-}
-
-std::int32_t SwigWrap::killMarketOffer(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& ASSET_ACCT_ID,
-    const std::int64_t& TRANSACTION_NUMBER)
-{
-    return OT::App().API().Exec().killMarketOffer(
-        NOTARY_ID, NYM_ID, ASSET_ACCT_ID, TRANSACTION_NUMBER);
-}
-
-std::int32_t SwigWrap::killPaymentPlan(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& FROM_ACCT_ID,
-    const std::int64_t& TRANSACTION_NUMBER)
-{
-    return OT::App().API().Exec().killPaymentPlan(
-        NOTARY_ID, NYM_ID, FROM_ACCT_ID, TRANSACTION_NUMBER);
-}
-
-std::int32_t SwigWrap::requestAdmin(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& PASSWORD)
-{
-    return OT::App().API().Exec().requestAdmin(NOTARY_ID, NYM_ID, PASSWORD);
-}
-
-std::int32_t SwigWrap::serverAddClaim(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& SECTION,
-    const std::string& TYPE,
-    const std::string& VALUE,
-    const bool PRIMARY)
-{
-    return OT::App().API().Exec().serverAddClaim(
-        NOTARY_ID, NYM_ID, SECTION, TYPE, VALUE, PRIMARY);
-}
-
-std::int32_t SwigWrap::issueMarketOffer(
-    const std::string& ASSET_ACCT_ID,
-    const std::string& CURRENCY_ACCT_ID,
-    const std::int64_t& MARKET_SCALE,
-    const std::int64_t& MINIMUM_INCREMENT,
-    const std::int64_t& TOTAL_ASSETS_ON_OFFER,
-    const std::int64_t& PRICE_LIMIT,
-    const bool& bBuyingOrSelling,
-    const time64_t& LIFESPAN_IN_SECONDS,
-    const std::string& STOP_SIGN,
-    const std::int64_t& ACTIVATION_PRICE)
-{
-    return OT::App().API().Exec().issueMarketOffer(
-        ASSET_ACCT_ID,
-        CURRENCY_ACCT_ID,
-        MARKET_SCALE,
-        MINIMUM_INCREMENT,
-        TOTAL_ASSETS_ON_OFFER,
-        PRICE_LIMIT,
-        bBuyingOrSelling,
-        LIFESPAN_IN_SECONDS,
-        STOP_SIGN,
-        ACTIVATION_PRICE);
-}
-
-std::int32_t SwigWrap::getMarketList(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID)
-{
-    return OT::App().API().Exec().getMarketList(NOTARY_ID, NYM_ID);
-}
-
-std::int32_t SwigWrap::getMarketOffers(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& MARKET_ID,
-    const std::int64_t& MAX_DEPTH)
-{
-    return OT::App().API().Exec().getMarketOffers(
-        NOTARY_ID, NYM_ID, MARKET_ID, MAX_DEPTH);
-}
-
-std::int32_t SwigWrap::getMarketRecentTrades(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& MARKET_ID)
-{
-    return OT::App().API().Exec().getMarketRecentTrades(
-        NOTARY_ID, NYM_ID, MARKET_ID);
-}
-
-std::int32_t SwigWrap::getNymMarketOffers(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID)
-{
-    return OT::App().API().Exec().getNymMarketOffers(NOTARY_ID, NYM_ID);
 }
 
 std::string SwigWrap::PopMessageBuffer(
@@ -3780,16 +3228,6 @@ bool SwigWrap::RemoveSentMessage(
         REQUEST_NUMBER, NOTARY_ID, NYM_ID);
 }
 
-void SwigWrap::FlushSentMessages(
-    const bool& bHarvestingForRetry,
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& THE_NYMBOX)
-{
-    return OT::App().API().Exec().FlushSentMessages(
-        bHarvestingForRetry, NOTARY_ID, NYM_ID, THE_NYMBOX);
-}
-
 void SwigWrap::Sleep(const std::int64_t& MILLISECONDS)
 {
     Log::Sleep(std::chrono::milliseconds(MILLISECONDS));
@@ -3802,15 +3240,6 @@ bool SwigWrap::ResyncNymWithServer(
 {
     return OT::App().API().Exec().ResyncNymWithServer(
         NOTARY_ID, NYM_ID, THE_MESSAGE);
-}
-
-std::int32_t SwigWrap::queryInstrumentDefinitions(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& ENCODED_MAP)
-{
-    return OT::App().API().Exec().queryInstrumentDefinitions(
-        NOTARY_ID, NYM_ID, ENCODED_MAP);
 }
 
 std::string SwigWrap::Message_GetPayload(const std::string& THE_MESSAGE)

@@ -41,6 +41,7 @@
 
 #include "opentxs/Version.hpp"
 
+#include "opentxs/api/Editor.hpp"
 #include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/Proto.hpp"
@@ -56,6 +57,7 @@ namespace opentxs
 {
 
 class Nym;
+class OTPasswordData;
 class TransactionStatement;
 
 namespace api
@@ -75,6 +77,8 @@ public:
     std::string Name() const override;
     bool NymboxHashMatch() const;
     Identifier LocalNymboxHash() const;
+    std::unique_ptr<const class Nym> Nymfile(
+        const OTPasswordData& reason) const;
     const class Nym& RemoteNym() const;
     Identifier RemoteNymboxHash() const;
     RequestNumber Request() const;
@@ -91,6 +95,7 @@ public:
     bool ConsumeAvailable(const TransactionNumber& number);
     bool ConsumeIssued(const TransactionNumber& number);
     RequestNumber IncrementRequest();
+    Editor<class Nym> mutable_Nymfile(const OTPasswordData& reason);
     virtual bool OpenCronItem(const TransactionNumber) { return false; }
     bool RecoverAvailableNumber(const TransactionNumber& number);
     bool RemoveAcknowledgedNumber(const std::set<RequestNumber>& req);
@@ -102,13 +107,14 @@ public:
     virtual ~Context() = default;
 
 protected:
-    typedef std::unique_lock<std::mutex> Lock;
-
+    std::mutex& nymfile_lock_;
     const Identifier server_id_{};
     std::shared_ptr<const class Nym> remote_nym_{};
     std::set<TransactionNumber> available_transaction_numbers_{};
     std::set<TransactionNumber> issued_transaction_numbers_{};
     std::atomic<RequestNumber> request_number_{0};
+    std::set<RequestNumber> acknowledged_request_numbers_{};
+    Identifier local_nymbox_hash_{};
     Identifier remote_nymbox_hash_{};
 
     Identifier GetID(const Lock& lock) const override;
@@ -130,12 +136,14 @@ protected:
     Context(
         const ConstNym& local,
         const ConstNym& remote,
-        const Identifier& server);
+        const Identifier& server,
+        std::mutex& nymfileLock);
     Context(
         const proto::Context& serialized,
         const ConstNym& local,
         const ConstNym& remote,
-        const Identifier& server);
+        const Identifier& server,
+        std::mutex& nymfileLock);
 
 private:
     friend class Nym;
@@ -143,11 +151,9 @@ private:
 
     typedef Signable ot_super;
 
-    Identifier local_nymbox_hash_{};
-    std::set<RequestNumber> acknowledged_request_numbers_{};
-
     proto::Context contract(const Lock& lock) const;
     proto::Context IDVersion(const Lock& lock) const;
+    void save(class Nym* nym, const Lock& lock) const;
     proto::Context SigVersion(const Lock& lock) const;
     bool validate(const Lock& lock) const override;
     bool verify_signature(const Lock& lock, const proto::Signature& signature)

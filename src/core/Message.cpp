@@ -410,9 +410,12 @@ bool Message::HarvestTransactionNumbers(
 // seen for those request numbers.
 void Message::SetAcknowledgments(const Context& context)
 {
-    m_AcknowledgedReplies.Release();
+    SetAcknowledgments(context.AcknowledgedNumbers());
+}
 
-    auto numbers = context.AcknowledgedNumbers();
+void Message::SetAcknowledgments(const std::set<RequestNumber>& numbers)
+{
+    m_AcknowledgedReplies.Release();
 
     for (const auto& it : numbers) {
         m_AcknowledgedReplies.Add(it);

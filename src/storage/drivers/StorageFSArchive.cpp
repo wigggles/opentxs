@@ -148,13 +148,11 @@ void StorageFSArchive::Init_StorageFSArchive()
 {
     OT_ASSERT(false == folder_.empty());
 
-    try {
-        boost::filesystem::create_directory(folder_);
-    } catch (boost::filesystem::filesystem_error&) {
-        return;
-    }
+    boost::system::error_code ec{};
 
-    ready_.store(true);
+    if (boost::filesystem::create_directory(folder_, ec)) {
+        ready_.store(true);
+    }
 }
 
 std::string StorageFSArchive::prepare_read(const std::string& input) const

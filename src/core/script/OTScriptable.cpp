@@ -941,7 +941,7 @@ OTParty* OTScriptable::FindPartyBasedOnNymAsAgent(
 }
 
 OTParty* OTScriptable::FindPartyBasedOnNymAsAuthAgent(
-    Nym& theNym,
+    const Nym& theNym,
     OTAgent** ppAgent) const
 {
     for (auto& it : m_mapParties) {

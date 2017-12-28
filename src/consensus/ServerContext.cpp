@@ -41,6 +41,7 @@
 #include "opentxs/consensus/ServerContext.hpp"
 
 #include "opentxs/consensus/TransactionStatement.hpp"
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/Item.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Message.hpp"
@@ -52,12 +53,59 @@
 
 namespace opentxs
 {
+ServerContext::ManagedNumber::ManagedNumber(
+    const TransactionNumber number,
+    ServerContext& context)
+    : context_(context)
+    , number_(number)
+    , success_(false)
+    , managed_(0 != number)
+{
+}
+
+ServerContext::ManagedNumber::ManagedNumber(ManagedNumber&& rhs)
+    : context_(rhs.context_)
+    , number_(rhs.number_)
+    , success_(rhs.success_.load())
+    , managed_(rhs.managed_)
+{
+    rhs.managed_ = false;
+}
+
+ServerContext::ManagedNumber::operator TransactionNumber() const
+{
+    return number_;
+}
+
+void ServerContext::ManagedNumber::SetSuccess(const bool value) const
+{
+    return success_.store(value);
+}
+
+bool ServerContext::ManagedNumber::Valid() const { return managed_; }
+
+ServerContext::ManagedNumber::~ManagedNumber()
+{
+    if (false == managed_) {
+
+        return;
+    }
+
+    if (success_.load()) {
+
+        return;
+    }
+
+    context_.RecoverAvailableNumber(number_);
+}
+
 ServerContext::ServerContext(
     const ConstNym& local,
     const ConstNym& remote,
     const Identifier& server,
-    ServerConnection& connection)
-    : ot_super(local, remote, server)
+    ServerConnection& connection,
+    std::mutex& nymfileLock)
+    : ot_super(local, remote, server, nymfileLock)
     , connection_(connection)
     , highest_transaction_number_(0)
 {
@@ -67,12 +115,14 @@ ServerContext::ServerContext(
     const proto::Context& serialized,
     const ConstNym& local,
     const ConstNym& remote,
-    ServerConnection& connection)
+    ServerConnection& connection,
+    std::mutex& nymfileLock)
     : ot_super(
           serialized,
           local,
           remote,
-          Identifier(serialized.servercontext().serverid()))
+          Identifier(serialized.servercontext().serverid()),
+          nymfileLock)
     , connection_(connection)
     , highest_transaction_number_(
           serialized.servercontext().highesttransactionnumber())
@@ -158,6 +208,8 @@ bool ServerContext::AddTentativeNumber(const TransactionNumber& number)
     return output.second;
 }
 
+ServerConnection& ServerContext::Connection() { return connection_; }
+
 bool ServerContext::finalize_server_command(Message& command) const
 {
     OT_ASSERT(nym_);
@@ -177,6 +229,11 @@ bool ServerContext::finalize_server_command(Message& command) const
     }
 
     return true;
+}
+
+bool ServerContext::FinalizeServerCommand(Message& command) const
+{
+    return finalize_server_command(command);
 }
 
 std::unique_ptr<TransactionStatement> ServerContext::generate_statement(
@@ -229,19 +286,127 @@ std::unique_ptr<Message> ServerContext::initialize_server_command(
     return output;
 }
 
-TransactionNumber ServerContext::NextTransactionNumber()
+std::pair<RequestNumber, std::unique_ptr<Message>> ServerContext::
+    initialize_server_command(
+        const Lock& lock,
+        const MessageType type,
+        const RequestNumber provided,
+        const bool withAcknowledgments,
+        const bool withNymboxHash)
+{
+    OT_ASSERT(verify_write_lock(lock));
+
+    std::pair<RequestNumber, std::unique_ptr<Message>> output{};
+    auto & [ requestNumber, message ] = output;
+    message = initialize_server_command(type);
+
+    OT_ASSERT(message);
+
+    if (-1 == provided) {
+        requestNumber = request_number_++;
+    } else {
+        requestNumber = provided;
+    }
+
+    message->m_strRequestNum = std::to_string(requestNumber).c_str();
+
+    if (withAcknowledgments) {
+        message->SetAcknowledgments(acknowledged_request_numbers_);
+    }
+
+    if (withNymboxHash) {
+        local_nymbox_hash_.GetString(message->m_strNymboxHash);
+    }
+
+    return output;
+}
+
+std::pair<RequestNumber, std::unique_ptr<Message>> ServerContext::
+    InitializeServerCommand(
+        const MessageType type,
+        const OTASCIIArmor& payload,
+        const Identifier& accountID,
+        const RequestNumber provided,
+        const bool withAcknowledgments,
+        const bool withNymboxHash)
+{
+    Lock lock(lock_);
+    auto output = initialize_server_command(
+        lock, type, provided, withAcknowledgments, withNymboxHash);
+    auto & [ requestNumber, message ] = output;
+    const auto& notUsed[[maybe_unused]] = requestNumber;
+
+    message->m_ascPayload = payload;
+    message->m_strAcctID = String(accountID);
+
+    return output;
+}
+
+std::pair<RequestNumber, std::unique_ptr<Message>> ServerContext::
+    InitializeServerCommand(
+        const MessageType type,
+        const Identifier& recipientNymID,
+        const RequestNumber provided,
+        const bool withAcknowledgments,
+        const bool withNymboxHash)
+{
+    Lock lock(lock_);
+    auto output = initialize_server_command(
+        lock, type, provided, withAcknowledgments, withNymboxHash);
+    auto & [ requestNumber, message ] = output;
+    const auto& notUsed[[maybe_unused]] = requestNumber;
+
+    message->m_strNymID2 = String(recipientNymID);
+
+    return output;
+}
+
+std::pair<RequestNumber, std::unique_ptr<Message>> ServerContext::
+    InitializeServerCommand(
+        const MessageType type,
+        const RequestNumber provided,
+        const bool withAcknowledgments,
+        const bool withNymboxHash)
 {
     Lock lock(lock_);
 
-    if (0 == available_transaction_numbers_.size()) {
-        return 0;
+    return initialize_server_command(
+        lock, type, provided, withAcknowledgments, withNymboxHash);
+}
+
+ServerContext::ManagedNumber ServerContext::NextTransactionNumber(
+    const MessageType reason)
+{
+    Lock lock(lock_);
+    const std::size_t reserve = (MessageType::processInbox == reason) ? 0 : 1;
+
+    if (0 == reserve) {
+        otInfo << OT_METHOD << __FUNCTION__
+               << ": Allocating a transaction number for process inbox."
+               << std::endl;
+    } else {
+        otInfo << OT_METHOD << __FUNCTION__
+               << ": Allocating a transaction number for normal transaction."
+               << std::endl;
+    }
+
+    otInfo << OT_METHOD << __FUNCTION__ << ": "
+           << available_transaction_numbers_.size() << " numbers available."
+           << std::endl;
+    otInfo << OT_METHOD << __FUNCTION__ << ": "
+           << issued_transaction_numbers_.size() << " numbers issued."
+           << std::endl;
+
+    if (reserve >= available_transaction_numbers_.size()) {
+
+        return ManagedNumber(0, *this);
     }
 
     auto first = available_transaction_numbers_.begin();
     const auto output = *first;
     available_transaction_numbers_.erase(first);
 
-    return output;
+    return ManagedNumber(output, *this);
 }
 
 NetworkReplyMessage ServerContext::PingNotary()

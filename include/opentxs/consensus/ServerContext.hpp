@@ -48,11 +48,13 @@
 
 #include <atomic>
 #include <set>
+#include <tuple>
 
 namespace opentxs
 {
 
 class Item;
+class OTASCIIArmor;
 class OTTransaction;
 class Message;
 class ServerConnection;
@@ -62,17 +64,47 @@ class Wallet;
 class ServerContext : public Context
 {
 public:
+    class ManagedNumber
+    {
+    public:
+        ManagedNumber(ManagedNumber&& rhs);
+
+        operator TransactionNumber() const;
+
+        void SetSuccess(const bool value = true) const;
+        bool Valid() const;
+
+        ~ManagedNumber();
+
+    private:
+        friend ServerContext;
+
+        ServerContext& context_;
+        const TransactionNumber number_;
+        mutable std::atomic<bool> success_;
+        bool managed_{true};
+
+        ManagedNumber(const TransactionNumber number, ServerContext& context);
+        ManagedNumber() = delete;
+        ManagedNumber(const ManagedNumber&) = delete;
+        ManagedNumber& operator=(const ManagedNumber&) = delete;
+        ManagedNumber& operator=(ManagedNumber&&) = delete;
+    };
+
     ServerContext(
         const ConstNym& local,
         const ConstNym& remote,
         const Identifier& server,
-        ServerConnection& connection);
+        ServerConnection& connection,
+        std::mutex& nymfileLock);
     ServerContext(
         const proto::Context& serialized,
         const ConstNym& local,
         const ConstNym& remote,
-        ServerConnection& connection);
+        ServerConnection& connection,
+        std::mutex& nymfileLock);
 
+    bool FinalizeServerCommand(Message& command) const;
     TransactionNumber Highest() const;
     std::unique_ptr<Item> Statement(const OTTransaction& owner) const;
     std::unique_ptr<Item> Statement(
@@ -87,7 +119,26 @@ public:
     bool AcceptIssuedNumber(const TransactionNumber& number);
     bool AcceptIssuedNumbers(const TransactionStatement& statement);
     bool AddTentativeNumber(const TransactionNumber& number);
-    TransactionNumber NextTransactionNumber();
+    ServerConnection& Connection();
+    std::pair<RequestNumber, std::unique_ptr<Message>> InitializeServerCommand(
+        const MessageType type,
+        const OTASCIIArmor& payload,
+        const Identifier& accountID,
+        const RequestNumber provided,
+        const bool withAcknowledgments = true,
+        const bool withNymboxHash = true);
+    std::pair<RequestNumber, std::unique_ptr<Message>> InitializeServerCommand(
+        const MessageType type,
+        const Identifier& recipientNymID,
+        const RequestNumber provided,
+        const bool withAcknowledgments = true,
+        const bool withNymboxHash = false);
+    std::pair<RequestNumber, std::unique_ptr<Message>> InitializeServerCommand(
+        const MessageType type,
+        const RequestNumber provided,
+        const bool withAcknowledgments = true,
+        const bool withNymboxHash = false);
+    ManagedNumber NextTransactionNumber(const MessageType reason);
     NetworkReplyMessage PingNotary();
     bool RemoveTentativeNumber(const TransactionNumber& number);
     bool SetHighest(const TransactionNumber& highest);
@@ -128,6 +179,13 @@ private:
         const std::set<TransactionNumber>& without) const;
     std::unique_ptr<Message> initialize_server_command(
         const MessageType type) const;
+    std::pair<RequestNumber, std::unique_ptr<Message>>
+    initialize_server_command(
+        const Lock& lock,
+        const MessageType type,
+        const RequestNumber provided,
+        const bool withAcknowledgments,
+        const bool withNymboxHash);
     using ot_super::serialize;
     proto::Context serialize(const Lock& lock) const override;
 

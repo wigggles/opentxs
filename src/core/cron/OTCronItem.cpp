@@ -1636,7 +1636,7 @@ bool OTCronItem::GetCancelerID(Identifier& theOutput) const
 
 // When canceling a cron item before it has been activated, use this.
 //
-bool OTCronItem::CancelBeforeActivation(Nym& theCancelerNym)
+bool OTCronItem::CancelBeforeActivation(const Nym& theCancelerNym)
 {
     OT_ASSERT(nullptr != m_pCancelerNymID);
 

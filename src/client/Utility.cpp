@@ -45,10 +45,13 @@
 #include "opentxs/api/Native.hpp"
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/client/OT_ME.hpp"
+#include "opentxs/client/OTAPI_Exec.hpp"
 #include "opentxs/client/SwigWrap.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/core/Ledger.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/core/Message.hpp"
+#include "opentxs/OT.hpp"
 
 #include <ostream>
 
@@ -279,8 +282,9 @@ std::int32_t Utility::getNymboxLowLevel(
 {
     SwigWrap::FlushMessageBuffer();
     bWasSent = false;
-
-    std::int32_t nRequestNum = SwigWrap::getNymbox(notaryID, nymID);
+    auto[nRequestNum, transactionNum, result] = otapi_.getNymbox(context_);
+    const auto& notUsed1[[maybe_unused]] = transactionNum;
+    const auto& notUsed2[[maybe_unused]] = result;
 
     if (SwigWrap::networkFailure(notaryID)) {
         otOut << OT_METHOD << __FUNCTION__
@@ -850,7 +854,8 @@ std::int32_t Utility::getAndProcessNymbox_8(
         // just the getNymbox msg.)
         //
         //
-        //            void SwigWrap::FlushSentMessages( std::int32_t //
+        //            void OT::App().API().Exec().FlushSentMessages(
+        //            std::int32_t //
         // bHarvestingForRetry, // bHarvestingForRetry is actually OT_BOOL
         //                              const char * NOTARY_ID,
         //                              const char * NYM_ID,
@@ -869,7 +874,7 @@ std::int32_t Utility::getAndProcessNymbox_8(
 
         if (VerifyStringVal(strNymbox)) {
 
-            SwigWrap::FlushSentMessages(
+            OT::App().API().Exec().FlushSentMessages(
                 false,  // harvesting for retry = = OT_FALSE. None of the things
                 // are being re-tried by the time they are being flushed.
                 // They were already old news.;
@@ -1218,7 +1223,7 @@ std::int32_t Utility::getAndProcessNymbox_8(
                     notaryID,
                     nymID);  // FLUSH SENT MESSAGES!!!!  (AND HARVEST.);
                 if (VerifyStringVal(strNymbox)) {
-                    SwigWrap::FlushSentMessages(
+                    OT::App().API().Exec().FlushSentMessages(
                         false,  // harvesting for retry = = OT_FALSE
                         notaryID,
                         nymID,
@@ -1490,8 +1495,10 @@ std::int32_t Utility::sendProcessNymboxLowLevel(
 
     // Send message..
     SwigWrap::FlushMessageBuffer();
+    auto[nRequestNum, transactionNum, result] = otapi_.processNymbox(context_);
+    const auto& notUsed1[[maybe_unused]] = transactionNum;
+    const auto& notUsed2[[maybe_unused]] = result;
 
-    std::int32_t nRequestNum = SwigWrap::processNymbox(notaryID, nymID);
     if (-1 == nRequestNum) {
         otOut << strLocation
               << ": Failure sending. OT_API_processNymbox() returned -1. \n";
@@ -1576,28 +1583,30 @@ bool Utility::getBoxReceiptLowLevel(
     bool& bWasSent)  // bWasSent is OTBool
 {
     std::string strLocation = "Utility::getBoxReceiptLowLevel";
-
     bWasSent = false;
-
     SwigWrap::FlushMessageBuffer();
 
-    std::int32_t nRequestNum = SwigWrap::getBoxReceipt(
-        notaryID,
-        nymID,
-        accountID,
-        nBoxType,
-        strTransactionNum);  // <===== ATTEMPT TO SEND THE MESSAGE HERE...;
+    auto[nRequestNum, transactionNum, result] =
+        OT::App().API().OTAPI().getBoxReceipt(
+            context_,
+            Identifier(accountID),
+            nBoxType,
+            strTransactionNum);  // <===== ATTEMPT TO SEND THE MESSAGE HERE...;
+    auto& notUsed1[[maybe_unused]] = transactionNum;
+    auto& notUsed2[[maybe_unused]] = result;
 
     if (SwigWrap::networkFailure(notaryID)) {
         otOut << strLocation
               << ": getBoxReceipt message failed due to network error.\n";
         return false;
     }
+
     if (-1 == nRequestNum) {
         otOut << strLocation
               << ": Failed to send getBoxReceipt message due to error.\n";
         return false;
     }
+
     if (0 == nRequestNum) {
         otOut << strLocation
               << ": Didn't send getBoxReceipt message, but NO error "
@@ -1607,6 +1616,7 @@ bool Utility::getBoxReceiptLowLevel(
         // convention in many places, it is actually an impossible
         // return value;
     }
+
     if (nRequestNum < 0) {
         otOut << strLocation << ": Unexpected request number: " << nRequestNum
               << "\n";
@@ -2380,9 +2390,10 @@ std::int32_t Utility::getTransactionNumLowLevel(
 
     SwigWrap::FlushMessageBuffer();
     bWasSent = false;
-
-    std::int32_t nRequestNum = SwigWrap::getTransactionNumbers(
-        notaryID, nymID);  // <===== ATTEMPT TO SEND THE MESSAGE HERE...;
+    auto[nRequestNum, transactionNum, result] =
+        otapi_.getTransactionNumbers(context_);
+    const auto& notUsed1[[maybe_unused]] = transactionNum;
+    const auto& notUsed2[[maybe_unused]] = result;
 
     if (SwigWrap::networkFailure(notaryID)) {
         otOut
@@ -2601,7 +2612,7 @@ bool Utility::getTransactionNumbers(
                     nymID);  // FLUSH SENT MESSAGES!!!!  (AND HARVEST.);
 
                 if (VerifyStringVal(strNymbox)) {
-                    SwigWrap::FlushSentMessages(
+                    OT::App().API().Exec().FlushSentMessages(
                         false,  // harvesting for retry = = OT_FALSE
                         notaryID,
                         nymID,
@@ -2681,7 +2692,7 @@ bool Utility::getTransactionNumbers(
                         nymID);  // FLUSH SENT MESSAGES!!!!  (AND HARVEST.);
 
                     if (VerifyStringVal(strNymbox)) {
-                        SwigWrap::FlushSentMessages(
+                        OT::App().API().Exec().FlushSentMessages(
                             false,  // harvesting for retry = = OT_FALSE
                             notaryID,
                             nymID,
@@ -2810,7 +2821,7 @@ bool Utility::getTransactionNumbers(
                     nymID);  // FLUSH SENT MESSAGES!!!!  (AND HARVEST.);
 
                 if (VerifyStringVal(strNymbox)) {
-                    SwigWrap::FlushSentMessages(
+                    OT::App().API().Exec().FlushSentMessages(
                         false,  // harvesting for retry = = OT_FALSE
                         notaryID,
                         nymID,
@@ -2978,9 +2989,10 @@ std::int32_t Utility::getInboxAccount(
     // GET ACCOUNT
     //
     SwigWrap::FlushMessageBuffer();
-
-    std::int32_t nRequestNum = SwigWrap::getAccountData(
-        notaryID, nymID, accountID);  // <===== ATTEMPT TO SEND MESSAGE;
+    auto[nRequestNum, transactionNum, result] =
+        otapi_.getAccountData(context_, Identifier(accountID));
+    const auto& notUsed1[[maybe_unused]] = transactionNum;
+    const auto& notUsed2[[maybe_unused]] = result;
 
     if (SwigWrap::networkFailure(notaryID)) {
         otOut << strLocation
