@@ -50,6 +50,7 @@
 #include "opentxs/client/OTAPI_Exec.hpp"
 #include "opentxs/client/OT_ME.hpp"
 #include "opentxs/client/SwigWrap.hpp"
+#include "opentxs/client/Utility.hpp"
 #include "opentxs/contact/Contact.hpp"
 #include "opentxs/contact/ContactData.hpp"
 #include "opentxs/contact/ContactGroup.hpp"
@@ -92,6 +93,7 @@
 #define CONTACT_REFRESH_DAYS 1
 #define SERVER_NYM_INTERVAL 10
 #define ALL_SERVERS "all"
+#define PROCESS_INBOX_RETRIES 3
 
 #define OT_METHOD "opentxs::OTME_too::"
 
@@ -189,42 +191,48 @@ OTME_too::OTME_too(
     load_introduction_server();
 }
 
-bool OTME_too::AcceptIncoming(
-    const Identifier& nymID,
+std::pair<bool, std::size_t> OTME_too::accept_incoming(
+    const rLock& lock[[maybe_unused]],
+    const std::size_t max,
     const Identifier& accountID,
-    const Identifier& serverID)
+    ServerContext& context)
 {
-    rLock apiLock(api_lock_);
+    std::pair<bool, std::size_t> output{false, 0};
+    auto & [ success, remaining ] = output;
     const std::string account = String(accountID).Get();
-    auto context = wallet_.mutable_ServerContext(nymID, serverID);
-    auto processInbox = ot_api_.CreateProcessInbox(accountID, context.It());
+    auto processInbox = ot_api_.CreateProcessInbox(accountID, context);
     auto& response = std::get<0>(processInbox);
     auto& inbox = std::get<1>(processInbox);
 
     if (false == bool(response)) {
         if (nullptr == inbox) {
             // This is a new account which has never instantiated an inbox.
+            success = true;
 
-            return true;
+            return output;
         }
 
         otErr << OT_METHOD << __FUNCTION__
               << ": Error instantiating processInbox for account: " << account
               << std::endl;
 
-        return false;
+        return output;
     }
 
-    const auto items = inbox->GetTransactionCount();
+    const std::size_t items =
+        (inbox->GetTransactionCount() >= 0) ? inbox->GetTransactionCount() : 0;
+    const std::size_t count = (items > max) ? max : items;
+    remaining = items - count;
 
-    if (0 == items) {
+    if (0 == count) {
         otInfo << OT_METHOD << __FUNCTION__
                << ": No items to accept in this account." << std::endl;
+        success = true;
 
-        return true;
+        return output;
     }
 
-    for (std::int32_t i = 0; i < items; i++) {
+    for (std::size_t i = 0; i < count; i++) {
         auto transaction = inbox->GetTransactionByIndex(i);
 
         OT_ASSERT(nullptr != transaction);
@@ -244,40 +252,94 @@ bool OTME_too::AcceptIncoming(
         }
 
         const bool accepted = ot_api_.IncludeResponse(
-            accountID, true, context.It(), *transaction, *response);
+            accountID, true, context, *transaction, *response);
 
         if (!accepted) {
             otErr << OT_METHOD << __FUNCTION__
                   << ": Failed to accept item: " << number << std::endl;
 
-            return false;
+            return output;
         }
     }
 
-    const bool finalized = ot_api_.FinalizeProcessInbox(
-        accountID, context.It(), *response, *inbox);
+    const bool finalized =
+        ot_api_.FinalizeProcessInbox(accountID, context, *response, *inbox);
 
     if (false == finalized) {
         otErr << OT_METHOD << __FUNCTION__ << ": Unable to finalize response."
               << std::endl;
 
-        return false;
+        return output;
     }
 
     const auto result = otme_.process_inbox(
-        String(serverID).Get(),
-        String(nymID).Get(),
-        String(accountID).Get(),
+        String(context.Server()).Get(),
+        String(context.Nym()->ID()).Get(),
+        account,
         String(*response).Get());
+    success =
+        (1 ==
+         otme_.InterpretTransactionMsgReply(
+             String(context.Server()).Get(),
+             String(context.Nym()->ID()).Get(),
+             account,
+             "process_inbox",
+             result));
 
-    return (
-        1 ==
-        otme_.InterpretTransactionMsgReply(
-            String(serverID).Get(),
-            String(nymID).Get(),
-            String(accountID).Get(),
-            "process_inbox",
-            result));
+    return output;
+}
+
+bool OTME_too::AcceptIncoming(
+    const Identifier& nymID,
+    const Identifier& accountID,
+    const Identifier& serverID,
+    const std::size_t max)
+{
+    rLock apiLock(api_lock_);
+    auto context = wallet_.mutable_ServerContext(nymID, serverID);
+    std::size_t remaining{1};
+    std::size_t retries{PROCESS_INBOX_RETRIES};
+
+    while (0 < remaining) {
+        const auto attempt =
+            accept_incoming(apiLock, max, accountID, context.It());
+        const auto & [ success, unprocessed ] = attempt;
+        remaining = unprocessed;
+
+        if (false == success) {
+            if (0 == retries) {
+                otErr << OT_METHOD << __FUNCTION__
+                      << ": Exceeded maximum retries." << std::endl;
+
+                return false;
+            }
+
+            Utility utility(context.It(), ot_api_);
+            const auto download = utility.getIntermediaryFiles(
+                String(context.It().Server()).Get(),
+                String(context.It().Nym()->ID()).Get(),
+                String(accountID).Get(),
+                true);
+
+            if (false == download) {
+                otErr << OT_METHOD << __FUNCTION__
+                      << ": Failed to download account files." << std::endl;
+
+                return false;
+            } else {
+                --retries;
+
+                continue;
+            }
+        }
+
+        if (0 != remaining) {
+            otErr << OT_METHOD << __FUNCTION__ << ": Accepting " << remaining
+                  << " more items." << std::endl;
+        }
+    }
+
+    return true;
 }
 
 Identifier OTME_too::add_background_thread(BackgroundThread thread)

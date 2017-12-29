@@ -58,6 +58,8 @@
 #include <thread>
 #include <tuple>
 
+#define DEFAULT_PROCESS_INBOX_ITEMS 5
+
 namespace opentxs
 {
 class ContactGroup;
@@ -66,6 +68,7 @@ class Nym;
 class OT_API;
 class OT_ME;
 class OTAPI_Exec;
+class ServerContext;
 
 namespace api
 {
@@ -87,6 +90,56 @@ class Encode;
 
 class OTME_too
 {
+public:
+    bool AcceptIncoming(
+        const Identifier& nymID,
+        const Identifier& accountID,
+        const Identifier& serverID,
+        const std::size_t max = DEFAULT_PROCESS_INBOX_ITEMS);
+    Messagability CanMessage(
+        const std::string& senderNymID,
+        const std::string& recipientContactID);
+    Identifier FindNym(const std::string& nymID, const std::string& serverHint);
+    Identifier FindServer(const std::string& serverID);
+    const Identifier& GetIntroductionServer() const;
+    std::string GetPairedServer(const std::string& identifier) const;
+    std::string ImportNym(const std::string& armored) const;
+    Identifier MessageContact(
+        const std::string& senderNymID,
+        const std::string& contactID,
+        const std::string& message);
+    bool NodeRenamed(const std::string& identifier) const;
+    std::uint64_t PairedNodeCount() const;
+    bool PairingComplete(const std::string& identifier) const;
+    bool PairingStarted(const std::string& identifier) const;
+    std::string PairingStatus(const std::string& identifier) const;
+    bool PairingSuccessful(const std::string& identifier) const;
+    bool PairNode(
+        const std::string& myNym,
+        const std::string& bridgeNym,
+        const std::string& password);
+    void Refresh(const std::string& wallet = "");
+    std::uint64_t RefreshCount() const;
+    bool RegisterNym(
+        const std::string& nymID,
+        const std::string& server,
+        const bool setContactData) const;
+    Identifier RegisterNym_async(
+        const std::string& nymID,
+        const std::string& server,
+        const bool setContactData);
+    bool RequestConnection(
+        const std::string& nym,
+        const std::string& node,
+        const std::int64_t type) const;
+    void SetInterval(const std::string& server, const std::uint64_t interval)
+        const;
+    std::string SetIntroductionServer(const std::string& contract) const;
+    ThreadStatus Status(const Identifier& thread);
+    void UpdatePairing(const std::string& wallet = "");
+
+    ~OTME_too();
+
 private:
     friend class api::implementation::Api;
 
@@ -174,6 +227,11 @@ private:
     mutable std::map<std::string, std::uint64_t> refresh_interval_;
     mutable Identifier introduction_server_{};
 
+    std::pair<bool, std::size_t> accept_incoming(
+        const rLock& lock,
+        const std::size_t max,
+        const Identifier& accountID,
+        ServerContext& context);
     Identifier add_background_thread(BackgroundThread thread);
     void add_checknym_tasks(const nymAccountMap nyms, serverTaskMap& tasks);
     void build_account_list(serverTaskMap& output) const;
@@ -386,55 +444,6 @@ private:
     OTME_too(OTME_too&&) = delete;
     OTME_too& operator=(const OTME_too&) = delete;
     OTME_too& operator=(OTME_too&&) = delete;
-
-public:
-    bool AcceptIncoming(
-        const Identifier& nymID,
-        const Identifier& accountID,
-        const Identifier& serverID);
-    Messagability CanMessage(
-        const std::string& senderNymID,
-        const std::string& recipientContactID);
-    Identifier FindNym(const std::string& nymID, const std::string& serverHint);
-    Identifier FindServer(const std::string& serverID);
-    const Identifier& GetIntroductionServer() const;
-    std::string GetPairedServer(const std::string& identifier) const;
-    std::string ImportNym(const std::string& armored) const;
-    Identifier MessageContact(
-        const std::string& senderNymID,
-        const std::string& contactID,
-        const std::string& message);
-    bool NodeRenamed(const std::string& identifier) const;
-    std::uint64_t PairedNodeCount() const;
-    bool PairingComplete(const std::string& identifier) const;
-    bool PairingStarted(const std::string& identifier) const;
-    std::string PairingStatus(const std::string& identifier) const;
-    bool PairingSuccessful(const std::string& identifier) const;
-    bool PairNode(
-        const std::string& myNym,
-        const std::string& bridgeNym,
-        const std::string& password);
-    void Refresh(const std::string& wallet = "");
-    std::uint64_t RefreshCount() const;
-    bool RegisterNym(
-        const std::string& nymID,
-        const std::string& server,
-        const bool setContactData) const;
-    Identifier RegisterNym_async(
-        const std::string& nymID,
-        const std::string& server,
-        const bool setContactData);
-    bool RequestConnection(
-        const std::string& nym,
-        const std::string& node,
-        const std::int64_t type) const;
-    void SetInterval(const std::string& server, const std::uint64_t interval)
-        const;
-    std::string SetIntroductionServer(const std::string& contract) const;
-    ThreadStatus Status(const Identifier& thread);
-    void UpdatePairing(const std::string& wallet = "");
-
-    ~OTME_too();
 };
 }  // namespace opentxs
 
