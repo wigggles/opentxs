@@ -619,9 +619,8 @@ void OpenSSL::thread_cleanup() const
 
 void OpenSSL::Init_Override() const
 {
-    otWarn << __FUNCTION__
-           << ": Setting up OpenSSL:  SSL_library_init, error "
-              "strings and algorithms, and OpenSSL config...\n";
+    otWarn << __FUNCTION__ << ": Setting up OpenSSL:  SSL_library_init, error "
+                              "strings and algorithms, and OpenSSL config...\n";
 
     static bool bNotAlreadyInitialized = true;
 
@@ -1151,7 +1150,12 @@ bool OpenSSL::Encrypt(
         return false;
     }
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+    EVP_CIPHER_CTX ctx;
+#else
     CipherContext context;
+    EVP_CIPHER_CTX* pCONTEXT = (EVP_CIPHER_CTX*)(context);
+#endif
 
     std::vector<uint8_t> vBuffer(CryptoConfig::SymmetricBufferSize());  // 4096
     std::vector<uint8_t> vBuffer_out(
@@ -1169,33 +1173,66 @@ bool OpenSSL::Encrypt(
     // including the size of the IV, the IV itself, and the ciphertext.
     //
     ciphertext.Release();
+
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+    class _OTEnv_Enc_stat
+    {
+    private:
+        const char* m_szFunc;
+        EVP_CIPHER_CTX& m_ctx;
+
+    public:
+        _OTEnv_Enc_stat(const char* param_szFunc, EVP_CIPHER_CTX& param_ctx)
+            : m_szFunc(param_szFunc)
+            , m_ctx(param_ctx)
+        {
+            OT_ASSERT(nullptr != param_szFunc);
+
+            EVP_CIPHER_CTX_init(&m_ctx);
+        }
+        ~_OTEnv_Enc_stat()
+        {
+            // EVP_CIPHER_CTX_cleanup returns 1 for success and 0 for failure.
+            //
+            if (0 == EVP_CIPHER_CTX_cleanup(&m_ctx))
+                otErr << m_szFunc << ": Failure in EVP_CIPHER_CTX_cleanup. (It "
+                                     "returned 0.)\n";
+
+            m_szFunc = nullptr;  // keep the static analyzer happy
+        }
+    };
+    _OTEnv_Enc_stat theInstance(szFunc, ctx);
+#endif
+
     const EVP_CIPHER* cipher_type = dp_->CipherModeToOpenSSLMode(cipher);
     OT_ASSERT(nullptr != cipher_type);
 
-    EVP_CIPHER_CTX* pCONTEXT = (EVP_CIPHER_CTX*)(context);
+//  int EVP_EncryptInit_ex(EVP_CIPHER_CTX *ctx, const EVP_CIPHER *type,
+//                         ENGINE *impl, unsigned char *key, unsigned char
+//                         *iv);
 
-    //  int EVP_EncryptInit_ex(EVP_CIPHER_CTX *ctx, const EVP_CIPHER *type,
-    //                         ENGINE *impl, unsigned char *key, unsigned char
-    //                         *iv);
+/*
+EVP_EncryptInit_ex() sets up cipher context ctx for encryption with cipher
+type from ENGINE impl. ctx must be initialized before calling this function.
+ type is normally supplied by a function such as EVP_des_cbc().
 
-    /*
-    EVP_EncryptInit_ex() sets up cipher context ctx for encryption with cipher
-    type from ENGINE impl. ctx must be initialized before calling this function.
-     type is normally supplied by a function such as EVP_des_cbc().
+ If impl is NULL then the default implementation is used.
+ key is the symmetric key to use and iv is the IV to use (if necessary),
+ the actual number of bytes used for the key and IV depends on the cipher.
 
-     If impl is NULL then the default implementation is used.
-     key is the symmetric key to use and iv is the IV to use (if necessary),
-     the actual number of bytes used for the key and IV depends on the cipher.
+ It is possible to set all parameters to NULL except type in an initial call
+ and supply the remaining parameters in subsequent calls, all of which have
+ type set to NULL. This is done when the default cipher parameters are not \
+ appropriate.
 
-     It is possible to set all parameters to NULL except type in an initial call
-     and supply the remaining parameters in subsequent calls, all of which have
-     type set to NULL. This is done when the default cipher parameters are not \
-     appropriate.
-
-     EVP_EncryptInit_ex(), EVP_EncryptUpdate() and EVP_EncryptFinal_ex()
-     return 1 for success and 0 for failure.
-     */
+ EVP_EncryptInit_ex(), EVP_EncryptUpdate() and EVP_EncryptFinal_ex()
+ return 1 for success and 0 for failure.
+ */
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+    if (!EVP_EncryptInit_ex(&ctx, cipher_type, nullptr, nullptr, nullptr)) {
+#else
     if (!EVP_EncryptInit_ex(pCONTEXT, cipher_type, nullptr, nullptr, nullptr)) {
+#endif
         //  if (!EVP_EncryptInit_ex(context, cipher_type, nullptr, nullptr,
         //  nullptr)) {
         otErr << szFunc << ": Could not set cipher type.\n";
@@ -1205,7 +1242,11 @@ bool OpenSSL::Encrypt(
     if (AEAD) {
         // set GCM IV length
         if (!EVP_CIPHER_CTX_ctrl(
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+                &ctx, EVP_CTRL_GCM_SET_IVLEN, iv.GetSize(), nullptr)) {
+#else
                 context, EVP_CTRL_GCM_SET_IVLEN, iv.GetSize(), nullptr)) {
+#endif
             otErr << szFunc << ": Could not set IV length.\n";
             return false;
         }
@@ -1214,7 +1255,11 @@ bool OpenSSL::Encrypt(
     if (!ECB) {
         // set IV
         if (!EVP_EncryptInit_ex(
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+                &ctx,
+#else
                 context,
+#endif
                 nullptr,
                 nullptr,
                 nullptr,
@@ -1226,7 +1271,11 @@ bool OpenSSL::Encrypt(
 
     // set key
     if (!EVP_EncryptInit_ex(
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+            &ctx,
+#else
             context,
+#endif
             nullptr,
             nullptr,
             const_cast<uint8_t*>(key.getMemory_uint8()),
@@ -1256,7 +1305,11 @@ bool OpenSSL::Encrypt(
                            : CryptoConfig::SymmetricBufferSize();  // 4096
 
         if (!EVP_EncryptUpdate(
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+                &ctx,
+#else
                 context,
+#endif
                 &vBuffer_out.at(0),
                 &len_out,
                 const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(
@@ -1274,7 +1327,11 @@ bool OpenSSL::Encrypt(
                 static_cast<uint32_t>(len_out));
     }
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+    if (!EVP_EncryptFinal_ex(&ctx, &vBuffer_out.at(0), &len_out)) {
+#else
     if (!EVP_EncryptFinal_ex(context, &vBuffer_out.at(0), &len_out)) {
+#endif
         otErr << szFunc << ": EVP_EncryptFinal: failed.\n";
         return false;
     }
@@ -1285,7 +1342,11 @@ bool OpenSSL::Encrypt(
         tag.zeroMemory();
 
         if (!EVP_CIPHER_CTX_ctrl(
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+                &ctx,
+#else
                 context,
+#endif
                 EVP_CTRL_GCM_GET_TAG,
                 CryptoSymmetric::TagSize(cipher),
                 const_cast<void*>(tag.GetPointer()))) {
@@ -1375,7 +1436,11 @@ bool OpenSSL::Decrypt(
         return false;
     }
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+    EVP_CIPHER_CTX ctx;
+#else
     CipherContext context;
+#endif
     std::vector<uint8_t> vBuffer(CryptoConfig::SymmetricBufferSize());  // 4096
     std::vector<uint8_t> vBuffer_out(
         CryptoConfig::SymmetricBufferSize() + EVP_MAX_IV_LENGTH);
@@ -1391,11 +1456,45 @@ bool OpenSSL::Decrypt(
     // This is where the plaintext results will be placed.
     //
     plaintext.Release();
+
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+    class _OTEnv_Dec_stat
+    {
+    private:
+        const char* m_szFunc;
+        EVP_CIPHER_CTX& m_ctx;
+
+    public:
+        _OTEnv_Dec_stat(const char* param_szFunc, EVP_CIPHER_CTX& param_ctx)
+            : m_szFunc(param_szFunc)
+            , m_ctx(param_ctx)
+        {
+            OT_ASSERT(nullptr != param_szFunc);
+
+            EVP_CIPHER_CTX_init(&m_ctx);
+        }
+        ~_OTEnv_Dec_stat()
+        {
+            // EVP_CIPHER_CTX_cleanup returns 1 for success and 0 for failure.
+            //
+            if (0 == EVP_CIPHER_CTX_cleanup(&m_ctx))
+                otErr << m_szFunc << ": Failure in EVP_CIPHER_CTX_cleanup. (It "
+                                     "returned 0.)\n";
+            m_szFunc = nullptr;  // to keep the static analyzer happy.
+        }
+    };
+    _OTEnv_Dec_stat theInstance(szFunc, ctx);
+#endif
+
     const EVP_CIPHER* cipher_type = dp_->CipherModeToOpenSSLMode(cipher);
     OT_ASSERT(nullptr != cipher_type);
 
-    // set algorith,
+// set algorith,
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+    if (!EVP_DecryptInit_ex(&ctx, cipher_type, nullptr, nullptr, nullptr)) {
+#else
     if (!EVP_DecryptInit_ex(context, cipher_type, nullptr, nullptr, nullptr)) {
+#endif
         otErr << szFunc << ": Could not set cipher type.\n";
         return false;
     }
@@ -1403,7 +1502,11 @@ bool OpenSSL::Decrypt(
     if (AEAD) {
         // set GCM IV length
         if (!EVP_CIPHER_CTX_ctrl(
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+                &ctx, EVP_CTRL_GCM_SET_IVLEN, iv.GetSize(), nullptr)) {
+#else
                 context, EVP_CTRL_GCM_SET_IVLEN, iv.GetSize(), nullptr)) {
+#endif
             otErr << szFunc << ": Could not set IV length.\n";
             return false;
         }
@@ -1412,7 +1515,11 @@ bool OpenSSL::Decrypt(
     if (!ECB) {
         // set IV
         if (!EVP_DecryptInit_ex(
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+                &ctx,
+#else
                 context,
+#endif
                 nullptr,
                 nullptr,
                 nullptr,
@@ -1424,7 +1531,11 @@ bool OpenSSL::Decrypt(
 
     // set key
     if (!EVP_DecryptInit_ex(
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+            &ctx,
+#else
             context,
+#endif
             nullptr,
             nullptr,
             const_cast<uint8_t*>(key.getMemory_uint8()),
@@ -1453,7 +1564,11 @@ bool OpenSSL::Decrypt(
         lRemainingLength -= len;
 
         if (!EVP_DecryptUpdate(
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+                &ctx,
+#else
                 context,
+#endif
                 &vBuffer_out.at(0),
                 &len_out,
                 const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(
@@ -1465,12 +1580,12 @@ bool OpenSSL::Decrypt(
         lCurrentIndex += len;
 
         if (len_out > 0)
-            if (false == plaintext.Concatenate(
-                             reinterpret_cast<void*>(&vBuffer_out.at(0)),
-                             static_cast<uint32_t>(len_out))) {
-                otErr << szFunc
-                      << ": Failure: theDecryptedOutput isn't large "
-                         "enough for the decrypted output (1).\n";
+            if (false ==
+                plaintext.Concatenate(
+                    reinterpret_cast<void*>(&vBuffer_out.at(0)),
+                    static_cast<uint32_t>(len_out))) {
+                otErr << szFunc << ": Failure: theDecryptedOutput isn't large "
+                                   "enough for the decrypted output (1).\n";
                 return false;
             }
     }
@@ -1478,7 +1593,11 @@ bool OpenSSL::Decrypt(
     if (AEAD) {
         // Load AEAD verification tag
         if (!EVP_CIPHER_CTX_ctrl(
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+                &ctx,
+#else
                 context,
+#endif
                 EVP_CTRL_GCM_SET_TAG,
                 CryptoSymmetric::TagSize(cipher),
                 const_cast<void*>(tag.GetPointer()))) {
@@ -1487,7 +1606,11 @@ bool OpenSSL::Decrypt(
         }
     }
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+    if (!EVP_DecryptFinal_ex(&ctx, &vBuffer_out.at(0), &len_out)) {
+#else
     if (!EVP_DecryptFinal_ex(context, &vBuffer_out.at(0), &len_out)) {
+#endif
         otErr << szFunc << ": EVP_DecryptFinal: failed.\n";
         return false;
     }
@@ -1495,12 +1618,12 @@ bool OpenSSL::Decrypt(
     // This is the "final" piece that is added from DecryptFinal just above.
     //
     if (len_out > 0)
-        if (false == plaintext.Concatenate(
-                         reinterpret_cast<void*>(&vBuffer_out.at(0)),
-                         static_cast<uint32_t>(len_out))) {
-            otErr << szFunc
-                  << ": Failure: theDecryptedOutput isn't large "
-                     "enough for the decrypted output (2).\n";
+        if (false ==
+            plaintext.Concatenate(
+                reinterpret_cast<void*>(&vBuffer_out.at(0)),
+                static_cast<uint32_t>(len_out))) {
+            otErr << szFunc << ": Failure: theDecryptedOutput isn't large "
+                               "enough for the decrypted output (2).\n";
             return false;
         }
 
@@ -1861,10 +1984,9 @@ bool OpenSSL::OpenSSLdp::VerifyContractDefaultHash(
     if ((theSignature.GetSize() < static_cast<uint32_t>(RSA_size(pRsaKey))) ||
         (nSignatureSize < RSA_size(pRsaKey)))  // this one probably unnecessary.
     {
-        otErr << szFunc
-              << ": Decoded base64-encoded data for signature, but "
-                 "resulting size was < RSA_size(pRsaKey): "
-                 "Signed: "
+        otErr << szFunc << ": Decoded base64-encoded data for signature, but "
+                           "resulting size was < RSA_size(pRsaKey): "
+                           "Signed: "
               << nSignatureSize << ". Unsigned: " << theSignature.GetSize()
               << ".\n";
         RSA_free(pRsaKey);
@@ -2373,6 +2495,31 @@ bool OpenSSL::OpenSSLdp::SignContract(
         nullptr != pkey, "Null private key sent to OpenSSL::SignContract.\n");
 
     const char* szFunc = "OpenSSL::SignContract";
+
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+    class _OTCont_SignCont1
+    {
+    private:
+        const char* m_szFunc;
+        EVP_MD_CTX& m_ctx;
+
+    public:
+        _OTCont_SignCont1(const char* param_szFunc, EVP_MD_CTX& param_ctx)
+            : m_szFunc(param_szFunc)
+            , m_ctx(param_ctx)
+        {
+            OT_ASSERT(nullptr != m_szFunc);
+
+            EVP_MD_CTX_init(&m_ctx);
+        }
+        ~_OTCont_SignCont1()
+        {
+            if (0 == EVP_MD_CTX_cleanup(&m_ctx))
+                otErr << m_szFunc << ": Failure in cleanup. (It returned 0.)\n";
+        }
+    };
+#endif
+
     String strHashType = CryptoHash::HashTypeToString(hashType);
 
     EVP_MD* md = nullptr;
@@ -2397,24 +2544,40 @@ bool OpenSSL::OpenSSLdp::SignContract(
         return false;
     }
 
-    // RE: EVP_SignInit() or EVP_MD_CTX_init()...
-    //
-    // Since only a copy of the digest context is ever finalized the
-    // context MUST be cleaned up after use by calling EVP_MD_CTX_cleanup()
-    // or a memory leak will occur.
-    //
+// RE: EVP_SignInit() or EVP_MD_CTX_init()...
+//
+// Since only a copy of the digest context is ever finalized the
+// context MUST be cleaned up after use by calling EVP_MD_CTX_cleanup()
+// or a memory leak will occur.
+//
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+    EVP_MD_CTX md_ctx;
+    _OTCont_SignCont1 theInstance(szFunc, md_ctx);
+#else
     DigestContext context;
+#endif
 
-    // Do the signature
-    // Note: I just changed this to the _ex version (in case I'm debugging later
-    // and find a problem here.)
-    //
+// Do the signature
+// Note: I just changed this to the _ex version (in case I'm debugging later
+// and find a problem here.)
+//
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+    EVP_SignInit_ex(&md_ctx, md, nullptr);
+#else
     EVP_SignInit_ex(context, md, nullptr);
+#endif
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+    EVP_SignUpdate(
+        &md_ctx,
+        strContractUnsigned.GetPointer(),
+        strContractUnsigned.GetSize());
+#else
     EVP_SignUpdate(
         context,
         strContractUnsigned.GetPointer(),
         strContractUnsigned.GetSize());
+#endif
 
     uint8_t sig_buf[4096];  // Safe since we pass the size when we use it.
 
@@ -2478,28 +2641,47 @@ bool OpenSSL::OpenSSLdp::VerifySignature(
         return false;
     }
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+    EVP_MD_CTX ctx;
+    EVP_MD_CTX_init(&ctx);
+    EVP_VerifyInit(&ctx, md);
+#else
     DigestContext context;
     EVP_VerifyInit(context, md);
+#endif
 
-    // Here I'm adding the actual XML portion of the contract (the portion that
-    // gets signed.)
-    // Basically we are repeating similarly to the signing process in order to
-    // verify.
+// Here I'm adding the actual XML portion of the contract (the portion that
+// gets signed.)
+// Basically we are repeating similarly to the signing process in order to
+// verify.
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+    EVP_VerifyUpdate(
+        &ctx, strContractToVerify.GetPointer(), strContractToVerify.GetSize());
+#else
     EVP_VerifyUpdate(
         context,
         strContractToVerify.GetPointer(),
         strContractToVerify.GetSize());
+#endif
 
     // Now we pass in the Signature
     // EVP_VerifyFinal() returns 1 for a correct signature,
     // 0 for failure and -1 if some other error occurred.
     //
     int32_t nErr = EVP_VerifyFinal(
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+        &ctx,
+#else
         context,
+#endif
         static_cast<const uint8_t*>(theSignature.GetPointer()),
         theSignature.GetSize(),
         const_cast<EVP_PKEY*>(pkey));
+
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+    EVP_MD_CTX_cleanup(&ctx);
+#endif
 
     // the moment of true. 1 means the signature verified.
     if (1 == nErr)
@@ -2572,7 +2754,11 @@ bool OpenSSL::EncryptSessionKey(
 
     const char* szFunc = "OpenSSL::Seal";
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+    EVP_CIPHER_CTX ctx;
+#else
     CipherContext context;
+#endif
 
     uint8_t buffer[4096];
     uint8_t buffer_out[4096 + EVP_MAX_IV_LENGTH];
@@ -2613,6 +2799,10 @@ bool OpenSSL::EncryptSessionKey(
     private:
         _OTEnv_Seal(const _OTEnv_Seal&);
         _OTEnv_Seal& operator=(const _OTEnv_Seal&);
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+        const char* m_szFunc;
+        EVP_CIPHER_CTX& m_ctx;  // reference to openssl cipher context.
+#endif
         EVP_PKEY*** m_array_pubkey;  // pointer to array of public key pointers.
         uint8_t*** m_ek;    // pointer to array of encrypted symmetric keys.
         int32_t** m_eklen;  // pointer to array of lengths for each encrypted
@@ -2627,18 +2817,31 @@ bool OpenSSL::EncryptSessionKey(
 
     public:
         _OTEnv_Seal(
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+            const char* param_szFunc,
+            EVP_CIPHER_CTX& theCTX,
+#endif
             EVP_PKEY*** param_array_pubkey,
             uint8_t*** param_ek,
             int32_t** param_eklen,
             const mapOfAsymmetricKeys& param_RecipPubKeys,
             bool& param_Finalized)
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+            : m_szFunc(param_szFunc)
+            , m_ctx(theCTX)
+            , m_array_pubkey(nullptr)
+#else
             : m_array_pubkey(nullptr)
+#endif
             , m_ek(nullptr)
             , m_eklen(nullptr)
             , m_RecipPubKeys(param_RecipPubKeys)
             , m_nLastPopulatedIndex(-1)
             , m_bFinalized(param_Finalized)
         {
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+            if (nullptr == param_szFunc) OT_FAIL;
+#endif
             if (nullptr == param_array_pubkey) OT_FAIL;
             if (nullptr == param_ek) OT_FAIL;
             if (nullptr == param_eklen) OT_FAIL;
@@ -2652,6 +2855,17 @@ bool OpenSSL::EncryptSessionKey(
             m_array_pubkey = param_array_pubkey;
             m_ek = param_ek;
             m_eklen = param_eklen;
+
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+            // EVP_CIPHER_CTX_init() corresponds to: EVP_CIPHER_CTX_cleanup()
+            // EVP_CIPHER_CTX_cleanup clears all information from a cipher
+            // context and free up any allocated
+            // memory associate with it. It should be called after all
+            // operations using a cipher are complete
+            // so sensitive information does not remain in memory.
+            //
+            EVP_CIPHER_CTX_init(&m_ctx);
+#endif
 
             // (*m_array_pubkey)[] array must have m_RecipPubKeys.size() no. of
             // elements (each containing a pointer
@@ -2802,13 +3016,34 @@ bool OpenSSL::EncryptSessionKey(
             if (nullptr != *m_eklen) free(*m_eklen);
             *m_eklen = nullptr;
             m_eklen = nullptr;
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+            // EVP_CIPHER_CTX_cleanup returns 1 for success and 0 for failure.
+            // EVP_EncryptFinal(), EVP_DecryptFinal() and EVP_CipherFinal()
+            // behave in a similar way to EVP_EncryptFinal_ex(),
+            // EVP_DecryptFinal_ex() and EVP_CipherFinal_ex() except ctx is
+            // automatically cleaned up after the call.
+            //
+            if (!m_bFinalized) {
+                // We only clean this up here, if the "Final" Seal function
+                // didn't get called. (It normally
+                // would have done this for us.)
+
+                if (0 == EVP_CIPHER_CTX_cleanup(&m_ctx))
+                    otErr << m_szFunc << ": Failure in EVP_CIPHER_CTX_cleanup. "
+                                         "(It returned 0.)\n";
+            }
+#endif
         }
     };  // class _OTEnv_Seal
 
     // INSTANTIATE IT (This does all our setup on construction here, AND cleanup
     // on destruction, whenever exiting this function.)
     _OTEnv_Seal local_RAII(
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+        szFunc, ctx, &array_pubkey, &ek, &eklen, RecipPubKeys, bFinalized);
+#else
         &array_pubkey, &ek, &eklen, RecipPubKeys, bFinalized);
+#endif
 
     // This is where the envelope final contents will be placed.
     // including the size of the encrypted symmetric key, the symmetric key
@@ -2840,7 +3075,11 @@ bool OpenSSL::EncryptSessionKey(
     // array of integers.
 
     if (!EVP_SealInit(
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+            &ctx,
+#else
             context,
+#endif
             cipher_type,
             ek,
             eklen,  // array of buffers for output of encrypted copies of the
@@ -3003,12 +3242,21 @@ bool OpenSSL::EncryptSessionKey(
     while (0 < (len = plaintext.OTfread(
                     reinterpret_cast<uint8_t*>(buffer),
                     static_cast<uint32_t>(sizeof(buffer))))) {
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+        if (!EVP_SealUpdate(
+                &ctx,
+                buffer_out,
+                &len_out,
+                buffer,
+                static_cast<int32_t>(len))) {
+#else
         if (!EVP_SealUpdate(
                 context,
                 buffer_out,
                 &len_out,
                 buffer,
                 static_cast<int32_t>(len))) {
+#endif
             otErr << szFunc << ": EVP_SealUpdate failed.\n";
             return false;
         } else if (len_out > 0)
@@ -3019,7 +3267,11 @@ bool OpenSSL::EncryptSessionKey(
             break;
     }
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+    if (!EVP_SealFinal(&ctx, buffer_out, &len_out)) {
+#else
     if (!EVP_SealFinal(context, buffer_out, &len_out)) {
+#endif
         otErr << szFunc << ": EVP_SealFinal failed.\n";
         return false;
     }
@@ -3091,30 +3343,76 @@ bool OpenSSL::DecryptSessionKey(
         otLog5 << __FUNCTION__
                << ": Private key is available for NymID: " << strNymID << " \n";
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+    EVP_CIPHER_CTX ctx;
+#else
     CipherContext context;
+#endif
 
     class _OTEnv_Open
     {
     private:
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+        const char* m_szFunc;
+        EVP_CIPHER_CTX& m_ctx;  // reference to openssl cipher context.
+#endif
         OTAsymmetricKey& m_privateKey;  // reference to OTAsymmetricKey object.
         bool& m_bFinalized;
 
     public:
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+        _OTEnv_Open(
+            const char* param_szFunc,
+            EVP_CIPHER_CTX& theCTX,
+            OTAsymmetricKey& param_privateKey,
+            bool& param_Finalized)
+            : m_szFunc(param_szFunc)
+            , m_ctx(theCTX)
+            , m_privateKey(param_privateKey)
+#else
         _OTEnv_Open(OTAsymmetricKey& param_privateKey, bool& param_Finalized)
             : m_privateKey(param_privateKey)
+#endif
             , m_bFinalized(param_Finalized)
         {
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+            OT_ASSERT(nullptr != param_szFunc);
+
+            EVP_CIPHER_CTX_init(&m_ctx);
+#endif
         }
 
         ~_OTEnv_Open()  // DESTRUCTOR
         {
             m_privateKey.ReleaseKey();
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+            //
+            // BELOW this point, private_key (which is a member of m_privateKey
+            // is either
+            // cleaned up, or kept based on a timer value. (It MAY not be
+            // cleaned up,
+            // depending on its state.)
+
+            // EVP_CIPHER_CTX_cleanup returns 1 for success and 0 for failure.
+            //
+            if (!m_bFinalized) {
+                if (0 == EVP_CIPHER_CTX_cleanup(&m_ctx))
+                    otErr << m_szFunc << ": Failure in EVP_CIPHER_CTX_cleanup. "
+                                         "(It returned 0.)\n";
+            }
+
+            m_szFunc = nullptr;
+#endif
         }
     };
 
-    // INSTANTIATE the clean-up object.
-    //
+// INSTANTIATE the clean-up object.
+//
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+    _OTEnv_Open theNestedInstance(szFunc, ctx, *pPrivateKey, bFinalized);
+#else
     _OTEnv_Open theNestedInstance(*pPrivateKey, bFinalized);
+#endif
 
     dataInput.reset();  // Reset the fread position on this object to 0.
 
@@ -3155,9 +3453,8 @@ bool OpenSSL::DecryptSessionKey(
     if (0 == (nReadEnvType = dataInput.OTfread(
                   reinterpret_cast<uint8_t*>(&env_type_n),
                   static_cast<uint32_t>(sizeof(env_type_n))))) {
-        otErr << szFunc
-              << ": Error reading Envelope Type. Expected "
-                 "asymmetric(1) or symmetric (2).\n";
+        otErr << szFunc << ": Error reading Envelope Type. Expected "
+                           "asymmetric(1) or symmetric (2).\n";
         return false;
     }
     nRunningTotal += nReadEnvType;
@@ -3227,9 +3524,8 @@ bool OpenSSL::DecryptSessionKey(
         if (0 == (nReadNymIDSize = dataInput.OTfread(
                       reinterpret_cast<uint8_t*>(&nymid_len_n),
                       static_cast<uint32_t>(sizeof(nymid_len_n))))) {
-            otErr << szFunc
-                  << ": Error reading NymID length for an encrypted "
-                     "symmetric key.\n";
+            otErr << szFunc << ": Error reading NymID length for an encrypted "
+                               "symmetric key.\n";
             return false;
         }
         nRunningTotal += nReadNymIDSize;
@@ -3490,7 +3786,11 @@ bool OpenSSL::DecryptSessionKey(
 
     //  if (!EVP_OpenInit(&ctx, cipher_type, ek, eklen, iv, private_key))
     if (!EVP_OpenInit(
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+            &ctx,
+#else
             context,
+#endif
             cipher_type,
             static_cast<const uint8_t*>(theRawEncryptedKey.GetPointer()),
             static_cast<int32_t>(theRawEncryptedKey.GetSize()),
@@ -3513,12 +3813,21 @@ bool OpenSSL::DecryptSessionKey(
     while (0 < (len = ciphertext.OTfread(
                     reinterpret_cast<uint8_t*>(buffer),
                     static_cast<uint32_t>(sizeof(buffer))))) {
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+        if (!EVP_OpenUpdate(
+                &ctx,
+                buffer_out,
+                &len_out,
+                buffer,
+                static_cast<int32_t>(len))) {
+#else
         if (!EVP_OpenUpdate(
                 context,
                 buffer_out,
                 &len_out,
                 buffer,
                 static_cast<int32_t>(len))) {
+#endif
             otErr << szFunc << ": EVP_OpenUpdate: failed.\n";
             return false;
         } else if (len_out > 0)
@@ -3529,7 +3838,11 @@ bool OpenSSL::DecryptSessionKey(
             break;
     }
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+    if (!EVP_OpenFinal(&ctx, buffer_out, &len_out)) {
+#else
     if (!EVP_OpenFinal(context, buffer_out, &len_out)) {
+#endif
         otErr << szFunc << ": EVP_OpenFinal: failed.\n";
         return false;
     } else if (len_out > 0) {
