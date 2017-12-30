@@ -107,7 +107,11 @@ ServerContext::ServerContext(
     std::mutex& nymfileLock)
     : ot_super(local, remote, server, nymfileLock)
     , connection_(connection)
+    , admin_password_("")
+    , admin_attempted_(false)
+    , admin_success_(false)
     , highest_transaction_number_(0)
+    , tentative_transaction_numbers_()
 {
 }
 
@@ -124,8 +128,12 @@ ServerContext::ServerContext(
           Identifier(serialized.servercontext().serverid()),
           nymfileLock)
     , connection_(connection)
+    , admin_password_(serialized.servercontext().adminpassword())
+    , admin_attempted_(serialized.servercontext().adminattempted())
+    , admin_success_(serialized.servercontext().adminsuccess())
     , highest_transaction_number_(
           serialized.servercontext().highesttransactionnumber())
+    , tentative_transaction_numbers_()
 {
     for (const auto& it : serialized.servercontext().tentativerequestnumber()) {
         tentative_transaction_numbers_.insert(it);
@@ -208,6 +216,8 @@ bool ServerContext::AddTentativeNumber(const TransactionNumber& number)
     return output.second;
 }
 
+bool ServerContext::AdminAttempted() const { return admin_attempted_.load(); }
+
 ServerConnection& ServerContext::Connection() { return connection_; }
 
 bool ServerContext::finalize_server_command(Message& command) const
@@ -264,6 +274,11 @@ std::unique_ptr<TransactionStatement> ServerContext::generate_statement(
         new TransactionStatement(String(server_id_).Get(), issued, available));
 
     return output;
+}
+
+bool ServerContext::HaveAdminPassword() const
+{
+    return false == admin_password_.empty();
 }
 
 TransactionNumber ServerContext::Highest() const
@@ -373,6 +388,8 @@ std::pair<RequestNumber, std::unique_ptr<Message>> ServerContext::
     return initialize_server_command(
         lock, type, provided, withAcknowledgments, withNymboxHash);
 }
+
+bool ServerContext::isAdmin() const { return admin_success_.load(); }
 
 ServerContext::ManagedNumber ServerContext::NextTransactionNumber(
     const MessageType reason)
@@ -509,6 +526,20 @@ proto::Context ServerContext::serialize(const Lock& lock) const
     }
 
     return output;
+}
+
+void ServerContext::SetAdminAttempted() { admin_attempted_.store(true); }
+
+void ServerContext::SetAdminPassword(const std::string& password)
+{
+    Lock lock(lock_);
+    admin_password_ = password;
+}
+
+void ServerContext::SetAdminSuccess()
+{
+    admin_attempted_.store(true);
+    admin_success_.store(true);
 }
 
 bool ServerContext::SetHighest(const TransactionNumber& highest)

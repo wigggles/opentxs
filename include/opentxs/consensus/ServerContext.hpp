@@ -104,8 +104,11 @@ public:
         ServerConnection& connection,
         std::mutex& nymfileLock);
 
+    bool AdminAttempted() const;
     bool FinalizeServerCommand(Message& command) const;
+    bool HaveAdminPassword() const;
     TransactionNumber Highest() const;
+    bool isAdmin() const;
     std::unique_ptr<Item> Statement(const OTTransaction& owner) const;
     std::unique_ptr<Item> Statement(
         const OTTransaction& owner,
@@ -141,6 +144,9 @@ public:
     ManagedNumber NextTransactionNumber(const MessageType reason);
     NetworkReplyMessage PingNotary();
     bool RemoveTentativeNumber(const TransactionNumber& number);
+    void SetAdminAttempted();
+    void SetAdminPassword(const std::string& password);
+    void SetAdminSuccess();
     bool SetHighest(const TransactionNumber& highest);
     TransactionNumber UpdateHighest(
         const std::set<TransactionNumber>& numbers,
@@ -157,8 +163,10 @@ private:
     typedef Context ot_super;
 
     ServerConnection& connection_;
-
     std::mutex message_lock_{};
+    std::string admin_password_{""};
+    std::atomic<bool> admin_attempted_{false};
+    std::atomic<bool> admin_success_{false};
     std::atomic<TransactionNumber> highest_transaction_number_{0};
     std::set<TransactionNumber> tentative_transaction_numbers_{};
 
