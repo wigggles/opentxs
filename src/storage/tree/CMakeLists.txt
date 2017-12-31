@@ -9,6 +9,7 @@ set(cxx-sources
   Contacts.cpp
   Contexts.cpp
   Credentials.cpp
+  Issuers.cpp
   Node.cpp
   Mailbox.cpp
   Nym.cpp

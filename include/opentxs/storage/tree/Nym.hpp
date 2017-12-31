@@ -74,6 +74,7 @@ public:
     const PeerRequests& FinishedRequestBox() const;
     const PeerReplies& IncomingReplyBox() const;
     const PeerRequests& IncomingRequestBox() const;
+    const class Issuers& Issuers() const;
     const Mailbox& MailInbox() const;
     const Mailbox& MailOutbox() const;
     const PeerReplies& ProcessedReplyBox() const;
@@ -87,6 +88,7 @@ public:
     Editor<PeerRequests> mutable_FinishedRequestBox();
     Editor<PeerReplies> mutable_IncomingReplyBox();
     Editor<PeerRequests> mutable_IncomingRequestBox();
+    Editor<class Issuers> mutable_Issuers();
     Editor<Mailbox> mutable_MailInbox();
     Editor<Mailbox> mutable_MailOutbox();
     Editor<PeerReplies> mutable_ProcessedReplyBox();
@@ -169,6 +171,9 @@ private:
         blockchain_account_types_{};
     std::map<std::string, std::shared_ptr<proto::Bip44Account>>
         blockchain_accounts_{};
+    std::string issuers_root_;
+    mutable std::mutex issuers_lock_;
+    mutable std::unique_ptr<class Issuers> issuers_;
 
     PeerRequests* sent_request_box() const;
     PeerRequests* incoming_request_box() const;
@@ -182,12 +187,14 @@ private:
     Mailbox* mail_outbox() const;
     class Threads* threads() const;
     class Contexts* contexts() const;
+    class Issuers* issuers() const;
 
     void save(PeerReplies* input, const Lock& lock, StorageBox type);
     void save(PeerRequests* input, const Lock& lock, StorageBox type);
     void save(Mailbox* input, const Lock& lock, StorageBox type);
     void save(class Threads* input, const Lock& lock);
     void save(class Contexts* input, const Lock& lock);
+    void save(class Issuers* input, const Lock& lock);
 
     void init(const std::string& hash) override;
     bool save(const Lock& lock) const override;

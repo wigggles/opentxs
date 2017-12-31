@@ -126,6 +126,7 @@ public:
     std::string DefaultSeed() override;
     bool DeleteContact(const std::string& id) override;
     std::uint32_t HashType() const override;
+    ObjectList IssuerList(const std::string& nymID) override;
     bool Load(
         const std::string& nymID,
         const std::string& accountID,
@@ -161,6 +162,11 @@ public:
         const std::string& id,
         std::shared_ptr<proto::CredentialIndex>& nym,
         std::string& alias,
+        const bool checking = false) override;
+    bool Load(
+        const std::string& nymID,
+        const std::string& id,
+        std::shared_ptr<proto::Issuer>& issuer,
         const bool checking = false) override;
     bool Load(
         const std::string& nymID,
@@ -272,6 +278,7 @@ public:
     bool Store(
         const proto::CredentialIndex& data,
         const std::string& alias = std::string("")) override;
+    bool Store(const std::string& nymID, const proto::Issuer& data) override;
     bool Store(
         const std::string& nymid,
         const std::string& threadid,

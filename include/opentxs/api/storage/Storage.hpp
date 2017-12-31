@@ -86,6 +86,7 @@ public:
     virtual std::string DefaultSeed() = 0;
     virtual bool DeleteContact(const std::string& id) = 0;
     virtual std::uint32_t HashType() const = 0;
+    virtual ObjectList IssuerList(const std::string& nymID) = 0;
     virtual bool Load(
         const std::string& nymID,
         const std::string& accountID,
@@ -121,6 +122,11 @@ public:
         const std::string& id,
         std::shared_ptr<proto::CredentialIndex>& nym,
         std::string& alias,
+        const bool checking = false) = 0;
+    virtual bool Load(
+        const std::string& nymID,
+        const std::string& id,
+        std::shared_ptr<proto::Issuer>& issuer,
         const bool checking = false) = 0;
     virtual bool Load(
         const std::string& nymID,
@@ -241,6 +247,7 @@ public:
     virtual bool Store(
         const proto::CredentialIndex& data,
         const std::string& alias = std::string("")) = 0;
+    virtual bool Store(const std::string& nymID, const proto::Issuer& data) = 0;
     virtual bool Store(
         const std::string& nymid,
         const std::string& threadid,

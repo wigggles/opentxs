@@ -41,6 +41,7 @@
 #include "opentxs/storage/tree/Nym.hpp"
 
 #include "opentxs/storage/tree/Contexts.hpp"
+#include "opentxs/storage/tree/Issuers.hpp"
 #include "opentxs/storage/tree/Mailbox.hpp"
 #include "opentxs/storage/tree/PeerReplies.hpp"
 #include "opentxs/storage/tree/PeerRequests.hpp"
@@ -50,7 +51,7 @@
 
 #include <functional>
 
-#define CURRENT_VERSION 4
+#define CURRENT_VERSION 5
 #define BLOCKCHAIN_INDEX_VERSION 1
 
 #define OT_METHOD "opentxs::storage::Nym::"
@@ -108,6 +109,9 @@ Nym::Nym(
     , blockchain_lock_()
     , blockchain_account_types_()
     , blockchain_accounts_()
+    , issuers_root_(Node::BLANK_HASH)
+    , issuers_lock_()
+    , issuers_(nullptr)
 {
     if (check_hash(hash)) {
         init(hash);
@@ -326,7 +330,31 @@ void Nym::init(const std::string& hash)
         blockchain_accounts_.emplace(
             id, std::make_shared<proto::Bip44Account>(account));
     }
+
+    // Fields added in version 5
+    issuers_root_ = normalize_hash(serialized->issuers());
 }
+
+class Issuers* Nym::issuers() const
+{
+    Lock lock(issuers_lock_);
+
+    if (false == bool(issuers_)) {
+        issuers_.reset(new class Issuers(driver_, issuers_root_));
+
+        if (false == bool(issuers_)) {
+            otErr << __FUNCTION__ << ": Unable to instantiate." << std::endl;
+
+            OT_FAIL
+        }
+    }
+
+    lock.unlock();
+
+    return issuers_.get();
+}
+
+const class Issuers& Nym::Issuers() const { return *issuers(); }
 
 bool Nym::Load(
     const std::string& id,
@@ -361,7 +389,7 @@ bool Nym::Load(
     if (!check_hash(credentials_)) {
         if (!checking) {
             otErr << __FUNCTION__ << ": Error: nym with id " << nymid_
-                  << " does not exist." << std::endl;
+                  << " has no credentials." << std::endl;
         }
 
         return false;
@@ -436,6 +464,7 @@ bool Nym::Migrate(const opentxs::api::storage::Driver& to) const
     output &= mail_outbox()->Migrate(to);
     output &= threads()->Migrate(to);
     output &= contexts()->Migrate(to);
+    output &= issuers()->Migrate(to);
     output &= migrate(root_, to);
 
     return output;
@@ -555,6 +584,14 @@ Editor<class Contexts> Nym::mutable_Contexts()
         [&](class Contexts* in, Lock& lock) -> void { this->save(in, lock); };
 
     return Editor<class Contexts>(write_lock_, contexts(), callback);
+}
+
+Editor<class Issuers> Nym::mutable_Issuers()
+{
+    std::function<void(class Issuers*, Lock&)> callback =
+        [&](class Issuers* in, Lock& lock) -> void { this->save(in, lock); };
+
+    return Editor<class Issuers>(write_lock_, issuers(), callback);
 }
 
 PeerReplies* Nym::processed_reply_box() const
@@ -722,6 +759,26 @@ void Nym::save(class Contexts* input, const Lock& lock)
     }
 
     contexts_root_ = input->Root();
+
+    if (!save(lock)) {
+        otErr << __FUNCTION__ << ": Save error" << std::endl;
+        OT_FAIL;
+    }
+}
+
+void Nym::save(class Issuers* input, const Lock& lock)
+{
+    if (!verify_write_lock(lock)) {
+        otErr << __FUNCTION__ << ": Lock failure." << std::endl;
+        OT_FAIL;
+    }
+
+    if (nullptr == input) {
+        otErr << __FUNCTION__ << ": Null target" << std::endl;
+        OT_FAIL;
+    }
+
+    issuers_root_ = input->Root();
 
     if (!save(lock)) {
         otErr << __FUNCTION__ << ": Save error" << std::endl;
@@ -912,6 +969,8 @@ proto::StorageNym Nym::serialize() const
         const auto& account = *it.second;
         *serialized.add_blockchainaccount() = account;
     }
+
+    serialized.set_issuers(issuers_root_);
 
     return serialized;
 }
