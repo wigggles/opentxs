@@ -75,7 +75,11 @@ namespace api
 class ContactManager;
 class Identity;
 class Settings;
+
+namespace client
+{
 class Wallet;
+}  // namespace client
 
 namespace implementation
 {
@@ -203,7 +207,7 @@ private:
     OTAPI_Exec& exec_;
     const MadeEasy& made_easy_;
     const OT_ME& otme_;
-    api::Wallet& wallet_;
+    api::client::Wallet& wallet_;
     api::crypto::Encode& encoding_;
     api::Identity& identity_;
 
@@ -436,7 +440,7 @@ private:
         OTAPI_Exec& exec,
         const MadeEasy& madeEasy,
         const OT_ME& otme,
-        api::Wallet& wallet,
+        api::client::Wallet& wallet,
         api::crypto::Encode& encoding,
         api::Identity& identity);
     OTME_too() = delete;

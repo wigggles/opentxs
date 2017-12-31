@@ -40,7 +40,7 @@
 
 #include "opentxs/consensus/Context.hpp"
 
-#include "opentxs/api/Wallet.hpp"
+#include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/String.hpp"

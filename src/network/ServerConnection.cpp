@@ -40,10 +40,10 @@
 
 #include "opentxs/network/ServerConnection.hpp"
 
+#include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/network/ZMQ.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/api/Settings.hpp"
-#include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/contract/ServerContract.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/Identifier.hpp"

@@ -41,6 +41,7 @@
 #include "opentxs/api/implementation/Native.hpp"
 
 #include "opentxs/api/crypto/implementation/Crypto.hpp"
+#include "opentxs/api/client/implementation/Wallet.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
 #include "opentxs/api/implementation/Api.hpp"
@@ -53,7 +54,6 @@
 #include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Identity.hpp"
 #include "opentxs/api/Settings.hpp"
-#include "opentxs/api/Wallet.hpp"
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/client/OT_ME.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
@@ -379,7 +379,10 @@ void Native::Init_Contacts()
     contacts_.reset(new api::ContactManager(*storage_, *wallet_));
 }
 
-void Native::Init_Contracts() { wallet_.reset(new api::Wallet(*this)); }
+void Native::Init_Contracts()
+{
+    wallet_.reset(new api::client::implementation::Wallet(*this));
+}
 
 void Native::Init_Crypto() { crypto_.reset(new class Crypto(*this)); }
 
@@ -969,7 +972,7 @@ void Native::start()
     }
 }
 
-api::Wallet& Native::Wallet() const
+api::client::Wallet& Native::Wallet() const
 {
     OT_ASSERT(wallet_)
 

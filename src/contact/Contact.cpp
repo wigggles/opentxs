@@ -40,10 +40,10 @@
 
 #include "opentxs/contact/Contact.hpp"
 
+#include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/Native.hpp"
-#include "opentxs/api/Wallet.hpp"
 #include "opentxs/contact/ContactData.hpp"
 #include "opentxs/contact/ContactGroup.hpp"
 #include "opentxs/contact/ContactItem.hpp"
@@ -64,7 +64,7 @@
 
 namespace opentxs
 {
-Contact::Contact(api::Wallet& wallet, const proto::Contact& serialized)
+Contact::Contact(api::client::Wallet& wallet, const proto::Contact& serialized)
     : wallet_(wallet)
     , version_(check_version(serialized.version(), CURRENT_VERSION))
     , label_(serialized.label())
@@ -97,7 +97,7 @@ Contact::Contact(api::Wallet& wallet, const proto::Contact& serialized)
     init_nyms();
 }
 
-Contact::Contact(api::Wallet& wallet, const std::string& label)
+Contact::Contact(api::client::Wallet& wallet, const std::string& label)
     : wallet_(wallet)
     , version_(CURRENT_VERSION)
     , label_(label)

@@ -41,7 +41,7 @@
 
 #include "opentxs/Version.hpp"
 
-#include "opentxs/api/Wallet.hpp"
+#include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/core/contract/peer/PeerObject.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
@@ -96,8 +96,12 @@ class ContactManager;
 class Crypto;
 class Identity;
 class Settings;
-class Wallet;
 class ZMQ;
+
+namespace client
+{
+class Wallet;
+}  // namespace client
 
 namespace implementation
 {
@@ -1354,7 +1358,7 @@ private:
     api::Crypto& crypto_;
     api::Identity& identity_;
     api::storage::Storage& storage_;
-    api::Wallet& wallet_;
+    api::client::Wallet& wallet_;
     api::network::ZMQ& zeromq_;
 
     bool m_bDefaultStore{false};
@@ -1422,7 +1426,7 @@ private:
         api::Crypto& crypto,
         api::Identity& identity,
         api::storage::Storage& storage,
-        api::Wallet& wallet,
+        api::client::Wallet& wallet,
         api::network::ZMQ& zmq,
         std::recursive_mutex& lock);
     OT_API() = delete;

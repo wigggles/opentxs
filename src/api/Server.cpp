@@ -40,7 +40,7 @@
 
 #include "opentxs/api/implementation/Server.hpp"
 
-#include "opentxs/api/Wallet.hpp"
+#include "opentxs/api/client/Wallet.hpp"
 #if OT_CASH
 #include "opentxs/cash/Mint.hpp"
 #endif  // OT_CASH
@@ -76,7 +76,7 @@ Server::Server(
     opentxs::api::Crypto& crypto,
     opentxs::api::Settings& config,
     opentxs::api::storage::Storage& storage,
-    opentxs::api::Wallet& wallet,
+    opentxs::api::client::Wallet& wallet,
     std::atomic<bool>& shutdown,
     const opentxs::network::zeromq::Context& context)
     : args_(args)

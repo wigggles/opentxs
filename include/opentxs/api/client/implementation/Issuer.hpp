@@ -14,7 +14,7 @@
  *       -- Scripted smart contracts.
  *
  *  EMAIL:
- *  fellowtraveler@opentransactions.org
+ *  fellowtraveler\opentransactions.org
  *
  *  WEBSITE:
  *  http://www.opentransactions.org/
@@ -36,65 +36,39 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_SERVER_MAINFILE_HPP
-#define OPENTXS_SERVER_MAINFILE_HPP
+#ifndef OPENTXS_API_CLIENT_IMPLEMENTATION_ISSUER_HPP
+#define OPENTXS_API_CLIENT_IMPLEMENTATION_ISSUER_HPP
 
 #include "opentxs/Version.hpp"
 
-#include <string>
+#include "opentxs/api/client/Issuer.hpp"
 
 namespace opentxs
 {
-class String;
-
 namespace api
 {
-class Crypto;
-class Server;
-
 namespace client
 {
-class Wallet;
-}  // namespace client
-}  // namespace api
-
-namespace server
+namespace implementation
 {
+class Wallet;
 
-class Server;
-
-class MainFile
+class Server : virtual public opentxs::api::client::Issuer
 {
 public:
-    explicit MainFile(
-        Server& server,
-        opentxs::api::Crypto& crypto_,
-        opentxs::api::client::Wallet& wallet_);
-
-    bool CreateMainFile(
-        const std::string& strContract,
-        const std::string& strNotaryID,
-        const std::string& strCert,
-        const std::string& strNymID,
-        const std::string& strCachedKey);
-    bool LoadMainFile(bool readOnly = false);
-    bool LoadServerUserAndContract();
-    bool SaveMainFile();
-    bool SaveMainFileToString(String& filename);
+    ~Server() = default;
 
 private:
-    Server& server_;  // TODO: remove when feasible
-    opentxs::api::Crypto& crypto_;
-    opentxs::api::client::Wallet& wallet_;
-    std::string version_;
+    friend class Wallet;
 
-    MainFile() = delete;
-    MainFile(const MainFile&) = delete;
-    MainFile(MainFile&&) = delete;
-    MainFile& operator=(const MainFile&) = delete;
-    MainFile& operator=(MainFile&&) = delete;
+    Server() = default;
+    Server(const Server&) = delete;
+    Server(Server&&) = delete;
+    Server& operator=(const Server&) = delete;
+    Server& operator=(Server&&) = delete;
 };
-}  // namespace server
+}  // namespace implementation
+}  // namespace api
 }  // namespace opentxs
 
-#endif  // OPENTXS_SERVER_MAINFILE_HPP
+#endif  // OPENTXS_API_CLIENT_IMPLEMENTATION_ISSUER_HPP

@@ -48,7 +48,6 @@
 
 namespace opentxs
 {
-
 class Account;
 class ClientContext;
 class Data;
@@ -64,7 +63,11 @@ namespace api
 {
 class Server;
 class Settings;
+
+namespace client
+{
 class Wallet;
+}  // namespace client
 }  // namespace api
 
 namespace server
@@ -124,7 +127,7 @@ private:
     Server& server_;
     opentxs::api::Settings& config_;
     opentxs::api::Server& mint_;
-    opentxs::api::Wallet& wallet_;
+    opentxs::api::client::Wallet& wallet_;
 
     bool add_numbers_to_nymbox(
         const TransactionNumber transactionNumber,
@@ -226,7 +229,7 @@ private:
         Server& server,
         opentxs::api::Settings& config,
         opentxs::api::Server& mint,
-        opentxs::api::Wallet& wallet);
+        opentxs::api::client::Wallet& wallet);
     UserCommandProcessor() = delete;
     UserCommandProcessor(const UserCommandProcessor&) = delete;
     UserCommandProcessor(UserCommandProcessor&&) = delete;

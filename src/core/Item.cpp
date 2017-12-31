@@ -40,7 +40,7 @@
 
 #include "opentxs/core/Item.hpp"
 
-#include "opentxs/api/Wallet.hpp"
+#include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/consensus/TransactionStatement.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"

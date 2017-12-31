@@ -65,7 +65,10 @@ class the_lambda_struct;
 
 namespace api
 {
+namespace client
+{
 class Wallet;
+}  // namespace client
 }  // namespace api
 
 typedef std::map<std::string, opentxs::OTDB::OfferDataNym*> SubMap;
@@ -197,14 +200,14 @@ class OTAPI_Func
 public:
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
-        api::Wallet& wallet,
+        api::client::Wallet& wallet,
         const Identifier& nymID,
         const Identifier& serverID,
         OTAPI_Exec& exec,
         OT_API& otapi);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
-        api::Wallet& wallet,
+        api::client::Wallet& wallet,
         const Identifier& nymID,
         const Identifier& serverID,
         OTAPI_Exec& exec,
@@ -212,7 +215,7 @@ public:
         const std::string& p_strParam);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
-        api::Wallet& wallet,
+        api::client::Wallet& wallet,
         const Identifier& nymID,
         const Identifier& serverID,
         OTAPI_Exec& exec,
@@ -221,7 +224,7 @@ public:
         std::int64_t p_lData);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
-        api::Wallet& wallet,
+        api::client::Wallet& wallet,
         const Identifier& nymID,
         const Identifier& serverID,
         OTAPI_Exec& exec,
@@ -230,7 +233,7 @@ public:
         const std::string& p_strData);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
-        api::Wallet& wallet,
+        api::client::Wallet& wallet,
         const Identifier& nymID,
         const Identifier& serverID,
         OTAPI_Exec& exec,
@@ -240,7 +243,7 @@ public:
         const std::string& p_strData2);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
-        api::Wallet& wallet,
+        api::client::Wallet& wallet,
         const Identifier& nymID,
         const Identifier& serverID,
         OTAPI_Exec& exec,
@@ -250,7 +253,7 @@ public:
         const bool p_Bool);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
-        api::Wallet& wallet,
+        api::client::Wallet& wallet,
         const Identifier& nymID,
         const Identifier& serverID,
         OTAPI_Exec& exec,
@@ -261,7 +264,7 @@ public:
         const std::string& p_strData2);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
-        api::Wallet& wallet,
+        api::client::Wallet& wallet,
         const Identifier& nymID,
         const Identifier& serverID,
         OTAPI_Exec& exec,
@@ -272,7 +275,7 @@ public:
         std::int64_t p_lData2);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
-        api::Wallet& wallet,
+        api::client::Wallet& wallet,
         const Identifier& nymID,
         const Identifier& serverID,
         OTAPI_Exec& exec,
@@ -283,7 +286,7 @@ public:
         const std::string& p_strData2);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
-        api::Wallet& wallet,
+        api::client::Wallet& wallet,
         const Identifier& nymID,
         const Identifier& serverID,
         OTAPI_Exec& exec,
@@ -294,7 +297,7 @@ public:
         const std::string& p_strData3);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
-        api::Wallet& wallet,
+        api::client::Wallet& wallet,
         const Identifier& nymID,
         const Identifier& serverID,
         OTAPI_Exec& exec,
@@ -306,7 +309,7 @@ public:
         std::int32_t p_nTransNumsNeeded);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
-        api::Wallet& wallet,
+        api::client::Wallet& wallet,
         const Identifier& nymID,
         const Identifier& serverID,
         OTAPI_Exec& exec,
@@ -320,7 +323,7 @@ public:
         bool bBool);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
-        api::Wallet& wallet,
+        api::client::Wallet& wallet,
         const Identifier& nymID,
         const Identifier& serverID,
         OTAPI_Exec& exec,
@@ -364,7 +367,7 @@ private:
     time64_t tData{OT_TIME_ZERO};
     std::int32_t nTransNumsNeeded{0};
     std::int32_t nRequestNum{-1};
-    api::Wallet& wallet_;
+    api::client::Wallet& wallet_;
     Editor<ServerContext> context_editor_;
     ServerContext& context_;
     OTAPI_Exec& exec_;
@@ -385,7 +388,7 @@ private:
     std::string send_transaction(const std::size_t totalRetries);
 
     explicit OTAPI_Func(
-        api::Wallet& wallet,
+        api::client::Wallet& wallet,
         OTAPI_Exec& exec,
         OT_API& otapi,
         const Identifier& nymID,

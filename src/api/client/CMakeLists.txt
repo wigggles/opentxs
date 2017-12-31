@@ -1,31 +1,17 @@
-add_subdirectory(client)
-add_subdirectory(crypto)
-add_subdirectory(network)
-add_subdirectory(storage)
-
 set(cxx-sources
-  Activity.cpp
-  Api.cpp
-  Blockchain.cpp
-  ContactManager.cpp
-  Identity.cpp
-  Native.cpp
-  Server.cpp
-  Settings.cpp
+  Wallet.cpp
 )
 
 file(GLOB cxx-install-headers
-     "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/api/*.hpp"
+     "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/api/client/*.hpp"
 )
 
 set(cxx-headers
   ${cxx-install-headers}
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/api/implementation/Api.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/api/implementation/Native.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/api/implementation/Server.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/api/client/implementation/Wallet.hpp
 )
 
-set(MODULE_NAME opentxs-api)
+set(MODULE_NAME opentxs-api-client)
 
 if(WIN32)
   # suppress warnings about exported internal symbols (global log stream objects)
@@ -55,7 +41,7 @@ else()
 endif()
 
 install(FILES ${cxx-install-headers}
-        DESTINATION include/opentxs/api
+        DESTINATION include/opentxs/api/client
         COMPONENT dev)
 
 set_property(TARGET ${MODULE_NAME} PROPERTY POSITION_INDEPENDENT_CODE 1)

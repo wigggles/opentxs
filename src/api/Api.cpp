@@ -61,7 +61,7 @@ Api::Api(
     api::Crypto& crypto,
     api::Identity& identity,
     api::storage::Storage& storage,
-    api::Wallet& wallet,
+    api::client::Wallet& wallet,
     api::network::ZMQ& zmq)
     : activity_(activity)
     , config_(config)

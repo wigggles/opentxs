@@ -40,9 +40,9 @@
 
 #include "opentxs/client/OTAPI_Func.hpp"
 
+#include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/Api.hpp"
 #include "opentxs/api/Native.hpp"
-#include "opentxs/api/Wallet.hpp"
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/client/OT_ME.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
@@ -170,7 +170,7 @@ const std::map<OTAPI_Func_Type, bool> OTAPI_Func::type_type_{
 };
 
 OTAPI_Func::OTAPI_Func(
-    api::Wallet& wallet,
+    api::client::Wallet& wallet,
     OTAPI_Exec& exec,
     OT_API& otapi,
     const Identifier& nymID,
@@ -209,7 +209,7 @@ OTAPI_Func::OTAPI_Func(
 
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
-    api::Wallet& wallet,
+    api::client::Wallet& wallet,
     const Identifier& nymID,
     const Identifier& serverID,
     OTAPI_Exec& exec,
@@ -232,7 +232,7 @@ OTAPI_Func::OTAPI_Func(
 
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
-    api::Wallet& wallet,
+    api::client::Wallet& wallet,
     const Identifier& nymID,
     const Identifier& serverID,
     OTAPI_Exec& exec,
@@ -284,7 +284,7 @@ OTAPI_Func::OTAPI_Func(
 
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
-    api::Wallet& wallet,
+    api::client::Wallet& wallet,
     const Identifier& nymID,
     const Identifier& serverID,
     OTAPI_Exec& exec,
@@ -343,7 +343,7 @@ OTAPI_Func::OTAPI_Func(
 
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
-    api::Wallet& wallet,
+    api::client::Wallet& wallet,
     const Identifier& nymID,
     const Identifier& serverID,
     OTAPI_Exec& exec,
@@ -389,7 +389,7 @@ OTAPI_Func::OTAPI_Func(
 
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
-    api::Wallet& wallet,
+    api::client::Wallet& wallet,
     const Identifier& nymID,
     const Identifier& serverID,
     OTAPI_Exec& exec,
@@ -426,7 +426,7 @@ OTAPI_Func::OTAPI_Func(
 
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
-    api::Wallet& wallet,
+    api::client::Wallet& wallet,
     const Identifier& nymID,
     const Identifier& serverID,
     OTAPI_Exec& exec,
@@ -527,7 +527,7 @@ OTAPI_Func::OTAPI_Func(
 
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
-    api::Wallet& wallet,
+    api::client::Wallet& wallet,
     const Identifier& nymID,
     const Identifier& serverID,
     OTAPI_Exec& exec,
@@ -580,7 +580,7 @@ OTAPI_Func::OTAPI_Func(
 
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
-    api::Wallet& wallet,
+    api::client::Wallet& wallet,
     const Identifier& nymID,
     const Identifier& serverID,
     OTAPI_Exec& exec,
@@ -640,7 +640,7 @@ OTAPI_Func::OTAPI_Func(
 
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
-    api::Wallet& wallet,
+    api::client::Wallet& wallet,
     const Identifier& nymID,
     const Identifier& serverID,
     OTAPI_Exec& exec,
@@ -689,7 +689,7 @@ OTAPI_Func::OTAPI_Func(
 
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
-    api::Wallet& wallet,
+    api::client::Wallet& wallet,
     const Identifier& nymID,
     const Identifier& serverID,
     OTAPI_Exec& exec,
@@ -731,7 +731,7 @@ OTAPI_Func::OTAPI_Func(
 
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
-    api::Wallet& wallet,
+    api::client::Wallet& wallet,
     const Identifier& nymID,
     const Identifier& serverID,
     OTAPI_Exec& exec,
@@ -771,7 +771,7 @@ OTAPI_Func::OTAPI_Func(
 
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
-    api::Wallet& wallet,
+    api::client::Wallet& wallet,
     const Identifier& nymID,
     const Identifier& serverID,
     OTAPI_Exec& exec,
@@ -846,7 +846,7 @@ OTAPI_Func::OTAPI_Func(
 
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
-    api::Wallet& wallet,
+    api::client::Wallet& wallet,
     const Identifier& nymID,
     const Identifier& serverID,
     OTAPI_Exec& exec,

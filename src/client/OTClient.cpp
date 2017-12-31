@@ -40,12 +40,12 @@
 
 #include "opentxs/client/OTClient.hpp"
 
+#include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/Activity.hpp"
 #include "opentxs/api/Api.hpp"
 #include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/api/Settings.hpp"
-#include "opentxs/api/Wallet.hpp"
 #if OT_CASH
 #include "opentxs/cash/Mint.hpp"
 #include "opentxs/cash/Purse.hpp"
@@ -105,7 +105,7 @@ OTClient::OTClient(
     OTWallet& theWallet,
     api::Activity& activity,
     api::ContactManager& contacts,
-    api::Wallet& wallet)
+    api::client::Wallet& wallet)
     : m_pWallet(theWallet)
     , activity_(activity)
     , contacts_(contacts)

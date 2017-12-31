@@ -43,7 +43,6 @@
 
 namespace opentxs
 {
-
 class Account;
 class ClientContext;
 class Nym;
@@ -52,7 +51,11 @@ class OTTransaction;
 namespace api
 {
 class Server;
+
+namespace client
+{
 class Wallet;
+}  // namespace client
 }  // namespace api
 
 namespace server
@@ -88,7 +91,7 @@ private:
 
     Server& server_;
     opentxs::api::Server& mint_;
-    opentxs::api::Wallet& wallet_;
+    opentxs::api::client::Wallet& wallet_;
 
     void NotarizeCancelCronItem(
         Nym& nym,
@@ -157,7 +160,7 @@ private:
     explicit Notary(
         Server& server,
         opentxs::api::Server& mint,
-        opentxs::api::Wallet& wallet);
+        opentxs::api::client::Wallet& wallet);
     Notary() = delete;
     Notary(const Notary&) = delete;
     Notary(Notary&&) = delete;

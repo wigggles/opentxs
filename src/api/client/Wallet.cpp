@@ -38,7 +38,7 @@
 
 #include "opentxs/stdafx.hpp"
 
-#include "opentxs/api/Wallet.hpp"
+#include "opentxs/api/client/implementation/Wallet.hpp"
 
 #include "opentxs/api/network/Dht.hpp"
 #include "opentxs/api/network/ZMQ.hpp"
@@ -47,12 +47,14 @@
 #include "opentxs/api/Identity.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/api/Server.hpp"
+#include "opentxs/client/NymData.hpp"
 #include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/consensus/Context.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/contact/Contact.hpp"
 #include "opentxs/contact/ContactData.hpp"
 #include "opentxs/core/contract/peer/PeerObject.hpp"
+#include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Message.hpp"
@@ -62,9 +64,9 @@
 
 #include <functional>
 
-#define OT_METHOD "opentxs::Wallet::"
+#define OT_METHOD "opentxs::api::client::implementation::Wallet::"
 
-namespace opentxs::api
+namespace opentxs::api::client::implementation
 {
 
 Wallet::Wallet(Native& ot)
@@ -1388,4 +1390,6 @@ ConstUnitDefinition Wallet::UnitDefinition(
 
     return UnitDefinition(Identifier(unit));
 }
+
+Wallet::~Wallet() {}
 }  // namespace opentxs::api

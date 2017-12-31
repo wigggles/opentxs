@@ -40,14 +40,14 @@
 
 #include "opentxs/client/OT_API.hpp"
 
-#include "opentxs/api/network/ZMQ.hpp"
+#include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
+#include "opentxs/api/network/ZMQ.hpp"
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Activity.hpp"
 #include "opentxs/api/Identity.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/api/Settings.hpp"
-#include "opentxs/api/Wallet.hpp"
 #if OT_CASH
 #include "opentxs/cash/Mint.hpp"
 #include "opentxs/cash/Purse.hpp"
@@ -524,7 +524,7 @@ OT_API::OT_API(
     api::Crypto& crypto,
     api::Identity& identity,
     api::storage::Storage& storage,
-    api::Wallet& wallet,
+    api::client::Wallet& wallet,
     api::network::ZMQ& zmq,
     std::recursive_mutex& lock)
     : activity_(activity)

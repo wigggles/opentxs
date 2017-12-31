@@ -57,7 +57,10 @@ class UnitDefinition;
 
 namespace api
 {
+namespace client
+{
 class Wallet;
+}  // namespace client
 
 namespace implementation
 {
@@ -87,7 +90,7 @@ public:
 private:
     friend class api::implementation::Native;
 
-    api::Wallet& wallet_;
+    api::client::Wallet& wallet_;
     CallbackMap callback_map_;
     std::unique_ptr<const DhtConfig> config_;
 #if OT_DHT
@@ -96,23 +99,23 @@ private:
 
 #if OT_DHT
     static bool ProcessPublicNym(
-        api::Wallet& wallet,
+        api::client::Wallet& wallet,
         const std::string key,
         const DhtResults& values,
         NotifyCB notifyCB);
     static bool ProcessServerContract(
-        api::Wallet& wallet,
+        api::client::Wallet& wallet,
         const std::string key,
         const DhtResults& values,
         NotifyCB notifyCB);
     static bool ProcessUnitDefinition(
-        api::Wallet& wallet,
+        api::client::Wallet& wallet,
         const std::string key,
         const DhtResults& values,
         NotifyCB notifyCB);
 #endif
 
-    explicit Dht(DhtConfig& config, api::Wallet& wallet);
+    explicit Dht(DhtConfig& config, api::client::Wallet& wallet);
     Dht() = delete;
     Dht(const Dht&) = delete;
     Dht& operator=(const Dht&) = delete;

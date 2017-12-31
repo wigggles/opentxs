@@ -62,6 +62,7 @@ set(object-deps
   ${lucre}
   ${trezor}
   $<TARGET_OBJECTS:otprotob>
+  $<TARGET_OBJECTS:opentxs-api-client>
   $<TARGET_OBJECTS:opentxs-api-crypto>
   $<TARGET_OBJECTS:opentxs-api-network>
   $<TARGET_OBJECTS:opentxs-api-storage>

@@ -40,9 +40,9 @@
 
 #include "opentxs/api/ContactManager.hpp"
 
+#include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Identity.hpp"
-#include "opentxs/api/Wallet.hpp"
 #include "opentxs/contact/Contact.hpp"
 #include "opentxs/contact/ContactData.hpp"
 #include "opentxs/core/Log.hpp"
@@ -54,7 +54,9 @@
 
 namespace opentxs::api
 {
-ContactManager::ContactManager(storage::Storage& storage, Wallet& wallet)
+ContactManager::ContactManager(
+    storage::Storage& storage,
+    client::Wallet& wallet)
     : storage_(storage)
     , wallet_(wallet)
     , lock_()

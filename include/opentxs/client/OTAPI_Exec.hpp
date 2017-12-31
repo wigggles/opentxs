@@ -57,13 +57,16 @@ class OT_API;
 
 namespace api
 {
-
 class Activity;
 class ContactManager;
 class Crypto;
 class Settings;
 class Identity;
+
+namespace client
+{
 class Wallet;
+}  // namespace client
 
 namespace implementation
 {
@@ -86,7 +89,7 @@ private:
     api::ContactManager& contacts_;
     api::Crypto& crypto_;
     api::Identity& identity_;
-    api::Wallet& wallet_;
+    api::client::Wallet& wallet_;
     api::network::ZMQ& zeromq_;
     OT_API& ot_api_;
     std::recursive_mutex& lock_;
@@ -97,7 +100,7 @@ private:
         api::ContactManager& contacts,
         api::Crypto& crypto,
         api::Identity& identity,
-        api::Wallet& wallet,
+        api::client::Wallet& wallet,
         api::network::ZMQ& zeromq,
         OT_API& otapi,
         std::recursive_mutex& lock);

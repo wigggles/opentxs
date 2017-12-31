@@ -104,7 +104,7 @@ public:
             std::chrono::seconds(0)) const override;
     const api::Server& Server() const override;
     bool ServerMode() const override;
-    api::Wallet& Wallet() const override;
+    api::client::Wallet& Wallet() const override;
     api::network::ZMQ& ZMQ() const override;
 
 private:
@@ -143,7 +143,7 @@ private:
     std::unique_ptr<api::network::Dht> dht_;
     std::unique_ptr<api::Identity> identity_;
     std::unique_ptr<api::storage::Storage> storage_;
-    std::unique_ptr<api::Wallet> wallet_;
+    std::unique_ptr<api::client::Wallet> wallet_;
     std::unique_ptr<api::network::ZMQ> zeromq_;
     std::unique_ptr<std::thread> periodic_;
     std::unique_ptr<SymmetricKey> storage_encryption_key_;

@@ -40,12 +40,12 @@
 
 #include "opentxs/client/OTME_too.hpp"
 
+#include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/Api.hpp"
 #include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Identity.hpp"
 #include "opentxs/api/Settings.hpp"
-#include "opentxs/api/Wallet.hpp"
 #include "opentxs/client/MadeEasy.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
 #include "opentxs/client/OT_ME.hpp"
@@ -166,7 +166,7 @@ OTME_too::OTME_too(
     OTAPI_Exec& exec,
     const MadeEasy& madeEasy,
     const OT_ME& otme,
-    api::Wallet& wallet,
+    api::client::Wallet& wallet,
     api::crypto::Encode& encoding,
     api::Identity& identity)
     : api_lock_(lock)

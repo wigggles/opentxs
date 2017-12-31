@@ -40,15 +40,15 @@
 
 #include "opentxs/client/OTAPI_Exec.hpp"
 
-#include "opentxs/api/network/ZMQ.hpp"
+#include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
+#include "opentxs/api/network/ZMQ.hpp"
 #include "opentxs/api/Activity.hpp"
 #include "opentxs/api/Api.hpp"
 #include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Identity.hpp"
 #include "opentxs/api/Native.hpp"
-#include "opentxs/api/Wallet.hpp"
 #if OT_CASH
 #include "opentxs/cash/Purse.hpp"
 #endif  // OT_CASH
@@ -128,7 +128,7 @@ OTAPI_Exec::OTAPI_Exec(
     api::ContactManager& contacts,
     api::Crypto& crypto,
     api::Identity& identity,
-    api::Wallet& wallet,
+    api::client::Wallet& wallet,
     api::network::ZMQ& zeromq,
     OT_API& otapi,
     std::recursive_mutex& lock)

@@ -62,7 +62,11 @@ class ContactManager;
 class Crypto;
 class Identity;
 class Settings;
+
+namespace client
+{
 class Wallet;
+}  // namespace client
 
 namespace network
 {
@@ -100,7 +104,7 @@ private:
     Crypto& crypto_;
     Identity& identity_;
     storage::Storage& storage_;
-    Wallet& wallet_;
+    api::client::Wallet& wallet_;
     api::network::ZMQ& zmq_;
 
     std::unique_ptr<OT_API> ot_api_;
@@ -120,7 +124,7 @@ private:
         api::Crypto& crypto,
         api::Identity& identity,
         api::storage::Storage& storage,
-        api::Wallet& wallet,
+        api::client::Wallet& wallet,
         api::network::ZMQ& zmq);
     Api() = delete;
     Api(const Api&) = delete;

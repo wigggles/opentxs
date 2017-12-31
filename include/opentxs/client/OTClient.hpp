@@ -51,7 +51,6 @@
 
 namespace opentxs
 {
-
 class Account;
 class UnitDefinition;
 class Ledger;
@@ -65,7 +64,11 @@ namespace api
 {
 class Activity;
 class ContactManager;
+
+namespace client
+{
 class Wallet;
+}  // namespace client
 }  // namespace api
 
 class OTClient
@@ -75,7 +78,7 @@ public:
         OTWallet& theWallet,
         api::Activity& activity,
         api::ContactManager& contacts,
-        api::Wallet& wallet);
+        api::client::Wallet& wallet);
 
     inline OTMessageBuffer& GetMessageBuffer() { return m_MessageBuffer; }
 
@@ -111,7 +114,7 @@ private:
     OTWallet& m_pWallet;
     api::Activity& activity_;
     api::ContactManager& contacts_;
-    api::Wallet& wallet_;
+    api::client::Wallet& wallet_;
     OTMessageBuffer m_MessageBuffer;
     OTMessageOutbuffer m_MessageOutbuffer;
 

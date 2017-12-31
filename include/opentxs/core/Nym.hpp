@@ -77,9 +77,13 @@ class Tag;
 
 namespace api
 {
-
+namespace client
+{
+namespace implementation
+{
 class Wallet;
-
+}  // namespace implementation
+}  // namespace client
 }  // namespace api
 
 typedef std::deque<Message*> dequeOfMail;
@@ -92,7 +96,7 @@ typedef bool CredentialIndexModeFlag;
 
 class Nym
 {
-    friend class api::Wallet;
+    friend class api::client::implementation::Wallet;
 
 public:
     static const CredentialIndexModeFlag ONLY_IDS = true;

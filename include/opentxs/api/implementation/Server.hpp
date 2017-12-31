@@ -73,7 +73,11 @@ namespace api
 {
 class Crypto;
 class Settings;
+
+namespace client
+{
 class Wallet;
+}  // namespace client
 
 namespace storage
 {
@@ -114,7 +118,7 @@ private:
     api::Settings& config_;
     api::Crypto& crypto_;
     api::storage::Storage& storage_;
-    api::Wallet& wallet_;
+    api::client::Wallet& wallet_;
     std::atomic<bool>& shutdown_;
     const opentxs::network::zeromq::Context& zmq_context_;
     std::unique_ptr<server::Server> server_p_;
@@ -167,7 +171,7 @@ private:
         api::Crypto& crypto,
         api::Settings& config,
         api::storage::Storage& storage,
-        api::Wallet& wallet,
+        api::client::Wallet& wallet,
         std::atomic<bool>& shutdown,
         const opentxs::network::zeromq::Context& context);
     Server() = delete;

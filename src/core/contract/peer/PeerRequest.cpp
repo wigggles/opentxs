@@ -40,14 +40,15 @@
 
 #include "opentxs/core/contract/peer/PeerRequest.hpp"
 
+#include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/Native.hpp"
-#include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/contract/peer/BailmentNotice.hpp"
 #include "opentxs/core/contract/peer/BailmentRequest.hpp"
 #include "opentxs/core/contract/peer/ConnectionRequest.hpp"
 #include "opentxs/core/contract/peer/OutBailmentRequest.hpp"
 #include "opentxs/core/contract/peer/StoreSecret.hpp"
+#include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/core/crypto/CryptoSymmetric.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
