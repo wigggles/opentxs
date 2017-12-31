@@ -43,13 +43,7 @@
 
 #include "opentxs/api/Editor.hpp"
 #include "opentxs/Types.hpp"
-#include "opentxs/storage/tree/Contexts.hpp"
-#include "opentxs/storage/tree/Mailbox.hpp"
 #include "opentxs/storage/tree/Node.hpp"
-#include "opentxs/storage/tree/PeerReplies.hpp"
-#include "opentxs/storage/tree/PeerRequests.hpp"
-#include "opentxs/storage/tree/Thread.hpp"
-#include "opentxs/storage/tree/Threads.hpp"
 
 #include <cstdint>
 #include <map>
@@ -60,10 +54,69 @@ namespace opentxs
 {
 namespace storage
 {
+class Contexts;
+class Issuers;
+class Mailbox;
 class Nyms;
+class PeerReplies;
+class PeerRequests;
+class Thread;
+class Threads;
 
 class Nym : public Node
 {
+public:
+    std::set<std::string> BlockchainAccountList(
+        const proto::ContactItemType type) const;
+
+    const class Contexts& Contexts() const;
+    const PeerReplies& FinishedReplyBox() const;
+    const PeerRequests& FinishedRequestBox() const;
+    const PeerReplies& IncomingReplyBox() const;
+    const PeerRequests& IncomingRequestBox() const;
+    const Mailbox& MailInbox() const;
+    const Mailbox& MailOutbox() const;
+    const PeerReplies& ProcessedReplyBox() const;
+    const PeerRequests& ProcessedRequestBox() const;
+    const PeerReplies& SentReplyBox() const;
+    const PeerRequests& SentRequestBox() const;
+    const class Threads& Threads() const;
+
+    Editor<class Contexts> mutable_Contexts();
+    Editor<PeerReplies> mutable_FinishedReplyBox();
+    Editor<PeerRequests> mutable_FinishedRequestBox();
+    Editor<PeerReplies> mutable_IncomingReplyBox();
+    Editor<PeerRequests> mutable_IncomingRequestBox();
+    Editor<Mailbox> mutable_MailInbox();
+    Editor<Mailbox> mutable_MailOutbox();
+    Editor<PeerReplies> mutable_ProcessedReplyBox();
+    Editor<PeerRequests> mutable_ProcessedRequestBox();
+    Editor<PeerReplies> mutable_SentReplyBox();
+    Editor<PeerRequests> mutable_SentRequestBox();
+    Editor<class Threads> mutable_Threads();
+
+    std::string Alias() const;
+    bool Load(
+        const std::string& id,
+        std::shared_ptr<proto::Bip44Account>& output,
+        const bool checking) const;
+    bool Load(
+        std::shared_ptr<proto::CredentialIndex>& output,
+        std::string& alias,
+        const bool checking) const;
+    bool Migrate(const opentxs::api::storage::Driver& to) const override;
+
+    bool SetAlias(const std::string& alias);
+    bool Store(
+        const proto::ContactItemType type,
+        const proto::Bip44Account& data);
+    bool Store(
+        const proto::CredentialIndex& data,
+        const std::string& alias,
+        std::string& plaintext);
+
+    ~Nym();
+
 private:
     friend class Nyms;
 
@@ -130,23 +183,14 @@ private:
     class Threads* threads() const;
     class Contexts* contexts() const;
 
-    void save(
-        PeerReplies* input,
-        const std::unique_lock<std::mutex>& lock,
-        StorageBox type);
-    void save(
-        PeerRequests* input,
-        const std::unique_lock<std::mutex>& lock,
-        StorageBox type);
-    void save(
-        Mailbox* input,
-        const std::unique_lock<std::mutex>& lock,
-        StorageBox type);
-    void save(class Threads* input, const std::unique_lock<std::mutex>& lock);
-    void save(class Contexts* input, const std::unique_lock<std::mutex>& lock);
+    void save(PeerReplies* input, const Lock& lock, StorageBox type);
+    void save(PeerRequests* input, const Lock& lock, StorageBox type);
+    void save(Mailbox* input, const Lock& lock, StorageBox type);
+    void save(class Threads* input, const Lock& lock);
+    void save(class Contexts* input, const Lock& lock);
 
     void init(const std::string& hash) override;
-    bool save(const std::unique_lock<std::mutex>& lock) const override;
+    bool save(const Lock& lock) const override;
     void update_hash(const StorageBox type, const std::string& root);
     proto::StorageNym serialize() const;
 
@@ -159,57 +203,6 @@ private:
     Nym(Nym&&) = delete;
     Nym operator=(const Nym&) = delete;
     Nym operator=(Nym&&) = delete;
-
-public:
-    const PeerRequests& SentRequestBox() const;
-    const PeerRequests& IncomingRequestBox() const;
-    const PeerReplies& SentReplyBox() const;
-    const PeerReplies& IncomingReplyBox() const;
-    const PeerRequests& FinishedRequestBox() const;
-    const PeerReplies& FinishedReplyBox() const;
-    const PeerRequests& ProcessedRequestBox() const;
-    const PeerReplies& ProcessedReplyBox() const;
-    const Mailbox& MailInbox() const;
-    const Mailbox& MailOutbox() const;
-    const class Threads& Threads() const;
-    const class Contexts& Contexts() const;
-    std::set<std::string> BlockchainAccountList(
-        const proto::ContactItemType type) const;
-
-    Editor<PeerRequests> mutable_SentRequestBox();
-    Editor<PeerRequests> mutable_IncomingRequestBox();
-    Editor<PeerReplies> mutable_SentReplyBox();
-    Editor<PeerReplies> mutable_IncomingReplyBox();
-    Editor<PeerRequests> mutable_FinishedRequestBox();
-    Editor<PeerReplies> mutable_FinishedReplyBox();
-    Editor<PeerRequests> mutable_ProcessedRequestBox();
-    Editor<PeerReplies> mutable_ProcessedReplyBox();
-    Editor<Mailbox> mutable_MailInbox();
-    Editor<Mailbox> mutable_MailOutbox();
-    Editor<class Threads> mutable_Threads();
-    Editor<class Contexts> mutable_Contexts();
-
-    std::string Alias() const;
-    bool Load(
-        const std::string& id,
-        std::shared_ptr<proto::Bip44Account>& output,
-        const bool checking) const;
-    bool Load(
-        std::shared_ptr<proto::CredentialIndex>& output,
-        std::string& alias,
-        const bool checking) const;
-    bool Migrate(const opentxs::api::storage::Driver& to) const override;
-
-    bool SetAlias(const std::string& alias);
-    bool Store(
-        const proto::ContactItemType type,
-        const proto::Bip44Account& data);
-    bool Store(
-        const proto::CredentialIndex& data,
-        const std::string& alias,
-        std::string& plaintext);
-
-    ~Nym() = default;
 };
 }  // namespace storage
 }  // namespace opentxs

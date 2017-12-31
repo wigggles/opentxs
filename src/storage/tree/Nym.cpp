@@ -40,6 +40,12 @@
 
 #include "opentxs/storage/tree/Nym.hpp"
 
+#include "opentxs/storage/tree/Contexts.hpp"
+#include "opentxs/storage/tree/Mailbox.hpp"
+#include "opentxs/storage/tree/PeerReplies.hpp"
+#include "opentxs/storage/tree/PeerRequests.hpp"
+#include "opentxs/storage/tree/Thread.hpp"
+#include "opentxs/storage/tree/Threads.hpp"
 #include "opentxs/storage/Plugin.hpp"
 
 #include <functional>
@@ -49,9 +55,7 @@
 
 #define OT_METHOD "opentxs::storage::Nym::"
 
-namespace opentxs
-{
-namespace storage
+namespace opentxs::storage
 {
 Nym::Nym(
     const opentxs::api::storage::Driver& storage,
@@ -102,6 +106,8 @@ Nym::Nym(
     , contexts_(nullptr)
     , contexts_root_(Node::BLANK_HASH)
     , blockchain_lock_()
+    , blockchain_account_types_()
+    , blockchain_accounts_()
 {
     if (check_hash(hash)) {
         init(hash);
@@ -115,15 +121,14 @@ std::string Nym::Alias() const { return alias_; }
 
 class Contexts* Nym::contexts() const
 {
-    std::unique_lock<std::mutex> lock(contexts_lock_);
+    Lock lock(contexts_lock_);
 
     if (!contexts_) {
         contexts_.reset(new class Contexts(driver_, contexts_root_));
 
         if (!contexts_) {
-            std::cerr << __FUNCTION__ << ": Unable to instantiate."
-                      << std::endl;
-            abort();
+            otErr << __FUNCTION__ << ": Unable to instantiate." << std::endl;
+            OT_FAIL;
         }
     }
 
@@ -151,16 +156,15 @@ const class Contexts& Nym::Contexts() const { return *contexts(); }
 
 PeerReplies* Nym::finished_reply_box() const
 {
-    std::unique_lock<std::mutex> lock(finished_reply_box_lock_);
+    Lock lock(finished_reply_box_lock_);
 
     if (!finished_reply_box_) {
         finished_reply_box_.reset(
             new PeerReplies(driver_, finished_peer_reply_));
 
         if (!finished_reply_box_) {
-            std::cerr << __FUNCTION__ << ": Unable to instantiate."
-                      << std::endl;
-            abort();
+            otErr << __FUNCTION__ << ": Unable to instantiate." << std::endl;
+            OT_FAIL;
         }
     }
 
@@ -171,16 +175,15 @@ PeerReplies* Nym::finished_reply_box() const
 
 PeerRequests* Nym::finished_request_box() const
 {
-    std::unique_lock<std::mutex> lock(finished_request_box_lock_);
+    Lock lock(finished_request_box_lock_);
 
     if (!finished_request_box_) {
         finished_request_box_.reset(
             new PeerRequests(driver_, finished_peer_request_));
 
         if (!finished_request_box_) {
-            std::cerr << __FUNCTION__ << ": Unable to instantiate."
-                      << std::endl;
-            abort();
+            otErr << __FUNCTION__ << ": Unable to instantiate." << std::endl;
+            OT_FAIL;
         }
     }
 
@@ -201,16 +204,15 @@ const PeerReplies& Nym::FinishedReplyBox() const
 
 PeerReplies* Nym::incoming_reply_box() const
 {
-    std::unique_lock<std::mutex> lock(incoming_reply_box_lock_);
+    Lock lock(incoming_reply_box_lock_);
 
     if (!incoming_reply_box_) {
         incoming_reply_box_.reset(
             new PeerReplies(driver_, incoming_peer_reply_));
 
         if (!incoming_reply_box_) {
-            std::cerr << __FUNCTION__ << ": Unable to instantiate."
-                      << std::endl;
-            abort();
+            otErr << __FUNCTION__ << ": Unable to instantiate." << std::endl;
+            OT_FAIL;
         }
     }
 
@@ -221,16 +223,15 @@ PeerReplies* Nym::incoming_reply_box() const
 
 PeerRequests* Nym::incoming_request_box() const
 {
-    std::unique_lock<std::mutex> lock(incoming_request_box_lock_);
+    Lock lock(incoming_request_box_lock_);
 
     if (!incoming_request_box_) {
         incoming_request_box_.reset(
             new PeerRequests(driver_, incoming_peer_request_));
 
         if (!incoming_request_box_) {
-            std::cerr << __FUNCTION__ << ": Unable to instantiate."
-                      << std::endl;
-            abort();
+            otErr << __FUNCTION__ << ": Unable to instantiate." << std::endl;
+            OT_FAIL;
         }
     }
 
@@ -255,9 +256,9 @@ void Nym::init(const std::string& hash)
     driver_.LoadProto(hash, serialized);
 
     if (!serialized) {
-        std::cerr << __FUNCTION__ << ": Failed to load nym index file."
-                  << std::endl;
-        abort();
+        otErr << __FUNCTION__ << ": Failed to load nym index file."
+              << std::endl;
+        OT_FAIL;
     }
 
     version_ = serialized->version();
@@ -359,8 +360,8 @@ bool Nym::Load(
 
     if (!check_hash(credentials_)) {
         if (!checking) {
-            std::cerr << __FUNCTION__ << ": Error: nym with id " << nymid_
-                      << " does not exist." << std::endl;
+            otErr << __FUNCTION__ << ": Error: nym with id " << nymid_
+                  << " does not exist." << std::endl;
         }
 
         return false;
@@ -381,15 +382,14 @@ bool Nym::Load(
 
 Mailbox* Nym::mail_inbox() const
 {
-    std::unique_lock<std::mutex> lock(mail_inbox_lock_);
+    Lock lock(mail_inbox_lock_);
 
     if (!mail_inbox_) {
         mail_inbox_.reset(new Mailbox(driver_, mail_inbox_root_));
 
         if (!mail_inbox_) {
-            std::cerr << __FUNCTION__ << ": Unable to instantiate."
-                      << std::endl;
-            abort();
+            otErr << __FUNCTION__ << ": Unable to instantiate." << std::endl;
+            OT_FAIL;
         }
     }
 
@@ -400,15 +400,14 @@ Mailbox* Nym::mail_inbox() const
 
 Mailbox* Nym::mail_outbox() const
 {
-    std::unique_lock<std::mutex> lock(mail_outbox_lock_);
+    Lock lock(mail_outbox_lock_);
 
     if (!mail_outbox_) {
         mail_outbox_.reset(new Mailbox(driver_, mail_outbox_root_));
 
         if (!mail_outbox_) {
-            std::cerr << __FUNCTION__ << ": Unable to instantiate."
-                      << std::endl;
-            abort();
+            otErr << __FUNCTION__ << ": Unable to instantiate." << std::endl;
+            OT_FAIL;
         }
     }
 
@@ -444,8 +443,8 @@ bool Nym::Migrate(const opentxs::api::storage::Driver& to) const
 
 Editor<PeerRequests> Nym::mutable_SentRequestBox()
 {
-    std::function<void(PeerRequests*, std::unique_lock<std::mutex>&)> callback =
-        [&](PeerRequests* in, std::unique_lock<std::mutex>& lock) -> void {
+    std::function<void(PeerRequests*, Lock&)> callback =
+        [&](PeerRequests* in, Lock& lock) -> void {
         this->save(in, lock, StorageBox::SENTPEERREQUEST);
     };
 
@@ -454,8 +453,8 @@ Editor<PeerRequests> Nym::mutable_SentRequestBox()
 
 Editor<PeerRequests> Nym::mutable_IncomingRequestBox()
 {
-    std::function<void(PeerRequests*, std::unique_lock<std::mutex>&)> callback =
-        [&](PeerRequests* in, std::unique_lock<std::mutex>& lock) -> void {
+    std::function<void(PeerRequests*, Lock&)> callback =
+        [&](PeerRequests* in, Lock& lock) -> void {
         this->save(in, lock, StorageBox::INCOMINGPEERREQUEST);
     };
 
@@ -464,8 +463,8 @@ Editor<PeerRequests> Nym::mutable_IncomingRequestBox()
 
 Editor<PeerReplies> Nym::mutable_SentReplyBox()
 {
-    std::function<void(PeerReplies*, std::unique_lock<std::mutex>&)> callback =
-        [&](PeerReplies* in, std::unique_lock<std::mutex>& lock) -> void {
+    std::function<void(PeerReplies*, Lock&)> callback =
+        [&](PeerReplies* in, Lock& lock) -> void {
         this->save(in, lock, StorageBox::SENTPEERREPLY);
     };
 
@@ -474,8 +473,8 @@ Editor<PeerReplies> Nym::mutable_SentReplyBox()
 
 Editor<PeerReplies> Nym::mutable_IncomingReplyBox()
 {
-    std::function<void(PeerReplies*, std::unique_lock<std::mutex>&)> callback =
-        [&](PeerReplies* in, std::unique_lock<std::mutex>& lock) -> void {
+    std::function<void(PeerReplies*, Lock&)> callback =
+        [&](PeerReplies* in, Lock& lock) -> void {
         this->save(in, lock, StorageBox::INCOMINGPEERREPLY);
     };
 
@@ -484,8 +483,8 @@ Editor<PeerReplies> Nym::mutable_IncomingReplyBox()
 
 Editor<PeerRequests> Nym::mutable_FinishedRequestBox()
 {
-    std::function<void(PeerRequests*, std::unique_lock<std::mutex>&)> callback =
-        [&](PeerRequests* in, std::unique_lock<std::mutex>& lock) -> void {
+    std::function<void(PeerRequests*, Lock&)> callback =
+        [&](PeerRequests* in, Lock& lock) -> void {
         this->save(in, lock, StorageBox::FINISHEDPEERREQUEST);
     };
 
@@ -494,8 +493,8 @@ Editor<PeerRequests> Nym::mutable_FinishedRequestBox()
 
 Editor<PeerReplies> Nym::mutable_FinishedReplyBox()
 {
-    std::function<void(PeerReplies*, std::unique_lock<std::mutex>&)> callback =
-        [&](PeerReplies* in, std::unique_lock<std::mutex>& lock) -> void {
+    std::function<void(PeerReplies*, Lock&)> callback =
+        [&](PeerReplies* in, Lock& lock) -> void {
         this->save(in, lock, StorageBox::FINISHEDPEERREPLY);
     };
 
@@ -504,8 +503,8 @@ Editor<PeerReplies> Nym::mutable_FinishedReplyBox()
 
 Editor<PeerRequests> Nym::mutable_ProcessedRequestBox()
 {
-    std::function<void(PeerRequests*, std::unique_lock<std::mutex>&)> callback =
-        [&](PeerRequests* in, std::unique_lock<std::mutex>& lock) -> void {
+    std::function<void(PeerRequests*, Lock&)> callback =
+        [&](PeerRequests* in, Lock& lock) -> void {
         this->save(in, lock, StorageBox::PROCESSEDPEERREQUEST);
     };
 
@@ -514,8 +513,8 @@ Editor<PeerRequests> Nym::mutable_ProcessedRequestBox()
 
 Editor<PeerReplies> Nym::mutable_ProcessedReplyBox()
 {
-    std::function<void(PeerReplies*, std::unique_lock<std::mutex>&)> callback =
-        [&](PeerReplies* in, std::unique_lock<std::mutex>& lock) -> void {
+    std::function<void(PeerReplies*, Lock&)> callback =
+        [&](PeerReplies* in, Lock& lock) -> void {
         this->save(in, lock, StorageBox::PROCESSEDPEERREPLY);
     };
 
@@ -524,8 +523,8 @@ Editor<PeerReplies> Nym::mutable_ProcessedReplyBox()
 
 Editor<Mailbox> Nym::mutable_MailInbox()
 {
-    std::function<void(Mailbox*, std::unique_lock<std::mutex>&)> callback =
-        [&](Mailbox* in, std::unique_lock<std::mutex>& lock) -> void {
+    std::function<void(Mailbox*, Lock&)> callback =
+        [&](Mailbox* in, Lock& lock) -> void {
         this->save(in, lock, StorageBox::MAILINBOX);
     };
 
@@ -534,8 +533,8 @@ Editor<Mailbox> Nym::mutable_MailInbox()
 
 Editor<Mailbox> Nym::mutable_MailOutbox()
 {
-    std::function<void(Mailbox*, std::unique_lock<std::mutex>&)> callback =
-        [&](Mailbox* in, std::unique_lock<std::mutex>& lock) -> void {
+    std::function<void(Mailbox*, Lock&)> callback =
+        [&](Mailbox* in, Lock& lock) -> void {
         this->save(in, lock, StorageBox::MAILOUTBOX);
     };
 
@@ -544,38 +543,31 @@ Editor<Mailbox> Nym::mutable_MailOutbox()
 
 Editor<class Threads> Nym::mutable_Threads()
 {
-    std::function<void(class Threads*, std::unique_lock<std::mutex>&)>
-        callback =
-            [&](class Threads* in, std::unique_lock<std::mutex>& lock) -> void {
-        this->save(in, lock);
-    };
+    std::function<void(class Threads*, Lock&)> callback =
+        [&](class Threads* in, Lock& lock) -> void { this->save(in, lock); };
 
     return Editor<class Threads>(write_lock_, threads(), callback);
 }
 
 Editor<class Contexts> Nym::mutable_Contexts()
 {
-    std::function<void(class Contexts*, std::unique_lock<std::mutex>&)>
-        callback = [&](
-            class Contexts* in, std::unique_lock<std::mutex>& lock) -> void {
-        this->save(in, lock);
-    };
+    std::function<void(class Contexts*, Lock&)> callback =
+        [&](class Contexts* in, Lock& lock) -> void { this->save(in, lock); };
 
     return Editor<class Contexts>(write_lock_, contexts(), callback);
 }
 
 PeerReplies* Nym::processed_reply_box() const
 {
-    std::unique_lock<std::mutex> lock(processed_reply_box_lock_);
+    Lock lock(processed_reply_box_lock_);
 
     if (!processed_reply_box_) {
         processed_reply_box_.reset(
             new PeerReplies(driver_, processed_peer_reply_));
 
         if (!processed_reply_box_) {
-            std::cerr << __FUNCTION__ << ": Unable to instantiate."
-                      << std::endl;
-            abort();
+            otErr << __FUNCTION__ << ": Unable to instantiate." << std::endl;
+            OT_FAIL;
         }
     }
 
@@ -586,16 +578,15 @@ PeerReplies* Nym::processed_reply_box() const
 
 PeerRequests* Nym::processed_request_box() const
 {
-    std::unique_lock<std::mutex> lock(processed_request_box_lock_);
+    Lock lock(processed_request_box_lock_);
 
     if (!processed_request_box_) {
         processed_request_box_.reset(
             new PeerRequests(driver_, processed_peer_request_));
 
         if (!processed_request_box_) {
-            std::cerr << __FUNCTION__ << ": Unable to instantiate."
-                      << std::endl;
-            abort();
+            otErr << __FUNCTION__ << ": Unable to instantiate." << std::endl;
+            OT_FAIL;
         }
     }
 
@@ -614,11 +605,11 @@ const PeerReplies& Nym::ProcessedReplyBox() const
     return *processed_reply_box();
 }
 
-bool Nym::save(const std::unique_lock<std::mutex>& lock) const
+bool Nym::save(const Lock& lock) const
 {
     if (!verify_write_lock(lock)) {
-        std::cerr << __FUNCTION__ << ": Lock failure." << std::endl;
-        abort();
+        otErr << __FUNCTION__ << ": Lock failure." << std::endl;
+        OT_FAIL;
     }
 
     auto serialized = serialize();
@@ -630,85 +621,76 @@ bool Nym::save(const std::unique_lock<std::mutex>& lock) const
     return driver_.StoreProto(serialized, root_);
 }
 
-void Nym::save(
-    PeerReplies* input,
-    const std::unique_lock<std::mutex>& lock,
-    StorageBox type)
+void Nym::save(PeerReplies* input, const Lock& lock, StorageBox type)
 {
     if (!verify_write_lock(lock)) {
-        std::cerr << __FUNCTION__ << ": Lock failure." << std::endl;
-        abort();
+        otErr << __FUNCTION__ << ": Lock failure." << std::endl;
+        OT_FAIL;
     }
 
     if (nullptr == input) {
-        std::cerr << __FUNCTION__ << ": Null target" << std::endl;
-        abort();
+        otErr << __FUNCTION__ << ": Null target" << std::endl;
+        OT_FAIL;
     }
 
     update_hash(type, input->Root());
 
     if (!save(lock)) {
-        std::cerr << __FUNCTION__ << ": Save error" << std::endl;
-        abort();
+        otErr << __FUNCTION__ << ": Save error" << std::endl;
+        OT_FAIL;
     }
 }
 
-void Nym::save(
-    PeerRequests* input,
-    const std::unique_lock<std::mutex>& lock,
-    StorageBox type)
+void Nym::save(PeerRequests* input, const Lock& lock, StorageBox type)
 {
     if (!verify_write_lock(lock)) {
-        std::cerr << __FUNCTION__ << ": Lock failure." << std::endl;
-        abort();
+        otErr << __FUNCTION__ << ": Lock failure." << std::endl;
+        OT_FAIL;
     }
 
     if (nullptr == input) {
-        std::cerr << __FUNCTION__ << ": Null target" << std::endl;
-        abort();
+        otErr << __FUNCTION__ << ": Null target" << std::endl;
+        OT_FAIL;
     }
 
     update_hash(type, input->Root());
 
     if (!save(lock)) {
-        std::cerr << __FUNCTION__ << ": Save error" << std::endl;
-        abort();
+        otErr << __FUNCTION__ << ": Save error" << std::endl;
+        OT_FAIL;
     }
 }
 
-void Nym::save(
-    Mailbox* input,
-    const std::unique_lock<std::mutex>& lock,
-    StorageBox type)
+void Nym::save(Mailbox* input, const Lock& lock, StorageBox type)
 {
     if (!verify_write_lock(lock)) {
-        std::cerr << __FUNCTION__ << ": Lock failure." << std::endl;
-        abort();
+        otErr << __FUNCTION__ << ": Lock failure." << std::endl;
+        OT_FAIL;
     }
 
     if (nullptr == input) {
-        std::cerr << __FUNCTION__ << ": Null target" << std::endl;
-        abort();
+        otErr << __FUNCTION__ << ": Null target" << std::endl;
+        OT_FAIL;
     }
 
     update_hash(type, input->Root());
 
     if (!save(lock)) {
-        std::cerr << __FUNCTION__ << ": Save error" << std::endl;
-        abort();
+        otErr << __FUNCTION__ << ": Save error" << std::endl;
+        OT_FAIL;
     }
 }
 
-void Nym::save(class Threads* input, const std::unique_lock<std::mutex>& lock)
+void Nym::save(class Threads* input, const Lock& lock)
 {
     if (!verify_write_lock(lock)) {
-        std::cerr << __FUNCTION__ << ": Lock failure." << std::endl;
-        abort();
+        otErr << __FUNCTION__ << ": Lock failure." << std::endl;
+        OT_FAIL;
     }
 
     if (nullptr == input) {
-        std::cerr << __FUNCTION__ << ": Null target" << std::endl;
-        abort();
+        otErr << __FUNCTION__ << ": Null target" << std::endl;
+        OT_FAIL;
     }
 
     if (mail_inbox_) {
@@ -722,43 +704,42 @@ void Nym::save(class Threads* input, const std::unique_lock<std::mutex>& lock)
     threads_root_ = input->Root();
 
     if (!save(lock)) {
-        std::cerr << __FUNCTION__ << ": Save error" << std::endl;
-        abort();
+        otErr << __FUNCTION__ << ": Save error" << std::endl;
+        OT_FAIL;
     }
 }
 
-void Nym::save(class Contexts* input, const std::unique_lock<std::mutex>& lock)
+void Nym::save(class Contexts* input, const Lock& lock)
 {
     if (!verify_write_lock(lock)) {
-        std::cerr << __FUNCTION__ << ": Lock failure." << std::endl;
-        abort();
+        otErr << __FUNCTION__ << ": Lock failure." << std::endl;
+        OT_FAIL;
     }
 
     if (nullptr == input) {
-        std::cerr << __FUNCTION__ << ": Null target" << std::endl;
-        abort();
+        otErr << __FUNCTION__ << ": Null target" << std::endl;
+        OT_FAIL;
     }
 
     contexts_root_ = input->Root();
 
     if (!save(lock)) {
-        std::cerr << __FUNCTION__ << ": Save error" << std::endl;
-        abort();
+        otErr << __FUNCTION__ << ": Save error" << std::endl;
+        OT_FAIL;
     }
 }
 
 class Threads* Nym::threads() const
 {
-    std::unique_lock<std::mutex> lock(threads_lock_);
+    Lock lock(threads_lock_);
 
     if (!threads_) {
         threads_.reset(new class Threads(
             driver_, threads_root_, *mail_inbox(), *mail_outbox()));
 
         if (!threads_) {
-            std::cerr << __FUNCTION__ << ": Unable to instantiate."
-                      << std::endl;
-            abort();
+            otErr << __FUNCTION__ << ": Unable to instantiate." << std::endl;
+            OT_FAIL;
         }
     }
 
@@ -813,23 +794,22 @@ void Nym::update_hash(const StorageBox type, const std::string& root)
             mail_outbox_root_ = root;
         } break;
         default: {
-            std::cerr << __FUNCTION__ << ": Unknown box" << std::endl;
-            abort();
+            otErr << __FUNCTION__ << ": Unknown box" << std::endl;
+            OT_FAIL;
         }
     }
 }
 
 PeerReplies* Nym::sent_reply_box() const
 {
-    std::unique_lock<std::mutex> lock(sent_reply_box_lock_);
+    Lock lock(sent_reply_box_lock_);
 
     if (!sent_reply_box_) {
         sent_reply_box_.reset(new PeerReplies(driver_, sent_peer_reply_));
 
         if (!sent_reply_box_) {
-            std::cerr << __FUNCTION__ << ": Unable to instantiate."
-                      << std::endl;
-            abort();
+            otErr << __FUNCTION__ << ": Unable to instantiate." << std::endl;
+            OT_FAIL;
         }
     }
 
@@ -840,15 +820,14 @@ PeerReplies* Nym::sent_reply_box() const
 
 PeerRequests* Nym::sent_request_box() const
 {
-    std::unique_lock<std::mutex> lock(sent_request_box_lock_);
+    Lock lock(sent_request_box_lock_);
 
     if (!sent_request_box_) {
         sent_request_box_.reset(new PeerRequests(driver_, sent_peer_request_));
 
         if (!sent_request_box_) {
-            std::cerr << __FUNCTION__ << ": Unable to instantiate."
-                      << std::endl;
-            abort();
+            otErr << __FUNCTION__ << ": Unable to instantiate." << std::endl;
+            OT_FAIL;
         }
     }
 
@@ -995,7 +974,7 @@ bool Nym::Store(
     const std::string& alias,
     std::string& plaintext)
 {
-    std::unique_lock<std::mutex> lock(write_lock_);
+    Lock lock(write_lock_);
 
     const std::uint64_t revision = data.revision();
     bool saveOk = false;
@@ -1044,5 +1023,6 @@ bool Nym::Store(
 
     return save(lock);
 }
-}  // namespace storage
-}  // namespace opentxs
+
+Nym::~Nym() {}
+}  // namespace opentxs::storage

@@ -40,7 +40,11 @@
 
 #include "opentxs/storage/tree/Nyms.hpp"
 
+#include "opentxs/storage/tree/Contexts.hpp"
+#include "opentxs/storage/tree/Mailbox.hpp"
 #include "opentxs/storage/tree/Nym.hpp"
+#include "opentxs/storage/tree/Thread.hpp"
+#include "opentxs/storage/tree/Threads.hpp"
 #include "opentxs/storage/Plugin.hpp"
 
 #include <functional>

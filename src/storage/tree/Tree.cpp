@@ -121,6 +121,7 @@ Tree::Tree(const Tree& rhs)
 
     version_ = rhs.version_;
     root_ = rhs.root_;
+    blockchain_root_ = rhs.blockchain_root_;
     contact_root_ = rhs.contact_root_;
     credential_root_ = rhs.credential_root_;
     nym_root_ = rhs.nym_root_;
@@ -516,6 +517,10 @@ proto::StorageItems Tree::serialize() const
 {
     proto::StorageItems serialized;
     serialized.set_version(version_);
+
+    Lock blockchainLock(blockchain_lock_);
+    serialized.set_blockchaintransactions(blockchain_root_);
+    blockchainLock.unlock();
 
     Lock contactLock(contact_lock_);
     serialized.set_contacts(contact_root_);
