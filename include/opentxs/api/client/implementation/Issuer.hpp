@@ -14,7 +14,7 @@
  *       -- Scripted smart contracts.
  *
  *  EMAIL:
- *  fellowtraveler\opentransactions.org
+ *  fellowtraveler@opentransactions.org
  *
  *  WEBSITE:
  *  http://www.opentransactions.org/
@@ -42,6 +42,12 @@
 #include "opentxs/Version.hpp"
 
 #include "opentxs/api/client/Issuer.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Lockable.hpp"
+
+#include <atomic>
+#include <cstdint>
+#include <mutex>
 
 namespace opentxs
 {
@@ -49,25 +55,105 @@ namespace api
 {
 namespace client
 {
+class Wallet;
+
 namespace implementation
 {
 class Wallet;
 
-class Server : virtual public opentxs::api::client::Issuer
+class Issuer : virtual public opentxs::api::client::Issuer, Lockable
 {
 public:
-    ~Server() = default;
+    operator std::string() const override;
+
+    std::set<Identifier> AccountList(
+        const proto::ContactItemType type,
+        const Identifier& unitID) const override;
+    bool BailmentInitiated(const Identifier& unitID) const override;
+    std::vector<BailmentDetails> BailmentInstructions(
+        const Identifier& unitID,
+        const bool onlyUnused = true) const override;
+    std::vector<ConnectionDetails> ConnectionInfo(
+        const proto::ConnectionInfoType type) const override;
+    bool ConnectionInfoInitiated(
+        const proto::ConnectionInfoType type) const override;
+    std::set<std::tuple<Identifier, Identifier, bool>> GetRequests(
+        const proto::PeerRequestType type,
+        const RequestStatus state = RequestStatus::All) const override;
+    const Identifier& IssuerID() const override;
+    const Identifier& LocalNymID() const override;
+    bool Paired() const override;
+    const std::string& PairingCode() const override;
+    Identifier PrimaryServer() const override;
+    std::set<proto::PeerRequestType> RequestTypes() const override;
+    proto::Issuer Serialize() const override;
+    bool StoreSecretComplete() const override;
+    bool StoreSecretInitiated() const override;
+
+    void AddAccount(
+        const proto::ContactItemType type,
+        const Identifier& unitID,
+        const Identifier& accountID) override;
+    bool AddReply(
+        const proto::PeerRequestType type,
+        const Identifier& requestID,
+        const Identifier& replyID) override;
+    bool AddRequest(
+        const proto::PeerRequestType type,
+        const Identifier& requestID) override;
+    bool RemoveAccount(
+        const proto::ContactItemType type,
+        const Identifier& unitID,
+        const Identifier& accountID) override;
+    void SetPaired(const bool paired) override;
+    void SetPairingCode(const std::string& code) override;
+    bool SetUsed(
+        const proto::PeerRequestType type,
+        const Identifier& requestID,
+        const bool isUsed = true) override;
+
+    ~Issuer();
 
 private:
-    friend class Wallet;
+    typedef std::map<Identifier, std::pair<Identifier, bool>> Workflow;
+    typedef std::map<proto::PeerRequestType, Workflow> WorkflowMap;
+    typedef std::pair<Identifier, Identifier> UnitAccountPair;
 
-    Server() = default;
-    Server(const Server&) = delete;
-    Server(Server&&) = delete;
-    Server& operator=(const Server&) = delete;
-    Server& operator=(Server&&) = delete;
+    friend class Wallet;
+    api::client::Wallet& wallet_;
+    std::uint32_t version_{0};
+    std::string pairing_code_{""};
+    mutable std::atomic<bool> paired_{false};
+    const Identifier nym_id_{};
+    const Identifier issuer_id_{};
+    std::map<proto::ContactItemType, std::set<UnitAccountPair>> account_map_{};
+    WorkflowMap peer_requests_{};
+
+    std::pair<bool, Workflow::iterator> find_request(
+        const Lock& lock,
+        const proto::PeerRequestType type,
+        const Identifier& requestID);
+    std::set<std::tuple<Identifier, Identifier, bool>> get_requests(
+        const Lock& lock,
+        const proto::PeerRequestType type,
+        const RequestStatus state = RequestStatus::All) const;
+
+    Issuer(
+        api::client::Wallet& wallet,
+        const Identifier& nymID,
+        const proto::Issuer& serialized);
+    Issuer(
+        api::client::Wallet& wallet,
+        const Identifier& nymID,
+        const Identifier& issuerID);
+    Issuer() = delete;
+    Issuer(const Issuer&) = delete;
+    Issuer(Issuer&&) = delete;
+    Issuer& operator=(const Issuer&) = delete;
+    Issuer& operator=(Issuer&&) = delete;
 };
 }  // namespace implementation
+}  // namespace client
 }  // namespace api
 }  // namespace opentxs
 

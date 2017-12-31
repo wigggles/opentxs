@@ -33,12 +33,34 @@ set(cxx-sources
   String.cpp
 )
 
-file(GLOB cxx-install-headers
-     "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/*.hpp"
+set(cxx-install-headers
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/Account.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/AccountList.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/AccountVisitor.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/Cheque.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/Contract.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/Data.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/Helpers.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/Identifier.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/Instrument.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/Item.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/Ledger.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/Log.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/Message.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/NumList.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/Nym.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/NymIDSource.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/OTStorage.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/OTStoragePB.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/OTStringXML.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/OTTrackable.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/OTTransaction.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/OTTransactionType.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/String.hpp"
 )
 
-set(cxx-headers
-  ${cxx-install-headers}
+file(GLOB cxx-headers
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/*.hpp"
 )
 
 include_directories(${ProtobufIncludePath})
