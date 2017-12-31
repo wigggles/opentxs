@@ -91,6 +91,13 @@ public:
     Editor<opentxs::ServerContext> mutable_ServerContext(
         const Identifier& localNymID,
         const Identifier& remoteID) override;
+    std::set<Identifier> IssuerList(const Identifier& nymID) const override;
+    std::shared_ptr<const class Issuer> Issuer(
+        const Identifier& nymID,
+        const Identifier& issuerID) const override;
+    Editor<class Issuer> mutable_Issuer(
+        const Identifier& nymID,
+        const Identifier& issuerID) const override;
     ConstNym Nym(
         const Identifier& id,
         const std::chrono::milliseconds& timeout =
@@ -198,6 +205,9 @@ private:
         UnitMap;
     typedef std::pair<std::string, std::string> ContextID;
     typedef std::map<ContextID, std::shared_ptr<class Context>> ContextMap;
+    typedef std::pair<Identifier, Identifier> IssuerID;
+    typedef std::pair<std::mutex, std::shared_ptr<class Issuer>> IssuerLock;
+    typedef std::map<IssuerID, IssuerLock> IssuerMap;
 
     friend class opentxs::api::implementation::Native;
 
@@ -206,10 +216,12 @@ private:
     ServerMap server_map_;
     UnitMap unit_map_;
     ContextMap context_map_;
+    mutable IssuerMap issuer_map_;
     mutable std::mutex nym_map_lock_;
     mutable std::mutex server_map_lock_;
     mutable std::mutex unit_map_lock_;
     mutable std::mutex context_map_lock_;
+    mutable std::mutex issuer_map_lock_;
     mutable std::mutex peer_map_lock_;
     mutable std::map<std::string, std::mutex> peer_lock_;
     mutable std::mutex nymfile_map_lock_;
@@ -218,10 +230,15 @@ private:
     std::mutex& nymfile_lock(const Identifier& nymID) const;
     std::mutex& peer_lock(const std::string& nymID) const;
     void save(class Context* context) const;
+    void save(const Lock& lock, class Issuer* in) const;
 
     std::shared_ptr<class Context> context(
         const Identifier& localNymID,
         const Identifier& remoteNymID);
+    IssuerLock& issuer(
+        const Identifier& nymID,
+        const Identifier& issuerID,
+        const bool create) const;
 
     /**   Save an instantiated server contract to storage and add to internal
      *    map.

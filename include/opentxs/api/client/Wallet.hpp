@@ -51,6 +51,7 @@
 #include <ctime>
 #include <list>
 #include <memory>
+#include <set>
 #include <string>
 
 namespace opentxs
@@ -75,6 +76,7 @@ namespace api
 {
 namespace client
 {
+class Issuer;
 
 /** \brief This class manages instantiated contracts and provides easy access
  *  to them.
@@ -164,6 +166,29 @@ public:
     virtual Editor<opentxs::ServerContext> mutable_ServerContext(
         const Identifier& localNymID,
         const Identifier& remoteID) = 0;
+
+    /**   Returns a list of all issuers associated with a local nym */
+    virtual std::set<Identifier> IssuerList(const Identifier& nymID) const = 0;
+
+    /**   Load a read-only copy of an Issuer object
+     *
+     *    \param[in] nymID the identifier of the local nym
+     *    \param[in] issuerID the identifier of the issuer nym
+     *    \returns A smart pointer to the object. The smart pointer will not be
+     *             instantiated if the object does not exist or is invalid.
+     */
+    virtual std::shared_ptr<const class Issuer> Issuer(
+        const Identifier& nymID,
+        const Identifier& issuerID) const = 0;
+
+    /**   Load or create an Issuer object
+     *
+     *    \param[in] nymID the identifier of the local nym
+     *    \param[in] issuerID the identifier of the issuer nym
+     */
+    virtual Editor<class Issuer> mutable_Issuer(
+        const Identifier& nymID,
+        const Identifier& issuerID) const = 0;
 
     /**   Obtain a smart pointer to an instantiated nym.
      *

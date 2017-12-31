@@ -40,6 +40,7 @@
 
 #include "opentxs/api/client/implementation/Wallet.hpp"
 
+#include "opentxs/api/client/implementation/Issuer.hpp"
 #include "opentxs/api/network/Dht.hpp"
 #include "opentxs/api/network/ZMQ.hpp"
 #include "opentxs/api/storage/Storage.hpp"
@@ -75,10 +76,12 @@ Wallet::Wallet(Native& ot)
     , server_map_()
     , unit_map_()
     , context_map_()
+    , issuer_map_()
     , nym_map_lock_()
     , server_map_lock_()
     , unit_map_lock_()
     , context_map_lock_()
+    , issuer_map_lock_()
     , peer_map_lock_()
     , peer_lock_()
     , nymfile_map_lock_()
@@ -362,6 +365,102 @@ void Wallet::save(class Context* context) const
     OT_ASSERT(context->validate(lock));
 
     ot_.DB().Store(context->contract(lock));
+}
+
+std::set<Identifier> Wallet::IssuerList(const Identifier& nymID) const
+{
+    std::set<Identifier> output{};
+    auto list = ot_.DB().IssuerList(String(nymID).Get());
+
+    for (const auto& it : list) {
+        output.emplace(it.first);
+    }
+
+    return output;
+}
+
+std::shared_ptr<const api::client::Issuer> Wallet::Issuer(
+    const Identifier& nymID,
+    const Identifier& issuerID) const
+{
+    auto & [ lock, pIssuer ] = issuer(nymID, issuerID, false);
+    const auto& notUsed[[maybe_unused]] = lock;
+
+    return pIssuer;
+}
+
+Editor<api::client::Issuer> Wallet::mutable_Issuer(
+    const Identifier& nymID,
+    const Identifier& issuerID) const
+{
+    auto & [ lock, pIssuer ] = issuer(nymID, issuerID, true);
+
+    OT_ASSERT(pIssuer);
+
+    std::function<void(api::client::Issuer*, const Lock&)> callback =
+        [=](api::client::Issuer* in, const Lock& lock) -> void {
+        this->save(lock, in);
+    };
+
+    return Editor<api::client::Issuer>(lock, pIssuer.get(), callback);
+}
+
+Wallet::IssuerLock& Wallet::issuer(
+    const Identifier& nymID,
+    const Identifier& issuerID,
+    const bool create) const
+{
+    Lock lock(issuer_map_lock_);
+    auto& output = issuer_map_[{nymID, issuerID}];
+    auto & [ issuerMutex, pIssuer ] = output;
+    const auto& notUsed[[maybe_unused]] = issuerMutex;
+
+    if (pIssuer) {
+
+        return output;
+    }
+
+    std::shared_ptr<proto::Issuer> serialized{nullptr};
+    const bool loaded = ot_.DB().Load(
+        String(nymID).Get(), String(issuerID).Get(), serialized, true);
+
+    if (loaded) {
+        OT_ASSERT(serialized)
+
+        pIssuer.reset(new api::client::implementation::Issuer(
+            // TODO remove cast when all public methods of this class
+            // are const
+            const_cast<Wallet&>(*this),
+            nymID,
+            *serialized));
+
+        OT_ASSERT(pIssuer)
+
+        return output;
+    }
+
+    if (create) {
+        pIssuer.reset(new api::client::implementation::Issuer(
+            // TODO remove cast when all public methods of this class
+            // are const
+            const_cast<Wallet&>(*this),
+            nymID,
+            issuerID));
+
+        OT_ASSERT(pIssuer);
+
+        save(lock, pIssuer.get());
+    }
+
+    return output;
+}
+
+void Wallet::save(const Lock& lock, api::client::Issuer* in) const
+{
+    OT_ASSERT(nullptr != in)
+    OT_ASSERT(lock.owns_lock())
+
+    ot_.DB().Store(String(in->LocalNymID()).Get(), in->Serialize());
 }
 
 ConstNym Wallet::Nym(
