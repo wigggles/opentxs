@@ -2836,6 +2836,14 @@ public:
     EXPORT static std::int64_t Message_GetUsageCredits(
         const std::string& THE_MESSAGE);
 
+    EXPORT static int32_t completePeerReply(
+        const std::string& nymID,
+        const std::string& replyOrRequestID);
+
+    EXPORT static int32_t completePeerRequest(
+        const std::string& nymID,
+        const std::string& requestID);
+
     EXPORT static std::string getSentRequests(const std::string& nymID);
 
     EXPORT static std::string getIncomingRequests(const std::string& nymID);
