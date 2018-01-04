@@ -1,5 +1,6 @@
 set(cxx-sources
   Issuer.cpp
+  Pair.cpp
   Wallet.cpp
 )
 
@@ -10,6 +11,7 @@ file(GLOB cxx-install-headers
 set(cxx-headers
   ${cxx-install-headers}
   ${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/api/client/implementation/Issuer.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/api/client/implementation/Pair.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/api/client/implementation/Wallet.hpp
 )
 

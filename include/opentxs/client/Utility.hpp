@@ -88,7 +88,7 @@ public:
     std::int32_t delay_ms{};
     std::int32_t max_trans_dl{};
 
-    EXPORT Utility(ServerContext& context, OT_API& otapi);
+    EXPORT Utility(ServerContext& context, const OT_API& otapi);
 
     EXPORT void delay() const;
     EXPORT std::int32_t getAndProcessNymbox_3(
@@ -211,7 +211,7 @@ public:
 
 private:
     ServerContext& context_;
-    OT_API& otapi_;
+    const OT_API& otapi_;
 
     NetworkOperationStatus receive_reply_success(
         const std::string& notaryID,

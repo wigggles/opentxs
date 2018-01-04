@@ -104,11 +104,13 @@ public:
         ServerConnection& connection,
         std::mutex& nymfileLock);
 
+    const std::string& AdminPassword() const;
     bool AdminAttempted() const;
     bool FinalizeServerCommand(Message& command) const;
     bool HaveAdminPassword() const;
     TransactionNumber Highest() const;
     bool isAdmin() const;
+    bool ShouldRename(const std::string& defaultName = "") const;
     std::unique_ptr<Item> Statement(const OTTransaction& owner) const;
     std::unique_ptr<Item> Statement(
         const OTTransaction& owner,
@@ -161,6 +163,8 @@ public:
 
 private:
     typedef Context ot_super;
+
+    static const std::string default_node_name_;
 
     ServerConnection& connection_;
     std::mutex message_lock_{};

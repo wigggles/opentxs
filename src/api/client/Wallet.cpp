@@ -605,7 +605,7 @@ std::shared_ptr<proto::PeerReply> Wallet::PeerReply(
     Lock lock(peer_lock(nymID));
     std::shared_ptr<proto::PeerReply> output;
 
-    ot_.DB().Load(nymID, String(reply).Get(), box, output);
+    ot_.DB().Load(nymID, String(reply).Get(), box, output, true);
 
     return output;
 }
@@ -879,7 +879,7 @@ std::shared_ptr<proto::PeerRequest> Wallet::PeerRequest(
     Lock lock(peer_lock(nymID));
     std::shared_ptr<proto::PeerRequest> output;
 
-    ot_.DB().Load(nymID, String(request).Get(), box, output, time);
+    ot_.DB().Load(nymID, String(request).Get(), box, output, time, true);
 
     return output;
 }

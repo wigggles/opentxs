@@ -3737,29 +3737,24 @@ public:
         const std::string& contactID,
         const std::string& message);
 
-    EXPORT static bool Node_Request_Connection(
-        const std::string& nym,
-        const std::string& node,
-        const std::int64_t type);
-
-    EXPORT static bool Pair_Complete(const std::string& identifier);
-
     EXPORT static bool Pair_Node(
         const std::string& myNym,
         const std::string& bridgeNym,
         const std::string& password);
 
-    EXPORT static bool Pair_ShouldRename(const std::string& identifier);
+    EXPORT static bool Pair_ShouldRename(
+        const std::string& localNym,
+        const std::string& serverID);
 
-    EXPORT static bool Pair_Started(const std::string& identifier);
+    EXPORT static std::string Pair_Status(
+        const std::string& localNym,
+        const std::string& issuerNym);
 
-    EXPORT static std::string Pair_Status(const std::string& identifier);
+    EXPORT static std::string Paired_Issuers(const std::string& localNym);
 
-    EXPORT static bool Pair_Success(const std::string& identifier);
-
-    EXPORT static std::uint64_t Paired_Node_Count();
-
-    EXPORT static std::string Paired_Server(const std::string& identifier);
+    EXPORT static std::string Paired_Server(
+        const std::string& localNymID,
+        const std::string& issuerNymID);
 
     EXPORT static std::uint64_t Refresh_Counter();
 
@@ -3779,8 +3774,6 @@ public:
     EXPORT static std::uint8_t Task_Status(const std::string& id);
 
     EXPORT static void Trigger_Refresh(const std::string& wallet = "");
-
-    EXPORT static void Update_Pairing(const std::string& wallet = "");
 
     // Wrapped Blockchain methods
 

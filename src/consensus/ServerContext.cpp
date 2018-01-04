@@ -40,6 +40,8 @@
 
 #include "opentxs/consensus/ServerContext.hpp"
 
+#include "opentxs/api/client/Wallet.hpp"
+#include "opentxs/api/Native.hpp"
 #include "opentxs/consensus/TransactionStatement.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/Item.hpp"
@@ -48,11 +50,16 @@
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/network/ServerConnection.hpp"
+#include "opentxs/OT.hpp"
+
+#define DEFAULT_NODE_NAME "Stash Node Pro"
 
 #define OT_METHOD "ServerContext::"
 
 namespace opentxs
 {
+const std::string ServerContext::default_node_name_{DEFAULT_NODE_NAME};
+
 ServerContext::ManagedNumber::ManagedNumber(
     const TransactionNumber number,
     ServerContext& context)
@@ -217,6 +224,11 @@ bool ServerContext::AddTentativeNumber(const TransactionNumber& number)
 }
 
 bool ServerContext::AdminAttempted() const { return admin_attempted_.load(); }
+
+const std::string& ServerContext::AdminPassword() const
+{
+    return admin_password_;
+}
 
 ServerConnection& ServerContext::Connection() { return connection_; }
 
@@ -509,6 +521,31 @@ void ServerContext::scan_number_set(
         lowest = *input.cbegin();
         highest = *input.crbegin();
     }
+}
+
+bool ServerContext::ShouldRename(const std::string& defaultName) const
+{
+    const auto& name = defaultName.empty() ? default_node_name_ : defaultName;
+
+    if (false == admin_success_.load()) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Do not have admin permission."
+              << std::endl;
+
+        return false;
+    }
+
+    // TODO pass wallet singleton into constructor and hold as a reference
+    // member variable
+    auto contract = OT::App().Wallet().Server(server_id_);
+
+    if (false == bool(contract)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Missing server contract."
+              << std::endl;
+
+        return false;
+    }
+
+    return (contract->Alias() == name);
 }
 
 proto::Context ServerContext::serialize(const Lock& lock) const

@@ -36,52 +36,50 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_API_API_HPP
-#define OPENTXS_API_API_HPP
+#ifndef OPENTXS_API_CLIENT_PAIR_HPP
+#define OPENTXS_API_CLIENT_PAIR_HPP
 
 #include "opentxs/Version.hpp"
 
-#include <mutex>
+#include <cstdint>
+#include <set>
 #include <string>
 
 namespace opentxs
 {
-class MadeEasy;
-class OT_API;
-class OT_ME;
-class OTAPI_Exec;
-class OTME_too;
+class Identifier;
 
 namespace api
 {
 namespace client
 {
-class Pair;
-}  // namespace client
 
-class Api
+class Pair
 {
 public:
-    EXPORT virtual std::recursive_mutex& Lock() const = 0;
+    virtual bool AddIssuer(
+        const Identifier& localNymID,
+        const Identifier& issuerNymID,
+        const std::string& pairingCode) const = 0;
+    virtual std::string IssuerDetails(
+        const Identifier& localNymID,
+        const Identifier& issuerNymID) const = 0;
+    virtual std::set<Identifier> IssuerList(
+        const Identifier& localNymID,
+        const bool onlyTrusted) const = 0;
 
-    EXPORT virtual OTAPI_Exec& Exec(const std::string& wallet = "") = 0;
-    EXPORT virtual MadeEasy& ME(const std::string& wallet = "") = 0;
-    EXPORT virtual OT_API& OTAPI(const std::string& wallet = "") = 0;
-    EXPORT virtual OT_ME& OTME(const std::string& wallet = "") = 0;
-    EXPORT virtual OTME_too& OTME_TOO(const std::string& wallet = "") = 0;
-    EXPORT virtual const client::Pair& Pair() = 0;
-
-    EXPORT virtual ~Api() = default;
+    virtual ~Pair() = default;
 
 protected:
-    Api() = default;
+    Pair() = default;
 
 private:
-    Api(const Api&) = delete;
-    Api(Api&&) = delete;
-    Api& operator=(const Api&) = delete;
-    Api& operator=(Api&&) = delete;
+    Pair(const Pair&) = delete;
+    Pair(Pair&&) = delete;
+    Pair& operator=(const Pair&) = delete;
+    Pair& operator=(Pair&&) = delete;
 };
+}  // namespace client
 }  // namespace api
 }  // namespace opentxs
-#endif  // OPENTXS_API_API_HPP
+#endif  // OPENTXS_API_CLIENT_PAIR_HPP

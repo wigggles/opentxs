@@ -324,6 +324,7 @@ void Native::Init_Api()
     }
 
     api_.reset(new api::implementation::Api(
+        shutdown_,
         *activity_,
         *config,
         *contacts_,

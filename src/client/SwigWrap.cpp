@@ -40,6 +40,8 @@
 
 #include "opentxs/client/SwigWrap.hpp"
 
+#include "opentxs/api/client/Issuer.hpp"
+#include "opentxs/api/client/Pair.hpp"
 #include "opentxs/api/network/ZMQ.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
@@ -81,7 +83,6 @@
 #define OT_BOOL std::int32_t
 #endif
 
-#define DEFAULT_NODE_NAME "Stash Node Pro"
 #ifndef _PASSWORD_LEN
 #define _PASSWORD_LEN 128
 #endif
@@ -4115,69 +4116,58 @@ std::string SwigWrap::Message_Contact(
     return String(output).Get();
 }
 
-bool SwigWrap::Node_Request_Connection(
-    const std::string& nym,
-    const std::string& node,
-    const std::int64_t type)
-{
-    return OT::App().API().OTME_TOO().RequestConnection(nym, node, type);
-}
-
-bool SwigWrap::Pair_Complete(const std::string& identifier)
-{
-    return OT::App().API().OTME_TOO().PairingComplete(identifier);
-}
-
 bool SwigWrap::Pair_Node(
     const std::string& myNym,
     const std::string& bridgeNym,
     const std::string& password)
 {
-    return OT::App().API().OTME_TOO().PairNode(myNym, bridgeNym, password);
+    return OT::App().API().Pair().AddIssuer(
+        Identifier(myNym), Identifier(bridgeNym), password);
 }
 
-bool SwigWrap::Pair_ShouldRename(const std::string& identifier)
+bool SwigWrap::Pair_ShouldRename(
+    const std::string& localNym,
+    const std::string& serverID)
 {
-    auto& me_too = OT::App().API().OTME_TOO();
+    const auto context = OT::App().Wallet().ServerContext(
+        Identifier(localNym), Identifier(serverID));
 
-    if (!me_too.PairingComplete(identifier)) {
-        if (me_too.PairingSuccessful(identifier)) {
-            if (!me_too.NodeRenamed(identifier)) {
-                const std::string notaryID = me_too.GetPairedServer(identifier);
-                const std::string name = GetServer_Name(notaryID);
-                const bool renamed = name != DEFAULT_NODE_NAME;
+    if (false == bool(context)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Server does not exist."
+              << std::endl;
 
-                return !renamed;
-            }
-        }
+        return false;
     }
 
-    return false;
+    return context->ShouldRename();
 }
 
-bool SwigWrap::Pair_Started(const std::string& identifier)
+std::string SwigWrap::Pair_Status(
+    const std::string& localNym,
+    const std::string& issuerNym)
 {
-    return OT::App().API().OTME_TOO().PairingStarted(identifier);
+    return OT::App().API().Pair().IssuerDetails(
+        Identifier(localNym), Identifier(issuerNym));
 }
 
-std::string SwigWrap::Pair_Status(const std::string& identifier)
+std::string SwigWrap::Paired_Issuers(const std::string& localNym)
 {
-    return OT::App().API().OTME_TOO().PairingStatus(identifier);
+    return comma(OT::App().API().Pair().IssuerList(Identifier(localNym), true));
 }
 
-bool SwigWrap::Pair_Success(const std::string& identifier)
+std::string SwigWrap::Paired_Server(
+    const std::string& localNymID,
+    const std::string& issuerNymID)
 {
-    return OT::App().API().OTME_TOO().PairingSuccessful(identifier);
-}
+    auto issuer = OT::App().Wallet().Issuer(
+        Identifier(localNymID), Identifier(issuerNymID));
 
-std::uint64_t SwigWrap::Paired_Node_Count()
-{
-    return OT::App().API().OTME_TOO().PairedNodeCount();
-}
+    if (false == bool(issuer)) {
 
-std::string SwigWrap::Paired_Server(const std::string& identifier)
-{
-    return OT::App().API().OTME_TOO().GetPairedServer(identifier);
+        return {""};
+    }
+
+    return String(issuer->PrimaryServer()).Get();
 }
 
 std::uint64_t SwigWrap::Refresh_Counter()
@@ -4216,11 +4206,6 @@ std::uint8_t SwigWrap::Task_Status(const std::string& id)
 void SwigWrap::Trigger_Refresh(const std::string& wallet)
 {
     OT::App().API().OTME_TOO().Refresh(wallet);
-}
-
-void SwigWrap::Update_Pairing(const std::string& wallet)
-{
-    OT::App().API().OTME_TOO().UpdatePairing(wallet);
 }
 
 std::shared_ptr<network::zeromq::Context> SwigWrap::ZeroMQ()

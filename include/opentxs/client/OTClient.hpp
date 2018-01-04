@@ -102,7 +102,7 @@ public:
     bool processServerReply(
         const std::set<ServerContext::ManagedNumber>& managed,
         ServerContext& context,
-        std::unique_ptr<Message>& reply,
+        std::shared_ptr<Message>& reply,
         Ledger* pNymbox = nullptr);
 
     bool AcceptEntireNymbox(

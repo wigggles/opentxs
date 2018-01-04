@@ -40,6 +40,7 @@
 
 #include "opentxs/api/implementation/Api.hpp"
 
+#include "opentxs/api/client/implementation/Pair.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/Activity.hpp"
 #include "opentxs/api/ContactManager.hpp"
@@ -55,6 +56,7 @@
 namespace opentxs::api::implementation
 {
 Api::Api(
+    const std::atomic<bool>& shutdown,
     api::Activity& activity,
     api::Settings& config,
     api::ContactManager& contacts,
@@ -63,7 +65,8 @@ Api::Api(
     api::storage::Storage& storage,
     api::client::Wallet& wallet,
     api::network::ZMQ& zmq)
-    : activity_(activity)
+    : shutdown_(shutdown)
+    , activity_(activity)
     , config_(config)
     , contacts_(contacts)
     , crypto_(crypto)
@@ -71,8 +74,27 @@ Api::Api(
     , storage_(storage)
     , wallet_(wallet)
     , zmq_(zmq)
+    , ot_api_(nullptr)
+    , otapi_exec_(nullptr)
+    , made_easy_(nullptr)
+    , ot_me_(nullptr)
+    , otme_too_(nullptr)
+    , pair_(nullptr)
+    , lock_()
 {
     Init();
+}
+
+void Api::Cleanup()
+{
+    if (otme_too_) {
+        otme_too_->Shutdown();
+    }
+    otme_too_.reset();
+    ot_me_.reset();
+    made_easy_.reset();
+    otapi_exec_.reset();
+    ot_api_.reset();
 }
 
 void Api::Init()
@@ -109,9 +131,18 @@ void Api::Init()
         zmq_,
         *ot_api_,
         lock_));
+
+    OT_ASSERT(otapi_exec_);
+
     made_easy_.reset(new MadeEasy(lock_, *otapi_exec_, *ot_api_, wallet_));
+
+    OT_ASSERT(made_easy_);
+
     ot_me_.reset(
         new OT_ME(lock_, *otapi_exec_, *ot_api_, *made_easy_, wallet_));
+
+    OT_ASSERT(ot_me_);
+
     otme_too_.reset(new OTME_too(
         lock_,
         config_,
@@ -123,6 +154,11 @@ void Api::Init()
         wallet_,
         crypto_.Encode(),
         identity_));
+
+    OT_ASSERT(otme_too_);
+
+    pair_.reset(new api::client::implementation::Pair(
+        shutdown_, wallet_, *ot_api_, *otapi_exec_, *otme_too_));
 }
 
 OTAPI_Exec& Api::Exec(const std::string&)
@@ -162,15 +198,12 @@ OTME_too& Api::OTME_TOO(const std::string&)
     return *otme_too_;
 }
 
-void Api::Cleanup()
+const api::client::Pair& Api::Pair()
 {
-    if (otme_too_) {
-        otme_too_->Shutdown();
-    }
-    otme_too_.reset();
-    ot_me_.reset();
-    made_easy_.reset();
-    otapi_exec_.reset();
-    ot_api_.reset();
+    OT_ASSERT(pair_);
+
+    return *pair_;
 }
+
+Api::~Api() {}
 }  // namespace opentxs::api::implementation

@@ -66,10 +66,10 @@ public:
         const std::string& payment,
         const bool isPayment);
     static std::unique_ptr<PeerObject> Create(
-        std::unique_ptr<PeerRequest>& request,
-        std::unique_ptr<PeerReply>& reply);
+        const std::shared_ptr<PeerRequest>& request,
+        const std::shared_ptr<PeerReply>& reply);
     static std::unique_ptr<PeerObject> Create(
-        std::unique_ptr<PeerRequest>& request);
+        const std::shared_ptr<PeerRequest>& request);
     static std::unique_ptr<PeerObject> Factory(
         const ConstNym& signerNym,
         const proto::PeerObject& serialized);
@@ -78,8 +78,8 @@ public:
         const OTASCIIArmor& encrypted);
 
     const ConstNym& Nym() const { return nym_; }
-    const std::unique_ptr<PeerRequest>& Request() const { return request_; }
-    const std::unique_ptr<PeerReply>& Reply() const { return reply_; }
+    const std::shared_ptr<PeerRequest>& Request() const { return request_; }
+    const std::shared_ptr<PeerReply>& Reply() const { return reply_; }
     proto::PeerObject Serialize() const;
     proto::PeerObjectType Type() const { return type_; }
     bool Validate() const;
@@ -93,8 +93,8 @@ private:
     ConstNym nym_{nullptr};
     std::unique_ptr<std::string> message_{nullptr};
     std::unique_ptr<std::string> payment_{nullptr};
-    std::unique_ptr<PeerReply> reply_{nullptr};
-    std::unique_ptr<PeerRequest> request_{nullptr};
+    std::shared_ptr<PeerReply> reply_{nullptr};
+    std::shared_ptr<PeerRequest> request_{nullptr};
     proto::PeerObjectType type_{proto::PEEROBJECT_ERROR};
     std::uint32_t version_{0};
 
@@ -102,9 +102,9 @@ private:
     PeerObject(const ConstNym& senderNym, const std::string& message);
     PeerObject(const std::string& payment, const ConstNym& senderNym);
     PeerObject(
-        std::unique_ptr<PeerRequest>& request,
-        std::unique_ptr<PeerReply>& reply);
-    PeerObject(std::unique_ptr<PeerRequest>& request);
+        const std::shared_ptr<PeerRequest>& request,
+        const std::shared_ptr<PeerReply>& reply);
+    PeerObject(const std::shared_ptr<PeerRequest>& request);
     PeerObject() = delete;
 };
 }  // namespace opentxs

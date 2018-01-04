@@ -48,6 +48,7 @@
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/client/MadeEasy.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
+#include "opentxs/client/OTAPI_Func.hpp"
 #include "opentxs/client/OT_ME.hpp"
 #include "opentxs/client/SwigWrap.hpp"
 #include "opentxs/client/Utility.hpp"
@@ -59,6 +60,7 @@
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Ledger.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/core/Message.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/String.hpp"
 
@@ -179,14 +181,12 @@ OTME_too::OTME_too(
     , wallet_(wallet)
     , encoding_(encoding)
     , identity_(identity)
-    , pairing_(false)
     , refreshing_(false)
     , shutdown_(false)
     , introduction_server_set_(false)
     , need_server_nyms_(false)
     , refresh_count_(0)
 {
-    scan_pairing();
     scan_contacts();
     load_introduction_server();
 }
@@ -545,169 +545,6 @@ Messagability OTME_too::CanMessage(
     return can_message(sender, recipient, notUsed);
 }
 
-bool OTME_too::check_accounts(PairedNode& node)
-{
-    const auto& owner = std::get<1>(node);
-    const auto& notaryID = std::get<3>(node);
-
-    if (!check_server_registration(owner, notaryID, false, true)) {
-
-        return false;
-    }
-
-    auto& unitMap = std::get<4>(node);
-    auto& accountMap = std::get<5>(node);
-    const auto needed = unitMap.size();
-    std::uint64_t have = 0;
-    unitTypeMap neededAccounts;
-    typeUnitMap neededUnitTypes;
-
-    for (const auto unit : unitMap) {
-        const auto& type = unit.first;
-        const auto& unitID = unit.second;
-
-        if ((accountMap.find(type) == accountMap.end()) ||
-            (accountMap[type].empty())) {
-            neededAccounts[type] = unitID;
-            neededUnitTypes[unitID] = type;
-        } else {
-            have++;
-        }
-    }
-
-    OT_ASSERT(neededAccounts.size() == neededUnitTypes.size());
-
-    // Just in case these were created but failed to be added to config file
-    fill_existing_accounts(owner, have, neededUnitTypes, neededAccounts, node);
-
-    if (!yield()) {
-        return false;
-    }
-
-    OT_ASSERT(neededAccounts.size() == neededUnitTypes.size());
-
-    for (const auto& currency : neededAccounts) {
-        if (obtain_asset_contract(owner, currency.second, notaryID)) {
-            const auto accountID =
-                obtain_account(owner, currency.second, notaryID);
-
-            if (!accountID.empty()) {
-                std::unique_lock<std::mutex> lock(pair_lock_);
-                accountMap[currency.first] = accountID;
-                lock.unlock();
-                have++;
-            }
-        }
-    }
-
-    return (needed == have);
-}
-
-bool OTME_too::check_backup(const std::string& bridgeNymID, PairedNode& node)
-{
-    auto& backup = std::get<6>(node);
-
-    if (backup) {
-        return true;
-    }
-
-    if (!send_backup(bridgeNymID, node)) {
-        return false;
-    }
-
-    bool dontCare = false;
-    String section = PAIRED_SECTION_PREFIX;
-    String sectionKey = std::to_string(std::get<0>(node)).c_str();
-    section.Concatenate(sectionKey);
-    rLock apiLock(api_lock_);
-
-    if (!config_.Set_bool(section, BACKUP_KEY, true, dontCare)) {
-
-        return false;
-    }
-
-    return config_.Save();
-}
-
-bool OTME_too::check_bridge_nym(const std::string& bridgeNym, PairedNode& node)
-{
-    const auto& ownerNym = std::get<1>(node);
-    auto bridge = obtain_nym(ownerNym, bridgeNym, "");
-
-    if (!bridge) {
-        return false;
-    }
-
-    auto claims = obtain_contact_data(ownerNym, *bridge, "");
-
-    if (!claims) {
-        return false;
-    }
-
-    auto server = obtain_server_id(ownerNym, *bridge);
-
-    if (server.empty()) {
-        otErr << __FUNCTION__ << ": Bridge nym does not advertise a notary."
-              << std::endl;
-
-        return false;
-    }
-
-    if (!update_notary(server, node)) {
-        return false;
-    }
-
-    if (!yield()) {
-        return false;
-    }
-
-    if (!obtain_server_contract(ownerNym, server, true)) {
-        return false;
-    }
-
-    if (!obtain_assets(bridgeNym, *claims, node)) {
-        return false;
-    }
-
-    if (!update_assets(node)) {
-        return false;
-    }
-
-    if (!yield()) {
-        return false;
-    }
-
-    return true;
-}
-
-bool OTME_too::check_introduction_server(const std::string& withNym) const
-{
-    if (withNym.empty()) {
-        otErr << __FUNCTION__ << ": Invalid nym." << std::endl;
-
-        return false;
-    }
-
-    std::string serverID{};
-
-    if (introduction_server_set_.load()) {
-        serverID = String(introduction_server_).Get();
-    }
-
-    if (!yield()) {
-        return false;
-    }
-
-    if (serverID.empty()) {
-        otErr << __FUNCTION__ << ": No introduction server configured."
-              << std::endl;
-
-        return false;
-    }
-
-    return check_server_registration(withNym, serverID, false, true);
-}
-
 bool OTME_too::check_nym_revision(
     const std::string& nymID,
     const std::string& server) const
@@ -732,63 +569,6 @@ bool OTME_too::check_nym_revision(
     }
 
     return (local == remote);
-}
-
-bool OTME_too::check_pairing(
-    const std::string& bridgeNym,
-    std::string& password)
-{
-    bool output = false;
-
-    Lock lock(pair_lock_);
-
-    auto it = paired_nodes_.find(bridgeNym);
-
-    if (paired_nodes_.end() != it) {
-        auto& node = it->second;
-        const auto& nodeIndex = std::get<0>(node);
-        const auto& owner = std::get<1>(node);
-        auto& existingPassword = std::get<2>(node);
-
-        output = insert_at_index(
-            nodeIndex, PairedNodeCount(), owner, bridgeNym, password);
-
-        if (output) {
-            existingPassword = password;
-        }
-    }
-
-    return output;
-}
-
-void OTME_too::check_server_names()
-{
-    ServerNameData serverIDs;
-    std::unique_lock<std::mutex> lock(pair_lock_);
-
-    for (const auto& it : paired_nodes_) {
-        const auto& bridgeNymID = it.first;
-        const auto& node = it.second;
-        const auto& done = std::get<9>(node);
-
-        if (!done) {
-            const auto& owner = std::get<1>(node);
-            const auto& password = std::get<2>(node);
-            const auto& notary = std::get<3>(node);
-            serverIDs.emplace(
-                notary,
-                std::tuple<std::string, std::string, std::string>{
-                    owner, bridgeNymID, password});
-        }
-    }
-
-    lock.unlock();
-
-    if (!yield()) {
-        return;
-    }
-
-    set_server_names(serverIDs);
 }
 
 bool OTME_too::check_server_registration(
@@ -843,49 +623,6 @@ void OTME_too::clean_background_threads()
             }
         }
     }
-}
-
-void OTME_too::clear_paired_section(const std::size_t nodeIndex) const
-{
-    bool notUsed{false};
-    const String empty{"deleted"};
-    const std::int64_t zero{0};
-    String section = PAIRED_SECTION_PREFIX;
-    String sectionKey = std::to_string(nodeIndex).c_str();
-    section.Concatenate(sectionKey);
-    config_.Set_str(section, BRIDGE_NYM_KEY, empty, notUsed);
-    config_.Set_str(section, ADMIN_PASSWORD_KEY, empty, notUsed);
-    config_.Set_str(section, ADMIN_PASSWORD_KEY, empty, notUsed);
-    config_.Set_str(section, OWNER_NYM_KEY, empty, notUsed);
-    config_.Set_str(section, NOTARY_ID_KEY, empty, notUsed);
-    config_.Set_bool(section, BACKUP_KEY, false, notUsed);
-    config_.Set_bool(section, CONNECTED_KEY, false, notUsed);
-    config_.Set_bool(section, RENAME_KEY, false, notUsed);
-    config_.Set_bool(section, DONE_KEY, false, notUsed);
-    std::int64_t issued{0};
-    config_.Check_long(section, ISSUED_UNITS_KEY, issued, notUsed);
-
-    for (std::int64_t n = 0; n < issued; n++) {
-        std::int64_t type{0};
-        String key = ISSUED_UNIT_PREFIX_KEY;
-        String index = std::to_string(n).c_str();
-        key.Concatenate(index);
-        config_.Check_long(section, key, type, notUsed);
-
-        if (0 != type) {
-            String contract, account;
-            String unitKey = ASSET_ID_PREFIX_KEY;
-            String accountKey = ACCOUNT_ID_PREFIX_KEY;
-            String unitIndex = std::to_string(type).c_str();
-            unitKey.Concatenate(unitIndex);
-            accountKey.Concatenate(unitIndex);
-            config_.Set_str(section, unitKey, empty, notUsed);
-            config_.Set_str(section, accountKey, empty, notUsed);
-            config_.Set_long(section, key, zero, notUsed);
-        }
-    }
-
-    config_.Set_long(section, ISSUED_UNITS_KEY, zero, notUsed);
 }
 
 bool OTME_too::do_i_download_server_nym() const
@@ -994,53 +731,6 @@ void OTME_too::establish_mailability(
     exitStatus->store(exit);
 }
 
-std::uint64_t OTME_too::extract_assets(
-    const proto::ContactData& claims,
-    PairedNode& node)
-{
-    std::uint64_t output = 0;
-    auto& unitMap = std::get<4>(node);
-
-    for (const auto& section : claims.section()) {
-        if (proto::CONTACTSECTION_CONTRACT == section.name()) {
-            for (const auto& item : section.item()) {
-                bool active = false;
-
-                for (const auto& attr : item.attribute()) {
-                    if (proto::CITEMATTR_ACTIVE == attr) {
-                        active = true;
-                    }
-                }
-
-                if (active) {
-                    std::unique_lock<std::mutex> lock(pair_lock_);
-                    unitMap[item.type()] = item.value();
-                    lock.unlock();
-                    output++;
-                }
-            }
-        }
-    }
-
-    return output;
-}
-
-std::string OTME_too::extract_server_name(const std::string& serverNymID) const
-{
-    std::string output;
-
-    const auto serverNym = wallet_.Nym(Identifier(serverNymID));
-
-    if (!serverNym) {
-
-        return output;
-    }
-
-    output = serverNym->Claims().Name();
-
-    return output;
-}
-
 std::set<std::string> OTME_too::extract_message_servers(
     const std::string& nymID) const
 {
@@ -1059,65 +749,6 @@ std::set<std::string> OTME_too::extract_message_servers(
     }
 
     return unique_servers(*group);
-}
-
-void OTME_too::fill_existing_accounts(
-    const std::string& nym,
-    std::uint64_t& have,
-    typeUnitMap& neededUnits,
-    unitTypeMap& neededAccounts,
-    PairedNode& node)
-{
-    const auto& notaryID = std::get<3>(node);
-    rLock apiLock(api_lock_);
-    const auto count = exec_.GetAccountCount();
-
-    for (std::int32_t n = 0; n < count; n++) {
-        const auto id = exec_.GetAccountWallet_ID(n);
-
-        if (nym != exec_.GetAccountWallet_NymID(id)) {
-            continue;
-        }
-        if (notaryID != exec_.GetAccountWallet_NotaryID(id)) {
-            continue;
-        }
-
-        const auto unitDefinitionID =
-            exec_.GetAccountWallet_InstrumentDefinitionID(id);
-        auto it1 = neededUnits.find(unitDefinitionID);
-
-        if (neededUnits.end() != it1) {
-            auto it2 = neededAccounts.find(it1->second);
-            auto& accountMap = std::get<5>(node);
-            std::unique_lock<std::mutex> lock(pair_lock_);
-            accountMap[it2->first] = id;
-            lock.unlock();
-            neededUnits.erase(it1);
-            neededAccounts.erase(it2);
-            have++;
-        }
-    }
-}
-
-void OTME_too::fill_paired_servers(
-    std::set<std::string>& serverList,
-    std::list<std::pair<std::string, std::string>>& serverNymList) const
-{
-    Lock pairLock(pair_lock_);
-
-    for (const auto& it : paired_nodes_) {
-        const auto& node = it.second;
-        const auto& localNymID = std::get<1>(node);
-        const auto& server = std::get<3>(node);
-        const auto& connected = std::get<7>(node);
-
-        if (connected) {
-            if (0 == serverList.count(server)) {
-                serverNymList.push_back({server, localNymID});
-                serverList.insert(server);
-            }
-        }
-    }
 }
 
 void OTME_too::fill_registered_servers(
@@ -1173,56 +804,11 @@ void OTME_too::fill_viable_servers(
         introductionServer = String(introduction_server_).Get();
     }
 
-    fill_paired_servers(servers, serverList);
     fill_registered_servers(introductionNym, servers, serverList);
 
     if ((!introductionServer.empty()) && (!introductionNym.empty())) {
         serverList.push_back({introductionServer, introductionNym});
     }
-}
-
-std::unique_ptr<OTME_too::PairedNode> OTME_too::find_node(
-    const std::string& identifier) const
-{
-    std::string notUsed;
-
-    return find_node(identifier, notUsed);
-}
-
-std::unique_ptr<OTME_too::PairedNode> OTME_too::find_node(
-    const std::string& identifier,
-    std::string& bridgeNymId) const
-{
-    std::unique_ptr<OTME_too::PairedNode> output;
-
-    Lock lock(pair_lock_);
-    const auto it = paired_nodes_.find(identifier);
-
-    if (paired_nodes_.end() != it) {
-        // identifier was bridge nym ID
-        output.reset(new OTME_too::PairedNode(it->second));
-        bridgeNymId = identifier;
-
-        return output;
-    }
-
-    for (const auto& it : paired_nodes_) {
-        const auto& bridge = it.first;
-        const auto& node = it.second;
-        const auto& index = std::get<0>(node);
-        const auto& server = std::get<3>(node);
-
-        if ((server == identifier) || (std::to_string(index) == identifier)) {
-            output.reset(new OTME_too::PairedNode(node));
-            bridgeNymId = bridge;
-
-            return output;
-        }
-    }
-
-    bridgeNymId.clear();
-
-    return output;
 }
 
 void OTME_too::find_nym(
@@ -1361,6 +947,39 @@ Identifier OTME_too::FindServer(const std::string& serverID)
     return add_background_thread(thread);
 }
 
+void OTME_too::get_admin(
+    const Identifier& nymID,
+    const Identifier& serverID,
+    const std::string& password) const
+{
+    rLock lock(api_lock_);
+    bool success{false};
+
+    {
+        OTAPI_Func action(
+            REQUEST_ADMIN, wallet_, nymID, serverID, exec_, ot_api_, password);
+        action.Run();
+
+        if (SendResult::VALID_REPLY == action.LastSendResult()) {
+            auto reply = action.Reply();
+
+            OT_ASSERT(reply)
+
+            success = reply->m_bSuccess;
+        }
+    }
+
+    auto mContext = wallet_.mutable_ServerContext(nymID, serverID);
+    auto& context = mContext.It();
+    context.SetAdminAttempted();
+
+    if (success) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Got admin on server "
+              << String(serverID) << std::endl;
+        context.SetAdminSuccess();
+    }
+}
+
 std::string OTME_too::get_introduction_server(const Lock& lock) const
 {
     bool keyFound = false;
@@ -1407,68 +1026,6 @@ const Identifier& OTME_too::GetIntroductionServer() const
 std::string OTME_too::import_default_introduction_server(const Lock& lock) const
 {
     return set_introduction_server(lock, OTME_too::DEFAULT_INTRODUCTION_SERVER);
-}
-
-bool OTME_too::insert_at_index(
-    const std::int64_t index,
-    const std::int64_t total,
-    const std::string& myNym,
-    const std::string& bridgeNym,
-    std::string& password) const
-{
-    rLock apiLock(api_lock_);
-    bool dontCare = false;
-
-    if (!config_.Set_long(MASTER_SECTION, PAIRED_NODES_KEY, total, dontCare)) {
-
-        return false;
-    }
-
-    String section = PAIRED_SECTION_PREFIX;
-    String key = std::to_string(index).c_str();
-    section.Concatenate(key);
-
-    if (!config_.Set_str(
-            section, BRIDGE_NYM_KEY, String(bridgeNym), dontCare)) {
-
-        return false;
-    }
-
-    if (!config_.Set_str(
-            section, ADMIN_PASSWORD_KEY, String(password), dontCare)) {
-
-        return false;
-    }
-
-    String pw;
-
-    if (!config_.Check_str(section, ADMIN_PASSWORD_KEY, pw, dontCare)) {
-
-        return false;
-    }
-
-    password = pw.Get();
-
-    if (!config_.Set_str(section, OWNER_NYM_KEY, String(myNym), dontCare)) {
-
-        return false;
-    }
-
-    return config_.Save();
-}
-
-std::string OTME_too::GetPairedServer(const std::string& identifier) const
-{
-    std::string output;
-
-    const auto node = find_node(identifier);
-
-    if (node) {
-        const auto& notaryID = std::get<3>(*node);
-        output = notaryID;
-    }
-
-    return output;
 }
 
 std::string OTME_too::ImportNym(const std::string& input) const
@@ -1520,53 +1077,6 @@ void OTME_too::mailability(
     };
 
     add_background_thread(thread);
-}
-
-void OTME_too::mark_connected(PairedNode& node)
-{
-    auto& connected = std::get<7>(node);
-    bool dontCare = false;
-    String section = PAIRED_SECTION_PREFIX;
-    String sectionKey = std::to_string(std::get<0>(node)).c_str();
-    section.Concatenate(sectionKey);
-    rLock apiLock(api_lock_);
-    connected = true;
-    config_.Set_bool(section, CONNECTED_KEY, connected, dontCare);
-    config_.Save();
-}
-
-void OTME_too::mark_finished(const std::string& bridgeNymID)
-{
-    std::unique_lock<std::mutex> lock(pair_lock_);
-    auto& node = paired_nodes_[bridgeNymID];
-    lock.unlock();
-    auto& done = std::get<9>(node);
-    bool dontCare = false;
-    String section = PAIRED_SECTION_PREFIX;
-    String sectionKey = std::to_string(std::get<0>(node)).c_str();
-    section.Concatenate(sectionKey);
-    done = true;
-    rLock apiLock(api_lock_);
-    config_.Set_bool(section, DONE_KEY, done, dontCare);
-    config_.Save();
-}
-
-void OTME_too::mark_renamed(const std::string& bridgeNymID)
-{
-    std::unique_lock<std::mutex> lock(pair_lock_);
-    auto& node = paired_nodes_[bridgeNymID];
-    lock.unlock();
-    auto& renamed = std::get<8>(node);
-    bool dontCare = false;
-    String section = PAIRED_SECTION_PREFIX;
-    String sectionKey = std::to_string(std::get<0>(node)).c_str();
-    section.Concatenate(sectionKey);
-    renamed = true;
-    rLock apiLock(api_lock_);
-    config_.Set_bool(section, RENAME_KEY, renamed, dontCare);
-    config_.Save();
-    apiLock.unlock();
-    yield();
 }
 
 void OTME_too::message_contact(
@@ -1677,197 +1187,6 @@ bool OTME_too::need_to_refresh(const std::string& serverID)
     return (0 == (refresh_count_.load() % interval));
 }
 
-bool OTME_too::NodeRenamed(const std::string& identifier) const
-{
-    const auto node = find_node(identifier);
-
-    if (node) {
-        const auto& renamed = std::get<8>(*node);
-
-        return renamed;
-    }
-
-    return false;
-}
-
-std::string OTME_too::obtain_account(
-    const std::string& nym,
-    const std::string& id,
-    const std::string& server) const
-{
-    const std::string result = otme_.create_asset_acct(server, nym, id);
-
-    if (1 != SwigWrap::Message_GetSuccess(result)) {
-        return "";
-    }
-
-    return SwigWrap::Message_GetNewAcctID(result);
-}
-
-bool OTME_too::obtain_asset_contract(
-    const std::string& nym,
-    const std::string& id,
-    const std::string& server) const
-{
-    std::string contract;
-    bool retry = false;
-
-    while (true) {
-        contract = exec_.GetAssetType_Contract(id);
-
-        if (!yield()) {
-            return false;
-        };
-
-        if (!contract.empty() || retry) {
-            break;
-        }
-
-        retry = true;
-
-        otme_.retrieve_contract(server, nym, id);
-
-        if (!yield()) {
-            return false;
-        }
-    }
-
-    return !contract.empty();
-}
-
-bool OTME_too::obtain_assets(
-    const std::string& bridgeNym,
-    const proto::ContactData& claims,
-    PairedNode& node)
-{
-    const auto& owner = std::get<1>(node);
-    const auto& notaryID = std::get<3>(node);
-
-    std::uint64_t assets = 0;
-    bool retry = false;
-
-    while (true) {
-        assets = extract_assets(claims, node);
-
-        if (0 < assets) {
-            break;
-        }
-
-        if (retry) {
-            otErr << __FUNCTION__
-                  << ": Bridge nym does not advertise instrument definitions."
-                  << std::endl;
-            break;
-        }
-
-        retry = true;
-
-        if (!download_nym(owner, bridgeNym, notaryID)) {
-            otErr << __FUNCTION__ << ": Unable to download nym." << std::endl;
-            break;
-        }
-    }
-
-    return 0 < assets;
-}
-
-std::unique_ptr<proto::ContactData> OTME_too::obtain_contact_data(
-    const std::string& localNym,
-    const Nym& remoteNym,
-    const std::string& server) const
-{
-    std::unique_ptr<proto::ContactData> output;
-    bool retry = false;
-
-    while (true) {
-        output.reset(new proto::ContactData(remoteNym.Claims().Serialize()));
-
-        if (output) {
-            break;
-        }
-
-        if (retry) {
-            otErr << __FUNCTION__ << ": Nym has no contact data." << std::endl;
-            break;
-        }
-
-        retry = true;
-
-        if (!download_nym(localNym, String(remoteNym.ID()).Get(), server)) {
-            otErr << __FUNCTION__ << ": Unable to download nym." << std::endl;
-            break;
-        }
-    }
-
-    return output;
-}
-
-std::shared_ptr<const Nym> OTME_too::obtain_nym(
-    const std::string& localNym,
-    const std::string& remoteNym,
-    const std::string& server) const
-{
-    std::shared_ptr<const Nym> output;
-    bool retry = false;
-
-    while (true) {
-        output = wallet_.Nym(Identifier(remoteNym));
-
-        if (output || retry) {
-            break;
-        }
-
-        retry = true;
-
-        if (!download_nym(localNym, remoteNym, server)) {
-            otErr << __FUNCTION__ << ": Unable to download nym." << std::endl;
-
-            break;
-        }
-    }
-
-    return output;
-}
-
-bool OTME_too::obtain_server_contract(
-    const std::string& nym,
-    const std::string& server,
-    const bool publish) const
-{
-    std::string contract;
-    bool retry = false;
-
-    while (true) {
-        contract = exec_.GetServer_Contract(server);
-
-        if (!yield()) {
-            return false;
-        };
-
-        if (!contract.empty() || retry) {
-            break;
-        }
-
-        retry = true;
-
-        if (introduction_server_set_.load()) {
-            otme_.retrieve_contract(
-                String(introduction_server_).Get(), nym, server);
-        }
-
-        if (!yield()) {
-            return false;
-        }
-    }
-
-    if (!contract.empty()) {
-
-        return RegisterNym(nym, server, publish);
-    }
-
-    return false;
-}
-
 std::string OTME_too::obtain_server_id(
     const std::string& ownerNym,
     const Nym& bridgeNym) const
@@ -1891,342 +1210,6 @@ std::string OTME_too::obtain_server_id(const std::string& nymID) const
     }
 
     return String(nym->Claims().PreferredOTServer()).Get();
-}
-
-void OTME_too::pair(const std::string& bridgeNymID)
-{
-    std::unique_lock<std::mutex> lock(pair_lock_);
-    auto& node = paired_nodes_[bridgeNymID];
-    lock.unlock();
-    const auto& ownerNym = std::get<1>(node);
-
-    if (!check_introduction_server(ownerNym)) {
-        return;
-    }
-
-    if (!check_bridge_nym(bridgeNymID, node)) {
-        return;
-    }
-
-    const bool backup = check_backup(bridgeNymID, node);
-
-    if (!yield()) {
-        return;
-    }
-
-    const bool accounts = check_accounts(node);
-    const bool saved = update_accounts(node);
-
-    if (!yield()) {
-        return;
-    }
-
-    if (backup && accounts && saved) {
-        const auto& notary = std::get<3>(node);
-        publish_server_registration(ownerNym, notary, true);
-        request_connection(
-            ownerNym, notary, bridgeNymID, proto::CONNECTIONINFO_BTCRPC);
-        mark_connected(node);
-
-        if (!yield()) {
-            return;
-        }
-    }
-
-    rLock apiLock(api_lock_);
-    config_.Save();
-}
-
-std::uint64_t OTME_too::PairedNodeCount() const
-{
-    std::int64_t result = 0;
-    bool notUsed = false;
-    rLock apiLock(api_lock_);
-    config_.Check_long(MASTER_SECTION, PAIRED_NODES_KEY, result, notUsed);
-
-    if (1 > result) {
-        return 0;
-    }
-
-    return result;
-}
-
-void OTME_too::pairing_thread()
-{
-    std::unique_lock<std::mutex> lock(pair_lock_);
-    std::list<std::string> unfinished;
-
-    Cleanup cleanup(pairing_);
-
-    for (const auto& it : paired_nodes_) {
-        const auto& node = it.second;
-        const auto& connected = std::get<7>(node);
-
-        if (!connected) {
-            unfinished.push_back(it.first);
-        }
-    }
-
-    lock.unlock();
-
-    if (!yield()) {
-        return;
-    };
-
-    for (const auto& bridgeNymID : unfinished) {
-        pair(bridgeNymID);
-
-        if (!yield()) {
-            return;
-        }
-    }
-
-    unfinished.clear();
-    check_server_names();
-}
-
-bool OTME_too::PairingComplete(const std::string& identifier) const
-{
-    const auto node = find_node(identifier);
-
-    if (node) {
-        const auto& done = std::get<9>(*node);
-
-        return done;
-    }
-
-    return false;
-}
-
-bool OTME_too::PairingStarted(const std::string& identifier) const
-{
-    const auto node = find_node(identifier);
-
-    return bool(node);
-}
-
-std::string OTME_too::PairingStatus(const std::string& identifier) const
-{
-    std::stringstream output{};
-    std::string bridgeNymID;
-    const auto node = find_node(identifier, bridgeNymID);
-
-    if (false == bool(node)) {
-        output << "Pairing to " << identifier << " has not started."
-               << std::endl;
-
-        return output.str();
-    }
-
-    const auto& myNym = std::get<1>(*node);
-    const auto& password = std::get<2>(*node);
-    const auto& notaryID = std::get<3>(*node);
-    const auto& unitmap = std::get<4>(*node);
-    const auto& accountmap = std::get<5>(*node);
-    const auto& backupStarted = std::get<6>(*node);
-    const auto& connected = std::get<7>(*node);
-    const auto& renameStarted = std::get<8>(*node);
-    const auto& done = std::get<9>(*node);
-
-    output << "Stash Node\n"
-           << "Issuer nym ID: " << bridgeNymID << "\n"
-           << "Server password: " << password << "\n";
-
-    std::string intro{};
-
-    if (introduction_server_set_.load()) {
-        intro = String(introduction_server_).Get();
-    }
-
-    if (intro.empty()) {
-        output << "The wallet does not yet have an introduction server set."
-               << "\n";
-
-        return output.str();
-    }
-
-    if (false == exec_.IsNym_RegisteredAtServer(myNym, intro)) {
-        output << "The wallet is not yet registered on the introduction server."
-               << "\n";
-
-        return output.str();
-    }
-
-    const auto nym = wallet_.Nym(Identifier(bridgeNymID));
-
-    if (false == bool(nym)) {
-        output << "The credentials for the issuer nym are not yet downloaded."
-               << "\n";
-
-        return output.str();
-    }
-
-    output << "Notary ID: " << notaryID << "\n"
-           << "Contracts issued on this node:\n";
-
-    for (const auto& it : unitmap) {
-        const auto& type = it.first;
-        const auto& unitID = it.second;
-        const auto typeName = proto::TranslateItemType(type);
-        output << "* " << typeName << " unit defininition ID: " << unitID
-               << "\n";
-    }
-
-    if (false == exec_.IsNym_RegisteredAtServer(myNym, notaryID)) {
-        output << "The wallet is not yet registerd on the Stash Node notary."
-               << "\n";
-
-        return output.str();
-    }
-
-    output << "Local accounts registered on this node:\n";
-
-    for (const auto& it : accountmap) {
-        const auto& type = it.first;
-        const auto& accountID = it.second;
-        const auto typeName = proto::TranslateItemType(type);
-        output << "* " << typeName << " account ID: " << accountID << "\n";
-    }
-
-    output << "Pairing is ";
-
-    if (connected) {
-        output << " successful.\n";
-    } else {
-        output << " in-progress.\n";
-
-        return output.str();
-    }
-
-    output << "Wallet seed backup process has ";
-
-    if (false == backupStarted) {
-        output << "not ";
-    }
-
-    output << "started.\n";
-    output << "Server rename process has ";
-
-    if (false == renameStarted) {
-        output << "not ";
-    }
-
-    output << "started.\n";
-
-    if (done) {
-        output << "Pairing is complete.\n";
-    }
-
-    return output.str();
-}
-
-bool OTME_too::PairingSuccessful(const std::string& identifier) const
-{
-    const auto node = find_node(identifier);
-
-    if (node) {
-        const auto& connected = std::get<7>(*node);
-
-        return connected;
-    }
-
-    return false;
-}
-
-bool OTME_too::PairNode(
-    const std::string& myNym,
-    const std::string& bridgeNym,
-    const std::string& password)
-{
-    if (myNym.empty()) {
-        otErr << OT_METHOD << __FUNCTION__ << ": missing nym." << std::endl;
-
-        return false;
-    }
-
-    if (bridgeNym.empty()) {
-        otErr << OT_METHOD << __FUNCTION__ << ": missing bridge nym."
-              << std::endl;
-
-        return false;
-    }
-
-    if (password.empty()) {
-        otErr << OT_METHOD << __FUNCTION__ << ": missing password."
-              << std::endl;
-
-        return false;
-    }
-
-    const Identifier myNymID(myNym);
-
-    if (myNymID.empty()) {
-        otErr << OT_METHOD << __FUNCTION__ << ": invalid local nym."
-              << std::endl;
-
-        return false;
-    }
-
-    const Identifier bridgeNymID(bridgeNym);
-
-    if (bridgeNymID.empty()) {
-        otErr << OT_METHOD << __FUNCTION__ << ": invalid bridge nym."
-              << std::endl;
-
-        return false;
-    }
-
-    auto pw = encoding_.SanatizeBase58(password);
-    std::unique_lock<std::mutex> startLock(pair_initiate_lock_);
-    const bool alreadyPairing = check_pairing(bridgeNym, pw);
-
-    if (alreadyPairing) {
-        return true;
-    }
-
-    startLock.unlock();
-    std::unique_lock<std::mutex> lock(pair_lock_);
-    auto total = PairedNodeCount();
-
-    if (!yield()) {
-        return false;
-    }
-
-    auto index = scan_incomplete_pairing(bridgeNym);
-
-    if (0 > index) {
-        index = total;
-        total++;
-    }
-
-    const bool saved = insert_at_index(index, total, myNym, bridgeNym, pw);
-
-    if (!yield()) {
-        return false;
-    }
-
-    if (!saved) {
-        otErr << __FUNCTION__ << ": Failed to update config file." << std::endl;
-
-        return false;
-    }
-
-    auto& node = paired_nodes_[bridgeNym];
-    auto& nodeIndex = std::get<0>(node);
-    auto& owner = std::get<1>(node);
-    auto& serverPassword = std::get<2>(node);
-
-    otErr << OT_METHOD << __FUNCTION__ << ": Pairing started for " << bridgeNym
-          << std::endl;
-
-    nodeIndex = index;
-    owner = myNym;
-    serverPassword = pw;
-
-    lock.unlock();
-    UpdatePairing();
-
-    return true;
 }
 
 void OTME_too::parse_contact_section(const std::uint64_t index)
@@ -2274,90 +1257,6 @@ void OTME_too::parse_contact_section(const std::uint64_t index)
 
         if (contact.PaymentCode().empty()) {
             contact.AddPaymentCode(PaymentCode(paymentCode.Get()), true);
-        }
-    }
-}
-
-void OTME_too::parse_pairing_section(std::uint64_t index)
-{
-    rLock apiLock(api_lock_);
-    bool notUsed = false;
-    String bridgeNym, adminPassword, ownerNym;
-    String section = PAIRED_SECTION_PREFIX;
-    String key = std::to_string(index).c_str();
-    section.Concatenate(key);
-    config_.Check_str(section, BRIDGE_NYM_KEY, bridgeNym, notUsed);
-    config_.Check_str(section, ADMIN_PASSWORD_KEY, adminPassword, notUsed);
-    config_.Check_str(section, OWNER_NYM_KEY, ownerNym, notUsed);
-    const bool ready =
-        (bridgeNym.Exists() && adminPassword.Exists() && ownerNym.Exists());
-
-    if (!ready) {
-        otErr << OT_METHOD << __FUNCTION__
-              << ": Skipping incomplete pairing section." << std::endl;
-
-        return;
-    }
-
-    Identifier bridgeNymID(bridgeNym);
-
-    if (bridgeNymID.empty()) {
-        otErr << OT_METHOD << __FUNCTION__
-              << ": Skipping invalid pairing section." << std::endl;
-
-        return;
-    }
-
-    auto& node = paired_nodes_[bridgeNym.Get()];
-    auto& nodeIndex = std::get<0>(node);
-    auto& owner = std::get<1>(node);
-    auto& password = std::get<2>(node);
-    auto& notaryID = std::get<3>(node);
-    auto& unitMap = std::get<4>(node);
-    auto& accountMap = std::get<5>(node);
-    auto& backup = std::get<6>(node);
-    auto& connected = std::get<7>(node);
-    auto& rename = std::get<8>(node);
-    auto& done = std::get<9>(node);
-
-    nodeIndex = index;
-    owner = ownerNym.Get();
-    password = adminPassword.Get();
-
-    config_.Check_bool(section, BACKUP_KEY, backup, notUsed);
-    config_.Check_bool(section, CONNECTED_KEY, connected, notUsed);
-    config_.Check_bool(section, RENAME_KEY, rename, notUsed);
-    config_.Check_bool(section, DONE_KEY, done, notUsed);
-
-    String notary;
-    config_.Check_str(section, NOTARY_ID_KEY, notary, notUsed);
-    notaryID = notary.Get();
-
-    std::int64_t issued = 0;
-    config_.Check_long(section, ISSUED_UNITS_KEY, issued, notUsed);
-
-    for (std::int64_t n = 0; n < issued; n++) {
-        bool exists = false;
-        std::int64_t type{0};
-        String key = ISSUED_UNIT_PREFIX_KEY;
-        String index = std::to_string(n).c_str();
-        key.Concatenate(index);
-        const bool checked = config_.Check_long(section, key, type, exists);
-        const auto unit = validate_unit(type);
-        const bool valid =
-            checked && exists && (proto::CITEMTYPE_ERROR != unit);
-
-        if (valid) {
-            String contract, account;
-            String unitKey = ASSET_ID_PREFIX_KEY;
-            String accountKey = ACCOUNT_ID_PREFIX_KEY;
-            String unitIndex = std::to_string(type).c_str();
-            unitKey.Concatenate(unitIndex);
-            accountKey.Concatenate(unitIndex);
-            config_.Check_str(section, unitKey, contract, notUsed);
-            config_.Check_str(section, accountKey, account, notUsed);
-            unitMap[unit] = contract.Get();
-            accountMap[unit] = account.Get();
         }
     }
 }
@@ -2473,9 +1372,22 @@ void OTME_too::refresh_thread()
             }
 
             const auto& nymID = nym.first;
-
             otInfo << OT_METHOD << __FUNCTION__ << ": Refreshing nym " << nymID
                    << " on " << serverID << std::endl;
+            bool needAdmin{false};
+            std::string password{""};
+            auto context =
+                wallet_.ServerContext(Identifier(nymID), Identifier(serverID));
+
+            if (context) {
+                needAdmin = context->HaveAdminPassword() &&
+                            (false == context->isAdmin());
+                password = context->AdminPassword();
+            }
+
+            if (needAdmin) {
+                get_admin(Identifier(nymID), Identifier(serverID), password);
+            }
 
             if (updateServerNym) {
                 otInfo << OT_METHOD << __FUNCTION__
@@ -2551,9 +1463,6 @@ void OTME_too::refresh_thread()
     }
 
     refresh_count_++;
-    otInfo << OT_METHOD << __FUNCTION__ << ": Updating pairing state machine."
-           << std::endl;
-    UpdatePairing();
     otInfo << OT_METHOD << __FUNCTION__ << ": Resending pending peer requests."
            << std::endl;
     resend_peer_requests();
@@ -2591,6 +1500,28 @@ void OTME_too::register_nym(
     exitStatus->store(registered);
 }
 
+void OTME_too::RegisterIntroduction(const Identifier& nymID) const
+{
+    const auto& serverID = GetIntroductionServer();
+
+    if (serverID.empty()) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Introduction server unavailable" << std::endl;
+
+        return;
+    }
+
+    const std::string nym = String(nymID).Get();
+    const std::string server = String(serverID).Get();
+
+    if (exec_.IsNym_RegisteredAtServer(nym, server)) {
+
+        return;
+    }
+
+    RegisterNym(nym, server, true);
+}
+
 bool OTME_too::RegisterNym(
     const std::string& nymID,
     const std::string& server,
@@ -2624,37 +1555,6 @@ Identifier OTME_too::RegisterNym_async(
 }
 
 std::uint64_t OTME_too::RefreshCount() const { return refresh_count_.load(); }
-
-bool OTME_too::request_connection(
-    const std::string& nym,
-    const std::string& server,
-    const std::string& bridgeNymID,
-    const std::int64_t type) const
-{
-    const auto result =
-        otme_.request_connection(server, nym, bridgeNymID, type);
-
-    return exec_.Message_GetSuccess(result);
-}
-
-bool OTME_too::RequestConnection(
-    const std::string& nym,
-    const std::string& node,
-    const std::int64_t type) const
-{
-    std::string bridgeNymID;
-    auto index = find_node(node, bridgeNymID);
-
-    if (!index) {
-        return false;
-    }
-
-    const auto& server = std::get<3>(*index);
-
-    OT_ASSERT(!bridgeNymID.empty());
-
-    return request_connection(nym, server, bridgeNymID, type);
-}
 
 void OTME_too::resend_bailment(
     const Identifier& nymID,
@@ -2836,93 +1736,6 @@ void OTME_too::resend_peer_requests() const
     }
 }
 
-void OTME_too::rewrite_pairing(const Lock& lock)
-{
-    OT_ASSERT(verify_lock(lock, pair_lock_));
-
-    const std::size_t originalCount = PairedNodeCount();
-    rLock(api_lock_);
-    std::size_t newCount{0};
-
-    for (auto& it : paired_nodes_) {
-        const auto& bridgeNymID = it.first;
-        auto& node = it.second;
-        auto& nodeIndex = std::get<0>(node);
-        const auto& owner = std::get<1>(node);
-        const auto& password = std::get<2>(node);
-        const auto& notaryID = std::get<3>(node);
-        auto& unitMap = std::get<4>(node);
-        auto& accountMap = std::get<5>(node);
-        const auto& backup = std::get<6>(node);
-        const auto& connected = std::get<7>(node);
-        const auto& rename = std::get<8>(node);
-        const auto& done = std::get<9>(node);
-        nodeIndex = newCount++;
-        String section = PAIRED_SECTION_PREFIX;
-        String key = std::to_string(nodeIndex).c_str();
-        section.Concatenate(key);
-        write_pair_section(
-            section,
-            bridgeNymID.c_str(),
-            password.c_str(),
-            owner.c_str(),
-            notaryID.c_str(),
-            backup,
-            connected,
-            rename,
-            done,
-            unitMap,
-            accountMap);
-    }
-
-    for (std::size_t i = newCount; i < originalCount; ++i) {
-        clear_paired_section(i);
-    }
-
-    bool notUsed{false};
-    config_.Set_long(MASTER_SECTION, PAIRED_NODES_KEY, newCount, notUsed);
-    config_.Save();
-}
-
-bool OTME_too::send_backup(const std::string& bridgeNymID, PairedNode& node)
-    const
-{
-    auto& notaryID = std::get<3>(node);
-    auto& owner = std::get<1>(node);
-    const auto result = otme_.store_secret(
-        notaryID,
-        owner,
-        bridgeNymID,
-        proto::SECRETTYPE_BIP39,
-        exec_.Wallet_GetWords(),
-        exec_.Wallet_GetPassphrase());
-    yield();
-
-    return 1 == otme_.VerifyMessageSuccess(result);
-}
-
-bool OTME_too::send_server_name(
-    const std::string& nym,
-    const std::string& server,
-    const std::string& password,
-    const std::string& name) const
-{
-    otErr << OT_METHOD << __FUNCTION__ << ": Renaming server " << server
-          << " to " << server << std::endl;
-
-    otme_.request_admin(server, nym, password);
-
-    const auto result = otme_.server_add_claim(
-        server,
-        nym,
-        std::to_string(proto::CONTACTSECTION_SCOPE),
-        std::to_string(proto::CITEMTYPE_SERVER),
-        name,
-        true);
-
-    return (1 == otme_.VerifyMessageSuccess(result));
-}
-
 std::string OTME_too::set_introduction_server(
     const Lock& lock,
     const std::string& contract) const
@@ -2953,91 +1766,6 @@ std::string OTME_too::set_introduction_server(
     }
 
     return id;
-}
-
-void OTME_too::set_server_names(const ServerNameData& servers)
-{
-    const auto serverCount = servers.size();
-    std::size_t goodServers{0};
-
-    for (const auto server : servers) {
-        const auto& notaryID = server.first;
-        const auto& myNymID = std::get<0>(server.second);
-        const auto& bridgeNymID = std::get<1>(server.second);
-        const auto& password = std::get<2>(server.second);
-        const auto contract = wallet_.Server(Identifier(notaryID));
-
-        if (!contract) {
-            continue;
-        }
-
-        const std::string localName = exec_.GetServer_Name(notaryID);
-
-        if (!yield()) {
-            return;
-        }
-
-        const auto serialized = contract->Contract();
-        const auto& originalName = serialized.name();
-        const auto& serverNymID = serialized.nymid();
-
-        if (localName == originalName) {
-            // Never attempted to rename this server. Nothing to do
-            goodServers++;
-            continue;
-        }
-
-        bool retry = false;
-        bool done = false;
-
-        while (true) {
-            const auto credentialName = extract_server_name(serverNymID);
-
-            if (localName == credentialName) {
-                // Server was renamed, and has published new credentials.
-                mark_finished(bridgeNymID);
-
-                if (!yield()) {
-                    return;
-                }
-
-                goodServers++;
-                done = true;
-            }
-
-            if (done || retry) {
-                break;
-            }
-
-            otErr << OT_METHOD << __FUNCTION__ << ": Notary " << notaryID
-                  << " has been locally renamed to " << localName
-                  << " but still advertises a name of " << credentialName
-                  << " in its credentials." << std::endl;
-
-            retry = true;
-
-            otErr << OT_METHOD << __FUNCTION__
-                  << ": Downloading a new copy of the server nym credentials."
-                  << std::endl;
-
-            // Perhaps our copy of the server nym credentials is out of date
-            download_nym(myNymID, serverNymID, notaryID);
-        }
-
-        if (done) {
-            continue;
-        }
-
-        otErr << OT_METHOD << __FUNCTION__
-              << ": Instructing notary to update server nym credentials."
-              << std::endl;
-
-        if (send_server_name(myNymID, notaryID, password, localName)) {
-            mark_renamed(bridgeNymID);
-        }
-    }
-
-    need_server_nyms_.store(serverCount != goodServers);
 }
 
 std::string OTME_too::SetIntroductionServer(const std::string& contract) const
@@ -3075,53 +1803,6 @@ void OTME_too::scan_contacts()
     config_.Save();
 }
 
-std::int64_t OTME_too::scan_incomplete_pairing(const std::string& bridgeNym)
-{
-    std::int64_t index = -1;
-
-    for (std::uint64_t n = 0; n < PairedNodeCount(); n++) {
-
-        if (!yield()) {
-            return index;
-        }
-
-        bool notUsed = false;
-        String existing;
-        String section = PAIRED_SECTION_PREFIX;
-        const String key = std::to_string(n).c_str();
-        section.Concatenate(key);
-        rLock apiLock(api_lock_);
-        config_.Check_str(section, BRIDGE_NYM_KEY, existing, notUsed);
-        const std::string compareNym(existing.Get());
-
-        if (compareNym == bridgeNym) {
-            index = n;
-
-            break;
-        }
-    }
-
-    return index;
-}
-
-void OTME_too::scan_pairing()
-{
-    Lock lock(pair_lock_);
-
-    for (std::uint64_t n = 0; n < PairedNodeCount(); n++) {
-
-        if (!yield()) {
-            return;
-        }
-
-        parse_pairing_section(n);
-    }
-
-    yield();
-
-    rewrite_pairing(lock);
-}
-
 void OTME_too::Shutdown()
 {
     clean_background_threads();
@@ -3130,18 +1811,9 @@ void OTME_too::Shutdown()
         Log::Sleep(std::chrono::milliseconds(250));
     }
 
-    while (pairing_.load()) {
-        Log::Sleep(std::chrono::milliseconds(250));
-    }
-
     if (refresh_thread_) {
         refresh_thread_->join();
         refresh_thread_.reset();
-    }
-
-    if (pairing_thread_) {
-        pairing_thread_->join();
-        pairing_thread_.reset();
     }
 }
 
@@ -3198,95 +1870,6 @@ std::set<std::string> OTME_too::unique_servers(const ContactGroup& group) const
     return output;
 }
 
-bool OTME_too::update_accounts(const PairedNode& node)
-{
-    bool dontCare = false;
-    String section = PAIRED_SECTION_PREFIX;
-    String sectionKey = std::to_string(std::get<0>(node)).c_str();
-    section.Concatenate(sectionKey);
-    const auto& accountMap = std::get<5>(node);
-    rLock apiLock(api_lock_);
-
-    for (const auto account : accountMap) {
-        const auto& type = account.first;
-        const auto& id = account.second;
-        String accountKey = ACCOUNT_ID_PREFIX_KEY;
-        String index = std::to_string(type).c_str();
-        accountKey.Concatenate(index);
-
-        if (!config_.Set_str(section, accountKey, String(id), dontCare)) {
-
-            return false;
-        }
-    }
-
-    return config_.Save();
-}
-
-bool OTME_too::update_assets(PairedNode& node)
-{
-    bool dontCare = false;
-    String section = PAIRED_SECTION_PREFIX;
-    String sectionKey = std::to_string(std::get<0>(node)).c_str();
-    section.Concatenate(sectionKey);
-    auto& unitMap = std::get<4>(node);
-    const auto count = unitMap.size();
-    rLock apiLock(api_lock_);
-
-    if (!config_.Set_long(section, ISSUED_UNITS_KEY, count, dontCare)) {
-
-        return false;
-    }
-
-    std::int64_t index = 0;
-
-    for (const auto unit : unitMap) {
-        const auto& type = unit.first;
-        const auto& id = unit.second;
-        String assetKey = ASSET_ID_PREFIX_KEY;
-        String assetIndex = std::to_string(type).c_str();
-        assetKey.Concatenate(assetIndex);
-        String unitKey = ISSUED_UNIT_PREFIX_KEY;
-        String unitIndex = std::to_string(index).c_str();
-        unitKey.Concatenate(unitIndex);
-
-        if (!config_.Set_long(section, unitKey, type, dontCare)) {
-
-            return false;
-        }
-
-        if (!config_.Set_str(section, assetKey, String(id), dontCare)) {
-
-            return false;
-        }
-
-        index++;
-    }
-
-    return config_.Save();
-}
-
-bool OTME_too::update_notary(const std::string& id, PairedNode& node)
-{
-    bool dontCare = false;
-    String section = PAIRED_SECTION_PREFIX;
-    String key = std::to_string(std::get<0>(node)).c_str();
-    section.Concatenate(key);
-    rLock apiLock(api_lock_);
-
-    const bool set =
-        config_.Set_str(section, NOTARY_ID_KEY, String(id), dontCare);
-
-    if (!set) {
-        return false;
-    }
-
-    auto& notary = std::get<3>(node);
-    notary = id;
-
-    return config_.Save();
-}
-
 bool OTME_too::update_nym_revision(
     const std::string& nymID,
     const std::string& server) const
@@ -3313,74 +1896,6 @@ bool OTME_too::update_nym_revision(
     return config_.Save();
 }
 
-void OTME_too::UpdatePairing(const std::string&)
-{
-    const auto pairing = pairing_.exchange(true);
-
-    if (!pairing) {
-        if (pairing_thread_) {
-            pairing_thread_->join();
-            pairing_thread_.reset();
-        }
-
-        pairing_thread_.reset(new std::thread(&OTME_too::pairing_thread, this));
-    }
-}
-
-proto::ContactItemType OTME_too::validate_unit(const std::int64_t type)
-{
-    proto::ContactItemType unit = static_cast<proto::ContactItemType>(type);
-
-    switch (unit) {
-        case proto::CITEMTYPE_BTC:
-        case proto::CITEMTYPE_ETH:
-        case proto::CITEMTYPE_XRP:
-        case proto::CITEMTYPE_LTC:
-        case proto::CITEMTYPE_DAO:
-        case proto::CITEMTYPE_XEM:
-        case proto::CITEMTYPE_DASH:
-        case proto::CITEMTYPE_MAID:
-        case proto::CITEMTYPE_LSK:
-        case proto::CITEMTYPE_DOGE:
-        case proto::CITEMTYPE_DGD:
-        case proto::CITEMTYPE_XMR:
-        case proto::CITEMTYPE_WAVES:
-        case proto::CITEMTYPE_NXT:
-        case proto::CITEMTYPE_SC:
-        case proto::CITEMTYPE_STEEM:
-        case proto::CITEMTYPE_AMP:
-        case proto::CITEMTYPE_XLM:
-        case proto::CITEMTYPE_FCT:
-        case proto::CITEMTYPE_BTS:
-        case proto::CITEMTYPE_USD:
-        case proto::CITEMTYPE_EUR:
-        case proto::CITEMTYPE_GBP:
-        case proto::CITEMTYPE_INR:
-        case proto::CITEMTYPE_AUD:
-        case proto::CITEMTYPE_CAD:
-        case proto::CITEMTYPE_SGD:
-        case proto::CITEMTYPE_CHF:
-        case proto::CITEMTYPE_MYR:
-        case proto::CITEMTYPE_JPY:
-        case proto::CITEMTYPE_CNY:
-        case proto::CITEMTYPE_NZD:
-        case proto::CITEMTYPE_THB:
-        case proto::CITEMTYPE_HUF:
-        case proto::CITEMTYPE_AED:
-        case proto::CITEMTYPE_HKD:
-        case proto::CITEMTYPE_MXN:
-        case proto::CITEMTYPE_ZAR:
-        case proto::CITEMTYPE_PHP:
-        case proto::CITEMTYPE_SEK: {
-        } break;
-        default: {
-            return proto::CITEMTYPE_ERROR;
-        }
-    }
-
-    return unit;
-}
-
 bool OTME_too::verify_lock(const Lock& lock, const std::mutex& mutex) const
 {
     if (lock.mutex() != &mutex) {
@@ -3396,52 +1911,6 @@ bool OTME_too::verify_lock(const Lock& lock, const std::mutex& mutex) const
     }
 
     return true;
-}
-
-void OTME_too::write_pair_section(
-    const String& section,
-    const String& bridgeNymID,
-    const String& adminPassword,
-    const String& ownerNymID,
-    const String& notaryID,
-    const bool backup,
-    const bool connected,
-    const bool renamed,
-    const bool done,
-    unitTypeMap& units,
-    unitTypeMap& accounts)
-{
-    bool notUsed{false};
-    config_.Set_str(section, BRIDGE_NYM_KEY, bridgeNymID, notUsed);
-    config_.Set_str(section, ADMIN_PASSWORD_KEY, adminPassword, notUsed);
-    config_.Set_str(section, ADMIN_PASSWORD_KEY, adminPassword, notUsed);
-    config_.Set_str(section, OWNER_NYM_KEY, ownerNymID, notUsed);
-    config_.Set_str(section, NOTARY_ID_KEY, notaryID, notUsed);
-    config_.Set_bool(section, BACKUP_KEY, backup, notUsed);
-    config_.Set_bool(section, CONNECTED_KEY, connected, notUsed);
-    config_.Set_bool(section, RENAME_KEY, renamed, notUsed);
-    config_.Set_bool(section, DONE_KEY, done, notUsed);
-    std::int64_t issued{0};
-
-    for (auto& it : units) {
-        const auto& key = it.first;
-        const auto& unit = it.second;
-        const String issuedIndex(std::to_string(issued++).c_str());
-        const auto& account = accounts[key];
-        const auto unitType = static_cast<std::int64_t>(key);
-        const String unitTypeIndex(std::to_string(unitType).c_str());
-        String unitKey = ISSUED_UNIT_PREFIX_KEY;
-        unitKey.Concatenate(issuedIndex);
-        config_.Set_long(section, unitKey, unitType, notUsed);
-        String unitIDKey = ASSET_ID_PREFIX_KEY;
-        unitIDKey.Concatenate(unitTypeIndex);
-        config_.Set_str(section, unitIDKey, unit.c_str(), notUsed);
-        String accountKey = ACCOUNT_ID_PREFIX_KEY;
-        accountKey.Concatenate(unitTypeIndex);
-        config_.Set_str(section, accountKey, account.c_str(), notUsed);
-    }
-
-    config_.Set_long(section, ISSUED_UNITS_KEY, issued, notUsed);
 }
 
 bool OTME_too::yield() const

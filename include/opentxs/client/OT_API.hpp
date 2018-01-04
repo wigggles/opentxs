@@ -152,6 +152,7 @@ public:
     // Reading data about the local wallet.. presumably already loaded.
 
     EXPORT std::int32_t GetNymCount() const;
+    EXPORT std::set<Identifier> LocalNymList() const;
     EXPORT std::int32_t GetAccountCount() const;
 
     EXPORT bool GetNym(
@@ -794,7 +795,7 @@ public:
         const std::int64_t& lRequestNumber,
         const Identifier& NOTARY_ID,
         const Identifier& NYM_ID) const;
-    void FlushMessageBuffer();
+    void FlushMessageBuffer() const;
     // Outgoing
     EXPORT Message* GetSentMessage(
         const std::int64_t& lRequestNumber,
@@ -1309,13 +1310,13 @@ public:
     EXPORT CommandResult initiatePeerRequest(
         ServerContext& context,
         const Identifier& recipient,
-        std::unique_ptr<PeerRequest>& request) const;
+        const std::shared_ptr<PeerRequest>& request) const;
 
     EXPORT CommandResult initiatePeerReply(
         ServerContext& context,
         const Identifier& recipient,
         const Identifier& request,
-        std::unique_ptr<PeerReply>& reply) const;
+        const std::shared_ptr<PeerReply>& reply) const;
 
     EXPORT CommandResult
     requestAdmin(ServerContext& context, const std::string& PASSWORD) const;

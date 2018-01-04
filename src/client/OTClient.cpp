@@ -617,7 +617,7 @@ bool OTClient::AcceptEntireNymbox(
                                  "replyNotice. (It appears to "
                                  "be zero length.)\n";
                     } else {
-                        std::unique_ptr<Message> pMessage(new Message);
+                        std::shared_ptr<Message> pMessage(new Message);
                         OT_ASSERT_MSG(
                             pMessage,
                             "OTClient::AcceptEntireNymbox: OTMessage "
@@ -6132,7 +6132,7 @@ bool OTClient::processServerReplyRegisterAccount(
 bool OTClient::processServerReply(
     const std::set<ServerContext::ManagedNumber>& managed,
     ServerContext& context,
-    std::unique_ptr<Message>& reply,
+    std::shared_ptr<Message>& reply,
     Ledger* pNymbox)
 {
     if (!reply) {
@@ -6206,7 +6206,7 @@ bool OTClient::processServerReply(
     // already -- in which case discard it and return.
 
     // Here, the Client takes ownership of the message
-    m_MessageBuffer.Push(std::shared_ptr<Message>(reply.release()));
+    m_MessageBuffer.Push(reply);
 
     // Once that process is done, everything below that line, in this function,
     // will be able to assume there is a verified Nym available, and a Server
