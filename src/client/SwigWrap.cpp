@@ -632,11 +632,14 @@ bool SwigWrap::AppInit(
     const std::string& archiveDirectory,
     const std::string& encryptedDirectory)
 {
+    ArgList args;
+    args[OPENTXS_ARG_STORAGE_PLUGIN].emplace(storagePlugin);
+    args[OPENTXS_ARG_BACKUP_DIRECTORY].emplace(archiveDirectory);
+    args[OPENTXS_ARG_ENCRYPTED_DIRECTORY].emplace(encryptedDirectory);
+    
     OT::ClientFactory(
-        std::chrono::seconds(gcInterval),
-        storagePlugin,
-        archiveDirectory,
-        encryptedDirectory);
+        args,
+        std::chrono::seconds(gcInterval));
 
     return true;
 }
@@ -649,14 +652,17 @@ bool SwigWrap::AppRecover(
     const std::string& archiveDirectory,
     const std::string& encryptedDirectory)
 {
+    ArgList args;
+    args[OPENTXS_ARG_WORDS].emplace(words);
+    args[OPENTXS_ARG_PASSPHRASE].emplace(passphrase);
+    args[OPENTXS_ARG_STORAGE_PLUGIN].emplace(storagePlugin);
+    args[OPENTXS_ARG_BACKUP_DIRECTORY].emplace(archiveDirectory);
+    args[OPENTXS_ARG_ENCRYPTED_DIRECTORY].emplace(encryptedDirectory);
+    
     OT::ClientFactory(
-        true,
-        words,
-        passphrase,
+        args,
         std::chrono::seconds(gcInterval),
-        storagePlugin,
-        archiveDirectory,
-        encryptedDirectory);
+        true);
 
     return true;
 }

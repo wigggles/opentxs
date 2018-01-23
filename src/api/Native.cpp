@@ -92,15 +92,11 @@
 namespace opentxs::api::implementation
 {
 Native::Native(
+    const ArgList& args,
     std::atomic<bool>& shutdown,
     const bool recover,
-    const std::string& words,
-    const std::string& passphrase,
     const bool serverMode,
     const std::chrono::seconds gcInterval,
-    const std::string& storagePlugin,
-    const std::string& backupDirectory,
-    const std::string& encryptedDirectory,
     const std::map<std::string, std::string>& serverArgs)
     : recover_(recover)
     , server_mode_(serverMode)
@@ -111,11 +107,6 @@ Native::Native(
     , unit_publish_interval_(std::numeric_limits<std::int64_t>::max())
     , unit_refresh_interval_(std::numeric_limits<std::int64_t>::max())
     , gc_interval_(gcInterval)
-    , word_list_(words.c_str(), words.size())
-    , passphrase_(passphrase.c_str(), passphrase.size())
-    , primary_storage_plugin_(storagePlugin)
-    , archive_directory_(backupDirectory)
-    , encrypted_directory_(encryptedDirectory)
     , config_lock_()
     , task_list_lock_()
     , signal_handler_lock_()
@@ -141,6 +132,35 @@ Native::Native(
     , server_args_(serverArgs)
 {
     OT_ASSERT(zmq_context_p_);
+    
+    for (const auto& [key, arg] : args) {
+        if (key == OPENTXS_ARG_WORDS) {
+            OT_ASSERT(2 > arg.size());
+            OT_ASSERT(0 < arg.size());
+            const auto& word = *arg.cbegin();
+            word_list_.setPassword(word.c_str(), word.size());
+        } else if (key == OPENTXS_ARG_PASSPHRASE) {
+            OT_ASSERT(2 > arg.size());
+            OT_ASSERT(0 < arg.size());
+            const auto& passphrase = *arg.cbegin();
+            passphrase_.setPassword(passphrase.c_str(), passphrase.size());
+        } else if (key == OPENTXS_ARG_STORAGE_PLUGIN) {
+            OT_ASSERT(2 > arg.size());
+            OT_ASSERT(0 < arg.size());
+            const auto& storagePlugin = *arg.cbegin();
+            primary_storage_plugin_ = storagePlugin;
+        } else if (key == OPENTXS_ARG_BACKUP_DIRECTORY) {
+            OT_ASSERT(2 > arg.size());
+            OT_ASSERT(0 < arg.size());
+            const auto& backupDirectory = *arg.cbegin();
+            archive_directory_ = backupDirectory;
+        } else if (key == OPENTXS_ARG_ENCRYPTED_DIRECTORY) {
+            OT_ASSERT(2 > arg.size());
+            OT_ASSERT(0 < arg.size());
+            const auto& encryptedDirectory = *arg.cbegin();
+            encrypted_directory_ = encryptedDirectory;
+        }
+    }
 }
 
 api::Activity& Native::Activity() const

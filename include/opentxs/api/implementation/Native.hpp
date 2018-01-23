@@ -124,10 +124,10 @@ private:
     std::int64_t unit_publish_interval_{0};
     std::int64_t unit_refresh_interval_{0};
     const std::chrono::seconds gc_interval_{0};
-    const OTPassword word_list_{};
-    const OTPassword passphrase_{};
-    const std::string primary_storage_plugin_{};
-    const std::string archive_directory_{};
+    OTPassword word_list_{};
+    OTPassword passphrase_{};
+    std::string primary_storage_plugin_{};
+    std::string archive_directory_{};
     std::string encrypted_directory_{};
     mutable std::mutex config_lock_;
     mutable std::mutex task_list_lock_;
@@ -154,15 +154,11 @@ private:
     const std::map<std::string, std::string> server_args_{};
 
     explicit Native(
+        const ArgList& args,
         std::atomic<bool>& shutdown,
         const bool recover,
-        const std::string& words,
-        const std::string& passphrase,
         const bool serverMode,
         const std::chrono::seconds gcInterval,
-        const std::string& storagePlugin,
-        const std::string& backupDirectory,
-        const std::string& encryptedDirectory,
         const std::map<std::string, std::string>& serverArgs);
     Native() = delete;
     Native(const Native&) = delete;

@@ -71,42 +71,18 @@ void OT::Cleanup()
 }
 
 void OT::ClientFactory(
+    const ArgList& args,
     const std::chrono::seconds gcInterval,
-    const std::string& storagePlugin,
-    const std::string& backupDirectory,
-    const std::string& encryptedDirectory)
-{
-    ClientFactory(
-        false,
-        "",
-        "",
-        gcInterval,
-        storagePlugin,
-        backupDirectory,
-        encryptedDirectory);
-}
-
-void OT::ClientFactory(
-    const bool recover,
-    const std::string& words,
-    const std::string& passphrase,
-    const std::chrono::seconds gcInterval,
-    const std::string& storagePlugin,
-    const std::string& backupDirectory,
-    const std::string& encryptedDirectory)
+    const bool recover)
 {
     OT_ASSERT(nullptr == instance_pointer_);
 
     instance_pointer_ = new api::implementation::Native(
+        args,
         shutdown_,
         recover,
-        words,
-        passphrase,
         false,
         gcInterval,
-        storagePlugin,
-        backupDirectory,
-        encryptedDirectory,
         {});
 
     OT_ASSERT(nullptr != instance_pointer_);
@@ -127,22 +103,17 @@ void OT::Join()
 
 void OT::ServerFactory(
     const std::map<std::string, std::string>& serverArgs,
-    const std::chrono::seconds gcInterval,
-    const std::string& storagePlugin,
-    const std::string& backupDirectory)
+    const ArgList& args,
+    const std::chrono::seconds gcInterval)
 {
     OT_ASSERT(nullptr == instance_pointer_);
 
     instance_pointer_ = new api::implementation::Native(
+        args,
         shutdown_,
         false,
-        "",
-        "",
         true,
         gcInterval,
-        storagePlugin,
-        backupDirectory,
-        "",
         serverArgs);
 
     OT_ASSERT(nullptr != instance_pointer_);
