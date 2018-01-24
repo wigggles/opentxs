@@ -195,12 +195,8 @@ std::pair<std::string, std::string> Server::parse_seed_backup(
     return output;
 }
 
-void Server::CreateMainFile(
-    bool& mainFileExists,
-    const std::map<std::string, std::string>& arguments)
+void Server::CreateMainFile(bool& mainFileExists)
 {
-    std::map<std::string, std::string> args(arguments);
-
 #if OT_CRYPTO_WITH_BIP39
     const auto backup = OTDB::QueryPlainString(SEED_BACKUP_FILE);
     std::string seed{};
@@ -244,16 +240,12 @@ void Server::CreateMainFile(
         OT_FAIL;
     }
 
-    for (auto it : args) {
-        otErr << "Argument: " << it.first << " = " << it.second << std::endl;
-    }
-
     String serverNymID;
     newNym->GetIdentifier(serverNymID);
     const std::string strNymID(serverNymID.Get(), serverNymID.GetLength());
 
     const std::string defaultTerms = "This is an example server contract.";
-    const std::string& userTerms = args[OT_SERVER_OPTION_TERMS];
+    const std::string& userTerms = mint_.GetUserTerms();
     std::string terms = userTerms;
 
     if (1 > userTerms.size()) {
@@ -261,7 +253,7 @@ void Server::CreateMainFile(
     }
 
     const std::string defaultExternalIP = DEFAULT_EXTERNAL_IP;
-    const std::string& userExternalIP = args[OT_SERVER_OPTION_EXTERNALIP];
+    const std::string& userExternalIP = mint_.GetExternalIP();
     std::string hostname = userExternalIP;
 
     if (5 > hostname.size()) {
@@ -269,7 +261,7 @@ void Server::CreateMainFile(
     }
 
     const std::string defaultBindIP = DEFAULT_BIND_IP;
-    const std::string& userBindIP = args[OT_SERVER_OPTION_BINDIP];
+    const std::string& userBindIP = mint_.GetDefaultBindIP();
     std::string bindIP = userBindIP;
 
     if (5 > bindIP.size()) {
@@ -284,7 +276,7 @@ void Server::CreateMainFile(
         notUsed);
 
     const std::uint32_t defaultCommandPort = DEFAULT_COMMAND_PORT;
-    const std::string& userCommandPort = args[OT_SERVER_OPTION_COMMANDPORT];
+    const std::string& userCommandPort = mint_.GetCommandPort();
     std::uint32_t commandPort = 0;
     bool needPort = true;
 
@@ -305,7 +297,7 @@ void Server::CreateMainFile(
         needPort = false;
     }
 
-    const std::string& userListenCommand = args[OT_SERVER_OPTION_LISTENCOMMAND];
+    const std::string& userListenCommand = mint_.GetListenCommand();
     uint32_t listenCommand = 0;
     bool needListenCommand = true;
 
@@ -334,8 +326,7 @@ void Server::CreateMainFile(
 
     const uint32_t defaultNotificationPort = DEFAULT_NOTIFY_PORT;
 
-    const std::string& userListenNotification =
-        args[OT_SERVER_OPTION_LISTENNOTIFY];
+    const std::string& userListenNotification = mint_.GetListenNotify();
     uint32_t listenNotification = 0;
     bool needListenNotification = true;
 
@@ -365,7 +356,7 @@ void Server::CreateMainFile(
         notUsed);
 
     const std::string defaultName = DEFAULT_NAME;
-    const std::string& userName = args[OT_SERVER_OPTION_NAME];
+    const std::string& userName = mint_.GetUserName();
     std::string name = userName;
 
     if (1 > name.size()) {
@@ -379,7 +370,7 @@ void Server::CreateMainFile(
                                   commandPort,
                                   1};
     endpoints.push_back(ipv4);
-    const std::string& onion = args[OT_SERVER_OPTION_ONION];
+    const std::string& onion = mint_.GetOnion();
 
     if (0 < onion.size()) {
         ServerContract::Endpoint tor{proto::ADDRESSTYPE_ONION,
@@ -390,7 +381,7 @@ void Server::CreateMainFile(
         endpoints.push_back(tor);
     }
 
-    const std::string& eep = args[OT_SERVER_OPTION_EEP];
+    const std::string& eep = mint_.GetEEP();
 
     if (0 < eep.size()) {
         ServerContract::Endpoint i2p{proto::ADDRESSTYPE_EEP,
@@ -492,7 +483,7 @@ void Server::CreateMainFile(
     config_.Save();
 }
 
-void Server::Init(const std::map<std::string, std::string>& args, bool readOnly)
+void Server::Init(bool readOnly)
 {
     m_bReadOnly = readOnly;
 
@@ -599,7 +590,7 @@ void Server::Init(const std::map<std::string, std::string>& args, bool readOnly)
                 m_strWalletFilename.Get());
             OT_FAIL;
         } else {
-            CreateMainFile(mainFileExists, args);
+            CreateMainFile(mainFileExists);
         }
     }
 
@@ -607,7 +598,7 @@ void Server::Init(const std::map<std::string, std::string>& args, bool readOnly)
         if (false == mainFile_.LoadMainFile(readOnly)) {
             Log::vError("Error in Loading Main File, re-creating.\n");
             OTDB::EraseValueByKey(".", m_strWalletFilename.Get());
-            CreateMainFile(mainFileExists, args);
+            CreateMainFile(mainFileExists);
 
             OT_ASSERT(mainFileExists);
 

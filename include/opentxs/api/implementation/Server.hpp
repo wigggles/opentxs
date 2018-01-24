@@ -87,6 +87,13 @@ class Native;
 class Server : virtual public opentxs::api::Server
 {
 public:
+    const std::string GetCommandPort() const override;
+    const std::string GetDefaultBindIP() const override;
+    const std::string GetEEP() const override;
+    const std::string GetExternalIP() const override;
+    const std::string GetListenCommand() const override;
+    const std::string GetListenNotify() const override;
+    const std::string GetOnion() const override;
 #if OT_CASH
     std::shared_ptr<Mint> GetPrivateMint(
         const Identifier& unitID,
@@ -94,6 +101,8 @@ public:
     std::shared_ptr<const Mint> GetPublicMint(
         const Identifier& unitID) const override;
 #endif  // OT_CASH
+    const std::string GetUserName() const override;
+    const std::string GetUserTerms() const override;
     const Identifier& ID() const override;
     const Identifier& NymID() const override;
 #if OT_CASH
@@ -110,7 +119,7 @@ private:
     typedef std::map<std::string, std::shared_ptr<Mint>> MintSeries;
 #endif  // OT_CASH
 
-    const std::map<std::string, std::string>& args_;
+    const ArgList& args_;
     api::Settings& config_;
     api::Crypto& crypto_;
     api::storage::Storage& storage_;
@@ -135,6 +144,9 @@ private:
         const std::string& serverID,
         const std::string& unitID,
         const std::uint32_t series) const;
+#endif  // OT_CASH
+    const std::string get_arg(const std::string& argName) const;
+#if OT_CASH
     std::int32_t last_generated_series(
         const std::string& serverID,
         const std::string& unitID) const;
@@ -163,7 +175,7 @@ private:
     void Start();
 
     Server(
-        const std::map<std::string, std::string>& args,
+        const ArgList& args,
         api::Crypto& crypto,
         api::Settings& config,
         api::storage::Storage& storage,

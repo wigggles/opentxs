@@ -96,8 +96,7 @@ Native::Native(
     std::atomic<bool>& shutdown,
     const bool recover,
     const bool serverMode,
-    const std::chrono::seconds gcInterval,
-    const std::map<std::string, std::string>& serverArgs)
+    const std::chrono::seconds gcInterval)
     : recover_(recover)
     , server_mode_(serverMode)
     , nym_publish_interval_(std::numeric_limits<std::int64_t>::max())
@@ -129,11 +128,11 @@ Native::Native(
     , zmq_context_p_(new opentxs::network::zeromq::implementation::Context())
     , zmq_context_(*zmq_context_p_)
     , signal_handler_(nullptr)
-    , server_args_(serverArgs)
+    , server_args_(args)
 {
     OT_ASSERT(zmq_context_p_);
-    
-    for (const auto& [key, arg] : args) {
+
+    for (const auto & [ key, arg ] : args) {
         if (key == OPENTXS_ARG_WORDS) {
             OT_ASSERT(2 > arg.size());
             OT_ASSERT(0 < arg.size());

@@ -107,9 +107,7 @@ public:
     EXPORT bool IsFlaggedForShutdown() const;
 
     EXPORT void ActivateCron();
-    EXPORT void Init(
-        const std::map<std::string, std::string>& args,
-        bool readOnly = false);
+    EXPORT void Init(bool readOnly = false);
     EXPORT void ProcessCron();
     EXPORT std::int64_t computeTimeout() { return m_Cron.computeTimeout(); }
 
@@ -155,9 +153,7 @@ private:
         opentxs::api::storage::Storage& storage,
         opentxs::api::Wallet& wallet);
 
-    void CreateMainFile(
-        bool& mainFileExists,
-        const std::map<std::string, std::string>& args);
+    void CreateMainFile(bool& mainFileExists);
     // Note: SendInstrumentToNym and SendMessageToNym CALL THIS.
     // They are higher-level, this is lower-level.
     bool DropMessageToNymbox(

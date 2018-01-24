@@ -72,7 +72,7 @@
 namespace opentxs::api::implementation
 {
 Server::Server(
-    const std::map<std::string, std::string>& args,
+    const ArgList& args,
     opentxs::api::Crypto& crypto,
     opentxs::api::Settings& config,
     opentxs::api::storage::Storage& storage,
@@ -191,6 +191,50 @@ void Server::generate_mint(
     mint->SaveMint(PUBLIC_SERIES);
 }
 
+const std::string Server::get_arg(const std::string& argName) const
+{
+    auto argIt = args_.find(argName);
+    if (args_.end() != argIt) {
+        const auto& argItems = argIt->second;
+        OT_ASSERT(2 > argItems.size());
+        OT_ASSERT(0 < argItems.size());
+        return *argItems.cbegin();
+    }
+    return {};
+}
+
+const std::string Server::GetCommandPort() const
+{
+    return get_arg(OPENTXS_ARG_COMMANDPORT);
+}
+
+const std::string Server::GetDefaultBindIP() const
+{
+    return get_arg(OPENTXS_ARG_BINDIP);
+}
+
+const std::string Server::GetEEP() const { return get_arg(OPENTXS_ARG_EEP); }
+
+const std::string Server::GetExternalIP() const
+{
+    return get_arg(OPENTXS_ARG_EXTERNALIP);
+}
+
+const std::string Server::GetListenCommand() const
+{
+    return get_arg(OPENTXS_ARG_LISTENCOMMAND);
+}
+
+const std::string Server::GetListenNotify() const
+{
+    return get_arg(OPENTXS_ARG_LISTENNOTIFY);
+}
+
+const std::string Server::GetOnion() const
+{
+    return get_arg(OPENTXS_ARG_ONION);
+}
+
 std::shared_ptr<Mint> Server::GetPrivateMint(
     const Identifier& unitID,
     std::uint32_t index) const
@@ -243,6 +287,16 @@ std::shared_ptr<const Mint> Server::GetPublicMint(
     return series->second;
 }
 #endif  // OT_CASH
+
+const std::string Server::GetUserName() const
+{
+    return get_arg(OPENTXS_ARG_NAME);
+}
+
+const std::string Server::GetUserTerms() const
+{
+    return get_arg(OPENTXS_ARG_TERMS);
+}
 
 const Identifier& Server::ID() const { return server_.GetServerID(); }
 
@@ -388,7 +442,7 @@ void Server::ScanMints() const
 
 void Server::Start()
 {
-    server_.Init(args_);
+    server_.Init();
     server_.ActivateCron();
     std::string hostname{};
     std::uint32_t port{0};

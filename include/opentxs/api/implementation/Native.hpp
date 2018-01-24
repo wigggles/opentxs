@@ -151,15 +151,14 @@ private:
     std::unique_ptr<opentxs::network::zeromq::Context> zmq_context_p_;
     opentxs::network::zeromq::Context& zmq_context_;
     mutable std::unique_ptr<Signals> signal_handler_;
-    const std::map<std::string, std::string> server_args_{};
+    const ArgList server_args_;
 
     explicit Native(
         const ArgList& args,
         std::atomic<bool>& shutdown,
         const bool recover,
         const bool serverMode,
-        const std::chrono::seconds gcInterval,
-        const std::map<std::string, std::string>& serverArgs);
+        const std::chrono::seconds gcInterval);
     Native() = delete;
     Native(const Native&) = delete;
     Native(Native&&) = delete;
