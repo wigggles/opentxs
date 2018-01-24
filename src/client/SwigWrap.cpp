@@ -3077,6 +3077,20 @@ std::string SwigWrap::comma(const std::set<Identifier>& list)
     return output;
 }
 
+std::int32_t SwigWrap::completePeerReply(
+    const std::string& nymID,
+    const std::string& replyID)
+{
+    return OT::App().API().Exec().completePeerReply(nymID, replyID);
+}
+
+std::int32_t SwigWrap::completePeerRequest(
+    const std::string& nymID,
+    const std::string& requestID)
+{
+    return OT::App().API().Exec().completePeerRequest(nymID, requestID);
+}
+
 std::string SwigWrap::getSentRequests(const std::string& nymID)
 {
     return comma(OT::App().API().Exec().getSentRequests(nymID));
