@@ -145,7 +145,7 @@ bool Libsodium::Derive(
                  salt,
                  operations,
                  difficulty,
-                 crypto_pwhash_ALG_DEFAULT));
+                 crypto_pwhash_ALG_ARGON2I13));
 }
 
 bool Libsodium::Digest(
