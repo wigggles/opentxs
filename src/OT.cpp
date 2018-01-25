@@ -98,12 +98,13 @@ void OT::Join()
 
 void OT::ServerFactory(
     const ArgList& args,
-    const std::chrono::seconds gcInterval)
+    const std::chrono::seconds gcInterval,
+    const bool recover)
 {
     OT_ASSERT(nullptr == instance_pointer_);
 
     instance_pointer_ = new api::implementation::Native(
-        args, shutdown_, false, true, gcInterval);
+        args, shutdown_, recover, true, gcInterval);
 
     OT_ASSERT(nullptr != instance_pointer_);
 
