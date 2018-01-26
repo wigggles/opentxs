@@ -40,11 +40,31 @@
 #define OPENTXS_CORE_API_OT_HPP
 
 #include "opentxs/Version.hpp"
+#include "opentxs/Types.hpp"
 
 #include <atomic>
 #include <chrono>
 #include <map>
 #include <string>
+
+#define OPENTXS_ARG_BACKUP_DIRECTORY "backupdirectory"
+#define OPENTXS_ARG_BINDIP "bindip"
+#define OPENTXS_ARG_COMMANDPORT "commandport"
+#define OPENTXS_ARG_EEP "eep"
+#define OPENTXS_ARG_ENCRYPTED_DIRECTORY "encrypteddirectory"
+#define OPENTXS_ARG_EXTERNALIP "externalip"
+#define OPENTXS_ARG_GC "gc"
+#define OPENTXS_ARG_INIT "only-init"
+#define OPENTXS_ARG_LISTENCOMMAND "listencommand"
+#define OPENTXS_ARG_LISTENNOTIFY "listennotify"
+#define OPENTXS_ARG_NAME "name"
+#define OPENTXS_ARG_NOTIFICATIONPORT "notificationport"
+#define OPENTXS_ARG_ONION "onion"
+#define OPENTXS_ARG_PASSPHRASE "passphrase"
+#define OPENTXS_ARG_STORAGE_PLUGIN "storageplugin"
+#define OPENTXS_ARG_TERMS "terms"
+#define OPENTXS_ARG_VERSION "version"
+#define OPENTXS_ARG_WORDS "words"
 
 namespace opentxs
 {
@@ -72,24 +92,14 @@ public:
      */
     static void Cleanup();
     static void ClientFactory(
+        const ArgList& args,
         const std::chrono::seconds gcInterval = std::chrono::seconds(0),
-        const std::string& storagePlugin = "",
-        const std::string& backupDirectory = "",
-        const std::string& encryptedDirectory = "");
-    static void ClientFactory(
-        const bool recover,
-        const std::string& words,
-        const std::string& passphrase,
-        const std::chrono::seconds gcInterval = std::chrono::seconds(0),
-        const std::string& storagePlugin = "",
-        const std::string& backupDirectory = "",
-        const std::string& encryptedDirectory = "");
+        const bool recover = false);
     static void Join();
     static void ServerFactory(
-        const std::map<std::string, std::string>& serverArgs,
+        const ArgList& args,
         const std::chrono::seconds gcInterval = std::chrono::seconds(0),
-        const std::string& storagePlugin = "",
-        const std::string& backupDirectory = "");
+        const bool recover = false);
     static const std::atomic<bool>& Shutdown();
 
 private:

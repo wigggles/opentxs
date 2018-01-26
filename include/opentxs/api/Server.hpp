@@ -40,25 +40,10 @@
 #define OPENTXS_API_SERVER_HPP
 
 #include "opentxs/Version.hpp"
+#include "opentxs/OT.hpp"
 
 #include <cstdint>
 #include <memory>
-
-#define OT_SERVER_OPTION_BACKUP "backup"
-#define OT_SERVER_OPTION_BINDIP "bindip"
-#define OT_SERVER_OPTION_COMMANDPORT "commandport"
-#define OT_SERVER_OPTION_EEP "eep"
-#define OT_SERVER_OPTION_GC "gc"
-#define OT_SERVER_OPTION_EXTERNALIP "externalip"
-#define OT_SERVER_OPTION_LISTENCOMMAND "listencommand"
-#define OT_SERVER_OPTION_LISTENNOTIFY "listennotify"
-#define OT_SERVER_OPTION_NAME "name"
-#define OT_SERVER_OPTION_NOTIFICATIONPORT "notificationport"
-#define OT_SERVER_OPTION_ONION "onion"
-#define OT_SERVER_OPTION_STORAGE "storage"
-#define OT_SERVER_OPTION_TERMS "terms"
-#define OT_SERVER_OPTION_VERSION "version"
-#define OT_SERVER_OPTION_INIT "only-init"
 
 namespace opentxs
 {
@@ -73,6 +58,13 @@ namespace api
 class Server
 {
 public:
+    virtual const std::string GetCommandPort() const = 0;
+    virtual const std::string GetDefaultBindIP() const = 0;
+    virtual const std::string GetEEP() const = 0;
+    virtual const std::string GetExternalIP() const = 0;
+    virtual const std::string GetListenCommand() const = 0;
+    virtual const std::string GetListenNotify() const = 0;
+    virtual const std::string GetOnion() const = 0;
 #if OT_CASH
     virtual std::shared_ptr<Mint> GetPrivateMint(
         const Identifier& unitid,
@@ -80,6 +72,8 @@ public:
     virtual std::shared_ptr<const Mint> GetPublicMint(
         const Identifier& unitID) const = 0;
 #endif  // OT_CASH
+    virtual const std::string GetUserName() const = 0;
+    virtual const std::string GetUserTerms() const = 0;
     virtual const Identifier& ID() const = 0;
     virtual const Identifier& NymID() const = 0;
 #if OT_CASH
