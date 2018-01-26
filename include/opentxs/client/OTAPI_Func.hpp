@@ -42,24 +42,19 @@
 #include "opentxs/Version.hpp"
 
 #include "opentxs/api/Editor.hpp"
+#include "opentxs/client/ServerAction.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/OTStorage.hpp"
-#include "opentxs/Types.hpp"
 
 #include <atomic>
 #include <cstdint>
 #include <cstdlib>
-#include <memory>
 #include <mutex>
-#include <string>
 
 namespace opentxs
 {
-class Message;
 class OT_API;
 class OTAPI_Exec;
-class PeerReply;
-class PeerRequest;
 class ServerContext;
 class the_lambda_struct;
 
@@ -195,7 +190,7 @@ public:
     the_lambda_struct();
 };
 
-class OTAPI_Func
+class OTAPI_Func : virtual public opentxs::client::ServerAction
 {
 public:
     explicit OTAPI_Func(
@@ -339,13 +334,13 @@ public:
         const std::int64_t lData,
         const std::string& strData5);
 
-    TransactionNumber GetTransactionNumber() const;
-    SendResult LastSendResult() const;
-    const std::shared_ptr<PeerRequest>& SentPeerRequest() const;
-    const std::shared_ptr<PeerReply>& SentPeerReply() const;
-    const std::shared_ptr<Message>& Reply() const;
+    TransactionNumber GetTransactionNumber() const override;
+    SendResult LastSendResult() const override;
+    const std::shared_ptr<PeerRequest>& SentPeerRequest() const override;
+    const std::shared_ptr<PeerReply>& SentPeerReply() const override;
+    const std::shared_ptr<Message>& Reply() const override;
 
-    std::string Run(const std::size_t totalRetries = 2);
+    std::string Run(const std::size_t totalRetries = 2) override;
 
     ~OTAPI_Func();
 
