@@ -54,6 +54,10 @@ class OTME_too;
 
 namespace api
 {
+namespace client
+{
+class Pair;
+}  // namespace client
 
 class Api
 {
@@ -65,6 +69,7 @@ public:
     EXPORT virtual OT_API& OTAPI(const std::string& wallet = "") = 0;
     EXPORT virtual OT_ME& OTME(const std::string& wallet = "") = 0;
     EXPORT virtual OTME_too& OTME_TOO(const std::string& wallet = "") = 0;
+    EXPORT virtual const client::Pair& Pair() = 0;
 
     EXPORT virtual ~Api() = default;
 

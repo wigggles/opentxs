@@ -51,7 +51,11 @@ namespace api
 {
 class Crypto;
 class Server;
+
+namespace client
+{
 class Wallet;
+}  // namespace client
 }  // namespace api
 
 namespace server
@@ -65,7 +69,7 @@ public:
     explicit MainFile(
         Server& server,
         opentxs::api::Crypto& crypto_,
-        opentxs::api::Wallet& wallet_);
+        opentxs::api::client::Wallet& wallet_);
 
     bool CreateMainFile(
         const std::string& strContract,
@@ -81,7 +85,7 @@ public:
 private:
     Server& server_;  // TODO: remove when feasible
     opentxs::api::Crypto& crypto_;
-    opentxs::api::Wallet& wallet_;
+    opentxs::api::client::Wallet& wallet_;
     std::string version_;
 
     MainFile() = delete;

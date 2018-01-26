@@ -40,14 +40,14 @@
 
 #include "opentxs/server/Notary.hpp"
 
+#include "opentxs/api/client/Wallet.hpp"
+#include "opentxs/api/Native.hpp"
+#include "opentxs/api/Server.hpp"
 #if OT_CASH
 #include "opentxs/cash/Mint.hpp"
 #include "opentxs/cash/Purse.hpp"
 #include "opentxs/cash/Token.hpp"
 #endif  // OT_CASH
-#include "opentxs/api/Native.hpp"
-#include "opentxs/api/Server.hpp"
-#include "opentxs/api/Wallet.hpp"
 #include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/core/contract/basket/Basket.hpp"
 #include "opentxs/core/contract/basket/BasketContract.hpp"
@@ -101,7 +101,7 @@ typedef std::deque<Token*> dequeOfTokenPtrs;
 Notary::Notary(
     Server& server,
     opentxs::api::Server& mint,
-    opentxs::api::Wallet& wallet)
+    opentxs::api::client::Wallet& wallet)
     : server_(server)
     , mint_(mint)
     , wallet_(wallet)

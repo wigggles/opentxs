@@ -40,6 +40,8 @@
 
 #include "opentxs/consensus/ServerContext.hpp"
 
+#include "opentxs/api/client/Wallet.hpp"
+#include "opentxs/api/Native.hpp"
 #include "opentxs/consensus/TransactionStatement.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/Item.hpp"
@@ -48,11 +50,16 @@
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/network/ServerConnection.hpp"
+#include "opentxs/OT.hpp"
+
+#define DEFAULT_NODE_NAME "Stash Node Pro"
 
 #define OT_METHOD "ServerContext::"
 
 namespace opentxs
 {
+const std::string ServerContext::default_node_name_{DEFAULT_NODE_NAME};
+
 ServerContext::ManagedNumber::ManagedNumber(
     const TransactionNumber number,
     ServerContext& context)
@@ -107,7 +114,11 @@ ServerContext::ServerContext(
     std::mutex& nymfileLock)
     : ot_super(local, remote, server, nymfileLock)
     , connection_(connection)
+    , admin_password_("")
+    , admin_attempted_(false)
+    , admin_success_(false)
     , highest_transaction_number_(0)
+    , tentative_transaction_numbers_()
 {
 }
 
@@ -124,8 +135,12 @@ ServerContext::ServerContext(
           Identifier(serialized.servercontext().serverid()),
           nymfileLock)
     , connection_(connection)
+    , admin_password_(serialized.servercontext().adminpassword())
+    , admin_attempted_(serialized.servercontext().adminattempted())
+    , admin_success_(serialized.servercontext().adminsuccess())
     , highest_transaction_number_(
           serialized.servercontext().highesttransactionnumber())
+    , tentative_transaction_numbers_()
 {
     for (const auto& it : serialized.servercontext().tentativerequestnumber()) {
         tentative_transaction_numbers_.insert(it);
@@ -208,6 +223,13 @@ bool ServerContext::AddTentativeNumber(const TransactionNumber& number)
     return output.second;
 }
 
+bool ServerContext::AdminAttempted() const { return admin_attempted_.load(); }
+
+const std::string& ServerContext::AdminPassword() const
+{
+    return admin_password_;
+}
+
 ServerConnection& ServerContext::Connection() { return connection_; }
 
 bool ServerContext::finalize_server_command(Message& command) const
@@ -264,6 +286,11 @@ std::unique_ptr<TransactionStatement> ServerContext::generate_statement(
         new TransactionStatement(String(server_id_).Get(), issued, available));
 
     return output;
+}
+
+bool ServerContext::HaveAdminPassword() const
+{
+    return false == admin_password_.empty();
 }
 
 TransactionNumber ServerContext::Highest() const
@@ -373,6 +400,8 @@ std::pair<RequestNumber, std::unique_ptr<Message>> ServerContext::
     return initialize_server_command(
         lock, type, provided, withAcknowledgments, withNymboxHash);
 }
+
+bool ServerContext::isAdmin() const { return admin_success_.load(); }
 
 ServerContext::ManagedNumber ServerContext::NextTransactionNumber(
     const MessageType reason)
@@ -494,6 +523,31 @@ void ServerContext::scan_number_set(
     }
 }
 
+bool ServerContext::ShouldRename(const std::string& defaultName) const
+{
+    const auto& name = defaultName.empty() ? default_node_name_ : defaultName;
+
+    if (false == admin_success_.load()) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Do not have admin permission."
+              << std::endl;
+
+        return false;
+    }
+
+    // TODO pass wallet singleton into constructor and hold as a reference
+    // member variable
+    auto contract = OT::App().Wallet().Server(server_id_);
+
+    if (false == bool(contract)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Missing server contract."
+              << std::endl;
+
+        return false;
+    }
+
+    return (contract->Alias() == name);
+}
+
 proto::Context ServerContext::serialize(const Lock& lock) const
 {
     OT_ASSERT(verify_write_lock(lock));
@@ -509,6 +563,20 @@ proto::Context ServerContext::serialize(const Lock& lock) const
     }
 
     return output;
+}
+
+void ServerContext::SetAdminAttempted() { admin_attempted_.store(true); }
+
+void ServerContext::SetAdminPassword(const std::string& password)
+{
+    Lock lock(lock_);
+    admin_password_ = password;
+}
+
+void ServerContext::SetAdminSuccess()
+{
+    admin_attempted_.store(true);
+    admin_success_.store(true);
 }
 
 bool ServerContext::SetHighest(const TransactionNumber& highest)

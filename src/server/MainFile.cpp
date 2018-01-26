@@ -40,9 +40,9 @@
 
 #include "opentxs/server/MainFile.hpp"
 
+#include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/Native.hpp"
-#include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/cron/OTCron.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/OTCachedKey.hpp"
@@ -76,7 +76,7 @@ namespace opentxs::server
 MainFile::MainFile(
     Server& server,
     opentxs::api::Crypto& crypto,
-    opentxs::api::Wallet& wallet)
+    opentxs::api::client::Wallet& wallet)
     : server_(server)
     , crypto_(crypto)
     , wallet_(wallet)

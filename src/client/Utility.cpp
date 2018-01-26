@@ -234,7 +234,7 @@ std::int32_t InterpretTransactionMsgReply(
     return 1;
 }
 
-Utility::Utility(ServerContext& context, OT_API& otapi)
+Utility::Utility(ServerContext& context, const OT_API& otapi)
     : strLastReplyReceived("")
     , delay_ms(50)
     , max_trans_dl(10)

@@ -1,3 +1,4 @@
+add_subdirectory(client)
 add_subdirectory(crypto)
 add_subdirectory(network)
 add_subdirectory(storage)
@@ -11,7 +12,6 @@ set(cxx-sources
   Native.cpp
   Server.cpp
   Settings.cpp
-  Wallet.cpp
 )
 
 file(GLOB cxx-install-headers

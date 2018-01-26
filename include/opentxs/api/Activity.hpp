@@ -58,7 +58,11 @@ class Message;
 namespace api
 {
 class ContactManager;
+
+namespace client
+{
 class Wallet;
+}  // namespace client
 
 namespace storage
 {
@@ -216,7 +220,7 @@ private:
 
     ContactManager& contact_;
     storage::Storage& storage_;
-    Wallet& wallet_;
+    client::Wallet& wallet_;
     mutable std::mutex mail_cache_lock_;
     mutable MailCache mail_cache_;
 
@@ -244,7 +248,7 @@ private:
     Activity(
         ContactManager& contact,
         storage::Storage& storage,
-        Wallet& wallet);
+        client::Wallet& wallet);
     Activity() = delete;
     Activity(const Activity&) = delete;
     Activity(Activity&&) = delete;

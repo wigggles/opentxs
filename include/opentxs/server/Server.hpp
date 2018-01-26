@@ -60,7 +60,6 @@
 
 namespace opentxs
 {
-class Identifier;
 class Message;
 class OTPassword;
 class OTPayment;
@@ -72,7 +71,11 @@ namespace api
 class Crypto;
 class Server;
 class Settings;
+
+namespace client
+{
 class Wallet;
+}  // namespace client
 
 namespace implementation
 {
@@ -87,7 +90,6 @@ class Storage;
 
 namespace server
 {
-
 class Server
 {
     friend class opentxs::api::implementation::Server;
@@ -126,7 +128,7 @@ private:
     opentxs::api::Settings& config_;
     opentxs::api::Server& mint_;
     opentxs::api::storage::Storage& storage_;
-    opentxs::api::Wallet& wallet_;
+    opentxs::api::client::Wallet& wallet_;
     MainFile mainFile_;
     Notary notary_;
     Transactor transactor_;
@@ -151,7 +153,7 @@ private:
         opentxs::api::Settings& config,
         opentxs::api::Server& mint,
         opentxs::api::storage::Storage& storage,
-        opentxs::api::Wallet& wallet);
+        opentxs::api::client::Wallet& wallet);
 
     void CreateMainFile(bool& mainFileExists);
     // Note: SendInstrumentToNym and SendMessageToNym CALL THIS.

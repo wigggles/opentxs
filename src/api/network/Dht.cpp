@@ -40,8 +40,8 @@
 
 #include "opentxs/api/network/implementation/Dht.hpp"
 
+#include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/Native.hpp"
-#include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/network/DhtConfig.hpp"
@@ -53,7 +53,7 @@
 
 namespace opentxs::api::network::implementation
 {
-Dht::Dht(DhtConfig& config, api::Wallet& wallet)
+Dht::Dht(DhtConfig& config, api::client::Wallet& wallet)
     : wallet_(wallet)
     , config_(new DhtConfig(config))
 {
@@ -173,7 +173,7 @@ void Dht::GetUnitDefinition(__attribute__((unused)) const std::string& key)
 
 #if OT_DHT
 bool Dht::ProcessPublicNym(
-    api::Wallet& wallet,
+    api::client::Wallet& wallet,
     const std::string key,
     const DhtResults& values,
     NotifyCB notifyCB)
@@ -240,7 +240,7 @@ bool Dht::ProcessPublicNym(
 }
 
 bool Dht::ProcessServerContract(
-    api::Wallet& wallet,
+    api::client::Wallet& wallet,
     const std::string key,
     const DhtResults& values,
     NotifyCB notifyCB)
@@ -301,7 +301,7 @@ bool Dht::ProcessServerContract(
 }
 
 bool Dht::ProcessUnitDefinition(
-    api::Wallet& wallet,
+    api::client::Wallet& wallet,
     const std::string key,
     const DhtResults& values,
     NotifyCB notifyCB)

@@ -283,9 +283,9 @@ enum class ConnectionState : std::uint8_t {
     STALLED = 2
 };
 
-typedef std::pair<SendResult, std::unique_ptr<std::string>> NetworkReplyRaw;
-typedef std::pair<SendResult, std::unique_ptr<String>> NetworkReplyString;
-typedef std::pair<SendResult, std::unique_ptr<Message>> NetworkReplyMessage;
+typedef std::pair<SendResult, std::shared_ptr<std::string>> NetworkReplyRaw;
+typedef std::pair<SendResult, std::shared_ptr<String>> NetworkReplyString;
+typedef std::pair<SendResult, std::shared_ptr<Message>> NetworkReplyMessage;
 
 typedef std::tuple<RequestNumber, TransactionNumber, NetworkReplyMessage>
     CommandResult;

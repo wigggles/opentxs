@@ -40,9 +40,9 @@
 
 #include "opentxs/client/OTAPI_Func.hpp"
 
+#include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/Api.hpp"
 #include "opentxs/api/Native.hpp"
-#include "opentxs/api/Wallet.hpp"
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/client/OT_ME.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
@@ -170,9 +170,9 @@ const std::map<OTAPI_Func_Type, bool> OTAPI_Func::type_type_{
 };
 
 OTAPI_Func::OTAPI_Func(
-    api::Wallet& wallet,
-    OTAPI_Exec& exec,
-    OT_API& otapi,
+    api::client::Wallet& wallet,
+    const OTAPI_Exec& exec,
+    const OT_API& otapi,
     const Identifier& nymID,
     const Identifier& serverID,
     const OTAPI_Func_Type type)
@@ -209,11 +209,11 @@ OTAPI_Func::OTAPI_Func(
 
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
-    api::Wallet& wallet,
+    api::client::Wallet& wallet,
     const Identifier& nymID,
     const Identifier& serverID,
-    OTAPI_Exec& exec,
-    OT_API& otapi)
+    const OTAPI_Exec& exec,
+    const OT_API& otapi)
     : OTAPI_Func(wallet, exec, otapi, nymID, serverID, theType)
 {
     if (theType == DELETE_NYM) {
@@ -232,11 +232,11 @@ OTAPI_Func::OTAPI_Func(
 
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
-    api::Wallet& wallet,
+    api::client::Wallet& wallet,
     const Identifier& nymID,
     const Identifier& serverID,
-    OTAPI_Exec& exec,
-    OT_API& otapi,
+    const OTAPI_Exec& exec,
+    const OT_API& otapi,
     const std::string& p_strParam)
     : OTAPI_Func(wallet, exec, otapi, nymID, serverID, theType)
 {
@@ -284,11 +284,11 @@ OTAPI_Func::OTAPI_Func(
 
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
-    api::Wallet& wallet,
+    api::client::Wallet& wallet,
     const Identifier& nymID,
     const Identifier& serverID,
-    OTAPI_Exec& exec,
-    OT_API& otapi,
+    const OTAPI_Exec& exec,
+    const OT_API& otapi,
     const std::string& p_strParam,
     const std::string& p_strData)
     : OTAPI_Func(wallet, exec, otapi, nymID, serverID, theType)
@@ -343,11 +343,11 @@ OTAPI_Func::OTAPI_Func(
 
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
-    api::Wallet& wallet,
+    api::client::Wallet& wallet,
     const Identifier& nymID,
     const Identifier& serverID,
-    OTAPI_Exec& exec,
-    OT_API& otapi,
+    const OTAPI_Exec& exec,
+    const OT_API& otapi,
     const std::string& p_strParam,
     std::int64_t p_lData)
     : OTAPI_Func(wallet, exec, otapi, nymID, serverID, theType)
@@ -389,11 +389,11 @@ OTAPI_Func::OTAPI_Func(
 
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
-    api::Wallet& wallet,
+    api::client::Wallet& wallet,
     const Identifier& nymID,
     const Identifier& serverID,
-    OTAPI_Exec& exec,
-    OT_API& otapi,
+    const OTAPI_Exec& exec,
+    const OT_API& otapi,
     const std::string& p_nymID2,
     const std::string& p_strData,
     const bool p_Bool)
@@ -426,11 +426,11 @@ OTAPI_Func::OTAPI_Func(
 
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
-    api::Wallet& wallet,
+    api::client::Wallet& wallet,
     const Identifier& nymID,
     const Identifier& serverID,
-    OTAPI_Exec& exec,
-    OT_API& otapi,
+    const OTAPI_Exec& exec,
+    const OT_API& otapi,
     const std::string& p_nymID2,
     const std::string& p_strData,
     const std::string& p_strData2)
@@ -527,11 +527,11 @@ OTAPI_Func::OTAPI_Func(
 
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
-    api::Wallet& wallet,
+    api::client::Wallet& wallet,
     const Identifier& nymID,
     const Identifier& serverID,
-    OTAPI_Exec& exec,
-    OT_API& otapi,
+    const OTAPI_Exec& exec,
+    const OT_API& otapi,
     const std::string& p_accountID,
     const std::string& p_strParam,
     std::int64_t p_lData,
@@ -580,11 +580,11 @@ OTAPI_Func::OTAPI_Func(
 
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
-    api::Wallet& wallet,
+    api::client::Wallet& wallet,
     const Identifier& nymID,
     const Identifier& serverID,
-    OTAPI_Exec& exec,
-    OT_API& otapi,
+    const OTAPI_Exec& exec,
+    const OT_API& otapi,
     const std::string& p_accountID,
     const std::string& p_strParam,
     const std::string& p_strData,
@@ -640,11 +640,11 @@ OTAPI_Func::OTAPI_Func(
 
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
-    api::Wallet& wallet,
+    api::client::Wallet& wallet,
     const Identifier& nymID,
     const Identifier& serverID,
-    OTAPI_Exec& exec,
-    OT_API& otapi,
+    const OTAPI_Exec& exec,
+    const OT_API& otapi,
     const std::string& p_accountID,
     const std::string& p_strParam,
     const std::string& p_strData,
@@ -689,11 +689,11 @@ OTAPI_Func::OTAPI_Func(
 
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
-    api::Wallet& wallet,
+    api::client::Wallet& wallet,
     const Identifier& nymID,
     const Identifier& serverID,
-    OTAPI_Exec& exec,
-    OT_API& otapi,
+    const OTAPI_Exec& exec,
+    const OT_API& otapi,
     bool boolInput,
     const std::string& data,
     const std::string& data2,
@@ -731,11 +731,11 @@ OTAPI_Func::OTAPI_Func(
 
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
-    api::Wallet& wallet,
+    api::client::Wallet& wallet,
     const Identifier& nymID,
     const Identifier& serverID,
-    OTAPI_Exec& exec,
-    OT_API& otapi,
+    const OTAPI_Exec& exec,
+    const OT_API& otapi,
     const std::string& p_instrumentDefinitionID,
     const std::string& p_basket,
     const std::string& p_accountID,
@@ -771,11 +771,11 @@ OTAPI_Func::OTAPI_Func(
 
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
-    api::Wallet& wallet,
+    api::client::Wallet& wallet,
     const Identifier& nymID,
     const Identifier& serverID,
-    OTAPI_Exec& exec,
-    OT_API& otapi,
+    const OTAPI_Exec& exec,
+    const OT_API& otapi,
     const std::string& account,
     const std::string& account2,
     const std::string& data,
@@ -846,11 +846,11 @@ OTAPI_Func::OTAPI_Func(
 
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
-    api::Wallet& wallet,
+    api::client::Wallet& wallet,
     const Identifier& nymID,
     const Identifier& serverID,
-    OTAPI_Exec& exec,
-    OT_API& otapi,
+    const OTAPI_Exec& exec,
+    const OT_API& otapi,
     const std::string& account,
     const std::string& account2,
     const std::string& data,
@@ -917,6 +917,20 @@ OTAPI_Func::OTAPI_Func(
 TransactionNumber OTAPI_Func::GetTransactionNumber() const
 {
     return std::get<1>(last_attempt_);
+}
+
+SendResult OTAPI_Func::LastSendResult() const
+{
+    Lock lock(lock_);
+
+    return std::get<0>(std::get<2>(last_attempt_));
+}
+
+const std::shared_ptr<Message>& OTAPI_Func::Reply() const
+{
+    Lock lock(lock_);
+
+    return std::get<1>(std::get<2>(last_attempt_));
 }
 
 std::string OTAPI_Func::Run(const std::size_t totalRetries)
@@ -1184,6 +1198,8 @@ void OTAPI_Func::run()
         case NOTIFY_BAILMENT:
         case REQUEST_CONNECTION:
         case STORE_SECRET: {
+            OT_ASSERT(peer_request_);
+
             last_attempt_ = otapi_.initiatePeerRequest(
                 context_, Identifier(nymID2), peer_request_);
         } break;
@@ -1191,6 +1207,8 @@ void OTAPI_Func::run()
         case ACKNOWLEDGE_OUTBAILMENT:
         case ACKNOWLEDGE_NOTICE:
         case ACKNOWLEDGE_CONNECTION: {
+            OT_ASSERT(peer_reply_);
+
             last_attempt_ = otapi_.initiatePeerReply(
                 context_,
                 Identifier(nymID2),
@@ -1817,6 +1835,16 @@ std::string OTAPI_Func::send_once(
     // Returning an empty std::string.
 
     return "";
+}
+
+const std::shared_ptr<PeerRequest>& OTAPI_Func::SentPeerRequest() const
+{
+    return peer_request_;
+}
+
+const std::shared_ptr<PeerReply>& OTAPI_Func::SentPeerReply() const
+{
+    return peer_reply_;
 }
 
 // used for passing and returning values when giving a

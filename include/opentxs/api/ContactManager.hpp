@@ -56,7 +56,10 @@ class PaymentCode;
 
 namespace api
 {
+namespace client
+{
 class Wallet;
+}  // namespace client
 
 namespace storage
 {
@@ -105,7 +108,7 @@ private:
     typedef std::map<Identifier, ContactLock> ContactMap;
 
     storage::Storage& storage_;
-    Wallet& wallet_;
+    client::Wallet& wallet_;
     mutable std::recursive_mutex lock_{};
     ContactMap contact_map_{};
 
@@ -157,7 +160,7 @@ private:
         class Contact& contact,
         const bool replace = false);
 
-    ContactManager(storage::Storage& storage, Wallet& wallet);
+    ContactManager(storage::Storage& storage, client::Wallet& wallet);
     ContactManager() = delete;
     ContactManager(const ContactManager&) = delete;
     ContactManager(ContactManager&&) = delete;

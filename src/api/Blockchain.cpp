@@ -40,12 +40,12 @@
 
 #include "opentxs/api/Blockchain.hpp"
 
+#include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
 #include "opentxs/api/Activity.hpp"
-#include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/crypto/AsymmetricKeySecp256k1.hpp"
 #include "opentxs/core/crypto/Bip32.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
@@ -84,7 +84,7 @@ Blockchain::Blockchain(
     Activity& activity,
     Crypto& crypto,
     storage::Storage& storage,
-    Wallet& wallet)
+    client::Wallet& wallet)
     : activity_(activity)
     , crypto_(crypto)
     , storage_(storage)

@@ -40,10 +40,10 @@
 
 #include "opentxs/server/UserCommandProcessor.hpp"
 
+#include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/Identity.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/api/Server.hpp"
-#include "opentxs/api/Wallet.hpp"
 #if OT_CASH
 #include "opentxs/cash/Mint.hpp"
 #endif  // OT_CASH
@@ -192,7 +192,7 @@ UserCommandProcessor::UserCommandProcessor(
     Server& server,
     opentxs::api::Settings& config,
     opentxs::api::Server& mint,
-    opentxs::api::Wallet& wallet)
+    opentxs::api::client::Wallet& wallet)
     : server_(server)
     , config_(config)
     , mint_(mint)

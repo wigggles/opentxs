@@ -62,7 +62,12 @@ class ContactManager;
 class Crypto;
 class Identity;
 class Settings;
+
+namespace client
+{
+class Pair;
 class Wallet;
+}  // namespace client
 
 namespace network
 {
@@ -88,19 +93,21 @@ public:
     OT_API& OTAPI(const std::string& wallet = "") override;
     OT_ME& OTME(const std::string& wallet = "") override;
     OTME_too& OTME_TOO(const std::string& wallet = "") override;
+    const api::client::Pair& Pair() override;
 
-    ~Api() = default;
+    ~Api();
 
 private:
     friend class implementation::Native;
 
+    const std::atomic<bool>& shutdown_;
     Activity& activity_;
     Settings& config_;
     ContactManager& contacts_;
     Crypto& crypto_;
     Identity& identity_;
     storage::Storage& storage_;
-    Wallet& wallet_;
+    api::client::Wallet& wallet_;
     api::network::ZMQ& zmq_;
 
     std::unique_ptr<OT_API> ot_api_;
@@ -108,19 +115,21 @@ private:
     std::unique_ptr<MadeEasy> made_easy_;
     std::unique_ptr<OT_ME> ot_me_;
     std::unique_ptr<OTME_too> otme_too_;
+    std::unique_ptr<api::client::Pair> pair_;
 
     mutable std::recursive_mutex lock_;
 
     void Cleanup();
     void Init();
 
-    Api(api::Activity& activity,
+    Api(const std::atomic<bool>& shutdown,
+        api::Activity& activity,
         api::Settings& config,
         api::ContactManager& contacts,
         api::Crypto& crypto,
         api::Identity& identity,
         api::storage::Storage& storage,
-        api::Wallet& wallet,
+        api::client::Wallet& wallet,
         api::network::ZMQ& zmq);
     Api() = delete;
     Api(const Api&) = delete;

@@ -43,7 +43,10 @@
 #include "opentxs/storage/drivers/StorageMultiplex.hpp"
 #include "opentxs/storage/tree/BlockchainTransactions.hpp"
 #include "opentxs/storage/tree/Contacts.hpp"
+#include "opentxs/storage/tree/Contexts.hpp"
 #include "opentxs/storage/tree/Credentials.hpp"
+#include "opentxs/storage/tree/Issuers.hpp"
+#include "opentxs/storage/tree/Mailbox.hpp"
 #include "opentxs/storage/tree/Nym.hpp"
 #include "opentxs/storage/tree/Nyms.hpp"
 #include "opentxs/storage/tree/PeerReplies.hpp"
@@ -229,6 +232,18 @@ void Storage::InitPlugins()
     multiplex_.synchronize_plugins(hash, *root, syncPrimary);
 }
 
+ObjectList Storage::IssuerList(const std::string& nymID)
+{
+    const bool exists = Root().Tree().NymNode().Exists(nymID);
+
+    if (false == exists) {
+
+        return {};
+    }
+
+    return Root().Tree().NymNode().Nym(nymID).Issuers().List();
+}
+
 bool Storage::Load(
     const std::string& nymID,
     const std::string& accountID,
@@ -302,6 +317,23 @@ bool Storage::Load(
     const bool checking)
 {
     return Root().Tree().NymNode().Nym(id).Load(nym, alias, checking);
+}
+
+bool Storage::Load(
+    const std::string& nymID,
+    const std::string& id,
+    std::shared_ptr<proto::Issuer>& issuer,
+    const bool checking)
+{
+    if (false == Root().Tree().NymNode().Exists(nymID)) {
+
+        return false;
+    }
+
+    std::string notUsed{""};
+
+    return Root().Tree().NymNode().Nym(nymID).Issuers().Load(
+        id, issuer, notUsed, checking);
 }
 
 bool Storage::Load(
@@ -1232,6 +1264,28 @@ bool Storage::Store(
     }
 
     return false;
+}
+
+bool Storage::Store(const std::string& nymID, const proto::Issuer& data)
+{
+    const bool exists = Root().Tree().NymNode().Exists(nymID);
+
+    if (false == exists) {
+
+        return false;
+    }
+
+    return mutable_Root()
+        .It()
+        .mutable_Tree()
+        .It()
+        .mutable_Nyms()
+        .It()
+        .mutable_Nym(nymID)
+        .It()
+        .mutable_Issuers()
+        .It()
+        .Store(data, {""});
 }
 
 bool Storage::Store(

@@ -53,6 +53,7 @@
 #include "opentxs/client/SwigWrap.hpp"
 #include "opentxs/contact/Contact.hpp"
 #include "opentxs/contact/ContactData.hpp"
+#include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Account.hpp"

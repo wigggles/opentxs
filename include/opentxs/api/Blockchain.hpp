@@ -57,7 +57,11 @@ namespace api
 {
 class Activity;
 class Crypto;
+
+namespace client
+{
 class Wallet;
+}  // namespace client
 
 namespace storage
 {
@@ -122,7 +126,7 @@ private:
     Activity& activity_;
     Crypto& crypto_;
     storage::Storage& storage_;
-    Wallet& wallet_;
+    client::Wallet& wallet_;
     mutable std::mutex lock_;
     mutable IDLock nym_lock_;
     mutable IDLock account_lock_;
@@ -161,7 +165,7 @@ private:
         Activity& activity,
         Crypto& crypto,
         storage::Storage& storage,
-        Wallet& wallet);
+        client::Wallet& wallet);
     Blockchain() = delete;
     Blockchain(const Blockchain&) = delete;
     Blockchain(Blockchain&&) = delete;

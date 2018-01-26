@@ -55,7 +55,10 @@ class OTAPI_Exec;
 
 namespace api
 {
+namespace client
+{
 class Wallet;
+}  // namespace client
 
 namespace implementation
 {
@@ -240,13 +243,13 @@ private:
     std::recursive_mutex& lock_;
     OTAPI_Exec& exec_;
     OT_API& otapi_;
-    api::Wallet& wallet_;
+    api::client::Wallet& wallet_;
 
     MadeEasy(
         std::recursive_mutex& lock,
         OTAPI_Exec& exec,
         OT_API& otapi,
-        api::Wallet& wallet);
+        api::client::Wallet& wallet);
     MadeEasy() = delete;
     MadeEasy(const MadeEasy&) = delete;
     MadeEasy(const MadeEasy&&) = delete;

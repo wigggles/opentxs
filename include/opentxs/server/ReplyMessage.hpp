@@ -59,7 +59,10 @@ class Message;
 
 namespace api
 {
+namespace client
+{
 class Wallet;
+}  // namespace client
 }  // namespace api
 
 namespace server
@@ -71,7 +74,7 @@ class ReplyMessage
 {
 public:
     ReplyMessage(
-        opentxs::api::Wallet& wallet,
+        opentxs::api::client::Wallet& wallet,
         const Identifier& notaryID,
         const Nym& signer,
         const Message& input,
@@ -113,7 +116,7 @@ public:
     ~ReplyMessage();
 
 private:
-    opentxs::api::Wallet& wallet_;
+    opentxs::api::client::Wallet& wallet_;
     const Nym& signer_;
     const Message& original_;
     const Identifier notary_id_;

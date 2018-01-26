@@ -55,7 +55,10 @@ class String;
 
 namespace api
 {
+namespace client
+{
 class Wallet;
+}  // namespace client
 
 namespace implementation
 {
@@ -514,14 +517,14 @@ private:
     OTAPI_Exec& exec_;
     OT_API& otapi_;
     const MadeEasy& made_easy_;
-    api::Wallet& wallet_;
+    api::client::Wallet& wallet_;
 
     OT_ME(
         std::recursive_mutex& lock,
         OTAPI_Exec& exec,
         OT_API& otapi,
         MadeEasy& madeEasy,
-        api::Wallet& wallet);
+        api::client::Wallet& wallet);
     OT_ME() = delete;
     OT_ME(const OT_ME&) = delete;
     OT_ME(const OT_ME&&) = delete;

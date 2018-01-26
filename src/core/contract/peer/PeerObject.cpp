@@ -40,8 +40,8 @@
 
 #include "opentxs/core/contract/peer/PeerObject.hpp"
 
+#include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/Native.hpp"
-#include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/OTEnvelope.hpp"
 #include "opentxs/core/util/Assert.hpp"
@@ -111,20 +111,20 @@ PeerObject::PeerObject(const std::string& payment, const ConstNym& senderNym)
 }
 
 PeerObject::PeerObject(
-    std::unique_ptr<PeerRequest>& request,
-    std::unique_ptr<PeerReply>& reply)
-    : type_(proto::PEEROBJECT_RESPONSE)
+    const std::shared_ptr<PeerRequest>& request,
+    const std::shared_ptr<PeerReply>& reply)
+    : reply_(reply)
+    , request_(request)
+    , type_(proto::PEEROBJECT_RESPONSE)
     , version_(PEER_REQUEST_VERSION)
 {
-    request_.swap(request);
-    reply_.swap(reply);
 }
 
-PeerObject::PeerObject(std::unique_ptr<PeerRequest>& request)
-    : type_(proto::PEEROBJECT_REQUEST)
+PeerObject::PeerObject(const std::shared_ptr<PeerRequest>& request)
+    : request_(request)
+    , type_(proto::PEEROBJECT_REQUEST)
     , version_(PEER_REQUEST_VERSION)
 {
-    request_.swap(request);
 }
 
 std::unique_ptr<PeerObject> PeerObject::Create(
@@ -160,8 +160,8 @@ std::unique_ptr<PeerObject> PeerObject::Create(
 }
 
 std::unique_ptr<PeerObject> PeerObject::Create(
-    std::unique_ptr<PeerRequest>& request,
-    std::unique_ptr<PeerReply>& reply)
+    const std::shared_ptr<PeerRequest>& request,
+    const std::shared_ptr<PeerReply>& reply)
 {
     std::unique_ptr<PeerObject> output(new PeerObject(request, reply));
 
@@ -173,7 +173,7 @@ std::unique_ptr<PeerObject> PeerObject::Create(
 }
 
 std::unique_ptr<PeerObject> PeerObject::Create(
-    std::unique_ptr<PeerRequest>& request)
+    const std::shared_ptr<PeerRequest>& request)
 {
     std::unique_ptr<PeerObject> output(new PeerObject(request));
 

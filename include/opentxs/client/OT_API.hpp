@@ -41,7 +41,7 @@
 
 #include "opentxs/Version.hpp"
 
-#include "opentxs/api/Wallet.hpp"
+#include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/core/contract/peer/PeerObject.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
@@ -96,8 +96,12 @@ class ContactManager;
 class Crypto;
 class Identity;
 class Settings;
-class Wallet;
 class ZMQ;
+
+namespace client
+{
+class Wallet;
+}  // namespace client
 
 namespace implementation
 {
@@ -148,6 +152,7 @@ public:
     // Reading data about the local wallet.. presumably already loaded.
 
     EXPORT std::int32_t GetNymCount() const;
+    EXPORT std::set<Identifier> LocalNymList() const;
     EXPORT std::int32_t GetAccountCount() const;
 
     EXPORT bool GetNym(
@@ -790,7 +795,7 @@ public:
         const std::int64_t& lRequestNumber,
         const Identifier& NOTARY_ID,
         const Identifier& NYM_ID) const;
-    void FlushMessageBuffer();
+    void FlushMessageBuffer() const;
     // Outgoing
     EXPORT Message* GetSentMessage(
         const std::int64_t& lRequestNumber,
@@ -1305,13 +1310,13 @@ public:
     EXPORT CommandResult initiatePeerRequest(
         ServerContext& context,
         const Identifier& recipient,
-        std::unique_ptr<PeerRequest>& request) const;
+        const std::shared_ptr<PeerRequest>& request) const;
 
     EXPORT CommandResult initiatePeerReply(
         ServerContext& context,
         const Identifier& recipient,
         const Identifier& request,
-        std::unique_ptr<PeerReply>& reply) const;
+        const std::shared_ptr<PeerReply>& reply) const;
 
     EXPORT CommandResult
     requestAdmin(ServerContext& context, const std::string& PASSWORD) const;
@@ -1354,7 +1359,7 @@ private:
     api::Crypto& crypto_;
     api::Identity& identity_;
     api::storage::Storage& storage_;
-    api::Wallet& wallet_;
+    api::client::Wallet& wallet_;
     api::network::ZMQ& zeromq_;
 
     bool m_bDefaultStore{false};
@@ -1422,7 +1427,7 @@ private:
         api::Crypto& crypto,
         api::Identity& identity,
         api::storage::Storage& storage,
-        api::Wallet& wallet,
+        api::client::Wallet& wallet,
         api::network::ZMQ& zmq,
         std::recursive_mutex& lock);
     OT_API() = delete;

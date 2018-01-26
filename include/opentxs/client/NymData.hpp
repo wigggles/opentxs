@@ -49,16 +49,20 @@
 
 namespace opentxs
 {
-
 class ContactData;
 class Identifier;
 class Nym;
 
 namespace api
 {
-
+namespace client
+{
+namespace implementation
+{
 class Wallet;
-}
+}  // implementation
+}  // client
+}  // api
 
 #ifdef SWIG
 // clang-format off
@@ -127,7 +131,7 @@ public:
     ~NymData() = default;
 
 private:
-    friend class api::Wallet;
+    friend class api::client::implementation::Wallet;
 
     std::shared_ptr<Nym> nym_;
 

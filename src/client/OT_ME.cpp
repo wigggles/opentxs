@@ -40,9 +40,9 @@
 
 #include "opentxs/client/OT_ME.hpp"
 
+#include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/Api.hpp"
 #include "opentxs/api/Native.hpp"
-#include "opentxs/api/Wallet.hpp"
 #include "opentxs/client/commands/CmdAcceptInbox.hpp"
 #include "opentxs/client/commands/CmdAcceptPayments.hpp"
 #include "opentxs/client/commands/CmdAcceptReceipts.hpp"
@@ -80,7 +80,7 @@ OT_ME::OT_ME(
     OTAPI_Exec& exec,
     OT_API& otapi,
     MadeEasy& madeEasy,
-    api::Wallet& wallet)
+    api::client::Wallet& wallet)
     : lock_(lock)
     , exec_(exec)
     , otapi_(otapi)

@@ -40,6 +40,7 @@
 
 #include "opentxs/server/Server.hpp"
 
+#include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/storage/Storage.hpp"
@@ -47,7 +48,6 @@
 #include "opentxs/api/Native.hpp"
 #include "opentxs/api/Server.hpp"
 #include "opentxs/api/Settings.hpp"
-#include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/cron/OTCron.hpp"
 #include "opentxs/core/crypto/Bip39.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
@@ -111,7 +111,7 @@ Server::Server(
     opentxs::api::Settings& config,
     opentxs::api::Server& mint,
     opentxs::api::storage::Storage& storage,
-    opentxs::api::Wallet& wallet)
+    opentxs::api::client::Wallet& wallet)
     : crypto_(crypto)
     , config_(config)
     , mint_(mint)

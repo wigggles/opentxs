@@ -38,8 +38,8 @@
 
 #include "opentxs/stdafx.hpp"
 
+#include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/Native.hpp"
-#include "opentxs/api/Wallet.hpp"
 #include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -55,7 +55,7 @@ namespace opentxs::server
 {
 
 ReplyMessage::ReplyMessage(
-    opentxs::api::Wallet& wallet,
+    opentxs::api::client::Wallet& wallet,
     const Identifier& notaryID,
     const Nym& signer,
     const Message& input,

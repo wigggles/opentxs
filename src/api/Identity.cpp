@@ -40,8 +40,8 @@
 
 #include "opentxs/api/Identity.hpp"
 
+#include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/Native.hpp"
-#include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/crypto/ContactCredential.hpp"
 #include "opentxs/core/crypto/VerificationCredential.hpp"
 #include "opentxs/core/util/Assert.hpp"
@@ -63,7 +63,7 @@
 namespace opentxs::api
 {
 
-Identity::Identity(api::Wallet& wallet)
+Identity::Identity(api::client::Wallet& wallet)
     : wallet_(wallet)
 {
 }

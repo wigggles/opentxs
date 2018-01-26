@@ -40,8 +40,8 @@
 
 #include "opentxs/core/contract/peer/PeerReply.hpp"
 
+#include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/Native.hpp"
-#include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/contract/peer/BailmentReply.hpp"
 #include "opentxs/core/contract/peer/ConnectionReply.hpp"
 #include "opentxs/core/contract/peer/NoticeAcknowledgement.hpp"

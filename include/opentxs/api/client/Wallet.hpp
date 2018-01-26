@@ -36,37 +36,37 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_API_WALLET_HPP
-#define OPENTXS_API_WALLET_HPP
+#ifndef OPENTXS_API_CLIENT_WALLET_HPP
+#define OPENTXS_API_CLIENT_WALLET_HPP
 
 #include "opentxs/Version.hpp"
 
 #include "opentxs/api/Editor.hpp"
-#include "opentxs/client/NymData.hpp"
 #include "opentxs/core/contract/ServerContract.hpp"
-#include "opentxs/core/contract/UnitDefinition.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Nym.hpp"
+#include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 
 #include <chrono>
 #include <cstdint>
 #include <ctime>
 #include <list>
-#include <map>
 #include <memory>
-#include <mutex>
+#include <set>
 #include <string>
-#include <tuple>
 
 namespace opentxs
 {
 
 class ClientContext;
 class Context;
+class Identifier;
 class Message;
+class Nym;
+class NymData;
 class PeerObject;
 class ServerContext;
+class ServerContract;
+class UnitDefinition;
 
 typedef std::shared_ptr<const class Nym> ConstNym;
 typedef std::shared_ptr<const class ServerContract> ConstServerContract;
@@ -74,12 +74,9 @@ typedef std::shared_ptr<const class UnitDefinition> ConstUnitDefinition;
 
 namespace api
 {
-class Native;
-
-namespace implementation
+namespace client
 {
-class Native;
-}  // namespace implementation
+class Issuer;
 
 /** \brief This class manages instantiated contracts and provides easy access
  *  to them.
@@ -93,67 +90,6 @@ class Native;
  */
 class Wallet
 {
-private:
-    typedef std::pair<std::mutex, std::shared_ptr<class Nym>> NymLock;
-    typedef std::map<std::string, NymLock> NymMap;
-    typedef std::map<std::string, std::shared_ptr<class ServerContract>>
-        ServerMap;
-    typedef std::map<std::string, std::shared_ptr<class UnitDefinition>>
-        UnitMap;
-    typedef std::pair<std::string, std::string> ContextID;
-    typedef std::map<ContextID, std::shared_ptr<class Context>> ContextMap;
-
-    friend class implementation::Native;
-
-    Native& ot_;
-    NymMap nym_map_;
-    ServerMap server_map_;
-    UnitMap unit_map_;
-    ContextMap context_map_;
-    mutable std::mutex nym_map_lock_;
-    mutable std::mutex server_map_lock_;
-    mutable std::mutex unit_map_lock_;
-    mutable std::mutex context_map_lock_;
-    mutable std::mutex peer_map_lock_;
-    mutable std::map<std::string, std::mutex> peer_lock_;
-    mutable std::mutex nymfile_map_lock_;
-    mutable std::map<Identifier, std::mutex> nymfile_lock_;
-
-    std::mutex& nymfile_lock(const Identifier& nymID) const;
-    std::mutex& peer_lock(const std::string& nymID) const;
-    void save(class Context* context) const;
-
-    std::shared_ptr<class Context> context(
-        const Identifier& localNymID,
-        const Identifier& remoteNymID);
-
-    /**   Save an instantiated server contract to storage and add to internal
-     *    map.
-     *
-     *    The smart pointer will not be initialized if the provided serialized
-     *    contract is invalid.
-     *
-     *    \param[in] contract the instantiated ServerContract object
-     */
-    ConstServerContract Server(std::unique_ptr<ServerContract>& contract);
-    Identifier ServerToNym(Identifier& serverID);
-
-    /**   Save an instantiated unit definition to storage and add to internal
-     *    map.
-     *
-     *    The smart pointer will not be initialized if the provided serialized
-     *    contract is invalid.
-     *
-     *    \param[in] contract the instantiated UnitDefinition object
-     */
-    ConstUnitDefinition UnitDefinition(
-        std::unique_ptr<class UnitDefinition>& contract);
-
-    Wallet(Native& ot);
-    Wallet() = delete;
-    Wallet(const Wallet&) = delete;
-    Wallet operator=(const Wallet&) = delete;
-
 public:
     /**   Load a read-only copy of a Context object
      *
@@ -166,9 +102,9 @@ public:
      *    \returns A smart pointer to the object. The smart pointer will not be
      *             instantiated if the object does not exist or is invalid.
      */
-    std::shared_ptr<const opentxs::Context> Context(
+    virtual std::shared_ptr<const opentxs::Context> Context(
         const Identifier& notaryID,
-        const Identifier& clientNymID);
+        const Identifier& clientNymID) = 0;
 
     /**   Load a read-only copy of a ClientContext object
      *
@@ -178,9 +114,9 @@ public:
      *    \returns A smart pointer to the object. The smart pointer will not be
      *             instantiated if the object does not exist or is invalid.
      */
-    std::shared_ptr<const opentxs::ClientContext> ClientContext(
+    virtual std::shared_ptr<const opentxs::ClientContext> ClientContext(
         const Identifier& localNymID,
-        const Identifier& remoteNymID);
+        const Identifier& remoteNymID) = 0;
 
     /**   Load a read-only copy of a ServerContext object
      *
@@ -190,9 +126,9 @@ public:
      *    \returns A smart pointer to the object. The smart pointer will not be
      *             instantiated if the object does not exist or is invalid.
      */
-    std::shared_ptr<const opentxs::ServerContext> ServerContext(
+    virtual std::shared_ptr<const opentxs::ServerContext> ServerContext(
         const Identifier& localNymID,
-        const Identifier& remoteID);
+        const Identifier& remoteID) = 0;
 
     /**   Load an existing Context object
      *
@@ -207,9 +143,9 @@ public:
      *    \param[in] clientNymID context identifier (usually the other party's
      *                           nym id)
      */
-    Editor<opentxs::Context> mutable_Context(
+    virtual Editor<opentxs::Context> mutable_Context(
         const Identifier& notaryID,
-        const Identifier& clientNymID);
+        const Identifier& clientNymID) = 0;
 
     /**   Load or create a ClientContext object
      *
@@ -217,9 +153,9 @@ public:
      *    \param[in] remoteNymID context identifier (usually the other party's
      *                           nym id)
      */
-    Editor<opentxs::ClientContext> mutable_ClientContext(
+    virtual Editor<opentxs::ClientContext> mutable_ClientContext(
         const Identifier& localNymID,
-        const Identifier& remoteNymID);
+        const Identifier& remoteNymID) = 0;
 
     /**   Load or create a ServerContext object
      *
@@ -227,9 +163,32 @@ public:
      *    \param[in] remoteID context identifier (usually the other party's nym
      *                        id)
      */
-    Editor<opentxs::ServerContext> mutable_ServerContext(
+    virtual Editor<opentxs::ServerContext> mutable_ServerContext(
         const Identifier& localNymID,
-        const Identifier& remoteID);
+        const Identifier& remoteID) = 0;
+
+    /**   Returns a list of all issuers associated with a local nym */
+    virtual std::set<Identifier> IssuerList(const Identifier& nymID) const = 0;
+
+    /**   Load a read-only copy of an Issuer object
+     *
+     *    \param[in] nymID the identifier of the local nym
+     *    \param[in] issuerID the identifier of the issuer nym
+     *    \returns A smart pointer to the object. The smart pointer will not be
+     *             instantiated if the object does not exist or is invalid.
+     */
+    virtual std::shared_ptr<const class Issuer> Issuer(
+        const Identifier& nymID,
+        const Identifier& issuerID) const = 0;
+
+    /**   Load or create an Issuer object
+     *
+     *    \param[in] nymID the identifier of the local nym
+     *    \param[in] issuerID the identifier of the issuer nym
+     */
+    virtual Editor<class Issuer> mutable_Issuer(
+        const Identifier& nymID,
+        const Identifier& issuerID) const = 0;
 
     /**   Obtain a smart pointer to an instantiated nym.
      *
@@ -250,10 +209,10 @@ public:
      *                       willing to wait for a network lookup. The default
      *                       value of 0 will return immediately.
      */
-    ConstNym Nym(
+    virtual ConstNym Nym(
         const Identifier& id,
         const std::chrono::milliseconds& timeout =
-            std::chrono::milliseconds(0));
+            std::chrono::milliseconds(0)) = 0;
 
     /**   Instantiate a nym from serialized form
      *
@@ -262,13 +221,13 @@ public:
      *
      *    \param[in] nym the serialized version of the contract
      */
-    ConstNym Nym(const proto::CredentialIndex& nym);
+    virtual ConstNym Nym(const proto::CredentialIndex& nym) = 0;
 
-    NymData mutable_Nym(const Identifier& id);
+    virtual NymData mutable_Nym(const Identifier& id) = 0;
 
     /**   Returns a list of all known nyms and their aliases
      */
-    ObjectList NymList() const;
+    virtual ObjectList NymList() const = 0;
 
     /**   Load a peer reply object
      *
@@ -278,10 +237,10 @@ public:
      *    \returns A smart pointer to the object. The smart pointer will not be
      *             instantiated if the object does not exist or is invalid.
      */
-    std::shared_ptr<proto::PeerReply> PeerReply(
+    virtual std::shared_ptr<proto::PeerReply> PeerReply(
         const Identifier& nym,
         const Identifier& reply,
-        const StorageBox& box) const;
+        const StorageBox& box) const = 0;
 
     /**   Clean up the recipient's copy of a peer reply
      *
@@ -293,9 +252,9 @@ public:
      *               the id of its corresponding request
      *    \returns true if the request is successfully stored
      */
-    bool PeerReplyComplete(
+    virtual bool PeerReplyComplete(
         const Identifier& nym,
-        const Identifier& replyOrRequest) const;
+        const Identifier& replyOrRequest) const = 0;
 
     /**   Store the recipient's copy of a peer reply
      *
@@ -310,10 +269,10 @@ public:
      *    \param[in] reply the serialized peer reply object
      *    \returns true if the request is successfully stored
      */
-    bool PeerReplyCreate(
+    virtual bool PeerReplyCreate(
         const Identifier& nym,
         const proto::PeerRequest& request,
-        const proto::PeerReply& reply) const;
+        const proto::PeerReply& reply) const = 0;
 
     /**   Rollback a PeerReplyCreate call
      *
@@ -324,34 +283,34 @@ public:
      *    \param[in] reply the identifier of the peer reply object
      *    \returns true if the rollback is successful
      */
-    bool PeerReplyCreateRollback(
+    virtual bool PeerReplyCreateRollback(
         const Identifier& nym,
         const Identifier& request,
-        const Identifier& reply) const;
+        const Identifier& reply) const = 0;
 
     /**   Obtain a list of sent peer replies
      *
      *    \param[in] nym the identifier of the nym whose box is returned
      */
-    ObjectList PeerReplySent(const Identifier& nym) const;
+    virtual ObjectList PeerReplySent(const Identifier& nym) const = 0;
 
     /**   Obtain a list of incoming peer replies
      *
      *    \param[in] nym the identifier of the nym whose box is returned
      */
-    ObjectList PeerReplyIncoming(const Identifier& nym) const;
+    virtual ObjectList PeerReplyIncoming(const Identifier& nym) const = 0;
 
     /**   Obtain a list of finished peer replies
      *
      *    \param[in] nym the identifier of the nym whose box is returned
      */
-    ObjectList PeerReplyFinished(const Identifier& nym) const;
+    virtual ObjectList PeerReplyFinished(const Identifier& nym) const = 0;
 
     /**   Obtain a list of processed peer replies
      *
      *    \param[in] nym the identifier of the nym whose box is returned
      */
-    ObjectList PeerReplyProcessed(const Identifier& nym) const;
+    virtual ObjectList PeerReplyProcessed(const Identifier& nym) const = 0;
 
     /**   Store the senders's copy of a peer reply
      *
@@ -366,7 +325,9 @@ public:
      *    \param[in] reply the serialized peer reply object
      *    \returns true if the request is successfully stored
      */
-    bool PeerReplyReceive(const Identifier& nym, const PeerObject& reply) const;
+    virtual bool PeerReplyReceive(
+        const Identifier& nym,
+        const PeerObject& reply) const = 0;
 
     /**   Load a peer reply object
      *
@@ -376,11 +337,11 @@ public:
      *    \returns A smart pointer to the object. The smart pointer will not be
      *             instantiated if the object does not exist or is invalid.
      */
-    std::shared_ptr<proto::PeerRequest> PeerRequest(
+    virtual std::shared_ptr<proto::PeerRequest> PeerRequest(
         const Identifier& nym,
         const Identifier& request,
         const StorageBox& box,
-        std::time_t& time) const;
+        std::time_t& time) const = 0;
 
     /**   Clean up the sender's copy of a peer reply
      *
@@ -391,8 +352,9 @@ public:
      *    \param[in] reply the identifier of the peer reply object
      *    \returns true if the request is successfully moved
      */
-    bool PeerRequestComplete(const Identifier& nym, const Identifier& reply)
-        const;
+    virtual bool PeerRequestComplete(
+        const Identifier& nym,
+        const Identifier& reply) const = 0;
 
     /**   Store the initiator's copy of a peer request
      *
@@ -403,9 +365,9 @@ public:
      *    \param[in] request the serialized peer request object
      *    \returns true if the request is successfully stored
      */
-    bool PeerRequestCreate(
+    virtual bool PeerRequestCreate(
         const Identifier& nym,
-        const proto::PeerRequest& request) const;
+        const proto::PeerRequest& request) const = 0;
 
     /**   Rollback a PeerRequestCreate call
      *
@@ -415,9 +377,9 @@ public:
      *    \param[in] request the identifier of the peer request
      *    \returns true if the rollback is successful
      */
-    bool PeerRequestCreateRollback(
+    virtual bool PeerRequestCreateRollback(
         const Identifier& nym,
-        const Identifier& request) const;
+        const Identifier& request) const = 0;
 
     /**   Delete a peer reply object
      *
@@ -425,34 +387,34 @@ public:
      *    \param[in] request the identifier of the peer reply object
      *    \param[in] box the box from which the peer object will be deleted
      */
-    bool PeerRequestDelete(
+    virtual bool PeerRequestDelete(
         const Identifier& nym,
         const Identifier& request,
-        const StorageBox& box) const;
+        const StorageBox& box) const = 0;
 
     /**   Obtain a list of sent peer requests
      *
      *    \param[in] nym the identifier of the nym whose box is returned
      */
-    ObjectList PeerRequestSent(const Identifier& nym) const;
+    virtual ObjectList PeerRequestSent(const Identifier& nym) const = 0;
 
     /**   Obtain a list of incoming peer requests
      *
      *    \param[in] nym the identifier of the nym whose box is returned
      */
-    ObjectList PeerRequestIncoming(const Identifier& nym) const;
+    virtual ObjectList PeerRequestIncoming(const Identifier& nym) const = 0;
 
     /**   Obtain a list of finished peer requests
      *
      *    \param[in] nym the identifier of the nym whose box is returned
      */
-    ObjectList PeerRequestFinished(const Identifier& nym) const;
+    virtual ObjectList PeerRequestFinished(const Identifier& nym) const = 0;
 
     /**   Obtain a list of processed peer requests
      *
      *    \param[in] nym the identifier of the nym whose box is returned
      */
-    ObjectList PeerRequestProcessed(const Identifier& nym) const;
+    virtual ObjectList PeerRequestProcessed(const Identifier& nym) const = 0;
 
     /**   Store the recipient's copy of a peer request
      *
@@ -463,8 +425,9 @@ public:
      *    \param[in] request the serialized peer request object
      *    \returns true if the request is successfully stored
      */
-    bool PeerRequestReceive(const Identifier& nym, const PeerObject& request)
-        const;
+    virtual bool PeerRequestReceive(
+        const Identifier& nym,
+        const PeerObject& request) const = 0;
 
     /**   Update the timestamp of a peer request object
      *
@@ -472,10 +435,10 @@ public:
      *    \param[in] request the identifier of the peer request object
      *    \param[in] box the box from which the peer object will be deleted
      */
-    bool PeerRequestUpdate(
+    virtual bool PeerRequestUpdate(
         const Identifier& nym,
         const Identifier& request,
-        const StorageBox& box) const;
+        const StorageBox& box) const = 0;
 
     /**   Unload and delete a server contract
      *
@@ -485,7 +448,7 @@ public:
      *    \returns true if successful, false if the contract did not exist
      *
      */
-    bool RemoveServer(const Identifier& id);
+    virtual bool RemoveServer(const Identifier& id) = 0;
 
     /**   Unload and delete a unit definition contract
      *
@@ -495,7 +458,7 @@ public:
      *    \returns true if successful, false if the contract did not exist
      *
      */
-    bool RemoveUnitDefinition(const Identifier& id);
+    virtual bool RemoveUnitDefinition(const Identifier& id) = 0;
 
     /**   Obtain a smart pointer to an instantiated server contract.
      *
@@ -516,10 +479,10 @@ public:
      *                       willing to wait for a network lookup. The default
      *                       value of 0 will return immediately.
      */
-    ConstServerContract Server(
+    virtual ConstServerContract Server(
         const Identifier& id,
         const std::chrono::milliseconds& timeout =
-            std::chrono::milliseconds(0));
+            std::chrono::milliseconds(0)) = 0;
 
     /**   Instantiate a server contract from serialized form
      *
@@ -528,7 +491,8 @@ public:
      *
      *    \param[in] contract the serialized version of the contract
      */
-    ConstServerContract Server(const proto::ServerContract& contract);
+    virtual ConstServerContract Server(
+        const proto::ServerContract& contract) = 0;
 
     /**   Create a new server contract
      *
@@ -541,15 +505,15 @@ public:
      *    \param[in] url externally-reachable IP address or hostname
      *    \param[in] port externally-reachable listen port
      */
-    ConstServerContract Server(
+    virtual ConstServerContract Server(
         const std::string& nymid,
         const std::string& name,
         const std::string& terms,
-        const std::list<ServerContract::Endpoint>& endpoints);
+        const std::list<ServerContract::Endpoint>& endpoints) = 0;
 
     /**   Returns a list of all available server contracts and their aliases
      */
-    ObjectList ServerList();
+    virtual ObjectList ServerList() = 0;
 
     /**   Updates the alias for the specified nym.
      *
@@ -560,7 +524,9 @@ public:
      *    \param[in] alias the alias to set or update for the specified nym
      *    \returns true if successful, false if the nym can not be located
      */
-    bool SetNymAlias(const Identifier& id, const std::string& alias);
+    virtual bool SetNymAlias(
+        const Identifier& id,
+        const std::string& alias) = 0;
 
     /**   Updates the alias for the specified server contract.
      *
@@ -571,7 +537,9 @@ public:
      *    \param[in] alias the alias to set or update for the specified contract
      *    \returns true if successful, false if the contract can not be located
      */
-    bool SetServerAlias(const Identifier& id, const std::string& alias);
+    virtual bool SetServerAlias(
+        const Identifier& id,
+        const std::string& alias) = 0;
 
     /**   Updates the alias for the specified unit definition contract.
      *
@@ -582,12 +550,14 @@ public:
      *    \param[in] alias the alias to set or update for the specified contract
      *    \returns true if successful, false if the contract can not be located
      */
-    bool SetUnitDefinitionAlias(const Identifier& id, const std::string& alias);
+    virtual bool SetUnitDefinitionAlias(
+        const Identifier& id,
+        const std::string& alias) = 0;
 
     /**   Obtain a list of all available unit definition contracts and their
      *    aliases
      */
-    ObjectList UnitDefinitionList();
+    virtual ObjectList UnitDefinitionList() = 0;
 
     /**   Obtain a smart pointer to an instantiated unit definition contract.
      *
@@ -608,10 +578,10 @@ public:
      *                     willing to wait for a network lookup. The default
      *                     value of 0 will return immediately.
      */
-    ConstUnitDefinition UnitDefinition(
+    virtual ConstUnitDefinition UnitDefinition(
         const Identifier& id,
         const std::chrono::milliseconds& timeout =
-            std::chrono::milliseconds(0));
+            std::chrono::milliseconds(0)) = 0;
 
     /**   Instantiate a unit definition contract from serialized form
      *
@@ -620,7 +590,8 @@ public:
      *
      *    \param[in] contract the serialized version of the contract
      */
-    ConstUnitDefinition UnitDefinition(const proto::UnitDefinition& contract);
+    virtual ConstUnitDefinition UnitDefinition(
+        const proto::UnitDefinition& contract) = 0;
 
     /**   Create a new currency contract
      *
@@ -639,7 +610,7 @@ public:
      *                     fractional units
      *    \param[in] fraction the name of the fractional unit
      */
-    ConstUnitDefinition UnitDefinition(
+    virtual ConstUnitDefinition UnitDefinition(
         const std::string& nymid,
         const std::string& shortname,
         const std::string& name,
@@ -647,7 +618,7 @@ public:
         const std::string& terms,
         const std::string& tla,
         const std::uint32_t& power,
-        const std::string& fraction);
+        const std::string& fraction) = 0;
 
     /**   Create a new security contract
      *
@@ -661,16 +632,25 @@ public:
      *    \param[in] symbol symbol for the unit of account
      *    \param[in] terms human-readable terms and conditions
      */
-    ConstUnitDefinition UnitDefinition(
+    virtual ConstUnitDefinition UnitDefinition(
         const std::string& nymid,
         const std::string& shortname,
         const std::string& name,
         const std::string& symbol,
-        const std::string& terms);
+        const std::string& terms) = 0;
 
-    ~Wallet() = default;
+    virtual ~Wallet() = default;
+
+protected:
+    Wallet() = default;
+
+private:
+    Wallet(const Wallet&) = delete;
+    Wallet(Wallet&&) = delete;
+    Wallet& operator=(const Wallet&) = delete;
+    Wallet& operator=(Wallet&&) = delete;
 };
+}  // namespace client
 }  // namespace api
 }  // namespace opentxs
-
-#endif  // OPENTXS_API_WALLET_HPP
+#endif  // OPENTXS_API_CLIENT_WALLET_HPP

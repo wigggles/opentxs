@@ -40,8 +40,8 @@
 
 #include "opentxs/core/contract/ServerContract.hpp"
 
+#include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/Native.hpp"
-#include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/util/Assert.hpp"

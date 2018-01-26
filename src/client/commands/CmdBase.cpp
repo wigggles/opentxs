@@ -40,9 +40,9 @@
 
 #include "opentxs/client/commands/CmdBase.hpp"
 
+#include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/Api.hpp"
 #include "opentxs/api/Native.hpp"
-#include "opentxs/api/Wallet.hpp"
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/client/OTWallet.hpp"
 #include "opentxs/client/SwigWrap.hpp"

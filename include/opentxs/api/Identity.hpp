@@ -57,7 +57,10 @@ class OTPasswordData;
 
 namespace api
 {
+namespace client
+{
 class Wallet;
+}  // namespace client
 
 namespace implementation
 {
@@ -69,9 +72,9 @@ class Identity
 private:
     friend class implementation::Native;
 
-    api::Wallet& wallet_;
+    api::client::Wallet& wallet_;
 
-    Identity(api::Wallet& wallet);
+    Identity(api::client::Wallet& wallet);
     Identity() = delete;
     Identity(const Identity&) = delete;
     Identity& operator=(const Identity&) = delete;
