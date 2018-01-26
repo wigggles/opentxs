@@ -41,6 +41,7 @@
 #include "opentxs/api/implementation/Api.hpp"
 
 #include "opentxs/api/client/implementation/Pair.hpp"
+#include "opentxs/api/client/implementation/ServerAction.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/Activity.hpp"
 #include "opentxs/api/ContactManager.hpp"
@@ -159,6 +160,8 @@ void Api::Init()
 
     pair_.reset(new api::client::implementation::Pair(
         shutdown_, wallet_, *ot_api_, *otapi_exec_, *otme_too_));
+
+    server_action_.reset(new api::client::implementation::ServerAction());
 }
 
 const OTAPI_Exec& Api::Exec(const std::string&) const
@@ -203,6 +206,13 @@ const api::client::Pair& Api::Pair() const
     OT_ASSERT(pair_);
 
     return *pair_;
+}
+
+const api::client::ServerAction& Api::ServerAction() const
+{
+    OT_ASSERT(server_action_);
+
+    return *server_action_;
 }
 
 Api::~Api() {}

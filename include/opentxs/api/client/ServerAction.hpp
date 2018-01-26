@@ -36,57 +36,33 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_API_API_HPP
-#define OPENTXS_API_API_HPP
+#ifndef OPENTXS_API_CLIENT_SERVER_ACTION_HPP
+#define OPENTXS_API_CLIENT_SERVER_ACTION_HPP
 
 #include "opentxs/Version.hpp"
 
-#include <mutex>
-#include <string>
-
 namespace opentxs
 {
-class MadeEasy;
-class OT_API;
-class OT_ME;
-class OTAPI_Exec;
-class OTME_too;
-
 namespace api
 {
 namespace client
 {
-class Pair;
-class ServerAction;
-}  // namespace client
 
-class Api
+class ServerAction
 {
 public:
-    EXPORT virtual std::recursive_mutex& Lock() const = 0;
-
-    EXPORT virtual const OTAPI_Exec& Exec(
-        const std::string& wallet = "") const = 0;
-    EXPORT virtual const MadeEasy& ME(const std::string& wallet = "") const = 0;
-    EXPORT virtual const OT_API& OTAPI(
-        const std::string& wallet = "") const = 0;
-    EXPORT virtual const OT_ME& OTME(const std::string& wallet = "") const = 0;
-    EXPORT virtual const OTME_too& OTME_TOO(
-        const std::string& wallet = "") const = 0;
-    EXPORT virtual const client::Pair& Pair() const = 0;
-    EXPORT virtual const client::ServerAction& ServerAction() const = 0;
-
-    EXPORT virtual ~Api() = default;
+    virtual ~ServerAction() = default;
 
 protected:
-    Api() = default;
+    ServerAction() = default;
 
 private:
-    Api(const Api&) = delete;
-    Api(Api&&) = delete;
-    Api& operator=(const Api&) = delete;
-    Api& operator=(Api&&) = delete;
+    ServerAction(const ServerAction&) = delete;
+    ServerAction(ServerAction&&) = delete;
+    ServerAction& operator=(const ServerAction&) = delete;
+    ServerAction& operator=(ServerAction&&) = delete;
 };
+}  // namespace client
 }  // namespace api
 }  // namespace opentxs
-#endif  // OPENTXS_API_API_HPP
+#endif  // OPENTXS_API_CLIENT_SERVER_ACTION_HPP
