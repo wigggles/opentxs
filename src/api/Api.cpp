@@ -57,14 +57,14 @@ namespace opentxs::api::implementation
 {
 Api::Api(
     const std::atomic<bool>& shutdown,
-    api::Activity& activity,
-    api::Settings& config,
-    api::ContactManager& contacts,
-    api::Crypto& crypto,
-    api::Identity& identity,
-    api::storage::Storage& storage,
-    api::client::Wallet& wallet,
-    api::network::ZMQ& zmq)
+    const api::Activity& activity,
+    const api::Settings& config,
+    const api::ContactManager& contacts,
+    const api::Crypto& crypto,
+    const api::Identity& identity,
+    const api::storage::Storage& storage,
+    const api::client::Wallet& wallet,
+    const api::network::ZMQ& zmq)
     : shutdown_(shutdown)
     , activity_(activity)
     , config_(config)
@@ -161,44 +161,44 @@ void Api::Init()
         shutdown_, wallet_, *ot_api_, *otapi_exec_, *otme_too_));
 }
 
-OTAPI_Exec& Api::Exec(const std::string&)
+const OTAPI_Exec& Api::Exec(const std::string&) const
 {
     OT_ASSERT(otapi_exec_);
 
     return *otapi_exec_;
 }
 
-std::recursive_mutex& Api::Lock() const { return lock_; }
+const std::recursive_mutex& Api::Lock() const { return lock_; }
 
-MadeEasy& Api::ME(const std::string&)
+const MadeEasy& Api::ME(const std::string&) const
 {
     OT_ASSERT(made_easy_);
 
     return *made_easy_;
 }
 
-OT_API& Api::OTAPI(const std::string&)
+const OT_API& Api::OTAPI(const std::string&) const
 {
     OT_ASSERT(ot_api_);
 
     return *ot_api_;
 }
 
-OT_ME& Api::OTME(const std::string&)
+const OT_ME& Api::OTME(const std::string&) const
 {
     OT_ASSERT(ot_me_);
 
     return *ot_me_;
 }
 
-OTME_too& Api::OTME_TOO(const std::string&)
+const OTME_too& Api::OTME_TOO(const std::string&) const
 {
     OT_ASSERT(otme_too_);
 
     return *otme_too_;
 }
 
-const api::client::Pair& Api::Pair()
+const api::client::Pair& Api::Pair() const
 {
     OT_ASSERT(pair_);
 

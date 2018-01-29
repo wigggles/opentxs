@@ -64,8 +64,8 @@ namespace opentxs::server
 {
 
 bool ConfigLoader::load(
-    api::Crypto& crypto,
-    api::Settings& config,
+    const api::Crypto& crypto,
+    const api::Settings& config,
     String& walletFilename)
 {
     const char* szFunc = "ConfigLoader::load()";

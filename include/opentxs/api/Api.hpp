@@ -62,14 +62,17 @@ class Pair;
 class Api
 {
 public:
-    EXPORT virtual std::recursive_mutex& Lock() const = 0;
+    EXPORT virtual const std::recursive_mutex& Lock() const = 0;
 
-    EXPORT virtual OTAPI_Exec& Exec(const std::string& wallet = "") = 0;
-    EXPORT virtual MadeEasy& ME(const std::string& wallet = "") = 0;
-    EXPORT virtual OT_API& OTAPI(const std::string& wallet = "") = 0;
-    EXPORT virtual OT_ME& OTME(const std::string& wallet = "") = 0;
-    EXPORT virtual OTME_too& OTME_TOO(const std::string& wallet = "") = 0;
-    EXPORT virtual const client::Pair& Pair() = 0;
+    EXPORT virtual const OTAPI_Exec& Exec(
+        const std::string& wallet = "") const = 0;
+    EXPORT virtual const MadeEasy& ME(const std::string& wallet = "") const = 0;
+    EXPORT virtual const OT_API& OTAPI(
+        const std::string& wallet = "") const = 0;
+    EXPORT virtual const OT_ME& OTME(const std::string& wallet = "") const = 0;
+    EXPORT virtual const OTME_too& OTME_TOO(
+        const std::string& wallet = "") const = 0;
+    EXPORT virtual const client::Pair& Pair() const = 0;
 
     EXPORT virtual ~Api() = default;
 

@@ -44,6 +44,7 @@
 #if OT_DHT
 
 #include "opentxs/Types.hpp"
+#include "opentxs/api/network/implementation/Dht.hpp"
 
 #include <atomic>
 #include <memory>
@@ -64,7 +65,7 @@ class Data;
 class OpenDHT
 {
 private:
-    static OpenDHT* instance_;
+    friend class api::network::implementation::Dht;
 
     std::unique_ptr<const DhtConfig> config_;
     std::unique_ptr<dht::DhtRunner> node_;
@@ -80,7 +81,6 @@ private:
     bool Init() const;
 
 public:
-    static OpenDHT& It(const DhtConfig& config);
     void Insert(
         const std::string& key,
         const std::string& value,
@@ -89,7 +89,6 @@ public:
         const std::string& key,
         DhtResultsCallback vcb,
         DhtDoneCallback dcb = {}) const;
-    void Cleanup();
     ~OpenDHT();
 };
 

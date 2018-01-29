@@ -65,8 +65,8 @@ private:
     explicit AsymmetricKeySecp256k1(const String& publicKey);
 
 public:
-    Ecdsa& ECDSA() const override;
-    CryptoAsymmetric& engine() const override;
+    const Ecdsa& ECDSA() const override;
+    const CryptoAsymmetric& engine() const override;
     void Release_AsymmetricKeySecp256k1(){};
     void Release() override;
 

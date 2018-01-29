@@ -79,8 +79,10 @@ public:
         const ContactData& data,
         const proto::ContactItemType currency);
 
-    Contact(api::client::Wallet& wallet, const proto::Contact& serialized);
-    Contact(api::client::Wallet& wallet, const std::string& label);
+    Contact(
+        const api::client::Wallet& wallet,
+        const proto::Contact& serialized);
+    Contact(const api::client::Wallet& wallet, const std::string& label);
 
     operator proto::Contact() const;
     Contact& operator+=(Contact& rhs);
@@ -118,7 +120,7 @@ public:
     ~Contact() = default;
 
 private:
-    api::client::Wallet& wallet_;
+    const api::client::Wallet& wallet_;
     std::uint32_t version_{0};
     std::string label_{""};
     mutable std::mutex lock_{};

@@ -63,7 +63,7 @@
 namespace opentxs::api
 {
 
-Identity::Identity(api::client::Wallet& wallet)
+Identity::Identity(const api::client::Wallet& wallet)
     : wallet_(wallet)
 {
 }

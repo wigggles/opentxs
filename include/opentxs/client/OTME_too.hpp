@@ -102,16 +102,17 @@ public:
         const std::size_t max = DEFAULT_PROCESS_INBOX_ITEMS);
     Messagability CanMessage(
         const std::string& senderNymID,
-        const std::string& recipientContactID);
-    Identifier FindNym(const std::string& nymID, const std::string& serverHint);
-    Identifier FindServer(const std::string& serverID);
+        const std::string& recipientContactID) const;
+    Identifier FindNym(const std::string& nymID, const std::string& serverHint)
+        const;
+    Identifier FindServer(const std::string& serverID) const;
     const Identifier& GetIntroductionServer() const;
     std::string ImportNym(const std::string& armored) const;
     Identifier MessageContact(
         const std::string& senderNymID,
         const std::string& contactID,
-        const std::string& message);
-    void Refresh(const std::string& wallet = "");
+        const std::string& message) const;
+    void Refresh(const std::string& wallet = "") const;
     std::uint64_t RefreshCount() const;
     void RegisterIntroduction(const Identifier& nymID) const;
     bool RegisterNym(
@@ -121,11 +122,11 @@ public:
     Identifier RegisterNym_async(
         const std::string& nymID,
         const std::string& server,
-        const bool setContactData);
+        const bool setContactData) const;
     void SetInterval(const std::string& server, const std::uint64_t interval)
         const;
     std::string SetIntroductionServer(const std::string& contract) const;
-    ThreadStatus Status(const Identifier& thread);
+    ThreadStatus Status(const Identifier& thread) const;
 
     ~OTME_too();
 
@@ -165,15 +166,15 @@ private:
     static const std::string DEFAULT_INTRODUCTION_SERVER;
 
     std::recursive_mutex& api_lock_;
-    api::Settings& config_;
-    api::ContactManager& contacts_;
-    OT_API& ot_api_;
-    OTAPI_Exec& exec_;
+    const api::Settings& config_;
+    const api::ContactManager& contacts_;
+    const OT_API& ot_api_;
+    const OTAPI_Exec& exec_;
     const MadeEasy& made_easy_;
     const OT_ME& otme_;
-    api::client::Wallet& wallet_;
-    api::crypto::Encode& encoding_;
-    api::Identity& identity_;
+    const api::client::Wallet& wallet_;
+    const api::crypto::Encode& encoding_;
+    const api::Identity& identity_;
 
     mutable std::atomic<bool> refreshing_{false};
     mutable std::atomic<bool> shutdown_{false};
@@ -185,8 +186,8 @@ private:
     mutable std::mutex refresh_interval_lock_;
     mutable std::mutex introduction_server_lock_;
     mutable std::unique_ptr<std::thread> refresh_thread_;
-    std::map<Identifier, Thread> threads_;
-    MessagabilityMap messagability_map_;
+    mutable std::map<Identifier, Thread> threads_;
+    mutable MessagabilityMap messagability_map_;
     mutable std::map<std::string, std::uint64_t> refresh_interval_;
     mutable Identifier introduction_server_{};
 
@@ -195,14 +196,15 @@ private:
         const std::size_t max,
         const Identifier& accountID,
         ServerContext& context);
-    Identifier add_background_thread(BackgroundThread thread);
-    void add_checknym_tasks(const nymAccountMap nyms, serverTaskMap& tasks);
+    Identifier add_background_thread(BackgroundThread thread) const;
+    void add_checknym_tasks(const nymAccountMap nyms, serverTaskMap& tasks)
+        const;
     void build_account_list(serverTaskMap& output) const;
     void build_nym_list(std::list<std::string>& output) const;
     Messagability can_message(
         const std::string& sender,
         const std::string& recipient,
-        std::string& server);
+        std::string& server) const;
     bool check_nym_revision(const std::string& nymID, const std::string& server)
         const;
     bool check_server_registration(
@@ -220,7 +222,7 @@ private:
         const std::string& sender,
         const std::string& recipient,
         std::atomic<bool>* running,
-        std::atomic<bool>* exitStatus);
+        std::atomic<bool>* exitStatus) const;
     std::set<std::string> extract_message_servers(
         const std::string& nymID) const;
     void fill_registered_servers(
@@ -248,15 +250,16 @@ private:
     std::string import_default_introduction_server(const Lock& lock) const;
     std::uint64_t legacy_contact_count() const;
     void load_introduction_server() const;
-    void mailability(const std::string& sender, const std::string& recipient);
+    void mailability(const std::string& sender, const std::string& recipient)
+        const;
     void message_contact(
         const std::string& server,
         const std::string& senderNymID,
         const std::string& contactID,
         const std::string& message,
         std::atomic<bool>* running,
-        std::atomic<bool>* exitStatus);
-    bool need_to_refresh(const std::string& serverID);
+        std::atomic<bool>* exitStatus) const;
+    bool need_to_refresh(const std::string& serverID) const;
     std::string obtain_server_id(
         const std::string& ownerNym,
         const Nym& bridgeNym) const;
@@ -266,13 +269,13 @@ private:
         const std::string& nymID,
         const std::string& server,
         const bool forcePrimary) const;
-    void refresh_contacts(nymAccountMap& nymsToCheck);
-    void refresh_thread();
+    void refresh_contacts(nymAccountMap& nymsToCheck) const;
+    void refresh_thread() const;
     void register_nym(
         const std::string& nym,
         const std::string& server,
         std::atomic<bool>* running,
-        std::atomic<bool>* exitStatus);
+        std::atomic<bool>* exitStatus) const;
     void resend_bailment(
         const Identifier& nymID,
         const proto::PeerRequest& request) const;
@@ -306,15 +309,15 @@ private:
 
     OTME_too(
         std::recursive_mutex& lock,
-        api::Settings& config,
-        api::ContactManager& contacts,
-        OT_API& otapi,
-        OTAPI_Exec& exec,
+        const api::Settings& config,
+        const api::ContactManager& contacts,
+        const OT_API& otapi,
+        const OTAPI_Exec& exec,
         const MadeEasy& madeEasy,
         const OT_ME& otme,
-        api::client::Wallet& wallet,
-        api::crypto::Encode& encoding,
-        api::Identity& identity);
+        const api::client::Wallet& wallet,
+        const api::crypto::Encode& encoding,
+        const api::Identity& identity);
     OTME_too() = delete;
     OTME_too(const OTME_too&) = delete;
     OTME_too(OTME_too&&) = delete;

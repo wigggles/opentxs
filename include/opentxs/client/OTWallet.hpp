@@ -84,7 +84,9 @@ typedef std::set<Identifier> setOfIdentifiers;
 class OTWallet
 {
 public:
-    EXPORT OTWallet(api::Crypto& crypto, api::storage::Storage& storage);
+    EXPORT OTWallet(
+        const api::Crypto& crypto,
+        const api::storage::Storage& storage);
     ~OTWallet();
 
     EXPORT bool IsNymOnCachedKey(const Identifier& needle) const;  // needle
@@ -285,8 +287,8 @@ public:
     String m_strDataFolder;
 
 private:
-    api::Crypto& crypto_;
-    api::storage::Storage& storage_;
+    const api::Crypto& crypto_;
+    const api::storage::Storage& storage_;
 #if OT_CASH
     // While waiting on server response to withdrawal, store private coin data
     // here for unblinding

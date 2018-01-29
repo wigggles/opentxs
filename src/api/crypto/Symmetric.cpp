@@ -53,7 +53,7 @@ Symmetric::Symmetric(CryptoSymmetricNew& sodium)
 {
 }
 
-CryptoSymmetricNew* Symmetric::GetEngine(const proto::SymmetricMode mode)
+CryptoSymmetricNew* Symmetric::GetEngine(const proto::SymmetricMode mode) const
 {
     CryptoSymmetricNew* engine = nullptr;
 
@@ -69,7 +69,7 @@ CryptoSymmetricNew* Symmetric::GetEngine(const proto::SymmetricMode mode)
 
 std::unique_ptr<SymmetricKey> Symmetric::Key(
     const OTPasswordData& password,
-    const proto::SymmetricMode mode)
+    const proto::SymmetricMode mode) const
 {
     auto engine = GetEngine(mode);
 
@@ -80,7 +80,7 @@ std::unique_ptr<SymmetricKey> Symmetric::Key(
 
 std::unique_ptr<SymmetricKey> Symmetric::Key(
     const proto::SymmetricKey& serialized,
-    const proto::SymmetricMode mode)
+    const proto::SymmetricMode mode) const
 {
     auto engine = GetEngine(mode);
 
@@ -94,7 +94,7 @@ std::unique_ptr<SymmetricKey> Symmetric::Key(
     const std::uint64_t operations,
     const std::uint64_t difficulty,
     const proto::SymmetricMode mode,
-    const proto::SymmetricKeyType type)
+    const proto::SymmetricKeyType type) const
 {
     auto engine = GetEngine(mode);
 

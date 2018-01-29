@@ -124,11 +124,11 @@ private:
     const std::uint32_t MIN_TCP_PORT = 1024;
     const std::uint32_t MAX_TCP_PORT = 63356;
 
-    opentxs::api::Crypto& crypto_;
-    opentxs::api::Settings& config_;
-    opentxs::api::Server& mint_;
-    opentxs::api::storage::Storage& storage_;
-    opentxs::api::client::Wallet& wallet_;
+    const opentxs::api::Crypto& crypto_;
+    const opentxs::api::Settings& config_;
+    const opentxs::api::Server& mint_;
+    const opentxs::api::storage::Storage& storage_;
+    const opentxs::api::client::Wallet& wallet_;
     MainFile mainFile_;
     Notary notary_;
     Transactor transactor_;
@@ -149,11 +149,11 @@ private:
     OTCron m_Cron;  // This is where re-occurring and expiring tasks go.
 
     Server(
-        opentxs::api::Crypto& crypto,
-        opentxs::api::Settings& config,
-        opentxs::api::Server& mint,
-        opentxs::api::storage::Storage& storage,
-        opentxs::api::client::Wallet& wallet);
+        const opentxs::api::Crypto& crypto,
+        const opentxs::api::Settings& config,
+        const opentxs::api::Server& mint,
+        const opentxs::api::storage::Storage& storage,
+        const opentxs::api::client::Wallet& wallet);
 
     void CreateMainFile(bool& mainFileExists);
     // Note: SendInstrumentToNym and SendMessageToNym CALL THIS.

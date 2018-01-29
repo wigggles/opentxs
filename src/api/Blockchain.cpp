@@ -81,10 +81,10 @@
 namespace opentxs::api
 {
 Blockchain::Blockchain(
-    Activity& activity,
-    Crypto& crypto,
-    storage::Storage& storage,
-    client::Wallet& wallet)
+    const Activity& activity,
+    const Crypto& crypto,
+    const storage::Storage& storage,
+    const client::Wallet& wallet)
     : activity_(activity)
     , crypto_(crypto)
     , storage_(storage)

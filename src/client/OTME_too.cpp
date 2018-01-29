@@ -162,15 +162,15 @@ OTME_too::Cleanup::~Cleanup() { run_.store(false); }
 
 OTME_too::OTME_too(
     std::recursive_mutex& lock,
-    api::Settings& config,
-    api::ContactManager& contacts,
-    OT_API& otapi,
-    OTAPI_Exec& exec,
+    const api::Settings& config,
+    const api::ContactManager& contacts,
+    const OT_API& otapi,
+    const OTAPI_Exec& exec,
     const MadeEasy& madeEasy,
     const OT_ME& otme,
-    api::client::Wallet& wallet,
-    api::crypto::Encode& encoding,
-    api::Identity& identity)
+    const api::client::Wallet& wallet,
+    const api::crypto::Encode& encoding,
+    const api::Identity& identity)
     : api_lock_(lock)
     , config_(config)
     , contacts_(contacts)
@@ -278,13 +278,12 @@ std::pair<bool, std::size_t> OTME_too::accept_incoming(
         account,
         String(*response).Get());
     success =
-        (1 ==
-         otme_.InterpretTransactionMsgReply(
-             String(context.Server()).Get(),
-             String(context.Nym()->ID()).Get(),
-             account,
-             "process_inbox",
-             result));
+        (1 == otme_.InterpretTransactionMsgReply(
+                  String(context.Server()).Get(),
+                  String(context.Nym()->ID()).Get(),
+                  account,
+                  "process_inbox",
+                  result));
 
     return output;
 }
@@ -342,7 +341,7 @@ bool OTME_too::AcceptIncoming(
     return true;
 }
 
-Identifier OTME_too::add_background_thread(BackgroundThread thread)
+Identifier OTME_too::add_background_thread(BackgroundThread thread) const
 {
     Identifier output;
 
@@ -370,7 +369,7 @@ Identifier OTME_too::add_background_thread(BackgroundThread thread)
 
 void OTME_too::add_checknym_tasks(
     const nymAccountMap nyms,
-    serverTaskMap& tasks)
+    serverTaskMap& tasks) const
 {
     for (const auto nym : nyms) {
         const auto& serverID = nym.first;
@@ -448,7 +447,7 @@ void OTME_too::build_nym_list(std::list<std::string>& output) const
 Messagability OTME_too::can_message(
     const std::string& senderNymID,
     const std::string& recipientContactID,
-    std::string& server)
+    std::string& server) const
 {
     auto senderNym = wallet_.Nym(Identifier(senderNymID));
 
@@ -538,7 +537,7 @@ Messagability OTME_too::can_message(
 
 Messagability OTME_too::CanMessage(
     const std::string& sender,
-    const std::string& recipient)
+    const std::string& recipient) const
 {
     std::string notUsed;
 
@@ -663,7 +662,7 @@ void OTME_too::establish_mailability(
     const std::string& sender,
     const std::string& recipient,
     std::atomic<bool>* running,
-    std::atomic<bool>* exitStatus)
+    std::atomic<bool>* exitStatus) const
 {
     OT_ASSERT(nullptr != running)
     OT_ASSERT(nullptr != exitStatus)
@@ -927,20 +926,20 @@ void OTME_too::find_server(
 
 Identifier OTME_too::FindNym(
     const std::string& nymID,
-    const std::string& serverHint)
+    const std::string& serverHint) const
 {
-    OTME_too::BackgroundThread thread =
-        [=](std::atomic<bool>* running, std::atomic<bool>* exit) -> void {
+    OTME_too::BackgroundThread thread = [=](std::atomic<bool>* running,
+                                            std::atomic<bool>* exit) -> void {
         find_nym(nymID, serverHint, running, exit);
     };
 
     return add_background_thread(thread);
 }
 
-Identifier OTME_too::FindServer(const std::string& serverID)
+Identifier OTME_too::FindServer(const std::string& serverID) const
 {
-    OTME_too::BackgroundThread thread =
-        [=](std::atomic<bool>* running, std::atomic<bool>* exit) -> void {
+    OTME_too::BackgroundThread thread = [=](std::atomic<bool>* running,
+                                            std::atomic<bool>* exit) -> void {
         find_server(serverID, running, exit);
     };
 
@@ -1069,10 +1068,10 @@ void OTME_too::load_introduction_server() const
 
 void OTME_too::mailability(
     const std::string& sender,
-    const std::string& recipient)
+    const std::string& recipient) const
 {
-    OTME_too::BackgroundThread thread =
-        [=](std::atomic<bool>* running, std::atomic<bool>* exit) -> void {
+    OTME_too::BackgroundThread thread = [=](std::atomic<bool>* running,
+                                            std::atomic<bool>* exit) -> void {
         establish_mailability(sender, recipient, running, exit);
     };
 
@@ -1085,7 +1084,7 @@ void OTME_too::message_contact(
     const std::string& contactID,
     const std::string& message,
     std::atomic<bool>* running,
-    std::atomic<bool>* exitStatus)
+    std::atomic<bool>* exitStatus) const
 {
     OT_ASSERT(nullptr != running)
     OT_ASSERT(nullptr != exitStatus)
@@ -1143,7 +1142,7 @@ void OTME_too::message_contact(
 Identifier OTME_too::MessageContact(
     const std::string& senderNymID,
     const std::string& contactID,
-    const std::string& message)
+    const std::string& message) const
 {
     std::string server;
     const auto messagability = can_message(senderNymID, contactID, server);
@@ -1156,15 +1155,15 @@ Identifier OTME_too::MessageContact(
         return {};
     }
 
-    OTME_too::BackgroundThread thread =
-        [=](std::atomic<bool>* running, std::atomic<bool>* exit) -> void {
+    OTME_too::BackgroundThread thread = [=](std::atomic<bool>* running,
+                                            std::atomic<bool>* exit) -> void {
         message_contact(server, senderNymID, contactID, message, running, exit);
     };
 
     return add_background_thread(thread);
 }
 
-bool OTME_too::need_to_refresh(const std::string& serverID)
+bool OTME_too::need_to_refresh(const std::string& serverID) const
 {
     Lock lock(refresh_interval_lock_);
 
@@ -1271,7 +1270,7 @@ bool OTME_too::publish_server_registration(
     return nym.AddPreferredOTServer(server, forcePrimary);
 }
 
-void OTME_too::refresh_contacts(nymAccountMap& nymsToCheck)
+void OTME_too::refresh_contacts(nymAccountMap& nymsToCheck) const
 {
     for (const auto& it : contacts_.ContactList()) {
         const auto& contactID = it.first;
@@ -1331,7 +1330,7 @@ void OTME_too::refresh_contacts(nymAccountMap& nymsToCheck)
     }
 }
 
-void OTME_too::refresh_thread()
+void OTME_too::refresh_thread() const
 {
     Cleanup cleanup(refreshing_);
     otInfo << OT_METHOD << __FUNCTION__ << ": Starting refresh loop."
@@ -1470,7 +1469,7 @@ void OTME_too::refresh_thread()
     otInfo << OT_METHOD << __FUNCTION__ << ": Refresh complete." << std::endl;
 }
 
-void OTME_too::Refresh(const std::string&)
+void OTME_too::Refresh(const std::string&) const
 {
     const auto refreshing = refreshing_.exchange(true);
 
@@ -1488,7 +1487,7 @@ void OTME_too::register_nym(
     const std::string& nymID,
     const std::string& server,
     std::atomic<bool>* running,
-    std::atomic<bool>* exitStatus)
+    std::atomic<bool>* exitStatus) const
 {
     OT_ASSERT(nullptr != running)
     OT_ASSERT(nullptr != exitStatus)
@@ -1540,14 +1539,14 @@ bool OTME_too::RegisterNym(
 Identifier OTME_too::RegisterNym_async(
     const std::string& nymID,
     const std::string& server,
-    const bool setContactData)
+    const bool setContactData) const
 {
     if (setContactData) {
         publish_server_registration(nymID, server, false);
     }
 
-    OTME_too::BackgroundThread thread =
-        [=](std::atomic<bool>* running, std::atomic<bool>* exit) -> void {
+    OTME_too::BackgroundThread thread = [=](std::atomic<bool>* running,
+                                            std::atomic<bool>* exit) -> void {
         register_nym(nymID, server, running, exit);
     };
 
@@ -1817,7 +1816,7 @@ void OTME_too::Shutdown()
     }
 }
 
-ThreadStatus OTME_too::Status(const Identifier& thread)
+ThreadStatus OTME_too::Status(const Identifier& thread) const
 {
     if (shutdown_.load()) {
         return ThreadStatus::SHUTDOWN;

@@ -70,12 +70,12 @@ AsymmetricKeyEd25519::AsymmetricKeyEd25519(const String& publicKey)
 {
 }
 
-Ecdsa& AsymmetricKeyEd25519::ECDSA() const
+const Ecdsa& AsymmetricKeyEd25519::ECDSA() const
 {
-    return static_cast<Libsodium&>(engine());
+    return static_cast<const Libsodium&>(engine());
 }
 
-CryptoAsymmetric& AsymmetricKeyEd25519::engine() const
+const CryptoAsymmetric& AsymmetricKeyEd25519::engine() const
 {
     return OT::App().Crypto().ED25519();
 }

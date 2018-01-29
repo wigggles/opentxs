@@ -103,9 +103,9 @@ namespace opentxs
 {
 OTClient::OTClient(
     OTWallet& theWallet,
-    api::Activity& activity,
-    api::ContactManager& contacts,
-    api::client::Wallet& wallet)
+    const api::Activity& activity,
+    const api::ContactManager& contacts,
+    const api::client::Wallet& wallet)
     : m_pWallet(theWallet)
     , activity_(activity)
     , contacts_(contacts)
@@ -691,9 +691,10 @@ bool OTClient::AcceptEntireNymbox(
                 // Trans number is already issued to this nym (must be an old
                 // notice.)
                 if (context.VerifyIssuedNumber(it)) {
-                    otOut << __FUNCTION__ << ": Attempted to accept a blank "
-                                             "transaction number that I "
-                                             "ALREADY HAD...(Skipping.)\n";
+                    otOut << __FUNCTION__
+                          << ": Attempted to accept a blank "
+                             "transaction number that I "
+                             "ALREADY HAD...(Skipping.)\n";
                 } else if (context.VerifyTentativeNumber(it)) {
                     otOut << __FUNCTION__
                           << ": Attempted to accept a blank transaction number "
@@ -1944,8 +1945,9 @@ void OTClient::ProcessDepositChequeResponse(
     if (!pLedger || !pLedger->LoadPaymentInbox() ||
         !pLedger->VerifyAccount(nym)) {
         // Not necessarily a problem.
-        otWarn << __FUNCTION__ << ": Unable to load or verify "
-                                  "payments inbox: User "
+        otWarn << __FUNCTION__
+               << ": Unable to load or verify "
+                  "payments inbox: User "
                << String(nymID) << " / Acct " << String(nymID) << "\n";
         return;
     }
@@ -3395,9 +3397,8 @@ bool OTClient::processServerReplyProcessInbox(
                             if (nullptr == pTradeData)
                                 continue;  // Should never happen.
 
-                            if (0 ==
-                                pTradeData->updated_id.compare(
-                                    pData->updated_id))  // Found it!
+                            if (0 == pTradeData->updated_id.compare(
+                                         pData->updated_id))  // Found it!
                             {
                                 // It's a repeat of the same one. (Discard.)
                                 if ((!pTradeData->instrument_definition_id
@@ -4116,7 +4117,7 @@ bool OTClient::processServerReplyProcessNymbox(
                                 (!bCancelling && !bIsActivatingNym)
                                 // or if activating, and Nym is not the
                                 // activator...
-                                ) {
+                            ) {
                                 // REJECTION
                                 if (Item::rejection == pReplyItem->GetStatus())
                                 // (This is where we remove the opening number,
@@ -4973,7 +4974,7 @@ bool OTClient::processServerReplyProcessNymbox(
             case Item::atAcceptMessage:
             case Item::atAcceptTransaction:
                 break;
-            // I don't think we need to do anything here...
+                // I don't think we need to do anything here...
 
             case Item::atAcceptFinalReceipt: {
                 otInfo << __FUNCTION__
@@ -5299,9 +5300,8 @@ bool OTClient::processServerReplyProcessBox(
                 String strFinal;
                 OTASCIIArmor ascTemp(strTransaction);
 
-                if (false ==
-                    ascTemp.WriteArmoredString(
-                        strFinal, "TRANSACTION"))  // todo hardcoding.
+                if (false == ascTemp.WriteArmoredString(
+                                 strFinal, "TRANSACTION"))  // todo hardcoding.
                 {
                     otErr << "OTClient::ProcessServerReply: Error saving "
                              "transaction receipt "

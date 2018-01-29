@@ -124,10 +124,10 @@ private:
 #endif  // OT_CASH
 
     const ArgList& args_;
-    api::Settings& config_;
-    api::Crypto& crypto_;
-    api::storage::Storage& storage_;
-    api::client::Wallet& wallet_;
+    const api::Settings& config_;
+    const api::Crypto& crypto_;
+    const api::storage::Storage& storage_;
+    const api::client::Wallet& wallet_;
     std::atomic<bool>& shutdown_;
     const opentxs::network::zeromq::Context& zmq_context_;
     std::unique_ptr<server::Server> server_p_;
@@ -180,10 +180,10 @@ private:
 
     Server(
         const ArgList& args,
-        api::Crypto& crypto,
-        api::Settings& config,
-        api::storage::Storage& storage,
-        api::client::Wallet& wallet,
+        const api::Crypto& crypto,
+        const api::Settings& config,
+        const api::storage::Storage& storage,
+        const api::client::Wallet& wallet,
         std::atomic<bool>& shutdown,
         const opentxs::network::zeromq::Context& context);
     Server() = delete;

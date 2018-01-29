@@ -63,8 +63,8 @@ private:
     explicit AsymmetricKeyEd25519(const String& publicKey);
 
 public:
-    Ecdsa& ECDSA() const override;
-    CryptoAsymmetric& engine() const override;
+    const Ecdsa& ECDSA() const override;
+    const CryptoAsymmetric& engine() const override;
     bool hasCapability(const NymCapability& capability) const override;
     void Release_AsymmetricKeyEd25519() {}
     void Release() override;

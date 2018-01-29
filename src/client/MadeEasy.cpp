@@ -58,9 +58,9 @@ namespace opentxs
 {
 MadeEasy::MadeEasy(
     std::recursive_mutex& lock,
-    OTAPI_Exec& exec,
-    OT_API& otapi,
-    api::client::Wallet& wallet)
+    const OTAPI_Exec& exec,
+    const OT_API& otapi,
+    const api::client::Wallet& wallet)
     : lock_(lock)
     , exec_(exec)
     , otapi_(otapi)
@@ -917,9 +917,10 @@ bool MadeEasy::processCashPurse(
             // If change failed, then continue.
             //
             if (!VerifyStringVal(exportedToken)) {
-                otOut << strLocation << ": 1, OT_API_Token_ChangeOwner "
-                                        "returned null...(should never "
-                                        "happen) Returning null.\n";
+                otOut << strLocation
+                      << ": 1, OT_API_Token_ChangeOwner "
+                         "returned null...(should never "
+                         "happen) Returning null.\n";
                 return false;
             }
 
@@ -935,9 +936,10 @@ bool MadeEasy::processCashPurse(
             // If change failed, then continue.
             //
             if (!VerifyStringVal(retainedToken)) {
-                otOut << strLocation << ":  2, OT_API_Token_ChangeOwner "
-                                        "returned null...(should never "
-                                        "happen) Returning null.\n";
+                otOut << strLocation
+                      << ":  2, OT_API_Token_ChangeOwner "
+                         "returned null...(should never "
+                         "happen) Returning null.\n";
                 return false;
             }
 
@@ -1024,8 +1026,9 @@ bool MadeEasy::processCashPurse(
                 // No modal?
                 //
                 // FT: adding log.
-                otOut << strLocation << ": OT_API_SavePurse "
-                                        "FAILED. SHOULD NEVER HAPPEN!!!!!!\n";
+                otOut << strLocation
+                      << ": OT_API_SavePurse "
+                         "FAILED. SHOULD NEVER HAPPEN!!!!!!\n";
                 return false;
             }
         } else  // old purse IS password protected. (So return its updated
@@ -1166,9 +1169,10 @@ bool MadeEasy::processCashPurse(
                     strSender,      // old owner
                     strRecipient);  // new owner
                 if (!VerifyStringVal(exportedToken)) {
-                    otOut << strLocation << ": 1  OT_API_Token_ChangeOwner "
-                                            "returned null... SHOULD NEVER "
-                                            "HAPPEN. Returning now.\n";
+                    otOut << strLocation
+                          << ": 1  OT_API_Token_ChangeOwner "
+                             "returned null... SHOULD NEVER "
+                             "HAPPEN. Returning now.\n";
                     return false;
                 }
 
@@ -1180,9 +1184,10 @@ bool MadeEasy::processCashPurse(
                     strSender,              // old owner
                     strSenderAsRecipient);  // new owner
                 if (!VerifyStringVal(retainedToken)) {
-                    otOut << strLocation << ": 2  OT_API_Token_ChangeOwner "
-                                            "returned null... SHOULD NEVER "
-                                            "HAPPEN. Returning now.\n";
+                    otOut << strLocation
+                          << ": 2  OT_API_Token_ChangeOwner "
+                             "returned null... SHOULD NEVER "
+                             "HAPPEN. Returning now.\n";
                     return false;
                 }
 
@@ -1276,8 +1281,9 @@ bool MadeEasy::processCashPurse(
                 // No modal?
                 //
                 // FT: adding log.
-                otOut << strLocation << ":  OT_API_SavePurse "
-                                        "FAILED. SHOULD NEVER HAPPEN!!!!!!\n";
+                otOut << strLocation
+                      << ":  OT_API_SavePurse "
+                         "FAILED. SHOULD NEVER HAPPEN!!!!!!\n";
                 return false;
             }
         } else  // old purse IS password protected. (So return its updated

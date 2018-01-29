@@ -75,22 +75,22 @@ class Wallet : virtual public opentxs::api::client::Wallet
 public:
     std::shared_ptr<const opentxs::Context> Context(
         const Identifier& notaryID,
-        const Identifier& clientNymID) override;
+        const Identifier& clientNymID) const override;
     std::shared_ptr<const opentxs::ClientContext> ClientContext(
         const Identifier& localNymID,
-        const Identifier& remoteNymID) override;
+        const Identifier& remoteNymID) const override;
     std::shared_ptr<const opentxs::ServerContext> ServerContext(
         const Identifier& localNymID,
-        const Identifier& remoteID) override;
+        const Identifier& remoteID) const override;
     Editor<opentxs::Context> mutable_Context(
         const Identifier& notaryID,
-        const Identifier& clientNymID) override;
+        const Identifier& clientNymID) const override;
     Editor<opentxs::ClientContext> mutable_ClientContext(
         const Identifier& localNymID,
-        const Identifier& remoteNymID) override;
+        const Identifier& remoteNymID) const override;
     Editor<opentxs::ServerContext> mutable_ServerContext(
         const Identifier& localNymID,
-        const Identifier& remoteID) override;
+        const Identifier& remoteID) const override;
     std::set<Identifier> IssuerList(const Identifier& nymID) const override;
     std::shared_ptr<const class Issuer> Issuer(
         const Identifier& nymID,
@@ -101,9 +101,9 @@ public:
     ConstNym Nym(
         const Identifier& id,
         const std::chrono::milliseconds& timeout =
-            std::chrono::milliseconds(0)) override;
-    ConstNym Nym(const proto::CredentialIndex& nym) override;
-    NymData mutable_Nym(const Identifier& id) override;
+            std::chrono::milliseconds(0)) const override;
+    ConstNym Nym(const proto::CredentialIndex& nym) const override;
+    NymData mutable_Nym(const Identifier& id) const override;
     ObjectList NymList() const override;
     std::shared_ptr<proto::PeerReply> PeerReply(
         const Identifier& nym,
@@ -153,31 +153,33 @@ public:
         const Identifier& nym,
         const Identifier& request,
         const StorageBox& box) const override;
-    bool RemoveServer(const Identifier& id) override;
-    bool RemoveUnitDefinition(const Identifier& id) override;
+    bool RemoveServer(const Identifier& id) const override;
+    bool RemoveUnitDefinition(const Identifier& id) const override;
     ConstServerContract Server(
         const Identifier& id,
         const std::chrono::milliseconds& timeout =
-            std::chrono::milliseconds(0)) override;
-    ConstServerContract Server(const proto::ServerContract& contract) override;
+            std::chrono::milliseconds(0)) const override;
+    ConstServerContract Server(
+        const proto::ServerContract& contract) const override;
     ConstServerContract Server(
         const std::string& nymid,
         const std::string& name,
         const std::string& terms,
-        const std::list<ServerContract::Endpoint>& endpoints) override;
-    ObjectList ServerList() override;
-    bool SetNymAlias(const Identifier& id, const std::string& alias) override;
+        const std::list<ServerContract::Endpoint>& endpoints) const override;
+    ObjectList ServerList() const override;
+    bool SetNymAlias(const Identifier& id, const std::string& alias)
+        const override;
     bool SetServerAlias(const Identifier& id, const std::string& alias)
-        override;
+        const override;
     bool SetUnitDefinitionAlias(const Identifier& id, const std::string& alias)
-        override;
-    ObjectList UnitDefinitionList() override;
-    ConstUnitDefinition UnitDefinition(
+        const override;
+    ObjectList UnitDefinitionList() const override;
+    const ConstUnitDefinition UnitDefinition(
         const Identifier& id,
         const std::chrono::milliseconds& timeout =
-            std::chrono::milliseconds(0)) override;
+            std::chrono::milliseconds(0)) const override;
     ConstUnitDefinition UnitDefinition(
-        const proto::UnitDefinition& contract) override;
+        const proto::UnitDefinition& contract) const override;
     ConstUnitDefinition UnitDefinition(
         const std::string& nymid,
         const std::string& shortname,
@@ -186,13 +188,13 @@ public:
         const std::string& terms,
         const std::string& tla,
         const std::uint32_t& power,
-        const std::string& fraction) override;
+        const std::string& fraction) const override;
     ConstUnitDefinition UnitDefinition(
         const std::string& nymid,
         const std::string& shortname,
         const std::string& name,
         const std::string& symbol,
-        const std::string& terms) override;
+        const std::string& terms) const override;
 
     ~Wallet();
 
@@ -212,10 +214,10 @@ private:
     friend class opentxs::api::implementation::Native;
 
     Native& ot_;
-    NymMap nym_map_;
-    ServerMap server_map_;
-    UnitMap unit_map_;
-    ContextMap context_map_;
+    mutable NymMap nym_map_;
+    mutable ServerMap server_map_;
+    mutable UnitMap unit_map_;
+    mutable ContextMap context_map_;
     mutable IssuerMap issuer_map_;
     mutable std::mutex nym_map_lock_;
     mutable std::mutex server_map_lock_;
@@ -234,7 +236,7 @@ private:
 
     std::shared_ptr<class Context> context(
         const Identifier& localNymID,
-        const Identifier& remoteNymID);
+        const Identifier& remoteNymID) const;
     IssuerLock& issuer(
         const Identifier& nymID,
         const Identifier& issuerID,
@@ -248,8 +250,8 @@ private:
      *
      *    \param[in] contract the instantiated ServerContract object
      */
-    ConstServerContract Server(std::unique_ptr<ServerContract>& contract);
-    Identifier ServerToNym(Identifier& serverID);
+    ConstServerContract Server(std::unique_ptr<ServerContract>& contract) const;
+    Identifier ServerToNym(Identifier& serverID) const;
 
     /**   Save an instantiated unit definition to storage and add to internal
      *    map.
@@ -260,7 +262,7 @@ private:
      *    \param[in] contract the instantiated UnitDefinition object
      */
     ConstUnitDefinition UnitDefinition(
-        std::unique_ptr<class UnitDefinition>& contract);
+        std::unique_ptr<class UnitDefinition>& contract) const;
 
     Wallet(Native& ot);
     Wallet() = delete;

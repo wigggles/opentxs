@@ -66,19 +66,16 @@ public:
     typedef std::function<void(const std::string)> NotifyCB;
     typedef std::map<Callback, NotifyCB> CallbackMap;
 
-    EXPORT virtual void Cleanup() = 0;
-    EXPORT virtual void GetPublicNym(const std::string& key) = 0;
-    EXPORT virtual void GetServerContract(const std::string& key) = 0;
-    EXPORT virtual void GetUnitDefinition(const std::string& key) = 0;
-    EXPORT virtual void Insert(
-        const std::string& key,
-        const std::string& value) = 0;
-    EXPORT virtual void Insert(const proto::CredentialIndex& nym) = 0;
-    EXPORT virtual void Insert(const proto::ServerContract& contract) = 0;
-    EXPORT virtual void Insert(const proto::UnitDefinition& contract) = 0;
-    EXPORT virtual void RegisterCallbacks(const CallbackMap& callbacks) = 0;
-
-    EXPORT virtual ~Dht() = default;
+    EXPORT virtual void GetPublicNym(const std::string& key) const = 0;
+    EXPORT virtual void GetServerContract(const std::string& key) const = 0;
+    EXPORT virtual void GetUnitDefinition(const std::string& key) const = 0;
+    EXPORT virtual void Insert(const std::string& key, const std::string& value)
+        const = 0;
+    EXPORT virtual void Insert(const proto::CredentialIndex& nym) const = 0;
+    EXPORT virtual void Insert(const proto::ServerContract& contract) const = 0;
+    EXPORT virtual void Insert(const proto::UnitDefinition& contract) const = 0;
+    EXPORT virtual void RegisterCallbacks(
+        const CallbackMap& callbacks) const = 0;
 
 protected:
     Dht() = default;

@@ -80,17 +80,17 @@ public:
     const opentxs::network::zeromq::Context& Context() const override;
     std::chrono::seconds KeepAlive() const override;
     void KeepAlive(const std::chrono::seconds duration) const override;
-    std::chrono::seconds Linger() override;
+    std::chrono::seconds Linger() const override;
     std::shared_ptr<opentxs::network::zeromq::Context> NewContext()
         const override;
-    std::chrono::seconds ReceiveTimeout() override;
-    void RefreshConfig() override;
-    std::chrono::seconds SendTimeout() override;
+    std::chrono::seconds ReceiveTimeout() const override;
+    void RefreshConfig() const override;
+    std::chrono::seconds SendTimeout() const override;
 
-    ServerConnection& Server(const std::string& id) override;
-    bool SetSocksProxy(const std::string& proxy) override;
-    std::string SocksProxy() override;
-    bool SocksProxy(std::string& proxy) override;
+    ServerConnection& Server(const std::string& id) const override;
+    bool SetSocksProxy(const std::string& proxy) const override;
+    std::string SocksProxy() const override;
+    bool SocksProxy(std::string& proxy) const override;
     ConnectionState Status(const std::string& server) const override;
 
     ~ZMQ();
@@ -99,23 +99,23 @@ private:
     friend class opentxs::api::implementation::Native;
 
     const opentxs::network::zeromq::Context& context_;
-    api::Settings& config_;
-    std::atomic<std::chrono::seconds> linger_;
-    std::atomic<std::chrono::seconds> receive_timeout_;
-    std::atomic<std::chrono::seconds> send_timeout_;
+    const api::Settings& config_;
+    mutable std::atomic<std::chrono::seconds> linger_;
+    mutable std::atomic<std::chrono::seconds> receive_timeout_;
+    mutable std::atomic<std::chrono::seconds> send_timeout_;
     mutable std::atomic<std::chrono::seconds> keep_alive_;
     mutable std::atomic<bool> shutdown_;
     mutable std::mutex lock_;
-    std::string socks_proxy_;
-    std::map<std::string, std::unique_ptr<ServerConnection>>
+    mutable std::string socks_proxy_;
+    mutable std::map<std::string, std::unique_ptr<ServerConnection>>
         server_connections_;
 
     bool verify_lock(const Lock& lock) const;
 
-    void init(const Lock& lock);
+    void init(const Lock& lock) const;
 
     ZMQ(const opentxs::network::zeromq::Context& context,
-        api::Settings& config);
+        const api::Settings& config);
     ZMQ() = delete;
     ZMQ(const ZMQ&) = delete;
     ZMQ(ZMQ&&) = delete;

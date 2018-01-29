@@ -125,9 +125,9 @@ private:
     };
 
     Server& server_;
-    opentxs::api::Settings& config_;
-    opentxs::api::Server& mint_;
-    opentxs::api::client::Wallet& wallet_;
+    const opentxs::api::Settings& config_;
+    const opentxs::api::Server& mint_;
+    const opentxs::api::client::Wallet& wallet_;
 
     bool add_numbers_to_nymbox(
         const TransactionNumber transactionNumber,
@@ -227,9 +227,9 @@ private:
 
     explicit UserCommandProcessor(
         Server& server,
-        opentxs::api::Settings& config,
-        opentxs::api::Server& mint,
-        opentxs::api::client::Wallet& wallet);
+        const opentxs::api::Settings& config,
+        const opentxs::api::Server& mint,
+        const opentxs::api::client::Wallet& wallet);
     UserCommandProcessor() = delete;
     UserCommandProcessor(const UserCommandProcessor&) = delete;
     UserCommandProcessor(UserCommandProcessor&&) = delete;

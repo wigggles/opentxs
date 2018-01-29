@@ -53,63 +53,51 @@
 
 namespace opentxs::api::network::implementation
 {
-Dht::Dht(DhtConfig& config, api::client::Wallet& wallet)
+Dht::Dht(DhtConfig& config, const api::client::Wallet& wallet)
     : wallet_(wallet)
     , config_(new DhtConfig(config))
-{
-    Init();
-}
-
-void Dht::Init()
-{
 #if OT_DHT
-    node_ = &OpenDHT::It(*config_);
+    , node_(new OpenDHT(*config_))
 #endif
+{
 }
 
 void Dht::Insert(
     __attribute__((unused)) const std::string& key,
-    __attribute__((unused)) const std::string& value)
+    __attribute__((unused)) const std::string& value) const
 {
 #if OT_DHT
-    OT_ASSERT(nullptr != node_);
-
     node_->Insert(key, value);
 #endif
 }
 
-void Dht::Insert(__attribute__((unused)) const serializedCredentialIndex& nym)
+void Dht::Insert(__attribute__((unused))
+                 const serializedCredentialIndex& nym) const
 {
 #if OT_DHT
-    OT_ASSERT(nullptr != node_);
-
     node_->Insert(nym.nymid(), proto::ProtoAsString(nym));
 #endif
 }
 
-void Dht::Insert(__attribute__((unused)) const proto::ServerContract& contract)
+void Dht::Insert(__attribute__((unused))
+                 const proto::ServerContract& contract) const
 {
 #if OT_DHT
-    OT_ASSERT(nullptr != node_);
-
     node_->Insert(contract.id(), proto::ProtoAsString(contract));
 #endif
 }
 
-void Dht::Insert(__attribute__((unused)) const proto::UnitDefinition& contract)
+void Dht::Insert(__attribute__((unused))
+                 const proto::UnitDefinition& contract) const
 {
 #if OT_DHT
-    OT_ASSERT(nullptr != node_);
-
     node_->Insert(contract.id(), proto::ProtoAsString(contract));
 #endif
 }
 
-void Dht::GetPublicNym(__attribute__((unused)) const std::string& key)
+void Dht::GetPublicNym(__attribute__((unused)) const std::string& key) const
 {
 #if OT_DHT
-    OT_ASSERT(nullptr != node_);
-
     auto it = callback_map_.find(Dht::Callback::PUBLIC_NYM);
     bool haveCB = (it != callback_map_.end());
     NotifyCB notifyCB;
@@ -127,11 +115,10 @@ void Dht::GetPublicNym(__attribute__((unused)) const std::string& key)
 #endif
 }
 
-void Dht::GetServerContract(__attribute__((unused)) const std::string& key)
+void Dht::GetServerContract(__attribute__((unused))
+                            const std::string& key) const
 {
 #if OT_DHT
-    OT_ASSERT(nullptr != node_);
-
     auto it = callback_map_.find(Dht::Callback::SERVER_CONTRACT);
     bool haveCB = (it != callback_map_.end());
     NotifyCB notifyCB;
@@ -149,11 +136,10 @@ void Dht::GetServerContract(__attribute__((unused)) const std::string& key)
 #endif
 }
 
-void Dht::GetUnitDefinition(__attribute__((unused)) const std::string& key)
+void Dht::GetUnitDefinition(__attribute__((unused))
+                            const std::string& key) const
 {
 #if OT_DHT
-    OT_ASSERT(nullptr != node_);
-
     auto it = callback_map_.find(Dht::Callback::ASSET_CONTRACT);
     bool haveCB = (it != callback_map_.end());
     NotifyCB notifyCB;
@@ -173,7 +159,7 @@ void Dht::GetUnitDefinition(__attribute__((unused)) const std::string& key)
 
 #if OT_DHT
 bool Dht::ProcessPublicNym(
-    api::client::Wallet& wallet,
+    const api::client::Wallet& wallet,
     const std::string key,
     const DhtResults& values,
     NotifyCB notifyCB)
@@ -240,7 +226,7 @@ bool Dht::ProcessPublicNym(
 }
 
 bool Dht::ProcessServerContract(
-    api::client::Wallet& wallet,
+    const api::client::Wallet& wallet,
     const std::string key,
     const DhtResults& values,
     NotifyCB notifyCB)
@@ -301,7 +287,7 @@ bool Dht::ProcessServerContract(
 }
 
 bool Dht::ProcessUnitDefinition(
-    api::client::Wallet& wallet,
+    const api::client::Wallet& wallet,
     const std::string key,
     const DhtResults& values,
     NotifyCB notifyCB)
@@ -362,18 +348,8 @@ bool Dht::ProcessUnitDefinition(
 }
 #endif
 
-void Dht::Cleanup()
-{
-#if OT_DHT
-    if (nullptr != node_) delete node_;
-    node_ = nullptr;
-#endif
-}
-
-void Dht::RegisterCallbacks(const CallbackMap& callbacks)
+void Dht::RegisterCallbacks(const CallbackMap& callbacks) const
 {
     callback_map_ = callbacks;
 }
-
-Dht::~Dht() { Cleanup(); }
 }  // opentxs::api::network::implementation

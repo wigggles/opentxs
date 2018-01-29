@@ -85,34 +85,34 @@ public:
     EXPORT virtual void SetSystemKeyring(const bool useKeyring) const = 0;
 
     // Encoding function interface
-    EXPORT virtual crypto::Encode& Encode() const = 0;
+    EXPORT virtual const crypto::Encode& Encode() const = 0;
 
     // Hash function interface
-    EXPORT virtual crypto::Hash& Hash() const = 0;
+    EXPORT virtual const crypto::Hash& Hash() const = 0;
 
     // Utility class for misc OpenSSL-provided functions
-    EXPORT virtual crypto::Util& Util() const = 0;
+    EXPORT virtual const crypto::Util& Util() const = 0;
 
     // Asymmetric encryption engines
-    EXPORT virtual CryptoAsymmetric& ED25519() const = 0;
+    EXPORT virtual const CryptoAsymmetric& ED25519() const = 0;
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
-    EXPORT virtual CryptoAsymmetric& RSA() const = 0;
+    EXPORT virtual const CryptoAsymmetric& RSA() const = 0;
 #endif
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-    EXPORT virtual CryptoAsymmetric& SECP256K1() const = 0;
+    EXPORT virtual const CryptoAsymmetric& SECP256K1() const = 0;
 #endif
 
     // Symmetric encryption engines
-    EXPORT virtual crypto::Symmetric& Symmetric() const = 0;
+    EXPORT virtual const crypto::Symmetric& Symmetric() const = 0;
 
 #if OT_CRYPTO_SUPPORTED_ALGO_AES
-    EXPORT virtual CryptoSymmetric& AES() const = 0;
+    EXPORT virtual const CryptoSymmetric& AES() const = 0;
 #endif
 #if OT_CRYPTO_WITH_BIP32
-    EXPORT virtual Bip32& BIP32() const = 0;
+    EXPORT virtual const Bip32& BIP32() const = 0;
 #endif
 #if OT_CRYPTO_WITH_BIP39
-    EXPORT virtual Bip39& BIP39() const = 0;
+    EXPORT virtual const Bip39& BIP39() const = 0;
 #endif
 
     EXPORT virtual std::unique_ptr<SymmetricKey> GetStorageKey(

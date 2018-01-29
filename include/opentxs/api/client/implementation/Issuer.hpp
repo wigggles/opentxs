@@ -120,7 +120,7 @@ private:
     typedef std::pair<Identifier, Identifier> UnitAccountPair;
 
     friend class Wallet;
-    api::client::Wallet& wallet_;
+    const api::client::Wallet& wallet_;
     std::uint32_t version_{0};
     std::string pairing_code_{""};
     mutable std::atomic<bool> paired_{false};
@@ -139,11 +139,11 @@ private:
         const RequestStatus state = RequestStatus::All) const;
 
     Issuer(
-        api::client::Wallet& wallet,
+        const api::client::Wallet& wallet,
         const Identifier& nymID,
         const proto::Issuer& serialized);
     Issuer(
-        api::client::Wallet& wallet,
+        const api::client::Wallet& wallet,
         const Identifier& nymID,
         const Identifier& issuerID);
     Issuer() = delete;

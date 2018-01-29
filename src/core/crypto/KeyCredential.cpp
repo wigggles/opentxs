@@ -254,8 +254,9 @@ bool KeyCredential::verify_internally(const Lock& lock) const
 
     // All KeyCredentials must sign themselves
     if (!VerifySignedBySelf(lock)) {
-        otOut << __FUNCTION__ << ": Failed verifying key credential: it's not "
-                                 "signed by itself (its own signing key.)\n";
+        otOut << __FUNCTION__
+              << ": Failed verifying key credential: it's not "
+                 "signed by itself (its own signing key.)\n";
         return false;
     }
 
@@ -427,18 +428,19 @@ std::shared_ptr<OTKeypair> KeyCredential::DeriveHDKeypair(
     }
 
     privateKey->set_role(role);
-    Ecdsa* engine = nullptr;
+    const Ecdsa* engine = nullptr;
 
     switch (curve) {
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
         case (EcdsaCurve::SECP256K1): {
-            engine =
-                static_cast<Libsecp256k1*>(&OT::App().Crypto().SECP256K1());
+            engine = static_cast<const Libsecp256k1*>(
+                &OT::App().Crypto().SECP256K1());
             break;
         }
 #endif
         case (EcdsaCurve::ED25519): {
-            engine = static_cast<Libsodium*>(&OT::App().Crypto().ED25519());
+            engine =
+                static_cast<const Libsodium*>(&OT::App().Crypto().ED25519());
             break;
         }
         default: {

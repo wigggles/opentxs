@@ -84,17 +84,17 @@ namespace implementation
 class Native : virtual public api::Native
 {
 public:
-    api::Activity& Activity() const override;
-    api::Api& API() const override;
-    api::Blockchain& Blockchain() const override;
-    api::Settings& Config(
+    const api::Activity& Activity() const override;
+    const api::Api& API() const override;
+    const api::Blockchain& Blockchain() const override;
+    const api::Settings& Config(
         const std::string& path = std::string("")) const override;
-    api::ContactManager& Contact() const override;
-    api::Crypto& Crypto() const override;
-    api::storage::Storage& DB() const override;
-    api::network::Dht& DHT() const override;
+    const api::ContactManager& Contact() const override;
+    const api::Crypto& Crypto() const override;
+    const api::storage::Storage& DB() const override;
+    const api::network::Dht& DHT() const override;
     void HandleSignals() const override;
-    api::Identity& Identity() const override;
+    const api::Identity& Identity() const override;
     /** Adds a task to the periodic task list with the specified interval. By
      * default, schedules for immediate execution. */
     void Schedule(
@@ -104,8 +104,8 @@ public:
             std::chrono::seconds(0)) const override;
     const api::Server& Server() const override;
     bool ServerMode() const override;
-    api::client::Wallet& Wallet() const override;
-    api::network::ZMQ& ZMQ() const override;
+    const api::client::Wallet& Wallet() const override;
+    const api::network::ZMQ& ZMQ() const override;
 
 private:
     friend class opentxs::OT;

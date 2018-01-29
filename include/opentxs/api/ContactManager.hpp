@@ -80,23 +80,24 @@ public:
     Identifier ContactID(const Identifier& nymID) const;
     ObjectList ContactList() const;
 
-    std::shared_ptr<const class Contact> Contact(const Identifier& id);
+    std::shared_ptr<const class Contact> Contact(const Identifier& id) const;
     std::shared_ptr<const class Contact> Merge(
         const Identifier& parent,
-        const Identifier& child);
+        const Identifier& child) const;
     std::unique_ptr<Editor<class Contact>> mutable_Contact(
-        const Identifier& id);
-    std::shared_ptr<const class Contact> NewContact(const std::string& label);
+        const Identifier& id) const;
+    std::shared_ptr<const class Contact> NewContact(
+        const std::string& label) const;
     std::shared_ptr<const class Contact> NewContact(
         const std::string& label,
         const Identifier& nymID,
-        const PaymentCode& paymentCode);
+        const PaymentCode& paymentCode) const;
     std::shared_ptr<const class Contact> NewContactFromAddress(
         const std::string& address,
         const std::string& label,
-        const proto::ContactItemType currency = proto::CITEMTYPE_BTC);
+        const proto::ContactItemType currency = proto::CITEMTYPE_BTC) const;
     std::shared_ptr<const class Contact> Update(
-        const proto::CredentialIndex& nym);
+        const proto::CredentialIndex& nym) const;
 
     ~ContactManager() = default;
 
@@ -107,10 +108,10 @@ private:
     typedef std::pair<proto::ContactItemType, std::string> Address;
     typedef std::map<Identifier, ContactLock> ContactMap;
 
-    storage::Storage& storage_;
-    client::Wallet& wallet_;
+    const storage::Storage& storage_;
+    const client::Wallet& wallet_;
     mutable std::recursive_mutex lock_{};
-    ContactMap contact_map_{};
+    mutable ContactMap contact_map_{};
 
     void check_identifiers(
         const Identifier& inputNymID,
@@ -121,46 +122,49 @@ private:
     bool verify_write_lock(const rLock& lock) const;
 
     // takes ownership
-    ContactMap::iterator add_contact(const rLock& lock, class Contact* contact);
+    ContactMap::iterator add_contact(const rLock& lock, class Contact* contact)
+        const;
     Identifier address_to_contact(
         const rLock& lock,
         const std::string& address,
         const proto::ContactItemType currency) const;
     std::shared_ptr<const class Contact> contact(
         const rLock& lock,
-        const std::string& label);
+        const std::string& label) const;
     std::shared_ptr<const class Contact> contact(
         const rLock& lock,
-        const Identifier& id);
+        const Identifier& id) const;
     void import_contacts(const rLock& lock);
     void init_nym_map(const rLock& lock);
-    ContactMap::iterator load_contact(const rLock& lock, const Identifier& id);
+    ContactMap::iterator load_contact(const rLock& lock, const Identifier& id)
+        const;
     std::unique_ptr<Editor<class Contact>> mutable_contact(
         const rLock& lock,
-        const Identifier& id);
-    ContactMap::iterator obtain_contact(
-        const rLock& lock,
-        const Identifier& id);
+        const Identifier& id) const;
+    ContactMap::iterator obtain_contact(const rLock& lock, const Identifier& id)
+        const;
     std::shared_ptr<const class Contact> new_contact(
         const rLock& lock,
         const std::string& label,
         const Identifier& nymID,
-        const PaymentCode& paymentCode);
-    void refresh_indices(const rLock& lock, class Contact& contact);
-    void save(class Contact* contact);
+        const PaymentCode& paymentCode) const;
+    void refresh_indices(const rLock& lock, class Contact& contact) const;
+    void save(class Contact* contact) const;
     void start();
     std::shared_ptr<const class Contact> update_existing_contact(
         const rLock& lock,
         const std::string& label,
         const PaymentCode& code,
-        const Identifier& contactID);
+        const Identifier& contactID) const;
     void update_nym_map(
         const rLock& lock,
         const Identifier nymID,
         class Contact& contact,
-        const bool replace = false);
+        const bool replace = false) const;
 
-    ContactManager(storage::Storage& storage, client::Wallet& wallet);
+    ContactManager(
+        const storage::Storage& storage,
+        const client::Wallet& wallet);
     ContactManager() = delete;
     ContactManager(const ContactManager&) = delete;
     ContactManager(ContactManager&&) = delete;

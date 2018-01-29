@@ -56,8 +56,8 @@ namespace server
 
 struct ConfigLoader {
     static bool load(
-        api::Crypto& crypto,
-        api::Settings& config,
+        const api::Crypto& crypto,
+        const api::Settings& config,
         String& walletFilename);
 };
 }  // namespace server
