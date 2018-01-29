@@ -61,7 +61,6 @@
 #include "opentxs/client/OTAPI_Exec.hpp"
 #include "opentxs/client/OTME_too.hpp"
 #include "opentxs/client/OTWallet.hpp"
-#include "opentxs/client/MadeEasy.hpp"
 #include "opentxs/core/crypto/Bip39.hpp"
 #include "opentxs/core/crypto/SymmetricKey.hpp"
 #include "opentxs/core/util/Assert.hpp"

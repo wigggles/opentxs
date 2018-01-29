@@ -40,17 +40,17 @@
 
 #include "opentxs/client/OTME_too.hpp"
 
+#include "opentxs/api/client/ServerAction.hpp"
 #include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/Api.hpp"
 #include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Identity.hpp"
 #include "opentxs/api/Settings.hpp"
-#include "opentxs/client/MadeEasy.hpp"
+#include "opentxs/client/NymData.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
-#include "opentxs/client/OTAPI_Func.hpp"
 #include "opentxs/client/OT_ME.hpp"
-#include "opentxs/client/SwigWrap.hpp"
+#include "opentxs/client/ServerAction.hpp"
 #include "opentxs/client/Utility.hpp"
 #include "opentxs/contact/Contact.hpp"
 #include "opentxs/contact/ContactData.hpp"
@@ -69,22 +69,8 @@
 #include <sstream>
 
 #define MASTER_SECTION "Master"
-#define PAIRED_NODES_KEY "paired_nodes"
 #define INTRODUCTION_SERVER_KEY "introduction_server_id"
-#define PAIRED_SECTION_PREFIX "paired_node_"
-#define BRIDGE_NYM_KEY "bridge_nym_id"
-#define ADMIN_PASSWORD_KEY "admin_password"
-#define OWNER_NYM_KEY "owner_nym_id"
-#define NOTARY_ID_KEY "notary_id"
-#define BACKUP_KEY "backup"
-#define CONNECTED_KEY "connected"
-#define DONE_KEY "done"
-#define ISSUED_UNITS_KEY "issued_units"
-#define ISSUED_UNIT_PREFIX_KEY "issued_unit_"
-#define ASSET_ID_PREFIX_KEY "unit_definition_"
-#define ACCOUNT_ID_PREFIX_KEY "account_id_"
 #define NYM_REVISION_SECTION_PREFIX "nym_revision_"
-#define RENAME_KEY "rename_started"
 #define CONTACT_COUNT_KEY "contacts"
 #define CONTACT_SECTION_PREFIX "contact_"
 #define CONTACT_NYMID_KEY "nymid"
@@ -166,8 +152,8 @@ OTME_too::OTME_too(
     const api::ContactManager& contacts,
     const OT_API& otapi,
     const OTAPI_Exec& exec,
-    const MadeEasy& madeEasy,
     const OT_ME& otme,
+    const api::client::ServerAction& action,
     const api::client::Wallet& wallet,
     const api::crypto::Encode& encoding,
     const api::Identity& identity)
@@ -176,8 +162,8 @@ OTME_too::OTME_too(
     , contacts_(contacts)
     , ot_api_(otapi)
     , exec_(exec)
-    , made_easy_(madeEasy)
     , otme_(otme)
+    , action_(action)
     , wallet_(wallet)
     , encoding_(encoding)
     , identity_(identity)
@@ -278,12 +264,13 @@ std::pair<bool, std::size_t> OTME_too::accept_incoming(
         account,
         String(*response).Get());
     success =
-        (1 == otme_.InterpretTransactionMsgReply(
-                  String(context.Server()).Get(),
-                  String(context.Nym()->ID()).Get(),
-                  account,
-                  "process_inbox",
-                  result));
+        (1 ==
+         otme_.InterpretTransactionMsgReply(
+             String(context.Server()).Get(),
+             String(context.Nym()->ID()).Get(),
+             account,
+             "process_inbox",
+             result));
 
     return output;
 }
@@ -928,8 +915,8 @@ Identifier OTME_too::FindNym(
     const std::string& nymID,
     const std::string& serverHint) const
 {
-    OTME_too::BackgroundThread thread = [=](std::atomic<bool>* running,
-                                            std::atomic<bool>* exit) -> void {
+    OTME_too::BackgroundThread thread =
+        [=](std::atomic<bool>* running, std::atomic<bool>* exit) -> void {
         find_nym(nymID, serverHint, running, exit);
     };
 
@@ -938,8 +925,8 @@ Identifier OTME_too::FindNym(
 
 Identifier OTME_too::FindServer(const std::string& serverID) const
 {
-    OTME_too::BackgroundThread thread = [=](std::atomic<bool>* running,
-                                            std::atomic<bool>* exit) -> void {
+    OTME_too::BackgroundThread thread =
+        [=](std::atomic<bool>* running, std::atomic<bool>* exit) -> void {
         find_server(serverID, running, exit);
     };
 
@@ -955,12 +942,11 @@ void OTME_too::get_admin(
     bool success{false};
 
     {
-        OTAPI_Func action(
-            REQUEST_ADMIN, wallet_, nymID, serverID, exec_, ot_api_, password);
-        action.Run();
+        auto action = action_.RequestAdmin(nymID, serverID, password);
+        action->Run();
 
-        if (SendResult::VALID_REPLY == action.LastSendResult()) {
-            auto reply = action.Reply();
+        if (SendResult::VALID_REPLY == action->LastSendResult()) {
+            auto reply = action->Reply();
 
             OT_ASSERT(reply)
 
@@ -1070,8 +1056,8 @@ void OTME_too::mailability(
     const std::string& sender,
     const std::string& recipient) const
 {
-    OTME_too::BackgroundThread thread = [=](std::atomic<bool>* running,
-                                            std::atomic<bool>* exit) -> void {
+    OTME_too::BackgroundThread thread =
+        [=](std::atomic<bool>* running, std::atomic<bool>* exit) -> void {
         establish_mailability(sender, recipient, running, exit);
     };
 
@@ -1155,8 +1141,8 @@ Identifier OTME_too::MessageContact(
         return {};
     }
 
-    OTME_too::BackgroundThread thread = [=](std::atomic<bool>* running,
-                                            std::atomic<bool>* exit) -> void {
+    OTME_too::BackgroundThread thread =
+        [=](std::atomic<bool>* running, std::atomic<bool>* exit) -> void {
         message_contact(server, senderNymID, contactID, message, running, exit);
     };
 
@@ -1418,7 +1404,7 @@ void OTME_too::refresh_thread() const
             otInfo << OT_METHOD << __FUNCTION__ << ": Downloading nymbox."
                    << std::endl;
             const auto retrieve =
-                made_easy_.retrieve_nym(serverID, nymID, notUsed, true);
+                otme_.retrieve_nym(serverID, nymID, notUsed, true);
 
             if (1 != retrieve) {
                 otInfo << OT_METHOD << __FUNCTION__
@@ -1442,14 +1428,14 @@ void OTME_too::refresh_thread() const
 
                 otInfo << OT_METHOD << __FUNCTION__ << ": Downloading account "
                        << account << std::endl;
-                made_easy_.retrieve_account(serverID, nymID, account, true);
+                otme_.retrieve_account(serverID, nymID, account, true);
             }
 
             if (!nymsChecked) {
                 for (const auto& nym : checkNym) {
                     otInfo << OT_METHOD << __FUNCTION__ << ": Downloading nym "
                            << nym << std::endl;
-                    made_easy_.check_nym(serverID, nymID, nym);
+                    otme_.check_nym(serverID, nymID, nym);
 
                     if (!yield()) {
                         return;
@@ -1545,8 +1531,8 @@ Identifier OTME_too::RegisterNym_async(
         publish_server_registration(nymID, server, false);
     }
 
-    OTME_too::BackgroundThread thread = [=](std::atomic<bool>* running,
-                                            std::atomic<bool>* exit) -> void {
+    OTME_too::BackgroundThread thread =
+        [=](std::atomic<bool>* running, std::atomic<bool>* exit) -> void {
         register_nym(nymID, server, running, exit);
     };
 

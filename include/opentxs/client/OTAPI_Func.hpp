@@ -44,7 +44,6 @@
 #include "opentxs/api/Editor.hpp"
 #include "opentxs/client/ServerAction.hpp"
 #include "opentxs/core/util/Common.hpp"
-#include "opentxs/core/OTStorage.hpp"
 
 #include <atomic>
 #include <cstdint>
@@ -56,7 +55,6 @@ namespace opentxs
 class OT_API;
 class OTAPI_Exec;
 class ServerContext;
-class the_lambda_struct;
 
 namespace api
 {
@@ -65,61 +63,6 @@ namespace client
 class Wallet;
 }  // namespace client
 }  // namespace api
-
-typedef std::map<std::string, opentxs::OTDB::OfferDataNym*> SubMap;
-typedef std::map<std::string, SubMap*> MapOfMaps;
-typedef std::int32_t (*LambdaFunc)(
-    const opentxs::OTDB::OfferDataNym& offer_data,
-    std::int32_t nIndex,
-    const MapOfMaps& map_of_maps,
-    const SubMap& sub_map,
-    the_lambda_struct& extra_vals);
-
-EXPORT MapOfMaps* convert_offerlist_to_maps(
-    opentxs::OTDB::OfferListNym& offerList);
-EXPORT std::int32_t find_strange_offers(
-    const opentxs::OTDB::OfferDataNym& offer_data,
-    std::int32_t nIndex,
-    const MapOfMaps& map_of_maps,
-    const SubMap& sub_map,
-    the_lambda_struct& extra_vals);  // if 10 offers are printed
-                                     // for the SAME market,
-                                     // nIndex will be 0..9
-EXPORT std::int32_t iterate_nymoffers_maps(
-    MapOfMaps& map_of_maps,
-    LambdaFunc the_lambda);  // low level. map_of_maps
-                             // must be
-                             // good. (assumed.)
-EXPORT std::int32_t iterate_nymoffers_maps(
-    MapOfMaps& map_of_maps,
-    LambdaFunc the_lambda,
-    the_lambda_struct& extra_vals);  // low level.
-                                     // map_of_maps
-                                     // must be good.
-                                     // (assumed.)
-
-EXPORT std::int32_t iterate_nymoffers_sub_map(
-    const MapOfMaps& map_of_maps,
-    SubMap& sub_map,
-    LambdaFunc the_lambda);
-
-EXPORT std::int32_t iterate_nymoffers_sub_map(
-    const MapOfMaps& map_of_maps,
-    SubMap& sub_map,
-    LambdaFunc the_lambda,
-    the_lambda_struct& extra_vals);
-
-EXPORT opentxs::OTDB::OfferListNym* loadNymOffers(
-    const std::string& notaryID,
-    const std::string& nymID);
-EXPORT std::int32_t output_nymoffer_data(
-    const opentxs::OTDB::OfferDataNym& offer_data,
-    std::int32_t nIndex,
-    const MapOfMaps& map_of_maps,
-    const SubMap& sub_map,
-    the_lambda_struct& extra_vals);  // if 10 offers are printed
-                                     // for the SAME market,
-                                     // nIndex will be 0..9
 
 typedef enum {
     NO_FUNC = 0,
@@ -171,24 +114,6 @@ typedef enum {
     SERVER_ADD_CLAIM = 46,
     STORE_SECRET = 47
 } OTAPI_Func_Type;
-
-class the_lambda_struct
-{
-public:
-    std::vector<std::string> the_vector;  // used for returning a list of
-                                          // something.
-    std::string the_asset_acct;     // for newoffer, we want to remove existing
-                                    // offers
-                                    // for the same accounts in certain cases.
-    std::string the_currency_acct;  // for newoffer, we want to remove existing
-                                    // offers
-                                    // for the same accounts in certain cases.
-    std::string the_scale;          // for newoffer as well.
-    std::string the_price;          // for newoffer as well.
-    bool bSelling{false};           // for newoffer as well.
-
-    the_lambda_struct();
-};
 
 class OTAPI_Func : virtual public opentxs::client::ServerAction
 {

@@ -64,6 +64,7 @@ class Api;
 }  // namespace implementation
 namespace client
 {
+class ServerAction;
 class Wallet;
 
 namespace implementation
@@ -108,10 +109,12 @@ private:
     typedef std::pair<Identifier, Identifier> IssuerID;
 
     const std::atomic<bool>& shutdown_;
+    const client::ServerAction& action_;
     const client::Wallet& wallet_;
     const opentxs::OT_API& ot_api_;
     const opentxs::OTAPI_Exec& exec_;
     const opentxs::OTME_too& me_too_;
+    std::recursive_mutex& api_lock_;
     mutable std::mutex peer_lock_{};
     mutable std::mutex status_lock_{};
     mutable std::atomic<bool> pairing_{false};
@@ -188,6 +191,8 @@ private:
 
     Pair(
         const std::atomic<bool>& shutdown,
+        std::recursive_mutex& apiLock,
+        const client::ServerAction& action,
         const client::Wallet& wallet,
         const opentxs::OT_API& otapi,
         const opentxs::OTAPI_Exec& exec,

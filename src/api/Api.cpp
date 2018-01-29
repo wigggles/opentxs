@@ -46,7 +46,6 @@
 #include "opentxs/api/Activity.hpp"
 #include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Settings.hpp"
-#include "opentxs/client/MadeEasy.hpp"
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/client/OT_ME.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
@@ -77,7 +76,6 @@ Api::Api(
     , zmq_(zmq)
     , ot_api_(nullptr)
     , otapi_exec_(nullptr)
-    , made_easy_(nullptr)
     , ot_me_(nullptr)
     , otme_too_(nullptr)
     , pair_(nullptr)
@@ -88,12 +86,15 @@ Api::Api(
 
 void Api::Cleanup()
 {
+    pair_.reset();
+
     if (otme_too_) {
         otme_too_->Shutdown();
     }
+
     otme_too_.reset();
     ot_me_.reset();
-    made_easy_.reset();
+    server_action_.reset();
     otapi_exec_.reset();
     ot_api_.reset();
 }
@@ -135,12 +136,13 @@ void Api::Init()
 
     OT_ASSERT(otapi_exec_);
 
-    made_easy_.reset(new MadeEasy(lock_, *otapi_exec_, *ot_api_, wallet_));
+    server_action_.reset(new api::client::implementation::ServerAction(
+        lock_, *ot_api_, *otapi_exec_, wallet_));
 
-    OT_ASSERT(made_easy_);
+    OT_ASSERT(server_action_)
 
     ot_me_.reset(
-        new OT_ME(lock_, *otapi_exec_, *ot_api_, *made_easy_, wallet_));
+        new OT_ME(lock_, *otapi_exec_, *ot_api_, *server_action_, wallet_));
 
     OT_ASSERT(ot_me_);
 
@@ -150,8 +152,8 @@ void Api::Init()
         contacts_,
         *ot_api_,
         *otapi_exec_,
-        *made_easy_,
         *ot_me_,
+        *server_action_,
         wallet_,
         crypto_.Encode(),
         identity_));
@@ -159,9 +161,13 @@ void Api::Init()
     OT_ASSERT(otme_too_);
 
     pair_.reset(new api::client::implementation::Pair(
-        shutdown_, wallet_, *ot_api_, *otapi_exec_, *otme_too_));
-
-    server_action_.reset(new api::client::implementation::ServerAction());
+        shutdown_,
+        lock_,
+        *server_action_,
+        wallet_,
+        *ot_api_,
+        *otapi_exec_,
+        *otme_too_));
 }
 
 const OTAPI_Exec& Api::Exec(const std::string&) const
@@ -172,13 +178,6 @@ const OTAPI_Exec& Api::Exec(const std::string&) const
 }
 
 std::recursive_mutex& Api::Lock() const { return lock_; }
-
-const MadeEasy& Api::ME(const std::string&) const
-{
-    OT_ASSERT(made_easy_);
-
-    return *made_easy_;
-}
 
 const OT_API& Api::OTAPI(const std::string&) const
 {

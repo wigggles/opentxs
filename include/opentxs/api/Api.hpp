@@ -46,7 +46,6 @@
 
 namespace opentxs
 {
-class MadeEasy;
 class OT_API;
 class OT_ME;
 class OTAPI_Exec;
@@ -67,7 +66,6 @@ public:
 
     EXPORT virtual const OTAPI_Exec& Exec(
         const std::string& wallet = "") const = 0;
-    EXPORT virtual const MadeEasy& ME(const std::string& wallet = "") const = 0;
     EXPORT virtual const OT_API& OTAPI(
         const std::string& wallet = "") const = 0;
     EXPORT virtual const OT_ME& OTME(const std::string& wallet = "") const = 0;

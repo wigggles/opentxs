@@ -42,7 +42,6 @@
 
 #include "opentxs/api/Api.hpp"
 #include "opentxs/api/Native.hpp"
-#include "opentxs/client/MadeEasy.hpp"
 #include "opentxs/client/OT_ME.hpp"
 #include "opentxs/client/SwigWrap.hpp"
 #include "opentxs/core/util/Common.hpp"
@@ -181,15 +180,6 @@ string CmdBaseInstrument::writeCheque(
     if ("" == mynym) {
         otOut << "Error: cannot determine mynym from myacct.\n";
         return "";
-    }
-
-    // make sure we can access the public key before trying to write a cheque
-    if ("" != hisnym) {
-        if (OT::App().API().ME().load_or_retrieve_encrypt_key(
-                server, mynym, hisnym) == "") {
-            otOut << "Error: cannot load public key for hisnym.\n";
-            return "";
-        }
     }
 
     if (!OT::App().API().OTME().make_sure_enough_trans_nums(
