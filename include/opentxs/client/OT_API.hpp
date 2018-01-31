@@ -128,12 +128,12 @@ public:
         ProcessInbox;
 
     EXPORT bool GetWalletFilename(String& strPath) const;
-    EXPORT bool SetWalletFilename(const String& strPath);
+    EXPORT bool SetWalletFilename(const String& strPath) const;
     EXPORT OTWallet* GetWallet(const char* szFuncName = nullptr) const;
 
     inline OTClient* GetClient() const { return m_pClient.get(); }
 
-    EXPORT bool SetWallet(const String& strFilename);
+    EXPORT bool SetWallet(const String& strFilename) const;
     EXPORT bool WalletExists() const;
     EXPORT bool LoadWallet() const;
 
@@ -281,9 +281,9 @@ public:
         const Identifier& NYM_ID,
         const Identifier& NOTARY_ID) const;
     EXPORT bool Wallet_ChangePassphrase() const;
-    EXPORT std::string Wallet_GetPhrase();
-    EXPORT std::string Wallet_GetSeed();
-    EXPORT std::string Wallet_GetWords();
+    EXPORT std::string Wallet_GetPhrase() const;
+    EXPORT std::string Wallet_GetSeed() const;
+    EXPORT std::string Wallet_GetWords() const;
     EXPORT std::string Wallet_ImportSeed(
         const OTPassword& words,
         const OTPassword& passphrase) const;
@@ -332,7 +332,7 @@ public:
                                       // that key, to SIGNER_ID, as part of the
                                       // merging process.
         const String& THE_PURSE,
-        const String* pstrDisplay = nullptr);
+        const String* pstrDisplay = nullptr) const;
     //
     // ENCODE, DECODE, SIGN, VERIFY, ENCRYPT, DECRYPT
 
@@ -411,7 +411,7 @@ public:
     EXPORT bool VerifyAndRetrieveXMLContents(
         const String& strContract,
         const Identifier& theSignerNymID,
-        String& strOutput);
+        String& strOutput) const;
     /// === Verify Account Receipt ===
     /// Returns bool. Verifies any asset account (intermediary files) against
     /// its own last signed receipt.
@@ -1353,19 +1353,19 @@ private:
 
     class Pid;
 
-    api::Activity& activity_;
-    api::Settings& config_;
-    api::ContactManager& contacts_;
-    api::Crypto& crypto_;
-    api::Identity& identity_;
-    api::storage::Storage& storage_;
-    api::client::Wallet& wallet_;
-    api::network::ZMQ& zeromq_;
+    const api::Activity& activity_;
+    const api::Settings& config_;
+    const api::ContactManager& contacts_;
+    const api::Crypto& crypto_;
+    const api::Identity& identity_;
+    const api::storage::Storage& storage_;
+    const api::client::Wallet& wallet_;
+    const api::network::ZMQ& zeromq_;
 
     bool m_bDefaultStore{false};
 
     String m_strDataPath;
-    String m_strWalletFilename;
+    mutable String m_strWalletFilename;
     String m_strWalletFilePath;
     String m_strConfigFilename;
     String m_strConfigFilePath;
@@ -1421,14 +1421,14 @@ private:
     bool LoadConfigFile();
 
     OT_API(
-        api::Activity& activity,
-        api::Settings& config,
-        api::ContactManager& contacts,
-        api::Crypto& crypto,
-        api::Identity& identity,
-        api::storage::Storage& storage,
-        api::client::Wallet& wallet,
-        api::network::ZMQ& zmq,
+        const api::Activity& activity,
+        const api::Settings& config,
+        const api::ContactManager& contacts,
+        const api::Crypto& crypto,
+        const api::Identity& identity,
+        const api::storage::Storage& storage,
+        const api::client::Wallet& wallet,
+        const api::network::ZMQ& zmq,
         std::recursive_mutex& lock);
     OT_API() = delete;
     OT_API(const OT_API&) = delete;

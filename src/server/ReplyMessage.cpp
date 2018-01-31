@@ -55,7 +55,7 @@ namespace opentxs::server
 {
 
 ReplyMessage::ReplyMessage(
-    opentxs::api::client::Wallet& wallet,
+    const opentxs::api::client::Wallet& wallet,
     const Identifier& notaryID,
     const Nym& signer,
     const Message& input,

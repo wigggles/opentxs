@@ -92,7 +92,7 @@ private:
     explicit OTAsymmetricKey_OpenSSL(const String& publicKey);
 
 public:
-    CryptoAsymmetric& engine() const override;
+    const CryptoAsymmetric& engine() const override;
     bool IsEmpty() const override;
     /** Don't ever call this. It's only here because it's impossible to get rid
      * of unless and until RSA key support is removed entirely. */

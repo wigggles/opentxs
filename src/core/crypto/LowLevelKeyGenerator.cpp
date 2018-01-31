@@ -107,7 +107,7 @@ public:
     X509* m_pX509 = nullptr;
     /** Instantiated form of key. (For private keys especially, we don't want it
      *  instantiated for any longer than absolutely necessary.)
-    */
+     */
     EVP_PKEY* m_pKey = nullptr;
 };
 #endif
@@ -194,8 +194,8 @@ bool LowLevelKeyGenerator::MakeNewKeypair()
 
     switch (pkeyData_->nymParameterType()) {
         case (NymParameterType::ED25519): {
-            Libsodium& engine =
-                static_cast<Libsodium&>(OT::App().Crypto().ED25519());
+            const Libsodium& engine =
+                static_cast<const Libsodium&>(OT::App().Crypto().ED25519());
             LowLevelKeyGenerator::LowLevelKeyGeneratorECdp& ldp =
                 static_cast<LowLevelKeyGenerator::LowLevelKeyGeneratorECdp&>(
                     *dp);
@@ -205,8 +205,8 @@ bool LowLevelKeyGenerator::MakeNewKeypair()
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
         case (NymParameterType::SECP256K1): {
 #if OT_CRYPTO_USING_LIBSECP256K1
-            Libsecp256k1& engine =
-                static_cast<Libsecp256k1&>(OT::App().Crypto().SECP256K1());
+            const Libsecp256k1& engine = static_cast<const Libsecp256k1&>(
+                OT::App().Crypto().SECP256K1());
 #endif
             LowLevelKeyGenerator::LowLevelKeyGeneratorECdp& ldp =
                 static_cast<LowLevelKeyGenerator::LowLevelKeyGeneratorECdp&>(
@@ -293,8 +293,8 @@ bool LowLevelKeyGenerator::SetOntoKeypair(
 
     switch (pkeyData_->nymParameterType()) {
         case (NymParameterType::ED25519): {
-            Libsodium& engine =
-                static_cast<Libsodium&>(OT::App().Crypto().ED25519());
+            const Libsodium& engine =
+                static_cast<const Libsodium&>(OT::App().Crypto().ED25519());
             LowLevelKeyGenerator::LowLevelKeyGeneratorECdp& ldp =
                 static_cast<LowLevelKeyGenerator::LowLevelKeyGeneratorECdp&>(
                     *dp);
@@ -339,8 +339,8 @@ bool LowLevelKeyGenerator::SetOntoKeypair(
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
         case (NymParameterType::SECP256K1): {
 #if OT_CRYPTO_USING_LIBSECP256K1
-            Libsecp256k1& engine =
-                static_cast<Libsecp256k1&>(OT::App().Crypto().SECP256K1());
+            const Libsecp256k1& engine = static_cast<const Libsecp256k1&>(
+                OT::App().Crypto().SECP256K1());
 #endif
             LowLevelKeyGenerator::LowLevelKeyGeneratorECdp& ldp =
                 static_cast<LowLevelKeyGenerator::LowLevelKeyGeneratorECdp&>(

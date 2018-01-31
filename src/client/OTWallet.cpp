@@ -81,7 +81,9 @@
 namespace opentxs
 {
 
-OTWallet::OTWallet(api::Crypto& crypto, api::storage::Storage& storage)
+OTWallet::OTWallet(
+    const api::Crypto& crypto,
+    const api::storage::Storage& storage)
     : m_strDataFolder(OTDataFolder::Get())
     , crypto_(crypto)
     , storage_(storage)
@@ -553,8 +555,9 @@ bool OTWallet::VerifyAssetAccount(
     if (NOTARY_ID != theAcct.GetRealNotaryID()) {
         const String s1(NOTARY_ID), s2(theAcct.GetRealNotaryID());
         otOut << "OTWallet::VerifyAssetAccount " << szFunc
-              << ": Notary ID passed in (" << s1 << ") didn't match the one "
-                                                    "on the account ("
+              << ": Notary ID passed in (" << s1
+              << ") didn't match the one "
+                 "on the account ("
               << s2 << "). Acct ID: " << strAcctID << "\n";
         return false;
     }
@@ -606,8 +609,9 @@ Account* OTWallet::GetOrLoadAccount(
     {
         otOut << "OTWallet::GetOrLoadAccount " << szFunc
               << ": There's no asset account in the wallet with that ID ("
-              << strAcctID << "). "
-                              "Attempting to load it from storage...\n";
+              << strAcctID
+              << "). "
+                 "Attempting to load it from storage...\n";
         pAccount = LoadAccount(theNym, ACCT_ID, NOTARY_ID, szFuncName);
     }  // pAccount == nullptr.
 
@@ -1268,8 +1272,9 @@ bool OTWallet::LoadWallet(const char* szFilename)
             otErr << __FUNCTION__
                   << ": Input string apparently was encoded and then failed "
                      "decoding. Filename: "
-                  << szFilename << " \n"
-                                   "Contents: \n"
+                  << szFilename
+                  << " \n"
+                     "Contents: \n"
                   << strFileContents << "\n";
             return false;
         }
@@ -1368,9 +1373,10 @@ bool OTWallet::LoadWallet(const char* szFilename)
                                                                    // ==
                             // false (true by
                             // default.)
-                            otErr << __FUNCTION__ << ": Failed loading "
-                                                     "symmetricKey ID (it was "
-                                                     "blank.)\n";
+                            otErr << __FUNCTION__
+                                  << ": Failed loading "
+                                     "symmetricKey ID (it was "
+                                     "blank.)\n";
 
                         else if (Contract::LoadEncodedTextField(
                                      xml, ascSymmetricKey)) {

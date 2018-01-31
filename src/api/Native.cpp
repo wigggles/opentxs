@@ -162,14 +162,14 @@ Native::Native(
     }
 }
 
-api::Activity& Native::Activity() const
+const api::Activity& Native::Activity() const
 {
     OT_ASSERT(activity_)
 
     return *activity_;
 }
 
-api::Api& Native::API() const
+const api::Api& Native::API() const
 {
     if (server_mode_) {
         OT_FAIL;
@@ -180,14 +180,14 @@ api::Api& Native::API() const
     return *api_;
 }
 
-api::Blockchain& Native::Blockchain() const
+const api::Blockchain& Native::Blockchain() const
 {
     OT_ASSERT(blockchain_)
 
     return *blockchain_;
 }
 
-api::Settings& Native::Config(const std::string& path) const
+const api::Settings& Native::Config(const std::string& path) const
 {
     std::unique_lock<std::mutex> lock(config_lock_);
     auto& config = config_[path];
@@ -203,28 +203,28 @@ api::Settings& Native::Config(const std::string& path) const
     return *config;
 }
 
-api::ContactManager& Native::Contact() const
+const api::ContactManager& Native::Contact() const
 {
     OT_ASSERT(contacts_)
 
     return *contacts_;
 }
 
-api::Crypto& Native::Crypto() const
+const api::Crypto& Native::Crypto() const
 {
     OT_ASSERT(crypto_)
 
     return *crypto_;
 }
 
-api::storage::Storage& Native::DB() const
+const api::storage::Storage& Native::DB() const
 {
     OT_ASSERT(storage_)
 
     return *storage_;
 }
 
-api::network::Dht& Native::DHT() const
+const api::network::Dht& Native::DHT() const
 {
     OT_ASSERT(dht_)
 
@@ -281,7 +281,7 @@ void Native::HandleSignals() const
     }
 }
 
-api::Identity& Native::Identity() const
+const api::Identity& Native::Identity() const
 {
     OT_ASSERT(identity_)
 
@@ -694,7 +694,7 @@ void Native::Init_Storage()
     if (dht_) {
         config.dht_callback_ = std::bind(
             static_cast<void (api::network::Dht::*)(
-                const std::string&, const std::string&)>(
+                const std::string&, const std::string&) const>(
                 &api::network::Dht::Insert),
             dht_.get(),
             std::placeholders::_1,
@@ -992,14 +992,14 @@ void Native::start()
     }
 }
 
-api::client::Wallet& Native::Wallet() const
+const api::client::Wallet& Native::Wallet() const
 {
     OT_ASSERT(wallet_)
 
     return *wallet_;
 }
 
-api::network::ZMQ& Native::ZMQ() const
+const api::network::ZMQ& Native::ZMQ() const
 {
     OT_ASSERT(zeromq_)
 

@@ -73,10 +73,10 @@ namespace opentxs::api::implementation
 {
 Server::Server(
     const ArgList& args,
-    opentxs::api::Crypto& crypto,
-    opentxs::api::Settings& config,
-    opentxs::api::storage::Storage& storage,
-    opentxs::api::client::Wallet& wallet,
+    const opentxs::api::Crypto& crypto,
+    const opentxs::api::Settings& config,
+    const opentxs::api::storage::Storage& storage,
+    const opentxs::api::client::Wallet& wallet,
     std::atomic<bool>& shutdown,
     const opentxs::network::zeromq::Context& context)
     : args_(args)

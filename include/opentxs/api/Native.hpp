@@ -82,17 +82,17 @@ class ZMQ;
 class Native
 {
 public:
-    virtual class Activity& Activity() const = 0;
-    virtual class Api& API() const = 0;
-    virtual class Blockchain& Blockchain() const = 0;
-    virtual class Settings& Config(
+    virtual const class Activity& Activity() const = 0;
+    virtual const class Api& API() const = 0;
+    virtual const class Blockchain& Blockchain() const = 0;
+    virtual const class Settings& Config(
         const std::string& path = std::string("")) const = 0;
-    virtual class ContactManager& Contact() const = 0;
-    virtual class Crypto& Crypto() const = 0;
-    virtual storage::Storage& DB() const = 0;
-    virtual network::Dht& DHT() const = 0;
+    virtual const class ContactManager& Contact() const = 0;
+    virtual const class Crypto& Crypto() const = 0;
+    virtual const storage::Storage& DB() const = 0;
+    virtual const network::Dht& DHT() const = 0;
     virtual void HandleSignals() const = 0;
-    virtual class Identity& Identity() const = 0;
+    virtual const class Identity& Identity() const = 0;
     /** Adds a task to the periodic task list with the specified interval. By
      * default, schedules for immediate execution. */
     virtual void Schedule(
@@ -101,8 +101,8 @@ public:
         const std::chrono::seconds& last = std::chrono::seconds(0)) const = 0;
     virtual const class Server& Server() const = 0;
     virtual bool ServerMode() const = 0;
-    virtual class client::Wallet& Wallet() const = 0;
-    virtual network::ZMQ& ZMQ() const = 0;
+    virtual const class client::Wallet& Wallet() const = 0;
+    virtual const network::ZMQ& ZMQ() const = 0;
 
     virtual ~Native() = default;
 

@@ -102,7 +102,7 @@ public:
 
     proto::AsymmetricKeyType keyType() const;
 
-    virtual CryptoAsymmetric& engine() const = 0;
+    virtual const CryptoAsymmetric& engine() const = 0;
     virtual const std::string Path() const;
     virtual bool Path(proto::HDPath& output) const;
 

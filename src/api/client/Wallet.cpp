@@ -91,7 +91,7 @@ Wallet::Wallet(Native& ot)
 
 std::shared_ptr<class Context> Wallet::context(
     const Identifier& localNymID,
-    const Identifier& remoteNymID)
+    const Identifier& remoteNymID) const
 {
     const std::string local = String(localNymID).Get();
     const std::string remote = String(remoteNymID).Get();
@@ -192,7 +192,7 @@ std::shared_ptr<class Context> Wallet::context(
 
 std::shared_ptr<const class Context> Wallet::Context(
     const Identifier& notaryID,
-    const Identifier& clientNymID)
+    const Identifier& clientNymID) const
 {
     Identifier serverID = notaryID;
     Identifier local, remote;
@@ -210,7 +210,7 @@ std::shared_ptr<const class Context> Wallet::Context(
 
 std::shared_ptr<const class ClientContext> Wallet::ClientContext(
     const Identifier&,  // Not used for now.
-    const Identifier& remoteNymID)
+    const Identifier& remoteNymID) const
 {
     OT_ASSERT(ot_.ServerMode());
 
@@ -223,7 +223,7 @@ std::shared_ptr<const class ClientContext> Wallet::ClientContext(
 
 std::shared_ptr<const class ServerContext> Wallet::ServerContext(
     const Identifier& localNymID,
-    const Identifier& remoteID)
+    const Identifier& remoteID) const
 {
     Identifier serverID = remoteID;
     auto remoteNymID = ServerToNym(serverID);
@@ -236,7 +236,7 @@ std::shared_ptr<const class ServerContext> Wallet::ServerContext(
 
 Editor<class Context> Wallet::mutable_Context(
     const Identifier& notaryID,
-    const Identifier& clientNymID)
+    const Identifier& clientNymID) const
 {
     Identifier serverID = notaryID;
     const bool serverMode = ot_.ServerMode();
@@ -261,7 +261,7 @@ Editor<class Context> Wallet::mutable_Context(
 
 Editor<class ClientContext> Wallet::mutable_ClientContext(
     const Identifier&,  // Not used for now.
-    const Identifier& remoteNymID)
+    const Identifier& remoteNymID) const
 {
     OT_ASSERT(ot_.ServerMode());
 
@@ -304,7 +304,7 @@ Editor<class ClientContext> Wallet::mutable_ClientContext(
 
 Editor<class ServerContext> Wallet::mutable_ServerContext(
     const Identifier& localNymID,
-    const Identifier& remoteID)
+    const Identifier& remoteID) const
 {
     Lock lock(context_map_lock_);
 
@@ -427,12 +427,8 @@ Wallet::IssuerLock& Wallet::issuer(
     if (loaded) {
         OT_ASSERT(serialized)
 
-        pIssuer.reset(new api::client::implementation::Issuer(
-            // TODO remove cast when all public methods of this class
-            // are const
-            const_cast<Wallet&>(*this),
-            nymID,
-            *serialized));
+        pIssuer.reset(
+            new api::client::implementation::Issuer(*this, nymID, *serialized));
 
         OT_ASSERT(pIssuer)
 
@@ -440,12 +436,8 @@ Wallet::IssuerLock& Wallet::issuer(
     }
 
     if (create) {
-        pIssuer.reset(new api::client::implementation::Issuer(
-            // TODO remove cast when all public methods of this class
-            // are const
-            const_cast<Wallet&>(*this),
-            nymID,
-            issuerID));
+        pIssuer.reset(
+            new api::client::implementation::Issuer(*this, nymID, issuerID));
 
         OT_ASSERT(pIssuer);
 
@@ -465,7 +457,7 @@ void Wallet::save(const Lock& lock, api::client::Issuer* in) const
 
 ConstNym Wallet::Nym(
     const Identifier& id,
-    const std::chrono::milliseconds& timeout)
+    const std::chrono::milliseconds& timeout) const
 {
     const std::string nym = String(id).Get();
     Lock mapLock(nym_map_lock_);
@@ -525,7 +517,7 @@ ConstNym Wallet::Nym(
     return nullptr;
 }
 
-ConstNym Wallet::Nym(const proto::CredentialIndex& publicNym)
+ConstNym Wallet::Nym(const proto::CredentialIndex& publicNym) const
 {
     const auto& id = publicNym.nymid();
     Identifier nym(id);
@@ -556,7 +548,7 @@ ConstNym Wallet::Nym(const proto::CredentialIndex& publicNym)
     return Nym(nym);
 }
 
-NymData Wallet::mutable_Nym(const Identifier& id)
+NymData Wallet::mutable_Nym(const Identifier& id) const
 {
     const std::string nym = String(id).Get();
     auto exists = Nym(id);
@@ -1049,7 +1041,7 @@ bool Wallet::PeerRequestUpdate(
     }
 }
 
-bool Wallet::RemoveServer(const Identifier& id)
+bool Wallet::RemoveServer(const Identifier& id) const
 {
     std::string server(String(id).Get());
     Lock mapLock(server_map_lock_);
@@ -1062,7 +1054,7 @@ bool Wallet::RemoveServer(const Identifier& id)
     return false;
 }
 
-bool Wallet::RemoveUnitDefinition(const Identifier& id)
+bool Wallet::RemoveUnitDefinition(const Identifier& id) const
 {
     std::string unit(String(id).Get());
     Lock mapLock(unit_map_lock_);
@@ -1077,7 +1069,7 @@ bool Wallet::RemoveUnitDefinition(const Identifier& id)
 
 ConstServerContract Wallet::Server(
     const Identifier& id,
-    const std::chrono::milliseconds& timeout)
+    const std::chrono::milliseconds& timeout) const
 {
     const String strID(id);
     const std::string server = strID.Get();
@@ -1147,7 +1139,7 @@ ConstServerContract Wallet::Server(
 }
 
 ConstServerContract Wallet::Server(
-    std::unique_ptr<class ServerContract>& contract)
+    std::unique_ptr<class ServerContract>& contract) const
 {
     std::string server = String(contract->ID()).Get();
 
@@ -1164,7 +1156,7 @@ ConstServerContract Wallet::Server(
     return Server(Identifier(server));
 }
 
-ConstServerContract Wallet::Server(const proto::ServerContract& contract)
+ConstServerContract Wallet::Server(const proto::ServerContract& contract) const
 {
     std::string server = contract.id();
     auto nym = Nym(Identifier(contract.nymid()));
@@ -1195,7 +1187,7 @@ ConstServerContract Wallet::Server(
     const std::string& nymid,
     const std::string& name,
     const std::string& terms,
-    const std::list<ServerContract::Endpoint>& endpoints)
+    const std::list<ServerContract::Endpoint>& endpoints) const
 {
     std::string server;
 
@@ -1220,9 +1212,9 @@ ConstServerContract Wallet::Server(
     return Server(Identifier(server));
 }
 
-ObjectList Wallet::ServerList() { return ot_.DB().ServerList(); }
+ObjectList Wallet::ServerList() const { return ot_.DB().ServerList(); }
 
-bool Wallet::SetNymAlias(const Identifier& id, const std::string& alias)
+bool Wallet::SetNymAlias(const Identifier& id, const std::string& alias) const
 {
     Lock mapLock(nym_map_lock_);
 
@@ -1235,7 +1227,7 @@ bool Wallet::SetNymAlias(const Identifier& id, const std::string& alias)
     return ot_.DB().SetNymAlias(String(id).Get(), alias);
 }
 
-Identifier Wallet::ServerToNym(Identifier& input)
+Identifier Wallet::ServerToNym(Identifier& input) const
 {
     Identifier output;
     auto nym = Nym(input);
@@ -1275,6 +1267,7 @@ Identifier Wallet::ServerToNym(Identifier& input)
 }
 
 bool Wallet::SetServerAlias(const Identifier& id, const std::string& alias)
+    const
 {
     const std::string server = String(id).Get();
     const bool saved = ot_.DB().SetServerAlias(server, alias);
@@ -1291,7 +1284,7 @@ bool Wallet::SetServerAlias(const Identifier& id, const std::string& alias)
 
 bool Wallet::SetUnitDefinitionAlias(
     const Identifier& id,
-    const std::string& alias)
+    const std::string& alias) const
 {
     const std::string unit = String(id).Get();
     const bool saved = ot_.DB().SetUnitDefinitionAlias(unit, alias);
@@ -1306,14 +1299,14 @@ bool Wallet::SetUnitDefinitionAlias(
     return false;
 }
 
-ObjectList Wallet::UnitDefinitionList()
+ObjectList Wallet::UnitDefinitionList() const
 {
     return ot_.DB().UnitDefinitionList();
 }
 
-ConstUnitDefinition Wallet::UnitDefinition(
+const ConstUnitDefinition Wallet::UnitDefinition(
     const Identifier& id,
-    const std::chrono::milliseconds& timeout)
+    const std::chrono::milliseconds& timeout) const
 {
     const String strID(id);
     const std::string unit = strID.Get();
@@ -1382,7 +1375,7 @@ ConstUnitDefinition Wallet::UnitDefinition(
 }
 
 ConstUnitDefinition Wallet::UnitDefinition(
-    std::unique_ptr<class UnitDefinition>& contract)
+    std::unique_ptr<class UnitDefinition>& contract) const
 {
     std::string unit = String(contract->ID()).Get();
 
@@ -1400,7 +1393,7 @@ ConstUnitDefinition Wallet::UnitDefinition(
 }
 
 ConstUnitDefinition Wallet::UnitDefinition(
-    const proto::UnitDefinition& contract)
+    const proto::UnitDefinition& contract) const
 {
     std::string unit = contract.id();
     auto nym = Nym(Identifier(contract.nymid()));
@@ -1435,7 +1428,7 @@ ConstUnitDefinition Wallet::UnitDefinition(
     const std::string& terms,
     const std::string& tla,
     const std::uint32_t& power,
-    const std::string& fraction)
+    const std::string& fraction) const
 {
     std::string unit;
 
@@ -1465,7 +1458,7 @@ ConstUnitDefinition Wallet::UnitDefinition(
     const std::string& shortname,
     const std::string& name,
     const std::string& symbol,
-    const std::string& terms)
+    const std::string& terms) const
 {
     std::string unit;
 

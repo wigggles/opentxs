@@ -72,9 +72,9 @@ class Identity
 private:
     friend class implementation::Native;
 
-    api::client::Wallet& wallet_;
+    const api::client::Wallet& wallet_;
 
-    Identity(api::client::Wallet& wallet);
+    Identity(const api::client::Wallet& wallet);
     Identity() = delete;
     Identity(const Identity&) = delete;
     Identity& operator=(const Identity&) = delete;

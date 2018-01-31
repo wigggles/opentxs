@@ -76,9 +76,9 @@ class OTClient
 public:
     explicit OTClient(
         OTWallet& theWallet,
-        api::Activity& activity,
-        api::ContactManager& contacts,
-        api::client::Wallet& wallet);
+        const api::Activity& activity,
+        const api::ContactManager& contacts,
+        const api::client::Wallet& wallet);
 
     inline OTMessageBuffer& GetMessageBuffer() { return m_MessageBuffer; }
 
@@ -112,9 +112,9 @@ public:
 
 private:
     OTWallet& m_pWallet;
-    api::Activity& activity_;
-    api::ContactManager& contacts_;
-    api::client::Wallet& wallet_;
+    const api::Activity& activity_;
+    const api::ContactManager& contacts_;
+    const api::client::Wallet& wallet_;
     OTMessageBuffer m_MessageBuffer;
     OTMessageOutbuffer m_MessageOutbuffer;
 

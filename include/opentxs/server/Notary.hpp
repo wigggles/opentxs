@@ -90,8 +90,8 @@ private:
     friend class Server;
 
     Server& server_;
-    opentxs::api::Server& mint_;
-    opentxs::api::client::Wallet& wallet_;
+    const opentxs::api::Server& mint_;
+    const opentxs::api::client::Wallet& wallet_;
 
     void NotarizeCancelCronItem(
         Nym& nym,
@@ -159,8 +159,8 @@ private:
 
     explicit Notary(
         Server& server,
-        opentxs::api::Server& mint,
-        opentxs::api::client::Wallet& wallet);
+        const opentxs::api::Server& mint,
+        const opentxs::api::client::Wallet& wallet);
     Notary() = delete;
     Notary(const Notary&) = delete;
     Notary(Notary&&) = delete;

@@ -73,12 +73,12 @@ AsymmetricKeySecp256k1::AsymmetricKeySecp256k1(const String& publicKey)
 {
 }
 
-Ecdsa& AsymmetricKeySecp256k1::ECDSA() const
+const Ecdsa& AsymmetricKeySecp256k1::ECDSA() const
 {
-    return static_cast<Libsecp256k1&>(engine());
+    return static_cast<const Libsecp256k1&>(engine());
 }
 
-CryptoAsymmetric& AsymmetricKeySecp256k1::engine() const
+const CryptoAsymmetric& AsymmetricKeySecp256k1::engine() const
 
 {
     return OT::App().Crypto().SECP256K1();

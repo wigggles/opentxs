@@ -68,186 +68,184 @@ class Storage
 public:
     virtual std::set<std::string> BlockchainAccountList(
         const std::string& nymID,
-        const proto::ContactItemType type) = 0;
+        const proto::ContactItemType type) const = 0;
     virtual std::string BlockchainAddressOwner(
         proto::ContactItemType chain,
-        std::string address) = 0;
-    virtual ObjectList BlockchainTransactionList() = 0;
-    virtual std::string ContactAlias(const std::string& id) = 0;
-    virtual ObjectList ContactList() = 0;
-    virtual ObjectList ContextList(const std::string& nymID) = 0;
-    virtual std::string ContactOwnerNym(const std::string& nymID) = 0;
-    virtual void ContactSaveIndices() = 0;
+        std::string address) const = 0;
+    virtual ObjectList BlockchainTransactionList() const = 0;
+    virtual std::string ContactAlias(const std::string& id) const = 0;
+    virtual ObjectList ContactList() const = 0;
+    virtual ObjectList ContextList(const std::string& nymID) const = 0;
+    virtual std::string ContactOwnerNym(const std::string& nymID) const = 0;
+    virtual void ContactSaveIndices() const = 0;
     virtual std::uint32_t ContactUpgradeLevel() const = 0;
     virtual bool CreateThread(
         const std::string& nymID,
         const std::string& threadID,
-        const std::set<std::string>& participants) = 0;
-    virtual std::string DefaultSeed() = 0;
-    virtual bool DeleteContact(const std::string& id) = 0;
+        const std::set<std::string>& participants) const = 0;
+    virtual std::string DefaultSeed() const = 0;
+    virtual bool DeleteContact(const std::string& id) const = 0;
     virtual std::uint32_t HashType() const = 0;
-    virtual ObjectList IssuerList(const std::string& nymID) = 0;
+    virtual ObjectList IssuerList(const std::string& nymID) const = 0;
     virtual bool Load(
         const std::string& nymID,
         const std::string& accountID,
         std::shared_ptr<proto::Bip44Account>& output,
-        const bool checking = false) = 0;
+        const bool checking = false) const = 0;
     virtual bool Load(
         const std::string& id,
         std::shared_ptr<proto::BlockchainTransaction>& transaction,
-        const bool checking = false) = 0;
+        const bool checking = false) const = 0;
     virtual bool Load(
         const std::string& id,
         std::shared_ptr<proto::Contact>& contact,
-        const bool checking = false) = 0;
+        const bool checking = false) const = 0;
     virtual bool Load(
         const std::string& id,
         std::shared_ptr<proto::Contact>& contact,
         std::string& alias,
-        const bool checking = false) = 0;
+        const bool checking = false) const = 0;
     virtual bool Load(
         const std::string& nym,
         const std::string& id,
         std::shared_ptr<proto::Context>& context,
-        const bool checking = false) = 0;
+        const bool checking = false) const = 0;
     virtual bool Load(
         const std::string& id,
         std::shared_ptr<proto::Credential>& cred,
-        const bool checking = false) = 0;
+        const bool checking = false) const = 0;
     virtual bool Load(
         const std::string& id,
         std::shared_ptr<proto::CredentialIndex>& nym,
-        const bool checking = false) = 0;
+        const bool checking = false) const = 0;
     virtual bool Load(
         const std::string& id,
         std::shared_ptr<proto::CredentialIndex>& nym,
         std::string& alias,
-        const bool checking = false) = 0;
+        const bool checking = false) const = 0;
     virtual bool Load(
         const std::string& nymID,
         const std::string& id,
         std::shared_ptr<proto::Issuer>& issuer,
-        const bool checking = false) = 0;
+        const bool checking = false) const = 0;
     virtual bool Load(
         const std::string& nymID,
         const std::string& id,
         const StorageBox box,
         std::string& output,
         std::string& alias,
-        const bool checking = false) = 0;
+        const bool checking = false) const = 0;
     virtual bool Load(
         const std::string& nymID,
         const std::string& id,
         const StorageBox box,
         std::shared_ptr<proto::PeerReply>& request,
-        const bool checking = false) = 0;
+        const bool checking = false) const = 0;
     virtual bool Load(
         const std::string& nymID,
         const std::string& id,
         const StorageBox box,
         std::shared_ptr<proto::PeerRequest>& request,
         std::time_t& time,
-        const bool checking = false) = 0;
+        const bool checking = false) const = 0;
     virtual bool Load(
         const std::string& id,
         std::shared_ptr<proto::Seed>& seed,
-        const bool checking = false) = 0;
+        const bool checking = false) const = 0;
     virtual bool Load(
         const std::string& id,
         std::shared_ptr<proto::Seed>& seed,
         std::string& alias,
-        const bool checking = false) = 0;
+        const bool checking = false) const = 0;
     virtual bool Load(
         const std::string& id,
         std::shared_ptr<proto::ServerContract>& contract,
-        const bool checking = false) = 0;
+        const bool checking = false) const = 0;
     virtual bool Load(
         const std::string& id,
         std::shared_ptr<proto::ServerContract>& contract,
         std::string& alias,
-        const bool checking = false) = 0;
+        const bool checking = false) const = 0;
     virtual bool Load(
         const std::string& nymId,
         const std::string& threadId,
-        std::shared_ptr<proto::StorageThread>& thread) = 0;
+        std::shared_ptr<proto::StorageThread>& thread) const = 0;
     virtual bool Load(
         const std::string& id,
         std::shared_ptr<proto::UnitDefinition>& contract,
-        const bool checking = false) = 0;
+        const bool checking = false) const = 0;
     virtual bool Load(
         const std::string& id,
         std::shared_ptr<proto::UnitDefinition>& contract,
         std::string& alias,
-        const bool checking = false) = 0;
-    virtual void MapPublicNyms(NymLambda& lambda) = 0;
-    virtual void MapServers(ServerLambda& lambda) = 0;
-    virtual void MapUnitDefinitions(UnitLambda& lambda) = 0;
+        const bool checking = false) const = 0;
+    virtual void MapPublicNyms(NymLambda& lambda) const = 0;
+    virtual void MapServers(ServerLambda& lambda) const = 0;
+    virtual void MapUnitDefinitions(UnitLambda& lambda) const = 0;
     virtual bool MoveThreadItem(
         const std::string& nymId,
         const std::string& fromThreadID,
         const std::string& toThreadID,
-        const std::string& itemID) = 0;
+        const std::string& itemID) const = 0;
     virtual ObjectList NymBoxList(
         const std::string& nymID,
         const StorageBox box) const = 0;
     virtual ObjectList NymList() const = 0;
     virtual bool RelabelThread(
         const std::string& threadID,
-        const std::string& label) = 0;
+        const std::string& label) const = 0;
     virtual bool RemoveNymBoxItem(
         const std::string& nymID,
         const StorageBox box,
-        const std::string& itemID) = 0;
-    virtual bool RemoveServer(const std::string& id) = 0;
-    virtual bool RemoveUnitDefinition(const std::string& id) = 0;
+        const std::string& itemID) const = 0;
+    virtual bool RemoveServer(const std::string& id) const = 0;
+    virtual bool RemoveUnitDefinition(const std::string& id) const = 0;
     virtual bool RenameThread(
         const std::string& nymId,
         const std::string& threadId,
-        const std::string& newID) = 0;
-    virtual void RunGC() = 0;
-    virtual std::string ServerAlias(const std::string& id) = 0;
+        const std::string& newID) const = 0;
+    virtual void RunGC() const = 0;
+    virtual std::string ServerAlias(const std::string& id) const = 0;
     virtual ObjectList ServerList() const = 0;
     virtual bool SetContactAlias(
         const std::string& id,
-        const std::string& alias) = 0;
-    virtual bool SetDefaultSeed(const std::string& id) = 0;
-    virtual bool SetNymAlias(
-        const std::string& id,
-        const std::string& alias) = 0;
+        const std::string& alias) const = 0;
+    virtual bool SetDefaultSeed(const std::string& id) const = 0;
+    virtual bool SetNymAlias(const std::string& id, const std::string& alias)
+        const = 0;
     virtual bool SetPeerRequestTime(
         const std::string& nymID,
         const std::string& id,
-        const StorageBox box) = 0;
+        const StorageBox box) const = 0;
     virtual bool SetReadState(
         const std::string& nymId,
         const std::string& threadId,
         const std::string& itemId,
-        const bool unread) = 0;
-    virtual bool SetSeedAlias(
-        const std::string& id,
-        const std::string& alias) = 0;
-    virtual bool SetServerAlias(
-        const std::string& id,
-        const std::string& alias) = 0;
+        const bool unread) const = 0;
+    virtual bool SetSeedAlias(const std::string& id, const std::string& alias)
+        const = 0;
+    virtual bool SetServerAlias(const std::string& id, const std::string& alias)
+        const = 0;
     virtual bool SetThreadAlias(
         const std::string& nymId,
         const std::string& threadId,
-        const std::string& alias) = 0;
+        const std::string& alias) const = 0;
     virtual bool SetUnitDefinitionAlias(
         const std::string& id,
-        const std::string& alias) = 0;
+        const std::string& alias) const = 0;
     virtual bool Store(
         const std::string& nymID,
         const proto::ContactItemType type,
-        const proto::Bip44Account& data) = 0;
-    virtual bool Store(const proto::BlockchainTransaction& data) = 0;
-    virtual bool Store(const proto::Contact& data) = 0;
-    virtual bool Store(const proto::Context& data) = 0;
-    virtual bool Store(const proto::Credential& data) = 0;
+        const proto::Bip44Account& data) const = 0;
+    virtual bool Store(const proto::BlockchainTransaction& data) const = 0;
+    virtual bool Store(const proto::Contact& data) const = 0;
+    virtual bool Store(const proto::Context& data) const = 0;
+    virtual bool Store(const proto::Credential& data) const = 0;
     virtual bool Store(
         const proto::CredentialIndex& data,
-        const std::string& alias = std::string("")) = 0;
-    virtual bool Store(const std::string& nymID, const proto::Issuer& data) = 0;
+        const std::string& alias = std::string("")) const = 0;
+    virtual bool Store(const std::string& nymID, const proto::Issuer& data)
+        const = 0;
     virtual bool Store(
         const std::string& nymid,
         const std::string& threadid,
@@ -255,35 +253,35 @@ public:
         const std::uint64_t time,
         const std::string& alias,
         const std::string& data,
-        const StorageBox box) = 0;
+        const StorageBox box) const = 0;
     virtual bool Store(
         const proto::PeerReply& data,
         const std::string& nymid,
-        const StorageBox box) = 0;
+        const StorageBox box) const = 0;
     virtual bool Store(
         const proto::PeerRequest& data,
         const std::string& nymid,
-        const StorageBox box) = 0;
+        const StorageBox box) const = 0;
     virtual bool Store(
         const proto::Seed& data,
-        const std::string& alias = std::string("")) = 0;
+        const std::string& alias = std::string("")) const = 0;
     virtual bool Store(
         const proto::ServerContract& data,
-        const std::string& alias = std::string("")) = 0;
+        const std::string& alias = std::string("")) const = 0;
     virtual bool Store(
         const proto::UnitDefinition& data,
-        const std::string& alias = std::string("")) = 0;
+        const std::string& alias = std::string("")) const = 0;
     virtual ObjectList ThreadList(
         const std::string& nymID,
         const bool unreadOnly) const = 0;
     virtual std::string ThreadAlias(
         const std::string& nymID,
-        const std::string& threadID) = 0;
-    virtual std::string UnitDefinitionAlias(const std::string& id) = 0;
+        const std::string& threadID) const = 0;
+    virtual std::string UnitDefinitionAlias(const std::string& id) const = 0;
     virtual ObjectList UnitDefinitionList() const = 0;
     virtual std::size_t UnreadCount(
         const std::string& nymId,
-        const std::string& threadId) = 0;
+        const std::string& threadId) const = 0;
 
     virtual ~Storage() = default;
 

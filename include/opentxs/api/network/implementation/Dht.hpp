@@ -75,51 +75,48 @@ namespace implementation
 class Dht : virtual public opentxs::api::network::Dht
 {
 public:
-    void Cleanup() override;
-    void GetPublicNym(const std::string& key) override;
-    void GetServerContract(const std::string& key) override;
-    void GetUnitDefinition(const std::string& key) override;
-    void Insert(const std::string& key, const std::string& value) override;
-    void Insert(const proto::CredentialIndex& nym) override;
-    void Insert(const proto::ServerContract& contract) override;
-    void Insert(const proto::UnitDefinition& contract) override;
-    void RegisterCallbacks(const CallbackMap& callbacks) override;
-
-    ~Dht();
+    void GetPublicNym(const std::string& key) const override;
+    void GetServerContract(const std::string& key) const override;
+    void GetUnitDefinition(const std::string& key) const override;
+    void Insert(const std::string& key, const std::string& value)
+        const override;
+    void Insert(const proto::CredentialIndex& nym) const override;
+    void Insert(const proto::ServerContract& contract) const override;
+    void Insert(const proto::UnitDefinition& contract) const override;
+    void RegisterCallbacks(const CallbackMap& callbacks) const override;
 
 private:
     friend class api::implementation::Native;
 
-    api::client::Wallet& wallet_;
-    CallbackMap callback_map_;
+    const api::client::Wallet& wallet_;
+    mutable CallbackMap callback_map_;
     std::unique_ptr<const DhtConfig> config_;
 #if OT_DHT
-    OpenDHT* node_ = nullptr;
+    std::unique_ptr<OpenDHT> node_;
 #endif
 
 #if OT_DHT
     static bool ProcessPublicNym(
-        api::client::Wallet& wallet,
+        const api::client::Wallet& wallet,
         const std::string key,
         const DhtResults& values,
         NotifyCB notifyCB);
     static bool ProcessServerContract(
-        api::client::Wallet& wallet,
+        const api::client::Wallet& wallet,
         const std::string key,
         const DhtResults& values,
         NotifyCB notifyCB);
     static bool ProcessUnitDefinition(
-        api::client::Wallet& wallet,
+        const api::client::Wallet& wallet,
         const std::string key,
         const DhtResults& values,
         NotifyCB notifyCB);
 #endif
 
-    explicit Dht(DhtConfig& config, api::client::Wallet& wallet);
+    explicit Dht(DhtConfig& config, const api::client::Wallet& wallet);
     Dht() = delete;
     Dht(const Dht&) = delete;
     Dht& operator=(const Dht&) = delete;
-    void Init();
 };
 }  // namespace implementation
 }  // namespace network

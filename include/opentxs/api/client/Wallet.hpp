@@ -104,7 +104,7 @@ public:
      */
     virtual std::shared_ptr<const opentxs::Context> Context(
         const Identifier& notaryID,
-        const Identifier& clientNymID) = 0;
+        const Identifier& clientNymID) const = 0;
 
     /**   Load a read-only copy of a ClientContext object
      *
@@ -116,7 +116,7 @@ public:
      */
     virtual std::shared_ptr<const opentxs::ClientContext> ClientContext(
         const Identifier& localNymID,
-        const Identifier& remoteNymID) = 0;
+        const Identifier& remoteNymID) const = 0;
 
     /**   Load a read-only copy of a ServerContext object
      *
@@ -128,7 +128,7 @@ public:
      */
     virtual std::shared_ptr<const opentxs::ServerContext> ServerContext(
         const Identifier& localNymID,
-        const Identifier& remoteID) = 0;
+        const Identifier& remoteID) const = 0;
 
     /**   Load an existing Context object
      *
@@ -145,7 +145,7 @@ public:
      */
     virtual Editor<opentxs::Context> mutable_Context(
         const Identifier& notaryID,
-        const Identifier& clientNymID) = 0;
+        const Identifier& clientNymID) const = 0;
 
     /**   Load or create a ClientContext object
      *
@@ -155,7 +155,7 @@ public:
      */
     virtual Editor<opentxs::ClientContext> mutable_ClientContext(
         const Identifier& localNymID,
-        const Identifier& remoteNymID) = 0;
+        const Identifier& remoteNymID) const = 0;
 
     /**   Load or create a ServerContext object
      *
@@ -165,7 +165,7 @@ public:
      */
     virtual Editor<opentxs::ServerContext> mutable_ServerContext(
         const Identifier& localNymID,
-        const Identifier& remoteID) = 0;
+        const Identifier& remoteID) const = 0;
 
     /**   Returns a list of all issuers associated with a local nym */
     virtual std::set<Identifier> IssuerList(const Identifier& nymID) const = 0;
@@ -212,7 +212,7 @@ public:
     virtual ConstNym Nym(
         const Identifier& id,
         const std::chrono::milliseconds& timeout =
-            std::chrono::milliseconds(0)) = 0;
+            std::chrono::milliseconds(0)) const = 0;
 
     /**   Instantiate a nym from serialized form
      *
@@ -221,9 +221,9 @@ public:
      *
      *    \param[in] nym the serialized version of the contract
      */
-    virtual ConstNym Nym(const proto::CredentialIndex& nym) = 0;
+    virtual ConstNym Nym(const proto::CredentialIndex& nym) const = 0;
 
-    virtual NymData mutable_Nym(const Identifier& id) = 0;
+    virtual NymData mutable_Nym(const Identifier& id) const = 0;
 
     /**   Returns a list of all known nyms and their aliases
      */
@@ -448,7 +448,7 @@ public:
      *    \returns true if successful, false if the contract did not exist
      *
      */
-    virtual bool RemoveServer(const Identifier& id) = 0;
+    virtual bool RemoveServer(const Identifier& id) const = 0;
 
     /**   Unload and delete a unit definition contract
      *
@@ -458,7 +458,7 @@ public:
      *    \returns true if successful, false if the contract did not exist
      *
      */
-    virtual bool RemoveUnitDefinition(const Identifier& id) = 0;
+    virtual bool RemoveUnitDefinition(const Identifier& id) const = 0;
 
     /**   Obtain a smart pointer to an instantiated server contract.
      *
@@ -482,7 +482,7 @@ public:
     virtual ConstServerContract Server(
         const Identifier& id,
         const std::chrono::milliseconds& timeout =
-            std::chrono::milliseconds(0)) = 0;
+            std::chrono::milliseconds(0)) const = 0;
 
     /**   Instantiate a server contract from serialized form
      *
@@ -492,7 +492,7 @@ public:
      *    \param[in] contract the serialized version of the contract
      */
     virtual ConstServerContract Server(
-        const proto::ServerContract& contract) = 0;
+        const proto::ServerContract& contract) const = 0;
 
     /**   Create a new server contract
      *
@@ -509,11 +509,11 @@ public:
         const std::string& nymid,
         const std::string& name,
         const std::string& terms,
-        const std::list<ServerContract::Endpoint>& endpoints) = 0;
+        const std::list<ServerContract::Endpoint>& endpoints) const = 0;
 
     /**   Returns a list of all available server contracts and their aliases
      */
-    virtual ObjectList ServerList() = 0;
+    virtual ObjectList ServerList() const = 0;
 
     /**   Updates the alias for the specified nym.
      *
@@ -524,9 +524,8 @@ public:
      *    \param[in] alias the alias to set or update for the specified nym
      *    \returns true if successful, false if the nym can not be located
      */
-    virtual bool SetNymAlias(
-        const Identifier& id,
-        const std::string& alias) = 0;
+    virtual bool SetNymAlias(const Identifier& id, const std::string& alias)
+        const = 0;
 
     /**   Updates the alias for the specified server contract.
      *
@@ -537,9 +536,8 @@ public:
      *    \param[in] alias the alias to set or update for the specified contract
      *    \returns true if successful, false if the contract can not be located
      */
-    virtual bool SetServerAlias(
-        const Identifier& id,
-        const std::string& alias) = 0;
+    virtual bool SetServerAlias(const Identifier& id, const std::string& alias)
+        const = 0;
 
     /**   Updates the alias for the specified unit definition contract.
      *
@@ -552,12 +550,12 @@ public:
      */
     virtual bool SetUnitDefinitionAlias(
         const Identifier& id,
-        const std::string& alias) = 0;
+        const std::string& alias) const = 0;
 
     /**   Obtain a list of all available unit definition contracts and their
      *    aliases
      */
-    virtual ObjectList UnitDefinitionList() = 0;
+    virtual ObjectList UnitDefinitionList() const = 0;
 
     /**   Obtain a smart pointer to an instantiated unit definition contract.
      *
@@ -578,10 +576,10 @@ public:
      *                     willing to wait for a network lookup. The default
      *                     value of 0 will return immediately.
      */
-    virtual ConstUnitDefinition UnitDefinition(
+    virtual const ConstUnitDefinition UnitDefinition(
         const Identifier& id,
         const std::chrono::milliseconds& timeout =
-            std::chrono::milliseconds(0)) = 0;
+            std::chrono::milliseconds(0)) const = 0;
 
     /**   Instantiate a unit definition contract from serialized form
      *
@@ -591,7 +589,7 @@ public:
      *    \param[in] contract the serialized version of the contract
      */
     virtual ConstUnitDefinition UnitDefinition(
-        const proto::UnitDefinition& contract) = 0;
+        const proto::UnitDefinition& contract) const = 0;
 
     /**   Create a new currency contract
      *
@@ -618,7 +616,7 @@ public:
         const std::string& terms,
         const std::string& tla,
         const std::uint32_t& power,
-        const std::string& fraction) = 0;
+        const std::string& fraction) const = 0;
 
     /**   Create a new security contract
      *
@@ -637,7 +635,7 @@ public:
         const std::string& shortname,
         const std::string& name,
         const std::string& symbol,
-        const std::string& terms) = 0;
+        const std::string& terms) const = 0;
 
     virtual ~Wallet() = default;
 

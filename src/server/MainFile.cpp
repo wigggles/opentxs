@@ -75,8 +75,8 @@ namespace opentxs::server
 
 MainFile::MainFile(
     Server& server,
-    opentxs::api::Crypto& crypto,
-    opentxs::api::client::Wallet& wallet)
+    const opentxs::api::Crypto& crypto,
+    const opentxs::api::client::Wallet& wallet)
     : server_(server)
     , crypto_(crypto)
     , wallet_(wallet)
@@ -455,10 +455,9 @@ bool MainFile::LoadMainFile(bool bReadOnly)
                         const String strAcctCount =
                             xml->getAttributeValue("count");
 
-                        if ((-1) ==
-                            server_.transactor_.voucherAccounts_
-                                .ReadFromXMLNode(
-                                    xml, strAcctType, strAcctCount))
+                        if ((-1) == server_.transactor_.voucherAccounts_
+                                        .ReadFromXMLNode(
+                                            xml, strAcctType, strAcctCount))
                             Log::vError(
                                 "%s: Error loading voucher accountList.\n",
                                 __FUNCTION__);

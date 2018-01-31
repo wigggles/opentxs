@@ -98,8 +98,8 @@ private:
 
     std::atomic<bool>& shutdown_;
     std::atomic<std::chrono::seconds>& keep_alive_;
-    api::network::ZMQ& zmq_;
-    api::Settings& config_;
+    const api::network::ZMQ& zmq_;
+    const api::Settings& config_;
     const network::zeromq::Context& context_;
 
     std::shared_ptr<const ServerContract> remote_contract_{nullptr};
@@ -129,8 +129,8 @@ private:
         const std::string& proxy,
         std::atomic<bool>& shutdown,
         std::atomic<std::chrono::seconds>& keepAlive,
-        api::network::ZMQ& zmq,
-        api::Settings& config);
+        const api::network::ZMQ& zmq,
+        const api::Settings& config);
     ServerConnection() = delete;
     ServerConnection(const ServerConnection&) = delete;
     ServerConnection(ServerConnection&&) = delete;

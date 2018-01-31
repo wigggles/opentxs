@@ -162,7 +162,7 @@ PaymentCode::PaymentCode(
         proto::AsymmetricKey key;
 #if OT_CRYPTO_USING_LIBSECP256K1
         const bool haveKey =
-            static_cast<Libsecp256k1&>(OT::App().Crypto().SECP256K1())
+            static_cast<const Libsecp256k1&>(OT::App().Crypto().SECP256K1())
                 .PrivateToPublic(*privatekey, key);
 #endif
 
@@ -353,7 +353,7 @@ bool PaymentCode::Sign(
     proto::AsymmetricKey compareKey;
 #if OT_CRYPTO_USING_LIBSECP256K1
     const bool haveKey =
-        static_cast<Libsecp256k1&>(OT::App().Crypto().SECP256K1())
+        static_cast<const Libsecp256k1&>(OT::App().Crypto().SECP256K1())
             .PrivateToPublic(*privatekey, compareKey);
 #endif
 

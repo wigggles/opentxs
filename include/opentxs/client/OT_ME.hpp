@@ -514,17 +514,17 @@ private:
     friend class api::implementation::Api;
 
     std::recursive_mutex& lock_;
-    OTAPI_Exec& exec_;
-    OT_API& otapi_;
+    const OTAPI_Exec& exec_;
+    const OT_API& otapi_;
     const MadeEasy& made_easy_;
-    api::client::Wallet& wallet_;
+    const api::client::Wallet& wallet_;
 
     OT_ME(
         std::recursive_mutex& lock,
-        OTAPI_Exec& exec,
-        OT_API& otapi,
+        const OTAPI_Exec& exec,
+        const OT_API& otapi,
         MadeEasy& madeEasy,
-        api::client::Wallet& wallet);
+        const api::client::Wallet& wallet);
     OT_ME() = delete;
     OT_ME(const OT_ME&) = delete;
     OT_ME(const OT_ME&&) = delete;

@@ -54,7 +54,7 @@
 namespace opentxs::api::client::implementation
 {
 Issuer::Issuer(
-    api::client::Wallet& wallet,
+    const api::client::Wallet& wallet,
     const Identifier& nymID,
     const Identifier& issuerID)
     : wallet_(wallet)
@@ -69,7 +69,7 @@ Issuer::Issuer(
 }
 
 Issuer::Issuer(
-    api::client::Wallet& wallet,
+    const api::client::Wallet& wallet,
     const Identifier& nymID,
     const proto::Issuer& serialized)
     : wallet_(wallet)
@@ -156,8 +156,9 @@ Issuer::operator std::string() const
             const auto& notUsed[[maybe_unused]] = id;
             const auto& claim = *pClaim;
             const Identifier unitID(claim.Value());
-            output << " * " << proto::TranslateItemType(
-                                   static_cast<std::uint32_t>(claim.Type()))
+            output << " * "
+                   << proto::TranslateItemType(
+                          static_cast<std::uint32_t>(claim.Type()))
                    << ": " << claim.Value() << "\n";
             const auto accountSet = account_map_.find(type);
 

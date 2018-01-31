@@ -60,7 +60,7 @@ namespace opentxs::api::network::implementation
 
 ZMQ::ZMQ(
     const opentxs::network::zeromq::Context& context,
-    api::Settings& config)
+    const api::Settings& config)
     : context_(context)
     , config_(config)
     , linger_(std::chrono::seconds(CLIENT_SOCKET_LINGER_SECONDS))
@@ -82,7 +82,7 @@ const opentxs::network::zeromq::Context& ZMQ::Context() const
     return context_;
 }
 
-void ZMQ::init(const Lock& lock)
+void ZMQ::init(const Lock& lock) const
 {
     OT_ASSERT(verify_lock(lock));
 
@@ -122,7 +122,7 @@ void ZMQ::KeepAlive(const std::chrono::seconds duration) const
     keep_alive_.store(duration);
 }
 
-std::chrono::seconds ZMQ::Linger() { return linger_.load(); }
+std::chrono::seconds ZMQ::Linger() const { return linger_.load(); }
 
 std::shared_ptr<opentxs::network::zeromq::Context> ZMQ::NewContext() const
 {
@@ -132,18 +132,21 @@ std::shared_ptr<opentxs::network::zeromq::Context> ZMQ::NewContext() const
     return output;
 }
 
-std::chrono::seconds ZMQ::ReceiveTimeout() { return receive_timeout_.load(); }
+std::chrono::seconds ZMQ::ReceiveTimeout() const
+{
+    return receive_timeout_.load();
+}
 
-void ZMQ::RefreshConfig()
+void ZMQ::RefreshConfig() const
 {
     Lock lock(lock_);
 
     return init(lock);
 }
 
-std::chrono::seconds ZMQ::SendTimeout() { return send_timeout_.load(); }
+std::chrono::seconds ZMQ::SendTimeout() const { return send_timeout_.load(); }
 
-ServerConnection& ZMQ::Server(const std::string& id)
+ServerConnection& ZMQ::Server(const std::string& id) const
 {
     Lock lock(lock_);
     auto& connection = server_connections_[id];
@@ -158,7 +161,7 @@ ServerConnection& ZMQ::Server(const std::string& id)
     return *connection;
 }
 
-bool ZMQ::SetSocksProxy(const std::string& proxy)
+bool ZMQ::SetSocksProxy(const std::string& proxy) const
 {
     bool notUsed{false};
     bool set =
@@ -201,7 +204,7 @@ bool ZMQ::SetSocksProxy(const std::string& proxy)
     return set;
 }
 
-bool ZMQ::SocksProxy(std::string& proxy)
+bool ZMQ::SocksProxy(std::string& proxy) const
 {
     Lock lock(lock_);
     proxy = socks_proxy_;
@@ -209,7 +212,7 @@ bool ZMQ::SocksProxy(std::string& proxy)
     return (!socks_proxy_.empty());
 }
 
-std::string ZMQ::SocksProxy()
+std::string ZMQ::SocksProxy() const
 {
     std::string output{};
     SocksProxy(output);

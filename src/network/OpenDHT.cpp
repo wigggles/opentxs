@@ -55,8 +55,6 @@ namespace opentxs
 {
 #if OT_DHT
 
-OpenDHT* OpenDHT::instance_ = nullptr;
-
 OpenDHT::OpenDHT(const DhtConfig& config)
     : config_(new DhtConfig(config))
     , node_(new dht::DhtRunner)
@@ -111,17 +109,6 @@ bool OpenDHT::Init() const
     }
 
     return true;
-}
-
-OpenDHT& OpenDHT::It(const DhtConfig& config)
-{
-    if (nullptr == instance_) {
-        instance_ = new OpenDHT(config);
-    }
-
-    assert(nullptr != instance_);
-
-    return *instance_;
 }
 
 void OpenDHT::Insert(
@@ -181,16 +168,12 @@ void OpenDHT::Retrieve(
     node_->get(dht::InfoHash(key), cb, dcb, dht::Value::AllFilter());
 }
 
-void OpenDHT::Cleanup()
+OpenDHT::~OpenDHT()
 {
     if (node_) {
         node_->join();
     }
-
-    instance_ = nullptr;
 }
-
-OpenDHT::~OpenDHT() { Cleanup(); }
 
 #endif
 }  // namespace opentxs

@@ -84,25 +84,25 @@ class OTAPI_Exec
 private:
     friend class api::implementation::Api;
 
-    api::Activity& activity_;
-    api::Settings& config_;
-    api::ContactManager& contacts_;
-    api::Crypto& crypto_;
-    api::Identity& identity_;
-    api::client::Wallet& wallet_;
-    api::network::ZMQ& zeromq_;
-    OT_API& ot_api_;
+    const api::Activity& activity_;
+    const api::Settings& config_;
+    const api::ContactManager& contacts_;
+    const api::Crypto& crypto_;
+    const api::Identity& identity_;
+    const api::client::Wallet& wallet_;
+    const api::network::ZMQ& zeromq_;
+    const OT_API& ot_api_;
     std::recursive_mutex& lock_;
 
     OTAPI_Exec(
-        api::Activity& activity,
-        api::Settings& config,
-        api::ContactManager& contacts,
-        api::Crypto& crypto,
-        api::Identity& identity,
-        api::client::Wallet& wallet,
-        api::network::ZMQ& zeromq,
-        OT_API& otapi,
+        const api::Activity& activity,
+        const api::Settings& config,
+        const api::ContactManager& contacts,
+        const api::Crypto& crypto,
+        const api::Identity& identity,
+        const api::client::Wallet& wallet,
+        const api::network::ZMQ& zeromq,
+        const OT_API& otapi,
         std::recursive_mutex& lock);
     OTAPI_Exec() = delete;
     OTAPI_Exec(const OTAPI_Exec&) = delete;
@@ -218,7 +218,7 @@ public:
     */
     EXPORT bool CheckSetConfigSection(
         const std::string& strSection,
-        const std::string& strComment);
+        const std::string& strComment) const;
 
     EXPORT std::string GetConfig_str(
         const std::string& strSection,
@@ -233,15 +233,15 @@ public:
     EXPORT bool SetConfig_str(
         const std::string& strSection,
         const std::string& strKey,
-        const std::string& strValue);
+        const std::string& strValue) const;
     EXPORT bool SetConfig_long(
         const std::string& strSection,
         const std::string& strKey,
-        const int64_t& lValue);
+        const int64_t& lValue) const;
     EXPORT bool SetConfig_bool(
         const std::string& strSection,
         const std::string& strKey,
-        const bool bValue);
+        const bool bValue) const;
 
     /** Output to the screen (stderr.)
     (This is so stdout can be left clean for the ACTUAL output.)
@@ -692,7 +692,7 @@ public:
      */
     EXPORT std::string ContactAttributeName(
         const proto::ContactItemAttribute type,
-        std::string lang = "en");
+        std::string lang = "en") const;
 
     /**  Get a list of allowed section types for contact data protobufs of the
      *   specified version
@@ -700,7 +700,7 @@ public:
      *    \return list of allowed section types
      */
     EXPORT std::set<proto::ContactSectionName> ContactSectionList(
-        const std::uint32_t version = 1);
+        const std::uint32_t version = 1) const;
 
     /**  Translate a claim section name enum value to human-readable text
      *    \param[in]  section claim section name enum value
@@ -710,7 +710,7 @@ public:
      */
     EXPORT std::string ContactSectionName(
         const proto::ContactSectionName section,
-        std::string lang = "en");
+        std::string lang = "en") const;
 
     /**  Get a list of allowed claim types for sections of the specified version
      *    \param[in]  section section name
@@ -719,7 +719,7 @@ public:
      */
     EXPORT std::set<proto::ContactItemType> ContactSectionTypeList(
         const proto::ContactSectionName section,
-        const std::uint32_t version = 1);
+        const std::uint32_t version = 1) const;
 
     /**  Translate a claim type enum value to human-readable text
      *    \param[in]  section claim type enum value
@@ -729,7 +729,7 @@ public:
      */
     EXPORT std::string ContactTypeName(
         const proto::ContactItemType type,
-        std::string lang = "en");
+        std::string lang = "en") const;
 
     /**  Find the relationship type which acts as the inverse of the given value
      *    \param[in]  relationship claim type enum value for the relationship to
@@ -738,7 +738,7 @@ public:
      *            proto::CITEMTYPE_ERROR
      */
     EXPORT proto::ContactItemType ReciprocalRelationship(
-        const proto::ContactItemType relationship);
+        const proto::ContactItemType relationship) const;
 
     /** Creates a contract based on the contents passed in,
     // then sets the contract key based on the NymID,

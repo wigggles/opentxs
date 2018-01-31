@@ -86,14 +86,14 @@ class Native;
 class Api : virtual public opentxs::api::Api
 {
 public:
-    std::recursive_mutex& Lock() const override;
+    const std::recursive_mutex& Lock() const override;
 
-    OTAPI_Exec& Exec(const std::string& wallet = "") override;
-    MadeEasy& ME(const std::string& wallet = "") override;
-    OT_API& OTAPI(const std::string& wallet = "") override;
-    OT_ME& OTME(const std::string& wallet = "") override;
-    OTME_too& OTME_TOO(const std::string& wallet = "") override;
-    const api::client::Pair& Pair() override;
+    const OTAPI_Exec& Exec(const std::string& wallet = "") const override;
+    const MadeEasy& ME(const std::string& wallet = "") const override;
+    const OT_API& OTAPI(const std::string& wallet = "") const override;
+    const OT_ME& OTME(const std::string& wallet = "") const override;
+    const OTME_too& OTME_TOO(const std::string& wallet = "") const override;
+    const api::client::Pair& Pair() const override;
 
     ~Api();
 
@@ -101,14 +101,14 @@ private:
     friend class implementation::Native;
 
     const std::atomic<bool>& shutdown_;
-    Activity& activity_;
-    Settings& config_;
-    ContactManager& contacts_;
-    Crypto& crypto_;
-    Identity& identity_;
-    storage::Storage& storage_;
-    api::client::Wallet& wallet_;
-    api::network::ZMQ& zmq_;
+    const Activity& activity_;
+    const Settings& config_;
+    const ContactManager& contacts_;
+    const Crypto& crypto_;
+    const Identity& identity_;
+    const storage::Storage& storage_;
+    const api::client::Wallet& wallet_;
+    const api::network::ZMQ& zmq_;
 
     std::unique_ptr<OT_API> ot_api_;
     std::unique_ptr<OTAPI_Exec> otapi_exec_;
@@ -123,14 +123,14 @@ private:
     void Init();
 
     Api(const std::atomic<bool>& shutdown,
-        api::Activity& activity,
-        api::Settings& config,
-        api::ContactManager& contacts,
-        api::Crypto& crypto,
-        api::Identity& identity,
-        api::storage::Storage& storage,
-        api::client::Wallet& wallet,
-        api::network::ZMQ& zmq);
+        const api::Activity& activity,
+        const api::Settings& config,
+        const api::ContactManager& contacts,
+        const api::Crypto& crypto,
+        const api::Identity& identity,
+        const api::storage::Storage& storage,
+        const api::client::Wallet& wallet,
+        const api::network::ZMQ& zmq);
     Api() = delete;
     Api(const Api&) = delete;
     Api(Api&&) = delete;

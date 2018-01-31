@@ -107,11 +107,11 @@ int32_t OTCron::__cron_max_items_per_nym = 10;  // The maximum number of cron
 #endif
 
 Server::Server(
-    opentxs::api::Crypto& crypto,
-    opentxs::api::Settings& config,
-    opentxs::api::Server& mint,
-    opentxs::api::storage::Storage& storage,
-    opentxs::api::client::Wallet& wallet)
+    const opentxs::api::Crypto& crypto,
+    const opentxs::api::Settings& config,
+    const opentxs::api::Server& mint,
+    const opentxs::api::storage::Storage& storage,
+    const opentxs::api::client::Wallet& wallet)
     : crypto_(crypto)
     , config_(config)
     , mint_(mint)

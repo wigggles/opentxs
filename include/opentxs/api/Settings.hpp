@@ -43,6 +43,7 @@
 
 #include "opentxs/core/String.hpp"
 
+#include <atomic>
 #include <stdint.h>
 #include <memory>
 #include <string>
@@ -75,22 +76,22 @@ private:
     class SettingsPvt;
 
     std::unique_ptr<SettingsPvt> pvt_;
-    bool b_Loaded{false};
+    mutable std::atomic<bool> b_Loaded{false};
 
-    String m_strConfigurationFileExactPath;
+    mutable String m_strConfigurationFileExactPath;
 
     // Core (Load and Save)
-    EXPORT bool Load(const String& strConfigurationFileExactPath);
-    EXPORT bool Save(const String& strConfigurationFileExactPath);
+    EXPORT bool Load(const String& strConfigurationFileExactPath) const;
+    EXPORT bool Save(const String& strConfigurationFileExactPath) const;
 
     // Log (log to Output in a well-formated way).
     EXPORT bool LogChange_str(
         const String& strSection,
         const String& strKey,
-        const String& strValue);
+        const String& strValue) const;
 
-    EXPORT bool Init();
-    EXPORT bool Reset();
+    EXPORT bool Init() const;
+    EXPORT bool Reset() const;
 
     EXPORT Settings();
     EXPORT explicit Settings(const String& strConfigFilePath);
@@ -98,14 +99,14 @@ private:
     Settings& operator=(const Settings&) = delete;
 
 public:
-    EXPORT void SetConfigFilePath(const String& strConfigFilePath);
-    EXPORT bool HasConfigFilePath();
+    EXPORT void SetConfigFilePath(const String& strConfigFilePath) const;
+    EXPORT bool HasConfigFilePath() const;
 
     // Core (Public Load and Save)
-    EXPORT bool Load();
-    EXPORT bool Save();
+    EXPORT bool Load() const;
+    EXPORT bool Save() const;
 
-    EXPORT const bool& IsLoaded() const;
+    EXPORT const std::atomic<bool>& IsLoaded() const;
 
     // Configuration Helpers
     //
@@ -138,26 +139,26 @@ public:
         const String& strKey,
         const String& strValue,
         bool& out_bNewOrUpdate,
-        const String& strComment = "");
+        const String& strComment = "") const;
     EXPORT bool Set_long(
         const String& strSection,
         const String& strKey,
         const int64_t& lValue,
         bool& out_bNewOrUpdate,
-        const String& strComment = "");
+        const String& strComment = "") const;
     EXPORT bool Set_bool(
         const String& strSection,
         const String& strKey,
         const bool& bValue,
         bool& out_bNewOrUpdate,
-        const String& strComment = "");
+        const String& strComment = "") const;
 
     // Check for a Section, if the section dosn't exist, it will be made and
     // out_bIsNewSection will be true.)
     EXPORT bool CheckSetSection(
         const String& strSection,
         const String& strComment,
-        bool& out_bIsNewSection);
+        bool& out_bIsNewSection) const;
 
     // Check for Key, and returns if the key exists, otherwise will set the
     // default key. If the default key is set, then out_bIsNew will be true.)
@@ -167,34 +168,34 @@ public:
         const String& strDefault,
         std::string& out_strResult,
         bool& out_bIsNew,
-        const String& strComment = "");
+        const String& strComment = "") const;
     EXPORT bool CheckSet_str(
         const String& strSection,
         const String& strKey,
         const String& strDefault,
         String& out_strResult,
         bool& out_bIsNew,
-        const String& strComment = "");
+        const String& strComment = "") const;
     EXPORT bool CheckSet_long(
         const String& strSection,
         const String& strKey,
         const int64_t& lDefault,
         int64_t& out_lResult,
         bool& out_bIsNew,
-        const String& strComment = "");
+        const String& strComment = "") const;
     EXPORT bool CheckSet_bool(
         const String& strSection,
         const String& strKey,
         const bool& bDefault,
         bool& out_bResult,
         bool& out_bIsNew,
-        const String& strComment = "");
+        const String& strComment = "") const;
 
     // Set Option helper function for setting bool's
     EXPORT bool SetOption_bool(
         const String& strSection,
         const String& strKey,
-        bool& bVariableName);
+        bool& bVariableName) const;
 
     EXPORT ~Settings();
 };

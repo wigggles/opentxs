@@ -116,7 +116,7 @@ private:
     static const String m_strVersion;
     static const String m_strPathSeparator;
 
-    api::Settings& config_;
+    const api::Settings& config_;
     std::int32_t m_nLogLevel{0};
     bool m_bInitialized{false};
     bool write_log_file_{false};
@@ -131,7 +131,7 @@ private:
     static Assert::fpt_Assert_sz_n_sz(logAssert);
     static bool CheckLogger(Log* pLogger);
 
-    Log(api::Settings& config);
+    Log(const api::Settings& config);
     Log() = delete;
     Log(const Log&) = delete;
     Log(Log&&) = delete;
@@ -142,7 +142,7 @@ public:
     /** now the logger checks the global config file itself for the
      * log-filename. */
     EXPORT static bool Init(
-        api::Settings& config,
+        const api::Settings& config,
         const String& strThreadContext = "",
         const int32_t& nLogLevel = 0);
 

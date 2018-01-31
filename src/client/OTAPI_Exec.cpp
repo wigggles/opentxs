@@ -123,14 +123,14 @@ const int32_t OT_ERROR = (-1);
 #endif
 
 OTAPI_Exec::OTAPI_Exec(
-    api::Activity& activity,
-    api::Settings& config,
-    api::ContactManager& contacts,
-    api::Crypto& crypto,
-    api::Identity& identity,
-    api::client::Wallet& wallet,
-    api::network::ZMQ& zeromq,
-    OT_API& otapi,
+    const api::Activity& activity,
+    const api::Settings& config,
+    const api::ContactManager& contacts,
+    const api::Crypto& crypto,
+    const api::Identity& identity,
+    const api::client::Wallet& wallet,
+    const api::network::ZMQ& zeromq,
+    const OT_API& otapi,
     std::recursive_mutex& lock)
     : activity_(activity)
     , config_(config)
@@ -176,7 +176,7 @@ std::string OTAPI_Exec::UlongToString(const uint64_t& lNumber) const
 
 bool OTAPI_Exec::CheckSetConfigSection(
     const std::string& strSection,
-    const std::string& strComment)
+    const std::string& strComment) const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
@@ -199,7 +199,7 @@ bool OTAPI_Exec::CheckSetConfigSection(
 bool OTAPI_Exec::SetConfig_str(
     const std::string& strSection,
     const std::string& strKey,
-    const std::string& strValue)
+    const std::string& strValue) const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
@@ -222,7 +222,7 @@ bool OTAPI_Exec::SetConfig_str(
 bool OTAPI_Exec::SetConfig_long(
     const std::string& strSection,
     const std::string& strKey,
-    const int64_t& lValue)
+    const int64_t& lValue) const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
@@ -245,7 +245,7 @@ bool OTAPI_Exec::SetConfig_long(
 bool OTAPI_Exec::SetConfig_bool(
     const std::string& strSection,
     const std::string& strKey,
-    const bool bValue)
+    const bool bValue) const
 {
     std::lock_guard<std::recursive_mutex> lock(lock_);
 
@@ -1914,8 +1914,9 @@ bool OTAPI_Exec::Wallet_CanRemoveAssetType(
         if (theID == theCompareID) {
             otOut << OT_METHOD << __FUNCTION__
                   << ": Unable to remove asset contract "
-                  << INSTRUMENT_DEFINITION_ID << " from "
-                                                 "wallet: Account "
+                  << INSTRUMENT_DEFINITION_ID
+                  << " from "
+                     "wallet: Account "
                   << strAcctID << " uses it.\n";
             return false;
         }
@@ -4438,9 +4439,8 @@ std::string OTAPI_Exec::VerifyAndRetrieveXMLContents(
     const Identifier theSignerID(SIGNER_ID);
     String strOutput;
 
-    if (false ==
-        ot_api_.VerifyAndRetrieveXMLContents(
-            strContract, theSignerID, strOutput)) {
+    if (false == ot_api_.VerifyAndRetrieveXMLContents(
+                     strContract, theSignerID, strOutput)) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Failure: "
                  "ot_api_.VerifyAndRetrieveXMLContents() "
@@ -8543,7 +8543,7 @@ std::string OTAPI_Exec::Ledger_GetTransactionByIndex(
         //      || !theLedger.LoadBoxReceipts(&setUnloaded)
         // This is done below, for the individual transaction,
         // for better optimization.
-        ) {
+    ) {
         String strAcctID(theAccountID);
         otErr << OT_METHOD << __FUNCTION__
               << ": Error loading ledger from string, or loading box receipts "
@@ -12359,9 +12359,8 @@ std::string OTAPI_Exec::Message_GetNewInstrumentDefinitionID(
     // contain a ledger. (Don't want to pass back whatever it DOES contain
     // in that case, now do I?)
     //
-    if ((false ==
-         theMessage.m_strCommand.Compare(
-             "registerInstrumentDefinitionResponse")) &&
+    if ((false == theMessage.m_strCommand.Compare(
+                      "registerInstrumentDefinitionResponse")) &&
         (false == theMessage.m_strCommand.Compare("issueBasketResponse"))) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Wrong message type: " << theMessage.m_strCommand << "\n";
@@ -12811,27 +12810,27 @@ std::int32_t OTAPI_Exec::Message_GetTransactionSuccess(
 
 std::string OTAPI_Exec::ContactAttributeName(
     const proto::ContactItemAttribute type,
-    std::string lang)
+    std::string lang) const
 {
     return proto::TranslateItemAttributes(type, lang);
 }
 
 std::set<proto::ContactSectionName> OTAPI_Exec::ContactSectionList(
-    const std::uint32_t version)
+    const std::uint32_t version) const
 {
     return proto::AllowedSectionNames.at(version);
 }
 
 std::string OTAPI_Exec::ContactSectionName(
     const proto::ContactSectionName section,
-    std::string lang)
+    std::string lang) const
 {
     return proto::TranslateSectionName(section, lang);
 }
 
 std::set<proto::ContactItemType> OTAPI_Exec::ContactSectionTypeList(
     const proto::ContactSectionName section,
-    const std::uint32_t version)
+    const std::uint32_t version) const
 {
     proto::ContactSectionVersion contactVersion{version, section};
 
@@ -12840,13 +12839,13 @@ std::set<proto::ContactItemType> OTAPI_Exec::ContactSectionTypeList(
 
 std::string OTAPI_Exec::ContactTypeName(
     const proto::ContactItemType type,
-    std::string lang)
+    std::string lang) const
 {
     return proto::TranslateItemType(type, lang);
 }
 
 proto::ContactItemType OTAPI_Exec::ReciprocalRelationship(
-    const proto::ContactItemType relationship)
+    const proto::ContactItemType relationship) const
 {
     return static_cast<proto::ContactItemType>(
         proto::ReciprocalRelationship(relationship));

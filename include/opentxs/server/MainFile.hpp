@@ -68,8 +68,8 @@ class MainFile
 public:
     explicit MainFile(
         Server& server,
-        opentxs::api::Crypto& crypto_,
-        opentxs::api::client::Wallet& wallet_);
+        const opentxs::api::Crypto& crypto_,
+        const opentxs::api::client::Wallet& wallet_);
 
     bool CreateMainFile(
         const std::string& strContract,
@@ -84,8 +84,8 @@ public:
 
 private:
     Server& server_;  // TODO: remove when feasible
-    opentxs::api::Crypto& crypto_;
-    opentxs::api::client::Wallet& wallet_;
+    const opentxs::api::Crypto& crypto_;
+    const opentxs::api::client::Wallet& wallet_;
     std::string version_;
 
     MainFile() = delete;

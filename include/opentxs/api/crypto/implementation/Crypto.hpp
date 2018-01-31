@@ -94,34 +94,34 @@ public:
     EXPORT void SetSystemKeyring(const bool useKeyring) const override;
 
     // Encoding function interface
-    EXPORT crypto::Encode& Encode() const override;
+    EXPORT const crypto::Encode& Encode() const override;
 
     // Hash function interface
-    EXPORT crypto::Hash& Hash() const override;
+    EXPORT const crypto::Hash& Hash() const override;
 
     // Utility class for misc OpenSSL-provided functions
-    EXPORT crypto::Util& Util() const override;
+    EXPORT const crypto::Util& Util() const override;
 
     // Asymmetric encryption engines
-    EXPORT CryptoAsymmetric& ED25519() const override;
+    EXPORT const CryptoAsymmetric& ED25519() const override;
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
-    EXPORT CryptoAsymmetric& RSA() const override;
+    EXPORT const CryptoAsymmetric& RSA() const override;
 #endif
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-    EXPORT CryptoAsymmetric& SECP256K1() const override;
+    EXPORT const CryptoAsymmetric& SECP256K1() const override;
 #endif
 
     // Symmetric encryption engines
-    EXPORT crypto::Symmetric& Symmetric() const override;
+    EXPORT const crypto::Symmetric& Symmetric() const override;
 
 #if OT_CRYPTO_SUPPORTED_ALGO_AES
-    EXPORT CryptoSymmetric& AES() const override;
+    EXPORT const CryptoSymmetric& AES() const override;
 #endif
 #if OT_CRYPTO_WITH_BIP32
-    EXPORT Bip32& BIP32() const override;
+    EXPORT const Bip32& BIP32() const override;
 #endif
 #if OT_CRYPTO_WITH_BIP39
-    EXPORT Bip39& BIP39() const override;
+    EXPORT const Bip39& BIP39() const override;
 #endif
 
     std::unique_ptr<SymmetricKey> GetStorageKey(

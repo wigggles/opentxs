@@ -173,7 +173,7 @@ int OTLogStream::overflow(int c)
     return 0;
 }
 
-Log::Log(api::Settings& config)
+Log::Log(const api::Settings& config)
     : config_(config)
 {
     bool notUsed{false};
@@ -185,7 +185,7 @@ Log::Log(api::Settings& config)
 
 // static
 bool Log::Init(
-    api::Settings& config,
+    const api::Settings& config,
     const String& strThreadContext,
     const int32_t& nLogLevel)
 {

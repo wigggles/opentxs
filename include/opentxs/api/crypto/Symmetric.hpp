@@ -62,16 +62,17 @@ class Symmetric
 public:
     virtual std::unique_ptr<SymmetricKey> Key(
         const OTPasswordData& password,
-        const proto::SymmetricMode mode = proto::SMODE_CHACHA20POLY1305) = 0;
+        const proto::SymmetricMode mode =
+            proto::SMODE_CHACHA20POLY1305) const = 0;
     virtual std::unique_ptr<SymmetricKey> Key(
         const proto::SymmetricKey& serialized,
-        const proto::SymmetricMode mode) = 0;
+        const proto::SymmetricMode mode) const = 0;
     virtual std::unique_ptr<SymmetricKey> Key(
         const OTPassword& seed,
         const std::uint64_t operations = 0,
         const std::uint64_t difficulty = 0,
         const proto::SymmetricMode mode = proto::SMODE_CHACHA20POLY1305,
-        const proto::SymmetricKeyType type = proto::SKEYTYPE_ARGON2) = 0;
+        const proto::SymmetricKeyType type = proto::SKEYTYPE_ARGON2) const = 0;
 
     virtual ~Symmetric() = default;
 

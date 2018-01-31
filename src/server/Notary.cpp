@@ -100,8 +100,8 @@ typedef std::deque<Token*> dequeOfTokenPtrs;
 
 Notary::Notary(
     Server& server,
-    opentxs::api::Server& mint,
-    opentxs::api::client::Wallet& wallet)
+    const opentxs::api::Server& mint,
+    const opentxs::api::client::Wallet& wallet)
     : server_(server)
     , mint_(mint)
     , wallet_(wallet)
@@ -965,9 +965,8 @@ void Notary::NotarizeWithdrawal(
                 //
                 if (bIssueVoucher && (lAmount > 0) &&
                     theAccount.Debit(theVoucherRequest.GetAmount())) {
-                    if (false ==
-                        pVoucherReserveAcct->Credit(
-                            theVoucherRequest.GetAmount())) {
+                    if (false == pVoucherReserveAcct->Credit(
+                                     theVoucherRequest.GetAmount())) {
                         Log::Error("Notary::NotarizeWithdrawal: Failed "
                                    "crediting voucher reserve account.\n");
 
@@ -1310,9 +1309,8 @@ void Notary::NotarizeWithdrawal(
 
                                     // Reverse the account debit (even though
                                     // we're not going to save it anyway.)
-                                    if (false ==
-                                        theAccount.Credit(
-                                            pToken->GetDenomination()))
+                                    if (false == theAccount.Credit(
+                                                     pToken->GetDenomination()))
                                         Log::vError(
                                             "%s: Failed crediting "
                                             "user account back.\n",
@@ -1884,7 +1882,7 @@ void Notary::NotarizePayDividend(
                                                        // sensitive area. need
                                                        // better funds transfer
                                                        // code.
-                            ) {
+                        ) {
                             const String strVoucherAcctID(VOUCHER_ACCOUNT_ID);
 
                             if (false ==
@@ -1904,9 +1902,8 @@ void Notary::NotarizePayDividend(
                                 // the funds from theSourceAccount.Debit (Credit
                                 // them back.)
                                 //
-                                if (false ==
-                                    theSourceAccount.Credit(
-                                        lTotalCostOfDividend))
+                                if (false == theSourceAccount.Credit(
+                                                 lTotalCostOfDividend))
                                     Log::vError(
                                         "%s: Failed crediting back the user "
                                         "account, after taking his funds "
@@ -3064,7 +3061,7 @@ void Notary::NotarizeDeposit(
                                                     // directly, once
                                                     // LoadPublicKey is
                                                     // removed for good.
-                    ) {
+                ) {
                     Log::vOutput(
                         0,
                         "Notary::%s: Error loading public key for %s "
@@ -3131,7 +3128,7 @@ void Notary::NotarizeDeposit(
                                                       // directly, once
                                                       // LoadPublicKey is
                                                       // removed for good.
-                    ) {
+                ) {
                     Log::vOutput(
                         0,
                         "Notary::%s: Error loading public key for "
@@ -3240,7 +3237,7 @@ void Notary::NotarizeDeposit(
                              // SetCleanup to call.
                       ))     // Also, SetCleanup() is safe even if pointer is
                              // nullptr.
-                    ) {
+                ) {
                     Log::vOutput(
                         0,
                         "%s: %s deposit failure, "
@@ -4064,9 +4061,8 @@ void Notary::NotarizeDeposit(
                             // two defense mechanisms here:  mint cash reserve
                             // acct, and spent token database
                             //
-                            if (false ==
-                                pMintCashReserveAcct->Debit(
-                                    pToken->GetDenomination())) {
+                            if (false == pMintCashReserveAcct->Debit(
+                                             pToken->GetDenomination())) {
                                 Log::Error("Notary::NotarizeDeposit: Error "
                                            "debiting the mint cash reserve "
                                            "account. "
@@ -4082,9 +4078,8 @@ void Notary::NotarizeDeposit(
                                            "crediting the user's asset "
                                            "account...\n");
 
-                                if (false ==
-                                    pMintCashReserveAcct->Credit(
-                                        pToken->GetDenomination()))
+                                if (false == pMintCashReserveAcct->Credit(
+                                                 pToken->GetDenomination()))
                                     Log::Error("Notary::NotarizeDeposit: "
                                                "Failure crediting-back "
                                                "mint's cash reserve account "
@@ -4102,9 +4097,8 @@ void Notary::NotarizeDeposit(
                                            "Failed recording token as "
                                            "spent...\n");
 
-                                if (false ==
-                                    pMintCashReserveAcct->Credit(
-                                        pToken->GetDenomination()))
+                                if (false == pMintCashReserveAcct->Credit(
+                                                 pToken->GetDenomination()))
                                     Log::Error("Notary::NotarizeDeposit: "
                                                "Failure crediting-back "
                                                "mint's cash reserve account "
@@ -5147,9 +5141,8 @@ void Notary::NotarizeSmartContract(
                 // the activator!
                 else if (
                     (pContract->GetSenderNymID() == NOTARY_NYM_ID) ||
-                    (nullptr !=
-                     pContract->FindPartyBasedOnNymAsAgent(
-                         server_.m_nymServer))) {
+                    (nullptr != pContract->FindPartyBasedOnNymAsAgent(
+                                    server_.m_nymServer))) {
                     Log::vOutput(
                         0,
                         "%s: ** SORRY ** but the server itself is NOT ALLOWED "
@@ -6486,9 +6479,8 @@ void Notary::NotarizeExchangeBasket(
                                                        "user basket "
                                                        "account.\n");
 
-                                            if (false ==
-                                                pBasketAcct->Credit(
-                                                    lTransferAmount))
+                                            if (false == pBasketAcct->Credit(
+                                                             lTransferAmount))
                                                 Log::Error(
                                                     "Notary::"
                                                     "NotarizeExchangeBasket: "
@@ -6519,9 +6511,8 @@ void Notary::NotarizeExchangeBasket(
                                                        "basket issuer "
                                                        "account.\n");
 
-                                            if (false ==
-                                                theAccount.Credit(
-                                                    lTransferAmount))
+                                            if (false == theAccount.Credit(
+                                                             lTransferAmount))
                                                 Log::Error(
                                                     "Notary::"
                                                     "NotarizeExchangeBasket: "
@@ -8865,7 +8856,7 @@ void Notary::NotarizeProcessInbox(
               pItem->GetType()) ||  // Accepting finalReceipt
              (Item::acceptBasketReceipt ==
               pItem->GetType())  // Accepting basketReceipt
-             );
+            );
 
         if (false == validType) {
             String strItemType;
@@ -8981,9 +8972,8 @@ void Notary::NotarizeProcessInbox(
              // keeping this safe.
              )  // especially in case this block moves
             // or is used elsewhere.
-            &&
-            (nullptr != (pServerTransaction = theInbox.GetTransaction(
-                             pItem->GetReferenceToNum()))) &&
+            && (nullptr != (pServerTransaction = theInbox.GetTransaction(
+                                pItem->GetReferenceToNum()))) &&
             ((OTTransaction::paymentReceipt == pServerTransaction->GetType()) ||
              (OTTransaction::marketReceipt == pServerTransaction->GetType()))) {
             // pItem contains the current user's attempt to
@@ -9014,9 +9004,8 @@ void Notary::NotarizeProcessInbox(
              // keeping this safe.
              )  // especially in case this block moves
             // or is used elsewhere.
-            &&
-            (nullptr != (pServerTransaction = theInbox.GetTransaction(
-                             pItem->GetReferenceToNum()))) &&
+            && (nullptr != (pServerTransaction = theInbox.GetTransaction(
+                                pItem->GetReferenceToNum()))) &&
             ((OTTransaction::finalReceipt == pServerTransaction->GetType()))) {
             // pItem contains the current user's attempt to
             // accept the Receipt
@@ -9046,9 +9035,8 @@ void Notary::NotarizeProcessInbox(
              // keeping this safe.
              )  // especially in case this block moves
             // or is used elsewhere.
-            &&
-            (nullptr != (pServerTransaction = theInbox.GetTransaction(
-                             pItem->GetReferenceToNum()))) &&
+            && (nullptr != (pServerTransaction = theInbox.GetTransaction(
+                                pItem->GetReferenceToNum()))) &&
             ((OTTransaction::basketReceipt == pServerTransaction->GetType()))) {
             // pItem contains the current user's attempt to
             // accept the Receipt
@@ -9090,14 +9078,14 @@ void Notary::NotarizeProcessInbox(
         // for pending transactions and cheque receipts, is NOT
         // the case above, with receipts from cron.
         else if (
-            ((Item::acceptItemReceipt == pItem->GetType())  // acceptItemReceipt
-             // includes checkReceipt
-             // and transferReceipts.
-             ||
-             (Item::acceptPending ==
-              pItem->GetType())  // acceptPending includes
-                                 // checkReceipts. Because
-                                 // they are
+            ((Item::acceptItemReceipt ==
+              pItem->GetType())  // acceptItemReceipt
+                                 // includes checkReceipt
+                                 // and transferReceipts.
+             || (Item::acceptPending ==
+                 pItem->GetType())  // acceptPending includes
+                                    // checkReceipts. Because
+                                    // they are
              ) &&
             (nullptr != (pServerTransaction = theInbox.GetTransaction(
                              pItem->GetReferenceToNum()))) &&

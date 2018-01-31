@@ -241,15 +241,15 @@ private:
     friend class api::implementation::Api;
 
     std::recursive_mutex& lock_;
-    OTAPI_Exec& exec_;
-    OT_API& otapi_;
-    api::client::Wallet& wallet_;
+    const OTAPI_Exec& exec_;
+    const OT_API& otapi_;
+    const api::client::Wallet& wallet_;
 
     MadeEasy(
         std::recursive_mutex& lock,
-        OTAPI_Exec& exec,
-        OT_API& otapi,
-        api::client::Wallet& wallet);
+        const OTAPI_Exec& exec,
+        const OT_API& otapi,
+        const api::client::Wallet& wallet);
     MadeEasy() = delete;
     MadeEasy(const MadeEasy&) = delete;
     MadeEasy(const MadeEasy&&) = delete;

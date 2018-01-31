@@ -190,9 +190,9 @@ UserCommandProcessor::FinalizeResponse::~FinalizeResponse()
 
 UserCommandProcessor::UserCommandProcessor(
     Server& server,
-    opentxs::api::Settings& config,
-    opentxs::api::Server& mint,
-    opentxs::api::client::Wallet& wallet)
+    const opentxs::api::Settings& config,
+    const opentxs::api::Server& mint,
+    const opentxs::api::client::Wallet& wallet)
     : server_(server)
     , config_(config)
     , mint_(mint)

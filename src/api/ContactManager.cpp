@@ -55,8 +55,8 @@
 namespace opentxs::api
 {
 ContactManager::ContactManager(
-    storage::Storage& storage,
-    client::Wallet& wallet)
+    const storage::Storage& storage,
+    const client::Wallet& wallet)
     : storage_(storage)
     , wallet_(wallet)
     , lock_()
@@ -66,7 +66,7 @@ ContactManager::ContactManager(
 
 ContactManager::ContactMap::iterator ContactManager::add_contact(
     const rLock& lock,
-    class Contact* contact)
+    class Contact* contact) const
 {
     OT_ASSERT(nullptr != contact);
     if (false == verify_write_lock(lock)) {
@@ -125,7 +125,7 @@ void ContactManager::check_identifiers(
 
 std::shared_ptr<const class Contact> ContactManager::contact(
     const rLock& lock,
-    const Identifier& id)
+    const Identifier& id) const
 {
     if (false == verify_write_lock(lock)) {
         throw std::runtime_error("lock error");
@@ -143,7 +143,7 @@ std::shared_ptr<const class Contact> ContactManager::contact(
 
 std::shared_ptr<const class Contact> ContactManager::contact(
     const rLock& lock,
-    const std::string& label)
+    const std::string& label) const
 {
     std::unique_ptr<class Contact> contact(new class Contact(wallet_, label));
 
@@ -177,7 +177,7 @@ std::shared_ptr<const class Contact> ContactManager::contact(
 }
 
 std::shared_ptr<const class Contact> ContactManager::Contact(
-    const Identifier& id)
+    const Identifier& id) const
 {
     rLock lock(lock_);
 
@@ -266,7 +266,7 @@ void ContactManager::init_nym_map(const rLock& lock)
 
 ContactManager::ContactMap::iterator ContactManager::load_contact(
     const rLock& lock,
-    const Identifier& id)
+    const Identifier& id) const
 {
     if (false == verify_write_lock(lock)) {
         throw std::runtime_error("lock error");
@@ -299,7 +299,7 @@ ContactManager::ContactMap::iterator ContactManager::load_contact(
 
 std::shared_ptr<const class Contact> ContactManager::Merge(
     const Identifier& parent,
-    const Identifier& child)
+    const Identifier& child) const
 {
     rLock lock(lock_);
     auto childContact = contact(lock, child);
@@ -368,7 +368,7 @@ std::shared_ptr<const class Contact> ContactManager::Merge(
 
 std::unique_ptr<Editor<class Contact>> ContactManager::mutable_contact(
     const rLock& lock,
-    const Identifier& id)
+    const Identifier& id) const
 {
     if (false == verify_write_lock(lock)) {
         throw std::runtime_error("lock error");
@@ -395,7 +395,7 @@ std::unique_ptr<Editor<class Contact>> ContactManager::mutable_contact(
 }
 
 std::unique_ptr<Editor<class Contact>> ContactManager::mutable_Contact(
-    const Identifier& id)
+    const Identifier& id) const
 {
     rLock lock(lock_);
     auto output = mutable_contact(lock, id);
@@ -408,7 +408,7 @@ std::shared_ptr<const class Contact> ContactManager::new_contact(
     const rLock& lock,
     const std::string& label,
     const Identifier& nymID,
-    const PaymentCode& code)
+    const PaymentCode& code) const
 {
     if (false == verify_write_lock(lock)) {
         throw std::runtime_error("lock error");
@@ -469,7 +469,7 @@ std::shared_ptr<const class Contact> ContactManager::new_contact(
 }
 
 std::shared_ptr<const class Contact> ContactManager::NewContact(
-    const std::string& label)
+    const std::string& label) const
 {
     rLock lock(lock_);
 
@@ -479,7 +479,7 @@ std::shared_ptr<const class Contact> ContactManager::NewContact(
 std::shared_ptr<const class Contact> ContactManager::NewContact(
     const std::string& label,
     const Identifier& nymID,
-    const PaymentCode& paymentCode)
+    const PaymentCode& paymentCode) const
 {
     rLock lock(lock_);
 
@@ -489,7 +489,7 @@ std::shared_ptr<const class Contact> ContactManager::NewContact(
 std::shared_ptr<const class Contact> ContactManager::NewContactFromAddress(
     const std::string& address,
     const std::string& label,
-    const proto::ContactItemType currency)
+    const proto::ContactItemType currency) const
 {
     rLock lock(lock_);
 
@@ -527,7 +527,7 @@ std::shared_ptr<const class Contact> ContactManager::NewContactFromAddress(
 
 ContactManager::ContactMap::iterator ContactManager::obtain_contact(
     const rLock& lock,
-    const Identifier& id)
+    const Identifier& id) const
 {
     if (false == verify_write_lock(lock)) {
         throw std::runtime_error("lock error");
@@ -544,6 +544,7 @@ ContactManager::ContactMap::iterator ContactManager::obtain_contact(
 }
 
 void ContactManager::refresh_indices(const rLock& lock, class Contact& contact)
+    const
 {
     if (false == verify_write_lock(lock)) {
         throw std::runtime_error("lock error");
@@ -556,7 +557,7 @@ void ContactManager::refresh_indices(const rLock& lock, class Contact& contact)
     }
 }
 
-void ContactManager::save(class Contact* contact)
+void ContactManager::save(class Contact* contact) const
 {
     OT_ASSERT(nullptr != contact);
 
@@ -598,7 +599,7 @@ void ContactManager::start()
 }
 
 std::shared_ptr<const class Contact> ContactManager::Update(
-    const proto::CredentialIndex& serialized)
+    const proto::CredentialIndex& serialized) const
 {
     auto nym = wallet_.Nym(serialized);
 
@@ -663,7 +664,7 @@ std::shared_ptr<const class Contact> ContactManager::update_existing_contact(
     const rLock& lock,
     const std::string& label,
     const PaymentCode& code,
-    const Identifier& contactID)
+    const Identifier& contactID) const
 {
     if (false == verify_write_lock(lock)) {
         throw std::runtime_error("lock error");
@@ -695,7 +696,7 @@ void ContactManager::update_nym_map(
     const rLock& lock,
     const Identifier nymID,
     class Contact& contact,
-    const bool replace)
+    const bool replace) const
 {
     if (false == verify_write_lock(lock)) {
         throw std::runtime_error("lock error");

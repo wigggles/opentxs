@@ -218,9 +218,9 @@ private:
 
     typedef std::map<Identifier, std::shared_ptr<const std::string>> MailCache;
 
-    ContactManager& contact_;
-    storage::Storage& storage_;
-    client::Wallet& wallet_;
+    const ContactManager& contact_;
+    const storage::Storage& storage_;
+    const client::Wallet& wallet_;
     mutable std::mutex mail_cache_lock_;
     mutable MailCache mail_cache_;
 
@@ -246,9 +246,9 @@ private:
         const std::string& nymID) const;
 
     Activity(
-        ContactManager& contact,
-        storage::Storage& storage,
-        client::Wallet& wallet);
+        const ContactManager& contact,
+        const storage::Storage& storage,
+        const client::Wallet& wallet);
     Activity() = delete;
     Activity(const Activity&) = delete;
     Activity(Activity&&) = delete;

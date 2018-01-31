@@ -77,10 +77,10 @@ namespace opentxs
 
 OT_ME::OT_ME(
     std::recursive_mutex& lock,
-    OTAPI_Exec& exec,
-    OT_API& otapi,
+    const OTAPI_Exec& exec,
+    const OT_API& otapi,
     MadeEasy& madeEasy,
-    api::client::Wallet& wallet)
+    const api::client::Wallet& wallet)
     : lock_(lock)
     , exec_(exec)
     , otapi_(otapi)
@@ -832,9 +832,8 @@ bool OT_ME::accept_from_paymentbox_overload(
     rLock lock(lock_);
 
     CmdAcceptPayments cmd;
-    return 1 ==
-           cmd.acceptFromPaymentbox(
-               ACCOUNT_ID, INDICES, PAYMENT_TYPE, pOptionalOutput);
+    return 1 == cmd.acceptFromPaymentbox(
+                    ACCOUNT_ID, INDICES, PAYMENT_TYPE, pOptionalOutput);
 }
 
 // load_public_key():
@@ -994,16 +993,15 @@ bool OT_ME::withdraw_and_send_cash(
     rLock lock(lock_);
 
     CmdSendCash sendCash;
-    return 1 ==
-           sendCash.run(
-               "",
-               "",
-               ACCT_ID,
-               "",
-               RECIPIENT_NYM_ID,
-               std::to_string(AMOUNT),
-               "",
-               "");
+    return 1 == sendCash.run(
+                    "",
+                    "",
+                    ACCT_ID,
+                    "",
+                    RECIPIENT_NYM_ID,
+                    std::to_string(AMOUNT),
+                    "",
+                    "");
 }
 
 // GET PAYMENT INSTRUMENT (from payments inbox, by index.)

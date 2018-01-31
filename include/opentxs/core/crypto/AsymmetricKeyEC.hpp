@@ -79,7 +79,7 @@ protected:
 
 public:
     bool IsEmpty() const override;
-    virtual Ecdsa& ECDSA() const = 0;
+    virtual const Ecdsa& ECDSA() const = 0;
     bool GetKey(Data& key) const;
     bool GetKey(proto::Ciphertext& key) const;
     bool GetPublicKey(String& strKey) const override;

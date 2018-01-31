@@ -98,7 +98,7 @@ Crypto::Crypto(api::Native& native)
 }
 
 #if OT_CRYPTO_SUPPORTED_ALGO_AES
-CryptoSymmetric& Crypto::AES() const
+const CryptoSymmetric& Crypto::AES() const
 {
     OT_ASSERT(nullptr != ssl_);
 
@@ -107,7 +107,7 @@ CryptoSymmetric& Crypto::AES() const
 #endif
 
 #if OT_CRYPTO_WITH_BIP32
-Bip32& Crypto::BIP32() const
+const Bip32& Crypto::BIP32() const
 {
     OT_ASSERT(nullptr != bitcoincrypto_);
 
@@ -116,7 +116,7 @@ Bip32& Crypto::BIP32() const
 #endif
 
 #if OT_CRYPTO_WITH_BIP39
-Bip39& Crypto::BIP39() const
+const Bip39& Crypto::BIP39() const
 {
     OT_ASSERT(nullptr != bitcoincrypto_);
 
@@ -191,21 +191,21 @@ Editor<OTCachedKey> Crypto::mutable_DefaultKey() const
     return Editor<OTCachedKey>(cached_key_lock_, primary_key_.get(), callback);
 }
 
-CryptoAsymmetric& Crypto::ED25519() const
+const CryptoAsymmetric& Crypto::ED25519() const
 {
     OT_ASSERT(nullptr != ed25519_);
 
     return *ed25519_;
 }
 
-crypto::Encode& Crypto::Encode() const
+const crypto::Encode& Crypto::Encode() const
 {
     OT_ASSERT(encode_);
 
     return *encode_;
 }
 
-crypto::Hash& Crypto::Hash() const
+const crypto::Hash& Crypto::Hash() const
 {
     OT_ASSERT(hash_);
 
@@ -275,7 +275,7 @@ const OTCachedKey& Crypto::LoadDefaultKey(const OTASCIIArmor& serialized) const
 }
 
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
-CryptoAsymmetric& Crypto::RSA() const
+const CryptoAsymmetric& Crypto::RSA() const
 {
     OT_ASSERT(nullptr != ssl_);
 
@@ -284,7 +284,7 @@ CryptoAsymmetric& Crypto::RSA() const
 #endif
 
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-CryptoAsymmetric& Crypto::SECP256K1() const
+const CryptoAsymmetric& Crypto::SECP256K1() const
 {
     OT_ASSERT(nullptr != secp256k1_);
 
@@ -314,14 +314,14 @@ void Crypto::SetSystemKeyring(const bool useKeyring) const
     primary_key_->UseSystemKeyring(useKeyring);
 }
 
-crypto::Symmetric& Crypto::Symmetric() const
+const crypto::Symmetric& Crypto::Symmetric() const
 {
     OT_ASSERT(symmetric_);
 
     return *symmetric_;
 }
 
-crypto::Util& Crypto::Util() const
+const crypto::Util& Crypto::Util() const
 {
     OT_ASSERT(nullptr != ssl_);
 

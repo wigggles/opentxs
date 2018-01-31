@@ -57,9 +57,9 @@
 namespace opentxs::api
 {
 Activity::Activity(
-    ContactManager& contact,
-    storage::Storage& storage,
-    client::Wallet& wallet)
+    const ContactManager& contact,
+    const storage::Storage& storage,
+    const client::Wallet& wallet)
     : contact_(contact)
     , storage_(storage)
     , wallet_(wallet)

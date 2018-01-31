@@ -123,10 +123,10 @@ private:
 
     friend class implementation::Native;
 
-    Activity& activity_;
-    Crypto& crypto_;
-    storage::Storage& storage_;
-    client::Wallet& wallet_;
+    const Activity& activity_;
+    const Crypto& crypto_;
+    const storage::Storage& storage_;
+    const client::Wallet& wallet_;
     mutable std::mutex lock_;
     mutable IDLock nym_lock_;
     mutable IDLock account_lock_;
@@ -162,10 +162,10 @@ private:
         const std::string& toContact) const;
 
     Blockchain(
-        Activity& activity,
-        Crypto& crypto,
-        storage::Storage& storage,
-        client::Wallet& wallet);
+        const Activity& activity,
+        const Crypto& crypto,
+        const storage::Storage& storage,
+        const client::Wallet& wallet);
     Blockchain() = delete;
     Blockchain(const Blockchain&) = delete;
     Blockchain(Blockchain&&) = delete;

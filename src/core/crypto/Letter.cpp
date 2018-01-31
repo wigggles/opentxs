@@ -89,7 +89,8 @@ bool Letter::AddRSARecipients(
 {
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
 #if OT_CRYPTO_USING_OPENSSL
-    OpenSSL& engine = static_cast<OpenSSL&>(OT::App().Crypto().RSA());
+    const OpenSSL& engine =
+        static_cast<const OpenSSL&>(OT::App().Crypto().RSA());
 #endif
 
     // Encrypt the session key to all RSA recipients and add the
@@ -215,8 +216,8 @@ bool Letter::Seal(
     if (haveRecipientsECDSA) {
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 #if OT_CRYPTO_USING_LIBSECP256K1
-        Ecdsa& engine =
-            static_cast<Libsecp256k1&>(OT::App().Crypto().SECP256K1());
+        const Ecdsa& engine =
+            static_cast<const Libsecp256k1&>(OT::App().Crypto().SECP256K1());
 #endif
         std::unique_ptr<OTKeypair> dhKeypair;
         NymParameters parameters(proto::CREDTYPE_LEGACY);
@@ -266,7 +267,8 @@ bool Letter::Seal(
     }
 
     if (haveRecipientsED25519) {
-        Ecdsa& engine = static_cast<Libsodium&>(OT::App().Crypto().ED25519());
+        const Ecdsa& engine =
+            static_cast<const Libsodium&>(OT::App().Crypto().ED25519());
         std::unique_ptr<OTKeypair> dhKeypair;
         NymParameters parameters(proto::CREDTYPE_LEGACY);
         parameters.setNymParameterType(NymParameterType::ED25519);
@@ -404,7 +406,8 @@ bool Letter::Open(
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
     if (rsa) {
 #if OT_CRYPTO_USING_OPENSSL
-        OpenSSL& engine = static_cast<OpenSSL&>(OT::App().Crypto().RSA());
+        const OpenSSL& engine =
+            static_cast<const OpenSSL&>(OT::App().Crypto().RSA());
 #endif
         Data serializedKey(
             serialized.rsakey().data(), serialized.rsakey().size());

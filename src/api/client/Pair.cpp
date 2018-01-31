@@ -176,10 +176,9 @@ std::pair<bool, Identifier> Pair::get_connection(
 {
     std::pair<bool, Identifier> output{false, {}};
     auto & [ success, requestID ] = output;
-    // TODO remove cast when possible
     OTAPI_Func operation(
         REQUEST_CONNECTION,
-        const_cast<client::Wallet&>(wallet_),
+        wallet_,
         localNymID,
         serverID,
         exec_,
@@ -212,9 +211,7 @@ std::pair<bool, Identifier> Pair::initiate_bailment(
 {
     std::pair<bool, Identifier> output{false, {}};
     auto & [ success, requestID ] = output;
-    // TODO remove cast when possible
-    const auto contract =
-        const_cast<client::Wallet&>(wallet_).UnitDefinition(unitID);
+    const auto contract = wallet_.UnitDefinition(unitID);
 
     if (false == bool(contract)) {
         queue_unit_definition(nymID, serverID, unitID);
@@ -222,10 +219,9 @@ std::pair<bool, Identifier> Pair::initiate_bailment(
         return output;
     }
 
-    // TODO remove cast when possible
     OTAPI_Func operation(
         INITIATE_BAILMENT,
-        const_cast<client::Wallet&>(wallet_),
+        wallet_,
         nymID,
         serverID,
         exec_,
@@ -294,9 +290,7 @@ bool Pair::need_registration(
     const Identifier& localNymID,
     const Identifier& serverID) const
 {
-    // TODO remove cast when possible
-    auto context = const_cast<client::Wallet&>(wallet_).ServerContext(
-        localNymID, serverID);
+    auto context = wallet_.ServerContext(localNymID, serverID);
 
     if (context) {
 
@@ -445,10 +439,9 @@ void Pair::process_pending_bailment(
         issuer.AddRequest(proto::PEERREQUEST_PENDINGBAILMENT, requestID);
 
     if (added) {
-        // TODO remove cast when possible
         OTAPI_Func operation(
             ACKNOWLEDGE_NOTICE,
-            const_cast<client::Wallet&>(wallet_),
+            wallet_,
             nymID,
             serverID,
             exec_,
@@ -542,8 +535,7 @@ void Pair::queue_nym_download(
     const Identifier& localNymID,
     const Identifier& targetNymID) const
 {
-    // TODO remove cast when possible
-    auto& metoo = const_cast<OTME_too&>(me_too_);
+    auto& metoo = me_too_;
     metoo.RegisterIntroduction(localNymID);
     metoo.FindNym(String(targetNymID).Get(), "");
 }
@@ -553,8 +545,7 @@ void Pair::queue_nym_registration(
     const Identifier& serverID,
     const bool setData) const
 {
-    // TODO remove cast when possible
-    const_cast<OTME_too&>(me_too_).RegisterNym_async(
+    me_too_.RegisterNym_async(
         String(nymID).Get(), String(serverID).Get(), setData);
 }
 
@@ -571,10 +562,9 @@ void Pair::queue_server_contract(
         return;
     }
 
-    // TODO remove cast when possible
     OTAPI_Func operation(
         GET_CONTRACT,
-        const_cast<client::Wallet&>(wallet_),
+        wallet_,
         nymID,
         intro,
         exec_,
@@ -589,8 +579,7 @@ void Pair::queue_unit_definition(
     const Identifier& serverID,
     const Identifier& unitID) const
 {
-    // TODO remove cast when possible
-    const auto server = const_cast<client::Wallet&>(wallet_).Server(serverID);
+    const auto server = wallet_.Server(serverID);
 
     if (false == bool(server)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Server contract unavailable"
@@ -600,10 +589,9 @@ void Pair::queue_unit_definition(
         return;
     }
 
-    // TODO remove cast when possible
     OTAPI_Func operation(
         GET_CONTRACT,
-        const_cast<client::Wallet&>(wallet_),
+        wallet_,
         nymID,
         serverID,
         exec_,
@@ -620,9 +608,7 @@ std::pair<bool, Identifier> Pair::register_account(
 {
     std::pair<bool, Identifier> output{false, {}};
     auto & [ success, accountID ] = output;
-    // TODO remove cast when possible
-    const auto contract =
-        const_cast<client::Wallet&>(wallet_).UnitDefinition(unitID);
+    const auto contract = wallet_.UnitDefinition(unitID);
 
     if (false == bool(contract)) {
         queue_unit_definition(nymID, serverID, unitID);
@@ -630,10 +616,9 @@ std::pair<bool, Identifier> Pair::register_account(
         return output;
     }
 
-    // TODO remove cast when possible
     OTAPI_Func operation(
         CREATE_ASSET_ACCT,
-        const_cast<client::Wallet&>(wallet_),
+        wallet_,
         nymID,
         serverID,
         exec_,
@@ -666,9 +651,7 @@ void Pair::state_machine(
     auto & [ status, trusted ] = pair_status_[{localNymID, issuerNymID}];
     lock.unlock();
 
-    // TODO remove cast when possible
-    const auto issuerNym =
-        const_cast<client::Wallet&>(wallet_).Nym(issuerNymID);
+    const auto issuerNym = wallet_.Nym(issuerNymID);
 
     if (false == bool(issuerNym)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Issuer nym not yet downloaded."
@@ -715,9 +698,7 @@ void Pair::state_machine(
                 otErr << OT_METHOD << __FUNCTION__
                       << ": Local nym not registered on issuer's notary."
                       << std::endl;
-                // TODO remove cast when possible
-                auto contract =
-                    const_cast<client::Wallet&>(wallet_).Server(serverID);
+                auto contract = wallet_.Server(serverID);
 
                 if (false == bool(contract)) {
                     queue_server_contract(localNymID, serverID);
@@ -738,10 +719,8 @@ void Pair::state_machine(
             if (trusted) {
                 needStoreSecret = (false == issuer.StoreSecretComplete()) &&
                                   (false == issuer.StoreSecretInitiated());
-                // TODO remove cast when possible
                 auto editor =
-                    const_cast<client::Wallet&>(wallet_).mutable_ServerContext(
-                        localNymID, serverID);
+                    wallet_.mutable_ServerContext(localNymID, serverID);
                 auto& context = editor.It();
                 context.SetAdminPassword(issuer.PairingCode());
             }
@@ -762,9 +741,9 @@ void Pair::state_machine(
                 const auto btcrpc =
                     issuer.ConnectionInfo(proto::CONNECTIONINFO_BTCRPC);
                 const bool needInfo =
-                    (btcrpc.empty() && (false ==
-                                        issuer.ConnectionInfoInitiated(
-                                            proto::CONNECTIONINFO_BTCRPC)));
+                    (btcrpc.empty() &&
+                     (false == issuer.ConnectionInfoInitiated(
+                                   proto::CONNECTIONINFO_BTCRPC)));
 
                 if (needInfo) {
                     otWarn << OT_METHOD << __FUNCTION__
@@ -841,10 +820,9 @@ std::pair<bool, Identifier> Pair::store_secret(
 {
     std::pair<bool, Identifier> output{false, {}};
     auto & [ success, requestID ] = output;
-    // TODO remove cast when possible
     OTAPI_Func operation(
         STORE_SECRET,
-        const_cast<client::Wallet&>(wallet_),
+        wallet_,
         localNymID,
         serverID,
         exec_,
