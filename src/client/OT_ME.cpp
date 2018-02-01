@@ -146,7 +146,8 @@ std::string OT_ME::notify_bailment(
     const std::string& NYM_ID,
     const std::string& TARGET_NYM_ID,
     const std::string& INSTRUMENT_DEFINITION_ID,
-    const std::string& TXID) const
+    const std::string& TXID,
+    const std::string& REQUESTID) const
 {
     rLock lock(lock_);
     OTAPI_Func theRequest(
@@ -158,7 +159,8 @@ std::string OT_ME::notify_bailment(
         otapi_,
         TARGET_NYM_ID,
         INSTRUMENT_DEFINITION_ID,
-        TXID);
+        TXID,
+        REQUESTID);
     std::string strResponse = theRequest.Run();
     std::int32_t nSuccess = VerifyMessageSuccess(strResponse);
 

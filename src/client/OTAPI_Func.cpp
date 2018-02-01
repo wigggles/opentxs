@@ -506,19 +506,6 @@ OTAPI_Func::OTAPI_Func(
             p_strData2);
 
         OT_ASSERT(peer_reply_)
-    } else if (theType == NOTIFY_BAILMENT) {
-        nTransNumsNeeded = 0;
-        nymID2 = p_nymID2;
-        instrumentDefinitionID = p_strData;
-        peer_request_ = PeerRequest::Create(
-            context_.Nym(),
-            proto::PEERREQUEST_PENDINGBAILMENT,
-            Identifier(instrumentDefinitionID),
-            context_.Server(),
-            Identifier(nymID2),
-            p_strData2);
-
-        OT_ASSERT(peer_request_)
     } else {
         otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func() "
                  "ERROR!!!!!!\n";
@@ -662,25 +649,37 @@ OTAPI_Func::OTAPI_Func(
         otErr << strError << "p_strParam" << std::endl;
     }
 
+    if (!VerifyStringVal(p_strData)) {
+        otErr << strError << "p_strData" << std::endl;
+    }
+
     nTransNumsNeeded = 1;
     accountID = p_accountID;
 
     if (theType == SEND_USER_INSTRUMENT) {
-        if (!VerifyStringVal(p_accountID)) {
-            otErr << strError << "p_accountID" << std::endl;
-        }
-        if (!VerifyStringVal(p_strParam)) {
-            otErr << strError << "p_strParam" << std::endl;
-        }
-        if (!VerifyStringVal(p_strData)) {
-            otErr << strError << "p_strData" << std::endl;
-        }
         nTransNumsNeeded = 0;
         nymID2 = p_accountID;  // Recipient Nym;
         strData = p_strParam;  // Recipient pubkey;
         strData2 = p_strData;  // Instrument for recipient.;
         accountID =
             p_strData2;  // sender_instrument is attached here. (Optional.);
+    } else if (theType == NOTIFY_BAILMENT) {
+        if (!VerifyStringVal(p_strData2)) {
+            otErr << strError << "p_strData2" << std::endl;
+        }
+        nTransNumsNeeded = 0;
+        nymID2 = p_accountID;
+        instrumentDefinitionID = p_strParam;
+        peer_request_ = PeerRequest::Create(
+            context_.Nym(),
+            proto::PEERREQUEST_PENDINGBAILMENT,
+            Identifier(instrumentDefinitionID),
+            context_.Server(),
+            Identifier(nymID2),      // Recepient
+            Identifier(p_strData2),  // Request ID
+            p_strData);              // txid
+
+        OT_ASSERT(peer_request_)
     } else {
         otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func() "
                  "ERROR!!!!!!\n";

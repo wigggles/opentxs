@@ -42,6 +42,8 @@
 
 #include "opentxs/core/String.hpp"
 
+#define CURRENT_VERSION 4
+
 namespace opentxs
 {
 ConnectionRequest::ConnectionRequest(
@@ -57,7 +59,12 @@ ConnectionRequest::ConnectionRequest(
     const Identifier& recipientID,
     const proto::ConnectionInfoType type,
     const Identifier& serverID)
-    : ot_super(nym, recipientID, serverID, proto::PEERREQUEST_CONNECTIONINFO)
+    : ot_super(
+          nym,
+          CURRENT_VERSION,
+          recipientID,
+          serverID,
+          proto::PEERREQUEST_CONNECTIONINFO)
     , connection_type_(type)
 {
 }

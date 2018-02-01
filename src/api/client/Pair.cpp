@@ -439,6 +439,9 @@ void Pair::process_pending_bailment(
         issuer.AddRequest(proto::PEERREQUEST_PENDINGBAILMENT, requestID);
 
     if (added) {
+        const Identifier originalRequest(request.pendingbailment().requestid());
+        issuer.SetUsed(proto::PEERREQUEST_BAILMENT, originalRequest, true);
+
         OTAPI_Func operation(
             ACKNOWLEDGE_NOTICE,
             wallet_,

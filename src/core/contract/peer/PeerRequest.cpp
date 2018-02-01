@@ -90,10 +90,11 @@ PeerRequest::PeerRequest(
 
 PeerRequest::PeerRequest(
     const ConstNym& nym,
+    const std::uint32_t version,
     const Identifier& recipient,
     const Identifier& server,
     const proto::PeerRequestType& type)
-    : ot_super(nym, PEER_REQUEST_VERSION)
+    : ot_super(nym, version)
     , initiator_(nym->ID())
     , recipient_(recipient)
     , server_(server)
@@ -106,11 +107,12 @@ PeerRequest::PeerRequest(
 
 PeerRequest::PeerRequest(
     const ConstNym& nym,
+    const std::uint32_t version,
     const Identifier& recipient,
     const Identifier& server,
     const std::string& conditions,
     const proto::PeerRequestType& type)
-    : ot_super(nym, PEER_REQUEST_VERSION, conditions)
+    : ot_super(nym, version, conditions)
     , initiator_(nym->ID())
     , recipient_(recipient)
     , server_(server)
@@ -142,6 +144,7 @@ std::unique_ptr<PeerRequest> PeerRequest::Create(
     const Identifier& unitID,
     const Identifier& serverID,
     const Identifier& recipient,
+    const Identifier& requestID,
     const std::string& txid)
 {
     auto unit = OT::App().Wallet().UnitDefinition(unitID);
@@ -157,8 +160,8 @@ std::unique_ptr<PeerRequest> PeerRequest::Create(
 
     switch (type) {
         case (proto::PEERREQUEST_PENDINGBAILMENT): {
-            contract.reset(
-                new BailmentNotice(sender, recipient, unitID, serverID, txid));
+            contract.reset(new BailmentNotice(
+                sender, recipient, unitID, serverID, requestID, txid));
             break;
         }
         default: {

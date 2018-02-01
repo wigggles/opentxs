@@ -42,6 +42,8 @@
 
 #include "opentxs/core/String.hpp"
 
+#define CURRENT_VERSION 4
+
 namespace opentxs
 {
 OutBailmentRequest::OutBailmentRequest(
@@ -63,6 +65,7 @@ OutBailmentRequest::OutBailmentRequest(
     const std::string& terms)
     : ot_super(
           nym,
+          CURRENT_VERSION,
           recipientID,
           serverID,
           terms,
