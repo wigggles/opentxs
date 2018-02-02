@@ -87,6 +87,7 @@ protected:
     PeerReply(const ConstNym& nym, const proto::PeerReply& serialized);
     PeerReply(
         const ConstNym& nym,
+        const std::uint32_t version,
         const Identifier& initiator,
         const Identifier& server,
         const proto::PeerRequestType& type,

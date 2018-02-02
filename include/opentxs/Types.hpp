@@ -57,7 +57,6 @@ class Message;
 class Nym;
 class String;
 
-#define PEER_REQUEST_VERSION 4
 #define PEER_MESSAGE_VERSION 2
 #define PEER_PAYMENT_VERSION 5
 #define NYM_VERSION 4
@@ -75,7 +74,7 @@ class String;
 #define FIRST_REQUEST_NUMBER 1
 
 typedef std::map<std::string, std::set<std::string>> ArgList;
-    
+
 typedef bool CredentialIndexModeFlag;
 static const CredentialIndexModeFlag CREDENTIAL_INDEX_MODE_ONLY_IDS = true;
 static const CredentialIndexModeFlag CREDENTIAL_INDEX_MODE_FULL_CREDS = false;
@@ -136,9 +135,9 @@ typedef Claim ClaimTuple;
 typedef std::set<Claim> ClaimSet;
 
 /** A list of object IDs and their associated aliases
-    *  * string: id of the stored object
-    *  * string: alias of the stored object
-    */
+ *  * string: id of the stored object
+ *  * string: alias of the stored object
+ */
 typedef std::list<std::pair<std::string, std::string>> ObjectList;
 
 typedef std::vector<unsigned char> RawData;

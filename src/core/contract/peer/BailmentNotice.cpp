@@ -42,6 +42,8 @@
 
 #include "opentxs/core/String.hpp"
 
+#define CURRENT_VERSION 5
+
 namespace opentxs
 {
 BailmentNotice::BailmentNotice(
@@ -50,6 +52,7 @@ BailmentNotice::BailmentNotice(
     : ot_super(nym, serialized)
     , unit_(serialized.pendingbailment().unitid())
     , server_(serialized.pendingbailment().serverid())
+    , requestID_(serialized.pendingbailment().requestid())
     , txid_(serialized.pendingbailment().txid())
 {
 }
@@ -59,10 +62,17 @@ BailmentNotice::BailmentNotice(
     const Identifier& recipientID,
     const Identifier& unitID,
     const Identifier& serverID,
+    const Identifier& requestID,
     const std::string& txid)
-    : ot_super(nym, recipientID, serverID, proto::PEERREQUEST_PENDINGBAILMENT)
+    : ot_super(
+          nym,
+          CURRENT_VERSION,
+          recipientID,
+          serverID,
+          proto::PEERREQUEST_PENDINGBAILMENT)
     , unit_(unitID)
     , server_(serverID)
+    , requestID_(requestID)
     , txid_(txid)
 {
 }
@@ -75,6 +85,7 @@ proto::PeerRequest BailmentNotice::IDVersion(const Lock& lock) const
     pendingbailment.set_version(version_);
     pendingbailment.set_unitid(String(unit_).Get());
     pendingbailment.set_serverid(String(server_).Get());
+    pendingbailment.set_requestid(String(requestID_).Get());
     pendingbailment.set_txid(txid_);
 
     return contract;

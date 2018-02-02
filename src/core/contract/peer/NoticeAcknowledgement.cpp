@@ -40,6 +40,8 @@
 
 #include "opentxs/core/contract/peer/NoticeAcknowledgement.hpp"
 
+#define CURRENT_VERSION 4
+
 namespace opentxs
 {
 NoticeAcknowledgement::NoticeAcknowledgement(
@@ -57,7 +59,7 @@ NoticeAcknowledgement::NoticeAcknowledgement(
     const Identifier& server,
     const proto::PeerRequestType type,
     const bool& ack)
-    : ot_super(nym, initiator, server, type, request)
+    : ot_super(nym, CURRENT_VERSION, initiator, server, type, request)
     , ack_(ack)
 {
 }

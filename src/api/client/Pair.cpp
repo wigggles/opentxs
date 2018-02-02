@@ -439,6 +439,14 @@ void Pair::process_pending_bailment(
         issuer.AddRequest(proto::PEERREQUEST_PENDINGBAILMENT, requestID);
 
     if (added) {
+        const Identifier originalRequest(request.pendingbailment().requestid());
+        if (!originalRequest.empty()) {
+            issuer.SetUsed(proto::PEERREQUEST_BAILMENT, originalRequest, true);
+        } else {
+            otErr << OT_METHOD << __FUNCTION__
+                  << ": Failed to set request as used on issuer." << std::endl;
+        }
+
         OTAPI_Func operation(
             ACKNOWLEDGE_NOTICE,
             wallet_,

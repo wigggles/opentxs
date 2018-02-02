@@ -88,11 +88,13 @@ protected:
         const std::string& conditions);
     PeerRequest(
         const ConstNym& nym,
+        std::uint32_t version,
         const Identifier& recipient,
         const Identifier& serverID,
         const proto::PeerRequestType& type);
     PeerRequest(
         const ConstNym& nym,
+        std::uint32_t version,
         const Identifier& recipient,
         const Identifier& serverID,
         const std::string& conditions,
@@ -110,6 +112,7 @@ public:
         const Identifier& unitID,
         const Identifier& serverID,
         const Identifier& recipient,
+        const Identifier& requestID,
         const std::string& txid);
     static std::unique_ptr<PeerRequest> Create(
         const ConstNym& nym,

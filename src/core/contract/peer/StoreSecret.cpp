@@ -42,6 +42,8 @@
 
 #include "opentxs/core/String.hpp"
 
+#define CURRENT_VERSION 4
+
 namespace opentxs
 {
 StoreSecret::StoreSecret(
@@ -61,7 +63,12 @@ StoreSecret::StoreSecret(
     const std::string& primary,
     const std::string& secondary,
     const Identifier& serverID)
-    : ot_super(nym, recipientID, serverID, proto::PEERREQUEST_STORESECRET)
+    : ot_super(
+          nym,
+          CURRENT_VERSION,
+          recipientID,
+          serverID,
+          proto::PEERREQUEST_STORESECRET)
     , secret_type_(type)
     , primary_(primary)
     , secondary_(secondary)

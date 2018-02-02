@@ -71,11 +71,12 @@ PeerReply::PeerReply(const ConstNym& nym, const proto::PeerReply& serialized)
 
 PeerReply::PeerReply(
     const ConstNym& nym,
+    const std::uint32_t version,
     const Identifier& initiator,
     const Identifier& server,
     const proto::PeerRequestType& type,
     const Identifier& request)
-    : ot_super(nym, PEER_REQUEST_VERSION)
+    : ot_super(nym, version)
     , initiator_(initiator)
     , recipient_(nym->ID())
     , server_(server)

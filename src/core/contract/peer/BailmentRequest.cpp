@@ -42,6 +42,8 @@
 
 #include "opentxs/core/String.hpp"
 
+#define CURRENT_VERSION 4
+
 namespace opentxs
 {
 BailmentRequest::BailmentRequest(
@@ -58,7 +60,12 @@ BailmentRequest::BailmentRequest(
     const Identifier& recipientID,
     const Identifier& unitID,
     const Identifier& serverID)
-    : ot_super(nym, recipientID, serverID, proto::PEERREQUEST_BAILMENT)
+    : ot_super(
+          nym,
+          CURRENT_VERSION,
+          recipientID,
+          serverID,
+          proto::PEERREQUEST_BAILMENT)
     , unit_(unitID)
     , server_(serverID)
 {

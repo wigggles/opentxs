@@ -430,7 +430,8 @@ public:
         const std::string& NYM_ID,
         const std::string& TARGET_NYM_ID,
         const std::string& INSTRUMENT_DEFINITION_ID,
-        const std::string& TXID) const;
+        const std::string& TXID,
+        const std::string& REQUEST_ID) const;
 
     EXPORT std::string initiate_bailment(
         const std::string& NOTARY_ID,

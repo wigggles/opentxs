@@ -57,6 +57,7 @@ private:
 
     Identifier unit_;
     Identifier server_;
+    Identifier requestID_;
     std::string txid_;
 
     proto::PeerRequest IDVersion(const Lock& lock) const override;
@@ -67,6 +68,7 @@ private:
         const Identifier& recipientID,
         const Identifier& unitID,
         const Identifier& serverID,
+        const Identifier& requestID,
         const std::string& txid);
     BailmentNotice() = delete;
 

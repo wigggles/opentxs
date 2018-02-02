@@ -1580,7 +1580,8 @@ void OTME_too::resend_bailment_notification(
         request.initiator(),
         request.recipient(),
         request.pendingbailment().unitid(),
-        request.pendingbailment().txid());
+        request.pendingbailment().txid(),
+        request.pendingbailment().requestid());
 
     if (1 == exec_.Message_GetSuccess(result)) {
         wallet_.PeerRequestDelete(
