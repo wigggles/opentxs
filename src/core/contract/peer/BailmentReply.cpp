@@ -40,6 +40,8 @@
 
 #include "opentxs/core/contract/peer/BailmentReply.hpp"
 
+#define CURRENT_VERSION 4
+
 namespace opentxs
 {
 BailmentReply::BailmentReply(
@@ -56,7 +58,13 @@ BailmentReply::BailmentReply(
     const Identifier& request,
     const Identifier& server,
     const std::string& terms)
-    : ot_super(nym, initiator, server, proto::PEERREQUEST_BAILMENT, request)
+    : ot_super(
+          nym,
+          CURRENT_VERSION,
+          initiator,
+          server,
+          proto::PEERREQUEST_BAILMENT,
+          request)
 {
     conditions_ = terms;
 }

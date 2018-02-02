@@ -40,6 +40,8 @@
 
 #include "opentxs/core/contract/peer/OutBailmentReply.hpp"
 
+#define CURRENT_VERSION 4
+
 namespace opentxs
 {
 OutBailmentReply::OutBailmentReply(
@@ -56,7 +58,13 @@ OutBailmentReply::OutBailmentReply(
     const Identifier& request,
     const Identifier& server,
     const std::string& terms)
-    : ot_super(nym, initiator, server, proto::PEERREQUEST_OUTBAILMENT, request)
+    : ot_super(
+          nym,
+          CURRENT_VERSION,
+          initiator,
+          server,
+          proto::PEERREQUEST_OUTBAILMENT,
+          request)
 {
     conditions_ = terms;
 }

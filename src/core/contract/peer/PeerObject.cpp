@@ -49,6 +49,8 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/OT.hpp"
 
+#define CURRENT_VERSION 5
+
 #define OT_METHOD "opentxs::PeerObject::"
 
 namespace opentxs
@@ -116,14 +118,14 @@ PeerObject::PeerObject(
     : reply_(reply)
     , request_(request)
     , type_(proto::PEEROBJECT_RESPONSE)
-    , version_(PEER_REQUEST_VERSION)
+    , version_(CURRENT_VERSION)
 {
 }
 
 PeerObject::PeerObject(const std::shared_ptr<PeerRequest>& request)
     : request_(request)
     , type_(proto::PEEROBJECT_REQUEST)
-    , version_(PEER_REQUEST_VERSION)
+    , version_(CURRENT_VERSION)
 {
 }
 
@@ -263,8 +265,8 @@ proto::PeerObject PeerObject::Serialize() const
             break;
         }
         case (proto::PEEROBJECT_REQUEST): {
-            if (PEER_REQUEST_VERSION > version_) {
-                output.set_version(PEER_REQUEST_VERSION);
+            if (CURRENT_VERSION > version_) {
+                output.set_version(CURRENT_VERSION);
             } else {
                 output.set_version(version_);
             }
@@ -280,8 +282,8 @@ proto::PeerObject PeerObject::Serialize() const
             break;
         }
         case (proto::PEEROBJECT_RESPONSE): {
-            if (PEER_REQUEST_VERSION > version_) {
-                output.set_version(PEER_REQUEST_VERSION);
+            if (CURRENT_VERSION > version_) {
+                output.set_version(CURRENT_VERSION);
             } else {
                 output.set_version(version_);
             }

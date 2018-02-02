@@ -40,6 +40,8 @@
 
 #include "opentxs/core/contract/peer/ConnectionReply.hpp"
 
+#define CURRENT_VERSION 4
+
 namespace opentxs
 {
 ConnectionReply::ConnectionReply(
@@ -66,6 +68,7 @@ ConnectionReply::ConnectionReply(
     const std::string& key)
     : ot_super(
           nym,
+          CURRENT_VERSION,
           initiator,
           server,
           proto::PEERREQUEST_CONNECTIONINFO,
