@@ -62,7 +62,7 @@ class Pair;
 class Api
 {
 public:
-    EXPORT virtual const std::recursive_mutex& Lock() const = 0;
+    EXPORT virtual std::recursive_mutex& Lock() const = 0;
 
     EXPORT virtual const OTAPI_Exec& Exec(
         const std::string& wallet = "") const = 0;

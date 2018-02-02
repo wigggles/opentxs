@@ -86,7 +86,7 @@ class Native;
 class Api : virtual public opentxs::api::Api
 {
 public:
-    const std::recursive_mutex& Lock() const override;
+    std::recursive_mutex& Lock() const override;
 
     const OTAPI_Exec& Exec(const std::string& wallet = "") const override;
     const MadeEasy& ME(const std::string& wallet = "") const override;

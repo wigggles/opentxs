@@ -168,7 +168,7 @@ const OTAPI_Exec& Api::Exec(const std::string&) const
     return *otapi_exec_;
 }
 
-const std::recursive_mutex& Api::Lock() const { return lock_; }
+std::recursive_mutex& Api::Lock() const { return lock_; }
 
 const MadeEasy& Api::ME(const std::string&) const
 {

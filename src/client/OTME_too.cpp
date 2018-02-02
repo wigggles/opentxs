@@ -195,7 +195,7 @@ std::pair<bool, std::size_t> OTME_too::accept_incoming(
     const rLock& lock[[maybe_unused]],
     const std::size_t max,
     const Identifier& accountID,
-    ServerContext& context)
+    ServerContext& context) const
 {
     std::pair<bool, std::size_t> output{false, 0};
     auto & [ success, remaining ] = output;
@@ -292,7 +292,7 @@ bool OTME_too::AcceptIncoming(
     const Identifier& nymID,
     const Identifier& accountID,
     const Identifier& serverID,
-    const std::size_t max)
+    const std::size_t max) const
 {
     rLock apiLock(api_lock_);
     auto context = wallet_.mutable_ServerContext(nymID, serverID);

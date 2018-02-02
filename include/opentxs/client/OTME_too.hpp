@@ -99,7 +99,7 @@ public:
         const Identifier& nymID,
         const Identifier& accountID,
         const Identifier& serverID,
-        const std::size_t max = DEFAULT_PROCESS_INBOX_ITEMS);
+        const std::size_t max = DEFAULT_PROCESS_INBOX_ITEMS) const;
     Messagability CanMessage(
         const std::string& senderNymID,
         const std::string& recipientContactID) const;
@@ -195,7 +195,7 @@ private:
         const rLock& lock,
         const std::size_t max,
         const Identifier& accountID,
-        ServerContext& context);
+        ServerContext& context) const;
     Identifier add_background_thread(BackgroundThread thread) const;
     void add_checknym_tasks(const nymAccountMap nyms, serverTaskMap& tasks)
         const;
