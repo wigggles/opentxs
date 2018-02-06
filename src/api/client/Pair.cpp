@@ -458,6 +458,14 @@ void Pair::process_pending_bailment(
             request.id(),
             true);
         operation.Run();
+
+        if (SendResult::VALID_REPLY == operation.LastSendResult()) {
+            OT_ASSERT(operation.SentPeerReply())
+
+            const auto replyID(operation.SentPeerReply()->ID());
+            issuer.AddReply(
+                proto::PEERREQUEST_PENDINGBAILMENT, requestID, replyID);
+        }
     } else {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to add request."
               << std::endl;
@@ -749,9 +757,9 @@ void Pair::state_machine(
                 const auto btcrpc =
                     issuer.ConnectionInfo(proto::CONNECTIONINFO_BTCRPC);
                 const bool needInfo =
-                    (btcrpc.empty() &&
-                     (false == issuer.ConnectionInfoInitiated(
-                                   proto::CONNECTIONINFO_BTCRPC)));
+                    (btcrpc.empty() && (false ==
+                                        issuer.ConnectionInfoInitiated(
+                                            proto::CONNECTIONINFO_BTCRPC)));
 
                 if (needInfo) {
                     otWarn << OT_METHOD << __FUNCTION__
