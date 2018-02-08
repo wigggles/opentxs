@@ -101,7 +101,9 @@ public:
     bool HaveAdminPassword() const;
     TransactionNumber Highest() const;
     bool isAdmin() const;
+    std::uint64_t Revision() const;
     bool ShouldRename(const std::string& defaultName = "") const;
+    bool StaleNym() const;
     std::unique_ptr<Item> Statement(const OTTransaction& owner) const;
     std::unique_ptr<Item> Statement(
         const OTTransaction& owner,
@@ -141,6 +143,7 @@ public:
     void SetAdminPassword(const std::string& password);
     void SetAdminSuccess();
     bool SetHighest(const TransactionNumber& highest);
+    void SetRevision(const std::uint64_t revision);
     TransactionNumber UpdateHighest(
         const std::set<TransactionNumber>& numbers,
         std::set<TransactionNumber>& good,
@@ -162,6 +165,7 @@ private:
     std::string admin_password_{""};
     std::atomic<bool> admin_attempted_{false};
     std::atomic<bool> admin_success_{false};
+    std::atomic<std::uint64_t> revision_{0};
     std::atomic<TransactionNumber> highest_transaction_number_{0};
     std::set<TransactionNumber> tentative_transaction_numbers_{};
 

@@ -6345,34 +6345,6 @@ int32_t OTClient::ProcessUserCommand(
     int64_t lReturnValue = 0;
 
     switch (requestedCommand) {
-        case (MessageType::registerNym): {
-            // Credentials exist already.
-            if (nym.GetMasterCredentialCount() <= 0) {
-                otErr << OT_METHOD << __FUNCTION__
-                      << ": (1) Failed trying to assemble a "
-                         "registerNym message: This Nym has "
-                         "no credentials to use for registration. "
-                         "Convert this Nym first to the new "
-                         "credential system, then try again.\n";
-            } else {
-                theMessage.m_ascPayload.SetData(
-                    proto::ProtoAsData(nym.asPublicNym()));
-
-                // (1) set up member variables
-                theMessage.m_strCommand = "registerNym";
-                theMessage.m_strRequestNum.Format(
-                    "%d", 1);  // Request Number, if unused, should be set to 1.
-
-                // (2) Sign the Message
-                theMessage.SignContract(nym);
-
-                // (3) Save the Message (with signatures and all, back to its
-                // internal member m_strRawFile.)
-                theMessage.SaveContract();
-
-                lReturnValue = 1;
-            }
-        } break;
         // EVERY COMMAND BELOW THIS POINT (THEY ARE ALL OUTGOING TO THE
         // SERVER) MUST INCLUDE THE CORRECT REQUEST NUMBER, OR BE REJECTED
         // BY THE SERVER.
