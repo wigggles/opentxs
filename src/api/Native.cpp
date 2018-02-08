@@ -44,6 +44,7 @@
 #include "opentxs/api/client/implementation/Wallet.hpp"
 #include "opentxs/api/client/Pair.hpp"
 #include "opentxs/api/client/ServerAction.hpp"
+#include "opentxs/api/client/Sync.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
 #include "opentxs/api/implementation/Api.hpp"

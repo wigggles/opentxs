@@ -171,6 +171,9 @@ public:
         const Identifier& localNymID,
         const Identifier& serverID,
         const Identifier& targetNymID) const = 0;
+    EXPORT virtual bool DownloadNymbox(
+        const Identifier& localNymID,
+        const Identifier& serverID) const = 0;
     EXPORT virtual Action DownloadNymMarketOffers(
         const Identifier& localNymID,
         const Identifier& serverID) const = 0;

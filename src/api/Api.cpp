@@ -53,6 +53,8 @@
 #include "opentxs/core/crypto/OTCachedKey.hpp"
 #include "opentxs/core/Log.hpp"
 
+#include "client/Sync.hpp"
+
 namespace opentxs::api::implementation
 {
 Api::Api(
@@ -79,6 +81,8 @@ Api::Api(
     , ot_me_(nullptr)
     , otme_too_(nullptr)
     , pair_(nullptr)
+    , server_action_(nullptr)
+    , sync_(nullptr)
     , lock_()
 {
     Init();
@@ -86,6 +90,7 @@ Api::Api(
 
 void Api::Cleanup()
 {
+    sync_.reset();
     pair_.reset();
 
     if (otme_too_) {
@@ -160,6 +165,19 @@ void Api::Init()
 
     OT_ASSERT(otme_too_);
 
+    sync_.reset(new api::client::implementation::Sync(
+        lock_,
+        shutdown_,
+        *ot_api_,
+        *otapi_exec_,
+        contacts_,
+        config_,
+        *server_action_,
+        wallet_,
+        crypto_.Encode()));
+
+    OT_ASSERT(sync_);
+
     pair_.reset(new api::client::implementation::Pair(
         shutdown_,
         lock_,
@@ -168,6 +186,8 @@ void Api::Init()
         *ot_api_,
         *otapi_exec_,
         *otme_too_));
+
+    OT_ASSERT(pair_);
 }
 
 const OTAPI_Exec& Api::Exec(const std::string&) const
@@ -212,6 +232,13 @@ const api::client::ServerAction& Api::ServerAction() const
     OT_ASSERT(server_action_);
 
     return *server_action_;
+}
+
+const api::client::Sync& Api::Sync() const
+{
+    OT_ASSERT(sync_);
+
+    return *sync_;
 }
 
 Api::~Api() {}

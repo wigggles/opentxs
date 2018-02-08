@@ -48,6 +48,7 @@ namespace opentxs
 {
 namespace api
 {
+class Sync;
 class Api
 {
 public:
@@ -62,6 +63,7 @@ public:
         const std::string& wallet = "") const = 0;
     EXPORT virtual const client::Pair& Pair() const = 0;
     EXPORT virtual const client::ServerAction& ServerAction() const = 0;
+    EXPORT virtual const client::Sync& Sync() const = 0;
 
     EXPORT virtual ~Api() = default;
 

@@ -2,6 +2,7 @@ set(cxx-sources
   Issuer.cpp
   Pair.cpp
   ServerAction.cpp
+  Sync.cpp
   Wallet.cpp
 )
 
@@ -15,6 +16,7 @@ set(cxx-headers
   ${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/api/client/implementation/Pair.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/api/client/implementation/ServerAction.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/api/client/implementation/Wallet.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/Sync.hpp
 )
 
 set(MODULE_NAME opentxs-api-client)
