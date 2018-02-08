@@ -40,10 +40,12 @@
 
 #include "opentxs/network/OpenDHT.hpp"
 
+#include "opentxs/core/Log.hpp"
 #include "opentxs/network/DhtConfig.hpp"
 
 #if OT_DHT
 #include <opendht.h>
+#include <opendht/value.h>
 #endif
 
 #include <iostream>
@@ -132,6 +134,12 @@ void OpenDHT::Insert(
         return;
     }
 
+    if (value.size() > MAX_VALUE_SIZE) {
+        otErr << __FUNCTION__ << ": Error: data size exceeds DHT limits."
+              << std::endl;
+        return;
+    }
+
     node_->put(infoHash, pValue, cb);
 }
 
@@ -159,13 +167,18 @@ void OpenDHT::Retrieve(
                     continue;
                 }
 
-                input.emplace(input.end(), new std::string(it->toString()));
+                input.emplace(
+                    input.end(),
+                    new std::string(it->data.begin(), it->data.end()));
             }
 
             return vcb(input);
         });
 
-    node_->get(dht::InfoHash(key), cb, dcb, dht::Value::AllFilter());
+    dht::InfoHash infoHash = dht::InfoHash::get(
+        reinterpret_cast<const uint8_t*>(key.c_str()), key.size());
+
+    node_->get(infoHash, cb, dcb, dht::Value::AllFilter());
 }
 
 OpenDHT::~OpenDHT()
