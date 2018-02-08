@@ -18,7 +18,6 @@ set(cxx-sources
   commands/CmdShowNyms.cpp
   commands/CmdWithdrawCash.cpp
   Helpers.cpp
-  MadeEasy.cpp
   NymData.cpp
   OT_API.cpp
   OT_ME.cpp
@@ -37,10 +36,8 @@ set(cxx-sources
 
 set(cxx-install-headers
   ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/Helpers.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/MadeEasy.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/NymData.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/OTAPI_Exec.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/OTAPI_Func.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/OT_API.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/OTClient.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/OT_ME.hpp
@@ -50,6 +47,7 @@ set(cxx-install-headers
   ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/OTRecord.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/OTRecordList.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/OTWallet.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/ServerAction.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/SwigWrap.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/Utility.hpp
 )
@@ -72,6 +70,7 @@ set(cxx-headers
   ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/commands/CmdSendCash.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/commands/CmdShowNyms.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/commands/CmdWithdrawCash.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/OTAPI_Func.hpp
 )
 
 set(MODULE_NAME opentxs-client)

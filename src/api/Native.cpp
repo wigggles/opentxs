@@ -42,6 +42,8 @@
 
 #include "opentxs/api/crypto/implementation/Crypto.hpp"
 #include "opentxs/api/client/implementation/Wallet.hpp"
+#include "opentxs/api/client/Pair.hpp"
+#include "opentxs/api/client/ServerAction.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
 #include "opentxs/api/implementation/Api.hpp"
@@ -59,7 +61,6 @@
 #include "opentxs/client/OTAPI_Exec.hpp"
 #include "opentxs/client/OTME_too.hpp"
 #include "opentxs/client/OTWallet.hpp"
-#include "opentxs/client/MadeEasy.hpp"
 #include "opentxs/core/crypto/Bip39.hpp"
 #include "opentxs/core/crypto/SymmetricKey.hpp"
 #include "opentxs/core/util/Assert.hpp"

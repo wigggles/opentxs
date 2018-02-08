@@ -36,55 +36,66 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_API_API_HPP
-#define OPENTXS_API_API_HPP
+#ifndef OPENTXS_PIMPL_HPP
+#define OPENTXS_PIMPL_HPP
 
-#include "opentxs/Version.hpp"
-
-#include <mutex>
-#include <string>
+#include <cassert>
+#include <memory>
 
 namespace opentxs
 {
-class OT_API;
-class OT_ME;
-class OTAPI_Exec;
-class OTME_too;
-
-namespace api
-{
-namespace client
-{
-class Pair;
-class ServerAction;
-}  // namespace client
-
-class Api
+template <class C>
+class Pimpl
 {
 public:
-    EXPORT virtual std::recursive_mutex& Lock() const = 0;
+    explicit Pimpl(C* in) noexcept
+        : pimpl_(in)
+    {
+        assert(pimpl_);
+    }
 
-    EXPORT virtual const OTAPI_Exec& Exec(
-        const std::string& wallet = "") const = 0;
-    EXPORT virtual const OT_API& OTAPI(
-        const std::string& wallet = "") const = 0;
-    EXPORT virtual const OT_ME& OTME(const std::string& wallet = "") const = 0;
-    EXPORT virtual const OTME_too& OTME_TOO(
-        const std::string& wallet = "") const = 0;
-    EXPORT virtual const client::Pair& Pair() const = 0;
-    EXPORT virtual const client::ServerAction& ServerAction() const = 0;
+    Pimpl(const Pimpl& rhs) noexcept
+        : pimpl_(nullptr)
+    {
+        if (rhs.pimpl_) {
+            pimpl_.reset(rhs.pimpl_->clone());
+        }
+    }
 
-    EXPORT virtual ~Api() = default;
+    Pimpl(Pimpl&& rhs) noexcept
+        : pimpl_(std::move(rhs.pimpl_))
+    {
+    }
 
-protected:
-    Api() = default;
+    Pimpl& operator=(const Pimpl& rhs) noexcept
+    {
+        if (rhs.pimpl_) {
+            pimpl_.reset(rhs.pimpl_->clone());
+        }
+
+        return *this;
+    }
+
+    Pimpl& operator=(Pimpl&& rhs) noexcept
+    {
+        pimpl_ = std::move(rhs.pimpl_);
+
+        return *this;
+    }
+
+    operator C&() noexcept { return *pimpl_; }
+
+    C* operator->() { return pimpl_.get(); }
+
+    const Pimpl& get() noexcept { return *pimpl_; }
+
+    ~Pimpl() = default;
 
 private:
-    Api(const Api&) = delete;
-    Api(Api&&) = delete;
-    Api& operator=(const Api&) = delete;
-    Api& operator=(Api&&) = delete;
-};
-}  // namespace api
+    std::unique_ptr<C> pimpl_{nullptr};
+
+    Pimpl() = delete;
+};  // class Pimpl
 }  // namespace opentxs
-#endif  // OPENTXS_API_API_HPP
+
+#endif  // OPENTXS_PIMPL_HPP

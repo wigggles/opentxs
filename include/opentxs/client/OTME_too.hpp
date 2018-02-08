@@ -63,7 +63,6 @@
 namespace opentxs
 {
 class ContactGroup;
-class MadeEasy;
 class Nym;
 class OT_API;
 class OT_ME;
@@ -78,6 +77,7 @@ class Settings;
 
 namespace client
 {
+class ServerAction;
 class Wallet;
 }  // namespace client
 
@@ -170,8 +170,8 @@ private:
     const api::ContactManager& contacts_;
     const OT_API& ot_api_;
     const OTAPI_Exec& exec_;
-    const MadeEasy& made_easy_;
     const OT_ME& otme_;
+    const api::client::ServerAction& action_;
     const api::client::Wallet& wallet_;
     const api::crypto::Encode& encoding_;
     const api::Identity& identity_;
@@ -313,8 +313,8 @@ private:
         const api::ContactManager& contacts,
         const OT_API& otapi,
         const OTAPI_Exec& exec,
-        const MadeEasy& madeEasy,
         const OT_ME& otme,
+        const api::client::ServerAction& action,
         const api::client::Wallet& wallet,
         const api::crypto::Encode& encoding,
         const api::Identity& identity);

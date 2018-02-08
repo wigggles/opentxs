@@ -36,55 +36,47 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_API_API_HPP
-#define OPENTXS_API_API_HPP
+#ifndef OPENTXS_CLIENT_SERVER_ACTION_HPP
+#define OPENTXS_CLIENT_SERVER_ACTION_HPP
 
 #include "opentxs/Version.hpp"
 
-#include <mutex>
+#include "opentxs/Types.hpp"
+
+#include <memory>
 #include <string>
 
 namespace opentxs
 {
-class OT_API;
-class OT_ME;
-class OTAPI_Exec;
-class OTME_too;
+class Message;
+class PeerReply;
+class PeerRequest;
 
-namespace api
-{
 namespace client
 {
-class Pair;
-class ServerAction;
-}  // namespace client
-
-class Api
+class ServerAction
 {
 public:
-    EXPORT virtual std::recursive_mutex& Lock() const = 0;
+    EXPORT virtual TransactionNumber GetTransactionNumber() const = 0;
+    EXPORT virtual SendResult LastSendResult() const = 0;
+    EXPORT virtual const std::shared_ptr<PeerRequest>& SentPeerRequest()
+        const = 0;
+    EXPORT virtual const std::shared_ptr<PeerReply>& SentPeerReply() const = 0;
+    EXPORT virtual const std::shared_ptr<Message>& Reply() const = 0;
 
-    EXPORT virtual const OTAPI_Exec& Exec(
-        const std::string& wallet = "") const = 0;
-    EXPORT virtual const OT_API& OTAPI(
-        const std::string& wallet = "") const = 0;
-    EXPORT virtual const OT_ME& OTME(const std::string& wallet = "") const = 0;
-    EXPORT virtual const OTME_too& OTME_TOO(
-        const std::string& wallet = "") const = 0;
-    EXPORT virtual const client::Pair& Pair() const = 0;
-    EXPORT virtual const client::ServerAction& ServerAction() const = 0;
+    EXPORT virtual std::string Run(const std::size_t totalRetries = 2) = 0;
 
-    EXPORT virtual ~Api() = default;
+    EXPORT virtual ~ServerAction() = default;
 
 protected:
-    Api() = default;
+    ServerAction() = default;
 
 private:
-    Api(const Api&) = delete;
-    Api(Api&&) = delete;
-    Api& operator=(const Api&) = delete;
-    Api& operator=(Api&&) = delete;
+    ServerAction(const ServerAction&) = delete;
+    ServerAction(ServerAction&&) = delete;
+    ServerAction& operator=(const ServerAction&) = delete;
+    ServerAction& operator=(ServerAction&&) = delete;
 };
-}  // namespace api
+}  // namespace client
 }  // namespace opentxs
-#endif  // OPENTXS_API_API_HPP
+#endif  // OPENTXS_CLIENT_SERVER_ACTION_HPP

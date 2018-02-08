@@ -447,6 +447,13 @@ enum class SocketType : std::uint8_t {
     Request = 1,
     Reply = 2,
 };
+
+enum class RemoteBoxType : std::int8_t {
+    Error = -1,
+    Nymbox = 0,
+    Inbox = 1,
+    Outbox = 2,
+};
 }  // namespace opentxs
 
 #endif  // OPENTXS_CORE_TYPES_HPP

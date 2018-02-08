@@ -49,7 +49,6 @@
 
 namespace opentxs
 {
-class MadeEasy;
 class OT_API;
 class OT_ME;
 class OTAPI_Exec;
@@ -65,7 +64,6 @@ class Settings;
 
 namespace client
 {
-class Pair;
 class Wallet;
 }  // namespace client
 
@@ -89,11 +87,11 @@ public:
     std::recursive_mutex& Lock() const override;
 
     const OTAPI_Exec& Exec(const std::string& wallet = "") const override;
-    const MadeEasy& ME(const std::string& wallet = "") const override;
     const OT_API& OTAPI(const std::string& wallet = "") const override;
     const OT_ME& OTME(const std::string& wallet = "") const override;
     const OTME_too& OTME_TOO(const std::string& wallet = "") const override;
     const api::client::Pair& Pair() const override;
+    const client::ServerAction& ServerAction() const override;
 
     ~Api();
 
@@ -110,12 +108,12 @@ private:
     const api::client::Wallet& wallet_;
     const api::network::ZMQ& zmq_;
 
-    std::unique_ptr<OT_API> ot_api_;
-    std::unique_ptr<OTAPI_Exec> otapi_exec_;
-    std::unique_ptr<MadeEasy> made_easy_;
-    std::unique_ptr<OT_ME> ot_me_;
-    std::unique_ptr<OTME_too> otme_too_;
-    std::unique_ptr<api::client::Pair> pair_;
+    std::unique_ptr<OT_API> ot_api_{nullptr};
+    std::unique_ptr<OTAPI_Exec> otapi_exec_{nullptr};
+    std::unique_ptr<OT_ME> ot_me_{nullptr};
+    std::unique_ptr<OTME_too> otme_too_{nullptr};
+    std::unique_ptr<api::client::Pair> pair_{nullptr};
+    std::unique_ptr<api::client::ServerAction> server_action_{nullptr};
 
     mutable std::recursive_mutex lock_;
 

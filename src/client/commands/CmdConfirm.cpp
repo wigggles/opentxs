@@ -44,7 +44,6 @@
 #include "opentxs/api/Native.hpp"
 #include "opentxs/client/commands/CmdBase.hpp"
 #include "opentxs/client/commands/CmdShowNyms.hpp"
-#include "opentxs/client/MadeEasy.hpp"
 #include "opentxs/client/OT_ME.hpp"
 #include "opentxs/client/SwigWrap.hpp"
 #include "opentxs/core/util/Common.hpp"
@@ -260,7 +259,7 @@ int32_t CmdConfirm::confirmPaymentPlan(
 
     // If we fail, then we need to harvest the transaction numbers back from
     // the payment plan that we confirmed
-    string response = OT::App().API().ME().deposit_payment_plan(
+    string response = OT::App().API().OTME().deposit_payment_plan(
         server, senderUser, confirmed);
 
     int32_t success = responseStatus(response);
@@ -278,7 +277,7 @@ int32_t CmdConfirm::confirmPaymentPlan(
 
     if (nullptr != pOptionalOutput) *pOptionalOutput = response;
 
-    if (!OT::App().API().ME().retrieve_account(
+    if (!OT::App().API().OTME().retrieve_account(
             server, senderUser, senderAcct, true)) {
         otOut << "Error retrieving intermediary files for account.\n";
         return -1;
@@ -532,7 +531,8 @@ int32_t CmdConfirm::activateContract(
         return reply;
     }
 
-    if (!OT::App().API().ME().retrieve_account(server, mynym, myAcctID, true)) {
+    if (!OT::App().API().OTME().retrieve_account(
+            server, mynym, myAcctID, true)) {
         otOut << "Error retrieving intermediary files for account.\n";
     }
 

@@ -46,7 +46,6 @@
 #include "opentxs/client/commands/CmdPayInvoice.hpp"
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/client/OT_ME.hpp"
-#include "opentxs/client/MadeEasy.hpp"
 #include "opentxs/client/SwigWrap.hpp"
 #include "opentxs/core/Ledger.hpp"
 #include "opentxs/core/Log.hpp"
@@ -398,7 +397,7 @@ int32_t CmdBaseAccept::acceptFromInbox(
     const opentxs::String strFinalized{*processInbox};
     const std::string str_finalized{strFinalized.Get()};
     // ----------------------------------------------
-    const std::string notary_response = OT::App().API().ME().process_inbox(
+    const std::string notary_response = OT::App().API().OTME().process_inbox(
         server, mynym, myacct, str_finalized);
     int32_t reply =
         responseReply(notary_response, server, mynym, myacct, "process_inbox");
@@ -410,7 +409,7 @@ int32_t CmdBaseAccept::acceptFromInbox(
     // We KNOW they all just changed, since we just processed
     // the inbox. Might as well refresh our copy with the new changes.
     //
-    if (!OT::App().API().ME().retrieve_account(server, mynym, myacct, true)) {
+    if (!OT::App().API().OTME().retrieve_account(server, mynym, myacct, true)) {
         otOut << __FUNCTION__ << "Success processing inbox, but then failed "
                                  "retrieving intermediary files for account.\n";
         //      return -1; // By this point we DID successfully process the

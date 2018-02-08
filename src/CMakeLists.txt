@@ -94,6 +94,7 @@ set(object-deps
 
 set(cxx-install-headers
   "${CMAKE_CURRENT_SOURCE_DIR}/../include/opentxs/OT.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../include/opentxs/Pimpl.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../include/opentxs/Proto.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../include/opentxs/Types.hpp"
 )

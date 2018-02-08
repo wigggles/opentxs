@@ -40,11 +40,12 @@
 
 #include "opentxs/api/client/implementation/Pair.hpp"
 #include "opentxs/api/client/Issuer.hpp"
+#include "opentxs/api/client/ServerAction.hpp"
 #include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
-#include "opentxs/client/OTAPI_Func.hpp"
 #include "opentxs/client/OTME_too.hpp"
+#include "opentxs/client/ServerAction.hpp"
 #include "opentxs/contact/ContactData.hpp"
 #include "opentxs/contact/ContactGroup.hpp"
 #include "opentxs/contact/ContactItem.hpp"
@@ -71,15 +72,19 @@ Pair::Cleanup::~Cleanup() { run_.store(false); }
 
 Pair::Pair(
     const std::atomic<bool>& shutdown,
+    std::recursive_mutex& apiLock,
+    const client::ServerAction& action,
     const client::Wallet& wallet,
     const opentxs::OT_API& otapi,
     const opentxs::OTAPI_Exec& exec,
     const opentxs::OTME_too& meToo)
     : shutdown_(shutdown)
+    , action_(action)
     , wallet_(wallet)
     , ot_api_(otapi)
     , exec_(exec)
     , me_too_(meToo)
+    , api_lock_(apiLock)
     , status_lock_()
     , pairing_(false)
     , last_refresh_(0)
@@ -176,29 +181,23 @@ std::pair<bool, Identifier> Pair::get_connection(
 {
     std::pair<bool, Identifier> output{false, {}};
     auto & [ success, requestID ] = output;
-    OTAPI_Func operation(
-        REQUEST_CONNECTION,
-        wallet_,
-        localNymID,
-        serverID,
-        exec_,
-        ot_api_,
-        String(issuerNymID).Get(),
-        static_cast<std::int64_t>(type));
-    operation.Run();
+    rLock lock(api_lock_);
+    auto action = action_.InitiateRequestConnection(
+        localNymID, serverID, issuerNymID, type);
+    action->Run();
 
-    if (SendResult::VALID_REPLY != operation.LastSendResult()) {
+    if (SendResult::VALID_REPLY != action->LastSendResult()) {
 
         return output;
     }
 
-    OT_ASSERT(operation.Reply());
+    OT_ASSERT(action->Reply());
 
-    success = operation.Reply()->m_bSuccess;
+    success = action->Reply()->m_bSuccess;
 
-    OT_ASSERT(operation.SentPeerRequest());
+    OT_ASSERT(action->SentPeerRequest());
 
-    requestID = operation.SentPeerRequest()->ID();
+    requestID = action->SentPeerRequest()->ID();
 
     return output;
 }
@@ -219,29 +218,22 @@ std::pair<bool, Identifier> Pair::initiate_bailment(
         return output;
     }
 
-    OTAPI_Func operation(
-        INITIATE_BAILMENT,
-        wallet_,
-        nymID,
-        serverID,
-        exec_,
-        ot_api_,
-        String(issuerID).Get(),
-        String(unitID).Get());
-    operation.Run();
+    rLock lock(api_lock_);
+    auto action = action_.InitiateBailment(nymID, serverID, issuerID, unitID);
+    action->Run();
 
-    if (SendResult::VALID_REPLY != operation.LastSendResult()) {
+    if (SendResult::VALID_REPLY != action->LastSendResult()) {
 
         return output;
     }
 
-    OT_ASSERT(operation.Reply());
+    OT_ASSERT(action->Reply());
 
-    success = operation.Reply()->m_bSuccess;
+    success = action->Reply()->m_bSuccess;
 
-    OT_ASSERT(operation.SentPeerRequest());
+    OT_ASSERT(action->SentPeerRequest());
 
-    requestID = operation.SentPeerRequest()->ID();
+    requestID = action->SentPeerRequest()->ID();
 
     return output;
 }
@@ -447,22 +439,15 @@ void Pair::process_pending_bailment(
                   << ": Failed to set request as used on issuer." << std::endl;
         }
 
-        OTAPI_Func operation(
-            ACKNOWLEDGE_NOTICE,
-            wallet_,
-            nymID,
-            serverID,
-            exec_,
-            ot_api_,
-            String(issuerNymID).Get(),
-            request.id(),
-            true);
-        operation.Run();
+        rLock lock(api_lock_);
+        auto action = action_.AcknowledgeNotice(
+            nymID, serverID, issuerNymID, requestID, true);
+        action->Run();
 
-        if (SendResult::VALID_REPLY == operation.LastSendResult()) {
-            OT_ASSERT(operation.SentPeerReply())
+        if (SendResult::VALID_REPLY == action->LastSendResult()) {
+            OT_ASSERT(action->SentPeerReply())
 
-            const auto replyID(operation.SentPeerReply()->ID());
+            const auto replyID(action->SentPeerReply()->ID());
             issuer.AddReply(
                 proto::PEERREQUEST_PENDINGBAILMENT, requestID, replyID);
         }
@@ -578,16 +563,9 @@ void Pair::queue_server_contract(
         return;
     }
 
-    OTAPI_Func operation(
-        GET_CONTRACT,
-        wallet_,
-        nymID,
-        intro,
-        exec_,
-        ot_api_,
-        String(serverID).Get());
-
-    operation.Run();
+    rLock lock(api_lock_);
+    auto action = action_.DownloadContract(nymID, intro, serverID);
+    action->Run();
 }
 
 void Pair::queue_unit_definition(
@@ -605,16 +583,9 @@ void Pair::queue_unit_definition(
         return;
     }
 
-    OTAPI_Func operation(
-        GET_CONTRACT,
-        wallet_,
-        nymID,
-        serverID,
-        exec_,
-        ot_api_,
-        String(unitID).Get());
-
-    operation.Run();
+    rLock lock(api_lock_);
+    auto action = action_.DownloadContract(nymID, serverID, unitID);
+    action->Run();
 }
 
 std::pair<bool, Identifier> Pair::register_account(
@@ -632,24 +603,18 @@ std::pair<bool, Identifier> Pair::register_account(
         return output;
     }
 
-    OTAPI_Func operation(
-        CREATE_ASSET_ACCT,
-        wallet_,
-        nymID,
-        serverID,
-        exec_,
-        ot_api_,
-        String(unitID).Get());
-    operation.Run();
+    rLock lock(api_lock_);
+    auto action = action_.RegisterAccount(nymID, serverID, unitID);
+    action->Run();
 
-    if (SendResult::VALID_REPLY != operation.LastSendResult()) {
+    if (SendResult::VALID_REPLY != action->LastSendResult()) {
 
         return output;
     }
 
-    OT_ASSERT(operation.Reply());
+    OT_ASSERT(action->Reply());
 
-    const auto& reply = *operation.Reply();
+    const auto& reply = *action->Reply();
 
     success = reply.m_bSuccess;
     accountID.SetString(reply.m_strAcctID);
@@ -836,31 +801,28 @@ std::pair<bool, Identifier> Pair::store_secret(
 {
     std::pair<bool, Identifier> output{false, {}};
     auto & [ success, requestID ] = output;
-    OTAPI_Func operation(
-        STORE_SECRET,
-        wallet_,
+    rLock lock(api_lock_);
+    auto action = action_.InitiateStoreSecret(
         localNymID,
         serverID,
-        exec_,
-        ot_api_,
-        String(issuerNymID).Get(),
+        issuerNymID,
+        proto::SECRETTYPE_BIP39,
         exec_.Wallet_GetWords(),
-        exec_.Wallet_GetPassphrase(),
-        static_cast<std::int64_t>(proto::SECRETTYPE_BIP39));
-    operation.Run();
+        exec_.Wallet_GetPassphrase());
+    action->Run();
 
-    if (SendResult::VALID_REPLY != operation.LastSendResult()) {
+    if (SendResult::VALID_REPLY != action->LastSendResult()) {
 
         return output;
     }
 
-    OT_ASSERT(operation.Reply());
+    OT_ASSERT(action->Reply());
 
-    success = operation.Reply()->m_bSuccess;
+    success = action->Reply()->m_bSuccess;
 
-    OT_ASSERT(operation.SentPeerRequest());
+    OT_ASSERT(action->SentPeerRequest());
 
-    requestID = operation.SentPeerRequest()->ID();
+    requestID = action->SentPeerRequest()->ID();
 
     return output;
 }

@@ -43,7 +43,7 @@
 #include "opentxs/api/Api.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/client/commands/CmdBase.hpp"
-#include "opentxs/client/MadeEasy.hpp"
+#include "opentxs/client/OT_ME.hpp"
 #include "opentxs/client/SwigWrap.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/OT.hpp"
@@ -186,7 +186,7 @@ string CmdExportCash::exportCash(
     string& retainedCopy) const
 {
 #if OT_CASH
-    string contract = OT::App().API().ME().load_or_retrieve_contract(
+    string contract = OT::App().API().OTME().load_or_retrieve_contract(
         server, mynym, assetType);
     if ("" == contract) {
         otOut << "Error: cannot load asset contract.\n";
@@ -204,7 +204,7 @@ string CmdExportCash::exportCash(
         return "";
     }
 
-    return OT::App().API().ME().exportCashPurse(
+    return OT::App().API().OTME().exportCashPurse(
         server,
         assetType,
         mynym,

@@ -45,7 +45,6 @@
 #include "opentxs/client/commands/CmdBase.hpp"
 #include "opentxs/client/commands/CmdExportCash.hpp"
 #include "opentxs/client/commands/CmdWithdrawCash.hpp"
-#include "opentxs/client/MadeEasy.hpp"
 #include "opentxs/client/OT_ME.hpp"
 #include "opentxs/client/SwigWrap.hpp"
 #include "opentxs/core/util/Common.hpp"
@@ -166,14 +165,6 @@ int32_t CmdSendCash::run(
 
     // Below this point we can just try to pay it from the purse, and if unable
     // to, try to get the remaining funds from the account, IF that's available.
-
-    // make sure we can access the public key before trying to send cash
-    if ("" ==
-        OT::App().API().ME().load_or_retrieve_encrypt_key(
-            server, mynym, hisnym)) {
-        otOut << "Error: cannot load public key for hisnym.\n";
-        return -1;
-    }
 
     string response = "";
     if (1 != sendCash(
