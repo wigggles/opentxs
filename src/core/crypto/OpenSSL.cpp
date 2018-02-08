@@ -619,16 +619,17 @@ void OpenSSL::thread_cleanup() const
 
 void OpenSSL::Init_Override() const
 {
-    otWarn << __FUNCTION__ << ": Setting up OpenSSL:  SSL_library_init, error "
-                              "strings and algorithms, and OpenSSL config...\n";
+    otWarn << __FUNCTION__
+           << ": Setting up OpenSSL:  SSL_library_init, error "
+              "strings and algorithms, and OpenSSL config...\n";
 
-    static bool bNotAlreadyInitialized = true;
+    static bool Initialized = false;
 
-    OT_ASSERT_MSG(
-        bNotAlreadyInitialized,
-        "OpenSSL::Init_Override: Tried to initialize twice.");
+    if (Initialized) {
+        return;
+    }
 
-    bNotAlreadyInitialized = false;
+    Initialized = true;
 
 /*
  OPENSSL_VERSION_NUMBER is a numeric release version identifier:
@@ -806,48 +807,43 @@ void OpenSSL::Init_Override() const
     OpenSSL_add_all_algorithms();  // DONE -- corresponds to EVP_cleanup() in
                                    // OT_Cleanup().    #2
     OpenSSL_add_all_digests();
-//
-//
-// RAND
-//
-/*
- RAND_bytes() automatically calls RAND_poll() if it has not already been done at
- least once.
- So you do not have to call it yourself. RAND_poll() feeds on what the operating
- system provides:
- on Linux, Solaris, FreeBSD and similar Unix-like systems, it will use
- /dev/urandom (or /dev/random
- if there is no /dev/urandom) to obtain a cryptographically secure initial seed;
- on Windows, it will
- call CryptGenRandom() for the same effect.
+    //
+    //
+    // RAND
+    //
+    /*
+     RAND_bytes() automatically calls RAND_poll() if it has not already been
+     done at least once. So you do not have to call it yourself. RAND_poll()
+     feeds on what the operating system provides: on Linux, Solaris, FreeBSD and
+     similar Unix-like systems, it will use /dev/urandom (or /dev/random if
+     there is no /dev/urandom) to obtain a cryptographically secure initial
+     seed; on Windows, it will call CryptGenRandom() for the same effect.
 
- RAND_screen() is provided by OpenSSL only for backward compatibility with
- (much) older code which
- may call it (that was before OpenSSL used proper OS-based seed initialization).
+     RAND_screen() is provided by OpenSSL only for backward compatibility with
+     (much) older code which
+     may call it (that was before OpenSSL used proper OS-based seed
+     initialization).
 
- So the "normal" way of dealing with RAND_poll() and RAND_screen() is to call
- neither. Just use RAND_bytes()
- and be happy.
+     So the "normal" way of dealing with RAND_poll() and RAND_screen() is to
+     call neither. Just use RAND_bytes() and be happy.
 
- RESPONSE: Thanks for the detailed answer. In regards to your suggestion to call
- neither, the problem
- under Windows is that RAND_poll can take some time and will block our UI. So we
- call it upon initialization,
- which works for us.
- */
-// I guess Windows will seed the PRNG whenever someone tries to get
-// some RAND_bytes() the first time...
-//
-//#ifdef _WIN32
-// CORRESPONDS to RAND_cleanup in OT_Cleanup().
-//      RAND_screen();
-//#else
-// note: optimization: might want to remove this, since supposedly it happens
-// anyway
-// when you use RAND_bytes. So the "lazy evaluation" rule would seem to imply,
-// not bothering
-// to slow things down NOW, since it's not really needed until THEN.
-//
+     RESPONSE: Thanks for the detailed answer. In regards to your suggestion to
+     call neither, the problem under Windows is that RAND_poll can take some
+     time and will block our UI. So we call it upon initialization, which works
+     for us.
+     */
+    // I guess Windows will seed the PRNG whenever someone tries to get
+    // some RAND_bytes() the first time...
+    //
+    //#ifdef _WIN32
+    // CORRESPONDS to RAND_cleanup in OT_Cleanup().
+    //      RAND_screen();
+    //#else
+    // note: optimization: might want to remove this, since supposedly it
+    // happens anyway when you use RAND_bytes. So the "lazy evaluation" rule
+    // would seem to imply, not bothering to slow things down NOW, since it's
+    // not really needed until THEN.
+    //
 
 #if defined(USE_RAND_POLL)
 
@@ -878,13 +874,13 @@ void OpenSSL::Init_Override() const
     // Let's see 'em!
     //
     ERR_print_errors_fp(stderr);
-//
+    //
 
-//
-//
-// THREADS
-//
-//
+    //
+    //
+    // THREADS
+    //
+    //
 
 #if defined(OPENSSL_THREADS)
     // thread support enabled
@@ -936,11 +932,11 @@ void OpenSSL::Cleanup_Override() const
 {
     otLog4 << __FUNCTION__ << ": Cleaning up OpenSSL...\n";
 
-// In the future if we start using ENGINEs, then do the cleanup here:
-//#ifndef OPENSSL_NO_ENGINE
-//  void ENGINE_cleanup(void);
-//#endif
-//
+    // In the future if we start using ENGINEs, then do the cleanup here:
+    //#ifndef OPENSSL_NO_ENGINE
+    //  void ENGINE_cleanup(void);
+    //#endif
+    //
 
 #if defined(OPENSSL_THREADS)
     // thread support enabled
@@ -948,7 +944,7 @@ void OpenSSL::Cleanup_Override() const
     thread_cleanup();
 
 #else
-// no thread support
+    // no thread support
 
 #endif
 
@@ -1195,8 +1191,9 @@ bool OpenSSL::Encrypt(
             // EVP_CIPHER_CTX_cleanup returns 1 for success and 0 for failure.
             //
             if (0 == EVP_CIPHER_CTX_cleanup(&m_ctx))
-                otErr << m_szFunc << ": Failure in EVP_CIPHER_CTX_cleanup. (It "
-                                     "returned 0.)\n";
+                otErr << m_szFunc
+                      << ": Failure in EVP_CIPHER_CTX_cleanup. (It "
+                         "returned 0.)\n";
 
             m_szFunc = nullptr;  // keep the static analyzer happy
         }
@@ -1478,8 +1475,9 @@ bool OpenSSL::Decrypt(
             // EVP_CIPHER_CTX_cleanup returns 1 for success and 0 for failure.
             //
             if (0 == EVP_CIPHER_CTX_cleanup(&m_ctx))
-                otErr << m_szFunc << ": Failure in EVP_CIPHER_CTX_cleanup. (It "
-                                     "returned 0.)\n";
+                otErr << m_szFunc
+                      << ": Failure in EVP_CIPHER_CTX_cleanup. (It "
+                         "returned 0.)\n";
             m_szFunc = nullptr;  // to keep the static analyzer happy.
         }
     };
@@ -1580,12 +1578,12 @@ bool OpenSSL::Decrypt(
         lCurrentIndex += len;
 
         if (len_out > 0)
-            if (false ==
-                plaintext.Concatenate(
-                    reinterpret_cast<void*>(&vBuffer_out.at(0)),
-                    static_cast<uint32_t>(len_out))) {
-                otErr << szFunc << ": Failure: theDecryptedOutput isn't large "
-                                   "enough for the decrypted output (1).\n";
+            if (false == plaintext.Concatenate(
+                             reinterpret_cast<void*>(&vBuffer_out.at(0)),
+                             static_cast<uint32_t>(len_out))) {
+                otErr << szFunc
+                      << ": Failure: theDecryptedOutput isn't large "
+                         "enough for the decrypted output (1).\n";
                 return false;
             }
     }
@@ -1618,12 +1616,12 @@ bool OpenSSL::Decrypt(
     // This is the "final" piece that is added from DecryptFinal just above.
     //
     if (len_out > 0)
-        if (false ==
-            plaintext.Concatenate(
-                reinterpret_cast<void*>(&vBuffer_out.at(0)),
-                static_cast<uint32_t>(len_out))) {
-            otErr << szFunc << ": Failure: theDecryptedOutput isn't large "
-                               "enough for the decrypted output (2).\n";
+        if (false == plaintext.Concatenate(
+                         reinterpret_cast<void*>(&vBuffer_out.at(0)),
+                         static_cast<uint32_t>(len_out))) {
+            otErr << szFunc
+                  << ": Failure: theDecryptedOutput isn't large "
+                     "enough for the decrypted output (2).\n";
             return false;
         }
 
@@ -1984,9 +1982,10 @@ bool OpenSSL::OpenSSLdp::VerifyContractDefaultHash(
     if ((theSignature.GetSize() < static_cast<uint32_t>(RSA_size(pRsaKey))) ||
         (nSignatureSize < RSA_size(pRsaKey)))  // this one probably unnecessary.
     {
-        otErr << szFunc << ": Decoded base64-encoded data for signature, but "
-                           "resulting size was < RSA_size(pRsaKey): "
-                           "Signed: "
+        otErr << szFunc
+              << ": Decoded base64-encoded data for signature, but "
+                 "resulting size was < RSA_size(pRsaKey): "
+                 "Signed: "
               << nSignatureSize << ". Unsigned: " << theSignature.GetSize()
               << ".\n";
         RSA_free(pRsaKey);
@@ -2650,10 +2649,10 @@ bool OpenSSL::OpenSSLdp::VerifySignature(
     EVP_VerifyInit(context, md);
 #endif
 
-// Here I'm adding the actual XML portion of the contract (the portion that
-// gets signed.)
-// Basically we are repeating similarly to the signing process in order to
-// verify.
+    // Here I'm adding the actual XML portion of the contract (the portion that
+    // gets signed.)
+    // Basically we are repeating similarly to the signing process in order to
+    // verify.
 
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
     EVP_VerifyUpdate(
@@ -3029,8 +3028,9 @@ bool OpenSSL::EncryptSessionKey(
                 // would have done this for us.)
 
                 if (0 == EVP_CIPHER_CTX_cleanup(&m_ctx))
-                    otErr << m_szFunc << ": Failure in EVP_CIPHER_CTX_cleanup. "
-                                         "(It returned 0.)\n";
+                    otErr << m_szFunc
+                          << ": Failure in EVP_CIPHER_CTX_cleanup. "
+                             "(It returned 0.)\n";
             }
 #endif
         }
@@ -3397,8 +3397,9 @@ bool OpenSSL::DecryptSessionKey(
             //
             if (!m_bFinalized) {
                 if (0 == EVP_CIPHER_CTX_cleanup(&m_ctx))
-                    otErr << m_szFunc << ": Failure in EVP_CIPHER_CTX_cleanup. "
-                                         "(It returned 0.)\n";
+                    otErr << m_szFunc
+                          << ": Failure in EVP_CIPHER_CTX_cleanup. "
+                             "(It returned 0.)\n";
             }
 
             m_szFunc = nullptr;
@@ -3453,8 +3454,9 @@ bool OpenSSL::DecryptSessionKey(
     if (0 == (nReadEnvType = dataInput.OTfread(
                   reinterpret_cast<uint8_t*>(&env_type_n),
                   static_cast<uint32_t>(sizeof(env_type_n))))) {
-        otErr << szFunc << ": Error reading Envelope Type. Expected "
-                           "asymmetric(1) or symmetric (2).\n";
+        otErr << szFunc
+              << ": Error reading Envelope Type. Expected "
+                 "asymmetric(1) or symmetric (2).\n";
         return false;
     }
     nRunningTotal += nReadEnvType;
@@ -3524,8 +3526,9 @@ bool OpenSSL::DecryptSessionKey(
         if (0 == (nReadNymIDSize = dataInput.OTfread(
                       reinterpret_cast<uint8_t*>(&nymid_len_n),
                       static_cast<uint32_t>(sizeof(nymid_len_n))))) {
-            otErr << szFunc << ": Error reading NymID length for an encrypted "
-                               "symmetric key.\n";
+            otErr << szFunc
+                  << ": Error reading NymID length for an encrypted "
+                     "symmetric key.\n";
             return false;
         }
         nRunningTotal += nReadNymIDSize;

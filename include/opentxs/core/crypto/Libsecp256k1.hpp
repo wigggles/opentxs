@@ -83,6 +83,7 @@ class Libsecp256k1 : public Crypto, public CryptoAsymmetric, public Ecdsa
 private:
     static const int PrivateKeySize = 32;
     static const int PublicKeySize = 33;
+    static bool Initialized_;
 
     secp256k1_context* context_{nullptr};
     Ecdsa& ecdsa_;

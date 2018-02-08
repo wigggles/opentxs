@@ -65,6 +65,7 @@
 
 namespace opentxs
 {
+bool Libsecp256k1::Initialized_ = false;
 
 Libsecp256k1::Libsecp256k1(api::crypto::Util& ssl, Ecdsa& ecdsa)
     : Crypto()
@@ -264,11 +265,9 @@ bool Libsecp256k1::ECDH(
 
 void Libsecp256k1::Init_Override() const
 {
-    static bool bNotAlreadyInitialized = true;
     OT_ASSERT_MSG(
-        bNotAlreadyInitialized,
+        false == Initialized_,
         "Libsecp256k1::Init_Override: Tried to initialize twice.");
-    bNotAlreadyInitialized = false;
     // --------------------------------
     uint8_t randomSeed[32]{};
     ssl_.RandomizeMemory(randomSeed, 32);
@@ -279,6 +278,7 @@ void Libsecp256k1::Init_Override() const
 
     int __attribute__((unused)) randomize =
         secp256k1_context_randomize(context_, randomSeed);
+    Initialized_ = true;
 }
 
 bool Libsecp256k1::ParsePublicKey(const Data& input, secp256k1_pubkey& output)
@@ -339,6 +339,7 @@ Libsecp256k1::~Libsecp256k1()
         secp256k1_context_destroy(context_);
         context_ = nullptr;
     }
+    Initialized_ = false;
 }
 }  // namespace opentxs
 #endif
