@@ -37,3 +37,7 @@ opentxs.kdev4
 *.rej
 *.orig
 
+# Eclipse
+.classpath
+.project
+.settings
