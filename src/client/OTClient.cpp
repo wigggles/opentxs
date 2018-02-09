@@ -52,7 +52,6 @@
 #include "opentxs/cash/Token.hpp"
 #endif  // OT_CASH
 #include "opentxs/client/Helpers.hpp"
-#include "opentxs/client/OTME_too.hpp"
 #include "opentxs/client/OTMessageOutbuffer.hpp"
 #include "opentxs/client/OTWallet.hpp"
 #include "opentxs/consensus/ServerContext.hpp"

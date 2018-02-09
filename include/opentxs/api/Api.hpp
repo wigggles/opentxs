@@ -59,8 +59,6 @@ public:
     EXPORT virtual const OT_API& OTAPI(
         const std::string& wallet = "") const = 0;
     EXPORT virtual const OT_ME& OTME(const std::string& wallet = "") const = 0;
-    EXPORT virtual const OTME_too& OTME_TOO(
-        const std::string& wallet = "") const = 0;
     EXPORT virtual const client::Pair& Pair() const = 0;
     EXPORT virtual const client::ServerAction& ServerAction() const = 0;
     EXPORT virtual const client::Sync& Sync() const = 0;

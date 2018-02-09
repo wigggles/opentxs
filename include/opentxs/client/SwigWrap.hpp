@@ -3714,7 +3714,7 @@ public:
         const std::string& contactID,
         const std::string& name);
 
-    // Wrapped OTME_too methods
+    // Wrapped Sync methods
 
     EXPORT static std::uint8_t Can_Message(
         const std::string& senderNymID,
@@ -3758,13 +3758,8 @@ public:
 
     EXPORT static std::uint64_t Refresh_Counter();
 
-    /// Registers nym and updates public contact data
-    EXPORT static bool Register_Nym_Public(
-        const std::string& nym,
-        const std::string& server);
-
     /// Registers nym and updates public contact data, background thread
-    EXPORT static std::string Register_Nym_Public_async(
+    EXPORT static std::string Register_Nym_Public(
         const std::string& nym,
         const std::string& server);
 
@@ -3773,7 +3768,7 @@ public:
 
     EXPORT static std::uint8_t Task_Status(const std::string& id);
 
-    EXPORT static void Trigger_Refresh(const std::string& wallet = "");
+    EXPORT static void Trigger_Refresh();
 
     // Wrapped Blockchain methods
 

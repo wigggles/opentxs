@@ -49,7 +49,6 @@
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/client/OT_ME.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
-#include "opentxs/client/OTME_too.hpp"
 #include "opentxs/core/crypto/OTCachedKey.hpp"
 #include "opentxs/core/Log.hpp"
 
@@ -79,7 +78,6 @@ Api::Api(
     , ot_api_(nullptr)
     , otapi_exec_(nullptr)
     , ot_me_(nullptr)
-    , otme_too_(nullptr)
     , pair_(nullptr)
     , server_action_(nullptr)
     , sync_(nullptr)
@@ -90,14 +88,8 @@ Api::Api(
 
 void Api::Cleanup()
 {
-    sync_.reset();
     pair_.reset();
-
-    if (otme_too_) {
-        otme_too_->Shutdown();
-    }
-
-    otme_too_.reset();
+    sync_.reset();
     ot_me_.reset();
     server_action_.reset();
     otapi_exec_.reset();
@@ -151,20 +143,6 @@ void Api::Init()
 
     OT_ASSERT(ot_me_);
 
-    otme_too_.reset(new OTME_too(
-        lock_,
-        config_,
-        contacts_,
-        *ot_api_,
-        *otapi_exec_,
-        *ot_me_,
-        *server_action_,
-        wallet_,
-        crypto_.Encode(),
-        identity_));
-
-    OT_ASSERT(otme_too_);
-
     sync_.reset(new api::client::implementation::Sync(
         lock_,
         shutdown_,
@@ -181,11 +159,11 @@ void Api::Init()
     pair_.reset(new api::client::implementation::Pair(
         shutdown_,
         lock_,
+        *sync_,
         *server_action_,
         wallet_,
         *ot_api_,
-        *otapi_exec_,
-        *otme_too_));
+        *otapi_exec_));
 
     OT_ASSERT(pair_);
 }
@@ -211,13 +189,6 @@ const OT_ME& Api::OTME(const std::string&) const
     OT_ASSERT(ot_me_);
 
     return *ot_me_;
-}
-
-const OTME_too& Api::OTME_TOO(const std::string&) const
-{
-    OT_ASSERT(otme_too_);
-
-    return *otme_too_;
 }
 
 const api::client::Pair& Api::Pair() const

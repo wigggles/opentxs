@@ -26,7 +26,6 @@ set(cxx-sources
   OTClient.cpp
   OTMessageBuffer.cpp
   OTMessageOutbuffer.cpp
-  OTME_too.cpp
   OTRecord.cpp
   OTRecordList.cpp
   OTWallet.cpp
@@ -43,7 +42,6 @@ set(cxx-install-headers
   ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/OT_ME.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/OTMessageBuffer.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/OTMessageOutbuffer.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/OTME_too.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/OTRecord.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/OTRecordList.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/OTWallet.hpp

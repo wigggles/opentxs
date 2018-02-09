@@ -62,7 +62,6 @@ public:
     const OTAPI_Exec& Exec(const std::string& wallet = "") const override;
     const OT_API& OTAPI(const std::string& wallet = "") const override;
     const OT_ME& OTME(const std::string& wallet = "") const override;
-    const OTME_too& OTME_TOO(const std::string& wallet = "") const override;
     const api::client::Pair& Pair() const override;
     const client::ServerAction& ServerAction() const override;
     const client::Sync& Sync() const override;
@@ -85,7 +84,6 @@ private:
     std::unique_ptr<OT_API> ot_api_{nullptr};
     std::unique_ptr<OTAPI_Exec> otapi_exec_{nullptr};
     std::unique_ptr<OT_ME> ot_me_{nullptr};
-    std::unique_ptr<OTME_too> otme_too_{nullptr};
     std::unique_ptr<api::client::Pair> pair_{nullptr};
     std::unique_ptr<api::client::ServerAction> server_action_{nullptr};
     std::unique_ptr<api::client::Sync> sync_{nullptr};

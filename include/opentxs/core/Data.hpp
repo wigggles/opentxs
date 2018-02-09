@@ -63,7 +63,7 @@ public:
     EXPORT virtual bool empty() const = 0;
     EXPORT virtual const void* GetPointer() const = 0;
     EXPORT virtual std::size_t GetSize() const = 0;
-    EXPORT virtual bool IsEmpty() const[[deprecated]] = 0;
+    [[deprecated]] EXPORT virtual bool IsEmpty() const = 0;
 
     EXPORT virtual Data& operator+=(const Data& rhs) = 0;
     EXPORT virtual void Assign(const Data& source) = 0;
