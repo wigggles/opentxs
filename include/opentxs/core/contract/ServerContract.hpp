@@ -53,10 +53,6 @@
 
 namespace opentxs
 {
-class Data;
-class OTPassword;
-class String;
-
 class ServerContract : public Signable
 {
 public:
@@ -72,9 +68,9 @@ public:
 private:
     typedef Signable ot_super;
 
-    std::list<Endpoint> listen_params_;
-    std::string name_;
-    Data transport_key_;
+    std::list<Endpoint> listen_params_{};
+    std::string name_{""};
+    OTData transport_key_;
 
     proto::ServerContract contract(const Lock& lock) const;
     Identifier GetID(const Lock& lock) const override;
@@ -114,7 +110,7 @@ public:
     std::unique_ptr<OTPassword> TransportKey(Data& pubkey) const;
 
     std::string Name() const override { return name_; }
-    Data Serialize() const override;
+    OTData Serialize() const override;
 
     void SetAlias(const std::string& alias) override;
 

@@ -89,7 +89,8 @@ Identifier::Identifier()
 }
 
 Identifier::Identifier(const Identifier& theID)
-    : ot_super(theID)
+    : opentxs::Data()
+    , ot_super(theID)
     , type_(theID.Type())
 {
 }
@@ -208,7 +209,7 @@ bool Identifier::CalculateDigest(const String& strInput, const ID type)
         IDToHashType(type_), strInput, *this);
 }
 
-bool Identifier::CalculateDigest(const Data& dataInput, const ID type)
+bool Identifier::CalculateDigest(const opentxs::Data& dataInput, const ID type)
 {
     type_ = type;
 
@@ -268,16 +269,16 @@ void Identifier::SetString(const std::string& encoded)
 // Just call this function.
 void Identifier::GetString(String& id) const
 {
-    Data data;
-    data.Assign(&type_, sizeof(type_));
+    auto data = Data::Factory();
+    data->Assign(&type_, sizeof(type_));
 
-    OT_ASSERT(1 == data.GetSize());
+    OT_ASSERT(1 == data->GetSize());
 
     if (0 == GetSize()) {
         return;
     }
 
-    data.Concatenate(GetPointer(), GetSize());
+    data->Concatenate(GetPointer(), GetSize());
 
     String output("ot");
     output.Concatenate(
@@ -285,15 +286,15 @@ void Identifier::GetString(String& id) const
     id.swap(output);
 }
 
-Data Identifier::path_to_data(
+OTData Identifier::path_to_data(
     const proto::ContactItemType type,
     const proto::HDPath& path)
 {
-    Data output(static_cast<const void*>(&type), sizeof(type));
-    output += Data(path.root().c_str(), path.root().size());
+    auto output = Data::Factory(static_cast<const void*>(&type), sizeof(type));
+    output += Data::Factory(path.root().c_str(), path.root().size());
 
     for (const auto& child : path.child()) {
-        output += Data(&child, sizeof(child));
+        output += Data::Factory(&child, sizeof(child));
     }
 
     return output;

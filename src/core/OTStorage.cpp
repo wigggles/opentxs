@@ -2398,8 +2398,8 @@ std::string Storage::EncodeObject(Storable& theContents)
         return strReturnValue;
     }
 
-    const Data theData(pNewData, nNewSize);
-    const OTASCIIArmor theArmor(theData);
+    const auto theData = Data::Factory(pNewData, nNewSize);
+    const OTASCIIArmor theArmor(theData.get());
 
     strReturnValue.assign(theArmor.Get(), theArmor.GetLength());
 
@@ -2438,13 +2438,13 @@ Storable* Storage::DecodeObject(
 
     OTASCIIArmor theArmor;
     theArmor.Set(strInput.c_str(), static_cast<uint32_t>(strInput.size()));
-    const Data thePayload(theArmor);
+    const auto thePayload = Data::Factory(theArmor);
 
     // Put thePayload's contents into pBuffer here.
     //
     pBuffer->SetData(
-        static_cast<const uint8_t*>(thePayload.GetPointer()),
-        thePayload.GetSize());
+        static_cast<const uint8_t*>(thePayload->GetPointer()),
+        thePayload->GetSize());
 
     // Now let's unpack it and return the Storable object.
 

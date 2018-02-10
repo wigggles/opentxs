@@ -492,9 +492,9 @@ bool Account::GenerateNewAccount(
     int64_t stashTransNum)
 {
     // First we generate a secure random number into a binary object...
-    Data payload;
+    auto payload = Data::Factory();
     // TODO: hardcoding. Plus: is 100 bytes of random a little much here?
-    if (!payload.Randomize(100)) {
+    if (!payload->Randomize(100)) {
         otErr << __FUNCTION__ << ": Failed trying to acquire random numbers.\n";
         return false;
     }

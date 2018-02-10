@@ -122,8 +122,9 @@ OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSL(
 
     m_keyType = proto::AKEYTYPE_LEGACY;
 
-    Data dataKey(serializedKey.key().c_str(), serializedKey.key().size());
-    m_p_ascKey->SetData(dataKey);
+    const auto dataKey =
+        Data::Factory(serializedKey.key().c_str(), serializedKey.key().size());
+    m_p_ascKey->SetData(dataKey.get());
 
     if (proto::KEYMODE_PUBLIC == serializedKey.mode()) {
         SetAsPublic();
@@ -285,9 +286,8 @@ bool OTAsymmetricKey_OpenSSL::SetPrivateKey(
     // Read private key
     //
     String strWithBookends;
-    otLog3 << __FUNCTION__
-           << ": FYI, Reading private key from x509 stored in "
-              "bookended string...\n";
+    otLog3 << __FUNCTION__ << ": FYI, Reading private key from x509 stored in "
+                              "bookended string...\n";
 
     strWithBookends = strCert;
 
@@ -449,9 +449,8 @@ bool OTAsymmetricKey_OpenSSL::SetPublicKeyFromPrivateKey(
 
             EVP_PKEY_free(pkey);
             pkey = nullptr;
-            otLog3 << __FUNCTION__
-                   << ": Successfully extracted a public key "
-                      "from an x509 certificate.\n";
+            otLog3 << __FUNCTION__ << ": Successfully extracted a public key "
+                                      "from an x509 certificate.\n";
             bReturnValue = true;
         }
     } else {
@@ -487,10 +486,9 @@ bool OTAsymmetricKey_OpenSSL::ReEncryptPrivateKey(
 
     const EVP_CIPHER* pCipher =
         EVP_des_ede3_cbc();  // todo should this algorithm be hardcoded?
-
-    Data theData;  // after base64-decoding the ascii-armored string, the
-                   // (encrypted) binary will be stored here.
-
+    // after base64-decoding the ascii-armored string, the (encrypted) binary
+    // will be stored here.
+    auto theData = Data::Factory();
     // This line base64 decodes the ascii-armored string into binary object
     // theData...
     //
@@ -498,15 +496,15 @@ bool OTAsymmetricKey_OpenSSL::ReEncryptPrivateKey(
                                    // encrypted private key itself, no longer in
                                    // text-armoring.
 
-    if (theData.GetSize() > 0) {
+    if (theData->GetSize() > 0) {
         EVP_PKEY* pClearKey = nullptr;
 
         // Copy the encrypted binary private key data into an OpenSSL memory
         // BIO...
         //
         OpenSSL_BIO keyBio = BIO_new_mem_buf(
-            static_cast<char*>(const_cast<void*>(theData.GetPointer())),
-            theData.GetSize());  // theData will zeroMemory upon destruction.
+            static_cast<char*>(const_cast<void*>(theData->GetPointer())),
+            theData->GetSize());  // theData will zeroMemory upon destruction.
         OT_ASSERT_MSG(
             nullptr != keyBio,
             "OTAsymmetricKey_OpenSSL::"
@@ -615,7 +613,7 @@ bool OTAsymmetricKey_OpenSSL::ReEncryptPrivateKey(
                 otLog5 << __FUNCTION__
                        << ": Success writing EVP_PKEY to memory buffer.\n";
 
-                Data theNewData;
+                auto theNewData = Data::Factory();
                 char* pChar = nullptr;
 
                 // After the below call, pChar will point to the memory buffer
@@ -627,15 +625,15 @@ bool OTAsymmetricKey_OpenSSL::ReEncryptPrivateKey(
 
                 if (nSize > 0) {
                     // Set the buffer size in our own memory.
-                    theNewData.SetSize(nSize);
+                    theNewData->SetSize(nSize);
 
                     //                  void * pv =
                     OTPassword::safe_memcpy(
                         (static_cast<char*>(const_cast<void*>(
-                            theNewData.GetPointer()))),  // destination
-                        theNewData.GetSize(),  // size of destination buffer.
-                        pChar,                 // source
-                        nSize);                // length of source.
+                            theNewData->GetPointer()))),  // destination
+                        theNewData->GetSize(),  // size of destination buffer.
+                        pChar,                  // source
+                        nSize);                 // length of source.
                     // bool bZeroSource=false); // if true, sets the source
                     // buffer to zero after copying is done.
 
@@ -650,9 +648,8 @@ bool OTAsymmetricKey_OpenSSL::ReEncryptPrivateKey(
             }  // (nWriteBio != 0)
 
         } else
-            otErr << __FUNCTION__
-                  << ": Failed loading actual private key from "
-                     "BIO containing ASCII-armored data:\n\n"
+            otErr << __FUNCTION__ << ": Failed loading actual private key from "
+                                     "BIO containing ASCII-armored data:\n\n"
                   << m_p_ascKey->Get() << "\n\n";
     } else
         otErr << __FUNCTION__
@@ -731,9 +728,8 @@ bool OTAsymmetricKey_OpenSSL::GetPrivateKey(
         EVP_des_ede3_cbc();  // todo security (revisit this mode...)
 
     if (!IsPrivate()) {
-        otErr << __FUNCTION__
-              << ": Error: !IsPrivate() (This function should "
-                 "only be called on a private key.)\n";
+        otErr << __FUNCTION__ << ": Error: !IsPrivate() (This function should "
+                                 "only be called on a private key.)\n";
         return false;
     }
 
@@ -816,7 +812,7 @@ serializedAsymmetricKey OTAsymmetricKey_OpenSSL::Serialize() const
 {
     serializedAsymmetricKey serializedKey = ot_super::Serialize();
 
-    Data dataKey;
+    auto dataKey = Data::Factory();
     OT_ASSERT(m_p_ascKey);
     m_p_ascKey->GetData(dataKey);
 
@@ -826,7 +822,7 @@ serializedAsymmetricKey OTAsymmetricKey_OpenSSL::Serialize() const
         serializedKey->set_mode(proto::KEYMODE_PUBLIC);
     }
 
-    serializedKey->set_key(dataKey.GetPointer(), dataKey.GetSize());
+    serializedKey->set_key(dataKey->GetPointer(), dataKey->GetSize());
 
     return serializedKey;
 }
@@ -841,12 +837,13 @@ bool OTAsymmetricKey_OpenSSL::TransportKey(
         return false;
     }
 
-    Data key, hash;
+    auto key = Data::Factory();
+    auto hash = Data::Factory();
     m_p_ascKey->GetData(key);
 
     OT::App().Crypto().Hash().Digest(StandardHash, key, hash);
     OTPassword seed;
-    seed.setMemory(hash.GetPointer(), hash.GetSize());
+    seed.setMemory(hash->GetPointer(), hash->GetSize());
     const Ecdsa& engine =
         static_cast<const Libsodium&>(OT::App().Crypto().ED25519());
 

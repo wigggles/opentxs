@@ -110,11 +110,11 @@ NymIDSource::NymIDSource(std::unique_ptr<PaymentCode>& source)
 }
 #endif
 
-Data NymIDSource::asData() const
+OTData NymIDSource::asData() const
 {
     serializedNymIDSource serializedSource = Serialize();
 
-    return proto::ProtoAsData<proto::NymIDSource>(*serializedSource);
+    return proto::ProtoAsData(*serializedSource);
 }
 
 std::unique_ptr<proto::AsymmetricKey> NymIDSource::ExtractKey(
@@ -147,7 +147,7 @@ std::unique_ptr<proto::AsymmetricKey> NymIDSource::ExtractKey(
 Identifier NymIDSource::NymID() const
 {
     Identifier nymID;
-    Data dataVersion;
+    auto dataVersion = Data::Factory();
 
     switch (type_) {
         case proto::SOURCETYPE_PUBKEY:
@@ -298,7 +298,7 @@ bool NymIDSource::Sign(
 
 String NymIDSource::asString() const
 {
-    Data dataSource = asData();
+    auto dataSource = asData();
     OTASCIIArmor armoredSource(dataSource);
 
     return armoredSource.Get();
@@ -308,12 +308,13 @@ String NymIDSource::asString() const
 serializedNymIDSource NymIDSource::ExtractArmoredSource(
     const OTASCIIArmor& armoredSource)
 {
-    Data dataSource(armoredSource);
+    auto dataSource = Data::Factory(armoredSource);
 
-    OT_ASSERT(dataSource.GetSize() > 0);
+    OT_ASSERT(dataSource->GetSize() > 0);
 
-    serializedNymIDSource protoSource = std::make_shared<proto::NymIDSource>();
-    protoSource->ParseFromArray(dataSource.GetPointer(), dataSource.GetSize());
+    auto protoSource = std::make_shared<proto::NymIDSource>();
+    protoSource->ParseFromArray(
+        dataSource->GetPointer(), dataSource->GetSize());
 
     return protoSource;
 }

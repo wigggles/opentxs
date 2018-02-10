@@ -115,7 +115,7 @@ bool Libsecp256k1::Sign(
     const OTPasswordData* pPWData,
     const OTPassword* exportPassword) const
 {
-    Data hash;
+    auto hash = Data::Factory();
     bool haveDigest =
         OT::App().Crypto().Hash().Digest(hashType, plaintext, hash);
 
@@ -153,7 +153,7 @@ bool Libsecp256k1::Sign(
         bool signatureCreated = secp256k1_ecdsa_sign(
             context_,
             &ecdsaSignature,
-            reinterpret_cast<const unsigned char*>(hash.GetPointer()),
+            reinterpret_cast<const unsigned char*>(hash->GetPointer()),
             reinterpret_cast<const unsigned char*>(privKey.getMemory()),
             nullptr,
             nullptr);
@@ -183,7 +183,8 @@ bool Libsecp256k1::Verify(
     const proto::HashType hashType,
     __attribute__((unused)) const OTPasswordData* pPWData) const
 {
-    Data hash;
+    auto hash = Data::Factory();
+    ;
     bool haveDigest =
         OT::App().Crypto().Hash().Digest(hashType, plaintext, hash);
 
@@ -198,7 +199,7 @@ bool Libsecp256k1::Verify(
         return false;
     }
 
-    Data ecdsaPubkey;
+    auto ecdsaPubkey = Data::Factory();
     const bool havePublicKey = AsymmetricKeyToECPubkey(*key, ecdsaPubkey);
 
     if (!havePublicKey) {
@@ -222,7 +223,7 @@ bool Libsecp256k1::Verify(
     return secp256k1_ecdsa_verify(
         context_,
         &ecdsaSignature,
-        reinterpret_cast<const unsigned char*>(hash.GetPointer()),
+        reinterpret_cast<const unsigned char*>(hash->GetPointer()),
         &point);
 }
 

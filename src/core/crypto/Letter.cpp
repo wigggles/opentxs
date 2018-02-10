@@ -95,7 +95,7 @@ bool Letter::AddRSARecipients(
 
     // Encrypt the session key to all RSA recipients and add the
     // encrypted key to the global list of session keys for this letter.
-    Data encrypted;
+    auto encrypted = Data::Factory();
     proto::SymmetricKey serializedSessionKey;
     const bool serialized = sessionKey.Serialize(serializedSessionKey);
 
@@ -106,12 +106,12 @@ bool Letter::AddRSARecipients(
         return false;
     }
 
-    Data binary = proto::ProtoAsData(serializedSessionKey);
+    auto binary = proto::ProtoAsData(serializedSessionKey);
     const bool haveSessionKey =
         engine.EncryptSessionKey(recipients, binary, encrypted);
 
     if (haveSessionKey) {
-        envelope.set_rsakey(encrypted.GetPointer(), encrypted.GetSize());
+        envelope.set_rsakey(encrypted->GetPointer(), encrypted->GetSize());
     } else {
         otErr << __FUNCTION__ << ": Session key encryption failed."
               << std::endl;
@@ -197,7 +197,7 @@ bool Letter::Seal(
 
     proto::Envelope output;
     output.set_version(1);
-    Data iv;
+    auto iv = Data::Factory();
     const bool encrypted = sessionKey->Encrypt(
         theInput, iv, defaultPassword, *output.mutable_ciphertext(), false);
 
@@ -309,7 +309,8 @@ bool Letter::Seal(
         }
     }
 
-    dataOutput = proto::ProtoAsData(output);
+    auto temp = proto::ProtoAsData(output);
+    dataOutput.Assign(temp->GetPointer(), temp->GetSize());
 
     return true;
 }
@@ -409,16 +410,16 @@ bool Letter::Open(
         const OpenSSL& engine =
             static_cast<const OpenSSL&>(OT::App().Crypto().RSA());
 #endif
-        Data serializedKey(
+        auto serializedKey = Data::Factory(
             serialized.rsakey().data(), serialized.rsakey().size());
-        Data sessionKey;
+        auto sessionKey = Data::Factory();
         haveSessionKey = engine.DecryptSessionKey(
             serializedKey, theRecipient, sessionKey, nullptr);
     }
 #endif
 
     if (haveSessionKey) {
-        Data plaintext;
+        auto plaintext = Data::Factory();
         OTPasswordData defaultPassword("");
         DefaultPassword(defaultPassword);
         const bool decrypted =
@@ -426,8 +427,8 @@ bool Letter::Open(
 
         if (decrypted) {
             theOutput.Set(
-                static_cast<const char*>(plaintext.GetPointer()),
-                plaintext.GetSize());
+                static_cast<const char*>(plaintext->GetPointer()),
+                plaintext->GetSize());
 
             return true;
         } else {

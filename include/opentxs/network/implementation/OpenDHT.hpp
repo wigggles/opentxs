@@ -36,44 +36,57 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_NETWORK_OPENDHT_HPP
-#define OPENTXS_NETWORK_OPENDHT_HPP
+#ifndef OPENTXS_NETWORK_IMPLEMENTATION_OPENDHT_HPP
+#define OPENTXS_NETWORK_IMPLEMENTATION_OPENDHT_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Internal.hpp"
 
 #if OT_DHT
-#include "opentxs/Types.hpp"
+#include "opentxs/network/OpenDHT.hpp"
 
-#include <string>
+#include <atomic>
+#include <memory>
+#include <mutex>
 
-namespace opentxs
+namespace dht
 {
-namespace network
+class DhtRunner;
+}
+
+namespace opentxs::network::implementation
 {
-class OpenDHT
+class OpenDHT : virtual public network::OpenDHT
 {
 public:
-    EXPORT virtual void Insert(
+    void Insert(
         const std::string& key,
         const std::string& value,
-        DhtDoneCallback cb = {}) const = 0;
-    EXPORT virtual void Retrieve(
+        DhtDoneCallback cb = {}) const override;
+    void Retrieve(
         const std::string& key,
         DhtResultsCallback vcb,
-        DhtDoneCallback dcb = {}) const = 0;
+        DhtDoneCallback dcb = {}) const override;
 
-    EXPORT virtual ~OpenDHT() = default;
-
-protected:
-    OpenDHT() = default;
+    ~OpenDHT();
 
 private:
+    friend class api::network::implementation::Dht;
+
+    std::unique_ptr<const DhtConfig> config_;
+    std::unique_ptr<dht::DhtRunner> node_;
+    mutable std::atomic<bool> loaded_{false};
+    mutable std::atomic<bool> ready_{false};
+    mutable std::mutex init_;
+
+    bool Init() const;
+
+    OpenDHT(const DhtConfig& config);
+    OpenDHT() = delete;
     OpenDHT(const OpenDHT&) = delete;
     OpenDHT(OpenDHT&&) = delete;
     OpenDHT& operator=(const OpenDHT&) = delete;
     OpenDHT& operator=(OpenDHT&&) = delete;
 };
-}  // namespace network
-}  // namespace opentxs
+}  // opentxs::network::implementation
 #endif  // OT_DHT
-#endif  // OPENTXS_NETWORK_OPENDHT_HPP
+#endif  // OPENTXS_NETWORK_IMPLEMENTATION_OPENDHT_HPP

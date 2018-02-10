@@ -1233,7 +1233,7 @@ bool OTAPI_Exec::SetClaim(
 
     // ------------------------------
     const auto item = proto::DataToProto<proto::ContactItem>(
-        Data(claim.c_str(), claim.length()));
+        Data::Factory(claim.c_str(), claim.length()));
     std::set<std::uint32_t> attribute;
 
     for (const auto& it : item.attribute()) {
@@ -1547,7 +1547,7 @@ std::string OTAPI_Exec::GetServer_Contract(const std::string& NOTARY_ID)
         return {};
     }
 
-    Data serialized = pServer->Serialize();
+    auto serialized = pServer->Serialize();
     OTASCIIArmor armored(serialized);
     String strOutput;
     armored.WriteArmoredString(strOutput, "SERVER CONTRACT");
@@ -1914,9 +1914,8 @@ bool OTAPI_Exec::Wallet_CanRemoveAssetType(
         if (theID == theCompareID) {
             otOut << OT_METHOD << __FUNCTION__
                   << ": Unable to remove asset contract "
-                  << INSTRUMENT_DEFINITION_ID
-                  << " from "
-                     "wallet: Account "
+                  << INSTRUMENT_DEFINITION_ID << " from "
+                                                 "wallet: Account "
                   << strAcctID << " uses it.\n";
             return false;
         }
@@ -4439,8 +4438,9 @@ std::string OTAPI_Exec::VerifyAndRetrieveXMLContents(
     const Identifier theSignerID(SIGNER_ID);
     String strOutput;
 
-    if (false == ot_api_.VerifyAndRetrieveXMLContents(
-                     strContract, theSignerID, strOutput)) {
+    if (false ==
+        ot_api_.VerifyAndRetrieveXMLContents(
+            strContract, theSignerID, strOutput)) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Failure: "
                  "ot_api_.VerifyAndRetrieveXMLContents() "
@@ -8543,7 +8543,7 @@ std::string OTAPI_Exec::Ledger_GetTransactionByIndex(
         //      || !theLedger.LoadBoxReceipts(&setUnloaded)
         // This is done below, for the individual transaction,
         // for better optimization.
-    ) {
+        ) {
         String strAcctID(theAccountID);
         otErr << OT_METHOD << __FUNCTION__
               << ": Error loading ledger from string, or loading box receipts "
@@ -12359,8 +12359,9 @@ std::string OTAPI_Exec::Message_GetNewInstrumentDefinitionID(
     // contain a ledger. (Don't want to pass back whatever it DOES contain
     // in that case, now do I?)
     //
-    if ((false == theMessage.m_strCommand.Compare(
-                      "registerInstrumentDefinitionResponse")) &&
+    if ((false ==
+         theMessage.m_strCommand.Compare(
+             "registerInstrumentDefinitionResponse")) &&
         (false == theMessage.m_strCommand.Compare("issueBasketResponse"))) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Wrong message type: " << theMessage.m_strCommand << "\n";

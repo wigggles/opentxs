@@ -69,6 +69,7 @@
 #include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/network/zeromq/implementation/Context.hpp"
 #include "opentxs/network/DhtConfig.hpp"
+#include "opentxs/network/OpenDHT.hpp"
 #include "opentxs/network/ServerConnection.hpp"
 #include "opentxs/storage/StorageConfig.hpp"
 #include "opentxs/core/Log.hpp"

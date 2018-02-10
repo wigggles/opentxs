@@ -57,7 +57,7 @@ static const proto::HashType StandardHash{proto::HASHTYPE_BLAKE2B256};
 namespace proto
 {
 template <class T>
-Data ProtoAsData(const T& serialized)
+OTData ProtoAsData(const T& serialized)
 {
     auto size = serialized.ByteSize();
     char* protoArray = new char[size];
@@ -66,8 +66,9 @@ Data ProtoAsData(const T& serialized)
         nullptr != protoArray, "protoArray failed to dynamically allocate.");
 
     serialized.SerializeToArray(protoArray, size);
-    Data serializedData(protoArray, size);
+    auto serializedData = Data::Factory(protoArray, size);
     delete[] protoArray;
+
     return serializedData;
 }
 
@@ -83,6 +84,7 @@ std::string ProtoAsString(const T& serialized)
     serialized.SerializeToArray(protoArray, size);
     std::string serializedData(protoArray, size);
     delete[] protoArray;
+
     return serializedData;
 }
 
@@ -132,11 +134,9 @@ T StringToProto(const String& input)
         return T();
     } else {
 
-        return DataToProto<T>(Data(armored));
+        return DataToProto<T>(Data::Factory((armored)));
     }
 }
-
 }  // namespace proto
 }  // namespace opentxs
-
 #endif  // OPENTXS_CORE_PROTO_HPP

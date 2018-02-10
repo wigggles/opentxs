@@ -108,7 +108,7 @@ public:
         const OTPasswordData& passwordData,
         AsymmetricKeyEC& asymmetricKey) const;
     virtual bool ECPubkeyToAsymmetricKey(
-        std::unique_ptr<Data>& pubkey,
+        const Data& pubkey,
         AsymmetricKeyEC& asymmetricKey) const;
     virtual bool EncryptSessionKeyECDH(
         const AsymmetricKeyEC& privateKey,

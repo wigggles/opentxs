@@ -46,6 +46,7 @@
 #include "opentxs/core/contract/peer/ConnectionReply.hpp"
 #include "opentxs/core/contract/peer/NoticeAcknowledgement.hpp"
 #include "opentxs/core/contract/peer/OutBailmentReply.hpp"
+#include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/String.hpp"
@@ -394,7 +395,7 @@ std::shared_ptr<proto::PeerRequest> PeerReply::LoadRequest(
 
 std::string PeerReply::Name() const { return String(id_).Get(); }
 
-Data PeerReply::Serialize() const
+OTData PeerReply::Serialize() const
 {
     Lock lock(lock_);
 

@@ -40,6 +40,7 @@ set(cxx-install-headers
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/Cheque.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/Contract.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/Data.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/Data_imp.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/Helpers.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/Identifier.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/Instrument.hpp"

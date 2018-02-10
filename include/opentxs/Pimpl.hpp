@@ -83,11 +83,36 @@ public:
         return *this;
     }
 
+    Pimpl& operator=(const C& rhs) noexcept
+    {
+        pimpl_ = std::move(C::Factory(rhs).pimpl_);
+
+        return *this;
+    }
+
+    Pimpl& operator+=(const C& rhs)
+    {
+        *pimpl_ += rhs;
+
+        return *this;
+    }
+
+    bool operator==(const Pimpl& rhs) const { return *pimpl_ == *rhs.pimpl_; }
+    bool operator==(const C& rhs) const { return *pimpl_ == rhs; }
+
+    bool operator!=(const C& rhs) const { return *pimpl_ != rhs; }
+    bool operator<(const Pimpl& rhs) const { return *pimpl_ < *rhs.pimpl_; }
+    bool operator<(const C& rhs) const { return *pimpl_ < rhs; }
+    bool operator<=(const C& rhs) const { return *pimpl_ <= rhs; }
+    bool operator>(const C& rhs) const { return *pimpl_ > rhs; }
+    bool operator>=(const C& rhs) const { return *pimpl_ >= rhs; }
+
     operator C&() noexcept { return *pimpl_; }
 
     C* operator->() { return pimpl_.get(); }
+    const C* operator->() const { return pimpl_.get(); }
 
-    const Pimpl& get() noexcept { return *pimpl_; }
+    const C& get() const noexcept { return *pimpl_; }
 
     ~Pimpl() = default;
 

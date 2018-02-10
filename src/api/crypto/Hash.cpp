@@ -228,7 +228,7 @@ bool Hash::Digest(
     std::string& encodedDigest) const
 {
     proto::HashType hashType = static_cast<proto::HashType>(type);
-    Data result;
+    auto result = Data::Factory();
 
     if (false == Allocate(hashType, result)) {
         otErr << OT_METHOD << __FUNCTION__
@@ -241,7 +241,7 @@ bool Hash::Digest(
         hashType,
         reinterpret_cast<const uint8_t*>(data.c_str()),
         data.size(),
-        static_cast<std::uint8_t*>(const_cast<void*>(result.GetPointer())));
+        static_cast<std::uint8_t*>(const_cast<void*>(result->GetPointer())));
 
     if (success) {
         encodedDigest.assign(encode_.IdentifierEncode(result));

@@ -65,6 +65,7 @@ namespace network
 namespace implementation
 {
 class Context;
+class Dht;
 class ZMQ;
 }  // namespace api::network::implementation
 }  // namespace api::network
@@ -80,7 +81,6 @@ class DhtConfig;
 class Libsecp256k1;
 #endif
 class Libsodium;
-class OpenDHT;
 #if OT_CRYPTO_USING_OPENSSL
 class OpenSSL;
 #endif

@@ -41,7 +41,6 @@
 
 #include "opentxs/Forward.hpp"
 
-#include "opentxs/Pimpl.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 
@@ -54,7 +53,6 @@ namespace api
 {
 namespace client
 {
-
 class ServerAction
 {
 public:

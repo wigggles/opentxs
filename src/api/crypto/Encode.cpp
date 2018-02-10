@@ -74,9 +74,7 @@ std::string Encode::Base64Encode(
     return BreakLines(output);
 }
 
-bool Encode::Base64Decode(
-    const std::string&& input,
-    RawData& output) const
+bool Encode::Base64Decode(const std::string&& input, RawData& output) const
 {
     output.resize(::Base64decode_len(input.data()), 0x0);
 
@@ -151,8 +149,7 @@ std::string Encode::IdentifierEncode(const Data& input) const
         static_cast<const uint8_t*>(input.GetPointer()), input.GetSize());
 }
 
-std::string Encode::IdentifierEncode(
-    const OTPassword& input) const
+std::string Encode::IdentifierEncode(const OTPassword& input) const
 {
     if (input.isMemory()) {
         return base58_.Base58CheckEncode(
@@ -165,8 +162,7 @@ std::string Encode::IdentifierEncode(
     }
 }
 
-std::string Encode::IdentifierDecode(
-    const std::string& input) const
+std::string Encode::IdentifierDecode(const std::string& input) const
 {
     RawData decoded;
 
@@ -187,7 +183,7 @@ bool Encode::IsBase62(const std::string& str) const
 
 String Encode::Nonce(const uint32_t size) const
 {
-    Data unusedOutput;
+    auto unusedOutput = Data::Factory();
 
     return Nonce(size, unusedOutput);
 }
@@ -204,10 +200,7 @@ String Encode::Nonce(const uint32_t size, Data& rawOutput) const
     return nonce;
 }
 
-std::string Encode::RandomFilename() const
-{
-    return Nonce(16).Get();
-}
+std::string Encode::RandomFilename() const { return Nonce(16).Get(); }
 
 std::string Encode::SanatizeBase58(const std::string& input) const
 {

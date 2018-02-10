@@ -47,12 +47,6 @@
 
 namespace opentxs
 {
-
-class Ecdsa;
-class Data;
-class OTPassword;
-class String;
-
 class AsymmetricKeyEC : public OTAsymmetricKey
 {
 private:
@@ -61,10 +55,10 @@ private:
     typedef OTAsymmetricKey ot_super;
 
 protected:
-    std::unique_ptr<Data> key_;
-    std::unique_ptr<proto::Ciphertext> encrypted_key_;
-    std::shared_ptr<proto::HDPath> path_;
-    std::unique_ptr<proto::Ciphertext> chain_code_;
+    OTData key_;
+    std::unique_ptr<proto::Ciphertext> encrypted_key_{nullptr};
+    std::shared_ptr<proto::HDPath> path_{nullptr};
+    std::unique_ptr<proto::Ciphertext> chain_code_{nullptr};
 
     AsymmetricKeyEC() = delete;
     explicit AsymmetricKeyEC(
@@ -92,12 +86,12 @@ public:
         bool bImporting) const override;
     void Release_AsymmetricKeyEC() {}
     void Release() override;
-    bool SetKey(std::unique_ptr<Data>& key);
+    bool SetKey(const Data& key);
     bool SetKey(std::unique_ptr<proto::Ciphertext>& key);
     serializedAsymmetricKey Serialize() const override;
     bool TransportKey(Data& publicKey, OTPassword& privateKey) const override;
 
-    virtual ~AsymmetricKeyEC() = default;
+    virtual ~AsymmetricKeyEC();
 };
 
 }  // namespace opentxs

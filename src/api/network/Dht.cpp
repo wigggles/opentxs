@@ -44,10 +44,10 @@
 #include "opentxs/api/Native.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
-#include "opentxs/network/DhtConfig.hpp"
 #if OT_DHT
-#include "opentxs/network/OpenDHT.hpp"
+#include "opentxs/network/implementation/OpenDHT.hpp"
 #endif
+#include "opentxs/network/DhtConfig.hpp"
 
 #include <string>
 
@@ -57,7 +57,7 @@ Dht::Dht(DhtConfig& config, const api::client::Wallet& wallet)
     : wallet_(wallet)
     , config_(new DhtConfig(config))
 #if OT_DHT
-    , node_(new OpenDHT(*config_))
+    , node_(new opentxs::network::implementation::OpenDHT(*config_))
 #endif
 {
 }
@@ -185,7 +185,7 @@ bool Dht::ProcessPublicNym(
         }
 
         auto publicNym = proto::DataToProto<proto::CredentialIndex>(
-            Data(data.c_str(), data.size()));
+            Data::Factory(data.c_str(), data.size()));
 
         if (key != publicNym.nymid()) {
             continue;
@@ -252,7 +252,7 @@ bool Dht::ProcessServerContract(
         }
 
         auto contract = proto::DataToProto<proto::ServerContract>(
-            Data(data.c_str(), data.size()));
+            Data::Factory(data.c_str(), data.size()));
 
         if (key != contract.id()) {
             continue;
@@ -313,7 +313,7 @@ bool Dht::ProcessUnitDefinition(
         }
 
         auto contract = proto::DataToProto<proto::UnitDefinition>(
-            Data(data.c_str(), data.size()));
+            Data::Factory(data.c_str(), data.size()));
 
         if (key != contract.id()) {
             continue;
@@ -352,4 +352,6 @@ void Dht::RegisterCallbacks(const CallbackMap& callbacks) const
 {
     callback_map_ = callbacks;
 }
+
+Dht::~Dht() {}
 }  // opentxs::api::network::implementation

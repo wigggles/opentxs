@@ -38,7 +38,7 @@
 
 #include "opentxs/stdafx.hpp"
 
-#include "opentxs/network/OpenDHT.hpp"
+#include "opentxs/network/implementation/OpenDHT.hpp"
 
 #include "opentxs/core/Log.hpp"
 #include "opentxs/network/DhtConfig.hpp"
@@ -50,10 +50,9 @@
 
 #include <iostream>
 #include <stdexcept>
-#include <string>
 #include <vector>
 
-namespace opentxs
+namespace opentxs::network::implementation
 {
 #if OT_DHT
 
@@ -187,6 +186,5 @@ OpenDHT::~OpenDHT()
         node_->join();
     }
 }
-
 #endif
-}  // namespace opentxs
+}  // namespace opentxs::network::implementation

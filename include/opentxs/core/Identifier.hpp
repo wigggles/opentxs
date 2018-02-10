@@ -41,7 +41,7 @@
 
 #include "opentxs/Forward.hpp"
 
-#include "opentxs/core/Data.hpp"
+#include "opentxs/core/Data_imp.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 
@@ -52,17 +52,10 @@
  * convert IDs back and forth to strings. */
 namespace opentxs
 {
-
-class Contract;
-class Nym;
-class OTCachedKey;
-class OTSymmetricKey;
-class String;
-
-class Identifier : public Data
+class Identifier : virtual public implementation::Data
 {
 private:
-    typedef Data ot_super;
+    typedef opentxs::implementation::Data ot_super;
 
     static const ID DefaultType{ID::BLAKE2B};
     static const size_t MinimumSize{10};
@@ -70,7 +63,7 @@ private:
     ID type_{DefaultType};
 
     static proto::HashType IDToHashType(const ID type);
-    static Data path_to_data(
+    static OTData path_to_data(
         const proto::ContactItemType type,
         const proto::HDPath& path);
 
@@ -94,7 +87,9 @@ public:
     EXPORT Identifier& operator=(const Identifier& rhs);
     EXPORT Identifier& operator=(Identifier&& rhs);
 
+    using ot_super::operator==;
     EXPORT bool operator==(const Identifier& s2) const;
+    using ot_super::operator!=;
     EXPORT bool operator!=(const Identifier& s2) const;
     EXPORT bool operator>(const Identifier& s2) const;
     EXPORT bool operator<(const Identifier& s2) const;
@@ -104,7 +99,7 @@ public:
     EXPORT void GetString(String& theStr) const;
 
     EXPORT bool CalculateDigest(
-        const Data& dataInput,
+        const opentxs::Data& dataInput,
         const ID type = DefaultType);
     EXPORT bool CalculateDigest(
         const String& strInput,

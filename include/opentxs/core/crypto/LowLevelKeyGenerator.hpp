@@ -45,11 +45,6 @@
 
 namespace opentxs
 {
-
-class NymParameters;
-class OTKeypair;
-class OTPasswordData;
-
 #ifndef OT_KEY_TIMER
 // TODO:
 // 1. Add this value to the config file so it becomes merely a default value

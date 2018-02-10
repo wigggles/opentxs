@@ -42,7 +42,6 @@
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/core/contract/Signable.hpp"
-#include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/Proto.hpp"
 
@@ -50,7 +49,6 @@
 
 namespace opentxs
 {
-
 class PeerReply : public Signable
 {
 private:
@@ -121,7 +119,7 @@ public:
     std::string Alias() const override { return Name(); }
     proto::PeerReply Contract() const;
     std::string Name() const override;
-    Data Serialize() const override;
+    OTData Serialize() const override;
     const proto::PeerRequestType& Type() const { return type_; }
     void SetAlias(const std::string&) override {}
 

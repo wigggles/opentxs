@@ -236,25 +236,25 @@ EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::CopyPublicKey(
         const uint32_t nSize = static_cast<uint32_t>(lSize);
 
         if (nSize > 0) {
-            Data theData;
-
+            auto theData = Data::Factory();
             // Set the buffer size in our own memory.
-            theData.SetSize(nSize);
+            theData->SetSize(nSize);
 
             void* pv = OTPassword::safe_memcpy(
                 (static_cast<char*>(
-                    const_cast<void*>(theData.GetPointer()))),  // destination
-                theData.GetSize(),  // size of destination buffer.
-                pChar,              // source
-                nSize);             // length of source.
+                    const_cast<void*>(theData->GetPointer()))),  // destination
+                theData->GetSize(),  // size of destination buffer.
+                pChar,               // source
+                nSize);              // length of source.
 
             if (nullptr != pv) {
                 // Next, copy theData's contents into a new BIO_mem_buf,
                 // so OpenSSL can load the key out of it.
                 //
                 OpenSSL_BIO keyBio = BIO_new_mem_buf(
-                    static_cast<char*>(const_cast<void*>(theData.GetPointer())),
-                    theData.GetSize());
+                    static_cast<char*>(
+                        const_cast<void*>(theData->GetPointer())),
+                    theData->GetSize());
                 OT_ASSERT_MSG(
                     nullptr != keyBio,
                     "OTAsymmetricKey_OpenSSL::"
@@ -386,17 +386,17 @@ EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::
         const uint32_t nSize = static_cast<uint32_t>(lSize);
 
         if (nSize > 0) {
-            Data theData;
+            auto theData = Data::Factory();
 
             // Set the buffer size in our own memory.
-            theData.SetSize(nSize);
+            theData->SetSize(nSize);
 
             void* pv = OTPassword::safe_memcpy(
                 (static_cast<char*>(
-                    const_cast<void*>(theData.GetPointer()))),  // destination
-                theData.GetSize(),  // size of destination buffer.
-                pChar,              // source
-                nSize);             // length of source.
+                    const_cast<void*>(theData->GetPointer()))),  // destination
+                theData->GetSize(),  // size of destination buffer.
+                pChar,               // source
+                nSize);              // length of source.
             // bool bZeroSource=false); // if true, sets the source buffer to
             // zero after copying is done.
 
@@ -406,8 +406,9 @@ EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::
                 // so OpenSSL can load the key out of it.
                 //
                 OpenSSL_BIO keyBio = BIO_new_mem_buf(
-                    static_cast<char*>(const_cast<void*>(theData.GetPointer())),
-                    theData.GetSize());
+                    static_cast<char*>(
+                        const_cast<void*>(theData->GetPointer())),
+                    theData->GetSize());
                 OT_ASSERT_MSG(
                     nullptr != keyBio,
                     "OTAsymmetricKey_OpenSSL::"
@@ -481,7 +482,7 @@ bool OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::ArmorPublicKey(
     } else {
         otLog5 << szFunc << ": Success writing EVP_PKEY to memory buffer.\n";
 
-        Data theData;
+        auto theData = Data::Factory();
         char* pChar = nullptr;
 
         // After the below call, pChar will point to the memory buffer where the
@@ -494,15 +495,15 @@ bool OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::ArmorPublicKey(
 
         if (nSize > 0) {
             // Set the buffer size in our own memory.
-            theData.SetSize(nSize);
+            theData->SetSize(nSize);
 
             //            void * pv =
             OTPassword::safe_memcpy(
                 (static_cast<char*>(
-                    const_cast<void*>(theData.GetPointer()))),  // destination
-                theData.GetSize(),  // size of destination buffer.
-                pChar,              // source
-                nSize);             // length of source.
+                    const_cast<void*>(theData->GetPointer()))),  // destination
+                theData->GetSize(),  // size of destination buffer.
+                pChar,               // source
+                nSize);              // length of source.
             // bool bZeroSource=false); // if true, sets the source buffer to
             // zero after copying is done.
 
@@ -532,21 +533,21 @@ EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::
     const char* szFunc = "OTAsymmetricKey_OpenSSL::InstantiatePublicKey";
 
     EVP_PKEY* pReturnKey = nullptr;
-    Data theData;
+    auto theData = Data::Factory();
 
     // This base64 decodes the string m_p_ascKey into the
     // binary payload object "theData"
     //
     backlink->m_p_ascKey->GetData(theData);
 
-    if (theData.GetSize() > 0) {
+    if (theData->GetSize() > 0) {
 
         // Next, copy theData's contents into a new BIO_mem_buf,
         // so OpenSSL can load the key out of it.
         //
         OpenSSL_BIO keyBio = BIO_new_mem_buf(
-            static_cast<char*>(const_cast<void*>(theData.GetPointer())),
-            theData.GetSize());
+            static_cast<char*>(const_cast<void*>(theData->GetPointer())),
+            theData->GetSize());
         OT_ASSERT_MSG(
             nullptr != keyBio,
             "OTAsymmetricKey_OpenSSL::"
@@ -595,8 +596,9 @@ EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::
     OT_ASSERT(backlink->IsPrivate());
 
     EVP_PKEY* pReturnKey = nullptr;
-    Data theData;  // after base64-decoding the ascii-armored string, the
-                   // (encrypted) binary will be stored here.
+    // after base64-decoding the ascii-armored string, the (encrypted) binary
+    // will be stored here.
+    auto theData = Data::Factory();
     // --------------------------------------
     // This line base64 decodes the ascii-armored string into binary object
     // theData...
@@ -618,10 +620,10 @@ EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::
 
     // Copy the encrypted binary private key data into an OpenSSL memory BIO...
     //
-    if (theData.GetSize() > 0) {
+    if (theData->GetSize() > 0) {
         OpenSSL_BIO keyBio = BIO_new_mem_buf(
-            static_cast<char*>(const_cast<void*>(theData.GetPointer())),
-            theData.GetSize());  // theData will zeroMemory upon destruction.
+            static_cast<char*>(const_cast<void*>(theData->GetPointer())),
+            theData->GetSize());  // theData will zeroMemory upon destruction.
         OT_ASSERT_MSG(
             nullptr != keyBio,
             "OTAsymmetricKey_OpenSSL::"
@@ -742,7 +744,7 @@ bool OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::ArmorPrivateKey(
         otLog5 << __FUNCTION__
                << ": Success writing EVP_PKEY to memory buffer.\n";
 
-        Data theData;
+        auto theData = Data::Factory();
         char* pChar = nullptr;
 
         // After the below call, pChar will point to the memory buffer where the
@@ -754,15 +756,15 @@ bool OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::ArmorPrivateKey(
 
         if (nSize > 0) {
             // Set the buffer size in our own memory.
-            theData.SetSize(nSize);
+            theData->SetSize(nSize);
 
             //            void * pv =
             OTPassword::safe_memcpy(
                 (static_cast<char*>(
-                    const_cast<void*>(theData.GetPointer()))),  // destination
-                theData.GetSize(),  // size of destination buffer.
-                pChar,              // source
-                nSize);             // length of source.
+                    const_cast<void*>(theData->GetPointer()))),  // destination
+                theData->GetSize(),  // size of destination buffer.
+                pChar,               // source
+                nSize);              // length of source.
             // bool bZeroSource=false); // if true, sets the source buffer to
             // zero after copying is done.
 

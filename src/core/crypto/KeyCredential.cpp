@@ -254,9 +254,8 @@ bool KeyCredential::verify_internally(const Lock& lock) const
 
     // All KeyCredentials must sign themselves
     if (!VerifySignedBySelf(lock)) {
-        otOut << __FUNCTION__
-              << ": Failed verifying key credential: it's not "
-                 "signed by itself (its own signing key.)\n";
+        otOut << __FUNCTION__ << ": Failed verifying key credential: it's not "
+                                 "signed by itself (its own signing key.)\n";
         return false;
     }
 
@@ -671,8 +670,7 @@ bool KeyCredential::VerifySig(
     auto& signature = *serialized->add_signature();
     signature.CopyFrom(sig);
     signature.clear_signature();
-
-    Data plaintext = proto::ProtoAsData<proto::Credential>(*serialized);
+    auto plaintext = proto::ProtoAsData(*serialized);
 
     return Verify(plaintext, sig);
 }

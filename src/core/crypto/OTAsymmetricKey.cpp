@@ -456,18 +456,17 @@ serializedAsymmetricKey OTAsymmetricKey::Serialize() const
     return serializedKey;
 }
 
-Data OTAsymmetricKey::SerializeKeyToData(
+OTData OTAsymmetricKey::SerializeKeyToData(
     const proto::AsymmetricKey& serializedKey) const
 {
-    return proto::ProtoAsData<proto::AsymmetricKey>(serializedKey);
+    return proto::ProtoAsData(serializedKey);
 }
 
 bool OTAsymmetricKey::operator==(const proto::AsymmetricKey& rhs) const
 {
     serializedAsymmetricKey tempKey = Serialize();
-
-    Data LHData = SerializeKeyToData(*tempKey);
-    Data RHData = SerializeKeyToData(rhs);
+    auto LHData = SerializeKeyToData(*tempKey);
+    auto RHData = SerializeKeyToData(rhs);
 
     return (LHData == RHData);
 }
@@ -480,8 +479,8 @@ bool OTAsymmetricKey::Verify(const Data& plaintext, const proto::Signature& sig)
         return false;
     }
 
-    Data signature;
-    signature.Assign(sig.signature().c_str(), sig.signature().size());
+    auto signature = Data::Factory();
+    signature->Assign(sig.signature().c_str(), sig.signature().size());
 
     return engine().Verify(
         plaintext, *this, signature, sig.hashtype(), nullptr);
@@ -500,7 +499,7 @@ bool OTAsymmetricKey::Sign(
         return false;
     }
 
-    Data signature;
+    auto signature = Data::Factory();
     const auto hash = SigHashType();
 
     bool goodSig = engine().Sign(
@@ -515,7 +514,7 @@ bool OTAsymmetricKey::Sign(
             sig.set_role(role);
         }
         sig.set_hashtype(hash);
-        sig.set_signature(signature.GetPointer(), signature.GetSize());
+        sig.set_signature(signature->GetPointer(), signature->GetSize());
     }
 
     return goodSig;

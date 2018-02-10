@@ -45,20 +45,14 @@
 #include "opentxs/core/crypto/PaymentCode.hpp"
 #endif
 #include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Data.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/Proto.hpp"
 
+#include <cstdint>
 #include <memory>
 
 namespace opentxs
 {
-
-class MasterCredential;
-class NymParameters;
-class OTAsymmetricKey;
-class OTPasswordData;
-
 typedef std::shared_ptr<proto::NymIDSource> serializedNymIDSource;
 
 class NymIDSource
@@ -66,14 +60,14 @@ class NymIDSource
 private:
     NymIDSource() = delete;
 
-    uint32_t version_ = 0;
+    std::uint32_t version_ = 0;
     proto::SourceType type_ = proto::SOURCETYPE_ERROR;
     std::shared_ptr<OTAsymmetricKey> pubkey_;
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     std::shared_ptr<PaymentCode> payment_code_;
 #endif
 
-    Data asData() const;
+    OTData asData() const;
 
     static std::unique_ptr<proto::AsymmetricKey> ExtractKey(
         const proto::Credential& credential,

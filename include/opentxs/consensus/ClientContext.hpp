@@ -49,10 +49,6 @@
 
 namespace opentxs
 {
-
-class TransactionStatement;
-class Wallet;
-
 class ClientContext : public Context
 {
 private:

@@ -382,7 +382,7 @@ bool OTMarket::GetRecentTradeList(OTASCIIArmor& ascOutput, int32_t& nTradeCount)
         const size_t theSize = pBuffer->GetSize();
 
         if ((nullptr != pUint) || (theSize < 2)) {
-            Data theData(pUint, static_cast<uint32_t>(theSize));
+            auto theData = Data::Factory(pUint, static_cast<uint32_t>(theSize));
 
             // This function will base64 ENCODE theData,
             // and then Set() that as the string contents.
@@ -519,8 +519,7 @@ bool OTMarket::GetOfferList(
         const size_t theSize = pBuffer->GetSize();
 
         if (nullptr != pUint) {
-            Data theData(pUint, static_cast<uint32_t>(theSize));
-
+            auto theData = Data::Factory(pUint, static_cast<uint32_t>(theSize));
             // This function will base64 ENCODE theData,
             // and then Set() that as the string contents.
             ascOutput.SetData(theData);

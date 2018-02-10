@@ -369,7 +369,7 @@ std::string Blockchain::calculate_address(
         return {};
     }
 
-    Data pubkey{};
+    auto pubkey = Data::Factory();
 
     if (false == ecKey->GetPublicKey(pubkey)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Unable to extract public key."
@@ -378,16 +378,16 @@ std::string Blockchain::calculate_address(
         return {};
     }
 
-    if (COMPRESSED_PUBKEY_SIZE != pubkey.GetSize()) {
+    if (COMPRESSED_PUBKEY_SIZE != pubkey->GetSize()) {
         otErr << OT_METHOD << __FUNCTION__ << ": Incorrect pubkey size ("
-              << pubkey.GetSize() << ")." << std::endl;
+              << pubkey->GetSize() << ")." << std::endl;
 
         return {};
     }
 
-    Data sha256{};
-    Data ripemd160{};
-    Data pubkeyHash{};
+    auto sha256 = Data::Factory();
+    auto ripemd160 = Data::Factory();
+    auto pubkeyHash = Data::Factory();
 
     if (!crypto_.Hash().Digest(proto::HASHTYPE_SHA256, pubkey, sha256)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Unable to calculate sha256."
@@ -404,13 +404,13 @@ std::string Blockchain::calculate_address(
     }
 
     const auto prefix = address_prefix(account.type());
-    Data preimage(&prefix, sizeof(prefix));
+    auto preimage = Data::Factory(&prefix, sizeof(prefix));
 
-    OT_ASSERT(1 == preimage.GetSize());
+    OT_ASSERT(1 == preimage->GetSize());
 
     preimage += pubkeyHash;
 
-    OT_ASSERT(21 == preimage.GetSize());
+    OT_ASSERT(21 == preimage->GetSize());
 
     return crypto_.Encode().IdentifierEncode(preimage);
 }

@@ -55,10 +55,6 @@
 
 namespace opentxs
 {
-class Nym;
-class OTPasswordData;
-class TransactionStatement;
-
 namespace api
 {
 namespace client
@@ -85,7 +81,7 @@ public:
     const class Nym& RemoteNym() const;
     Identifier RemoteNymboxHash() const;
     RequestNumber Request() const;
-    Data Serialize() const override;
+    OTData Serialize() const override;
     proto::Context Serialized() const;
     const Identifier& Server() const;
     virtual proto::ConsensusType Type() const = 0;

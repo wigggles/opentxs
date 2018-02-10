@@ -54,7 +54,6 @@ namespace network
 {
 namespace implementation
 {
-
 class Dht : virtual public opentxs::api::network::Dht
 {
 public:
@@ -68,14 +67,16 @@ public:
     void Insert(const proto::UnitDefinition& contract) const override;
     void RegisterCallbacks(const CallbackMap& callbacks) const override;
 
+    ~Dht();
+
 private:
     friend class api::implementation::Native;
 
     const api::client::Wallet& wallet_;
-    mutable CallbackMap callback_map_;
-    std::unique_ptr<const DhtConfig> config_;
+    mutable CallbackMap callback_map_{};
+    std::unique_ptr<const DhtConfig> config_{nullptr};
 #if OT_DHT
-    std::unique_ptr<OpenDHT> node_;
+    std::unique_ptr<opentxs::network::OpenDHT> node_{nullptr};
 #endif
 
 #if OT_DHT
@@ -99,7 +100,9 @@ private:
     explicit Dht(DhtConfig& config, const api::client::Wallet& wallet);
     Dht() = delete;
     Dht(const Dht&) = delete;
+    Dht(Dht&&) = delete;
     Dht& operator=(const Dht&) = delete;
+    Dht& operator=(Dht&&) = delete;
 };
 }  // namespace implementation
 }  // namespace network

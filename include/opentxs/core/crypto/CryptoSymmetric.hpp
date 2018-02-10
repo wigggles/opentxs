@@ -44,7 +44,6 @@
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTEnvelope.hpp"
 #include "opentxs/core/util/Assert.hpp"
-#include "opentxs/core/Data.hpp"
 #include "opentxs/core/String.hpp"
 
 #include <memory>
@@ -53,12 +52,6 @@
 
 namespace opentxs
 {
-
-class Data;
-class OTPassword;
-class OTPasswordData;
-class Data;
-
 typedef std::tuple<String, String, String, String, std::shared_ptr<OTEnvelope>>
     symmetricEnvelope;
 typedef std::shared_ptr<OTPassword> BinarySecret;

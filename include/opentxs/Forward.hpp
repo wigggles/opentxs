@@ -41,6 +41,8 @@
 
 #include "opentxs/Version.hpp"
 
+#include "opentxs/Pimpl.hpp"
+
 namespace opentxs
 {
 namespace api
@@ -98,45 +100,64 @@ class Message;
 class ReplySocket;
 class RequestSocket;
 }  // namespace opentxs::network::zeromq
+
+class OpenDHT;
 }  // namespace opentxs::network
 
+class Account;
+class AccountVisitor;
+class AsymmetricKeyEC;
+class Basket;
 class Bip32;
 class Bip39;
 class Cheque;
 class ClientContext;
 class Contact;
 class Context;
+class Contract;
 class Credential;
+class CredentialSet;
 class CryptoAsymmetric;
 class CryptoEncoding;
 class CryptoHash;
 class CryptoSymmetric;
 class CryptoSymmetricNew;
 class Data;
+class Ecdsa;
 class Identifier;
+class Item;
 class Ledger;
+class Letter;
 class Log;
+class MasterCredential;
 class Message;
 #if OT_CASH
 class Mint;
 #endif  // OT_CASH
 class Nym;
 class NymData;
+class NymParameters;
 class OT;
 class OT_API;
 class OT_ME;
 class OTAPI_Exec;
 class OTASCIIArmor;
+class OTAsymmetricKey;
 class OTCachedKey;
 class OTDataFolder;
 class OTFolders;
+class OTKeypair;
 class OTME_too;
 class OTPassword;
 class OTPasswordData;
 class OTPaths;
 class OTPayment;
 class OTPaymentPlan;
+class OTSignature;
+class OTSignatureMetadata;
 class OTSmartContract;
+class OTSymmetricKey;
+class OTTransaction;
 class PaymentCode;
 class PeerObject;
 class Purse;
@@ -148,6 +169,9 @@ class StorageDriver;
 class StoragePlugin;
 class String;
 class SymmetricKey;
+class TransactionStatement;
 class UnitDefinition;
+
+using OTData = Pimpl<Data>;
 }  // namespace opentxs
 #endif  // OPENTXS_FORWARD_HPP

@@ -259,7 +259,7 @@ bool ReplyMessage::LoadContext()
 bool ReplyMessage::LoadNym()
 {
     auto serialized = proto::DataToProto<proto::CredentialIndex>(
-        Data(original_.m_ascPayload));
+        Data::Factory(original_.m_ascPayload));
     sender_nym_ = wallet_.Nym(serialized);
 
     return bool(sender_nym_);

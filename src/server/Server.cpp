@@ -448,9 +448,8 @@ void Server::CreateMainFile(bool& mainFileExists)
     }
 
     newNym.reset();
-    const Data signedContract =
-        proto::ProtoAsData<proto::ServerContract>(pContract->PublicContract());
-    OTASCIIArmor ascContract(signedContract);
+    const auto signedContract = proto::ProtoAsData(pContract->PublicContract());
+    OTASCIIArmor ascContract(signedContract.get());
     opentxs::String strBookended;
     ascContract.WriteArmoredString(strBookended, "SERVER CONTRACT");
     OTDB::StorePlainString(strBookended.Get(), SERVER_CONTRACT_FILE);

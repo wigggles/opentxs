@@ -43,23 +43,15 @@
 
 #include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/Contract.hpp"
-#include "opentxs/core/Data.hpp"
 #include "opentxs/core/Nym.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/Proto.hpp"
 
-#include <stdint.h>
+#include <cstdint>
 #include <string>
 
 namespace opentxs
 {
-
-class Account;
-class AccountVisitor;
-class Basket;
-class Identifier;
-class String;
-
 class UnitDefinition : public Signable
 {
 private:
@@ -176,7 +168,7 @@ public:
         const std::string& str_input,
         const std::string& str_thousand,
         const std::string& str_decimal) const;
-    EXPORT Data Serialize() const override;
+    EXPORT OTData Serialize() const override;
     EXPORT std::string Name() const override { return short_name_; }
     EXPORT proto::UnitDefinition PublicContract() const;
     EXPORT virtual int32_t DecimalPower() const { return 0; }

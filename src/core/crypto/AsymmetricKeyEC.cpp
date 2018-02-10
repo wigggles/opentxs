@@ -67,11 +67,19 @@ AsymmetricKeyEC::AsymmetricKeyEC(
     const proto::AsymmetricKeyType keyType,
     const proto::KeyRole role)
     : ot_super(keyType, role)
+    , key_(Data::Factory())
+    , encrypted_key_(nullptr)
+    , path_(nullptr)
+    , chain_code_(nullptr)
 {
 }
 
 AsymmetricKeyEC::AsymmetricKeyEC(const proto::AsymmetricKey& serializedKey)
     : ot_super(serializedKey)
+    , key_(Data::Factory())
+    , encrypted_key_(nullptr)
+    , path_(nullptr)
+    , chain_code_(nullptr)
 {
     m_keyType = serializedKey.type();
 
@@ -84,12 +92,8 @@ AsymmetricKeyEC::AsymmetricKeyEC(const proto::AsymmetricKey& serializedKey)
     }
 
     if (proto::KEYMODE_PUBLIC == serializedKey.mode()) {
-        std::unique_ptr<Data> theKey;
-        theKey.reset(
-            new Data(serializedKey.key().c_str(), serializedKey.key().size()));
-
-        OT_ASSERT(theKey);
-
+        auto theKey = Data::Factory(
+            serializedKey.key().c_str(), serializedKey.key().size());
         SetKey(theKey);
     } else if (proto::KEYMODE_PRIVATE == serializedKey.mode()) {
         std::unique_ptr<proto::Ciphertext> encryptedKey;
@@ -107,25 +111,21 @@ AsymmetricKeyEC::AsymmetricKeyEC(
     : AsymmetricKeyEC(keyType, proto::KEYROLE_ERROR)
 {
     m_keyType = proto::AKEYTYPE_SECP256K1;
-
     auto key = OT::App().Crypto().Encode().DataDecode(publicKey.Get());
-
-    std::unique_ptr<Data> dataKey(new Data(key.data(), key.size()));
-
-    OT_ASSERT(dataKey);
-
+    auto dataKey = Data::Factory(key.data(), key.size());
     SetKey(dataKey);
 }
 
 bool AsymmetricKeyEC::GetKey(Data& key) const
 {
-    if (key_) {
-        key.Assign(*key_);
+    if (key_->empty()) {
 
-        return true;
+        return false;
     }
 
-    return false;
+    key.Assign(key_.get());
+
+    return true;
 }
 
 bool AsymmetricKeyEC::GetKey(proto::Ciphertext& key) const
@@ -142,15 +142,15 @@ bool AsymmetricKeyEC::GetKey(proto::Ciphertext& key) const
 bool AsymmetricKeyEC::GetPublicKey(String& strKey) const
 {
     strKey.reset();
-    strKey.Set(OT::App().Crypto().Encode().DataEncode(*key_).c_str());
+    strKey.Set(OT::App().Crypto().Encode().DataEncode(key_.get()).c_str());
 
     return true;
 }
 
 bool AsymmetricKeyEC::GetPublicKey(Data& key) const
 {
-    if (key_) {
-        key = *key_;
+    if (false == key_->empty()) {
+        key.Assign(key_->GetPointer(), key_->GetSize());
 
         return true;
     }
@@ -163,15 +163,7 @@ bool AsymmetricKeyEC::GetPublicKey(Data& key) const
     return ECDSA().PrivateToPublic(*encrypted_key_, key);
 }
 
-bool AsymmetricKeyEC::IsEmpty() const
-{
-    if (!key_) {
-
-        return true;
-    }
-
-    return false;
-}
+bool AsymmetricKeyEC::IsEmpty() const { return key_->empty(); }
 
 const std::string AsymmetricKeyEC::Path() const
 {
@@ -325,7 +317,7 @@ serializedAsymmetricKey AsymmetricKeyEC::Serialize() const
     } else {
         serializedKey->set_mode(proto::KEYMODE_PUBLIC);
 
-        if (key_) {
+        if (false == key_->empty()) {
             serializedKey->set_key(key_->GetPointer(), key_->GetSize());
         }
     }
@@ -333,12 +325,12 @@ serializedAsymmetricKey AsymmetricKeyEC::Serialize() const
     return serializedKey;
 }
 
-bool AsymmetricKeyEC::SetKey(std::unique_ptr<Data>& key)
+bool AsymmetricKeyEC::SetKey(const Data& key)
 {
     ReleaseKeyLowLevel();
     m_bIsPublicKey = true;
     m_bIsPrivateKey = false;
-    key_.swap(key);
+    key_ = key;
 
     return true;
 }
@@ -369,4 +361,6 @@ bool AsymmetricKeyEC::TransportKey(Data& publicKey, OTPassword& privateKey)
 
     return ECDSA().SeedToCurveKey(seed, privateKey, publicKey);
 }
+
+AsymmetricKeyEC::~AsymmetricKeyEC() {}
 }  // namespace opentxs

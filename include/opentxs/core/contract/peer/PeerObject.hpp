@@ -52,9 +52,6 @@
 
 namespace opentxs
 {
-
-class OTASCIIArmor;
-
 class PeerObject
 {
 public:

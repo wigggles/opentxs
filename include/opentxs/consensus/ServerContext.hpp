@@ -52,15 +52,6 @@
 
 namespace opentxs
 {
-
-class Item;
-class OTASCIIArmor;
-class OTTransaction;
-class Message;
-class ServerConnection;
-class TransactionStatement;
-class Wallet;
-
 class ServerContext : public Context
 {
 public:
