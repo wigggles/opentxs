@@ -39,7 +39,7 @@
 #ifndef OPENTXS_API_STORAGE_IMPLEMENTATION_STORAGE_HPP
 #define OPENTXS_API_STORAGE_IMPLEMENTATION_STORAGE_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Internal.hpp"
 
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Editor.hpp"
@@ -57,26 +57,8 @@
 
 namespace opentxs
 {
-class StorageDriver;
-class StorageMultiplex;
-class StoragePlugin;
-class String;
-class SymmetricKey;
-
-namespace storage
-{
-class Root;
-}  // namespace storage
-
 namespace api
 {
-class Crypto;
-
-namespace implementation
-{
-class Native;
-}  // namespace implementation
-
 namespace storage
 {
 namespace implementation

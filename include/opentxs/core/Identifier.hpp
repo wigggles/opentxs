@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CORE_OTIDENTIFIER_HPP
 #define OPENTXS_CORE_OTIDENTIFIER_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include "opentxs/core/Data.hpp"
 #include "opentxs/Proto.hpp"

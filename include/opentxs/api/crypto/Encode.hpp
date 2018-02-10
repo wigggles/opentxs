@@ -39,17 +39,13 @@
 #ifndef OPENTXS_API_CRYPTO_ENCODE_HPP
 #define OPENTXS_API_CRYPTO_ENCODE_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include <cstdint>
 #include <string>
 
 namespace opentxs
 {
-
-class Data;
-class String;
-
 namespace api
 {
 namespace crypto

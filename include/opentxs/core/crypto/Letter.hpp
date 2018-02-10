@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CORE_CRYPTO_LETTER_HPP
 #define OPENTXS_CORE_CRYPTO_LETTER_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include "opentxs/core/crypto/CryptoSymmetric.hpp"
 #include "opentxs/Proto.hpp"

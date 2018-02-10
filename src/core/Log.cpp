@@ -46,7 +46,7 @@
 #include "opentxs/core/util/OTPaths.hpp"
 #include "opentxs/core/util/stacktrace.h"
 #include "opentxs/core/String.hpp"
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 #include "opentxs/OT.hpp"
 
 #ifndef _WIN32

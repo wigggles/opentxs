@@ -4,7 +4,7 @@
 #ifndef STACKTRACE_H
 #define STACKTRACE_H
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include "opentxs/core/util/Common.hpp"
 

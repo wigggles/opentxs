@@ -39,7 +39,7 @@
 #ifndef OPENTXS_STORAGE_TREE_SERVERS_HPP
 #define OPENTXS_STORAGE_TREE_SERVERS_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Editor.hpp"

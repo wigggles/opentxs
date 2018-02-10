@@ -39,7 +39,7 @@
 #ifndef OPENTXS_API_CLIENT_IMPLEMENTATION_ISSUER_HPP
 #define OPENTXS_API_CLIENT_IMPLEMENTATION_ISSUER_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Internal.hpp"
 
 #include "opentxs/api/client/Issuer.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -55,11 +55,8 @@ namespace api
 {
 namespace client
 {
-class Wallet;
-
 namespace implementation
 {
-class Wallet;
 
 class Issuer : virtual public opentxs::api::client::Issuer, Lockable
 {

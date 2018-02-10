@@ -133,7 +133,7 @@
 #ifndef OPENTXS_CLIENT_CMDEXPORTCASH_HPP
 #define OPENTXS_CLIENT_CMDEXPORTCASH_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include "CmdBaseInstrument.hpp"
 

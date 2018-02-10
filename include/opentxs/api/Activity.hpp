@@ -39,7 +39,7 @@
 #ifndef OPENTXS_API_ACTIVITY_HPP
 #define OPENTXS_API_ACTIVITY_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
@@ -51,28 +51,12 @@
 
 namespace opentxs
 {
-class Contact;
-class Identifier;
-class Message;
-
 namespace api
 {
-class ContactManager;
-
-namespace client
-{
-class Wallet;
-}  // namespace client
-
-namespace storage
-{
-class Storage;
-}  // namespace storage
-
 namespace implementation
 {
 class Native;
-}
+}  // namespace implementation
 
 class Activity
 {

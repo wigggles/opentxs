@@ -39,7 +39,7 @@
 #ifndef OPENTXS_API_IMPLEMENTATION_DHT_HPP
 #define OPENTXS_API_IMPLEMENTATION_DHT_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Internal.hpp"
 
 #include "opentxs/api/network/Dht.hpp"
 #include "opentxs/Types.hpp"
@@ -48,25 +48,8 @@
 
 namespace opentxs
 {
-
-class Credential;
-class DhtConfig;
-class OpenDHT;
-class ServerContract;
-class UnitDefinition;
-
 namespace api
 {
-namespace client
-{
-class Wallet;
-}  // namespace client
-
-namespace implementation
-{
-class Native;
-}  // namespace implementation
-
 namespace network
 {
 namespace implementation

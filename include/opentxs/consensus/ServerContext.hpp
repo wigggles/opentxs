@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CONSENSUS_SERVERCONTEXT_HPP
 #define OPENTXS_CONSENSUS_SERVERCONTEXT_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include "opentxs/consensus/Context.hpp"
 #include "opentxs/core/Identifier.hpp"

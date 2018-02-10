@@ -133,7 +133,7 @@
 #ifndef OPENTXS_CORE_HELPERS_HPP
 #define OPENTXS_CORE_HELPERS_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include "opentxs/core/Log.hpp"
 

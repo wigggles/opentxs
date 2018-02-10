@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CLIENT_UTILITY_HPP
 #define OPENTXS_CLIENT_UTILITY_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/Types.hpp"

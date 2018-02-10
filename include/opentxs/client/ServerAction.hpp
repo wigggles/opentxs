@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CLIENT_SERVER_ACTION_HPP
 #define OPENTXS_CLIENT_SERVER_ACTION_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include "opentxs/Types.hpp"
 

@@ -41,7 +41,7 @@
 #ifndef OPENTXS_CORE_OTAGREEMENT_HPP
 #define OPENTXS_CORE_OTAGREEMENT_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include "opentxs/core/cron/OTCronItem.hpp"
 #include "opentxs/core/util/Common.hpp"

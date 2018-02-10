@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CLIENT_SWIG_HPP
 #define OPENTXS_CLIENT_SWIG_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include "opentxs/client/NymData.hpp"
 #include "opentxs/core/util/Common.hpp"

@@ -39,35 +39,16 @@
 #ifndef OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_CONTEXT_HPP
 #define OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_CONTEXT_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Internal.hpp"
 
 #include "opentxs/network/zeromq/Context.hpp"
 
 namespace opentxs
 {
-namespace api
-{
-namespace implementation
-{
-class Native;
-}  // namespace implementation
-
-namespace network
-{
-namespace implementation
-{
-class ZMQ;
-}  // namespace implementation
-}  // namespace network
-}  // namespace api
-
 namespace network
 {
 namespace zeromq
 {
-class ReplySocket;
-class RequestSocket;
-
 namespace implementation
 {
 

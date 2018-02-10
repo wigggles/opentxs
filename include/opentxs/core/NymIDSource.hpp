@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CORE_NYMIDSOURCE_HPP
 #define OPENTXS_CORE_NYMIDSOURCE_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 #include "opentxs/core/crypto/PaymentCode.hpp"

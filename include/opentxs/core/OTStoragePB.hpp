@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CORE_OTSTORAGEPB_HPP
 #define OPENTXS_CORE_OTSTORAGEPB_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include "opentxs/core/util/Assert.hpp"
 

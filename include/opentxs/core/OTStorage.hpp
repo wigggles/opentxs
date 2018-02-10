@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CORE_OTSTORAGE_HPP
 #define OPENTXS_CORE_OTSTORAGE_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #ifndef SWIG
 

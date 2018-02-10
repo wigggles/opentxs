@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CORE_BASKET_BASKETCONTRACT_HPP
 #define OPENTXS_CORE_BASKET_BASKETCONTRACT_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/core/Identifier.hpp"

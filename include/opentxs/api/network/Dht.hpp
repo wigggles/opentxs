@@ -39,7 +39,7 @@
 #ifndef OPENTXS_API_DHT_HPP
 #define OPENTXS_API_DHT_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include "opentxs/Proto.hpp"
 

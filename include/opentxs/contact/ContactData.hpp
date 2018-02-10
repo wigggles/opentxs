@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CONTACT_CONTACT_DATA_HPP
 #define OPENTXS_CONTACT_CONTACT_DATA_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"

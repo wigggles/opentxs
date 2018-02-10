@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CORE_CRYPTO_LIBSECP256K1_HPP
 #define OPENTXS_CORE_CRYPTO_LIBSECP256K1_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #if OT_CRYPTO_USING_LIBSECP256K1
 

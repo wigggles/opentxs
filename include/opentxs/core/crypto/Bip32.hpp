@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CORE_CRYPTO_BIP32_HPP
 #define OPENTXS_CORE_CRYPTO_BIP32_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #if OT_CRYPTO_WITH_BIP32
 

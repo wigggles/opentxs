@@ -39,7 +39,7 @@
 #ifndef OPENTXS_API_STORAGE_PLUGIN_HPP
 #define OPENTXS_API_STORAGE_PLUGIN_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include "opentxs/api/storage/Driver.hpp"
 

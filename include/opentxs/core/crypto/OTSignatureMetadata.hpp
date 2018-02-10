@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CORE_CRYPTO_OTSIGNATUREMETADATA_HPP
 #define OPENTXS_CORE_CRYPTO_OTSIGNATUREMETADATA_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 namespace opentxs
 {

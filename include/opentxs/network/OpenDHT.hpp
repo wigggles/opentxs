@@ -39,7 +39,7 @@
 #ifndef OPENTXS_NETWORK_OPENDHT_HPP
 #define OPENTXS_NETWORK_OPENDHT_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Internal.hpp"
 
 #if OT_DHT
 
@@ -57,9 +57,6 @@ class DhtRunner;
 
 namespace opentxs
 {
-
-class DhtConfig;
-class Data;
 
 // Low interface to OpenDHT. Does not depend on opentxs.
 class OpenDHT

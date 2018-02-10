@@ -42,7 +42,7 @@
 #ifndef OPENTXS_CORE_TRADE_OTTRADE_HPP
 #define OPENTXS_CORE_TRADE_OTTRADE_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include "opentxs/core/cron/OTCronItem.hpp"
 #include "opentxs/core/trade/OTMarket.hpp"

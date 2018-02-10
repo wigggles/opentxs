@@ -39,7 +39,7 @@
 #ifndef CLASS_TAG_HEADER
 #define CLASS_TAG_HEADER
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include <string>
 #include <map>

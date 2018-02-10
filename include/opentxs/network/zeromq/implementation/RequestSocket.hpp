@@ -39,22 +39,19 @@
 #ifndef OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_REQUESTSOCKET_HPP
 #define OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_REQUESTSOCKET_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include "opentxs/network/zeromq/implementation/Socket.hpp"
 #include "opentxs/network/zeromq/RequestSocket.hpp"
 
 namespace opentxs
 {
-class ServerContract;
-
 namespace network
 {
 namespace zeromq
 {
 namespace implementation
 {
-class Context;
 
 class RequestSocket : virtual public zeromq::RequestSocket, public Socket
 {

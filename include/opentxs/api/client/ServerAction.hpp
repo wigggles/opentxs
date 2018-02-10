@@ -39,7 +39,7 @@
 #ifndef OPENTXS_API_CLIENT_SERVER_ACTION_HPP
 #define OPENTXS_API_CLIENT_SERVER_ACTION_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/Proto.hpp"
@@ -50,22 +50,6 @@
 
 namespace opentxs
 {
-class Cheque;
-class Identifier;
-class Ledger;
-class Nym;
-class OTPayment;
-class OTPaymentPlan;
-class OTSmartContract;
-class Purse;
-class ServerContract;
-class String;
-class UnitDefinition;
-
-namespace client
-{
-class ServerAction;
-}  // namespace client
 namespace api
 {
 namespace client

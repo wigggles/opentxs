@@ -47,7 +47,7 @@
 //
 // CALLER IS RESPONSIBLE to cleanup!
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #if OT_CASH
 #include "opentxs/cash/Mint.hpp"

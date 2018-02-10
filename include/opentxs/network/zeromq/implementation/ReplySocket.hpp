@@ -39,7 +39,7 @@
 #ifndef OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_REPLYSOCKET_HPP
 #define OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_REPLYSOCKET_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include "opentxs/network/zeromq/implementation/Socket.hpp"
 #include "opentxs/network/zeromq/ReplySocket.hpp"
@@ -48,17 +48,12 @@
 
 namespace opentxs
 {
-class OTPassword;
-
 namespace network
 {
 namespace zeromq
 {
-class Message;
-
 namespace implementation
 {
-class Context;
 
 class ReplySocket : virtual public zeromq::ReplySocket, public Socket
 {

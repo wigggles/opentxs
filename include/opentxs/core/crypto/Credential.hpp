@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CORE_CRYPTO_CREDENTIAL_HPP
 #define OPENTXS_CORE_CRYPTO_CREDENTIAL_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"

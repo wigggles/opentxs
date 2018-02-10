@@ -39,7 +39,7 @@
 #ifndef OPENTXS_NETWORK_DHTCONFIG_HPP
 #define OPENTXS_NETWORK_DHTCONFIG_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include <string>
 

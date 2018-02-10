@@ -39,7 +39,7 @@
 #ifndef OPENTXS_API_IMPLEMENTATION_SERVER_HPP
 #define OPENTXS_API_IMPLEMENTATION_SERVER_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Internal.hpp"
 
 #include "opentxs/api/Server.hpp"
 #include "opentxs/Types.hpp"

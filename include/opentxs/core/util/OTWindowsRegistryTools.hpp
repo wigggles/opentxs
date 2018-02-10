@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CORE_UTIL_WINDOWSREGISTRYTOOLS_HPP
 #define OPENTXS_CORE_UTIL_WINDOWSREGISTRYTOOLS_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #ifdef _WIN32
 

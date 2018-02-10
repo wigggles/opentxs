@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CONSENSUS_CONTEXT_HPP
 #define OPENTXS_CONSENSUS_CONTEXT_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include "opentxs/api/Editor.hpp"
 #include "opentxs/core/contract/Signable.hpp"

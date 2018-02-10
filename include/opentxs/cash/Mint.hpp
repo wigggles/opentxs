@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CASH_MINT_HPP
 #define OPENTXS_CASH_MINT_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #if OT_CASH
 #include "opentxs/core/Contract.hpp"

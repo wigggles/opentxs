@@ -39,7 +39,7 @@
 #ifndef OPENTXS_SERVER_USERCOMMANDPROCESSOR_HPP
 #define OPENTXS_SERVER_USERCOMMANDPROCESSOR_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include "opentxs/Types.hpp"
 

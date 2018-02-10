@@ -39,7 +39,7 @@
 #ifndef OPENTXS_API_CLIENT_WALLET_HPP
 #define OPENTXS_API_CLIENT_WALLET_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include "opentxs/api/Editor.hpp"
 #include "opentxs/core/contract/ServerContract.hpp"
@@ -56,18 +56,6 @@
 
 namespace opentxs
 {
-
-class ClientContext;
-class Context;
-class Identifier;
-class Message;
-class Nym;
-class NymData;
-class PeerObject;
-class ServerContext;
-class ServerContract;
-class UnitDefinition;
-
 typedef std::shared_ptr<const class Nym> ConstNym;
 typedef std::shared_ptr<const class ServerContract> ConstServerContract;
 typedef std::shared_ptr<const class UnitDefinition> ConstUnitDefinition;
@@ -76,7 +64,6 @@ namespace api
 {
 namespace client
 {
-class Issuer;
 
 /** \brief This class manages instantiated contracts and provides easy access
  *  to them.

@@ -39,22 +39,14 @@
 #ifndef OPENTXS_CORE_CRYPTO_CRYPTOSYMMETRICENGINE_HPP
 #define OPENTXS_CORE_CRYPTO_CRYPTOSYMMETRICENGINE_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Internal.hpp"
 
 #include "opentxs/api/crypto/Symmetric.hpp"
 
 namespace opentxs
 {
-
-class CryptoSymmetricNew;
-
 namespace api
 {
-namespace implementation
-{
-class Crypto;
-}  // namespace implementation
-
 namespace crypto
 {
 namespace implementation

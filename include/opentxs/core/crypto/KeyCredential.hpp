@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CORE_CRYPTO_KEYCREDENTIAL_HPP
 #define OPENTXS_CORE_CRYPTO_KEYCREDENTIAL_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include "opentxs/core/crypto/Credential.hpp"
 #include "opentxs/core/crypto/OTKeypair.hpp"

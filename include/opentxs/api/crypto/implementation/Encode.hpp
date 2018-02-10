@@ -39,23 +39,15 @@
 #ifndef OPENTXS_API_CRYPTO_IMPLEMENTATION_ENCODE_HPP
 #define OPENTXS_API_CRYPTO_IMPLEMENTATION_ENCODE_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Internal.hpp"
 
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/Types.hpp"
 
 namespace opentxs
 {
-class CryptoEncoding;
-class OTPassword;
-
 namespace api
 {
-namespace implementation
-{
-class Crypto;
-}  // namespace implementation
-
 namespace crypto
 {
 namespace implementation

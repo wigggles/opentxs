@@ -39,7 +39,7 @@
 #ifndef OPENTXS_API_CLIENT_ISSUER_HPP
 #define OPENTXS_API_CLIENT_ISSUER_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include "opentxs/Proto.hpp"
 
@@ -50,8 +50,6 @@
 
 namespace opentxs
 {
-class Identifier;
-
 namespace api
 {
 namespace client

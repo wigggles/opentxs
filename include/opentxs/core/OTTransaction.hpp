@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CORE_TRANSACTION_HPP
 #define OPENTXS_CORE_TRANSACTION_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include "opentxs/core/OTTransactionType.hpp"
 #include "opentxs/core/Item.hpp"

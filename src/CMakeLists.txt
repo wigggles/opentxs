@@ -93,6 +93,7 @@ set(object-deps
 )
 
 set(cxx-install-headers
+  "${CMAKE_CURRENT_SOURCE_DIR}/../include/opentxs/Forward.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../include/opentxs/OT.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../include/opentxs/Pimpl.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../include/opentxs/Proto.hpp"
@@ -101,6 +102,7 @@ set(cxx-install-headers
 
 set(cxx-headers
   ${cxx-install-headers}
+  "${CMAKE_CURRENT_SOURCE_DIR}/../include/opentxs/Internal.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../include/opentxs/stdafx.hpp"
 )
 

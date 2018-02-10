@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CORE_UTIL_ANDROID_STRING_HPP
 #define OPENTXS_CORE_UTIL_ANDROID_STRING_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #ifdef ANDROID
 

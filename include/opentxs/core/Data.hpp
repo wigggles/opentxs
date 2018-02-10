@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CORE_DATA_HPP
 #define OPENTXS_CORE_DATA_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include <cstdint>
 #include <string>

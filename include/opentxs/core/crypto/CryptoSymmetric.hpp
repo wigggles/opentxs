@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CORE_CRYPTO_CRYPTOSYMMETRIC_HPP
 #define OPENTXS_CORE_CRYPTO_CRYPTOSYMMETRIC_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTEnvelope.hpp"

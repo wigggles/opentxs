@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CORE_OTDATAFOLDER_HPP
 #define OPENTXS_CORE_OTDATAFOLDER_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/String.hpp"

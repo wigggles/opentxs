@@ -39,7 +39,7 @@
 #ifndef OPENTXS_STORAGE_STORAGEFS_HPP
 #define OPENTXS_STORAGE_STORAGEFS_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #if OT_STORAGE_FS
 

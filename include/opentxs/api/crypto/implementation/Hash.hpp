@@ -39,28 +39,16 @@
 #ifndef OPENTXS_CORE_CRYPTO_CRYPTOHASHENGINE_HPP
 #define OPENTXS_CORE_CRYPTO_CRYPTOHASHENGINE_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Internal.hpp"
 
 #include "opentxs/api/crypto/Hash.hpp"
 
 namespace opentxs
 {
-class CryptoHash;
-#if OT_CRYPTO_USING_TREZOR
-class TrezorCrypto;
-#endif
-
 namespace api
 {
-namespace implementation
-{
-class Crypto;
-}  // namespace implementation
-
 namespace crypto
 {
-class Encode;
-
 namespace implementation
 {
 
@@ -71,10 +59,8 @@ public:
         const proto::HashType hashType,
         const OTPassword& data,
         OTPassword& digest) const override;
-    bool Digest(
-        const proto::HashType hashType,
-        const Data& data,
-        Data& digest) const override;
+    bool Digest(const proto::HashType hashType, const Data& data, Data& digest)
+        const override;
     bool Digest(
         const proto::HashType hashType,
         const String& data,

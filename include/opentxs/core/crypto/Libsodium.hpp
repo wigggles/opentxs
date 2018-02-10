@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CORE_CRYPTO_LIBSODIUM_HPP
 #define OPENTXS_CORE_CRYPTO_LIBSODIUM_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include "opentxs/core/crypto/Crypto.hpp"
 #include "opentxs/core/crypto/CryptoAsymmetric.hpp"

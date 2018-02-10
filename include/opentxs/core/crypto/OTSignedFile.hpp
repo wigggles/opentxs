@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CORE_CRYPTO_OTSIGNEDFILE_HPP
 #define OPENTXS_CORE_CRYPTO_OTSIGNEDFILE_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/String.hpp"

@@ -39,7 +39,7 @@
 #ifndef OPENTXS_SERVER_MACROS_HPP
 #define OPENTXS_SERVER_MACROS_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include "opentxs/core/Log.hpp"
 #include "opentxs/server/ServerSettings.hpp"

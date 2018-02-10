@@ -39,7 +39,7 @@
 #ifndef OPENTXS_API_CRYPTO_CRYPTO_HPP
 #define OPENTXS_API_CRYPTO_CRYPTO_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include "opentxs/api/Editor.hpp"
 #include "opentxs/Proto.hpp"
@@ -51,24 +51,8 @@
 
 namespace opentxs
 {
-class Bip32;
-class Bip39;
-class CryptoAsymmetric;
-class CryptoSymmetric;
-class Identifier;
-class OTASCIIArmor;
-class OTCachedKey;
-class SymmetricKey;
-
 namespace api
 {
-namespace crypto
-{
-class Encode;
-class Hash;
-class Symmetric;
-class Util;
-}  // namespace crypto
 
 class Crypto
 {

@@ -36,51 +36,58 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_CONSENSUS_TRANSACTIONSTATEMENT_HPP
-#define OPENTXS_CONSENSUS_TRANSACTIONSTATEMENT_HPP
+#ifndef OPENTXS_FORWARD_INTERNAL_HPP
+#define OPENTXS_FORWARD_INTERNAL_HPP
 
 #include "opentxs/Forward.hpp"
 
-#include "opentxs/core/String.hpp"
-#include "opentxs/Types.hpp"
-
-#include <set>
-#include <string>
-
 namespace opentxs
 {
-
-class TransactionStatement
+namespace api
 {
-private:
-    std::string version_;
-    std::string nym_id_;
-    std::string notary_;
-    std::set<TransactionNumber> available_;
-    std::set<TransactionNumber> issued_;
+namespace client
+{
+namespace implementation
+{
+class Wallet;
+}  // namespace api::client::implementation
+}  // namespace api::client
 
-    TransactionStatement() = delete;
-    TransactionStatement(const TransactionStatement& rhs) = delete;
-    TransactionStatement& operator=(const TransactionStatement& rhs) = delete;
-    TransactionStatement& operator=(TransactionStatement&& rhs) = delete;
+namespace implementation
+{
+class Api;
+class Crypto;
+class Native;
+}  // namespace api::implementation
 
-public:
-    TransactionStatement(
-        const std::string& notary,
-        const std::set<TransactionNumber>& issued,
-        const std::set<TransactionNumber>& available);
-    TransactionStatement(const String& serialized);
-    TransactionStatement(TransactionStatement&& rhs) = default;
+namespace network
+{
+namespace implementation
+{
+class Context;
+class ZMQ;
+}  // namespace api::network::implementation
+}  // namespace api::network
+}  // namespace api
 
-    explicit operator String() const;
+namespace storage
+{
+class Root;
+}  // namespace opentxs::storage
 
-    const std::set<TransactionNumber>& Issued() const;
-    const std::string& Notary() const;
-
-    void Remove(const TransactionNumber& number);
-
-    ~TransactionStatement() = default;
-};
+class DhtConfig;
+#if OT_CRYPTO_USING_LIBSECP256K1
+class Libsecp256k1;
+#endif
+class Libsodium;
+class OpenDHT;
+#if OT_CRYPTO_USING_OPENSSL
+class OpenSSL;
+#endif
+class StorageConfig;
+class StorageMultiplex;
+#if OT_CRYPTO_USING_TREZOR
+class TrezorCrypto;
+#endif
 }  // namespace opentxs
-
-#endif  // OPENTXS_CONSENSUS_TRANSACTIONSTATEMENT_HPP
+#endif  // OPENTXS_FORWARD_INTERNAL_HPP

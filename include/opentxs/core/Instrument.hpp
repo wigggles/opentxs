@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CORE_OTINSTRUMENT_HPP
 #define OPENTXS_CORE_OTINSTRUMENT_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include "opentxs/core/script/OTScriptable.hpp"
 #include "opentxs/core/util/Common.hpp"

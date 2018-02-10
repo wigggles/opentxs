@@ -39,7 +39,7 @@
 #ifndef OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_MESSAGE_HPP
 #define OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_MESSAGE_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Internal.hpp"
 
 #include "opentxs/network/zeromq/Message.hpp"
 
@@ -49,15 +49,12 @@ struct zmq_msg_t;
 
 namespace opentxs
 {
-class Data;
-
 namespace network
 {
 namespace zeromq
 {
 namespace implementation
 {
-class Context;
 
 class Message : virtual public zeromq::Message
 {

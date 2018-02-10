@@ -41,7 +41,7 @@
 #ifndef OPENTXS_CORE_API_NATIVE_HPP
 #define OPENTXS_CORE_API_NATIVE_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include "opentxs/Types.hpp"
 
@@ -53,32 +53,6 @@ namespace opentxs
 {
 namespace api
 {
-class Activity;
-class Api;
-class Blockchain;
-class ContactManager;
-class Crypto;
-class Identity;
-class Server;
-class Settings;
-class Wallet;
-
-namespace client
-{
-class Wallet;
-}  // namespace client
-
-namespace storage
-{
-class Storage;
-}  // namespace storage
-
-namespace network
-{
-class Dht;
-class ZMQ;
-}  // namespace network
-
 class Native
 {
 public:

@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CORE_CRYPTO_MKCERT
 #define OPENTXS_CORE_CRYPTO_MKCERT
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
 
