@@ -134,7 +134,7 @@ void OpenDHT::Insert(
         return;
     }
 
-    if (value.size() > MAX_VALUE_SIZE) {
+    if (value.size() > dht::MAX_VALUE_SIZE) {
         otErr << __FUNCTION__ << ": Error: data size exceeds DHT limits."
               << std::endl;
         return;
