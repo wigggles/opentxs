@@ -102,3 +102,23 @@ TEST(Data, compare_not_equal_to_other_different)
     auto other = Data::Factory("zzzz", 4);
     ASSERT_TRUE(one != other);
 }
+
+TEST(Data, copy_from_pimpl)
+{
+    auto one = Data::Factory("abcd", 4);
+    auto other = Data::Factory(one);
+    std::string value(
+        static_cast<const char*>(
+        other->GetPointer()), other->GetSize());
+    ASSERT_EQ(value, "abcd");
+}
+
+TEST(Data, copy_from_interface)
+{
+    auto one = Data::Factory("abcd", 4);
+    auto other = Data::Factory(one.get());
+    std::string value(
+        static_cast<const char*>(
+        other->GetPointer()), other->GetSize());
+    ASSERT_EQ(value, "abcd");
+}
