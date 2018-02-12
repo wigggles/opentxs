@@ -42,6 +42,7 @@
 
 #include "opentxs/api/client/Issuer.hpp"
 #include "opentxs/api/client/Pair.hpp"
+#include "opentxs/api/client/Sync.hpp"
 #include "opentxs/api/network/ZMQ.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
@@ -53,7 +54,6 @@
 #include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
-#include "opentxs/client/OTME_too.hpp"
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/contact/Contact.hpp"
 #include "opentxs/contact/ContactData.hpp"
@@ -4075,35 +4075,46 @@ std::uint8_t SwigWrap::Can_Message(
     const std::string& senderNymID,
     const std::string& recipientContactID)
 {
-    return static_cast<std::uint8_t>(
-        OT::App().API().OTME_TOO().CanMessage(senderNymID, recipientContactID));
+    return static_cast<std::uint8_t>(OT::App().API().Sync().CanMessage(
+        Identifier(senderNymID), Identifier(recipientContactID)));
 }
 
 std::string SwigWrap::Find_Nym(const std::string& nymID)
 {
-    return String(OT::App().API().OTME_TOO().FindNym(nymID, "")).Get();
+    return String(OT::App().API().Sync().FindNym(Identifier(nymID))).Get();
 }
 
 std::string SwigWrap::Find_Nym_Hint(
     const std::string& nymID,
     const std::string& serverID)
 {
-    return String(OT::App().API().OTME_TOO().FindNym(nymID, serverID)).Get();
+    return String(OT::App().API().Sync().FindNym(
+                      Identifier(nymID), Identifier(serverID)))
+        .Get();
 }
 
 std::string SwigWrap::Find_Server(const std::string& serverID)
 {
-    return String(OT::App().API().OTME_TOO().FindServer(serverID)).Get();
+    return String(OT::App().API().Sync().FindServer(Identifier(serverID)))
+        .Get();
 }
 
 std::string SwigWrap::Get_Introduction_Server()
 {
-    return String(OT::App().API().OTME_TOO().GetIntroductionServer()).Get();
+    return String(OT::App().API().Sync().IntroductionServer()).Get();
 }
 
 std::string SwigWrap::Import_Nym(const std::string& armored)
 {
-    return OT::App().API().OTME_TOO().ImportNym(armored);
+    const auto serialized =
+        proto::StringToProto<proto::CredentialIndex>(String(armored.c_str()));
+    const auto nym = OT::App().Wallet().Nym(serialized);
+
+    if (nym) {
+        return String(nym->ID()).Get();
+    }
+
+    return {};
 }
 
 std::string SwigWrap::Message_Contact(
@@ -4111,8 +4122,8 @@ std::string SwigWrap::Message_Contact(
     const std::string& contactID,
     const std::string& message)
 {
-    const auto output = OT::App().API().OTME_TOO().MessageContact(
-        senderNymID, contactID, message);
+    const auto output = OT::App().API().Sync().MessageContact(
+        Identifier(senderNymID), Identifier(contactID), message);
 
     return String(output).Get();
 }
@@ -4173,41 +4184,41 @@ std::string SwigWrap::Paired_Server(
 
 std::uint64_t SwigWrap::Refresh_Counter()
 {
-    return OT::App().API().OTME_TOO().RefreshCount();
+    return OT::App().API().Sync().RefreshCount();
 }
 
-bool SwigWrap::Register_Nym_Public(
+std::string SwigWrap::Register_Nym_Public(
     const std::string& nym,
     const std::string& server)
 {
-    return OT::App().API().OTME_TOO().RegisterNym(nym, server, true);
-}
-
-std::string SwigWrap::Register_Nym_Public_async(
-    const std::string& nym,
-    const std::string& server)
-{
-    const auto taskID =
-        OT::App().API().OTME_TOO().RegisterNym_async(nym, server, true);
+    const auto taskID = OT::App().API().Sync().RegisterNym(
+        Identifier(nym), Identifier(server), true);
 
     return String(taskID).Get();
 }
 
 std::string SwigWrap::Set_Introduction_Server(const std::string& contract)
 {
-    return OT::App().API().OTME_TOO().SetIntroductionServer(contract);
+    const auto serialized =
+        proto::StringToProto<proto::ServerContract>(contract.c_str());
+    const auto instantiated = OT::App().Wallet().Server(serialized);
+
+    if (false == bool(instantiated)) {
+
+        return {};
+    }
+
+    return String(OT::App().API().Sync().SetIntroductionServer(*instantiated))
+        .Get();
 }
 
 std::uint8_t SwigWrap::Task_Status(const std::string& id)
 {
     return static_cast<std::uint8_t>(
-        OT::App().API().OTME_TOO().Status(Identifier(id)));
+        OT::App().API().Sync().Status(Identifier(id)));
 }
 
-void SwigWrap::Trigger_Refresh(const std::string& wallet)
-{
-    OT::App().API().OTME_TOO().Refresh(wallet);
-}
+void SwigWrap::Trigger_Refresh() { OT::App().API().Sync().Refresh(); }
 
 std::shared_ptr<network::zeromq::Context> SwigWrap::ZeroMQ()
 {

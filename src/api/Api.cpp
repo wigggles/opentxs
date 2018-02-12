@@ -49,9 +49,10 @@
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/client/OT_ME.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
-#include "opentxs/client/OTME_too.hpp"
 #include "opentxs/core/crypto/OTCachedKey.hpp"
 #include "opentxs/core/Log.hpp"
+
+#include "client/Sync.hpp"
 
 namespace opentxs::api::implementation
 {
@@ -77,8 +78,9 @@ Api::Api(
     , ot_api_(nullptr)
     , otapi_exec_(nullptr)
     , ot_me_(nullptr)
-    , otme_too_(nullptr)
     , pair_(nullptr)
+    , server_action_(nullptr)
+    , sync_(nullptr)
     , lock_()
 {
     Init();
@@ -87,12 +89,7 @@ Api::Api(
 void Api::Cleanup()
 {
     pair_.reset();
-
-    if (otme_too_) {
-        otme_too_->Shutdown();
-    }
-
-    otme_too_.reset();
+    sync_.reset();
     ot_me_.reset();
     server_action_.reset();
     otapi_exec_.reset();
@@ -146,28 +143,29 @@ void Api::Init()
 
     OT_ASSERT(ot_me_);
 
-    otme_too_.reset(new OTME_too(
+    sync_.reset(new api::client::implementation::Sync(
         lock_,
-        config_,
-        contacts_,
+        shutdown_,
         *ot_api_,
         *otapi_exec_,
-        *ot_me_,
+        contacts_,
+        config_,
         *server_action_,
         wallet_,
-        crypto_.Encode(),
-        identity_));
+        crypto_.Encode()));
 
-    OT_ASSERT(otme_too_);
+    OT_ASSERT(sync_);
 
     pair_.reset(new api::client::implementation::Pair(
         shutdown_,
         lock_,
+        *sync_,
         *server_action_,
         wallet_,
         *ot_api_,
-        *otapi_exec_,
-        *otme_too_));
+        *otapi_exec_));
+
+    OT_ASSERT(pair_);
 }
 
 const OTAPI_Exec& Api::Exec(const std::string&) const
@@ -193,13 +191,6 @@ const OT_ME& Api::OTME(const std::string&) const
     return *ot_me_;
 }
 
-const OTME_too& Api::OTME_TOO(const std::string&) const
-{
-    OT_ASSERT(otme_too_);
-
-    return *otme_too_;
-}
-
 const api::client::Pair& Api::Pair() const
 {
     OT_ASSERT(pair_);
@@ -212,6 +203,13 @@ const api::client::ServerAction& Api::ServerAction() const
     OT_ASSERT(server_action_);
 
     return *server_action_;
+}
+
+const api::client::Sync& Api::Sync() const
+{
+    OT_ASSERT(sync_);
+
+    return *sync_;
 }
 
 Api::~Api() {}

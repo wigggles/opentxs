@@ -13437,15 +13437,38 @@ CommandResult OT_API::registerNym(ServerContext& context) const
     transactionNum = 0;
     status = SendResult::ERROR;
     reply.reset();
-    Message message;
-    requestNum = m_pClient->ProcessUserCommand(
-        MessageType::registerNym, context, message);
+    auto[newRequestNumber, message] =
+        context.InitializeServerCommand(MessageType::registerNym, requestNum);
+    requestNum = newRequestNumber;
 
-    if (0 < requestNum) {
-        result = send_message({}, context, message);
-    } else {
-        otErr << OT_METHOD << __FUNCTION__ << ": Error in "
-              << "m_pClient->ProcessUserCommand()" << std::endl;
+    if (false == bool(message)) {
+
+        return output;
+    }
+
+    const auto& nym = *context.Nym();
+
+    if (nym.GetMasterCredentialCount() < 1) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Invalid nym" << std::endl;
+
+        return output;
+    }
+
+    message->m_ascPayload.SetData(proto::ProtoAsData(nym.asPublicNym()));
+
+    if (false == context.FinalizeServerCommand(*message)) {
+
+        return output;
+    }
+
+    result = send_message({}, context, *message);
+
+    if (SendResult::VALID_REPLY == status) {
+        OT_ASSERT(reply);
+
+        if (reply->m_bSuccess) {
+            context.SetRevision(nym.Revision());
+        }
     }
 
     return output;

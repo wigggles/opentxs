@@ -274,7 +274,7 @@ void Data::swap(Data& rhs)
     std::swap(position_, rhs.position_);
 }
 
-void Data::swap(opentxs::Data&& rhs) { swap(dynamic_cast<Data&&>(rhs)); }
+void Data::swap(opentxs::Data&& rhs) { swap(dynamic_cast<Data&>(rhs)); }
 
 void Data::zeroMemory()
 {

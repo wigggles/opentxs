@@ -517,6 +517,35 @@ ServerAction::Action ServerAction::DownloadNym(
         CHECK_NYM, wallet_, localNymID, serverID, exec_, otapi_, target));
 }
 
+bool ServerAction::DownloadNymbox(
+    const Identifier& localNymID,
+    const Identifier& serverID) const
+{
+    rLock lock(api_lock_);
+    auto context = wallet_.mutable_ServerContext(localNymID, serverID);
+    Utility util(context.It(), otapi_);
+
+    if (0 >= context.It().UpdateRequestNumber()) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Failed calling update request number" << std::endl;
+
+        return false;
+    }
+
+    bool msgWasSent{false};
+    const auto download = util.getAndProcessNymbox_4(
+        String(serverID).Get(), String(localNymID).Get(), msgWasSent, false);
+
+    if (0 > download) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to retrieve nymbox."
+              << std::endl;
+
+        return false;
+    }
+
+    return true;
+}
+
 ServerAction::Action ServerAction::DownloadNymMarketOffers(
     const Identifier& localNymID,
     const Identifier& serverID) const

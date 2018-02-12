@@ -117,6 +117,7 @@ ServerContext::ServerContext(
     , admin_password_("")
     , admin_attempted_(false)
     , admin_success_(false)
+    , revision_(0)
     , highest_transaction_number_(0)
     , tentative_transaction_numbers_()
 {
@@ -138,6 +139,7 @@ ServerContext::ServerContext(
     , admin_password_(serialized.servercontext().adminpassword())
     , admin_attempted_(serialized.servercontext().adminattempted())
     , admin_success_(serialized.servercontext().adminsuccess())
+    , revision_(serialized.servercontext().revision())
     , highest_transaction_number_(
           serialized.servercontext().highesttransactionnumber())
     , tentative_transaction_numbers_()
@@ -523,30 +525,7 @@ void ServerContext::scan_number_set(
     }
 }
 
-bool ServerContext::ShouldRename(const std::string& defaultName) const
-{
-    const auto& name = defaultName.empty() ? default_node_name_ : defaultName;
-
-    if (false == admin_success_.load()) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Do not have admin permission."
-              << std::endl;
-
-        return false;
-    }
-
-    // TODO pass wallet singleton into constructor and hold as a reference
-    // member variable
-    auto contract = OT::App().Wallet().Server(server_id_);
-
-    if (false == bool(contract)) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Missing server contract."
-              << std::endl;
-
-        return false;
-    }
-
-    return (contract->Alias() == name);
-}
+std::uint64_t ServerContext::Revision() const { return revision_.load(); }
 
 proto::Context ServerContext::serialize(const Lock& lock) const
 {
@@ -561,6 +540,11 @@ proto::Context ServerContext::serialize(const Lock& lock) const
     for (const auto& it : tentative_transaction_numbers_) {
         server.add_tentativerequestnumber(it);
     }
+
+    server.set_revision(revision_.load());
+    server.set_adminpassword(admin_password_);
+    server.set_adminattempted(admin_attempted_.load());
+    server.set_adminsuccess(admin_success_.load());
 
     return output;
 }
@@ -590,6 +574,18 @@ bool ServerContext::SetHighest(const TransactionNumber& highest)
     }
 
     return false;
+}
+
+void ServerContext::SetRevision(const std::uint64_t revision)
+{
+    revision_.store(revision);
+}
+
+bool ServerContext::StaleNym() const
+{
+    OT_ASSERT(nym_);
+
+    return revision_.load() > nym_->Revision();
 }
 
 std::unique_ptr<Item> ServerContext::Statement(const OTTransaction& owner) const
@@ -671,6 +667,31 @@ std::unique_ptr<TransactionStatement> ServerContext::Statement(
     Lock lock(lock_);
 
     return generate_statement(lock, adding, without);
+}
+
+bool ServerContext::ShouldRename(const std::string& defaultName) const
+{
+    const auto& name = defaultName.empty() ? default_node_name_ : defaultName;
+
+    if (false == admin_success_.load()) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Do not have admin permission."
+              << std::endl;
+
+        return false;
+    }
+
+    // TODO pass wallet singleton into constructor and hold as a reference
+    // member variable
+    auto contract = OT::App().Wallet().Server(server_id_);
+
+    if (false == bool(contract)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Missing server contract."
+              << std::endl;
+
+        return false;
+    }
+
+    return (contract->Alias() == name);
 }
 
 proto::ConsensusType ServerContext::Type() const

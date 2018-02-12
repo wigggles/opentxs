@@ -41,10 +41,10 @@
 #include "opentxs/api/client/implementation/Pair.hpp"
 #include "opentxs/api/client/Issuer.hpp"
 #include "opentxs/api/client/ServerAction.hpp"
+#include "opentxs/api/client/Sync.hpp"
 #include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
-#include "opentxs/client/OTME_too.hpp"
 #include "opentxs/client/ServerAction.hpp"
 #include "opentxs/contact/ContactData.hpp"
 #include "opentxs/contact/ContactGroup.hpp"
@@ -73,17 +73,17 @@ Pair::Cleanup::~Cleanup() { run_.store(false); }
 Pair::Pair(
     const std::atomic<bool>& shutdown,
     std::recursive_mutex& apiLock,
+    const api::client::Sync& sync,
     const client::ServerAction& action,
     const client::Wallet& wallet,
     const opentxs::OT_API& otapi,
-    const opentxs::OTAPI_Exec& exec,
-    const opentxs::OTME_too& meToo)
+    const opentxs::OTAPI_Exec& exec)
     : shutdown_(shutdown)
+    , sync_(sync)
     , action_(action)
     , wallet_(wallet)
     , ot_api_(otapi)
     , exec_(exec)
-    , me_too_(meToo)
     , api_lock_(apiLock)
     , status_lock_()
     , pairing_(false)
@@ -149,7 +149,7 @@ void Pair::check_pairing() const
 void Pair::check_refresh() const
 {
     while (false == shutdown_.load()) {
-        const auto current = me_too_.RefreshCount();
+        const auto current = sync_.RefreshCount();
         const auto previous = last_refresh_.exchange(current);
 
         if (previous != current) {
@@ -536,9 +536,8 @@ void Pair::queue_nym_download(
     const Identifier& localNymID,
     const Identifier& targetNymID) const
 {
-    auto& metoo = me_too_;
-    metoo.RegisterIntroduction(localNymID);
-    metoo.FindNym(String(targetNymID).Get(), "");
+    sync_.ScheduleDownloadNymbox(localNymID, sync_.IntroductionServer());
+    sync_.FindNym(targetNymID);
 }
 
 void Pair::queue_nym_registration(
@@ -546,26 +545,15 @@ void Pair::queue_nym_registration(
     const Identifier& serverID,
     const bool setData) const
 {
-    me_too_.RegisterNym_async(
-        String(nymID).Get(), String(serverID).Get(), setData);
+    sync_.RegisterNym(nymID, serverID, setData);
 }
 
 void Pair::queue_server_contract(
     const Identifier& nymID,
     const Identifier& serverID) const
 {
-    const auto& intro = me_too_.GetIntroductionServer();
-
-    if (intro.empty()) {
-        otErr << OT_METHOD << __FUNCTION__
-              << ": Introduction server unavailable" << std::endl;
-
-        return;
-    }
-
-    rLock lock(api_lock_);
-    auto action = action_.DownloadContract(nymID, intro, serverID);
-    action->Run();
+    sync_.ScheduleDownloadNymbox(nymID, sync_.IntroductionServer());
+    sync_.FindServer(serverID);
 }
 
 void Pair::queue_unit_definition(
@@ -573,19 +561,8 @@ void Pair::queue_unit_definition(
     const Identifier& serverID,
     const Identifier& unitID) const
 {
-    const auto server = wallet_.Server(serverID);
-
-    if (false == bool(server)) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Server contract unavailable"
-              << std::endl;
-        queue_server_contract(nymID, serverID);
-
-        return;
-    }
-
-    rLock lock(api_lock_);
-    auto action = action_.DownloadContract(nymID, serverID, unitID);
-    action->Run();
+    sync_.ScheduleDownloadNymbox(nymID, sync_.IntroductionServer());
+    sync_.ScheduleDownloadContract(nymID, serverID, unitID);
 }
 
 std::pair<bool, Identifier> Pair::register_account(

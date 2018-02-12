@@ -52,6 +52,7 @@ namespace client
 class Issuer;
 class Pair;
 class ServerAction;
+class Sync;
 class Wallet;
 }  // namespace opentxs::api::client
 
@@ -83,12 +84,12 @@ class Identity;
 class Native;
 class Server;
 class Settings;
-class Wallet;
 }  // namespace opentxs::api
 
 namespace client
 {
 class ServerAction;
+class Wallet;
 }  // namespace opentxs::client
 
 namespace network

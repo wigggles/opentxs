@@ -158,9 +158,6 @@ public:
         const Identifier& localNymID,
         const Identifier& serverID,
         const Identifier& marketID) const override;
-    Action DownloadNymMarketOffers(
-        const Identifier& localNymID,
-        const Identifier& serverID) const override;
 #if OT_CASH
     Action DownloadMint(
         const Identifier& localNymID,
@@ -171,6 +168,12 @@ public:
         const Identifier& localNymID,
         const Identifier& serverID,
         const Identifier& targetNymID) const override;
+    bool DownloadNymbox(
+        const Identifier& localNymID,
+        const Identifier& serverID) const override;
+    Action DownloadNymMarketOffers(
+        const Identifier& localNymID,
+        const Identifier& serverID) const override;
     Action ExchangeBasketCurrency(
         const Identifier& localNymID,
         const Identifier& serverID,
