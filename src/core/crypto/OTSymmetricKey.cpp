@@ -397,7 +397,7 @@ OTPassword* OTSymmetricKey::calculate_derived_key_from_passphrase(
 {
     OT_ASSERT(verify_lock(lock))
 
-    auto tmpDataHashCheck = hash_check_;
+    auto tmpDataHashCheck = Data::Factory(hash_check_.get());
 
     if (bCheckForHashCheck) {
         if (!HasHashCheck()) {
@@ -405,7 +405,8 @@ OTPassword* OTSymmetricKey::calculate_derived_key_from_passphrase(
                                      "hash check is missing!";
             OT_FAIL;
         }
-        OT_ASSERT(!tmpDataHashCheck->IsEmpty());
+        OT_ASSERT(false == hash_check_->empty());
+        OT_ASSERT(false == tmpDataHashCheck->empty());
     } else {
         if (!HasHashCheck()) {
             otOut << __FUNCTION__ << ": Warning!! No hash check, ignoring... "

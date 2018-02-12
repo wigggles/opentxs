@@ -54,7 +54,7 @@ OTData Data::Factory() { return OTData(new implementation::Data()); }
 
 OTData Data::Factory(const Data& rhs)
 {
-    return OTData(new implementation::Data(rhs));
+    return OTData(new implementation::Data(rhs.GetPointer(), rhs.GetSize()));
 }
 
 OTData Data::Factory(const void* data, std::size_t size)
