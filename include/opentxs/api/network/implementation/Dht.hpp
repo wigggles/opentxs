@@ -65,6 +65,9 @@ public:
     void Insert(const proto::CredentialIndex& nym) const override;
     void Insert(const proto::ServerContract& contract) const override;
     void Insert(const proto::UnitDefinition& contract) const override;
+#if OT_DHT
+    const opentxs::network::OpenDHT& OpenDHT() const override;
+#endif
     void RegisterCallbacks(const CallbackMap& callbacks) const override;
 
     ~Dht();

@@ -158,6 +158,8 @@ void Dht::GetUnitDefinition(__attribute__((unused))
 }
 
 #if OT_DHT
+const opentxs::network::OpenDHT& Dht::OpenDHT() const { return *node_; }
+
 bool Dht::ProcessPublicNym(
     const api::client::Wallet& wallet,
     const std::string key,
