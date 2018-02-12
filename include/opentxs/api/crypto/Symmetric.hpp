@@ -39,7 +39,7 @@
 #ifndef OPENTXS_API_CRYPTO_SYMMETRIC_HPP
 #define OPENTXS_API_CRYPTO_SYMMETRIC_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include "opentxs/Proto.hpp"
 
@@ -47,11 +47,6 @@
 
 namespace opentxs
 {
-
-class SymmetricKey;
-class OTPassword;
-class OTPasswordData;
-
 namespace api
 {
 namespace crypto

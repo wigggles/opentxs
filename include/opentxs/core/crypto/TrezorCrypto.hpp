@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CORE_CRYPTO_TREZOR_CRYPTO_HPP
 #define OPENTXS_CORE_CRYPTO_TREZOR_CRYPTO_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #if OT_CRYPTO_USING_TREZOR
 #if OT_CRYPTO_WITH_BIP32

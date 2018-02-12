@@ -39,7 +39,7 @@
 #ifndef OPENTXS_NETWORK_ZEROMQ_REPLYSOCKET_HPP
 #define OPENTXS_NETWORK_ZEROMQ_REPLYSOCKET_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include "opentxs/network/zeromq/Socket.hpp"
 
@@ -47,14 +47,10 @@
 
 namespace opentxs
 {
-class Data;
-class OTPassword;
-
 namespace network
 {
 namespace zeromq
 {
-class Message;
 
 #ifdef SWIG
 // clang-format off

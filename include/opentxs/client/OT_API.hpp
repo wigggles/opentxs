@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CLIENT_OPENTRANSACTIONS_HPP
 #define OPENTXS_CLIENT_OPENTRANSACTIONS_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/consensus/ServerContext.hpp"

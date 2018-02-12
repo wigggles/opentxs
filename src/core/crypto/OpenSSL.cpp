@@ -348,8 +348,8 @@ OTPassword* OpenSSL::DeriveNewKey(
     // For The HashCheck
     const bool bHaveCheckHash = !dataCheckHash.IsEmpty();
 
-    Data tmpHashCheck;
-    tmpHashCheck.SetSize(CryptoConfig::SymmetricKeySize());
+    auto tmpHashCheck = Data::Factory();
+    tmpHashCheck->SetSize(CryptoConfig::SymmetricKeySize());
 
     // We take the DerivedKey, and hash it again, then get a 'hash-check'
     // Compare that with the supplied one, (if there is one).
@@ -361,9 +361,9 @@ OTPassword* OpenSSL::DeriveNewKey(
         static_cast<const std::uint8_t*>(dataSalt.GetPointer()),
         static_cast<const std::int32_t>(dataSalt.GetSize()),
         static_cast<const std::int32_t>(uIterations),
-        static_cast<const std::int32_t>(tmpHashCheck.GetSize()),
+        static_cast<const std::int32_t>(tmpHashCheck->GetSize()),
         const_cast<std::uint8_t*>(
-            static_cast<const std::uint8_t*>(tmpHashCheck.GetPointer())));
+            static_cast<const std::uint8_t*>(tmpHashCheck->GetPointer())));
 
     if (bHaveCheckHash) {
         String strDataCheck, strTestCheck;
@@ -371,8 +371,8 @@ OTPassword* OpenSSL::DeriveNewKey(
             static_cast<const char*>(dataCheckHash.GetPointer()),
             dataCheckHash.GetSize());
         strTestCheck.Set(
-            static_cast<const char*>(tmpHashCheck.GetPointer()),
-            tmpHashCheck.GetSize());
+            static_cast<const char*>(tmpHashCheck->GetPointer()),
+            tmpHashCheck->GetSize());
 
         if (!strDataCheck.Compare(strTestCheck)) {
             otWarn << __FUNCTION__ << ": Incorrect password provided.\n"
@@ -383,7 +383,7 @@ OTPassword* OpenSSL::DeriveNewKey(
         }
     }
 
-    dataCheckHash = tmpHashCheck;
+    dataCheckHash.Assign(tmpHashCheck->GetPointer(), tmpHashCheck->GetSize());
 
     return pDerivedKey.release();
 }
@@ -622,13 +622,13 @@ void OpenSSL::Init_Override() const
     otWarn << __FUNCTION__ << ": Setting up OpenSSL:  SSL_library_init, error "
                               "strings and algorithms, and OpenSSL config...\n";
 
-    static bool bNotAlreadyInitialized = true;
+    static bool Initialized = false;
 
-    OT_ASSERT_MSG(
-        bNotAlreadyInitialized,
-        "OpenSSL::Init_Override: Tried to initialize twice.");
+    if (Initialized) {
+        return;
+    }
 
-    bNotAlreadyInitialized = false;
+    Initialized = true;
 
 /*
  OPENSSL_VERSION_NUMBER is a numeric release version identifier:
@@ -811,29 +811,25 @@ void OpenSSL::Init_Override() const
 // RAND
 //
 /*
- RAND_bytes() automatically calls RAND_poll() if it has not already been done at
- least once.
- So you do not have to call it yourself. RAND_poll() feeds on what the operating
- system provides:
- on Linux, Solaris, FreeBSD and similar Unix-like systems, it will use
- /dev/urandom (or /dev/random
- if there is no /dev/urandom) to obtain a cryptographically secure initial seed;
- on Windows, it will
- call CryptGenRandom() for the same effect.
+ RAND_bytes() automatically calls RAND_poll() if it has not already been
+ done at least once. So you do not have to call it yourself. RAND_poll()
+ feeds on what the operating system provides: on Linux, Solaris, FreeBSD and
+ similar Unix-like systems, it will use /dev/urandom (or /dev/random if
+ there is no /dev/urandom) to obtain a cryptographically secure initial
+ seed; on Windows, it will call CryptGenRandom() for the same effect.
 
  RAND_screen() is provided by OpenSSL only for backward compatibility with
  (much) older code which
- may call it (that was before OpenSSL used proper OS-based seed initialization).
+ may call it (that was before OpenSSL used proper OS-based seed
+ initialization).
 
- So the "normal" way of dealing with RAND_poll() and RAND_screen() is to call
- neither. Just use RAND_bytes()
- and be happy.
+ So the "normal" way of dealing with RAND_poll() and RAND_screen() is to
+ call neither. Just use RAND_bytes() and be happy.
 
- RESPONSE: Thanks for the detailed answer. In regards to your suggestion to call
- neither, the problem
- under Windows is that RAND_poll can take some time and will block our UI. So we
- call it upon initialization,
- which works for us.
+ RESPONSE: Thanks for the detailed answer. In regards to your suggestion to
+ call neither, the problem under Windows is that RAND_poll can take some
+ time and will block our UI. So we call it upon initialization, which works
+ for us.
  */
 // I guess Windows will seed the PRNG whenever someone tries to get
 // some RAND_bytes() the first time...
@@ -842,11 +838,10 @@ void OpenSSL::Init_Override() const
 // CORRESPONDS to RAND_cleanup in OT_Cleanup().
 //      RAND_screen();
 //#else
-// note: optimization: might want to remove this, since supposedly it happens
-// anyway
-// when you use RAND_bytes. So the "lazy evaluation" rule would seem to imply,
-// not bothering
-// to slow things down NOW, since it's not really needed until THEN.
+// note: optimization: might want to remove this, since supposedly it
+// happens anyway when you use RAND_bytes. So the "lazy evaluation" rule
+// would seem to imply, not bothering to slow things down NOW, since it's
+// not really needed until THEN.
 //
 
 #if defined(USE_RAND_POLL)
@@ -1110,7 +1105,7 @@ bool OpenSSL::Encrypt(
     uint32_t plaintextLength,
     Data& ciphertext) const
 {
-    Data unusedIV;
+    auto unusedIV = Data::Factory();
 
     return Encrypt(
         cipher, key, unusedIV, plaintext, plaintextLength, ciphertext);
@@ -1124,7 +1119,7 @@ bool OpenSSL::Encrypt(
     uint32_t plaintextLength,
     Data& ciphertext) const
 {
-    Data unusedTag;
+    auto unusedTag = Data::Factory();
 
     return Encrypt(
         cipher, key, iv, plaintext, plaintextLength, ciphertext, unusedTag);
@@ -1396,7 +1391,7 @@ bool OpenSSL::Decrypt(
     uint32_t ciphertextLength,
     CryptoSymmetricDecryptOutput& plaintext) const
 {
-    Data unusedIV;
+    auto unusedIV = Data::Factory();
 
     return Decrypt(
         cipher, key, unusedIV, ciphertext, ciphertextLength, plaintext);
@@ -1410,7 +1405,7 @@ bool OpenSSL::Decrypt(
     const uint32_t ciphertextLength,
     CryptoSymmetricDecryptOutput& plaintext) const
 {
-    Data unusedTag;
+    auto unusedTag = Data::Factory();
 
     return Decrypt(
         cipher, key, iv, unusedTag, ciphertext, ciphertextLength, plaintext);
@@ -1801,7 +1796,7 @@ bool OpenSSL::OpenSSLdp::SignContractDefaultHash(
     // 32 bytes, double sha256
     // This stores the message digest, pre-encrypted, but with the padding
     // added.
-    Data hash;
+    auto hash = Data::Factory();
     OT::App().Crypto().Hash().Digest(
         proto::HASHTYPE_SHA256, strContractUnsigned, hash);
 
@@ -1867,7 +1862,7 @@ bool OpenSSL::OpenSSLdp::SignContractDefaultHash(
     int32_t status = RSA_padding_add_PKCS1_PSS(
         pRsaKey,
         &vEM.at(0),
-        static_cast<const unsigned char*>(hash.GetPointer()),
+        static_cast<const unsigned char*>(hash->GetPointer()),
         md_sha256,
         -2);  // maximum salt length
 
@@ -1936,13 +1931,14 @@ bool OpenSSL::OpenSSLdp::SignContractDefaultHash(
     }
     // status contains size
 
-    Data binSignature(&vpSignature.at(0), status);  // RSA_private_encrypt
-                                                    // actually returns the
-                                                    // right size.
+    // RSA_private_encrypt actually returns the right size.
+    const auto binSignature = Data::Factory(&vpSignature.at(0), status);
+    theSignature.Assign(binSignature->GetPointer(), binSignature->GetSize());
 
-    theSignature = binSignature;
+    if (pRsaKey) {
+        RSA_free(pRsaKey);
+    }
 
-    if (pRsaKey) RSA_free(pRsaKey);
     pRsaKey = nullptr;
 
     return true;
@@ -1957,7 +1953,7 @@ bool OpenSSL::OpenSSLdp::VerifyContractDefaultHash(
     const char* szFunc = "OpenSSL::VerifyContractDefaultHash";
 
     // 32 bytes, double sha256
-    Data hash;
+    auto hash = Data::Factory();
     OT::App().Crypto().Hash().Digest(
         proto::HASHTYPE_SHA256, strContractToVerify, hash);
 
@@ -2061,7 +2057,7 @@ bool OpenSSL::OpenSSLdp::VerifyContractDefaultHash(
     const EVP_MD* md_sha256 = EVP_sha256();
     status = RSA_verify_PKCS1_PSS(
         pRsaKey,
-        static_cast<const unsigned char*>(hash.GetPointer()),
+        static_cast<const unsigned char*>(hash->GetPointer()),
         md_sha256,
         &vDecrypted.at(0),
         -2);  // salt length recovered from signature
@@ -2596,9 +2592,7 @@ bool OpenSSL::OpenSSLdp::SignContract(
 
         // We put the signature data into the signature object that
         // was passed in for that purpose.
-        Data tempData;
-        tempData.Assign(sig_buf, sig_len);
-        theSignature = tempData;
+        theSignature.Assign(sig_buf, sig_len);
 
         return true;
     }
@@ -3500,7 +3494,7 @@ bool OpenSSL::DecryptSessionKey(
     // IF we find the one we are looking for, then we set it onto this variable,
     // theRawEncryptedKey, so we have it available below this loop.
     //
-    Data theRawEncryptedKey;
+    auto theRawEncryptedKey = Data::Factory();
     bool bFoundKeyAlready =
         false;  // If we find it during the loop below, we'll set this to true.
 
@@ -3677,7 +3671,7 @@ bool OpenSSL::DecryptSessionKey(
                 {
                     bFoundKeyAlready = true;
 
-                    theRawEncryptedKey.Assign(static_cast<void*>(ek), eklen);
+                    theRawEncryptedKey->Assign(static_cast<void*>(ek), eklen);
                     //                  theRawEncryptedKey.Assign(const_cast<const
                     // void *>(static_cast<void *>(ek)), eklen);
                 }
@@ -3767,7 +3761,7 @@ bool OpenSSL::DecryptSessionKey(
     // the size of the ciphertext, meanwhile, is the size of the entire thing,
     // MINUS nRunningTotal.
     //
-    Data ciphertext(
+    auto ciphertext = Data::Factory(
         static_cast<const void*>(
             static_cast<const uint8_t*>(dataInput.GetPointer()) +
             nRunningTotal),
@@ -3792,8 +3786,8 @@ bool OpenSSL::DecryptSessionKey(
             context,
 #endif
             cipher_type,
-            static_cast<const uint8_t*>(theRawEncryptedKey.GetPointer()),
-            static_cast<int32_t>(theRawEncryptedKey.GetSize()),
+            static_cast<const uint8_t*>(theRawEncryptedKey->GetPointer()),
+            static_cast<int32_t>(theRawEncryptedKey->GetSize()),
             static_cast<const uint8_t*>(iv),
             private_key)) {
 
@@ -3810,7 +3804,7 @@ bool OpenSSL::DecryptSessionKey(
     // Now we process ciphertext and write the decrypted data to plaintext.
     // We loop through the ciphertext and process it in blocks...
     //
-    while (0 < (len = ciphertext.OTfread(
+    while (0 < (len = ciphertext->OTfread(
                     reinterpret_cast<uint8_t*>(buffer),
                     static_cast<uint32_t>(sizeof(buffer))))) {
 #if OPENSSL_VERSION_NUMBER < 0x10100000L

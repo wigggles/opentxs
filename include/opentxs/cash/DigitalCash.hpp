@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CASH_DIGITALCASH_HPP
 #define OPENTXS_CASH_DIGITALCASH_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #if OT_CASH
 // WHICH DIGITAL CASH LIBRARY?

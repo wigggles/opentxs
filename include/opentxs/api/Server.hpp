@@ -39,7 +39,8 @@
 #ifndef OPENTXS_API_SERVER_HPP
 #define OPENTXS_API_SERVER_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
+
 #include "opentxs/OT.hpp"
 
 #include <cstdint>
@@ -47,14 +48,8 @@
 
 namespace opentxs
 {
-class Identifier;
-#if OT_CASH
-class Mint;
-#endif  // OT_CASH
-
 namespace api
 {
-
 class Server
 {
 public:

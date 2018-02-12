@@ -58,6 +58,9 @@ namespace opentxs
 
 ServerContract::ServerContract(const ConstNym& nym)
     : ot_super(nym)
+    , listen_params_()
+    , name_()
+    , transport_key_(Data::Factory())
 {
 }
 
@@ -84,7 +87,7 @@ ServerContract::ServerContract(
     }
 
     name_ = serialized.name();
-    transport_key_.Assign(
+    transport_key_->Assign(
         serialized.transportkey().c_str(), serialized.transportkey().size());
 }
 
@@ -159,7 +162,7 @@ Identifier ServerContract::GetID(const Lock& lock) const
 {
     auto contract = IDVersion(lock);
     Identifier id;
-    id.CalculateDigest(proto::ProtoAsData<proto::ServerContract>(contract));
+    id.CalculateDigest(proto::ProtoAsData(contract));
     return id;
 }
 
@@ -244,7 +247,7 @@ proto::ServerContract ServerContract::IDVersion(const Lock& lock) const
 
     contract.set_terms(conditions_);
     contract.set_transportkey(
-        transport_key_.GetPointer(), transport_key_.GetSize());
+        transport_key_->GetPointer(), transport_key_->GetSize());
 
     return contract;
 }
@@ -292,14 +295,17 @@ bool ServerContract::Statistics(String& strContents) const
     return true;
 }
 
-Data ServerContract::Serialize() const
+OTData ServerContract::Serialize() const
 {
     Lock lock(lock_);
 
     return proto::ProtoAsData(contract(lock));
 }
 
-const Data& ServerContract::TransportKey() const { return transport_key_; }
+const Data& ServerContract::TransportKey() const
+{
+    return transport_key_.get();
+}
 
 std::unique_ptr<OTPassword> ServerContract::TransportKey(Data& pubkey) const
 {

@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CORE_DATA_HPP
 #define OPENTXS_CORE_DATA_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include <cstdint>
 #include <string>
@@ -47,55 +47,50 @@
 
 namespace opentxs
 {
-
-class OTASCIIArmor;
-
 class Data
 {
-private:
-    typedef std::vector<std::uint8_t> Vector;
-
-    Vector data_{};
-    std::size_t position_{};
-
-    void concatenate(const Vector& data);
-
-protected:
-    void Initialize();
-    void swap(Data& rhs);
-
 public:
-    EXPORT Data() = default;
-    EXPORT explicit Data(const void* data, std::size_t size);
-    EXPORT explicit Data(const OTASCIIArmor& source);
-    EXPORT explicit Data(const std::vector<unsigned char>& sourceVector);
-    EXPORT Data(const Data& rhs);
-    EXPORT Data(Data&& rhs);
-    EXPORT Data& operator=(const Data& rhs);
-    EXPORT Data& operator=(Data&& rhs);
+    EXPORT static OTData Factory();
+    EXPORT static OTData Factory(const Data& rhs);
+    EXPORT static OTData Factory(const void* data, std::size_t size);
+    EXPORT static OTData Factory(const OTASCIIArmor& source);
+    EXPORT static OTData Factory(const std::vector<unsigned char>& source);
 
-    EXPORT bool operator==(const Data& rhs) const;
-    EXPORT bool operator!=(const Data& rhs) const;
-    EXPORT Data& operator+=(const Data& rhs);
+    EXPORT virtual bool operator==(const Data& rhs) const = 0;
+    EXPORT virtual bool operator!=(const Data& rhs) const = 0;
+    EXPORT virtual std::string asHex() const = 0;
+    EXPORT virtual Data* clone() const = 0;
+    EXPORT virtual bool empty() const = 0;
+    EXPORT virtual const void* GetPointer() const = 0;
+    EXPORT virtual std::size_t GetSize() const = 0;
+    EXPORT virtual bool IsEmpty() const[[deprecated]] = 0;
 
-    EXPORT std::string asHex() const;
-    EXPORT bool empty() const;
-    EXPORT bool IsEmpty() const;
-    EXPORT const void* GetPointer() const;
-    EXPORT std::size_t GetSize() const;
-
-    EXPORT void Assign(const Data& source);
-    EXPORT void Assign(const void* data, const std::size_t& size);
-    EXPORT void Concatenate(const void* data, const std::size_t& size);
-    EXPORT std::size_t OTfread(std::uint8_t* data, const std::size_t& size);
-    EXPORT bool Randomize(const std::size_t& size);
-    EXPORT void Release();
-    EXPORT void reset();
-    EXPORT void SetSize(const std::size_t& size);
-    EXPORT void swap(Data&& rhs);
-    EXPORT void zeroMemory();
+    EXPORT virtual Data& operator+=(const Data& rhs) = 0;
+    EXPORT virtual void Assign(const Data& source) = 0;
+    EXPORT virtual void Assign(const void* data, const std::size_t& size) = 0;
+    EXPORT virtual void Concatenate(
+        const void* data,
+        const std::size_t& size) = 0;
+    EXPORT virtual std::size_t OTfread(
+        std::uint8_t* data,
+        const std::size_t& size) = 0;
+    EXPORT virtual bool Randomize(const std::size_t& size) = 0;
+    EXPORT virtual void Release() = 0;
+    EXPORT virtual void reset() = 0;
+    EXPORT virtual void SetSize(const std::size_t& size) = 0;
+    EXPORT virtual void swap(Data&& rhs) = 0;
+    EXPORT virtual void zeroMemory() = 0;
 
     EXPORT virtual ~Data() = default;
+
+protected:
+    Data() = default;
+
+private:
+    Data(const Data& rhs) = delete;
+    Data(Data&& rhs) = delete;
+    Data& operator=(const Data& rhs) = delete;
+    Data& operator=(Data&& rhs) = delete;
 };
 }  // namespace opentxs
 

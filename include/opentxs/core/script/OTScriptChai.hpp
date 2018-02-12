@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CORE_SCRIPT_OTSCRIPTCHAI_HPP
 #define OPENTXS_CORE_SCRIPT_OTSCRIPTCHAI_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #if OT_SCRIPT_CHAI
 #include "opentxs/core/script/OTScript.hpp"

@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CORE_API_IMPLEMENTATION_NATIVE_HPP
 #define OPENTXS_CORE_API_IMPLEMENTATION_NATIVE_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Internal.hpp"
 
 #include "opentxs/api/Native.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
@@ -59,20 +59,6 @@
 
 namespace opentxs
 {
-class OT;
-class Signals;
-class StorageConfig;
-class String;
-class SymmetricKey;
-
-namespace network
-{
-namespace zeromq
-{
-class Context;
-}  // namespace zeromq
-}  // namespace network
-
 namespace api
 {
 namespace implementation

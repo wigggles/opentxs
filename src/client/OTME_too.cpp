@@ -337,8 +337,7 @@ Identifier OTME_too::add_background_thread(BackgroundThread thread) const
     }
 
     std::unique_lock<std::mutex> lock(thread_lock_);
-
-    Data nonce;
+    auto nonce = Data::Factory();
     encoding_.Nonce(32, nonce);
     output.CalculateDigest(nonce);
     auto& item = threads_[output];

@@ -39,7 +39,7 @@
 #ifndef OPENTXS_API_IMPLEMENTATION_DHT_HPP
 #define OPENTXS_API_IMPLEMENTATION_DHT_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Internal.hpp"
 
 #include "opentxs/api/network/Dht.hpp"
 #include "opentxs/Types.hpp"
@@ -48,30 +48,12 @@
 
 namespace opentxs
 {
-
-class Credential;
-class DhtConfig;
-class OpenDHT;
-class ServerContract;
-class UnitDefinition;
-
 namespace api
 {
-namespace client
-{
-class Wallet;
-}  // namespace client
-
-namespace implementation
-{
-class Native;
-}  // namespace implementation
-
 namespace network
 {
 namespace implementation
 {
-
 class Dht : virtual public opentxs::api::network::Dht
 {
 public:
@@ -83,16 +65,21 @@ public:
     void Insert(const proto::CredentialIndex& nym) const override;
     void Insert(const proto::ServerContract& contract) const override;
     void Insert(const proto::UnitDefinition& contract) const override;
+#if OT_DHT
+    const opentxs::network::OpenDHT& OpenDHT() const override;
+#endif
     void RegisterCallbacks(const CallbackMap& callbacks) const override;
+
+    ~Dht();
 
 private:
     friend class api::implementation::Native;
 
     const api::client::Wallet& wallet_;
-    mutable CallbackMap callback_map_;
-    std::unique_ptr<const DhtConfig> config_;
+    mutable CallbackMap callback_map_{};
+    std::unique_ptr<const DhtConfig> config_{nullptr};
 #if OT_DHT
-    std::unique_ptr<OpenDHT> node_;
+    std::unique_ptr<opentxs::network::OpenDHT> node_{nullptr};
 #endif
 
 #if OT_DHT
@@ -116,7 +103,9 @@ private:
     explicit Dht(DhtConfig& config, const api::client::Wallet& wallet);
     Dht() = delete;
     Dht(const Dht&) = delete;
+    Dht(Dht&&) = delete;
     Dht& operator=(const Dht&) = delete;
+    Dht& operator=(Dht&&) = delete;
 };
 }  // namespace implementation
 }  // namespace network

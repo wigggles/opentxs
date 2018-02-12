@@ -39,9 +39,8 @@
 #ifndef OPENTXS_CORE_SIGNABLE_HPP
 #define OPENTXS_CORE_SIGNABLE_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
-#include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/Proto.hpp"
 
@@ -53,11 +52,8 @@
 
 namespace opentxs
 {
-
 typedef std::shared_ptr<const class Nym> ConstNym;
 typedef std::shared_ptr<proto::Signature> SerializedSignature;
-
-class Nym;
 
 class Signable
 {
@@ -107,7 +103,7 @@ public:
     virtual std::string Name() const = 0;
     ConstNym Nym() const;
     virtual const std::string& Terms() const;
-    virtual Data Serialize() const = 0;
+    virtual OTData Serialize() const = 0;
     bool Validate() const;
 
     virtual void SetAlias(const std::string& alias);

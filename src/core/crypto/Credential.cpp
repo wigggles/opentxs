@@ -357,7 +357,7 @@ Identifier Credential::GetID(const Lock& lock) const
         idVersion->clear_id();
     }
 
-    Data serializedData = proto::ProtoAsData<proto::Credential>(*idVersion);
+    auto serializedData = proto::ProtoAsData(*idVersion);
     Identifier id;
 
     if (!id.CalculateDigest(serializedData)) {
@@ -514,7 +514,7 @@ bool Credential::Save() const
     return true;
 }
 
-Data Credential::Serialize() const
+OTData Credential::Serialize() const
 {
     serializedCredential serialized =
         Serialized(Private() ? AS_PRIVATE : AS_PUBLIC, WITH_SIGNATURES);
@@ -525,14 +525,11 @@ Data Credential::Serialize() const
 std::string Credential::asString(const bool asPrivate) const
 {
     serializedCredential credenial;
-    Data dataCredential;
+    auto dataCredential = Data::Factory();
     String stringCredential;
-
     credenial = Serialized(asPrivate, WITH_SIGNATURES);
     dataCredential = proto::ProtoAsData<proto::Credential>(*credenial);
-
     OTASCIIArmor armoredCredential(dataCredential);
-
     armoredCredential.WriteArmoredString(stringCredential, "Credential");
 
     return stringCredential.Get();
@@ -545,6 +542,7 @@ serializedCredential Credential::ExtractArmoredCredential(
     OTASCIIArmor armoredCredential;
     String strTemp(stringCredential);
     armoredCredential.LoadFromString(strTemp);
+
     return ExtractArmoredCredential(armoredCredential);
 }
 
@@ -552,12 +550,10 @@ serializedCredential Credential::ExtractArmoredCredential(
 serializedCredential Credential::ExtractArmoredCredential(
     const OTASCIIArmor& armoredCredential)
 {
-    Data dataCredential(armoredCredential);
-
+    auto dataCredential = Data::Factory(armoredCredential);
     serializedCredential serializedCred = std::make_shared<proto::Credential>();
-
     serializedCred->ParseFromArray(
-        dataCredential.GetPointer(), dataCredential.GetSize());
+        dataCredential->GetPointer(), dataCredential->GetSize());
 
     return serializedCred;
 }

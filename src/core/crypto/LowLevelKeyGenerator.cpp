@@ -91,7 +91,7 @@ class LowLevelKeyGenerator::LowLevelKeyGeneratorECdp
 {
 public:
     OTPassword privateKey_;
-    std::unique_ptr<Data> publicKey_;
+    OTData publicKey_;
 
     LowLevelKeyGeneratorECdp();
     virtual void Cleanup();
@@ -177,8 +177,9 @@ void LowLevelKeyGenerator::LowLevelKeyGeneratorOpenSSLdp::Cleanup()
 #endif
 
 LowLevelKeyGenerator::LowLevelKeyGeneratorECdp::LowLevelKeyGeneratorECdp()
+    : privateKey_()
+    , publicKey_(Data::Factory())
 {
-    publicKey_.reset(new Data);
 }
 
 void LowLevelKeyGenerator::LowLevelKeyGeneratorECdp::Cleanup()
@@ -200,7 +201,7 @@ bool LowLevelKeyGenerator::MakeNewKeypair()
                 static_cast<LowLevelKeyGenerator::LowLevelKeyGeneratorECdp&>(
                     *dp);
 
-            return engine.RandomKeypair(ldp.privateKey_, *ldp.publicKey_);
+            return engine.RandomKeypair(ldp.privateKey_, ldp.publicKey_);
         }
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
         case (NymParameterType::SECP256K1): {
@@ -212,7 +213,7 @@ bool LowLevelKeyGenerator::MakeNewKeypair()
                 static_cast<LowLevelKeyGenerator::LowLevelKeyGeneratorECdp&>(
                     *dp);
 
-            return engine.RandomKeypair(ldp.privateKey_, *ldp.publicKey_);
+            return engine.RandomKeypair(ldp.privateKey_, ldp.publicKey_);
         }
 #endif
 #if OT_CRYPTO_SUPPORTED_KEY_RSA

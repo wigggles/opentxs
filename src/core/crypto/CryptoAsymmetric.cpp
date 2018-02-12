@@ -100,13 +100,11 @@ bool CryptoAsymmetric::SignContract(
     const proto::HashType hashType,
     const OTPasswordData* pPWData) const
 {
-    Data plaintext(
+    auto plaintext = Data::Factory(
         strContractUnsigned.Get(),
         strContractUnsigned.GetLength() + 1);  // include null terminator
-    Data signature;
-
+    auto signature = Data::Factory();
     bool success = Sign(plaintext, theKey, hashType, signature, pPWData);
-
     theSignature.SetData(signature, true);  // true means, "yes, with newlines
                                             // in the b64-encoded output,
                                             // please."
@@ -120,10 +118,10 @@ bool CryptoAsymmetric::VerifyContractSignature(
     const proto::HashType hashType,
     const OTPasswordData* pPWData) const
 {
-    Data plaintext(
+    auto plaintext = Data::Factory(
         strContractToVerify.Get(),
         strContractToVerify.GetLength() + 1);  // include null terminator
-    Data signature;
+    auto signature = Data::Factory();
     theSignature.GetData(signature);
 
     return Verify(plaintext, theKey, signature, hashType, pPWData);

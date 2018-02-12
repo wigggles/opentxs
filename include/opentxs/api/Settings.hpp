@@ -39,7 +39,7 @@
 #ifndef OPENTXS_API_SETTINGS_HPP
 #define OPENTXS_API_SETTINGS_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include "opentxs/core/String.hpp"
 
@@ -50,15 +50,8 @@
 
 namespace opentxs
 {
-
-class Log;
-class OTDataFolder;
-class OTFolders;
-class OTPaths;
-
 namespace api
 {
-
 namespace implementation
 {
 class Native;

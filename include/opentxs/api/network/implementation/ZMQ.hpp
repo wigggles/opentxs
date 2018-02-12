@@ -39,7 +39,7 @@
 #ifndef OPENTXS_API_NETWORK_IMPLEMENTATION_ZMQ_HPP
 #define OPENTXS_API_NETWORK_IMPLEMENTATION_ZMQ_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Internal.hpp"
 
 #include "opentxs/api/network/ZMQ.hpp"
 
@@ -50,25 +50,8 @@
 
 namespace opentxs
 {
-class ServerConnection;
-
-namespace network
-{
-namespace zeromq
-{
-class Context;
-}  // namespace zeromq
-}  // namespace network
-
 namespace api
 {
-class Settings;
-
-namespace implementation
-{
-class Native;
-}  // namespace implementation
-
 namespace network
 {
 namespace implementation

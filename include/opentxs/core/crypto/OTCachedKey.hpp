@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CORE_CRYPTO_OTCACHEDKEY_HPP
 #define OPENTXS_CORE_CRYPTO_OTCACHEDKEY_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include "opentxs/core/String.hpp"
 #include "opentxs/Types.hpp"

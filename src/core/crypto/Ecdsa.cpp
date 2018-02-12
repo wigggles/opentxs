@@ -129,7 +129,7 @@ bool Ecdsa::DecryptSessionKeyECDH(
     const OTPasswordData& password,
     SymmetricKey& sessionKey) const
 {
-    Data publicDHKey;
+    auto publicDHKey = Data::Factory();
 
     if (!publicKey.GetKey(publicDHKey)) {
         otErr << __FUNCTION__ << ": Failed to get public key." << std::endl;
@@ -172,10 +172,11 @@ bool Ecdsa::ECPrivatekeyToAsymmetricKey(
 }
 
 bool Ecdsa::ECPubkeyToAsymmetricKey(
-    std::unique_ptr<Data>& pubkey,
+    const Data& pubkey,
     AsymmetricKeyEC& asymmetricKey) const
 {
-    if (!pubkey) {
+    if (pubkey.empty()) {
+
         return false;
     }
 
@@ -193,7 +194,7 @@ bool Ecdsa::EncryptPrivateKey(
         return false;
     }
 
-    Data blank;
+    auto blank = Data::Factory();
 
     return key->Encrypt(plaintextKey, blank, password, encryptedKey, true);
 }
@@ -211,11 +212,9 @@ bool Ecdsa::EncryptPrivateKey(
         return false;
     }
 
-    Data blank;
-
+    auto blank = Data::Factory();
     const bool keyEncrypted =
         sessionKey->Encrypt(key, blank, password, encryptedKey, true);
-
     const bool chaincodeEncrypted = sessionKey->Encrypt(
         chaincode, blank, password, encryptedChaincode, false);
 
@@ -229,11 +228,8 @@ bool Ecdsa::EncryptSessionKeyECDH(
     SymmetricKey& sessionKey,
     OTPassword& newKeyPassword) const
 {
-    std::unique_ptr<Data> dhPublicKey(new Data);
-
-    OT_ASSERT(dhPublicKey);
-
-    const auto havePubkey = publicKey.GetKey(*dhPublicKey);
+    auto dhPublicKey = Data::Factory();
+    const auto havePubkey = publicKey.GetKey(dhPublicKey);
 
     if (!havePubkey) {
         otErr << __FUNCTION__ << ": Failed to get public key." << std::endl;
@@ -257,7 +253,7 @@ bool Ecdsa::EncryptSessionKeyECDH(
     }
 
     // Calculate ECDH shared secret
-    const bool haveECDH = ECDH(*dhPublicKey, *dhPrivateKey, newKeyPassword);
+    const bool haveECDH = ECDH(dhPublicKey, *dhPrivateKey, newKeyPassword);
 
     if (!haveECDH) {
         otErr << __FUNCTION__ << ": ECDH shared secret negotiation failed."
@@ -307,14 +303,14 @@ bool Ecdsa::PrivateToPublic(
     publicKey.clear_chaincode();
     publicKey.clear_key();
     publicKey.set_mode(proto::KEYMODE_PUBLIC);
-    Data key{};
+    auto key = Data::Factory();
 
     if (false == PrivateToPublic(privateKey.encryptedkey(), key)) {
 
         return false;
     }
 
-    publicKey.set_key(key.GetPointer(), key.GetSize());
+    publicKey.set_key(key->GetPointer(), key->GetSize());
 
     return true;
 }

@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CORE_COMMON_HPP
 #define OPENTXS_CORE_COMMON_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include <cinttypes>
 #include <memory>

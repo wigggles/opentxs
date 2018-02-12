@@ -39,7 +39,7 @@
 #ifndef OPENTXS_API_DHT_HPP
 #define OPENTXS_API_DHT_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include "opentxs/Proto.hpp"
 
@@ -53,7 +53,6 @@ namespace api
 {
 namespace network
 {
-
 class Dht
 {
 public:
@@ -74,6 +73,9 @@ public:
     EXPORT virtual void Insert(const proto::CredentialIndex& nym) const = 0;
     EXPORT virtual void Insert(const proto::ServerContract& contract) const = 0;
     EXPORT virtual void Insert(const proto::UnitDefinition& contract) const = 0;
+#if OT_DHT
+    EXPORT virtual const opentxs::network::OpenDHT& OpenDHT() const = 0;
+#endif
     EXPORT virtual void RegisterCallbacks(
         const CallbackMap& callbacks) const = 0;
 

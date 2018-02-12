@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CORE_OTMESSAGE_HPP
 #define OPENTXS_CORE_OTMESSAGE_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/Contract.hpp"

@@ -12,7 +12,7 @@
 
 #pragma once
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #ifdef _WIN32
 #ifndef _WINDOWS_

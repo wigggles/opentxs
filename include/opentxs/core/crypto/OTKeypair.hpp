@@ -39,11 +39,10 @@
 #ifndef OPENTXS_CORE_CRYPTO_OTKEYPAIR_HPP
 #define OPENTXS_CORE_CRYPTO_OTKEYPAIR_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
-#include "opentxs/core/Data.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 
@@ -53,17 +52,6 @@
 
 namespace opentxs
 {
-
-class Contract;
-class Identifier;
-class OTASCIIArmor;
-class OTAsymmetricKey;
-class OTPassword;
-class OTPasswordData;
-class OTSignature;
-class OTSignatureMetadata;
-class String;
-
 typedef std::list<OTAsymmetricKey*> listOfAsymmetricKeys;
 
 /** Encapsulates public/private key (though often there may only be a public key
@@ -140,7 +128,5 @@ public:
             serialized, signature, credID, pPWData);
     }
 };
-
 }  // namespace opentxs
-
 #endif  // OPENTXS_CORE_CRYPTO_OTKEYPAIR_HPP

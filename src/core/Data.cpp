@@ -38,7 +38,7 @@
 
 #include "opentxs/stdafx.hpp"
 
-#include "opentxs/core/Data.hpp"
+#include "opentxs/core/Data_imp.hpp"
 
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
@@ -49,6 +49,30 @@
 #include <sstream>
 
 namespace opentxs
+{
+OTData Data::Factory() { return OTData(new implementation::Data()); }
+
+OTData Data::Factory(const Data& rhs)
+{
+    return OTData(new implementation::Data(rhs));
+}
+
+OTData Data::Factory(const void* data, std::size_t size)
+{
+    return OTData(new implementation::Data(data, size));
+}
+
+OTData Data::Factory(const OTASCIIArmor& source)
+{
+    return OTData(new implementation::Data(source));
+}
+
+OTData Data::Factory(const std::vector<unsigned char>& source)
+{
+    return OTData(new implementation::Data(source));
+}
+
+namespace implementation
 {
 Data::Data(const OTASCIIArmor& source)
 {
@@ -70,7 +94,8 @@ Data::Data(const std::vector<unsigned char>& sourceVector)
 }
 
 Data::Data(const Data& rhs)
-    : position_(rhs.position_)
+    : opentxs::Data()
+    , position_(rhs.position_)
 {
     Assign(rhs);
 }
@@ -96,13 +121,19 @@ Data& Data::operator=(Data&& rhs)
     return *this;
 }
 
-bool Data::operator==(const Data& rhs) const { return data_ == rhs.data_; }
-
-bool Data::operator!=(const Data& rhs) const { return !operator==(rhs); }
-
-Data& Data::operator+=(const Data& rhs)
+bool Data::operator==(const opentxs::Data& rhs) const
 {
-    concatenate(rhs.data_);
+    return data_ == dynamic_cast<const Data&>(rhs).data_;
+}
+
+bool Data::operator!=(const opentxs::Data& rhs) const
+{
+    return !operator==(rhs);
+}
+
+Data& Data::operator+=(const opentxs::Data& rhs)
+{
+    concatenate(dynamic_cast<const Data&>(rhs).data_);
 
     return *this;
 }
@@ -120,15 +151,15 @@ std::string Data::asHex() const
     return std::string(output.data(), output.size());
 }
 
-void Data::Assign(const Data& rhs)
+void Data::Assign(const opentxs::Data& rhs)
 {
     // can't assign to self.
-    if (&rhs == this) {
+    if (&dynamic_cast<const Data&>(rhs) == this) {
         return;
     }
 
-    data_ = rhs.data_;
-    position_ = rhs.position_;
+    data_ = dynamic_cast<const Data&>(rhs).data_;
+    position_ = dynamic_cast<const Data&>(rhs).position_;
 }
 
 void Data::Assign(const void* data, const std::size_t& size)
@@ -141,6 +172,8 @@ void Data::Assign(const void* data, const std::size_t& size)
         data_.assign(start, end);
     }
 }
+
+Data* Data::Data::clone() const { return new Data(); }
 
 void Data::concatenate(const Vector& data)
 {
@@ -241,7 +274,7 @@ void Data::swap(Data& rhs)
     std::swap(position_, rhs.position_);
 }
 
-void Data::swap(Data&& rhs) { swap(rhs); }
+void Data::swap(opentxs::Data&& rhs) { swap(dynamic_cast<Data&&>(rhs)); }
 
 void Data::zeroMemory()
 {
@@ -249,4 +282,5 @@ void Data::zeroMemory()
         data_.assign(data_.size(), 0);
     }
 }
+}  // namespace opentxs::implementation
 }  // namespace opentxs

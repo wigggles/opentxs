@@ -39,7 +39,7 @@
 #ifndef OPENTXS_API_CONTACT_MANAGER_HPP
 #define OPENTXS_API_CONTACT_MANAGER_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include "opentxs/api/Editor.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -51,25 +51,12 @@
 
 namespace opentxs
 {
-class Contact;
-class PaymentCode;
-
 namespace api
 {
-namespace client
-{
-class Wallet;
-}  // namespace client
-
-namespace storage
-{
-class Storage;
-}  // namespace storage
-
 namespace implementation
 {
 class Native;
-}
+}  // namespace implementation
 
 class ContactManager
 {

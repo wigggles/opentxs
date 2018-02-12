@@ -39,7 +39,7 @@
 #ifndef OPENTXS_SERVER_OTSERVER_HPP
 #define OPENTXS_SERVER_OTSERVER_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include "opentxs/api/network/implementation/ZMQ.hpp"  // TODO remove
 #include "opentxs/core/cron/OTCron.hpp"

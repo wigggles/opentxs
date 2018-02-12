@@ -450,7 +450,7 @@ void Server::Start()
 
     OT_ASSERT(connectInfo);
 
-    Data pubkey{};
+    auto pubkey = Data::Factory();
     auto privateKey = server_.TransportKey(pubkey);
 
     OT_ASSERT(privateKey);

@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CORE_CRYPTO_OTCRYPTOOPENSSL_HPP
 #define OPENTXS_CORE_CRYPTO_OTCRYPTOOPENSSL_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Internal.hpp"
 
 #if OT_CRYPTO_USING_OPENSSL
 
@@ -53,9 +53,8 @@
 #include "opentxs/core/crypto/CryptoSymmetric.hpp"
 #endif
 #include "opentxs/core/util/Assert.hpp"
-#include "opentxs/core/Data.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/Proto.hpp"
 
 extern "C" {
 #include <openssl/opensslv.h>
@@ -79,25 +78,6 @@ void EVP_MD_CTX_free(EVP_MD_CTX* context);
 
 namespace opentxs
 {
-
-class OTAsymmetricKey;
-class Data;
-class Identifier;
-class OTPassword;
-class OTPasswordData;
-class Data;
-class Nym;
-class Settings;
-class OTSignature;
-
-namespace api
-{
-namespace implementation
-{
-class Crypto;
-}  // namespace implementation
-}  // namespace api
-
 class OpenSSL : public Crypto
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
                 ,

@@ -39,7 +39,7 @@
 #ifndef OPENTXS_API_CRYPTO_IMPLEMENTATION_CRYPTO_HPP
 #define OPENTXS_API_CRYPTO_IMPLEMENTATION_CRYPTO_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Internal.hpp"
 
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/Editor.hpp"
@@ -52,11 +52,6 @@
 
 namespace opentxs
 {
-class Libsecp256k1;
-class Libsodium;
-class OpenSSL;
-class TrezorCrypto;
-
 // Choose your OpenSSL-compatible library here.
 #if OT_CRYPTO_USING_OPENSSL
 typedef OpenSSL SSLImplementation;

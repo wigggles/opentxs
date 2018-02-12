@@ -492,7 +492,7 @@ std::shared_ptr<ContactData> Contact::Data() const
 Identifier Contact::generate_id() const
 {
     auto& crypto = OT::App().Crypto().Encode();
-    class Data random;
+    auto random = Data::Factory();
     crypto.Nonce(ID_BYTES, random);
     Identifier output{};
     output.CalculateDigest(random);

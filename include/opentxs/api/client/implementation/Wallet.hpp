@@ -39,7 +39,7 @@
 #ifndef OPENTXS_API_CLIENT_IMPLEMENTATION_WALLET_HPP
 #define OPENTXS_API_CLIENT_IMPLEMENTATION_WALLET_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Internal.hpp"
 
 #include "opentxs/api/client/Wallet.hpp"
 
@@ -49,22 +49,8 @@
 
 namespace opentxs
 {
-
-class ClientContext;
-class Context;
-class Message;
-class PeerObject;
-class ServerContext;
-
 namespace api
 {
-class Native;
-
-namespace implementation
-{
-class Native;
-}  // namespace implementation
-
 namespace client
 {
 namespace implementation

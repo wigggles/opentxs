@@ -39,7 +39,7 @@
 #ifndef OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_SOCKET_HPP
 #define OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_SOCKET_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include "opentxs/network/zeromq/Socket.hpp"
 
@@ -55,8 +55,6 @@ namespace network
 {
 namespace zeromq
 {
-class Context;
-
 namespace implementation
 {
 

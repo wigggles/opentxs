@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CORE_API_IDENTITY_HPP
 #define OPENTXS_CORE_API_IDENTITY_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
@@ -51,17 +51,8 @@
 
 namespace opentxs
 {
-
-class Nym;
-class OTPasswordData;
-
 namespace api
 {
-namespace client
-{
-class Wallet;
-}  // namespace client
-
 namespace implementation
 {
 class Native;

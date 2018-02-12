@@ -142,9 +142,7 @@ std::string Bip39::SaveSeed(
     auto& encryptedWords = *serialized.mutable_words();
     auto& encryptedPassphrase = *serialized.mutable_passphrase();
     serialized.set_fingerprint(fingerprint);
-
-    Data empty;
-
+    auto empty = Data::Factory();
     const bool haveWords = key->Encrypt(words, empty, reason, encryptedWords);
 
     if (false == haveWords) {

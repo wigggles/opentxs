@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CLIENT_OTMESSAGEBUFFER_HPP
 #define OPENTXS_CLIENT_OTMESSAGEBUFFER_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include <stdint.h>
 #include <list>

@@ -39,7 +39,7 @@
 #ifndef OPENTXS_API_CLIENT_PAIR_HPP
 #define OPENTXS_API_CLIENT_PAIR_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include <cstdint>
 #include <set>
@@ -47,8 +47,6 @@
 
 namespace opentxs
 {
-class Identifier;
-
 namespace api
 {
 namespace client

@@ -39,14 +39,12 @@
 #ifndef OPENTXS_API_CRYPTO_UTIL_HPP
 #define OPENTXS_API_CRYPTO_UTIL_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include <cstdint>
 
 namespace opentxs
 {
-class OTPassword;
-
 namespace api
 {
 namespace crypto

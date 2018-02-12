@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CORE_SCRIPT_OTSMARTCONTRACT_HPP
 #define OPENTXS_CORE_SCRIPT_OTSMARTCONTRACT_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include "opentxs/core/cron/OTCronItem.hpp"
 #include "opentxs/core/script/OTScriptable.hpp"

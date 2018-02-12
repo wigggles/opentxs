@@ -39,7 +39,7 @@
 #ifndef OPENTXS_API_CLIENT_IMPLEMENTATION_PAIR_HPP
 #define OPENTXS_API_CLIENT_IMPLEMENTATION_PAIR_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Internal.hpp"
 
 #include "opentxs/api/client/Pair.hpp"
 #include "opentxs/core/Lockable.hpp"
@@ -52,21 +52,10 @@
 
 namespace opentxs
 {
-class OT_API;
-class OTAPI_Exec;
-class OTME_too;
-
 namespace api
 {
-namespace implementation
-{
-class Api;
-}  // namespace implementation
 namespace client
 {
-class ServerAction;
-class Wallet;
-
 namespace implementation
 {
 

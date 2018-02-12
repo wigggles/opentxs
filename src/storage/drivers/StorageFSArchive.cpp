@@ -187,7 +187,7 @@ std::string StorageFSArchive::prepare_write(const std::string& plaintext) const
     OT_ASSERT(encryption_key_);
 
     proto::Ciphertext ciphertext{};
-    Data iv{};
+    auto iv = Data::Factory();
     OTPasswordData reason("");
     const bool encrypted =
         encryption_key_->Encrypt(plaintext, iv, reason, ciphertext, false);

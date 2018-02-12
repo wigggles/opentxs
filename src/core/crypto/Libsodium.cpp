@@ -188,7 +188,7 @@ bool Libsodium::ECDH(
     const OTPassword& seed,
     OTPassword& secret) const
 {
-    Data notUsed;
+    auto notUsed = Data::Factory();
     OTPassword curvePrivate;
 
     if (!SeedToCurveKey(seed, curvePrivate, notUsed)) {
@@ -199,11 +199,11 @@ bool Libsodium::ECDH(
     }
 
     std::array<unsigned char, crypto_scalarmult_curve25519_BYTES> blank{};
-    Data curvePublic(blank.data(), blank.size());
+    auto curvePublic = Data::Factory(blank.data(), blank.size());
     secret.setMemory(blank.data(), blank.size());
     const bool havePublic = crypto_sign_ed25519_pk_to_curve25519(
         static_cast<unsigned char*>(
-            const_cast<void*>(curvePublic.GetPointer())),
+            const_cast<void*>(curvePublic->GetPointer())),
         static_cast<const unsigned char*>(publicKey.GetPointer()));
 
     if (0 != havePublic) {
@@ -217,7 +217,7 @@ bool Libsodium::ECDH(
     const auto output = ::crypto_scalarmult(
         static_cast<unsigned char*>(secret.getMemoryWritable()),
         static_cast<const unsigned char*>(curvePrivate.getMemory()),
-        static_cast<const unsigned char*>(curvePublic.GetPointer()));
+        static_cast<const unsigned char*>(curvePublic->GetPointer()));
 
     return (0 == output);
 }
@@ -433,7 +433,8 @@ bool Libsodium::SeedToCurveKey(
     OTPassword& privateKey,
     Data& publicKey) const
 {
-    Data intermediatePublic;
+    auto intermediatePublic = Data::Factory();
+    ;
     OTPassword intermediatePrivate;
 
     if (!ExpandSeed(seed, intermediatePrivate, intermediatePublic)) {
@@ -459,7 +460,7 @@ bool Libsodium::SeedToCurveKey(
 
     const bool havePublic = crypto_sign_ed25519_pk_to_curve25519(
         blank.data(),
-        static_cast<const unsigned char*>(intermediatePublic.GetPointer()));
+        static_cast<const unsigned char*>(intermediatePublic->GetPointer()));
 
     if (0 != havePublic) {
         otErr << OT_METHOD << __FUNCTION__
@@ -521,7 +522,7 @@ bool Libsodium::Sign(
         return false;
     }
 
-    Data notUsed;
+    auto notUsed = Data::Factory();
     OTPassword privKey;
     const bool keyExpanded = ExpandSeed(seed, privKey, notUsed);
 
@@ -588,7 +589,8 @@ bool Libsodium::Verify(
         return false;
     }
 
-    Data pubkey;
+    auto pubkey = Data::Factory();
+    ;
     const bool havePublicKey = AsymmetricKeyToECPubkey(*key, pubkey);
 
     if (!havePublicKey) {
@@ -603,7 +605,7 @@ bool Libsodium::Verify(
         static_cast<const unsigned char*>(signature.GetPointer()),
         static_cast<const unsigned char*>(plaintext.GetPointer()),
         plaintext.GetSize(),
-        static_cast<const unsigned char*>(pubkey.GetPointer()));
+        static_cast<const unsigned char*>(pubkey->GetPointer()));
 
     if (0 == output) {
         return true;

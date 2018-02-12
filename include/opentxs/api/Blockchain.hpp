@@ -39,7 +39,7 @@
 #ifndef OPENTXS_API_BLOCKCHAIN_HPP
 #define OPENTXS_API_BLOCKCHAIN_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/Proto.hpp"
@@ -55,19 +55,6 @@ namespace opentxs
 {
 namespace api
 {
-class Activity;
-class Crypto;
-
-namespace client
-{
-class Wallet;
-}  // namespace client
-
-namespace storage
-{
-class Storage;
-}  // namespace storage
-
 namespace implementation
 {
 class Native;

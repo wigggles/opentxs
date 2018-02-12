@@ -844,7 +844,7 @@ proto::UnitDefinition UnitDefinition::Contract() const
     return contract(lock);
 }
 
-Data UnitDefinition::Serialize() const
+OTData UnitDefinition::Serialize() const
 {
     Lock lock(lock_);
 

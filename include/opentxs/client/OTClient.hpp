@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CLIENT_OTCLIENT_HPP
 #define OPENTXS_CLIENT_OTCLIENT_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include "opentxs/client/OTMessageBuffer.hpp"
 #include "opentxs/client/OTMessageOutbuffer.hpp"

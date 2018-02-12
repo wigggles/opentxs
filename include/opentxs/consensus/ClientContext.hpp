@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CONSENSUS_CLIENTCONTEXT_HPP
 #define OPENTXS_CONSENSUS_CLIENTCONTEXT_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include "opentxs/consensus/Context.hpp"
 #include "opentxs/Proto.hpp"
@@ -49,10 +49,6 @@
 
 namespace opentxs
 {
-
-class TransactionStatement;
-class Wallet;
-
 class ClientContext : public Context
 {
 private:

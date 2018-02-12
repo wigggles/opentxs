@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CORE_ACCOUNTLIST_HPP
 #define OPENTXS_CORE_ACCOUNTLIST_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Contract.hpp"

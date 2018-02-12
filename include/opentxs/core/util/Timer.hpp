@@ -15,7 +15,7 @@
 #ifndef OPENTXS_CORE_TIMER_HPP
 #define OPENTXS_CORE_TIMER_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include <stdint.h>
 #include <cinttypes>

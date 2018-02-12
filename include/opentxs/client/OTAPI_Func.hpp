@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CLIENT_OT_OTAPI_OT_HPP
 #define OPENTXS_CLIENT_OT_OTAPI_OT_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include "opentxs/api/Editor.hpp"
 #include "opentxs/client/ServerAction.hpp"

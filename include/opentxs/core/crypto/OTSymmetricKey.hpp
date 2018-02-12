@@ -39,42 +39,23 @@
 #ifndef OPENTXS_CORE_CRYPTO_OTSYMMETRICKEY_HPP
 #define OPENTXS_CORE_CRYPTO_OTSYMMETRICKEY_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
-#include "opentxs/core/Data.hpp"
+#include "opentxs/core/Lockable.hpp"
 
-#include <stdint.h>
+#include <atomic>
+#include <cstdint>
 
 namespace opentxs
 {
+// This class stores the iteration count, the salt, and the encrypted key.
+// These are all generated or set when you call GenerateKey.
 
-class Identifier;
-class OTASCIIArmor;
-class OTPassword;
-class String;
-
-class OTSymmetricKey
+// Note: this calculates its ID based only on encrypted_key_,
+// and does NOT include salt, IV, iteration count, etc when
+// generating the hash for the ID.
+class OTSymmetricKey : Lockable
 {
-private:
-    // GetKey asserts if this is false; GenerateKey asserts if it's true.
-    bool m_bIsGenerated{false};
-    // If a hash-check fo the Derived Key has been made yet.
-    bool m_bHasHashCheck{false};
-    // The size, in bits. For example, 128 bit key, 256 bit key, etc.
-    uint32_t m_nKeySize{0};
-    // Stores the iteration count, which should probably be at least 2000.
-    // (Number of iterations used while generating key from passphrase.)
-    uint32_t m_uIterationCount{0};
-    // Stores the SALT (which is used with the password for generating /
-    // retrieving the key from m_dataEncryptedKey)
-    Data m_dataSalt;
-    // Stores the IV used internally for encrypting / decrypting the actual key
-    // (using the derived key) from m_dataEncryptedKey.
-    Data m_dataIV;
-    // Stores only encrypted version of symmetric key.
-    Data m_dataEncryptedKey;
-    Data m_dataHashCheck;
-
 public:
     // The highest-level possible interface (used by the API)
 
@@ -132,7 +113,7 @@ public:
     EXPORT bool SerializeTo(String& strOutput, bool bEscaped = false) const;
     EXPORT bool SerializeFrom(const String& strInput, bool bEscaped = false);
     inline bool IsGenerated() const { return m_bIsGenerated; }
-    inline bool HasHashCheck() const { return m_bHasHashCheck; }
+    inline bool HasHashCheck() const { return has_hash_check_.load(); }
     EXPORT void GetIdentifier(Identifier& theIdentifier) const;
     EXPORT void GetIdentifier(String& strIdentifier) const;
     // The derived key is used for decrypting the actual symmetric key.
@@ -140,6 +121,7 @@ public:
     //
 
     // Must have a hash-check already!
+    // CALLER IS RESPONSIBLE TO DELETE.
     EXPORT OTPassword* CalculateDerivedKeyFromPassphrase(
         const OTPassword& thePassphrase,
         bool bCheckForHashCheck = true) const;
@@ -157,9 +139,13 @@ public:
         OTPassword& theRawKeyOutput,
         OTPassword* pDerivedKey = nullptr) const;
 
-    // Assumes key is already generated. Tries to get the raw clear key
-    // from its encrypted form, via a derived key.
+    // Assumes key is already generated. Tries to get the raw clear key from its
+    // encrypted form, via a derived key.
     //
+    // If returns true, theRawKeyOutput will contain the decrypted symmetric
+    // key, in
+    // an OTPassword object.
+    // Otherwise returns false if failure.
     EXPORT bool GetRawKeyFromDerivedKey(
         const OTPassword& theDerivedKey,
         OTPassword& theRawKeyOutput) const;
@@ -190,8 +176,48 @@ public:
     EXPORT virtual void Release();
 
     EXPORT void Release_SymmetricKey();
+
+private:
+    // GetKey asserts if this is false; GenerateKey asserts if it's true.
+    bool m_bIsGenerated{false};
+    // If a hash-check fo the Derived Key has been made yet.
+    std::atomic<bool> has_hash_check_{false};
+    // The size, in bits. For example, 128 bit key, 256 bit key, etc.
+    std::uint32_t m_nKeySize{0};
+    // Stores the iteration count, which should probably be at least 2000.
+    // (Number of iterations used while generating key from passphrase.)
+    std::uint32_t m_uIterationCount{0};
+    // Stores the SALT (which is used with the password for generating /
+    // retrieving the key from encrypted_key_)
+    OTData salt_;
+    // Stores the IV used internally for encrypting / decrypting the actual key
+    // (using the derived key) from encrypted_key_.
+    OTData iv_;
+    // Stores only encrypted version of symmetric key.
+    OTData encrypted_key_;
+    OTData hash_check_;
+
+    OTPassword* calculate_derived_key_from_passphrase(
+        const Lock& lock,
+        const OTPassword& thePassphrase,
+        bool bCheckForHashCheck = true) const;
+    bool get_raw_key_from_derived_key(
+        const Lock& lock,
+        const OTPassword& theDerivedKey,
+        OTPassword& theRawKeyOutput) const;
+    bool get_raw_key_from_passphrase(
+        const Lock& lock,
+        const OTPassword& thePassphrase,
+        OTPassword& theRawKeyOutput,
+        OTPassword* pDerivedKey = nullptr) const;
+    bool serialize_to(const Lock& lock, OTASCIIArmor& ascOutput) const;
+    bool serialize_to(const Lock& lock, Data& theOutput) const;
+
+    OTPassword* calculate_new_derived_key_from_passphrase(
+        const Lock& lock,
+        const OTPassword& thePassphrase);
+    bool serialize_from(const Lock& lock, Data& theInput);
+    bool serialize_from(const Lock& lock, const OTASCIIArmor& ascInput);
 };
-
 }  // namespace opentxs
-
 #endif  // OPENTXS_CORE_CRYPTO_OTSYMMETRICKEY_HPP

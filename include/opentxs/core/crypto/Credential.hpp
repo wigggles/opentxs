@@ -39,17 +39,16 @@
 #ifndef OPENTXS_CORE_CRYPTO_CREDENTIAL_HPP
 #define OPENTXS_CORE_CRYPTO_CREDENTIAL_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
-#include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 
-#include <stdint.h>
+#include <cstdint>
 #include <memory>
 #include <string>
 
@@ -79,14 +78,6 @@
 
 namespace opentxs
 {
-
-class Contract;
-class CredentialSet;
-class Identifier;
-class NymParameters;
-class OTPassword;
-class OTPasswordData;
-
 typedef std::shared_ptr<proto::Credential> serializedCredential;
 
 class Credential : public Signable
@@ -195,7 +186,7 @@ public:
 
     virtual void ReleaseSignatures(const bool onlyPrivate);
     virtual bool Save() const;
-    Data Serialize() const override;
+    OTData Serialize() const override;
 
     virtual bool GetContactData(
         std::unique_ptr<proto::ContactData>& contactData) const;

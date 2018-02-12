@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CORE_CRYPTO_OTASYMMETRICKEY_HPP
 #define OPENTXS_CORE_CRYPTO_OTASYMMETRICKEY_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include "opentxs/core/crypto/CryptoAsymmetric.hpp"
 #include "opentxs/core/util/Timer.hpp"
@@ -48,22 +48,13 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/Proto.hpp"
 
-#include <stdint.h>
+#include <cstdint>
 #include <list>
 #include <memory>
 #include <string>
 
 namespace opentxs
 {
-class CryptoAsymmetric;
-class Identifier;
-class NymParameters;
-class OTAsymmetricKey;
-class OTPassword;
-class OTPasswordData;
-class OTSignatureMetadata;
-class String;
-
 typedef std::list<OTAsymmetricKey*> listOfAsymmetricKeys;
 typedef std::shared_ptr<proto::AsymmetricKey> serializedAsymmetricKey;
 
@@ -172,7 +163,7 @@ protected:
     EXPORT OTAsymmetricKey();
 
 public:
-    Data SerializeKeyToData(const proto::AsymmetricKey& rhs) const;
+    OTData SerializeKeyToData(const proto::AsymmetricKey& rhs) const;
     bool operator==(const proto::AsymmetricKey&) const;
     EXPORT virtual ~OTAsymmetricKey();
     virtual void Release();
@@ -287,7 +278,7 @@ public:
             signature.set_hashtype(SigHashType());
         }
 
-        Data sig;
+        auto sig = Data::Factory();
         bool goodSig = engine().Sign(
             proto::ProtoAsData<C>(serialized),
             *this,
@@ -297,7 +288,7 @@ public:
             nullptr);
 
         if (goodSig) {
-            signature.set_signature(sig.GetPointer(), sig.GetSize());
+            signature.set_signature(sig->GetPointer(), sig->GetSize());
         }
 
         return goodSig;

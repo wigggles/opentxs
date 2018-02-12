@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CORE_OTSTRINGXML_HPP
 #define OPENTXS_CORE_OTSTRINGXML_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include "opentxs/core/String.hpp"
 

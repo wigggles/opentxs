@@ -187,7 +187,7 @@ bool OTCron::GetNym_OfferList(
         const size_t theSize = pBuffer->GetSize();
 
         if ((nullptr != pUint) || (theSize < 2)) {
-            Data theData(pUint, static_cast<uint32_t>(theSize));
+            auto theData = Data::Factory(pUint, static_cast<uint32_t>(theSize));
 
             // This function will base64 ENCODE theData,
             // and then Set() that as the string contents.
@@ -312,7 +312,7 @@ bool OTCron::GetMarketList(OTASCIIArmor& ascOutput, int32_t& nMarketCount)
         const size_t theSize = pBuffer->GetSize();
 
         if ((theSize > 0) && (nullptr != pUint)) {
-            Data theData(pUint, static_cast<uint32_t>(theSize));
+            auto theData = Data::Factory(pUint, static_cast<uint32_t>(theSize));
 
             // This function will base64 ENCODE theData,
             // and then Set() that as the string contents.

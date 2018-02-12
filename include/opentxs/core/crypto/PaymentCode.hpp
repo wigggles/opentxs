@@ -39,27 +39,19 @@
 #ifndef OPENTXS_CORE_CRYPTO_PAYMENTCODE_HPP
 #define OPENTXS_CORE_CRYPTO_PAYMENTCODE_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-#include "opentxs/core/Data.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/Proto.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
 
 #include <cstdint>
 #include <memory>
 
 namespace opentxs
 {
-
 typedef std::shared_ptr<proto::PaymentCode> SerializedPaymentCode;
-
-class AsymmetricKeyEC;
-class Credential;
-class MasterCredential;
-// class OTPassword;
-class OTPasswordData;
 
 class PaymentCode
 {
@@ -75,7 +67,7 @@ private:
     std::uint8_t bitmessage_version_{0};
     std::uint8_t bitmessage_stream_{0};
 
-    const Data Pubkey() const;
+    const OTData Pubkey() const;
     void ConstructKey(const Data& pubkey);
     PaymentCode() = delete;
 

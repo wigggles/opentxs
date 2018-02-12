@@ -50,6 +50,7 @@
 #include "opentxs/core/contract/peer/StoreSecret.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/core/crypto/CryptoSymmetric.hpp"
+#include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/String.hpp"
@@ -102,7 +103,8 @@ PeerRequest::PeerRequest(
 {
     auto random = OT::App().Crypto().AES().InstantiateBinarySecretSP();
     random->randomizeMemory(32);
-    cookie_.CalculateDigest(Data(random->getMemory(), random->getMemorySize()));
+    cookie_.CalculateDigest(
+        Data::Factory(random->getMemory(), random->getMemorySize()));
 }
 
 PeerRequest::PeerRequest(
@@ -120,7 +122,8 @@ PeerRequest::PeerRequest(
 {
     auto random = OT::App().Crypto().AES().InstantiateBinarySecretSP();
     random->randomizeMemory(32);
-    cookie_.CalculateDigest(Data(random->getMemory(), random->getMemorySize()));
+    cookie_.CalculateDigest(
+        Data::Factory(random->getMemory(), random->getMemorySize()));
 }
 
 proto::PeerRequest PeerRequest::contract(const Lock& lock) const
@@ -436,7 +439,7 @@ proto::PeerRequest PeerRequest::IDVersion(const Lock& lock) const
 
 std::string PeerRequest::Name() const { return String(id_).Get(); }
 
-Data PeerRequest::Serialize() const
+OTData PeerRequest::Serialize() const
 {
     Lock lock(lock_);
 

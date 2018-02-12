@@ -39,59 +39,41 @@
 #ifndef OPENTXS_NETWORK_OPENDHT_HPP
 #define OPENTXS_NETWORK_OPENDHT_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #if OT_DHT
-
 #include "opentxs/Types.hpp"
-#include "opentxs/api/network/implementation/Dht.hpp"
 
-#include <atomic>
-#include <memory>
-#include <mutex>
-
-namespace dht
-{
-class DhtRunner;
-}
+#include <string>
 
 namespace opentxs
 {
-
-class DhtConfig;
-class Data;
-
-// Low interface to OpenDHT. Does not depend on opentxs.
+namespace network
+{
 class OpenDHT
 {
-private:
-    friend class api::network::implementation::Dht;
-
-    std::unique_ptr<const DhtConfig> config_;
-    std::unique_ptr<dht::DhtRunner> node_;
-    mutable std::atomic<bool> loaded_;
-    mutable std::atomic<bool> ready_;
-    mutable std::mutex init_;
-
-    OpenDHT(const DhtConfig& config);
-    OpenDHT() = delete;
-    OpenDHT(const OpenDHT&) = delete;
-    OpenDHT& operator=(const OpenDHT&) = delete;
-
-    bool Init() const;
-
 public:
-    void Insert(
+    EXPORT virtual void Insert(
         const std::string& key,
         const std::string& value,
-        DhtDoneCallback cb = {}) const;
-    void Retrieve(
+        DhtDoneCallback cb = {}) const = 0;
+    EXPORT virtual void Retrieve(
         const std::string& key,
         DhtResultsCallback vcb,
-        DhtDoneCallback dcb = {}) const;
-    ~OpenDHT();
-};
+        DhtDoneCallback dcb = {}) const = 0;
 
+    EXPORT virtual ~OpenDHT() = default;
+
+protected:
+    OpenDHT() = default;
+
+private:
+    OpenDHT(const OpenDHT&) = delete;
+    OpenDHT(OpenDHT&&) = delete;
+    OpenDHT& operator=(const OpenDHT&) = delete;
+    OpenDHT& operator=(OpenDHT&&) = delete;
+};
+}  // namespace network
 }  // namespace opentxs
 #endif  // OT_DHT
 #endif  // OPENTXS_NETWORK_OPENDHT_HPP

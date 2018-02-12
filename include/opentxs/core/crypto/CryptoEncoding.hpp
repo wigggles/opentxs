@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CORE_CRYPTO_CRYPTOENCODING_HPP
 #define OPENTXS_CORE_CRYPTO_CRYPTOENCODING_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include "opentxs/Types.hpp"
 

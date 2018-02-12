@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CORE_CRYPTO_OTENVELOPE_HPP
 #define OPENTXS_CORE_CRYPTO_OTENVELOPE_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include <map>
 #include <memory>
@@ -48,29 +48,13 @@
 
 namespace opentxs
 {
-
-class OTASCIIArmor;
-class OTAsymmetricKey;
-class OTPassword;
-class OTPasswordData;
-class Nym;
-class String;
-class Data;
-class OTSymmetricKey;
-class Letter;
-class SymmetricKey;
-
 typedef std::multimap<std::string, OTAsymmetricKey*> mapOfAsymmetricKeys;
 typedef std::set<const Nym*> setOfNyms;
 
 class OTEnvelope
 {
-private:
-    friend Letter;
-    std::unique_ptr<Data> ciphertext_;
-
 public:
-    EXPORT OTEnvelope() = default;
+    EXPORT OTEnvelope();
     EXPORT explicit OTEnvelope(const OTASCIIArmor& theArmoredText);
 
     /** Retrieve ciphertext in ascii armored form */
@@ -100,7 +84,11 @@ public:
         const OTPasswordData* pPWData = nullptr);
 
     EXPORT ~OTEnvelope() = default;
+
+private:
+    friend Letter;
+
+    OTData ciphertext_;
 };
 }  // namespace opentxs
-
 #endif  // OPENTXS_CORE_CRYPTO_OTENVELOPE_HPP

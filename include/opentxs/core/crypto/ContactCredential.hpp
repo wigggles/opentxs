@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CORE_CRYPTO_CONTACTCREDENTIAL_HPP
 #define OPENTXS_CORE_CRYPTO_CONTACTCREDENTIAL_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include "opentxs/core/crypto/Credential.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"

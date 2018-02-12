@@ -39,26 +39,15 @@
 #ifndef OPENTXS_API_API_HPP
 #define OPENTXS_API_API_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include <mutex>
 #include <string>
 
 namespace opentxs
 {
-class OT_API;
-class OT_ME;
-class OTAPI_Exec;
-class OTME_too;
-
 namespace api
 {
-namespace client
-{
-class Pair;
-class ServerAction;
-}  // namespace client
-
 class Api
 {
 public:

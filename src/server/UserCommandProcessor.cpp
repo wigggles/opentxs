@@ -988,7 +988,7 @@ bool UserCommandProcessor::cmd_get_instrument_definition(
 
     const Identifier contractID(msgIn.m_strInstrumentDefinitionID);
 
-    Data serialized{};
+    auto serialized = Data::Factory();
     auto unitDefiniton = wallet_.UnitDefinition(contractID);
     // Perhaps the provided ID is actually a server contract, not an
     // instrument definition?
@@ -996,13 +996,11 @@ bool UserCommandProcessor::cmd_get_instrument_definition(
 
     if (unitDefiniton) {
         reply.SetSuccess(true);
-        serialized = proto::ProtoAsData<proto::UnitDefinition>(
-            unitDefiniton->PublicContract());
+        serialized = proto::ProtoAsData(unitDefiniton->PublicContract());
         reply.SetPayload(serialized);
     } else if (server) {
         reply.SetSuccess(true);
-        serialized =
-            proto::ProtoAsData<proto::ServerContract>(server->PublicContract());
+        serialized = proto::ProtoAsData(server->PublicContract());
         reply.SetPayload(serialized);
     }
 
@@ -1324,8 +1322,8 @@ bool UserCommandProcessor::cmd_issue_basket(ReplyMessage& reply) const
 
     OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_issue_basket);
 
-    auto serialized =
-        proto::DataToProto<proto::UnitDefinition>(Data(msgIn.m_ascPayload));
+    auto serialized = proto::DataToProto<proto::UnitDefinition>(
+        Data::Factory(msgIn.m_ascPayload));
 
     if (false == proto::Validate(serialized, VERBOSE)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Invalid contract."
@@ -2017,21 +2015,21 @@ bool UserCommandProcessor::cmd_register_contract(ReplyMessage& reply) const
     switch (type) {
         case (ContractType::NYM): {
             const auto nym = proto::DataToProto<proto::CredentialIndex>(
-                Data(msgIn.m_ascPayload));
+                Data::Factory(msgIn.m_ascPayload));
             reply.SetSuccess(bool(wallet_.Nym(nym)));
 
             break;
         }
         case (ContractType::SERVER): {
             const auto server = proto::DataToProto<proto::ServerContract>(
-                Data(msgIn.m_ascPayload));
+                Data::Factory(msgIn.m_ascPayload));
             reply.SetSuccess(bool(wallet_.Server(server)));
 
             break;
         }
         case (ContractType::UNIT): {
             const auto unit = proto::DataToProto<proto::UnitDefinition>(
-                Data(msgIn.m_ascPayload));
+                Data::Factory(msgIn.m_ascPayload));
             reply.SetSuccess(bool(wallet_.UnitDefinition(unit)));
 
             break;
@@ -2065,8 +2063,8 @@ bool UserCommandProcessor::cmd_register_instrument_definition(
         return false;
     }
 
-    const auto serialized =
-        proto::DataToProto<proto::UnitDefinition>(Data(msgIn.m_ascPayload));
+    const auto serialized = proto::DataToProto<proto::UnitDefinition>(
+        Data::Factory(msgIn.m_ascPayload));
 
     if (proto::UNITTYPE_BASKET == serialized.type()) {
         otErr << OT_METHOD << __FUNCTION__ << ": Incorrect unit type."

@@ -589,8 +589,8 @@ Identifier SymmetricKey::ID()
     }
 
     Identifier output;
-    output.CalculateDigest(
-        Data(plaintext_key_->getMemory(), plaintext_key_->getMemorySize()));
+    output.CalculateDigest(Data::Factory(
+        plaintext_key_->getMemory(), plaintext_key_->getMemorySize()));
 
     return output;
 }

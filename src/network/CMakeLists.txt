@@ -5,12 +5,14 @@ set(cxx-sources
   ServerConnection.cpp
 )
 
-file(GLOB cxx-install-headers
-     "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/network/*.hpp"
+set(cxx-install-headers
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/network/OpenDHT.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/network/ServerConnection.hpp"
 )
 
 set(cxx-headers
   ${cxx-install-headers}
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/network/implementation/OpenDHT.hpp"
 )
 
 include_directories(SYSTEM

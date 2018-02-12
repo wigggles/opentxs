@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CORE_CRYPTO_OPENSSL_BIO_HPP
 #define OPENTXS_CORE_CRYPTO_OPENSSL_BIO_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 extern "C" {
 #include <openssl/bio.h>

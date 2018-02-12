@@ -39,7 +39,7 @@
 #ifndef OPENTXS_API_CRYPTO_HASH_HPP
 #define OPENTXS_API_CRYPTO_HASH_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include "opentxs/Proto.hpp"
 
@@ -48,10 +48,6 @@
 
 namespace opentxs
 {
-class Data;
-class OTPassword;
-class String;
-
 namespace api
 {
 namespace crypto

@@ -39,7 +39,7 @@
 #ifndef OPENTXS_NETWORK_ZEROMQ_REQUESTSOCKET_HPP
 #define OPENTXS_NETWORK_ZEROMQ_REQUESTSOCKET_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include "opentxs/network/zeromq/Socket.hpp"
 
@@ -47,18 +47,10 @@
 
 namespace opentxs
 {
-class ServerContract;
-}  // namespace opentxs
-
-namespace opentxs
-{
-class Data;
-
 namespace network
 {
 namespace zeromq
 {
-class Message;
 
 #ifdef SWIG
 // clang-format off

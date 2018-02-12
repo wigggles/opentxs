@@ -40,6 +40,7 @@
 
 #include "opentxs/core/contract/Signable.hpp"
 
+#include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 
 namespace opentxs

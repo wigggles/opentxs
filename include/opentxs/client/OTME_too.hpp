@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CLIENT_OTME_TOO_HPP
 #define OPENTXS_CLIENT_OTME_TOO_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/Proto.hpp"

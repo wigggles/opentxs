@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CORE_OTSTRING_HPP
 #define OPENTXS_CORE_OTSTRING_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #ifdef _WIN32
 // support for changing between std::string and std::wstring

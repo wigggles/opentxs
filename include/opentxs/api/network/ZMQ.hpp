@@ -39,7 +39,7 @@
 #ifndef OPENTXS_API_NETWORK_ZMQ_HPP
 #define OPENTXS_API_NETWORK_ZMQ_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include "opentxs/Types.hpp"
 
@@ -49,16 +49,6 @@
 
 namespace opentxs
 {
-class ServerConnection;
-
-namespace network
-{
-namespace zeromq
-{
-class Context;
-}  // namespace zeromq
-}  // namespace network
-
 namespace api
 {
 namespace network

@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CORE_SCRIPT_OTBYLAW_HPP
 #define OPENTXS_CORE_SCRIPT_OTBYLAW_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include "opentxs/core/script/OTVariable.hpp"
 #include "opentxs/core/String.hpp"

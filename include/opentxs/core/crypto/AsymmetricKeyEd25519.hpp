@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CORE_CRYPTO_ASYMMETRICKEYED25519_HPP
 #define OPENTXS_CORE_CRYPTO_ASYMMETRICKEYED25519_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include "opentxs/core/crypto/AsymmetricKeyEC.hpp"
 #include "opentxs/core/crypto/Ecdsa.hpp"

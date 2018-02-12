@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CORE_SCRIPT_OTSTASH_HPP
 #define OPENTXS_CORE_SCRIPT_OTSTASH_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include <map>
 #include <string>

@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CORE_CONTRACT_PEER_CONNECTIONREPLY_HPP
 #define OPENTXS_CORE_CONTRACT_PEER_CONNECTIONREPLY_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include "opentxs/core/contract/peer/PeerReply.hpp"
 #include "opentxs/core/Identifier.hpp"

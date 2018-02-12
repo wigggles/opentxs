@@ -691,10 +691,9 @@ bool OTClient::AcceptEntireNymbox(
                 // Trans number is already issued to this nym (must be an old
                 // notice.)
                 if (context.VerifyIssuedNumber(it)) {
-                    otOut << __FUNCTION__
-                          << ": Attempted to accept a blank "
-                             "transaction number that I "
-                             "ALREADY HAD...(Skipping.)\n";
+                    otOut << __FUNCTION__ << ": Attempted to accept a blank "
+                                             "transaction number that I "
+                                             "ALREADY HAD...(Skipping.)\n";
                 } else if (context.VerifyTentativeNumber(it)) {
                     otOut << __FUNCTION__
                           << ": Attempted to accept a blank transaction number "
@@ -1945,9 +1944,8 @@ void OTClient::ProcessDepositChequeResponse(
     if (!pLedger || !pLedger->LoadPaymentInbox() ||
         !pLedger->VerifyAccount(nym)) {
         // Not necessarily a problem.
-        otWarn << __FUNCTION__
-               << ": Unable to load or verify "
-                  "payments inbox: User "
+        otWarn << __FUNCTION__ << ": Unable to load or verify "
+                                  "payments inbox: User "
                << String(nymID) << " / Acct " << String(nymID) << "\n";
         return;
     }
@@ -2313,8 +2311,8 @@ bool OTClient::processServerReplyCheckNym(
     const Message& theReply,
     ServerContext& context)
 {
-    auto serialized =
-        proto::DataToProto<proto::CredentialIndex>(Data(theReply.m_ascPayload));
+    auto serialized = proto::DataToProto<proto::CredentialIndex>(
+        Data::Factory(theReply.m_ascPayload));
 
     auto nym = wallet_.Nym(serialized);
 
@@ -3397,8 +3395,9 @@ bool OTClient::processServerReplyProcessInbox(
                             if (nullptr == pTradeData)
                                 continue;  // Should never happen.
 
-                            if (0 == pTradeData->updated_id.compare(
-                                         pData->updated_id))  // Found it!
+                            if (0 ==
+                                pTradeData->updated_id.compare(
+                                    pData->updated_id))  // Found it!
                             {
                                 // It's a repeat of the same one. (Discard.)
                                 if ((!pTradeData->instrument_definition_id
@@ -4117,7 +4116,7 @@ bool OTClient::processServerReplyProcessNymbox(
                                 (!bCancelling && !bIsActivatingNym)
                                 // or if activating, and Nym is not the
                                 // activator...
-                            ) {
+                                ) {
                                 // REJECTION
                                 if (Item::rejection == pReplyItem->GetStatus())
                                 // (This is where we remove the opening number,
@@ -4974,7 +4973,7 @@ bool OTClient::processServerReplyProcessNymbox(
             case Item::atAcceptMessage:
             case Item::atAcceptTransaction:
                 break;
-                // I don't think we need to do anything here...
+            // I don't think we need to do anything here...
 
             case Item::atAcceptFinalReceipt: {
                 otInfo << __FUNCTION__
@@ -5300,8 +5299,9 @@ bool OTClient::processServerReplyProcessBox(
                 String strFinal;
                 OTASCIIArmor ascTemp(strTransaction);
 
-                if (false == ascTemp.WriteArmoredString(
-                                 strFinal, "TRANSACTION"))  // todo hardcoding.
+                if (false ==
+                    ascTemp.WriteArmoredString(
+                        strFinal, "TRANSACTION"))  // todo hardcoding.
                 {
                     otErr << "OTClient::ProcessServerReply: Error saving "
                              "transaction receipt "
@@ -5577,11 +5577,10 @@ bool OTClient::processServerReplyGetInstrumentDefinition(
     ServerContext& context)
 {
     // base64-Decode the server reply's payload into raw
-    const Data raw(theReply.m_ascPayload);
+    const auto raw = Data::Factory(theReply.m_ascPayload);
     const std::string purportedID = theReply.m_strInstrumentDefinitionID.Get();
 
-    proto::UnitDefinition serialized =
-        proto::DataToProto<proto::UnitDefinition>(raw);
+    auto serialized = proto::DataToProto<proto::UnitDefinition>(raw.get());
 
     auto contract = wallet_.UnitDefinition(serialized);
 
@@ -5590,8 +5589,7 @@ bool OTClient::processServerReplyGetInstrumentDefinition(
         return (purportedID != serialized.id());
     } else {
         // Maybe it's actually a server contract?
-        proto::ServerContract serialized =
-            proto::DataToProto<proto::ServerContract>(raw);
+        auto serialized = proto::DataToProto<proto::ServerContract>(raw.get());
 
         auto contract = wallet_.Server(serialized);
 
@@ -5649,7 +5647,7 @@ bool OTClient::processServerReplyGetMarketList(const Message& theReply)
         return true;
     }
 
-    Data thePayload;
+    auto thePayload = Data::Factory();
 
     if ((theReply.m_ascPayload.GetLength() <= 2) ||
         (false == theReply.m_ascPayload.GetData(thePayload))) {
@@ -5669,8 +5667,8 @@ bool OTClient::processServerReplyGetMarketList(const Message& theReply)
     OT_ASSERT(nullptr != pBuffer);
 
     pBuffer->SetData(
-        static_cast<const uint8_t*>(thePayload.GetPointer()),
-        thePayload.GetSize());
+        static_cast<const uint8_t*>(thePayload->GetPointer()),
+        thePayload->GetSize());
 
     std::unique_ptr<OTDB::MarketList> pMarketList(
         dynamic_cast<OTDB::MarketList*>(
@@ -5729,7 +5727,7 @@ bool OTClient::processServerReplyGetMarketOffers(const Message& theReply)
         return true;
     }
 
-    Data thePayload;
+    auto thePayload = Data::Factory();
 
     if ((theReply.m_ascPayload.GetLength() <= 2) ||
         (false == theReply.m_ascPayload.GetData(thePayload))) {
@@ -5749,8 +5747,8 @@ bool OTClient::processServerReplyGetMarketOffers(const Message& theReply)
     OT_ASSERT(nullptr != pBuffer);
 
     pBuffer->SetData(
-        static_cast<const uint8_t*>(thePayload.GetPointer()),
-        thePayload.GetSize());
+        static_cast<const uint8_t*>(thePayload->GetPointer()),
+        thePayload->GetSize());
 
     std::unique_ptr<OTDB::OfferListMarket> pOfferList(
         dynamic_cast<OTDB::OfferListMarket*>(
@@ -5810,7 +5808,7 @@ bool OTClient::processServerReplyGetMarketRecentTrades(const Message& theReply)
         return true;
     }
 
-    Data thePayload;
+    auto thePayload = Data::Factory();
 
     if ((theReply.m_ascPayload.GetLength() <= 2) ||
         (false == theReply.m_ascPayload.GetData(thePayload))) {
@@ -5830,8 +5828,8 @@ bool OTClient::processServerReplyGetMarketRecentTrades(const Message& theReply)
     OT_ASSERT(nullptr != pBuffer);
 
     pBuffer->SetData(
-        static_cast<const uint8_t*>(thePayload.GetPointer()),
-        thePayload.GetSize());
+        static_cast<const uint8_t*>(thePayload->GetPointer()),
+        thePayload->GetSize());
 
     std::unique_ptr<OTDB::TradeListMarket> pTradeList(
         dynamic_cast<OTDB::TradeListMarket*>(
@@ -5886,7 +5884,7 @@ bool OTClient::processServerReplyGetNymMarketOffers(const Message& theReply)
         return true;
     }
 
-    Data thePayload;
+    auto thePayload = Data::Factory();
 
     if ((theReply.m_ascPayload.GetLength() <= 2) ||
         (false == theReply.m_ascPayload.GetData(thePayload))) {
@@ -5906,8 +5904,8 @@ bool OTClient::processServerReplyGetNymMarketOffers(const Message& theReply)
     OT_ASSERT(nullptr != pBuffer);
 
     pBuffer->SetData(
-        static_cast<const uint8_t*>(thePayload.GetPointer()),
-        thePayload.GetSize());
+        static_cast<const uint8_t*>(thePayload->GetPointer()),
+        thePayload->GetSize());
 
     std::unique_ptr<OTDB::OfferListNym> pOfferList(
         dynamic_cast<OTDB::OfferListNym*>(

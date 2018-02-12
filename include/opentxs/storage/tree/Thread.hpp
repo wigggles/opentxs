@@ -39,7 +39,7 @@
 #ifndef OPENTXS_STORAGE_TREE_THREAD_HPP
 #define OPENTXS_STORAGE_TREE_THREAD_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include "opentxs/api/Editor.hpp"
 #include "opentxs/Proto.hpp"

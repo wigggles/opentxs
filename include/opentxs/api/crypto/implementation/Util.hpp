@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CORE_CRYPTO_CRYPTOUTIL_HPP
 #define OPENTXS_CORE_CRYPTO_CRYPTOUTIL_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Internal.hpp"
 
 #include "opentxs/api/crypto/Util.hpp"
 

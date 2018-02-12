@@ -39,7 +39,7 @@
 #ifndef OPENTXS_API_IMPLEMENTATION_API_HPP
 #define OPENTXS_API_IMPLEMENTATION_API_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Internal.hpp"
 
 #include "opentxs/api/Api.hpp"
 
@@ -49,37 +49,10 @@
 
 namespace opentxs
 {
-class OT_API;
-class OT_ME;
-class OTAPI_Exec;
-class OTME_too;
-
 namespace api
 {
-class Activity;
-class ContactManager;
-class Crypto;
-class Identity;
-class Settings;
-
-namespace client
-{
-class Wallet;
-}  // namespace client
-
-namespace network
-{
-class ZMQ;
-}  // namespace network
-
-namespace storage
-{
-class Storage;
-}  // namespace storage
-
 namespace implementation
 {
-class Native;
 
 class Api : virtual public opentxs::api::Api
 {
@@ -102,7 +75,7 @@ private:
     const Activity& activity_;
     const Settings& config_;
     const ContactManager& contacts_;
-    const Crypto& crypto_;
+    const api::Crypto& crypto_;
     const Identity& identity_;
     const storage::Storage& storage_;
     const api::client::Wallet& wallet_;

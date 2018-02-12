@@ -42,7 +42,7 @@
 #define NULL_START 0
 #define NULL_END 0
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/Proto.hpp"

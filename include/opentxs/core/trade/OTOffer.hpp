@@ -42,7 +42,7 @@
 #ifndef OPENTXS_CORE_TRADE_OTOFFER_HPP
 #define OPENTXS_CORE_TRADE_OTOFFER_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Contract.hpp"

@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CLIENT_NYMDATA_HPP
 #define OPENTXS_CLIENT_NYMDATA_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include "opentxs/Proto.hpp"
 

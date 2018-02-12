@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CORE_CRYPTO_ECDSA_HPP
 #define OPENTXS_CORE_CRYPTO_ECDSA_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include "opentxs/core/crypto/CryptoSymmetric.hpp"
 #include "opentxs/Proto.hpp"
@@ -108,7 +108,7 @@ public:
         const OTPasswordData& passwordData,
         AsymmetricKeyEC& asymmetricKey) const;
     virtual bool ECPubkeyToAsymmetricKey(
-        std::unique_ptr<Data>& pubkey,
+        const Data& pubkey,
         AsymmetricKeyEC& asymmetricKey) const;
     virtual bool EncryptSessionKeyECDH(
         const AsymmetricKeyEC& privateKey,

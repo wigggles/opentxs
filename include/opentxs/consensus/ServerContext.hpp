@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CONSENSUS_SERVERCONTEXT_HPP
 #define OPENTXS_CONSENSUS_SERVERCONTEXT_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"
 
 #include "opentxs/consensus/Context.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -52,15 +52,6 @@
 
 namespace opentxs
 {
-
-class Item;
-class OTASCIIArmor;
-class OTTransaction;
-class Message;
-class ServerConnection;
-class TransactionStatement;
-class Wallet;
-
 class ServerContext : public Context
 {
 public:
