@@ -866,8 +866,6 @@ bool OT_API::LoadWallet() const
 
 int32_t OT_API::GetNymCount() const
 {
-    rLock lock(lock_);
-
     OTWallet* pWallet =
         GetWallet(__FUNCTION__);  // This logs and ASSERTs already.
     if (nullptr != pWallet) return pWallet->GetNymCount();
@@ -877,28 +875,15 @@ int32_t OT_API::GetNymCount() const
 
 std::set<Identifier> OT_API::LocalNymList() const
 {
-    std::set<Identifier> output{};
-    rLock lock(lock_);
     auto wallet = GetWallet(__FUNCTION__);
 
     OT_ASSERT(nullptr != wallet)
 
-    for (std::int32_t n = 0; n < wallet->GetNymCount(); ++n) {
-        Identifier nymID{};
-        String nymName{};
-
-        if (wallet->GetNym(n, nymID, nymName)) {
-            output.emplace(nymID);
-        }
-    }
-
-    return output;
+    return wallet->NymList();
 }
 
 int32_t OT_API::GetAccountCount() const
 {
-    rLock lock(lock_);
-
     OTWallet* pWallet =
         GetWallet(__FUNCTION__);  // This logs and ASSERTs already.
     if (nullptr != pWallet) return pWallet->GetAccountCount();
@@ -909,10 +894,9 @@ int32_t OT_API::GetAccountCount() const
 bool OT_API::GetNym(std::int32_t iIndex, Identifier& NYM_ID, String& NYM_NAME)
     const
 {
-    rLock lock(lock_);
-
     OTWallet* pWallet =
         GetWallet(__FUNCTION__);  // This logs and ASSERTs already.
+
     if (nullptr != pWallet) return pWallet->GetNym(iIndex, NYM_ID, NYM_NAME);
 
     return false;
@@ -923,10 +907,9 @@ bool OT_API::GetAccount(
     Identifier& THE_ID,
     String& THE_NAME) const
 {
-    rLock lock(lock_);
-
     OTWallet* pWallet =
         GetWallet(__FUNCTION__);  // This logs and ASSERTs already.
+
     if (nullptr != pWallet)
         return pWallet->GetAccount(iIndex, THE_ID, THE_NAME);
 
@@ -935,19 +918,17 @@ bool OT_API::GetAccount(
 
 OTWallet* OT_API::GetWallet(const char* szFuncName) const
 {
-    rLock lock(lock_);
-
     const char* szFunc = (nullptr != szFuncName) ? szFuncName : __FUNCTION__;
     OTWallet* pWallet = m_pWallet;  // This is where we "get" the wallet.  :P
+
     if (nullptr == pWallet)
         otErr << szFunc << ": -- The Wallet is not loaded.\n";
+
     return pWallet;
 }
 
 Nym* OT_API::GetNym(const Identifier& NYM_ID, const char* szFunc) const
 {
-    rLock lock(lock_);
-
     if (NYM_ID.IsEmpty()) {
         otErr << OT_METHOD << __FUNCTION__ << ": NYM_ID is empty!";
         OT_FAIL;
@@ -1000,9 +981,8 @@ const BasketContract* OT_API::GetBasketContract(
 
 Account* OT_API::GetAccount(const Identifier& THE_ID, const char* szFunc) const
 {
-    rLock lock(lock_);
-
     OTWallet* pWallet = GetWallet(nullptr != szFunc ? szFunc : __FUNCTION__);
+
     if (nullptr != pWallet) {
         Account* account = pWallet->GetAccount(THE_ID);
         if ((nullptr == account) &&
@@ -1022,10 +1002,9 @@ Nym* OT_API::GetNymByIDPartialMatch(
     const std::string PARTIAL_ID,
     const char* szFuncName) const
 {
-    rLock lock(lock_);
-
     const char* szFunc = (nullptr != szFuncName) ? szFuncName : __FUNCTION__;
     OTWallet* pWallet = GetWallet(szFunc);  // This logs and ASSERTs already.
+
     if (nullptr != pWallet) return pWallet->GetNymByIDPartialMatch(PARTIAL_ID);
 
     return nullptr;
@@ -1035,10 +1014,9 @@ Account* OT_API::GetAccountPartialMatch(
     const std::string PARTIAL_ID,
     const char* szFuncName) const
 {
-    rLock lock(lock_);
-
     const char* szFunc = (nullptr != szFuncName) ? szFuncName : __FUNCTION__;
     OTWallet* pWallet = GetWallet(szFunc);  // This logs and ASSERTs already.
+
     if (nullptr != pWallet) return pWallet->GetAccountPartialMatch(PARTIAL_ID);
 
     return nullptr;
@@ -1051,14 +1029,13 @@ Account* OT_API::GetAccountPartialMatch(
 //
 Nym* OT_API::CreateNym(const NymParameters& nymParameters) const
 {
-    rLock lock(lock_);
-
     OTWallet* pWallet =
         GetWallet(__FUNCTION__);  // This logs and ASSERTs already.
+
     if (nullptr == pWallet) return nullptr;
+
     // By this point, pWallet is a good pointer.  (No need to cleanup.)
     Nym* nymfile = nullptr;
-
     nymfile = pWallet->CreateNym(nymParameters);
 
     // No need to delete nymfile. (Wallet owns.)
@@ -1147,8 +1124,6 @@ bool OT_API::Wallet_ChangePassphrase() const
 
 std::string OT_API::Wallet_GetPhrase() const
 {
-    rLock lock(lock_);
-
 #if OT_CRYPTO_WITH_BIP32
     OTWallet* pWallet = GetWallet(__FUNCTION__);
 
@@ -1173,8 +1148,6 @@ std::string OT_API::Wallet_GetPhrase() const
 
 std::string OT_API::Wallet_GetSeed() const
 {
-    rLock lock(lock_);
-
 #if OT_CRYPTO_WITH_BIP32
     OTWallet* pWallet = GetWallet(__FUNCTION__);
 
@@ -1200,8 +1173,6 @@ std::string OT_API::Wallet_GetSeed() const
 
 std::string OT_API::Wallet_GetWords() const
 {
-    rLock lock(lock_);
-
 #if OT_CRYPTO_WITH_BIP39
     OTWallet* pWallet = GetWallet(__FUNCTION__);
 
@@ -4433,8 +4404,6 @@ Nym* OT_API::GetOrLoadPrivateNym(
     const OTPasswordData* pPWData,
     const OTPassword* pImportPassword) const
 {
-    rLock lock(lock_);
-
     OTWallet* pWallet =
         GetWallet(szFuncName);  // This logs and ASSERTs already.
 
@@ -4463,8 +4432,6 @@ const Nym* OT_API::GetOrLoadNym(
     const char* szFuncName,
     const OTPasswordData* pPWData) const
 {
-    rLock lock(lock_);
-
     if (NYM_ID.IsEmpty()) {
         otErr << OT_METHOD << __FUNCTION__ << ": NYM_ID is empty!";
         OT_FAIL;
@@ -4504,8 +4471,6 @@ const Nym* OT_API::reloadAndGetNym(
     const char* szFuncName,
     const OTPasswordData* pPWData) const
 {
-    rLock lock(lock_);
-
     if (NYM_ID.IsEmpty()) {
         otErr << OT_METHOD << __FUNCTION__ << ": NYM_ID is empty!";
         OT_FAIL;
@@ -4544,8 +4509,6 @@ Nym* OT_API::reloadAndGetPrivateNym(
     const char* szFuncName,
     const OTPasswordData* pPWData) const
 {
-    rLock lock(lock_);
-
     if (NYM_ID.IsEmpty()) {
         otErr << OT_METHOD << __FUNCTION__ << ": NYM_ID is empty!";
         OT_FAIL;
@@ -4620,12 +4583,12 @@ Account* OT_API::GetOrLoadAccount(
     const Identifier& NOTARY_ID,
     const char* szFuncName) const
 {
-    rLock lock(lock_);
-
     const char* szFunc = (nullptr != szFuncName) ? szFuncName : __FUNCTION__;
     OTWallet* pWallet = GetWallet(szFunc);  // This logs and ASSERTs already.
+
     if (nullptr == pWallet) return nullptr;
     // By this point, pWallet is a good pointer.  (No need to cleanup.)
+
     return pWallet->GetOrLoadAccount(
         theNym,
         accountID,
@@ -6261,8 +6224,6 @@ Account* OT_API::LoadAssetAccount(
     const Identifier& NYM_ID,
     const Identifier& ACCOUNT_ID) const
 {
-    rLock lock(lock_);
-
     OTWallet* pWallet =
         GetWallet(__FUNCTION__);  // This logs and ASSERTs already.
     if (nullptr == pWallet) return nullptr;
