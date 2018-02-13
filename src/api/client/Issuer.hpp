@@ -135,6 +135,12 @@ private:
         const proto::PeerRequestType type,
         const RequestStatus state = RequestStatus::All) const;
 
+    bool add_request(
+        const Lock& lock,
+        const proto::PeerRequestType type,
+        const Identifier& requestID,
+        const Identifier& replyID);
+
     Issuer(
         const api::client::Wallet& wallet,
         const Identifier& nymID,
