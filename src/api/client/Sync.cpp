@@ -191,6 +191,7 @@ Sync::Sync(
     , wallet_(wallet)
     , encoding_(encoding)
     , introduction_server_lock_()
+    , nym_fetch_lock_()
     , task_status_lock_()
     , refresh_counter_(0)
     , operations_()
@@ -442,7 +443,7 @@ Messagability Sync::can_message(
         String(senderNymID).Get(), String(serverID).Get());
 
     if (false == registered) {
-        ScheduleDownloadNymbox(senderNymID, serverID);
+        schedule_download_nymbox(senderNymID, serverID);
         otErr << OT_METHOD << __FUNCTION__ << ": Sender nym "
               << String(senderNymID) << " not registered on server "
               << String(serverID) << std::endl;
@@ -472,9 +473,7 @@ Messagability Sync::CanMessage(
 
     Identifier nymID{};
     Identifier serverID{};
-    Lock lock(introduction_server_lock_);
-    start_introduction_server(lock, senderNymID);
-    lock.unlock();
+    start_introduction_server(senderNymID);
 
     return can_message(senderNymID, recipientContactID, nymID, serverID);
 }
@@ -574,6 +573,7 @@ bool Sync::download_contract(
     rLock lock(api_lock_);
     auto action = server_action_.DownloadContract(nymID, serverID, contractID);
     action->Run();
+    lock.unlock();
 
     if (SendResult::VALID_REPLY == action->LastSendResult()) {
         OT_ASSERT(action->Reply());
@@ -609,6 +609,7 @@ bool Sync::download_nym(
     rLock lock(api_lock_);
     auto action = server_action_.DownloadNym(nymID, serverID, targetNymID);
     action->Run();
+    lock.unlock();
 
     if (SendResult::VALID_REPLY == action->LastSendResult()) {
         OT_ASSERT(action->Reply());
@@ -711,9 +712,7 @@ Identifier Sync::FindNym(
 {
     CHECK_NYM(nymID)
 
-    Lock lock(lock_);
-    auto& serverQueue = server_nym_fetch_[serverIDHint];
-    lock.unlock();
+    auto& serverQueue = get_nym_fetch(serverIDHint);
     const auto taskID(random_id());
 
     return start_task(taskID, serverQueue.Push(taskID, nymID));
@@ -747,14 +746,15 @@ bool Sync::get_admin(
     OT_ASSERT(false == nymID.empty())
     OT_ASSERT(false == serverID.empty())
 
-    rLock lock(api_lock_);
     bool success{false};
 
     {
         const std::string serverPassword(password.getPassword());
+        rLock lock(api_lock_);
         auto action =
             server_action_.RequestAdmin(nymID, serverID, serverPassword);
         action->Run();
+        lock.unlock();
 
         if (SendResult::VALID_REPLY == action->LastSendResult()) {
             auto reply = action->Reply();
@@ -796,12 +796,16 @@ Identifier Sync::get_introduction_server(const Lock& lock) const
     return Identifier(String(serverID.Get()));
 }
 
-Sync::OperationQueue& Sync::get_operations(
-    const Lock& lock,
-    const ContextID& id) const
+UniqueQueue<Identifier>& Sync::get_nym_fetch(const Identifier& serverID) const
 {
-    OT_ASSERT(verify_lock(lock))
+    Lock lock(nym_fetch_lock_);
 
+    return server_nym_fetch_[serverID];
+}
+
+Sync::OperationQueue& Sync::get_operations(const ContextID& id) const
+{
+    Lock lock(lock_);
     auto& queue = operations_[id];
     auto& thread = state_machines_[id];
 
@@ -831,7 +835,7 @@ const Identifier& Sync::IntroductionServer() const
     Lock lock(introduction_server_lock_);
 
     if (false == bool(introduction_server_id_)) {
-        load_introduction_server();
+        load_introduction_server(lock);
     }
 
     OT_ASSERT(introduction_server_id_)
@@ -839,9 +843,10 @@ const Identifier& Sync::IntroductionServer() const
     return *introduction_server_id_;
 }
 
-void Sync::load_introduction_server() const
+void Sync::load_introduction_server(const Lock& lock) const
 {
-    Lock lock(introduction_server_lock_);
+    OT_ASSERT(verify_lock(lock, introduction_server_lock_))
+
     introduction_server_id_.reset(
         new Identifier(get_introduction_server(lock)));
 }
@@ -861,6 +866,7 @@ bool Sync::message_nym(
     auto action =
         server_action_.SendMessage(nymID, serverID, targetNymID, text);
     action->Run();
+    lock.unlock();
 
     if (SendResult::VALID_REPLY == action->LastSendResult()) {
         OT_ASSERT(action->Reply());
@@ -890,9 +896,7 @@ Identifier Sync::MessageContact(
 {
     CHECK_SERVER(senderNymID, contactID)
 
-    Lock introLock(introduction_server_lock_);
-    start_introduction_server(introLock, senderNymID);
-    introLock.unlock();
+    start_introduction_server(senderNymID);
     Identifier serverID;
     Identifier recipientNymID;
     const auto canMessage =
@@ -906,8 +910,7 @@ Identifier Sync::MessageContact(
     OT_ASSERT(false == serverID.empty())
     OT_ASSERT(false == recipientNymID.empty())
 
-    Lock lock(lock_);
-    auto& queue = get_operations(lock, {senderNymID, serverID});
+    auto& queue = get_operations({senderNymID, serverID});
     const auto taskID(random_id());
 
     return start_task(
@@ -939,9 +942,7 @@ Identifier Sync::random_id() const
 
 void Sync::Refresh() const
 {
-    Lock lock(lock_);
-    refresh_accounts(lock);
-    lock.unlock();
+    refresh_accounts();
 
     SHUTDOWN()
 
@@ -951,31 +952,40 @@ void Sync::Refresh() const
 
 std::uint64_t Sync::RefreshCount() const { return refresh_counter_.load(); }
 
-void Sync::refresh_accounts(const Lock& lock) const
+void Sync::refresh_accounts() const
 {
     // Make sure no nyms, servers, or accounts are added or removed while
     // creating the list
     rLock apiLock(api_lock_);
+    otInfo << OT_METHOD << __FUNCTION__ << ": Begin" << std::endl;
     const auto serverList = wallet_.ServerList();
-    const auto nymCount = exec_.GetNymCount();
     const auto accountCount = exec_.GetAccountCount();
 
     for (const auto server : serverList) {
         SHUTDOWN()
 
         const auto& serverID = server.first;
+        otWarn << OT_METHOD << __FUNCTION__ << ": Considering server "
+               << serverID << std::endl;
 
-        for (std::int32_t n = 0; n < nymCount; n++) {
+        for (const auto& nymID : ot_api_.LocalNymList()) {
             SHUTDOWN()
+            otWarn << OT_METHOD << __FUNCTION__ << ": Nym " << String(nymID)
+                   << " ";
+            const bool registered =
+                exec_.IsNym_RegisteredAtServer(String(nymID).Get(), serverID);
 
-            const auto nymID = exec_.GetNym_ID(n);
-
-            if (exec_.IsNym_RegisteredAtServer(nymID, serverID)) {
-                auto& queue = get_operations(
-                    lock, {Identifier(nymID), Identifier(serverID)});
+            if (registered) {
+                otWarn << "is ";
+                auto& queue =
+                    get_operations({Identifier(nymID), Identifier(serverID)});
                 const auto taskID(random_id());
                 queue.download_nymbox_.Push(taskID, true);
+            } else {
+                otWarn << "is not ";
             }
+
+            otWarn << "registered here." << std::endl;
         }
     }
 
@@ -987,11 +997,16 @@ void Sync::refresh_accounts(const Lock& lock) const
         const auto accountID = exec_.GetAccountWallet_ID(n);
         const auto serverID = exec_.GetAccountWallet_NotaryID(accountID);
         const auto nymID = exec_.GetAccountWallet_NymID(accountID);
-        auto& queue =
-            get_operations(lock, {Identifier(nymID), Identifier(serverID)});
+        otWarn << OT_METHOD << __FUNCTION__ << ": Account " << accountID
+               << ":\n"
+               << "  * Owned by nym: " << nymID << "\n"
+               << "  * On server: " << serverID << std::endl;
+        auto& queue = get_operations({Identifier(nymID), Identifier(serverID)});
         const auto taskID(random_id());
         queue.download_account_.Push(taskID, Identifier(accountID));
     }
+
+    otInfo << OT_METHOD << __FUNCTION__ << ": End" << std::endl;
 }
 
 void Sync::refresh_contacts() const
@@ -1075,9 +1090,7 @@ void Sync::refresh_contacts() const
                     otInfo << OT_METHOD << __FUNCTION__
                            << ": Will download nym " << String(nymID)
                            << " from server " << String(serverID) << std::endl;
-                    Lock lock(lock_);
-                    auto& serverQueue = server_nym_fetch_[serverID];
-                    lock.unlock();
+                    auto& serverQueue = get_nym_fetch(serverID);
                     const auto taskID(random_id());
                     serverQueue.Push(taskID, nymID);
                 }
@@ -1100,6 +1113,7 @@ bool Sync::register_nym(
     rLock lock(api_lock_);
     auto action = server_action_.RegisterNym(nymID, serverID);
     action->Run();
+    lock.unlock();
 
     if (SendResult::VALID_REPLY == action->LastSendResult()) {
         OT_ASSERT(action->Reply());
@@ -1128,9 +1142,7 @@ Identifier Sync::RegisterNym(
 {
     CHECK_SERVER(nymID, serverID)
 
-    Lock introLock(introduction_server_lock_);
-    start_introduction_server(introLock, nymID);
-    introLock.unlock();
+    start_introduction_server(nymID);
 
     if (setContactData) {
         publish_server_registration(nymID, serverID, false);
@@ -1153,11 +1165,8 @@ Identifier Sync::ScheduleDownloadAccount(
 {
     CHECK_ARGS(localNymID, serverID, accountID)
 
-    Lock introLock(introduction_server_lock_);
-    start_introduction_server(introLock, localNymID);
-    introLock.unlock();
-    Lock lock(lock_);
-    auto& queue = get_operations(lock, {localNymID, serverID});
+    start_introduction_server(localNymID);
+    auto& queue = get_operations({localNymID, serverID});
     const auto taskID(random_id());
 
     return start_task(taskID, queue.download_account_.Push(taskID, accountID));
@@ -1170,11 +1179,8 @@ Identifier Sync::ScheduleDownloadContract(
 {
     CHECK_ARGS(localNymID, serverID, contractID)
 
-    Lock introLock(introduction_server_lock_);
-    start_introduction_server(introLock, localNymID);
-    introLock.unlock();
-    Lock lock(lock_);
-    auto& queue = get_operations(lock, {localNymID, serverID});
+    start_introduction_server(localNymID);
+    auto& queue = get_operations({localNymID, serverID});
     const auto taskID(random_id());
 
     return start_task(
@@ -1188,30 +1194,31 @@ Identifier Sync::ScheduleDownloadNym(
 {
     CHECK_ARGS(localNymID, serverID, targetNymID)
 
-    Lock introLock(introduction_server_lock_);
-    start_introduction_server(introLock, localNymID);
-    introLock.unlock();
-    Lock lock(lock_);
-    auto& queue = get_operations(lock, {localNymID, serverID});
+    start_introduction_server(localNymID);
+    auto& queue = get_operations({localNymID, serverID});
     const auto taskID(random_id());
 
     return start_task(taskID, queue.check_nym_.Push(taskID, targetNymID));
+}
+
+Identifier Sync::schedule_download_nymbox(
+    const Identifier& localNymID,
+    const Identifier& serverID) const
+{
+    CHECK_SERVER(localNymID, serverID)
+
+    start_introduction_server(localNymID);
+    auto& queue = get_operations({localNymID, serverID});
+    const auto taskID(random_id());
+
+    return start_task(taskID, queue.download_nymbox_.Push(taskID, true));
 }
 
 Identifier Sync::ScheduleDownloadNymbox(
     const Identifier& localNymID,
     const Identifier& serverID) const
 {
-    CHECK_SERVER(localNymID, serverID)
-
-    Lock introLock(introduction_server_lock_);
-    start_introduction_server(introLock, localNymID);
-    introLock.unlock();
-    Lock lock(lock_);
-    auto& queue = get_operations(lock, {localNymID, serverID});
-    const auto taskID(random_id());
-
-    return start_task(taskID, queue.download_nymbox_.Push(taskID, true));
+    return schedule_download_nymbox(localNymID, serverID);
 }
 
 Identifier Sync::ScheduleRegisterNym(
@@ -1220,11 +1227,8 @@ Identifier Sync::ScheduleRegisterNym(
 {
     CHECK_SERVER(localNymID, serverID)
 
-    Lock introLock(introduction_server_lock_);
-    start_introduction_server(introLock, localNymID);
-    introLock.unlock();
-    Lock lock(lock_);
-    auto& queue = get_operations(lock, {localNymID, serverID});
+    start_introduction_server(localNymID);
+    auto& queue = get_operations({localNymID, serverID});
     const auto taskID(random_id());
 
     return start_task(taskID, queue.register_nym_.Push(taskID, true));
@@ -1254,23 +1258,21 @@ Identifier Sync::set_introduction_server(
 
     OT_ASSERT(set)
     config_.Save();
+    apiLock.unlock();
 
     return id;
 }
 
-void Sync::start_introduction_server(const Lock& lock, const Identifier& nymID)
-    const
+void Sync::start_introduction_server(const Identifier& nymID) const
 {
-    auto serverID = get_introduction_server(lock);
+    auto& serverID = IntroductionServer();
 
     if (serverID.empty()) {
 
         return;
     }
 
-    Lock objectLock(lock_);
-    auto& queue = get_operations(objectLock, {nymID, serverID});
-    objectLock.unlock();
+    auto& queue = get_operations({nymID, serverID});
     const auto taskID(random_id());
     start_task(taskID, queue.download_nymbox_.Push(taskID, true));
 }
@@ -1290,6 +1292,11 @@ Identifier Sync::start_task(const Identifier& taskID, bool success) const
     add_task(taskID, ThreadStatus::RUNNING);
 
     return taskID;
+}
+
+void Sync::StartIntroductionServer(const Identifier& localNymID) const
+{
+    start_introduction_server(localNymID);
 }
 
 void Sync::state_machine(const ContextID id, OperationQueue& queue) const
@@ -1342,6 +1349,8 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
 
     // Primary loop
     while (false == shutdown_.load()) {
+        SHUTDOWN()
+
         // If the local nym has updated since the last registernym operation,
         // schedule a registernym
         check_nym_revision(*context, queue);
@@ -1438,9 +1447,7 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
 
         // This is a list of nyms which haven't been updated in a while and
         // are known or suspected to be available on this server
-        Lock lock(lock_);
-        auto& nymQueue = server_nym_fetch_[serverID];
-        lock.unlock();
+        auto& nymQueue = get_nym_fetch(serverID);
 
         while (nymQueue.Pop(taskID, targetNymID)) {
             SHUTDOWN()
@@ -1504,7 +1511,7 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
         SHUTDOWN()
 
         // Download any accounts which have been scheduled for download
-        while (queue.check_nym_.Pop(taskID, accountID)) {
+        while (queue.download_account_.Pop(taskID, accountID)) {
             SHUTDOWN()
 
             if (accountID.empty()) {

@@ -49,18 +49,19 @@
 #define OT_MAX_ACK_NUMS 100
 #endif
 
-#define CURRENT_VERSION 2
+#define SIGNATURE_VERSION 2
 
 #define OT_METHOD "Context::"
 
 namespace opentxs
 {
 Context::Context(
+    const std::uint32_t targetVersion,
     const ConstNym& local,
     const ConstNym& remote,
     const Identifier& server,
     std::mutex& nymfileLock)
-    : ot_super(local, CURRENT_VERSION)
+    : ot_super(local, targetVersion)
     , nymfile_lock_(nymfileLock)
     , server_id_(server)
     , remote_nym_(remote)
@@ -70,10 +71,12 @@ Context::Context(
     , acknowledged_request_numbers_()
     , local_nymbox_hash_()
     , remote_nymbox_hash_()
+    , target_version_(targetVersion)
 {
 }
 
 Context::Context(
+    const std::uint32_t targetVersion,
     const proto::Context& serialized,
     const ConstNym& local,
     const ConstNym& remote,
@@ -89,6 +92,7 @@ Context::Context(
     , acknowledged_request_numbers_()
     , local_nymbox_hash_(serialized.localnymboxhash())
     , remote_nymbox_hash_(serialized.remotenymboxhash())
+    , target_version_(targetVersion)
 {
     for (const auto& it : serialized.acknowledgedrequestnumber()) {
         acknowledged_request_numbers_.insert(it);
@@ -432,13 +436,7 @@ proto::Context Context::serialize(
     OT_ASSERT(verify_write_lock(lock));
 
     proto::Context output;
-
-    if (version_ < CURRENT_VERSION) {
-        output.set_version(CURRENT_VERSION);
-    } else {
-        output.set_version(version_);
-    }
-
+    output.set_version(version_);
     output.set_type(type);
 
     if (nym_) {
@@ -518,12 +516,15 @@ bool Context::update_signature(const Lock& lock)
         return false;
     }
 
-    bool success = false;
+    if (version_ < target_version_) {
+        version_ = target_version_;
+    }
 
+    bool success = false;
     signatures_.clear();
     auto serialized = SigVersion(lock);
     auto& signature = *serialized.mutable_signature();
-    signature.set_version(2);
+    signature.set_version(SIGNATURE_VERSION);
     signature.set_role(proto::SIGROLE_CONTEXT);
     success = nym_->SignProto(serialized, signature);
 

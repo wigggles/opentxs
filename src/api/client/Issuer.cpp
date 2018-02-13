@@ -38,14 +38,14 @@
 
 #include "opentxs/stdafx.hpp"
 
-#include "opentxs/api/client/implementation/Issuer.hpp"
-
 #include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/contact/ContactData.hpp"
 #include "opentxs/contact/ContactGroup.hpp"
 #include "opentxs/contact/ContactItem.hpp"
 #include "opentxs/contact/ContactSection.hpp"
 #include "opentxs/core/Log.hpp"
+
+#include "Issuer.hpp"
 
 #define CURRENT_VERSION 1
 
@@ -156,9 +156,8 @@ Issuer::operator std::string() const
             const auto& notUsed[[maybe_unused]] = id;
             const auto& claim = *pClaim;
             const Identifier unitID(claim.Value());
-            output << " * "
-                   << proto::TranslateItemType(
-                          static_cast<std::uint32_t>(claim.Type()))
+            output << " * " << proto::TranslateItemType(
+                                   static_cast<std::uint32_t>(claim.Type()))
                    << ": " << claim.Value() << "\n";
             const auto accountSet = account_map_.find(type);
 
@@ -259,6 +258,30 @@ void Issuer::AddAccount(
     account_map_[type].emplace(unitID, accountID);
 }
 
+bool Issuer::add_request(
+    const Lock& lock,
+    const proto::PeerRequestType type,
+    const Identifier& requestID,
+    const Identifier& replyID)
+{
+    OT_ASSERT(verify_lock(lock))
+
+    auto[found, it] = find_request(lock, type, requestID);
+    const auto& notUsed[[maybe_unused]] = it;
+
+    if (found) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Request " << String(requestID)
+              << " already exists." << std::endl;
+
+        return false;
+    }
+
+    peer_requests_[type].emplace(
+        requestID, std::pair<Identifier, bool>(replyID, false));
+
+    return true;
+}
+
 bool Issuer::AddReply(
     const proto::PeerRequestType type,
     const Identifier& requestID,
@@ -269,10 +292,10 @@ bool Issuer::AddReply(
     auto & [ reply, used ] = it->second;
 
     if (false == found) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Request " << String(requestID)
-              << " not found." << std::endl;
+        otWarn << OT_METHOD << __FUNCTION__ << ": Request " << String(requestID)
+               << " not found." << std::endl;
 
-        return false;
+        return add_request(lock, type, requestID, replyID);
     }
 
     reply = replyID;
@@ -286,21 +309,10 @@ bool Issuer::AddRequest(
     const Identifier& requestID)
 {
     Lock lock(lock_);
-    auto[found, it] = find_request(lock, type, requestID);
-    const auto& notUsed[[maybe_unused]] = it;
-
-    if (found) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Request " << String(requestID)
-              << " already exists." << std::endl;
-
-        return false;
-    }
-
     // ReplyID is blank because we don't know it yet.
-    peer_requests_[type].emplace(
-        requestID, std::pair<Identifier, bool>({}, false));
+    Identifier replyID{};
 
-    return true;
+    return add_request(lock, type, requestID, replyID);
 }
 
 bool Issuer::BailmentInitiated(const Identifier& unitID) const

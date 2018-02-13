@@ -58,6 +58,16 @@
 
 #define MINIMUM_UNUSED_BAILMENTS 3
 
+#define SHUTDOWN()                                                             \
+    {                                                                          \
+        if (shutdown_.load()) {                                                \
+                                                                               \
+            return;                                                            \
+        }                                                                      \
+                                                                               \
+        Log::Sleep(std::chrono::milliseconds(50));                             \
+    }
+
 #define OT_METHOD "opentxs::api::client::implementation::Pair::"
 
 namespace opentxs::api::client::implementation
@@ -140,7 +150,11 @@ void Pair::check_pairing() const
     Cleanup cleanup(pairing_);
 
     for (const auto & [ nymID, issuerSet ] : create_issuer_map()) {
+        SHUTDOWN()
+
         for (const auto& issuerID : issuerSet) {
+            SHUTDOWN()
+
             state_machine(nymID, issuerID);
         }
     }
@@ -185,6 +199,7 @@ std::pair<bool, Identifier> Pair::get_connection(
     auto action = action_.InitiateRequestConnection(
         localNymID, serverID, issuerNymID, type);
     action->Run();
+    lock.unlock();
 
     if (SendResult::VALID_REPLY != action->LastSendResult()) {
 
@@ -221,6 +236,7 @@ std::pair<bool, Identifier> Pair::initiate_bailment(
     rLock lock(api_lock_);
     auto action = action_.InitiateBailment(nymID, serverID, issuerID, unitID);
     action->Run();
+    lock.unlock();
 
     if (SendResult::VALID_REPLY != action->LastSendResult()) {
 
@@ -443,6 +459,7 @@ void Pair::process_pending_bailment(
         auto action = action_.AcknowledgeNotice(
             nymID, serverID, issuerNymID, requestID, true);
         action->Run();
+        lock.unlock();
 
         if (SendResult::VALID_REPLY == action->LastSendResult()) {
             OT_ASSERT(action->SentPeerReply())
@@ -536,7 +553,7 @@ void Pair::queue_nym_download(
     const Identifier& localNymID,
     const Identifier& targetNymID) const
 {
-    sync_.ScheduleDownloadNymbox(localNymID, sync_.IntroductionServer());
+    sync_.StartIntroductionServer(localNymID);
     sync_.FindNym(targetNymID);
 }
 
@@ -552,7 +569,7 @@ void Pair::queue_server_contract(
     const Identifier& nymID,
     const Identifier& serverID) const
 {
-    sync_.ScheduleDownloadNymbox(nymID, sync_.IntroductionServer());
+    sync_.StartIntroductionServer(nymID);
     sync_.FindServer(serverID);
 }
 
@@ -561,7 +578,6 @@ void Pair::queue_unit_definition(
     const Identifier& serverID,
     const Identifier& unitID) const
 {
-    sync_.ScheduleDownloadNymbox(nymID, sync_.IntroductionServer());
     sync_.ScheduleDownloadContract(nymID, serverID, unitID);
 }
 
@@ -583,6 +599,7 @@ std::pair<bool, Identifier> Pair::register_account(
     rLock lock(api_lock_);
     auto action = action_.RegisterAccount(nymID, serverID, unitID);
     action->Run();
+    lock.unlock();
 
     if (SendResult::VALID_REPLY != action->LastSendResult()) {
 
@@ -608,7 +625,6 @@ void Pair::state_machine(
     Lock lock(status_lock_);
     auto & [ status, trusted ] = pair_status_[{localNymID, issuerNymID}];
     lock.unlock();
-
     const auto issuerNym = wallet_.Nym(issuerNymID);
 
     if (false == bool(issuerNym)) {
@@ -619,6 +635,8 @@ void Pair::state_machine(
 
         return;
     }
+
+    SHUTDOWN()
 
     const auto& issuerClaims = issuerNym->Claims();
     const auto serverID = issuerClaims.PreferredOTServer();
@@ -636,6 +654,8 @@ void Pair::state_machine(
         return;
     }
 
+    SHUTDOWN()
+
     if (false == haveAccounts) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Issuer does not advertise any contracts." << std::endl;
@@ -645,6 +665,8 @@ void Pair::state_machine(
     auto& issuer = editor.It();
     trusted = issuer.Paired();
     bool needStoreSecret{false};
+
+    SHUTDOWN()
 
     switch (status) {
         case Status::Error: {
@@ -658,11 +680,15 @@ void Pair::state_machine(
                       << std::endl;
                 auto contract = wallet_.Server(serverID);
 
+                SHUTDOWN()
+
                 if (false == bool(contract)) {
                     queue_server_contract(localNymID, serverID);
 
                     return;
                 }
+
+                SHUTDOWN()
 
                 queue_nym_registration(localNymID, serverID, trusted);
 
@@ -674,6 +700,8 @@ void Pair::state_machine(
             [[fallthrough]];
         }
         case Status::Registered: {
+            SHUTDOWN()
+
             if (trusted) {
                 needStoreSecret = (false == issuer.StoreSecretComplete()) &&
                                   (false == issuer.StoreSecretInitiated());
@@ -682,6 +710,8 @@ void Pair::state_machine(
                 auto& context = editor.It();
                 context.SetAdminPassword(issuer.PairingCode());
             }
+
+            SHUTDOWN()
 
             if (needStoreSecret) {
                 otWarn << OT_METHOD << __FUNCTION__
@@ -694,6 +724,8 @@ void Pair::state_machine(
                         proto::PEERREQUEST_STORESECRET, requestID);
                 }
             }
+
+            SHUTDOWN()
 
             if (trusted) {
                 const auto btcrpc =
@@ -721,11 +753,13 @@ void Pair::state_machine(
             }
 
             for (const auto & [ type, pGroup ] : *contractSection) {
+                SHUTDOWN()
                 OT_ASSERT(pGroup);
 
                 const auto& group = *pGroup;
 
                 for (const auto & [ id, pClaim ] : group) {
+                    SHUTDOWN()
                     OT_ASSERT(pClaim);
 
                     const auto& notUsed[[maybe_unused]] = id;
@@ -787,6 +821,7 @@ std::pair<bool, Identifier> Pair::store_secret(
         exec_.Wallet_GetWords(),
         exec_.Wallet_GetPassphrase());
     action->Run();
+    lock.unlock();
 
     if (SendResult::VALID_REPLY != action->LastSendResult()) {
 
@@ -831,7 +866,7 @@ void Pair::update_peer() const
 
 Pair::~Pair()
 {
-    while (pairing_.load()) {
+    if (pairing_.load()) {
         Log::Sleep(std::chrono::milliseconds(250));
     }
 
