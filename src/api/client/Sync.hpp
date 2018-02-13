@@ -143,13 +143,13 @@ private:
     mutable std::mutex nym_fetch_lock_{};
     mutable std::mutex task_status_lock_{};
     mutable std::atomic<std::uint64_t> refresh_counter_{0};
-    mutable std::map<ContextID, OperationQueue> operations_{};
-    mutable std::map<Identifier, UniqueQueue<Identifier>> server_nym_fetch_{};
-    UniqueQueue<Identifier> missing_nyms_{};
-    UniqueQueue<Identifier> missing_servers_{};
-    mutable std::map<ContextID, std::unique_ptr<std::thread>> state_machines_{};
-    mutable std::unique_ptr<Identifier> introduction_server_id_{nullptr};
-    mutable std::map<Identifier, ThreadStatus> task_status_{};
+    mutable std::map<ContextID, OperationQueue> operations_;
+    mutable std::map<Identifier, UniqueQueue<Identifier>> server_nym_fetch_;
+    UniqueQueue<Identifier> missing_nyms_;
+    UniqueQueue<Identifier> missing_servers_;
+    mutable std::map<ContextID, std::unique_ptr<std::thread>> state_machines_;
+    mutable std::unique_ptr<Identifier> introduction_server_id_;
+    mutable std::map<Identifier, ThreadStatus> task_status_;
 
     std::pair<bool, std::size_t> accept_incoming(
         const rLock& lock,
