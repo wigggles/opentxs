@@ -100,6 +100,8 @@ public:
     EXPORT virtual Identifier ScheduleRegisterNym(
         const Identifier& localNymID,
         const Identifier& serverID) const = 0;
+    EXPORT virtual void StartIntroductionServer(
+        const Identifier& localNymID) const = 0;
     EXPORT virtual ThreadStatus Status(const Identifier& thread) const = 0;
 
     EXPORT virtual ~Sync() = default;

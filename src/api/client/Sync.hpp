@@ -106,6 +106,7 @@ public:
     Identifier ScheduleRegisterNym(
         const Identifier& localNymID,
         const Identifier& serverID) const override;
+    void StartIntroductionServer(const Identifier& localNymID) const override;
     ThreadStatus Status(const Identifier& taskID) const override;
 
     ~Sync();
@@ -139,6 +140,7 @@ private:
     const api::client::Wallet& wallet_;
     const api::crypto::Encode& encoding_;
     mutable std::mutex introduction_server_lock_{};
+    mutable std::mutex nym_fetch_lock_{};
     mutable std::mutex task_status_lock_{};
     mutable std::atomic<std::uint64_t> refresh_counter_{0};
     mutable std::map<ContextID, OperationQueue> operations_{};
@@ -200,9 +202,10 @@ private:
         const Identifier& serverID,
         const OTPassword& password) const;
     Identifier get_introduction_server(const Lock& lock) const;
-    OperationQueue& get_operations(const Lock& lock, const ContextID& id) const;
+    UniqueQueue<Identifier>& get_nym_fetch(const Identifier& serverID) const;
+    OperationQueue& get_operations(const ContextID& id) const;
     Identifier import_default_introduction_server(const Lock& lock) const;
-    void load_introduction_server() const;
+    void load_introduction_server(const Lock& lock) const;
     bool message_nym(
         const Identifier& taskID,
         const Identifier& nymID,
@@ -214,11 +217,14 @@ private:
         const Identifier& serverID,
         const bool forcePrimary) const;
     Identifier random_id() const;
-    void refresh_accounts(const Lock& lock) const;
+    void refresh_accounts() const;
     void refresh_contacts() const;
     bool register_nym(
         const Identifier& taskID,
         const Identifier& nymID,
+        const Identifier& serverID) const;
+    Identifier schedule_download_nymbox(
+        const Identifier& localNymID,
         const Identifier& serverID) const;
     Identifier set_introduction_server(
         const Lock& lock,
@@ -226,8 +232,7 @@ private:
     Identifier start_task(const Identifier& taskID, bool success) const;
     void state_machine(const ContextID id, OperationQueue& queue) const;
     void update_task(const Identifier& taskID, const ThreadStatus status) const;
-    void start_introduction_server(const Lock& lock, const Identifier& nymID)
-        const;
+    void start_introduction_server(const Identifier& nymID) const;
 
     Sync(
         std::recursive_mutex& apiLock,
