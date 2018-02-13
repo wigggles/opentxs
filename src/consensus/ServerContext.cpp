@@ -52,6 +52,7 @@
 #include "opentxs/network/ServerConnection.hpp"
 #include "opentxs/OT.hpp"
 
+#define CURRENT_VERSION 2
 #define DEFAULT_NODE_NAME "Stash Node Pro"
 
 #define OT_METHOD "ServerContext::"
@@ -112,7 +113,7 @@ ServerContext::ServerContext(
     const Identifier& server,
     ServerConnection& connection,
     std::mutex& nymfileLock)
-    : ot_super(local, remote, server, nymfileLock)
+    : ot_super(CURRENT_VERSION, local, remote, server, nymfileLock)
     , connection_(connection)
     , admin_password_("")
     , admin_attempted_(false)
@@ -130,6 +131,7 @@ ServerContext::ServerContext(
     ServerConnection& connection,
     std::mutex& nymfileLock)
     : ot_super(
+          CURRENT_VERSION,
           serialized,
           local,
           remote,
@@ -541,10 +543,12 @@ proto::Context ServerContext::serialize(const Lock& lock) const
         server.add_tentativerequestnumber(it);
     }
 
-    server.set_revision(revision_.load());
-    server.set_adminpassword(admin_password_);
-    server.set_adminattempted(admin_attempted_.load());
-    server.set_adminsuccess(admin_success_.load());
+    if (output.version() >= 2) {
+        server.set_revision(revision_.load());
+        server.set_adminpassword(admin_password_);
+        server.set_adminattempted(admin_attempted_.load());
+        server.set_adminsuccess(admin_success_.load());
+    }
 
     return output;
 }

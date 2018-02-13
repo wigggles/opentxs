@@ -43,6 +43,8 @@
 #include "opentxs/consensus/TransactionStatement.hpp"
 #include "opentxs/core/Log.hpp"
 
+#define CURRENT_VERSION 1
+
 #define OT_METHOD "ClientContext::"
 
 namespace opentxs
@@ -52,7 +54,7 @@ ClientContext::ClientContext(
     const ConstNym& remote,
     const Identifier& server,
     std::mutex& nymfileLock)
-    : ot_super(local, remote, server, nymfileLock)
+    : ot_super(CURRENT_VERSION, local, remote, server, nymfileLock)
 {
 }
 
@@ -62,7 +64,7 @@ ClientContext::ClientContext(
     const ConstNym& remote,
     const Identifier& server,
     std::mutex& nymfileLock)
-    : ot_super(serialized, local, remote, server, nymfileLock)
+    : ot_super(CURRENT_VERSION, serialized, local, remote, server, nymfileLock)
 {
     if (serialized.has_clientcontext()) {
         for (const auto& it : serialized.clientcontext().opencronitems()) {

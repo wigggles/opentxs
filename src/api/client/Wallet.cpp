@@ -185,6 +185,8 @@ std::shared_ptr<class Context> Wallet::context(
         otErr << OT_METHOD << __FUNCTION__ << ": invalid signature on context."
               << std::endl;
 
+        OT_FAIL
+
         return nullptr;
     }
 

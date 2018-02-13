@@ -133,11 +133,13 @@ protected:
         const std::set<RequestNumber>& req);
 
     Context(
+        const std::uint32_t targetVersion,
         const ConstNym& local,
         const ConstNym& remote,
         const Identifier& server,
         std::mutex& nymfileLock);
     Context(
+        const std::uint32_t targetVersion,
         const proto::Context& serialized,
         const ConstNym& local,
         const ConstNym& remote,
@@ -149,6 +151,8 @@ private:
     friend class api::client::implementation::Wallet;
 
     typedef Signable ot_super;
+
+    const std::uint32_t target_version_{0};
 
     proto::Context contract(const Lock& lock) const;
     proto::Context IDVersion(const Lock& lock) const;
