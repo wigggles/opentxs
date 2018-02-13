@@ -49,6 +49,8 @@
 #define OT_MAX_ACK_NUMS 100
 #endif
 
+#define CURRENT_VERSION 2
+
 #define OT_METHOD "Context::"
 
 namespace opentxs
@@ -58,7 +60,7 @@ Context::Context(
     const ConstNym& remote,
     const Identifier& server,
     std::mutex& nymfileLock)
-    : ot_super(local, 1)
+    : ot_super(local, CURRENT_VERSION)
     , nymfile_lock_(nymfileLock)
     , server_id_(server)
     , remote_nym_(remote)
@@ -431,7 +433,12 @@ proto::Context Context::serialize(
 
     proto::Context output;
 
-    output.set_version(version_);
+    if (version_ < CURRENT_VERSION) {
+        output.set_version(CURRENT_VERSION);
+    } else {
+        output.set_version(version_);
+    }
+
     output.set_type(type);
 
     if (nym_) {
