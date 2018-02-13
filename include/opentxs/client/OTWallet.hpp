@@ -49,16 +49,17 @@
 #include <memory>
 #include <set>
 #include <string>
+#include <tuple>
 
 namespace opentxs
 {
-typedef std::map<std::string, std::shared_ptr<OTSymmetricKey>>
-    mapOfSymmetricKeys;
-typedef std::set<Identifier> setOfIdentifiers;
+/** AccountInfo: accountID, nymID, serverID, unitID*/
+using AccountInfo = std::tuple<Identifier, Identifier, Identifier, Identifier>;
 
 class OTWallet : Lockable
 {
 public:
+    EXPORT std::set<AccountInfo> AccountList() const;
     EXPORT void DisplayStatistics(String& strOutput) const;
     EXPORT bool GetAccount(
         const std::size_t iIndex,
@@ -188,7 +189,13 @@ public:
 private:
     friend OT_API;
 
-    typedef std::map<std::string, std::unique_ptr<Account>> mapOfAccounts;
+    /** AccountEntry nymID, serverID, unitID, account */
+    using AccountEntry = std::
+        tuple<Identifier, Identifier, Identifier, std::unique_ptr<Account>>;
+    using mapOfAccounts = std::map<Identifier, AccountEntry>;
+    using mapOfSymmetricKeys =
+        std::map<std::string, std::shared_ptr<OTSymmetricKey>>;
+    using setOfIdentifiers = std::set<Identifier>;
 
     const api::Crypto& crypto_;
     const api::storage::Storage& storage_;

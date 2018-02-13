@@ -334,13 +334,13 @@ bool OTWallet::GetAccount(
     if (iIndex < GetAccountCount()) {
         std::size_t iCurrentIndex{0};
 
-        for (auto& it : m_mapAccounts) {
-            auto& pAccount = it.second;
+        for (auto & [ id, entry ] : m_mapAccounts) {
+            auto& pAccount = std::get<3>(entry);
 
             OT_ASSERT(pAccount);
 
             if (iIndex == iCurrentIndex) {
-                pAccount->GetIdentifier(THE_ID);
+                THE_ID = id;
                 pAccount->GetName(THE_NAME);
 
                 return true;
@@ -384,7 +384,8 @@ void OTWallet::DisplayStatistics(String& strOutput) const
     strOutput.Concatenate("ACCOUNTS:\n\n");
 
     for (auto& it : m_mapAccounts) {
-        auto& pAccount = it.second;
+        auto& pAccount = std::get<3>(it.second);
+
         OT_ASSERT_MSG(
             pAccount,
             "nullptr account pointer in "
@@ -392,7 +393,6 @@ void OTWallet::DisplayStatistics(String& strOutput) const
             "OTWallet::DisplayStatistics");
 
         pAccount->DisplayStatistics(strOutput);
-
         strOutput.Concatenate(
             "-------------------------------------------------\n\n");
     }
@@ -438,34 +438,29 @@ void OTWallet::add_account(const Lock& lock, const Account& theAcct)
     OT_ASSERT(verify_lock(lock))
 
     const Identifier ACCOUNT_ID(theAcct);
-    // See if there is already an account object on this wallet with the same ID
-    // (Otherwise if we don't delete it, this would be a memory leak.)
-    // Should use a smart pointer.
-    Identifier anAccountID;
+    auto existing = m_mapAccounts.find(ACCOUNT_ID);
 
-    for (auto it(m_mapAccounts.begin()); it != m_mapAccounts.end(); ++it) {
-        auto& pAccount = it->second;
+    if (m_mapAccounts.end() != existing) {
+        auto& account = std::get<3>(existing->second);
 
-        OT_ASSERT(pAccount);
+        OT_ASSERT(account)
 
-        pAccount->GetIdentifier(anAccountID);
+        String name{};
+        account->GetName(name);
 
-        if (anAccountID == ACCOUNT_ID) {
-            String strName;
-            pAccount->GetName(strName);
-
-            if (strName.Exists()) {
-                const_cast<Account&>(theAcct).SetName(strName);
-            }
-
-            m_mapAccounts.erase(it);
-
-            break;
+        if (name.Exists()) {
+            const_cast<Account&>(theAcct).SetName(name);
         }
+
+        m_mapAccounts.erase(existing);
     }
 
-    const String strAcctID(ACCOUNT_ID);
-    m_mapAccounts[strAcctID.Get()].reset(const_cast<Account*>(&theAcct));
+    auto& entry = m_mapAccounts[ACCOUNT_ID];
+    auto & [ nymID, serverID, unitID, account ] = entry;
+    nymID = theAcct.GetNymID();
+    serverID = theAcct.GetPurportedNotaryID();
+    unitID = theAcct.GetInstrumentDefinitionID();
+    account.reset(const_cast<Account*>(&theAcct));
 }
 
 void OTWallet::AddAccount(const Account& theAcct)
@@ -480,18 +475,14 @@ Account* OTWallet::get_account(const Lock& lock, const Identifier& theAccountID)
 {
     OT_ASSERT(verify_lock(lock))
 
-    for (auto& it : m_mapAccounts) {
-        auto& pAccount = it.second;
+    auto it = m_mapAccounts.find(theAccountID);
 
-        OT_ASSERT(pAccount);
+    if (m_mapAccounts.end() == it) {
 
-        Identifier anAccountID;
-        pAccount->GetIdentifier(anAccountID);
-
-        if (anAccountID == theAccountID) return pAccount.get();
+        return nullptr;
     }
 
-    return nullptr;
+    return std::get<3>(it->second).get();
 }
 
 // // Look up an account by ID and see if it is in the wallet.
@@ -509,7 +500,7 @@ Account* OTWallet::GetAccountPartialMatch(std::string PARTIAL_ID)
     Lock lock(lock_);
     // loop through the accounts and find one with a specific ID.
     for (auto& it : m_mapAccounts) {
-        auto& pAccount = it.second;
+        auto& pAccount = std::get<3>(it.second);
 
         OT_ASSERT(pAccount);
 
@@ -527,7 +518,7 @@ Account* OTWallet::GetAccountPartialMatch(std::string PARTIAL_ID)
     // Okay, let's try it by name, then...
     //
     for (auto& it : m_mapAccounts) {
-        auto& pAccount = it.second;
+        auto& pAccount = std::get<3>(it.second);
 
         OT_ASSERT(pAccount);
 
@@ -550,7 +541,7 @@ Account* OTWallet::GetIssuerAccount(const Identifier& theInstrumentDefinitionID)
     // loop through the accounts and find one with a specific instrument
     // definition ID. (And with the issuer type set.)
     for (auto& it : m_mapAccounts) {
-        auto& pIssuerAccount = it.second;
+        auto& pIssuerAccount = std::get<3>(it.second);
 
         OT_ASSERT(pIssuerAccount);
 
@@ -883,24 +874,8 @@ bool OTWallet::remove_nym(
 bool OTWallet::RemoveAccount(const Identifier& theTargetID)
 {
     Lock lock(lock_);
-    // loop through the accounts and find one with a specific ID.
-    Identifier anAccountID;
 
-    for (auto it(m_mapAccounts.begin()); it != m_mapAccounts.end(); ++it) {
-        auto& pAccount = it->second;
-
-        OT_ASSERT(pAccount);
-
-        pAccount->GetIdentifier(anAccountID);
-
-        if (anAccountID == theTargetID) {
-            m_mapAccounts.erase(it);
-
-            return true;
-        }
-    }
-
-    return false;
+    return (1 == m_mapAccounts.erase(theTargetID));
 }
 
 bool OTWallet::save_contract(const Lock& lock, String& strContract)
@@ -983,7 +958,8 @@ bool OTWallet::save_contract(const Lock& lock, String& strContract)
     }
 
     for (auto& it : m_mapAccounts) {
-        auto& pAccount = it.second;
+        auto& pAccount = std::get<3>(it.second);
+
         OT_ASSERT_MSG(
             pAccount,
             "nullptr account pointer in "
@@ -1686,6 +1662,23 @@ std::set<Identifier> OTWallet::NymList() const
         OT_ASSERT(nullptr != nym)
 
         output.emplace(nym->ID());
+    }
+
+    return output;
+}
+
+std::set<AccountInfo> OTWallet::AccountList() const
+{
+    std::set<AccountInfo> output{};
+
+    Lock lock(lock_);
+
+    for (const auto & [ accountID, entry ] : m_mapAccounts) {
+        const auto & [ nymID, serverID, unitID, account ] = entry;
+
+        OT_ASSERT(account)
+
+        output.emplace(accountID, nymID, serverID, unitID);
     }
 
     return output;

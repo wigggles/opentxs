@@ -59,71 +59,22 @@
 
 namespace opentxs
 {
-
-class Account;
-class Basket;
-class BasketContract;
-class Cheque;
-class CurrencyContract;
-class Ledger;
-class Message;
-#if OT_CASH
-class Mint;
-#endif  // OT_CASH
-class NumList;
-class Nym;
-class OTClient;
-class OTEnvelope;
-class OTNym_or_SymmetricKey;
-class OTPassword;
-class OTPasswordData;
-class OTPayment;
-class OTPaymentPlan;
-class OTWallet;
-#if OT_CASH
-class Purse;
-#endif  // OT_CASH
-class ServerContract;
-#if OT_CASH
-class Token;
-#endif  // OT_CASH
-class UnitDefinition;
-
 namespace api
 {
-class Activity;
-class ContactManager;
-class Crypto;
-class Identity;
-class Settings;
-class ZMQ;
-
-namespace client
-{
-class Wallet;
-}  // namespace client
-
 namespace implementation
 {
 class Api;
 }  // namespace implementation
-
-namespace network
-{
-class ZMQ;
-}  // namespace network
-
-namespace storage
-{
-class Storage;
-}  // namespace storage
 }  // namespace api
+
+/** AccountInfo: accountID, nymID, serverID, unitID */
+using AccountInfo = std::tuple<Identifier, Identifier, Identifier, Identifier>;
 
 // The C++ high-level interface to the Open Transactions client-side.
 class OT_API
 {
 public:
-    //  typedef std::pair<std::unique_ptr<Ledger>, Ledger*> ProcessInbox;
+    /** AccountInfo: accountID, nymID, serverID, unitID*/
     typedef std::pair<std::unique_ptr<Ledger>, std::unique_ptr<Ledger>>
         ProcessInbox;
 
@@ -153,6 +104,7 @@ public:
 
     EXPORT std::int32_t GetNymCount() const;
     EXPORT std::set<Identifier> LocalNymList() const;
+    EXPORT std::set<AccountInfo> Accounts() const;
     EXPORT std::int32_t GetAccountCount() const;
 
     EXPORT bool GetNym(

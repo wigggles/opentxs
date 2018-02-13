@@ -102,13 +102,16 @@ class ReplySocket;
 class RequestSocket;
 }  // namespace opentxs::network::zeromq
 
+class Dht;
 class OpenDHT;
+class ZMQ;
 }  // namespace opentxs::network
 
 class Account;
 class AccountVisitor;
 class AsymmetricKeyEC;
 class Basket;
+class BasketContract;
 class Bip32;
 class Bip39;
 class Cheque;
@@ -116,6 +119,7 @@ class ClientContext;
 class Contact;
 class Context;
 class Contract;
+class CurrencyContract;
 class Credential;
 class CredentialSet;
 class CryptoAsymmetric;
@@ -135,6 +139,7 @@ class Message;
 #if OT_CASH
 class Mint;
 #endif  // OT_CASH
+class NumList;
 class Nym;
 class NymData;
 class NymParameters;
@@ -145,10 +150,13 @@ class OTAPI_Exec;
 class OTASCIIArmor;
 class OTAsymmetricKey;
 class OTCachedKey;
+class OTClient;
 class OTDataFolder;
+class OTEnvelope;
 class OTFolders;
 class OTKeypair;
 class OTME_too;
+class OTNym_or_SymmetricKey;
 class OTPassword;
 class OTPasswordData;
 class OTPaths;
@@ -159,6 +167,7 @@ class OTSignatureMetadata;
 class OTSmartContract;
 class OTSymmetricKey;
 class OTTransaction;
+class OTWallet;
 class PaymentCode;
 class PeerObject;
 class Purse;
@@ -170,6 +179,9 @@ class StorageDriver;
 class StoragePlugin;
 class String;
 class SymmetricKey;
+#if OT_CASH
+class Token;
+#endif  // OT_CASH
 class TransactionStatement;
 class UnitDefinition;
 

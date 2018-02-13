@@ -882,6 +882,15 @@ std::set<Identifier> OT_API::LocalNymList() const
     return wallet->NymList();
 }
 
+std::set<AccountInfo> OT_API::Accounts() const
+{
+    auto wallet = GetWallet(__FUNCTION__);
+
+    OT_ASSERT(nullptr != wallet)
+
+    return wallet->AccountList();
+}
+
 int32_t OT_API::GetAccountCount() const
 {
     OTWallet* pWallet =
