@@ -954,31 +954,27 @@ std::uint64_t Sync::RefreshCount() const { return refresh_counter_.load(); }
 
 void Sync::refresh_accounts() const
 {
-    // Make sure no nyms, servers, or accounts are added or removed while
-    // creating the list
-    rLock apiLock(api_lock_);
     otInfo << OT_METHOD << __FUNCTION__ << ": Begin" << std::endl;
     const auto serverList = wallet_.ServerList();
-    const auto accountCount = exec_.GetAccountCount();
+    const auto accounts = ot_api_.Accounts();
 
     for (const auto server : serverList) {
         SHUTDOWN()
 
-        const auto& serverID = server.first;
+        const auto serverID = Identifier(server.first);
         otWarn << OT_METHOD << __FUNCTION__ << ": Considering server "
-               << serverID << std::endl;
+               << String(serverID) << std::endl;
 
         for (const auto& nymID : ot_api_.LocalNymList()) {
             SHUTDOWN()
             otWarn << OT_METHOD << __FUNCTION__ << ": Nym " << String(nymID)
                    << " ";
             const bool registered =
-                exec_.IsNym_RegisteredAtServer(String(nymID).Get(), serverID);
+                ot_api_.IsNym_RegisteredAtServer(nymID, serverID);
 
             if (registered) {
                 otWarn << "is ";
-                auto& queue =
-                    get_operations({Identifier(nymID), Identifier(serverID)});
+                auto& queue = get_operations({nymID, serverID});
                 const auto taskID(random_id());
                 queue.download_nymbox_.Push(taskID, true);
             } else {
@@ -991,19 +987,17 @@ void Sync::refresh_accounts() const
 
     SHUTDOWN()
 
-    for (std::int32_t n = 0; n < accountCount; n++) {
+    for (const auto & [ accountID, nymID, serverID, unitID ] : accounts) {
         SHUTDOWN()
 
-        const auto accountID = exec_.GetAccountWallet_ID(n);
-        const auto serverID = exec_.GetAccountWallet_NotaryID(accountID);
-        const auto nymID = exec_.GetAccountWallet_NymID(accountID);
-        otWarn << OT_METHOD << __FUNCTION__ << ": Account " << accountID
+        const auto& notUsed[[maybe_unused]] = unitID;
+        otWarn << OT_METHOD << __FUNCTION__ << ": Account " << String(accountID)
                << ":\n"
-               << "  * Owned by nym: " << nymID << "\n"
-               << "  * On server: " << serverID << std::endl;
-        auto& queue = get_operations({Identifier(nymID), Identifier(serverID)});
+               << "  * Owned by nym: " << String(nymID) << "\n"
+               << "  * On server: " << String(serverID) << std::endl;
+        auto& queue = get_operations({nymID, serverID});
         const auto taskID(random_id());
-        queue.download_account_.Push(taskID, Identifier(accountID));
+        queue.download_account_.Push(taskID, accountID);
     }
 
     otInfo << OT_METHOD << __FUNCTION__ << ": End" << std::endl;
