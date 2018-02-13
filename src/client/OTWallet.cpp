@@ -103,22 +103,7 @@ OTWallet::OTWallet(
 void OTWallet::release(const Lock&)
 {
     m_mapPrivateNyms.clear();
-
-    // Go through the map of Accounts and delete them. (They were dynamically
-    // allocated.)
-    while (!m_mapAccounts.empty()) {
-        Account* pAccount = m_mapAccounts.begin()->second;
-
-        OT_ASSERT(nullptr != pAccount);
-
-        delete pAccount;
-        pAccount = nullptr;
-
-        m_mapAccounts.erase(m_mapAccounts.begin());
-    }
-
-    // Watch how much prettier this one is, since we used smart pointers!
-    //
+    m_mapAccounts.clear();
     m_mapExtraKeys.clear();
 }
 
@@ -350,13 +335,14 @@ bool OTWallet::GetAccount(
         std::size_t iCurrentIndex{0};
 
         for (auto& it : m_mapAccounts) {
-            Account* pAccount = it.second;
+            auto& pAccount = it.second;
 
-            OT_ASSERT(nullptr != pAccount);
+            OT_ASSERT(pAccount);
 
             if (iIndex == iCurrentIndex) {
                 pAccount->GetIdentifier(THE_ID);
                 pAccount->GetName(THE_NAME);
+
                 return true;
             }
 
@@ -398,9 +384,9 @@ void OTWallet::DisplayStatistics(String& strOutput) const
     strOutput.Concatenate("ACCOUNTS:\n\n");
 
     for (auto& it : m_mapAccounts) {
-        Account* pAccount = it.second;
+        auto& pAccount = it.second;
         OT_ASSERT_MSG(
-            nullptr != pAccount,
+            pAccount,
             "nullptr account pointer in "
             "OTWallet::m_mapAccounts, "
             "OTWallet::DisplayStatistics");
@@ -458,8 +444,9 @@ void OTWallet::add_account(const Lock& lock, const Account& theAcct)
     Identifier anAccountID;
 
     for (auto it(m_mapAccounts.begin()); it != m_mapAccounts.end(); ++it) {
-        Account* pAccount = it->second;
-        OT_ASSERT(nullptr != pAccount);
+        auto& pAccount = it->second;
+
+        OT_ASSERT(pAccount);
 
         pAccount->GetIdentifier(anAccountID);
 
@@ -472,15 +459,13 @@ void OTWallet::add_account(const Lock& lock, const Account& theAcct)
             }
 
             m_mapAccounts.erase(it);
-            delete pAccount;
-            pAccount = nullptr;
 
             break;
         }
     }
 
     const String strAcctID(ACCOUNT_ID);
-    m_mapAccounts[strAcctID.Get()] = const_cast<Account*>(&theAcct);
+    m_mapAccounts[strAcctID.Get()].reset(const_cast<Account*>(&theAcct));
 }
 
 void OTWallet::AddAccount(const Account& theAcct)
@@ -496,13 +481,14 @@ Account* OTWallet::get_account(const Lock& lock, const Identifier& theAccountID)
     OT_ASSERT(verify_lock(lock))
 
     for (auto& it : m_mapAccounts) {
-        Account* pAccount = it.second;
-        OT_ASSERT(nullptr != pAccount);
+        auto& pAccount = it.second;
+
+        OT_ASSERT(pAccount);
 
         Identifier anAccountID;
         pAccount->GetIdentifier(anAccountID);
 
-        if (anAccountID == theAccountID) return pAccount;
+        if (anAccountID == theAccountID) return pAccount.get();
     }
 
     return nullptr;
@@ -523,30 +509,36 @@ Account* OTWallet::GetAccountPartialMatch(std::string PARTIAL_ID)
     Lock lock(lock_);
     // loop through the accounts and find one with a specific ID.
     for (auto& it : m_mapAccounts) {
-        Account* pAccount = it.second;
-        OT_ASSERT(nullptr != pAccount);
+        auto& pAccount = it.second;
+
+        OT_ASSERT(pAccount);
 
         Identifier anAccountID;
         pAccount->GetIdentifier(anAccountID);
         String strTemp(anAccountID);
         std::string strIdentifier = strTemp.Get();
 
-        if (strIdentifier.compare(0, PARTIAL_ID.length(), PARTIAL_ID) == 0)
-            return pAccount;
+        if (strIdentifier.compare(0, PARTIAL_ID.length(), PARTIAL_ID) == 0) {
+
+            return pAccount.get();
+        }
     }
 
     // Okay, let's try it by name, then...
     //
     for (auto& it : m_mapAccounts) {
-        Account* pAccount = it.second;
-        OT_ASSERT(nullptr != pAccount);
+        auto& pAccount = it.second;
+
+        OT_ASSERT(pAccount);
 
         String strName;
         pAccount->GetName(strName);
         std::string str_Name = strName.Get();
 
-        if (str_Name.compare(0, PARTIAL_ID.length(), PARTIAL_ID) == 0)
-            return pAccount;
+        if (str_Name.compare(0, PARTIAL_ID.length(), PARTIAL_ID) == 0) {
+
+            return pAccount.get();
+        }
     }
 
     return nullptr;
@@ -558,13 +550,16 @@ Account* OTWallet::GetIssuerAccount(const Identifier& theInstrumentDefinitionID)
     // loop through the accounts and find one with a specific instrument
     // definition ID. (And with the issuer type set.)
     for (auto& it : m_mapAccounts) {
-        Account* pIssuerAccount = it.second;
-        OT_ASSERT(nullptr != pIssuerAccount);
+        auto& pIssuerAccount = it.second;
+
+        OT_ASSERT(pIssuerAccount);
 
         if ((pIssuerAccount->GetInstrumentDefinitionID() ==
              theInstrumentDefinitionID) &&
-            (pIssuerAccount->IsIssuer()))
-            return pIssuerAccount;
+            (pIssuerAccount->IsIssuer())) {
+
+            return pIssuerAccount.get();
+        }
     }
 
     return nullptr;
@@ -892,14 +887,15 @@ bool OTWallet::RemoveAccount(const Identifier& theTargetID)
     Identifier anAccountID;
 
     for (auto it(m_mapAccounts.begin()); it != m_mapAccounts.end(); ++it) {
-        Account* pAccount = it->second;
-        OT_ASSERT(nullptr != pAccount);
+        auto& pAccount = it->second;
+
+        OT_ASSERT(pAccount);
 
         pAccount->GetIdentifier(anAccountID);
 
         if (anAccountID == theTargetID) {
             m_mapAccounts.erase(it);
-            delete pAccount;
+
             return true;
         }
     }
@@ -987,9 +983,9 @@ bool OTWallet::save_contract(const Lock& lock, String& strContract)
     }
 
     for (auto& it : m_mapAccounts) {
-        Contract* pAccount = it.second;
+        auto& pAccount = it.second;
         OT_ASSERT_MSG(
-            nullptr != pAccount,
+            pAccount,
             "nullptr account pointer in "
             "OTWallet::m_mapAccounts, "
             "OTWallet::SaveContract");

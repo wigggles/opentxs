@@ -52,7 +52,6 @@
 
 namespace opentxs
 {
-typedef std::map<std::string, Account*> mapOfAccounts;
 typedef std::map<std::string, std::shared_ptr<OTSymmetricKey>>
     mapOfSymmetricKeys;
 typedef std::set<Identifier> setOfIdentifiers;
@@ -189,6 +188,8 @@ public:
 private:
     friend OT_API;
 
+    typedef std::map<std::string, std::unique_ptr<Account>> mapOfAccounts;
+
     const api::Crypto& crypto_;
     const api::storage::Storage& storage_;
 #if OT_CASH
@@ -201,7 +202,7 @@ private:
     String m_strFilename{};
     String m_strDataFolder{};
     mapOfNymsSP m_mapPrivateNyms{};
-    mapOfAccounts m_mapAccounts{};
+    mapOfAccounts m_mapAccounts;
     // Let's say you have some private data that you want to store safely.
     // For example, your Bitmessage user/pass. Perhaps you want to throw
     // your Bitmessage connect string into your client-side sql*lite DB.
