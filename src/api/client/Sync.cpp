@@ -957,26 +957,35 @@ void Sync::refresh_accounts() const
     // Make sure no nyms, servers, or accounts are added or removed while
     // creating the list
     rLock apiLock(api_lock_);
+    otInfo << OT_METHOD << __FUNCTION__ << ": Begin" << std::endl;
     const auto serverList = wallet_.ServerList();
-    const auto nymCount = exec_.GetNymCount();
     const auto accountCount = exec_.GetAccountCount();
 
     for (const auto server : serverList) {
         SHUTDOWN()
 
         const auto& serverID = server.first;
+        otWarn << OT_METHOD << __FUNCTION__ << ": Considering server "
+               << serverID << std::endl;
 
-        for (std::int32_t n = 0; n < nymCount; n++) {
+        for (const auto& nymID : ot_api_.LocalNymList()) {
             SHUTDOWN()
+            otWarn << OT_METHOD << __FUNCTION__ << ": Nym " << String(nymID)
+                   << " ";
+            const bool registered =
+                exec_.IsNym_RegisteredAtServer(String(nymID).Get(), serverID);
 
-            const auto nymID = exec_.GetNym_ID(n);
-
-            if (exec_.IsNym_RegisteredAtServer(nymID, serverID)) {
+            if (registered) {
+                otWarn << "is ";
                 auto& queue =
                     get_operations({Identifier(nymID), Identifier(serverID)});
                 const auto taskID(random_id());
                 queue.download_nymbox_.Push(taskID, true);
+            } else {
+                otWarn << "is not ";
             }
+
+            otWarn << "registered here." << std::endl;
         }
     }
 
@@ -988,10 +997,16 @@ void Sync::refresh_accounts() const
         const auto accountID = exec_.GetAccountWallet_ID(n);
         const auto serverID = exec_.GetAccountWallet_NotaryID(accountID);
         const auto nymID = exec_.GetAccountWallet_NymID(accountID);
+        otWarn << OT_METHOD << __FUNCTION__ << ": Account " << accountID
+               << ":\n"
+               << "  * Owned by nym: " << nymID << "\n"
+               << "  * On server: " << serverID << std::endl;
         auto& queue = get_operations({Identifier(nymID), Identifier(serverID)});
         const auto taskID(random_id());
         queue.download_account_.Push(taskID, Identifier(accountID));
     }
+
+    otInfo << OT_METHOD << __FUNCTION__ << ": End" << std::endl;
 }
 
 void Sync::refresh_contacts() const
@@ -1496,7 +1511,7 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
         SHUTDOWN()
 
         // Download any accounts which have been scheduled for download
-        while (queue.check_nym_.Pop(taskID, accountID)) {
+        while (queue.download_account_.Pop(taskID, accountID)) {
             SHUTDOWN()
 
             if (accountID.empty()) {
