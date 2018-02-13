@@ -200,7 +200,7 @@ private:
         const Identifier& serverID,
         const OTPassword& password) const;
     Identifier get_introduction_server(const Lock& lock) const;
-    OperationQueue& get_operations(const ContextID& id) const;
+    OperationQueue& get_operations(const Lock& lock, const ContextID& id) const;
     Identifier import_default_introduction_server(const Lock& lock) const;
     void load_introduction_server() const;
     bool message_nym(
@@ -214,7 +214,7 @@ private:
         const Identifier& serverID,
         const bool forcePrimary) const;
     Identifier random_id() const;
-    void refresh_accounts() const;
+    void refresh_accounts(const Lock& lock) const;
     void refresh_contacts() const;
     bool register_nym(
         const Identifier& taskID,
@@ -226,6 +226,8 @@ private:
     Identifier start_task(const Identifier& taskID, bool success) const;
     void state_machine(const ContextID id, OperationQueue& queue) const;
     void update_task(const Identifier& taskID, const ThreadStatus status) const;
+    void start_introduction_server(const Lock& lock, const Identifier& nymID)
+        const;
 
     Sync(
         std::recursive_mutex& apiLock,
