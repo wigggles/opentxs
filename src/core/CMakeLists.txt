@@ -46,6 +46,7 @@ set(cxx-install-headers
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/Instrument.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/Item.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/Ledger.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/Lockable.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/Log.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/Message.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/NumList.hpp"
