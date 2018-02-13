@@ -37,14 +37,9 @@
  ************************************************************/
 
 #include <gtest/gtest.h>
-#include <string>
 
-#include "gtest/gtest-message.h"
-#include "gtest/gtest-test-part.h"
 #include "opentxs/contact/ContactItem.hpp"
 #include "opentxs/core/crypto/ContactCredential.hpp"
-
-#include "OTTestEnvironment.hpp"
 
 namespace
 {
@@ -66,12 +61,6 @@ public:
 };
 
 } // namespace
-
-int main(int argc, char **argv) {
-  ::testing::AddGlobalTestEnvironment(new OTTestEnvironment());
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}
 
 TEST_F(Test_ContactItem, operator_equal_true)
 {

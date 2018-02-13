@@ -61,12 +61,10 @@ public:
         const std::string& nym,
         const proto::ContactSectionName section,
         const proto::ContactItemType type,
-        const Identifier& primary,
         const ItemMap& items);
     ContactGroup(
         const std::string& nym,
         const proto::ContactSectionName section,
-        const Identifier& primary,
         const std::shared_ptr<ContactItem>& item);
     ContactGroup(const ContactGroup&) = default;
     ContactGroup(ContactGroup&&) = default;
@@ -79,7 +77,7 @@ public:
     bool HaveClaim(const Identifier& item) const;
     ContactGroup AddItem(const std::shared_ptr<ContactItem>& item) const;
     ContactGroup AddPrimary(const std::shared_ptr<ContactItem>& item) const;
-    ContactGroup Delete(const Identifier& id);
+    ContactGroup Delete(const Identifier& id) const;
     ItemMap::const_iterator end() const;
     const Identifier& Primary() const;
     std::shared_ptr<ContactItem> PrimaryClaim() const;
@@ -98,6 +96,8 @@ private:
     const ItemMap items_{};
 
     static ItemMap create_item(const std::shared_ptr<ContactItem>& item);
+    static Identifier get_primary_item(const ItemMap& items);
+    static ItemMap normalize_items(const ItemMap& items);
 
     ContactGroup() = delete;
     ContactGroup& operator=(const ContactGroup&) = delete;

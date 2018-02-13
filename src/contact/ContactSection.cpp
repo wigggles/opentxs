@@ -137,8 +137,7 @@ ContactSection ContactSection::add_scope(
 
     GroupMap groups{};
     const auto& groupID = scope->Type();
-    const auto& claimID = scope->ID();
-    groups[groupID].reset(new ContactGroup(nym_, section_, claimID, scope));
+    groups[groupID].reset(new ContactGroup(nym_, section_, scope));
 
     return ContactSection(nym_, version_, version_, section_, groups);
 }
@@ -166,14 +165,7 @@ ContactSection ContactSection::AddItem(
 
         existing.reset(new ContactGroup(existing->AddItem(item)));
     } else {
-        const auto& id = item->ID();
-        Identifier primary{};
-
-        if (item->isPrimary()) {
-            primary = id;
-        }
-
-        map[groupID].reset(new ContactGroup(nym_, section_, primary, item));
+        map[groupID].reset(new ContactGroup(nym_, section_, item));
     }
 
     return ContactSection(nym_, version_, version_, section_, map);
@@ -222,13 +214,8 @@ ContactSection::GroupMap ContactSection::create_group(
 
     GroupMap output{};
     const auto& itemType = item->Type();
-    Identifier primary{};
 
-    if (item->isPrimary()) {
-        primary = item->ID();
-    }
-
-    output[itemType].reset(new ContactGroup(nym, section, primary, item));
+    output[itemType].reset(new ContactGroup(nym, section, item));
 
     return output;
 }
@@ -274,7 +261,6 @@ ContactSection::GroupMap ContactSection::extract_groups(
     const proto::ContactSection& serialized)
 {
     GroupMap groupMap{};
-    std::map<proto::ContactItemType, Identifier> primaryMap{};
     std::map<proto::ContactItemType, ContactGroup::ItemMap> itemMaps{};
     const auto& section = serialized.name();
 
@@ -291,18 +277,13 @@ ContactSection::GroupMap ContactSection::extract_groups(
         const auto& itemID = instantiated->ID();
         auto& itemMap = itemMaps[itemType];
         itemMap[itemID] = instantiated;
-
-        if (instantiated->isPrimary()) {
-            primaryMap[itemType] = itemID;
-        }
     }
 
     for (const auto& itemMap : itemMaps) {
         const auto& type = itemMap.first;
         const auto& map = itemMap.second;
-        const auto& primary = primaryMap[type];
         auto& group = groupMap[type];
-        group.reset(new ContactGroup(nym, section, type, primary, map));
+        group.reset(new ContactGroup(nym, section, type, map));
     }
 
     return groupMap;
