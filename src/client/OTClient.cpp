@@ -109,7 +109,6 @@ OTClient::OTClient(
     , activity_(activity)
     , contacts_(contacts)
     , wallet_(wallet)
-    , m_MessageBuffer()
     , m_MessageOutbuffer()
 {
 }
@@ -6201,9 +6200,6 @@ bool OTClient::processServerReply(
     // sent message, then process the reply and Remove the sent message.
     // But if we do NOT find the sent message, then we must have processed it
     // already -- in which case discard it and return.
-
-    // Here, the Client takes ownership of the message
-    m_MessageBuffer.Push(reply);
 
     // Once that process is done, everything below that line, in this function,
     // will be able to assume there is a verified Nym available, and a Server

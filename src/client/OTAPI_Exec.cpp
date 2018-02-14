@@ -11937,69 +11937,6 @@ std::string OTAPI_Exec::AddBasketExchangeItem(
     return pBuf;
 }
 
-// POP MESSAGE BUFFER
-//
-// If there are any replies from the server, they are stored in
-// the message buffer. This function will return those messages
-// (and remove them from the list) one-by-one, newest first.
-//
-// Returns the message as a string.
-//
-// Update: added arguments for: NotaryID AND NymID AND request number
-// NOTE: Any messages, when popping, which have the CORRECT notaryID
-// and the CORRECT NymID, but the wrong Request number, will be discarded.
-//
-// (Why? Because the client using the OT API will have already treated
-// that message as "dropped" by now, if it's already on to the next one,
-// and the protocol is designed to move forward properly based specifically
-// on this function returning the one EXPECTED... outgoing messages flush
-// the incoming buffer anyway, so the client will have assumed the wrong
-// reply was flushed by now anyway.)
-//
-// However, if the Notary ID and the Nym ID are wrong, this just means that
-// some other code is still expecting that reply, and hasn't even popped yet!
-// Therefore, we do NOT want to discard THOSE replies, but put them back if
-// necessary -- only discarding the ones where the IDs match.
-//
-//
-std::string OTAPI_Exec::PopMessageBuffer(
-    const int64_t& REQUEST_NUMBER,
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID) const
-{
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    OT_VERIFY_ID_STR(NOTARY_ID);
-    OT_VERIFY_ID_STR(NYM_ID);
-    OT_VERIFY_MIN_BOUND(REQUEST_NUMBER, 0);
-
-    const int64_t lRequestNum = REQUEST_NUMBER;
-    const Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID);
-    std::shared_ptr<Message> pMsg(ot_api_.PopMessageBuffer(
-        static_cast<int64_t>(lRequestNum),
-        theNotaryID,
-        theNymID));  // caller responsible to delete.
-
-    if (nullptr == pMsg)  // The buffer was empty.
-    {
-        otErr << OT_METHOD << __FUNCTION__ << ":  Reply not found, sorry.\n";
-        return {};
-    }
-
-    const String strOutput(*pMsg);
-    std::string pBuf = strOutput.Get();
-    return pBuf;
-}
-
-// Just flat-out empties the thing.
-//
-void OTAPI_Exec::FlushMessageBuffer(void) const
-{
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    ot_api_.FlushMessageBuffer();
-}
-
 // Message OUT-BUFFER
 //
 // (for messages I--the client--have sent the server.)

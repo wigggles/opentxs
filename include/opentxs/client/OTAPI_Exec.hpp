@@ -3225,40 +3225,6 @@ contract
         const int32_t& nBoxType,        // 0/nymbox, 1/inbox, 2/outbox
         const int64_t& TRANSACTION_NUMBER) const;
 
-    /** -----------------------------------------------------------
-    // POP MESSAGE BUFFER
-    //
-    // If there are any replies from the server, they are stored in
-    // the message buffer. This function will return those messages
-    // (and remove them from the list) one-by-one, newest first.
-    //
-    // Returns the message as a string.
-    //
-
-    // Update: added arguments for: NotaryID AND NymID AND request number
-    // NOTE: Any messages, when popping, which have the CORRECT notaryID
-    // and the CORRECT NymID, but the wrong Request number, will be discarded.
-    //
-    // (Why? Because the client using the OT API will have already treated
-    // that message as "dropped" by now, if it's already on to the next one,
-    // and the protocol is designed to move forward properly based specifically
-    // on this function returning the one EXPECTED... outgoing messages flush
-    // the incoming buffer anyway, so the client will have assumed the wrong
-    // reply was flushed by now anyway.)
-    //
-    // However, if the Notary ID and the Nym ID are wrong, this just means that
-    // some other code is still expecting that reply, and hasn't even popped
-    yet!
-    // Therefore, we do NOT want to discard THOSE replies, but put them back if
-    // necessary -- only discarding the ones where the IDs match.
-    */
-    EXPORT std::string PopMessageBuffer(
-        const int64_t& REQUEST_NUMBER,
-        const std::string& NOTARY_ID,
-        const std::string& NYM_ID) const;
-
-    EXPORT void FlushMessageBuffer() const;
-
     // Outgoing:
 
     EXPORT std::string GetSentMessage(

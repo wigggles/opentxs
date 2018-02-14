@@ -264,75 +264,44 @@ void Utility::setLastReplyReceived(const std::string& strReply)
     strLastReplyReceived = strReply;
 }
 
-std::int32_t Utility::getNymboxLowLevel(
-    const std::string& notaryID,
-    const std::string& nymID)
+std::int32_t Utility::getNymboxLowLevel()
 {
     bool bWasSent = false;
-    return getNymboxLowLevel(notaryID, nymID, bWasSent);
+    return getNymboxLowLevel(bWasSent);
 }
 
 // This returns -1 if error, or a positive request number if it was sent.
 // (It cannot return 0;
 // Called by getAndProcessNymbox.
-std::int32_t Utility::getNymboxLowLevel(
-    const std::string& notaryID,
-    const std::string& nymID,
-    bool& bWasSent)
+std::int32_t Utility::getNymboxLowLevel(bool& bWasSent)
 {
-    SwigWrap::FlushMessageBuffer();
     bWasSent = false;
     auto[nRequestNum, transactionNum, result] = otapi_.getNymbox(context_);
-    const auto& notUsed1[[maybe_unused]] = transactionNum;
-    const auto& notUsed2[[maybe_unused]] = result;
+    const auto & [ status, reply ] = result;
+    [[maybe_unused]] const auto& notUsed1 = transactionNum;
 
-    if (SwigWrap::networkFailure(notaryID)) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": getNymbox message failed due to network error.\n";
-        return -1;
+    switch (status) {
+        case SendResult::VALID_REPLY: {
+            bWasSent = true;
+            setLastReplyReceived(String(*reply).Get());
+
+            return nRequestNum;
+        } break;
+        case SendResult::TIMEOUT: {
+            otErr << OT_METHOD << __FUNCTION__
+                  << ": Failed to send getNymbox message due to error."
+                  << std::endl;
+            setLastReplyReceived("");
+
+            return -1;
+        } break;
+        default: {
+            otErr << OT_METHOD << __FUNCTION__ << ": Error" << std::endl;
+            setLastReplyReceived("");
+
+            return -1;
+        }
     }
-
-    if (-1 == nRequestNum) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Failed to send getNymbox message due to error.\n";
-        return -1;
-    }
-
-    if (0 == nRequestNum) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Unexpectedly returned 0. Didn't send "
-                 "getNymbox message, but NO error occurred, "
-                 "either. (In this case, SHOULD NEVER HAPPEN. "
-                 "Treating as Error.)\n";
-        return -1;  // Even though '0' MEANS "didn't send, but no error" by
-                    // convention in many places, it is actually an impossible
-                    // return value;
-    }
-
-    if (nRequestNum < 0) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Unexpected request number: " << nRequestNum << "\n";
-
-        return -1;
-    }
-
-    bWasSent = true;
-
-    const auto nResult =
-        receive_reply_success(notaryID, nymID, nRequestNum, __FUNCTION__);
-
-    if (SwigWrap::networkFailure(notaryID)) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Failed to due to network error." << std::endl;
-
-        return -1;
-    }
-
-    if (1 == nResult) {
-        return nRequestNum;
-    }
-
-    return nResult;
 }
 
 std::int32_t Utility::getNymbox(
@@ -382,10 +351,7 @@ std::int32_t Utility::getNymbox(
     // -- SECTION 1: "GET NYMBOX"
     //
     bool bWasMsgSent = false;
-    std::int32_t nGetNymbox =
-        getNymboxLowLevel(notaryID, nymID, bWasMsgSent);  // bWasMsgSent is
-                                                          // output from this
-                                                          // call.;
+    std::int32_t nGetNymbox = getNymboxLowLevel(bWasMsgSent);
 
     if (SwigWrap::networkFailure(notaryID)) return -1;
 
@@ -517,7 +483,7 @@ std::int32_t Utility::getNymbox(
             // the getRequestNumber worked, and the server hashes don't match,
             // so let's try the call again...
 
-            nGetNymbox = getNymboxLowLevel(notaryID, nymID, bWasMsgSent);
+            nGetNymbox = getNymboxLowLevel(bWasMsgSent);
 
             if (!(bWasMsgSent) || ((nGetNymbox <= 0) && (-1 != nGetNymbox))) {
                 otOut << strLocation
@@ -1397,9 +1363,11 @@ std::int32_t Utility::processNymbox(
 
     // Next, we have to make sure we have all the BOX RECEIPTS downloaded
     // for this Nymbox.
+    const auto[nProcess, trans, result] = otapi_.processNymbox(context_);
+    const auto & [ status, reply ] = result;
+    [[maybe_unused]] const auto& notUsed1 = trans;
+    [[maybe_unused]] const auto& notUsed2 = status;
 
-    std::int32_t nProcess = sendProcessNymboxLowLevel(
-        notaryID, nymID);  // <===================== SEND PROCESS NYMBOX!!;
     if (-1 == nProcess) {
         otOut << strLocation << "(2): error (-1), when calling "
                                 "sendProcessNymboxLowLevel. (It couldn't send. "
@@ -1420,28 +1388,9 @@ std::int32_t Utility::processNymbox(
     bWasMsgSent = true;
     nMsgSentRequestNumOut = nProcess;
 
-    // By this point, we definitely have a >0 request number from the
-    // sendProcessNymbox()
-    // call, stored in  ** nProcess ** (meaning the message WAS sent.)
-    //
-    // But was it received?
-    //
-    std::string strReplyProcess = ReceiveReplyLowLevel(
-        notaryID,
-        nymID,
-        nProcess,
-        "processNymbox / sendProcessNymboxLowLevel / "
-        "ReceiveReplyLowLevel");  // <=============== Here
-                                  // we RECEIVE the REPLY...
+    OT_ASSERT(reply)
 
-    // getLastReplyReceived() will also contain the same as strReplyProcess.
-    // So if the CALLER of this function (that we're in, receiveNymboxLowLevel)
-    // wants to see the contents, he can.
-
-    // ReceiveReplyLowLevel returns null unless there was a std::string
-    // returned.
-    // So we can directly check it for success...
-
+    const std::string strReplyProcess = String(*reply).Get();
     std::int32_t nReplySuccess =
         VerifyMessageSuccess(strReplyProcess);  // sendProcessNymboxLowLevel;
     std::int32_t nTransSuccess = -1;
@@ -1472,111 +1421,18 @@ std::int32_t Utility::processNymbox(
     // to correspond to THIS function's call of sendProcessNymboxLowLevel().
     //
     if (nTransSuccess > 0) {
-        return nProcess;  // <=========================
+        setLastReplyReceived(strReplyProcess);
+
+        return nProcess;
     }
+
+    setLastReplyReceived("");
 
     return nTransSuccess;
 }
 
-// No need to deal with getRequestNumber here when failure, since the calling
-// function already goes through that crap before we get here.
-// Returns: the request number for the process Nymbox request.
-// OR returns 0 if the Nymbox was empty (and no message was sent.)
-// OR returns -1 if there was an error.
-//
-// DONE
-std::int32_t Utility::sendProcessNymboxLowLevel(
-    const std::string& notaryID,
-    const std::string& nymID) const  // bWasSent is an output
-                                     // param allowing to
-                                     // return whether;
-{
-    std::string strLocation = "Utility::sendProcessNymboxLowLevel";
-
-    // Send message..
-    SwigWrap::FlushMessageBuffer();
-    auto[nRequestNum, transactionNum, result] = otapi_.processNymbox(context_);
-    const auto& notUsed1[[maybe_unused]] = transactionNum;
-    const auto& notUsed2[[maybe_unused]] = result;
-
-    if (-1 == nRequestNum) {
-        otOut << strLocation
-              << ": Failure sending. OT_API_processNymbox() returned -1. \n";
-        return -1;  // no need to check for any reply.
-    }
-    if (nRequestNum < 0) {
-        otOut << strLocation
-              << ": Failure: OT_API_processNymbox() returned unexpected value: "
-              << nRequestNum << "\n";
-        return -1;  // no need to check for any reply.
-    }
-    if (0 == nRequestNum) {
-        otInfo << strLocation << ": Nymbox was empty; no need to process it.\n";
-        return 0;  // Nymbox is empty, thus no need to process it.
-    }
-
-    // Note: I do NOT call RemoveSentMessage for processNymbox, at least, not
-    // here.
-    // Instead, the place that CALLS this function, will actually use that
-    // because
-    // it has to be able to harvest the transaction numbers in certain failure
-    // cases.
-
-    return nRequestNum;
-}
-
-NetworkOperationStatus Utility::receive_reply_success(
-    const std::string& notaryID,
-    const std::string& nymID,
-    const RequestNumber requestNumber,
-    const std::string& IN_FUNCTION)
-{
-    const auto reply = ReceiveReplyLowLevel(
-        notaryID,
-        nymID,
-        requestNumber,
-        "receive_reply_success: " + IN_FUNCTION);
-
-    return VerifyMessageSuccess(reply);
-}
-
-// Tries to receive a server reply
-// (for a message that you presumably just sent.)
-// If successful, returns the server reply. Otherwise returns null.
-// (Successful meaning, a valid-formed message was received. Whether that is a
-// "success=true" or "success=false" message, the caller will have to figure
-// that out for himself.)
-//
-std::string Utility::ReceiveReplyLowLevel(
-    const std::string& notaryID17,
-    const std::string& nymID,
-    std::int32_t nRequestNumber8,
-    const std::string& IN_FUNCTION)
-{
-    setLastReplyReceived("");
-
-    if (0 > nRequestNumber8) {
-        otOut << "ReceiveReplyLowLevel (" << IN_FUNCTION
-              << "): nRequestNumber isn't a valid number.\n";
-        return "";
-    }
-
-    std::string strResponseMessage = SwigWrap::PopMessageBuffer(
-        std::int64_t(nRequestNumber8), notaryID17, nymID);
-    if (!VerifyStringVal(strResponseMessage)) {
-        otOut << "ReceiveReplyLowLevel (" << IN_FUNCTION
-              << "): no server reply!\n";
-        return "";
-    }
-    setLastReplyReceived(strResponseMessage);
-
-    return strResponseMessage;
-}
-
 // called by getBoxReceiptWithErrorCorrection   DONE
 bool Utility::getBoxReceiptLowLevel(
-    const std::string& notaryID,
-    const std::string& nymID,
     const std::string& accountID,
     std::int32_t nBoxType,
     std::int64_t strTransactionNum,
@@ -1584,87 +1440,35 @@ bool Utility::getBoxReceiptLowLevel(
 {
     std::string strLocation = "Utility::getBoxReceiptLowLevel";
     bWasSent = false;
-    SwigWrap::FlushMessageBuffer();
 
     auto[nRequestNum, transactionNum, result] =
         OT::App().API().OTAPI().getBoxReceipt(
-            context_,
-            Identifier(accountID),
-            nBoxType,
-            strTransactionNum);  // <===== ATTEMPT TO SEND THE MESSAGE HERE...;
-    auto& notUsed1[[maybe_unused]] = transactionNum;
-    auto& notUsed2[[maybe_unused]] = result;
+            context_, Identifier(accountID), nBoxType, strTransactionNum);
+    const auto & [ status, reply ] = result;
+    [[maybe_unused]] const auto& notUsed1 = transactionNum;
+    [[maybe_unused]] const auto& notUsed3 = nRequestNum;
 
-    if (SwigWrap::networkFailure(notaryID)) {
-        otOut << strLocation
-              << ": getBoxReceipt message failed due to network error.\n";
-        return false;
+    switch (status) {
+        case SendResult::VALID_REPLY: {
+            bWasSent = true;
+            setLastReplyReceived(String(*reply).Get());
+
+            return true;
+        } break;
+        case SendResult::TIMEOUT: {
+            otErr << OT_METHOD << __FUNCTION__
+                  << ": Failed to send getNymbox message due to error."
+                  << std::endl;
+            setLastReplyReceived("");
+
+            return false;
+        } break;
+        default: {
+        }
     }
 
-    if (-1 == nRequestNum) {
-        otOut << strLocation
-              << ": Failed to send getBoxReceipt message due to error.\n";
-        return false;
-    }
-
-    if (0 == nRequestNum) {
-        otOut << strLocation
-              << ": Didn't send getBoxReceipt message, but NO error "
-                 "occurred, either. (In this case, SHOULD NEVER "
-                 "HAPPEN. Treating as Error.)\n";
-        return false;  // Even though '0' MEANS "didn't send, but no error" by
-        // convention in many places, it is actually an impossible
-        // return value;
-    }
-
-    if (nRequestNum < 0) {
-        otOut << strLocation << ": Unexpected request number: " << nRequestNum
-              << "\n";
-        return false;
-    }
-
-    bWasSent = true;
-
-    // BY this point, we definitely have the request number, which means the
-    // message was actually SENT. (At least.) This also means we can use
-    // nRequestNum
-    // later to query for a copy of that sent message.
-    //
-    //
-    std::int32_t nReturn =
-        receive_reply_success(notaryID, nymID, nRequestNum, strLocation);
-    otWarn << strLocation << ": nRequestNum: " << nRequestNum
-           << " /  nReturn: " << nReturn << "\n";
-
-    if (SwigWrap::networkFailure(notaryID)) {
-        otOut << strLocation << ": Failed to receive_reply_success due "
-                                "to network error.\n";
-        return -1;
-    }
-
-    //     std::int32_t nRemovedGetBoxReceipt =
-    // SwigWrap::RemoveSentMessage(Integer.toString(nRequestNum), notaryID,
-    // nymID);
-    //
-    //      // NOTE: The above call is unnecessary, since a successful reply
-    // means
-    //      // we already received the successful server reply, and OT's
-    // "ProcessServerReply"
-    //      // already removed the sent message from the sent buffer (so no need
-    // to do that here.)
-    //
-    //      if (nRemovedGetBoxReceipt < 1)
-    //      {
-    //          otOut << "getBoxReceiptLowLevel: ERROR:
-    // OT_API_RemoveSentMessage returned: " << nRemovedGetBoxReceipt);
-    //      }
-
-    if (nReturn > 0) {
-        return true;
-    }
-
-    otOut << strLocation << ": Failure: Response from server:\n"
-          << getLastReplyReceived() << "\n";
+    otErr << OT_METHOD << __FUNCTION__ << ": Error" << std::endl;
+    setLastReplyReceived("");
 
     return false;
 }
@@ -1683,23 +1487,14 @@ bool Utility::getBoxReceiptWithErrorCorrection(
     bool bWasRequestSent = false;
 
     if (getBoxReceiptLowLevel(
-            notaryID,
-            nymID,
-            accountID,
-            nBoxType,
-            strTransactionNum,
-            bWasSent)) {
+            accountID, nBoxType, strTransactionNum, bWasSent)) {
         return true;
     }
 
     if (bWasSent && (0 < context_.UpdateRequestNumber(bWasRequestSent))) {
-        if (bWasRequestSent && getBoxReceiptLowLevel(
-                                   notaryID,
-                                   nymID,
-                                   accountID,
-                                   nBoxType,
-                                   strTransactionNum,
-                                   bWasSent)) {
+        if (bWasRequestSent &&
+            getBoxReceiptLowLevel(
+                accountID, nBoxType, strTransactionNum, bWasSent)) {
             return true;
         }
         otOut << strLocation << ": getBoxReceiptLowLevel failed, then "
@@ -2381,120 +2176,36 @@ const std::string TRANSACTION_NUMBER);
 // even if your request number IS out of sync. Sorry :-)
 //
 
-std::int32_t Utility::getTransactionNumLowLevel(
-    const std::string& notaryID,
-    const std::string& nymID,
-    bool& bWasSent)  // bWasSent is OTBool
+std::int32_t Utility::getTransactionNumLowLevel(bool& bWasSent)
 {
-    std::string strLocation = "Utility::getTransactionNumLowLevel";
-
-    SwigWrap::FlushMessageBuffer();
     bWasSent = false;
     auto[nRequestNum, transactionNum, result] =
         otapi_.getTransactionNumbers(context_);
-    const auto& notUsed1[[maybe_unused]] = transactionNum;
-    const auto& notUsed2[[maybe_unused]] = result;
+    const auto & [ status, reply ] = result;
+    [[maybe_unused]] const auto& notUsed = transactionNum;
 
-    if (SwigWrap::networkFailure(notaryID)) {
-        otOut
-            << strLocation
-            << ": getTransactionNumbers message failed due to network error.\n";
-        return -1;
+    switch (status) {
+        case SendResult::VALID_REPLY: {
+            bWasSent = true;
+            setLastReplyReceived(String(*reply).Get());
+
+            return nRequestNum;
+        } break;
+        case SendResult::TIMEOUT: {
+            otErr << OT_METHOD << __FUNCTION__
+                  << ": Failed to send getNymbox message due to error."
+                  << std::endl;
+            setLastReplyReceived("");
+
+            return -1;
+        } break;
+        default: {
+            otErr << OT_METHOD << __FUNCTION__ << ": Error" << std::endl;
+            setLastReplyReceived("");
+
+            return -1;
+        }
     }
-    if (-1 == nRequestNum) {
-        otOut
-            << strLocation
-            << ": Failed to send getTransactionNumbers message due to error.\n";
-        return -1;
-    }
-    if (0 == nRequestNum) {
-        otOut << strLocation << ": Unexpectedly returned 0. Didn't send "
-                                "getTransactionNumbers message, but NO error "
-                                "occurred, either. (In this case, SHOULD NEVER "
-                                "HAPPEN. Treating as Error.)\n";
-        return -1;  // Even though '0' MEANS "didn't send, but no error" by
-                    // convention in many places, it is actually an impossible
-                    // return value;
-    }
-    if (nRequestNum < 0) {
-        otOut << strLocation << ": Unexpected request number: " << nRequestNum
-              << "\n";
-        return -1;
-    }
-
-    bWasSent = true;
-
-    //
-    std::int32_t nReturn = receive_reply_success(
-        notaryID, nymID, nRequestNum, "getTransactionNumbers");
-
-    if (SwigWrap::networkFailure(notaryID)) {
-        otOut << strLocation << ": Failed to receive_reply_success due "
-                                "to network error.\n";
-        return -1;
-    }
-
-    //      otOut << "IN getTransactionNumbers " <<
-    // getLastReplyReceived());
-
-    // BY this point, we definitely have the request number in nResult, which
-    // means
-    // the message was actually SENT. (At least.) This also means we can use
-    // nResult
-    // later to query for a copy of that sent message.
-    // Let's go ahead, in this case, and remove that now:
-    //
-
-    // THE REMOVE SENT MESSAGE BELOW FAILS, LIKE IT'S ALREADY GONE.
-    //
-    // THIS MUST BE DUE TO THE PROCESS SERVER REPLY THAT OCCURS **IMMEDIATELY**
-    // after the message was originally sent!
-    // (The reply came in and was sent to OT's "ProcessServerReply", INSIDE the
-    // call to SwigWrap::getTransactionNumber.)
-    // Our subsequent "receive" (above) is nothing of the sort, but actually
-    // pops the incoming message buffer where
-    // the server's reply was ALREADY SITTING, since it was put there in OT's
-    // "ProcessServerReply", WHICH REMOVED THE
-    // SENT MESSAGE ALREADY (that's why the below call to RemoveSentMessage
-    // fails.)
-    //
-    // RETHINK any logic that doesn't take this into account,.
-    // Either we REMOVE this call wherever this happens, OR... we call Get first
-    // and make sure whether it's
-    // there, THEN remove it. But we can't be lumping "Failure because it's
-    // gone" versus "Error state" by mixing
-    // 0 and -1 here. We need to differentiate.
-    //
-    // Bottom line: if the reply WAS received, then the original sent message
-    // has ALREADY been removed
-    // from the sent buffer. Whereas if the reply was NOT received, then the
-    // sent message is still there,
-    // but in that case, we do NOT want to remove it -- we want it to STAY in
-    // the sent buffer, so that
-    // when we get the Nymbox later and we DO have the reply from that, THEN we
-    // can remove the sent msg from
-    // the sent buffer. Until then, we don't want OT to think it's already been
-    // processed (which it will, if
-    // it's already been removed from the sent buffer. So we leave it there for
-    // now.)
-    //
-    //
-    //
-    //     std::int32_t nRemovedSentMsg =
-    // SwigWrap::RemoveSentMessage(Integer.toString(nRequestNum), notaryID,
-    // nymID);
-    //
-    //      if (nRemovedSentMsg < 1)
-    //      {
-    //          otOut << "getTransactionNumbers: ERROR:
-    // OT_API_RemoveSentMessage returned: " << nRemovedSentMsg);
-    //      }
-
-    if (1 == nReturn) {
-        return nRequestNum;
-    }
-
-    return nReturn;
 }
 
 // DONE
@@ -2519,8 +2230,7 @@ bool Utility::getTransactionNumbers(
     bool bWasSent = false;
     std::int32_t nGetNumbers = -1;
     if (bForceFirstCall) {
-        nGetNumbers = getTransactionNumLowLevel(
-            notaryID, nymID, bWasSent);  // <============ FIRST TRY;
+        nGetNumbers = getTransactionNumLowLevel(bWasSent);
     }
 
     // if the first call didn't happen, due to bForceFirstCall being false, that
@@ -2627,14 +2337,7 @@ bool Utility::getTransactionNumbers(
             return false;
         }
 
-        nGetNumbers = getTransactionNumLowLevel(
-            notaryID, nymID, bWasSent);  // <================= SECOND TRY;
-
-        //          if ( ( bWasSent && (nGetNumbers >=  1)) || // if message was
-        // sent, and was a success.
-        //               (!bWasSent && (nGetNumbers ==  0)) )  // Or if message
-        // wasn't sent due to "you already signed out too many numbers--you need
-        // to process your Nymbox..."
+        nGetNumbers = getTransactionNumLowLevel(bWasSent);
 
         if ((bWasSent && (nGetNumbers >= 1)) ||
             (!bWasSent && (nGetNumbers == 0))) {
@@ -2706,13 +2409,7 @@ bool Utility::getTransactionNumbers(
                 return false;
             }
 
-            nGetNumbers = getTransactionNumLowLevel(
-                notaryID, nymID, bWasSent);  // <============ FIRST TRY;
-
-            //              if ( (bWasSent && (nGetNumbers >= 1) )
-            //                   ||
-            //                   ((!bWasSent && (nGetNumbers == 0) ) )
-            //                 )
+            nGetNumbers = getTransactionNumLowLevel(bWasSent);
 
             if ((bWasSent && (nGetNumbers >= 1)) ||
                 ((!bWasSent && (nGetNumbers == 0)))) {
@@ -2887,12 +2584,7 @@ bool Utility::getIntermediaryFiles(
     // THREE files (account/inbox/outbox) in a single server message.
     //
     std::int32_t nGetInboxAcct = getInboxAccount(
-        notaryID,
-        nymID,
-        accountID,
-        bWasSentInbox,
-        bWasSentAccount,
-        bForceDownload);
+        accountID, bWasSentInbox, bWasSentAccount, bForceDownload);
 
     // if we received an error state, and the "getAccountData" message wasn't
     // even sent,
@@ -2930,12 +2622,7 @@ bool Utility::getIntermediaryFiles(
         // We sync'd the request number, so now we try the function again...
         //
         std::int32_t nSecondtry = getInboxAccount(
-            notaryID,
-            nymID,
-            accountID,
-            bWasSentInbox,
-            bWasSentAccount,
-            bForceDownload);
+            accountID, bWasSentInbox, bWasSentAccount, bForceDownload);
 
         if ((-1 == nSecondtry) && !bWasSentAccount) {
             // if we received an error state, and the "getAccountData" message
@@ -2969,85 +2656,44 @@ bool Utility::getIntermediaryFiles(
 // NOTE: This is a new version that uses the new server message, getAccountData
 // (Which combines getAccount, getInbox, and getOutbox into a single message.)
 std::int32_t Utility::getInboxAccount(
-    const std::string& notaryID,
-    const std::string& nymID,
     const std::string& accountID,
     bool& bWasSentInbox,
     bool& bWasSentAccount,
     const bool)
 {
     std::string strLocation = "Utility::getInboxAccount";
-
     bWasSentAccount = false;
     bWasSentInbox = false;
-
-    //
-    // (Success means both were downloaded, if necessary.)
-    //
-    // FIRST WE DO THE ACCOUNT...
-    //
-    // GET ACCOUNT
-    //
-    SwigWrap::FlushMessageBuffer();
     auto[nRequestNum, transactionNum, result] =
         otapi_.getAccountData(context_, Identifier(accountID));
-    const auto& notUsed1[[maybe_unused]] = transactionNum;
-    const auto& notUsed2[[maybe_unused]] = result;
+    const auto & [ status, reply ] = result;
+    [[maybe_unused]] const auto& notUsed1 = transactionNum;
+    [[maybe_unused]] const auto& notUsed2 = nRequestNum;
 
-    if (SwigWrap::networkFailure(notaryID)) {
-        otOut << strLocation
-              << ": getAccountData message failed due to network error.\n";
-        return -1;
-    }
-    if (-1 == nRequestNum) {
-        otOut << strLocation
-              << ": Failed to send getAccountData message due to error.\n";
-        return -1;
-    }
-    if (0 == nRequestNum) {
-        otOut << strLocation << ": Didn't send getAccountData message, but NO "
-                                "error occurred, either. (In this case, SHOULD "
-                                "NEVER HAPPEN. Treating as Error.)\n";
-        return -1;
-    }
-    if (nRequestNum < 0) {
-        otOut << strLocation
-              << ": Unexpected failure sending getAccountData. Request number: "
-              << nRequestNum << "\n";
-        return -1;
-    }
+    switch (status) {
+        case SendResult::VALID_REPLY: {
+            bWasSentAccount = true;
+            bWasSentInbox = true;
+            setLastReplyReceived(String(*reply).Get());
+        } break;
+        case SendResult::TIMEOUT: {
+            otErr << OT_METHOD << __FUNCTION__
+                  << ": Failed to send getNymbox message due to error."
+                  << std::endl;
+            setLastReplyReceived("");
 
-    bWasSentAccount = true;
-    bWasSentInbox = true;
+            return -1;
+        } break;
+        default: {
+            otErr << OT_METHOD << __FUNCTION__ << ": Error" << std::endl;
+            setLastReplyReceived("");
 
-    // -1 for error
-    //  0 for reply: failure
-    //  1 for reply: success
-    //
-    std::int32_t nReturn = receive_reply_success(
-        notaryID,
-        nymID,
-        nRequestNum,
-        "getInboxAccount");  // <============ RETURN VALUE;
-
-    if (SwigWrap::networkFailure(notaryID)) {
-        otOut << strLocation << ": Failed to receive_reply_success due "
-                                "to network error.\n";
-        return -1;
+            return -1;
+        }
     }
 
-    if (nReturn < 0)  // error
-    {
-        otOut << strLocation << ": Error in getAccountData: " << nReturn
-              << ".  (I give up.)\n";
-        return -1;
-    }
-
-    if (1 != nReturn) {
-        otOut << strLocation
-              << ": getAccountData failed, returning: " << nReturn << "\n";
-        return nReturn;
-    }
+    const std::string notaryID = String(context_.Server()).Get();
+    const std::string nymID = String(context_.Nym()->ID()).Get();
 
     // DOWNLOAD THE BOX RECEIPTS.
     if (!insureHaveAllBoxReceipts(
@@ -3135,20 +2781,13 @@ bool Utility::getInboxOutboxAccount(
 // version.)
 // DONE
 std::int32_t Utility::getInboxAccount(
-    const std::string& notaryID,
-    const std::string& nymID,
     const std::string& accountID,
     bool& bWasSentInbox,
     bool& bWasSentAccount)
 {
     bool bForceDownload = false;
     return getInboxAccount(
-        notaryID,
-        nymID,
-        accountID,
-        bWasSentInbox,
-        bWasSentAccount,
-        bForceDownload);
+        accountID, bWasSentInbox, bWasSentAccount, bForceDownload);
 }
 
 }  // namespace opentxs

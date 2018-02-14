@@ -154,7 +154,6 @@ ServerContext::ServerContext(
 bool ServerContext::AcceptIssuedNumber(const TransactionNumber& number)
 {
     Lock lock(lock_);
-
     bool accepted = false;
     const bool tentative = remove_tentative_number(lock, number);
 
@@ -168,7 +167,6 @@ bool ServerContext::AcceptIssuedNumber(const TransactionNumber& number)
 bool ServerContext::AcceptIssuedNumbers(const TransactionStatement& statement)
 {
     Lock lock(lock_);
-
     std::size_t added = 0;
     const auto offered = statement.Issued().size();
 
@@ -231,6 +229,8 @@ bool ServerContext::AdminAttempted() const { return admin_attempted_.load(); }
 
 const std::string& ServerContext::AdminPassword() const
 {
+    Lock lock(lock_);
+
     return admin_password_;
 }
 
@@ -385,8 +385,7 @@ std::pair<RequestNumber, std::unique_ptr<Message>> ServerContext::
     auto output = initialize_server_command(
         lock, type, provided, withAcknowledgments, withNymboxHash);
     auto & [ requestNumber, message ] = output;
-    const auto& notUsed[[maybe_unused]] = requestNumber;
-
+    [[maybe_unused]] const auto& notUsed = requestNumber;
     message->m_strNymID2 = String(recipientNymID);
 
     return output;
@@ -553,7 +552,11 @@ proto::Context ServerContext::serialize(const Lock& lock) const
     return output;
 }
 
-void ServerContext::SetAdminAttempted() { admin_attempted_.store(true); }
+void ServerContext::SetAdminAttempted()
+{
+    Lock lock(lock_);
+    admin_attempted_.store(true);
+}
 
 void ServerContext::SetAdminPassword(const std::string& password)
 {
@@ -563,6 +566,7 @@ void ServerContext::SetAdminPassword(const std::string& password)
 
 void ServerContext::SetAdminSuccess()
 {
+    Lock lock(lock_);
     admin_attempted_.store(true);
     admin_success_.store(true);
 }
@@ -582,11 +586,14 @@ bool ServerContext::SetHighest(const TransactionNumber& highest)
 
 void ServerContext::SetRevision(const std::uint64_t revision)
 {
+    Lock lock(lock_);
     revision_.store(revision);
 }
 
 bool ServerContext::StaleNym() const
 {
+    Lock lock(lock_);
+
     OT_ASSERT(nym_);
 
     return revision_.load() > nym_->Revision();

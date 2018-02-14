@@ -56,7 +56,6 @@
 #include "opentxs/client/Helpers.hpp"
 #include "opentxs/client/NymData.hpp"
 #include "opentxs/client/OTClient.hpp"
-#include "opentxs/client/OTMessageBuffer.hpp"
 #include "opentxs/client/OTMessageOutbuffer.hpp"
 #include "opentxs/client/OTWallet.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
@@ -8329,41 +8328,6 @@ bool OT_API::ResyncNymWithServer(
 }
 
 // INCOMING SERVER REPLIES
-
-// YOU are responsible to delete the OTMessage object, once
-// you receive the pointer that comes back from this function.
-// (It also might return nullptr, if there are none there.)
-//
-std::shared_ptr<Message> OT_API::PopMessageBuffer(
-    const std::int64_t& lRequestNumber,
-    const Identifier& NOTARY_ID,
-    const Identifier& NYM_ID) const
-{
-    rLock lock(lock_);
-
-    OT_ASSERT_MSG(
-        (m_pClient != nullptr), "Not initialized; call OT_API::Init first.");
-    OT_ASSERT_MSG(
-        lRequestNumber > 0,
-        "OT_API::PopMessageBuffer: lRequestNumber is less than 1.");
-
-    const String strNotaryID(NOTARY_ID), strNymID(NYM_ID);
-
-    return m_pClient->GetMessageBuffer().Pop(
-        lRequestNumber,
-        strNotaryID,
-        strNymID);  // deletes
-}
-
-void OT_API::FlushMessageBuffer() const
-{
-    rLock lock(lock_);
-
-    OT_ASSERT_MSG(
-        (m_pClient != nullptr), "Not initialized; call OT_API::Init first.");
-
-    m_pClient->GetMessageBuffer().Clear();
-}
 
 // OUTOING MESSSAGES
 
