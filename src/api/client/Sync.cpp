@@ -54,11 +54,13 @@
 #include "opentxs/contact/ContactGroup.hpp"
 #include "opentxs/contact/ContactItem.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/Cheque.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Ledger.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/ext/OTPayment.hpp"
 
 #include <chrono>
 
@@ -358,6 +360,79 @@ void Sync::add_task(const Identifier& taskID, const ThreadStatus status) const
     task_status_[taskID] = status;
 }
 
+Depositability Sync::can_deposit(
+    const OTPayment& payment,
+    const Identifier& recipient,
+    const Identifier& accountIDHint,
+    Identifier& depositServer,
+    Identifier& depositAccount) const
+{
+    Identifier unitID{};
+    Identifier nymID{};
+
+    if (false == extract_payment_data(payment, nymID, depositServer, unitID)) {
+
+        return Depositability::INVALID_INSTRUMENT;
+    }
+
+    auto output = valid_recipient(payment, nymID, recipient);
+
+    if (Depositability::READY != output) {
+
+        return output;
+    }
+
+    const bool registered = exec_.IsNym_RegisteredAtServer(
+        String(recipient).Get(), String(depositServer).Get());
+
+    if (false == registered) {
+        schedule_download_nymbox(recipient, depositServer);
+        otErr << OT_METHOD << __FUNCTION__ << ": Recipient nym "
+              << String(recipient) << " not registered on server "
+              << String(depositServer) << std::endl;
+
+        return Depositability::NOT_REGISTERED;
+    }
+
+    output = valid_account(
+        payment,
+        recipient,
+        depositServer,
+        unitID,
+        accountIDHint,
+        depositAccount);
+
+    switch (output) {
+        case Depositability::ACCOUNT_NOT_SPECIFIED: {
+            otErr << OT_METHOD << __FUNCTION__
+                  << ": Multiple valid accounts exist. "
+                  << "This payment can not be automatically deposited"
+                  << std::endl;
+        } break;
+        case Depositability::WRONG_ACCOUNT: {
+            otErr << OT_METHOD << __FUNCTION__
+                  << ": The specified account is not valid for this payment."
+                  << std::endl;
+        } break;
+        case Depositability::NO_ACCOUNT: {
+            otErr << OT_METHOD << __FUNCTION__ << ": Recipient "
+                  << String(recipient) << " needs an account for "
+                  << String(unitID) << " on server " << String(depositServer)
+                  << std::endl;
+            schedule_register_account(recipient, depositServer, unitID);
+        } break;
+        case Depositability::READY: {
+            otWarn << OT_METHOD << __FUNCTION__ << ": Payment can be deposited."
+                   << std::endl;
+        } break;
+        default: {
+            OT_FAIL
+        }
+    }
+
+    return output;
+}
+
 Messagability Sync::can_message(
     const Identifier& senderNymID,
     const Identifier& recipientContactID,
@@ -454,6 +529,27 @@ Messagability Sync::can_message(
     return Messagability::READY;
 }
 
+Depositability Sync::CanDeposit(
+    const Identifier& recipientNymID,
+    const OTPayment& payment) const
+{
+    Identifier accountHint;
+
+    return CanDeposit(recipientNymID, accountHint, payment);
+}
+
+Depositability Sync::CanDeposit(
+    const Identifier& recipientNymID,
+    const Identifier& accountIDHint,
+    const OTPayment& payment) const
+{
+    Identifier serverID;
+    Identifier accountID;
+
+    return can_deposit(
+        payment, recipientNymID, accountIDHint, serverID, accountID);
+}
+
 Messagability Sync::CanMessage(
     const Identifier& senderNymID,
     const Identifier& recipientContactID) const
@@ -542,6 +638,112 @@ bool Sync::check_server_contract(const Identifier& serverID) const
     missing_servers_.Push({}, serverID);
 
     return false;
+}
+
+bool Sync::deposit_cheque(
+    const Identifier& taskID,
+    const Identifier& nymID,
+    const Identifier& serverID,
+    const Identifier& accountID,
+    const std::shared_ptr<const OTPayment>& payment,
+    UniqueQueue<DepositPaymentTask>& retry) const
+{
+    OT_ASSERT(false == nymID.empty())
+    OT_ASSERT(false == serverID.empty())
+    OT_ASSERT(false == accountID.empty())
+    OT_ASSERT(payment)
+
+    if ((false == payment->IsCheque()) && (false == payment->IsVoucher())) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Unhandled payment type."
+              << std::endl;
+
+        return finish_task(taskID, false);
+    }
+
+    Cheque cheque;
+    const auto loaded = cheque.LoadContractFromString(payment->Payment());
+
+    if (false == loaded) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Invalid cheque" << std::endl;
+
+        return finish_task(taskID, false);
+    }
+
+    rLock lock(api_lock_);
+    auto action =
+        server_action_.DepositCheque(nymID, serverID, accountID, cheque);
+    action->Run();
+    lock.unlock();
+
+    if (SendResult::VALID_REPLY == action->LastSendResult()) {
+        OT_ASSERT(action->Reply());
+
+        if (action->Reply()->m_bSuccess) {
+
+            return finish_task(taskID, true);
+        } else {
+            otErr << OT_METHOD << __FUNCTION__
+                  << ": Failed to deposit cheque:\n"
+                  << String(cheque) << std::endl;
+        }
+    } else {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Communication error while depositing cheque "
+              << " on server " << String(serverID) << std::endl;
+    }
+
+    retry.Push(taskID, {accountID, payment});
+
+    return false;
+}
+
+Identifier Sync::DepositPayment(
+    const Identifier& recipientNymID,
+    const std::shared_ptr<const OTPayment>& payment) const
+{
+    Identifier notUsed;
+
+    return DepositPayment(recipientNymID, notUsed, payment);
+}
+
+Identifier Sync::DepositPayment(
+    const Identifier& recipientNymID,
+    const Identifier& accountIDHint,
+    const std::shared_ptr<const OTPayment>& payment) const
+{
+    OT_ASSERT(payment)
+
+    if (recipientNymID.empty()) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Invalid recipient"
+              << std::endl;
+
+        return {};
+    }
+
+    Identifier serverID{};
+    Identifier accountID{};
+    const auto status = can_deposit(
+        *payment, recipientNymID, accountIDHint, serverID, accountID);
+
+    switch (status) {
+        case Depositability::READY:
+        case Depositability::NOT_REGISTERED:
+        case Depositability::NO_ACCOUNT: {
+            start_introduction_server(recipientNymID);
+            auto& queue = get_operations({recipientNymID, serverID});
+            const auto taskID(random_id());
+
+            return start_task(
+                taskID,
+                queue.deposit_payment_.Push(taskID, {accountIDHint, payment}));
+        } break;
+        default: {
+            otErr << OT_METHOD << __FUNCTION__
+                  << ": Unable to queue payment for download" << std::endl;
+        }
+    }
+
+    return {};
 }
 
 bool Sync::download_account(
@@ -643,6 +845,40 @@ bool Sync::download_nymbox(
     const auto success = server_action_.DownloadNymbox(nymID, serverID);
 
     return finish_task(taskID, success);
+}
+
+bool Sync::extract_payment_data(
+    const OTPayment& payment,
+    Identifier& nymID,
+    Identifier& serverID,
+    Identifier& unitID) const
+{
+    if (false == payment.GetRecipientNymID(nymID)) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Unable to load recipient nym from instrument" << std::endl;
+
+        return false;
+    }
+
+    if (false == payment.GetNotaryID(serverID)) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Unable to load recipient nym from instrument" << std::endl;
+
+        return false;
+    }
+
+    OT_ASSERT(false == serverID.empty())
+
+    if (false == payment.GetInstrumentDefinitionID(unitID)) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Unable to load recipient nym from instrument" << std::endl;
+
+        return false;
+    }
+
+    OT_ASSERT(false == unitID.empty())
+
+    return true;
 }
 
 bool Sync::find_nym(
@@ -1096,6 +1332,41 @@ void Sync::refresh_contacts() const
     }
 }
 
+bool Sync::register_account(
+    const Identifier& taskID,
+    const Identifier& nymID,
+    const Identifier& serverID,
+    const Identifier& unitID) const
+{
+    OT_ASSERT(false == nymID.empty())
+    OT_ASSERT(false == serverID.empty())
+    OT_ASSERT(false == unitID.empty())
+
+    rLock lock(api_lock_);
+    auto action = server_action_.RegisterAccount(nymID, serverID, unitID);
+    action->Run();
+    lock.unlock();
+
+    if (SendResult::VALID_REPLY == action->LastSendResult()) {
+        OT_ASSERT(action->Reply());
+
+        if (action->Reply()->m_bSuccess) {
+
+            return finish_task(taskID, true);
+        } else {
+            otErr << OT_METHOD << __FUNCTION__
+                  << ": Failed to register account for " << String(unitID)
+                  << " on server " << String(serverID) << std::endl;
+        }
+    } else {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Communication error while registering account "
+              << " on server " << String(serverID) << std::endl;
+    }
+
+    return finish_task(taskID, false);
+}
+
 bool Sync::register_nym(
     const Identifier& taskID,
     const Identifier& nymID,
@@ -1152,6 +1423,33 @@ Identifier Sync::SetIntroductionServer(const ServerContract& contract) const
     return set_introduction_server(lock, contract);
 }
 
+Identifier Sync::schedule_download_nymbox(
+    const Identifier& localNymID,
+    const Identifier& serverID) const
+{
+    CHECK_SERVER(localNymID, serverID)
+
+    start_introduction_server(localNymID);
+    auto& queue = get_operations({localNymID, serverID});
+    const auto taskID(random_id());
+
+    return start_task(taskID, queue.download_nymbox_.Push(taskID, true));
+}
+
+Identifier Sync::schedule_register_account(
+    const Identifier& localNymID,
+    const Identifier& serverID,
+    const Identifier& unitID) const
+{
+    CHECK_ARGS(localNymID, serverID, unitID)
+
+    start_introduction_server(localNymID);
+    auto& queue = get_operations({localNymID, serverID});
+    const auto taskID(random_id());
+
+    return start_task(taskID, queue.register_account_.Push(taskID, unitID));
+}
+
 Identifier Sync::ScheduleDownloadAccount(
     const Identifier& localNymID,
     const Identifier& serverID,
@@ -1193,19 +1491,6 @@ Identifier Sync::ScheduleDownloadNym(
     const auto taskID(random_id());
 
     return start_task(taskID, queue.check_nym_.Push(taskID, targetNymID));
-}
-
-Identifier Sync::schedule_download_nymbox(
-    const Identifier& localNymID,
-    const Identifier& serverID) const
-{
-    CHECK_SERVER(localNymID, serverID)
-
-    start_introduction_server(localNymID);
-    auto& queue = get_operations({localNymID, serverID});
-    const auto taskID(random_id());
-
-    return start_task(taskID, queue.download_nymbox_.Push(taskID, true));
 }
 
 Identifier Sync::ScheduleDownloadNymbox(
@@ -1336,10 +1621,14 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
     bool downloadNymbox{false};
     Identifier taskID{};
     Identifier accountID{};
+    Identifier unitID{};
     Identifier contractID{};
     Identifier targetNymID{};
+    Identifier nullID{};
     OTPassword serverPassword;
     MessageTask message;
+    DepositPaymentTask deposit;
+    UniqueQueue<DepositPaymentTask> depositPaymentRetry;
 
     // Primary loop
     while (false == shutdown_.load()) {
@@ -1524,6 +1813,72 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
                 !download_account(taskID, nymID, serverID, accountID);
         }
 
+        SHUTDOWN()
+
+        // Register any accounts which have been scheduled for creation
+        while (queue.register_account_.Pop(taskID, unitID)) {
+            SHUTDOWN()
+
+            if (unitID.empty()) {
+                otErr << OT_METHOD << __FUNCTION__
+                      << ": How did an empty unit ID get in here?" << std::endl;
+
+                continue;
+            } else {
+                otWarn << OT_METHOD << __FUNCTION__ << ": Creating account for "
+                       << String(unitID) << " on " << String(serverID)
+                       << std::endl;
+            }
+
+            registerNym |= !register_account(taskID, nymID, serverID, unitID);
+        }
+
+        SHUTDOWN()
+
+        // Deposit any queued payments
+        while (queue.deposit_payment_.Pop(taskID, deposit)) {
+            auto & [ accountIDHint, payment ] = deposit;
+
+            SHUTDOWN()
+            OT_ASSERT(payment)
+
+            const auto status =
+                can_deposit(*payment, nymID, accountIDHint, nullID, accountID);
+
+            switch (status) {
+                case Depositability::READY: {
+                    registerNym |= !deposit_cheque(
+                        taskID,
+                        nymID,
+                        serverID,
+                        accountID,
+                        payment,
+                        depositPaymentRetry);
+                } break;
+                case Depositability::NOT_REGISTERED:
+                case Depositability::NO_ACCOUNT: {
+                    otWarn << OT_METHOD << __FUNCTION__
+                           << ": Temporary failure trying to deposit payment"
+                           << std::endl;
+                    depositPaymentRetry.Push(taskID, deposit);
+                } break;
+                default: {
+                    otErr << OT_METHOD << __FUNCTION__
+                          << ": Permanent failure trying to deposit payment"
+                          << std::endl;
+                }
+            }
+        }
+
+        // Requeue all payments which will be retried
+        while (depositPaymentRetry.Pop(taskID, deposit)) {
+            SHUTDOWN()
+
+            queue.deposit_payment_.Push(taskID, deposit);
+        }
+
+        SHUTDOWN()
+
         Log::Sleep(std::chrono::seconds(MAIN_LOOP_SECONDS));
     }
 }
@@ -1571,6 +1926,83 @@ void Sync::update_task(const Identifier& taskID, const ThreadStatus status)
     }
 
     task_status_[taskID] = status;
+}
+
+Depositability Sync::valid_account(
+    const OTPayment& payment,
+    const Identifier& recipient,
+    const Identifier& paymentServerID,
+    const Identifier& paymentUnitID,
+    const Identifier& accountIDHint,
+    Identifier& depositAccount) const
+{
+    const auto accounts = ot_api_.Accounts();
+    std::set<Identifier> matchingAccounts{};
+
+    for (const auto & [ accountID, nymID, serverID, unitID ] : accounts) {
+        if (nymID != recipient) {
+
+            continue;
+        }
+
+        if (serverID != paymentServerID) {
+
+            continue;
+        }
+
+        if (unitID != paymentUnitID) {
+
+            continue;
+        }
+
+        matchingAccounts.emplace(accountID);
+    }
+
+    if (accountIDHint.empty()) {
+        if (0 == matchingAccounts.size()) {
+
+            return Depositability::NO_ACCOUNT;
+        } else if (1 == matchingAccounts.size()) {
+            depositAccount = *matchingAccounts.begin();
+
+            return Depositability::READY;
+        } else {
+
+            return Depositability::ACCOUNT_NOT_SPECIFIED;
+        }
+    }
+
+    if (0 == matchingAccounts.size()) {
+
+        return Depositability::NO_ACCOUNT;
+    } else if (1 == matchingAccounts.count(accountIDHint)) {
+        depositAccount = accountIDHint;
+
+        return Depositability::READY;
+    } else {
+
+        return Depositability::WRONG_ACCOUNT;
+    }
+}
+
+Depositability Sync::valid_recipient(
+    const OTPayment& payment,
+    const Identifier& specified,
+    const Identifier& recipient) const
+{
+    if (specified.empty()) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Payment can be accepted by any nym" << std::endl;
+
+        return Depositability::READY;
+    }
+
+    if (recipient == specified) {
+
+        return Depositability::READY;
+    }
+
+    return Depositability::WRONG_RECIPIENT;
 }
 
 Sync::~Sync()
