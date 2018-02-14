@@ -91,6 +91,8 @@ public:
     bool SerializeTo(proto::ContactData& data, const bool withIDs = false)
         const;
     std::size_t Size() const;
+    const proto::ContactSectionName& Type() const;
+    const std::uint32_t& Version() const;
 
     ~ContactSection() = default;
 

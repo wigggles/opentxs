@@ -110,8 +110,8 @@ TEST_F(Test_ContactGroup, first_constructor)
         map);
     // Verify two items were added.
     ASSERT_EQ(group1.Size(), 2);
-    ASSERT_EQ(group1.Type(), 
-    	opentxs::proto::ContactItemType::CITEMTYPE_INDIVIDUAL);
+    ASSERT_EQ(
+        group1.Type(), opentxs::proto::ContactItemType::CITEMTYPE_INDIVIDUAL);
     // Verify only one item is primary.
     if (primary_->ID() == group1.Primary()) {
         ASSERT_TRUE(group1.Claim(primary_->ID())->isPrimary());
@@ -130,10 +130,10 @@ TEST_F(Test_ContactGroup, first_constructor_no_items)
         opentxs::proto::ContactSectionName::CONTACTSECTION_SCOPE,
         opentxs::proto::ContactItemType::CITEMTYPE_INDIVIDUAL,
         {});
-    // Verify two items were added.
+    // Verify the private static methods didn't blow up.
     ASSERT_EQ(group1.Size(), 0);
-    ASSERT_EQ(group1.Type(), 
-    	opentxs::proto::ContactItemType::CITEMTYPE_INDIVIDUAL);
+    ASSERT_EQ(
+        group1.Type(), opentxs::proto::ContactItemType::CITEMTYPE_INDIVIDUAL);
 }
 
 TEST_F(Test_ContactGroup, second_constructor)
@@ -141,8 +141,8 @@ TEST_F(Test_ContactGroup, second_constructor)
     const opentxs::ContactGroup group1(
         std::string("testContactGroupNym1"),
         opentxs::proto::ContactSectionName::CONTACTSECTION_SCOPE,
-		active_);
-    
+        active_);
+
     ASSERT_EQ(group1.Size(), 1);
     // Verify the group type matches the type of the item.
     ASSERT_EQ(group1.Type(), active_->Type());
@@ -241,18 +241,18 @@ TEST_F(Test_ContactGroup, AddPrimary)
 
 TEST_F(Test_ContactGroup, begin)
 {
-	opentxs::ContactGroup::ItemMap::const_iterator it = contactGroup_.begin();
-	ASSERT_EQ(it, contactGroup_.end());
-	ASSERT_EQ(std::distance(it, contactGroup_.end()), 0);
-	
-	const auto& group1 = contactGroup_.AddItem(active_);
-	it = group1.begin();
-	ASSERT_NE(it, group1.end());
-	ASSERT_EQ(std::distance(it, group1.end()), 1);
-	
-	std::advance(it, 1);
-	ASSERT_EQ(it, group1.end());
-	ASSERT_EQ(std::distance(it, group1.end()), 0);
+    opentxs::ContactGroup::ItemMap::const_iterator it = contactGroup_.begin();
+    ASSERT_EQ(it, contactGroup_.end());
+    ASSERT_EQ(std::distance(it, contactGroup_.end()), 0);
+
+    const auto& group1 = contactGroup_.AddItem(active_);
+    it = group1.begin();
+    ASSERT_NE(it, group1.end());
+    ASSERT_EQ(std::distance(it, group1.end()), 1);
+
+    std::advance(it, 1);
+    ASSERT_EQ(it, group1.end());
+    ASSERT_EQ(std::distance(it, group1.end()), 0);
 }
 
 TEST_F(Test_ContactGroup, Best_none) { ASSERT_FALSE(contactGroup_.Best()); }
@@ -315,18 +315,18 @@ TEST_F(Test_ContactGroup, Claim_notfound)
 
 TEST_F(Test_ContactGroup, end)
 {
-	opentxs::ContactGroup::ItemMap::const_iterator it = contactGroup_.end();
-	ASSERT_EQ(it, contactGroup_.begin());
-	ASSERT_EQ(std::distance(it, contactGroup_.begin()), 0);
-	
-	const auto& group1 = contactGroup_.AddItem(active_);
-	it = group1.end();
-	ASSERT_NE(it, group1.begin());
-	ASSERT_EQ(std::distance(it, group1.begin()), 1);
-	
-	std::advance(it, -1);
-	ASSERT_EQ(it, group1.begin());
-	ASSERT_EQ(std::distance(it, group1.begin()), 0);
+    opentxs::ContactGroup::ItemMap::const_iterator it = contactGroup_.end();
+    ASSERT_EQ(it, contactGroup_.begin());
+    ASSERT_EQ(std::distance(it, contactGroup_.begin()), 0);
+
+    const auto& group1 = contactGroup_.AddItem(active_);
+    it = group1.end();
+    ASSERT_NE(it, group1.begin());
+    ASSERT_EQ(std::distance(it, group1.begin()), 1);
+
+    std::advance(it, -1);
+    ASSERT_EQ(it, group1.begin());
+    ASSERT_EQ(std::distance(it, group1.begin()), 0);
 }
 
 TEST_F(Test_ContactGroup, HaveClaim_true)
@@ -349,12 +349,12 @@ TEST_F(Test_ContactGroup, Delete)
     // Add a second item to help testing the size after trying to delete twice.
     const auto& group2 = group1.AddItem(primary_);
     ASSERT_EQ(group2.Size(), 2);
-    
+
     const auto& group3 = group2.Delete(active_->ID());
     // Verify the item was deleted.
     ASSERT_FALSE(group3.HaveClaim(active_->ID()));
     ASSERT_EQ(group3.Size(), 1);
-    
+
     const auto& group4 = group3.Delete(active_->ID());
     // Verify trying to delete the item again didn't change anything.
     ASSERT_EQ(group4.Size(), 1);
@@ -389,19 +389,47 @@ TEST_F(Test_ContactGroup, PrimaryClaim_notfound)
     ASSERT_FALSE(primaryClaim);
 }
 
+TEST_F(Test_ContactGroup, SerializeTo)
+{
+    opentxs::proto::ContactSection contactSection1;
+    contactSection1.set_name(
+        opentxs::proto::ContactSectionName::CONTACTSECTION_SCOPE);
+
+	const auto& group1 = contactGroup_.AddItem(active_);
+	ASSERT_TRUE(group1.SerializeTo(contactSection1, false));
+	ASSERT_EQ(contactSection1.item_size(), group1.Size());
+	ASSERT_EQ(contactSection1.name(),
+		opentxs::proto::ContactSectionName::CONTACTSECTION_SCOPE);
+	
+    opentxs::proto::ContactSection contactSection2;
+    contactSection2.set_name(
+        opentxs::proto::ContactSectionName::CONTACTSECTION_SCOPE);
+
+	ASSERT_TRUE(group1.SerializeTo(contactSection2, true));
+	ASSERT_EQ(contactSection2.item_size(), group1.Size());
+	ASSERT_EQ(contactSection2.name(),
+		opentxs::proto::ContactSectionName::CONTACTSECTION_SCOPE);
+	
+    opentxs::proto::ContactSection contactSection3;
+    contactSection3.set_name(
+        opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER);
+    ASSERT_FALSE(group1.SerializeTo(contactSection3, false));
+}
+
 TEST_F(Test_ContactGroup, Size)
 {
-	ASSERT_EQ(contactGroup_.Size(), 0);
-	const auto& group1 = contactGroup_.AddItem(primary_);
-	ASSERT_EQ(group1.Size(), 1);
-	const auto& group2 = group1.AddItem(active_);
-	ASSERT_EQ(group2.Size(), 2);
-	const auto& group3 = group2.Delete(active_->ID());
-	ASSERT_EQ(group3.Size(), 1);
+    ASSERT_EQ(contactGroup_.Size(), 0);
+    const auto& group1 = contactGroup_.AddItem(primary_);
+    ASSERT_EQ(group1.Size(), 1);
+    const auto& group2 = group1.AddItem(active_);
+    ASSERT_EQ(group2.Size(), 2);
+    const auto& group3 = group2.Delete(active_->ID());
+    ASSERT_EQ(group3.Size(), 1);
 }
 
 TEST_F(Test_ContactGroup, Type)
 {
-	ASSERT_EQ(contactGroup_.Type(), 
-		opentxs::proto::ContactItemType::CITEMTYPE_INDIVIDUAL);
+    ASSERT_EQ(
+        contactGroup_.Type(),
+        opentxs::proto::ContactItemType::CITEMTYPE_INDIVIDUAL);
 }
