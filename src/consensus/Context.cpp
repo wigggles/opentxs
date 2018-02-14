@@ -167,6 +167,8 @@ bool Context::ConsumeIssued(const TransactionNumber& number)
 
 proto::Context Context::contract(const Lock& lock) const
 {
+    OT_ASSERT(verify_write_lock(lock));
+
     auto output = serialize(lock);
 
     if (0 < signatures_.size()) {
@@ -200,6 +202,8 @@ void Context::finish_acknowledgements(
 
 Identifier Context::GetID(const Lock& lock) const
 {
+    OT_ASSERT(verify_write_lock(lock));
+
     auto contract = IDVersion(lock);
     Identifier id;
     id.CalculateDigest(proto::ProtoAsData(contract));
@@ -267,7 +271,12 @@ proto::Context Context::IDVersion(const Lock& lock) const
     return output;
 }
 
-RequestNumber Context::IncrementRequest() { return ++request_number_; }
+RequestNumber Context::IncrementRequest()
+{
+    Lock lock(lock_);
+
+    return ++request_number_;
+}
 
 bool Context::insert_available_number(const TransactionNumber& number)
 {
@@ -329,6 +338,8 @@ std::string Context::Name() const
 
 bool Context::NymboxHashMatch() const
 {
+    Lock lock(lock_);
+
     if (!HaveLocalNymboxHash()) {
         return false;
     }
@@ -411,7 +422,6 @@ RequestNumber Context::Request() const { return request_number_.load(); }
 void Context::Reset()
 {
     Lock lock(lock_);
-
     available_transaction_numbers_.clear();
     issued_transaction_numbers_.clear();
     request_number_.store(0);
@@ -497,6 +507,8 @@ void Context::SetRemoteNymboxHash(const Identifier& hash)
 
 void Context::SetRequest(const RequestNumber req)
 {
+    Lock lock(lock_);
+
     request_number_.store(req);
 }
 
@@ -512,7 +524,10 @@ proto::Context Context::SigVersion(const Lock& lock) const
 
 bool Context::update_signature(const Lock& lock)
 {
+    OT_ASSERT(verify_write_lock(lock));
+
     if (!ot_super::update_signature(lock)) {
+
         return false;
     }
 
@@ -540,6 +555,8 @@ bool Context::update_signature(const Lock& lock)
 
 bool Context::validate(const Lock& lock) const
 {
+    OT_ASSERT(verify_write_lock(lock));
+
     if (1 != signatures_.size()) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Error: this context is not signed." << std::endl;
@@ -575,6 +592,8 @@ bool Context::verify_signature(
     const Lock& lock,
     const proto::Signature& signature) const
 {
+    OT_ASSERT(verify_write_lock(lock));
+
     if (!ot_super::verify_signature(lock, signature)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Error: invalid signature."
               << std::endl;
