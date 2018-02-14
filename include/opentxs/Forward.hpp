@@ -151,6 +151,7 @@ class OTASCIIArmor;
 class OTAsymmetricKey;
 class OTCachedKey;
 class OTClient;
+class OTCronItem;
 class OTDataFolder;
 class OTEnvelope;
 class OTFolders;

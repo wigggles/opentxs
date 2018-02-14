@@ -1264,11 +1264,9 @@ void OTAPI_Func::run()
 
 std::int32_t OTAPI_Func::send()
 {
-    Utility MsgUtil(context_, otapi_);
     std::string strLocation{OT_METHOD};
     strLocation += __FUNCTION__;
     strLocation += ": " + type_name_.at(type_);
-    otapi_.FlushMessageBuffer();
     run();
     const auto& requestNumber = std::get<0>(last_attempt_);
     const auto& status = std::get<0>(std::get<2>(last_attempt_));
@@ -1518,11 +1516,11 @@ std::string OTAPI_Func::send_once(
             return "";
         }
 
-        strReply = MsgUtil.ReceiveReplyLowLevel(
-            String(context_.Server()).Get(),
-            String(context_.Nym()->ID()).Get(),
-            nlocalRequestNum,
-            type_name_.at(type_));
+        const auto& reply = std::get<1>(std::get<2>(last_attempt_));
+
+        OT_ASSERT(reply);
+
+        strReply = String(*reply).Get();
     }
 
     // Below this point, we definitely have a request number.

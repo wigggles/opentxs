@@ -52,18 +52,6 @@
 
 namespace opentxs
 {
-class OT_API;
-class OTAPI_Exec;
-class ServerContext;
-
-namespace api
-{
-namespace client
-{
-class Wallet;
-}  // namespace client
-}  // namespace api
-
 typedef enum {
     NO_FUNC = 0,
     REMOVED1 = 1,

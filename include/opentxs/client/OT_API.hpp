@@ -742,12 +742,6 @@ public:
                                        // pass NYM_ID in this field also.
         std::int32_t nBoxType,         // 0/nymbox, 1/inbox, 2/outbox
         const TransactionNumber& lTransactionNum) const;
-    // Incoming
-    EXPORT std::shared_ptr<Message> PopMessageBuffer(
-        const std::int64_t& lRequestNumber,
-        const Identifier& NOTARY_ID,
-        const Identifier& NYM_ID) const;
-    void FlushMessageBuffer() const;
     // Outgoing
     EXPORT Message* GetSentMessage(
         const std::int64_t& lRequestNumber,

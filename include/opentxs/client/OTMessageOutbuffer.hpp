@@ -41,6 +41,7 @@
 
 #include "opentxs/Forward.hpp"
 
+#include "opentxs/core/Lockable.hpp"
 #include "opentxs/core/String.hpp"
 
 #include <map>
@@ -48,37 +49,22 @@
 namespace opentxs
 {
 
-class Message;
-class Nym;
-class OTTransaction;
-class ServerContext;
-
-typedef std::multimap<int64_t, Message*> mapOfMessages;
-
 // OUTOING MESSAGES (from me--client--sent to server.)
 //
 // The purpose of this class is to cache client requests (being sent to the
-// server)
-// so that they can later be queried (using the request number) by the developer
-// using the OTAPI, so that if transaction numbers need to be clawed back from
-// failed
-// messages, etc, they are available.
+// server) so that they can later be queried (using the request number) by the
+// developer using the OTAPI, so that if transaction numbers need to be clawed
+// back from failed messages, etc, they are available.
 //
 // The OT client side also can use this as a mechanism to help separate
-// old-and-dealt-with
-// messages, by explicitly removing messages from this queue once they are dealt
-// with.
-// This way the developer can automatically assume that any reply is old if it
-// carries
-// a request number that cannot be found in this queue.
-//
-// This class is pretty generic and so may be used in other ways, where "map"
-// functionality is required.
-class OTMessageOutbuffer
+// old-and-dealt-with messages, by explicitly removing messages from this queue
+// once they are dealt with. This way the developer can automatically assume
+// that any reply is old if it carries a request number that cannot be found in
+// this queue.
+class OTMessageOutbuffer : Lockable
 {
 public:
     EXPORT OTMessageOutbuffer();
-    EXPORT ~OTMessageOutbuffer();
 
     EXPORT void Clear(
         const String& notaryID,
@@ -107,15 +93,16 @@ public:
     // true == it was removed. false == it wasn't found.
     EXPORT bool RemoveSentMessage(const OTTransaction& transaction);
 
+    EXPORT ~OTMessageOutbuffer();
+
 private:
+    typedef std::multimap<int64_t, Message*> mapOfMessages;
+
+    mapOfMessages messagesMap_{};
+    String dataFolder_{};
+
     OTMessageOutbuffer(const OTMessageOutbuffer&);
     OTMessageOutbuffer& operator=(const OTMessageOutbuffer&);
-
-private:
-    mapOfMessages messagesMap_;
-    String dataFolder_;
 };
-
 }  // namespace opentxs
-
 #endif  // OPENTXS_CLIENT_OTMESSAGEOUTBUFFER_HPP

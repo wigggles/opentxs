@@ -110,8 +110,6 @@ public:
         bool bHarvestingForRetry,
         const OTfourbool& bMsgFoursome);
     EXPORT bool getBoxReceiptLowLevel(
-        const std::string& notaryID,
-        const std::string& nymID,
         const std::string& accountID,
         std::int32_t nBoxType,
         std::int64_t strTransactionNum,
@@ -123,14 +121,10 @@ public:
         std::int32_t nBoxType,
         std::int64_t strTransactionNum);
     EXPORT std::int32_t getInboxAccount(
-        const std::string& notaryID,
-        const std::string& nymID,
         const std::string& accountID,
         bool& bWasSentInbox,
         bool& bWasSentAccount);
     EXPORT std::int32_t getInboxAccount(
-        const std::string& notaryID,
-        const std::string& nymID,
         const std::string& accountID,
         bool& bWasSentInbox,
         bool& bWasSentAccount,
@@ -157,13 +151,8 @@ public:
         const std::string& notaryID,
         const std::string& nymID,
         bool bForceDownload);
-    EXPORT std::int32_t getNymboxLowLevel(
-        const std::string& notaryID,
-        const std::string& nymID);
-    EXPORT std::int32_t getNymboxLowLevel(
-        const std::string& notaryID,
-        const std::string& nymID,
-        bool& bWasSent);
+    EXPORT std::int32_t getNymboxLowLevel();
+    EXPORT std::int32_t getNymboxLowLevel(bool& bWasSent);
     EXPORT bool getTransactionNumbers(
         const std::string& notaryID,
         const std::string& nymID);
@@ -171,10 +160,7 @@ public:
         const std::string& notaryID,
         const std::string& nymID,
         bool bForceFirstCall);
-    EXPORT std::int32_t getTransactionNumLowLevel(
-        const std::string& notaryID,
-        const std::string& nymID,
-        bool& bWasSent);
+    EXPORT std::int32_t getTransactionNumLowLevel(bool& bWasSent);
     EXPORT bool insureHaveAllBoxReceipts(
         const std::string& notaryID,
         const std::string& nymID,
@@ -196,14 +182,6 @@ public:
         std::int32_t& nReplySuccessOut,
         std::int32_t& nBalanceSuccessOut,
         std::int32_t& nTransSuccessOut);
-    EXPORT std::string ReceiveReplyLowLevel(
-        const std::string& notaryID17,
-        const std::string& nymID,
-        std::int32_t nRequestNumber8,
-        const std::string& IN_FUNCTION);
-    EXPORT std::int32_t sendProcessNymboxLowLevel(
-        const std::string& notaryID,
-        const std::string& nymID) const;
     EXPORT void setLastReplyReceived(const std::string& strReply);
     EXPORT void setNbrTransactionCount(std::int32_t new_trans_dl);
 
@@ -212,12 +190,6 @@ public:
 private:
     ServerContext& context_;
     const OT_API& otapi_;
-
-    NetworkOperationStatus receive_reply_success(
-        const std::string& notaryID,
-        const std::string& nymID,
-        const RequestNumber number,
-        const std::string& IN_FUNCTION);
 
     Utility() = delete;
     Utility(const Utility&) = delete;

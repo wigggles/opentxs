@@ -65,24 +65,9 @@
 
 namespace opentxs
 {
-
-// The purpose of this class is to cache client requests (being sent to the
-// server)
-// so that they can later be queried (using the request number) by the developer
-// using the OTAPI, so that if transaction numbers need to be clawed back from
-// failed
-// messages, etc, they are available.
-//
-// The OT client side also can use this as a mechanism to help separate
-// old-and-dealt-with
-// messages, by explicitly removing messages from this queue once they are dealt
-// with.
-// This way the developer can automatically assume that any reply is old if it
-// carries
-// a request number that cannot be found in this queue.
-
 OTMessageOutbuffer::OTMessageOutbuffer()
-    : dataFolder_(OTDataFolder::Get())
+    : messagesMap_()
+    , dataFolder_(OTDataFolder::Get())
 {
     OT_ASSERT(dataFolder_.Exists());
 }
@@ -90,6 +75,7 @@ OTMessageOutbuffer::OTMessageOutbuffer()
 void OTMessageOutbuffer::AddSentMessage(Message& theMessage)  // must be heap
                                                               // allocated.
 {
+    Lock lock(lock_);
     int64_t lRequestNum = 0;
 
     if (theMessage.m_strRequestNum.Exists())
@@ -244,6 +230,7 @@ Message* OTMessageOutbuffer::GetSentMessage(
     const String& strNotaryID,
     const String& strNymID)
 {
+    Lock lock(lock_);
     auto it = messagesMap_.begin();
 
     for (; it != messagesMap_.end(); ++it) {
@@ -337,6 +324,7 @@ void OTMessageOutbuffer::Clear(
     OT_ASSERT(pstrNotaryID.Exists());
     OT_ASSERT(pNym.CompareID(Identifier(pstrNymID)));
 
+    Lock lock(lock_);
     auto it = messagesMap_.begin();
 
     while (it != messagesMap_.end()) {
@@ -546,6 +534,7 @@ bool OTMessageOutbuffer::RemoveSentMessage(
     const String& strNotaryID,
     const String& strNymID)
 {
+    Lock lock(lock_);
     String strFolder, strFile;
     strFolder.Format(
         "%s%s%s%s%s%s%s",
