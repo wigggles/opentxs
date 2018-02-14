@@ -1,6 +1,6 @@
 ## Work in progress
 ##
-message("** Java Wrapper")
+message(STATUS "** Java Wrapper")
 
 set(OTX_WRAPPER_NAME "JOpentxs")
 
@@ -37,7 +37,8 @@ file(MAKE_DIRECTORY ${JAVA_BINARY_DIRECTORY})
 set(CMAKE_SWIG_OUTDIR ${JAVA_BINARY_DIRECTORY})
 
 set_source_files_properties(OTX_.i PROPERTIES CPLUSPLUS ON)
-swig_add_module(${OTX_WRAPPER_NAME} java OTX_.i)
+#swig_add_module(${OTX_WRAPPER_NAME} java OTX_.i)
+swig_add_library(${OTX_WRAPPER_NAME} LANGUAGE java SOURCES OTX_.i)
 swig_link_libraries(${OTX_WRAPPER_NAME} ${JAVA_LIBRARIES})
 
 set(MOD_NAME ${SWIG_MODULE_${OTX_WRAPPER_NAME}_REAL_NAME})

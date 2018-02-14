@@ -51,13 +51,12 @@ ContactGroup::ContactGroup(
     const std::string& nym,
     const proto::ContactSectionName section,
     const proto::ContactItemType type,
-    const Identifier& primary,
     const ItemMap& items)
     : nym_(nym)
     , section_(section)
     , type_(type)
-    , primary_(primary)
-    , items_(items)
+    , primary_(get_primary_item(items))
+    , items_(normalize_items(items))
 {
     for (const auto& it : items_) {
         OT_ASSERT(it.second);
@@ -67,9 +66,8 @@ ContactGroup::ContactGroup(
 ContactGroup::ContactGroup(
     const std::string& nym,
     const proto::ContactSectionName section,
-    const Identifier& primary,
     const std::shared_ptr<ContactItem>& item)
-    : ContactGroup(nym, section, item->Type(), primary, create_item(item))
+    : ContactGroup(nym, section, item->Type(), create_item(item))
 {
     OT_ASSERT(item);
 }
@@ -82,8 +80,6 @@ ContactGroup ContactGroup::operator+(const ContactGroup& rhs) const
 
     if (primary_.empty()) {
         primary = rhs.primary_;
-    } else {
-        primary = primary_;
     }
 
     auto map = items_;
@@ -109,7 +105,7 @@ ContactGroup ContactGroup::operator+(const ContactGroup& rhs) const
         }
     }
 
-    return ContactGroup(nym_, section_, type_, primary, map);
+    return ContactGroup(nym_, section_, type_, map);
 }
 
 ContactGroup ContactGroup::AddItem(
@@ -134,12 +130,7 @@ ContactGroup ContactGroup::AddItem(
     auto map = items_;
     map[id] = item;
 
-    if (primary_ == id) {
-
-        return ContactGroup(nym_, section_, type_, {}, map);
-    }
-
-    return ContactGroup(nym_, section_, type_, id, map);
+    return ContactGroup(nym_, section_, type_, map);
 }
 
 ContactGroup ContactGroup::AddPrimary(
@@ -162,12 +153,15 @@ ContactGroup ContactGroup::AddPrimary(
 
     if (haveExistingPrimary) {
         auto& oldPrimary = map.at(primary_);
-        oldPrimary.reset(new ContactItem(item->SetPrimary(false)));
+
+        OT_ASSERT(oldPrimary);
+
+        oldPrimary.reset(new ContactItem(oldPrimary->SetPrimary(false)));
 
         OT_ASSERT(oldPrimary);
     }
 
-    return ContactGroup(nym_, section_, type_, incomingID, map);
+    return ContactGroup(nym_, section_, type_, map);
 }
 
 ContactGroup::ItemMap::const_iterator ContactGroup::begin() const
@@ -189,6 +183,8 @@ std::shared_ptr<ContactItem> ContactGroup::Best() const
 
     for (const auto& it : items_) {
         const auto& claim = it.second;
+
+        OT_ASSERT(claim);
 
         if (claim->isActive()) {
 
@@ -222,10 +218,9 @@ ContactGroup::ItemMap ContactGroup::create_item(
     return output;
 }
 
-ContactGroup ContactGroup::Delete(const Identifier& id)
+ContactGroup ContactGroup::Delete(const Identifier& id) const
 {
     const bool exists = (1 == items_.count(id));
-    const bool primary = (primary_ == id);
 
     if (false == exists) {
 
@@ -235,16 +230,55 @@ ContactGroup ContactGroup::Delete(const Identifier& id)
     auto map = items_;
     map.erase(id);
 
-    if (primary) {
-        return ContactGroup(nym_, section_, type_, primary_, map);
-    } else {
-        return ContactGroup(nym_, section_, type_, {}, map);
-    }
+    return ContactGroup(nym_, section_, type_, map);
 }
 
 ContactGroup::ItemMap::const_iterator ContactGroup::end() const
 {
     return items_.cend();
+}
+
+Identifier ContactGroup::get_primary_item(const ItemMap& items)
+{
+    Identifier primary{};
+
+    for (const auto& it : items) {
+        const auto& item = it.second;
+
+        OT_ASSERT(item);
+
+        if (item->isPrimary()) {
+            primary = item->ID();
+
+            break;
+        }
+    }
+
+    return primary;
+}
+
+ContactGroup::ItemMap ContactGroup::normalize_items(const ItemMap& items)
+{
+    Identifier primary{};
+
+    auto map = items;
+
+    for (const auto& it : map) {
+        const auto& item = it.second;
+
+        OT_ASSERT(item);
+
+        if (item->isPrimary()) {
+            if (primary.empty()) {
+                primary = item->ID();
+            } else {
+                const auto& id = item->ID();
+                map[id].reset(new ContactItem(item->SetPrimary(false)));
+            }
+        }
+    }
+
+    return map;
 }
 
 bool ContactGroup::HaveClaim(const Identifier& item) const

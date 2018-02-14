@@ -2,7 +2,9 @@
 set(name unittests-opentxs-contact)
 
 set(cxx-sources
+  main.cpp
   Test_ContactItem.cpp
+  Test_ContactGroup.cpp
   ${PROJECT_SOURCE_DIR}/tests/OTTestEnvironment.cpp
 )
 
