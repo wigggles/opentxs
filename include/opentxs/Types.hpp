@@ -436,6 +436,16 @@ enum class Messagability : std::int8_t {
     UNREGISTERED = 2,
 };
 
+enum class Depositability : std::int8_t {
+    ACCOUNT_NOT_SPECIFIED = -4,
+    WRONG_ACCOUNT = -3,
+    WRONG_RECIPIENT = -2,
+    INVALID_INSTRUMENT = -1,
+    READY = 0,
+    NOT_REGISTERED = 1,
+    NO_ACCOUNT = 2,
+};
+
 enum class BlockchainAccountType : std::uint8_t {
     ERROR = 0,
     BIP32 = 1,

@@ -534,7 +534,7 @@ bool ServerAction::DownloadNymbox(
 
     bool msgWasSent{false};
     const auto download = util.getAndProcessNymbox_4(
-        String(serverID).Get(), String(localNymID).Get(), msgWasSent, false);
+        String(serverID).Get(), String(localNymID).Get(), msgWasSent, true);
 
     if (0 > download) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to retrieve nymbox."

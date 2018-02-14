@@ -68,9 +68,23 @@ public:
         const Identifier& accountID,
         const Identifier& serverID,
         const std::size_t max = DEFAULT_PROCESS_INBOX_ITEMS) const override;
+    Depositability CanDeposit(
+        const Identifier& recipientNymID,
+        const OTPayment& payment) const override;
+    Depositability CanDeposit(
+        const Identifier& recipientNymID,
+        const Identifier& accountID,
+        const OTPayment& payment) const override;
     Messagability CanMessage(
         const Identifier& senderNymID,
         const Identifier& recipientContactID) const override;
+    Identifier DepositPayment(
+        const Identifier& recipientNymID,
+        const std::shared_ptr<const OTPayment>& payment) const override;
+    Identifier DepositPayment(
+        const Identifier& recipientNymID,
+        const Identifier& accountID,
+        const std::shared_ptr<const OTPayment>& payment) const override;
     Identifier FindNym(const Identifier& nymID) const override;
     Identifier FindNym(const Identifier& nymID, const Identifier& serverIDHint)
         const override;
@@ -118,15 +132,20 @@ private:
 
     /** ContextID: localNymID, serverID */
     using ContextID = std::pair<Identifier, Identifier>;
-    /** MessageTask: recipientID, message<*/
+    /** MessageTask: recipientID, message< */
     using MessageTask = std::pair<Identifier, std::string>;
+    /** DepositPaymentTask: accountID, payment <*/
+    using DepositPaymentTask =
+        std::pair<Identifier, std::shared_ptr<const OTPayment>>;
 
     struct OperationQueue {
         UniqueQueue<Identifier> check_nym_;
-        UniqueQueue<bool> register_nym_;
+        UniqueQueue<DepositPaymentTask> deposit_payment_;
         UniqueQueue<Identifier> download_account_;
         UniqueQueue<Identifier> download_contract_;
         UniqueQueue<bool> download_nymbox_;
+        UniqueQueue<Identifier> register_account_;
+        UniqueQueue<bool> register_nym_;
         UniqueQueue<MessageTask> send_message_;
     };
 
@@ -157,6 +176,12 @@ private:
         const Identifier& accountID,
         ServerContext& context) const;
     void add_task(const Identifier& taskID, const ThreadStatus status) const;
+    Depositability can_deposit(
+        const OTPayment& payment,
+        const Identifier& recipient,
+        const Identifier& accountIDHint,
+        Identifier& depositServer,
+        Identifier& depositAccount) const;
     Messagability can_message(
         const Identifier& senderID,
         const Identifier& recipientID,
@@ -169,6 +194,13 @@ private:
         const Identifier& serverID,
         std::shared_ptr<const ServerContext>& context) const;
     bool check_server_contract(const Identifier& serverID) const;
+    bool deposit_cheque(
+        const Identifier& taskID,
+        const Identifier& nymID,
+        const Identifier& serverID,
+        const Identifier& accountID,
+        const std::shared_ptr<const OTPayment>& cheque,
+        UniqueQueue<DepositPaymentTask>& retry) const;
     bool download_account(
         const Identifier& taskID,
         const Identifier& nymID,
@@ -188,6 +220,11 @@ private:
         const Identifier& taskID,
         const Identifier& nymID,
         const Identifier& serverID) const;
+    bool extract_payment_data(
+        const OTPayment& payment,
+        Identifier& nymID,
+        Identifier& serverID,
+        Identifier& unitID) const;
     bool find_nym(
         const Identifier& nymID,
         const Identifier& serverID,
@@ -219,6 +256,11 @@ private:
     Identifier random_id() const;
     void refresh_accounts() const;
     void refresh_contacts() const;
+    bool register_account(
+        const Identifier& taskID,
+        const Identifier& nymID,
+        const Identifier& serverID,
+        const Identifier& unitID) const;
     bool register_nym(
         const Identifier& taskID,
         const Identifier& nymID,
@@ -226,6 +268,10 @@ private:
     Identifier schedule_download_nymbox(
         const Identifier& localNymID,
         const Identifier& serverID) const;
+    Identifier schedule_register_account(
+        const Identifier& localNymID,
+        const Identifier& serverID,
+        const Identifier& unitID) const;
     Identifier set_introduction_server(
         const Lock& lock,
         const ServerContract& contract) const;
@@ -233,6 +279,17 @@ private:
     void state_machine(const ContextID id, OperationQueue& queue) const;
     void update_task(const Identifier& taskID, const ThreadStatus status) const;
     void start_introduction_server(const Identifier& nymID) const;
+    Depositability valid_account(
+        const OTPayment& payment,
+        const Identifier& recipient,
+        const Identifier& serverID,
+        const Identifier& unitID,
+        const Identifier& accountIDHint,
+        Identifier& depositAccount) const;
+    Depositability valid_recipient(
+        const OTPayment& payment,
+        const Identifier& specifiedNymID,
+        const Identifier& recipient) const;
 
     Sync(
         std::recursive_mutex& apiLock,

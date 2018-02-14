@@ -61,9 +61,23 @@ public:
         const Identifier& accountID,
         const Identifier& serverID,
         const std::size_t max = DEFAULT_PROCESS_INBOX_ITEMS) const = 0;
+    EXPORT virtual Depositability CanDeposit(
+        const Identifier& recipientNymID,
+        const OTPayment& payment) const = 0;
+    EXPORT virtual Depositability CanDeposit(
+        const Identifier& recipientNymID,
+        const Identifier& accountID,
+        const OTPayment& payment) const = 0;
     EXPORT virtual Messagability CanMessage(
         const Identifier& senderNymID,
         const Identifier& recipientContactID) const = 0;
+    EXPORT virtual Identifier DepositPayment(
+        const Identifier& recipientNymID,
+        const std::shared_ptr<const OTPayment>& payment) const = 0;
+    EXPORT virtual Identifier DepositPayment(
+        const Identifier& recipientNymID,
+        const Identifier& accountID,
+        const std::shared_ptr<const OTPayment>& payment) const = 0;
     EXPORT virtual Identifier FindNym(const Identifier& nymID) const = 0;
     EXPORT virtual Identifier FindNym(
         const Identifier& nymID,
