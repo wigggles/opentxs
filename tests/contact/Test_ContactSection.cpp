@@ -178,8 +178,8 @@ TEST_F(Test_ContactSection, copy_constructor)
 
 TEST_F(Test_ContactSection, move_constructor)
 {
-	auto const&& foo = contactSection_.AddItem(activeContactItem_);
-	
+    auto const&& foo = contactSection_.AddItem(activeContactItem_);
+
     opentxs::ContactSection movedContactSection(
         std::move<opentxs::ContactSection>(
             contactSection_.AddItem(activeContactItem_)));
