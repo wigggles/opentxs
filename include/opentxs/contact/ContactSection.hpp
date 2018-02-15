@@ -83,7 +83,7 @@ public:
     ContactSection AddItem(const std::shared_ptr<ContactItem>& item) const;
     GroupMap::const_iterator begin() const;
     std::shared_ptr<ContactItem> Claim(const Identifier& item) const;
-    ContactSection Delete(const Identifier& id);
+    ContactSection Delete(const Identifier& id) const;
     GroupMap::const_iterator end() const;
     std::shared_ptr<ContactGroup> Group(
         const proto::ContactItemType& type) const;

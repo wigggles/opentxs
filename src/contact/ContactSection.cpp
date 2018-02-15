@@ -220,7 +220,7 @@ ContactSection::GroupMap ContactSection::create_group(
     return output;
 }
 
-ContactSection ContactSection::Delete(const Identifier& id)
+ContactSection ContactSection::Delete(const Identifier& id) const
 {
     bool deleted{false};
     auto map = groups_;

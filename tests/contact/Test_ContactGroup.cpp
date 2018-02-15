@@ -51,14 +51,14 @@ public:
     Test_ContactGroup()
         : contactGroup_(
               std::string("testContactGroupNym1"),
-              opentxs::proto::ContactSectionName::CONTACTSECTION_SCOPE,
+              opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER,
               opentxs::proto::ContactItemType::CITEMTYPE_INDIVIDUAL,
               {})
         , primary_(new opentxs::ContactItem(
               std::string("primaryContactItem"),
               CONTACT_CONTACT_DATA_VERSION,
               CONTACT_CONTACT_DATA_VERSION,
-              opentxs::proto::ContactSectionName::CONTACTSECTION_SCOPE,
+              opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER,
               opentxs::proto::ContactItemType::CITEMTYPE_INDIVIDUAL,
               std::string("primaryContactItemValue"),
               {opentxs::proto::ContactItemAttribute::CITEMATTR_PRIMARY},
@@ -68,7 +68,7 @@ public:
               std::string("activeContactItem"),
               CONTACT_CONTACT_DATA_VERSION,
               CONTACT_CONTACT_DATA_VERSION,
-              opentxs::proto::ContactSectionName::CONTACTSECTION_SCOPE,
+              opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER,
               opentxs::proto::ContactItemType::CITEMTYPE_INDIVIDUAL,
               std::string("activeContactItemValue"),
               {opentxs::proto::ContactItemAttribute::CITEMATTR_ACTIVE},
@@ -92,7 +92,7 @@ TEST_F(Test_ContactGroup, first_constructor)
             std::string("primaryContactItemNym2"),
             CONTACT_CONTACT_DATA_VERSION,
             CONTACT_CONTACT_DATA_VERSION,
-            opentxs::proto::ContactSectionName::CONTACTSECTION_SCOPE,
+            opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER,
             opentxs::proto::ContactItemType::CITEMTYPE_INDIVIDUAL,
             std::string("primaryContactItemValue2"),
             {opentxs::proto::ContactItemAttribute::CITEMATTR_PRIMARY},
@@ -105,7 +105,7 @@ TEST_F(Test_ContactGroup, first_constructor)
 
     const opentxs::ContactGroup group1(
         std::string("testContactGroupNym1"),
-        opentxs::proto::ContactSectionName::CONTACTSECTION_SCOPE,
+        opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER,
         opentxs::proto::ContactItemType::CITEMTYPE_INDIVIDUAL,
         map);
     // Verify two items were added.
@@ -127,7 +127,7 @@ TEST_F(Test_ContactGroup, first_constructor_no_items)
     // Test constructing a group with a map containing no items.
     const opentxs::ContactGroup group1(
         std::string("testContactGroupNym1"),
-        opentxs::proto::ContactSectionName::CONTACTSECTION_SCOPE,
+        opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER,
         opentxs::proto::ContactItemType::CITEMTYPE_INDIVIDUAL,
         {});
     // Verify the private static methods didn't blow up.
@@ -140,13 +140,39 @@ TEST_F(Test_ContactGroup, second_constructor)
 {
     const opentxs::ContactGroup group1(
         std::string("testContactGroupNym1"),
-        opentxs::proto::ContactSectionName::CONTACTSECTION_SCOPE,
+        opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER,
         active_);
 
     ASSERT_EQ(group1.Size(), 1);
     // Verify the group type matches the type of the item.
     ASSERT_EQ(group1.Type(), active_->Type());
     ASSERT_EQ(group1.begin()->second->ID(), active_->ID());
+}
+
+TEST_F(Test_ContactGroup, copy_constructor)
+{
+    const opentxs::ContactGroup group1(
+        std::string("testContactGroupNym1"),
+        opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER,
+        active_);
+
+    opentxs::ContactGroup copiedContactGroup(group1);
+
+    ASSERT_EQ(copiedContactGroup.Size(), 1);
+    // Verify the group type matches the type of the item.
+    ASSERT_EQ(copiedContactGroup.Type(), active_->Type());
+    ASSERT_EQ(copiedContactGroup.begin()->second->ID(), active_->ID());
+}
+
+TEST_F(Test_ContactGroup, move_constructor)
+{
+    opentxs::ContactGroup movedContactGroup(
+        std::move<opentxs::ContactGroup>(contactGroup_.AddItem(active_)));
+
+    ASSERT_EQ(movedContactGroup.Size(), 1);
+    // Verify the group type matches the type of the item.
+    ASSERT_EQ(movedContactGroup.Type(), active_->Type());
+    ASSERT_EQ(movedContactGroup.begin()->second->ID(), active_->ID());
 }
 
 TEST_F(Test_ContactGroup, operator_plus)
@@ -165,7 +191,7 @@ TEST_F(Test_ContactGroup, operator_plus)
             std::string("primaryContactItemNym2"),
             CONTACT_CONTACT_DATA_VERSION,
             CONTACT_CONTACT_DATA_VERSION,
-            opentxs::proto::ContactSectionName::CONTACTSECTION_SCOPE,
+            opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER,
             opentxs::proto::ContactItemType::CITEMTYPE_INDIVIDUAL,
             std::string("primaryContactItemValue2"),
             {opentxs::proto::ContactItemAttribute::CITEMATTR_PRIMARY},
@@ -272,7 +298,7 @@ TEST_F(Test_ContactGroup, Best_active_and_local)
         std::string("localContactItemNym"),
         CONTACT_CONTACT_DATA_VERSION,
         CONTACT_CONTACT_DATA_VERSION,
-        opentxs::proto::ContactSectionName::CONTACTSECTION_SCOPE,
+        opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER,
         opentxs::proto::ContactItemType::CITEMTYPE_INDIVIDUAL,
         std::string("localContactItemValue"),
         {opentxs::proto::ContactItemAttribute::CITEMATTR_LOCAL},
@@ -307,7 +333,6 @@ TEST_F(Test_ContactGroup, Claim_found)
 
 TEST_F(Test_ContactGroup, Claim_notfound)
 {
-    //
     const std::shared_ptr<opentxs::ContactItem>& claim =
         contactGroup_.Claim(active_->ID());
     ASSERT_FALSE(claim);
@@ -393,26 +418,31 @@ TEST_F(Test_ContactGroup, SerializeTo)
 {
     opentxs::proto::ContactSection contactSection1;
     contactSection1.set_name(
-        opentxs::proto::ContactSectionName::CONTACTSECTION_SCOPE);
+        opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER);
 
+    // Serialize without ids.
 	const auto& group1 = contactGroup_.AddItem(active_);
 	ASSERT_TRUE(group1.SerializeTo(contactSection1, false));
 	ASSERT_EQ(contactSection1.item_size(), group1.Size());
 	ASSERT_EQ(contactSection1.name(),
-		opentxs::proto::ContactSectionName::CONTACTSECTION_SCOPE);
+		opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER);
+	// Could use this to verify the ids, but currently causes a linker error.
+	//opentxs::proto::ContactItem item = contactSection1.item(0);
 	
     opentxs::proto::ContactSection contactSection2;
     contactSection2.set_name(
-        opentxs::proto::ContactSectionName::CONTACTSECTION_SCOPE);
+        opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER);
 
+    // Serialize with ids.
 	ASSERT_TRUE(group1.SerializeTo(contactSection2, true));
 	ASSERT_EQ(contactSection2.item_size(), group1.Size());
 	ASSERT_EQ(contactSection2.name(),
-		opentxs::proto::ContactSectionName::CONTACTSECTION_SCOPE);
+		opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER);
 	
+	// Serialize to the wrong section.
     opentxs::proto::ContactSection contactSection3;
     contactSection3.set_name(
-        opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER);
+        opentxs::proto::ContactSectionName::CONTACTSECTION_ADDRESS);
     ASSERT_FALSE(group1.SerializeTo(contactSection3, false));
 }
 
