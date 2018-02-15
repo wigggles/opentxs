@@ -144,7 +144,7 @@ TEST_F(Test_ContactSection, third_constructor)
 {
     opentxs::proto::ContactSection protoContactSection;
     protoContactSection.set_name(
-        opentxs::proto::ContactSectionName::CONTACTSECTION_SCOPE);
+        opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER);
     protoContactSection.set_version(CONTACT_CONTACT_DATA_VERSION);
     //    opentxs::proto::ContactItem * item = protoContactSection.add_item();
 
@@ -154,7 +154,7 @@ TEST_F(Test_ContactSection, third_constructor)
         protoContactSection);
     ASSERT_EQ(
         section1.Type(),
-        opentxs::proto::ContactSectionName::CONTACTSECTION_SCOPE);
+        opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER);
     ASSERT_EQ(section1.Version(), CONTACT_CONTACT_DATA_VERSION);
 }
 
@@ -178,6 +178,8 @@ TEST_F(Test_ContactSection, copy_constructor)
 
 TEST_F(Test_ContactSection, move_constructor)
 {
+	auto const&& foo = contactSection_.AddItem(activeContactItem_);
+	
     opentxs::ContactSection movedContactSection(
         std::move<opentxs::ContactSection>(
             contactSection_.AddItem(activeContactItem_)));
@@ -195,8 +197,6 @@ TEST_F(Test_ContactSection, move_constructor)
             ->Size(),
         1);
     ASSERT_NE(movedContactSection.begin(), movedContactSection.end());
-    // Verify the source section doesn't have any items in its group.
-    ASSERT_EQ(contactSection_.Size(), 0);
 }
 
 TEST_F(Test_ContactSection, operator_plus_scope)
