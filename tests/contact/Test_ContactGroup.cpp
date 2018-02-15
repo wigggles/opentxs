@@ -421,25 +421,42 @@ TEST_F(Test_ContactGroup, SerializeTo)
         opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER);
 
     // Serialize without ids.
-	const auto& group1 = contactGroup_.AddItem(active_);
-	ASSERT_TRUE(group1.SerializeTo(contactSection1, false));
-	ASSERT_EQ(contactSection1.item_size(), group1.Size());
-	ASSERT_EQ(contactSection1.name(),
-		opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER);
-	// Could use this to verify the ids, but currently causes a linker error.
-	//opentxs::proto::ContactItem item = contactSection1.item(0);
-	
+    const auto& group1 = contactGroup_.AddItem(active_);
+    ASSERT_TRUE(group1.SerializeTo(contactSection1, false));
+    ASSERT_EQ(contactSection1.item_size(), group1.Size());
+    ASSERT_EQ(
+        contactSection1.name(),
+        opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER);
+    opentxs::proto::ContactItem item = contactSection1.item(0);
+    ASSERT_EQ(item.version(), active_->Version());
+    ASSERT_EQ(item.type(), active_->Type());
+    ASSERT_EQ(item.value(), active_->Value());
+    ASSERT_EQ(item.start(), active_->Start());
+    ASSERT_EQ(item.end(), active_->End());
+    ASSERT_EQ(item.attribute(0), opentxs::proto::CITEMATTR_ACTIVE);
+
     opentxs::proto::ContactSection contactSection2;
     contactSection2.set_name(
         opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER);
 
     // Serialize with ids.
-	ASSERT_TRUE(group1.SerializeTo(contactSection2, true));
-	ASSERT_EQ(contactSection2.item_size(), group1.Size());
-	ASSERT_EQ(contactSection2.name(),
-		opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER);
-	
-	// Serialize to the wrong section.
+    ASSERT_TRUE(group1.SerializeTo(contactSection2, true));
+    ASSERT_EQ(contactSection2.item_size(), group1.Size());
+    ASSERT_EQ(
+        contactSection2.name(),
+        opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER);
+    item = contactSection2.item(0);
+    opentxs::String id;
+    active_->ID().GetString(id);
+    ASSERT_EQ(opentxs::String(item.id()), id);
+    ASSERT_EQ(item.version(), active_->Version());
+    ASSERT_EQ(item.type(), active_->Type());
+    ASSERT_EQ(item.value(), active_->Value());
+    ASSERT_EQ(item.start(), active_->Start());
+    ASSERT_EQ(item.end(), active_->End());
+    ASSERT_EQ(item.attribute(0), opentxs::proto::CITEMATTR_ACTIVE);
+
+    // Serialize to the wrong section.
     opentxs::proto::ContactSection contactSection3;
     contactSection3.set_name(
         opentxs::proto::ContactSectionName::CONTACTSECTION_ADDRESS);

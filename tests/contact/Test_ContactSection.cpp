@@ -178,8 +178,8 @@ TEST_F(Test_ContactSection, copy_constructor)
 
 TEST_F(Test_ContactSection, move_constructor)
 {
-	auto const&& foo = contactSection_.AddItem(activeContactItem_);
-	
+    auto const&& foo = contactSection_.AddItem(activeContactItem_);
+
     opentxs::ContactSection movedContactSection(
         std::move<opentxs::ContactSection>(
             contactSection_.AddItem(activeContactItem_)));
@@ -554,10 +554,40 @@ TEST_F(Test_ContactSection, SerializeTo)
     ASSERT_TRUE(section1.SerializeTo(contactData1, false));
     ASSERT_EQ(contactData1.section_size(), section1.Size());
 
+    opentxs::proto::ContactSection contactDataSection =
+        contactData1.section(0);
+    ASSERT_EQ(
+    		contactDataSection.name(),
+        opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER);
+    
+    opentxs::proto::ContactItem contactDataItem = contactDataSection.item(0);
+    ASSERT_EQ(contactDataItem.value(), activeContactItem_->Value());
+    ASSERT_EQ(contactDataItem.version(), activeContactItem_->Version());
+    ASSERT_EQ(contactDataItem.type(), activeContactItem_->Type());
+    ASSERT_EQ(contactDataItem.start(), activeContactItem_->Start());
+    ASSERT_EQ(contactDataItem.end(), activeContactItem_->End());
+    
     opentxs::proto::ContactData contactData2;
 
     ASSERT_TRUE(section1.SerializeTo(contactData2, true));
     ASSERT_EQ(contactData2.section_size(), section1.Size());
+
+    contactDataSection =
+        contactData2.section(0);
+    ASSERT_EQ(
+    		contactDataSection.name(),
+        opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER);
+    
+    contactDataItem = contactDataSection.item(0);
+    opentxs::String id;
+    activeContactItem_->ID().GetString(id);
+
+    ASSERT_EQ(opentxs::String(contactDataItem.id()), id);
+    ASSERT_EQ(contactDataItem.value(), activeContactItem_->Value());
+    ASSERT_EQ(contactDataItem.version(), activeContactItem_->Version());
+    ASSERT_EQ(contactDataItem.type(), activeContactItem_->Type());
+    ASSERT_EQ(contactDataItem.start(), activeContactItem_->Start());
+    ASSERT_EQ(contactDataItem.end(), activeContactItem_->End());
 }
 
 TEST_F(Test_ContactSection, Size)
