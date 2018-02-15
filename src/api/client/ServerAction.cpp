@@ -972,8 +972,27 @@ ServerAction::Action ServerAction::SendPayment(
     const Identifier& recipientNymID,
     const OTPayment& payment) const
 {
-    return SendMessage(
-        localNymID, serverID, recipientNymID, String(payment).Get());
+    String pubkey{""};
+    const auto nym = wallet_.Nym(recipientNymID);
+
+    if (nym) {
+        nym->GetPublicEncrKey().GetPublicKey(pubkey);
+    }
+
+    const std::string recipient{String(recipientNymID).Get()};
+    const std::string key{String(pubkey).Get()};
+    const std::string recipientVersion{String(payment).Get()};
+
+    return Action(new OTAPI_Func(
+        SEND_USER_INSTRUMENT,
+        wallet_,
+        localNymID,
+        serverID,
+        exec_,
+        otapi_,
+        recipient,
+        key,
+        recipientVersion));
 }
 
 ServerAction::Action ServerAction::SendTransfer(
