@@ -6,6 +6,7 @@ set(cxx-sources
   Test_ContactItem.cpp
   Test_ContactGroup.cpp
   Test_ContactSection.cpp
+  Test_ContactData.cpp
   ${PROJECT_SOURCE_DIR}/tests/OTTestEnvironment.cpp
 )
 

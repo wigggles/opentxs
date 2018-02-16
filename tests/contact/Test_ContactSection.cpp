@@ -41,7 +41,6 @@
 #include "opentxs/contact/ContactSection.hpp"
 #include "opentxs/contact/ContactGroup.hpp"
 #include "opentxs/contact/ContactItem.hpp"
-//#include "opentxs/core/crypto/ContactCredential.hpp"
 
 namespace
 {
@@ -74,9 +73,9 @@ public:
     {
     }
 
-    opentxs::ContactSection contactSection_;
-    std::shared_ptr<opentxs::ContactGroup> contactGroup_;
-    std::shared_ptr<opentxs::ContactItem> activeContactItem_;
+    const opentxs::ContactSection contactSection_;
+    const std::shared_ptr<opentxs::ContactGroup> contactGroup_;
+    const std::shared_ptr<opentxs::ContactItem> activeContactItem_;
 };
 
 }  // namespace
@@ -178,8 +177,6 @@ TEST_F(Test_ContactSection, copy_constructor)
 
 TEST_F(Test_ContactSection, move_constructor)
 {
-    auto const&& foo = contactSection_.AddItem(activeContactItem_);
-
     opentxs::ContactSection movedContactSection(
         std::move<opentxs::ContactSection>(
             contactSection_.AddItem(activeContactItem_)));
@@ -199,7 +196,7 @@ TEST_F(Test_ContactSection, move_constructor)
     ASSERT_NE(movedContactSection.begin(), movedContactSection.end());
 }
 
-TEST_F(Test_ContactSection, operator_plus_scope)
+TEST_F(Test_ContactSection, operator_plus)
 {
     // Combine two sections with one item each of the same type.
     const auto& section1 = contactSection_.AddItem(activeContactItem_);
@@ -548,6 +545,7 @@ TEST_F(Test_ContactSection, Delete)
 
 TEST_F(Test_ContactSection, SerializeTo)
 {
+	// Serialize without ids.
     opentxs::proto::ContactData contactData1;
 
     const auto& section1 = contactSection_.AddItem(activeContactItem_);
@@ -567,6 +565,7 @@ TEST_F(Test_ContactSection, SerializeTo)
     ASSERT_EQ(contactDataItem.start(), activeContactItem_->Start());
     ASSERT_EQ(contactDataItem.end(), activeContactItem_->End());
     
+    // Serialize with ids.
     opentxs::proto::ContactData contactData2;
 
     ASSERT_TRUE(section1.SerializeTo(contactData2, true));

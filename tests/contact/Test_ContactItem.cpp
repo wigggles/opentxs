@@ -61,7 +61,7 @@ public:
     {
     }
 
-    opentxs::ContactItem contactItem_;
+    const opentxs::ContactItem contactItem_;
 };
 
 }  // namespace
