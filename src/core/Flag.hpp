@@ -36,53 +36,40 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#ifndef OPENTXS_CORE_IMPLEMENTATION_FLAG_HPP
+#define OPENTXS_CORE_IMPLEMENTATION_FLAG_HPP
 
-#include "opentxs/api/crypto/implementation/Util.hpp"
+#include "opentxs/Internal.hpp"
 
-#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/Flag.hpp"
+#include "opentxs/core/Lockable.hpp"
 
-#include <iostream>
+#include <atomic>
 
-namespace opentxs::api::crypto::implementation
+namespace opentxs::implementation
 {
-
-bool Util::GetPasswordFromConsole(OTPassword& theOutput, bool bRepeat) const
+class Flag : virtual public opentxs::Flag, Lockable
 {
-    std::int32_t nAttempts = 0;
+public:
+    operator bool() const override;
 
-    for (int i = 0; i < 5; i++) {
-        theOutput.zeroMemory();
+    void Off() override;
+    void On() override;
+    bool Set(const bool value) override;
+    bool Toggle() override;
 
-        if (get_password(theOutput, "(OT) passphrase: ")) {
-            if (!bRepeat) {
-                std::cout << std::endl;
-                return true;
-            }
-        } else {
-            std::cout << "Sorry." << std::endl;
-            return false;
-        }
+    Flag(const bool state);
 
-        OTPassword tempPassword;
+    ~Flag() = default;
 
-        if (!get_password(tempPassword, "(Verifying) passphrase again: ")) {
-            std::cout << "Sorry." << std::endl;
-            return false;
-        }
+private:
+    std::atomic<bool> flag_;
 
-        if (!tempPassword.Compare(theOutput)) {
-            if (++nAttempts >= 3) break;
-
-            std::cout << "(Mismatch, try again.)\n" << std::endl;
-        } else {
-            std::cout << std::endl;
-            return true;
-        }
-    }
-
-    std::cout << "Sorry." << std::endl;
-
-    return false;
-}
-}  // namespace opentxs::api::crypto::implementation
+    Flag() = delete;
+    Flag(const Flag&) = delete;
+    Flag(Flag&&) = delete;
+    Flag& operator=(const Flag&) = delete;
+    Flag& operator=(Flag&&) = delete;
+};
+}  // namespace opentxs::implementation
+#endif  // OPENTXS_CORE_IMPLEMENTATION_FLAG_HPP

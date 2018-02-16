@@ -67,8 +67,8 @@ Nym::Nym(
     , alias_(alias)
     , nymid_(id)
     , credentials_(Node::BLANK_HASH)
-    , checked_(false)
-    , private_(false)
+    , checked_(Flag::Factory(false))
+    , private_(Flag::Factory(false))
     , revision_(0)
     , sent_request_box_lock_()
     , sent_request_box_(nullptr)
@@ -396,13 +396,14 @@ bool Nym::Load(
     }
 
     alias = alias_;
-    checked_.store(driver_.LoadProto(credentials_, output, false));
+    checked_->Set(driver_.LoadProto(credentials_, output, false));
 
-    if (!checked_.load()) {
+    if (!checked_.get()) {
+
         return false;
     }
 
-    private_.store(proto::CREDINDEX_PRIVATE == output->mode());
+    private_->Set(proto::CREDINDEX_PRIVATE == output->mode());
     revision_.store(output->revision());
 
     return true;
@@ -1042,12 +1043,12 @@ bool Nym::Store(
 
     if (existing) {
         if (incomingPublic) {
-            if (checked_.load()) {
-                saveOk = !private_.load();
+            if (checked_.get()) {
+                saveOk = !private_.get();
             } else {
                 std::shared_ptr<proto::CredentialIndex> serialized;
                 driver_.LoadProto(credentials_, serialized, true);
-                saveOk = !private_.load();
+                saveOk = !private_.get();
             }
         } else {
             saveOk = true;
@@ -1056,7 +1057,7 @@ bool Nym::Store(
         saveOk = true;
     }
 
-    const bool keyUpgrade = (!incomingPublic) && (!private_.load());
+    const bool keyUpgrade = (!incomingPublic) && (!private_.get());
     const bool revisionUpgrade = revision > revision_.load();
     const bool upgrade = keyUpgrade || revisionUpgrade;
 
@@ -1077,8 +1078,8 @@ bool Nym::Store(
         }
     }
 
-    checked_.store(true);
-    private_.store(!incomingPublic);
+    checked_->On();
+    private_->Set(!incomingPublic);
 
     return save(lock);
 }

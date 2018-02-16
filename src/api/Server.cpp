@@ -38,8 +38,6 @@
 
 #include "opentxs/stdafx.hpp"
 
-#include "opentxs/api/implementation/Server.hpp"
-
 #include "opentxs/api/client/Wallet.hpp"
 #if OT_CASH
 #include "opentxs/cash/Mint.hpp"
@@ -54,6 +52,8 @@
 #include "opentxs/server/MessageProcessor.hpp"
 #include "opentxs/server/Server.hpp"
 #include "opentxs/server/ServerSettings.hpp"
+
+#include "Server.hpp"
 
 #include <chrono>
 #include <ctime>
@@ -77,19 +77,19 @@ Server::Server(
     const opentxs::api::Settings& config,
     const opentxs::api::storage::Storage& storage,
     const opentxs::api::client::Wallet& wallet,
-    std::atomic<bool>& shutdown,
+    const Flag& running,
     const opentxs::network::zeromq::Context& context)
     : args_(args)
     , config_(config)
     , crypto_(crypto)
     , storage_(storage)
     , wallet_(wallet)
-    , shutdown_(shutdown)
+    , running_(running)
     , zmq_context_(context)
     , server_p_(new server::Server(crypto_, config_, *this, storage_, wallet_))
     , server_(*server_p_)
     , message_processor_p_(
-          new server::MessageProcessor(server_, context, shutdown_))
+          new server::MessageProcessor(server_, context, running_))
     , message_processor_(*message_processor_p_)
 #if OT_CASH
     , mint_thread_(nullptr)
@@ -365,7 +365,7 @@ void Server::mint() const
 
     OT_ASSERT(false == serverID.empty());
 
-    while (false == shutdown_.load()) {
+    while (running_) {
         Log::Sleep(std::chrono::milliseconds(250));
 
         if (false == server::ServerSettings::__cmd_get_mint) {

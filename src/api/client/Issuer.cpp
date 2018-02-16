@@ -60,7 +60,7 @@ Issuer::Issuer(
     : wallet_(wallet)
     , version_(CURRENT_VERSION)
     , pairing_code_("")
-    , paired_(false)
+    , paired_(Flag::Factory(false))
     , nym_id_(nymID)
     , issuer_id_(issuerID)
     , account_map_()
@@ -75,7 +75,7 @@ Issuer::Issuer(
     : wallet_(wallet)
     , version_(serialized.version())
     , pairing_code_(serialized.pairingcode())
-    , paired_(serialized.paired())
+    , paired_(Flag::Factory(serialized.paired()))
     , nym_id_(nymID)
     , issuer_id_(serialized.id())
     , account_map_()
@@ -569,7 +569,7 @@ const Identifier& Issuer::IssuerID() const { return issuer_id_; }
 
 const Identifier& Issuer::LocalNymID() const { return nym_id_; }
 
-bool Issuer::Paired() const { return paired_.load(); }
+bool Issuer::Paired() const { return paired_.get(); }
 
 const std::string& Issuer::PairingCode() const { return pairing_code_; }
 
@@ -632,7 +632,7 @@ proto::Issuer Issuer::Serialize() const
     proto::Issuer output;
     output.set_version(version_);
     output.set_id(String(issuer_id_).Get());
-    output.set_paired(paired_);
+    output.set_paired(paired_.get());
     output.set_pairingcode(pairing_code_);
 
     for (const auto & [ type, accountSet ] : account_map_) {
@@ -665,13 +665,13 @@ proto::Issuer Issuer::Serialize() const
     return output;
 }
 
-void Issuer::SetPaired(const bool paired) { paired_.store(paired); }
+void Issuer::SetPaired(const bool paired) { paired_->Set(paired); }
 
 void Issuer::SetPairingCode(const std::string& code)
 {
     Lock lock(lock_);
     pairing_code_ = code;
-    paired_.store(true);
+    paired_->On();
 }
 
 bool Issuer::SetUsed(

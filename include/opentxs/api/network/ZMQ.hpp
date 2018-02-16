@@ -41,6 +41,7 @@
 
 #include "opentxs/Forward.hpp"
 
+#include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 
 #include <chrono>
@@ -53,27 +54,29 @@ namespace api
 {
 namespace network
 {
-
 class ZMQ
 {
 public:
-    virtual const opentxs::network::zeromq::Context& Context() const = 0;
-    virtual std::chrono::seconds KeepAlive() const = 0;
-    virtual void KeepAlive(const std::chrono::seconds duration) const = 0;
-    virtual std::chrono::seconds Linger() const = 0;
-    virtual std::shared_ptr<opentxs::network::zeromq::Context> NewContext()
-        const = 0;
-    virtual std::chrono::seconds ReceiveTimeout() const = 0;
-    virtual void RefreshConfig() const = 0;
-    virtual std::chrono::seconds SendTimeout() const = 0;
+    EXPORT virtual const opentxs::network::zeromq::Context& Context() const = 0;
+    EXPORT virtual proto::AddressType DefaultAddressType() const = 0;
+    EXPORT virtual std::chrono::seconds KeepAlive() const = 0;
+    EXPORT virtual void KeepAlive(
+        const std::chrono::seconds duration) const = 0;
+    EXPORT virtual std::chrono::seconds Linger() const = 0;
+    EXPORT virtual std::shared_ptr<opentxs::network::zeromq::Context>
+    NewContext() const = 0;
+    EXPORT virtual std::chrono::seconds ReceiveTimeout() const = 0;
+    EXPORT virtual const Flag& Running() const = 0;
+    EXPORT virtual void RefreshConfig() const = 0;
+    EXPORT virtual std::chrono::seconds SendTimeout() const = 0;
+    EXPORT virtual opentxs::network::ServerConnection& Server(
+        const std::string& id) const = 0;
+    EXPORT virtual bool SetSocksProxy(const std::string& proxy) const = 0;
+    EXPORT virtual std::string SocksProxy() const = 0;
+    EXPORT virtual bool SocksProxy(std::string& proxy) const = 0;
+    EXPORT virtual ConnectionState Status(const std::string& server) const = 0;
 
-    virtual ServerConnection& Server(const std::string& id) const = 0;
-    virtual bool SetSocksProxy(const std::string& proxy) const = 0;
-    virtual std::string SocksProxy() const = 0;
-    virtual bool SocksProxy(std::string& proxy) const = 0;
-    virtual ConnectionState Status(const std::string& server) const = 0;
-
-    virtual ~ZMQ() = default;
+    EXPORT virtual ~ZMQ() = default;
 
 protected:
     ZMQ() = default;

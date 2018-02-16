@@ -110,7 +110,7 @@ private:
     friend class api::storage::implementation::Storage;
 
     const api::storage::Storage& storage_;
-    const std::atomic<bool>& primary_bucket_;
+    const Flag& primary_bucket_;
     const StorageConfig& config_;
     std::unique_ptr<opentxs::api::storage::Plugin> primary_plugin_;
     std::vector<std::unique_ptr<opentxs::api::storage::Plugin>> backup_plugins_;
@@ -119,7 +119,7 @@ private:
 
     StorageMultiplex(
         const api::storage::Storage& storage,
-        const std::atomic<bool>& primary_bucket_,
+        const Flag& primaryBucket,
         const StorageConfig& config,
         const String& primary,
         const bool migrate,

@@ -66,9 +66,9 @@ namespace opentxs::server
 MessageProcessor::MessageProcessor(
     Server& server,
     const network::zeromq::Context& context,
-    std::atomic<bool>& shutdown)
+    const Flag& running)
     : server_(server)
-    , shutdown_(shutdown)
+    , running_(running)
     , context_(context)
     , reply_socket_(context.NewReplySocket())
     , thread_(nullptr)
@@ -101,7 +101,7 @@ void MessageProcessor::init(const int port, const OTPassword& privkey)
 
 void MessageProcessor::run()
 {
-    while (false == shutdown_.load()) {
+    while (running_) {
         // timeout is the time left until the next cron should execute.
         const auto timeout = server_.computeTimeout();
 

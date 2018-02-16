@@ -82,8 +82,7 @@ protected:
         const std::string& alias,
         std::string& plaintext)
     {
-        std::unique_lock<std::mutex> lock(write_lock_);
-
+        Lock lock(write_lock_);
         auto& metadata = item_map_[id];
         auto& hash = std::get<0>(metadata);
 
@@ -116,7 +115,7 @@ protected:
         std::string& alias,
         const bool checking) const
     {
-        std::lock_guard<std::mutex> lock(write_lock_);
+        Lock lock(write_lock_);
         const auto& it = item_map_.find(id);
         const bool exists = (item_map_.end() != it);
 
@@ -137,9 +136,9 @@ protected:
     template <class T>
     void map(const std::function<void(const T&)> input) const
     {
-        std::unique_lock<std::mutex> lock(write_lock_);
+        Lock lock(write_lock_);
         const auto copy = item_map_;
-        write_lock_.unlock();
+        lock.unlock();
 
         for (const auto& it : copy) {
             const auto& hash = std::get<0>(it.second);
@@ -194,7 +193,6 @@ private:
 
 protected:
     friend class Root;
-    typedef std::unique_lock<std::mutex> Lock;
 
     static const std::string BLANK_HASH;
 
@@ -222,7 +220,7 @@ protected:
     bool migrate(
         const std::string& hash,
         const opentxs::api::storage::Driver& to) const;
-    virtual bool save(const std::unique_lock<std::mutex>& lock) const = 0;
+    virtual bool save(const Lock& lock) const = 0;
     void serialize_index(
         const std::string& id,
         const Metadata& metadata,
@@ -241,7 +239,7 @@ protected:
         const std::string& data,
         const std::string& id,
         const std::string& alias);
-    bool verify_write_lock(const std::unique_lock<std::mutex>& lock) const;
+    bool verify_write_lock(const Lock& lock) const;
 
     virtual void init(const std::string& hash) = 0;
 

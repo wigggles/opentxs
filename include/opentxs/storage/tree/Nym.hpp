@@ -42,8 +42,9 @@
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/api/Editor.hpp"
-#include "opentxs/Types.hpp"
+#include "opentxs/core/Flag.hpp"
 #include "opentxs/storage/tree/Node.hpp"
+#include "opentxs/Types.hpp"
 
 #include <cstdint>
 #include <map>
@@ -126,8 +127,8 @@ private:
     std::string nymid_;
     std::string credentials_;
 
-    mutable std::atomic<bool> checked_;
-    mutable std::atomic<bool> private_;
+    mutable OTFlag checked_;
+    mutable OTFlag private_;
     mutable std::atomic<std::uint64_t> revision_;
 
     mutable std::mutex sent_request_box_lock_;

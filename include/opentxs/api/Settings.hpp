@@ -41,11 +41,12 @@
 
 #include "opentxs/Forward.hpp"
 
+#include "opentxs/core/Flag.hpp"
 #include "opentxs/core/String.hpp"
 
-#include <atomic>
-#include <stdint.h>
+#include <cstdint>
 #include <memory>
+#include <mutex>
 #include <string>
 
 namespace opentxs
@@ -69,7 +70,8 @@ private:
     class SettingsPvt;
 
     std::unique_ptr<SettingsPvt> pvt_;
-    mutable std::atomic<bool> b_Loaded{false};
+    mutable OTFlag loaded_;
+    mutable std::recursive_mutex lock_;
 
     mutable String m_strConfigurationFileExactPath;
 
@@ -99,7 +101,7 @@ public:
     EXPORT bool Load() const;
     EXPORT bool Save() const;
 
-    EXPORT const std::atomic<bool>& IsLoaded() const;
+    EXPORT const Flag& IsLoaded() const;
 
     // Configuration Helpers
     //

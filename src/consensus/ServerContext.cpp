@@ -66,7 +66,7 @@ ServerContext::ManagedNumber::ManagedNumber(
     ServerContext& context)
     : context_(context)
     , number_(number)
-    , success_(false)
+    , success_(Flag::Factory(false))
     , managed_(0 != number)
 {
 }
@@ -74,7 +74,7 @@ ServerContext::ManagedNumber::ManagedNumber(
 ServerContext::ManagedNumber::ManagedNumber(ManagedNumber&& rhs)
     : context_(rhs.context_)
     , number_(rhs.number_)
-    , success_(rhs.success_.load())
+    , success_(std::move(rhs.success_))
     , managed_(rhs.managed_)
 {
     rhs.managed_ = false;
@@ -87,7 +87,7 @@ ServerContext::ManagedNumber::operator TransactionNumber() const
 
 void ServerContext::ManagedNumber::SetSuccess(const bool value) const
 {
-    return success_.store(value);
+    success_->Set(value);
 }
 
 bool ServerContext::ManagedNumber::Valid() const { return managed_; }
@@ -99,7 +99,7 @@ ServerContext::ManagedNumber::~ManagedNumber()
         return;
     }
 
-    if (success_.load()) {
+    if (success_.get()) {
 
         return;
     }
@@ -111,13 +111,13 @@ ServerContext::ServerContext(
     const ConstNym& local,
     const ConstNym& remote,
     const Identifier& server,
-    ServerConnection& connection,
+    network::ServerConnection& connection,
     std::mutex& nymfileLock)
     : ot_super(CURRENT_VERSION, local, remote, server, nymfileLock)
     , connection_(connection)
     , admin_password_("")
-    , admin_attempted_(false)
-    , admin_success_(false)
+    , admin_attempted_(Flag::Factory(false))
+    , admin_success_(Flag::Factory(false))
     , revision_(0)
     , highest_transaction_number_(0)
     , tentative_transaction_numbers_()
@@ -128,7 +128,7 @@ ServerContext::ServerContext(
     const proto::Context& serialized,
     const ConstNym& local,
     const ConstNym& remote,
-    ServerConnection& connection,
+    network::ServerConnection& connection,
     std::mutex& nymfileLock)
     : ot_super(
           CURRENT_VERSION,
@@ -139,8 +139,9 @@ ServerContext::ServerContext(
           nymfileLock)
     , connection_(connection)
     , admin_password_(serialized.servercontext().adminpassword())
-    , admin_attempted_(serialized.servercontext().adminattempted())
-    , admin_success_(serialized.servercontext().adminsuccess())
+    , admin_attempted_(
+          Flag::Factory(serialized.servercontext().adminattempted()))
+    , admin_success_(Flag::Factory(serialized.servercontext().adminsuccess()))
     , revision_(serialized.servercontext().revision())
     , highest_transaction_number_(
           serialized.servercontext().highesttransactionnumber())
@@ -225,7 +226,7 @@ bool ServerContext::AddTentativeNumber(const TransactionNumber& number)
     return output.second;
 }
 
-bool ServerContext::AdminAttempted() const { return admin_attempted_.load(); }
+bool ServerContext::AdminAttempted() const { return admin_attempted_.get(); }
 
 const std::string& ServerContext::AdminPassword() const
 {
@@ -234,7 +235,7 @@ const std::string& ServerContext::AdminPassword() const
     return admin_password_;
 }
 
-ServerConnection& ServerContext::Connection() { return connection_; }
+network::ServerConnection& ServerContext::Connection() { return connection_; }
 
 bool ServerContext::finalize_server_command(Message& command) const
 {
@@ -404,7 +405,7 @@ std::pair<RequestNumber, std::unique_ptr<Message>> ServerContext::
         lock, type, provided, withAcknowledgments, withNymboxHash);
 }
 
-bool ServerContext::isAdmin() const { return admin_success_.load(); }
+bool ServerContext::isAdmin() const { return admin_success_.get(); }
 
 ServerContext::ManagedNumber ServerContext::NextTransactionNumber(
     const MessageType reason)
@@ -545,8 +546,8 @@ proto::Context ServerContext::serialize(const Lock& lock) const
     if (output.version() >= 2) {
         server.set_revision(revision_.load());
         server.set_adminpassword(admin_password_);
-        server.set_adminattempted(admin_attempted_.load());
-        server.set_adminsuccess(admin_success_.load());
+        server.set_adminattempted(admin_attempted_.get());
+        server.set_adminsuccess(admin_success_.get());
     }
 
     return output;
@@ -555,7 +556,7 @@ proto::Context ServerContext::serialize(const Lock& lock) const
 void ServerContext::SetAdminAttempted()
 {
     Lock lock(lock_);
-    admin_attempted_.store(true);
+    admin_attempted_->On();
 }
 
 void ServerContext::SetAdminPassword(const std::string& password)
@@ -567,8 +568,8 @@ void ServerContext::SetAdminPassword(const std::string& password)
 void ServerContext::SetAdminSuccess()
 {
     Lock lock(lock_);
-    admin_attempted_.store(true);
-    admin_success_.store(true);
+    admin_attempted_->On();
+    admin_success_->On();
 }
 
 bool ServerContext::SetHighest(const TransactionNumber& highest)
@@ -684,7 +685,7 @@ bool ServerContext::ShouldRename(const std::string& defaultName) const
 {
     const auto& name = defaultName.empty() ? default_node_name_ : defaultName;
 
-    if (false == admin_success_.load()) {
+    if (false == admin_success_.get()) {
         otErr << OT_METHOD << __FUNCTION__ << ": Do not have admin permission."
               << std::endl;
 

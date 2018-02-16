@@ -40,6 +40,8 @@
 #define OPENTXS_CORE_API_OT_HPP
 
 #include "opentxs/Forward.hpp"
+
+#include "opentxs/core/Flag.hpp"
 #include "opentxs/Types.hpp"
 
 #include <atomic>
@@ -96,15 +98,15 @@ public:
         const std::chrono::seconds gcInterval = std::chrono::seconds(0),
         const bool recover = false);
     static void Join();
+    static const opentxs::Flag& Running();
     static void ServerFactory(
         const ArgList& args,
         const std::chrono::seconds gcInterval = std::chrono::seconds(0),
         const bool recover = false);
-    static const std::atomic<bool>& Shutdown();
 
 private:
     static api::Native* instance_pointer_;
-    static std::atomic<bool> shutdown_;
+    static OTFlag running_;
 
     OT() = delete;
     OT(const OT&) = delete;

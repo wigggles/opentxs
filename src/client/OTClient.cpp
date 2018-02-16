@@ -115,7 +115,10 @@ OTClient::OTClient(
 
 void OTClient::QueueOutgoingMessage(const Message& theMessage)
 {
-    String strMessage(theMessage);
+    String serialized{};
+    const bool saved = theMessage.SaveContractRaw(serialized);
+
+    OT_ASSERT(saved)
 
     // WHAT DOES THIS MEAN?
 
@@ -133,11 +136,12 @@ void OTClient::QueueOutgoingMessage(const Message& theMessage)
     // So I can save the request number when sending a message, check for it
     // later in the Nymbox, and then worst case, look it up in the Outbuffer and
     // get my fucking transaction numbers back again!
-
     std::unique_ptr<Message> pMsg(new Message);
 
-    if (pMsg->LoadContractFromString(strMessage)) {
+    if (pMsg->LoadContractFromString(serialized)) {
         m_MessageOutbuffer.AddSentMessage(*(pMsg.release()));
+    } else {
+        OT_FAIL
     }
 }
 

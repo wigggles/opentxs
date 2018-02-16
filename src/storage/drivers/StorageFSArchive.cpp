@@ -83,7 +83,7 @@ StorageFSArchive::StorageFSArchive(
     const StorageConfig& config,
     const Digest& hash,
     const Random& random,
-    const std::atomic<bool>& bucket,
+    const Flag& bucket,
     const std::string& folder,
     std::unique_ptr<SymmetricKey>& key)
     : ot_super(storage, config, hash, random, folder, bucket)
@@ -151,7 +151,7 @@ void StorageFSArchive::Init_StorageFSArchive()
     boost::system::error_code ec{};
 
     if (boost::filesystem::create_directory(folder_, ec)) {
-        ready_.store(true);
+        ready_->On();
     }
 }
 

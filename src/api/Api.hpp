@@ -42,6 +42,7 @@
 #include "opentxs/Internal.hpp"
 
 #include "opentxs/api/Api.hpp"
+#include "opentxs/core/Flag.hpp"
 
 #include <memory>
 #include <mutex>
@@ -71,7 +72,7 @@ public:
 private:
     friend class implementation::Native;
 
-    const std::atomic<bool>& shutdown_;
+    const Flag& running_;
     const Activity& activity_;
     const Settings& config_;
     const ContactManager& contacts_;
@@ -93,7 +94,7 @@ private:
     void Cleanup();
     void Init();
 
-    Api(const std::atomic<bool>& shutdown,
+    Api(const Flag& running,
         const api::Activity& activity,
         const api::Settings& config,
         const api::ContactManager& contacts,

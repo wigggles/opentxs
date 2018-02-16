@@ -38,13 +38,12 @@
 
 #include "opentxs/stdafx.hpp"
 
-#include "opentxs/api/network/implementation/ZMQ.hpp"
+#include "ZMQ.hpp"
 
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/network/zeromq/implementation/Context.hpp"
 #include "opentxs/network/ServerConnection.hpp"
-#include "opentxs/OT.hpp"
 
 #define CLIENT_SEND_TIMEOUT_SECONDS 20
 #define CLIENT_RECV_TIMEOUT_SECONDS 40
@@ -60,14 +59,15 @@ namespace opentxs::api::network::implementation
 
 ZMQ::ZMQ(
     const opentxs::network::zeromq::Context& context,
-    const api::Settings& config)
+    const api::Settings& config,
+    const Flag& running)
     : context_(context)
     , config_(config)
+    , running_(running)
     , linger_(std::chrono::seconds(CLIENT_SOCKET_LINGER_SECONDS))
     , receive_timeout_(std::chrono::seconds(CLIENT_RECV_TIMEOUT))
     , send_timeout_(std::chrono::seconds(CLIENT_SEND_TIMEOUT))
     , keep_alive_(std::chrono::seconds(0))
-    , shutdown_(false)
     , lock_()
     , socks_proxy_()
     , server_connections_()
@@ -80,6 +80,27 @@ ZMQ::ZMQ(
 const opentxs::network::zeromq::Context& ZMQ::Context() const
 {
     return context_;
+}
+
+proto::AddressType ZMQ::DefaultAddressType() const
+{
+    bool changed{false};
+    const std::int64_t defaultType{
+        static_cast<std::int64_t>(proto::ADDRESSTYPE_IPV4)};
+    std::int64_t configuredType{
+        static_cast<std::int64_t>(proto::ADDRESSTYPE_ERROR)};
+    config_.CheckSet_long(
+        "Connection",
+        "preferred_address_type",
+        defaultType,
+        configuredType,
+        changed);
+
+    if (changed) {
+        config_.Save();
+    }
+
+    return static_cast<proto::AddressType>(configuredType);
 }
 
 void ZMQ::init(const Lock& lock) const
@@ -144,21 +165,26 @@ void ZMQ::RefreshConfig() const
     return init(lock);
 }
 
+const Flag& ZMQ::Running() const { return running_; }
+
 std::chrono::seconds ZMQ::SendTimeout() const { return send_timeout_.load(); }
 
-ServerConnection& ZMQ::Server(const std::string& id) const
+opentxs::network::ServerConnection& ZMQ::Server(const std::string& id) const
 {
     Lock lock(lock_);
-    auto& connection = server_connections_[id];
+    auto existing = server_connections_.find(id);
 
-    if (!connection) {
-        connection.reset(new ServerConnection(
-            id, socks_proxy_, shutdown_, keep_alive_, *this, config_));
+    if (server_connections_.end() != existing) {
+
+        return existing->second;
     }
 
-    OT_ASSERT(connection);
+    auto[it, created] = server_connections_.emplace(
+        id, opentxs::network::ServerConnection::Factory(*this, id));
 
-    return *connection;
+    OT_ASSERT(created);
+
+    return it->second;
 }
 
 bool ZMQ::SetSocksProxy(const std::string& proxy) const
@@ -185,9 +211,7 @@ bool ZMQ::SetSocksProxy(const std::string& proxy) const
     socks_proxy_ = proxy;
 
     for (auto& it : server_connections_) {
-        OT_ASSERT(it.second);
-
-        auto& connection = *it.second;
+        opentxs::network::ServerConnection& connection = it.second;
 
         if (proxy.empty()) {
             set &= connection.ClearProxy();
@@ -257,9 +281,5 @@ bool ZMQ::verify_lock(const Lock& lock) const
     return true;
 }
 
-ZMQ::~ZMQ()
-{
-    shutdown_.store(true);
-    server_connections_.clear();
-}
+ZMQ::~ZMQ() { server_connections_.clear(); }
 }  // namespace opentxs::api::network::implementation

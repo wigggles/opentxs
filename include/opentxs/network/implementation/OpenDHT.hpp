@@ -44,6 +44,8 @@
 #if OT_DHT
 #include "opentxs/network/OpenDHT.hpp"
 
+#include "opentxs/core/Flag.hpp"
+
 #include <atomic>
 #include <memory>
 #include <mutex>
@@ -74,8 +76,8 @@ private:
 
     std::unique_ptr<const DhtConfig> config_;
     std::unique_ptr<dht::DhtRunner> node_;
-    mutable std::atomic<bool> loaded_{false};
-    mutable std::atomic<bool> ready_{false};
+    mutable OTFlag loaded_;
+    mutable OTFlag ready_;
     mutable std::mutex init_;
 
     bool Init() const;

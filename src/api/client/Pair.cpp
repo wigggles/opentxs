@@ -38,7 +38,6 @@
 
 #include "opentxs/stdafx.hpp"
 
-#include "opentxs/api/client/implementation/Pair.hpp"
 #include "opentxs/api/client/Issuer.hpp"
 #include "opentxs/api/client/ServerAction.hpp"
 #include "opentxs/api/client/Sync.hpp"
@@ -56,11 +55,13 @@
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/Nym.hpp"
 
+#include "Pair.hpp"
+
 #define MINIMUM_UNUSED_BAILMENTS 3
 
 #define SHUTDOWN()                                                             \
     {                                                                          \
-        if (shutdown_.load()) {                                                \
+        if (!running_) {                                                       \
                                                                                \
             return;                                                            \
         }                                                                      \
@@ -72,23 +73,23 @@
 
 namespace opentxs::api::client::implementation
 {
-Pair::Cleanup::Cleanup(std::atomic<bool>& run)
+Pair::Cleanup::Cleanup(Flag& run)
     : run_(run)
 {
-    run_.store(true);
+    run_.On();
 }
 
-Pair::Cleanup::~Cleanup() { run_.store(false); }
+Pair::Cleanup::~Cleanup() { run_.Off(); }
 
 Pair::Pair(
-    const std::atomic<bool>& shutdown,
+    const Flag& running,
     std::recursive_mutex& apiLock,
     const api::client::Sync& sync,
     const client::ServerAction& action,
     const client::Wallet& wallet,
     const opentxs::OT_API& otapi,
     const opentxs::OTAPI_Exec& exec)
-    : shutdown_(shutdown)
+    : running_(running)
     , sync_(sync)
     , action_(action)
     , wallet_(wallet)
@@ -96,7 +97,7 @@ Pair::Pair(
     , exec_(exec)
     , api_lock_(apiLock)
     , status_lock_()
-    , pairing_(false)
+    , pairing_(Flag::Factory(false))
     , last_refresh_(0)
     , pairing_thread_(nullptr)
     , refresh_thread_(nullptr)
@@ -162,7 +163,7 @@ void Pair::check_pairing() const
 
 void Pair::check_refresh() const
 {
-    while (false == shutdown_.load()) {
+    while (running_) {
         const auto current = sync_.RefreshCount();
         const auto previous = last_refresh_.exchange(current);
 
@@ -841,7 +842,7 @@ std::pair<bool, Identifier> Pair::store_secret(
 
 void Pair::update_pairing() const
 {
-    const auto pairing = pairing_.exchange(true);
+    const auto pairing = pairing_->Set(true);
 
     if (false == pairing) {
         if (pairing_thread_) {
@@ -866,7 +867,7 @@ void Pair::update_peer() const
 
 Pair::~Pair()
 {
-    if (pairing_.load()) {
+    if (pairing_.get()) {
         Log::Sleep(std::chrono::milliseconds(250));
     }
 

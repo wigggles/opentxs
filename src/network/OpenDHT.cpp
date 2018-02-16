@@ -42,6 +42,7 @@
 
 #include "opentxs/core/Log.hpp"
 #include "opentxs/network/DhtConfig.hpp"
+#include "opentxs/Types.hpp"
 
 #if OT_DHT
 #include <opendht.h>
@@ -59,25 +60,28 @@ namespace opentxs::network::implementation
 OpenDHT::OpenDHT(const DhtConfig& config)
     : config_(new DhtConfig(config))
     , node_(new dht::DhtRunner)
+    , loaded_(Flag::Factory(false))
+    , ready_(Flag::Factory(false))
 {
-    loaded_.store(false);
-    ready_.store(false);
     Init();
 }
 
 bool OpenDHT::Init() const
 {
-    std::lock_guard<std::mutex> initLock(init_);
+    Lock initLock(init_);
 
     if (!config_->enable_dht_) {
+
         return true;
     }
 
-    if (ready_.load()) {
+    if (ready_.get()) {
+
         return true;
     }
 
     if (!node_) {
+
         return false;
     }
 
@@ -87,7 +91,7 @@ bool OpenDHT::Init() const
         listenPort = config_->default_port_;
     }
 
-    if (!loaded_.load()) {
+    if (!loaded_.get()) {
         try {
             node_->run(listenPort, dht::crypto::generateIdentity(), true);
         } catch (dht::DhtException& e) {
@@ -96,13 +100,13 @@ bool OpenDHT::Init() const
             return false;
         }
 
-        loaded_.store(true);
+        loaded_->On();
     }
 
     try {
         node_->bootstrap(
             config_->bootstrap_url_.c_str(), config_->bootstrap_port_.c_str());
-        ready_.store(true);
+        ready_->On();
     } catch (std::invalid_argument& e) {
         std::cout << e.what() << std::endl;
 
@@ -117,7 +121,7 @@ void OpenDHT::Insert(
     const std::string& value,
     DhtDoneCallback cb) const
 {
-    if (!ready_.load()) {
+    if (!ready_.get()) {
         if (!Init()) {
             return;
         }
@@ -147,7 +151,7 @@ void OpenDHT::Retrieve(
     DhtResultsCallback vcb,
     DhtDoneCallback dcb) const
 {
-    if (!ready_.load()) {
+    if (!ready_.get()) {
         if (!Init()) {
             return;
         }

@@ -42,7 +42,7 @@
 #include "opentxs/Forward.hpp"
 
 #if OT_STORAGE_FS
-
+#include "opentxs/core/Flag.hpp"
 #include "opentxs/storage/Plugin.hpp"
 
 #include <boost/iostreams/device/file_descriptor.hpp>
@@ -76,7 +76,7 @@ public:
 protected:
     const std::string folder_;
     const std::string path_seperator_{};
-    std::atomic<bool> ready_{false};
+    OTFlag ready_;
 
     bool sync(const std::string& path) const;
 
@@ -86,7 +86,7 @@ protected:
         const Digest& hash,
         const Random& random,
         const std::string& folder,
-        const std::atomic<bool>& bucket);
+        const Flag& bucket);
 
 private:
     typedef boost::iostreams::stream<boost::iostreams::file_descriptor_sink>

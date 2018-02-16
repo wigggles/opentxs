@@ -42,25 +42,20 @@
 #include "opentxs/Internal.hpp"
 
 #include "opentxs/api/network/ZMQ.hpp"
+#include "opentxs/core/Flag.hpp"
 
 #include <atomic>
 #include <map>
 #include <memory>
 #include <mutex>
 
-namespace opentxs
+namespace opentxs::api::network::implementation
 {
-namespace api
-{
-namespace network
-{
-namespace implementation
-{
-
 class ZMQ : virtual public opentxs::api::network::ZMQ
 {
 public:
     const opentxs::network::zeromq::Context& Context() const override;
+    proto::AddressType DefaultAddressType() const override;
     std::chrono::seconds KeepAlive() const override;
     void KeepAlive(const std::chrono::seconds duration) const override;
     std::chrono::seconds Linger() const override;
@@ -68,9 +63,11 @@ public:
         const override;
     std::chrono::seconds ReceiveTimeout() const override;
     void RefreshConfig() const override;
+    const Flag& Running() const override;
     std::chrono::seconds SendTimeout() const override;
 
-    ServerConnection& Server(const std::string& id) const override;
+    opentxs::network::ServerConnection& Server(
+        const std::string& id) const override;
     bool SetSocksProxy(const std::string& proxy) const override;
     std::string SocksProxy() const override;
     bool SocksProxy(std::string& proxy) const override;
@@ -83,30 +80,27 @@ private:
 
     const opentxs::network::zeromq::Context& context_;
     const api::Settings& config_;
+    const Flag& running_;
     mutable std::atomic<std::chrono::seconds> linger_;
     mutable std::atomic<std::chrono::seconds> receive_timeout_;
     mutable std::atomic<std::chrono::seconds> send_timeout_;
     mutable std::atomic<std::chrono::seconds> keep_alive_;
-    mutable std::atomic<bool> shutdown_;
     mutable std::mutex lock_;
     mutable std::string socks_proxy_;
-    mutable std::map<std::string, std::unique_ptr<ServerConnection>>
-        server_connections_;
+    mutable std::map<std::string, OTServerConnection> server_connections_;
 
     bool verify_lock(const Lock& lock) const;
 
     void init(const Lock& lock) const;
 
     ZMQ(const opentxs::network::zeromq::Context& context,
-        const api::Settings& config);
+        const api::Settings& config,
+        const Flag& running);
     ZMQ() = delete;
     ZMQ(const ZMQ&) = delete;
     ZMQ(ZMQ&&) = delete;
     ZMQ& operator=(const ZMQ&) = delete;
     ZMQ& operator=(const ZMQ&&) = delete;
 };
-}  // namespace implementation
-}  // namespace network
-}  // namespace api
-}  // namespace opentxs
+}  // namespace opentxs::api::network::implementation
 #endif  // OPENTXS_API_NETWORK_IMPLEMENTATION_ZMQ_HPP

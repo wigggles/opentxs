@@ -42,6 +42,7 @@
 #include "opentxs/Internal.hpp"
 
 #include "opentxs/api/Server.hpp"
+#include "opentxs/core/Flag.hpp"
 #include "opentxs/Types.hpp"
 
 #include <atomic>
@@ -51,43 +52,8 @@
 #include <string>
 #include <thread>
 
-namespace opentxs
+namespace opentxs::api::implementation
 {
-class Identifier;
-
-namespace network
-{
-namespace zeromq
-{
-class Context;
-}  // namespace zeromq
-}  // namespace network
-
-namespace server
-{
-class MessageProcessor;
-class Server;
-}  // namespace server
-
-namespace api
-{
-class Crypto;
-class Settings;
-
-namespace client
-{
-class Wallet;
-}  // namespace client
-
-namespace storage
-{
-class Storage;
-}  // namespace storage
-
-namespace implementation
-{
-class Native;
-
 class Server : virtual public opentxs::api::Server
 {
 public:
@@ -128,7 +94,7 @@ private:
     const api::Crypto& crypto_;
     const api::storage::Storage& storage_;
     const api::client::Wallet& wallet_;
-    std::atomic<bool>& shutdown_;
+    const Flag& running_;
     const opentxs::network::zeromq::Context& zmq_context_;
     std::unique_ptr<server::Server> server_p_;
     server::Server& server_;
@@ -184,7 +150,7 @@ private:
         const api::Settings& config,
         const api::storage::Storage& storage,
         const api::client::Wallet& wallet,
-        std::atomic<bool>& shutdown,
+        const Flag& running,
         const opentxs::network::zeromq::Context& context);
     Server() = delete;
     Server(const Server&) = delete;
@@ -192,8 +158,5 @@ private:
     Server& operator=(const Server&) = delete;
     Server& operator=(Server&&) = delete;
 };
-}  // namespace implementation
-}  // namespace api
-}  // namespace opentxs
-
+}  // namespace opentxs::api::implementation
 #endif  // OPENTXS_API_IMPLEMENTATION_SERVER_HPP

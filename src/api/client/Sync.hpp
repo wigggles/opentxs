@@ -43,6 +43,7 @@
 
 #include "opentxs/api/client/Sync.hpp"
 #include "opentxs/core/Lockable.hpp"
+#include "opentxs/core/Flag.hpp"
 #include "opentxs/core/UniqueQueue.hpp"
 
 #include <atomic>
@@ -51,15 +52,8 @@
 #include <thread>
 #include <tuple>
 
-namespace opentxs
+namespace opentxs::api::client::implementation
 {
-namespace api
-{
-namespace client
-{
-namespace implementation
-{
-
 class Sync : virtual public client::Sync, Lockable
 {
 public:
@@ -150,7 +144,7 @@ private:
     };
 
     std::recursive_mutex& api_lock_;
-    const std::atomic<bool>& shutdown_;
+    const Flag& running_;
     const OT_API& ot_api_;
     const opentxs::OTAPI_Exec& exec_;
     const api::ContactManager& contacts_;
@@ -293,7 +287,7 @@ private:
 
     Sync(
         std::recursive_mutex& apiLock,
-        const std::atomic<bool>& shutdown,
+        const Flag& running,
         const OT_API& otapi,
         const opentxs::OTAPI_Exec& exec,
         const api::ContactManager& contacts,
@@ -307,8 +301,5 @@ private:
     Sync& operator=(const Sync&) = delete;
     Sync& operator=(Sync&&) = delete;
 };
-}  // namespace implementation
-}  // namespace client
-}  // namespace api
-}  // namespace opentxs
+}  // namespace opentxs::api::client::implementation
 #endif  // OPENTXS_API_CLIENT_SYNC_IMPLEMENTATION_HPP

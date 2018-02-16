@@ -74,7 +74,7 @@ namespace opentxs
 {
 OTSymmetricKey::OTSymmetricKey()
     : m_bIsGenerated(false)
-    , has_hash_check_(false)
+    , has_hash_check_(Flag::Factory(false))
     , m_nKeySize(CryptoConfig::SymmetricKeySize() * 8)
     , m_uIterationCount(CryptoConfig::IterationCount())
     , salt_(Data::Factory())
@@ -139,24 +139,22 @@ bool OTSymmetricKey::ChangePassphrase(
     // OTEnvelope.
     //
     if (!dataIV->Randomize(CryptoConfig::SymmetricIvSize())) {
-        otErr << __FUNCTION__
-              << ": Failed generating iv for changing "
-                 "passphrase on a symmetric key. (Returning "
-                 "false.)\n";
+        otErr << __FUNCTION__ << ": Failed generating iv for changing "
+                                 "passphrase on a symmetric key. (Returning "
+                                 "false.)\n";
         return false;
     }
 
     if (!dataSalt->Randomize(CryptoConfig::SymmetricSaltSize())) {
-        otErr << __FUNCTION__
-              << ": Failed generating random salt for changing "
-                 "passphrase on a symmetric key. (Returning "
-                 "false.)\n";
+        otErr << __FUNCTION__ << ": Failed generating random salt for changing "
+                                 "passphrase on a symmetric key. (Returning "
+                                 "false.)\n";
         return false;
     }
 
     iv_ = dataIV;
     salt_ = dataSalt;
-    has_hash_check_.store(false);
+    has_hash_check_->Off();
     hash_check_->Release();
     encrypted_key_->Release();
 
@@ -224,9 +222,8 @@ bool OTSymmetricKey::GenerateKey(
            << ": GENERATING keys and passwords...\n";
 
     if (!iv_->Randomize(CryptoConfig::SymmetricIvSize())) {
-        otErr << __FUNCTION__
-              << ": Failed generating iv for encrypting a "
-                 "symmetric key. (Returning false.)\n";
+        otErr << __FUNCTION__ << ": Failed generating iv for encrypting a "
+                                 "symmetric key. (Returning false.)\n";
         return false;
     }
 
@@ -315,9 +312,8 @@ bool OTSymmetricKey::GenerateHashCheck(const OTPassword& thePassphrase)
     Lock lock(lock_);
 
     if (!m_bIsGenerated) {
-        otErr << __FUNCTION__
-              << ": No Key Generated, run GenerateKey(), and "
-                 "this function will not be needed!";
+        otErr << __FUNCTION__ << ": No Key Generated, run GenerateKey(), and "
+                                 "this function will not be needed!";
         OT_FAIL;
     }
 
@@ -403,18 +399,16 @@ OTPassword* OTSymmetricKey::calculate_derived_key_from_passphrase(
 
     if (bCheckForHashCheck) {
         if (!HasHashCheck()) {
-            otErr << __FUNCTION__
-                  << ": Unable to calculate derived key, as "
-                     "hash check is missing!";
+            otErr << __FUNCTION__ << ": Unable to calculate derived key, as "
+                                     "hash check is missing!";
             OT_FAIL;
         }
         OT_ASSERT(false == hash_check_->empty());
         OT_ASSERT(false == tmpDataHashCheck->empty());
     } else {
         if (!HasHashCheck()) {
-            otOut << __FUNCTION__
-                  << ": Warning!! No hash check, ignoring... "
-                     "(since bCheckForHashCheck was set false)";
+            otOut << __FUNCTION__ << ": Warning!! No hash check, ignoring... "
+                                     "(since bCheckForHashCheck was set false)";
             OT_ASSERT(tmpDataHashCheck->IsEmpty());
         }
     }
@@ -453,7 +447,7 @@ OTPassword* OTSymmetricKey::calculate_new_derived_key_from_passphrase(
     OT_ASSERT(pDerivedKey);
     OT_ASSERT(false == hash_check_->IsEmpty());
 
-    has_hash_check_.store(true);
+    has_hash_check_->On();
 
     return pDerivedKey.release();
 }
@@ -665,18 +659,16 @@ bool OTSymmetricKey::Encrypt(
     const OTPassword* pAlreadyHavePW)
 {
     if (!strKey.Exists() || !strPlaintext.Exists()) {
-        otWarn << __FUNCTION__
-               << ": Nonexistent: either the key or the "
-                  "plaintext. Please supply. (Failure.)\n";
+        otWarn << __FUNCTION__ << ": Nonexistent: either the key or the "
+                                  "plaintext. Please supply. (Failure.)\n";
         return false;
     }
 
     OTSymmetricKey theKey;
 
     if (!theKey.SerializeFrom(strKey)) {
-        otWarn << __FUNCTION__
-               << ": Failed trying to load symmetric key from "
-                  "string. (Returning false.)\n";
+        otWarn << __FUNCTION__ << ": Failed trying to load symmetric key from "
+                                  "string. (Returning false.)\n";
         return false;
     }
 
@@ -781,9 +773,8 @@ bool OTSymmetricKey::Decrypt(
     OTSymmetricKey theKey;
 
     if (!theKey.SerializeFrom(strKey)) {
-        otWarn << __FUNCTION__
-               << ": Failed trying to load symmetric key from "
-                  "string. (Returning false.)\n";
+        otWarn << __FUNCTION__ << ": Failed trying to load symmetric key from "
+                                  "string. (Returning false.)\n";
         return false;
     }
 
@@ -1062,9 +1053,11 @@ bool OTSymmetricKey::serialize_from(const Lock& lock, Data& theInput)
         otErr
             << OT_METHOD << __FUNCTION__
             << ": Looks like we don't have a hash check yet! (will make one)\n";
-        has_hash_check_.store(false);
+        has_hash_check_->Off();
+
         return false;
     }
+
     OT_ASSERT(nRead == static_cast<uint32_t>(sizeof(n_hash_check_size)));
 
     // convert from network to HOST endian.
@@ -1093,7 +1086,7 @@ bool OTSymmetricKey::serialize_from(const Lock& lock, Data& theInput)
 
     OT_ASSERT(nRead == static_cast<uint32_t>(lHashCheckSize));
 
-    has_hash_check_.store(!hash_check_->IsEmpty());
+    has_hash_check_->Set(!hash_check_->IsEmpty());
 
     return true;
 }
@@ -1131,10 +1124,11 @@ bool OTSymmetricKey::SerializeFrom(const String& strInput, bool bEscaped)
     Lock lock(lock_);
     OTASCIIArmor ascInput;
 
-    if (strInput.Exists() && ascInput.LoadFromString(
-                                 const_cast<String&>(strInput),
-                                 bEscaped,
-                                 "-----BEGIN OT ARMORED SYMMETRIC KEY")) {
+    if (strInput.Exists() &&
+        ascInput.LoadFromString(
+            const_cast<String&>(strInput),
+            bEscaped,
+            "-----BEGIN OT ARMORED SYMMETRIC KEY")) {
         return serialize_from(lock, ascInput);
     }
 
@@ -1176,9 +1170,8 @@ bool OTSymmetricKey::serialize_to(const Lock& lock, Data& theOutput) const
            << "   key_size_bits: "
            << static_cast<int32_t>(ntohs(n_key_size_bits))
            << "   iteration_count: "
-           << static_cast<int64_t>(ntohl(n_iteration_count))
-           << "   \n  "
-              "salt_size: "
+           << static_cast<int64_t>(ntohl(n_iteration_count)) << "   \n  "
+                                                                "salt_size: "
            << static_cast<int64_t>(ntohl(n_salt_size))
            << "   iv_size: " << static_cast<int64_t>(ntohl(n_iv_size))
            << "   enc_key_size: " << static_cast<int64_t>(ntohl(n_enc_key_size))

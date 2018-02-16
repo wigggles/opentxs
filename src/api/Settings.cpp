@@ -40,10 +40,10 @@
 
 #include "opentxs/api/Settings.hpp"
 
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/String.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/OTPaths.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/Types.hpp"
 
 // NOTE: cstdlib HAS to be included here above SimpleIni, since for some reason
 // it uses stdlib functions without including that header.
@@ -72,6 +72,30 @@ public:
     {
     }
 };
+
+Settings::Settings(const String& strConfigFilePath)
+    : pvt_(new SettingsPvt())
+    , loaded_(Flag::Factory(false))
+    , m_strConfigurationFileExactPath(strConfigFilePath)
+{
+    if (!m_strConfigurationFileExactPath.Exists()) {
+        otErr << __FUNCTION__ << ": Error: "
+              << "m_strConfigurationFileExactPath"
+              << " is Empty!\n";
+        OT_FAIL;
+    }
+
+    if (!Init()) {
+        OT_FAIL;
+    }
+}
+
+Settings::Settings()
+    : pvt_(new SettingsPvt())
+    , loaded_(Flag::Factory(false))
+    , m_strConfigurationFileExactPath()
+{
+}
 
 bool Settings::Init() const
 {
@@ -187,68 +211,57 @@ bool Settings::LogChange_str(
     return true;
 }
 
-Settings::Settings(const String& strConfigFilePath)
-    : pvt_(new SettingsPvt())
-    , b_Loaded(false)
-    , m_strConfigurationFileExactPath(strConfigFilePath)
-{
-    if (!m_strConfigurationFileExactPath.Exists()) {
-        otErr << __FUNCTION__ << ": Error: "
-              << "m_strConfigurationFileExactPath"
-              << " is Empty!\n";
-        OT_FAIL;
-    }
-
-    if (!Init()) {
-        OT_FAIL;
-    }
-}
-
 void Settings::SetConfigFilePath(const String& strConfigFilePath) const
 {
+    rLock lock(lock_);
     m_strConfigurationFileExactPath.Set(strConfigFilePath.Get());
 }
 
 bool Settings::HasConfigFilePath() const
 {
+    rLock lock(lock_);
+
     return m_strConfigurationFileExactPath.Exists();
-}
-
-Settings::Settings()
-    : pvt_(new SettingsPvt())
-    , b_Loaded(false)
-{
-}
-
-Settings::~Settings()
-{
-    Save();
-    Reset();
 }
 
 bool Settings::Load() const
 {
-    b_Loaded = false;
+    rLock lock(lock_);
+    loaded_->Off();
 
     if (Load(m_strConfigurationFileExactPath)) {
-        b_Loaded = true;
+        loaded_->On();
+
         return true;
-    } else
+    } else {
+
         return false;
+    }
 }
 
-bool Settings::Save() const { return Save(m_strConfigurationFileExactPath); }
+bool Settings::Save() const
+{
+    rLock lock(lock_);
 
-const std::atomic<bool>& Settings::IsLoaded() const { return b_Loaded; }
+    return Save(m_strConfigurationFileExactPath);
+}
+
+const Flag& Settings::IsLoaded() const { return loaded_; }
 
 bool Settings::Reset() const
 {
-    b_Loaded = false;
+    loaded_->Off();
     pvt_->iniSimple.Reset();
+
     return true;
 }
 
-bool Settings::IsEmpty() const { return pvt_->iniSimple.IsEmpty(); }
+bool Settings::IsEmpty() const
+{
+    rLock lock(lock_);
+
+    return pvt_->iniSimple.IsEmpty();
+}
 
 bool Settings::Check_str(
     const String& strSection,
@@ -256,6 +269,8 @@ bool Settings::Check_str(
     String& out_strResult,
     bool& out_bKeyExist) const
 {
+    rLock lock(lock_);
+
     if (!strSection.Exists()) {
         otErr << __FUNCTION__ << ": Error: "
               << "strSection"
@@ -303,6 +318,8 @@ bool Settings::Check_long(
     std::int64_t& out_lResult,
     bool& out_bKeyExist) const
 {
+    rLock lock(lock_);
+
     if (!strSection.Exists()) {
         otErr << __FUNCTION__ << ": Error: "
               << "strSection"
@@ -351,6 +368,8 @@ bool Settings::Check_bool(
     bool& out_bResult,
     bool& out_bKeyExist) const
 {
+    rLock lock(lock_);
+
     if (!strSection.Exists()) {
         otErr << __FUNCTION__ << ": Error: "
               << "strSection"
@@ -403,6 +422,8 @@ bool Settings::Set_str(
     bool& out_bNewOrUpdate,
     const String& strComment) const
 {
+    rLock lock(lock_);
+
     if (!strSection.Exists()) {
         otErr << __FUNCTION__ << ": Error: "
               << "strSection"
@@ -492,6 +513,8 @@ bool Settings::Set_long(
     bool& out_bNewOrUpdate,
     const String& strComment) const
 {
+    rLock lock(lock_);
+
     if (!strSection.Exists()) {
         otErr << __FUNCTION__ << ": Error: "
               << "strSection"
@@ -568,6 +591,8 @@ bool Settings::Set_bool(
     bool& out_bNewOrUpdate,
     const String& strComment) const
 {
+    rLock lock(lock_);
+
     if (!strSection.Exists()) {
         otErr << __FUNCTION__ << ": Error: "
               << "strSection"
@@ -590,6 +615,8 @@ bool Settings::CheckSetSection(
     const String& strComment,
     bool& out_bIsNewSection) const
 {
+    rLock lock(lock_);
+
     if (!strSection.Exists()) {
         otErr << __FUNCTION__ << ": Error: "
               << "strSection"
@@ -629,6 +656,7 @@ bool Settings::CheckSet_str(
     bool& out_bIsNew,
     const String& strComment) const
 {
+    rLock lock(lock_);
     std::string temp = out_strResult.Get();
     bool success = CheckSet_str(
         strSection, strKey, strDefault, temp, out_bIsNew, strComment);
@@ -645,6 +673,8 @@ bool Settings::CheckSet_str(
     bool& out_bIsNew,
     const String& strComment) const
 {
+    rLock lock(lock_);
+
     if (!strSection.Exists()) {
         otErr << __FUNCTION__ << ": Error: "
               << "strSection"
@@ -704,6 +734,8 @@ bool Settings::CheckSet_long(
     bool& out_bIsNew,
     const String& strComment) const
 {
+    rLock lock(lock_);
+
     if (!strSection.Exists()) {
         otErr << __FUNCTION__ << ": Error: "
               << "strSection"
@@ -750,6 +782,8 @@ bool Settings::CheckSet_bool(
     bool& out_bIsNew,
     const String& strComment) const
 {
+    rLock lock(lock_);
+
     if (!strSection.Exists()) {
         otErr << __FUNCTION__ << ": Error: "
               << "strSection"
@@ -792,8 +826,17 @@ bool Settings::SetOption_bool(
     const String& strKey,
     bool& bVariableName) const
 {
+    rLock lock(lock_);
+
     bool bNewOrUpdate;
     return CheckSet_bool(
         strSection, strKey, bVariableName, bVariableName, bNewOrUpdate);
+}
+
+Settings::~Settings()
+{
+    rLock lock(lock_);
+    Save();
+    Reset();
 }
 }  // namespace opentxs::api

@@ -38,8 +38,6 @@
 
 #include "opentxs/stdafx.hpp"
 
-#include "opentxs/api/client/implementation/Wallet.hpp"
-
 #include "opentxs/api/network/Dht.hpp"
 #include "opentxs/api/network/ZMQ.hpp"
 #include "opentxs/api/storage/Storage.hpp"
@@ -63,6 +61,8 @@
 #include "opentxs/core/String.hpp"
 
 #include "Issuer.hpp"
+
+#include "Wallet.hpp"
 
 #include <functional>
 

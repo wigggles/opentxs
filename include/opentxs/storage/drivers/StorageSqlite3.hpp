@@ -85,7 +85,7 @@ private:
 
     std::string folder_;
     mutable std::mutex transaction_lock_;
-    mutable std::atomic<bool> transaction_bucket_;
+    mutable OTFlag transaction_bucket_;
     mutable std::vector<std::pair<const std::string, const std::string>>
         pending_;
     sqlite3* db_{nullptr};
@@ -124,7 +124,7 @@ private:
         const StorageConfig& config,
         const Digest& hash,
         const Random& random,
-        const std::atomic<bool>& bucket);
+        const Flag& bucket);
     StorageSqlite3() = delete;
     StorageSqlite3(const StorageSqlite3&) = delete;
     StorageSqlite3(StorageSqlite3&&) = delete;

@@ -71,8 +71,8 @@ const std::map<int, std::function<void()>> Signals::handler_{
     {31, &Signals::handle_31},
 };
 
-Signals::Signals(std::atomic<bool>& shutdown)
-    : shutdown_(shutdown)
+Signals::Signals(const Flag& running)
+    : running_(running)
     , thread_(nullptr)
 {
     thread_.reset(new std::thread(&Signals::handle, this));
@@ -90,7 +90,7 @@ void Signals::handle()
     sigset_t allSignals;
     sigfillset(&allSignals);
 
-    while (false == shutdown_.load()) {
+    while (running_) {
         int sig{0};
 
         if (0 == sigwait(&allSignals, &sig)) {

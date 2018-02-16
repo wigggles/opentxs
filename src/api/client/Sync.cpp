@@ -73,7 +73,7 @@
 
 #define SHUTDOWN()                                                             \
     {                                                                          \
-        if (shutdown_.load()) {                                                \
+        if (!running_) {                                                       \
                                                                                \
             return;                                                            \
         }                                                                      \
@@ -175,7 +175,7 @@ MCL/PCUJ6FIMhej+ROPk41604x1jeswkkRmXRNjzLlVdiJ/pQMxG4tJ0UQwpxHxrr0IaBA==
 
 Sync::Sync(
     std::recursive_mutex& apiLock,
-    const std::atomic<bool>& shutdown,
+    const Flag& running,
     const OT_API& otapi,
     const opentxs::OTAPI_Exec& exec,
     const api::ContactManager& contacts,
@@ -184,7 +184,7 @@ Sync::Sync(
     const api::client::Wallet& wallet,
     const api::crypto::Encode& encoding)
     : api_lock_(apiLock)
-    , shutdown_(shutdown)
+    , running_(running)
     , ot_api_(otapi)
     , exec_(exec)
     , contacts_(contacts)
@@ -1583,7 +1583,7 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
     const auto & [ nymID, serverID ] = id;
 
     // Make sure the server contract is available
-    while (false == shutdown_.load()) {
+    while (running_) {
         if (check_server_contract(serverID)) {
             otInfo << OT_METHOD << __FUNCTION__ << ": Server contract "
                    << String(serverID) << " exists." << std::endl;
@@ -1599,7 +1599,7 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
     std::shared_ptr<const ServerContext> context{nullptr};
 
     // Make sure the nym has registered for the first time on the server
-    while (false == shutdown_.load()) {
+    while (running_) {
         if (check_registration(nymID, serverID, context)) {
             otInfo << OT_METHOD << __FUNCTION__ << ": Nym " << String(nymID)
                    << " has registered on server " << String(serverID)
@@ -1631,7 +1631,7 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
     UniqueQueue<DepositPaymentTask> depositPaymentRetry;
 
     // Primary loop
-    while (false == shutdown_.load()) {
+    while (running_) {
         SHUTDOWN()
 
         // If the local nym has updated since the last registernym operation,
@@ -1885,7 +1885,7 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
 
 ThreadStatus Sync::Status(const Identifier& taskID) const
 {
-    if (shutdown_.load()) {
+    if (!running_) {
 
         return ThreadStatus::SHUTDOWN;
     }

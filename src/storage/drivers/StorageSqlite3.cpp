@@ -57,11 +57,11 @@ StorageSqlite3::StorageSqlite3(
     const StorageConfig& config,
     const Digest& hash,
     const Random& random,
-    const std::atomic<bool>& bucket)
+    const Flag& bucket)
     : ot_super(storage, config, hash, random, bucket)
     , folder_(config.path_)
     , transaction_lock_()
-    , transaction_bucket_(false)
+    , transaction_bucket_(Flag::Factory(false))
     , pending_()
     , db_(nullptr)
 {
@@ -235,7 +235,7 @@ void StorageSqlite3::set_data(std::stringstream& sql) const
 {
     sqlite3_stmt* data{nullptr};
     std::stringstream dataSQL{};
-    const std::string tablename{GetTableName(transaction_bucket_.load())};
+    const std::string tablename{GetTableName(transaction_bucket_.get())};
     dataSQL << "INSERT OR REPLACE INTO '" << tablename << "' (k, v) VALUES ";
     std::size_t counter{0};
     const auto size = pending_.size();
@@ -315,7 +315,7 @@ void StorageSqlite3::store(
 
     if (isTransaction) {
         Lock lock(transaction_lock_);
-        transaction_bucket_.store(bucket);
+        transaction_bucket_->Set(bucket);
         pending_.emplace_back(key, value);
         promise->set_value(true);
     } else {

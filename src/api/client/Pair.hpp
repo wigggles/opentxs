@@ -43,6 +43,7 @@
 
 #include "opentxs/api/client/Pair.hpp"
 #include "opentxs/core/Lockable.hpp"
+#include "opentxs/core/Flag.hpp"
 #include "opentxs/Proto.hpp"
 
 #include <atomic>
@@ -50,16 +51,8 @@
 #include <thread>
 #include <tuple>
 
-namespace opentxs
+namespace opentxs::api::client::implementation
 {
-namespace api
-{
-namespace client
-{
-class Sync;
-namespace implementation
-{
-
 class Pair : virtual public opentxs::api::client::Pair, Lockable
 {
 public:
@@ -80,11 +73,11 @@ private:
     class Cleanup
     {
     private:
-        std::atomic<bool>& run_;
+        Flag& run_;
         Cleanup() = delete;
 
     public:
-        Cleanup(std::atomic<bool>& run);
+        Cleanup(Flag& run);
         ~Cleanup();
     };
 
@@ -98,7 +91,7 @@ private:
     /// local nym id, issuer nym id
     typedef std::pair<Identifier, Identifier> IssuerID;
 
-    const std::atomic<bool>& shutdown_;
+    const Flag& running_;
     const api::client::Sync& sync_;
     const client::ServerAction& action_;
     const client::Wallet& wallet_;
@@ -107,7 +100,7 @@ private:
     std::recursive_mutex& api_lock_;
     mutable std::mutex peer_lock_{};
     mutable std::mutex status_lock_{};
-    mutable std::atomic<bool> pairing_{false};
+    mutable OTFlag pairing_;
     mutable std::atomic<std::uint64_t> last_refresh_{0};
     mutable std::unique_ptr<std::thread> pairing_thread_{nullptr};
     mutable std::unique_ptr<std::thread> refresh_thread_{nullptr};
@@ -180,7 +173,7 @@ private:
     void update_peer() const;
 
     Pair(
-        const std::atomic<bool>& shutdown,
+        const Flag& running,
         std::recursive_mutex& apiLock,
         const api::client::Sync& sync,
         const client::ServerAction& action,
@@ -193,9 +186,5 @@ private:
     Pair& operator=(const Pair&) = delete;
     Pair& operator=(Pair&&) = delete;
 };
-}  // namespace implementation
-}  // namespace client
-}  // namespace api
-}  // namespace opentxs
-
+}  // namespace opentxs::api::client::implementation
 #endif  // OPENTXS_API_CLIENT_IMPLEMENTATION_PAIR_HPP

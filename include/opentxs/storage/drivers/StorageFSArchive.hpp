@@ -89,7 +89,7 @@ private:
         const StorageConfig& config,
         const Digest& hash,
         const Random& random,
-        const std::atomic<bool>& bucket,
+        const Flag& bucket,
         const std::string& folder,
         std::unique_ptr<SymmetricKey>& key);
     StorageFSArchive() = delete;

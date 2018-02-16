@@ -38,7 +38,7 @@
 
 #include "opentxs/stdafx.hpp"
 
-#include "opentxs/api/crypto/implementation/Encode.hpp"
+#include "Encode.hpp"
 
 #include "opentxs/core/crypto/CryptoEncoding.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"

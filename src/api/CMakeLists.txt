@@ -20,9 +20,9 @@ file(GLOB cxx-install-headers
 
 set(cxx-headers
   ${cxx-install-headers}
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/api/implementation/Api.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/api/implementation/Native.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/api/implementation/Server.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/Api.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/Native.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/Server.hpp
 )
 
 set(MODULE_NAME opentxs-api)

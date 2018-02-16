@@ -69,11 +69,11 @@ StorageFS::StorageFS(
     const Digest& hash,
     const Random& random,
     const std::string& folder,
-    const std::atomic<bool>& bucket)
+    const Flag& bucket)
     : ot_super(storage, config, hash, random, bucket)
     , folder_(folder)
     , path_seperator_(PATH_SEPERATOR)
-    , ready_(false)
+    , ready_(Flag::Factory(false))
 {
     Init_StorageFS();
 }
@@ -105,7 +105,7 @@ bool StorageFS::LoadFromBucket(
         return false;
     }
 
-    if (ready_.load() && false == folder_.empty()) {
+    if (ready_.get() && false == folder_.empty()) {
         value = read_file(filename);
     }
 
@@ -114,7 +114,7 @@ bool StorageFS::LoadFromBucket(
 
 std::string StorageFS::LoadRoot() const
 {
-    if (ready_.load() && false == folder_.empty()) {
+    if (ready_.get() && false == folder_.empty()) {
 
         return read_file(root_filename());
     }
@@ -171,7 +171,7 @@ void StorageFS::store(
 {
     OT_ASSERT(nullptr != promise);
 
-    if (ready_.load() && false == folder_.empty()) {
+    if (ready_.get() && false == folder_.empty()) {
         std::string directory{};
         const auto filename = calculate_path(key, bucket, directory);
         promise->set_value(write_file(directory, filename, value));
@@ -182,7 +182,7 @@ void StorageFS::store(
 
 bool StorageFS::StoreRoot(const bool, const std::string& hash) const
 {
-    if (ready_.load() && false == folder_.empty()) {
+    if (ready_.get() && false == folder_.empty()) {
 
         return write_file(folder_, root_filename(), hash);
     }

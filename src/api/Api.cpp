@@ -38,10 +38,6 @@
 
 #include "opentxs/stdafx.hpp"
 
-#include "opentxs/api/implementation/Api.hpp"
-
-#include "opentxs/api/client/implementation/Pair.hpp"
-#include "opentxs/api/client/implementation/ServerAction.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/Activity.hpp"
 #include "opentxs/api/ContactManager.hpp"
@@ -52,12 +48,16 @@
 #include "opentxs/core/crypto/OTCachedKey.hpp"
 #include "opentxs/core/Log.hpp"
 
+#include "client/Pair.hpp"
+#include "client/ServerAction.hpp"
 #include "client/Sync.hpp"
+
+#include "Api.hpp"
 
 namespace opentxs::api::implementation
 {
 Api::Api(
-    const std::atomic<bool>& shutdown,
+    const Flag& running,
     const api::Activity& activity,
     const api::Settings& config,
     const api::ContactManager& contacts,
@@ -66,7 +66,7 @@ Api::Api(
     const api::storage::Storage& storage,
     const api::client::Wallet& wallet,
     const api::network::ZMQ& zmq)
-    : shutdown_(shutdown)
+    : running_(running)
     , activity_(activity)
     , config_(config)
     , contacts_(contacts)
@@ -145,7 +145,7 @@ void Api::Init()
 
     sync_.reset(new api::client::implementation::Sync(
         lock_,
-        shutdown_,
+        running_,
         *ot_api_,
         *otapi_exec_,
         contacts_,
@@ -157,7 +157,7 @@ void Api::Init()
     OT_ASSERT(sync_);
 
     pair_.reset(new api::client::implementation::Pair(
-        shutdown_,
+        running_,
         lock_,
         *sync_,
         *server_action_,
