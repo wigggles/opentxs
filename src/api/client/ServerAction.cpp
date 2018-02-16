@@ -981,7 +981,16 @@ ServerAction::Action ServerAction::SendPayment(
 
     const std::string recipient{String(recipientNymID).Get()};
     const std::string key{String(pubkey).Get()};
-    const std::string recipientVersion{String(payment).Get()};
+
+    String strPayment;
+
+    if (!payment.GetPaymentContents(strPayment)) {
+        otErr << "ServerAction::SendPayment: Empty payment argument - "
+                 "should never happen!\n";
+        OT_FAIL;
+    }
+
+    const std::string recipientVersion{strPayment.Get()};
 
     return Action(new OTAPI_Func(
         SEND_USER_INSTRUMENT,
