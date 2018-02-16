@@ -220,7 +220,7 @@ ContactSection::GroupMap ContactSection::create_group(
     return output;
 }
 
-ContactSection ContactSection::Delete(const Identifier& id)
+ContactSection ContactSection::Delete(const Identifier& id) const
 {
     bool deleted{false};
     auto map = groups_;
@@ -337,4 +337,11 @@ bool ContactSection::SerializeTo(
 }
 
 std::size_t ContactSection::Size() const { return groups_.size(); }
+
+const proto::ContactSectionName& ContactSection::Type() const
+{
+    return section_;
+}
+
+const std::uint32_t& ContactSection::Version() const { return version_; }
 }  // namespace opentxs
