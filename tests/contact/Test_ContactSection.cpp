@@ -427,16 +427,16 @@ TEST_F(Test_ContactSection, end)
     opentxs::ContactSection::GroupMap::const_iterator it =
         contactSection_.end();
     ASSERT_EQ(it, contactSection_.begin());
-    ASSERT_EQ(std::distance(it, contactSection_.begin()), 0);
+    ASSERT_EQ(std::distance(contactSection_.begin(), it), 0);
 
     const auto& section1 = contactSection_.AddItem(activeContactItem_);
     it = section1.end();
     ASSERT_NE(it, section1.begin());
-    ASSERT_EQ(std::distance(it, section1.begin()), 1);
+    ASSERT_EQ(std::distance(section1.begin(), it), 1);
 
     std::advance(it, -1);
     ASSERT_EQ(it, section1.begin());
-    ASSERT_EQ(std::distance(it, section1.begin()), 0);
+    ASSERT_EQ(std::distance(section1.begin(), it), 0);
 }
 
 TEST_F(Test_ContactSection, Group_found)

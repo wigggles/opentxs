@@ -342,16 +342,16 @@ TEST_F(Test_ContactGroup, end)
 {
     opentxs::ContactGroup::ItemMap::const_iterator it = contactGroup_.end();
     ASSERT_EQ(it, contactGroup_.begin());
-    ASSERT_EQ(std::distance(it, contactGroup_.begin()), 0);
+    ASSERT_EQ(std::distance(contactGroup_.begin(), it), 0);
 
     const auto& group1 = contactGroup_.AddItem(active_);
     it = group1.end();
     ASSERT_NE(it, group1.begin());
-    ASSERT_EQ(std::distance(it, group1.begin()), 1);
+    ASSERT_EQ(std::distance(group1.begin(), it), 1);
 
     std::advance(it, -1);
     ASSERT_EQ(it, group1.begin());
-    ASSERT_EQ(std::distance(it, group1.begin()), 0);
+    ASSERT_EQ(std::distance(group1.begin(), it), 0);
 }
 
 TEST_F(Test_ContactGroup, HaveClaim_true)
