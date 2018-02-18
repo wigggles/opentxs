@@ -1914,8 +1914,9 @@ bool OTAPI_Exec::Wallet_CanRemoveAssetType(
         if (theID == theCompareID) {
             otOut << OT_METHOD << __FUNCTION__
                   << ": Unable to remove asset contract "
-                  << INSTRUMENT_DEFINITION_ID << " from "
-                                                 "wallet: Account "
+                  << INSTRUMENT_DEFINITION_ID
+                  << " from "
+                     "wallet: Account "
                   << strAcctID << " uses it.\n";
             return false;
         }
@@ -4438,9 +4439,8 @@ std::string OTAPI_Exec::VerifyAndRetrieveXMLContents(
     const Identifier theSignerID(SIGNER_ID);
     String strOutput;
 
-    if (false ==
-        ot_api_.VerifyAndRetrieveXMLContents(
-            strContract, theSignerID, strOutput)) {
+    if (false == ot_api_.VerifyAndRetrieveXMLContents(
+                     strContract, theSignerID, strOutput)) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Failure: "
                  "ot_api_.VerifyAndRetrieveXMLContents() "
@@ -11100,19 +11100,28 @@ std::string OTAPI_Exec::Token_ChangeOwner(
     OT_VERIFY_ID_STR(INSTRUMENT_DEFINITION_ID);
     OT_VERIFY_STD_STR(THE_TOKEN);
     OT_VERIFY_ID_STR(SIGNER_NYM_ID);
-    OT_VERIFY_ID_STR(OLD_OWNER);
-    OT_VERIFY_ID_STR(NEW_OWNER);
-
+    const bool bOldOwnerIsPurse = String{OLD_OWNER}.Contains("PURSE");
+    const bool bNewOwnerIsPurse = String{NEW_OWNER}.Contains("PURSE");
+    if (!bOldOwnerIsPurse) {
+        OT_VERIFY_ID_STR(OLD_OWNER);
+    } else {
+        OT_VERIFY_STD_STR(OLD_OWNER);
+    }
+    if (!bNewOwnerIsPurse) {
+        OT_VERIFY_ID_STR(NEW_OWNER);
+    } else {
+        OT_VERIFY_STD_STR(NEW_OWNER);
+    }
     const Identifier theNotaryID(NOTARY_ID),
         theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID),
         theSignerNymID(SIGNER_NYM_ID);
     const String strOldOwner(OLD_OWNER),  // Either of these MIGHT contain a
                                           // Nym ID, OR might contain a
                                           // purse...
-        strNewOwner(NEW_OWNER);  // (purse is passed in cases where the token is
-                                 // encrypted with a passphrase aka symmetric
-                                 // crypto, versus being encrypted to a Nym's
-                                 // public key.)
+        strNewOwner(NEW_OWNER);           // (purse is passed in cases where the
+                                 // token is encrypted with a passphrase
+                                 // aka symmetric crypto, versus being
+                                 // encrypted to a Nym's public key.)
     String strToken(THE_TOKEN);
     std::unique_ptr<Token> pToken(ot_api_.Token_ChangeOwner(
         theNotaryID,
@@ -11123,8 +11132,8 @@ std::string OTAPI_Exec::Token_ChangeOwner(
                         // symmetrically encrypted, the relevant key is in the
                         // purse.)
         strNewOwner));  // Pass a NymID here as a string, or a purse. (IF
-    // symmetrically encrypted, the relevant key is in the
-    // purse.)
+                        // symmetrically encrypted, the relevant key is in the
+                        // purse.)
     if (nullptr != pToken)  // Success!
     {
         const String strOutput(*pToken);
@@ -12296,9 +12305,8 @@ std::string OTAPI_Exec::Message_GetNewInstrumentDefinitionID(
     // contain a ledger. (Don't want to pass back whatever it DOES contain
     // in that case, now do I?)
     //
-    if ((false ==
-         theMessage.m_strCommand.Compare(
-             "registerInstrumentDefinitionResponse")) &&
+    if ((false == theMessage.m_strCommand.Compare(
+                      "registerInstrumentDefinitionResponse")) &&
         (false == theMessage.m_strCommand.Compare("issueBasketResponse"))) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Wrong message type: " << theMessage.m_strCommand << "\n";
