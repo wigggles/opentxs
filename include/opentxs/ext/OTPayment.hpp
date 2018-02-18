@@ -294,8 +294,7 @@ public:
                                                      // the VALID FROM / TO
                                                      // dates.
     EXPORT bool IsExpired(bool& bExpired);  // Verify whether the CURRENT date
-                                            // is
-                                            // AFTER the the "VALID TO" date.
+                                            // is AFTER the the "VALID TO" date.
     EXPORT OTPayment();
     EXPORT OTPayment(const String& strPayment);
     EXPORT virtual ~OTPayment();
