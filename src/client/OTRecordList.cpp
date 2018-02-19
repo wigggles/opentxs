@@ -617,13 +617,17 @@ bool OTRecordList::PerformAutoAccept()
                 // sender/recipient name from the receipts in the box. The code
                 // will, however, work
                 // either way.
-                //
-                Ledger* pInbox =
-                    m_bRunFast
-                        ? OT::App().API().OTAPI().LoadPaymentInboxNoVerify(
-                              theNotaryID, theNymID)
-                        : OT::App().API().OTAPI().LoadPaymentInbox(
-                              theNotaryID, theNymID);
+                Ledger* pInbox{nullptr};
+
+                if (false == theNymID.empty()) {
+                    pInbox =
+                        m_bRunFast
+                            ? OT::App().API().OTAPI().LoadPaymentInboxNoVerify(
+                                  theNotaryID, theNymID)
+                            : OT::App().API().OTAPI().LoadPaymentInbox(
+                                  theNotaryID, theNymID);
+                }
+
                 std::unique_ptr<Ledger> theInboxAngel(pInbox);
 
                 // It loaded up, so let's loop through it.
@@ -815,9 +819,9 @@ bool OTRecordList::PerformAutoAccept()
                         for (auto& it_acct : m_accounts) {
                             const std::string& str_account_id(it_acct);
                             const Identifier theAccountID(str_account_id);
-                            Account* pAccount =
-                                pWallet->GetAccount(theAccountID);
-                            if (nullptr == pAccount) {
+                            auto pAccount = pWallet->GetAccount(theAccountID);
+
+                            if (false == bool(pAccount)) {
                                 // This can happen if the user erases the
                                 // account.
                                 // Therefore we just need to skip it.
@@ -829,6 +833,7 @@ bool OTRecordList::PerformAutoAccept()
                                           "user.)\n";
                                 continue;
                             }
+
                             const Identifier& theAcctNymID =
                                 pAccount->GetNymID();
                             const Identifier& theAcctNotaryID =
@@ -952,8 +957,9 @@ bool OTRecordList::PerformAutoAccept()
             // For each account, loop through its inbox, outbox, and record box.
             const std::string& str_account_id(it_acct);
             const Identifier theAccountID(str_account_id);
-            Account* pAccount = pWallet->GetAccount(theAccountID);
-            if (nullptr == pAccount) {
+            auto pAccount = pWallet->GetAccount(theAccountID);
+
+            if (false == bool(pAccount)) {
                 // This can happen if the user erases the account.
                 // Therefore we just need to skip it.
                 otInfo << __FUNCTION__ << ": Skipping an account ("
@@ -1011,12 +1017,17 @@ bool OTRecordList::PerformAutoAccept()
             // the NAME, in
             // return for FASTER PERFORMANCE, then call SetFastMode() before
             // Populating.
-            //
-            Ledger* pInbox = m_bRunFast
-                                 ? OT::App().API().OTAPI().LoadInboxNoVerify(
-                                       theNotaryID, theNymID, theAccountID)
-                                 : OT::App().API().OTAPI().LoadInbox(
-                                       theNotaryID, theNymID, theAccountID);
+
+            Ledger* pInbox{nullptr};
+
+            if (false == theNymID.empty()) {
+                pInbox = m_bRunFast
+                             ? OT::App().API().OTAPI().LoadInboxNoVerify(
+                                   theNotaryID, theNymID, theAccountID)
+                             : OT::App().API().OTAPI().LoadInbox(
+                                   theNotaryID, theNymID, theAccountID);
+            }
+
             std::unique_ptr<Ledger> theInboxAngel(pInbox);
             if (nullptr == pInbox) {
                 otInfo << __FUNCTION__ << ": Skipping an account ("
@@ -1790,13 +1801,16 @@ bool OTRecordList::Populate()
             // sender/recipient name from the receipts in the box. The code
             // will, however, work
             // either way.
-            //
-            Ledger* pInbox =
-                m_bRunFast
-                    ? OT::App().API().OTAPI().LoadPaymentInboxNoVerify(
-                          theNotaryID, theNymID)
-                    : OT::App().API().OTAPI().LoadPaymentInbox(
-                          theNotaryID, theNymID);
+            Ledger* pInbox{nullptr};
+
+            if (false == theNymID.empty()) {
+                pInbox = m_bRunFast
+                             ? OT::App().API().OTAPI().LoadPaymentInboxNoVerify(
+                                   theNotaryID, theNymID)
+                             : OT::App().API().OTAPI().LoadPaymentInbox(
+                                   theNotaryID, theNymID);
+            }
+
             std::unique_ptr<Ledger> theInboxAngel(pInbox);
 
             int32_t nIndex = (-1);
@@ -2116,12 +2130,17 @@ bool OTRecordList::Populate()
             // Also loop through its record box. For this record box, pass the
             // NYM_ID twice, since it's the recordbox for the Nym.
             // OPTIMIZE FYI: m_bRunFast impacts run speed here.
-            Ledger* pRecordbox =
-                m_bRunFast
-                    ? OT::App().API().OTAPI().LoadRecordBoxNoVerify(
-                          theNotaryID, theNymID, theNymID)  // twice.
-                    : OT::App().API().OTAPI().LoadRecordBox(
-                          theNotaryID, theNymID, theNymID);
+            Ledger* pRecordbox{nullptr};
+
+            if (false == theNymID.empty()) {
+                pRecordbox =
+                    m_bRunFast
+                        ? OT::App().API().OTAPI().LoadRecordBoxNoVerify(
+                              theNotaryID, theNymID, theNymID)  // twice.
+                        : OT::App().API().OTAPI().LoadRecordBox(
+                              theNotaryID, theNymID, theNymID);
+            }
+
             std::unique_ptr<Ledger> theRecordBoxAngel(pRecordbox);
 
             // It loaded up, so let's loop through it.
@@ -2726,12 +2745,17 @@ bool OTRecordList::Populate()
 
             // Also loop through its expired record box.
             // OPTIMIZE FYI: m_bRunFast impacts run speed here.
-            Ledger* pExpiredbox =
-                m_bRunFast
-                    ? OT::App().API().OTAPI().LoadExpiredBoxNoVerify(
-                          theNotaryID, theNymID)
-                    : OT::App().API().OTAPI().LoadExpiredBox(
-                          theNotaryID, theNymID);
+            Ledger* pExpiredbox{nullptr};
+
+            if (false == theNymID.empty()) {
+                pExpiredbox =
+                    m_bRunFast
+                        ? OT::App().API().OTAPI().LoadExpiredBoxNoVerify(
+                              theNotaryID, theNymID)
+                        : OT::App().API().OTAPI().LoadExpiredBox(
+                              theNotaryID, theNymID);
+            }
+
             std::unique_ptr<Ledger> theExpiredBoxAngel(pExpiredbox);
 
             // It loaded up, so let's loop through it.
@@ -3309,8 +3333,9 @@ bool OTRecordList::Populate()
         //
         const std::string& str_account_id(it_acct);
         const Identifier theAccountID(str_account_id);
-        Account* pAccount = pWallet->GetAccount(theAccountID);
-        if (nullptr == pAccount) {
+        auto pAccount = pWallet->GetAccount(theAccountID);
+
+        if (false == bool(pAccount)) {
             // This can happen if the user erases the account.
             // Therefore we just need to skip it.
             otInfo << __FUNCTION__ << ": Skipping an account ("
@@ -3379,11 +3404,16 @@ bool OTRecordList::Populate()
         // return for FASTER PERFORMANCE, then call SetFastMode() before
         // Populating.
         //
-        Ledger* pInbox = m_bRunFast
-                             ? OT::App().API().OTAPI().LoadInboxNoVerify(
-                                   theNotaryID, theNymID, theAccountID)
-                             : OT::App().API().OTAPI().LoadInbox(
-                                   theNotaryID, theNymID, theAccountID);
+        Ledger* pInbox{nullptr};
+
+        if (false == theNymID.empty()) {
+            pInbox = m_bRunFast
+                         ? OT::App().API().OTAPI().LoadInboxNoVerify(
+                               theNotaryID, theNymID, theAccountID)
+                         : OT::App().API().OTAPI().LoadInbox(
+                               theNotaryID, theNymID, theAccountID);
+        }
+
         std::unique_ptr<Ledger> theInboxAngel(pInbox);
 
         // It loaded up, so let's loop through it.
@@ -3666,12 +3696,16 @@ bool OTRecordList::Populate()
         // NAME, in
         // return for FASTER PERFORMANCE, then call SetFastMode() before running
         // Populate.
-        //
-        Ledger* pOutbox = m_bRunFast
-                              ? OT::App().API().OTAPI().LoadOutboxNoVerify(
-                                    theNotaryID, theNymID, theAccountID)
-                              : OT::App().API().OTAPI().LoadOutbox(
-                                    theNotaryID, theNymID, theAccountID);
+        Ledger* pOutbox{nullptr};
+
+        if (false == theNymID.empty()) {
+            pOutbox = m_bRunFast
+                          ? OT::App().API().OTAPI().LoadOutboxNoVerify(
+                                theNotaryID, theNymID, theAccountID)
+                          : OT::App().API().OTAPI().LoadOutbox(
+                                theNotaryID, theNymID, theAccountID);
+        }
+
         std::unique_ptr<Ledger> theOutboxAngel(pOutbox);
 
         // It loaded up, so let's loop through it.
@@ -3860,13 +3894,16 @@ bool OTRecordList::Populate()
         // NAME, in
         // return for FASTER PERFORMANCE, then call SetFastMode() before
         // Populating.
-        //
-        Ledger* pRecordbox =
-            m_bRunFast
-                ? OT::App().API().OTAPI().LoadRecordBoxNoVerify(
-                      theNotaryID, theNymID, theAccountID)
-                : OT::App().API().OTAPI().LoadRecordBox(
-                      theNotaryID, theNymID, theAccountID);
+        Ledger* pRecordbox{nullptr};
+
+        if (false == theNymID.empty()) {
+            pRecordbox = m_bRunFast
+                             ? OT::App().API().OTAPI().LoadRecordBoxNoVerify(
+                                   theNotaryID, theNymID, theAccountID)
+                             : OT::App().API().OTAPI().LoadRecordBox(
+                                   theNotaryID, theNymID, theAccountID);
+        }
+
         std::unique_ptr<Ledger> theRecordBoxAngel(pRecordbox);
 
         // It loaded up, so let's loop through it.

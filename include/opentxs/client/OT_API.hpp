@@ -123,14 +123,14 @@ public:
     EXPORT const BasketContract* GetBasketContract(
         const Identifier& THE_ID,
         const char* szFuncName = nullptr) const;
-    EXPORT Account* GetAccount(
+    EXPORT std::shared_ptr<Account> GetAccount(
         const Identifier& THE_ID,
         const char* szFuncName = nullptr) const;
 
     EXPORT Nym* GetNymByIDPartialMatch(
         const std::string PARTIAL_ID,
         const char* szFuncName = nullptr) const;
-    EXPORT Account* GetAccountPartialMatch(
+    EXPORT std::shared_ptr<Account> GetAccountPartialMatch(
         const std::string PARTIAL_ID,
         const char* szFuncName = nullptr) const;
     EXPORT Nym* GetOrLoadPrivateNym(
@@ -179,13 +179,13 @@ public:
         const std::uint64_t end = 0,
         const std::uint32_t version = 1) const;
 
-    EXPORT Account* GetOrLoadAccount(
+    EXPORT std::shared_ptr<Account> GetOrLoadAccount(
         const Nym& theNym,
         const Identifier& ACCT_ID,
         const Identifier& NOTARY_ID,
         const char* szFuncName = nullptr) const;
 
-    EXPORT Account* GetOrLoadAccount(
+    EXPORT std::shared_ptr<Account> GetOrLoadAccount(
         const Identifier& NYM_ID,
         const Identifier& ACCT_ID,
         const Identifier& NOTARY_ID,
@@ -572,7 +572,7 @@ public:
     EXPORT std::int64_t GetBasketMemberMinimumTransferAmount(
         const Identifier& BASKET_INSTRUMENT_DEFINITION_ID,
         std::int32_t nIndex) const;
-    EXPORT Account* LoadAssetAccount(
+    EXPORT std::shared_ptr<Account> LoadAssetAccount(
         const Identifier& NOTARY_ID,
         const Identifier& NYM_ID,
         const Identifier& ACCOUNT_ID) const;

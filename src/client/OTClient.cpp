@@ -5382,8 +5382,8 @@ bool OTClient::processServerReplyGetAccountData(
 
     if (strAccount.Exists()) {
         // Load the account object from that string.
-        std::unique_ptr<Account> pAccount(
-            new Account(NYM_ID, accountID, context.Server()));
+        auto pAccount =
+            std::make_shared<Account>(NYM_ID, accountID, context.Server());
 
         if (pAccount && pAccount->LoadContractFromString(strAccount) &&
             pAccount->VerifyAccount(serverNym)) {
@@ -5401,8 +5401,7 @@ bool OTClient::processServerReplyGetAccountData(
             pAccount->SignContract(*context.Nym());
             pAccount->SaveContract();
             pAccount->SaveAccount();
-
-            m_pWallet.AddAccount(*(pAccount.release()));
+            m_pWallet.AddAccount(pAccount);
             m_pWallet.SaveWallet();
         }
     }
@@ -5985,9 +5984,9 @@ bool OTClient::processServerReplyUnregisterAccount(
 
         const Identifier theAccountID(theReply.m_strAcctID);
 
-        Account* pDeletedAcct = m_pWallet.GetAccount(theAccountID);
+        auto pDeletedAcct = m_pWallet.GetAccount(theAccountID);
 
-        if (nullptr != pDeletedAcct) {
+        if (pDeletedAcct) {
             pDeletedAcct->MarkForDeletion();
             pDeletedAcct->ReleaseSignatures();
             pDeletedAcct->SignContract(*context.Nym());
@@ -6021,14 +6020,11 @@ bool OTClient::processServerReplyRegisterInstrumentDefinition(
     const auto& NYM_ID = context.Nym()->ID();
     const auto& serverNym = context.RemoteNym();
     if (theReply.m_ascPayload.GetLength()) {
-        Account* pAccount = nullptr;
-
         // this decodes the ascii-armor payload where the new account file
         // is stored, and returns a normal string in strAcctContents.
         String strAcctContents(theReply.m_ascPayload);
-
-        // TODO check return value
-        pAccount = new Account(NYM_ID, accountID, context.Server());
+        auto pAccount =
+            std::make_shared<Account>(NYM_ID, accountID, context.Server());
 
         if (pAccount->LoadContractFromString(strAcctContents) &&
             pAccount->VerifyAccount(serverNym)) {
@@ -6049,15 +6045,13 @@ bool OTClient::processServerReplyRegisterInstrumentDefinition(
             // message
             // in the first place.
 
-            m_pWallet.AddAccount(*pAccount);
+            m_pWallet.AddAccount(pAccount);
             m_pWallet.SaveWallet();
 
             return true;
-        } else {
-            delete pAccount;
-            pAccount = nullptr;
         }
     }
+
     return false;
 }
 
@@ -6069,13 +6063,11 @@ bool OTClient::processServerReplyRegisterAccount(
     const auto& NYM_ID = context.Nym()->ID();
     const auto& serverNym = context.RemoteNym();
     if (theReply.m_ascPayload.GetLength()) {
-        Account* pAccount = nullptr;
-
         // this decodes the ascii-armor payload where the new account file
         // is stored, and returns a normal string in strAcctContents.
         String strAcctContents(theReply.m_ascPayload);
-
-        pAccount = new Account(NYM_ID, accountID, context.Server());
+        auto pAccount =
+            std::make_shared<Account>(NYM_ID, accountID, context.Server());
 
         if (pAccount && pAccount->LoadContractFromString(strAcctContents) &&
             pAccount->VerifyAccount(serverNym)) {
@@ -6108,15 +6100,13 @@ bool OTClient::processServerReplyRegisterAccount(
             // message
             // in the first place.
 
-            m_pWallet.AddAccount(*pAccount);
+            m_pWallet.AddAccount(pAccount);
             m_pWallet.SaveWallet();
 
             return true;
-        } else {
-            delete pAccount;
-            pAccount = nullptr;
         }
     }
+
     return false;
 }
 
