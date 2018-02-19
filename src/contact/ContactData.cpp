@@ -107,7 +107,7 @@ ContactData ContactData::operator+(const ContactData& rhs) const
 
 ContactData::operator std::string() const
 {
-    return PrintContactData(Serialize(false));
+    return PrintContactData(Serialize(true));
 }
 
 ContactData ContactData::AddContract(
