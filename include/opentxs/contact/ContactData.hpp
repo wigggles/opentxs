@@ -115,10 +115,11 @@ public:
         const proto::ContactSectionName& section) const;
     proto::ContactData Serialize(const bool withID = false) const;
     ContactData SetCommonName(const std::string& name) const;
+    ContactData SetName(const std::string& name, const bool primary = true)
+        const;
     ContactData SetScope(
         const proto::ContactItemType type,
-        const std::string& name,
-        const bool primary) const;
+        const std::string& name) const;
     proto::ContactItemType Type() const;
     std::uint32_t Version() const;
 

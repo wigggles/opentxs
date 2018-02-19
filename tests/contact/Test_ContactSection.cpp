@@ -304,26 +304,6 @@ TEST_F(Test_ContactSection, AddItem)
     ASSERT_TRUE(section2.Claim(scopeContactItem->ID())->isPrimary());
     ASSERT_TRUE(section2.Claim(scopeContactItem->ID())->isActive());
 
-    // Add an item of a different type to the SCOPE section.
-    const std::shared_ptr<opentxs::ContactItem> scopeContactItem2(
-        new opentxs::ContactItem(
-            std::string("scopeContactItem2"),
-            CONTACT_CONTACT_DATA_VERSION,
-            CONTACT_CONTACT_DATA_VERSION,
-            opentxs::proto::ContactSectionName::CONTACTSECTION_SCOPE,
-            opentxs::proto::ContactItemType::CITEMTYPE_ORGANIZATION,
-            std::string("scopeContactItemValue2"),
-            {opentxs::proto::ContactItemAttribute::CITEMATTR_LOCAL},
-            NULL_START,
-            NULL_END));
-    const auto& section3 = section2.AddItem(scopeContactItem2);
-    // Verify there is still only one group.
-    ASSERT_EQ(section3.Size(), 1);
-    ASSERT_EQ(
-        section3.Group(opentxs::proto::ContactItemType::CITEMTYPE_ORGANIZATION)
-            ->Size(),
-        1);
-
     // Add two items of the same type.
     const auto& section4 = contactSection_.AddItem(activeContactItem_);
     const std::shared_ptr<opentxs::ContactItem> contactItem2(
@@ -545,38 +525,36 @@ TEST_F(Test_ContactSection, Delete)
 
 TEST_F(Test_ContactSection, SerializeTo)
 {
-	// Serialize without ids.
+    // Serialize without ids.
     opentxs::proto::ContactData contactData1;
 
     const auto& section1 = contactSection_.AddItem(activeContactItem_);
     ASSERT_TRUE(section1.SerializeTo(contactData1, false));
     ASSERT_EQ(contactData1.section_size(), section1.Size());
 
-    opentxs::proto::ContactSection contactDataSection =
-        contactData1.section(0);
+    opentxs::proto::ContactSection contactDataSection = contactData1.section(0);
     ASSERT_EQ(
-    		contactDataSection.name(),
+        contactDataSection.name(),
         opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER);
-    
+
     opentxs::proto::ContactItem contactDataItem = contactDataSection.item(0);
     ASSERT_EQ(contactDataItem.value(), activeContactItem_->Value());
     ASSERT_EQ(contactDataItem.version(), activeContactItem_->Version());
     ASSERT_EQ(contactDataItem.type(), activeContactItem_->Type());
     ASSERT_EQ(contactDataItem.start(), activeContactItem_->Start());
     ASSERT_EQ(contactDataItem.end(), activeContactItem_->End());
-    
+
     // Serialize with ids.
     opentxs::proto::ContactData contactData2;
 
     ASSERT_TRUE(section1.SerializeTo(contactData2, true));
     ASSERT_EQ(contactData2.section_size(), section1.Size());
 
-    contactDataSection =
-        contactData2.section(0);
+    contactDataSection = contactData2.section(0);
     ASSERT_EQ(
-    		contactDataSection.name(),
+        contactDataSection.name(),
         opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER);
-    
+
     contactDataItem = contactDataSection.item(0);
     opentxs::String id;
     activeContactItem_->ID().GetString(id);

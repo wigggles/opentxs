@@ -127,7 +127,17 @@ ContactSection ContactSection::add_scope(
 
     auto scope = item;
 
-    if (false == scope->isPrimary()) {
+    bool needsPrimary{true};
+
+    const auto& groupID = scope->Type();
+    GroupMap groups = groups_;
+    const auto& group = groups[groupID];
+
+    if (group) {
+        needsPrimary = (1 > group->Size());
+    }
+
+    if (needsPrimary && false == scope->isPrimary()) {
         scope.reset(new ContactItem(scope->SetPrimary(true)));
     }
 
@@ -135,8 +145,6 @@ ContactSection ContactSection::add_scope(
         scope.reset(new ContactItem(scope->SetActive(true)));
     }
 
-    GroupMap groups{};
-    const auto& groupID = scope->Type();
     groups[groupID].reset(new ContactGroup(nym_, section_, scope));
 
     return ContactSection(nym_, version_, version_, section_, groups);

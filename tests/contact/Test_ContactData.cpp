@@ -502,7 +502,7 @@ TEST_F(Test_ContactData, operator_string)
     ASSERT_EQ(dataString, expectedStringOutput);
 }
 
-TEST_F(Test_ContactData, Serialize_)
+TEST_F(Test_ContactData, Serialize)
 {
     const auto& data1 = contactData_.AddItem(activeContactItem_);
 
@@ -554,129 +554,6 @@ TEST_F(Test_ContactData, AddContract)
             const bool,
             const bool) const>(&opentxs::ContactData::AddContract),
         opentxs::proto::CONTACTSECTION_CONTRACT);
-
-    //    // Add a contract to a group with no primary.
-    //    const auto& group1 =
-    //        std::shared_ptr<opentxs::ContactGroup>(new opentxs::ContactGroup(
-    //            "contactGroup1",
-    //            opentxs::proto::CONTACTSECTION_CONTRACT,
-    //            opentxs::proto::CITEMTYPE_BTC,
-    //            {}));
-    //
-    //    const auto& section1 =
-    //        std::shared_ptr<opentxs::ContactSection>(new
-    //        opentxs::ContactSection(
-    //            "contactSectionNym1",
-    //            CONTACT_CONTACT_DATA_VERSION,
-    //            CONTACT_CONTACT_DATA_VERSION,
-    //            opentxs::proto::CONTACTSECTION_CONTRACT,
-    //            opentxs::ContactSection::GroupMap{
-    //                {opentxs::proto::CITEMTYPE_BTC, group1}}));
-    //
-    //    const opentxs::ContactData data1(
-    //        std::string("contactDataNym1"),
-    //        CONTACT_CONTACT_DATA_VERSION,
-    //        CONTACT_CONTACT_DATA_VERSION,
-    //        opentxs::ContactData::SectionMap{
-    //            {opentxs::proto::CONTACTSECTION_CONTRACT,
-    //             section1}});
-    //
-    //    const auto& data2 = data1.AddContract(
-    //        "instrumentDefinitionID1", opentxs::proto::CITEMTYPE_BTC, false,
-    //        false);
-    //
-    //    // Verify that the item was made primary.
-    //    const opentxs::Identifier
-    //    identifier1(opentxs::ContactCredential::ClaimID(
-    //        "contactDataNym1",
-    //        opentxs::proto::CONTACTSECTION_CONTRACT,
-    //        opentxs::proto::CITEMTYPE_BTC,
-    //        NULL_START,
-    //        NULL_END,
-    //        "instrumentDefinitionID1"));
-    //    const auto& contactItem1 = data2.Claim(identifier1);
-    //    ASSERT_TRUE(contactItem1);
-    //    ASSERT_TRUE(contactItem1->isPrimary());
-    //
-    //    // Add a contract to a group with a primary.
-    //    const auto& data3 = data2.AddContract(
-    //        "instrumentDefinitionID2", opentxs::proto::CITEMTYPE_BTC, false,
-    //        false);
-    //
-    //    // Verify that the item wasn't made primary.
-    //    const opentxs::Identifier
-    //    identifier2(opentxs::ContactCredential::ClaimID(
-    //        "contactDataNym1",
-    //        opentxs::proto::CONTACTSECTION_CONTRACT,
-    //        opentxs::proto::CITEMTYPE_BTC,
-    //        NULL_START,
-    //        NULL_END,
-    //        "instrumentDefinitionID2"));
-    //    const auto& contactItem2 = data3.Claim(identifier2);
-    //    ASSERT_TRUE(contactItem2);
-    //    ASSERT_FALSE(contactItem2->isPrimary());
-    //
-    //    // Add a contract for a type with no group.
-    //    const auto& data4 = data3.AddContract(
-    //        "instrumentDefinitionID3", opentxs::proto::CITEMTYPE_EUR, false,
-    //        false);
-    //
-    //    // Verify the group was created.
-    //    ASSERT_TRUE(data4.Group(
-    //        opentxs::proto::CONTACTSECTION_CONTRACT,
-    //        opentxs::proto::CITEMTYPE_EUR));
-    //    // Verify that the item was made primary.
-    //    const opentxs::Identifier
-    //    identifier3(opentxs::ContactCredential::ClaimID(
-    //        "contactDataNym1",
-    //        opentxs::proto::CONTACTSECTION_CONTRACT,
-    //        opentxs::proto::CITEMTYPE_EUR,
-    //        NULL_START,
-    //        NULL_END,
-    //        "instrumentDefinitionID3"));
-    //    const auto& contactItem3 = data4.Claim(identifier3);
-    //    ASSERT_TRUE(contactItem3);
-    //    ASSERT_TRUE(contactItem3->isPrimary());
-    //
-    //    // Add an active contract.
-    //    const auto& data5 = data4.AddContract(
-    //        "instrumentDefinitionID4", opentxs::proto::CITEMTYPE_USD, false,
-    //        true);
-    //
-    //    // Verify the group was created.
-    //    ASSERT_TRUE(data5.Group(
-    //        opentxs::proto::CONTACTSECTION_CONTRACT,
-    //        opentxs::proto::CITEMTYPE_USD));
-    //    // Verify that the item was made active.
-    //    const opentxs::Identifier
-    //    identifier4(opentxs::ContactCredential::ClaimID(
-    //        "contactDataNym1",
-    //        opentxs::proto::CONTACTSECTION_CONTRACT,
-    //        opentxs::proto::CITEMTYPE_USD,
-    //        NULL_START,
-    //        NULL_END,
-    //        "instrumentDefinitionID4"));
-    //    const auto& contactItem4 = data5.Claim(identifier4);
-    //    ASSERT_TRUE(contactItem4);
-    //    ASSERT_TRUE(contactItem4->isActive());
-    //
-    //    // Add a primary contract.
-    //    const auto& data6 = data5.AddContract(
-    //        "instrumentDefinitionID5", opentxs::proto::CITEMTYPE_USD, true,
-    //        false);
-    //
-    //    // Verify that the item was made primary.
-    //    const opentxs::Identifier
-    //    identifier5(opentxs::ContactCredential::ClaimID(
-    //        "contactDataNym1",
-    //        opentxs::proto::CONTACTSECTION_CONTRACT,
-    //        opentxs::proto::CITEMTYPE_USD,
-    //        NULL_START,
-    //        NULL_END,
-    //        "instrumentDefinitionID5"));
-    //    const auto& contactItem5 = data6.Claim(identifier5);
-    //    ASSERT_TRUE(contactItem5);
-    //    ASSERT_TRUE(contactItem5->isPrimary());
 }
 
 TEST_F(Test_ContactData, AddItem_claim)
@@ -781,8 +658,14 @@ TEST_F(Test_ContactData, AddPreferredOTServer)
         opentxs::ContactData::SectionMap{
             {opentxs::proto::CONTACTSECTION_COMMUNICATION, section1}});
 
-    const auto& serverIdentifier1 =
-        opentxs::Identifier(std::string("serverID1"));
+    const opentxs::Identifier serverIdentifier1(
+        opentxs::ContactCredential::ClaimID(
+            "contactDataNym1",
+            opentxs::proto::CONTACTSECTION_COMMUNICATION,
+            opentxs::proto::CITEMTYPE_OPENTXS,
+            NULL_START,
+            NULL_END,
+            std::string("serverID1")));
     const auto& data2 = data1.AddPreferredOTServer(serverIdentifier1, false);
 
     // Verify that the item was made primary.
@@ -798,8 +681,14 @@ TEST_F(Test_ContactData, AddPreferredOTServer)
     ASSERT_TRUE(contactItem1->isPrimary());
 
     // Add a server to a group with a primary.
-    const auto& serverIdentifier2 =
-        opentxs::Identifier(std::string("serverID2"));
+    const opentxs::Identifier serverIdentifier2(
+        opentxs::ContactCredential::ClaimID(
+            "contactDataNym1",
+            opentxs::proto::CONTACTSECTION_COMMUNICATION,
+            opentxs::proto::CITEMTYPE_OPENTXS,
+            NULL_START,
+            NULL_END,
+            std::string("serverID2")));
     const auto& data3 = data2.AddPreferredOTServer(serverIdentifier2, false);
 
     // Verify that the item wasn't made primary.
@@ -815,8 +704,16 @@ TEST_F(Test_ContactData, AddPreferredOTServer)
     ASSERT_FALSE(contactItem2->isPrimary());
 
     // Add a server to a ContactData with no group.
+    const opentxs::Identifier serverIdentifier3(
+        opentxs::ContactCredential::ClaimID(
+            "contactDataNym",
+            opentxs::proto::CONTACTSECTION_COMMUNICATION,
+            opentxs::proto::CITEMTYPE_OPENTXS,
+            NULL_START,
+            NULL_END,
+            std::string("serverID3")));
     const auto& data4 =
-        contactData_.AddPreferredOTServer(serverIdentifier2, false);
+        contactData_.AddPreferredOTServer(serverIdentifier3, false);
 
     // Verify the group was created.
     ASSERT_TRUE(data4.Group(
@@ -829,16 +726,21 @@ TEST_F(Test_ContactData, AddPreferredOTServer)
         opentxs::proto::CITEMTYPE_OPENTXS,
         NULL_START,
         NULL_END,
-        opentxs::String(serverIdentifier2).Get()));
+        opentxs::String(serverIdentifier3).Get()));
     const auto& contactItem3 = data4.Claim(identifier3);
     ASSERT_TRUE(contactItem3);
     ASSERT_TRUE(contactItem3->isPrimary());
 
     // Add a primary server.
-    const auto& serverIdentifier3 =
-        opentxs::Identifier(std::string("serverID3"));
-    const auto& data5 =
-        contactData_.AddPreferredOTServer(serverIdentifier3, true);
+    const opentxs::Identifier serverIdentifier4(
+        opentxs::ContactCredential::ClaimID(
+            "contactDataNym",
+            opentxs::proto::CONTACTSECTION_COMMUNICATION,
+            opentxs::proto::CITEMTYPE_OPENTXS,
+            NULL_START,
+            NULL_END,
+            std::string("serverID4")));
+    const auto& data5 = data4.AddPreferredOTServer(serverIdentifier4, true);
 
     // Verify that the item was made primary.
     const opentxs::Identifier identifier4(opentxs::ContactCredential::ClaimID(
@@ -847,10 +749,14 @@ TEST_F(Test_ContactData, AddPreferredOTServer)
         opentxs::proto::CITEMTYPE_OPENTXS,
         NULL_START,
         NULL_END,
-        opentxs::String(serverIdentifier3).Get()));
+        opentxs::String(serverIdentifier4).Get()));
     const auto& contactItem4 = data5.Claim(identifier4);
     ASSERT_TRUE(contactItem4);
     ASSERT_TRUE(contactItem4->isPrimary());
+    // Verify the previous preferred server is no longer primary.
+    const auto& contactItem5 = data5.Claim(identifier3);
+    ASSERT_TRUE(contactItem5);
+    ASSERT_FALSE(contactItem5->isPrimary());
 }
 
 TEST_F(Test_ContactData, Claim_found)
@@ -945,7 +851,7 @@ TEST_F(Test_ContactData, HaveClaim_1)
     ASSERT_FALSE(contactData_.HaveClaim(activeContactItem_->ID()));
 
     const auto& data1 = contactData_.AddItem(activeContactItem_);
-	ASSERT_TRUE(data1.HaveClaim(activeContactItem_->ID()));
+    ASSERT_TRUE(data1.HaveClaim(activeContactItem_->ID()));
 }
 
 TEST_F(Test_ContactData, HaveClaim_2)
@@ -972,53 +878,197 @@ TEST_F(Test_ContactData, HaveClaim_2)
 
 TEST_F(Test_ContactData, Name)
 {
-	// Verify that Name returns an empty string if the scope isn't set.
+    // Verify that Name returns an empty string if there is no scope group.
     ASSERT_STREQ(contactData_.Name().c_str(), "");
 
-    const auto& data1 = contactData_.SetScope(
-        opentxs::proto::CITEMTYPE_INDIVIDUAL, "activeContactItemValue", false);
-    ASSERT_STREQ(data1.Name().c_str(), "activeContactItemValue");
+    // Test when the scope group is emtpy.
+    const auto& group1 =
+        std::shared_ptr<opentxs::ContactGroup>(new opentxs::ContactGroup(
+            "contactGroup1",
+            opentxs::proto::CONTACTSECTION_SCOPE,
+            opentxs::proto::CITEMTYPE_INDIVIDUAL,
+            {}));
 
-    // Test when there are two items in the scope section.
-    const auto& contactItem2 =
-        std::shared_ptr<opentxs::ContactItem>(new opentxs::ContactItem(
-            std::string("contactItem2"),
+    const auto& section1 =
+        std::shared_ptr<opentxs::ContactSection>(new opentxs::ContactSection(
+            "contactSectionNym1",
             CONTACT_CONTACT_DATA_VERSION,
             CONTACT_CONTACT_DATA_VERSION,
             opentxs::proto::CONTACTSECTION_SCOPE,
-            opentxs::proto::CITEMTYPE_INDIVIDUAL,
-            std::string("contactItemValue2"),
-            {opentxs::proto::ContactItemAttribute::CITEMATTR_LOCAL},
-            NULL_START,
-            NULL_END));
-    const auto& data2 = contactData_.AddItem(contactItem2);
-    const auto& contactItem3 =
-        std::shared_ptr<opentxs::ContactItem>(new opentxs::ContactItem(
-            std::string("contactItem3"),
-            CONTACT_CONTACT_DATA_VERSION,
-            CONTACT_CONTACT_DATA_VERSION,
-            opentxs::proto::CONTACTSECTION_SCOPE,
-            opentxs::proto::CITEMTYPE_INDIVIDUAL,
-            std::string("contactItemValue3"),
-            {opentxs::proto::ContactItemAttribute::CITEMATTR_ACTIVE},
-            NULL_START,
-            NULL_END));
-    const auto& data3 = data2.AddItem(contactItem3);
-    // Verify that Name returns the Best item.
-    ASSERT_STREQ(data3.Name().c_str(), "contactItemValue3");
+            opentxs::ContactSection::GroupMap{
+                {opentxs::proto::CITEMTYPE_INDIVIDUAL, group1}}));
+
+    const opentxs::ContactData data1(
+        std::string("contactDataNym1"),
+        CONTACT_CONTACT_DATA_VERSION,
+        CONTACT_CONTACT_DATA_VERSION,
+        opentxs::ContactData::SectionMap{
+            {opentxs::proto::CONTACTSECTION_SCOPE, section1}});
+    // Verify that Name returns an empty string.
+    ASSERT_STREQ(data1.Name().c_str(), "");
+
+    // Test when the scope is set.
+    const auto& data2 = contactData_.SetScope(
+        opentxs::proto::CITEMTYPE_INDIVIDUAL, "activeContactItemValue");
+    ASSERT_STREQ(data2.Name().c_str(), "activeContactItemValue");
 }
 
 TEST_F(Test_ContactData, PreferredOTServer)
 {
-    const auto& serverIdentifier = opentxs::Identifier(std::string("serverID1"));
-    const auto& data1 = contactData_.AddPreferredOTServer(serverIdentifier, true);
+    // Test getting the preferred server with no group.
+    const auto& identifier = contactData_.PreferredOTServer();
+    ASSERT_TRUE(identifier.empty());
+
+    // Test getting the preferred server with an empty group.
+    const auto& group1 =
+        std::shared_ptr<opentxs::ContactGroup>(new opentxs::ContactGroup(
+            "contactGroup1",
+            opentxs::proto::CONTACTSECTION_COMMUNICATION,
+            opentxs::proto::CITEMTYPE_OPENTXS,
+            {}));
+
+    const auto& section1 =
+        std::shared_ptr<opentxs::ContactSection>(new opentxs::ContactSection(
+            "contactSectionNym1",
+            CONTACT_CONTACT_DATA_VERSION,
+            CONTACT_CONTACT_DATA_VERSION,
+            opentxs::proto::CONTACTSECTION_COMMUNICATION,
+            opentxs::ContactSection::GroupMap{
+                {opentxs::proto::CITEMTYPE_OPENTXS, group1}}));
+
+    const opentxs::ContactData data1(
+        std::string("contactDataNym1"),
+        CONTACT_CONTACT_DATA_VERSION,
+        CONTACT_CONTACT_DATA_VERSION,
+        opentxs::ContactData::SectionMap{
+            {opentxs::proto::CONTACTSECTION_COMMUNICATION, section1}});
+
+    const auto& identifier2 = data1.PreferredOTServer();
+    ASSERT_TRUE(identifier2.empty());
+
+    // Test getting the preferred server.
+    const opentxs::Identifier serverIdentifier2(
+        opentxs::ContactCredential::ClaimID(
+            "contactDataNym",
+            opentxs::proto::CONTACTSECTION_COMMUNICATION,
+            opentxs::proto::CITEMTYPE_OPENTXS,
+            NULL_START,
+            NULL_END,
+            std::string("serverID2")));
+    const auto& data2 =
+        contactData_.AddPreferredOTServer(serverIdentifier2, true);
+    const auto& preferredServer = data2.PreferredOTServer();
+    ASSERT_FALSE(preferredServer.empty());
+    ASSERT_EQ(preferredServer, serverIdentifier2);
+}
+
+TEST_F(Test_ContactData, Section)
+{
+    ASSERT_FALSE(
+        contactData_.Section(opentxs::proto::CONTACTSECTION_IDENTIFIER));
+
+    const auto& data1 = contactData_.AddItem(activeContactItem_);
+    ASSERT_TRUE(data1.Section(opentxs::proto::CONTACTSECTION_IDENTIFIER));
+}
+
+TEST_F(Test_ContactData, SetCommonName)
+{
+    const auto& data1 = contactData_.SetCommonName("commonName");
     const opentxs::Identifier identifier(opentxs::ContactCredential::ClaimID(
         "contactDataNym",
-        opentxs::proto::CONTACTSECTION_COMMUNICATION,
-        opentxs::proto::CITEMTYPE_OPENTXS,
+        opentxs::proto::CONTACTSECTION_IDENTIFIER,
+        opentxs::proto::CITEMTYPE_COMMONNAME,
         NULL_START,
         NULL_END,
-        opentxs::String(serverIdentifier).Get()));
-    const auto& contactItem = data1.Claim(identifier);
-//    	ASSERT_EQ(data1.PreferredOTServer(), contactItem->ID());
+        std::string("commonName")));
+    const auto& commonNameItem = data1.Claim(identifier);
+    ASSERT_TRUE(commonNameItem);
+    ASSERT_TRUE(commonNameItem->isPrimary());
+    ASSERT_TRUE(commonNameItem->isActive());
+}
+
+TEST_F(Test_ContactData, SetName)
+{
+    const auto& data1 = contactData_.SetScope(
+        opentxs::proto::CITEMTYPE_INDIVIDUAL, "firstName");
+
+    // Test that SetName creates a scope item.
+    const auto& data2 = data1.SetName("secondName");
+    // Verify the item was created in the scope section and made primary.
+    const opentxs::Identifier identifier1(opentxs::ContactCredential::ClaimID(
+        "contactDataNym",
+        opentxs::proto::CONTACTSECTION_SCOPE,
+        opentxs::proto::CITEMTYPE_INDIVIDUAL,
+        NULL_START,
+        NULL_END,
+        std::string("secondName")));
+    const auto& scopeItem1 = data2.Claim(identifier1);
+    ASSERT_TRUE(scopeItem1);
+    ASSERT_TRUE(scopeItem1->isPrimary());
+    ASSERT_TRUE(scopeItem1->isActive());
+
+    // Test that SetName creates an item in the scope section without making it
+    // primary.
+    const auto& data3 = data2.SetName("thirdName", false);
+    const opentxs::Identifier identifier2(opentxs::ContactCredential::ClaimID(
+        "contactDataNym",
+        opentxs::proto::CONTACTSECTION_SCOPE,
+        opentxs::proto::CITEMTYPE_INDIVIDUAL,
+        NULL_START,
+        NULL_END,
+        std::string("thirdName")));
+    const auto& contactItem2 = data3.Claim(identifier2);
+    ASSERT_TRUE(contactItem2);
+    ASSERT_FALSE(contactItem2->isPrimary());
+    ASSERT_TRUE(contactItem2->isActive());
+}
+
+TEST_F(Test_ContactData, SetScope)
+{
+    const auto& data1 = contactData_.SetScope(
+        opentxs::proto::CITEMTYPE_ORGANIZATION, "organizationScope");
+    // Verify the scope item was created.
+    const opentxs::Identifier identifier1(opentxs::ContactCredential::ClaimID(
+        "contactDataNym",
+        opentxs::proto::CONTACTSECTION_SCOPE,
+        opentxs::proto::CITEMTYPE_ORGANIZATION,
+        NULL_START,
+        NULL_END,
+        std::string("organizationScope")));
+    const auto& scopeItem1 = data1.Claim(identifier1);
+    ASSERT_TRUE(scopeItem1);
+    ASSERT_TRUE(scopeItem1->isPrimary());
+    ASSERT_TRUE(scopeItem1->isActive());
+
+    // Test when there is an existing scope.
+    const auto& data2 =
+        data1.SetScope(opentxs::proto::CITEMTYPE_ORGANIZATION, "businessScope");
+    // Verify the item wasn't added.
+    const opentxs::Identifier identifier2(opentxs::ContactCredential::ClaimID(
+        "contactDataNym",
+        opentxs::proto::CONTACTSECTION_SCOPE,
+        opentxs::proto::CITEMTYPE_BUSINESS,
+        NULL_START,
+        NULL_END,
+        std::string("businessScope")));
+    ASSERT_FALSE(data2.Claim(identifier2));
+    // Verify the scope wasn't changed.
+    const auto& scopeItem2 = data2.Claim(identifier1);
+    ASSERT_TRUE(scopeItem2);
+    ASSERT_TRUE(scopeItem2->isPrimary());
+    ASSERT_TRUE(scopeItem2->isActive());
+}
+
+TEST_F(Test_ContactData, Type)
+{
+    ASSERT_EQ(contactData_.Type(), opentxs::proto::CITEMTYPE_UNKNOWN);
+
+    const auto& data1 = contactData_.SetScope(
+        opentxs::proto::CITEMTYPE_INDIVIDUAL, "scopeName");
+    ASSERT_EQ(data1.Type(), opentxs::proto::CITEMTYPE_INDIVIDUAL);
+}
+
+TEST_F(Test_ContactData, Version)
+{
+    ASSERT_EQ(contactData_.Version(), CONTACT_CONTACT_DATA_VERSION);
 }
