@@ -77,9 +77,9 @@ public:
     {
     }
 
-    opentxs::ContactGroup contactGroup_;
-    std::shared_ptr<opentxs::ContactItem> primary_;
-    std::shared_ptr<opentxs::ContactItem> active_;
+    const opentxs::ContactGroup contactGroup_;
+    const std::shared_ptr<opentxs::ContactItem> primary_;
+    const std::shared_ptr<opentxs::ContactItem> active_;
 };
 
 }  // namespace

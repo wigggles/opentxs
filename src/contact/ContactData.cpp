@@ -530,14 +530,47 @@ ContactData ContactData::SetCommonName(const std::string& name) const
     return AddItem(item);
 }
 
+ContactData ContactData::SetName(const std::string& name, const bool primary)
+    const
+{
+    const Scope& scopeInfo = scope();
+
+    OT_ASSERT(scopeInfo.second);
+
+    const proto::ContactSectionName section{proto::CONTACTSECTION_SCOPE};
+    const proto::ContactItemType type = scopeInfo.first;
+
+    std::set<proto::ContactItemAttribute> attrib{proto::CITEMATTR_ACTIVE};
+
+    if (primary) {
+        attrib.emplace(proto::CITEMATTR_PRIMARY);
+    }
+
+    auto item = std::make_shared<ContactItem>(
+        nym_,
+        version_,
+        version_,
+        section,
+        type,
+        name,
+        attrib,
+        NULL_START,
+        NULL_END);
+
+    OT_ASSERT(item);
+
+    return AddItem(item);
+}
+
 ContactData ContactData::SetScope(
     const proto::ContactItemType type,
-    const std::string& name,
-    const bool primary) const
+    const std::string& name) const
 {
+    OT_ASSERT(type);
+
     const proto::ContactSectionName section{proto::CONTACTSECTION_SCOPE};
 
-    if (type != scope().first) {
+    if (proto::CITEMTYPE_UNKNOWN == scope().first) {
         auto mapCopy = sections_;
         mapCopy.erase(section);
         std::set<proto::ContactItemAttribute> attrib{proto::CITEMATTR_ACTIVE,
@@ -563,28 +596,11 @@ ContactData ContactData::SetScope(
         mapCopy[section] = newSection;
 
         return ContactData(nym_, version_, version_, mapCopy);
+    } else {
+        otErr << OT_METHOD << __FUNCTION__ << ": Scope already set."
+              << std::endl;
+        return *this;
     }
-
-    std::set<proto::ContactItemAttribute> attrib{proto::CITEMATTR_ACTIVE};
-
-    if (primary) {
-        attrib.emplace(proto::CITEMATTR_PRIMARY);
-    }
-
-    auto item = std::make_shared<ContactItem>(
-        nym_,
-        version_,
-        version_,
-        section,
-        type,
-        name,
-        attrib,
-        NULL_START,
-        NULL_END);
-
-    OT_ASSERT(item);
-
-    return AddItem(item);
 }
 
 ContactData::Scope ContactData::scope() const

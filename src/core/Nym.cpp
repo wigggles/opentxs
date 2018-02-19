@@ -1470,8 +1470,9 @@ bool Nym::LoadNymFromString(
 
                     if (!tempNotaryID.Exists() ||
                         !Contract::LoadEncodedTextField(xml, strTemp)) {
-                        otErr << __FUNCTION__ << ": Error: transactionNums "
-                                                 "field without value.\n";
+                        otErr << __FUNCTION__
+                              << ": Error: transactionNums "
+                                 "field without value.\n";
                         return false;  // error condition
                     }
 
@@ -2139,9 +2140,8 @@ bool Nym::ReEncryptPrivateCredentials(
         CredentialSet* pCredential = it.second;
         OT_ASSERT(nullptr != pCredential);
 
-        if (false ==
-            pCredential->ReEncryptPrivateCredentials(
-                *pExportPassphrase, bImporting))
+        if (false == pCredential->ReEncryptPrivateCredentials(
+                         *pExportPassphrase, bImporting))
             return false;
     }
 
@@ -2813,8 +2813,13 @@ bool Nym::SetScope(
         init_claims(lock);
     }
 
-    contact_data_.reset(
-        new ContactData(contact_data_->SetScope(type, name, primary)));
+    if (proto::CITEMTYPE_UNKNOWN != contact_data_->Type()) {
+        contact_data_.reset(
+            new ContactData(contact_data_->SetName(name, primary)));
+    } else {
+        contact_data_.reset(
+            new ContactData(contact_data_->SetScope(type, name)));
+    }
 
     OT_ASSERT(contact_data_);
 
