@@ -38,9 +38,11 @@
 
 #include "opentxs/stdafx.hpp"
 
+#include "opentxs/api/client/Pair.hpp"
 #include "opentxs/api/client/ServerAction.hpp"
 #include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
+#include "opentxs/api/Api.hpp"
 #include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/client/NymData.hpp"
@@ -180,7 +182,7 @@ Sync::Sync(
     const opentxs::OTAPI_Exec& exec,
     const api::ContactManager& contacts,
     const api::Settings& config,
-    const api::client::ServerAction& serverAction,
+    const api::Api& api,
     const api::client::Wallet& wallet,
     const api::crypto::Encode& encoding)
     : api_lock_(apiLock)
@@ -189,7 +191,8 @@ Sync::Sync(
     , exec_(exec)
     , contacts_(contacts)
     , config_(config)
-    , server_action_(serverAction)
+    , api_(api)
+    , server_action_(api.ServerAction())
     , wallet_(wallet)
     , encoding_(encoding)
     , introduction_server_lock_()
@@ -781,6 +784,7 @@ bool Sync::download_contract(
         OT_ASSERT(action->Reply());
 
         if (action->Reply()->m_bSuccess) {
+            api_.Pair().Update();
 
             return finish_task(taskID, true);
         } else {
@@ -817,6 +821,7 @@ bool Sync::download_nym(
         OT_ASSERT(action->Reply());
 
         if (action->Reply()->m_bSuccess) {
+            api_.Pair().Update();
 
             return finish_task(taskID, true);
         } else {
@@ -1351,6 +1356,7 @@ bool Sync::register_account(
         OT_ASSERT(action->Reply());
 
         if (action->Reply()->m_bSuccess) {
+            api_.Pair().Update();
 
             return finish_task(taskID, true);
         } else {
@@ -1384,6 +1390,7 @@ bool Sync::register_nym(
         OT_ASSERT(action->Reply());
 
         if (action->Reply()->m_bSuccess) {
+            api_.Pair().Update();
 
             return finish_task(taskID, true);
         } else {

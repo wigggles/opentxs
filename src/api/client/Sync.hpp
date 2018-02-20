@@ -149,6 +149,7 @@ private:
     const opentxs::OTAPI_Exec& exec_;
     const api::ContactManager& contacts_;
     const api::Settings& config_;
+    const api::Api& api_;
     const api::client::ServerAction& server_action_;
     const api::client::Wallet& wallet_;
     const api::crypto::Encode& encoding_;
@@ -292,7 +293,7 @@ private:
         const opentxs::OTAPI_Exec& exec,
         const api::ContactManager& contacts,
         const api::Settings& config,
-        const api::client::ServerAction& serverAction,
+        const api::Api& api,
         const api::client::Wallet& wallet,
         const api::crypto::Encode& encoding);
     Sync() = delete;

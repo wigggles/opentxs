@@ -42,8 +42,9 @@
 #include "opentxs/Internal.hpp"
 
 #include "opentxs/api/client/Pair.hpp"
-#include "opentxs/core/Lockable.hpp"
 #include "opentxs/core/Flag.hpp"
+#include "opentxs/core/Lockable.hpp"
+#include "opentxs/core/UniqueQueue.hpp"
 #include "opentxs/Proto.hpp"
 
 #include <atomic>
@@ -66,6 +67,7 @@ public:
     std::set<Identifier> IssuerList(
         const Identifier& localNymID,
         const bool onlyTrusted) const override;
+    void Update() const override;
 
     ~Pair();
 
@@ -105,6 +107,7 @@ private:
     mutable std::unique_ptr<std::thread> pairing_thread_{nullptr};
     mutable std::unique_ptr<std::thread> refresh_thread_{nullptr};
     mutable std::map<IssuerID, std::pair<Status, bool>> pair_status_{};
+    mutable UniqueQueue<bool> update_;
 
     void check_pairing() const;
     void check_refresh() const;
@@ -155,6 +158,7 @@ private:
         const Identifier& nymID,
         const Identifier& serverID,
         const Identifier& unitID) const;
+    void refresh() const;
     std::pair<bool, Identifier> register_account(
         const Identifier& nymID,
         const Identifier& serverID,
