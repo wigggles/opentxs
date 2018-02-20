@@ -1914,8 +1914,9 @@ bool OTAPI_Exec::Wallet_CanRemoveAssetType(
         if (theID == theCompareID) {
             otOut << OT_METHOD << __FUNCTION__
                   << ": Unable to remove asset contract "
-                  << INSTRUMENT_DEFINITION_ID << " from "
-                                                 "wallet: Account "
+                  << INSTRUMENT_DEFINITION_ID
+                  << " from "
+                     "wallet: Account "
                   << strAcctID << " uses it.\n";
             return false;
         }
@@ -2437,7 +2438,7 @@ std::string OTAPI_Exec::Wallet_GetAccountIDFromPartial(
         pObject = ot_api_.GetAccount(
             thePartialID, "OTAPI_Exec::Wallet_GetAccountIDFromPartial");
 
-    if (nullptr != pObject)  // Found it (as full ID.)
+    if (pObject)  // Found it (as full ID.)
     {
         String strID_Output(thePartialID);
         std::string pBuf = strID_Output.Get();
@@ -2449,7 +2450,7 @@ std::string OTAPI_Exec::Wallet_GetAccountIDFromPartial(
     pObject = ot_api_.GetAccountPartialMatch(
         PARTIAL_ID, "OTAPI_Exec::Wallet_GetAccountIDFromPartial");
 
-    if (nullptr != pObject)  // Found it (as partial ID.)
+    if (pObject)  // Found it (as partial ID.)
     {
         String strID_Output;
         pObject->GetIdentifier(strID_Output);
@@ -3917,9 +3918,9 @@ std::string OTAPI_Exec::GetAccountWallet_ID(const int32_t& nIndex) const
     Identifier theID;
     String strName;
 
-    bool bGetServer = ot_api_.GetAccount(nIndex, theID, strName);
+    auto pAccount = ot_api_.GetAccount(nIndex, theID, strName);
 
-    if (bGetServer) {
+    if (pAccount) {
         String strID(theID);
 
         std::string pBuf = strID.Get();
@@ -3942,13 +3943,15 @@ std::string OTAPI_Exec::GetAccountWallet_Name(const std::string& THE_ID) const
     std::string strFunc = "OTAPI_Exec::GetAccountWallet_Name";
     auto pAccount = ot_api_.GetAccount(theID, strFunc.c_str());
 
-    if (pAccount->GetBalance()) return {};
+    if (false == bool(pAccount)) {
+
+        return {};
+    }
 
     String strName;
     pAccount->GetName(strName);
-    std::string pBuf = strName.Get();
 
-    return pBuf;
+    return strName.Get();
 }
 
 std::string OTAPI_Exec::GetAccountWallet_InboxHash(
@@ -3966,7 +3969,10 @@ std::string OTAPI_Exec::GetAccountWallet_InboxHash(
     Identifier theID(ACCOUNT_ID);
     auto pAccount = ot_api_.GetAccount(theID, __FUNCTION__);
 
-    if (pAccount->GetBalance()) return {};
+    if (false == bool(pAccount)) {
+
+        return {};
+    }
 
     Identifier theOutput;
     const bool& bGotHash = pAccount->GetInboxHash(theOutput);
@@ -3975,9 +3981,7 @@ std::string OTAPI_Exec::GetAccountWallet_InboxHash(
 
     if (bGotHash) theOutput.GetString(strOutput);
 
-    std::string pBuf = strOutput.Get();
-
-    return pBuf;
+    return strOutput.Get();
 }
 
 std::string OTAPI_Exec::GetAccountWallet_OutboxHash(
@@ -3996,7 +4000,10 @@ std::string OTAPI_Exec::GetAccountWallet_OutboxHash(
 
     auto pAccount = ot_api_.GetAccount(theID, __FUNCTION__);
 
-    if (nullptr == pAccount) return {};
+    if (false == bool(pAccount)) {
+
+        return {};
+    }
 
     Identifier theOutput;
     const bool& bGotHash = pAccount->GetOutboxHash(theOutput);
@@ -4005,9 +4012,7 @@ std::string OTAPI_Exec::GetAccountWallet_OutboxHash(
 
     if (bGotHash) theOutput.GetString(strOutput);
 
-    std::string pBuf = strOutput.Get();
-
-    return pBuf;
+    return strOutput.Get();
 }
 
 /** TIME (in seconds, as string)
@@ -4443,9 +4448,8 @@ std::string OTAPI_Exec::VerifyAndRetrieveXMLContents(
     const Identifier theSignerID(SIGNER_ID);
     String strOutput;
 
-    if (false ==
-        ot_api_.VerifyAndRetrieveXMLContents(
-            strContract, theSignerID, strOutput)) {
+    if (false == ot_api_.VerifyAndRetrieveXMLContents(
+                     strContract, theSignerID, strOutput)) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Failure: "
                  "ot_api_.VerifyAndRetrieveXMLContents() "
@@ -4542,9 +4546,7 @@ std::string OTAPI_Exec::GetAccountWallet_Type(const std::string& THE_ID) const
 
     if (false == bool(pAccount)) return {};
 
-    std::string pBuf = pAccount->GetTypeString();
-
-    return pBuf;
+    return pAccount->GetTypeString();
 }
 
 // Returns an account's instrument definition ID.
@@ -12312,9 +12314,8 @@ std::string OTAPI_Exec::Message_GetNewInstrumentDefinitionID(
     // contain a ledger. (Don't want to pass back whatever it DOES contain
     // in that case, now do I?)
     //
-    if ((false ==
-         theMessage.m_strCommand.Compare(
-             "registerInstrumentDefinitionResponse")) &&
+    if ((false == theMessage.m_strCommand.Compare(
+                      "registerInstrumentDefinitionResponse")) &&
         (false == theMessage.m_strCommand.Compare("issueBasketResponse"))) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Wrong message type: " << theMessage.m_strCommand << "\n";
