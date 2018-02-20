@@ -1381,6 +1381,7 @@ bool Sync::register_nym(
     OT_ASSERT(false == nymID.empty())
     OT_ASSERT(false == serverID.empty())
 
+    set_contact(nymID, serverID);
     rLock lock(api_lock_);
     auto action = server_action_.RegisterNym(nymID, serverID);
     action->Run();
@@ -1518,6 +1519,17 @@ Identifier Sync::ScheduleRegisterNym(
     const auto taskID(random_id());
 
     return start_task(taskID, queue.register_nym_.Push(taskID, true));
+}
+
+void Sync::set_contact(const Identifier& nymID, const Identifier& serverID)
+    const
+{
+    auto nym = wallet_.mutable_Nym(nymID);
+    const auto server = nym.PreferredOTServer();
+
+    if (server.empty()) {
+        nym.AddPreferredOTServer(String(serverID).Get(), true);
+    }
 }
 
 Identifier Sync::set_introduction_server(

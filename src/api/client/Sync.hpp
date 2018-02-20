@@ -267,6 +267,7 @@ private:
         const Identifier& localNymID,
         const Identifier& serverID,
         const Identifier& unitID) const;
+    void set_contact(const Identifier& nymID, const Identifier& serverID) const;
     Identifier set_introduction_server(
         const Lock& lock,
         const ServerContract& contract) const;
