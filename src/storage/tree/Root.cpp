@@ -55,6 +55,8 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/Proto.hpp"
 
+#define CURRENT_VERSION 2
+
 #define OT_METHOD "opentxs::storage::Root::"
 
 namespace opentxs
@@ -65,20 +67,20 @@ Root::Root(
     const opentxs::api::storage::Driver& storage,
     const std::string& hash,
     const std::int64_t interval,
-    std::atomic<bool>& bucket)
+    Flag& bucket)
     : ot_super(storage, hash)
     , gc_interval_(interval)
     , current_bucket_(bucket)
+    , gc_running_(Flag::Factory(false))
+    , gc_resume_(Flag::Factory(false))
 {
     if (check_hash(hash)) {
         init(hash);
     } else {
-        version_ = 2;
+        version_ = CURRENT_VERSION;
         root_ = Node::BLANK_HASH;
         gc_root_ = Node::BLANK_HASH;
-        current_bucket_.store(false);
-        gc_running_.store(false);
-        gc_resume_.store(false);
+        current_bucket_.Off();
         last_gc_.store(static_cast<std::int64_t>(std::time(nullptr)));
         sequence_.store(0);
         tree_root_ = Node::BLANK_HASH;
@@ -103,15 +105,14 @@ void Root::collect_garbage(const opentxs::api::storage::Driver* to) const
     Lock lock(write_lock_);
     otErr << OT_METHOD << __FUNCTION__ << ": Beginning garbage collection."
           << std::endl;
-    const bool resume = gc_resume_.exchange(false);
+    const auto resume = gc_resume_->Set(false);
     bool oldLocation = false;
 
     if (resume) {
-        oldLocation = !current_bucket_.load();
+        oldLocation = !current_bucket_;
     } else {
         gc_root_ = tree()->Root();
-        oldLocation = current_bucket_.load();
-        current_bucket_.store(!oldLocation);
+        oldLocation = current_bucket_.Toggle();
         save(lock);
         driver_.StoreRoot(true, root_);
     }
@@ -133,7 +134,7 @@ void Root::collect_garbage(const opentxs::api::storage::Driver* to) const
 
     Lock gcLock(gc_lock_, std::defer_lock);
     std::lock(gcLock, lock);
-    gc_running_.store(false);
+    gc_running_->Off();
     gc_root_ = "";
     last_gc_.store(std::time(nullptr));
     save(lock);
@@ -156,15 +157,15 @@ void Root::init(const std::string& hash)
 
     version_ = serialized->version();
 
-    // Upgrade to version 2
-    if (2 > version_) {
-        version_ = 2;
+    // Upgrade version
+    if (CURRENT_VERSION > version_) {
+        version_ = CURRENT_VERSION;
     }
 
     gc_root_ = normalize_hash(serialized->gcroot());
-    current_bucket_.store(serialized->altlocation());
-    gc_running_.store(false);
-    gc_resume_.store(serialized->gc());
+    current_bucket_.Set(serialized->altlocation());
+    gc_running_->Off();
+    gc_resume_->Set(serialized->gc());
     last_gc_.store(serialized->lastgc());
     sequence_.store(serialized->sequence());
     tree_root_ = normalize_hash(serialized->items());
@@ -181,11 +182,11 @@ bool Root::Migrate(const opentxs::api::storage::Driver& to) const
 
     const std::uint64_t time = std::time(nullptr);
     const bool intervalExceeded = ((time - last_gc_.load()) > gc_interval_);
-    const bool resume = gc_resume_.load();
+    const bool resume = gc_resume_.get();
     const bool needToCollectGarbage = resume || intervalExceeded;
 
     if (needToCollectGarbage) {
-        const bool running = gc_running_.exchange(true);
+        const auto running = gc_running_->Set(true);
 
         if (!running) {
             cleanup();
@@ -238,7 +239,7 @@ void Root::save(class Tree* tree, const Lock& lock)
 
     Lock treeLock(tree_lock_);
     tree_root_ = tree->Root();
-    tree_lock_.unlock();
+    treeLock.unlock();
 
     const bool saved = save(lock);
 
@@ -259,9 +260,9 @@ proto::StorageRoot Root::serialize() const
     proto::StorageRoot output;
     output.set_version(version_);
     output.set_items(tree_root_);
-    output.set_altlocation(current_bucket_.load());
+    output.set_altlocation(current_bucket_);
     output.set_lastgc(last_gc_.load());
-    output.set_gc(gc_running_.load());
+    output.set_gc(gc_running_.get());
     output.set_gcroot(gc_root_);
     output.set_sequence(sequence_);
 

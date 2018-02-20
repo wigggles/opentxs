@@ -179,8 +179,9 @@ OpenSSL::DigestContext::operator EVP_MD_CTX*() { return context_; }
 
 OpenSSL::OpenSSL()
     : Crypto()
+    , dp_(new OpenSSLdp)
+    , lock_()
 {
-    dp_.reset(new OpenSSLdp);
 }
 
 OpenSSL::~OpenSSL() {}
@@ -279,6 +280,8 @@ void ot_openssl_locking_callback(
 
 bool OpenSSL::RandomizeMemory(uint8_t* szDestination, uint32_t nNewSize) const
 {
+    Lock lock(lock_);
+
     OT_ASSERT(nullptr != szDestination);
     OT_ASSERT(nNewSize > 0);
 
@@ -619,9 +622,8 @@ void OpenSSL::thread_cleanup() const
 
 void OpenSSL::Init_Override() const
 {
-    otWarn << __FUNCTION__
-           << ": Setting up OpenSSL:  SSL_library_init, error "
-              "strings and algorithms, and OpenSSL config...\n";
+    otWarn << __FUNCTION__ << ": Setting up OpenSSL:  SSL_library_init, error "
+                              "strings and algorithms, and OpenSSL config...\n";
 
     static bool Initialized = false;
 
@@ -1192,9 +1194,8 @@ bool OpenSSL::Encrypt(
             // EVP_CIPHER_CTX_cleanup returns 1 for success and 0 for failure.
             //
             if (0 == EVP_CIPHER_CTX_cleanup(&m_ctx))
-                otErr << m_szFunc
-                      << ": Failure in EVP_CIPHER_CTX_cleanup. (It "
-                         "returned 0.)\n";
+                otErr << m_szFunc << ": Failure in EVP_CIPHER_CTX_cleanup. (It "
+                                     "returned 0.)\n";
 
             m_szFunc = nullptr;  // keep the static analyzer happy
         }
@@ -1202,7 +1203,10 @@ bool OpenSSL::Encrypt(
     _OTEnv_Enc_stat theInstance(szFunc, ctx);
 #endif
 
+    Lock lock(lock_);
     const EVP_CIPHER* cipher_type = dp_->CipherModeToOpenSSLMode(cipher);
+    lock.unlock();
+
     OT_ASSERT(nullptr != cipher_type);
 
     //  int EVP_EncryptInit_ex(EVP_CIPHER_CTX *ctx, const EVP_CIPHER *type,
@@ -1448,16 +1452,18 @@ bool OpenSSL::Decrypt(
             // EVP_CIPHER_CTX_cleanup returns 1 for success and 0 for failure.
             //
             if (0 == EVP_CIPHER_CTX_cleanup(&m_ctx))
-                otErr << m_szFunc
-                      << ": Failure in EVP_CIPHER_CTX_cleanup. (It "
-                         "returned 0.)\n";
+                otErr << m_szFunc << ": Failure in EVP_CIPHER_CTX_cleanup. (It "
+                                     "returned 0.)\n";
             m_szFunc = nullptr;  // to keep the static analyzer happy.
         }
     };
     _OTEnv_Dec_stat theInstance(szFunc, ctx);
 #endif
 
+    Lock lock(lock_);
     const EVP_CIPHER* cipher_type = dp_->CipherModeToOpenSSLMode(cipher);
+    lock.unlock();
+
     OT_ASSERT(nullptr != cipher_type);
 
 // set algorith,
@@ -1551,12 +1557,12 @@ bool OpenSSL::Decrypt(
         lCurrentIndex += len;
 
         if (len_out > 0)
-            if (false == plaintext.Concatenate(
-                             reinterpret_cast<void*>(&vBuffer_out.at(0)),
-                             static_cast<uint32_t>(len_out))) {
-                otErr << szFunc
-                      << ": Failure: theDecryptedOutput isn't large "
-                         "enough for the decrypted output (1).\n";
+            if (false ==
+                plaintext.Concatenate(
+                    reinterpret_cast<void*>(&vBuffer_out.at(0)),
+                    static_cast<uint32_t>(len_out))) {
+                otErr << szFunc << ": Failure: theDecryptedOutput isn't large "
+                                   "enough for the decrypted output (1).\n";
                 return false;
             }
     }
@@ -1589,12 +1595,12 @@ bool OpenSSL::Decrypt(
     // This is the "final" piece that is added from DecryptFinal just above.
     //
     if (len_out > 0)
-        if (false == plaintext.Concatenate(
-                         reinterpret_cast<void*>(&vBuffer_out.at(0)),
-                         static_cast<uint32_t>(len_out))) {
-            otErr << szFunc
-                  << ": Failure: theDecryptedOutput isn't large "
-                     "enough for the decrypted output (2).\n";
+        if (false ==
+            plaintext.Concatenate(
+                reinterpret_cast<void*>(&vBuffer_out.at(0)),
+                static_cast<uint32_t>(len_out))) {
+            otErr << szFunc << ": Failure: theDecryptedOutput isn't large "
+                               "enough for the decrypted output (2).\n";
             return false;
         }
 
@@ -1673,7 +1679,9 @@ bool OpenSSL::Digest(
     }
 
     EVP_MD_CTX* context = EVP_MD_CTX_create();
+    Lock lock(lock_);
     const EVP_MD* algorithm = dp_->HashTypeToOpenSSLType(hashType);
+    lock.unlock();
     unsigned int hash_length = 0;
 
     if (nullptr != algorithm) {
@@ -1956,10 +1964,9 @@ bool OpenSSL::OpenSSLdp::VerifyContractDefaultHash(
     if ((theSignature.GetSize() < static_cast<uint32_t>(RSA_size(pRsaKey))) ||
         (nSignatureSize < RSA_size(pRsaKey)))  // this one probably unnecessary.
     {
-        otErr << szFunc
-              << ": Decoded base64-encoded data for signature, but "
-                 "resulting size was < RSA_size(pRsaKey): "
-                 "Signed: "
+        otErr << szFunc << ": Decoded base64-encoded data for signature, but "
+                           "resulting size was < RSA_size(pRsaKey): "
+                           "Signed: "
               << nSignatureSize << ". Unsigned: " << theSignature.GetSize()
               << ".\n";
         RSA_free(pRsaKey);
@@ -2678,6 +2685,7 @@ bool OpenSSL::Sign(
     const EVP_PKEY* pkey = pTempOpenSSLKey->dp->GetKey(pPWData);
     OT_ASSERT(nullptr != pkey);
 
+    Lock lock(lock_);
     if (false ==
         dp_->SignContract(plaintext, pkey, signature, hashType, pPWData)) {
         otErr << "OpenSSL::SignContract: "
@@ -2703,6 +2711,7 @@ bool OpenSSL::Verify(
     const EVP_PKEY* pkey = pTempOpenSSLKey->dp->GetKey(pPWData);
     OT_ASSERT(nullptr != pkey);
 
+    Lock lock(lock_);
     if (false ==
         dp_->VerifySignature(plaintext, pkey, signature, hashType, pPWData)) {
         otLog3 << "OpenSSL::VerifySignature: "
@@ -3000,9 +3009,8 @@ bool OpenSSL::EncryptSessionKey(
                 // would have done this for us.)
 
                 if (0 == EVP_CIPHER_CTX_cleanup(&m_ctx))
-                    otErr << m_szFunc
-                          << ": Failure in EVP_CIPHER_CTX_cleanup. "
-                             "(It returned 0.)\n";
+                    otErr << m_szFunc << ": Failure in EVP_CIPHER_CTX_cleanup. "
+                                         "(It returned 0.)\n";
             }
 #endif
         }
@@ -3369,9 +3377,8 @@ bool OpenSSL::DecryptSessionKey(
             //
             if (!m_bFinalized) {
                 if (0 == EVP_CIPHER_CTX_cleanup(&m_ctx))
-                    otErr << m_szFunc
-                          << ": Failure in EVP_CIPHER_CTX_cleanup. "
-                             "(It returned 0.)\n";
+                    otErr << m_szFunc << ": Failure in EVP_CIPHER_CTX_cleanup. "
+                                         "(It returned 0.)\n";
             }
 
             m_szFunc = nullptr;
@@ -3426,9 +3433,8 @@ bool OpenSSL::DecryptSessionKey(
     if (0 == (nReadEnvType = dataInput.OTfread(
                   reinterpret_cast<uint8_t*>(&env_type_n),
                   static_cast<uint32_t>(sizeof(env_type_n))))) {
-        otErr << szFunc
-              << ": Error reading Envelope Type. Expected "
-                 "asymmetric(1) or symmetric (2).\n";
+        otErr << szFunc << ": Error reading Envelope Type. Expected "
+                           "asymmetric(1) or symmetric (2).\n";
         return false;
     }
     nRunningTotal += nReadEnvType;
@@ -3498,9 +3504,8 @@ bool OpenSSL::DecryptSessionKey(
         if (0 == (nReadNymIDSize = dataInput.OTfread(
                       reinterpret_cast<uint8_t*>(&nymid_len_n),
                       static_cast<uint32_t>(sizeof(nymid_len_n))))) {
-            otErr << szFunc
-                  << ": Error reading NymID length for an encrypted "
-                     "symmetric key.\n";
+            otErr << szFunc << ": Error reading NymID length for an encrypted "
+                               "symmetric key.\n";
             return false;
         }
         nRunningTotal += nReadNymIDSize;
@@ -3834,5 +3839,44 @@ bool OpenSSL::DecryptSessionKey(
     return bFinalized;
 }
 #endif
+
+bool OpenSSL::GetPasswordFromConsole(OTPassword& theOutput, bool bRepeat) const
+{
+    std::int32_t nAttempts = 0;
+
+    for (int i = 0; i < 5; i++) {
+        theOutput.zeroMemory();
+
+        if (get_password(theOutput, "(OT) passphrase: ")) {
+            if (!bRepeat) {
+                std::cout << std::endl;
+                return true;
+            }
+        } else {
+            std::cout << "Sorry." << std::endl;
+            return false;
+        }
+
+        OTPassword tempPassword;
+
+        if (!get_password(tempPassword, "(Verifying) passphrase again: ")) {
+            std::cout << "Sorry." << std::endl;
+            return false;
+        }
+
+        if (!tempPassword.Compare(theOutput)) {
+            if (++nAttempts >= 3) break;
+
+            std::cout << "(Mismatch, try again.)\n" << std::endl;
+        } else {
+            std::cout << std::endl;
+            return true;
+        }
+    }
+
+    std::cout << "Sorry." << std::endl;
+
+    return false;
+}
 }  // namespace opentxs
 #endif  // OT_CRYPTO_USING_OPENSSL

@@ -53,7 +53,7 @@ Plugin::Plugin(
     const StorageConfig& config,
     const Digest& hash,
     const Random& random,
-    const std::atomic<bool>& bucket)
+    const Flag& bucket)
     : config_(config)
     , random_(random)
     , storage_(storage)
@@ -77,7 +77,7 @@ bool Plugin::Load(
     }
 
     bool valid = false;
-    const bool bucket = current_bucket_.load();
+    const bool bucket{current_bucket_};
 
     if (LoadFromBucket(key, value, bucket)) {
         valid = 0 < value.size();
@@ -114,7 +114,7 @@ bool Plugin::Migrate(
     }
 
     std::string value;
-    const auto targetBucket = current_bucket_.load();
+    const bool targetBucket{current_bucket_};
     auto sourceBucket = targetBucket;
 
     if (&to == this) {
@@ -178,7 +178,7 @@ bool Plugin::Store(
     const std::string& value,
     std::string& key) const
 {
-    const bool bucket = current_bucket_.load();
+    const bool bucket{current_bucket_};
 
     if (digest_) {
         digest_(storage_.HashType(), value, key);

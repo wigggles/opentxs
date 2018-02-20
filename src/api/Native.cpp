@@ -38,20 +38,13 @@
 
 #include "opentxs/stdafx.hpp"
 
-#include "opentxs/api/implementation/Native.hpp"
+#include "Native.hpp"
 
-#include "opentxs/api/crypto/implementation/Crypto.hpp"
-#include "opentxs/api/client/implementation/Wallet.hpp"
 #include "opentxs/api/client/Pair.hpp"
 #include "opentxs/api/client/ServerAction.hpp"
 #include "opentxs/api/client/Sync.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
-#include "opentxs/api/implementation/Api.hpp"
-#include "opentxs/api/implementation/Server.hpp"
-#include "opentxs/api/network/implementation/Dht.hpp"
-#include "opentxs/api/network/implementation/ZMQ.hpp"
-#include "opentxs/api/storage/implementation/Storage.hpp"
 #include "opentxs/api/Activity.hpp"
 #include "opentxs/api/Blockchain.hpp"
 #include "opentxs/api/ContactManager.hpp"
@@ -78,6 +71,14 @@
 #include "opentxs/util/Signals.hpp"
 #include "opentxs/OT.hpp"
 
+#include "client/Wallet.hpp"
+#include "crypto/Crypto.hpp"
+#include "network/Dht.hpp"
+#include "network/ZMQ.hpp"
+#include "storage/Storage.hpp"
+#include "Api.hpp"
+#include "Server.hpp"
+
 #include <atomic>
 #include <ctime>
 #include <memory>
@@ -94,12 +95,13 @@
 namespace opentxs::api::implementation
 {
 Native::Native(
+    Flag& running,
     const ArgList& args,
-    std::atomic<bool>& shutdown,
     const bool recover,
     const bool serverMode,
     const std::chrono::seconds gcInterval)
-    : recover_(recover)
+    : running_(running)
+    , recover_(recover)
     , server_mode_(serverMode)
     , nym_publish_interval_(std::numeric_limits<std::int64_t>::max())
     , nym_refresh_interval_(std::numeric_limits<std::int64_t>::max())
@@ -112,7 +114,6 @@ Native::Native(
     , task_list_lock_()
     , signal_handler_lock_()
     , periodic_task_list()
-    , shutdown_(shutdown)
     , activity_(nullptr)
     , api_(nullptr)
     , blockchain_(nullptr)
@@ -279,7 +280,7 @@ void Native::HandleSignals() const
     Lock lock(signal_handler_lock_);
 
     if (false == bool(signal_handler_)) {
-        signal_handler_.reset(new Signals(shutdown_));
+        signal_handler_.reset(new Signals(running_));
     }
 }
 
@@ -345,7 +346,7 @@ void Native::Init_Api()
     }
 
     api_.reset(new api::implementation::Api(
-        shutdown_,
+        running_,
         *activity_,
         *config,
         *contacts_,
@@ -517,7 +518,7 @@ void Native::Init_Server()
         Config(),
         *storage_,
         *wallet_,
-        shutdown_,
+        running_,
         zmq_context_));
 
     OT_ASSERT(server_);
@@ -706,7 +707,7 @@ void Native::Init_Storage()
     OT_ASSERT(crypto_);
 
     storage_.reset(new api::storage::implementation::Storage(
-        shutdown_, config, defaultPlugin, migrate, old, hash, random));
+        running_, config, defaultPlugin, migrate, old, hash, random));
     Config().Set_str(
         STORAGE_CONFIG_KEY,
         STORAGE_CONFIG_PRIMARY_PLUGIN_KEY,
@@ -815,12 +816,13 @@ void Native::Init_ZMQ()
 
     OT_ASSERT(config);
 
-    zeromq_.reset(new api::network::implementation::ZMQ(zmq_context_, *config));
+    zeromq_.reset(
+        new api::network::implementation::ZMQ(zmq_context_, *config, running_));
 }
 
 void Native::Periodic()
 {
-    while (!shutdown_.load()) {
+    while (running_) {
         std::time_t now = std::time(nullptr);
 
         // Make sure list is not edited while we iterate
@@ -844,7 +846,7 @@ void Native::Periodic()
             storage_->RunGC();
         }
 
-        if (!shutdown_.load()) {
+        if (running_) {
             Log::Sleep(std::chrono::milliseconds(100));
         }
     }
@@ -928,7 +930,7 @@ void Native::set_storage_encryption()
 
 void Native::shutdown()
 {
-    shutdown_.store(true);
+    running_.Off();
 
     if (periodic_) {
         periodic_->join();

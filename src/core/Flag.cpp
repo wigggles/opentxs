@@ -36,47 +36,53 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_SERVER_MESSAGEPROCESSOR_HPP
-#define OPENTXS_SERVER_MESSAGEPROCESSOR_HPP
+#include "opentxs/stdafx.hpp"
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Types.hpp"
 
-#include "opentxs/core/Flag.hpp"
-
-#include <atomic>
-#include <memory>
-#include <string>
-#include <thread>
+#include "Flag.hpp"
 
 namespace opentxs
 {
-namespace server
+OTFlag Flag::Factory(const bool state)
 {
-class MessageProcessor
+    return OTFlag(new implementation::Flag(state));
+}
+
+namespace implementation
 {
-public:
-    EXPORT explicit MessageProcessor(
-        Server& server,
-        const network::zeromq::Context& context,
-        const Flag& running);
+Flag::Flag(const bool state)
+    : flag_(state)
+{
+}
 
-    EXPORT void cleanup();
-    EXPORT void init(const int port, const OTPassword& privkey);
-    EXPORT void Start();
+Flag::operator bool() const
+{
+#if OT_VALGRIND
+    Lock lock(lock_);
+#endif
 
-    EXPORT ~MessageProcessor();
+    return flag_.load();
+}
 
-private:
-    Server& server_;
-    const Flag& running_;
-    const network::zeromq::Context& context_[[maybe_unused]];
-    std::shared_ptr<network::zeromq::ReplySocket> reply_socket_;
-    std::unique_ptr<std::thread> thread_{nullptr};
+void Flag::Off() { Set(false); }
 
-    bool processMessage(const std::string& messageString, std::string& reply);
-    void processSocket();
-    void run();
-};
-}  // namespace server
+void Flag::On() { Set(true); }
+
+bool Flag::Set(const bool value)
+{
+#if OT_VALGRIND
+    Lock lock(lock_);
+#endif
+    return flag_.exchange(value);
+}
+
+bool Flag::Toggle()
+{
+    Lock lock(lock_);
+    const auto value{flag_.load()};
+
+    return flag_.exchange(!value);
+}
+}  // namespace opentxs::implementation
 }  // namespace opentxs
-#endif  // OPENTXS_SERVER_MESSAGEPROCESSOR_HPP

@@ -38,11 +38,8 @@
 
 #include "opentxs/stdafx.hpp"
 
-#include "opentxs/api/crypto/implementation/Crypto.hpp"
+#include "Crypto.hpp"
 
-#include "opentxs/api/crypto/implementation/Encode.hpp"
-#include "opentxs/api/crypto/implementation/Hash.hpp"
-#include "opentxs/api/crypto/implementation/Symmetric.hpp"
 #if OT_CRYPTO_WITH_BIP32
 #include "opentxs/core/crypto/Bip32.hpp"
 #endif
@@ -77,6 +74,10 @@ extern "C" {
 #include <sys/resource.h>
 #endif
 }
+
+#include "Encode.hpp"
+#include "Hash.hpp"
+#include "Symmetric.hpp"
 
 #define OT_METHOD "opentxs::Crypto::"
 
@@ -185,8 +186,8 @@ Editor<OTCachedKey> Crypto::mutable_DefaultKey() const
 {
     OT_ASSERT(primary_key_);
 
-    std::function<void(OTCachedKey*, Lock&)> callback = [&](OTCachedKey*,
-                                                            Lock&) -> void {};
+    std::function<void(OTCachedKey*, Lock&)> callback =
+        [&](OTCachedKey*, Lock&) -> void {};
 
     return Editor<OTCachedKey>(cached_key_lock_, primary_key_.get(), callback);
 }

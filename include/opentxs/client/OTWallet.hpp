@@ -77,7 +77,7 @@ public:
     EXPORT bool IsNymOnCachedKey(const Identifier& nymID) const;
     EXPORT std::set<Identifier> NymList() const;
 
-    EXPORT void AddAccount(const Account& theAcct);
+    EXPORT void AddAccount(std::shared_ptr<Account>& theAcct);
     // Low level.
     EXPORT bool addExtraKey(
         const std::string& str_id,
@@ -121,18 +121,19 @@ public:
         String& strOutput,
         const String* pstrDisplay = nullptr,
         bool bBookends = true);
-    EXPORT Account* GetAccount(const Identifier& theAccountID);
-    EXPORT Account* GetAccountPartialMatch(std::string PARTIAL_ID);
+    EXPORT std::shared_ptr<Account> GetAccount(const Identifier& theAccountID);
+    EXPORT std::shared_ptr<Account> GetAccountPartialMatch(
+        std::string PARTIAL_ID);
     // Low level.
     EXPORT std::shared_ptr<OTSymmetricKey> getExtraKey(
         const std::string& str_id) const;
-    EXPORT Account* GetIssuerAccount(
+    EXPORT std::shared_ptr<Account> GetIssuerAccount(
         const Identifier& theInstrumentDefinitionID);
     EXPORT Nym* GetNymByIDPartialMatch(std::string PARTIAL_ID);
     EXPORT std::shared_ptr<OTSymmetricKey> getOrCreateExtraKey(
         const std::string& str_KeyID,
         const std::string* pReason = nullptr);  // Use this one.
-    EXPORT Account* GetOrLoadAccount(
+    EXPORT std::shared_ptr<Account> GetOrLoadAccount(
         const Nym& theNym,
         const Identifier& ACCT_ID,
         const Identifier& NOTARY_ID,
@@ -150,7 +151,7 @@ public:
     EXPORT Nym* GetPrivateNymByID(const Identifier& NYM_ID);
     EXPORT std::string GetSeed();
     EXPORT std::string GetWords();
-    EXPORT Account* LoadAccount(
+    EXPORT std::shared_ptr<Account> LoadAccount(
         const Nym& theNym,
         const Identifier& ACCT_ID,
         const Identifier& NOTARY_ID,
@@ -191,7 +192,7 @@ private:
 
     /** AccountEntry nymID, serverID, unitID, account */
     using AccountEntry = std::
-        tuple<Identifier, Identifier, Identifier, std::unique_ptr<Account>>;
+        tuple<Identifier, Identifier, Identifier, std::shared_ptr<Account>>;
     using mapOfAccounts = std::map<Identifier, AccountEntry>;
     using mapOfSymmetricKeys =
         std::map<std::string, std::shared_ptr<OTSymmetricKey>>;
@@ -240,16 +241,18 @@ private:
     // to see which ones are converted already.)
     setOfIdentifiers m_setNymsOnCachedKey{};
 
-    void add_account(const Lock& lock, const Account& theAcct);
+    void add_account(const Lock& lock, std::shared_ptr<Account>& theAcct);
     bool add_extra_key(
         const Lock& lock,
         const std::string& str_id,
         std::shared_ptr<OTSymmetricKey> pKey);
     void add_nym(const Lock& lock, const Nym& theNym, mapOfNymsSP& map);
     bool convert_nym_to_cached_key(const Lock& lock, Nym& theNym);
-    Account* get_account(const Lock& lock, const Identifier& theAccountID);
+    std::shared_ptr<Account> get_account(
+        const Lock& lock,
+        const Identifier& theAccountID);
     Nym* get_private_nym_by_id(const Lock& lock, const Identifier& NYM_ID);
-    Account* load_account(
+    std::shared_ptr<Account> load_account(
         const Lock& lock,
         const Nym& theNym,
         const Identifier& ACCT_ID,

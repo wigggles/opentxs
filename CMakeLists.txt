@@ -42,6 +42,7 @@ else()
 endif()
 
 option(OT_STRICT           "Use pedantic compiler options." ON)
+option(OT_VALGRIND         "Use Valgrind annotations." OFF)
 option(USE_CCACHE          "Use ccache." OFF)
 
 option(BUILD_SHARED_LIBS   "Build shared libraries." ON)
@@ -133,6 +134,7 @@ message(STATUS "Testing:                ${BUILD_TESTS}")
 message(STATUS "Documentation:          ${BUILD_DOCUMENTATION}")
 message(STATUS "Using ccache            ${USE_CCACHE}")
 message(STATUS "Pedantic compilation:   ${OT_STRICT}")
+message(STATUS "Valgrind integration:   ${OT_VALGRIND}")
 
 message(STATUS "Packaging -----------------------------------")
 message(STATUS "Build RPM:              ${RPM}")
@@ -266,6 +268,13 @@ execute_process(COMMAND git "submodule" "update" "--init" "--recursive" WORKING_
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 add_definitions(-DPROTOBUF_INLINE_NOT_IN_HEADERS=0)
+
+if(OT_VALGRIND)
+  add_definitions(-DOT_VALGRIND=1)
+else()
+  add_definitions(-DOT_VALGRIND=0)
+endif()
+
 find_package(opentxs-proto REQUIRED)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)

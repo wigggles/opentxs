@@ -13,6 +13,7 @@ set(cxx-install-headers
 set(cxx-headers
   ${cxx-install-headers}
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/network/implementation/OpenDHT.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/ServerConnection.hpp"
 )
 
 include_directories(SYSTEM

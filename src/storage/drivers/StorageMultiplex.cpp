@@ -65,7 +65,7 @@ namespace opentxs
 {
 StorageMultiplex::StorageMultiplex(
     const api::storage::Storage& storage,
-    const std::atomic<bool>& primary_bucket_,
+    const Flag& primaryBucket,
     const StorageConfig& config,
     const String& primary,
     const bool migrate,
@@ -73,7 +73,7 @@ StorageMultiplex::StorageMultiplex(
     const Digest& hash,
     const Random& random)
     : storage_(storage)
-    , primary_bucket_(primary_bucket_)
+    , primary_bucket_(primaryBucket)
     , config_(config)
     , primary_plugin_()
     , backup_plugins_()
@@ -92,7 +92,7 @@ std::string StorageMultiplex::best_root(bool& primaryOutOfSync)
     std::shared_ptr<storage::Root> localRoot{nullptr};
     std::string bestHash{originalHash};
     std::uint64_t bestVersion{0};
-    std::atomic<bool> bucket{false};
+    auto bucket = Flag::Factory(false);
 
     try {
         localRoot.reset(new storage::Root(
@@ -395,7 +395,7 @@ void StorageMultiplex::migrate_primary(
 
     const std::string rootHash = old->LoadRoot();
     std::shared_ptr<storage::Root> root{nullptr};
-    std::atomic<bool> bucket{false};
+    auto bucket = Flag::Factory(false);
     root.reset(new storage::Root(
         *this, rootHash, std::numeric_limits<std::int64_t>::max(), bucket));
 

@@ -16,6 +16,7 @@ set(cxx-sources
   Cheque.cpp
   Contract.cpp
   Data.cpp
+  Flag.cpp
   Identifier.cpp
   Instrument.cpp
   Item.cpp
@@ -41,6 +42,7 @@ set(cxx-install-headers
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/Contract.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/Data.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/Data_imp.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/Flag.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/Helpers.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/Identifier.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/Instrument.hpp"
@@ -61,8 +63,10 @@ set(cxx-install-headers
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/String.hpp"
 )
 
-file(GLOB cxx-headers
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/*.hpp"
+set(cxx-headers
+  "${cxx-install-headers}"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/UniqueQueue.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Flag.hpp"
 )
 
 include_directories(${ProtobufIncludePath})

@@ -9,8 +9,8 @@ file(GLOB cxx-install-headers
 
 set(cxx-headers
   ${cxx-install-headers}
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/api/network/implementation/Dht.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/api/network/implementation/ZMQ.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/Dht.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/ZMQ.hpp
 )
 
 set(MODULE_NAME opentxs-api-network)

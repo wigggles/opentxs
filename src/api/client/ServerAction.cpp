@@ -38,8 +38,6 @@
 
 #include "opentxs/stdafx.hpp"
 
-#include "opentxs/api/client/implementation/ServerAction.hpp"
-
 #include "opentxs/cash/Purse.hpp"
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/client/OTAPI_Func.hpp"
@@ -51,6 +49,8 @@
 #include "opentxs/core/Ledger.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/ext/OTPayment.hpp"
+
+#include "ServerAction.hpp"
 
 #define OT_METHOD "opentxs::api::client::implementation::ServerAction::"
 

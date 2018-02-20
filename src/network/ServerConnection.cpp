@@ -38,7 +38,7 @@
 
 #include "opentxs/stdafx.hpp"
 
-#include "opentxs/network/ServerConnection.hpp"
+#include "ServerConnection.hpp"
 
 #include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/network/ZMQ.hpp"
@@ -61,140 +61,73 @@
 
 #define OT_METHOD "opentxs::ServerConnection::"
 
-namespace opentxs
+namespace opentxs::network
+{
+OTServerConnection ServerConnection::Factory(
+    const api::network::ZMQ& zmq,
+    const std::string& serverID)
+{
+    return OTServerConnection(
+        new implementation::ServerConnection(zmq, serverID));
+}
+}  // opentxs::network
+
+namespace opentxs::network::implementation
 {
 ServerConnection::ServerConnection(
-    const std::string& server,
-    const std::string& proxy,
-    std::atomic<bool>& shutdown,
-    std::atomic<std::chrono::seconds>& keepAlive,
-    const api::network::ZMQ& zmq,
-    const api::Settings& config)
-    : shutdown_(shutdown)
-    , keep_alive_(keepAlive)
-    , zmq_(zmq)
-    , config_(config)
-    , context_(zmq.Context())
-    , remote_contract_(nullptr)
-    , remote_endpoint_(GetRemoteEndpoint(server, remote_contract_))
-    , request_socket_(context_.NewRequestSocket())
-    , lock_(new std::mutex)
+    const opentxs::api::network::ZMQ& zmq,
+    const std::string& serverID)
+    : zmq_(zmq)
+    , server_id_(serverID)
+    , address_type_(proto::ADDRESSTYPE_IPV4)
+    , remote_contract_(OT::App().Wallet().Server(Identifier(serverID)))
     , thread_(nullptr)
-    , last_activity_(0)
-    , status_(false)
-    , use_proxy_(true)
+    , socket_(nullptr)
+    , last_activity_(std::time(nullptr))
+    , status_(Flag::Factory(false))
+    , use_proxy_(Flag::Factory(false))
 {
-    OT_ASSERT(request_socket_);
-    OT_ASSERT(lock_);
+    thread_.reset(new std::thread(&ServerConnection::activity_timer, this));
 
-    ResetTimer();
-    Init(proxy);
-    thread_.reset(new std::thread(&ServerConnection::Thread, this));
+    OT_ASSERT(remote_contract_)
+    OT_ASSERT(thread_)
 }
 
 bool ServerConnection::ChangeAddressType(const proto::AddressType type)
 {
-    Lock lock(*lock_);
-
-    std::uint32_t port{0};
-    std::string hostname{};
-
-    OT_ASSERT(remote_contract_);
-
-    if (false == remote_contract_->ConnectInfo(hostname, port, type)) {
-        otErr << OT_METHOD << __FUNCTION__
-              << ": Unable to extract connection info." << std::endl;
-
-        return false;
-    }
-
-    auto& endpoint = const_cast<std::string&>(remote_endpoint_);
-    endpoint = "tcp://" + hostname + ":" + std::to_string(port);
-    otErr << OT_METHOD << __FUNCTION__
-          << ": Changing endpoint to: " << remote_endpoint_ << std::endl;
-    ResetSocket();
+    Lock lock(lock_);
+    address_type_ = type;
+    reset_socket(lock);
 
     return true;
 }
 
 bool ServerConnection::ClearProxy()
 {
-    Lock lock(*lock_);
-
-    use_proxy_.store(false);
-    ResetSocket();
+    Lock lock(lock_);
+    use_proxy_->Off();
+    reset_socket(lock);
 
     return true;
 }
 
 bool ServerConnection::EnableProxy()
 {
-    Lock lock(*lock_);
-
-    use_proxy_.store(true);
-    ResetSocket();
+    Lock lock(lock_);
+    use_proxy_->On();
+    reset_socket(lock);
 
     return true;
 }
 
-void ServerConnection::Init(const std::string& proxy)
+std::string ServerConnection::endpoint() const
 {
-    status_.store(false);
+    std::uint32_t port{0};
+    std::string hostname{""};
+    const auto have = remote_contract_->ConnectInfo(
+        hostname, port, zmq_.DefaultAddressType());
 
-    if (use_proxy_.load()) {
-        SetProxy(proxy);
-    }
-
-    SetTimeouts();
-    SetCurve();
-    request_socket_->Start(remote_endpoint_);
-}
-
-void ServerConnection::ResetSocket()
-{
-    request_socket_->Close();
-    request_socket_ = context_.NewRequestSocket();
-
-    if (false == bool(request_socket_)) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Failed trying to reset socket."
-              << std::endl;
-
-        OT_FAIL;
-    }
-
-    std::string proxy{};
-
-    if (use_proxy_.load()) {
-        zmq_.SocksProxy(proxy);
-    }
-
-    Init(proxy);
-}
-
-std::string ServerConnection::GetRemoteEndpoint(
-    const std::string& server,
-    std::shared_ptr<const ServerContract>& contract) const
-{
-    bool changed = false;
-    std::int64_t preferred = 0;
-    config_.CheckSet_long(
-        "Connection",
-        "preferred_address_type",
-        static_cast<std::int64_t>(proto::ADDRESSTYPE_IPV4),
-        preferred,
-        changed);
-
-    if (changed) {
-        config_.Save();
-    }
-
-    contract = OT::App().Wallet().Server(Identifier(server));
-
-    std::uint32_t port = 0;
-    std::string hostname;
-
-    if (!contract->ConnectInfo(
-            hostname, port, static_cast<proto::AddressType>(preferred))) {
+    if (false == have) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Failed retrieving connection info from server contract."
               << std::endl;
@@ -209,17 +142,34 @@ std::string ServerConnection::GetRemoteEndpoint(
     return endpoint;
 }
 
-void ServerConnection::ResetTimer()
+zeromq::RequestSocket& ServerConnection::get_socket(const Lock& lock)
+{
+    OT_ASSERT(verify_lock(lock))
+
+    if (false == bool(socket_)) {
+        socket_ = socket(lock);
+    }
+
+    OT_ASSERT(socket_)
+
+    return *socket_;
+}
+
+void ServerConnection::reset_socket(const Lock& lock)
+{
+    OT_ASSERT(verify_lock(lock))
+
+    socket_.reset();
+}
+
+void ServerConnection::reset_timer()
 {
     last_activity_.store(std::time(nullptr));
 }
 
 NetworkReplyRaw ServerConnection::Send(const std::string& input)
 {
-    OT_ASSERT(lock_);
-
-    Lock lock(*lock_);
-
+    Lock lock(lock_);
     NetworkReplyRaw output{SendResult::ERROR, nullptr};
     auto& status = output.first;
     auto& reply = output.second;
@@ -227,26 +177,26 @@ NetworkReplyRaw ServerConnection::Send(const std::string& input)
 
     OT_ASSERT(reply);
 
-    auto message = context_.NewMessage(input);
+    auto message = zmq_.Context().NewMessage(input);
 
     OT_ASSERT(message);
 
-    auto result = request_socket_->SendRequest(*message);
+    auto result = get_socket(lock).SendRequest(*message);
     status = result.first;
 
     OT_ASSERT(result.second);
 
     switch (status) {
         case SendResult::ERROR: {
-            ResetSocket();
+            status_->Off();
         } break;
         case SendResult::TIMEOUT: {
-            status_.store(false);
-            ResetTimer();
+            status_->Off();
+            reset_timer();
         } break;
         case SendResult::VALID_REPLY: {
-            status_.store(true);
-            ResetTimer();
+            status_->On();
+            reset_timer();
             reply.reset(new std::string(*result.second));
 
             OT_ASSERT(reply);
@@ -317,42 +267,70 @@ NetworkReplyMessage ServerConnection::Send(const Message& message)
     return output;
 }
 
-void ServerConnection::SetCurve()
+void ServerConnection::set_curve(
+    const Lock& lock,
+    zeromq::RequestSocket& socket) const
 {
-    OT_ASSERT(remote_contract_);
+    OT_ASSERT(verify_lock(lock));
 
-    const auto set = request_socket_->SetCurve(*remote_contract_);
+    const auto set = socket.SetCurve(*remote_contract_);
 
     OT_ASSERT(set);
 }
 
-void ServerConnection::SetProxy(const std::string& proxy)
+void ServerConnection::set_proxy(
+    const Lock& lock,
+    zeromq::RequestSocket& socket) const
 {
-    OT_ASSERT(nullptr != request_socket_);
+    OT_ASSERT(verify_lock(lock));
+
+    if (false == use_proxy_.get()) {
+
+        return;
+    }
+
+    auto proxy = zmq_.SocksProxy();
 
     if (false == proxy.empty()) {
-        const auto set = request_socket_->SetSocksProxy(proxy);
+        const auto set = socket.SetSocksProxy(proxy);
 
         OT_ASSERT(set);
     }
 }
 
-void ServerConnection::SetTimeouts()
+void ServerConnection::set_timeouts(
+    const Lock& lock,
+    zeromq::RequestSocket& socket) const
 {
-    OT_ASSERT(nullptr != request_socket_);
+    OT_ASSERT(verify_lock(lock));
 
-    const auto set = request_socket_->SetTimeouts(
+    const auto set = socket.SetTimeouts(
         zmq_.Linger(), zmq_.SendTimeout(), zmq_.ReceiveTimeout());
 
     OT_ASSERT(set);
 }
 
-bool ServerConnection::Status() const { return status_.load(); }
-
-void ServerConnection::Thread()
+std::shared_ptr<zeromq::RequestSocket> ServerConnection::socket(
+    const Lock& lock) const
 {
-    while (!shutdown_.load()) {
-        const auto limit = keep_alive_.load();
+    auto output = zmq_.Context().NewRequestSocket();
+
+    OT_ASSERT(output)
+
+    set_proxy(lock, *output);
+    set_timeouts(lock, *output);
+    set_curve(lock, *output);
+    output->Start(endpoint());
+
+    return output;
+}
+
+bool ServerConnection::Status() const { return status_.get(); }
+
+void ServerConnection::activity_timer()
+{
+    while (zmq_.Running()) {
+        const auto limit = zmq_.KeepAlive();
         const auto now = std::chrono::seconds(std::time(nullptr));
         const auto last = std::chrono::seconds(last_activity_.load());
         const auto duration = now - last;
@@ -361,7 +339,7 @@ void ServerConnection::Thread()
             if (limit > std::chrono::seconds(0)) {
                 Send(std::string(""));
             } else {
-                status_.store(false);
+                status_->Off();
             }
         }
 
@@ -375,4 +353,4 @@ ServerConnection::~ServerConnection()
         thread_->join();
     }
 }
-}  // namespace opentxs
+}  // namespace opentxs::network::implementation

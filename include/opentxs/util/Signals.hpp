@@ -41,6 +41,8 @@
 
 #include "opentxs/Forward.hpp"
 
+#include "opentxs/core/Flag.hpp"
+
 #include <atomic>
 #include <functional>
 #include <map>
@@ -55,14 +57,14 @@ class Signals
 public:
     static void Block();
 
-    Signals(std::atomic<bool>& shutdown);
+    Signals(const Flag& running);
 
     ~Signals();
 
 private:
     static const std::map<int, std::function<void()>> handler_;
 
-    std::atomic<bool>& shutdown_;
+    const Flag& running_;
     std::unique_ptr<std::thread> thread_{nullptr};
 
     /** SIGHUP */

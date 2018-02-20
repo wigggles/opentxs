@@ -42,6 +42,7 @@
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/consensus/Context.hpp"
+#include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
@@ -72,7 +73,7 @@ public:
 
         ServerContext& context_;
         const TransactionNumber number_;
-        mutable std::atomic<bool> success_;
+        mutable OTFlag success_;
         bool managed_{true};
 
         ManagedNumber(const TransactionNumber number, ServerContext& context);
@@ -86,13 +87,13 @@ public:
         const ConstNym& local,
         const ConstNym& remote,
         const Identifier& server,
-        ServerConnection& connection,
+        network::ServerConnection& connection,
         std::mutex& nymfileLock);
     ServerContext(
         const proto::Context& serialized,
         const ConstNym& local,
         const ConstNym& remote,
-        ServerConnection& connection,
+        network::ServerConnection& connection,
         std::mutex& nymfileLock);
 
     const std::string& AdminPassword() const;
@@ -117,7 +118,7 @@ public:
     bool AcceptIssuedNumber(const TransactionNumber& number);
     bool AcceptIssuedNumbers(const TransactionStatement& statement);
     bool AddTentativeNumber(const TransactionNumber& number);
-    ServerConnection& Connection();
+    network::ServerConnection& Connection();
     std::pair<RequestNumber, std::unique_ptr<Message>> InitializeServerCommand(
         const MessageType type,
         const OTASCIIArmor& payload,
@@ -160,11 +161,11 @@ private:
 
     static const std::string default_node_name_;
 
-    ServerConnection& connection_;
+    network::ServerConnection& connection_;
     std::mutex message_lock_{};
     std::string admin_password_{""};
-    std::atomic<bool> admin_attempted_{false};
-    std::atomic<bool> admin_success_{false};
+    OTFlag admin_attempted_;
+    OTFlag admin_success_;
     std::atomic<std::uint64_t> revision_{0};
     std::atomic<TransactionNumber> highest_transaction_number_{0};
     std::set<TransactionNumber> tentative_transaction_numbers_{};

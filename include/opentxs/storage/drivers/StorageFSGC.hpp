@@ -84,7 +84,7 @@ private:
         const StorageConfig& config,
         const Digest& hash,
         const Random& random,
-        const std::atomic<bool>& bucket);
+        const Flag& bucket);
     StorageFSGC() = delete;
     StorageFSGC(const StorageFSGC&) = delete;
     StorageFSGC(StorageFSGC&&) = delete;

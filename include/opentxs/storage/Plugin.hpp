@@ -42,6 +42,7 @@
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/api/storage/Plugin.hpp"
+#include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
@@ -109,7 +110,7 @@ protected:
         const StorageConfig& config,
         const Digest& hash,
         const Random& random,
-        const std::atomic<bool>& bucket);
+        const Flag& bucket);
     Plugin() = delete;
 
     virtual void store(
@@ -122,7 +123,7 @@ protected:
 private:
     const api::storage::Storage& storage_;
     const Digest& digest_;
-    const std::atomic<bool>& current_bucket_;
+    const Flag& current_bucket_;
 
     Plugin(const Plugin&) = delete;
     Plugin(Plugin&&) = delete;

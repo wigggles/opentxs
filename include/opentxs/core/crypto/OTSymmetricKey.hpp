@@ -41,6 +41,7 @@
 
 #include "opentxs/Forward.hpp"
 
+#include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Lockable.hpp"
 
 #include <atomic>
@@ -113,7 +114,7 @@ public:
     EXPORT bool SerializeTo(String& strOutput, bool bEscaped = false) const;
     EXPORT bool SerializeFrom(const String& strInput, bool bEscaped = false);
     inline bool IsGenerated() const { return m_bIsGenerated; }
-    inline bool HasHashCheck() const { return has_hash_check_.load(); }
+    inline bool HasHashCheck() const { return has_hash_check_.get(); }
     EXPORT void GetIdentifier(Identifier& theIdentifier) const;
     EXPORT void GetIdentifier(String& strIdentifier) const;
     // The derived key is used for decrypting the actual symmetric key.
@@ -181,7 +182,7 @@ private:
     // GetKey asserts if this is false; GenerateKey asserts if it's true.
     bool m_bIsGenerated{false};
     // If a hash-check fo the Derived Key has been made yet.
-    std::atomic<bool> has_hash_check_{false};
+    OTFlag has_hash_check_;
     // The size, in bits. For example, 128 bit key, 256 bit key, etc.
     std::uint32_t m_nKeySize{0};
     // Stores the iteration count, which should probably be at least 2000.

@@ -47,15 +47,8 @@
 #include <mutex>
 #include <tuple>
 
-namespace opentxs
+namespace opentxs::api::client::implementation
 {
-namespace api
-{
-namespace client
-{
-namespace implementation
-{
-
 class Wallet : virtual public opentxs::api::client::Wallet
 {
 public:
@@ -78,10 +71,10 @@ public:
         const Identifier& localNymID,
         const Identifier& remoteID) const override;
     std::set<Identifier> IssuerList(const Identifier& nymID) const override;
-    std::shared_ptr<const class Issuer> Issuer(
+    std::shared_ptr<const api::client::Issuer> Issuer(
         const Identifier& nymID,
         const Identifier& issuerID) const override;
-    Editor<class Issuer> mutable_Issuer(
+    Editor<api::client::Issuer> mutable_Issuer(
         const Identifier& nymID,
         const Identifier& issuerID) const override;
     ConstNym Nym(
@@ -194,7 +187,7 @@ private:
     typedef std::pair<std::string, std::string> ContextID;
     typedef std::map<ContextID, std::shared_ptr<class Context>> ContextMap;
     typedef std::pair<Identifier, Identifier> IssuerID;
-    typedef std::pair<std::mutex, std::shared_ptr<class Issuer>> IssuerLock;
+    typedef std::pair<std::mutex, std::shared_ptr<api::client::Issuer>> IssuerLock;
     typedef std::map<IssuerID, IssuerLock> IssuerMap;
 
     friend class opentxs::api::implementation::Native;
@@ -218,7 +211,7 @@ private:
     std::mutex& nymfile_lock(const Identifier& nymID) const;
     std::mutex& peer_lock(const std::string& nymID) const;
     void save(class Context* context) const;
-    void save(const Lock& lock, class Issuer* in) const;
+    void save(const Lock& lock, api::client::Issuer* in) const;
 
     std::shared_ptr<class Context> context(
         const Identifier& localNymID,
@@ -257,9 +250,5 @@ private:
     Wallet& operator=(const Wallet&) = delete;
     Wallet& operator=(Wallet&&) = delete;
 };
-}  // namespace implementation
-}  // namespace client
-}  // namespace api
-}  // namespace opentxs
-
+}  // namespace opentxs::api::client::implementation
 #endif  // OPENTXS_API_CLIENT_IMPLEMENTATION_WALLET_HPP

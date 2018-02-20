@@ -44,6 +44,7 @@
 #include "opentxs/api/Native.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/util/Common.hpp"
+#include "opentxs/core/Flag.hpp"
 #include "opentxs/Types.hpp"
 
 #include <atomic>
@@ -101,6 +102,7 @@ private:
     typedef std::list<TaskItem> TaskList;
     typedef std::map<std::string, std::unique_ptr<api::Settings>> ConfigMap;
 
+    Flag& running_;
     const bool recover_{false};
     const bool server_mode_{false};
     std::int64_t nym_publish_interval_{0};
@@ -119,7 +121,6 @@ private:
     mutable std::mutex task_list_lock_;
     mutable std::mutex signal_handler_lock_;
     mutable TaskList periodic_task_list;
-    std::atomic<bool>& shutdown_;
     std::unique_ptr<api::Activity> activity_;
     std::unique_ptr<api::Api> api_;
     std::unique_ptr<api::Blockchain> blockchain_;
@@ -140,8 +141,8 @@ private:
     const ArgList server_args_;
 
     explicit Native(
+        Flag& running,
         const ArgList& args,
-        std::atomic<bool>& shutdown,
         const bool recover,
         const bool serverMode,
         const std::chrono::seconds gcInterval);

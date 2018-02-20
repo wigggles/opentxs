@@ -41,7 +41,6 @@
 
 #include "opentxs/Forward.hpp"
 
-#include "opentxs/api/network/implementation/ZMQ.hpp"  // TODO remove
 #include "opentxs/core/cron/OTCron.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -60,34 +59,13 @@
 
 namespace opentxs
 {
-class Message;
-class OTPassword;
-class OTPayment;
-class PayDividendVisitor;
-class ServerContract;
-
 namespace api
 {
-class Crypto;
-class Server;
-class Settings;
-
-namespace client
-{
-class Wallet;
-}  // namespace client
-
 namespace implementation
 {
 class Server;
 }  // namespace implementation
-
-namespace storage
-{
-class Storage;
-}  // namespace storage
 }  // namespace api
-
 namespace server
 {
 class Server

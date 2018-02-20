@@ -41,6 +41,7 @@
 
 #include "opentxs/Forward.hpp"
 
+#include "opentxs/core/Flag.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/Types.hpp"
 
@@ -55,13 +56,6 @@
 
 namespace opentxs
 {
-
-class Identifier;
-class OTASCIIArmor;
-class OTCachedKey;
-class OTPassword;
-class OTSymmetricKey;
-
 namespace api
 {
 namespace implementation
@@ -230,17 +224,17 @@ private:
 
     mutable std::mutex general_lock_;
     mutable std::mutex master_password_lock_;
-    mutable std::atomic<bool> shutdown_{false};
+    mutable OTFlag shutdown_;
     /** if set to true, then additionally use the local OS's standard API for
      * storing/retrieving secrets. (Store the master key here whenever it's
      * decrypted, and try to retrieve from here whenever it's needed, before
      * resorting to asking the user to type his passphrase.) This is
      * configurable in the config file. */
-    mutable std::atomic<bool> use_system_keyring_{false};
+    mutable OTFlag use_system_keyring_;
     /** If you want to force the old system, PAUSE the master key (REMEMBER to
      * Unpause when done!) */
-    mutable std::atomic<bool> paused_{false};
-    mutable std::atomic<bool> thread_exited_{false};
+    mutable OTFlag paused_;
+    mutable OTFlag thread_exited_;
     mutable std::atomic<std::time_t> time_{0};
     /** The master password will be stored internally for X seconds, and then
      * destroyed. */
@@ -260,7 +254,7 @@ private:
      * owns the thread also passes a pointer to ITSELF. (So we can access
      * password, mutex, timeout value, etc.) This function calls
      * DestroyMasterPassword. */
-    void reset_timer() const;
+    void reset_timer(const Lock& lock) const;
     void timeout_thread() const;
 
     void reset_master_password();

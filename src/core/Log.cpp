@@ -46,8 +46,7 @@
 #include "opentxs/core/util/OTPaths.hpp"
 #include "opentxs/core/util/stacktrace.h"
 #include "opentxs/core/String.hpp"
-#include "opentxs/Forward.hpp"
-#include "opentxs/OT.hpp"
+#include "opentxs/Types.hpp"
 
 #ifndef _WIN32
 #include <unistd.h>
@@ -156,6 +155,8 @@ OTLogStream::~OTLogStream()
 
 int OTLogStream::overflow(int c)
 {
+    rLock lock(lock_);
+
     pBuffer[next++] = c;
     if (c != '\n' && next < 1000) {
         return 0;
@@ -279,6 +280,11 @@ bool Log::Cleanup()
 // static
 bool Log::CheckLogger(Log* pLogger)
 {
+
+    if (nullptr != pLogger) {
+        rLock lock(Log::pLogger->lock_);
+    }
+
     if (nullptr != pLogger && pLogger->m_bInitialized) return true;
 
     OT_FAIL;
@@ -346,6 +352,10 @@ bool Log::LogToFile(const String& strOutput)
     // lets check if we are Initialized in this context
     if (bHaveLogger) CheckLogger(Log::pLogger);
 
+    if (nullptr != pLogger) {
+        rLock lock(Log::pLogger->lock_);
+    }
+
     bool bSuccess = false;
 
     if (bHaveLogger) {
@@ -375,6 +385,10 @@ String Log::GetMemlogAtIndex(int32_t nIndex)
     // lets check if we are Initialized in this context
     CheckLogger(Log::pLogger);
 
+    if (nullptr != pLogger) {
+        rLock lock(Log::pLogger->lock_);
+    }
+
     uint32_t uIndex = static_cast<uint32_t>(nIndex);
 
     if ((nIndex < 0) || (uIndex >= Log::pLogger->logDeque.size())) {
@@ -402,6 +416,10 @@ int32_t Log::GetMemlogSize()
     // lets check if we are Initialized in this context
     CheckLogger(Log::pLogger);
 
+    if (nullptr != pLogger) {
+        rLock lock(Log::pLogger->lock_);
+    }
+
     return static_cast<int32_t>(Log::pLogger->logDeque.size());
 }
 
@@ -409,6 +427,10 @@ String Log::PeekMemlogFront()
 {
     // lets check if we are Initialized in this context
     CheckLogger(Log::pLogger);
+
+    if (nullptr != pLogger) {
+        rLock lock(Log::pLogger->lock_);
+    }
 
     if (Log::pLogger->logDeque.size() <= 0) return nullptr;
 
@@ -429,6 +451,10 @@ String Log::PeekMemlogBack()
 {
     // lets check if we are Initialized in this context
     CheckLogger(Log::pLogger);
+
+    if (nullptr != pLogger) {
+        rLock lock(Log::pLogger->lock_);
+    }
 
     if (Log::pLogger->logDeque.size() <= 0) return nullptr;
 
@@ -451,6 +477,10 @@ bool Log::PopMemlogFront()
     // lets check if we are Initialized in this context
     CheckLogger(Log::pLogger);
 
+    if (nullptr != pLogger) {
+        rLock lock(Log::pLogger->lock_);
+    }
+
     if (Log::pLogger->logDeque.size() <= 0) return false;
 
     String* strLogFront = Log::pLogger->logDeque.front();
@@ -468,6 +498,10 @@ bool Log::PopMemlogBack()
     // lets check if we are Initialized in this context
     CheckLogger(Log::pLogger);
 
+    if (nullptr != pLogger) {
+        rLock lock(Log::pLogger->lock_);
+    }
+
     if (Log::pLogger->logDeque.size() <= 0) return false;
 
     String* strLogBack = Log::pLogger->logDeque.back();
@@ -484,6 +518,10 @@ bool Log::PushMemlogFront(const String& strLog)
 {
     // lets check if we are Initialized in this context
     CheckLogger(Log::pLogger);
+
+    if (nullptr != pLogger) {
+        rLock lock(Log::pLogger->lock_);
+    }
 
     OT_ASSERT(strLog.Exists());
 
@@ -629,6 +667,10 @@ void Log::vOutput(int32_t nVerbosity, const char* szOutput, ...)
     // lets check if we are Initialized in this context
     if (bHaveLogger) CheckLogger(Log::pLogger);
 
+    if (nullptr != pLogger) {
+        rLock lock(Log::pLogger->lock_);
+    }
+
     // If log level is 0, and verbosity of this message is 2, don't bother
     // logging it.
     if (((0 != LogLevel()) && (nVerbosity > LogLevel())) ||
@@ -661,6 +703,10 @@ void Log::vError(const char* szError, ...)
     // lets check if we are Initialized in this context
     if (bHaveLogger) CheckLogger(Log::pLogger);
 
+    if (nullptr != pLogger) {
+        rLock lock(Log::pLogger->lock_);
+    }
+
     if ((nullptr == szError)) return;
 
     va_list args;
@@ -692,6 +738,10 @@ void Log::Error(const char* szError)
     // lets check if we are Initialized in this context
     if (bHaveLogger) CheckLogger(Log::pLogger);
 
+    if (nullptr != pLogger) {
+        rLock lock(Log::pLogger->lock_);
+    }
+
     if ((nullptr == szError)) return;
 
     // We store the last 1024 logs so programmers can access them via the API.
@@ -719,6 +769,10 @@ void Log::Errno(const char* szLocation)  // stderr
 
     // lets check if we are Initialized in this context
     if (bHaveLogger) CheckLogger(Log::pLogger);
+
+    if (nullptr != pLogger) {
+        rLock lock(Log::pLogger->lock_);
+    }
 
     const int32_t errnum = errno;
     char buf[128];

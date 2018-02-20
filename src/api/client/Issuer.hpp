@@ -42,10 +42,10 @@
 #include "opentxs/Internal.hpp"
 
 #include "opentxs/api/client/Issuer.hpp"
+#include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Lockable.hpp"
 
-#include <atomic>
 #include <cstdint>
 #include <mutex>
 
@@ -120,7 +120,7 @@ private:
     const api::client::Wallet& wallet_;
     std::uint32_t version_{0};
     std::string pairing_code_{""};
-    mutable std::atomic<bool> paired_{false};
+    mutable OTFlag paired_;
     const Identifier nym_id_{};
     const Identifier issuer_id_{};
     std::map<proto::ContactItemType, std::set<UnitAccountPair>> account_map_{};

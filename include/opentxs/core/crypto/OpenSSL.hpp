@@ -43,7 +43,7 @@
 
 #if OT_CRYPTO_USING_OPENSSL
 
-#include "opentxs/api/crypto/implementation/Util.hpp"
+#include "opentxs/api/crypto/Util.hpp"
 #include "opentxs/core/crypto/Crypto.hpp"
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
 #include "opentxs/core/crypto/CryptoAsymmetric.hpp"
@@ -88,7 +88,7 @@ class OpenSSL : public Crypto
                 public CryptoSymmetric
 #endif
                 ,
-                public api::crypto::implementation::Util,
+                virtual public api::crypto::Util,
                 public CryptoHash
 {
 private:
@@ -130,6 +130,7 @@ private:
     };
 
     std::unique_ptr<OpenSSLdp> dp_;
+    mutable std::mutex lock_;
 
     bool ArgumentCheck(
         const bool encrypt,
@@ -142,14 +143,16 @@ private:
         bool& AEAD,
         bool& ECB) const;
     void Cleanup_Override() const override;
-    bool get_password(OTPassword& theOutput, const char* szPrompt)
-        const override;
+    bool get_password(OTPassword& theOutput, const char* szPrompt) const;
     void Init_Override() const override;
 
     OpenSSL();
 
 public:
     static std::mutex* s_arrayMutex;
+
+    bool GetPasswordFromConsole(OTPassword& theOutput, bool bRepeat = false)
+        const override;
 
     // (To instantiate a text secret, just do this: OTPassword thePass;)
     OTPassword* InstantiateBinarySecret() const override;

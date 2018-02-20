@@ -38,7 +38,7 @@
 
 #include "opentxs/stdafx.hpp"
 
-#include "opentxs/api/storage/implementation/Storage.hpp"
+#include "Storage.hpp"
 
 #include "opentxs/storage/drivers/StorageMultiplex.hpp"
 #include "opentxs/storage/tree/BlockchainTransactions.hpp"
@@ -74,18 +74,18 @@ namespace opentxs::api::storage::implementation
 const std::uint32_t Storage::HASH_TYPE = 2;  // BTC160
 
 Storage::Storage(
-    const std::atomic<bool>& shutdown,
+    const Flag& running,
     const StorageConfig& config,
     const String& primary,
     const bool migrate,
     const String& previous,
     const Digest& hash,
     const Random& random)
-    : shutdown_(shutdown)
+    : running_(running)
     , gc_interval_(config.gc_interval_)
     , write_lock_()
     , root_(nullptr)
-    , primary_bucket_(false)
+    , primary_bucket_(Flag::Factory(false))
     , background_threads_()
     , config_(config)
     , multiplex_p_(new StorageMultiplex(
@@ -950,7 +950,8 @@ bool Storage::RenameThread(
 
 void Storage::RunGC() const
 {
-    if (shutdown_.load()) {
+    if (!running_) {
+
         return;
     }
 

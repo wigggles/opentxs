@@ -1914,9 +1914,8 @@ bool OTAPI_Exec::Wallet_CanRemoveAssetType(
         if (theID == theCompareID) {
             otOut << OT_METHOD << __FUNCTION__
                   << ": Unable to remove asset contract "
-                  << INSTRUMENT_DEFINITION_ID
-                  << " from "
-                     "wallet: Account "
+                  << INSTRUMENT_DEFINITION_ID << " from "
+                                                 "wallet: Account "
                   << strAcctID << " uses it.\n";
             return false;
         }
@@ -2035,10 +2034,13 @@ bool OTAPI_Exec::Wallet_CanRemoveAccount(const std::string& ACCOUNT_ID) const
 
     const Identifier theAccountID(ACCOUNT_ID);
 
-    Account* pAccount = ot_api_.GetAccount(theAccountID, __FUNCTION__);
-    if (nullptr == pAccount) return false;
-    // Balance must be zero in order to close an account!
-    else if (pAccount->GetBalance() != 0) {
+    auto pAccount = ot_api_.GetAccount(theAccountID, __FUNCTION__);
+
+    if (false == bool(pAccount)) {
+
+        return false;
+        // Balance must be zero in order to close an account!
+    } else if (pAccount->GetBalance() != 0) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Account balance MUST be zero in order to "
                  "close an asset account: "
@@ -2425,7 +2427,7 @@ std::string OTAPI_Exec::Wallet_GetAccountIDFromPartial(
         return {};
     }
 
-    Account* pObject = nullptr;
+    std::shared_ptr<Account> pObject{nullptr};
     Identifier thePartialID(PARTIAL_ID);
 
     // In this case, the user passed in the FULL ID.
@@ -3937,10 +3939,11 @@ std::string OTAPI_Exec::GetAccountWallet_Name(const std::string& THE_ID) const
         "OTAPI_Exec::GetAccountWallet_Name: Null THE_ID passed in.");
 
     Identifier theID(THE_ID);
-
     std::string strFunc = "OTAPI_Exec::GetAccountWallet_Name";
-    Account* pAccount = ot_api_.GetAccount(theID, strFunc.c_str());
-    if (nullptr == pAccount) return {};
+    auto pAccount = ot_api_.GetAccount(theID, strFunc.c_str());
+
+    if (pAccount->GetBalance()) return {};
+
     String strName;
     pAccount->GetName(strName);
     std::string pBuf = strName.Get();
@@ -3961,9 +3964,9 @@ std::string OTAPI_Exec::GetAccountWallet_InboxHash(
         "OTAPI_Exec::GetAccountWallet_InboxHash: Null ACCOUNT_ID passed in.");
 
     Identifier theID(ACCOUNT_ID);
+    auto pAccount = ot_api_.GetAccount(theID, __FUNCTION__);
 
-    Account* pAccount = ot_api_.GetAccount(theID, __FUNCTION__);
-    if (nullptr == pAccount) return {};
+    if (pAccount->GetBalance()) return {};
 
     Identifier theOutput;
     const bool& bGotHash = pAccount->GetInboxHash(theOutput);
@@ -3991,7 +3994,8 @@ std::string OTAPI_Exec::GetAccountWallet_OutboxHash(
 
     Identifier theID(ACCOUNT_ID);
 
-    Account* pAccount = ot_api_.GetAccount(theID, __FUNCTION__);
+    auto pAccount = ot_api_.GetAccount(theID, __FUNCTION__);
+
     if (nullptr == pAccount) return {};
 
     Identifier theOutput;
@@ -4439,8 +4443,9 @@ std::string OTAPI_Exec::VerifyAndRetrieveXMLContents(
     const Identifier theSignerID(SIGNER_ID);
     String strOutput;
 
-    if (false == ot_api_.VerifyAndRetrieveXMLContents(
-                     strContract, theSignerID, strOutput)) {
+    if (false ==
+        ot_api_.VerifyAndRetrieveXMLContents(
+            strContract, theSignerID, strOutput)) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Failure: "
                  "ot_api_.VerifyAndRetrieveXMLContents() "
@@ -4519,8 +4524,8 @@ int64_t OTAPI_Exec::GetAccountWallet_Balance(const std::string& THE_ID) const
         "OTAPI_Exec::GetAccountWallet_Balance: Null THE_ID passed in.");
 
     Identifier theID(THE_ID);
-    Account* pAccount = ot_api_.GetAccount(theID, __FUNCTION__);
-    return nullptr == pAccount ? OT_ERROR_AMOUNT : pAccount->GetBalance();
+    auto pAccount = ot_api_.GetAccount(theID, __FUNCTION__);
+    return (pAccount) ? pAccount->GetBalance() : OT_ERROR_AMOUNT;
 }
 
 // returns an account's "account type", (simple, issuer, etc.)
@@ -4533,8 +4538,10 @@ std::string OTAPI_Exec::GetAccountWallet_Type(const std::string& THE_ID) const
         "OTAPI_Exec::GetAccountWallet_Type: Null THE_ID passed in.");
 
     Identifier theID(THE_ID);
-    Account* pAccount = ot_api_.GetAccount(theID, __FUNCTION__);
-    if (nullptr == pAccount) return {};
+    auto pAccount = ot_api_.GetAccount(theID, __FUNCTION__);
+
+    if (false == bool(pAccount)) return {};
+
     std::string pBuf = pAccount->GetTypeString();
 
     return pBuf;
@@ -4550,15 +4557,14 @@ std::string OTAPI_Exec::GetAccountWallet_InstrumentDefinitionID(
     OT_VERIFY_ID_STR(THE_ID);
 
     Identifier theID(THE_ID);
-    Account* pAccount = ot_api_.GetAccount(theID, __FUNCTION__);
-    if (nullptr == pAccount) return {};
+    auto pAccount = ot_api_.GetAccount(theID, __FUNCTION__);
+
+    if (false == bool(pAccount)) return {};
+
     Identifier theInstrumentDefinitionID(pAccount->GetInstrumentDefinitionID());
-
     String strInstrumentDefinitionID(theInstrumentDefinitionID);
-
     otWarn << OT_METHOD << __FUNCTION__ << ": Returning instrument definition "
            << strInstrumentDefinitionID << " for account " << THE_ID << "\n";
-
     std::string pBuf = strInstrumentDefinitionID.Get();
 
     return pBuf;
@@ -4574,8 +4580,10 @@ std::string OTAPI_Exec::GetAccountWallet_NotaryID(
     OT_VERIFY_ID_STR(THE_ID);
 
     Identifier theID(THE_ID);
-    Account* pAccount = ot_api_.GetAccount(theID, __FUNCTION__);
-    if (nullptr == pAccount) return {};
+    auto pAccount = ot_api_.GetAccount(theID, __FUNCTION__);
+
+    if (false == bool(pAccount)) return {};
+
     Identifier theNotaryID(pAccount->GetPurportedNotaryID());
     String strNotaryID(theNotaryID);
 
@@ -4594,8 +4602,10 @@ std::string OTAPI_Exec::GetAccountWallet_NymID(const std::string& THE_ID) const
 
     const Identifier theID(THE_ID);
 
-    Account* pAccount = ot_api_.GetAccount(theID, __FUNCTION__);
-    if (nullptr == pAccount) return {};
+    auto pAccount = ot_api_.GetAccount(theID, __FUNCTION__);
+
+    if (false == bool(pAccount)) return {};
+
     Identifier theNymID(pAccount->GetNymID());
     String strNymID(theNymID);
 
@@ -7340,9 +7350,10 @@ bool OTAPI_Exec::Msg_HarvestTransactionNumbers(
             // Now we need to find the account ID (so we can find the server
             // ID...)
             //
-            Account* pAccount = ot_api_.GetAccount(
+            auto pAccount = ot_api_.GetAccount(
                 theRequestBasket.GetRequestAccountID(), __FUNCTION__);
-            if (nullptr == pAccount) {
+
+            if (false == bool(pAccount)) {
                 const String strAcctID(theRequestBasket.GetRequestAccountID());
                 otOut << OT_METHOD << __FUNCTION__
                       << ": Error: Unable to find the main account based on "
@@ -7725,8 +7736,6 @@ std::string OTAPI_Exec::LoadAssetAccount(
     const std::string& NYM_ID,
     const std::string& ACCOUNT_ID) const  // Returns "", or an account.
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(NYM_ID);
     OT_VERIFY_ID_STR(ACCOUNT_ID);
@@ -7734,22 +7743,20 @@ std::string OTAPI_Exec::LoadAssetAccount(
     const Identifier theNotaryID(NOTARY_ID);
     const Identifier theNymID(NYM_ID);
     const Identifier theAccountID(ACCOUNT_ID);
-
     // There is an OT_ASSERT in here for memory failure,
     // but it still might return "" if various verification fails.
-    std::unique_ptr<Account> pAccount(
+    auto pAccount(
         ot_api_.LoadAssetAccount(theNotaryID, theNymID, theAccountID));
 
-    if (nullptr == pAccount) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Failure calling OT_API::LoadAssetAccount.\nAccount ID: "
-              << ACCOUNT_ID << "\n";
-    } else  // success
-    {
-        String strOutput(*pAccount);  // For the output
-        std::string pBuf = strOutput.Get();
-        return pBuf;
+    if (pAccount) {
+
+        return String(*pAccount).Get();
     }
+
+    otOut << OT_METHOD << __FUNCTION__
+          << ": Failure calling OT_API::LoadAssetAccount.\nAccount ID: "
+          << ACCOUNT_ID << "\n";
+
     return {};
 }
 
@@ -11119,9 +11126,9 @@ std::string OTAPI_Exec::Token_ChangeOwner(
                                           // Nym ID, OR might contain a
                                           // purse...
         strNewOwner(NEW_OWNER);           // (purse is passed in cases where the
-                                 // token is encrypted with a passphrase
-                                 // aka symmetric crypto, versus being
-                                 // encrypted to a Nym's public key.)
+    // token is encrypted with a passphrase
+    // aka symmetric crypto, versus being
+    // encrypted to a Nym's public key.)
     String strToken(THE_TOKEN);
     std::unique_ptr<Token> pToken(ot_api_.Token_ChangeOwner(
         theNotaryID,
@@ -12305,8 +12312,9 @@ std::string OTAPI_Exec::Message_GetNewInstrumentDefinitionID(
     // contain a ledger. (Don't want to pass back whatever it DOES contain
     // in that case, now do I?)
     //
-    if ((false == theMessage.m_strCommand.Compare(
-                      "registerInstrumentDefinitionResponse")) &&
+    if ((false ==
+         theMessage.m_strCommand.Compare(
+             "registerInstrumentDefinitionResponse")) &&
         (false == theMessage.m_strCommand.Compare("issueBasketResponse"))) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Wrong message type: " << theMessage.m_strCommand << "\n";

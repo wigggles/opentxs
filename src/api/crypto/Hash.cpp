@@ -38,7 +38,7 @@
 
 #include "opentxs/stdafx.hpp"
 
-#include "opentxs/api/crypto/implementation/Hash.hpp"
+#include "Hash.hpp"
 
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/Native.hpp"

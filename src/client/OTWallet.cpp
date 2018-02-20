@@ -433,11 +433,12 @@ void OTWallet::add_nym(const Lock& lock, const Nym& theNym, mapOfNymsSP& map)
     }
 }
 
-void OTWallet::add_account(const Lock& lock, const Account& theAcct)
+void OTWallet::add_account(const Lock& lock, std::shared_ptr<Account>& theAcct)
 {
+    OT_ASSERT(theAcct)
     OT_ASSERT(verify_lock(lock))
 
-    const Identifier ACCOUNT_ID(theAcct);
+    const Identifier ACCOUNT_ID(*theAcct);
     auto existing = m_mapAccounts.find(ACCOUNT_ID);
 
     if (m_mapAccounts.end() != existing) {
@@ -449,29 +450,33 @@ void OTWallet::add_account(const Lock& lock, const Account& theAcct)
         account->GetName(name);
 
         if (name.Exists()) {
-            const_cast<Account&>(theAcct).SetName(name);
+            theAcct->SetName(name);
         }
 
-        m_mapAccounts.erase(existing);
+        account = theAcct;
+    } else {
+        auto& entry = m_mapAccounts[ACCOUNT_ID];
+        auto & [ nymID, serverID, unitID, account ] = entry;
+        nymID = theAcct->GetNymID();
+        serverID = theAcct->GetPurportedNotaryID();
+        unitID = theAcct->GetInstrumentDefinitionID();
+        account = theAcct;
     }
-
-    auto& entry = m_mapAccounts[ACCOUNT_ID];
-    auto & [ nymID, serverID, unitID, account ] = entry;
-    nymID = theAcct.GetNymID();
-    serverID = theAcct.GetPurportedNotaryID();
-    unitID = theAcct.GetInstrumentDefinitionID();
-    account.reset(const_cast<Account*>(&theAcct));
 }
 
-void OTWallet::AddAccount(const Account& theAcct)
+void OTWallet::AddAccount(std::shared_ptr<Account>& theAcct)
 {
+    OT_ASSERT(theAcct)
+
     Lock lock(lock_);
     add_account(lock, theAcct);
 }
 
 // // Look up an account by ID and see if it is in the wallet.
 // If it is, return a pointer to it, otherwise return nullptr.
-Account* OTWallet::get_account(const Lock& lock, const Identifier& theAccountID)
+std::shared_ptr<Account> OTWallet::get_account(
+    const Lock& lock,
+    const Identifier& theAccountID)
 {
     OT_ASSERT(verify_lock(lock))
 
@@ -482,12 +487,12 @@ Account* OTWallet::get_account(const Lock& lock, const Identifier& theAccountID)
         return nullptr;
     }
 
-    return std::get<3>(it->second).get();
+    return std::get<3>(it->second);
 }
 
 // // Look up an account by ID and see if it is in the wallet.
 // If it is, return a pointer to it, otherwise return nullptr.
-Account* OTWallet::GetAccount(const Identifier& theAccountID)
+std::shared_ptr<Account> OTWallet::GetAccount(const Identifier& theAccountID)
 {
     Lock lock(lock_);
 
@@ -495,7 +500,8 @@ Account* OTWallet::GetAccount(const Identifier& theAccountID)
 }
 
 // works with the name too.
-Account* OTWallet::GetAccountPartialMatch(std::string PARTIAL_ID)
+std::shared_ptr<Account> OTWallet::GetAccountPartialMatch(
+    std::string PARTIAL_ID)
 {
     Lock lock(lock_);
     // loop through the accounts and find one with a specific ID.
@@ -511,7 +517,7 @@ Account* OTWallet::GetAccountPartialMatch(std::string PARTIAL_ID)
 
         if (strIdentifier.compare(0, PARTIAL_ID.length(), PARTIAL_ID) == 0) {
 
-            return pAccount.get();
+            return pAccount;
         }
     }
 
@@ -528,14 +534,15 @@ Account* OTWallet::GetAccountPartialMatch(std::string PARTIAL_ID)
 
         if (str_Name.compare(0, PARTIAL_ID.length(), PARTIAL_ID) == 0) {
 
-            return pAccount.get();
+            return pAccount;
         }
     }
 
     return nullptr;
 }
 
-Account* OTWallet::GetIssuerAccount(const Identifier& theInstrumentDefinitionID)
+std::shared_ptr<Account> OTWallet::GetIssuerAccount(
+    const Identifier& theInstrumentDefinitionID)
 {
     Lock lock(lock_);
     // loop through the accounts and find one with a specific instrument
@@ -549,7 +556,7 @@ Account* OTWallet::GetIssuerAccount(const Identifier& theInstrumentDefinitionID)
              theInstrumentDefinitionID) &&
             (pIssuerAccount->IsIssuer())) {
 
-            return pIssuerAccount.get();
+            return pIssuerAccount;
         }
     }
 
@@ -607,7 +614,7 @@ bool OTWallet::verify_account(
 
 // No need to cleanup the account returned, it's owned by the wallet.
 //
-Account* OTWallet::GetOrLoadAccount(
+std::shared_ptr<Account> OTWallet::GetOrLoadAccount(
     const Nym& theNym,
     const Identifier& ACCT_ID,
     const Identifier& NOTARY_ID,
@@ -619,7 +626,7 @@ Account* OTWallet::GetOrLoadAccount(
 
     const String strAcctID(ACCT_ID);
 
-    Account* pAccount = get_account(lock, ACCT_ID);
+    auto pAccount = get_account(lock, ACCT_ID);
 
     if (nullptr ==
         pAccount)  // It wasn't there already, so we'll have to load it...
@@ -633,7 +640,7 @@ Account* OTWallet::GetOrLoadAccount(
 
     // It either was already there, or it loaded successfully...
     //
-    if (nullptr == pAccount)  // pAccount EXISTS...
+    if (false == bool(pAccount))  // pAccount EXISTS...
     {
         otErr << "OTWallet::GetOrLoadAccount " << szFunc
               << ": Error loading Asset Account: " << strAcctID << "\n";
@@ -650,7 +657,7 @@ Account* OTWallet::GetOrLoadAccount(
 // from the server, and the one in the wallet is old, so now this function
 // is being called to load the new one from storage and update the wallet.
 //
-Account* OTWallet::load_account(
+std::shared_ptr<Account> OTWallet::load_account(
     const Lock& lock,
     const Nym& theNym,
     const Identifier& ACCT_ID,
@@ -662,28 +669,26 @@ Account* OTWallet::load_account(
     const char* szFunc =
         (nullptr != szFuncName) ? szFuncName : "OTWallet::LoadAccount";
     const String strAcctID(ACCT_ID);
-    Account* pAccount = Account::LoadExistingAccount(ACCT_ID, NOTARY_ID);
+    std::shared_ptr<Account> pAccount(
+        Account::LoadExistingAccount(ACCT_ID, NOTARY_ID));
 
-    if (nullptr != pAccount)  // pAccount EXISTS...
-    {
+    if (pAccount) {
         bool bVerified = verify_account(
             lock, theNym, *pAccount, NOTARY_ID, strAcctID, szFunc);
 
         if (!bVerified) {
-            delete pAccount;
-            pAccount = nullptr;
-            return nullptr;  // No need to log, since VerifyAssetAccount()
-                             // already
-                             // logs.
+
+            return nullptr;
         }
 
         // If I had to load it myself, that means I need to add it to the
         // wallet. (Whereas if GetAccount() had worked, then it would ALREADY
         // be in the wallet, and thus I shouldn't add it twice...)
-        add_account(lock, *pAccount);
+        add_account(lock, pAccount);
     } else {
         otErr << "OTWallet::LoadAccount " << szFunc
               << ": Failed loading Asset Account: " << strAcctID << "\n";
+
         return nullptr;
     }
 
@@ -697,7 +702,7 @@ Account* OTWallet::load_account(
 // from the server, and the one in the wallet is old, so now this function
 // is being called to load the new one from storage and update the wallet.
 //
-Account* OTWallet::LoadAccount(
+std::shared_ptr<Account> OTWallet::LoadAccount(
     const Nym& theNym,
     const Identifier& ACCT_ID,
     const Identifier& NOTARY_ID,
@@ -1528,7 +1533,6 @@ bool OTWallet::LoadWallet(const char* szFilename)
 
                         AcctID = xml->getAttributeValue("accountID");
                         NotaryID = xml->getAttributeValue("notaryID");
-
                         otInfo << "\n------------------------------------------"
                                   "----"
                                   "----------------------------\n"
@@ -1536,16 +1540,15 @@ bool OTWallet::LoadWallet(const char* szFilename)
                                   " Account Name: "
                                << AcctName << "\n   Account ID: " << AcctID
                                << "\n    Notary ID: " << NotaryID << "\n";
-
                         const Identifier ACCOUNT_ID(AcctID),
                             NOTARY_ID(NotaryID);
-
-                        Account* pAccount =
-                            Account::LoadExistingAccount(ACCOUNT_ID, NOTARY_ID);
+                        std::shared_ptr<Account> pAccount(
+                            Account::LoadExistingAccount(
+                                ACCOUNT_ID, NOTARY_ID));
 
                         if (pAccount) {
                             pAccount->SetName(AcctName);
-                            add_account(lock, *pAccount);
+                            add_account(lock, pAccount);
                         } else {
                             otErr
                                 << __FUNCTION__

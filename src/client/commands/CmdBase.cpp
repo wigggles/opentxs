@@ -91,23 +91,24 @@ bool CmdBase::checkAccount(const char* name, string& account) const
         return false;
     }
 
-    Account* pAccount = nullptr;
+    std::shared_ptr<Account> pAccount{nullptr};
     OTWallet* wallet = getWallet();
 
     Identifier theID(account);
 
     if (!theID.empty()) pAccount = wallet->GetAccount(theID);
 
-    if (nullptr == pAccount) {
+    if (false == bool(pAccount)) {
         pAccount = wallet->GetAccountPartialMatch(account);
-        if (nullptr == pAccount) {
+
+        if (false == bool(pAccount)) {
             otOut << "Error: " << name << ": unknown account: " << account
                   << "\n";
             return false;
         }
     }
 
-    if (nullptr != pAccount) {
+    if (pAccount) {
         String tmp;
         pAccount->GetPurportedAccountID().GetString(tmp);
         account = tmp.Get();

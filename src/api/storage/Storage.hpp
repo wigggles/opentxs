@@ -44,8 +44,8 @@
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Editor.hpp"
 #include "opentxs/storage/StorageConfig.hpp"
+#include "opentxs/core/Flag.hpp"
 
-#include <atomic>
 #include <iostream>
 #include <limits>
 #include <list>
@@ -307,11 +307,11 @@ private:
 
     static const std::uint32_t HASH_TYPE;
 
-    const std::atomic<bool>& shutdown_;
+    const Flag& running_;
     std::int64_t gc_interval_{std::numeric_limits<std::int64_t>::max()};
     mutable std::mutex write_lock_;
     mutable std::unique_ptr<opentxs::storage::Root> root_;
-    mutable std::atomic<bool> primary_bucket_;
+    mutable OTFlag primary_bucket_;
     std::vector<std::thread> background_threads_;
     const StorageConfig config_;
     std::unique_ptr<StorageMultiplex> multiplex_p_;
@@ -335,7 +335,7 @@ private:
     void start();
 
     Storage(
-        const std::atomic<bool>& shutdown,
+        const Flag& running,
         const StorageConfig& config,
         const String& primary,
         const bool migrate,

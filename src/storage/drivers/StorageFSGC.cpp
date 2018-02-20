@@ -53,7 +53,7 @@ StorageFSGC::StorageFSGC(
     const StorageConfig& config,
     const Digest& hash,
     const Random& random,
-    const std::atomic<bool>& bucket)
+    const Flag& bucket)
     : ot_super(storage, config, hash, random, config.path_, bucket)
 {
     Init_StorageFSGC();
@@ -110,7 +110,7 @@ void StorageFSGC::Init_StorageFSGC()
         folder_ + path_seperator_ + config_.fs_primary_bucket_);
     boost::filesystem::create_directory(
         folder_ + path_seperator_ + config_.fs_secondary_bucket_);
-    ready_.store(true);
+    ready_->On();
 }
 
 void StorageFSGC::purge(const std::string& path) const

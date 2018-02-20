@@ -103,7 +103,7 @@ void Nyms::Map(NymLambda lambda) const
 {
     Lock lock(write_lock_);
     const auto copy = item_map_;
-    write_lock_.unlock();
+    lock.unlock();
 
     for (const auto it : copy) {
         const auto& id = it.first;

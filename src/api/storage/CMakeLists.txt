@@ -8,7 +8,7 @@ file(GLOB cxx-install-headers
 
 set(cxx-headers
   ${cxx-install-headers}
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/api/storage/implementation/Storage.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/Storage.hpp
 )
 
 set(MODULE_NAME opentxs-api-storage)

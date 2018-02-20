@@ -104,8 +104,15 @@ class RequestSocket;
 
 class Dht;
 class OpenDHT;
+class ServerConnection;
 class ZMQ;
 }  // namespace opentxs::network
+
+namespace server
+{
+class MessageProcessor;
+class Server;
+}  // namespace opentxs::server
 
 class Account;
 class AccountVisitor;
@@ -129,6 +136,7 @@ class CryptoSymmetric;
 class CryptoSymmetricNew;
 class Data;
 class Ecdsa;
+class Flag;
 class Identifier;
 class Item;
 class Ledger;
@@ -169,10 +177,10 @@ class OTSmartContract;
 class OTSymmetricKey;
 class OTTransaction;
 class OTWallet;
+class PayDividendVisitor;
 class PaymentCode;
 class PeerObject;
 class Purse;
-class ServerConnection;
 class ServerContext;
 class ServerContract;
 class Signals;
@@ -187,5 +195,7 @@ class TransactionStatement;
 class UnitDefinition;
 
 using OTData = Pimpl<Data>;
+using OTFlag = Pimpl<Flag>;
+using OTServerConnection = Pimpl<network::ServerConnection>;
 }  // namespace opentxs
 #endif  // OPENTXS_FORWARD_HPP

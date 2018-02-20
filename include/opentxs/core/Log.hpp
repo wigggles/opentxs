@@ -48,6 +48,7 @@
 #include <cstdint>
 #include <deque>
 #include <iostream>
+#include <mutex>
 #include <thread>
 
 #if defined(unix) || defined(__unix__) || defined(__unix) ||                   \
@@ -101,6 +102,7 @@ private:
     int logLevel{0};
     int next{0};
     char* pBuffer{nullptr};
+    std::recursive_mutex lock_;
 
 public:
     explicit OTLogStream(int _logLevel);
@@ -124,6 +126,7 @@ private:
     String m_strLogFileName{""};
     String m_strLogFilePath{""};
     dequeOfStrings logDeque{};
+    std::recursive_mutex lock_;
 
     /** For things that represent internal inconsistency in the code. Normally
      * should NEVER happen even with bad input from user. (Don't call this

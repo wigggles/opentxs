@@ -12,11 +12,11 @@ file(GLOB cxx-install-headers
 
 set(cxx-headers
   ${cxx-install-headers}
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/api/client/implementation/Pair.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/api/client/implementation/ServerAction.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/api/client/implementation/Wallet.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Issuer.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/Pair.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/ServerAction.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Sync.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/Wallet.hpp
 )
 
 set(MODULE_NAME opentxs-api-client)

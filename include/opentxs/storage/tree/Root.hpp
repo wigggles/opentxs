@@ -78,16 +78,14 @@ private:
     friend class api::storage::implementation::Storage;
 
     const std::uint64_t gc_interval_{std::numeric_limits<int64_t>::max()};
-
     mutable std::string gc_root_;
-    std::atomic<bool>& current_bucket_;
-    mutable std::atomic<bool> gc_running_;
-    mutable std::atomic<bool> gc_resume_;
+    Flag& current_bucket_;
+    mutable OTFlag gc_running_;
+    mutable OTFlag gc_resume_;
     mutable std::atomic<std::uint64_t> last_gc_;
     mutable std::atomic<std::uint64_t> sequence_;
     mutable std::mutex gc_lock_;
     mutable std::unique_ptr<std::thread> gc_thread_;
-
     std::string tree_root_;
     mutable std::mutex tree_lock_;
     mutable std::unique_ptr<class Tree> tree_;
@@ -106,7 +104,7 @@ private:
         const opentxs::api::storage::Driver& storage,
         const std::string& hash,
         const std::int64_t interval,
-        std::atomic<bool>& bucket);
+        Flag& bucket);
     Root() = delete;
     Root(const Root&) = delete;
     Root(Root&&) = delete;

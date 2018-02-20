@@ -36,42 +36,38 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_CORE_CRYPTO_CRYPTOUTIL_HPP
-#define OPENTXS_CORE_CRYPTO_CRYPTOUTIL_HPP
+#ifndef OPENTXS_CORE_FLAG_HPP
+#define OPENTXS_CORE_FLAG_HPP
 
-#include "opentxs/Internal.hpp"
-
-#include "opentxs/api/crypto/Util.hpp"
+#include "opentxs/Forward.hpp"
 
 namespace opentxs
 {
-namespace api
-{
-namespace crypto
-{
-namespace implementation
-{
-
-class Util : virtual public api::crypto::Util
+/** Wrapper for a std::atomic<bool> */
+class Flag
 {
 public:
-    bool GetPasswordFromConsole(OTPassword& theOutput, bool bRepeat = false)
-        const override;
+    static OTFlag Factory(const bool state);
 
-    virtual ~Util() = default;
+    virtual operator bool() const = 0;
+
+    virtual void Off() = 0;
+    virtual void On() = 0;
+    /** Returns previous state */
+    virtual bool Set(const bool value) = 0;
+    /** Returns previous state */
+    virtual bool Toggle() = 0;
+
+    virtual ~Flag() = default;
 
 protected:
-    virtual bool get_password(OTPassword& theOutput, const char* szPrompt)
-        const = 0;
+    Flag() = default;
 
-    Util() = default;
-    Util(const Util&) = delete;
-    Util(Util&&) = delete;
-    Util& operator=(const Util&) = delete;
-    Util& operator=(Util&&) = delete;
+private:
+    Flag(const Flag&) = delete;
+    Flag(Flag&&) = delete;
+    Flag& operator=(const Flag&) = delete;
+    Flag& operator=(Flag&&) = delete;
 };
-}  // namespace implementation
-}  // namespace crypto
-}  // namespace api
 }  // namespace opentxs
-#endif  // OPENTXS_CORE_CRYPTO_CRYPTOUTIL_HPP
+#endif  // OPENTXS_CORE_FLAG_HPP

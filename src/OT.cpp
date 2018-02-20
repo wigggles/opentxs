@@ -40,14 +40,13 @@
 
 #include "opentxs/OT.hpp"
 
-#include "opentxs/api/implementation/Native.hpp"
-#include "opentxs/api/Native.hpp"
+#include "api/Native.hpp"
 #include "opentxs/core/Log.hpp"
 
 namespace opentxs
 {
 api::Native* OT::instance_pointer_{nullptr};
-std::atomic<bool> OT::shutdown_{false};
+OTFlag OT::running_{Flag::Factory(true)};
 
 const api::Native& OT::App()
 {
@@ -78,7 +77,7 @@ void OT::ClientFactory(
     OT_ASSERT(nullptr == instance_pointer_);
 
     instance_pointer_ = new api::implementation::Native(
-        args, shutdown_, recover, false, gcInterval);
+        running_, args, recover, false, gcInterval);
 
     OT_ASSERT(nullptr != instance_pointer_);
 
@@ -96,6 +95,8 @@ void OT::Join()
     }
 }
 
+const opentxs::Flag& OT::Running() { return running_; }
+
 void OT::ServerFactory(
     const ArgList& args,
     const std::chrono::seconds gcInterval,
@@ -104,7 +105,7 @@ void OT::ServerFactory(
     OT_ASSERT(nullptr == instance_pointer_);
 
     instance_pointer_ = new api::implementation::Native(
-        args, shutdown_, recover, true, gcInterval);
+        running_, args, recover, true, gcInterval);
 
     OT_ASSERT(nullptr != instance_pointer_);
 
@@ -114,6 +115,4 @@ void OT::ServerFactory(
 
     ot->Init();
 }
-
-const std::atomic<bool>& OT::Shutdown() { return shutdown_; }
 }  // namespace opentxs

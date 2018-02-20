@@ -73,10 +73,10 @@ namespace opentxs
 OTCachedKey::OTCachedKey(const std::int32_t nTimeoutSeconds)
     : general_lock_()
     , master_password_lock_()
-    , shutdown_(false)
-    , use_system_keyring_(false)
-    , paused_(false)
-    , thread_exited_(false)
+    , shutdown_(Flag::Factory(false))
+    , use_system_keyring_(Flag::Factory(false))
+    , paused_(Flag::Factory(false))
+    , thread_exited_(Flag::Factory(false))
     , time_(std::time(nullptr))
     , timeout_(nTimeoutSeconds)
     , thread_(nullptr)
@@ -103,9 +103,8 @@ bool OTCachedKey::ChangeUserPassphrase()
     Lock lock(general_lock_);
 
     if (false == bool(key_)) {
-        otErr << __FUNCTION__
-              << ": The Master Key does not appear yet to "
-                 "exist. Try creating a Nym first.\n";
+        otErr << __FUNCTION__ << ": The Master Key does not appear yet to "
+                                 "exist. Try creating a Nym first.\n";
         return false;
     }
 
@@ -117,9 +116,8 @@ bool OTCachedKey::ChangeUserPassphrase()
                                                               // = false
 
     if (!pOldUserPassphrase) {
-        otErr << __FUNCTION__
-              << ": Error: Failed while trying to get old "
-                 "passphrase from user.\n";
+        otErr << __FUNCTION__ << ": Error: Failed while trying to get old "
+                                 "passphrase from user.\n";
         return false;
     }
 
@@ -131,9 +129,8 @@ bool OTCachedKey::ChangeUserPassphrase()
             &strReason2, true));  // bool bAskTwice = false by default.
 
     if (!pNewUserPassphrase) {
-        otErr << __FUNCTION__
-              << ": Error: Failed while trying to get new "
-                 "passphrase from user.\n";
+        otErr << __FUNCTION__ << ": Error: Failed while trying to get new "
+                                 "passphrase from user.\n";
         return false;
     }
 
@@ -227,7 +224,7 @@ bool OTCachedKey::GetMasterPassword(
         otInfo << OT_METHOD << __FUNCTION__
                << ": Master password was available. (Returning it now.)\n";
         theOutput = *master_password_;
-        reset_timer();
+        reset_timer(outer);
 
         return true;
     }
@@ -486,10 +483,9 @@ bool OTCachedKey::GetMasterPassword(
             if (nullptr != pDerivedKey)
                 theDerivedAngel.reset(pDerivedKey);
             else
-                otErr << __FUNCTION__
-                      << ": FYI: Derived key is still nullptr "
-                         "after calling "
-                         "OTSymmetricKey::GenerateKey.\n";
+                otErr << __FUNCTION__ << ": FYI: Derived key is still nullptr "
+                                         "after calling "
+                                         "OTSymmetricKey::GenerateKey.\n";
         } else  // key_->IsGenerated() == true. (Symmetric Key is
                 // already generated.)
         {
@@ -670,8 +666,8 @@ bool OTCachedKey::GetMasterPassword(
     {
         otInfo << OT_METHOD << __FUNCTION__
                << ": Starting thread for Master Key...\n";
-        reset_timer();
-        shutdown_.store(false);
+        reset_timer(outer);
+        shutdown_->Off();
 
         if (thread_ && thread_->joinable()) {
             thread_->join();
@@ -739,11 +735,11 @@ bool OTCachedKey::IsGenerated() const
     return false;
 }
 
-bool OTCachedKey::isPaused() const { return paused_.load(); }
+bool OTCachedKey::isPaused() const { return paused_.get(); }
 
 bool OTCachedKey::IsUsingSystemKeyring() const
 {
-    return use_system_keyring_.load();
+    return use_system_keyring_.get();
 }
 
 // When the master key is on pause, it won't work (Nyms will just use their
@@ -754,8 +750,8 @@ bool OTCachedKey::Pause()
 {
     Lock lock(general_lock_);
 
-    if (false == paused_.load()) {
-        paused_.store(false);
+    if (!paused_.get()) {
+        paused_->On();
 
         return true;
     }
@@ -765,16 +761,19 @@ bool OTCachedKey::Pause()
 
 void OTCachedKey::release_thread() const
 {
-    shutdown_.store(true);
+    shutdown_->On();
 
-    while (false == thread_exited_.load() && thread_) {
+    while (!thread_exited_.get() && thread_) {
         Log::Sleep(std::chrono::milliseconds(100));
     }
 }
 
 void OTCachedKey::Reset() { reset_master_password(); }
 
-void OTCachedKey::reset_timer() const { time_.store(std::time(nullptr)); }
+void OTCachedKey::reset_timer(const Lock& lock) const
+{
+    time_.store(std::time(nullptr));
+}
 
 void OTCachedKey::reset_master_password()
 {
@@ -848,12 +847,18 @@ void OTCachedKey::SetTimeoutSeconds(const std::int64_t nTimeoutSeconds)
 
 void OTCachedKey::timeout_thread() const
 {
-    thread_exited_.store(false);
+    thread_exited_->Off();
 
-    while (false == shutdown_.load()) {
+    while (!shutdown_.get()) {
         const auto limit = std::chrono::seconds(timeout_.load());
         const auto now = std::chrono::seconds(std::time(nullptr));
+#if OT_VALGRIND
+        Lock valgrind(general_lock_);
+#endif
         const auto last = std::chrono::seconds(time_.load());
+#if OT_VALGRIND
+        valgrind.unlock();
+#endif
         const auto duration = now - last;
 
         if (limit >= std::chrono::seconds(0)) {
@@ -877,15 +882,15 @@ void OTCachedKey::timeout_thread() const
         OTKeyring::DeleteSecret(secret_id_, "");
     }
 
-    thread_exited_.store(true);
+    thread_exited_->On();
 }
 
 bool OTCachedKey::Unpause()
 {
     Lock lock(general_lock_);
 
-    if (paused_.load()) {
-        paused_.store(false);
+    if (paused_.get()) {
+        paused_->Off();
 
         return true;
     }
@@ -895,15 +900,15 @@ bool OTCachedKey::Unpause()
 
 void OTCachedKey::UseSystemKeyring(const bool bUsing)
 {
-    use_system_keyring_.store(bUsing);
+    use_system_keyring_->Set(bUsing);
 }
 
 OTCachedKey::~OTCachedKey()
 {
     Lock lock(general_lock_);
-    shutdown_.store(true);
+    shutdown_->On();
 
-    if ((false == thread_exited_.load()) && thread_ && thread_->joinable()) {
+    if ((!thread_exited_.get()) && thread_ && thread_->joinable()) {
         thread_->join();
     }
 }
