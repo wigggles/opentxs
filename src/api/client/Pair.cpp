@@ -163,13 +163,19 @@ void Pair::check_pairing() const
 
 void Pair::check_refresh() const
 {
+    Identifier taskID{};
+    bool update{false};
+
     while (running_) {
         const auto current = sync_.RefreshCount();
         const auto previous = last_refresh_.exchange(current);
 
         if (previous != current) {
-            update_pairing();
-            update_peer();
+            refresh();
+        }
+
+        if (update_.Pop(taskID, update)) {
+            refresh();
         }
 
         Log::Sleep(std::chrono::milliseconds(100));
@@ -328,6 +334,7 @@ void Pair::process_connection_info(
 
     if (added) {
         wallet_.PeerRequestComplete(nymID, replyID);
+        update_.Push({}, true);
     } else {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to add reply."
               << std::endl;
@@ -468,6 +475,7 @@ void Pair::process_pending_bailment(
             const auto replyID(action->SentPeerReply()->ID());
             issuer.AddReply(
                 proto::PEERREQUEST_PENDINGBAILMENT, requestID, replyID);
+            update_.Push({}, true);
         }
     } else {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to add request."
@@ -494,6 +502,7 @@ void Pair::process_request_bailment(
 
     if (added) {
         wallet_.PeerRequestComplete(nymID, replyID);
+        update_.Push({}, true);
     } else {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to add reply."
               << std::endl;
@@ -519,6 +528,7 @@ void Pair::process_request_outbailment(
 
     if (added) {
         wallet_.PeerRequestComplete(nymID, replyID);
+        update_.Push({}, true);
     } else {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to add reply."
               << std::endl;
@@ -544,6 +554,7 @@ void Pair::process_store_secret(
 
     if (added) {
         wallet_.PeerRequestComplete(nymID, replyID);
+        update_.Push({}, true);
     } else {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to add reply."
               << std::endl;
@@ -580,6 +591,12 @@ void Pair::queue_unit_definition(
     const Identifier& unitID) const
 {
     sync_.ScheduleDownloadContract(nymID, serverID, unitID);
+}
+
+void Pair::refresh() const
+{
+    update_pairing();
+    update_peer();
 }
 
 std::pair<bool, Identifier> Pair::register_account(
@@ -839,6 +856,8 @@ std::pair<bool, Identifier> Pair::store_secret(
 
     return output;
 }
+
+void Pair::Update() const { update_.Push({}, true); }
 
 void Pair::update_pairing() const
 {

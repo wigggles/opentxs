@@ -65,6 +65,7 @@ public:
     virtual std::set<Identifier> IssuerList(
         const Identifier& localNymID,
         const bool onlyTrusted) const = 0;
+    virtual void Update() const = 0;
 
     virtual ~Pair() = default;
 

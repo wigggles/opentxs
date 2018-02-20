@@ -150,7 +150,7 @@ void Api::Init()
         *otapi_exec_,
         contacts_,
         config_,
-        *server_action_,
+        *this,
         wallet_,
         crypto_.Encode()));
 
