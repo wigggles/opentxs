@@ -3736,10 +3736,6 @@ public:
 
     EXPORT static void Trigger_Refresh();
 
-    // Wrapped Blockchain methods
-
-    EXPORT static std::shared_ptr<network::zeromq::Context> ZeroMQ();
-
 private:
     static OT_OPENSSL_CALLBACK* s_pwCallback;
     static OTCaller* s_pCaller;

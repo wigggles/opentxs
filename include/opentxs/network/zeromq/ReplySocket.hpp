@@ -43,8 +43,6 @@
 
 #include "opentxs/network/zeromq/Socket.hpp"
 
-#include <string>
-
 namespace opentxs
 {
 namespace network
@@ -62,6 +60,8 @@ namespace zeromq
 class ReplySocket : virtual public Socket
 {
 public:
+    EXPORT static OTZMQReplySocket Factory(const Context& context);
+
     EXPORT virtual MessageReceiveResult ReceiveRequest(BlockMode block) = 0;
     EXPORT virtual bool SendReply(const std::string& reply) = 0;
     EXPORT virtual bool SendReply(const opentxs::Data& reply) = 0;

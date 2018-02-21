@@ -12,11 +12,11 @@ file(GLOB cxx-install-headers
 
 set(cxx-headers
   ${cxx-install-headers}
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/network/zeromq/implementation/Context.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/network/zeromq/implementation/Message.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/network/zeromq/implementation/ReplySocket.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/network/zeromq/implementation/RequestSocket.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/network/zeromq/implementation/Socket.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/Context.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/Message.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/ReplySocket.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/RequestSocket.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/Socket.hpp
 )
 
 set(MODULE_NAME opentxs-network-zeromq)

@@ -49,15 +49,8 @@
 #define CURVE_KEY_BYTES 32
 #define CURVE_KEY_Z85_BYTES 40
 
-namespace opentxs
+namespace opentxs::network::zeromq::implementation
 {
-namespace network
-{
-namespace zeromq
-{
-namespace implementation
-{
-
 class Socket : virtual public zeromq::Socket
 {
 public:
@@ -95,8 +88,5 @@ private:
     Socket& operator=(const Socket&) = delete;
     Socket& operator=(Socket&&) = delete;
 };
-}  // namespace implementation
-}  // namespace zeromq
-}  // namespace network
-}  // namespace opentxs
+}  // namespace opentxs::network::zeromq::implementation
 #endif  // OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_SOCKET_HPP

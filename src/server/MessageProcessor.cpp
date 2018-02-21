@@ -70,7 +70,7 @@ MessageProcessor::MessageProcessor(
     : server_(server)
     , running_(running)
     , context_(context)
-    , reply_socket_(context.NewReplySocket())
+    , reply_socket_(context.ReplySocket())
     , thread_(nullptr)
 {
 }
@@ -116,19 +116,16 @@ void MessageProcessor::run()
 
 void MessageProcessor::processSocket()
 {
-    auto input = reply_socket_->ReceiveRequest(NOBLOCK_MODE);
-    auto& received = input.first;
+    auto[received, request] = reply_socket_->ReceiveRequest(NOBLOCK_MODE);
+    network::zeromq::Message& message = request;
 
     if (false == received) {
 
         return;
     }
 
-    OT_ASSERT(input.second)
-
-    std::string request(*input.second);
     std::string reply{};
-    bool error = processMessage(request, reply);
+    bool error = processMessage(std::string(message), reply);
 
     if (error) {
         reply = "";
@@ -138,7 +135,8 @@ void MessageProcessor::processSocket()
 
     if (false == sent) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to send response."
-              << "\nRequest: " << request << "\nReply: " << reply << std::endl;
+              << "\nRequest: " << std::string(message) << "\nReply: " << reply
+              << std::endl;
     }
 }
 

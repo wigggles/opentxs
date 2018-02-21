@@ -34,11 +34,6 @@ typedef int64_t time64_t;
 #include "opentxs/core/crypto/OTCallback.hpp"
 #include "opentxs/core/crypto/OTCaller.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
-#include "opentxs/network/zeromq/Context.hpp"
-#include "opentxs/network/zeromq/Message.hpp"
-#include "opentxs/network/zeromq/ReplySocket.hpp"
-#include "opentxs/network/zeromq/RequestSocket.hpp"
-#include "opentxs/network/zeromq/Socket.hpp"
 #include "opentxs/Types.hpp"
 
 #include <string>
@@ -90,13 +85,11 @@ namespace std {
 %ignore std::map<std::string, std::string>;
 %ignore stlplus::simple_ptr_clone;
 
-
 %ignore weak_ptr_OTRecord;
 
 %ignore vec_OTRecordList;
 %ignore list_of_strings;
 %ignore map_of_strings;
-
 
 %rename(OTRecordLessThan) opentxs::OTRecord::operator<(const OTRecord& rhs);
 %apply std::string &OUTPUT { std::string& STR_RETAINED_COPY };
@@ -110,11 +103,6 @@ namespace std {
 #define EXPORT
 #endif
 
-%include "../../include/opentxs/network/zeromq/Message.hpp"
-%include "../../include/opentxs/network/zeromq/Socket.hpp"
-%include "../../include/opentxs/network/zeromq/ReplySocket.hpp"
-%include "../../include/opentxs/network/zeromq/RequestSocket.hpp"
-%include "../../include/opentxs/network/zeromq/Context.hpp"
 %include "../../include/opentxs/client/NymData.hpp"
 %include "../../include/opentxs/client/OTRecord.hpp"
 %include "../../include/opentxs/client/OTRecordList.hpp"

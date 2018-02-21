@@ -55,7 +55,6 @@ namespace network
 {
 namespace zeromq
 {
-
 #ifdef SWIG
 // clang-format off
 %ignore Socket::operator void*();
@@ -66,8 +65,8 @@ namespace zeromq
 class Socket
 {
 public:
-    typedef std::pair<SendResult, std::shared_ptr<Message>> MessageSendResult;
-    typedef std::pair<bool, std::shared_ptr<Message>> MessageReceiveResult;
+    typedef std::pair<SendResult, OTZMQMessage> MessageSendResult;
+    typedef std::pair<bool, OTZMQMessage> MessageReceiveResult;
 
     EXPORT virtual SocketType Type() const = 0;
 

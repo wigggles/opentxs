@@ -50,9 +50,9 @@ namespace network
 {
 namespace zeromq
 {
-
 #ifdef SWIG
 // clang-format off
+%ignore Context::Factory() const;
 %ignore Context::operator void*() const;
 %ignore Context::NewMessage(const Data&) const;
 // clang-format on
@@ -61,15 +61,12 @@ namespace zeromq
 class Context
 {
 public:
+    EXPORT static OTZMQContext Factory();
+
     EXPORT virtual operator void*() const = 0;
 
-    EXPORT virtual std::shared_ptr<Message> NewMessage() const = 0;
-    EXPORT virtual std::shared_ptr<Message> NewMessage(
-        const Data& input) const = 0;
-    EXPORT virtual std::shared_ptr<Message> NewMessage(
-        const std::string& input) const = 0;
-    EXPORT virtual std::shared_ptr<ReplySocket> NewReplySocket() const = 0;
-    EXPORT virtual std::shared_ptr<RequestSocket> NewRequestSocket() const = 0;
+    EXPORT virtual OTZMQReplySocket ReplySocket() const = 0;
+    EXPORT virtual OTZMQRequestSocket RequestSocket() const = 0;
 
     EXPORT virtual ~Context() = default;
 
@@ -77,6 +74,10 @@ protected:
     Context() = default;
 
 private:
+    friend OTZMQContext;
+
+    EXPORT virtual Context* clone() const = 0;
+
     Context(const Context&) = delete;
     Context(Context&&) = delete;
     Context& operator=(const Context&) = delete;

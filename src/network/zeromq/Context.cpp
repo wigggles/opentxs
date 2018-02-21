@@ -38,14 +38,21 @@
 
 #include "opentxs/stdafx.hpp"
 
-#include "opentxs/network/zeromq/implementation/Context.hpp"
+#include "Context.hpp"
 
 #include "opentxs/core/Log.hpp"
-#include "opentxs/network/zeromq/implementation/Message.hpp"
-#include "opentxs/network/zeromq/implementation/ReplySocket.hpp"
-#include "opentxs/network/zeromq/implementation/RequestSocket.hpp"
+#include "opentxs/network/zeromq/ReplySocket.hpp"
+#include "opentxs/network/zeromq/RequestSocket.hpp"
 
 #include <zmq.h>
+
+namespace opentxs::network::zeromq
+{
+OTZMQContext Context::Factory()
+{
+    return OTZMQContext(new implementation::Context());
+}
+}  // namespace opentxs::network::zeromq
 
 namespace opentxs::network::zeromq::implementation
 {
@@ -58,43 +65,16 @@ Context::Context()
 
 Context::operator void*() const { return context_; }
 
-std::shared_ptr<zeromq::Message> Context::NewMessage() const
-{
-    std::shared_ptr<zeromq::Message> output{nullptr};
-    output.reset(new zeromq::implementation::Message());
+Context* Context::clone() const { return new Context; }
 
-    return output;
+OTZMQReplySocket Context::ReplySocket() const
+{
+    return ReplySocket::Factory(*this);
 }
 
-std::shared_ptr<zeromq::Message> Context::NewMessage(const Data& input) const
+OTZMQRequestSocket Context::RequestSocket() const
 {
-    std::shared_ptr<zeromq::Message> output{nullptr};
-    output.reset(new zeromq::implementation::Message(input));
-
-    return output;
-}
-
-std::shared_ptr<zeromq::Message> Context::NewMessage(
-    const std::string& input) const
-{
-    std::shared_ptr<zeromq::Message> output{nullptr};
-    output.reset(new zeromq::implementation::Message(input));
-
-    return output;
-}
-
-std::shared_ptr<zeromq::ReplySocket> Context::NewReplySocket() const
-{
-    std::shared_ptr<zeromq::ReplySocket> output(new ReplySocket(*this));
-
-    return output;
-}
-
-std::shared_ptr<zeromq::RequestSocket> Context::NewRequestSocket() const
-{
-    std::shared_ptr<zeromq::RequestSocket> output(new RequestSocket(*this));
-
-    return output;
+    return RequestSocket::Factory(*this);
 }
 
 Context::~Context()

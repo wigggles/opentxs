@@ -38,7 +38,7 @@
 
 #include "opentxs/stdafx.hpp"
 
-#include "opentxs/network/zeromq/implementation/ReplySocket.hpp"
+#include "ReplySocket.hpp"
 
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/Log.hpp"
@@ -48,6 +48,14 @@
 #include <zmq.h>
 
 #define OT_METHOD "opentxs::network::zeromq::implementation::ReplySocket::"
+
+namespace opentxs::network::zeromq
+{
+OTZMQReplySocket ReplySocket::Factory(const Context& context)
+{
+    return OTZMQReplySocket(new implementation::ReplySocket(context));
+}
+}  // namespace opentxs::network::zeromq
 
 namespace opentxs::network::zeromq::implementation
 {
@@ -59,35 +67,24 @@ ReplySocket::ReplySocket(const zeromq::Context& context)
 Socket::MessageReceiveResult ReplySocket::ReceiveRequest(BlockMode block)
 {
     Lock lock(lock_);
-    MessageReceiveResult output{false, nullptr};
+    MessageReceiveResult output{false, Message::Factory()};
     auto& status = output.first;
     auto& request = output.second;
-    request = context_.NewMessage();
-
-    OT_ASSERT(request);
-
+    Message& message = request;
     const int flag = (block) ? 0 : ZMQ_DONTWAIT;
-    status = (-1 != zmq_msg_recv(*request, socket_, flag));
+    status = (-1 != zmq_msg_recv(message, socket_, flag));
 
     return output;
 }
 
 bool ReplySocket::SendReply(const std::string& reply)
 {
-    auto message = context_.NewMessage(reply);
-
-    OT_ASSERT(message);
-
-    return SendReply(*message);
+    return SendReply(Message::Factory(reply));
 }
 
 bool ReplySocket::SendReply(const opentxs::Data& reply)
 {
-    auto message = context_.NewMessage(reply);
-
-    OT_ASSERT(message);
-
-    return SendReply(*message);
+    return SendReply(Message::Factory(reply));
 }
 
 bool ReplySocket::SendReply(zeromq::Message& reply)

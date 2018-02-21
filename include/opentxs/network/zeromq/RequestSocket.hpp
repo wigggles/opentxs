@@ -43,8 +43,6 @@
 
 #include "opentxs/network/zeromq/Socket.hpp"
 
-#include <string>
-
 namespace opentxs
 {
 namespace network
@@ -62,6 +60,8 @@ namespace zeromq
 class RequestSocket : virtual public Socket
 {
 public:
+    EXPORT static OTZMQRequestSocket Factory(const Context& context);
+
     EXPORT virtual MessageSendResult SendRequest(opentxs::Data& message) = 0;
     EXPORT virtual MessageSendResult SendRequest(std::string& message) = 0;
     EXPORT virtual MessageSendResult SendRequest(Message& message) = 0;

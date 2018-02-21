@@ -63,8 +63,7 @@ public:
     EXPORT virtual void KeepAlive(
         const std::chrono::seconds duration) const = 0;
     EXPORT virtual std::chrono::seconds Linger() const = 0;
-    EXPORT virtual std::shared_ptr<opentxs::network::zeromq::Context>
-    NewContext() const = 0;
+    EXPORT virtual OTZMQContext NewContext() const = 0;
     EXPORT virtual std::chrono::seconds ReceiveTimeout() const = 0;
     EXPORT virtual const Flag& Running() const = 0;
     EXPORT virtual void RefreshConfig() const = 0;

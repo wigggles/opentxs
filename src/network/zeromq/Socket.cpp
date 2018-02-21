@@ -38,7 +38,7 @@
 
 #include "opentxs/stdafx.hpp"
 
-#include "opentxs/network/zeromq/implementation/Socket.hpp"
+#include "Socket.hpp"
 
 #include "opentxs/core/Log.hpp"
 #include "opentxs/network/zeromq/Context.hpp"

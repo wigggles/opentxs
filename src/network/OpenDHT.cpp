@@ -38,11 +38,12 @@
 
 #include "opentxs/stdafx.hpp"
 
-#include "opentxs/network/implementation/OpenDHT.hpp"
+#include "OpenDHT.hpp"
 
 #include "opentxs/core/Log.hpp"
-#include "opentxs/network/DhtConfig.hpp"
 #include "opentxs/Types.hpp"
+
+#include "DhtConfig.hpp"
 
 #if OT_DHT
 #include <opendht.h>

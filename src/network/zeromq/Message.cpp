@@ -38,13 +38,31 @@
 
 #include "opentxs/stdafx.hpp"
 
-#include "opentxs/network/zeromq/implementation/Message.hpp"
+#include "Message.hpp"
 
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 
 #include <zmq.h>
+
+namespace opentxs::network::zeromq
+{
+OTZMQMessage Message::Factory()
+{
+    return OTZMQMessage(new implementation::Message());
+}
+
+OTZMQMessage Message::Factory(const Data& input)
+{
+    return OTZMQMessage(new implementation::Message(input));
+}
+
+OTZMQMessage Message::Factory(const std::string& input)
+{
+    return OTZMQMessage(new implementation::Message(input));
+}
+}  // namespace opentxs::network::zeromq
 
 namespace opentxs::network::zeromq::implementation
 {
@@ -98,6 +116,8 @@ Message::operator std::string() const
 
     return output;
 }
+
+Message* Message::clone() const { return new Message(std::string(*this)); }
 
 const void* Message::data() const
 {

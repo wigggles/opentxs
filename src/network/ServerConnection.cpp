@@ -82,8 +82,9 @@ ServerConnection::ServerConnection(
     , address_type_(proto::ADDRESSTYPE_IPV4)
     , remote_contract_(OT::App().Wallet().Server(Identifier(serverID)))
     , thread_(nullptr)
-    , socket_(nullptr)
+    , socket_(zmq.Context().RequestSocket())
     , last_activity_(std::time(nullptr))
+    , socket_ready_(Flag::Factory(false))
     , status_(Flag::Factory(false))
     , use_proxy_(Flag::Factory(false))
 {
@@ -146,20 +147,19 @@ zeromq::RequestSocket& ServerConnection::get_socket(const Lock& lock)
 {
     OT_ASSERT(verify_lock(lock))
 
-    if (false == bool(socket_)) {
+    if (false == socket_ready_.get()) {
         socket_ = socket(lock);
+        socket_ready_->On();
     }
 
-    OT_ASSERT(socket_)
-
-    return *socket_;
+    return socket_;
 }
 
 void ServerConnection::reset_socket(const Lock& lock)
 {
     OT_ASSERT(verify_lock(lock))
 
-    socket_.reset();
+    socket_ready_->Off();
 }
 
 void ServerConnection::reset_timer()
@@ -177,14 +177,10 @@ NetworkReplyRaw ServerConnection::Send(const std::string& input)
 
     OT_ASSERT(reply);
 
-    auto message = zmq_.Context().NewMessage(input);
-
-    OT_ASSERT(message);
-
-    auto result = get_socket(lock).SendRequest(*message);
+    auto result =
+        get_socket(lock).SendRequest(network::zeromq::Message::Factory(input));
     status = result.first;
-
-    OT_ASSERT(result.second);
+    network::zeromq::Message& message = result.second;
 
     switch (status) {
         case SendResult::ERROR: {
@@ -197,7 +193,7 @@ NetworkReplyRaw ServerConnection::Send(const std::string& input)
         case SendResult::VALID_REPLY: {
             status_->On();
             reset_timer();
-            reply.reset(new std::string(*result.second));
+            reply.reset(new std::string(message));
 
             OT_ASSERT(reply);
         } break;
@@ -310,16 +306,12 @@ void ServerConnection::set_timeouts(
     OT_ASSERT(set);
 }
 
-std::shared_ptr<zeromq::RequestSocket> ServerConnection::socket(
-    const Lock& lock) const
+OTZMQRequestSocket ServerConnection::socket(const Lock& lock) const
 {
-    auto output = zmq_.Context().NewRequestSocket();
-
-    OT_ASSERT(output)
-
-    set_proxy(lock, *output);
-    set_timeouts(lock, *output);
-    set_curve(lock, *output);
+    auto output = zmq_.Context().RequestSocket();
+    set_proxy(lock, output);
+    set_timeouts(lock, output);
+    set_curve(lock, output);
     output->Start(endpoint());
 
     return output;

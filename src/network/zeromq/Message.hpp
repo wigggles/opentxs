@@ -36,51 +36,41 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_CONTEXT_HPP
-#define OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_CONTEXT_HPP
+#ifndef OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_MESSAGE_HPP
+#define OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_MESSAGE_HPP
 
 #include "opentxs/Internal.hpp"
 
-#include "opentxs/network/zeromq/Context.hpp"
+#include "opentxs/network/zeromq/Message.hpp"
 
-namespace opentxs
+namespace opentxs::network::zeromq::implementation
 {
-namespace network
-{
-namespace zeromq
-{
-namespace implementation
-{
-
-class Context : virtual public zeromq::Context
+class Message : virtual public zeromq::Message
 {
 public:
-    operator void*() const override;
+    operator std::string() const override;
 
-    std::shared_ptr<zeromq::Message> NewMessage() const override;
-    std::shared_ptr<zeromq::Message> NewMessage(
-        const Data& input) const override;
-    std::shared_ptr<zeromq::Message> NewMessage(
-        const std::string& input) const override;
-    std::shared_ptr<zeromq::ReplySocket> NewReplySocket() const override;
-    std::shared_ptr<zeromq::RequestSocket> NewRequestSocket() const override;
+    const void* data() const override;
+    std::size_t size() const override;
 
-    ~Context();
+    operator zmq_msg_t*() override;
+
+    ~Message();
 
 private:
-    friend class api::implementation::Native;
-    friend class api::network::implementation::ZMQ;
+    friend network::zeromq::Message;
 
-    void* context_{nullptr};
+    zmq_msg_t* message_{nullptr};
 
-    Context();
-    Context(const Context&) = delete;
-    Context(Context&&) = delete;
-    Context& operator=(const Context&) = delete;
-    Context& operator=(Context&&) = delete;
+    Message* clone() const override;
+
+    Message();
+    explicit Message(const Data& input);
+    explicit Message(const std::string& input);
+    Message(const Message&) = delete;
+    Message(Message&&) = delete;
+    Message& operator=(Message&&) = delete;
+    Message& operator=(const Message&) = delete;
 };
-}  // namespace implementation
-}  // namespace zeromq
-}  // namespace network
-}  // namespace opentxs
-#endif  // OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_CONTEXT_HPP
+}  // namespace opentxs::network::zeromq::implementation
+#endif  // OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_MESSAGE_HPP

@@ -38,7 +38,7 @@
 
 #include "opentxs/stdafx.hpp"
 
-#include "opentxs/network/zeromq/implementation/RequestSocket.hpp"
+#include "RequestSocket.hpp"
 
 #include "opentxs/core/contract/ServerContract.hpp"
 #include "opentxs/core/Log.hpp"
@@ -51,6 +51,14 @@
 
 #define OT_METHOD "opentxs::network::zeromq::implementation::RequestSocket::"
 
+namespace opentxs::network::zeromq
+{
+OTZMQRequestSocket RequestSocket::Factory(const Context& context)
+{
+    return OTZMQRequestSocket(new implementation::RequestSocket(context));
+}
+}  // namespace opentxs::network::zeromq
+
 namespace opentxs::network::zeromq::implementation
 {
 RequestSocket::RequestSocket(const zeromq::Context& context)
@@ -60,20 +68,12 @@ RequestSocket::RequestSocket(const zeromq::Context& context)
 
 Socket::MessageSendResult RequestSocket::SendRequest(opentxs::Data& input)
 {
-    auto message = context_.NewMessage(input);
-
-    OT_ASSERT(message);
-
-    return SendRequest(*message);
+    return SendRequest(Message::Factory(input));
 }
 
 Socket::MessageSendResult RequestSocket::SendRequest(std::string& input)
 {
-    auto message = context_.NewMessage(input);
-
-    OT_ASSERT(message);
-
-    return SendRequest(*message);
+    return SendRequest(Message::Factory(input));
 }
 
 Socket::MessageSendResult RequestSocket::SendRequest(zeromq::Message& request)
@@ -81,13 +81,10 @@ Socket::MessageSendResult RequestSocket::SendRequest(zeromq::Message& request)
     OT_ASSERT(nullptr != socket_);
 
     Lock lock(lock_);
-    MessageSendResult output{SendResult::ERROR, nullptr};
+    MessageSendResult output{SendResult::ERROR, Message::Factory()};
     auto& status = output.first;
     auto& reply = output.second;
-    reply = context_.NewMessage();
-
-    OT_ASSERT(reply);
-
+    Message& message = reply;
     const bool sent = (-1 != zmq_msg_send(request, socket_, 0));
 
     if (false == sent) {
@@ -96,7 +93,7 @@ Socket::MessageSendResult RequestSocket::SendRequest(zeromq::Message& request)
         return output;
     }
 
-    const bool received = (-1 != zmq_msg_recv(*reply, socket_, 0));
+    const bool received = (-1 != zmq_msg_recv(message, socket_, 0));
 
     if (false == received) {
         otErr << OT_METHOD << __FUNCTION__
