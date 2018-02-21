@@ -185,6 +185,7 @@ NetworkReplyRaw ServerConnection::Send(const std::string& input)
     switch (status) {
         case SendResult::ERROR: {
             status_->Off();
+            reset_socket(lock);
         } break;
         case SendResult::TIMEOUT: {
             status_->Off();
