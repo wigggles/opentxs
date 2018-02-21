@@ -36,63 +36,44 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#ifndef OPENTXS_NETWORK_ZEROMQ_RECEIVER_IMPLEMENTATION_HPP
+#define OPENTXS_NETWORK_ZEROMQ_RECEIVER_IMPLEMENTATION_HPP
 
-#include "Context.hpp"
+#include "opentxs/Internal.hpp"
 
-#include "opentxs/core/Log.hpp"
-#include "opentxs/network/zeromq/PublishSocket.hpp"
-#include "opentxs/network/zeromq/ReplySocket.hpp"
-#include "opentxs/network/zeromq/RequestSocket.hpp"
-#include "opentxs/network/zeromq/SubscribeSocket.hpp"
+#include "opentxs/core/Flag.hpp"
+#include "opentxs/Types.hpp"
 
-#include <zmq.h>
-
-namespace opentxs::network::zeromq
-{
-OTZMQContext Context::Factory()
-{
-    return OTZMQContext(new implementation::Context());
-}
-}  // namespace opentxs::network::zeromq
+#include <memory>
+#include <mutex>
+#include <thread>
 
 namespace opentxs::network::zeromq::implementation
 {
-Context::Context()
-    : context_(zmq_ctx_new())
+class Receiver
 {
-    OT_ASSERT(nullptr != context_);
-    OT_ASSERT(1 == zmq_has("curve"));
-}
+protected:
+    Receiver(std::mutex& lock, void* socket);
 
-Context::operator void*() const { return context_; }
+    virtual ~Receiver();
 
-Context* Context::clone() const { return new Context; }
+private:
+    std::mutex& receiver_lock_;
+    // Not owned by this class
+    void* receiver_socket_{nullptr};
+    OTFlag receiver_run_;
+    std::unique_ptr<std::thread> receiver_thread_{nullptr};
 
-OTZMQPublishSocket Context::PublishSocket() const
-{
-    return PublishSocket::Factory(*this);
-}
+    virtual bool have_callback() const = 0;
 
-OTZMQReplySocket Context::ReplySocket() const
-{
-    return ReplySocket::Factory(*this);
-}
+    virtual void process_incoming(const Lock& lock, Message& message) = 0;
+    void thread();
 
-OTZMQRequestSocket Context::RequestSocket() const
-{
-    return RequestSocket::Factory(*this);
-}
-
-OTZMQSubscribeSocket Context::SubscribeSocket() const
-{
-    return SubscribeSocket::Factory(*this);
-}
-
-Context::~Context()
-{
-    if (nullptr != context_) {
-        zmq_ctx_shutdown(context_);
-    }
-}
+    Receiver() = delete;
+    Receiver(const Receiver&) = delete;
+    Receiver(Receiver&&) = delete;
+    Receiver& operator=(const Receiver&) = delete;
+    Receiver& operator=(Receiver&&) = delete;
+};
 }  // namespace opentxs::network::zeromq::implementation
+#endif  // OPENTXS_NETWORK_ZEROMQ_RECEIVER_IMPLEMENTATION_HPP

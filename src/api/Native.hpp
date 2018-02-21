@@ -135,8 +135,7 @@ private:
     std::unique_ptr<std::thread> periodic_;
     std::unique_ptr<SymmetricKey> storage_encryption_key_;
     std::unique_ptr<api::Server> server_;
-    std::unique_ptr<opentxs::network::zeromq::Context> zmq_context_p_;
-    opentxs::network::zeromq::Context& zmq_context_;
+    OTZMQContext zmq_context_;
     mutable std::unique_ptr<Signals> signal_handler_;
     const ArgList server_args_;
 

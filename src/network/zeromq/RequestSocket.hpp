@@ -36,63 +36,42 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#ifndef OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_REQUESTSOCKET_HPP
+#define OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_REQUESTSOCKET_HPP
 
-#include "Context.hpp"
+#include "opentxs/Forward.hpp"
 
-#include "opentxs/core/Log.hpp"
-#include "opentxs/network/zeromq/PublishSocket.hpp"
-#include "opentxs/network/zeromq/ReplySocket.hpp"
 #include "opentxs/network/zeromq/RequestSocket.hpp"
-#include "opentxs/network/zeromq/SubscribeSocket.hpp"
 
-#include <zmq.h>
-
-namespace opentxs::network::zeromq
-{
-OTZMQContext Context::Factory()
-{
-    return OTZMQContext(new implementation::Context());
-}
-}  // namespace opentxs::network::zeromq
+#include "CurveClient.hpp"
+#include "Socket.hpp"
 
 namespace opentxs::network::zeromq::implementation
 {
-Context::Context()
-    : context_(zmq_ctx_new())
+class RequestSocket : virtual public zeromq::RequestSocket,
+                      public Socket,
+                      CurveClient
 {
-    OT_ASSERT(nullptr != context_);
-    OT_ASSERT(1 == zmq_has("curve"));
-}
+public:
+    MessageSendResult SendRequest(opentxs::Data& message) override;
+    MessageSendResult SendRequest(std::string& message) override;
+    MessageSendResult SendRequest(zeromq::Message& message) override;
+    bool SetCurve(const ServerContract& contract) override;
+    bool SetSocksProxy(const std::string& proxy) override;
+    bool Start(const std::string& endpoint) override;
 
-Context::operator void*() const { return context_; }
+    ~RequestSocket() = default;
 
-Context* Context::clone() const { return new Context; }
+private:
+    friend opentxs::network::zeromq::RequestSocket;
+    typedef Socket ot_super;
 
-OTZMQPublishSocket Context::PublishSocket() const
-{
-    return PublishSocket::Factory(*this);
-}
-
-OTZMQReplySocket Context::ReplySocket() const
-{
-    return ReplySocket::Factory(*this);
-}
-
-OTZMQRequestSocket Context::RequestSocket() const
-{
-    return RequestSocket::Factory(*this);
-}
-
-OTZMQSubscribeSocket Context::SubscribeSocket() const
-{
-    return SubscribeSocket::Factory(*this);
-}
-
-Context::~Context()
-{
-    if (nullptr != context_) {
-        zmq_ctx_shutdown(context_);
-    }
-}
+    RequestSocket(const zeromq::Context& context);
+    RequestSocket() = delete;
+    RequestSocket(const RequestSocket&) = delete;
+    RequestSocket(RequestSocket&&) = delete;
+    RequestSocket& operator=(const RequestSocket&) = delete;
+    RequestSocket& operator=(RequestSocket&&) = delete;
+};
 }  // namespace opentxs::network::zeromq::implementation
+#endif  // OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_REQUESTSOCKET_HPP

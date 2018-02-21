@@ -36,53 +36,39 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_MESSAGE_HPP
-#define OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_MESSAGE_HPP
+#ifndef OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_CONTEXT_HPP
+#define OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_CONTEXT_HPP
 
 #include "opentxs/Internal.hpp"
 
-#include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/network/zeromq/Context.hpp"
 
-#include <string>
-
-struct zmq_msg_t;
-
-namespace opentxs
+namespace opentxs::network::zeromq::implementation
 {
-namespace network
-{
-namespace zeromq
-{
-namespace implementation
-{
-
-class Message : virtual public zeromq::Message
+class Context : virtual public zeromq::Context
 {
 public:
-    operator std::string() const override;
+    operator void*() const override;
 
-    const void* data() const override;
-    std::size_t size() const override;
+    OTZMQPublishSocket PublishSocket() const override;
+    OTZMQReplySocket ReplySocket() const override;
+    OTZMQRequestSocket RequestSocket() const override;
+    OTZMQSubscribeSocket SubscribeSocket() const override;
 
-    operator zmq_msg_t*() override;
-
-    ~Message();
+    ~Context();
 
 private:
-    friend class Context;
+    friend network::zeromq::Context;
 
-    zmq_msg_t* message_{nullptr};
+    void* context_{nullptr};
 
-    Message();
-    explicit Message(const Data& input);
-    explicit Message(const std::string& input);
-    Message(const Message&) = delete;
-    Message(Message&&) = delete;
-    Message& operator=(Message&&) = delete;
-    Message& operator=(const Message&) = delete;
+    Context* clone() const override;
+
+    Context();
+    Context(const Context&) = delete;
+    Context(Context&&) = delete;
+    Context& operator=(const Context&) = delete;
+    Context& operator=(Context&&) = delete;
 };
-}  // namespace implementation
-}  // namespace zeromq
-}  // namespace network
-}  // namespace opentxs
-#endif  // OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_MESSAGE_HPP
+}  // namespace opentxs::network::zeromq::implementation
+#endif  // OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_CONTEXT_HPP

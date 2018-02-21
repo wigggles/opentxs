@@ -36,63 +36,41 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#ifndef OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_REPLYSOCKET_HPP
+#define OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_REPLYSOCKET_HPP
 
-#include "Context.hpp"
+#include "opentxs/Forward.hpp"
 
-#include "opentxs/core/Log.hpp"
 #include "opentxs/network/zeromq/PublishSocket.hpp"
-#include "opentxs/network/zeromq/ReplySocket.hpp"
-#include "opentxs/network/zeromq/RequestSocket.hpp"
-#include "opentxs/network/zeromq/SubscribeSocket.hpp"
 
-#include <zmq.h>
-
-namespace opentxs::network::zeromq
-{
-OTZMQContext Context::Factory()
-{
-    return OTZMQContext(new implementation::Context());
-}
-}  // namespace opentxs::network::zeromq
+#include "CurveServer.hpp"
+#include "Socket.hpp"
 
 namespace opentxs::network::zeromq::implementation
 {
-Context::Context()
-    : context_(zmq_ctx_new())
+class PublishSocket : virtual public zeromq::PublishSocket,
+                      public Socket,
+                      CurveServer
 {
-    OT_ASSERT(nullptr != context_);
-    OT_ASSERT(1 == zmq_has("curve"));
-}
+public:
+    bool Publish(const std::string& data) override;
+    bool Publish(const opentxs::Data& data) override;
+    bool Publish(zeromq::Message& data) override;
+    bool SetCurve(const OTPassword& key) override;
+    bool Start(const std::string& endpoint) override;
 
-Context::operator void*() const { return context_; }
+    ~PublishSocket() = default;
 
-Context* Context::clone() const { return new Context; }
+private:
+    friend opentxs::network::zeromq::PublishSocket;
+    typedef Socket ot_super;
 
-OTZMQPublishSocket Context::PublishSocket() const
-{
-    return PublishSocket::Factory(*this);
-}
-
-OTZMQReplySocket Context::ReplySocket() const
-{
-    return ReplySocket::Factory(*this);
-}
-
-OTZMQRequestSocket Context::RequestSocket() const
-{
-    return RequestSocket::Factory(*this);
-}
-
-OTZMQSubscribeSocket Context::SubscribeSocket() const
-{
-    return SubscribeSocket::Factory(*this);
-}
-
-Context::~Context()
-{
-    if (nullptr != context_) {
-        zmq_ctx_shutdown(context_);
-    }
-}
+    PublishSocket(const zeromq::Context& context);
+    PublishSocket() = delete;
+    PublishSocket(const PublishSocket&) = delete;
+    PublishSocket(PublishSocket&&) = delete;
+    PublishSocket& operator=(const PublishSocket&) = delete;
+    PublishSocket& operator=(PublishSocket&&) = delete;
+};
 }  // namespace opentxs::network::zeromq::implementation
+#endif  // OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_REPLYSOCKET_HPP

@@ -38,7 +38,7 @@
 
 #include "opentxs/stdafx.hpp"
 
-#include "opentxs/network/zeromq/implementation/Socket.hpp"
+#include "Socket.hpp"
 
 #include "opentxs/core/Log.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
@@ -52,12 +52,13 @@ namespace opentxs::network::zeromq::implementation
 const std::map<SocketType, int> Socket::types_{
     {SocketType::Request, ZMQ_REQ},
     {SocketType::Reply, ZMQ_REP},
+    {SocketType::Publish, ZMQ_PUB},
+    {SocketType::Subscribe, ZMQ_SUB},
 };
 
 Socket::Socket(const Context& context, const SocketType type)
     : context_(context)
     , socket_(zmq_socket(context, types_.at(type)))
-    , lock_()
     , type_(type)
 {
     OT_ASSERT(nullptr != socket_);
@@ -72,6 +73,17 @@ bool Socket::Close()
     Lock lock(lock_);
 
     return (0 == zmq_close(socket_));
+}
+
+bool Socket::set_socks_proxy(const std::string& proxy)
+{
+    OT_ASSERT(nullptr != socket_);
+
+    Lock lock(lock_);
+    const auto set =
+        zmq_setsockopt(socket_, ZMQ_SOCKS_PROXY, proxy.data(), proxy.size());
+
+    return (0 == set);
 }
 
 bool Socket::SetTimeouts(

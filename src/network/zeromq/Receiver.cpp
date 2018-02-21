@@ -38,61 +38,67 @@
 
 #include "opentxs/stdafx.hpp"
 
-#include "Context.hpp"
+#include "Receiver.hpp"
 
 #include "opentxs/core/Log.hpp"
-#include "opentxs/network/zeromq/PublishSocket.hpp"
-#include "opentxs/network/zeromq/ReplySocket.hpp"
-#include "opentxs/network/zeromq/RequestSocket.hpp"
-#include "opentxs/network/zeromq/SubscribeSocket.hpp"
+#include "opentxs/network/zeromq/Message.hpp"
 
 #include <zmq.h>
 
-namespace opentxs::network::zeromq
-{
-OTZMQContext Context::Factory()
-{
-    return OTZMQContext(new implementation::Context());
-}
-}  // namespace opentxs::network::zeromq
+#define CALLBACK_WAIT_MILLISECONDS 50
+#define MESSAGE_CHECK_MICROSECONDS 1000
+
+//#define OT_METHOD "opentxs::network::zeromq::implementation::Receiver::"
 
 namespace opentxs::network::zeromq::implementation
 {
-Context::Context()
-    : context_(zmq_ctx_new())
+Receiver::Receiver(std::mutex& lock, void* socket)
+    : receiver_lock_(lock)
+    , receiver_socket_(socket)
+    , receiver_run_(Flag::Factory(true))
+    , receiver_thread_(nullptr)
 {
-    OT_ASSERT(nullptr != context_);
-    OT_ASSERT(1 == zmq_has("curve"));
+    receiver_thread_.reset(new std::thread(&Receiver::thread, this));
+
+    OT_ASSERT(receiver_thread_)
 }
 
-Context::operator void*() const { return context_; }
-
-Context* Context::clone() const { return new Context; }
-
-OTZMQPublishSocket Context::PublishSocket() const
+void Receiver::thread()
 {
-    return PublishSocket::Factory(*this);
-}
+    while (receiver_run_.get()) {
+        if (have_callback()) {
+            break;
+        }
 
-OTZMQReplySocket Context::ReplySocket() const
-{
-    return ReplySocket::Factory(*this);
-}
-
-OTZMQRequestSocket Context::RequestSocket() const
-{
-    return RequestSocket::Factory(*this);
-}
-
-OTZMQSubscribeSocket Context::SubscribeSocket() const
-{
-    return SubscribeSocket::Factory(*this);
-}
-
-Context::~Context()
-{
-    if (nullptr != context_) {
-        zmq_ctx_shutdown(context_);
+        Log::Sleep(std::chrono::milliseconds(CALLBACK_WAIT_MILLISECONDS));
     }
+
+    while (receiver_run_.get()) {
+        Lock lock(receiver_lock_);
+        auto request = Message::Factory();
+        Message& message = request;
+        auto status =
+            (-1 != zmq_msg_recv(message, receiver_socket_, ZMQ_DONTWAIT));
+
+        if (status) {
+            process_incoming(lock, request);
+        }
+
+        lock.unlock();
+        Log::Sleep(std::chrono::microseconds(MESSAGE_CHECK_MICROSECONDS));
+    }
+}
+
+Receiver::~Receiver()
+{
+    Lock lock(receiver_lock_);
+    receiver_run_->Off();
+
+    if (receiver_thread_ && receiver_thread_->joinable()) {
+        receiver_thread_->join();
+        receiver_thread_.reset();
+    }
+
+    receiver_socket_ = nullptr;
 }
 }  // namespace opentxs::network::zeromq::implementation

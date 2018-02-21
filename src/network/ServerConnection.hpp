@@ -75,8 +75,9 @@ private:
     proto::AddressType address_type_{proto::ADDRESSTYPE_ERROR};
     std::shared_ptr<const ServerContract> remote_contract_{nullptr};
     std::unique_ptr<std::thread> thread_{nullptr};
-    std::shared_ptr<zeromq::RequestSocket> socket_{nullptr};
+    OTZMQRequestSocket socket_;
     std::atomic<std::time_t> last_activity_{0};
+    OTFlag socket_ready_;
     OTFlag status_;
     OTFlag use_proxy_;
 
@@ -84,7 +85,7 @@ private:
     void set_curve(const Lock& lock, zeromq::RequestSocket& socket) const;
     void set_proxy(const Lock& lock, zeromq::RequestSocket& socket) const;
     void set_timeouts(const Lock& lock, zeromq::RequestSocket& socket) const;
-    std::shared_ptr<zeromq::RequestSocket> socket(const Lock& lock) const;
+    OTZMQRequestSocket socket(const Lock& lock) const;
 
     void activity_timer();
     zeromq::RequestSocket& get_socket(const Lock& lock);

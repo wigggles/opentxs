@@ -36,13 +36,12 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_REQUESTSOCKET_HPP
-#define OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_REQUESTSOCKET_HPP
+#ifndef OPENTXS_NETWORK_ZEROMQ_PUBLISHSOCKET_HPP
+#define OPENTXS_NETWORK_ZEROMQ_PUBLISHSOCKET_HPP
 
 #include "opentxs/Forward.hpp"
 
-#include "opentxs/network/zeromq/implementation/Socket.hpp"
-#include "opentxs/network/zeromq/RequestSocket.hpp"
+#include "opentxs/network/zeromq/Socket.hpp"
 
 namespace opentxs
 {
@@ -50,37 +49,36 @@ namespace network
 {
 namespace zeromq
 {
-namespace implementation
-{
 
-class RequestSocket : virtual public zeromq::RequestSocket, public Socket
+#ifdef SWIG
+// clang-format off
+%ignore PublishSocket::Publish(const opentxs::Data&);
+%ignore PublishSocket::SetCurve(const OTPassword& key);
+// clang-format on
+#endif  // SWIG
+
+class PublishSocket : virtual public Socket
 {
 public:
-    MessageSendResult SendRequest(opentxs::Data& message) override;
-    MessageSendResult SendRequest(std::string& message) override;
-    MessageSendResult SendRequest(zeromq::Message& message) override;
-    bool SetCurve(const ServerContract& contract) override;
-    bool SetSocksProxy(const std::string& proxy) override;
-    bool Start(const std::string& endpoint) override;
+    EXPORT static OTZMQPublishSocket Factory(const Context& context);
 
-    ~RequestSocket() = default;
+    EXPORT virtual bool Publish(const std::string& data) = 0;
+    EXPORT virtual bool Publish(const opentxs::Data& data) = 0;
+    EXPORT virtual bool Publish(Message& data) = 0;
+    EXPORT virtual bool SetCurve(const OTPassword& key) = 0;
+
+    EXPORT virtual ~PublishSocket() = default;
+
+protected:
+    EXPORT PublishSocket() = default;
 
 private:
-    friend class Context;
-    typedef Socket ot_super;
-
-    bool set_local_keys(const Lock& lock);
-    bool set_remote_key(const Lock& lock, const ServerContract& contract);
-
-    RequestSocket(const zeromq::Context& context);
-    RequestSocket() = delete;
-    RequestSocket(const RequestSocket&) = delete;
-    RequestSocket(RequestSocket&&) = delete;
-    RequestSocket& operator=(const RequestSocket&) = delete;
-    RequestSocket& operator=(RequestSocket&&) = delete;
+    PublishSocket(const PublishSocket&) = delete;
+    PublishSocket(PublishSocket&&) = default;
+    PublishSocket& operator=(const PublishSocket&) = delete;
+    PublishSocket& operator=(PublishSocket&&) = default;
 };
-}  // namespace implementation
 }  // namespace zeromq
 }  // namespace network
 }  // namespace opentxs
-#endif  // OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_REQUESTSOCKET_HPP
+#endif  // OPENTXS_NETWORK_ZEROMQ_PUBLISHSOCKET_HPP

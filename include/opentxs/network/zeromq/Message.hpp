@@ -51,7 +51,6 @@ namespace network
 {
 namespace zeromq
 {
-
 #ifdef SWIG
 // clang-format off
 %ignore Message::operator zmq_msg_t*();
@@ -62,6 +61,10 @@ namespace zeromq
 class Message
 {
 public:
+    EXPORT static OTZMQMessage Factory();
+    EXPORT static OTZMQMessage Factory(const Data& input);
+    EXPORT static OTZMQMessage Factory(const std::string& input);
+
     EXPORT virtual operator std::string() const = 0;
 
     EXPORT virtual const void* data() const = 0;
@@ -75,6 +78,10 @@ protected:
     Message() = default;
 
 private:
+    friend OTZMQMessage;
+
+    EXPORT virtual Message* clone() const = 0;
+
     Message(const Message&) = delete;
     Message(Message&&) = delete;
     Message& operator=(Message&&) = delete;

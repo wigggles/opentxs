@@ -36,63 +36,38 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#ifndef OPENTXS_NETWORK_ZEROMQ_CURVECLIENT_IMPLEMENTATION_HPP
+#define OPENTXS_NETWORK_ZEROMQ_CURVECLIENT_IMPLEMENTATION_HPP
 
-#include "Context.hpp"
+#include "opentxs/Internal.hpp"
 
-#include "opentxs/core/Log.hpp"
-#include "opentxs/network/zeromq/PublishSocket.hpp"
-#include "opentxs/network/zeromq/ReplySocket.hpp"
-#include "opentxs/network/zeromq/RequestSocket.hpp"
-#include "opentxs/network/zeromq/SubscribeSocket.hpp"
+#include "opentxs/Types.hpp"
 
-#include <zmq.h>
-
-namespace opentxs::network::zeromq
-{
-OTZMQContext Context::Factory()
-{
-    return OTZMQContext(new implementation::Context());
-}
-}  // namespace opentxs::network::zeromq
+#include <mutex>
 
 namespace opentxs::network::zeromq::implementation
 {
-Context::Context()
-    : context_(zmq_ctx_new())
+class CurveClient
 {
-    OT_ASSERT(nullptr != context_);
-    OT_ASSERT(1 == zmq_has("curve"));
-}
+protected:
+    bool set_curve(const ServerContract& contract);
 
-Context::operator void*() const { return context_; }
+    CurveClient(std::mutex& lock, void* socket);
+    ~CurveClient();
 
-Context* Context::clone() const { return new Context; }
+private:
+    std::mutex& curve_lock_;
+    // Not owned by this class
+    void* curve_socket_{nullptr};
 
-OTZMQPublishSocket Context::PublishSocket() const
-{
-    return PublishSocket::Factory(*this);
-}
+    bool set_local_keys(const Lock& lock);
+    bool set_remote_key(const Lock& lock, const ServerContract& contract);
 
-OTZMQReplySocket Context::ReplySocket() const
-{
-    return ReplySocket::Factory(*this);
-}
-
-OTZMQRequestSocket Context::RequestSocket() const
-{
-    return RequestSocket::Factory(*this);
-}
-
-OTZMQSubscribeSocket Context::SubscribeSocket() const
-{
-    return SubscribeSocket::Factory(*this);
-}
-
-Context::~Context()
-{
-    if (nullptr != context_) {
-        zmq_ctx_shutdown(context_);
-    }
-}
+    CurveClient() = delete;
+    CurveClient(const CurveClient&) = delete;
+    CurveClient(CurveClient&&) = delete;
+    CurveClient& operator=(const CurveClient&) = delete;
+    CurveClient& operator=(CurveClient&&) = delete;
+};
 }  // namespace opentxs::network::zeromq::implementation
+#endif  // OPENTXS_NETWORK_ZEROMQ_CURVECLIENT_IMPLEMENTATION_HPP

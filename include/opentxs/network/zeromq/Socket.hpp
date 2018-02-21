@@ -45,6 +45,7 @@
 
 #include <cstdint>
 #include <chrono>
+#include <functional>
 #include <memory>
 #include <string>
 #include <tuple>
@@ -55,7 +56,6 @@ namespace network
 {
 namespace zeromq
 {
-
 #ifdef SWIG
 // clang-format off
 %ignore Socket::operator void*();
@@ -66,8 +66,9 @@ namespace zeromq
 class Socket
 {
 public:
-    typedef std::pair<SendResult, std::shared_ptr<Message>> MessageSendResult;
-    typedef std::pair<bool, std::shared_ptr<Message>> MessageReceiveResult;
+    using MessageSendResult = std::pair<SendResult, OTZMQMessage>;
+    using ReceiveCallback = std::function<void(const Message&)>;
+    using RequestCallback = std::function<OTZMQMessage(const Message&)>;
 
     EXPORT virtual SocketType Type() const = 0;
 

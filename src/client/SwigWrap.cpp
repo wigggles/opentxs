@@ -66,6 +66,7 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/NumList.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/ServerConnection.hpp"
 #include "opentxs/OT.hpp"
 #include "opentxs/Proto.hpp"
@@ -4205,9 +4206,4 @@ std::uint8_t SwigWrap::Task_Status(const std::string& id)
 }
 
 void SwigWrap::Trigger_Refresh() { OT::App().API().Sync().Refresh(); }
-
-std::shared_ptr<network::zeromq::Context> SwigWrap::ZeroMQ()
-{
-    return OT::App().ZMQ().NewContext();
-}
 }  // namespace opentxs

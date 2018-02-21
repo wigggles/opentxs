@@ -41,7 +41,9 @@
 
 #include "opentxs/Forward.hpp"
 
+#include "opentxs/core/Lockable.hpp"
 #include "opentxs/core/Flag.hpp"
+#include "opentxs/network/zeromq/Socket.hpp"
 
 #include <atomic>
 #include <memory>
@@ -52,7 +54,7 @@ namespace opentxs
 {
 namespace server
 {
-class MessageProcessor
+class MessageProcessor : Lockable
 {
 public:
     EXPORT explicit MessageProcessor(
@@ -69,12 +71,12 @@ public:
 private:
     Server& server_;
     const Flag& running_;
-    const network::zeromq::Context& context_[[maybe_unused]];
-    std::shared_ptr<network::zeromq::ReplySocket> reply_socket_;
+    [[maybe_unused]] const network::zeromq::Context& context_;
+    OTZMQReplySocket reply_socket_;
     std::unique_ptr<std::thread> thread_{nullptr};
 
     bool processMessage(const std::string& messageString, std::string& reply);
-    void processSocket();
+    OTZMQMessage processSocket(const network::zeromq::Message& incoming);
     void run();
 };
 }  // namespace server

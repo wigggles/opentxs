@@ -98,8 +98,10 @@ namespace zeromq
 {
 class Context;
 class Message;
+class PublishSocket;
 class ReplySocket;
 class RequestSocket;
+class SubscribeSocket;
 }  // namespace opentxs::network::zeromq
 
 class Dht;
@@ -197,5 +199,11 @@ class UnitDefinition;
 using OTData = Pimpl<Data>;
 using OTFlag = Pimpl<Flag>;
 using OTServerConnection = Pimpl<network::ServerConnection>;
+using OTZMQContext = Pimpl<network::zeromq::Context>;
+using OTZMQMessage = Pimpl<network::zeromq::Message>;
+using OTZMQPublishSocket = Pimpl<network::zeromq::PublishSocket>;
+using OTZMQReplySocket = Pimpl<network::zeromq::ReplySocket>;
+using OTZMQRequestSocket = Pimpl<network::zeromq::RequestSocket>;
+using OTZMQSubscribeSocket = Pimpl<network::zeromq::SubscribeSocket>;
 }  // namespace opentxs
 #endif  // OPENTXS_FORWARD_HPP

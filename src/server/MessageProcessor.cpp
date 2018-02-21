@@ -70,7 +70,7 @@ MessageProcessor::MessageProcessor(
     : server_(server)
     , running_(running)
     , context_(context)
-    , reply_socket_(context.NewReplySocket())
+    , reply_socket_(context.ReplySocket())
     , thread_(nullptr)
 {
 }
@@ -101,45 +101,39 @@ void MessageProcessor::init(const int port, const OTPassword& privkey)
 
 void MessageProcessor::run()
 {
+    network::zeromq::Socket::RequestCallback callback =
+        [this](const network::zeromq::Message& incoming) -> OTZMQMessage {
+        return this->processSocket(incoming);
+    };
+    reply_socket_->RegisterCallback(callback);
+
     while (running_) {
         // timeout is the time left until the next cron should execute.
         const auto timeout = server_.computeTimeout();
 
         if (timeout <= 0) {
+            // ProcessCron and processSocket must not run simultaneously
+            Lock lock(lock_);
             server_.ProcessCron();
         }
 
-        processSocket();
         Log::Sleep(std::chrono::milliseconds(50));
     }
 }
 
-void MessageProcessor::processSocket()
+OTZMQMessage MessageProcessor::processSocket(
+    const network::zeromq::Message& incoming)
 {
-    auto input = reply_socket_->ReceiveRequest(NOBLOCK_MODE);
-    auto& received = input.first;
-
-    if (false == received) {
-
-        return;
-    }
-
-    OT_ASSERT(input.second)
-
-    std::string request(*input.second);
+    // ProcessCron and processSocket must not run simultaneously
+    Lock lock(lock_);
     std::string reply{};
-    bool error = processMessage(request, reply);
+    bool error = processMessage(std::string(incoming), reply);
 
     if (error) {
         reply = "";
     }
 
-    const bool sent = reply_socket_->SendReply(reply);
-
-    if (false == sent) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Failed to send response."
-              << "\nRequest: " << request << "\nReply: " << reply << std::endl;
-    }
+    return network::zeromq::Message::Factory(reply);
 }
 
 bool MessageProcessor::processMessage(

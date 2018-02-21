@@ -60,9 +60,7 @@
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/OTDataFolder.hpp"
 #include "opentxs/core/util/OTFolders.hpp"
-#include "opentxs/network/zeromq/implementation/Context.hpp"
-#include "opentxs/network/DhtConfig.hpp"
-#include "opentxs/network/OpenDHT.hpp"
+#include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/ServerConnection.hpp"
 #include "opentxs/storage/StorageConfig.hpp"
 #include "opentxs/core/Log.hpp"
@@ -71,13 +69,15 @@
 #include "opentxs/util/Signals.hpp"
 #include "opentxs/OT.hpp"
 
-#include "client/Wallet.hpp"
-#include "crypto/Crypto.hpp"
-#include "network/Dht.hpp"
-#include "network/ZMQ.hpp"
-#include "storage/Storage.hpp"
-#include "Api.hpp"
-#include "Server.hpp"
+#include "api/client/Wallet.hpp"
+#include "api/crypto/Crypto.hpp"
+#include "api/network/Dht.hpp"
+#include "api/network/ZMQ.hpp"
+#include "api/storage/Storage.hpp"
+#include "api/Api.hpp"
+#include "api/Server.hpp"
+#include "network/DhtConfig.hpp"
+#include "network/OpenDHT.hpp"
 
 #include <atomic>
 #include <ctime>
@@ -128,13 +128,10 @@ Native::Native(
     , periodic_(nullptr)
     , storage_encryption_key_(nullptr)
     , server_(nullptr)
-    , zmq_context_p_(new opentxs::network::zeromq::implementation::Context())
-    , zmq_context_(*zmq_context_p_)
+    , zmq_context_(opentxs::network::zeromq::Context::Factory())
     , signal_handler_(nullptr)
     , server_args_(args)
 {
-    OT_ASSERT(zmq_context_p_);
-
     for (const auto & [ key, arg ] : args) {
         if (key == OPENTXS_ARG_WORDS) {
             OT_ASSERT(2 > arg.size());

@@ -36,63 +36,41 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#ifndef OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_MESSAGE_HPP
+#define OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_MESSAGE_HPP
 
-#include "Context.hpp"
+#include "opentxs/Internal.hpp"
 
-#include "opentxs/core/Log.hpp"
-#include "opentxs/network/zeromq/PublishSocket.hpp"
-#include "opentxs/network/zeromq/ReplySocket.hpp"
-#include "opentxs/network/zeromq/RequestSocket.hpp"
-#include "opentxs/network/zeromq/SubscribeSocket.hpp"
-
-#include <zmq.h>
-
-namespace opentxs::network::zeromq
-{
-OTZMQContext Context::Factory()
-{
-    return OTZMQContext(new implementation::Context());
-}
-}  // namespace opentxs::network::zeromq
+#include "opentxs/network/zeromq/Message.hpp"
 
 namespace opentxs::network::zeromq::implementation
 {
-Context::Context()
-    : context_(zmq_ctx_new())
+class Message : virtual public zeromq::Message
 {
-    OT_ASSERT(nullptr != context_);
-    OT_ASSERT(1 == zmq_has("curve"));
-}
+public:
+    operator std::string() const override;
 
-Context::operator void*() const { return context_; }
+    const void* data() const override;
+    std::size_t size() const override;
 
-Context* Context::clone() const { return new Context; }
+    operator zmq_msg_t*() override;
 
-OTZMQPublishSocket Context::PublishSocket() const
-{
-    return PublishSocket::Factory(*this);
-}
+    ~Message();
 
-OTZMQReplySocket Context::ReplySocket() const
-{
-    return ReplySocket::Factory(*this);
-}
+private:
+    friend network::zeromq::Message;
 
-OTZMQRequestSocket Context::RequestSocket() const
-{
-    return RequestSocket::Factory(*this);
-}
+    zmq_msg_t* message_{nullptr};
 
-OTZMQSubscribeSocket Context::SubscribeSocket() const
-{
-    return SubscribeSocket::Factory(*this);
-}
+    Message* clone() const override;
 
-Context::~Context()
-{
-    if (nullptr != context_) {
-        zmq_ctx_shutdown(context_);
-    }
-}
+    Message();
+    explicit Message(const Data& input);
+    explicit Message(const std::string& input);
+    Message(const Message&) = delete;
+    Message(Message&&) = delete;
+    Message& operator=(Message&&) = delete;
+    Message& operator=(const Message&) = delete;
+};
 }  // namespace opentxs::network::zeromq::implementation
+#endif  // OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_MESSAGE_HPP

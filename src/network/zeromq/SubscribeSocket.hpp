@@ -36,50 +36,48 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_REPLYSOCKET_HPP
-#define OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_REPLYSOCKET_HPP
+#ifndef OPENTXS_NETWORK_ZEROMQ_SUBSCRIBESOCKET_IMPLEMENTATION_HPP
+#define OPENTXS_NETWORK_ZEROMQ_SUBSCRIBESOCKET_IMPLEMENTATION_HPP
 
 #include "opentxs/Forward.hpp"
 
-#include "opentxs/network/zeromq/implementation/Socket.hpp"
-#include "opentxs/network/zeromq/ReplySocket.hpp"
+#include "opentxs/network/zeromq/SubscribeSocket.hpp"
 
-#include <string>
+#include "CurveClient.hpp"
+#include "Receiver.hpp"
+#include "Socket.hpp"
 
-namespace opentxs
+namespace opentxs::network::zeromq::implementation
 {
-namespace network
-{
-namespace zeromq
-{
-namespace implementation
-{
-
-class ReplySocket : virtual public zeromq::ReplySocket, public Socket
+class SubscribeSocket : virtual public zeromq::SubscribeSocket,
+                        public Socket,
+                        CurveClient,
+                        Receiver
 {
 public:
-    MessageReceiveResult ReceiveRequest(BlockMode block) override;
-    bool SendReply(const std::string& reply) override;
-    bool SendReply(const opentxs::Data& reply) override;
-    bool SendReply(zeromq::Message& reply) override;
-    bool SetCurve(const OTPassword& key) override;
+    void RegisterCallback(ReceiveCallback callback) override;
+    bool SetCurve(const ServerContract& contract) override;
+    bool SetSocksProxy(const std::string& proxy) override;
     bool Start(const std::string& endpoint) override;
 
-    ~ReplySocket() = default;
+    ~SubscribeSocket();
 
 private:
-    friend class Context;
+    friend opentxs::network::zeromq::SubscribeSocket;
     typedef Socket ot_super;
 
-    ReplySocket(const zeromq::Context& context);
-    ReplySocket() = delete;
-    ReplySocket(const ReplySocket&) = delete;
-    ReplySocket(ReplySocket&&) = delete;
-    ReplySocket& operator=(const ReplySocket&) = delete;
-    ReplySocket& operator=(ReplySocket&&) = delete;
+    ReceiveCallback callback_{nullptr};
+
+    bool have_callback() const override;
+
+    void process_incoming(const Lock& lock, Message& message) override;
+
+    SubscribeSocket(const zeromq::Context& context);
+    SubscribeSocket() = delete;
+    SubscribeSocket(const SubscribeSocket&) = delete;
+    SubscribeSocket(SubscribeSocket&&) = delete;
+    SubscribeSocket& operator=(const SubscribeSocket&) = delete;
+    SubscribeSocket& operator=(SubscribeSocket&&) = delete;
 };
-}  // namespace implementation
-}  // namespace zeromq
-}  // namespace network
-}  // namespace opentxs
-#endif  // OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_REPLYSOCKET_HPP
+}  // namespace opentxs::network::zeromq::implementation
+#endif  // OPENTXS_NETWORK_ZEROMQ_SUBSCRIBESOCKET_IMPLEMENTATION_HPP

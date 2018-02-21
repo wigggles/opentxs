@@ -1,9 +1,14 @@
 set(cxx-sources
   Context.cpp
+  CurveClient.cpp
+  CurveServer.cpp
   Message.cpp
+  PublishSocket.cpp
+  Receiver.cpp
   ReplySocket.cpp
   RequestSocket.cpp
   Socket.cpp
+  SubscribeSocket.cpp
 )
 
 file(GLOB cxx-install-headers
@@ -12,11 +17,16 @@ file(GLOB cxx-install-headers
 
 set(cxx-headers
   ${cxx-install-headers}
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/network/zeromq/implementation/Context.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/network/zeromq/implementation/Message.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/network/zeromq/implementation/ReplySocket.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/network/zeromq/implementation/RequestSocket.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/network/zeromq/implementation/Socket.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/Context.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/CurveClient.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/CurveServer.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/Message.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/PublishSocket.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/Receiver.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/ReplySocket.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/RequestSocket.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/Socket.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/SubscribeSocket.hpp
 )
 
 set(MODULE_NAME opentxs-network-zeromq)

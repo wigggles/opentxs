@@ -39,8 +39,9 @@
 #ifndef OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_SOCKET_HPP
 #define OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_SOCKET_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Internal.hpp"
 
+#include "opentxs/core/Lockable.hpp"
 #include "opentxs/network/zeromq/Socket.hpp"
 
 #include <map>
@@ -49,16 +50,9 @@
 #define CURVE_KEY_BYTES 32
 #define CURVE_KEY_Z85_BYTES 40
 
-namespace opentxs
+namespace opentxs::network::zeromq::implementation
 {
-namespace network
-{
-namespace zeromq
-{
-namespace implementation
-{
-
-class Socket : virtual public zeromq::Socket
+class Socket : virtual public zeromq::Socket, public Lockable
 {
 public:
     SocketType Type() const override;
@@ -80,7 +74,8 @@ public:
 protected:
     const zeromq::Context& context_;
     void* socket_{nullptr};
-    std::mutex lock_{};
+
+    bool set_socks_proxy(const std::string& proxy);
 
     explicit Socket(const zeromq::Context& context, const SocketType type);
 
@@ -95,8 +90,5 @@ private:
     Socket& operator=(const Socket&) = delete;
     Socket& operator=(Socket&&) = delete;
 };
-}  // namespace implementation
-}  // namespace zeromq
-}  // namespace network
-}  // namespace opentxs
+}  // namespace opentxs::network::zeromq::implementation
 #endif  // OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_SOCKET_HPP

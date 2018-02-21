@@ -38,61 +38,64 @@
 
 #include "opentxs/stdafx.hpp"
 
-#include "Context.hpp"
+#include "CurveServer.hpp"
 
+#include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/network/zeromq/PublishSocket.hpp"
-#include "opentxs/network/zeromq/ReplySocket.hpp"
-#include "opentxs/network/zeromq/RequestSocket.hpp"
-#include "opentxs/network/zeromq/SubscribeSocket.hpp"
+
+#include "Socket.hpp"
 
 #include <zmq.h>
 
-namespace opentxs::network::zeromq
-{
-OTZMQContext Context::Factory()
-{
-    return OTZMQContext(new implementation::Context());
-}
-}  // namespace opentxs::network::zeromq
+#define OT_METHOD "opentxs::network::zeromq::implementation::CurveServer::"
 
 namespace opentxs::network::zeromq::implementation
 {
-Context::Context()
-    : context_(zmq_ctx_new())
+CurveServer::CurveServer(std::mutex& lock, void* socket)
+    : curve_lock_(lock)
+    , curve_socket_(socket)
 {
-    OT_ASSERT(nullptr != context_);
-    OT_ASSERT(1 == zmq_has("curve"));
 }
 
-Context::operator void*() const { return context_; }
-
-Context* Context::clone() const { return new Context; }
-
-OTZMQPublishSocket Context::PublishSocket() const
+bool CurveServer::set_curve(const OTPassword& key)
 {
-    return PublishSocket::Factory(*this);
-}
+    OT_ASSERT(nullptr != curve_socket_);
 
-OTZMQReplySocket Context::ReplySocket() const
-{
-    return ReplySocket::Factory(*this);
-}
+    Lock lock(curve_lock_);
 
-OTZMQRequestSocket Context::RequestSocket() const
-{
-    return RequestSocket::Factory(*this);
-}
+    if (CURVE_KEY_BYTES != key.getMemorySize()) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Invalid private key."
+              << std::endl;
 
-OTZMQSubscribeSocket Context::SubscribeSocket() const
-{
-    return SubscribeSocket::Factory(*this);
-}
-
-Context::~Context()
-{
-    if (nullptr != context_) {
-        zmq_ctx_shutdown(context_);
+        return false;
     }
+
+    const int server{1};
+    auto set = zmq_setsockopt(
+        curve_socket_, ZMQ_CURVE_SERVER, &server, sizeof(server));
+
+    if (0 != set) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to set ZMQ_CURVE_SERVER"
+              << std::endl;
+
+        return false;
+    }
+
+    set = zmq_setsockopt(
+        curve_socket_,
+        ZMQ_CURVE_SECRETKEY,
+        key.getMemory(),
+        key.getMemorySize());
+
+    if (0 != set) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to set private key."
+              << std::endl;
+
+        return false;
+    }
+
+    return true;
 }
+
+CurveServer::~CurveServer() { curve_socket_ = nullptr; }
 }  // namespace opentxs::network::zeromq::implementation

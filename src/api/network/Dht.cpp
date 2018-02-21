@@ -44,10 +44,11 @@
 #include "opentxs/api/Native.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
+
+#include "network/DhtConfig.hpp"
 #if OT_DHT
-#include "opentxs/network/implementation/OpenDHT.hpp"
+#include "network/OpenDHT.hpp"
 #endif
-#include "opentxs/network/DhtConfig.hpp"
 
 #include <string>
 

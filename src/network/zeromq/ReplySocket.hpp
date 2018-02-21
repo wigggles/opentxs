@@ -36,63 +36,47 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#ifndef OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_REPLYSOCKET_HPP
+#define OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_REPLYSOCKET_HPP
 
-#include "Context.hpp"
+#include "opentxs/Forward.hpp"
 
-#include "opentxs/core/Log.hpp"
-#include "opentxs/network/zeromq/PublishSocket.hpp"
 #include "opentxs/network/zeromq/ReplySocket.hpp"
-#include "opentxs/network/zeromq/RequestSocket.hpp"
-#include "opentxs/network/zeromq/SubscribeSocket.hpp"
 
-#include <zmq.h>
-
-namespace opentxs::network::zeromq
-{
-OTZMQContext Context::Factory()
-{
-    return OTZMQContext(new implementation::Context());
-}
-}  // namespace opentxs::network::zeromq
+#include "CurveServer.hpp"
+#include "Receiver.hpp"
+#include "Socket.hpp"
 
 namespace opentxs::network::zeromq::implementation
 {
-Context::Context()
-    : context_(zmq_ctx_new())
+class ReplySocket : virtual public zeromq::ReplySocket,
+                    public Socket,
+                    CurveServer,
+                    Receiver
 {
-    OT_ASSERT(nullptr != context_);
-    OT_ASSERT(1 == zmq_has("curve"));
-}
+public:
+    void RegisterCallback(RequestCallback callback) override;
+    bool SetCurve(const OTPassword& key) override;
+    bool Start(const std::string& endpoint) override;
 
-Context::operator void*() const { return context_; }
+    ~ReplySocket();
 
-Context* Context::clone() const { return new Context; }
+private:
+    friend opentxs::network::zeromq::ReplySocket;
+    typedef Socket ot_super;
 
-OTZMQPublishSocket Context::PublishSocket() const
-{
-    return PublishSocket::Factory(*this);
-}
+    RequestCallback callback_{nullptr};
 
-OTZMQReplySocket Context::ReplySocket() const
-{
-    return ReplySocket::Factory(*this);
-}
+    bool have_callback() const override;
 
-OTZMQRequestSocket Context::RequestSocket() const
-{
-    return RequestSocket::Factory(*this);
-}
+    void process_incoming(const Lock& lock, Message& message) override;
 
-OTZMQSubscribeSocket Context::SubscribeSocket() const
-{
-    return SubscribeSocket::Factory(*this);
-}
-
-Context::~Context()
-{
-    if (nullptr != context_) {
-        zmq_ctx_shutdown(context_);
-    }
-}
+    ReplySocket(const zeromq::Context& context);
+    ReplySocket() = delete;
+    ReplySocket(const ReplySocket&) = delete;
+    ReplySocket(ReplySocket&&) = delete;
+    ReplySocket& operator=(const ReplySocket&) = delete;
+    ReplySocket& operator=(ReplySocket&&) = delete;
+};
 }  // namespace opentxs::network::zeromq::implementation
+#endif  // OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_REPLYSOCKET_HPP
