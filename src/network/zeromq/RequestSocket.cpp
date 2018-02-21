@@ -40,14 +40,10 @@
 
 #include "RequestSocket.hpp"
 
-#include "opentxs/core/contract/ServerContract.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 
 #include <zmq.h>
-
-#include <array>
 
 #define OT_METHOD "opentxs::network::zeromq::implementation::RequestSocket::"
 
@@ -63,6 +59,7 @@ namespace opentxs::network::zeromq::implementation
 {
 RequestSocket::RequestSocket(const zeromq::Context& context)
     : ot_super(context, SocketType::Request)
+    , CurveClient(lock_, socket_)
 {
 }
 
@@ -108,93 +105,14 @@ Socket::MessageSendResult RequestSocket::SendRequest(zeromq::Message& request)
     return output;
 }
 
-bool RequestSocket::set_local_keys(const Lock&)
-{
-    OT_ASSERT(nullptr != socket_);
-
-    std::array<char, CURVE_KEY_Z85_BYTES + 1> publicKey{};
-    std::array<char, CURVE_KEY_Z85_BYTES + 1> secretKey{};
-    auto* pubkey = &publicKey[0];
-    auto* privkey = &secretKey[0];
-    auto set = zmq_curve_keypair(pubkey, privkey);
-
-    if (0 != set) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Failed to generate keypair."
-              << std::endl;
-
-        return false;
-    }
-
-    set =
-        zmq_setsockopt(socket_, ZMQ_CURVE_PUBLICKEY, pubkey, publicKey.size());
-
-    if (0 != set) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Failed to set public key."
-              << std::endl;
-
-        return false;
-    }
-
-    set =
-        zmq_setsockopt(socket_, ZMQ_CURVE_SECRETKEY, privkey, secretKey.size());
-
-    if (0 != set) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Failed to set private key."
-              << std::endl;
-
-        return false;
-    }
-
-    return true;
-}
-
-bool RequestSocket::set_remote_key(const Lock&, const ServerContract& contract)
-{
-    OT_ASSERT(nullptr != socket_);
-
-    const auto& key = contract.TransportKey();
-
-    if (CURVE_KEY_BYTES != key.GetSize()) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Invalid server key."
-              << std::endl;
-
-        return false;
-    }
-
-    const auto set = zmq_setsockopt(
-        socket_, ZMQ_CURVE_SERVERKEY, key.GetPointer(), key.GetSize());
-
-    if (0 != set) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Failed to set server key."
-              << std::endl;
-
-        return false;
-    }
-
-    return true;
-}
-
 bool RequestSocket::SetCurve(const ServerContract& contract)
 {
-    Lock lock(lock_);
-
-    if (false == set_remote_key(lock, contract)) {
-
-        return false;
-    }
-
-    return set_local_keys(lock);
+    return set_curve(contract);
 }
 
 bool RequestSocket::SetSocksProxy(const std::string& proxy)
 {
-    OT_ASSERT(nullptr != socket_);
-
-    Lock lock(lock_);
-    const auto set =
-        zmq_setsockopt(socket_, ZMQ_SOCKS_PROXY, proxy.data(), proxy.size());
-
-    return (0 == set);
+    return set_socks_proxy(proxy);
 }
 
 bool RequestSocket::Start(const std::string& endpoint)

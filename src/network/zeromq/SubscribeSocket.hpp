@@ -36,63 +36,48 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#ifndef OPENTXS_NETWORK_ZEROMQ_SUBSCRIBESOCKET_IMPLEMENTATION_HPP
+#define OPENTXS_NETWORK_ZEROMQ_SUBSCRIBESOCKET_IMPLEMENTATION_HPP
 
-#include "Context.hpp"
+#include "opentxs/Forward.hpp"
 
-#include "opentxs/core/Log.hpp"
-#include "opentxs/network/zeromq/PublishSocket.hpp"
-#include "opentxs/network/zeromq/ReplySocket.hpp"
-#include "opentxs/network/zeromq/RequestSocket.hpp"
 #include "opentxs/network/zeromq/SubscribeSocket.hpp"
 
-#include <zmq.h>
-
-namespace opentxs::network::zeromq
-{
-OTZMQContext Context::Factory()
-{
-    return OTZMQContext(new implementation::Context());
-}
-}  // namespace opentxs::network::zeromq
+#include "CurveClient.hpp"
+#include "Receiver.hpp"
+#include "Socket.hpp"
 
 namespace opentxs::network::zeromq::implementation
 {
-Context::Context()
-    : context_(zmq_ctx_new())
+class SubscribeSocket : virtual public zeromq::SubscribeSocket,
+                        public Socket,
+                        CurveClient,
+                        Receiver
 {
-    OT_ASSERT(nullptr != context_);
-    OT_ASSERT(1 == zmq_has("curve"));
-}
+public:
+    void RegisterCallback(ReceiveCallback callback) override;
+    bool SetCurve(const ServerContract& contract) override;
+    bool SetSocksProxy(const std::string& proxy) override;
+    bool Start(const std::string& endpoint) override;
 
-Context::operator void*() const { return context_; }
+    ~SubscribeSocket();
 
-Context* Context::clone() const { return new Context; }
+private:
+    friend opentxs::network::zeromq::SubscribeSocket;
+    typedef Socket ot_super;
 
-OTZMQPublishSocket Context::PublishSocket() const
-{
-    return PublishSocket::Factory(*this);
-}
+    ReceiveCallback callback_{nullptr};
 
-OTZMQReplySocket Context::ReplySocket() const
-{
-    return ReplySocket::Factory(*this);
-}
+    bool have_callback() const override;
 
-OTZMQRequestSocket Context::RequestSocket() const
-{
-    return RequestSocket::Factory(*this);
-}
+    void process_incoming(const Lock& lock, Message& message) override;
 
-OTZMQSubscribeSocket Context::SubscribeSocket() const
-{
-    return SubscribeSocket::Factory(*this);
-}
-
-Context::~Context()
-{
-    if (nullptr != context_) {
-        zmq_ctx_shutdown(context_);
-    }
-}
+    SubscribeSocket(const zeromq::Context& context);
+    SubscribeSocket() = delete;
+    SubscribeSocket(const SubscribeSocket&) = delete;
+    SubscribeSocket(SubscribeSocket&&) = delete;
+    SubscribeSocket& operator=(const SubscribeSocket&) = delete;
+    SubscribeSocket& operator=(SubscribeSocket&&) = delete;
+};
 }  // namespace opentxs::network::zeromq::implementation
+#endif  // OPENTXS_NETWORK_ZEROMQ_SUBSCRIBESOCKET_IMPLEMENTATION_HPP

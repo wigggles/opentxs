@@ -36,39 +36,47 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_CONTEXT_HPP
-#define OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_CONTEXT_HPP
+#ifndef OPENTXS_NETWORK_ZEROMQ_SUBSCRIBESOCKET_HPP
+#define OPENTXS_NETWORK_ZEROMQ_SUBSCRIBESOCKET_HPP
 
-#include "opentxs/Internal.hpp"
+#include "opentxs/Forward.hpp"
 
-#include "opentxs/network/zeromq/Context.hpp"
+#include "opentxs/network/zeromq/Socket.hpp"
 
-namespace opentxs::network::zeromq::implementation
+namespace opentxs
 {
-class Context : virtual public zeromq::Context
+namespace network
+{
+namespace zeromq
+{
+#ifdef SWIG
+// clang-format off
+%ignore SubscribeSocket::RegisterCallback(ReceiveCallback);
+%ignore SubscribeSocket::SetCurve(const ServerContract&);
+// clang-format on
+#endif  // SWIG
+
+class SubscribeSocket : virtual public Socket
 {
 public:
-    operator void*() const override;
+    EXPORT static OTZMQSubscribeSocket Factory(const Context& context);
 
-    OTZMQPublishSocket PublishSocket() const override;
-    OTZMQReplySocket ReplySocket() const override;
-    OTZMQRequestSocket RequestSocket() const override;
-    OTZMQSubscribeSocket SubscribeSocket() const override;
+    EXPORT virtual void RegisterCallback(ReceiveCallback callback) = 0;
+    EXPORT virtual bool SetCurve(const ServerContract& contract) = 0;
+    EXPORT virtual bool SetSocksProxy(const std::string& proxy) = 0;
 
-    ~Context();
+    EXPORT virtual ~SubscribeSocket() = default;
+
+protected:
+    SubscribeSocket() = default;
 
 private:
-    friend network::zeromq::Context;
-
-    void* context_{nullptr};
-
-    Context* clone() const override;
-
-    Context();
-    Context(const Context&) = delete;
-    Context(Context&&) = delete;
-    Context& operator=(const Context&) = delete;
-    Context& operator=(Context&&) = delete;
+    SubscribeSocket(const SubscribeSocket&) = delete;
+    SubscribeSocket(SubscribeSocket&&) = default;
+    SubscribeSocket& operator=(const SubscribeSocket&) = delete;
+    SubscribeSocket& operator=(SubscribeSocket&&) = default;
 };
-}  // namespace opentxs::network::zeromq::implementation
-#endif  // OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_CONTEXT_HPP
+}  // namespace zeromq
+}  // namespace network
+}  // namespace opentxs
+#endif  // OPENTXS_NETWORK_ZEROMQ_SUBSCRIBESOCKET_HPP

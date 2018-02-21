@@ -43,11 +43,14 @@
 
 #include "opentxs/network/zeromq/RequestSocket.hpp"
 
+#include "CurveClient.hpp"
 #include "Socket.hpp"
 
 namespace opentxs::network::zeromq::implementation
 {
-class RequestSocket : virtual public zeromq::RequestSocket, public Socket
+class RequestSocket : virtual public zeromq::RequestSocket,
+                      public Socket,
+                      CurveClient
 {
 public:
     MessageSendResult SendRequest(opentxs::Data& message) override;
@@ -62,9 +65,6 @@ public:
 private:
     friend opentxs::network::zeromq::RequestSocket;
     typedef Socket ot_super;
-
-    bool set_local_keys(const Lock& lock);
-    bool set_remote_key(const Lock& lock, const ServerContract& contract);
 
     RequestSocket(const zeromq::Context& context);
     RequestSocket() = delete;

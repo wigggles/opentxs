@@ -38,61 +38,55 @@
 
 #include "opentxs/stdafx.hpp"
 
-#include "Context.hpp"
+#include "PublishSocket.hpp"
 
 #include "opentxs/core/Log.hpp"
-#include "opentxs/network/zeromq/PublishSocket.hpp"
-#include "opentxs/network/zeromq/ReplySocket.hpp"
-#include "opentxs/network/zeromq/RequestSocket.hpp"
-#include "opentxs/network/zeromq/SubscribeSocket.hpp"
+#include "opentxs/network/zeromq/Context.hpp"
+#include "opentxs/network/zeromq/Message.hpp"
 
 #include <zmq.h>
 
+//#define OT_METHOD "opentxs::network::zeromq::implementation::PublishSocket::"
+
 namespace opentxs::network::zeromq
 {
-OTZMQContext Context::Factory()
+OTZMQPublishSocket PublishSocket::Factory(const Context& context)
 {
-    return OTZMQContext(new implementation::Context());
+    return OTZMQPublishSocket(new implementation::PublishSocket(context));
 }
 }  // namespace opentxs::network::zeromq
 
 namespace opentxs::network::zeromq::implementation
 {
-Context::Context()
-    : context_(zmq_ctx_new())
+PublishSocket::PublishSocket(const zeromq::Context& context)
+    : ot_super(context, SocketType::Publish)
+    , CurveServer(lock_, socket_)
 {
-    OT_ASSERT(nullptr != context_);
-    OT_ASSERT(1 == zmq_has("curve"));
 }
 
-Context::operator void*() const { return context_; }
-
-Context* Context::clone() const { return new Context; }
-
-OTZMQPublishSocket Context::PublishSocket() const
+bool PublishSocket::Publish(const std::string& data)
 {
-    return PublishSocket::Factory(*this);
+    return Publish(Message::Factory(data));
 }
 
-OTZMQReplySocket Context::ReplySocket() const
+bool PublishSocket::Publish(const opentxs::Data& data)
 {
-    return ReplySocket::Factory(*this);
+    return Publish(Message::Factory(data));
 }
 
-OTZMQRequestSocket Context::RequestSocket() const
+bool PublishSocket::Publish(zeromq::Message& data)
 {
-    return RequestSocket::Factory(*this);
+    Lock lock(lock_);
+
+    return (-1 != zmq_msg_send(data, socket_, 0));
 }
 
-OTZMQSubscribeSocket Context::SubscribeSocket() const
-{
-    return SubscribeSocket::Factory(*this);
-}
+bool PublishSocket::SetCurve(const OTPassword& key) { return set_curve(key); }
 
-Context::~Context()
+bool PublishSocket::Start(const std::string& endpoint)
 {
-    if (nullptr != context_) {
-        zmq_ctx_shutdown(context_);
-    }
+    Lock lock(lock_);
+
+    return (0 == zmq_bind(socket_, endpoint.c_str()));
 }
 }  // namespace opentxs::network::zeromq::implementation

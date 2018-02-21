@@ -43,27 +43,33 @@
 
 #include "opentxs/network/zeromq/ReplySocket.hpp"
 
+#include "CurveServer.hpp"
+#include "Receiver.hpp"
 #include "Socket.hpp"
-
-#include <string>
 
 namespace opentxs::network::zeromq::implementation
 {
-class ReplySocket : virtual public zeromq::ReplySocket, public Socket
+class ReplySocket : virtual public zeromq::ReplySocket,
+                    public Socket,
+                    CurveServer,
+                    Receiver
 {
 public:
-    MessageReceiveResult ReceiveRequest(BlockMode block) override;
-    bool SendReply(const std::string& reply) override;
-    bool SendReply(const opentxs::Data& reply) override;
-    bool SendReply(zeromq::Message& reply) override;
+    void RegisterCallback(RequestCallback callback) override;
     bool SetCurve(const OTPassword& key) override;
     bool Start(const std::string& endpoint) override;
 
-    ~ReplySocket() = default;
+    ~ReplySocket();
 
 private:
     friend opentxs::network::zeromq::ReplySocket;
     typedef Socket ot_super;
+
+    RequestCallback callback_{nullptr};
+
+    bool have_callback() const override;
+
+    void process_incoming(const Lock& lock, Message& message) override;
 
     ReplySocket(const zeromq::Context& context);
     ReplySocket() = delete;

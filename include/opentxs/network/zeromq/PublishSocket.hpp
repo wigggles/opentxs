@@ -36,39 +36,49 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_CONTEXT_HPP
-#define OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_CONTEXT_HPP
+#ifndef OPENTXS_NETWORK_ZEROMQ_PUBLISHSOCKET_HPP
+#define OPENTXS_NETWORK_ZEROMQ_PUBLISHSOCKET_HPP
 
-#include "opentxs/Internal.hpp"
+#include "opentxs/Forward.hpp"
 
-#include "opentxs/network/zeromq/Context.hpp"
+#include "opentxs/network/zeromq/Socket.hpp"
 
-namespace opentxs::network::zeromq::implementation
+namespace opentxs
 {
-class Context : virtual public zeromq::Context
+namespace network
+{
+namespace zeromq
+{
+
+#ifdef SWIG
+// clang-format off
+%ignore PublishSocket::Publish(const opentxs::Data&);
+%ignore PublishSocket::SetCurve(const OTPassword& key);
+// clang-format on
+#endif  // SWIG
+
+class PublishSocket : virtual public Socket
 {
 public:
-    operator void*() const override;
+    EXPORT static OTZMQPublishSocket Factory(const Context& context);
 
-    OTZMQPublishSocket PublishSocket() const override;
-    OTZMQReplySocket ReplySocket() const override;
-    OTZMQRequestSocket RequestSocket() const override;
-    OTZMQSubscribeSocket SubscribeSocket() const override;
+    EXPORT virtual bool Publish(const std::string& data) = 0;
+    EXPORT virtual bool Publish(const opentxs::Data& data) = 0;
+    EXPORT virtual bool Publish(Message& data) = 0;
+    EXPORT virtual bool SetCurve(const OTPassword& key) = 0;
 
-    ~Context();
+    EXPORT virtual ~PublishSocket() = default;
+
+protected:
+    EXPORT PublishSocket() = default;
 
 private:
-    friend network::zeromq::Context;
-
-    void* context_{nullptr};
-
-    Context* clone() const override;
-
-    Context();
-    Context(const Context&) = delete;
-    Context(Context&&) = delete;
-    Context& operator=(const Context&) = delete;
-    Context& operator=(Context&&) = delete;
+    PublishSocket(const PublishSocket&) = delete;
+    PublishSocket(PublishSocket&&) = default;
+    PublishSocket& operator=(const PublishSocket&) = delete;
+    PublishSocket& operator=(PublishSocket&&) = default;
 };
-}  // namespace opentxs::network::zeromq::implementation
-#endif  // OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_CONTEXT_HPP
+}  // namespace zeromq
+}  // namespace network
+}  // namespace opentxs
+#endif  // OPENTXS_NETWORK_ZEROMQ_PUBLISHSOCKET_HPP

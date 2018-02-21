@@ -45,6 +45,7 @@
 
 #include <cstdint>
 #include <chrono>
+#include <functional>
 #include <memory>
 #include <string>
 #include <tuple>
@@ -65,8 +66,9 @@ namespace zeromq
 class Socket
 {
 public:
-    typedef std::pair<SendResult, OTZMQMessage> MessageSendResult;
-    typedef std::pair<bool, OTZMQMessage> MessageReceiveResult;
+    using MessageSendResult = std::pair<SendResult, OTZMQMessage>;
+    using ReceiveCallback = std::function<void(const Message&)>;
+    using RequestCallback = std::function<OTZMQMessage(const Message&)>;
 
     EXPORT virtual SocketType Type() const = 0;
 

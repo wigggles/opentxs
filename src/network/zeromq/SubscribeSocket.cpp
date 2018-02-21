@@ -38,68 +38,89 @@
 
 #include "opentxs/stdafx.hpp"
 
-#include "ReplySocket.hpp"
+#include "SubscribeSocket.hpp"
 
 #include "opentxs/core/Log.hpp"
-//#include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
+
+#include <chrono>
 
 #include <zmq.h>
 
-#define OT_METHOD "opentxs::network::zeromq::implementation::ReplySocket::"
+#define OT_METHOD "opentxs::network::zeromq::implementation::SubscribeSocket::"
 
 namespace opentxs::network::zeromq
 {
-OTZMQReplySocket ReplySocket::Factory(const Context& context)
+OTZMQSubscribeSocket SubscribeSocket::Factory(const Context& context)
 {
-    return OTZMQReplySocket(new implementation::ReplySocket(context));
+    return OTZMQSubscribeSocket(new implementation::SubscribeSocket(context));
 }
 }  // namespace opentxs::network::zeromq
 
 namespace opentxs::network::zeromq::implementation
 {
-ReplySocket::ReplySocket(const zeromq::Context& context)
-    : ot_super(context, SocketType::Reply)
-    , CurveServer(lock_, socket_)
+SubscribeSocket::SubscribeSocket(const zeromq::Context& context)
+    : ot_super(context, SocketType::Request)
+    , CurveClient(lock_, socket_)
     , Receiver(lock_, socket_)
     , callback_(nullptr)
 {
+    // subscribe to all messages until filtering is implemented
+    const auto set = zmq_setsockopt(socket_, ZMQ_SUBSCRIBE, "", 0);
+
+    OT_ASSERT(0 == set);
 }
 
-bool ReplySocket::have_callback() const
+bool SubscribeSocket::have_callback() const
 {
     Lock lock(lock_);
 
     return bool(callback_);
 }
 
-void ReplySocket::process_incoming(const Lock&, Message& message)
+void SubscribeSocket::process_incoming(const Lock&, Message& message)
 {
-    auto output = callback_(message);
-    Message& reply = output;
-    auto sent = zmq_msg_send(reply, socket_, 0);
-
-    if ((false == sent) && (0 < message.size())) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Failed to send response."
-              << "\nRequest: " << std::string(message) << "\nReply: " << reply
-              << std::endl;
-    }
+    callback_(message);
 }
 
-void ReplySocket::RegisterCallback(RequestCallback callback)
+void SubscribeSocket::RegisterCallback(ReceiveCallback callback)
 {
     Lock lock(lock_);
     callback_ = callback;
 }
 
-bool ReplySocket::SetCurve(const OTPassword& key) { return set_curve(key); }
-
-bool ReplySocket::Start(const std::string& endpoint)
+bool SubscribeSocket::SetCurve(const ServerContract& contract)
 {
-    Lock lock(lock_);
-
-    return (0 == zmq_bind(socket_, endpoint.c_str()));
+    return set_curve(contract);
 }
 
-ReplySocket::~ReplySocket() {}
+bool SubscribeSocket::SetSocksProxy(const std::string& proxy)
+{
+    return set_socks_proxy(proxy);
+}
+
+bool SubscribeSocket::Start(const std::string& endpoint)
+{
+    OT_ASSERT(nullptr != socket_);
+
+    Lock lock(lock_);
+
+    if (false == bool(callback_)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Callback not registered. "
+              << std::endl;
+
+        return false;
+    }
+
+    if (0 != zmq_connect(socket_, endpoint.c_str())) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to connect to "
+              << endpoint << std::endl;
+
+        return false;
+    }
+
+    return true;
+}
+
+SubscribeSocket::~SubscribeSocket() {}
 }  // namespace opentxs::network::zeromq::implementation

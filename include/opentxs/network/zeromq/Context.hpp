@@ -65,8 +65,10 @@ public:
 
     EXPORT virtual operator void*() const = 0;
 
+    EXPORT virtual OTZMQPublishSocket PublishSocket() const = 0;
     EXPORT virtual OTZMQReplySocket ReplySocket() const = 0;
     EXPORT virtual OTZMQRequestSocket RequestSocket() const = 0;
+    EXPORT virtual OTZMQSubscribeSocket SubscribeSocket() const = 0;
 
     EXPORT virtual ~Context() = default;
 
