@@ -57,21 +57,20 @@ public:
     Pimpl(const Pimpl& rhs) noexcept
         : pimpl_(nullptr)
     {
-        if (rhs.pimpl_) {
-            pimpl_.reset(rhs.pimpl_->clone());
-        }
+        pimpl_.reset(rhs.pimpl_->clone());
+        assert(pimpl_);
     }
 
     Pimpl(Pimpl&& rhs) noexcept
         : pimpl_(std::move(rhs.pimpl_))
     {
+        assert(pimpl_);
     }
 
     Pimpl& operator=(const Pimpl& rhs) noexcept
     {
-        if (rhs.pimpl_) {
-            pimpl_.reset(rhs.pimpl_->clone());
-        }
+        pimpl_.reset(rhs.pimpl_->clone());
+        assert(pimpl_);
 
         return *this;
     }
@@ -79,6 +78,7 @@ public:
     Pimpl& operator=(Pimpl&& rhs) noexcept
     {
         pimpl_ = std::move(rhs.pimpl_);
+        assert(pimpl_);
 
         return *this;
     }
@@ -86,6 +86,7 @@ public:
     Pimpl& operator=(const C& rhs) noexcept
     {
         pimpl_ = std::move(C::Factory(rhs).pimpl_);
+        assert(pimpl_);
 
         return *this;
     }

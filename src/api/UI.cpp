@@ -36,68 +36,39 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_FORWARD_INTERNAL_HPP
-#define OPENTXS_FORWARD_INTERNAL_HPP
+#include "opentxs/stdafx.hpp"
 
-#include "opentxs/Forward.hpp"
+#include "UI.hpp"
 
-namespace opentxs
-{
-namespace api
-{
-namespace client
-{
-namespace implementation
-{
-class Wallet;
-}  // namespace api::client::implementation
-}  // namespace api::client
+#include "ui/ContactList.hpp"
 
-namespace implementation
-{
-class Api;
-class Crypto;
-class Native;
-class UI;
-}  // namespace api::implementation
+//#define OT_METHOD "opentxs::api::implementation::UI"
 
-namespace network
+namespace opentxs::api::implementation
 {
-namespace implementation
+UI::UI(
+    const opentxs::network::zeromq::Context& zmq,
+    const api::ContactManager& contact)
+    : zmq_(zmq)
+    , contact_(contact)
+    , contact_lists_()
 {
-class Context;
-class Dht;
-class ZMQ;
-}  // namespace api::network::implementation
-}  // namespace api::network
-}  // namespace api
+}
 
-namespace storage
+const ui::ContactList& UI::ContactList(const Identifier& nymID) const
 {
-class Root;
-}  // namespace opentxs::storage
+    Lock lock(lock_);
 
-namespace ui
-{
-namespace implementation
-{
-class ContactList;
-class ContactListItem;
-}  // namespace opentxs::ui::implementation
-}  // namespace opentxs::ui
+    auto& list = contact_lists_[nymID];
 
-class DhtConfig;
-#if OT_CRYPTO_USING_LIBSECP256K1
-class Libsecp256k1;
-#endif
-class Libsodium;
-#if OT_CRYPTO_USING_OPENSSL
-class OpenSSL;
-#endif
-class StorageConfig;
-class StorageMultiplex;
-#if OT_CRYPTO_USING_TREZOR
-class TrezorCrypto;
-#endif
-}  // namespace opentxs
-#endif  // OPENTXS_FORWARD_INTERNAL_HPP
+    if (false == bool(list)) {
+        list.reset(new ui::implementation::ContactList(zmq_, contact_, nymID));
+    }
+
+    OT_ASSERT(list)
+
+    return *list;
+}
+
+UI::~UI() {}
+}  // namespace opentxs::api::implementation

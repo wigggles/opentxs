@@ -14,7 +14,7 @@
  *       -- Scripted smart contracts.
  *
  *  EMAIL:
- *  fellowtraveler@opentransactions.org
+ *  fellowtraveler\opentransactions.org
  *
  *  WEBSITE:
  *  http://www.opentransactions.org/
@@ -36,8 +36,8 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_FORWARD_INTERNAL_HPP
-#define OPENTXS_FORWARD_INTERNAL_HPP
+#ifndef OPENTXS_API_UI_HPP
+#define OPENTXS_API_UI_HPP
 
 #include "opentxs/Forward.hpp"
 
@@ -45,59 +45,24 @@ namespace opentxs
 {
 namespace api
 {
-namespace client
+class UI
 {
-namespace implementation
-{
-class Wallet;
-}  // namespace api::client::implementation
-}  // namespace api::client
+public:
+    EXPORT virtual const ui::ContactList& ContactList(
+        const Identifier& nymID) const = 0;
 
-namespace implementation
-{
-class Api;
-class Crypto;
-class Native;
-class UI;
-}  // namespace api::implementation
+    virtual ~UI() = default;
 
-namespace network
-{
-namespace implementation
-{
-class Context;
-class Dht;
-class ZMQ;
-}  // namespace api::network::implementation
-}  // namespace api::network
+protected:
+    UI() = default;
+
+private:
+    UI(const UI&) = delete;
+    UI(UI&&) = delete;
+    UI& operator=(const UI&) = delete;
+    UI& operator=(UI&&) = delete;
+};
 }  // namespace api
-
-namespace storage
-{
-class Root;
-}  // namespace opentxs::storage
-
-namespace ui
-{
-namespace implementation
-{
-class ContactList;
-class ContactListItem;
-}  // namespace opentxs::ui::implementation
-}  // namespace opentxs::ui
-
-class DhtConfig;
-#if OT_CRYPTO_USING_LIBSECP256K1
-class Libsecp256k1;
-#endif
-class Libsodium;
-#if OT_CRYPTO_USING_OPENSSL
-class OpenSSL;
-#endif
-class StorageConfig;
-class StorageMultiplex;
-#if OT_CRYPTO_USING_TREZOR
-class TrezorCrypto;
-#endif
 }  // namespace opentxs
-#endif  // OPENTXS_FORWARD_INTERNAL_HPP
+
+#endif  // OPENTXS_API_UI_HPP

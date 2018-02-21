@@ -66,6 +66,7 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/ui/ContactList.hpp"
 #include "opentxs/util/Signals.hpp"
 #include "opentxs/OT.hpp"
 
@@ -77,6 +78,7 @@
 #include "api/Api.hpp"
 #include "api/ContactManager.hpp"
 #include "api/Server.hpp"
+#include "api/UI.hpp"
 #include "network/DhtConfig.hpp"
 #include "network/OpenDHT.hpp"
 
@@ -129,6 +131,7 @@ Native::Native(
     , periodic_(nullptr)
     , storage_encryption_key_(nullptr)
     , server_(nullptr)
+    , ui_(nullptr)
     , zmq_context_(opentxs::network::zeromq::Context::Factory())
     , signal_handler_(nullptr)
     , server_args_(args)
@@ -307,6 +310,7 @@ void Native::Init()
     Init_Api();  // requires Init_Config(), Init_Crypto(), Init_Contracts(),
                  // Init_Identity(), Init_Storage(), Init_ZMQ(), Init_Contacts()
                  // Init_Activity()
+    Init_UI();   // requires Init_Contacts()
 
     if (recover_) {
         recover();
@@ -498,6 +502,82 @@ void Native::Init_Log()
     if (false == Log::Init(Config(), type.c_str())) {
         abort();
     }
+}
+
+void Native::Init_Periodic()
+{
+    OT_ASSERT(storage_);
+
+    auto storage = storage_.get();
+    const auto now = std::chrono::seconds(std::time(nullptr));
+
+    Schedule(
+        std::chrono::seconds(nym_publish_interval_),
+        [storage]() -> void {
+            NymLambda nymLambda(
+                [](const serializedCredentialIndex& nym) -> void {
+                    OT::App().DHT().Insert(nym);
+                });
+            storage->MapPublicNyms(nymLambda);
+        },
+        now);
+
+    Schedule(
+        std::chrono::seconds(nym_refresh_interval_),
+        [storage]() -> void {
+            NymLambda nymLambda(
+                [](const serializedCredentialIndex& nym) -> void {
+                    OT::App().DHT().GetPublicNym(nym.nymid());
+                });
+            storage->MapPublicNyms(nymLambda);
+        },
+        (now - std::chrono::seconds(nym_refresh_interval_) / 2));
+
+    Schedule(
+        std::chrono::seconds(server_publish_interval_),
+        [storage]() -> void {
+            ServerLambda serverLambda(
+                [](const proto::ServerContract& server) -> void {
+                    OT::App().DHT().Insert(server);
+                });
+            storage->MapServers(serverLambda);
+        },
+        now);
+
+    Schedule(
+        std::chrono::seconds(server_refresh_interval_),
+        [storage]() -> void {
+            ServerLambda serverLambda(
+                [](const proto::ServerContract& server) -> void {
+                    OT::App().DHT().GetServerContract(server.id());
+                });
+            storage->MapServers(serverLambda);
+        },
+        (now - std::chrono::seconds(server_refresh_interval_) / 2));
+
+    Schedule(
+        std::chrono::seconds(unit_publish_interval_),
+        [storage]() -> void {
+            UnitLambda unitLambda(
+                [](const proto::UnitDefinition& unit) -> void {
+                    OT::App().DHT().Insert(unit);
+                });
+            storage->MapUnitDefinitions(unitLambda);
+        },
+        now);
+
+    Schedule(
+        std::chrono::seconds(unit_refresh_interval_),
+        [storage]() -> void {
+            UnitLambda unitLambda(
+                [](const proto::UnitDefinition& unit) -> void {
+                    OT::App().DHT().GetUnitDefinition(unit.id());
+                });
+            storage->MapUnitDefinitions(unitLambda);
+        },
+        (now - std::chrono::seconds(unit_refresh_interval_) / 2));
+
+    periodic_.reset(new std::thread(&Native::Periodic, this));
 }
 
 void Native::Init_Server()
@@ -733,80 +813,13 @@ void Native::Init_StorageBackup()
     storage->start();
 }
 
-void Native::Init_Periodic()
+void Native::Init_UI()
 {
-    OT_ASSERT(storage_);
+    OT_ASSERT(contacts_);
 
-    auto storage = storage_.get();
-    const auto now = std::chrono::seconds(std::time(nullptr));
+    ui_.reset(new class UI(zmq_context_, *contacts_));
 
-    Schedule(
-        std::chrono::seconds(nym_publish_interval_),
-        [storage]() -> void {
-            NymLambda nymLambda(
-                [](const serializedCredentialIndex& nym) -> void {
-                    OT::App().DHT().Insert(nym);
-                });
-            storage->MapPublicNyms(nymLambda);
-        },
-        now);
-
-    Schedule(
-        std::chrono::seconds(nym_refresh_interval_),
-        [storage]() -> void {
-            NymLambda nymLambda(
-                [](const serializedCredentialIndex& nym) -> void {
-                    OT::App().DHT().GetPublicNym(nym.nymid());
-                });
-            storage->MapPublicNyms(nymLambda);
-        },
-        (now - std::chrono::seconds(nym_refresh_interval_) / 2));
-
-    Schedule(
-        std::chrono::seconds(server_publish_interval_),
-        [storage]() -> void {
-            ServerLambda serverLambda(
-                [](const proto::ServerContract& server) -> void {
-                    OT::App().DHT().Insert(server);
-                });
-            storage->MapServers(serverLambda);
-        },
-        now);
-
-    Schedule(
-        std::chrono::seconds(server_refresh_interval_),
-        [storage]() -> void {
-            ServerLambda serverLambda(
-                [](const proto::ServerContract& server) -> void {
-                    OT::App().DHT().GetServerContract(server.id());
-                });
-            storage->MapServers(serverLambda);
-        },
-        (now - std::chrono::seconds(server_refresh_interval_) / 2));
-
-    Schedule(
-        std::chrono::seconds(unit_publish_interval_),
-        [storage]() -> void {
-            UnitLambda unitLambda(
-                [](const proto::UnitDefinition& unit) -> void {
-                    OT::App().DHT().Insert(unit);
-                });
-            storage->MapUnitDefinitions(unitLambda);
-        },
-        now);
-
-    Schedule(
-        std::chrono::seconds(unit_refresh_interval_),
-        [storage]() -> void {
-            UnitLambda unitLambda(
-                [](const proto::UnitDefinition& unit) -> void {
-                    OT::App().DHT().GetUnitDefinition(unit.id());
-                });
-            storage->MapUnitDefinitions(unitLambda);
-        },
-        (now - std::chrono::seconds(unit_refresh_interval_) / 2));
-
-    periodic_.reset(new std::thread(&Native::Periodic, this));
+    OT_ASSERT(ui_);
 }
 
 void Native::Init_ZMQ()
@@ -952,6 +965,7 @@ void Native::shutdown()
     }
 
     server_.reset();
+    ui_.reset();
     api_.reset();
     blockchain_.reset();
     activity_.reset();
@@ -996,6 +1010,13 @@ void Native::start()
     }
 }
 
+const api::UI& Native::UI() const
+{
+    OT_ASSERT(ui_)
+
+    return *ui_;
+}
+
 const api::client::Wallet& Native::Wallet() const
 {
     OT_ASSERT(wallet_)
@@ -1009,4 +1030,6 @@ const api::network::ZMQ& Native::ZMQ() const
 
     return *zeromq_;
 }
+
+Native::~Native() {}
 }  // namespace opentxs::api::implementation

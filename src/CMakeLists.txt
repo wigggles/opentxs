@@ -35,6 +35,7 @@ add_subdirectory(client)
 add_subdirectory(api)
 add_subdirectory(server)
 add_subdirectory(contact)
+add_subdirectory(ui)
 add_subdirectory(util)
 
 if(TREZORCRYPTO_EXPORT)
@@ -90,6 +91,7 @@ set(object-deps
   $<TARGET_OBJECTS:opentxs-storage-tree>
   $<TARGET_OBJECTS:opentxs-trade>
   $<TARGET_OBJECTS:opentxs-contact>
+  $<TARGET_OBJECTS:opentxs-ui>
   $<TARGET_OBJECTS:opentxs-util>
 )
 

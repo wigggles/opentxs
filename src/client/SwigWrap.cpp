@@ -53,6 +53,7 @@
 #include "opentxs/api/Blockchain.hpp"
 #include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Native.hpp"
+#include "opentxs/api/UI.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/contact/Contact.hpp"
@@ -68,6 +69,7 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/ServerConnection.hpp"
+#include "opentxs/ui/ContactList.hpp"
 #include "opentxs/OT.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
@@ -4206,4 +4208,9 @@ std::uint8_t SwigWrap::Task_Status(const std::string& id)
 }
 
 void SwigWrap::Trigger_Refresh() { OT::App().API().Sync().Refresh(); }
+
+const ui::ContactList& SwigWrap::ContactList(const std::string& nymID)
+{
+    return OT::App().UI().ContactList(Identifier(nymID));
+}
 }  // namespace opentxs

@@ -14,7 +14,7 @@
  *       -- Scripted smart contracts.
  *
  *  EMAIL:
- *  fellowtraveler@opentransactions.org
+ *  fellowtraveler\opentransactions.org
  *
  *  WEBSITE:
  *  http://www.opentransactions.org/
@@ -36,68 +36,43 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_FORWARD_INTERNAL_HPP
-#define OPENTXS_FORWARD_INTERNAL_HPP
+#ifndef OPENTXS_API_UI_IMPLEMENTATION_HPP
+#define OPENTXS_API_UI_IMPLEMENTATION_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Internal.hpp"
 
-namespace opentxs
-{
-namespace api
-{
-namespace client
-{
-namespace implementation
-{
-class Wallet;
-}  // namespace api::client::implementation
-}  // namespace api::client
+#include "opentxs/api/UI.hpp"
+#include "opentxs/core/Lockable.hpp"
+#include "opentxs/Types.hpp"
 
-namespace implementation
-{
-class Api;
-class Crypto;
-class Native;
-class UI;
-}  // namespace api::implementation
+#include <map>
+#include <memory>
 
-namespace network
+namespace opentxs::api::implementation
 {
-namespace implementation
+class UI : virtual public opentxs::api::UI, Lockable
 {
-class Context;
-class Dht;
-class ZMQ;
-}  // namespace api::network::implementation
-}  // namespace api::network
-}  // namespace api
+public:
+    const ui::ContactList& ContactList(const Identifier& nymID) const override;
 
-namespace storage
-{
-class Root;
-}  // namespace opentxs::storage
+    ~UI();
 
-namespace ui
-{
-namespace implementation
-{
-class ContactList;
-class ContactListItem;
-}  // namespace opentxs::ui::implementation
-}  // namespace opentxs::ui
+private:
+    friend class implementation::Native;
+    using ContactListMap =
+        std::map<Identifier, std::unique_ptr<ui::ContactList>>;
 
-class DhtConfig;
-#if OT_CRYPTO_USING_LIBSECP256K1
-class Libsecp256k1;
-#endif
-class Libsodium;
-#if OT_CRYPTO_USING_OPENSSL
-class OpenSSL;
-#endif
-class StorageConfig;
-class StorageMultiplex;
-#if OT_CRYPTO_USING_TREZOR
-class TrezorCrypto;
-#endif
-}  // namespace opentxs
-#endif  // OPENTXS_FORWARD_INTERNAL_HPP
+    const opentxs::network::zeromq::Context& zmq_;
+    const api::ContactManager& contact_;
+    mutable ContactListMap contact_lists_{};
+
+    UI(const opentxs::network::zeromq::Context& zmq,
+       const api::ContactManager& contact);
+    UI() = delete;
+    UI(const UI&) = delete;
+    UI(UI&&) = delete;
+    UI& operator=(const UI&) = delete;
+    UI& operator=(UI&&) = delete;
+};
+}  // namespace opentxs::api::implementation
+#endif  // OPENTXS_API_UI_IMPLEMENTATION_HPP

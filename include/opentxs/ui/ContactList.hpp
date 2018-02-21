@@ -36,68 +36,32 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_FORWARD_INTERNAL_HPP
-#define OPENTXS_FORWARD_INTERNAL_HPP
+#ifndef OPENTXS_UI_CONTACTLIST_HPP
+#define OPENTXS_UI_CONTACTLIST_HPP
 
 #include "opentxs/Forward.hpp"
 
 namespace opentxs
 {
-namespace api
-{
-namespace client
-{
-namespace implementation
-{
-class Wallet;
-}  // namespace api::client::implementation
-}  // namespace api::client
-
-namespace implementation
-{
-class Api;
-class Crypto;
-class Native;
-class UI;
-}  // namespace api::implementation
-
-namespace network
-{
-namespace implementation
-{
-class Context;
-class Dht;
-class ZMQ;
-}  // namespace api::network::implementation
-}  // namespace api::network
-}  // namespace api
-
-namespace storage
-{
-class Root;
-}  // namespace opentxs::storage
-
 namespace ui
 {
-namespace implementation
+class ContactList
 {
-class ContactList;
-class ContactListItem;
-}  // namespace opentxs::ui::implementation
-}  // namespace opentxs::ui
+public:
+    EXPORT virtual const ContactListItem& First() const = 0;
+    EXPORT virtual const ContactListItem& Next() const = 0;
 
-class DhtConfig;
-#if OT_CRYPTO_USING_LIBSECP256K1
-class Libsecp256k1;
-#endif
-class Libsodium;
-#if OT_CRYPTO_USING_OPENSSL
-class OpenSSL;
-#endif
-class StorageConfig;
-class StorageMultiplex;
-#if OT_CRYPTO_USING_TREZOR
-class TrezorCrypto;
-#endif
+    EXPORT virtual ~ContactList() = default;
+
+protected:
+    ContactList() = default;
+
+private:
+    ContactList(const ContactList&) = delete;
+    ContactList(ContactList&&) = delete;
+    ContactList& operator=(const ContactList&) = delete;
+    ContactList& operator=(ContactList&&) = delete;
+};
+}  // namespace ui
 }  // namespace opentxs
-#endif  // OPENTXS_FORWARD_INTERNAL_HPP
+#endif  // OPENTXS_UI_CONTACTLIST_HPP

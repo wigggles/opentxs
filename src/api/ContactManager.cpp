@@ -52,7 +52,7 @@
 
 #include <functional>
 
-#define OT_METHOD "opentxs::ContactManager::implementation::"
+#define OT_METHOD "opentxs::api::implementation::ContactManager"
 
 namespace opentxs::api::implementation
 {
