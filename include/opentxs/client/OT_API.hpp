@@ -805,7 +805,7 @@ public:
 
     EXPORT CommandResult registerInstrumentDefinition(
         ServerContext& context,
-        const String& THE_CONTRACT) const;
+        const proto::UnitDefinition& THE_CONTRACT) const;
 
     EXPORT CommandResult getInstrumentDefinition(
         ServerContext& context,

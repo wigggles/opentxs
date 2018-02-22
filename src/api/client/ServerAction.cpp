@@ -75,9 +75,6 @@ ServerAction::Action ServerAction::AcknowledgeBailment(
     const Identifier& requestID,
     const std::string& instructions) const
 {
-    const std::string recipient{String(recipientID).Get()};
-    const std::string request{String(requestID).Get()};
-
     return Action(new OTAPI_Func(
         ACKNOWLEDGE_BAILMENT,
         wallet_,
@@ -85,8 +82,8 @@ ServerAction::Action ServerAction::AcknowledgeBailment(
         serverID,
         exec_,
         otapi_,
-        recipient,
-        request,
+        recipientID,
+        requestID,
         instructions));
 }
 
@@ -101,9 +98,6 @@ ServerAction::Action ServerAction::AcknowledgeConnection(
     const std::string& password,
     const std::string& key) const
 {
-    const std::string recipient{String(recipientID).Get()};
-    const std::string request{String(requestID).Get()};
-
     return Action(new OTAPI_Func(
         ACKNOWLEDGE_CONNECTION,
         wallet_,
@@ -111,8 +105,8 @@ ServerAction::Action ServerAction::AcknowledgeConnection(
         serverID,
         exec_,
         otapi_,
-        recipient,
-        request,
+        recipientID,
+        requestID,
         url,
         login,
         password,
@@ -127,9 +121,6 @@ ServerAction::Action ServerAction::AcknowledgeNotice(
     const Identifier& requestID,
     const bool ack) const
 {
-    const std::string recipient{String(recipientID).Get()};
-    const std::string request{String(requestID).Get()};
-
     return Action(new OTAPI_Func(
         ACKNOWLEDGE_NOTICE,
         wallet_,
@@ -137,8 +128,8 @@ ServerAction::Action ServerAction::AcknowledgeNotice(
         serverID,
         exec_,
         otapi_,
-        recipient,
-        request,
+        recipientID,
+        requestID,
         ack));
 }
 
@@ -149,9 +140,6 @@ ServerAction::Action ServerAction::AcknowledgeOutbailment(
     const Identifier& requestID,
     const std::string& details) const
 {
-    const std::string recipient{String(recipientID).Get()};
-    const std::string request{String(requestID).Get()};
-
     return Action(new OTAPI_Func(
         ACKNOWLEDGE_OUTBAILMENT,
         wallet_,
@@ -159,8 +147,8 @@ ServerAction::Action ServerAction::AcknowledgeOutbailment(
         serverID,
         exec_,
         otapi_,
-        recipient,
-        request,
+        recipientID,
+        requestID,
         details));
 }
 
@@ -171,9 +159,6 @@ ServerAction::Action ServerAction::ActivateSmartContract(
     const String& agentName,
     const OTSmartContract& contract) const
 {
-    const std::string account{String(accountID).Get()};
-    const std::string serialized{String(contract).Get()};
-
     return Action(new OTAPI_Func(
         ACTIVATE_SMART_CONTRACT,
         wallet_,
@@ -181,9 +166,9 @@ ServerAction::Action ServerAction::ActivateSmartContract(
         serverID,
         exec_,
         otapi_,
-        account,
+        accountID,
         agentName.Get(),
-        serialized));
+        contract));
 }
 
 ServerAction::Action ServerAction::AddServerClaim(
@@ -202,8 +187,8 @@ ServerAction::Action ServerAction::AddServerClaim(
         exec_,
         otapi_,
         primary,
-        std::to_string(static_cast<std::uint32_t>(section)),
-        std::to_string(static_cast<std::uint32_t>(type)),
+        section,
+        type,
         value));
 }
 
@@ -213,8 +198,6 @@ ServerAction::Action ServerAction::AdjustUsageCredits(
     const Identifier& targetNymID,
     const Amount adjustment) const
 {
-    const std::string target{String(targetNymID).Get()};
-
     return Action(new OTAPI_Func(
         ADJUST_USAGE_CREDITS,
         wallet_,
@@ -222,8 +205,8 @@ ServerAction::Action ServerAction::AdjustUsageCredits(
         serverID,
         exec_,
         otapi_,
-        target,
-        std::to_string(adjustment)));
+        targetNymID,
+        adjustment));
 }
 
 ServerAction::Action ServerAction::CancelPaymentPlan(
@@ -240,9 +223,6 @@ ServerAction::Action ServerAction::CancelPaymentPlan(
     // So how do we know the difference between an ACTUAL "failure" versus a
     // purposeful "failure" ? Because if the failure comes from cancelling the
     // plan, the server reply transaction will have IsCancelled() set to true.
-    const auto accountID = String(plan.GetRecipientAcctID()).Get();
-    const std::string serialized{String(plan).Get()};
-
     return Action(new OTAPI_Func(
         DEPOSIT_PAYMENT_PLAN,
         wallet_,
@@ -250,8 +230,8 @@ ServerAction::Action ServerAction::CancelPaymentPlan(
         serverID,
         exec_,
         otapi_,
-        accountID,
-        serialized));
+        plan.GetRecipientAcctID(),
+        plan));
 }
 
 ServerAction::Action ServerAction::CreateMarketOffer(
@@ -274,8 +254,6 @@ ServerAction::Action ServerAction::CreateMarketOffer(
         nymID = assetAccount->GetNymID();
         notaryID = assetAccount->GetPurportedNotaryID();
     }
-    const std::string target{String(assetAccountID).Get()};
-    const std::string source{String(currencyAccountID).Get()};
 
     return Action(new OTAPI_Func(
         CREATE_MARKET_OFFER,
@@ -284,12 +262,12 @@ ServerAction::Action ServerAction::CreateMarketOffer(
         notaryID,
         exec_,
         otapi_,
-        target,
-        source,
-        std::to_string(scale),
-        std::to_string(increment),
-        std::to_string(quantity),
-        std::to_string(price),
+        assetAccountID,
+        currencyAccountID,
+        scale,
+        increment,
+        quantity,
+        price,
         selling,
         lifetime.count(),
         activationPrice,
@@ -303,9 +281,6 @@ ServerAction::Action ServerAction::DepositCashPurse(
     const Identifier& accountID,
     const Purse& purse) const
 {
-    const std::string account{String(accountID).Get()};
-    const std::string serialized{String(purse).Get()};
-
     return Action(new OTAPI_Func(
         DEPOSIT_CASH,
         wallet_,
@@ -313,8 +288,8 @@ ServerAction::Action ServerAction::DepositCashPurse(
         serverID,
         exec_,
         otapi_,
-        account,
-        serialized));
+        accountID,
+        purse));
 }
 #endif  // OT_CASH
 
@@ -324,9 +299,6 @@ ServerAction::Action ServerAction::DepositCheque(
     const Identifier& accountID,
     const Cheque& cheque) const
 {
-    const std::string account{String(accountID).Get()};
-    const std::string serialized{String(cheque).Get()};
-
     return Action(new OTAPI_Func(
         DEPOSIT_CHEQUE,
         wallet_,
@@ -334,8 +306,8 @@ ServerAction::Action ServerAction::DepositCheque(
         serverID,
         exec_,
         otapi_,
-        account,
-        serialized));
+        accountID,
+        cheque));
 }
 
 ServerAction::Action ServerAction::DepositPaymentPlan(
@@ -343,9 +315,6 @@ ServerAction::Action ServerAction::DepositPaymentPlan(
     const Identifier& serverID,
     const OTPaymentPlan& plan) const
 {
-    const std::string accountID{String(plan.GetSenderAcctID()).Get()};
-    const std::string serialized{String(plan).Get()};
-
     return Action(new OTAPI_Func(
         DEPOSIT_PAYMENT_PLAN,
         wallet_,
@@ -353,8 +322,8 @@ ServerAction::Action ServerAction::DepositPaymentPlan(
         serverID,
         exec_,
         otapi_,
-        accountID,
-        serialized));
+        plan.GetSenderAcctID(),
+        plan));
 }
 
 bool ServerAction::DownloadAccount(
@@ -381,8 +350,6 @@ ServerAction::Action ServerAction::DownloadBoxReceipt(
     const RemoteBoxType box,
     const TransactionNumber item) const
 {
-    const std::string account{String(accountID).Get()};
-
     return Action(new OTAPI_Func(
         GET_BOX_RECEIPT,
         wallet_,
@@ -390,9 +357,9 @@ ServerAction::Action ServerAction::DownloadBoxReceipt(
         serverID,
         exec_,
         otapi_,
-        account,
-        std::to_string(static_cast<std::int8_t>(box)),
-        std::to_string(item)));
+        accountID,
+        box,
+        item));
 }
 
 ServerAction::Action ServerAction::DownloadContract(
@@ -400,10 +367,14 @@ ServerAction::Action ServerAction::DownloadContract(
     const Identifier& serverID,
     const Identifier& contractID) const
 {
-    const std::string contract{String(contractID).Get()};
-
     return Action(new OTAPI_Func(
-        GET_CONTRACT, wallet_, localNymID, serverID, exec_, otapi_, contract));
+        GET_CONTRACT,
+        wallet_,
+        localNymID,
+        serverID,
+        exec_,
+        otapi_,
+        contractID));
 }
 
 ServerAction::Action ServerAction::DownloadMarketList(
@@ -420,8 +391,6 @@ ServerAction::Action ServerAction::DownloadMarketOffers(
     const Identifier& marketID,
     const Amount depth) const
 {
-    const std::string market{String(marketID).Get()};
-
     return Action(new OTAPI_Func(
         GET_MARKET_OFFERS,
         wallet_,
@@ -429,7 +398,7 @@ ServerAction::Action ServerAction::DownloadMarketOffers(
         serverID,
         exec_,
         otapi_,
-        market,
+        marketID,
         depth));
 }
 
@@ -438,8 +407,6 @@ ServerAction::Action ServerAction::DownloadMarketRecentTrades(
     const Identifier& serverID,
     const Identifier& marketID) const
 {
-    const std::string market{String(marketID).Get()};
-
     return Action(new OTAPI_Func(
         GET_MARKET_RECENT_TRADES,
         wallet_,
@@ -447,7 +414,7 @@ ServerAction::Action ServerAction::DownloadMarketRecentTrades(
         serverID,
         exec_,
         otapi_,
-        market));
+        marketID));
 }
 
 #if OT_CASH
@@ -456,10 +423,14 @@ ServerAction::Action ServerAction::DownloadMint(
     const Identifier& serverID,
     const Identifier& instrumentDefinitionID) const
 {
-    const std::string unit{String(instrumentDefinitionID).Get()};
-
     return Action(new OTAPI_Func(
-        GET_MINT, wallet_, localNymID, serverID, exec_, otapi_, unit));
+        GET_MINT,
+        wallet_,
+        localNymID,
+        serverID,
+        exec_,
+        otapi_,
+        instrumentDefinitionID));
 }
 #endif  // OT_CASH
 
@@ -511,10 +482,8 @@ ServerAction::Action ServerAction::DownloadNym(
     const Identifier& serverID,
     const Identifier& targetNymID) const
 {
-    const std::string target{String(targetNymID).Get()};
-
     return Action(new OTAPI_Func(
-        CHECK_NYM, wallet_, localNymID, serverID, exec_, otapi_, target));
+        CHECK_NYM, wallet_, localNymID, serverID, exec_, otapi_, targetNymID));
 }
 
 bool ServerAction::DownloadNymbox(
@@ -562,10 +531,6 @@ ServerAction::Action ServerAction::ExchangeBasketCurrency(
     const Identifier& basketID,
     const bool direction) const
 {
-    const std::string account{String(accountID).Get()};
-    const std::string unit{String(instrumentDefinitionID).Get()};
-    const std::string basket{String(basketID).Get()};
-
     return Action(new OTAPI_Func(
         EXCHANGE_BASKET,
         wallet_,
@@ -573,9 +538,9 @@ ServerAction::Action ServerAction::ExchangeBasketCurrency(
         serverID,
         exec_,
         otapi_,
-        unit,
-        basket,
-        account,
+        instrumentDefinitionID,
+        basketID,
+        accountID,
         direction,
         otapi_.GetBasketMemberCount(basketID)));
 }
@@ -587,9 +552,6 @@ ServerAction::Action ServerAction::ExchangeCash(
     const Identifier& instrumentDefinitionID,
     const Purse& purse) const
 {
-    const std::string unit{String(instrumentDefinitionID).Get()};
-    const std::string serialized{String(purse).Get()};
-
     return Action(new OTAPI_Func(
         EXCHANGE_CASH,
         wallet_,
@@ -597,8 +559,8 @@ ServerAction::Action ServerAction::ExchangeCash(
         serverID,
         exec_,
         otapi_,
-        unit,
-        serialized));
+        instrumentDefinitionID,
+        purse));
 }
 #endif  // OT_CASH
 
@@ -608,9 +570,6 @@ ServerAction::Action ServerAction::InitiateBailment(
     const Identifier& targetNymID,
     const Identifier& instrumentDefinitionID) const
 {
-    const std::string unit{String(instrumentDefinitionID).Get()};
-    const std::string target{String(targetNymID).Get()};
-
     return Action(new OTAPI_Func(
         INITIATE_BAILMENT,
         wallet_,
@@ -618,8 +577,8 @@ ServerAction::Action ServerAction::InitiateBailment(
         serverID,
         exec_,
         otapi_,
-        target,
-        unit));
+        targetNymID,
+        instrumentDefinitionID));
 }
 
 ServerAction::Action ServerAction::InitiateOutbailment(
@@ -630,9 +589,6 @@ ServerAction::Action ServerAction::InitiateOutbailment(
     const Amount amount,
     const std::string& message) const
 {
-    const std::string unit{String(instrumentDefinitionID).Get()};
-    const std::string target{String(targetNymID).Get()};
-
     return Action(new OTAPI_Func(
         INITIATE_OUTBAILMENT,
         wallet_,
@@ -640,8 +596,8 @@ ServerAction::Action ServerAction::InitiateOutbailment(
         serverID,
         exec_,
         otapi_,
-        target,
-        unit,
+        targetNymID,
+        instrumentDefinitionID,
         amount,
         message));
 }
@@ -652,8 +608,6 @@ ServerAction::Action ServerAction::InitiateRequestConnection(
     const Identifier& targetNymID,
     const proto::ConnectionInfoType& type) const
 {
-    const std::string target{String(targetNymID).Get()};
-
     return Action(new OTAPI_Func(
         REQUEST_CONNECTION,
         wallet_,
@@ -661,8 +615,8 @@ ServerAction::Action ServerAction::InitiateRequestConnection(
         serverID,
         exec_,
         otapi_,
-        target,
-        static_cast<std::int64_t>(type)));
+        targetNymID,
+        type));
 }
 
 ServerAction::Action ServerAction::InitiateStoreSecret(
@@ -673,8 +627,6 @@ ServerAction::Action ServerAction::InitiateStoreSecret(
     const std::string& primary,
     const std::string& secondary) const
 {
-    const std::string target{String(targetNymID).Get()};
-
     return Action(new OTAPI_Func(
         STORE_SECRET,
         wallet_,
@@ -682,10 +634,10 @@ ServerAction::Action ServerAction::InitiateStoreSecret(
         serverID,
         exec_,
         otapi_,
-        target,
+        targetNymID,
         primary,
         secondary,
-        static_cast<std::int64_t>(type)));
+        type));
 }
 
 ServerAction::Action ServerAction::IssueBasketCurrency(
@@ -693,11 +645,8 @@ ServerAction::Action ServerAction::IssueBasketCurrency(
     const Identifier& serverID,
     const proto::UnitDefinition& basket) const
 {
-    const std::string temporary =
-        proto::ProtoAsArmored(basket, "BASKET CONTRACT").Get();
-
     return Action(new OTAPI_Func(
-        ISSUE_BASKET, wallet_, localNymID, serverID, exec_, otapi_, temporary));
+        ISSUE_BASKET, wallet_, localNymID, serverID, exec_, otapi_, basket));
 }
 
 ServerAction::Action ServerAction::IssueUnitDefinition(
@@ -705,9 +654,6 @@ ServerAction::Action ServerAction::IssueUnitDefinition(
     const Identifier& serverID,
     const proto::UnitDefinition& contract) const
 {
-    const std::string temporary =
-        proto::ProtoAsArmored(contract, "UNIT DEFINITION").Get();
-
     return Action(new OTAPI_Func(
         ISSUE_ASSET_TYPE,
         wallet_,
@@ -715,7 +661,7 @@ ServerAction::Action ServerAction::IssueUnitDefinition(
         serverID,
         exec_,
         otapi_,
-        temporary));
+        contract));
 }
 
 ServerAction::Action ServerAction::KillMarketOffer(
@@ -724,8 +670,6 @@ ServerAction::Action ServerAction::KillMarketOffer(
     const Identifier& accountID,
     const TransactionNumber number) const
 {
-    const std::string account{String(accountID).Get()};
-
     return Action(new OTAPI_Func(
         KILL_MARKET_OFFER,
         wallet_,
@@ -733,8 +677,8 @@ ServerAction::Action ServerAction::KillMarketOffer(
         serverID,
         exec_,
         otapi_,
-        account,
-        std::to_string(number)));
+        accountID,
+        number));
 }
 
 ServerAction::Action ServerAction::KillPaymentPlan(
@@ -743,8 +687,6 @@ ServerAction::Action ServerAction::KillPaymentPlan(
     const Identifier& accountID,
     const TransactionNumber number) const
 {
-    const std::string account{String(accountID).Get()};
-
     return Action(new OTAPI_Func(
         KILL_PAYMENT_PLAN,
         wallet_,
@@ -752,8 +694,8 @@ ServerAction::Action ServerAction::KillPaymentPlan(
         serverID,
         exec_,
         otapi_,
-        account,
-        std::to_string(number)));
+        accountID,
+        number));
 }
 
 ServerAction::Action ServerAction::NotifyBailment(
@@ -764,10 +706,6 @@ ServerAction::Action ServerAction::NotifyBailment(
     const Identifier& requestID,
     const std::string& txid) const
 {
-    const std::string recipient{String(targetNymID).Get()};
-    const std::string unit{String(instrumentDefinitionID).Get()};
-    const std::string request{String(requestID).Get()};
-
     return Action(new OTAPI_Func(
         NOTIFY_BAILMENT,
         wallet_,
@@ -775,10 +713,10 @@ ServerAction::Action ServerAction::NotifyBailment(
         serverID,
         exec_,
         otapi_,
-        recipient,
-        unit,
-        txid,
-        request));
+        targetNymID,
+        requestID,
+        instrumentDefinitionID,
+        txid));
 }
 
 ServerAction::Action ServerAction::PayDividend(
@@ -789,9 +727,6 @@ ServerAction::Action ServerAction::PayDividend(
     const std::string& memo,
     const Amount amountPerShare) const
 {
-    const std::string account{String(accountID).Get()};
-    const std::string unit{String(instrumentDefinitionID).Get()};
-
     return Action(new OTAPI_Func(
         PAY_DIVIDEND,
         wallet_,
@@ -799,10 +734,10 @@ ServerAction::Action ServerAction::PayDividend(
         serverID,
         exec_,
         otapi_,
-        account,
-        unit,
-        memo,
-        amountPerShare));
+        accountID,
+        instrumentDefinitionID,
+        amountPerShare,
+        memo));
 }
 
 ServerAction::Action ServerAction::ProcessInbox(
@@ -811,9 +746,6 @@ ServerAction::Action ServerAction::ProcessInbox(
     const Identifier& accountID,
     const Ledger& ledger) const
 {
-    const std::string account{String(accountID).Get()};
-    const std::string serialized{String(ledger).Get()};
-
     return Action(new OTAPI_Func(
         PROCESS_INBOX,
         wallet_,
@@ -821,8 +753,8 @@ ServerAction::Action ServerAction::ProcessInbox(
         serverID,
         exec_,
         otapi_,
-        account,
-        serialized));
+        accountID,
+        ledger));
 }
 
 ServerAction::Action ServerAction::PublishNym(
@@ -830,8 +762,6 @@ ServerAction::Action ServerAction::PublishNym(
     const Identifier& serverID,
     const Identifier& targetNymID) const
 {
-    const std::string target{String(targetNymID).Get()};
-
     return Action(new OTAPI_Func(
         REGISTER_CONTRACT_NYM,
         wallet_,
@@ -839,7 +769,7 @@ ServerAction::Action ServerAction::PublishNym(
         serverID,
         exec_,
         otapi_,
-        target));
+        targetNymID));
 }
 
 ServerAction::Action ServerAction::PublishServerContract(
@@ -847,8 +777,6 @@ ServerAction::Action ServerAction::PublishServerContract(
     const Identifier& serverID,
     const Identifier& targetServerID) const
 {
-    const std::string target{String(targetServerID).Get()};
-
     return Action(new OTAPI_Func(
         REGISTER_CONTRACT_SERVER,
         wallet_,
@@ -856,7 +784,7 @@ ServerAction::Action ServerAction::PublishServerContract(
         serverID,
         exec_,
         otapi_,
-        target));
+        targetServerID));
 }
 
 ServerAction::Action ServerAction::PublishUnitDefinition(
@@ -864,8 +792,6 @@ ServerAction::Action ServerAction::PublishUnitDefinition(
     const Identifier& serverID,
     const Identifier& unitDefinitionID) const
 {
-    const std::string unit{String(unitDefinitionID).Get()};
-
     return Action(new OTAPI_Func(
         REGISTER_CONTRACT_UNIT,
         wallet_,
@@ -873,7 +799,7 @@ ServerAction::Action ServerAction::PublishUnitDefinition(
         serverID,
         exec_,
         otapi_,
-        unit));
+        unitDefinitionID));
 }
 
 ServerAction::Action ServerAction::RegisterAccount(
@@ -881,10 +807,14 @@ ServerAction::Action ServerAction::RegisterAccount(
     const Identifier& serverID,
     const Identifier& instrumentDefinitionID) const
 {
-    const std::string unit{String(instrumentDefinitionID).Get()};
-
     return Action(new OTAPI_Func(
-        CREATE_ASSET_ACCT, wallet_, localNymID, serverID, exec_, otapi_, unit));
+        CREATE_ASSET_ACCT,
+        wallet_,
+        localNymID,
+        serverID,
+        exec_,
+        otapi_,
+        instrumentDefinitionID));
 }
 
 ServerAction::Action ServerAction::RegisterNym(
@@ -912,18 +842,6 @@ ServerAction::Action ServerAction::SendCash(
     const Purse& recipientCopy,
     const Purse& senderCopy) const
 {
-    String pubkey{""};
-    const auto nym = wallet_.Nym(recipientNymID);
-
-    if (nym) {
-        nym->GetPublicEncrKey().GetPublicKey(pubkey);
-    }
-
-    const std::string recipient{String(recipientNymID).Get()};
-    const std::string key{String(pubkey).Get()};
-    const std::string senderVersion{String(senderCopy).Get()};
-    const std::string recipientVersion{String(recipientCopy).Get()};
-
     return Action(new OTAPI_Func(
         SEND_USER_INSTRUMENT,
         wallet_,
@@ -931,10 +849,9 @@ ServerAction::Action ServerAction::SendCash(
         serverID,
         exec_,
         otapi_,
-        recipient,
-        key,
-        recipientVersion,
-        senderVersion));
+        recipientNymID,
+        recipientCopy,
+        senderCopy));
 }
 #endif  // OT_CASH
 
@@ -944,16 +861,6 @@ ServerAction::Action ServerAction::SendMessage(
     const Identifier& recipientNymID,
     const std::string& message) const
 {
-    String pubkey{""};
-    const auto nym = wallet_.Nym(recipientNymID);
-
-    if (nym) {
-        nym->GetPublicEncrKey().GetPublicKey(pubkey);
-    }
-
-    const std::string recipient{String(recipientNymID).Get()};
-    const std::string key{String(pubkey).Get()};
-
     return Action(new OTAPI_Func(
         SEND_USER_MESSAGE,
         wallet_,
@@ -961,8 +868,7 @@ ServerAction::Action ServerAction::SendMessage(
         serverID,
         exec_,
         otapi_,
-        recipient,
-        key,
+        recipientNymID,
         message));
 }
 
@@ -972,16 +878,6 @@ ServerAction::Action ServerAction::SendPayment(
     const Identifier& recipientNymID,
     const OTPayment& payment) const
 {
-    String pubkey{""};
-    const auto nym = wallet_.Nym(recipientNymID);
-
-    if (nym) {
-        nym->GetPublicEncrKey().GetPublicKey(pubkey);
-    }
-
-    const std::string recipient{String(recipientNymID).Get()};
-    const std::string key{String(pubkey).Get()};
-
     String strPayment;
 
     if (!payment.GetPaymentContents(strPayment)) {
@@ -990,8 +886,6 @@ ServerAction::Action ServerAction::SendPayment(
         OT_FAIL;
     }
 
-    const std::string recipientVersion{strPayment.Get()};
-
     return Action(new OTAPI_Func(
         SEND_USER_INSTRUMENT,
         wallet_,
@@ -999,9 +893,8 @@ ServerAction::Action ServerAction::SendPayment(
         serverID,
         exec_,
         otapi_,
-        recipient,
-        key,
-        recipientVersion));
+        recipientNymID,
+        payment));
 }
 
 ServerAction::Action ServerAction::SendTransfer(
@@ -1012,9 +905,6 @@ ServerAction::Action ServerAction::SendTransfer(
     const Amount amount,
     const std::string& memo) const
 {
-    const std::string source{String(senderAccountID).Get()};
-    const std::string target{String(recipientAccountID).Get()};
-
     return Action(new OTAPI_Func(
         SEND_TRANSFER,
         wallet_,
@@ -1022,8 +912,8 @@ ServerAction::Action ServerAction::SendTransfer(
         serverID,
         exec_,
         otapi_,
-        source,
-        target,
+        senderAccountID,
+        recipientAccountID,
         amount,
         memo));
 }
@@ -1042,7 +932,7 @@ ServerAction::Action ServerAction::TriggerClause(
         serverID,
         exec_,
         otapi_,
-        std::to_string(transactionNumber),
+        transactionNumber,
         clause,
         parameter));
 }
@@ -1052,8 +942,6 @@ ServerAction::Action ServerAction::UnregisterAccount(
     const Identifier& serverID,
     const Identifier& accountID) const
 {
-    const std::string account{String(accountID).Get()};
-
     return Action(new OTAPI_Func(
         DELETE_ASSET_ACCT,
         wallet_,
@@ -1061,7 +949,7 @@ ServerAction::Action ServerAction::UnregisterAccount(
         serverID,
         exec_,
         otapi_,
-        account));
+        accountID));
 }
 
 ServerAction::Action ServerAction::UnregisterNym(
@@ -1079,8 +967,6 @@ ServerAction::Action ServerAction::WithdrawCash(
     const Identifier& accountID,
     const Amount amount) const
 {
-    const std::string account{String(accountID).Get()};
-
     return Action(new OTAPI_Func(
         WITHDRAW_CASH,
         wallet_,
@@ -1088,7 +974,7 @@ ServerAction::Action ServerAction::WithdrawCash(
         serverID,
         exec_,
         otapi_,
-        account,
+        accountID,
         amount));
 }
 #endif  // OT_CASH
@@ -1101,9 +987,6 @@ ServerAction::Action ServerAction::WithdrawVoucher(
     const Amount amount,
     const std::string& memo) const
 {
-    const std::string account{String(accountID).Get()};
-    const std::string recipient{String(recipientNymID).Get()};
-
     return Action(new OTAPI_Func(
         WITHDRAW_VOUCHER,
         wallet_,
@@ -1111,9 +994,9 @@ ServerAction::Action ServerAction::WithdrawVoucher(
         serverID,
         exec_,
         otapi_,
-        account,
-        recipient,
-        memo,
-        amount));
+        accountID,
+        recipientNymID,
+        amount,
+        memo));
 }
 }  // namespace opentxs::api::implementation
