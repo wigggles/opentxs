@@ -38,7 +38,7 @@
 
 #include "opentxs/stdafx.hpp"
 
-#include "opentxs/api/ContactManager.hpp"
+#include "ContactManager.hpp"
 
 #include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/storage/Storage.hpp"
@@ -50,13 +50,13 @@
 
 #include <functional>
 
-#define OT_METHOD "opentxs::ContactManager::"
+#define OT_METHOD "opentxs::ContactManager::implementation::"
 
-namespace opentxs::api
+namespace opentxs::api::implementation
 {
 ContactManager::ContactManager(
-    const storage::Storage& storage,
-    const client::Wallet& wallet)
+    const api::storage::Storage& storage,
+    const api::client::Wallet& wallet)
     : storage_(storage)
     , wallet_(wallet)
     , lock_()
@@ -765,4 +765,4 @@ bool ContactManager::verify_write_lock(const rLock& lock) const
 
     return true;
 }
-}  // namespace opentxs::api
+}  // namespace opentxs::api::implementation

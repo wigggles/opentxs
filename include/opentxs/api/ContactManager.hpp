@@ -42,121 +42,53 @@
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/api/Editor.hpp"
-#include "opentxs/core/Identifier.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
 
-#include <map>
 #include <memory>
-#include <mutex>
-#include <tuple>
 
 namespace opentxs
 {
 namespace api
 {
-namespace implementation
-{
-class Native;
-}  // namespace implementation
-
 class ContactManager
 {
 public:
-    Identifier BlockchainAddressToContact(
+    EXPORT virtual Identifier BlockchainAddressToContact(
         const std::string& address,
-        const proto::ContactItemType currency = proto::CITEMTYPE_BTC) const;
-    Identifier ContactID(const Identifier& nymID) const;
-    ObjectList ContactList() const;
-
-    std::shared_ptr<const class Contact> Contact(const Identifier& id) const;
-    std::shared_ptr<const class Contact> Merge(
+        const proto::ContactItemType currency = proto::CITEMTYPE_BTC) const = 0;
+    EXPORT virtual std::shared_ptr<const class Contact> Contact(
+        const Identifier& id) const = 0;
+    EXPORT virtual Identifier ContactID(const Identifier& nymID) const = 0;
+    EXPORT virtual ObjectList ContactList() const = 0;
+    EXPORT virtual std::shared_ptr<const class Contact> Merge(
         const Identifier& parent,
-        const Identifier& child) const;
-    std::unique_ptr<Editor<class Contact>> mutable_Contact(
-        const Identifier& id) const;
-    std::shared_ptr<const class Contact> NewContact(
-        const std::string& label) const;
-    std::shared_ptr<const class Contact> NewContact(
+        const Identifier& child) const = 0;
+    EXPORT virtual std::unique_ptr<Editor<class Contact>> mutable_Contact(
+        const Identifier& id) const = 0;
+    EXPORT virtual std::shared_ptr<const class Contact> NewContact(
+        const std::string& label) const = 0;
+    EXPORT virtual std::shared_ptr<const class Contact> NewContact(
         const std::string& label,
         const Identifier& nymID,
-        const PaymentCode& paymentCode) const;
-    std::shared_ptr<const class Contact> NewContactFromAddress(
+        const PaymentCode& paymentCode) const = 0;
+    EXPORT virtual std::shared_ptr<const class Contact> NewContactFromAddress(
         const std::string& address,
         const std::string& label,
-        const proto::ContactItemType currency = proto::CITEMTYPE_BTC) const;
-    std::shared_ptr<const class Contact> Update(
-        const proto::CredentialIndex& nym) const;
+        const proto::ContactItemType currency = proto::CITEMTYPE_BTC) const = 0;
+    EXPORT virtual std::shared_ptr<const class Contact> Update(
+        const proto::CredentialIndex& nym) const = 0;
 
-    ~ContactManager() = default;
+    virtual ~ContactManager() = default;
+
+protected:
+    ContactManager() = default;
 
 private:
-    friend class implementation::Native;
-
-    typedef std::pair<std::mutex, std::shared_ptr<class Contact>> ContactLock;
-    typedef std::pair<proto::ContactItemType, std::string> Address;
-    typedef std::map<Identifier, ContactLock> ContactMap;
-
-    const storage::Storage& storage_;
-    const client::Wallet& wallet_;
-    mutable std::recursive_mutex lock_{};
-    mutable ContactMap contact_map_{};
-
-    void check_identifiers(
-        const Identifier& inputNymID,
-        const PaymentCode& paymentCode,
-        bool& haveNymID,
-        bool& havePaymentCode,
-        Identifier& outputNymID) const;
-    bool verify_write_lock(const rLock& lock) const;
-
-    // takes ownership
-    ContactMap::iterator add_contact(const rLock& lock, class Contact* contact)
-        const;
-    Identifier address_to_contact(
-        const rLock& lock,
-        const std::string& address,
-        const proto::ContactItemType currency) const;
-    std::shared_ptr<const class Contact> contact(
-        const rLock& lock,
-        const std::string& label) const;
-    std::shared_ptr<const class Contact> contact(
-        const rLock& lock,
-        const Identifier& id) const;
-    void import_contacts(const rLock& lock);
-    void init_nym_map(const rLock& lock);
-    ContactMap::iterator load_contact(const rLock& lock, const Identifier& id)
-        const;
-    std::unique_ptr<Editor<class Contact>> mutable_contact(
-        const rLock& lock,
-        const Identifier& id) const;
-    ContactMap::iterator obtain_contact(const rLock& lock, const Identifier& id)
-        const;
-    std::shared_ptr<const class Contact> new_contact(
-        const rLock& lock,
-        const std::string& label,
-        const Identifier& nymID,
-        const PaymentCode& paymentCode) const;
-    void refresh_indices(const rLock& lock, class Contact& contact) const;
-    void save(class Contact* contact) const;
-    void start();
-    std::shared_ptr<const class Contact> update_existing_contact(
-        const rLock& lock,
-        const std::string& label,
-        const PaymentCode& code,
-        const Identifier& contactID) const;
-    void update_nym_map(
-        const rLock& lock,
-        const Identifier nymID,
-        class Contact& contact,
-        const bool replace = false) const;
-
-    ContactManager(
-        const storage::Storage& storage,
-        const client::Wallet& wallet);
-    ContactManager() = delete;
     ContactManager(const ContactManager&) = delete;
     ContactManager(ContactManager&&) = delete;
-    ContactManager operator=(const ContactManager&) = delete;
-    ContactManager operator=(ContactManager&&) = delete;
+    ContactManager& operator=(const ContactManager&) = delete;
+    ContactManager& operator=(ContactManager&&) = delete;
 };
 }  // namespace api
 }  // namespace opentxs

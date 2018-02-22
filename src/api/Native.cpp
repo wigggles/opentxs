@@ -75,6 +75,7 @@
 #include "api/network/ZMQ.hpp"
 #include "api/storage/Storage.hpp"
 #include "api/Api.hpp"
+#include "api/ContactManager.hpp"
 #include "api/Server.hpp"
 #include "network/DhtConfig.hpp"
 #include "network/OpenDHT.hpp"
@@ -396,7 +397,8 @@ void Native::Init_Contacts()
     OT_ASSERT(storage_)
     OT_ASSERT(wallet_)
 
-    contacts_.reset(new api::ContactManager(*storage_, *wallet_));
+    contacts_.reset(
+        new api::implementation::ContactManager(*storage_, *wallet_));
 }
 
 void Native::Init_Contracts()
@@ -979,12 +981,13 @@ void Native::start()
     }
 
     Init_StorageBackup();
-    contacts_->start();
+    dynamic_cast<ContactManager&>(*contacts_).start();
     activity_->MigrateLegacyThreads();
     Init_Periodic();
 
     if (server_mode_) {
         OT_ASSERT(server_);
+
         auto server = dynamic_cast<implementation::Server*>(server_.get());
 
         OT_ASSERT(server);
