@@ -61,6 +61,8 @@ public:
         const Identifier& id) const = 0;
     EXPORT virtual Identifier ContactID(const Identifier& nymID) const = 0;
     EXPORT virtual ObjectList ContactList() const = 0;
+    EXPORT virtual std::string ContactName(
+        const Identifier& contactID) const = 0;
     EXPORT virtual std::shared_ptr<const class Contact> Merge(
         const Identifier& parent,
         const Identifier& child) const = 0;

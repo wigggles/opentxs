@@ -61,6 +61,7 @@ ContactManager::ContactManager(
     , wallet_(wallet)
     , lock_()
     , contact_map_()
+    , contact_name_map_(build_name_map(storage))
 {
 }
 
@@ -101,6 +102,18 @@ Identifier ContactManager::BlockchainAddressToContact(
     rLock lock(lock_);
 
     return address_to_contact(lock, address, currency);
+}
+
+ContactManager::ContactNameMap ContactManager::build_name_map(
+    const api::storage::Storage& storage)
+{
+    ContactNameMap output{};
+
+    for (const auto & [ id, alias ] : storage.ContactList()) {
+        output.emplace(id, alias);
+    }
+
+    return output;
 }
 
 void ContactManager::check_identifiers(
@@ -192,6 +205,19 @@ Identifier ContactManager::ContactID(const Identifier& nymID) const
 ObjectList ContactManager::ContactList() const
 {
     return storage_.ContactList();
+}
+
+std::string ContactManager::ContactName(const Identifier& contactID) const
+{
+    rLock lock(lock_);
+    auto it = contact_name_map_.find(contactID);
+
+    if (contact_name_map_.end() == it) {
+
+        return {};
+    }
+
+    return it->second;
 }
 
 void ContactManager::import_contacts(const rLock& lock)
@@ -555,6 +581,8 @@ void ContactManager::refresh_indices(const rLock& lock, class Contact& contact)
     for (const auto& nymid : nyms) {
         update_nym_map(lock, nymid, contact, true);
     }
+
+    contact_name_map_[contact.ID()] = contact.Label();
 }
 
 void ContactManager::save(class Contact* contact) const

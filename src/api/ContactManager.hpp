@@ -61,6 +61,7 @@ public:
         const Identifier& id) const override;
     Identifier ContactID(const Identifier& nymID) const override;
     ObjectList ContactList() const override;
+    std::string ContactName(const Identifier& contactID) const override;
     std::shared_ptr<const class Contact> Merge(
         const Identifier& parent,
         const Identifier& child) const override;
@@ -85,14 +86,18 @@ public:
 private:
     friend class implementation::Native;
 
-    typedef std::pair<std::mutex, std::shared_ptr<class Contact>> ContactLock;
-    typedef std::pair<proto::ContactItemType, std::string> Address;
-    typedef std::map<Identifier, ContactLock> ContactMap;
+    using ContactLock = std::pair<std::mutex, std::shared_ptr<class Contact>>;
+    using Address = std::pair<proto::ContactItemType, std::string>;
+    using ContactMap = std::map<Identifier, ContactLock>;
+    using ContactNameMap = std::map<Identifier, std::string>;
 
     const api::storage::Storage& storage_;
     const api::client::Wallet& wallet_;
     mutable std::recursive_mutex lock_{};
     mutable ContactMap contact_map_{};
+    mutable ContactNameMap contact_name_map_;
+
+    static ContactNameMap build_name_map(const api::storage::Storage& storage);
 
     void check_identifiers(
         const Identifier& inputNymID,
