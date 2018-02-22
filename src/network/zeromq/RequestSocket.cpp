@@ -63,17 +63,18 @@ RequestSocket::RequestSocket(const zeromq::Context& context)
 {
 }
 
-Socket::MessageSendResult RequestSocket::SendRequest(opentxs::Data& input)
+Socket::MessageSendResult RequestSocket::SendRequest(opentxs::Data& input) const
 {
     return SendRequest(Message::Factory(input));
 }
 
-Socket::MessageSendResult RequestSocket::SendRequest(std::string& input)
+Socket::MessageSendResult RequestSocket::SendRequest(std::string& input) const
 {
     return SendRequest(Message::Factory(input));
 }
 
-Socket::MessageSendResult RequestSocket::SendRequest(zeromq::Message& request)
+Socket::MessageSendResult RequestSocket::SendRequest(
+    zeromq::Message& request) const
 {
     OT_ASSERT(nullptr != socket_);
 
@@ -105,17 +106,17 @@ Socket::MessageSendResult RequestSocket::SendRequest(zeromq::Message& request)
     return output;
 }
 
-bool RequestSocket::SetCurve(const ServerContract& contract)
+bool RequestSocket::SetCurve(const ServerContract& contract) const
 {
     return set_curve(contract);
 }
 
-bool RequestSocket::SetSocksProxy(const std::string& proxy)
+bool RequestSocket::SetSocksProxy(const std::string& proxy) const
 {
     return set_socks_proxy(proxy);
 }
 
-bool RequestSocket::Start(const std::string& endpoint)
+bool RequestSocket::Start(const std::string& endpoint) const
 {
     OT_ASSERT(nullptr != socket_);
 

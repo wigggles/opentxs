@@ -62,10 +62,10 @@ class PublishSocket : virtual public Socket
 public:
     EXPORT static OTZMQPublishSocket Factory(const Context& context);
 
-    EXPORT virtual bool Publish(const std::string& data) = 0;
-    EXPORT virtual bool Publish(const opentxs::Data& data) = 0;
-    EXPORT virtual bool Publish(Message& data) = 0;
-    EXPORT virtual bool SetCurve(const OTPassword& key) = 0;
+    EXPORT virtual bool Publish(const std::string& data) const = 0;
+    EXPORT virtual bool Publish(const opentxs::Data& data) const = 0;
+    EXPORT virtual bool Publish(Message& data) const = 0;
+    EXPORT virtual bool SetCurve(const OTPassword& key) const = 0;
 
     EXPORT virtual ~PublishSocket() = default;
 

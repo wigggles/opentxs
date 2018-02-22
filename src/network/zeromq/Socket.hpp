@@ -57,17 +57,17 @@ class Socket : virtual public zeromq::Socket, public Lockable
 public:
     SocketType Type() const override;
 
-    operator void*() override;
+    operator void*() const override;
 
-    bool Close() override;
+    bool Close() const override;
     bool SetTimeouts(
         const std::chrono::milliseconds& linger,
         const std::chrono::milliseconds& send,
-        const std::chrono::milliseconds& receive) override;
+        const std::chrono::milliseconds& receive) const override;
     bool SetTimeouts(
         const std::uint64_t& lingerMilliseconds,
         const std::uint64_t& sendMilliseconds,
-        const std::uint64_t& receiveMilliseconds) override;
+        const std::uint64_t& receiveMilliseconds) const override;
 
     virtual ~Socket();
 
@@ -75,7 +75,7 @@ protected:
     const zeromq::Context& context_;
     void* socket_{nullptr};
 
-    bool set_socks_proxy(const std::string& proxy);
+    bool set_socks_proxy(const std::string& proxy) const;
 
     explicit Socket(const zeromq::Context& context, const SocketType type);
 

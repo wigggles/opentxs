@@ -48,7 +48,7 @@ namespace opentxs::network::zeromq::implementation
 class CurveServer
 {
 protected:
-    bool set_curve(const OTPassword& key);
+    bool set_curve(const OTPassword& key) const;
 
     CurveServer(std::mutex& lock, void* socket);
     ~CurveServer();

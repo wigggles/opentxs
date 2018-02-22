@@ -96,6 +96,7 @@ private:
     mutable std::recursive_mutex lock_{};
     mutable ContactMap contact_map_{};
     mutable ContactNameMap contact_name_map_;
+    OTZMQPublishSocket publisher_;
 
     static ContactNameMap build_name_map(const api::storage::Storage& storage);
 
@@ -150,7 +151,8 @@ private:
 
     ContactManager(
         const api::storage::Storage& storage,
-        const api::client::Wallet& wallet);
+        const api::client::Wallet& wallet,
+        const opentxs::network::zeromq::Context& context);
     ContactManager() = delete;
     ContactManager(const ContactManager&) = delete;
     ContactManager(ContactManager&&) = delete;

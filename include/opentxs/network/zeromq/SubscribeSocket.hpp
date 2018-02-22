@@ -61,9 +61,9 @@ class SubscribeSocket : virtual public Socket
 public:
     EXPORT static OTZMQSubscribeSocket Factory(const Context& context);
 
-    EXPORT virtual void RegisterCallback(ReceiveCallback callback) = 0;
-    EXPORT virtual bool SetCurve(const ServerContract& contract) = 0;
-    EXPORT virtual bool SetSocksProxy(const std::string& proxy) = 0;
+    EXPORT virtual void RegisterCallback(ReceiveCallback callback) const = 0;
+    EXPORT virtual bool SetCurve(const ServerContract& contract) const = 0;
+    EXPORT virtual bool SetSocksProxy(const std::string& proxy) const = 0;
 
     EXPORT virtual ~SubscribeSocket() = default;
 

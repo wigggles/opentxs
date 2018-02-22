@@ -299,7 +299,7 @@ void Native::Init()
     Init_Contracts();
     Init_Dht();         // requires Init_Config()
     Init_Identity();    // requires Init_Contracts()
-    Init_Contacts();    // requires Init_Contracts(), Init_Storage()
+    Init_Contacts();    // requires Init_Contracts(), Init_Storage(), Init_ZMQ()
     Init_Activity();    // requires Init_Storage(), Init_Contacts(),
                         // Init_Contracts()
     Init_Blockchain();  // requires Init_Storage(), Init_Crypto(),
@@ -397,8 +397,8 @@ void Native::Init_Contacts()
     OT_ASSERT(storage_)
     OT_ASSERT(wallet_)
 
-    contacts_.reset(
-        new api::implementation::ContactManager(*storage_, *wallet_));
+    contacts_.reset(new api::implementation::ContactManager(
+        *storage_, *wallet_, zmq_context_.get()));
 }
 
 void Native::Init_Contracts()

@@ -46,6 +46,8 @@
 #include "opentxs/contact/Contact.hpp"
 #include "opentxs/contact/ContactData.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/network/zeromq/Context.hpp"
+#include "opentxs/network/zeromq/PublishSocket.hpp"
 #include "opentxs/Proto.hpp"
 
 #include <functional>
@@ -56,13 +58,16 @@ namespace opentxs::api::implementation
 {
 ContactManager::ContactManager(
     const api::storage::Storage& storage,
-    const api::client::Wallet& wallet)
+    const api::client::Wallet& wallet,
+    const opentxs::network::zeromq::Context& context)
     : storage_(storage)
     , wallet_(wallet)
     , lock_()
     , contact_map_()
     , contact_name_map_(build_name_map(storage))
+    , publisher_(context.PublishSocket())
 {
+    publisher_->Start(opentxs::network::zeromq::Socket::ContactUpdateEndpoint);
 }
 
 ContactManager::ContactMap::iterator ContactManager::add_contact(
@@ -70,6 +75,7 @@ ContactManager::ContactMap::iterator ContactManager::add_contact(
     class Contact* contact) const
 {
     OT_ASSERT(nullptr != contact);
+
     if (false == verify_write_lock(lock)) {
         throw std::runtime_error("lock error");
     }
@@ -582,7 +588,10 @@ void ContactManager::refresh_indices(const rLock& lock, class Contact& contact)
         update_nym_map(lock, nymid, contact, true);
     }
 
-    contact_name_map_[contact.ID()] = contact.Label();
+    const auto& id = contact.ID();
+    contact_name_map_[id] = contact.Label();
+    const std::string rawID{String(id).Get()};
+    publisher_->Publish(rawID);
 }
 
 void ContactManager::save(class Contact* contact) const

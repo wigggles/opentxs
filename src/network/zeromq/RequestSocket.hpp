@@ -53,12 +53,12 @@ class RequestSocket : virtual public zeromq::RequestSocket,
                       CurveClient
 {
 public:
-    MessageSendResult SendRequest(opentxs::Data& message) override;
-    MessageSendResult SendRequest(std::string& message) override;
-    MessageSendResult SendRequest(zeromq::Message& message) override;
-    bool SetCurve(const ServerContract& contract) override;
-    bool SetSocksProxy(const std::string& proxy) override;
-    bool Start(const std::string& endpoint) override;
+    MessageSendResult SendRequest(opentxs::Data& message) const override;
+    MessageSendResult SendRequest(std::string& message) const override;
+    MessageSendResult SendRequest(zeromq::Message& message) const override;
+    bool SetCurve(const ServerContract& contract) const override;
+    bool SetSocksProxy(const std::string& proxy) const override;
+    bool Start(const std::string& endpoint) const override;
 
     ~RequestSocket() = default;
 

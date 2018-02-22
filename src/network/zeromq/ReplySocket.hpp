@@ -55,9 +55,9 @@ class ReplySocket : virtual public zeromq::ReplySocket,
                     Receiver
 {
 public:
-    void RegisterCallback(RequestCallback callback) override;
-    bool SetCurve(const OTPassword& key) override;
-    bool Start(const std::string& endpoint) override;
+    void RegisterCallback(RequestCallback callback) const override;
+    bool SetCurve(const OTPassword& key) const override;
+    bool Start(const std::string& endpoint) const override;
 
     ~ReplySocket();
 
@@ -65,7 +65,7 @@ private:
     friend opentxs::network::zeromq::ReplySocket;
     typedef Socket ot_super;
 
-    RequestCallback callback_{nullptr};
+    mutable RequestCallback callback_{nullptr};
 
     bool have_callback() const override;
 
