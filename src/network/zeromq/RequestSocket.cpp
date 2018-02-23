@@ -86,7 +86,8 @@ Socket::MessageSendResult RequestSocket::SendRequest(
     const bool sent = (-1 != zmq_msg_send(request, socket_, 0));
 
     if (false == sent) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Unable to send." << std::endl;
+        otErr << OT_METHOD << __FUNCTION__ << ": Send error:\n"
+              << zmq_strerror(zmq_errno()) << std::endl;
 
         return output;
     }
@@ -95,7 +96,7 @@ Socket::MessageSendResult RequestSocket::SendRequest(
 
     if (false == received) {
         otErr << OT_METHOD << __FUNCTION__
-              << ": Timeout waiting for server reply." << std::endl;
+              << ": Receive error: " << zmq_strerror(zmq_errno()) << std::endl;
         status = SendResult::TIMEOUT;
 
         return output;

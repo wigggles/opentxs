@@ -46,7 +46,7 @@
 
 #include <zmq.h>
 
-//#define OT_METHOD "opentxs::network::zeromq::implementation::PublishSocket::"
+#define OT_METHOD "opentxs::network::zeromq::implementation::PublishSocket::"
 
 namespace opentxs::network::zeromq
 {
@@ -77,8 +77,14 @@ bool PublishSocket::Publish(const opentxs::Data& data) const
 bool PublishSocket::Publish(zeromq::Message& data) const
 {
     Lock lock(lock_);
+    auto sent = zmq_msg_send(data, socket_, 0);
 
-    return (-1 != zmq_msg_send(data, socket_, 0));
+    if (-1 == sent) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Send error:\n"
+              << zmq_strerror(zmq_errno()) << std::endl;
+    }
+
+    return (-1 != sent);
 }
 
 bool PublishSocket::SetCurve(const OTPassword& key) const

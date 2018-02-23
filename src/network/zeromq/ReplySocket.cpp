@@ -79,8 +79,9 @@ void ReplySocket::process_incoming(const Lock&, Message& message)
     Message& reply = output;
     auto sent = zmq_msg_send(reply, socket_, 0);
 
-    if ((false == sent) && (0 < message.size())) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Failed to send response."
+    if (-1 == sent) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Send error:\n"
+              << zmq_strerror(zmq_errno())
               << "\nRequest: " << std::string(message) << "\nReply: " << reply
               << std::endl;
     }

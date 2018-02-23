@@ -48,7 +48,7 @@
 #define CALLBACK_WAIT_MILLISECONDS 50
 #define MESSAGE_CHECK_MICROSECONDS 1000
 
-//#define OT_METHOD "opentxs::network::zeromq::implementation::Receiver::"
+#define OT_METHOD "opentxs::network::zeromq::implementation::Receiver::"
 
 namespace opentxs::network::zeromq::implementation
 {
@@ -82,6 +82,14 @@ void Receiver::thread()
 
         if (status) {
             process_incoming(lock, request);
+        } else {
+            const auto error = zmq_errno();
+
+            if (EAGAIN != error) {
+                otErr << OT_METHOD << __FUNCTION__
+                      << ": Receive error: " << zmq_strerror(error)
+                      << std::endl;
+            }
         }
 
         lock.unlock();
