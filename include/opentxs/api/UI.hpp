@@ -14,7 +14,7 @@
  *       -- Scripted smart contracts.
  *
  *  EMAIL:
- *  fellowtraveler@opentransactions.org
+ *  fellowtraveler\opentransactions.org
  *
  *  WEBSITE:
  *  http://www.opentransactions.org/
@@ -36,47 +36,33 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_NETWORK_ZEROMQ_SUBSCRIBESOCKET_HPP
-#define OPENTXS_NETWORK_ZEROMQ_SUBSCRIBESOCKET_HPP
+#ifndef OPENTXS_API_UI_HPP
+#define OPENTXS_API_UI_HPP
 
 #include "opentxs/Forward.hpp"
 
-#include "opentxs/network/zeromq/Socket.hpp"
-
 namespace opentxs
 {
-namespace network
+namespace api
 {
-namespace zeromq
-{
-#ifdef SWIG
-// clang-format off
-%ignore SubscribeSocket::RegisterCallback(ReceiveCallback);
-%ignore SubscribeSocket::SetCurve(const ServerContract&);
-// clang-format on
-#endif  // SWIG
-
-class SubscribeSocket : virtual public Socket
+class UI
 {
 public:
-    EXPORT static OTZMQSubscribeSocket Factory(const Context& context);
+    EXPORT virtual const ui::ContactList& ContactList(
+        const Identifier& nymID) const = 0;
 
-    EXPORT virtual void RegisterCallback(ReceiveCallback callback) const = 0;
-    EXPORT virtual bool SetCurve(const ServerContract& contract) const = 0;
-    EXPORT virtual bool SetSocksProxy(const std::string& proxy) const = 0;
-
-    EXPORT virtual ~SubscribeSocket() = default;
+    virtual ~UI() = default;
 
 protected:
-    SubscribeSocket() = default;
+    UI() = default;
 
 private:
-    SubscribeSocket(const SubscribeSocket&) = delete;
-    SubscribeSocket(SubscribeSocket&&) = default;
-    SubscribeSocket& operator=(const SubscribeSocket&) = delete;
-    SubscribeSocket& operator=(SubscribeSocket&&) = default;
+    UI(const UI&) = delete;
+    UI(UI&&) = delete;
+    UI& operator=(const UI&) = delete;
+    UI& operator=(UI&&) = delete;
 };
-}  // namespace zeromq
-}  // namespace network
+}  // namespace api
 }  // namespace opentxs
-#endif  // OPENTXS_NETWORK_ZEROMQ_SUBSCRIBESOCKET_HPP
+
+#endif  // OPENTXS_API_UI_HPP

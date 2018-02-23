@@ -3736,6 +3736,10 @@ public:
 
     EXPORT static void Trigger_Refresh();
 
+    // Wrapped Sync methods
+
+    EXPORT static const ui::ContactList& ContactList(const std::string& nymID);
+
 private:
     static OT_OPENSSL_CALLBACK* s_pwCallback;
     static OTCaller* s_pCaller;

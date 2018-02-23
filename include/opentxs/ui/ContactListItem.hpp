@@ -36,47 +36,37 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_NETWORK_ZEROMQ_SUBSCRIBESOCKET_HPP
-#define OPENTXS_NETWORK_ZEROMQ_SUBSCRIBESOCKET_HPP
+#ifndef OPENTXS_UI_CONTACTLISTITEM_HPP
+#define OPENTXS_UI_CONTACTLISTITEM_HPP
 
 #include "opentxs/Forward.hpp"
 
-#include "opentxs/network/zeromq/Socket.hpp"
+#include <string>
 
 namespace opentxs
 {
-namespace network
+namespace ui
 {
-namespace zeromq
-{
-#ifdef SWIG
-// clang-format off
-%ignore SubscribeSocket::RegisterCallback(ReceiveCallback);
-%ignore SubscribeSocket::SetCurve(const ServerContract&);
-// clang-format on
-#endif  // SWIG
-
-class SubscribeSocket : virtual public Socket
+class ContactListItem
 {
 public:
-    EXPORT static OTZMQSubscribeSocket Factory(const Context& context);
+    EXPORT virtual std::string ContactID() const = 0;
+    EXPORT virtual std::string DisplayName() const = 0;
+    EXPORT virtual std::string ImageURI() const = 0;
+    EXPORT virtual bool Last() const = 0;
+    EXPORT virtual std::string Section() const = 0;
 
-    EXPORT virtual void RegisterCallback(ReceiveCallback callback) const = 0;
-    EXPORT virtual bool SetCurve(const ServerContract& contract) const = 0;
-    EXPORT virtual bool SetSocksProxy(const std::string& proxy) const = 0;
-
-    EXPORT virtual ~SubscribeSocket() = default;
+    EXPORT virtual ~ContactListItem() = default;
 
 protected:
-    SubscribeSocket() = default;
+    ContactListItem() = default;
 
 private:
-    SubscribeSocket(const SubscribeSocket&) = delete;
-    SubscribeSocket(SubscribeSocket&&) = default;
-    SubscribeSocket& operator=(const SubscribeSocket&) = delete;
-    SubscribeSocket& operator=(SubscribeSocket&&) = default;
+    ContactListItem(const ContactListItem&) = delete;
+    ContactListItem(ContactListItem&&) = delete;
+    ContactListItem& operator=(const ContactListItem&) = delete;
+    ContactListItem& operator=(ContactListItem&&) = delete;
 };
-}  // namespace zeromq
-}  // namespace network
+}  // namespace ui
 }  // namespace opentxs
-#endif  // OPENTXS_NETWORK_ZEROMQ_SUBSCRIBESOCKET_HPP
+#endif  // OPENTXS_UI_CONTACTLISTITEM_HPP

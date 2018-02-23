@@ -1,34 +1,20 @@
-add_subdirectory(client)
-add_subdirectory(crypto)
-add_subdirectory(network)
-add_subdirectory(storage)
-
 set(cxx-sources
-  Activity.cpp
-  Api.cpp
-  Blockchain.cpp
-  ContactManager.cpp
-  Identity.cpp
-  Native.cpp
-  Server.cpp
-  Settings.cpp
-  UI.cpp
+  ContactList.cpp
+  ContactListItem.cpp
 )
 
-file(GLOB cxx-install-headers
-     "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/api/*.hpp"
+set(cxx-install-headers
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/ContactList.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/ContactListItem.hpp"
 )
 
 set(cxx-headers
   ${cxx-install-headers}
-  ${CMAKE_CURRENT_SOURCE_DIR}/Api.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/ContactManager.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/Native.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/Server.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/UI.hpp
+  "${CMAKE_CURRENT_SOURCE_DIR}/ContactList.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/ContactListItem.hpp"
 )
 
-set(MODULE_NAME opentxs-api)
+set(MODULE_NAME opentxs-ui)
 
 if(WIN32)
   # suppress warnings about exported internal symbols (global log stream objects)
@@ -47,7 +33,6 @@ if(WIN32)
   add_library(${MODULE_NAME} OBJECT
     ${cxx-sources}
     ${cxx-headers}
-    util/OTWindowsRegistryTools.cpp
     ${CMAKE_CURRENT_BINARY_DIR}/module.rc
   )
 else()
@@ -58,7 +43,7 @@ else()
 endif()
 
 install(FILES ${cxx-install-headers}
-        DESTINATION include/opentxs/api
+        DESTINATION include/opentxs/ui
         COMPONENT dev)
 
 set_property(TARGET ${MODULE_NAME} PROPERTY POSITION_INDEPENDENT_CODE 1)

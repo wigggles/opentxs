@@ -14,7 +14,7 @@
  *       -- Scripted smart contracts.
  *
  *  EMAIL:
- *  fellowtraveler@opentransactions.org
+ *  fellowtraveler\opentransactions.org
  *
  *  WEBSITE:
  *  http://www.opentransactions.org/
@@ -36,33 +36,43 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_NETWORK_ZEROMQ_CURVESERVER_IMPLEMENTATION_HPP
-#define OPENTXS_NETWORK_ZEROMQ_CURVESERVER_IMPLEMENTATION_HPP
+#ifndef OPENTXS_API_UI_IMPLEMENTATION_HPP
+#define OPENTXS_API_UI_IMPLEMENTATION_HPP
 
 #include "opentxs/Internal.hpp"
 
-#include <mutex>
+#include "opentxs/api/UI.hpp"
+#include "opentxs/core/Lockable.hpp"
+#include "opentxs/Types.hpp"
 
-namespace opentxs::network::zeromq::implementation
-{
-class CurveServer
-{
-protected:
-    bool set_curve(const OTPassword& key) const;
+#include <map>
+#include <memory>
 
-    CurveServer(std::mutex& lock, void* socket);
-    ~CurveServer();
+namespace opentxs::api::implementation
+{
+class UI : virtual public opentxs::api::UI, Lockable
+{
+public:
+    const ui::ContactList& ContactList(const Identifier& nymID) const override;
+
+    ~UI();
 
 private:
-    std::mutex& curve_lock_;
-    // Not owned by this class
-    void* curve_socket_{nullptr};
+    friend class implementation::Native;
+    using ContactListMap =
+        std::map<Identifier, std::unique_ptr<ui::ContactList>>;
 
-    CurveServer() = delete;
-    CurveServer(const CurveServer&) = delete;
-    CurveServer(CurveServer&&) = delete;
-    CurveServer& operator=(const CurveServer&) = delete;
-    CurveServer& operator=(CurveServer&&) = delete;
+    const opentxs::network::zeromq::Context& zmq_;
+    const api::ContactManager& contact_;
+    mutable ContactListMap contact_lists_{};
+
+    UI(const opentxs::network::zeromq::Context& zmq,
+       const api::ContactManager& contact);
+    UI() = delete;
+    UI(const UI&) = delete;
+    UI(UI&&) = delete;
+    UI& operator=(const UI&) = delete;
+    UI& operator=(UI&&) = delete;
 };
-}  // namespace opentxs::network::zeromq::implementation
-#endif  // OPENTXS_NETWORK_ZEROMQ_CURVESERVER_IMPLEMENTATION_HPP
+}  // namespace opentxs::api::implementation
+#endif  // OPENTXS_API_UI_IMPLEMENTATION_HPP

@@ -45,7 +45,14 @@
 
 #include <zmq.h>
 
+#define CONTACT_UPDATE_ENDPOINT "inproc://opentxs/contactupdate/1"
+
 #define OT_METHOD "opentxs::network::zeromq::implementation::Socket::"
+
+namespace opentxs::network::zeromq
+{
+const std::string Socket::ContactUpdateEndpoint{CONTACT_UPDATE_ENDPOINT};
+}  // namespace opentxs::network::zeromq
 
 namespace opentxs::network::zeromq::implementation
 {
@@ -64,9 +71,9 @@ Socket::Socket(const Context& context, const SocketType type)
     OT_ASSERT(nullptr != socket_);
 }
 
-Socket::operator void*() { return socket_; }
+Socket::operator void*() const { return socket_; }
 
-bool Socket::Close()
+bool Socket::Close() const
 {
     OT_ASSERT(nullptr != socket_);
 
@@ -75,7 +82,7 @@ bool Socket::Close()
     return (0 == zmq_close(socket_));
 }
 
-bool Socket::set_socks_proxy(const std::string& proxy)
+bool Socket::set_socks_proxy(const std::string& proxy) const
 {
     OT_ASSERT(nullptr != socket_);
 
@@ -89,7 +96,7 @@ bool Socket::set_socks_proxy(const std::string& proxy)
 bool Socket::SetTimeouts(
     const std::chrono::milliseconds& linger,
     const std::chrono::milliseconds& send,
-    const std::chrono::milliseconds& receive)
+    const std::chrono::milliseconds& receive) const
 {
     OT_ASSERT(nullptr != socket_);
 
@@ -130,7 +137,7 @@ bool Socket::SetTimeouts(
 bool Socket::SetTimeouts(
     const std::uint64_t& lingerMilliseconds,
     const std::uint64_t& sendMilliseconds,
-    const std::uint64_t& receiveMilliseconds)
+    const std::uint64_t& receiveMilliseconds) const
 {
     return SetTimeouts(
         std::chrono::milliseconds(lingerMilliseconds),

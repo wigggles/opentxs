@@ -36,47 +36,32 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_NETWORK_ZEROMQ_SUBSCRIBESOCKET_HPP
-#define OPENTXS_NETWORK_ZEROMQ_SUBSCRIBESOCKET_HPP
+#ifndef OPENTXS_UI_CONTACTLIST_HPP
+#define OPENTXS_UI_CONTACTLIST_HPP
 
 #include "opentxs/Forward.hpp"
 
-#include "opentxs/network/zeromq/Socket.hpp"
-
 namespace opentxs
 {
-namespace network
+namespace ui
 {
-namespace zeromq
-{
-#ifdef SWIG
-// clang-format off
-%ignore SubscribeSocket::RegisterCallback(ReceiveCallback);
-%ignore SubscribeSocket::SetCurve(const ServerContract&);
-// clang-format on
-#endif  // SWIG
-
-class SubscribeSocket : virtual public Socket
+class ContactList
 {
 public:
-    EXPORT static OTZMQSubscribeSocket Factory(const Context& context);
+    EXPORT virtual const ContactListItem& First() const = 0;
+    EXPORT virtual const ContactListItem& Next() const = 0;
 
-    EXPORT virtual void RegisterCallback(ReceiveCallback callback) const = 0;
-    EXPORT virtual bool SetCurve(const ServerContract& contract) const = 0;
-    EXPORT virtual bool SetSocksProxy(const std::string& proxy) const = 0;
-
-    EXPORT virtual ~SubscribeSocket() = default;
+    EXPORT virtual ~ContactList() = default;
 
 protected:
-    SubscribeSocket() = default;
+    ContactList() = default;
 
 private:
-    SubscribeSocket(const SubscribeSocket&) = delete;
-    SubscribeSocket(SubscribeSocket&&) = default;
-    SubscribeSocket& operator=(const SubscribeSocket&) = delete;
-    SubscribeSocket& operator=(SubscribeSocket&&) = default;
+    ContactList(const ContactList&) = delete;
+    ContactList(ContactList&&) = delete;
+    ContactList& operator=(const ContactList&) = delete;
+    ContactList& operator=(ContactList&&) = delete;
 };
-}  // namespace zeromq
-}  // namespace network
+}  // namespace ui
 }  // namespace opentxs
-#endif  // OPENTXS_NETWORK_ZEROMQ_SUBSCRIBESOCKET_HPP
+#endif  // OPENTXS_UI_CONTACTLIST_HPP

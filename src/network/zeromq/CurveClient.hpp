@@ -50,7 +50,7 @@ namespace opentxs::network::zeromq::implementation
 class CurveClient
 {
 protected:
-    bool set_curve(const ServerContract& contract);
+    bool set_curve(const ServerContract& contract) const;
 
     CurveClient(std::mutex& lock, void* socket);
     ~CurveClient();
@@ -60,8 +60,8 @@ private:
     // Not owned by this class
     void* curve_socket_{nullptr};
 
-    bool set_local_keys(const Lock& lock);
-    bool set_remote_key(const Lock& lock, const ServerContract& contract);
+    bool set_local_keys(const Lock& lock) const;
+    bool set_remote_key(const Lock& lock, const ServerContract& contract) const;
 
     CurveClient() = delete;
     CurveClient(const CurveClient&) = delete;

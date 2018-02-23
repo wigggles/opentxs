@@ -38,7 +38,7 @@
 
 #include "opentxs/stdafx.hpp"
 
-#include "opentxs/api/ContactManager.hpp"
+#include "ContactManager.hpp"
 
 #include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/storage/Storage.hpp"
@@ -46,22 +46,28 @@
 #include "opentxs/contact/Contact.hpp"
 #include "opentxs/contact/ContactData.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/network/zeromq/Context.hpp"
+#include "opentxs/network/zeromq/PublishSocket.hpp"
 #include "opentxs/Proto.hpp"
 
 #include <functional>
 
-#define OT_METHOD "opentxs::ContactManager::"
+#define OT_METHOD "opentxs::api::implementation::ContactManager"
 
-namespace opentxs::api
+namespace opentxs::api::implementation
 {
 ContactManager::ContactManager(
-    const storage::Storage& storage,
-    const client::Wallet& wallet)
+    const api::storage::Storage& storage,
+    const api::client::Wallet& wallet,
+    const opentxs::network::zeromq::Context& context)
     : storage_(storage)
     , wallet_(wallet)
     , lock_()
     , contact_map_()
+    , contact_name_map_(build_name_map(storage))
+    , publisher_(context.PublishSocket())
 {
+    publisher_->Start(opentxs::network::zeromq::Socket::ContactUpdateEndpoint);
 }
 
 ContactManager::ContactMap::iterator ContactManager::add_contact(
@@ -69,6 +75,7 @@ ContactManager::ContactMap::iterator ContactManager::add_contact(
     class Contact* contact) const
 {
     OT_ASSERT(nullptr != contact);
+
     if (false == verify_write_lock(lock)) {
         throw std::runtime_error("lock error");
     }
@@ -101,6 +108,18 @@ Identifier ContactManager::BlockchainAddressToContact(
     rLock lock(lock_);
 
     return address_to_contact(lock, address, currency);
+}
+
+ContactManager::ContactNameMap ContactManager::build_name_map(
+    const api::storage::Storage& storage)
+{
+    ContactNameMap output{};
+
+    for (const auto & [ id, alias ] : storage.ContactList()) {
+        output.emplace(id, alias);
+    }
+
+    return output;
 }
 
 void ContactManager::check_identifiers(
@@ -192,6 +211,19 @@ Identifier ContactManager::ContactID(const Identifier& nymID) const
 ObjectList ContactManager::ContactList() const
 {
     return storage_.ContactList();
+}
+
+std::string ContactManager::ContactName(const Identifier& contactID) const
+{
+    rLock lock(lock_);
+    auto it = contact_name_map_.find(contactID);
+
+    if (contact_name_map_.end() == it) {
+
+        return {};
+    }
+
+    return it->second;
 }
 
 void ContactManager::import_contacts(const rLock& lock)
@@ -555,6 +587,11 @@ void ContactManager::refresh_indices(const rLock& lock, class Contact& contact)
     for (const auto& nymid : nyms) {
         update_nym_map(lock, nymid, contact, true);
     }
+
+    const auto& id = contact.ID();
+    contact_name_map_[id] = contact.Label();
+    const std::string rawID{String(id).Get()};
+    publisher_->Publish(rawID);
 }
 
 void ContactManager::save(class Contact* contact) const
@@ -765,4 +802,4 @@ bool ContactManager::verify_write_lock(const rLock& lock) const
 
     return true;
 }
-}  // namespace opentxs::api
+}  // namespace opentxs::api::implementation

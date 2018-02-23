@@ -58,6 +58,7 @@ namespace implementation
 class Api;
 class Crypto;
 class Native;
+class UI;
 }  // namespace api::implementation
 
 namespace network
@@ -75,6 +76,15 @@ namespace storage
 {
 class Root;
 }  // namespace opentxs::storage
+
+namespace ui
+{
+namespace implementation
+{
+class ContactList;
+class ContactListItem;
+}  // namespace opentxs::ui::implementation
+}  // namespace opentxs::ui
 
 class DhtConfig;
 #if OT_CRYPTO_USING_LIBSECP256K1

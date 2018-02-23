@@ -59,7 +59,7 @@ CurveClient::CurveClient(std::mutex& lock, void* socket)
 {
 }
 
-bool CurveClient::set_curve(const ServerContract& contract)
+bool CurveClient::set_curve(const ServerContract& contract) const
 {
     Lock lock(curve_lock_);
 
@@ -71,7 +71,7 @@ bool CurveClient::set_curve(const ServerContract& contract)
     return set_local_keys(lock);
 }
 
-bool CurveClient::set_local_keys(const Lock&)
+bool CurveClient::set_local_keys(const Lock&) const
 {
     OT_ASSERT(nullptr != curve_socket_);
 
@@ -112,6 +112,7 @@ bool CurveClient::set_local_keys(const Lock&)
 }
 
 bool CurveClient::set_remote_key(const Lock&, const ServerContract& contract)
+    const
 {
     OT_ASSERT(nullptr != curve_socket_);
 

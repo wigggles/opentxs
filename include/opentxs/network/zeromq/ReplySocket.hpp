@@ -62,8 +62,8 @@ class ReplySocket : virtual public Socket
 public:
     EXPORT static OTZMQReplySocket Factory(const Context& context);
 
-    EXPORT virtual void RegisterCallback(RequestCallback callback) = 0;
-    EXPORT virtual bool SetCurve(const OTPassword& key) = 0;
+    EXPORT virtual void RegisterCallback(RequestCallback callback) const = 0;
+    EXPORT virtual bool SetCurve(const OTPassword& key) const = 0;
 
     EXPORT virtual ~ReplySocket() = default;
 

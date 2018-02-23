@@ -57,7 +57,7 @@ CurveServer::CurveServer(std::mutex& lock, void* socket)
 {
 }
 
-bool CurveServer::set_curve(const OTPassword& key)
+bool CurveServer::set_curve(const OTPassword& key) const
 {
     OT_ASSERT(nullptr != curve_socket_);
 

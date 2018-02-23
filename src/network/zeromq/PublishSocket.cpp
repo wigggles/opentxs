@@ -64,26 +64,29 @@ PublishSocket::PublishSocket(const zeromq::Context& context)
 {
 }
 
-bool PublishSocket::Publish(const std::string& data)
+bool PublishSocket::Publish(const std::string& data) const
 {
     return Publish(Message::Factory(data));
 }
 
-bool PublishSocket::Publish(const opentxs::Data& data)
+bool PublishSocket::Publish(const opentxs::Data& data) const
 {
     return Publish(Message::Factory(data));
 }
 
-bool PublishSocket::Publish(zeromq::Message& data)
+bool PublishSocket::Publish(zeromq::Message& data) const
 {
     Lock lock(lock_);
 
     return (-1 != zmq_msg_send(data, socket_, 0));
 }
 
-bool PublishSocket::SetCurve(const OTPassword& key) { return set_curve(key); }
+bool PublishSocket::SetCurve(const OTPassword& key) const
+{
+    return set_curve(key);
+}
 
-bool PublishSocket::Start(const std::string& endpoint)
+bool PublishSocket::Start(const std::string& endpoint) const
 {
     Lock lock(lock_);
 

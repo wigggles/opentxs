@@ -36,47 +36,39 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_NETWORK_ZEROMQ_SUBSCRIBESOCKET_HPP
-#define OPENTXS_NETWORK_ZEROMQ_SUBSCRIBESOCKET_HPP
+#include "opentxs/stdafx.hpp"
 
-#include "opentxs/Forward.hpp"
+#include "UI.hpp"
 
-#include "opentxs/network/zeromq/Socket.hpp"
+#include "ui/ContactList.hpp"
 
-namespace opentxs
+//#define OT_METHOD "opentxs::api::implementation::UI"
+
+namespace opentxs::api::implementation
 {
-namespace network
+UI::UI(
+    const opentxs::network::zeromq::Context& zmq,
+    const api::ContactManager& contact)
+    : zmq_(zmq)
+    , contact_(contact)
+    , contact_lists_()
 {
-namespace zeromq
+}
+
+const ui::ContactList& UI::ContactList(const Identifier& nymID) const
 {
-#ifdef SWIG
-// clang-format off
-%ignore SubscribeSocket::RegisterCallback(ReceiveCallback);
-%ignore SubscribeSocket::SetCurve(const ServerContract&);
-// clang-format on
-#endif  // SWIG
+    Lock lock(lock_);
 
-class SubscribeSocket : virtual public Socket
-{
-public:
-    EXPORT static OTZMQSubscribeSocket Factory(const Context& context);
+    auto& list = contact_lists_[nymID];
 
-    EXPORT virtual void RegisterCallback(ReceiveCallback callback) const = 0;
-    EXPORT virtual bool SetCurve(const ServerContract& contract) const = 0;
-    EXPORT virtual bool SetSocksProxy(const std::string& proxy) const = 0;
+    if (false == bool(list)) {
+        list.reset(new ui::implementation::ContactList(zmq_, contact_, nymID));
+    }
 
-    EXPORT virtual ~SubscribeSocket() = default;
+    OT_ASSERT(list)
 
-protected:
-    SubscribeSocket() = default;
+    return *list;
+}
 
-private:
-    SubscribeSocket(const SubscribeSocket&) = delete;
-    SubscribeSocket(SubscribeSocket&&) = default;
-    SubscribeSocket& operator=(const SubscribeSocket&) = delete;
-    SubscribeSocket& operator=(SubscribeSocket&&) = default;
-};
-}  // namespace zeromq
-}  // namespace network
-}  // namespace opentxs
-#endif  // OPENTXS_NETWORK_ZEROMQ_SUBSCRIBESOCKET_HPP
+UI::~UI() {}
+}  // namespace opentxs::api::implementation

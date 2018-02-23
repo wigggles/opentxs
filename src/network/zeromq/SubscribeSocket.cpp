@@ -60,7 +60,7 @@ OTZMQSubscribeSocket SubscribeSocket::Factory(const Context& context)
 namespace opentxs::network::zeromq::implementation
 {
 SubscribeSocket::SubscribeSocket(const zeromq::Context& context)
-    : ot_super(context, SocketType::Request)
+    : ot_super(context, SocketType::Subscribe)
     , CurveClient(lock_, socket_)
     , Receiver(lock_, socket_)
     , callback_(nullptr)
@@ -83,23 +83,23 @@ void SubscribeSocket::process_incoming(const Lock&, Message& message)
     callback_(message);
 }
 
-void SubscribeSocket::RegisterCallback(ReceiveCallback callback)
+void SubscribeSocket::RegisterCallback(ReceiveCallback callback) const
 {
     Lock lock(lock_);
     callback_ = callback;
 }
 
-bool SubscribeSocket::SetCurve(const ServerContract& contract)
+bool SubscribeSocket::SetCurve(const ServerContract& contract) const
 {
     return set_curve(contract);
 }
 
-bool SubscribeSocket::SetSocksProxy(const std::string& proxy)
+bool SubscribeSocket::SetSocksProxy(const std::string& proxy) const
 {
     return set_socks_proxy(proxy);
 }
 
-bool SubscribeSocket::Start(const std::string& endpoint)
+bool SubscribeSocket::Start(const std::string& endpoint) const
 {
     OT_ASSERT(nullptr != socket_);
 

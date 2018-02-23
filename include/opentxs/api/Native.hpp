@@ -75,7 +75,8 @@ public:
         const std::chrono::seconds& last = std::chrono::seconds(0)) const = 0;
     virtual const class Server& Server() const = 0;
     virtual bool ServerMode() const = 0;
-    virtual const class client::Wallet& Wallet() const = 0;
+    virtual const client::Wallet& Wallet() const = 0;
+    virtual const class UI& UI() const = 0;
     virtual const network::ZMQ& ZMQ() const = 0;
 
     virtual ~Native() = default;

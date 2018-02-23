@@ -62,11 +62,13 @@ class RequestSocket : virtual public Socket
 public:
     EXPORT static OTZMQRequestSocket Factory(const Context& context);
 
-    EXPORT virtual MessageSendResult SendRequest(opentxs::Data& message) = 0;
-    EXPORT virtual MessageSendResult SendRequest(std::string& message) = 0;
-    EXPORT virtual MessageSendResult SendRequest(Message& message) = 0;
-    EXPORT virtual bool SetCurve(const ServerContract& contract) = 0;
-    EXPORT virtual bool SetSocksProxy(const std::string& proxy) = 0;
+    EXPORT virtual MessageSendResult SendRequest(
+        opentxs::Data& message) const = 0;
+    EXPORT virtual MessageSendResult SendRequest(
+        std::string& message) const = 0;
+    EXPORT virtual MessageSendResult SendRequest(Message& message) const = 0;
+    EXPORT virtual bool SetCurve(const ServerContract& contract) const = 0;
+    EXPORT virtual bool SetSocksProxy(const std::string& proxy) const = 0;
 
     EXPORT virtual ~RequestSocket() = default;
 

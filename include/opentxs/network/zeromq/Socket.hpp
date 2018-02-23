@@ -70,20 +70,22 @@ public:
     using ReceiveCallback = std::function<void(const Message&)>;
     using RequestCallback = std::function<OTZMQMessage(const Message&)>;
 
+    EXPORT static const std::string ContactUpdateEndpoint;
+
     EXPORT virtual SocketType Type() const = 0;
 
-    EXPORT virtual operator void*() = 0;
+    EXPORT virtual operator void*() const = 0;
 
-    EXPORT virtual bool Close() = 0;
+    EXPORT virtual bool Close() const = 0;
     EXPORT virtual bool SetTimeouts(
         const std::chrono::milliseconds& linger,
         const std::chrono::milliseconds& send,
-        const std::chrono::milliseconds& receive) = 0;
+        const std::chrono::milliseconds& receive) const = 0;
     EXPORT virtual bool SetTimeouts(
         const std::uint64_t& lingerMilliseconds,
         const std::uint64_t& sendMilliseconds,
-        const std::uint64_t& receiveMilliseconds) = 0;
-    EXPORT virtual bool Start(const std::string& endpoint) = 0;
+        const std::uint64_t& receiveMilliseconds) const = 0;
+    EXPORT virtual bool Start(const std::string& endpoint) const = 0;
 
     EXPORT virtual ~Socket() = default;
 

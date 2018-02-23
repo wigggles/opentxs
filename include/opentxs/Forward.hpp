@@ -84,6 +84,7 @@ class Identity;
 class Native;
 class Server;
 class Settings;
+class UI;
 }  // namespace opentxs::api
 
 namespace client
@@ -115,6 +116,12 @@ namespace server
 class MessageProcessor;
 class Server;
 }  // namespace opentxs::server
+
+namespace ui
+{
+class ContactList;
+class ContactListItem;
+}  // namespace opentxs::ui
 
 class Account;
 class AccountVisitor;
@@ -205,5 +212,7 @@ using OTZMQPublishSocket = Pimpl<network::zeromq::PublishSocket>;
 using OTZMQReplySocket = Pimpl<network::zeromq::ReplySocket>;
 using OTZMQRequestSocket = Pimpl<network::zeromq::RequestSocket>;
 using OTZMQSubscribeSocket = Pimpl<network::zeromq::SubscribeSocket>;
+using OTUIContactList = Pimpl<ui::ContactList>;
+using OTUIContactListItem = Pimpl<ui::ContactListItem>;
 }  // namespace opentxs
 #endif  // OPENTXS_FORWARD_HPP

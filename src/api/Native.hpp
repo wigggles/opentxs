@@ -58,13 +58,8 @@
 #include <thread>
 #include <tuple>
 
-namespace opentxs
+namespace opentxs::api::implementation
 {
-namespace api
-{
-namespace implementation
-{
-
 /** \brief Singlton class for providing an interface to process-level resources.
  *  \ingroup native
  */
@@ -92,6 +87,7 @@ public:
     const api::Server& Server() const override;
     bool ServerMode() const override;
     const api::client::Wallet& Wallet() const override;
+    const api::UI& UI() const override;
     const api::network::ZMQ& ZMQ() const override;
 
 private:
@@ -135,6 +131,7 @@ private:
     std::unique_ptr<std::thread> periodic_;
     std::unique_ptr<SymmetricKey> storage_encryption_key_;
     std::unique_ptr<api::Server> server_;
+    std::unique_ptr<api::UI> ui_;
     OTZMQContext zmq_context_;
     mutable std::unique_ptr<Signals> signal_handler_;
     const ArgList server_args_;
@@ -170,6 +167,7 @@ private:
     void Init_Server();
     void Init_Storage();
     void Init_StorageBackup();
+    void Init_UI();
     void Init_ZMQ();
     void Init();
     void Periodic();
@@ -178,9 +176,7 @@ private:
     void shutdown();
     void start();
 
-    ~Native() = default;
+    ~Native();
 };
-}  // namespace implementation
-}  // namespace api
-}  // namespace opentxs
+}  // namespace opentxs::api::implementation
 #endif  // OPENTXS_CORE_API_IMPLEMENTATION_NATIVE_HPP

@@ -86,15 +86,18 @@ void ReplySocket::process_incoming(const Lock&, Message& message)
     }
 }
 
-void ReplySocket::RegisterCallback(RequestCallback callback)
+void ReplySocket::RegisterCallback(RequestCallback callback) const
 {
     Lock lock(lock_);
     callback_ = callback;
 }
 
-bool ReplySocket::SetCurve(const OTPassword& key) { return set_curve(key); }
+bool ReplySocket::SetCurve(const OTPassword& key) const
+{
+    return set_curve(key);
+}
 
-bool ReplySocket::Start(const std::string& endpoint)
+bool ReplySocket::Start(const std::string& endpoint) const
 {
     Lock lock(lock_);
 
