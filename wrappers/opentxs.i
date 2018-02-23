@@ -34,8 +34,8 @@ typedef int64_t time64_t;
 #include "opentxs/core/crypto/OTCallback.hpp"
 #include "opentxs/core/crypto/OTCaller.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
-#include "opentxs/ui/ContactList.hpp"
 #include "opentxs/ui/ContactListItem.hpp"
+#include "opentxs/ui/ContactList.hpp"
 #include "opentxs/Types.hpp"
 
 #include <string>
@@ -112,8 +112,8 @@ namespace std {
 %include "../../include/opentxs/core/crypto/OTCallback.hpp"
 %include "../../include/opentxs/core/crypto/OTCaller.hpp"
 %include "../../include/opentxs/core/crypto/OTPassword.hpp"
-%include "../../include/opentxs/ui/ContactList.hpp"
 %include "../../include/opentxs/ui/ContactListItem.hpp"
+%include "../../include/opentxs/ui/ContactList.hpp"
 
 bool opentxs::OT_API_Set_PasswordCallback(OTCaller & theCaller);
 bool opentxs::OT_API_Set_AddrBookCallback(OTLookupCaller & theCaller);
