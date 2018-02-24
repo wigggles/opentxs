@@ -75,8 +75,8 @@ ContactList::ContactList(
     , have_items_(Flag::Factory(false))
     , start_(Flag::Factory(true))
     , startup_complete_(Flag::Factory(false))
-    , name_(nullptr)
-    , contact_(nullptr)
+    , name_(items_.begin())
+    , contact_(items_.begin()->second.begin())
     , startup_(nullptr)
     , contact_subscriber_(zmq_.SubscribeSocket())
 {
