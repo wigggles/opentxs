@@ -43,14 +43,10 @@
 
 #include "opentxs/core/crypto/OTPassword.hpp"
 
-#include <stdint.h>
+#include <cstdint>
 
 namespace opentxs
 {
-
-class OTCallback;
-class OTPassword;
-
 class OTCaller
 {
 protected:
@@ -89,7 +85,5 @@ public:
     EXPORT void callTwo();  // Asks for password twice. (For confirmation during
                             // nym creation and password change.)
 };
-
 }  // namespace opentxs
-
 #endif  // OPENTXS_CORE_CRYPTO_OTCALLER_HPP

@@ -60,19 +60,6 @@ NymData::NymData(const std::shared_ptr<Nym>& nym)
 
 bool NymData::AddContract(
     const std::string& instrumentDefinitionID,
-    const std::uint32_t currency,
-    const bool primary,
-    const bool active)
-{
-    return AddContract(
-        instrumentDefinitionID,
-        static_cast<const proto::ContactItemType>(currency),
-        primary,
-        active);
-}
-
-bool NymData::AddContract(
-    const std::string& instrumentDefinitionID,
     const proto::ContactItemType currency,
     const bool primary,
     const bool active)
@@ -89,14 +76,14 @@ bool NymData::AddContract(
     return nym().AddContract(id, currency, primary, active);
 }
 
-bool NymData::AddPaymentCode(
-    const std::string& code,
+bool NymData::AddContract(
+    const std::string& instrumentDefinitionID,
     const std::uint32_t currency,
     const bool primary,
     const bool active)
 {
-    return AddPaymentCode(
-        code,
+    return AddContract(
+        instrumentDefinitionID,
         static_cast<const proto::ContactItemType>(currency),
         primary,
         active);
@@ -120,6 +107,19 @@ bool NymData::AddPaymentCode(
     return nym().AddPaymentCode(paymentCode, currency, primary, active);
 }
 
+bool NymData::AddPaymentCode(
+    const std::string& code,
+    const std::uint32_t currency,
+    const bool primary,
+    const bool active)
+{
+    return AddPaymentCode(
+        code,
+        static_cast<const proto::ContactItemType>(currency),
+        primary,
+        active);
+}
+
 bool NymData::AddPreferredOTServer(const std::string& id, const bool primary)
 {
     return nym().AddPreferredOTServer(Identifier(id), primary);
@@ -135,19 +135,6 @@ const ContactData& NymData::data() const
 std::uint32_t NymData::GetType() const
 {
     return static_cast<std::uint32_t>(Type());
-}
-
-bool NymData::HaveContract(
-    const std::string& id,
-    const std::uint32_t currency,
-    const bool primary,
-    const bool active) const
-{
-    return HaveContract(
-        Identifier(id),
-        static_cast<const proto::ContactItemType>(currency),
-        primary,
-        active);
 }
 
 bool NymData::HaveContract(
@@ -188,6 +175,19 @@ bool NymData::HaveContract(
     return false;
 }
 
+bool NymData::HaveContract(
+    const std::string& id,
+    const std::uint32_t currency,
+    const bool primary,
+    const bool active) const
+{
+    return HaveContract(
+        Identifier(id),
+        static_cast<const proto::ContactItemType>(currency),
+        primary,
+        active);
+}
+
 std::string NymData::Name() const
 {
     OT_ASSERT(nym_);
@@ -202,15 +202,15 @@ Nym& NymData::nym()
     return *nym_;
 }
 
+std::string NymData::PaymentCode(const proto::ContactItemType currency) const
+{
+    return Contact::PaymentCode(data(), currency);
+}
+
 std::string NymData::PaymentCode(const std::uint32_t currency) const
 {
     return Contact::PaymentCode(
         data(), static_cast<proto::ContactItemType>(currency));
-}
-
-std::string NymData::PaymentCode(const proto::ContactItemType currency) const
-{
-    return Contact::PaymentCode(data(), currency);
 }
 
 std::string NymData::PreferredOTServer() const
@@ -223,16 +223,16 @@ std::string NymData::PrintContactData() const
     return ContactData::PrintContactData(data().Serialize(true));
 }
 
-bool NymData::SetType(const std::uint32_t type, const std::string& name)
-{
-    return SetType(static_cast<proto::ContactItemType>(type), name);
-}
-
 bool NymData::SetType(
     const proto::ContactItemType type,
     const std::string& name)
 {
     return nym().SetScope(type, name, true);
+}
+
+bool NymData::SetType(const std::uint32_t type, const std::string& name)
+{
+    return SetType(static_cast<proto::ContactItemType>(type), name);
 }
 
 proto::ContactItemType NymData::Type() const { return data().Type(); }

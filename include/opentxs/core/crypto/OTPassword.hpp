@@ -46,7 +46,6 @@
 
 namespace opentxs
 {
-
 /*
  To use:
 
@@ -67,8 +66,7 @@ namespace opentxs
  This class gives me a safe way to hand-off a password, and off-load the
  handling risk to the user.  This class will be included as part of the
  OT-API SWIG interface so that it's available inside other languages.
-
- */
+*/
 
 #define OT_PW_DISPLAY "Enter master passphrase for wallet."
 #define OT_DEFAULT_BLOCKSIZE 256
@@ -97,8 +95,6 @@ namespace opentxs
 // This is basically just to save me from duplicating work that's already
 // done here in OTPassword.
 //
-class Data;
-
 class OTPassword
 {
 public:

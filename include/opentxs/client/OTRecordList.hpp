@@ -44,16 +44,21 @@
 #include "opentxs/client/OTRecord.hpp"
 #include "opentxs/core/util/Common.hpp"
 
-#include <stdint.h>
+#include <cstdint>
 #include <list>
 #include <map>
 #include <memory>
 #include <string>
 #include <vector>
 
+#ifdef SWIG
+// clang-format off
+%rename($ignore) OTRecordList;
+// clang-format on
+#endif  // SWIG
+
 namespace opentxs
 {
-
 /** For address book lookups. Your client app inherits this and provides addr
  * storage/lookup through this simple interface. OTRecordList then calls it. */
 class OTNameLookup
@@ -89,8 +94,8 @@ public:
         const std::string p_nym_id,
         const std::string p_notary_id,
         const std::string p_txn_contents,
-        int64_t lTransactionNum,
-        int64_t lTransNumForDisplay) const;
+        std::int64_t lTransactionNum,
+        std::int64_t lTransNumForDisplay) const;
 };
 
 /*
@@ -161,14 +166,15 @@ typedef std::map<std::string, std::string> map_of_strings;
 
 class OTRecordList
 {
-    const OTNameLookup* m_pLookup;
+private:
+    const OTNameLookup* m_pLookup{nullptr};
     // Defaults to false. If you set it true, it will run a lot faster. (And
     // give you less data.)
-    bool m_bRunFast;
-    bool m_bAutoAcceptCheques;  // Cheques and vouchers, NOT invoices.
-    bool m_bAutoAcceptReceipts;
-    bool m_bAutoAcceptTransfers;
-    bool m_bAutoAcceptCash;
+    bool m_bRunFast{false};
+    bool m_bAutoAcceptCheques{false};  // Cheques and vouchers, NOT invoices.
+    bool m_bAutoAcceptReceipts{false};
+    bool m_bAutoAcceptTransfers{false};
+    bool m_bAutoAcceptCash{false};
     static std::string s_strTextTo;    // "To: "
     static std::string s_strTextFrom;  // "From: "
     list_of_strings m_servers;
@@ -232,8 +238,8 @@ public:
         const std::string p_nym_id,
         const std::string p_notary_id,
         const std::string p_txn_contents,
-        int64_t lTransactionNum,
-        int64_t lTransNumForDisplay) const;
+        std::int64_t lTransactionNum,
+        std::int64_t lTransNumForDisplay) const;
     /** Populates m_contents from OT API. Calls ClearContents(). */
     EXPORT bool Populate();
     /** Clears m_contents (NOT nyms, accounts, servers, or instrument
@@ -250,7 +256,7 @@ public:
         const std::string& str_msg_id,  // The ID of this message, from whatever
                                         // system it came from.
         bool bIsOutgoing,
-        int32_t nMethodID,
+        std::int32_t nMethodID,
         const std::string& str_contents,  // Make sure to concatentate subject
                                           // with contents, before passing here.
         const std::string& str_address,
@@ -260,11 +266,9 @@ public:
         std::string str_my_nym_id = "",
         time64_t tDate = OT_TIME_ZERO);
     // RETRIEVE:
-    EXPORT int32_t size() const;
-    EXPORT OTRecord GetRecord(int32_t nIndex);
-    EXPORT bool RemoveRecord(int32_t nIndex);
+    EXPORT std::int32_t size() const;
+    EXPORT OTRecord GetRecord(std::int32_t nIndex);
+    EXPORT bool RemoveRecord(std::int32_t nIndex);
 };
-
 }  // namespace opentxs
-
 #endif  // OPENTXS_CLIENT_OTRECORDLIST_HPP
