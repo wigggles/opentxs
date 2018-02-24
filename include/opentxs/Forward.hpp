@@ -98,8 +98,10 @@ namespace network
 namespace zeromq
 {
 class Context;
+class ListenCallback;
 class Message;
 class PublishSocket;
+class ReplyCallback;
 class ReplySocket;
 class RequestSocket;
 class SubscribeSocket;
@@ -211,8 +213,10 @@ using OTData = Pimpl<Data>;
 using OTFlag = Pimpl<Flag>;
 using OTServerConnection = Pimpl<network::ServerConnection>;
 using OTZMQContext = Pimpl<network::zeromq::Context>;
+using OTZMQListenCallback = Pimpl<network::zeromq::ListenCallback>;
 using OTZMQMessage = Pimpl<network::zeromq::Message>;
 using OTZMQPublishSocket = Pimpl<network::zeromq::PublishSocket>;
+using OTZMQReplyCallback = Pimpl<network::zeromq::ReplyCallback>;
 using OTZMQReplySocket = Pimpl<network::zeromq::ReplySocket>;
 using OTZMQRequestSocket = Pimpl<network::zeromq::RequestSocket>;
 using OTZMQSubscribeSocket = Pimpl<network::zeromq::SubscribeSocket>;

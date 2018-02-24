@@ -86,6 +86,7 @@ private:
     mutable ItemMap::const_iterator name_;
     mutable ItemIndex::const_iterator contact_;
     std::unique_ptr<std::thread> startup_{nullptr};
+    OTZMQListenCallback contact_subscriber_callback_;
     OTZMQSubscribeSocket contact_subscriber_;
 
     const opentxs::ui::ContactListItem& first(const Lock& lock) const;

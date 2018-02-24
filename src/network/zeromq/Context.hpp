@@ -51,9 +51,10 @@ public:
     operator void*() const override;
 
     OTZMQPublishSocket PublishSocket() const override;
-    OTZMQReplySocket ReplySocket() const override;
+    OTZMQReplySocket ReplySocket(const ReplyCallback& callback) const override;
     OTZMQRequestSocket RequestSocket() const override;
-    OTZMQSubscribeSocket SubscribeSocket() const override;
+    OTZMQSubscribeSocket SubscribeSocket(
+        const ListenCallback& callback) const override;
 
     ~Context();
 

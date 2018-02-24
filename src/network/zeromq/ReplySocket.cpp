@@ -41,7 +41,7 @@
 #include "ReplySocket.hpp"
 
 #include "opentxs/core/Log.hpp"
-//#include "opentxs/network/zeromq/Context.hpp"
+#include "opentxs/network/zeromq/ReplyCallback.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 
 #include <zmq.h>
@@ -50,32 +50,36 @@
 
 namespace opentxs::network::zeromq
 {
-OTZMQReplySocket ReplySocket::Factory(const Context& context)
+OTZMQReplySocket ReplySocket::Factory(
+    const Context& context,
+    const ReplyCallback& callback)
 {
-    return OTZMQReplySocket(new implementation::ReplySocket(context));
+    return OTZMQReplySocket(new implementation::ReplySocket(context, callback));
 }
 }  // namespace opentxs::network::zeromq
 
 namespace opentxs::network::zeromq::implementation
 {
-ReplySocket::ReplySocket(const zeromq::Context& context)
+ReplySocket::ReplySocket(
+    const zeromq::Context& context,
+    const ReplyCallback& callback)
     : ot_super(context, SocketType::Reply)
     , CurveServer(lock_, socket_)
     , Receiver(lock_, socket_)
-    , callback_(nullptr)
+    , callback_(callback)
 {
 }
 
-bool ReplySocket::have_callback() const
+ReplySocket* ReplySocket::clone() const
 {
-    Lock lock(lock_);
-
-    return bool(callback_);
+    return new ReplySocket(context_, callback_);
 }
+
+bool ReplySocket::have_callback() const { return true; }
 
 void ReplySocket::process_incoming(const Lock&, Message& message)
 {
-    auto output = callback_(message);
+    auto output = callback_.Process(message);
     Message& reply = output;
     auto sent = zmq_msg_send(reply, socket_, 0);
 
@@ -85,12 +89,6 @@ void ReplySocket::process_incoming(const Lock&, Message& message)
               << "\nRequest: " << std::string(message) << "\nReply: " << reply
               << std::endl;
     }
-}
-
-void ReplySocket::RegisterCallback(RequestCallback callback) const
-{
-    Lock lock(lock_);
-    callback_ = callback;
 }
 
 bool ReplySocket::SetCurve(const OTPassword& key) const

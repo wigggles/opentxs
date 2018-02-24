@@ -74,9 +74,9 @@ OTZMQPublishSocket Context::PublishSocket() const
     return PublishSocket::Factory(*this);
 }
 
-OTZMQReplySocket Context::ReplySocket() const
+OTZMQReplySocket Context::ReplySocket(const ReplyCallback& callback) const
 {
-    return ReplySocket::Factory(*this);
+    return ReplySocket::Factory(*this, callback);
 }
 
 OTZMQRequestSocket Context::RequestSocket() const
@@ -84,9 +84,10 @@ OTZMQRequestSocket Context::RequestSocket() const
     return RequestSocket::Factory(*this);
 }
 
-OTZMQSubscribeSocket Context::SubscribeSocket() const
+OTZMQSubscribeSocket Context::SubscribeSocket(
+    const ListenCallback& callback) const
 {
-    return SubscribeSocket::Factory(*this);
+    return SubscribeSocket::Factory(*this, callback);
 }
 
 Context::~Context()

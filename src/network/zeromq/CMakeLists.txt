@@ -2,9 +2,11 @@ set(cxx-sources
   Context.cpp
   CurveClient.cpp
   CurveServer.cpp
+  ListenCallback.cpp
   Message.cpp
   PublishSocket.cpp
   Receiver.cpp
+  ReplyCallback.cpp
   ReplySocket.cpp
   RequestSocket.cpp
   Socket.cpp
@@ -20,9 +22,11 @@ set(cxx-headers
   ${CMAKE_CURRENT_SOURCE_DIR}/Context.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/CurveClient.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/CurveServer.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/ListenCallback.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Message.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/PublishSocket.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Receiver.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/ReplyCallback.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/ReplySocket.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/RequestSocket.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Socket.hpp

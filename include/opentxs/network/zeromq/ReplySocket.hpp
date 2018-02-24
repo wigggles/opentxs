@@ -43,26 +43,35 @@
 
 #include "opentxs/network/zeromq/Socket.hpp"
 
+#ifdef SWIG
+// clang-format off
+%ignore opentxs::Pimpl<opentxs::network::zeromq::ReplySocket>::operator+=;
+%ignore opentxs::Pimpl<opentxs::network::zeromq::ReplySocket>::operator==;
+%ignore opentxs::Pimpl<opentxs::network::zeromq::ReplySocket>::operator!=;
+%ignore opentxs::Pimpl<opentxs::network::zeromq::ReplySocket>::operator<;
+%ignore opentxs::Pimpl<opentxs::network::zeromq::ReplySocket>::operator<=;
+%ignore opentxs::Pimpl<opentxs::network::zeromq::ReplySocket>::operator>;
+%ignore opentxs::Pimpl<opentxs::network::zeromq::ReplySocket>::operator>=;
+%template(OTZMQReplySocket) opentxs::Pimpl<opentxs::network::zeromq::ReplySocket>;
+%rename($ignore, regextarget=1, fullname=1) "opentxs::network::zeromq::ReplySocket::Factory.*";
+%rename($ignore, regextarget=1, fullname=1) "opentxs::network::zeromq::ReplySocket::SetCurve.*";
+%rename(ZMQReplySocket) opentxs::network::zeromq::ReplySocket;
+// clang-format on
+#endif  // SWIG
+
 namespace opentxs
 {
 namespace network
 {
 namespace zeromq
 {
-
-#ifdef SWIG
-// clang-format off
-%ignore ReplySocket::SendReply(const opentxs::Data&);
-%ignore ReplySocket::SetCurve(const OTPassword& key);
-// clang-format on
-#endif  // SWIG
-
 class ReplySocket : virtual public Socket
 {
 public:
-    EXPORT static OTZMQReplySocket Factory(const Context& context);
+    EXPORT static OTZMQReplySocket Factory(
+        const Context& context,
+        const ReplyCallback& callback);
 
-    EXPORT virtual void RegisterCallback(RequestCallback callback) const = 0;
     EXPORT virtual bool SetCurve(const OTPassword& key) const = 0;
 
     EXPORT virtual ~ReplySocket() = default;
@@ -71,6 +80,10 @@ protected:
     EXPORT ReplySocket() = default;
 
 private:
+    friend OTZMQReplySocket;
+
+    virtual ReplySocket* clone() const = 0;
+
     ReplySocket(const ReplySocket&) = delete;
     ReplySocket(ReplySocket&&) = default;
     ReplySocket& operator=(const ReplySocket&) = delete;

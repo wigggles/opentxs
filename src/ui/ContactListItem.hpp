@@ -66,6 +66,7 @@ private:
     const api::ContactManager& contact_;
     const Identifier id_;
     std::string name_{""};
+    OTZMQListenCallback contact_subscriber_callback_;
     OTZMQSubscribeSocket contact_subscriber_;
 
     void process_contact(const network::zeromq::Message& message);

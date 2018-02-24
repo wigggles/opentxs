@@ -65,6 +65,8 @@ private:
     friend opentxs::network::zeromq::PublishSocket;
     typedef Socket ot_super;
 
+    PublishSocket* clone() const override;
+
     PublishSocket(const zeromq::Context& context);
     PublishSocket() = delete;
     PublishSocket(const PublishSocket&) = delete;

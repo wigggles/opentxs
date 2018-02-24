@@ -87,6 +87,11 @@ bool PublishSocket::Publish(zeromq::Message& data) const
     return (-1 != sent);
 }
 
+PublishSocket* PublishSocket::clone() const
+{
+    return new PublishSocket(context_);
+}
+
 bool PublishSocket::SetCurve(const OTPassword& key) const
 {
     return set_curve(key);

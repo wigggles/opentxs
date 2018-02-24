@@ -49,6 +49,7 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/network/zeromq/ReplyCallback.hpp"
 #include "opentxs/network/zeromq/ReplySocket.hpp"
 #include "opentxs/server/Server.hpp"
 #include "opentxs/server/UserCommandProcessor.hpp"
@@ -70,7 +71,11 @@ MessageProcessor::MessageProcessor(
     : server_(server)
     , running_(running)
     , context_(context)
-    , reply_socket_(context.ReplySocket())
+    , reply_socket_callback_(network::zeromq::ReplyCallback::Factory(
+          [this](const network::zeromq::Message& incoming) -> OTZMQMessage {
+              return this->processSocket(incoming);
+          }))
+    , reply_socket_(context.ReplySocket(reply_socket_callback_.get()))
     , thread_(nullptr)
 {
 }
@@ -101,12 +106,6 @@ void MessageProcessor::init(const int port, const OTPassword& privkey)
 
 void MessageProcessor::run()
 {
-    network::zeromq::Socket::RequestCallback callback =
-        [this](const network::zeromq::Message& incoming) -> OTZMQMessage {
-        return this->processSocket(incoming);
-    };
-    reply_socket_->RegisterCallback(callback);
-
     while (running_) {
         // timeout is the time left until the next cron should execute.
         const auto timeout = server_.computeTimeout();

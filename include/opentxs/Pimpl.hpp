@@ -117,10 +117,16 @@ public:
 
     ~Pimpl() = default;
 
+#ifdef SWIG_VERSION
+    Pimpl() = default;
+#endif
+
 private:
     std::unique_ptr<C> pimpl_{nullptr};
 
+#ifndef SWIG_VERSION
     Pimpl() = delete;
+#endif
 };  // class Pimpl
 }  // namespace opentxs
 

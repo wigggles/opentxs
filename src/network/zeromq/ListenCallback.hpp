@@ -36,47 +36,35 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_REPLYSOCKET_HPP
-#define OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_REPLYSOCKET_HPP
+#ifndef OPENTXS_NETWORK_ZEROMQ_LISTENCALLBACK_IMPLEMENTATION_HPP
+#define OPENTXS_NETWORK_ZEROMQ_LISTENCALLBACK_IMPLEMENTATION_HPP
 
 #include "opentxs/Forward.hpp"
 
-#include "opentxs/network/zeromq/ReplySocket.hpp"
-
-#include "CurveServer.hpp"
-#include "Receiver.hpp"
-#include "Socket.hpp"
+#include "opentxs/network/zeromq/ListenCallback.hpp"
 
 namespace opentxs::network::zeromq::implementation
 {
-class ReplySocket : virtual public zeromq::ReplySocket,
-                    public Socket,
-                    CurveServer,
-                    Receiver
+class ListenCallback : virtual public zeromq::ListenCallback
 {
 public:
-    bool SetCurve(const OTPassword& key) const override;
-    bool Start(const std::string& endpoint) const override;
+    void Process(const zeromq::Message& message) const override;
 
-    ~ReplySocket();
+    ~ListenCallback();
 
 private:
-    friend opentxs::network::zeromq::ReplySocket;
-    typedef Socket ot_super;
+    friend zeromq::ListenCallback;
 
-    const ReplyCallback& callback_;
+    const zeromq::ListenCallback::ReceiveCallback callback_;
 
-    ReplySocket* clone() const override;
-    bool have_callback() const override;
+    ListenCallback* clone() const override;
 
-    void process_incoming(const Lock& lock, Message& message) override;
-
-    ReplySocket(const zeromq::Context& context, const ReplyCallback& callback);
-    ReplySocket() = delete;
-    ReplySocket(const ReplySocket&) = delete;
-    ReplySocket(ReplySocket&&) = delete;
-    ReplySocket& operator=(const ReplySocket&) = delete;
-    ReplySocket& operator=(ReplySocket&&) = delete;
+    ListenCallback(zeromq::ListenCallback::ReceiveCallback callback);
+    ListenCallback() = delete;
+    ListenCallback(const ListenCallback&) = delete;
+    ListenCallback(ListenCallback&&) = delete;
+    ListenCallback& operator=(const ListenCallback&) = delete;
+    ListenCallback& operator=(ListenCallback&&) = delete;
 };
 }  // namespace opentxs::network::zeromq::implementation
-#endif  // OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_REPLYSOCKET_HPP
+#endif  // OPENTXS_NETWORK_ZEROMQ_LISTENCALLBACK_IMPLEMENTATION_HPP

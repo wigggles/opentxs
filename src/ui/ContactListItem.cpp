@@ -42,6 +42,7 @@
 
 #include "opentxs/api/ContactManager.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
+#include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/SubscribeSocket.hpp"
 #include "opentxs/Types.hpp"
@@ -63,13 +64,13 @@ ContactListItem::ContactListItem(
     , contact_(contact)
     , id_(id)
     , name_(name)
-    , contact_subscriber_(zmq_.SubscribeSocket())
+    , contact_subscriber_callback_(network::zeromq::ListenCallback::Factory(
+          [this](const network::zeromq::Message& message) -> void {
+              this->process_contact(message);
+          }))
+    , contact_subscriber_(
+          zmq_.SubscribeSocket(contact_subscriber_callback_.get()))
 {
-    network::zeromq::Socket::ReceiveCallback callback =
-        [this](const network::zeromq::Message& message) -> void {
-        this->process_contact(message);
-    };
-    contact_subscriber_->RegisterCallback(callback);
     const auto listening = contact_subscriber_->Start(
         network::zeromq::Socket::ContactUpdateEndpoint);
 

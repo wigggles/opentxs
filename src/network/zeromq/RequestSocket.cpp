@@ -63,6 +63,11 @@ RequestSocket::RequestSocket(const zeromq::Context& context)
 {
 }
 
+RequestSocket* RequestSocket::clone() const
+{
+    return new RequestSocket(context_);
+}
+
 Socket::MessageSendResult RequestSocket::SendRequest(opentxs::Data& input) const
 {
     return SendRequest(Message::Factory(input));

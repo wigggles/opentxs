@@ -72,6 +72,7 @@ private:
     Server& server_;
     const Flag& running_;
     [[maybe_unused]] const network::zeromq::Context& context_;
+    OTZMQReplyCallback reply_socket_callback_;
     OTZMQReplySocket reply_socket_;
     std::unique_ptr<std::thread> thread_{nullptr};
 
