@@ -291,7 +291,7 @@ std::pair<bool, std::size_t> Sync::accept_incoming(
     }
 
     auto action = server_action_.ProcessInbox(
-        context.Nym()->ID(), context.Server(), accountID, *response);
+        context.Nym()->ID(), context.Server(), accountID, response);
     action->Run();
     success = (SendResult::VALID_REPLY == action->LastSendResult());
 
@@ -663,8 +663,8 @@ bool Sync::deposit_cheque(
         return finish_task(taskID, false);
     }
 
-    Cheque cheque;
-    const auto loaded = cheque.LoadContractFromString(payment->Payment());
+    std::unique_ptr<Cheque> cheque = std::make_unique<Cheque>();
+    const auto loaded = cheque->LoadContractFromString(payment->Payment());
 
     if (false == loaded) {
         otErr << OT_METHOD << __FUNCTION__ << ": Invalid cheque" << std::endl;
@@ -687,7 +687,7 @@ bool Sync::deposit_cheque(
         } else {
             otErr << OT_METHOD << __FUNCTION__
                   << ": Failed to deposit cheque:\n"
-                  << String(cheque) << std::endl;
+                  << String(*cheque) << std::endl;
         }
     } else {
         otErr << OT_METHOD << __FUNCTION__

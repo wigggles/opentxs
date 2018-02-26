@@ -157,7 +157,7 @@ ServerAction::Action ServerAction::ActivateSmartContract(
     const Identifier& serverID,
     const Identifier& accountID,
     const String& agentName,
-    const OTSmartContract& contract) const
+    std::unique_ptr<OTSmartContract>& contract) const
 {
     return Action(new OTAPI_Func(
         ACTIVATE_SMART_CONTRACT,
@@ -212,7 +212,7 @@ ServerAction::Action ServerAction::AdjustUsageCredits(
 ServerAction::Action ServerAction::CancelPaymentPlan(
     const Identifier& localNymID,
     const Identifier& serverID,
-    const OTPaymentPlan& plan) const
+    std::unique_ptr<OTPaymentPlan>& plan) const
 {
     // NOTE: Normally the SENDER (PAYER) is the one who deposits a payment plan.
     // But in this case, the RECIPIENT (PAYEE) deposits it -- which means
@@ -230,7 +230,7 @@ ServerAction::Action ServerAction::CancelPaymentPlan(
         serverID,
         exec_,
         otapi_,
-        plan.GetRecipientAcctID(),
+        plan->GetRecipientAcctID(),
         plan));
 }
 
@@ -279,7 +279,7 @@ ServerAction::Action ServerAction::DepositCashPurse(
     const Identifier& localNymID,
     const Identifier& serverID,
     const Identifier& accountID,
-    const Purse& purse) const
+    std::unique_ptr<Purse>& purse) const
 {
     return Action(new OTAPI_Func(
         DEPOSIT_CASH,
@@ -297,7 +297,7 @@ ServerAction::Action ServerAction::DepositCheque(
     const Identifier& localNymID,
     const Identifier& serverID,
     const Identifier& accountID,
-    const Cheque& cheque) const
+    std::unique_ptr<Cheque>& cheque) const
 {
     return Action(new OTAPI_Func(
         DEPOSIT_CHEQUE,
@@ -313,7 +313,7 @@ ServerAction::Action ServerAction::DepositCheque(
 ServerAction::Action ServerAction::DepositPaymentPlan(
     const Identifier& localNymID,
     const Identifier& serverID,
-    const OTPaymentPlan& plan) const
+    std::unique_ptr<OTPaymentPlan>& plan) const
 {
     return Action(new OTAPI_Func(
         DEPOSIT_PAYMENT_PLAN,
@@ -322,7 +322,7 @@ ServerAction::Action ServerAction::DepositPaymentPlan(
         serverID,
         exec_,
         otapi_,
-        plan.GetSenderAcctID(),
+        plan->GetSenderAcctID(),
         plan));
 }
 
@@ -550,7 +550,7 @@ ServerAction::Action ServerAction::ExchangeCash(
     const Identifier& localNymID,
     const Identifier& serverID,
     const Identifier& instrumentDefinitionID,
-    const Purse& purse) const
+    std::unique_ptr<Purse>& purse) const
 {
     return Action(new OTAPI_Func(
         EXCHANGE_CASH,
@@ -744,7 +744,7 @@ ServerAction::Action ServerAction::ProcessInbox(
     const Identifier& localNymID,
     const Identifier& serverID,
     const Identifier& accountID,
-    const Ledger& ledger) const
+    std::unique_ptr<Ledger>& ledger) const
 {
     return Action(new OTAPI_Func(
         PROCESS_INBOX,
@@ -839,8 +839,8 @@ ServerAction::Action ServerAction::SendCash(
     const Identifier& localNymID,
     const Identifier& serverID,
     const Identifier& recipientNymID,
-    const Purse& recipientCopy,
-    const Purse& senderCopy) const
+    std::unique_ptr<Purse>& recipientCopy,
+    std::unique_ptr<Purse>& senderCopy) const
 {
     return Action(new OTAPI_Func(
         SEND_USER_INSTRUMENT,
@@ -876,11 +876,11 @@ ServerAction::Action ServerAction::SendPayment(
     const Identifier& localNymID,
     const Identifier& serverID,
     const Identifier& recipientNymID,
-    const OTPayment& payment) const
+    std::unique_ptr<OTPayment>& payment) const
 {
     String strPayment;
 
-    if (!payment.GetPaymentContents(strPayment)) {
+    if (!payment->GetPaymentContents(strPayment)) {
         otErr << "ServerAction::SendPayment: Empty payment argument - "
                  "should never happen!\n";
         OT_FAIL;

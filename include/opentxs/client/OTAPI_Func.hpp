@@ -170,7 +170,7 @@ public:
         const OTAPI_Exec& exec,
         const OT_API& otapi,
         const Identifier& accountID,
-        const Ledger& ledger);
+        std::unique_ptr<Ledger>& ledger);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         const api::client::Wallet& wallet,
@@ -188,7 +188,7 @@ public:
         const OTAPI_Exec& exec,
         const OT_API& otapi,
         const Identifier& accountID,
-        const Cheque& cheque);
+        std::unique_ptr<Cheque>& cheque);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         const api::client::Wallet& wallet,
@@ -197,7 +197,7 @@ public:
         const OTAPI_Exec& exec,
         const OT_API& otapi,
         const Identifier& nymID2,
-        const Purse& purse);
+        std::unique_ptr<Purse>& purse);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         const api::client::Wallet& wallet,
@@ -206,7 +206,7 @@ public:
         const OTAPI_Exec& exec,
         const OT_API& otapi,
         const Identifier& recipientID,
-        const OTPaymentPlan& paymentPlan);
+        std::unique_ptr<OTPaymentPlan>& paymentPlan);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         const api::client::Wallet& wallet,
@@ -225,7 +225,7 @@ public:
         const OTAPI_Exec& exec,
         const OT_API& otapi,
         const Identifier& recipientID,
-        const OTPayment& payment);
+        std::unique_ptr<OTPayment>& payment);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         const api::client::Wallet& wallet,
@@ -254,7 +254,7 @@ public:
         const OT_API& otapi,
         const Identifier& accountID,
         const std::string& agentName,
-        const OTSmartContract& contract);
+        std::unique_ptr<OTSmartContract>& contract);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         const api::client::Wallet& wallet,
@@ -305,8 +305,8 @@ public:
         const OTAPI_Exec& exec,
         const OT_API& otapi,
         const Identifier& recipientID,
-        const Purse& purse,
-        const Purse& senderPurse);
+        std::unique_ptr<Purse>& purse,
+        std::unique_ptr<Purse>& senderPurse);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         const api::client::Wallet& wallet,
@@ -398,13 +398,13 @@ private:
     Identifier requestID_{};
     Identifier senderAccountID_{};
     Identifier targetID_{};
-    OTSmartContract contract_{};
-    OTPaymentPlan paymentPlan_{};
-    Purse purse_{Identifier{}};
-    Purse senderPurse_{Identifier{}};
-    Cheque cheque_{};
-    Ledger ledger_;  // Initialized in the private constructor.
-    OTPayment payment_;
+    std::unique_ptr<OTSmartContract> contract_;
+    std::unique_ptr<OTPaymentPlan> paymentPlan_;
+    std::unique_ptr<Purse> purse_;
+    std::unique_ptr<Purse> senderPurse_;
+    std::unique_ptr<Cheque> cheque_;
+    std::unique_ptr<Ledger> ledger_;
+    std::unique_ptr<OTPayment> payment_;
     std::string agentName_;
     std::string clause_;
     std::string key_;

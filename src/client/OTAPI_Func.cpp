@@ -187,13 +187,13 @@ OTAPI_Func::OTAPI_Func(
     , requestID_{}
     , senderAccountID_{}
     , targetID_{}
-    , contract_{}
-    , paymentPlan_{}
-    , purse_{Identifier{}}
-    , senderPurse_{Identifier{}}
-    , cheque_{}
-    , ledger_{nymID, nymID, serverID}
-    , payment_{}
+    , contract_{nullptr}
+    , paymentPlan_{nullptr}
+    , purse_{nullptr}
+    , senderPurse_{nullptr}
+    , cheque_{nullptr}
+    , ledger_{nullptr}
+    , payment_{nullptr}
     , agentName_("")
     , clause_("")
     , key_("")
@@ -371,14 +371,14 @@ OTAPI_Func::OTAPI_Func(
     const OTAPI_Exec& exec,
     const OT_API& otapi,
     const Identifier& accountID,
-    const Ledger& ledger)
+    std::unique_ptr<Ledger>& ledger)
     : OTAPI_Func(wallet, exec, otapi, nymID, serverID, theType)
 {
     switch (theType) {
         case PROCESS_INBOX: {
             nTransNumsNeeded_ = 1;
             accountID_ = accountID;
-            ledger_ = ledger;
+            ledger_.reset(ledger.release());
         } break;
         default: {
             otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func()\n";
@@ -425,14 +425,14 @@ OTAPI_Func::OTAPI_Func(
     const OTAPI_Exec& exec,
     const OT_API& otapi,
     const Identifier& accountID,
-    const Cheque& cheque)
+    std::unique_ptr<Cheque>& cheque)
     : OTAPI_Func(wallet, exec, otapi, nymID, serverID, theType)
 {
     switch (theType) {
         case DEPOSIT_CHEQUE: {
             nTransNumsNeeded_ = 1;
             accountID_ = accountID;
-            cheque_ = cheque;
+            cheque_.reset(cheque.release());
         } break;
         default: {
             otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func()\n";
@@ -449,19 +449,19 @@ OTAPI_Func::OTAPI_Func(
     const OTAPI_Exec& exec,
     const OT_API& otapi,
     const Identifier& nymID2,
-    const Purse& purse)
+    std::unique_ptr<Purse>& purse)
     : OTAPI_Func(wallet, exec, otapi, nymID, serverID, theType)
 {
     switch (theType) {
         case DEPOSIT_CASH: {
             nTransNumsNeeded_ = 1;
             accountID_ = nymID2;
-            purse_ = purse;
+            purse_.reset(purse.release());
         } break;
         case EXCHANGE_CASH: {
             nTransNumsNeeded_ = 1;
             instrumentDefinitionID_ = nymID2;
-            purse_ = purse;
+            purse_.reset(purse.release());
         } break;
         default: {
             otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func()\n";
@@ -478,7 +478,7 @@ OTAPI_Func::OTAPI_Func(
     const OTAPI_Exec& exec,
     const OT_API& otapi,
     const Identifier& recipientID,
-    const OTPaymentPlan& paymentPlan)
+    std::unique_ptr<OTPaymentPlan>& paymentPlan)
     : OTAPI_Func(wallet, exec, otapi, nymID, serverID, theType)
 {
     std::string strError =
@@ -488,7 +488,7 @@ OTAPI_Func::OTAPI_Func(
         case DEPOSIT_PAYMENT_PLAN: {
             nTransNumsNeeded_ = 1;
             accountID_ = recipientID;
-            paymentPlan_ = paymentPlan;
+            paymentPlan_.reset(paymentPlan.release());
         } break;
         default: {
             otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func()\n";
@@ -639,7 +639,7 @@ OTAPI_Func::OTAPI_Func(
     const OTAPI_Exec& exec,
     const OT_API& otapi,
     const Identifier& recipientID,
-    const OTPayment& payment)
+    std::unique_ptr<OTPayment>& payment)
     : OTAPI_Func(wallet, exec, otapi, nymID, serverID, theType)
 {
     nTransNumsNeeded_ = 1;
@@ -647,7 +647,7 @@ OTAPI_Func::OTAPI_Func(
     if (theType == SEND_USER_INSTRUMENT) {
         nTransNumsNeeded_ = 0;
         recipientID_ = recipientID;
-        payment_ = payment;
+        payment_.reset(payment.release());
     } else {
         otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func() "
                  "ERROR!!!!!!\n";
@@ -721,7 +721,7 @@ OTAPI_Func::OTAPI_Func(
     const OT_API& otapi,
     const Identifier& accountID,
     const std::string& agentName,
-    const OTSmartContract& contract)
+    std::unique_ptr<OTSmartContract>& contract)
     : OTAPI_Func(wallet, exec, otapi, nymID, serverID, theType)
 {
     std::string strError =
@@ -738,12 +738,12 @@ OTAPI_Func::OTAPI_Func(
         accountID_ = accountID;  // the "official" asset account of the party
                                  // activating the contract.;
         agentName_ =
-            agentName;         // the agent's name for that party, as listed on
-                               // the contract.;
-        contract_ = contract;  // the smart contract itself.;
+            agentName;  // the agent's name for that party, as listed on
+                        // the contract.;
+        contract_.reset(contract.release());  // the smart contract itself.;
 
         std::int32_t nNumsNeeded = exec_.SmartContract_CountNumsNeeded(
-            String(contract_).Get(), agentName_);
+            String(*contract_).Get(), agentName_);
 
         if (nNumsNeeded > 0) {
             nTransNumsNeeded_ = nNumsNeeded;
@@ -909,18 +909,19 @@ OTAPI_Func::OTAPI_Func(
     const OTAPI_Exec& exec,
     const OT_API& otapi,
     const Identifier& recipientID,
-    const Purse& purse,
-    const Purse& senderPurse)
+    std::unique_ptr<Purse>& purse,
+    std::unique_ptr<Purse>& senderPurse)
     : OTAPI_Func(wallet, exec, otapi, nymID, serverID, theType)
 {
     nTransNumsNeeded_ = 1;
 
     if (theType == SEND_USER_INSTRUMENT) {
         nTransNumsNeeded_ = 0;
-        recipientID_ = recipientID;  // Recipient Nym;
-        purse_ = purse;              // Instrument for recipient.;
-        senderPurse_ =
-            senderPurse;  // sender_instrument is attached here. (Optional.);
+        recipientID_ = recipientID;     // Recipient Nym;
+        purse_.reset(purse.release());  // Instrument for recipient.;
+        senderPurse_.reset(senderPurse.release());  // sender_instrument is
+                                                    // attached here.
+                                                    // (Optional.);
         senderCopyIncluded_ = true;
     } else {
         otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func() "
@@ -1203,9 +1204,13 @@ void OTAPI_Func::run()
             String paymentString;
 
             if (senderCopyIncluded_) {
-                paymentString = String(purse_);
+                OT_ASSERT(purse_)
+
+                paymentString = String(*purse_);
             } else {
-                paymentString = String(payment_);
+                OT_ASSERT(payment_)
+
+                paymentString = String(*payment_);
             }
 
             OTPayment thePayment(paymentString);
@@ -1219,7 +1224,7 @@ void OTAPI_Func::run()
             }
 
             if (senderCopyIncluded_) {
-                const String& senderPurseString = String(senderPurse_);
+                const String& senderPurseString = String(*senderPurse_);
                 OTPayment theSenderPayment(senderPurseString);
 
                 if (!theSenderPayment.IsValid() ||
@@ -1250,8 +1255,10 @@ void OTAPI_Func::run()
             last_attempt_ = otapi_.deleteAssetAccount(context_, accountID_);
         } break;
         case ACTIVATE_SMART_CONTRACT: {
-            last_attempt_ =
-                otapi_.activateSmartContract(context_, String(contract_).Get());
+            OT_ASSERT(contract_)
+
+            last_attempt_ = otapi_.activateSmartContract(
+                context_, String(*contract_).Get());
         } break;
         case TRIGGER_CLAUSE: {
             last_attempt_ = otapi_.triggerClause(
@@ -1303,22 +1310,30 @@ void OTAPI_Func::run()
                 transactionNumber_);
         } break;
         case PROCESS_INBOX: {
+            OT_ASSERT(ledger_)
+
             last_attempt_ = otapi_.processInbox(
-                context_, accountID_, String(ledger_).Get());
+                context_, accountID_, String(*ledger_).Get());
         } break;
         case DEPOSIT_CASH: {
 #if OT_CASH
+            OT_ASSERT(purse_)
+
             last_attempt_ = otapi_.notarizeDeposit(
-                context_, Identifier(accountID_), String(purse_).Get());
+                context_, Identifier(accountID_), String(*purse_).Get());
 #endif  // OT_CASH
         } break;
         case DEPOSIT_CHEQUE: {
+            OT_ASSERT(cheque_)
+
             last_attempt_ = otapi_.depositCheque(
-                context_, Identifier(accountID_), String(cheque_).Get());
+                context_, Identifier(accountID_), String(*cheque_).Get());
         } break;
         case DEPOSIT_PAYMENT_PLAN: {
-            last_attempt_ =
-                otapi_.depositPaymentPlan(context_, String(paymentPlan_).Get());
+            OT_ASSERT(paymentPlan_)
+
+            last_attempt_ = otapi_.depositPaymentPlan(
+                context_, String(*paymentPlan_).Get());
         } break;
         case WITHDRAW_CASH: {
 #if OT_CASH
@@ -1340,11 +1355,7 @@ void OTAPI_Func::run()
         } break;
         case SEND_TRANSFER: {
             last_attempt_ = otapi_.notarizeTransfer(
-                context_,
-                senderAccountID_,
-                accountID_,
-                amount_,
-                message_.c_str());
+                context_, accountID_, targetID_, amount_, message_.c_str());
         } break;
         case GET_MARKET_LIST: {
             last_attempt_ = otapi_.getMarketList(context_);
@@ -1356,12 +1367,12 @@ void OTAPI_Func::run()
             last_attempt_ = otapi_.getMarketRecentTrades(context_, marketID_);
         } break;
         case CREATE_MARKET_OFFER: {
-            const Identifier& ASSET_ACCT_ID(accountID_);
-            const Identifier& CURRENCY_ACCT_ID(currencyAccountID_);
-            const std::int64_t& MARKET_SCALE = scale_;
-            const std::int64_t& MINIMUM_INCREMENT = increment_;
-            const std::int64_t& TOTAL_ASSETS_ON_OFFER = quantity_;
-            const Amount& PRICE_LIMIT = price_;
+            const Identifier ASSET_ACCT_ID(accountID_);
+            const Identifier CURRENCY_ACCT_ID(currencyAccountID_);
+            const std::int64_t MARKET_SCALE = scale_;
+            const std::int64_t MINIMUM_INCREMENT = increment_;
+            const std::int64_t TOTAL_ASSETS_ON_OFFER = quantity_;
+            const Amount PRICE_LIMIT = price_;
             const auto& bBuyingOrSelling = selling_;
             const auto& tLifespanInSeconds = lifetime_;
             const auto& STOP_SIGN = stopSign_;

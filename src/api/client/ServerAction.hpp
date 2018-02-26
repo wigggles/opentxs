@@ -88,7 +88,7 @@ public:
         const Identifier& serverID,
         const Identifier& accountID,
         const String& agentName,
-        const OTSmartContract& contract) const override;
+        std::unique_ptr<OTSmartContract>& contract) const override;
     Action AddServerClaim(
         const Identifier& localNymID,
         const Identifier& serverID,
@@ -104,7 +104,7 @@ public:
     Action CancelPaymentPlan(
         const Identifier& localNymID,
         const Identifier& serverID,
-        const OTPaymentPlan& plan) const override;
+        std::unique_ptr<OTPaymentPlan>& plan) const override;
     Action CreateMarketOffer(
         const Identifier& assetAccountID,
         const Identifier& currencyAccountID,
@@ -121,17 +121,17 @@ public:
         const Identifier& localNymID,
         const Identifier& serverID,
         const Identifier& accountID,
-        const Purse& purse) const override;
+        std::unique_ptr<Purse>& purse) const override;
 #endif  // OT_CASH
     Action DepositCheque(
         const Identifier& localNymID,
         const Identifier& serverID,
         const Identifier& accountID,
-        const Cheque& cheque) const override;
+        std::unique_ptr<Cheque>& cheque) const override;
     Action DepositPaymentPlan(
         const Identifier& localNymID,
         const Identifier& serverID,
-        const OTPaymentPlan& plan) const override;
+        std::unique_ptr<OTPaymentPlan>& plan) const override;
     bool DownloadAccount(
         const Identifier& localNymID,
         const Identifier& serverID,
@@ -186,7 +186,7 @@ public:
         const Identifier& localNymID,
         const Identifier& serverID,
         const Identifier& instrumentDefinitionID,
-        const Purse& purse) const override;
+        std::unique_ptr<Purse>& purse) const override;
 #endif  // OT_CASH
     bool GetTransactionNumbers(
         const Identifier& localNymID,
@@ -252,7 +252,7 @@ public:
         const Identifier& localNymID,
         const Identifier& serverID,
         const Identifier& accountID,
-        const Ledger& ledger) const override;
+        std::unique_ptr<Ledger>& ledger) const override;
     Action PublishNym(
         const Identifier& localNymID,
         const Identifier& serverID,
@@ -280,8 +280,8 @@ public:
         const Identifier& localNymID,
         const Identifier& serverID,
         const Identifier& recipientNymID,
-        const Purse& recipientCopy,
-        const Purse& senderCopy) const override;
+        std::unique_ptr<Purse>& recipientCopy,
+        std::unique_ptr<Purse>& senderCopy) const override;
 #endif  // OT_CASH
     Action SendMessage(
         const Identifier& localNymID,
@@ -292,7 +292,7 @@ public:
         const Identifier& localNymID,
         const Identifier& serverID,
         const Identifier& recipientNymID,
-        const OTPayment& payment) const override;
+        std::unique_ptr<OTPayment>& payment) const override;
     Action SendTransfer(
         const Identifier& localNymID,
         const Identifier& serverID,
