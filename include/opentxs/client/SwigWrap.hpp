@@ -55,16 +55,6 @@
 
 namespace opentxs
 {
-class OTCaller;
-
-namespace network
-{
-namespace zeromq
-{
-class Context;
-}  // namespace zeromq
-}  // namespace network
-
 /** For getting the password from the user, for using his private key. */
 extern "C" {
 typedef int32_t OT_OPENSSL_CALLBACK(

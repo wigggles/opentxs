@@ -44,14 +44,11 @@
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/Types.hpp"
 
-#include <stdint.h>
+#include <cstdint>
 #include <string>
 
 namespace opentxs
 {
-
-class OTRecordList;
-
 class OTRecord
 {
 public:
@@ -66,10 +63,10 @@ public:
 
 private:
     OTRecordList& backlink_;
-    int32_t m_nBoxIndex{-1};
+    std::int32_t m_nBoxIndex{-1};
     std::string m_strThreadItemId;  // Will eventually replace Box Index.
-    time64_t m_ValidFrom;
-    time64_t m_ValidTo;
+    time64_t m_ValidFrom{0};
+    time64_t m_ValidTo{0};
     const std::string& m_str_notary_id;
     const std::string& m_str_instrument_definition_id;
     const std::string& m_str_currency_tla;
@@ -98,8 +95,9 @@ private:
     // type display string "Bitmessage", and the sender and recipient addresses.
     //
     bool m_bIsSpecialMail{false};  // Meaning a bitmessage vs an OT message.
-    int32_t m_nMethodID{0};  // A Nym in Moneychanger might have 2 Bitmessage
-                             // addresses, each used on different BM nodes with
+    std::int32_t m_nMethodID{
+        0};  // A Nym in Moneychanger might have 2 Bitmessage
+             // addresses, each used on different BM nodes with
     // different connection strings. The Method ID is used
     // to lookup the connection string.
     std::string m_str_my_address;     // My Bitmessage address.
@@ -113,14 +111,14 @@ private:
     // or payment inbox, or record box. (If outpayment, contains
     // transaction number on outgoing instrument.)
     //
-    int64_t m_lTransactionNum{0};
-    int64_t m_lTransNumForDisplay{0};
-    int64_t m_lClosingNum{0};  // Only used for finalReceipts.
+    std::int64_t m_lTransactionNum{0};
+    std::int64_t m_lTransNumForDisplay{0};
+    std::int64_t m_lClosingNum{0};  // Only used for finalReceipts.
 
-    bool m_bIsPending;
-    bool m_bIsOutgoing;
-    bool m_bIsRecord;   // record box (closed, finished, historical only.)
-    bool m_bIsReceipt;  // It's a receipt, not a payment.
+    bool m_bIsPending{false};
+    bool m_bIsOutgoing{false};
+    bool m_bIsRecord{false};  // record box (closed, finished, historical only.)
+    bool m_bIsReceipt{false};  // It's a receipt, not a payment.
     bool m_bIsPaymentPlan{false};
     bool m_bIsSmartContract{false};
     bool m_bIsVoucher{false};
@@ -162,8 +160,8 @@ public:
     EXPORT void SetSuccess(const bool bIsSuccess);
     EXPORT bool HasSuccess(bool& bIsSuccess) const;
 
-    EXPORT void SetClosingNum(const int64_t lClosingNum);
-    EXPORT bool GetClosingNum(int64_t& lClosingNum) const;
+    EXPORT void SetClosingNum(const std::int64_t lClosingNum);
+    EXPORT bool GetClosingNum(std::int64_t& lClosingNum) const;
 
     EXPORT void SetSpecialMail(bool bIsSpecial = true);
     EXPORT bool IsSpecialMail() const;
@@ -229,16 +227,17 @@ public:
                                               // see if it's been accepted, so
                                               // this lets you erase the record
                                               // of sending it.)
-    EXPORT int32_t GetBoxIndex() const;  // If this is set to 3, for example,
-                                         // for a payment in the payments inbox,
-                                         // then index 3 in that same box refers
-                                         // to the payment corresponding to this
-                                         // record.
-    EXPORT void SetBoxIndex(int32_t nBoxIndex);
+    EXPORT std::int32_t GetBoxIndex() const;  // If this is set to 3, for
+                                              // example,
+    // for a payment in the payments inbox,
+    // then index 3 in that same box refers
+    // to the payment corresponding to this
+    // record.
+    EXPORT void SetBoxIndex(std::int32_t nBoxIndex);
     EXPORT const std::string GetThreadItemId() const;
     EXPORT void SetThreadItemId(const std::string& strThreadItemId);
     EXPORT int32_t GetMethodID() const;  // Used by "special mail."
-    EXPORT void SetMethodID(int32_t nMethodID);
+    EXPORT void SetMethodID(std::int32_t nMethodID);
     EXPORT const std::string& GetMsgID() const;  // Used by "special mail."
     EXPORT void SetMsgID(const std::string& str_id);
     EXPORT const std::string& GetMsgType() const;  // Used by "special mail."
@@ -246,15 +245,17 @@ public:
     EXPORT const std::string& GetMsgTypeDisplay() const;  // Used by "special
                                                           // mail."
     EXPORT void SetMsgTypeDisplay(const std::string& str_type);
-    EXPORT int64_t GetTransactionNum() const;  // Trans Num of receipt in the
-                                               // box. (Unless outpayment,
-                                               // contains number for
-                                               // instrument.)
+    EXPORT std::int64_t GetTransactionNum() const;  // Trans Num of receipt in
+                                                    // the
+                                                    // box. (Unless outpayment,
+                                                    // contains number for
+                                                    // instrument.)
     EXPORT void SetTransactionNum(int64_t lTransNum);
-    EXPORT int64_t GetTransNumForDisplay() const;  // Trans Num of the cheque
-                                                   // inside the receipt in the
-                                                   // box.
-    EXPORT void SetTransNumForDisplay(int64_t lTransNum);
+    EXPORT std::int64_t GetTransNumForDisplay() const;  // Trans Num of the
+                                                        // cheque
+    // inside the receipt in the
+    // box.
+    EXPORT void SetTransNumForDisplay(std::int64_t lTransNum);
     EXPORT OTRecordType GetRecordType() const;
     EXPORT const std::string& GetNotaryID() const;
     EXPORT const std::string& GetInstrumentDefinitionID() const;
@@ -332,7 +333,5 @@ public:
         bool bIsReceipt,
         OTRecordType eRecordType);
 };
-
 }  // namespace opentxs
-
 #endif  // OPENTXS_CLIENT_OTRECORD_HPP

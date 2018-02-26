@@ -45,25 +45,36 @@
 
 struct zmq_msg_t;
 
+#ifdef SWIG
+// clang-format off
+%ignore opentxs::network::zeromq::Message::operator zmq_msg_t*();
+%ignore opentxs::Pimpl<opentxs::network::zeromq::Message>::operator+=;
+%ignore opentxs::Pimpl<opentxs::network::zeromq::Message>::operator==;
+%ignore opentxs::Pimpl<opentxs::network::zeromq::Message>::operator!=;
+%ignore opentxs::Pimpl<opentxs::network::zeromq::Message>::operator<;
+%ignore opentxs::Pimpl<opentxs::network::zeromq::Message>::operator<=;
+%ignore opentxs::Pimpl<opentxs::network::zeromq::Message>::operator>;
+%ignore opentxs::Pimpl<opentxs::network::zeromq::Message>::operator>=;
+%template(OTZMQMessage) opentxs::Pimpl<opentxs::network::zeromq::Message>;
+%rename(string) opentxs::network::zeromq::Message::operator std::string() const;
+%rename(ZMQMessage) opentxs::network::zeromq::Message;
+// clang-format on
+#endif  // SWIG
+
 namespace opentxs
 {
 namespace network
 {
 namespace zeromq
 {
-#ifdef SWIG
-// clang-format off
-%ignore Message::operator zmq_msg_t*();
-%rename(string) Message::operator std::string() const;
-// clang-format on
-#endif  // SWIG
-
 class Message
 {
 public:
-    EXPORT static OTZMQMessage Factory();
-    EXPORT static OTZMQMessage Factory(const Data& input);
-    EXPORT static OTZMQMessage Factory(const std::string& input);
+    EXPORT static Pimpl<opentxs::network::zeromq::Message> Factory();
+    EXPORT static Pimpl<opentxs::network::zeromq::Message> Factory(
+        const opentxs::Data& input);
+    EXPORT static Pimpl<opentxs::network::zeromq::Message> Factory(
+        const std::string& input);
 
     EXPORT virtual operator std::string() const = 0;
 

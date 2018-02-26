@@ -50,25 +50,22 @@
 #include <string>
 #include <tuple>
 
+#ifdef SWIG
+// clang-format off
+%rename(ZMQSocket) opentxs::network::zeromq::Socket;
+// clang-format on
+#endif  // SWIG
+
 namespace opentxs
 {
 namespace network
 {
 namespace zeromq
 {
-#ifdef SWIG
-// clang-format off
-%ignore Socket::operator void*();
-%ignore Socket::SetTimeouts(const std::chrono::milliseconds&, std::chrono::milliseconds&, const std::chrono::milliseconds&);
-// clang-format on
-#endif  // SWIG
-
 class Socket
 {
 public:
     using MessageSendResult = std::pair<SendResult, OTZMQMessage>;
-    using ReceiveCallback = std::function<void(const Message&)>;
-    using RequestCallback = std::function<OTZMQMessage(const Message&)>;
 
     EXPORT static const std::string ContactUpdateEndpoint;
 
@@ -77,10 +74,12 @@ public:
     EXPORT virtual operator void*() const = 0;
 
     EXPORT virtual bool Close() const = 0;
+#ifndef SWIG
     EXPORT virtual bool SetTimeouts(
         const std::chrono::milliseconds& linger,
         const std::chrono::milliseconds& send,
         const std::chrono::milliseconds& receive) const = 0;
+#endif
     EXPORT virtual bool SetTimeouts(
         const std::uint64_t& lingerMilliseconds,
         const std::uint64_t& sendMilliseconds,

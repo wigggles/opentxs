@@ -43,25 +43,35 @@
 
 #include "opentxs/network/zeromq/Socket.hpp"
 
+#ifdef SWIG
+// clang-format off
+%ignore opentxs::Pimpl<opentxs::network::zeromq::SubscribeSocket>::operator+=;
+%ignore opentxs::Pimpl<opentxs::network::zeromq::SubscribeSocket>::operator==;
+%ignore opentxs::Pimpl<opentxs::network::zeromq::SubscribeSocket>::operator!=;
+%ignore opentxs::Pimpl<opentxs::network::zeromq::SubscribeSocket>::operator<;
+%ignore opentxs::Pimpl<opentxs::network::zeromq::SubscribeSocket>::operator<=;
+%ignore opentxs::Pimpl<opentxs::network::zeromq::SubscribeSocket>::operator>;
+%ignore opentxs::Pimpl<opentxs::network::zeromq::SubscribeSocket>::operator>=;
+%template(OTZMQSubscribeSocket) opentxs::Pimpl<opentxs::network::zeromq::SubscribeSocket>;
+%rename($ignore, regextarget=1, fullname=1) "opentxs::network::zeromq::SubscribeSocket::Factory.*";
+%rename($ignore, regextarget=1, fullname=1) "opentxs::network::zeromq::SubscribeSocket::SetCurve.*";
+%rename(ZMQSubscribeSocket) opentxs::network::zeromq::SubscribeSocket;
+// clang-format on
+#endif  // SWIG
+
 namespace opentxs
 {
 namespace network
 {
 namespace zeromq
 {
-#ifdef SWIG
-// clang-format off
-%ignore SubscribeSocket::RegisterCallback(ReceiveCallback);
-%ignore SubscribeSocket::SetCurve(const ServerContract&);
-// clang-format on
-#endif  // SWIG
-
 class SubscribeSocket : virtual public Socket
 {
 public:
-    EXPORT static OTZMQSubscribeSocket Factory(const Context& context);
+    EXPORT static OTZMQSubscribeSocket Factory(
+        const Context& context,
+        const ListenCallback& callback);
 
-    EXPORT virtual void RegisterCallback(ReceiveCallback callback) const = 0;
     EXPORT virtual bool SetCurve(const ServerContract& contract) const = 0;
     EXPORT virtual bool SetSocksProxy(const std::string& proxy) const = 0;
 
@@ -71,6 +81,10 @@ protected:
     SubscribeSocket() = default;
 
 private:
+    friend OTZMQSubscribeSocket;
+
+    virtual SubscribeSocket* clone() const = 0;
+
     SubscribeSocket(const SubscribeSocket&) = delete;
     SubscribeSocket(SubscribeSocket&&) = default;
     SubscribeSocket& operator=(const SubscribeSocket&) = delete;

@@ -36,47 +36,37 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_REPLYSOCKET_HPP
-#define OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_REPLYSOCKET_HPP
+#include "opentxs/stdafx.hpp"
 
-#include "opentxs/Forward.hpp"
+#include "ListenCallback.hpp"
 
-#include "opentxs/network/zeromq/ReplySocket.hpp"
+//#define OT_METHOD "opentxs::network::zeromq::implementation::ListenCallback::"
 
-#include "CurveServer.hpp"
-#include "Receiver.hpp"
-#include "Socket.hpp"
+namespace opentxs::network::zeromq
+{
+OTZMQListenCallback ListenCallback::Factory(
+    zeromq::ListenCallback::ReceiveCallback callback)
+{
+    return OTZMQListenCallback(new implementation::ListenCallback(callback));
+}
+}  // namespace opentxs::network::zeromq
 
 namespace opentxs::network::zeromq::implementation
 {
-class ReplySocket : virtual public zeromq::ReplySocket,
-                    public Socket,
-                    CurveServer,
-                    Receiver
+ListenCallback::ListenCallback(zeromq::ListenCallback::ReceiveCallback callback)
+    : callback_(callback)
 {
-public:
-    bool SetCurve(const OTPassword& key) const override;
-    bool Start(const std::string& endpoint) const override;
+}
 
-    ~ReplySocket();
+ListenCallback* ListenCallback::clone() const
+{
+    return new ListenCallback(callback_);
+}
 
-private:
-    friend opentxs::network::zeromq::ReplySocket;
-    typedef Socket ot_super;
+void ListenCallback::Process(const zeromq::Message& message) const
+{
+    callback_(message);
+}
 
-    const ReplyCallback& callback_;
-
-    ReplySocket* clone() const override;
-    bool have_callback() const override;
-
-    void process_incoming(const Lock& lock, Message& message) override;
-
-    ReplySocket(const zeromq::Context& context, const ReplyCallback& callback);
-    ReplySocket() = delete;
-    ReplySocket(const ReplySocket&) = delete;
-    ReplySocket(ReplySocket&&) = delete;
-    ReplySocket& operator=(const ReplySocket&) = delete;
-    ReplySocket& operator=(ReplySocket&&) = delete;
-};
+ListenCallback::~ListenCallback() {}
 }  // namespace opentxs::network::zeromq::implementation
-#endif  // OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_REPLYSOCKET_HPP

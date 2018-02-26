@@ -41,6 +41,7 @@
 #include "SubscribeSocket.hpp"
 
 #include "opentxs/core/Log.hpp"
+#include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 
 #include <chrono>
@@ -51,19 +52,24 @@
 
 namespace opentxs::network::zeromq
 {
-OTZMQSubscribeSocket SubscribeSocket::Factory(const Context& context)
+OTZMQSubscribeSocket SubscribeSocket::Factory(
+    const Context& context,
+    const ListenCallback& callback)
 {
-    return OTZMQSubscribeSocket(new implementation::SubscribeSocket(context));
+    return OTZMQSubscribeSocket(
+        new implementation::SubscribeSocket(context, callback));
 }
 }  // namespace opentxs::network::zeromq
 
 namespace opentxs::network::zeromq::implementation
 {
-SubscribeSocket::SubscribeSocket(const zeromq::Context& context)
+SubscribeSocket::SubscribeSocket(
+    const zeromq::Context& context,
+    const zeromq::ListenCallback& callback)
     : ot_super(context, SocketType::Subscribe)
     , CurveClient(lock_, socket_)
     , Receiver(lock_, socket_)
-    , callback_(nullptr)
+    , callback_(callback)
 {
     // subscribe to all messages until filtering is implemented
     const auto set = zmq_setsockopt(socket_, ZMQ_SUBSCRIBE, "", 0);
@@ -71,22 +77,18 @@ SubscribeSocket::SubscribeSocket(const zeromq::Context& context)
     OT_ASSERT(0 == set);
 }
 
-bool SubscribeSocket::have_callback() const
+SubscribeSocket* SubscribeSocket::clone() const
 {
-    Lock lock(lock_);
-
-    return bool(callback_);
+    return new SubscribeSocket(context_, callback_);
 }
 
-void SubscribeSocket::process_incoming(const Lock&, Message& message)
-{
-    callback_(message);
-}
+bool SubscribeSocket::have_callback() const { return true; }
 
-void SubscribeSocket::RegisterCallback(ReceiveCallback callback) const
+void SubscribeSocket::process_incoming(const Lock& lock, Message& message)
 {
-    Lock lock(lock_);
-    callback_ = callback;
+    OT_ASSERT(verify_lock(lock))
+
+    callback_.Process(message);
 }
 
 bool SubscribeSocket::SetCurve(const ServerContract& contract) const
@@ -104,13 +106,6 @@ bool SubscribeSocket::Start(const std::string& endpoint) const
     OT_ASSERT(nullptr != socket_);
 
     Lock lock(lock_);
-
-    if (false == bool(callback_)) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Callback not registered. "
-              << std::endl;
-
-        return false;
-    }
 
     if (0 != zmq_connect(socket_, endpoint.c_str())) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to connect to "

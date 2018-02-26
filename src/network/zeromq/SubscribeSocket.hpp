@@ -55,7 +55,6 @@ class SubscribeSocket : virtual public zeromq::SubscribeSocket,
                         Receiver
 {
 public:
-    void RegisterCallback(ReceiveCallback callback) const override;
     bool SetCurve(const ServerContract& contract) const override;
     bool SetSocksProxy(const std::string& proxy) const override;
     bool Start(const std::string& endpoint) const override;
@@ -66,13 +65,16 @@ private:
     friend opentxs::network::zeromq::SubscribeSocket;
     typedef Socket ot_super;
 
-    mutable ReceiveCallback callback_{nullptr};
+    const ListenCallback& callback_;
 
+    SubscribeSocket* clone() const override;
     bool have_callback() const override;
 
     void process_incoming(const Lock& lock, Message& message) override;
 
-    SubscribeSocket(const zeromq::Context& context);
+    SubscribeSocket(
+        const zeromq::Context& context,
+        const zeromq::ListenCallback& callback);
     SubscribeSocket() = delete;
     SubscribeSocket(const SubscribeSocket&) = delete;
     SubscribeSocket(SubscribeSocket&&) = delete;

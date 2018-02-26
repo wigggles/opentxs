@@ -45,25 +45,40 @@
 #include <string>
 #include <vector>
 
+#ifdef SWIG
+// clang-format off
+%ignore opentxs::Pimpl<opentxs::Data>::operator<;
+%ignore opentxs::Pimpl<opentxs::Data>::operator<=;
+%ignore opentxs::Pimpl<opentxs::Data>::operator>;
+%ignore opentxs::Pimpl<opentxs::Data>::operator>=;
+%template(OTData) opentxs::Pimpl<opentxs::Data>;
+// clang-format on
+#endif  // SWIG
+
 namespace opentxs
 {
 class Data
 {
 public:
-    EXPORT static OTData Factory();
-    EXPORT static OTData Factory(const Data& rhs);
-    EXPORT static OTData Factory(const void* data, std::size_t size);
+    EXPORT static Pimpl<opentxs::Data> Factory();
+    EXPORT static Pimpl<opentxs::Data> Factory(const Data& rhs);
+    EXPORT static Pimpl<opentxs::Data> Factory(
+        const void* data,
+        std::size_t size);
+#ifndef SWIG
     EXPORT static OTData Factory(const OTASCIIArmor& source);
     EXPORT static OTData Factory(const std::vector<unsigned char>& source);
+#endif
 
     EXPORT virtual bool operator==(const Data& rhs) const = 0;
     EXPORT virtual bool operator!=(const Data& rhs) const = 0;
     EXPORT virtual std::string asHex() const = 0;
-    EXPORT virtual Data* clone() const = 0;
     EXPORT virtual bool empty() const = 0;
     EXPORT virtual const void* GetPointer() const = 0;
     EXPORT virtual std::size_t GetSize() const = 0;
+#ifndef SWIG
     [[deprecated]] EXPORT virtual bool IsEmpty() const = 0;
+#endif
 
     EXPORT virtual Data& operator+=(const Data& rhs) = 0;
     EXPORT virtual void Assign(const Data& source) = 0;
@@ -87,11 +102,14 @@ protected:
     Data() = default;
 
 private:
+    friend OTData;
+
+    EXPORT virtual Data* clone() const = 0;
+
     Data(const Data& rhs) = delete;
     Data(Data&& rhs) = delete;
     Data& operator=(const Data& rhs) = delete;
     Data& operator=(Data&& rhs) = delete;
 };
 }  // namespace opentxs
-
 #endif  // OPENTXS_CORE_DATA_HPP

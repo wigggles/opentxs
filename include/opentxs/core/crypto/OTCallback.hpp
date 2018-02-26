@@ -43,9 +43,6 @@
 
 namespace opentxs
 {
-
-class OTPassword;
-
 class OTCallback
 {
 public:

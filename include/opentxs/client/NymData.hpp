@@ -47,12 +47,14 @@
 #include <memory>
 #include <string>
 
+#ifdef SWIG
+// clang-format off
+%rename($ignore, regextarget=1, fullname=1) "opentxs::NymData::Type.*";
+// clang-format on
+#endif  // SWIG
+
 namespace opentxs
 {
-class ContactData;
-class Identifier;
-class Nym;
-
 namespace api
 {
 namespace client
@@ -64,21 +66,6 @@ class Wallet;
 }  // client
 }  // api
 
-#ifdef SWIG
-// clang-format off
-%ignore NymData::NymData(NymData&&);
-%ignore NymData::AddContract(
-    const std::string&, const std::ContactItemType, const bool, const bool);
-%ignore NymData::AddPaymentCode(
-    const std::string&, const std::ContactItemType, const bool, const bool);
-%ignore NymData::HaveContract(
-    const Identifier&, const std::ContactItemType, const bool, const bool);
-%ignore NymData::PaymentCode(const proto::ContactItemType) const;
-%ignore NymData::SetType(const proto::ContactItemType);
-%ignore NymData::Type() const;
-// clang-format on
-#endif  // SWIG
-
 class NymData
 {
 public:
@@ -86,46 +73,56 @@ public:
     NymData(NymData&&) = default;
 
     std::uint32_t GetType() const;
-    bool HaveContract(
-        const std::string& id,
-        const std::uint32_t currency,
-        const bool primary,
-        const bool active) const;
+#ifndef SWIG
     bool HaveContract(
         const Identifier& id,
         const proto::ContactItemType currency,
         const bool primary,
         const bool active) const;
+#endif
+    bool HaveContract(
+        const std::string& id,
+        const std::uint32_t currency,
+        const bool primary,
+        const bool active) const;
     std::string Name() const;
-    std::string PaymentCode(const std::uint32_t currency) const;
+#ifndef SWIG
     std::string PaymentCode(const proto::ContactItemType currency) const;
+#endif
+    std::string PaymentCode(const std::uint32_t currency) const;
     std::string PreferredOTServer() const;
     std::string PrintContactData() const;
     proto::ContactItemType Type() const;
     bool Valid() const;
 
-    bool AddContract(
-        const std::string& instrumentDefinitionID,
-        const std::uint32_t currency,
-        const bool primary,
-        const bool active);
+#ifndef SWIG
     bool AddContract(
         const std::string& instrumentDefinitionID,
         const proto::ContactItemType currency,
         const bool primary,
         const bool active);
-    bool AddPaymentCode(
-        const std::string& code,
+#endif
+    bool AddContract(
+        const std::string& instrumentDefinitionID,
         const std::uint32_t currency,
         const bool primary,
         const bool active);
+#ifndef SWIG
     bool AddPaymentCode(
         const std::string& code,
         const proto::ContactItemType currency,
+        const bool primary,
+        const bool active);
+#endif
+    bool AddPaymentCode(
+        const std::string& code,
+        const std::uint32_t currency,
         const bool primary,
         const bool active);
     bool AddPreferredOTServer(const std::string& id, const bool primary);
+#ifndef SWIG
     bool SetType(const proto::ContactItemType type, const std::string& name);
+#endif
     bool SetType(const std::uint32_t type, const std::string& name);
 
     ~NymData() = default;

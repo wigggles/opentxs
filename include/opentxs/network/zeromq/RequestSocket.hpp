@@ -43,30 +43,46 @@
 
 #include "opentxs/network/zeromq/Socket.hpp"
 
+#ifdef SWIG
+// clang-format off
+%template(ZMQMessageSendResult) std::pair<opentxs::SendResult, Pimpl<opentxs::network::zeromq::Message>>;
+%ignore opentxs::Pimpl<opentxs::network::zeromq::RequestSocket>::operator+=;
+%ignore opentxs::Pimpl<opentxs::network::zeromq::RequestSocket>::operator==;
+%ignore opentxs::Pimpl<opentxs::network::zeromq::RequestSocket>::operator!=;
+%ignore opentxs::Pimpl<opentxs::network::zeromq::RequestSocket>::operator<;
+%ignore opentxs::Pimpl<opentxs::network::zeromq::RequestSocket>::operator<=;
+%ignore opentxs::Pimpl<opentxs::network::zeromq::RequestSocket>::operator>;
+%ignore opentxs::Pimpl<opentxs::network::zeromq::RequestSocket>::operator>=;
+%template(OTZMQRequestSocket) opentxs::Pimpl<opentxs::network::zeromq::RequestSocket>;
+%rename($ignore, regextarget=1, fullname=1) "opentxs::network::zeromq::RequestSocket::Factory.*";
+%rename($ignore, regextarget=1, fullname=1) "opentxs::network::zeromq::RequestSocket::SetCurve.*";
+%rename(ZMQRequestSocket) opentxs::network::zeromq::RequestSocket;
+// clang-format on
+#endif  // SWIG
+
 namespace opentxs
 {
 namespace network
 {
 namespace zeromq
 {
-
-#ifdef SWIG
-// clang-format off
-%ignore RequestSocket::SendRequest(opentxs::Data&);
-%ignore RequestSocket::SetCurve(const ServerContract&);
-// clang-format on
-#endif  // SWIG
-
 class RequestSocket : virtual public Socket
 {
 public:
     EXPORT static OTZMQRequestSocket Factory(const Context& context);
 
-    EXPORT virtual MessageSendResult SendRequest(
-        opentxs::Data& message) const = 0;
-    EXPORT virtual MessageSendResult SendRequest(
-        std::string& message) const = 0;
-    EXPORT virtual MessageSendResult SendRequest(Message& message) const = 0;
+    EXPORT virtual std::pair<
+        opentxs::SendResult,
+        opentxs::Pimpl<opentxs::network::zeromq::Message>>
+    SendRequest(opentxs::Data& message) const = 0;
+    EXPORT virtual std::pair<
+        opentxs::SendResult,
+        opentxs::Pimpl<opentxs::network::zeromq::Message>>
+    SendRequest(std::string& message) const = 0;
+    EXPORT virtual std::pair<
+        opentxs::SendResult,
+        opentxs::Pimpl<opentxs::network::zeromq::Message>>
+    SendRequest(opentxs::network::zeromq::Message& message) const = 0;
     EXPORT virtual bool SetCurve(const ServerContract& contract) const = 0;
     EXPORT virtual bool SetSocksProxy(const std::string& proxy) const = 0;
 
@@ -76,6 +92,10 @@ protected:
     RequestSocket() = default;
 
 private:
+    friend OTZMQRequestSocket;
+
+    virtual RequestSocket* clone() const = 0;
+
     RequestSocket(const RequestSocket&) = delete;
     RequestSocket(RequestSocket&&) = default;
     RequestSocket& operator=(const RequestSocket&) = delete;

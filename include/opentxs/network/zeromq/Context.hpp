@@ -44,31 +44,42 @@
 #include <memory>
 #include <string>
 
+#ifdef SWIG
+// clang-format off
+%ignore opentxs::network::zeromq::Context::operator void*() const;
+%ignore opentxs::Pimpl<opentxs::network::zeromq::Context>::operator+=;
+%ignore opentxs::Pimpl<opentxs::network::zeromq::Context>::operator==;
+%ignore opentxs::Pimpl<opentxs::network::zeromq::Context>::operator!=;
+%ignore opentxs::Pimpl<opentxs::network::zeromq::Context>::operator<;
+%ignore opentxs::Pimpl<opentxs::network::zeromq::Context>::operator<=;
+%ignore opentxs::Pimpl<opentxs::network::zeromq::Context>::operator>;
+%ignore opentxs::Pimpl<opentxs::network::zeromq::Context>::operator>=;
+%template(OTZMQContext) opentxs::Pimpl<opentxs::network::zeromq::Context>;
+%rename(ZMQContext) opentxs::network::zeromq::Context;
+// clang-format on
+#endif  // SWIG
+
 namespace opentxs
 {
 namespace network
 {
 namespace zeromq
 {
-#ifdef SWIG
-// clang-format off
-%ignore Context::Factory() const;
-%ignore Context::operator void*() const;
-%ignore Context::NewMessage(const Data&) const;
-// clang-format on
-#endif  // SWIG
-
 class Context
 {
 public:
-    EXPORT static OTZMQContext Factory();
+    EXPORT static Pimpl<opentxs::network::zeromq::Context> Factory();
 
     EXPORT virtual operator void*() const = 0;
 
-    EXPORT virtual OTZMQPublishSocket PublishSocket() const = 0;
-    EXPORT virtual OTZMQReplySocket ReplySocket() const = 0;
-    EXPORT virtual OTZMQRequestSocket RequestSocket() const = 0;
-    EXPORT virtual OTZMQSubscribeSocket SubscribeSocket() const = 0;
+    EXPORT virtual Pimpl<network::zeromq::PublishSocket> PublishSocket()
+        const = 0;
+    EXPORT virtual Pimpl<network::zeromq::ReplySocket> ReplySocket(
+        const ReplyCallback& callback) const = 0;
+    EXPORT virtual Pimpl<network::zeromq::RequestSocket> RequestSocket()
+        const = 0;
+    EXPORT virtual Pimpl<network::zeromq::SubscribeSocket> SubscribeSocket(
+        const ListenCallback& callback) const = 0;
 
     EXPORT virtual ~Context() = default;
 

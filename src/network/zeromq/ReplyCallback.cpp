@@ -36,47 +36,39 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_REPLYSOCKET_HPP
-#define OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_REPLYSOCKET_HPP
+#include "opentxs/stdafx.hpp"
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/network/zeromq/Message.hpp"
 
-#include "opentxs/network/zeromq/ReplySocket.hpp"
+#include "ReplyCallback.hpp"
 
-#include "CurveServer.hpp"
-#include "Receiver.hpp"
-#include "Socket.hpp"
+//#define OT_METHOD "opentxs::network::zeromq::implementation::ReplyCallback::"
+
+namespace opentxs::network::zeromq
+{
+OTZMQReplyCallback ReplyCallback::Factory(
+    zeromq::ReplyCallback::ReceiveCallback callback)
+{
+    return OTZMQReplyCallback(new implementation::ReplyCallback(callback));
+}
+}  // namespace opentxs::network::zeromq
 
 namespace opentxs::network::zeromq::implementation
 {
-class ReplySocket : virtual public zeromq::ReplySocket,
-                    public Socket,
-                    CurveServer,
-                    Receiver
+ReplyCallback::ReplyCallback(zeromq::ReplyCallback::ReceiveCallback callback)
+    : callback_(callback)
 {
-public:
-    bool SetCurve(const OTPassword& key) const override;
-    bool Start(const std::string& endpoint) const override;
+}
 
-    ~ReplySocket();
+ReplyCallback* ReplyCallback::clone() const
+{
+    return new ReplyCallback(callback_);
+}
 
-private:
-    friend opentxs::network::zeromq::ReplySocket;
-    typedef Socket ot_super;
+OTZMQMessage ReplyCallback::Process(const zeromq::Message& message) const
+{
+    return callback_(message);
+}
 
-    const ReplyCallback& callback_;
-
-    ReplySocket* clone() const override;
-    bool have_callback() const override;
-
-    void process_incoming(const Lock& lock, Message& message) override;
-
-    ReplySocket(const zeromq::Context& context, const ReplyCallback& callback);
-    ReplySocket() = delete;
-    ReplySocket(const ReplySocket&) = delete;
-    ReplySocket(ReplySocket&&) = delete;
-    ReplySocket& operator=(const ReplySocket&) = delete;
-    ReplySocket& operator=(ReplySocket&&) = delete;
-};
+ReplyCallback::~ReplyCallback() {}
 }  // namespace opentxs::network::zeromq::implementation
-#endif  // OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_REPLYSOCKET_HPP
