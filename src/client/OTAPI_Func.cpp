@@ -805,6 +805,7 @@ OTAPI_Func::OTAPI_Func(
 {
     amount_ = amount;
     nTransNumsNeeded_ = 0;
+    message_ = message;
 
     switch (theType) {
         case SEND_TRANSFER: {
@@ -817,7 +818,6 @@ OTAPI_Func::OTAPI_Func(
             nTransNumsNeeded_ = 1;
             accountID_ = nymID2;
             targetID_ = targetID;
-            message_ = message;
         } break;
         case INITIATE_OUTBAILMENT: {
             targetID_ = nymID2;
@@ -835,12 +835,10 @@ OTAPI_Func::OTAPI_Func(
         case PAY_DIVIDEND: {
             accountID_ = targetID;
             instrumentDefinitionID_ = nymID2;
-            message_ = message;
         } break;
         case WITHDRAW_VOUCHER: {
             accountID_ = targetID;
             recipientID_ = nymID2;
-            message_ = message;
         } break;
         default: {
             otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func() "

@@ -4201,6 +4201,11 @@ std::string SwigWrap::Set_Introduction_Server(const std::string& contract)
         .Get();
 }
 
+void SwigWrap::Start_Introduction_Server(const std::string& localNymID)
+{
+    OT::App().API().Sync().StartIntroductionServer(Identifier(localNymID));
+}
+
 std::uint8_t SwigWrap::Task_Status(const std::string& id)
 {
     return static_cast<std::uint8_t>(
