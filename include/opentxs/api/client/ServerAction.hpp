@@ -91,7 +91,7 @@ public:
         const Identifier& serverID,
         const Identifier& accountID,
         const String& agentName,
-        const OTSmartContract& contract) const = 0;
+        std::unique_ptr<OTSmartContract>& contract) const = 0;
     EXPORT virtual Action AddServerClaim(
         const Identifier& localNymID,
         const Identifier& serverID,
@@ -107,7 +107,7 @@ public:
     EXPORT virtual Action CancelPaymentPlan(
         const Identifier& localNymID,
         const Identifier& serverID,
-        const OTPaymentPlan& plan) const = 0;
+        std::unique_ptr<OTPaymentPlan>& plan) const = 0;
     EXPORT virtual Action CreateMarketOffer(
         const Identifier& assetAccountID,
         const Identifier& currencyAccountID,
@@ -124,17 +124,17 @@ public:
         const Identifier& localNymID,
         const Identifier& serverID,
         const Identifier& accountID,
-        const Purse& purse) const = 0;
+        std::unique_ptr<Purse>& purse) const = 0;
 #endif  // OT_CASH
     EXPORT virtual Action DepositCheque(
         const Identifier& localNymID,
         const Identifier& serverID,
         const Identifier& accountID,
-        const Cheque& cheque) const = 0;
+        std::unique_ptr<Cheque>& cheque) const = 0;
     EXPORT virtual Action DepositPaymentPlan(
         const Identifier& localNymID,
         const Identifier& serverID,
-        const OTPaymentPlan& plan) const = 0;
+        std::unique_ptr<OTPaymentPlan>& plan) const = 0;
     EXPORT virtual bool DownloadAccount(
         const Identifier& localNymID,
         const Identifier& serverID,
@@ -189,7 +189,7 @@ public:
         const Identifier& localNymID,
         const Identifier& serverID,
         const Identifier& instrumentDefinitionID,
-        const Purse& purse) const = 0;
+        std::unique_ptr<Purse>& purse) const = 0;
 #endif  // OT_CASH
     EXPORT virtual bool GetTransactionNumbers(
         const Identifier& localNymID,
@@ -255,7 +255,7 @@ public:
         const Identifier& localNymID,
         const Identifier& serverID,
         const Identifier& accountID,
-        const Ledger& ledger) const = 0;
+        std::unique_ptr<Ledger>& ledger) const = 0;
     EXPORT virtual Action PublishNym(
         const Identifier& localNymID,
         const Identifier& serverID,
@@ -284,8 +284,8 @@ public:
         const Identifier& localNymID,
         const Identifier& serverID,
         const Identifier& recipientNymID,
-        const Purse& recipientCopy,
-        const Purse& senderCopy) const = 0;
+        std::unique_ptr<Purse>& recipientCopy,
+        std::unique_ptr<Purse>& senderCopy) const = 0;
 #endif  // OT_CASH
     EXPORT virtual Action SendMessage(
         const Identifier& localNymID,
@@ -296,7 +296,7 @@ public:
         const Identifier& localNymID,
         const Identifier& serverID,
         const Identifier& recipientNymID,
-        const OTPayment& payment) const = 0;
+        std::unique_ptr<OTPayment>& payment) const = 0;
     EXPORT virtual Action SendTransfer(
         const Identifier& localNymID,
         const Identifier& serverID,
