@@ -3722,6 +3722,8 @@ public:
     EXPORT static std::string Set_Introduction_Server(
         const std::string& contract);
 
+    EXPORT static void Start_Introduction_Server(const std::string& localNymID);
+
     EXPORT static std::uint8_t Task_Status(const std::string& id);
 
     EXPORT static void Trigger_Refresh();
