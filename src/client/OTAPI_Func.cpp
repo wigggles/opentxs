@@ -820,8 +820,8 @@ OTAPI_Func::OTAPI_Func(
             message_ = message;
         } break;
         case INITIATE_OUTBAILMENT: {
-            targetID_ = targetID;
-            instrumentDefinitionID_ = nymID2;
+            targetID_ = nymID2;
+            instrumentDefinitionID_ = targetID;
             peer_request_ = PeerRequest::Create(
                 context_.Nym(),
                 proto::PEERREQUEST_OUTBAILMENT,
