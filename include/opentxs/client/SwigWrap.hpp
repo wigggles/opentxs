@@ -3732,6 +3732,10 @@ public:
 
     EXPORT static const ui::ContactList& ContactList(const std::string& nymID);
 
+    // Wrapped Native methods
+
+    EXPORT static const network::zeromq::Context& ZMQ();
+
 private:
     static OT_OPENSSL_CALLBACK* s_pwCallback;
     static OTCaller* s_pCaller;
