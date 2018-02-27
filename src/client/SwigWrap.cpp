@@ -4218,4 +4218,9 @@ const ui::ContactList& SwigWrap::ContactList(const std::string& nymID)
 {
     return OT::App().UI().ContactList(Identifier(nymID));
 }
+
+const network::zeromq::Context& SwigWrap::ZMQ()
+{
+    return OT::App().ZMQ().Context();
+}
 }  // namespace opentxs
