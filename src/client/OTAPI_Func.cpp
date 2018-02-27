@@ -333,10 +333,9 @@ OTAPI_Func::OTAPI_Func(
 {
     switch (theType) {
         case CREATE_ASSET_ACCT: {
-            nTransNumsNeeded_ =
-                1;  // So it's done at least one "transaction
-                    // statement" before it can ever processInbox
-                    // on an account.
+            nTransNumsNeeded_ = 1;  // So it's done at least one "transaction
+            // statement" before it can ever processInbox
+            // on an account.
             instrumentDefinitionID_ = nymID2;
         } break;
         case GET_MINT:
@@ -1201,25 +1200,22 @@ void OTAPI_Func::run()
                 otapi_.sendNymMessage(context_, recipientID_, message_.c_str());
         } break;
         case SEND_USER_INSTRUMENT: {
-            String paymentString;
 
             if (senderCopyIncluded_) {
                 OT_ASSERT(purse_)
 
-                paymentString = String(*purse_);
-            } else {
-                OT_ASSERT(payment_)
-
-                paymentString = String(*payment_);
+                payment_ = std::make_unique<OTPayment>(String(*purse_));
             }
 
-            OTPayment thePayment(paymentString);
+            OT_ASSERT(payment_)
+
+            auto& thePayment = *payment_;
 
             if (!thePayment.IsValid() || !thePayment.SetTempValues()) {
                 otOut << OT_METHOD << __FUNCTION__
                       << ": Failure loading payment instrument "
                          "(intended for recipient) from string:\n\n"
-                      << paymentString.Get() << std::endl;
+                      << thePayment.Payment() << std::endl;
                 return;
             }
 
@@ -1555,9 +1551,8 @@ std::string OTAPI_Func::send_transaction(std::size_t totalRetries)
             String(accountID_).Get(),
             false))  // bForceDownload=false))
     {
-        otOut << strLocation
-              << ", getIntermediaryFiles returned false. (It "
-                 "couldn't download files that it needed.)\n";
+        otOut << strLocation << ", getIntermediaryFiles returned false. (It "
+                                "couldn't download files that it needed.)\n";
         return "";
     }
 
@@ -1576,10 +1571,9 @@ std::string OTAPI_Func::send_transaction(std::size_t totalRetries)
     }
 
     if (getnym_trnsnum_count < comparative) {
-        otOut << strLocation
-              << ", I don't have enough transaction numbers to "
-                 "perform this transaction. Grabbing more "
-                 "now...\n";
+        otOut << strLocation << ", I don't have enough transaction numbers to "
+                                "perform this transaction. Grabbing more "
+                                "now...\n";
         MsgUtil.setNbrTransactionCount(comparative);
         MsgUtil.getTransactionNumbers(
             String(context_.Server()).Get(),
@@ -1649,10 +1643,9 @@ std::string OTAPI_Func::send_transaction(std::size_t totalRetries)
                 String(context_.Nym()->ID()).Get(),
                 String(accountID_).Get(),
                 true)) {
-            otOut << strLocation
-                  << ", getIntermediaryFiles returned false. "
-                     "(After a success sending the transaction. "
-                     "Strange...)\n";
+            otOut << strLocation << ", getIntermediaryFiles returned false. "
+                                    "(After a success sending the transaction. "
+                                    "Strange...)\n";
             return "";
         }
 
@@ -1982,11 +1975,10 @@ std::string OTAPI_Func::send_once(
                         String(context_.Nym()->ID()).Get(),
                         String(accountID_).Get(),
                         bForceDownload)) {
-                    otOut << strLocation
-                          << ", getIntermediaryFiles returned "
-                             "false. (After a failure to send "
-                             "the transaction. Thus, I give "
-                             "up.)\n";
+                    otOut << strLocation << ", getIntermediaryFiles returned "
+                                            "false. (After a failure to send "
+                                            "the transaction. Thus, I give "
+                                            "up.)\n";
                     return "";
                 }
 
