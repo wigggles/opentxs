@@ -767,8 +767,7 @@ OTAPI_Func::OTAPI_Func(
     : OTAPI_Func(wallet, exec, otapi, nymID, serverID, theType)
 {
     switch (theType) {
-        case ACKNOWLEDGE_BAILMENT:
-        case ACKNOWLEDGE_OUTBAILMENT: {
+        case ACKNOWLEDGE_BAILMENT: {
             nTransNumsNeeded_ = 0;
             accountID_ = recipientID;
             requestID_ = requestID;
@@ -776,6 +775,21 @@ OTAPI_Func::OTAPI_Func(
             peer_reply_ = PeerReply::Create(
                 context_.Nym(),
                 proto::PEERREQUEST_BAILMENT,
+                requestID_,
+                context_.Server(),
+                message_);
+
+            OT_ASSERT(peer_reply_)
+        } break;
+
+        case ACKNOWLEDGE_OUTBAILMENT: {
+            nTransNumsNeeded_ = 0;
+            accountID_ = recipientID;
+            requestID_ = requestID;
+            message_ = instructions;
+            peer_reply_ = PeerReply::Create(
+                context_.Nym(),
+                proto::PEERREQUEST_OUTBAILMENT,
                 requestID_,
                 context_.Server(),
                 message_);
@@ -1218,6 +1232,8 @@ void OTAPI_Func::run()
             }
 
             if (senderCopyIncluded_) {
+                OT_ASSERT(senderPurse_)
+
                 const String& senderPurseString = String(*senderPurse_);
                 OTPayment theSenderPayment(senderPurseString);
 
@@ -1549,8 +1565,9 @@ std::string OTAPI_Func::send_transaction(std::size_t totalRetries)
             String(accountID_).Get(),
             false))  // bForceDownload=false))
     {
-        otOut << strLocation << ", getIntermediaryFiles returned false. (It "
-                                "couldn't download files that it needed.)\n";
+        otOut << strLocation
+              << ", getIntermediaryFiles returned false. (It "
+                 "couldn't download files that it needed.)\n";
         return "";
     }
 
@@ -1569,9 +1586,10 @@ std::string OTAPI_Func::send_transaction(std::size_t totalRetries)
     }
 
     if (getnym_trnsnum_count < comparative) {
-        otOut << strLocation << ", I don't have enough transaction numbers to "
-                                "perform this transaction. Grabbing more "
-                                "now...\n";
+        otOut << strLocation
+              << ", I don't have enough transaction numbers to "
+                 "perform this transaction. Grabbing more "
+                 "now...\n";
         MsgUtil.setNbrTransactionCount(comparative);
         MsgUtil.getTransactionNumbers(
             String(context_.Server()).Get(),
@@ -1641,9 +1659,10 @@ std::string OTAPI_Func::send_transaction(std::size_t totalRetries)
                 String(context_.Nym()->ID()).Get(),
                 String(accountID_).Get(),
                 true)) {
-            otOut << strLocation << ", getIntermediaryFiles returned false. "
-                                    "(After a success sending the transaction. "
-                                    "Strange...)\n";
+            otOut << strLocation
+                  << ", getIntermediaryFiles returned false. "
+                     "(After a success sending the transaction. "
+                     "Strange...)\n";
             return "";
         }
 
@@ -1973,10 +1992,11 @@ std::string OTAPI_Func::send_once(
                         String(context_.Nym()->ID()).Get(),
                         String(accountID_).Get(),
                         bForceDownload)) {
-                    otOut << strLocation << ", getIntermediaryFiles returned "
-                                            "false. (After a failure to send "
-                                            "the transaction. Thus, I give "
-                                            "up.)\n";
+                    otOut << strLocation
+                          << ", getIntermediaryFiles returned "
+                             "false. (After a failure to send "
+                             "the transaction. Thus, I give "
+                             "up.)\n";
                     return "";
                 }
 

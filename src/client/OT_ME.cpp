@@ -248,7 +248,7 @@ std::string OT_ME::acknowledge_outbailment(
     const std::string& THE_MESSAGE) const
 {
     rLock lock(lock_);
-    auto action = action_.AcknowledgeBailment(
+    auto action = action_.AcknowledgeOutbailment(
         Identifier(nymID),
         Identifier(notaryID),
         Identifier(targetNymID),
