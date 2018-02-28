@@ -130,8 +130,9 @@ TEST_F(Test_ContactSection, second_constructor)
         opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER);
     ASSERT_EQ(section1.Version(), CONTACT_CONTACT_DATA_VERSION);
     ASSERT_EQ(section1.Size(), 1);
-    ASSERT_TRUE(
-        section1.Group(opentxs::proto::ContactItemType::CITEMTYPE_INDIVIDUAL));
+    ASSERT_NE(
+        section1.Group(opentxs::proto::ContactItemType::CITEMTYPE_INDIVIDUAL),
+        nullptr);
     ASSERT_EQ(
         section1.Group(opentxs::proto::ContactItemType::CITEMTYPE_INDIVIDUAL)
             ->Size(),
@@ -165,8 +166,10 @@ TEST_F(Test_ContactSection, copy_constructor)
     ASSERT_EQ(copiedContactSection.Type(), section1.Type());
     ASSERT_EQ(copiedContactSection.Version(), section1.Version());
     ASSERT_EQ(copiedContactSection.Size(), 1);
-    ASSERT_TRUE(copiedContactSection.Group(
-        opentxs::proto::ContactItemType::CITEMTYPE_INDIVIDUAL));
+    ASSERT_NE(
+        copiedContactSection.Group(
+            opentxs::proto::ContactItemType::CITEMTYPE_INDIVIDUAL),
+        nullptr);
     ASSERT_EQ(
         copiedContactSection
             .Group(opentxs::proto::ContactItemType::CITEMTYPE_INDIVIDUAL)
@@ -186,8 +189,10 @@ TEST_F(Test_ContactSection, move_constructor)
         opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER);
     ASSERT_EQ(movedContactSection.Version(), CONTACT_CONTACT_DATA_VERSION);
     ASSERT_EQ(movedContactSection.Size(), 1);
-    ASSERT_TRUE(movedContactSection.Group(
-        opentxs::proto::ContactItemType::CITEMTYPE_INDIVIDUAL));
+    ASSERT_NE(
+        movedContactSection.Group(
+            opentxs::proto::ContactItemType::CITEMTYPE_INDIVIDUAL),
+        nullptr);
     ASSERT_EQ(
         movedContactSection
             .Group(opentxs::proto::ContactItemType::CITEMTYPE_INDIVIDUAL)
@@ -370,7 +375,7 @@ TEST_F(Test_ContactSection, Claim_found)
 
     const std::shared_ptr<opentxs::ContactItem>& claim =
         section1.Claim(activeContactItem_->ID());
-    ASSERT_TRUE(claim);
+    ASSERT_NE(claim, nullptr);
     ASSERT_EQ(claim->ID(), activeContactItem_->ID());
 
     // Find a claim in a different group.
@@ -388,7 +393,7 @@ TEST_F(Test_ContactSection, Claim_found)
     const auto& section2 = section1.AddItem(contactItem2);
     const std::shared_ptr<opentxs::ContactItem>& claim2 =
         section2.Claim(contactItem2->ID());
-    ASSERT_TRUE(claim2);
+    ASSERT_NE(claim2, nullptr);
     ASSERT_EQ(claim2->ID(), contactItem2->ID());
 }
 
@@ -419,8 +424,9 @@ TEST_F(Test_ContactSection, end)
 TEST_F(Test_ContactSection, Group_found)
 {
     const auto& section1 = contactSection_.AddItem(activeContactItem_);
-    ASSERT_TRUE(
-        section1.Group(opentxs::proto::ContactItemType::CITEMTYPE_INDIVIDUAL));
+    ASSERT_NE(
+        section1.Group(opentxs::proto::ContactItemType::CITEMTYPE_INDIVIDUAL),
+        nullptr);
 }
 
 TEST_F(Test_ContactSection, Group_notfound)

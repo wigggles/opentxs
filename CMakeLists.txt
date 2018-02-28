@@ -362,14 +362,11 @@ endif()
 #-----------------------------------------------------------------------------
 # Build Unit tests
 
-if(BUILD_TESTS AND NOT ANDROID)
-  set(GTEST_ROOT ${opentxs_SOURCE_DIR}/deps/gtest)
-  set(GTEST_FOUND ON)
-  set(GTEST_INCLUDE_DIRS ${GTEST_ROOT}/include)
-  set(GTEST_LIBRARY gtest)
-  set(GTEST_MAIN_LIBRARY gtest_main)
-  set(GTEST_BOTH_LIBRARIES ${GTEST_LIBRARY} ${GTEST_MAIN_LIBRARY})
+if(NOT ANDROID)
+	find_package(GTest REQUIRED)
+endif()
 
+if(GTEST_FOUND AND BUILD_TESTS AND NOT ANDROID)
   enable_testing()
 endif()
 
@@ -679,7 +676,7 @@ if (OT_CRYPTO_USING_LIBSECP256K1 AND OT_INTERNAL_LIBSECP)
     add_dependencies(opentxs-network libsecp256k1)
 endif()
 
-if (NOT ANDROID)
+if (GTEST_FOUND AND NOT ANDROID)
   add_subdirectory(tests)
 endif()
 
