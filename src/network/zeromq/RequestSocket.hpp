@@ -66,7 +66,7 @@ private:
     friend opentxs::network::zeromq::RequestSocket;
     typedef Socket ot_super;
 
-    RequestSocket* clone() const;
+    RequestSocket* clone() const override;
 
     RequestSocket(const zeromq::Context& context);
     RequestSocket() = delete;
