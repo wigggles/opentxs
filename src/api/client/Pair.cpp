@@ -770,49 +770,53 @@ void Pair::state_machine(
                 }
             }
 
-            for (const auto & [ type, pGroup ] : *contractSection) {
-                SHUTDOWN()
-                OT_ASSERT(pGroup);
-
-                const auto& group = *pGroup;
-
-                for (const auto & [ id, pClaim ] : group) {
+            if (haveAccounts) {
+                for (const auto & [ type, pGroup ] : *contractSection) {
                     SHUTDOWN()
-                    OT_ASSERT(pClaim);
+                    OT_ASSERT(pGroup);
 
-                    const auto& notUsed[[maybe_unused]] = id;
-                    const auto& claim = *pClaim;
-                    const Identifier unitID(claim.Value());
-                    const auto accountList = issuer.AccountList(type, unitID);
+                    const auto& group = *pGroup;
 
-                    if (0 == accountList.size()) {
-                        const auto & [ registered, accountID ] =
-                            register_account(localNymID, serverID, unitID);
+                    for (const auto & [ id, pClaim ] : group) {
+                        SHUTDOWN()
+                        OT_ASSERT(pClaim);
 
-                        if (registered) {
-                            issuer.AddAccount(type, unitID, accountID);
-                        } else {
-                            continue;
+                        const auto& notUsed[[maybe_unused]] = id;
+                        const auto& claim = *pClaim;
+                        const Identifier unitID(claim.Value());
+                        const auto accountList =
+                            issuer.AccountList(type, unitID);
+
+                        if (0 == accountList.size()) {
+                            const auto & [ registered, accountID ] =
+                                register_account(localNymID, serverID, unitID);
+
+                            if (registered) {
+                                issuer.AddAccount(type, unitID, accountID);
+                            } else {
+                                continue;
+                            }
                         }
-                    }
 
-                    const auto instructions =
-                        issuer.BailmentInstructions(unitID);
-                    const bool needBailment =
-                        (MINIMUM_UNUSED_BAILMENTS > instructions.size());
-                    const bool nonePending =
-                        (false == issuer.BailmentInitiated(unitID));
+                        const auto instructions =
+                            issuer.BailmentInstructions(unitID);
+                        const bool needBailment =
+                            (MINIMUM_UNUSED_BAILMENTS > instructions.size());
+                        const bool nonePending =
+                            (false == issuer.BailmentInitiated(unitID));
 
-                    if (needBailment && nonePending) {
-                        otErr << OT_METHOD << __FUNCTION__
-                              << ": Requesting bailment info for "
-                              << String(unitID) << std::endl;
-                        const auto & [ sent, requestID ] = initiate_bailment(
-                            localNymID, serverID, issuerNymID, unitID);
+                        if (needBailment && nonePending) {
+                            otErr << OT_METHOD << __FUNCTION__
+                                  << ": Requesting bailment info for "
+                                  << String(unitID) << std::endl;
+                            const auto & [ sent, requestID ] =
+                                initiate_bailment(
+                                    localNymID, serverID, issuerNymID, unitID);
 
-                        if (sent) {
-                            issuer.AddRequest(
-                                proto::PEERREQUEST_BAILMENT, requestID);
+                            if (sent) {
+                                issuer.AddRequest(
+                                    proto::PEERREQUEST_BAILMENT, requestID);
+                            }
                         }
                     }
                 }
