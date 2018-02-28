@@ -4,9 +4,6 @@
 [submodule "deps/simpleini"]
 	path = deps/simpleini
 	url = https://github.com/brofield/simpleini.git
-[submodule "deps/gtest"]
-	path = deps/gtest
-	url = https://github.com/Open-Transactions/gtest.git
 [submodule "deps/ChaiScript"]
 	path = deps/ChaiScript
 	url = https://github.com/ChaiScript/ChaiScript.git

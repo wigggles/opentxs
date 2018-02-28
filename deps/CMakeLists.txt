@@ -1,6 +1,5 @@
 # Copyright (c) Monetas AG, 2014
 
-add_subdirectory(gtest)
 add_subdirectory(irrxml)
 add_subdirectory(base64)
 

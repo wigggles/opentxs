@@ -288,7 +288,7 @@ TEST_F(Test_ContactGroup, Best_primary)
     const auto& group1 = contactGroup_.AddItem(primary_);
 
     const std::shared_ptr<opentxs::ContactItem>& best = group1.Best();
-    ASSERT_TRUE(best);
+    ASSERT_NE(best, nullptr);
     ASSERT_EQ(best->ID(), primary_->ID());
 }
 
@@ -309,14 +309,14 @@ TEST_F(Test_ContactGroup, Best_active_and_local)
 
     const std::shared_ptr<opentxs::ContactItem>& best = group2.Best();
     // Verify the best item is the active one.
-    ASSERT_TRUE(best);
+    ASSERT_NE(best, nullptr);
     ASSERT_EQ(best->ID(), active_->ID());
     ASSERT_TRUE(best->isActive());
 
     const auto& group3 = group2.Delete(active_->ID());
     const std::shared_ptr<opentxs::ContactItem>& best2 = group3.Best();
     // Verify the best item is the local one.
-    ASSERT_TRUE(best2);
+    ASSERT_NE(best2, nullptr);
     ASSERT_EQ(best2->ID(), local->ID());
     ASSERT_TRUE(best2->isLocal());
 }
@@ -327,7 +327,7 @@ TEST_F(Test_ContactGroup, Claim_found)
 
     const std::shared_ptr<opentxs::ContactItem>& claim =
         group1.Claim(active_->ID());
-    ASSERT_TRUE(claim);
+    ASSERT_NE(claim, nullptr);
     ASSERT_EQ(claim->ID(), active_->ID());
 }
 
@@ -403,7 +403,7 @@ TEST_F(Test_ContactGroup, PrimaryClaim_found)
 
     const std::shared_ptr<opentxs::ContactItem>& primaryClaim =
         group1.PrimaryClaim();
-    ASSERT_TRUE(primaryClaim);
+    ASSERT_NE(primaryClaim, nullptr);
     ASSERT_EQ(primaryClaim->ID(), primary_->ID());
 }
 
