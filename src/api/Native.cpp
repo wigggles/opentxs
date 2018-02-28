@@ -45,7 +45,6 @@
 #include "opentxs/api/client/Sync.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
-#include "opentxs/api/Activity.hpp"
 #include "opentxs/api/Blockchain.hpp"
 #include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Identity.hpp"
@@ -66,6 +65,7 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/ui/ActivitySummary.hpp"
 #include "opentxs/ui/ContactList.hpp"
 #include "opentxs/util/Signals.hpp"
 #include "opentxs/OT.hpp"
@@ -75,6 +75,7 @@
 #include "api/network/Dht.hpp"
 #include "api/network/ZMQ.hpp"
 #include "api/storage/Storage.hpp"
+#include "api/Activity.hpp"
 #include "api/Api.hpp"
 #include "api/ContactManager.hpp"
 #include "api/Server.hpp"
@@ -310,7 +311,7 @@ void Native::Init()
     Init_Api();  // requires Init_Config(), Init_Crypto(), Init_Contracts(),
                  // Init_Identity(), Init_Storage(), Init_ZMQ(), Init_Contacts()
                  // Init_Activity()
-    Init_UI();   // requires Init_Contacts()
+    Init_UI();   // requires Init_Activity(), Init_Contacts()
 
     if (recover_) {
         recover();
@@ -328,7 +329,8 @@ void Native::Init_Activity()
     OT_ASSERT(wallet_);
     OT_ASSERT(storage_);
 
-    activity_.reset(new api::Activity(*contacts_, *storage_, *wallet_));
+    activity_.reset(new api::implementation::Activity(
+        *contacts_, *storage_, *wallet_, zmq_context_));
 }
 
 void Native::Init_Api()
@@ -815,9 +817,10 @@ void Native::Init_StorageBackup()
 
 void Native::Init_UI()
 {
+    OT_ASSERT(activity_);
     OT_ASSERT(contacts_);
 
-    ui_.reset(new class UI(zmq_context_, *contacts_));
+    ui_.reset(new class UI(zmq_context_, *activity_, *contacts_, running_));
 
     OT_ASSERT(ui_);
 }
@@ -988,6 +991,9 @@ void Native::shutdown()
 void Native::start()
 {
     OT_ASSERT(activity_);
+
+    auto& activity = dynamic_cast<api::implementation::Activity&>(*activity_);
+
     OT_ASSERT(contacts_);
 
     if ((false == server_mode_) && (false == encrypted_directory_.empty())) {
@@ -996,7 +1002,7 @@ void Native::start()
 
     Init_StorageBackup();
     dynamic_cast<ContactManager&>(*contacts_).start();
-    activity_->MigrateLegacyThreads();
+    activity.MigrateLegacyThreads();
     Init_Periodic();
 
     if (server_mode_) {

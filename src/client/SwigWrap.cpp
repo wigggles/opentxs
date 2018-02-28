@@ -4214,6 +4214,11 @@ std::uint8_t SwigWrap::Task_Status(const std::string& id)
 
 void SwigWrap::Trigger_Refresh() { OT::App().API().Sync().Refresh(); }
 
+const ui::ActivitySummary& SwigWrap::ActivitySummary(const std::string& nymID)
+{
+    return OT::App().UI().ActivitySummary(Identifier(nymID));
+}
+
 const ui::ContactList& SwigWrap::ContactList(const std::string& nymID)
 {
     return OT::App().UI().ContactList(Identifier(nymID));

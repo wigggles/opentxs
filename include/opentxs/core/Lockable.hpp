@@ -44,6 +44,7 @@
 #include "opentxs/Types.hpp"
 
 #include <mutex>
+#include <shared_mutex>
 
 namespace opentxs
 {
@@ -56,13 +57,25 @@ public:
 
 protected:
     mutable std::mutex lock_;
+    mutable std::shared_mutex shared_lock_;
 
     bool verify_lock(const Lock& lock) const
     {
         return verify_lock(lock, lock_);
     }
 
-    bool verify_lock(const Lock& lock, const std::mutex& mutex) const
+    bool verify_lock(const sLock& lock) const
+    {
+        return verify_lock(lock, shared_lock_);
+    }
+
+    bool verify_lock(const eLock& lock) const
+    {
+        return verify_lock(lock, shared_lock_);
+    }
+
+    template <typename L, typename M>
+    bool verify_lock(const L& lock, const M& mutex) const
     {
         if (lock.mutex() != &mutex) {
 

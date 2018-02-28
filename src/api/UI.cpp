@@ -40,6 +40,7 @@
 
 #include "UI.hpp"
 
+#include "ui/ActivitySummary.hpp"
 #include "ui/ContactList.hpp"
 
 //#define OT_METHOD "opentxs::api::implementation::UI"
@@ -48,26 +49,46 @@ namespace opentxs::api::implementation
 {
 UI::UI(
     const opentxs::network::zeromq::Context& zmq,
-    const api::ContactManager& contact)
+    const api::Activity& activity,
+    const api::ContactManager& contact,
+    const Flag& running)
     : zmq_(zmq)
+    , activity_(activity)
     , contact_(contact)
+    , running_(running)
+    , activity_summaries_()
     , contact_lists_()
 {
+}
+
+const ui::ActivitySummary& UI::ActivitySummary(const Identifier& nymID) const
+{
+    Lock lock(lock_);
+    auto& output = activity_summaries_[nymID];
+
+    if (false == bool(output)) {
+        output.reset(new ui::implementation::ActivitySummary(
+            zmq_, activity_, contact_, running_, nymID));
+    }
+
+    OT_ASSERT(output)
+
+    return *output;
 }
 
 const ui::ContactList& UI::ContactList(const Identifier& nymID) const
 {
     Lock lock(lock_);
+    auto& output = contact_lists_[nymID];
 
-    auto& list = contact_lists_[nymID];
-
-    if (false == bool(list)) {
-        list.reset(new ui::implementation::ContactList(zmq_, contact_, nymID));
+    if (false == bool(output)) {
+        output.reset(
+            new ui::implementation::ContactList(zmq_, contact_, nymID));
     }
 
-    OT_ASSERT(list)
+    OT_ASSERT(output)
 
-    return *list;
+    return *output;
 }
 
 UI::~UI() {}

@@ -36,34 +36,33 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_API_ACTIVITY_HPP
-#define OPENTXS_API_ACTIVITY_HPP
+#ifndef OPENTXS_API_ACTIVITY_IMPLEMENTATION_HPP
+#define OPENTXS_API_ACTIVITY_IMPLEMENTATION_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Internal.hpp"
 
-#include "opentxs/Proto.hpp"
-#include "opentxs/Types.hpp"
+#include "opentxs/api/Activity.hpp"
 
-#include <memory>
-#include <string>
+#include <map>
+#include <mutex>
 
-namespace opentxs
+namespace opentxs::api::implementation
 {
-namespace api
-{
-class Activity
+class Activity : virtual public opentxs::api::Activity
 {
 public:
-    EXPORT virtual bool AddBlockchainTransaction(
+    bool AddBlockchainTransaction(
         const Identifier& nymID,
         const Identifier& threadID,
         const StorageBox box,
-        const proto::BlockchainTransaction& transaction) const = 0;
-    EXPORT virtual bool MoveIncomingBlockchainTransaction(
+        const proto::BlockchainTransaction& transaction) const override;
+
+    bool MoveIncomingBlockchainTransaction(
         const Identifier& nymID,
         const Identifier& fromThreadID,
         const Identifier& toThreadID,
-        const std::string& txid) const = 0;
+        const std::string& txid) const override;
+
     /**   Load a mail object
      *
      *    \param[in] nym the identifier of the nym who owns the mail box
@@ -72,10 +71,11 @@ public:
      *    \returns A smart pointer to the object. The smart pointer will not be
      *             instantiated if the object does not exist or is invalid.
      */
-    EXPORT virtual std::unique_ptr<Message> Mail(
+    std::unique_ptr<Message> Mail(
         const Identifier& nym,
         const Identifier& id,
-        const StorageBox& box) const = 0;
+        const StorageBox& box) const override;
+
     /**   Store a mail object
      *
      *    \param[in] nym the identifier of the nym who owns the mail box
@@ -84,17 +84,18 @@ public:
      *    \returns The id of the stored message. The string will be empty if
      *             the mail object can not be stored.
      */
-    EXPORT virtual std::string Mail(
+    std::string Mail(
         const Identifier& nym,
         const Message& mail,
-        const StorageBox box) const = 0;
+        const StorageBox box) const override;
+
     /**   Obtain a list of mail objects in a specified box
      *
      *    \param[in] nym the identifier of the nym who owns the mail box
      *    \param[in] box the box to be listed
      */
-    EXPORT virtual ObjectList Mail(const Identifier& nym, const StorageBox box)
-        const = 0;
+    ObjectList Mail(const Identifier& nym, const StorageBox box) const override;
+
     /**   Delete a mail object
      *
      *    \param[in] nym the identifier of the nym who owns the mail box
@@ -103,10 +104,11 @@ public:
      *    \returns The id of the stored message. The string will be empty if
      *             the mail object can not be stored.
      */
-    EXPORT virtual bool MailRemove(
+    bool MailRemove(
         const Identifier& nym,
         const Identifier& id,
-        const StorageBox box) const = 0;
+        const StorageBox box) const override;
+
     /**   Retrieve the text from a message
      *
      *    \param[in] nym the identifier of the nym who owns the mail box
@@ -115,10 +117,11 @@ public:
      *    \returns A smart pointer to the object. The smart pointer will not be
      *             instantiated if the object does not exist or is invalid.
      */
-    EXPORT virtual std::shared_ptr<const std::string> MailText(
+    std::shared_ptr<const std::string> MailText(
         const Identifier& nym,
         const Identifier& id,
-        const StorageBox& box) const = 0;
+        const StorageBox& box) const override;
+
     /**   Mark a thread item as read
      *
      *    \param[in] nymId the identifier of the nym who owns the thread
@@ -126,10 +129,11 @@ public:
      *    \param[in] itemId the identifier of the item to be marked read
      *    \returns False if the nym, thread, or item does not exist
      */
-    EXPORT virtual bool MarkRead(
+    bool MarkRead(
         const Identifier& nymId,
         const Identifier& threadId,
-        const Identifier& itemId) const = 0;
+        const Identifier& itemId) const override;
+
     /**   Mark a thread item as unread
      *
      *    \param[in] nymId the identifier of the nym who owns the thread
@@ -137,18 +141,19 @@ public:
      *    \param[in] itemId the identifier of the item to be marked unread
      *    \returns False if the nym, thread, or item does not exist
      */
-    EXPORT virtual bool MarkUnread(
+    bool MarkUnread(
         const Identifier& nymId,
         const Identifier& threadId,
-        const Identifier& itemId) const = 0;
+        const Identifier& itemId) const override;
+
     /**   Asynchronously cache the most recent items in each of a nym's threads
      *
      *    \param[in] nymID the identifier of the nym who owns the thread
      *    \param[in] count the number of items to preload in each thread
      */
-    EXPORT virtual void PreloadActivity(
-        const Identifier& nymID,
-        const std::size_t count) const = 0;
+    void PreloadActivity(const Identifier& nymID, const std::size_t count)
+        const override;
+
     /**   Asynchronously cache the items in an activity thread
      *
      *    \param[in] nymID the identifier of the nym who owns the thread
@@ -156,41 +161,85 @@ public:
      *    \param[in] start the first item to be cached
      *    \param[in] count the number of items to cache
      */
-    EXPORT virtual void PreloadThread(
+    void PreloadThread(
         const Identifier& nymID,
         const Identifier& threadID,
         const std::size_t start,
-        const std::size_t count) const = 0;
-    EXPORT virtual std::shared_ptr<proto::StorageThread> Thread(
+        const std::size_t count) const override;
+
+    std::shared_ptr<proto::StorageThread> Thread(
         const Identifier& nymID,
-        const Identifier& threadID) const = 0;
+        const Identifier& threadID) const override;
+
     /**   Obtain a list of thread ids for the specified nym
      *
      *    \param[in] nym the identifier of the nym
      *    \param[in] unreadOnly if true, only return threads with unread items
      */
-    EXPORT virtual ObjectList Threads(
-        const Identifier& nym,
-        const bool unreadOnly = false) const = 0;
+    ObjectList Threads(const Identifier& nym, const bool unreadOnly = false)
+        const override;
+
     /**   Return the total number of unread thread items for a nym
      *
      *    \param[in] nymId
      */
-    EXPORT virtual std::size_t UnreadCount(const Identifier& nym) const = 0;
+    std::size_t UnreadCount(const Identifier& nym) const override;
 
-    EXPORT virtual std::string ThreadPublisher(const Identifier& nym) const = 0;
+    std::string ThreadPublisher(const Identifier& nym) const override;
 
     ~Activity() = default;
 
-protected:
-    Activity() = default;
-
 private:
+    friend class implementation::Native;
+
+    typedef std::map<Identifier, std::shared_ptr<const std::string>> MailCache;
+
+    const ContactManager& contact_;
+    const storage::Storage& storage_;
+    const client::Wallet& wallet_;
+    const opentxs::network::zeromq::Context& zmq_;
+    mutable std::mutex mail_cache_lock_;
+    mutable MailCache mail_cache_;
+    mutable std::mutex publisher_lock_;
+    mutable std::map<Identifier, OTZMQPublishSocket> thread_publishers_;
+
+    /**   Migrate nym-based thread IDs to contact-based thread IDs
+     *
+     *    This method should only be called by the ContactManager on startup
+     */
+    void MigrateLegacyThreads() const;
+    void activity_preload_thread(
+        const Identifier nymID,
+        const std::size_t count) const;
+    void preload(
+        const Identifier nym,
+        const Identifier id,
+        const StorageBox box) const;
+    void thread_preload_thread(
+        const std::string nymID,
+        const std::string threadID,
+        const std::size_t start,
+        const std::size_t count) const;
+
+    std::shared_ptr<const Contact> nym_to_contact(
+        const std::string& nymID) const;
+    const opentxs::network::zeromq::PublishSocket& get_publisher(
+        const Identifier& nymID) const;
+    const opentxs::network::zeromq::PublishSocket& get_publisher(
+        const Identifier& nymID,
+        std::string& endpoint) const;
+    void publish(const Identifier& nymID, const std::string& threadID) const;
+
+    Activity(
+        const ContactManager& contact,
+        const storage::Storage& storage,
+        const client::Wallet& wallet,
+        const opentxs::network::zeromq::Context& zmq);
+    Activity() = delete;
     Activity(const Activity&) = delete;
     Activity(Activity&&) = delete;
     Activity& operator=(const Activity&) = delete;
     Activity& operator=(Activity&&) = delete;
 };
-}  // namespace api
-}  // namespace opentxs
-#endif  // OPENTXS_API_ACTIVITY_HPP
+}  // namespace opentxs::api::implementation
+#endif  // OPENTXS_API_ACTIVITY_IMPLEMENTATION_HPP

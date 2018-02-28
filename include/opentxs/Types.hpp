@@ -47,6 +47,7 @@
 #include <memory>
 #include <mutex>
 #include <tuple>
+#include <shared_mutex>
 #include <string>
 #include <vector>
 
@@ -152,8 +153,10 @@ typedef std::int64_t TransactionNumber;
 typedef std::int64_t RequestNumber;
 typedef std::int64_t Amount;
 
-typedef std::unique_lock<std::mutex> Lock;
-typedef std::unique_lock<std::recursive_mutex> rLock;
+using Lock = std::unique_lock<std::mutex>;
+using rLock = std::unique_lock<std::recursive_mutex>;
+using sLock = std::shared_lock<std::shared_mutex>;
+using eLock = std::unique_lock<std::shared_mutex>;
 
 enum class ClaimPolarity : std::uint8_t {
     NEUTRAL = 0,
@@ -174,6 +177,7 @@ enum class StorageBox : std::uint8_t {
     MAILOUTBOX = 9,
     INCOMINGBLOCKCHAIN = 10,
     OUTGOINGBLOCKCHAIN = 11,
+    UNKNOWN = 255,
 };
 
 enum class Bip43Purpose : std::uint32_t {

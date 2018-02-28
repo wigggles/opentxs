@@ -1,15 +1,21 @@
 set(cxx-sources
+  ActivitySummary.cpp
+  ActivitySummaryItem.cpp
   ContactList.cpp
   ContactListItem.cpp
 )
 
 set(cxx-install-headers
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/ActivitySummary.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/ActivitySummaryItem.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/ContactList.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/ContactListItem.hpp"
 )
 
 set(cxx-headers
   ${cxx-install-headers}
+  "${CMAKE_CURRENT_SOURCE_DIR}/ActivitySummary.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/ActivitySummaryItem.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/ContactList.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/ContactListItem.hpp"
 )

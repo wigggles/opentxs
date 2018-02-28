@@ -217,6 +217,16 @@ bool Identifier::CalculateDigest(const opentxs::Data& dataInput, const ID type)
         IDToHashType(type_), dataInput, *this);
 }
 
+Identifier Identifier::Random()
+{
+    Identifier output;
+    auto nonce = Data::Factory();
+    OT::App().Crypto().Encode().Nonce(32, nonce);
+    output.CalculateDigest(nonce);
+
+    return output;
+}
+
 // SET (binary id) FROM ENCODED STRING
 void Identifier::SetString(const String& encoded)
 {

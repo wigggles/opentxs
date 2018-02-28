@@ -14,7 +14,7 @@
  *       -- Scripted smart contracts.
  *
  *  EMAIL:
- *  fellowtraveler\opentransactions.org
+ *  fellowtraveler@opentransactions.org
  *
  *  WEBSITE:
  *  http://www.opentransactions.org/
@@ -36,35 +36,32 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_API_UI_HPP
-#define OPENTXS_API_UI_HPP
+#ifndef OPENTXS_UI_ACTIVITYSUMMARY_HPP
+#define OPENTXS_UI_ACTIVITYSUMMARY_HPP
 
 #include "opentxs/Forward.hpp"
 
 namespace opentxs
 {
-namespace api
+namespace ui
 {
-class UI
+class ActivitySummary
 {
 public:
-    EXPORT virtual const ui::ActivitySummary& ActivitySummary(
-        const Identifier& nymID) const = 0;
-    EXPORT virtual const ui::ContactList& ContactList(
-        const Identifier& nymID) const = 0;
+    EXPORT virtual const ActivitySummaryItem& First() const = 0;
+    EXPORT virtual const ActivitySummaryItem& Next() const = 0;
 
-    virtual ~UI() = default;
+    EXPORT virtual ~ActivitySummary() = default;
 
 protected:
-    UI() = default;
+    ActivitySummary() = default;
 
 private:
-    UI(const UI&) = delete;
-    UI(UI&&) = delete;
-    UI& operator=(const UI&) = delete;
-    UI& operator=(UI&&) = delete;
+    ActivitySummary(const ActivitySummary&) = delete;
+    ActivitySummary(ActivitySummary&&) = delete;
+    ActivitySummary& operator=(const ActivitySummary&) = delete;
+    ActivitySummary& operator=(ActivitySummary&&) = delete;
 };
-}  // namespace api
+}  // namespace ui
 }  // namespace opentxs
-
-#endif  // OPENTXS_API_UI_HPP
+#endif  // OPENTXS_UI_ACTIVITYSUMMARY_HPP

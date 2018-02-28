@@ -53,21 +53,30 @@ namespace opentxs::api::implementation
 class UI : virtual public opentxs::api::UI, Lockable
 {
 public:
+    const ui::ActivitySummary& ActivitySummary(
+        const Identifier& nymID) const override;
     const ui::ContactList& ContactList(const Identifier& nymID) const override;
 
     ~UI();
 
 private:
     friend class implementation::Native;
+    using ActivitySummaryMap =
+        std::map<Identifier, std::unique_ptr<ui::ActivitySummary>>;
     using ContactListMap =
         std::map<Identifier, std::unique_ptr<ui::ContactList>>;
 
     const opentxs::network::zeromq::Context& zmq_;
+    const api::Activity& activity_;
     const api::ContactManager& contact_;
+    const Flag& running_;
+    mutable ActivitySummaryMap activity_summaries_{};
     mutable ContactListMap contact_lists_{};
 
     UI(const opentxs::network::zeromq::Context& zmq,
-       const api::ContactManager& contact);
+       const api::Activity& activity,
+       const api::ContactManager& contact,
+       const Flag& running);
     UI() = delete;
     UI(const UI&) = delete;
     UI(UI&&) = delete;
