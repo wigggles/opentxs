@@ -115,8 +115,9 @@ bool OT_ME::accept_from_paymentbox_overload(
     rLock lock(lock_);
 
     CmdAcceptPayments cmd;
-    return 1 == cmd.acceptFromPaymentbox(
-                    ACCOUNT_ID, INDICES, PAYMENT_TYPE, pOptionalOutput);
+    return 1 ==
+           cmd.acceptFromPaymentbox(
+               ACCOUNT_ID, INDICES, PAYMENT_TYPE, pOptionalOutput);
 }
 
 bool OT_ME::accept_inbox_items(
@@ -1509,10 +1510,9 @@ bool OT_ME::processCashPurse(
             // If change failed, then continue.
             //
             if (!VerifyStringVal(exportedToken)) {
-                otOut << strLocation
-                      << ": 1, OT_API_Token_ChangeOwner "
-                         "returned null...(should never "
-                         "happen) Returning null.\n";
+                otOut << strLocation << ": 1, OT_API_Token_ChangeOwner "
+                                        "returned null...(should never "
+                                        "happen) Returning null.\n";
                 return false;
             }
 
@@ -1528,10 +1528,9 @@ bool OT_ME::processCashPurse(
             // If change failed, then continue.
             //
             if (!VerifyStringVal(retainedToken)) {
-                otOut << strLocation
-                      << ":  2, OT_API_Token_ChangeOwner "
-                         "returned null...(should never "
-                         "happen) Returning null.\n";
+                otOut << strLocation << ":  2, OT_API_Token_ChangeOwner "
+                                        "returned null...(should never "
+                                        "happen) Returning null.\n";
                 return false;
             }
 
@@ -1618,9 +1617,8 @@ bool OT_ME::processCashPurse(
                 // No modal?
                 //
                 // FT: adding log.
-                otOut << strLocation
-                      << ": OT_API_SavePurse "
-                         "FAILED. SHOULD NEVER HAPPEN!!!!!!\n";
+                otOut << strLocation << ": OT_API_SavePurse "
+                                        "FAILED. SHOULD NEVER HAPPEN!!!!!!\n";
                 return false;
             }
         } else  // old purse IS password protected. (So return its updated
@@ -1761,10 +1759,9 @@ bool OT_ME::processCashPurse(
                     strSender,      // old owner
                     strRecipient);  // new owner
                 if (!VerifyStringVal(exportedToken)) {
-                    otOut << strLocation
-                          << ": 1  OT_API_Token_ChangeOwner "
-                             "returned null... SHOULD NEVER "
-                             "HAPPEN. Returning now.\n";
+                    otOut << strLocation << ": 1  OT_API_Token_ChangeOwner "
+                                            "returned null... SHOULD NEVER "
+                                            "HAPPEN. Returning now.\n";
                     return false;
                 }
 
@@ -1776,10 +1773,9 @@ bool OT_ME::processCashPurse(
                     strSender,              // old owner
                     strSenderAsRecipient);  // new owner
                 if (!VerifyStringVal(retainedToken)) {
-                    otOut << strLocation
-                          << ": 2  OT_API_Token_ChangeOwner "
-                             "returned null... SHOULD NEVER "
-                             "HAPPEN. Returning now.\n";
+                    otOut << strLocation << ": 2  OT_API_Token_ChangeOwner "
+                                            "returned null... SHOULD NEVER "
+                                            "HAPPEN. Returning now.\n";
                     return false;
                 }
 
@@ -1873,9 +1869,8 @@ bool OT_ME::processCashPurse(
                 // No modal?
                 //
                 // FT: adding log.
-                otOut << strLocation
-                      << ":  OT_API_SavePurse "
-                         "FAILED. SHOULD NEVER HAPPEN!!!!!!\n";
+                otOut << strLocation << ":  OT_API_SavePurse "
+                                        "FAILED. SHOULD NEVER HAPPEN!!!!!!\n";
                 return false;
             }
         } else  // old purse IS password protected. (So return its updated
@@ -2604,15 +2599,16 @@ bool OT_ME::withdraw_and_send_cash(
     rLock lock(lock_);
 
     CmdSendCash sendCash;
-    return 1 == sendCash.run(
-                    "",
-                    "",
-                    ACCT_ID,
-                    "",
-                    recipientNymID,
-                    std::to_string(AMOUNT),
-                    "",
-                    "");
+    return 1 ==
+           sendCash.run(
+               "",
+               "",
+               ACCT_ID,
+               "",
+               recipientNymID,
+               std::to_string(AMOUNT),
+               "",
+               "");
 }
 
 // WITHDRAW CASH -- TRANSACTION
@@ -2715,9 +2711,8 @@ MapOfMaps* convert_offerlist_to_maps(OTDB::OfferListNym& offerList)
             OTDB::OfferDataNym* offerDataPtr = offerList.GetOfferDataNym(nTemp);
 
             if (!offerDataPtr) {
-                otOut << strLocation
-                      << ": Unable to reference (nym) offerData "
-                         "on offerList, at index: "
+                otOut << strLocation << ": Unable to reference (nym) offerData "
+                                        "on offerList, at index: "
                       << nIndex << "\n";
                 return map_of_maps;
             }
@@ -2913,9 +2908,8 @@ std::int32_t find_strange_offers(
     attr the_lambda_struct::the_price         // for newoffer as well.
     attr the_lambda_struct::bSelling          // for newoffer as well.
     */
-    otLog4 << strLocation
-           << ": About to compare the new potential offer "
-              "against one of the existing ones...";
+    otLog4 << strLocation << ": About to compare the new potential offer "
+                             "against one of the existing ones...";
 
     if ((extra_vals.the_asset_acct == offer_data.asset_acct_id) &&
         (extra_vals.the_currency_acct == offer_data.currency_acct_id) &&
@@ -2996,9 +2990,8 @@ std::int32_t iterate_nymoffers_sub_map(
 
     SubMap* sub_mapPtr = &sub_map;
     if (!sub_mapPtr) {
-        otOut << strLocation
-              << ": No range retrieved from sub_map. It must be "
-                 "non-existent, I guess.\n";
+        otOut << strLocation << ": No range retrieved from sub_map. It must be "
+                                "non-existent, I guess.\n";
         return -1;
     }
     if (sub_map.empty()) {
@@ -3007,9 +3000,8 @@ std::int32_t iterate_nymoffers_sub_map(
         // chaiscript
         // bug (extremely unlikely.)
         //
-        otOut << strLocation
-              << ": Error: A range was retrieved for the "
-                 "sub_map, but the range is empty.\n";
+        otOut << strLocation << ": Error: A range was retrieved for the "
+                                "sub_map, but the range is empty.\n";
         return -1;
     }
 
@@ -3019,10 +3011,9 @@ std::int32_t iterate_nymoffers_sub_map(
         // var offer_data_pair = range_sub_map.front();
 
         if (nullptr == it->second) {
-            otOut << strLocation
-                  << ": Looping through range_sub_map range, "
-                     "and first offer_data_pair fails to "
-                     "verify.\n";
+            otOut << strLocation << ": Looping through range_sub_map range, "
+                                    "and first offer_data_pair fails to "
+                                    "verify.\n";
             return -1;
         }
 
@@ -3083,18 +3074,16 @@ std::int32_t iterate_nymoffers_maps(
         return -1;
     }
     if (map_of_maps.empty()) {
-        otOut << strLocation
-              << ": A range was retrieved for the map_of_maps, "
-                 "but the range is empty.\n";
+        otOut << strLocation << ": A range was retrieved for the map_of_maps, "
+                                "but the range is empty.\n";
         return -1;
     }
 
     for (auto it = map_of_maps.begin(); it != map_of_maps.end(); ++it) {
         // var sub_map_pair = range_map_of_maps.front();
         if (nullptr == it->second) {
-            otOut << strLocation
-                  << ": Looping through map_of_maps range, and "
-                     "first sub_map_pair fails to verify.\n";
+            otOut << strLocation << ": Looping through map_of_maps range, and "
+                                    "first sub_map_pair fails to verify.\n";
             return -1;
         }
 
@@ -3102,10 +3091,9 @@ std::int32_t iterate_nymoffers_maps(
 
         SubMap& sub_map = *it->second;
         if (sub_map.empty()) {
-            otOut << strLocation
-                  << ": Error: Sub_map is empty (Then how is it "
-                     "even here?? Submaps are only added based "
-                     "on existing offers.)\n";
+            otOut << strLocation << ": Error: Sub_map is empty (Then how is it "
+                                    "even here?? Submaps are only added based "
+                                    "on existing offers.)\n";
             return -1;
         }
 

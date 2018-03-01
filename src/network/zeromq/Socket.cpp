@@ -46,12 +46,15 @@
 #include <zmq.h>
 
 #define CONTACT_UPDATE_ENDPOINT "inproc://opentxs/contactupdate/1"
+#define PENDING_BAILMENT_ENDPOINT                                              \
+    "inproc://opentxs/peerrequest/pendingbailment/1"
 
 #define OT_METHOD "opentxs::network::zeromq::implementation::Socket::"
 
 namespace opentxs::network::zeromq
 {
 const std::string Socket::ContactUpdateEndpoint{CONTACT_UPDATE_ENDPOINT};
+const std::string Socket::PendingBailmentEndpoint{PENDING_BAILMENT_ENDPOINT};
 }  // namespace opentxs::network::zeromq
 
 namespace opentxs::network::zeromq::implementation

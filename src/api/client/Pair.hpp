@@ -99,6 +99,7 @@ private:
     const client::Wallet& wallet_;
     const opentxs::OT_API& ot_api_;
     const opentxs::OTAPI_Exec& exec_;
+    const opentxs::network::zeromq::Context& zmq_;
     std::recursive_mutex& api_lock_;
     mutable std::mutex peer_lock_{};
     mutable std::mutex status_lock_{};
@@ -108,6 +109,7 @@ private:
     mutable std::unique_ptr<std::thread> refresh_thread_{nullptr};
     mutable std::map<IssuerID, std::pair<Status, bool>> pair_status_{};
     mutable UniqueQueue<bool> update_;
+    OTZMQPublishSocket pending_bailment_;
 
     void check_pairing() const;
     void check_refresh() const;
@@ -183,7 +185,8 @@ private:
         const client::ServerAction& action,
         const client::Wallet& wallet,
         const opentxs::OT_API& otapi,
-        const opentxs::OTAPI_Exec& exec);
+        const opentxs::OTAPI_Exec& exec,
+        const opentxs::network::zeromq::Context& context);
     Pair() = delete;
     Pair(const Pair&) = delete;
     Pair(Pair&&) = delete;

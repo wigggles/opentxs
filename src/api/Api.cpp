@@ -39,6 +39,7 @@
 #include "opentxs/stdafx.hpp"
 
 #include "opentxs/api/crypto/Crypto.hpp"
+#include "opentxs/api/network/ZMQ.hpp"
 #include "opentxs/api/Activity.hpp"
 #include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Settings.hpp"
@@ -163,7 +164,8 @@ void Api::Init()
         *server_action_,
         wallet_,
         *ot_api_,
-        *otapi_exec_));
+        *otapi_exec_,
+        zmq_.Context()));
 
     OT_ASSERT(pair_);
 }

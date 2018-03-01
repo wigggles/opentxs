@@ -54,6 +54,8 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/Nym.hpp"
+#include "opentxs/network/zeromq/Context.hpp"
+#include "opentxs/network/zeromq/PublishSocket.hpp"
 
 #include "Pair.hpp"
 
@@ -88,13 +90,15 @@ Pair::Pair(
     const client::ServerAction& action,
     const client::Wallet& wallet,
     const opentxs::OT_API& otapi,
-    const opentxs::OTAPI_Exec& exec)
+    const opentxs::OTAPI_Exec& exec,
+    const opentxs::network::zeromq::Context& context)
     : running_(running)
     , sync_(sync)
     , action_(action)
     , wallet_(wallet)
     , ot_api_(otapi)
     , exec_(exec)
+    , zmq_(context)
     , api_lock_(apiLock)
     , status_lock_()
     , pairing_(Flag::Factory(false))
@@ -102,8 +106,12 @@ Pair::Pair(
     , pairing_thread_(nullptr)
     , refresh_thread_(nullptr)
     , pair_status_()
+    , update_()
+    , pending_bailment_(context.PublishSocket())
 {
     refresh_thread_.reset(new std::thread(&Pair::check_refresh, this));
+    pending_bailment_->Start(
+        opentxs::network::zeromq::Socket::PendingBailmentEndpoint);
 }
 
 bool Pair::AddIssuer(
@@ -455,6 +463,7 @@ void Pair::process_pending_bailment(
         issuer.AddRequest(proto::PEERREQUEST_PENDINGBAILMENT, requestID);
 
     if (added) {
+        pending_bailment_->Publish(proto::ProtoAsString(request));
         const Identifier originalRequest(request.pendingbailment().requestid());
         if (!originalRequest.empty()) {
             issuer.SetUsed(proto::PEERREQUEST_BAILMENT, originalRequest, true);
