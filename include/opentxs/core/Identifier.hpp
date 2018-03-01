@@ -97,6 +97,7 @@ public:
     EXPORT bool operator>=(const Identifier& s2) const;
 
     EXPORT void GetString(String& theStr) const;
+    EXPORT std::string str() const;
 
     EXPORT bool CalculateDigest(
         const opentxs::Data& dataInput,

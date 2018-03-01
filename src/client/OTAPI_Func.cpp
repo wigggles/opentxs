@@ -1330,14 +1330,14 @@ void OTAPI_Func::run()
             OT_ASSERT(purse_)
 
             last_attempt_ = otapi_.notarizeDeposit(
-                context_, Identifier(accountID_), String(*purse_).Get());
+                context_, accountID_, String(*purse_).Get());
 #endif  // OT_CASH
         } break;
         case DEPOSIT_CHEQUE: {
             OT_ASSERT(cheque_)
 
             last_attempt_ = otapi_.depositCheque(
-                context_, Identifier(accountID_), String(*cheque_).Get());
+                context_, accountID_, String(*cheque_).Get());
         } break;
         case DEPOSIT_PAYMENT_PLAN: {
             OT_ASSERT(paymentPlan_)
@@ -1407,13 +1407,13 @@ void OTAPI_Func::run()
             }
 
             const auto str_asset_notary_id =
-                exec_.GetAccountWallet_NotaryID(String(assetAccountID_).Get());
-            const auto str_currency_notary_id = exec_.GetAccountWallet_NotaryID(
-                String(currencyAccountID_).Get());
+                exec_.GetAccountWallet_NotaryID(assetAccountID_.str());
+            const auto str_currency_notary_id =
+                exec_.GetAccountWallet_NotaryID(currencyAccountID_.str());
             const auto str_asset_nym_id =
-                exec_.GetAccountWallet_NymID(String(assetAccountID_).Get());
+                exec_.GetAccountWallet_NymID(assetAccountID_.str());
             const auto str_currency_nym_id =
-                exec_.GetAccountWallet_NymID(String(currencyAccountID_).Get());
+                exec_.GetAccountWallet_NymID(currencyAccountID_.str());
 
             if (str_asset_notary_id.empty() || str_currency_notary_id.empty() ||
                 str_asset_nym_id.empty() || str_currency_nym_id.empty()) {
@@ -1560,9 +1560,9 @@ std::string OTAPI_Func::send_transaction(std::size_t totalRetries)
         "OTAPI_Func::SendTransaction: " + type_name_.at(type_);
 
     if (!MsgUtil.getIntermediaryFiles(
-            String(context_.Server()).Get(),
-            String(context_.Nym()->ID()).Get(),
-            String(accountID_).Get(),
+            context_.Server().str(),
+            context_.Nym()->ID().str(),
+            accountID_.str(),
             false))  // bForceDownload=false))
     {
         otOut << strLocation
@@ -1574,7 +1574,7 @@ std::string OTAPI_Func::send_transaction(std::size_t totalRetries)
     // GET TRANSACTION NUMBERS HERE IF NECESSARY.
     //
     std::int32_t getnym_trnsnum_count = exec_.GetNym_TransactionNumCount(
-        String(context_.Server()).Get(), String(context_.Nym()->ID()).Get());
+        context_.Server().str(), context_.Nym()->ID().str());
     std::int32_t configTxnCount = MsgUtil.getNbrTransactionCount();
     bool b1 = (nTransNumsNeeded_ > configTxnCount);
     std::int32_t comparative = 0;
@@ -1592,14 +1592,13 @@ std::string OTAPI_Func::send_transaction(std::size_t totalRetries)
                  "now...\n";
         MsgUtil.setNbrTransactionCount(comparative);
         MsgUtil.getTransactionNumbers(
-            String(context_.Server()).Get(),
-            String(context_.Nym()->ID()).Get());
+            context_.Server().str(), context_.Nym()->ID().str());
         MsgUtil.setNbrTransactionCount(configTxnCount);
     }
 
     // second try
     getnym_trnsnum_count = exec_.GetNym_TransactionNumCount(
-        String(context_.Server()).Get(), String(context_.Nym()->ID()).Get());
+        context_.Server().str(), context_.Nym()->ID().str());
     if (getnym_trnsnum_count < comparative) {
         otOut << strLocation
               << ", failure: MsgUtil.getTransactionNumbers. (Trying "
@@ -1610,15 +1609,13 @@ std::string OTAPI_Func::send_transaction(std::size_t totalRetries)
         //
         MsgUtil.setNbrTransactionCount(comparative);
         MsgUtil.getTransactionNumbers(
-            String(context_.Server()).Get(),
-            String(context_.Nym()->ID()).Get(),
-            false);
+            context_.Server().str(), context_.Nym()->ID().str(), false);
         MsgUtil.setNbrTransactionCount(configTxnCount);
     }
 
     // third try
     getnym_trnsnum_count = exec_.GetNym_TransactionNumCount(
-        String(context_.Server()).Get(), String(context_.Nym()->ID()).Get());
+        context_.Server().str(), context_.Nym()->ID().str());
     if (getnym_trnsnum_count < comparative) {
         otOut << strLocation
               << ", failure: MsgUtil.getTransactionNumbers. (Trying "
@@ -1629,16 +1626,14 @@ std::string OTAPI_Func::send_transaction(std::size_t totalRetries)
         //
         MsgUtil.setNbrTransactionCount(comparative);
         MsgUtil.getTransactionNumbers(
-            String(context_.Server()).Get(),
-            String(context_.Nym()->ID()).Get(),
-            false);
+            context_.Server().str(), context_.Nym()->ID().str(), false);
         MsgUtil.setNbrTransactionCount(configTxnCount);
     }
 
     // Giving up, if still a failure by this point.
     //
     getnym_trnsnum_count = exec_.GetNym_TransactionNumCount(
-        String(context_.Server()).Get(), String(context_.Nym()->ID()).Get());
+        context_.Server().str(), context_.Nym()->ID().str());
 
     if (getnym_trnsnum_count < comparative) {
         otOut << strLocation
@@ -1655,9 +1650,9 @@ std::string OTAPI_Func::send_transaction(std::size_t totalRetries)
         otOut << " Getting Intermediary files.. \n";
 
         if (!MsgUtil.getIntermediaryFiles(
-                String(context_.Server()).Get(),
-                String(context_.Nym()->ID()).Get(),
-                String(accountID_).Get(),
+                context_.Server().str(),
+                context_.Nym()->ID().str(),
+                accountID_.str(),
                 true)) {
             otOut << strLocation
                   << ", getIntermediaryFiles returned false. "
@@ -1701,7 +1696,7 @@ std::string OTAPI_Func::send_transaction(std::size_t totalRetries)
             bWillRetryAfterThis = false;
         }
 
-        if (exec_.CheckConnection(String(context_.Server()).Get())) {
+        if (exec_.CheckConnection(context_.Server().str())) {
             strResult =
                 send_once(true, bWillRetryAfterThis, bCanRetryAfterThis);
         }
@@ -1712,9 +1707,9 @@ std::string OTAPI_Func::send_transaction(std::size_t totalRetries)
         //
         if (VerifyStringVal(strResult)) {
             if (!MsgUtil.getIntermediaryFiles(
-                    String(context_.Server()).Get(),
-                    String(context_.Nym()->ID()).Get(),
-                    String(accountID_).Get(),
+                    context_.Server().str(),
+                    context_.Nym()->ID().str(),
+                    accountID_.str(),
                     true)) {
                 otOut << strLocation
                       << ", getIntermediaryFiles (loop) returned false even "
@@ -1735,7 +1730,7 @@ std::string OTAPI_Func::send_request()
     std::string strResult = send_once(false, true, bCanRetryAfterThis);
 
     if (!VerifyStringVal(strResult) && bCanRetryAfterThis) {
-        if (exec_.CheckConnection(String(context_.Server()).Get())) {
+        if (exec_.CheckConnection(context_.Server().str())) {
             strResult = send_once(false, false, bCanRetryAfterThis);
         }
     }
@@ -1816,9 +1811,9 @@ std::string OTAPI_Func::send_once(
                                // the transaction was, too.
         {
             nBalanceSuccess = exec_.Message_GetBalanceAgreementSuccess(
-                String(context_.Server()).Get(),
-                String(context_.Nym()->ID()).Get(),
-                String(accountID_).Get(),
+                context_.Server().str(),
+                context_.Nym()->ID().str(),
+                accountID_.str(),
                 strReply);
 
             if (nBalanceSuccess > 0) {
@@ -1839,9 +1834,9 @@ std::string OTAPI_Func::send_once(
                 //
                 std::int32_t nTransCancelled =
                     exec_.Message_IsTransactionCanceled(
-                        String(context_.Server()).Get(),
-                        String(context_.Nym()->ID()).Get(),
-                        String(accountID_).Get(),
+                        context_.Server().str(),
+                        context_.Nym()->ID().str(),
+                        accountID_.str(),
                         strReply);
 
                 // If it's not cancelled, then we assume it's a normal
@@ -1850,9 +1845,9 @@ std::string OTAPI_Func::send_once(
                 //
                 if (1 != nTransCancelled) {
                     nTransSuccess = exec_.Message_GetTransactionSuccess(
-                        String(context_.Server()).Get(),
-                        String(context_.Nym()->ID()).Get(),
-                        String(accountID_).Get(),
+                        context_.Server().str(),
+                        context_.Nym()->ID().str(),
+                        accountID_.str(),
                         strReply);
                 } else  // If it WAS cancelled, then for the UI we say
                         // "Success" even though OT behind the scenes is
@@ -1988,9 +1983,9 @@ std::string OTAPI_Func::send_once(
                 //
                 bool bForceDownload = true;
                 if (!MsgUtil.getIntermediaryFiles(
-                        String(context_.Server()).Get(),
-                        String(context_.Nym()->ID()).Get(),
-                        String(accountID_).Get(),
+                        context_.Server().str(),
+                        context_.Nym()->ID().str(),
+                        accountID_.str(),
                         bForceDownload)) {
                     otOut << strLocation
                           << ", getIntermediaryFiles returned "
@@ -2012,8 +2007,8 @@ std::string OTAPI_Func::send_once(
 
                 std::int32_t nProcessNymboxResult =
                     MsgUtil.getAndProcessNymbox_8(
-                        String(context_.Server()).Get(),
-                        String(context_.Nym()->ID()).Get(),
+                        context_.Server().str(),
+                        context_.Nym()->ID().str(),
                         bWasSent,
                         bForceDownload,
                         nlocalRequestNum,
@@ -2056,17 +2051,17 @@ std::string OTAPI_Func::send_once(
                 //
                 else if (bWasSent && (nProcessNymboxResult > 1)) {
                     std::string strNymbox = exec_.LoadNymboxNoVerify(
-                        String(context_.Server()).Get(),
-                        String(context_.Nym()->ID()).Get());  // FLUSH SENT
-                                                              // MESSAGES!!!!
-                                                              // (AND
-                                                              // HARVEST.);
+                        context_.Server().str(),
+                        context_.Nym()->ID().str());  // FLUSH SENT
+                                                      // MESSAGES!!!!
+                                                      // (AND
+                                                      // HARVEST.);
 
                     if (VerifyStringVal(strNymbox)) {
                         exec_.FlushSentMessages(
                             false,
-                            String(context_.Server()).Get(),
-                            String(context_.Nym()->ID()).Get(),
+                            context_.Server().str(),
+                            context_.Nym()->ID().str(),
                             strNymbox);
                     }
                 }

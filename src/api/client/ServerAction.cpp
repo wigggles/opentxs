@@ -335,10 +335,7 @@ bool ServerAction::DownloadAccount(
     auto context = wallet_.mutable_ServerContext(localNymID, serverID);
     Utility MsgUtil(context.It(), otapi_);
     const auto output = MsgUtil.getIntermediaryFiles(
-        String(serverID).Get(),
-        String(localNymID).Get(),
-        String(accountID).Get(),
-        false);
+        serverID.str(), localNymID.str(), accountID.str(), false);
 
     return output;
 }
@@ -447,14 +444,10 @@ bool ServerAction::GetTransactionNumbers(
     if (available < quantity) {
         otErr << OT_METHOD << __FUNCTION__ << ": Asking server for more numbers"
               << std::endl;
-        MsgUtil.getTransactionNumbers(
-            String(serverID).Get(), String(localNymID).Get(), true);
+        MsgUtil.getTransactionNumbers(serverID.str(), localNymID.str(), true);
         bool msgWasSent{false};
         const auto download = MsgUtil.getAndProcessNymbox_4(
-            String(serverID).Get(),
-            String(localNymID).Get(),
-            msgWasSent,
-            false);
+            serverID.str(), localNymID.str(), msgWasSent, false);
 
         if (0 > download) {
             otErr << OT_METHOD << __FUNCTION__ << ": Failed to retrieve nym."
@@ -503,7 +496,7 @@ bool ServerAction::DownloadNymbox(
 
     bool msgWasSent{false};
     const auto download = util.getAndProcessNymbox_4(
-        String(serverID).Get(), String(localNymID).Get(), msgWasSent, true);
+        serverID.str(), localNymID.str(), msgWasSent, true);
 
     if (0 > download) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to retrieve nymbox."

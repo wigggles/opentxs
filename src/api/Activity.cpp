@@ -74,8 +74,8 @@ bool Activity::AddBlockchainTransaction(
     const StorageBox box,
     const proto::BlockchainTransaction& transaction) const
 {
-    const std::string sNymID = String(nymID).Get();
-    const std::string sthreadID = String(threadID).Get();
+    const std::string sNymID = nymID.str();
+    const std::string sthreadID = threadID.str();
     const auto threadList = storage_.ThreadList(sNymID, false);
     bool threadExists = false;
 
@@ -105,10 +105,7 @@ bool Activity::MoveIncomingBlockchainTransaction(
     const std::string& txid) const
 {
     return storage_.MoveThreadItem(
-        String(nymID).Get(),
-        String(fromThreadID).Get(),
-        String(toThreadID).Get(),
-        txid);
+        nymID.str(), fromThreadID.str(), toThreadID.str(), txid);
 }
 
 std::shared_ptr<const Contact> Activity::nym_to_contact(
@@ -147,8 +144,8 @@ std::unique_ptr<Message> Activity::Mail(
     const StorageBox& box) const
 {
     std::string raw, alias;
-    const bool loaded = storage_.Load(
-        String(nym).Get(), String(id).Get(), box, raw, alias, true);
+    const bool loaded =
+        storage_.Load(nym.str(), id.str(), box, raw, alias, true);
 
     std::unique_ptr<Message> output;
 
@@ -184,10 +181,10 @@ std::string Activity::Mail(
     const Message& mail,
     const StorageBox box) const
 {
-    const std::string nymID = String(nym).Get();
+    const std::string nymID = nym.str();
     Identifier id{};
     mail.CalculateContractID(id);
-    const std::string output = String(id).Get();
+    const std::string output = id.str();
     const String data(mail);
     std::string participantNymID{};
     const String localName(nym);
@@ -205,7 +202,7 @@ std::string Activity::Mail(
     OT_ASSERT(contact);
 
     std::string alias = contact->Label();
-    const std::string contactID = String(contact->ID()).Get();
+    const std::string contactID = contact->ID().str();
     const auto& threadID = contactID;
     const auto threadList = storage_.ThreadList(nymID, false);
     bool threadExists = false;
@@ -244,7 +241,7 @@ std::string Activity::Mail(
 
 ObjectList Activity::Mail(const Identifier& nym, const StorageBox box) const
 {
-    return storage_.NymBoxList(String(nym).Get(), box);
+    return storage_.NymBoxList(nym.str(), box);
 }
 
 bool Activity::MailRemove(
@@ -252,8 +249,8 @@ bool Activity::MailRemove(
     const Identifier& id,
     const StorageBox box) const
 {
-    const std::string nymid = String(nym).Get();
-    const std::string mail = String(id).Get();
+    const std::string nymid = nym.str();
+    const std::string mail = id.str();
 
     return storage_.RemoveNymBoxItem(nymid, box, mail);
 }
@@ -308,10 +305,10 @@ void Activity::preload(
         return;
     }
 
-    otErr << OT_METHOD << __FUNCTION__ << ": Decrypting message "
-          << String(id).Get() << std::endl;
+    otErr << OT_METHOD << __FUNCTION__ << ": Decrypting message " << id.str()
+          << std::endl;
     auto peerObject = PeerObject::Factory(nym, message->m_ascPayload);
-    otErr << OT_METHOD << __FUNCTION__ << ": Message " << String(id).Get()
+    otErr << OT_METHOD << __FUNCTION__ << ": Message " << id.str()
           << " decrypted." << std::endl;
 
     if (!peerObject) {
@@ -339,9 +336,9 @@ bool Activity::MarkRead(
     const Identifier& threadId,
     const Identifier& itemId) const
 {
-    const std::string nym = String(nymId).Get();
-    const std::string thread = String(threadId).Get();
-    const std::string item = String(itemId).Get();
+    const std::string nym = nymId.str();
+    const std::string thread = threadId.str();
+    const std::string item = itemId.str();
 
     return storage_.SetReadState(nym, thread, item, false);
 }
@@ -351,9 +348,9 @@ bool Activity::MarkUnread(
     const Identifier& threadId,
     const Identifier& itemId) const
 {
-    const std::string nym = String(nymId).Get();
-    const std::string thread = String(threadId).Get();
-    const std::string item = String(itemId).Get();
+    const std::string nym = nymId.str();
+    const std::string thread = threadId.str();
+    const std::string item = itemId.str();
 
     return storage_.SetReadState(nym, thread, item, true);
 }
@@ -384,8 +381,7 @@ void Activity::MigrateLegacyThreads() const
             auto contactID = contact_.ContactID(Identifier(originalThreadID));
 
             if (false == contactID.empty()) {
-                storage_.RenameThread(
-                    nymID, originalThreadID, String(contactID).Get());
+                storage_.RenameThread(nymID, originalThreadID, contactID.str());
             } else {
                 std::shared_ptr<proto::StorageThread> thread;
                 storage_.Load(nymID, originalThreadID, thread);
@@ -401,9 +397,7 @@ void Activity::MigrateLegacyThreads() const
                     OT_ASSERT(newContact);
 
                     storage_.RenameThread(
-                        nymID,
-                        originalThreadID,
-                        String(newContact->ID()).Get());
+                        nymID, originalThreadID, newContact->ID().str());
                 } else {
                     // Multi-party chats were not implemented prior to the
                     // update to contact IDs, so there is no need to handle
@@ -418,7 +412,7 @@ void Activity::activity_preload_thread(
     const Identifier nym,
     const std::size_t count) const
 {
-    const std::string nymID = String(nym).Get();
+    const std::string nymID = nym.str();
     auto threads = storage_.ThreadList(nymID, false);
 
     for (const auto& it : threads) {
@@ -440,8 +434,8 @@ void Activity::PreloadThread(
     const std::size_t start,
     const std::size_t count) const
 {
-    const std::string nym = String(nymID).Get();
-    const std::string thread = String(threadID).Get();
+    const std::string nym = nymID.str();
+    const std::string thread = threadID.str();
     std::thread preload(
         &Activity::thread_preload_thread, this, nym, thread, start, count);
     preload.detach();
@@ -452,7 +446,7 @@ std::shared_ptr<proto::StorageThread> Activity::Thread(
     const Identifier& threadID) const
 {
     std::shared_ptr<proto::StorageThread> output;
-    storage_.Load(String(nymID).Get(), String(threadID).Get(), output);
+    storage_.Load(nymID.str(), threadID.str(), output);
 
     return output;
 }
@@ -509,7 +503,7 @@ void Activity::thread_preload_thread(
 
 ObjectList Activity::Threads(const Identifier& nym, const bool unreadOnly) const
 {
-    const std::string nymID = String(nym).Get();
+    const std::string nymID = nym.str();
     auto output = storage_.ThreadList(nymID, unreadOnly);
 
     for (auto& it : output) {
@@ -535,7 +529,7 @@ ObjectList Activity::Threads(const Identifier& nym, const bool unreadOnly) const
 
 std::size_t Activity::UnreadCount(const Identifier& nymId) const
 {
-    const std::string nym = String(nymId).Get();
+    const std::string nym = nymId.str();
     std::size_t output{0};
 
     const auto& threads = storage_.ThreadList(nym, true);

@@ -101,8 +101,8 @@ std::shared_ptr<proto::Bip44Account> Blockchain::Account(
 {
     LOCK_ACCOUNT()
 
-    const std::string sNymID = String(nymID).Get();
-    const std::string sAccountID = String(accountID).Get();
+    const std::string sNymID = nymID.str();
+    const std::string sAccountID = accountID.str();
     auto account = load_account(accountLock, sNymID, sAccountID);
 
     if (false == bool(account)) {
@@ -118,7 +118,7 @@ std::set<Identifier> Blockchain::AccountList(
     const proto::ContactItemType type) const
 {
     std::set<Identifier> output;
-    auto list = storage_.BlockchainAccountList(String(nymID).Get(), type);
+    auto list = storage_.BlockchainAccountList(nymID.str(), type);
 
     for (const auto& accountID : list) {
         output.emplace(String(accountID.c_str()));
@@ -195,8 +195,8 @@ std::unique_ptr<proto::Bip44Address> Blockchain::AllocateAddress(
 {
     LOCK_ACCOUNT()
 
-    const std::string sNymID = String(nymID).Get();
-    const std::string sAccountID = String(accountID).Get();
+    const std::string sNymID = nymID.str();
+    const std::string sAccountID = accountID.str();
     std::unique_ptr<proto::Bip44Address> output{nullptr};
     auto account = load_account(accountLock, sNymID, sAccountID);
 
@@ -250,9 +250,9 @@ bool Blockchain::AssignAddress(
 {
     LOCK_ACCOUNT()
 
-    const std::string sNymID = String(nymID).Get();
-    const std::string sAccountID = String(accountID).Get();
-    const std::string sContactID = String(contactID).Get();
+    const std::string sNymID = nymID.str();
+    const std::string sAccountID = accountID.str();
+    const std::string sContactID = contactID.str();
     auto account = load_account(accountLock, sNymID, sAccountID);
 
     if (false == bool(account)) {
@@ -494,8 +494,8 @@ std::unique_ptr<proto::Bip44Address> Blockchain::LoadAddress(
     LOCK_ACCOUNT()
 
     std::unique_ptr<proto::Bip44Address> output{};
-    const std::string sNymID = String(nymID).Get();
-    const std::string sAccountID = String(accountID).Get();
+    const std::string sNymID = nymID.str();
+    const std::string sAccountID = accountID.str();
     auto account = load_account(accountLock, sNymID, sAccountID);
 
     if (false == bool(account)) {
@@ -544,7 +544,7 @@ Identifier Blockchain::NewAccount(
 {
     LOCK_NYM()
 
-    const std::string sNymID = String(nymID).Get();
+    const std::string sNymID = nymID.str();
     auto existing = storage_.BlockchainAccountList(sNymID, type);
 
     if (0 < existing.size()) {
@@ -589,7 +589,7 @@ Identifier Blockchain::NewAccount(
     Lock accountLock(account_lock_[accountID]);
     proto::Bip44Account account{};
     account.set_version(ACCOUNT_VERSION);
-    account.set_id(String(accountID).Get());
+    account.set_id(accountID.str());
     account.set_type(type);
     account.set_revision(0);
     *account.mutable_path() = accountPath;
@@ -620,8 +620,8 @@ bool Blockchain::StoreIncoming(
 {
     LOCK_ACCOUNT()
 
-    const std::string sNymID = String(nymID).Get();
-    const std::string sAccountID = String(accountID).Get();
+    const std::string sNymID = nymID.str();
+    const std::string sAccountID = accountID.str();
     auto account = load_account(accountLock, sNymID, sAccountID);
 
     if (false == bool(account)) {
@@ -692,8 +692,8 @@ bool Blockchain::StoreOutgoing(
 {
     LOCK_ACCOUNT()
 
-    const std::string sNymID = String(senderNymID).Get();
-    const std::string sAccountID = String(accountID).Get();
+    const std::string sNymID = senderNymID.str();
+    const std::string sAccountID = accountID.str();
     auto account = load_account(accountLock, sNymID, sAccountID);
 
     if (false == bool(account)) {
@@ -740,7 +740,7 @@ std::shared_ptr<proto::BlockchainTransaction> Blockchain::Transaction(
 {
     std::shared_ptr<proto::BlockchainTransaction> output;
 
-    if (false == storage_.Load(String(id).Get(), output, false)) {
+    if (false == storage_.Load(id.str(), output, false)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to load transaction."
               << std::endl;
     }

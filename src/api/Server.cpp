@@ -131,7 +131,7 @@ void Server::generate_mint(
         return;
     }
 
-    const std::string nymID{String(NymID()).Get()};
+    const std::string nymID{NymID().str()};
     const std::string seriesID =
         std::string(SERIES_DIVIDER) + std::to_string(series);
     mint.reset(
@@ -240,7 +240,7 @@ std::shared_ptr<Mint> Server::GetPrivateMint(
     std::uint32_t index) const
 {
     Lock lock(mint_lock_);
-    const std::string id{String(unitID).Get()};
+    const std::string id{unitID.str()};
     const std::string seriesID =
         std::string(SERIES_DIVIDER) + std::to_string(index);
     auto currency = mints_.find(id);
@@ -267,7 +267,7 @@ std::shared_ptr<const Mint> Server::GetPublicMint(
     const Identifier& unitID) const
 {
     Lock lock(mint_lock_);
-    const std::string id{String(unitID).Get()};
+    const std::string id{unitID.str()};
     const std::string seriesID{PUBLIC_SERIES};
     auto currency = mints_.find(id);
 
@@ -361,7 +361,7 @@ void Server::mint() const
         Log::Sleep(std::chrono::milliseconds(50));
     }
 
-    const std::string serverID{String(server_.GetServerID()).Get()};
+    const std::string serverID{server_.GetServerID().str()};
 
     OT_ASSERT(false == serverID.empty());
 
@@ -466,7 +466,7 @@ void Server::Start()
 void Server::UpdateMint(const Identifier& unitID) const
 {
     Lock updateLock(mint_update_lock_);
-    mints_to_check_.push_front(String(unitID).Get());
+    mints_to_check_.push_front(unitID.str());
 }
 #endif  // OT_CASH
 

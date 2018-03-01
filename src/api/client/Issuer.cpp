@@ -106,7 +106,7 @@ Issuer::operator std::string() const
 {
     Lock lock(lock_);
     std::stringstream output{};
-    output << "Connected issuer: " << String(issuer_id_).Get() << "\n";
+    output << "Connected issuer: " << issuer_id_.str() << "\n";
 
     if (pairing_code_.empty()) {
         output << "* Not paired to this issuer\n";
@@ -134,7 +134,7 @@ Issuer::operator std::string() const
 
         return output.str();
     } else {
-        output << "* Server ID: " << String(serverID).Get() << "\n";
+        output << "* Server ID: " << serverID.str() << "\n";
     }
 
     if (false == bool(haveAccounts)) {
@@ -156,8 +156,9 @@ Issuer::operator std::string() const
             const auto& notUsed[[maybe_unused]] = id;
             const auto& claim = *pClaim;
             const Identifier unitID(claim.Value());
-            output << " * " << proto::TranslateItemType(
-                                   static_cast<std::uint32_t>(claim.Type()))
+            output << " * "
+                   << proto::TranslateItemType(
+                          static_cast<std::uint32_t>(claim.Type()))
                    << ": " << claim.Value() << "\n";
             const auto accountSet = account_map_.find(type);
 
@@ -168,8 +169,7 @@ Issuer::operator std::string() const
 
             for (const auto & [ unit, accountID ] : accountSet->second) {
                 if (unit == unitID) {
-                    output << "  * Account ID: " << String(accountID).Get()
-                           << "\n";
+                    output << "  * Account ID: " << accountID.str() << "\n";
                 }
             }
         }
@@ -379,7 +379,7 @@ std::vector<Issuer::BailmentDetails> Issuer::BailmentInstructions(
 
         OT_ASSERT(request);
 
-        if (request->bailment().unitid() != String(unitID).Get()) {
+        if (request->bailment().unitid() != unitID.str()) {
 
             continue;
         }
@@ -631,7 +631,7 @@ proto::Issuer Issuer::Serialize() const
     Lock lock(lock_);
     proto::Issuer output;
     output.set_version(version_);
-    output.set_id(String(issuer_id_).Get());
+    output.set_id(issuer_id_.str());
     output.set_paired(paired_.get());
     output.set_pairingcode(pairing_code_);
 
@@ -640,8 +640,8 @@ proto::Issuer Issuer::Serialize() const
             auto& map = *output.add_accounts();
             map.set_version(version_);
             map.set_type(type);
-            map.set_unitdefinitionid(String(unitID).Get());
-            map.set_accountid(String(accountID).Get());
+            map.set_unitdefinitionid(unitID.str());
+            map.set_accountid(accountID.str());
         }
     }
 
@@ -654,8 +654,8 @@ proto::Issuer Issuer::Serialize() const
             const auto & [ reply, isUsed ] = data;
             auto& workflow = *history.add_workflow();
             workflow.set_version(version_);
-            workflow.set_requestid(String(request).Get());
-            workflow.set_replyid(String(reply).Get());
+            workflow.set_requestid(request.str());
+            workflow.set_replyid(reply.str());
             workflow.set_used(isUsed);
         }
     }

@@ -1480,7 +1480,7 @@ std::string OTAPI_Exec::CreateCurrencyContract(
         NYM_ID, shortname, name, symbol, terms, tla, power, fraction);
 
     if (pContract) {
-        output = String(pContract->ID()).Get();
+        output = pContract->ID().str();
     } else {
         otErr << OT_METHOD << __FUNCTION__
               << ": Failed to create currency contract." << std::endl;
@@ -1519,7 +1519,7 @@ std::string OTAPI_Exec::CreateSecurityContract(
         wallet_.UnitDefinition(NYM_ID, shortname, name, symbol, terms);
 
     if (pContract) {
-        output = String(pContract->ID()).Get();
+        output = pContract->ID().str();
     } else {
         otErr << OT_METHOD << __FUNCTION__
               << ": Failed to create currency contract." << std::endl;
@@ -1721,9 +1721,7 @@ std::string OTAPI_Exec::AddServerContract(const std::string& strContract) const
         auto contract = wallet_.Server(serialized);
 
         if (contract) {
-            String id(contract->ID());
-
-            return id.Get();
+            return contract->ID().str();
         }
     }
 
@@ -1744,9 +1742,7 @@ std::string OTAPI_Exec::AddUnitDefinition(const std::string& strContract) const
         auto contract = wallet_.UnitDefinition(serialized);
 
         if (contract) {
-            String id(contract->ID());
-
-            return id.Get();
+            return contract->ID().str();
         }
     }
 
@@ -2220,11 +2216,7 @@ std::string OTAPI_Exec::Wallet_ImportNym(const std::string& FILE_CONTENTS) const
     //
 
     if (bImported) {
-        const String strNymID(theNymID);
-
-        std::string pBuf = strNymID.Get();
-
-        return pBuf;
+        return theNymID.str();
     }
 
     return {};
@@ -2561,7 +2553,7 @@ std::string OTAPI_Exec::GetNym_NymboxHash(
 
     if (context) {
 
-        return String(context->LocalNymboxHash()).Get();
+        return context->LocalNymboxHash().str();
     }
 
     otWarn << OT_METHOD << __FUNCTION__
@@ -2595,7 +2587,7 @@ std::string OTAPI_Exec::GetNym_RecentHash(
         return {};
     }
 
-    return String(context->RemoteNymboxHash()).Get();
+    return context->RemoteNymboxHash().str();
 }
 
 std::string OTAPI_Exec::GetNym_InboxHash(
@@ -4564,12 +4556,11 @@ std::string OTAPI_Exec::GetAccountWallet_InstrumentDefinitionID(
     if (false == bool(pAccount)) return {};
 
     Identifier theInstrumentDefinitionID(pAccount->GetInstrumentDefinitionID());
-    String strInstrumentDefinitionID(theInstrumentDefinitionID);
     otWarn << OT_METHOD << __FUNCTION__ << ": Returning instrument definition "
-           << strInstrumentDefinitionID << " for account " << THE_ID << "\n";
-    std::string pBuf = strInstrumentDefinitionID.Get();
+           << theInstrumentDefinitionID.str() << " for account " << THE_ID
+           << "\n";
 
-    return pBuf;
+    return theInstrumentDefinitionID.str();
 }
 
 // Returns an account's Notary ID.
@@ -4587,11 +4578,8 @@ std::string OTAPI_Exec::GetAccountWallet_NotaryID(
     if (false == bool(pAccount)) return {};
 
     Identifier theNotaryID(pAccount->GetPurportedNotaryID());
-    String strNotaryID(theNotaryID);
 
-    std::string pBuf = strNotaryID.Get();
-
-    return pBuf;
+    return theNotaryID.str();
 }
 
 // Returns an account's Nym ID.
@@ -4609,11 +4597,8 @@ std::string OTAPI_Exec::GetAccountWallet_NymID(const std::string& THE_ID) const
     if (false == bool(pAccount)) return {};
 
     Identifier theNymID(pAccount->GetNymID());
-    String strNymID(theNymID);
 
-    std::string pBuf = strNymID.Get();
-
-    return pBuf;
+    return theNymID.str();
 }
 
 /*
@@ -7185,12 +7170,9 @@ std::string OTAPI_Exec::Party_GetAgentID(
                       << AGENT_NAME << "\n";
             } else  // We found the agent...
             {
-                std::string str_return;
                 Identifier theAgentID;
                 if (pAgent->IsAnIndividual() && pAgent->GetNymID(theAgentID)) {
-                    const String strTemp(theAgentID);
-                    str_return = strTemp.Get();
-                    return str_return;
+                    return theAgentID.str();
                 }
             }
         }
@@ -8552,7 +8534,7 @@ std::string OTAPI_Exec::Ledger_GetTransactionByIndex(
         //      || !theLedger.LoadBoxReceipts(&setUnloaded)
         // This is done below, for the individual transaction,
         // for better optimization.
-        ) {
+    ) {
         String strAcctID(theAccountID);
         otErr << OT_METHOD << __FUNCTION__
               << ": Error loading ledger from string, or loading box receipts "
@@ -9342,9 +9324,7 @@ std::string OTAPI_Exec::Transaction_GetSenderNymID(
 
         // We found it -- let's return the user ID
         //
-        std::string pBuf = strOutput.Get();
-
-        return pBuf;
+        return theOutput.str();
     } else
         return {};
 }
@@ -9449,9 +9429,7 @@ std::string OTAPI_Exec::Transaction_GetRecipientNymID(
 
         // We found it -- let's return the user ID
         //
-        std::string pBuf = strOutput.Get();
-
-        return pBuf;
+        return theOutput.str();
     } else
         return {};
 }
@@ -9627,9 +9605,7 @@ std::string OTAPI_Exec::Transaction_GetRecipientAcctID(
 
         // We found it -- let's return the user ID
         //
-        std::string pBuf = strOutput.Get();
-
-        return pBuf;
+        return theOutput.str();
     } else
         return {};
 }
@@ -11416,9 +11392,7 @@ std::string OTAPI_Exec::Basket_GetMemberType(
         theInstrumentDefinitionID, nIndex, theOutputMemberType);
     if (!bGotType) return {};
 
-    String strOutput(theOutputMemberType);
-    std::string pBuf = strOutput.Get();
-    return pBuf;
+    return theOutputMemberType.str();
 }
 
 // GET BASKET MINIMUM TRANSFER AMOUNT

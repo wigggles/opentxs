@@ -305,7 +305,7 @@ bool CmdBase::checkPurse(const char* name, string& purse) const
         return false;
     }
 
-    purse = String(pUnit->ID()).Get();
+    purse = pUnit->ID().str();
     otOut << "Using " << name << ": " << purse << "\n";
     return true;
 }
@@ -357,7 +357,7 @@ bool CmdBase::checkServer(const char* name, string& server) const
         return false;
     }
 
-    server = String(pServer->ID()).Get();
+    server = pServer->ID().str();
     otOut << "Using " << name << ": " << server << "\n";
     return true;
 }

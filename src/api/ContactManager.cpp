@@ -205,7 +205,7 @@ std::shared_ptr<const class Contact> ContactManager::Contact(
 
 Identifier ContactManager::ContactID(const Identifier& nymID) const
 {
-    return Identifier(storage_.ContactOwnerNym(String(nymID).Get()));
+    return Identifier(storage_.ContactOwnerNym(nymID.str()));
 }
 
 ObjectList ContactManager::ContactList() const
@@ -232,7 +232,7 @@ void ContactManager::import_contacts(const rLock& lock)
 
     for (const auto& it : nyms) {
         const Identifier nymID(it.first);
-        const auto contactID = storage_.ContactOwnerNym(String(nymID).Get());
+        const auto contactID = storage_.ContactOwnerNym(nymID.str());
 
         if (contactID.empty()) {
             const auto nym = wallet_.Nym(nymID);
@@ -305,7 +305,7 @@ ContactManager::ContactMap::iterator ContactManager::load_contact(
     }
 
     std::shared_ptr<proto::Contact> serialized{nullptr};
-    const auto loaded = storage_.Load(String(id).Get(), serialized, SILENT);
+    const auto loaded = storage_.Load(id.str(), serialized, SILENT);
 
     if (false == loaded) {
         otErr << OT_METHOD << __FUNCTION__ << ": Unable to load contact "
@@ -337,8 +337,8 @@ std::shared_ptr<const class Contact> ContactManager::Merge(
     auto childContact = contact(lock, child);
 
     if (false == bool(childContact)) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Child contact "
-              << String(child).Get() << " can not be loaded." << std::endl;
+        otErr << OT_METHOD << __FUNCTION__ << ": Child contact " << child.str()
+              << " can not be loaded." << std::endl;
 
         return {};
     }
@@ -346,9 +346,8 @@ std::shared_ptr<const class Contact> ContactManager::Merge(
     const auto& childID = childContact->ID();
 
     if (childID != child) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Child contact "
-              << String(child).Get() << " is already merged into "
-              << String(childID).Get() << std::endl;
+        otErr << OT_METHOD << __FUNCTION__ << ": Child contact " << child.str()
+              << " is already merged into " << childID.str() << std::endl;
 
         return {};
     }
@@ -357,7 +356,7 @@ std::shared_ptr<const class Contact> ContactManager::Merge(
 
     if (false == bool(parentContact)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Parent contact "
-              << String(parent).Get() << " can not be loaded." << std::endl;
+              << parent.str() << " can not be loaded." << std::endl;
 
         return {};
     }
@@ -366,8 +365,8 @@ std::shared_ptr<const class Contact> ContactManager::Merge(
 
     if (parentID != parent) {
         otErr << OT_METHOD << __FUNCTION__ << ": Parent contact "
-              << String(parent).Get() << " is merged into "
-              << String(parentID).Get() << std::endl;
+              << parent.str() << " is merged into " << parentID.str()
+              << std::endl;
 
         return {};
     }
@@ -452,7 +451,7 @@ std::shared_ptr<const class Contact> ContactManager::new_contact(
     check_identifiers(nymID, code, haveNymID, havePaymentCode, inputNymID);
 
     if (haveNymID) {
-        const auto contactID = storage_.ContactOwnerNym(String(nymID).Get());
+        const auto contactID = storage_.ContactOwnerNym(nymID.str());
 
         if (false == contactID.empty()) {
 
@@ -590,7 +589,7 @@ void ContactManager::refresh_indices(const rLock& lock, class Contact& contact)
 
     const auto& id = contact.ID();
     contact_name_map_[id] = contact.Label();
-    const std::string rawID{String(id).Get()};
+    const std::string rawID{id.str()};
     publisher_->Publish(rawID);
 }
 
@@ -607,7 +606,7 @@ void ContactManager::save(class Contact* contact) const
 
     const auto& id = contact->ID();
 
-    if (false == storage_.SetContactAlias(String(id).Get(), contact->Label())) {
+    if (false == storage_.SetContactAlias(id.str(), contact->Label())) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Unable to create or save contact." << std::endl;
 
@@ -662,8 +661,7 @@ std::shared_ptr<const class Contact> ContactManager::Update(
 
     const auto& nymID = nym->ID();
     rLock lock(lock_);
-    const auto contactIdentifier =
-        storage_.ContactOwnerNym(String(nymID).Get());
+    const auto contactIdentifier = storage_.ContactOwnerNym(nymID.str());
     const auto contactID = Identifier(contactIdentifier);
 
     if (contactIdentifier.empty()) {
@@ -692,7 +690,7 @@ std::shared_ptr<const class Contact> ContactManager::Update(
 
     OT_ASSERT(output);
 
-    storage_.RelabelThread(String(output->ID()).Get(), output->Label());
+    storage_.RelabelThread(output->ID().str(), output->Label());
 
     return output;
 }
@@ -739,8 +737,7 @@ void ContactManager::update_nym_map(
         throw std::runtime_error("lock error");
     }
 
-    const auto contactIdentifier =
-        storage_.ContactOwnerNym(String(nymID).Get());
+    const auto contactIdentifier = storage_.ContactOwnerNym(nymID.str());
     const bool exists = (false == contactIdentifier.empty());
     const auto& incomingID = contact.ID();
     const auto contactID = Identifier(contactIdentifier);
