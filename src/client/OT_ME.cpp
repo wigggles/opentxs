@@ -1926,7 +1926,7 @@ std::string OT_ME::register_contract_server(
     const std::string& CONTRACT) const
 {
     rLock lock(lock_);
-    auto action = action_.PublishNym(
+    auto action = action_.PublishServerContract(
         Identifier(nymID), Identifier(notaryID), Identifier(CONTRACT));
     std::string strResponse = action->Run();
     std::int32_t nSuccess = VerifyMessageSuccess(strResponse);
@@ -1944,7 +1944,7 @@ std::string OT_ME::register_contract_unit(
     const std::string& CONTRACT) const
 {
     rLock lock(lock_);
-    auto action = action_.PublishNym(
+    auto action = action_.PublishUnitDefinition(
         Identifier(nymID), Identifier(notaryID), Identifier(CONTRACT));
     std::string strResponse = action->Run();
     std::int32_t nSuccess = VerifyMessageSuccess(strResponse);
