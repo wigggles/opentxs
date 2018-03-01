@@ -286,6 +286,24 @@ void Identifier::GetString(String& id) const
     id.swap(output);
 }
 
+std::string Identifier::str() const
+{
+    auto data = Data::Factory();
+    data->Assign(&type_, sizeof(type_));
+
+    OT_ASSERT(1 == data->GetSize());
+
+    if (0 == GetSize()) {
+        return std::move(std::string());
+    }
+
+    data->Concatenate(GetPointer(), GetSize());
+
+    std::string output("ot");
+    output.append(OT::App().Crypto().Encode().IdentifierEncode(data).c_str());
+    return std::move(output);
+}
+
 OTData Identifier::path_to_data(
     const proto::ContactItemType type,
     const proto::HDPath& path)

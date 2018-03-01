@@ -217,7 +217,7 @@ std::pair<bool, std::size_t> Sync::accept_incoming(
 {
     std::pair<bool, std::size_t> output{false, 0};
     auto & [ success, remaining ] = output;
-    const std::string account = String(accountID).Get();
+    const std::string account = accountID.str();
     auto processInbox = ot_api_.CreateProcessInbox(accountID, context);
     auto& response = std::get<0>(processInbox);
     auto& inbox = std::get<1>(processInbox);
@@ -325,9 +325,9 @@ bool Sync::AcceptIncoming(
 
             Utility utility(context.It(), ot_api_);
             const auto download = utility.getIntermediaryFiles(
-                String(context.It().Server()).Get(),
-                String(context.It().Nym()->ID()).Get(),
-                String(accountID).Get(),
+                context.It().Server().str(),
+                context.It().Nym()->ID().str(),
+                accountID.str(),
                 true);
 
             if (false == download) {
@@ -385,8 +385,8 @@ Depositability Sync::can_deposit(
         return output;
     }
 
-    const bool registered = exec_.IsNym_RegisteredAtServer(
-        String(recipient).Get(), String(depositServer).Get());
+    const bool registered =
+        exec_.IsNym_RegisteredAtServer(recipient.str(), depositServer.str());
 
     if (false == registered) {
         schedule_download_nymbox(recipient, depositServer);
@@ -517,8 +517,8 @@ Messagability Sync::can_message(
         return Messagability::NO_SERVER_CLAIM;
     }
 
-    const bool registered = exec_.IsNym_RegisteredAtServer(
-        String(senderNymID).Get(), String(serverID).Get());
+    const bool registered =
+        exec_.IsNym_RegisteredAtServer(senderNymID.str(), serverID.str());
 
     if (false == registered) {
         schedule_download_nymbox(senderNymID, serverID);
@@ -1168,7 +1168,7 @@ bool Sync::publish_server_registration(
 
     auto nym = wallet_.mutable_Nym(nymID);
 
-    return nym.AddPreferredOTServer(String(serverID).Get(), forcePrimary);
+    return nym.AddPreferredOTServer(serverID.str(), forcePrimary);
 }
 
 Identifier Sync::random_id() const
@@ -1528,7 +1528,7 @@ void Sync::set_contact(const Identifier& nymID, const Identifier& serverID)
     const auto server = nym.PreferredOTServer();
 
     if (server.empty()) {
-        nym.AddPreferredOTServer(String(serverID).Get(), true);
+        nym.AddPreferredOTServer(serverID.str(), true);
     }
 }
 

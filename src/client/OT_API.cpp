@@ -4572,7 +4572,7 @@ std::string OT_API::NymIDFromPaymentCode(__attribute__((unused))
     PaymentCode code(paymentCode);
 
     if (code.VerifyInternally()) {
-        return String(code.ID()).Get();
+        return code.ID().str();
     } else {
         return "";
     }
@@ -8592,11 +8592,10 @@ bool OT_API::IsBasketCurrency(const Identifier& BASKET_INSTRUMENT_DEFINITION_ID)
 {
     rLock lock(lock_);
 
-    String contractID(BASKET_INSTRUMENT_DEFINITION_ID);
-
     std::shared_ptr<proto::UnitDefinition> contract;
 
-    bool loaded = storage_.Load(contractID.Get(), contract, true);
+    bool loaded =
+        storage_.Load(BASKET_INSTRUMENT_DEFINITION_ID.str(), contract, true);
 
     if (!loaded) {
         return false;
@@ -8615,9 +8614,8 @@ std::int32_t OT_API::GetBasketMemberCount(
 {
     rLock lock(lock_);
 
-    String contractID(BASKET_INSTRUMENT_DEFINITION_ID);
     std::shared_ptr<proto::UnitDefinition> serialized;
-    storage_.Load(contractID.Get(), serialized, true);
+    storage_.Load(BASKET_INSTRUMENT_DEFINITION_ID.str(), serialized, true);
 
     if (!serialized) {
         return 0;
@@ -8643,9 +8641,8 @@ bool OT_API::GetBasketMemberType(
 {
     rLock lock(lock_);
 
-    String contractID(BASKET_INSTRUMENT_DEFINITION_ID);
     std::shared_ptr<proto::UnitDefinition> serialized;
-    storage_.Load(contractID.Get(), serialized, true);
+    storage_.Load(BASKET_INSTRUMENT_DEFINITION_ID.str(), serialized, true);
 
     if (!serialized) {
         return false;
@@ -8680,9 +8677,8 @@ std::int64_t OT_API::GetBasketMemberMinimumTransferAmount(
 {
     rLock lock(lock_);
 
-    String contractID(BASKET_INSTRUMENT_DEFINITION_ID);
     std::shared_ptr<proto::UnitDefinition> serialized;
-    storage_.Load(contractID.Get(), serialized, true);
+    storage_.Load(BASKET_INSTRUMENT_DEFINITION_ID.str(), serialized, true);
 
     if (!serialized) {
         return 0;
@@ -8711,9 +8707,8 @@ std::int64_t OT_API::GetBasketMinimumTransferAmount(
 {
     rLock lock(lock_);
 
-    String contractID(BASKET_INSTRUMENT_DEFINITION_ID);
     std::shared_ptr<proto::UnitDefinition> serialized;
-    storage_.Load(contractID.Get(), serialized, true);
+    storage_.Load(BASKET_INSTRUMENT_DEFINITION_ID.str(), serialized, true);
 
     if (!serialized) {
         return 0;
@@ -9344,10 +9339,8 @@ CommandResult OT_API::notarizeWithdrawal(
     }
 
     const auto& contractID = account->GetInstrumentDefinitionID();
-    const bool exists = OTDB::Exists(
-        OTFolders::Mint().Get(),
-        String(serverID).Get(),
-        String(contractID).Get());
+    const bool exists =
+        OTDB::Exists(OTFolders::Mint().Get(), serverID.str(), contractID.str());
 
     if (false == exists) {
         otErr << OT_METHOD << __FUNCTION__
@@ -13789,7 +13782,7 @@ OT_API::ProcessInbox OT_API::CreateProcessInbox(
     const ServerContext& context) const
 {
     rLock lock(lock_);
-    const std::string account = String(accountID).Get();
+    const std::string account = accountID.str();
     const auto& serverID = context.Server();
     const auto& nym = *context.Nym();
     const auto& nymID = nym.GetConstID();
@@ -13967,7 +13960,7 @@ bool OT_API::FinalizeProcessInbox(
     if (!boxesLoaded) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Unable to load or verify outbox for account "
-              << String(accountID).Get() << std::endl;
+              << accountID.str() << std::endl;
 
         return false;
     }
@@ -14299,8 +14292,7 @@ OTTransaction* OT_API::get_or_create_process_inbox(
             context.NextTransactionNumber(MessageType::processInbox);
 
         if (false == number.Valid()) {
-            otErr << OT_METHOD << __FUNCTION__ << ": Nym "
-                  << String(nymID).Get()
+            otErr << OT_METHOD << __FUNCTION__ << ": Nym " << nymID.str()
                   << " is all out of transaction numbers." << std::endl;
 
             return {};
@@ -14321,7 +14313,7 @@ OTTransaction* OT_API::get_or_create_process_inbox(
         if (false == bool(newProcessInbox)) {
             otErr << OT_METHOD << __FUNCTION__
                   << ": Error generating processInbox transaction for AcctID: "
-                  << String(accountID).Get() << std::endl;
+                  << accountID.str() << std::endl;
 
             return {};
         }
