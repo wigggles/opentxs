@@ -294,14 +294,14 @@ std::string Identifier::str() const
     OT_ASSERT(1 == data->GetSize());
 
     if (0 == GetSize()) {
-        return std::move(std::string());
+        return {};
     }
 
     data->Concatenate(GetPointer(), GetSize());
 
     std::string output("ot");
     output.append(OT::App().Crypto().Encode().IdentifierEncode(data).c_str());
-    return std::move(output);
+    return output;
 }
 
 OTData Identifier::path_to_data(
