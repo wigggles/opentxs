@@ -362,11 +362,8 @@ endif()
 #-----------------------------------------------------------------------------
 # Build Unit tests
 
-if(NOT ANDROID)
-	find_package(GTest REQUIRED)
-endif()
-
-if(GTEST_FOUND AND BUILD_TESTS AND NOT ANDROID)
+if(BUILD_TESTS AND NOT ANDROID)
+  find_package(GTest REQUIRED)
   enable_testing()
 endif()
 
