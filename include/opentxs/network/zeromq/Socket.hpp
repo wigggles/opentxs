@@ -68,6 +68,7 @@ public:
     using MessageSendResult = std::pair<SendResult, OTZMQMessage>;
 
     EXPORT static const std::string ContactUpdateEndpoint;
+    EXPORT static const std::string PendingBailmentEndpoint;
 
     EXPORT virtual SocketType Type() const = 0;
 
