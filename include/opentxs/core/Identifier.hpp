@@ -70,6 +70,7 @@ private:
 public:
     EXPORT friend std::ostream& operator<<(std::ostream& os, const String& obj);
     EXPORT static bool validateID(const std::string& strPurportedID);
+    EXPORT static Identifier Random();
 
     EXPORT Identifier();
 

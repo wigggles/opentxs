@@ -121,6 +121,8 @@ class Server;
 
 namespace ui
 {
+class ActivitySummary;
+class ActivitySummaryItem;
 class ContactList;
 class ContactListItem;
 }  // namespace opentxs::ui
@@ -220,6 +222,8 @@ using OTZMQReplyCallback = Pimpl<network::zeromq::ReplyCallback>;
 using OTZMQReplySocket = Pimpl<network::zeromq::ReplySocket>;
 using OTZMQRequestSocket = Pimpl<network::zeromq::RequestSocket>;
 using OTZMQSubscribeSocket = Pimpl<network::zeromq::SubscribeSocket>;
+using OTUIActivitySummary = Pimpl<ui::ActivitySummary>;
+using OTUIActivitySummaryItem = Pimpl<ui::ActivitySummaryItem>;
 using OTUIContactList = Pimpl<ui::ContactList>;
 using OTUIContactListItem = Pimpl<ui::ContactListItem>;
 }  // namespace opentxs

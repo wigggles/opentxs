@@ -734,7 +734,7 @@ Identifier Sync::DepositPayment(
         case Depositability::NO_ACCOUNT: {
             start_introduction_server(recipientNymID);
             auto& queue = get_operations({recipientNymID, serverID});
-            const auto taskID(random_id());
+            const auto taskID(Identifier::Random());
 
             return start_task(
                 taskID,
@@ -942,7 +942,7 @@ Identifier Sync::FindNym(const Identifier& nymID) const
 {
     CHECK_NYM(nymID)
 
-    const auto taskID(random_id());
+    const auto taskID(Identifier::Random());
 
     return start_task(taskID, missing_nyms_.Push(taskID, nymID));
 }
@@ -954,7 +954,7 @@ Identifier Sync::FindNym(
     CHECK_NYM(nymID)
 
     auto& serverQueue = get_nym_fetch(serverIDHint);
-    const auto taskID(random_id());
+    const auto taskID(Identifier::Random());
 
     return start_task(taskID, serverQueue.Push(taskID, nymID));
 }
@@ -963,7 +963,7 @@ Identifier Sync::FindServer(const Identifier& serverID) const
 {
     CHECK_NYM(serverID)
 
-    const auto taskID(random_id());
+    const auto taskID(Identifier::Random());
 
     return start_task(taskID, missing_servers_.Push(taskID, serverID));
 }
@@ -1152,7 +1152,7 @@ Identifier Sync::MessageContact(
     OT_ASSERT(false == recipientNymID.empty())
 
     auto& queue = get_operations({senderNymID, serverID});
-    const auto taskID(random_id());
+    const auto taskID(Identifier::Random());
 
     return start_task(
         taskID, queue.send_message_.Push(taskID, {recipientNymID, message}));
@@ -1169,16 +1169,6 @@ bool Sync::publish_server_registration(
     auto nym = wallet_.mutable_Nym(nymID);
 
     return nym.AddPreferredOTServer(serverID.str(), forcePrimary);
-}
-
-Identifier Sync::random_id() const
-{
-    Identifier output;
-    auto nonce = Data::Factory();
-    encoding_.Nonce(32, nonce);
-    output.CalculateDigest(nonce);
-
-    return output;
 }
 
 void Sync::Refresh() const
@@ -1216,7 +1206,7 @@ void Sync::refresh_accounts() const
             if (registered) {
                 otWarn << "is ";
                 auto& queue = get_operations({nymID, serverID});
-                const auto taskID(random_id());
+                const auto taskID(Identifier::Random());
                 queue.download_nymbox_.Push(taskID, true);
             } else {
                 otWarn << "is not ";
@@ -1237,7 +1227,7 @@ void Sync::refresh_accounts() const
                << "  * Owned by nym: " << String(nymID) << "\n"
                << "  * On server: " << String(serverID) << std::endl;
         auto& queue = get_operations({nymID, serverID});
-        const auto taskID(random_id());
+        const auto taskID(Identifier::Random());
         queue.download_account_.Push(taskID, accountID);
     }
 
@@ -1281,7 +1271,7 @@ void Sync::refresh_contacts() const
                 otInfo << OT_METHOD << __FUNCTION__
                        << ": We don't have credentials for this nym. "
                        << " Will search on all servers." << std::endl;
-                const auto taskID(random_id());
+                const auto taskID(Identifier::Random());
                 missing_nyms_.Push(taskID, nymID);
 
                 continue;
@@ -1326,7 +1316,7 @@ void Sync::refresh_contacts() const
                            << ": Will download nym " << String(nymID)
                            << " from server " << String(serverID) << std::endl;
                     auto& serverQueue = get_nym_fetch(serverID);
-                    const auto taskID(random_id());
+                    const auto taskID(Identifier::Random());
                     serverQueue.Push(taskID, nymID);
                 }
             } else {
@@ -1439,7 +1429,7 @@ Identifier Sync::schedule_download_nymbox(
 
     start_introduction_server(localNymID);
     auto& queue = get_operations({localNymID, serverID});
-    const auto taskID(random_id());
+    const auto taskID(Identifier::Random());
 
     return start_task(taskID, queue.download_nymbox_.Push(taskID, true));
 }
@@ -1453,7 +1443,7 @@ Identifier Sync::schedule_register_account(
 
     start_introduction_server(localNymID);
     auto& queue = get_operations({localNymID, serverID});
-    const auto taskID(random_id());
+    const auto taskID(Identifier::Random());
 
     return start_task(taskID, queue.register_account_.Push(taskID, unitID));
 }
@@ -1467,7 +1457,7 @@ Identifier Sync::ScheduleDownloadAccount(
 
     start_introduction_server(localNymID);
     auto& queue = get_operations({localNymID, serverID});
-    const auto taskID(random_id());
+    const auto taskID(Identifier::Random());
 
     return start_task(taskID, queue.download_account_.Push(taskID, accountID));
 }
@@ -1481,7 +1471,7 @@ Identifier Sync::ScheduleDownloadContract(
 
     start_introduction_server(localNymID);
     auto& queue = get_operations({localNymID, serverID});
-    const auto taskID(random_id());
+    const auto taskID(Identifier::Random());
 
     return start_task(
         taskID, queue.download_contract_.Push(taskID, contractID));
@@ -1496,7 +1486,7 @@ Identifier Sync::ScheduleDownloadNym(
 
     start_introduction_server(localNymID);
     auto& queue = get_operations({localNymID, serverID});
-    const auto taskID(random_id());
+    const auto taskID(Identifier::Random());
 
     return start_task(taskID, queue.check_nym_.Push(taskID, targetNymID));
 }
@@ -1516,7 +1506,7 @@ Identifier Sync::ScheduleRegisterNym(
 
     start_introduction_server(localNymID);
     auto& queue = get_operations({localNymID, serverID});
-    const auto taskID(random_id());
+    const auto taskID(Identifier::Random());
 
     return start_task(taskID, queue.register_nym_.Push(taskID, true));
 }
@@ -1571,7 +1561,7 @@ void Sync::start_introduction_server(const Identifier& nymID) const
     }
 
     auto& queue = get_operations({nymID, serverID});
-    const auto taskID(random_id());
+    const auto taskID(Identifier::Random());
     start_task(taskID, queue.download_nymbox_.Push(taskID, true));
 }
 

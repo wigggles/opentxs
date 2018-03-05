@@ -14,7 +14,7 @@
  *       -- Scripted smart contracts.
  *
  *  EMAIL:
- *  fellowtraveler\opentransactions.org
+ *  fellowtraveler@opentransactions.org
  *
  *  WEBSITE:
  *  http://www.opentransactions.org/
@@ -36,35 +36,43 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_API_UI_HPP
-#define OPENTXS_API_UI_HPP
+#ifndef OPENTXS_UI_ACTIVITYSUMMARYITEM_HPP
+#define OPENTXS_UI_ACTIVITYSUMMARYITEM_HPP
 
 #include "opentxs/Forward.hpp"
 
+#include "opentxs/Types.hpp"
+
+#include <chrono>
+#include <string>
+
 namespace opentxs
 {
-namespace api
+namespace ui
 {
-class UI
+class ActivitySummaryItem
 {
 public:
-    EXPORT virtual const ui::ActivitySummary& ActivitySummary(
-        const Identifier& nymID) const = 0;
-    EXPORT virtual const ui::ContactList& ContactList(
-        const Identifier& nymID) const = 0;
+    EXPORT virtual std::string DisplayName() const = 0;
+    EXPORT virtual std::string ImageURI() const = 0;
+    EXPORT virtual bool Last() const = 0;
+    EXPORT virtual std::string Text() const = 0;
+    EXPORT virtual std::string ThreadID() const = 0;
+    EXPORT virtual std::chrono::system_clock::time_point Timestamp() const = 0;
+    EXPORT virtual StorageBox Type() const = 0;
+    EXPORT virtual bool Valid() const = 0;
 
-    virtual ~UI() = default;
+    EXPORT virtual ~ActivitySummaryItem() = default;
 
 protected:
-    UI() = default;
+    ActivitySummaryItem() = default;
 
 private:
-    UI(const UI&) = delete;
-    UI(UI&&) = delete;
-    UI& operator=(const UI&) = delete;
-    UI& operator=(UI&&) = delete;
+    ActivitySummaryItem(const ActivitySummaryItem&) = delete;
+    ActivitySummaryItem(ActivitySummaryItem&&) = delete;
+    ActivitySummaryItem& operator=(const ActivitySummaryItem&) = delete;
+    ActivitySummaryItem& operator=(ActivitySummaryItem&&) = delete;
 };
-}  // namespace api
+}  // namespace ui
 }  // namespace opentxs
-
-#endif  // OPENTXS_API_UI_HPP
+#endif  // OPENTXS_UI_ACTIVITYSUMMARYITEM_HPP

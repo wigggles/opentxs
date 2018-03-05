@@ -69,6 +69,7 @@ public:
 
     EXPORT static const std::string ContactUpdateEndpoint;
     EXPORT static const std::string PendingBailmentEndpoint;
+    EXPORT static const std::string ThreadUpdateEndpoint;
 
     EXPORT virtual SocketType Type() const = 0;
 

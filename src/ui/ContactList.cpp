@@ -238,7 +238,7 @@ bool ContactList::increment_name(const Lock& lock) const
     return true;
 }
 
-/** Returns the next non-owner contact, or loops around to the owner contact */
+/** Returns the next non-owner contact and increments iterators */
 const opentxs::ui::ContactListItem& ContactList::next(const Lock& lock) const
 {
     VALID_ITERATORS()

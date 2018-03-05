@@ -81,6 +81,8 @@ namespace ui
 {
 namespace implementation
 {
+class ActivitySummary;
+class ActivitySummaryItem;
 class ContactList;
 class ContactListItem;
 }  // namespace opentxs::ui::implementation

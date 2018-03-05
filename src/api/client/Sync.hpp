@@ -248,7 +248,6 @@ private:
         const Identifier& nymID,
         const Identifier& serverID,
         const bool forcePrimary) const;
-    Identifier random_id() const;
     void refresh_accounts() const;
     void refresh_contacts() const;
     bool register_account(

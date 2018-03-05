@@ -38,7 +38,7 @@
 
 #include "opentxs/stdafx.hpp"
 
-#include "opentxs/api/Activity.hpp"
+#include "Activity.hpp"
 
 #include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/storage/Storage.hpp"
@@ -49,23 +49,42 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/network/zeromq/Context.hpp"
+#include "opentxs/network/zeromq/PublishSocket.hpp"
 
 #include <thread>
 
-#define OT_METHOD "opentxs::Activity::"
+#define OT_METHOD "opentxs::api::implementation::Activity::"
 
-namespace opentxs::api
+namespace opentxs::api::implementation
 {
 Activity::Activity(
     const ContactManager& contact,
     const storage::Storage& storage,
-    const client::Wallet& wallet)
+    const client::Wallet& wallet,
+    const opentxs::network::zeromq::Context& zmq)
     : contact_(contact)
     , storage_(storage)
     , wallet_(wallet)
+    , zmq_(zmq)
     , mail_cache_lock_()
     , mail_cache_()
+    , publisher_lock_()
+    , thread_publishers_()
 {
+}
+
+void Activity::activity_preload_thread(
+    const Identifier nym,
+    const std::size_t count) const
+{
+    const std::string nymID = nym.str();
+    auto threads = storage_.ThreadList(nymID, false);
+
+    for (const auto& it : threads) {
+        const auto& threadID = it.first;
+        thread_preload_thread(nymID, threadID, 0, count);
+    }
 }
 
 bool Activity::AddBlockchainTransaction(
@@ -95,7 +114,46 @@ bool Activity::AddBlockchainTransaction(
     const bool saved = storage_.Store(
         sNymID, sthreadID, transaction.txid(), transaction.time(), {}, {}, box);
 
+    if (saved) {
+        publish(nymID, sthreadID);
+    }
+
     return saved;
+}
+
+const opentxs::network::zeromq::PublishSocket& Activity::get_publisher(
+    const Identifier& nymID) const
+{
+    std::string endpoint{};
+
+    return get_publisher(nymID, endpoint);
+}
+
+const opentxs::network::zeromq::PublishSocket& Activity::get_publisher(
+    const Identifier& nymID,
+    std::string& endpoint) const
+{
+    endpoint =
+        opentxs::network::zeromq::Socket::ThreadUpdateEndpoint + nymID.str();
+    Lock lock(publisher_lock_);
+    auto it = thread_publishers_.find(nymID);
+
+    if (thread_publishers_.end() != it) {
+
+        return it->second;
+    }
+
+    const auto & [ publisher, inserted ] =
+        thread_publishers_.emplace(nymID, zmq_.PublishSocket());
+
+    OT_ASSERT(inserted)
+
+    auto& output = publisher->second.get();
+    output.Start(endpoint);
+    otWarn << OT_METHOD << __FUNCTION__ << ": Publisher started on " << endpoint
+           << std::endl;
+
+    return output;
 }
 
 bool Activity::MoveIncomingBlockchainTransaction(
@@ -106,36 +164,6 @@ bool Activity::MoveIncomingBlockchainTransaction(
 {
     return storage_.MoveThreadItem(
         nymID.str(), fromThreadID.str(), toThreadID.str(), txid);
-}
-
-std::shared_ptr<const Contact> Activity::nym_to_contact(
-    const std::string& id) const
-{
-    const Identifier nymID(id);
-    auto contactID = contact_.ContactID(nymID);
-
-    if (false == contactID.empty()) {
-
-        return contact_.Contact(contactID);
-    }
-
-    // Contact does not yet exist. Create it.
-    std::string label{};
-    auto nym = wallet_.Nym(nymID);
-    std::unique_ptr<PaymentCode> code;
-
-    if (nym) {
-        label = nym->Claims().Name();
-        code.reset(new PaymentCode(nym->PaymentCode()));
-    }
-
-    if (false == bool(code)) {
-        code.reset(new PaymentCode(""));
-    }
-
-    OT_ASSERT(code);
-
-    return contact_.NewContact(label, nymID, *code);
 }
 
 std::unique_ptr<Message> Activity::Mail(
@@ -232,6 +260,7 @@ std::string Activity::Mail(
     if (saved) {
         std::thread preload(&Activity::preload, this, nym, id, box);
         preload.detach();
+        publish(nym, threadID);
 
         return output;
     }
@@ -280,55 +309,6 @@ std::shared_ptr<const std::string> Activity::MailText(
     }
 
     return it->second;
-}
-
-void Activity::preload(
-    const Identifier nymID,
-    const Identifier id,
-    const StorageBox box) const
-{
-    const auto message = Mail(nymID, id, box);
-
-    if (!message) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Unable to load message "
-              << String(id) << std::endl;
-
-        return;
-    }
-
-    auto nym = wallet_.Nym(nymID);
-
-    if (false == bool(nym)) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Unable to load recipent nym."
-              << std::endl;
-
-        return;
-    }
-
-    otErr << OT_METHOD << __FUNCTION__ << ": Decrypting message " << id.str()
-          << std::endl;
-    auto peerObject = PeerObject::Factory(nym, message->m_ascPayload);
-    otErr << OT_METHOD << __FUNCTION__ << ": Message " << id.str()
-          << " decrypted." << std::endl;
-
-    if (!peerObject) {
-        otErr << OT_METHOD << __FUNCTION__
-              << ": Unable to instantiate peer object." << std::endl;
-
-        return;
-    }
-
-    if (!peerObject->Message()) {
-        otErr << OT_METHOD << __FUNCTION__
-              << ": Peer object does not contain a message." << std::endl;
-
-        return;
-    }
-
-    Lock lock(mail_cache_lock_);
-    auto& output = mail_cache_[id];
-    lock.unlock();
-    output.reset(new std::string(*peerObject->Message()));
 }
 
 bool Activity::MarkRead(
@@ -408,17 +388,83 @@ void Activity::MigrateLegacyThreads() const
     }
 }
 
-void Activity::activity_preload_thread(
-    const Identifier nym,
-    const std::size_t count) const
+std::shared_ptr<const Contact> Activity::nym_to_contact(
+    const std::string& id) const
 {
-    const std::string nymID = nym.str();
-    auto threads = storage_.ThreadList(nymID, false);
+    const Identifier nymID(id);
+    auto contactID = contact_.ContactID(nymID);
 
-    for (const auto& it : threads) {
-        const auto& threadID = it.first;
-        thread_preload_thread(nymID, threadID, 0, count);
+    if (false == contactID.empty()) {
+
+        return contact_.Contact(contactID);
     }
+
+    // Contact does not yet exist. Create it.
+    std::string label{};
+    auto nym = wallet_.Nym(nymID);
+    std::unique_ptr<PaymentCode> code;
+
+    if (nym) {
+        label = nym->Claims().Name();
+        code.reset(new PaymentCode(nym->PaymentCode()));
+    }
+
+    if (false == bool(code)) {
+        code.reset(new PaymentCode(""));
+    }
+
+    OT_ASSERT(code);
+
+    return contact_.NewContact(label, nymID, *code);
+}
+
+void Activity::preload(
+    const Identifier nymID,
+    const Identifier id,
+    const StorageBox box) const
+{
+    const auto message = Mail(nymID, id, box);
+
+    if (!message) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Unable to load message "
+              << String(id) << std::endl;
+
+        return;
+    }
+
+    auto nym = wallet_.Nym(nymID);
+
+    if (false == bool(nym)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Unable to load recipent nym."
+              << std::endl;
+
+        return;
+    }
+
+    otErr << OT_METHOD << __FUNCTION__ << ": Decrypting message " << id.str()
+          << std::endl;
+    auto peerObject = PeerObject::Factory(nym, message->m_ascPayload);
+    otErr << OT_METHOD << __FUNCTION__ << ": Message " << id.str()
+          << " decrypted." << std::endl;
+
+    if (!peerObject) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Unable to instantiate peer object." << std::endl;
+
+        return;
+    }
+
+    if (!peerObject->Message()) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Peer object does not contain a message." << std::endl;
+
+        return;
+    }
+
+    Lock lock(mail_cache_lock_);
+    auto& output = mail_cache_[id];
+    lock.unlock();
+    output.reset(new std::string(*peerObject->Message()));
 }
 
 void Activity::PreloadActivity(const Identifier& nymID, const std::size_t count)
@@ -439,6 +485,13 @@ void Activity::PreloadThread(
     std::thread preload(
         &Activity::thread_preload_thread, this, nym, thread, start, count);
     preload.detach();
+}
+
+void Activity::publish(const Identifier& nymID, const std::string& threadID)
+    const
+{
+    auto& publisher = get_publisher(nymID);
+    publisher.Publish(threadID);
 }
 
 std::shared_ptr<proto::StorageThread> Activity::Thread(
@@ -501,6 +554,14 @@ void Activity::thread_preload_thread(
     }
 }
 
+std::string Activity::ThreadPublisher(const Identifier& nym) const
+{
+    std::string endpoint{};
+    get_publisher(nym, endpoint);
+
+    return endpoint;
+}
+
 ObjectList Activity::Threads(const Identifier& nym, const bool unreadOnly) const
 {
     const std::string nymID = nym.str();
@@ -541,4 +602,4 @@ std::size_t Activity::UnreadCount(const Identifier& nymId) const
 
     return output;
 }
-}  // namespace opentxs::api
+}  // namespace opentxs::api::implementation
