@@ -951,7 +951,8 @@ OTAPI_Func::OTAPI_Func(
     const Identifier& recipientID,
     const Identifier& requestID,
     const Identifier& instrumentDefinitionID,
-    const std::string& txid)
+    const std::string& txid,
+    const Amount& amount)
     : OTAPI_Func(wallet, exec, otapi, nymID, serverID, theType)
 {
     std::string strError =
@@ -968,6 +969,7 @@ OTAPI_Func::OTAPI_Func(
         requestID_ = requestID;
         instrumentDefinitionID_ = instrumentDefinitionID;
         txid_ = txid;
+        amount_ = amount;
         peer_request_ = PeerRequest::Create(
             context_.Nym(),
             proto::PEERREQUEST_PENDINGBAILMENT,
@@ -975,7 +977,8 @@ OTAPI_Func::OTAPI_Func(
             context_.Server(),
             accountID_,  // Recepient
             requestID_,  // Request ID
-            txid_);      // txid
+            txid_,       // txid
+            amount_);
 
         OT_ASSERT(peer_request_)
     } else {

@@ -148,7 +148,8 @@ std::unique_ptr<PeerRequest> PeerRequest::Create(
     const Identifier& serverID,
     const Identifier& recipient,
     const Identifier& requestID,
-    const std::string& txid)
+    const std::string& txid,
+    const Amount& amount)
 {
     auto unit = OT::App().Wallet().UnitDefinition(unitID);
 
@@ -164,7 +165,7 @@ std::unique_ptr<PeerRequest> PeerRequest::Create(
     switch (type) {
         case (proto::PEERREQUEST_PENDINGBAILMENT): {
             contract.reset(new BailmentNotice(
-                sender, recipient, unitID, serverID, requestID, txid));
+                sender, recipient, unitID, serverID, requestID, txid, amount));
             break;
         }
         default: {

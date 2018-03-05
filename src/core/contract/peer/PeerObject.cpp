@@ -49,8 +49,6 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/OT.hpp"
 
-#define CURRENT_VERSION 5
-
 #define OT_METHOD "opentxs::PeerObject::"
 
 namespace opentxs
@@ -114,18 +112,21 @@ PeerObject::PeerObject(const std::string& payment, const ConstNym& senderNym)
 
 PeerObject::PeerObject(
     const std::shared_ptr<PeerRequest>& request,
-    const std::shared_ptr<PeerReply>& reply)
+    const std::shared_ptr<PeerReply>& reply,
+    const std::uint32_t& version)
     : reply_(reply)
     , request_(request)
     , type_(proto::PEEROBJECT_RESPONSE)
-    , version_(CURRENT_VERSION)
+    , version_(version)
 {
 }
 
-PeerObject::PeerObject(const std::shared_ptr<PeerRequest>& request)
+PeerObject::PeerObject(
+    const std::shared_ptr<PeerRequest>& request,
+    const std::uint32_t& version)
     : request_(request)
     , type_(proto::PEEROBJECT_REQUEST)
-    , version_(CURRENT_VERSION)
+    , version_(version)
 {
 }
 
@@ -163,9 +164,10 @@ std::unique_ptr<PeerObject> PeerObject::Create(
 
 std::unique_ptr<PeerObject> PeerObject::Create(
     const std::shared_ptr<PeerRequest>& request,
-    const std::shared_ptr<PeerReply>& reply)
+    const std::shared_ptr<PeerReply>& reply,
+    const std::uint32_t& version)
 {
-    std::unique_ptr<PeerObject> output(new PeerObject(request, reply));
+    std::unique_ptr<PeerObject> output(new PeerObject(request, reply, version));
 
     if (!output->Validate()) {
         output.reset();
@@ -175,9 +177,10 @@ std::unique_ptr<PeerObject> PeerObject::Create(
 }
 
 std::unique_ptr<PeerObject> PeerObject::Create(
-    const std::shared_ptr<PeerRequest>& request)
+    const std::shared_ptr<PeerRequest>& request,
+    const std::uint32_t& version)
 {
-    std::unique_ptr<PeerObject> output(new PeerObject(request));
+    std::unique_ptr<PeerObject> output(new PeerObject(request, version));
 
     if (!output->Validate()) {
         output.reset();
@@ -265,11 +268,7 @@ proto::PeerObject PeerObject::Serialize() const
             break;
         }
         case (proto::PEEROBJECT_REQUEST): {
-            if (CURRENT_VERSION > version_) {
-                output.set_version(CURRENT_VERSION);
-            } else {
-                output.set_version(version_);
-            }
+            output.set_version(version_);
 
             if (request_) {
                 *(output.mutable_otrequest()) = request_->Contract();
@@ -282,11 +281,7 @@ proto::PeerObject PeerObject::Serialize() const
             break;
         }
         case (proto::PEEROBJECT_RESPONSE): {
-            if (CURRENT_VERSION > version_) {
-                output.set_version(CURRENT_VERSION);
-            } else {
-                output.set_version(version_);
-            }
+            output.set_version(version_);
 
             if (reply_) {
                 *(output.mutable_otreply()) = reply_->Contract();

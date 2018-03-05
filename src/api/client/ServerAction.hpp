@@ -240,7 +240,8 @@ public:
         const Identifier& targetNymID,
         const Identifier& instrumentDefinitionID,
         const Identifier& requestID,
-        const std::string& txid) const override;
+        const std::string& txid,
+        const Amount amount) const override;
     Action PayDividend(
         const Identifier& localNymID,
         const Identifier& serverID,

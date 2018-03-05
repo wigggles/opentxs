@@ -64,9 +64,11 @@ public:
         const bool isPayment);
     static std::unique_ptr<PeerObject> Create(
         const std::shared_ptr<PeerRequest>& request,
-        const std::shared_ptr<PeerReply>& reply);
+        const std::shared_ptr<PeerReply>& reply,
+        const std::uint32_t& version);
     static std::unique_ptr<PeerObject> Create(
-        const std::shared_ptr<PeerRequest>& request);
+        const std::shared_ptr<PeerRequest>& request,
+        const std::uint32_t& version);
     static std::unique_ptr<PeerObject> Factory(
         const ConstNym& signerNym,
         const proto::PeerObject& serialized);
@@ -100,8 +102,11 @@ private:
     PeerObject(const std::string& payment, const ConstNym& senderNym);
     PeerObject(
         const std::shared_ptr<PeerRequest>& request,
-        const std::shared_ptr<PeerReply>& reply);
-    PeerObject(const std::shared_ptr<PeerRequest>& request);
+        const std::shared_ptr<PeerReply>& reply,
+        const std::uint32_t& version);
+    PeerObject(
+        const std::shared_ptr<PeerRequest>& request,
+        const std::uint32_t& version);
     PeerObject() = delete;
 };
 }  // namespace opentxs

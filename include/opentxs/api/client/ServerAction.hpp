@@ -243,7 +243,8 @@ public:
         const Identifier& targetNymID,
         const Identifier& instrumentDefinitionID,
         const Identifier& requestID,
-        const std::string& txid) const = 0;
+        const std::string& txid,
+        const Amount amount) const = 0;
     EXPORT virtual Action PayDividend(
         const Identifier& localNymID,
         const Identifier& serverID,

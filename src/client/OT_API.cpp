@@ -13552,7 +13552,7 @@ CommandResult OT_API::initiatePeerRequest(
     }
 
     const auto itemID = peerRequest->ID();
-    auto object = PeerObject::Create(peerRequest);
+    auto object = PeerObject::Create(peerRequest, peerRequest->Version());
 
     if (false == bool(object)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to create peer object"
@@ -13627,7 +13627,10 @@ CommandResult OT_API::initiatePeerReply(
 
     const auto itemID = peerReply->ID();
     auto pRequest = std::shared_ptr<PeerRequest>(instantiatedRequest.release());
-    auto object = PeerObject::Create(pRequest, peerReply);
+    const auto version = pRequest->Version() > peerReply->Version()
+                             ? pRequest->Version()
+                             : peerReply->Version();
+    auto object = PeerObject::Create(pRequest, peerReply, version);
 
     if (false == bool(object)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to create peer object"

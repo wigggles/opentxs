@@ -443,7 +443,8 @@ public:
         const std::string& TARGET_NYM_ID,
         const std::string& INSTRUMENT_DEFINITION_ID,
         const std::string& TXID,
-        const std::string& REQUEST_ID) const;
+        const std::string& REQUEST_ID,
+        std::int64_t AMOUNT) const;
 
     EXPORT std::string pay_dividend(
         const std::string& NOTARY_ID,
