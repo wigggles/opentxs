@@ -111,7 +111,8 @@ public:
         const Identifier& serverID,
         const Identifier& recipient,
         const Identifier& requestID,
-        const std::string& txid);
+        const std::string& txid,
+        const Amount& amount);
     static std::unique_ptr<PeerRequest> Create(
         const ConstNym& nym,
         const proto::PeerRequestType& type,

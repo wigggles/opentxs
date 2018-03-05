@@ -105,6 +105,7 @@ public:
     virtual const std::string& Terms() const;
     virtual OTData Serialize() const = 0;
     bool Validate() const;
+    const std::uint32_t& Version() const;
 
     virtual void SetAlias(const std::string& alias);
 

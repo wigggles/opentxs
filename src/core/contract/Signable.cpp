@@ -162,4 +162,6 @@ bool Signable::verify_signature(const Lock& lock, const proto::Signature&) const
 
     return true;
 }
+
+const std::uint32_t& Signable::Version() const { return version_; }
 }  // namespace opentxs

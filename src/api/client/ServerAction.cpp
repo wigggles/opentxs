@@ -697,7 +697,8 @@ ServerAction::Action ServerAction::NotifyBailment(
     const Identifier& targetNymID,
     const Identifier& instrumentDefinitionID,
     const Identifier& requestID,
-    const std::string& txid) const
+    const std::string& txid,
+    const Amount amount) const
 {
     return Action(new OTAPI_Func(
         NOTIFY_BAILMENT,
@@ -709,7 +710,8 @@ ServerAction::Action ServerAction::NotifyBailment(
         targetNymID,
         requestID,
         instrumentDefinitionID,
-        txid));
+        txid,
+        amount));
 }
 
 ServerAction::Action ServerAction::PayDividend(

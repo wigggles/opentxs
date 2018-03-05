@@ -317,7 +317,8 @@ public:
         const Identifier& recipientID,
         const Identifier& requestID,
         const Identifier& instrumentDefinitionID,
-        const std::string& txid);
+        const std::string& txid,
+        const Amount& amount);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         const api::client::Wallet& wallet,
