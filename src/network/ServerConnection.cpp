@@ -79,7 +79,7 @@ ServerConnection::ServerConnection(
     const std::string& serverID)
     : zmq_(zmq)
     , server_id_(serverID)
-    , address_type_(proto::ADDRESSTYPE_IPV4)
+    , address_type_(zmq.DefaultAddressType())
     , remote_contract_(OT::App().Wallet().Server(Identifier(serverID)))
     , thread_(nullptr)
     , socket_(zmq.Context().RequestSocket())
@@ -125,8 +125,8 @@ std::string ServerConnection::endpoint() const
 {
     std::uint32_t port{0};
     std::string hostname{""};
-    const auto have = remote_contract_->ConnectInfo(
-        hostname, port, zmq_.DefaultAddressType());
+    const auto have =
+        remote_contract_->ConnectInfo(hostname, port, address_type_);
 
     if (false == have) {
         otErr << OT_METHOD << __FUNCTION__
