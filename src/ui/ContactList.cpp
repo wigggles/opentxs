@@ -291,8 +291,8 @@ void ContactList::rename_contact(
     const std::string& newName)
 {
     OT_ASSERT(verify_lock(lock));
+    OT_ASSERT(1 == items_.count(oldName))
 
-    names_[contactID] = newName;
     auto name = items_.find(oldName);
 
     OT_ASSERT(items_.end() != name);
@@ -312,6 +312,11 @@ void ContactList::rename_contact(
 
     OT_ASSERT(1 == deleted)
 
+    if (0 == contactMap.size()) {
+        items_.erase(name);
+    }
+
+    names_[contactID] = newName;
     items_[newName].emplace(contactID, std::move(item));
 }
 
