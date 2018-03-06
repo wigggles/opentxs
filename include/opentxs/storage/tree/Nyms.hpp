@@ -48,6 +48,7 @@
 
 #include <map>
 #include <mutex>
+#include <set>
 #include <string>
 #include <tuple>
 
@@ -65,6 +66,7 @@ private:
     friend class Tree;
 
     mutable std::map<std::string, std::unique_ptr<class Nym>> nyms_;
+    std::set<std::string> local_nyms_{};
 
     class Nym* nym(const std::string& id) const;
     class Nym* nym(const Lock& lock, const std::string& id) const;
@@ -89,6 +91,7 @@ public:
 
     Editor<class Nym> mutable_Nym(const std::string& id);
     bool RelabelThread(const std::string& threadID, const std::string label);
+    void UpgradeLocalnym();
 
     ~Nyms() = default;
 };

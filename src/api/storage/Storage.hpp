@@ -299,6 +299,7 @@ public:
     std::size_t UnreadCount(
         const std::string& nymId,
         const std::string& threadId) const override;
+    void UpgradeNyms() override;
 
     ~Storage();
 

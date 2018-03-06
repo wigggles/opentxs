@@ -282,6 +282,7 @@ public:
     virtual std::size_t UnreadCount(
         const std::string& nymId,
         const std::string& threadId) const = 0;
+    virtual void UpgradeNyms() = 0;
 
     virtual ~Storage() = default;
 

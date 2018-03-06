@@ -1001,6 +1001,10 @@ void Native::start()
     }
 
     Init_StorageBackup();
+
+    OT_ASSERT(storage_);
+
+    storage_->UpgradeNyms();
     dynamic_cast<ContactManager&>(*contacts_).start();
     activity.MigrateLegacyThreads();
     Init_Periodic();

@@ -1553,6 +1553,26 @@ std::size_t Storage::UnreadCount(
     return threads.Thread(threadId).UnreadCount();
 }
 
+void Storage::UpgradeNyms()
+{
+    const auto level = Root().Tree().NymNode().UpgradeLevel();
+
+    if (3 > level) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Beginning upgrade for version "
+              << level << std::endl;
+        mutable_Root()
+            .It()
+            .mutable_Tree()
+            .It()
+            .mutable_Nyms()
+            .It()
+            .UpgradeLocalnym();
+    } else {
+        otInfo << OT_METHOD << __FUNCTION__ << ": No need to upgrade version "
+               << level << std::endl;
+    }
+}
+
 bool Storage::verify_write_lock(const Lock& lock) const
 {
     if (lock.mutex() != &write_lock_) {
