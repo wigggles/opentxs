@@ -52,7 +52,7 @@ extern "C" {
 namespace opentxs
 {
 
-const std::map<int, std::function<void()>> Signals::handler_{
+const std::map<int, std::function<bool()>> Signals::handler_{
     {1, &Signals::handle_1},   {2, &Signals::handle_2},
     {3, &Signals::handle_3},   {4, &Signals::handle_4},
     {5, &Signals::handle_5},   {6, &Signals::handle_6},
@@ -94,7 +94,11 @@ void Signals::handle()
         int sig{0};
 
         if (0 == sigwait(&allSignals, &sig)) {
-            process(sig);
+            auto shouldBreak = process(sig);
+
+            if (shouldBreak) {
+                break;
+            }
         } else {
             otErr << OT_METHOD << __FUNCTION__
                   << ": ERROR: Invalid signal received." << std::endl;
@@ -102,7 +106,7 @@ void Signals::handle()
     }
 }
 
-void Signals::process(const int signal)
+bool Signals::process(const int signal)
 {
     auto handler = handler_.find(signal);
 
@@ -110,13 +114,17 @@ void Signals::process(const int signal)
         otErr << OT_METHOD << __FUNCTION__ << ": Unhandled signal "
               << std::to_string(signal) << " received." << std::endl;
 
-        return;
+        return false;
     }
 
-    std::get<1> (*handler)();
+    return std::get<1>(*handler)();
 }
 
-void Signals::shutdown() { OT::Cleanup(); }
+bool Signals::shutdown()
+{
+    OT::Cleanup();
+    return true;
+}
 
 Signals::~Signals()
 {

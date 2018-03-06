@@ -972,9 +972,9 @@ void Native::shutdown()
     api_.reset();
     blockchain_.reset();
     activity_.reset();
+    contacts_.reset();
     identity_.reset();
     dht_.reset();
-    contacts_.reset();
     wallet_.reset();
     zeromq_.reset();
     storage_.reset();
