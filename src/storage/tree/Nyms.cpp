@@ -49,6 +49,8 @@
 
 #include <functional>
 
+#define CURRENT_VERSION 3
+
 #define OT_METHOD "opentxs::storage::Nyms::"
 
 namespace opentxs
@@ -59,11 +61,13 @@ Nyms::Nyms(
     const opentxs::api::storage::Driver& storage,
     const std::string& hash)
     : Node(storage, hash)
+    , nyms_()
+    , local_nyms_()
 {
     if (check_hash(hash)) {
         init(hash);
     } else {
-        version_ = 2;
+        version_ = CURRENT_VERSION;
         root_ = Node::BLANK_HASH;
     }
 }
@@ -86,16 +90,24 @@ void Nyms::init(const std::string& hash)
         abort();
     }
 
-    version_ = serialized->version();
+    original_version_ = serialized->version();
 
-    // Upgrade to version 2
-    if (2 > version_) {
-        version_ = 2;
+    // Upgrade version
+    if (CURRENT_VERSION > original_version_) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Upgrading to version "
+              << CURRENT_VERSION << std::endl;
+        version_ = CURRENT_VERSION;
+    } else {
+        version_ = original_version_;
     }
 
     for (const auto& it : serialized->nym()) {
         item_map_.emplace(
             it.itemid(), Metadata{it.hash(), it.alias(), 0, false});
+    }
+
+    for (const auto& nymID : serialized->localnymid()) {
+        local_nyms_.emplace(nymID);
     }
 }
 
@@ -207,6 +219,11 @@ bool Nyms::RelabelThread(const std::string& threadID, const std::string label)
                       .SetAlias(label);
     }
 
+    if (output) {
+
+        return save(lock);
+    }
+
     return output;
 }
 
@@ -220,8 +237,11 @@ bool Nyms::save(const Lock& lock) const
     auto serialized = serialize();
 
     if (!proto::Validate(serialized, VERBOSE)) {
+
         return false;
     }
+
+    OT_ASSERT(CURRENT_VERSION == serialized.version())
 
     return driver_.StoreProto(serialized, root_);
 }
@@ -244,6 +264,10 @@ void Nyms::save(class Nym* nym, const Lock& lock, const std::string& id)
     hash = nym->Root();
     alias = nym->Alias();
 
+    if (nym->private_.get()) {
+        local_nyms_.emplace(nym->nymid_);
+    }
+
     if (!save(lock)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Save error" << std::endl;
         abort();
@@ -265,7 +289,42 @@ proto::StorageNymList Nyms::serialize() const
         }
     }
 
+    for (const auto& nymID : local_nyms_) {
+        serialized.add_localnymid(nymID);
+    }
+
     return serialized;
+}
+
+void Nyms::UpgradeLocalnym()
+{
+    Lock lock(write_lock_);
+
+    for (const auto index : item_map_) {
+        const auto& id = index.first;
+        const auto& node = *nym(lock, id);
+        auto credentials = std::make_shared<proto::CredentialIndex>();
+        std::string alias{};
+        const auto loaded = node.Load(credentials, alias, false);
+
+        if (false == loaded) {
+
+            continue;
+        }
+
+        OT_ASSERT(node.checked_.get())
+
+        if (node.private_.get()) {
+            otErr << OT_METHOD << __FUNCTION__ << ": Adding nym " << id
+                  << " to local nym list." << std::endl;
+            local_nyms_.emplace(id);
+        } else {
+            otErr << OT_METHOD << __FUNCTION__ << ": Nym " << id
+                  << " is not local." << std::endl;
+        }
+    }
+
+    save(lock);
 }
 }  // namespace storage
 }  // namespace opentxs
