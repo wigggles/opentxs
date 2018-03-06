@@ -62,78 +62,78 @@ public:
     ~Signals();
 
 private:
-    static const std::map<int, std::function<void()>> handler_;
+    static const std::map<int, std::function<bool()>> handler_;
 
     const Flag& running_;
     std::unique_ptr<std::thread> thread_{nullptr};
 
     /** SIGHUP */
-    static void handle_1() { ignore(); };
+    static bool handle_1() { return ignore(); };
     /** SIGINT */
-    static void handle_2() { shutdown(); };
+    static bool handle_2() { return shutdown(); };
     /** SIGQUIT */
-    static void handle_3() { shutdown(); };
+    static bool handle_3() { return shutdown(); };
     /** SIGILL */
-    static void handle_4() { shutdown(); };
+    static bool handle_4() { return shutdown(); };
     /** SIGTRAP */
-    static void handle_5() { ignore(); };
+    static bool handle_5() { return ignore(); };
     /** SIGABRT, SIGIOT */
-    static void handle_6() { ignore(); };
+    static bool handle_6() { return ignore(); };
     /** SIGBUS */
-    static void handle_7() { ignore(); };
+    static bool handle_7() { return ignore(); };
     /** SIGFPE */
-    static void handle_8() { ignore(); };
+    static bool handle_8() { return ignore(); };
     /** SIGKILL */
-    static void handle_9() { shutdown(); };
+    static bool handle_9() { return shutdown(); };
     /** SIGUSR1 */
-    static void handle_10() { ignore(); };
+    static bool handle_10() { return ignore(); };
     /** SIGSEGV */
-    static void handle_11() { ignore(); };
+    static bool handle_11() { return ignore(); };
     /** SIGUSR2 */
-    static void handle_12() { ignore(); };
+    static bool handle_12() { return ignore(); };
     /** SIGPIPE */
-    static void handle_13() { ignore(); };
+    static bool handle_13() { return ignore(); };
     /** SIGALRM */
-    static void handle_14() { ignore(); };
+    static bool handle_14() { return ignore(); };
     /** SIGTERM */
-    static void handle_15() { shutdown(); };
+    static bool handle_15() { return shutdown(); };
     /** SIGSTKFLT */
-    static void handle_16() { ignore(); };
+    static bool handle_16() { return ignore(); };
     /** SIGCLD, SIGCHLD */
-    static void handle_17() { ignore(); };
+    static bool handle_17() { return ignore(); };
     /** SIGCONT */
-    static void handle_18() { ignore(); };
+    static bool handle_18() { return ignore(); };
     /** SIGSTOP */
-    static void handle_19() { shutdown(); };
+    static bool handle_19() { return shutdown(); };
     /** SIGTSTP */
-    static void handle_20() { ignore(); };
+    static bool handle_20() { return ignore(); };
     /** SIGTTIN */
-    static void handle_21() { ignore(); };
+    static bool handle_21() { return ignore(); };
     /** SIGTTOU */
-    static void handle_22() { ignore(); };
+    static bool handle_22() { return ignore(); };
     /** SIGURG */
-    static void handle_23() { ignore(); };
+    static bool handle_23() { return ignore(); };
     /** SIGXCPU */
-    static void handle_24() { ignore(); };
+    static bool handle_24() { return ignore(); };
     /** SIGXFSZ */
-    static void handle_25() { ignore(); };
+    static bool handle_25() { return ignore(); };
     /** SIGVTALRM */
-    static void handle_26() { ignore(); };
+    static bool handle_26() { return ignore(); };
     /** SIGPROF */
-    static void handle_27() { ignore(); };
+    static bool handle_27() { return ignore(); };
     /** SIGWINCH */
-    static void handle_28() { ignore(); };
+    static bool handle_28() { return ignore(); };
     /** SIGPOLL, SIGIO */
-    static void handle_29() { ignore(); };
+    static bool handle_29() { return ignore(); };
     /** SIGPWR */
-    static void handle_30() { ignore(); };
+    static bool handle_30() { return ignore(); };
     /** SIGSYS, SIGUNUSED */
-    static void handle_31() { shutdown(); };
-    static void ignore(){};
-    static void shutdown();
+    static bool handle_31() { return shutdown(); };
+    static bool ignore() { return false; };
+    static bool shutdown();
 
     void handle();
-    void process(const int signal);
+    bool process(const int signal);
 
     Signals() = delete;
     Signals(const Signals&) = delete;
