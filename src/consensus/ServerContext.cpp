@@ -597,7 +597,7 @@ bool ServerContext::StaleNym() const
 
     OT_ASSERT(nym_);
 
-    return revision_.load() > nym_->Revision();
+    return revision_.load() < nym_->Revision();
 }
 
 std::unique_ptr<Item> ServerContext::Statement(const OTTransaction& owner) const

@@ -41,6 +41,7 @@
 
 #include "opentxs/Forward.hpp"
 
+#include "opentxs/core/Log.hpp"
 #include "opentxs/Types.hpp"
 
 #include <mutex>
@@ -78,11 +79,15 @@ protected:
     bool verify_lock(const L& lock, const M& mutex) const
     {
         if (lock.mutex() != &mutex) {
+            otErr << "opentxs::Lockable::" << __FUNCTION__
+                  << ": lock is on incorrect mutex" << std::endl;
 
             return false;
         }
 
         if (false == lock.owns_lock()) {
+            otErr << "opentxs::Lockable::" << __FUNCTION__
+                  << ": lock is unlocked" << std::endl;
 
             return false;
         }
