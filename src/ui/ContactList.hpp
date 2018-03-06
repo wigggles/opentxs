@@ -93,6 +93,8 @@ private:
     bool first_valid_item(const Lock& lock) const;
     void increment_contact(const Lock& lock) const;
     bool increment_name(const Lock& lock) const;
+    // Only used by ContactListItem
+    bool last(const Identifier& id) const;
     const opentxs::ui::ContactListItem& next(const Lock& lock) const;
 
     void add_contact(const std::string& id, const std::string& alias);

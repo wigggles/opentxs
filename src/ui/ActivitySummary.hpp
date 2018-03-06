@@ -98,6 +98,7 @@ private:
     bool first_valid_item(const Lock& lock) const;
     void increment_inner(const Lock& lock) const;
     bool increment_outer(const Lock& lock) const;
+    // Only used by ActivitySummaryItem
     bool last(const Identifier& id) const;
     const opentxs::ui::ActivitySummaryItem& next(const Lock& lock) const;
     // Only used by ActivitySummaryItem

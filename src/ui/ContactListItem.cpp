@@ -93,12 +93,7 @@ std::string ContactListItem::ImageURI() const
     return {};
 }
 
-bool ContactListItem::Last() const
-{
-    Lock lock(lock_);
-
-    return (parent_.start_.get() && (id_ == parent_.last_id_));
-}
+bool ContactListItem::Last() const { return parent_.last(id_); }
 
 void ContactListItem::process_contact(const network::zeromq::Message& message)
 {

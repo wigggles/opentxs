@@ -238,6 +238,13 @@ bool ContactList::increment_name(const Lock& lock) const
     return true;
 }
 
+bool ContactList::last(const Identifier& id) const
+{
+    Lock lock(lock_);
+
+    return (start_.get() && (id == last_id_));
+}
+
 /** Returns the next non-owner contact and increments iterators */
 const opentxs::ui::ContactListItem& ContactList::next(const Lock& lock) const
 {
