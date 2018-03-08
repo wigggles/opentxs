@@ -59,10 +59,7 @@ ContactListItem::ContactListItem(
     const api::ContactManager& contact,
     const Identifier& id,
     const std::string& name)
-    : parent_(parent)
-    , zmq_(zmq)
-    , contact_(contact)
-    , id_(id)
+    : ContactListItemType(parent, zmq, contact, id)
     , name_(name)
     , contact_subscriber_callback_(network::zeromq::ListenCallback::Factory(
           [this](const network::zeromq::Message& message) -> void {
@@ -92,8 +89,6 @@ std::string ContactListItem::ImageURI() const
 
     return {};
 }
-
-bool ContactListItem::Last() const { return parent_.last(id_); }
 
 void ContactListItem::process_contact(const network::zeromq::Message& message)
 {

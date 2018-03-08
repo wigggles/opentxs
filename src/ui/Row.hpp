@@ -36,52 +36,44 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_UI_CONTACTLISTITEM_IMPLEMENTATION_HPP
-#define OPENTXS_UI_CONTACTLISTITEM_IMPLEMENTATION_HPP
+#ifndef OPENTXS_UI_ROW_IMPLEMENTATION_HPP
+#define OPENTXS_UI_ROW_IMPLEMENTATION_HPP
 
 #include "opentxs/Internal.hpp"
 
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Lockable.hpp"
-#include "opentxs/ui/ContactListItem.hpp"
-
-#include "Row.hpp"
 
 namespace opentxs::ui::implementation
 {
-using ContactListItemType =
-    Row<opentxs::ui::ContactListItem, ContactList, Identifier>;
-
-class ContactListItem : virtual public ContactListItemType
+template <typename InterfaceType, typename ParentType, typename IdentifierType>
+class Row : virtual public InterfaceType, public Lockable
 {
 public:
-    std::string ContactID() const override;
-    std::string DisplayName() const override;
-    std::string ImageURI() const override;
-    std::string Section() const override;
+    bool Last() const override { return parent_.last(id_); }
 
-    ~ContactListItem() = default;
+protected:
+    const ParentType& parent_;
+    const network::zeromq::Context& zmq_;
+    const api::ContactManager& contact_;
+    const IdentifierType id_;
 
-private:
-    friend ContactList;
-
-    std::string name_{""};
-    OTZMQListenCallback contact_subscriber_callback_;
-    OTZMQSubscribeSocket contact_subscriber_;
-
-    void process_contact(const network::zeromq::Message& message);
-
-    ContactListItem(
-        const ContactList& parent,
+    Row(const ParentType& parent,
         const network::zeromq::Context& zmq,
         const api::ContactManager& contact,
-        const Identifier& id,
-        const std::string& name);
-    ContactListItem() = delete;
-    ContactListItem(const ContactListItem&) = delete;
-    ContactListItem(ContactListItem&&) = delete;
-    ContactListItem& operator=(const ContactListItem&) = delete;
-    ContactListItem& operator=(ContactListItem&&) = delete;
+        const IdentifierType id)
+        : parent_(parent)
+        , zmq_(zmq)
+        , contact_(contact)
+        , id_(id)
+    {
+    }
+    Row() = delete;
+    Row(const Row&) = delete;
+    Row(Row&&) = delete;
+    Row& operator=(const Row&) = delete;
+    Row& operator=(Row&&) = delete;
+
+    virtual ~Row() = default;
 };
 }  // opentxs::ui::implementation
-#endif  // OPENTXS_UI_CONTACTLISTITEM_IMPLEMENTATION_HPP
+#endif  // OPENTXS_UI_ROW_IMPLEMENTATION_HPP

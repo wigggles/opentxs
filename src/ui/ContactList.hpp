@@ -74,13 +74,13 @@ using ContactListType = List<
 class ContactList : virtual public ContactListType
 {
 public:
+    const Identifier owner_contact_id_;
+
     ~ContactList() = default;
 
 private:
     friend api::implementation::UI;
-    friend ContactListItem;
 
-    const Identifier owner_contact_id_;
     ContactListItem owner_;
     OTZMQListenCallback contact_subscriber_callback_;
     OTZMQSubscribeSocket contact_subscriber_;

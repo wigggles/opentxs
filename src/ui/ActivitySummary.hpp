@@ -82,7 +82,6 @@ public:
 
 private:
     friend api::implementation::UI;
-    friend ActivitySummaryItem;
 
     const api::Activity& activity_;
     const Flag& running_;
