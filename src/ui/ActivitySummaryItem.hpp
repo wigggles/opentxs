@@ -52,14 +52,18 @@
 #include <thread>
 #include <tuple>
 
+#include "Row.hpp"
+
 namespace opentxs::ui::implementation
 {
-class ActivitySummaryItem : virtual public ui::ActivitySummaryItem, Lockable
+using ActivitySummaryItemType =
+    Row<opentxs::ui::ActivitySummaryItem, ActivitySummary, Identifier>;
+
+class ActivitySummaryItem : virtual public ActivitySummaryItemType
 {
 public:
     std::string DisplayName() const override;
     std::string ImageURI() const override;
-    bool Last() const override;
     std::string Text() const override;
     std::string ThreadID() const override;
     std::chrono::system_clock::time_point Timestamp() const override;
@@ -73,13 +77,9 @@ private:
     // id, box, account
     using ItemLocator = std::tuple<Identifier, StorageBox, Identifier>;
 
-    const ActivitySummary& parent_;
-    const network::zeromq::Context& zmq_;
     const api::Activity& activity_;
-    const api::ContactManager& contact_;
     const Flag& running_;
     const Identifier nym_id_{};
-    const Identifier thread_id_{};
     std::shared_ptr<proto::StorageThread> thread_{nullptr};
     std::string display_name_{""};
     std::string text_{""};

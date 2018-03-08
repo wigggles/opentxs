@@ -41,24 +41,12 @@
 #include "ContactList.hpp"
 
 #include "opentxs/api/ContactManager.hpp"
-#include "opentxs/core/Log.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/SubscribeSocket.hpp"
-#include "opentxs/Types.hpp"
 
-#define STARTUP_WAIT_MILLISECONDS 100
-#define VALID_ITERATORS()                                                      \
-    {                                                                          \
-        OT_ASSERT(items_.end() != name_)                                       \
-                                                                               \
-        const auto& validName = name_->second;                                 \
-                                                                               \
-        OT_ASSERT(validName.end() != contact_)                                 \
-    }
-
-//#define OT_METHOD "opentxs::ui::implementation::ContactList::"
+#define OT_METHOD "opentxs::ui::implementation::ContactList::"
 
 namespace opentxs::ui::implementation
 {
@@ -66,19 +54,9 @@ ContactList::ContactList(
     const network::zeromq::Context& zmq,
     const api::ContactManager& contact,
     const Identifier& nymID)
-    : zmq_(zmq)
-    , contact_manager_(contact)
-    , owner_contact_id_(contact_manager_.ContactID(nymID))
-    , last_id_(owner_contact_id_)
+    : ContactListType(zmq, contact, contact.ContactID(nymID), nymID, nullptr)
+    , owner_contact_id_(last_id_)
     , owner_(*this, zmq, contact, owner_contact_id_, "Owner")
-    , items_()
-    , names_()
-    , have_items_(Flag::Factory(false))
-    , start_(Flag::Factory(true))
-    , startup_complete_(Flag::Factory(false))
-    , name_(items_.begin())
-    , contact_(items_.begin()->second.begin())
-    , startup_(nullptr)
     , contact_subscriber_callback_(network::zeromq::ListenCallback::Factory(
           [this](const network::zeromq::Message& message) -> void {
               this->process_contact(message);
@@ -86,8 +64,12 @@ ContactList::ContactList(
     , contact_subscriber_(
           zmq_.SubscribeSocket(contact_subscriber_callback_.get()))
 {
-    const auto listening = contact_subscriber_->Start(
-        network::zeromq::Socket::ContactUpdateEndpoint);
+    // WARNING do not attempt to use blank_ in this class
+    init();
+    const auto& endpoint = network::zeromq::Socket::ContactUpdateEndpoint;
+    otWarn << OT_METHOD << __FUNCTION__ << ": Connecting to " << endpoint
+           << std::endl;
+    const auto listening = contact_subscriber_->Start(endpoint);
 
     OT_ASSERT(listening)
 
@@ -96,37 +78,30 @@ ContactList::ContactList(
     OT_ASSERT(startup_)
 }
 
-void ContactList::add_contact(const std::string& id, const std::string& alias)
+void ContactList::add_item(
+    const ContactListID& id,
+    const ContactListSortKey& index)
 {
-    const Identifier contactID(id);
-
-    if (owner_contact_id_ == contactID) {
+    if (owner_contact_id_ == id) {
         Lock lock(owner_.lock_);
-        owner_.name_ = alias;
+        owner_.name_ = index;
 
         return;
     }
 
-    Lock lock(lock_);
+    insert_outer(id, index);
+}
 
-    if (0 == names_.count(contactID)) {
-        names_.emplace(id, alias);
-        items_[alias].emplace(
-            contactID,
-            new ContactListItem(
-                *this, zmq_, contact_manager_, contactID, alias));
+void ContactList::construct_item(
+    const ContactListID& id,
+    const ContactListSortKey& index) const
+{
+    names_.emplace(id, index);
+    items_[index].emplace(
+        id, new ContactListItem(*this, zmq_, contact_manager_, id, index));
 
-        return;
-    }
-
-    const auto& oldName = names_.at(contactID);
-
-    if (oldName == alias) {
-
-        return;
-    }
-
-    rename_contact(lock, contactID, oldName, alias);
+    OT_ASSERT(1 == items_.count(index))
+    OT_ASSERT(1 == names_.count(id))
 }
 
 /** Returns owner contact. Sets up iterators for next row */
@@ -141,201 +116,38 @@ const opentxs::ui::ContactListItem& ContactList::first(const Lock& lock) const
     return owner_;
 }
 
-const opentxs::ui::ContactListItem& ContactList::First() const
+ContactListOuter::const_iterator ContactList::outer_first() const
 {
-    Lock lock(lock_);
-
-    return first(lock);
+    return items_.begin();
 }
 
-/** Searches for the first name with at least one contact and sets iterators
- *  to match
- *
- *  If this function returns false, then no valid names are present and
- *  the value of contact_ is undefined.
- */
-bool ContactList::first_valid_item(const Lock& lock) const
+ContactListOuter::const_iterator ContactList::outer_end() const
 {
-    OT_ASSERT(verify_lock(lock));
-
-    if (0 == items_.size()) {
-
-        return false;
-    }
-
-    name_ = items_.begin();
-
-    while (items_.end() != name_) {
-        const auto& currentName = name_->second;
-
-        if (0 < currentName.size()) {
-            contact_ = currentName.begin();
-            VALID_ITERATORS()
-
-            return true;
-        }
-
-        ++name_;
-    }
-
-    return false;
-}
-
-/** Increment iterators to the next valid contact, or loop back to owner */
-void ContactList::increment_contact(const Lock& lock) const
-{
-    VALID_ITERATORS()
-
-    const auto& currentName = name_->second;
-
-    ++contact_;
-
-    if (currentName.end() != contact_) {
-        VALID_ITERATORS()
-
-        return;
-    }
-
-    // The previous position was the last contact for this name.
-    increment_name(lock);
-}
-
-/** Move to the next valid name, or loop back to owner
- *
- *  contact_ is an invalid iterator at this point
- */
-bool ContactList::increment_name(const Lock& lock) const
-{
-    OT_ASSERT(items_.end() != name_)
-
-    bool searching{true};
-
-    while (searching) {
-        ++name_;
-
-        if (items_.end() == name_) {
-            // Both iterators are invalid at this point
-            start_->On();
-            have_items_->Set(first_valid_item(lock));
-
-            if (have_items_.get()) {
-                VALID_ITERATORS()
-            }
-
-            return false;
-        }
-
-        const auto& currentName = name_->second;
-
-        if (0 < currentName.size()) {
-            searching = false;
-            contact_ = currentName.begin();
-        }
-    }
-
-    VALID_ITERATORS()
-
-    return true;
-}
-
-bool ContactList::last(const Identifier& id) const
-{
-    Lock lock(lock_);
-
-    return (start_.get() && (id == last_id_));
-}
-
-/** Returns the next non-owner contact and increments iterators */
-const opentxs::ui::ContactListItem& ContactList::next(const Lock& lock) const
-{
-    VALID_ITERATORS()
-
-    auto& output = contact_->second.get();
-    last_id_ = Identifier(output.ContactID());
-    increment_contact(lock);
-
-    return output;
-}
-
-const opentxs::ui::ContactListItem& ContactList::Next() const
-{
-    Lock lock(lock_);
-
-    if (start_.get()) {
-
-        return first(lock);
-    }
-
-    return next(lock);
+    return items_.end();
 }
 
 void ContactList::process_contact(const network::zeromq::Message& message)
 {
-    while (false == startup_complete_.get()) {
-        Log::Sleep(std::chrono::milliseconds(STARTUP_WAIT_MILLISECONDS));
-    }
-
+    wait_for_startup();
     const std::string id(message);
     const Identifier contactID(id);
 
     OT_ASSERT(false == contactID.empty())
 
     const auto name = contact_manager_.ContactName(contactID);
-    add_contact(id, name);
-}
-
-void ContactList::rename_contact(
-    const Lock& lock,
-    const Identifier& contactID,
-    const std::string& oldName,
-    const std::string& newName)
-{
-    OT_ASSERT(verify_lock(lock));
-    OT_ASSERT(1 == items_.count(oldName))
-
-    auto name = items_.find(oldName);
-
-    OT_ASSERT(items_.end() != name);
-
-    auto& contactMap = name->second;
-    auto contact = contactMap.find(contactID);
-
-    OT_ASSERT(contactMap.end() != contact);
-
-    // I'm about to delete this row. Make sure iterators are not pointing to it
-    if (contact_ == contact) {
-        increment_contact(lock);
-    }
-
-    OTUIContactListItem item = std::move(contact->second);
-    const auto deleted = contactMap.erase(contactID);
-
-    OT_ASSERT(1 == deleted)
-
-    if (0 == contactMap.size()) {
-        items_.erase(name);
-    }
-
-    names_[contactID] = newName;
-    items_[newName].emplace(contactID, std::move(item));
+    add_item(contactID, name);
 }
 
 void ContactList::startup()
 {
     const auto contacts = contact_manager_.ContactList();
+    otWarn << OT_METHOD << __FUNCTION__ << ": Loading " << contacts.size()
+           << " contacts." << std::endl;
 
     for (const auto & [ id, alias ] : contacts) {
-        add_contact(id, alias);
+        add_item(Identifier(id), alias);
     }
 
     startup_complete_->On();
-}
-
-ContactList::~ContactList()
-{
-    if (startup_ && startup_->joinable()) {
-        startup_->join();
-        startup_.reset();
-    }
 }
 }  // namespace opentxs::ui::implementation

@@ -41,69 +41,60 @@
 
 #include "opentxs/Internal.hpp"
 
-#include "ContactListItem.hpp"
-
-#include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Lockable.hpp"
 #include "opentxs/ui/ContactList.hpp"
 #include "opentxs/ui/ContactListItem.hpp"
 
+#include "ContactListItem.hpp"
+#include "List.hpp"
+
 #include <map>
 #include <string>
-#include <thread>
 
 namespace opentxs::ui::implementation
 {
-class ContactList : virtual public ui::ContactList, Lockable
+using ContactListPimpl = OTUIContactListItem;
+using ContactListID = Identifier;
+using ContactListSortKey = std::string;
+using ContactListInner = std::map<ContactListID, ContactListPimpl>;
+using ContactListOuter = std::map<ContactListSortKey, ContactListInner>;
+using ContactListReverse = std::map<ContactListID, ContactListSortKey>;
+using ContactListType = List<
+    opentxs::ui::ContactList,
+    opentxs::ui::ContactListItem,
+    ContactListID,
+    ContactListPimpl,
+    ContactListInner,
+    ContactListSortKey,
+    ContactListOuter,
+    ContactListOuter::const_iterator,
+    ContactListReverse>;
+
+class ContactList : virtual public ContactListType
 {
 public:
-    const opentxs::ui::ContactListItem& First() const override;
-    const opentxs::ui::ContactListItem& Next() const override;
+    const Identifier owner_contact_id_;
 
-    ~ContactList();
+    ~ContactList() = default;
 
 private:
     friend api::implementation::UI;
-    friend ContactListItem;
-    /** Contact ID, Contact */
-    using ItemIndex = std::map<Identifier, OTUIContactListItem>;
-    /** Display name, contacts*/
-    using ItemMap = std::map<std::string, ItemIndex>;
-    /** ContactID, display name*/
-    using NameMap = std::map<Identifier, std::string>;
 
-    const network::zeromq::Context& zmq_;
-    const api::ContactManager& contact_manager_;
-    const Identifier owner_contact_id_;
-    mutable Identifier last_id_;
     ContactListItem owner_;
-    ItemMap items_;
-    NameMap names_;
-    mutable OTFlag have_items_;
-    mutable OTFlag start_;
-    mutable OTFlag startup_complete_;
-    mutable ItemMap::const_iterator name_;
-    mutable ItemIndex::const_iterator contact_;
-    std::unique_ptr<std::thread> startup_{nullptr};
     OTZMQListenCallback contact_subscriber_callback_;
     OTZMQSubscribeSocket contact_subscriber_;
 
-    const opentxs::ui::ContactListItem& first(const Lock& lock) const;
-    bool first_valid_item(const Lock& lock) const;
-    void increment_contact(const Lock& lock) const;
-    bool increment_name(const Lock& lock) const;
-    // Only used by ContactListItem
-    bool last(const Identifier& id) const;
-    const opentxs::ui::ContactListItem& next(const Lock& lock) const;
+    void construct_item(
+        const ContactListID& id,
+        const ContactListSortKey& index) const override;
+    const opentxs::ui::ContactListItem& first(const Lock& lock) const override;
+    ContactListOuter::const_iterator outer_first() const override;
+    ContactListOuter::const_iterator outer_end() const override;
 
-    void add_contact(const std::string& id, const std::string& alias);
+    void add_item(const ContactListID& id, const ContactListSortKey& index)
+        override;
     void process_contact(const network::zeromq::Message& message);
-    void rename_contact(
-        const Lock& lock,
-        const Identifier& contactID,
-        const std::string& oldName,
-        const std::string& newName);
     void startup();
 
     ContactList(

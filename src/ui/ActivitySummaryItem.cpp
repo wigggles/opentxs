@@ -67,13 +67,10 @@ ActivitySummaryItem::ActivitySummaryItem(
     const Flag& running,
     const Identifier& nymID,
     const Identifier& threadID)
-    : parent_(parent)
-    , zmq_(zmq)
+    : ActivitySummaryItemType(parent, zmq, contact, threadID)
     , activity_(activity)
-    , contact_(contact)
     , running_(running)
     , nym_id_(nymID)
-    , thread_id_(threadID)
     , thread_()
     , display_name_("")
     , text_("")
@@ -167,7 +164,7 @@ std::string ActivitySummaryItem::DisplayName() const
 
     if (display_name_.empty()) {
 
-        return contact_.ContactName(thread_id_);
+        return contact_.ContactName(id_);
     }
 
     return display_name_;
@@ -221,8 +218,6 @@ std::string ActivitySummaryItem::ImageURI() const
     return {};
 }
 
-bool ActivitySummaryItem::Last() const { return parent_.last(thread_id_); }
-
 const proto::StorageThreadItem& ActivitySummaryItem::newest_item(
     const proto::StorageThread& thread) const
 {
@@ -257,9 +252,9 @@ void ActivitySummaryItem::process_thread(
 
     OT_ASSERT(false == threadID.empty())
 
-    if (thread_id_ != threadID) {
+    if (id_ != threadID) {
         otWarn << OT_METHOD << __FUNCTION__ << ": Update not relevant to me ("
-               << thread_id_.str() << ")" << std::endl;
+               << id_.str() << ")" << std::endl;
 
         return;
     }
@@ -269,7 +264,7 @@ void ActivitySummaryItem::process_thread(
 
 void ActivitySummaryItem::startup()
 {
-    auto thread = activity_.Thread(nym_id_, thread_id_);
+    auto thread = activity_.Thread(nym_id_, id_);
 
     OT_ASSERT(thread);
 
@@ -283,7 +278,7 @@ std::string ActivitySummaryItem::Text() const
     return text_;
 }
 
-std::string ActivitySummaryItem::ThreadID() const { return thread_id_.str(); }
+std::string ActivitySummaryItem::ThreadID() const { return id_.str(); }
 
 std::chrono::system_clock::time_point ActivitySummaryItem::Timestamp() const
 {
@@ -325,7 +320,7 @@ void ActivitySummaryItem::update(const proto::StorageThread& thread)
     newest_item_.Push(
         Identifier::Random(),
         {Identifier(item.id()), box, Identifier(item.account())});
-    parent_.reindex_item(thread_id_, {time, displayName});
+    parent_.reindex_item(id_, {time, displayName});
 }
 
 bool ActivitySummaryItem::Valid() const { return true; }
