@@ -219,10 +219,7 @@ bool Nyms::RelabelThread(const std::string& threadID, const std::string label)
                       .SetAlias(label);
     }
 
-    if (output) {
-
-        return save(lock);
-    }
+    // The for loop above takes care of saving
 
     return output;
 }
