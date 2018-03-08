@@ -153,6 +153,7 @@ private:
     const api::client::ServerAction& server_action_;
     const api::client::Wallet& wallet_;
     const api::crypto::Encode& encoding_;
+    const opentxs::network::zeromq::Context& zmq_;
     mutable std::mutex introduction_server_lock_{};
     mutable std::mutex nym_fetch_lock_{};
     mutable std::mutex task_status_lock_{};
@@ -164,6 +165,7 @@ private:
     mutable std::map<ContextID, std::unique_ptr<std::thread>> state_machines_;
     mutable std::unique_ptr<Identifier> introduction_server_id_;
     mutable std::map<Identifier, ThreadStatus> task_status_;
+    OTZMQPublishSocket nym_publisher_;
 
     std::pair<bool, std::size_t> accept_incoming(
         const rLock& lock,
@@ -295,7 +297,8 @@ private:
         const api::Settings& config,
         const api::Api& api,
         const api::client::Wallet& wallet,
-        const api::crypto::Encode& encoding);
+        const api::crypto::Encode& encoding,
+        const opentxs::network::zeromq::Context& zmq);
     Sync() = delete;
     Sync(const Sync&) = delete;
     Sync(Sync&&) = delete;

@@ -52,6 +52,8 @@ public:
         const Identifier& nymID) const = 0;
     EXPORT virtual const ui::ContactList& ContactList(
         const Identifier& nymID) const = 0;
+    EXPORT virtual const ui::MessagableList& MessagableList(
+        const Identifier& nymID) const = 0;
 
     virtual ~UI() = default;
 

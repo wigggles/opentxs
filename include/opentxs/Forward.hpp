@@ -125,6 +125,7 @@ class ActivitySummary;
 class ActivitySummaryItem;
 class ContactList;
 class ContactListItem;
+class MessagableList;
 }  // namespace opentxs::ui
 
 class Account;
@@ -226,5 +227,6 @@ using OTUIActivitySummary = Pimpl<ui::ActivitySummary>;
 using OTUIActivitySummaryItem = Pimpl<ui::ActivitySummaryItem>;
 using OTUIContactList = Pimpl<ui::ContactList>;
 using OTUIContactListItem = Pimpl<ui::ContactListItem>;
+using OTUIMessagableList = Pimpl<ui::MessagableList>;
 }  // namespace opentxs
 #endif  // OPENTXS_FORWARD_HPP

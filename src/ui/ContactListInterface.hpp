@@ -36,48 +36,29 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_UI_ROW_IMPLEMENTATION_HPP
-#define OPENTXS_UI_ROW_IMPLEMENTATION_HPP
+#ifndef OPENTXS_UI_CONTACTLISTINTERFACE_HPP
+#define OPENTXS_UI_CONTACTLISTINTERFACE_HPP
 
 #include "opentxs/Internal.hpp"
 
-#include "opentxs/core/Lockable.hpp"
-
 namespace opentxs::ui::implementation
 {
-template <typename InterfaceType, typename ParentType, typename IdentifierType>
-class Row : virtual public InterfaceType, public Lockable
+class ContactListInterface
 {
 public:
-    bool Last() const override { return parent_.last(id_); }
-    bool Valid() const override { return valid_; }
+    virtual const Identifier& ID() const = 0;
+    virtual bool last(const Identifier& id) const = 0;
 
 protected:
-    const ParentType& parent_;
-    const network::zeromq::Context& zmq_;
-    const api::ContactManager& contact_;
-    const IdentifierType id_;
-    const bool valid_{false};
+    ContactListInterface() = default;
 
-    Row(const ParentType& parent,
-        const network::zeromq::Context& zmq,
-        const api::ContactManager& contact,
-        const IdentifierType id,
-        const bool valid)
-        : parent_(parent)
-        , zmq_(zmq)
-        , contact_(contact)
-        , id_(id)
-        , valid_(valid)
-    {
-    }
-    Row() = delete;
-    Row(const Row&) = delete;
-    Row(Row&&) = delete;
-    Row& operator=(const Row&) = delete;
-    Row& operator=(Row&&) = delete;
+    virtual ~ContactListInterface() = default;
 
-    virtual ~Row() = default;
+private:
+    ContactListInterface(const ContactListInterface&) = delete;
+    ContactListInterface(ContactListInterface&&) = delete;
+    ContactListInterface& operator=(const ContactListInterface&) = delete;
+    ContactListInterface& operator=(ContactListInterface&&) = delete;
 };
 }  // opentxs::ui::implementation
-#endif  // OPENTXS_UI_ROW_IMPLEMENTATION_HPP
+#endif  // OPENTXS_UI_CONTACTLISTINTERFACE_HPP

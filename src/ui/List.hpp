@@ -318,6 +318,9 @@ protected:
         if (0 == names_.count(id)) {
             construct_item(id, index);
 
+            OT_ASSERT(1 == items_.count(index))
+            OT_ASSERT(1 == names_.count(id))
+
             return;
         }
 

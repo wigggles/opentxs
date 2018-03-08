@@ -67,6 +67,7 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/ui/ActivitySummary.hpp"
 #include "opentxs/ui/ContactList.hpp"
+#include "opentxs/ui/MessagableList.hpp"
 #include "opentxs/util/Signals.hpp"
 #include "opentxs/OT.hpp"
 
@@ -311,7 +312,7 @@ void Native::Init()
     Init_Api();  // requires Init_Config(), Init_Crypto(), Init_Contracts(),
                  // Init_Identity(), Init_Storage(), Init_ZMQ(), Init_Contacts()
                  // Init_Activity()
-    Init_UI();   // requires Init_Activity(), Init_Contacts()
+    Init_UI();   // requires Init_Activity(), Init_Contacts(), Init_Api()
 
     if (recover_) {
         recover();
@@ -818,9 +819,11 @@ void Native::Init_StorageBackup()
 void Native::Init_UI()
 {
     OT_ASSERT(activity_);
+    OT_ASSERT(api_)
     OT_ASSERT(contacts_);
 
-    ui_.reset(new class UI(zmq_context_, *activity_, *contacts_, running_));
+    ui_.reset(new class UI(
+        zmq_context_, *activity_, *contacts_, api_->Sync(), running_));
 
     OT_ASSERT(ui_);
 }

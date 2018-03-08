@@ -99,9 +99,6 @@ void ContactList::construct_item(
     names_.emplace(id, index);
     items_[index].emplace(
         id, new ContactListItem(*this, zmq_, contact_manager_, id, index));
-
-    OT_ASSERT(1 == items_.count(index))
-    OT_ASSERT(1 == names_.count(id))
 }
 
 /** Returns owner contact. Sets up iterators for next row */
@@ -115,6 +112,8 @@ const opentxs::ui::ContactListItem& ContactList::first(const Lock& lock) const
 
     return owner_;
 }
+
+const Identifier& ContactList::ID() const { return owner_contact_id_; }
 
 ContactListOuter::const_iterator ContactList::outer_first() const
 {

@@ -55,6 +55,7 @@ public:
     EXPORT virtual std::string ImageURI() const = 0;
     EXPORT virtual bool Last() const = 0;
     EXPORT virtual std::string Section() const = 0;
+    EXPORT virtual bool Valid() const = 0;
 
     EXPORT virtual ~ContactListItem() = default;
 

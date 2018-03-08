@@ -36,15 +36,15 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_UI_CONTACTLIST_IMPLEMENTATION_HPP
-#define OPENTXS_UI_CONTACTLIST_IMPLEMENTATION_HPP
+#ifndef OPENTXS_UI_MESSAGABLELIST_IMPLEMENTATION_HPP
+#define OPENTXS_UI_MESSAGABLELIST_IMPLEMENTATION_HPP
 
 #include "opentxs/Internal.hpp"
 
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Lockable.hpp"
-#include "opentxs/ui/ContactList.hpp"
 #include "opentxs/ui/ContactListItem.hpp"
+#include "opentxs/ui/MessagableList.hpp"
 
 #include "ContactListInterface.hpp"
 #include "ContactListItem.hpp"
@@ -55,64 +55,69 @@
 
 namespace opentxs::ui::implementation
 {
-using ContactListPimpl = OTUIContactListItem;
-using ContactListID = Identifier;
-using ContactListSortKey = std::string;
-using ContactListInner = std::map<ContactListID, ContactListPimpl>;
-using ContactListOuter = std::map<ContactListSortKey, ContactListInner>;
-using ContactListReverse = std::map<ContactListID, ContactListSortKey>;
-using ContactListType = List<
-    opentxs::ui::ContactList,
+using MessagableListPimpl = OTUIContactListItem;
+using MessagableListID = Identifier;
+using MessagableListSortKey = std::string;
+using MessagableListInner = std::map<MessagableListID, MessagableListPimpl>;
+using MessagableListOuter =
+    std::map<MessagableListSortKey, MessagableListInner>;
+using MessagableListReverse = std::map<MessagableListID, MessagableListSortKey>;
+using MessagableListType = List<
+    opentxs::ui::MessagableList,
     opentxs::ui::ContactListItem,
-    ContactListID,
-    ContactListPimpl,
-    ContactListInner,
-    ContactListSortKey,
-    ContactListOuter,
-    ContactListOuter::const_iterator,
-    ContactListReverse>;
+    MessagableListID,
+    MessagableListPimpl,
+    MessagableListInner,
+    MessagableListSortKey,
+    MessagableListOuter,
+    MessagableListOuter::const_iterator,
+    MessagableListReverse>;
 
-class ContactList : virtual public ContactListType,
-                    virtual public ContactListInterface
+class MessagableList : virtual public MessagableListType,
+                       virtual public ContactListInterface
 {
 public:
     const Identifier& ID() const override;
 
-    ~ContactList() = default;
+    ~MessagableList() = default;
 
 private:
     friend api::implementation::UI;
 
+    const api::client::Sync& sync_;
     const Identifier owner_contact_id_;
-    ContactListItem owner_;
     OTZMQListenCallback contact_subscriber_callback_;
     OTZMQSubscribeSocket contact_subscriber_;
+    OTZMQListenCallback nym_subscriber_callback_;
+    OTZMQSubscribeSocket nym_subscriber_;
 
     void construct_item(
-        const ContactListID& id,
-        const ContactListSortKey& index) const override;
-    const opentxs::ui::ContactListItem& first(const Lock& lock) const override;
+        const MessagableListID& id,
+        const MessagableListSortKey& index) const override;
     bool last(const Identifier& id) const override
     {
-        return ContactListType::last(id);
+        return MessagableListType::last(id);
     }
-    ContactListOuter::const_iterator outer_first() const override;
-    ContactListOuter::const_iterator outer_end() const override;
+    MessagableListOuter::const_iterator outer_first() const override;
+    MessagableListOuter::const_iterator outer_end() const override;
 
-    void add_item(const ContactListID& id, const ContactListSortKey& index)
-        override;
+    void process_contact(
+        const MessagableListID& id,
+        const MessagableListSortKey& key);
     void process_contact(const network::zeromq::Message& message);
+    void process_nym(const network::zeromq::Message& message);
     void startup();
 
-    ContactList(
+    MessagableList(
         const network::zeromq::Context& zmq,
         const api::ContactManager& contact,
+        const api::client::Sync& sync,
         const Identifier& nymID);
-    ContactList() = delete;
-    ContactList(const ContactList&) = delete;
-    ContactList(ContactList&&) = delete;
-    ContactList& operator=(const ContactList&) = delete;
-    ContactList& operator=(ContactList&&) = delete;
+    MessagableList() = delete;
+    MessagableList(const MessagableList&) = delete;
+    MessagableList(MessagableList&&) = delete;
+    MessagableList& operator=(const MessagableList&) = delete;
+    MessagableList& operator=(MessagableList&&) = delete;
 };
 }  // opentxs::ui::implementation
-#endif  // OPENTXS_UI_CONTACTLIST_IMPLEMENTATION_HPP
+#endif  // OPENTXS_UI_MESSAGABLELIST_IMPLEMENTATION_HPP

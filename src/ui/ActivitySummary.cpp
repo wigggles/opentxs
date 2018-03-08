@@ -40,15 +40,15 @@
 
 #include "ActivitySummary.hpp"
 
-#include "ActivitySummaryItemBlank.hpp"
-#include "ActivitySummaryItem.hpp"
-
 #include "opentxs/api/Activity.hpp"
 #include "opentxs/api/ContactManager.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/SubscribeSocket.hpp"
+
+#include "ActivitySummaryItemBlank.hpp"
+#include "ActivitySummaryItem.hpp"
 
 #define OT_METHOD "opentxs::ui::implementation::ActivitySummary::"
 
@@ -94,9 +94,6 @@ void ActivitySummary::construct_item(
         new ActivitySummaryItem(
             *this, zmq_, activity_, contact_manager_, running_, nym_id_, id));
     names_.emplace(id, index);
-
-    OT_ASSERT(1 == items_.count(index))
-    OT_ASSERT(1 == names_.count(id))
 }
 
 ActivitySummaryOuter::const_reverse_iterator ActivitySummary::outer_first()

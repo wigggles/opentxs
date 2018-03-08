@@ -54,12 +54,12 @@
 namespace opentxs::ui::implementation
 {
 ContactListItem::ContactListItem(
-    const ContactList& parent,
+    const ContactListInterface& parent,
     const network::zeromq::Context& zmq,
     const api::ContactManager& contact,
     const Identifier& id,
     const std::string& name)
-    : ContactListItemType(parent, zmq, contact, id)
+    : ContactListItemType(parent, zmq, contact, id, true)
     , name_(name)
     , contact_subscriber_callback_(network::zeromq::ListenCallback::Factory(
           [this](const network::zeromq::Message& message) -> void {
@@ -107,7 +107,7 @@ std::string ContactListItem::Section() const
 {
     Lock lock(lock_);
 
-    if (id_ == parent_.owner_contact_id_) {
+    if (id_ == parent_.ID()) {
 
         return {"ME"};
     }
