@@ -34,6 +34,7 @@
 #include "opentxs/ui/ActivitySummaryItem.hpp"
 #include "opentxs/ui/ContactList.hpp"
 #include "opentxs/ui/ContactListItem.hpp"
+#include "opentxs/ui/MessagableList.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/Types.hpp"
 %}
@@ -74,6 +75,7 @@ typedef int64_t time64_t;
 %include "../../include/opentxs/ui/ActivitySummary.hpp"
 %include "../../include/opentxs/ui/ContactListItem.hpp"
 %include "../../include/opentxs/ui/ContactList.hpp"
+%include "../../include/opentxs/ui/MessagableList.hpp"
 %include "../../include/opentxs/network/zeromq/Message.hpp"
 %include "../../include/opentxs/Types.hpp"
 %include "../../include/opentxs/network/zeromq/Socket.hpp"

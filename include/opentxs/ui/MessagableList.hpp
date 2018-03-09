@@ -36,48 +36,32 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_UI_ROW_IMPLEMENTATION_HPP
-#define OPENTXS_UI_ROW_IMPLEMENTATION_HPP
+#ifndef OPENTXS_UI_MESSAGABLELIST_HPP
+#define OPENTXS_UI_MESSAGABLELIST_HPP
 
-#include "opentxs/Internal.hpp"
+#include "opentxs/Forward.hpp"
 
-#include "opentxs/core/Lockable.hpp"
-
-namespace opentxs::ui::implementation
+namespace opentxs
 {
-template <typename InterfaceType, typename ParentType, typename IdentifierType>
-class Row : virtual public InterfaceType, public Lockable
+namespace ui
+{
+class MessagableList
 {
 public:
-    bool Last() const override { return parent_.last(id_); }
-    bool Valid() const override { return valid_; }
+    EXPORT virtual const ContactListItem& First() const = 0;
+    EXPORT virtual const ContactListItem& Next() const = 0;
+
+    EXPORT virtual ~MessagableList() = default;
 
 protected:
-    const ParentType& parent_;
-    const network::zeromq::Context& zmq_;
-    const api::ContactManager& contact_;
-    const IdentifierType id_;
-    const bool valid_{false};
+    MessagableList() = default;
 
-    Row(const ParentType& parent,
-        const network::zeromq::Context& zmq,
-        const api::ContactManager& contact,
-        const IdentifierType id,
-        const bool valid)
-        : parent_(parent)
-        , zmq_(zmq)
-        , contact_(contact)
-        , id_(id)
-        , valid_(valid)
-    {
-    }
-    Row() = delete;
-    Row(const Row&) = delete;
-    Row(Row&&) = delete;
-    Row& operator=(const Row&) = delete;
-    Row& operator=(Row&&) = delete;
-
-    virtual ~Row() = default;
+private:
+    MessagableList(const MessagableList&) = delete;
+    MessagableList(MessagableList&&) = delete;
+    MessagableList& operator=(const MessagableList&) = delete;
+    MessagableList& operator=(MessagableList&&) = delete;
 };
-}  // opentxs::ui::implementation
-#endif  // OPENTXS_UI_ROW_IMPLEMENTATION_HPP
+}  // namespace ui
+}  // namespace opentxs
+#endif  // OPENTXS_UI_MESSAGABLELIST_HPP

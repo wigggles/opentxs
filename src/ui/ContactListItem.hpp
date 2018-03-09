@@ -50,7 +50,7 @@
 namespace opentxs::ui::implementation
 {
 using ContactListItemType =
-    Row<opentxs::ui::ContactListItem, ContactList, Identifier>;
+    Row<opentxs::ui::ContactListItem, ContactListInterface, Identifier>;
 
 class ContactListItem : virtual public ContactListItemType
 {
@@ -64,6 +64,7 @@ public:
 
 private:
     friend ContactList;
+    friend MessagableList;
 
     std::string name_{""};
     OTZMQListenCallback contact_subscriber_callback_;
@@ -72,7 +73,7 @@ private:
     void process_contact(const network::zeromq::Message& message);
 
     ContactListItem(
-        const ContactList& parent,
+        const ContactListInterface& parent,
         const network::zeromq::Context& zmq,
         const api::ContactManager& contact,
         const Identifier& id,

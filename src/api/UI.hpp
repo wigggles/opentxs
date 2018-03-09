@@ -56,6 +56,8 @@ public:
     const ui::ActivitySummary& ActivitySummary(
         const Identifier& nymID) const override;
     const ui::ContactList& ContactList(const Identifier& nymID) const override;
+    const ui::MessagableList& MessagableList(
+        const Identifier& nymID) const override;
 
     ~UI();
 
@@ -65,17 +67,22 @@ private:
         std::map<Identifier, std::unique_ptr<ui::ActivitySummary>>;
     using ContactListMap =
         std::map<Identifier, std::unique_ptr<ui::ContactList>>;
+    using MessagableListMap =
+        std::map<Identifier, std::unique_ptr<ui::MessagableList>>;
 
     const opentxs::network::zeromq::Context& zmq_;
     const api::Activity& activity_;
     const api::ContactManager& contact_;
+    const api::client::Sync& sync_;
     const Flag& running_;
     mutable ActivitySummaryMap activity_summaries_{};
     mutable ContactListMap contact_lists_{};
+    mutable MessagableListMap messagable_lists_{};
 
     UI(const opentxs::network::zeromq::Context& zmq,
        const api::Activity& activity,
        const api::ContactManager& contact,
+       const api::client::Sync& sync,
        const Flag& running);
     UI() = delete;
     UI(const UI&) = delete;

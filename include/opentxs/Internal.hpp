@@ -84,7 +84,9 @@ namespace implementation
 class ActivitySummary;
 class ActivitySummaryItem;
 class ContactList;
+class ContactListInterface;
 class ContactListItem;
+class MessagableList;
 }  // namespace opentxs::ui::implementation
 }  // namespace opentxs::ui
 

@@ -3733,6 +3733,8 @@ public:
     EXPORT static const ui::ActivitySummary& ActivitySummary(
         const std::string& nymID);
     EXPORT static const ui::ContactList& ContactList(const std::string& nymID);
+    EXPORT static const ui::MessagableList& MessagableList(
+        const std::string& nymID);
 
     // Wrapped Native methods
 

@@ -63,6 +63,8 @@
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/ext/OTPayment.hpp"
+#include "opentxs/network/zeromq/Context.hpp"
+#include "opentxs/network/zeromq/PublishSocket.hpp"
 
 #include <chrono>
 
@@ -184,7 +186,8 @@ Sync::Sync(
     const api::Settings& config,
     const api::Api& api,
     const api::client::Wallet& wallet,
-    const api::crypto::Encode& encoding)
+    const api::crypto::Encode& encoding,
+    const opentxs::network::zeromq::Context& zmq)
     : api_lock_(apiLock)
     , running_(running)
     , ot_api_(otapi)
@@ -195,6 +198,7 @@ Sync::Sync(
     , server_action_(api.ServerAction())
     , wallet_(wallet)
     , encoding_(encoding)
+    , zmq_(zmq)
     , introduction_server_lock_()
     , nym_fetch_lock_()
     , task_status_lock_()
@@ -206,7 +210,10 @@ Sync::Sync(
     , state_machines_()
     , introduction_server_id_()
     , task_status_()
+    , nym_publisher_(zmq.PublishSocket())
 {
+    nym_publisher_->Start(
+        opentxs::network::zeromq::Socket::NymDownloadEndpoint);
 }
 
 std::pair<bool, std::size_t> Sync::accept_incoming(
@@ -822,6 +829,7 @@ bool Sync::download_nym(
 
         if (action->Reply()->m_bSuccess) {
             api_.Pair().Update();
+            nym_publisher_->Publish(targetNymID.str());
 
             return finish_task(taskID, true);
         } else {

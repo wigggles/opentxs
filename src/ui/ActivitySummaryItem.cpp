@@ -67,7 +67,7 @@ ActivitySummaryItem::ActivitySummaryItem(
     const Flag& running,
     const Identifier& nymID,
     const Identifier& threadID)
-    : ActivitySummaryItemType(parent, zmq, contact, threadID)
+    : ActivitySummaryItemType(parent, zmq, contact, threadID, true)
     , activity_(activity)
     , running_(running)
     , nym_id_(nymID)
@@ -322,8 +322,6 @@ void ActivitySummaryItem::update(const proto::StorageThread& thread)
         {Identifier(item.id()), box, Identifier(item.account())});
     parent_.reindex_item(id_, {time, displayName});
 }
-
-bool ActivitySummaryItem::Valid() const { return true; }
 
 ActivitySummaryItem::~ActivitySummaryItem()
 {

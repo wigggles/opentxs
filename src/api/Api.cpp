@@ -153,7 +153,8 @@ void Api::Init()
         config_,
         *this,
         wallet_,
-        crypto_.Encode()));
+        crypto_.Encode(),
+        zmq_.Context()));
 
     OT_ASSERT(sync_);
 

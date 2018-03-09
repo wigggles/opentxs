@@ -68,7 +68,6 @@ public:
     std::string ThreadID() const override;
     std::chrono::system_clock::time_point Timestamp() const override;
     StorageBox Type() const override;
-    bool Valid() const override;
 
     ~ActivitySummaryItem();
 

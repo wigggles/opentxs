@@ -42,6 +42,7 @@
 
 #include "ui/ActivitySummary.hpp"
 #include "ui/ContactList.hpp"
+#include "ui/MessagableList.hpp"
 
 //#define OT_METHOD "opentxs::api::implementation::UI"
 
@@ -51,13 +52,16 @@ UI::UI(
     const opentxs::network::zeromq::Context& zmq,
     const api::Activity& activity,
     const api::ContactManager& contact,
+    const api::client::Sync& sync,
     const Flag& running)
     : zmq_(zmq)
     , activity_(activity)
     , contact_(contact)
+    , sync_(sync)
     , running_(running)
     , activity_summaries_()
     , contact_lists_()
+    , messagable_lists_()
 {
 }
 
@@ -84,6 +88,21 @@ const ui::ContactList& UI::ContactList(const Identifier& nymID) const
     if (false == bool(output)) {
         output.reset(
             new ui::implementation::ContactList(zmq_, contact_, nymID));
+    }
+
+    OT_ASSERT(output)
+
+    return *output;
+}
+
+const ui::MessagableList& UI::MessagableList(const Identifier& nymID) const
+{
+    Lock lock(lock_);
+    auto& output = messagable_lists_[nymID];
+
+    if (false == bool(output)) {
+        output.reset(new ui::implementation::MessagableList(
+            zmq_, contact_, sync_, nymID));
     }
 
     OT_ASSERT(output)

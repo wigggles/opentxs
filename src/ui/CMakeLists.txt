@@ -3,6 +3,7 @@ set(cxx-sources
   ActivitySummaryItem.cpp
   ContactList.cpp
   ContactListItem.cpp
+  MessagableList.cpp
 )
 
 set(cxx-install-headers
@@ -10,14 +11,18 @@ set(cxx-install-headers
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/ActivitySummaryItem.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/ContactList.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/ContactListItem.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/MessagableList.hpp"
 )
 
 set(cxx-headers
   ${cxx-install-headers}
   "${CMAKE_CURRENT_SOURCE_DIR}/ActivitySummary.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/ActivitySummaryItem.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/ActivitySummaryItemBlank.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/ContactList.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/ContactListItem.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/ContactListItemBlank.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/MessagableList.hpp"
 )
 
 set(MODULE_NAME opentxs-ui)
