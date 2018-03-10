@@ -47,6 +47,7 @@
 
 #include <map>
 #include <memory>
+#include <tuple>
 
 namespace opentxs::api::implementation
 {
@@ -55,6 +56,9 @@ class UI : virtual public opentxs::api::UI, Lockable
 public:
     const ui::ActivitySummary& ActivitySummary(
         const Identifier& nymID) const override;
+    const ui::ActivityThread& ActivityThread(
+        const Identifier& nymID,
+        const Identifier& threadID) const override;
     const ui::ContactList& ContactList(const Identifier& nymID) const override;
     const ui::MessagableList& MessagableList(
         const Identifier& nymID) const override;
@@ -65,6 +69,9 @@ private:
     friend class implementation::Native;
     using ActivitySummaryMap =
         std::map<Identifier, std::unique_ptr<ui::ActivitySummary>>;
+    using ActivityThreadID = std::pair<Identifier, Identifier>;
+    using ActivityThreadMap =
+        std::map<ActivityThreadID, std::unique_ptr<ui::ActivityThread>>;
     using ContactListMap =
         std::map<Identifier, std::unique_ptr<ui::ContactList>>;
     using MessagableListMap =
@@ -78,6 +85,7 @@ private:
     mutable ActivitySummaryMap activity_summaries_{};
     mutable ContactListMap contact_lists_{};
     mutable MessagableListMap messagable_lists_{};
+    mutable ActivityThreadMap activity_threads_{};
 
     UI(const opentxs::network::zeromq::Context& zmq,
        const api::Activity& activity,

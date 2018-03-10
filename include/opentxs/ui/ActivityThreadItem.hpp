@@ -14,7 +14,7 @@
  *       -- Scripted smart contracts.
  *
  *  EMAIL:
- *  fellowtraveler\opentransactions.org
+ *  fellowtraveler@opentransactions.org
  *
  *  WEBSITE:
  *  http://www.opentransactions.org/
@@ -36,40 +36,53 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_API_UI_HPP
-#define OPENTXS_API_UI_HPP
+#ifndef OPENTXS_UI_ACTIVITYTHREADITEM_HPP
+#define OPENTXS_UI_ACTIVITYTHREADITEM_HPP
 
 #include "opentxs/Forward.hpp"
 
+#include "opentxs/Types.hpp"
+
+#include <cstdint>
+#include <chrono>
+#include <string>
+
+#include "ListRow.hpp"
+
+#ifdef SWIG
+// clang-format off
+%rename(UIActivityThreadItem) opentxs::ui::ActivityThreadItem;
+// clang-format on
+#endif  // SWIG
+
 namespace opentxs
 {
-namespace api
+namespace ui
 {
-class UI
+class ActivityThreadItem : virtual public ListRow
 {
 public:
-    EXPORT virtual const ui::ActivitySummary& ActivitySummary(
-        const Identifier& nymID) const = 0;
-    EXPORT virtual const ui::ActivityThread& ActivityThread(
-        const Identifier& nymID,
-        const Identifier& threadID) const = 0;
-    EXPORT virtual const ui::ContactList& ContactList(
-        const Identifier& nymID) const = 0;
-    EXPORT virtual const ui::MessagableList& MessagableList(
-        const Identifier& nymID) const = 0;
+    EXPORT virtual bool Loading() const = 0;
+    EXPORT virtual bool MarkRead() const = 0;
+    EXPORT virtual bool Pending() const = 0;
+    EXPORT virtual std::string Text() const = 0;
+    EXPORT virtual std::int64_t Time() const = 0;
+#ifndef SWIG
+    EXPORT virtual std::chrono::system_clock::time_point Timestamp() const = 0;
+#endif
+    EXPORT virtual StorageBox Type() const = 0;
 
-    virtual ~UI() = default;
+    EXPORT virtual ~ActivityThreadItem() = default;
 
 protected:
-    UI() = default;
+    ActivityThreadItem() = default;
 
 private:
-    UI(const UI&) = delete;
-    UI(UI&&) = delete;
-    UI& operator=(const UI&) = delete;
-    UI& operator=(UI&&) = delete;
+    ActivityThreadItem(const ActivityThreadItem&) = delete;
+    ActivityThreadItem(ActivityThreadItem&&) = delete;
+    ActivityThreadItem& operator=(const ActivityThreadItem&) = delete;
+    ActivityThreadItem& operator=(ActivityThreadItem&&) = delete;
 };
-}  // namespace api
+}  // namespace ui
 }  // namespace opentxs
-
-#endif  // OPENTXS_API_UI_HPP
+#endif  // OPENTXS_UI_ACTIVITYTHREADITEM_HPP

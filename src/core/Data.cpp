@@ -173,7 +173,7 @@ void Data::Assign(const void* data, const std::size_t& size)
     }
 }
 
-Data* Data::Data::clone() const { return new Data(); }
+Data* Data::Data::clone() const { return new Data(*this); }
 
 void Data::concatenate(const Vector& data)
 {

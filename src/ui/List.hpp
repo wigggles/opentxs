@@ -46,7 +46,10 @@
 #include "opentxs/Types.hpp"
 
 #include <memory>
+#include <set>
 #include <thread>
+#include <tuple>
+#include <vector>
 
 #define STARTUP_WAIT_MILLISECONDS 100
 
@@ -72,11 +75,11 @@ public:
         return first(lock);
     }
 
-    bool last(const IDType& id) const
+    virtual bool last(const IDType& id) const
     {
         Lock lock(lock_);
 
-        return (start_.get() && (id == last_id_));
+        return start_.get() && same(id, last_id_);
     }
 
     const RowType& Next() const override
@@ -135,6 +138,49 @@ protected:
 
         return item.get();
     }
+    void delete_inactive(const std::set<IDType>& active) const
+    {
+        Lock lock(lock_);
+        std::vector<IDType> deleteIDs{};
+
+        for (const auto& it : names_) {
+            const auto& id = it.first;
+
+            if (0 == active.count(id)) {
+                deleteIDs.emplace_back(id);
+            }
+        }
+
+        for (const auto& id : deleteIDs) {
+            delete_item(lock, id);
+        }
+    }
+    void delete_item(const Lock& lock, const IDType& id) const
+    {
+        OT_ASSERT(verify_lock(lock))
+
+        auto& key = names_.at(id);
+        auto& inner = items_.at(key);
+        auto item = inner.find(id);
+
+        // I'm about to delete this row. Make sure iterators are not pointing
+        // to it
+        if (inner_ == item) {
+            increment_inner(lock);
+        }
+
+        const auto itemDeleted = inner.erase(id);
+
+        OT_ASSERT(1 == itemDeleted)
+
+        if (0 == inner.size()) {
+            items_.erase(key);
+        }
+
+        const auto indexDeleted = names_.erase(id);
+
+        OT_ASSERT(1 == indexDeleted)
+    }
     /** Returns first contact, or blank if none exists. Sets up iterators for
      *  next row
      *
@@ -152,7 +198,7 @@ protected:
 
             return next(lock);
         } else {
-            last_id_ = Identifier();
+            last_id_ = IDType();
 
             return blank_;
         }
@@ -289,7 +335,11 @@ protected:
         }
 
         names_[id] = newIndex;
-        items_[newIndex].emplace(std::move(id), std::move(row));
+        items_[newIndex].emplace(id, std::move(row));
+    }
+    virtual bool same(const IDType& lhs, const IDType& rhs) const
+    {
+        return (lhs == rhs);
     }
     void valid_iterators() const
     {

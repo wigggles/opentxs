@@ -64,7 +64,7 @@ set(cxx-headers
   ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/commands/CmdSendCash.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/commands/CmdShowNyms.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/commands/CmdWithdrawCash.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/OTAPI_Func.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/OTAPI_Func.hpp
 )
 
 set(MODULE_NAME opentxs-client)

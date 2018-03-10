@@ -41,6 +41,7 @@
 #include "UI.hpp"
 
 #include "ui/ActivitySummary.hpp"
+#include "ui/ActivityThread.hpp"
 #include "ui/ContactList.hpp"
 #include "ui/MessagableList.hpp"
 
@@ -73,6 +74,23 @@ const ui::ActivitySummary& UI::ActivitySummary(const Identifier& nymID) const
     if (false == bool(output)) {
         output.reset(new ui::implementation::ActivitySummary(
             zmq_, activity_, contact_, running_, nymID));
+    }
+
+    OT_ASSERT(output)
+
+    return *output;
+}
+
+const ui::ActivityThread& UI::ActivityThread(
+    const Identifier& nymID,
+    const Identifier& threadID) const
+{
+    Lock lock(lock_);
+    auto& output = activity_threads_[{nymID, threadID}];
+
+    if (false == bool(output)) {
+        output.reset(new ui::implementation::ActivityThread(
+            zmq_, sync_, activity_, contact_, nymID, threadID));
     }
 
     OT_ASSERT(output)

@@ -40,7 +40,6 @@
 
 #include "opentxs/cash/Purse.hpp"
 #include "opentxs/client/OT_API.hpp"
-#include "opentxs/client/OTAPI_Func.hpp"
 #include "opentxs/client/Utility.hpp"
 #include "opentxs/core/recurring/OTPaymentPlan.hpp"
 #include "opentxs/core/script/OTSmartContract.hpp"
@@ -50,7 +49,8 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/ext/OTPayment.hpp"
 
-#include "ServerAction.hpp"
+#include "api/client/ServerAction.hpp"
+#include "client/OTAPI_Func.hpp"
 
 #define OT_METHOD "opentxs::api::client::implementation::ServerAction::"
 

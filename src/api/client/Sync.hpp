@@ -88,6 +88,8 @@ public:
         const Identifier& senderNymID,
         const Identifier& contactID,
         const std::string& message) const override;
+    std::pair<ThreadStatus, Identifier> MessageStatus(
+        const Identifier& taskID) const override;
     void Refresh() const override;
     std::uint64_t RefreshCount() const override;
     Identifier RegisterNym(
@@ -166,6 +168,8 @@ private:
     mutable std::unique_ptr<Identifier> introduction_server_id_;
     mutable std::map<Identifier, ThreadStatus> task_status_;
     OTZMQPublishSocket nym_publisher_;
+    // taskID, messageID
+    mutable std::map<Identifier, Identifier> task_message_id_;
 
     std::pair<bool, std::size_t> accept_incoming(
         const rLock& lock,
@@ -173,6 +177,9 @@ private:
         const Identifier& accountID,
         ServerContext& context) const;
     void add_task(const Identifier& taskID, const ThreadStatus status) const;
+    void associate_message_id(
+        const Identifier& messageID,
+        const Identifier& taskID) const;
     Depositability can_deposit(
         const OTPayment& payment,
         const Identifier& recipient,
@@ -274,6 +281,7 @@ private:
         const ServerContract& contract) const;
     Identifier start_task(const Identifier& taskID, bool success) const;
     void state_machine(const ContextID id, OperationQueue& queue) const;
+    ThreadStatus status(const Lock& lock, const Identifier& taskID) const;
     void update_task(const Identifier& taskID, const ThreadStatus status) const;
     void start_introduction_server(const Identifier& nymID) const;
     Depositability valid_account(

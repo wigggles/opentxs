@@ -370,6 +370,14 @@ void Sync::add_task(const Identifier& taskID, const ThreadStatus status) const
     task_status_[taskID] = status;
 }
 
+void Sync::associate_message_id(
+    const Identifier& messageID,
+    const Identifier& taskID) const
+{
+    Lock lock(task_status_lock_);
+    task_message_id_.emplace(taskID, messageID);
+}
+
 Depositability Sync::can_deposit(
     const OTPayment& payment,
     const Identifier& recipient,
@@ -1121,6 +1129,13 @@ bool Sync::message_nym(
         OT_ASSERT(action->Reply());
 
         if (action->Reply()->m_bSuccess) {
+            const auto messageID = action->MessageID();
+
+            if (false == messageID.empty()) {
+                otInfo << OT_METHOD << __FUNCTION__ << ": Sent message  "
+                       << messageID.str() << std::endl;
+                associate_message_id(messageID, taskID);
+            }
 
             return finish_task(taskID, true);
         } else {
@@ -1164,6 +1179,26 @@ Identifier Sync::MessageContact(
 
     return start_task(
         taskID, queue.send_message_.Push(taskID, {recipientNymID, message}));
+}
+
+std::pair<ThreadStatus, Identifier> Sync::MessageStatus(
+    const Identifier& taskID) const
+{
+    std::pair<ThreadStatus, Identifier> output{};
+    auto & [ threadStatus, messageID ] = output;
+    Lock lock(task_status_lock_);
+    threadStatus = status(lock, taskID);
+
+    if (threadStatus == ThreadStatus::FINISHED_SUCCESS) {
+        auto it = task_message_id_.find(taskID);
+
+        if (task_message_id_.end() != it) {
+            messageID = it->second;
+            task_message_id_.erase(it);
+        }
+    }
+
+    return output;
 }
 
 bool Sync::publish_server_registration(
@@ -1900,14 +1935,15 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
     }
 }
 
-ThreadStatus Sync::Status(const Identifier& taskID) const
+ThreadStatus Sync::status(const Lock& lock, const Identifier& taskID) const
 {
+    OT_ASSERT(verify_lock(lock, task_status_lock_))
+
     if (!running_) {
 
         return ThreadStatus::SHUTDOWN;
     }
 
-    Lock lock(task_status_lock_);
     auto it = task_status_.find(taskID);
 
     if (task_status_.end() == it) {
@@ -1925,6 +1961,13 @@ ThreadStatus Sync::Status(const Identifier& taskID) const
     }
 
     return output;
+}
+
+ThreadStatus Sync::Status(const Identifier& taskID) const
+{
+    Lock lock(task_status_lock_);
+
+    return status(lock, taskID);
 }
 
 void Sync::update_task(const Identifier& taskID, const ThreadStatus status)

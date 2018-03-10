@@ -122,10 +122,13 @@ class Server;
 
 namespace ui
 {
+class ActivityThread;
+class ActivityThreadItem;
 class ActivitySummary;
 class ActivitySummaryItem;
 class ContactList;
 class ContactListItem;
+class ListRow;
 class MessagableList;
 }  // namespace opentxs::ui
 
@@ -217,6 +220,8 @@ using OTPaymentCode = Pimpl<PaymentCode>;
 using OTServerConnection = Pimpl<network::ServerConnection>;
 using OTUIActivitySummary = Pimpl<ui::ActivitySummary>;
 using OTUIActivitySummaryItem = Pimpl<ui::ActivitySummaryItem>;
+using OTUIActivityThread = Pimpl<ui::ActivityThread>;
+using OTUIActivityThreadItem = Pimpl<ui::ActivityThreadItem>;
 using OTUIContactList = Pimpl<ui::ContactList>;
 using OTUIContactListItem = Pimpl<ui::ContactListItem>;
 using OTUIMessagableList = Pimpl<ui::MessagableList>;

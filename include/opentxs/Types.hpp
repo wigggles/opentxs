@@ -178,6 +178,7 @@ enum class StorageBox : std::uint8_t {
     MAILOUTBOX = 9,
     INCOMINGBLOCKCHAIN = 10,
     OUTGOINGBLOCKCHAIN = 11,
+    DRAFT = 254,
     UNKNOWN = 255,
 };
 

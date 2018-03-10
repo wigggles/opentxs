@@ -55,9 +55,14 @@ public:
     }
 
     Pimpl(const Pimpl& rhs) noexcept
-        : pimpl_(nullptr)
+        : pimpl_(rhs.pimpl_->clone())
     {
-        pimpl_.reset(rhs.pimpl_->clone());
+        assert(pimpl_);
+    }
+
+    Pimpl(const C& rhs) noexcept
+        : pimpl_(rhs.clone())
+    {
         assert(pimpl_);
     }
 
@@ -85,7 +90,7 @@ public:
 
     Pimpl& operator=(const C& rhs) noexcept
     {
-        pimpl_ = std::move(C::Factory(rhs).pimpl_);
+        pimpl_.reset(rhs.clone());
         assert(pimpl_);
 
         return *this;
@@ -109,10 +114,12 @@ public:
     bool operator>=(const C& rhs) const { return *pimpl_ >= rhs; }
 
     operator C&() noexcept { return *pimpl_; }
+    operator const C&() const noexcept { return *pimpl_; }
 
     C* operator->() { return pimpl_.get(); }
     const C* operator->() const { return pimpl_.get(); }
 
+    C& get() noexcept { return *pimpl_; }
     const C& get() const noexcept { return *pimpl_; }
 
     ~Pimpl() = default;

@@ -4219,6 +4219,14 @@ const ui::ActivitySummary& SwigWrap::ActivitySummary(const std::string& nymID)
     return OT::App().UI().ActivitySummary(Identifier(nymID));
 }
 
+const ui::ActivityThread& SwigWrap::ActivityThread(
+    const std::string& nymID,
+    const std::string& threadID)
+{
+    return OT::App().UI().ActivityThread(
+        Identifier(nymID), Identifier(threadID));
+}
+
 const ui::ContactList& SwigWrap::ContactList(const std::string& nymID)
 {
     return OT::App().UI().ContactList(Identifier(nymID));

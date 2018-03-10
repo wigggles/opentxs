@@ -81,6 +81,8 @@ namespace ui
 {
 namespace implementation
 {
+class ActivityThread;
+class ActivityThreadItem;
 class ActivitySummary;
 class ActivitySummaryItem;
 class ContactList;

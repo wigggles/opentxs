@@ -14,7 +14,7 @@
  *       -- Scripted smart contracts.
  *
  *  EMAIL:
- *  fellowtraveler\opentransactions.org
+ *  fellowtraveler@opentransactions.org
  *
  *  WEBSITE:
  *  http://www.opentransactions.org/
@@ -36,40 +36,46 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_API_UI_HPP
-#define OPENTXS_API_UI_HPP
+#ifndef OPENTXS_UI_ACTIVITYTHREAD_HPP
+#define OPENTXS_UI_ACTIVITYTHREAD_HPP
 
 #include "opentxs/Forward.hpp"
 
+#include <string>
+
+#ifdef SWIG
+// clang-format off
+%rename(UIActivityThread) opentxs::ui::ActivityThread;
+// clang-format on
+#endif  // SWIG
+
 namespace opentxs
 {
-namespace api
+namespace ui
 {
-class UI
+class ActivityThread
 {
 public:
-    EXPORT virtual const ui::ActivitySummary& ActivitySummary(
-        const Identifier& nymID) const = 0;
-    EXPORT virtual const ui::ActivityThread& ActivityThread(
-        const Identifier& nymID,
-        const Identifier& threadID) const = 0;
-    EXPORT virtual const ui::ContactList& ContactList(
-        const Identifier& nymID) const = 0;
-    EXPORT virtual const ui::MessagableList& MessagableList(
-        const Identifier& nymID) const = 0;
+    EXPORT virtual std::string DisplayName() const = 0;
+    EXPORT virtual const ActivityThreadItem& First() const = 0;
+    EXPORT virtual const ActivityThreadItem& Next() const = 0;
+    EXPORT virtual std::string GetDraft() const = 0;
+    EXPORT virtual std::string Participants() const = 0;
+    EXPORT virtual bool SendDraft() const = 0;
+    EXPORT virtual bool SetDraft(const std::string& draft) const = 0;
+    EXPORT virtual std::string ThreadID() const = 0;
 
-    virtual ~UI() = default;
+    EXPORT virtual ~ActivityThread() = default;
 
 protected:
-    UI() = default;
+    ActivityThread() = default;
 
 private:
-    UI(const UI&) = delete;
-    UI(UI&&) = delete;
-    UI& operator=(const UI&) = delete;
-    UI& operator=(UI&&) = delete;
+    ActivityThread(const ActivityThread&) = delete;
+    ActivityThread(ActivityThread&&) = delete;
+    ActivityThread& operator=(const ActivityThread&) = delete;
+    ActivityThread& operator=(ActivityThread&&) = delete;
 };
-}  // namespace api
+}  // namespace ui
 }  // namespace opentxs
-
-#endif  // OPENTXS_API_UI_HPP
+#endif  // OPENTXS_UI_ACTIVITYTHREAD_HPP
