@@ -58,6 +58,7 @@ class Message;
 class Nym;
 class String;
 
+#define PAYMENT_CODE_VERSION 1
 #define PEER_MESSAGE_VERSION 2
 #define PEER_PAYMENT_VERSION 5
 #define NYM_VERSION 4

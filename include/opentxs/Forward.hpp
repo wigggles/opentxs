@@ -214,7 +214,13 @@ class UnitDefinition;
 
 using OTData = Pimpl<Data>;
 using OTFlag = Pimpl<Flag>;
+using OTPaymentCode = Pimpl<PaymentCode>;
 using OTServerConnection = Pimpl<network::ServerConnection>;
+using OTUIActivitySummary = Pimpl<ui::ActivitySummary>;
+using OTUIActivitySummaryItem = Pimpl<ui::ActivitySummaryItem>;
+using OTUIContactList = Pimpl<ui::ContactList>;
+using OTUIContactListItem = Pimpl<ui::ContactListItem>;
+using OTUIMessagableList = Pimpl<ui::MessagableList>;
 using OTZMQContext = Pimpl<network::zeromq::Context>;
 using OTZMQListenCallback = Pimpl<network::zeromq::ListenCallback>;
 using OTZMQMessage = Pimpl<network::zeromq::Message>;
@@ -223,10 +229,5 @@ using OTZMQReplyCallback = Pimpl<network::zeromq::ReplyCallback>;
 using OTZMQReplySocket = Pimpl<network::zeromq::ReplySocket>;
 using OTZMQRequestSocket = Pimpl<network::zeromq::RequestSocket>;
 using OTZMQSubscribeSocket = Pimpl<network::zeromq::SubscribeSocket>;
-using OTUIActivitySummary = Pimpl<ui::ActivitySummary>;
-using OTUIActivitySummaryItem = Pimpl<ui::ActivitySummaryItem>;
-using OTUIContactList = Pimpl<ui::ContactList>;
-using OTUIContactListItem = Pimpl<ui::ContactListItem>;
-using OTUIMessagableList = Pimpl<ui::MessagableList>;
 }  // namespace opentxs
 #endif  // OPENTXS_FORWARD_HPP

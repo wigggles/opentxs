@@ -182,10 +182,8 @@ MasterCredential::MasterCredential(
         sourceProof->set_version(1);
         sourceProof->set_type(proto::SOURCEPROOFTYPE_SIGNATURE);
 
-        std::unique_ptr<PaymentCode> bip47Source;
-        bip47Source.reset(
-            new PaymentCode(nymParameters.Seed(), nymParameters.Nym()));
-
+        auto bip47Source = PaymentCode::Factory(
+            nymParameters.Seed(), nymParameters.Nym(), PAYMENT_CODE_VERSION);
         source = std::make_shared<NymIDSource>(bip47Source);
     }
 #endif

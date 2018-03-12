@@ -67,6 +67,10 @@ namespace opentxs
 NymIDSource::NymIDSource(const proto::NymIDSource& serializedSource)
     : version_(serializedSource.version())
     , type_(serializedSource.type())
+    , pubkey_(nullptr)
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+    , payment_code_(PaymentCode::Factory(""))
+#endif
 {
     switch (type_) {
         case proto::SOURCETYPE_PUBKEY: {
@@ -76,8 +80,8 @@ NymIDSource::NymIDSource(const proto::NymIDSource& serializedSource)
         }
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
         case proto::SOURCETYPE_BIP47: {
-            payment_code_.reset(
-                new PaymentCode(serializedSource.paymentcode()));
+            payment_code_ =
+                PaymentCode::Factory(serializedSource.paymentcode());
 
             break;
         }
@@ -97,18 +101,28 @@ NymIDSource::NymIDSource(
     proto::AsymmetricKey& pubkey)
     : version_(1)
     , type_(nymParameters.SourceType())
+    , pubkey_(nullptr)
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+    , payment_code_(PaymentCode::Factory(""))
+#endif
 {
     pubkey_.reset(OTAsymmetricKey::KeyFactory(pubkey));
 }
 
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-NymIDSource::NymIDSource(std::unique_ptr<PaymentCode>& source)
+NymIDSource::NymIDSource(const PaymentCode& source)
     : version_(1)
     , type_(proto::SOURCETYPE_BIP47)
+    , pubkey_(nullptr)
+    , payment_code_(PaymentCode::Factory(source.asBase58()))
 {
-    payment_code_.reset(source.release());
 }
 #endif
+
+NymIDSource::NymIDSource(const NymIDSource& source)
+    : NymIDSource(*source.Serialize())
+{
+}
 
 OTData NymIDSource::asData() const
 {
@@ -157,9 +171,7 @@ Identifier NymIDSource::NymID() const
             break;
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
         case proto::SOURCETYPE_BIP47:
-            if (payment_code_) {
-                nymID = payment_code_->ID();
-            }
+            nymID = payment_code_->ID();
 
             break;
 #endif
@@ -251,13 +263,11 @@ bool NymIDSource::Verify(
             break;
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
         case proto::SOURCETYPE_BIP47:
-            if (payment_code_) {
-                if (!payment_code_->Verify(master, sourceSignature)) {
-                    otErr << __FUNCTION__ << ": Invalid source signature."
-                          << std::endl;
+            if (!payment_code_->Verify(master, sourceSignature)) {
+                otErr << __FUNCTION__ << ": Invalid source signature."
+                      << std::endl;
 
-                    return false;
-                }
+                return false;
             }
 
             break;
@@ -283,9 +293,7 @@ bool NymIDSource::Sign(
             break;
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
         case (proto::SOURCETYPE_BIP47):
-            if (payment_code_) {
-                goodsig = payment_code_->Sign(credential, sig, pPWData);
-            }
+            goodsig = payment_code_->Sign(credential, sig, pPWData);
 
             break;
 #endif
@@ -334,9 +342,7 @@ String NymIDSource::Description() const
             break;
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
         case (proto::SOURCETYPE_BIP47):
-            if (payment_code_) {
-                description = String(payment_code_->asBase58());
-            }
+            description = String(payment_code_->asBase58());
 
             break;
 #endif

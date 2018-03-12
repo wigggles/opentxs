@@ -57,34 +57,14 @@ typedef std::shared_ptr<proto::NymIDSource> serializedNymIDSource;
 
 class NymIDSource
 {
-private:
-    NymIDSource() = delete;
-
-    std::uint32_t version_ = 0;
-    proto::SourceType type_ = proto::SOURCETYPE_ERROR;
-    std::shared_ptr<OTAsymmetricKey> pubkey_;
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-    std::shared_ptr<PaymentCode> payment_code_;
-#endif
-
-    OTData asData() const;
-
-    static std::unique_ptr<proto::AsymmetricKey> ExtractKey(
-        const proto::Credential& credential,
-        const proto::KeyRole role);
-
 public:
-    explicit NymIDSource(const proto::NymIDSource& serializedSource);
-    explicit NymIDSource(const String& stringSource);
-    NymIDSource(
-        const NymParameters& nymParameters,
-        proto::AsymmetricKey& pubkey);
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-    explicit NymIDSource(std::unique_ptr<PaymentCode>& source);
-#endif
+    static serializedNymIDSource ExtractArmoredSource(
+        const OTASCIIArmor& armoredSource);
 
+    String asString() const;
+    String Description() const;
+    proto::SourceType Type() const;
     Identifier NymID() const;
-
     serializedNymIDSource Serialize() const;
     bool Verify(
         const proto::Credential& master,
@@ -94,12 +74,34 @@ public:
         proto::Signature& sig,
         const OTPasswordData* pPWData = nullptr) const;
 
-    String asString() const;
-    String Description() const;
-    proto::SourceType Type() const;
+    explicit NymIDSource(const proto::NymIDSource& serializedSource);
+    explicit NymIDSource(const String& stringSource);
+    NymIDSource(
+        const NymParameters& nymParameters,
+        proto::AsymmetricKey& pubkey);
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+    explicit NymIDSource(const PaymentCode& source);
+#endif
+    NymIDSource(const NymIDSource&);
 
-    static serializedNymIDSource ExtractArmoredSource(
-        const OTASCIIArmor& armoredSource);
+private:
+    std::uint32_t version_ = 0;
+    proto::SourceType type_ = proto::SOURCETYPE_ERROR;
+    std::shared_ptr<OTAsymmetricKey> pubkey_;
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+    OTPaymentCode payment_code_;
+#endif
+
+    OTData asData() const;
+
+    static std::unique_ptr<proto::AsymmetricKey> ExtractKey(
+        const proto::Credential& credential,
+        const proto::KeyRole role);
+
+    NymIDSource() = delete;
+    NymIDSource(NymIDSource&&) = delete;
+    NymIDSource& operator=(const NymIDSource&);
+    NymIDSource& operator=(NymIDSource&&);
 };
 }  // namespace opentxs
 

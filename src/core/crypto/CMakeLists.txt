@@ -95,6 +95,7 @@ set(cxx-install-headers
 
 set(cxx-headers
   ${cxx-install-headers}
+  PaymentCode.hpp
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/crypto/OpenSSL.hpp"
 )
 

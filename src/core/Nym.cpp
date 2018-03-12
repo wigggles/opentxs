@@ -1470,9 +1470,8 @@ bool Nym::LoadNymFromString(
 
                     if (!tempNotaryID.Exists() ||
                         !Contract::LoadEncodedTextField(xml, strTemp)) {
-                        otErr << __FUNCTION__
-                              << ": Error: transactionNums "
-                                 "field without value.\n";
+                        otErr << __FUNCTION__ << ": Error: transactionNums "
+                                                 "field without value.\n";
                         return false;  // error condition
                     }
 
@@ -2090,9 +2089,9 @@ std::string Nym::PaymentCode() const
         return "";
     }
 
-    class PaymentCode paymentCode(serialized->paymentcode());
+    auto paymentCode = PaymentCode::Factory(serialized->paymentcode());
 
-    return paymentCode.asBase58();
+    return paymentCode->asBase58();
 
 #else
     return "";
@@ -2140,8 +2139,9 @@ bool Nym::ReEncryptPrivateCredentials(
         CredentialSet* pCredential = it.second;
         OT_ASSERT(nullptr != pCredential);
 
-        if (false == pCredential->ReEncryptPrivateCredentials(
-                         *pExportPassphrase, bImporting))
+        if (false ==
+            pCredential->ReEncryptPrivateCredentials(
+                *pExportPassphrase, bImporting))
             return false;
     }
 

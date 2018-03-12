@@ -95,9 +95,9 @@ bool NymData::AddPaymentCode(
     const bool primary,
     const bool active)
 {
-    class PaymentCode paymentCode(code);
+    auto paymentCode = PaymentCode::Factory(code);
 
-    if (false == paymentCode.VerifyInternally()) {
+    if (false == paymentCode->VerifyInternally()) {
         otErr << OT_METHOD << __FUNCTION__ << ": Invalid payment code."
               << std::endl;
 

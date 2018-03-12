@@ -680,7 +680,8 @@ std::string OTAPI_Exec::CreateNymHD(
     pNym->SetAlias(name);
     pNym->SaveSignedNymfile(*pSignerNym);
     pWallet->SaveWallet();
-    contacts_.NewContact(name, pNym->ID(), PaymentCode(pNym->PaymentCode()));
+    auto code = PaymentCode::Factory(pNym->PaymentCode());
+    contacts_.NewContact(name, pNym->ID(), code);
 
     return id;
 #else
