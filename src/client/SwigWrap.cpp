@@ -3910,10 +3910,10 @@ std::string SwigWrap::Add_Contact(
     }
 
     Identifier nym(nymID);
-    PaymentCode code(paymentCode);
+    auto code = PaymentCode::Factory(paymentCode);
 
-    if (nym.empty() && code.VerifyInternally()) {
-        nym = code.ID();
+    if (nym.empty() && code->VerifyInternally()) {
+        nym = code->ID();
     }
 
     auto output = OT::App().Contact().NewContact(label, nym, code);

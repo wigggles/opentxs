@@ -37,7 +37,7 @@
  ************************************************************/
 #include "opentxs/stdafx.hpp"
 
-#include "opentxs/core/crypto/PaymentCode.hpp"
+#include "PaymentCode.hpp"
 
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 #include "opentxs/api/crypto/Crypto.hpp"
@@ -71,13 +71,44 @@
 #include <ostream>
 #include <string>
 
-#define OT_METHOD "opentxs::PaymentCode::"
+#define OT_METHOD "opentxs::implementation::PaymentCode::"
 
 namespace opentxs
 {
+OTPaymentCode PaymentCode::Factory(const std::string& base58)
+{
+    return OTPaymentCode(new implementation::PaymentCode(base58));
+}
 
+OTPaymentCode PaymentCode::Factory(const proto::PaymentCode& serialized)
+{
+    return OTPaymentCode(new implementation::PaymentCode(serialized));
+}
+
+OTPaymentCode PaymentCode::Factory(
+    const std::string& seed,
+    const std::uint32_t nym,
+    const std::uint8_t version,
+    const bool bitmessage,
+    const std::uint8_t bitmessageVersion,
+    const std::uint8_t bitmessageStream)
+{
+    return OTPaymentCode(new implementation::PaymentCode(
+        seed, nym, version, bitmessage, bitmessageVersion, bitmessageStream));
+}
+}  // namespace opentxs
+
+namespace opentxs::implementation
+{
 PaymentCode::PaymentCode(const std::string& base58)
-    : chain_code_(new OTPassword)
+    : version_(0)
+    , seed_("")
+    , index_(0)
+    , pubkey_(nullptr)
+    , chain_code_(new OTPassword)
+    , hasBitmessage_(false)
+    , bitmessage_version_(0)
+    , bitmessage_stream_(0)
 {
     std::string rawCode = OT::App().Crypto().Encode().IdentifierDecode(base58);
 
@@ -112,8 +143,13 @@ PaymentCode::PaymentCode(const std::string& base58)
 
 PaymentCode::PaymentCode(const proto::PaymentCode& paycode)
     : version_(paycode.version())
+    , seed_("")
+    , index_(0)
+    , pubkey_(nullptr)
     , chain_code_(new OTPassword)
     , hasBitmessage_(paycode.has_bitmessage())
+    , bitmessage_version_(0)
+    , bitmessage_stream_(0)
 {
     OT_ASSERT(chain_code_);
 
@@ -135,30 +171,35 @@ PaymentCode::PaymentCode(const proto::PaymentCode& paycode)
 PaymentCode::PaymentCode(
     const std::string& seed,
     const std::uint32_t nym,
+    const std::uint8_t version,
     const bool bitmessage,
     const std::uint8_t bitmessageVersion,
     const std::uint8_t bitmessageStream)
-    : seed_(seed)
+    : version_(version)
+    , seed_(seed)
     , index_(nym)
+    , pubkey_(nullptr)
+    , chain_code_(nullptr)
     , hasBitmessage_(bitmessage)
     , bitmessage_version_(bitmessageVersion)
     , bitmessage_stream_(bitmessageStream)
 {
+    OT_ASSERT(chain_code_);
+
     serializedAsymmetricKey privatekey =
         OT::App().Crypto().BIP32().GetPaymentCode(seed_, index_);
 
     if (privatekey) {
-        OTPassword privkey;
         chain_code_.reset(new OTPassword);
 
-        OT_ASSERT(chain_code_);
+        OT_ASSERT(chain_code_)
 
+        OTPassword privkey;
         auto symmetricKey = OT::App().Crypto().Symmetric().Key(
             privatekey->encryptedkey().key(),
             privatekey->encryptedkey().mode());
         OTPasswordData password(__FUNCTION__);
         symmetricKey->Decrypt(privatekey->chaincode(), password, *chain_code_);
-
         proto::AsymmetricKey key;
 #if OT_CRYPTO_USING_LIBSECP256K1
         const bool haveKey =
@@ -392,7 +433,7 @@ bool PaymentCode::Sign(
     return goodSig;
 }
 
-void PaymentCode::ConstructKey(const Data& pubkey)
+void PaymentCode::ConstructKey(const opentxs::Data& pubkey)
 {
     proto::AsymmetricKey newKey;
     newKey.set_version(1);
@@ -412,5 +453,7 @@ bool PaymentCode::VerifyInternally() const
 {
     return (proto::Validate<proto::PaymentCode>(*Serialize(), SILENT));
 }
-}  // namespace opentxs
+
+PaymentCode::~PaymentCode() {}
+}  // namespace opentxs::implementation
 #endif

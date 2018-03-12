@@ -371,8 +371,9 @@ void Activity::MigrateLegacyThreads() const
                 const auto nymCount = thread->participant().size();
 
                 if (1 == nymCount) {
+                    auto paymentCode = PaymentCode::Factory("");
                     auto newContact = contact_.NewContact(
-                        "", Identifier(originalThreadID), PaymentCode(""));
+                        "", Identifier(originalThreadID), paymentCode);
 
                     OT_ASSERT(newContact);
 
@@ -402,20 +403,14 @@ std::shared_ptr<const Contact> Activity::nym_to_contact(
     // Contact does not yet exist. Create it.
     std::string label{};
     auto nym = wallet_.Nym(nymID);
-    std::unique_ptr<PaymentCode> code;
+    auto code = PaymentCode::Factory("");
 
     if (nym) {
         label = nym->Claims().Name();
-        code.reset(new PaymentCode(nym->PaymentCode()));
+        code = PaymentCode::Factory(nym->PaymentCode());
     }
 
-    if (false == bool(code)) {
-        code.reset(new PaymentCode(""));
-    }
-
-    OT_ASSERT(code);
-
-    return contact_.NewContact(label, nymID, *code);
+    return contact_.NewContact(label, nymID, code);
 }
 
 void Activity::preload(

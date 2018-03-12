@@ -246,7 +246,7 @@ void ContactManager::import_contacts(const rLock& lock)
                 case proto::CITEMTYPE_ORGANIZATION:
                 case proto::CITEMTYPE_BUSINESS:
                 case proto::CITEMTYPE_GOVERNMENT: {
-                    PaymentCode code(nym->PaymentCode());
+                    auto code = PaymentCode::Factory(nym->PaymentCode());
                     new_contact(lock, nym->Alias(), nymID, code);
                 } break;
                 case proto::CITEMTYPE_ERROR:
@@ -668,12 +668,9 @@ std::shared_ptr<const class Contact> ContactManager::Update(
         otErr << OT_METHOD << __FUNCTION__ << ": Nym " << String(nymID)
               << " is not associated with a contact. Creating a new contact."
               << std::endl;
+        auto code = PaymentCode::Factory(nym->PaymentCode());
 
-        return new_contact(
-            lock,
-            Contact::ExtractLabel(*nym),
-            nymID,
-            PaymentCode(nym->PaymentCode()));
+        return new_contact(lock, Contact::ExtractLabel(*nym), nymID, code);
     }
 
     {
