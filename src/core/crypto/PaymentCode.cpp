@@ -75,6 +75,11 @@
 
 namespace opentxs
 {
+OTPaymentCode PaymentCode::Factory(const PaymentCode& rhs)
+{
+    return OTPaymentCode(rhs.clone());
+}
+
 OTPaymentCode PaymentCode::Factory(const std::string& base58)
 {
     return OTPaymentCode(new implementation::PaymentCode(base58));
@@ -220,6 +225,17 @@ bool PaymentCode::operator==(const proto::PaymentCode& rhs) const
     auto RHData = proto::ProtoAsData(rhs);
 
     return (LHData == RHData);
+}
+
+PaymentCode* PaymentCode::clone() const
+{
+    return new PaymentCode(
+        seed_,
+        index_,
+        version_,
+        hasBitmessage_,
+        bitmessage_version_,
+        bitmessage_stream_);
 }
 
 const OTData PaymentCode::Pubkey() const

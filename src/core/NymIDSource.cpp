@@ -114,7 +114,7 @@ NymIDSource::NymIDSource(const PaymentCode& source)
     : version_(1)
     , type_(proto::SOURCETYPE_BIP47)
     , pubkey_(nullptr)
-    , payment_code_(PaymentCode::Factory(source.asBase58()))
+    , payment_code_(PaymentCode::Factory(source))
 {
 }
 #endif
