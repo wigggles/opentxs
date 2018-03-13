@@ -46,6 +46,12 @@
 #include <chrono>
 #include <string>
 
+#ifdef SWIG
+// clang-format off
+%rename(UIActivitySummaryItem) opentxs::ui::ActivitySummaryItem;
+// clang-format on
+#endif  // SWIG
+
 namespace opentxs
 {
 namespace ui

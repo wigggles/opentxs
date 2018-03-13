@@ -41,6 +41,12 @@
 
 #include "opentxs/Forward.hpp"
 
+#ifdef SWIG
+// clang-format off
+%rename(UIContactList) opentxs::ui::ContactList;
+// clang-format on
+#endif  // SWIG
+
 namespace opentxs
 {
 namespace ui
