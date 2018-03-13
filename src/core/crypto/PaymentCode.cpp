@@ -184,8 +184,6 @@ PaymentCode::PaymentCode(
     , bitmessage_version_(bitmessageVersion)
     , bitmessage_stream_(bitmessageStream)
 {
-    OT_ASSERT(chain_code_);
-
     serializedAsymmetricKey privatekey =
         OT::App().Crypto().BIP32().GetPaymentCode(seed_, index_);
 

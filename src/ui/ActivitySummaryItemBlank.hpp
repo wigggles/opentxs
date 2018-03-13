@@ -53,6 +53,7 @@ public:
     bool Last() const override { return true; }
     std::string Text() const override { return {}; }
     std::string ThreadID() const override { return {}; }
+    std::int64_t Time() const override { return {}; }
     std::chrono::system_clock::time_point Timestamp() const override
     {
         return {};

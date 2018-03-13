@@ -280,6 +280,15 @@ std::string ActivitySummaryItem::Text() const
 
 std::string ActivitySummaryItem::ThreadID() const { return id_.str(); }
 
+std::int64_t ActivitySummaryItem::Time() const
+{
+    sLock lock(shared_lock_);
+
+    return std::chrono::time_point_cast<std::chrono::seconds>(time_)
+        .time_since_epoch()
+        .count();
+}
+
 std::chrono::system_clock::time_point ActivitySummaryItem::Timestamp() const
 {
     sLock lock(shared_lock_);
