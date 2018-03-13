@@ -43,6 +43,12 @@
 
 #include <string>
 
+#ifdef SWIG
+// clang-format off
+%rename(UIContactListItem) opentxs::ui::ContactListItem;
+// clang-format on
+#endif  // SWIG
+
 namespace opentxs
 {
 namespace ui
