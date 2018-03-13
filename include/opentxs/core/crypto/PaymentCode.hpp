@@ -55,6 +55,7 @@ using SerializedPaymentCode = std::shared_ptr<proto::PaymentCode>;
 class PaymentCode
 {
 public:
+    static OTPaymentCode Factory(const PaymentCode& rhs);
     static OTPaymentCode Factory(const std::string& base58);
     static OTPaymentCode Factory(const proto::PaymentCode& serialized);
     static OTPaymentCode Factory(
@@ -85,6 +86,10 @@ protected:
     PaymentCode() = default;
 
 private:
+    friend OTPaymentCode;
+
+    virtual PaymentCode* clone() const = 0;
+
     PaymentCode(const PaymentCode&) = delete;
     PaymentCode(PaymentCode&&) = delete;
     PaymentCode& operator=(const PaymentCode&);

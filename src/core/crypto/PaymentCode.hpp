@@ -71,7 +71,7 @@ private:
     const std::uint8_t BIP47_VERSION_BYTE{0x47};
 
     std::uint8_t version_{1};
-    std::string seed_;
+    std::string seed_{""};
     std::uint32_t index_{0};
     std::shared_ptr<AsymmetricKeyEC> pubkey_{nullptr};
     std::unique_ptr<OTPassword> chain_code_{nullptr};
@@ -79,6 +79,7 @@ private:
     std::uint8_t bitmessage_version_{0};
     std::uint8_t bitmessage_stream_{0};
 
+    PaymentCode* clone() const override;
     const OTData Pubkey() const;
     void ConstructKey(const Data& pubkey);
 
