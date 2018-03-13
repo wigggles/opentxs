@@ -312,7 +312,9 @@ void Native::Init()
     Init_Api();  // requires Init_Config(), Init_Crypto(), Init_Contracts(),
                  // Init_Identity(), Init_Storage(), Init_ZMQ(), Init_Contacts()
                  // Init_Activity()
-    Init_UI();   // requires Init_Activity(), Init_Contacts(), Init_Api()
+    if (!server_mode_) {
+        Init_UI();  // requires Init_Activity(), Init_Contacts(), Init_Api()
+    }
 
     if (recover_) {
         recover();
