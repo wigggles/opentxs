@@ -390,14 +390,12 @@ private:
 
     OTAPI_Func_Type type_{NO_FUNC};
     Identifier accountID_{};
-    Identifier assetAccountID_{};
     Identifier basketID_{};
     Identifier currencyAccountID_{};
     Identifier instrumentDefinitionID_{};
     Identifier marketID_{};
     Identifier recipientID_{};
     Identifier requestID_{};
-    Identifier senderAccountID_{};
     Identifier targetID_{};
     std::unique_ptr<OTSmartContract> contract_;
     std::unique_ptr<OTPaymentPlan> paymentPlan_;

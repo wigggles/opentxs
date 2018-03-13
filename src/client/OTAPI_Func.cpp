@@ -178,14 +178,12 @@ OTAPI_Func::OTAPI_Func(
     const OTAPI_Func_Type type)
     : type_(type)
     , accountID_{}
-    , assetAccountID_{}
     , basketID_{}
     , currencyAccountID_{}
     , instrumentDefinitionID_{}
     , marketID_{}
     , recipientID_{}
     , requestID_{}
-    , senderAccountID_{}
     , targetID_{}
     , contract_{nullptr}
     , paymentPlan_{nullptr}
@@ -1410,11 +1408,11 @@ void OTAPI_Func::run()
             }
 
             const auto str_asset_notary_id =
-                exec_.GetAccountWallet_NotaryID(assetAccountID_.str());
+                exec_.GetAccountWallet_NotaryID(accountID_.str());
             const auto str_currency_notary_id =
                 exec_.GetAccountWallet_NotaryID(currencyAccountID_.str());
             const auto str_asset_nym_id =
-                exec_.GetAccountWallet_NymID(assetAccountID_.str());
+                exec_.GetAccountWallet_NymID(accountID_.str());
             const auto str_currency_nym_id =
                 exec_.GetAccountWallet_NymID(currencyAccountID_.str());
 
