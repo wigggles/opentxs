@@ -42,10 +42,13 @@
 
 #include "opentxs/api/Api.hpp"
 #include "opentxs/api/Native.hpp"
+#include "opentxs/api/client/ServerAction.hpp"
 #include "opentxs/client/commands/CmdBase.hpp"
 #include "opentxs/client/commands/CmdDeposit.hpp"
-#include "opentxs/client/OT_ME.hpp"
+#include "opentxs/client/ServerAction.hpp"
 #include "opentxs/client/SwigWrap.hpp"
+#include "opentxs/core/recurring/OTPaymentPlan.hpp"
+#include "opentxs/core/script/OTSmartContract.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/OT.hpp"
 
@@ -179,6 +182,7 @@ int32_t CmdCancel::run(string mynym, string myacct, string indices)
         // drawn on, that will be interpreted by the server as a request to
         // CANCEL the cheque.
 
+        const Identifier theNotaryID{server}, theNymID{mynym};
         string type = SwigWrap::Instrmnt_GetType(payment);
 
         if ("SMARTCONTRACT" == type) {
@@ -198,8 +202,22 @@ int32_t CmdCancel::run(string mynym, string myacct, string indices)
             // So while we expect this 'activation' to fail, it should have the
             // desired effect of cancelling the smart contract and sending
             // failure notices to all the parties.
-            string response = OT::App().API().OTME().activate_smart_contract(
-                server, mynym, myacct, "acct_agent_name", payment);
+            std::unique_ptr<OTSmartContract> contract =
+                std::make_unique<OTSmartContract>();
+
+            OT_ASSERT(contract)
+
+            contract->LoadContractFromString(String(payment));
+            string response = OT::App()
+                                  .API()
+                                  .ServerAction()
+                                  .ActivateSmartContract(
+                                      theNymID,
+                                      theNotaryID,
+                                      Identifier(myacct),
+                                      "acct_agent_name",
+                                      contract)
+                                  ->Run();
             if ("" == response) {
                 otOut << "Error: cannot cancel smart contract.\n";
                 retVal = -1;
@@ -225,8 +243,18 @@ int32_t CmdCancel::run(string mynym, string myacct, string indices)
             // propagated to the other party to the contract. (Which will result
             // in its automatic removal from the outpayment box.)
 
-            string response = OT::App().API().OTME().cancel_payment_plan(
-                server, mynym, payment);
+            std::unique_ptr<OTPaymentPlan> plan =
+                std::make_unique<OTPaymentPlan>();
+
+            OT_ASSERT(plan)
+
+            plan->LoadContractFromString(String(payment));
+            string response =
+                OT::App()
+                    .API()
+                    .ServerAction()
+                    .CancelPaymentPlan(theNymID, theNotaryID, plan)
+                    ->Run();
             if ("" == response) {
                 otOut << "Error: cannot cancel payment plan.\n";
                 retVal = -1;

@@ -50,6 +50,7 @@
 #include "opentxs/core/Cheque.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Ledger.hpp"
+#include "opentxs/core/Lockable.hpp"
 #include "opentxs/ext/OTPayment.hpp"
 
 #include <atomic>
@@ -110,11 +111,12 @@ typedef enum {
     STORE_SECRET = 47
 } OTAPI_Func_Type;
 
-class OTAPI_Func : virtual public opentxs::client::ServerAction
+class OTAPI_Func : virtual public opentxs::client::ServerAction, Lockable
 {
 public:
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
+        std::recursive_mutex& apilock,
         const api::client::Wallet& wallet,
         const Identifier& nymID,
         const Identifier& serverID,
@@ -122,6 +124,7 @@ public:
         const OT_API& otapi);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
+        std::recursive_mutex& apilock,
         const api::client::Wallet& wallet,
         const Identifier& nymID,
         const Identifier& serverID,
@@ -130,6 +133,7 @@ public:
         const std::string& password);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
+        std::recursive_mutex& apilock,
         const api::client::Wallet& wallet,
         const Identifier& nymID,
         const Identifier& serverID,
@@ -138,6 +142,7 @@ public:
         const proto::UnitDefinition& unitDefinition);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
+        std::recursive_mutex& apilock,
         const api::client::Wallet& wallet,
         const Identifier& nymID,
         const Identifier& serverID,
@@ -146,6 +151,7 @@ public:
         const Identifier& nymID2);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
+        std::recursive_mutex& apilock,
         const api::client::Wallet& wallet,
         const Identifier& nymID,
         const Identifier& serverID,
@@ -155,6 +161,7 @@ public:
         const proto::ConnectionInfoType& infoType);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
+        std::recursive_mutex& apilock,
         const api::client::Wallet& wallet,
         const Identifier& nymID,
         const Identifier& serverID,
@@ -164,6 +171,7 @@ public:
         const std::int64_t& int64Val);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
+        std::recursive_mutex& apilock,
         const api::client::Wallet& wallet,
         const Identifier& nymID,
         const Identifier& serverID,
@@ -173,6 +181,7 @@ public:
         std::unique_ptr<Ledger>& ledger);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
+        std::recursive_mutex& apilock,
         const api::client::Wallet& wallet,
         const Identifier& nymID,
         const Identifier& serverID,
@@ -182,6 +191,7 @@ public:
         const Identifier& instrumentDefinitionID);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
+        std::recursive_mutex& apilock,
         const api::client::Wallet& wallet,
         const Identifier& nymID,
         const Identifier& serverID,
@@ -191,6 +201,7 @@ public:
         std::unique_ptr<Cheque>& cheque);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
+        std::recursive_mutex& apilock,
         const api::client::Wallet& wallet,
         const Identifier& nymID,
         const Identifier& serverID,
@@ -200,6 +211,7 @@ public:
         std::unique_ptr<Purse>& purse);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
+        std::recursive_mutex& apilock,
         const api::client::Wallet& wallet,
         const Identifier& nymID,
         const Identifier& serverID,
@@ -209,6 +221,7 @@ public:
         std::unique_ptr<OTPaymentPlan>& paymentPlan);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
+        std::recursive_mutex& apilock,
         const api::client::Wallet& wallet,
         const Identifier& nymID,
         const Identifier& serverID,
@@ -219,6 +232,7 @@ public:
         const std::string& parameter);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
+        std::recursive_mutex& apilock,
         const api::client::Wallet& wallet,
         const Identifier& nymID,
         const Identifier& serverID,
@@ -228,6 +242,7 @@ public:
         std::unique_ptr<OTPayment>& payment);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
+        std::recursive_mutex& apilock,
         const api::client::Wallet& wallet,
         const Identifier& nymID,
         const Identifier& serverID,
@@ -237,6 +252,7 @@ public:
         const std::string& message);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
+        std::recursive_mutex& apilock,
         const api::client::Wallet& wallet,
         const Identifier& nymID,
         const Identifier& serverID,
@@ -247,6 +263,7 @@ public:
         const TransactionNumber& transactionNumber);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
+        std::recursive_mutex& apilock,
         const api::client::Wallet& wallet,
         const Identifier& nymID,
         const Identifier& serverID,
@@ -257,6 +274,7 @@ public:
         std::unique_ptr<OTSmartContract>& contract);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
+        std::recursive_mutex& apilock,
         const api::client::Wallet& wallet,
         const Identifier& nymID,
         const Identifier& serverID,
@@ -267,6 +285,7 @@ public:
         const std::string& instructions);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
+        std::recursive_mutex& apilock,
         const api::client::Wallet& wallet,
         const Identifier& nymID,
         const Identifier& serverID,
@@ -277,6 +296,7 @@ public:
         const bool ack);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
+        std::recursive_mutex& apilock,
         const api::client::Wallet& wallet,
         const Identifier& nymID,
         const Identifier& serverID,
@@ -288,6 +308,7 @@ public:
         const std::string& message);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
+        std::recursive_mutex& apilock,
         const api::client::Wallet& wallet,
         const Identifier& nymID,
         const Identifier& serverID,
@@ -299,6 +320,7 @@ public:
         const proto::SecretType& secretType);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
+        std::recursive_mutex& apilock,
         const api::client::Wallet& wallet,
         const Identifier& nymID,
         const Identifier& serverID,
@@ -309,6 +331,7 @@ public:
         std::unique_ptr<Purse>& senderPurse);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
+        std::recursive_mutex& apilock,
         const api::client::Wallet& wallet,
         const Identifier& nymID,
         const Identifier& serverID,
@@ -321,6 +344,7 @@ public:
         const Amount& amount);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
+        std::recursive_mutex& apilock,
         const api::client::Wallet& wallet,
         const Identifier& nymID,
         const Identifier& serverID,
@@ -332,6 +356,7 @@ public:
         const std::string& value);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
+        std::recursive_mutex& apilock,
         const api::client::Wallet& wallet,
         const Identifier& nymID,
         const Identifier& serverID,
@@ -344,6 +369,7 @@ public:
         std::int32_t nTransNumsNeeded);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
+        std::recursive_mutex& apilock,
         const api::client::Wallet& wallet,
         const Identifier& nymID,
         const Identifier& serverID,
@@ -358,6 +384,7 @@ public:
         bool ack);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
+        std::recursive_mutex& apilock,
         const api::client::Wallet& wallet,
         const Identifier& nymID,
         const Identifier& serverID,
@@ -389,6 +416,7 @@ private:
     static const std::map<OTAPI_Func_Type, bool> type_type_;
 
     OTAPI_Func_Type type_{NO_FUNC};
+    rLock api_lock_;
     Identifier accountID_{};
     Identifier basketID_{};
     Identifier currencyAccountID_{};
@@ -430,7 +458,6 @@ private:
     ServerContext& context_;
     const OTAPI_Exec& exec_;
     const OT_API& otapi_;
-    mutable std::mutex lock_;
     CommandResult last_attempt_;
     const bool is_transaction_{false};
     std::shared_ptr<PeerReply> peer_reply_;
@@ -462,6 +489,7 @@ private:
     std::string send_transaction(const std::size_t totalRetries);
 
     explicit OTAPI_Func(
+        std::recursive_mutex& apilock,
         const api::client::Wallet& wallet,
         const OTAPI_Exec& exec,
         const OT_API& otapi,

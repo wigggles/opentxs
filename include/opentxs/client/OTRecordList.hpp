@@ -185,6 +185,12 @@ private:
     static const std::string s_blank;
     static const std::string s_message_type;
 
+    bool accept_from_paymentbox_overload(
+        const std::string& ACCOUNT_ID,
+        const std::string& INDICES,
+        const std::string& PAYMENT_TYPE,
+        std::string* pOptionalOutput = nullptr) const;
+
 public:  // ADDRESS BOOK CALLBACK
     static bool setAddrBookCaller(OTLookupCaller& theCaller);
     static OTLookupCaller* getAddrBookCaller();

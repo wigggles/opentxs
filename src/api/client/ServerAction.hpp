@@ -87,7 +87,7 @@ public:
         const Identifier& localNymID,
         const Identifier& serverID,
         const Identifier& accountID,
-        const String& agentName,
+        const std::string& agentName,
         std::unique_ptr<OTSmartContract>& contract) const override;
     Action AddServerClaim(
         const Identifier& localNymID,
@@ -135,7 +135,8 @@ public:
     bool DownloadAccount(
         const Identifier& localNymID,
         const Identifier& serverID,
-        const Identifier& accountID) const override;
+        const Identifier& accountID,
+        const bool forceDownload) const override;
     Action DownloadBoxReceipt(
         const Identifier& localNymID,
         const Identifier& serverID,

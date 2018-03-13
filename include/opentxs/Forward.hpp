@@ -49,6 +49,7 @@ namespace api
 {
 namespace client
 {
+class Cash;
 class Issuer;
 class Pair;
 class ServerAction;
@@ -168,7 +169,6 @@ class NymData;
 class NymParameters;
 class OT;
 class OT_API;
-class OT_ME;
 class OTAPI_Exec;
 class OTASCIIArmor;
 class OTAsymmetricKey;
@@ -181,7 +181,6 @@ class OTDataFolder;
 class OTEnvelope;
 class OTFolders;
 class OTKeypair;
-class OTME_too;
 class OTNym_or_SymmetricKey;
 class OTPassword;
 class OTPasswordData;

@@ -44,7 +44,6 @@
 #include "opentxs/api/Api.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/client/OT_API.hpp"
-#include "opentxs/client/OT_ME.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
 #include "opentxs/client/SwigWrap.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
@@ -127,17 +126,20 @@ std::int32_t VerifyMsgBalanceAgrmntSuccess(
                   << strMessage << "\n";
             break;
         case 0:
-            otWarn << __FUNCTION__ << ": Reply received: success == "
-                                      "FALSE. Reply message:\n\n"
+            otWarn << __FUNCTION__
+                   << ": Reply received: success == "
+                      "FALSE. Reply message:\n\n"
                    << strMessage << "\n";
             break;
         case 1:
-            otWarn << __FUNCTION__ << ": Reply received: success == "
-                                      "TRUE.\n";
+            otWarn << __FUNCTION__
+                   << ": Reply received: success == "
+                      "TRUE.\n";
             break;
         default:
-            otOut << __FUNCTION__ << ": Error. (This should never "
-                                     "happen!) Input: "
+            otOut << __FUNCTION__
+                  << ": Error. (This should never "
+                     "happen!) Input: "
                   << strMessage << "\n";
             nSuccess = -1;
             break;
@@ -166,16 +168,18 @@ std::int32_t VerifyMsgTrnxSuccess(
                   << strMessage << "\n";
             break;
         case 0:
-            otWarn << __FUNCTION__ << ": Reply received: success == FALSE. "
-                                      "Reply message:\n\n"
+            otWarn << __FUNCTION__
+                   << ": Reply received: success == FALSE. "
+                      "Reply message:\n\n"
                    << strMessage << "\n";
             break;
         case 1:
             otWarn << __FUNCTION__ << ": Reply received: success == TRUE.\n";
             break;
         default:
-            otOut << __FUNCTION__ << ": Error. (This should never happen!) "
-                                     "Input: "
+            otOut << __FUNCTION__
+                  << ": Error. (This should never happen!) "
+                     "Input: "
                   << strMessage << "\n";
             nSuccess = -1;
             break;
@@ -322,17 +326,19 @@ std::int32_t Utility::getNymbox(
     std::string strRecentHash = SwigWrap::GetNym_RecentHash(notaryID, nymID);
     bool bRecentHash = VerifyStringVal(strRecentHash);
     if (!bRecentHash) {
-        otOut << strLocation << ": Warning: Unable to retrieve recent cached "
-                                "copy  of server-side NymboxHash from "
-                                "client-side nym (perhaps he's never "
-                                "downloaded it before?)\n\n";
+        otOut << strLocation
+              << ": Warning: Unable to retrieve recent cached "
+                 "copy  of server-side NymboxHash from "
+                 "client-side nym (perhaps he's never "
+                 "downloaded it before?)\n\n";
     }
 
     std::string strLocalHash = SwigWrap::GetNym_NymboxHash(notaryID, nymID);
     bool bLocalHash = VerifyStringVal(strLocalHash);
     if (!bLocalHash) {
-        otWarn << strLocation << ": Warning: Unable to retrieve client-side "
-                                 "NymboxHash for:\n notaryID: "
+        otWarn << strLocation
+               << ": Warning: Unable to retrieve client-side "
+                  "NymboxHash for:\n notaryID: "
                << notaryID << "\n nymID: " << nymID << "\n";
     }
 
@@ -377,10 +383,11 @@ std::int32_t Utility::getNymbox(
         const auto nGetRequestNumber = context_.UpdateRequestNumber();
 
         if (0 >= nGetRequestNumber) {
-            otOut << strLocation << ": Failure: this.getNymboxLowLevel failed, "
-                                    "then I tried to resync with "
-                                    "this.getRequestNumber and then that "
-                                    "failed too. (I give up.)\n";
+            otOut << strLocation
+                  << ": Failure: this.getNymboxLowLevel failed, "
+                     "then I tried to resync with "
+                     "this.getRequestNumber and then that "
+                     "failed too. (I give up.)\n";
             return -1;
         }
 
@@ -393,10 +400,11 @@ std::int32_t Utility::getNymbox(
         // reply itself. But in this case, I needed it.
         if (!VerifyStringVal(lastReplyReceived))  // THIS SHOULD NEVER HAPPEN.
         {
-            otOut << strLocation << ": ERROR in getLastReplyReceived(): why "
-                                    "was this std::string not set, when "
-                                    "this.getRequestNumber was otherwise an "
-                                    "apparent success?\n";
+            otOut << strLocation
+                  << ": ERROR in getLastReplyReceived(): why "
+                     "was this std::string not set, when "
+                     "this.getRequestNumber was otherwise an "
+                     "apparent success?\n";
             return -1;  // (SHOULD NEVER HAPPEN. This std::string is set in the
                         // getRequestNumber function.)
         }
@@ -496,10 +504,11 @@ std::int32_t Utility::getNymbox(
             if (-1 == nGetNymbox)  // we'll try re-syncing the request number,
                                    // then try again.
             {
-                otOut << strLocation << ": Failure: this.getNymboxLowLevel "
-                                        "returned -1, even after syncing the "
-                                        "request number successfully. (Giving "
-                                        "up.)\n";
+                otOut << strLocation
+                      << ": Failure: this.getNymboxLowLevel "
+                         "returned -1, even after syncing the "
+                         "request number successfully. (Giving "
+                         "up.)\n";
                 return -1;
             }
         }
@@ -763,9 +772,10 @@ std::int32_t Utility::getAndProcessNymbox_8(
                            << nRequestNumber << "\n";
                 } else  // SwigWrap::GetSentMessage success.
                 {
-                    otOut << strLocation << ": FYI: Harvesting transaction "
-                                            "numbers from failed Msg "
-                                            "attempt...\n";
+                    otOut << strLocation
+                          << ": FYI: Harvesting transaction "
+                             "numbers from failed Msg "
+                             "attempt...\n";
 
                     bool nHarvested = SwigWrap::Msg_HarvestTransactionNumbers(
                         strSentMsg,
@@ -899,8 +909,9 @@ std::int32_t Utility::getAndProcessNymbox_8(
             // is true.
             // (Just like case 0.)
             //
-            otOut << strLocation << ": Failure: processNymbox: error (-1). (It "
-                                    "couldn't send. I give up.)\n";
+            otOut << strLocation
+                  << ": Failure: processNymbox: error (-1). (It "
+                     "couldn't send. I give up.)\n";
 
             return -1;  // (It didn't even send.)
         } else if (0 == nProcess) {
@@ -958,10 +969,11 @@ std::int32_t Utility::getAndProcessNymbox_8(
         // reply itself. But in this case, I needed it.
         if (!VerifyStringVal(strReplyProcess))  // THIS SHOULD NEVER HAPPEN.
         {
-            otOut << strLocation << ": ERROR in getLastReplyReceived(): why "
-                                    "was this std::string not set, when "
-                                    "getRequestNumber was otherwise an "
-                                    "apparent success?\n";
+            otOut << strLocation
+                  << ": ERROR in getLastReplyReceived(): why "
+                     "was this std::string not set, when "
+                     "getRequestNumber was otherwise an "
+                     "apparent success?\n";
 
             return -1;  // (SHOULD NEVER HAPPEN. This std::string is set in the
                         // getRequestNumber function.)
@@ -1109,10 +1121,11 @@ std::int32_t Utility::getAndProcessNymbox_8(
                     // already removed the sent message from the sent buffer (so
                     // no need to do that here.)
 
-                    otOut << strLocation << ": FYI: I *did* find the "
-                                            "processNymboxResponse reply in my "
-                                            "Nymbox, so NO NEED to clawback "
-                                            "any transaction numbers.\n";
+                    otOut << strLocation
+                          << ": FYI: I *did* find the "
+                             "processNymboxResponse reply in my "
+                             "Nymbox, so NO NEED to clawback "
+                             "any transaction numbers.\n";
                 } else  // was NOT found... we need to clawback.
                 {
                     // This means the server's reply was definitely NOT found in
@@ -1146,9 +1159,10 @@ std::int32_t Utility::getAndProcessNymbox_8(
                                << nProcess << "\n";
                     } else  // strSentProcessNymboxMsg NOT null!
                     {
-                        otOut << strLocation << ": FYI: Harvesting transaction "
-                                                "numbers from failed "
-                                                "processNymbox attempt...\n";
+                        otOut << strLocation
+                              << ": FYI: Harvesting transaction "
+                                 "numbers from failed "
+                                 "processNymbox attempt...\n";
 
                         nHarvested = SwigWrap::Msg_HarvestTransactionNumbers(
                             strSentProcessNymboxMsg,
@@ -1213,16 +1227,18 @@ std::int32_t Utility::getAndProcessNymbox_8(
                 // messages that have
                 // nymbox replies, and only harvest the others.
                 else {
-                    otOut << strLocation << ": Error while trying to flush "
-                                            "sent messages: Failed loading "
-                                            "Nymbox for nym: "
+                    otOut << strLocation
+                          << ": Error while trying to flush "
+                             "sent messages: Failed loading "
+                             "Nymbox for nym: "
                           << nymID << "\n";
                 }
             }     // if insureHaveAllBoxReceipts()
             else  // we do NOT have all the box receipts.
             {
-                otOut << strLocation << ": Error: insureHaveAllBoxReceipts "
-                                        "failed. (I give up.)\n";
+                otOut << strLocation
+                      << ": Error: insureHaveAllBoxReceipts "
+                         "failed. (I give up.)\n";
                 return -1;
             }
         }  // else if (bProcessAnyError || bProcessAnyFailure)
@@ -1277,8 +1293,9 @@ std::int32_t Utility::getAndProcessNymbox_4(
     std::string strLocation = "Utility::getAndProcessNymbox_4";
 
     if (!VerifyStringVal(notaryID) || !VerifyStringVal(nymID)) {
-        otOut << strLocation << ": SHOULD NEVER HAPPEN!!! ASSERT!! ERROR!! "
-                                "FAILURE!!! PROBLEM!!!!!\n";
+        otOut << strLocation
+              << ": SHOULD NEVER HAPPEN!!! ASSERT!! ERROR!! "
+                 "FAILURE!!! PROBLEM!!!!!\n";
         return -1;
     }
     //   bool bMsgReplySuccess5 = false;
@@ -1369,9 +1386,10 @@ std::int32_t Utility::processNymbox(
     [[maybe_unused]] const auto& notUsed2 = status;
 
     if (-1 == nProcess) {
-        otOut << strLocation << "(2): error (-1), when calling "
-                                "sendProcessNymboxLowLevel. (It couldn't send. "
-                                "I give up.)\n";
+        otOut << strLocation
+              << "(2): error (-1), when calling "
+                 "sendProcessNymboxLowLevel. (It couldn't send. "
+                 "I give up.)\n";
         return -1;  // (It didn't even send.)
     }
     // Nymbox was empty. (So we didn't send any process message because there
@@ -1497,14 +1515,16 @@ bool Utility::getBoxReceiptWithErrorCorrection(
                 accountID, nBoxType, strTransactionNum, bWasSent)) {
             return true;
         }
-        otOut << strLocation << ": getBoxReceiptLowLevel failed, then "
-                                "getRequestNumber succeeded, then "
-                                "getBoxReceiptLowLevel failed again. (I give "
-                                "up.)\n";
+        otOut << strLocation
+              << ": getBoxReceiptLowLevel failed, then "
+                 "getRequestNumber succeeded, then "
+                 "getBoxReceiptLowLevel failed again. (I give "
+                 "up.)\n";
     } else {
-        otOut << strLocation << ": getBoxReceiptLowLevel failed, then "
-                                "getRequestNumber failed. (I give up.) Was "
-                                "getRequestNumber message sent: "
+        otOut << strLocation
+              << ": getBoxReceiptLowLevel failed, then "
+                 "getRequestNumber failed. (I give up.) Was "
+                 "getRequestNumber message sent: "
               << bWasRequestSent << "\n";
     }
 
@@ -1554,8 +1574,9 @@ bool Utility::insureHaveAllBoxReceipts(
         pLedger.reset(
             otapi_.LoadOutboxNoVerify(theNotaryID, theNymID, theAccountID));
     } else {
-        otOut << strLocation << ": Error. Expected nBoxType of 0,1,2 (nymbox, "
-                                "inbox, or outbox.)\n";
+        otOut << strLocation
+              << ": Error. Expected nBoxType of 0,1,2 (nymbox, "
+                 "inbox, or outbox.)\n";
         return false;
     }
 
@@ -1572,9 +1593,10 @@ bool Utility::insureHaveAllBoxReceipts(
     //
     if (!pLedger
         //      || !pLedger->VerifySignature(nymID, ledger)
-        ) {
-        otOut << strLocation << ": Unable to load "  // or verify signature on "
-                                "ledger. (Failure.)\n";
+    ) {
+        otOut << strLocation
+              << ": Unable to load "  // or verify signature on "
+                 "ledger. (Failure.)\n";
         return false;
     }
     // ----------------------------------------------------------------
@@ -1594,8 +1616,9 @@ bool Utility::insureHaveAllBoxReceipts(
         auto& pTransaction = receipt_entry.second;
 
         if (lTransactionNum <= 0 || nullptr == pTransaction) {
-            otOut << strLocation << ": Error: Transaction null or has ID "
-                                    "less-than-or-equal-to 0.\n";
+            otOut << strLocation
+                  << ": Error: Transaction null or has ID "
+                     "less-than-or-equal-to 0.\n";
             continue;
         }
 
@@ -2253,8 +2276,9 @@ bool Utility::getTransactionNumbers(
     // or if the getTransactionNumbers message WASN'T EVEN SENT, then return.
     //
     else if ((nGetNumbers < -1) || !bWasSent) {
-        otOut << strLocation << ": Failure: getTransactionNumLowLevel returned "
-                                "unexpected value: "
+        otOut << strLocation
+              << ": Failure: getTransactionNumLowLevel returned "
+                 "unexpected value: "
               << nGetNumbers << "\n";
         return false;
     }
@@ -2269,22 +2293,25 @@ bool Utility::getTransactionNumbers(
     // = failure on that reply.;
     else if ((-1 == nGetNumbers) || (0 == nGetNumbers)) {
         if (-1 == nGetNumbers) {
-            otOut << strLocation << ": FYI: getTransactionNumLowLevel did "
-                                    "send, but returned error (-1). "
-                                    "(Re-trying...)\n";
+            otOut << strLocation
+                  << ": FYI: getTransactionNumLowLevel did "
+                     "send, but returned error (-1). "
+                     "(Re-trying...)\n";
         } else if (0 == nGetNumbers) {
-            otOut << strLocation << ": FYI: getTransactionNumLowLevel did "
-                                    "send, but returned failure (0). "
-                                    "(Re-trying...)\n";
+            otOut << strLocation
+                  << ": FYI: getTransactionNumLowLevel did "
+                     "send, but returned failure (0). "
+                     "(Re-trying...)\n";
         }
 
         const auto nGetRequestNumber = context_.UpdateRequestNumber();
 
         if (0 >= nGetRequestNumber) {
-            otOut << strLocation << ": Failure: getTransactionNumLowLevel "
-                                    "failed, then I tried to resync with "
-                                    "getRequestNumber and then that failed "
-                                    "too. (I give up.)\n";
+            otOut << strLocation
+                  << ": Failure: getTransactionNumLowLevel "
+                     "failed, then I tried to resync with "
+                     "getRequestNumber and then that failed "
+                     "too. (I give up.)\n";
             return false;
         }
 
@@ -2355,21 +2382,24 @@ bool Utility::getTransactionNumbers(
         //          else if (( nGetNumbers < -1) ||
         //                   (!bWasSent && nGetNumbers != 0))
         else if ((nGetNumbers < -1) || (!bWasSent && nGetNumbers != 0)) {
-            otOut << strLocation << ": Failure: getTransactionNumLowLevel "
-                                    "returned unexpected value: "
+            otOut << strLocation
+                  << ": Failure: getTransactionNumLowLevel "
+                     "returned unexpected value: "
                   << nGetNumbers << "\n";
             return false;
         } else if ((-1 == nGetNumbers) || (0 == nGetNumbers)) {
             if (-1 == nGetNumbers) {
-                otOut << strLocation << ": Failure: getTransactionNumLowLevel "
-                                        "did send, but returned error (-1), "
-                                        "even after syncing the request number "
-                                        "successfully. (Giving up.)\n";
+                otOut << strLocation
+                      << ": Failure: getTransactionNumLowLevel "
+                         "did send, but returned error (-1), "
+                         "even after syncing the request number "
+                         "successfully. (Giving up.)\n";
             } else if (0 == nGetNumbers) {
-                otOut << strLocation << ": Failure: getTransactionNumLowLevel "
-                                        "did send, but returned failure (0), "
-                                        "even after syncing the request number "
-                                        "successfully. (Giving up.)\n";
+                otOut << strLocation
+                      << ": Failure: getTransactionNumLowLevel "
+                         "did send, but returned failure (0), "
+                         "even after syncing the request number "
+                         "successfully. (Giving up.)\n";
             }
 
             bool forceDownload = true;
@@ -2535,9 +2565,10 @@ bool Utility::getTransactionNumbers(
         if (-1 == nGetNymbox)  // we'll try re-syncing the request number, then
                                // try again.
         {
-            otOut << strLocation << ": Failure: getAndProcessNymbox returned "
-                                    "-1, even after syncing the request number "
-                                    "successfully. (Giving up.)\n";
+            otOut << strLocation
+                  << ": Failure: getAndProcessNymbox returned "
+                     "-1, even after syncing the request number "
+                     "successfully. (Giving up.)\n";
             return false;
         }
     }
@@ -2592,9 +2623,10 @@ bool Utility::getIntermediaryFiles(
     //
     if (-1 == nGetInboxAcct) {
         if (!bWasSentAccount) {
-            otOut << strLocation << ": this.getInboxAccount failed, without "
-                                    "even sending getAccountData. (Returning "
-                                    "false.)\n";
+            otOut << strLocation
+                  << ": this.getInboxAccount failed, without "
+                     "even sending getAccountData. (Returning "
+                     "false.)\n";
             return false;
         }
     }
@@ -2610,9 +2642,10 @@ bool Utility::getIntermediaryFiles(
         const auto nGetRequestNumber = context_.UpdateRequestNumber();
 
         if (0 >= nGetRequestNumber) {
-            otOut << strLocation << ": Failure: getInboxAccount failed, then I "
-                                    "tried to resync with getRequestNumber and "
-                                    "then that failed too. (I give up.)\n";
+            otOut << strLocation
+                  << ": Failure: getInboxAccount failed, then I "
+                     "tried to resync with getRequestNumber and "
+                     "then that failed too. (I give up.)\n";
             return false;
         }
 
@@ -2629,9 +2662,10 @@ bool Utility::getIntermediaryFiles(
             // wasn't even sent,
             // then no point doing a bunch of retries -- it failed.
             //
-            otOut << strLocation << ": getInboxAccount failed a second time, "
-                                    "without even sending getAccountData. "
-                                    "(Returning false.)\n";
+            otOut << strLocation
+                  << ": getInboxAccount failed a second time, "
+                     "without even sending getAccountData. "
+                     "(Returning false.)\n";
             return false;
         }
         // If it wasn't sent, and 0 was returned, that means
@@ -2702,9 +2736,10 @@ std::int32_t Utility::getInboxAccount(
             accountID,
             1))  // <===== nBoxType = 1 aka INBOX;
     {
-        otOut << strLocation << ": getAccountData succeeded, but then "
-                                "insureHaveAllBoxReceipts failed on the inbox. "
-                                "(I give up.)\n";
+        otOut << strLocation
+              << ": getAccountData succeeded, but then "
+                 "insureHaveAllBoxReceipts failed on the inbox. "
+                 "(I give up.)\n";
         return -1;
     }
 
@@ -2714,9 +2749,10 @@ std::int32_t Utility::getInboxAccount(
             accountID,
             2))  // <===== nBoxType = 2 aka OUTBOX;
     {
-        otOut << strLocation << ": getAccountData succeeded, but then "
-                                "insureHaveAllBoxReceipts failed on the "
-                                "outbox. (I give up.)\n";
+        otOut << strLocation
+              << ": getAccountData succeeded, but then "
+                 "insureHaveAllBoxReceipts failed on the "
+                 "outbox. (I give up.)\n";
         return -1;
     }
 

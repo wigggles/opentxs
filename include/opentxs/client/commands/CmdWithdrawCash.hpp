@@ -151,6 +151,19 @@ public:
     EXPORT int32_t
     withdrawCash(const std::string& myacct, int64_t amount) const;
 
+private:
+    std::string check_nym(
+        const std::string& NOTARY_ID,
+        const std::string& NYM_ID,
+        const std::string& TARGET_NYM_ID) const;
+
+#if OT_CASH
+    std::string load_or_retrieve_mint(
+        const std::string& NOTARY_ID,
+        const std::string& NYM_ID,
+        const std::string& INSTRUMENT_DEFINITION_ID) const;
+#endif  // OT_CASH
+
 protected:
     int32_t runWithOptions() override;
 };
