@@ -79,7 +79,7 @@ public:
         return (start_.get() && (id == last_id_));
     }
 
-    const RowType& Next() const
+    const RowType& Next() const override
     {
         Lock lock(lock_);
 
@@ -209,9 +209,9 @@ protected:
         increment_outer(lock);
     }
     /** Move to the next valid item, or loop back to beginning
-    *
-    *  inner_ is an invalid iterator at this point
-    */
+     *
+     *  inner_ is an invalid iterator at this point
+     */
     bool increment_outer(const Lock& lock) const
     {
         OT_ASSERT(outer_end() != outer_)
