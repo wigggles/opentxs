@@ -42,10 +42,12 @@
 #include "opentxs/Internal.hpp"
 
 #include "opentxs/ui/ActivityThreadItem.hpp"
+#include "opentxs/ui/Widget.hpp"
 
 namespace opentxs::ui::implementation
 {
-class ActivityThreadItemBlank : virtual public ui::ActivityThreadItem
+class ActivityThreadItemBlank : virtual public ui::ActivityThreadItem,
+                                virtual public opentxs::ui::Widget
 {
 public:
     bool Last() const override { return true; }
@@ -60,6 +62,7 @@ public:
     }
     StorageBox Type() const override { return StorageBox::UNKNOWN; }
     bool Valid() const override { return false; }
+    Identifier WidgetID() const override { return {}; }
 
     ~ActivityThreadItemBlank() = default;
 

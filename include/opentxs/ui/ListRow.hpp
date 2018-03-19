@@ -41,6 +41,8 @@
 
 #include "opentxs/Forward.hpp"
 
+#include "opentxs/ui/Widget.hpp"
+
 #include <string>
 
 #ifdef SWIG
@@ -53,7 +55,7 @@ namespace opentxs
 {
 namespace ui
 {
-class ListRow
+class ListRow : virtual public Widget
 {
 public:
     EXPORT virtual bool Last() const = 0;

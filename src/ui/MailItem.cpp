@@ -135,6 +135,7 @@ void MailItem::load()
     text_ = *text;
     loading_->Off();
     pending_->Off();
+    UpdateNotify();
 }
 
 MailItem::~MailItem()

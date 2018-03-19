@@ -42,8 +42,11 @@
 #include "opentxs/Internal.hpp"
 
 #include "opentxs/core/Flag.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/Types.hpp"
+
+#include "Widget.hpp"
 
 #include <memory>
 #include <set>
@@ -65,7 +68,7 @@ template <
     typename OuterType,
     typename OuterIteratorType,
     typename ReverseType>
-class List : virtual public InterfaceType, public Lockable
+class List : virtual public InterfaceType, public Widget, public Lockable
 {
 public:
     const RowType& First() const override
@@ -100,6 +103,8 @@ public:
         reindex_item(lock, id, oldIndex, newIndex);
     }
 
+    Identifier WidgetID() const override { return widget_id_; }
+
     virtual ~List()
     {
         if (startup_ && startup_->joinable()) {
@@ -109,7 +114,6 @@ public:
     }
 
 protected:
-    const network::zeromq::Context& zmq_;
     const api::ContactManager& contact_manager_;
     const Identifier nym_id_;
     mutable OuterType items_;
@@ -123,6 +127,7 @@ protected:
     std::unique_ptr<std::thread> startup_{nullptr};
     const std::unique_ptr<RowType> blank_p_{nullptr};
     const RowType& blank_;
+    const Identifier widget_id_;
 
     virtual void construct_item(const IDType& id, const SortKeyType& index)
         const = 0;
@@ -371,6 +376,8 @@ protected:
             OT_ASSERT(1 == items_.count(index))
             OT_ASSERT(1 == names_.count(id))
 
+            UpdateNotify();
+
             return;
         }
 
@@ -382,6 +389,7 @@ protected:
         }
 
         reindex_item(lock, id, oldIndex, index);
+        UpdateNotify();
     }
 
     List(
@@ -390,7 +398,7 @@ protected:
         const IDType lastID,
         const Identifier nymID,
         RowType* blank)
-        : zmq_(zmq)
+        : Widget(zmq)
         , contact_manager_(contact)
         , nym_id_(nymID)
         , items_()
@@ -404,6 +412,7 @@ protected:
         , startup_(nullptr)
         , blank_p_(blank)
         , blank_(*blank_p_)
+        , widget_id_(Identifier::Random())
     {
         // WARNING if you plan on using blank_, check blank_p_ in the child
         // class constructor

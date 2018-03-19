@@ -36,40 +36,34 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_UI_MESSAGABLELIST_HPP
-#define OPENTXS_UI_MESSAGABLELIST_HPP
+#include "opentxs/stdafx.hpp"
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/network/zeromq/Context.hpp"
+#include "opentxs/network/zeromq/Message.hpp"
 
-#include "opentxs/ui/Widget.hpp"
+#include "Widget.hpp"
 
-#ifdef SWIG
-// clang-format off
-%rename(UIMessagableList) opentxs::ui::MessagableList;
-// clang-format on
-#endif  // SWIG
-
-namespace opentxs
+namespace opentxs::ui::implementation
 {
-namespace ui
+Widget::Widget(const network::zeromq::Context& zmq, const Identifier& id)
+    : zmq_(zmq)
+    , widget_id_(id)
+    , update_socket_(opentxs::network::zeromq::RequestSocket::Factory(zmq))
 {
-class MessagableList : virtual public Widget
+    update_socket_->Start(
+        opentxs::network::zeromq::Socket::WidgetUpdateCollectorEndpoint);
+}
+
+Widget::Widget(const network::zeromq::Context& zmq)
+    : Widget(zmq, Identifier::Random())
 {
-public:
-    EXPORT virtual const ContactListItem& First() const = 0;
-    EXPORT virtual const ContactListItem& Next() const = 0;
+}
 
-    EXPORT virtual ~MessagableList() = default;
+void Widget::UpdateNotify() const
+{
+    auto id(widget_id_.str());
+    update_socket_->SendRequest(id);
+}
 
-protected:
-    MessagableList() = default;
-
-private:
-    MessagableList(const MessagableList&) = delete;
-    MessagableList(MessagableList&&) = delete;
-    MessagableList& operator=(const MessagableList&) = delete;
-    MessagableList& operator=(MessagableList&&) = delete;
-};
-}  // namespace ui
-}  // namespace opentxs
-#endif  // OPENTXS_UI_MESSAGABLELIST_HPP
+Identifier Widget::WidgetID() const { return widget_id_; }
+}  // namespace opentxs::ui::implementation

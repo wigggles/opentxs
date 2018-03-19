@@ -41,6 +41,8 @@
 
 #include "opentxs/Forward.hpp"
 
+#include "opentxs/ui/Widget.hpp"
+
 #ifdef SWIG
 // clang-format off
 %rename(UIActivitySummary) opentxs::ui::ActivitySummary;
@@ -51,7 +53,7 @@ namespace opentxs
 {
 namespace ui
 {
-class ActivitySummary
+class ActivitySummary : virtual public Widget
 {
 public:
     EXPORT virtual const ActivitySummaryItem& First() const = 0;

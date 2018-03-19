@@ -36,16 +36,16 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_UI_MESSAGABLELIST_HPP
-#define OPENTXS_UI_MESSAGABLELIST_HPP
+#ifndef OPENTXS_UI_WIDGET_HPP
+#define OPENTXS_UI_WIDGET_HPP
 
 #include "opentxs/Forward.hpp"
 
-#include "opentxs/ui/Widget.hpp"
+#include <string>
 
 #ifdef SWIG
 // clang-format off
-%rename(UIMessagableList) opentxs::ui::MessagableList;
+%rename(UIWidget) opentxs::ui::Widget;
 // clang-format on
 #endif  // SWIG
 
@@ -53,23 +53,22 @@ namespace opentxs
 {
 namespace ui
 {
-class MessagableList : virtual public Widget
+class Widget
 {
 public:
-    EXPORT virtual const ContactListItem& First() const = 0;
-    EXPORT virtual const ContactListItem& Next() const = 0;
+    EXPORT virtual Identifier WidgetID() const = 0;
 
-    EXPORT virtual ~MessagableList() = default;
+    EXPORT virtual ~Widget() = default;
 
 protected:
-    MessagableList() = default;
+    Widget() = default;
 
 private:
-    MessagableList(const MessagableList&) = delete;
-    MessagableList(MessagableList&&) = delete;
-    MessagableList& operator=(const MessagableList&) = delete;
-    MessagableList& operator=(MessagableList&&) = delete;
+    Widget(const Widget&) = delete;
+    Widget(Widget&&) = delete;
+    Widget& operator=(const Widget&) = delete;
+    Widget& operator=(Widget&&) = delete;
 };
 }  // namespace ui
 }  // namespace opentxs
-#endif  // OPENTXS_UI_MESSAGABLELIST_HPP
+#endif  // OPENTXS_UI_WIDGET_HPP

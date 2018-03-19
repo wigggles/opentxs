@@ -42,6 +42,7 @@
 #include "opentxs/ui/ContactListItem.hpp"
 #include "opentxs/ui/ListRow.hpp"
 #include "opentxs/ui/MessagableList.hpp"
+#include "opentxs/ui/Widget.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/Types.hpp"
 %}
@@ -78,6 +79,7 @@ typedef int64_t time64_t;
 %include "../../include/opentxs/core/crypto/OTPassword.hpp"
 %include "../../include/opentxs/core/crypto/OTCallback.hpp"
 %include "../../include/opentxs/core/crypto/OTCaller.hpp"
+%include "../../include/opentxs/ui/Widget.hpp"
 %include "../../include/opentxs/ui/ListRow.hpp"
 %include "../../include/opentxs/ui/ActivitySummaryItem.hpp"
 %include "../../include/opentxs/ui/ActivitySummary.hpp"

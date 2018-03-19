@@ -86,6 +86,9 @@ private:
     mutable ContactListMap contact_lists_{};
     mutable MessagableListMap messagable_lists_{};
     mutable ActivityThreadMap activity_threads_{};
+    OTZMQReplyCallback widget_callback_;
+    OTZMQReplySocket widget_update_collector_;
+    OTZMQPublishSocket widget_update_publisher_;
 
     UI(const opentxs::network::zeromq::Context& zmq,
        const api::Activity& activity,

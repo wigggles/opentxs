@@ -40,6 +40,13 @@
 
 #include "UI.hpp"
 
+#include "opentxs/api/network/ZMQ.hpp"
+#include "opentxs/network/zeromq/Context.hpp"
+#include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/network/zeromq/ReplyCallback.hpp"
+#include "opentxs/network/zeromq/ReplySocket.hpp"
+#include "opentxs/network/zeromq/PublishSocket.hpp"
+
 #include "ui/ActivitySummary.hpp"
 #include "ui/ActivityThread.hpp"
 #include "ui/ContactList.hpp"
@@ -63,7 +70,21 @@ UI::UI(
     , activity_summaries_()
     , contact_lists_()
     , messagable_lists_()
+    , widget_callback_(opentxs::network::zeromq::ReplyCallback::Factory(
+          [this](
+              const opentxs::network::zeromq::Message& input) -> OTZMQMessage {
+              std::string message(input);
+              widget_update_publisher_->Publish(message);
+
+              return opentxs::network::zeromq::Message::Factory();
+          }))
+    , widget_update_collector_(zmq_.ReplySocket(widget_callback_))
+    , widget_update_publisher_(zmq_.PublishSocket())
 {
+    widget_update_collector_->Start(
+        opentxs::network::zeromq::Socket::WidgetUpdateCollectorEndpoint);
+    widget_update_publisher_->Start(
+        opentxs::network::zeromq::Socket::WidgetUpdateEndpoint);
 }
 
 const ui::ActivitySummary& UI::ActivitySummary(const Identifier& nymID) const

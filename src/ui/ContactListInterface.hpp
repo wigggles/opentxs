@@ -41,9 +41,11 @@
 
 #include "opentxs/Internal.hpp"
 
+#include "opentxs/ui/Widget.hpp"
+
 namespace opentxs::ui::implementation
 {
-class ContactListInterface
+class ContactListInterface : virtual public opentxs::ui::Widget
 {
 public:
     virtual const Identifier& ID() const = 0;

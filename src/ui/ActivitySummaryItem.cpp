@@ -330,6 +330,7 @@ void ActivitySummaryItem::update(const proto::StorageThread& thread)
         Identifier::Random(),
         {Identifier(item.id()), box, Identifier(item.account())});
     parent_.reindex_item(id_, {time, displayName});
+    UpdateNotify();
 }
 
 ActivitySummaryItem::~ActivitySummaryItem()

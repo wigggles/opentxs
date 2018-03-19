@@ -72,6 +72,8 @@ public:
     EXPORT static const std::string PairEndpointPrefix;
     EXPORT static const std::string PendingBailmentEndpoint;
     EXPORT static const std::string ThreadUpdateEndpoint;
+    EXPORT static const std::string WidgetUpdateEndpoint;
+    EXPORT static const std::string WidgetUpdateCollectorEndpoint;
 
     EXPORT virtual operator void*() const = 0;
 
