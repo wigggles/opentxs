@@ -70,6 +70,7 @@ public:
     using ReceiveCallback = std::function<void(const Message&)>;
 
     EXPORT static OTZMQListenCallback Factory(ReceiveCallback callback);
+    EXPORT static OTZMQListenCallback Factory();
 
     EXPORT virtual void Process(const Message& message) const = 0;
 

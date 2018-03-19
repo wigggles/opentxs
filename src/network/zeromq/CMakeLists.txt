@@ -5,6 +5,8 @@ set(cxx-sources
   ListenCallback.cpp
   Message.cpp
   PublishSocket.cpp
+  PullSocket.cpp
+  PushSocket.cpp
   Receiver.cpp
   ReplyCallback.cpp
   ReplySocket.cpp
@@ -25,6 +27,8 @@ set(cxx-headers
   ${CMAKE_CURRENT_SOURCE_DIR}/ListenCallback.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Message.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/PublishSocket.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/PullSocket.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/PushSocket.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Receiver.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/ReplyCallback.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/ReplySocket.hpp

@@ -68,6 +68,8 @@ const std::map<SocketType, int> Socket::types_{
     {SocketType::Reply, ZMQ_REP},
     {SocketType::Publish, ZMQ_PUB},
     {SocketType::Subscribe, ZMQ_SUB},
+    {SocketType::Pull, ZMQ_PULL},
+    {SocketType::Push, ZMQ_PUSH},
 };
 
 Socket::Socket(const Context& context, const SocketType type)

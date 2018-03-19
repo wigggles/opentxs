@@ -36,43 +36,42 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#ifndef OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_PUSHSOCKET_HPP
+#define OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_PUSHSOCKET_HPP
 
-#include "ListenCallback.hpp"
+#include "opentxs/Forward.hpp"
 
-//#define OT_METHOD "opentxs::network::zeromq::implementation::ListenCallback::"
+#include "opentxs/network/zeromq/PushSocket.hpp"
 
-namespace opentxs::network::zeromq
-{
-OTZMQListenCallback ListenCallback::Factory(
-    zeromq::ListenCallback::ReceiveCallback callback)
-{
-    return OTZMQListenCallback(new implementation::ListenCallback(callback));
-}
-
-OTZMQListenCallback ListenCallback::Factory()
-{
-    return OTZMQListenCallback(
-        new implementation::ListenCallback([](const Message&) -> void {}));
-}
-}  // namespace opentxs::network::zeromq
+#include "CurveClient.hpp"
+#include "Socket.hpp"
 
 namespace opentxs::network::zeromq::implementation
 {
-ListenCallback::ListenCallback(zeromq::ListenCallback::ReceiveCallback callback)
-    : callback_(callback)
+class PushSocket : virtual public zeromq::PushSocket, public Socket, CurveClient
 {
-}
+public:
+    bool Push(const std::string& data) const override;
+    bool Push(const opentxs::Data& data) const override;
+    bool Push(zeromq::Message& data) const override;
+    bool SetCurve(const ServerContract& contract) const override;
+    bool SetSocksProxy(const std::string& proxy) const override;
+    bool Start(const std::string& endpoint) const override;
 
-ListenCallback* ListenCallback::clone() const
-{
-    return new ListenCallback(callback_);
-}
+    ~PushSocket() = default;
 
-void ListenCallback::Process(const zeromq::Message& message) const
-{
-    callback_(message);
-}
+private:
+    friend opentxs::network::zeromq::PushSocket;
+    typedef Socket ot_super;
 
-ListenCallback::~ListenCallback() {}
+    PushSocket* clone() const override;
+
+    PushSocket(const zeromq::Context& context);
+    PushSocket() = delete;
+    PushSocket(const PushSocket&) = delete;
+    PushSocket(PushSocket&&) = delete;
+    PushSocket& operator=(const PushSocket&) = delete;
+    PushSocket& operator=(PushSocket&&) = delete;
+};
 }  // namespace opentxs::network::zeromq::implementation
+#endif  // OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_PUSHSOCKET_HPP

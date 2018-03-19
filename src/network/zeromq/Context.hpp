@@ -51,6 +51,9 @@ public:
     operator void*() const override;
 
     OTZMQPublishSocket PublishSocket() const override;
+    OTZMQPullSocket PullSocket() const override;
+    OTZMQPullSocket PullSocket(const ListenCallback& callback) const override;
+    OTZMQPushSocket PushSocket() const override;
     OTZMQReplySocket ReplySocket(const ReplyCallback& callback) const override;
     OTZMQRequestSocket RequestSocket() const override;
     OTZMQSubscribeSocket SubscribeSocket(

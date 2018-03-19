@@ -38,70 +38,92 @@
 
 #include "opentxs/stdafx.hpp"
 
-#include "ReplySocket.hpp"
+#include "PullSocket.hpp"
 
 #include "opentxs/core/Log.hpp"
-#include "opentxs/network/zeromq/ReplyCallback.hpp"
+#include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
+
+#include <chrono>
 
 #include <zmq.h>
 
-#define OT_METHOD "opentxs::network::zeromq::implementation::ReplySocket::"
+#define OT_METHOD "opentxs::network::zeromq::implementation::PullSocket::"
 
 namespace opentxs::network::zeromq
 {
-OTZMQReplySocket ReplySocket::Factory(
+OTZMQPullSocket PullSocket::Factory(
     const Context& context,
-    const ReplyCallback& callback)
+    const ListenCallback& callback)
 {
-    return OTZMQReplySocket(new implementation::ReplySocket(context, callback));
+    return OTZMQPullSocket(new implementation::PullSocket(context, callback));
+}
+
+OTZMQPullSocket PullSocket::Factory(const Context& context)
+{
+    return OTZMQPullSocket(new implementation::PullSocket(context));
 }
 }  // namespace opentxs::network::zeromq
 
 namespace opentxs::network::zeromq::implementation
 {
-ReplySocket::ReplySocket(
+PullSocket::PullSocket(
     const zeromq::Context& context,
-    const ReplyCallback& callback)
-    : ot_super(context, SocketType::Reply)
+    const zeromq::ListenCallback& callback,
+    const bool startThread)
+    : ot_super(context, SocketType::Subscribe)
     , CurveServer(lock_, socket_)
-    , Receiver(lock_, socket_, true)
+    , Receiver(lock_, socket_, startThread)
     , callback_(callback)
 {
 }
 
-ReplySocket* ReplySocket::clone() const
+PullSocket::PullSocket(
+    const zeromq::Context& context,
+    const zeromq::ListenCallback& callback)
+    : PullSocket(context, callback, true)
 {
-    return new ReplySocket(context_, callback_);
 }
 
-bool ReplySocket::have_callback() const { return true; }
-
-void ReplySocket::process_incoming(const Lock&, Message& message)
+PullSocket::PullSocket(const zeromq::Context& context)
+    : PullSocket(context, ListenCallback::Factory(), false)
 {
-    auto output = callback_.Process(message);
-    Message& reply = output;
-    auto sent = zmq_msg_send(reply, socket_, 0);
-
-    if (-1 == sent) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Send error:\n"
-              << zmq_strerror(zmq_errno())
-              << "\nRequest: " << std::string(message) << "\nReply: " << reply
-              << std::endl;
-    }
 }
 
-bool ReplySocket::SetCurve(const OTPassword& key) const
+PullSocket* PullSocket::clone() const
+{
+    return new PullSocket(context_, callback_);
+}
+
+bool PullSocket::have_callback() const { return true; }
+
+void PullSocket::process_incoming(const Lock& lock, Message& message)
+{
+    OT_ASSERT(verify_lock(lock))
+
+    callback_.Process(message);
+}
+
+bool PullSocket::SetCurve(const OTPassword& key) const
 {
     return set_curve(key);
 }
 
-bool ReplySocket::Start(const std::string& endpoint) const
+bool PullSocket::Start(const std::string& endpoint) const
 {
+    OT_ASSERT(nullptr != socket_);
+
     Lock lock(lock_);
 
-    return (0 == zmq_bind(socket_, endpoint.c_str()));
+    if (0 != zmq_connect(socket_, endpoint.c_str())) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to connect to "
+              << endpoint << std::endl;
+
+        return false;
+    }
+
+    return true;
 }
 
-ReplySocket::~ReplySocket() {}
+PullSocket::~PullSocket() {}
 }  // namespace opentxs::network::zeromq::implementation

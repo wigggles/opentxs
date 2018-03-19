@@ -74,6 +74,10 @@ public:
 
     EXPORT virtual Pimpl<network::zeromq::PublishSocket> PublishSocket()
         const = 0;
+    EXPORT virtual Pimpl<network::zeromq::PullSocket> PullSocket() const = 0;
+    EXPORT virtual Pimpl<network::zeromq::PullSocket> PullSocket(
+        const ListenCallback& callback) const = 0;
+    EXPORT virtual Pimpl<network::zeromq::PushSocket> PushSocket() const = 0;
     EXPORT virtual Pimpl<network::zeromq::ReplySocket> ReplySocket(
         const ReplyCallback& callback) const = 0;
     EXPORT virtual Pimpl<network::zeromq::RequestSocket> RequestSocket()

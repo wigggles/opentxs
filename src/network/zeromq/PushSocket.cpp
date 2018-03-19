@@ -38,79 +38,71 @@
 
 #include "opentxs/stdafx.hpp"
 
-#include "Context.hpp"
+#include "PushSocket.hpp"
 
 #include "opentxs/core/Log.hpp"
-#include "opentxs/network/zeromq/PublishSocket.hpp"
-#include "opentxs/network/zeromq/PullSocket.hpp"
-#include "opentxs/network/zeromq/PushSocket.hpp"
-#include "opentxs/network/zeromq/ReplySocket.hpp"
-#include "opentxs/network/zeromq/RequestSocket.hpp"
-#include "opentxs/network/zeromq/SubscribeSocket.hpp"
+#include "opentxs/network/zeromq/Context.hpp"
+#include "opentxs/network/zeromq/Message.hpp"
 
 #include <zmq.h>
 
+#define OT_METHOD "opentxs::network::zeromq::implementation::PushSocket::"
+
 namespace opentxs::network::zeromq
 {
-OTZMQContext Context::Factory()
+OTZMQPushSocket PushSocket::Factory(const Context& context)
 {
-    return OTZMQContext(new implementation::Context());
+    return OTZMQPushSocket(new implementation::PushSocket(context));
 }
 }  // namespace opentxs::network::zeromq
 
 namespace opentxs::network::zeromq::implementation
 {
-Context::Context()
-    : context_(zmq_ctx_new())
+PushSocket::PushSocket(const zeromq::Context& context)
+    : ot_super(context, SocketType::Push)
+    , CurveClient(lock_, socket_)
 {
-    OT_ASSERT(nullptr != context_);
-    OT_ASSERT(1 == zmq_has("curve"));
 }
 
-Context::operator void*() const { return context_; }
-
-Context* Context::clone() const { return new Context; }
-
-OTZMQPublishSocket Context::PublishSocket() const
+bool PushSocket::Push(const std::string& data) const
 {
-    return PublishSocket::Factory(*this);
+    return Push(Message::Factory(data));
 }
 
-OTZMQPullSocket Context::PullSocket() const
+bool PushSocket::Push(const opentxs::Data& data) const
 {
-    return PullSocket::Factory(*this);
+    return Push(Message::Factory(data));
 }
 
-OTZMQPullSocket Context::PullSocket(const ListenCallback& callback) const
+bool PushSocket::Push(zeromq::Message& data) const
 {
-    return PullSocket::Factory(*this, callback);
-}
+    Lock lock(lock_);
+    auto sent = zmq_msg_send(data, socket_, 0);
 
-OTZMQPushSocket Context::PushSocket() const
-{
-    return PushSocket::Factory(*this);
-}
-
-OTZMQReplySocket Context::ReplySocket(const ReplyCallback& callback) const
-{
-    return ReplySocket::Factory(*this, callback);
-}
-
-OTZMQRequestSocket Context::RequestSocket() const
-{
-    return RequestSocket::Factory(*this);
-}
-
-OTZMQSubscribeSocket Context::SubscribeSocket(
-    const ListenCallback& callback) const
-{
-    return SubscribeSocket::Factory(*this, callback);
-}
-
-Context::~Context()
-{
-    if (nullptr != context_) {
-        zmq_ctx_shutdown(context_);
+    if (-1 == sent) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Send error:\n"
+              << zmq_strerror(zmq_errno()) << std::endl;
     }
+
+    return (-1 != sent);
+}
+
+PushSocket* PushSocket::clone() const { return new PushSocket(context_); }
+
+bool PushSocket::SetCurve(const ServerContract& contract) const
+{
+    return set_curve(contract);
+}
+
+bool PushSocket::SetSocksProxy(const std::string& proxy) const
+{
+    return set_socks_proxy(proxy);
+}
+
+bool PushSocket::Start(const std::string& endpoint) const
+{
+    Lock lock(lock_);
+
+    return (0 == zmq_bind(socket_, endpoint.c_str()));
 }
 }  // namespace opentxs::network::zeromq::implementation

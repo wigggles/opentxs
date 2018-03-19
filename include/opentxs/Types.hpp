@@ -464,6 +464,8 @@ enum class SocketType : std::uint8_t {
     Reply = 2,
     Publish = 3,
     Subscribe = 4,
+    Push = 5,
+    Pull = 6,
 };
 
 enum class RemoteBoxType : std::int8_t {

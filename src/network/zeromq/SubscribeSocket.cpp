@@ -68,7 +68,7 @@ SubscribeSocket::SubscribeSocket(
     const zeromq::ListenCallback& callback)
     : ot_super(context, SocketType::Subscribe)
     , CurveClient(lock_, socket_)
-    , Receiver(lock_, socket_)
+    , Receiver(lock_, socket_, true)
     , callback_(callback)
 {
     // subscribe to all messages until filtering is implemented
