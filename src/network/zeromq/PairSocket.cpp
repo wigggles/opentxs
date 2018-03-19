@@ -81,9 +81,10 @@ PairSocket::PairSocket(
     const zeromq::Context& context,
     const zeromq::ListenCallback& callback,
     const std::string& endpoint,
-    const bool listener)
+    const bool listener,
+    const bool startThread)
     : ot_super(context, SocketType::Pair)
-    , Receiver(lock_, socket_, true)
+    , Receiver(lock_, socket_, startThread)
     , callback_(callback)
     , endpoint_(endpoint)
     , bind_(listener)
@@ -107,20 +108,23 @@ PairSocket::PairSocket(
 
 PairSocket::PairSocket(
     const zeromq::Context& context,
-    const zeromq::ListenCallback& callback)
+    const zeromq::ListenCallback& callback,
+    const bool startThread)
     : PairSocket(
           context,
           callback,
           opentxs::network::zeromq::Socket::PairEndpointPrefix +
               Identifier::Random().str(),
-          true)
+          true,
+          startThread)
 {
 }
 
 PairSocket::PairSocket(
     const zeromq::ListenCallback& callback,
-    const zeromq::PairSocket& peer)
-    : PairSocket(peer.Context(), callback, peer.Endpoint(), false)
+    const zeromq::PairSocket& peer,
+    const bool startThread)
+    : PairSocket(peer.Context(), callback, peer.Endpoint(), false, startThread)
 {
 }
 
@@ -128,13 +132,13 @@ PairSocket::PairSocket(
     const zeromq::Context& context,
     const zeromq::ListenCallback& callback,
     const std::string& endpoint)
-    : PairSocket(context, callback, endpoint, false)
+    : PairSocket(context, callback, endpoint, false, true)
 {
 }
 
 PairSocket* PairSocket::clone() const
 {
-    return new PairSocket(context_, callback_, endpoint_, bind_);
+    return new PairSocket(context_, callback_, endpoint_, bind_, false);
 }
 
 const std::string& PairSocket::Endpoint() const { return endpoint_; }

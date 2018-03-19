@@ -102,12 +102,14 @@ class Context;
 class ListenCallback;
 class Message;
 class PairSocket;
+class Proxy;
 class PublishSocket;
 class PullSocket;
 class PushSocket;
 class ReplyCallback;
 class ReplySocket;
 class RequestSocket;
+class Socket;
 class SubscribeSocket;
 }  // namespace opentxs::network::zeromq
 
@@ -232,6 +234,7 @@ using OTZMQContext = Pimpl<network::zeromq::Context>;
 using OTZMQListenCallback = Pimpl<network::zeromq::ListenCallback>;
 using OTZMQMessage = Pimpl<network::zeromq::Message>;
 using OTZMQPairSocket = Pimpl<network::zeromq::PairSocket>;
+using OTZMQProxy = Pimpl<network::zeromq::Proxy>;
 using OTZMQPublishSocket = Pimpl<network::zeromq::PublishSocket>;
 using OTZMQPullSocket = Pimpl<network::zeromq::PullSocket>;
 using OTZMQPushSocket = Pimpl<network::zeromq::PushSocket>;

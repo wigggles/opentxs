@@ -80,6 +80,9 @@ public:
     EXPORT virtual Pimpl<network::zeromq::PairSocket> PairSocket(
         const ListenCallback& callback,
         const std::string& endpoint) const = 0;
+    EXPORT virtual Pimpl<network::zeromq::Proxy> Proxy(
+        Socket& frontend,
+        Socket& backend) const = 0;
     EXPORT virtual Pimpl<network::zeromq::PublishSocket> PublishSocket()
         const = 0;
     EXPORT virtual Pimpl<network::zeromq::PullSocket> PullSocket() const = 0;

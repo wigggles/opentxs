@@ -8,6 +8,7 @@ set(cxx-sources
   PublishSocket.cpp
   PullSocket.cpp
   PushSocket.cpp
+  Proxy.cpp
   Receiver.cpp
   ReplyCallback.cpp
   ReplySocket.cpp
@@ -28,6 +29,7 @@ set(cxx-headers
   ${CMAKE_CURRENT_SOURCE_DIR}/ListenCallback.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Message.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/PairSocket.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/Proxy.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/PublishSocket.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/PullSocket.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/PushSocket.hpp

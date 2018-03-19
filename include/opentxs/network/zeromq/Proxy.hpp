@@ -36,85 +36,54 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_FORWARD_INTERNAL_HPP
-#define OPENTXS_FORWARD_INTERNAL_HPP
+#ifndef OPENTXS_NETWORK_ZEROMQ_PROXY_HPP
+#define OPENTXS_NETWORK_ZEROMQ_PROXY_HPP
 
 #include "opentxs/Forward.hpp"
 
+#ifdef SWIG
+// clang-format off
+%ignore opentxs::Pimpl<opentxs::network::zeromq::Proxy>::operator+=;
+%ignore opentxs::Pimpl<opentxs::network::zeromq::Proxy>::operator==;
+%ignore opentxs::Pimpl<opentxs::network::zeromq::Proxy>::operator!=;
+%ignore opentxs::Pimpl<opentxs::network::zeromq::Proxy>::operator<;
+%ignore opentxs::Pimpl<opentxs::network::zeromq::Proxy>::operator<=;
+%ignore opentxs::Pimpl<opentxs::network::zeromq::Proxy>::operator>;
+%ignore opentxs::Pimpl<opentxs::network::zeromq::Proxy>::operator>=;
+%template(OTZMQProxy) opentxs::Pimpl<opentxs::network::zeromq::Proxy>;
+%rename($ignore, regextarget=1, fullname=1) "opentxs::network::zeromq::Proxy::Factory.*";
+%rename(ZMQProxy) opentxs::network::zeromq::Proxy;
+// clang-format on
+#endif  // SWIG
+
 namespace opentxs
 {
-namespace api
-{
-namespace client
-{
-namespace implementation
-{
-class Wallet;
-}  // namespace api::client::implementation
-}  // namespace api::client
-
-namespace implementation
-{
-class Api;
-class Crypto;
-class Native;
-class UI;
-}  // namespace api::implementation
-
-namespace network
-{
-namespace implementation
-{
-class Context;
-class Dht;
-class ZMQ;
-}  // namespace api::network::implementation
-}  // namespace api::network
-}  // namespace api
-
 namespace network
 {
 namespace zeromq
 {
-namespace implementation
+class Proxy
 {
-class Proxy;
-}  // namespace network::zeromq::implementation
-}  // namespace network::zeromq
+public:
+    static OTZMQProxy Factory(
+        const Context& context,
+        Socket& frontend,
+        Socket& backend);
+
+protected:
+    Proxy() = default;
+
+private:
+    friend OTZMQProxy;
+
+    virtual Proxy* clone() const = 0;
+
+    Proxy(const Proxy&) = delete;
+    Proxy(Proxy&&) = default;
+    Proxy& operator=(const Proxy&) = delete;
+    Proxy& operator=(Proxy&&) = default;
+};
+}  // namespace zeromq
 }  // namespace network
-
-namespace storage
-{
-class Root;
-}  // namespace opentxs::storage
-
-namespace ui
-{
-namespace implementation
-{
-class ActivityThread;
-class ActivityThreadItem;
-class ActivitySummary;
-class ActivitySummaryItem;
-class ContactList;
-class ContactListInterface;
-class ContactListItem;
-class MessagableList;
-}  // namespace opentxs::ui::implementation
-}  // namespace opentxs::ui
-
-class DhtConfig;
-#if OT_CRYPTO_USING_LIBSECP256K1
-class Libsecp256k1;
-#endif
-class Libsodium;
-#if OT_CRYPTO_USING_OPENSSL
-class OpenSSL;
-#endif
-class StorageConfig;
-class StorageMultiplex;
-#if OT_CRYPTO_USING_TREZOR
-class TrezorCrypto;
-#endif
 }  // namespace opentxs
-#endif  // OPENTXS_FORWARD_INTERNAL_HPP
+#endif  // OPENTXS_NETWORK_ZEROMQ_PROXY_HPP

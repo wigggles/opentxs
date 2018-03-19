@@ -61,6 +61,7 @@ public:
 
 private:
     friend opentxs::network::zeromq::PairSocket;
+    friend Proxy;
     typedef Socket ot_super;
 
     const ListenCallback& callback_;
@@ -75,13 +76,16 @@ private:
         const zeromq::Context& context,
         const zeromq::ListenCallback& callback,
         const std::string& endpoint,
-        const bool bind);
+        const bool bind,
+        const bool startThread);
     PairSocket(
         const zeromq::Context& context,
-        const zeromq::ListenCallback& callback);
+        const zeromq::ListenCallback& callback,
+        const bool startThread = true);
     PairSocket(
         const zeromq::ListenCallback& callback,
-        const zeromq::PairSocket& peer);
+        const zeromq::PairSocket& peer,
+        const bool startThread = true);
     PairSocket(
         const zeromq::Context& context,
         const zeromq::ListenCallback& callback,

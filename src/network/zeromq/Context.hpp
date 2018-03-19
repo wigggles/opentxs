@@ -58,6 +58,9 @@ public:
     OTZMQPairSocket PairSocket(
         const opentxs::network::zeromq::ListenCallback& callback,
         const std::string& endpoint) const override;
+    OTZMQProxy Proxy(
+        network::zeromq::Socket& frontend,
+        network::zeromq::Socket& backend) const override;
     OTZMQPublishSocket PublishSocket() const override;
     OTZMQPullSocket PullSocket() const override;
     OTZMQPullSocket PullSocket(const ListenCallback& callback) const override;
