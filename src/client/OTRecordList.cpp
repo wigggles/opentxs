@@ -40,17 +40,20 @@
 
 #include "opentxs/client/OTRecordList.hpp"
 
+#include "opentxs/api/client/ServerAction.hpp"
 #include "opentxs/api/Activity.hpp"
 #include "opentxs/api/Api.hpp"
 #include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Native.hpp"
+#include "opentxs/client/commands/CmdAcceptPayments.hpp"
 #include "opentxs/client/Helpers.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
 #include "opentxs/client/OTRecord.hpp"
 #include "opentxs/client/OTWallet.hpp"
-#include "opentxs/client/OT_ME.hpp"
 #include "opentxs/client/OT_API.hpp"
+#include "opentxs/client/ServerAction.hpp"
 #include "opentxs/client/SwigWrap.hpp"
+#include "opentxs/client/Utility.hpp"
 #include "opentxs/contact/Contact.hpp"
 #include "opentxs/contact/ContactData.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
@@ -495,6 +498,17 @@ void OTRecordList::SetAccountID(std::string str_id)
     AddAccountID(str_id);
 }
 
+bool OTRecordList::accept_from_paymentbox_overload(
+    const std::string& ACCOUNT_ID,
+    const std::string& INDICES,
+    const std::string& PAYMENT_TYPE,
+    std::string* pOptionalOutput /*=nullptr*/) const
+{
+    CmdAcceptPayments cmd;
+    return 1 == cmd.acceptFromPaymentbox(
+                    ACCOUNT_ID, INDICES, PAYMENT_TYPE, pOptionalOutput);
+}
+
 void OTRecordList::AddAccountID(std::string str_id)
 {
     m_accounts.insert(m_accounts.end(), str_id);
@@ -872,14 +886,11 @@ bool OTRecordList::PerformAutoAccept()
 
                                 std::string str_server_response;
 
-                                if (!OT::App()
-                                         .API()
-                                         .OTME()
-                                         .accept_from_paymentbox_overload(
-                                             str_account_id,
-                                             str_indices,
-                                             "ANY",
-                                             &str_server_response)) {
+                                if (!accept_from_paymentbox_overload(
+                                        str_account_id,
+                                        str_indices,
+                                        "ANY",
+                                        &str_server_response)) {
                                     otErr << __FUNCTION__
                                           << ": Error while trying to "
                                              "accept this instrument.\n";
@@ -1021,11 +1032,10 @@ bool OTRecordList::PerformAutoAccept()
             Ledger* pInbox{nullptr};
 
             if (false == theNymID.empty()) {
-                pInbox = m_bRunFast
-                             ? OT::App().API().OTAPI().LoadInboxNoVerify(
-                                   theNotaryID, theNymID, theAccountID)
-                             : OT::App().API().OTAPI().LoadInbox(
-                                   theNotaryID, theNymID, theAccountID);
+                pInbox = m_bRunFast ? OT::App().API().OTAPI().LoadInboxNoVerify(
+                                          theNotaryID, theNymID, theAccountID)
+                                    : OT::App().API().OTAPI().LoadInbox(
+                                          theNotaryID, theNymID, theAccountID);
             }
 
             std::unique_ptr<Ledger> theInboxAngel(pInbox);
@@ -1070,13 +1080,14 @@ bool OTRecordList::PerformAutoAccept()
                     if (!bFoundAnyToAccept) {
                         bFoundAnyToAccept = true;
 
-                        int32_t nNumberNeeded = 20;
-                        if (!OT::App().API().OTME().make_sure_enough_trans_nums(
-                                nNumberNeeded,  // I'm just hardcoding: "Make
-                                                // sure I have at least 20
-                                                // transaction numbers."
-                                str_notary_id,
-                                str_nym_id)) {
+                        int32_t nNumberNeeded =
+                            20;  // I'm just hardcoding: "Make sure I have at
+                                 // least 20 transaction numbers."
+                        if (!OT::App()
+                                 .API()
+                                 .ServerAction()
+                                 .GetTransactionNumbers(
+                                     theNymID, theNotaryID, nNumberNeeded)) {
                             otOut << "\n\nFailure: "
                                      "make_sure_enough_trans_nums: "
                                      "returned false. (Skipping inbox "
@@ -1140,31 +1151,43 @@ bool OTRecordList::PerformAutoAccept()
                 }
                 // Server communications are handled here...
                 //
-                std::string strResponse = OT::App().API().OTME().process_inbox(
+                std::unique_ptr<Ledger> ledger(
+                    new Ledger(theNymID, theAccountID, theNotaryID));
+
+                OT_ASSERT(ledger)
+
+                const auto loaded =
+                    ledger->LoadLedgerFromString(String(strFinalizedResponse));
+
+                OT_ASSERT(loaded);
+
+                std::string strResponse =
+                    OT::App()
+                        .API()
+                        .ServerAction()
+                        .ProcessInbox(
+                            theNymID, theNotaryID, theAccountID, ledger)
+                        ->Run();
+                std::string strAttempt = "process_inbox";
+
+                int32_t nInterpretReply = InterpretTransactionMsgReply(
                     str_notary_id,
                     str_nym_id,
                     str_account_id,
-                    strFinalizedResponse);
-                std::string strAttempt = "process_inbox";
-
-                int32_t nInterpretReply =
-                    OT::App().API().OTME().InterpretTransactionMsgReply(
-                        str_notary_id,
-                        str_nym_id,
-                        str_account_id,
-                        strAttempt,
-                        strResponse);
+                    strAttempt,
+                    strResponse);
 
                 if (1 == nInterpretReply) {
                     // Download all the intermediary files (account balance,
                     // inbox, outbox, etc)
                     // since they have probably changed from this operation.
                     //
-                    bool bRetrieved = OT::App().API().OTME().retrieve_account(
-                        str_notary_id,
-                        str_nym_id,
-                        str_account_id,
-                        true);  // bForceDownload defaults to false.
+                    bool bRetrieved =
+                        OT::App().API().ServerAction().DownloadAccount(
+                            theNymID,
+                            theNotaryID,
+                            theAccountID,
+                            true);  // bForceDownload defaults to false.
 
                     otInfo << "\n\nServer response (" << strAttempt.c_str()
                            << "): SUCCESS "
@@ -2134,11 +2157,10 @@ bool OTRecordList::Populate()
 
             if (false == theNymID.empty()) {
                 pRecordbox =
-                    m_bRunFast
-                        ? OT::App().API().OTAPI().LoadRecordBoxNoVerify(
-                              theNotaryID, theNymID, theNymID)  // twice.
-                        : OT::App().API().OTAPI().LoadRecordBox(
-                              theNotaryID, theNymID, theNymID);
+                    m_bRunFast ? OT::App().API().OTAPI().LoadRecordBoxNoVerify(
+                                     theNotaryID, theNymID, theNymID)  // twice.
+                               : OT::App().API().OTAPI().LoadRecordBox(
+                                     theNotaryID, theNymID, theNymID);
             }
 
             std::unique_ptr<Ledger> theRecordBoxAngel(pRecordbox);
@@ -2234,12 +2256,11 @@ bool OTRecordList::Populate()
                             // Whereas if Nym were the recipient, then we'd want
                             // the SENDER. (For display.)
                             //
-                            if (0 ==
-                                str_nym_id.compare(
-                                    str_sender_id))  // str_nym_id IS
-                                                     // str_sender_id.
-                                                     // (Therefore we want
-                                                     // recipient.)
+                            if (0 == str_nym_id.compare(
+                                         str_sender_id))  // str_nym_id IS
+                                                          // str_sender_id.
+                                                          // (Therefore we want
+                                                          // recipient.)
                             {
                                 if (OTTransaction::notice ==
                                     pBoxTrans->GetType()) {
@@ -2736,9 +2757,10 @@ bool OTRecordList::Populate()
 
                 }  // Loop through Recordbox
             } else
-                otWarn << __FUNCTION__ << ": Failed loading payments record "
-                                          "box. (Probably just doesn't exist "
-                                          "yet.)\n";
+                otWarn << __FUNCTION__
+                       << ": Failed loading payments record "
+                          "box. (Probably just doesn't exist "
+                          "yet.)\n";
 
             // EXPIRED RECORDS:
             nIndex = (-1);
@@ -2749,11 +2771,10 @@ bool OTRecordList::Populate()
 
             if (false == theNymID.empty()) {
                 pExpiredbox =
-                    m_bRunFast
-                        ? OT::App().API().OTAPI().LoadExpiredBoxNoVerify(
-                              theNotaryID, theNymID)
-                        : OT::App().API().OTAPI().LoadExpiredBox(
-                              theNotaryID, theNymID);
+                    m_bRunFast ? OT::App().API().OTAPI().LoadExpiredBoxNoVerify(
+                                     theNotaryID, theNymID)
+                               : OT::App().API().OTAPI().LoadExpiredBox(
+                                     theNotaryID, theNymID);
             }
 
             std::unique_ptr<Ledger> theExpiredBoxAngel(pExpiredbox);
@@ -2843,12 +2864,11 @@ bool OTRecordList::Populate()
                             // Whereas if Nym were the recipient, then we'd want
                             // the SENDER. (For display.)
                             //
-                            if (0 ==
-                                str_nym_id.compare(
-                                    str_sender_id))  // str_nym_id IS
-                                                     // str_sender_id.
-                                                     // (Therefore we want
-                                                     // recipient.)
+                            if (0 == str_nym_id.compare(
+                                         str_sender_id))  // str_nym_id IS
+                                                          // str_sender_id.
+                                                          // (Therefore we want
+                                                          // recipient.)
                             {
                                 if (OTTransaction::notice ==
                                     pBoxTrans->GetType())
@@ -3407,11 +3427,10 @@ bool OTRecordList::Populate()
         Ledger* pInbox{nullptr};
 
         if (false == theNymID.empty()) {
-            pInbox = m_bRunFast
-                         ? OT::App().API().OTAPI().LoadInboxNoVerify(
-                               theNotaryID, theNymID, theAccountID)
-                         : OT::App().API().OTAPI().LoadInbox(
-                               theNotaryID, theNymID, theAccountID);
+            pInbox = m_bRunFast ? OT::App().API().OTAPI().LoadInboxNoVerify(
+                                      theNotaryID, theNymID, theAccountID)
+                                : OT::App().API().OTAPI().LoadInbox(
+                                      theNotaryID, theNymID, theAccountID);
         }
 
         std::unique_ptr<Ledger> theInboxAngel(pInbox);
@@ -3699,11 +3718,10 @@ bool OTRecordList::Populate()
         Ledger* pOutbox{nullptr};
 
         if (false == theNymID.empty()) {
-            pOutbox = m_bRunFast
-                          ? OT::App().API().OTAPI().LoadOutboxNoVerify(
-                                theNotaryID, theNymID, theAccountID)
-                          : OT::App().API().OTAPI().LoadOutbox(
-                                theNotaryID, theNymID, theAccountID);
+            pOutbox = m_bRunFast ? OT::App().API().OTAPI().LoadOutboxNoVerify(
+                                       theNotaryID, theNymID, theAccountID)
+                                 : OT::App().API().OTAPI().LoadOutbox(
+                                       theNotaryID, theNymID, theAccountID);
         }
 
         std::unique_ptr<Ledger> theOutboxAngel(pOutbox);

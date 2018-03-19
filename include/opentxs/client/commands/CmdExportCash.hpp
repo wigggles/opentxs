@@ -163,6 +163,31 @@ public:
         bool hasPassword,
         std::string& retainedCopy) const;
 
+private:
+    EXPORT std::string check_nym(
+        const std::string& NOTARY_ID,
+        const std::string& NYM_ID,
+        const std::string& TARGET_NYM_ID) const;
+
+#if OT_CASH
+    EXPORT std::string exportCashPurse(
+        const std::string& notaryID,
+        const std::string& instrumentDefinitionID,
+        const std::string& nymID,
+        const std::string& oldPurse,
+        const std::vector<std::string>& selectedTokens,
+        std::string& recipientNymID,
+        bool bPasswordProtected,
+        std::string& strRetainedCopy) const;
+#endif  // OT_CASH
+
+    std::string load_or_retrieve_encrypt_key(
+        const std::string& NOTARY_ID,
+        const std::string& NYM_ID,
+        const std::string& TARGET_NYM_ID) const;
+
+    std::string load_public_encryption_key(const std::string& NYM_ID) const;
+
 protected:
     int32_t runWithOptions() override;
 };

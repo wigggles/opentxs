@@ -42,10 +42,11 @@
 
 #include "opentxs/api/Api.hpp"
 #include "opentxs/api/Native.hpp"
+#include "opentxs/api/client/ServerAction.hpp"
 #include "opentxs/client/commands/CmdConfirm.hpp"
 #include "opentxs/client/commands/CmdPayInvoice.hpp"
 #include "opentxs/client/OT_API.hpp"
-#include "opentxs/client/OT_ME.hpp"
+#include "opentxs/client/ServerAction.hpp"
 #include "opentxs/client/SwigWrap.hpp"
 #include "opentxs/core/Ledger.hpp"
 #include "opentxs/core/Log.hpp"
@@ -158,14 +159,14 @@ int32_t CmdBaseAccept::acceptFromInbox(
     // needed, and that call is made before the server transaction request is
     // actually sent.
     //
-    if (!OT::App().API().OTME().make_sure_enough_trans_nums(
-            10, server, mynym)) {
+    const Identifier theNotaryID{server}, theNymID{mynym}, theAcctID{myacct};
+
+    if (!OT::App().API().ServerAction().GetTransactionNumbers(
+            theNymID, theNotaryID, 10)) {
         otOut << "Error: cannot reserve transaction numbers.\n";
         return -1;
     }
     // -----------------------------------------------------------
-    const Identifier theNotaryID{server}, theNymID{mynym}, theAcctID{myacct};
-
     std::unique_ptr<Ledger> pInbox(
         OT::App().API().OTAPI().LoadInbox(theNotaryID, theNymID, theAcctID));
     if (false == bool(pInbox)) {
@@ -394,11 +395,12 @@ int32_t CmdBaseAccept::acceptFromInbox(
         return -1;
     }
     // ----------------------------------------------
-    const opentxs::String strFinalized{*processInbox};
-    const std::string str_finalized{strFinalized.Get()};
-    // ----------------------------------------------
-    const std::string notary_response = OT::App().API().OTME().process_inbox(
-        server, mynym, myacct, str_finalized);
+    const std::string notary_response =
+        OT::App()
+            .API()
+            .ServerAction()
+            .ProcessInbox(theNymID, theNotaryID, theAcctID, processInbox)
+            ->Run();
     int32_t reply =
         responseReply(notary_response, server, mynym, myacct, "process_inbox");
 
@@ -409,9 +411,11 @@ int32_t CmdBaseAccept::acceptFromInbox(
     // We KNOW they all just changed, since we just processed
     // the inbox. Might as well refresh our copy with the new changes.
     //
-    if (!OT::App().API().OTME().retrieve_account(server, mynym, myacct, true)) {
-        otOut << __FUNCTION__ << "Success processing inbox, but then failed "
-                                 "retrieving intermediary files for account.\n";
+    if (!OT::App().API().ServerAction().DownloadAccount(
+            theNymID, theNotaryID, theAcctID, true)) {
+        otOut << __FUNCTION__
+              << "Success processing inbox, but then failed "
+                 "retrieving intermediary files for account.\n";
         //      return -1; // By this point we DID successfully process the
         //      inbox.
         // (We just then subsequently failed to download the updated acct
@@ -516,8 +520,7 @@ int32_t CmdBaseAccept::acceptFromPaymentbox(
         if (all || SwigWrap::NumList_VerifyQuery(indices, to_string(i))) {
             if (bIsDefinitelyPaymentPlan) {
                 string instrument =
-                    OT::App().API().OTME().get_payment_instrument(
-                        server, mynym, i, inbox);
+                    get_payment_instrument(server, mynym, i, inbox);
                 if ("" == instrument) {
                     otOut << "CmdBaseAccept::acceptFromPaymentbox: "
                              "Error: cannot get payment instrument from "

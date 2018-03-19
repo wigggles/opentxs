@@ -44,6 +44,7 @@
 #include "opentxs/api/Api.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/client/OT_API.hpp"
+#include "opentxs/client/OTAPI_Exec.hpp"
 #include "opentxs/client/OTWallet.hpp"
 #include "opentxs/client/SwigWrap.hpp"
 #include "opentxs/client/Utility.hpp"
@@ -471,6 +472,52 @@ string CmdBase::getOption(string optionName) const
 
     otInfo << "Option  " << result->first << ": " << result->second << "\n";
     return result->second;
+}
+
+// GET PAYMENT INSTRUMENT (from payments inbox, by index.)
+//
+std::string CmdBase::get_payment_instrument(
+    const std::string& notaryID,
+    const std::string& nymID,
+    std::int32_t nIndex,
+    const std::string& PRELOADED_INBOX) const
+{
+    std::string strInstrument;
+    std::string strInbox =
+        VerifyStringVal(PRELOADED_INBOX)
+            ? PRELOADED_INBOX
+            : OT::App().API().Exec().LoadPaymentInbox(
+                  notaryID, nymID);  // Returns nullptr, or an inbox.
+
+    if (!VerifyStringVal(strInbox)) {
+        otWarn << "\n\n get_payment_instrument:  "
+                  "OT_API_LoadPaymentInbox Failed. (Probably just "
+                  "doesn't exist yet.)\n\n";
+        return "";
+    }
+
+    std::int32_t nCount = OT::App().API().Exec().Ledger_GetCount(
+        notaryID, nymID, nymID, strInbox);
+    if (0 > nCount) {
+        otOut
+            << "Unable to retrieve size of payments inbox ledger. (Failure.)\n";
+        return "";
+    }
+    if (nIndex > (nCount - 1)) {
+        otOut << "Index " << nIndex
+              << " out of bounds. (The last index is: " << (nCount - 1)
+              << ". The first is 0.)\n";
+        return "";
+    }
+
+    strInstrument = OT::App().API().Exec().Ledger_GetInstrument(
+        notaryID, nymID, nymID, strInbox, nIndex);
+    if (!VerifyStringVal(strInstrument)) {
+        otOut << "Failed trying to get payment instrument from payments box.\n";
+        return "";
+    }
+
+    return strInstrument;
 }
 
 string CmdBase::getUsage() const

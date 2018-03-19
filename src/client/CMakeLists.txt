@@ -20,7 +20,6 @@ set(cxx-sources
   Helpers.cpp
   NymData.cpp
   OT_API.cpp
-  OT_ME.cpp
   OTAPI_Exec.cpp
   OTAPI_Func.cpp
   OTClient.cpp
@@ -38,7 +37,6 @@ set(cxx-install-headers
   ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/OTAPI_Exec.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/OT_API.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/OTClient.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/OT_ME.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/OTMessageOutbuffer.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/OTRecord.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/OTRecordList.hpp

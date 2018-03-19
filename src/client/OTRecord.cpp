@@ -42,9 +42,14 @@
 
 #include "opentxs/api/Api.hpp"
 #include "opentxs/api/Native.hpp"
+#include "opentxs/client/commands/CmdAcceptInbox.hpp"
+#include "opentxs/client/commands/CmdAcceptPayments.hpp"
+#include "opentxs/client/commands/CmdAcceptReceipts.hpp"
+#include "opentxs/client/commands/CmdAcceptTransfers.hpp"
+#include "opentxs/client/commands/CmdCancel.hpp"
+#include "opentxs/client/commands/CmdDiscard.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
 #include "opentxs/client/OTRecordList.hpp"
-#include "opentxs/client/OT_ME.hpp"
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/client/SwigWrap.hpp"
 #include "opentxs/core/recurring/OTPaymentPlan.hpp"
@@ -822,8 +827,9 @@ bool OTRecord::DeleteRecord() const
     std::unique_ptr<Ledger> theRecordBoxAngel(pRecordbox);
     if (nullptr == pRecordbox) {
         otErr << __FUNCTION__ << ": Failed loading record box for server ID ("
-              << m_str_notary_id << ") nymID "
-                                    "("
+              << m_str_notary_id
+              << ") nymID "
+                 "("
               << m_str_nym_id << ") accountID (" << str_using_account << ")\n";
         return false;
     }
@@ -833,8 +839,9 @@ bool OTRecord::DeleteRecord() const
 
     if ((-1) == nIndex) {
         otErr << __FUNCTION__ << ": Error: Unable to find transaction "
-              << m_lTransactionNum << " in recordbox "
-                                      "for server id ("
+              << m_lTransactionNum
+              << " in recordbox "
+                 "for server id ("
               << m_str_notary_id << "), nym id (" << m_str_nym_id
               << "), acct id (" << str_using_account << ")\n";
         return false;
@@ -848,6 +855,47 @@ bool OTRecord::DeleteRecord() const
         nIndex,
         false);  // clear all = false. We're only clearing one record.
 }
+
+bool OTRecord::accept_from_paymentbox_overload(
+    const std::string& ACCOUNT_ID,
+    const std::string& INDICES,
+    const std::string& PAYMENT_TYPE,
+    std::string* pOptionalOutput /*=nullptr*/) const
+{
+    CmdAcceptPayments cmd;
+    return 1 == cmd.acceptFromPaymentbox(
+                    ACCOUNT_ID, INDICES, PAYMENT_TYPE, pOptionalOutput);
+}
+
+bool OTRecord::accept_inbox_items(
+    const std::string& ACCOUNT_ID,
+    std::int32_t nItemType,
+    const std::string& INDICES) const
+{
+    switch (nItemType) {
+        case 0: {
+            CmdAcceptInbox acceptInbox;
+            return 1 == acceptInbox.run(ACCOUNT_ID, INDICES);
+        }
+
+        case 1: {
+            CmdAcceptTransfers acceptTransfers;
+            return 1 == acceptTransfers.run(ACCOUNT_ID, INDICES);
+        }
+
+        case 2: {
+            CmdAcceptReceipts acceptReceipts;
+            return 1 == acceptReceipts.run(ACCOUNT_ID, INDICES);
+        }
+
+        default:
+            otErr << __FUNCTION__ << ": Invalid nItemType.\n";
+            break;
+    }
+
+    return false;
+}
+
 bool OTRecord::AcceptIncomingTransfer() const
 {
     return AcceptIncomingTransferOrReceipt();
@@ -904,8 +952,9 @@ bool OTRecord::AcceptIncomingTransferOrReceipt() const
 
             if ((-1) == nIndex) {
                 otErr << __FUNCTION__ << ": Error: Unable to find transaction "
-                      << m_lTransactionNum << " in payment inbox "
-                                              "for server id ("
+                      << m_lTransactionNum
+                      << " in payment inbox "
+                         "for server id ("
                       << m_str_notary_id << "), nym id (" << m_str_nym_id
                       << "), acct id (" << m_str_account_id << ")\n";
                 return false;
@@ -916,8 +965,7 @@ bool OTRecord::AcceptIncomingTransferOrReceipt() const
             strIndices.Format("%d", nIndex);
             const std::string str_indices(strIndices.Get());
 
-            return OT::App().API().OTME().accept_inbox_items(
-                m_str_account_id, 0, str_indices);
+            return accept_inbox_items(m_str_account_id, 0, str_indices);
         } break;
         default:
             otErr << __FUNCTION__
@@ -972,8 +1020,9 @@ bool OTRecord::AcceptIncomingInstrument(const std::string& str_into_acct) const
 
             if ((-1) == nIndex) {
                 otErr << __FUNCTION__ << ": Error: Unable to find transaction "
-                      << m_lTransactionNum << " in "
-                                              "payment inbox for server id ("
+                      << m_lTransactionNum
+                      << " in "
+                         "payment inbox for server id ("
                       << m_str_notary_id << "), nym id (" << m_str_nym_id
                       << ")\n";
                 return false;
@@ -1010,7 +1059,7 @@ bool OTRecord::AcceptIncomingInstrument(const std::string& str_into_acct) const
             }
 
             std::string str_server_response;
-            if (!OT::App().API().OTME().accept_from_paymentbox_overload(
+            if (!accept_from_paymentbox_overload(
                     str_into_acct,
                     str_indices,
                     szPaymentType,
@@ -1036,6 +1085,15 @@ bool OTRecord::AcceptIncomingInstrument(const std::string& str_into_acct) const
 
     return true;
 }
+bool OTRecord::discard_incoming_payments(
+    const std::string& notaryID,
+    const std::string& nymID,
+    const std::string& INDICES) const
+{
+    CmdDiscard discard;
+    return 1 == discard.run(notaryID, nymID, INDICES);
+}
+
 // For incoming, pending (not-yet-accepted) instruments.
 //
 bool OTRecord::DiscardIncoming() const
@@ -1051,8 +1109,9 @@ bool OTRecord::DiscardIncoming() const
                 return false;
             }
             if (0 == m_lTransactionNum) {
-                otErr << __FUNCTION__ << ": Error: Transaction number is 0, in "
-                                         "payment inbox for server id ("
+                otErr << __FUNCTION__
+                      << ": Error: Transaction number is 0, in "
+                         "payment inbox for server id ("
                       << m_str_notary_id << "), nym id (" << m_str_nym_id
                       << ")\n";
                 return false;
@@ -1077,8 +1136,9 @@ bool OTRecord::DiscardIncoming() const
 
             if ((-1) == nIndex) {
                 otErr << __FUNCTION__ << ": Error: Unable to find transaction "
-                      << m_lTransactionNum << " in "
-                                              "payment inbox for server id ("
+                      << m_lTransactionNum
+                      << " in "
+                         "payment inbox for server id ("
                       << m_str_notary_id << "), nym id (" << m_str_nym_id
                       << ")\n";
                 return false;
@@ -1089,7 +1149,7 @@ bool OTRecord::DiscardIncoming() const
             strIndices.Format("%d", nIndex);
             const std::string str_indices(strIndices.Get());
 
-            return OT::App().API().OTME().discard_incoming_payments(
+            return discard_incoming_payments(
                 m_str_notary_id, m_str_nym_id, str_indices);
 
         }  // case: instrument
@@ -1125,6 +1185,15 @@ bool OTRecord::HasSuccess(bool& bIsSuccess) const
     if (m_bHasSuccess) bIsSuccess = m_bIsSuccess;
 
     return m_bHasSuccess;
+}
+
+bool OTRecord::cancel_outgoing_payments(
+    const std::string& nymID,
+    const std::string& ACCOUNT_ID,
+    const std::string& INDICES) const
+{
+    CmdCancel cancel;
+    return 1 == cancel.run(nymID, ACCOUNT_ID, INDICES);
 }
 
 // For outgoing, pending (not-yet-accepted) instruments.
@@ -1189,7 +1258,7 @@ bool OTRecord::CancelOutgoing(std::string str_via_acct) const  // This can be
                         strIndices.Format("%d", lIndex);
                         const std::string str_indices(strIndices.Get());
 
-                        return OT::App().API().OTME().cancel_outgoing_payments(
+                        return cancel_outgoing_payments(
                             m_str_nym_id, str_using_acct, str_indices);
                     } else {
                         otErr << __FUNCTION__
@@ -1242,7 +1311,7 @@ bool OTRecord::CancelOutgoing(std::string str_via_acct) const  // This can be
                     strIndices.Format("%d", nIndex);
                     const std::string str_indices(strIndices.Get());
 
-                    return OT::App().API().OTME().cancel_outgoing_payments(
+                    return cancel_outgoing_payments(
                         m_str_nym_id, str_using_acct, str_indices);
                 }
             }  // for

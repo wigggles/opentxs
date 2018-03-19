@@ -44,11 +44,11 @@
 #include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/client/OT_API.hpp"
-#include "opentxs/client/OT_ME.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
 #include "opentxs/core/crypto/OTCachedKey.hpp"
 #include "opentxs/core/Log.hpp"
 
+#include "client/Cash.hpp"
 #include "client/Pair.hpp"
 #include "client/ServerAction.hpp"
 #include "client/Sync.hpp"
@@ -78,7 +78,7 @@ Api::Api(
     , zmq_(zmq)
     , ot_api_(nullptr)
     , otapi_exec_(nullptr)
-    , ot_me_(nullptr)
+    , cash_(nullptr)
     , pair_(nullptr)
     , server_action_(nullptr)
     , sync_(nullptr)
@@ -91,7 +91,7 @@ void Api::Cleanup()
 {
     pair_.reset();
     sync_.reset();
-    ot_me_.reset();
+    cash_.reset();
     server_action_.reset();
     otapi_exec_.reset();
     ot_api_.reset();
@@ -139,10 +139,9 @@ void Api::Init()
 
     OT_ASSERT(server_action_)
 
-    ot_me_.reset(
-        new OT_ME(lock_, *otapi_exec_, *ot_api_, *server_action_, wallet_));
+    cash_.reset(new api::client::implementation::Cash(lock_));
 
-    OT_ASSERT(ot_me_);
+    OT_ASSERT(cash_);
 
     sync_.reset(new api::client::implementation::Sync(
         lock_,
@@ -187,11 +186,11 @@ const OT_API& Api::OTAPI(const std::string&) const
     return *ot_api_;
 }
 
-const OT_ME& Api::OTME(const std::string&) const
+const api::client::Cash& Api::Cash() const
 {
-    OT_ASSERT(ot_me_);
+    OT_ASSERT(cash_);
 
-    return *ot_me_;
+    return *cash_;
 }
 
 const api::client::Pair& Api::Pair() const

@@ -45,7 +45,6 @@
 #include "opentxs/client/commands/CmdBase.hpp"
 #include "opentxs/client/commands/CmdConfirm.hpp"
 #include "opentxs/client/commands/CmdDeposit.hpp"
-#include "opentxs/client/OT_ME.hpp"
 #include "opentxs/client/SwigWrap.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Log.hpp"
@@ -203,8 +202,7 @@ int32_t CmdPayInvoice::processPayment(
             return -1;
         }
     } else {
-        instrument = OT::App().API().OTME().get_payment_instrument(
-            server, mynym, index, inbox);
+        instrument = get_payment_instrument(server, mynym, index, inbox);
         if ("" == instrument) {
             otOut << "Error: cannot get payment instrument.\n";
             return -1;

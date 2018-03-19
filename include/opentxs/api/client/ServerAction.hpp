@@ -90,7 +90,7 @@ public:
         const Identifier& localNymID,
         const Identifier& serverID,
         const Identifier& accountID,
-        const String& agentName,
+        const std::string& agentName,
         std::unique_ptr<OTSmartContract>& contract) const = 0;
     EXPORT virtual Action AddServerClaim(
         const Identifier& localNymID,
@@ -138,7 +138,8 @@ public:
     EXPORT virtual bool DownloadAccount(
         const Identifier& localNymID,
         const Identifier& serverID,
-        const Identifier& accountID) const = 0;
+        const Identifier& accountID,
+        const bool forceDownload) const = 0;
     EXPORT virtual Action DownloadBoxReceipt(
         const Identifier& localNymID,
         const Identifier& serverID,

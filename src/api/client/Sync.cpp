@@ -767,7 +767,7 @@ bool Sync::download_account(
     OT_ASSERT(false == accountID.empty())
 
     const auto success =
-        server_action_.DownloadAccount(nymID, serverID, accountID);
+        server_action_.DownloadAccount(nymID, serverID, accountID, false);
 
     return finish_task(taskID, success);
 }
