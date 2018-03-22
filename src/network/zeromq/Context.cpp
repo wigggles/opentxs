@@ -41,6 +41,7 @@
 #include "Context.hpp"
 
 #include "opentxs/core/Log.hpp"
+#include "opentxs/network/zeromq/PairSocket.hpp"
 #include "opentxs/network/zeromq/PublishSocket.hpp"
 #include "opentxs/network/zeromq/PullSocket.hpp"
 #include "opentxs/network/zeromq/PushSocket.hpp"
@@ -70,6 +71,26 @@ Context::Context()
 Context::operator void*() const { return context_; }
 
 Context* Context::clone() const { return new Context; }
+
+OTZMQPairSocket Context::PairSocket(
+    const opentxs::network::zeromq::ListenCallback& callback) const
+{
+    return PairSocket::Factory(*this, callback);
+}
+
+OTZMQPairSocket Context::PairSocket(
+    const opentxs::network::zeromq::ListenCallback& callback,
+    const opentxs::network::zeromq::PairSocket& peer) const
+{
+    return PairSocket::Factory(callback, peer);
+}
+
+OTZMQPairSocket Context::PairSocket(
+    const opentxs::network::zeromq::ListenCallback& callback,
+    const std::string& endpoint) const
+{
+    return PairSocket::Factory(*this, callback, endpoint);
+}
 
 OTZMQPublishSocket Context::PublishSocket() const
 {

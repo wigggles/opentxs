@@ -69,14 +69,14 @@ public:
 
     EXPORT static const std::string ContactUpdateEndpoint;
     EXPORT static const std::string NymDownloadEndpoint;
+    EXPORT static const std::string PairEndpointPrefix;
     EXPORT static const std::string PendingBailmentEndpoint;
     EXPORT static const std::string ThreadUpdateEndpoint;
-
-    EXPORT virtual SocketType Type() const = 0;
 
     EXPORT virtual operator void*() const = 0;
 
     EXPORT virtual bool Close() const = 0;
+    EXPORT virtual const class Context& Context() const = 0;
 #ifndef SWIG
     EXPORT virtual bool SetTimeouts(
         const std::chrono::milliseconds& linger,
@@ -88,6 +88,7 @@ public:
         const std::uint64_t& sendMilliseconds,
         const std::uint64_t& receiveMilliseconds) const = 0;
     EXPORT virtual bool Start(const std::string& endpoint) const = 0;
+    EXPORT virtual SocketType Type() const = 0;
 
     EXPORT virtual ~Socket() = default;
 

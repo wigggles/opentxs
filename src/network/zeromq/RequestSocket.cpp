@@ -49,7 +49,7 @@
 
 namespace opentxs::network::zeromq
 {
-OTZMQRequestSocket RequestSocket::Factory(const Context& context)
+OTZMQRequestSocket RequestSocket::Factory(const class Context& context)
 {
     return OTZMQRequestSocket(new implementation::RequestSocket(context));
 }
@@ -124,17 +124,6 @@ bool RequestSocket::SetSocksProxy(const std::string& proxy) const
 
 bool RequestSocket::Start(const std::string& endpoint) const
 {
-    OT_ASSERT(nullptr != socket_);
-
-    Lock lock(lock_);
-
-    if (0 != zmq_connect(socket_, endpoint.c_str())) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Failed to connect to "
-              << endpoint << std::endl;
-
-        return false;
-    }
-
-    return true;
+    return start_client(endpoint);
 }
 }  // namespace opentxs::network::zeromq::implementation

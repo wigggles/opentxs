@@ -50,7 +50,7 @@
 
 namespace opentxs::network::zeromq
 {
-OTZMQPushSocket PushSocket::Factory(const Context& context)
+OTZMQPushSocket PushSocket::Factory(const class Context& context)
 {
     return OTZMQPushSocket(new implementation::PushSocket(context));
 }
@@ -103,6 +103,6 @@ bool PushSocket::Start(const std::string& endpoint) const
 {
     Lock lock(lock_);
 
-    return (0 == zmq_bind(socket_, endpoint.c_str()));
+    return bind(endpoint);
 }
 }  // namespace opentxs::network::zeromq::implementation

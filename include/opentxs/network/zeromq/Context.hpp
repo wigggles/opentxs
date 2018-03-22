@@ -72,6 +72,14 @@ public:
 
     EXPORT virtual operator void*() const = 0;
 
+    EXPORT virtual Pimpl<network::zeromq::PairSocket> PairSocket(
+        const ListenCallback& callback) const = 0;
+    EXPORT virtual Pimpl<network::zeromq::PairSocket> PairSocket(
+        const ListenCallback& callback,
+        const class PairSocket& peer) const = 0;
+    EXPORT virtual Pimpl<network::zeromq::PairSocket> PairSocket(
+        const ListenCallback& callback,
+        const std::string& endpoint) const = 0;
     EXPORT virtual Pimpl<network::zeromq::PublishSocket> PublishSocket()
         const = 0;
     EXPORT virtual Pimpl<network::zeromq::PullSocket> PullSocket() const = 0;

@@ -69,7 +69,7 @@ namespace zeromq
 class RequestSocket : virtual public Socket
 {
 public:
-    EXPORT static OTZMQRequestSocket Factory(const Context& context);
+    EXPORT static OTZMQRequestSocket Factory(const class Context& context);
 
     EXPORT virtual std::pair<
         opentxs::SendResult,

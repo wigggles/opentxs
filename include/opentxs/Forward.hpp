@@ -101,6 +101,7 @@ namespace zeromq
 class Context;
 class ListenCallback;
 class Message;
+class PairSocket;
 class PublishSocket;
 class PullSocket;
 class PushSocket;
@@ -230,6 +231,7 @@ using OTUIMessagableList = Pimpl<ui::MessagableList>;
 using OTZMQContext = Pimpl<network::zeromq::Context>;
 using OTZMQListenCallback = Pimpl<network::zeromq::ListenCallback>;
 using OTZMQMessage = Pimpl<network::zeromq::Message>;
+using OTZMQPairSocket = Pimpl<network::zeromq::PairSocket>;
 using OTZMQPublishSocket = Pimpl<network::zeromq::PublishSocket>;
 using OTZMQPullSocket = Pimpl<network::zeromq::PullSocket>;
 using OTZMQPushSocket = Pimpl<network::zeromq::PushSocket>;

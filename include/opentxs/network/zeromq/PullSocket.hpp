@@ -69,9 +69,9 @@ class PullSocket : virtual public Socket
 {
 public:
     EXPORT static OTZMQPullSocket Factory(
-        const Context& context,
+        const class Context& context,
         const ListenCallback& callback);
-    EXPORT static OTZMQPullSocket Factory(const Context& context);
+    EXPORT static OTZMQPullSocket Factory(const class Context& context);
 
     EXPORT virtual bool SetCurve(const OTPassword& key) const = 0;
 

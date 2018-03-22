@@ -48,18 +48,18 @@
 
 #include <zmq.h>
 
-#define OT_METHOD "opentxs::network::zeromq::implementation::PullSocket::"
+//#define OT_METHOD "opentxs::network::zeromq::implementation::PullSocket::"
 
 namespace opentxs::network::zeromq
 {
 OTZMQPullSocket PullSocket::Factory(
-    const Context& context,
+    const class Context& context,
     const ListenCallback& callback)
 {
     return OTZMQPullSocket(new implementation::PullSocket(context, callback));
 }
 
-OTZMQPullSocket PullSocket::Factory(const Context& context)
+OTZMQPullSocket PullSocket::Factory(const class Context& context)
 {
     return OTZMQPullSocket(new implementation::PullSocket(context));
 }
@@ -111,18 +111,7 @@ bool PullSocket::SetCurve(const OTPassword& key) const
 
 bool PullSocket::Start(const std::string& endpoint) const
 {
-    OT_ASSERT(nullptr != socket_);
-
-    Lock lock(lock_);
-
-    if (0 != zmq_connect(socket_, endpoint.c_str())) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Failed to connect to "
-              << endpoint << std::endl;
-
-        return false;
-    }
-
-    return true;
+    return start_client(endpoint);
 }
 
 PullSocket::~PullSocket() {}

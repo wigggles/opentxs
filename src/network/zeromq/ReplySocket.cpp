@@ -51,7 +51,7 @@
 namespace opentxs::network::zeromq
 {
 OTZMQReplySocket ReplySocket::Factory(
-    const Context& context,
+    const class Context& context,
     const ReplyCallback& callback)
 {
     return OTZMQReplySocket(new implementation::ReplySocket(context, callback));
@@ -100,7 +100,7 @@ bool ReplySocket::Start(const std::string& endpoint) const
 {
     Lock lock(lock_);
 
-    return (0 == zmq_bind(socket_, endpoint.c_str()));
+    return bind(endpoint);
 }
 
 ReplySocket::~ReplySocket() {}

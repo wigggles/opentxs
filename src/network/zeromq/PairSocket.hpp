@@ -1,0 +1,96 @@
+/************************************************************
+ *
+ *                 OPEN TRANSACTIONS
+ *
+ *       Financial Cryptography and Digital Cash
+ *       Library, Protocol, API, Server, CLI, GUI
+ *
+ *       -- Anonymous Numbered Accounts.
+ *       -- Untraceable Digital Cash.
+ *       -- Triple-Signed Receipts.
+ *       -- Cheques, Vouchers, Transfers, Inboxes.
+ *       -- Basket Currencies, Markets, Payment Plans.
+ *       -- Signed, XML, Ricardian-style Contracts.
+ *       -- Scripted smart contracts.
+ *
+ *  EMAIL:
+ *  fellowtraveler@opentransactions.org
+ *
+ *  WEBSITE:
+ *  http://www.opentransactions.org/
+ *
+ *  -----------------------------------------------------
+ *
+ *   LICENSE:
+ *   This Source Code Form is subject to the terms of the
+ *   Mozilla Public License, v. 2.0. If a copy of the MPL
+ *   was not distributed with this file, You can obtain one
+ *   at http://mozilla.org/MPL/2.0/.
+ *
+ *   DISCLAIMER:
+ *   This program is distributed in the hope that it will
+ *   be useful, but WITHOUT ANY WARRANTY; without even the
+ *   implied warranty of MERCHANTABILITY or FITNESS FOR A
+ *   PARTICULAR PURPOSE.  See the Mozilla Public License
+ *   for more details.
+ *
+ ************************************************************/
+
+#ifndef OPENTXS_NETWORK_ZEROMQ_PAIRSOCKET_IMPLEMENTATION_HPP
+#define OPENTXS_NETWORK_ZEROMQ_PAIRSOCKET_IMPLEMENTATION_HPP
+
+#include "opentxs/Forward.hpp"
+
+#include "opentxs/network/zeromq/PairSocket.hpp"
+
+#include "Receiver.hpp"
+#include "Socket.hpp"
+
+namespace opentxs::network::zeromq::implementation
+{
+class PairSocket : virtual public zeromq::PairSocket, public Socket, Receiver
+{
+public:
+    const std::string& Endpoint() const;
+    bool Send(const std::string& data) const override;
+    bool Send(const opentxs::Data& data) const override;
+    bool Send(network::zeromq::Message& data) const override;
+    bool Start(const std::string& endpoint) const override;
+
+    ~PairSocket();
+
+private:
+    friend opentxs::network::zeromq::PairSocket;
+    typedef Socket ot_super;
+
+    const ListenCallback& callback_;
+    const std::string endpoint_;
+    const bool bind_{false};
+
+    PairSocket* clone() const override;
+    bool have_callback() const override;
+    void process_incoming(const Lock& lock, Message& message) override;
+
+    PairSocket(
+        const zeromq::Context& context,
+        const zeromq::ListenCallback& callback,
+        const std::string& endpoint,
+        const bool bind);
+    PairSocket(
+        const zeromq::Context& context,
+        const zeromq::ListenCallback& callback);
+    PairSocket(
+        const zeromq::ListenCallback& callback,
+        const zeromq::PairSocket& peer);
+    PairSocket(
+        const zeromq::Context& context,
+        const zeromq::ListenCallback& callback,
+        const std::string& endpoint);
+    PairSocket() = delete;
+    PairSocket(const PairSocket&) = delete;
+    PairSocket(PairSocket&&) = delete;
+    PairSocket& operator=(const PairSocket&) = delete;
+    PairSocket& operator=(PairSocket&&) = delete;
+};
+}  // namespace opentxs::network::zeromq::implementation
+#endif  // OPENTXS_NETWORK_ZEROMQ_PAIRSOCKET_IMPLEMENTATION_HPP
