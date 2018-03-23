@@ -9183,7 +9183,7 @@ CommandResult OT_API::exchangeBasket(
 
     managed.insert(
         context.NextTransactionNumber(MessageType::notarizeTransaction));
-    auto& closingNumber = *managed.end();
+    auto& closingNumber = *managed.rbegin();
 
     if (false == closingNumber.Valid()) {
         otErr << OT_METHOD << __FUNCTION__
@@ -11272,7 +11272,7 @@ CommandResult OT_API::issueMarketOffer(
     std::set<ServerContext::ManagedNumber> managed{};
     managed.insert(
         context.NextTransactionNumber(MessageType::notarizeTransaction));
-    auto& openingNumber = *managed.end();
+    auto& openingNumber = *managed.rbegin();
 
     if (false == openingNumber.Valid()) {
         otErr << "No transaction numbers were available. Suggest "
@@ -11286,7 +11286,7 @@ CommandResult OT_API::issueMarketOffer(
     transactionNum = openingNumber;
     managed.insert(
         context.NextTransactionNumber(MessageType::notarizeTransaction));
-    auto& assetClosingNumber = *managed.end();
+    auto& assetClosingNumber = *managed.rbegin();
 
     if (false == openingNumber.Valid()) {
         otErr << "No assetClosingNumber numbers were available. Suggest "
@@ -11299,7 +11299,7 @@ CommandResult OT_API::issueMarketOffer(
           << assetClosingNumber << std::endl;
     managed.insert(
         context.NextTransactionNumber(MessageType::notarizeTransaction));
-    auto& currencyClosingNumber = *managed.end();
+    auto& currencyClosingNumber = *managed.rbegin();
 
     if (false == currencyClosingNumber.Valid()) {
         otErr << "No transaction numbers were available. Suggest "
