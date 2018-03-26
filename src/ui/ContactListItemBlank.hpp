@@ -42,10 +42,12 @@
 #include "opentxs/Internal.hpp"
 
 #include "opentxs/ui/ContactListItem.hpp"
+#include "opentxs/ui/Widget.hpp"
 
 namespace opentxs::ui::implementation
 {
-class ContactListItemBlank : virtual public ui::ContactListItem
+class ContactListItemBlank : virtual public ui::ContactListItem,
+                             virtual public opentxs::ui::Widget
 {
 public:
     std::string ContactID() const override { return {}; }
@@ -54,6 +56,7 @@ public:
     bool Last() const override { return true; }
     std::string Section() const override { return {}; }
     bool Valid() const override { return false; }
+    Identifier WidgetID() const override { return {}; }
 
     ~ContactListItemBlank() = default;
 

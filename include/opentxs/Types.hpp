@@ -178,6 +178,7 @@ enum class StorageBox : std::uint8_t {
     MAILOUTBOX = 9,
     INCOMINGBLOCKCHAIN = 10,
     OUTGOINGBLOCKCHAIN = 11,
+    DRAFT = 254,
     UNKNOWN = 255,
 };
 
@@ -463,6 +464,9 @@ enum class SocketType : std::uint8_t {
     Reply = 2,
     Publish = 3,
     Subscribe = 4,
+    Push = 5,
+    Pull = 6,
+    Pair = 7,
 };
 
 enum class RemoteBoxType : std::int8_t {

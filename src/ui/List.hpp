@@ -42,11 +42,17 @@
 #include "opentxs/Internal.hpp"
 
 #include "opentxs/core/Flag.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/Types.hpp"
 
+#include "Widget.hpp"
+
 #include <memory>
+#include <set>
 #include <thread>
+#include <tuple>
+#include <vector>
 
 #define STARTUP_WAIT_MILLISECONDS 100
 
@@ -62,7 +68,7 @@ template <
     typename OuterType,
     typename OuterIteratorType,
     typename ReverseType>
-class List : virtual public InterfaceType, public Lockable
+class List : virtual public InterfaceType, public Widget, public Lockable
 {
 public:
     const RowType& First() const override
@@ -72,11 +78,11 @@ public:
         return first(lock);
     }
 
-    bool last(const IDType& id) const
+    virtual bool last(const IDType& id) const
     {
         Lock lock(lock_);
 
-        return (start_.get() && (id == last_id_));
+        return start_.get() && same(id, last_id_);
     }
 
     const RowType& Next() const override
@@ -97,6 +103,8 @@ public:
         reindex_item(lock, id, oldIndex, newIndex);
     }
 
+    Identifier WidgetID() const override { return widget_id_; }
+
     virtual ~List()
     {
         if (startup_ && startup_->joinable()) {
@@ -106,7 +114,6 @@ public:
     }
 
 protected:
-    const network::zeromq::Context& zmq_;
     const api::ContactManager& contact_manager_;
     const Identifier nym_id_;
     mutable OuterType items_;
@@ -120,6 +127,7 @@ protected:
     std::unique_ptr<std::thread> startup_{nullptr};
     const std::unique_ptr<RowType> blank_p_{nullptr};
     const RowType& blank_;
+    const Identifier widget_id_;
 
     virtual void construct_item(const IDType& id, const SortKeyType& index)
         const = 0;
@@ -134,6 +142,49 @@ protected:
         last_id_ = id;
 
         return item.get();
+    }
+    void delete_inactive(const std::set<IDType>& active) const
+    {
+        Lock lock(lock_);
+        std::vector<IDType> deleteIDs{};
+
+        for (const auto& it : names_) {
+            const auto& id = it.first;
+
+            if (0 == active.count(id)) {
+                deleteIDs.emplace_back(id);
+            }
+        }
+
+        for (const auto& id : deleteIDs) {
+            delete_item(lock, id);
+        }
+    }
+    void delete_item(const Lock& lock, const IDType& id) const
+    {
+        OT_ASSERT(verify_lock(lock))
+
+        auto& key = names_.at(id);
+        auto& inner = items_.at(key);
+        auto item = inner.find(id);
+
+        // I'm about to delete this row. Make sure iterators are not pointing
+        // to it
+        if (inner_ == item) {
+            increment_inner(lock);
+        }
+
+        const auto itemDeleted = inner.erase(id);
+
+        OT_ASSERT(1 == itemDeleted)
+
+        if (0 == inner.size()) {
+            items_.erase(key);
+        }
+
+        const auto indexDeleted = names_.erase(id);
+
+        OT_ASSERT(1 == indexDeleted)
     }
     /** Returns first contact, or blank if none exists. Sets up iterators for
      *  next row
@@ -152,7 +203,7 @@ protected:
 
             return next(lock);
         } else {
-            last_id_ = Identifier();
+            last_id_ = IDType();
 
             return blank_;
         }
@@ -289,7 +340,11 @@ protected:
         }
 
         names_[id] = newIndex;
-        items_[newIndex].emplace(std::move(id), std::move(row));
+        items_[newIndex].emplace(id, std::move(row));
+    }
+    virtual bool same(const IDType& lhs, const IDType& rhs) const
+    {
+        return (lhs == rhs);
     }
     void valid_iterators() const
     {
@@ -321,6 +376,8 @@ protected:
             OT_ASSERT(1 == items_.count(index))
             OT_ASSERT(1 == names_.count(id))
 
+            UpdateNotify();
+
             return;
         }
 
@@ -332,6 +389,7 @@ protected:
         }
 
         reindex_item(lock, id, oldIndex, index);
+        UpdateNotify();
     }
 
     List(
@@ -340,7 +398,7 @@ protected:
         const IDType lastID,
         const Identifier nymID,
         RowType* blank)
-        : zmq_(zmq)
+        : Widget(zmq)
         , contact_manager_(contact)
         , nym_id_(nymID)
         , items_()
@@ -354,6 +412,7 @@ protected:
         , startup_(nullptr)
         , blank_p_(blank)
         , blank_(*blank_p_)
+        , widget_id_(Identifier::Random())
     {
         // WARNING if you plan on using blank_, check blank_p_ in the child
         // class constructor

@@ -50,7 +50,23 @@ class Context : virtual public zeromq::Context
 public:
     operator void*() const override;
 
+    OTZMQPairSocket PairSocket(const opentxs::network::zeromq::ListenCallback&
+                                   callback) const override;
+    OTZMQPairSocket PairSocket(
+        const opentxs::network::zeromq::ListenCallback& callback,
+        const opentxs::network::zeromq::PairSocket& peer) const override;
+    OTZMQPairSocket PairSocket(
+        const opentxs::network::zeromq::ListenCallback& callback,
+        const std::string& endpoint) const override;
+    OTZMQProxy Proxy(
+        network::zeromq::Socket& frontend,
+        network::zeromq::Socket& backend) const override;
     OTZMQPublishSocket PublishSocket() const override;
+    OTZMQPullSocket PullSocket(const bool client) const override;
+    OTZMQPullSocket PullSocket(
+        const ListenCallback& callback,
+        const bool client) const override;
+    OTZMQPushSocket PushSocket(const bool client) const override;
     OTZMQReplySocket ReplySocket(const ReplyCallback& callback) const override;
     OTZMQRequestSocket RequestSocket() const override;
     OTZMQSubscribeSocket SubscribeSocket(

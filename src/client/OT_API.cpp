@@ -12563,7 +12563,8 @@ CommandResult OT_API::sendNymObject(
 CommandResult OT_API::sendNymMessage(
     ServerContext& context,
     const Identifier& recipientNymID,
-    const String& THE_MESSAGE) const
+    const std::string& THE_MESSAGE,
+    Identifier& messageID) const
 {
     CommandResult output{};
     auto & [ requestNum, transactionNum, result ] = output;
@@ -12574,7 +12575,7 @@ CommandResult OT_API::sendNymMessage(
     reply.reset();
     const auto& nym = *context.Nym();
     const auto& nymID = nym.ID();
-    const auto object = PeerObject::Create(context.Nym(), THE_MESSAGE.Get());
+    const auto object = PeerObject::Create(context.Nym(), THE_MESSAGE);
 
     if (false == bool(object)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to create peer object"
@@ -12584,6 +12585,18 @@ CommandResult OT_API::sendNymMessage(
     }
 
     output = sendNymObject(context, recipientNymID, *object, requestNum);
+
+    if (SendResult::VALID_REPLY != status) {
+
+        return output;
+    }
+
+    OT_ASSERT(reply)
+
+    if (false == reply->m_bSuccess) {
+
+        return output;
+    }
 
     // store a copy in the outmail.
     std::unique_ptr<Message> sent(new Message);
@@ -12595,7 +12608,7 @@ CommandResult OT_API::sendNymMessage(
     sent->m_strNymID2 = String(recipientNymID);
     sent->m_strNotaryID = String(context.Server());
     sent->m_strRequestNum.Format("%" PRId64, requestNum);
-    auto copy = PeerObject::Create(nullptr, THE_MESSAGE.Get());
+    auto copy = PeerObject::Create(nullptr, THE_MESSAGE);
 
     OT_ASSERT(copy);
 
@@ -12618,7 +12631,8 @@ CommandResult OT_API::sendNymMessage(
 
     sent->SignContract(nym);
     sent->SaveContract();
-    activity_.Mail(nymID, *sent, StorageBox::MAILOUTBOX);
+    messageID =
+        Identifier(activity_.Mail(nymID, *sent, StorageBox::MAILOUTBOX));
 
     return output;
 }

@@ -43,10 +43,12 @@
 
 #include "opentxs/core/Lockable.hpp"
 
+#include "Widget.hpp"
+
 namespace opentxs::ui::implementation
 {
 template <typename InterfaceType, typename ParentType, typename IdentifierType>
-class Row : virtual public InterfaceType, public Lockable
+class Row : virtual public InterfaceType, public Widget, public Lockable
 {
 public:
     bool Last() const override { return parent_.last(id_); }
@@ -54,7 +56,6 @@ public:
 
 protected:
     const ParentType& parent_;
-    const network::zeromq::Context& zmq_;
     const api::ContactManager& contact_;
     const IdentifierType id_;
     const bool valid_{false};
@@ -64,8 +65,8 @@ protected:
         const api::ContactManager& contact,
         const IdentifierType id,
         const bool valid)
-        : parent_(parent)
-        , zmq_(zmq)
+        : Widget(zmq, parent.WidgetID())
+        , parent_(parent)
         , contact_(contact)
         , id_(id)
         , valid_(valid)

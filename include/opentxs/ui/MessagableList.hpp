@@ -41,6 +41,8 @@
 
 #include "opentxs/Forward.hpp"
 
+#include "opentxs/ui/Widget.hpp"
+
 #ifdef SWIG
 // clang-format off
 %rename(UIMessagableList) opentxs::ui::MessagableList;
@@ -51,7 +53,7 @@ namespace opentxs
 {
 namespace ui
 {
-class MessagableList
+class MessagableList : virtual public Widget
 {
 public:
     EXPORT virtual const ContactListItem& First() const = 0;

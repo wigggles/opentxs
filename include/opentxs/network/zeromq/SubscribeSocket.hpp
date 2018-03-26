@@ -69,7 +69,7 @@ class SubscribeSocket : virtual public Socket
 {
 public:
     EXPORT static OTZMQSubscribeSocket Factory(
-        const Context& context,
+        const class Context& context,
         const ListenCallback& callback);
 
     EXPORT virtual bool SetCurve(const ServerContract& contract) const = 0;

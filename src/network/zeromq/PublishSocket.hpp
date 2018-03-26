@@ -36,8 +36,8 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_REPLYSOCKET_HPP
-#define OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_REPLYSOCKET_HPP
+#ifndef OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_PUBLISHSOCKET_HPP
+#define OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_PUBLISHSOCKET_HPP
 
 #include "opentxs/Forward.hpp"
 
@@ -75,4 +75,4 @@ private:
     PublishSocket& operator=(PublishSocket&&) = delete;
 };
 }  // namespace opentxs::network::zeromq::implementation
-#endif  // OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_REPLYSOCKET_HPP
+#endif  // OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_PUBLISHSOCKET_HPP

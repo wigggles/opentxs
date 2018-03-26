@@ -48,12 +48,13 @@
 
 #include <zmq.h>
 
-#define OT_METHOD "opentxs::network::zeromq::implementation::SubscribeSocket::"
+//#define OT_METHOD
+//"opentxs::network::zeromq::implementation::SubscribeSocket::"
 
 namespace opentxs::network::zeromq
 {
 OTZMQSubscribeSocket SubscribeSocket::Factory(
-    const Context& context,
+    const class Context& context,
     const ListenCallback& callback)
 {
     return OTZMQSubscribeSocket(
@@ -68,7 +69,7 @@ SubscribeSocket::SubscribeSocket(
     const zeromq::ListenCallback& callback)
     : ot_super(context, SocketType::Subscribe)
     , CurveClient(lock_, socket_)
-    , Receiver(lock_, socket_)
+    , Receiver(lock_, socket_, true)
     , callback_(callback)
 {
     // subscribe to all messages until filtering is implemented
@@ -103,18 +104,7 @@ bool SubscribeSocket::SetSocksProxy(const std::string& proxy) const
 
 bool SubscribeSocket::Start(const std::string& endpoint) const
 {
-    OT_ASSERT(nullptr != socket_);
-
-    Lock lock(lock_);
-
-    if (0 != zmq_connect(socket_, endpoint.c_str())) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Failed to connect to "
-              << endpoint << std::endl;
-
-        return false;
-    }
-
-    return true;
+    return start_client(endpoint);
 }
 
 SubscribeSocket::~SubscribeSocket() {}

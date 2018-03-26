@@ -66,6 +66,7 @@
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/ui/ActivitySummary.hpp"
+#include "opentxs/ui/ActivityThread.hpp"
 #include "opentxs/ui/ContactList.hpp"
 #include "opentxs/ui/MessagableList.hpp"
 #include "opentxs/util/Signals.hpp"

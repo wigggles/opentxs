@@ -69,7 +69,7 @@ class ReplySocket : virtual public Socket
 {
 public:
     EXPORT static OTZMQReplySocket Factory(
-        const Context& context,
+        const class Context& context,
         const ReplyCallback& callback);
 
     EXPORT virtual bool SetCurve(const OTPassword& key) const = 0;

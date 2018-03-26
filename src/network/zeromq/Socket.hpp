@@ -60,6 +60,7 @@ public:
     operator void*() const override;
 
     bool Close() const override;
+    const zeromq::Context& Context() const override { return context_; }
     bool SetTimeouts(
         const std::chrono::milliseconds& linger,
         const std::chrono::milliseconds& send,
@@ -75,7 +76,10 @@ protected:
     const zeromq::Context& context_;
     void* socket_{nullptr};
 
+    bool bind(const std::string& endpoint) const;
+    bool connect(const std::string& endpoint) const;
     bool set_socks_proxy(const std::string& proxy) const;
+    bool start_client(const std::string& endpoint) const;
 
     explicit Socket(const zeromq::Context& context, const SocketType type);
 

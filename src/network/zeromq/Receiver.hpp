@@ -53,7 +53,7 @@ namespace opentxs::network::zeromq::implementation
 class Receiver
 {
 protected:
-    Receiver(std::mutex& lock, void* socket);
+    Receiver(std::mutex& lock, void* socket, const bool startThread);
 
     virtual ~Receiver();
 

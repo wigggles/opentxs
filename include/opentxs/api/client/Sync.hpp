@@ -44,6 +44,7 @@
 #include "opentxs/Types.hpp"
 
 #include <cstdint>
+#include <tuple>
 
 #define DEFAULT_PROCESS_INBOX_ITEMS 5
 
@@ -88,6 +89,8 @@ public:
         const Identifier& senderNymID,
         const Identifier& contactID,
         const std::string& message) const = 0;
+    EXPORT virtual std::pair<ThreadStatus, Identifier> MessageStatus(
+        const Identifier& taskID) const = 0;
     EXPORT virtual void Refresh() const = 0;
     EXPORT virtual std::uint64_t RefreshCount() const = 0;
     EXPORT virtual Identifier RegisterNym(

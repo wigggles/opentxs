@@ -403,6 +403,7 @@ public:
 
     TransactionNumber GetTransactionNumber() const override;
     SendResult LastSendResult() const override;
+    const Identifier MessageID() const override;
     const std::shared_ptr<PeerRequest>& SentPeerRequest() const override;
     const std::shared_ptr<PeerReply>& SentPeerReply() const override;
     const std::shared_ptr<Message>& Reply() const override;
@@ -425,6 +426,7 @@ private:
     Identifier recipientID_{};
     Identifier requestID_{};
     Identifier targetID_{};
+    Identifier message_id_{};
     std::unique_ptr<OTSmartContract> contract_;
     std::unique_ptr<OTPaymentPlan> paymentPlan_;
     std::unique_ptr<Purse> purse_;

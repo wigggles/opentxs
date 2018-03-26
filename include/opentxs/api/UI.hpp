@@ -50,6 +50,9 @@ class UI
 public:
     EXPORT virtual const ui::ActivitySummary& ActivitySummary(
         const Identifier& nymID) const = 0;
+    EXPORT virtual const ui::ActivityThread& ActivityThread(
+        const Identifier& nymID,
+        const Identifier& threadID) const = 0;
     EXPORT virtual const ui::ContactList& ContactList(
         const Identifier& nymID) const = 0;
     EXPORT virtual const ui::MessagableList& MessagableList(

@@ -72,6 +72,17 @@ class ZMQ;
 }  // namespace api::network
 }  // namespace api
 
+namespace network
+{
+namespace zeromq
+{
+namespace implementation
+{
+class Proxy;
+}  // namespace network::zeromq::implementation
+}  // namespace network::zeromq
+}  // namespace network
+
 namespace storage
 {
 class Root;
@@ -81,6 +92,8 @@ namespace ui
 {
 namespace implementation
 {
+class ActivityThread;
+class ActivityThreadItem;
 class ActivitySummary;
 class ActivitySummaryItem;
 class ContactList;

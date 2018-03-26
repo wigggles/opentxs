@@ -46,6 +46,8 @@
 #include <chrono>
 #include <string>
 
+#include "ListRow.hpp"
+
 #ifdef SWIG
 // clang-format off
 %rename(UIActivitySummaryItem) opentxs::ui::ActivitySummaryItem;
@@ -56,12 +58,11 @@ namespace opentxs
 {
 namespace ui
 {
-class ActivitySummaryItem
+class ActivitySummaryItem : virtual public ListRow
 {
 public:
     EXPORT virtual std::string DisplayName() const = 0;
     EXPORT virtual std::string ImageURI() const = 0;
-    EXPORT virtual bool Last() const = 0;
     EXPORT virtual std::string Text() const = 0;
     EXPORT virtual std::string ThreadID() const = 0;
     EXPORT virtual std::int64_t Time() const = 0;
@@ -69,7 +70,6 @@ public:
     EXPORT virtual std::chrono::system_clock::time_point Timestamp() const = 0;
 #endif
     EXPORT virtual StorageBox Type() const = 0;
-    EXPORT virtual bool Valid() const = 0;
 
     EXPORT virtual ~ActivitySummaryItem() = default;
 

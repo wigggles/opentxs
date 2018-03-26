@@ -784,7 +784,8 @@ public:
     EXPORT CommandResult sendNymMessage(
         ServerContext& context,
         const Identifier& recipientNymID,
-        const String& THE_MESSAGE) const;
+        const std::string& THE_MESSAGE,
+        Identifier& messageID) const;
 
     EXPORT CommandResult sendNymObject(
         ServerContext& context,

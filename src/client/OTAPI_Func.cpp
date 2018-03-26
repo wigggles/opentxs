@@ -38,7 +38,7 @@
 
 #include "opentxs/stdafx.hpp"
 
-#include "opentxs/client/OTAPI_Func.hpp"
+#include "OTAPI_Func.hpp"
 
 #include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/Api.hpp"
@@ -186,6 +186,7 @@ OTAPI_Func::OTAPI_Func(
     , recipientID_{}
     , requestID_{}
     , targetID_{}
+    , message_id_{}
     , contract_{nullptr}
     , paymentPlan_{nullptr}
     , purse_{nullptr}
@@ -1196,6 +1197,13 @@ SendResult OTAPI_Func::LastSendResult() const
     return std::get<0>(std::get<2>(last_attempt_));
 }
 
+const Identifier OTAPI_Func::MessageID() const
+{
+    Lock lock(lock_);
+
+    return message_id_;
+}
+
 const std::shared_ptr<Message>& OTAPI_Func::Reply() const
 {
     Lock lock(lock_);
@@ -1236,8 +1244,8 @@ void OTAPI_Func::run()
             last_attempt_ = otapi_.unregisterNym(context_);
         } break;
         case SEND_USER_MESSAGE: {
-            last_attempt_ =
-                otapi_.sendNymMessage(context_, recipientID_, message_.c_str());
+            last_attempt_ = otapi_.sendNymMessage(
+                context_, recipientID_, message_, message_id_);
         } break;
         case SEND_USER_INSTRUMENT: {
 
@@ -1593,9 +1601,8 @@ std::string OTAPI_Func::send_transaction(std::size_t totalRetries)
             accountID_.str(),
             false))  // bForceDownload=false))
     {
-        otOut << strLocation
-              << ", getIntermediaryFiles returned false. (It "
-                 "couldn't download files that it needed.)\n";
+        otOut << strLocation << ", getIntermediaryFiles returned false. (It "
+                                "couldn't download files that it needed.)\n";
         return "";
     }
 
@@ -1614,10 +1621,9 @@ std::string OTAPI_Func::send_transaction(std::size_t totalRetries)
     }
 
     if (getnym_trnsnum_count < comparative) {
-        otOut << strLocation
-              << ", I don't have enough transaction numbers to "
-                 "perform this transaction. Grabbing more "
-                 "now...\n";
+        otOut << strLocation << ", I don't have enough transaction numbers to "
+                                "perform this transaction. Grabbing more "
+                                "now...\n";
         MsgUtil.setNbrTransactionCount(comparative);
         MsgUtil.getTransactionNumbers(
             context_.Server().str(), context_.Nym()->ID().str());
@@ -1682,10 +1688,9 @@ std::string OTAPI_Func::send_transaction(std::size_t totalRetries)
                 context_.Nym()->ID().str(),
                 accountID_.str(),
                 true)) {
-            otOut << strLocation
-                  << ", getIntermediaryFiles returned false. "
-                     "(After a success sending the transaction. "
-                     "Strange...)\n";
+            otOut << strLocation << ", getIntermediaryFiles returned false. "
+                                    "(After a success sending the transaction. "
+                                    "Strange...)\n";
             return "";
         }
 
@@ -1754,15 +1759,25 @@ std::string OTAPI_Func::send_transaction(std::size_t totalRetries)
 std::string OTAPI_Func::send_request()
 {
     Utility MsgUtil(context_, otapi_);
-    bool bCanRetryAfterThis = false;
-    std::string strResult = send_once(false, true, bCanRetryAfterThis);
+    bool bCanRetryAfterThis{false};
+    send_once(false, true, bCanRetryAfterThis);
+    const auto& result = std::get<0>(std::get<2>(last_attempt_));
+    const bool needRetry = (SendResult::VALID_REPLY != result);
 
-    if (!VerifyStringVal(strResult) && bCanRetryAfterThis) {
+    if (needRetry && bCanRetryAfterThis) {
         if (exec_.CheckConnection(context_.Server().str())) {
-            strResult = send_once(false, false, bCanRetryAfterThis);
+            send_once(false, false, bCanRetryAfterThis);
         }
     }
-    return strResult;
+
+    const auto& reply = std::get<1>(std::get<2>(last_attempt_));
+
+    if (reply) {
+
+        return String(*reply).Get();
+    }
+
+    return {};
 }
 
 std::string OTAPI_Func::send_once(
@@ -2015,11 +2030,10 @@ std::string OTAPI_Func::send_once(
                         context_.Nym()->ID().str(),
                         accountID_.str(),
                         bForceDownload)) {
-                    otOut << strLocation
-                          << ", getIntermediaryFiles returned "
-                             "false. (After a failure to send "
-                             "the transaction. Thus, I give "
-                             "up.)\n";
+                    otOut << strLocation << ", getIntermediaryFiles returned "
+                                            "false. (After a failure to send "
+                                            "the transaction. Thus, I give "
+                                            "up.)\n";
                     return "";
                 }
 

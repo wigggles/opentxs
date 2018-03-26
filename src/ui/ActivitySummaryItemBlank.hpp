@@ -42,10 +42,12 @@
 #include "opentxs/Internal.hpp"
 
 #include "opentxs/ui/ActivitySummaryItem.hpp"
+#include "opentxs/ui/Widget.hpp"
 
 namespace opentxs::ui::implementation
 {
-class ActivitySummaryItemBlank : virtual public ui::ActivitySummaryItem
+class ActivitySummaryItemBlank : virtual public ui::ActivitySummaryItem,
+                                 virtual public opentxs::ui::Widget
 {
 public:
     std::string DisplayName() const override { return {}; }
@@ -60,6 +62,7 @@ public:
     }
     StorageBox Type() const override { return StorageBox::UNKNOWN; }
     bool Valid() const override { return false; }
+    Identifier WidgetID() const override { return {}; }
 
     ~ActivitySummaryItemBlank() = default;
 

@@ -49,6 +49,12 @@ OTZMQListenCallback ListenCallback::Factory(
 {
     return OTZMQListenCallback(new implementation::ListenCallback(callback));
 }
+
+OTZMQListenCallback ListenCallback::Factory()
+{
+    return OTZMQListenCallback(
+        new implementation::ListenCallback([](const Message&) -> void {}));
+}
 }  // namespace opentxs::network::zeromq
 
 namespace opentxs::network::zeromq::implementation
