@@ -73,9 +73,12 @@ Socket::MessageSendResult RequestSocket::SendRequest(opentxs::Data& input) const
     return SendRequest(Message::Factory(input));
 }
 
-Socket::MessageSendResult RequestSocket::SendRequest(std::string& input) const
+Socket::MessageSendResult RequestSocket::SendRequest(
+    const std::string& input) const
 {
-    return SendRequest(Message::Factory(input));
+    auto copy = input;
+
+    return SendRequest(Message::Factory(copy));
 }
 
 Socket::MessageSendResult RequestSocket::SendRequest(

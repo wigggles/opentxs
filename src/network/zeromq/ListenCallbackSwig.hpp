@@ -36,44 +36,35 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_REQUESTSOCKET_HPP
-#define OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_REQUESTSOCKET_HPP
+#ifndef OPENTXS_NETWORK_ZEROMQ_LISTENCALLBACKSWIG_IMPLEMENTATION_HPP
+#define OPENTXS_NETWORK_ZEROMQ_LISTENCALLBACKSWIG_IMPLEMENTATION_HPP
 
 #include "opentxs/Forward.hpp"
 
-#include "opentxs/network/zeromq/RequestSocket.hpp"
-
-#include "CurveClient.hpp"
-#include "Socket.hpp"
+#include "opentxs/network/zeromq/ListenCallback.hpp"
 
 namespace opentxs::network::zeromq::implementation
 {
-class RequestSocket : virtual public zeromq::RequestSocket,
-                      public Socket,
-                      CurveClient
+class ListenCallbackSwig : virtual public zeromq::ListenCallback
 {
 public:
-    MessageSendResult SendRequest(opentxs::Data& message) const override;
-    MessageSendResult SendRequest(const std::string& message) const override;
-    MessageSendResult SendRequest(zeromq::Message& message) const override;
-    bool SetCurve(const ServerContract& contract) const override;
-    bool SetSocksProxy(const std::string& proxy) const override;
-    bool Start(const std::string& endpoint) const override;
+    void Process(const zeromq::Message& message) const override;
 
-    ~RequestSocket() = default;
+    ~ListenCallbackSwig();
 
 private:
-    friend opentxs::network::zeromq::RequestSocket;
-    typedef Socket ot_super;
+    friend zeromq::ListenCallback;
 
-    RequestSocket* clone() const override;
+    opentxs::ListenCallbackSwig* callback_;
 
-    RequestSocket(const zeromq::Context& context);
-    RequestSocket() = delete;
-    RequestSocket(const RequestSocket&) = delete;
-    RequestSocket(RequestSocket&&) = delete;
-    RequestSocket& operator=(const RequestSocket&) = delete;
-    RequestSocket& operator=(RequestSocket&&) = delete;
+    ListenCallbackSwig* clone() const override;
+
+    ListenCallbackSwig(opentxs::ListenCallbackSwig* callback);
+    ListenCallbackSwig() = delete;
+    ListenCallbackSwig(const ListenCallbackSwig&) = delete;
+    ListenCallbackSwig(ListenCallbackSwig&&) = delete;
+    ListenCallbackSwig& operator=(const ListenCallbackSwig&) = delete;
+    ListenCallbackSwig& operator=(ListenCallbackSwig&&) = delete;
 };
 }  // namespace opentxs::network::zeromq::implementation
-#endif  // OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_REQUESTSOCKET_HPP
+#endif  // OPENTXS_NETWORK_ZEROMQ_LISTENCALLBACKSWIG_IMPLEMENTATION_HPP

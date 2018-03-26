@@ -78,8 +78,8 @@ public:
     EXPORT virtual operator void*() const = 0;
 
     EXPORT virtual bool Close() const = 0;
-    EXPORT virtual const class Context& Context() const = 0;
 #ifndef SWIG
+    EXPORT virtual const class Context& Context() const = 0;
     EXPORT virtual bool SetTimeouts(
         const std::chrono::milliseconds& linger,
         const std::chrono::milliseconds& send,
