@@ -43,19 +43,16 @@
 
 #include "opentxs/network/zeromq/PushSocket.hpp"
 
-#include "CurveClient.hpp"
 #include "Socket.hpp"
 
 namespace opentxs::network::zeromq::implementation
 {
-class PushSocket : virtual public zeromq::PushSocket, public Socket, CurveClient
+class PushSocket : virtual public zeromq::PushSocket, public Socket
 {
 public:
     bool Push(const std::string& data) const override;
     bool Push(const opentxs::Data& data) const override;
     bool Push(zeromq::Message& data) const override;
-    bool SetCurve(const ServerContract& contract) const override;
-    bool SetSocksProxy(const std::string& proxy) const override;
     bool Start(const std::string& endpoint) const override;
 
     ~PushSocket() = default;
@@ -64,9 +61,11 @@ private:
     friend opentxs::network::zeromq::PushSocket;
     typedef Socket ot_super;
 
+    const bool client_{false};
+
     PushSocket* clone() const override;
 
-    PushSocket(const zeromq::Context& context);
+    PushSocket(const zeromq::Context& context, const bool client);
     PushSocket() = delete;
     PushSocket(const PushSocket&) = delete;
     PushSocket(PushSocket&&) = delete;

@@ -105,19 +105,21 @@ OTZMQPublishSocket Context::PublishSocket() const
     return PublishSocket::Factory(*this);
 }
 
-OTZMQPullSocket Context::PullSocket() const
+OTZMQPullSocket Context::PullSocket(const bool client) const
 {
-    return PullSocket::Factory(*this);
+    return PullSocket::Factory(*this, client);
 }
 
-OTZMQPullSocket Context::PullSocket(const ListenCallback& callback) const
+OTZMQPullSocket Context::PullSocket(
+    const ListenCallback& callback,
+    const bool client) const
 {
-    return PullSocket::Factory(*this, callback);
+    return PullSocket::Factory(*this, client, callback);
 }
 
-OTZMQPushSocket Context::PushSocket() const
+OTZMQPushSocket Context::PushSocket(const bool client) const
 {
-    return PushSocket::Factory(*this);
+    return PushSocket::Factory(*this, client);
 }
 
 OTZMQReplySocket Context::ReplySocket(const ReplyCallback& callback) const

@@ -62,9 +62,11 @@ public:
         network::zeromq::Socket& frontend,
         network::zeromq::Socket& backend) const override;
     OTZMQPublishSocket PublishSocket() const override;
-    OTZMQPullSocket PullSocket() const override;
-    OTZMQPullSocket PullSocket(const ListenCallback& callback) const override;
-    OTZMQPushSocket PushSocket() const override;
+    OTZMQPullSocket PullSocket(const bool client) const override;
+    OTZMQPullSocket PullSocket(
+        const ListenCallback& callback,
+        const bool client) const override;
+    OTZMQPushSocket PushSocket(const bool client) const override;
     OTZMQReplySocket ReplySocket(const ReplyCallback& callback) const override;
     OTZMQRequestSocket RequestSocket() const override;
     OTZMQSubscribeSocket SubscribeSocket(

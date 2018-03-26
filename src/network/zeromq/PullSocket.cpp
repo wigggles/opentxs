@@ -54,14 +54,18 @@ namespace opentxs::network::zeromq
 {
 OTZMQPullSocket PullSocket::Factory(
     const class Context& context,
+    const bool client,
     const ListenCallback& callback)
 {
-    return OTZMQPullSocket(new implementation::PullSocket(context, callback));
+    return OTZMQPullSocket(
+        new implementation::PullSocket(context, client, callback));
 }
 
-OTZMQPullSocket PullSocket::Factory(const class Context& context)
+OTZMQPullSocket PullSocket::Factory(
+    const class Context& context,
+    const bool client)
 {
-    return OTZMQPullSocket(new implementation::PullSocket(context));
+    return OTZMQPullSocket(new implementation::PullSocket(context, client));
 }
 }  // namespace opentxs::network::zeromq
 
@@ -69,30 +73,32 @@ namespace opentxs::network::zeromq::implementation
 {
 PullSocket::PullSocket(
     const zeromq::Context& context,
+    const bool client,
     const zeromq::ListenCallback& callback,
     const bool startThread)
     : ot_super(context, SocketType::Subscribe)
-    , CurveServer(lock_, socket_)
     , Receiver(lock_, socket_, startThread)
+    , client_(client)
     , callback_(callback)
 {
 }
 
 PullSocket::PullSocket(
     const zeromq::Context& context,
+    const bool client,
     const zeromq::ListenCallback& callback)
-    : PullSocket(context, callback, true)
+    : PullSocket(context, client, callback, true)
 {
 }
 
-PullSocket::PullSocket(const zeromq::Context& context)
-    : PullSocket(context, ListenCallback::Factory(), false)
+PullSocket::PullSocket(const zeromq::Context& context, const bool client)
+    : PullSocket(context, client, ListenCallback::Factory(), false)
 {
 }
 
 PullSocket* PullSocket::clone() const
 {
-    return new PullSocket(context_, callback_);
+    return new PullSocket(context_, client_, callback_);
 }
 
 bool PullSocket::have_callback() const { return true; }
@@ -104,14 +110,15 @@ void PullSocket::process_incoming(const Lock& lock, Message& message)
     callback_.Process(message);
 }
 
-bool PullSocket::SetCurve(const OTPassword& key) const
-{
-    return set_curve(key);
-}
-
 bool PullSocket::Start(const std::string& endpoint) const
 {
-    return start_client(endpoint);
+    if (client_) {
+
+        return start_client(endpoint);
+    } else {
+
+        return bind(endpoint);
+    }
 }
 
 PullSocket::~PullSocket() {}

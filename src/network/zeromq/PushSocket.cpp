@@ -50,17 +50,19 @@
 
 namespace opentxs::network::zeromq
 {
-OTZMQPushSocket PushSocket::Factory(const class Context& context)
+OTZMQPushSocket PushSocket::Factory(
+    const class Context& context,
+    const bool client)
 {
-    return OTZMQPushSocket(new implementation::PushSocket(context));
+    return OTZMQPushSocket(new implementation::PushSocket(context, client));
 }
 }  // namespace opentxs::network::zeromq
 
 namespace opentxs::network::zeromq::implementation
 {
-PushSocket::PushSocket(const zeromq::Context& context)
+PushSocket::PushSocket(const zeromq::Context& context, const bool client)
     : ot_super(context, SocketType::Push)
-    , CurveClient(lock_, socket_)
+    , client_(client)
 {
 }
 
@@ -87,22 +89,21 @@ bool PushSocket::Push(zeromq::Message& data) const
     return (-1 != sent);
 }
 
-PushSocket* PushSocket::clone() const { return new PushSocket(context_); }
-
-bool PushSocket::SetCurve(const ServerContract& contract) const
+PushSocket* PushSocket::clone() const
 {
-    return set_curve(contract);
-}
-
-bool PushSocket::SetSocksProxy(const std::string& proxy) const
-{
-    return set_socks_proxy(proxy);
+    return new PushSocket(context_, client_);
 }
 
 bool PushSocket::Start(const std::string& endpoint) const
 {
     Lock lock(lock_);
 
-    return bind(endpoint);
+    if (client_) {
+
+        return start_client(endpoint);
+    } else {
+
+        return bind(endpoint);
+    }
 }
 }  // namespace opentxs::network::zeromq::implementation

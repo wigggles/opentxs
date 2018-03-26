@@ -68,13 +68,12 @@ class PushSocket : virtual public Socket
 {
 public:
     EXPORT static Pimpl<opentxs::network::zeromq::PushSocket> Factory(
-        const opentxs::network::zeromq::Context& context);
+        const opentxs::network::zeromq::Context& context,
+        const bool client);
 
     EXPORT virtual bool Push(const std::string& data) const = 0;
     EXPORT virtual bool Push(const opentxs::Data& data) const = 0;
     EXPORT virtual bool Push(network::zeromq::Message& data) const = 0;
-    EXPORT virtual bool SetCurve(const ServerContract& contract) const = 0;
-    EXPORT virtual bool SetSocksProxy(const std::string& proxy) const = 0;
 
     EXPORT virtual ~PushSocket() = default;
 
