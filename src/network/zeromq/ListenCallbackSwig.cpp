@@ -40,10 +40,11 @@
 
 #include "ListenCallbackSwig.hpp"
 
+#include "opentxs/core/Log.hpp"
 #include "opentxs/network/zeromq/ListenCallbackSwig.hpp"
 
-//#define OT_METHOD
-//"opentxs::network::zeromq::implementation::ListenCallbackSwig::"
+#define OT_METHOD                                                              \
+    "opentxs::network::zeromq::implementation::ListenCallbackSwig::"
 
 namespace opentxs::network::zeromq
 {
@@ -60,6 +61,12 @@ namespace opentxs::network::zeromq::implementation
 ListenCallbackSwig::ListenCallbackSwig(opentxs::ListenCallbackSwig* callback)
     : callback_(callback)
 {
+    if (nullptr == callback_) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Invalid callback pointer"
+              << std::endl;
+
+        OT_FAIL;
+    }
 }
 
 ListenCallbackSwig* ListenCallbackSwig::clone() const
@@ -69,6 +76,8 @@ ListenCallbackSwig* ListenCallbackSwig::clone() const
 
 void ListenCallbackSwig::Process(const zeromq::Message& message) const
 {
+    OT_ASSERT(nullptr != callback_)
+
     callback_->Process(message);
 }
 

@@ -48,8 +48,7 @@
 
 #include <zmq.h>
 
-//#define OT_METHOD
-//"opentxs::network::zeromq::implementation::SubscribeSocket::"
+#define OT_METHOD "opentxs::network::zeromq::implementation::SubscribeSocket::"
 
 namespace opentxs::network::zeromq
 {
@@ -89,6 +88,8 @@ void SubscribeSocket::process_incoming(const Lock& lock, Message& message)
 {
     OT_ASSERT(verify_lock(lock))
 
+    otInfo << OT_METHOD << __FUNCTION__
+           << ": Incoming messaged received. Triggering callback." << std::endl;
     callback_.Process(message);
 }
 
