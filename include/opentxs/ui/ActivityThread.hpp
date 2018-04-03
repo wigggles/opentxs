@@ -42,6 +42,7 @@
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/ui/Widget.hpp"
+#include "opentxs/Proto.hpp"
 
 #include <string>
 
@@ -63,6 +64,12 @@ public:
     EXPORT virtual const ActivityThreadItem& Next() const = 0;
     EXPORT virtual std::string GetDraft() const = 0;
     EXPORT virtual std::string Participants() const = 0;
+#ifndef SWIG
+    EXPORT virtual std::string PaymentCode(
+        const proto::ContactItemType currency) const = 0;
+#endif
+    EXPORT virtual std::string PaymentCode(
+        const std::uint32_t currency) const = 0;
     EXPORT virtual bool SendDraft() const = 0;
     EXPORT virtual bool SetDraft(const std::string& draft) const = 0;
     EXPORT virtual std::string ThreadID() const = 0;

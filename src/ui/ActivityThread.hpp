@@ -124,13 +124,16 @@ public:
     std::string DisplayName() const override;
     std::string GetDraft() const override;
     std::string Participants() const override;
+    std::string PaymentCode(
+        const proto::ContactItemType currency) const override;
+    std::string PaymentCode(const std::uint32_t currency) const override;
     bool same(const ActivityThreadID& lhs, const ActivityThreadID& rhs)
         const override;
     bool SendDraft() const override;
     bool SetDraft(const std::string& draft) const override;
     std::string ThreadID() const override;
 
-    ~ActivityThread() = default;
+    ~ActivityThread();
 
 private:
     friend api::implementation::UI;
@@ -141,9 +144,12 @@ private:
     std::set<Identifier> participants_;
     OTZMQListenCallback activity_subscriber_callback_;
     OTZMQSubscribeSocket activity_subscriber_;
+    mutable std::mutex contact_lock_;
     mutable std::shared_mutex draft_lock_;
     mutable std::string draft_{""};
     mutable std::set<ActivityThreadID> draft_tasks_;
+    std::shared_ptr<const Contact> contact_;
+    std::unique_ptr<std::thread> contact_thread_{nullptr};
 
     bool check_draft(const ActivityThreadID& id) const;
     void check_drafts() const;
@@ -154,6 +160,7 @@ private:
     ActivityThreadOuter::const_iterator outer_first() const override;
     ActivityThreadOuter::const_iterator outer_end() const override;
 
+    void init_contact();
     void load_thread(const proto::StorageThread& thread);
     void new_thread();
     ActivityThreadID process_item(const proto::StorageThreadItem& item);
