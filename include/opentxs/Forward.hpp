@@ -165,6 +165,7 @@ class Identifier;
 class Item;
 class Ledger;
 class Letter;
+class ListenCallbackSwig;
 class Log;
 class MasterCredential;
 class Message;

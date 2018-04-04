@@ -51,7 +51,7 @@ namespace opentxs::network::zeromq::implementation
 class PairSocket : virtual public zeromq::PairSocket, public Socket, Receiver
 {
 public:
-    const std::string& Endpoint() const;
+    const std::string& Endpoint() const override;
     bool Send(const std::string& data) const override;
     bool Send(const opentxs::Data& data) const override;
     bool Send(network::zeromq::Message& data) const override;

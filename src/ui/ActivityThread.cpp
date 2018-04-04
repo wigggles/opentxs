@@ -43,6 +43,8 @@
 #include "opentxs/api/client/Sync.hpp"
 #include "opentxs/api/Activity.hpp"
 #include "opentxs/api/ContactManager.hpp"
+#include "opentxs/contact/Contact.hpp"
+#include "opentxs/contact/ContactData.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
@@ -74,9 +76,12 @@ ActivityThread::ActivityThread(
           }))
     , activity_subscriber_(
           zmq_.SubscribeSocket(activity_subscriber_callback_.get()))
+    , contact_lock_()
     , draft_lock_()
     , draft_()
     , draft_tasks_()
+    , contact_(nullptr)
+    , contact_thread_(nullptr)
 {
     OT_ASSERT(blank_p_)
 
@@ -91,6 +96,10 @@ ActivityThread::ActivityThread(
     startup_.reset(new std::thread(&ActivityThread::startup, this));
 
     OT_ASSERT(startup_)
+
+    contact_thread_.reset(new std::thread(&ActivityThread::init_contact, this));
+
+    OT_ASSERT(contact_thread_)
 }
 
 bool ActivityThread::check_draft(const ActivityThreadID& id) const
@@ -243,6 +252,22 @@ std::string ActivityThread::GetDraft() const
     return draft_;
 }
 
+void ActivityThread::init_contact()
+{
+    if (1 != participants_.size()) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Wrong number of participants ("
+              << participants_.size() << ")" << std::endl;
+
+        return;
+    }
+
+    auto contact = contact_manager_.Contact(*participants_.cbegin());
+    Lock lock(contact_lock_);
+    contact_ = contact;
+    lock.unlock();
+    UpdateNotify();
+}
+
 void ActivityThread::load_thread(const proto::StorageThread& thread)
 {
     for (const auto& id : thread.participant()) {
@@ -285,6 +310,24 @@ std::string ActivityThread::Participants() const
     }
 
     return comma(ids);
+}
+
+std::string ActivityThread::PaymentCode(
+    const proto::ContactItemType currency) const
+{
+    Lock lock(contact_lock_);
+
+    if (contact_) {
+
+        return contact_->PaymentCode(currency);
+    }
+
+    return {};
+}
+
+std::string ActivityThread::PaymentCode(const std::uint32_t currency) const
+{
+    return PaymentCode(static_cast<proto::ContactItemType>(currency));
 }
 
 ActivityThreadID ActivityThread::process_item(
@@ -407,5 +450,13 @@ std::string ActivityThread::ThreadID() const
     Lock lock(lock_);
 
     return threadID_.str();
+}
+
+ActivityThread::~ActivityThread()
+{
+    if (contact_thread_ && contact_thread_->joinable()) {
+        contact_thread_->join();
+        contact_thread_.reset();
+    }
 }
 }  // namespace opentxs::ui::implementation

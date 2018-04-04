@@ -23,6 +23,7 @@
 #include "opentxs/core/Data.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
+#include "opentxs/network/zeromq/ListenCallbackSwig.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/PairSocket.hpp"
 #include "opentxs/network/zeromq/Proxy.hpp"
@@ -51,8 +52,6 @@
 
 %feature("director") OTCallback;
 %feature("director") OTNameLookup;
-%feature("director") network::zeromq::ListenCallback;
-%feature("director") network::zeromq::ReplyCallback;
 
 /* Parse the header file to generate wrappers */
 #ifndef EXPORT
@@ -92,6 +91,7 @@ typedef int64_t time64_t;
 %include "../../include/opentxs/Types.hpp"
 %include "../../include/opentxs/network/zeromq/Socket.hpp"
 %include "../../include/opentxs/network/zeromq/PublishSocket.hpp"
+%include "../../include/opentxs/network/zeromq/ListenCallbackSwig.hpp"
 %include "../../include/opentxs/network/zeromq/ListenCallback.hpp"
 %include "../../include/opentxs/network/zeromq/SubscribeSocket.hpp"
 %include "../../include/opentxs/network/zeromq/Proxy.hpp"

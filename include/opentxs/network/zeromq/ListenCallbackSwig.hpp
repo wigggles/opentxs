@@ -36,55 +36,34 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_UI_ACTIVITYTHREAD_HPP
-#define OPENTXS_UI_ACTIVITYTHREAD_HPP
+#ifndef OPENTXS_NETWORK_ZEROMQ_LISTENCALLBACKSWIG_HPP
+#define OPENTXS_NETWORK_ZEROMQ_LISTENCALLBACKSWIG_HPP
 
 #include "opentxs/Forward.hpp"
 
-#include "opentxs/ui/Widget.hpp"
-#include "opentxs/Proto.hpp"
-
-#include <string>
-
 #ifdef SWIG
 // clang-format off
-%rename(UIActivityThread) opentxs::ui::ActivityThread;
+%feature("director") ListenCallbackSwig;
 // clang-format on
 #endif  // SWIG
 
 namespace opentxs
 {
-namespace ui
-{
-class ActivityThread : virtual public Widget
+class ListenCallbackSwig
 {
 public:
-    EXPORT virtual std::string DisplayName() const = 0;
-    EXPORT virtual const ActivityThreadItem& First() const = 0;
-    EXPORT virtual const ActivityThreadItem& Next() const = 0;
-    EXPORT virtual std::string GetDraft() const = 0;
-    EXPORT virtual std::string Participants() const = 0;
-#ifndef SWIG
-    EXPORT virtual std::string PaymentCode(
-        const proto::ContactItemType currency) const = 0;
-#endif
-    EXPORT virtual std::string PaymentCode(
-        const std::uint32_t currency) const = 0;
-    EXPORT virtual bool SendDraft() const = 0;
-    EXPORT virtual bool SetDraft(const std::string& draft) const = 0;
-    EXPORT virtual std::string ThreadID() const = 0;
+    virtual void Process(const network::zeromq::Message& message) const = 0;
 
-    EXPORT virtual ~ActivityThread() = default;
+    virtual ~ListenCallbackSwig() = default;
 
 protected:
-    ActivityThread() = default;
+    ListenCallbackSwig() = default;
 
 private:
-    ActivityThread(const ActivityThread&) = delete;
-    ActivityThread(ActivityThread&&) = delete;
-    ActivityThread& operator=(const ActivityThread&) = delete;
-    ActivityThread& operator=(ActivityThread&&) = delete;
+    ListenCallbackSwig(const ListenCallbackSwig&) = delete;
+    ListenCallbackSwig(ListenCallbackSwig&&) = default;
+    ListenCallbackSwig& operator=(const ListenCallbackSwig&) = delete;
+    ListenCallbackSwig& operator=(ListenCallbackSwig&&) = default;
 };
-}  // namespace ui
 }  // namespace opentxs
-#endif  // OPENTXS_UI_ACTIVITYTHREAD_HPP
+#endif  // OPENTXS_NETWORK_ZEROMQ_LISTENCALLBACKSWIG_HPP

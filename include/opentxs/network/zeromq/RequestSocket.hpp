@@ -78,7 +78,7 @@ public:
     EXPORT virtual std::pair<
         opentxs::SendResult,
         opentxs::Pimpl<opentxs::network::zeromq::Message>>
-    SendRequest(std::string& message) const = 0;
+    SendRequest(const std::string& message) const = 0;
     EXPORT virtual std::pair<
         opentxs::SendResult,
         opentxs::Pimpl<opentxs::network::zeromq::Message>>

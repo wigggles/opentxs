@@ -3,6 +3,7 @@ set(cxx-sources
   CurveClient.cpp
   CurveServer.cpp
   ListenCallback.cpp
+  ListenCallbackSwig.cpp
   Message.cpp
   PairSocket.cpp
   PublishSocket.cpp
@@ -27,6 +28,7 @@ set(cxx-headers
   ${CMAKE_CURRENT_SOURCE_DIR}/CurveClient.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/CurveServer.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/ListenCallback.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/ListenCallbackSwig.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Message.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/PairSocket.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Proxy.hpp

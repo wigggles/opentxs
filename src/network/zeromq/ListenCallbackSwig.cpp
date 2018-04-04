@@ -36,44 +36,50 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_REQUESTSOCKET_HPP
-#define OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_REQUESTSOCKET_HPP
+#include "opentxs/stdafx.hpp"
 
-#include "opentxs/Forward.hpp"
+#include "ListenCallbackSwig.hpp"
 
-#include "opentxs/network/zeromq/RequestSocket.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/network/zeromq/ListenCallbackSwig.hpp"
 
-#include "CurveClient.hpp"
-#include "Socket.hpp"
+#define OT_METHOD                                                              \
+    "opentxs::network::zeromq::implementation::ListenCallbackSwig::"
+
+namespace opentxs::network::zeromq
+{
+OTZMQListenCallback ListenCallback::Factory(
+    opentxs::ListenCallbackSwig* callback)
+{
+    return OTZMQListenCallback(
+        new implementation::ListenCallbackSwig(callback));
+}
+}  // namespace opentxs::network::zeromq
 
 namespace opentxs::network::zeromq::implementation
 {
-class RequestSocket : virtual public zeromq::RequestSocket,
-                      public Socket,
-                      CurveClient
+ListenCallbackSwig::ListenCallbackSwig(opentxs::ListenCallbackSwig* callback)
+    : callback_(callback)
 {
-public:
-    MessageSendResult SendRequest(opentxs::Data& message) const override;
-    MessageSendResult SendRequest(const std::string& message) const override;
-    MessageSendResult SendRequest(zeromq::Message& message) const override;
-    bool SetCurve(const ServerContract& contract) const override;
-    bool SetSocksProxy(const std::string& proxy) const override;
-    bool Start(const std::string& endpoint) const override;
+    if (nullptr == callback_) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Invalid callback pointer"
+              << std::endl;
 
-    ~RequestSocket() = default;
+        OT_FAIL;
+    }
+}
 
-private:
-    friend opentxs::network::zeromq::RequestSocket;
-    typedef Socket ot_super;
+ListenCallbackSwig* ListenCallbackSwig::clone() const
+{
+    return new ListenCallbackSwig(callback_);
+}
 
-    RequestSocket* clone() const override;
+void ListenCallbackSwig::Process(const zeromq::Message& message) const
+{
+    OT_ASSERT(nullptr != callback_)
 
-    RequestSocket(const zeromq::Context& context);
-    RequestSocket() = delete;
-    RequestSocket(const RequestSocket&) = delete;
-    RequestSocket(RequestSocket&&) = delete;
-    RequestSocket& operator=(const RequestSocket&) = delete;
-    RequestSocket& operator=(RequestSocket&&) = delete;
-};
+    callback_->Process(message);
+}
+
+ListenCallbackSwig::~ListenCallbackSwig() {}
 }  // namespace opentxs::network::zeromq::implementation
-#endif  // OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_REQUESTSOCKET_HPP
