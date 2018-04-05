@@ -596,7 +596,7 @@ bool OTRecordList::PerformAutoAccept()
             const std::string& str_nym_id(it_nym);
             const Identifier theNymID(str_nym_id);
             const String strNymID(theNymID);
-            Nym* pNym = OT::App().API().OTAPI().GetNym(theNymID);
+            ConstNym pNym = OT::App().Wallet().Nym(theNymID);
             if (nullptr == pNym) continue;
             // LOOP SERVERS
             //
@@ -1239,8 +1239,7 @@ bool OTRecordList::Populate()
                    << ": Beginning loop through Nyms...\n";
         const std::string& str_nym_id(it_nym);
         const Identifier theNymID(str_nym_id);
-        const String strNymID(theNymID);
-        Nym* pNym = OT::App().API().OTAPI().GetNym(theNymID);
+        ConstNym pNym = OT::App().Wallet().Nym(theNymID);
         if (nullptr == pNym) continue;
         // For each Nym, loop through his OUTPAYMENTS box.
         //
@@ -1250,7 +1249,7 @@ bool OTRecordList::Populate()
         otInfo << "--------\n"
                << __FUNCTION__ << ": Nym " << nNymIndex
                << ", nOutpaymentsCount: " << nOutpaymentsCount
-               << ", ID: " << strNymID.Get() << "\n";
+               << ", ID: " << theNymID.str() << "\n";
         for (int32_t nCurrentOutpayment = 0;
              nCurrentOutpayment < nOutpaymentsCount;
              ++nCurrentOutpayment) {

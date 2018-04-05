@@ -66,16 +66,9 @@ public:
         Identifier& THE_ID,
         String& THE_NAME) const;
     EXPORT std::size_t GetAccountCount() const;
-    EXPORT bool GetNym(
-        const std::size_t iIndex,
-        Identifier& NYM_ID,
-        String& NYM_NAME) const;
-    EXPORT std::size_t GetNymCount() const;
     EXPORT std::string ImportSeed(
         const OTPassword& words,
         const OTPassword& passphrase) const;
-    EXPORT bool IsNymOnCachedKey(const Identifier& nymID) const;
-    EXPORT std::set<Identifier> NymList() const;
 
     EXPORT void AddAccount(std::shared_ptr<Account>& theAcct);
     // Low level.
@@ -89,14 +82,11 @@ public:
     // unblinding is done) that we need to save the file right away.
     EXPORT void AddPendingWithdrawal(const Purse& thePurse);
 #endif
-    EXPORT void AddPrivateNym(const Nym& theNym);
     // When the wallet's master passphrase changes, the extra symmetric keys
     // need to be updated to reflect that.
     EXPORT bool ChangePassphrasesOnExtraKeys(
         const OTPassword& oldPassphrase,
         const OTPassword& newPassphrase);
-    EXPORT bool ConvertNymToCachedKey(Nym& theNym);
-    EXPORT Nym* CreateNym(const NymParameters& nymParameters);
     // These allow the client application to encrypt its own sensitive data.
     // For example, let's say the client application is storing your Bitmessage
     // username and password in its database. It can't store those in the clear,
@@ -129,7 +119,6 @@ public:
         const std::string& str_id) const;
     EXPORT std::shared_ptr<Account> GetIssuerAccount(
         const Identifier& theInstrumentDefinitionID);
-    EXPORT Nym* GetNymByIDPartialMatch(std::string PARTIAL_ID);
     EXPORT std::shared_ptr<OTSymmetricKey> getOrCreateExtraKey(
         const std::string& str_KeyID,
         const std::string* pReason = nullptr);  // Use this one.
@@ -138,17 +127,10 @@ public:
         const Identifier& ACCT_ID,
         const Identifier& NOTARY_ID,
         const char* szFuncName = nullptr);
-    EXPORT Nym* GetOrLoadPrivateNym(
-        const Identifier& NYM_ID,
-        bool bChecking = false,
-        const char* szFuncName = nullptr,
-        const OTPasswordData* pPWData = nullptr,
-        const OTPassword* pImportPassword = nullptr);
 #if OT_CASH
     EXPORT Purse* GetPendingWithdrawal();
 #endif  // OT_CASH
     EXPORT std::string GetPhrase();
-    EXPORT Nym* GetPrivateNymByID(const Identifier& NYM_ID);
     EXPORT std::string GetSeed();
     EXPORT std::string GetWords();
     EXPORT std::shared_ptr<Account> LoadAccount(
@@ -157,12 +139,6 @@ public:
         const Identifier& NOTARY_ID,
         const char* szFuncName = nullptr);
     EXPORT bool LoadWallet(const char* szFilename = nullptr);
-    EXPORT Nym* reloadAndGetPrivateNym(
-        const Identifier& NYM_ID,
-        bool bChecking = false,
-        const char* szFuncName = nullptr,
-        const OTPasswordData* pPWData = nullptr,
-        const OTPassword* pImportPassword = nullptr);
     // These functions are low-level. They don't check for dependent data before
     // deleting, and they don't save the wallet after they do.
     //
@@ -179,10 +155,6 @@ public:
     // (You have to handle that at a higher level.) higher level version of
     // these two will require a server message, in addition to removing from
     // wallet. (To delete them on server side.)
-    EXPORT bool RemovePrivateNym(
-        const Identifier& theTargetID,
-        bool bRemoveFromCachedKey = true,
-        String* pStrOutputName = nullptr);
     EXPORT bool SaveWallet(const char* szFilename = nullptr);
 
     EXPORT ~OTWallet();
@@ -196,7 +168,6 @@ private:
     using mapOfAccounts = std::map<Identifier, AccountEntry>;
     using mapOfSymmetricKeys =
         std::map<std::string, std::shared_ptr<OTSymmetricKey>>;
-    using setOfIdentifiers = std::set<Identifier>;
 
     const api::Crypto& crypto_;
     const api::storage::Storage& storage_;
@@ -209,7 +180,6 @@ private:
     String m_strVersion{};
     String m_strFilename{};
     String m_strDataFolder{};
-    mapOfNymsSP m_mapPrivateNyms{};
     mapOfAccounts m_mapAccounts;
     // Let's say you have some private data that you want to store safely.
     // For example, your Bitmessage user/pass. Perhaps you want to throw
@@ -239,31 +209,21 @@ private:
     mapOfSymmetricKeys m_mapExtraKeys{};
     // All the Nyms that use the Master key are listed here (makes it easy
     // to see which ones are converted already.)
-    setOfIdentifiers m_setNymsOnCachedKey{};
 
     void add_account(const Lock& lock, std::shared_ptr<Account>& theAcct);
     bool add_extra_key(
         const Lock& lock,
         const std::string& str_id,
         std::shared_ptr<OTSymmetricKey> pKey);
-    void add_nym(const Lock& lock, const Nym& theNym, mapOfNymsSP& map);
-    bool convert_nym_to_cached_key(const Lock& lock, Nym& theNym);
     std::shared_ptr<Account> get_account(
         const Lock& lock,
         const Identifier& theAccountID);
-    Nym* get_private_nym_by_id(const Lock& lock, const Identifier& NYM_ID);
     std::shared_ptr<Account> load_account(
         const Lock& lock,
         const Nym& theNym,
         const Identifier& ACCT_ID,
         const Identifier& NOTARY_ID,
         const char* szFuncName = nullptr);
-    bool remove_nym(
-        const Lock& lock,
-        const Identifier& theTargetID,
-        mapOfNymsSP& map,
-        bool bRemoveFromCachedKey = true,
-        String* pStrOutputName = nullptr);
     void release(const Lock& lock);
     bool save_contract(const Lock& lock, String& strContract);
     bool save_wallet(const Lock& lock, const char* szFilename = nullptr);

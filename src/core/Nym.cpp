@@ -470,7 +470,7 @@ bool Nym::DeleteClaim(const Identifier& id)
     return set_contact_data(lock, contact_data_->Serialize());
 }
 
-void Nym::DisplayStatistics(String& strOutput)
+void Nym::DisplayStatistics(String& strOutput) const
 {
     strOutput.Concatenate("Source for ID:\n%s\n", source_->asString().Get());
     strOutput.Concatenate("Description: %s\n\n", m_strDescription.Get());
@@ -731,6 +731,7 @@ const OTAsymmetricKey& Nym::GetPrivateAuthKey() const
 }
 
 void Nym::GetPrivateCredentials(String& strCredList, String::Map* pmapCredFiles)
+    const
 {
     Tag tag("nymData");
 
@@ -1470,8 +1471,9 @@ bool Nym::LoadNymFromString(
 
                     if (!tempNotaryID.Exists() ||
                         !Contract::LoadEncodedTextField(xml, strTemp)) {
-                        otErr << __FUNCTION__ << ": Error: transactionNums "
-                                                 "field without value.\n";
+                        otErr << __FUNCTION__
+                              << ": Error: transactionNums "
+                                 "field without value.\n";
                         return false;  // error condition
                     }
 
@@ -2104,7 +2106,7 @@ bool Nym::ReEncryptPrivateCredentials(
     bool bImporting,  // bImporting=true, or
                       // false if exporting.
     const OTPasswordData* pPWData,
-    const OTPassword* pImportPassword)
+    const OTPassword* pImportPassword) const
 {
     const OTPassword* pExportPassphrase = nullptr;
     std::unique_ptr<const OTPassword> thePasswordAngel;
@@ -2139,9 +2141,8 @@ bool Nym::ReEncryptPrivateCredentials(
         CredentialSet* pCredential = it.second;
         OT_ASSERT(nullptr != pCredential);
 
-        if (false ==
-            pCredential->ReEncryptPrivateCredentials(
-                *pExportPassphrase, bImporting))
+        if (false == pCredential->ReEncryptPrivateCredentials(
+                         *pExportPassphrase, bImporting))
             return false;
     }
 
@@ -2432,7 +2433,7 @@ void Nym::SaveCredentialsToTag(
 }
 
 // Save the Pseudonym to a string...
-bool Nym::SavePseudonym(String& strNym)
+bool Nym::SavePseudonym(String& strNym) const
 {
     Tag tag("nymData");
 
@@ -2491,7 +2492,7 @@ bool Nym::SavePseudonym(String& strNym)
     // client-side
     for (auto& it : m_mapInboxHash) {
         std::string strAcctID = it.first;
-        Identifier& theID = it.second;
+        const Identifier& theID = it.second;
 
         if ((strAcctID.size() > 0) && !theID.IsEmpty()) {
             const String strHash(theID);
@@ -2505,7 +2506,7 @@ bool Nym::SavePseudonym(String& strNym)
     // client-side
     for (auto& it : m_mapOutboxHash) {
         std::string strAcctID = it.first;
-        Identifier& theID = it.second;
+        const Identifier& theID = it.second;
 
         if ((strAcctID.size() > 0) && !theID.IsEmpty()) {
             const String strHash(theID);

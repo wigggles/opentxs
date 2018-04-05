@@ -201,6 +201,7 @@ public:
         std::shared_ptr<proto::UnitDefinition>& contract,
         std::string& alias,
         const bool checking = false) const override;
+    const std::set<std::string> LocalNyms() const override;
     void MapPublicNyms(NymLambda& lambda) const override;
     void MapServers(ServerLambda& lambda) const override;
     void MapUnitDefinitions(UnitLambda& lambda) const override;

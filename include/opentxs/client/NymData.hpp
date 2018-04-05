@@ -42,6 +42,8 @@
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/core/Nym.hpp"
 
 #include <cstdint>
 #include <memory>
@@ -72,6 +74,16 @@ public:
     NymData(const NymData&) = default;
     NymData(NymData&&) = default;
 
+#ifndef SWIG
+    std::string AddChildKeyCredential(
+        const Identifier& strMasterID,
+        const NymParameters& nymParameters);
+    bool AddClaim(const Claim& claim);
+    const proto::CredentialIndex asPublicNym() const;
+    const class ContactData& Claims() const;
+    bool DeleteClaim(const Identifier& id);
+
+#endif
     std::uint32_t GetType() const;
 #ifndef SWIG
     bool HaveContract(
@@ -87,15 +99,25 @@ public:
         const bool active) const;
     std::string Name() const;
 #ifndef SWIG
+    const class Nym& Nym() const;
     std::string PaymentCode(const proto::ContactItemType currency) const;
 #endif
     std::string PaymentCode(const std::uint32_t currency) const;
     std::string PreferredOTServer() const;
     std::string PrintContactData() const;
+    bool SetAlias(const std::string& alias);
+#ifndef SWIG
+    bool SetContactData(const proto::ContactData& data);
+    bool SetScope(
+        const proto::ContactItemType type,
+        const std::string& name,
+        const bool primary);
+#endif
     proto::ContactItemType Type() const;
     bool Valid() const;
-
 #ifndef SWIG
+    std::unique_ptr<proto::VerificationSet> VerificationSet() const;
+
     bool AddContract(
         const std::string& instrumentDefinitionID,
         const proto::ContactItemType currency,
@@ -121,22 +143,21 @@ public:
         const bool active);
     bool AddPreferredOTServer(const std::string& id, const bool primary);
 #ifndef SWIG
-    bool SetType(const proto::ContactItemType type, const std::string& name);
+    bool SetVerificationSet(const proto::VerificationSet& data);
 #endif
-    bool SetType(const std::uint32_t type, const std::string& name);
 
     ~NymData() = default;
 
 private:
     friend class api::client::implementation::Wallet;
 
-    std::shared_ptr<Nym> nym_;
+    std::shared_ptr<class Nym> nym_;
 
     const ContactData& data() const;
 
-    Nym& nym();
+    class Nym& nym();
 
-    NymData(const std::shared_ptr<Nym>& nym);
+    NymData(const std::shared_ptr<class Nym>& nym);
     NymData() = delete;
     NymData& operator=(const NymData&) = delete;
     NymData& operator=(NymData&&) = delete;

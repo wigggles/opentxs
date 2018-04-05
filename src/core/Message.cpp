@@ -304,7 +304,6 @@ std::string Message::ReplyCommand(const MessageType type)
 
 bool Message::HarvestTransactionNumbers(
     ServerContext& context,
-    Nym& nym,
     bool bHarvestingForRetry,           // false until positively asserted.
     bool bReplyWasSuccess,              // false until positively asserted.
     bool bReplyWasFailure,              // false until positively asserted.
@@ -376,7 +375,6 @@ bool Message::HarvestTransactionNumbers(
 
         pTransaction->HarvestOpeningNumber(
             context,
-            nym,
             bHarvestingForRetry,
             bReplyWasSuccess,
             bReplyWasFailure,
@@ -394,7 +392,6 @@ bool Message::HarvestTransactionNumbers(
         //
         pTransaction->HarvestClosingNumbers(
             context,
-            nym,
             bHarvestingForRetry,
             bReplyWasSuccess,
             bReplyWasFailure,
@@ -1208,8 +1205,9 @@ public:
 
         otWarn << "\nCommand: " << m.m_strCommand
                << "\nSuccess: " << (m.m_bSuccess ? "true" : "false")
-               << "\nNymID:    " << m.m_strNymID << "\n"
-                                                    "NotaryID: "
+               << "\nNymID:    " << m.m_strNymID
+               << "\n"
+                  "NotaryID: "
                << m.m_strNotaryID << "\n\n";
 
         return 1;
@@ -1614,16 +1612,18 @@ public:
             otWarn << "\nCommand: " << m.m_strCommand << "   "
                    << (m.m_bSuccess ? "SUCCESS" : "FAILED")
                    << "\nNymID:    " << m.m_strNymID
-                   << "\nNymID2:    " << m.m_strNymID2 << "\n"
-                                                          "NotaryID: "
+                   << "\nNymID2:    " << m.m_strNymID2
+                   << "\n"
+                      "NotaryID: "
                    << m.m_strNotaryID << "\nNym2 Public Key:\n"
                    << m.m_strNymPublicKey << "\n\n";
         else
             otWarn << "\nCommand: " << m.m_strCommand << "   "
                    << (m.m_bSuccess ? "SUCCESS" : "FAILED")
                    << "\nNymID:    " << m.m_strNymID
-                   << "\nNymID2:    " << m.m_strNymID2 << "\n"
-                                                          "NotaryID: "
+                   << "\nNymID2:    " << m.m_strNymID2
+                   << "\n"
+                      "NotaryID: "
                    << m.m_strNotaryID << "\n\n";  // m.m_ascInReferenceTo.Get()
 
         return 1;
@@ -1712,8 +1712,9 @@ public:
         otWarn << "\nCommand: " << m.m_strCommand << "   "
                << (m.m_bSuccess ? "SUCCESS" : "FAILED")
                << "\nNymID:    " << m.m_strNymID
-               << "\nNymID2:    " << m.m_strNymID2 << "\n"
-                                                      "NotaryID: "
+               << "\nNymID2:    " << m.m_strNymID2
+               << "\n"
+                  "NotaryID: "
                << m.m_strNotaryID << "\nTotal Credits: " << m.m_lDepth
                << " \n\n";
         return 1;
@@ -1869,8 +1870,9 @@ public:
         otWarn << "\nCommand: " << m.m_strCommand << "   "
                << (m.m_bSuccess ? "SUCCESS" : "FAILED")
                << "\nNymID:    " << m.m_strNymID
-               << "\nNymID2:    " << m.m_strNymID2 << "\n"
-                                                      "NotaryID: "
+               << "\nNymID2:    " << m.m_strNymID2
+               << "\n"
+                  "NotaryID: "
                << m.m_strNotaryID << "\n\n";
 
         return 1;
@@ -1984,8 +1986,9 @@ public:
         otWarn << "\nCommand: " << m.m_strCommand << "   "
                << (m.m_bSuccess ? "SUCCESS" : "FAILED")
                << "\nNymID:    " << m.m_strNymID
-               << "\nNymID2:    " << m.m_strNymID2 << "\n"
-                                                      "NotaryID: "
+               << "\nNymID2:    " << m.m_strNymID2
+               << "\n"
+                  "NotaryID: "
                << m.m_strNotaryID << "\n\n";
 
         return 1;
@@ -2066,8 +2069,9 @@ public:
 
         otWarn << "\nCommand: " << m.m_strCommand << "   "
                << (m.m_bSuccess ? "SUCCESS" : "FAILED")
-               << "\nNymID:    " << m.m_strNymID << "\n"
-                                                    "NotaryID: "
+               << "\nNymID:    " << m.m_strNymID
+               << "\n"
+                  "NotaryID: "
                << m.m_strNotaryID
                << "\nRequest Number:    " << m.m_strRequestNum
                << "  New Number: " << m.m_lNewRequestNum << "\n\n";
@@ -2122,8 +2126,9 @@ public:
         }
 
         otWarn << "\nCommand: " << m.m_strCommand
-               << " \nNymID:    " << m.m_strNymID << "\n"
-                                                     "NotaryID: "
+               << " \nNymID:    " << m.m_strNymID
+               << "\n"
+                  "NotaryID: "
                << m.m_strNotaryID << "\nRequest#: " << m.m_strRequestNum
                << "\nAsset Type:\n"
                << m.m_strInstrumentDefinitionID << "\n\n";
@@ -2228,8 +2233,9 @@ public:
                << "\nNymID:    " << m.m_strNymID
                << "\nAccountID: " << m.m_strAcctID
                << "\nInstrument Definition ID: "
-               << m.m_strInstrumentDefinitionID << "\n"
-                                                   "NotaryID: "
+               << m.m_strInstrumentDefinitionID
+               << "\n"
+                  "NotaryID: "
                << m.m_strNotaryID << "\n\n";
         //    "****New Account****:\n%s\n",
         //    m.m_ascInReferenceTo.Get(),
@@ -2281,8 +2287,9 @@ public:
         }
 
         otWarn << "\nCommand: " << m.m_strCommand
-               << " \nNymID:    " << m.m_strNymID << "\n"
-                                                     "NotaryID: "
+               << " \nNymID:    " << m.m_strNymID
+               << "\n"
+                  "NotaryID: "
                << m.m_strNotaryID << "\nRequest#: " << m.m_strRequestNum
                << "\n\n";
 
@@ -2433,8 +2440,9 @@ public:
         }
 
         otWarn << "\nCommand: " << m.m_strCommand
-               << " \nNymID:    " << m.m_strNymID << "\n"
-                                                     "NotaryID: "
+               << " \nNymID:    " << m.m_strNymID
+               << "\n"
+                  "NotaryID: "
                << m.m_strNotaryID << "\nRequest#: " << m.m_strRequestNum
                << "\n\n";
 
@@ -2547,8 +2555,9 @@ public:
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
 
         otWarn << "\nCommand: " << m.m_strCommand
-               << " \nNymID:    " << m.m_strNymID << "\n"
-                                                     "NotaryID: "
+               << " \nNymID:    " << m.m_strNymID
+               << "\n"
+                  "NotaryID: "
                << m.m_strNotaryID << "\nRequest#: " << m.m_strRequestNum
                << "\nAsset Type:\n"
                << m.m_strInstrumentDefinitionID << "\n\n";
@@ -2642,8 +2651,9 @@ public:
         otWarn << "\nCommand: " << m.m_strCommand << "   "
                << (m.m_bSuccess ? "SUCCESS" : "FAILED")
                << "\nNymID:    " << m.m_strNymID
-               << "\nAccountID: " << m.m_strAcctID << "\n"
-                                                      "NotaryID: "
+               << "\nAccountID: " << m.m_strAcctID
+               << "\n"
+                  "NotaryID: "
                << m.m_strNotaryID << "\n\n";
         //    "****New Account****:\n%s\n",
         //    m.m_ascInReferenceTo.Get(),
@@ -2709,8 +2719,9 @@ public:
 
         otWarn << "\n Command: " << m.m_strCommand
                << " \n NymID:    " << m.m_strNymID
-               << "\n AccountID:    " << m.m_strAcctID << "\n"
-                                                          " NotaryID: "
+               << "\n AccountID:    " << m.m_strAcctID
+               << "\n"
+                  " NotaryID: "
                << m.m_strNotaryID << "\n Request#: " << m.m_strRequestNum
                << "  Transaction#: " << m.m_lTransactionNum << "   boxType: "
                << ((m.m_lDepth == 0) ? "nymbox"
@@ -2830,8 +2841,9 @@ public:
         otWarn << "\nCommand: " << m.m_strCommand << "   "
                << (m.m_bSuccess ? "SUCCESS" : "FAILED")
                << "\nNymID:    " << m.m_strNymID
-               << "\nAccountID: " << m.m_strAcctID << "\n"
-                                                      "NotaryID: "
+               << "\nAccountID: " << m.m_strAcctID
+               << "\n"
+                  "NotaryID: "
                << m.m_strNotaryID << "\n\n";
         //    "****New Account****:\n%s\n",
 
@@ -2868,8 +2880,9 @@ public:
 
         otWarn << "\n Command: " << m.m_strCommand
                << " \n NymID:    " << m.m_strNymID
-               << "\n AccountID:    " << m.m_strAcctID << "\n"
-                                                          " NotaryID: "
+               << "\n AccountID:    " << m.m_strAcctID
+               << "\n"
+                  " NotaryID: "
                << m.m_strNotaryID << "\n Request#: " << m.m_strRequestNum
                << "\n\n";
 
@@ -2940,8 +2953,9 @@ public:
         otWarn << "\nCommand: " << m.m_strCommand << "   "
                << (m.m_bSuccess ? "SUCCESS" : "FAILED")
                << "\nNymID:    " << m.m_strNymID
-               << "\nAccountID: " << m.m_strAcctID << "\n"
-                                                      "NotaryID: "
+               << "\nAccountID: " << m.m_strAcctID
+               << "\n"
+                  "NotaryID: "
                << m.m_strNotaryID << "\n\n";
         //    "****New Account****:\n%s\n",
         //    m.m_ascInReferenceTo.Get(),
@@ -3000,8 +3014,9 @@ public:
 
         otWarn << "\n Command: " << m.m_strCommand
                << " \n NymID:    " << m.m_strNymID
-               << "\n AccountID:    " << m.m_strAcctID << "\n"
-                                                          " NotaryID: "
+               << "\n AccountID:    " << m.m_strAcctID
+               << "\n"
+                  " NotaryID: "
                << m.m_strNotaryID << "\n Request#: " << m.m_strRequestNum
                << "\n\n";
 
@@ -3131,8 +3146,9 @@ public:
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
 
         otWarn << "\n Command: " << m.m_strCommand
-               << " \n NymID:    " << m.m_strNymID << "\n"
-                                                      " NotaryID: "
+               << " \n NymID:    " << m.m_strNymID
+               << "\n"
+                  " NotaryID: "
                << m.m_strNotaryID << "\n Request#: " << m.m_strRequestNum
                << "\n\n";
 
@@ -3172,8 +3188,9 @@ public:
 
         otWarn << "\n Command: " << m.m_strCommand << "   "
                << (m.m_bSuccess ? "SUCCESS" : "FAILED")
-               << "\n NymID:    " << m.m_strNymID << "\n"
-                                                     " NotaryID: "
+               << "\n NymID:    " << m.m_strNymID
+               << "\n"
+                  " NotaryID: "
                << m.m_strNotaryID << "\n\n";
 
         return 1;
@@ -3274,8 +3291,9 @@ public:
 
         otWarn << "\nCommand: " << m.m_strCommand << "   "
                << (m.m_bSuccess ? "SUCCESS" : "FAILED")
-               << "\nNymID:    " << m.m_strNymID << "\n"
-                                                    "NotaryID: "
+               << "\nNymID:    " << m.m_strNymID
+               << "\n"
+                  "NotaryID: "
                << m.m_strNotaryID << "\n\n";
 
         return 1;
@@ -3406,8 +3424,9 @@ public:
         otWarn << "\nCommand: " << m.m_strCommand << "   "
                << (m.m_bSuccess ? "SUCCESS" : "FAILED")
                << "\nNymID:    " << m.m_strNymID
-               << "\nAccountID:    " << m.m_strAcctID << "\n"
-                                                         "NotaryID: "
+               << "\nAccountID:    " << m.m_strAcctID
+               << "\n"
+                  "NotaryID: "
                << m.m_strNotaryID << "\n\n";
 
         return 1;
@@ -3519,8 +3538,9 @@ public:
                << (m.m_bSuccess ? "SUCCESS" : "FAILED")
                << "\nNymID:    " << m.m_strNymID
                << "\nInstrument Definition ID:    "
-               << m.m_strInstrumentDefinitionID << "\n"
-                                                   "NotaryID: "
+               << m.m_strInstrumentDefinitionID
+               << "\n"
+                  "NotaryID: "
                << m.m_strNotaryID << "\n\n";
 
         return 1;
@@ -3630,8 +3650,9 @@ public:
                << (m.m_bSuccess ? "SUCCESS" : "FAILED")
                << "\nNymID:    " << m.m_strNymID
                << "\nInstrument Definition ID:    "
-               << m.m_strInstrumentDefinitionID << "\n"
-                                                   "NotaryID: "
+               << m.m_strInstrumentDefinitionID
+               << "\n"
+                  "NotaryID: "
                << m.m_strNotaryID << "\n\n";
 
         return 1;
@@ -3687,8 +3708,9 @@ public:
 
         otWarn << "\n Command: " << m.m_strCommand
                << " \n NymID:    " << m.m_strNymID
-               << "\n AccountID:    " << m.m_strAcctID << "\n"
-                                                          " NotaryID: "
+               << "\n AccountID:    " << m.m_strAcctID
+               << "\n"
+                  " NotaryID: "
                << m.m_strNotaryID << "\n Request#: " << m.m_strRequestNum
                << "\n\n";
 
@@ -3833,8 +3855,9 @@ public:
         }
 
         otWarn << "\n Command: " << m.m_strCommand
-               << " \n NymID:    " << m.m_strNymID << "\n"
-                                                      " NotaryID: "
+               << " \n NymID:    " << m.m_strNymID
+               << "\n"
+                  " NotaryID: "
                << m.m_strNotaryID << "\n Request#: " << m.m_strRequestNum
                << "\n\n";
 
@@ -3922,8 +3945,9 @@ public:
 
         otWarn << "\n Command: " << m.m_strCommand << "   "
                << (m.m_bSuccess ? "SUCCESS" : "FAILED")
-               << "\n NymID:    " << m.m_strNymID << "\n"
-                                                     " NotaryID: "
+               << "\n NymID:    " << m.m_strNymID
+               << "\n"
+                  " NotaryID: "
                << m.m_strNotaryID << "\n\n";
         //    "****New Account****:\n%s\n",
 
@@ -3990,8 +4014,9 @@ public:
                << "\nNymID:    " << m.m_strNymID
                << "\nNotaryID: " << m.m_strNotaryID
                << "\nClause TransNum and Name:  " << m.m_lTransactionNum
-               << "  /  " << m.m_strNymID2 << " \n"
-                                              "Request #: "
+               << "  /  " << m.m_strNymID2
+               << " \n"
+                  "Request #: "
                << m.m_strRequestNum << "\n";
 
         return 1;

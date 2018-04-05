@@ -53,6 +53,7 @@
 #include "opentxs/contact/ContactData.hpp"
 #include "opentxs/core/contract/peer/PeerObject.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
+#include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Message.hpp"
@@ -353,21 +354,6 @@ Editor<class ServerContext> Wallet::mutable_ServerContext(
     return Editor<class ServerContext>(child, callback);
 }
 
-void Wallet::save(class Context* context) const
-{
-    if (nullptr == context) {
-        return;
-    }
-
-    Lock lock(context->lock_);
-
-    context->update_signature(lock);
-
-    OT_ASSERT(context->validate(lock));
-
-    ot_.DB().Store(context->contract(lock));
-}
-
 std::set<Identifier> Wallet::IssuerList(const Identifier& nymID) const
 {
     std::set<Identifier> output{};
@@ -448,12 +434,28 @@ Wallet::IssuerLock& Wallet::issuer(
     return output;
 }
 
-void Wallet::save(const Lock& lock, api::client::Issuer* in) const
+bool Wallet::IsLocalNym(const std::string& id) const
 {
-    OT_ASSERT(nullptr != in)
-    OT_ASSERT(lock.owns_lock())
+    return ot_.DB().LocalNyms().count(id);
+}
 
-    ot_.DB().Store(in->LocalNymID().str(), in->Serialize());
+std::size_t Wallet::LocalNymCount() const
+{
+    return ot_.DB().LocalNyms().size();
+}
+
+std::set<Identifier> Wallet::LocalNyms() const
+{
+    const std::set<std::string> ids = ot_.DB().LocalNyms();
+
+    std::set<Identifier> nymIds;
+    std::transform(
+        ids.begin(),
+        ids.end(),
+        std::inserter(nymIds, nymIds.end()),
+        [](std::string nym) -> Identifier { return Identifier(nym); });
+
+    return nymIds;
 }
 
 ConstNym Wallet::Nym(
@@ -549,6 +551,30 @@ ConstNym Wallet::Nym(const proto::CredentialIndex& publicNym) const
     return Nym(nym);
 }
 
+ConstNym Wallet::Nym(
+    const NymParameters& nymParameters,
+    const proto::ContactItemType type,
+    const std::string name) const
+{
+    auto pNym = std::make_unique<class Nym>(nymParameters);
+
+    if (pNym->VerifyPseudonym()) {
+        const bool nameAndTypeSet =
+            proto::CITEMTYPE_ERROR != type && !name.empty();
+        if (nameAndTypeSet) {
+            pNym->SetScope(type, name, true);
+
+            pNym->SetAlias(name);
+        }
+
+        pNym->SaveSignedNymfile(*pNym);
+
+        return Nym(pNym->ID());
+    } else {
+        return nullptr;
+    }
+}
+
 NymData Wallet::mutable_Nym(const Identifier& id) const
 {
     const std::string nym = id.str();
@@ -563,10 +589,34 @@ NymData Wallet::mutable_Nym(const Identifier& id) const
     auto it = nym_map_.find(nym);
 
     if (nym_map_.end() == it) {
-        return NymData(nullptr);
+        OT_FAIL
     }
 
     return NymData(it->second.second);
+}
+
+std::unique_ptr<const class NymFile> Wallet::Nymfile(
+    const Identifier& id,
+    const OTPasswordData& reason) const
+{
+    Lock lock(nymfile_lock(id));
+    std::unique_ptr<class NymFile> output{nullptr};
+    output.reset(
+        Nym::LoadPrivateNym(id, false, nullptr, nullptr, &reason, nullptr));
+
+    return output;
+}
+
+Editor<class NymFile> Wallet::mutable_Nymfile(
+    const Identifier& id,
+    const OTPasswordData& reason) const
+{
+    std::function<void(class NymFile*, Lock&)> callback =
+        [&](class NymFile* in, Lock& lock) -> void { this->save(in, lock); };
+    auto nym =
+        Nym::LoadPrivateNym(id, false, nullptr, nullptr, &reason, nullptr);
+
+    return Editor<class NymFile>(nymfile_lock(id), nym, callback);
 }
 
 std::mutex& Wallet::nymfile_lock(const Identifier& nymID) const
@@ -578,7 +628,59 @@ std::mutex& Wallet::nymfile_lock(const Identifier& nymID) const
     return output;
 }
 
+ConstNym Wallet::NymByIDPartialMatch(const std::string& partialId) const
+{
+    Lock mapLock(nym_map_lock_);
+    bool inMap = (nym_map_.find(partialId) != nym_map_.end());
+    bool valid = false;
+
+    if (!inMap) {
+        for (auto& it : nym_map_) {
+            if (it.first.compare(0, partialId.length(), partialId) == 0)
+                if (it.second.second->VerifyPseudonym())
+                    return it.second.second;
+        }
+        for (auto& it : nym_map_) {
+            if (it.second.second->Alias().compare(
+                    0, partialId.length(), partialId) == 0)
+                if (it.second.second->VerifyPseudonym())
+                    return it.second.second;
+        }
+    } else {
+        auto& pNym = nym_map_[partialId].second;
+        if (pNym) {
+            valid = pNym->VerifyPseudonym();
+        }
+    }
+
+    if (valid) {
+        return nym_map_[partialId].second;
+    }
+
+    return nullptr;
+}
+
 ObjectList Wallet::NymList() const { return ot_.DB().NymList(); }
+
+bool Wallet::NymNameByIndex(const std::size_t index, String& name) const
+{
+    std::set<std::string> nymNames = ot_.DB().LocalNyms();
+
+    if (index < nymNames.size()) {
+        std::size_t idx{0};
+        for (auto& nymName : nymNames) {
+            if (idx == index) {
+                name.Set(String(nymName));
+
+                return true;
+            }
+
+            ++idx;
+        }
+    }
+
+    return false;
+}
 
 std::mutex& Wallet::peer_lock(const std::string& nymID) const
 {
@@ -1056,6 +1158,53 @@ bool Wallet::RemoveUnitDefinition(const Identifier& id) const
     }
 
     return false;
+}
+
+void Wallet::save(class Context* context) const
+{
+    if (nullptr == context) {
+        return;
+    }
+
+    Lock lock(context->lock_);
+
+    context->update_signature(lock);
+
+    OT_ASSERT(context->validate(lock));
+
+    ot_.DB().Store(context->contract(lock));
+}
+
+void Wallet::save(const Lock& lock, api::client::Issuer* in) const
+{
+    OT_ASSERT(nullptr != in)
+    OT_ASSERT(lock.owns_lock())
+
+    ot_.DB().Store(in->LocalNymID().str(), in->Serialize());
+}
+
+void Wallet::save(class NymFile* nymfile, const Lock& lock) const
+{
+    OT_ASSERT(nullptr != nymfile);
+    OT_ASSERT(lock.owns_lock())
+
+    class Nym* nym = dynamic_cast<class Nym*>(nymfile);
+
+    OT_ASSERT(nullptr != nym);
+
+    auto signerNym = signer_nym(nym->GetConstID());
+    const auto saved = nym->SaveSignedNymfile(*signerNym);
+
+    OT_ASSERT(saved);
+}
+
+std::shared_ptr<const class Nym> Wallet::signer_nym(const Identifier& id) const
+{
+    if (ot_.ServerMode()) {
+        return Nym(ot_.Server().NymID());
+    }
+
+    return Nym(id);
 }
 
 ConstServerContract Wallet::Server(

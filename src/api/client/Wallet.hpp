@@ -77,13 +77,28 @@ public:
     Editor<api::client::Issuer> mutable_Issuer(
         const Identifier& nymID,
         const Identifier& issuerID) const override;
+    bool IsLocalNym(const std::string& id) const override;
+    std::size_t LocalNymCount() const override;
+    std::set<Identifier> LocalNyms() const override;
     ConstNym Nym(
         const Identifier& id,
         const std::chrono::milliseconds& timeout =
             std::chrono::milliseconds(0)) const override;
     ConstNym Nym(const proto::CredentialIndex& nym) const override;
+    ConstNym Nym(
+        const NymParameters& nymParameters,
+        const proto::ContactItemType type = proto::CITEMTYPE_ERROR,
+        const std::string name = "") const override;
     NymData mutable_Nym(const Identifier& id) const override;
+    std::unique_ptr<const class NymFile> Nymfile(
+        const Identifier& id,
+        const OTPasswordData& reason) const override;
+    Editor<class NymFile> mutable_Nymfile(
+        const Identifier& id,
+        const OTPasswordData& reason) const override;
+    ConstNym NymByIDPartialMatch(const std::string& partialId) const override;
     ObjectList NymList() const override;
+    bool NymNameByIndex(const std::size_t index, String& name) const override;
     std::shared_ptr<proto::PeerReply> PeerReply(
         const Identifier& nym,
         const Identifier& reply,
@@ -187,7 +202,8 @@ private:
     typedef std::pair<std::string, std::string> ContextID;
     typedef std::map<ContextID, std::shared_ptr<class Context>> ContextMap;
     typedef std::pair<Identifier, Identifier> IssuerID;
-    typedef std::pair<std::mutex, std::shared_ptr<api::client::Issuer>> IssuerLock;
+    typedef std::pair<std::mutex, std::shared_ptr<api::client::Issuer>>
+        IssuerLock;
     typedef std::map<IssuerID, IssuerLock> IssuerMap;
 
     friend class opentxs::api::implementation::Native;
@@ -212,6 +228,8 @@ private:
     std::mutex& peer_lock(const std::string& nymID) const;
     void save(class Context* context) const;
     void save(const Lock& lock, api::client::Issuer* in) const;
+    void save(class NymFile* nym, const Lock& lock) const;
+    std::shared_ptr<const class Nym> signer_nym(const Identifier& id) const;
 
     std::shared_ptr<class Context> context(
         const Identifier& localNymID,

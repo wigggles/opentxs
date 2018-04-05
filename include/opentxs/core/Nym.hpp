@@ -43,6 +43,7 @@
 
 #include "opentxs/core/crypto/CredentialSet.hpp"
 #include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/NymFile.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
@@ -91,10 +92,9 @@ typedef std::deque<std::int64_t> dequeOfTransNums;
 typedef std::map<std::string, Identifier> mapOfIdentifiers;
 typedef std::map<std::string, CredentialSet*> mapOfCredentialSets;
 typedef std::list<OTAsymmetricKey*> listOfAsymmetricKeys;
-typedef proto::CredentialIndex serializedCredentialIndex;
 typedef bool CredentialIndexModeFlag;
 
-class Nym
+class Nym : public opentxs::NymFile
 {
     friend class api::client::implementation::Wallet;
 
@@ -116,7 +116,7 @@ public:
     // Outpayments.
     // (Payments screen.)
     // A payments message is the original OTMessage that this Nym sent.
-    EXPORT void AddOutpayments(Message& theMessage);
+    EXPORT void AddOutpayments(Message& theMessage) override;
     EXPORT std::string Alias() const;
     EXPORT const serializedCredentialIndex asPublicNym() const;
     EXPORT std::shared_ptr<const proto::Credential> ChildCredentialContents(
@@ -134,15 +134,15 @@ public:
     EXPORT std::string ChildCredentialID(
         const std::string& masterID,
         const std::uint32_t index) const;
-    EXPORT bool CompareID(const Identifier& theIdentifier) const
+    EXPORT bool CompareID(const Identifier& theIdentifier) const override
     {
         return (theIdentifier == m_nymID);
     }
-    EXPORT const Identifier& GetConstID() const { return m_nymID; }
+    EXPORT const Identifier& GetConstID() const override { return m_nymID; }
     EXPORT const String& GetDescription() const { return m_strDescription; }
     EXPORT bool GetInboxHash(
         const std::string& acct_id,
-        Identifier& theOutput) const;  // client-side
+        Identifier& theOutput) const override;  // client-side
     EXPORT const CredentialSet* GetMasterCredentialByIndex(
         std::int32_t nIndex) const;
     EXPORT void GetIdentifier(Identifier& theIdentifier) const;
@@ -150,13 +150,14 @@ public:
     EXPORT std::size_t GetMasterCredentialCount() const;
     EXPORT bool GetOutboxHash(
         const std::string& acct_id,
-        Identifier& theOutput) const;  // client-side
-    EXPORT Message* GetOutpaymentsByIndex(const std::int32_t nIndex) const;
+        Identifier& theOutput) const override;  // client-side
+    EXPORT Message* GetOutpaymentsByIndex(
+        const std::int32_t nIndex) const override;
     EXPORT Message* GetOutpaymentsByTransNum(
         const std::int64_t lTransNum,
         std::unique_ptr<OTPayment>* pReturnPayment = nullptr,
-        std::int32_t* pnReturnIndex = nullptr) const;
-    EXPORT std::int32_t GetOutpaymentsCount() const;
+        std::int32_t* pnReturnIndex = nullptr) const override;
+    EXPORT std::int32_t GetOutpaymentsCount() const override;
     EXPORT const OTAsymmetricKey& GetPrivateAuthKey() const;
     EXPORT const OTAsymmetricKey& GetPrivateEncrKey() const;
     EXPORT const OTAsymmetricKey& GetPrivateSignKey() const;
@@ -175,13 +176,16 @@ public:
     EXPORT const CredentialSet* GetRevokedCredentialByIndex(
         std::int32_t nIndex) const;
     EXPORT std::size_t GetRevokedCredentialCount() const;
-    EXPORT const std::int64_t& GetUsageCredits() const
+    EXPORT const std::int64_t& GetUsageCredits() const override
     {
         return m_lUsageCredits;
     }
     EXPORT bool hasCapability(const NymCapability& capability) const;
     EXPORT const Identifier& ID() const { return m_nymID; }
-    EXPORT bool IsMarkedForDeletion() const { return m_bMarkForDeletion; }
+    EXPORT bool IsMarkedForDeletion() const override
+    {
+        return m_bMarkForDeletion;
+    }
     EXPORT std::shared_ptr<const proto::Credential> MasterCredentialContents(
         const std::string& id) const;
     EXPORT std::string Name() const;
@@ -212,12 +216,12 @@ public:
         const bool active = true);
     EXPORT bool AddPreferredOTServer(const Identifier& id, const bool primary);
     EXPORT bool DeleteClaim(const Identifier& id);
-    EXPORT void DisplayStatistics(String& strOutput);
+    EXPORT void DisplayStatistics(String& strOutput) const override;
     EXPORT void GetPrivateCredentials(
         String& strCredList,
-        String::Map* pmapCredFiles = nullptr);
+        String::Map* pmapCredFiles = nullptr) const;
     EXPORT CredentialSet* GetRevokedCredential(const String& strID);
-    EXPORT std::set<std::string>& GetSetAssetAccounts()
+    EXPORT std::set<std::string>& GetSetAssetAccounts() override
     {
         return m_setAccounts;
     }
@@ -242,12 +246,12 @@ public:
     EXPORT bool LoadSignedNymfile(const Nym& SIGNER_NYM);
     EXPORT void MarkAsUndeleted() { m_bMarkForDeletion = false; }
     EXPORT void MarkForDeletion() { m_bMarkForDeletion = true; }
-    EXPORT std::string PaymentCode() const;
+    EXPORT std::string PaymentCode() const override;
     // Like for when you are exporting a Nym from the wallet.
     EXPORT bool ReEncryptPrivateCredentials(
         bool bImporting,
         const OTPasswordData* pPWData = nullptr,
-        const OTPassword* pImportPassword = nullptr);
+        const OTPassword* pImportPassword = nullptr) const;
 
     // IMPORTANT NOTE: Not all outpayments have a transaction num!
     // Imagine if you sent a cash purse to someone, for example.
@@ -257,10 +261,10 @@ public:
     // box. It's not a ledger, so the items inside don't need a txn#.
     EXPORT bool RemoveOutpaymentsByIndex(
         const std::int32_t nIndex,
-        bool bDeleteIt = true);
+        bool bDeleteIt = true) override;
     EXPORT bool RemoveOutpaymentsByTransNum(
         const std::int64_t lTransNum,
-        bool bDeleteIt = true);
+        bool bDeleteIt = true) override;
     // ** ResyncWithServer **
     //
     // Not for normal use! (Since you should never get out of sync with the
@@ -282,7 +286,7 @@ public:
     EXPORT bool ResyncWithServer(
         const Ledger& theNymbox,
         const Nym& theMessageNym);
-    EXPORT bool SavePseudonym(String& strNym);
+    EXPORT bool SavePseudonym(String& strNym) const;
     EXPORT bool SaveSignedNymfile(const Nym& SIGNER_NYM);
     EXPORT bool SetAlias(const std::string& alias);
     EXPORT bool SetCommonName(const std::string& name);
@@ -295,15 +299,15 @@ public:
     EXPORT void SetIdentifier(const String& theIdentifier);
     EXPORT bool SetInboxHash(
         const std::string& acct_id,
-        const Identifier& theInput);  // client-side
+        const Identifier& theInput) override;  // client-side
     EXPORT bool SetOutboxHash(
         const std::string& acct_id,
-        const Identifier& theInput);  // client-side
+        const Identifier& theInput) override;  // client-side
     EXPORT bool SetScope(
         const proto::ContactItemType type,
         const std::string& name,
         const bool primary);
-    EXPORT void SetUsageCredits(const std::int64_t& lUsage)
+    EXPORT void SetUsageCredits(const std::int64_t& lUsage) override
     {
         m_lUsageCredits = lUsage;
     }

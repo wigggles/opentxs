@@ -318,11 +318,11 @@ void OTMessageOutbuffer::Clear(
     const String& pstrNymID,
     const bool pbHarvestingForRetry,
     ServerContext& context,
-    Nym& pNym)
+    const Identifier& nymID)
 {
     OT_ASSERT(pstrNymID.Exists());
     OT_ASSERT(pstrNotaryID.Exists());
-    OT_ASSERT(pNym.CompareID(Identifier(pstrNymID)));
+    OT_ASSERT(nymID == Identifier(pstrNymID));
 
     Lock lock(lock_);
     auto it = messagesMap_.begin();
@@ -466,7 +466,6 @@ void OTMessageOutbuffer::Clear(
             // Actually it's pNym who is "harvesting" the numbers in this call.
             pThisMsg->HarvestTransactionNumbers(
                 context,
-                pNym,
                 pbHarvestingForRetry,
                 bReplyWasSuccess,
                 bReplyWasFailure,

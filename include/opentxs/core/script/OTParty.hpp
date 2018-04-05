@@ -140,8 +140,8 @@ public:
         bool bCreateAgent = false);
     EXPORT OTParty(
         std::string str_PartyName,
-        Nym& theNym,  // Nym is BOTH owner AND agent, when
-                      // using this constructor.
+        const Nym& theNym,  // Nym is BOTH owner AND agent, when
+                            // using this constructor.
         std::string str_agent_name,
         Account* pAccount = nullptr,
         const std::string* pstr_account_name = nullptr,

@@ -85,6 +85,7 @@ private:
 
 public:
     bool Exists(const std::string& id) const;
+    const std::set<std::string> LocalNyms() const;
     void Map(NymLambda lambda) const;
     bool Migrate(const opentxs::api::storage::Driver& to) const override;
     const class Nym& Nym(const std::string& id) const;
