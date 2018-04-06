@@ -91,13 +91,54 @@ Socket::Socket(const class Context& context, const SocketType type)
 
 Socket::operator void*() const { return socket_; }
 
-bool Socket::bind(const std::string& endpoint) const
+bool Socket::apply_timeouts(const Lock& lock) const
 {
+    OT_ASSERT(nullptr != socket_)
+    OT_ASSERT(verify_lock(lock))
+
+    auto set = zmq_setsockopt(socket_, ZMQ_LINGER, &linger_, sizeof(linger_));
+
+    if (0 != set) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to set ZMQ_LINGER"
+              << std::endl;
+
+        return false;
+    }
+
+    set = zmq_setsockopt(
+        socket_, ZMQ_SNDTIMEO, &send_timeout_, sizeof(send_timeout_));
+
+    if (0 != set) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to set ZMQ_SNDTIMEO"
+              << std::endl;
+
+        return false;
+    }
+
+    set = zmq_setsockopt(
+        socket_, ZMQ_RCVTIMEO, &receive_timeout_, sizeof(receive_timeout_));
+
+    if (0 != set) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to set ZMQ_RCVTIMEO"
+              << std::endl;
+
+        return false;
+    }
+
+    return true;
+}
+
+bool Socket::bind(const Lock& lock, const std::string& endpoint) const
+{
+    apply_timeouts(lock);
+
     return (0 == zmq_bind(socket_, endpoint.c_str()));
 }
 
-bool Socket::connect(const std::string& endpoint) const
+bool Socket::connect(const Lock& lock, const std::string& endpoint) const
 {
+    apply_timeouts(lock);
+
     return (0 == zmq_connect(socket_, endpoint.c_str()));
 }
 
@@ -126,40 +167,12 @@ bool Socket::SetTimeouts(
     const std::chrono::milliseconds& send,
     const std::chrono::milliseconds& receive) const
 {
-    OT_ASSERT(nullptr != socket_);
-
     Lock lock(lock_);
-    int value(linger.count());
-    auto set = zmq_setsockopt(socket_, ZMQ_LINGER, &value, sizeof(value));
+    linger_ = linger.count();
+    send_timeout_ = send.count();
+    receive_timeout_ = receive.count();
 
-    if (0 != set) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Failed to set ZMQ_LINGER"
-              << std::endl;
-
-        return false;
-    }
-
-    value = send.count();
-    set = zmq_setsockopt(socket_, ZMQ_SNDTIMEO, &value, sizeof(value));
-
-    if (0 != set) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Failed to set ZMQ_SNDTIMEO"
-              << std::endl;
-
-        return false;
-    }
-
-    value = receive.count();
-    set = zmq_setsockopt(socket_, ZMQ_RCVTIMEO, &value, sizeof(value));
-
-    if (0 != set) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Failed to set ZMQ_RCVTIMEO"
-              << std::endl;
-
-        return false;
-    }
-
-    return true;
+    return apply_timeouts(lock);
 }
 
 bool Socket::SetTimeouts(
@@ -173,13 +186,11 @@ bool Socket::SetTimeouts(
         std::chrono::milliseconds(receiveMilliseconds));
 }
 
-bool Socket::start_client(const std::string& endpoint) const
+bool Socket::start_client(const Lock& lock, const std::string& endpoint) const
 {
     OT_ASSERT(nullptr != socket_);
 
-    Lock lock(lock_);
-
-    if (false == connect(endpoint)) {
+    if (false == connect(lock, endpoint)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to connect to "
               << endpoint << std::endl;
 

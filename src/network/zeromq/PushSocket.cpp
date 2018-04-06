@@ -100,10 +100,10 @@ bool PushSocket::Start(const std::string& endpoint) const
 
     if (client_) {
 
-        return start_client(endpoint);
+        return start_client(lock, endpoint);
     } else {
 
-        return bind(endpoint);
+        return bind(lock, endpoint);
     }
 }
 }  // namespace opentxs::network::zeromq::implementation

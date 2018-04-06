@@ -75,11 +75,15 @@ public:
 protected:
     const zeromq::Context& context_;
     void* socket_{nullptr};
+    mutable int linger_{0};
+    mutable int send_timeout_{-1};
+    mutable int receive_timeout_{-1};
 
-    bool bind(const std::string& endpoint) const;
-    bool connect(const std::string& endpoint) const;
+    bool apply_timeouts(const Lock& lock) const;
+    bool bind(const Lock& lock, const std::string& endpoint) const;
+    bool connect(const Lock& lock, const std::string& endpoint) const;
     bool set_socks_proxy(const std::string& proxy) const;
-    bool start_client(const std::string& endpoint) const;
+    bool start_client(const Lock& lock, const std::string& endpoint) const;
 
     explicit Socket(const zeromq::Context& context, const SocketType type);
 

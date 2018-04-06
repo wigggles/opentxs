@@ -101,6 +101,6 @@ bool PublishSocket::Start(const std::string& endpoint) const
 {
     Lock lock(lock_);
 
-    return bind(endpoint);
+    return bind(lock, endpoint);
 }
 }  // namespace opentxs::network::zeromq::implementation

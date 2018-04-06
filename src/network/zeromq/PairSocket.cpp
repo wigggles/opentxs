@@ -92,13 +92,14 @@ PairSocket::PairSocket(
     OT_ASSERT(false == endpoint_.empty())
 
     bool init{false};
+    Lock lock(lock_);
 
     if (bind_) {
-        init = bind(endpoint_);
+        init = bind(lock, endpoint_);
         otInfo << OT_METHOD << __FUNCTION__ << ": Bound to " << endpoint_
                << std::endl;
     } else {
-        init = start_client(endpoint_);
+        init = start_client(lock, endpoint_);
         otInfo << OT_METHOD << __FUNCTION__ << ": Connected to " << endpoint_
                << std::endl;
     }
