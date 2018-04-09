@@ -66,4 +66,6 @@ void Widget::UpdateNotify() const
 }
 
 Identifier Widget::WidgetID() const { return widget_id_; }
+
+std::string Widget::WidgetName() const { return widget_id_.str(); }
 }  // namespace opentxs::ui::implementation

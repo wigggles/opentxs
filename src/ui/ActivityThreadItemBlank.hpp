@@ -63,6 +63,7 @@ public:
     StorageBox Type() const override { return StorageBox::UNKNOWN; }
     bool Valid() const override { return false; }
     Identifier WidgetID() const override { return {}; }
+    std::string WidgetName() const override { return {}; }
 
     ~ActivityThreadItemBlank() = default;
 
