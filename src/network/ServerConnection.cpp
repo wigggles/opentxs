@@ -189,7 +189,7 @@ NetworkReplyRaw ServerConnection::Send(const std::string& input)
         } break;
         case SendResult::TIMEOUT: {
             status_->Off();
-            reset_timer();
+            reset_socket(lock);
         } break;
         case SendResult::VALID_REPLY: {
             status_->On();

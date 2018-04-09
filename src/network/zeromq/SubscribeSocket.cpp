@@ -105,7 +105,9 @@ bool SubscribeSocket::SetSocksProxy(const std::string& proxy) const
 
 bool SubscribeSocket::Start(const std::string& endpoint) const
 {
-    return start_client(endpoint);
+    Lock lock(lock_);
+
+    return start_client(lock, endpoint);
 }
 
 SubscribeSocket::~SubscribeSocket() {}

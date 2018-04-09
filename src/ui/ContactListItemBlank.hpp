@@ -57,6 +57,7 @@ public:
     std::string Section() const override { return {}; }
     bool Valid() const override { return false; }
     Identifier WidgetID() const override { return {}; }
+    std::string WidgetName() const override { return {}; }
 
     ~ContactListItemBlank() = default;
 

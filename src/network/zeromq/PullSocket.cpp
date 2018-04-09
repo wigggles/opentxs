@@ -112,12 +112,14 @@ void PullSocket::process_incoming(const Lock& lock, Message& message)
 
 bool PullSocket::Start(const std::string& endpoint) const
 {
+    Lock lock(lock_);
+
     if (client_) {
 
-        return start_client(endpoint);
+        return start_client(lock, endpoint);
     } else {
 
-        return bind(endpoint);
+        return bind(lock, endpoint);
     }
 }
 

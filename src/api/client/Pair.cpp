@@ -686,6 +686,9 @@ void Pair::state_machine(
     if (false == haveAccounts) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Issuer does not advertise any contracts." << std::endl;
+    } else {
+        otWarn << OT_METHOD << __FUNCTION__ << ": Issuer advertise "
+               << contractSection->Size() << " contracts." << std::endl;
     }
 
     auto editor = wallet_.mutable_Issuer(localNymID, issuerNymID);
@@ -697,6 +700,8 @@ void Pair::state_machine(
 
     switch (status) {
         case Status::Error: {
+            otWarn << OT_METHOD << __FUNCTION__
+                   << ": First pass through state machine." << std::endl;
             status = Status::Started;
             [[fallthrough]];
         }
@@ -710,6 +715,8 @@ void Pair::state_machine(
                 SHUTDOWN()
 
                 if (false == bool(contract)) {
+                    otErr << OT_METHOD << __FUNCTION__
+                          << ": Waiting on server contract." << std::endl;
                     queue_server_contract(localNymID, serverID);
 
                     return;
@@ -729,6 +736,10 @@ void Pair::state_machine(
         case Status::Registered: {
             SHUTDOWN()
 
+            otWarn << OT_METHOD << __FUNCTION__
+                   << ": Local nym is registered on issuer's notary."
+                   << std::endl;
+
             if (trusted) {
                 needStoreSecret = (false == issuer.StoreSecretComplete()) &&
                                   (false == issuer.StoreSecretInitiated());
@@ -741,8 +752,8 @@ void Pair::state_machine(
             SHUTDOWN()
 
             if (needStoreSecret) {
-                otWarn << OT_METHOD << __FUNCTION__
-                       << ": Sending store secret peer request" << std::endl;
+                otErr << OT_METHOD << __FUNCTION__
+                      << ": Sending store secret peer request" << std::endl;
                 const auto[sent, requestID] =
                     store_secret(localNymID, issuerNymID, serverID);
 
@@ -763,9 +774,9 @@ void Pair::state_machine(
                                    proto::CONNECTIONINFO_BTCRPC)));
 
                 if (needInfo) {
-                    otWarn << OT_METHOD << __FUNCTION__
-                           << ": Sending connection info peer request"
-                           << std::endl;
+                    otErr << OT_METHOD << __FUNCTION__
+                          << ": Sending connection info peer request"
+                          << std::endl;
                     const auto[sent, requestID] = get_connection(
                         localNymID,
                         issuerNymID,
@@ -797,6 +808,10 @@ void Pair::state_machine(
                             issuer.AccountList(type, unitID);
 
                         if (0 == accountList.size()) {
+                            otErr << OT_METHOD << __FUNCTION__
+                                  << ": Registering " << unitID.str()
+                                  << " account for " << localNymID.str()
+                                  << " on " << serverID.str() << std::endl;
                             const auto & [ registered, accountID ] =
                                 register_account(localNymID, serverID, unitID);
 
@@ -805,6 +820,12 @@ void Pair::state_machine(
                             } else {
                                 continue;
                             }
+                        } else {
+                            otWarn << OT_METHOD << __FUNCTION__ << ": "
+                                   << unitID.str() << " account for "
+                                   << localNymID.str() << " on "
+                                   << serverID.str() << " already exists."
+                                   << std::endl;
                         }
 
                         const auto instructions =

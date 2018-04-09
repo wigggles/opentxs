@@ -42,8 +42,11 @@
 
 #include "opentxs/core/Log.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/OT.hpp"
 
 #include <zmq.h>
+
+#define POLL_MILLISECONDS 1000
 
 #define OT_METHOD "opentxs::network::zeromq::implementation::RequestSocket::"
 
@@ -51,21 +54,25 @@ namespace opentxs::network::zeromq
 {
 OTZMQRequestSocket RequestSocket::Factory(const class Context& context)
 {
-    return OTZMQRequestSocket(new implementation::RequestSocket(context));
+    return OTZMQRequestSocket(
+        new implementation::RequestSocket(context, OT::Running()));
 }
 }  // namespace opentxs::network::zeromq
 
 namespace opentxs::network::zeromq::implementation
 {
-RequestSocket::RequestSocket(const zeromq::Context& context)
+RequestSocket::RequestSocket(
+    const zeromq::Context& context,
+    const Flag& running)
     : ot_super(context, SocketType::Request)
     , CurveClient(lock_, socket_)
+    , running_(running)
 {
 }
 
 RequestSocket* RequestSocket::clone() const
 {
-    return new RequestSocket(context_);
+    return new RequestSocket(context_, running_);
 }
 
 Socket::MessageSendResult RequestSocket::SendRequest(opentxs::Data& input) const
@@ -100,12 +107,20 @@ Socket::MessageSendResult RequestSocket::SendRequest(
         return output;
     }
 
+    const auto ready = wait(lock);
+
+    if (false == ready) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Receive timeout." << std::endl;
+        status = SendResult::TIMEOUT;
+
+        return output;
+    }
+
     const bool received = (-1 != zmq_msg_recv(message, socket_, 0));
 
     if (false == received) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Receive error: " << zmq_strerror(zmq_errno()) << std::endl;
-        status = SendResult::TIMEOUT;
 
         return output;
     }
@@ -127,6 +142,47 @@ bool RequestSocket::SetSocksProxy(const std::string& proxy) const
 
 bool RequestSocket::Start(const std::string& endpoint) const
 {
-    return start_client(endpoint);
+    Lock lock(lock_);
+
+    return start_client(lock, endpoint);
+}
+
+bool RequestSocket::wait(const Lock& lock) const
+{
+    OT_ASSERT(verify_lock(lock))
+
+    const auto start = std::chrono::system_clock::now();
+    zmq_pollitem_t poll[1];
+
+    while (running_) {
+        poll[0].socket = socket_;
+        poll[0].events = ZMQ_POLLIN;
+        const auto events = zmq_poll(poll, 1, POLL_MILLISECONDS);
+
+        if (0 == events) {
+            otInfo << OT_METHOD << __FUNCTION__ << ": No messages."
+                   << std::endl;
+            const auto now = std::chrono::system_clock::now();
+
+            if ((now - start) > std::chrono::milliseconds(receive_timeout_)) {
+
+                return false;
+            } else {
+                continue;
+            }
+        }
+
+        if (0 > events) {
+            const auto error = zmq_errno();
+            otErr << OT_METHOD << __FUNCTION__
+                  << ": Poll error: " << zmq_strerror(error) << std::endl;
+
+            return false;
+        }
+
+        return true;
+    }
+
+    return false;
 }
 }  // namespace opentxs::network::zeromq::implementation

@@ -1216,6 +1216,7 @@ bool Sync::publish_server_registration(
 
 void Sync::Refresh() const
 {
+    api_.Pair().Update();
     refresh_accounts();
 
     SHUTDOWN()
