@@ -64,7 +64,7 @@ private:
     OTFlag receiver_run_;
     std::unique_ptr<std::thread> receiver_thread_{nullptr};
 
-    virtual bool have_callback() const = 0;
+    virtual bool have_callback() const { return false; }
 
     virtual void process_incoming(const Lock& lock, Message& message) = 0;
     void thread();

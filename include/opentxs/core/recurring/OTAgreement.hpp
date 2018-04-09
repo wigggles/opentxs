@@ -145,7 +145,6 @@ public:
     // VALID_TO=0);
 
     EXPORT bool SetProposal(
-        Nym& MERCHANT_NYM,
         ServerContext& context,
         Account& MERCHANT_ACCT,
         const String& strConsideration,
@@ -155,7 +154,6 @@ public:
     // Merchant Nym is passed here so we can verify the signature before
     // confirming.
     EXPORT bool Confirm(
-        Nym& PAYER_NYM,
         ServerContext& context,
         Account& PAYER_ACCT,
         const Nym* pMERCHANT_NYM = nullptr,

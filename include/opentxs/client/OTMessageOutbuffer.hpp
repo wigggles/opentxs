@@ -71,7 +71,7 @@ public:
         const String& nymId,
         const bool harvestingForRetry,
         ServerContext& context,
-        Nym& nym);
+        const Identifier& nymID);
     // Allocate theMsg on the heap (takes ownership.) Mapped by request num.
     // Note: AddSentMessage, if it finds a message already on the map with the
     // same request number, deletes the old one before adding the new one. In

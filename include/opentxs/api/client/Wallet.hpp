@@ -177,6 +177,12 @@ public:
         const Identifier& nymID,
         const Identifier& issuerID) const = 0;
 
+    virtual bool IsLocalNym(const std::string& id) const = 0;
+
+    virtual std::size_t LocalNymCount() const = 0;
+
+    virtual std::set<Identifier> LocalNyms() const = 0;
+
     /**   Obtain a smart pointer to an instantiated nym.
      *
      *    The smart pointer will not be initialized if the object does not
@@ -210,11 +216,30 @@ public:
      */
     virtual ConstNym Nym(const proto::CredentialIndex& nym) const = 0;
 
+    virtual ConstNym Nym(
+        const NymParameters& nymParameters,
+        const proto::ContactItemType type = proto::CITEMTYPE_ERROR,
+        const std::string name = "") const = 0;
+
     virtual NymData mutable_Nym(const Identifier& id) const = 0;
+
+    virtual std::unique_ptr<const class NymFile> Nymfile(
+        const Identifier& id,
+        const OTPasswordData& reason) const = 0;
+
+    virtual Editor<class NymFile> mutable_Nymfile(
+        const Identifier& id,
+        const OTPasswordData& reason) const = 0;
+
+    virtual ConstNym NymByIDPartialMatch(
+        const std::string& partialId) const = 0;
 
     /**   Returns a list of all known nyms and their aliases
      */
     virtual ObjectList NymList() const = 0;
+
+    virtual bool NymNameByIndex(const std::size_t index, String& name)
+        const = 0;
 
     /**   Load a peer reply object
      *

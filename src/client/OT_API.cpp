@@ -431,8 +431,9 @@ void OT_API::Pid::OpenPid(const String& strPidFilePath)
                     << "\n\n\nIS OPEN-TRANSACTIONS ALREADY RUNNING?\n\n"
                        "I found a PID ("
                     << lPID << ") in the data lock file, located at: "
-                    << m_strPidFilePath << "\n\n"
-                                           "If the OT process with PID "
+                    << m_strPidFilePath
+                    << "\n\n"
+                       "If the OT process with PID "
                     << lPID
                     << " is truly not running "
                        "anymore, "
@@ -863,22 +864,11 @@ bool OT_API::LoadWallet() const
     return bSuccess;
 }
 
-int32_t OT_API::GetNymCount() const
-{
-    OTWallet* pWallet =
-        GetWallet(__FUNCTION__);  // This logs and ASSERTs already.
-    if (nullptr != pWallet) return pWallet->GetNymCount();
-
-    return 0;
-}
+int32_t OT_API::GetNymCount() const { return wallet_.LocalNymCount(); }
 
 std::set<Identifier> OT_API::LocalNymList() const
 {
-    auto wallet = GetWallet(__FUNCTION__);
-
-    OT_ASSERT(nullptr != wallet)
-
-    return wallet->NymList();
+    return wallet_.LocalNyms();
 }
 
 std::set<AccountInfo> OT_API::Accounts() const
@@ -902,10 +892,11 @@ int32_t OT_API::GetAccountCount() const
 bool OT_API::GetNym(std::int32_t iIndex, Identifier& NYM_ID, String& NYM_NAME)
     const
 {
-    OTWallet* pWallet =
-        GetWallet(__FUNCTION__);  // This logs and ASSERTs already.
+    if (wallet_.NymNameByIndex(iIndex, NYM_NAME)) {
+        NYM_ID = std::move(Identifier(NYM_NAME));
 
-    if (nullptr != pWallet) return pWallet->GetNym(iIndex, NYM_ID, NYM_NAME);
+        return true;
+    }
 
     return false;
 }
@@ -933,34 +924,6 @@ OTWallet* OT_API::GetWallet(const char* szFuncName) const
         otErr << szFunc << ": -- The Wallet is not loaded.\n";
 
     return pWallet;
-}
-
-Nym* OT_API::GetNym(const Identifier& NYM_ID, const char* szFunc) const
-{
-    if (NYM_ID.IsEmpty()) {
-        otErr << OT_METHOD << __FUNCTION__ << ": NYM_ID is empty!";
-        OT_FAIL;
-    }
-
-    OTWallet* pWallet = GetWallet(nullptr != szFunc ? szFunc : __FUNCTION__);
-
-    if (nullptr == pWallet) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Unable to load wallet.";
-
-        return nullptr;
-    }
-
-    Nym* nymfile = pWallet->GetPrivateNymByID(NYM_ID);
-
-    if ((nullptr == nymfile) &&
-        (nullptr != szFunc))  // We only log if the caller asked us to.
-    {
-        const String strID(NYM_ID);
-        otWarn << __FUNCTION__ << " " << szFunc
-               << ": No Nym found in wallet with ID: " << strID << "\n";
-    }
-
-    return nymfile;
 }
 
 // Wallet owns this pointer. Do not delete
@@ -1000,25 +963,14 @@ std::shared_ptr<Account> OT_API::GetAccount(
             (nullptr != szFunc))  // We only log if the caller asked us to.
         {
             const String strID(THE_ID);
-            otWarn << __FUNCTION__ << " " << szFunc << ": No account found in "
-                                                       "wallet with ID: "
+            otWarn << __FUNCTION__ << " " << szFunc
+                   << ": No account found in "
+                      "wallet with ID: "
                    << strID << "\n";
         }
 
         return account;
     }
-
-    return nullptr;
-}
-
-Nym* OT_API::GetNymByIDPartialMatch(
-    const std::string PARTIAL_ID,
-    const char* szFuncName) const
-{
-    const char* szFunc = (nullptr != szFuncName) ? szFuncName : __FUNCTION__;
-    OTWallet* pWallet = GetWallet(szFunc);  // This logs and ASSERTs already.
-
-    if (nullptr != pWallet) return pWallet->GetNymByIDPartialMatch(PARTIAL_ID);
 
     return nullptr;
 }
@@ -1035,26 +987,6 @@ std::shared_ptr<Account> OT_API::GetAccountPartialMatch(
     return nullptr;
 }
 
-// returns a new nym (with key pair) and files created.
-// (Or nullptr.)
-//
-// Adds to wallet. (No need to delete.)
-//
-Nym* OT_API::CreateNym(const NymParameters& nymParameters) const
-{
-    OTWallet* pWallet =
-        GetWallet(__FUNCTION__);  // This logs and ASSERTs already.
-
-    if (nullptr == pWallet) return nullptr;
-
-    // By this point, pWallet is a good pointer.  (No need to cleanup.)
-    Nym* nymfile = nullptr;
-    nymfile = pWallet->CreateNym(nymParameters);
-
-    // No need to delete nymfile. (Wallet owns.)
-    return nymfile;
-}
-
 bool OT_API::IsNym_RegisteredAtServer(
     const Identifier& NYM_ID,
     const Identifier& NOTARY_ID) const
@@ -1066,12 +998,7 @@ bool OT_API::IsNym_RegisteredAtServer(
 
     auto context = wallet_.ServerContext(NYM_ID, NOTARY_ID);
 
-    if (context) {
-
-        return (0 != context->Request());
-    }
-
-    return false;
+    return (0 != context->Request());
 }
 
 // --------------------------------------------------------------------
@@ -1259,25 +1186,20 @@ bool OT_API::Wallet_CanRemoveServer(const Identifier& NOTARY_ID) const
         }
     }
 
-    const std::int32_t nNymCount = GetNymCount();
-
     // Loop through all the Nyms. (One might be registered on that server.)
     //
-    for (std::int32_t i = 0; i < nNymCount; i++) {
-        Identifier nymID;
-        bool bGetNym = GetNym(i, nymID, strName);
-
-        if (bGetNym)
-            if (IsNym_RegisteredAtServer(nymID, NOTARY_ID)) {
-                String strNymID(nymID), strNOTARY_ID(NOTARY_ID);
-                otErr << OT_METHOD << __FUNCTION__
-                      << ": Unable to remove server contract " << strNOTARY_ID
-                      << " "
-                         "from wallet, because Nym "
-                      << strNymID << " is registered "
-                                     "there. (Delete that first...)\n";
-                return false;
-            }
+    std::set<Identifier> nymIDs = wallet_.LocalNyms();
+    for (auto& nymID : nymIDs) {
+        if (IsNym_RegisteredAtServer(nymID, NOTARY_ID)) {
+            otErr << OT_METHOD << __FUNCTION__
+                  << ": Unable to remove server contract " << NOTARY_ID.str()
+                  << " "
+                     "from wallet, because Nym "
+                  << nymID.str()
+                  << " is registered "
+                     "there. (Delete that first...)\n";
+            return false;
+        }
     }
     return true;
 }
@@ -1342,8 +1264,8 @@ bool OT_API::Wallet_CanRemoveNym(const Identifier& NYM_ID) const
         OT_FAIL;
     }
 
-    Nym* nymfile = GetNym(NYM_ID, __FUNCTION__);
-    if (nullptr == nymfile) return false;
+    auto nym = wallet_.Nym(NYM_ID);
+    if (false == bool(nym)) return false;
     // Make sure the Nym doesn't have any accounts in the wallet.
     // (Client must close those before calling this.)
     //
@@ -1378,16 +1300,14 @@ bool OT_API::Wallet_CanRemoveNym(const Identifier& NYM_ID) const
     //
     for (auto& server : wallet_.ServerList()) {
         auto context =
-            wallet_.ServerContext(nymfile->ID(), Identifier(server.first));
+            wallet_.ServerContext(nym->ID(), Identifier(server.first));
 
-        if (context) {
-            if (0 != context->Request()) {
-                otErr << OT_METHOD << __FUNCTION__
-                      << ": Nym cannot be removed because there"
-                         " are still servers in the wallet that "
-                         "the Nym is registered at.\n";
-                return false;
-            }
+        if (0 != context->Request()) {
+            otErr << OT_METHOD << __FUNCTION__
+                  << ": Nym cannot be removed because there"
+                     " are still servers in the wallet that "
+                     "the Nym is registered at.\n";
+            return false;
         }
     }
 
@@ -1471,56 +1391,6 @@ bool OT_API::Wallet_CanRemoveAccount(const Identifier& ACCOUNT_ID) const
     return BOOL_RETURN_VALUE;
 }
 
-// Remove this Nym from my wallet!
-//
-// Try to remove the Nym from the wallet.
-// This will not work if there are any accounts in the wallet for the same nym
-// ID.
-//
-bool OT_API::Wallet_RemoveNym(const Identifier& NYM_ID) const
-{
-    rLock lock(lock_);
-
-    if (NYM_ID.IsEmpty()) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Null: ACCOUNT_ID passed in!\n";
-        OT_FAIL;
-    }
-
-    // DONE: The below call proves already that there are no accounts laying
-    // around
-    // for this Nym. (No need to worry about "orphaned accounts.")
-    //
-    // DONE (finally):
-    // However, the Nym might still be registered at various servers, even
-    // without asset accounts.
-    // Therefore, we need to iterate through the server contracts, and if the
-    // Nym is registered at
-    // any of the servers, then "deregister" (before deleting the Nym entirely.)
-    // This is much
-    // cleaner for the server side, who otherwise has to expired unused nyms
-    // based on some rule
-    // presumably to be found in the server contract.
-    if (!Wallet_CanRemoveNym(NYM_ID)) return false;
-
-    if (nullptr == m_pWallet) {
-        otErr << OT_METHOD << __FUNCTION__ << ": No wallet found...!\n";
-        OT_FAIL;
-    }
-
-    if (m_pWallet->RemovePrivateNym(NYM_ID)) {
-        otErr << OT_METHOD << __FUNCTION__
-              << ": Success erasing Nym from wallet: " << String(NYM_ID)
-              << "\n";
-        m_pWallet->SaveWallet();
-        return true;
-    } else
-        otErr << OT_METHOD << __FUNCTION__
-              << ": Failure erasing Nym from wallet: " << String(NYM_ID)
-              << "\n";
-
-    return false;
-}
-
 // OT has the capability to export a Nym (normally stored in several files) as
 // an encoded
 // object (in base64-encoded form) and then import it again.
@@ -1534,19 +1404,18 @@ bool OT_API::Wallet_ExportNym(const Identifier& NYM_ID, String& strOutput) const
         otErr << OT_METHOD << __FUNCTION__ << ": NYM_ID is empty!";
         OT_FAIL;
     }
-    OTPasswordData thePWDataLoad("Enter wallet master passphrase.");
+
     OTPasswordData thePWDataSave("Create new passphrase for exported Nym.");
     String strReasonToSave(thePWDataSave.GetDisplayString());
-    Nym* nymfile =
-        GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__, &thePWDataLoad);
+    auto nym = wallet_.Nym(NYM_ID);
 
-    if (nullptr == nymfile) {
+    if (false == bool(nym)) {
         return false;
     }
 
-    std::string str_nym_name(nymfile->Alias());
+    std::string str_nym_name(nym->Alias());
     String strID;
-    nymfile->GetIdentifier(strID);
+    nym->GetIdentifier(strID);
     std::string str_nym_id(strID.Get());
     // Below this point I can use:
     //
@@ -1555,7 +1424,7 @@ bool OT_API::Wallet_ExportNym(const Identifier& NYM_ID, String& strOutput) const
     // I still need the certfile and the nymfile (both in string form.)
     //
 
-    OT_ASSERT(nymfile->GetMasterCredentialCount() > 0);
+    OT_ASSERT(nym->GetMasterCredentialCount() > 0);
 
     OTASCIIArmor ascCredentials, ascCredList;
     String strCertfile;
@@ -1564,7 +1433,7 @@ bool OT_API::Wallet_ExportNym(const Identifier& NYM_ID, String& strOutput) const
     // We don't have to pause OTCachedKey here, because
     // this already has built-in mechanisms to go around OTCachedKey.
     //
-    const bool bReEncrypted = nymfile->ReEncryptPrivateCredentials(
+    const bool bReEncrypted = nym->ReEncryptPrivateCredentials(
         false /*bImporting*/,
         &thePWDataSave);  // Handles OTCachedKey already.
     if (bReEncrypted) {
@@ -1583,7 +1452,7 @@ bool OT_API::Wallet_ExportNym(const Identifier& NYM_ID, String& strOutput) const
             String strCredList;
             String::Map& theMap = pMap->the_map;
 
-            nymfile->GetPrivateCredentials(strCredList, &theMap);
+            nym->GetPrivateCredentials(strCredList, &theMap);
             // Serialize the StringMap to a string...
 
             // Won't bother if there are zero credentials somehow.
@@ -1612,7 +1481,7 @@ bool OT_API::Wallet_ExportNym(const Identifier& NYM_ID, String& strOutput) const
         return false;
     }
     String strNymfile;
-    const bool bSavedNym = nymfile->SavePseudonym(strNymfile);
+    const bool bSavedNym = nym->SavePseudonym(strNymfile);
 
     if (!bSavedNym) {
         otErr << OT_METHOD << __FUNCTION__
@@ -1662,7 +1531,7 @@ bool OT_API::Wallet_ExportNym(const Identifier& NYM_ID, String& strOutput) const
         strOutput.Release();
         bReturnVal = ascTemp.WriteArmoredString(
             strOutput, "EXPORTED NYM"  // -----BEGIN OT EXPORTED NYM-----
-            );                         // (bool bEscaped=false by default.)
+        );                             // (bool bEscaped=false by default.)
     }
 
     return bReturnVal;
@@ -1686,9 +1555,6 @@ bool OT_API::Wallet_ImportNym(
 {
     rLock lock(lock_);
 
-    OTWallet* pWallet =
-        GetWallet(__FUNCTION__);  // This logs and ASSERTs already.
-    if (nullptr == pWallet) return false;
     // By this point, pWallet is a good pointer.  (No need to cleanup.)
     OTASCIIArmor ascArmor;
     const bool bLoadedArmor = OTASCIIArmor::LoadFromString(
@@ -1775,22 +1641,22 @@ bool OT_API::Wallet_ImportNym(
     }
     // MAKE SURE IT'S NOT ALREADY IN THE WALLET.
     //
-    std::unique_ptr<Nym> nymfile(
-        GetOrLoadPrivateNym(theNymID, true, __FUNCTION__));
+    bool exists = wallet_.IsLocalNym(theMap["id"]);
 
-    if (nymfile) {
+    if (exists) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Tried to import a Nym that's already in wallet: "
               << theMap["id"] << "\n";
-        nymfile.release();
         return false;
     }
     // Create a new Nym object.
     //
     const String strNymID(theNymID);
-    nymfile.reset(new Nym(theNymID));
+    auto nym = std::make_unique<Nym>(theNymID);
 
-    nymfile->SetAlias(strNymName.Get());
+    OT_ASSERT(nym);
+
+    nym->SetAlias(strNymName.Get());
 
     // The Nym being imported has its own password. We ask for that here,
     // so we can preserve it in an OTPassword object and pass it around to
@@ -1877,13 +1743,12 @@ bool OT_API::Wallet_ImportNym(
                     String::Map& thePrivateMap = pPrivateMap->the_map;
                     bool unused = false;
 
-                    if (false ==
-                        nymfile->LoadNymFromString(
-                            strCredList,
-                            unused,
-                            &thePrivateMap,
-                            &strReasonToLoad,
-                            pExportPassphrase.get())) {
+                    if (false == nym->LoadNymFromString(
+                                     strCredList,
+                                     unused,
+                                     &thePrivateMap,
+                                     &strReasonToLoad,
+                                     pExportPassphrase.get())) {
                         otErr << OT_METHOD << __FUNCTION__
                               << ": Failure loading nym " << strNymID
                               << " from credential string.\n";
@@ -1908,13 +1773,13 @@ bool OT_API::Wallet_ImportNym(
                               // BACK IN EFFECT. (Disabled above.)
     }
 
-    if (bIfNymLoadKeys && nymfile->VerifyPseudonym()) {
+    if (bIfNymLoadKeys && nym->VerifyPseudonym()) {
         // Before we go on switching the credentials around, let's make sure
         // this Nym we're
         // importing isn't already in the wallet.
 
         if (bHasCredentials &&
-            !nymfile->ReEncryptPrivateCredentials(
+            !nym->ReEncryptPrivateCredentials(
                 true, &thePWDataLoad, pExportPassphrase.get()))
         // Handles OTCachedKey internally, no need for pausing for this call
         {
@@ -1930,8 +1795,7 @@ bool OT_API::Wallet_ImportNym(
         bool bConverted = false;
         bool unused = false;
         const bool bLoaded =
-            (strNymfile.Exists() &&
-             nymfile->LoadNymFromString(strNymfile, unused));
+            (strNymfile.Exists() && nym->LoadNymFromString(strNymfile, unused));
         //      const bool bLoaded    = (strNymfile.Exists() &&
         // nymfile->LoadFromString(strNymfile, &thePrivateMap)); // Unnecessary,
         // since nymfile has already loaded with this private info, and it will
@@ -1943,20 +1807,13 @@ bool OT_API::Wallet_ImportNym(
         // commented out.
         // If success: Add to Wallet including name.
         //
-        Nym* pRawNym = nullptr;
         if (bLoaded) {
             // Insert to wallet's list of Nyms.
-            pRawNym = nymfile.release();
-            pWallet->AddPrivateNym(*pRawNym);
-            if (!pWallet->ConvertNymToCachedKey(
-                    *pRawNym))  // This also calls SaveX509CertAndPrivateKey,
-                                // FYI.
-                                // (Or saves credentials, too, whichever is
-                                // applicable.)
-            {
+            auto pNym = wallet_.Nym(nym->ID());
+            if (false == bool(pNym)) {
                 otErr << OT_METHOD << __FUNCTION__
-                      << ": Failed while calling "
-                         "pWallet->ConvertNymToCachedKey(*pRawNym)\n";
+                      << ": Failed while saving "
+                         "the nym to the wallet.";
                 return false;
             } else
                 bConverted = true;
@@ -1968,19 +1825,12 @@ bool OT_API::Wallet_ImportNym(
         //
         if (bLoaded && bConverted)  // bLoaded is probably superfluous here.
         {
-            OT_ASSERT(nullptr != pRawNym);
+            OT_ASSERT(nullptr != nym);
             // save the nymfile.
             //
-            if (!pRawNym->SaveSignedNymfile(*pRawNym)) {
+            if (!nym->SaveSignedNymfile(*nym)) {
                 otErr << OT_METHOD << __FUNCTION__
                       << ": Error: Failed calling SaveSignedNymfile.\n";
-                return false;
-            }
-            // the conversion process adds values to the wallet, so we must save
-            // it after.
-            if (!pWallet->SaveWallet()) {
-                otErr << OT_METHOD << __FUNCTION__
-                      << ": Error: Failed to save (updated) wallet.\n";
                 return false;
             }
 
@@ -2093,7 +1943,7 @@ bool OT_API::Encode(
         strOutput.Release();
         bSuccess = ascArmor.WriteArmoredString(
             strOutput, "ENCODED TEXT"  // -----BEGIN OT ENCODED TEXT-----
-            );                         // (bool bEscaped=false by default.)
+        );                             // (bool bEscaped=false by default.)
     }
     return bSuccess;
 }
@@ -2157,13 +2007,8 @@ bool OT_API::Encrypt(
 {
     rLock lock(lock_);
 
-    OTPasswordData thePWData(OT_PW_DISPLAY);
-    const Nym* pRecipientNym = GetOrLoadNym(
-        theRecipientNymID,
-        false,
-        __FUNCTION__,
-        &thePWData);  // This logs and ASSERTs already.
-    if (nullptr == pRecipientNym) return false;
+    auto pRecipientNym = wallet_.Nym(theRecipientNymID);
+    if (false == bool(pRecipientNym)) return false;
     OTEnvelope theEnvelope;
     bool bSuccess = theEnvelope.Seal(*pRecipientNym, strPlaintext);
 
@@ -2173,7 +2018,7 @@ bool OT_API::Encrypt(
 
         bSuccess = ascCiphertext.WriteArmoredString(
             strOutput, "ENCRYPTED TEXT"  // -----BEGIN OT ENCRYPTED TEXT-----
-            );                           // (bool bEscaped=false by default.)
+        );                               // (bool bEscaped=false by default.)
     }
     return bSuccess;
 }
@@ -2209,10 +2054,9 @@ bool OT_API::Decrypt(
 {
     rLock lock(lock_);
 
-    Nym* pRecipientNym =
-        GetOrLoadPrivateNym(theRecipientNymID, false, __FUNCTION__);
+    auto pRecipientNym = wallet_.Nym(theRecipientNymID);
 
-    if (nullptr == pRecipientNym) {
+    if (false == bool(pRecipientNym)) {
         return false;
     }
 
@@ -2246,9 +2090,9 @@ bool OT_API::FlatSign(
 {
     rLock lock(lock_);
 
-    auto nymfile = GetOrLoadPrivateNym(theSignerNymID, false, __FUNCTION__);
+    auto nym = wallet_.Nym(theSignerNymID);
 
-    if (nullptr == nymfile) {
+    if (false == bool(nym)) {
         return false;
     }
 
@@ -2266,8 +2110,7 @@ bool OT_API::FlatSign(
         return false;
     }
     String strTemp(strInput);
-    return Contract::SignFlatText(
-        strTemp, strContractType, *nymfile, strOutput);
+    return Contract::SignFlatText(strTemp, strContractType, *nym, strOutput);
 }
 
 /** OT-Sign a CONTRACT.  (First signature)
@@ -2293,9 +2136,9 @@ bool OT_API::SignContract(
 {
     rLock lock(lock_);
 
-    auto nymfile = GetOrLoadPrivateNym(theSignerNymID, false, __FUNCTION__);
+    auto nym = wallet_.Nym(theSignerNymID);
 
-    if (nullptr == nymfile) {
+    if (false == bool(nym)) {
         return false;
     }
 
@@ -2325,7 +2168,7 @@ bool OT_API::SignContract(
     }
 
     contract->ReleaseSignatures();
-    contract->SignContract(*nymfile);
+    contract->SignContract(*nym);
     contract->SaveContract();
     strOutput.Release();
     contract->SaveContractRaw(strOutput);
@@ -2355,9 +2198,9 @@ bool OT_API::AddSignature(
 {
     rLock lock(lock_);
 
-    auto nymfile = GetOrLoadPrivateNym(theSignerNymID, false, __FUNCTION__);
+    auto nym = wallet_.Nym(theSignerNymID);
 
-    if (nullptr == nymfile) {
+    if (false == bool(nym)) {
         return false;
     }
 
@@ -2390,7 +2233,7 @@ bool OT_API::AddSignature(
     // function is identical to
     // OT_API::SignContract(). (This one adds signatures without removing
     // existing ones.)
-    contract->SignContract(*nymfile);
+    contract->SignContract(*nym);
     contract->SaveContract();
     strOutput.Release();
     contract->SaveContractRaw(strOutput);
@@ -2420,12 +2263,8 @@ bool OT_API::VerifySignature(
     rLock lock(lock_);
 
     OTPasswordData thePWData(OT_PW_DISPLAY);
-    const Nym* nymfile = GetOrLoadNym(
-        theSignerNymID,
-        false,
-        __FUNCTION__,
-        &thePWData);  // This logs and ASSERTs already.
-    if (nullptr == nymfile) return false;
+    auto nym = wallet_.Nym(theSignerNymID);
+    if (false == bool(nym)) return false;
     // By this point, nymfile is a good pointer, and is on the wallet. (No need
     // to
     // cleanup.)
@@ -2479,7 +2318,7 @@ bool OT_API::VerifySignature(
     //        return false;
     //    }
 
-    if (!contract->VerifySignature(*nymfile)) {
+    if (!contract->VerifySignature(*nym)) {
         String strSignerNymID(theSignerNymID);
         otErr << "OT_API::VerifySignature: For Nym (" << strSignerNymID
               << "), unable to "
@@ -2540,17 +2379,7 @@ bool OT_API::VerifyAccountReceipt(
 {
     rLock lock(lock_);
 
-    auto nymfile = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
-
-    if (nullptr == nymfile) {
-        return false;
-    }
-
     auto context = wallet_.ServerContext(NYM_ID, NOTARY_ID);
-
-    if (!context) {
-        return false;
-    }
 
     return VerifyBalanceReceipt(*context, NOTARY_ID, ACCOUNT_ID);
 }
@@ -2569,9 +2398,9 @@ bool OT_API::Create_SmartContract(
 {
     rLock lock(lock_);
 
-    auto nymfile = GetOrLoadPrivateNym(SIGNER_NYM_ID, false, __FUNCTION__);
+    auto nym = wallet_.Nym(SIGNER_NYM_ID);
 
-    if (nullptr == nymfile) {
+    if (false == bool(nym)) {
         return false;
     }
 
@@ -2585,15 +2414,16 @@ bool OT_API::Create_SmartContract(
         "while trying to instantiate blank smart "
         "contract.\n");
     if (!contract->SetDateRange(VALID_FROM, VALID_TO)) {
-        otErr << "OT_API::" << __FUNCTION__ << ": Failed trying to set date "
-                                               "range.\n";
+        otErr << "OT_API::" << __FUNCTION__
+              << ": Failed trying to set date "
+                 "range.\n";
         return false;
     }
 
     contract->specifyParties(SPECIFY_PARTIES);
     contract->specifyAssetTypes(SPECIFY_ASSETS);
 
-    contract->SignContract(*nymfile);
+    contract->SignContract(*nym);
     contract->SaveContract();
     strOutput.Release();
     contract->SaveContractRaw(strOutput);
@@ -2612,9 +2442,9 @@ bool OT_API::SmartContract_SetDates(
 {
     rLock lock(lock_);
 
-    auto nymfile = GetOrLoadPrivateNym(SIGNER_NYM_ID, false, __FUNCTION__);
+    auto nym = wallet_.Nym(SIGNER_NYM_ID);
 
-    if (nullptr == nymfile) {
+    if (false == bool(nym)) {
         return false;
     }
 
@@ -2630,12 +2460,13 @@ bool OT_API::SmartContract_SetDates(
         return false;
     }
     if (!contract->SetDateRange(VALID_FROM, VALID_TO)) {
-        otErr << "OT_API::" << __FUNCTION__ << ": Failed trying to set date "
-                                               "range.\n";
+        otErr << "OT_API::" << __FUNCTION__
+              << ": Failed trying to set date "
+                 "range.\n";
         return false;
     }
     contract->ReleaseSignatures();
-    contract->SignContract(*nymfile);
+    contract->SignContract(*nym);
     contract->SaveContract();
     strOutput.Release();
     contract->SaveContractRaw(strOutput);
@@ -2658,9 +2489,9 @@ bool OT_API::SmartContract_AddParty(
 {
     rLock lock(lock_);
 
-    auto nymfile = GetOrLoadPrivateNym(SIGNER_NYM_ID, false, __FUNCTION__);
+    auto nym = wallet_.Nym(SIGNER_NYM_ID);
 
-    if (nullptr == nymfile) {
+    if (false == bool(nym)) {
         return false;
     }
 
@@ -2731,7 +2562,7 @@ bool OT_API::SmartContract_AddParty(
     // Success!
     //
     contract->ReleaseSignatures();
-    contract->SignContract(*nymfile);
+    contract->SignContract(*nym);
     contract->SaveContract();
     strOutput.Release();
     contract->SaveContractRaw(strOutput);
@@ -2751,9 +2582,9 @@ bool OT_API::SmartContract_RemoveParty(
 {
     rLock lock(lock_);
 
-    auto nymfile = GetOrLoadPrivateNym(SIGNER_NYM_ID, false, __FUNCTION__);
+    auto nym = wallet_.Nym(SIGNER_NYM_ID);
 
-    if (nullptr == nymfile) return false;
+    if (false == bool(nym)) return false;
     // By this point, nymfile is a good pointer, and is on the wallet. (No need
     // to
     // cleanup.)
@@ -2771,7 +2602,7 @@ bool OT_API::SmartContract_RemoveParty(
         // Success!
         //
         contract->ReleaseSignatures();
-        contract->SignContract(*nymfile);
+        contract->SignContract(*nym);
         contract->SaveContract();
         strOutput.Release();
         contract->SaveContractRaw(strOutput);
@@ -2797,9 +2628,9 @@ bool OT_API::SmartContract_AddAccount(
 {
     rLock lock(lock_);
 
-    auto nymfile = GetOrLoadPrivateNym(SIGNER_NYM_ID, false, __FUNCTION__);
+    auto nym = wallet_.Nym(SIGNER_NYM_ID);
 
-    if (nullptr == nymfile) {
+    if (false == bool(nym)) {
         return false;
     }
 
@@ -2829,8 +2660,9 @@ bool OT_API::SmartContract_AddAccount(
     if (nullptr != party->GetAccount(str_name)) {
         otErr << "OT_API::SmartContract_AddAccount: Failed adding: "
                  "account is already there with that name ("
-              << str_name << ") on "
-                             "party: "
+              << str_name
+              << ") on "
+                 "party: "
               << str_party_name << " \n";
         return false;
     }
@@ -2867,13 +2699,12 @@ bool OT_API::SmartContract_AddAccount(
 
     if (nullptr != szAssetTypeID) strInstrumentDefinitionID.Set(szAssetTypeID);
 
-    if (false ==
-        party->AddAccount(
-            strAgentName,
-            strAcctName,
-            strAcctID,
-            strInstrumentDefinitionID,
-            0)) {
+    if (false == party->AddAccount(
+                     strAgentName,
+                     strAcctName,
+                     strAcctID,
+                     strInstrumentDefinitionID,
+                     0)) {
         otErr << "OT_API::SmartContract_AddAccount: Failed trying to "
                  "add account ("
               << str_name << ") to party: " << str_party_name << " \n";
@@ -2882,7 +2713,7 @@ bool OT_API::SmartContract_AddAccount(
     // Success!
     //
     contract->ReleaseSignatures();
-    contract->SignContract(*nymfile);
+    contract->SignContract(*nym);
     contract->SaveContract();
     strOutput.Release();
     contract->SaveContractRaw(strOutput);
@@ -2903,9 +2734,9 @@ bool OT_API::SmartContract_RemoveAccount(
 {
     rLock lock(lock_);
 
-    auto nymfile = GetOrLoadPrivateNym(SIGNER_NYM_ID, false, __FUNCTION__);
+    auto nym = wallet_.Nym(SIGNER_NYM_ID);
 
-    if (nullptr == nymfile) {
+    if (false == bool(nym)) {
         return false;
     }
 
@@ -2935,7 +2766,7 @@ bool OT_API::SmartContract_RemoveAccount(
         // Success!
         //
         contract->ReleaseSignatures();
-        contract->SignContract(*nymfile);
+        contract->SignContract(*nym);
         contract->SaveContract();
         strOutput.Release();
         contract->SaveContractRaw(strOutput);
@@ -2987,9 +2818,9 @@ bool OT_API::SmartContract_ConfirmAccount(
 {
     rLock lock(lock_);
 
-    auto nymfile = GetOrLoadPrivateNym(SIGNER_NYM_ID, false, __FUNCTION__);
+    auto nym = wallet_.Nym(SIGNER_NYM_ID);
 
-    if (nullptr == nymfile) {
+    if (false == bool(nym)) {
         return false;
     }
 
@@ -3091,7 +2922,7 @@ bool OT_API::SmartContract_ConfirmAccount(
     // being rejected later because
     // he accidentally set it up with the wrong Nym.
     //
-    if (!account->VerifyOwner(*nymfile)) {
+    if (!account->VerifyOwner(*nym)) {
         const String strNymID(SIGNER_NYM_ID);
         otErr << OT_METHOD << __FUNCTION__ << ": Failed, since this nym ("
               << strNymID << ") isn't the owner of this account (" << str_name
@@ -3137,8 +2968,9 @@ bool OT_API::SmartContract_ConfirmAccount(
         otErr << OT_METHOD << __FUNCTION__
               << ": Failure: The smart contract has a different "
                  "server ID on it already ("
-              << strServer1 << ") than the one "
-                               "that goes with this account (server "
+              << strServer1
+              << ") than the one "
+                 "that goes with this account (server "
               << strServer2 << ", for account " << ACCT_ID << ")\n";
         return false;
     }
@@ -3151,7 +2983,7 @@ bool OT_API::SmartContract_ConfirmAccount(
     partyAcct->SetAcctID(ACCT_ID.Get());
     partyAcct->SetAgentName(AGENT_NAME.Get());
     contract->ReleaseSignatures();
-    contract->SignContract(*nymfile);
+    contract->SignContract(*nym);
     contract->SaveContract();
     strOutput.Release();
     contract->SaveContractRaw(strOutput);
@@ -3206,11 +3038,8 @@ bool OT_API::SmartContract_ConfirmParty(
     rLock lock(lock_);
     auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
 
-    auto nymfile = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
-
-    if (nullptr == nymfile) {
-        return false;
-    }
+    auto nymfile = context.It().mutable_Nymfile(__FUNCTION__);
+    auto nym = context.It().Nym();
 
     // By this point, nymfile is a good pointer, and is on the wallet. (No need
     // to
@@ -3256,7 +3085,7 @@ bool OT_API::SmartContract_ConfirmParty(
 
     OTParty* pNewParty = new OTParty(
         party->GetPartyName(),
-        *nymfile,  // party keeps an internal pointer to nymfile from here on.
+        *nym,  // party keeps an internal pointer to nym from here on.
         party->GetAuthorizingAgentName());  // Party name and agent name must
                                             // match, in order to replace /
                                             // activate this party.
@@ -3306,14 +3135,15 @@ bool OT_API::SmartContract_ConfirmParty(
     //  pMessage->m_strNotaryID        = strNotaryID;
     pMessage->m_ascPayload.SetString(strInstrument);
 
-    pMessage->SignContract(*nymfile);
+    auto pNym = wallet_.Nym(nymfile.It().GetConstID());
+    OT_ASSERT(nullptr != pNym)
+
+    pMessage->SignContract(*pNym);
     pMessage->SaveContract();
 
-    nymfile->AddOutpayments(
+    nymfile.It().AddOutpayments(
         *pMessage);  // Now the Nym is responsible to delete it.
                      // It's in his "outpayments".
-    Nym* pSignerNym = nymfile;
-    nymfile->SaveSignedNymfile(*pSignerNym);
 
     return true;
 }
@@ -3331,11 +3161,9 @@ bool OT_API::SmartContract_AddBylaw(
     rLock lock(lock_);
 
     const char* BYLAW_LANGUAGE = "chai";  // todo hardcoding.
-    auto nymfile = GetOrLoadPrivateNym(
-        SIGNER_NYM_ID, false, __FUNCTION__);  // These copiously log, and
-                                              // ASSERT.
-    if (nullptr == nymfile) return false;
-    // By this point, nymfile is a good pointer, and is on the wallet. (No need
+    auto nym = wallet_.Nym(SIGNER_NYM_ID);
+    if (false == bool(nym)) return false;
+    // By this point, nym is a good pointer, and is on the wallet. (No need
     // to
     // cleanup.)
     std::unique_ptr<OTScriptable> contract(
@@ -3372,7 +3200,7 @@ bool OT_API::SmartContract_AddBylaw(
     // Success!
     //
     contract->ReleaseSignatures();
-    contract->SignContract(*nymfile);
+    contract->SignContract(*nym);
     contract->SaveContract();
     strOutput.Release();
     contract->SaveContractRaw(strOutput);
@@ -3392,13 +3220,13 @@ bool OT_API::SmartContract_RemoveBylaw(
 {
     rLock lock(lock_);
 
-    auto nymfile = GetOrLoadPrivateNym(SIGNER_NYM_ID, false, __FUNCTION__);
+    auto nym = wallet_.Nym(SIGNER_NYM_ID);
 
-    if (nullptr == nymfile) {
+    if (false == bool(nym)) {
         return false;
     }
 
-    // By this point, nymfile is a good pointer, and is on the wallet. (No need
+    // By this point, nym is a good pointer, and is on the wallet. (No need
     // to
     // cleanup.)
     std::unique_ptr<OTScriptable> contract(
@@ -3415,7 +3243,7 @@ bool OT_API::SmartContract_RemoveBylaw(
         // Success!
         //
         contract->ReleaseSignatures();
-        contract->SignContract(*nymfile);
+        contract->SignContract(*nym);
         contract->SaveContract();
         strOutput.Release();
         contract->SaveContractRaw(strOutput);
@@ -3443,13 +3271,13 @@ bool OT_API::SmartContract_AddHook(
 {
     rLock lock(lock_);
 
-    auto nymfile = GetOrLoadPrivateNym(SIGNER_NYM_ID, false, __FUNCTION__);
+    auto nym = wallet_.Nym(SIGNER_NYM_ID);
 
-    if (nullptr == nymfile) {
+    if (false == bool(nym)) {
         return false;
     }
 
-    // By this point, nymfile is a good pointer, and is on the wallet. (No need
+    // By this point, nym is a good pointer, and is on the wallet. (No need
     // to
     // cleanup.)
     std::unique_ptr<OTScriptable> contract(
@@ -3482,7 +3310,7 @@ bool OT_API::SmartContract_AddHook(
     // Success!
     //
     contract->ReleaseSignatures();
-    contract->SignContract(*nymfile);
+    contract->SignContract(*nym);
     contract->SaveContract();
     strOutput.Release();
     contract->SaveContractRaw(strOutput);
@@ -3507,13 +3335,13 @@ bool OT_API::SmartContract_RemoveHook(
 {
     rLock lock(lock_);
 
-    auto nymfile = GetOrLoadPrivateNym(SIGNER_NYM_ID, false, __FUNCTION__);
+    auto nym = wallet_.Nym(SIGNER_NYM_ID);
 
-    if (nullptr == nymfile) {
+    if (false == bool(nym)) {
         return false;
     }
 
-    // By this point, nymfile is a good pointer, and is on the wallet. (No need
+    // By this point, nym is a good pointer, and is on the wallet. (No need
     // to
     // cleanup.)
     std::unique_ptr<OTScriptable> contract(
@@ -3541,7 +3369,7 @@ bool OT_API::SmartContract_RemoveHook(
         // Success!
         //
         contract->ReleaseSignatures();
-        contract->SignContract(*nymfile);
+        contract->SignContract(*nym);
         contract->SaveContract();
         strOutput.Release();
         contract->SaveContractRaw(strOutput);
@@ -3567,13 +3395,13 @@ bool OT_API::SmartContract_AddCallback(
 {
     rLock lock(lock_);
 
-    auto nymfile = GetOrLoadPrivateNym(SIGNER_NYM_ID, false, __FUNCTION__);
+    auto nym = wallet_.Nym(SIGNER_NYM_ID);
 
-    if (nullptr == nymfile) {
+    if (false == bool(nym)) {
         return false;
     }
 
-    // By this point, nymfile is a good pointer, and is on the wallet. (No need
+    // By this point, nym is a good pointer, and is on the wallet. (No need
     // to
     // cleanup.)
     std::unique_ptr<OTScriptable> contract(
@@ -3614,7 +3442,7 @@ bool OT_API::SmartContract_AddCallback(
     // Success!
     //
     contract->ReleaseSignatures();
-    contract->SignContract(*nymfile);
+    contract->SignContract(*nym);
     contract->SaveContract();
     strOutput.Release();
     contract->SaveContractRaw(strOutput);
@@ -3635,13 +3463,13 @@ bool OT_API::SmartContract_RemoveCallback(
 {
     rLock lock(lock_);
 
-    auto nymfile = GetOrLoadPrivateNym(SIGNER_NYM_ID, false, __FUNCTION__);
+    auto nym = wallet_.Nym(SIGNER_NYM_ID);
 
-    if (nullptr == nymfile) {
+    if (false == bool(nym)) {
         return false;
     }
 
-    // By this point, nymfile is a good pointer, and is on the wallet. (No need
+    // By this point, nym is a good pointer, and is on the wallet. (No need
     // to
     // cleanup.)
     std::unique_ptr<OTScriptable> contract(
@@ -3668,7 +3496,7 @@ bool OT_API::SmartContract_RemoveCallback(
         // Success!
         //
         contract->ReleaseSignatures();
-        contract->SignContract(*nymfile);
+        contract->SignContract(*nym);
         contract->SaveContract();
         strOutput.Release();
         contract->SaveContractRaw(strOutput);
@@ -3693,20 +3521,21 @@ bool OT_API::SmartContract_AddClause(
 {
     rLock lock(lock_);
 
-    auto nymfile = GetOrLoadPrivateNym(SIGNER_NYM_ID, false, __FUNCTION__);
+    auto nym = wallet_.Nym(SIGNER_NYM_ID);
 
-    if (nullptr == nymfile) {
+    if (false == bool(nym)) {
         return false;
     }
 
-    // By this point, nymfile is a good pointer, and is on the wallet. (No need
+    // By this point, nym is a good pointer, and is on the wallet. (No need
     // to
     // cleanup.)
     std::unique_ptr<OTScriptable> contract(
         OTScriptable::InstantiateScriptable(THE_CONTRACT));
     if (nullptr == contract) {
-        otErr << "OT_API::" << __FUNCTION__ << ": Error loading "
-                                               "smart contract:\n\n"
+        otErr << "OT_API::" << __FUNCTION__
+              << ": Error loading "
+                 "smart contract:\n\n"
               << THE_CONTRACT << "\n\n";
         return false;
     }
@@ -3715,8 +3544,9 @@ bool OT_API::SmartContract_AddClause(
     OTBylaw* pBylaw = contract->GetBylaw(str_bylaw_name);
 
     if (nullptr == pBylaw) {
-        otErr << "OT_API::" << __FUNCTION__ << ": Failure: Bylaw "
-                                               "doesn't exist: "
+        otErr << "OT_API::" << __FUNCTION__
+              << ": Failure: Bylaw "
+                 "doesn't exist: "
               << str_bylaw_name << " \n Input contract: \n\n"
               << THE_CONTRACT << "\n\n";
         return false;
@@ -3727,21 +3557,23 @@ bool OT_API::SmartContract_AddClause(
         otErr << "OT_API::" << __FUNCTION__
               << ": Failed adding: "
                  "clause is already there with that name ("
-              << str_name << ") on "
-                             "bylaw: "
+              << str_name
+              << ") on "
+                 "bylaw: "
               << str_bylaw_name << " \n";
         return false;
     }
     if (!pBylaw->AddClause(str_name.c_str(), str_code.c_str())) {
-        otErr << "OT_API::" << __FUNCTION__ << ": Failed trying to "
-                                               "add clause ("
+        otErr << "OT_API::" << __FUNCTION__
+              << ": Failed trying to "
+                 "add clause ("
               << str_name << ") to bylaw: " << str_bylaw_name << " \n";
         return false;
     }
     // Success!
     //
     contract->ReleaseSignatures();
-    contract->SignContract(*nymfile);
+    contract->SignContract(*nym);
     contract->SaveContract();
     strOutput.Release();
     contract->SaveContractRaw(strOutput);
@@ -3763,20 +3595,21 @@ bool OT_API::SmartContract_UpdateClause(
 {
     rLock lock(lock_);
 
-    auto nymfile = GetOrLoadPrivateNym(SIGNER_NYM_ID, false, __FUNCTION__);
+    auto nym = wallet_.Nym(SIGNER_NYM_ID);
 
-    if (nullptr == nymfile) {
+    if (false == bool(nym)) {
         return false;
     }
 
-    // By this point, nymfile is a good pointer, and is on the wallet. (No need
+    // By this point, nym is a good pointer, and is on the wallet. (No need
     // to
     // cleanup.)
     std::unique_ptr<OTScriptable> contract(
         OTScriptable::InstantiateScriptable(THE_CONTRACT));
     if (nullptr == contract) {
-        otErr << "OT_API::" << __FUNCTION__ << ": Error loading "
-                                               "smart contract:\n\n"
+        otErr << "OT_API::" << __FUNCTION__
+              << ": Error loading "
+                 "smart contract:\n\n"
               << THE_CONTRACT << "\n\n";
         return false;
     }
@@ -3785,8 +3618,9 @@ bool OT_API::SmartContract_UpdateClause(
     OTBylaw* pBylaw = contract->GetBylaw(str_bylaw_name);
 
     if (nullptr == pBylaw) {
-        otErr << "OT_API::" << __FUNCTION__ << ": Failure: Bylaw "
-                                               "doesn't exist: "
+        otErr << "OT_API::" << __FUNCTION__
+              << ": Failure: Bylaw "
+                 "doesn't exist: "
               << str_bylaw_name << " \n Input contract: \n\n"
               << THE_CONTRACT << "\n\n";
         return false;
@@ -3797,7 +3631,7 @@ bool OT_API::SmartContract_UpdateClause(
         // Success!
         //
         contract->ReleaseSignatures();
-        contract->SignContract(*nymfile);
+        contract->SignContract(*nym);
         contract->SaveContract();
         strOutput.Release();
         contract->SaveContractRaw(strOutput);
@@ -3821,20 +3655,21 @@ bool OT_API::SmartContract_RemoveClause(
 {
     rLock lock(lock_);
 
-    auto nymfile = GetOrLoadPrivateNym(SIGNER_NYM_ID, false, __FUNCTION__);
+    auto nym = wallet_.Nym(SIGNER_NYM_ID);
 
-    if (nullptr == nymfile) {
+    if (false == bool(nym)) {
         return false;
     }
 
-    // By this point, nymfile is a good pointer, and is on the wallet. (No need
+    // By this point, nym is a good pointer, and is on the wallet. (No need
     // to
     // cleanup.)
     std::unique_ptr<OTScriptable> contract(
         OTScriptable::InstantiateScriptable(THE_CONTRACT));
     if (nullptr == contract) {
-        otErr << "OT_API::" << __FUNCTION__ << ": Error loading "
-                                               "smart contract:\n\n"
+        otErr << "OT_API::" << __FUNCTION__
+              << ": Error loading "
+                 "smart contract:\n\n"
               << THE_CONTRACT << "\n\n";
         return false;
     }
@@ -3843,8 +3678,9 @@ bool OT_API::SmartContract_RemoveClause(
     OTBylaw* pBylaw = contract->GetBylaw(str_bylaw_name);
 
     if (nullptr == pBylaw) {
-        otErr << "OT_API::" << __FUNCTION__ << ": Failure: Bylaw "
-                                               "doesn't exist: "
+        otErr << "OT_API::" << __FUNCTION__
+              << ": Failure: Bylaw "
+                 "doesn't exist: "
               << str_bylaw_name << " \n Input contract: \n\n"
               << THE_CONTRACT << "\n\n";
         return false;
@@ -3855,7 +3691,7 @@ bool OT_API::SmartContract_RemoveClause(
         // Success!
         //
         contract->ReleaseSignatures();
-        contract->SignContract(*nymfile);
+        contract->SignContract(*nym);
         contract->SaveContract();
         strOutput.Release();
         contract->SaveContractRaw(strOutput);
@@ -3886,20 +3722,21 @@ bool OT_API::SmartContract_AddVariable(
 {
     rLock lock(lock_);
 
-    auto nymfile = GetOrLoadPrivateNym(SIGNER_NYM_ID, false, __FUNCTION__);
+    auto nym = wallet_.Nym(SIGNER_NYM_ID);
 
-    if (nullptr == nymfile) {
+    if (false == bool(nym)) {
         return false;
     }
 
-    // By this point, nymfile is a good pointer, and is on the wallet. (No need
+    // By this point, nym is a good pointer, and is on the wallet. (No need
     // to
     // cleanup.)
     std::unique_ptr<OTScriptable> contract(
         OTScriptable::InstantiateScriptable(THE_CONTRACT));
     if (nullptr == contract) {
-        otErr << "OT_API::" << __FUNCTION__ << ": Error loading "
-                                               "smart contract:\n\n"
+        otErr << "OT_API::" << __FUNCTION__
+              << ": Error loading "
+                 "smart contract:\n\n"
               << THE_CONTRACT << "\n\n";
         return false;
     }
@@ -3908,8 +3745,9 @@ bool OT_API::SmartContract_AddVariable(
     OTBylaw* pBylaw = contract->GetBylaw(str_bylaw_name);
 
     if (nullptr == pBylaw) {
-        otErr << "OT_API::" << __FUNCTION__ << ": Failure: Bylaw "
-                                               "doesn't exist: "
+        otErr << "OT_API::" << __FUNCTION__
+              << ": Failure: Bylaw "
+                 "doesn't exist: "
               << str_bylaw_name << " \n";
         return false;
     }
@@ -3917,8 +3755,9 @@ bool OT_API::SmartContract_AddVariable(
         str_type(VAR_TYPE.Get()), str_value(VAR_VALUE.Get());
 
     if (nullptr != pBylaw->GetVariable(str_name)) {
-        otErr << "OT_API::" << __FUNCTION__ << ": Failure: "
-                                               "Variable ("
+        otErr << "OT_API::" << __FUNCTION__
+              << ": Failure: "
+                 "Variable ("
               << str_name << ") already exists on bylaw: " << str_bylaw_name
               << " \n";
         return false;
@@ -3969,15 +3808,16 @@ bool OT_API::SmartContract_AddVariable(
     }
 
     if (!bAdded) {
-        otErr << "OT_API::" << __FUNCTION__ << ": Failed trying to "
-                                               "add variable ("
+        otErr << "OT_API::" << __FUNCTION__
+              << ": Failed trying to "
+                 "add variable ("
               << str_name << ") to bylaw: " << str_bylaw_name << " \n";
         return false;
     }
     // Success!
     //
     contract->ReleaseSignatures();
-    contract->SignContract(*nymfile);
+    contract->SignContract(*nym);
     contract->SaveContract();
     strOutput.Release();
     contract->SaveContractRaw(strOutput);
@@ -3998,20 +3838,21 @@ bool OT_API::SmartContract_RemoveVariable(
 {
     rLock lock(lock_);
 
-    auto nymfile = GetOrLoadPrivateNym(SIGNER_NYM_ID, false, __FUNCTION__);
+    auto nym = wallet_.Nym(SIGNER_NYM_ID);
 
-    if (nullptr == nymfile) {
+    if (false == bool(nym)) {
         return false;
     }
 
-    // By this point, nymfile is a good pointer, and is on the wallet. (No need
+    // By this point, nym is a good pointer, and is on the wallet. (No need
     // to
     // cleanup.)
     std::unique_ptr<OTScriptable> contract(
         OTScriptable::InstantiateScriptable(THE_CONTRACT));
     if (nullptr == contract) {
-        otErr << "OT_API::" << __FUNCTION__ << ": Error loading "
-                                               "smart contract:\n\n"
+        otErr << "OT_API::" << __FUNCTION__
+              << ": Error loading "
+                 "smart contract:\n\n"
               << THE_CONTRACT << "\n\n";
         return false;
     }
@@ -4020,8 +3861,9 @@ bool OT_API::SmartContract_RemoveVariable(
     OTBylaw* pBylaw = contract->GetBylaw(str_bylaw_name);
 
     if (nullptr == pBylaw) {
-        otErr << "OT_API::" << __FUNCTION__ << ": Failure: Bylaw "
-                                               "doesn't exist: "
+        otErr << "OT_API::" << __FUNCTION__
+              << ": Failure: Bylaw "
+                 "doesn't exist: "
               << str_bylaw_name << " \n";
         return false;
     }
@@ -4031,7 +3873,7 @@ bool OT_API::SmartContract_RemoveVariable(
         // Success!
         //
         contract->ReleaseSignatures();
-        contract->SignContract(*nymfile);
+        contract->SignContract(*nym);
         contract->SaveContract();
         strOutput.Release();
         contract->SaveContractRaw(strOutput);
@@ -4068,22 +3910,12 @@ bool OT_API::Rename_Nym(
 
     rLock lock(lock_);
 
-    OTWallet* pWallet = GetWallet(__FUNCTION__);
-
-    if (nullptr == pWallet) {
-        return false;
-    }
-
-    Nym* nym = GetOrLoadPrivateNym(nymID, false, __FUNCTION__);
-
-    if (nullptr == nym) {
-        return false;
-    }
+    auto nymdata = wallet_.mutable_Nym(nymID);
 
     proto::ContactItemType realType = proto::CITEMTYPE_ERROR;
 
     if (proto::CITEMTYPE_ERROR == type) {
-        const auto existingType = nym->Claims().Type();
+        const auto existingType = nymdata.Claims().Type();
 
         if (proto::CITEMTYPE_ERROR == existingType) {
             return false;
@@ -4094,15 +3926,15 @@ bool OT_API::Rename_Nym(
         realType = type;
     }
 
-    const bool renamed = nym->SetScope(realType, name, primary);
+    const bool renamed = nymdata.SetScope(realType, name, primary);
 
     if (!renamed) {
         return false;
     }
 
-    nym->SetAlias(name);
+    nymdata.SetAlias(name);
 
-    return nym->SaveSignedNymfile(*nym);
+    return true;
 }
 
 // The Asset Account's Name is basically just a client-side label.
@@ -4120,9 +3952,9 @@ bool OT_API::SetAccount_Name(
         GetWallet(__FUNCTION__);  // This logs and ASSERTs already.
     if (nullptr == pWallet) return false;
     // By this point, pWallet is a good pointer.  (No need to cleanup.)
-    Nym* pSignerNym = GetOrLoadPrivateNym(SIGNER_NYM_ID, false, __FUNCTION__);
+    auto pSignerNym = wallet_.Nym(SIGNER_NYM_ID);
 
-    if (nullptr == pSignerNym) {
+    if (false == bool(pSignerNym)) {
         return false;
     }
 
@@ -4133,8 +3965,9 @@ bool OT_API::SetAccount_Name(
 
     if (!ACCT_NEW_NAME.Exists())  // Any other validation to do on the name?
     {
-        otErr << OT_METHOD << __FUNCTION__ << ": FYI, new name is empty. "
-                                              "(Proceeding anyway)\n";
+        otErr << OT_METHOD << __FUNCTION__
+              << ": FYI, new name is empty. "
+                 "(Proceeding anyway)\n";
     }
     account->SetName(ACCT_NEW_NAME);
     account->ReleaseSignatures();
@@ -4174,8 +4007,8 @@ Nym* OT_API::LoadPrivateNym(
     // we can
     // set the same name onto that Nym again when he's re-loaded.
     //
-    Nym* nymfile = GetNym(NYM_ID, szFuncName);  // This already logs and ASSERTs
-    strName = (nullptr != nymfile) ? nymfile->Alias().c_str() : strNymID.Get();
+    auto nym = wallet_.Nym(NYM_ID);
+    strName = (false != bool(nym)) ? nym->Alias().c_str() : strNymID.Get();
     // now strName contains either "" or the Nym's name from wallet.
     OTPasswordData thePWData(OT_PW_DISPLAY);
     if (nullptr == pPWData) pPWData = &thePWData;
@@ -4262,15 +4095,9 @@ bool OT_API::Msg_HarvestTransactionNumbers(
     rLock lock(lock_);
     auto context =
         wallet_.mutable_ServerContext(NYM_ID, Identifier(theMsg.m_strNotaryID));
-    auto nymfile = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
-
-    if (nullptr == nymfile) {
-        return false;
-    }
 
     return theMsg.HarvestTransactionNumbers(
         context.It(),
-        *nymfile,
         bHarvestingForRetry,
         bReplyWasSuccess,
         bReplyWasFailure,
@@ -4322,11 +4149,6 @@ bool OT_API::HarvestClosingNumbers(
 {
     rLock lock(lock_);
     auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
-    auto nymfile = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
-
-    if (nullptr == nymfile) {
-        return false;
-    }
 
     std::unique_ptr<OTCronItem> pCronItem(
         OTCronItem::NewCronItem(THE_CRON_ITEM));
@@ -4373,11 +4195,6 @@ bool OT_API::HarvestAllNumbers(
 {
     rLock lock(lock_);
     auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
-    auto nymfile = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
-
-    if (nullptr == nymfile) {
-        return false;
-    }
 
     std::unique_ptr<OTCronItem> pCronItem(
         OTCronItem::NewCronItem(THE_CRON_ITEM));
@@ -4404,146 +4221,6 @@ bool OT_API::HarvestAllNumbers(
     return true;
 }
 
-/// This function only tries to load as a private Nym.
-/// No need to cleanup, since it adds the Nym to the wallet.
-///
-/// It is smart enough to Get the Nym from the wallet, and if it
-/// sees that it's only a public nym (no private key) then it
-/// reloads it as a private nym at that time.
-///
-Nym* OT_API::GetOrLoadPrivateNym(
-    const Identifier& NYM_ID,
-    bool bChecking,
-    const char* szFuncName,
-    const OTPasswordData* pPWData,
-    const OTPassword* pImportPassword) const
-{
-    OTWallet* pWallet =
-        GetWallet(szFuncName);  // This logs and ASSERTs already.
-
-    if (nullptr == pWallet) {
-        return nullptr;
-    }
-    if (NYM_ID.IsEmpty()) {
-        return nullptr;
-    }
-
-    OTPasswordData thePWData(OT_PW_DISPLAY);
-    return pWallet->GetOrLoadPrivateNym(
-        NYM_ID,
-        bChecking,
-        szFuncName,
-        nullptr == pPWData ? &thePWData : pPWData,
-        pImportPassword);
-}
-
-/// No need to cleanup the Nym returned here, since it's added to the wallet and
-/// the wallet takes ownership.
-///
-const Nym* OT_API::GetOrLoadNym(
-    const Identifier& NYM_ID,
-    bool bChecking,
-    const char* szFuncName,
-    const OTPasswordData* pPWData) const
-{
-    if (NYM_ID.IsEmpty()) {
-        otErr << OT_METHOD << __FUNCTION__ << ": NYM_ID is empty!";
-        OT_FAIL;
-    }
-
-    OTWallet* pWallet =
-        GetWallet(szFuncName);  // This logs and ASSERTs already.
-    if (nullptr == pWallet) return nullptr;
-    // By this point, pWallet is a good pointer.  (No need to cleanup.)
-    //
-    // This already logs copiously, including szFuncName...
-    //
-    OTPasswordData thePWData(OT_PW_DISPLAY);
-
-    const Nym* nymfile = nullptr;
-
-    nymfile = pWallet->GetOrLoadPrivateNym(
-        NYM_ID,
-        bChecking,
-        szFuncName,
-        nullptr == pPWData ? &thePWData : pPWData);
-
-    if (nullptr == nymfile) {
-        auto publicNym = wallet_.Nym(NYM_ID);
-
-        if (publicNym) {
-            nymfile = publicNym.get();
-        }
-    }
-
-    return nymfile;
-}
-
-const Nym* OT_API::reloadAndGetNym(
-    const Identifier& NYM_ID,
-    bool bChecking,
-    const char* szFuncName,
-    const OTPasswordData* pPWData) const
-{
-    if (NYM_ID.IsEmpty()) {
-        otErr << OT_METHOD << __FUNCTION__ << ": NYM_ID is empty!";
-        OT_FAIL;
-    }
-
-    OTWallet* pWallet =
-        GetWallet(szFuncName);  // This logs and ASSERTs already.
-    if (nullptr == pWallet) return nullptr;
-    // By this point, pWallet is a good pointer.  (No need to cleanup.)
-    //
-    // This already logs copiously, including szFuncName...
-    //
-    OTPasswordData thePWData(OT_PW_DISPLAY);
-
-    const Nym* nymfile = nullptr;
-
-    nymfile = pWallet->reloadAndGetPrivateNym(
-        NYM_ID,
-        bChecking,
-        szFuncName,
-        nullptr == pPWData ? &thePWData : pPWData);
-    if (nullptr == nymfile) {
-        auto publicNym = wallet_.Nym(NYM_ID);
-
-        if (publicNym) {
-            nymfile = publicNym.get();
-        }
-    }
-
-    return nymfile;
-}
-
-Nym* OT_API::reloadAndGetPrivateNym(
-    const Identifier& NYM_ID,
-    bool bChecking,
-    const char* szFuncName,
-    const OTPasswordData* pPWData) const
-{
-    if (NYM_ID.IsEmpty()) {
-        otErr << OT_METHOD << __FUNCTION__ << ": NYM_ID is empty!";
-        OT_FAIL;
-    }
-
-    OTWallet* pWallet =
-        GetWallet(szFuncName);  // This logs and ASSERTs already.
-    if (nullptr == pWallet) return nullptr;
-    // By this point, pWallet is a good pointer.  (No need to cleanup.)
-    //
-    // This already logs copiously, including szFuncName...
-    //
-    OTPasswordData thePWData(OT_PW_DISPLAY);
-
-    return pWallet->reloadAndGetPrivateNym(
-        NYM_ID,
-        bChecking,
-        szFuncName,
-        nullptr == pPWData ? &thePWData : pPWData);
-}
-
 // static
 std::string OT_API::NymIDFromPaymentCode(__attribute__((unused))
                                          const std::string& paymentCode)
@@ -4562,7 +4239,7 @@ std::string OT_API::NymIDFromPaymentCode(__attribute__((unused))
 }
 
 bool OT_API::AddClaim(
-    Nym& toNym,
+    NymData& toNym,
     const proto::ContactSectionName& section,
     const proto::ContactItemType& type,
     const std::string& value,
@@ -4622,18 +4299,15 @@ std::shared_ptr<Account> OT_API::GetOrLoadAccount(
     const char* szFuncName) const
 {
     const char* szFunc = (nullptr != szFuncName) ? szFuncName : __FUNCTION__;
-    auto nymfile = GetOrLoadPrivateNym(NYM_ID, false, szFunc);
+    auto context = wallet_.ServerContext(NYM_ID, NOTARY_ID);
 
-    if (nullptr == nymfile) {
+    auto nym = context->Nym();
 
-        return {};
-    }
-
-    // By this point, nymfile is a good pointer, and is on the wallet. (No need
+    // By this point, nym is a good pointer, and is on the wallet. (No need
     // to
     // cleanup.)
     return GetOrLoadAccount(
-        *nymfile,
+        *nym,
         accountID,
         NOTARY_ID,
         szFunc);  // This logs plenty.
@@ -4655,14 +4329,12 @@ Cheque* OT_API::WriteCheque(
 {
     rLock lock(lock_);
     auto context = wallet_.mutable_ServerContext(SENDER_NYM_ID, NOTARY_ID);
-    auto nymfile = GetOrLoadPrivateNym(SENDER_NYM_ID, false, __FUNCTION__);
+    auto nymfile = context.It().mutable_Nymfile(__FUNCTION__);
 
-    if (nullptr == nymfile) {
-        return nullptr;
-    }
+    auto nym = context.It().Nym();
 
     auto account =
-        GetOrLoadAccount(*nymfile, SENDER_accountID, NOTARY_ID, __FUNCTION__);
+        GetOrLoadAccount(*nym, SENDER_accountID, NOTARY_ID, __FUNCTION__);
 
     if (false == bool(account)) {
 
@@ -4723,7 +4395,7 @@ Cheque* OT_API::WriteCheque(
 
     // Above this line, the transaction number will be recovered automatically
     number.SetSuccess(true);
-    pCheque->SignContract(*nymfile);
+    pCheque->SignContract(*nym);
     pCheque->SaveContract();
     //
     // DROP A COPY into the Outpayments box...
@@ -4748,14 +4420,12 @@ Cheque* OT_API::WriteCheque(
     pMessage->m_strNotaryID = strNotaryID;
     pMessage->m_ascPayload.SetString(strInstrument);
 
-    pMessage->SignContract(*nymfile);
+    pMessage->SignContract(*nym);
     pMessage->SaveContract();
 
-    nymfile->AddOutpayments(
+    nymfile.It().AddOutpayments(
         *pMessage);  // Now the Nym is responsible to delete it.
                      // It's in his "outpayments".
-    Nym* pSignerNym = nymfile;
-    nymfile->SaveSignedNymfile(*pSignerNym);
 
     return pCheque;
 }
@@ -4816,14 +4486,12 @@ OTPaymentPlan* OT_API::ProposePaymentPlan(
     ) const                                 // number of payments. These last
 {                                           // two arguments are optional.
     auto context = wallet_.mutable_ServerContext(RECIPIENT_NYM_ID, NOTARY_ID);
-    auto nymfile = GetOrLoadPrivateNym(RECIPIENT_NYM_ID, false, __FUNCTION__);
+    auto nymfile = context.It().mutable_Nymfile(__FUNCTION__);
 
-    if (nullptr == nymfile) {
-        return nullptr;
-    }
+    auto nym = context.It().Nym();
 
-    auto account = GetOrLoadAccount(
-        *nymfile, RECIPIENT_accountID, NOTARY_ID, __FUNCTION__);
+    auto account =
+        GetOrLoadAccount(*nym, RECIPIENT_accountID, NOTARY_ID, __FUNCTION__);
 
     if (false == bool(account)) {
 
@@ -4872,12 +4540,7 @@ OTPaymentPlan* OT_API::ProposePaymentPlan(
     // At this point, I know that pPlan is a good pointer that I either
     // have to delete, or return to the caller. CLEANUP WARNING!
     bool bSuccessSetProposal = pPlan->SetProposal(
-        *nymfile,
-        context.It(),
-        *account,
-        PLAN_CONSIDERATION,
-        VALID_FROM,
-        VALID_TO);
+        context.It(), *account, PLAN_CONSIDERATION, VALID_FROM, VALID_TO);
     // WARNING!!!! SetProposal() burns TWO transaction numbers for RECIPIENT.
     // (*nymfile)
     // BELOW THIS POINT, if you have an error, then you must retrieve those
@@ -4964,8 +4627,7 @@ OTPaymentPlan* OT_API::ProposePaymentPlan(
         pPlan = nullptr;
         return nullptr;
     }
-    pPlan->SignContract(
-        *nymfile);          // Here we have saved the MERCHANT's VERSION.
+    pPlan->SignContract(*nym);  // Here we have saved the MERCHANT's VERSION.
     pPlan->SaveContract();  // A copy of this will be attached to the CUSTOMER's
                             // version as well.
     //
@@ -4986,14 +4648,12 @@ OTPaymentPlan* OT_API::ProposePaymentPlan(
     pMessage->m_strNotaryID = strNotaryID;
     pMessage->m_ascPayload.SetString(strInstrument);
 
-    pMessage->SignContract(*nymfile);
+    pMessage->SignContract(*nym);
     pMessage->SaveContract();
 
-    nymfile->AddOutpayments(
+    nymfile.It().AddOutpayments(
         *pMessage);  // Now the Nym is responsible to delete it.
                      // It's in his "outpayments".
-    Nym* pSignerNym = nymfile;
-    nymfile->SaveSignedNymfile(*pSignerNym);
     return pPlan;
 }
 
@@ -5019,14 +4679,12 @@ bool OT_API::ConfirmPaymentPlan(
 {
     rLock lock(lock_);
     auto context = wallet_.mutable_ServerContext(SENDER_NYM_ID, NOTARY_ID);
-    auto nymfile = GetOrLoadPrivateNym(SENDER_NYM_ID, false, __FUNCTION__);
+    auto nymfile = context.It().mutable_Nymfile(__FUNCTION__);
 
-    if (nullptr == nymfile) {
-        return false;
-    }
+    auto nym = context.It().Nym();
 
     auto account =
-        GetOrLoadAccount(*nymfile, SENDER_accountID, NOTARY_ID, __FUNCTION__);
+        GetOrLoadAccount(*nym, SENDER_accountID, NOTARY_ID, __FUNCTION__);
 
     if (false == bool(account)) {
 
@@ -5051,11 +4709,7 @@ bool OT_API::ConfirmPaymentPlan(
     // The "Creation Date" of the agreement is re-set here.
     //
     bool bConfirmed = thePlan.Confirm(
-        *nymfile,
-        context.It(),
-        *account,
-        pMerchantNym.get(),
-        &RECIPIENT_NYM_ID);
+        context.It(), *account, pMerchantNym.get(), &RECIPIENT_NYM_ID);
     //
     // WARNING:  The call to "Confirm()" uses TWO transaction numbers from
     // nymfile!
@@ -5077,8 +4731,7 @@ bool OT_API::ConfirmPaymentPlan(
         thePlan.HarvestClosingNumbers(context.It());
         return false;
     }
-    thePlan.SignContract(
-        *nymfile);           // Here we have saved the CUSTOMER's version,
+    thePlan.SignContract(*nym);  // Here we have saved the CUSTOMER's version,
     thePlan.SaveContract();  // which contains a copy of the merchant's version.
     //
     // DROP A COPY into the Outpayments box...
@@ -5098,14 +4751,12 @@ bool OT_API::ConfirmPaymentPlan(
     pMessage->m_strNotaryID = strNotaryID;
     pMessage->m_ascPayload.SetString(strInstrument);
 
-    pMessage->SignContract(*nymfile);
+    pMessage->SignContract(*nym);
     pMessage->SaveContract();
 
-    nymfile->AddOutpayments(
+    nymfile.It().AddOutpayments(
         *pMessage);  // Now the Nym is responsible to delete it.
                      // It's in his "outpayments".
-    Nym* pSignerNym = nymfile;
-    nymfile->SaveSignedNymfile(*pSignerNym);
     return true;
 }
 
@@ -5130,11 +4781,9 @@ Purse* OT_API::LoadPurse(
     const String strNotaryID(NOTARY_ID);
     const String strNymID(NYM_ID);
     const String strInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
-    auto nymfile = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__, &thePWData);
+    auto context = wallet_.ServerContext(NYM_ID, NOTARY_ID);
 
-    if (nullptr == nymfile) {
-        return nullptr;
-    }
+    auto nym = context->Nym();
 
     Purse* pPurse = new Purse(NOTARY_ID, INSTRUMENT_DEFINITION_ID, NYM_ID);
     OT_ASSERT_MSG(
@@ -5148,7 +4797,7 @@ Purse* OT_API::LoadPurse(
             strNotaryID.Get(),
             strNymID.Get(),
             strInstrumentDefinitionID.Get())) {
-        if (pPurse->VerifySignature(*nymfile) &&
+        if (pPurse->VerifySignature(*nym) &&
             (NOTARY_ID == pPurse->GetNotaryID()) &&
             (INSTRUMENT_DEFINITION_ID == pPurse->GetInstrumentDefinitionID())) {
             return pPurse;
@@ -5290,11 +4939,7 @@ OTNym_or_SymmetricKey* OT_API::LoadPurseAndOwnerFromString(
     const Nym* pOwnerNym =
         nullptr;  // In the case where there is an owner, this will point to it.
     if (bDoesOwnerIDExist) {
-        pOwnerNym =
-            bForEncrypting
-                ? GetOrLoadNym(*pOWNER_ID, false, __FUNCTION__, &thePWData1)
-                : GetOrLoadPrivateNym(
-                      *pOWNER_ID, false, __FUNCTION__, &thePWData1);
+        pOwnerNym = wallet_.Nym(*pOWNER_ID).get();
 
         if (nullptr == pOwnerNym) {
             return nullptr;
@@ -5455,7 +5100,7 @@ OTNym_or_SymmetricKey* OT_API::LoadPurseAndOwnerForMerge(
              !thePurse.IsPasswordProtected())  // && (nullptr != pOWNER_ID))
                                                // //
                                                // checked inside the block.
-            ) {
+        ) {
             const Identifier* pActualOwnerID =
                 thePurse.IsNymIDIncluded() ? &idPurseNym : pOWNER_ID;
 
@@ -5468,13 +5113,8 @@ OTNym_or_SymmetricKey* OT_API::LoadPurseAndOwnerForMerge(
                          "function. (Failure. Unable to access purse.)\n";
                 return nullptr;
             }
-            const Nym* pOwnerNym =
-                bCanBePublic
-                    ? GetOrLoadNym(
-                          *pActualOwnerID, false, __FUNCTION__, &thePWData)
-                    : GetOrLoadPrivateNym(
-                          *pActualOwnerID, false, __FUNCTION__, &thePWData);
-            if (nullptr == pOwnerNym) {
+            auto pOwnerNym = wallet_.Nym(*pActualOwnerID);
+            if (false == bool(pOwnerNym)) {
                 const String strAttemptedID(*pActualOwnerID);
                 otErr << OT_METHOD << __FUNCTION__
                       << ": Failed: The purse is encrypted to a specific NymID "
@@ -5888,14 +5528,11 @@ bool OT_API::Wallet_ImportPurse(
         (nullptr == pstrDisplay) ? OT_PW_DISPLAY : pstrDisplay->Get());
     OTPassword thePassword;  // Only used in the case of password-protected
                              // purses.
-    Nym* nymfile = GetOrLoadPrivateNym(
-        SIGNER_ID, false, __FUNCTION__, &cashPasswordReason);
+    auto context = wallet_.ServerContext(SIGNER_ID, NOTARY_ID);
 
-    if (nullptr == nymfile) {
-        return false;
-    }
+    auto nym = context->Nym();
 
-    // By this point, nymfile is a good pointer, and is on the wallet. (No need
+    // By this point, nym is a good pointer, and is on the wallet. (No need
     // to
     // cleanup.)
     std::unique_ptr<Purse> pNewPurse(
@@ -5944,7 +5581,7 @@ bool OT_API::Wallet_ImportPurse(
     {
         pOldPurse.reset(
             new Purse(NOTARY_ID, INSTRUMENT_DEFINITION_ID, SIGNER_ID));
-    } else if (!pOldPurse->VerifySignature(*nymfile)) {
+    } else if (!pOldPurse->VerifySignature(*nym)) {
         otErr
             << __FUNCTION__
             << ": Failed to verify signature on old purse. (Very strange...)\n";
@@ -5979,24 +5616,25 @@ bool OT_API::Wallet_ImportPurse(
     // be entered, so it can be shown to the user on the passphrase dialog.)
     //
     if (pOldPurse->Merge(
-            *nymfile,     // signer
-            *nymfile,     // old owner (must be private, if a nym.)
+            *nym,         // signer
+            *nym,         // old owner (must be private, if a nym.)
             *pNewOwner,   // new owner (must be private, if a nym.)
             *pNewPurse))  // new purse (being merged into old.)
     {
         pOldPurse->ReleaseSignatures();
-        pOldPurse->SignContract(*nymfile);
+        pOldPurse->SignContract(*nym);
         pOldPurse->SaveContract();
         return SavePurse(
             NOTARY_ID, INSTRUMENT_DEFINITION_ID, SIGNER_ID, *pOldPurse);
     } else  // Failed merge.
     {
         String strNymID1, strNymID2;
-        nymfile->GetIdentifier(strNymID1);
+        nym->GetIdentifier(strNymID1);
         pNewOwner->GetIdentifier(strNymID2);
         otErr << OT_METHOD << __FUNCTION__ << ": (OldNymID: " << strNymID1
-              << ".) (New Owner ID: " << strNymID2 << ".) Failure merging new "
-                                                      "purse:\n\n"
+              << ".) (New Owner ID: " << strNymID2
+              << ".) Failure merging new "
+                 "purse:\n\n"
               << THE_PURSE << "\n\n";
     }
     return false;
@@ -6039,10 +5677,10 @@ Token* OT_API::Token_ChangeOwner(
             ? "Enter the passphrase for this purse. (Token_ChangeOwner.)"
             : pstrDisplay->Get());
     OTPasswordData cashPasswordReason(strWalletReason);
-    Nym* pSignerNym = GetOrLoadPrivateNym(
-        SIGNER_NYM_ID, false, __FUNCTION__, &cashPasswordReason);
+    auto context = wallet_.ServerContext(SIGNER_NYM_ID, NOTARY_ID);
+    auto pSignerNym = context->Nymfile(cashPasswordReason);
 
-    if (nullptr == pSignerNym) {
+    if (false == bool(pSignerNym)) {
         return nullptr;
     }
 
@@ -6070,8 +5708,7 @@ Token* OT_API::Token_ChangeOwner(
     if (!bOldOwnerIsPurse)  // The old owner is a NYM (public/private keys.)
     {
         oldOwnerNymID.SetString(OLD_OWNER);
-        Nym* pOldNym = GetOrLoadPrivateNym(
-            oldOwnerNymID, false, __FUNCTION__, &cashPasswordReason);
+        auto pOldNym = wallet_.Nym(oldOwnerNymID);
 
         if (nullptr == pOldNym) {
             return nullptr;
@@ -6116,11 +5753,7 @@ Token* OT_API::Token_ChangeOwner(
     if (!bNewOwnerIsPurse)  // The new owner is a NYM
     {
         newOwnerNymID.SetString(NEW_OWNER);
-        const Nym* pNewNym = GetOrLoadNym(
-            newOwnerNymID,
-            false,
-            __FUNCTION__,
-            &cashPasswordReason);  // These copiously log, and ASSERT.
+        auto pNewNym = wallet_.Nym(newOwnerNymID);
         if (nullptr == pNewNym) return nullptr;
         pNewOwner = new OTNym_or_SymmetricKey(*pNewNym, &strWalletReason);
         OT_ASSERT(nullptr != pNewOwner);
@@ -6166,10 +5799,9 @@ Token* OT_API::Token_ChangeOwner(
     std::unique_ptr<Token> token(
         Token::TokenFactory(THE_TOKEN, NOTARY_ID, INSTRUMENT_DEFINITION_ID));
     OT_ASSERT(nullptr != token);
-    if (false ==
-        token->ReassignOwnership(
-            *pOldOwner,   // must be private, if a Nym.
-            *pNewOwner))  // can be public, if a Nym.
+    if (false == token->ReassignOwnership(
+                     *pOldOwner,   // must be private, if a Nym.
+                     *pNewOwner))  // can be public, if a Nym.
     {
         otErr << OT_METHOD << __FUNCTION__
               << ": Error re-assigning ownership of token.\n";
@@ -6178,7 +5810,11 @@ Token* OT_API::Token_ChangeOwner(
                << ": Success re-assigning ownership of token.\n";
 
         token->ReleaseSignatures();
-        token->SignContract(*pSignerNym);
+
+        auto pNym = wallet_.Nym(pSignerNym->GetConstID());
+        OT_ASSERT(nullptr != pNym);
+
+        token->SignContract(*pNym);
         token->SaveContract();
 
         return token.release();
@@ -6252,14 +5888,12 @@ std::shared_ptr<Account> OT_API::LoadAssetAccount(
         GetWallet(__FUNCTION__);  // This logs and ASSERTs already.
     if (nullptr == pWallet) return nullptr;
     // By this point, pWallet is a good pointer.  (No need to cleanup.)
-    auto nymfile = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
+    auto context = wallet_.ServerContext(NYM_ID, NOTARY_ID);
+    auto nym = context->Nym();
 
-    if (nullptr == nymfile) {
-        return nullptr;
-    }
-    // By this point, nymfile is a good pointer, and is on the wallet.
+    // By this point, nym is a good pointer, and is on the wallet.
     // (No need to cleanup.)
-    return pWallet->LoadAccount(*nymfile, ACCOUNT_ID, NOTARY_ID, __FUNCTION__);
+    return pWallet->LoadAccount(*nym, ACCOUNT_ID, NOTARY_ID, __FUNCTION__);
 }
 
 // LOAD NYMBOX
@@ -6271,12 +5905,10 @@ Ledger* OT_API::LoadNymbox(
 {
     rLock lock(lock_);
 
-    auto nymfile = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
+    auto context = wallet_.ServerContext(NYM_ID, NOTARY_ID);
+    auto nym = context->Nym();
 
-    if (nullptr == nymfile) {
-        return nullptr;
-    }
-    // By this point, nymfile is a good pointer, and is on the wallet.
+    // By this point, nym is a good pointer, and is on the wallet.
     // (No need to cleanup later.)
     // ---------------------------------------------
     std::unique_ptr<Ledger> pLedger{
@@ -6286,14 +5918,9 @@ Ledger* OT_API::LoadNymbox(
     //                  API.");
     OT_NEW_ASSERT_MSG(pLedger, "Error allocating memory in the OT API.");
     // ---------------------------------------------
-    if (pLedger->LoadNymbox() && pLedger->VerifyAccount(*nymfile))
+    if (pLedger->LoadNymbox() && pLedger->VerifyAccount(*nym))
         return pLedger.release();
-    else {
-        String strNymID(NYM_ID);
-        //        otErr << "OT_API::" __FUNCTION__ ": Unable to load or verify
-        //        nymbox: "
-        //              << strNymID << "\n";
-    }
+
     return nullptr;
 }
 
@@ -6311,9 +5938,7 @@ Ledger* OT_API::LoadNymboxNoVerify(
 {
     rLock lock(lock_);
 
-    auto nymfile = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
-
-    if (nullptr == nymfile) {
+    if (!wallet_.IsLocalNym(NYM_ID.str())) {
         return nullptr;
     }
     // By this point, nymfile is a good pointer, and is on the wallet.
@@ -6343,19 +5968,17 @@ Ledger* OT_API::LoadInbox(
 {
     rLock lock(lock_);
 
-    auto nymfile = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
+    auto context = wallet_.ServerContext(NYM_ID, NOTARY_ID);
+    auto nym = context->Nym();
 
-    if (nullptr == nymfile) {
-        return nullptr;
-    }
-    // By this point, nymfile is a good pointer, and is on the wallet.
+    // By this point, nym is a good pointer, and is on the wallet.
     // (No need to cleanup later.)
     // ---------------------------------------------
     std::unique_ptr<Ledger> pLedger{
         Ledger::GenerateLedger(NYM_ID, ACCOUNT_ID, NOTARY_ID, Ledger::inbox)};
     OT_NEW_ASSERT_MSG(pLedger, "Error allocating memory in the OT API.");
 
-    if (pLedger->LoadInbox() && pLedger->VerifyAccount(*nymfile))
+    if (pLedger->LoadInbox() && pLedger->VerifyAccount(*nym))
         return pLedger.release();
     else {
         String strNymID(NYM_ID), strAcctID(ACCOUNT_ID);
@@ -6383,9 +6006,7 @@ Ledger* OT_API::LoadInboxNoVerify(
 {
     rLock lock(lock_);
 
-    auto nymfile = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
-
-    if (nullptr == nymfile) {
+    if (!wallet_.IsLocalNym(NYM_ID.str())) {
         return nullptr;
     }
     // By this point, nymfile is a good pointer, and is on the wallet.
@@ -6416,19 +6037,17 @@ Ledger* OT_API::LoadOutbox(
 {
     rLock lock(lock_);
 
-    auto nymfile = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
+    auto context = wallet_.ServerContext(NYM_ID, NOTARY_ID);
+    auto nym = context->Nym();
 
-    if (nullptr == nymfile) {
-        return nullptr;
-    }
-    // By this point, nymfile is a good pointer, and is on the wallet.
+    // By this point, nym is a good pointer, and is on the wallet.
     // (No need to cleanup later.)
     // ---------------------------------------------
     std::unique_ptr<Ledger> pLedger{
         Ledger::GenerateLedger(NYM_ID, ACCOUNT_ID, NOTARY_ID, Ledger::outbox)};
     OT_NEW_ASSERT_MSG(pLedger, "Error allocating memory in the OT API");
 
-    if (pLedger->LoadOutbox() && pLedger->VerifyAccount(*nymfile))
+    if (pLedger->LoadOutbox() && pLedger->VerifyAccount(*nym))
         return pLedger.release();
     else {
         String strNymID(NYM_ID), strAcctID(ACCOUNT_ID);
@@ -6456,9 +6075,7 @@ Ledger* OT_API::LoadOutboxNoVerify(
 {
     rLock lock(lock_);
 
-    auto nymfile = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
-
-    if (nullptr == nymfile) {
+    if (!wallet_.IsLocalNym(NYM_ID.str())) {
         return nullptr;
     }
     // By this point, nymfile is a good pointer, and is on the wallet.
@@ -6486,19 +6103,18 @@ Ledger* OT_API::LoadPaymentInbox(
 {
     rLock lock(lock_);
 
-    auto nymfile = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
+    auto context = wallet_.ServerContext(NYM_ID, NOTARY_ID);
 
-    if (nullptr == nymfile) {
-        return nullptr;
-    }
-    // By this point, nymfile is a good pointer, and is on the wallet.
+    auto nym = context->Nym();
+
+    // By this point, nym is a good pointer, and is on the wallet.
     // (No need to cleanup later.)
     // ---------------------------------------------
     std::unique_ptr<Ledger> pLedger{Ledger::GenerateLedger(
         NYM_ID, NYM_ID, NOTARY_ID, Ledger::paymentInbox)};
     OT_NEW_ASSERT_MSG(pLedger, "Error allocating memory in the OT API");
 
-    if (pLedger->LoadPaymentInbox() && pLedger->VerifyAccount(*nymfile))
+    if (pLedger->LoadPaymentInbox() && pLedger->VerifyAccount(*nym))
         return pLedger.release();
     else {
         String strNymID(NYM_ID), strAcctID(NYM_ID);
@@ -6516,9 +6132,7 @@ Ledger* OT_API::LoadPaymentInboxNoVerify(
 {
     rLock lock(lock_);
 
-    auto nymfile = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
-
-    if (nullptr == nymfile) {
+    if (!wallet_.IsLocalNym(NYM_ID.str())) {
         return nullptr;
     }
     // By this point, nymfile is a good pointer, and is on the wallet.
@@ -6547,12 +6161,10 @@ Ledger* OT_API::LoadRecordBox(
 {
     rLock lock(lock_);
 
-    auto nymfile = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
+    auto context = wallet_.ServerContext(NYM_ID, NOTARY_ID);
+    auto nym = context->Nym();
 
-    if (nullptr == nymfile) {
-        return nullptr;
-    }
-    // By this point, nymfile is a good pointer, and is on the wallet.
+    // By this point, nym is a good pointer, and is on the wallet.
     // (No need to cleanup later.)
     // ---------------------------------------------
     std::unique_ptr<Ledger> pLedger{Ledger::GenerateLedger(
@@ -6561,7 +6173,7 @@ Ledger* OT_API::LoadRecordBox(
 
     const bool bLoaded = pLedger->LoadRecordBox();
     bool bVerified = false;
-    if (bLoaded) bVerified = pLedger->VerifyAccount(*nymfile);
+    if (bLoaded) bVerified = pLedger->VerifyAccount(*nym);
 
     if (bLoaded && bVerified)
         return pLedger.release();
@@ -6582,9 +6194,7 @@ Ledger* OT_API::LoadRecordBoxNoVerify(
 {
     rLock lock(lock_);
 
-    auto nymfile = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
-
-    if (nullptr == nymfile) {
+    if (!wallet_.IsLocalNym(NYM_ID.str())) {
         return nullptr;
     }
     // By this point, nymfile is a good pointer, and is on the wallet.
@@ -6612,12 +6222,11 @@ Ledger* OT_API::LoadExpiredBox(
 {
     rLock lock(lock_);
 
-    auto nymfile = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
+    auto context = wallet_.ServerContext(NYM_ID, NOTARY_ID);
 
-    if (nullptr == nymfile) {
-        return nullptr;
-    }
-    // By this point, nymfile is a good pointer, and is on the wallet.
+    auto nym = context->Nym();
+
+    // By this point, nym is a good pointer, and is on the wallet.
     // (No need to cleanup later.)
     // ---------------------------------------------
     std::unique_ptr<Ledger> pLedger{
@@ -6626,7 +6235,7 @@ Ledger* OT_API::LoadExpiredBox(
 
     const bool bLoaded = pLedger->LoadExpiredBox();
     bool bVerified = false;
-    if (bLoaded) bVerified = pLedger->VerifyAccount(*nymfile);
+    if (bLoaded) bVerified = pLedger->VerifyAccount(*nym);
 
     if (bLoaded && bVerified)
         return pLedger.release();
@@ -6645,9 +6254,7 @@ Ledger* OT_API::LoadExpiredBoxNoVerify(
 {
     rLock lock(lock_);
 
-    auto nymfile = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
-
-    if (nullptr == nymfile) {
+    if (!wallet_.IsLocalNym(NYM_ID.str())) {
         return nullptr;
     }
     // By this point, nymfile is a good pointer, and is on the wallet.
@@ -6677,13 +6284,10 @@ bool OT_API::ClearExpired(
 {
     rLock lock(lock_);
 
-    auto nymfile = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
+    auto context = wallet_.ServerContext(NYM_ID, NOTARY_ID);
+    auto nym = context->Nym();
 
-    if (nullptr == nymfile) {
-        return false;
-    }
-
-    // By this point, nymfile is a good pointer, and is on the wallet. (No need
+    // By this point, nym is a good pointer, and is on the wallet. (No need
     // to
     // cleanup.)
     std::unique_ptr<Ledger> pExpiredBox(LoadExpiredBox(NOTARY_ID, NYM_ID));
@@ -6701,7 +6305,7 @@ bool OT_API::ClearExpired(
     if (bClearAll) {
         pExpiredBox->ReleaseTransactions();
         pExpiredBox->ReleaseSignatures();
-        pExpiredBox->SignContract(*nymfile);
+        pExpiredBox->SignContract(*nym);
         pExpiredBox->SaveContract();
         pExpiredBox->SaveExpiredBox();
         return true;
@@ -6733,7 +6337,7 @@ bool OT_API::ClearExpired(
     }
     if (bRemoved) {
         pExpiredBox->ReleaseSignatures();
-        pExpiredBox->SignContract(*nymfile);
+        pExpiredBox->SignContract(*nym);
         pExpiredBox->SaveContract();
         pExpiredBox->SaveExpiredBox();
         return true;
@@ -6945,11 +6549,9 @@ bool OT_API::RecordPayment(
 {
     rLock lock(lock_);
     auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
-    auto nymfile = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
+    auto nymfile = context.It().mutable_Nymfile(__FUNCTION__);
 
-    if (nullptr == nymfile) {
-        return false;
-    }
+    auto nym = context.It().Nym();
 
     Ledger* pRecordBox = nullptr;
     Ledger* pExpiredBox = nullptr;
@@ -7001,7 +6603,7 @@ bool OT_API::RecordPayment(
     // second block:
     std::unique_ptr<Message> theMessageAngel;
 
-    bool bRemoved = false, bNeedToSaveTheNym = false;
+    bool bRemoved = false;
 
     if (bIsInbox) {
         pPaymentInbox = LoadPaymentInbox(NOTARY_ID, NYM_ID);
@@ -7030,7 +6632,7 @@ bool OT_API::RecordPayment(
             return false;
         }
         std::unique_ptr<OTPayment> pPayment(
-            GetInstrumentByIndex(*nymfile, nIndex, *pPaymentInbox));
+            GetInstrumentByIndex(*nym, nIndex, *pPaymentInbox));
 
         pPayment->IsExpired(bIsExpired);
 
@@ -7065,14 +6667,14 @@ bool OT_API::RecordPayment(
     } else  // Outpayments box (which is not stored in an OTLedger like payments
             // inbox, but rather, is stored similarly to outmail.)
     {
-        if ((nIndex < 0) || (nIndex >= nymfile->GetOutpaymentsCount())) {
+        if ((nIndex < 0) || (nIndex >= nymfile.It().GetOutpaymentsCount())) {
             otErr << OT_METHOD << __FUNCTION__
                   << ": Unable to find payment in outpayment box based "
                      "on index "
                   << nIndex << ". (Out of bounds.)\n";
             return false;
         }
-        Message* pMessage = nymfile->GetOutpaymentsByIndex(nIndex);
+        Message* pMessage = nymfile.It().GetOutpaymentsByIndex(nIndex);
 
         if (nullptr == pMessage) {
             otErr << OT_METHOD << __FUNCTION__
@@ -7203,13 +6805,13 @@ bool OT_API::RecordPayment(
                 if (thePayment.IsVoucher()) {
                     bPaymentSenderIsNym =
                         (thePayment.GetRemitterNymID(theSenderNymID) &&
-                         nymfile->CompareID(theSenderNymID));
+                         nymfile.It().CompareID(theSenderNymID));
                     bFromAcctIsAvailable =
                         thePayment.GetRemitterAcctID(theSenderAcctID);
                 } else {
                     bPaymentSenderIsNym =
                         (thePayment.GetSenderNymID(theSenderNymID) &&
-                         nymfile->CompareID(theSenderNymID));
+                         nymfile.It().CompareID(theSenderNymID));
                     bFromAcctIsAvailable =
                         thePayment.GetSenderAcctID(theSenderAcctID);
                 }
@@ -7862,7 +7464,7 @@ bool OT_API::RecordPayment(
                                         // paymentReceipts or finalReceipts
                                         // lingering in there...
                                         //
-                                        if (agent->IsValidSigner(*nymfile)) {
+                                        if (agent->IsValidSigner(*nym)) {
                                             const String& strAcctID =
                                                 partyAcct->GetAcctID();
                                             const Identifier accountID(
@@ -7876,8 +7478,7 @@ bool OT_API::RecordPayment(
                                                     (theSenderInbox
                                                          .LoadInbox() &&
                                                      theSenderInbox
-                                                         .VerifyAccount(
-                                                             *nymfile));
+                                                         .VerifyAccount(*nym));
 
                                             if (bSuccessLoadingSenderInbox) {
                                                 // Loop through the inbox and
@@ -7920,7 +7521,7 @@ bool OT_API::RecordPayment(
 
                         const bool bSuccessLoadingSenderInbox =
                             (theSenderInbox.LoadInbox() &&
-                             theSenderInbox.VerifyAccount(*nymfile));
+                             theSenderInbox.VerifyAccount(*nym));
 
                         if (bSuccessLoadingSenderInbox) {
                             // Loop through the inbox and see if there are any
@@ -7990,8 +7591,6 @@ bool OT_API::RecordPayment(
                     } else {
                         context.It().RecoverAvailableNumber(lPaymentTransNum);
                     }
-
-                    bNeedToSaveTheNym = true;
 
                     // Note, food for thought: IF the receipt had popped into
                     // your asset
@@ -8112,7 +7711,7 @@ bool OT_API::RecordPayment(
                         strInstrument);  // the cheque, invoice, etc that used
                                          // to be in the outpayments box.
 
-                    pNewTransaction->SignContract(*nymfile);
+                    pNewTransaction->SignContract(*nym);
                     pNewTransaction->SaveContract();
                     transaction = pNewTransaction;
 
@@ -8133,7 +7732,7 @@ bool OT_API::RecordPayment(
         //
         // Now we actually remove the message from the outpayments...
         //
-        bRemoved = nymfile->RemoveOutpaymentsByIndex(
+        bRemoved = nymfile.It().RemoveOutpaymentsByIndex(
             nIndex, false);  // bDeleteIt=true by default
         theMessageAngel.reset(
             pMessage);  // Since we chose to keep pMessage alive after removing
@@ -8172,7 +7771,7 @@ bool OT_API::RecordPayment(
             }
 
             pActualBox->ReleaseSignatures();
-            pActualBox->SignContract(*nymfile);
+            pActualBox->SignContract(*nym);
             pActualBox->SaveContract();
             if (bIsExpired)
                 pActualBox->SaveExpiredBox();  // todo log failure.
@@ -8191,7 +7790,7 @@ bool OT_API::RecordPayment(
         }
         if (bIsInbox) {
             pPaymentInbox->ReleaseSignatures();
-            pPaymentInbox->SignContract(*nymfile);
+            pPaymentInbox->SignContract(*nym);
             pPaymentInbox->SaveContract();
 
             const bool bSavedInbox =
@@ -8200,14 +7799,6 @@ bool OT_API::RecordPayment(
             if (!bSavedInbox)
                 otErr << "/n" << __FUNCTION__
                       << ": Unable to Save PaymentInbox./n";
-        } else  // outbox
-        {
-            // Outpayments are currently stored in the Nymfile.
-            //
-            bNeedToSaveTheNym = true;
-        }
-        if (bNeedToSaveTheNym) {
-            nymfile->SaveSignedNymfile(*nymfile);
         }
     } else {
         otErr << OT_METHOD << __FUNCTION__ << ": Unable to remove from payment "
@@ -8229,13 +7820,10 @@ bool OT_API::ClearRecord(
 {
     rLock lock(lock_);
 
-    auto nymfile = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
+    auto context = wallet_.ServerContext(NYM_ID, NOTARY_ID);
+    auto nym = context->Nym();
 
-    if (nullptr == nymfile) {
-        return false;
-    }
-
-    // By this point, nymfile is a good pointer, and is on the wallet. (No need
+    // By this point, nym is a good pointer, and is on the wallet. (No need
     // to
     // cleanup.)
     std::unique_ptr<Ledger> pRecordBox(
@@ -8254,7 +7842,7 @@ bool OT_API::ClearRecord(
     if (bClearAll) {
         pRecordBox->ReleaseTransactions();
         pRecordBox->ReleaseSignatures();
-        pRecordBox->SignContract(*nymfile);
+        pRecordBox->SignContract(*nym);
         pRecordBox->SaveContract();
         pRecordBox->SaveRecordBox();
         return true;
@@ -8286,7 +7874,7 @@ bool OT_API::ClearRecord(
     }
     if (bRemoved) {
         pRecordBox->ReleaseSignatures();
-        pRecordBox->SignContract(*nymfile);
+        pRecordBox->SignContract(*nym);
         pRecordBox->SaveContract();
         pRecordBox->SaveRecordBox();
         return true;
@@ -8308,7 +7896,7 @@ bool OT_API::ClearRecord(
 // to go.
 //
 bool OT_API::ResyncNymWithServer(
-    Nym& theNym,
+    NymFile& theNym,
     const Ledger& theNymbox,
     const Nym& theMessageNym) const
 {
@@ -8468,10 +8056,9 @@ void OT_API::FlushSentMessages(
 {
     rLock lock(lock_);
     auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
-    Nym* nymfile =
-        GetNym(NYM_ID, __FUNCTION__);  // This logs and ASSERTs already.
+    auto nym = wallet_.Nym(NYM_ID);
 
-    if (nullptr == nymfile) return;
+    if (false == bool(nym)) return;
 
     const String strNotaryID(NOTARY_ID), strNymID(NYM_ID);
 
@@ -8543,9 +8130,8 @@ void OT_API::FlushSentMessages(
         strNymID,
         bHarvestingForRetry,
         context.It(),
-        *nymfile);  // FYI: This HARVESTS any sent messages that
-                    // need
-                    // harvesting, before flushing them all.
+        nym->ID());  // FYI: This HARVESTS any sent messages that need
+                     // harvesting, before flushing them all.
 }
 
 bool OT_API::HaveAlreadySeenReply(
@@ -8554,10 +8140,6 @@ bool OT_API::HaveAlreadySeenReply(
     const RequestNumber& lRequestNumber) const
 {
     auto context = wallet_.ServerContext(NYM_ID, NOTARY_ID);
-
-    if (!context) {
-        return false;
-    }
 
     return context->VerifyAcknowledgedNumber(lRequestNumber);
 }
@@ -8790,11 +8372,7 @@ Basket* OT_API::GenerateBasketExchange(
 {
     rLock lock(lock_);
     auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
-    auto nymfile = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
-
-    if (nullptr == nymfile) {
-        return nullptr;
-    }
+    auto nym = context.It().Nym();
 
     auto contract =
         GetBasketContract(BASKET_INSTRUMENT_DEFINITION_ID, __FUNCTION__);
@@ -8802,8 +8380,7 @@ Basket* OT_API::GenerateBasketExchange(
     if (nullptr == contract) return nullptr;
     // By this point, contract is a good pointer, and is on the wallet. (No
     // need to cleanup.)
-    auto account =
-        GetOrLoadAccount(*nymfile, accountID, NOTARY_ID, __FUNCTION__);
+    auto account = GetOrLoadAccount(*nym, accountID, NOTARY_ID, __FUNCTION__);
 
     if (false == bool(account)) {
 
@@ -8860,7 +8437,7 @@ Basket* OT_API::GenerateBasketExchange(
 
         // Export the Basket object into a string, add it as
         // a payload on my request, and send to server.
-        pRequestBasket->SignContract(*nymfile);
+        pRequestBasket->SignContract(*nym);
         pRequestBasket->SaveContract();
     }  // *nymfile apparently has enough transaction numbers to exchange the
     // basket.
@@ -8878,11 +8455,7 @@ bool OT_API::AddBasketExchangeItem(
 {
     rLock lock(lock_);
     auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
-    auto nymfile = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
-
-    if (nullptr == nymfile) {
-        return false;
-    }
+    auto nym = context.It().Nym();
 
     auto contract = wallet_.UnitDefinition(INSTRUMENT_DEFINITION_ID);
 
@@ -8891,7 +8464,7 @@ bool OT_API::AddBasketExchangeItem(
     }
 
     auto account =
-        GetOrLoadAccount(*nymfile, ASSET_ACCOUNT_ID, NOTARY_ID, __FUNCTION__);
+        GetOrLoadAccount(*nym, ASSET_ACCOUNT_ID, NOTARY_ID, __FUNCTION__);
 
     if (false == bool(account)) {
 
@@ -8935,7 +8508,7 @@ bool OT_API::AddBasketExchangeItem(
     theBasket.AddRequestSubContract(
         INSTRUMENT_DEFINITION_ID, ASSET_ACCOUNT_ID, number);
     theBasket.ReleaseSignatures();
-    theBasket.SignContract(*nymfile);
+    theBasket.SignContract(*nym);
     theBasket.SaveContract();
 
     return true;
@@ -9601,8 +9174,9 @@ CommandResult OT_API::notarizeDeposit(
         Item::CreateItemFromTransaction(*transaction, Item::deposit));
 
     if (false == bool(item)) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Failed generate deposit txn "
-                                              "item. "
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Failed generate deposit txn "
+                 "item. "
               << "account " << String(accountID) << std::endl;
 
         return output;
@@ -10241,11 +9815,7 @@ bool OT_API::DiscardCheque(
 {
     rLock lock(lock_);
     auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
-    auto nymfile = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
-
-    if (nullptr == nymfile) {
-        return false;
-    }
+    auto nym = context.It().Nym();
 
     auto pServer = wallet_.Server(NOTARY_ID);
 
@@ -10253,8 +9823,7 @@ bool OT_API::DiscardCheque(
         return false;
     }
 
-    auto account =
-        GetOrLoadAccount(*nymfile, accountID, NOTARY_ID, __FUNCTION__);
+    auto account = GetOrLoadAccount(*nym, accountID, NOTARY_ID, __FUNCTION__);
 
     if (false == bool(account)) {
 
@@ -10596,9 +10165,7 @@ CommandResult OT_API::depositPaymentPlan(
             return output;
         }
 
-        auto nymfile = context.mutable_Nymfile(__FUNCTION__);
-
-        if (!plan.CancelBeforeActivation(nymfile.It())) {
+        if (!plan.CancelBeforeActivation(nym)) {
             otErr << OT_METHOD << __FUNCTION__
                   << ": Error: attempted to cancel (pre-emptively, "
                      "before activation) a payment plan, "
@@ -13208,13 +12775,13 @@ bool OT_API::Ledger_AddTransaction(
         "Expected newly allocated transaction "
         "(ready to add to ledger...). Got nullptr instead.");
 
-    auto nymfile = GetOrLoadPrivateNym(theNymID, false, __FUNCTION__);
+    auto nym = wallet_.Nym(theNymID);
 
-    if (nullptr == nymfile) {
+    if (false == bool(nym)) {
         return false;
     }
     // --------------------------------------------------
-    if (!ledger.VerifyAccount(*nymfile)) {
+    if (!ledger.VerifyAccount(*nym)) {
         const Identifier& theAccountID = ledger.GetPurportedAccountID();
         String strAcctID(theAccountID);
         otErr << OT_METHOD << __FUNCTION__
@@ -13223,11 +12790,12 @@ bool OT_API::Ledger_AddTransaction(
     }
     // At this point, I know ledger loaded and verified successfully.
     // --------------------------------------------------
-    if (!transaction->VerifyAccount(*nymfile)) {
+    if (!transaction->VerifyAccount(*nym)) {
         const Identifier& theAccountID = ledger.GetPurportedAccountID();
         String strAcctID(theAccountID);
-        otErr << OT_METHOD << __FUNCTION__ << ": Error verifying transaction. "
-                                              "Acct ID: "
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Error verifying transaction. "
+                 "Acct ID: "
               << strAcctID << "\n";
         return false;
     }
@@ -13246,7 +12814,7 @@ bool OT_API::Ledger_AddTransaction(
                                                       // cleanup.
 
     ledger.ReleaseSignatures();
-    ledger.SignContract(*nymfile);
+    ledger.SignContract(*nym);
     ledger.SaveContract();
 
     return true;
@@ -13367,8 +12935,9 @@ bool OT_API::Ledger_FinalizeResponse(
 
     if (!inbox) {
         String strAcctID(accountID);
-        otErr << OT_METHOD << __FUNCTION__ << ": Unable to load inbox."
-                                              " Acct ID: "
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Unable to load inbox."
+                 " Acct ID: "
               << strAcctID << std::endl;
 
         return false;
@@ -13376,8 +12945,9 @@ bool OT_API::Ledger_FinalizeResponse(
     // -------------------------------------------------------
     if (false == inbox->VerifyAccount(*nym)) {
         String strAcctID(accountID);
-        otErr << OT_METHOD << __FUNCTION__ << ": Unable to verify inbox."
-                                              " Acct ID: "
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Unable to verify inbox."
+                 " Acct ID: "
               << strAcctID << std::endl;
 
         return false;
@@ -13724,13 +13294,9 @@ std::string OT_API::AddChildKeyCredential(
     rLock lock(lock_);
 
     std::string output;
-    Nym* nym = GetOrLoadPrivateNym(nymID, false, __FUNCTION__);
+    auto nymdata = wallet_.mutable_Nym(nymID);
 
-    if (nullptr == nym) {
-        return output;
-    }
-
-    output = nym->AddChildKeyCredential(masterID, nymParameters);
+    output = nymdata.AddChildKeyCredential(masterID, nymParameters);
 
     return output;
 }

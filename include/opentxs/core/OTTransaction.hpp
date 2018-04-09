@@ -657,7 +657,6 @@ public:
     // when you tell it the circumstances (bools!)
     bool HarvestOpeningNumber(
         ServerContext& context,
-        Nym& theNym,
         bool bHarvestingForRetry,      // exchangeBasket, on retry, needs to
                                        // clawback the opening # because it
                                        // will be using another opening # the
@@ -676,7 +675,6 @@ public:
     // but any others are still salvageable.)
     bool HarvestClosingNumbers(
         ServerContext& context,
-        Nym& theNym,
         bool bHarvestingForRetry,      // exchangeBasket, on retry, needs to
                                        // clawback the opening # because it
                                        // will be using another opening # the

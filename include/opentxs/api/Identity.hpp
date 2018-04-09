@@ -123,7 +123,7 @@ public:
     std::unique_ptr<proto::VerificationSet> Verifications(
         const Nym& fromNym) const;
     std::unique_ptr<proto::VerificationSet> Verify(
-        Nym& onNym,
+        NymData& onNym,
         bool& changed,
         const std::string& claimantNymID,
         const std::string& claimID,

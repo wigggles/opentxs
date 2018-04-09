@@ -179,6 +179,7 @@ public:
         std::shared_ptr<proto::UnitDefinition>& contract,
         std::string& alias,
         const bool checking = false) const = 0;
+    virtual const std::set<std::string> LocalNyms() const = 0;
     virtual void MapPublicNyms(NymLambda& lambda) const = 0;
     virtual void MapServers(ServerLambda& lambda) const = 0;
     virtual void MapUnitDefinitions(UnitLambda& lambda) const = 0;

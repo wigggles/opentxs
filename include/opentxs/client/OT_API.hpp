@@ -117,9 +117,6 @@ public:
         String& THE_NAME) const;
     // In this case, the ID is input, the pointer is output.
     // Gets the data from Wallet.
-    EXPORT Nym* GetNym(
-        const Identifier& NYM_ID,
-        const char* szFuncName = nullptr) const;
     EXPORT const BasketContract* GetBasketContract(
         const Identifier& THE_ID,
         const char* szFuncName = nullptr) const;
@@ -127,33 +124,9 @@ public:
         const Identifier& THE_ID,
         const char* szFuncName = nullptr) const;
 
-    EXPORT Nym* GetNymByIDPartialMatch(
-        const std::string PARTIAL_ID,
-        const char* szFuncName = nullptr) const;
     EXPORT std::shared_ptr<Account> GetAccountPartialMatch(
         const std::string PARTIAL_ID,
         const char* szFuncName = nullptr) const;
-    EXPORT Nym* GetOrLoadPrivateNym(
-        const Identifier& NYM_ID,
-        bool bChecking = false,
-        const char* szFuncName = nullptr,
-        const OTPasswordData* pPWData = nullptr,
-        const OTPassword* pImportPassword = nullptr) const;
-    EXPORT const Nym* GetOrLoadNym(
-        const Identifier& NYM_ID,
-        bool bChecking = false,
-        const char* szFuncName = nullptr,
-        const OTPasswordData* pPWData = nullptr) const;
-    EXPORT const Nym* reloadAndGetNym(
-        const Identifier& NYM_ID,
-        bool bChecking = false,
-        const char* szFuncName = nullptr,
-        const OTPasswordData* pPWData = nullptr) const;
-    EXPORT Nym* reloadAndGetPrivateNym(
-        const Identifier& NYM_ID,
-        bool bChecking = false,
-        const char* szFuncName = nullptr,
-        const OTPasswordData* pPWData = nullptr) const;
 
     EXPORT static std::string NymIDFromPaymentCode(
         const std::string& paymentCode);
@@ -169,7 +142,7 @@ public:
      *    \return true for success, false for error
      */
     EXPORT bool AddClaim(
-        Nym& nym,
+        NymData& nym,
         const proto::ContactSectionName& section,
         const proto::ContactItemType& type,
         const std::string& value,
@@ -217,11 +190,6 @@ public:
         const OTPasswordData* pPWData = nullptr,
         const OTPassword* pImportPassword = nullptr) const;
 
-    /// Returns a new nym (with key pair) and files created.
-    /// (Or nullptr.)
-    /// Adds to wallet. (No need to delete.)
-    EXPORT Nym* CreateNym(const NymParameters& nymParameters) const;
-
     // This works by checking to see if the Nym has a request number for the
     // given server.
     // That's why it's important, when registering at a specific server, to
@@ -244,7 +212,6 @@ public:
         const Identifier& INSTRUMENT_DEFINITION_ID) const;
     EXPORT bool Wallet_CanRemoveNym(const Identifier& NYM_ID) const;
     EXPORT bool Wallet_CanRemoveAccount(const Identifier& ACCOUNT_ID) const;
-    EXPORT bool Wallet_RemoveNym(const Identifier& NYM_ID) const;
     // OT has the capability to export a Nym (normally stored in several files)
     // as an encoded
     // object (in base64-encoded form) and then import it again.
@@ -763,7 +730,7 @@ public:
         const RequestNumber& lRequestNumber) const;
 
     EXPORT bool ResyncNymWithServer(
-        Nym& theNym,
+        NymFile& theNym,
         const Ledger& theNymbox,
         const Nym& theMessageNym) const;
 

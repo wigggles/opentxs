@@ -1,4 +1,6 @@
-# Copyright (c) Monetas AG, 2014
+#Copyright(c) Monetas AG, 2014
+
+#// clang-format off
 
 add_subdirectory(contract)
 add_subdirectory(cron)
@@ -122,3 +124,5 @@ set_property(TARGET ${MODULE_NAME} PROPERTY POSITION_INDEPENDENT_CODE 1)
 set_lib_property(${MODULE_NAME})
 
 add_dependencies(${MODULE_NAME} otprotob)
+
+#// clang-format on

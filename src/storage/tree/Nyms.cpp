@@ -111,6 +111,8 @@ void Nyms::init(const std::string& hash)
     }
 }
 
+const std::set<std::string> Nyms::LocalNyms() const { return local_nyms_; }
+
 void Nyms::Map(NymLambda lambda) const
 {
     Lock lock(write_lock_);

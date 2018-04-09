@@ -76,7 +76,7 @@ public:
     std::string Name() const override;
     bool NymboxHashMatch() const;
     Identifier LocalNymboxHash() const;
-    std::unique_ptr<const class Nym> Nymfile(
+    std::unique_ptr<const class NymFile> Nymfile(
         const OTPasswordData& reason) const;
     const class Nym& RemoteNym() const;
     Identifier RemoteNymboxHash() const;
@@ -94,7 +94,7 @@ public:
     bool ConsumeAvailable(const TransactionNumber& number);
     bool ConsumeIssued(const TransactionNumber& number);
     RequestNumber IncrementRequest();
-    Editor<class Nym> mutable_Nymfile(const OTPasswordData& reason);
+    Editor<class NymFile> mutable_Nymfile(const OTPasswordData& reason);
     virtual bool OpenCronItem(const TransactionNumber) { return false; }
     bool RecoverAvailableNumber(const TransactionNumber& number);
     bool RemoveAcknowledgedNumber(const std::set<RequestNumber>& req);
@@ -156,7 +156,7 @@ private:
 
     proto::Context contract(const Lock& lock) const;
     proto::Context IDVersion(const Lock& lock) const;
-    void save(class Nym* nym, const Lock& lock) const;
+    void save(class NymFile* nym, const Lock& lock) const;
     proto::Context SigVersion(const Lock& lock) const;
     bool validate(const Lock& lock) const override;
     bool verify_signature(const Lock& lock, const proto::Signature& signature)

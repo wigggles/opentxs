@@ -175,6 +175,7 @@ class Mint;
 class NumList;
 class Nym;
 class NymData;
+class NymFile;
 class NymParameters;
 class OT;
 class OT_API;

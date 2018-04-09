@@ -126,7 +126,7 @@ bool Pair::AddIssuer(
         return false;
     }
 
-    if (0 == ot_api_.LocalNymList().count(localNymID)) {
+    if (!wallet_.IsLocalNym(localNymID.str())) {
         otErr << OT_METHOD << __FUNCTION__ << ": Invalid local nym"
               << std::endl;
 
@@ -758,9 +758,9 @@ void Pair::state_machine(
                 const auto btcrpc =
                     issuer.ConnectionInfo(proto::CONNECTIONINFO_BTCRPC);
                 const bool needInfo =
-                    (btcrpc.empty() && (false ==
-                                        issuer.ConnectionInfoInitiated(
-                                            proto::CONNECTIONINFO_BTCRPC)));
+                    (btcrpc.empty() &&
+                     (false == issuer.ConnectionInfoInitiated(
+                                   proto::CONNECTIONINFO_BTCRPC)));
 
                 if (needInfo) {
                     otWarn << OT_METHOD << __FUNCTION__

@@ -53,9 +53,23 @@
 
 namespace opentxs
 {
-NymData::NymData(const std::shared_ptr<Nym>& nym)
+NymData::NymData(const std::shared_ptr<class Nym>& nym)
     : nym_(nym)
 {
+}
+
+std::string NymData::AddChildKeyCredential(
+    const Identifier& strMasterID,
+    const NymParameters& nymParameters)
+{
+    return nym().AddChildKeyCredential(strMasterID, nymParameters);
+}
+
+bool NymData::AddClaim(const Claim& claim) { return nym().AddClaim(claim); }
+
+bool NymData::DeleteClaim(const Identifier& id)
+{
+    return nym().DeleteClaim(id);
 }
 
 bool NymData::AddContract(
@@ -124,6 +138,13 @@ bool NymData::AddPreferredOTServer(const std::string& id, const bool primary)
 {
     return nym().AddPreferredOTServer(Identifier(id), primary);
 }
+
+const serializedCredentialIndex NymData::asPublicNym() const
+{
+    return nym_->asPublicNym();
+}
+
+const class ContactData& NymData::Claims() const { return nym_->Claims(); }
 
 const ContactData& NymData::data() const
 {
@@ -195,6 +216,13 @@ std::string NymData::Name() const
     return nym_->Name();
 }
 
+const class Nym& NymData::Nym() const
+{
+    OT_ASSERT(nym_);
+
+    return *nym_;
+}
+
 Nym& NymData::nym()
 {
     OT_ASSERT(nym_);
@@ -223,19 +251,35 @@ std::string NymData::PrintContactData() const
     return ContactData::PrintContactData(data().Serialize(true));
 }
 
-bool NymData::SetType(
-    const proto::ContactItemType type,
-    const std::string& name)
+bool NymData::SetAlias(const std::string& alias)
 {
-    return nym().SetScope(type, name, true);
+    return nym().SetAlias(alias);
 }
 
-bool NymData::SetType(const std::uint32_t type, const std::string& name)
+bool NymData::SetContactData(const proto::ContactData& data)
 {
-    return SetType(static_cast<proto::ContactItemType>(type), name);
+    return nym().SetContactData(data);
+}
+
+bool NymData::SetScope(
+    const proto::ContactItemType type,
+    const std::string& name,
+    const bool primary)
+{
+    return nym().SetScope(type, name, primary);
+}
+
+bool NymData::SetVerificationSet(const proto::VerificationSet& data)
+{
+    return nym().SetVerificationSet(data);
 }
 
 proto::ContactItemType NymData::Type() const { return data().Type(); }
 
 bool NymData::Valid() const { return bool(nym_); }
+
+std::unique_ptr<proto::VerificationSet> NymData::VerificationSet() const
+{
+    return nym_->VerificationSet();
+}
 }  // namespace opentxs

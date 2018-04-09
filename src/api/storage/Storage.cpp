@@ -521,6 +521,11 @@ bool Storage::Load(
     return Root().Tree().UnitNode().Load(id, contract, alias, checking);
 }
 
+const std::set<std::string> Storage::LocalNyms() const
+{
+    return Root().Tree().NymNode().LocalNyms();
+}
+
 // Applies a lambda to all public nyms in the database in a detached thread.
 void Storage::MapPublicNyms(NymLambda& lambda) const
 {

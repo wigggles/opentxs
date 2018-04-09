@@ -141,7 +141,6 @@ public:
 
     EXPORT bool HarvestTransactionNumbers(
         ServerContext& context,
-        Nym& nym,
         bool bHarvestingForRetry,            // false until positively asserted.
         bool bReplyWasSuccess,               // false until positively asserted.
         bool bReplyWasFailure,               // false until positively asserted.

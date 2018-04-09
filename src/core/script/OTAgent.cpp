@@ -221,7 +221,7 @@ OTAgent::OTAgent(
 
 OTAgent::OTAgent(
     const std::string& str_agent_name,
-    Nym& theNym,
+    const Nym& theNym,
     const bool bNymRepresentsSelf)
     /*IF false, then: ROLE parameter goes here.*/
     : m_bNymRepresentsSelf(bNymRepresentsSelf)

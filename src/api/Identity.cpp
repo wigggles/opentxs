@@ -42,6 +42,7 @@
 
 #include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/Native.hpp"
+#include "opentxs/client/NymData.hpp"
 #include "opentxs/core/crypto/ContactCredential.hpp"
 #include "opentxs/core/crypto/VerificationCredential.hpp"
 #include "opentxs/core/util/Assert.hpp"
@@ -322,7 +323,7 @@ std::unique_ptr<proto::VerificationSet> Identity::Verifications(
 }
 
 std::unique_ptr<proto::VerificationSet> Identity::Verify(
-    Nym& onNym,
+    NymData& onNym,
     bool& changed,
     const std::string& claimantNymID,
     const std::string& claimID,
@@ -355,7 +356,7 @@ std::unique_ptr<proto::VerificationSet> Identity::Verify(
         finished = AddInternalVerification(
             changed,
             *revised,
-            onNym,
+            onNym.Nym(),
             claimantNymID,
             claimID,
             polarity,

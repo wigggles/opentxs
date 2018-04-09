@@ -319,14 +319,14 @@ Identifier Context::LocalNymboxHash() const
     return local_nymbox_hash_;
 }
 
-Editor<class Nym> Context::mutable_Nymfile(const OTPasswordData& reason)
+Editor<class NymFile> Context::mutable_Nymfile(const OTPasswordData& reason)
 {
-    std::function<void(class Nym*, Lock&)> callback =
-        [&](class Nym* in, Lock& lock) -> void { this->save(in, lock); };
+    std::function<void(class NymFile*, Lock&)> callback =
+        [&](class NymFile* in, Lock& lock) -> void { this->save(in, lock); };
     auto nym = Nym::LoadPrivateNym(
         nym_->ID(), false, nullptr, nullptr, &reason, nullptr);
 
-    return Editor<class Nym>(nymfile_lock_, nym, callback);
+    return Editor<class NymFile>(nymfile_lock_, nym, callback);
 }
 
 std::string Context::Name() const
@@ -351,13 +351,13 @@ bool Context::NymboxHashMatch() const
     return (local_nymbox_hash_ == remote_nymbox_hash_);
 }
 
-std::unique_ptr<const class Nym> Context::Nymfile(
+std::unique_ptr<const class NymFile> Context::Nymfile(
     const OTPasswordData& reason) const
 {
     OT_ASSERT(nym_);
 
     Lock lock(nymfile_lock_);
-    std::unique_ptr<class Nym> output{nullptr};
+    std::unique_ptr<class NymFile> output{nullptr};
     output.reset(Nym::LoadPrivateNym(
         nym_->ID(), false, nullptr, nullptr, &reason, nullptr));
 
@@ -427,12 +427,16 @@ void Context::Reset()
     request_number_.store(0);
 }
 
-void Context::save(class Nym* nym, const Lock& lock) const
+void Context::save(class NymFile* nymfile, const Lock& lock) const
 {
     OT_ASSERT(nym_);
-    OT_ASSERT(nullptr != nym);
+    OT_ASSERT(nullptr != nymfile);
     OT_ASSERT(lock.mutex() == &nymfile_lock_)
     OT_ASSERT(lock.owns_lock())
+
+    class Nym* nym = dynamic_cast<class Nym*>(nymfile);
+
+    OT_ASSERT(nullptr != nym);
 
     const auto saved = nym->SaveSignedNymfile(*nym_);
 
