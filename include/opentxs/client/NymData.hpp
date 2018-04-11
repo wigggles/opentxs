@@ -49,12 +49,6 @@
 #include <memory>
 #include <string>
 
-#ifdef SWIG
-// clang-format off
-%rename($ignore, regextarget=1, fullname=1) "opentxs::NymData::Type.*";
-// clang-format on
-#endif  // SWIG
-
 namespace opentxs
 {
 namespace api
@@ -113,7 +107,13 @@ public:
         const std::string& name,
         const bool primary);
 #endif
+    bool SetType(
+        const std::uint32_t type,
+        const std::string& name,
+        const bool primary);
+#ifndef SWIG
     proto::ContactItemType Type() const;
+#endif
     bool Valid() const;
 #ifndef SWIG
     std::unique_ptr<proto::VerificationSet> VerificationSet() const;
