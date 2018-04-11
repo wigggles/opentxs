@@ -269,6 +269,14 @@ bool NymData::SetScope(
     return nym().SetScope(type, name, primary);
 }
 
+bool NymData::SetType(
+    const std::uint32_t type,
+    const std::string& name,
+    const bool primary)
+{
+    return SetScope(static_cast<proto::ContactItemType>(type), name, primary);
+}
+
 bool NymData::SetVerificationSet(const proto::VerificationSet& data)
 {
     return nym().SetVerificationSet(data);
