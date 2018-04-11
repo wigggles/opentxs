@@ -2,4 +2,5 @@
 
 add_subdirectory(core)
 add_subdirectory(contact)
+add_subdirectory(network/zeromq)
 
