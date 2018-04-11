@@ -285,7 +285,7 @@ public:
     // just prior to this call.
     EXPORT bool ResyncWithServer(
         const Ledger& theNymbox,
-        const Nym& theMessageNym);
+        const Nym& theMessageNym) override;
     EXPORT bool SavePseudonym(String& strNym) const;
     EXPORT bool SaveSignedNymfile(const Nym& SIGNER_NYM);
     EXPORT bool SetAlias(const std::string& alias);
