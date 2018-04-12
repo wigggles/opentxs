@@ -881,18 +881,9 @@ public:
     EXPORT int32_t GetAccountCount() const;
     EXPORT int32_t GetNymCount() const;
 
-    EXPORT std::string GetServer_ID(const int32_t& nIndex) const;  // based on
-                                                                   // Index
-                                                                   // (above 4
-                                                                   // functions)
-                                                                   // this
-    // returns the Server's ID
-    EXPORT std::string GetServer_Name(const std::string& NOTARY_ID)
-        const;  // Return's Server's name (based on
-                // server ID)
-    EXPORT std::string GetServer_Contract(const std::string& NOTARY_ID)
-        const;  // Return's Server's contract (based on
-                // server ID)
+    EXPORT[[deprecated]] std::string GetServer_ID(const int32_t& nIndex) const;
+    EXPORT std::string GetServer_Name(const std::string& NOTARY_ID) const;
+    EXPORT std::string GetServer_Contract(const std::string& NOTARY_ID) const;
 
     int32_t GetCurrencyDecimalPower(
         const std::string& INSTRUMENT_DEFINITION_ID) const;
@@ -952,7 +943,8 @@ public:
     /** GetAssetType_ID:
      Returns Asset Type ID based on index from GetAssetTypeCount.
      */
-    EXPORT std::string GetAssetType_ID(const int32_t& nIndex) const;
+    EXPORT[[deprecated]] std::string GetAssetType_ID(
+        const int32_t& nIndex) const;
 
     /** GetAssetType_Name:
      Returns asset type name based on Instrument Definition ID.

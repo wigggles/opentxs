@@ -181,15 +181,6 @@ public:
         const Identifier& SIGNER_NYM_ID,
         const String& ACCT_NEW_NAME) const;
 
-    // Accessing local storage...
-    // (Caller responsible to delete.)
-    EXPORT Nym* LoadPrivateNym(
-        const Identifier& NYM_ID,
-        bool bChecking = false,
-        const char* szFuncName = nullptr,
-        const OTPasswordData* pPWData = nullptr,
-        const OTPassword* pImportPassword = nullptr) const;
-
     // This works by checking to see if the Nym has a request number for the
     // given server.
     // That's why it's important, when registering at a specific server, to
