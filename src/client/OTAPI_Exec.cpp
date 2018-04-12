@@ -179,8 +179,6 @@ bool OTAPI_Exec::CheckSetConfigSection(
     const std::string& strSection,
     const std::string& strComment) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     bool b_isNewSection = false;
 
     const bool bSuccess = config_.CheckSetSection(
@@ -202,12 +200,10 @@ bool OTAPI_Exec::SetConfig_str(
     const std::string& strKey,
     const std::string& strValue) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     bool b_isNew = false;
-
     const bool bSuccess = config_.Set_str(
         strSection.c_str(), strKey.c_str(), strValue.c_str(), b_isNew);
+
     if (bSuccess && b_isNew) {
         if (!config_.Save()) {
             Log::vError(
@@ -225,12 +221,10 @@ bool OTAPI_Exec::SetConfig_long(
     const std::string& strKey,
     const int64_t& lValue) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     bool b_isNew = false;
-
     const bool bSuccess =
         config_.Set_long(strSection.c_str(), strKey.c_str(), lValue, b_isNew);
+
     if (bSuccess && b_isNew) {
         if (!config_.Save()) {
             Log::vError(
@@ -248,12 +242,10 @@ bool OTAPI_Exec::SetConfig_bool(
     const std::string& strKey,
     const bool bValue) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     bool b_isNew = false;
-
     const bool bSuccess =
         config_.Set_bool(strSection.c_str(), strKey.c_str(), bValue, b_isNew);
+
     if (bSuccess && b_isNew) {
         if (!config_.Save()) {
             Log::vError(
@@ -270,11 +262,8 @@ std::string OTAPI_Exec::GetConfig_str(
     const std::string& strSection,
     const std::string& strKey) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     String strOutput;
     bool bKeyExists = false;
-
     const bool bSuccess = config_.Check_str(
         strSection.c_str(), strKey.c_str(), strOutput, bKeyExists);
     std::string str_result = "";
@@ -288,13 +277,11 @@ int64_t OTAPI_Exec::GetConfig_long(
     const std::string& strSection,
     const std::string& strKey) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     int64_t lOutput = 0;
     bool bKeyExists = false;
-
     const bool bSuccess = config_.Check_long(
         strSection.c_str(), strKey.c_str(), lOutput, bKeyExists);
+
     if (bSuccess && bKeyExists) return lOutput;
 
     return 0;
@@ -304,13 +291,11 @@ bool OTAPI_Exec::GetConfig_bool(
     const std::string& strSection,
     const std::string& strKey) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     bool bOutput = false;
     bool bKeyExists = false;
-
     const bool bSuccess = config_.Check_bool(
         strSection.c_str(), strKey.c_str(), bOutput, bKeyExists);
+
     if (bSuccess && bKeyExists) return bOutput;
 
     return false;
@@ -323,8 +308,6 @@ Log level is 0 (least verbose) to 5 (most verbose.)
 void OTAPI_Exec::Output(const int32_t& nLogLevel, const std::string& strOutput)
     const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     const String otstrOutput(!strOutput.empty() ? strOutput : "\n");
 
     Log::Output(nLogLevel, otstrOutput.Get());
@@ -332,7 +315,6 @@ void OTAPI_Exec::Output(const int32_t& nLogLevel, const std::string& strOutput)
 
 bool OTAPI_Exec::SetWallet(const std::string& strWalletFilename) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
     String sWalletFilename(strWalletFilename);
 
     if (sWalletFilename.Exists()) {
@@ -360,47 +342,26 @@ bool OTAPI_Exec::LoadWallet() const { return ot_api_.LoadWallet(); }
 
 bool OTAPI_Exec::SwitchWallet() const { return ot_api_.LoadWallet(); }
 
-std::int32_t OTAPI_Exec::GetMemlogSize() const
-{
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    return Log::GetMemlogSize();
-}
+std::int32_t OTAPI_Exec::GetMemlogSize() const { return Log::GetMemlogSize(); }
 
 std::string OTAPI_Exec::GetMemlogAtIndex(const int32_t& nIndex) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     return Log::GetMemlogAtIndex(nIndex).Get();
 }
 
 std::string OTAPI_Exec::PeekMemlogFront() const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     return Log::PeekMemlogFront().Get();
 }
 
 std::string OTAPI_Exec::PeekMemlogBack() const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     return Log::PeekMemlogBack().Get();
 }
 
-bool OTAPI_Exec::PopMemlogFront() const
-{
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+bool OTAPI_Exec::PopMemlogFront() const { return Log::PopMemlogFront(); }
 
-    return Log::PopMemlogFront();
-}
-
-bool OTAPI_Exec::PopMemlogBack() const
-{
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
-    return Log::PopMemlogBack();
-}
+bool OTAPI_Exec::PopMemlogBack() const { return Log::PopMemlogBack(); }
 
 // OpenTransactions.h
 // bool      NumList_Add        (OTNumList& theList, const OTNumList&
@@ -445,7 +406,7 @@ std::string OTAPI_Exec::NumList_Add(
         theList.Add(otstrNumList);
     }
 
-    const bool& bAdded = ot_api_.NumList_Add(theList, theNewNumbers);
+    const bool bAdded = ot_api_.NumList_Add(theList, theNewNumbers);
     String strOutput;
 
     if (bAdded && theList.Output(strOutput)) {
@@ -474,7 +435,7 @@ std::string OTAPI_Exec::NumList_Remove(
 
     NumList theList(strNumList), theNewNumbers(strNumbers);
 
-    const bool& bRemoved = ot_api_.NumList_Remove(theList, theNewNumbers);
+    const bool bRemoved = ot_api_.NumList_Remove(theList, theNewNumbers);
 
     String strOutput;
 
@@ -503,9 +464,7 @@ bool OTAPI_Exec::NumList_VerifyQuery(
 
     NumList theList(strNumList), theNewNumbers(strNumbers);
 
-    const bool& bVerified = ot_api_.NumList_VerifyQuery(theList, theNewNumbers);
-
-    return bVerified ? true : false;
+    return ot_api_.NumList_VerifyQuery(theList, theNewNumbers);
 }
 
 // Verifies COUNT and CONTENT but NOT ORDER.
@@ -524,9 +483,7 @@ bool OTAPI_Exec::NumList_VerifyAll(
     }
     NumList theList(strNumList), theNewNumbers(strNumbers);
 
-    const bool& bVerified = ot_api_.NumList_VerifyAll(theList, theNewNumbers);
-
-    return bVerified ? true : false;
+    return ot_api_.NumList_VerifyAll(theList, theNewNumbers);
 }
 
 std::int32_t OTAPI_Exec::NumList_Count(const std::string& strNumList) const
@@ -569,8 +526,6 @@ std::string OTAPI_Exec::CreateNymLegacy(
     __attribute__((unused))
     const std::string& NYM_ID_SOURCE) const  // Can be empty.
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     if (0 >= nKeySize) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Keysize is 0 or less, will fail! Try 1024.\n";
@@ -671,7 +626,7 @@ std::string OTAPI_Exec::GetNym_ActiveCronItemIDs(
     const std::string& NYM_ID,
     const std::string& NOTARY_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     if (NYM_ID.empty()) {
         otErr << OT_METHOD << __FUNCTION__ << ": nullptr NYM_ID passed in!\n";
@@ -699,7 +654,7 @@ std::string OTAPI_Exec::GetActiveCronItem(
     const std::string& NOTARY_ID,
     int64_t lTransNum) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     if (NOTARY_ID.empty()) {
         otErr << OT_METHOD << __FUNCTION__
@@ -727,8 +682,6 @@ std::string OTAPI_Exec::GetActiveCronItem(
 
 std::string OTAPI_Exec::GetNym_SourceForID(const std::string& NYM_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     if (NYM_ID.empty()) {
         otErr << OT_METHOD << __FUNCTION__ << ": nullptr NYM_ID passed in!\n";
         return {};
@@ -743,8 +696,6 @@ std::string OTAPI_Exec::GetNym_SourceForID(const std::string& NYM_ID) const
 
 std::string OTAPI_Exec::GetNym_Description(const std::string& NYM_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     if (NYM_ID.empty()) {
         otErr << OT_METHOD << __FUNCTION__ << ": nullptr NYM_ID passed in!\n";
         return {};
@@ -760,8 +711,6 @@ std::string OTAPI_Exec::GetNym_Description(const std::string& NYM_ID) const
 std::int32_t OTAPI_Exec::GetNym_MasterCredentialCount(
     const std::string& NYM_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     if (NYM_ID.empty()) {
         otErr << OT_METHOD << __FUNCTION__ << ": nullptr NYM_ID passed in!\n";
         return OT_ERROR;
@@ -779,8 +728,6 @@ std::string OTAPI_Exec::GetNym_MasterCredentialID(
     const std::string& NYM_ID,
     const int32_t& nIndex) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     if (NYM_ID.empty()) {
         otErr << OT_METHOD << __FUNCTION__ << ": nullptr NYM_ID passed in!\n";
         return {};
@@ -801,8 +748,6 @@ std::string OTAPI_Exec::GetNym_MasterCredentialContents(
     const std::string& NYM_ID,
     const std::string& CREDENTIAL_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     if (NYM_ID.empty()) {
         otErr << OT_METHOD << __FUNCTION__ << ": nullptr NYM_ID passed in!\n";
         return {};
@@ -824,8 +769,6 @@ std::string OTAPI_Exec::GetNym_MasterCredentialContents(
 std::int32_t OTAPI_Exec::GetNym_RevokedCredCount(
     const std::string& NYM_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     if (NYM_ID.empty()) {
         otErr << OT_METHOD << __FUNCTION__ << ": nullptr NYM_ID passed in!\n";
         return OT_ERROR;
@@ -843,8 +786,6 @@ std::string OTAPI_Exec::GetNym_RevokedCredID(
     const std::string& NYM_ID,
     const int32_t& nIndex) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     if (NYM_ID.empty()) {
         otErr << OT_METHOD << __FUNCTION__ << ": nullptr NYM_ID passed in!\n";
         return {};
@@ -867,8 +808,6 @@ std::string OTAPI_Exec::GetNym_RevokedCredContents(
     const std::string& NYM_ID,
     const std::string& CREDENTIAL_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     if (NYM_ID.empty()) {
         otErr << OT_METHOD << __FUNCTION__ << ": nullptr NYM_ID passed in!\n";
         return {};
@@ -893,8 +832,6 @@ std::int32_t OTAPI_Exec::GetNym_ChildCredentialCount(
     const std::string& NYM_ID,
     const std::string& MASTER_CRED_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     if (NYM_ID.empty()) {
         otErr << OT_METHOD << __FUNCTION__ << ": nullptr NYM_ID passed in!\n";
         return OT_ERROR;
@@ -917,8 +854,6 @@ std::string OTAPI_Exec::GetNym_ChildCredentialID(
     const std::string& MASTER_CRED_ID,
     const int32_t& nIndex) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     if (NYM_ID.empty()) {
         otErr << OT_METHOD << __FUNCTION__ << ": nullptr NYM_ID passed in!\n";
         return {};
@@ -941,8 +876,6 @@ std::string OTAPI_Exec::GetNym_ChildCredentialContents(
     const std::string& MASTER_CRED_ID,
     const std::string& SUB_CRED_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     if (NYM_ID.empty()) {
         otErr << OT_METHOD << __FUNCTION__ << ": nullptr NYM_ID passed in!\n";
         return {};
@@ -977,8 +910,6 @@ bool OTAPI_Exec::RevokeChildCredential(
     const std::string& MASTER_CRED_ID,
     const std::string& SUB_CRED_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     if (NYM_ID.empty()) {
         otErr << OT_METHOD << __FUNCTION__ << ": nullptr NYM_ID passed in!\n";
         return false;
@@ -1080,8 +1011,6 @@ bool OTAPI_Exec::SetContactData_Base64(
     const std::string& NYM_ID,
     const std::string& THE_DATA) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     if (THE_DATA.empty()) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Unexpectedly got a blank data parameter. "
@@ -1102,8 +1031,6 @@ bool OTAPI_Exec::SetContactData(
     const std::string& NYM_ID,
     const std::string& THE_DATA) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     if (NYM_ID.empty()) {
         otErr << OT_METHOD << __FUNCTION__ << ": nullptr NYM_ID passed in!\n";
         return false;
@@ -1133,8 +1060,6 @@ bool OTAPI_Exec::SetClaim_Base64(
     const std::uint32_t& section,
     const std::string& claim) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     if (claim.empty()) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Unexpectedly got a blank claim parameter. "
@@ -1154,8 +1079,6 @@ bool OTAPI_Exec::SetClaim(
     const std::uint32_t& section,
     const std::string& claim) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     if (nymID.empty()) {
         otErr << OT_METHOD << __FUNCTION__ << ": nullptr nymID passed in!\n";
         return false;
@@ -1187,8 +1110,6 @@ bool OTAPI_Exec::DeleteClaim(
     const std::string& nymID,
     const std::string& claimID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     if (nymID.empty()) {
         otErr << OT_METHOD << __FUNCTION__ << ": nullptr nymID passed in!\n";
         return false;
@@ -1203,8 +1124,6 @@ bool OTAPI_Exec::DeleteClaim(
 std::string OTAPI_Exec::GetVerificationSet_Base64(
     const std::string& nymID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     std::string str_result = GetVerificationSet(nymID);
 
     if (str_result.empty()) return {};
@@ -1241,8 +1160,6 @@ std::string OTAPI_Exec::SetVerification_Base64(
     const int64_t start,
     const int64_t end) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     std::string str_result = SetVerification(
         changed, onNym, claimantNymID, claimID, polarity, start, end);
     if (str_result.empty()) return {};
@@ -1259,8 +1176,6 @@ std::string OTAPI_Exec::SetVerification(
     const int64_t start,
     const int64_t end) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     if (onNym.empty()) {
         otErr << OT_METHOD << __FUNCTION__ << ": empty onNym passed in!\n";
         return {};
@@ -1583,8 +1498,6 @@ std::string OTAPI_Exec::FormatAmountWithoutSymbol(
     const std::string& INSTRUMENT_DEFINITION_ID,
     const int64_t& THE_AMOUNT) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     const std::string str_thousand(OT_THOUSANDS_SEP);
     const std::string str_decimal(OT_DECIMAL_POINT);
 
@@ -1702,7 +1615,7 @@ std::int32_t OTAPI_Exec::GetAccountCount(void) const
 //
 bool OTAPI_Exec::Wallet_CanRemoveServer(const std::string& NOTARY_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     OT_ASSERT_MSG(
         !NOTARY_ID.empty(),
@@ -1758,7 +1671,7 @@ bool OTAPI_Exec::Wallet_CanRemoveServer(const std::string& NOTARY_ID) const
 //
 bool OTAPI_Exec::Wallet_RemoveServer(const std::string& NOTARY_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     OT_ASSERT_MSG(
         !NOTARY_ID.empty(),
@@ -1802,7 +1715,7 @@ bool OTAPI_Exec::Wallet_RemoveServer(const std::string& NOTARY_ID) const
 bool OTAPI_Exec::Wallet_CanRemoveAssetType(
     const std::string& INSTRUMENT_DEFINITION_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     OT_ASSERT_MSG(
         !INSTRUMENT_DEFINITION_ID.empty(),
@@ -1826,9 +1739,8 @@ bool OTAPI_Exec::Wallet_CanRemoveAssetType(
         if (theID == theCompareID) {
             otOut << OT_METHOD << __FUNCTION__
                   << ": Unable to remove asset contract "
-                  << INSTRUMENT_DEFINITION_ID
-                  << " from "
-                     "wallet: Account "
+                  << INSTRUMENT_DEFINITION_ID << " from "
+                                                 "wallet: Account "
                   << strAcctID << " uses it.\n";
             return false;
         }
@@ -1846,7 +1758,7 @@ bool OTAPI_Exec::Wallet_CanRemoveAssetType(
 bool OTAPI_Exec::Wallet_RemoveAssetType(
     const std::string& INSTRUMENT_DEFINITION_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     OT_ASSERT_MSG(
         !INSTRUMENT_DEFINITION_ID.empty(),
@@ -1884,8 +1796,6 @@ bool OTAPI_Exec::Wallet_CanRemoveNym(const std::string& NYM_ID) const
 //
 bool OTAPI_Exec::Wallet_RemoveNym(const std::string& NYM_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_ASSERT_MSG(
         !NYM_ID.empty(),
         "OTAPI_Exec::Wallet_RemoveNym: Null NYM_ID passed in.");
@@ -1941,7 +1851,7 @@ bool OTAPI_Exec::Wallet_RemoveNym(const std::string& NYM_ID) const
 //
 bool OTAPI_Exec::Wallet_CanRemoveAccount(const std::string& ACCOUNT_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     OT_ASSERT_MSG(
         !ACCOUNT_ID.empty(),
@@ -2006,8 +1916,6 @@ bool OTAPI_Exec::DoesBoxReceiptExist(
     const int32_t& nBoxType,        // 0/nymbox, 1/inbox, 2/outbox
     const int64_t& TRANSACTION_NUMBER) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(NYM_ID);
     OT_VERIFY_ID_STR(ACCOUNT_ID);
@@ -2054,8 +1962,6 @@ bool OTAPI_Exec::DoesBoxReceiptExist(
 //
 std::string OTAPI_Exec::Wallet_ExportNym(const std::string& NYM_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_ASSERT_MSG(
         !NYM_ID.empty(),
         "OTAPI_Exec::Wallet_ExportNym: Null NYM_ID passed in.");
@@ -2077,12 +1983,9 @@ std::string OTAPI_Exec::Wallet_ExportNym(const std::string& NYM_ID) const
     //
     String strOutput;
 
-    const bool& bExported = ot_api_.Wallet_ExportNym(theNymID, strOutput);
+    if (ot_api_.Wallet_ExportNym(theNymID, strOutput)) {
 
-    if (bExported) {
-        std::string pBuf = strOutput.Get();
-
-        return pBuf;
+        return strOutput.Get();
     }
 
     return {};
@@ -2096,8 +1999,6 @@ std::string OTAPI_Exec::Wallet_ExportNym(const std::string& NYM_ID) const
 //
 std::string OTAPI_Exec::Wallet_ImportNym(const std::string& FILE_CONTENTS) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     if (FILE_CONTENTS.empty()) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Null: FILE_CONTENTS passed in!\n";
@@ -2106,34 +2007,10 @@ std::string OTAPI_Exec::Wallet_ImportNym(const std::string& FILE_CONTENTS) const
 
     // Pause the master key, since this Nym is coming from outside
     // the wallet.
-    //
     const String strFileContents(FILE_CONTENTS);
-
     Identifier theNymID;
 
-    const bool& bImported =
-        ot_api_.Wallet_ImportNym(strFileContents, &theNymID);
-
-    // Decode the FILE_CONTENTS into a StringMap object,
-    // and if success, make sure it contains these values:
-    //
-    // id:      The NymID.
-    // name:    The display name from the wallet.
-    // cert:    The public / private certfile in openssl format.
-    // nymfile: The contents of the nymfile.
-    //
-    // Unpause the master key.
-    //
-    // Do various verifications on the values to make sure there's no funny
-    // business.
-    //
-    // Make sure the Nym with this ID isn't ALREADY in the wallet. If not, then
-    // add it.
-    //
-    //
-    //
-
-    if (bImported) {
+    if (ot_api_.Wallet_ImportNym(strFileContents, &theNymID)) {
         return theNymID.str();
     }
 
@@ -2182,8 +2059,6 @@ bool OTAPI_Exec::Wallet_ChangePassphrase() const
 std::string OTAPI_Exec::Wallet_GetNymIDFromPartial(
     const std::string& PARTIAL_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     if (PARTIAL_ID.empty()) {
         otErr << OT_METHOD << __FUNCTION__ << ": Empty PARTIAL_ID passed in!\n";
         return {};
@@ -2230,8 +2105,6 @@ std::string OTAPI_Exec::Wallet_GetNymIDFromPartial(
 std::string OTAPI_Exec::Wallet_GetNotaryIDFromPartial(
     const std::string& PARTIAL_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     if (PARTIAL_ID.empty()) {
         otErr << OT_METHOD << __FUNCTION__ << ": Null: PARTIAL_ID passed in!\n";
         return {};
@@ -2267,8 +2140,6 @@ std::string OTAPI_Exec::Wallet_GetNotaryIDFromPartial(
 std::string OTAPI_Exec::Wallet_GetInstrumentDefinitionIDFromPartial(
     const std::string& PARTIAL_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     if (PARTIAL_ID.empty()) {
         otErr << OT_METHOD << __FUNCTION__ << ": Null: PARTIAL_ID passed in!\n";
         return {};
@@ -2325,8 +2196,6 @@ std::string OTAPI_Exec::Wallet_GetInstrumentDefinitionIDFromPartial(
 std::string OTAPI_Exec::Wallet_GetAccountIDFromPartial(
     const std::string& PARTIAL_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     if (PARTIAL_ID.empty()) {
         otErr << OT_METHOD << __FUNCTION__ << ": Null: PARTIAL_ID passed in!\n";
         return {};
@@ -2418,8 +2287,6 @@ bool OTAPI_Exec::IsNym_RegisteredAtServer(
 //
 std::string OTAPI_Exec::GetNym_Stats(const std::string& NYM_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_ASSERT_MSG(
         !NYM_ID.empty(), "OTAPI_Exec::GetNym_Stats: Null NYM_ID passed in.");
 
@@ -2446,8 +2313,6 @@ std::string OTAPI_Exec::GetNym_NymboxHash(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID) const  // Returns NymboxHash (based on NotaryID)
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_ASSERT_MSG(
         !NOTARY_ID.empty(),
         "OTAPI_Exec::GetNym_NymboxHash: Null NOTARY_ID passed in.");
@@ -2486,8 +2351,6 @@ std::string OTAPI_Exec::GetNym_InboxHash(
                                       // DOWNLOADED" Inbox
                                       // (by AccountID)
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_ASSERT_MSG(
         !ACCOUNT_ID.empty(),
         "OTAPI_Exec::GetNym_InboxHash: Null ACCOUNT_ID passed in.");
@@ -2502,7 +2365,7 @@ std::string OTAPI_Exec::GetNym_InboxHash(
     if (nullptr != pNym) {
         Identifier theHash;
         const std::string str_acct_id(ACCOUNT_ID);
-        const bool& bGothash =
+        const bool bGothash =
             pNym->GetInboxHash(str_acct_id, theHash);  // (theHash is output.)
 
         if (!bGothash) {
@@ -2521,11 +2384,8 @@ std::string OTAPI_Exec::GetNym_InboxHash(
         } else  // Success: the hash was there, for that Nym, for that server
                 // ID.
         {
-            String strOutput(theHash);
 
-            std::string pBuf = strOutput.Get();
-
-            return pBuf;
+            return String(theHash).Get();
         }
     }
 
@@ -2538,8 +2398,6 @@ std::string OTAPI_Exec::GetNym_OutboxHash(
                                       // DOWNLOADED"
                                       // Outbox (by AccountID)
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_ASSERT_MSG(
         !ACCOUNT_ID.empty(),
         "OTAPI_Exec::GetNym_OutboxHash: Null ACCOUNT_ID passed in.");
@@ -2554,7 +2412,7 @@ std::string OTAPI_Exec::GetNym_OutboxHash(
     if (nullptr != pNym) {
         Identifier theHash;
         const std::string str_acct_id(ACCOUNT_ID);
-        const bool& bGothash =
+        const bool bGothash =
             pNym->GetOutboxHash(str_acct_id, theHash);  // (theHash is output.)
 
         if (!bGothash) {
@@ -2573,11 +2431,7 @@ std::string OTAPI_Exec::GetNym_OutboxHash(
         } else  // Success: the hash was there, for that Nym, for that server
                 // ID.
         {
-            String strOutput(theHash);
-
-            std::string pBuf = strOutput.Get();
-
-            return pBuf;
+            return String(theHash).Get();
         }
     }
 
@@ -2752,8 +2606,6 @@ bool OTAPI_Exec::Nym_VerifyOutmailByIndex(
 std::int32_t OTAPI_Exec::GetNym_OutpaymentsCount(
     const std::string& NYM_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_ASSERT_MSG(
         !NYM_ID.empty(),
         "OTAPI_Exec::GetNym_OutpaymentsCount: Null NYM_ID passed in.");
@@ -2771,8 +2623,6 @@ std::string OTAPI_Exec::GetNym_OutpaymentsContentsByIndex(
     const std::string& NYM_ID,
     const int32_t& nIndex) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_ASSERT_MSG(
         !NYM_ID.empty(),
         "OTAPI_Exec::GetNym_"
@@ -2817,8 +2667,6 @@ std::string OTAPI_Exec::GetNym_OutpaymentsRecipientIDByIndex(
     const std::string& NYM_ID,
     const int32_t& nIndex) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_ASSERT_MSG(
         !NYM_ID.empty(),
         "OTAPI_Exec::GetNym_"
@@ -2853,8 +2701,6 @@ std::string OTAPI_Exec::GetNym_OutpaymentsNotaryIDByIndex(
     const std::string& NYM_ID,
     const int32_t& nIndex) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_ASSERT_MSG(
         !NYM_ID.empty(),
         "OTAPI_Exec::GetNym_"
@@ -2895,8 +2741,6 @@ bool OTAPI_Exec::Nym_RemoveOutpaymentsByIndex(
     const std::string& NYM_ID,
     const int32_t& nIndex) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_ASSERT_MSG(
         !NYM_ID.empty(),
         "OTAPI_Exec::Nym_RemoveOutpaymentsByIndex: Null NYM_ID passed in.");
@@ -2942,8 +2786,6 @@ bool OTAPI_Exec::Nym_VerifyOutpaymentsByIndex(
     const std::string& NYM_ID,
     const int32_t& nIndex) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_ASSERT_MSG(
         !NYM_ID.empty(),
         "OTAPI_Exec::Nym_VerifyOutpaymentsByIndex: Null NYM_ID passed in.");
@@ -2991,8 +2833,6 @@ bool OTAPI_Exec::Nym_VerifyOutpaymentsByIndex(
 
 int64_t OTAPI_Exec::Instrmnt_GetAmount(const std::string& THE_INSTRUMENT) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     if (THE_INSTRUMENT.empty()) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Null: THE_INSTRUMENT passed in!\n";
@@ -3007,7 +2847,7 @@ int64_t OTAPI_Exec::Instrmnt_GetAmount(const std::string& THE_INSTRUMENT) const
               << strInstrument << "\n\n";
         return -1;
     }
-    const bool& bSetValues = thePayment.SetTempValues();
+    const bool bSetValues = thePayment.SetTempValues();
     if (!bSetValues) {
         otOut << OT_METHOD << __FUNCTION__ << ": Unable to load instrument:\n\n"
               << strInstrument << "\n\n";
@@ -3025,8 +2865,6 @@ int64_t OTAPI_Exec::Instrmnt_GetAmount(const std::string& THE_INSTRUMENT) const
 int64_t OTAPI_Exec::Instrmnt_GetTransNum(
     const std::string& THE_INSTRUMENT) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     if (THE_INSTRUMENT.empty()) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Null: THE_INSTRUMENT passed in!\n";
@@ -3041,7 +2879,7 @@ int64_t OTAPI_Exec::Instrmnt_GetTransNum(
               << strInstrument << "\n\n";
         return -1;
     }
-    const bool& bSetValues = thePayment.SetTempValues();
+    const bool bSetValues = thePayment.SetTempValues();
     if (!bSetValues) {
         otOut << OT_METHOD << __FUNCTION__ << ": Unable to load instrument:\n\n"
               << strInstrument << "\n\n";
@@ -3053,7 +2891,7 @@ int64_t OTAPI_Exec::Instrmnt_GetTransNum(
     // data...)
     String strOutput;
     int64_t lOutput = 0;
-    const bool& bGotData = thePayment.GetTransactionNum(lOutput);  // <========
+    const bool bGotData = thePayment.GetTransactionNum(lOutput);  // <========
 
     return bGotData ? lOutput : -1;
 }
@@ -3061,8 +2899,6 @@ int64_t OTAPI_Exec::Instrmnt_GetTransNum(
 time64_t OTAPI_Exec::Instrmnt_GetValidFrom(
     const std::string& THE_INSTRUMENT) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     if (THE_INSTRUMENT.empty()) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Null: THE_INSTRUMENT passed in!\n";
@@ -3077,7 +2913,7 @@ time64_t OTAPI_Exec::Instrmnt_GetValidFrom(
               << strInstrument << "\n\n";
         return OTTimeGetTimeFromSeconds(-1);
     }
-    const bool& bSetValues = thePayment.SetTempValues();
+    const bool bSetValues = thePayment.SetTempValues();
     if (!bSetValues) {
         otOut << OT_METHOD << __FUNCTION__ << ": Unable to load instrument:\n\n"
               << strInstrument << "\n\n";
@@ -3091,7 +2927,7 @@ time64_t OTAPI_Exec::Instrmnt_GetValidFrom(
 
     String strOutput;
     time64_t tOutput = OT_TIME_ZERO;
-    const bool& bGotData = thePayment.GetValidFrom(tOutput);  // <========
+    const bool bGotData = thePayment.GetValidFrom(tOutput);  // <========
 
     return bGotData ? tOutput : OTTimeGetTimeFromSeconds(-1);
 }
@@ -3099,8 +2935,6 @@ time64_t OTAPI_Exec::Instrmnt_GetValidFrom(
 time64_t OTAPI_Exec::Instrmnt_GetValidTo(
     const std::string& THE_INSTRUMENT) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     if (THE_INSTRUMENT.empty()) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Null: THE_INSTRUMENT passed in!\n";
@@ -3115,7 +2949,7 @@ time64_t OTAPI_Exec::Instrmnt_GetValidTo(
               << strInstrument << "\n\n";
         return OTTimeGetTimeFromSeconds(-1);
     }
-    const bool& bSetValues = thePayment.SetTempValues();
+    const bool bSetValues = thePayment.SetTempValues();
     if (!bSetValues) {
         otOut << OT_METHOD << __FUNCTION__ << ": Unable to load instrument:\n\n"
               << strInstrument << "\n\n";
@@ -3129,7 +2963,7 @@ time64_t OTAPI_Exec::Instrmnt_GetValidTo(
 
     String strOutput;
     time64_t tOutput = OT_TIME_ZERO;
-    const bool& bGotData = thePayment.GetValidTo(tOutput);  // <========
+    const bool bGotData = thePayment.GetValidTo(tOutput);  // <========
 
     return bGotData ? tOutput : OTTimeGetTimeFromSeconds(-1);
 }
@@ -3137,8 +2971,6 @@ time64_t OTAPI_Exec::Instrmnt_GetValidTo(
 std::string OTAPI_Exec::Instrmnt_GetType(
     const std::string& THE_INSTRUMENT) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     if (THE_INSTRUMENT.empty()) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Null: THE_INSTRUMENT passed in!\n";
@@ -3153,7 +2985,7 @@ std::string OTAPI_Exec::Instrmnt_GetType(
               << strInstrument << "\n\n";
         return {};
     }
-    const bool& bSetValues = thePayment.SetTempValues();
+    const bool bSetValues = thePayment.SetTempValues();
     if (!bSetValues) {
         otOut << OT_METHOD << __FUNCTION__ << ": Unable to load instrument:\n\n"
               << strInstrument << "\n\n";
@@ -3178,8 +3010,6 @@ std::string OTAPI_Exec::Instrmnt_GetType(
 std::string OTAPI_Exec::Instrmnt_GetMemo(
     const std::string& THE_INSTRUMENT) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     if (THE_INSTRUMENT.empty()) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Null: THE_INSTRUMENT passed in!\n";
@@ -3194,7 +3024,7 @@ std::string OTAPI_Exec::Instrmnt_GetMemo(
               << strInstrument << "\n\n";
         return {};
     }
-    const bool& bSetValues = thePayment.SetTempValues();
+    const bool bSetValues = thePayment.SetTempValues();
     if (!bSetValues) {
         otOut << OT_METHOD << __FUNCTION__ << ": Unable to load instrument:\n\n"
               << strInstrument << "\n\n";
@@ -3207,7 +3037,7 @@ std::string OTAPI_Exec::Instrmnt_GetMemo(
     // data...)
 
     String strOutput;
-    const bool& bGotData = thePayment.GetMemo(strOutput);  // <========
+    const bool bGotData = thePayment.GetMemo(strOutput);  // <========
 
     if (bGotData) {
         std::string pBuf = strOutput.Get();
@@ -3220,8 +3050,6 @@ std::string OTAPI_Exec::Instrmnt_GetMemo(
 std::string OTAPI_Exec::Instrmnt_GetNotaryID(
     const std::string& THE_INSTRUMENT) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     if (THE_INSTRUMENT.empty()) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Null: THE_INSTRUMENT passed in!\n";
@@ -3236,7 +3064,7 @@ std::string OTAPI_Exec::Instrmnt_GetNotaryID(
               << strInstrument << "\n\n";
         return {};
     }
-    const bool& bSetValues = thePayment.SetTempValues();
+    const bool bSetValues = thePayment.SetTempValues();
     if (!bSetValues) {
         otOut << OT_METHOD << __FUNCTION__ << ": Unable to load instrument:\n\n"
               << strInstrument << "\n\n";
@@ -3249,7 +3077,7 @@ std::string OTAPI_Exec::Instrmnt_GetNotaryID(
     // data...)
 
     Identifier theOutput;
-    const bool& bGotData = thePayment.GetNotaryID(theOutput);  // <========
+    const bool bGotData = thePayment.GetNotaryID(theOutput);  // <========
 
     if (bGotData) {
         const String strOutput(theOutput);
@@ -3263,8 +3091,6 @@ std::string OTAPI_Exec::Instrmnt_GetNotaryID(
 std::string OTAPI_Exec::Instrmnt_GetInstrumentDefinitionID(
     const std::string& THE_INSTRUMENT) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     if (THE_INSTRUMENT.empty()) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Null: THE_INSTRUMENT passed in!\n";
@@ -3279,7 +3105,7 @@ std::string OTAPI_Exec::Instrmnt_GetInstrumentDefinitionID(
               << strInstrument << "\n\n";
         return {};
     }
-    const bool& bSetValues = thePayment.SetTempValues();
+    const bool bSetValues = thePayment.SetTempValues();
     if (!bSetValues) {
         otOut << OT_METHOD << __FUNCTION__ << ": Unable to load instrument:\n\n"
               << strInstrument << "\n\n";
@@ -3292,7 +3118,7 @@ std::string OTAPI_Exec::Instrmnt_GetInstrumentDefinitionID(
     // data...)
 
     Identifier theOutput;
-    const bool& bGotData =
+    const bool bGotData =
         thePayment.GetInstrumentDefinitionID(theOutput);  // <========
 
     if (bGotData) {
@@ -3307,8 +3133,6 @@ std::string OTAPI_Exec::Instrmnt_GetInstrumentDefinitionID(
 std::string OTAPI_Exec::Instrmnt_GetRemitterNymID(
     const std::string& THE_INSTRUMENT) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     if (THE_INSTRUMENT.empty()) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Null: THE_INSTRUMENT passed in!\n";
@@ -3323,7 +3147,7 @@ std::string OTAPI_Exec::Instrmnt_GetRemitterNymID(
               << strInstrument << "\n\n";
         return {};
     }
-    const bool& bSetValues = thePayment.SetTempValues();
+    const bool bSetValues = thePayment.SetTempValues();
     if (!bSetValues) {
         otOut << OT_METHOD << __FUNCTION__ << ": Unable to load instrument:\n\n"
               << strInstrument << "\n\n";
@@ -3336,7 +3160,7 @@ std::string OTAPI_Exec::Instrmnt_GetRemitterNymID(
     // data...)
 
     Identifier theOutput;
-    const bool& bGotData = thePayment.GetRemitterNymID(theOutput);  // <========
+    const bool bGotData = thePayment.GetRemitterNymID(theOutput);  // <========
 
     if (bGotData) {
         const String strOutput(theOutput);
@@ -3350,8 +3174,6 @@ std::string OTAPI_Exec::Instrmnt_GetRemitterNymID(
 std::string OTAPI_Exec::Instrmnt_GetRemitterAcctID(
     const std::string& THE_INSTRUMENT) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     if (THE_INSTRUMENT.empty()) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Null: THE_INSTRUMENT passed in!\n";
@@ -3366,7 +3188,7 @@ std::string OTAPI_Exec::Instrmnt_GetRemitterAcctID(
               << strInstrument << "\n\n";
         return {};
     }
-    const bool& bSetValues = thePayment.SetTempValues();
+    const bool bSetValues = thePayment.SetTempValues();
     if (!bSetValues) {
         otOut << OT_METHOD << __FUNCTION__ << ": Unable to load instrument:\n\n"
               << strInstrument << "\n\n";
@@ -3379,8 +3201,7 @@ std::string OTAPI_Exec::Instrmnt_GetRemitterAcctID(
     // data...)
 
     Identifier theOutput;
-    const bool& bGotData =
-        thePayment.GetRemitterAcctID(theOutput);  // <========
+    const bool bGotData = thePayment.GetRemitterAcctID(theOutput);  // <========
 
     if (bGotData) {
         const String strOutput(theOutput);
@@ -3394,8 +3215,6 @@ std::string OTAPI_Exec::Instrmnt_GetRemitterAcctID(
 std::string OTAPI_Exec::Instrmnt_GetSenderNymID(
     const std::string& THE_INSTRUMENT) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     if (THE_INSTRUMENT.empty()) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Null: THE_INSTRUMENT passed in!\n";
@@ -3410,7 +3229,7 @@ std::string OTAPI_Exec::Instrmnt_GetSenderNymID(
               << strInstrument << "\n\n";
         return {};
     }
-    const bool& bSetValues = thePayment.SetTempValues();
+    const bool bSetValues = thePayment.SetTempValues();
     if (!bSetValues) {
         otOut << OT_METHOD << __FUNCTION__ << ": Unable to load instrument:\n\n"
               << strInstrument << "\n\n";
@@ -3423,7 +3242,7 @@ std::string OTAPI_Exec::Instrmnt_GetSenderNymID(
     // data...)
 
     Identifier theOutput;
-    const bool& bGotData = thePayment.GetSenderNymID(theOutput);  // <========
+    const bool bGotData = thePayment.GetSenderNymID(theOutput);  // <========
 
     if (bGotData) {
         const String strOutput(theOutput);
@@ -3437,8 +3256,6 @@ std::string OTAPI_Exec::Instrmnt_GetSenderNymID(
 std::string OTAPI_Exec::Instrmnt_GetSenderAcctID(
     const std::string& THE_INSTRUMENT) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     if (THE_INSTRUMENT.empty()) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Null: THE_INSTRUMENT passed in!\n";
@@ -3453,7 +3270,7 @@ std::string OTAPI_Exec::Instrmnt_GetSenderAcctID(
               << strInstrument << "\n\n";
         return {};
     }
-    const bool& bSetValues = thePayment.SetTempValues();
+    const bool bSetValues = thePayment.SetTempValues();
     if (!bSetValues) {
         otOut << OT_METHOD << __FUNCTION__ << ": Unable to load instrument:\n\n"
               << strInstrument << "\n\n";
@@ -3466,7 +3283,7 @@ std::string OTAPI_Exec::Instrmnt_GetSenderAcctID(
     // data...)
 
     Identifier theOutput;
-    const bool& bGotData = thePayment.GetSenderAcctID(theOutput);  // <========
+    const bool bGotData = thePayment.GetSenderAcctID(theOutput);  // <========
 
     if (bGotData) {
         const String strOutput(theOutput);
@@ -3480,8 +3297,6 @@ std::string OTAPI_Exec::Instrmnt_GetSenderAcctID(
 std::string OTAPI_Exec::Instrmnt_GetRecipientNymID(
     const std::string& THE_INSTRUMENT) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     if (THE_INSTRUMENT.empty()) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Null: THE_INSTRUMENT passed in!\n";
@@ -3496,7 +3311,7 @@ std::string OTAPI_Exec::Instrmnt_GetRecipientNymID(
               << strInstrument << "\n\n";
         return {};
     }
-    const bool& bSetValues = thePayment.SetTempValues();
+    const bool bSetValues = thePayment.SetTempValues();
     if (!bSetValues) {
         otOut << OT_METHOD << __FUNCTION__ << ": Unable to load instrument:\n\n"
               << strInstrument << "\n\n";
@@ -3509,8 +3324,7 @@ std::string OTAPI_Exec::Instrmnt_GetRecipientNymID(
     // data...)
 
     Identifier theOutput;
-    const bool& bGotData =
-        thePayment.GetRecipientNymID(theOutput);  // <========
+    const bool bGotData = thePayment.GetRecipientNymID(theOutput);  // <========
 
     if (bGotData) {
         const String strOutput(theOutput);
@@ -3524,8 +3338,6 @@ std::string OTAPI_Exec::Instrmnt_GetRecipientNymID(
 std::string OTAPI_Exec::Instrmnt_GetRecipientAcctID(
     const std::string& THE_INSTRUMENT) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     if (THE_INSTRUMENT.empty()) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Null: THE_INSTRUMENT passed in!\n";
@@ -3540,7 +3352,7 @@ std::string OTAPI_Exec::Instrmnt_GetRecipientAcctID(
               << strInstrument << "\n\n";
         return {};
     }
-    const bool& bSetValues = thePayment.SetTempValues();
+    const bool bSetValues = thePayment.SetTempValues();
     if (!bSetValues) {
         otOut << OT_METHOD << __FUNCTION__ << ": Unable to load instrument:\n\n"
               << strInstrument << "\n\n";
@@ -3552,7 +3364,7 @@ std::string OTAPI_Exec::Instrmnt_GetRecipientAcctID(
     // data...)
 
     Identifier theOutput;
-    const bool& bGotData =
+    const bool bGotData =
         thePayment.GetRecipientAcctID(theOutput);  // <========
 
     if (bGotData) {
@@ -3634,8 +3446,6 @@ bool OTAPI_Exec::SetServer_Name(
     const std::string& NOTARY_ID,
     const std::string& STR_NEW_NAME) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_ASSERT_MSG(
         !NOTARY_ID.empty(),
         "OTAPI_Exec::SetServer_Name: Null NOTARY_ID passed in.");
@@ -3706,8 +3516,6 @@ std::int32_t OTAPI_Exec::GetNym_TransactionNumCount(
 // based on Index (above 4 functions) this returns the Server's ID
 std::string OTAPI_Exec::GetServer_ID(const int32_t& nIndex) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     if (0 > nIndex) {
         otErr << OT_METHOD << __FUNCTION__
               << ": nIndex is out of bounds (it's in the negative!)\n";
@@ -3741,8 +3549,6 @@ std::string OTAPI_Exec::GetServer_Name(const std::string& THE_ID) const
 // returns Instrument Definition ID (based on index from GetAssetTypeCount)
 std::string OTAPI_Exec::GetAssetType_ID(const int32_t& nIndex) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     if (0 > nIndex) {
         otErr << OT_METHOD << __FUNCTION__
               << ": nIndex is out of bounds (it's in the negative!)\n";
@@ -3786,7 +3592,7 @@ std::string OTAPI_Exec::GetAssetType_TLA(const std::string& THE_ID) const
 // returns a string containing the account ID, based on index.
 std::string OTAPI_Exec::GetAccountWallet_ID(const int32_t& nIndex) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     if (0 > nIndex) {
         otErr << OT_METHOD << __FUNCTION__
@@ -3812,7 +3618,7 @@ std::string OTAPI_Exec::GetAccountWallet_ID(const int32_t& nIndex) const
 // returns the account name, based on account ID.
 std::string OTAPI_Exec::GetAccountWallet_Name(const std::string& THE_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     OT_ASSERT_MSG(
         !THE_ID.empty(),
@@ -3839,7 +3645,7 @@ std::string OTAPI_Exec::GetAccountWallet_InboxHash(
 // account file. (Usually more recent than:
 // OTAPI_Exec::GetNym_InboxHash)
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     OT_ASSERT_MSG(
         !ACCOUNT_ID.empty(),
@@ -3854,7 +3660,7 @@ std::string OTAPI_Exec::GetAccountWallet_InboxHash(
     }
 
     Identifier theOutput;
-    const bool& bGotHash = pAccount->GetInboxHash(theOutput);
+    const bool bGotHash = pAccount->GetInboxHash(theOutput);
 
     String strOutput;
 
@@ -3869,7 +3675,7 @@ std::string OTAPI_Exec::GetAccountWallet_OutboxHash(
 // account file. (Usually more recent than:
 // OTAPI_Exec::GetNym_OutboxHash)
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     OT_ASSERT_MSG(
         !ACCOUNT_ID.empty(),
@@ -3885,7 +3691,7 @@ std::string OTAPI_Exec::GetAccountWallet_OutboxHash(
     }
 
     Identifier theOutput;
-    const bool& bGotHash = pAccount->GetOutboxHash(theOutput);
+    const bool bGotHash = pAccount->GetOutboxHash(theOutput);
 
     String strOutput;
 
@@ -4078,7 +3884,7 @@ std::string OTAPI_Exec::CreateSymmetricKey() const
     String strOutput;
     std::string strDisplay = "OTAPI: Creating a new symmetric key.";
     const String otstrDisplay(strDisplay);
-    const bool& bSuccess = OTSymmetricKey::CreateNewKey(
+    const bool bSuccess = OTSymmetricKey::CreateNewKey(
         strOutput, &otstrDisplay);  // pAlreadyHavePW=""
 
     if (!bSuccess) return {};
@@ -4113,7 +3919,7 @@ std::string OTAPI_Exec::SymmetricEncrypt(
     String strOutput;
     std::string strDisplay = "OTAPI: Password-protecting a plaintext.";
     const String otstrDisplay(strDisplay);
-    const bool& bSuccess = OTSymmetricKey::Encrypt(
+    const bool bSuccess = OTSymmetricKey::Encrypt(
         strKey,
         strPlaintext,
         strOutput,
@@ -4145,7 +3951,7 @@ std::string OTAPI_Exec::SymmetricDecrypt(
     std::string strDisplay =
         "OTAPI: Decrypting a password-protected ciphertext.";
     const String otstrDisplay(strDisplay);
-    const bool& bSuccess = OTSymmetricKey::Decrypt(
+    const bool bSuccess = OTSymmetricKey::Decrypt(
         strKey, strCiphertext, strOutput, &otstrDisplay);  // pAlreadyHavePW=""
 
     if (!bSuccess) return {};
@@ -4187,7 +3993,7 @@ std::string OTAPI_Exec::SignContract(
     const Identifier theSignerNymID(SIGNER_NYM_ID);
     String strOutput;
 
-    const bool& bSigned =
+    const bool bSigned =
         ot_api_.SignContract(theSignerNymID, strContract, strOutput);
 
     if (!bSigned || !strOutput.Exists()) return {};
@@ -4226,7 +4032,7 @@ std::string OTAPI_Exec::FlatSign(
     const Identifier theSignerNymID(SIGNER_NYM_ID);
     String strOutput;
 
-    const bool& bSigned = ot_api_.FlatSign(
+    const bool bSigned = ot_api_.FlatSign(
         theSignerNymID, strContract, strContractType, strOutput);
 
     if (!bSigned || !strOutput.Exists()) return {};
@@ -4269,7 +4075,7 @@ std::string OTAPI_Exec::AddSignature(
     const Identifier theSignerNymID(SIGNER_NYM_ID);
     String strOutput;
 
-    const bool& bSigned =
+    const bool bSigned =
         ot_api_.AddSignature(theSignerNymID, strContract, strOutput);
 
     if (!bSigned || !strOutput.Exists()) return {};
@@ -4296,7 +4102,7 @@ bool OTAPI_Exec::VerifySignature(
 
     const String strContract(THE_CONTRACT);
     const Identifier theNymID(SIGNER_NYM_ID);
-    const bool& bVerified = ot_api_.VerifySignature(
+    const bool bVerified = ot_api_.VerifySignature(
         strContract, theNymID); /*ppContract="" (optional third parameter for
                                    retrieving loaded contract.)*/
     return bVerified ? true : false;
@@ -4327,8 +4133,9 @@ std::string OTAPI_Exec::VerifyAndRetrieveXMLContents(
     const Identifier theSignerID(SIGNER_ID);
     String strOutput;
 
-    if (false == ot_api_.VerifyAndRetrieveXMLContents(
-                     strContract, theSignerID, strOutput)) {
+    if (false ==
+        ot_api_.VerifyAndRetrieveXMLContents(
+            strContract, theSignerID, strOutput)) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Failure: "
                  "ot_api_.VerifyAndRetrieveXMLContents() "
@@ -4351,8 +4158,6 @@ bool OTAPI_Exec::VerifyAccountReceipt(
     const std::string& NYM_ID,
     const std::string& ACCT_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_ASSERT_MSG(
         !NOTARY_ID.empty(),
         "OTAPI_Exec::VerifyAccountReceipt: Null NOTARY_ID passed in.");
@@ -4363,11 +4168,8 @@ bool OTAPI_Exec::VerifyAccountReceipt(
         !ACCT_ID.empty(),
         "OTAPI_Exec::VerifyAccountReceipt: Null ACCT_ID passed in.");
 
-    const Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID),
-        theAcctID(ACCT_ID);
-    const bool& bVerified =
-        ot_api_.VerifyAccountReceipt(theNotaryID, theNymID, theAcctID);
-    return bVerified ? true : false;
+    return ot_api_.VerifyAccountReceipt(
+        Identifier(NOTARY_ID), Identifier(NYM_ID), Identifier(ACCT_ID));
 }
 
 // SET ACCOUNT NAME (client side only. Server cares not about such labels.)
@@ -4379,28 +4181,21 @@ bool OTAPI_Exec::SetAccountWallet_Name(
     const std::string& SIGNER_NYM_ID,
     const std::string& ACCT_NEW_NAME) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_ASSERT_MSG(
         !ACCT_ID.empty(),
         "OTAPI_Exec::SetAccountWallet_Name: Null ACCT_ID passed in.");
     OT_ASSERT_MSG(
         !SIGNER_NYM_ID.empty(),
         "OTAPI_Exec::SetAccountWallet_Name: Null SIGNER_NYM_ID passed in.");
-    //  OT_ASSERT_MSG(
-    //      !ACCT_NEW_NAME.empty(),
-    //      "OTAPI_Exec::SetAccountWallet_Name: Null ACCT_NEW_NAME passed in.");
 
-    Identifier theAcctID(ACCT_ID), theSignerNymID(SIGNER_NYM_ID);
-    String strAcctNewName(ACCT_NEW_NAME);
-
-    return ot_api_.SetAccount_Name(theAcctID, theSignerNymID, strAcctNewName);
+    return ot_api_.SetAccount_Name(
+        Identifier(ACCT_ID), Identifier(SIGNER_NYM_ID), String(ACCT_NEW_NAME));
 }
 
 // returns the account balance, based on account ID.
 int64_t OTAPI_Exec::GetAccountWallet_Balance(const std::string& THE_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     OT_ASSERT_MSG(
         !THE_ID.empty(),
@@ -4414,7 +4209,7 @@ int64_t OTAPI_Exec::GetAccountWallet_Balance(const std::string& THE_ID) const
 // returns an account's "account type", (simple, issuer, etc.)
 std::string OTAPI_Exec::GetAccountWallet_Type(const std::string& THE_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     OT_ASSERT_MSG(
         !THE_ID.empty(),
@@ -4433,7 +4228,7 @@ std::string OTAPI_Exec::GetAccountWallet_Type(const std::string& THE_ID) const
 std::string OTAPI_Exec::GetAccountWallet_InstrumentDefinitionID(
     const std::string& THE_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     OT_VERIFY_ID_STR(THE_ID);
 
@@ -4455,7 +4250,7 @@ std::string OTAPI_Exec::GetAccountWallet_InstrumentDefinitionID(
 std::string OTAPI_Exec::GetAccountWallet_NotaryID(
     const std::string& THE_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     OT_VERIFY_ID_STR(THE_ID);
 
@@ -4473,7 +4268,7 @@ std::string OTAPI_Exec::GetAccountWallet_NotaryID(
 // (Which is a hash of the Nym's public key for the owner of this account.)
 std::string OTAPI_Exec::GetAccountWallet_NymID(const std::string& THE_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     OT_VERIFY_ID_STR(THE_ID);
 
@@ -4652,8 +4447,6 @@ std::string OTAPI_Exec::ProposePaymentPlan(
                                               // maximum payments.)
     ) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(SENDER_NYM_ID);
     // NOTE: Making this optional for this step. (Since sender account may
@@ -4699,16 +4492,14 @@ std::string OTAPI_Exec::ProposePaymentPlan(
         PAYMENT_PLAN_PERIOD,
         PAYMENT_PLAN_LENGTH,
         static_cast<int32_t>(PAYMENT_PLAN_MAX_PAYMENTS)));
+
     if (!pPlan) {
         otErr << OT_METHOD << __FUNCTION__
               << ": failed in OTAPI_Exec::ProposePaymentPlan.\n";
         return {};
     }
-    // At this point, I know pPlan is good (and will be cleaned up
-    // automatically.)
-    String strOutput(*pPlan);  // Extract the payment plan to string form.
-    std::string pBuf = strOutput.Get();
-    return pBuf;
+
+    return String(*pPlan).Get();
 }
 
 // TODO RESUME:
@@ -4746,8 +4537,6 @@ std::string OTAPI_Exec::EasyProposePlan(
     // unlimited.
     ) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(SENDER_NYM_ID);
     //  OT_VERIFY_ID_STR(SENDER_ACCT_ID); // Optional parameter.
@@ -4872,8 +4661,6 @@ std::string OTAPI_Exec::ConfirmPaymentPlan(
     const std::string& RECIPIENT_NYM_ID,
     const std::string& PAYMENT_PLAN) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(SENDER_NYM_ID);
     OT_VERIFY_ID_STR(SENDER_ACCT_ID);
@@ -4927,8 +4714,6 @@ std::string OTAPI_Exec::Create_SmartContract(
                                // party.
     ) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(SIGNER_NYM_ID);
 
     if (OT_TIME_ZERO > VALID_FROM) {
@@ -4946,7 +4731,7 @@ std::string OTAPI_Exec::Create_SmartContract(
     time64_t tValidTo = VALID_TO;
     String strOutput;
 
-    const bool& bCreated = ot_api_.Create_SmartContract(
+    const bool bCreated = ot_api_.Create_SmartContract(
         theSignerNymID,
         tValidFrom,      // Default (0 or "") == NOW
         tValidTo,        // Default (0 or "") == no expiry / cancel anytime
@@ -4964,8 +4749,6 @@ std::string OTAPI_Exec::Create_SmartContract(
 bool OTAPI_Exec::Smart_ArePartiesSpecified(
     const std::string& THE_CONTRACT) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_STD_STR(THE_CONTRACT);
 
     const String strContract(THE_CONTRACT);
@@ -4976,8 +4759,6 @@ bool OTAPI_Exec::Smart_ArePartiesSpecified(
 bool OTAPI_Exec::Smart_AreAssetTypesSpecified(
     const std::string& THE_CONTRACT) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_STD_STR(THE_CONTRACT);
 
     const String strContract(THE_CONTRACT);
@@ -4998,8 +4779,6 @@ std::string OTAPI_Exec::SmartContract_SetDates(
                                        // cancel
                                        // anytime.
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_ID_STR(SIGNER_NYM_ID);
 
@@ -5019,7 +4798,7 @@ std::string OTAPI_Exec::SmartContract_SetDates(
     time64_t tValidTo = VALID_TO;
     String strOutput;
 
-    const bool& bAdded = ot_api_.SmartContract_SetDates(
+    const bool bAdded = ot_api_.SmartContract_SetDates(
         strContract,     // The contract, about to have the dates changed on it.
         theSignerNymID,  // Use any Nym you wish here. (The signing at this
                          // point is only to cause a save.)
@@ -5050,8 +4829,6 @@ std::string OTAPI_Exec::SmartContract_AddBylaw(
                                           // the
 // smart contract. (And the scripts...)
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_ID_STR(SIGNER_NYM_ID);
     OT_VERIFY_STD_STR(BYLAW_NAME);
@@ -5060,7 +4837,7 @@ std::string OTAPI_Exec::SmartContract_AddBylaw(
     const Identifier theSignerNymID(SIGNER_NYM_ID);
     String strOutput;
 
-    const bool& bAdded = ot_api_.SmartContract_AddBylaw(
+    const bool bAdded = ot_api_.SmartContract_AddBylaw(
         strContract,     // The contract, about to have the bylaw added to it.
         theSignerNymID,  // Use any Nym you wish here. (The signing at this
                          // point32_t is only to cause a save.)
@@ -5085,8 +4862,6 @@ std::string OTAPI_Exec::SmartContract_RemoveBylaw(
                                           // the
 // smart contract. (And the scripts...)
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_ID_STR(SIGNER_NYM_ID);
     OT_VERIFY_STD_STR(BYLAW_NAME);
@@ -5095,7 +4870,7 @@ std::string OTAPI_Exec::SmartContract_RemoveBylaw(
     const Identifier theSignerNymID(SIGNER_NYM_ID);
     String strOutput;
 
-    const bool& bAdded = ot_api_.SmartContract_RemoveBylaw(
+    const bool bAdded = ot_api_.SmartContract_RemoveBylaw(
         strContract,     // The contract, about to have the bylaw added to it.
         theSignerNymID,  // Use any Nym you wish here. (The signing at this
                          // point32_t is only to cause a save.)
@@ -5123,8 +4898,6 @@ std::string OTAPI_Exec::SmartContract_AddClause(
     const std::string& SOURCE_CODE) const  // The actual source code for the
                                            // clause.
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_ID_STR(SIGNER_NYM_ID);
     OT_VERIFY_STD_STR(BYLAW_NAME);
@@ -5135,7 +4908,7 @@ std::string OTAPI_Exec::SmartContract_AddClause(
     const Identifier theSignerNymID(SIGNER_NYM_ID);
     String strOutput;
 
-    const bool& bAdded = ot_api_.SmartContract_AddClause(
+    const bool bAdded = ot_api_.SmartContract_AddClause(
         strContract,     // The contract, about to have the clause added to it.
         theSignerNymID,  // Use any Nym you wish here. (The signing at this
                          // point32_t is only to cause a save.)
@@ -5167,8 +4940,6 @@ std::string OTAPI_Exec::SmartContract_UpdateClause(
     const std::string& SOURCE_CODE) const  // The actual source code for the
                                            // clause.
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_ID_STR(SIGNER_NYM_ID);
     OT_VERIFY_STD_STR(BYLAW_NAME);
@@ -5180,7 +4951,7 @@ std::string OTAPI_Exec::SmartContract_UpdateClause(
     const Identifier theSignerNymID(SIGNER_NYM_ID);
     String strOutput;
 
-    const bool& bAdded = ot_api_.SmartContract_UpdateClause(
+    const bool bAdded = ot_api_.SmartContract_UpdateClause(
         strContract,     // The contract, about to have the clause added to it.
         theSignerNymID,  // Use any Nym you wish here. (The signing at this
                          // point32_t is only to cause a save.)
@@ -5209,8 +4980,6 @@ std::string OTAPI_Exec::SmartContract_RemoveClause(
                                     // way we can find it.)
     const std::string& CLAUSE_NAME) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_ID_STR(SIGNER_NYM_ID);
     OT_VERIFY_STD_STR(BYLAW_NAME);
@@ -5221,7 +4990,7 @@ std::string OTAPI_Exec::SmartContract_RemoveClause(
     const Identifier theSignerNymID(SIGNER_NYM_ID);
     String strOutput;
 
-    const bool& bAdded = ot_api_.SmartContract_RemoveClause(
+    const bool bAdded = ot_api_.SmartContract_RemoveClause(
         strContract,     // The contract, about to have the clause added to it.
         theSignerNymID,  // Use any Nym you wish here. (The signing at this
                          // point32_t is only to cause a save.)
@@ -5259,8 +5028,6 @@ std::string OTAPI_Exec::SmartContract_AddVariable(
 // strings "true" or "false" are expected here
 // in order to convert to a bool.
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_ID_STR(SIGNER_NYM_ID);
     OT_VERIFY_STD_STR(BYLAW_NAME);
@@ -5274,7 +5041,7 @@ std::string OTAPI_Exec::SmartContract_AddVariable(
     const Identifier theSignerNymID(SIGNER_NYM_ID);
     String strOutput;
 
-    const bool& bAdded = ot_api_.SmartContract_AddVariable(
+    const bool bAdded = ot_api_.SmartContract_AddVariable(
         strContract,     // The contract, about to have the clause added to it.
         theSignerNymID,  // Use any Nym you wish here. (The signing at this
                          // point32_t is only to cause a save.)
@@ -5310,8 +5077,6 @@ std::string OTAPI_Exec::SmartContract_RemoveVariable(
                                     // smart contract. (And the scripts...)
     ) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_ID_STR(SIGNER_NYM_ID);
     OT_VERIFY_STD_STR(BYLAW_NAME);
@@ -5322,7 +5087,7 @@ std::string OTAPI_Exec::SmartContract_RemoveVariable(
     const Identifier theSignerNymID(SIGNER_NYM_ID);
     String strOutput;
 
-    const bool& bAdded = ot_api_.SmartContract_RemoveVariable(
+    const bool bAdded = ot_api_.SmartContract_RemoveVariable(
         strContract,     // The contract, about to have the clause added to it.
         theSignerNymID,  // Use any Nym you wish here. (The signing at this
                          // point32_t is only to cause a save.)
@@ -5355,8 +5120,6 @@ std::string OTAPI_Exec::SmartContract_AddCallback(
                                            // triggered
                                            // by the callback. (Must exist.)
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_ID_STR(SIGNER_NYM_ID);
     OT_VERIFY_STD_STR(BYLAW_NAME);
@@ -5368,7 +5131,7 @@ std::string OTAPI_Exec::SmartContract_AddCallback(
     const Identifier theSignerNymID(SIGNER_NYM_ID);
     String strOutput;
 
-    const bool& bAdded = ot_api_.SmartContract_AddCallback(
+    const bool bAdded = ot_api_.SmartContract_AddCallback(
         strContract,      // The contract, about to have the clause added to it.
         theSignerNymID,   // Use any Nym you wish here. (The signing at this
                           // point32_t is only to cause a save.)
@@ -5401,8 +5164,6 @@ std::string OTAPI_Exec::SmartContract_RemoveCallback(
                                       // scripts...)
     ) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_ID_STR(SIGNER_NYM_ID);
     OT_VERIFY_STD_STR(BYLAW_NAME);
@@ -5413,7 +5174,7 @@ std::string OTAPI_Exec::SmartContract_RemoveCallback(
     const Identifier theSignerNymID(SIGNER_NYM_ID);
     String strOutput;
 
-    const bool& bAdded = ot_api_.SmartContract_RemoveCallback(
+    const bool bAdded = ot_api_.SmartContract_RemoveCallback(
         strContract,      // The contract, about to have the clause added to it.
         theSignerNymID,   // Use any Nym you wish here. (The signing at this
                           // point32_t is only to cause a save.)
@@ -5446,8 +5207,6 @@ std::string OTAPI_Exec::SmartContract_AddHook(
 // times, and have multiple clauses trigger
 // on the same hook.)
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_ID_STR(SIGNER_NYM_ID);
     OT_VERIFY_STD_STR(BYLAW_NAME);
@@ -5459,7 +5218,7 @@ std::string OTAPI_Exec::SmartContract_AddHook(
     const Identifier theSignerNymID(SIGNER_NYM_ID);
     String strOutput;
 
-    const bool& bAdded = ot_api_.SmartContract_AddHook(
+    const bool bAdded = ot_api_.SmartContract_AddHook(
         strContract,     // The contract, about to have the clause added to it.
         theSignerNymID,  // Use any Nym you wish here. (The signing at this
                          // point32_t is only to cause a save.)
@@ -5495,8 +5254,6 @@ std::string OTAPI_Exec::SmartContract_RemoveHook(
 // times, and have multiple clauses trigger
 // on the same hook.)
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_ID_STR(SIGNER_NYM_ID);
     OT_VERIFY_STD_STR(BYLAW_NAME);
@@ -5508,7 +5265,7 @@ std::string OTAPI_Exec::SmartContract_RemoveHook(
     const Identifier theSignerNymID(SIGNER_NYM_ID);
     String strOutput;
 
-    const bool& bAdded = ot_api_.SmartContract_RemoveHook(
+    const bool bAdded = ot_api_.SmartContract_RemoveHook(
         strContract,     // The contract, about to have the clause added to it.
         theSignerNymID,  // Use any Nym you wish here. (The signing at this
                          // point32_t is only to cause a save.)
@@ -5547,8 +5304,6 @@ std::string OTAPI_Exec::SmartContract_AddParty(
 // a Nym, with himself as the agent representing that same party. Nym ID is
 // supplied on ConfirmParty() below.)
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_ID_STR(SIGNER_NYM_ID);
     OT_VERIFY_STD_STR(PARTY_NAME);
@@ -5559,7 +5314,7 @@ std::string OTAPI_Exec::SmartContract_AddParty(
     const Identifier theSignerNymID(SIGNER_NYM_ID);
     String strOutput;
 
-    const bool& bAdded = ot_api_.SmartContract_AddParty(
+    const bool bAdded = ot_api_.SmartContract_AddParty(
         strContract,     // The contract, about to have the bylaw added to it.
         theSignerNymID,  // Use any Nym you wish here. (The signing at this
                          // point32_t is only to cause a save.)
@@ -5587,8 +5342,6 @@ std::string OTAPI_Exec::SmartContract_RemoveParty(
                                        // smart contract. (And the scripts...)
     ) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_ID_STR(SIGNER_NYM_ID);
     OT_VERIFY_STD_STR(PARTY_NAME);
@@ -5597,7 +5350,7 @@ std::string OTAPI_Exec::SmartContract_RemoveParty(
     const Identifier theSignerNymID(SIGNER_NYM_ID);
     String strOutput;
 
-    const bool& bAdded = ot_api_.SmartContract_RemoveParty(
+    const bool bAdded = ot_api_.SmartContract_RemoveParty(
         strContract,     // The contract, about to have the bylaw added to it.
         theSignerNymID,  // Use any Nym you wish here. (The signing at this
                          // point32_t is only to cause a save.)
@@ -5628,8 +5381,6 @@ std::string OTAPI_Exec::SmartContract_AddAccount(
     const std::string& INSTRUMENT_DEFINITION_ID) const  // Instrument Definition
 // ID for the Account. (Optional.)
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_ID_STR(SIGNER_NYM_ID);
     OT_VERIFY_STD_STR(PARTY_NAME);
@@ -5646,7 +5397,7 @@ std::string OTAPI_Exec::SmartContract_AddAccount(
     const Identifier theSignerNymID(SIGNER_NYM_ID);
     String strOutput;
 
-    const bool& bAdded = ot_api_.SmartContract_AddAccount(
+    const bool bAdded = ot_api_.SmartContract_AddAccount(
         strContract,     // The contract, about to have the clause added to it.
         theSignerNymID,  // Use any Nym you wish here. (The signing at this
                          // point32_t is only to cause a save.)
@@ -5675,8 +5426,6 @@ std::string OTAPI_Exec::SmartContract_RemoveAccount(
                                   // smart contract
     ) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_ID_STR(SIGNER_NYM_ID);
     OT_VERIFY_STD_STR(PARTY_NAME);
@@ -5687,7 +5436,7 @@ std::string OTAPI_Exec::SmartContract_RemoveAccount(
     const Identifier theSignerNymID(SIGNER_NYM_ID);
     String strOutput;
 
-    const bool& bAdded = ot_api_.SmartContract_RemoveAccount(
+    const bool bAdded = ot_api_.SmartContract_RemoveAccount(
         strContract,     // The contract, about to have the clause added to it.
         theSignerNymID,  // Use any Nym you wish here. (The signing at this
                          // point32_t is only to cause a save.)
@@ -5722,8 +5471,6 @@ std::int32_t OTAPI_Exec::SmartContract_CountNumsNeeded(
                                       // by this function.
     const std::string& AGENT_NAME) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_STD_STR(AGENT_NAME);
 
@@ -5746,8 +5493,6 @@ std::string OTAPI_Exec::SmartContract_ConfirmAccount(
     const std::string& ACCT_ID) const  // AcctID for the asset account. (For
                                        // acct_name).
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_ID_STR(SIGNER_NYM_ID);
     OT_VERIFY_STD_STR(PARTY_NAME);
@@ -5761,7 +5506,7 @@ std::string OTAPI_Exec::SmartContract_ConfirmAccount(
     const Identifier theSignerNymID(SIGNER_NYM_ID), theAcctID(strAccountID);
     String strOutput;
 
-    const bool& bConfirmed = ot_api_.SmartContract_ConfirmAccount(
+    const bool bConfirmed = ot_api_.SmartContract_ConfirmAccount(
         strContract,
         theSignerNymID,
         strPartyName,
@@ -5788,8 +5533,6 @@ std::string OTAPI_Exec::SmartContract_ConfirmParty(
     const std::string& NYM_ID,
     const std::string& NOTARY_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_STD_STR(PARTY_NAME);
     OT_VERIFY_ID_STR(NYM_ID);
@@ -5799,7 +5542,7 @@ std::string OTAPI_Exec::SmartContract_ConfirmParty(
     const String strContract(THE_CONTRACT), strPartyName(PARTY_NAME);
     String strOutput;
 
-    const bool& bConfirmed = ot_api_.SmartContract_ConfirmParty(
+    const bool bConfirmed = ot_api_.SmartContract_ConfirmParty(
         strContract,   // The smart contract, about to be changed by this
                        // function.
         strPartyName,  // Should already be on the contract. This way we can
@@ -5815,8 +5558,6 @@ std::string OTAPI_Exec::SmartContract_ConfirmParty(
 bool OTAPI_Exec::Smart_AreAllPartiesConfirmed(
     const std::string& THE_CONTRACT) const  // true or false?
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_STD_STR(THE_CONTRACT);
 
     String strContract(THE_CONTRACT);
@@ -5873,8 +5614,6 @@ bool OTAPI_Exec::Smart_IsPartyConfirmed(
                                           // or
                                           // false?
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_STD_STR(PARTY_NAME);
 
@@ -5952,8 +5691,6 @@ bool OTAPI_Exec::Smart_IsPartyConfirmed(
 std::int32_t OTAPI_Exec::Smart_GetPartyCount(
     const std::string& THE_CONTRACT) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_STD_STR(THE_CONTRACT);
 
     String strContract(THE_CONTRACT);
@@ -5972,8 +5709,6 @@ std::int32_t OTAPI_Exec::Smart_GetPartyCount(
 std::int32_t OTAPI_Exec::Smart_GetBylawCount(
     const std::string& THE_CONTRACT) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_STD_STR(THE_CONTRACT);
 
     String strContract(THE_CONTRACT);
@@ -5994,8 +5729,6 @@ std::string OTAPI_Exec::Smart_GetPartyByIndex(
     const std::string& THE_CONTRACT,
     const int32_t& nIndex) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_STD_STR(THE_CONTRACT);
 
     const String strContract(THE_CONTRACT);
@@ -6027,8 +5760,6 @@ std::string OTAPI_Exec::Smart_GetBylawByIndex(
     const std::string& THE_CONTRACT,
     const int32_t& nIndex) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_STD_STR(THE_CONTRACT);
 
     const String strContract(THE_CONTRACT);
@@ -6060,8 +5791,6 @@ std::string OTAPI_Exec::Bylaw_GetLanguage(
     const std::string& THE_CONTRACT,
     const std::string& BYLAW_NAME) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_STD_STR(BYLAW_NAME);
 
@@ -6092,8 +5821,6 @@ std::int32_t OTAPI_Exec::Bylaw_GetClauseCount(
     const std::string& THE_CONTRACT,
     const std::string& BYLAW_NAME) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_STD_STR(BYLAW_NAME);
 
@@ -6123,8 +5850,6 @@ std::int32_t OTAPI_Exec::Bylaw_GetVariableCount(
     const std::string& THE_CONTRACT,
     const std::string& BYLAW_NAME) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_STD_STR(BYLAW_NAME);
 
@@ -6154,8 +5879,6 @@ std::int32_t OTAPI_Exec::Bylaw_GetHookCount(
     const std::string& THE_CONTRACT,
     const std::string& BYLAW_NAME) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_STD_STR(BYLAW_NAME);
 
@@ -6185,8 +5908,6 @@ std::int32_t OTAPI_Exec::Bylaw_GetCallbackCount(
     const std::string& THE_CONTRACT,
     const std::string& BYLAW_NAME) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_STD_STR(BYLAW_NAME);
 
@@ -6217,8 +5938,6 @@ std::string OTAPI_Exec::Clause_GetNameByIndex(
     const std::string& BYLAW_NAME,
     const int32_t& nIndex) const  // returns the name of the clause.
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_STD_STR(BYLAW_NAME);
 
@@ -6262,8 +5981,6 @@ std::string OTAPI_Exec::Clause_GetContents(
     const std::string& CLAUSE_NAME) const  // returns the contents of the
                                            // clause.
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_STD_STR(BYLAW_NAME);
     OT_VERIFY_STD_STR(CLAUSE_NAME);
@@ -6306,8 +6023,6 @@ std::string OTAPI_Exec::Variable_GetNameByIndex(
     const std::string& BYLAW_NAME,
     const int32_t& nIndex) const  // returns the name of the variable.
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_STD_STR(BYLAW_NAME);
 
@@ -6350,8 +6065,6 @@ std::string OTAPI_Exec::Variable_GetType(
     const std::string& VARIABLE_NAME) const  // returns the type of the
                                              // variable.
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_STD_STR(BYLAW_NAME);
     OT_VERIFY_STD_STR(VARIABLE_NAME);
@@ -6396,8 +6109,6 @@ std::string OTAPI_Exec::Variable_GetAccess(
     const std::string& VARIABLE_NAME) const  // returns the access level of the
                                              // variable.
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_STD_STR(BYLAW_NAME);
     OT_VERIFY_STD_STR(VARIABLE_NAME);
@@ -6442,8 +6153,6 @@ std::string OTAPI_Exec::Variable_GetContents(
     const std::string& VARIABLE_NAME) const  // returns the contents of the
                                              // variable.
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_STD_STR(BYLAW_NAME);
     OT_VERIFY_STD_STR(VARIABLE_NAME);
@@ -6496,8 +6205,6 @@ std::string OTAPI_Exec::Hook_GetNameByIndex(
     const std::string& BYLAW_NAME,
     const int32_t& nIndex) const  // returns the name of the hook.
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_STD_STR(BYLAW_NAME);
 
@@ -6530,8 +6237,6 @@ std::int32_t OTAPI_Exec::Hook_GetClauseCount(
     const std::string& BYLAW_NAME,
     const std::string& HOOK_NAME) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_STD_STR(BYLAW_NAME);
     OT_VERIFY_STD_STR(HOOK_NAME);
@@ -6573,8 +6278,6 @@ std::string OTAPI_Exec::Hook_GetClauseAtIndex(
     const std::string& HOOK_NAME,
     const int32_t& nIndex) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_STD_STR(BYLAW_NAME);
     OT_VERIFY_STD_STR(HOOK_NAME);
@@ -6622,8 +6325,6 @@ std::string OTAPI_Exec::Callback_GetNameByIndex(
     const std::string& BYLAW_NAME,
     const int32_t& nIndex) const  // returns the name of the callback.
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_STD_STR(BYLAW_NAME);
 
@@ -6656,8 +6357,6 @@ std::string OTAPI_Exec::Callback_GetClause(
     const std::string& CALLBACK_NAME) const  // returns name of clause attached
                                              // to callback.
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_STD_STR(BYLAW_NAME);
     OT_VERIFY_STD_STR(CALLBACK_NAME);
@@ -6697,8 +6396,6 @@ std::int32_t OTAPI_Exec::Party_GetAcctCount(
     const std::string& THE_CONTRACT,
     const std::string& PARTY_NAME) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_STD_STR(PARTY_NAME);
 
@@ -6728,8 +6425,6 @@ std::int32_t OTAPI_Exec::Party_GetAgentCount(
     const std::string& THE_CONTRACT,
     const std::string& PARTY_NAME) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_STD_STR(PARTY_NAME);
 
@@ -6762,8 +6457,6 @@ std::string OTAPI_Exec::Party_GetID(
     const std::string& THE_CONTRACT,
     const std::string& PARTY_NAME) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_STD_STR(PARTY_NAME);
 
@@ -6794,8 +6487,6 @@ std::string OTAPI_Exec::Party_GetAcctNameByIndex(
     const std::string& PARTY_NAME,
     const int32_t& nIndex) const  // returns the name of the clause.
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_STD_STR(PARTY_NAME);
 
@@ -6839,8 +6530,6 @@ std::string OTAPI_Exec::Party_GetAcctID(
                                          // account
                                          // name. (If there is one yet...)
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_STD_STR(PARTY_NAME);
     OT_VERIFY_STD_STR(ACCT_NAME);
@@ -6885,8 +6574,6 @@ std::string OTAPI_Exec::Party_GetAcctInstrumentDefinitionID(
                                          // the
                                          // account name.
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_STD_STR(PARTY_NAME);
     OT_VERIFY_STD_STR(ACCT_NAME);
@@ -6933,8 +6620,6 @@ std::string OTAPI_Exec::Party_GetAcctAgentName(
                                          // named
                                          // account.
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_STD_STR(PARTY_NAME);
     OT_VERIFY_STD_STR(ACCT_NAME);
@@ -6979,8 +6664,6 @@ std::string OTAPI_Exec::Party_GetAgentNameByIndex(
     const std::string& PARTY_NAME,
     const int32_t& nIndex) const  // returns the name of the agent.
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_STD_STR(PARTY_NAME);
 
@@ -7025,8 +6708,6 @@ std::string OTAPI_Exec::Party_GetAgentID(
     const std::string& AGENT_NAME) const  // returns ID of the agent. (If
                                           // there is one...)
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_STD_STR(PARTY_NAME);
     OT_VERIFY_STD_STR(AGENT_NAME);
@@ -7136,7 +6817,7 @@ bool OTAPI_Exec::Msg_HarvestTransactionNumbers(
     const bool& bTransactionWasSuccess,
     const bool& bTransactionWasFailure) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     OT_VERIFY_ID_STR(NYM_ID);
     OT_VERIFY_STD_STR(THE_MESSAGE);
@@ -7262,7 +6943,7 @@ bool OTAPI_Exec::Msg_HarvestTransactionNumbers(
     }
     // By this point, we have the actual message loaded up.
     //
-    const bool& bSuccess = ot_api_.Msg_HarvestTransactionNumbers(
+    const bool bSuccess = ot_api_.Msg_HarvestTransactionNumbers(
         theMessage,
         theNymID,
         bHarvestingForRetry,
@@ -7346,8 +7027,6 @@ bool OTAPI_Exec::Msg_HarvestTransactionNumbers(
 std::string OTAPI_Exec::LoadPubkey_Encryption(
     const std::string& NYM_ID) const  // returns "", or a public key.
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(NYM_ID);
 
     String strPubkey;  // For the output
@@ -7376,8 +7055,6 @@ std::string OTAPI_Exec::LoadPubkey_Encryption(
 std::string OTAPI_Exec::LoadPubkey_Signing(
     const std::string& NYM_ID) const  // returns "", or a public key.
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(NYM_ID);
 
     String strPubkey;  // For the output
@@ -7406,8 +7083,6 @@ std::string OTAPI_Exec::LoadPubkey_Signing(
 std::string OTAPI_Exec::LoadUserPubkey_Encryption(
     const std::string& NYM_ID) const  // returns "", or a public key.
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(NYM_ID);
 
     String strPubkey;  // For the output
@@ -7434,8 +7109,6 @@ std::string OTAPI_Exec::LoadUserPubkey_Encryption(
 std::string OTAPI_Exec::LoadUserPubkey_Signing(
     const std::string& NYM_ID) const  // returns "", or a public key.
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(NYM_ID);
 
     String strPubkey;  // For the output
@@ -7470,8 +7143,6 @@ bool OTAPI_Exec::VerifyUserPrivateKey(
     const std::string& NYM_ID) const  // returns
                                       // bool
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(NYM_ID);
 
     if (!wallet_.IsLocalNym(NYM_ID)) {
@@ -7490,8 +7161,6 @@ bool OTAPI_Exec::Mint_IsStillGood(
     const std::string& NOTARY_ID,
     const std::string& INSTRUMENT_DEFINITION_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(INSTRUMENT_DEFINITION_ID);
 
@@ -7524,8 +7193,6 @@ std::string OTAPI_Exec::LoadMint(
                                                         // "", or a
                                                         // mint
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(INSTRUMENT_DEFINITION_ID);
 
@@ -7557,8 +7224,6 @@ std::string OTAPI_Exec::LoadMint(
 std::string OTAPI_Exec::LoadServerContract(
     const std::string& NOTARY_ID) const  // returns "", or an asset contract
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(NOTARY_ID);
 
     const Identifier theNotaryID(NOTARY_ID);
@@ -7645,7 +7310,7 @@ std::string OTAPI_Exec::Nymbox_GetReplyNotice(
     const int64_t& REQUEST_NUMBER) const  // returns replyNotice transaction by
                                           // requestNumber.
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(NYM_ID);
@@ -7778,8 +7443,6 @@ bool OTAPI_Exec::HaveAlreadySeenReply(
     const int64_t& REQUEST_NUMBER) const  // returns
                                           // bool
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(NYM_ID);
 
@@ -7794,9 +7457,8 @@ bool OTAPI_Exec::HaveAlreadySeenReply(
     // There is an OT_ASSERT in here for memory failure,
     // but it still might return "" if various verification fails.
 
-    const bool& bTemp = ot_api_.HaveAlreadySeenReply(
+    return ot_api_.HaveAlreadySeenReply(
         theNotaryID, theNymID, static_cast<int64_t>(lRequestNumber));
-    return bTemp;
 }
 
 std::string OTAPI_Exec::LoadNymbox(
@@ -7804,8 +7466,6 @@ std::string OTAPI_Exec::LoadNymbox(
     const std::string& NYM_ID) const  // Returns
                                       // "", or nymbox.
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(NYM_ID);
 
@@ -7833,8 +7493,6 @@ std::string OTAPI_Exec::LoadNymboxNoVerify(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID) const  // Returns "", or nymbox.
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(NYM_ID);
 
@@ -7865,8 +7523,6 @@ std::string OTAPI_Exec::LoadInbox(
     const std::string& ACCOUNT_ID) const  // Returns "",
                                           // or an inbox.
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(NYM_ID);
     OT_VERIFY_ID_STR(ACCOUNT_ID);
@@ -7899,8 +7555,6 @@ std::string OTAPI_Exec::LoadInboxNoVerify(
     const std::string& NYM_ID,
     const std::string& ACCOUNT_ID) const  // Returns "", or an inbox.
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(NYM_ID);
     OT_VERIFY_ID_STR(ACCOUNT_ID);
@@ -7933,8 +7587,6 @@ std::string OTAPI_Exec::LoadOutbox(
     const std::string& NYM_ID,
     const std::string& ACCOUNT_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(NYM_ID);
     OT_VERIFY_ID_STR(ACCOUNT_ID);
@@ -7967,8 +7619,6 @@ std::string OTAPI_Exec::LoadOutboxNoVerify(
     const std::string& NYM_ID,
     const std::string& ACCOUNT_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(NYM_ID);
     OT_VERIFY_ID_STR(ACCOUNT_ID);
@@ -8004,8 +7654,6 @@ std::string OTAPI_Exec::LoadPaymentInbox(
                                       // an
                                       // inbox.
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(NYM_ID);
 
@@ -8035,8 +7683,6 @@ std::string OTAPI_Exec::LoadPaymentInboxNoVerify(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID) const  // Returns "", or a paymentInbox.
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(NYM_ID);
 
@@ -8068,8 +7714,6 @@ std::string OTAPI_Exec::LoadRecordBox(
     const std::string& NYM_ID,
     const std::string& ACCOUNT_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(NYM_ID);
     OT_VERIFY_ID_STR(ACCOUNT_ID);
@@ -8100,8 +7744,6 @@ std::string OTAPI_Exec::LoadRecordBoxNoVerify(
     const std::string& NYM_ID,
     const std::string& ACCOUNT_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(NYM_ID);
     OT_VERIFY_ID_STR(ACCOUNT_ID);
@@ -8131,8 +7773,6 @@ std::string OTAPI_Exec::LoadExpiredBox(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(NYM_ID);
 
@@ -8160,8 +7800,6 @@ std::string OTAPI_Exec::LoadExpiredBoxNoVerify(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID) const  // Returns nullptr, or a ExpiredBox.
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(NYM_ID);
 
@@ -8194,8 +7832,6 @@ bool OTAPI_Exec::RecordPayment(
     const bool& bSaveCopy) const  // If false, then will NOT save a copy to
                                   // record box.
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_MIN_BOUND(nIndex, 0);
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(NYM_ID);
@@ -8214,8 +7850,6 @@ bool OTAPI_Exec::ClearRecord(
     const int32_t& nIndex,
     const bool& bClearAll) const  // if true, nIndex is ignored.
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_MIN_BOUND(nIndex, 0);
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(NYM_ID);
@@ -8236,8 +7870,6 @@ bool OTAPI_Exec::ClearExpired(
     const bool& bClearAll) const  // if true, nIndex is
                                   // ignored.
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_MIN_BOUND(nIndex, 0);
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(NYM_ID);
@@ -8255,17 +7887,13 @@ std::int32_t OTAPI_Exec::Ledger_GetCount(
     const std::string& ACCOUNT_ID,
     const std::string& THE_LEDGER) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(NYM_ID);
     OT_VERIFY_ID_STR(ACCOUNT_ID);
-
     OT_VERIFY_STD_STR(THE_LEDGER);
 
     const Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID),
         theAccountID(ACCOUNT_ID);
-
     String strLedger(THE_LEDGER);
     Ledger theLedger(theNymID, theAccountID, theNotaryID);
 
@@ -8290,17 +7918,13 @@ std::string OTAPI_Exec::Ledger_GetTransactionNums(
     const std::string& ACCOUNT_ID,
     const std::string& THE_LEDGER) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(NYM_ID);
     OT_VERIFY_ID_STR(ACCOUNT_ID);
-
     OT_VERIFY_STD_STR(THE_LEDGER);
 
     const Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID),
         theAccountID(ACCOUNT_ID);
-
     String strLedger(THE_LEDGER);
     Ledger theLedger(theNymID, theAccountID, theNotaryID);
 
@@ -8334,8 +7958,6 @@ std::string OTAPI_Exec::Ledger_CreateResponse(
     const std::string& NYM_ID,
     const std::string& ACCOUNT_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(NYM_ID);
     OT_VERIFY_ID_STR(ACCOUNT_ID);
@@ -8386,8 +8008,6 @@ std::string OTAPI_Exec::Ledger_GetTransactionByIndex(
     const std::string& THE_LEDGER,
     const int32_t& nIndex) const  // returns transaction by index (from ledger)
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(NYM_ID);
     OT_VERIFY_ID_STR(ACCOUNT_ID);
@@ -8405,7 +8025,7 @@ std::string OTAPI_Exec::Ledger_GetTransactionByIndex(
         //      || !theLedger.LoadBoxReceipts(&setUnloaded)
         // This is done below, for the individual transaction,
         // for better optimization.
-    ) {
+        ) {
         String strAcctID(theAccountID);
         otErr << OT_METHOD << __FUNCTION__
               << ": Error loading ledger from string, or loading box receipts "
@@ -8455,8 +8075,6 @@ std::string OTAPI_Exec::Ledger_GetTransactionByID(
     const std::string& THE_LEDGER,
     const int64_t& TRANSACTION_NUMBER) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(NYM_ID);
     OT_VERIFY_ID_STR(ACCOUNT_ID);
@@ -8614,9 +8232,7 @@ std::string OTAPI_Exec::Ledger_GetInstrument_lowlevel(
     const int32_t& nIndex,
     const int64_t& lReceiptId) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-    // ----------------------------------------------------
-    const bool& bUsingIndex{index_or_receipt};
+    const bool bUsingIndex{index_or_receipt};
     const bool bUsingReceipt{!index_or_receipt};
 
     if (bUsingIndex) {  // nIndex
@@ -8721,8 +8337,6 @@ int64_t OTAPI_Exec::Ledger_GetTransactionIDByIndex(
     const std::string& THE_LEDGER,
     const int32_t& nIndex) const  // returns transaction number by index.
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(NYM_ID);
     OT_VERIFY_ID_STR(ACCOUNT_ID);
@@ -8759,8 +8373,6 @@ std::string OTAPI_Exec::Ledger_AddTransaction(
     const std::string& THE_LEDGER,
     const std::string& THE_TRANSACTION) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(NYM_ID);
     OT_VERIFY_ID_STR(ACCOUNT_ID);
@@ -8842,8 +8454,6 @@ std::string OTAPI_Exec::Transaction_CreateResponse(
     const std::string& THE_TRANSACTION,  // Responding to...?
     const bool& BOOL_DO_I_ACCEPT) const  // 0 or 1  (true or false.)
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(NYM_ID);
     OT_VERIFY_ID_STR(ACCOUNT_ID);
@@ -8959,8 +8569,6 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(
     const std::string& THE_LEDGER) const  // 'Response' ledger be sent to the
                                           // server...
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(NYM_ID);
     OT_VERIFY_ID_STR(ACCOUNT_ID);
@@ -9034,8 +8642,6 @@ std::string OTAPI_Exec::Transaction_GetVoucher(
     const std::string& ACCOUNT_ID,
     const std::string& THE_TRANSACTION) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(NYM_ID);
     OT_VERIFY_ID_STR(ACCOUNT_ID);
@@ -9119,8 +8725,6 @@ std::string OTAPI_Exec::Transaction_GetSenderNymID(
     const std::string& ACCOUNT_ID,
     const std::string& THE_TRANSACTION) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(NYM_ID);
     OT_VERIFY_ID_STR(ACCOUNT_ID);
@@ -9201,8 +8805,6 @@ std::string OTAPI_Exec::Transaction_GetRecipientNymID(
     const std::string& ACCOUNT_ID,
     const std::string& THE_TRANSACTION) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(NYM_ID);
     OT_VERIFY_ID_STR(ACCOUNT_ID);
@@ -9304,8 +8906,6 @@ std::string OTAPI_Exec::Transaction_GetSenderAcctID(
     const std::string& ACCOUNT_ID,
     const std::string& THE_TRANSACTION) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(NYM_ID);
     OT_VERIFY_ID_STR(ACCOUNT_ID);
@@ -9390,8 +8990,6 @@ std::string OTAPI_Exec::Transaction_GetRecipientAcctID(
     const std::string& ACCOUNT_ID,
     const std::string& THE_TRANSACTION) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(NYM_ID);
     OT_VERIFY_ID_STR(ACCOUNT_ID);
@@ -9483,8 +9081,6 @@ std::string OTAPI_Exec::Pending_GetNote(
     const std::string& ACCOUNT_ID,
     const std::string& THE_TRANSACTION) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(NYM_ID);
     OT_VERIFY_ID_STR(ACCOUNT_ID);
@@ -9593,8 +9189,6 @@ int64_t OTAPI_Exec::Transaction_GetAmount(
     const std::string& ACCOUNT_ID,
     const std::string& THE_TRANSACTION) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(NYM_ID);
     OT_VERIFY_ID_STR(ACCOUNT_ID);
@@ -9674,8 +9268,6 @@ int64_t OTAPI_Exec::Transaction_GetDisplayReferenceToNum(
     const std::string& ACCOUNT_ID,
     const std::string& THE_TRANSACTION) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(NYM_ID);
     OT_VERIFY_ID_STR(ACCOUNT_ID);
@@ -9715,8 +9307,6 @@ std::string OTAPI_Exec::Transaction_GetType(
     const std::string& ACCOUNT_ID,
     const std::string& THE_TRANSACTION) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(NYM_ID);
     OT_VERIFY_ID_STR(ACCOUNT_ID);
@@ -9762,8 +9352,6 @@ int64_t OTAPI_Exec::ReplyNotice_GetRequestNum(
     const std::string& NYM_ID,
     const std::string& THE_TRANSACTION) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(NYM_ID);
     OT_VERIFY_STD_STR(THE_TRANSACTION);
@@ -9812,8 +9400,6 @@ time64_t OTAPI_Exec::Transaction_GetDateSigned(
     const std::string& ACCOUNT_ID,
     const std::string& THE_TRANSACTION) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(NYM_ID);
     OT_VERIFY_ID_STR(ACCOUNT_ID);
@@ -9859,8 +9445,6 @@ std::int32_t OTAPI_Exec::Transaction_GetSuccess(
     const std::string& ACCOUNT_ID,
     const std::string& THE_TRANSACTION) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(NYM_ID);
     OT_VERIFY_ID_STR(ACCOUNT_ID);
@@ -9942,8 +9526,6 @@ std::int32_t OTAPI_Exec::Transaction_IsCanceled(
     const std::string& ACCOUNT_ID,
     const std::string& THE_TRANSACTION) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(NYM_ID);
     OT_VERIFY_ID_STR(ACCOUNT_ID);
@@ -10039,8 +9621,6 @@ std::int32_t OTAPI_Exec::Transaction_GetBalanceAgreementSuccess(
     const std::string& ACCOUNT_ID,
     const std::string& THE_TRANSACTION) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(NYM_ID);
     OT_VERIFY_ID_STR(ACCOUNT_ID);
@@ -10135,8 +9715,6 @@ std::int32_t OTAPI_Exec::Message_GetBalanceAgreementSuccess(
     const std::string& ACCOUNT_ID,
     const std::string& THE_MESSAGE) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(NYM_ID);
     OT_VERIFY_ID_STR(ACCOUNT_ID);
@@ -10239,8 +9817,6 @@ bool OTAPI_Exec::SavePurse(
     const std::string& NYM_ID,
     const std::string& THE_PURSE) const  // returns bool
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(NYM_ID);
     OT_VERIFY_ID_STR(INSTRUMENT_DEFINITION_ID);
@@ -10294,8 +9870,6 @@ std::string OTAPI_Exec::LoadPurse(
                                       // "", or
                                       // a purse.
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(NYM_ID);
     OT_VERIFY_ID_STR(INSTRUMENT_DEFINITION_ID);
@@ -10333,8 +9907,6 @@ int64_t OTAPI_Exec::Purse_GetTotalValue(
     const std::string& INSTRUMENT_DEFINITION_ID,
     const std::string& THE_PURSE) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(INSTRUMENT_DEFINITION_ID);
     OT_VERIFY_STD_STR(THE_PURSE);
@@ -10364,8 +9936,6 @@ std::int32_t OTAPI_Exec::Purse_Count(
     const std::string& INSTRUMENT_DEFINITION_ID,
     const std::string& THE_PURSE) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(INSTRUMENT_DEFINITION_ID);
     OT_VERIFY_STD_STR(THE_PURSE);
@@ -10392,8 +9962,6 @@ bool OTAPI_Exec::Purse_HasPassword(
     const std::string& NOTARY_ID,
     const std::string& THE_PURSE) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_STD_STR(THE_PURSE);
 
@@ -10417,8 +9985,6 @@ std::string OTAPI_Exec::CreatePurse(
     const std::string& OWNER_ID,
     const std::string& SIGNER_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(INSTRUMENT_DEFINITION_ID);
     OT_VERIFY_ID_STR(OWNER_ID);
@@ -10462,8 +10028,6 @@ std::string OTAPI_Exec::CreatePurse_Passphrase(
     const std::string& INSTRUMENT_DEFINITION_ID,
     const std::string& SIGNER_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(INSTRUMENT_DEFINITION_ID);
     OT_VERIFY_ID_STR(SIGNER_ID);
@@ -10507,8 +10071,6 @@ std::string OTAPI_Exec::Purse_Peek(
                                   // decrypt the token.)
     const std::string& THE_PURSE) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     String strOutput;  // for later.
 
     OT_VERIFY_ID_STR(NOTARY_ID);
@@ -10571,8 +10133,6 @@ std::string OTAPI_Exec::Purse_Pop(
     // use the same Nym for signing...)
     const std::string& THE_PURSE) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     String strOutput;  // for later.
 
     OT_VERIFY_ID_STR(NOTARY_ID);
@@ -10669,8 +10229,6 @@ std::string OTAPI_Exec::Purse_Empty(
     const std::string& SIGNER_ID,
     const std::string& THE_PURSE) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     String strOutput;  // for later.
 
     OT_VERIFY_ID_STR(NOTARY_ID);
@@ -10739,8 +10297,6 @@ std::string OTAPI_Exec::Purse_Push(
     const std::string& THE_PURSE,
     const std::string& THE_TOKEN) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     String strOutput;  // for later.
 
     OT_VERIFY_ID_STR(NOTARY_ID);
@@ -10809,8 +10365,6 @@ bool OTAPI_Exec::Wallet_ImportPurse(
     const std::string& NYM_ID,
     const std::string& THE_PURSE) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(INSTRUMENT_DEFINITION_ID);
     OT_VERIFY_ID_STR(NYM_ID);
@@ -10828,13 +10382,12 @@ bool OTAPI_Exec::Wallet_ImportPurse(
     //
     String strDisplay("");
 
-    const bool& bImported = ot_api_.Wallet_ImportPurse(
+    return ot_api_.Wallet_ImportPurse(
         theNotaryID,
         theInstrumentDefinitionID,
         theNymID,
         strNewPurse,
         &strDisplay);
-    return bImported ? true : false;
 }
 
 // the GUI needs to be able to export cash from one Nym to another,
@@ -10873,8 +10426,6 @@ std::string OTAPI_Exec::Token_ChangeOwner(
     const std::string& OLD_OWNER,        // Pass a NymID here, or a purse.
     const std::string& NEW_OWNER) const  // Pass a NymID here, or a purse.
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(INSTRUMENT_DEFINITION_ID);
     OT_VERIFY_STD_STR(THE_TOKEN);
@@ -10933,8 +10484,6 @@ std::string OTAPI_Exec::Token_GetID(
     const std::string& INSTRUMENT_DEFINITION_ID,
     const std::string& THE_TOKEN) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(INSTRUMENT_DEFINITION_ID);
     OT_VERIFY_STD_STR(THE_TOKEN);
@@ -10970,8 +10519,6 @@ int64_t OTAPI_Exec::Token_GetDenomination(
     const std::string& INSTRUMENT_DEFINITION_ID,
     const std::string& THE_TOKEN) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(INSTRUMENT_DEFINITION_ID);
     OT_VERIFY_STD_STR(THE_TOKEN);
@@ -11001,8 +10548,6 @@ std::int32_t OTAPI_Exec::Token_GetSeries(
     const std::string& INSTRUMENT_DEFINITION_ID,
     const std::string& THE_TOKEN) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(INSTRUMENT_DEFINITION_ID);
     OT_VERIFY_STD_STR(THE_TOKEN);
@@ -11030,8 +10575,6 @@ time64_t OTAPI_Exec::Token_GetValidFrom(
     const std::string& INSTRUMENT_DEFINITION_ID,
     const std::string& THE_TOKEN) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(INSTRUMENT_DEFINITION_ID);
     OT_VERIFY_STD_STR(THE_TOKEN);
@@ -11060,8 +10603,6 @@ time64_t OTAPI_Exec::Token_GetValidTo(
     const std::string& INSTRUMENT_DEFINITION_ID,
     const std::string& THE_TOKEN) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(INSTRUMENT_DEFINITION_ID);
     OT_VERIFY_STD_STR(THE_TOKEN);
@@ -11085,8 +10626,6 @@ time64_t OTAPI_Exec::Token_GetValidTo(
 std::string OTAPI_Exec::Token_GetInstrumentDefinitionID(
     const std::string& THE_TOKEN) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_STD_STR(THE_TOKEN);
 
     String strOutput;
@@ -11106,8 +10645,6 @@ std::string OTAPI_Exec::Token_GetInstrumentDefinitionID(
 
 std::string OTAPI_Exec::Token_GetNotaryID(const std::string& THE_TOKEN) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_STD_STR(THE_TOKEN);
 
     String strOutput;
@@ -11136,8 +10673,6 @@ std::string OTAPI_Exec::Token_GetNotaryID(const std::string& THE_TOKEN) const
 bool OTAPI_Exec::IsBasketCurrency(
     const std::string& INSTRUMENT_DEFINITION_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(INSTRUMENT_DEFINITION_ID);
 
     const Identifier theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
@@ -11156,8 +10691,6 @@ bool OTAPI_Exec::IsBasketCurrency(
 std::int32_t OTAPI_Exec::Basket_GetMemberCount(
     const std::string& INSTRUMENT_DEFINITION_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(INSTRUMENT_DEFINITION_ID);
 
     const Identifier theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
@@ -11173,8 +10706,6 @@ std::string OTAPI_Exec::Basket_GetMemberType(
     const std::string& BASKET_INSTRUMENT_DEFINITION_ID,
     const int32_t& nIndex) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(BASKET_INSTRUMENT_DEFINITION_ID);
     OT_VERIFY_MIN_BOUND(nIndex, 0);
 
@@ -11204,8 +10735,6 @@ std::string OTAPI_Exec::Basket_GetMemberType(
 int64_t OTAPI_Exec::Basket_GetMinimumTransferAmount(
     const std::string& BASKET_INSTRUMENT_DEFINITION_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(BASKET_INSTRUMENT_DEFINITION_ID);
 
     const Identifier theInstrumentDefinitionID(BASKET_INSTRUMENT_DEFINITION_ID);
@@ -11241,8 +10770,6 @@ int64_t OTAPI_Exec::Basket_GetMemberMinimumTransferAmount(
     const std::string& BASKET_INSTRUMENT_DEFINITION_ID,
     const int32_t& nIndex) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(BASKET_INSTRUMENT_DEFINITION_ID);
     OT_VERIFY_MIN_BOUND(nIndex, 0);
 
@@ -11286,8 +10813,6 @@ int64_t OTAPI_Exec::Basket_GetMemberMinimumTransferAmount(
 int64_t OTAPI_Exec::Message_GetUsageCredits(
     const std::string& THE_MESSAGE) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     if (THE_MESSAGE.empty()) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Null: THE_MESSAGE passed in!\n";
@@ -11569,8 +11094,6 @@ std::string OTAPI_Exec::GenerateBasketCreation(
     const std::string& terms,
     const uint64_t weight) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     auto serverContract = wallet_.Server(Identifier(serverID));
 
     if (!serverContract) {
@@ -11601,8 +11124,6 @@ std::string OTAPI_Exec::AddBasketCreationItem(
     const std::string& currencyID,
     const uint64_t& weight) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_ASSERT_MSG(
         !basketTemplate.empty(),
         "OTAPI_Exec::AddBasketCreationItem: Null basketTemplate passed in.");
@@ -11641,8 +11162,6 @@ std::string OTAPI_Exec::GenerateBasketExchange(
 // 1            2            3
 // 5=2,3,4  OR  10=4,6,8  OR 15=6,9,12
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(NYM_ID);
     OT_VERIFY_ID_STR(BASKET_INSTRUMENT_DEFINITION_ID);
@@ -11688,8 +11207,6 @@ std::string OTAPI_Exec::AddBasketExchangeItem(
     const std::string& INSTRUMENT_DEFINITION_ID,
     const std::string& ASSET_ACCT_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(NYM_ID);
     OT_VERIFY_STD_STR(THE_BASKET);
@@ -11750,8 +11267,6 @@ std::string OTAPI_Exec::GetSentMessage(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(NYM_ID);
     OT_VERIFY_MIN_BOUND(REQUEST_NUMBER, 0);
@@ -11788,15 +11303,13 @@ bool OTAPI_Exec::RemoveSentMessage(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(NYM_ID);
     OT_VERIFY_MIN_BOUND(REQUEST_NUMBER, 0);
 
     const int64_t lRequestNum = REQUEST_NUMBER;
     const Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID);
-    const bool& bSuccess = ot_api_.RemoveSentMessage(
+    const bool bSuccess = ot_api_.RemoveSentMessage(
         static_cast<int64_t>(lRequestNum), theNotaryID, theNymID);
 
     return bSuccess;
@@ -11836,8 +11349,6 @@ void OTAPI_Exec::FlushSentMessages(
     const std::string& NYM_ID,
     const std::string& THE_NYMBOX) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(NYM_ID);
     OT_VERIFY_STD_STR(THE_NYMBOX);
@@ -11866,7 +11377,7 @@ bool OTAPI_Exec::ResyncNymWithServer(
     const std::string& NYM_ID,
     const std::string& THE_MESSAGE) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
+    rLock lock(lock_);
 
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(NYM_ID);
@@ -11974,8 +11485,6 @@ bool OTAPI_Exec::ResyncNymWithServer(
 //
 std::string OTAPI_Exec::Message_GetPayload(const std::string& THE_MESSAGE) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_STD_STR(THE_MESSAGE);
 
     String strMessage(THE_MESSAGE);
@@ -11998,8 +11507,6 @@ std::string OTAPI_Exec::Message_GetPayload(const std::string& THE_MESSAGE) const
 //
 std::string OTAPI_Exec::Message_GetCommand(const std::string& THE_MESSAGE) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_STD_STR(THE_MESSAGE);
 
     String strMessage(THE_MESSAGE);
@@ -12022,8 +11529,6 @@ std::string OTAPI_Exec::Message_GetCommand(const std::string& THE_MESSAGE) const
 //
 std::string OTAPI_Exec::Message_GetLedger(const std::string& THE_MESSAGE) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_STD_STR(THE_MESSAGE);
 
     String strMessage(THE_MESSAGE);
@@ -12069,8 +11574,6 @@ std::string OTAPI_Exec::Message_GetLedger(const std::string& THE_MESSAGE) const
 std::string OTAPI_Exec::Message_GetNewInstrumentDefinitionID(
     const std::string& THE_MESSAGE) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_STD_STR(THE_MESSAGE);
 
     String strMessage(THE_MESSAGE);
@@ -12086,8 +11589,9 @@ std::string OTAPI_Exec::Message_GetNewInstrumentDefinitionID(
     // contain a ledger. (Don't want to pass back whatever it DOES contain
     // in that case, now do I?)
     //
-    if ((false == theMessage.m_strCommand.Compare(
-                      "registerInstrumentDefinitionResponse")) &&
+    if ((false ==
+         theMessage.m_strCommand.Compare(
+             "registerInstrumentDefinitionResponse")) &&
         (false == theMessage.m_strCommand.Compare("issueBasketResponse"))) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Wrong message type: " << theMessage.m_strCommand << "\n";
@@ -12116,8 +11620,6 @@ std::string OTAPI_Exec::Message_GetNewInstrumentDefinitionID(
 std::string OTAPI_Exec::Message_GetNewIssuerAcctID(
     const std::string& THE_MESSAGE) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_STD_STR(THE_MESSAGE);
 
     String strMessage(THE_MESSAGE);
@@ -12166,8 +11668,6 @@ std::string OTAPI_Exec::Message_GetNewIssuerAcctID(
 std::string OTAPI_Exec::Message_GetNewAcctID(
     const std::string& THE_MESSAGE) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_STD_STR(THE_MESSAGE);
 
     String strMessage(THE_MESSAGE);
@@ -12213,8 +11713,6 @@ std::string OTAPI_Exec::Message_GetNewAcctID(
 std::string OTAPI_Exec::Message_GetNymboxHash(
     const std::string& THE_MESSAGE) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_STD_STR(THE_MESSAGE);
 
     String strMessage(THE_MESSAGE);
@@ -12265,8 +11763,6 @@ std::string OTAPI_Exec::Message_GetNymboxHash(
 std::int32_t OTAPI_Exec::Message_GetSuccess(
     const std::string& THE_MESSAGE) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_STD_STR(THE_MESSAGE);
 
     Message theMessage;
@@ -12332,8 +11828,6 @@ std::int32_t OTAPI_Exec::Message_GetSuccess(
 //
 std::int32_t OTAPI_Exec::Message_GetDepth(const std::string& THE_MESSAGE) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_STD_STR(THE_MESSAGE);
 
     String strMessage(THE_MESSAGE);
@@ -12356,8 +11850,6 @@ std::int32_t OTAPI_Exec::Message_IsTransactionCanceled(
     const std::string& ACCOUNT_ID,
     const std::string& THE_MESSAGE) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(NYM_ID);
     OT_VERIFY_ID_STR(ACCOUNT_ID);
@@ -12445,8 +11937,6 @@ std::int32_t OTAPI_Exec::Message_GetTransactionSuccess(
     const std::string& ACCOUNT_ID,
     const std::string& THE_MESSAGE) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(NYM_ID);
     OT_VERIFY_ID_STR(ACCOUNT_ID);
@@ -12614,8 +12104,6 @@ bool OTAPI_Exec::AddClaim(
     const int64_t start,
     const int64_t end) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     auto nym = wallet_.mutable_Nym(Identifier(nymID));
 
     return ot_api_.AddClaim(
@@ -12643,8 +12131,6 @@ std::string OTAPI_Exec::AddChildEd25519Credential(
     const Identifier& nymID,
     const Identifier& masterID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     std::string output;
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
 #if OT_CRYPTO_SUPPORTED_KEY_HD
@@ -12663,8 +12149,6 @@ std::string OTAPI_Exec::AddChildSecp256k1Credential(
     const Identifier& nymID,
     const Identifier& masterID) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     std::string output;
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 #if OT_CRYPTO_SUPPORTED_KEY_HD
@@ -12684,8 +12168,6 @@ std::string OTAPI_Exec::AddChildRSACredential(
     const Identifier& masterID,
     const std::uint32_t keysize) const
 {
-    std::lock_guard<std::recursive_mutex> lock(lock_);
-
     std::string output;
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
 
