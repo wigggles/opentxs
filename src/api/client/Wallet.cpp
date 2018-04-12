@@ -41,11 +41,14 @@
 #include "opentxs/api/network/Dht.hpp"
 #include "opentxs/api/network/ZMQ.hpp"
 #include "opentxs/api/storage/Storage.hpp"
+#include "opentxs/api/Api.hpp"
 #include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Identity.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/api/Server.hpp"
 #include "opentxs/client/NymData.hpp"
+#include "opentxs/client/OT_API.hpp"
+#include "opentxs/client/OTWallet.hpp"
 #include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/consensus/Context.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
@@ -568,6 +571,12 @@ ConstNym Wallet::Nym(
         }
 
         pNym->SaveSignedNymfile(*pNym);
+        const auto& otapi = ot_.API().OTAPI();
+        auto otwallet = otapi.GetWallet(nullptr);
+
+        OT_ASSERT(nullptr != otwallet);
+
+        otwallet->SaveWallet();
 
         return Nym(pNym->ID());
     } else {
