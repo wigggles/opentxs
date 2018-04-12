@@ -916,16 +916,7 @@ bool Native::ServerMode() const { return server_mode_; }
 
 void Native::set_storage_encryption()
 {
-    OT_ASSERT(api_);
     OT_ASSERT(crypto_);
-
-    const bool loaded = api_->OTAPI().LoadWallet();
-
-    OT_ASSERT(loaded);
-
-    auto wallet = api_->OTAPI().GetWallet(nullptr);
-
-    OT_ASSERT(nullptr != wallet);
 
     auto seed = crypto_->BIP39().DefaultSeed();
 
@@ -945,8 +936,6 @@ void Native::set_storage_encryption()
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to load storage key "
               << seed << std::endl;
     }
-
-    wallet->SaveWallet();
 }
 
 void Native::shutdown()
@@ -1002,8 +991,22 @@ void Native::start()
 
     OT_ASSERT(contacts_);
 
-    if ((false == server_mode_) && (false == encrypted_directory_.empty())) {
-        set_storage_encryption();
+    if (false == server_mode_) {
+        OT_ASSERT(api_);
+
+        const bool loaded = api_->OTAPI().LoadWallet();
+
+        OT_ASSERT(loaded);
+
+        auto wallet = api_->OTAPI().GetWallet(nullptr);
+
+        OT_ASSERT(nullptr != wallet);
+
+        if (false == encrypted_directory_.empty()) {
+            set_storage_encryption();
+        }
+
+        wallet->SaveWallet();
     }
 
     Init_StorageBackup();
