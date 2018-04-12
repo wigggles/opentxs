@@ -893,7 +893,7 @@ bool OT_API::GetNym(std::int32_t iIndex, Identifier& NYM_ID, String& NYM_NAME)
     const
 {
     if (wallet_.NymNameByIndex(iIndex, NYM_NAME)) {
-        NYM_ID = std::move(Identifier(NYM_NAME));
+        NYM_ID = Identifier(NYM_NAME);
 
         return true;
     }
@@ -1531,7 +1531,7 @@ bool OT_API::Wallet_ExportNym(const Identifier& NYM_ID, String& strOutput) const
         strOutput.Release();
         bReturnVal = ascTemp.WriteArmoredString(
             strOutput, "EXPORTED NYM"  // -----BEGIN OT EXPORTED NYM-----
-        );                             // (bool bEscaped=false by default.)
+            );                         // (bool bEscaped=false by default.)
     }
 
     return bReturnVal;
@@ -1943,7 +1943,7 @@ bool OT_API::Encode(
         strOutput.Release();
         bSuccess = ascArmor.WriteArmoredString(
             strOutput, "ENCODED TEXT"  // -----BEGIN OT ENCODED TEXT-----
-        );                             // (bool bEscaped=false by default.)
+            );                         // (bool bEscaped=false by default.)
     }
     return bSuccess;
 }
@@ -2018,7 +2018,7 @@ bool OT_API::Encrypt(
 
         bSuccess = ascCiphertext.WriteArmoredString(
             strOutput, "ENCRYPTED TEXT"  // -----BEGIN OT ENCRYPTED TEXT-----
-        );                               // (bool bEscaped=false by default.)
+            );                           // (bool bEscaped=false by default.)
     }
     return bSuccess;
 }
@@ -5100,7 +5100,7 @@ OTNym_or_SymmetricKey* OT_API::LoadPurseAndOwnerForMerge(
              !thePurse.IsPasswordProtected())  // && (nullptr != pOWNER_ID))
                                                // //
                                                // checked inside the block.
-        ) {
+            ) {
             const Identifier* pActualOwnerID =
                 thePurse.IsNymIDIncluded() ? &idPurseNym : pOWNER_ID;
 

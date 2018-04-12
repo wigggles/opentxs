@@ -1552,251 +1552,264 @@ bool OTRecordList::Populate()
                 continue;
             }
         }  // for outpayments.
-        // For each Nym, loop through his MAIL box.
-        auto& exec = OT::App().API().Exec();
-        const auto mail = exec.GetNym_MailCount(str_nym_id);
-        std::int32_t index = 0;
+        // --------------------------------------------------
+        if (!m_bIgnoreMail) {
+            // For each Nym, loop through his MAIL box.
+            auto& exec = OT::App().API().Exec();
+            const auto mail = exec.GetNym_MailCount(str_nym_id);
+            std::int32_t index = 0;
 
-        for (const auto& id : mail) {
-            otInfo << __FUNCTION__ << ": Mail index: " << index << "\n";
-            const Identifier nymID(str_nym_id);
+            for (const auto& id : mail) {
+                otInfo << __FUNCTION__ << ": Mail index: " << index << "\n";
+                const Identifier nymID(str_nym_id);
 
-            if (id.empty()) {
+                if (id.empty()) {
+                    index++;
+
+                    continue;
+                }
+
+                auto message = OT::App().Activity().Mail(
+                    nymID, Identifier(id), StorageBox::MAILINBOX);
+
+                if (!message) {
+                    otErr << __FUNCTION__
+                          << ": Failed to load mail message with "
+                          << "ID " << id << " from inbox." << std::endl;
+                    index++;
+
+                    continue;
+                }
+
+                OT_ASSERT(message);
+
+                const std::string str_mail_server =
+                    exec.GetNym_MailNotaryIDByIndex(str_nym_id, id);
+                const std::string str_mail_senderID =
+                    exec.GetNym_MailSenderIDByIndex(str_nym_id, id);
+                // str_mail_server is the server for this mail.
+                // But is that server on our list of servers that we care about?
+                // Let's see if that server is on m_servers (otherwise we can
+                // skip it.)
+                //
+                auto it_server = std::find(
+                    m_servers.begin(), m_servers.end(), str_mail_server);
+
+                if (it_server !=
+                    m_servers.end())  // Found the notaryID on the list
+                                      // of servers we care about.
+                {
+                    // TODO OPTIMIZE: instead of looking up the Nym's name every
+                    // time, look it
+                    // up ONCE when first adding the NymID. Add it to a map,
+                    // instead of a list, and add the Nym's name as the second
+                    // item in the map's pair. (Just like I already did with the
+                    // instrument definition.)
+                    //
+                    String strName(
+                        m_pLookup->GetNymName(str_mail_senderID, *it_server)),
+                        strNameTemp;
+                    std::string str_name;
+
+                    if (strName.Exists())
+                        strNameTemp.Format(
+                            OTRecordList::textFrom(), strName.Get());
+                    else
+                        strNameTemp.Format(
+                            OTRecordList::textFrom(),
+                            str_mail_senderID.c_str());
+
+                    str_name = strNameTemp.Get();
+                    const std::string* p_str_asset_type =
+                        &OTRecordList::s_blank;  // <========== ASSET TYPE
+                    const std::string* p_str_asset_name =
+                        &OTRecordList::s_blank;  // instrument definition
+                                                 // display name.
+                    const std::string* p_str_account =
+                        &OTRecordList::s_blank;  // <========== ACCOUNT
+
+                    std::string str_amount;  // There IS NO amount, on mail. (So
+                                             // we leave this empty.)
+
+                    uint64_t lDate = message->m_lTime;
+                    String strDate;
+                    strDate.Format("%" PRIu64 "", lDate);
+                    const std::string str_date(strDate.Get());
+                    // CREATE A OTRecord AND POPULATE IT...
+                    //
+                    otInfo << __FUNCTION__ << ": ADDED: incoming mail.\n";
+
+                    shared_ptr_OTRecord sp_Record(new OTRecord(
+                        *this,
+                        *it_server,
+                        *p_str_asset_type,
+                        *p_str_asset_name,
+                        str_nym_id,      // This is the Nym WHOSE BOX IT IS.
+                        *p_str_account,  // This is the Nym's account according
+                                         // to
+                        // the payment instrument, IF that account
+                        // was found on our list of accounts we care
+                        // about. Or it's blank if no account was
+                        // found on the payment instrument.
+                        // Everything above this line, it stores a reference to
+                        // an
+                        // external string.
+                        // Everything below this line, it makes its own internal
+                        // copy of the string.
+                        str_name,  // name of sender (since its in incoming mail
+                                   // box.)
+                        str_date,  // How do we get the date from a mail?
+                        str_amount,
+                        OTRecordList::s_message_type,  // "message"
+                        false,  // bIsPending=false since its already received.
+                        false,  // bIsOutgoing=false. It's incoming mail, not
+                                // outgoing mail.
+                        false,  // IsRecord
+                        false,  // IsReceipt
+                        OTRecord::Mail));
+                    const String strMail(
+                        SwigWrap::GetNym_MailContentsByIndex(str_nym_id, id));
+                    sp_Record->SetContents(strMail.Get());
+                    sp_Record->SetOtherNymID(str_mail_senderID);
+                    sp_Record->SetBoxIndex(index);
+                    sp_Record->SetThreadItemId(id);
+                    sp_Record->SetDateRange(
+                        OTTimeGetTimeFromSeconds(message->m_lTime),
+                        OTTimeGetTimeFromSeconds(message->m_lTime));
+                    m_contents.push_back(sp_Record);
+                }
+
                 index++;
-
-                continue;
-            }
-
-            auto message = OT::App().Activity().Mail(
-                nymID, Identifier(id), StorageBox::MAILINBOX);
-
-            if (!message) {
-                otErr << __FUNCTION__ << ": Failed to load mail message with "
-                      << "ID " << id << " from inbox." << std::endl;
-                index++;
-
-                continue;
-            }
-
-            OT_ASSERT(message);
-
-            const std::string str_mail_server =
-                exec.GetNym_MailNotaryIDByIndex(str_nym_id, id);
-            const std::string str_mail_senderID =
-                exec.GetNym_MailSenderIDByIndex(str_nym_id, id);
-            // str_mail_server is the server for this mail.
-            // But is that server on our list of servers that we care about?
-            // Let's see if that server is on m_servers (otherwise we can skip
-            // it.)
+            }  // loop through incoming Mail.
+            // Outmail
             //
-            auto it_server =
-                std::find(m_servers.begin(), m_servers.end(), str_mail_server);
+            const auto outmail = exec.GetNym_OutmailCount(str_nym_id);
+            index = 0;
 
-            if (it_server != m_servers.end())  // Found the notaryID on the list
-                                               // of servers we care about.
-            {
-                // TODO OPTIMIZE: instead of looking up the Nym's name every
-                // time, look it
-                // up ONCE when first adding the NymID. Add it to a map, instead
-                // of a list,
-                // and add the Nym's name as the second item in the map's pair.
-                // (Just like I already did with the instrument definition.)
+            for (const auto& id : outmail) {
+                otInfo << __FUNCTION__ << ": Outmail index: " << index << "\n";
+                const Identifier nymID(str_nym_id);
+
+                if (id.empty()) {
+                    index++;
+
+                    continue;
+                }
+
+                auto message = OT::App().Activity().Mail(
+                    nymID, Identifier(id), StorageBox::MAILOUTBOX);
+
+                if (!message) {
+                    otErr << __FUNCTION__
+                          << ": Failed to load mail message with "
+                          << "ID " << id << " from outbox." << std::endl;
+                    index++;
+
+                    continue;
+                }
+
+                OT_ASSERT(message);
+
+                const std::string str_mail_server =
+                    SwigWrap::GetNym_OutmailNotaryIDByIndex(str_nym_id, id);
+                const std::string str_mail_recipientID =
+                    SwigWrap::GetNym_OutmailRecipientIDByIndex(str_nym_id, id);
+                // str_mail_server is the server for this mail.
+                // But is that server on our list of servers that we care about?
+                // Let's see if that server is on m_servers (otherwise we can
+                // skip it.)
                 //
-                String strName(
-                    m_pLookup->GetNymName(str_mail_senderID, *it_server)),
-                    strNameTemp;
-                std::string str_name;
+                auto it_server = std::find(
+                    m_servers.begin(), m_servers.end(), str_mail_server);
 
-                if (strName.Exists())
-                    strNameTemp.Format(OTRecordList::textFrom(), strName.Get());
-                else
-                    strNameTemp.Format(
-                        OTRecordList::textFrom(), str_mail_senderID.c_str());
+                if (it_server !=
+                    m_servers.end())  // Found the notaryID on the list
+                                      // of servers we care about.
+                {
+                    // TODO OPTIMIZE: instead of looking up the Nym's name every
+                    // time, look it
+                    // up ONCE when first adding the NymID. Add it to a map,
+                    // instead of a list, and add the Nym's name as the second
+                    // item in the map's pair. (Just like I already did with the
+                    // instrument definition.)
+                    //
+                    String strName(m_pLookup->GetNymName(
+                        str_mail_recipientID, *it_server)),
+                        strNameTemp;
+                    std::string str_name;
 
-                str_name = strNameTemp.Get();
-                const std::string* p_str_asset_type =
-                    &OTRecordList::s_blank;  // <========== ASSET TYPE
-                const std::string* p_str_asset_name =
-                    &OTRecordList::s_blank;  // instrument definition display
-                                             // name.
-                const std::string* p_str_account =
-                    &OTRecordList::s_blank;  // <========== ACCOUNT
+                    if (strName.Exists())
+                        strNameTemp.Format(
+                            OTRecordList::textTo(), strName.Get());
+                    else
+                        strNameTemp.Format(
+                            OTRecordList::textTo(),
+                            str_mail_recipientID.c_str());
 
-                std::string str_amount;  // There IS NO amount, on mail. (So we
-                                         // leave this empty.)
+                    str_name = strNameTemp.Get();
+                    const std::string* p_str_asset_type =
+                        &OTRecordList::s_blank;  // <========== ASSET TYPE
+                    const std::string* p_str_asset_name =
+                        &OTRecordList::s_blank;  // instrument definition
+                                                 // display name.
+                    const std::string* p_str_account =
+                        &OTRecordList::s_blank;  // <========== ACCOUNT
 
-                uint64_t lDate = message->m_lTime;
-                String strDate;
-                strDate.Format("%" PRIu64 "", lDate);
-                const std::string str_date(strDate.Get());
-                // CREATE A OTRecord AND POPULATE IT...
-                //
-                otInfo << __FUNCTION__ << ": ADDED: incoming mail.\n";
+                    std::string str_amount;  // There IS NO amount, on mail. (So
+                                             // we leave this empty.)
 
-                shared_ptr_OTRecord sp_Record(new OTRecord(
-                    *this,
-                    *it_server,
-                    *p_str_asset_type,
-                    *p_str_asset_name,
-                    str_nym_id,      // This is the Nym WHOSE BOX IT IS.
-                    *p_str_account,  // This is the Nym's account according
-                                     // to
-                    // the payment instrument, IF that account
-                    // was found on our list of accounts we care
-                    // about. Or it's blank if no account was
-                    // found on the payment instrument.
-                    // Everything above this line, it stores a reference to
-                    // an
-                    // external string.
-                    // Everything below this line, it makes its own internal
-                    // copy of the string.
-                    str_name,  // name of sender (since its in incoming mail
-                               // box.)
-                    str_date,  // How do we get the date from a mail?
-                    str_amount,
-                    OTRecordList::s_message_type,  // "message"
-                    false,  // bIsPending=false since its already received.
-                    false,  // bIsOutgoing=false. It's incoming mail, not
-                            // outgoing mail.
-                    false,  // IsRecord
-                    false,  // IsReceipt
-                    OTRecord::Mail));
-                const String strMail(
-                    SwigWrap::GetNym_MailContentsByIndex(str_nym_id, id));
-                sp_Record->SetContents(strMail.Get());
-                sp_Record->SetOtherNymID(str_mail_senderID);
-                sp_Record->SetBoxIndex(index);
-                sp_Record->SetThreadItemId(id);
-                sp_Record->SetDateRange(
-                    OTTimeGetTimeFromSeconds(message->m_lTime),
-                    OTTimeGetTimeFromSeconds(message->m_lTime));
-                m_contents.push_back(sp_Record);
-            }
+                    uint64_t lDate = message->m_lTime;
+                    String strDate;
+                    strDate.Format("%" PRIu64 "", lDate);
+                    const std::string str_date(strDate.Get());
+                    // CREATE A OTRecord AND POPULATE IT...
+                    //
+                    otInfo << __FUNCTION__ << ": ADDED: sent mail.\n";
 
-            index++;
-        }  // loop through incoming Mail.
-        // Outmail
-        //
-        const auto outmail = exec.GetNym_OutmailCount(str_nym_id);
-        index = 0;
-
-        for (const auto& id : outmail) {
-            otInfo << __FUNCTION__ << ": Outmail index: " << index << "\n";
-            const Identifier nymID(str_nym_id);
-
-            if (id.empty()) {
+                    shared_ptr_OTRecord sp_Record(new OTRecord(
+                        *this,
+                        *it_server,
+                        *p_str_asset_type,
+                        *p_str_asset_name,
+                        str_nym_id,      // This is the Nym WHOSE BOX IT IS.
+                        *p_str_account,  // This is the Nym's account according
+                                         // to
+                        // the payment instrument, IF that account
+                        // was found on our list of accounts we care
+                        // about. Or it's blank if no account was
+                        // found on the payment instrument.
+                        // Everything above this line, it stores a reference to
+                        // an
+                        // external string.
+                        // Everything below this line, it makes its own internal
+                        // copy of the string.
+                        str_name,  // name of recipient (since its in outgoing
+                                   // mail
+                                   // box.)
+                        str_date,  // How do we get the date from a mail?
+                        str_amount,
+                        OTRecordList::s_message_type,  // "message"
+                        false,  // bIsPending=false since its already sent.
+                        true,   // bIsOutgoing=true. It's OUTGOING mail.
+                        false,  // IsRecord (it's not in the record box.)
+                        false,  // IsReceipt
+                        OTRecord::Mail));
+                    const String strOutmail(
+                        SwigWrap::GetNym_OutmailContentsByIndex(
+                            str_nym_id, id));
+                    sp_Record->SetContents(strOutmail.Get());
+                    sp_Record->SetThreadItemId(id);
+                    sp_Record->SetBoxIndex(index);
+                    sp_Record->SetOtherNymID(str_mail_recipientID);
+                    sp_Record->SetDateRange(
+                        OTTimeGetTimeFromSeconds(message->m_lTime),
+                        OTTimeGetTimeFromSeconds(message->m_lTime));
+                    m_contents.push_back(sp_Record);
+                }
                 index++;
+            }  // loop through outgoing Mail.
+        }      // If not ignoring mail.
 
-                continue;
-            }
-
-            auto message = OT::App().Activity().Mail(
-                nymID, Identifier(id), StorageBox::MAILOUTBOX);
-
-            if (!message) {
-                otErr << __FUNCTION__ << ": Failed to load mail message with "
-                      << "ID " << id << " from outbox." << std::endl;
-                index++;
-
-                continue;
-            }
-
-            OT_ASSERT(message);
-
-            const std::string str_mail_server =
-                SwigWrap::GetNym_OutmailNotaryIDByIndex(str_nym_id, id);
-            const std::string str_mail_recipientID =
-                SwigWrap::GetNym_OutmailRecipientIDByIndex(str_nym_id, id);
-            // str_mail_server is the server for this mail.
-            // But is that server on our list of servers that we care about?
-            // Let's see if that server is on m_servers (otherwise we can skip
-            // it.)
-            //
-            auto it_server =
-                std::find(m_servers.begin(), m_servers.end(), str_mail_server);
-
-            if (it_server != m_servers.end())  // Found the notaryID on the list
-                                               // of servers we care about.
-            {
-                // TODO OPTIMIZE: instead of looking up the Nym's name every
-                // time, look it
-                // up ONCE when first adding the NymID. Add it to a map, instead
-                // of a list,
-                // and add the Nym's name as the second item in the map's pair.
-                // (Just like I already did with the instrument definition.)
-                //
-                String strName(
-                    m_pLookup->GetNymName(str_mail_recipientID, *it_server)),
-                    strNameTemp;
-                std::string str_name;
-
-                if (strName.Exists())
-                    strNameTemp.Format(OTRecordList::textTo(), strName.Get());
-                else
-                    strNameTemp.Format(
-                        OTRecordList::textTo(), str_mail_recipientID.c_str());
-
-                str_name = strNameTemp.Get();
-                const std::string* p_str_asset_type =
-                    &OTRecordList::s_blank;  // <========== ASSET TYPE
-                const std::string* p_str_asset_name =
-                    &OTRecordList::s_blank;  // instrument definition display
-                                             // name.
-                const std::string* p_str_account =
-                    &OTRecordList::s_blank;  // <========== ACCOUNT
-
-                std::string str_amount;  // There IS NO amount, on mail. (So we
-                                         // leave this empty.)
-
-                uint64_t lDate = message->m_lTime;
-                String strDate;
-                strDate.Format("%" PRIu64 "", lDate);
-                const std::string str_date(strDate.Get());
-                // CREATE A OTRecord AND POPULATE IT...
-                //
-                otInfo << __FUNCTION__ << ": ADDED: sent mail.\n";
-
-                shared_ptr_OTRecord sp_Record(new OTRecord(
-                    *this,
-                    *it_server,
-                    *p_str_asset_type,
-                    *p_str_asset_name,
-                    str_nym_id,      // This is the Nym WHOSE BOX IT IS.
-                    *p_str_account,  // This is the Nym's account according
-                                     // to
-                    // the payment instrument, IF that account
-                    // was found on our list of accounts we care
-                    // about. Or it's blank if no account was
-                    // found on the payment instrument.
-                    // Everything above this line, it stores a reference to
-                    // an
-                    // external string.
-                    // Everything below this line, it makes its own internal
-                    // copy of the string.
-                    str_name,  // name of recipient (since its in outgoing
-                               // mail
-                               // box.)
-                    str_date,  // How do we get the date from a mail?
-                    str_amount,
-                    OTRecordList::s_message_type,  // "message"
-                    false,  // bIsPending=false since its already sent.
-                    true,   // bIsOutgoing=true. It's OUTGOING mail.
-                    false,  // IsRecord (it's not in the record box.)
-                    false,  // IsReceipt
-                    OTRecord::Mail));
-                const String strOutmail(
-                    SwigWrap::GetNym_OutmailContentsByIndex(str_nym_id, id));
-                sp_Record->SetContents(strOutmail.Get());
-                sp_Record->SetThreadItemId(id);
-                sp_Record->SetBoxIndex(index);
-                sp_Record->SetOtherNymID(str_mail_recipientID);
-                sp_Record->SetDateRange(
-                    OTTimeGetTimeFromSeconds(message->m_lTime),
-                    OTTimeGetTimeFromSeconds(message->m_lTime));
-                m_contents.push_back(sp_Record);
-            }
-            index++;
-        }  // loop through outgoing Mail.
         // For each nym, for each server, loop through its payments inbox and
         // record box.
         //
@@ -4576,6 +4589,7 @@ OTRecordList::OTRecordList()
     , m_bAutoAcceptReceipts(false)
     , m_bAutoAcceptTransfers(false)
     , m_bAutoAcceptCash(false)
+    , m_bIgnoreMail(false)
 {
     OT_ASSERT_MSG(
         (nullptr != s_pCaller),
@@ -4597,6 +4611,7 @@ OTRecordList::OTRecordList(const OTNameLookup& theLookup)
     , m_bAutoAcceptReceipts(false)
     , m_bAutoAcceptTransfers(false)
     , m_bAutoAcceptCash(false)
+    , m_bIgnoreMail(false)
 {
 }
 

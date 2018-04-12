@@ -175,6 +175,7 @@ private:
     bool m_bAutoAcceptReceipts{false};
     bool m_bAutoAcceptTransfers{false};
     bool m_bAutoAcceptCash{false};
+    bool m_bIgnoreMail{false};
     static std::string s_strTextTo;    // "To: "
     static std::string s_strTextFrom;  // "From: "
     list_of_strings m_servers;
@@ -208,6 +209,7 @@ public:
     EXPORT static void setTextTo(std::string text) { s_strTextTo = text; }
     EXPORT static void setTextFrom(std::string text) { s_strTextFrom = text; }
     EXPORT void SetFastMode() { m_bRunFast = true; }
+    EXPORT void IgnoreMail(bool bIgnore = true) { m_bIgnoreMail = bIgnore; }
     // SETUP:
     /** Set the default server here. */
     EXPORT void SetNotaryID(std::string str_id);
