@@ -226,7 +226,9 @@ int32_t CmdSendCash::sendCash(
         remain = startAmount;
         if (!getPurseIndicesOrAmount(
                 server, mynym, assetType, remain, indices)) {
-            otOut << "Error: cannot retrieve purse indices.\n";
+            otOut << "Error: cannot retrieve purse indices. "
+            "(It's possible that you have enough cash, yet lack the correct "
+            "denominations of token for the exact amount requested).\n";
             return -1;
         }
     }
@@ -239,10 +241,11 @@ int32_t CmdSendCash::sendCash(
         otOut << "Error: cannot export cash.\n";
         return -1;
     }
+    // By this point, exportedCash and retainedCopy should both be valid.
 
-    std::unique_ptr<Purse> recipientCopy(
+    std::shared_ptr<const Purse> recipientCopy(
         Purse::PurseFactory(String(exportedCash)));
-    std::unique_ptr<Purse> senderCopy(
+    std::shared_ptr<const Purse> senderCopy(
         Purse::PurseFactory(String(retainedCopy)));
 
     OT_ASSERT(recipientCopy);

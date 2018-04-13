@@ -286,8 +286,8 @@ public:
         const Identifier& localNymID,
         const Identifier& serverID,
         const Identifier& recipientNymID,
-        std::unique_ptr<Purse>& recipientCopy,
-        std::unique_ptr<Purse>& senderCopy) const = 0;
+        std::shared_ptr<const Purse>& recipientCopy,
+        std::shared_ptr<const Purse>& senderCopy) const = 0;
 #endif  // OT_CASH
     EXPORT virtual Action SendMessage(
         const Identifier& localNymID,
@@ -298,7 +298,7 @@ public:
         const Identifier& localNymID,
         const Identifier& serverID,
         const Identifier& recipientNymID,
-        std::unique_ptr<OTPayment>& payment) const = 0;
+        std::shared_ptr<const OTPayment>& payment) const = 0;
     EXPORT virtual Action SendTransfer(
         const Identifier& localNymID,
         const Identifier& serverID,

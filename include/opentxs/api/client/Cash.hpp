@@ -75,6 +75,13 @@ public:
         const std::string& STR_INDICES,
         bool bPasswordProtected,
         std::string& STR_RETAINED_COPY) const = 0;
+    EXPORT virtual bool withdraw_and_export_cash(
+        const std::string& ACCT_ID,
+        const std::string& RECIPIENT_NYM_ID,
+        std::int64_t AMOUNT,
+        std::shared_ptr<const Purse>& recipientCopy,
+        std::shared_ptr<const Purse>& senderCopy,
+        bool bPasswordProtected=false) const = 0;
     EXPORT virtual bool withdraw_and_send_cash(
         const std::string& ACCT_ID,
         const std::string& RECIPIENT_NYM_ID,

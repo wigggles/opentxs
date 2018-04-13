@@ -701,8 +701,8 @@ int32_t CmdBaseInstrument::sendPayment(
         return -1;
     }
 
-    std::unique_ptr<OTPayment> payment =
-        std::make_unique<OTPayment>(String(cheque.c_str()));
+    std::shared_ptr<const OTPayment> payment =
+        std::make_shared<const OTPayment>(String(cheque.c_str()));
     string response = OT::App()
                           .API()
                           .ServerAction()

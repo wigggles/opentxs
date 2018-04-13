@@ -91,6 +91,17 @@ public:
         const std::string& message) const = 0;
     EXPORT virtual std::pair<ThreadStatus, Identifier> MessageStatus(
         const Identifier& taskID) const = 0;
+    EXPORT virtual Identifier PayContact(
+        const Identifier& senderNymID,
+        const Identifier& contactID,
+        std::shared_ptr<const OTPayment>& payment) const = 0;
+#if OT_CASH
+    EXPORT virtual Identifier PayContactCash(
+        const Identifier& senderNymID,
+        const Identifier& contactID,
+        std::shared_ptr<const Purse>& recipientCopy,
+        std::shared_ptr<const Purse>& senderCopy) const = 0;
+#endif // OT_CASH
     EXPORT virtual void Refresh() const = 0;
     EXPORT virtual std::uint64_t RefreshCount() const = 0;
     EXPORT virtual Identifier RegisterNym(

@@ -1153,6 +1153,98 @@ bool Sync::message_nym(
     return finish_task(taskID, false);
 }
 
+bool Sync::pay_nym(
+    const Identifier& taskID,
+    const Identifier& nymID,
+    const Identifier& serverID,
+    const Identifier& targetNymID,
+    std::shared_ptr<const OTPayment>& payment) const
+{
+    OT_ASSERT(false == nymID.empty())
+    OT_ASSERT(false == serverID.empty())
+    OT_ASSERT(false == targetNymID.empty())
+
+    rLock lock(api_lock_);
+    auto action =
+        server_action_.SendPayment(nymID, serverID, targetNymID, payment);
+    action->Run();
+    lock.unlock();
+
+    if (SendResult::VALID_REPLY == action->LastSendResult()) {
+        OT_ASSERT(action->Reply());
+
+        if (action->Reply()->m_bSuccess) {
+            const auto messageID = action->MessageID();
+
+            if (false == messageID.empty()) {
+                otInfo << OT_METHOD << __FUNCTION__ << ": Sent (payment) "
+                       "message " << messageID.str() << std::endl;
+            }
+
+            return finish_task(taskID, true);
+        } else {
+            otErr << OT_METHOD << __FUNCTION__ << ": Server  "
+                  << String(serverID) << " does not accept (payment) message "
+                  "for " << String(targetNymID) << std::endl;
+        }
+    } else {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Communication error while messaging (a payment) to nym "
+              << String(targetNymID) << " on server " << String(serverID)
+              << std::endl;
+    }
+
+    return finish_task(taskID, false);
+}
+
+#if OT_CASH
+bool Sync::pay_nym_cash(
+    const Identifier& taskID,
+    const Identifier& nymID,
+    const Identifier& serverID,
+    const Identifier& targetNymID,
+    std::shared_ptr<const Purse>& recipientCopy,
+    std::shared_ptr<const Purse>& senderCopy) const
+{
+    OT_ASSERT(false == nymID.empty())
+    OT_ASSERT(false == serverID.empty())
+    OT_ASSERT(false == targetNymID.empty())
+
+    rLock lock(api_lock_);
+    auto action =
+        server_action_.SendCash(nymID, serverID, targetNymID, recipientCopy,
+                                senderCopy);
+    action->Run();
+    lock.unlock();
+
+    if (SendResult::VALID_REPLY == action->LastSendResult()) {
+        OT_ASSERT(action->Reply());
+
+        if (action->Reply()->m_bSuccess) {
+            const auto messageID = action->MessageID();
+
+            if (false == messageID.empty()) {
+                otInfo << OT_METHOD << __FUNCTION__ << ": Sent (cash) message  "
+                       << messageID.str() << std::endl;
+            }
+
+            return finish_task(taskID, true);
+        } else {
+            otErr << OT_METHOD << __FUNCTION__ << ": Server  "
+                  << String(serverID) << " does not accept (cash) message for "
+                  << String(targetNymID) << std::endl;
+        }
+    } else {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Communication error while messaging (cash) to nym "
+              << String(targetNymID) << " on server " << String(serverID)
+              << std::endl;
+    }
+
+    return finish_task(taskID, false);
+}
+#endif // OT_CASH
+
 Identifier Sync::MessageContact(
     const Identifier& senderNymID,
     const Identifier& contactID,
@@ -1200,6 +1292,69 @@ std::pair<ThreadStatus, Identifier> Sync::MessageStatus(
 
     return output;
 }
+
+Identifier Sync::PayContact(
+    const Identifier& senderNymID,
+    const Identifier& contactID,
+    std::shared_ptr<const OTPayment>& payment) const
+{
+    CHECK_SERVER(senderNymID, contactID)
+
+    start_introduction_server(senderNymID);
+    Identifier serverID;
+    Identifier recipientNymID;
+    const auto canMessage =
+        can_message(senderNymID, contactID, recipientNymID, serverID);
+
+    if (Messagability::READY != canMessage) {
+
+        return {};
+    }
+
+    OT_ASSERT(false == serverID.empty())
+    OT_ASSERT(false == recipientNymID.empty())
+
+    auto& queue = get_operations({senderNymID, serverID});
+    const auto taskID(Identifier::Random());
+
+    return start_task(
+        taskID, queue.send_payment_.Push(taskID,
+          { recipientNymID,
+              std::shared_ptr<const OTPayment>(payment) } ));
+}
+
+#if OT_CASH
+Identifier Sync::PayContactCash(
+    const Identifier& senderNymID,
+    const Identifier& contactID,
+    std::shared_ptr<const Purse>& recipientCopy,
+    std::shared_ptr<const Purse>& senderCopy) const
+{
+    CHECK_SERVER(senderNymID, contactID)
+
+    start_introduction_server(senderNymID);
+    Identifier serverID;
+    Identifier recipientNymID;
+    const auto canMessage =
+        can_message(senderNymID, contactID, recipientNymID, serverID);
+
+    if (Messagability::READY != canMessage) {
+
+        return {};
+    }
+
+    OT_ASSERT(false == serverID.empty())
+    OT_ASSERT(false == recipientNymID.empty())
+
+    auto& queue = get_operations({senderNymID, serverID});
+    const auto taskID(Identifier::Random());
+
+    return start_task(
+        taskID, queue.send_cash_.Push(taskID, {recipientNymID,
+        std::shared_ptr<const Purse>(recipientCopy),
+        std::shared_ptr<const Purse>(senderCopy)}));
+}
+#endif // OT_CASH
 
 bool Sync::publish_server_registration(
     const Identifier& nymID,
@@ -1680,6 +1835,10 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
     Identifier nullID{};
     OTPassword serverPassword;
     MessageTask message;
+    PaymentTask payment;
+#if OT_CASH
+    PayCashTask cash_payment;
+#endif // OT_CASH
     DepositPaymentTask deposit;
     UniqueQueue<DepositPaymentTask> depositPaymentRetry;
 
@@ -1836,6 +1995,45 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
 
             message_nym(taskID, nymID, serverID, recipientID, text);
         }
+
+        // This is a list of payments which need to be delivered to a nym
+        // on this server
+        while (queue.send_payment_.Pop(taskID, payment)) {
+            SHUTDOWN()
+
+            auto & [ recipientID, pPayment ] = payment;
+
+            if (recipientID.empty()) {
+                otErr << OT_METHOD << __FUNCTION__
+                      << ": How did an empty recipient nymID get in here?"
+                      << std::endl;
+
+                continue;
+            }
+
+            pay_nym(taskID, nymID, serverID, recipientID, pPayment);
+        }
+
+#if OT_CASH
+        // This is a list of cash payments which need to be delivered to a nym
+        // on this server
+        while (queue.send_cash_.Pop(taskID, cash_payment)) {
+            SHUTDOWN()
+
+            auto & [ recipientID, pRecipientPurse, pSenderPurse ] = cash_payment;
+
+            if (recipientID.empty()) {
+                otErr << OT_METHOD << __FUNCTION__
+                      << ": How did an empty recipient nymID get in here?"
+                      << std::endl;
+
+                continue;
+            }
+
+            pay_nym_cash(taskID, nymID, serverID, recipientID, pRecipientPurse,
+                         pSenderPurse);
+        }
+#endif
 
         // Download the nymbox, if this operation has been scheduled
         if (queue.download_nymbox_.Pop(taskID, downloadNymbox)) {

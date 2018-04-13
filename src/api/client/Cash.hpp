@@ -70,11 +70,42 @@ public:
         const std::string& STR_INDICES,
         bool bPasswordProtected,
         std::string& STR_RETAINED_COPY) const override;
+    bool withdraw_and_export_cash(
+        const std::string& ACCT_ID,
+        const std::string& RECIPIENT_NYM_ID,
+        std::int64_t AMOUNT,
+        std::shared_ptr<const Purse>& recipientCopy,
+        std::shared_ptr<const Purse>& senderCopy,
+        bool bPasswordProtected=false) const override;
     bool withdraw_and_send_cash(
         const std::string& ACCT_ID,
         const std::string& RECIPIENT_NYM_ID,
         std::int64_t AMOUNT) const override;
-#endif
+#endif // OT_CASH
+
+protected:
+#if OT_CASH
+    int32_t withdraw_and_export_cash_low_level(
+        const std::string& server,
+        const std::string& mynym,
+        const std::string& assetType,
+        const std::string& myacct,
+        std::string& hisnym,
+        const std::string& amount,
+        std::string& indices,
+        bool hasPassword,
+        std::shared_ptr<const Purse>& recipientCopy,
+        std::shared_ptr<const Purse>& senderCopy) const;
+
+    bool get_purse_indices_or_amount(
+        const std::string& server,
+        const std::string& mynym,
+        const std::string& assetType,
+        std::int64_t& remain,
+        std::string& indices) const;
+
+#endif // OT_CASH
+
 private:
     friend api::implementation::Api;
 
