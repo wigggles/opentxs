@@ -239,7 +239,7 @@ public:
         const OTAPI_Exec& exec,
         const OT_API& otapi,
         const Identifier& recipientID,
-        std::unique_ptr<OTPayment>& payment);
+        std::unique_ptr<const OTPayment>& payment);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         std::recursive_mutex& apilock,
@@ -327,8 +327,8 @@ public:
         const OTAPI_Exec& exec,
         const OT_API& otapi,
         const Identifier& recipientID,
-        std::unique_ptr<Purse>& purse,
-        std::unique_ptr<Purse>& senderPurse);
+        std::unique_ptr<const Purse>& purse,
+        std::unique_ptr<const Purse>& senderPurse);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         std::recursive_mutex& apilock,
@@ -429,11 +429,11 @@ private:
     Identifier message_id_{};
     std::unique_ptr<OTSmartContract> contract_;
     std::unique_ptr<OTPaymentPlan> paymentPlan_;
-    std::unique_ptr<Purse> purse_;
-    std::unique_ptr<Purse> senderPurse_;
+    std::unique_ptr<const Purse> purse_;
+    std::unique_ptr<const Purse> senderPurse_;
     std::unique_ptr<Cheque> cheque_;
     std::unique_ptr<Ledger> ledger_;
-    std::unique_ptr<OTPayment> payment_;
+    std::unique_ptr<const OTPayment> payment_;
     std::string agentName_;
     std::string clause_;
     std::string key_;

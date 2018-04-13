@@ -282,8 +282,8 @@ public:
         const Identifier& localNymID,
         const Identifier& serverID,
         const Identifier& recipientNymID,
-        std::unique_ptr<Purse>& recipientCopy,
-        std::unique_ptr<Purse>& senderCopy) const override;
+        std::shared_ptr<const Purse>& recipientCopy,
+        std::shared_ptr<const Purse>& senderCopy) const override;
 #endif  // OT_CASH
     Action SendMessage(
         const Identifier& localNymID,
@@ -294,7 +294,7 @@ public:
         const Identifier& localNymID,
         const Identifier& serverID,
         const Identifier& recipientNymID,
-        std::unique_ptr<OTPayment>& payment) const override;
+        std::shared_ptr<const OTPayment>& payment) const override;
     Action SendTransfer(
         const Identifier& localNymID,
         const Identifier& serverID,

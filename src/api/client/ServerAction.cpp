@@ -901,9 +901,20 @@ ServerAction::Action ServerAction::SendCash(
     const Identifier& localNymID,
     const Identifier& serverID,
     const Identifier& recipientNymID,
-    std::unique_ptr<Purse>& recipientCopy,
-    std::unique_ptr<Purse>& senderCopy) const
+    std::shared_ptr<const Purse>& recipientCopy,
+    std::shared_ptr<const Purse>& senderCopy) const
 {
+    String strRecip;
+    String strSend;
+
+    if (recipientCopy)
+        strRecip = String(*recipientCopy);
+    if (senderCopy)
+        strSend = String(*senderCopy);
+
+    std::unique_ptr<const Purse> pRecip(Purse::PurseFactory(strRecip));
+    std::unique_ptr<const Purse> pSend (Purse::PurseFactory(strSend));
+
     return Action(new OTAPI_Func(
         SEND_USER_INSTRUMENT,
         api_lock_,
@@ -913,8 +924,8 @@ ServerAction::Action ServerAction::SendCash(
         exec_,
         otapi_,
         recipientNymID,
-        recipientCopy,
-        senderCopy));
+        pRecip,
+        pSend));
 }
 #endif  // OT_CASH
 
@@ -940,15 +951,18 @@ ServerAction::Action ServerAction::SendPayment(
     const Identifier& localNymID,
     const Identifier& serverID,
     const Identifier& recipientNymID,
-    std::unique_ptr<OTPayment>& payment) const
+    std::shared_ptr<const OTPayment>& payment) const
 {
     String strPayment;
 
-    if (!payment->GetPaymentContents(strPayment)) {
+    if (!payment || !payment->GetPaymentContents(strPayment)) {
         otErr << "ServerAction::SendPayment: Empty payment argument - "
                  "should never happen!\n";
         OT_FAIL;
     }
+
+    std::unique_ptr<const OTPayment> pPayment =
+        std::make_unique<const OTPayment>(strPayment);
 
     return Action(new OTAPI_Func(
         SEND_USER_INSTRUMENT,
@@ -959,7 +973,7 @@ ServerAction::Action ServerAction::SendPayment(
         exec_,
         otapi_,
         recipientNymID,
-        payment));
+        pPayment));
 }
 
 ServerAction::Action ServerAction::SendTransfer(

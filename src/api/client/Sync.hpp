@@ -90,6 +90,17 @@ public:
         const std::string& message) const override;
     std::pair<ThreadStatus, Identifier> MessageStatus(
         const Identifier& taskID) const override;
+    Identifier PayContact(
+        const Identifier& senderNymID,
+        const Identifier& contactID,
+        std::shared_ptr<const OTPayment>& payment) const override;
+#if OT_CASH
+    Identifier PayContactCash(
+        const Identifier& senderNymID,
+        const Identifier& contactID,
+        std::shared_ptr<const Purse>& recipientCopy,
+        std::shared_ptr<const Purse>& senderCopy) const override;
+#endif // OT_CASH
     void Refresh() const override;
     std::uint64_t RefreshCount() const override;
     Identifier RegisterNym(
@@ -128,9 +139,16 @@ private:
 
     /** ContextID: localNymID, serverID */
     using ContextID = std::pair<Identifier, Identifier>;
-    /** MessageTask: recipientID, message< */
+    /** MessageTask: recipientID, message */
     using MessageTask = std::pair<Identifier, std::string>;
-    /** DepositPaymentTask: accountID, payment <*/
+    /** PaymentTask: recipientID, payment */
+    using PaymentTask = std::pair<Identifier, std::shared_ptr<const OTPayment>>;
+#if OT_CASH
+    /** PayCashTask: recipientID, recipientCopyOfPurse, senderCopyOfPurse */
+    using PayCashTask = std::tuple<Identifier, std::shared_ptr<const Purse>,
+        std::shared_ptr<const Purse>>;
+#endif // OT_CASH
+    /** DepositPaymentTask: accountID, payment */
     using DepositPaymentTask =
         std::pair<Identifier, std::shared_ptr<const OTPayment>>;
 
@@ -143,6 +161,10 @@ private:
         UniqueQueue<Identifier> register_account_;
         UniqueQueue<bool> register_nym_;
         UniqueQueue<MessageTask> send_message_;
+        UniqueQueue<PaymentTask> send_payment_;
+#if OT_CASH
+        UniqueQueue<PayCashTask> send_cash_;
+#endif // OT_CASH
     };
 
     std::recursive_mutex& api_lock_;
@@ -253,6 +275,21 @@ private:
         const Identifier& serverID,
         const Identifier& targetNymID,
         const std::string& text) const;
+    bool pay_nym(
+        const Identifier& taskID,
+        const Identifier& nymID,
+        const Identifier& serverID,
+        const Identifier& targetNymID,
+        std::shared_ptr<const OTPayment>& payment) const;
+#if OT_CASH
+    bool pay_nym_cash(
+        const Identifier& taskID,
+        const Identifier& nymID,
+        const Identifier& serverID,
+        const Identifier& targetNymID,
+        std::shared_ptr<const Purse>& recipientCopy,
+        std::shared_ptr<const Purse>& senderCopy) const;
+#endif // OT_CASH
     bool publish_server_registration(
         const Identifier& nymID,
         const Identifier& serverID,

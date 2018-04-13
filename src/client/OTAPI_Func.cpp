@@ -652,7 +652,7 @@ OTAPI_Func::OTAPI_Func(
     const OTAPI_Exec& exec,
     const OT_API& otapi,
     const Identifier& recipientID,
-    std::unique_ptr<OTPayment>& payment)
+    std::unique_ptr<const OTPayment>& payment)
     : OTAPI_Func(apilock, wallet, exec, otapi, nymID, serverID, theType)
 {
     nTransNumsNeeded_ = 1;
@@ -941,8 +941,8 @@ OTAPI_Func::OTAPI_Func(
     const OTAPI_Exec& exec,
     const OT_API& otapi,
     const Identifier& recipientID,
-    std::unique_ptr<Purse>& purse,
-    std::unique_ptr<Purse>& senderPurse)
+    std::unique_ptr<const Purse>& purse,
+    std::unique_ptr<const Purse>& senderPurse)
     : OTAPI_Func(apilock, wallet, exec, otapi, nymID, serverID, theType)
 {
     nTransNumsNeeded_ = 1;
@@ -1257,7 +1257,10 @@ void OTAPI_Func::run()
 
             OT_ASSERT(payment_)
 
-            auto& thePayment = *payment_;
+            String otstrPayment;
+            payment_->GetPaymentContents(otstrPayment);
+            OTPayment thePayment(otstrPayment);
+            //auto& thePayment = *payment_;
 
             if (!thePayment.IsValid() || !thePayment.SetTempValues()) {
                 otOut << OT_METHOD << __FUNCTION__
