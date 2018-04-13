@@ -6,6 +6,9 @@ set(cxx-sources
   Test_ReplySocket.cpp
   Test_RequestSocket.cpp
   Test_RequestReply.cpp
+  Test_PublishSocket.cpp
+  Test_SubscribeSocket.cpp
+  Test_PublishSubscribe.cpp
 )
 
 include_directories(

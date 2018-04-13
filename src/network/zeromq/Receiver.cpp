@@ -100,7 +100,10 @@ void Receiver::thread()
             continue;
         }
 
-        Lock lock(receiver_lock_);
+        Lock lock(receiver_lock_, std::try_to_lock);
+        if (!lock.owns_lock()) {
+            return;
+        }
         auto request = Message::Factory();
         Message& message = request;
         auto status = (-1 != zmq_msg_recv(message, receiver_socket_, 0));
