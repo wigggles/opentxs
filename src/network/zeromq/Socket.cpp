@@ -47,6 +47,7 @@
 
 #define CONTACT_UPDATE_ENDPOINT "inproc://opentxs/contactupdate/1"
 #define NYM_UPDATE_ENDPOINT "inproc://opentxs/nymupdate/1"
+#define PAIR_EVENT_ENDPOINT "inproc://opentxs/pairevent/1"
 #define PAIR_ENDPOINT_PREFIX "inproc://opentxs//pair/"
 #define PENDING_BAILMENT_ENDPOINT                                              \
     "inproc://opentxs/peerrequest/pendingbailment/1"
@@ -62,6 +63,7 @@ namespace opentxs::network::zeromq
 const std::string Socket::ContactUpdateEndpoint{CONTACT_UPDATE_ENDPOINT};
 const std::string Socket::NymDownloadEndpoint{NYM_UPDATE_ENDPOINT};
 const std::string Socket::PairEndpointPrefix{PAIR_ENDPOINT_PREFIX};
+const std::string Socket::PairEventEndpoint{PAIR_EVENT_ENDPOINT};
 const std::string Socket::PendingBailmentEndpoint{PENDING_BAILMENT_ENDPOINT};
 const std::string Socket::ThreadUpdateEndpoint{THREAD_UPDATE_ENDPOINT};
 const std::string Socket::WidgetUpdateEndpoint{WIDGET_UPDATE_ENDPOINT};
@@ -81,7 +83,7 @@ const std::map<SocketType, int> Socket::types_{
     {SocketType::Pair, ZMQ_PAIR},
 };
 
-Socket::Socket(const class Context& context, const SocketType type)
+Socket::Socket(const zeromq::Context& context, const SocketType type)
     : context_(context)
     , socket_(zmq_socket(context, types_.at(type)))
     , type_(type)

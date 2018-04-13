@@ -78,6 +78,7 @@ namespace zeromq
 {
 namespace implementation
 {
+class Context;
 class Proxy;
 }  // namespace network::zeromq::implementation
 }  // namespace network::zeromq

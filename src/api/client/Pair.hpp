@@ -109,6 +109,7 @@ private:
     mutable std::unique_ptr<std::thread> refresh_thread_{nullptr};
     mutable std::map<IssuerID, std::pair<Status, bool>> pair_status_{};
     mutable UniqueQueue<bool> update_;
+    OTZMQPublishSocket pair_event_;
     OTZMQPublishSocket pending_bailment_;
 
     void check_pairing() const;

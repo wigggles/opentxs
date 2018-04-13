@@ -5,6 +5,9 @@ set(cxx-sources
   ListenCallback.cpp
   ListenCallbackSwig.cpp
   Message.cpp
+  PairEventCallback.cpp
+  PairEventCallbackSwig.cpp
+  PairEventListener.cpp
   PairSocket.cpp
   PublishSocket.cpp
   PullSocket.cpp
@@ -30,6 +33,9 @@ set(cxx-headers
   ${CMAKE_CURRENT_SOURCE_DIR}/ListenCallback.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/ListenCallbackSwig.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Message.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/PairEventCallback.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/PairEventCallbackSwig.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/PairEventListener.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/PairSocket.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Proxy.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/PublishSocket.hpp
