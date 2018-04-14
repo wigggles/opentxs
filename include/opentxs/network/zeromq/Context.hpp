@@ -72,6 +72,8 @@ public:
 
     EXPORT virtual operator void*() const = 0;
 
+    EXPORT virtual Pimpl<network::zeromq::SubscribeSocket> PairEventListener(
+        const PairEventCallback& callback) const = 0;
     EXPORT virtual Pimpl<network::zeromq::PairSocket> PairSocket(
         const ListenCallback& callback) const = 0;
     EXPORT virtual Pimpl<network::zeromq::PairSocket> PairSocket(

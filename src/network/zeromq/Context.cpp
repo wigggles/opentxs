@@ -50,6 +50,8 @@
 #include "opentxs/network/zeromq/RequestSocket.hpp"
 #include "opentxs/network/zeromq/SubscribeSocket.hpp"
 
+#include "PairEventListener.hpp"
+
 #include <zmq.h>
 
 namespace opentxs::network::zeromq
@@ -72,6 +74,12 @@ Context::Context()
 Context::operator void*() const { return context_; }
 
 Context* Context::clone() const { return new Context; }
+
+OTZMQSubscribeSocket Context::PairEventListener(
+    const PairEventCallback& callback) const
+{
+    return OTZMQSubscribeSocket(new class PairEventListener(*this, callback));
+}
 
 OTZMQPairSocket Context::PairSocket(
     const opentxs::network::zeromq::ListenCallback& callback) const

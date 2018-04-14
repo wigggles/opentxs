@@ -56,6 +56,7 @@
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/PublishSocket.hpp"
+#include "opentxs/Proto.hpp"
 
 #include "Pair.hpp"
 
@@ -107,9 +108,11 @@ Pair::Pair(
     , refresh_thread_(nullptr)
     , pair_status_()
     , update_()
+    , pair_event_(context.PublishSocket())
     , pending_bailment_(context.PublishSocket())
 {
     refresh_thread_.reset(new std::thread(&Pair::check_refresh, this));
+    pair_event_->Start(opentxs::network::zeromq::Socket::PairEventEndpoint);
     pending_bailment_->Start(
         opentxs::network::zeromq::Socket::PendingBailmentEndpoint);
 }
@@ -564,6 +567,21 @@ void Pair::process_store_secret(
     if (added) {
         wallet_.PeerRequestComplete(nymID, replyID);
         update_.Push({}, true);
+        proto::PairEvent event;
+        event.set_version(1);
+        event.set_type(proto::PAIREVENT_STORESECRET);
+        event.set_issuer(issuerNymID.str());
+        const auto published =
+            pair_event_->Publish(proto::ProtoAsString(event));
+
+        if (published) {
+            otWarn << OT_METHOD << __FUNCTION__
+                   << ": Published store secret notification." << std::endl;
+        } else {
+            otErr << OT_METHOD << __FUNCTION__
+                  << ": Error Publishing store secret notification."
+                  << std::endl;
+        }
     } else {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to add reply."
               << std::endl;
@@ -746,7 +764,30 @@ void Pair::state_machine(
                 auto editor =
                     wallet_.mutable_ServerContext(localNymID, serverID);
                 auto& context = editor.It();
-                context.SetAdminPassword(issuer.PairingCode());
+
+                if (context.AdminPassword() != issuer.PairingCode()) {
+                    context.SetAdminPassword(issuer.PairingCode());
+                }
+
+                if (context.ShouldRename()) {
+                    proto::PairEvent event;
+                    event.set_version(1);
+                    event.set_type(proto::PAIREVENT_RENAME);
+                    event.set_issuer(issuerNymID.str());
+                    const auto published =
+                        pair_event_->Publish(proto::ProtoAsString(event));
+
+                    if (published) {
+                        otWarn << OT_METHOD << __FUNCTION__
+                               << ": Published should rename notification."
+                               << std::endl;
+                    } else {
+                        otErr
+                            << OT_METHOD << __FUNCTION__
+                            << ": Error publishing should rename notification."
+                            << std::endl;
+                    }
+                }
             }
 
             SHUTDOWN()
@@ -769,9 +810,9 @@ void Pair::state_machine(
                 const auto btcrpc =
                     issuer.ConnectionInfo(proto::CONNECTIONINFO_BTCRPC);
                 const bool needInfo =
-                    (btcrpc.empty() &&
-                     (false == issuer.ConnectionInfoInitiated(
-                                   proto::CONNECTIONINFO_BTCRPC)));
+                    (btcrpc.empty() && (false ==
+                                        issuer.ConnectionInfoInitiated(
+                                            proto::CONNECTIONINFO_BTCRPC)));
 
                 if (needInfo) {
                     otErr << OT_METHOD << __FUNCTION__

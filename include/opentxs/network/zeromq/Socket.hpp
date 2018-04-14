@@ -70,6 +70,7 @@ public:
     EXPORT static const std::string ContactUpdateEndpoint;
     EXPORT static const std::string NymDownloadEndpoint;
     EXPORT static const std::string PairEndpointPrefix;
+    EXPORT static const std::string PairEventEndpoint;
     EXPORT static const std::string PendingBailmentEndpoint;
     EXPORT static const std::string ThreadUpdateEndpoint;
     EXPORT static const std::string WidgetUpdateEndpoint;

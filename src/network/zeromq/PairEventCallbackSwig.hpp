@@ -36,52 +36,35 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_NETWORK_ZEROMQ_SUBSCRIBESOCKET_IMPLEMENTATION_HPP
-#define OPENTXS_NETWORK_ZEROMQ_SUBSCRIBESOCKET_IMPLEMENTATION_HPP
+#ifndef OPENTXS_NETWORK_ZEROMQ_PAIREVENTCALLBACKSWIG_IMPLEMENTATION_HPP
+#define OPENTXS_NETWORK_ZEROMQ_PAIREVENTCALLBACKSWIG_IMPLEMENTATION_HPP
 
 #include "opentxs/Forward.hpp"
 
-#include "opentxs/network/zeromq/SubscribeSocket.hpp"
-
-#include "CurveClient.hpp"
-#include "Receiver.hpp"
-#include "Socket.hpp"
+#include "opentxs/network/zeromq/PairEventCallback.hpp"
 
 namespace opentxs::network::zeromq::implementation
 {
-class SubscribeSocket : virtual public zeromq::SubscribeSocket,
-                        public Socket,
-                        CurveClient,
-                        Receiver
+class PairEventCallbackSwig : virtual public zeromq::PairEventCallback
 {
 public:
-    bool SetCurve(const ServerContract& contract) const override;
-    bool SetSocksProxy(const std::string& proxy) const override;
-    bool Start(const std::string& endpoint) const override;
+    void Process(const zeromq::Message& message) const override;
 
-    virtual ~SubscribeSocket();
-
-protected:
-    const ListenCallback& callback_;
-
-    SubscribeSocket(
-        const zeromq::Context& context,
-        const zeromq::ListenCallback& callback);
+    ~PairEventCallbackSwig();
 
 private:
-    friend opentxs::network::zeromq::SubscribeSocket;
-    typedef Socket ot_super;
+    friend zeromq::PairEventCallback;
 
-    SubscribeSocket* clone() const override;
-    bool have_callback() const override;
+    opentxs::PairEventCallbackSwig* callback_;
 
-    void process_incoming(const Lock& lock, Message& message) override;
+    PairEventCallbackSwig* clone() const override;
 
-    SubscribeSocket() = delete;
-    SubscribeSocket(const SubscribeSocket&) = delete;
-    SubscribeSocket(SubscribeSocket&&) = delete;
-    SubscribeSocket& operator=(const SubscribeSocket&) = delete;
-    SubscribeSocket& operator=(SubscribeSocket&&) = delete;
+    PairEventCallbackSwig(opentxs::PairEventCallbackSwig* callback);
+    PairEventCallbackSwig() = delete;
+    PairEventCallbackSwig(const PairEventCallbackSwig&) = delete;
+    PairEventCallbackSwig(PairEventCallbackSwig&&) = delete;
+    PairEventCallbackSwig& operator=(const PairEventCallbackSwig&) = delete;
+    PairEventCallbackSwig& operator=(PairEventCallbackSwig&&) = delete;
 };
 }  // namespace opentxs::network::zeromq::implementation
-#endif  // OPENTXS_NETWORK_ZEROMQ_SUBSCRIBESOCKET_IMPLEMENTATION_HPP
+#endif  // OPENTXS_NETWORK_ZEROMQ_PAIREVENTCALLBACKSWIG_IMPLEMENTATION_HPP
