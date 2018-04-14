@@ -996,7 +996,12 @@ bool OT_API::IsNym_RegisteredAtServer(
 
     auto context = wallet_.ServerContext(NYM_ID, NOTARY_ID);
 
-    return (0 != context->Request());
+    if (context) {
+
+        return (0 != context->Request());
+    }
+
+    return false;
 }
 
 // --------------------------------------------------------------------
