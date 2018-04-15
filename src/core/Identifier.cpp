@@ -56,6 +56,54 @@
 
 namespace opentxs
 {
+OTIdentifier Identifier::RandomFactory()
+{
+    return OTIdentifier(new Identifier);
+}
+
+OTIdentifier Identifier::Factory() { return OTIdentifier(new Identifier()); }
+
+OTIdentifier Identifier::Factory(const Identifier& rhs)
+{
+    return OTIdentifier(new Identifier(rhs));
+}
+
+OTIdentifier Identifier::Factory(const std::string& rhs)
+{
+    return OTIdentifier(new Identifier(rhs));
+}
+
+OTIdentifier Identifier::Factory(const String& rhs)
+{
+    return OTIdentifier(new Identifier(rhs));
+}
+
+OTIdentifier Identifier::Factory(const Nym& nym)
+{
+    return OTIdentifier(new Identifier(nym));
+}
+
+OTIdentifier Identifier::Factory(const Contract& contract)
+{
+    return OTIdentifier(new Identifier(contract));
+}
+
+OTIdentifier Identifier::Factory(const OTSymmetricKey& key)
+{
+    return OTIdentifier(new Identifier(key));
+}
+
+OTIdentifier Identifier::Factory(const OTCachedKey& key)
+{
+    return OTIdentifier(new Identifier(key));
+}
+
+OTIdentifier Identifier::Factory(
+    const proto::ContactItemType type,
+    const proto::HDPath& path)
+{
+    return OTIdentifier(new Identifier(type, path));
+}
 
 // static
 bool Identifier::validateID(const std::string& strPurportedID)
@@ -216,6 +264,8 @@ bool Identifier::CalculateDigest(const opentxs::Data& dataInput, const ID type)
     return OT::App().Crypto().Hash().Digest(
         IDToHashType(type_), dataInput, *this);
 }
+
+Identifier* Identifier::clone() const { return new Identifier(*this); }
 
 Identifier Identifier::Random()
 {

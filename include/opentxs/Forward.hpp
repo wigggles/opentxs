@@ -225,6 +225,7 @@ class UnitDefinition;
 
 using OTData = Pimpl<Data>;
 using OTFlag = Pimpl<Flag>;
+using OTIdentifier = Pimpl<Identifier>;
 using OTPaymentCode = Pimpl<PaymentCode>;
 using OTServerConnection = Pimpl<network::ServerConnection>;
 using OTUIActivitySummary = Pimpl<ui::ActivitySummary>;

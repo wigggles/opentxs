@@ -55,35 +55,37 @@ namespace opentxs
 class Identifier : virtual public implementation::Data
 {
 private:
-    typedef opentxs::implementation::Data ot_super;
+    using ot_super = opentxs::implementation::Data;
 
-    static const ID DefaultType{ID::BLAKE2B};
-    static const size_t MinimumSize{10};
-
-    ID type_{DefaultType};
-
-    static proto::HashType IDToHashType(const ID type);
-    static OTData path_to_data(
+public:
+    EXPORT static OTIdentifier RandomFactory();
+    EXPORT static OTIdentifier Factory();
+    EXPORT static OTIdentifier Factory(const Identifier& rhs);
+    EXPORT static OTIdentifier Factory(const std::string& rhs);
+    EXPORT static OTIdentifier Factory(const String& rhs);
+    EXPORT static OTIdentifier Factory(const Nym& nym);
+    EXPORT static OTIdentifier Factory(const Contract& contract);
+    EXPORT static OTIdentifier Factory(const OTSymmetricKey& key);
+    EXPORT static OTIdentifier Factory(const OTCachedKey& key);
+    EXPORT static OTIdentifier Factory(
         const proto::ContactItemType type,
         const proto::HDPath& path);
 
-public:
     EXPORT friend std::ostream& operator<<(std::ostream& os, const String& obj);
     EXPORT static bool validateID(const std::string& strPurportedID);
     EXPORT static Identifier Random();
 
     EXPORT Identifier();
-
-    EXPORT Identifier(const Identifier& theID);
-    EXPORT explicit Identifier(const std::string& szStr);
-    EXPORT explicit Identifier(const String& theStr);
-    EXPORT explicit Identifier(const Nym& theNym);
-    EXPORT explicit Identifier(const Contract& theContract);
-    EXPORT explicit Identifier(const OTSymmetricKey& theKey);
-    EXPORT explicit Identifier(const OTCachedKey& theKey);
+    EXPORT explicit Identifier(const std::string& rhs);
+    EXPORT explicit Identifier(const String& rhs);
+    EXPORT explicit Identifier(const Nym& nym);
+    EXPORT explicit Identifier(const Contract& contract);
+    EXPORT explicit Identifier(const OTSymmetricKey& key);
+    EXPORT explicit Identifier(const OTCachedKey& key);
     EXPORT explicit Identifier(
         const proto::ContactItemType type,
         const proto::HDPath& path);
+    EXPORT Identifier(const Identifier& rhs);
 
     EXPORT Identifier& operator=(const Identifier& rhs);
     EXPORT Identifier& operator=(Identifier&& rhs);
@@ -116,6 +118,21 @@ public:
     EXPORT const ID& Type() const { return type_; }
 
     EXPORT virtual ~Identifier() = default;
+
+private:
+    friend OTIdentifier;
+
+    static const ID DefaultType{ID::BLAKE2B};
+    static const size_t MinimumSize{10};
+
+    ID type_{DefaultType};
+
+    Identifier* clone() const;
+
+    static proto::HashType IDToHashType(const ID type);
+    static OTData path_to_data(
+        const proto::ContactItemType type,
+        const proto::HDPath& path);
 };
 }  // namespace opentxs
 #endif  // OPENTXS_CORE_OTIDENTIFIER_HPP
