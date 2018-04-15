@@ -42,7 +42,6 @@
 #include "opentxs/Internal.hpp"
 
 #include "opentxs/api/ContactManager.hpp"
-#include "opentxs/core/Identifier.hpp"
 
 #include <map>
 #include <mutex>

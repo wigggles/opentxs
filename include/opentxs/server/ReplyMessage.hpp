@@ -51,10 +51,8 @@
 
 namespace opentxs
 {
-
 class OTASCIIArmor;
 class ClientContext;
-class Identifier;
 class Message;
 
 namespace api
@@ -119,7 +117,7 @@ private:
     const opentxs::api::client::Wallet& wallet_;
     const Nym& signer_;
     const Message& original_;
-    const Identifier notary_id_;
+    const OTIdentifier notary_id_;
     Message& message_;
     Server& server_;
     Nym nymfile_;

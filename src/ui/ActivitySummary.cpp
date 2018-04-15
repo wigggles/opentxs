@@ -42,6 +42,7 @@
 
 #include "opentxs/api/Activity.hpp"
 #include "opentxs/api/ContactManager.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
@@ -60,7 +61,12 @@ ActivitySummary::ActivitySummary(
     const api::ContactManager& contact,
     const Flag& running,
     const Identifier& nymID)
-    : ActivitySummaryType(zmq, contact, {}, nymID, new ActivitySummaryItemBlank)
+    : ActivitySummaryType(
+          zmq,
+          contact,
+          blank_id(),
+          nymID,
+          new ActivitySummaryItemBlank)
     , activity_(activity)
     , running_(running)
     , activity_subscriber_callback_(network::zeromq::ListenCallback::Factory(
@@ -83,6 +89,11 @@ ActivitySummary::ActivitySummary(
     startup_.reset(new std::thread(&ActivitySummary::startup, this));
 
     OT_ASSERT(startup_)
+}
+
+ActivitySummaryID ActivitySummary::blank_id() const
+{
+    return Identifier::Factory();
 }
 
 void ActivitySummary::construct_item(

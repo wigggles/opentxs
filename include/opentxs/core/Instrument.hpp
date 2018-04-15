@@ -44,13 +44,11 @@
 #include "opentxs/core/script/OTScriptable.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Contract.hpp"
-#include "opentxs/core/Identifier.hpp"
 
 #include <stdint.h>
 
 namespace opentxs
 {
-
 class Instrument : public OTScriptable
 {
 public:
@@ -94,17 +92,13 @@ protected:
     }
 
 protected:
-    Identifier m_InstrumentDefinitionID;  // Every cheque or cash note has an
-                                          // Asset Type
-    Identifier m_NotaryID;                // ...As well as a Notary ID...
+    OTIdentifier m_InstrumentDefinitionID;
+    OTIdentifier m_NotaryID;
     // Expiration Date (valid from/to date)
-    time64_t m_VALID_FROM{
-        0};  // The date, in seconds, when the instrument is valid
-             // FROM.
-    time64_t m_VALID_TO{
-        0};  // The date, in seconds, when the instrument expires.
+    // The date, in seconds, when the instrument is valid FROM.
+    time64_t m_VALID_FROM{0};
+    // The date, in seconds, when the instrument expires.
+    time64_t m_VALID_TO{0};
 };
-
 }  // namespace opentxs
-
 #endif  // OPENTXS_CORE_OTINSTRUMENT_HPP

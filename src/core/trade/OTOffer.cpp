@@ -424,16 +424,14 @@ OTOffer::OTOffer()
     : Instrument()
     , m_tDateAddedToMarket(OT_TIME_ZERO)
     , m_pTrade(nullptr)
-    ,  // No need to free m_pTrade, not responsible. Only here for convenience.
-    m_bSelling(false)
+    , m_CURRENCY_TYPE_ID(Identifier::Factory())
+    , m_bSelling(false)
     , m_lPriceLimit(0)
     , m_lTransactionNum(0)
     , m_lTotalAssetsOffer(0)
     , m_lFinishedSoFar(0)
     , m_lScale(1)
-    ,  // This must be 1 or greater. CANNOT be zero. Enforced.
-    m_lMinimumIncrement(
-        1)  // This must be 1 or greater. CANNOT be zero. Enforced.
+    , m_lMinimumIncrement(1)
 {
     InitOffer();
 }
@@ -446,22 +444,17 @@ OTOffer::OTOffer(
     : Instrument(NOTARY_ID, INSTRUMENT_DEFINITION_ID)
     , m_tDateAddedToMarket(OT_TIME_ZERO)
     , m_pTrade(nullptr)
-    ,  // No need to free m_pTrade, not responsible. Only here for convenience.
-    m_bSelling(false)
+    , m_CURRENCY_TYPE_ID(Identifier::Factory(CURRENCY_ID))
+    , m_bSelling(false)
     , m_lPriceLimit(0)
     , m_lTransactionNum(0)
     , m_lTotalAssetsOffer(0)
     , m_lFinishedSoFar(0)
     , m_lScale(1)
-    ,  // This must be 1 or greater. CANNOT be zero. Enforced.
-    m_lMinimumIncrement(
-        1)  // This must be 1 or greater. CANNOT be zero. Enforced.
+    , m_lMinimumIncrement(1)
 {
     InitOffer();
-
     SetScale(lScale);
-
-    m_CURRENCY_TYPE_ID = CURRENCY_ID;
 }
 
 OTOffer::~OTOffer() { Release_Offer(); }
@@ -469,7 +462,7 @@ OTOffer::~OTOffer() { Release_Offer(); }
 void OTOffer::Release_Offer()
 {
     // If there were any dynamically allocated objects, clean them up here.
-    m_CURRENCY_TYPE_ID.Release();
+    m_CURRENCY_TYPE_ID->Release();
 }
 
 void OTOffer::Release()

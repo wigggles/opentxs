@@ -41,6 +41,7 @@
 #include "opentxs/consensus/Context.hpp"
 
 #include "opentxs/api/client/Wallet.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/String.hpp"
@@ -63,14 +64,14 @@ Context::Context(
     std::mutex& nymfileLock)
     : ot_super(local, targetVersion)
     , nymfile_lock_(nymfileLock)
-    , server_id_(server)
+    , server_id_(Identifier::Factory(server))
     , remote_nym_(remote)
     , available_transaction_numbers_()
     , issued_transaction_numbers_()
     , request_number_(0)
     , acknowledged_request_numbers_()
-    , local_nymbox_hash_()
-    , remote_nymbox_hash_()
+    , local_nymbox_hash_(Identifier::Factory())
+    , remote_nymbox_hash_(Identifier::Factory())
     , target_version_(targetVersion)
 {
 }
@@ -84,14 +85,14 @@ Context::Context(
     std::mutex& nymfileLock)
     : ot_super(local, serialized.version())
     , nymfile_lock_(nymfileLock)
-    , server_id_(server)
+    , server_id_(Identifier::Factory(server))
     , remote_nym_(remote)
     , available_transaction_numbers_()
     , issued_transaction_numbers_()
     , request_number_(serialized.requestnumber())
     , acknowledged_request_numbers_()
-    , local_nymbox_hash_(serialized.localnymboxhash())
-    , remote_nymbox_hash_(serialized.remotenymboxhash())
+    , local_nymbox_hash_(Identifier::Factory(serialized.localnymboxhash()))
+    , remote_nymbox_hash_(Identifier::Factory(serialized.remotenymboxhash()))
     , target_version_(targetVersion)
 {
     for (const auto& it : serialized.acknowledgedrequestnumber()) {
@@ -341,10 +342,12 @@ bool Context::NymboxHashMatch() const
     Lock lock(lock_);
 
     if (!HaveLocalNymboxHash()) {
+
         return false;
     }
 
     if (!HaveRemoteNymboxHash()) {
+
         return false;
     }
 
@@ -494,18 +497,14 @@ const Identifier& Context::Server() const { return server_id_; }
 void Context::SetLocalNymboxHash(const Identifier& hash)
 {
     Lock lock(lock_);
-
-    local_nymbox_hash_ = hash;
-
+    local_nymbox_hash_ = Identifier::Factory(hash);
     CalculateID(lock);
 }
 
 void Context::SetRemoteNymboxHash(const Identifier& hash)
 {
     Lock lock(lock_);
-
-    remote_nymbox_hash_ = hash;
-
+    remote_nymbox_hash_ = Identifier::Factory(hash);
     CalculateID(lock);
 }
 

@@ -48,6 +48,7 @@
 #include "opentxs/client/ServerAction.hpp"
 #include "opentxs/client/SwigWrap.hpp"
 #include "opentxs/client/Utility.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/OT.hpp"
 
@@ -219,7 +220,8 @@ string CmdExportCash::exportCash(
         }
     }
     if (strContract.empty()) {
-        otOut << "CmdExportCash::exportCash: Error: cannot load asset contract.\n";
+        otOut << "CmdExportCash::exportCash: Error: cannot load asset "
+                 "contract.\n";
         return {};
     }
     // -------------------------------------------------------------------
@@ -242,8 +244,8 @@ string CmdExportCash::exportCash(
             //
             // This function handles partial IDs for recipient.
             //
-            std::string recipientPubKey = load_or_retrieve_encrypt_key(
-                server, mynym, hisnym);
+            std::string recipientPubKey =
+                load_or_retrieve_encrypt_key(server, mynym, hisnym);
 
             if (!VerifyStringVal(recipientPubKey)) {
                 otOut << "CmdExportCash::exportCash: recipientPubKey is null\n";
@@ -255,13 +257,8 @@ string CmdExportCash::exportCash(
     // for the recipient.
     // (IF the exported purse isn't meant to be password-protected.)
     //
-    return OT::App().API().Cash().export_cash(server,
-                                              mynym,
-                                              assetType,
-                                              hisnym,
-                                              indices,
-                                              hasPassword,
-                                              retainedCopy);
+    return OT::App().API().Cash().export_cash(
+        server, mynym, assetType, hisnym, indices, hasPassword, retainedCopy);
 #else
     return {};
 #endif  // OT_CASH

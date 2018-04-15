@@ -43,6 +43,7 @@
 #include "opentxs/contact/ContactGroup.hpp"
 #include "opentxs/contact/ContactItem.hpp"
 #include "opentxs/core/crypto/ContactCredential.hpp"
+#include "opentxs/core/Identifier.hpp"
 
 namespace
 {

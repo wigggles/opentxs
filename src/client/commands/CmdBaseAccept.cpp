@@ -49,6 +49,7 @@
 #include "opentxs/client/OTRecordList.hpp"
 #include "opentxs/client/ServerAction.hpp"
 #include "opentxs/client/SwigWrap.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Ledger.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/OT.hpp"
@@ -132,6 +133,6 @@ int32_t CmdBaseAccept::acceptFromPaymentbox(
     const string& paymentType,
     string* pOptionalOutput /*=nullptr*/) const
 {
-    return OTRecordList::accept_from_paymentbox(myacct, indices, paymentType,
-                                                pOptionalOutput);
+    return OTRecordList::accept_from_paymentbox(
+        myacct, indices, paymentType, pOptionalOutput);
 }

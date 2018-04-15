@@ -46,6 +46,7 @@
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
 #include "opentxs/core/crypto/OTCachedKey.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 
 #include "client/Cash.hpp"

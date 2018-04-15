@@ -51,6 +51,7 @@
 #include "opentxs/client/ServerAction.hpp"
 #include "opentxs/client/SwigWrap.hpp"
 #include "opentxs/core/util/Common.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/OT.hpp"
 
@@ -214,4 +215,3 @@ int32_t CmdSendCash::sendCash(
     return -1;
 #endif  // OT_CASH
 }
-

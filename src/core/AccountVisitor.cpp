@@ -38,54 +38,19 @@
 
 #include "opentxs/stdafx.hpp"
 
-#include "opentxs/core/contract/peer/StoreSecret.hpp"
+#include "opentxs/core/AccountVisitor.hpp"
 
 #include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/String.hpp"
-
-#define CURRENT_VERSION 4
 
 namespace opentxs
 {
-StoreSecret::StoreSecret(
-    const ConstNym& nym,
-    const proto::PeerRequest& serialized)
-    : ot_super(nym, serialized)
-    , secret_type_(serialized.storesecret().type())
-    , primary_(serialized.storesecret().primary())
-    , secondary_(serialized.storesecret().secondary())
+AccountVisitor::AccountVisitor(
+    const Identifier& notaryID,
+    mapOfAccounts* loadedAccounts)
+    : notaryID_(Identifier::Factory(notaryID))
+    , loadedAccounts_(loadedAccounts)
 {
 }
 
-StoreSecret::StoreSecret(
-    const ConstNym& nym,
-    const Identifier& recipientID,
-    const proto::SecretType type,
-    const std::string& primary,
-    const std::string& secondary,
-    const Identifier& serverID)
-    : ot_super(
-          nym,
-          CURRENT_VERSION,
-          recipientID,
-          serverID,
-          proto::PEERREQUEST_STORESECRET)
-    , secret_type_(type)
-    , primary_(primary)
-    , secondary_(secondary)
-{
-}
-
-proto::PeerRequest StoreSecret::IDVersion(const Lock& lock) const
-{
-    auto contract = ot_super::IDVersion(lock);
-
-    auto& storesecret = *contract.mutable_storesecret();
-    storesecret.set_version(version_);
-    storesecret.set_type(secret_type_);
-    storesecret.set_primary(primary_);
-    storesecret.set_secondary(secondary_);
-
-    return contract;
-}
+Identifier* AccountVisitor::GetNotaryID() { return &notaryID_.get(); }
 }  // namespace opentxs

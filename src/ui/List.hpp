@@ -115,7 +115,7 @@ public:
 
 protected:
     const api::ContactManager& contact_manager_;
-    const Identifier nym_id_;
+    const OTIdentifier nym_id_;
     mutable OuterType items_;
     mutable OuterIteratorType outer_;
     mutable typename InnerType::const_iterator inner_;
@@ -127,8 +127,9 @@ protected:
     std::unique_ptr<std::thread> startup_{nullptr};
     const std::unique_ptr<RowType> blank_p_{nullptr};
     const RowType& blank_;
-    const Identifier widget_id_;
+    const OTIdentifier widget_id_;
 
+    virtual IDType blank_id() const = 0;
     virtual void construct_item(const IDType& id, const SortKeyType& index)
         const = 0;
     /** Returns item reference by the inner_ iterator. Does not increment
@@ -203,7 +204,7 @@ protected:
 
             return next(lock);
         } else {
-            last_id_ = IDType();
+            last_id_ = blank_id();
 
             return blank_;
         }
@@ -400,7 +401,7 @@ protected:
         RowType* blank)
         : Widget(zmq)
         , contact_manager_(contact)
-        , nym_id_(nymID)
+        , nym_id_(Identifier::Factory(nymID))
         , items_()
         , outer_(items_.begin())
         , inner_(items_.begin()->second.begin())
@@ -412,7 +413,7 @@ protected:
         , startup_(nullptr)
         , blank_p_(blank)
         , blank_(*blank_p_)
-        , widget_id_(Identifier::Random())
+        , widget_id_(Identifier::RandomFactory())
     {
         // WARNING if you plan on using blank_, check blank_p_ in the child
         // class constructor

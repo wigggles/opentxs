@@ -40,6 +40,7 @@
 
 #include "opentxs/core/contract/peer/ConnectionRequest.hpp"
 
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/String.hpp"
 
 #define CURRENT_VERSION 4

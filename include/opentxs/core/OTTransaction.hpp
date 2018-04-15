@@ -343,11 +343,6 @@ same time that it is first being
  added to the relevant box itself. (Look into centralizing that mechanism...)
 
  */
-
-class Ledger;
-class ServerContext;
-class Tag;
-
 class OTTransaction : public OTTransactionType
 {
     friend OTTransactionType* OTTransactionType::TransactionFactory(
@@ -762,8 +757,8 @@ protected:
     // longer care about this variable at all, and do not save it again, since
     // it can be re-calculated the next time we
     // save again in abbreviated form.
-    Identifier m_Hash;  // todo: make this const and force it to be set during
-                        // construction.
+    OTIdentifier m_Hash;  // todo: make this const and force it to be set during
+                          // construction.
 
     time64_t m_DATE_SIGNED{0};  // The date, in seconds, when the instrument was
                                 // last signed.
@@ -772,8 +767,8 @@ protected:
                        // withdrawal, trade, etc.
     listOfItems m_listItems;  // the various items in this transaction.
 
-    int64_t m_lClosingTransactionNo{0};     // used by finalReceipt
-    OTASCIIArmor m_ascCancellationRequest;  // used by finalReceipt
+    TransactionNumber m_lClosingTransactionNo{0};  // used by finalReceipt
+    OTASCIIArmor m_ascCancellationRequest;         // used by finalReceipt
 
     // ONLY the "replyNotice" transaction uses this field.
     // When replyNotices are dropped into your Nymbox (server notices
@@ -784,7 +779,8 @@ protected:
     // have added a special variable here for request numbers, so that
     // replyNotices in the Nymbox can directly finger the messages they
     // came from.
-    int64_t m_lRequestNumber{0};  // Unused except by "replyNotice" in Nymbox.
+    RequestNumber m_lRequestNumber{
+        0};  // Unused except by "replyNotice" in Nymbox.
     bool m_bReplyTransSuccess{false};  // Used only by replyNotice
     // Unused except for notarizeTransactionResponse, specifically for
     // @paymentPlan
@@ -816,7 +812,5 @@ protected:
     // to see if it's set to TRUE, and it will know.
     bool m_bCancelled{false};
 };
-
 }  // namespace opentxs
-
 #endif  // OPENTXS_CORE_TRANSACTION_HPP

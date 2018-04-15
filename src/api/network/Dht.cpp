@@ -42,6 +42,7 @@
 
 #include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/Native.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
 

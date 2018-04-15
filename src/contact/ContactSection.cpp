@@ -42,6 +42,7 @@
 
 #include "opentxs/contact/ContactGroup.hpp"
 #include "opentxs/contact/ContactItem.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 
 #define OT_METHOD "opentxs::ContactSection::"

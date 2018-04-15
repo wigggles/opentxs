@@ -49,6 +49,7 @@
 #include "opentxs/client/SwigWrap.hpp"
 #include "opentxs/client/Utility.hpp"
 #include "opentxs/core/util/Common.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/OT.hpp"
 
@@ -89,9 +90,8 @@ int32_t CmdWithdrawCash::run(string myacct, string amount)
     return withdrawCash(myacct, value);
 }
 
-int32_t CmdWithdrawCash::withdrawCash(
-    const string& myacct,
-    int64_t amount) const
+int32_t CmdWithdrawCash::withdrawCash(const string& myacct, int64_t amount)
+    const
 {
 #if OT_CASH
     return OT::App().API().Cash().easy_withdraw_cash(myacct, amount);

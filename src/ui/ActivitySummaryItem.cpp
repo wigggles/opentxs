@@ -38,15 +38,16 @@
 
 #include "opentxs/stdafx.hpp"
 
-#include "ActivitySummaryItem.hpp"
-
 #include "opentxs/api/Activity.hpp"
 #include "opentxs/api/ContactManager.hpp"
 #include "opentxs/core/Flag.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/SubscribeSocket.hpp"
+
+#include "ActivitySummaryItem.hpp"
 
 #include "ActivitySummary.hpp"
 
@@ -70,7 +71,7 @@ ActivitySummaryItem::ActivitySummaryItem(
     : ActivitySummaryItemType(parent, zmq, contact, threadID, true)
     , activity_(activity)
     , running_(running)
-    , nym_id_(nymID)
+    , nym_id_(Identifier::Factory(nymID))
     , thread_()
     , display_name_("")
     , text_("")
@@ -178,7 +179,8 @@ std::string ActivitySummaryItem::find_text(const ItemLocator& locator) const
     switch (box) {
         case StorageBox::MAILINBOX:
         case StorageBox::MAILOUTBOX: {
-            auto mail = activity_.MailText(nym_id_, itemID, box);
+            auto mail =
+                activity_.MailText(nym_id_, Identifier::Factory(itemID), box);
 
             if (mail) {
 
@@ -196,7 +198,7 @@ std::string ActivitySummaryItem::find_text(const ItemLocator& locator) const
 void ActivitySummaryItem::get_text()
 {
     sLock lock(shared_lock_, std::defer_lock);
-    Identifier taskID{};
+    auto taskID = Identifier::Factory();
     ItemLocator locator{};
 
     while (running_) {
@@ -254,7 +256,7 @@ void ActivitySummaryItem::process_thread(
 
     if (id_ != threadID) {
         otWarn << OT_METHOD << __FUNCTION__ << ": Update not relevant to me ("
-               << id_.str() << ")" << std::endl;
+               << id_->str() << ")" << std::endl;
 
         return;
     }
@@ -278,7 +280,7 @@ std::string ActivitySummaryItem::Text() const
     return text_;
 }
 
-std::string ActivitySummaryItem::ThreadID() const { return id_.str(); }
+std::string ActivitySummaryItem::ThreadID() const { return id_->str(); }
 
 std::int64_t ActivitySummaryItem::Time() const
 {
@@ -326,9 +328,8 @@ void ActivitySummaryItem::update(const proto::StorageThread& thread)
     text_ = "";
     type_ = box;
     lock.unlock();
-    newest_item_.Push(
-        Identifier::Random(),
-        {Identifier(item.id()), box, Identifier(item.account())});
+    ItemLocator locator{item.id(), box, item.account()};
+    newest_item_.Push(Identifier::Random(), locator);
     parent_.reindex_item(id_, {time, displayName});
     UpdateNotify();
 }

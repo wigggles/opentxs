@@ -40,6 +40,7 @@
 
 #include "opentxs/contact/ContactItem.hpp"
 #include "opentxs/core/crypto/ContactCredential.hpp"
+#include "opentxs/core/Identifier.hpp"
 
 namespace
 {
@@ -365,13 +366,13 @@ TEST_F(Test_ContactItem, Serialize)
 {
 	// Test without id.
 	opentxs::proto::ContactItem protoItem = contactItem_.Serialize();
-	
+
     ASSERT_EQ(protoItem.value(), contactItem_.Value());
     ASSERT_EQ(protoItem.version(), contactItem_.Version());
     ASSERT_EQ(protoItem.type(), contactItem_.Type());
     ASSERT_EQ(protoItem.start(), contactItem_.Start());
     ASSERT_EQ(protoItem.end(), contactItem_.End());
-	
+
     // Test with id.
 	protoItem = contactItem_.Serialize(true);
     opentxs::String id;

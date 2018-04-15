@@ -44,6 +44,7 @@
 #include "opentxs/api/Native.hpp"
 #include "opentxs/consensus/TransactionStatement.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Item.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Message.hpp"
@@ -347,7 +348,7 @@ std::pair<RequestNumber, std::unique_ptr<Message>> ServerContext::
     }
 
     if (withNymboxHash) {
-        local_nymbox_hash_.GetString(message->m_strNymboxHash);
+        local_nymbox_hash_->GetString(message->m_strNymboxHash);
     }
 
     return output;
@@ -764,7 +765,7 @@ Identifier ServerContext::update_remote_hash(
 
     if (input.Exists()) {
         output.SetString(input);
-        remote_nymbox_hash_ = output;
+        remote_nymbox_hash_ = Identifier::Factory(output);
     }
 
     return output;

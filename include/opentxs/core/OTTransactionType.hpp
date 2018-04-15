@@ -43,7 +43,6 @@
 
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/Contract.hpp"
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/NumList.hpp"
 #include "opentxs/Types.hpp"
 
@@ -51,11 +50,6 @@
 
 namespace opentxs
 {
-
-class Identifier;
-class Nym;
-class String;
-
 // OTTransactionType is a base class for OTLedger, OTTransaction, and OTItem.
 class OTTransactionType : public Contract
 {
@@ -548,56 +542,46 @@ protected:
     // That's really the whole point of this software -- comparing IDs and
     // verifying signatures.
 
-    //  OTIdentifier    m_ID;            // Account ID. This is in Contract
-    // (parent class). Here we use it for the REAL ACCOUNT ID (set before
+    // Compare m_AcctID to m_ID after loading it from string or file. They
+    // should match, and signature should verify.
+    OTIdentifier m_AcctID;
+    // Notary ID as used to instantiate the transaction, based on expected
+    // NotaryID.
+    OTIdentifier m_NotaryID;
+    // Actual NotaryID within the signed portion. (Compare to m_NotaryID upon
     // loading.)
-    Identifier m_AcctID;  // Compare m_AcctID to m_ID after loading it from
-                          // string or file. They should match, and signature
-                          // should verify.
-
-    Identifier m_NotaryID;      // Notary ID as used to instantiate the
-                                // transaction, based on expected NotaryID.
-    Identifier m_AcctNotaryID;  // Actual NotaryID within the signed portion.
-                                // (Compare to m_NotaryID upon loading.)
+    OTIdentifier m_AcctNotaryID;
 
     // Update: instead of in the child classes, like OTLedger, OTTransaction,
-    // OTItem, etc, I put the
-    // "purported acct ID" and "purported server ID" here in the base class, to
-    // manage it all centrally.
+    // OTItem, etc, I put the "purported acct ID" and "purported server ID" here
+    // in the base class, to manage it all centrally.
 
-    Identifier m_AcctNymID;  // NymID of the user who created this item. (In
-                             // the future, this item
+    // NymID of the user who created this item. (In the future, this item
     // might be the only reference someone has. They'll want my NymID.)
     // I put this in protected because there are now Get/Set methods...so use
     // them!
-    int64_t m_lTransactionNum{0};  // The server issues this and it must be sent
-                                   // with transaction request.
-    int64_t m_lInReferenceToTransaction{0};
+    OTIdentifier m_AcctNymID;
+    // The server issues this and it must be sent with transaction request.
+    TransactionNumber m_lTransactionNum{0};
+    TransactionNumber m_lInReferenceToTransaction{0};
     // Sometimes an item is in reference to some other transaction, which does
-    // NOT need to be
-    // included in the item (since the server already has it) but instead can be
-    // referenced by
-    // transaction ID.
-    // Let's say Alice sends a transfer #100 to Bob.
-    // Then Bob receives a pending in his inbox, #800, which is in reference to
-    // #100.
-    // Then Bob accepts the pending with processInbox #45, which is in reference
-    // to #800.
-    // Then Alice receives a transferReceipt #64, which is in reference to #45.
-    // Then Alice accepts the transferReceipt with processInbox #91, in
-    // reference to #64.
-    // ALL OF THOSE transactions and receipts will have origin #100 attached to
-    // them.
-    // This:
-    //
-    int64_t m_lNumberOfOrigin{
-        0};  // In reference to in reference to in reference
-             // to in reference to the origin.
-    originType m_originType{
-        originType::not_applicable};  // (See originType comment.)
-    OTASCIIArmor m_ascInReferenceTo;  // This item may be in reference to a
-                                      // different item.
-    bool m_bLoadSecurely{true};       // Defaults to true.
+    // NOT need to be included in the item (since the server already has it) but
+    // instead can be referenced by transaction ID. Let's say Alice sends a
+    // transfer #100 to Bob. Then Bob receives a pending in his inbox, #800,
+    // which is in reference to #100. Then Bob accepts the pending with
+    // processInbox #45, which is in reference to #800. Then Alice receives a
+    // transferReceipt #64, which is in reference to #45. Then Alice accepts the
+    // transferReceipt with processInbox #91, in reference to #64. ALL OF THOSE
+    // transactions and receipts will have origin #100 attached to them. This:
+
+    // In reference to in reference to in reference to in reference to the
+    // origin.
+    TransactionNumber m_lNumberOfOrigin{0};
+    // (See originType comment.)
+    originType m_originType{originType::not_applicable};
+    // This item may be in reference to a different item.
+    OTASCIIArmor m_ascInReferenceTo;
+    bool m_bLoadSecurely{true};  // Defaults to true.
     // For a "blank" or "successNotice" transaction, this contains the list of
     // transaction
     // numbers that are either about to be signed out (blank) or have already
@@ -628,6 +612,7 @@ protected:
     // Note: I moved this to OTTransactionType so I can use it from within
     // OTItem as well, so when I accept transaction
     // numbers, I am able to list them in the accept item.
+
 public:
     EXPORT void GetNumList(NumList& theOutput);
     EXPORT static OTTransactionType* TransactionFactory(String strInput);

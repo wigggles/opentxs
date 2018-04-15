@@ -46,16 +46,12 @@
 
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Contract.hpp"
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Instrument.hpp"
 
 #include <stdint.h>
 
 namespace opentxs
 {
-
-class OTTrade;
-
 /*
  OTOffer
 
@@ -113,13 +109,11 @@ NOTARY_ID; }
     bool isPowerOfTen(const int64_t& x);
 
 protected:
-    OTTrade* m_pTrade{
-        nullptr};  // If this offer is actually connected to a trade, it
-                   // will have a pointer.
-
-    Identifier m_CURRENCY_TYPE_ID;  // GOLD (Asset) is trading for DOLLARS
-                                    // (Currency).
-    bool m_bSelling{false};         // true = ask. false = bid.
+    // If this offer is actually connected to a trade, it will have a pointer.
+    OTTrade* m_pTrade{nullptr};
+    // GOLD (Asset) is trading for DOLLARS (Currency).
+    OTIdentifier m_CURRENCY_TYPE_ID;
+    bool m_bSelling{false};  // true = ask. false = bid.
     // If a bid, this is the most I will pay. If an ask, this is the least I
     // will sell for. My limit.
     // (Normally the price I get is whatever is the best one on the market right
@@ -268,7 +262,5 @@ public:
                                      // this
                                      // is where the ledger saves its contents
 };
-
 }  // namespace opentxs
-
 #endif  // OPENTXS_CORE_TRADE_OTOFFER_HPP

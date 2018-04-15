@@ -51,6 +51,7 @@
 #include "opentxs/client/SwigWrap.hpp"
 #include "opentxs/client/Utility.hpp"
 #include "opentxs/core/Cheque.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/OT.hpp"
 
@@ -177,11 +178,7 @@ int32_t CmdDeposit::depositCheque(
     string* pOptionalOutput /*=nullptr*/) const
 {
     return OTRecordList::depositCheque(
-        server,
-        myacct,
-        mynym,
-        instrument,
-        pOptionalOutput);
+        server, myacct, mynym, instrument, pOptionalOutput);
 }
 
 int32_t CmdDeposit::depositPurse(

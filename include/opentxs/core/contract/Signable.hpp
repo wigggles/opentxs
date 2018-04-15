@@ -41,8 +41,8 @@
 
 #include "opentxs/Forward.hpp"
 
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
 
 #include <cstdint>
 #include <list>
@@ -52,17 +52,30 @@
 
 namespace opentxs
 {
-typedef std::shared_ptr<const class Nym> ConstNym;
-typedef std::shared_ptr<proto::Signature> SerializedSignature;
+using ConstNym = std::shared_ptr<const class Nym>;
+using SerializedSignature = std::shared_ptr<proto::Signature>;
 
 class Signable
 {
+public:
+    virtual std::string Alias() const;
+    Identifier ID() const;
+    virtual std::string Name() const = 0;
+    ConstNym Nym() const;
+    virtual const std::string& Terms() const;
+    virtual OTData Serialize() const = 0;
+    bool Validate() const;
+    const std::uint32_t& Version() const;
+
+    virtual void SetAlias(const std::string& alias);
+
+    virtual ~Signable() = default;
+
 protected:
-    typedef std::unique_lock<std::mutex> Lock;
-    typedef std::list<SerializedSignature> Signatures;
+    using Signatures = std::list<SerializedSignature>;
 
     std::string alias_;
-    Identifier id_;
+    OTIdentifier id_;
     const ConstNym nym_;
     Signatures signatures_;
     std::uint32_t version_ = 0;
@@ -96,20 +109,6 @@ protected:
     Signable(Signable&&) = delete;
     Signable& operator=(const Signable&) = delete;
     Signable& operator=(Signable&&) = delete;
-
-public:
-    virtual std::string Alias() const;
-    Identifier ID() const;
-    virtual std::string Name() const = 0;
-    ConstNym Nym() const;
-    virtual const std::string& Terms() const;
-    virtual OTData Serialize() const = 0;
-    bool Validate() const;
-    const std::uint32_t& Version() const;
-
-    virtual void SetAlias(const std::string& alias);
-
-    virtual ~Signable() = default;
 };
 }  // namespace opentxs
 #endif  // OPENTXS_CORE_SIGNABLE_HPP

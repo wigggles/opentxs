@@ -162,17 +162,17 @@ int32_t Cheque::ProcessXMLNode(IrrXMLReader*& xml)
 
         // Recipient ID
         if (m_bHasRecipient)
-            m_RECIPIENT_NYM_ID.SetString(strRecipientNymID);
+            m_RECIPIENT_NYM_ID->SetString(strRecipientNymID);
         else
-            m_RECIPIENT_NYM_ID.Release();
+            m_RECIPIENT_NYM_ID->Release();
 
         // Remitter ID (for vouchers)
         if (m_bHasRemitter) {
-            m_REMITTER_NYM_ID.SetString(strRemitterNymID);
-            m_REMITTER_ACCT_ID.SetString(strRemitterAcctID);
+            m_REMITTER_NYM_ID->SetString(strRemitterNymID);
+            m_REMITTER_ACCT_ID->SetString(strRemitterAcctID);
         } else {
-            m_REMITTER_NYM_ID.Release();
-            m_REMITTER_ACCT_ID.Release();
+            m_REMITTER_NYM_ID->Release();
+            m_REMITTER_ACCT_ID->Release();
         }
 
         otInfo << "\n\nCheque Amount: " << m_lAmount
@@ -264,7 +264,7 @@ bool Cheque::IssueCheque(
 
     if (nullptr == pRECIPIENT_NYM_ID) {
         m_bHasRecipient = false;
-        m_RECIPIENT_NYM_ID.Release();
+        m_RECIPIENT_NYM_ID->Release();
     } else {
         m_bHasRecipient = true;
         m_RECIPIENT_NYM_ID = *pRECIPIENT_NYM_ID;
@@ -289,7 +289,11 @@ void Cheque::InitCheque()
 Cheque::Cheque()
     : ot_super()
     , m_lAmount(0)
+    , m_strMemo()
+    , m_RECIPIENT_NYM_ID(Identifier::Factory())
     , m_bHasRecipient(false)
+    , m_REMITTER_NYM_ID(Identifier::Factory())
+    , m_REMITTER_ACCT_ID(Identifier::Factory())
     , m_bHasRemitter(false)
 {
     InitCheque();
@@ -300,7 +304,11 @@ Cheque::Cheque(
     const Identifier& INSTRUMENT_DEFINITION_ID)
     : ot_super(NOTARY_ID, INSTRUMENT_DEFINITION_ID)
     , m_lAmount(0)
+    , m_strMemo()
+    , m_RECIPIENT_NYM_ID(Identifier::Factory())
     , m_bHasRecipient(false)
+    , m_REMITTER_NYM_ID(Identifier::Factory())
+    , m_REMITTER_ACCT_ID(Identifier::Factory())
     , m_bHasRemitter(false)
 {
     InitCheque();
@@ -317,7 +325,7 @@ void Cheque::Release_Cheque()
 
     //    m_SENDER_ACCT_ID.Release();     // in parent class now.
     //    m_SENDER_NYM_ID.Release();     // in parent class now.
-    m_RECIPIENT_NYM_ID.Release();
+    m_RECIPIENT_NYM_ID->Release();
 
     ot_super::Release();  // since I've overridden the base class, I call it
                           // now...

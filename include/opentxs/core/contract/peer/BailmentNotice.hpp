@@ -42,22 +42,23 @@
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/core/contract/peer/PeerRequest.hpp"
-#include "opentxs/core/Identifier.hpp"
 
 #include <string>
 
 namespace opentxs
 {
-
 class BailmentNotice : public PeerRequest
 {
+public:
+    ~BailmentNotice() = default;
+
 private:
     typedef PeerRequest ot_super;
     friend class PeerRequest;
 
-    Identifier unit_;
-    Identifier server_;
-    Identifier requestID_;
+    OTIdentifier unit_;
+    OTIdentifier server_;
+    OTIdentifier requestID_;
     std::string txid_;
     Amount amount_;
 
@@ -73,10 +74,6 @@ private:
         const std::string& txid,
         const Amount& amount);
     BailmentNotice() = delete;
-
-public:
-    ~BailmentNotice() = default;
 };
 }  // namespace opentxs
-
 #endif  // OPENTXS_CORE_CONTRACT_PEER_BAILMENTNOTICE_HPP

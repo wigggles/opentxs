@@ -62,6 +62,7 @@
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/ServerConnection.hpp"
 #include "opentxs/storage/StorageConfig.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/String.hpp"

@@ -48,6 +48,7 @@
 #include "opentxs/client/OTRecordList.hpp"
 #include "opentxs/client/SwigWrap.hpp"
 #include "opentxs/core/util/Common.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/OT.hpp"
 
@@ -179,7 +180,11 @@ int32_t CmdPayInvoice::processPayment(
     const int32_t index,
     string* pOptionalOutput /*=nullptr*/)
 {
-    return OTRecordList::processPayment(myacct, paymentType, inbox, index,
-                                        pOptionalOutput,
-                                        true); // CLI_input_allowed = true.
+    return OTRecordList::processPayment(
+        myacct,
+        paymentType,
+        inbox,
+        index,
+        pOptionalOutput,
+        true);  // CLI_input_allowed = true.
 }

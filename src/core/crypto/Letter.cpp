@@ -68,6 +68,7 @@
 #include "opentxs/core/util/Tag.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Data.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/OTStringXML.hpp"

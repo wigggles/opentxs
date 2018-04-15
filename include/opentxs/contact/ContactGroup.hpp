@@ -41,7 +41,6 @@
 
 #include "opentxs/Forward.hpp"
 
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/Proto.hpp"
 
 #include <map>
@@ -49,9 +48,6 @@
 
 namespace opentxs
 {
-
-class ContactItem;
-
 class ContactGroup
 {
 public:
@@ -92,7 +88,7 @@ private:
     const std::string nym_{};
     const proto::ContactSectionName section_{proto::CONTACTSECTION_ERROR};
     const proto::ContactItemType type_{proto::CITEMTYPE_ERROR};
-    const Identifier primary_{};
+    const OTIdentifier primary_;
     const ItemMap items_{};
 
     static ItemMap create_item(const std::shared_ptr<ContactItem>& item);
@@ -104,5 +100,4 @@ private:
     ContactGroup& operator=(ContactGroup&&) = delete;
 };
 }  // namespace opentxs
-
 #endif  // OPENTXS_CONTACT_CONTACT_GROUP_HPP

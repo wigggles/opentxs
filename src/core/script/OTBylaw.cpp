@@ -46,6 +46,7 @@
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/Tag.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
 

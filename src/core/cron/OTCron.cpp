@@ -379,7 +379,7 @@ int32_t OTCron::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         const String strNotaryID(xml->getAttributeValue("notaryID"));
 
-        m_NOTARY_ID.SetString(strNotaryID);
+        m_NOTARY_ID->SetString(strNotaryID);
 
         otOut << "\n\nLoading OTCron for NotaryID: " << strNotaryID << "\n";
 
@@ -710,7 +710,7 @@ bool OTCron::AddCronItem(
 
         theItem.SetCronPointer(*this);
         theItem.setServerNym(m_pServerNym);
-        theItem.setNotaryID(&m_NOTARY_ID);
+        theItem.setNotaryID(m_NOTARY_ID);
 
         bool bSuccess = true;
 
@@ -1082,6 +1082,11 @@ OTMarket* OTCron::GetMarket(const Identifier& MARKET_ID)
 
 OTCron::OTCron()
     : Contract()
+    , m_mapMarkets()
+    , m_mapCronItems()
+    , m_multimapCronItems()
+    , m_NOTARY_ID(Identifier::Factory())
+    , m_listTransactionNumbers()
     , m_bIsActivated(false)
     , m_pServerNym(nullptr)  // just here for convenience, not responsible to
                              // cleanup this pointer.
@@ -1092,6 +1097,11 @@ OTCron::OTCron()
 
 OTCron::OTCron(const Identifier& NOTARY_ID)
     : Contract()
+    , m_mapMarkets()
+    , m_mapCronItems()
+    , m_multimapCronItems()
+    , m_NOTARY_ID(Identifier::Factory())
+    , m_listTransactionNumbers()
     , m_bIsActivated(false)
     , m_pServerNym(nullptr)  // just here for convenience, not responsible to
                              // cleanup this pointer.
@@ -1103,6 +1113,11 @@ OTCron::OTCron(const Identifier& NOTARY_ID)
 
 OTCron::OTCron(const char* szFilename)
     : Contract()
+    , m_mapMarkets()
+    , m_mapCronItems()
+    , m_multimapCronItems()
+    , m_NOTARY_ID(Identifier::Factory())
+    , m_listTransactionNumbers()
     , m_bIsActivated(false)
     , m_pServerNym(nullptr)  // just here for convenience, not responsible to
                              // cleanup this pointer.

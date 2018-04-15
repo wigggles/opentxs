@@ -137,7 +137,7 @@ private:
     bool isValid(const Lock& lock, serializedCredential& credential) const;
 
     Identifier GetID(const Lock& lock) const override;
-    std::string Name() const override { return id_.str(); }
+    std::string Name() const override;
     bool VerifyMasterID() const;
     bool VerifyNymID() const;
     bool verify_master_signature(const Lock& lock) const;

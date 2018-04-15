@@ -49,7 +49,7 @@ class ContactListInterface : virtual public opentxs::ui::Widget
 {
 public:
     virtual const Identifier& ID() const = 0;
-    virtual bool last(const Identifier& id) const = 0;
+    virtual bool last(const OTIdentifier& id) const = 0;
 
 protected:
     ContactListInterface() = default;

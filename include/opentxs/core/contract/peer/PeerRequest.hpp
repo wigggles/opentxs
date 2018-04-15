@@ -42,7 +42,6 @@
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/core/contract/Signable.hpp"
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/Proto.hpp"
 
 #include <string>
@@ -54,10 +53,10 @@ class PeerRequest : public Signable
 private:
     typedef Signable ot_super;
 
-    Identifier initiator_;
-    Identifier recipient_;
-    Identifier server_;
-    Identifier cookie_;
+    OTIdentifier initiator_;
+    OTIdentifier recipient_;
+    OTIdentifier server_;
+    OTIdentifier cookie_;
     proto::PeerRequestType type_{proto::PEERREQUEST_ERROR};
 
     static std::unique_ptr<PeerRequest> Finish(
@@ -150,5 +149,4 @@ public:
     ~PeerRequest() = default;
 };
 }  // namespace opentxs
-
 #endif  // OPENTXS_CORE_CONTRACT_PEER_PEERREQUEST_HPP

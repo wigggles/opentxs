@@ -840,8 +840,8 @@ int32_t Token::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             xml->getAttributeValue("instrumentDefinitionID")),
             strNotaryID(xml->getAttributeValue("notaryID"));
 
-        m_InstrumentDefinitionID.SetString(strInstrumentDefinitionID);
-        m_NotaryID.SetString(strNotaryID);
+        m_InstrumentDefinitionID->SetString(strInstrumentDefinitionID);
+        m_NotaryID->SetString(strNotaryID);
 
         otLog4 <<
             //    "\n===> Loading XML for token into memory structures..."

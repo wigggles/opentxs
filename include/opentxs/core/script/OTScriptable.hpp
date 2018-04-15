@@ -42,7 +42,6 @@
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/core/Contract.hpp"
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/String.hpp"
 
 #include <stdint.h>

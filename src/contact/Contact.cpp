@@ -50,6 +50,7 @@
 #include "opentxs/contact/ContactSection.hpp"
 #include "opentxs/core/crypto/PaymentCode.hpp"
 #include "opentxs/core/Data.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/OT.hpp"
 #include "opentxs/Types.hpp"
@@ -71,9 +72,9 @@ Contact::Contact(
     , version_(check_version(serialized.version(), CURRENT_VERSION))
     , label_(serialized.label())
     , lock_()
-    , id_(serialized.id())
-    , parent_(serialized.mergedto())
-    , primary_nym_()
+    , id_(Identifier::Factory(Identifier::Factory(serialized.id())))
+    , parent_(Identifier::Factory(serialized.mergedto()))
+    , primary_nym_(Identifier::Factory())
     , nyms_()
     , merged_children_()
     , contact_data_(new ContactData(
@@ -81,6 +82,7 @@ Contact::Contact(
           CONTACT_CONTACT_DATA_VERSION,
           CONTACT_CONTACT_DATA_VERSION,
           ContactData::SectionMap{}))
+    , cached_contact_data_()
     , revision_(serialized.revision())
 {
     if (serialized.has_contactdata()) {
@@ -104,12 +106,13 @@ Contact::Contact(const api::client::Wallet& wallet, const std::string& label)
     , version_(CURRENT_VERSION)
     , label_(label)
     , lock_()
-    , id_(generate_id())
-    , parent_()
-    , primary_nym_()
+    , id_(Identifier::Factory(generate_id()))
+    , parent_(Identifier::Factory())
+    , primary_nym_(Identifier::Factory())
     , nyms_()
     , merged_children_()
     , contact_data_(nullptr)
+    , cached_contact_data_()
     , revision_(1)
 {
     contact_data_.reset(new ContactData(
@@ -156,7 +159,7 @@ Contact& Contact::operator+=(Contact& rhs)
 
     rhs.parent_ = id_;
 
-    if (primary_nym_.empty()) {
+    if (primary_nym_->empty()) {
         primary_nym_ = rhs.primary_nym_;
     }
 
@@ -601,7 +604,7 @@ std::shared_ptr<ContactData> Contact::merged_data(const Lock& lock) const
 
     OT_ASSERT(output);
 
-    if (false == primary_nym_.empty()) {
+    if (false == primary_nym_->empty()) {
         try {
             auto& primary = nyms_.at(primary_nym_);
 
@@ -756,7 +759,7 @@ std::string Contact::Print() const
         << "revision " << revision_ << "\n"
         << "Label: " << label_ << "\n";
 
-    if (false == parent_.empty()) {
+    if (false == parent_->empty()) {
         out << "Merged to: " << String(parent_).Get() << "\n";
     }
 

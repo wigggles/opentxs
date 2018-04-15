@@ -1136,7 +1136,13 @@ void Item::InitItem()
 // because I'm about to load it.
 Item::Item()
     : OTTransactionType()
+    , m_AcctToID(Identifier::Factory())
+    , m_lAmount(0)
+    , m_listItems()
+    , m_Type(error_state)
     , m_Status(Item::request)
+    , m_lNewOutboxTransNum(0)
+    , m_lClosingTransactionNo(0)
 {
     InitItem();
 }
@@ -1149,7 +1155,13 @@ Item::Item(const Identifier& theNymID, const OTTransaction& theOwner)
           theOwner.GetRealNotaryID(),
           theOwner.GetTransactionNum(),
           theOwner.GetOriginType())
+    , m_AcctToID(Identifier::Factory())
+    , m_lAmount(0)
+    , m_listItems()
+    , m_Type(error_state)
     , m_Status(Item::request)
+    , m_lNewOutboxTransNum(0)
+    , m_lClosingTransactionNo(0)
 {
     InitItem();
 }
@@ -1162,7 +1174,13 @@ Item::Item(const Identifier& theNymID, const Item& theOwner)
           theOwner.GetRealNotaryID(),
           theOwner.GetTransactionNum(),
           theOwner.GetOriginType())
+    , m_AcctToID(Identifier::Factory())
+    , m_lAmount(0)
+    , m_listItems()
+    , m_Type(error_state)
     , m_Status(Item::request)
+    , m_lNewOutboxTransNum(0)
+    , m_lClosingTransactionNo(0)
 {
     InitItem();
 }
@@ -1178,7 +1196,13 @@ Item::Item(
           theOwner.GetRealNotaryID(),
           theOwner.GetTransactionNum(),
           theOwner.GetOriginType())
+    , m_AcctToID(Identifier::Factory())
+    , m_lAmount(0)
+    , m_listItems()
+    , m_Type(error_state)
     , m_Status(Item::request)
+    , m_lNewOutboxTransNum(0)
+    , m_lClosingTransactionNo(0)
 {
     InitItem();
 
@@ -1208,7 +1232,7 @@ void Item::Release_Item()
 {
     ReleaseItems();
 
-    m_AcctToID.Release();
+    m_AcctToID->Release();
     m_lAmount = 0;
     m_lNewOutboxTransNum = 0;
     m_lClosingTransactionNo = 0;

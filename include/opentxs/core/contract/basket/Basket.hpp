@@ -43,9 +43,9 @@
 
 #include "opentxs/core/contract/basket/BasketItem.hpp"
 #include "opentxs/core/Contract.hpp"
+#include "opentxs/Types.hpp"
 
 /*
-
  I figured this one out, it's easy.
 
  Someone creates a contract that contains 10 sub-contracts. It just delegates
@@ -102,23 +102,23 @@ class Basket : public Contract
 {
 protected:
     int32_t m_nSubCount{0};
-    int64_t m_lMinimumTransfer{0};  // used in the actual basket
-    int32_t m_nTransferMultiple{
-        0};  // used in a request basket. If non-zero, that
-             // means this is a request basket.
-    Identifier m_RequestAccountID;  // used in a request basket so the server
-                                    // knows your acct ID.
+    // used in the actual basket
+    Amount m_lMinimumTransfer{0};
+    // used in a request basket. If non-zero, that means this is a request
+    // basket.
+    int32_t m_nTransferMultiple{0};
+    // used in a request basket so the server knows your acct ID.
+    OTIdentifier m_RequestAccountID;
     dequeOfBasketItems m_dequeItems;
-    bool m_bHideAccountID{
-        false};  // When saving, we might wish to produce a version
-                 // without Account IDs
+    // When saving, we might wish to produce a version without Account IDs
     // So that the resulting hash will be a consistent ID across different
     // servers.
-    bool m_bExchangingIn{
-        false};  // True if exchanging INTO the basket, False if
-                 // exchanging OUT of the basket.
-    int64_t m_lClosingTransactionNo{0};  // For the main (basket) account, in a
-                                         // request basket (for exchanges.)
+    bool m_bHideAccountID{false};
+    // True if exchanging INTO the basket, False if exchanging OUT of the
+    // basket.
+    bool m_bExchangingIn{false};
+    // For the main (basket) account, in a request basket (for exchanges.)
+    TransactionNumber m_lClosingTransactionNo{0};
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
     int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
 
@@ -199,7 +199,5 @@ public:
 private:
     void GenerateContents(OTStringXML& xmlUnsigned, bool bHideAccountID) const;
 };
-
 }  // namespace opentxs
-
 #endif  // OPENTXS_BASKET_BASKET_HPP

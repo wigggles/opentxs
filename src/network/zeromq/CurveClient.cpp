@@ -41,6 +41,7 @@
 #include "CurveClient.hpp"
 
 #include "opentxs/core/contract/ServerContract.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 
 #include "Socket.hpp"

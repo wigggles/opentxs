@@ -508,7 +508,7 @@ Messagability Sync::can_message(
 
     if (false == bool(recipientNym)) {
         for (const auto& id : nyms) {
-            missing_nyms_.Push({}, id);
+            missing_nyms_.Push(Identifier::Factory(), id);
         }
 
         otErr << OT_METHOD << __FUNCTION__ << ": Recipient contact "
@@ -527,7 +527,7 @@ Messagability Sync::can_message(
               << String(recipientContactID) << ", nym "
               << String(recipientNymID)
               << ": credentials do not specify a server." << std::endl;
-        missing_nyms_.Push({}, recipientNymID);
+        missing_nyms_.Push(Identifier::Factory(), recipientNymID);
 
         return Messagability::NO_SERVER_CLAIM;
     }
@@ -601,7 +601,7 @@ void Sync::check_nym_revision(
         otErr << OT_METHOD << __FUNCTION__ << ": Nym " << String(nymID)
               << " has is newer than version last registered version on server "
               << String(context.Server()) << std::endl;
-        queue.register_nym_.Push({}, true);
+        queue.register_nym_.Push(Identifier::Factory(), true);
     }
 }
 
@@ -653,7 +653,7 @@ bool Sync::check_server_contract(const Identifier& serverID) const
 
     otErr << OT_METHOD << __FUNCTION__ << ": Server contract for "
           << String(serverID) << " is not in the wallet." << std::endl;
-    missing_servers_.Push({}, serverID);
+    missing_servers_.Push(Identifier::Factory(), serverID);
 
     return false;
 }
@@ -1178,14 +1178,16 @@ bool Sync::pay_nym(
 
             if (false == messageID.empty()) {
                 otInfo << OT_METHOD << __FUNCTION__ << ": Sent (payment) "
-                       "message " << messageID.str() << std::endl;
+                                                       "message "
+                       << messageID.str() << std::endl;
             }
 
             return finish_task(taskID, true);
         } else {
             otErr << OT_METHOD << __FUNCTION__ << ": Server  "
                   << String(serverID) << " does not accept (payment) message "
-                  "for " << String(targetNymID) << std::endl;
+                                         "for "
+                  << String(targetNymID) << std::endl;
         }
     } else {
         otErr << OT_METHOD << __FUNCTION__
@@ -1211,9 +1213,8 @@ bool Sync::pay_nym_cash(
     OT_ASSERT(false == targetNymID.empty())
 
     rLock lock(api_lock_);
-    auto action =
-        server_action_.SendCash(nymID, serverID, targetNymID, recipientCopy,
-                                senderCopy);
+    auto action = server_action_.SendCash(
+        nymID, serverID, targetNymID, recipientCopy, senderCopy);
     action->Run();
     lock.unlock();
 
@@ -1243,7 +1244,7 @@ bool Sync::pay_nym_cash(
 
     return finish_task(taskID, false);
 }
-#endif // OT_CASH
+#endif  // OT_CASH
 
 Identifier Sync::MessageContact(
     const Identifier& senderNymID,
@@ -1318,9 +1319,10 @@ Identifier Sync::PayContact(
     const auto taskID(Identifier::Random());
 
     return start_task(
-        taskID, queue.send_payment_.Push(taskID,
-          { recipientNymID,
-              std::shared_ptr<const OTPayment>(payment) } ));
+        taskID,
+        queue.send_payment_.Push(
+            taskID,
+            {recipientNymID, std::shared_ptr<const OTPayment>(payment)}));
 }
 
 #if OT_CASH
@@ -1350,11 +1352,14 @@ Identifier Sync::PayContactCash(
     const auto taskID(Identifier::Random());
 
     return start_task(
-        taskID, queue.send_cash_.Push(taskID, {recipientNymID,
-        std::shared_ptr<const Purse>(recipientCopy),
-        std::shared_ptr<const Purse>(senderCopy)}));
+        taskID,
+        queue.send_cash_.Push(
+            taskID,
+            {recipientNymID,
+             std::shared_ptr<const Purse>(recipientCopy),
+             std::shared_ptr<const Purse>(senderCopy)}));
 }
-#endif // OT_CASH
+#endif  // OT_CASH
 
 bool Sync::publish_server_registration(
     const Identifier& nymID,
@@ -1827,7 +1832,7 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
     bool registerNym{false};
     bool registerNymQueued{false};
     bool downloadNymbox{false};
-    Identifier taskID{};
+    auto taskID = Identifier::Factory();
     Identifier accountID{};
     Identifier unitID{};
     Identifier contractID{};
@@ -1838,7 +1843,7 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
     PaymentTask payment;
 #if OT_CASH
     PayCashTask cash_payment;
-#endif // OT_CASH
+#endif  // OT_CASH
     DepositPaymentTask deposit;
     UniqueQueue<DepositPaymentTask> depositPaymentRetry;
 
@@ -2020,7 +2025,8 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
         while (queue.send_cash_.Pop(taskID, cash_payment)) {
             SHUTDOWN()
 
-            auto & [ recipientID, pRecipientPurse, pSenderPurse ] = cash_payment;
+            auto & [ recipientID, pRecipientPurse, pSenderPurse ] =
+                cash_payment;
 
             if (recipientID.empty()) {
                 otErr << OT_METHOD << __FUNCTION__
@@ -2030,8 +2036,13 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
                 continue;
             }
 
-            pay_nym_cash(taskID, nymID, serverID, recipientID, pRecipientPurse,
-                         pSenderPurse);
+            pay_nym_cash(
+                taskID,
+                nymID,
+                serverID,
+                recipientID,
+                pRecipientPurse,
+                pSenderPurse);
         }
 #endif
 

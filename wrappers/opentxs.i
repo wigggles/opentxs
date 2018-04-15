@@ -20,6 +20,7 @@
 #include "opentxs/core/crypto/OTCallback.hpp"
 #include "opentxs/core/crypto/OTCaller.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"

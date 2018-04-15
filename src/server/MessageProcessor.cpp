@@ -43,6 +43,7 @@
 #include "opentxs/api/network/ZMQ.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/Nym.hpp"

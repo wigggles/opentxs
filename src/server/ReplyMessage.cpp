@@ -65,7 +65,7 @@ ReplyMessage::ReplyMessage(
     : wallet_(wallet)
     , signer_(signer)
     , original_(input)
-    , notary_id_(notaryID)
+    , notary_id_(Identifier::Factory(notaryID))
     , message_(output)
     , server_(server)
     , nymfile_(input.m_strNymID)

@@ -39,7 +39,15 @@
 #include "opentxs/stdafx.hpp"
 
 #include "opentxs/core/contract/basket/BasketItem.hpp"
+#include "opentxs/core/Identifier.hpp"
 
 namespace opentxs
 {
+BasketItem::BasketItem()
+    : SUB_CONTRACT_ID(Identifier::Factory())
+    , SUB_ACCOUNT_ID(Identifier::Factory())
+    , lMinimumTransferAmount(0)
+    , lClosingTransactionNo(0)
+{
+}
 }  // namespace opentxs

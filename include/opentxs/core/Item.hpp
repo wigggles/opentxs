@@ -43,7 +43,6 @@
 
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/Contract.hpp"
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/NumList.hpp"
 #include "opentxs/core/OTTransactionType.hpp"
 #include "opentxs/core/String.hpp"
@@ -54,14 +53,6 @@
 
 namespace opentxs
 {
-
-class Account;
-class ClientContext;
-class Item;
-class Ledger;
-class Nym;
-class OTTransaction;
-
 typedef std::list<Item*> listOfItems;
 
 // Item as in "Transaction Item"
@@ -255,54 +246,46 @@ public:
     };
 
 protected:
-    // There is the OTTransaction transfer, which is a transaction type, and
-    // there is also
-    // the OTItem transfer, which is an item type. They are related. Every
-    // transaction has
-    // a list of items, and these perform the transaction. A transaction trying
-    // to TRANSFER
-    // would have these items:  transfer, serverfee, balance, and possibly
-    // outboxhash.
-
-    Item();  // <============================= Here for now, if I can get away
-             // with it.
+    // DESTINATION ACCOUNT for transfers. NOT the account holder.
+    OTIdentifier m_AcctToID;
+    // For balance, or fee, etc. Only an item can actually have an amount. (Or a
+    // "TO" account.)
+    Amount m_lAmount{0};
+    // Sometimes an item needs to have a list of yet more items. Like balance
+    // statements have a list of inbox items. (Just the relevant data, not all
+    // the attachments and everything.)
+    listOfItems m_listItems;
+    // the item type. Could be a transfer, a fee, a balance or client
+    // accept/rejecting an item
+    itemType m_Type{error_state};
+    // request, acknowledgment, or rejection.
+    itemStatus m_Status{error_status};
+    // Used for balance agreement. The user puts transaction "1" in his outbox
+    // when doing a transfer, since he has no idea what # will actually be
+    // issued on the server side after he sends his message. Let's say the
+    // server issues # 34, and puts that in the outbox. It thus sets this member
+    // to 34, and it is understood that 1 in the client request corresponds to
+    // 34 on this member variable in the reply.  Only one transfer can be done
+    // at a time. In cases where verifying a balance receipt and you come across
+    // transaction #1 in the outbox, simply look up this variable on the
+    // server's portion of the reply and then look up that number instead.
+    TransactionNumber m_lNewOutboxTransNum{0};
+    // Used in balance agreement (to represent an inbox item)
+    TransactionNumber m_lClosingTransactionNo{0};
 
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
     int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
-    void UpdateContents() override;  // Before transmission or serialization,
-                                     // this
-                                     // is where the ledger saves its contents
-    Identifier m_AcctToID;  // DESTINATION ACCOUNT for transfers. NOT the
-                            // account holder.
-    int64_t m_lAmount{
-        0};  // For balance, or fee, etc. Only an item can actually
-             // have an amount. (Or a "TO" account.)
-    listOfItems m_listItems;  // Sometimes an item needs to have a list of yet
-                              // more items. Like balance statements have a list
-    // of inbox items. (Just the relevant data, not all
-    // the attachments and everything.)
-    itemType m_Type{error_state};  // the item type. Could be a transfer, a fee,
-                                   // a balance or
-                                   // client accept/rejecting an item
-    itemStatus m_Status{
-        error_status};  // request, acknowledgment, or rejection.
-    int64_t m_lNewOutboxTransNum{
-        0};  // Used for balance agreement. The user puts
-             // transaction "1" in his outbox when doing a
-             // transfer, since he has no idea
-    // what # will actually be issued on the server side after he sends his
-    // message. Let's say the server issues # 34, and
-    // puts that in the outbox. It thus sets this member to 34, and it is
-    // understood that 1 in the client request corresponds
-    // to 34 on this member variable in the reply.  Only one transfer can be
-    // done at a time. In cases where verifying a balance
-    // receipt and you come across transaction #1 in the outbox, simply look up
-    // this variable on the server's portion of the reply
-    // and then look up that number instead.
+    // Before transmission or serialization, this is where the ledger saves its
+    // contents
+    void UpdateContents() override;
 
-    int64_t m_lClosingTransactionNo{
-        0};  // Used in balance agreement (to represent
-             // an inbox item)
+    // There is the OTTransaction transfer, which is a transaction type, and
+    // there is also the OTItem transfer, which is an item type. They are
+    // related. Every transaction has a list of items, and these perform the
+    // transaction. A transaction trying to TRANSFER would have these items:
+    // transfer, serverfee, balance, and possibly outboxhash.
+    Item();
+
 public:
     // For "OTItem::acceptTransaction" -- the blank contains a list of blank
     // numbers,
@@ -441,7 +424,5 @@ public:
 private:
     Item::itemType GetItemTypeFromString(const String& strType);
 };
-
 }  // namespace opentxs
-
 #endif  // OPENTXS_CORE_OTITEM_HPP

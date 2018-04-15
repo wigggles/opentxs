@@ -44,7 +44,6 @@
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 #include "opentxs/core/crypto/PaymentCode.hpp"
 #endif
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/Proto.hpp"
 

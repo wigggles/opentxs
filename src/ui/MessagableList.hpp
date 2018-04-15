@@ -41,7 +41,6 @@
 
 #include "opentxs/Internal.hpp"
 
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Lockable.hpp"
 #include "opentxs/ui/ContactListItem.hpp"
 #include "opentxs/ui/MessagableList.hpp"
@@ -56,7 +55,7 @@
 namespace opentxs::ui::implementation
 {
 using MessagableListPimpl = OTUIContactListItem;
-using MessagableListID = Identifier;
+using MessagableListID = OTIdentifier;
 using MessagableListSortKey = std::string;
 using MessagableListInner = std::map<MessagableListID, MessagableListPimpl>;
 using MessagableListOuter =
@@ -85,16 +84,17 @@ private:
     friend api::implementation::UI;
 
     const api::client::Sync& sync_;
-    const Identifier owner_contact_id_;
+    const OTIdentifier owner_contact_id_;
     OTZMQListenCallback contact_subscriber_callback_;
     OTZMQSubscribeSocket contact_subscriber_;
     OTZMQListenCallback nym_subscriber_callback_;
     OTZMQSubscribeSocket nym_subscriber_;
 
+    MessagableListID blank_id() const override;
     void construct_item(
         const MessagableListID& id,
         const MessagableListSortKey& index) const override;
-    bool last(const Identifier& id) const override
+    bool last(const MessagableListID& id) const override
     {
         return MessagableListType::last(id);
     }

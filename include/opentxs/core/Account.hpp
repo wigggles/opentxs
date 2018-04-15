@@ -42,7 +42,6 @@
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/core/Contract.hpp"
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/OTTransactionType.hpp"
 #include "opentxs/core/String.hpp"
 
@@ -50,13 +49,6 @@
 
 namespace opentxs
 {
-
-class Ledger;
-class Message;
-class Nym;
-class String;
-class Tag;
-
 class Account : public OTTransactionType
 {
     friend OTTransactionType* OTTransactionType::TransactionFactory(
@@ -195,23 +187,21 @@ protected:
 protected:
     AccountType acctType_{err_acct};
     // These are all the variables from the account file itself.
-    Identifier acctInstrumentDefinitionID_;
+    OTIdentifier acctInstrumentDefinitionID_;
     String balanceDate_;
     String balanceAmount_;
     // the Transaction Number of a smart contract running on cron, if this is a
     // stash account.
-    int64_t stashTransNum_{0};
+    TransactionNumber stashTransNum_{0};
     // Default FALSE. When set to true, saves a "DELETED" flag with this Account
     bool markForDeletion_{false};
     // for easy cleanup later when the server is doing some maintenance.
     // Hash of this account's Inbox, so we don't download it more often than
     // necessary.
-    Identifier inboxHash_;
+    OTIdentifier inboxHash_;
     // Hash of this account's Outbox, so we don't download it more often than
     // necessary.
-    Identifier outboxHash_;
+    OTIdentifier outboxHash_;
 };
-
 }  // namespace opentxs
-
 #endif  // OPENTXS_CORE_OTACCOUNT_HPP

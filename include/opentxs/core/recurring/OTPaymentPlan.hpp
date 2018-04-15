@@ -44,7 +44,6 @@
 #include "opentxs/core/recurring/OTAgreement.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Contract.hpp"
-#include "opentxs/core/Identifier.hpp"
 
 #include <stdint.h>
 

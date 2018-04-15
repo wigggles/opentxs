@@ -43,7 +43,6 @@
 
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Contract.hpp"
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/OTTrackable.hpp"
 #include "opentxs/core/String.hpp"
 
@@ -51,7 +50,6 @@
 
 namespace opentxs
 {
-
 class Cheque : public OTTrackable
 {
 private:  // Private prevents erroneous use by other classes.
@@ -62,12 +60,12 @@ protected:
 
     int64_t m_lAmount{0};
     String m_strMemo;
-    Identifier m_RECIPIENT_NYM_ID;  // Optional. If present, must match
-                                    // depositor's user ID.
+    OTIdentifier m_RECIPIENT_NYM_ID;  // Optional. If present, must match
+                                      // depositor's user ID.
     bool m_bHasRecipient{false};
-    Identifier m_REMITTER_NYM_ID;  // In the case of vouchers (cashier's
-                                   // cheques) we store the Remitter's ID.
-    Identifier m_REMITTER_ACCT_ID;
+    OTIdentifier m_REMITTER_NYM_ID;  // In the case of vouchers (cashier's
+                                     // cheques) we store the Remitter's ID.
+    OTIdentifier m_REMITTER_ACCT_ID;
     bool m_bHasRemitter{false};
 
 public:

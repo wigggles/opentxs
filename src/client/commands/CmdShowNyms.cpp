@@ -42,6 +42,7 @@
 
 #include "opentxs/client/commands/CmdBase.hpp"
 #include "opentxs/client/SwigWrap.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 
 #include <stdint.h>

@@ -105,9 +105,9 @@ int32_t OTMarket::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                 xml->getAttributeValue("instrumentDefinitionID")),
             strCurrencyTypeID(xml->getAttributeValue("currencyTypeID"));
 
-        m_NOTARY_ID.SetString(strNotaryID);
-        m_INSTRUMENT_DEFINITION_ID.SetString(strInstrumentDefinitionID);
-        m_CURRENCY_TYPE_ID.SetString(strCurrencyTypeID);
+        m_NOTARY_ID->SetString(strNotaryID);
+        m_INSTRUMENT_DEFINITION_ID->SetString(strInstrumentDefinitionID);
+        m_CURRENCY_TYPE_ID->SetString(strCurrencyTypeID);
 
         otOut << "\n\nMarket. Scale: " << m_lScale << "\n";
 
@@ -2801,12 +2801,18 @@ OTMarket::OTMarket(const char* szFilename)
     : Contract()
     , m_pCron(nullptr)
     , m_pTradeList(nullptr)
+    , m_mapBids()
+    , m_mapAsks()
+    , m_mapOffers()
+    , m_NOTARY_ID(Identifier::Factory())
+    , m_INSTRUMENT_DEFINITION_ID(Identifier::Factory())
+    , m_CURRENCY_TYPE_ID(Identifier::Factory())
     , m_lScale(1)
     , m_lLastSalePrice(0)
+    , m_strLastSaleDate()
 {
     OT_ASSERT(nullptr != szFilename);
 
-    m_pCron = nullptr;  // just for convenience, not responsible to delete.
     InitMarket();
 
     m_strFilename.Set(szFilename);
@@ -2817,10 +2823,16 @@ OTMarket::OTMarket()
     : Contract()
     , m_pCron(nullptr)
     , m_pTradeList(nullptr)
+    , m_mapBids()
+    , m_mapAsks()
+    , m_mapOffers()
+    , m_NOTARY_ID(Identifier::Factory())
+    , m_INSTRUMENT_DEFINITION_ID(Identifier::Factory())
+    , m_CURRENCY_TYPE_ID(Identifier::Factory())
     , m_lScale(1)
     , m_lLastSalePrice(0)
+    , m_strLastSaleDate()
 {
-    m_pCron = nullptr;  // just for convenience, not responsible to delete.
     InitMarket();
 }
 
@@ -2832,35 +2844,30 @@ OTMarket::OTMarket(
     : Contract()
     , m_pCron(nullptr)
     , m_pTradeList(nullptr)
+    , m_mapBids()
+    , m_mapAsks()
+    , m_mapOffers()
+    , m_NOTARY_ID(Identifier::Factory(NOTARY_ID))
+    , m_INSTRUMENT_DEFINITION_ID(Identifier::Factory(INSTRUMENT_DEFINITION_ID))
+    , m_CURRENCY_TYPE_ID(Identifier::Factory(CURRENCY_TYPE_ID))
     , m_lScale(1)
     , m_lLastSalePrice(0)
+    , m_strLastSaleDate()
 {
-    m_pCron = nullptr;  // just for convenience, not responsible to delete.
     InitMarket();
-
-    m_INSTRUMENT_DEFINITION_ID = INSTRUMENT_DEFINITION_ID;
-    m_CURRENCY_TYPE_ID = CURRENCY_TYPE_ID;
-
-    m_NOTARY_ID = NOTARY_ID;
-
     SetScale(lScale);
 }
 
 OTMarket::~OTMarket() { Release_Market(); }
 
-void OTMarket::InitMarket()
-{
-    m_strContractType = "MARKET";
-
-    SetScale(1);
-}
+void OTMarket::InitMarket() { m_strContractType = "MARKET"; }
 
 void OTMarket::Release_Market()
 {
-    m_INSTRUMENT_DEFINITION_ID.Release();
-    m_CURRENCY_TYPE_ID.Release();
+    m_INSTRUMENT_DEFINITION_ID->Release();
+    m_CURRENCY_TYPE_ID->Release();
 
-    m_NOTARY_ID.Release();
+    m_NOTARY_ID->Release();
 
     // Elements of this list are cleaned up automatically.
     if (nullptr != m_pTradeList) {

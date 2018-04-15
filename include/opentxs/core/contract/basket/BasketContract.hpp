@@ -42,7 +42,6 @@
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/core/contract/UnitDefinition.hpp"
-#include "opentxs/core/Identifier.hpp"
 
 namespace opentxs
 {

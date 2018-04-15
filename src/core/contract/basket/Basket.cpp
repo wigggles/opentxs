@@ -245,7 +245,7 @@ int32_t Basket::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         if (strTransferMultiple.Exists())
             m_nTransferMultiple = atoi(strTransferMultiple.Get());
         if (strRequestAccountID.Exists())
-            m_RequestAccountID.SetString(strRequestAccountID);
+            m_RequestAccountID->SetString(strRequestAccountID);
         if (strDirection.Exists()) m_bExchangingIn = strDirection.Compare("in");
         if (strTemp.Exists()) SetClosingNum(strTemp.ToLong());
 
@@ -272,8 +272,8 @@ int32_t Basket::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         String strSubAccountID(xml->getAttributeValue("accountID")),
             strContractID(xml->getAttributeValue("instrumentDefinitionID"));
-        pItem->SUB_ACCOUNT_ID.SetString(strSubAccountID);
-        pItem->SUB_CONTRACT_ID.SetString(strContractID);
+        pItem->SUB_ACCOUNT_ID->SetString(strSubAccountID);
+        pItem->SUB_CONTRACT_ID->SetString(strContractID);
 
         m_dequeItems.push_back(pItem);
 
@@ -377,6 +377,8 @@ Basket::Basket(int32_t nCount, int64_t lMinimumTransferAmount)
     , m_nSubCount(nCount)
     , m_lMinimumTransfer(lMinimumTransferAmount)
     , m_nTransferMultiple(0)
+    , m_RequestAccountID(Identifier::Factory())
+    , m_dequeItems()
     , m_bHideAccountID(false)
     , m_bExchangingIn(false)
     , m_lClosingTransactionNo(0)
@@ -388,6 +390,8 @@ Basket::Basket()
     , m_nSubCount(0)
     , m_lMinimumTransfer(0)
     , m_nTransferMultiple(0)
+    , m_RequestAccountID(Identifier::Factory())
+    , m_dequeItems()
     , m_bHideAccountID(false)
     , m_bExchangingIn(false)
     , m_lClosingTransactionNo(0)
@@ -398,7 +402,7 @@ Basket::~Basket() { Release_Basket(); }
 
 void Basket::Release_Basket()
 {
-    m_RequestAccountID.Release();
+    m_RequestAccountID->Release();
 
     while (!m_dequeItems.empty()) {
         BasketItem* pItem = m_dequeItems.front();

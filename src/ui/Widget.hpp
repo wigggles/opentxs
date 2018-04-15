@@ -41,7 +41,6 @@
 
 #include "opentxs/Internal.hpp"
 
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/network/zeromq/RequestSocket.hpp"
 #include "opentxs/ui/Widget.hpp"
 
@@ -64,7 +63,7 @@ protected:
     Widget(const network::zeromq::Context& zmq);
 
 private:
-    const Identifier widget_id_;
+    const OTIdentifier widget_id_;
     const OTZMQRequestSocket update_socket_;
 
     Widget() = delete;
