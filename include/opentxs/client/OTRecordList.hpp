@@ -186,12 +186,6 @@ private:
     static const std::string s_blank;
     static const std::string s_message_type;
 
-    bool accept_from_paymentbox_overload(
-        const std::string& ACCOUNT_ID,
-        const std::string& INDICES,
-        const std::string& PAYMENT_TYPE,
-        std::string* pOptionalOutput = nullptr) const;
-
 public:  // ADDRESS BOOK CALLBACK
     static bool setAddrBookCaller(OTLookupCaller& theCaller);
     static OTLookupCaller* getAddrBookCaller();
@@ -203,11 +197,30 @@ public:
     EXPORT OTRecordList();  // This one expects that s_pCaller is not nullptr.
     EXPORT explicit OTRecordList(const OTNameLookup& theLookup);
     EXPORT ~OTRecordList();
+
+    EXPORT static bool accept_from_paymentbox(
+        const std::string& myacct,
+        const std::string& indices,
+        const std::string& paymentType,
+        std::string* pOptionalOutput = nullptr);
+
+    EXPORT static bool checkIndicesRange(
+        const char* name,
+        const std::string& indices,
+        std::int32_t items);
+
+    EXPORT static std::string get_payment_instrument(
+        const std::string& notaryID,
+        const std::string& nymID,
+        std::int32_t nIndex,
+        const std::string& PRELOADED_INBOX);
+
     EXPORT static const char* textTo() { return s_strTextTo.c_str(); }
     EXPORT static const char* textFrom() { return s_strTextFrom.c_str(); }
 
     EXPORT static void setTextTo(std::string text) { s_strTextTo = text; }
     EXPORT static void setTextFrom(std::string text) { s_strTextFrom = text; }
+
     EXPORT void SetFastMode() { m_bRunFast = true; }
     EXPORT void IgnoreMail(bool bIgnore = true) { m_bIgnoreMail = bIgnore; }
     // SETUP:

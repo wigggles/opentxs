@@ -46,6 +46,7 @@
 #include "opentxs/client/commands/CmdConfirm.hpp"
 #include "opentxs/client/commands/CmdPayInvoice.hpp"
 #include "opentxs/client/OT_API.hpp"
+#include "opentxs/client/OTRecordList.hpp"
 #include "opentxs/client/ServerAction.hpp"
 #include "opentxs/client/SwigWrap.hpp"
 #include "opentxs/core/Ledger.hpp"
@@ -177,14 +178,14 @@ int32_t CmdBaseAccept::acceptFromInbox(
     int32_t item_count = pInbox->GetTransactionCount();
 
     // -----------------------------------------------------------
-    //    string inbox = SwigWrap::LoadInbox(server, mynym, myacct);
-    //    if ("" == inbox) {
-    //        otOut << "Error: cannot load inbox.\n";
-    //        return -1;
-    //    }
+//    string inbox = SwigWrap::LoadInbox(server, mynym, myacct);
+//    if ("" == inbox) {
+//        otOut << "Error: cannot load inbox.\n";
+//        return -1;
+//    }
 
-    //    int32_t item_count = SwigWrap::Ledger_GetCount(server, mynym,
-    //    myacct, inbox);
+//    int32_t item_count = SwigWrap::Ledger_GetCount(server, mynym,
+//                                                   myacct, inbox);
 
     if (0 > item_count) {
         otErr << "Error: cannot load inbox item count.\n";
@@ -194,11 +195,11 @@ int32_t CmdBaseAccept::acceptFromInbox(
         return 0;
     }
 
-    if (!checkIndicesRange("indices", indices, item_count)) {
+    if (!OTRecordList::checkIndicesRange("indices", indices, item_count)) {
         return -1;
     }
 
-    bool all = "" == indices || "all" == indices;
+    bool all = ("" == indices || "all" == indices);
     // -----------------------------------------------------------
     std::set<int32_t>* pOnlyForIndices{nullptr};
     std::set<int32_t> setForIndices;
@@ -257,9 +258,9 @@ int32_t CmdBaseAccept::acceptFromInbox(
             const OTTransaction::transactionType receipt_type{
                 pReceipt->GetType()};
 
-            //            string type =
-            //                SwigWrap::Transaction_GetType(server, mynym,
-            //                myacct, tx);
+//          string type =
+//                SwigWrap::Transaction_GetType(server, mynym,
+//                myacct, tx);
 
             const bool transfer = (OTTransaction::pending == receipt_type);
 
@@ -277,33 +278,33 @@ int32_t CmdBaseAccept::acceptFromInbox(
         // This is already handled now, above, in the call to
         // GetTransactionNums. Can delete this now.
         //
-        //        // do we want this index?
-        //        if (!all && !SwigWrap::NumList_VerifyQuery(indices,
-        //        to_string(i))) {
-        //            continue;
-        //        }
+//      // do we want this index?
+//      if (!all && !SwigWrap::NumList_VerifyQuery(indices,
+//      to_string(i))) {
+//          continue;
+//      }
 
         // This is now done above as well.
-        //        // need to create response ledger?
-        //        if ("" == ledger) {
-        //            ledger =
-        //            SwigWrap::Ledger_CreateResponse(server, mynym, myacct,
-        //            inbox); if ("" == ledger) {
-        //                otOut << "Error: cannot create response ledger.\n";
-        //                return -1;
-        //            }
-        //        }
+//      // need to create response ledger?
+//      if ("" == ledger) {
+//          ledger =
+//          SwigWrap::Ledger_CreateResponse(server, mynym, myacct,
+//          inbox); if ("" == ledger) {
+//              otOut << "Error: cannot create response ledger.\n";
+//              return -1;
+//          }
+//      }
         // What the above old code calls "ledger" is the object now
         // pointed to by "processInbox".
         // ------------------------
 
-        //        ledger = SwigWrap::Transaction_CreateResponse(
-        //            server, mynym, myacct, ledger, tx, true);
-        //        if ("" == ledger) {
-        //            otOut << "Error: cannot create transaction response.\n";
-        //            return -1;
-        //        }
-        // Now handled here:
+//      ledger = SwigWrap::Transaction_CreateResponse(
+//          server, mynym, myacct, ledger, tx, true);
+//      if ("" == ledger) {
+//          otOut << "Error: cannot create transaction response.\n";
+//          return -1;
+//      }
+// Now handled here:
 
         const bool bReceiptResponseCreated =
             OT::App().API().OTAPI().Transaction_CreateResponse(
@@ -324,51 +325,51 @@ int32_t CmdBaseAccept::acceptFromInbox(
 
     // OT::App().API().OTAPI().
 
-    //    string ledger = "";
-    //    for (int32_t i = 0; i < item_count; i++) {
-    //        string tx = SwigWrap::Ledger_GetTransactionByIndex(
-    //            server, mynym, myacct, inbox, i);
-    //
-    //        // itemType == 0 for all, 1 for transfers only, 2 for receipts
-    //        only. if (0 != itemType) {
-    //            string type =
-    //                SwigWrap::Transaction_GetType(server, mynym, myacct,
-    //                tx);
-    //            bool transfer = "pending" == type;
-    //            if (1 == itemType && !transfer) {
-    //                // not a transfer.
-    //                continue;
-    //            }
-    //            if (2 == itemType && transfer) {
-    //                // not a receipt.
-    //                continue;
-    //            }
-    //        }
-    //
-    //        // do we want this index?
-    //        if (!all && !SwigWrap::NumList_VerifyQuery(indices,
-    //        to_string(i))) {
-    //            continue;
-    //        }
-    //
-    //        // need to create response ledger?
-    //        if ("" == ledger) {
-    //            ledger =
-    //                SwigWrap::Ledger_CreateResponse(server, mynym, myacct,
-    //                inbox);
-    //            if ("" == ledger) {
-    //                otOut << "Error: cannot create response ledger.\n";
-    //                return -1;
-    //            }
-    //        }
-    //
-    //        ledger = SwigWrap::Transaction_CreateResponse(
-    //            server, mynym, myacct, ledger, tx, true);
-    //        if ("" == ledger) {
-    //            otOut << "Error: cannot create transaction response.\n";
-    //            return -1;
-    //        }
-    //    }
+//    string ledger = "";
+//    for (int32_t i = 0; i < item_count; i++) {
+//        string tx = SwigWrap::Ledger_GetTransactionByIndex(
+//            server, mynym, myacct, inbox, i);
+//
+//        // itemType == 0 for all, 1 for transfers only, 2 for receipts
+//        only. if (0 != itemType) {
+//            string type =
+//                SwigWrap::Transaction_GetType(server, mynym, myacct,
+//                tx);
+//            bool transfer = "pending" == type;
+//            if (1 == itemType && !transfer) {
+//                // not a transfer.
+//                continue;
+//            }
+//            if (2 == itemType && transfer) {
+//                // not a receipt.
+//                continue;
+//            }
+//        }
+//
+//        // do we want this index?
+//        if (!all && !SwigWrap::NumList_VerifyQuery(indices,
+//        to_string(i))) {
+//            continue;
+//        }
+//
+//        // need to create response ledger?
+//        if ("" == ledger) {
+//            ledger =
+//                SwigWrap::Ledger_CreateResponse(server, mynym, myacct,
+//                inbox);
+//            if ("" == ledger) {
+//                otOut << "Error: cannot create response ledger.\n";
+//                return -1;
+//            }
+//        }
+//
+//        ledger = SwigWrap::Transaction_CreateResponse(
+//            server, mynym, myacct, ledger, tx, true);
+//        if ("" == ledger) {
+//            otOut << "Error: cannot create transaction response.\n";
+//            return -1;
+//        }
+//    }
 
     if (processInbox->GetTransactionCount() <= 0) {
         // did not process anything
@@ -379,13 +380,13 @@ int32_t CmdBaseAccept::acceptFromInbox(
     }
     // ----------------------------------------------
 
-    //    string response =
-    //        SwigWrap::Ledger_FinalizeResponse(server, mynym, myacct,
-    //        ledger);
-    //    if ("" == response) {
-    //        otOut << "Error: cannot finalize response.\n";
-    //        return -1;
-    //    }
+//    string response =
+//        SwigWrap::Ledger_FinalizeResponse(server, mynym, myacct,
+//        ledger);
+//    if ("" == response) {
+//        otOut << "Error: cannot finalize response.\n";
+//        return -1;
+//    }
 
     const bool bFinalized = OT::App().API().OTAPI().Ledger_FinalizeResponse(
         theNotaryID, theNymID, theAcctID, *processInbox);
@@ -416,8 +417,8 @@ int32_t CmdBaseAccept::acceptFromInbox(
         otOut << __FUNCTION__
               << "Success processing inbox, but then failed "
                  "retrieving intermediary files for account.\n";
-        //      return -1; // By this point we DID successfully process the
-        //      inbox.
+//      return -1; // By this point we DID successfully process the
+//      inbox.
         // (We just then subsequently failed to download the updated acct
         // files.)
     }
@@ -431,133 +432,6 @@ int32_t CmdBaseAccept::acceptFromPaymentbox(
     const string& paymentType,
     string* pOptionalOutput /*=nullptr*/) const
 {
-    if (myacct.empty()) {
-        otOut << "Error: myacct is empty.\n";
-        return -1;
-    }
-
-    string server = SwigWrap::GetAccountWallet_NotaryID(myacct);
-    if (server.empty()) {
-        otOut << "Error: cannot determine server from myacct.\n";
-        return -1;
-    }
-
-    string mynym = SwigWrap::GetAccountWallet_NymID(myacct);
-    if (mynym.empty()) {
-        otOut << "Error: cannot determine mynym from myacct.\n";
-        return -1;
-    }
-
-    string inbox = SwigWrap::LoadPaymentInbox(server, mynym);
-    if (inbox.empty()) {
-        otOut << "Error: cannot load payment inbox.\n";
-        return -1;
-    }
-
-    int32_t items = SwigWrap::Ledger_GetCount(server, mynym, mynym, inbox);
-    if (0 > items) {
-        otOut << "Error: cannot load payment inbox item count.\n";
-        return -1;
-    }
-
-    if (!checkIndicesRange("indices", indices, items)) {
-        return -1;
-    }
-
-    if (0 == items) {
-        otOut << "The payment inbox is empty.\n";
-        return 0;
-    }
-
-    // Regarding bIsDefinitelyPaymentPlan:
-    // I say "definitely" because there are cases where this could be false
-    // and it's still a payment plan. For example, someone may have passed
-    // "ANY" instead of "PAYMENT PLAN" -- in that case, it's still a payment
-    // plan, but at this spot we just don't DEFINITELY know that yet.
-    // Is that a problem? No, because processPayment can actually handle that
-    // case as well. But I still prefer to handle it higher up (here) where
-    // possible, so I can phase out the other. IOW, I actually want to disallow
-    // processPayment from processing payment plans. You shouldn't be able
-    // to agree to a long-term recurring payment plan by just accepting "all".
-    // Rather, you should have to specifically look at that plan, and explicitly
-    // confirm your agreement to it, before it can get activated. That's what
-    // I'm enforcing here.
-    //
-    const bool bIsDefinitelyPaymentPlan = ("PAYMENT PLAN" == paymentType);
-    const bool bIsDefinitelySmartContract = ("SMARTCONTRACT" == paymentType);
-
-    if (bIsDefinitelySmartContract) {
-        otOut << "acceptFromPaymentbox: It's a bug that this function was even "
-                 "called at all! "
-                 "You CANNOT confirm smart contracts via this function. "
-                 "The reason is because you have to select various accounts "
-                 "during the "
-                 "confirmation process. The function confirmSmartContract "
-                 "would ask various questions "
-                 "at the command line about which accounts to choose. Thus, "
-                 "you MUST have "
-                 "your own code in the GUI itself that performs that process "
-                 "for smart contracts.\n";
-        return -1;
-    }
-    // ----------
-    bool all = ("" == indices || "all" == indices);
-
-    const int32_t nNumlistCount = all ? 0 : SwigWrap::NumList_Count(indices);
-
-    // NOTE: If we are processing multiple indices, then the return value
-    // is 1, since some indices may succeed and some may fail. So our return
-    // value merely communicates: The processing was performed.
-    //
-    // ===> Whereas if there is only ONE index, then we need to set the return
-    // value directly to the result of processing that index. Just watch
-    // nReturnValue
-    // to see how that is being done.
-    //
-    int32_t nReturnValue = 1;
-
-    for (int32_t i = items - 1; 0 <= i; i--) {
-        if (all || SwigWrap::NumList_VerifyQuery(indices, to_string(i))) {
-            if (bIsDefinitelyPaymentPlan) {
-                string instrument =
-                    get_payment_instrument(server, mynym, i, inbox);
-                if (instrument.empty()) {
-                    otOut << "CmdBaseAccept::acceptFromPaymentbox: "
-                             "Error: cannot get payment instrument from "
-                             "inpayments box.\n";
-                    return -1;
-                }
-
-                CmdConfirm cmd;
-                string recipient =
-                    SwigWrap::Instrmnt_GetRecipientNymID(instrument);
-                int32_t nTemp = cmd.confirmInstrument(
-                    server,
-                    mynym,
-                    myacct,
-                    recipient,
-                    instrument,
-                    i,
-                    pOptionalOutput);
-                if (1 == nNumlistCount) {  // If there's exactly 1 instrument
-                                           // being singled-out
-                    nReturnValue = nTemp;  // for processing, then return its
-                                           // success/fail status.
-                    break;  // Since there's only one, might as well break;
-                }
-            } else {
-                CmdPayInvoice payInvoice;
-                int32_t nTemp = payInvoice.processPayment(
-                    myacct, paymentType, inbox, i, pOptionalOutput);
-                if (1 == nNumlistCount) {  // If there's exactly 1 instrument
-                                           // being singled-out
-                    nReturnValue = nTemp;  // for processing, then return its
-                                           // success/fail status.
-                    break;  // Since there's only one, might as well break;
-                }
-            }
-        }
-    }
-
-    return nReturnValue;
+    return OTRecordList::accept_from_paymentbox(myacct, indices, paymentType,
+                                                pOptionalOutput);
 }

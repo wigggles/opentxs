@@ -45,7 +45,8 @@
 #include "opentxs/api/Api.hpp"
 #include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Native.hpp"
-#include "opentxs/client/commands/CmdAcceptPayments.hpp"
+#include "opentxs/client/commands/CmdConfirm.hpp"
+#include "opentxs/client/commands/CmdPayInvoice.hpp"
 #include "opentxs/client/Helpers.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
 #include "opentxs/client/OTRecord.hpp"
@@ -498,15 +499,213 @@ void OTRecordList::SetAccountID(std::string str_id)
     AddAccountID(str_id);
 }
 
-bool OTRecordList::accept_from_paymentbox_overload(
-    const std::string& ACCOUNT_ID,
-    const std::string& INDICES,
-    const std::string& PAYMENT_TYPE,
-    std::string* pOptionalOutput /*=nullptr*/) const
+
+bool OTRecordList::checkIndicesRange( // static method
+    const char* name,
+    const std::string& indices,
+    std::int32_t items)
 {
-    CmdAcceptPayments cmd;
-    return 1 == cmd.acceptFromPaymentbox(
-                    ACCOUNT_ID, INDICES, PAYMENT_TYPE, pOptionalOutput);
+    if ("all" == indices) {
+        return true;
+    }
+
+    for (std::string::size_type i = 0; i < indices.length(); i++) {
+        std::int32_t value = 0;
+        for (; isdigit(indices[i]); i++) {
+            value = value * 10 + indices[i] - '0';
+        }
+        if (0 > value || value >= items) {
+            otOut << "Error: " << name << ": value (" << value
+                  << ") out of range (must be < " << items << ")\n";
+            return false;
+        }
+    }
+
+    return true;
+}
+
+// GET PAYMENT INSTRUMENT (from payments inbox, by index.)
+//
+std::string OTRecordList::get_payment_instrument( // static method
+    const std::string& notaryID,
+    const std::string& nymID,
+    std::int32_t nIndex,
+    const std::string& PRELOADED_INBOX)
+{
+    std::string strInstrument;
+    std::string strInbox =
+        VerifyStringVal(PRELOADED_INBOX)
+            ? PRELOADED_INBOX
+            : OT::App().API().Exec().LoadPaymentInbox(
+                  notaryID, nymID);  // Returns nullptr, or an inbox.
+
+    if (!VerifyStringVal(strInbox)) {
+        otWarn << "\n\n get_payment_instrument:  "
+                  "OT_API_LoadPaymentInbox Failed. (Probably just "
+                  "doesn't exist yet.)\n\n";
+        return "";
+    }
+
+    std::int32_t nCount = OT::App().API().Exec().Ledger_GetCount(
+        notaryID, nymID, nymID, strInbox);
+    if (0 > nCount) {
+        otOut
+            << "Unable to retrieve size of payments inbox ledger. (Failure.)\n";
+        return "";
+    }
+    if (nIndex > (nCount - 1)) {
+        otOut << "Index " << nIndex
+              << " out of bounds. (The last index is: " << (nCount - 1)
+              << ". The first is 0.)\n";
+        return "";
+    }
+
+    strInstrument = OT::App().API().Exec().Ledger_GetInstrument(
+        notaryID, nymID, nymID, strInbox, nIndex);
+    if (!VerifyStringVal(strInstrument)) {
+        otOut << "Failed trying to get payment instrument from payments box.\n";
+        return "";
+    }
+
+    return strInstrument;
+}
+
+bool OTRecordList::accept_from_paymentbox( // static function
+    const std::string& myacct,
+    const std::string& indices,
+    const std::string& paymentType,
+    std::string* pOptionalOutput /*=nullptr*/)
+{
+    if (myacct.empty()) {
+        otOut << "Error: myacct is empty.\n";
+        return -1;
+    }
+
+    std::string server = SwigWrap::GetAccountWallet_NotaryID(myacct);
+    if (server.empty()) {
+        otOut << "Error: cannot determine server from myacct.\n";
+        return -1;
+    }
+
+    std::string mynym = SwigWrap::GetAccountWallet_NymID(myacct);
+    if (mynym.empty()) {
+        otOut << "Error: cannot determine mynym from myacct.\n";
+        return -1;
+    }
+
+    std::string inbox = SwigWrap::LoadPaymentInbox(server, mynym);
+    if (inbox.empty()) {
+        otOut << "Error: cannot load payment inbox.\n";
+        return -1;
+    }
+
+    std::int32_t items = SwigWrap::Ledger_GetCount(server, mynym, mynym, inbox);
+    if (0 > items) {
+        otOut << "Error: cannot load payment inbox item count.\n";
+        return -1;
+    }
+
+    if (!checkIndicesRange("indices", indices, items)) {
+        return -1;
+    }
+
+    if (0 == items) {
+        otOut << "The payment inbox is empty.\n";
+        return 0;
+    }
+
+    // Regarding bIsDefinitelyPaymentPlan:
+    // I say "definitely" because there are cases where this could be false
+    // and it's still a payment plan. For example, someone may have passed
+    // "ANY" instead of "PAYMENT PLAN" -- in that case, it's still a payment
+    // plan, but at this spot we just don't DEFINITELY know that yet.
+    // Is that a problem? No, because processPayment can actually handle that
+    // case as well. But I still prefer to handle it higher up (here) where
+    // possible, so I can phase out the other. IOW, I actually want to disallow
+    // processPayment from processing payment plans. You shouldn't be able
+    // to agree to a long-term recurring payment plan by just accepting "all".
+    // Rather, you should have to specifically look at that plan, and explicitly
+    // confirm your agreement to it, before it can get activated. That's what
+    // I'm enforcing here.
+    //
+    const bool bIsDefinitelyPaymentPlan = ("PAYMENT PLAN" == paymentType);
+    const bool bIsDefinitelySmartContract = ("SMARTCONTRACT" == paymentType);
+
+    if (bIsDefinitelySmartContract) {
+        otOut << "accept_from_paymentbox: It's a bug that this function was even "
+                 "called at all! "
+                 "You CANNOT confirm smart contracts via this function. "
+                 "The reason is because you have to select various accounts "
+                 "during the "
+                 "confirmation process. The function confirmSmartContract "
+                 "would ask various questions "
+                 "at the command line about which accounts to choose. Thus, "
+                 "you MUST have "
+                 "your own code in the GUI itself that performs that process "
+                 "for smart contracts.\n";
+        return -1;
+    }
+    // ----------
+    bool all = ("" == indices || "all" == indices);
+
+    const std::int32_t nNumlistCount = all ?
+        0 : SwigWrap::NumList_Count(indices);
+
+    // NOTE: If we are processing multiple indices, then the return value
+    // is 1, since some indices may succeed and some may fail. So our return
+    // value merely communicates: The processing was performed.
+    //
+    // ===> Whereas if there is only ONE index, then we need to set the return
+    // value directly to the result of processing that index. Just watch
+    // nReturnValue
+    // to see how that is being done.
+    //
+    std::int32_t nReturnValue = 1;
+
+    for (std::int32_t i = items - 1; 0 <= i; i--) {
+        if (all || SwigWrap::NumList_VerifyQuery(indices, std::to_string(i))) {
+            if (bIsDefinitelyPaymentPlan) {
+                std::string instrument =
+                    get_payment_instrument(server, mynym, i, inbox);
+                if (instrument.empty()) {
+                    otOut << "accept_from_paymentbox: "
+                             "Error: cannot get payment instrument from "
+                             "inpayments box.\n";
+                    return -1;
+                }
+
+                CmdConfirm cmd;
+                std::string recipient =
+                    SwigWrap::Instrmnt_GetRecipientNymID(instrument);
+                std::int32_t nTemp = cmd.confirmInstrument(
+                    server,
+                    mynym,
+                    myacct,
+                    recipient,
+                    instrument,
+                    i,
+                    pOptionalOutput);
+                if (1 == nNumlistCount) {  // If there's exactly 1 instrument
+                                           // being singled-out
+                    nReturnValue = nTemp;  // for processing, then return its
+                                           // success/fail status.
+                    break;  // Since there's only one, might as well break;
+                }
+            } else {
+                CmdPayInvoice payInvoice;
+                std::int32_t nTemp = payInvoice.processPayment(
+                    myacct, paymentType, inbox, i, pOptionalOutput);
+                if (1 == nNumlistCount) {  // If there's exactly 1 instrument
+                                           // being singled-out
+                    nReturnValue = nTemp;  // for processing, then return its
+                                           // success/fail status.
+                    break;  // Since there's only one, might as well break;
+                }
+            }
+        }
+    }
+
+    return nReturnValue;
 }
 
 void OTRecordList::AddAccountID(std::string str_id)
@@ -886,7 +1085,7 @@ bool OTRecordList::PerformAutoAccept()
 
                                 std::string str_server_response;
 
-                                if (!accept_from_paymentbox_overload(
+                                if (!accept_from_paymentbox(
                                         str_account_id,
                                         str_indices,
                                         "ANY",

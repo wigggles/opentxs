@@ -45,6 +45,7 @@
 #include "opentxs/api/client/ServerAction.hpp"
 #include "opentxs/client/commands/CmdBase.hpp"
 #include "opentxs/client/commands/CmdShowNyms.hpp"
+#include "opentxs/client/OTRecordList.hpp"
 #include "opentxs/client/ServerAction.hpp"
 #include "opentxs/client/SwigWrap.hpp"
 #include "opentxs/core/recurring/OTPaymentPlan.hpp"
@@ -138,8 +139,9 @@ int32_t CmdConfirm::run(
     }
 
     // use specified payment instrument from inpayments
-    string instrument = get_payment_instrument(server, mynym, messageNr, "");
-    if ("" == instrument) {
+    string instrument = OTRecordList::get_payment_instrument(
+                            server, mynym, messageNr, "");
+    if (instrument.empty()) {
         otOut << "Error: cannot load payment instrument.\n";
         return -1;
     }

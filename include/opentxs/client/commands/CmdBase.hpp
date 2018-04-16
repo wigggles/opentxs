@@ -214,11 +214,6 @@ protected:
         const;
     std::string getAccountAssetType(const std::string& myacct) const;
     std::string getOption(std::string optionName) const;
-    std::string get_payment_instrument(
-        const std::string& NOTARY_ID,
-        const std::string& NYM_ID,
-        std::int32_t nIndex,
-        const std::string& PRELOADED_INBOX = "") const;
     OTWallet* getWallet() const;
     int32_t harvestTxNumbers(
         const std::string& contract,

@@ -856,17 +856,6 @@ bool OTRecord::DeleteRecord() const
         false);  // clear all = false. We're only clearing one record.
 }
 
-bool OTRecord::accept_from_paymentbox_overload(
-    const std::string& ACCOUNT_ID,
-    const std::string& INDICES,
-    const std::string& PAYMENT_TYPE,
-    std::string* pOptionalOutput /*=nullptr*/) const
-{
-    CmdAcceptPayments cmd;
-    return 1 == cmd.acceptFromPaymentbox(
-                    ACCOUNT_ID, INDICES, PAYMENT_TYPE, pOptionalOutput);
-}
-
 bool OTRecord::accept_inbox_items(
     const std::string& ACCOUNT_ID,
     std::int32_t nItemType,
@@ -1059,7 +1048,7 @@ bool OTRecord::AcceptIncomingInstrument(const std::string& str_into_acct) const
             }
 
             std::string str_server_response;
-            if (!accept_from_paymentbox_overload(
+            if (!OTRecordList::accept_from_paymentbox(
                     str_into_acct,
                     str_indices,
                     szPaymentType,
