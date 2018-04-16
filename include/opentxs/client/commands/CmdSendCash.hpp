@@ -146,8 +146,8 @@ public:
     EXPORT CmdSendCash();
     virtual ~CmdSendCash();
 
-    EXPORT int32_t
-    run(std::string server,
+    EXPORT int32_t run(
+        std::string server,
         std::string mynym,
         std::string myacct,
         std::string mypurse,
@@ -168,14 +168,6 @@ public:
 
 protected:
     int32_t runWithOptions() override;
-
-private:
-    bool getPurseIndicesOrAmount(
-        const std::string& server,
-        const std::string& mynym,
-        const std::string& assetType,
-        int64_t& lAmount,
-        std::string& indices) const;
 };
 
 }  // namespace opentxs

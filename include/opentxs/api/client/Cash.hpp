@@ -64,6 +64,13 @@ public:
         const std::string& NYM_ID,
         const std::string& ACCT_ID,
         const std::string& STR_INDICES) const = 0;
+    EXPORT virtual std::int32_t deposit_purse(
+        const std::string& server,
+        const std::string& myacct,
+        const std::string& mynym,
+        std::string instrument,
+        const std::string& indices,
+        std::string* pOptionalOutput=nullptr) const = 0;
     EXPORT virtual bool easy_withdraw_cash(
         const std::string& ACCT_ID,
         std::int64_t AMOUNT) const = 0;
@@ -75,6 +82,16 @@ public:
         const std::string& STR_INDICES,
         bool bPasswordProtected,
         std::string& STR_RETAINED_COPY) const = 0;
+    EXPORT virtual std::int32_t send_cash(
+        std::string& response,
+        const std::string& server,
+        const std::string& mynym,
+        const std::string& assetType,
+        const std::string& myacct,
+        std::string& hisnym,
+        const std::string& amount,
+        std::string& indices,
+        bool hasPassword) const = 0;
     EXPORT virtual bool withdraw_and_export_cash(
         const std::string& ACCT_ID,
         const std::string& RECIPIENT_NYM_ID,
@@ -86,6 +103,7 @@ public:
         const std::string& ACCT_ID,
         const std::string& RECIPIENT_NYM_ID,
         std::int64_t AMOUNT) const = 0;
+
 #endif
     EXPORT virtual ~Cash() = default;
 
