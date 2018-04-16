@@ -41,6 +41,7 @@
 #include "opentxs/client/commands/CmdDiscard.hpp"
 
 #include "opentxs/client/commands/CmdBase.hpp"
+#include "opentxs/client/OTRecordList.hpp"
 #include "opentxs/client/SwigWrap.hpp"
 #include "opentxs/core/Log.hpp"
 
@@ -86,52 +87,5 @@ int32_t CmdDiscard::runWithOptions()
 
 int32_t CmdDiscard::run(string server, string mynym, string indices)
 {
-    if (!checkServer("server", server)) {
-        return -1;
-    }
-
-    if (!checkNym("mynym", mynym)) {
-        return -1;
-    }
-
-    if (!checkIndices("indices", indices)) {
-        return -1;
-    }
-
-    string inbox = SwigWrap::LoadPaymentInbox(server, mynym);
-    if ("" == inbox) {
-        otOut << "Error: cannot load payment inbox.\n";
-        return -1;
-    }
-
-    int32_t items = SwigWrap::Ledger_GetCount(server, mynym, mynym, inbox);
-    if (0 > items) {
-        otOut << "Error: cannot load payment inbox item count.\n";
-        return -1;
-    }
-
-    if (0 == items) {
-        otOut << "The payment inbox is empty.\n";
-        return 0;
-    }
-
-    bool all = "all" == indices;
-
-    // Loop from back to front, in case any are removed.
-    int32_t retVal = 1;
-    for (int32_t i = items - 1; 0 <= i; i--) {
-        if (!all && !SwigWrap::NumList_VerifyQuery(indices, to_string(i))) {
-            continue;
-        }
-
-        if (!SwigWrap::RecordPayment(server, mynym, true, i, false)) {
-            otOut << "Error: cannot discard payment.\n";
-            retVal = -1;
-            continue;
-        }
-
-        otOut << "Success discarding payment!\n";
-    }
-
-    return retVal;
+    return OTRecordList::discard_incoming_payments(server, mynym, indices);
 }

@@ -137,11 +137,6 @@ private:
                                 // (Incoming cheque, for example, does NOT.)
     bool m_bIsSuccess{false};   // If it DOES have a "success" state, then
                                 // is it set to a success or a failure?
-    bool accept_from_paymentbox_overload(
-        const std::string& ACCOUNT_ID,
-        const std::string& INDICES,
-        const std::string& PAYMENT_TYPE,
-        std::string* pOptionalOutput = nullptr) const;
     bool accept_inbox_items(
         const std::string& ACCOUNT_ID,
         std::int32_t nItemType,

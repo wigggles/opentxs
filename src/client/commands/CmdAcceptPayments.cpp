@@ -42,6 +42,8 @@
 
 #include "opentxs/client/commands/CmdBase.hpp"
 
+#include "opentxs/client/OTRecordList.hpp"
+
 #include <stdint.h>
 #include <string>
 

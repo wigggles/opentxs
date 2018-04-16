@@ -46,6 +46,7 @@
 #include "opentxs/api/Native.hpp"
 #include "opentxs/cash/Purse.hpp"
 #include "opentxs/client/commands/CmdBase.hpp"
+#include "opentxs/client/OTRecordList.hpp"
 #include "opentxs/client/ServerAction.hpp"
 #include "opentxs/client/SwigWrap.hpp"
 #include "opentxs/client/Utility.hpp"
@@ -175,44 +176,12 @@ int32_t CmdDeposit::depositCheque(
     const string& instrument,
     string* pOptionalOutput /*=nullptr*/) const
 {
-    string assetType = getAccountAssetType(myacct);
-    if (assetType.empty()) {
-        return -1;
-    }
-
-    if (assetType != SwigWrap::Instrmnt_GetInstrumentDefinitionID(instrument)) {
-        otOut << "Error: instrument definitions of instrument and myacct do "
-                 "not match.\n";
-        return -1;
-    }
-
-    std::unique_ptr<Cheque> cheque = std::make_unique<Cheque>();
-    cheque->LoadContractFromString(String(instrument.c_str()));
-
-    string response = OT::App()
-                          .API()
-                          .ServerAction()
-                          .DepositCheque(
-                              Identifier(mynym),
-                              Identifier(server),
-                              Identifier(myacct),
-                              cheque)
-                          ->Run();
-    int32_t reply =
-        responseReply(response, server, mynym, myacct, "deposit_cheque");
-    if (1 != reply) {
-        return reply;
-    }
-
-    if (nullptr != pOptionalOutput) *pOptionalOutput = response;
-
-    if (!OT::App().API().ServerAction().DownloadAccount(
-            Identifier(mynym), Identifier(server), Identifier(myacct), true)) {
-        otOut << "Error retrieving intermediary files for account.\n";
-        return -1;
-    }
-
-    return 1;
+    return OTRecordList::depositCheque(
+        server,
+        myacct,
+        mynym,
+        instrument,
+        pOptionalOutput);
 }
 
 int32_t CmdDeposit::depositPurse(

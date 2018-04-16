@@ -43,6 +43,9 @@
 #include "opentxs/client/commands/CmdBase.hpp"
 #include "opentxs/client/commands/CmdBaseAccept.hpp"
 
+#include "opentxs/client/OTRecordList.hpp"
+
+
 #include <stdint.h>
 #include <string>
 
@@ -76,5 +79,5 @@ int32_t CmdAcceptReceipts::run(string myacct, string indices)
         return -1;
     }
 
-    return acceptFromInbox(myacct, indices, typeReceipts);
+    return acceptFromInbox(myacct, indices, OTRecordList::typeReceipts);
 }

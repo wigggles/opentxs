@@ -143,13 +143,13 @@ namespace opentxs
 class CmdBaseAccept : public CmdBase
 {
 protected:
-    enum ItemType { typeBoth = 0, typeTransfers = 1, typeReceipts = 2 };
+    //enum ItemType { typeBoth = 0, typeTransfers = 1, typeReceipts = 2 };
 
 public:
     EXPORT int32_t acceptFromInbox(
         const std::string& myacct,
         const std::string& indices,
-        const int32_t itemType) const;
+        const std::int32_t itemType) const;
     EXPORT int32_t acceptFromPaymentbox(
         const std::string& myacct,
         const std::string& indices,

@@ -166,6 +166,9 @@ typedef std::map<std::string, std::string> map_of_strings;
 
 class OTRecordList
 {
+public:
+    enum ItemType { typeBoth = 0, typeTransfers = 1, typeReceipts = 2 };
+
 private:
     const OTNameLookup* m_pLookup{nullptr};
     // Defaults to false. If you set it true, it will run a lot faster. (And
@@ -186,12 +189,6 @@ private:
     static const std::string s_blank;
     static const std::string s_message_type;
 
-    bool accept_from_paymentbox_overload(
-        const std::string& ACCOUNT_ID,
-        const std::string& INDICES,
-        const std::string& PAYMENT_TYPE,
-        std::string* pOptionalOutput = nullptr) const;
-
 public:  // ADDRESS BOOK CALLBACK
     static bool setAddrBookCaller(OTLookupCaller& theCaller);
     static OTLookupCaller* getAddrBookCaller();
@@ -203,11 +200,88 @@ public:
     EXPORT OTRecordList();  // This one expects that s_pCaller is not nullptr.
     EXPORT explicit OTRecordList(const OTNameLookup& theLookup);
     EXPORT ~OTRecordList();
+
+    EXPORT static bool accept_from_paymentbox(
+        const std::string& myacct,
+        const std::string& indices,
+        const std::string& paymentType,
+        std::string* pOptionalOutput = nullptr);
+
+    EXPORT static bool checkIndicesRange(
+        const char* name,
+        const std::string& indices,
+        std::int32_t items);
+
+    EXPORT static std::string get_payment_instrument(
+        const std::string& notaryID,
+        const std::string& nymID,
+        std::int32_t nIndex,
+        const std::string& PRELOADED_INBOX);
+
+    EXPORT static std::int32_t confirm_payment_plan(
+        const std::string& server,
+        const std::string& mynym,
+        const std::string& myacct,
+        const std::string& hisnym,
+        const std::string& instrument,
+        std::int32_t index,
+        std::string* pOptionalOutput=nullptr);
+
+    EXPORT static std::int32_t confirmPaymentPlan_lowLevel(
+        const std::string& mynym,
+        const std::string& myacct,
+        const std::string& plan,
+        std::string* pOptionalOutput=nullptr);
+
+    EXPORT static std::int32_t processPayment(
+        const std::string& myacct,
+        const std::string& paymentType,
+        const std::string& inbox,
+        const std::int32_t index,
+        std::string* pOptionalOutput = nullptr,
+        bool CLI_input_allowed = false);
+
+    EXPORT static std::int32_t depositCheque(
+        const std::string& server,
+        const std::string& myacct,
+        const std::string& mynym,
+        const std::string& instrument,
+        std::string* pOptionalOutput =nullptr);
+
+    EXPORT static std::int32_t acceptFromInbox(
+        const std::string& myacct,
+        const std::string& indices,
+        const std::int32_t itemTypeFilter);
+
+    EXPORT static bool checkMandatory(const char* name,
+                                      const std::string& value);
+
+    EXPORT static bool checkNym(const char* name,
+                                std::string& nym,
+                                bool checkExistance=true);
+    EXPORT static bool checkIndices(const char* name, const std::string& indices);
+    EXPORT static bool checkAccount(const char* name, std::string& account);
+
+    EXPORT static bool checkServer(const char* name, std::string& server);
+
+    EXPORT static std::int32_t discard_incoming_payments(
+        const std::string& server,
+        const std::string& mynym,
+        const std::string& indices);
+    
+    EXPORT static std::int32_t cancel_outgoing_payments(
+        const std::string& mynym,
+        const std::string& myacct,
+        const std::string& indices);
+
+    EXPORT static std::string inputText(const char* what);
+    
     EXPORT static const char* textTo() { return s_strTextTo.c_str(); }
     EXPORT static const char* textFrom() { return s_strTextFrom.c_str(); }
 
     EXPORT static void setTextTo(std::string text) { s_strTextTo = text; }
     EXPORT static void setTextFrom(std::string text) { s_strTextFrom = text; }
+
     EXPORT void SetFastMode() { m_bRunFast = true; }
     EXPORT void IgnoreMail(bool bIgnore = true) { m_bIgnoreMail = bIgnore; }
     // SETUP:
