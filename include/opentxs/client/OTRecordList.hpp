@@ -230,6 +230,23 @@ public:
         const std::string& plan,
         std::string* pOptionalOutput=nullptr);
 
+    EXPORT static std::int32_t processPayment(
+        const std::string& myacct,
+        const std::string& paymentType,
+        const std::string& inbox,
+        const std::int32_t index,
+        std::string* pOptionalOutput = nullptr,
+        bool CLI_input_allowed = false);
+
+    EXPORT static std::int32_t depositCheque(
+        const std::string& server,
+        const std::string& myacct,
+        const std::string& mynym,
+        const std::string& instrument,
+        std::string* pOptionalOutput =nullptr);
+
+    EXPORT static std::string inputText(const char* what);
+    
     EXPORT static const char* textTo() { return s_strTextTo.c_str(); }
     EXPORT static const char* textFrom() { return s_strTextFrom.c_str(); }
 
