@@ -431,25 +431,25 @@ int32_t CmdBaseAccept::acceptFromPaymentbox(
     const string& paymentType,
     string* pOptionalOutput /*=nullptr*/) const
 {
-    if ("" == myacct) {
+    if (myacct.empty()) {
         otOut << "Error: myacct is empty.\n";
         return -1;
     }
 
     string server = SwigWrap::GetAccountWallet_NotaryID(myacct);
-    if ("" == server) {
+    if (server.empty()) {
         otOut << "Error: cannot determine server from myacct.\n";
         return -1;
     }
 
     string mynym = SwigWrap::GetAccountWallet_NymID(myacct);
-    if ("" == mynym) {
+    if (mynym.empty()) {
         otOut << "Error: cannot determine mynym from myacct.\n";
         return -1;
     }
 
     string inbox = SwigWrap::LoadPaymentInbox(server, mynym);
-    if ("" == inbox) {
+    if (inbox.empty()) {
         otOut << "Error: cannot load payment inbox.\n";
         return -1;
     }
@@ -501,7 +501,7 @@ int32_t CmdBaseAccept::acceptFromPaymentbox(
         return -1;
     }
     // ----------
-    bool all = "" == indices || "all" == indices;
+    bool all = ("" == indices || "all" == indices);
 
     const int32_t nNumlistCount = all ? 0 : SwigWrap::NumList_Count(indices);
 
@@ -521,7 +521,7 @@ int32_t CmdBaseAccept::acceptFromPaymentbox(
             if (bIsDefinitelyPaymentPlan) {
                 string instrument =
                     get_payment_instrument(server, mynym, i, inbox);
-                if ("" == instrument) {
+                if (instrument.empty()) {
                     otOut << "CmdBaseAccept::acceptFromPaymentbox: "
                              "Error: cannot get payment instrument from "
                              "inpayments box.\n";

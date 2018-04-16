@@ -40,6 +40,7 @@
 
 #include "opentxs/client/commands/CmdExportCash.hpp"
 
+#include "opentxs/api/client/Cash.hpp"
 #include "opentxs/api/client/ServerAction.hpp"
 #include "opentxs/api/Api.hpp"
 #include "opentxs/api/Native.hpp"
@@ -132,7 +133,7 @@ int32_t CmdExportCash::run(
         indices,
         password == "true",
         retainedCopy);
-    if ("" == purse) {
+    if (purse.empty()) {
         return -1;
     }
 
@@ -217,122 +218,54 @@ string CmdExportCash::exportCash(
             strContract = SwigWrap::GetAssetType_Contract(assetType);
         }
     }
-
-    if ("" == strContract) {
-        otOut << "Error: cannot load asset contract.\n";
-        return "";
+    if (strContract.empty()) {
+        otOut << "CmdExportCash::exportCash: Error: cannot load asset contract.\n";
+        return {};
     }
+    // -------------------------------------------------------------------
+    if (!hasPassword) {
+        // If no recipient, then recipient == Nym.
+        //
+        if (hisnym.empty()) {
+            otOut << "CmdExportCash::exportCash: recipientNym empty--using "
+                     "mynym for recipient instead: "
+                  << mynym << "\n";
+            hisnym = mynym;
+        }
 
-    string instrument = SwigWrap::LoadPurse(server, assetType, mynym);
-    if ("" == instrument) {
-        otOut << "Error: cannot load purse.\n";
-        return "";
+        if (!(hisnym == mynym)) {
+            // Even though we don't use this variable after this point,
+            // we've still done something important: loaded and possibly
+            // downloaded the recipient Nym, so that later in this function
+            // we can reference that hisnym in other calls and we know
+            // it will work.
+            //
+            // This function handles partial IDs for recipient.
+            //
+            std::string recipientPubKey = load_or_retrieve_encrypt_key(
+                server, mynym, hisnym);
+
+            if (!VerifyStringVal(recipientPubKey)) {
+                otOut << "CmdExportCash::exportCash: recipientPubKey is null\n";
+                return {};
+            }
+        }
     }
-
-    vector<string> tokens;
-    if (0 > getTokens(tokens, server, mynym, assetType, instrument, indices)) {
-        return "";
-    }
-
-    return exportCashPurse(
-        server,
-        assetType,
-        mynym,
-        instrument,
-        tokens,
-        hisnym,
-        hasPassword,
-        retainedCopy);
+    // By this point, we have verified that we can load the public key
+    // for the recipient.
+    // (IF the exported purse isn't meant to be password-protected.)
+    //
+    return OT::App().API().Cash().export_cash(server,
+                                              mynym,
+                                              assetType,
+                                              hisnym,
+                                              indices,
+                                              hasPassword,
+                                              retainedCopy);
 #else
     return {};
 #endif  // OT_CASH
 }
-
-#if OT_CASH
-// Input: server ID, instrumentDefinitionID, Nym of current owner, existing
-// purse, list of
-// selected tokens, Nym of Recipient, and bool bPasswordProtected.
-// Returns: "new Purse"
-//
-std::string CmdExportCash::exportCashPurse(
-    const std::string& notaryID,
-    const std::string& instrumentDefinitionID,
-    const std::string& nymID,
-    const std::string& oldPurse,
-    const std::vector<std::string>& selectedTokens,
-    std::string& recipientNymID,
-    bool bPasswordProtected,
-    std::string& strRetainedCopy) const
-{
-    //  otOut << "OT_ME_exportCashPurse starts, selectedTokens:" <<
-    // selectedTokens << "\n";
-    //  Utility.setObj(null);
-
-    if (!bPasswordProtected) {
-        // If no recipient, then recipient == Nym.
-        //
-        if (!VerifyStringVal(recipientNymID) || (recipientNymID.size() == 0)) {
-            otOut << "CmdExportCash_exportCashPurse: recipientNym empty--using "
-                     "NymID "
-                     "for recipient instead: "
-                  << nymID << "\n";
-            recipientNymID = nymID;
-        }
-
-        if (!(recipientNymID == nymID)) {
-            // Even though we don't use this variable after this point,
-            // we've still done something important: loaded and possibly
-            // downloaded the recipient Nym, so that later in this function
-            // we can reference that recipientNymID in other calls and we know
-            // it will work.
-            //
-            std::string recipientPubKey = load_or_retrieve_encrypt_key(
-                notaryID, nymID, recipientNymID);  // this function handles
-            // partial IDs for recipient.;
-
-            if (!VerifyStringVal(recipientPubKey)) {
-                otOut << "CmdExportCash_exportCashPurse: recipientPubKey is "
-                         "null\n";
-                return "";
-            }
-        }
-    }
-
-    // By this point, we have verified that we can load the public key for the
-    // recipient.
-    // (IF the exported purse isn't meant to be password-protected.)
-    //
-    std::string token = "";
-    std::string exportedToken = "";
-    std::string exportedPurse = "";
-
-    // Next I create another "newPurse" by calling this function.
-    //
-    std::string newPurse = "";  // for recipient;
-    std::string newPurseForSender = "";
-    std::string copyOfOldPurse = oldPurse;
-    bool bSuccessProcess = processCashPurse(
-        newPurse,
-        newPurseForSender,
-        notaryID,
-        instrumentDefinitionID,
-        nymID,
-        copyOfOldPurse,
-        selectedTokens,
-        recipientNymID,
-        false,
-        bPasswordProtected);
-
-    if (bSuccessProcess) {
-        strRetainedCopy = newPurseForSender;
-    }
-
-    // Whatever is returned from that function, I return here also. Presumably a
-    // purse...
-    //
-    return newPurse;
-}
-#endif  // OT_CASH
 
 // load_or_retrieve_pubkey()
 //

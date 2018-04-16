@@ -77,10 +77,10 @@ bool OTRecord::FormatAmount(std::string& str_output) const
         m_str_instrument_definition_id.empty())  // Need these to do the
                                                  // formatting.
     {
-        //      otOut << __FUNCTION__ << ": Unable to format amount. Type: " <<
-        //      m_str_type << " Amount: "
-        //            << m_str_amount << "  Asset: " <<
-        //            m_str_instrument_definition_id << "";
+//      otOut << __FUNCTION__ << ": Unable to format amount. Type: " <<
+//      m_str_type << " Amount: "
+//            << m_str_amount << "  Asset: " <<
+//            m_str_instrument_definition_id << "";
         return false;
     }
     str_output = OT::App().API().Exec().FormatAmount(
@@ -110,10 +110,10 @@ bool OTRecord::FormatAmountLocale(
         m_str_instrument_definition_id.empty())  // Need these to do the
                                                  // formatting.
     {
-        //      otOut << __FUNCTION__ << ": Unable to format amount. Type: " <<
-        //      m_str_type << " Amount: "
-        //            << m_str_amount << "  Asset: " <<
-        //            m_str_instrument_definition_id << "";
+//      otOut << __FUNCTION__ << ": Unable to format amount. Type: " <<
+//      m_str_type << " Amount: "
+//            << m_str_amount << "  Asset: " <<
+//            m_str_instrument_definition_id << "";
         return false;
     }
     str_output = OT::App().API().Exec().FormatAmountLocale(
