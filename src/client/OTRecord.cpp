@@ -42,12 +42,6 @@
 
 #include "opentxs/api/Api.hpp"
 #include "opentxs/api/Native.hpp"
-#include "opentxs/client/commands/CmdAcceptInbox.hpp"
-#include "opentxs/client/commands/CmdAcceptPayments.hpp"
-#include "opentxs/client/commands/CmdAcceptReceipts.hpp"
-#include "opentxs/client/commands/CmdAcceptTransfers.hpp"
-#include "opentxs/client/commands/CmdCancel.hpp"
-#include "opentxs/client/commands/CmdDiscard.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
 #include "opentxs/client/OTRecordList.hpp"
 #include "opentxs/client/OT_API.hpp"
@@ -861,20 +855,24 @@ bool OTRecord::accept_inbox_items(
     std::int32_t nItemType,
     const std::string& INDICES) const
 {
+//  enum ItemType { typeBoth = 0, typeTransfers = 1, typeReceipts = 2 };
     switch (nItemType) {
         case 0: {
-            CmdAcceptInbox acceptInbox;
-            return 1 == acceptInbox.run(ACCOUNT_ID, INDICES);
+            return 1 == OTRecordList::acceptFromInbox(ACCOUNT_ID,
+                                                      INDICES,
+                                                      OTRecordList::typeBoth);
         }
 
         case 1: {
-            CmdAcceptTransfers acceptTransfers;
-            return 1 == acceptTransfers.run(ACCOUNT_ID, INDICES);
+            return 1 == OTRecordList::acceptFromInbox(ACCOUNT_ID,
+                                                      INDICES,
+                                                      OTRecordList::typeTransfers);
         }
 
         case 2: {
-            CmdAcceptReceipts acceptReceipts;
-            return 1 == acceptReceipts.run(ACCOUNT_ID, INDICES);
+            return 1 == OTRecordList::acceptFromInbox(ACCOUNT_ID,
+                                                      INDICES,
+                                                      OTRecordList::typeReceipts);
         }
 
         default:
@@ -883,6 +881,26 @@ bool OTRecord::accept_inbox_items(
     }
 
     return false;
+}
+
+bool OTRecord::discard_incoming_payments(
+    const std::string& notaryID,
+    const std::string& nymID,
+    const std::string& INDICES) const
+{
+    return 1 == OTRecordList::discard_incoming_payments(notaryID,
+                                                        nymID,
+                                                        INDICES);
+}
+
+bool OTRecord::cancel_outgoing_payments(
+    const std::string& nymID,
+    const std::string& ACCOUNT_ID,
+    const std::string& INDICES) const
+{
+    return 1 == OTRecordList::cancel_outgoing_payments(nymID,
+                                                       ACCOUNT_ID,
+                                                       INDICES);
 }
 
 bool OTRecord::AcceptIncomingTransfer() const
@@ -1074,14 +1092,6 @@ bool OTRecord::AcceptIncomingInstrument(const std::string& str_into_acct) const
 
     return true;
 }
-bool OTRecord::discard_incoming_payments(
-    const std::string& notaryID,
-    const std::string& nymID,
-    const std::string& INDICES) const
-{
-    CmdDiscard discard;
-    return 1 == discard.run(notaryID, nymID, INDICES);
-}
 
 // For incoming, pending (not-yet-accepted) instruments.
 //
@@ -1174,15 +1184,6 @@ bool OTRecord::HasSuccess(bool& bIsSuccess) const
     if (m_bHasSuccess) bIsSuccess = m_bIsSuccess;
 
     return m_bHasSuccess;
-}
-
-bool OTRecord::cancel_outgoing_payments(
-    const std::string& nymID,
-    const std::string& ACCOUNT_ID,
-    const std::string& INDICES) const
-{
-    CmdCancel cancel;
-    return 1 == cancel.run(nymID, ACCOUNT_ID, INDICES);
 }
 
 // For outgoing, pending (not-yet-accepted) instruments.
