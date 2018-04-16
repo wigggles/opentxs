@@ -41,6 +41,7 @@
 #include "opentxs/contact/ContactItem.hpp"
 
 #include "opentxs/core/crypto/ContactCredential.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 
 #define OT_METHOD "opentxs::ContactItem::"
@@ -65,7 +66,8 @@ ContactItem::ContactItem(
     , start_(start)
     , end_(end)
     , attributes_(attributes)
-    , id_(ContactCredential::ClaimID(nym, section, type, start, end, value))
+    , id_(Identifier::Factory(
+          ContactCredential::ClaimID(nym, section, type, start, end, value)))
 {
     if (0 == version) {
         otErr << OT_METHOD << __FUNCTION__ << ": Warning: malformed version. "

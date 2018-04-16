@@ -43,6 +43,12 @@
 #if OT_CASH
 #include "opentxs/cash/Purse.hpp"
 #endif  // OT_CASH
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/recurring/OTPaymentPlan.hpp"
+#include "opentxs/core/script/OTSmartContract.hpp"
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/util/Common.hpp"
+#include "opentxs/core/util/Tag.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Cheque.hpp"
 #include "opentxs/core/Contract.hpp"
@@ -55,12 +61,6 @@
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/OTTransactionType.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
-#include "opentxs/core/recurring/OTPaymentPlan.hpp"
-#include "opentxs/core/script/OTSmartContract.hpp"
-#include "opentxs/core/util/Assert.hpp"
-#include "opentxs/core/util/Common.hpp"
-#include "opentxs/core/util/Tag.hpp"
 #include "opentxs/ext/InstantiateContract.hpp"
 
 #include <irrxml/irrXML.hpp>
@@ -143,9 +143,8 @@ bool OTPayment::SetTempValues()  // This version for OTTrackable (all types
         std::unique_ptr<Purse> pPurse(InstantiatePurse());
 
         if (!pPurse) {
-            otErr << __FUNCTION__
-                  << ": Error: Failed instantiating "
-                     "OTPayment (purported purse) contents:\n\n"
+            otErr << __FUNCTION__ << ": Error: Failed instantiating "
+                                     "OTPayment (purported purse) contents:\n\n"
                   << m_strPayment << "\n\n";
             return false;
         }
@@ -177,9 +176,8 @@ bool OTPayment::SetTempValues()  // This version for OTTrackable (all types
         OTTrackable* pTrackable = Instantiate();
 
         if (nullptr == pTrackable) {
-            otErr << __FUNCTION__
-                  << ": Error: Failed instantiating "
-                     "OTPayment contents:\n\n"
+            otErr << __FUNCTION__ << ": Error: Failed instantiating "
+                                     "OTPayment contents:\n\n"
                   << m_strPayment << "\n\n";
             return false;
         }
@@ -236,9 +234,8 @@ bool OTPayment::SetTempValues()  // This version for OTTrackable (all types
                 break;
 
             default:
-                otErr << __FUNCTION__
-                      << ": Failure: Wrong m_Type. "
-                         "Contents:\n\n"
+                otErr << __FUNCTION__ << ": Failure: Wrong m_Type. "
+                                         "Contents:\n\n"
                       << m_strPayment << "\n\n";
                 return false;
         }
@@ -276,7 +273,7 @@ bool OTPayment::SetTempValuesFromCheque(const Cheque& theInput)
                 m_RecipientNymID = theInput.GetRecipientNymID();
             } else {
                 m_bHasRecipient = false;
-                m_RecipientNymID.Release();
+                m_RecipientNymID->Release();
             }
 
             if (theInput.HasRemitter()) {
@@ -285,8 +282,8 @@ bool OTPayment::SetTempValuesFromCheque(const Cheque& theInput)
                 m_RemitterAcctID = theInput.GetRemitterAcctID();
             } else {
                 m_bHasRemitter = false;
-                m_RemitterNymID.Release();
-                m_RemitterAcctID.Release();
+                m_RemitterNymID->Release();
+                m_RemitterAcctID->Release();
             }
 
             // NOTE: the "Recipient Acct" is NOT KNOWN when cheque is written,
@@ -297,7 +294,7 @@ bool OTPayment::SetTempValuesFromCheque(const Cheque& theInput)
             // Acct ID is not set, and attempts to read it will result in
             // failure.
             //
-            m_RecipientAcctID.Release();
+            m_RecipientAcctID->Release();
 
             m_VALID_FROM = theInput.GetValidFrom();
             m_VALID_TO = theInput.GetValidTo();
@@ -331,18 +328,18 @@ bool OTPayment::SetTempValuesFromPurse(const Purse& theInput)
         m_InstrumentDefinitionID = theInput.GetInstrumentDefinitionID();
         m_NotaryID = theInput.GetNotaryID();
 
-        m_SenderNymID.Release();
-        m_SenderAcctID.Release();
+        m_SenderNymID->Release();
+        m_SenderAcctID->Release();
 
         if (!m_bHasRecipient || !theInput.GetNymID(m_RecipientNymID)) {
             m_bHasRecipient = false;
-            m_RecipientNymID.Release();
+            m_RecipientNymID->Release();
         }
 
-        m_RecipientAcctID.Release();
+        m_RecipientAcctID->Release();
 
-        m_RemitterNymID.Release();
-        m_RemitterAcctID.Release();
+        m_RemitterNymID->Release();
+        m_RemitterAcctID->Release();
 
         m_VALID_FROM = theInput.GetLatestValidFrom();
         m_VALID_TO = theInput.GetEarliestValidTo();
@@ -398,9 +395,8 @@ bool OTPayment::SetTempValuesFromNotice(const OTTransaction& theInput)
 
         if (!pCronItemPayment || !pCronItemPayment->IsValid() ||
             !pCronItemPayment->SetTempValues()) {
-            otErr << __FUNCTION__
-                  << ": 1 Failed instantiating or verifying a "
-                     "(purported) cron item:\n\n"
+            otErr << __FUNCTION__ << ": 1 Failed instantiating or verifying a "
+                                     "(purported) cron item:\n\n"
                   << strCronItem << "\n\n";
             return false;
         }
@@ -408,9 +404,8 @@ bool OTPayment::SetTempValuesFromNotice(const OTTransaction& theInput)
         OTTrackable* pTrackable = pCronItemPayment->Instantiate();
 
         if (nullptr == pTrackable) {
-            otErr << __FUNCTION__
-                  << ": 2 Failed instantiating or verifying a "
-                     "(purported) cron item:\n\n"
+            otErr << __FUNCTION__ << ": 2 Failed instantiating or verifying a "
+                                     "(purported) cron item:\n\n"
                   << strCronItem << "\n\n";
             return false;
         }
@@ -428,10 +423,9 @@ bool OTPayment::SetTempValuesFromNotice(const OTTransaction& theInput)
             return true;
         }
         // -------------------------------------------
-        otErr << __FUNCTION__
-              << ": Error: Apparently it's not a payment plan "
-                 "or smart contract – but was supposed to be. "
-                 "(Returning false.)\n";
+        otErr << __FUNCTION__ << ": Error: Apparently it's not a payment plan "
+                                 "or smart contract – but was supposed to be. "
+                                 "(Returning false.)\n";
     } else
         otErr << __FUNCTION__ << ": Error: Wrong type. (Returning false.)\n";
 
@@ -465,8 +459,8 @@ void OTPayment::lowLevelSetTempValuesFromPaymentPlan(
     m_RecipientNymID = theInput.GetRecipientNymID();
     m_RecipientAcctID = theInput.GetRecipientAcctID();
 
-    m_RemitterNymID.Release();
-    m_RemitterAcctID.Release();
+    m_RemitterNymID->Release();
+    m_RemitterAcctID->Release();
 
     m_VALID_FROM = theInput.GetValidFrom();
     m_VALID_TO = theInput.GetValidTo();
@@ -547,16 +541,16 @@ void OTPayment::lowLevelSetTempValuesFromSmartContract(
     m_strMemo.Release();  // not used here.
 
     m_NotaryID = theInput.GetNotaryID();
-    m_InstrumentDefinitionID.Release();  // not used here.
+    m_InstrumentDefinitionID->Release();  // not used here.
 
     m_SenderNymID = theInput.GetSenderNymID();
-    m_SenderAcctID.Release();
+    m_SenderAcctID->Release();
 
-    m_RecipientNymID.Release();   // not used here.
-    m_RecipientAcctID.Release();  // not used here.
+    m_RecipientNymID->Release();   // not used here.
+    m_RecipientAcctID->Release();  // not used here.
 
-    m_RemitterNymID.Release();
-    m_RemitterAcctID.Release();
+    m_RemitterNymID->Release();
+    m_RemitterAcctID->Release();
 
     m_VALID_FROM = theInput.GetValidFrom();
     m_VALID_TO = theInput.GetValidTo();
@@ -722,9 +716,8 @@ bool OTPayment::GetAllTransactionNumbers(NumList& numlistOutput) const
 
         if (!pCronItemPayment || !pCronItemPayment->IsValid() ||
             !pCronItemPayment->SetTempValues()) {
-            otErr << __FUNCTION__
-                  << ": Failed instantiating or verifying a "
-                     "(purported) cron item:\n\n"
+            otErr << __FUNCTION__ << ": Failed instantiating or verifying a "
+                                     "(purported) cron item:\n\n"
                   << strCronItem << "\n\n";
             return false;
         }
@@ -849,9 +842,8 @@ bool OTPayment::HasTransactionNum(const int64_t& lInput) const
 
         if (!pCronItemPayment || !pCronItemPayment->IsValid() ||
             !pCronItemPayment->SetTempValues()) {
-            otErr << __FUNCTION__
-                  << ": Failed instantiating or verifying a "
-                     "(purported) cron item:\n\n"
+            otErr << __FUNCTION__ << ": Failed instantiating or verifying a "
+                                     "(purported) cron item:\n\n"
                   << strCronItem << "\n\n";
             return false;
         }
@@ -968,9 +960,8 @@ bool OTPayment::GetClosingNum(int64_t& lOutput, const Identifier& theAcctID)
 
         if (!pCronItemPayment || !pCronItemPayment->IsValid() ||
             !pCronItemPayment->SetTempValues()) {
-            otErr << __FUNCTION__
-                  << ": Failed instantiating or verifying a "
-                     "(purported) cron item:\n\n"
+            otErr << __FUNCTION__ << ": Failed instantiating or verifying a "
+                                     "(purported) cron item:\n\n"
                   << strCronItem << "\n\n";
             return false;
         }
@@ -1084,9 +1075,8 @@ bool OTPayment::GetOpeningNum(int64_t& lOutput, const Identifier& theNymID)
 
         if (!pCronItemPayment || !pCronItemPayment->IsValid() ||
             !pCronItemPayment->SetTempValues()) {
-            otErr << __FUNCTION__
-                  << ": Failed instantiating or verifying a "
-                     "(purported) cron item:\n\n"
+            otErr << __FUNCTION__ << ": Failed instantiating or verifying a "
+                                     "(purported) cron item:\n\n"
                   << strCronItem << "\n\n";
             return false;
         }
@@ -1356,7 +1346,7 @@ bool OTPayment::GetInstrumentDefinitionID(Identifier& theOutput) const
         case OTPayment::PURSE:
         case OTPayment::NOTICE:
             theOutput = m_InstrumentDefinitionID;
-            bSuccess = !m_InstrumentDefinitionID.IsEmpty();
+            bSuccess = !m_InstrumentDefinitionID->IsEmpty();
             break;
 
         case OTPayment::SMART_CONTRACT:
@@ -1389,7 +1379,7 @@ bool OTPayment::GetNotaryID(Identifier& theOutput) const
         case OTPayment::PURSE:
         case OTPayment::NOTICE:
             theOutput = m_NotaryID;
-            bSuccess = !m_NotaryID.IsEmpty();
+            bSuccess = !m_NotaryID->IsEmpty();
             break;
 
         default:
@@ -1414,7 +1404,7 @@ bool OTPayment::GetRemitterNymID(Identifier& theOutput) const
     switch (m_Type) {
         case OTPayment::VOUCHER:
             theOutput = m_RemitterNymID;
-            bSuccess = !m_RemitterNymID.IsEmpty();
+            bSuccess = !m_RemitterNymID->IsEmpty();
             break;
 
         default:
@@ -1442,7 +1432,7 @@ bool OTPayment::GetRemitterAcctID(Identifier& theOutput) const
     switch (m_Type) {
         case OTPayment::VOUCHER:
             theOutput = m_RemitterAcctID;
-            bSuccess = !m_RemitterAcctID.IsEmpty();
+            bSuccess = !m_RemitterAcctID->IsEmpty();
             break;
 
         default:
@@ -1485,7 +1475,7 @@ bool OTPayment::GetSenderNymID(Identifier& theOutput) const
         case OTPayment::SMART_CONTRACT:
         case OTPayment::NOTICE:
             theOutput = m_SenderNymID;
-            bSuccess = !m_SenderNymID.IsEmpty();
+            bSuccess = !m_SenderNymID->IsEmpty();
             break;
 
         case OTPayment::PURSE:
@@ -1515,7 +1505,7 @@ bool OTPayment::GetSenderAcctID(Identifier& theOutput) const
         case OTPayment::PAYMENT_PLAN:
         case OTPayment::NOTICE:
             theOutput = m_SenderAcctID;
-            bSuccess = !m_SenderAcctID.IsEmpty();
+            bSuccess = !m_SenderAcctID->IsEmpty();
             break;
 
         case OTPayment::SMART_CONTRACT:
@@ -1548,7 +1538,7 @@ bool OTPayment::GetRecipientNymID(Identifier& theOutput) const
         case OTPayment::NOTICE:
             if (m_bHasRecipient) {
                 theOutput = m_RecipientNymID;
-                bSuccess = !m_RecipientNymID.IsEmpty();
+                bSuccess = !m_RecipientNymID->IsEmpty();
             } else
                 bSuccess = false;
 
@@ -1587,7 +1577,7 @@ bool OTPayment::GetRecipientAcctID(Identifier& theOutput) const
         case OTPayment::NOTICE:
             if (m_bHasRecipient) {
                 theOutput = m_RecipientAcctID;
-                bSuccess = !m_RecipientAcctID.IsEmpty();
+                bSuccess = !m_RecipientAcctID->IsEmpty();
             } else
                 bSuccess = false;
 
@@ -1613,6 +1603,7 @@ bool OTPayment::GetRecipientAcctID(Identifier& theOutput) const
 
 OTPayment::OTPayment()
     : Contract()
+    , m_strPayment()
     , m_Type(OTPayment::ERROR_STATE)
     , m_bAreTempValuesSet(false)
     , m_bHasRecipient(false)
@@ -1620,6 +1611,15 @@ OTPayment::OTPayment()
     , m_lAmount(0)
     , m_lTransactionNum(0)
     , m_lTransNumDisplay(0)
+    , m_strMemo()
+    , m_InstrumentDefinitionID(Identifier::Factory())
+    , m_NotaryID(Identifier::Factory())
+    , m_SenderNymID(Identifier::Factory())
+    , m_SenderAcctID(Identifier::Factory())
+    , m_RecipientNymID(Identifier::Factory())
+    , m_RecipientAcctID(Identifier::Factory())
+    , m_RemitterNymID(Identifier::Factory())
+    , m_RemitterAcctID(Identifier::Factory())
     , m_VALID_FROM(OT_TIME_ZERO)
     , m_VALID_TO(OT_TIME_ZERO)
 {
@@ -1628,6 +1628,7 @@ OTPayment::OTPayment()
 
 OTPayment::OTPayment(const String& strPayment)
     : Contract()
+    , m_strPayment()
     , m_Type(OTPayment::ERROR_STATE)
     , m_bAreTempValuesSet(false)
     , m_bHasRecipient(false)
@@ -1635,11 +1636,19 @@ OTPayment::OTPayment(const String& strPayment)
     , m_lAmount(0)
     , m_lTransactionNum(0)
     , m_lTransNumDisplay(0)
+    , m_strMemo()
+    , m_InstrumentDefinitionID(Identifier::Factory())
+    , m_NotaryID(Identifier::Factory())
+    , m_SenderNymID(Identifier::Factory())
+    , m_SenderAcctID(Identifier::Factory())
+    , m_RecipientNymID(Identifier::Factory())
+    , m_RecipientAcctID(Identifier::Factory())
+    , m_RemitterNymID(Identifier::Factory())
+    , m_RemitterAcctID(Identifier::Factory())
     , m_VALID_FROM(OT_TIME_ZERO)
     , m_VALID_TO(OT_TIME_ZERO)
 {
     InitPayment();
-
     SetPayment(strPayment);
 }
 
@@ -1672,9 +1681,8 @@ OTTrackable* OTPayment::Instantiate() const
                 } else
                     pTrackable = pCheque;
             } else
-                otErr << __FUNCTION__
-                      << ": Tried to instantiate cheque, but "
-                         "factory returned nullptr:\n\n"
+                otErr << __FUNCTION__ << ": Tried to instantiate cheque, but "
+                                         "factory returned nullptr:\n\n"
                       << m_strPayment << "\n\n";
             break;
 
@@ -1736,9 +1744,8 @@ OTTrackable* OTPayment::Instantiate() const
             return nullptr;
 
         default:
-            otErr << __FUNCTION__
-                  << ": ERROR: Tried to instantiate payment "
-                     "object, but had a bad type. Contents:\n\n"
+            otErr << __FUNCTION__ << ": ERROR: Tried to instantiate payment "
+                                     "object, but had a bad type. Contents:\n\n"
                   << m_strPayment << "\n\n";
             return nullptr;
     }
@@ -1756,15 +1763,13 @@ OTTrackable* OTPayment::Instantiate(const String& strPayment)
 OTTransaction* OTPayment::InstantiateNotice(const String& strNotice)
 {
     if (!SetPayment(strNotice))
-        otErr << __FUNCTION__
-              << ": WARNING: Failed setting the "
-                 "notice string based on "
-                 "what was passed in:\n\n"
+        otErr << __FUNCTION__ << ": WARNING: Failed setting the "
+                                 "notice string based on "
+                                 "what was passed in:\n\n"
               << strNotice << "\n\n";
     else if (OTPayment::NOTICE != m_Type)
-        otErr << __FUNCTION__
-              << ": WARNING: No notice was found in "
-                 "provided string:\n\n"
+        otErr << __FUNCTION__ << ": WARNING: No notice was found in "
+                                 "provided string:\n\n"
               << strNotice << "\n\n";
     else
         return InstantiateNotice();
@@ -1779,10 +1784,9 @@ OTTransaction* OTPayment::InstantiateNotice() const
             OTTransactionType::TransactionFactory(m_strPayment);
 
         if (nullptr == pType) {
-            otErr << __FUNCTION__
-                  << ": Failure 1: This payment object does "
-                     "NOT contain a notice. "
-                     "Contents:\n\n"
+            otErr << __FUNCTION__ << ": Failure 1: This payment object does "
+                                     "NOT contain a notice. "
+                                     "Contents:\n\n"
                   << m_strPayment << "\n\n";
             return nullptr;
         }
@@ -1790,10 +1794,9 @@ OTTransaction* OTPayment::InstantiateNotice() const
         OTTransaction* pNotice = dynamic_cast<OTTransaction*>(pType);
 
         if (nullptr == pNotice) {
-            otErr << __FUNCTION__
-                  << ": Failure 2: This payment object does "
-                     "NOT contain a notice. "
-                     "Contents:\n\n"
+            otErr << __FUNCTION__ << ": Failure 2: This payment object does "
+                                     "NOT contain a notice. "
+                                     "Contents:\n\n"
                   << m_strPayment << "\n\n";
             delete pType;
             pType = nullptr;  // Let the optimizer remove this line.
@@ -1821,10 +1824,9 @@ Purse* OTPayment::InstantiatePurse() const
     if (OTPayment::PURSE == GetType()) {
         return Purse::PurseFactory(m_strPayment);
     } else
-        otErr << __FUNCTION__
-              << ": Failure: This payment object "
-                 "does NOT contain a purse. "
-                 "Contents:\n\n"
+        otErr << __FUNCTION__ << ": Failure: This payment object "
+                                 "does NOT contain a purse. "
+                                 "Contents:\n\n"
               << m_strPayment << "\n\n";
 
     return nullptr;
@@ -1833,15 +1835,13 @@ Purse* OTPayment::InstantiatePurse() const
 Purse* OTPayment::InstantiatePurse(const String& strPayment)
 {
     if (!SetPayment(strPayment))
-        otErr << __FUNCTION__
-              << ": WARNING: Failed setting the "
-                 "payment string based on "
-                 "what was passed in:\n\n"
+        otErr << __FUNCTION__ << ": WARNING: Failed setting the "
+                                 "payment string based on "
+                                 "what was passed in:\n\n"
               << strPayment << "\n\n";
     else if (OTPayment::PURSE != m_Type)
-        otErr << __FUNCTION__
-              << ": WARNING: No purse was found in "
-                 "the payment string:\n\n"
+        otErr << __FUNCTION__ << ": WARNING: No purse was found in "
+                                 "the payment string:\n\n"
               << strPayment << "\n\n";
     else
         return InstantiatePurse();
@@ -1864,9 +1864,8 @@ bool OTPayment::SetPayment(const String& strPayment)
     if (!strContract.DecodeIfArmored(false))  // bEscapedIsAllowed=true
                                               // by default.
     {
-        otErr << __FUNCTION__
-              << ": Input string apparently was encoded and "
-                 "then failed decoding. Contents: \n"
+        otErr << __FUNCTION__ << ": Input string apparently was encoded and "
+                                 "then failed decoding. Contents: \n"
               << strPayment << "\n";
         return false;
     }
@@ -1939,16 +1938,16 @@ void OTPayment::Release_Payment()
 
     m_strMemo.Release();
 
-    m_InstrumentDefinitionID.Release();
-    m_NotaryID.Release();
+    m_InstrumentDefinitionID->Release();
+    m_NotaryID->Release();
 
-    m_SenderNymID.Release();
-    m_SenderAcctID.Release();
-    m_RecipientNymID.Release();
-    m_RecipientAcctID.Release();
+    m_SenderNymID->Release();
+    m_SenderAcctID->Release();
+    m_RecipientNymID->Release();
+    m_RecipientAcctID->Release();
 
-    m_RemitterNymID.Release();
-    m_RemitterAcctID.Release();
+    m_RemitterNymID->Release();
+    m_RemitterAcctID->Release();
 }
 
 void OTPayment::Release()

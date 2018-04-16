@@ -43,7 +43,6 @@
 
 #include "opentxs/core/cron/OTCron.hpp"
 #include "opentxs/core/util/Common.hpp"
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/server/Transactor.hpp"
@@ -118,7 +117,7 @@ private:
     // this flag so the caller knows to do so.
     bool m_bShutdownFlag{false};
     // A hash of the server contract
-    Identifier m_strNotaryID;
+    OTIdentifier m_strNotaryID;
     // A hash of the public key that signed the server contract
     String m_strServerNymID;
     // This is the server's own contract, containing its public key and

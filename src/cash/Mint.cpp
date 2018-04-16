@@ -181,7 +181,7 @@ void Mint::Release_Mint()
 {
     ReleaseDenominations();
 
-    m_CashAccountID.Release();
+    m_CashAccountID->Release();
 
     if (m_pReserveAcct) {
         delete m_pReserveAcct;
@@ -227,15 +227,18 @@ Mint::Mint(
     const String& strServerNymID,
     const String& strInstrumentDefinitionID)
     : Contract(strInstrumentDefinitionID)
-    , m_NotaryID(strNotaryID)
-    , m_ServerNymID(strServerNymID)
-    , m_InstrumentDefinitionID(strInstrumentDefinitionID)
+    , m_mapPrivate()
+    , m_mapPublic()
+    , m_NotaryID(Identifier::Factory(strNotaryID))
+    , m_ServerNymID(Identifier::Factory(strServerNymID))
+    , m_InstrumentDefinitionID(Identifier::Factory(strInstrumentDefinitionID))
     , m_nDenominationCount(0)
     , m_bSavePrivateKeys(false)
     , m_nSeries(0)
     , m_VALID_FROM(OT_TIME_ZERO)
     , m_VALID_TO(OT_TIME_ZERO)
     , m_EXPIRATION(OT_TIME_ZERO)
+    , m_CashAccountID(Identifier::Factory())
     , m_pReserveAcct(nullptr)
 {
     m_strFoldername.Set(OTFolders::Mint().Get());
@@ -250,14 +253,18 @@ Mint::Mint(
 
 Mint::Mint(const String& strNotaryID, const String& strInstrumentDefinitionID)
     : Contract(strInstrumentDefinitionID)
-    , m_NotaryID(strNotaryID)
-    , m_InstrumentDefinitionID(strInstrumentDefinitionID)
+    , m_mapPrivate()
+    , m_mapPublic()
+    , m_NotaryID(Identifier::Factory(strNotaryID))
+    , m_ServerNymID(Identifier::Factory())
+    , m_InstrumentDefinitionID(Identifier::Factory(strInstrumentDefinitionID))
     , m_nDenominationCount(0)
     , m_bSavePrivateKeys(false)
     , m_nSeries(0)
     , m_VALID_FROM(OT_TIME_ZERO)
     , m_VALID_TO(OT_TIME_ZERO)
     , m_EXPIRATION(OT_TIME_ZERO)
+    , m_CashAccountID(Identifier::Factory())
     , m_pReserveAcct(nullptr)
 {
     m_strFoldername.Set(OTFolders::Mint().Get());
@@ -272,12 +279,18 @@ Mint::Mint(const String& strNotaryID, const String& strInstrumentDefinitionID)
 
 Mint::Mint()
     : Contract()
+    , m_mapPrivate()
+    , m_mapPublic()
+    , m_NotaryID(Identifier::Factory())
+    , m_ServerNymID(Identifier::Factory())
+    , m_InstrumentDefinitionID(Identifier::Factory())
     , m_nDenominationCount(0)
     , m_bSavePrivateKeys(false)
     , m_nSeries(0)
     , m_VALID_FROM(OT_TIME_ZERO)
     , m_VALID_TO(OT_TIME_ZERO)
     , m_EXPIRATION(OT_TIME_ZERO)
+    , m_CashAccountID(Identifier::Factory())
     , m_pReserveAcct(nullptr)
 {
     InitMint();
@@ -662,10 +675,10 @@ int32_t Mint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         m_VALID_FROM = parseTimestamp(xml->getAttributeValue("validFrom"));
         m_VALID_TO = parseTimestamp(xml->getAttributeValue("validTo"));
 
-        m_NotaryID.SetString(strNotaryID);
-        m_ServerNymID.SetString(strServerNymID);
-        m_InstrumentDefinitionID.SetString(strInstrumentDefinitionID);
-        m_CashAccountID.SetString(strCashAcctID);
+        m_NotaryID->SetString(strNotaryID);
+        m_ServerNymID->SetString(strServerNymID);
+        m_InstrumentDefinitionID->SetString(strInstrumentDefinitionID);
+        m_CashAccountID->SetString(strCashAcctID);
 
         if (m_pReserveAcct) {
             delete m_pReserveAcct;

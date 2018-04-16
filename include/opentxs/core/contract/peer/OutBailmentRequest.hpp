@@ -42,20 +42,19 @@
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/core/contract/peer/PeerRequest.hpp"
-#include "opentxs/core/Identifier.hpp"
+#include "opentxs/Types.hpp"
 
 namespace opentxs
 {
-
 class OutBailmentRequest : public PeerRequest
 {
 private:
-    typedef PeerRequest ot_super;
+    using ot_super = PeerRequest;
     friend class PeerRequest;
 
-    Identifier unit_;
-    Identifier server_;
-    std::uint64_t amount_{0};
+    OTIdentifier unit_;
+    OTIdentifier server_;
+    Amount amount_{0};
 
     proto::PeerRequest IDVersion(const Lock& lock) const override;
 
@@ -75,5 +74,4 @@ public:
     ~OutBailmentRequest() = default;
 };
 }  // namespace opentxs
-
 #endif  // OPENTXS_CORE_CONTRACT_PEER_OUTBAILMENTREQUEST_HPP

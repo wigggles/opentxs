@@ -52,14 +52,6 @@
 
 namespace opentxs
 {
-class ClientContext;
-class Identifier;
-class Nym;
-class OTCron;
-class ServerContext;
-class String;
-class Tag;
-
 class OTCronItem : public OTTrackable
 {
 public:
@@ -73,7 +65,7 @@ private:  // Private prevents erroneous use by other classes.
 private:
     OTCron* m_pCron{nullptr};
     Nym* serverNym_{nullptr};
-    Identifier* notaryID_{nullptr};
+    OTIdentifier notaryID_;
     time64_t m_CREATION_DATE{0};  // The date, in seconds, when the CronItem was
                                   // authorized.
     time64_t m_LAST_PROCESS_DATE{0};  // The last time this item was processed.
@@ -210,7 +202,7 @@ public:
 
     inline OTCron* GetCron() const { return m_pCron; }
     void setServerNym(Nym* serverNym) { serverNym_ = serverNym; }
-    void setNotaryID(Identifier* notaryID) { notaryID_ = notaryID; }
+    void setNotaryID(const Identifier& notaryID);
     // When first adding anything to Cron, a copy needs to be saved in a folder
     // somewhere.
     EXPORT bool SaveCronReceipt();  // server side only
@@ -253,7 +245,5 @@ public:
     int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
     //  virtual void UpdateContents();
 };
-
 }  // namespace opentxs
-
 #endif  // OPENTXS_CORE_CRON_OTCRONITEM_HPP

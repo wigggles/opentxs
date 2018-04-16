@@ -42,7 +42,6 @@
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/core/crypto/CredentialSet.hpp"
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/NymFile.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/Proto.hpp"
@@ -59,23 +58,6 @@
 
 namespace opentxs
 {
-
-class ContactData;
-class Credential;
-class Item;
-class Ledger;
-class Message;
-class NymIDSource;
-class NymParameters;
-class OTAsymmetricKey;
-class OTKeypair;
-class OTPassword;
-class OTPasswordData;
-class OTPayment;
-class OTTransaction;
-class ServerContract;
-class Tag;
-
 namespace api
 {
 namespace client
@@ -134,10 +116,7 @@ public:
     EXPORT std::string ChildCredentialID(
         const std::string& masterID,
         const std::uint32_t index) const;
-    EXPORT bool CompareID(const Identifier& theIdentifier) const override
-    {
-        return (theIdentifier == m_nymID);
-    }
+    EXPORT bool CompareID(const Identifier& rhs) const override;
     EXPORT const Identifier& GetConstID() const override { return m_nymID; }
     EXPORT const String& GetDescription() const { return m_strDescription; }
     EXPORT bool GetInboxHash(
@@ -372,7 +351,7 @@ private:
     String m_strNymfile{""};
     String m_strVersion{""};
     String m_strDescription{""};
-    Identifier m_nymID{};
+    OTIdentifier m_nymID;
     std::shared_ptr<NymIDSource> source_{nullptr};
     mutable std::unique_ptr<class ContactData> contact_data_;
 

@@ -46,6 +46,7 @@
 #include "opentxs/core/crypto/ContactCredential.hpp"
 #include "opentxs/core/crypto/VerificationCredential.hpp"
 #include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/String.hpp"

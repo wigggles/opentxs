@@ -98,9 +98,8 @@ bool Contract::DearmorAndTrim(
     if (false ==
         strOutput.DecodeIfArmored(false))  // bEscapedIsAllowed=true by default.
     {
-        otLog5 << __FUNCTION__
-               << ": Input string apparently was encoded and "
-                  "then failed decoding. Contents: \n"
+        otLog5 << __FUNCTION__ << ": Input string apparently was encoded and "
+                                  "then failed decoding. Contents: \n"
                << strInput << "\n";
         return false;
     }
@@ -130,6 +129,16 @@ bool Contract::DearmorAndTrim(
     return true;
 }
 
+void Contract::SetIdentifier(const Identifier& theID)
+{
+    m_ID = Identifier::Factory(theID);
+}
+
+Contract::Contract()
+    : Contract("", "", "", "")
+{
+}
+
 Contract::Contract(
     const String& name,
     const String& foldername,
@@ -138,14 +147,28 @@ Contract::Contract(
     : m_strName(name)
     , m_strFoldername(foldername)
     , m_strFilename(filename)
+    , m_ID(Identifier::Factory(strID))
+    , m_xmlUnsigned()
+    , m_strRawFile()
+    , m_strSigHashType()
+    , m_strContractType()
+    , m_mapNyms()
+    , m_listSignatures()
+    , m_strVersion("2.0")
+    , m_strEntityShortName()
+    , m_strEntityLongName()
+    , m_strEntityEmail()
+    , m_mapConditions()
 {
-    m_ID.SetString(strID);
 }
 
-Contract::Contract(const String& strID) { m_ID.SetString(strID); }
+Contract::Contract(const String& strID)
+    : Contract("", "", "", strID)
+{
+}
 
 Contract::Contract(const Identifier& theID)
-    : m_ID(theID)
+    : Contract(String(theID))
 {
 }
 
@@ -212,7 +235,7 @@ void Contract::GetIdentifier(Identifier& theIdentifier) const
 
 void Contract::GetIdentifier(String& theIdentifier) const
 {
-    m_ID.GetString(theIdentifier);
+    m_ID->GetString(theIdentifier);
 }
 
 // Make sure this contract checks out. Very high level.
@@ -240,10 +263,9 @@ bool Contract::VerifyContract() const
     if (!VerifySignature(*pNym)) {
         const Identifier theNymID(*pNym);
         const String strNymID(theNymID);
-        otOut << __FUNCTION__
-              << ": Failed verifying the contract's signature "
-                 "against the public key that was retrieved "
-                 "from the contract, with key ID: "
+        otOut << __FUNCTION__ << ": Failed verifying the contract's signature "
+                                 "against the public key that was retrieved "
+                                 "from the contract, with key ID: "
               << strNymID << "\n";
         return false;
     }
@@ -355,9 +377,8 @@ bool Contract::SignContract(const Nym& theNym, const OTPasswordData* pPWData)
     if (bSigned)
         m_listSignatures.push_back(pSig);
     else {
-        otErr << __FUNCTION__
-              << ": Failure while calling "
-                 "SignContract(theNym, *pSig, pPWData)\n";
+        otErr << __FUNCTION__ << ": Failure while calling "
+                                 "SignContract(theNym, *pSig, pPWData)\n";
         delete pSig;
         pSig = nullptr;
     }
@@ -382,10 +403,9 @@ bool Contract::SignContractAuthent(
     if (bSigned)
         m_listSignatures.push_back(pSig);
     else {
-        otErr << __FUNCTION__
-              << ": Failure while calling "
-                 "SignContractAuthent(theNym, *pSig, "
-                 "pPWData)\n";
+        otErr << __FUNCTION__ << ": Failure while calling "
+                                 "SignContractAuthent(theNym, *pSig, "
+                                 "pPWData)\n";
         delete pSig;
         pSig = nullptr;
     }
@@ -756,12 +776,13 @@ bool Contract::VerifySignature(
 
     const CryptoAsymmetric& engine = theKey.engine();
 
-    if (false == engine.VerifyContractSignature(
-                     trim(m_xmlUnsigned),
-                     theKey,
-                     theSignature,
-                     hashType,
-                     (nullptr != pPWData) ? pPWData : &thePWData)) {
+    if (false ==
+        engine.VerifyContractSignature(
+            trim(m_xmlUnsigned),
+            theKey,
+            theSignature,
+            hashType,
+            (nullptr != pPWData) ? pPWData : &thePWData)) {
         otLog4 << __FUNCTION__
                << ": engine.VerifyContractSignature returned false.\n";
         return false;
@@ -904,12 +925,13 @@ bool Contract::SignFlatText(
     auto& key = theSigner.GetPrivateSignKey();
     auto& engine = key.engine();
 
-    if (false == engine.SignContract(
-                     trim(strInput),
-                     theSigner.GetPrivateSignKey(),
-                     theSignature,  // the output
-                     key.SigHashType(),
-                     &thePWData)) {
+    if (false ==
+        engine.SignContract(
+            trim(strInput),
+            theSigner.GetPrivateSignKey(),
+            theSignature,  // the output
+            key.SigHashType(),
+            &thePWData)) {
         otErr << szFunc << ": SignContract failed. Contents:\n\n"
               << strInput << "\n\n\n";
         return false;
@@ -1105,9 +1127,8 @@ bool Contract::LoadContractRawFile()
     if (false == strFileContents.DecodeIfArmored())  // bEscapedIsAllowed=true
                                                      // by default.
     {
-        otErr << __FUNCTION__
-              << ": Input string apparently was encoded and "
-                 "then failed decoding. Contents: \n"
+        otErr << __FUNCTION__ << ": Input string apparently was encoded and "
+                                 "then failed decoding. Contents: \n"
               << strFileContents << "\n";
         return false;
     }
@@ -1155,10 +1176,9 @@ bool Contract::LoadContractFromString(const String& theStr)
     if (false ==
         strContract.DecodeIfArmored())  // bEscapedIsAllowed=true by default.
     {
-        otErr << __FUNCTION__
-              << ": ERROR: Input string apparently was encoded "
-                 "and then failed decoding. "
-                 "Contents: \n"
+        otErr << __FUNCTION__ << ": ERROR: Input string apparently was encoded "
+                                 "and then failed decoding. "
+                                 "Contents: \n"
               << theStr << "\n";
         return false;
     }
@@ -1360,9 +1380,8 @@ bool Contract::ParseRawFile()
                         // (A|E|S) and the others are base62.
                         {
                             otOut << "Error in signature for contract "
-                                  << m_strFilename
-                                  << ": Unexpected length for "
-                                     "\"Meta:\" comment.\n";
+                                  << m_strFilename << ": Unexpected length for "
+                                                      "\"Meta:\" comment.\n";
                             return false;
                         }
 

@@ -41,6 +41,7 @@
 #include "opentxs/contact/ContactSection.hpp"
 #include "opentxs/contact/ContactGroup.hpp"
 #include "opentxs/contact/ContactItem.hpp"
+#include "opentxs/core/Identifier.hpp"
 
 namespace
 {

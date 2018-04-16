@@ -41,8 +41,8 @@
 
 #include "opentxs/Forward.hpp"
 
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
 
 #include <atomic>
 #include <cstdint>
@@ -54,19 +54,6 @@
 
 namespace opentxs
 {
-class ContactData;
-class ContactGroup;
-class ContactItem;
-class PaymentCode;
-
-namespace api
-{
-namespace client
-{
-class Wallet;
-}  // namespace client
-}  // namespace api
-
 class Contact
 {
 public:
@@ -124,9 +111,9 @@ private:
     std::uint32_t version_{0};
     std::string label_{""};
     mutable std::mutex lock_{};
-    const Identifier id_{};
-    Identifier parent_{};
-    Identifier primary_nym_{};
+    const OTIdentifier id_;
+    OTIdentifier parent_;
+    OTIdentifier primary_nym_;
     std::map<Identifier, std::shared_ptr<const Nym>> nyms_{};
     std::set<Identifier> merged_children_{};
     std::unique_ptr<ContactData> contact_data_{};
@@ -168,5 +155,4 @@ private:
     Contact& operator=(Contact&&) = delete;
 };
 }  // namespace opentxs
-
 #endif  // OPENTXS_CONTACT_CONTACT_HPP

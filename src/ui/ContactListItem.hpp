@@ -41,7 +41,6 @@
 
 #include "opentxs/Internal.hpp"
 
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Lockable.hpp"
 #include "opentxs/ui/ContactListItem.hpp"
 

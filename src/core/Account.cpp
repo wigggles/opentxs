@@ -89,8 +89,14 @@ char const* const __TypeStringsAccount[] = {
 // Used for generating accounts, thus no accountID needed.
 Account::Account(const Identifier& nymID, const Identifier& notaryID)
     : OTTransactionType()
+    , acctType_(err_acct)
+    , acctInstrumentDefinitionID_(Identifier::Factory())
+    , balanceDate_()
+    , balanceAmount_()
     , stashTransNum_(0)
     , markForDeletion_(false)
+    , inboxHash_(Identifier::Factory())
+    , outboxHash_(Identifier::Factory())
 {
     InitAccount();
     SetNymID(nymID);
@@ -100,8 +106,14 @@ Account::Account(const Identifier& nymID, const Identifier& notaryID)
 
 Account::Account()
     : OTTransactionType()
+    , acctType_(err_acct)
+    , acctInstrumentDefinitionID_(Identifier::Factory())
+    , balanceDate_()
+    , balanceAmount_()
     , stashTransNum_(0)
     , markForDeletion_(false)
+    , inboxHash_(Identifier::Factory())
+    , outboxHash_(Identifier::Factory())
 {
     InitAccount();
 }
@@ -112,8 +124,14 @@ Account::Account(
     const Identifier& notaryID,
     const String& name)
     : OTTransactionType(nymID, accountId, notaryID)
+    , acctType_(err_acct)
+    , acctInstrumentDefinitionID_(Identifier::Factory())
+    , balanceDate_()
+    , balanceAmount_()
     , stashTransNum_(0)
     , markForDeletion_(false)
+    , inboxHash_(Identifier::Factory())
+    , outboxHash_(Identifier::Factory())
 {
     InitAccount();
     m_strName = name;
@@ -124,8 +142,14 @@ Account::Account(
     const Identifier& accountId,
     const Identifier& notaryID)
     : OTTransactionType(nymID, accountId, notaryID)
+    , acctType_(err_acct)
+    , acctInstrumentDefinitionID_(Identifier::Factory())
+    , balanceDate_()
+    , balanceAmount_()
     , stashTransNum_(0)
     , markForDeletion_(false)
+    , inboxHash_(Identifier::Factory())
+    , outboxHash_(Identifier::Factory())
 {
     InitAccount();
 }
@@ -234,7 +258,7 @@ bool Account::GetInboxHash(Identifier& output)
 {
     output.Release();
 
-    if (!inboxHash_.IsEmpty()) {
+    if (!inboxHash_->IsEmpty()) {
         output = inboxHash_;
         return true;
     } else if (
@@ -257,7 +281,7 @@ bool Account::GetOutboxHash(Identifier& output)
 {
     output.Release();
 
-    if (!outboxHash_.IsEmpty()) {
+    if (!outboxHash_->IsEmpty()) {
         output = outboxHash_;
         return true;
     } else if (
@@ -541,10 +565,10 @@ bool Account::GenerateNewAccount(
     if (IsInternalServerAcct()) {
         server.GetIdentifier(m_AcctNymID);
     } else {
-        m_AcctNymID.SetString(String(userNymID));
+        m_AcctNymID->SetString(String(userNymID));
     }
 
-    acctInstrumentDefinitionID_.SetString(String(instrumentDefinitionID));
+    acctInstrumentDefinitionID_->SetString(String(instrumentDefinitionID));
 
     otLog3 << __FUNCTION__ << ": Creating new account, type:\n"
            << String(instrumentDefinitionID) << "\n";
@@ -701,13 +725,13 @@ void Account::UpdateContents()
         tagStash->add_attribute("cronItemNum", formatLong(stashTransNum_));
         tag.add_tag(tagStash);
     }
-    if (!inboxHash_.IsEmpty()) {
+    if (!inboxHash_->IsEmpty()) {
         String strHash(inboxHash_);
         TagPtr tagBox(new Tag("inboxHash"));
         tagBox->add_attribute("value", strHash.Get());
         tag.add_tag(tagBox);
     }
-    if (!outboxHash_.IsEmpty()) {
+    if (!outboxHash_->IsEmpty()) {
         String strHash(outboxHash_);
         TagPtr tagBox(new Tag("outboxHash"));
         tagBox->add_attribute("value", strHash.Get());
@@ -775,7 +799,7 @@ int32_t Account::ProcessXMLNode(IrrXMLReader*& xml)
             xml->getAttributeValue("instrumentDefinitionID");
 
         if (strAcctAssetType.Exists()) {
-            acctInstrumentDefinitionID_.SetString(strAcctAssetType);
+            acctInstrumentDefinitionID_->SetString(strAcctAssetType);
         } else {
             otErr << "OTAccount::ProcessXMLNode: Failed: missing "
                      "instrumentDefinitionID.\n";
@@ -806,7 +830,7 @@ int32_t Account::ProcessXMLNode(IrrXMLReader*& xml)
 
         String strHash = xml->getAttributeValue("value");
         if (strHash.Exists()) {
-            inboxHash_.SetString(strHash);
+            inboxHash_->SetString(strHash);
         }
         otLog3 << "Account inboxHash: " << strHash << "\n";
 
@@ -815,7 +839,7 @@ int32_t Account::ProcessXMLNode(IrrXMLReader*& xml)
 
         String strHash = xml->getAttributeValue("value");
         if (strHash.Exists()) {
-            outboxHash_.SetString(strHash);
+            outboxHash_->SetString(strHash);
         }
         otLog3 << "Account outboxHash: " << strHash << "\n";
 
@@ -947,8 +971,8 @@ void Account::Release_Account()
 {
     balanceDate_.Release();
     balanceAmount_.Release();
-    inboxHash_.Release();
-    outboxHash_.Release();
+    inboxHash_->Release();
+    outboxHash_->Release();
 }
 
 void Account::Release()

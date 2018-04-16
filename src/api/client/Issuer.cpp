@@ -43,6 +43,7 @@
 #include "opentxs/contact/ContactGroup.hpp"
 #include "opentxs/contact/ContactItem.hpp"
 #include "opentxs/contact/ContactSection.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 
 #include "Issuer.hpp"
@@ -61,8 +62,8 @@ Issuer::Issuer(
     , version_(CURRENT_VERSION)
     , pairing_code_("")
     , paired_(Flag::Factory(false))
-    , nym_id_(nymID)
-    , issuer_id_(issuerID)
+    , nym_id_(Identifier::Factory(nymID))
+    , issuer_id_(Identifier::Factory(issuerID))
     , account_map_()
     , peer_requests_()
 {
@@ -76,8 +77,8 @@ Issuer::Issuer(
     , version_(serialized.version())
     , pairing_code_(serialized.pairingcode())
     , paired_(Flag::Factory(serialized.paired()))
-    , nym_id_(nymID)
-    , issuer_id_(serialized.id())
+    , nym_id_(Identifier::Factory(nymID))
+    , issuer_id_(Identifier::Factory(serialized.id()))
     , account_map_()
     , peer_requests_()
 {
@@ -106,7 +107,7 @@ Issuer::operator std::string() const
 {
     Lock lock(lock_);
     std::stringstream output{};
-    output << "Connected issuer: " << issuer_id_.str() << "\n";
+    output << "Connected issuer: " << issuer_id_->str() << "\n";
 
     if (pairing_code_.empty()) {
         output << "* Not paired to this issuer\n";
@@ -156,9 +157,8 @@ Issuer::operator std::string() const
             const auto& notUsed[[maybe_unused]] = id;
             const auto& claim = *pClaim;
             const Identifier unitID(claim.Value());
-            output << " * "
-                   << proto::TranslateItemType(
-                          static_cast<std::uint32_t>(claim.Type()))
+            output << " * " << proto::TranslateItemType(
+                                   static_cast<std::uint32_t>(claim.Type()))
                    << ": " << claim.Value() << "\n";
             const auto accountSet = account_map_.find(type);
 
@@ -631,7 +631,7 @@ proto::Issuer Issuer::Serialize() const
     Lock lock(lock_);
     proto::Issuer output;
     output.set_version(version_);
-    output.set_id(issuer_id_.str());
+    output.set_id(issuer_id_->str());
     output.set_paired(paired_.get());
     output.set_pairingcode(pairing_code_);
 

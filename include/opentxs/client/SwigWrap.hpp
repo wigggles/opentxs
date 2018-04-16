@@ -43,7 +43,6 @@
 
 #include "opentxs/client/NymData.hpp"
 #include "opentxs/core/util/Common.hpp"
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 

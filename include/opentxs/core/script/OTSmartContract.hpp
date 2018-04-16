@@ -46,7 +46,6 @@
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/AccountList.hpp"
 #include "opentxs/core/Contract.hpp"
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/OTTransactionType.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/Types.hpp"

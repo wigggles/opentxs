@@ -38,16 +38,17 @@
 
 #include "opentxs/stdafx.hpp"
 
+#include "Widget.hpp"
+
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
-
-#include "Widget.hpp"
 
 namespace opentxs::ui::implementation
 {
 Widget::Widget(const network::zeromq::Context& zmq, const Identifier& id)
     : zmq_(zmq)
-    , widget_id_(id)
+    , widget_id_(Identifier::Factory(id))
     , update_socket_(opentxs::network::zeromq::RequestSocket::Factory(zmq))
 {
     update_socket_->Start(
@@ -61,11 +62,11 @@ Widget::Widget(const network::zeromq::Context& zmq)
 
 void Widget::UpdateNotify() const
 {
-    auto id(widget_id_.str());
+    auto id(widget_id_->str());
     update_socket_->SendRequest(id);
 }
 
 Identifier Widget::WidgetID() const { return widget_id_; }
 
-std::string Widget::WidgetName() const { return widget_id_.str(); }
+std::string Widget::WidgetName() const { return widget_id_->str(); }
 }  // namespace opentxs::ui::implementation

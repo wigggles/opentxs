@@ -74,12 +74,13 @@ protected:
     mapOfArmor m_mapPublic;  // An Ascii-armored string of the mint Public
                              // information. Base64-encoded only.
 
-    Identifier m_NotaryID;     // The Notary ID, (a hash of the server contract
-                               // whose public key is m_keyPublic)
-    Identifier m_ServerNymID;  // The Nym ID of the Server, whose public key is
-                               // m_keyPublic
-
-    Identifier m_InstrumentDefinitionID;  // Each Asset type has its own mint.
+    // The Notary ID, (a hash of the server contract whose public key is
+    // m_keyPublic)
+    OTIdentifier m_NotaryID;
+    // The Nym ID of the Server, whose public key is m_keyPublic
+    OTIdentifier m_ServerNymID;
+    // Each Asset type has its own mint.
+    OTIdentifier m_InstrumentDefinitionID;
 
     int32_t m_nDenominationCount{
         0};  // How many denominations of the currency are
@@ -110,8 +111,8 @@ protected:
         0};  // The Mint itself expires before the tokens do. (As
              // the new series rotates in...)
 
-    Identifier m_CashAccountID;  // The Account ID for the cash reserve
-                                 // account. (Pointer below.)
+    OTIdentifier m_CashAccountID;  // The Account ID for the cash reserve
+                                   // account. (Pointer below.)
 
     Account* m_pReserveAcct{
         nullptr};  // When you withdraw cash, the Mint removes X

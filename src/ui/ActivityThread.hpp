@@ -42,7 +42,6 @@
 #include "opentxs/Internal.hpp"
 
 #include "opentxs/core/Flag.hpp"
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Lockable.hpp"
 #include "opentxs/ui/ActivityThread.hpp"
 #include "opentxs/ui/ActivityThreadItem.hpp"
@@ -55,8 +54,8 @@
 
 namespace std
 {
-using STORAGEID =
-    std::tuple<opentxs::Identifier, opentxs::StorageBox, opentxs::Identifier>;
+using STORAGEID = std::
+    tuple<opentxs::OTIdentifier, opentxs::StorageBox, opentxs::OTIdentifier>;
 
 template <>
 struct less<STORAGEID> {
@@ -65,12 +64,12 @@ struct less<STORAGEID> {
         const auto & [ lID, lBox, lAccount ] = lhs;
         const auto & [ rID, rBox, rAccount ] = rhs;
 
-        if (lID.str() < rID.str()) {
+        if (lID->str() < rID->str()) {
 
             return true;
         }
 
-        if (rID.str() < lID.str()) {
+        if (rID->str() < lID->str()) {
 
             return false;
         }
@@ -85,7 +84,7 @@ struct less<STORAGEID> {
             return false;
         }
 
-        if (lAccount.str() < rAccount.str()) {
+        if (lAccount->str() < rAccount->str()) {
 
             return true;
         }
@@ -99,7 +98,7 @@ namespace opentxs::ui::implementation
 {
 using ActivityThreadPimpl = OTUIActivityThreadItem;
 /** item id, box, accountID */
-using ActivityThreadID = std::tuple<Identifier, StorageBox, Identifier>;
+using ActivityThreadID = std::tuple<OTIdentifier, StorageBox, OTIdentifier>;
 /** timestamp, index */
 using ActivityThreadSortKey =
     std::pair<std::chrono::system_clock::time_point, std::uint64_t>;
@@ -140,8 +139,8 @@ private:
 
     const api::Activity& activity_;
     const api::client::Sync& sync_;
-    const Identifier threadID_;
-    std::set<Identifier> participants_;
+    const OTIdentifier threadID_;
+    std::set<OTIdentifier> participants_;
     OTZMQListenCallback activity_subscriber_callback_;
     OTZMQSubscribeSocket activity_subscriber_;
     mutable std::mutex contact_lock_;
@@ -151,6 +150,7 @@ private:
     std::shared_ptr<const Contact> contact_;
     std::unique_ptr<std::thread> contact_thread_{nullptr};
 
+    ActivityThreadID blank_id() const override;
     bool check_draft(const ActivityThreadID& id) const;
     void check_drafts() const;
     std::string comma(const std::set<std::string>& list) const;

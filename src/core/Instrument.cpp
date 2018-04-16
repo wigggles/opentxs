@@ -87,6 +87,8 @@ void Instrument::InitInstrument() { m_strContractType.Set("INSTRUMENT"); }
 
 Instrument::Instrument()
     : OTScriptable()
+    , m_InstrumentDefinitionID(Identifier::Factory())
+    , m_NotaryID(Identifier::Factory())
     , m_VALID_FROM(OT_TIME_ZERO)
     , m_VALID_TO(OT_TIME_ZERO)
 {
@@ -97,8 +99,8 @@ Instrument::Instrument(
     const Identifier& NOTARY_ID,
     const Identifier& INSTRUMENT_DEFINITION_ID)
     : OTScriptable()
-    , m_InstrumentDefinitionID(INSTRUMENT_DEFINITION_ID)
-    , m_NotaryID(NOTARY_ID)
+    , m_InstrumentDefinitionID(Identifier::Factory(INSTRUMENT_DEFINITION_ID))
+    , m_NotaryID(Identifier::Factory(NOTARY_ID))
     , m_VALID_FROM(OT_TIME_ZERO)
     , m_VALID_TO(OT_TIME_ZERO)
 {

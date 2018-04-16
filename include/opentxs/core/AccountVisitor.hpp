@@ -36,21 +36,16 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_CORE_OTACCTFUNCTOR_HPP
-#define OPENTXS_CORE_OTACCTFUNCTOR_HPP
+#ifndef OPENTXS_CORE_ACCOUNTVISITOR_HPP
+#define OPENTXS_CORE_ACCOUNTVISITOR_HPP
 
 #include "opentxs/Forward.hpp"
-
-#include "opentxs/core/Identifier.hpp"
 
 #include <map>
 #include <string>
 
 namespace opentxs
 {
-
-class Account;
-
 typedef std::map<std::string, Account*> mapOfAccounts;
 
 class AccountVisitor
@@ -58,25 +53,19 @@ class AccountVisitor
 public:
     EXPORT AccountVisitor(
         const Identifier& notaryID,
-        mapOfAccounts* loadedAccounts = nullptr)
-        : notaryID_(notaryID)
-        , loadedAccounts_(loadedAccounts)
-    {
-    }
+        mapOfAccounts* loadedAccounts = nullptr);
 
-    EXPORT virtual ~AccountVisitor() {}
-
-    EXPORT Identifier* GetNotaryID() { return &notaryID_; }
+    EXPORT Identifier* GetNotaryID();
 
     EXPORT mapOfAccounts* GetLoadedAccts() { return loadedAccounts_; }
 
     EXPORT virtual bool Trigger(Account& account) = 0;
 
+    EXPORT virtual ~AccountVisitor() = default;
+
 protected:
-    Identifier notaryID_;
+    OTIdentifier notaryID_;
     mapOfAccounts* loadedAccounts_;
 };
-
 }  // namespace opentxs
-
-#endif  // OPENTXS_CORE_OTACCTFUNCTOR_HPP
+#endif  // OPENTXS_CORE_ACCOUNTVISITOR_HPP

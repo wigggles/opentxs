@@ -51,6 +51,7 @@
 #include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/core/crypto/CryptoSymmetric.hpp"
 #include "opentxs/core/Data.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/String.hpp"
@@ -62,10 +63,10 @@ PeerRequest::PeerRequest(
     const ConstNym& nym,
     const proto::PeerRequest& serialized)
     : ot_super(nym, serialized.version())
-    , initiator_(serialized.initiator())
-    , recipient_(serialized.recipient())
-    , server_(serialized.server())
-    , cookie_(serialized.cookie())
+    , initiator_(Identifier::Factory(serialized.initiator()))
+    , recipient_(Identifier::Factory(serialized.recipient()))
+    , server_(Identifier::Factory(serialized.server()))
+    , cookie_(Identifier::Factory(serialized.cookie()))
     , type_(serialized.type())
 {
     id_ = Identifier(serialized.id());
@@ -78,10 +79,10 @@ PeerRequest::PeerRequest(
     const proto::PeerRequest& serialized,
     const std::string& conditions)
     : ot_super(nym, serialized.version(), conditions)
-    , initiator_(serialized.initiator())
-    , recipient_(serialized.recipient())
-    , server_(serialized.server())
-    , cookie_(serialized.cookie())
+    , initiator_(Identifier::Factory(serialized.initiator()))
+    , recipient_(Identifier::Factory(serialized.recipient()))
+    , server_(Identifier::Factory(serialized.server()))
+    , cookie_(Identifier::Factory(serialized.cookie()))
     , type_(serialized.type())
 {
     id_ = Identifier(serialized.id());
@@ -96,14 +97,15 @@ PeerRequest::PeerRequest(
     const Identifier& server,
     const proto::PeerRequestType& type)
     : ot_super(nym, version)
-    , initiator_(nym->ID())
-    , recipient_(recipient)
-    , server_(server)
+    , initiator_(Identifier::Factory(nym->ID()))
+    , recipient_(Identifier::Factory(recipient))
+    , server_(Identifier::Factory(server))
+    , cookie_(Identifier::Factory())
     , type_(type)
 {
     auto random = OT::App().Crypto().AES().InstantiateBinarySecretSP();
     random->randomizeMemory(32);
-    cookie_.CalculateDigest(
+    cookie_->CalculateDigest(
         Data::Factory(random->getMemory(), random->getMemorySize()));
 }
 
@@ -115,14 +117,15 @@ PeerRequest::PeerRequest(
     const std::string& conditions,
     const proto::PeerRequestType& type)
     : ot_super(nym, version, conditions)
-    , initiator_(nym->ID())
-    , recipient_(recipient)
-    , server_(server)
+    , initiator_(Identifier::Factory(nym->ID()))
+    , recipient_(Identifier::Factory(recipient))
+    , server_(Identifier::Factory(server))
+    , cookie_(Identifier::Factory())
     , type_(type)
 {
     auto random = OT::App().Crypto().AES().InstantiateBinarySecretSP();
     random->randomizeMemory(32);
-    cookie_.CalculateDigest(
+    cookie_->CalculateDigest(
         Data::Factory(random->getMemory(), random->getMemorySize()));
 }
 

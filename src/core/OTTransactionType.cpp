@@ -204,10 +204,20 @@ bool OTTransactionType::Contains(const char* szContains)
 }
 
 // keeping constructor private in order to force people to use the other
-// constructors and
-// therefore provide the requisite IDs.
+// constructors and therefore provide the requisite IDs.
 OTTransactionType::OTTransactionType()
     : Contract()
+    , m_AcctID(Identifier::Factory())
+    , m_NotaryID(Identifier::Factory())
+    , m_AcctNotaryID(Identifier::Factory())
+    , m_AcctNymID(Identifier::Factory())
+    , m_lTransactionNum(0)
+    , m_lInReferenceToTransaction(0)
+    , m_lNumberOfOrigin(0)
+    , m_originType(originType::not_applicable)
+    , m_ascInReferenceTo()
+    , m_bLoadSecurely(true)
+    , m_Numlist()
 {
     // this function is private to prevent people from using it.
     // Should never actually get called.
@@ -219,17 +229,20 @@ OTTransactionType::OTTransactionType(
     const Identifier& theNymID,
     const Identifier& theAccountID,
     const Identifier& theNotaryID,
-    originType theOriginType /*=originType::not_applicable*/)
+    originType theOriginType)
     : Contract(theAccountID)
-    , m_NotaryID(theNotaryID)
-    , m_AcctNymID(theNymID)
+    , m_AcctID(Identifier::Factory())
+    , m_NotaryID(Identifier::Factory(theNotaryID))
+    , m_AcctNotaryID(Identifier::Factory())
+    , m_AcctNymID(Identifier::Factory(theNymID))
+    , m_lTransactionNum(0)
+    , m_lInReferenceToTransaction(0)
+    , m_lNumberOfOrigin(0)
     , m_originType(theOriginType)
+    , m_ascInReferenceTo()
+    , m_bLoadSecurely(true)
+    , m_Numlist()
 {
-    //  InitTransactionType();
-
-    //  m_ID = theAccountID  -- This happens in Contract, no need to do it
-    //  twice.
-
     // do NOT set m_AcctID and m_AcctNotaryID here.  Let the child classes
     // LOAD them or GENERATE them.
 }
@@ -239,31 +252,23 @@ OTTransactionType::OTTransactionType(
     const Identifier& theAccountID,
     const Identifier& theNotaryID,
     int64_t lTransactionNum,
-    originType theOriginType /*=originType::not_applicable*/)
+    originType theOriginType)
     : Contract(theAccountID)
-    , m_NotaryID(theNotaryID)
-    , m_AcctNymID(theNymID)
+    , m_AcctID(Identifier::Factory())
+    , m_NotaryID(Identifier::Factory(theNotaryID))
+    , m_AcctNotaryID(Identifier::Factory())
+    , m_AcctNymID(Identifier::Factory(theNymID))
     , m_lTransactionNum(lTransactionNum)
+    , m_lInReferenceToTransaction(0)
+    , m_lNumberOfOrigin(0)
     , m_originType(theOriginType)
+    , m_ascInReferenceTo()
+    , m_bLoadSecurely(true)
+    , m_Numlist()
 {
-    // This initializes m_lTransactionNum, so it must come FIRST.
-    // In fact, that's the general rule with this function.
-    //  InitTransactionType();
-
-    //  m_ID = theAccountID  -- This happens in Contract, no need to do it
-    //  twice.
-
     // do NOT set m_AcctID and m_AcctNotaryID here.  Let the child classes
     // LOAD them or GENERATE them.
 }
-
-// Note: can probably remove this function entirely...
-// void OTTransactionType::InitTransactionType()
-//{
-//    m_lTransactionNum = 0;
-//    m_lInReferenceToTransaction = 0;
-//    m_lNumberOfOrigin = 0;
-//}
 
 OTTransactionType::~OTTransactionType() { Release_TransactionType(); }
 
@@ -274,17 +279,17 @@ void OTTransactionType::Release_TransactionType()
     // If there were any dynamically allocated objects, clean them up here.
 
     //  m_ID.Release();
-    m_AcctID.Release();  // Compare m_AcctID to m_ID after loading it from
-                         // string
-                         // or file. They should match, and signature should
-                         // verify.
+    m_AcctID->Release();  // Compare m_AcctID to m_ID after loading it from
+                          // string
+                          // or file. They should match, and signature should
+                          // verify.
 
-    //  m_NotaryID.Release(); // Notary ID as used to instantiate the
+    //  m_NotaryID->Release(); // Notary ID as used to instantiate the
     //  transaction, based on expected NotaryID.
-    m_AcctNotaryID.Release();  // Actual NotaryID within the signed portion.
-                               // (Compare to m_NotaryID upon loading.)
+    m_AcctNotaryID->Release();  // Actual NotaryID within the signed portion.
+                                // (Compare to m_NotaryID upon loading.)
 
-    //  m_AcctNymID.Release();
+    //  m_AcctNymID->Release();
 
     m_lTransactionNum = 0;
     m_lInReferenceToTransaction = 0;

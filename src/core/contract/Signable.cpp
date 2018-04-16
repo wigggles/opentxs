@@ -41,19 +41,30 @@
 #include "opentxs/core/contract/Signable.hpp"
 
 #include "opentxs/core/Data.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 
 namespace opentxs
 {
-
 Signable::Signable(const ConstNym& nym)
-    : nym_(nym)
+    : alias_()
+    , id_(Identifier::Factory())
+    , nym_(nym)
+    , signatures_()
+    , version_()
+    , conditions_()
+    , lock_()
 {
 }
 
 Signable::Signable(const ConstNym& nym, const std::uint32_t version)
-    : nym_(nym)
+    : alias_()
+    , id_(Identifier::Factory())
+    , nym_(nym)
+    , signatures_()
     , version_(version)
+    , conditions_()
+    , lock_()
 {
 }
 
@@ -61,9 +72,13 @@ Signable::Signable(
     const ConstNym& nym,
     const std::uint32_t version,
     const std::string& conditions)
-    : nym_(nym)
+    : alias_()
+    , id_(Identifier::Factory())
+    , nym_(nym)
+    , signatures_()
     , version_(version)
     , conditions_(conditions)
+    , lock_()
 {
 }
 
@@ -76,7 +91,7 @@ std::string Signable::Alias() const
 
 bool Signable::CalculateID(const Lock& lock)
 {
-    id_ = GetID(lock);
+    id_ = Identifier::Factory(GetID(lock));
 
     return true;
 }

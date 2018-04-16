@@ -43,13 +43,6 @@
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/cash/Token.hpp"
-#include "opentxs/core/Contract.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/Nym.hpp"
-#include "opentxs/core/OTStorage.hpp"
-#include "opentxs/core/OTStringXML.hpp"
-#include "opentxs/core/String.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/OTCachedKey.hpp"
 #include "opentxs/core/crypto/OTEnvelope.hpp"
@@ -60,6 +53,13 @@
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/util/Tag.hpp"
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/OTStorage.hpp"
+#include "opentxs/core/OTStringXML.hpp"
+#include "opentxs/core/String.hpp"
 #include "opentxs/OT.hpp"
 
 #include <irrxml/irrXML.hpp>
@@ -84,10 +84,10 @@ bool Purse::GetNymID(Identifier& theOutput) const
     if (IsPasswordProtected()) {
         bSuccess = false;  // optimizer will remove automatically anyway, I
                            // assume. Might as well have it here for clarity.
-    } else if (IsNymIDIncluded() && !m_NymID.IsEmpty()) {
+    } else if (IsNymIDIncluded() && !m_NymID->IsEmpty()) {
         bSuccess = true;
         theOutput = m_NymID;
-    } else if (!m_NymID.IsEmpty()) {
+    } else if (!m_NymID->IsEmpty()) {
         bSuccess = true;
         theOutput = m_NymID;
     }
@@ -240,7 +240,7 @@ bool Purse::GenerateInternalKey()
         return false;
     }
 
-    m_NymID.Release();
+    m_NymID->Release();
     m_bIsNymIDIncluded = false;
 
     otWarn << __FUNCTION__
@@ -615,13 +615,15 @@ Purse* Purse::PurseFactory(String strInput)
 // private, used by factory.
 Purse::Purse()
     : Contract()
-    ,
-    //    m_NotaryID(),
-    //    m_InstrumentDefinitionID(),
-    m_lTotalValue(0)
+    , m_dequeTokens()
+    , m_NymID(Identifier::Factory())
+    , m_NotaryID(Identifier::Factory())
+    , m_InstrumentDefinitionID(Identifier::Factory())
+    , m_lTotalValue(0)
     , m_bPasswordProtected(false)
     , m_bIsNymIDIncluded(false)
     , m_pSymmetricKey(nullptr)
+    , m_pCachedKey(nullptr)
     , m_tLatestValidFrom(OT_TIME_ZERO)
     , m_tEarliestValidTo(OT_TIME_ZERO)
 {
@@ -630,13 +632,16 @@ Purse::Purse()
 
 Purse::Purse(const Purse& thePurse)
     : Contract()
-    , m_NymID()
-    , m_NotaryID(thePurse.GetNotaryID())
-    , m_InstrumentDefinitionID(thePurse.GetInstrumentDefinitionID())
+    , m_dequeTokens()
+    , m_NymID(Identifier::Factory())
+    , m_NotaryID(Identifier::Factory(thePurse.GetNotaryID()))
+    , m_InstrumentDefinitionID(
+          Identifier::Factory(thePurse.GetInstrumentDefinitionID()))
     , m_lTotalValue(0)
     , m_bPasswordProtected(false)
     , m_bIsNymIDIncluded(false)
     , m_pSymmetricKey(nullptr)
+    , m_pCachedKey(nullptr)
     , m_tLatestValidFrom(OT_TIME_ZERO)
     , m_tEarliestValidTo(OT_TIME_ZERO)
 {
@@ -649,11 +654,15 @@ Purse::Purse(const Purse& thePurse)
 // constructor.
 Purse::Purse(const Identifier& NOTARY_ID)
     : Contract()
-    , m_NotaryID(NOTARY_ID)
+    , m_dequeTokens()
+    , m_NymID(Identifier::Factory())
+    , m_NotaryID(Identifier::Factory(NOTARY_ID))
+    , m_InstrumentDefinitionID(Identifier::Factory())
     , m_lTotalValue(0)
     , m_bPasswordProtected(false)
     , m_bIsNymIDIncluded(false)
     , m_pSymmetricKey(nullptr)
+    , m_pCachedKey(nullptr)
     , m_tLatestValidFrom(OT_TIME_ZERO)
     , m_tEarliestValidTo(OT_TIME_ZERO)
 {
@@ -664,12 +673,15 @@ Purse::Purse(
     const Identifier& NOTARY_ID,
     const Identifier& INSTRUMENT_DEFINITION_ID)
     : Contract()
-    , m_NotaryID(NOTARY_ID)
-    , m_InstrumentDefinitionID(INSTRUMENT_DEFINITION_ID)
+    , m_dequeTokens()
+    , m_NymID(Identifier::Factory())
+    , m_NotaryID(Identifier::Factory(NOTARY_ID))
+    , m_InstrumentDefinitionID(Identifier::Factory(INSTRUMENT_DEFINITION_ID))
     , m_lTotalValue(0)
     , m_bPasswordProtected(false)
     , m_bIsNymIDIncluded(false)
     , m_pSymmetricKey(nullptr)
+    , m_pCachedKey(nullptr)
     , m_tLatestValidFrom(OT_TIME_ZERO)
     , m_tEarliestValidTo(OT_TIME_ZERO)
 {
@@ -681,13 +693,15 @@ Purse::Purse(
     const Identifier& INSTRUMENT_DEFINITION_ID,
     const Identifier& NYM_ID)
     : Contract()
-    , m_NymID(NYM_ID)
-    , m_NotaryID(NOTARY_ID)
-    , m_InstrumentDefinitionID(INSTRUMENT_DEFINITION_ID)
+    , m_dequeTokens()
+    , m_NymID(Identifier::Factory(NYM_ID))
+    , m_NotaryID(Identifier::Factory(NOTARY_ID))
+    , m_InstrumentDefinitionID(Identifier::Factory(INSTRUMENT_DEFINITION_ID))
     , m_lTotalValue(0)
     , m_bPasswordProtected(false)
     , m_bIsNymIDIncluded(false)
     , m_pSymmetricKey(nullptr)
+    , m_pCachedKey(nullptr)
     , m_tLatestValidFrom(OT_TIME_ZERO)
     , m_tEarliestValidTo(OT_TIME_ZERO)
 {
@@ -907,7 +921,7 @@ void Purse::UpdateContents()  // Before transmission or serialization, this is
     tag.add_attribute(
         "nymID",
         (m_bIsNymIDIncluded &&
-         !m_NymID.IsEmpty())  // (Provided that the ID even exists, of course.)
+         !m_NymID->IsEmpty())  // (Provided that the ID even exists, of course.)
             ? NYM_ID.Get()
             : "");  // Then print the ID (otherwise print an empty string.)
     tag.add_attribute("instrumentDefinitionID", INSTRUMENT_DEFINITION_ID.Get());
@@ -1018,9 +1032,9 @@ int32_t Purse::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         // Just to make sure it's the one we were expecting.
         const String strNotaryID = xml->getAttributeValue("notaryID");
         if (strNotaryID.Exists())
-            m_NotaryID.SetString(strNotaryID);
+            m_NotaryID->SetString(strNotaryID);
         else {
-            m_NotaryID.Release();
+            m_NotaryID->Release();
             otErr << szFunc
                   << ": Failed loading notaryID, when one was expected.\n";
             return (-1);
@@ -1033,9 +1047,9 @@ int32_t Purse::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         const String strInstrumentDefinitionID =
             xml->getAttributeValue("instrumentDefinitionID");
         if (strInstrumentDefinitionID.Exists())
-            m_InstrumentDefinitionID.SetString(strInstrumentDefinitionID);
+            m_InstrumentDefinitionID->SetString(strInstrumentDefinitionID);
         else {
-            m_InstrumentDefinitionID.Release();
+            m_InstrumentDefinitionID->Release();
             otErr << szFunc << ": Failed loading instrumentDefinitionID, when "
                                "one was expected.\n";
             return (-1);
@@ -1048,20 +1062,20 @@ int32_t Purse::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                  // if you use one, you don't have to list it.)
         {
             if (strNymID.Exists())
-                m_NymID.SetString(strNymID);
+                m_NymID->SetString(strNymID);
             else {
                 otErr << szFunc
                       << ": Failed loading nymID, when one was expected. "
                          "(isNymIDIncluded was true.)\n";
-                m_NymID.Release();
+                m_NymID->Release();
                 return (-1);
             }
         } else  // NymID SUPPOSED to be blank here. (Thus the Release.) Maybe
             // later,
             // we might consider trying to read it, in order to validate this.
             //
-            m_NymID.Release();  // For now, just assume it's not there to be
-                                // read, and Release my own value to match it.
+            m_NymID->Release();  // For now, just assume it's not there to be
+                                 // read, and Release my own value to match it.
 
         otLog4 << szFunc << ": Loaded purse... ("
                << (m_bPasswordProtected ? "Password-protected"
@@ -1095,8 +1109,8 @@ int32_t Purse::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             return (-1);  // error condition
         }
 
-        if (!m_NymID.IsEmpty())  // If the NymID isn't empty, then why am I in
-                                 // the middle of loading an internal Key?
+        if (!m_NymID->IsEmpty())  // If the NymID isn't empty, then why am I in
+                                  // the middle of loading an internal Key?
         {
             otErr << szFunc << ": Error: Unexpected 'internalKey' data, since "
                                "m_NymID is not blank! "
@@ -1180,8 +1194,8 @@ int32_t Purse::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             return (-1);  // error condition
         }
 
-        if (!m_NymID.IsEmpty())  // If the NymID isn't empty, then why am I in
-                                 // the middle of loading an internal Key?
+        if (!m_NymID->IsEmpty())  // If the NymID isn't empty, then why am I in
+                                  // the middle of loading an internal Key?
         {
             otErr << szFunc << ": Error: Unexpected 'cachedKey' data, since "
                                "m_NymID is not blank!\n";

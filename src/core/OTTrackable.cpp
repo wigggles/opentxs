@@ -53,6 +53,8 @@ namespace opentxs
 OTTrackable::OTTrackable()
     : Instrument()
     , m_lTransactionNum(0)
+    , m_SENDER_ACCT_ID(Identifier::Factory())
+    , m_SENDER_NYM_ID(Identifier::Factory())
 {
     InitTrackable();
 }
@@ -62,6 +64,8 @@ OTTrackable::OTTrackable(
     const Identifier& INSTRUMENT_DEFINITION_ID)
     : Instrument(NOTARY_ID, INSTRUMENT_DEFINITION_ID)
     , m_lTransactionNum(0)
+    , m_SENDER_ACCT_ID(Identifier::Factory())
+    , m_SENDER_NYM_ID(Identifier::Factory())
 {
     InitTrackable();
 }
@@ -73,6 +77,8 @@ OTTrackable::OTTrackable(
     const Identifier& NYM_ID)
     : Instrument(NOTARY_ID, INSTRUMENT_DEFINITION_ID)
     , m_lTransactionNum(0)
+    , m_SENDER_ACCT_ID(Identifier::Factory())
+    , m_SENDER_NYM_ID(Identifier::Factory())
 {
     InitTrackable();
 
@@ -101,8 +107,8 @@ void OTTrackable::GetAllTransactionNumbers(NumList& numlistOutput) const
 
 void OTTrackable::Release_Trackable()
 {
-    m_SENDER_ACCT_ID.Release();
-    m_SENDER_NYM_ID.Release();
+    m_SENDER_ACCT_ID->Release();
+    m_SENDER_NYM_ID->Release();
 }
 
 void OTTrackable::Release()
@@ -114,6 +120,15 @@ void OTTrackable::Release()
     InitTrackable();
 }
 
-void OTTrackable::UpdateContents() {}
+void OTTrackable::SetSenderAcctID(const Identifier& ACCT_ID)
+{
+    m_SENDER_ACCT_ID = Identifier::Factory(ACCT_ID);
+}
 
+void OTTrackable::SetSenderNymID(const Identifier& NYM_ID)
+{
+    m_SENDER_NYM_ID = Identifier::Factory(NYM_ID);
+}
+
+void OTTrackable::UpdateContents() {}
 }  // namespace opentxs

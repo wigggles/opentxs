@@ -42,19 +42,16 @@
 #include "opentxs/Forward.hpp"
 
 #if OT_CASH
-
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Contract.hpp"
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/String.hpp"
 
-#include <stdint.h>
+#include <cstdint>
 #include <deque>
 #include <memory>
 
 namespace opentxs
 {
-
 class Nym;
 class OTASCIIArmor;
 class OTCachedKey;
@@ -97,9 +94,9 @@ protected:
     // or is for a temp Nym which must be ATTACHED to the purse, if that boolean
     // is set to true.
 
-    Identifier m_NymID;                   // Optional
-    Identifier m_NotaryID;                // Mandatory
-    Identifier m_InstrumentDefinitionID;  // Mandatory
+    OTIdentifier m_NymID;                   // Optional
+    OTIdentifier m_NotaryID;                // Mandatory
+    OTIdentifier m_InstrumentDefinitionID;  // Mandatory
     int64_t m_lTotalValue{0};  // Push increments this by denomination, and Pop
                                // decrements it by denomination.
     bool m_bPasswordProtected{false};  // this purse might be encrypted to a

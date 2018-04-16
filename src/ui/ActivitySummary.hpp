@@ -42,7 +42,6 @@
 #include "opentxs/Internal.hpp"
 
 #include "opentxs/core/Flag.hpp"
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Lockable.hpp"
 #include "opentxs/ui/ActivitySummary.hpp"
 #include "opentxs/ui/ActivitySummaryItem.hpp"
@@ -56,7 +55,7 @@
 namespace opentxs::ui::implementation
 {
 using ActivitySummaryPimpl = OTUIActivitySummaryItem;
-using ActivitySummaryID = Identifier;
+using ActivitySummaryID = OTIdentifier;
 using ActivitySummarySortKey =
     std::pair<std::chrono::system_clock::time_point, std::string>;
 using ActivitySummaryInner = std::map<ActivitySummaryID, ActivitySummaryPimpl>;
@@ -88,6 +87,7 @@ private:
     OTZMQListenCallback activity_subscriber_callback_;
     OTZMQSubscribeSocket activity_subscriber_;
 
+    ActivitySummaryID blank_id() const override;
     void construct_item(
         const ActivitySummaryID& id,
         const ActivitySummarySortKey& index) const override;

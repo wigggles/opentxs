@@ -43,6 +43,7 @@
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/util/Tag.hpp"
 #include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/NumList.hpp"
 #include "opentxs/core/OTStringXML.hpp"

@@ -1572,7 +1572,7 @@ OTCronItem::OTCronItem()
     : ot_super()
     , m_pCron(nullptr)
     , serverNym_(nullptr)
-    , notaryID_(nullptr)
+    , notaryID_(Identifier::Factory())
     , m_CREATION_DATE(OT_TIME_ZERO)
     , m_LAST_PROCESS_DATE(OT_TIME_ZERO)
     , m_PROCESS_INTERVAL(1)
@@ -1590,7 +1590,7 @@ OTCronItem::OTCronItem(
     : ot_super(NOTARY_ID, INSTRUMENT_DEFINITION_ID)
     , m_pCron(nullptr)
     , serverNym_(nullptr)
-    , notaryID_(nullptr)
+    , notaryID_(Identifier::Factory())
     , m_CREATION_DATE(OT_TIME_ZERO)
     , m_LAST_PROCESS_DATE(OT_TIME_ZERO)
     , m_PROCESS_INTERVAL(1)
@@ -1610,7 +1610,7 @@ OTCronItem::OTCronItem(
     : ot_super(NOTARY_ID, INSTRUMENT_DEFINITION_ID, ACCT_ID, NYM_ID)
     , m_pCron(nullptr)
     , serverNym_(nullptr)
-    , notaryID_(nullptr)
+    , notaryID_(Identifier::Factory())
     , m_CREATION_DATE(OT_TIME_ZERO)
     , m_LAST_PROCESS_DATE(OT_TIME_ZERO)
     , m_PROCESS_INTERVAL(1)
@@ -1733,4 +1733,8 @@ int32_t OTCronItem::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     return nReturnVal;
 }
 
+void OTCronItem::setNotaryID(const Identifier& notaryID)
+{
+    notaryID_ = Identifier::Factory(notaryID);
+}
 }  // namespace opentxs

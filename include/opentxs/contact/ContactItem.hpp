@@ -44,7 +44,6 @@
 
 #include "opentxs/Forward.hpp"
 
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 
@@ -115,7 +114,7 @@ private:
     const std::time_t start_{0};
     const std::time_t end_{0};
     const std::set<proto::ContactItemAttribute> attributes_{};
-    const Identifier id_{};
+    const OTIdentifier id_;
 
     static std::uint32_t check_version(
         const std::uint32_t in,

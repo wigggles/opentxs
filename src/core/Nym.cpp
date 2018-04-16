@@ -108,7 +108,7 @@ Nym::Nym(
     , m_strNymfile(filename)
     , m_strVersion(NYMFILE_VERSION)
     , m_strDescription("")
-    , m_nymID(nymID)
+    , m_nymID(Identifier::Factory(nymID))
     , source_(nullptr)
     , contact_data_(nullptr)
     , m_mapCredentialSets()
@@ -438,7 +438,9 @@ void Nym::ClearOutpayments()
     while (GetOutpaymentsCount() > 0) RemoveOutpaymentsByIndex(0);
 }
 
-bool Nym::CompareID(const Nym& RHS) const { return RHS.CompareID(m_nymID); }
+bool Nym::CompareID(const Nym& rhs) const { return rhs.CompareID(m_nymID); }
+
+bool Nym::CompareID(const Identifier& rhs) const { return rhs == m_nymID; }
 
 std::set<Identifier> Nym::Contracts(
     const proto::ContactItemType currency,
@@ -587,7 +589,7 @@ void Nym::GetIdentifier(Identifier& theIdentifier) const
 // sets argument based on internal member
 void Nym::GetIdentifier(String& theIdentifier) const
 {
-    m_nymID.GetString(theIdentifier);
+    m_nymID->GetString(theIdentifier);
 }
 
 bool Nym::GetInboxHash(
@@ -1110,7 +1112,7 @@ bool Nym::LoadNymFromString(
                         m_lUsageCredits = 0;  // This is the default anyway, but
                                               // just being safe...
 
-                    m_nymID.SetString(UserNymID);
+                    m_nymID->SetString(UserNymID);
 
                     if (UserNymID.GetLength())
                         otLog3 << "\nLoading user, version: " << m_strVersion
@@ -1471,9 +1473,8 @@ bool Nym::LoadNymFromString(
 
                     if (!tempNotaryID.Exists() ||
                         !Contract::LoadEncodedTextField(xml, strTemp)) {
-                        otErr << __FUNCTION__
-                              << ": Error: transactionNums "
-                                 "field without value.\n";
+                        otErr << __FUNCTION__ << ": Error: transactionNums "
+                                                 "field without value.\n";
                         return false;  // error condition
                     }
 
@@ -2141,8 +2142,9 @@ bool Nym::ReEncryptPrivateCredentials(
         CredentialSet* pCredential = it.second;
         OT_ASSERT(nullptr != pCredential);
 
-        if (false == pCredential->ReEncryptPrivateCredentials(
-                         *pExportPassphrase, bImporting))
+        if (false ==
+            pCredential->ReEncryptPrivateCredentials(
+                *pExportPassphrase, bImporting))
             return false;
     }
 
@@ -2786,7 +2788,7 @@ void Nym::SetIdentifier(const Identifier& theIdentifier)
 // sets internal member based in ID passed in
 void Nym::SetIdentifier(const String& theIdentifier)
 {
-    m_nymID.SetString(theIdentifier);
+    m_nymID->SetString(theIdentifier);
 }
 
 bool Nym::SetInboxHash(

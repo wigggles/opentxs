@@ -38,14 +38,15 @@
 
 #include "opentxs/stdafx.hpp"
 
-#include "MessagableList.hpp"
-
 #include "opentxs/api/client/Sync.hpp"
 #include "opentxs/api/ContactManager.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/SubscribeSocket.hpp"
+
+#include "MessagableList.hpp"
 
 #include "ContactListItem.hpp"
 #include "ContactListItemBlank.hpp"
@@ -66,7 +67,7 @@ MessagableList::MessagableList(
           nymID,
           new ContactListItemBlank)
     , sync_(sync)
-    , owner_contact_id_(last_id_)
+    , owner_contact_id_(Identifier::Factory(last_id_))
     , contact_subscriber_callback_(network::zeromq::ListenCallback::Factory(
           [this](const network::zeromq::Message& message) -> void {
               this->process_contact(message);
@@ -100,6 +101,11 @@ MessagableList::MessagableList(
     startup_.reset(new std::thread(&MessagableList::startup, this));
 
     OT_ASSERT(startup_)
+}
+
+MessagableListID MessagableList::blank_id() const
+{
+    return Identifier::Factory();
 }
 
 void MessagableList::construct_item(
@@ -145,7 +151,7 @@ void MessagableList::process_contact(
         case Messagability::MISSING_CONTACT:
         default: {
             otWarn << OT_METHOD << __FUNCTION__
-                   << ": Skipping unmessagable contact " << id.str()
+                   << ": Skipping unmessagable contact " << id->str()
                    << std::endl;
         }
     }

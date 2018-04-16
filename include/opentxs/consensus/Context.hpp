@@ -43,7 +43,6 @@
 
 #include "opentxs/api/Editor.hpp"
 #include "opentxs/core/contract/Signable.hpp"
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 
@@ -107,14 +106,14 @@ public:
 
 protected:
     std::mutex& nymfile_lock_;
-    const Identifier server_id_{};
+    const OTIdentifier server_id_;
     std::shared_ptr<const class Nym> remote_nym_{};
     std::set<TransactionNumber> available_transaction_numbers_{};
     std::set<TransactionNumber> issued_transaction_numbers_{};
     std::atomic<RequestNumber> request_number_{0};
     std::set<RequestNumber> acknowledged_request_numbers_{};
-    Identifier local_nymbox_hash_{};
-    Identifier remote_nymbox_hash_{};
+    OTIdentifier local_nymbox_hash_;
+    OTIdentifier remote_nymbox_hash_;
 
     Identifier GetID(const Lock& lock) const override;
 

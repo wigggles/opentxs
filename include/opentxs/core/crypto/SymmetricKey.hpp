@@ -41,7 +41,6 @@
 
 #include "opentxs/Forward.hpp"
 
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/Proto.hpp"
 
 #include <cstddef>

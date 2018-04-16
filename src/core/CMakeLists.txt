@@ -15,6 +15,7 @@ add_subdirectory(util)
 set(cxx-sources
   Account.cpp
   AccountList.cpp
+  AccountVisitor.cpp
   Cheque.cpp
   Contract.cpp
   Data.cpp

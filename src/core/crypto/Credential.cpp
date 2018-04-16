@@ -652,6 +652,8 @@ bool Credential::TransportKey(Data&, OTPassword&) const
 
 bool Credential::hasCapability(const NymCapability&) const { return false; }
 
+std::string Credential::Name() const { return id_->str(); }
+
 serializedCredential Credential::Serialized(
     const SerializationModeFlag asPrivate,
     const SerializationSignatureFlag asSigned) const

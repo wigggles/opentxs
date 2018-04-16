@@ -41,7 +41,6 @@
 
 #include "opentxs/Internal.hpp"
 
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Lockable.hpp"
 #include "opentxs/ui/ContactList.hpp"
 #include "opentxs/ui/ContactListItem.hpp"
@@ -56,7 +55,7 @@
 namespace opentxs::ui::implementation
 {
 using ContactListPimpl = OTUIContactListItem;
-using ContactListID = Identifier;
+using ContactListID = OTIdentifier;
 using ContactListSortKey = std::string;
 using ContactListInner = std::map<ContactListID, ContactListPimpl>;
 using ContactListOuter = std::map<ContactListSortKey, ContactListInner>;
@@ -83,16 +82,17 @@ public:
 private:
     friend api::implementation::UI;
 
-    const Identifier owner_contact_id_;
+    const OTIdentifier owner_contact_id_;
     ContactListItem owner_;
     OTZMQListenCallback contact_subscriber_callback_;
     OTZMQSubscribeSocket contact_subscriber_;
 
+    ContactListID blank_id() const override;
     void construct_item(
         const ContactListID& id,
         const ContactListSortKey& index) const override;
     const opentxs::ui::ContactListItem& first(const Lock& lock) const override;
-    bool last(const Identifier& id) const override
+    bool last(const ContactListID& id) const override
     {
         return ContactListType::last(id);
     }

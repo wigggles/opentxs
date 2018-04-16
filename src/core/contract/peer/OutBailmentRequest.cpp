@@ -40,6 +40,7 @@
 
 #include "opentxs/core/contract/peer/OutBailmentRequest.hpp"
 
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/String.hpp"
 
 #define CURRENT_VERSION 4
@@ -50,8 +51,8 @@ OutBailmentRequest::OutBailmentRequest(
     const ConstNym& nym,
     const proto::PeerRequest& serialized)
     : ot_super(nym, serialized, serialized.outbailment().instructions())
-    , unit_(serialized.outbailment().unitid())
-    , server_(serialized.outbailment().serverid())
+    , unit_(Identifier::Factory(serialized.outbailment().unitid()))
+    , server_(Identifier::Factory(serialized.outbailment().serverid()))
     , amount_(serialized.outbailment().amount())
 {
 }
@@ -70,8 +71,8 @@ OutBailmentRequest::OutBailmentRequest(
           serverID,
           terms,
           proto::PEERREQUEST_OUTBAILMENT)
-    , unit_(unitID)
-    , server_(serverID)
+    , unit_(Identifier::Factory(unitID))
+    , server_(Identifier::Factory(serverID))
     , amount_(amount)
 {
 }
@@ -79,7 +80,6 @@ OutBailmentRequest::OutBailmentRequest(
 proto::PeerRequest OutBailmentRequest::IDVersion(const Lock& lock) const
 {
     auto contract = ot_super::IDVersion(lock);
-
     auto& outbailment = *contract.mutable_outbailment();
     outbailment.set_version(version_);
     outbailment.set_unitid(String(unit_).Get());

@@ -120,6 +120,12 @@ class ServerConnection;
 class ZMQ;
 }  // namespace opentxs::network
 
+namespace OTDB
+{
+class OfferListNym;
+class TradeListMarket;
+}  // namespace opentxs::OTDB
+
 namespace server
 {
 class MessageProcessor;
@@ -143,12 +149,15 @@ class AccountVisitor;
 class AsymmetricKeyEC;
 class Basket;
 class BasketContract;
+class BasketItem;
 class Bip32;
 class Bip39;
 class Cheque;
 class ClientContext;
 class Contact;
 class ContactData;
+class ContactGroup;
+class ContactItem;
 class Context;
 class Contract;
 class CurrencyContract;
@@ -177,6 +186,7 @@ class NumList;
 class Nym;
 class NymData;
 class NymFile;
+class NymIDSource;
 class NymParameters;
 class OT;
 class OT_API;
@@ -187,12 +197,15 @@ class OTCachedKey;
 class OTCallback;
 class OTCaller;
 class OTClient;
+class OTCron;
 class OTCronItem;
 class OTDataFolder;
 class OTEnvelope;
 class OTFolders;
 class OTKeypair;
+class OTMarket;
 class OTNym_or_SymmetricKey;
+class OTOffer;
 class OTPassword;
 class OTPasswordData;
 class OTPaths;
@@ -203,13 +216,17 @@ class OTSignature;
 class OTSignatureMetadata;
 class OTSmartContract;
 class OTSymmetricKey;
+class OTTrackable;
+class OTTrade;
 class OTTransaction;
 class OTWallet;
 class PairEventCallbackSwig;
 class PayDividendVisitor;
 class PaymentCode;
 class PeerObject;
+#if OT_CASH
 class Purse;
+#endif  // OT_CASH
 class ServerContext;
 class ServerContract;
 class Signals;
@@ -217,6 +234,7 @@ class StorageDriver;
 class StoragePlugin;
 class String;
 class SymmetricKey;
+class Tag;
 #if OT_CASH
 class Token;
 #endif  // OT_CASH
@@ -225,6 +243,7 @@ class UnitDefinition;
 
 using OTData = Pimpl<Data>;
 using OTFlag = Pimpl<Flag>;
+using OTIdentifier = Pimpl<Identifier>;
 using OTPaymentCode = Pimpl<PaymentCode>;
 using OTServerConnection = Pimpl<network::ServerConnection>;
 using OTUIActivitySummary = Pimpl<ui::ActivitySummary>;

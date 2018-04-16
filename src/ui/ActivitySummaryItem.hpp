@@ -41,7 +41,6 @@
 
 #include "opentxs/Internal.hpp"
 
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Lockable.hpp"
 #include "opentxs/core/UniqueQueue.hpp"
 #include "opentxs/ui/ActivitySummaryItem.hpp"
@@ -57,7 +56,7 @@
 namespace opentxs::ui::implementation
 {
 using ActivitySummaryItemType =
-    Row<opentxs::ui::ActivitySummaryItem, ActivitySummary, Identifier>;
+    Row<opentxs::ui::ActivitySummaryItem, ActivitySummary, OTIdentifier>;
 
 class ActivitySummaryItem : virtual public ActivitySummaryItemType
 {
@@ -75,11 +74,11 @@ public:
 private:
     friend ActivitySummary;
     // id, box, account
-    using ItemLocator = std::tuple<Identifier, StorageBox, Identifier>;
+    using ItemLocator = std::tuple<std::string, StorageBox, std::string>;
 
     const api::Activity& activity_;
     const Flag& running_;
-    const Identifier nym_id_{};
+    const OTIdentifier nym_id_;
     std::shared_ptr<proto::StorageThread> thread_{nullptr};
     std::string display_name_{""};
     std::string text_{""};

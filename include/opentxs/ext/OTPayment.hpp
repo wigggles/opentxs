@@ -43,24 +43,12 @@
 
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Contract.hpp"
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/String.hpp"
 
-#include <stdint.h>
+#include <cstdint>
 
 namespace opentxs
 {
-
-class Cheque;
-class NumList;
-class OTPaymentPlan;
-class OTSmartContract;
-class OTTrackable;
-class OTTransaction;
-#if OT_CASH
-class Purse;
-#endif  // OT_CASH
-
 /*
   The PAYMENT can be of types:
     - CHEQUE, INVOICE, VOUCHER (these are all forms of cheque)
@@ -112,8 +100,8 @@ class Purse;
 
 class OTPayment : public Contract
 {
-private:  // Private prevents erroneous use by other classes.
-    typedef Contract ot_super;
+private:
+    using ot_super = Contract;
 
 public:
     enum paymentType {
@@ -180,32 +168,28 @@ protected:
 
     String m_strMemo;  // Memo, Consideration, Subject, etc.
 
-    Identifier m_InstrumentDefinitionID;  // These are for convenience only, for
-                                          // caching
-                                          // once they happen to be loaded.
-    Identifier m_NotaryID;     // These values are NOT serialized other than via
-                               // the payment instrument itself
-    Identifier m_SenderNymID;  // (where they are captured from, whenever it
-                               // is instantiated.) Until m_bAreTempValuesSet
-    Identifier m_SenderAcctID;     // is set to true, these values can NOT be
-                                   // considered available. Use the accessing
-                                   // methods
-    Identifier m_RecipientNymID;   // below. These values are not ALL always
-                                   // available, depending on the payment
-                                   // instrument
-    Identifier m_RecipientAcctID;  // type. Different payment instruments
-                                   // support different temp values.
-    Identifier m_RemitterNymID;    // A voucher (cashier's cheque) has the
-                                   // "bank" as the sender. Whereas the Nym who
-                                   // actually purchased the voucher is the
-                                   // remitter.
-    Identifier m_RemitterAcctID;   // A voucher (cashier's cheque) has the
-                                   // "bank"s account as the sender acct.
-                                   // Whereas the account that was originally
-                                   // used to purchase the voucher is the
-                                   // remitter account.
-    time64_t m_VALID_FROM = 0;     // Temporary values. Not always available.
-    time64_t m_VALID_TO = 0;       // Temporary values. Not always available.
+    // These are for convenience only, for caching once they happen to be
+    // loaded. These values are NOT serialized other than via the payment
+    // instrument itself (where they are captured from, whenever it is
+    // instantiated.) Until m_bAreTempValuesSet is set to true, these values can
+    // NOT be considered available. Use the accessing methods below. These
+    // values are not ALL always available, depending on the payment instrument
+    // type. Different payment instruments support different temp values.
+    OTIdentifier m_InstrumentDefinitionID;
+    OTIdentifier m_NotaryID;
+    OTIdentifier m_SenderNymID;
+    OTIdentifier m_SenderAcctID;
+    OTIdentifier m_RecipientNymID;
+    OTIdentifier m_RecipientAcctID;
+    // A voucher (cashier's cheque) has the "bank" as the sender. Whereas the
+    // Nym who actually purchased the voucher is the remitter.
+    OTIdentifier m_RemitterNymID;
+    // A voucher (cashier's cheque) has the "bank"s account as the sender acct.
+    // Whereas the account that was originally used to purchase the voucher is
+    // the remitter account.
+    OTIdentifier m_RemitterAcctID;
+    time64_t m_VALID_FROM = 0;  // Temporary values. Not always available.
+    time64_t m_VALID_TO = 0;    // Temporary values. Not always available.
 
     void lowLevelSetTempValuesFromPaymentPlan(const OTPaymentPlan& theInput);
     void lowLevelSetTempValuesFromSmartContract(

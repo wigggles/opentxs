@@ -48,6 +48,7 @@
 #include "opentxs/core/crypto/OTKeyring.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/OTDataFolder.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/server/ServerSettings.hpp"

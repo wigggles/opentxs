@@ -51,6 +51,7 @@
 #include "opentxs/core/recurring/OTPaymentPlan.hpp"
 #include "opentxs/core/script/OTSmartContract.hpp"
 #include "opentxs/core/util/Common.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/ext/OTPayment.hpp"
 #include "opentxs/OT.hpp"
@@ -139,8 +140,8 @@ int32_t CmdConfirm::run(
     }
 
     // use specified payment instrument from inpayments
-    string instrument = OTRecordList::get_payment_instrument(
-                            server, mynym, messageNr, "");
+    string instrument =
+        OTRecordList::get_payment_instrument(server, mynym, messageNr, "");
     if (instrument.empty()) {
         otOut << "Error: cannot load payment instrument.\n";
         return -1;
@@ -165,7 +166,7 @@ int32_t CmdConfirm::confirmInstrument(
         return -1;
     }
 
-    time64_t now  = SwigWrap::GetTime();
+    time64_t now = SwigWrap::GetTime();
     time64_t from = SwigWrap::Instrmnt_GetValidFrom(instrument);
     if (now < from) {
         otOut << "The instrument is not yet valid.\n";
@@ -193,8 +194,7 @@ int32_t CmdConfirm::confirmInstrument(
     }
 
     if ("PAYMENT PLAN" == instrumentType) {
-        return confirmPaymentPlan(
-            mynym, myacct, instrument, pOptionalOutput);
+        return confirmPaymentPlan(mynym, myacct, instrument, pOptionalOutput);
     }
 
     if ("SMARTCONTRACT" == instrumentType) {
@@ -582,10 +582,9 @@ int32_t CmdConfirm::confirmAccounts(
         otOut << "\n";
         showPartyAccounts(contract, name, 2);
 
-        otOut << "\nThere are " << accounts
-              << " asset accounts remaining to "
-                 "be confirmed.\nEnter the index "
-                 "for an UNconfirmed account: ";
+        otOut << "\nThere are " << accounts << " asset accounts remaining to "
+                                               "be confirmed.\nEnter the index "
+                                               "for an UNconfirmed account: ";
 
         int32_t acctIndex = checkIndex("account index", inputLine(), accounts);
         if (0 > acctIndex) {

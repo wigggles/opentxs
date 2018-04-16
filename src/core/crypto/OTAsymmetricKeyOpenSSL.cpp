@@ -54,6 +54,7 @@
 #include "opentxs/core/crypto/Ecdsa.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Data.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/OT.hpp"

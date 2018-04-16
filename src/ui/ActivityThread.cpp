@@ -38,18 +38,19 @@
 
 #include "opentxs/stdafx.hpp"
 
-#include "ActivityThread.hpp"
-
 #include "opentxs/api/client/Sync.hpp"
 #include "opentxs/api/Activity.hpp"
 #include "opentxs/api/ContactManager.hpp"
 #include "opentxs/contact/Contact.hpp"
 #include "opentxs/contact/ContactData.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/SubscribeSocket.hpp"
 #include "opentxs/Types.hpp"
+
+#include "ActivityThread.hpp"
 
 #include "ActivityThreadItemBlank.hpp"
 #include "ActivityThreadItem.hpp"
@@ -66,10 +67,16 @@ ActivityThread::ActivityThread(
     const api::ContactManager& contact,
     const Identifier& nymID,
     const Identifier& threadID)
-    : ActivityThreadType(zmq, contact, {}, nymID, new ActivityThreadItemBlank)
+    : ActivityThreadType(
+          zmq,
+          contact,
+          {Identifier::Factory(), {}, Identifier::Factory()},
+          nymID,
+          new ActivityThreadItemBlank)
     , activity_(activity)
     , sync_(sync)
-    , threadID_(threadID)
+    , threadID_(Identifier::Factory(threadID))
+    , participants_()
     , activity_subscriber_callback_(network::zeromq::ListenCallback::Factory(
           [this](const network::zeromq::Message& message) -> void {
               this->process_thread(message);
@@ -100,6 +107,11 @@ ActivityThread::ActivityThread(
     contact_thread_.reset(new std::thread(&ActivityThread::init_contact, this));
 
     OT_ASSERT(contact_thread_)
+}
+
+ActivityThreadID ActivityThread::blank_id() const
+{
+    return {Identifier::Factory(), {}, Identifier::Factory()};
 }
 
 bool ActivityThread::check_draft(const ActivityThreadID& id) const
@@ -236,7 +248,7 @@ std::string ActivityThread::DisplayName() const
         auto name = contact_manager_.ContactName(contactID);
 
         if (name.empty()) {
-            names.emplace(contactID.str());
+            names.emplace(contactID->str());
         } else {
             names.emplace(name);
         }
@@ -271,7 +283,7 @@ void ActivityThread::init_contact()
 void ActivityThread::load_thread(const proto::StorageThread& thread)
 {
     for (const auto& id : thread.participant()) {
-        participants_.emplace(id);
+        participants_.emplace(Identifier::Factory(id));
     }
 
     otWarn << OT_METHOD << __FUNCTION__ << ": Loading " << thread.item().size()
@@ -306,7 +318,7 @@ std::string ActivityThread::Participants() const
     std::set<std::string> ids{};
 
     for (const auto& id : participants_) {
-        ids.emplace(id.str());
+        ids.emplace(id->str());
     }
 
     return comma(ids);
@@ -333,8 +345,9 @@ std::string ActivityThread::PaymentCode(const std::uint32_t currency) const
 ActivityThreadID ActivityThread::process_item(
     const proto::StorageThreadItem& item)
 {
-    const ActivityThreadID id{
-        item.id(), static_cast<StorageBox>(item.box()), item.account()};
+    const ActivityThreadID id{Identifier::Factory(item.id()),
+                              static_cast<StorageBox>(item.box()),
+                              Identifier::Factory(item.account())};
     const ActivityThreadSortKey key{std::chrono::seconds(item.time()),
                                     item.index()};
     add_item(id, key);
@@ -376,9 +389,9 @@ bool ActivityThread::same(
 {
     const auto & [ lID, lBox, lAccount ] = lhs;
     const auto & [ rID, rBox, rAccount ] = rhs;
-    const bool sameID = (lID.str() == rID.str());
+    const bool sameID = (lID->str() == rID->str());
     const bool sameBox = (lBox == rBox);
-    const bool sameAccount = (lAccount.str() == rAccount.str());
+    const bool sameAccount = (lAccount->str() == rAccount->str());
 
     return sameID && sameBox && sameAccount;
 }
@@ -449,7 +462,7 @@ std::string ActivityThread::ThreadID() const
 {
     Lock lock(lock_);
 
-    return threadID_.str();
+    return threadID_->str();
 }
 
 ActivityThread::~ActivityThread()

@@ -48,11 +48,6 @@
 
 namespace opentxs
 {
-
-class OTCronItem;
-class OTMarket;
-class Nym;
-
 /** mapOfCronItems:      Mapped (uniquely) to transaction number. */
 typedef std::map<int64_t, OTCronItem*> mapOfCronItems;
 /** multimapOfCronItems: Mapped to date the item was added to Cron. */
@@ -77,7 +72,7 @@ private:
     mapOfCronItems m_mapCronItems;
     multimapOfCronItems m_multimapCronItems;
     // Always store this in any object that's associated with a specific server.
-    Identifier m_NOTARY_ID;
+    OTIdentifier m_NOTARY_ID;
     // I can't put receipts in people's inboxes without a supply of these.
     listOfLongNumbers m_listTransactionNumbers;
     // I don't want to start Cron processing until everything else is all loaded

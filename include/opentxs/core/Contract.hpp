@@ -42,7 +42,6 @@
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/core/util/Common.hpp"
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/OTStringXML.hpp"
 #include "opentxs/Proto.hpp"
@@ -70,13 +69,6 @@ typedef IIrrXMLReader<char, IXMLBase> IrrXMLReader;
 
 namespace opentxs
 {
-
-class OTASCIIArmor;
-class OTAsymmetricKey;
-class OTPasswordData;
-class OTSignature;
-class Tag;
-
 typedef std::list<OTSignature*> listOfSignatures;
 
 String trim(const String& str);
@@ -95,7 +87,7 @@ protected:
     String m_strFilename;
 
     /** Hash of the contract, including signatures. (the "raw file") */
-    Identifier m_ID;
+    OTIdentifier m_ID;
 
     /** The Unsigned Clear Text (XML contents without signatures.) */
     OTStringXML m_xmlUnsigned;
@@ -184,8 +176,8 @@ public:
     static bool SkipToElement(irr::io::IrrXMLReader*& xml);
     static bool SkipToTextField(irr::io::IrrXMLReader*& xml);
     static bool SkipAfterLoadingField(irr::io::IrrXMLReader*& xml);
-    inline void SetIdentifier(const Identifier& theID) { m_ID = theID; }
-    EXPORT Contract() = default;
+    void SetIdentifier(const Identifier& theID);
+    EXPORT Contract();
     EXPORT Contract(
         const String& name,
         const String& foldername,

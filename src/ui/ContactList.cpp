@@ -38,13 +38,14 @@
 
 #include "opentxs/stdafx.hpp"
 
-#include "ContactList.hpp"
-
 #include "opentxs/api/ContactManager.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/SubscribeSocket.hpp"
+
+#include "ContactList.hpp"
 
 #define OT_METHOD "opentxs::ui::implementation::ContactList::"
 
@@ -55,7 +56,7 @@ ContactList::ContactList(
     const api::ContactManager& contact,
     const Identifier& nymID)
     : ContactListType(zmq, contact, contact.ContactID(nymID), nymID, nullptr)
-    , owner_contact_id_(last_id_)
+    , owner_contact_id_(Identifier::Factory(last_id_))
     , owner_(*this, zmq, contact, owner_contact_id_, "Owner")
     , contact_subscriber_callback_(network::zeromq::ListenCallback::Factory(
           [this](const network::zeromq::Message& message) -> void {
@@ -91,6 +92,8 @@ void ContactList::add_item(
 
     insert_outer(id, index);
 }
+
+ContactListID ContactList::blank_id() const { return Identifier::Factory(); }
 
 void ContactList::construct_item(
     const ContactListID& id,

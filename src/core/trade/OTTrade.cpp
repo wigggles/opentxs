@@ -1196,12 +1196,15 @@ bool OTTrade::IssueTrade(OTOffer& offer, char stopSign, int64_t stopPrice)
 
 OTTrade::OTTrade()
     : ot_super()
+    , currencyTypeID_(Identifier::Factory())
+    , currencyAcctID_(Identifier::Factory())
     , offer_(nullptr)
     , hasTradeActivated_(false)
     , stopPrice_(0)
     , stopSign_(0)
     , stopActivated_(false)
     , tradesAlreadyDone_(0)
+    , marketOffer_()
 {
     //    offer_            = nullptr;    // NOT responsible to clean this up.
     // Just keeping the pointer for convenience.
@@ -1221,12 +1224,15 @@ OTTrade::OTTrade(
     const Identifier& currencyId,
     const Identifier& currencyAcctId)
     : ot_super(notaryID, instrumentDefinitionID, assetAcctId, nymID)
+    , currencyTypeID_(Identifier::Factory(currencyId))
+    , currencyAcctID_(Identifier::Factory(currencyAcctId))
     , offer_(nullptr)
     , hasTradeActivated_(false)
     , stopPrice_(0)
     , stopSign_(0)
     , stopActivated_(false)
     , tradesAlreadyDone_(0)
+    , marketOffer_()
 {
     //    offer_            = nullptr;    // NOT responsible to clean this up.
     // Just keeping the pointer for convenience.
@@ -1236,9 +1242,6 @@ OTTrade::OTTrade(
     // market.
 
     InitTrade();
-
-    SetCurrencyID(currencyId);
-    SetCurrencyAcctID(currencyAcctId);
 }
 
 OTTrade::~OTTrade() { Release_Trade(); }
@@ -1247,8 +1250,8 @@ OTTrade::~OTTrade() { Release_Trade(); }
 void OTTrade::Release_Trade()
 {
     // If there were any dynamically allocated objects, clean them up here.
-    currencyTypeID_.Release();
-    currencyAcctID_.Release();
+    currencyTypeID_->Release();
+    currencyAcctID_->Release();
 
     marketOffer_.Release();
 }

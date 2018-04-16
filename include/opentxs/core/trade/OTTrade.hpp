@@ -48,7 +48,6 @@
 #include "opentxs/core/trade/OTMarket.hpp"
 #include "opentxs/core/trade/OTOffer.hpp"
 #include "opentxs/core/Contract.hpp"
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/OTTransactionType.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/Types.hpp"
@@ -57,13 +56,6 @@
 
 namespace opentxs
 {
-
-class Account;
-class Identifier;
-class Nym;
-class OTMarket;
-class OTOffer;
-
 /*
  OTTrade
 
@@ -96,10 +88,10 @@ class OTTrade : public OTCronItem
 private:
     typedef OTCronItem ot_super;
 
-    Identifier currencyTypeID_;  // GOLD (Asset) is trading for DOLLARS
-                                 // (Currency).
-    Identifier currencyAcctID_;  // My Dollar account, used for paying for
-                                 // my Gold (say) trades.
+    OTIdentifier currencyTypeID_;  // GOLD (Asset) is trading for DOLLARS
+                                   // (Currency).
+    OTIdentifier currencyAcctID_;  // My Dollar account, used for paying for
+                                   // my Gold (say) trades.
 
     OTOffer* offer_{
         nullptr};  // The pointer to the Offer (NOT responsible for cleaning

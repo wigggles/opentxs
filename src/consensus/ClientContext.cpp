@@ -41,6 +41,7 @@
 #include "opentxs/consensus/ClientContext.hpp"
 
 #include "opentxs/consensus/TransactionStatement.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 
 #define CURRENT_VERSION 1

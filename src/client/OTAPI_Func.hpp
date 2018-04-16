@@ -48,7 +48,6 @@
 #include "opentxs/core/script/OTSmartContract.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Cheque.hpp"
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Ledger.hpp"
 #include "opentxs/core/Lockable.hpp"
 #include "opentxs/ext/OTPayment.hpp"
@@ -418,15 +417,15 @@ private:
 
     OTAPI_Func_Type type_{NO_FUNC};
     rLock api_lock_;
-    Identifier accountID_{};
-    Identifier basketID_{};
-    Identifier currencyAccountID_{};
-    Identifier instrumentDefinitionID_{};
-    Identifier marketID_{};
-    Identifier recipientID_{};
-    Identifier requestID_{};
-    Identifier targetID_{};
-    Identifier message_id_{};
+    OTIdentifier accountID_;
+    OTIdentifier basketID_;
+    OTIdentifier currencyAccountID_;
+    OTIdentifier instrumentDefinitionID_;
+    OTIdentifier marketID_;
+    OTIdentifier recipientID_;
+    OTIdentifier requestID_;
+    OTIdentifier targetID_;
+    OTIdentifier message_id_;
     std::unique_ptr<OTSmartContract> contract_;
     std::unique_ptr<OTPaymentPlan> paymentPlan_;
     std::unique_ptr<const Purse> purse_;

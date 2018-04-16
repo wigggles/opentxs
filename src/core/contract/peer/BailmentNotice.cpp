@@ -40,6 +40,7 @@
 
 #include "opentxs/core/contract/peer/BailmentNotice.hpp"
 
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/String.hpp"
 
 #define CURRENT_VERSION 6
@@ -50,9 +51,9 @@ BailmentNotice::BailmentNotice(
     const ConstNym& nym,
     const proto::PeerRequest& serialized)
     : ot_super(nym, serialized)
-    , unit_(serialized.pendingbailment().unitid())
-    , server_(serialized.pendingbailment().serverid())
-    , requestID_(serialized.pendingbailment().requestid())
+    , unit_(Identifier::Factory(serialized.pendingbailment().unitid()))
+    , server_(Identifier::Factory(serialized.pendingbailment().serverid()))
+    , requestID_(Identifier::Factory(serialized.pendingbailment().requestid()))
     , txid_(serialized.pendingbailment().txid())
     , amount_(serialized.pendingbailment().amount())
 {
@@ -72,9 +73,9 @@ BailmentNotice::BailmentNotice(
           recipientID,
           serverID,
           proto::PEERREQUEST_PENDINGBAILMENT)
-    , unit_(unitID)
-    , server_(serverID)
-    , requestID_(requestID)
+    , unit_(Identifier::Factory(unitID))
+    , server_(Identifier::Factory(serverID))
+    , requestID_(Identifier::Factory(requestID))
     , txid_(txid)
     , amount_(amount)
 {

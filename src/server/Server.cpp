@@ -121,8 +121,13 @@ Server::Server(
     , notary_(*this, mint_, wallet_)
     , transactor_(this)
     , userCommandProcessor_(*this, config_, mint_, wallet_)
+    , m_strWalletFilename()
     , m_bReadOnly(false)
     , m_bShutdownFlag(false)
+    , m_strNotaryID(Identifier::Factory())
+    , m_strServerNymID()
+    , m_nymServer()
+    , m_Cron()
 {
 }
 
@@ -993,7 +998,7 @@ bool Server::GetConnectInfo(std::string& strHostname, uint32_t& nPort) const
 
 std::unique_ptr<OTPassword> Server::TransportKey(Data& pubkey) const
 {
-    auto contract = wallet_.Server(Identifier(m_strNotaryID));
+    auto contract = wallet_.Server(m_strNotaryID);
 
     OT_ASSERT(contract);
 

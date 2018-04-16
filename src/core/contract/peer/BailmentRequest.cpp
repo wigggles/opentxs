@@ -40,6 +40,7 @@
 
 #include "opentxs/core/contract/peer/BailmentRequest.hpp"
 
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/String.hpp"
 
 #define CURRENT_VERSION 4
@@ -50,8 +51,8 @@ BailmentRequest::BailmentRequest(
     const ConstNym& nym,
     const proto::PeerRequest& serialized)
     : ot_super(nym, serialized)
-    , unit_(serialized.bailment().unitid())
-    , server_(serialized.bailment().serverid())
+    , unit_(Identifier::Factory(serialized.bailment().unitid()))
+    , server_(Identifier::Factory(serialized.bailment().serverid()))
 {
 }
 
@@ -66,15 +67,14 @@ BailmentRequest::BailmentRequest(
           recipientID,
           serverID,
           proto::PEERREQUEST_BAILMENT)
-    , unit_(unitID)
-    , server_(serverID)
+    , unit_(Identifier::Factory(unitID))
+    , server_(Identifier::Factory(serverID))
 {
 }
 
 proto::PeerRequest BailmentRequest::IDVersion(const Lock& lock) const
 {
     auto contract = ot_super::IDVersion(lock);
-
     auto& bailment = *contract.mutable_bailment();
     bailment.set_version(version_);
     bailment.set_unitid(String(unit_).Get());

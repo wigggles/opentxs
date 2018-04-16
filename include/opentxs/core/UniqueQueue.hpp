@@ -60,7 +60,7 @@ public:
             return;
         }
 
-        const auto& key = reverse_map_[in];
+        const auto& key = reverse_map_.at(in);
 
         for (auto i = queue_.cbegin(); i < queue_.cend(); ++i) {
             if (*i == in) {
@@ -73,7 +73,7 @@ public:
         reverse_map_.erase(in);
     }
 
-    void CancelByKey(const Identifier& key) const
+    void CancelByKey(const OTIdentifier& key) const
     {
         Lock lock(lock_);
 
@@ -95,21 +95,21 @@ public:
         map_.erase(key);
     }
 
-    std::map<T, Identifier> Copy() const
+    std::map<T, OTIdentifier> Copy() const
     {
         Lock lock(lock_);
 
         return reverse_map_;
     }
 
-    bool Push(const Identifier& key, const T& in) const
+    bool Push(const OTIdentifier& key, const T& in) const
     {
         Lock lock(lock_);
 
         if (0 == reverse_map_.count(in)) {
             queue_.push_front(in);
             map_[key] = in;
-            reverse_map_[in] = key;
+            reverse_map_.emplace(in, OTIdentifier(key));
 
             return true;
         }
@@ -117,7 +117,7 @@ public:
         return false;
     }
 
-    bool Pop(Identifier& key, T& out) const
+    bool Pop(OTIdentifier& key, T& out) const
     {
         Lock lock(lock_);
 
@@ -127,7 +127,7 @@ public:
         }
 
         out = queue_.back();
-        key = reverse_map_[out];
+        key->SetString(reverse_map_.at(out)->str());
         queue_.pop_back();
         reverse_map_.erase(out);
         map_.erase(key);
@@ -138,8 +138,8 @@ public:
 private:
     mutable std::mutex lock_;
     mutable std::deque<T> queue_;
-    mutable std::map<Identifier, T> map_;
-    mutable std::map<T, Identifier> reverse_map_;
+    mutable std::map<OTIdentifier, T> map_;
+    mutable std::map<T, OTIdentifier> reverse_map_;
 };
 }  // namespace opentxs
 

@@ -47,6 +47,7 @@
 #include "opentxs/core/contract/peer/NoticeAcknowledgement.hpp"
 #include "opentxs/core/contract/peer/OutBailmentReply.hpp"
 #include "opentxs/core/Data.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/String.hpp"
@@ -58,10 +59,10 @@ namespace opentxs
 {
 PeerReply::PeerReply(const ConstNym& nym, const proto::PeerReply& serialized)
     : ot_super(nym)
-    , initiator_(serialized.initiator())
-    , recipient_(serialized.recipient())
-    , server_(serialized.server())
-    , cookie_(serialized.cookie())
+    , initiator_(Identifier::Factory(serialized.initiator()))
+    , recipient_(Identifier::Factory(serialized.recipient()))
+    , server_(Identifier::Factory(serialized.server()))
+    , cookie_(Identifier::Factory(serialized.cookie()))
     , type_(serialized.type())
 {
     id_ = Identifier(serialized.id());
@@ -78,10 +79,10 @@ PeerReply::PeerReply(
     const proto::PeerRequestType& type,
     const Identifier& request)
     : ot_super(nym, version)
-    , initiator_(initiator)
-    , recipient_(nym->ID())
-    , server_(server)
-    , cookie_(request)
+    , initiator_(Identifier::Factory(initiator))
+    , recipient_(Identifier::Factory(nym->ID()))
+    , server_(Identifier::Factory(server))
+    , cookie_(Identifier::Factory(request))
     , type_(type)
 {
 }

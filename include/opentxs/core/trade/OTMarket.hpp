@@ -50,7 +50,6 @@
 #include "opentxs/core/trade/OTOffer.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Contract.hpp"
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/OTStorage.hpp"
 
 #include <cstdint>
@@ -59,19 +58,6 @@
 
 namespace opentxs
 {
-
-class Account;
-class OTASCIIArmor;
-class OTCron;
-class OTOffer;
-class OTTrade;
-class String;
-namespace OTDB
-{
-class OfferListNym;
-class TradeListMarket;
-}  // namespace OTDB
-
 #define MAX_MARKET_QUERY_DEPTH                                                 \
     50  // todo add this to the ini file. (Now that we actually have one.)
 
@@ -100,17 +86,17 @@ private:
     mapOfOffersTrnsNum m_mapOffers;  // All of the offers on a single list,
                                      // ordered by transaction number.
 
-    Identifier m_NOTARY_ID;  // Always store this in any object that's
-                             // associated with a specific server.
+    OTIdentifier m_NOTARY_ID;  // Always store this in any object that's
+                               // associated with a specific server.
 
     // Every market involves a certain instrument definition being traded in a
     // certain
     // currency.
-    Identifier m_INSTRUMENT_DEFINITION_ID;  // This is the GOLD market. (Say.)
-                                            // | (GOLD
-                                            // for
-    Identifier m_CURRENCY_TYPE_ID;  // Gold is trading for DOLLARS.        |
-                                    // DOLLARS, for example.)
+    OTIdentifier m_INSTRUMENT_DEFINITION_ID;  // This is the GOLD market. (Say.)
+                                              // | (GOLD
+                                              // for
+    OTIdentifier m_CURRENCY_TYPE_ID;  // Gold is trading for DOLLARS.        |
+                                      // DOLLARS, for example.)
 
     // Each Offer on the market must have a minimum increment that this divides
     // equally into.

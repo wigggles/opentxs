@@ -41,6 +41,7 @@
 #include "opentxs/core/contract/CurrencyContract.hpp"
 
 #include "opentxs/core/contract/Signable.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/Proto.hpp"
 
 #include <stdint.h>

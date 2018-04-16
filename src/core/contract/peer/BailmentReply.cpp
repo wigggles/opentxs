@@ -40,6 +40,8 @@
 
 #include "opentxs/core/contract/peer/BailmentReply.hpp"
 
+#include "opentxs/core/Identifier.hpp"
+
 #define CURRENT_VERSION 4
 
 namespace opentxs

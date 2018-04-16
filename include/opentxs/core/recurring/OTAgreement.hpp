@@ -46,21 +46,15 @@
 #include "opentxs/core/cron/OTCronItem.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Contract.hpp"
-#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/OTTransactionType.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/Types.hpp"
-#include "opentxs/core/OTTransactionType.hpp"
 
 #include <stdint.h>
 #include <deque>
 
 namespace opentxs
 {
-
-class Account;
-class NumList;
-class Nym;
-
 // An Agreement occurs between TWO PEOPLE, and is for a CONSIDERATION.
 // Thus, we add the RECIPIENT (already have SENDER from OTTrackable.)
 //
@@ -91,8 +85,8 @@ private:  // Private prevents erroneous use by other classes.
     typedef OTCronItem ot_super;
 
 private:
-    Identifier m_RECIPIENT_ACCT_ID;
-    Identifier m_RECIPIENT_NYM_ID;
+    OTIdentifier m_RECIPIENT_ACCT_ID;
+    OTIdentifier m_RECIPIENT_NYM_ID;
 
 protected:
     String m_strConsideration;  // Presumably an agreement is in return for
@@ -114,10 +108,8 @@ protected:
         Nym* pRemover) override;
     void onRemovalFromCron() override;
 
-    std::deque<int64_t> m_dequeRecipientClosingNumbers;  // Numbers used for
-                                                         // CLOSING a
-                                                         // transaction.
-                                                         // (finalReceipt.)
+    // Numbers used for CLOSING a transaction. (finalReceipt.)
+    std::deque<TransactionNumber> m_dequeRecipientClosingNumbers;
 
 public:
     originType GetOriginType() const override

@@ -50,6 +50,7 @@
 #include "opentxs/core/crypto/Bip32.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 #include "opentxs/core/Data.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
 

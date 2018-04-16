@@ -51,6 +51,7 @@
 #include "opentxs/core/contract/peer/PeerRequest.hpp"
 #include "opentxs/core/script/OTVariable.hpp"
 #include "opentxs/core/util/Common.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/Nym.hpp"
@@ -178,15 +179,15 @@ OTAPI_Func::OTAPI_Func(
     const OTAPI_Func_Type type)
     : type_(type)
     , api_lock_{apiLock}
-    , accountID_{}
-    , basketID_{}
-    , currencyAccountID_{}
-    , instrumentDefinitionID_{}
-    , marketID_{}
-    , recipientID_{}
-    , requestID_{}
-    , targetID_{}
-    , message_id_{}
+    , accountID_(Identifier::Factory())
+    , basketID_(Identifier::Factory())
+    , currencyAccountID_(Identifier::Factory())
+    , instrumentDefinitionID_(Identifier::Factory())
+    , marketID_(Identifier::Factory())
+    , recipientID_(Identifier::Factory())
+    , requestID_(Identifier::Factory())
+    , targetID_(Identifier::Factory())
+    , message_id_(Identifier::Factory())
     , contract_{nullptr}
     , paymentPlan_{nullptr}
     , purse_{nullptr}
@@ -1260,7 +1261,7 @@ void OTAPI_Func::run()
             String otstrPayment;
             payment_->GetPaymentContents(otstrPayment);
             OTPayment thePayment(otstrPayment);
-            //auto& thePayment = *payment_;
+            // auto& thePayment = *payment_;
 
             if (!thePayment.IsValid() || !thePayment.SetTempValues()) {
                 otOut << OT_METHOD << __FUNCTION__
@@ -1446,13 +1447,13 @@ void OTAPI_Func::run()
             }
 
             const auto str_asset_notary_id =
-                exec_.GetAccountWallet_NotaryID(accountID_.str());
+                exec_.GetAccountWallet_NotaryID(accountID_->str());
             const auto str_currency_notary_id =
-                exec_.GetAccountWallet_NotaryID(currencyAccountID_.str());
+                exec_.GetAccountWallet_NotaryID(currencyAccountID_->str());
             const auto str_asset_nym_id =
-                exec_.GetAccountWallet_NymID(accountID_.str());
+                exec_.GetAccountWallet_NymID(accountID_->str());
             const auto str_currency_nym_id =
-                exec_.GetAccountWallet_NymID(currencyAccountID_.str());
+                exec_.GetAccountWallet_NymID(currencyAccountID_->str());
 
             if (str_asset_notary_id.empty() || str_currency_notary_id.empty() ||
                 str_asset_nym_id.empty() || str_currency_nym_id.empty()) {
@@ -1601,7 +1602,7 @@ std::string OTAPI_Func::send_transaction(std::size_t totalRetries)
     if (!MsgUtil.getIntermediaryFiles(
             context_.Server().str(),
             context_.Nym()->ID().str(),
-            accountID_.str(),
+            accountID_->str(),
             false))  // bForceDownload=false))
     {
         otOut << strLocation << ", getIntermediaryFiles returned false. (It "
@@ -1689,7 +1690,7 @@ std::string OTAPI_Func::send_transaction(std::size_t totalRetries)
         if (!MsgUtil.getIntermediaryFiles(
                 context_.Server().str(),
                 context_.Nym()->ID().str(),
-                accountID_.str(),
+                accountID_->str(),
                 true)) {
             otOut << strLocation << ", getIntermediaryFiles returned false. "
                                     "(After a success sending the transaction. "
@@ -1745,7 +1746,7 @@ std::string OTAPI_Func::send_transaction(std::size_t totalRetries)
             if (!MsgUtil.getIntermediaryFiles(
                     context_.Server().str(),
                     context_.Nym()->ID().str(),
-                    accountID_.str(),
+                    accountID_->str(),
                     true)) {
                 otOut << strLocation
                       << ", getIntermediaryFiles (loop) returned false even "
@@ -1859,7 +1860,7 @@ std::string OTAPI_Func::send_once(
             nBalanceSuccess = exec_.Message_GetBalanceAgreementSuccess(
                 context_.Server().str(),
                 context_.Nym()->ID().str(),
-                accountID_.str(),
+                accountID_->str(),
                 strReply);
 
             if (nBalanceSuccess > 0) {
@@ -1882,7 +1883,7 @@ std::string OTAPI_Func::send_once(
                     exec_.Message_IsTransactionCanceled(
                         context_.Server().str(),
                         context_.Nym()->ID().str(),
-                        accountID_.str(),
+                        accountID_->str(),
                         strReply);
 
                 // If it's not cancelled, then we assume it's a normal
@@ -1893,7 +1894,7 @@ std::string OTAPI_Func::send_once(
                     nTransSuccess = exec_.Message_GetTransactionSuccess(
                         context_.Server().str(),
                         context_.Nym()->ID().str(),
-                        accountID_.str(),
+                        accountID_->str(),
                         strReply);
                 } else  // If it WAS cancelled, then for the UI we say
                         // "Success" even though OT behind the scenes is
@@ -2031,7 +2032,7 @@ std::string OTAPI_Func::send_once(
                 if (!MsgUtil.getIntermediaryFiles(
                         context_.Server().str(),
                         context_.Nym()->ID().str(),
-                        accountID_.str(),
+                        accountID_->str(),
                         bForceDownload)) {
                     otOut << strLocation << ", getIntermediaryFiles returned "
                                             "false. (After a failure to send "

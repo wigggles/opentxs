@@ -42,7 +42,6 @@
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/core/contract/peer/PeerReply.hpp"
-#include "opentxs/core/Identifier.hpp"
 
 #include <string>
 

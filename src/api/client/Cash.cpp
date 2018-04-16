@@ -36,7 +36,6 @@
  *
  ************************************************************/
 
-
 #include "Cash.hpp"
 
 #include "opentxs/api/Api.hpp"
@@ -46,6 +45,7 @@
 #include "opentxs/client/ServerAction.hpp"
 #include "opentxs/client/SwigWrap.hpp"
 #include "opentxs/client/Utility.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/OT.hpp"
 
 //#define OT_METHOD "opentxs::api::client::implementation::Cash::"
@@ -56,7 +56,6 @@ Cash::Cash(std::recursive_mutex& apilock)
     : api_lock_(apilock)
 {
 }
-
 
 #if OT_CASH
 bool Cash::deposit_cash(
@@ -107,7 +106,8 @@ std::string Cash::export_cash(
     }
     std::string to_nym_id = TO_nymID;
     // -------------------------------------------------------------------
-    std::string instrument = SwigWrap::LoadPurse(notaryID, unitTypeID, FROM_nymID);
+    std::string instrument =
+        SwigWrap::LoadPurse(notaryID, unitTypeID, FROM_nymID);
     if (instrument.empty()) {
         otOut << "Error: cannot load purse.\n";
         return {};
@@ -123,22 +123,19 @@ std::string Cash::export_cash(
     }
     // -------------------------------------------------------------------
     std::vector<std::string> tokens;
-    if (false == get_tokens(tokens,
-                            notaryID,
-                            FROM_nymID,
-                            unitTypeID,
-                            instrument,
-                            indices)) {
+    if (false ==
+        get_tokens(
+            tokens, notaryID, FROM_nymID, unitTypeID, instrument, indices)) {
         return {};
     }
     // -------------------------------------------------------------------
     return export_cash_low_level(
         notaryID,
         unitTypeID,
-        FROM_nymID, //nymID
-        instrument, //oldPurse
-        tokens, //selectedTokens
-        to_nym_id, //recipientNymID
+        FROM_nymID,  // nymID
+        instrument,  // oldPurse
+        tokens,      // selectedTokens
+        to_nym_id,   // recipientNymID
         bPasswordProtected,
         retainedCopy);
 }
@@ -149,7 +146,7 @@ bool Cash::withdraw_and_export_cash(
     std::int64_t AMOUNT,
     std::shared_ptr<const Purse>& recipientCopy,
     std::shared_ptr<const Purse>& senderCopy,
-    bool bPasswordProtected/*=false*/) const
+    bool bPasswordProtected /*=false*/) const
 {
     rLock lock(api_lock_);
 
@@ -161,18 +158,17 @@ bool Cash::withdraw_and_export_cash(
     std::string indices;
 
     return 1 == withdraw_and_export_cash_low_level(
-                             server,
-                             mynym,
-                             asset_type,
-                             ACCT_ID,
-                             hisnym,
-                             std::to_string(AMOUNT),
-                             indices,
-                             bPasswordProtected,
-                             recipientCopy,
-                             senderCopy);
+                    server,
+                    mynym,
+                    asset_type,
+                    ACCT_ID,
+                    hisnym,
+                    std::to_string(AMOUNT),
+                    indices,
+                    bPasswordProtected,
+                    recipientCopy,
+                    senderCopy);
 }
-
 
 bool Cash::withdraw_and_send_cash(
     const std::string& ACCT_ID,
@@ -185,18 +181,15 @@ bool Cash::withdraw_and_send_cash(
     std::string hisnym = recipientNymID;
     return 1 == send_cash(
                     response,
-                    "", // server
-                    "", // mynym
-                    ACCT_ID, //myacct
-                    "", //mypurse
+                    "",       // server
+                    "",       // mynym
+                    ACCT_ID,  // myacct
+                    "",       // mypurse
                     hisnym,
                     std::to_string(AMOUNT),
                     indices,
-                    ""); // password.
+                    "");  // password.
 }
-
-
-
 
 // Input: notaryID, instrumentDefinitionID, Nym of current owner, existing
 // purse, list of
@@ -241,7 +234,6 @@ std::string Cash::export_cash_low_level(
     return newPurse;
 }
 
-
 int32_t Cash::withdraw_and_export_cash_low_level(
     const std::string& server,
     const std::string& mynym,
@@ -265,7 +257,8 @@ int32_t Cash::withdraw_and_export_cash_low_level(
     // again.
 
     std::int64_t remain = startAmount;
-    if (!get_purse_indices_or_amount(server, mynym, assetType, remain, indices)) {
+    if (!get_purse_indices_or_amount(
+            server, mynym, assetType, remain, indices)) {
         if (!indices.empty()) {
             otOut << "Error: invalid purse indices.\n";
             return -1;
@@ -280,9 +273,11 @@ int32_t Cash::withdraw_and_export_cash_low_level(
         remain = startAmount;
         if (!get_purse_indices_or_amount(
                 server, mynym, assetType, remain, indices)) {
-            otOut << "Error: cannot retrieve purse indices. "
-            "(It's possible that you have enough cash, yet lack the correct "
-            "denominations of token for the exact amount requested).\n";
+            otOut
+                << "Error: cannot retrieve purse indices. "
+                   "(It's possible that you have enough cash, yet lack the "
+                   "correct "
+                   "denominations of token for the exact amount requested).\n";
             return -1;
         }
     }
@@ -305,11 +300,10 @@ int32_t Cash::withdraw_and_export_cash_low_level(
     OT_ASSERT(pSenderCopy);
 
     recipientCopy = pRecipientCopy;
-    senderCopy    = pSenderCopy;
+    senderCopy = pSenderCopy;
 
     return 1;
 }
-
 
 std::int32_t Cash::send_cash(
     std::string& response,
@@ -336,8 +330,7 @@ std::int32_t Cash::send_cash(
 
     std::int64_t remain = startAmount;
     if (false == get_purse_indices_or_amount(
-        server, mynym, assetType, remain, indices))
-    {
+                     server, mynym, assetType, remain, indices)) {
         if (!indices.empty()) {
             otOut << "Error: invalid purse indices.\n";
             return -1;
@@ -351,11 +344,12 @@ std::int32_t Cash::send_cash(
 
         remain = startAmount;
         if (false == get_purse_indices_or_amount(
-            server, mynym, assetType, remain, indices))
-        {
-            otOut << "Error: cannot retrieve purse indices. "
-            "(It's possible that you have enough cash, yet lack the correct "
-            "denominations of token for the exact amount requested).\n";
+                         server, mynym, assetType, remain, indices)) {
+            otOut
+                << "Error: cannot retrieve purse indices. "
+                   "(It's possible that you have enough cash, yet lack the "
+                   "correct "
+                   "denominations of token for the exact amount requested).\n";
             return -1;
         }
     }
@@ -407,7 +401,6 @@ std::int32_t Cash::send_cash(
     return 1;
 }
 
-
 // If you pass the indices, this function returns true if those exact indices
 // exist. In that case, this function will also set remain to the total.
 //
@@ -446,7 +439,8 @@ bool Cash::get_purse_indices_or_amount(
     }
 
     for (std::int32_t i = 0; i < items; i++) {
-        std::string token = SwigWrap::Purse_Peek(server, assetType, mynym, purse);
+        std::string token =
+            SwigWrap::Purse_Peek(server, assetType, mynym, purse);
         if (token.empty()) {
             otOut << "Error:cannot load token from purse.\n";
             return false;
@@ -509,21 +503,13 @@ bool Cash::get_purse_indices_or_amount(
     return findAmountFromIndices ? true : false;
 }
 
-
-
-
-
-
-
-
-
 std::int32_t Cash::deposit_purse(
     const std::string& server,
     const std::string& myacct,
     const std::string& mynym,
     std::string instrument,
     const std::string& indices,
-    std::string* pOptionalOutput/*=nullptr*/) const // contains server reply
+    std::string* pOptionalOutput /*=nullptr*/) const  // contains server reply
 {
     rLock lock(api_lock_);
 
@@ -555,8 +541,8 @@ std::int32_t Cash::deposit_purse(
     }
 
     std::vector<std::string> tokens;
-    if (false == get_tokens(tokens, server, mynym, assetType,
-                            instrument, indices)) {
+    if (false ==
+        get_tokens(tokens, server, mynym, assetType, instrument, indices)) {
         return -1;
     }
 
@@ -578,14 +564,15 @@ std::int32_t Cash::deposit_purse_low_level(
     const std::string& oldPurse,
     const std::vector<std::string>& selectedTokens,
     const std::string& accountID,
-    const bool bReimportIfFailure, // So we don't re-import a purse that wasn't
-                                   // internal to begin with.
-    std::string* pOptionalOutput /*=nullptr*/) const // copy of server response.
+    const bool bReimportIfFailure,  // So we don't re-import a purse that wasn't
+                                    // internal to begin with.
+    std::string* pOptionalOutput /*=nullptr*/) const  // copy of server
+                                                      // response.
 {
     std::string recipientNymID = SwigWrap::GetAccountWallet_NymID(accountID);
     if (!VerifyStringVal(recipientNymID)) {
         otOut << "deposit_purse_low_level: Unable to find recipient "
-            "Nym based on myacct. \n";
+                 "Nym based on myacct. \n";
         return -1;
     }
 
@@ -710,7 +697,8 @@ std::int32_t Cash::easy_withdraw_cash_low_level(
         return -1;
     }
 
-    std::string assetType = SwigWrap::GetAccountWallet_InstrumentDefinitionID(myacct);
+    std::string assetType =
+        SwigWrap::GetAccountWallet_InstrumentDefinitionID(myacct);
     if (assetType.empty()) {
         return -1;
     }
@@ -750,8 +738,8 @@ std::int32_t Cash::easy_withdraw_cash_low_level(
             .ServerAction()
             .WithdrawCash(theNymID, theNotaryID, theAcctID, amount)
             ->Run();
-    std::int32_t reply =
-        InterpretTransactionMsgReply(server, mynym, myacct, "withdraw_cash", response);
+    std::int32_t reply = InterpretTransactionMsgReply(
+        server, mynym, myacct, "withdraw_cash", response);
     if (1 != reply) {
         return reply;
     }
@@ -764,7 +752,6 @@ std::int32_t Cash::easy_withdraw_cash_low_level(
 
     return 1;
 }
-
 
 // CHECK USER (download a public key)
 //
@@ -804,8 +791,7 @@ std::string Cash::load_or_retrieve_mint(
                  "IDs: \n";
         otOut << "   Notary ID: " << notaryID << "\n";
         otOut << "      Nym ID: " << nymID << "\n";
-        otOut << "Unit Type Id: " << unitTypeID
-              << "\n";
+        otOut << "Unit Type Id: " << unitTypeID << "\n";
         return "";
     }
 
@@ -835,8 +821,7 @@ std::string Cash::load_or_retrieve_mint(
                      "retrieve mint for IDs: \n";
             otOut << "   Notary ID: " << notaryID << "\n";
             otOut << "      Nym ID: " << nymID << "\n";
-            otOut << "Unit Type Id: " << unitTypeID
-                  << "\n";
+            otOut << "Unit Type Id: " << unitTypeID << "\n";
             return "";
         }
 
@@ -845,8 +830,7 @@ std::string Cash::load_or_retrieve_mint(
                      "mint, but still 'not good' for IDs: \n";
             otOut << "   Notary ID: " << notaryID << "\n";
             otOut << "      Nym ID: " << nymID << "\n";
-            otOut << "Unit Type Id: " << unitTypeID
-                  << "\n";
+            otOut << "Unit Type Id: " << unitTypeID << "\n";
             return "";
         }
     }
@@ -863,8 +847,7 @@ std::string Cash::load_or_retrieve_mint(
                  "for IDs: \n";
         otOut << "   Notary ID: " << notaryID << "\n";
         otOut << "      Nym ID: " << nymID << "\n";
-        otOut << "Unit Type Id: " << unitTypeID
-              << "\n";
+        otOut << "Unit Type Id: " << unitTypeID << "\n";
     }
 
     return strMint;
@@ -1018,10 +1001,9 @@ bool Cash::process_cash_purse(
             // If change failed, then continue.
             //
             if (!VerifyStringVal(exportedToken)) {
-                otOut << strLocation
-                      << ": 1, OT_API_Token_ChangeOwner "
-                         "returned null...(should never "
-                         "happen) Returning null.\n";
+                otOut << strLocation << ": 1, OT_API_Token_ChangeOwner "
+                                        "returned null...(should never "
+                                        "happen) Returning null.\n";
                 return false;
             }
 
@@ -1037,14 +1019,14 @@ bool Cash::process_cash_purse(
             // If change failed, then continue.
             //
             if (!VerifyStringVal(retainedToken)) {
-                otOut << strLocation
-                      << ":  2, OT_API_Token_ChangeOwner "
-                         "returned null...(should never "
-                         "happen) Returning null.\n";
+                otOut << strLocation << ":  2, OT_API_Token_ChangeOwner "
+                                        "returned null...(should never "
+                                        "happen) Returning null.\n";
                 return false;
             }
 
-//          strSender    = bPWProtectOldPurse ? "" : nymID // unused, not needed
+            //          strSender    = bPWProtectOldPurse ? "" : nymID //
+            //          unused, not needed
             strRecipient = bPWProtectNewPurse ? "" : recipientNymID;
 
             // PUSH the EXPORTED TOKEN (new owner) into the new purse (again,
@@ -1124,9 +1106,8 @@ bool Cash::process_cash_purse(
                 // No modal?
                 //
                 // FT: adding log.
-                otOut << strLocation
-                      << ": OT_API_SavePurse "
-                         "FAILED. SHOULD NEVER HAPPEN!!!!!!\n";
+                otOut << strLocation << ": OT_API_SavePurse "
+                                        "FAILED. SHOULD NEVER HAPPEN!!!!!!\n";
                 return false;
             }
         } else  // old purse IS password protected. (So return its updated
@@ -1147,7 +1128,7 @@ bool Cash::process_cash_purse(
     // Else, SPECIFIC TOKENS were selected, so process those ONLY...
     //
     else {
-//      otOut << "Tokens in Cash Purse being processed");
+        //      otOut << "Tokens in Cash Purse being processed");
 
         // newPurseSelectedTokens is created (CORRECTLY) with recipientNymID as
         // owner. (Or with a symmetric key / passphrase.)
@@ -1239,11 +1220,12 @@ bool Cash::process_cash_purse(
             // At this point, we check TokenID (identifying the current token)
             // to see if it's on the SELECTED LIST.
             //
-            if (find(selectedTokens.begin(),
-                     selectedTokens.end(),
-                     tokenID)
-                != selectedTokens.end())  // We ARE exporting this token.
-                                          // (Its ID was on the list.)
+            if (find(
+                    selectedTokens.begin(),
+                    selectedTokens.end(),
+                    tokenID) !=
+                selectedTokens.end())  // We ARE exporting this token.
+                                       // (Its ID was on the list.)
             {
                 // CHANGE OWNER from NYM to RECIPIENT
                 // "token" will now contain the EXPORTED TOKEN, with the
@@ -1267,10 +1249,9 @@ bool Cash::process_cash_purse(
                     strSender,      // old owner
                     strRecipient);  // new owner
                 if (!VerifyStringVal(exportedToken)) {
-                    otOut << strLocation
-                          << ": 1  OT_API_Token_ChangeOwner "
-                             "returned null... SHOULD NEVER "
-                             "HAPPEN. Returning now.\n";
+                    otOut << strLocation << ": 1  OT_API_Token_ChangeOwner "
+                                            "returned null... SHOULD NEVER "
+                                            "HAPPEN. Returning now.\n";
                     return false;
                 }
 
@@ -1282,17 +1263,17 @@ bool Cash::process_cash_purse(
                     strSender,              // old owner
                     strSenderAsRecipient);  // new owner
                 if (!VerifyStringVal(retainedToken)) {
-                    otOut << strLocation
-                          << ": 2  OT_API_Token_ChangeOwner "
-                             "returned null... SHOULD NEVER "
-                             "HAPPEN. Returning now.\n";
+                    otOut << strLocation << ": 2  OT_API_Token_ChangeOwner "
+                                            "returned null... SHOULD NEVER "
+                                            "HAPPEN. Returning now.\n";
                     return false;
                 }
 
                 // Push exported version of token into new purse for recipient
                 // (for selected tokens.)
                 //
-//              strSender    = bPWProtectOldPurse ? "" : nymID // Not needed.
+                //              strSender    = bPWProtectOldPurse ? "" : nymID
+                //              // Not needed.
                 strRecipient = bPWProtectNewPurse ? "" : recipientNymID;
 
                 std::string strPushedForRecipient = SwigWrap::Purse_Push(
@@ -1376,16 +1357,14 @@ bool Cash::process_cash_purse(
                 // No modal?
                 //
                 // FT: adding log.
-                otOut << strLocation
-                      << ":  OT_API_SavePurse "
-                         "FAILED. SHOULD NEVER HAPPEN!!!!!!\n";
+                otOut << strLocation << ":  OT_API_SavePurse "
+                                        "FAILED. SHOULD NEVER HAPPEN!!!!!!\n";
                 return false;
             }
         } else  // old purse IS password protected. (So return its updated
                 // version.)
         {
-            oldPurse =
-                newPurseUnSelectedTokens;
+            oldPurse = newPurseUnSelectedTokens;
             // We never cared about this with Nym-owned old purse, since it
             // saves to storage anyway, in the above block. But now in the case
             // of password-protected purses, we set the oldPurse to contain the
@@ -1430,8 +1409,8 @@ bool Cash::get_tokens(
 
     const bool all = (0 == indices.compare("all"));
     for (std::int32_t i = 0; i < items; i++) {
-        std::string token = SwigWrap::Purse_Peek(server, assetType, mynym,
-                                                 purse);
+        std::string token =
+            SwigWrap::Purse_Peek(server, assetType, mynym, purse);
         if (token.empty()) {
             otOut << "Error: cannot load token from purse.\n";
             return false;
@@ -1456,7 +1435,6 @@ bool Cash::get_tokens(
 
     return true;
 }
-
 
 #endif
 }  // namespace opentxs

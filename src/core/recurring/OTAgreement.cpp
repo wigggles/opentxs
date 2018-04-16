@@ -166,9 +166,8 @@ bool OTAgreement::SendNoticeToAllParties(
             pSender = &theSenderNym;  //  <=====
         } else {
             const String strNymID(NYM_ID);
-            otErr << __FUNCTION__
-                  << ": Failure verifying Sender's public key "
-                     "or loading signed nymfile: "
+            otErr << __FUNCTION__ << ": Failure verifying Sender's public key "
+                                     "or loading signed nymfile: "
                   << strNymID << "\n";
             return false;
         }
@@ -241,9 +240,8 @@ bool OTAgreement::DropServerNoticeToNymbox(
     }
 
     if (!bSuccessLoading) {
-        otErr << __FUNCTION__
-              << ": Failed loading or generating a nymbox. "
-                 "(FAILED WRITING RECEIPT!!) \n";
+        otErr << __FUNCTION__ << ": Failed loading or generating a nymbox. "
+                                 "(FAILED WRITING RECEIPT!!) \n";
 
         return false;
     }
@@ -361,9 +359,8 @@ bool OTAgreement::DropServerNoticeToNymbox(
                     String strNymID(ACTUAL_NYM_ID);
                     otErr << __FUNCTION__
                           << ": Failure loading public key for Nym: "
-                          << strNymID
-                          << ". "
-                             "(To update his NymboxHash.) \n";
+                          << strNymID << ". "
+                                         "(To update his NymboxHash.) \n";
                 } else if (
                     theActualNym.VerifyPseudonym() &&  // this line may be
                                                        // unnecessary.
@@ -372,19 +369,17 @@ bool OTAgreement::DropServerNoticeToNymbox(
                                         // theActualNym's identity, but
                                         // merely the signer on this file.
                 {
-                    otLog3 << __FUNCTION__
-                           << ": Loading actual Nym, since he "
-                              "wasn't already loaded. (To "
-                              "update his NymboxHash.)\n";
+                    otLog3 << __FUNCTION__ << ": Loading actual Nym, since he "
+                                              "wasn't already loaded. (To "
+                                              "update his NymboxHash.)\n";
                     pActualNym = &theActualNym;  //  <=====
                 } else {
                     String strNymID(ACTUAL_NYM_ID);
                     otErr << __FUNCTION__
                           << ": Failure loading or verifying Actual Nym public "
                              "key: "
-                          << strNymID
-                          << ". "
-                             "(To update his NymboxHash.)\n";
+                          << strNymID << ". "
+                                         "(To update his NymboxHash.)\n";
                 }
             }
         }
@@ -532,9 +527,8 @@ void OTAgreement::onFinalReceipt(
             pRecipient = &theRecipientNym;
         } else {
             const String strNymID(NYM_ID);
-            otErr << szFunc
-                  << ": Failure verifying Recipient's public key or "
-                     "loading signed nymfile: "
+            otErr << szFunc << ": Failure verifying Recipient's public key or "
+                               "loading signed nymfile: "
                   << strNymID << "\n";
         }
     }
@@ -945,10 +939,9 @@ bool OTAgreement::CanRemoveItemFromCron(const ClientContext& context)
     }
 
     if (!context.VerifyIssuedNumber(GetRecipientClosingNum())) {
-        otOut << "OTAgreement::" << __FUNCTION__
-              << ": Recipient Closing "
-                 "number didn't verify (for "
-                 "removal from cron).\n";
+        otOut << "OTAgreement::" << __FUNCTION__ << ": Recipient Closing "
+                                                    "number didn't verify (for "
+                                                    "removal from cron).\n";
 
         return false;
     }
@@ -1025,14 +1018,12 @@ bool OTAgreement::SetProposal(
         id_MERCHANT_ACCT(MERCHANT_ACCT.GetPurportedAccountID());
 
     if (GetRecipientNymID() != id_MERCHANT_NYM) {
-        otOut << __FUNCTION__
-              << ": Merchant has wrong NymID (should be same "
-                 "as RecipientNymID.)\n";
+        otOut << __FUNCTION__ << ": Merchant has wrong NymID (should be same "
+                                 "as RecipientNymID.)\n";
         return false;
     } else if (GetRecipientAcctID() != id_MERCHANT_ACCT) {
-        otOut << __FUNCTION__
-              << ": Merchant has wrong AcctID (should be same "
-                 "as RecipientAcctID.)\n";
+        otOut << __FUNCTION__ << ": Merchant has wrong AcctID (should be same "
+                                 "as RecipientAcctID.)\n";
         return false;
     } else if (!MERCHANT_ACCT.VerifyOwner(nym)) {
         otOut << __FUNCTION__
@@ -1044,9 +1035,8 @@ bool OTAgreement::SetProposal(
                  "Nym ID (not allowed.)\n";
         return false;
     } else if (context.AvailableNumbers() < 2) {
-        otOut << __FUNCTION__
-              << ": Failure. You need at least 2 transaction "
-                 "numbers available to do this.\n";
+        otOut << __FUNCTION__ << ": Failure. You need at least 2 transaction "
+                                 "numbers available to do this.\n";
         return false;
     }
     // --------------------------------------
@@ -1106,9 +1096,8 @@ bool OTAgreement::SetProposal(
     }
 
     if (0 == TransactionNumber(closingNumber)) {
-        otErr << __FUNCTION__
-              << ": Error: Unable to get a closing "
-                 "transaction number.\n";
+        otErr << __FUNCTION__ << ": Error: Unable to get a closing "
+                                 "transaction number.\n";
         // (Since the first one was successful, we just put it back before
         // returning.)
 
@@ -1163,23 +1152,20 @@ bool OTAgreement::Confirm(
         id_PAYER_ACCT(PAYER_ACCT.GetPurportedAccountID());
 
     if (GetRecipientNymID() == GetSenderNymID()) {
-        otOut << __FUNCTION__
-              << ": Error: Sender and recipient have the same "
-                 "Nym ID (not allowed.)\n";
+        otOut << __FUNCTION__ << ": Error: Sender and recipient have the same "
+                                 "Nym ID (not allowed.)\n";
         return false;
     } else if (
         (nullptr != p_id_MERCHANT_NYM) &&
         (GetRecipientNymID() != *p_id_MERCHANT_NYM)) {
-        otOut << __FUNCTION__
-              << ": Merchant has wrong NymID (should be same "
-                 "as RecipientNymID.)\n";
+        otOut << __FUNCTION__ << ": Merchant has wrong NymID (should be same "
+                                 "as RecipientNymID.)\n";
         return false;
     } else if (
         (nullptr != pMERCHANT_NYM) &&
         (GetRecipientNymID() != pMERCHANT_NYM->GetConstID())) {
-        otOut << __FUNCTION__
-              << ": Merchant has wrong NymID (should be same "
-                 "as RecipientNymID.)\n";
+        otOut << __FUNCTION__ << ": Merchant has wrong NymID (should be same "
+                                 "as RecipientNymID.)\n";
         return false;
     } else if (GetSenderNymID() != id_PAYER_NYM) {
         otOut << __FUNCTION__
@@ -1196,14 +1182,12 @@ bool OTAgreement::Confirm(
               << std::endl;
         return false;
     } else if (context.AvailableNumbers() < 2) {
-        otOut << __FUNCTION__
-              << ": Failure. You need at least 2 transaction "
-                 "numbers available to do this.\n";
+        otOut << __FUNCTION__ << ": Failure. You need at least 2 transaction "
+                                 "numbers available to do this.\n";
         return false;
     } else if (GetRecipientCountClosingNumbers() < 2) {
-        otOut << __FUNCTION__
-              << ": Failure. (The merchant was supposed to "
-                 "attach 2 transaction numbers.)\n";
+        otOut << __FUNCTION__ << ": Failure. (The merchant was supposed to "
+                                 "attach 2 transaction numbers.)\n";
         return false;
     }
 
@@ -1262,9 +1246,8 @@ bool OTAgreement::Confirm(
     }
 
     if (false == TransactionNumber(closingNumber)) {
-        otErr << __FUNCTION__
-              << ": Error: Strangely unable to get a closing "
-                 "transaction number.\n";
+        otErr << __FUNCTION__ << ": Error: Strangely unable to get a closing "
+                                 "transaction number.\n";
 
         return false;
     }
@@ -1297,6 +1280,11 @@ bool OTAgreement::Confirm(
 
 OTAgreement::OTAgreement()
     : ot_super()
+    , m_RECIPIENT_ACCT_ID(Identifier::Factory())
+    , m_RECIPIENT_NYM_ID(Identifier::Factory())
+    , m_strConsideration()
+    , m_strMerchantSignedCopy()
+    , m_dequeRecipientClosingNumbers()
 {
     InitAgreement();
 }
@@ -1305,6 +1293,11 @@ OTAgreement::OTAgreement(
     const Identifier& NOTARY_ID,
     const Identifier& INSTRUMENT_DEFINITION_ID)
     : ot_super(NOTARY_ID, INSTRUMENT_DEFINITION_ID)
+    , m_RECIPIENT_ACCT_ID(Identifier::Factory())
+    , m_RECIPIENT_NYM_ID(Identifier::Factory())
+    , m_strConsideration()
+    , m_strMerchantSignedCopy()
+    , m_dequeRecipientClosingNumbers()
 {
     InitAgreement();
 }
@@ -1321,9 +1314,13 @@ OTAgreement::OTAgreement(
           INSTRUMENT_DEFINITION_ID,
           SENDER_ACCT_ID,
           SENDER_NYM_ID)
+    , m_RECIPIENT_ACCT_ID(Identifier::Factory())
+    , m_RECIPIENT_NYM_ID(Identifier::Factory())
+    , m_strConsideration()
+    , m_strMerchantSignedCopy()
+    , m_dequeRecipientClosingNumbers()
 {
     InitAgreement();
-
     SetRecipientAcctID(RECIPIENT_ACCT_ID);
     SetRecipientNymID(RECIPIENT_NYM_ID);
 }
@@ -1336,8 +1333,8 @@ void OTAgreement::Release_Agreement()
 {
     // If there were any dynamically allocated objects, clean them up here.
     //
-    m_RECIPIENT_ACCT_ID.Release();
-    m_RECIPIENT_NYM_ID.Release();
+    m_RECIPIENT_ACCT_ID->Release();
+    m_RECIPIENT_NYM_ID->Release();
 
     m_strConsideration.Release();
     m_strMerchantSignedCopy.Release();

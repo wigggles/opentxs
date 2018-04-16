@@ -38,14 +38,15 @@
 
 #include "opentxs/stdafx.hpp"
 
-#include "ContactListItem.hpp"
-
 #include "opentxs/api/ContactManager.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/SubscribeSocket.hpp"
 #include "opentxs/Types.hpp"
+
+#include "ContactListItem.hpp"
 
 #include "ContactList.hpp"
 

@@ -42,7 +42,6 @@
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/core/contract/peer/PeerRequest.hpp"
-#include "opentxs/core/Identifier.hpp"
 
 namespace opentxs
 {
