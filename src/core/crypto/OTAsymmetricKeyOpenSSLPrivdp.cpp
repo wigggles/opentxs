@@ -53,7 +53,6 @@
 #include "opentxs/core/util/Timer.hpp"
 #include <opentxs/core/util/stacktrace.h>
 #include "opentxs/core/Data.hpp"
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 
 #include <openssl/bio.h>
