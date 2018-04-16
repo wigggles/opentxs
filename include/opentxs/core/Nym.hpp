@@ -344,38 +344,38 @@ private:
     // (SERVER side.)
     std::int64_t m_lUsageCredits{-1};
     bool m_bMarkForDeletion{false};
-    std::string alias_{""};
-    mutable std::mutex lock_{};
+    std::string alias_;
+    mutable std::mutex lock_;
     std::atomic<std::uint64_t> revision_{0};
     proto::CredentialIndexMode mode_{proto::CREDINDEX_ERROR};
-    String m_strNymfile{""};
-    String m_strVersion{""};
-    String m_strDescription{""};
+    String m_strNymfile;
+    String m_strVersion;
+    String m_strDescription;
     OTIdentifier m_nymID;
     std::shared_ptr<NymIDSource> source_{nullptr};
     mutable std::unique_ptr<class ContactData> contact_data_;
 
     // The credentials for this Nym. (Each with a master key credential and
     // various child credentials.)
-    mapOfCredentialSets m_mapCredentialSets{};
-    mapOfCredentialSets m_mapRevokedSets{};
+    mapOfCredentialSets m_mapCredentialSets;
+    mapOfCredentialSets m_mapRevokedSets;
     // Revoked child credential IDs
-    String::List m_listRevokedIDs{};
+    String::List m_listRevokedIDs;
     // Whenever client downloads Inbox, its hash is stored here. (When
     // downloading account, can compare ITS inbox hash to this one, to see if I
     // already have latest one.)
-    mapOfIdentifiers m_mapInboxHash{};
+    mapOfIdentifiers m_mapInboxHash;
     // Whenever client downloads Outbox, its hash is stored here. (When
     // downloading account, can compare ITS outbox hash to this one, to see if I
     // already have latest one.)
-    mapOfIdentifiers m_mapOutboxHash{};
+    mapOfIdentifiers m_mapOutboxHash;
     // Any outoing payments sent by this Nym. (And not yet deleted.) (payments
     // screen.)
-    dequeOfMail m_dequeOutpayments{};
+    dequeOfMail m_dequeOutpayments;
     // (SERVER side)
     // A list of asset account IDs. Server side only (client side uses wallet;
     // has multiple servers.)
-    std::set<std::string> m_setAccounts{};
+    std::set<std::string> m_setAccounts;
 
     bool GetHash(
         const mapOfIdentifiers& the_map,
