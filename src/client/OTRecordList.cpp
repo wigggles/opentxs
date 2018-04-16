@@ -45,7 +45,6 @@
 #include "opentxs/api/Api.hpp"
 #include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Native.hpp"
-#include "opentxs/client/commands/CmdConfirm.hpp"
 #include "opentxs/client/commands/CmdPayInvoice.hpp"
 #include "opentxs/client/Helpers.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
@@ -58,6 +57,7 @@
 #include "opentxs/contact/Contact.hpp"
 #include "opentxs/contact/ContactData.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
+#include "opentxs/core/recurring/OTPaymentPlan.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Account.hpp"
@@ -674,10 +674,10 @@ bool OTRecordList::accept_from_paymentbox( // static function
                     return -1;
                 }
 
-                CmdConfirm cmd;
                 std::string recipient =
                     SwigWrap::Instrmnt_GetRecipientNymID(instrument);
-                std::int32_t nTemp = cmd.confirmInstrument(
+
+                std::int32_t nTemp = confirm_payment_plan(
                     server,
                     mynym,
                     myacct,
@@ -706,6 +706,187 @@ bool OTRecordList::accept_from_paymentbox( // static function
     }
 
     return nReturnValue;
+}
+
+std::int32_t OTRecordList::confirm_payment_plan( // static method
+    const std::string& server,
+    const std::string& mynym,
+    const std::string& myacct,
+    const std::string& hisnym,
+    const std::string& instrument,
+    std::int32_t index,
+    std::string* pOptionalOutput/*=nullptr*/)
+{
+    std::string instrumentType = SwigWrap::Instrmnt_GetType(instrument);
+    if (instrumentType.empty() ||
+        (0 != instrumentType.compare("PAYMENT PLAN")))
+    {
+        otOut << "Error: instrument is empty, or is not a payment plan.\n";
+        return -1;
+    }
+
+    time64_t now  = SwigWrap::GetTime();
+    time64_t from = SwigWrap::Instrmnt_GetValidFrom(instrument);
+    if (now < from) {
+        otOut << "The instrument is not yet valid.\n";
+        return 0;
+    }
+
+    time64_t until = SwigWrap::Instrmnt_GetValidTo(instrument);
+    if (until > OT_TIME_ZERO && now > until) {
+        otOut << "The instrument has already expired.\n";
+
+        if (-1 == index) {
+            if (!SwigWrap::Msg_HarvestTransactionNumbers(
+                    instrument, mynym, false, false, false, false, false)) {
+                return -1;
+            }
+            return 0;
+        }
+
+        // Since this instrument is expired, remove it from the payments inbox,
+        // and move it to record box.
+        if (!SwigWrap::RecordPayment(server, mynym, true, index, true)) {
+            return -1;
+        }
+        return 0;
+    }
+
+    return confirmPaymentPlan_lowLevel(mynym, myacct, instrument,
+                                       pOptionalOutput);
+}
+
+std::int32_t OTRecordList::confirmPaymentPlan_lowLevel( // a static method
+    const std::string& mynym,
+    const std::string& myacct,
+    const std::string& plan,
+    std::string* pOptionalOutput /*=nullptr*/)
+{
+    // Very possibly, the server where we RECEIVED the payment plan
+    // is not necessarily the server where it's DRAWN on. Therefore
+    // we must read the server ID directly from the instrument, and
+    // not use the server ID of the payments inbox where this instrument
+    // came from.
+    //
+    std::string server = SwigWrap::Instrmnt_GetNotaryID(plan);
+    if (server.empty()) {
+        otOut << "Error: cannot get server from instrument.\n";
+        return -1;
+    }
+
+    std::string senderUser = mynym;
+
+    if (senderUser.empty()) {
+        senderUser = SwigWrap::Instrmnt_GetSenderNymID(plan);
+    }
+
+    if (senderUser.empty()) {
+        otOut << "Error: cannot get sender user from instrument.\n";
+        return -1;
+    }
+
+    std::string senderAcct = myacct;
+
+    if (senderAcct.empty()) {
+        senderAcct = SwigWrap::Instrmnt_GetSenderAcctID(plan);
+    }
+
+    if (senderAcct.empty()) {
+        otOut << "Error: cannot get sender account from instrument.\n";
+        return -1;
+    }
+
+    std::string recipientUser = SwigWrap::Instrmnt_GetRecipientNymID(plan);
+    if (recipientUser.empty()) {
+        otOut << "Error: cannot get recipient user from instrument.\n";
+        return -1;
+    }
+
+    std::string recipientAcct = SwigWrap::Instrmnt_GetRecipientAcctID(plan);
+    if (recipientAcct.empty()) {
+        otOut << "Error: cannot get recipient account from instrument.\n";
+        return -1;
+    }
+
+    if (!OT::App().API().ServerAction().GetTransactionNumbers(
+            Identifier(senderUser), Identifier(server), 2)) {
+        otOut << "Error: cannot reserve transaction numbers.\n";
+        return -1;
+    }
+
+    std::string confirmed = SwigWrap::ConfirmPaymentPlan(
+        server, senderUser, senderAcct, recipientUser, plan);
+    if (confirmed.empty()) {
+        otOut << "Error: cannot confirm payment plan.\n";
+        return -1;
+    }
+
+    // NOTE: If we fail, then we need to harvest the transaction numbers
+    // back from the payment plan that we confirmed.
+    std::unique_ptr<OTPaymentPlan> paymentPlan =
+        std::make_unique<OTPaymentPlan>();
+
+    OT_ASSERT(paymentPlan)
+
+    paymentPlan->LoadContractFromString(String(confirmed.c_str()));
+
+    std::string response =
+        OT::App()
+            .API()
+            .ServerAction()
+            .DepositPaymentPlan(
+                Identifier(senderUser), Identifier(server), paymentPlan)
+            ->Run();
+
+    std::int32_t success = VerifyMessageSuccess(response);
+    if (1 != success) {
+        otOut << "Error: cannot deposit payment plan.\n";
+        SwigWrap::Msg_HarvestTransactionNumbers(
+            confirmed, senderUser, false, false, false, false, false);
+        return success;
+    }
+
+
+    std::int32_t reply = InterpretTransactionMsgReply(
+        server, senderUser, senderAcct, "deposit_payment_plan", response);
+    if (1 != reply) {
+        return reply;
+    }
+
+    if (nullptr != pOptionalOutput) {
+        *pOptionalOutput = response;
+    }
+
+    if (!OT::App().API().ServerAction().DownloadAccount(
+            Identifier(senderUser),
+            Identifier(server),
+            Identifier(senderAcct),
+            true)) {
+        otOut << "Error retrieving intermediary files for account.\n";
+        return -1;
+    }
+
+    // NOTICE here (on success) we do NOT call RecordPayment. (Contrast this
+    // with confirmSmartContract, below.) Why does it call RecordPayment for a
+    // smart contract, yet here we do not?
+    //
+    // Because with a smart contract, it has been sent on to the next party. So
+    // it's now got a copy in the outpayments.
+    // There was no transaction performed at that time; perhaps it will go to
+    // 3 more parties before it's actually activated onto a server. Only THEN
+    // is a transaction performed. Therefore, confirmSmartContract is finished
+    // with the incoming instrument, in every respect, and can directly
+    // RecordPayment it to remove it from the payments inbox.
+    //
+    // Whereas with a payment plan, a transaction HAS just been performed.
+    // (See the call just above, to deposit_payment_plan.) Therefore, OT has
+    // already received the server reply at a lower level, and OT already should
+    // be smart enough to RecordPayment at THAT time.
+    //
+    // And that's why we don't need to do it here and now: Because it has
+    // already been done.
+
+    return 1;
 }
 
 void OTRecordList::AddAccountID(std::string str_id)

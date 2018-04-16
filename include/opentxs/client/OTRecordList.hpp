@@ -215,6 +215,21 @@ public:
         std::int32_t nIndex,
         const std::string& PRELOADED_INBOX);
 
+    EXPORT static std::int32_t confirm_payment_plan(
+        const std::string& server,
+        const std::string& mynym,
+        const std::string& myacct,
+        const std::string& hisnym,
+        const std::string& instrument,
+        std::int32_t index,
+        std::string* pOptionalOutput=nullptr);
+
+    EXPORT static std::int32_t confirmPaymentPlan_lowLevel(
+        const std::string& mynym,
+        const std::string& myacct,
+        const std::string& plan,
+        std::string* pOptionalOutput=nullptr);
+
     EXPORT static const char* textTo() { return s_strTextTo.c_str(); }
     EXPORT static const char* textFrom() { return s_strTextFrom.c_str(); }
 
