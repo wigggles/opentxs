@@ -369,6 +369,8 @@ bool OTClient::AcceptEntireNymbox(
         originType::not_applicable,
         lStoredTransactionNumber);
 
+    OT_ASSERT(nullptr != pAcceptTransaction)
+
     // This insures that the ledger will handle cleaning up the transaction, so
     // I don't have to delete it later.
     processLedger.AddTransaction(*pAcceptTransaction);
@@ -799,7 +801,9 @@ bool OTClient::AcceptEntireNymbox(
 
     // If the above processing resulted in us actually accepting certain
     // specific items, then let's process the message out to the server.
-    if (pAcceptTransaction->GetItemCount()) {
+    const auto acceptedItems = pAcceptTransaction->GetItemCount();
+
+    if (0 < acceptedItems) {
         // IF there were transactions that were approved for me, (and I have
         // notice of them in my nymbox) then they will be in this set. Also,
         // they'll only be here IF they were verified as ACTUALLY being on my
@@ -822,6 +826,7 @@ bool OTClient::AcceptEntireNymbox(
             ProcessUserCommand(MessageType::processNymbox, context, theMessage);
 
         if (processed) {
+            bool ready{true};
             // the message is all set up and ready to go out... it's even
             // signed. Except the ledger we're sending, still needs to be added,
             // and then the message needs to be re-signed as a result of that.
@@ -829,6 +834,7 @@ bool OTClient::AcceptEntireNymbox(
             // Since this function accepts them ALL, the new balance agreement
             // needs to show it as empty.
             theNymbox.ReleaseTransactions();
+            theMessage.ReleaseSignatures();
 
             // By this point, verifiedNumbers contains a list of all the
             // transaction numbers that are in my nymbox, and that WILL be ADDED
@@ -849,32 +855,44 @@ bool OTClient::AcceptEntireNymbox(
                 }
             }
 
-            if (pBalanceItem) {
-                pAcceptTransaction->AddItem(*pBalanceItem.release());
-            } else {
-                otErr << OT_METHOD << __FUNCTION__
-                      << ": This should never happen.\n";
-            }
+            OT_ASSERT(pBalanceItem)
+
+            pAcceptTransaction->AddItem(*pBalanceItem.release());
+
+            OT_ASSERT((acceptedItems + 1) == pAcceptTransaction->GetItemCount())
 
             // Sign the accept transaction, as well as the message ledger
             // that we've just constructed containing it.
-            pAcceptTransaction->SignContract(nym);
-            pAcceptTransaction->SaveContract();
-            processLedger.SignContract(nym);
-            processLedger.SaveContract();
+            ready &= pAcceptTransaction->SignContract(nym);
+
+            OT_ASSERT(ready)
+
+            ready &= pAcceptTransaction->SaveContract();
+
+            OT_ASSERT(ready)
+
+            ready &= processLedger.SignContract(nym);
+
+            OT_ASSERT(ready)
+
+            ready &= processLedger.SaveContract();
+
+            OT_ASSERT(ready)
+
             // Extract the ledger into string form and add it as the payload on
             // the message.
-            String strLedger(processLedger);
-            theMessage.m_ascPayload.SetString(strLedger);
-            // Release any other signatures from the message, since I know it
-            // was signed already in the above call to ProcessUserCommand.
-            theMessage.ReleaseSignatures();
+            const auto serialized = String(processLedger);
+            ready &= theMessage.m_ascPayload.SetString(serialized);
 
-            return true;
+            OT_ASSERT(ready)
+
+            return ready;
         } else {
             otErr << OT_METHOD << __FUNCTION__
                   << ": Error processing processNymbox command.\n";
         }
+    } else {
+        otErr << OT_METHOD << __FUNCTION__ << ": Nothing to accept.\n";
     }
 
     return false;
