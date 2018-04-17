@@ -1,22 +1,6 @@
 # Copyright (c) Monetas AG, 2014
 
 set(cxx-sources
-  commands/CmdAcceptInbox.cpp
-  commands/CmdAcceptPayments.cpp
-  commands/CmdAcceptReceipts.cpp
-  commands/CmdAcceptTransfers.cpp
-  commands/CmdBase.cpp
-  commands/CmdBaseAccept.cpp
-  commands/CmdBaseInstrument.cpp
-  commands/CmdCancel.cpp
-  commands/CmdConfirm.cpp
-  commands/CmdDeposit.cpp
-  commands/CmdDiscard.cpp
-  commands/CmdExportCash.cpp
-  commands/CmdPayInvoice.cpp
-  commands/CmdSendCash.cpp
-  commands/CmdShowNyms.cpp
-  commands/CmdWithdrawCash.cpp
   Helpers.cpp
   NymData.cpp
   OT_API.cpp
@@ -48,22 +32,6 @@ set(cxx-install-headers
 
 set(cxx-headers
   ${cxx-install-headers}
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/commands/CmdAcceptInbox.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/commands/CmdAcceptPayments.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/commands/CmdAcceptReceipts.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/commands/CmdAcceptTransfers.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/commands/CmdBaseAccept.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/commands/CmdBase.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/commands/CmdBaseInstrument.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/commands/CmdCancel.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/commands/CmdConfirm.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/commands/CmdDeposit.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/commands/CmdDiscard.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/commands/CmdExportCash.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/commands/CmdPayInvoice.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/commands/CmdSendCash.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/commands/CmdShowNyms.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/commands/CmdWithdrawCash.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/OTAPI_Func.hpp
 )
 
