@@ -2917,24 +2917,12 @@ bool OTTransaction::VerifyItems(Nym& theNym)
     return true;
 }
 
-/*
-bool                m_bIsAbbreviated;
-int64_t                m_lAbbrevAmount;
-int64_t                m_lDisplayAmount;
-OTIdentifier        m_Hash;            // todo: make this const and force it to
-be set during construction.
-time64_t                m_DATE_SIGNED;    // The date, in seconds, when the
-instrument was last signed.
-transactionType        m_Type;            // blank, pending, processInbox,
-transfer, deposit, withdrawal, trade, etc.
-*/
-
 // private and hopefully not needed
 //
 OTTransaction::OTTransaction()
     : OTTransactionType()
     , m_pParent(nullptr)
-    , m_bIsAbbreviated(true)
+    , m_bIsAbbreviated(false)
     , m_lAbbrevAmount(0)
     , m_lDisplayAmount(0)
     , m_lInRefDisplay(0)
@@ -2964,7 +2952,7 @@ OTTransaction::OTTransaction(const Ledger& theOwner)
           theOwner.GetPurportedAccountID(),
           theOwner.GetPurportedNotaryID())
     , m_pParent(&theOwner)
-    , m_bIsAbbreviated(true)
+    , m_bIsAbbreviated(false)
     , m_lAbbrevAmount(0)
     , m_lDisplayAmount(0)
     , m_lInRefDisplay(0)
@@ -2998,7 +2986,7 @@ OTTransaction::OTTransaction(
     originType theOriginType /*=originType::not_applicable*/)
     : OTTransactionType(theNymID, theAccountID, theNotaryID, theOriginType)
     , m_pParent(nullptr)
-    , m_bIsAbbreviated(true)
+    , m_bIsAbbreviated(false)
     , m_lAbbrevAmount(0)
     , m_lDisplayAmount(0)
     , m_lInRefDisplay(0)
