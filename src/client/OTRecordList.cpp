@@ -969,7 +969,10 @@ std::int32_t OTRecordList::depositCheque( // a static method
     std::unique_ptr<Cheque> cheque = std::make_unique<Cheque>();
     cheque->LoadContractFromString(String(instrument.c_str()));
 
-    std::string response = OT::App()
+    std::string response;
+    {
+        rLock lock(opentxs::OT::App().API().Lock());
+        response = OT::App()
                           .API()
                           .ServerAction()
                           .DepositCheque(
@@ -978,6 +981,7 @@ std::int32_t OTRecordList::depositCheque( // a static method
                               Identifier(myacct),
                               cheque)
                           ->Run();
+    }
     std::int32_t reply = InterpretTransactionMsgReply(
         server, mynym, myacct, "deposit_cheque", response);
     if (1 != reply) {
@@ -988,12 +992,14 @@ std::int32_t OTRecordList::depositCheque( // a static method
         *pOptionalOutput = response;
     }
 
-    if (!OT::App().API().ServerAction().DownloadAccount(
-            Identifier(mynym), Identifier(server), Identifier(myacct), true)) {
-        otOut << "Error retrieving intermediary files for account.\n";
-        return -1;
+    {
+        rLock lock(opentxs::OT::App().API().Lock());
+        if (!OT::App().API().ServerAction().DownloadAccount(
+                Identifier(mynym), Identifier(server), Identifier(myacct), true)) {
+            otOut << "Error retrieving intermediary files for account.\n";
+            return -1;
+        }
     }
-
     return 1;
 }
 
@@ -1097,10 +1103,13 @@ std::int32_t OTRecordList::confirmPaymentPlan_lowLevel( // a static method
         return -1;
     }
 
-    if (!OT::App().API().ServerAction().GetTransactionNumbers(
-            Identifier(senderUser), Identifier(server), 2)) {
-        otOut << "Error: cannot reserve transaction numbers.\n";
-        return -1;
+    {
+        rLock lock(opentxs::OT::App().API().Lock());
+        if (!OT::App().API().ServerAction().GetTransactionNumbers(
+                Identifier(senderUser), Identifier(server), 2)) {
+            otOut << "Error: cannot reserve transaction numbers.\n";
+            return -1;
+        }
     }
 
     std::string confirmed = SwigWrap::ConfirmPaymentPlan(
@@ -1119,13 +1128,16 @@ std::int32_t OTRecordList::confirmPaymentPlan_lowLevel( // a static method
 
     paymentPlan->LoadContractFromString(String(confirmed.c_str()));
 
-    std::string response =
-        OT::App()
+    std::string response;
+    {
+        rLock lock(opentxs::OT::App().API().Lock());
+        response = OT::App()
             .API()
             .ServerAction()
             .DepositPaymentPlan(
                 Identifier(senderUser), Identifier(server), paymentPlan)
             ->Run();
+    }
 
     std::int32_t success = VerifyMessageSuccess(response);
     if (1 != success) {
@@ -1146,13 +1158,16 @@ std::int32_t OTRecordList::confirmPaymentPlan_lowLevel( // a static method
         *pOptionalOutput = response;
     }
 
-    if (!OT::App().API().ServerAction().DownloadAccount(
-            Identifier(senderUser),
-            Identifier(server),
-            Identifier(senderAcct),
-            true)) {
-        otOut << "Error retrieving intermediary files for account.\n";
-        return -1;
+    {
+        rLock lock(opentxs::OT::App().API().Lock());
+        if (!OT::App().API().ServerAction().DownloadAccount(
+                Identifier(senderUser),
+                Identifier(server),
+                Identifier(senderAcct),
+                true)) {
+            otOut << "Error retrieving intermediary files for account.\n";
+            return -1;
+        }
     }
 
     // NOTICE here (on success) we do NOT call RecordPayment. (Contrast this
@@ -1528,7 +1543,10 @@ std::int32_t OTRecordList::cancel_outgoing_payments(
             OT_ASSERT(contract)
 
             contract->LoadContractFromString(String(payment));
-            std::string response = OT::App()
+            std::string response;
+            {
+                rLock lock(opentxs::OT::App().API().Lock());
+                response = OT::App()
                                   .API()
                                   .ServerAction()
                                   .ActivateSmartContract(
@@ -1538,6 +1556,7 @@ std::int32_t OTRecordList::cancel_outgoing_payments(
                                       "acct_agent_name",
                                       contract)
                                   ->Run();
+            }
             if (response.empty()) {
                 otOut << "Error: cannot cancel smart contract.\n";
                 retVal = -1;
@@ -1569,12 +1588,15 @@ std::int32_t OTRecordList::cancel_outgoing_payments(
             OT_ASSERT(plan)
 
             plan->LoadContractFromString(String(payment));
-            std::string response =
-                OT::App()
+            std::string response;
+            {
+                rLock lock(opentxs::OT::App().API().Lock());
+                response = OT::App()
                     .API()
                     .ServerAction()
                     .CancelPaymentPlan(theNymID, theNotaryID, plan)
                     ->Run();
+            }
             if (response.empty()) {
                 otOut << "Error: cannot cancel payment plan.\n";
                 retVal = -1;
@@ -1702,10 +1724,13 @@ std::int32_t OTRecordList::acceptFromInbox( // a static method
     //
     const Identifier theNotaryID{server}, theNymID{mynym}, theAcctID{myacct};
 
-    if (!OT::App().API().ServerAction().GetTransactionNumbers(
+    {
+        rLock lock(opentxs::OT::App().API().Lock());
+        if (!OT::App().API().ServerAction().GetTransactionNumbers(
             theNymID, theNotaryID, 10)) {
-        otOut << "Error: cannot reserve transaction numbers.\n";
-        return -1;
+            otOut << "Error: cannot reserve transaction numbers.\n";
+            return -1;
+        }
     }
     // -----------------------------------------------------------
     std::unique_ptr<Ledger> pInbox(
@@ -1832,12 +1857,15 @@ std::int32_t OTRecordList::acceptFromInbox( // a static method
         return -1;
     }
     // ----------------------------------------------
-    const std::string notary_response =
-        OT::App()
+    std::string notary_response;
+    {
+        rLock lock(opentxs::OT::App().API().Lock());
+        notary_response = OT::App()
             .API()
             .ServerAction()
             .ProcessInbox(theNymID, theNotaryID, theAcctID, processInbox)
             ->Run();
+    }
     std::int32_t reply =
         InterpretTransactionMsgReply(server, mynym, myacct, "process_inbox",
                                      notary_response);
@@ -1849,15 +1877,18 @@ std::int32_t OTRecordList::acceptFromInbox( // a static method
     // We KNOW they all just changed, since we just processed
     // the inbox. Might as well refresh our copy with the new changes.
     //
-    if (!OT::App().API().ServerAction().DownloadAccount(
+    {
+        rLock lock(opentxs::OT::App().API().Lock());
+        if (!OT::App().API().ServerAction().DownloadAccount(
             theNymID, theNotaryID, theAcctID, true)) {
-        otOut << __FUNCTION__
-              << "Success processing inbox, but then failed "
-                 "retrieving intermediary files for account.\n";
-//      return -1; // By this point we DID successfully process the
-//      inbox.
-        // (We just then subsequently failed to download the updated acct
-        // files.)
+            otOut << __FUNCTION__
+                  << "Success processing inbox, but then failed "
+                     "retrieving intermediary files for account.\n";
+//          return -1;
+            // By this point we DID successfully process the inbox.
+            // (We just then subsequently failed to download the updated acct
+            // files.)
+        }
     }
 
     return 1;
@@ -2443,17 +2474,21 @@ bool OTRecordList::PerformAutoAccept()
                         int32_t nNumberNeeded =
                             20;  // I'm just hardcoding: "Make sure I have at
                                  // least 20 transaction numbers."
-                        if (!OT::App()
+                        {
+                            rLock lock(api_lock_);
+                            if (!OT::App()
                                  .API()
                                  .ServerAction()
                                  .GetTransactionNumbers(
-                                     theNymID, theNotaryID, nNumberNeeded)) {
-                            otOut << "\n\nFailure: "
-                                     "make_sure_enough_trans_nums: "
-                                     "returned false. (Skipping inbox "
-                                     "for account "
-                                  << str_account_id.c_str() << ")\n";
-                            continue;
+                                     theNymID, theNotaryID, nNumberNeeded))
+                            {
+                                otOut << "\n\nFailure: "
+                                         "make_sure_enough_trans_nums: "
+                                         "returned false. (Skipping inbox "
+                                         "for account "
+                                      << str_account_id.c_str() << ")\n";
+                                continue;
+                            }
                         }
                         strResponseLedger =
                             OT::App().API().Exec().Ledger_CreateResponse(
@@ -2521,13 +2556,16 @@ bool OTRecordList::PerformAutoAccept()
 
                 OT_ASSERT(loaded);
 
-                std::string strResponse =
-                    OT::App()
+                std::string strResponse;
+                {
+                    rLock lock(api_lock_);
+                    strResponse = OT::App()
                         .API()
                         .ServerAction()
                         .ProcessInbox(
                             theNymID, theNotaryID, theAccountID, ledger)
                         ->Run();
+                }
                 std::string strAttempt = "process_inbox";
 
                 int32_t nInterpretReply = InterpretTransactionMsgReply(
@@ -2542,6 +2580,7 @@ bool OTRecordList::PerformAutoAccept()
                     // inbox, outbox, etc)
                     // since they have probably changed from this operation.
                     //
+                    rLock lock(api_lock_);
                     bool bRetrieved =
                         OT::App().API().ServerAction().DownloadAccount(
                             theNymID,
@@ -5943,7 +5982,8 @@ void OTRecordList::AddSpecialMsg(
 // This one expects that s_pCaller is not nullptr.
 //
 OTRecordList::OTRecordList()
-    : m_pLookup(nullptr)
+    : api_lock_(opentxs::OT::App().API().Lock())
+    , m_pLookup(nullptr)
     , m_bRunFast(false)
     , m_bAutoAcceptCheques(false)
     , m_bAutoAcceptReceipts(false)
@@ -5965,7 +6005,8 @@ OTRecordList::OTRecordList()
 }
 
 OTRecordList::OTRecordList(const OTNameLookup& theLookup)
-    : m_pLookup(&theLookup)
+    : api_lock_(opentxs::OT::App().API().Lock())
+    , m_pLookup(&theLookup)
     , m_bRunFast(false)
     , m_bAutoAcceptCheques(false)
     , m_bAutoAcceptReceipts(false)

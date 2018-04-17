@@ -50,6 +50,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <mutex>
 
 #ifdef SWIG
 // clang-format off
@@ -168,6 +169,8 @@ class OTRecordList
 {
 public:
     enum ItemType { typeBoth = 0, typeTransfers = 1, typeReceipts = 2 };
+
+    std::recursive_mutex& api_lock_;
 
 private:
     const OTNameLookup* m_pLookup{nullptr};
