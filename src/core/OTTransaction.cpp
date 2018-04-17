@@ -77,6 +77,8 @@
 #include <string>
 #include <vector>
 
+#define OT_METHOD "opentxs::OTTransaction::"
+
 namespace opentxs
 {
 
@@ -3020,7 +3022,7 @@ OTTransaction::OTTransaction(
           lTransactionNum,
           theOriginType)
     , m_pParent(nullptr)
-    , m_bIsAbbreviated(true)
+    , m_bIsAbbreviated(false)
     , m_lAbbrevAmount(0)
     , m_lDisplayAmount(0)
     , m_lInRefDisplay(0)
@@ -4166,7 +4168,9 @@ void OTTransaction::UpdateContents()
     tag.add_attribute("transactionNum", formatLong(GetTransactionNum()));
     tag.add_attribute("inReferenceTo", formatLong(GetReferenceToNum()));
 
-    if (m_bCancelled) tag.add_attribute("cancelled", formatBool(m_bCancelled));
+    if (m_bCancelled) {
+        tag.add_attribute("cancelled", formatBool(m_bCancelled));
+    }
 
     if (OTTransaction::replyNotice == m_Type) {
         tag.add_attribute("requestNumber", formatLong(m_lRequestNumber));
@@ -4195,7 +4199,6 @@ void OTTransaction::UpdateContents()
 
     if (IsAbbreviated()) {
         if (nullptr != m_pParent) {
-
             switch (m_pParent->GetType()) {
                 case Ledger::nymbox:
                     SaveAbbreviatedNymboxRecord(tag);
@@ -4216,25 +4219,26 @@ void OTTransaction::UpdateContents()
                     SaveAbbrevExpiredBoxRecord(tag);
                     break;
                 /* --- BREAK --- */
-                case Ledger::message:
+                case Ledger::message: {
                     otErr
-                        << "OTTransaction::" << __FUNCTION__
+                        << OT_METHOD << __FUNCTION__
                         << ": Unexpected message ledger type in 'abbreviated' "
                            "block. (Error.) \n";
-                    break;
+
+                    OT_FAIL
+                } break;
                 default:
-                    otErr << "OTTransaction::" << __FUNCTION__
+                    otErr << OT_METHOD << __FUNCTION__
                           << ": Unexpected ledger type in 'abbreviated' block. "
                              "(Error.) \n";
                     break;
             } /*switch*/
-        } else
-            otErr << "OTTransaction::" << __FUNCTION__
+        } else {
+            otErr << OT_METHOD << __FUNCTION__
                   << ": Error: Unable to save abbreviated receipt here, since "
                      "m_pParent is nullptr.\n";
-
-    } else  // not abbreviated (full details.)
-    {
+        }
+    } else {
         if ((OTTransaction::finalReceipt == m_Type) ||
             (OTTransaction::basketReceipt == m_Type)) {
             TagPtr tagClosingNo(new Tag("closingTransactionNumber"));
@@ -4272,7 +4276,6 @@ void OTTransaction::UpdateContents()
 
     std::string str_result;
     tag.output(str_result);
-
     m_xmlUnsigned.Concatenate("%s", str_result.c_str());
 }
 
