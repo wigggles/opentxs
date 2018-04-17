@@ -971,7 +971,7 @@ std::int32_t OTRecordList::depositCheque( // a static method
 
     std::string response;
     {
-        rLock lock(api_lock_);
+        rLock lock(opentxs::OT::App().API().Lock());
         response = OT::App()
                           .API()
                           .ServerAction()
@@ -993,7 +993,7 @@ std::int32_t OTRecordList::depositCheque( // a static method
     }
 
     {
-        rLock lock(api_lock_);
+        rLock lock(opentxs::OT::App().API().Lock());
         if (!OT::App().API().ServerAction().DownloadAccount(
                 Identifier(mynym), Identifier(server), Identifier(myacct), true)) {
             otOut << "Error retrieving intermediary files for account.\n";
@@ -1104,7 +1104,7 @@ std::int32_t OTRecordList::confirmPaymentPlan_lowLevel( // a static method
     }
 
     {
-        rLock lock(api_lock_);
+        rLock lock(opentxs::OT::App().API().Lock());
         if (!OT::App().API().ServerAction().GetTransactionNumbers(
                 Identifier(senderUser), Identifier(server), 2)) {
             otOut << "Error: cannot reserve transaction numbers.\n";
@@ -1130,9 +1130,8 @@ std::int32_t OTRecordList::confirmPaymentPlan_lowLevel( // a static method
 
     std::string response;
     {
-        rLock lock(api_lock_);
+        rLock lock(opentxs::OT::App().API().Lock());
         response = OT::App()
-        OT::App()
             .API()
             .ServerAction()
             .DepositPaymentPlan(
@@ -1160,7 +1159,7 @@ std::int32_t OTRecordList::confirmPaymentPlan_lowLevel( // a static method
     }
 
     {
-        rLock lock(api_lock_);
+        rLock lock(opentxs::OT::App().API().Lock());
         if (!OT::App().API().ServerAction().DownloadAccount(
                 Identifier(senderUser),
                 Identifier(server),
@@ -1546,7 +1545,7 @@ std::int32_t OTRecordList::cancel_outgoing_payments(
             contract->LoadContractFromString(String(payment));
             std::string response;
             {
-                rLock lock(api_lock_);
+                rLock lock(opentxs::OT::App().API().Lock());
                 response = OT::App()
                                   .API()
                                   .ServerAction()
@@ -1591,7 +1590,7 @@ std::int32_t OTRecordList::cancel_outgoing_payments(
             plan->LoadContractFromString(String(payment));
             std::string response;
             {
-                rLock lock(api_lock_);
+                rLock lock(opentxs::OT::App().API().Lock());
                 response = OT::App()
                     .API()
                     .ServerAction()
@@ -1726,7 +1725,7 @@ std::int32_t OTRecordList::acceptFromInbox( // a static method
     const Identifier theNotaryID{server}, theNymID{mynym}, theAcctID{myacct};
 
     {
-        rLock lock(api_lock_);
+        rLock lock(opentxs::OT::App().API().Lock());
         if (!OT::App().API().ServerAction().GetTransactionNumbers(
             theNymID, theNotaryID, 10)) {
             otOut << "Error: cannot reserve transaction numbers.\n";
@@ -1860,7 +1859,7 @@ std::int32_t OTRecordList::acceptFromInbox( // a static method
     // ----------------------------------------------
     std::string notary_response;
     {
-        rLock lock(api_lock_);
+        rLock lock(opentxs::OT::App().API().Lock());
         notary_response = OT::App()
             .API()
             .ServerAction()
@@ -1879,7 +1878,7 @@ std::int32_t OTRecordList::acceptFromInbox( // a static method
     // the inbox. Might as well refresh our copy with the new changes.
     //
     {
-        rLock lock(api_lock_);
+        rLock lock(opentxs::OT::App().API().Lock());
         if (!OT::App().API().ServerAction().DownloadAccount(
             theNymID, theNotaryID, theAcctID, true)) {
             otOut << __FUNCTION__
