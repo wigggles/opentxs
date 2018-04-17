@@ -18,10 +18,6 @@
 
 #include <cstdint>
 
-#ifdef ANDROID
-#include "opentxs/core/util/android_string.hpp"
-#endif  // ANDROID
-
 #ifdef __cplusplus
 extern "C" {
 #endif
