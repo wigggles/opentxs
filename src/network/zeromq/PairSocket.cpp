@@ -115,7 +115,7 @@ PairSocket::PairSocket(
           context,
           callback,
           opentxs::network::zeromq::Socket::PairEndpointPrefix +
-              Identifier::Random().str(),
+              Identifier::Random()->str(),
           true,
           startThread)
 {

@@ -56,11 +56,6 @@
 
 namespace opentxs
 {
-OTIdentifier Identifier::RandomFactory()
-{
-    return OTIdentifier(new Identifier);
-}
-
 OTIdentifier Identifier::Factory() { return OTIdentifier(new Identifier()); }
 
 OTIdentifier Identifier::Factory(const Identifier& rhs)
@@ -103,6 +98,16 @@ OTIdentifier Identifier::Factory(
     const proto::HDPath& path)
 {
     return OTIdentifier(new Identifier(type, path));
+}
+
+OTIdentifier Identifier::Random()
+{
+    auto output = OTIdentifier(new Identifier);
+    auto nonce = Data::Factory();
+    OT::App().Crypto().Encode().Nonce(32, nonce);
+    output->CalculateDigest(nonce);
+
+    return output;
 }
 
 // static
@@ -266,16 +271,6 @@ bool Identifier::CalculateDigest(const opentxs::Data& dataInput, const ID type)
 }
 
 Identifier* Identifier::clone() const { return new Identifier(*this); }
-
-Identifier Identifier::Random()
-{
-    Identifier output;
-    auto nonce = Data::Factory();
-    OT::App().Crypto().Encode().Nonce(32, nonce);
-    output.CalculateDigest(nonce);
-
-    return output;
-}
 
 // SET (binary id) FROM ENCODED STRING
 void Identifier::SetString(const String& encoded)
