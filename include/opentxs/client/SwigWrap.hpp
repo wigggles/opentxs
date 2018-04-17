@@ -3394,6 +3394,8 @@ public:
 
     EXPORT static bool ClearProxy(const std::string& server);
 
+    EXPORT static bool ConfigureProxy(const std::string& proxy);
+
     EXPORT static std::string AddChildEd25519Credential(
         const std::string& nymID,
         const std::string& masterID);
