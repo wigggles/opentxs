@@ -1304,12 +1304,14 @@ bool OT_API::Wallet_CanRemoveNym(const Identifier& NYM_ID) const
         auto context =
             wallet_.ServerContext(nym->ID(), Identifier(server.first));
 
-        if (0 != context->Request()) {
-            otErr << OT_METHOD << __FUNCTION__
-                  << ": Nym cannot be removed because there"
-                     " are still servers in the wallet that "
-                     "the Nym is registered at.\n";
-            return false;
+        if (context) {
+            if (0 != context->Request()) {
+                otErr << OT_METHOD << __FUNCTION__
+                      << ": Nym cannot be removed because there"
+                         " are still servers in the wallet that "
+                         "the Nym is registered at.\n";
+                return false;
+            }
         }
     }
 
@@ -2362,6 +2364,13 @@ bool OT_API::VerifyAccountReceipt(
     const Identifier& ACCOUNT_ID) const
 {
     auto context = wallet_.ServerContext(NYM_ID, NOTARY_ID);
+
+    if (false == bool(context)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Nym " << NYM_ID.str()
+              << " is not registered on " << NOTARY_ID.str() << std::endl;
+
+        return false;
+    }
 
     return VerifyBalanceReceipt(*context, NOTARY_ID, ACCOUNT_ID);
 }
@@ -4184,11 +4193,15 @@ std::shared_ptr<Account> OT_API::GetOrLoadAccount(
     const char* szFunc = (nullptr != szFuncName) ? szFuncName : __FUNCTION__;
     auto context = wallet_.ServerContext(NYM_ID, NOTARY_ID);
 
+    if (false == bool(context)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Nym " << NYM_ID.str()
+              << " is not registered on " << NOTARY_ID.str() << std::endl;
+
+        return {};
+    }
+
     auto nym = context->Nym();
 
-    // By this point, nym is a good pointer, and is on the wallet. (No need
-    // to
-    // cleanup.)
     return GetOrLoadAccount(
         *nym,
         accountID,
@@ -4666,8 +4679,14 @@ Purse* OT_API::LoadPurse(
     const String strInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
     auto context = wallet_.ServerContext(NYM_ID, NOTARY_ID);
 
-    auto nym = context->Nym();
+    if (false == bool(context)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Nym " << NYM_ID.str()
+              << " is not registered on " << NOTARY_ID.str() << std::endl;
 
+        return nullptr;
+    }
+
+    auto nym = context->Nym();
     Purse* pPurse = new Purse(NOTARY_ID, INSTRUMENT_DEFINITION_ID, NYM_ID);
     OT_ASSERT_MSG(
         nullptr != pPurse,
@@ -5413,6 +5432,13 @@ bool OT_API::Wallet_ImportPurse(
                              // purses.
     auto context = wallet_.ServerContext(SIGNER_ID, NOTARY_ID);
 
+    if (false == bool(context)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Nym " << SIGNER_ID.str()
+              << " is not registered on " << NOTARY_ID.str() << std::endl;
+
+        return false;
+    }
+
     auto nym = context->Nym();
 
     // By this point, nym is a good pointer, and is on the wallet. (No need
@@ -5560,6 +5586,14 @@ Token* OT_API::Token_ChangeOwner(
             : pstrDisplay->Get());
     OTPasswordData cashPasswordReason(strWalletReason);
     auto context = wallet_.ServerContext(SIGNER_NYM_ID, NOTARY_ID);
+
+    if (false == bool(context)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Nym " << SIGNER_NYM_ID.str()
+              << " is not registered on " << NOTARY_ID.str() << std::endl;
+
+        return nullptr;
+    }
+
     auto pSignerNym = context->Nymfile(cashPasswordReason);
 
     if (false == bool(pSignerNym)) {
@@ -5772,10 +5806,16 @@ std::shared_ptr<Account> OT_API::LoadAssetAccount(
     if (nullptr == pWallet) return nullptr;
     // By this point, pWallet is a good pointer.  (No need to cleanup.)
     auto context = wallet_.ServerContext(NYM_ID, NOTARY_ID);
+
+    if (false == bool(context)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Nym " << NYM_ID.str()
+              << " is not registered on " << NOTARY_ID.str() << std::endl;
+
+        return nullptr;
+    }
+
     auto nym = context->Nym();
 
-    // By this point, nym is a good pointer, and is on the wallet.
-    // (No need to cleanup.)
     return pWallet->LoadAccount(*nym, ACCOUNT_ID, NOTARY_ID, __FUNCTION__);
 }
 
@@ -5787,22 +5827,25 @@ Ledger* OT_API::LoadNymbox(
     const Identifier& NYM_ID) const
 {
     rLock lock(lock_);
-
     auto context = wallet_.ServerContext(NYM_ID, NOTARY_ID);
-    auto nym = context->Nym();
 
-    // By this point, nym is a good pointer, and is on the wallet.
-    // (No need to cleanup later.)
-    // ---------------------------------------------
+    if (false == bool(context)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Nym " << NYM_ID.str()
+              << " is not registered on " << NOTARY_ID.str() << std::endl;
+
+        return nullptr;
+    }
+
+    auto nym = context->Nym();
     std::unique_ptr<Ledger> pLedger{
         Ledger::GenerateLedger(NYM_ID, NYM_ID, NOTARY_ID, Ledger::nymbox)};
-    //    OT_ASSERT_MSG( pLedger,
-    //                  "OT_API::LoadNymbox: Error allocating memory in the OT
-    //                  API.");
+
     OT_NEW_ASSERT_MSG(pLedger, "Error allocating memory in the OT API.");
-    // ---------------------------------------------
-    if (pLedger->LoadNymbox() && pLedger->VerifyAccount(*nym))
+
+    if (pLedger->LoadNymbox() && pLedger->VerifyAccount(*nym)) {
+
         return pLedger.release();
+    }
 
     return nullptr;
 }
@@ -5850,8 +5893,15 @@ Ledger* OT_API::LoadInbox(
     const Identifier& ACCOUNT_ID) const
 {
     rLock lock(lock_);
-
     auto context = wallet_.ServerContext(NYM_ID, NOTARY_ID);
+
+    if (false == bool(context)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Nym " << NYM_ID.str()
+              << " is not registered on " << NOTARY_ID.str() << std::endl;
+
+        return nullptr;
+    }
+
     auto nym = context->Nym();
 
     // By this point, nym is a good pointer, and is on the wallet.
@@ -5919,8 +5969,15 @@ Ledger* OT_API::LoadOutbox(
     const Identifier& ACCOUNT_ID) const
 {
     rLock lock(lock_);
-
     auto context = wallet_.ServerContext(NYM_ID, NOTARY_ID);
+
+    if (false == bool(context)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Nym " << NYM_ID.str()
+              << " is not registered on " << NOTARY_ID.str() << std::endl;
+
+        return nullptr;
+    }
+
     auto nym = context->Nym();
 
     // By this point, nym is a good pointer, and is on the wallet.
@@ -5985,21 +6042,25 @@ Ledger* OT_API::LoadPaymentInbox(
     const Identifier& NYM_ID) const
 {
     rLock lock(lock_);
-
     auto context = wallet_.ServerContext(NYM_ID, NOTARY_ID);
+
+    if (false == bool(context)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Nym " << NYM_ID.str()
+              << " is not registered on " << NOTARY_ID.str() << std::endl;
+
+        return nullptr;
+    }
 
     auto nym = context->Nym();
 
-    // By this point, nym is a good pointer, and is on the wallet.
-    // (No need to cleanup later.)
-    // ---------------------------------------------
     std::unique_ptr<Ledger> pLedger{Ledger::GenerateLedger(
         NYM_ID, NYM_ID, NOTARY_ID, Ledger::paymentInbox)};
+
     OT_NEW_ASSERT_MSG(pLedger, "Error allocating memory in the OT API");
 
-    if (pLedger->LoadPaymentInbox() && pLedger->VerifyAccount(*nym))
+    if (pLedger->LoadPaymentInbox() && pLedger->VerifyAccount(*nym)) {
         return pLedger.release();
-    else {
+    } else {
         String strNymID(NYM_ID), strAcctID(NYM_ID);
         otWarn << OT_METHOD << __FUNCTION__
                << ": Unable to load or verify for Nym/Acct: " << strNymID
@@ -6045,6 +6106,14 @@ Ledger* OT_API::LoadRecordBox(
     rLock lock(lock_);
 
     auto context = wallet_.ServerContext(NYM_ID, NOTARY_ID);
+
+    if (false == bool(context)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Nym " << NYM_ID.str()
+              << " is not registered on " << NOTARY_ID.str() << std::endl;
+
+        return nullptr;
+    }
+
     auto nym = context->Nym();
 
     // By this point, nym is a good pointer, and is on the wallet.
@@ -6104,8 +6173,14 @@ Ledger* OT_API::LoadExpiredBox(
     const Identifier& NYM_ID) const
 {
     rLock lock(lock_);
-
     auto context = wallet_.ServerContext(NYM_ID, NOTARY_ID);
+
+    if (false == bool(context)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Nym " << NYM_ID.str()
+              << " is not registered on " << NOTARY_ID.str() << std::endl;
+
+        return nullptr;
+    }
 
     auto nym = context->Nym();
 
@@ -6166,14 +6241,18 @@ bool OT_API::ClearExpired(
                            // ignored.
 {
     rLock lock(lock_);
-
     auto context = wallet_.ServerContext(NYM_ID, NOTARY_ID);
-    auto nym = context->Nym();
 
-    // By this point, nym is a good pointer, and is on the wallet. (No need
-    // to
-    // cleanup.)
+    if (false == bool(context)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Nym " << NYM_ID.str()
+              << " is not registered on " << NOTARY_ID.str() << std::endl;
+
+        return false;
+    }
+
+    auto nym = context->Nym();
     std::unique_ptr<Ledger> pExpiredBox(LoadExpiredBox(NOTARY_ID, NYM_ID));
+
     if (false == bool(pExpiredBox)) {
         pExpiredBox.reset(Ledger::GenerateLedger(
             NYM_ID, NYM_ID, NOTARY_ID, Ledger::expiredBox, true));
@@ -7702,15 +7781,19 @@ bool OT_API::ClearRecord(
     bool bClearAll) const  // if true, nIndex is ignored.
 {
     rLock lock(lock_);
-
     auto context = wallet_.ServerContext(NYM_ID, NOTARY_ID);
-    auto nym = context->Nym();
 
-    // By this point, nym is a good pointer, and is on the wallet. (No need
-    // to
-    // cleanup.)
+    if (false == bool(context)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Nym " << NYM_ID.str()
+              << " is not registered on " << NOTARY_ID.str() << std::endl;
+
+        return false;
+    }
+
+    auto nym = context->Nym();
     std::unique_ptr<Ledger> pRecordBox(
         LoadRecordBox(NOTARY_ID, NYM_ID, ACCOUNT_ID));
+
     if (nullptr == pRecordBox) {
         pRecordBox.reset(Ledger::GenerateLedger(
             NYM_ID, ACCOUNT_ID, NOTARY_ID, Ledger::recordBox, true));
@@ -7722,6 +7805,7 @@ bool OT_API::ClearRecord(
             return false;
         }
     }
+
     if (bClearAll) {
         pRecordBox->ReleaseTransactions();
         pRecordBox->ReleaseSignatures();
@@ -8023,6 +8107,13 @@ bool OT_API::HaveAlreadySeenReply(
     const RequestNumber& lRequestNumber) const
 {
     auto context = wallet_.ServerContext(NYM_ID, NOTARY_ID);
+
+    if (false == bool(context)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Nym " << NYM_ID.str()
+              << " is not registered on " << NOTARY_ID.str() << std::endl;
+
+        return false;
+    }
 
     return context->VerifyAcknowledgedNumber(lRequestNumber);
 }
@@ -12298,8 +12389,18 @@ OT_API::ProcessInbox OT_API::Ledger_CreateResponse(
     OT_VERIFY_OT_ID(theAccountID);
 
     auto nym = wallet_.Nym(theNymID);  // Sanity check.
+
     OT_ASSERT(nym);
+
     auto context = wallet_.ServerContext(theNymID, theNotaryID);
+
+    if (false == bool(context)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Nym " << theNymID.str()
+              << " is not registered on " << theNotaryID.str() << std::endl;
+
+        OT_FAIL;
+    }
+
     auto response = CreateProcessInbox(theAccountID, *context);
 
     // response is of type "ProcessInbox":
