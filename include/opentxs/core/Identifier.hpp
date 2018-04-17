@@ -58,7 +58,7 @@ private:
     using ot_super = opentxs::implementation::Data;
 
 public:
-    EXPORT static OTIdentifier RandomFactory();
+    EXPORT static OTIdentifier Random();
     EXPORT static OTIdentifier Factory();
     EXPORT static OTIdentifier Factory(const Identifier& rhs);
     EXPORT static OTIdentifier Factory(const std::string& rhs);
@@ -73,7 +73,6 @@ public:
 
     EXPORT friend std::ostream& operator<<(std::ostream& os, const String& obj);
     EXPORT static bool validateID(const std::string& strPurportedID);
-    EXPORT static Identifier Random();
 
     EXPORT Identifier();
     EXPORT explicit Identifier(const std::string& rhs);

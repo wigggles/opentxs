@@ -413,7 +413,7 @@ protected:
         , startup_(nullptr)
         , blank_p_(blank)
         , blank_(*blank_p_)
-        , widget_id_(Identifier::RandomFactory())
+        , widget_id_(Identifier::Random())
     {
         // WARNING if you plan on using blank_, check blank_p_ in the child
         // class constructor
