@@ -178,10 +178,15 @@ opentxs::network::ServerConnection& ZMQ::Server(const std::string& id) const
 
     auto[it, created] = server_connections_.emplace(
         id, opentxs::network::ServerConnection::Factory(*this, id));
+    auto& connection = it->second;
 
     OT_ASSERT(created);
 
-    return it->second;
+    if (false == socks_proxy_.empty()) {
+        connection->EnableProxy();
+    }
+
+    return connection;
 }
 
 bool ZMQ::SetSocksProxy(const std::string& proxy) const

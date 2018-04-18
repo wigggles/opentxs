@@ -289,6 +289,8 @@ void ServerConnection::set_proxy(
     auto proxy = zmq_.SocksProxy();
 
     if (false == proxy.empty()) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Setting proxy to " << proxy
+              << std::endl;
         const auto set = socket.SetSocksProxy(proxy);
 
         OT_ASSERT(set);
