@@ -101,7 +101,7 @@ public:
         const Identifier& contactID,
         std::shared_ptr<const Purse>& recipientCopy,
         std::shared_ptr<const Purse>& senderCopy) const = 0;
-#endif // OT_CASH
+#endif  // OT_CASH
     EXPORT virtual void Refresh() const = 0;
     EXPORT virtual std::uint64_t RefreshCount() const = 0;
     EXPORT virtual Identifier RegisterNym(
@@ -125,9 +125,20 @@ public:
     EXPORT virtual Identifier ScheduleDownloadNymbox(
         const Identifier& localNymID,
         const Identifier& serverID) const = 0;
+    EXPORT virtual Identifier ScheduleRegisterAccount(
+        const Identifier& localNymID,
+        const Identifier& serverID,
+        const Identifier& unitID) const = 0;
     EXPORT virtual Identifier ScheduleRegisterNym(
         const Identifier& localNymID,
         const Identifier& serverID) const = 0;
+    EXPORT virtual Identifier SendTransfer(
+        const Identifier& localNymID,
+        const Identifier& serverID,
+        const Identifier& sourceAccountID,
+        const Identifier& targetAccountID,
+        const int64_t value,
+        const std::string& memo) const = 0;
     EXPORT virtual void StartIntroductionServer(
         const Identifier& localNymID) const = 0;
     EXPORT virtual ThreadStatus Status(const Identifier& thread) const = 0;
