@@ -57,6 +57,7 @@
 #include <opentxs/api/client/ServerAction.hpp>
 #include <opentxs/api/client/Sync.hpp>
 #include <opentxs/api/client/Wallet.hpp>
+#include <opentxs/api/crypto/Crypto.hpp>
 #include <opentxs/api/network/ZMQ.hpp>
 #include <opentxs/api/storage/Storage.hpp>
 #include <opentxs/cash/Purse.hpp>
@@ -75,6 +76,7 @@
 #include <opentxs/contact/ContactSection.hpp>
 #include <opentxs/core/contract/ServerContract.hpp>
 #include <opentxs/core/contract/UnitDefinition.hpp>
+#include <opentxs/core/crypto/Bip39.hpp>
 #include <opentxs/core/cron/OTCronItem.hpp>
 #include <opentxs/core/crypto/OTASCIIArmor.hpp>
 #include <opentxs/core/crypto/OTAsymmetricKey.hpp>
@@ -114,6 +116,7 @@
 #include <opentxs/network/zeromq/Message.hpp>
 #include <opentxs/network/zeromq/PairEventCallback.hpp>
 #include <opentxs/network/zeromq/SubscribeSocket.hpp>
+#include <opentxs/network/ServerConnection.hpp>
 #include <opentxs/ui/ActivitySummary.hpp>
 #include <opentxs/ui/ActivitySummaryItem.hpp>
 #include <opentxs/ui/ActivityThread.hpp>
@@ -121,6 +124,7 @@
 #include <opentxs/ui/ContactList.hpp>
 #include <opentxs/ui/ContactListItem.hpp>
 #include <opentxs/ui/MessagableList.hpp>
+#include <opentxs/util/Signals.hpp>
 #include <opentxs/OT.hpp>
 #include <opentxs/Proto.hpp>
 #include <opentxs/Types.hpp>
