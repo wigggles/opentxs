@@ -66,10 +66,10 @@ public:
         const std::string& mynym,
         std::string instrument,
         const std::string& indices,
-        std::string* pOptionalOutput=nullptr) const override; // server reply.
-    bool easy_withdraw_cash(
-        const std::string& ACCT_ID,
-        std::int64_t AMOUNT) const override;
+        std::string* pOptionalOutput = nullptr) const override;  // server
+                                                                 // reply.
+    bool easy_withdraw_cash(const std::string& ACCT_ID, std::int64_t AMOUNT)
+        const override;
     std::string export_cash(
         const std::string& NOTARY_ID,
         const std::string& FROM_NYM_ID,
@@ -94,13 +94,13 @@ public:
         std::int64_t AMOUNT,
         std::shared_ptr<const Purse>& recipientCopy,
         std::shared_ptr<const Purse>& senderCopy,
-        bool bPasswordProtected=false) const override;
+        bool bPasswordProtected = false) const override;
     bool withdraw_and_send_cash(
         const std::string& ACCT_ID,
         const std::string& RECIPIENT_NYM_ID,
         std::int64_t AMOUNT) const override;
 
-#endif // OT_CASH
+#endif  // OT_CASH
 
 protected:
 #if OT_CASH
@@ -112,9 +112,9 @@ protected:
         const std::string& oldPurse,
         const std::vector<std::string>& selectedTokens,
         const std::string& accountID,
-        const bool bReimportIfFailure, // So we don't re-import a purse that
-                                       // wasn't internal to begin with.
-        std::string* pOptionalOutput=nullptr) const; // server reply.
+        const bool bReimportIfFailure,  // So we don't re-import a purse that
+                                        // wasn't internal to begin with.
+        std::string* pOptionalOutput = nullptr) const;  // server reply.
 
     std::string export_cash_low_level(
         const std::string& notaryID,
@@ -179,22 +179,16 @@ protected:
         std::shared_ptr<const Purse>& recipientCopy,
         std::shared_ptr<const Purse>& senderCopy) const;
 
-#endif // OT_CASH
+#endif  // OT_CASH
 
 private:
     friend api::implementation::Api;
 
-    std::recursive_mutex& api_lock_;
-
-    Cash(std::recursive_mutex& apilock);
-
-    Cash() = delete;
-
+    Cash() = default;
     Cash(const Cash&) = delete;
     Cash(Cash&&) = delete;
     Cash& operator=(const Cash&) = delete;
     Cash& operator=(Cash&&) = delete;
 };
 }  // namespace opentxs::api::client::implementation
-
 #endif  // OPENTXS_API_CLIENT_CASH_IMPLEMENTATION_HPP

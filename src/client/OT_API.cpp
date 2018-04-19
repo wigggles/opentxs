@@ -525,7 +525,7 @@ OT_API::OT_API(
     const api::storage::Storage& storage,
     const api::client::Wallet& wallet,
     const api::network::ZMQ& zmq,
-    std::recursive_mutex& lock)
+    const ContextLockCallback& lockCallback)
     : activity_(activity)
     , config_(config)
     , contacts_(contacts)
@@ -541,8 +541,7 @@ OT_API::OT_API(
     , m_strConfigFilePath("")
     , m_pWallet(nullptr)
     , m_pClient(nullptr)
-    , lock_(lock)
-
+    , lock_callback_(lockCallback)
 {
     pid_.reset(new Pid);
 
@@ -644,8 +643,6 @@ bool OT_API::Cleanup()
 // Get
 bool OT_API::GetWalletFilename(String& strPath) const
 {
-    rLock lock(lock_);
-
     if (m_strWalletFilename.Exists()) {
         strPath = m_strWalletFilename;
         return true;
@@ -658,8 +655,6 @@ bool OT_API::GetWalletFilename(String& strPath) const
 // Set
 bool OT_API::SetWalletFilename(const String& strPath) const
 {
-    rLock lock(lock_);
-
     if (strPath.Exists()) {
         m_strWalletFilename = strPath;
         return true;
@@ -671,7 +666,7 @@ bool OT_API::SetWalletFilename(const String& strPath) const
 //
 bool OT_API::LoadConfigFile()
 {
-    rLock lock(lock_);
+    Lock lock(lock_);
 
     // LOG LEVEL
     {
@@ -780,7 +775,7 @@ bool OT_API::LoadConfigFile()
 
 bool OT_API::SetWallet(const String& strFilename) const
 {
-    rLock lock(lock_);
+    Lock lock(lock_);
 
     OT_NEW_ASSERT_MSG(strFilename.Exists(), "strFilename does not exist.");
     OT_NEW_ASSERT_MSG(
@@ -827,14 +822,14 @@ bool OT_API::SetWallet(const String& strFilename) const
 
 bool OT_API::WalletExists() const
 {
-    rLock lock(lock_);
+    Lock lock(lock_);
 
     return (nullptr != m_pWallet) ? true : false;
 }
 
 bool OT_API::LoadWallet() const
 {
-    rLock lock(lock_);
+    Lock lock(lock_);
 
     OT_ASSERT_MSG(
         m_bDefaultStore,
@@ -1016,7 +1011,7 @@ bool OT_API::IsNym_RegisteredAtServer(
  */
 bool OT_API::Wallet_ChangePassphrase() const
 {
-    rLock lock(lock_);
+    Lock lock(lock_);
 
     OTWallet* pWallet = GetWallet(__FUNCTION__);
 
@@ -1142,7 +1137,7 @@ std::string OT_API::Wallet_ImportSeed(
     __attribute__((unused)) const OTPassword& words,
     __attribute__((unused)) const OTPassword& passphrase) const
 {
-    rLock lock(lock_);
+    Lock lock(lock_);
 
     std::string output;
 #if OT_CRYPTO_WITH_BIP39
@@ -1162,7 +1157,7 @@ std::string OT_API::Wallet_ImportSeed(
 
 bool OT_API::Wallet_CanRemoveServer(const Identifier& NOTARY_ID) const
 {
-    rLock lock(lock_);
+    Lock lock(lock_);
 
     if (NOTARY_ID.IsEmpty()) {
         otErr << OT_METHOD << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -1216,7 +1211,7 @@ bool OT_API::Wallet_CanRemoveServer(const Identifier& NOTARY_ID) const
 bool OT_API::Wallet_CanRemoveAssetType(
     const Identifier& INSTRUMENT_DEFINITION_ID) const
 {
-    rLock lock(lock_);
+    Lock lock(lock_);
 
     if (INSTRUMENT_DEFINITION_ID.IsEmpty()) {
         otErr << OT_METHOD << __FUNCTION__
@@ -1259,7 +1254,7 @@ bool OT_API::Wallet_CanRemoveAssetType(
 //
 bool OT_API::Wallet_CanRemoveNym(const Identifier& NYM_ID) const
 {
-    rLock lock(lock_);
+    Lock lock(lock_);
 
     if (NYM_ID.IsEmpty()) {
         otErr << OT_METHOD << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
@@ -1332,7 +1327,7 @@ bool OT_API::Wallet_CanRemoveNym(const Identifier& NYM_ID) const
 //
 bool OT_API::Wallet_CanRemoveAccount(const Identifier& ACCOUNT_ID) const
 {
-    rLock lock(lock_);
+    Lock lock(lock_);
 
     if (ACCOUNT_ID.IsEmpty()) {
         otErr << OT_METHOD << __FUNCTION__ << ": Null: ACCOUNT_ID passed in!\n";
@@ -1402,7 +1397,7 @@ bool OT_API::Wallet_CanRemoveAccount(const Identifier& ACCOUNT_ID) const
 // Returns bool on success, and strOutput will contain the exported data.
 bool OT_API::Wallet_ExportNym(const Identifier& NYM_ID, String& strOutput) const
 {
-    rLock lock(lock_);
+    Lock lock(lock_);
 
     if (NYM_ID.IsEmpty()) {
         otErr << OT_METHOD << __FUNCTION__ << ": NYM_ID is empty!";
@@ -1557,7 +1552,7 @@ bool OT_API::Wallet_ImportNym(
     const String& FILE_CONTENTS,
     Identifier* nymfileID) const
 {
-    rLock lock(lock_);
+    Lock lock(lock_);
 
     // By this point, pWallet is a good pointer.  (No need to cleanup.)
     OTASCIIArmor ascArmor;
@@ -3003,9 +2998,8 @@ bool OT_API::SmartContract_ConfirmParty(
                               // party.
                               // (For now, until I code entities)
 {
-    rLock lock(lock_);
+    rLock lock(lock_callback_({NYM_ID.str(), NOTARY_ID.str()}));
     auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
-
     auto nymfile = context.It().mutable_Nymfile(__FUNCTION__);
     auto nym = context.It().Nym();
 
@@ -3876,11 +3870,15 @@ bool OT_API::SetAccount_Name(
     const Identifier& SIGNER_NYM_ID,
     const String& ACCT_NEW_NAME) const
 {
-    rLock lock(lock_);
-
+    Lock lock(lock_);
     OTWallet* pWallet =
         GetWallet(__FUNCTION__);  // This logs and ASSERTs already.
-    if (nullptr == pWallet) return false;
+
+    if (nullptr == pWallet) {
+
+        return false;
+    }
+
     // By this point, pWallet is a good pointer.  (No need to cleanup.)
     auto pSignerNym = wallet_.Nym(SIGNER_NYM_ID);
 
@@ -3984,7 +3982,7 @@ bool OT_API::Msg_HarvestTransactionNumbers(
     bool bTransactionWasSuccess,        // false until positively asserted.
     bool bTransactionWasFailure) const  // false until positively asserted.
 {
-    rLock lock(lock_);
+    rLock lock(lock_callback_({NYM_ID.str(), theMsg.m_strNotaryID.Get()}));
     auto context =
         wallet_.mutable_ServerContext(NYM_ID, Identifier(theMsg.m_strNotaryID));
 
@@ -4039,9 +4037,8 @@ bool OT_API::HarvestClosingNumbers(
     const Identifier& NYM_ID,
     const String& THE_CRON_ITEM) const
 {
-    rLock lock(lock_);
+    rLock lock(lock_callback_({NYM_ID.str(), NOTARY_ID.str()}));
     auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
-
     std::unique_ptr<OTCronItem> pCronItem(
         OTCronItem::NewCronItem(THE_CRON_ITEM));
 
@@ -4085,9 +4082,8 @@ bool OT_API::HarvestAllNumbers(
     const Identifier& NYM_ID,
     const String& THE_CRON_ITEM) const
 {
-    rLock lock(lock_);
+    rLock lock(lock_callback_({NYM_ID.str(), NOTARY_ID.str()}));
     auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
-
     std::unique_ptr<OTCronItem> pCronItem(
         OTCronItem::NewCronItem(THE_CRON_ITEM));
 
@@ -4223,7 +4219,7 @@ Cheque* OT_API::WriteCheque(
     const String& CHEQUE_MEMO,
     const Identifier* pRECIPIENT_NYM_ID) const
 {
-    rLock lock(lock_);
+    rLock lock(lock_callback_({SENDER_NYM_ID.str(), NOTARY_ID.str()}));
     auto context = wallet_.mutable_ServerContext(SENDER_NYM_ID, NOTARY_ID);
     auto nymfile = context.It().mutable_Nymfile(__FUNCTION__);
 
@@ -4573,7 +4569,7 @@ bool OT_API::ConfirmPaymentPlan(
     const Identifier& RECIPIENT_NYM_ID,
     OTPaymentPlan& thePlan) const
 {
-    rLock lock(lock_);
+    rLock lock(lock_callback_({SENDER_NYM_ID.str(), NOTARY_ID.str()}));
     auto context = wallet_.mutable_ServerContext(SENDER_NYM_ID, NOTARY_ID);
     auto nymfile = context.It().mutable_Nymfile(__FUNCTION__);
 
@@ -4668,8 +4664,7 @@ Purse* OT_API::LoadPurse(
     const Identifier& NYM_ID,
     const String* pstrDisplay) const
 {
-    rLock lock(lock_);
-
+    rLock lock(lock_callback_({NYM_ID.str(), NOTARY_ID.str()}));
     const String strReason(
         (nullptr == pstrDisplay) ? "Loading purse from local storage."
                                  : pstrDisplay->Get());
@@ -4719,7 +4714,7 @@ bool OT_API::SavePurse(
     const Identifier& NYM_ID,
     Purse& THE_PURSE) const
 {
-    rLock lock(lock_);
+    rLock lock(lock_callback_({NYM_ID.str(), NOTARY_ID.str()}));
 
     if (THE_PURSE.IsPasswordProtected()) {
         otErr << OT_METHOD << __FUNCTION__
@@ -4757,8 +4752,7 @@ Purse* OT_API::CreatePurse(
     const Identifier& INSTRUMENT_DEFINITION_ID,
     const Identifier& OWNER_ID) const
 {
-    rLock lock(lock_);
-
+    rLock lock(lock_callback_({OWNER_ID.str(), NOTARY_ID.str()}));
     Purse* pPurse = new Purse(NOTARY_ID, INSTRUMENT_DEFINITION_ID, OWNER_ID);
     OT_ASSERT_MSG(
         nullptr != pPurse,
@@ -4780,8 +4774,6 @@ Purse* OT_API::CreatePurse_Passphrase(
     const Identifier& NOTARY_ID,
     const Identifier& INSTRUMENT_DEFINITION_ID) const
 {
-    rLock lock(lock_);
-
     Purse* pPurse = new Purse(NOTARY_ID, INSTRUMENT_DEFINITION_ID);
     OT_ASSERT_MSG(
         nullptr != pPurse,
@@ -4823,8 +4815,6 @@ OTNym_or_SymmetricKey* OT_API::LoadPurseAndOwnerFromString(
                                        // already
     const String* pstrDisplay2) const  // for password-protected purses
 {
-    rLock lock(lock_);
-
     const bool bDoesOwnerIDExist =
         (nullptr !=
          pOWNER_ID);  // If not true, purse MUST be password-protected.
@@ -4975,11 +4965,10 @@ OTNym_or_SymmetricKey* OT_API::LoadPurseAndOwnerForMerge(
                                   // failing.
     const String* pstrDisplay) const
 {
-    rLock lock(lock_);
-
     OTPasswordData thePWData(
         (nullptr == pstrDisplay) ? OT_PW_DISPLAY : pstrDisplay->Get());
     OTNym_or_SymmetricKey* pOwner = nullptr;
+
     if (strPurse.Exists() && thePurse.LoadContractFromString(strPurse)) {
         Identifier idPurseNym;
 
@@ -5111,8 +5100,6 @@ Token* OT_API::Purse_Peek(
     // to decrypt the token.)
     const String* pstrDisplay) const
 {
-    rLock lock(lock_);
-
     const String strReason1(
         (nullptr == pstrDisplay)
             ? "Enter your master passphrase for your wallet. (Purse_Peek)"
@@ -5202,8 +5189,6 @@ Purse* OT_API::Purse_Pop(
     // to decrypt the token.)
     const String* pstrDisplay) const
 {
-    rLock lock(lock_);
-
     const String strReason1(
         (nullptr == pstrDisplay)
             ? "Enter your master passphrase for your wallet. (Purse_Pop)"
@@ -5278,8 +5263,6 @@ Purse* OT_API::Purse_Empty(
     const String& THE_PURSE,
     const String* pstrDisplay) const
 {
-    rLock lock(lock_);
-
     const String strReason(
         (nullptr == pstrDisplay) ? "Making an empty copy of a cash purse."
                                  : pstrDisplay->Get());
@@ -5324,8 +5307,6 @@ Purse* OT_API::Purse_Push(
     // to encrypt the token.)
     const String* pstrDisplay) const
 {
-    rLock lock(lock_);
-
     const String strReason1(
         (nullptr == pstrDisplay)
             ? "Enter your master passphrase for your wallet. (Purse_Push)"
@@ -5421,8 +5402,7 @@ bool OT_API::Wallet_ImportPurse(
     const String& THE_PURSE,
     const String* pstrDisplay) const
 {
-    rLock lock(lock_);
-
+    Lock lock(lock_);
     String reason(
         (nullptr == pstrDisplay) ? "Enter passphrase for purse being imported."
                                  : pstrDisplay->Get());
@@ -5574,8 +5554,6 @@ Token* OT_API::Token_ChangeOwner(
     const String& NEW_OWNER,  // Pass a NymID here, or a purse.
     const String* pstrDisplay) const
 {
-    rLock lock(lock_);
-
     String strWalletReason(
         (nullptr == pstrDisplay)
             ? "Enter your wallet's master passphrase. (Token_ChangeOwner.)"
@@ -5749,8 +5727,6 @@ Mint* OT_API::LoadMint(
     const Identifier& NOTARY_ID,
     const Identifier& INSTRUMENT_DEFINITION_ID) const
 {
-    rLock lock(lock_);
-
     const String strNotaryID(NOTARY_ID);
     const String strInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
     auto pServer = wallet_.Server(NOTARY_ID);
@@ -5826,7 +5802,7 @@ Ledger* OT_API::LoadNymbox(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID) const
 {
-    rLock lock(lock_);
+    rLock lock(lock_callback_({NYM_ID.str(), NOTARY_ID.str()}));
     auto context = wallet_.ServerContext(NYM_ID, NOTARY_ID);
 
     if (false == bool(context)) {
@@ -5862,7 +5838,7 @@ Ledger* OT_API::LoadNymboxNoVerify(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID) const
 {
-    rLock lock(lock_);
+    rLock lock(lock_callback_({NYM_ID.str(), NOTARY_ID.str()}));
 
     if (!wallet_.IsLocalNym(NYM_ID.str())) {
         return nullptr;
@@ -5892,7 +5868,7 @@ Ledger* OT_API::LoadInbox(
     const Identifier& NYM_ID,
     const Identifier& ACCOUNT_ID) const
 {
-    rLock lock(lock_);
+    rLock lock(lock_callback_({NYM_ID.str(), NOTARY_ID.str()}));
     auto context = wallet_.ServerContext(NYM_ID, NOTARY_ID);
 
     if (false == bool(context)) {
@@ -5937,7 +5913,7 @@ Ledger* OT_API::LoadInboxNoVerify(
     const Identifier& NYM_ID,
     const Identifier& ACCOUNT_ID) const
 {
-    rLock lock(lock_);
+    rLock lock(lock_callback_({NYM_ID.str(), NOTARY_ID.str()}));
 
     if (!wallet_.IsLocalNym(NYM_ID.str())) {
         return nullptr;
@@ -5968,7 +5944,7 @@ Ledger* OT_API::LoadOutbox(
     const Identifier& NYM_ID,
     const Identifier& ACCOUNT_ID) const
 {
-    rLock lock(lock_);
+    rLock lock(lock_callback_({NYM_ID.str(), NOTARY_ID.str()}));
     auto context = wallet_.ServerContext(NYM_ID, NOTARY_ID);
 
     if (false == bool(context)) {
@@ -6013,7 +5989,7 @@ Ledger* OT_API::LoadOutboxNoVerify(
     const Identifier& NYM_ID,
     const Identifier& ACCOUNT_ID) const
 {
-    rLock lock(lock_);
+    rLock lock(lock_callback_({NYM_ID.str(), NOTARY_ID.str()}));
 
     if (!wallet_.IsLocalNym(NYM_ID.str())) {
         return nullptr;
@@ -6041,7 +6017,7 @@ Ledger* OT_API::LoadPaymentInbox(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID) const
 {
-    rLock lock(lock_);
+    rLock lock(lock_callback_({NYM_ID.str(), NOTARY_ID.str()}));
     auto context = wallet_.ServerContext(NYM_ID, NOTARY_ID);
 
     if (false == bool(context)) {
@@ -6074,7 +6050,7 @@ Ledger* OT_API::LoadPaymentInboxNoVerify(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID) const
 {
-    rLock lock(lock_);
+    rLock lock(lock_callback_({NYM_ID.str(), NOTARY_ID.str()}));
 
     if (!wallet_.IsLocalNym(NYM_ID.str())) {
         return nullptr;
@@ -6103,8 +6079,7 @@ Ledger* OT_API::LoadRecordBox(
     const Identifier& NYM_ID,
     const Identifier& ACCOUNT_ID) const
 {
-    rLock lock(lock_);
-
+    rLock lock(lock_callback_({NYM_ID.str(), NOTARY_ID.str()}));
     auto context = wallet_.ServerContext(NYM_ID, NOTARY_ID);
 
     if (false == bool(context)) {
@@ -6144,7 +6119,7 @@ Ledger* OT_API::LoadRecordBoxNoVerify(
     const Identifier& NYM_ID,
     const Identifier& ACCOUNT_ID) const
 {
-    rLock lock(lock_);
+    rLock lock(lock_callback_({NYM_ID.str(), NOTARY_ID.str()}));
 
     if (!wallet_.IsLocalNym(NYM_ID.str())) {
         return nullptr;
@@ -6172,7 +6147,7 @@ Ledger* OT_API::LoadExpiredBox(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID) const
 {
-    rLock lock(lock_);
+    rLock lock(lock_callback_({NYM_ID.str(), NOTARY_ID.str()}));
     auto context = wallet_.ServerContext(NYM_ID, NOTARY_ID);
 
     if (false == bool(context)) {
@@ -6210,7 +6185,7 @@ Ledger* OT_API::LoadExpiredBoxNoVerify(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID) const
 {
-    rLock lock(lock_);
+    rLock lock(lock_callback_({NYM_ID.str(), NOTARY_ID.str()}));
 
     if (!wallet_.IsLocalNym(NYM_ID.str())) {
         return nullptr;
@@ -6240,7 +6215,7 @@ bool OT_API::ClearExpired(
     bool bClearAll) const  // if true, nIndex is
                            // ignored.
 {
-    rLock lock(lock_);
+    rLock lock(lock_callback_({NYM_ID.str(), NOTARY_ID.str()}));
     auto context = wallet_.ServerContext(NYM_ID, NOTARY_ID);
 
     if (false == bool(context)) {
@@ -6509,7 +6484,7 @@ bool OT_API::RecordPayment(
                           // outpayments box) and moves to record box.
     bool bSaveCopy) const
 {
-    rLock lock(lock_);
+    rLock lock(lock_callback_({NYM_ID.str(), NOTARY_ID.str()}));
     auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
     auto nymfile = context.It().mutable_Nymfile(__FUNCTION__);
 
@@ -7780,7 +7755,7 @@ bool OT_API::ClearRecord(
     std::int32_t nIndex,
     bool bClearAll) const  // if true, nIndex is ignored.
 {
-    rLock lock(lock_);
+    rLock lock(lock_callback_({NYM_ID.str(), NOTARY_ID.str()}));
     auto context = wallet_.ServerContext(NYM_ID, NOTARY_ID);
 
     if (false == bool(context)) {
@@ -7867,7 +7842,9 @@ bool OT_API::ResyncNymWithServer(
     const Ledger& theNymbox,
     const Nym& theMessageNym) const
 {
-    rLock lock(lock_);
+    return false;
+
+    // rLock lock(lock_);
 
     if (Ledger::nymbox != theNymbox.GetType()) {
         otErr << "OT_API::ResyncNymWithServer: Error: Expected a Nymbox, "
@@ -7919,7 +7896,7 @@ Message* OT_API::GetSentMessage(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID) const
 {
-    rLock lock(lock_);
+    rLock lock(lock_callback_({NYM_ID.str(), NOTARY_ID.str()}));
 
     OT_ASSERT_MSG(
         (m_pClient != nullptr), "Not initialized; call OT_API::Init first.");
@@ -7938,7 +7915,7 @@ bool OT_API::RemoveSentMessage(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID) const
 {
-    rLock lock(lock_);
+    rLock lock(lock_callback_({NYM_ID.str(), NOTARY_ID.str()}));
 
     OT_ASSERT_MSG(
         m_pClient != nullptr, "Not initialized; call OT_API::Init first.");
@@ -8021,7 +7998,7 @@ void OT_API::FlushSentMessages(
     const Identifier& NYM_ID,
     const Ledger& THE_NYMBOX) const
 {
-    rLock lock(lock_);
+    rLock lock(lock_callback_({NYM_ID.str(), NOTARY_ID.str()}));
     auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
     auto nym = wallet_.Nym(NYM_ID);
 
@@ -8288,7 +8265,8 @@ CommandResult OT_API::issueBasket(
     ServerContext& context,
     const proto::UnitDefinition& basket) const
 {
-    rLock lock(lock_);
+    rLock lock(
+        lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
     auto & [ requestNum, transactionNum, result ] = output;
     auto & [ status, reply ] = result;
@@ -8332,7 +8310,7 @@ Basket* OT_API::GenerateBasketExchange(
     const Identifier& accountID,
     std::int32_t TRANSFER_MULTIPLE) const
 {
-    rLock lock(lock_);
+    rLock lock(lock_callback_({NYM_ID.str(), NOTARY_ID.str()}));
     auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
     auto nym = context.It().Nym();
 
@@ -8415,7 +8393,7 @@ bool OT_API::AddBasketExchangeItem(
     const Identifier& INSTRUMENT_DEFINITION_ID,
     const Identifier& ASSET_ACCOUNT_ID) const
 {
-    rLock lock(lock_);
+    rLock lock(lock_callback_({NYM_ID.str(), NOTARY_ID.str()}));
     auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
     auto nym = context.It().Nym();
 
@@ -8608,7 +8586,8 @@ CommandResult OT_API::exchangeBasket(
     bool bExchangeInOrOut  // exchanging in == true, out == false.
     ) const
 {
-    rLock lock(lock_);
+    rLock lock(
+        lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
     auto & [ requestNum, transactionNum, result ] = output;
     auto & [ status, reply ] = result;
@@ -8781,7 +8760,8 @@ CommandResult OT_API::exchangeBasket(
 
 CommandResult OT_API::getTransactionNumbers(ServerContext& context) const
 {
-    rLock lock(lock_);
+    rLock lock(
+        lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
     auto & [ requestNum, transactionNum, result ] = output;
     auto & [ status, reply ] = result;
@@ -8826,7 +8806,8 @@ CommandResult OT_API::notarizeWithdrawal(
     const Identifier& accountID,
     const Amount amount) const
 {
-    rLock lock(lock_);
+    rLock lock(
+        lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
     auto & [ requestNum, transactionNum, result ] = output;
     auto & [ status, reply ] = result;
@@ -9055,7 +9036,8 @@ CommandResult OT_API::notarizeDeposit(
     const Identifier& accountID,
     const String& THE_PURSE) const
 {
-    rLock lock(lock_);
+    rLock lock(
+        lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
     auto & [ requestNum, transactionNum, result ] = output;
     auto & [ status, reply ] = result;
@@ -9298,7 +9280,8 @@ CommandResult OT_API::payDividend(
                                            // PER SHARE (multiplied by total
                                            // number of shares issued.)
 {
-    rLock lock(lock_);
+    rLock lock(
+        lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
     auto & [ requestNum, transactionNum, result ] = output;
     auto & [ status, reply ] = result;
@@ -9570,7 +9553,8 @@ CommandResult OT_API::withdrawVoucher(
     const String& CHEQUE_MEMO,
     const Amount amount) const
 {
-    rLock lock(lock_);
+    rLock lock(
+        lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
     auto & [ requestNum, transactionNum, result ] = output;
     auto & [ status, reply ] = result;
@@ -9774,7 +9758,7 @@ bool OT_API::DiscardCheque(
     const Identifier& accountID,
     const String& THE_CHEQUE) const
 {
-    rLock lock(lock_);
+    rLock lock(lock_callback_({NYM_ID.str(), NOTARY_ID.str()}));
     auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
     auto nym = context.It().Nym();
 
@@ -9853,7 +9837,8 @@ CommandResult OT_API::depositCheque(
     const Identifier& accountID,
     const String& THE_CHEQUE) const
 {
-    rLock lock(lock_);
+    rLock lock(
+        lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
     auto & [ requestNum, transactionNum, result ] = output;
     auto & [ status, reply ] = result;
@@ -10091,7 +10076,8 @@ CommandResult OT_API::depositPaymentPlan(
     ServerContext& context,
     const String& THE_PAYMENT_PLAN) const
 {
-    rLock lock(lock_);
+    rLock lock(
+        lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
     auto & [ requestNum, transactionNum, result ] = output;
     auto & [ status, reply ] = result;
@@ -10225,7 +10211,8 @@ CommandResult OT_API::triggerClause(
     const String& strClauseName,
     const String* pStrParam) const
 {
-    rLock lock(lock_);
+    rLock lock(
+        lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
     auto & [ requestNum, transactionNum, result ] = output;
     auto & [ status, reply ] = result;
@@ -10266,7 +10253,8 @@ CommandResult OT_API::activateSmartContract(
     ServerContext& context,
     const String& THE_SMART_CONTRACT) const
 {
-    rLock lock(lock_);
+    rLock lock(
+        lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
     auto & [ requestNum, transactionNum, result ] = output;
     auto & [ status, reply ] = result;
@@ -10616,7 +10604,8 @@ CommandResult OT_API::cancelCronItem(
     const Identifier& ASSET_ACCOUNT_ID,
     const TransactionNumber& lTransactionNum) const
 {
-    rLock lock(lock_);
+    rLock lock(
+        lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
     auto & [ requestNum, transactionNum, result ] = output;
     auto & [ status, reply ] = result;
@@ -10745,7 +10734,8 @@ CommandResult OT_API::issueMarketOffer(
     const Amount ACTIVATION_PRICE) const  // For stop orders, this is
                                           // threshhold price.
 {
-    rLock lock(lock_);
+    rLock lock(
+        lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
     auto & [ requestNum, transactionNum, result ] = output;
     auto & [ status, reply ] = result;
@@ -11066,7 +11056,8 @@ CommandResult OT_API::issueMarketOffer(
 /// the reply to storage, for your convenience.)
 CommandResult OT_API::getMarketList(ServerContext& context) const
 {
-    rLock lock(lock_);
+    rLock lock(
+        lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
     auto & [ requestNum, transactionNum, result ] = output;
     auto & [ status, reply ] = result;
@@ -11103,7 +11094,8 @@ CommandResult OT_API::getMarketOffers(
     const Identifier& MARKET_ID,
     const std::int64_t& lDepth) const
 {
-    rLock lock(lock_);
+    rLock lock(
+        lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
     auto & [ requestNum, transactionNum, result ] = output;
     auto & [ status, reply ] = result;
@@ -11146,7 +11138,8 @@ CommandResult OT_API::getMarketRecentTrades(
     ServerContext& context,
     const Identifier& MARKET_ID) const
 {
-    rLock lock(lock_);
+    rLock lock(
+        lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
     auto & [ requestNum, transactionNum, result ] = output;
     auto & [ status, reply ] = result;
@@ -11183,7 +11176,8 @@ CommandResult OT_API::getMarketRecentTrades(
 /// after that...
 CommandResult OT_API::getNymMarketOffers(ServerContext& context) const
 {
-    rLock lock(lock_);
+    rLock lock(
+        lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
     auto & [ requestNum, transactionNum, result ] = output;
     auto & [ status, reply ] = result;
@@ -11218,7 +11212,8 @@ CommandResult OT_API::notarizeTransfer(
     const Amount amount,
     const String& NOTE) const
 {
-    rLock lock(lock_);
+    rLock lock(
+        lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
     auto & [ requestNum, transactionNum, result ] = output;
     auto & [ status, reply ] = result;
@@ -11379,7 +11374,8 @@ CommandResult OT_API::notarizeTransfer(
 // Grab a copy of my nymbox (contains messages and new transaction numbers)
 CommandResult OT_API::getNymbox(ServerContext& context) const
 {
-    rLock lock(lock_);
+    rLock lock(
+        lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
     auto & [ requestNum, transactionNum, result ] = output;
     auto & [ status, reply ] = result;
@@ -11408,7 +11404,8 @@ CommandResult OT_API::getNymbox(ServerContext& context) const
 
 CommandResult OT_API::processNymbox(ServerContext& context) const
 {
-    rLock lock(lock_);
+    rLock lock(
+        lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
     auto & [ requestNum, transactionNum, result ] = output;
     auto & [ status, reply ] = result;
@@ -11474,7 +11471,8 @@ CommandResult OT_API::processInbox(
     const Identifier& accountID,
     const String& ACCT_LEDGER) const
 {
-    rLock lock(lock_);
+    rLock lock(
+        lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
     auto & [ requestNum, transactionNum, result ] = output;
     auto & [ status, reply ] = result;
@@ -11517,7 +11515,8 @@ CommandResult OT_API::registerInstrumentDefinition(
     ServerContext& context,
     const proto::UnitDefinition& THE_CONTRACT) const
 {
-    rLock lock(lock_);
+    rLock lock(
+        lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
     auto & [ requestNum, transactionNum, result ] = output;
     auto & [ status, reply ] = result;
@@ -11562,7 +11561,8 @@ CommandResult OT_API::getInstrumentDefinition(
     ServerContext& context,
     const Identifier& INSTRUMENT_DEFINITION_ID) const
 {
-    rLock lock(lock_);
+    rLock lock(
+        lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
     auto & [ requestNum, transactionNum, result ] = output;
     auto & [ status, reply ] = result;
@@ -11595,7 +11595,8 @@ CommandResult OT_API::getMint(
     ServerContext& context,
     const Identifier& INSTRUMENT_DEFINITION_ID) const
 {
-    rLock lock(lock_);
+    rLock lock(
+        lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
     auto & [ requestNum, transactionNum, result ] = output;
     auto & [ status, reply ] = result;
@@ -11644,7 +11645,8 @@ CommandResult OT_API::queryInstrumentDefinitions(
     ServerContext& context,
     const OTASCIIArmor& ENCODED_MAP) const
 {
-    rLock lock(lock_);
+    rLock lock(
+        lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
     auto & [ requestNum, transactionNum, result ] = output;
     auto & [ status, reply ] = result;
@@ -11682,7 +11684,8 @@ CommandResult OT_API::registerAccount(
     ServerContext& context,
     const Identifier& INSTRUMENT_DEFINITION_ID) const
 {
-    rLock lock(lock_);
+    rLock lock(
+        lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
     auto & [ requestNum, transactionNum, result ] = output;
     auto & [ status, reply ] = result;
@@ -11722,7 +11725,8 @@ CommandResult OT_API::deleteAssetAccount(
     ServerContext& context,
     const Identifier& ACCOUNT_ID) const
 {
-    rLock lock(lock_);
+    rLock lock(
+        lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
     auto & [ requestNum, transactionNum, result ] = output;
     auto & [ status, reply ] = result;
@@ -11768,7 +11772,7 @@ bool OT_API::DoesBoxReceiptExist(
     std::int32_t nBoxType,         // 0/nymbox, 1/inbox, 2/outbox
     const TransactionNumber& lTransactionNum) const
 {
-    rLock lock(lock_);
+    rLock lock(lock_callback_({NYM_ID.str(), NOTARY_ID.str()}));
 
     // static
     return VerifyBoxReceiptExists(
@@ -11787,7 +11791,8 @@ CommandResult OT_API::getBoxReceipt(
     std::int32_t nBoxType,         // 0/nymbox, 1/inbox, 2/outbox
     const TransactionNumber& lTransactionNum) const
 {
-    rLock lock(lock_);
+    rLock lock(
+        lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
     auto & [ requestNum, transactionNum, result ] = output;
     auto & [ status, reply ] = result;
@@ -11836,7 +11841,8 @@ CommandResult OT_API::getAccountData(
     ServerContext& context,
     const Identifier& accountID) const
 {
-    rLock lock(lock_);
+    rLock lock(
+        lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
     auto & [ requestNum, transactionNum, result ] = output;
     auto & [ status, reply ] = result;
@@ -11879,7 +11885,8 @@ CommandResult OT_API::usageCredits(
     const Identifier& NYM_ID_CHECK,
     std::int64_t lAdjustment) const
 {
-    rLock lock(lock_);
+    rLock lock(
+        lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
     auto & [ requestNum, transactionNum, result ] = output;
     auto & [ status, reply ] = result;
@@ -11915,7 +11922,8 @@ CommandResult OT_API::checkNym(
     ServerContext& context,
     const Identifier& targetNymID) const
 {
-    rLock lock(lock_);
+    rLock lock(
+        lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
     auto & [ requestNum, transactionNum, result ] = output;
     auto & [ status, reply ] = result;
@@ -11947,7 +11955,8 @@ CommandResult OT_API::registerContract(
     const ContractType TYPE,
     const Identifier& CONTRACT) const
 {
-    rLock lock(lock_);
+    rLock lock(
+        lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
     auto & [ requestNum, transactionNum, result ] = output;
     auto & [ status, reply ] = result;
@@ -12030,7 +12039,8 @@ CommandResult OT_API::sendNymObject(
     const PeerObject& object,
     const RequestNumber provided) const
 {
-    rLock lock(lock_);
+    rLock lock(
+        lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
     auto & [ requestNum, transactionNum, result ] = output;
     auto & [ status, reply ] = result;
@@ -12192,7 +12202,8 @@ CommandResult OT_API::sendNymInstrument(
     const OTPayment& instrument,
     const OTPayment* senderCopy) const
 {
-    rLock lock(lock_);
+    rLock lock(
+        lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
     auto & [ requestNum, transactionNum, result ] = output;
     auto & [ status, reply ] = result;
@@ -12361,14 +12372,12 @@ CommandResult OT_API::sendNymInstrument(
 //
 std::int32_t OT_API::Ledger_GetCount(const Ledger& ledger) const
 {
-    rLock lock(lock_);
     return ledger.GetTransactionCount();
 }
 
 std::set<std::int64_t> OT_API::Ledger_GetTransactionNums(
     const Ledger& ledger) const
 {
-    rLock lock(lock_);
     return ledger.GetTransactionNums();
 }
 
@@ -12450,8 +12459,6 @@ OTTransaction* OT_API::Ledger_GetTransactionByIndex(
     const std::int32_t& nIndex) const  // returns transaction by index (from
                                        // ledger)
 {
-    rLock lock(lock_);
-
     OT_VERIFY_BOUNDS(nIndex, 0, ledger.GetTransactionCount());
 
     OTTransaction* transaction = ledger.GetTransactionByIndex(nIndex);
@@ -12513,8 +12520,6 @@ OTTransaction* OT_API::Ledger_GetTransactionByID(
     Ledger& ledger,
     const std::int64_t& TRANSACTION_NUMBER) const
 {
-    rLock lock(lock_);
-
     OT_VERIFY_MIN_BOUND(TRANSACTION_NUMBER, 1);
 
     OTTransaction* transaction = ledger.GetTransaction(TRANSACTION_NUMBER);
@@ -12631,8 +12636,6 @@ std::unique_ptr<OTPayment> OT_API::Ledger_GetInstrument(
     const Ledger& ledger,
     const std::int32_t& nIndex) const  // returns financial instrument by index.
 {
-    rLock lock(lock_);
-
     OT_VERIFY_OT_ID(theNymID);
     OT_VERIFY_BOUNDS(nIndex, 0, ledger.GetTransactionCount());
 
@@ -12664,8 +12667,6 @@ std::unique_ptr<OTPayment> OT_API::Ledger_GetInstrumentByReceiptID(
     const Ledger& ledger,
     const std::int64_t& lReceiptId) const
 {
-    rLock lock(lock_);
-
     OT_VERIFY_OT_ID(theNymID);
     OT_VERIFY_MIN_BOUND(lReceiptId, 1);
 
@@ -12694,8 +12695,6 @@ std::int64_t OT_API::Ledger_GetTransactionIDByIndex(
     const Ledger& ledger,
     const std::int32_t& nIndex) const  // returns transaction number by index.
 {
-    rLock lock(lock_);
-
     OT_VERIFY_BOUNDS(nIndex, 0, ledger.GetTransactionCount());
 
     //    OT_ASSERT_MSG(
@@ -12735,8 +12734,6 @@ bool OT_API::Ledger_AddTransaction(
     Ledger& ledger,  // ledger takes ownership of transaction.
     std::unique_ptr<OTTransaction>& transaction) const
 {
-    rLock lock(lock_);
-
     OT_VERIFY_OT_ID(theNymID);
 
     OT_NEW_ASSERT_MSG(
@@ -12812,7 +12809,7 @@ bool OT_API::Transaction_CreateResponse(
     OT_VERIFY_OT_ID(theNymID);
     OT_VERIFY_OT_ID(accountID);
 
-    rLock lock(lock_);
+    rLock lock(lock_callback_({theNymID.str(), theNotaryID.str()}));
     auto context = wallet_.mutable_ServerContext(theNymID, theNotaryID);
     const auto& nym = context.It().Nym();
     const bool validReponse = responseLedger.VerifyAccount(*nym);
@@ -12887,7 +12884,7 @@ bool OT_API::Ledger_FinalizeResponse(
     OT_VERIFY_OT_ID(theNymID);
     OT_VERIFY_OT_ID(accountID);
 
-    rLock lock(lock_);
+    rLock lock(lock_callback_({theNymID.str(), theNotaryID.str()}));
     auto context = wallet_.mutable_ServerContext(theNymID, theNotaryID);
     const auto& nym = context.It().Nym();
     const bool validReponse = responseLedger.VerifyAccount(*nym);
@@ -12960,7 +12957,8 @@ bool OT_API::Ledger_FinalizeResponse(
 
 CommandResult OT_API::registerNym(ServerContext& context) const
 {
-    rLock lock(lock_);
+    rLock lock(
+        lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
     auto & [ requestNum, transactionNum, result ] = output;
     auto & [ status, reply ] = result;
@@ -13007,7 +13005,8 @@ CommandResult OT_API::registerNym(ServerContext& context) const
 
 CommandResult OT_API::unregisterNym(ServerContext& context) const
 {
-    rLock lock(lock_);
+    rLock lock(
+        lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
     auto & [ requestNum, transactionNum, result ] = output;
     auto & [ status, reply ] = result;
@@ -13034,7 +13033,8 @@ NetworkReplyMessage OT_API::send_message(
     ServerContext& context,
     Message& message) const
 {
-    rLock lock(lock_);
+    rLock lock(
+        lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
 
     m_pClient->QueueOutgoingMessage(message);
     auto result = context.Connection().Send(message);
@@ -13179,7 +13179,8 @@ CommandResult OT_API::requestAdmin(
     ServerContext& context,
     const std::string& PASSWORD) const
 {
-    rLock lock(lock_);
+    rLock lock(
+        lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
     auto & [ requestNum, transactionNum, result ] = output;
     auto & [ status, reply ] = result;
@@ -13215,7 +13216,8 @@ CommandResult OT_API::serverAddClaim(
     const std::string& value,
     const bool primary) const
 {
-    rLock lock(lock_);
+    rLock lock(
+        lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
     auto & [ requestNum, transactionNum, result ] = output;
     auto & [ status, reply ] = result;
@@ -13304,7 +13306,8 @@ OT_API::ProcessInbox OT_API::CreateProcessInbox(
     const Identifier& accountID,
     const ServerContext& context) const
 {
-    rLock lock(lock_);
+    rLock lock(
+        lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     const std::string account = accountID.str();
     const auto& serverID = context.Server();
     const auto& nym = *context.Nym();
@@ -13340,7 +13343,8 @@ bool OT_API::IncludeResponse(
     OTTransaction& source,
     Ledger& response) const
 {
-    rLock lock(lock_);
+    rLock lock(
+        lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     const auto serverID = context.Server();
     const auto type = source.GetType();
 
@@ -13439,7 +13443,8 @@ bool OT_API::FinalizeProcessInbox(
         TransactionNumber number_{0};
     };
 
-    rLock lock(lock_);
+    rLock lock(
+        lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     auto nym = context.Nym();
     auto& nymID = nym->GetConstID();
     auto& serverID = context.Server();

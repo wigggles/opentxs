@@ -124,6 +124,10 @@ public:
     Identifier ScheduleDownloadNymbox(
         const Identifier& localNymID,
         const Identifier& serverID) const override;
+    Identifier SchedulePublishServerContract(
+        const Identifier& localNymID,
+        const Identifier& serverID,
+        const Identifier& contractID) const override;
     Identifier ScheduleRegisterAccount(
         const Identifier& localNymID,
         const Identifier& serverID,
@@ -183,9 +187,10 @@ private:
         UniqueQueue<PayCashTask> send_cash_;
 #endif  // OT_CASH
         UniqueQueue<SendTransferTask> send_transfer_;
+        UniqueQueue<Identifier> publish_server_contract_;
     };
 
-    std::recursive_mutex& api_lock_;
+    ContextLockCallback lock_callback_;
     const Flag& running_;
     const OT_API& ot_api_;
     const opentxs::OTAPI_Exec& exec_;
@@ -308,6 +313,11 @@ private:
         std::shared_ptr<const Purse>& recipientCopy,
         std::shared_ptr<const Purse>& senderCopy) const;
 #endif  // OT_CASH
+    bool publish_server_contract(
+        const Identifier& taskID,
+        const Identifier& nymID,
+        const Identifier& serverID,
+        const Identifier& contractID) const;
     bool publish_server_registration(
         const Identifier& nymID,
         const Identifier& serverID,
@@ -360,7 +370,6 @@ private:
         const Identifier& recipient) const;
 
     Sync(
-        std::recursive_mutex& apiLock,
         const Flag& running,
         const OT_API& otapi,
         const opentxs::OTAPI_Exec& exec,
@@ -369,7 +378,8 @@ private:
         const api::Api& api,
         const api::client::Wallet& wallet,
         const api::crypto::Encode& encoding,
-        const opentxs::network::zeromq::Context& zmq);
+        const opentxs::network::zeromq::Context& zmq,
+        const ContextLockCallback& lockCallback);
     Sync() = delete;
     Sync(const Sync&) = delete;
     Sync(Sync&&) = delete;

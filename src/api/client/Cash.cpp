@@ -52,11 +52,6 @@
 
 namespace opentxs::api::client::implementation
 {
-Cash::Cash(std::recursive_mutex& apilock)
-    : api_lock_(apilock)
-{
-}
-
 #if OT_CASH
 bool Cash::deposit_cash(
     const std::string& notaryID,
@@ -64,7 +59,6 @@ bool Cash::deposit_cash(
     const std::string& ACCT_ID,
     const std::string& STR_PURSE) const
 {
-    rLock lock(api_lock_);
     return 1 == deposit_purse(notaryID, ACCT_ID, nymID, STR_PURSE, "");
 }
 
@@ -74,14 +68,12 @@ bool Cash::deposit_local_purse(
     const std::string& ACCT_ID,
     const std::string& STR_INDICES) const
 {
-    rLock lock(api_lock_);
     return 1 == deposit_purse(notaryID, ACCT_ID, nymID, "", STR_INDICES);
 }
 
 bool Cash::easy_withdraw_cash(const std::string& ACCT_ID, std::int64_t AMOUNT)
     const
 {
-    rLock lock(api_lock_);
     // There are other high-level functions that call this low-level version.
     // (Not just the function we're currently in.)
     return 1 == easy_withdraw_cash_low_level(ACCT_ID, AMOUNT);
@@ -96,8 +88,6 @@ std::string Cash::export_cash(
     bool bPasswordProtected,
     std::string& retainedCopy) const
 {
-    rLock lock(api_lock_);
-
     std::string strContract = SwigWrap::GetAssetType_Contract(unitTypeID);
 
     if (strContract.empty()) {
@@ -148,8 +138,6 @@ bool Cash::withdraw_and_export_cash(
     std::shared_ptr<const Purse>& senderCopy,
     bool bPasswordProtected /*=false*/) const
 {
-    rLock lock(api_lock_);
-
     const std::string server = SwigWrap::GetAccountWallet_NotaryID(ACCT_ID);
     const std::string mynym = SwigWrap::GetAccountWallet_NymID(ACCT_ID);
     const std::string asset_type =
@@ -175,8 +163,6 @@ bool Cash::withdraw_and_send_cash(
     const std::string& recipientNymID,
     std::int64_t AMOUNT) const
 {
-    rLock lock(api_lock_);
-
     std::string response, indices;
     std::string hisnym = recipientNymID;
     return 1 == send_cash(
@@ -207,7 +193,6 @@ std::string Cash::export_cash_low_level(
     std::string& strRetainedCopy) const
 {
     std::string token, exportedToken, exportedPurse;
-
     std::string newPurse;  // for recipient;
     std::string newPurseForSender;
     std::string copyOfOldPurse = oldPurse;
@@ -316,8 +301,6 @@ std::int32_t Cash::send_cash(
     std::string& indices,
     bool hasPassword) const
 {
-    rLock lock(api_lock_);
-
     std::int64_t startAmount = (amount.empty() ? 0 : stoll(amount));
 
     // What we want to do from here is, see if we can send the cash purely using
@@ -511,8 +494,6 @@ std::int32_t Cash::deposit_purse(
     const std::string& indices,
     std::string* pOptionalOutput /*=nullptr*/) const  // contains server reply
 {
-    rLock lock(api_lock_);
-
     std::string assetType =
         SwigWrap::GetAccountWallet_InstrumentDefinitionID(myacct);
     if (assetType.empty()) {

@@ -100,7 +100,6 @@ private:
     const opentxs::OT_API& ot_api_;
     const opentxs::OTAPI_Exec& exec_;
     const opentxs::network::zeromq::Context& zmq_;
-    std::recursive_mutex& api_lock_;
     mutable std::mutex peer_lock_{};
     mutable std::mutex status_lock_{};
     mutable OTFlag pairing_;
@@ -181,7 +180,6 @@ private:
 
     Pair(
         const Flag& running,
-        std::recursive_mutex& apiLock,
         const api::client::Sync& sync,
         const client::ServerAction& action,
         const client::Wallet& wallet,

@@ -47,6 +47,7 @@
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Item.hpp"
+#include "opentxs/core/Lockable.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/Types.hpp"
@@ -71,7 +72,7 @@ class Api;
 using AccountInfo = std::tuple<Identifier, Identifier, Identifier, Identifier>;
 
 // The C++ high-level interface to the Open Transactions client-side.
-class OT_API
+class OT_API : Lockable
 {
 public:
     /** AccountInfo: accountID, nymID, serverID, unitID*/
@@ -1279,7 +1280,7 @@ private:
     OTWallet* m_pWallet{nullptr};
     std::unique_ptr<OTClient> m_pClient;
 
-    std::recursive_mutex& lock_;
+    ContextLockCallback lock_callback_;
 
     bool add_accept_item(
         const Item::itemType type,
@@ -1334,7 +1335,7 @@ private:
         const api::storage::Storage& storage,
         const api::client::Wallet& wallet,
         const api::network::ZMQ& zmq,
-        std::recursive_mutex& lock);
+        const ContextLockCallback& lockCallback);
     OT_API() = delete;
     OT_API(const OT_API&) = delete;
     OT_API(OT_API&&) = delete;

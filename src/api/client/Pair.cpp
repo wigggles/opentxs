@@ -86,7 +86,6 @@ Pair::Cleanup::~Cleanup() { run_.Off(); }
 
 Pair::Pair(
     const Flag& running,
-    std::recursive_mutex& apiLock,
     const api::client::Sync& sync,
     const client::ServerAction& action,
     const client::Wallet& wallet,
@@ -100,7 +99,6 @@ Pair::Pair(
     , ot_api_(otapi)
     , exec_(exec)
     , zmq_(context)
-    , api_lock_(apiLock)
     , status_lock_()
     , pairing_(Flag::Factory(false))
     , last_refresh_(0)
@@ -213,11 +211,9 @@ std::pair<bool, Identifier> Pair::get_connection(
 {
     std::pair<bool, Identifier> output{false, {}};
     auto & [ success, requestID ] = output;
-    rLock lock(api_lock_);
     auto action = action_.InitiateRequestConnection(
         localNymID, serverID, issuerNymID, type);
     action->Run();
-    lock.unlock();
 
     if (SendResult::VALID_REPLY != action->LastSendResult()) {
 
@@ -251,10 +247,8 @@ std::pair<bool, Identifier> Pair::initiate_bailment(
         return output;
     }
 
-    rLock lock(api_lock_);
     auto action = action_.InitiateBailment(nymID, serverID, issuerID, unitID);
     action->Run();
-    lock.unlock();
 
     if (SendResult::VALID_REPLY != action->LastSendResult()) {
 
@@ -475,11 +469,9 @@ void Pair::process_pending_bailment(
                   << ": Failed to set request as used on issuer." << std::endl;
         }
 
-        rLock lock(api_lock_);
         auto action = action_.AcknowledgeNotice(
             nymID, serverID, issuerNymID, requestID, true);
         action->Run();
-        lock.unlock();
 
         if (SendResult::VALID_REPLY == action->LastSendResult()) {
             OT_ASSERT(action->SentPeerReply())
@@ -641,10 +633,8 @@ std::pair<bool, Identifier> Pair::register_account(
         return output;
     }
 
-    rLock lock(api_lock_);
     auto action = action_.RegisterAccount(nymID, serverID, unitID);
     action->Run();
-    lock.unlock();
 
     if (SendResult::VALID_REPLY != action->LastSendResult()) {
 
@@ -905,7 +895,6 @@ std::pair<bool, Identifier> Pair::store_secret(
 {
     std::pair<bool, Identifier> output{false, {}};
     auto & [ success, requestID ] = output;
-    rLock lock(api_lock_);
     auto action = action_.InitiateStoreSecret(
         localNymID,
         serverID,
@@ -914,7 +903,6 @@ std::pair<bool, Identifier> Pair::store_secret(
         exec_.Wallet_GetWords(),
         exec_.Wallet_GetPassphrase());
     action->Run();
-    lock.unlock();
 
     if (SendResult::VALID_REPLY != action->LastSendResult()) {
 

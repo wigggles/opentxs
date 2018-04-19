@@ -84,6 +84,8 @@ Api::Api(
     , server_action_(nullptr)
     , sync_(nullptr)
     , lock_()
+    , map_lock_()
+    , context_locks_()
 {
     Init();
 }
@@ -96,6 +98,13 @@ void Api::Cleanup()
     server_action_.reset();
     otapi_exec_.reset();
     ot_api_.reset();
+}
+
+std::recursive_mutex& Api::get_lock(const ContextID context) const
+{
+    std::unique_lock<std::mutex> lock(map_lock_);
+
+    return context_locks_[context];
 }
 
 void Api::Init()
@@ -118,7 +127,7 @@ void Api::Init()
         storage_,
         wallet_,
         zmq_,
-        lock_));
+        std::bind(&Api::get_lock, this, std::placeholders::_1)));
 
     OT_ASSERT(ot_api_);
 
@@ -131,21 +140,23 @@ void Api::Init()
         wallet_,
         zmq_,
         *ot_api_,
-        lock_));
+        std::bind(&Api::get_lock, this, std::placeholders::_1)));
 
     OT_ASSERT(otapi_exec_);
 
     server_action_.reset(new api::client::implementation::ServerAction(
-        lock_, *ot_api_, *otapi_exec_, wallet_));
+        *ot_api_,
+        *otapi_exec_,
+        wallet_,
+        std::bind(&Api::get_lock, this, std::placeholders::_1)));
 
     OT_ASSERT(server_action_)
 
-    cash_.reset(new api::client::implementation::Cash(lock_));
+    cash_.reset(new api::client::implementation::Cash());
 
     OT_ASSERT(cash_);
 
     sync_.reset(new api::client::implementation::Sync(
-        lock_,
         running_,
         *ot_api_,
         *otapi_exec_,
@@ -154,13 +165,13 @@ void Api::Init()
         *this,
         wallet_,
         crypto_.Encode(),
-        zmq_.Context()));
+        zmq_.Context(),
+        std::bind(&Api::get_lock, this, std::placeholders::_1)));
 
     OT_ASSERT(sync_);
 
     pair_.reset(new api::client::implementation::Pair(
         running_,
-        lock_,
         *sync_,
         *server_action_,
         wallet_,
@@ -178,7 +189,12 @@ const OTAPI_Exec& Api::Exec(const std::string&) const
     return *otapi_exec_;
 }
 
-std::recursive_mutex& Api::Lock() const { return lock_; }
+std::recursive_mutex& Api::Lock(
+    const Identifier& nymID,
+    const Identifier& serverID) const
+{
+    return get_lock({nymID.str(), serverID.str()});
+}
 
 const OT_API& Api::OTAPI(const std::string&) const
 {
