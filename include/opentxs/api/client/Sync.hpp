@@ -125,6 +125,10 @@ public:
     EXPORT virtual Identifier ScheduleDownloadNymbox(
         const Identifier& localNymID,
         const Identifier& serverID) const = 0;
+    EXPORT virtual Identifier SchedulePublishServerContract(
+        const Identifier& localNymID,
+        const Identifier& serverID,
+        const Identifier& contractID) const = 0;
     EXPORT virtual Identifier ScheduleRegisterAccount(
         const Identifier& localNymID,
         const Identifier& serverID,

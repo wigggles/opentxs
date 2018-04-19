@@ -124,6 +124,10 @@ public:
     Identifier ScheduleDownloadNymbox(
         const Identifier& localNymID,
         const Identifier& serverID) const override;
+    Identifier SchedulePublishServerContract(
+        const Identifier& localNymID,
+        const Identifier& serverID,
+        const Identifier& contractID) const override;
     Identifier ScheduleRegisterAccount(
         const Identifier& localNymID,
         const Identifier& serverID,
@@ -183,6 +187,7 @@ private:
         UniqueQueue<PayCashTask> send_cash_;
 #endif  // OT_CASH
         UniqueQueue<SendTransferTask> send_transfer_;
+        UniqueQueue<Identifier> publish_server_contract_;
     };
 
     std::recursive_mutex& api_lock_;
@@ -308,6 +313,11 @@ private:
         std::shared_ptr<const Purse>& recipientCopy,
         std::shared_ptr<const Purse>& senderCopy) const;
 #endif  // OT_CASH
+    bool publish_server_contract(
+        const Identifier& taskID,
+        const Identifier& nymID,
+        const Identifier& serverID,
+        const Identifier& contractID) const;
     bool publish_server_registration(
         const Identifier& nymID,
         const Identifier& serverID,
