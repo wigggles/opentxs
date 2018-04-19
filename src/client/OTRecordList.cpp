@@ -502,8 +502,7 @@ void OTRecordList::SetAccountID(std::string str_id)
     AddAccountID(str_id);
 }
 
-
-bool OTRecordList::checkIndicesRange( // static method
+bool OTRecordList::checkIndicesRange(  // static method
     const char* name,
     const std::string& indices,
     std::int32_t items)
@@ -529,7 +528,7 @@ bool OTRecordList::checkIndicesRange( // static method
 
 // GET PAYMENT INSTRUMENT (from payments inbox, by index.)
 //
-std::string OTRecordList::get_payment_instrument( // static method
+std::string OTRecordList::get_payment_instrument(  // static method
     const std::string& notaryID,
     const std::string& nymID,
     std::int32_t nIndex,
@@ -573,7 +572,7 @@ std::string OTRecordList::get_payment_instrument( // static method
     return strInstrument;
 }
 
-bool OTRecordList::accept_from_paymentbox( // static function
+bool OTRecordList::accept_from_paymentbox(  // static function
     const std::string& myacct,
     const std::string& indices,
     const std::string& paymentType,
@@ -635,24 +634,25 @@ bool OTRecordList::accept_from_paymentbox( // static function
     const bool bIsDefinitelySmartContract = ("SMARTCONTRACT" == paymentType);
 
     if (bIsDefinitelySmartContract) {
-        otOut << "accept_from_paymentbox: It's a bug that this function was even "
-                 "called at all! "
-                 "You CANNOT confirm smart contracts via this function. "
-                 "The reason is because you have to select various accounts "
-                 "during the "
-                 "confirmation process. The function confirmSmartContract "
-                 "would ask various questions "
-                 "at the command line about which accounts to choose. Thus, "
-                 "you MUST have "
-                 "your own code in the GUI itself that performs that process "
-                 "for smart contracts.\n";
+        otOut
+            << "accept_from_paymentbox: It's a bug that this function was even "
+               "called at all! "
+               "You CANNOT confirm smart contracts via this function. "
+               "The reason is because you have to select various accounts "
+               "during the "
+               "confirmation process. The function confirmSmartContract "
+               "would ask various questions "
+               "at the command line about which accounts to choose. Thus, "
+               "you MUST have "
+               "your own code in the GUI itself that performs that process "
+               "for smart contracts.\n";
         return -1;
     }
     // ----------
     bool all = ("" == indices || "all" == indices);
 
-    const std::int32_t nNumlistCount = all ?
-        0 : SwigWrap::NumList_Count(indices);
+    const std::int32_t nNumlistCount =
+        all ? 0 : SwigWrap::NumList_Count(indices);
 
     // NOTE: If we are processing multiple indices, then the return value
     // is 1, since some indices may succeed and some may fail. So our return
@@ -710,7 +710,7 @@ bool OTRecordList::accept_from_paymentbox( // static function
     return nReturnValue;
 }
 
-std::string OTRecordList::inputText(const char* what) // static method
+std::string OTRecordList::inputText(const char* what)  // static method
 {
     otOut << "Please paste " << what << ",\n"
           << "followed by an EOF or a ~ on a line by itself:\n";
@@ -722,7 +722,7 @@ std::string OTRecordList::inputText(const char* what) // static method
     return input;
 }
 
-std::int32_t OTRecordList::processPayment( // a static method
+std::int32_t OTRecordList::processPayment(  // a static method
     const std::string& myacct,
     const std::string& paymentType,
     const std::string& inbox,
@@ -756,8 +756,8 @@ std::int32_t OTRecordList::processPayment( // a static method
             return -1;
         }
     } else {
-        instrument = OTRecordList::get_payment_instrument(
-                        server, mynym, index, inbox);
+        instrument =
+            OTRecordList::get_payment_instrument(server, mynym, index, inbox);
         if (instrument.empty()) {
             otOut << "Error: cannot get payment instrument.\n";
             return -1;
@@ -775,13 +775,13 @@ std::int32_t OTRecordList::processPayment( // a static method
         strIndexErrorMsg = "at index " + std::to_string(index) + " ";
     }
 
-    if (!paymentType.empty() &&     // If there is a payment type specified..
+    if (!paymentType.empty() &&  // If there is a payment type specified..
         paymentType != "ANY" &&  // ...and if that type isn't "ANY"...
         paymentType != type)     // ...and it's the wrong type:
     {                            // Then skip this one.
         // Except:
-        if (("CHEQUE"  == paymentType && "VOUCHER" == type) ||
-            ("VOUCHER" == paymentType && "CHEQUE"  == type)) {
+        if (("CHEQUE" == paymentType && "VOUCHER" == type) ||
+            ("VOUCHER" == paymentType && "CHEQUE" == type)) {
             // in this case we allow it to drop through.
         } else {
             otOut << "Error: invalid instrument type.\n";
@@ -789,7 +789,7 @@ std::int32_t OTRecordList::processPayment( // a static method
         }
     }
 
-    const bool bIsPaymentPlan   = ("PAYMENT PLAN"  == type);
+    const bool bIsPaymentPlan = ("PAYMENT PLAN" == type);
     const bool bIsSmartContract = ("SMARTCONTRACT" == type);
 
     if (bIsPaymentPlan) {
@@ -825,7 +825,7 @@ std::int32_t OTRecordList::processPayment( // a static method
     // one.) Because if it IS endorsed to a Nym, and mynym is NOT that nym,
     // then the transaction will fail. So let's check, before we bother
     // sending it...
-    std::string sender    = SwigWrap::Instrmnt_GetSenderNymID(instrument);
+    std::string sender = SwigWrap::Instrmnt_GetSenderNymID(instrument);
     std::string recipient = SwigWrap::Instrmnt_GetRecipientNymID(instrument);
 
     std::string endorsee = bIsPaymentPlan ? sender : recipient;
@@ -863,32 +863,32 @@ std::int32_t OTRecordList::processPayment( // a static method
         return -1;
     }
     // ---------------------------------------------
-//    if (bIsPaymentPlan) {
-//        // Note: this block is currently unreachable/disallowed.
-//        //       (But it would otherwise work.)
-//        //
-//        // NOTE: We couldn't even do this for smart contracts, since
-//        // the "confirmSmartContract" function assumes it's being used
-//        // at the command line, and it asks the user to enter various
-//        // data (choose your account, etc) at the command line.
-//        // So ONLY with Payment Plans can we do this here! The GUI has
-//        // to provide its own custom code for smart contracts. However,
-//        // that code will be easy to write: Just copy the code you see
-//        // in confirmInstrument, for smart contracts, and change it to
-//        // use GUI input/output instead of command line i/o.
-//        //
-//        CmdConfirm cmd;
-//        return cmd.confirmInstrument(
-//            server,
-//            mynym,
-//            myacct,
-//            recipient,
-//            instrument,
-//            index,
-//            pOptionalOutput);
-//        // NOTE: we don't perform any RecordPayment here because
-//        // confirmInstrument already does that.
-//    }
+    //    if (bIsPaymentPlan) {
+    //        // Note: this block is currently unreachable/disallowed.
+    //        //       (But it would otherwise work.)
+    //        //
+    //        // NOTE: We couldn't even do this for smart contracts, since
+    //        // the "confirmSmartContract" function assumes it's being used
+    //        // at the command line, and it asks the user to enter various
+    //        // data (choose your account, etc) at the command line.
+    //        // So ONLY with Payment Plans can we do this here! The GUI has
+    //        // to provide its own custom code for smart contracts. However,
+    //        // that code will be easy to write: Just copy the code you see
+    //        // in confirmInstrument, for smart contracts, and change it to
+    //        // use GUI input/output instead of command line i/o.
+    //        //
+    //        CmdConfirm cmd;
+    //        return cmd.confirmInstrument(
+    //            server,
+    //            mynym,
+    //            myacct,
+    //            recipient,
+    //            instrument,
+    //            index,
+    //            pOptionalOutput);
+    //        // NOTE: we don't perform any RecordPayment here because
+    //        // confirmInstrument already does that.
+    //    }
     // ---------------------------------------------
     time64_t from = SwigWrap::Instrmnt_GetValidFrom(instrument);
     time64_t until = SwigWrap::Instrmnt_GetValidTo(instrument);
@@ -927,11 +927,11 @@ std::int32_t OTRecordList::processPayment( // a static method
         return depositCheque(
             server, myacct, mynym, instrument, pOptionalOutput);
     } else if ("PURSE" == type) {
-        std::int32_t success {-1};
+        std::int32_t success{-1};
 #if OT_CASH
         success = OT::App().API().Cash().deposit_purse(
             server, myacct, mynym, instrument, "", pOptionalOutput);
-#endif // OT_CASH
+#endif  // OT_CASH
         // if index != -1, go ahead and call RecordPayment on the purse at that
         // index, to remove it from payments inbox and move it to the recordbox.
         if (index != -1 && 1 == success) {
@@ -947,12 +947,12 @@ std::int32_t OTRecordList::processPayment( // a static method
     return -1;
 }
 
-std::int32_t OTRecordList::depositCheque( // a static method
+std::int32_t OTRecordList::depositCheque(  // a static method
     const std::string& server,
     const std::string& myacct,
     const std::string& mynym,
     const std::string& instrument,
-    std::string* pOptionalOutput/*=nullptr*/)
+    std::string* pOptionalOutput /*=nullptr*/)
 {
     std::string assetType =
         SwigWrap::GetAccountWallet_InstrumentDefinitionID(myacct);
@@ -971,16 +971,15 @@ std::int32_t OTRecordList::depositCheque( // a static method
 
     std::string response;
     {
-        rLock lock(opentxs::OT::App().API().Lock());
         response = OT::App()
-                          .API()
-                          .ServerAction()
-                          .DepositCheque(
-                              Identifier(mynym),
-                              Identifier(server),
-                              Identifier(myacct),
-                              cheque)
-                          ->Run();
+                       .API()
+                       .ServerAction()
+                       .DepositCheque(
+                           Identifier(mynym),
+                           Identifier(server),
+                           Identifier(myacct),
+                           cheque)
+                       ->Run();
     }
     std::int32_t reply = InterpretTransactionMsgReply(
         server, mynym, myacct, "deposit_cheque", response);
@@ -993,9 +992,11 @@ std::int32_t OTRecordList::depositCheque( // a static method
     }
 
     {
-        rLock lock(opentxs::OT::App().API().Lock());
         if (!OT::App().API().ServerAction().DownloadAccount(
-                Identifier(mynym), Identifier(server), Identifier(myacct), true)) {
+                Identifier(mynym),
+                Identifier(server),
+                Identifier(myacct),
+                true)) {
             otOut << "Error retrieving intermediary files for account.\n";
             return -1;
         }
@@ -1003,24 +1004,23 @@ std::int32_t OTRecordList::depositCheque( // a static method
     return 1;
 }
 
-std::int32_t OTRecordList::confirm_payment_plan( // static method
+std::int32_t OTRecordList::confirm_payment_plan(  // static method
     const std::string& server,
     const std::string& mynym,
     const std::string& myacct,
     const std::string& hisnym,
     const std::string& instrument,
     std::int32_t index,
-    std::string* pOptionalOutput/*=nullptr*/)
+    std::string* pOptionalOutput /*=nullptr*/)
 {
     std::string instrumentType = SwigWrap::Instrmnt_GetType(instrument);
     if (instrumentType.empty() ||
-        (0 != instrumentType.compare("PAYMENT PLAN")))
-    {
+        (0 != instrumentType.compare("PAYMENT PLAN"))) {
         otOut << "Error: instrument is empty, or is not a payment plan.\n";
         return -1;
     }
 
-    time64_t now  = SwigWrap::GetTime();
+    time64_t now = SwigWrap::GetTime();
     time64_t from = SwigWrap::Instrmnt_GetValidFrom(instrument);
     if (now < from) {
         otOut << "The instrument is not yet valid.\n";
@@ -1047,11 +1047,11 @@ std::int32_t OTRecordList::confirm_payment_plan( // static method
         return 0;
     }
 
-    return confirmPaymentPlan_lowLevel(mynym, myacct, instrument,
-                                       pOptionalOutput);
+    return confirmPaymentPlan_lowLevel(
+        mynym, myacct, instrument, pOptionalOutput);
 }
 
-std::int32_t OTRecordList::confirmPaymentPlan_lowLevel( // a static method
+std::int32_t OTRecordList::confirmPaymentPlan_lowLevel(  // a static method
     const std::string& mynym,
     const std::string& myacct,
     const std::string& plan,
@@ -1104,7 +1104,6 @@ std::int32_t OTRecordList::confirmPaymentPlan_lowLevel( // a static method
     }
 
     {
-        rLock lock(opentxs::OT::App().API().Lock());
         if (!OT::App().API().ServerAction().GetTransactionNumbers(
                 Identifier(senderUser), Identifier(server), 2)) {
             otOut << "Error: cannot reserve transaction numbers.\n";
@@ -1130,13 +1129,13 @@ std::int32_t OTRecordList::confirmPaymentPlan_lowLevel( // a static method
 
     std::string response;
     {
-        rLock lock(opentxs::OT::App().API().Lock());
-        response = OT::App()
-            .API()
-            .ServerAction()
-            .DepositPaymentPlan(
-                Identifier(senderUser), Identifier(server), paymentPlan)
-            ->Run();
+        response =
+            OT::App()
+                .API()
+                .ServerAction()
+                .DepositPaymentPlan(
+                    Identifier(senderUser), Identifier(server), paymentPlan)
+                ->Run();
     }
 
     std::int32_t success = VerifyMessageSuccess(response);
@@ -1146,7 +1145,6 @@ std::int32_t OTRecordList::confirmPaymentPlan_lowLevel( // a static method
             confirmed, senderUser, false, false, false, false, false);
         return success;
     }
-
 
     std::int32_t reply = InterpretTransactionMsgReply(
         server, senderUser, senderAcct, "deposit_payment_plan", response);
@@ -1159,7 +1157,6 @@ std::int32_t OTRecordList::confirmPaymentPlan_lowLevel( // a static method
     }
 
     {
-        rLock lock(opentxs::OT::App().API().Lock());
         if (!OT::App().API().ServerAction().DownloadAccount(
                 Identifier(senderUser),
                 Identifier(server),
@@ -1193,9 +1190,8 @@ std::int32_t OTRecordList::confirmPaymentPlan_lowLevel( // a static method
     return 1;
 }
 
-//static
-bool OTRecordList::checkMandatory(const char* name,
-                                  const std::string& value)
+// static
+bool OTRecordList::checkMandatory(const char* name, const std::string& value)
 {
     if (value.empty()) {
         otOut << "Error: " << name << ": mandatory parameter not specified.\n";
@@ -1205,7 +1201,7 @@ bool OTRecordList::checkMandatory(const char* name,
     return true;
 }
 
-//static
+// static
 bool OTRecordList::checkIndices(const char* name, const std::string& indices)
 {
     if (!checkMandatory(name, indices)) {
@@ -1235,15 +1231,13 @@ bool OTRecordList::checkIndices(const char* name, const std::string& indices)
 // static
 bool OTRecordList::checkServer(const char* name, std::string& server)
 {
-    if (!checkMandatory(name, server))
-        return false;
+    if (!checkMandatory(name, server)) return false;
 
     Identifier theID(server);
     ConstServerContract pServer;  // shared_ptr to const.
 
     // See if it's available using the full length ID.
-    if (!theID.empty())
-        pServer = OT::App().Wallet().Server(theID);
+    if (!theID.empty()) pServer = OT::App().Wallet().Server(theID);
 
     if (!pServer) {
         const auto servers = OT::App().Wallet().ServerList();
@@ -1287,22 +1281,20 @@ bool OTRecordList::checkServer(const char* name, std::string& server)
     return true;
 }
 
-
 // static
-bool OTRecordList::checkNym(const char* name, std::string& nym,
-                            bool checkExistance/*=false*/)
+bool OTRecordList::checkNym(
+    const char* name,
+    std::string& nym,
+    bool checkExistance /*=false*/)
 {
-    if (!checkMandatory(name, nym))
-        return false;
+    if (!checkMandatory(name, nym)) return false;
 
     ConstNym pNym = nullptr;
     const Identifier nymID(nym);
 
-    if (!nymID.empty())
-        pNym = OT::App().Wallet().Nym(nymID);
+    if (!nymID.empty()) pNym = OT::App().Wallet().Nym(nymID);
 
-    if (nullptr == pNym)
-        pNym = OT::App().Wallet().NymByIDPartialMatch(nym);
+    if (nullptr == pNym) pNym = OT::App().Wallet().NymByIDPartialMatch(nym);
 
     if (nullptr != pNym) {
         String tmp;
@@ -1317,7 +1309,7 @@ bool OTRecordList::checkNym(const char* name, std::string& nym,
     return true;
 }
 
-//static
+// static
 bool OTRecordList::checkAccount(const char* name, std::string& account)
 {
     if (!checkMandatory(name, account)) {
@@ -1329,8 +1321,7 @@ bool OTRecordList::checkAccount(const char* name, std::string& account)
 
     Identifier theID(account);
 
-    if (!theID.empty())
-        pAccount = wallet->GetAccount(theID);
+    if (!theID.empty()) pAccount = wallet->GetAccount(theID);
 
     if (false == bool(pAccount)) {
         pAccount = wallet->GetAccountPartialMatch(account);
@@ -1352,7 +1343,7 @@ bool OTRecordList::checkAccount(const char* name, std::string& account)
     return true;
 }
 
-//static
+// static
 std::int32_t OTRecordList::discard_incoming_payments(
     const std::string& server,
     const std::string& mynym,
@@ -1378,8 +1369,8 @@ std::int32_t OTRecordList::discard_incoming_payments(
         return -1;
     }
 
-    std::int32_t items = SwigWrap::Ledger_GetCount(the_server,
-                                                   the_mynym, the_mynym, inbox);
+    std::int32_t items =
+        SwigWrap::Ledger_GetCount(the_server, the_mynym, the_mynym, inbox);
     if (0 > items) {
         otOut << "Error: cannot load payment inbox item count.\n";
         return -1;
@@ -1395,8 +1386,8 @@ std::int32_t OTRecordList::discard_incoming_payments(
     // Loop from back to front, in case any are removed.
     std::int32_t retVal = 1;
     for (std::int32_t i = items - 1; 0 <= i; i--) {
-        if (!all && !SwigWrap::NumList_VerifyQuery(indices,
-                                                   std::to_string(i))) {
+        if (!all &&
+            !SwigWrap::NumList_VerifyQuery(indices, std::to_string(i))) {
             continue;
         }
 
@@ -1412,7 +1403,7 @@ std::int32_t OTRecordList::discard_incoming_payments(
     return retVal;
 }
 
-//static
+// static
 std::int32_t OTRecordList::cancel_outgoing_payments(
     const std::string& mynym,
     const std::string& myacct,
@@ -1465,19 +1456,21 @@ std::int32_t OTRecordList::cancel_outgoing_payments(
     // Loop from back to front, in case any are removed.
     std::int32_t retVal = 1;
     for (std::int32_t i = items - 1; 0 <= i; i--) {
-        if (!all && !SwigWrap::NumList_VerifyQuery(indices,
-                                                   std::to_string(i))) {
+        if (!all &&
+            !SwigWrap::NumList_VerifyQuery(indices, std::to_string(i))) {
             continue;
         }
 
-        std::string payment = SwigWrap::GetNym_OutpaymentsContentsByIndex(the_mynym, i);
+        std::string payment =
+            SwigWrap::GetNym_OutpaymentsContentsByIndex(the_mynym, i);
         if (payment.empty()) {
             otOut << "Error: cannot load payment " << i << ".\n";
             retVal = -1;
             continue;
         }
 
-        std::string server = SwigWrap::GetNym_OutpaymentsNotaryIDByIndex(the_mynym, i);
+        std::string server =
+            SwigWrap::GetNym_OutpaymentsNotaryIDByIndex(the_mynym, i);
         if (server.empty()) {
             otOut << "Error: cannot load server for payment " << i << ".\n";
             retVal = -1;
@@ -1545,17 +1538,16 @@ std::int32_t OTRecordList::cancel_outgoing_payments(
             contract->LoadContractFromString(String(payment));
             std::string response;
             {
-                rLock lock(opentxs::OT::App().API().Lock());
                 response = OT::App()
-                                  .API()
-                                  .ServerAction()
-                                  .ActivateSmartContract(
-                                      theNymID,
-                                      theNotaryID,
-                                      Identifier(the_myacct),
-                                      "acct_agent_name",
-                                      contract)
-                                  ->Run();
+                               .API()
+                               .ServerAction()
+                               .ActivateSmartContract(
+                                   theNymID,
+                                   theNotaryID,
+                                   Identifier(the_myacct),
+                                   "acct_agent_name",
+                                   contract)
+                               ->Run();
             }
             if (response.empty()) {
                 otOut << "Error: cannot cancel smart contract.\n";
@@ -1590,12 +1582,11 @@ std::int32_t OTRecordList::cancel_outgoing_payments(
             plan->LoadContractFromString(String(payment));
             std::string response;
             {
-                rLock lock(opentxs::OT::App().API().Lock());
                 response = OT::App()
-                    .API()
-                    .ServerAction()
-                    .CancelPaymentPlan(theNymID, theNotaryID, plan)
-                    ->Run();
+                               .API()
+                               .ServerAction()
+                               .CancelPaymentPlan(theNymID, theNotaryID, plan)
+                               ->Run();
             }
             if (response.empty()) {
                 otOut << "Error: cannot cancel payment plan.\n";
@@ -1647,16 +1638,17 @@ std::int32_t OTRecordList::cancel_outgoing_payments(
 
         // Get the nym and account IDs from the cheque itself.
         std::string acctID = isVoucher
-                            ? SwigWrap::Instrmnt_GetRemitterAcctID(payment)
-                            : SwigWrap::Instrmnt_GetSenderAcctID(payment);
+                                 ? SwigWrap::Instrmnt_GetRemitterAcctID(payment)
+                                 : SwigWrap::Instrmnt_GetSenderAcctID(payment);
         if (acctID.empty()) {
             otOut << "Error: cannot retrieve asset account ID.\n";
             retVal = -1;
             continue;
         }
 
-        std::string nymID = isVoucher ? SwigWrap::Instrmnt_GetRemitterNymID(payment)
-                                 : SwigWrap::Instrmnt_GetSenderNymID(payment);
+        std::string nymID = isVoucher
+                                ? SwigWrap::Instrmnt_GetRemitterNymID(payment)
+                                : SwigWrap::Instrmnt_GetSenderNymID(payment);
         if (nymID.empty()) {
             otOut << "Error: cannot retrieve sender nym.\n";
             retVal = -1;
@@ -1680,7 +1672,7 @@ std::int32_t OTRecordList::cancel_outgoing_payments(
     return retVal;
 }
 
-std::int32_t OTRecordList::acceptFromInbox( // a static method
+std::int32_t OTRecordList::acceptFromInbox(  // a static method
     const std::string& myacct,
     const std::string& indices,
     const std::int32_t itemTypeFilter)
@@ -1725,9 +1717,8 @@ std::int32_t OTRecordList::acceptFromInbox( // a static method
     const Identifier theNotaryID{server}, theNymID{mynym}, theAcctID{myacct};
 
     {
-        rLock lock(opentxs::OT::App().API().Lock());
         if (!OT::App().API().ServerAction().GetTransactionNumbers(
-            theNymID, theNotaryID, 10)) {
+                theNymID, theNotaryID, 10)) {
             otOut << "Error: cannot reserve transaction numbers.\n";
             return -1;
         }
@@ -1859,16 +1850,15 @@ std::int32_t OTRecordList::acceptFromInbox( // a static method
     // ----------------------------------------------
     std::string notary_response;
     {
-        rLock lock(opentxs::OT::App().API().Lock());
-        notary_response = OT::App()
-            .API()
-            .ServerAction()
-            .ProcessInbox(theNymID, theNotaryID, theAcctID, processInbox)
-            ->Run();
+        notary_response =
+            OT::App()
+                .API()
+                .ServerAction()
+                .ProcessInbox(theNymID, theNotaryID, theAcctID, processInbox)
+                ->Run();
     }
-    std::int32_t reply =
-        InterpretTransactionMsgReply(server, mynym, myacct, "process_inbox",
-                                     notary_response);
+    std::int32_t reply = InterpretTransactionMsgReply(
+        server, mynym, myacct, "process_inbox", notary_response);
 
     if (1 != reply) {
         return reply;
@@ -1878,13 +1868,12 @@ std::int32_t OTRecordList::acceptFromInbox( // a static method
     // the inbox. Might as well refresh our copy with the new changes.
     //
     {
-        rLock lock(opentxs::OT::App().API().Lock());
         if (!OT::App().API().ServerAction().DownloadAccount(
-            theNymID, theNotaryID, theAcctID, true)) {
+                theNymID, theNotaryID, theAcctID, true)) {
             otOut << __FUNCTION__
                   << "Success processing inbox, but then failed "
                      "retrieving intermediary files for account.\n";
-//          return -1;
+            //          return -1;
             // By this point we DID successfully process the inbox.
             // (We just then subsequently failed to download the updated acct
             // files.)
@@ -1893,12 +1882,6 @@ std::int32_t OTRecordList::acceptFromInbox( // a static method
 
     return 1;
 }
-
-
-
-
-
-
 
 void OTRecordList::AddAccountID(std::string str_id)
 {
@@ -2423,10 +2406,11 @@ bool OTRecordList::PerformAutoAccept()
             Ledger* pInbox{nullptr};
 
             if (false == theNymID.empty()) {
-                pInbox = m_bRunFast ? OT::App().API().OTAPI().LoadInboxNoVerify(
-                                          theNotaryID, theNymID, theAccountID)
-                                    : OT::App().API().OTAPI().LoadInbox(
-                                          theNotaryID, theNymID, theAccountID);
+                pInbox = m_bRunFast
+                             ? OT::App().API().OTAPI().LoadInboxNoVerify(
+                                   theNotaryID, theNymID, theAccountID)
+                             : OT::App().API().OTAPI().LoadInbox(
+                                   theNotaryID, theNymID, theAccountID);
             }
 
             std::unique_ptr<Ledger> theInboxAngel(pInbox);
@@ -2475,13 +2459,13 @@ bool OTRecordList::PerformAutoAccept()
                             20;  // I'm just hardcoding: "Make sure I have at
                                  // least 20 transaction numbers."
                         {
-                            rLock lock(api_lock_);
                             if (!OT::App()
-                                 .API()
-                                 .ServerAction()
-                                 .GetTransactionNumbers(
-                                     theNymID, theNotaryID, nNumberNeeded))
-                            {
+                                     .API()
+                                     .ServerAction()
+                                     .GetTransactionNumbers(
+                                         theNymID,
+                                         theNotaryID,
+                                         nNumberNeeded)) {
                                 otOut << "\n\nFailure: "
                                          "make_sure_enough_trans_nums: "
                                          "returned false. (Skipping inbox "
@@ -2558,13 +2542,13 @@ bool OTRecordList::PerformAutoAccept()
 
                 std::string strResponse;
                 {
-                    rLock lock(api_lock_);
-                    strResponse = OT::App()
-                        .API()
-                        .ServerAction()
-                        .ProcessInbox(
-                            theNymID, theNotaryID, theAccountID, ledger)
-                        ->Run();
+                    strResponse =
+                        OT::App()
+                            .API()
+                            .ServerAction()
+                            .ProcessInbox(
+                                theNymID, theNotaryID, theAccountID, ledger)
+                            ->Run();
                 }
                 std::string strAttempt = "process_inbox";
 
@@ -2580,7 +2564,6 @@ bool OTRecordList::PerformAutoAccept()
                     // inbox, outbox, etc)
                     // since they have probably changed from this operation.
                     //
-                    rLock lock(api_lock_);
                     bool bRetrieved =
                         OT::App().API().ServerAction().DownloadAccount(
                             theNymID,
@@ -3568,10 +3551,11 @@ bool OTRecordList::Populate()
 
             if (false == theNymID.empty()) {
                 pRecordbox =
-                    m_bRunFast ? OT::App().API().OTAPI().LoadRecordBoxNoVerify(
-                                     theNotaryID, theNymID, theNymID)  // twice.
-                               : OT::App().API().OTAPI().LoadRecordBox(
-                                     theNotaryID, theNymID, theNymID);
+                    m_bRunFast
+                        ? OT::App().API().OTAPI().LoadRecordBoxNoVerify(
+                              theNotaryID, theNymID, theNymID)  // twice.
+                        : OT::App().API().OTAPI().LoadRecordBox(
+                              theNotaryID, theNymID, theNymID);
             }
 
             std::unique_ptr<Ledger> theRecordBoxAngel(pRecordbox);
@@ -3667,11 +3651,12 @@ bool OTRecordList::Populate()
                             // Whereas if Nym were the recipient, then we'd want
                             // the SENDER. (For display.)
                             //
-                            if (0 == str_nym_id.compare(
-                                         str_sender_id))  // str_nym_id IS
-                                                          // str_sender_id.
-                                                          // (Therefore we want
-                                                          // recipient.)
+                            if (0 ==
+                                str_nym_id.compare(
+                                    str_sender_id))  // str_nym_id IS
+                                                     // str_sender_id.
+                                                     // (Therefore we want
+                                                     // recipient.)
                             {
                                 if (OTTransaction::notice ==
                                     pBoxTrans->GetType()) {
@@ -4168,10 +4153,9 @@ bool OTRecordList::Populate()
 
                 }  // Loop through Recordbox
             } else
-                otWarn << __FUNCTION__
-                       << ": Failed loading payments record "
-                          "box. (Probably just doesn't exist "
-                          "yet.)\n";
+                otWarn << __FUNCTION__ << ": Failed loading payments record "
+                                          "box. (Probably just doesn't exist "
+                                          "yet.)\n";
 
             // EXPIRED RECORDS:
             nIndex = (-1);
@@ -4182,10 +4166,11 @@ bool OTRecordList::Populate()
 
             if (false == theNymID.empty()) {
                 pExpiredbox =
-                    m_bRunFast ? OT::App().API().OTAPI().LoadExpiredBoxNoVerify(
-                                     theNotaryID, theNymID)
-                               : OT::App().API().OTAPI().LoadExpiredBox(
-                                     theNotaryID, theNymID);
+                    m_bRunFast
+                        ? OT::App().API().OTAPI().LoadExpiredBoxNoVerify(
+                              theNotaryID, theNymID)
+                        : OT::App().API().OTAPI().LoadExpiredBox(
+                              theNotaryID, theNymID);
             }
 
             std::unique_ptr<Ledger> theExpiredBoxAngel(pExpiredbox);
@@ -4275,11 +4260,12 @@ bool OTRecordList::Populate()
                             // Whereas if Nym were the recipient, then we'd want
                             // the SENDER. (For display.)
                             //
-                            if (0 == str_nym_id.compare(
-                                         str_sender_id))  // str_nym_id IS
-                                                          // str_sender_id.
-                                                          // (Therefore we want
-                                                          // recipient.)
+                            if (0 ==
+                                str_nym_id.compare(
+                                    str_sender_id))  // str_nym_id IS
+                                                     // str_sender_id.
+                                                     // (Therefore we want
+                                                     // recipient.)
                             {
                                 if (OTTransaction::notice ==
                                     pBoxTrans->GetType())
@@ -4838,10 +4824,11 @@ bool OTRecordList::Populate()
         Ledger* pInbox{nullptr};
 
         if (false == theNymID.empty()) {
-            pInbox = m_bRunFast ? OT::App().API().OTAPI().LoadInboxNoVerify(
-                                      theNotaryID, theNymID, theAccountID)
-                                : OT::App().API().OTAPI().LoadInbox(
-                                      theNotaryID, theNymID, theAccountID);
+            pInbox = m_bRunFast
+                         ? OT::App().API().OTAPI().LoadInboxNoVerify(
+                               theNotaryID, theNymID, theAccountID)
+                         : OT::App().API().OTAPI().LoadInbox(
+                               theNotaryID, theNymID, theAccountID);
         }
 
         std::unique_ptr<Ledger> theInboxAngel(pInbox);
@@ -5129,10 +5116,11 @@ bool OTRecordList::Populate()
         Ledger* pOutbox{nullptr};
 
         if (false == theNymID.empty()) {
-            pOutbox = m_bRunFast ? OT::App().API().OTAPI().LoadOutboxNoVerify(
-                                       theNotaryID, theNymID, theAccountID)
-                                 : OT::App().API().OTAPI().LoadOutbox(
-                                       theNotaryID, theNymID, theAccountID);
+            pOutbox = m_bRunFast
+                          ? OT::App().API().OTAPI().LoadOutboxNoVerify(
+                                theNotaryID, theNymID, theAccountID)
+                          : OT::App().API().OTAPI().LoadOutbox(
+                                theNotaryID, theNymID, theAccountID);
         }
 
         std::unique_ptr<Ledger> theOutboxAngel(pOutbox);
@@ -5982,8 +5970,7 @@ void OTRecordList::AddSpecialMsg(
 // This one expects that s_pCaller is not nullptr.
 //
 OTRecordList::OTRecordList()
-    : api_lock_(opentxs::OT::App().API().Lock())
-    , m_pLookup(nullptr)
+    : m_pLookup(nullptr)
     , m_bRunFast(false)
     , m_bAutoAcceptCheques(false)
     , m_bAutoAcceptReceipts(false)
@@ -6005,8 +5992,7 @@ OTRecordList::OTRecordList()
 }
 
 OTRecordList::OTRecordList(const OTNameLookup& theLookup)
-    : api_lock_(opentxs::OT::App().API().Lock())
-    , m_pLookup(&theLookup)
+    : m_pLookup(&theLookup)
     , m_bRunFast(false)
     , m_bAutoAcceptCheques(false)
     , m_bAutoAcceptReceipts(false)

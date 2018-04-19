@@ -43,6 +43,7 @@
 
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/core/util/Common.hpp"
+#include "opentxs/core/Lockable.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 
@@ -53,33 +54,15 @@
 
 namespace opentxs
 {
-class OT_API;
-
 namespace api
 {
-class Activity;
-class ContactManager;
-class Crypto;
-class Settings;
-class Identity;
-
-namespace client
-{
-class Wallet;
-}  // namespace client
-
 namespace implementation
 {
 class Api;
 }  // namespace implementation
-
-namespace network
-{
-class ZMQ;
-}  // namespace network
 }  // namespace api
 
-class OTAPI_Exec
+class OTAPI_Exec : Lockable
 {
 private:
     friend class api::implementation::Api;
@@ -92,7 +75,7 @@ private:
     const api::client::Wallet& wallet_;
     const api::network::ZMQ& zeromq_;
     const OT_API& ot_api_;
-    std::recursive_mutex& lock_;
+    ContextLockCallback lock_callback_;
 
     OTAPI_Exec(
         const api::Activity& activity,
@@ -103,7 +86,7 @@ private:
         const api::client::Wallet& wallet,
         const api::network::ZMQ& zeromq,
         const OT_API& otapi,
-        std::recursive_mutex& lock);
+        const ContextLockCallback& lockCallback);
     OTAPI_Exec() = delete;
     OTAPI_Exec(const OTAPI_Exec&) = delete;
     OTAPI_Exec(OTAPI_Exec&&) = delete;

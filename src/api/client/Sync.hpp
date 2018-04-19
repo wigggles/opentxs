@@ -190,7 +190,7 @@ private:
         UniqueQueue<Identifier> publish_server_contract_;
     };
 
-    std::recursive_mutex& api_lock_;
+    ContextLockCallback lock_callback_;
     const Flag& running_;
     const OT_API& ot_api_;
     const opentxs::OTAPI_Exec& exec_;
@@ -370,7 +370,6 @@ private:
         const Identifier& recipient) const;
 
     Sync(
-        std::recursive_mutex& apiLock,
         const Flag& running,
         const OT_API& otapi,
         const opentxs::OTAPI_Exec& exec,
@@ -379,7 +378,8 @@ private:
         const api::Api& api,
         const api::client::Wallet& wallet,
         const api::crypto::Encode& encoding,
-        const opentxs::network::zeromq::Context& zmq);
+        const opentxs::network::zeromq::Context& zmq,
+        const ContextLockCallback& lockCallback);
     Sync() = delete;
     Sync(const Sync&) = delete;
     Sync(Sync&&) = delete;

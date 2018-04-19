@@ -170,8 +170,6 @@ class OTRecordList
 public:
     enum ItemType { typeBoth = 0, typeTransfers = 1, typeReceipts = 2 };
 
-    std::recursive_mutex& api_lock_;
-
 private:
     const OTNameLookup* m_pLookup{nullptr};
     // Defaults to false. If you set it true, it will run a lot faster. (And
@@ -228,13 +226,13 @@ public:
         const std::string& hisnym,
         const std::string& instrument,
         std::int32_t index,
-        std::string* pOptionalOutput=nullptr);
+        std::string* pOptionalOutput = nullptr);
 
     EXPORT static std::int32_t confirmPaymentPlan_lowLevel(
         const std::string& mynym,
         const std::string& myacct,
         const std::string& plan,
-        std::string* pOptionalOutput=nullptr);
+        std::string* pOptionalOutput = nullptr);
 
     EXPORT static std::int32_t processPayment(
         const std::string& myacct,
@@ -249,20 +247,24 @@ public:
         const std::string& myacct,
         const std::string& mynym,
         const std::string& instrument,
-        std::string* pOptionalOutput =nullptr);
+        std::string* pOptionalOutput = nullptr);
 
     EXPORT static std::int32_t acceptFromInbox(
         const std::string& myacct,
         const std::string& indices,
         const std::int32_t itemTypeFilter);
 
-    EXPORT static bool checkMandatory(const char* name,
-                                      const std::string& value);
+    EXPORT static bool checkMandatory(
+        const char* name,
+        const std::string& value);
 
-    EXPORT static bool checkNym(const char* name,
-                                std::string& nym,
-                                bool checkExistance=true);
-    EXPORT static bool checkIndices(const char* name, const std::string& indices);
+    EXPORT static bool checkNym(
+        const char* name,
+        std::string& nym,
+        bool checkExistance = true);
+    EXPORT static bool checkIndices(
+        const char* name,
+        const std::string& indices);
     EXPORT static bool checkAccount(const char* name, std::string& account);
 
     EXPORT static bool checkServer(const char* name, std::string& server);
@@ -271,14 +273,14 @@ public:
         const std::string& server,
         const std::string& mynym,
         const std::string& indices);
-    
+
     EXPORT static std::int32_t cancel_outgoing_payments(
         const std::string& mynym,
         const std::string& myacct,
         const std::string& indices);
 
     EXPORT static std::string inputText(const char* what);
-    
+
     EXPORT static const char* textTo() { return s_strTextTo.c_str(); }
     EXPORT static const char* textFrom() { return s_strTextFrom.c_str(); }
 

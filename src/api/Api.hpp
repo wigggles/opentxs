@@ -43,22 +43,21 @@
 
 #include "opentxs/api/Api.hpp"
 #include "opentxs/core/Flag.hpp"
+#include "opentxs/Types.hpp"
 
+#include <map>
 #include <memory>
 #include <mutex>
 #include <string>
 
-namespace opentxs
+namespace opentxs::api::implementation
 {
-namespace api
-{
-namespace implementation
-{
-
 class Api : virtual public opentxs::api::Api
 {
 public:
-    std::recursive_mutex& Lock() const override;
+    std::recursive_mutex& Lock(
+        const Identifier& nymID,
+        const Identifier& serverID) const override;
 
     const OTAPI_Exec& Exec(const std::string& wallet = "") const override;
     const OT_API& OTAPI(const std::string& wallet = "") const override;
@@ -90,6 +89,10 @@ private:
     std::unique_ptr<api::client::Sync> sync_{nullptr};
 
     mutable std::recursive_mutex lock_;
+    mutable std::mutex map_lock_;
+    mutable std::map<ContextID, std::recursive_mutex> context_locks_;
+
+    std::recursive_mutex& get_lock(const ContextID context) const;
 
     void Cleanup();
     void Init();
@@ -109,7 +112,5 @@ private:
     Api& operator=(const Api&) = delete;
     Api& operator=(Api&&) = delete;
 };
-}  // namespace implementation
-}  // namespace api
-}  // namespace opentxs
+}  // opentxs::api::implementation
 #endif  // OPENTXS_API_IMPLEMENTATION_API_HPP

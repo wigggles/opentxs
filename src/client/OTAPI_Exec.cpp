@@ -132,7 +132,7 @@ OTAPI_Exec::OTAPI_Exec(
     const api::client::Wallet& wallet,
     const api::network::ZMQ& zeromq,
     const OT_API& otapi,
-    std::recursive_mutex& lock)
+    const ContextLockCallback& lockCallback)
     : activity_(activity)
     , config_(config)
     , contacts_(contacts)
@@ -141,7 +141,7 @@ OTAPI_Exec::OTAPI_Exec(
     , wallet_(wallet)
     , zeromq_(zeromq)
     , ot_api_(otapi)
-    , lock_(lock)
+    , lock_callback_(lockCallback)
 {
 }
 
@@ -626,7 +626,7 @@ std::string OTAPI_Exec::GetNym_ActiveCronItemIDs(
     const std::string& NYM_ID,
     const std::string& NOTARY_ID) const
 {
-    rLock lock(lock_);
+    rLock lock(lock_callback_({NYM_ID, NOTARY_ID}));
 
     if (NYM_ID.empty()) {
         otErr << OT_METHOD << __FUNCTION__ << ": nullptr NYM_ID passed in!\n";
@@ -654,7 +654,7 @@ std::string OTAPI_Exec::GetActiveCronItem(
     const std::string& NOTARY_ID,
     int64_t lTransNum) const
 {
-    rLock lock(lock_);
+    Lock lock(lock_);
 
     if (NOTARY_ID.empty()) {
         otErr << OT_METHOD << __FUNCTION__
@@ -1615,7 +1615,7 @@ std::int32_t OTAPI_Exec::GetAccountCount(void) const
 //
 bool OTAPI_Exec::Wallet_CanRemoveServer(const std::string& NOTARY_ID) const
 {
-    rLock lock(lock_);
+    Lock lock(lock_);
 
     OT_ASSERT_MSG(
         !NOTARY_ID.empty(),
@@ -1671,7 +1671,7 @@ bool OTAPI_Exec::Wallet_CanRemoveServer(const std::string& NOTARY_ID) const
 //
 bool OTAPI_Exec::Wallet_RemoveServer(const std::string& NOTARY_ID) const
 {
-    rLock lock(lock_);
+    Lock lock(lock_);
 
     OT_ASSERT_MSG(
         !NOTARY_ID.empty(),
@@ -1715,7 +1715,7 @@ bool OTAPI_Exec::Wallet_RemoveServer(const std::string& NOTARY_ID) const
 bool OTAPI_Exec::Wallet_CanRemoveAssetType(
     const std::string& INSTRUMENT_DEFINITION_ID) const
 {
-    rLock lock(lock_);
+    Lock lock(lock_);
 
     OT_ASSERT_MSG(
         !INSTRUMENT_DEFINITION_ID.empty(),
@@ -1758,7 +1758,7 @@ bool OTAPI_Exec::Wallet_CanRemoveAssetType(
 bool OTAPI_Exec::Wallet_RemoveAssetType(
     const std::string& INSTRUMENT_DEFINITION_ID) const
 {
-    rLock lock(lock_);
+    Lock lock(lock_);
 
     OT_ASSERT_MSG(
         !INSTRUMENT_DEFINITION_ID.empty(),
@@ -1851,7 +1851,7 @@ bool OTAPI_Exec::Wallet_RemoveNym(const std::string& NYM_ID) const
 //
 bool OTAPI_Exec::Wallet_CanRemoveAccount(const std::string& ACCOUNT_ID) const
 {
-    rLock lock(lock_);
+    Lock lock(lock_);
 
     OT_ASSERT_MSG(
         !ACCOUNT_ID.empty(),
@@ -3592,8 +3592,6 @@ std::string OTAPI_Exec::GetAssetType_TLA(const std::string& THE_ID) const
 // returns a string containing the account ID, based on index.
 std::string OTAPI_Exec::GetAccountWallet_ID(const int32_t& nIndex) const
 {
-    rLock lock(lock_);
-
     if (0 > nIndex) {
         otErr << OT_METHOD << __FUNCTION__
               << ": nIndex is out of bounds (it's in the negative!)\n";
@@ -3618,8 +3616,6 @@ std::string OTAPI_Exec::GetAccountWallet_ID(const int32_t& nIndex) const
 // returns the account name, based on account ID.
 std::string OTAPI_Exec::GetAccountWallet_Name(const std::string& THE_ID) const
 {
-    rLock lock(lock_);
-
     OT_ASSERT_MSG(
         !THE_ID.empty(),
         "OTAPI_Exec::GetAccountWallet_Name: Null THE_ID passed in.");
@@ -3645,8 +3641,6 @@ std::string OTAPI_Exec::GetAccountWallet_InboxHash(
 // account file. (Usually more recent than:
 // OTAPI_Exec::GetNym_InboxHash)
 {
-    rLock lock(lock_);
-
     OT_ASSERT_MSG(
         !ACCOUNT_ID.empty(),
         "OTAPI_Exec::GetAccountWallet_InboxHash: Null ACCOUNT_ID passed in.");
@@ -3675,8 +3669,6 @@ std::string OTAPI_Exec::GetAccountWallet_OutboxHash(
 // account file. (Usually more recent than:
 // OTAPI_Exec::GetNym_OutboxHash)
 {
-    rLock lock(lock_);
-
     OT_ASSERT_MSG(
         !ACCOUNT_ID.empty(),
         "OTAPI_Exec::GetAccountWallet_OutboxHash: Null ACCOUNT_ID passed in.");
@@ -4195,8 +4187,6 @@ bool OTAPI_Exec::SetAccountWallet_Name(
 // returns the account balance, based on account ID.
 int64_t OTAPI_Exec::GetAccountWallet_Balance(const std::string& THE_ID) const
 {
-    rLock lock(lock_);
-
     OT_ASSERT_MSG(
         !THE_ID.empty(),
         "OTAPI_Exec::GetAccountWallet_Balance: Null THE_ID passed in.");
@@ -4209,8 +4199,6 @@ int64_t OTAPI_Exec::GetAccountWallet_Balance(const std::string& THE_ID) const
 // returns an account's "account type", (simple, issuer, etc.)
 std::string OTAPI_Exec::GetAccountWallet_Type(const std::string& THE_ID) const
 {
-    rLock lock(lock_);
-
     OT_ASSERT_MSG(
         !THE_ID.empty(),
         "OTAPI_Exec::GetAccountWallet_Type: Null THE_ID passed in.");
@@ -4228,8 +4216,6 @@ std::string OTAPI_Exec::GetAccountWallet_Type(const std::string& THE_ID) const
 std::string OTAPI_Exec::GetAccountWallet_InstrumentDefinitionID(
     const std::string& THE_ID) const
 {
-    rLock lock(lock_);
-
     OT_VERIFY_ID_STR(THE_ID);
 
     Identifier theID(THE_ID);
@@ -4250,8 +4236,6 @@ std::string OTAPI_Exec::GetAccountWallet_InstrumentDefinitionID(
 std::string OTAPI_Exec::GetAccountWallet_NotaryID(
     const std::string& THE_ID) const
 {
-    rLock lock(lock_);
-
     OT_VERIFY_ID_STR(THE_ID);
 
     Identifier theID(THE_ID);
@@ -4268,8 +4252,6 @@ std::string OTAPI_Exec::GetAccountWallet_NotaryID(
 // (Which is a hash of the Nym's public key for the owner of this account.)
 std::string OTAPI_Exec::GetAccountWallet_NymID(const std::string& THE_ID) const
 {
-    rLock lock(lock_);
-
     OT_VERIFY_ID_STR(THE_ID);
 
     const Identifier theID(THE_ID);
@@ -6817,7 +6799,7 @@ bool OTAPI_Exec::Msg_HarvestTransactionNumbers(
     const bool& bTransactionWasSuccess,
     const bool& bTransactionWasFailure) const
 {
-    rLock lock(lock_);
+    Lock lock(lock_);
 
     OT_VERIFY_ID_STR(NYM_ID);
     OT_VERIFY_STD_STR(THE_MESSAGE);
@@ -6831,6 +6813,7 @@ bool OTAPI_Exec::Msg_HarvestTransactionNumbers(
               << ": Failed trying to load message from empty string.\n";
         return false;
     }
+
     // Maybe it's not a message at all. Maybe it's a cron item
     // (smart contract... payment plan...)
     //
@@ -6941,6 +6924,7 @@ bool OTAPI_Exec::Msg_HarvestTransactionNumbers(
               << ": Failed trying to load message from string.\n";
         return false;
     }
+
     // By this point, we have the actual message loaded up.
     //
     const bool bSuccess = ot_api_.Msg_HarvestTransactionNumbers(
@@ -7310,7 +7294,7 @@ std::string OTAPI_Exec::Nymbox_GetReplyNotice(
     const int64_t& REQUEST_NUMBER) const  // returns replyNotice transaction by
                                           // requestNumber.
 {
-    rLock lock(lock_);
+    rLock lock(lock_callback_({NYM_ID, NOTARY_ID}));
 
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(NYM_ID);
@@ -11377,7 +11361,7 @@ bool OTAPI_Exec::ResyncNymWithServer(
     const std::string& NYM_ID,
     const std::string& THE_MESSAGE) const
 {
-    rLock lock(lock_);
+    rLock lock(lock_callback_({NYM_ID, NOTARY_ID}));
 
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(NYM_ID);

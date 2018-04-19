@@ -335,16 +335,16 @@ public:
 private:
     friend api::implementation::Api;
 
-    std::recursive_mutex& api_lock_;
     const OT_API& otapi_;
     const OTAPI_Exec& exec_;
     const api::client::Wallet& wallet_;
+    ContextLockCallback lock_callback_;
 
     ServerAction(
-        std::recursive_mutex& apiLock,
         const OT_API& otapi,
         const OTAPI_Exec& exec,
-        const api::client::Wallet& wallet);
+        const api::client::Wallet& wallet,
+        const ContextLockCallback& lockCallback);
     ServerAction() = delete;
     ServerAction(const ServerAction&) = delete;
     ServerAction(ServerAction&&) = delete;

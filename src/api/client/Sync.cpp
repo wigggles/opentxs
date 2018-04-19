@@ -185,7 +185,6 @@ MCL/PCUJ6FIMhej+ROPk41604x1jeswkkRmXRNjzLlVdiJ/pQMxG4tJ0UQwpxHxrr0IaBA==
 -----END OT ARMORED SERVER CONTRACT-----)";
 
 Sync::Sync(
-    std::recursive_mutex& apiLock,
     const Flag& running,
     const OT_API& otapi,
     const opentxs::OTAPI_Exec& exec,
@@ -194,8 +193,9 @@ Sync::Sync(
     const api::Api& api,
     const api::client::Wallet& wallet,
     const api::crypto::Encode& encoding,
-    const opentxs::network::zeromq::Context& zmq)
-    : api_lock_(apiLock)
+    const opentxs::network::zeromq::Context& zmq,
+    const ContextLockCallback& lockCallback)
+    : lock_callback_(lockCallback)
     , running_(running)
     , ot_api_(otapi)
     , exec_(exec)
@@ -318,7 +318,7 @@ bool Sync::AcceptIncoming(
     const Identifier& serverID,
     const std::size_t max) const
 {
-    rLock apiLock(api_lock_);
+    rLock apiLock(lock_callback_({nymID.str(), serverID.str()}));
     auto context = wallet_.mutable_ServerContext(nymID, serverID);
     std::size_t remaining{1};
     std::size_t retries{PROCESS_INBOX_RETRIES};
@@ -692,11 +692,9 @@ bool Sync::deposit_cheque(
         return finish_task(taskID, false);
     }
 
-    rLock lock(api_lock_);
     auto action =
         server_action_.DepositCheque(nymID, serverID, accountID, cheque);
     action->Run();
-    lock.unlock();
 
     if (SendResult::VALID_REPLY == action->LastSendResult()) {
         OT_ASSERT(action->Reply());
@@ -795,10 +793,8 @@ bool Sync::download_contract(
     OT_ASSERT(false == serverID.empty())
     OT_ASSERT(false == contractID.empty())
 
-    rLock lock(api_lock_);
     auto action = server_action_.DownloadContract(nymID, serverID, contractID);
     action->Run();
-    lock.unlock();
 
     if (SendResult::VALID_REPLY == action->LastSendResult()) {
         OT_ASSERT(action->Reply());
@@ -832,10 +828,8 @@ bool Sync::download_nym(
     OT_ASSERT(false == serverID.empty())
     OT_ASSERT(false == targetNymID.empty())
 
-    rLock lock(api_lock_);
     auto action = server_action_.DownloadNym(nymID, serverID, targetNymID);
     action->Run();
-    lock.unlock();
 
     if (SendResult::VALID_REPLY == action->LastSendResult()) {
         OT_ASSERT(action->Reply());
@@ -1011,11 +1005,9 @@ bool Sync::get_admin(
 
     {
         const std::string serverPassword(password.getPassword());
-        rLock lock(api_lock_);
         auto action =
             server_action_.RequestAdmin(nymID, serverID, serverPassword);
         action->Run();
-        lock.unlock();
 
         if (SendResult::VALID_REPLY == action->LastSendResult()) {
             auto reply = action->Reply();
@@ -1045,7 +1037,6 @@ Identifier Sync::get_introduction_server(const Lock& lock) const
 
     bool keyFound = false;
     String serverID;
-    rLock apiLock(api_lock_);
     const bool config = config_.Check_str(
         MASTER_SECTION, INTRODUCTION_SERVER_KEY, serverID, keyFound);
 
@@ -1123,11 +1114,9 @@ bool Sync::message_nym(
     OT_ASSERT(false == serverID.empty())
     OT_ASSERT(false == targetNymID.empty())
 
-    rLock lock(api_lock_);
     auto action =
         server_action_.SendMessage(nymID, serverID, targetNymID, text);
     action->Run();
-    lock.unlock();
 
     if (SendResult::VALID_REPLY == action->LastSendResult()) {
         OT_ASSERT(action->Reply());
@@ -1168,11 +1157,9 @@ bool Sync::pay_nym(
     OT_ASSERT(false == serverID.empty())
     OT_ASSERT(false == targetNymID.empty())
 
-    rLock lock(api_lock_);
     auto action =
         server_action_.SendPayment(nymID, serverID, targetNymID, payment);
     action->Run();
-    lock.unlock();
 
     if (SendResult::VALID_REPLY == action->LastSendResult()) {
         OT_ASSERT(action->Reply());
@@ -1216,11 +1203,9 @@ bool Sync::pay_nym_cash(
     OT_ASSERT(false == serverID.empty())
     OT_ASSERT(false == targetNymID.empty())
 
-    rLock lock(api_lock_);
     auto action = server_action_.SendCash(
         nymID, serverID, targetNymID, recipientCopy, senderCopy);
     action->Run();
-    lock.unlock();
 
     if (SendResult::VALID_REPLY == action->LastSendResult()) {
         OT_ASSERT(action->Reply());
@@ -1375,11 +1360,9 @@ bool Sync::publish_server_contract(
     OT_ASSERT(false == serverID.empty())
     OT_ASSERT(false == contractID.empty())
 
-    rLock lock(api_lock_);
     auto action =
         server_action_.PublishServerContract(nymID, serverID, contractID);
     action->Run();
-    lock.unlock();
 
     if (SendResult::VALID_REPLY == action->LastSendResult()) {
         OT_ASSERT(action->Reply());
@@ -1584,10 +1567,8 @@ bool Sync::register_account(
     OT_ASSERT(false == serverID.empty())
     OT_ASSERT(false == unitID.empty())
 
-    rLock lock(api_lock_);
     auto action = server_action_.RegisterAccount(nymID, serverID, unitID);
     action->Run();
-    lock.unlock();
 
     if (SendResult::VALID_REPLY == action->LastSendResult()) {
         OT_ASSERT(action->Reply());
@@ -1619,10 +1600,8 @@ bool Sync::register_nym(
     OT_ASSERT(false == serverID.empty())
 
     set_contact(nymID, serverID);
-    rLock lock(api_lock_);
     auto action = server_action_.RegisterNym(nymID, serverID);
     action->Run();
-    lock.unlock();
 
     if (SendResult::VALID_REPLY == action->LastSendResult()) {
         OT_ASSERT(action->Reply());
@@ -1790,11 +1769,9 @@ bool Sync::send_transfer(
     const int64_t value,
     const std::string& memo) const
 {
-    rLock lock(api_lock_);
     auto action = server_action_.SendTransfer(
         localNymID, serverID, sourceAccountID, targetAccountID, value, memo);
     action->Run();
-    lock.unlock();
 
     if (SendResult::VALID_REPLY == action->LastSendResult()) {
         OT_ASSERT(action->Reply());
@@ -1899,14 +1876,14 @@ Identifier Sync::set_introduction_server(
     introduction_server_id_.reset(new Identifier(id));
 
     OT_ASSERT(introduction_server_id_)
+
     bool dontCare = false;
-    rLock apiLock(api_lock_);
     const bool set = config_.Set_str(
         MASTER_SECTION, INTRODUCTION_SERVER_KEY, String(id), dontCare);
 
     OT_ASSERT(set)
+
     config_.Save();
-    apiLock.unlock();
 
     return id;
 }

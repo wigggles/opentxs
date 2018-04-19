@@ -148,6 +148,11 @@ typedef std::map<std::string, Nym*> mapOfNyms;
 typedef std::map<std::string, const Nym*> mapOfConstNyms;
 typedef std::map<std::string, std::unique_ptr<Nym>> mapOfNymsSP;
 
+// local ID, remote ID
+using ContextID = std::pair<std::string, std::string>;
+using ContextLockCallback =
+    std::function<std::recursive_mutex&(const ContextID&)>;
+
 typedef std::int32_t NetworkOperationStatus;
 
 typedef std::int64_t TransactionNumber;
@@ -476,5 +481,4 @@ enum class RemoteBoxType : std::int8_t {
     Outbox = 2,
 };
 }  // namespace opentxs
-
 #endif  // OPENTXS_CORE_TYPES_HPP
