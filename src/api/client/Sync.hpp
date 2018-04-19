@@ -100,7 +100,7 @@ public:
         const Identifier& contactID,
         std::shared_ptr<const Purse>& recipientCopy,
         std::shared_ptr<const Purse>& senderCopy) const override;
-#endif // OT_CASH
+#endif  // OT_CASH
     void Refresh() const override;
     std::uint64_t RefreshCount() const override;
     Identifier RegisterNym(
@@ -124,9 +124,20 @@ public:
     Identifier ScheduleDownloadNymbox(
         const Identifier& localNymID,
         const Identifier& serverID) const override;
+    Identifier ScheduleRegisterAccount(
+        const Identifier& localNymID,
+        const Identifier& serverID,
+        const Identifier& unitID) const override;
     Identifier ScheduleRegisterNym(
         const Identifier& localNymID,
         const Identifier& serverID) const override;
+    Identifier SendTransfer(
+        const Identifier& localNymID,
+        const Identifier& serverID,
+        const Identifier& sourceAccountID,
+        const Identifier& targetAccountID,
+        const int64_t value,
+        const std::string& memo) const override;
     void StartIntroductionServer(const Identifier& localNymID) const override;
     ThreadStatus Status(const Identifier& taskID) const override;
 
@@ -145,12 +156,18 @@ private:
     using PaymentTask = std::pair<Identifier, std::shared_ptr<const OTPayment>>;
 #if OT_CASH
     /** PayCashTask: recipientID, recipientCopyOfPurse, senderCopyOfPurse */
-    using PayCashTask = std::tuple<Identifier, std::shared_ptr<const Purse>,
+    using PayCashTask = std::tuple<
+        Identifier,
+        std::shared_ptr<const Purse>,
         std::shared_ptr<const Purse>>;
-#endif // OT_CASH
+#endif  // OT_CASH
     /** DepositPaymentTask: accountID, payment */
     using DepositPaymentTask =
         std::pair<Identifier, std::shared_ptr<const OTPayment>>;
+    /** SendTransferTask: localNymID, serverID, sourceAccountID, targetAccountID
+     */
+    using SendTransferTask =
+        std::tuple<Identifier, Identifier, uint64_t, std::string>;
 
     struct OperationQueue {
         UniqueQueue<Identifier> check_nym_;
@@ -164,7 +181,8 @@ private:
         UniqueQueue<PaymentTask> send_payment_;
 #if OT_CASH
         UniqueQueue<PayCashTask> send_cash_;
-#endif // OT_CASH
+#endif  // OT_CASH
+        UniqueQueue<SendTransferTask> send_transfer_;
     };
 
     std::recursive_mutex& api_lock_;
@@ -289,7 +307,7 @@ private:
         const Identifier& targetNymID,
         std::shared_ptr<const Purse>& recipientCopy,
         std::shared_ptr<const Purse>& senderCopy) const;
-#endif // OT_CASH
+#endif  // OT_CASH
     bool publish_server_registration(
         const Identifier& nymID,
         const Identifier& serverID,
@@ -312,6 +330,14 @@ private:
         const Identifier& localNymID,
         const Identifier& serverID,
         const Identifier& unitID) const;
+    bool send_transfer(
+        const Identifier& taskID,
+        const Identifier& localNymID,
+        const Identifier& serverID,
+        const Identifier& sourceAccountID,
+        const Identifier& targetAccountID,
+        const int64_t value,
+        const std::string& memo) const;
     void set_contact(const Identifier& nymID, const Identifier& serverID) const;
     Identifier set_introduction_server(
         const Lock& lock,

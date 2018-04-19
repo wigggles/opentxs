@@ -48,6 +48,7 @@
 #include "opentxs/client/NymData.hpp"
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
+#include "opentxs/client/OTWallet.hpp"
 #include "opentxs/client/ServerAction.hpp"
 #include "opentxs/client/Utility.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
@@ -56,6 +57,7 @@
 #include "opentxs/contact/ContactGroup.hpp"
 #include "opentxs/contact/ContactItem.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/Account.hpp"
 #include "opentxs/core/Cheque.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Ledger.hpp"
@@ -77,12 +79,17 @@
 
 #define SHUTDOWN()                                                             \
     {                                                                          \
+        YIELD(50);                                                             \
+    }
+
+#define YIELD(a)                                                               \
+    {                                                                          \
         if (!running_) {                                                       \
                                                                                \
             return;                                                            \
         }                                                                      \
                                                                                \
-        Log::Sleep(std::chrono::milliseconds(50));                             \
+        Log::Sleep(std::chrono::milliseconds(a));                              \
     }
 
 #define CHECK_NYM(a)                                                           \
@@ -629,7 +636,7 @@ bool Sync::check_registration(
         return true;
     }
 
-    const auto output = register_nym({}, nymID, serverID);
+    const auto output = register_nym(Identifier::Factory(), nymID, serverID);
 
     if (output) {
         context = wallet_.ServerContext(nymID, serverID);
@@ -1177,16 +1184,18 @@ bool Sync::pay_nym(
             const auto messageID = action->MessageID();
 
             if (false == messageID.empty()) {
-                otInfo << OT_METHOD << __FUNCTION__ << ": Sent (payment) "
-                                                       "message "
+                otInfo << OT_METHOD << __FUNCTION__
+                       << ": Sent (payment) "
+                          "message "
                        << messageID.str() << std::endl;
             }
 
             return finish_task(taskID, true);
         } else {
             otErr << OT_METHOD << __FUNCTION__ << ": Server  "
-                  << String(serverID) << " does not accept (payment) message "
-                                         "for "
+                  << String(serverID)
+                  << " does not accept (payment) message "
+                     "for "
                   << String(targetNymID) << std::endl;
         }
     } else {
@@ -1501,6 +1510,8 @@ void Sync::refresh_contacts() const
 
                 if (false == bool(serverGroup)) {
 
+                    const auto taskID(Identifier::Random());
+                    missing_nyms_.Push(taskID, nymID);
                     continue;
                 }
 
@@ -1702,6 +1713,14 @@ Identifier Sync::ScheduleDownloadNymbox(
     return schedule_download_nymbox(localNymID, serverID);
 }
 
+Identifier Sync::ScheduleRegisterAccount(
+    const Identifier& localNymID,
+    const Identifier& serverID,
+    const Identifier& unitID) const
+{
+    return schedule_register_account(localNymID, serverID, unitID);
+}
+
 Identifier Sync::ScheduleRegisterNym(
     const Identifier& localNymID,
     const Identifier& serverID) const
@@ -1713,6 +1732,96 @@ Identifier Sync::ScheduleRegisterNym(
     const auto taskID(Identifier::Random());
 
     return start_task(taskID, queue.register_nym_.Push(taskID, true));
+}
+
+bool Sync::send_transfer(
+    const Identifier& taskID,
+    const Identifier& localNymID,
+    const Identifier& serverID,
+    const Identifier& sourceAccountID,
+    const Identifier& targetAccountID,
+    const int64_t value,
+    const std::string& memo) const
+{
+    rLock lock(api_lock_);
+    auto action = server_action_.SendTransfer(
+        localNymID, serverID, sourceAccountID, targetAccountID, value, memo);
+    action->Run();
+    lock.unlock();
+
+    if (SendResult::VALID_REPLY == action->LastSendResult()) {
+        OT_ASSERT(action->Reply());
+
+        if (action->Reply()->m_bSuccess) {
+            return finish_task(taskID, true);
+        } else {
+            otErr << OT_METHOD << __FUNCTION__ << ": Failed to send transfer "
+                  << "to " << String(serverID) << " for account "
+                  << String(targetAccountID) << std::endl;
+        }
+    } else {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Communication error while sending transfer to account "
+              << String(targetAccountID) << " on server " << String(serverID)
+              << std::endl;
+    }
+
+    return finish_task(taskID, false);
+}
+
+Identifier Sync::SendTransfer(
+    const Identifier& localNymID,
+    const Identifier& serverID,
+    const Identifier& sourceAccountID,
+    const Identifier& targetAccountID,
+    const int64_t value,
+    const std::string& memo) const
+{
+    CHECK_ARGS(localNymID, serverID, targetAccountID)
+    CHECK_NYM(sourceAccountID)
+
+    auto sourceAccount = ot_api_.GetWallet()->GetAccount(sourceAccountID);
+    if (false == bool(sourceAccount)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Invalid source account"
+              << std::endl;
+
+        return {};
+    }
+    auto targetAccount = ot_api_.GetWallet()->GetAccount(targetAccountID);
+    if (false == bool(targetAccount)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Invalid target account"
+              << std::endl;
+
+        return {};
+    }
+    if (sourceAccount->GetNymID() != targetAccount->GetNymID()) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Source and target account"
+              << " owner ids don't match" << std::endl;
+
+        return {};
+    }
+    if (sourceAccount->GetRealNotaryID() != targetAccount->GetRealNotaryID()) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Source and target account"
+              << " notary ids don't match" << std::endl;
+
+        return {};
+    }
+    if (sourceAccount->GetInstrumentDefinitionID() !=
+        targetAccount->GetInstrumentDefinitionID()) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Source and target account"
+              << " instrument definition ids don't match" << std::endl;
+
+        return {};
+    }
+
+    // start_introduction_server(localNymID);
+    auto& queue = get_operations({localNymID, serverID});
+    const auto taskID(Identifier::Random());
+
+    return start_task(
+        taskID,
+        queue.send_transfer_.Push(
+            taskID, {sourceAccountID, targetAccountID, value, memo}));
 }
 
 void Sync::set_contact(const Identifier& nymID, const Identifier& serverID)
@@ -1804,7 +1913,7 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
             break;
         }
 
-        Log::Sleep(std::chrono::seconds(CONTRACT_DOWNLOAD_SECONDS));
+        YIELD(CONTRACT_DOWNLOAD_SECONDS);
     }
 
     SHUTDOWN()
@@ -1821,7 +1930,7 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
             break;
         }
 
-        Log::Sleep(std::chrono::seconds(NYM_REGISTRATION_SECONDS));
+        YIELD(NYM_REGISTRATION_SECONDS);
     }
 
     SHUTDOWN()
@@ -1846,6 +1955,7 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
 #endif  // OT_CASH
     DepositPaymentTask deposit;
     UniqueQueue<DepositPaymentTask> depositPaymentRetry;
+    SendTransferTask transfer;
 
     // Primary loop
     while (running_) {
@@ -1858,11 +1968,16 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
         SHUTDOWN()
 
         // Register the nym, if scheduled. Keep trying until success
-        registerNym |= queueValue;
         registerNymQueued = queue.register_nym_.Pop(taskID, queueValue);
+        registerNym |= queueValue;
 
         if (registerNymQueued || registerNym) {
-            registerNym |= !register_nym(taskID, nymID, serverID);
+            if (register_nym(taskID, nymID, serverID)) {
+                registerNym = false;
+                queueValue = false;
+            } else {
+                registerNym = true;
+            }
         }
 
         SHUTDOWN()
@@ -2141,7 +2256,27 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
 
         SHUTDOWN()
 
-        Log::Sleep(std::chrono::seconds(MAIN_LOOP_SECONDS));
+        // This is a list of transfers which need to be delivered to a nym
+        // on this server
+        while (queue.send_transfer_.Pop(taskID, transfer)) {
+            SHUTDOWN()
+
+            const auto & [ sourceAccountID, targetAccountID, value, memo ] =
+                transfer;
+
+            send_transfer(
+                taskID,
+                nymID,
+                serverID,
+                sourceAccountID,
+                targetAccountID,
+                value,
+                memo);
+        }
+
+        SHUTDOWN()
+
+        YIELD(MAIN_LOOP_SECONDS);
     }
 }
 
