@@ -100,8 +100,11 @@ namespace network
 namespace zeromq
 {
 class Context;
+class FrameIterator;
+class FrameSection;
 class ListenCallback;
 class Message;
+class MultipartMessage;
 class PairEventCallback;
 class PairSocket;
 class Proxy;
@@ -261,6 +264,7 @@ using OTServerConnection = Pimpl<network::ServerConnection>;
 using OTZMQContext = Pimpl<network::zeromq::Context>;
 using OTZMQListenCallback = Pimpl<network::zeromq::ListenCallback>;
 using OTZMQMessage = Pimpl<network::zeromq::Message>;
+using OTZMQMultipartMessage = Pimpl<network::zeromq::MultipartMessage>;
 using OTZMQPairEventCallback = Pimpl<network::zeromq::PairEventCallback>;
 using OTZMQPairSocket = Pimpl<network::zeromq::PairSocket>;
 using OTZMQProxy = Pimpl<network::zeromq::Proxy>;
@@ -282,6 +286,8 @@ extern template class opentxs::Pimpl<opentxs::network::ServerConnection>;
 // extern template class
 // opentxs::Pimpl<opentxs::network::zeromq::ListenCallback>;
 extern template class opentxs::Pimpl<opentxs::network::zeromq::Message>;
+extern template class opentxs::Pimpl<
+    opentxs::network::zeromq::MultipartMessage>;
 extern template class opentxs::Pimpl<
     opentxs::network::zeromq::PairEventCallback>;
 // extern template class opentxs::Pimpl<opentxs::network::zeromq::PairSocket>;
