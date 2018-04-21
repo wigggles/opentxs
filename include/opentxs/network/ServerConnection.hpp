@@ -46,7 +46,9 @@
 
 #include <string>
 
-namespace opentxs::network
+namespace opentxs
+{
+namespace network
 {
 class ServerConnection
 {
@@ -75,4 +77,5 @@ private:
     ServerConnection& operator=(ServerConnection&&) = delete;
 };
 }  // namespace opentxs::network
+}  // namespace opentxs
 #endif  // OPENTXS_NETWORK_SERVERCONNECTION_HPP
