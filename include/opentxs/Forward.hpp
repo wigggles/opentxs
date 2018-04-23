@@ -142,6 +142,7 @@ class ContactList;
 class ContactListItem;
 class ListRow;
 class MessagableList;
+class PayableList;
 }  // namespace opentxs::ui
 
 class Account;
@@ -253,6 +254,7 @@ using OTUIActivityThreadItem = Pimpl<ui::ActivityThreadItem>;
 using OTUIContactList = Pimpl<ui::ContactList>;
 using OTUIContactListItem = Pimpl<ui::ContactListItem>;
 using OTUIMessagableList = Pimpl<ui::MessagableList>;
+using OTUIPayableList = Pimpl<ui::PayableList>;
 using OTZMQContext = Pimpl<network::zeromq::Context>;
 using OTZMQListenCallback = Pimpl<network::zeromq::ListenCallback>;
 using OTZMQMessage = Pimpl<network::zeromq::Message>;

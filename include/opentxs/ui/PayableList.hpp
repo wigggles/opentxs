@@ -14,7 +14,7 @@
  *       -- Scripted smart contracts.
  *
  *  EMAIL:
- *  fellowtraveler\opentransactions.org
+ *  fellowtraveler@opentransactions.org
  *
  *  WEBSITE:
  *  http://www.opentransactions.org/
@@ -36,49 +36,40 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_API_UI_HPP
-#define OPENTXS_API_UI_HPP
+#ifndef OPENTXS_UI_PAYABLELIST_HPP
+#define OPENTXS_UI_PAYABLELIST_HPP
 
 #include "opentxs/Forward.hpp"
-#include "opentxs/Proto.hpp"
+
+#include "opentxs/ui/Widget.hpp"
+
+#ifdef SWIG
+// clang-format off
+%rename(UIPayableList) opentxs::ui::PayableList;
+// clang-format on
+#endif  // SWIG
 
 namespace opentxs
 {
-namespace api
+namespace ui
 {
-class UI
+class PayableList : virtual public Widget
 {
 public:
-    EXPORT virtual const ui::ActivitySummary& ActivitySummary(
-        const Identifier& nymID) const = 0;
-    EXPORT virtual const ui::ActivityThread& ActivityThread(
-        const Identifier& nymID,
-        const Identifier& threadID) const = 0;
-    EXPORT virtual const ui::ContactList& ContactList(
-        const Identifier& nymID) const = 0;
-    EXPORT virtual const ui::MessagableList& MessagableList(
-        const Identifier& nymID) const = 0;
-#ifndef SWIG
-    EXPORT virtual const ui::PayableList& PayableList(
-        const Identifier& nymID,
-        proto::ContactItemType currency) const = 0;
-#endif
-    EXPORT virtual const ui::PayableList& PayableList(
-        const Identifier& nymID,
-        std::uint32_t currency) const = 0;
+    EXPORT virtual const ContactListItem& First() const = 0;
+    EXPORT virtual const ContactListItem& Next() const = 0;
 
-    virtual ~UI() = default;
+    EXPORT virtual ~PayableList() = default;
 
 protected:
-    UI() = default;
+    PayableList() = default;
 
 private:
-    UI(const UI&) = delete;
-    UI(UI&&) = delete;
-    UI& operator=(const UI&) = delete;
-    UI& operator=(UI&&) = delete;
+    PayableList(const PayableList&) = delete;
+    PayableList(PayableList&&) = delete;
+    PayableList& operator=(const PayableList&) = delete;
+    PayableList& operator=(PayableList&&) = delete;
 };
-}  // namespace api
+}  // namespace ui
 }  // namespace opentxs
-
-#endif  // OPENTXS_API_UI_HPP
+#endif  // OPENTXS_UI_PAYABLELIST_HPP

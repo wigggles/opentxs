@@ -51,6 +51,7 @@
 #include "ui/ActivityThread.hpp"
 #include "ui/ContactList.hpp"
 #include "ui/MessagableList.hpp"
+#include "ui/PayableList.hpp"
 
 //#define OT_METHOD "opentxs::api::implementation::UI"
 
@@ -147,6 +148,31 @@ const ui::MessagableList& UI::MessagableList(const Identifier& nymID) const
     OT_ASSERT(output)
 
     return *output;
+}
+
+const ui::PayableList& UI::PayableList(
+    const Identifier& nymID,
+    proto::ContactItemType currency) const
+{
+    Lock lock(lock_);
+    auto& output = payable_lists_[nymID];
+
+    if (false == bool(output)) {
+        output.reset(new ui::implementation::PayableList(
+            zmq_, contact_, sync_, nymID, currency));
+    }
+
+    OT_ASSERT(output)
+
+    return *output;
+}
+
+const ui::PayableList& UI::PayableList(
+    const Identifier& nymID,
+    std::uint32_t currency) const
+{
+    return PayableList(
+        nymID, static_cast<const proto::ContactItemType>(currency));
 }
 
 UI::~UI() {}

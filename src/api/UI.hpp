@@ -62,7 +62,14 @@ public:
     const ui::ContactList& ContactList(const Identifier& nymID) const override;
     const ui::MessagableList& MessagableList(
         const Identifier& nymID) const override;
-
+#ifndef SWIG
+    const ui::PayableList& PayableList(
+        const Identifier& nymID,
+        proto::ContactItemType currency) const override;
+#endif
+    const ui::PayableList& PayableList(
+        const Identifier& nymID,
+        std::uint32_t currency) const override;
     ~UI();
 
 private:
@@ -76,6 +83,8 @@ private:
         std::map<Identifier, std::unique_ptr<ui::ContactList>>;
     using MessagableListMap =
         std::map<Identifier, std::unique_ptr<ui::MessagableList>>;
+    using PayableListMap =
+        std::map<Identifier, std::unique_ptr<ui::PayableList>>;
 
     const opentxs::network::zeromq::Context& zmq_;
     const api::Activity& activity_;
@@ -85,6 +94,7 @@ private:
     mutable ActivitySummaryMap activity_summaries_{};
     mutable ContactListMap contact_lists_{};
     mutable MessagableListMap messagable_lists_{};
+    mutable PayableListMap payable_lists_{};
     mutable ActivityThreadMap activity_threads_{};
     OTZMQReplyCallback widget_callback_;
     OTZMQReplySocket widget_update_collector_;
