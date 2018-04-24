@@ -64,6 +64,7 @@ public:
 private:
     friend ContactList;
     friend MessagableList;
+    friend PayableList;
 
     std::string name_{""};
     OTZMQListenCallback contact_subscriber_callback_;

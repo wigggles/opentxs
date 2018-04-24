@@ -63,6 +63,7 @@ public:
 
 private:
     friend MessagableList;
+    friend PayableList;
 
     ContactListItemBlank() = default;
     ContactListItemBlank(const ContactListItemBlank&) = delete;

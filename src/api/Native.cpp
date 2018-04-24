@@ -70,6 +70,7 @@
 #include "opentxs/ui/ActivityThread.hpp"
 #include "opentxs/ui/ContactList.hpp"
 #include "opentxs/ui/MessagableList.hpp"
+#include "opentxs/ui/PayableList.hpp"
 #include "opentxs/util/Signals.hpp"
 #include "opentxs/OT.hpp"
 
