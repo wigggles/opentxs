@@ -54,12 +54,12 @@ namespace api
 class ContactManager
 {
 public:
-    EXPORT virtual Identifier BlockchainAddressToContact(
+    EXPORT virtual OTIdentifier BlockchainAddressToContact(
         const std::string& address,
         const proto::ContactItemType currency = proto::CITEMTYPE_BTC) const = 0;
     EXPORT virtual std::shared_ptr<const class Contact> Contact(
         const Identifier& id) const = 0;
-    EXPORT virtual Identifier ContactID(const Identifier& nymID) const = 0;
+    EXPORT virtual OTIdentifier ContactID(const Identifier& nymID) const = 0;
     EXPORT virtual ObjectList ContactList() const = 0;
     EXPORT virtual std::string ContactName(
         const Identifier& contactID) const = 0;
