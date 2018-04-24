@@ -43,6 +43,7 @@
 #include "opentxs/storage/tree/Contexts.hpp"
 #include "opentxs/storage/tree/Issuers.hpp"
 #include "opentxs/storage/tree/Mailbox.hpp"
+#include "opentxs/storage/tree/PaymentWorkflows.hpp"
 #include "opentxs/storage/tree/PeerReplies.hpp"
 #include "opentxs/storage/tree/PeerRequests.hpp"
 #include "opentxs/storage/tree/Thread.hpp"
@@ -51,7 +52,7 @@
 
 #include <functional>
 
-#define CURRENT_VERSION 5
+#define CURRENT_VERSION 6
 #define BLOCKCHAIN_INDEX_VERSION 1
 
 #define OT_METHOD "opentxs::storage::Nym::"
@@ -112,6 +113,9 @@ Nym::Nym(
     , issuers_root_(Node::BLANK_HASH)
     , issuers_lock_()
     , issuers_(nullptr)
+    , workflows_root_(Node::BLANK_HASH)
+    , workflows_lock_()
+    , workflows_(nullptr)
 {
     if (check_hash(hash)) {
         init(hash);
@@ -333,6 +337,9 @@ void Nym::init(const std::string& hash)
 
     // Fields added in version 5
     issuers_root_ = normalize_hash(serialized->issuers());
+
+    // Fields added in version 6
+    workflows_root_ = normalize_hash(serialized->paymentworkflow());
 }
 
 class Issuers* Nym::issuers() const
@@ -466,6 +473,7 @@ bool Nym::Migrate(const opentxs::api::storage::Driver& to) const
     output &= threads()->Migrate(to);
     output &= contexts()->Migrate(to);
     output &= issuers()->Migrate(to);
+    output &= workflows()->Migrate(to);
     output &= migrate(root_, to);
 
     return output;
@@ -593,6 +601,21 @@ Editor<class Issuers> Nym::mutable_Issuers()
         [&](class Issuers* in, Lock& lock) -> void { this->save(in, lock); };
 
     return Editor<class Issuers>(write_lock_, issuers(), callback);
+}
+
+Editor<class PaymentWorkflows> Nym::mutable_PaymentWorkflows()
+{
+    std::function<void(class PaymentWorkflows*, Lock&)> callback =
+        [&](class PaymentWorkflows* in, Lock& lock) -> void {
+        this->save(in, lock);
+    };
+
+    return Editor<class PaymentWorkflows>(write_lock_, workflows(), callback);
+}
+
+const class PaymentWorkflows& Nym::PaymentWorkflows() const
+{
+    return *workflows();
 }
 
 PeerReplies* Nym::processed_reply_box() const
@@ -787,6 +810,26 @@ void Nym::save(class Issuers* input, const Lock& lock)
     }
 }
 
+void Nym::save(class PaymentWorkflows* input, const Lock& lock)
+{
+    if (!verify_write_lock(lock)) {
+        otErr << __FUNCTION__ << ": Lock failure." << std::endl;
+        OT_FAIL;
+    }
+
+    if (nullptr == input) {
+        otErr << __FUNCTION__ << ": Null target" << std::endl;
+        OT_FAIL;
+    }
+
+    workflows_root_ = input->Root();
+
+    if (!save(lock)) {
+        otErr << __FUNCTION__ << ": Save error" << std::endl;
+        OT_FAIL;
+    }
+}
+
 class Threads* Nym::threads() const
 {
     Lock lock(threads_lock_);
@@ -972,6 +1015,7 @@ proto::StorageNym Nym::serialize() const
     }
 
     serialized.set_issuers(issuers_root_);
+    serialized.set_paymentworkflow(workflows_root_);
 
     return serialized;
 }
@@ -1082,6 +1126,25 @@ bool Nym::Store(
     private_->Set(!incomingPublic);
 
     return save(lock);
+}
+
+class PaymentWorkflows* Nym::workflows() const
+{
+    Lock lock(workflows_lock_);
+
+    if (false == bool(workflows_)) {
+        workflows_.reset(new class PaymentWorkflows(driver_, workflows_root_));
+
+        if (false == bool(workflows_)) {
+            otErr << __FUNCTION__ << ": Unable to instantiate." << std::endl;
+
+            OT_FAIL
+        }
+    }
+
+    lock.unlock();
+
+    return workflows_.get();
 }
 
 Nym::~Nym() {}

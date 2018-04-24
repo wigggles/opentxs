@@ -14,6 +14,7 @@ set(cxx-sources
   Mailbox.cpp
   Nym.cpp
   Nyms.cpp
+  PaymentWorkflows.cpp
   PeerReplies.cpp
   PeerRequests.cpp
   Root.cpp

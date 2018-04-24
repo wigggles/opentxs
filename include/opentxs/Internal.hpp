@@ -86,7 +86,18 @@ class Proxy;
 
 namespace storage
 {
+class Contexts;
+class Issuers;
+class Mailbox;
+class Nym;
+class Nyms;
+class PaymentWorkflows;
+class PeerReplies;
+class PeerRequests;
 class Root;
+class Thread;
+class Threads;
+class Tree;
 }  // namespace opentxs::storage
 
 namespace ui
