@@ -65,6 +65,7 @@ public:
     const api::client::Pair& Pair() const override;
     const client::ServerAction& ServerAction() const override;
     const client::Sync& Sync() const override;
+    const client::Workflow& Workflow() const override;
 
     ~Api();
 
@@ -81,12 +82,13 @@ private:
     const api::client::Wallet& wallet_;
     const api::network::ZMQ& zmq_;
 
-    std::unique_ptr<OT_API> ot_api_{nullptr};
-    std::unique_ptr<OTAPI_Exec> otapi_exec_{nullptr};
-    std::unique_ptr<api::client::Cash> cash_{nullptr};
-    std::unique_ptr<api::client::Pair> pair_{nullptr};
-    std::unique_ptr<api::client::ServerAction> server_action_{nullptr};
-    std::unique_ptr<api::client::Sync> sync_{nullptr};
+    std::unique_ptr<OT_API> ot_api_;
+    std::unique_ptr<OTAPI_Exec> otapi_exec_;
+    std::unique_ptr<api::client::Cash> cash_;
+    std::unique_ptr<api::client::Pair> pair_;
+    std::unique_ptr<api::client::ServerAction> server_action_;
+    std::unique_ptr<api::client::Sync> sync_;
+    std::unique_ptr<api::client::Workflow> workflow_;
 
     mutable std::recursive_mutex lock_;
     mutable std::mutex map_lock_;

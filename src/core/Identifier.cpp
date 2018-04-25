@@ -48,6 +48,7 @@
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTSymmetricKey.hpp"
 #include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/Cheque.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Nym.hpp"
@@ -81,6 +82,14 @@ OTIdentifier Identifier::Factory(const Nym& nym)
 OTIdentifier Identifier::Factory(const Contract& contract)
 {
     return OTIdentifier(new Identifier(contract));
+}
+
+OTIdentifier Identifier::Factory(const Cheque& cheque)
+{
+    auto output = OTIdentifier(new Identifier());
+    output->CalculateDigest(String(cheque));
+
+    return output;
 }
 
 OTIdentifier Identifier::Factory(const OTSymmetricKey& key)
