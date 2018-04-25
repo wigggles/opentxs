@@ -360,8 +360,8 @@ void Activity::MigrateLegacyThreads() const
 
             auto contactID = contact_.ContactID(Identifier(originalThreadID));
 
-            if (false == contactID.empty()) {
-                storage_.RenameThread(nymID, originalThreadID, contactID.str());
+            if (false == contactID->empty()) {
+                storage_.RenameThread(nymID, originalThreadID, contactID->str());
             } else {
                 std::shared_ptr<proto::StorageThread> thread;
                 storage_.Load(nymID, originalThreadID, thread);
@@ -395,7 +395,7 @@ std::shared_ptr<const Contact> Activity::nym_to_contact(
     const Identifier nymID(id);
     auto contactID = contact_.ContactID(nymID);
 
-    if (false == contactID.empty()) {
+    if (false == contactID->empty()) {
 
         return contact_.Contact(contactID);
     }

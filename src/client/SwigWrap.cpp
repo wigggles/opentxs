@@ -3948,9 +3948,10 @@ std::string SwigWrap::Blockchain_Address_To_Contact(
     const auto existing =
         OT::App().Contact().BlockchainAddressToContact(address, type);
 
-    if (false == existing.empty()) {
+    if (false == existing->empty()) {
 
-        return String(existing).Get();
+        //return String(existing).Get();
+        return existing->str();
     }
 
     const auto contact =

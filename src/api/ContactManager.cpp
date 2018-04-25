@@ -102,7 +102,7 @@ Identifier ContactManager::address_to_contact(
     return Identifier(contact);
 }
 
-Identifier ContactManager::BlockchainAddressToContact(
+OTIdentifier ContactManager::BlockchainAddressToContact(
     const std::string& address,
     const proto::ContactItemType currency) const
 {
@@ -204,7 +204,7 @@ std::shared_ptr<const class Contact> ContactManager::Contact(
     return contact(lock, id);
 }
 
-Identifier ContactManager::ContactID(const Identifier& nymID) const
+OTIdentifier ContactManager::ContactID(const Identifier& nymID) const
 {
     return Identifier(storage_.ContactOwnerNym(nymID.str()));
 }

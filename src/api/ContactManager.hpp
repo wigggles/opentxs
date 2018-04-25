@@ -52,13 +52,13 @@ namespace opentxs::api::implementation
 class ContactManager : virtual public opentxs::api::ContactManager
 {
 public:
-    Identifier BlockchainAddressToContact(
+    OTIdentifier BlockchainAddressToContact(
         const std::string& address,
         const proto::ContactItemType currency =
             proto::CITEMTYPE_BTC) const override;
     std::shared_ptr<const class Contact> Contact(
         const Identifier& id) const override;
-    Identifier ContactID(const Identifier& nymID) const override;
+    OTIdentifier ContactID(const Identifier& nymID) const override;
     ObjectList ContactList() const override;
     std::string ContactName(const Identifier& contactID) const override;
     std::shared_ptr<const class Contact> Merge(
