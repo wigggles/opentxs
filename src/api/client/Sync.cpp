@@ -98,7 +98,7 @@
             otErr << OT_METHOD << __FUNCTION__ << ": Invalid " << #a           \
                   << std::endl;                                                \
                                                                                \
-            return {};                                                         \
+            return Identifier::Factory();                                      \
         }                                                                      \
     }
 
@@ -110,7 +110,7 @@
             otErr << OT_METHOD << __FUNCTION__ << ": Invalid " << #b           \
                   << std::endl;                                                \
                                                                                \
-            return {};                                                         \
+            return Identifier::Factory();                                      \
         }                                                                      \
     }
 
@@ -122,7 +122,7 @@
             otErr << OT_METHOD << __FUNCTION__ << ": Invalid " << #c           \
                   << std::endl;                                                \
                                                                                \
-            return {};                                                         \
+            return Identifier::Factory();                                      \
         }                                                                      \
     }
 
@@ -718,7 +718,7 @@ bool Sync::deposit_cheque(
     return false;
 }
 
-Identifier Sync::DepositPayment(
+OTIdentifier Sync::DepositPayment(
     const Identifier& recipientNymID,
     const std::shared_ptr<const OTPayment>& payment) const
 {
@@ -727,7 +727,7 @@ Identifier Sync::DepositPayment(
     return DepositPayment(recipientNymID, notUsed, payment);
 }
 
-Identifier Sync::DepositPayment(
+OTIdentifier Sync::DepositPayment(
     const Identifier& recipientNymID,
     const Identifier& accountIDHint,
     const std::shared_ptr<const OTPayment>& payment) const
@@ -738,11 +738,11 @@ Identifier Sync::DepositPayment(
         otErr << OT_METHOD << __FUNCTION__ << ": Invalid recipient"
               << std::endl;
 
-        return {};
+        return Identifier::Factory();
     }
 
-    Identifier serverID{};
-    Identifier accountID{};
+    Identifier serverID;
+    Identifier accountID;
     const auto status = can_deposit(
         *payment, recipientNymID, accountIDHint, serverID, accountID);
 
@@ -764,7 +764,7 @@ Identifier Sync::DepositPayment(
         }
     }
 
-    return {};
+    return Identifier::Factory();
 }
 
 bool Sync::download_account(
@@ -952,7 +952,7 @@ bool Sync::find_server(
     return false;
 }
 
-Identifier Sync::FindNym(const Identifier& nymID) const
+OTIdentifier Sync::FindNym(const Identifier& nymID) const
 {
     CHECK_NYM(nymID)
 
@@ -961,7 +961,7 @@ Identifier Sync::FindNym(const Identifier& nymID) const
     return start_task(taskID, missing_nyms_.Push(taskID, nymID));
 }
 
-Identifier Sync::FindNym(
+OTIdentifier Sync::FindNym(
     const Identifier& nymID,
     const Identifier& serverIDHint) const
 {
@@ -973,7 +973,7 @@ Identifier Sync::FindNym(
     return start_task(taskID, serverQueue.Push(taskID, nymID));
 }
 
-Identifier Sync::FindServer(const Identifier& serverID) const
+OTIdentifier Sync::FindServer(const Identifier& serverID) const
 {
     CHECK_NYM(serverID)
 
@@ -1235,7 +1235,7 @@ bool Sync::pay_nym_cash(
 }
 #endif  // OT_CASH
 
-Identifier Sync::MessageContact(
+OTIdentifier Sync::MessageContact(
     const Identifier& senderNymID,
     const Identifier& contactID,
     const std::string& message) const
@@ -1250,7 +1250,7 @@ Identifier Sync::MessageContact(
 
     if (Messagability::READY != canMessage) {
 
-        return {};
+        return Identifier::Factory();
     }
 
     OT_ASSERT(false == serverID.empty())
@@ -1283,7 +1283,7 @@ std::pair<ThreadStatus, Identifier> Sync::MessageStatus(
     return output;
 }
 
-Identifier Sync::PayContact(
+OTIdentifier Sync::PayContact(
     const Identifier& senderNymID,
     const Identifier& contactID,
     std::shared_ptr<const OTPayment>& payment) const
@@ -1298,7 +1298,7 @@ Identifier Sync::PayContact(
 
     if (Messagability::READY != canMessage) {
 
-        return {};
+        return Identifier::Factory();
     }
 
     OT_ASSERT(false == serverID.empty())
@@ -1315,7 +1315,7 @@ Identifier Sync::PayContact(
 }
 
 #if OT_CASH
-Identifier Sync::PayContactCash(
+OTIdentifier Sync::PayContactCash(
     const Identifier& senderNymID,
     const Identifier& contactID,
     std::shared_ptr<const Purse>& recipientCopy,
@@ -1331,7 +1331,7 @@ Identifier Sync::PayContactCash(
 
     if (Messagability::READY != canMessage) {
 
-        return {};
+        return Identifier::Factory();
     }
 
     OT_ASSERT(false == serverID.empty())
@@ -1624,7 +1624,7 @@ bool Sync::register_nym(
     return finish_task(taskID, false);
 }
 
-Identifier Sync::RegisterNym(
+OTIdentifier Sync::RegisterNym(
     const Identifier& nymID,
     const Identifier& serverID,
     const bool setContactData) const
@@ -1640,14 +1640,14 @@ Identifier Sync::RegisterNym(
     return ScheduleRegisterNym(nymID, serverID);
 }
 
-Identifier Sync::SetIntroductionServer(const ServerContract& contract) const
+OTIdentifier Sync::SetIntroductionServer(const ServerContract& contract) const
 {
     Lock lock(introduction_server_lock_);
 
     return set_introduction_server(lock, contract);
 }
 
-Identifier Sync::schedule_download_nymbox(
+OTIdentifier Sync::schedule_download_nymbox(
     const Identifier& localNymID,
     const Identifier& serverID) const
 {
@@ -1660,7 +1660,7 @@ Identifier Sync::schedule_download_nymbox(
     return start_task(taskID, queue.download_nymbox_.Push(taskID, true));
 }
 
-Identifier Sync::schedule_register_account(
+OTIdentifier Sync::schedule_register_account(
     const Identifier& localNymID,
     const Identifier& serverID,
     const Identifier& unitID) const
@@ -1674,7 +1674,7 @@ Identifier Sync::schedule_register_account(
     return start_task(taskID, queue.register_account_.Push(taskID, unitID));
 }
 
-Identifier Sync::ScheduleDownloadAccount(
+OTIdentifier Sync::ScheduleDownloadAccount(
     const Identifier& localNymID,
     const Identifier& serverID,
     const Identifier& accountID) const
@@ -1688,7 +1688,7 @@ Identifier Sync::ScheduleDownloadAccount(
     return start_task(taskID, queue.download_account_.Push(taskID, accountID));
 }
 
-Identifier Sync::ScheduleDownloadContract(
+OTIdentifier Sync::ScheduleDownloadContract(
     const Identifier& localNymID,
     const Identifier& serverID,
     const Identifier& contractID) const
@@ -1703,7 +1703,7 @@ Identifier Sync::ScheduleDownloadContract(
         taskID, queue.download_contract_.Push(taskID, contractID));
 }
 
-Identifier Sync::ScheduleDownloadNym(
+OTIdentifier Sync::ScheduleDownloadNym(
     const Identifier& localNymID,
     const Identifier& serverID,
     const Identifier& targetNymID) const
@@ -1717,14 +1717,14 @@ Identifier Sync::ScheduleDownloadNym(
     return start_task(taskID, queue.check_nym_.Push(taskID, targetNymID));
 }
 
-Identifier Sync::ScheduleDownloadNymbox(
+OTIdentifier Sync::ScheduleDownloadNymbox(
     const Identifier& localNymID,
     const Identifier& serverID) const
 {
     return schedule_download_nymbox(localNymID, serverID);
 }
 
-Identifier Sync::SchedulePublishServerContract(
+OTIdentifier Sync::SchedulePublishServerContract(
     const Identifier& localNymID,
     const Identifier& serverID,
     const Identifier& contractID) const
@@ -1739,7 +1739,7 @@ Identifier Sync::SchedulePublishServerContract(
         taskID, queue.publish_server_contract_.Push(taskID, contractID));
 }
 
-Identifier Sync::ScheduleRegisterAccount(
+OTIdentifier Sync::ScheduleRegisterAccount(
     const Identifier& localNymID,
     const Identifier& serverID,
     const Identifier& unitID) const
@@ -1747,7 +1747,7 @@ Identifier Sync::ScheduleRegisterAccount(
     return schedule_register_account(localNymID, serverID, unitID);
 }
 
-Identifier Sync::ScheduleRegisterNym(
+OTIdentifier Sync::ScheduleRegisterNym(
     const Identifier& localNymID,
     const Identifier& serverID) const
 {
@@ -1793,7 +1793,7 @@ bool Sync::send_transfer(
     return finish_task(taskID, false);
 }
 
-Identifier Sync::SendTransfer(
+OTIdentifier Sync::SendTransfer(
     const Identifier& localNymID,
     const Identifier& serverID,
     const Identifier& sourceAccountID,
@@ -1809,33 +1809,33 @@ Identifier Sync::SendTransfer(
         otErr << OT_METHOD << __FUNCTION__ << ": Invalid source account"
               << std::endl;
 
-        return {};
+        return Identifier::Factory();
     }
     auto targetAccount = ot_api_.GetWallet()->GetAccount(targetAccountID);
     if (false == bool(targetAccount)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Invalid target account"
               << std::endl;
 
-        return {};
+        return Identifier::Factory();
     }
     if (sourceAccount->GetNymID() != targetAccount->GetNymID()) {
         otErr << OT_METHOD << __FUNCTION__ << ": Source and target account"
               << " owner ids don't match" << std::endl;
 
-        return {};
+        return Identifier::Factory();
     }
     if (sourceAccount->GetRealNotaryID() != targetAccount->GetRealNotaryID()) {
         otErr << OT_METHOD << __FUNCTION__ << ": Source and target account"
               << " notary ids don't match" << std::endl;
 
-        return {};
+        return Identifier::Factory();
     }
     if (sourceAccount->GetInstrumentDefinitionID() !=
         targetAccount->GetInstrumentDefinitionID()) {
         otErr << OT_METHOD << __FUNCTION__ << ": Source and target account"
               << " instrument definition ids don't match" << std::endl;
 
-        return {};
+        return Identifier::Factory();
     }
 
     // start_introduction_server(localNymID);
@@ -1859,7 +1859,7 @@ void Sync::set_contact(const Identifier& nymID, const Identifier& serverID)
     }
 }
 
-Identifier Sync::set_introduction_server(
+OTIdentifier Sync::set_introduction_server(
     const Lock& lock,
     const ServerContract& contract) const
 {
@@ -1869,7 +1869,7 @@ Identifier Sync::set_introduction_server(
 
     if (false == bool(instantiated)) {
 
-        return {};
+        return Identifier::Factory();
     }
 
     const auto& id = instantiated->ID();
@@ -1902,16 +1902,16 @@ void Sync::start_introduction_server(const Identifier& nymID) const
     start_task(taskID, queue.download_nymbox_.Push(taskID, true));
 }
 
-Identifier Sync::start_task(const Identifier& taskID, bool success) const
+OTIdentifier Sync::start_task(const Identifier& taskID, bool success) const
 {
     if (taskID.empty()) {
 
-        return {};
+        return Identifier::Factory();
     }
 
     if (false == success) {
 
-        return {};
+        return Identifier::Factory();
     }
 
     add_task(taskID, ThreadStatus::RUNNING);

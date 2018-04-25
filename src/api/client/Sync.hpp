@@ -72,30 +72,30 @@ public:
     Messagability CanMessage(
         const Identifier& senderNymID,
         const Identifier& recipientContactID) const override;
-    Identifier DepositPayment(
+    OTIdentifier DepositPayment(
         const Identifier& recipientNymID,
         const std::shared_ptr<const OTPayment>& payment) const override;
-    Identifier DepositPayment(
+    OTIdentifier DepositPayment(
         const Identifier& recipientNymID,
         const Identifier& accountID,
         const std::shared_ptr<const OTPayment>& payment) const override;
-    Identifier FindNym(const Identifier& nymID) const override;
-    Identifier FindNym(const Identifier& nymID, const Identifier& serverIDHint)
+    OTIdentifier FindNym(const Identifier& nymID) const override;
+    OTIdentifier FindNym(const Identifier& nymID, const Identifier& serverIDHint)
         const override;
-    Identifier FindServer(const Identifier& serverID) const override;
+    OTIdentifier FindServer(const Identifier& serverID) const override;
     const Identifier& IntroductionServer() const override;
-    Identifier MessageContact(
+    OTIdentifier MessageContact(
         const Identifier& senderNymID,
         const Identifier& contactID,
         const std::string& message) const override;
     std::pair<ThreadStatus, Identifier> MessageStatus(
         const Identifier& taskID) const override;
-    Identifier PayContact(
+    OTIdentifier PayContact(
         const Identifier& senderNymID,
         const Identifier& contactID,
         std::shared_ptr<const OTPayment>& payment) const override;
 #if OT_CASH
-    Identifier PayContactCash(
+    OTIdentifier PayContactCash(
         const Identifier& senderNymID,
         const Identifier& contactID,
         std::shared_ptr<const Purse>& recipientCopy,
@@ -103,39 +103,39 @@ public:
 #endif  // OT_CASH
     void Refresh() const override;
     std::uint64_t RefreshCount() const override;
-    Identifier RegisterNym(
+    OTIdentifier RegisterNym(
         const Identifier& nymID,
         const Identifier& server,
         const bool setContactData) const override;
-    Identifier SetIntroductionServer(
+    OTIdentifier SetIntroductionServer(
         const ServerContract& contract) const override;
-    Identifier ScheduleDownloadAccount(
+    OTIdentifier ScheduleDownloadAccount(
         const Identifier& localNymID,
         const Identifier& serverID,
         const Identifier& accountID) const override;
-    Identifier ScheduleDownloadContract(
+    OTIdentifier ScheduleDownloadContract(
         const Identifier& localNymID,
         const Identifier& serverID,
         const Identifier& contractID) const override;
-    Identifier ScheduleDownloadNym(
+    OTIdentifier ScheduleDownloadNym(
         const Identifier& localNymID,
         const Identifier& serverID,
         const Identifier& targetNymID) const override;
-    Identifier ScheduleDownloadNymbox(
+    OTIdentifier ScheduleDownloadNymbox(
         const Identifier& localNymID,
         const Identifier& serverID) const override;
-    Identifier SchedulePublishServerContract(
+    OTIdentifier SchedulePublishServerContract(
         const Identifier& localNymID,
         const Identifier& serverID,
         const Identifier& contractID) const override;
-    Identifier ScheduleRegisterAccount(
+    OTIdentifier ScheduleRegisterAccount(
         const Identifier& localNymID,
         const Identifier& serverID,
         const Identifier& unitID) const override;
-    Identifier ScheduleRegisterNym(
+    OTIdentifier ScheduleRegisterNym(
         const Identifier& localNymID,
         const Identifier& serverID) const override;
-    Identifier SendTransfer(
+    OTIdentifier SendTransfer(
         const Identifier& localNymID,
         const Identifier& serverID,
         const Identifier& sourceAccountID,
@@ -333,10 +333,10 @@ private:
         const Identifier& taskID,
         const Identifier& nymID,
         const Identifier& serverID) const;
-    Identifier schedule_download_nymbox(
+    OTIdentifier schedule_download_nymbox(
         const Identifier& localNymID,
         const Identifier& serverID) const;
-    Identifier schedule_register_account(
+    OTIdentifier schedule_register_account(
         const Identifier& localNymID,
         const Identifier& serverID,
         const Identifier& unitID) const;
@@ -349,10 +349,10 @@ private:
         const int64_t value,
         const std::string& memo) const;
     void set_contact(const Identifier& nymID, const Identifier& serverID) const;
-    Identifier set_introduction_server(
+    OTIdentifier set_introduction_server(
         const Lock& lock,
         const ServerContract& contract) const;
-    Identifier start_task(const Identifier& taskID, bool success) const;
+    OTIdentifier start_task(const Identifier& taskID, bool success) const;
     void state_machine(const ContextID id, OperationQueue& queue) const;
     ThreadStatus status(const Lock& lock, const Identifier& taskID) const;
     void update_task(const Identifier& taskID, const ThreadStatus status) const;
