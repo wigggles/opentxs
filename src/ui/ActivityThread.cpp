@@ -418,7 +418,8 @@ bool ActivityThread::SendDraft() const
     const auto taskID =
         sync_.MessageContact(nym_id_, *participants_.begin(), draft_);
 
-    if (taskID.empty()) {
+    //if (taskID.empty())
+    if (taskID->empty()) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Failed to queue message for sending" << std::endl;
 

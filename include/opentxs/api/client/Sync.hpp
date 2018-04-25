@@ -72,31 +72,31 @@ public:
     EXPORT virtual Messagability CanMessage(
         const Identifier& senderNymID,
         const Identifier& recipientContactID) const = 0;
-    EXPORT virtual Identifier DepositPayment(
+    EXPORT virtual OTIdentifier DepositPayment(
         const Identifier& recipientNymID,
         const std::shared_ptr<const OTPayment>& payment) const = 0;
-    EXPORT virtual Identifier DepositPayment(
+    EXPORT virtual OTIdentifier DepositPayment(
         const Identifier& recipientNymID,
         const Identifier& accountID,
         const std::shared_ptr<const OTPayment>& payment) const = 0;
-    EXPORT virtual Identifier FindNym(const Identifier& nymID) const = 0;
-    EXPORT virtual Identifier FindNym(
+    EXPORT virtual OTIdentifier FindNym(const Identifier& nymID) const = 0;
+    EXPORT virtual OTIdentifier FindNym(
         const Identifier& nymID,
         const Identifier& serverIDHint) const = 0;
-    EXPORT virtual Identifier FindServer(const Identifier& serverID) const = 0;
+    EXPORT virtual OTIdentifier FindServer(const Identifier& serverID) const = 0;
     EXPORT virtual const Identifier& IntroductionServer() const = 0;
-    EXPORT virtual Identifier MessageContact(
+    EXPORT virtual OTIdentifier MessageContact(
         const Identifier& senderNymID,
         const Identifier& contactID,
         const std::string& message) const = 0;
     EXPORT virtual std::pair<ThreadStatus, Identifier> MessageStatus(
         const Identifier& taskID) const = 0;
-    EXPORT virtual Identifier PayContact(
+    EXPORT virtual OTIdentifier PayContact(
         const Identifier& senderNymID,
         const Identifier& contactID,
         std::shared_ptr<const OTPayment>& payment) const = 0;
 #if OT_CASH
-    EXPORT virtual Identifier PayContactCash(
+    EXPORT virtual OTIdentifier PayContactCash(
         const Identifier& senderNymID,
         const Identifier& contactID,
         std::shared_ptr<const Purse>& recipientCopy,
@@ -104,39 +104,39 @@ public:
 #endif  // OT_CASH
     EXPORT virtual void Refresh() const = 0;
     EXPORT virtual std::uint64_t RefreshCount() const = 0;
-    EXPORT virtual Identifier RegisterNym(
+    EXPORT virtual OTIdentifier RegisterNym(
         const Identifier& nymID,
         const Identifier& server,
         const bool setContactData) const = 0;
-    EXPORT virtual Identifier SetIntroductionServer(
+    EXPORT virtual OTIdentifier SetIntroductionServer(
         const ServerContract& contract) const = 0;
-    EXPORT virtual Identifier ScheduleDownloadAccount(
+    EXPORT virtual OTIdentifier ScheduleDownloadAccount(
         const Identifier& localNymID,
         const Identifier& serverID,
         const Identifier& accountID) const = 0;
-    EXPORT virtual Identifier ScheduleDownloadContract(
+    EXPORT virtual OTIdentifier ScheduleDownloadContract(
         const Identifier& localNymID,
         const Identifier& serverID,
         const Identifier& contractID) const = 0;
-    EXPORT virtual Identifier ScheduleDownloadNym(
+    EXPORT virtual OTIdentifier ScheduleDownloadNym(
         const Identifier& localNymID,
         const Identifier& serverID,
         const Identifier& targetNymID) const = 0;
-    EXPORT virtual Identifier ScheduleDownloadNymbox(
+    EXPORT virtual OTIdentifier ScheduleDownloadNymbox(
         const Identifier& localNymID,
         const Identifier& serverID) const = 0;
-    EXPORT virtual Identifier SchedulePublishServerContract(
+    EXPORT virtual OTIdentifier SchedulePublishServerContract(
         const Identifier& localNymID,
         const Identifier& serverID,
         const Identifier& contractID) const = 0;
-    EXPORT virtual Identifier ScheduleRegisterAccount(
+    EXPORT virtual OTIdentifier ScheduleRegisterAccount(
         const Identifier& localNymID,
         const Identifier& serverID,
         const Identifier& unitID) const = 0;
-    EXPORT virtual Identifier ScheduleRegisterNym(
+    EXPORT virtual OTIdentifier ScheduleRegisterNym(
         const Identifier& localNymID,
         const Identifier& serverID) const = 0;
-    EXPORT virtual Identifier SendTransfer(
+    EXPORT virtual OTIdentifier SendTransfer(
         const Identifier& localNymID,
         const Identifier& serverID,
         const Identifier& sourceAccountID,

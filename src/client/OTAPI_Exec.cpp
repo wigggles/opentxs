@@ -1646,15 +1646,15 @@ bool OTAPI_Exec::Wallet_CanRemoveServer(const std::string& NOTARY_ID) const
     // Loop through all the Nyms. (One might be registered on that server.)
     //
 
-    std::set<Identifier> nymIDs = wallet_.LocalNyms();
+    std::set<OTIdentifier> nymIDs = wallet_.LocalNyms();
     for (auto& nymID : nymIDs) {
         if (true ==
-            OTAPI_Exec::IsNym_RegisteredAtServer(nymID.str(), NOTARY_ID)) {
+            OTAPI_Exec::IsNym_RegisteredAtServer(nymID->str(), NOTARY_ID)) {
             otOut << OT_METHOD << __FUNCTION__
                   << ": Unable to remove server contract " << NOTARY_ID
                   << " from "
                      "wallet, because Nym "
-                  << nymID.str()
+                  << nymID->str()
                   << " is registered there. (Delete that first...)\n";
             return false;
         }

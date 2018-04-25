@@ -191,9 +191,9 @@ void Pair::check_refresh() const
     }
 }
 
-std::map<Identifier, std::set<Identifier>> Pair::create_issuer_map() const
+std::map<OTIdentifier, std::set<OTIdentifier>> Pair::create_issuer_map() const
 {
-    std::map<Identifier, std::set<Identifier>> output{};
+    std::map<OTIdentifier, std::set<OTIdentifier>> output;
     const auto nymList = ot_api_.LocalNymList();
 
     for (const auto& nymID : nymList) {

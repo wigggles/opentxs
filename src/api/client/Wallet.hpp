@@ -70,7 +70,7 @@ public:
     Editor<opentxs::ServerContext> mutable_ServerContext(
         const Identifier& localNymID,
         const Identifier& remoteID) const override;
-    std::set<Identifier> IssuerList(const Identifier& nymID) const override;
+    std::set<OTIdentifier> IssuerList(const Identifier& nymID) const override;
     std::shared_ptr<const api::client::Issuer> Issuer(
         const Identifier& nymID,
         const Identifier& issuerID) const override;
@@ -79,7 +79,7 @@ public:
         const Identifier& issuerID) const override;
     bool IsLocalNym(const std::string& id) const override;
     std::size_t LocalNymCount() const override;
-    std::set<Identifier> LocalNyms() const override;
+    std::set<OTIdentifier> LocalNyms() const override;
     ConstNym Nym(
         const Identifier& id,
         const std::chrono::milliseconds& timeout =

@@ -357,13 +357,13 @@ Editor<class ServerContext> Wallet::mutable_ServerContext(
     return Editor<class ServerContext>(child, callback);
 }
 
-std::set<Identifier> Wallet::IssuerList(const Identifier& nymID) const
+std::set<OTIdentifier> Wallet::IssuerList(const Identifier& nymID) const
 {
-    std::set<Identifier> output{};
+    std::set<OTIdentifier> output{};
     auto list = ot_.DB().IssuerList(nymID.str());
 
     for (const auto& it : list) {
-        output.emplace(it.first);
+        output.emplace(Identifier::Factory(it.first));
     }
 
     return output;
@@ -447,16 +447,16 @@ std::size_t Wallet::LocalNymCount() const
     return ot_.DB().LocalNyms().size();
 }
 
-std::set<Identifier> Wallet::LocalNyms() const
+std::set<OTIdentifier> Wallet::LocalNyms() const
 {
     const std::set<std::string> ids = ot_.DB().LocalNyms();
 
-    std::set<Identifier> nymIds;
+    std::set<OTIdentifier> nymIds;
     std::transform(
         ids.begin(),
         ids.end(),
         std::inserter(nymIds, nymIds.end()),
-        [](std::string nym) -> Identifier { return Identifier(nym); });
+        [](std::string nym) -> OTIdentifier {return Identifier::Factory(nym);});
 
     return nymIds;
 }
