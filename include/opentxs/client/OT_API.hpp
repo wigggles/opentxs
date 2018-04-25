@@ -104,7 +104,7 @@ public:
     // Reading data about the local wallet.. presumably already loaded.
 
     EXPORT std::int32_t GetNymCount() const;
-    EXPORT std::set<Identifier> LocalNymList() const;
+    EXPORT std::set<OTIdentifier> LocalNymList() const;
     EXPORT std::set<AccountInfo> Accounts() const;
     EXPORT std::int32_t GetAccountCount() const;
 

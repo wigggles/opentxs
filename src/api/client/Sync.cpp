@@ -1426,7 +1426,7 @@ void Sync::refresh_accounts() const
 
         for (const auto& nymID : ot_api_.LocalNymList()) {
             SHUTDOWN()
-            otWarn << OT_METHOD << __FUNCTION__ << ": Nym " << nymID.str()
+            otWarn << OT_METHOD << __FUNCTION__ << ": Nym " << nymID->str()
                    << " ";
             const bool registered =
                 ot_api_.IsNym_RegisteredAtServer(nymID, serverID);

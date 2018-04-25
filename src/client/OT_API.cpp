@@ -860,7 +860,7 @@ bool OT_API::LoadWallet() const
 
 int32_t OT_API::GetNymCount() const { return wallet_.LocalNymCount(); }
 
-std::set<Identifier> OT_API::LocalNymList() const
+std::set<OTIdentifier> OT_API::LocalNymList() const
 {
     return wallet_.LocalNyms();
 }
@@ -1186,14 +1186,14 @@ bool OT_API::Wallet_CanRemoveServer(const Identifier& NOTARY_ID) const
 
     // Loop through all the Nyms. (One might be registered on that server.)
     //
-    std::set<Identifier> nymIDs = wallet_.LocalNyms();
+    std::set<OTIdentifier> nymIDs = wallet_.LocalNyms();
     for (auto& nymID : nymIDs) {
         if (IsNym_RegisteredAtServer(nymID, NOTARY_ID)) {
             otErr << OT_METHOD << __FUNCTION__
                   << ": Unable to remove server contract " << NOTARY_ID.str()
                   << " "
                      "from wallet, because Nym "
-                  << nymID.str() << " is registered "
+                  << nymID->str() << " is registered "
                                     "there. (Delete that first...)\n";
             return false;
         }

@@ -155,7 +155,7 @@ public:
         const Identifier& remoteID) const = 0;
 
     /**   Returns a list of all issuers associated with a local nym */
-    virtual std::set<Identifier> IssuerList(const Identifier& nymID) const = 0;
+    virtual std::set<OTIdentifier> IssuerList(const Identifier& nymID) const=0;
 
     /**   Load a read-only copy of an Issuer object
      *
@@ -181,7 +181,7 @@ public:
 
     virtual std::size_t LocalNymCount() const = 0;
 
-    virtual std::set<Identifier> LocalNyms() const = 0;
+    virtual std::set<OTIdentifier> LocalNyms() const = 0;
 
     /**   Obtain a smart pointer to an instantiated nym.
      *

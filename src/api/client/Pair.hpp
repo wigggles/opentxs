@@ -113,7 +113,7 @@ private:
 
     void check_pairing() const;
     void check_refresh() const;
-    std::map<Identifier, std::set<Identifier>> create_issuer_map() const;
+    std::map<OTIdentifier, std::set<OTIdentifier>> create_issuer_map() const;
     std::pair<bool, Identifier> get_connection(
         const Identifier& localNymID,
         const Identifier& issuerNymID,
