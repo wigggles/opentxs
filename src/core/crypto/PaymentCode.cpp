@@ -303,7 +303,7 @@ SerializedPaymentCode PaymentCode::Serialize() const
     return serialized;
 }
 
-const Identifier PaymentCode::ID() const
+const OTIdentifier PaymentCode::ID() const
 {
 
     std::uint8_t core[65]{};

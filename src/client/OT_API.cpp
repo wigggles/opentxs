@@ -4117,7 +4117,7 @@ std::string OT_API::NymIDFromPaymentCode(__attribute__((unused))
     auto code = PaymentCode::Factory(paymentCode);
 
     if (code->VerifyInternally()) {
-        return code->ID().str();
+        return code->ID()->str();
     } else {
         return "";
     }
