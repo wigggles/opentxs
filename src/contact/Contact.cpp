@@ -492,7 +492,7 @@ std::shared_ptr<ContactData> Contact::Data() const
     return merged_data(lock);
 }
 
-Identifier Contact::generate_id() const
+OTIdentifier Contact::generate_id() const
 {
     auto& crypto = OT::App().Crypto().Encode();
     auto random = Data::Factory();
