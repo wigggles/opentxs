@@ -239,7 +239,7 @@ ContactGroup::ItemMap::const_iterator ContactGroup::end() const
     return items_.cend();
 }
 
-Identifier ContactGroup::get_primary_item(const ItemMap& items)
+OTIdentifier ContactGroup::get_primary_item(const ItemMap& items)
 {
     Identifier primary{};
 
