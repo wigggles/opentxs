@@ -949,7 +949,7 @@ TEST_F(Test_ContactData, PreferredOTServer)
 {
     // Test getting the preferred server with no group.
     const auto& identifier = contactData_.PreferredOTServer();
-    ASSERT_TRUE(identifier.empty());
+    ASSERT_TRUE(identifier->empty());
 
     // Test getting the preferred server with an empty group.
     const auto& group1 =
@@ -976,7 +976,7 @@ TEST_F(Test_ContactData, PreferredOTServer)
             {opentxs::proto::CONTACTSECTION_COMMUNICATION, section1}});
 
     const auto& identifier2 = data1.PreferredOTServer();
-    ASSERT_TRUE(identifier2.empty());
+    ASSERT_TRUE(identifier2->empty());
 
     // Test getting the preferred server.
     const opentxs::Identifier serverIdentifier2(
@@ -990,7 +990,7 @@ TEST_F(Test_ContactData, PreferredOTServer)
     const auto& data2 =
         contactData_.AddPreferredOTServer(serverIdentifier2, true);
     const auto& preferredServer = data2.PreferredOTServer();
-    ASSERT_FALSE(preferredServer.empty());
+    ASSERT_FALSE(preferredServer->empty());
     ASSERT_EQ(preferredServer, serverIdentifier2);
 }
 

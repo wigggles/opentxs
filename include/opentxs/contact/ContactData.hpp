@@ -110,7 +110,7 @@ public:
         const proto::ContactItemType& type,
         const std::string& value) const;
     std::string Name() const;
-    Identifier PreferredOTServer() const;
+    OTIdentifier PreferredOTServer() const;
     std::shared_ptr<ContactSection> Section(
         const proto::ContactSectionName& section) const;
     proto::ContactData Serialize(const bool withID = false) const;

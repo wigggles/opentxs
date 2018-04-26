@@ -130,12 +130,12 @@ Issuer::operator std::string() const
         issuerClaims.Section(proto::CONTACTSECTION_CONTRACT);
     const auto haveAccounts = bool(contractSection);
 
-    if (serverID.empty()) {
+    if (serverID->empty()) {
         output << "* Issuer nym does not advertise a server.\n";
 
         return output.str();
     } else {
-        output << "* Server ID: " << serverID.str() << "\n";
+        output << "* Server ID: " << serverID->str() << "\n";
     }
 
     if (false == bool(haveAccounts)) {

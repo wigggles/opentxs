@@ -441,21 +441,21 @@ std::string ContactData::Name() const
     return claim->Value();
 }
 
-Identifier ContactData::PreferredOTServer() const
+OTIdentifier ContactData::PreferredOTServer() const
 {
     auto group =
         Group(proto::CONTACTSECTION_COMMUNICATION, proto::CITEMTYPE_OPENTXS);
 
     if (false == bool(group)) {
 
-        return {};
+        return Identifier::Factory();
     }
 
     auto claim = group->Best();
 
     if (false == bool(claim)) {
 
-        return {};
+        return Identifier::Factory();
     }
 
     return Identifier(claim->Value());
