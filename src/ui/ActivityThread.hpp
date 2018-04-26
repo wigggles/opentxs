@@ -61,8 +61,18 @@ template <>
 struct less<STORAGEID> {
     bool operator()(const STORAGEID& lhs, const STORAGEID& rhs) const
     {
-        const auto & [ lID, lBox, lAccount ] = lhs;
-        const auto & [ rID, rBox, rAccount ] = rhs;
+        /* TODO: these lines will cause a segfault in the clang-4 ast parser.
+         * Remove the workaround below once Qubes has a Fedora-27 template
+         available.
+                const auto & [ lID, lBox, lAccount ] = lhs;
+                const auto & [ rID, rBox, rAccount ] = rhs;
+        */
+        const auto& lID = std::get<0>(lhs);
+        const auto& lBox = std::get<1>(lhs);
+        const auto& lAccount = std::get<2>(lhs);
+        const auto& rID = std::get<0>(rhs);
+        const auto& rBox = std::get<1>(rhs);
+        const auto& rAccount = std::get<2>(rhs);
 
         if (lID->str() < rID->str()) {
 

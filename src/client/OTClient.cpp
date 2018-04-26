@@ -41,6 +41,7 @@
 #include "opentxs/client/OTClient.hpp"
 
 #include "opentxs/api/client/Wallet.hpp"
+#include "opentxs/api/client/Workflow.hpp"
 #include "opentxs/api/Activity.hpp"
 #include "opentxs/api/Api.hpp"
 #include "opentxs/api/ContactManager.hpp"
@@ -104,13 +105,71 @@ OTClient::OTClient(
     OTWallet& theWallet,
     const api::Activity& activity,
     const api::ContactManager& contacts,
-    const api::client::Wallet& wallet)
+    const api::client::Wallet& wallet,
+    const api::client::Workflow& workflow)
     : m_pWallet(theWallet)
     , activity_(activity)
     , contacts_(contacts)
     , wallet_(wallet)
+    , workflow_(workflow)
     , m_MessageOutbuffer()
 {
+}
+
+bool OTClient::add_item_to_workflow(
+    const Nym& nym,
+    const Message& transportItem,
+    const std::string& item) const
+{
+    Message message;
+    const auto loaded = message.LoadContractFromString(item.c_str());
+
+    if (false == loaded) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to instantiate message"
+              << std::endl;
+
+        return false;
+    }
+
+    OTEnvelope envelope(message.m_ascPayload);
+    String plaintext;
+    const auto decrypted = envelope.Open(nym, plaintext);
+
+    if (false == decrypted) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to decrypt message"
+              << std::endl;
+
+        return false;
+    }
+
+    OTPayment payment(plaintext);
+
+    if (false == payment.IsCheque()) {
+
+        return false;
+    }
+
+    if (payment.IsCancelledCheque()) {
+
+        return false;
+    }
+
+    Cheque cheque;
+    cheque.LoadContractFromString(payment.Payment());
+    const auto workflow =
+        workflow_.ReceiveCheque(nym.ID(), cheque, transportItem);
+
+    if (workflow->empty()) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to create workflow."
+              << std::endl;
+
+        return false;
+    } else {
+        otErr << OT_METHOD << __FUNCTION__ << ": Started workflow "
+              << workflow->str() << std::endl;
+    }
+
+    return true;
 }
 
 void OTClient::QueueOutgoingMessage(const Message& theMessage)
@@ -166,44 +225,58 @@ void OTClient::QueueOutgoingMessage(const Message& theMessage)
 ///
 bool OTClient::createInstrumentNoticeFromPeerObject(
     const ServerContext& context,
-    const std::unique_ptr<PeerObject>& peerObject,
-    OTTransaction* pTxnPeerObject)
+    const Message& message,
+    const PeerObject& peerObject,
+    const TransactionNumber number)
 {
-    OT_ASSERT(nullptr != pTxnPeerObject);
-    OT_ASSERT(peerObject);
-    OT_ASSERT(proto::PEEROBJECT_PAYMENT == peerObject->Type());
+    OT_ASSERT(proto::PEEROBJECT_PAYMENT == peerObject.Type());
+
+    if (false == peerObject.Validate()) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Invalid peer object"
+              << std::endl;
+
+        return false;
+    }
 
     const auto& nym = *context.Nym();
     const auto& nymID = nym.ID();
     const String strNotaryID(context.Server());
     const String strNymID(nymID);
+    const auto& payment = *peerObject.Payment();
 
-    const std::unique_ptr<std::string>& str_payment_ref = peerObject->Payment();
-
-    if ((false == bool(str_payment_ref)) || (str_payment_ref->empty())) {
+    if (payment.empty()) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Payment as received was apparently empty. Maybe the sender "
-                 "sent it that way?\n";
+                 "sent it that way?"
+              << std::endl;
 
         return false;
     }
-    const std::string& str_sendNymInstrument_msg = *str_payment_ref;
-    const int64_t lPeerObjectTransNum{pTxnPeerObject->GetTransactionNum()};
-    // -------------------------------------------------
+
+    // Extract the OTPayment so that we know whether to use the new Workflow
+    // code or the old payment inbox code
+    if (add_item_to_workflow(*context.Nym(), message, payment)) {
+
+        return true;
+    }
+
     const bool bExists = OTDB::Exists(
         OTFolders::PaymentInbox().Get(), strNotaryID.Get(), strNymID.Get());
     Ledger thePmntInbox(nymID, nymID, context.Server());  // payment inbox
     bool bSuccessLoading = (bExists && thePmntInbox.LoadPaymentInbox());
-    if (bExists && bSuccessLoading)
+
+    if (bExists && bSuccessLoading) {
         bSuccessLoading =
             (thePmntInbox.VerifyContractID() &&
              thePmntInbox.VerifySignature(nym));
-    else if (!bExists)
+    } else if (!bExists) {
         bSuccessLoading = thePmntInbox.GenerateLedger(
             nymID,
             context.Server(),
             Ledger::paymentInbox,
             true);  // bGenerateFile=true
+    }
+
     // By this point, the payment inbox DEFINITELY exists -- or not.
     // (generation might have failed, or verification.)
     // -------------------------------------------------
@@ -228,54 +301,19 @@ bool OTClient::createInstrumentNoticeFromPeerObject(
             thePmntInbox,
             OTTransaction::instrumentNotice,
             originType::not_applicable,
-            lPeerObjectTransNum));
-    OT_ASSERT(bool(pTransaction));
-    // -------------------------------------------------
-    // The transaction (which we are putting into the payment inbox) will not
-    // be removed from the nymbox until we receive the server's success reply
-    // to this "process Nymbox" message. That's why you see me adding it here
-    // to the payment inbox, while not removing it from the Nymbox (because
-    // that will happen once the reply is received.)
-    //
-    // Here's the function we'll use to add it (just below here) to the
-    // payment inbox:
-    //
-    // void load_str_trans_add_to_ledger(
-    //    const OTIdentifier& the_nym_id,
-    //    const OTString& str_trans,
-    //    const OTString str_box_type,
-    //    const int64_t& lTransNum,
-    //    OTPseudonym& the_nym,
-    //    OTLedger& ledger);
-    // -------------------------------------------------
-    // NOTE: SHOULD this be "in reference to" itself? The reason, I assume we
-    // are doing this is because there is a reference STRING, so "therefore"
-    // there MUST be a reference # as well. Eh?
-    //
-    // Anyway, it must be understood by those involved that a message is stored
-    // inside. (Which has no transaction #.)
-    //
-    pTransaction->SetReferenceToNum(lPeerObjectTransNum);
+            number));
 
-    // Recipient (myself in this case) RECEIVES entire incoming message as the
-    // "in reference to" string attached to pTransaction. pTransaction is of
-    // type "instrumentNotice", and the message inside is of type
-    // "sendNymMessage". That message includes the sender user ID, and has an
-    // OTEnvelope in its payload. The message is signed by the sender, and the
-    // envelope is encrypted to the recipient (me).
-    //
-    const String strSendNymInstrumentMsg(str_sendNymInstrument_msg);
-    pTransaction->SetReferenceString(strSendNymInstrumentMsg);
+    OT_ASSERT(pTransaction);
+
+    pTransaction->SetReferenceToNum(number);
+    pTransaction->SetReferenceString(String(payment));
     pTransaction->SignContract(nym);
     pTransaction->SaveContract();
-
-    const String strInstrumentNotice(*pTransaction);
-    // -------------------------------------------------
     load_str_trans_add_to_ledger(
         nymID,
-        strInstrumentNotice,
+        String(*pTransaction),
         "paymentInbox",
-        lPeerObjectTransNum,
+        number,
         nym,
         thePmntInbox);
 
@@ -2604,44 +2642,48 @@ bool OTClient::processServerReplyGetBoxReceipt(
                     //
                     if (pMessage->LoadContractFromString(strOTMessage)) {
                         auto recipientNymId = Identifier(pMessage->m_strNymID2);
+
                         if (recipientNymId == nymID) {
                             const auto peerObject = PeerObject::Factory(
                                 context.Nym(), pMessage->m_ascPayload);
                             proto::PeerObjectType type =
                                 proto::PEEROBJECT_ERROR;
+
                             if (peerObject) {
                                 type = peerObject->Type();
                             }
+
                             switch (type) {
                                 case (proto::PEEROBJECT_MESSAGE): {
                                     activity_.Mail(
                                         recipientNymId,
                                         *pMessage,
                                         StorageBox::MAILINBOX);
-                                    break;
-                                }
+                                } break;
                                 case (proto::PEEROBJECT_PAYMENT): {
                                     const bool bCreated =
                                         createInstrumentNoticeFromPeerObject(
-                                            context, peerObject, pBoxReceipt);
-                                    if (!bCreated)
+                                            context,
+                                            *pMessage,
+                                            *peerObject,
+                                            pBoxReceipt->GetTransactionNum());
+
+                                    if (!bCreated) {
                                         otErr << OT_METHOD << __FUNCTION__
                                               << ": Failed unexpectedly in "
                                                  "createInstrumentNoticeFromPee"
                                                  "rObject."
                                               << std::endl;
-                                    break;
-                                }
+                                    }
+                                } break;
                                 case (proto::PEEROBJECT_REQUEST): {
                                     wallet_.PeerRequestReceive(
                                         recipientNymId, *peerObject);
-                                    break;
-                                }
+                                } break;
                                 case (proto::PEEROBJECT_RESPONSE): {
                                     wallet_.PeerReplyReceive(
                                         recipientNymId, *peerObject);
-                                    break;
-                                }
+                                } break;
                                 default: {
                                     otErr << OT_METHOD << __FUNCTION__
                                           << ": Unable to decode peer object: "

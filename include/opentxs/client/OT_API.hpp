@@ -748,6 +748,7 @@ public:
 
     EXPORT CommandResult sendNymObject(
         ServerContext& context,
+        std::unique_ptr<Message>& request,
         const Identifier& recipientNymID,
         const PeerObject& object,
         const RequestNumber provided) const;
@@ -759,8 +760,10 @@ public:
 
     EXPORT CommandResult sendNymInstrument(
         ServerContext& context,
+        std::unique_ptr<Message>& request,
         const Identifier& recipientNymID,
         const OTPayment& instrument,
+        bool storeOutpayment,
         const OTPayment* senderCopy = nullptr) const;
 
     EXPORT CommandResult registerInstrumentDefinition(
@@ -886,7 +889,7 @@ public:
     EXPORT CommandResult depositCheque(
         ServerContext& context,
         const Identifier& ACCT_ID,
-        const String& THE_CHEQUE) const;
+        const Cheque& cheque) const;
 
     EXPORT CommandResult triggerClause(
         ServerContext& context,
@@ -1266,6 +1269,7 @@ private:
     const api::Identity& identity_;
     const api::storage::Storage& storage_;
     const api::client::Wallet& wallet_;
+    const api::client::Workflow& workflow_;
     const api::network::ZMQ& zeromq_;
 
     bool m_bDefaultStore{false};
@@ -1320,7 +1324,14 @@ private:
     NetworkReplyMessage send_message(
         const std::set<ServerContext::ManagedNumber>& pending,
         ServerContext& context,
-        Message& message) const;
+        const Message& message) const;
+
+    std::set<std::unique_ptr<Cheque>> extract_cheques(
+        const Identifier& nymID,
+        const Identifier& accountID,
+        const Identifier& serverID,
+        const String& serializedProcessInbox,
+        Ledger& inbox) const;
 
     bool Cleanup();
     bool Init();
@@ -1334,6 +1345,7 @@ private:
         const api::Identity& identity,
         const api::storage::Storage& storage,
         const api::client::Wallet& wallet,
+        const api::client::Workflow& workflow,
         const api::network::ZMQ& zmq,
         const ContextLockCallback& lockCallback);
     OT_API() = delete;

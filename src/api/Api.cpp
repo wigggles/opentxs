@@ -128,6 +128,7 @@ void Api::Init()
         identity_,
         storage_,
         wallet_,
+        *workflow_,
         zmq_,
         std::bind(&Api::get_lock, this, std::placeholders::_1)));
 
@@ -150,6 +151,7 @@ void Api::Init()
         *ot_api_,
         *otapi_exec_,
         wallet_,
+        *workflow_,
         std::bind(&Api::get_lock, this, std::placeholders::_1)));
 
     OT_ASSERT(server_action_)
@@ -166,6 +168,7 @@ void Api::Init()
         config_,
         *this,
         wallet_,
+        *workflow_,
         crypto_.Encode(),
         zmq_.Context(),
         std::bind(&Api::get_lock, this, std::placeholders::_1)));

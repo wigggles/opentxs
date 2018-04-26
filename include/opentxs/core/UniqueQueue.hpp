@@ -55,61 +55,65 @@ public:
     {
         Lock lock(lock_);
 
-        if (0 == reverse_map_.count(in)) {
+        if (0 == set_.count(in)) {
 
             return;
         }
 
-        const auto& key = reverse_map_.at(in);
-
         for (auto i = queue_.cbegin(); i < queue_.cend(); ++i) {
-            if (*i == in) {
+            const auto & [ key, value ] = *i;
+            [[maybe_unused]] const auto& notUsed = key;
+
+            if (value == in) {
+                set_.erase(value);
                 queue_.erase(i);
                 break;
             }
         }
 
-        map_.erase(key);
-        reverse_map_.erase(in);
+        OT_ASSERT(set_.size() == queue_.size())
     }
 
-    void CancelByKey(const OTIdentifier& key) const
+    void CancelByKey(const OTIdentifier& in) const
     {
         Lock lock(lock_);
 
-        if (0 == map_.count(key)) {
-
-            return;
-        }
-
-        const auto& value = map_[key];
-
         for (auto i = queue_.cbegin(); i < queue_.cend(); ++i) {
-            if (*i == value) {
+            const auto & [ key, value ] = *i;
+
+            if (key == in) {
+                set_.erase(value);
                 queue_.erase(i);
                 break;
             }
         }
 
-        reverse_map_.erase(value);
-        map_.erase(key);
+        OT_ASSERT(set_.size() == queue_.size())
     }
 
     std::map<T, OTIdentifier> Copy() const
     {
+        std::map<T, OTIdentifier> output{};
         Lock lock(lock_);
 
-        return reverse_map_;
+        for (const auto & [ key, value ] : queue_) {
+            output.emplace(value, Identifier::Factory(key->str()));
+        }
+
+        return output;
     }
 
     bool Push(const OTIdentifier& key, const T& in) const
     {
+        OT_ASSERT(false == key->empty())
+
         Lock lock(lock_);
 
-        if (0 == reverse_map_.count(in)) {
-            queue_.push_front(in);
-            map_[key] = in;
-            reverse_map_.emplace(in, OTIdentifier(key));
+        if (0 == set_.count(in)) {
+            queue_.push_front({key, in});
+            set_.emplace(in);
+
+            OT_ASSERT(set_.size() == queue_.size())
 
             return true;
         }
@@ -126,21 +130,21 @@ public:
             return false;
         }
 
-        out = queue_.back();
-        key->SetString(reverse_map_.at(out)->str());
+        const auto & [ outKey, outValue ] = queue_.back();
+        set_.erase(outValue);
+        out = outValue;
+        key->SetString(String(outKey));
         queue_.pop_back();
-        reverse_map_.erase(out);
-        map_.erase(key);
+
+        OT_ASSERT(set_.size() == queue_.size())
 
         return true;
     }
 
 private:
     mutable std::mutex lock_;
-    mutable std::deque<T> queue_;
-    mutable std::map<OTIdentifier, T> map_;
-    mutable std::map<T, OTIdentifier> reverse_map_;
+    mutable std::deque<std::pair<OTIdentifier, T>> queue_;
+    mutable std::set<T> set_;
 };
 }  // namespace opentxs
-
 #endif  // OPENTXS_CORE_UNIQUEQUEUE_HPP

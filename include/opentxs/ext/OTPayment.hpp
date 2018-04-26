@@ -44,8 +44,7 @@
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/String.hpp"
-
-#include <cstdint>
+#include "opentxs/Types.hpp"
 
 namespace opentxs
 {
@@ -100,9 +99,6 @@ namespace opentxs
 
 class OTPayment : public Contract
 {
-private:
-    using ot_super = Contract;
-
 public:
     enum paymentType {
         // OTCheque is derived from OTTrackable, which is derived from
@@ -134,39 +130,122 @@ public:
         // payment is removed when the notice is received into the record box.
         ERROR_STATE
     };  // If you add any types to this list, update the list of strings at the
-        // top of the .CPP file.
+    // top of the .CPP file.
+
+    EXPORT static const char* _GetTypeString(paymentType theType);
+
+    EXPORT static paymentType GetTypeFromString(const String& strType);
+
+    EXPORT bool GetAllTransactionNumbers(NumList& numlistOutput) const;
+    // Once you "Instantiate" the first time, then these values are set, if
+    // available, and can be queried thereafter from *this. Otherwise, these
+    // functions will return false.
+    EXPORT bool GetAmount(Amount& lOutput) const;
+    // Only works for payment plans and smart contracts. Gets the opening
+    // transaction number for a given Nym, if applicable. (Or closing number for
+    // a given asset account.)
+    EXPORT bool GetClosingNum(
+        TransactionNumber& lOutput,
+        const Identifier& theAcctID) const;
+    EXPORT bool GetInstrumentDefinitionID(Identifier& theOutput) const;
+    EXPORT bool GetMemo(String& strOutput) const;
+    EXPORT bool GetNotaryID(Identifier& theOutput) const;
+    // Only works for payment plans and smart contracts. Gets the opening
+    // transaction number for a given Nym, if applicable. (Or closing number for
+    // a given asset account.)
+    EXPORT bool GetOpeningNum(
+        TransactionNumber& lOutput,
+        const Identifier& theNymID) const;
+    EXPORT bool GetPaymentContents(String& strOutput) const
+    {
+        strOutput = m_strPayment;
+        return true;
+    }
+    EXPORT bool GetRecipientAcctID(Identifier& theOutput) const;
+    EXPORT bool GetRecipientNymID(Identifier& theOutput) const;
+    EXPORT bool GetRemitterAcctID(Identifier& theOutput) const;
+    EXPORT bool GetRemitterNymID(Identifier& theOutput) const;
+    EXPORT bool GetSenderAcctID(Identifier& theOutput) const;
+    EXPORT bool GetSenderAcctIDForDisplay(Identifier& theOutput) const;
+    EXPORT bool GetSenderNymID(Identifier& theOutput) const;
+    EXPORT bool GetSenderNymIDForDisplay(Identifier& theOutput) const;
+    EXPORT bool GetTransactionNum(TransactionNumber& lOutput) const;
+    EXPORT bool GetTransNumDisplay(TransactionNumber& lOutput) const;
+    EXPORT paymentType GetType() const { return m_Type; }
+    EXPORT const char* GetTypeString() const { return _GetTypeString(m_Type); }
+    EXPORT bool GetValidFrom(time64_t& tOutput) const;
+    EXPORT bool GetValidTo(time64_t& tOutput) const;
+    EXPORT bool HasTransactionNum(const TransactionNumber& lInput) const;
+    EXPORT OTTrackable* Instantiate() const;
+    EXPORT OTTrackable* Instantiate(const String& strPayment);
+    EXPORT OTTransaction* InstantiateNotice() const;
+#if OT_CASH
+    EXPORT Purse* InstantiatePurse() const;
+#endif  // OT_CASH
+    EXPORT bool IsCheque() const { return (CHEQUE == m_Type); }
+    EXPORT bool IsVoucher() const { return (VOUCHER == m_Type); }
+    EXPORT bool IsInvoice() const { return (INVOICE == m_Type); }
+    EXPORT bool IsPaymentPlan() const { return (PAYMENT_PLAN == m_Type); }
+    EXPORT bool IsSmartContract() const { return (SMART_CONTRACT == m_Type); }
+    EXPORT bool IsPurse() const { return (PURSE == m_Type); }
+    EXPORT bool IsNotice() const { return (NOTICE == m_Type); }
+    EXPORT bool IsValid() const { return (ERROR_STATE != m_Type); }
+    EXPORT const String& Payment() const { return m_strPayment; }
+
+    EXPORT bool IsCancelledCheque();
+    // Verify whether the CURRENT date is AFTER the the "VALID TO" date.
+    EXPORT bool IsExpired(bool& bExpired);
+    EXPORT void InitPayment();
+    EXPORT OTTransaction* InstantiateNotice(const String& strNotice);
+#if OT_CASH
+    EXPORT Purse* InstantiatePurse(const String& strPayment);
+#endif  // OT_CASH
+    EXPORT int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
+    EXPORT void Release() override;
+    EXPORT void Release_Payment();
+    EXPORT bool SetPayment(const String& strPayment);
+    EXPORT bool SetTempRecipientNymID(const Identifier& id);
+    // Since the temp values are not available until at least ONE instantiating
+    // has occured, this function forces that very scenario (cleanly) so you
+    // don't have to instantiate-and-then-delete a payment instrument. Instead,
+    // just call this, and then the temp values will be available thereafter.
+    EXPORT bool SetTempValues();
+    EXPORT bool SetTempValuesFromCheque(const Cheque& theInput);
+    EXPORT bool SetTempValuesFromPaymentPlan(const OTPaymentPlan& theInput);
+    EXPORT bool SetTempValuesFromSmartContract(const OTSmartContract& theInput);
+#if OT_CASH
+    EXPORT bool SetTempValuesFromPurse(const Purse& theInput);
+#endif  // OT_CASH
+    EXPORT bool SetTempValuesFromNotice(const OTTransaction& theInput);
+    // Verify whether the CURRENT date is WITHIN the VALID FROM / TO dates.
+    EXPORT bool VerifyCurrentDate(bool& bVerified);
+
+    EXPORT OTPayment();
+    EXPORT OTPayment(const String& strPayment);
+    EXPORT virtual ~OTPayment();
 
 protected:
-    void UpdateContents() override;  // Before transmission or serialization,
-                                     // this
-                                     // is where the object saves its contents
-    String m_strPayment;  // Contains the cheque / payment plan / etc in string
-                          // form.
-    paymentType m_Type = ERROR_STATE;  // Default value is ERROR_STATE
+    // Contains the cheque / payment plan / etc in string form.
+    String m_strPayment;
+    paymentType m_Type{ERROR_STATE};
     // Once the actual instrument is loaded up, we copy some temp values to
-    // *this
-    // object. Until then, this bool (m_bAreTempValuesSet) is set to false.
-    //
-    bool m_bAreTempValuesSet = false;
+    // *this object. Until then, this bool (m_bAreTempValuesSet) is set to
+    // false.
+    bool m_bAreTempValuesSet{false};
 
-    // Here are the TEMP values:
-    // (These are not serialized.)
-    //
-    bool m_bHasRecipient = false;  // For cheques mostly, and payment plans too.
-    bool m_bHasRemitter =
-        false;  // For vouchers (cashier's cheques), the Nym who bought
-                // the voucher is the remitter, whereas the "sender" is
-                // the server Nym whose account the voucher is drawn on.
+    // Here are the TEMP values: (These are not serialized.)
 
-    int64_t m_lAmount =
-        0;  // Contains 0 by default. This is set by SetPayment()
-            // along with other useful values.
-    int64_t m_lTransactionNum = 0;  // Contains 0 by default. This is set by
-    // SetPayment() along with other useful values.
-    int64_t m_lTransNumDisplay = 0;  // Contains 0 by default. This is set by
-    // SetPayment() along with other useful values.
-
-    String m_strMemo;  // Memo, Consideration, Subject, etc.
+    // For cheques mostly, and payment plans too.
+    bool m_bHasRecipient{false};
+    // For vouchers (cashier's cheques), the Nym who bought the voucher is the
+    // remitter, whereas the "sender" is the server Nym whose account the
+    // voucher is drawn on.
+    bool m_bHasRemitter{false};
+    Amount m_lAmount{0};
+    TransactionNumber m_lTransactionNum{0};
+    TransactionNumber m_lTransNumDisplay{0};
+    // Memo, Consideration, Subject, etc.
+    String m_strMemo;
 
     // These are for convenience only, for caching once they happen to be
     // loaded. These values are NOT serialized other than via the payment
@@ -188,112 +267,18 @@ protected:
     // Whereas the account that was originally used to purchase the voucher is
     // the remitter account.
     OTIdentifier m_RemitterAcctID;
-    time64_t m_VALID_FROM = 0;  // Temporary values. Not always available.
-    time64_t m_VALID_TO = 0;    // Temporary values. Not always available.
+    time64_t m_VALID_FROM{0};  // Temporary values. Not always available.
+    time64_t m_VALID_TO{0};    // Temporary values. Not always available.
 
     void lowLevelSetTempValuesFromPaymentPlan(const OTPaymentPlan& theInput);
     void lowLevelSetTempValuesFromSmartContract(
         const OTSmartContract& theInput);
+    // Before transmission or serialization, this is where the object saves its
+    // contents
+    void UpdateContents() override;
 
-public:
-    EXPORT bool SetPayment(const String& strPayment);
-
-    EXPORT bool IsCheque() const { return (CHEQUE == m_Type); }
-    EXPORT bool IsVoucher() const { return (VOUCHER == m_Type); }
-    EXPORT bool IsInvoice() const { return (INVOICE == m_Type); }
-    EXPORT bool IsPaymentPlan() const { return (PAYMENT_PLAN == m_Type); }
-    EXPORT bool IsSmartContract() const { return (SMART_CONTRACT == m_Type); }
-    EXPORT bool IsPurse() const { return (PURSE == m_Type); }
-    EXPORT bool IsNotice() const { return (NOTICE == m_Type); }
-    EXPORT bool IsValid() const { return (ERROR_STATE != m_Type); }
-
-    EXPORT paymentType GetType() const { return m_Type; }
-    EXPORT OTTrackable* Instantiate() const;
-    EXPORT OTTrackable* Instantiate(const String& strPayment);
-
-#if OT_CASH
-    EXPORT Purse* InstantiatePurse() const;
-    EXPORT Purse* InstantiatePurse(const String& strPayment);
-#endif  // OT_CASH
-
-    EXPORT OTTransaction* InstantiateNotice() const;
-    EXPORT OTTransaction* InstantiateNotice(const String& strNotice);
-
-    EXPORT bool GetPaymentContents(String& strOutput) const
-    {
-        strOutput = m_strPayment;
-        return true;
-    }
-
-    // Since the temp values are not available until at least ONE instantiating
-    // has occured,
-    // this function forces that very scenario (cleanly) so you don't have to
-    // instantiate-and-
-    // then-delete a payment instrument. Instead, just call this, and then the
-    // temp values will
-    // be available thereafter.
-    //
-    EXPORT bool SetTempValues();
-
-    EXPORT bool SetTempValuesFromCheque(const Cheque& theInput);
-    EXPORT bool SetTempValuesFromPaymentPlan(const OTPaymentPlan& theInput);
-    EXPORT bool SetTempValuesFromSmartContract(const OTSmartContract& theInput);
-#if OT_CASH
-    EXPORT bool SetTempValuesFromPurse(const Purse& theInput);
-#endif  // OT_CASH
-    EXPORT bool SetTempValuesFromNotice(const OTTransaction& theInput);
-    // Once you "Instantiate" the first time, then these values are
-    // set, if available, and can be queried thereafter from *this.
-    // Otherwise, these functions will return false.
-    //
-    EXPORT bool GetAmount(int64_t& lOutput) const;
-
-    EXPORT bool GetTransactionNum(int64_t& lOutput) const;
-    EXPORT bool GetTransNumDisplay(int64_t& lOutput) const;
-
-    // Only works for payment plans and smart contracts. Gets the
-    // opening transaction number for a given Nym, if applicable.
-    // (Or closing number for a given asset account.)
-    EXPORT bool GetOpeningNum(int64_t& lOutput, const Identifier& theNymID)
-        const;
-    EXPORT bool GetClosingNum(int64_t& lOutput, const Identifier& theAcctID)
-        const;
-    EXPORT bool GetAllTransactionNumbers(NumList& numlistOutput) const;
-    EXPORT bool HasTransactionNum(const int64_t& lInput) const;
-    EXPORT bool GetMemo(String& strOutput) const;
-    EXPORT bool GetInstrumentDefinitionID(Identifier& theOutput) const;
-    EXPORT bool GetNotaryID(Identifier& theOutput) const;
-    EXPORT bool GetSenderNymID(Identifier& theOutput) const;
-    EXPORT bool GetSenderAcctID(Identifier& theOutput) const;
-    EXPORT bool GetRecipientNymID(Identifier& theOutput) const;
-    EXPORT bool GetRecipientAcctID(Identifier& theOutput) const;
-    EXPORT bool GetRemitterNymID(Identifier& theOutput) const;
-    EXPORT bool GetRemitterAcctID(Identifier& theOutput) const;
-    EXPORT bool GetSenderNymIDForDisplay(Identifier& theOutput) const;
-    EXPORT bool GetSenderAcctIDForDisplay(Identifier& theOutput) const;
-    EXPORT bool GetValidFrom(time64_t& tOutput) const;
-    EXPORT bool GetValidTo(time64_t& tOutput) const;
-    EXPORT bool VerifyCurrentDate(bool& bVerified);  // Verify whether the
-                                                     // CURRENT date is WITHIN
-                                                     // the VALID FROM / TO
-                                                     // dates.
-    EXPORT bool IsExpired(bool& bExpired);  // Verify whether the CURRENT date
-                                            // is AFTER the the "VALID TO" date.
-    EXPORT OTPayment();
-    EXPORT OTPayment(const String& strPayment);
-    EXPORT virtual ~OTPayment();
-    EXPORT void InitPayment();
-    EXPORT void Release() override;
-    EXPORT void Release_Payment();
-
-    EXPORT int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
-    EXPORT static const char* _GetTypeString(paymentType theType);
-    EXPORT const char* GetTypeString() const { return _GetTypeString(m_Type); }
-    EXPORT static paymentType GetTypeFromString(const String& strType);
-
-    EXPORT const String& Payment() const { return m_strPayment; }
+private:
+    using ot_super = Contract;
 };
-
 }  // namespace opentxs
-
 #endif  // OPENTXS_EXT_OTPAYMENT_HPP

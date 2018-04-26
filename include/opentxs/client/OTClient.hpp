@@ -53,19 +53,19 @@ namespace opentxs
 class OTClient
 {
 public:
-    explicit OTClient(
-        OTWallet& theWallet,
-        const api::Activity& activity,
-        const api::ContactManager& contacts,
-        const api::client::Wallet& wallet);
-
+    bool AcceptEntireNymbox(
+        Ledger& theNymbox,
+        ServerContext& context,
+        Message& theMessage);
     inline OTMessageOutbuffer& GetMessageOutbuffer()
     {
         return m_MessageOutbuffer;
     }
-
-    void QueueOutgoingMessage(const Message& theMessage);
-
+    bool processServerReply(
+        const std::set<ServerContext::ManagedNumber>& managed,
+        ServerContext& context,
+        std::shared_ptr<Message>& reply,
+        Ledger* pNymbox = nullptr);
     int32_t ProcessUserCommand(
         const MessageType requestedCommand,
         ServerContext& context,
@@ -75,25 +75,32 @@ public:
         const UnitDefinition* pMyUnitDefinition = nullptr,
         const Identifier* pHisNymID = nullptr,
         const Identifier* pHisAcctID = nullptr);
+    void QueueOutgoingMessage(const Message& theMessage);
 
-    bool processServerReply(
-        const std::set<ServerContext::ManagedNumber>& managed,
-        ServerContext& context,
-        std::shared_ptr<Message>& reply,
-        Ledger* pNymbox = nullptr);
-
-    bool AcceptEntireNymbox(
-        Ledger& theNymbox,
-        ServerContext& context,
-        Message& theMessage);
+    explicit OTClient(
+        OTWallet& theWallet,
+        const api::Activity& activity,
+        const api::ContactManager& contacts,
+        const api::client::Wallet& wallet,
+        const api::client::Workflow& workflow);
 
 private:
     OTWallet& m_pWallet;
     const api::Activity& activity_;
     const api::ContactManager& contacts_;
     const api::client::Wallet& wallet_;
+    const api::client::Workflow& workflow_;
     OTMessageOutbuffer m_MessageOutbuffer;
 
+    bool add_item_to_workflow(
+        const Nym& nym,
+        const Message& transportItem,
+        const std::string& item) const;
+    bool createInstrumentNoticeFromPeerObject(
+        const ServerContext& context,
+        const Message& message,
+        const PeerObject& peerObject,
+        const TransactionNumber number);
     void ProcessIncomingTransaction(
         const Message& theReply,
         ServerContext& context,
@@ -196,10 +203,6 @@ private:
         const Message& theReply,
         const Identifier& accountID,
         ServerContext& context);
-    bool createInstrumentNoticeFromPeerObject(
-        const ServerContext& context,
-        const std::unique_ptr<PeerObject>& peerObject,
-        OTTransaction* pTxnPeerObject);
     void ProcessIncomingCronItemReply(
         Item* pReplyItem,
         std::unique_ptr<OTCronItem>& pCronItem,

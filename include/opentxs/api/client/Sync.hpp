@@ -72,6 +72,21 @@ public:
     EXPORT virtual Messagability CanMessage(
         const Identifier& senderNymID,
         const Identifier& recipientContactID) const = 0;
+    /** Deposit all available cheques for specified nym
+     *
+     *  \returns the number of cheques queued for deposit
+     */
+    EXPORT virtual std::size_t DepositCheques(
+        const Identifier& nymID) const = 0;
+    /** Deposit the specified list of cheques for specified nym
+     *
+     *  If the list of chequeIDs is empty, then all cheques will be deposited
+     *
+     *  \returns the number of cheques queued for deposit
+     */
+    EXPORT virtual std::size_t DepositCheques(
+        const Identifier& nymID,
+        const std::set<OTIdentifier>& chequeIDs) const = 0;
     EXPORT virtual OTIdentifier DepositPayment(
         const Identifier& recipientNymID,
         const std::shared_ptr<const OTPayment>& payment) const = 0;
@@ -83,7 +98,8 @@ public:
     EXPORT virtual OTIdentifier FindNym(
         const Identifier& nymID,
         const Identifier& serverIDHint) const = 0;
-    EXPORT virtual OTIdentifier FindServer(const Identifier& serverID) const = 0;
+    EXPORT virtual OTIdentifier FindServer(
+        const Identifier& serverID) const = 0;
     EXPORT virtual const Identifier& IntroductionServer() const = 0;
     EXPORT virtual OTIdentifier MessageContact(
         const Identifier& senderNymID,

@@ -41,6 +41,7 @@
 #include "opentxs/api/client/Pair.hpp"
 #include "opentxs/api/client/ServerAction.hpp"
 #include "opentxs/api/client/Wallet.hpp"
+#include "opentxs/api/client/Workflow.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/Api.hpp"
 #include "opentxs/api/ContactManager.hpp"
@@ -192,6 +193,7 @@ Sync::Sync(
     const api::Settings& config,
     const api::Api& api,
     const api::client::Wallet& wallet,
+    const api::client::Workflow& workflow,
     const api::crypto::Encode& encoding,
     const opentxs::network::zeromq::Context& zmq,
     const ContextLockCallback& lockCallback)
@@ -204,6 +206,7 @@ Sync::Sync(
     , api_(api)
     , server_action_(api.ServerAction())
     , wallet_(wallet)
+    , workflow_(workflow)
     , encoding_(encoding)
     , zmq_(zmq)
     , introduction_server_lock_()
@@ -280,6 +283,19 @@ std::pair<bool, std::size_t> Sync::accept_incoming(
                       << ": Unable to load item: " << number << std::endl;
 
                 continue;
+            }
+        }
+
+        if (OTTransaction::chequeReceipt == transaction->GetType()) {
+            const auto workflowUpdated =
+                workflow_.ClearCheque(context.Nym()->ID(), *transaction);
+
+            if (workflowUpdated) {
+                otErr << OT_METHOD << __FUNCTION__ << ": Updated workflow."
+                      << std::endl;
+            } else {
+                otErr << OT_METHOD << __FUNCTION__
+                      << ": Failed to update workflow." << std::endl;
             }
         }
 
@@ -514,7 +530,7 @@ Messagability Sync::can_message(
 
     if (false == bool(recipientNym)) {
         for (const auto& id : nyms) {
-            missing_nyms_.Push(Identifier::Factory(), id);
+            missing_nyms_.Push(Identifier::Random(), id);
         }
 
         otErr << OT_METHOD << __FUNCTION__ << ": Recipient contact "
@@ -532,7 +548,7 @@ Messagability Sync::can_message(
         otErr << OT_METHOD << __FUNCTION__ << ": Recipient contact "
               << recipientContactID.str() << ", nym " << recipientNymID.str()
               << ": credentials do not specify a server." << std::endl;
-        missing_nyms_.Push(Identifier::Factory(), recipientNymID);
+        missing_nyms_.Push(Identifier::Random(), recipientNymID);
 
         return Messagability::NO_SERVER_CLAIM;
     }
@@ -606,7 +622,7 @@ void Sync::check_nym_revision(
         otErr << OT_METHOD << __FUNCTION__ << ": Nym " << nymID.str()
               << " has is newer than version last registered version on server "
               << context.Server().str() << std::endl;
-        queue.register_nym_.Push(Identifier::Factory(), true);
+        queue.register_nym_.Push(Identifier::Random(), true);
     }
 }
 
@@ -634,7 +650,7 @@ bool Sync::check_registration(
         return true;
     }
 
-    const auto output = register_nym(Identifier::Factory(), nymID, serverID);
+    const auto output = register_nym(Identifier::Random(), nymID, serverID);
 
     if (output) {
         context = wallet_.ServerContext(nymID, serverID);
@@ -658,7 +674,7 @@ bool Sync::check_server_contract(const Identifier& serverID) const
 
     otErr << OT_METHOD << __FUNCTION__ << ": Server contract for "
           << serverID.str() << " is not in the wallet." << std::endl;
-    missing_servers_.Push(Identifier::Factory(), serverID);
+    missing_servers_.Push(Identifier::Random(), serverID);
 
     return false;
 }
@@ -716,6 +732,61 @@ bool Sync::deposit_cheque(
     retry.Push(taskID, {accountID, payment});
 
     return false;
+}
+
+std::size_t Sync::DepositCheques(const Identifier& nymID) const
+{
+    std::size_t output{0};
+    const auto workflows = workflow_.List(
+        nymID,
+        proto::PAYMENTWORKFLOWTYPE_INCOMINGCHEQUE,
+        proto::PAYMENTWORKFLOWSTATE_CONVEYED);
+
+    for (const auto& id : workflows) {
+        const auto chequeState = workflow_.LoadChequeByWorkflow(nymID, id);
+        const auto & [ state, cheque ] = chequeState;
+
+        if (proto::PAYMENTWORKFLOWSTATE_CONVEYED != state) {
+            continue;
+        }
+
+        OT_ASSERT(cheque)
+
+        if (queue_cheque_deposit(nymID, *cheque)) {
+            ++output;
+        }
+    }
+
+    return output;
+}
+
+std::size_t Sync::DepositCheques(
+    const Identifier& nymID,
+    const std::set<OTIdentifier>& chequeIDs) const
+{
+    std::size_t output{0};
+
+    if (chequeIDs.empty()) {
+
+        return DepositCheques(nymID);
+    }
+
+    for (const auto& id : chequeIDs) {
+        const auto chequeState = workflow_.LoadCheque(nymID, id);
+        const auto & [ state, cheque ] = chequeState;
+
+        if (proto::PAYMENTWORKFLOWSTATE_CONVEYED != state) {
+            continue;
+        }
+
+        OT_ASSERT(cheque)
+
+        if (queue_cheque_deposit(nymID, *cheque)) {
+            ++output;
+        }
+    }
+
+    return {};
 }
 
 OTIdentifier Sync::DepositPayment(
@@ -1396,6 +1467,24 @@ bool Sync::publish_server_registration(
     auto nym = wallet_.mutable_Nym(nymID);
 
     return nym.AddPreferredOTServer(serverID.str(), forcePrimary);
+}
+
+bool Sync::queue_cheque_deposit(const Identifier& nymID, const Cheque& cheque)
+    const
+{
+    auto payment = std::make_shared<OTPayment>(String(cheque));
+
+    OT_ASSERT(payment)
+
+    payment->SetTempValuesFromCheque(cheque);
+
+    if (cheque.GetRecipientNymID().empty()) {
+        payment->SetTempRecipientNymID(nymID);
+    }
+
+    const auto taskID = DepositPayment(nymID, payment);
+
+    return (false == taskID->empty());
 }
 
 void Sync::Refresh() const

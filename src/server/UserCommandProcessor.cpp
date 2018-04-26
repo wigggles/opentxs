@@ -93,7 +93,6 @@
 
 namespace opentxs::server
 {
-
 UserCommandProcessor::FinalizeResponse::FinalizeResponse(
     const Nym& nym,
     ReplyMessage& reply,
