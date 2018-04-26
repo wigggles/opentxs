@@ -103,7 +103,7 @@ public:
         reindex_item(lock, id, oldIndex, newIndex);
     }
 
-    Identifier WidgetID() const override { return widget_id_; }
+    OTIdentifier WidgetID() const override { return widget_id_; }
 
     virtual ~List()
     {

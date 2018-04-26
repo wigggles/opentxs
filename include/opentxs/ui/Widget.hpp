@@ -57,7 +57,7 @@ class Widget
 {
 public:
 #ifndef SWIG
-    EXPORT virtual Identifier WidgetID() const = 0;
+    EXPORT virtual OTIdentifier WidgetID() const = 0;
 #endif
     EXPORT virtual std::string WidgetName() const = 0;
 

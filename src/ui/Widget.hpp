@@ -49,7 +49,7 @@ namespace opentxs::ui::implementation
 class Widget : virtual public opentxs::ui::Widget
 {
 public:
-    Identifier WidgetID() const override;
+    OTIdentifier WidgetID() const override;
     std::string WidgetName() const override;
 
     virtual ~Widget() = default;
