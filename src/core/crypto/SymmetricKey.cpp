@@ -576,7 +576,7 @@ bool SymmetricKey::GetPassword(
     }
 }
 
-Identifier SymmetricKey::ID()
+OTIdentifier SymmetricKey::ID()
 {
     OTPasswordData keyPassword("");
 
@@ -585,7 +585,7 @@ Identifier SymmetricKey::ID()
             otErr << OT_METHOD << __FUNCTION__
                   << ": Unable to unlock master key." << std::endl;
 
-            return {};
+            return Identifier::Factory();
         }
     }
 
