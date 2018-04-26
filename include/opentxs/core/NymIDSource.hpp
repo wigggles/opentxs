@@ -63,7 +63,7 @@ public:
     String asString() const;
     String Description() const;
     proto::SourceType Type() const;
-    Identifier NymID() const;
+    OTIdentifier NymID() const;
     serializedNymIDSource Serialize() const;
     bool Verify(
         const proto::Credential& master,
