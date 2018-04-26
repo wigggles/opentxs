@@ -98,14 +98,14 @@ bool Signable::CalculateID(const Lock& lock)
 
 bool Signable::CheckID(const Lock& lock) const { return (GetID(lock) == id_); }
 
-Identifier Signable::id(const Lock& lock) const
+OTIdentifier Signable::id(const Lock& lock) const
 {
     OT_ASSERT(verify_write_lock(lock));
 
     return id_;
 }
 
-Identifier Signable::ID() const
+OTIdentifier Signable::ID() const
 {
     Lock lock(lock_);
 

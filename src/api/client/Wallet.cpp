@@ -927,7 +927,7 @@ bool Wallet::PeerReplyReceive(const Identifier& nym, const PeerObject& reply)
     std::time_t notUsed;
     const bool haveRequest = ot_.DB().Load(
         nymID,
-        requestID.str(),
+        requestID->str(),
         StorageBox::SENTPEERREQUEST,
         request,
         notUsed,
@@ -962,7 +962,7 @@ bool Wallet::PeerReplyReceive(const Identifier& nym, const PeerObject& reply)
     }
 
     const bool removedRequest = ot_.DB().RemoveNymBoxItem(
-        nymID, StorageBox::SENTPEERREQUEST, requestID.str());
+        nymID, StorageBox::SENTPEERREQUEST, requestID->str());
 
     if (!finishedRequest) {
         otErr << OT_METHOD << __FUNCTION__
@@ -1289,7 +1289,7 @@ ConstServerContract Wallet::Server(
 ConstServerContract Wallet::Server(
     std::unique_ptr<class ServerContract>& contract) const
 {
-    std::string server = contract->ID().str();
+    std::string server = contract->ID()->str();
 
     if (contract) {
         if (contract->Validate()) {
@@ -1524,7 +1524,7 @@ const ConstUnitDefinition Wallet::UnitDefinition(
 ConstUnitDefinition Wallet::UnitDefinition(
     std::unique_ptr<class UnitDefinition>& contract) const
 {
-    std::string unit = contract->ID().str();
+    std::string unit = contract->ID()->str();
 
     if (contract) {
         if (contract->Validate()) {

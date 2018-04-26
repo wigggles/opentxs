@@ -1276,7 +1276,7 @@ bool OTRecordList::checkServer(const char* name, std::string& server)
         return false;
     }
 
-    server = pServer->ID().str();
+    server = pServer->ID()->str();
     otOut << "Using " << name << ": " << server << "\n";
     return true;
 }

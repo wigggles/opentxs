@@ -1313,7 +1313,7 @@ std::string OTAPI_Exec::CreateCurrencyContract(
         NYM_ID, shortname, name, symbol, terms, tla, power, fraction);
 
     if (pContract) {
-        output = pContract->ID().str();
+        output = pContract->ID()->str();
     } else {
         otErr << OT_METHOD << __FUNCTION__
               << ": Failed to create currency contract." << std::endl;
@@ -1352,7 +1352,7 @@ std::string OTAPI_Exec::CreateSecurityContract(
         wallet_.UnitDefinition(NYM_ID, shortname, name, symbol, terms);
 
     if (pContract) {
-        output = pContract->ID().str();
+        output = pContract->ID()->str();
     } else {
         otErr << OT_METHOD << __FUNCTION__
               << ": Failed to create currency contract." << std::endl;
@@ -1552,7 +1552,7 @@ std::string OTAPI_Exec::AddServerContract(const std::string& strContract) const
         auto contract = wallet_.Server(serialized);
 
         if (contract) {
-            return contract->ID().str();
+            return contract->ID()->str();
         }
     }
 
@@ -1573,7 +1573,7 @@ std::string OTAPI_Exec::AddUnitDefinition(const std::string& strContract) const
         auto contract = wallet_.UnitDefinition(serialized);
 
         if (contract) {
-            return contract->ID().str();
+            return contract->ID()->str();
         }
     }
 
