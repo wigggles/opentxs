@@ -851,12 +851,12 @@ OTData UnitDefinition::Serialize() const
     return proto::ProtoAsData(contract(lock));
 }
 
-Identifier UnitDefinition::GetID(const Lock& lock) const
+OTIdentifier UnitDefinition::GetID(const Lock& lock) const
 {
     return GetID(IDVersion(lock));
 }
 
-Identifier UnitDefinition::GetID(const proto::UnitDefinition& contract)
+OTIdentifier UnitDefinition::GetID(const proto::UnitDefinition& contract)
 {
     Identifier id;
     id.CalculateDigest(proto::ProtoAsData<proto::UnitDefinition>(contract));

@@ -79,13 +79,13 @@ private:
     EXPORT proto::UnitDefinition IDVersion(const Lock& lock) const override;
 
 public:
-    EXPORT static Identifier CalculateBasketID(
+    EXPORT static OTIdentifier CalculateBasketID(
         const proto::UnitDefinition& serialized);
     EXPORT static bool FinalizeTemplate(
         const ConstNym& nym,
         proto::UnitDefinition& serialized);
 
-    EXPORT Identifier BasketID() const;
+    EXPORT OTIdentifier BasketID() const;
     EXPORT const MapOfSubcontracts& Currencies() const { return subcontracts_; }
     EXPORT proto::UnitType Type() const override
     {

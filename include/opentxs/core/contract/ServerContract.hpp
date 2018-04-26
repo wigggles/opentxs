@@ -73,7 +73,7 @@ private:
     OTData transport_key_;
 
     proto::ServerContract contract(const Lock& lock) const;
-    Identifier GetID(const Lock& lock) const override;
+    OTIdentifier GetID(const Lock& lock) const override;
     proto::ServerContract IDVersion(const Lock& lock) const;
     proto::ServerContract SigVersion(const Lock& lock) const;
     bool validate(const Lock& lock) const override;

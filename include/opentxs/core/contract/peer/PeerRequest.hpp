@@ -61,11 +61,11 @@ private:
 
     static std::unique_ptr<PeerRequest> Finish(
         std::unique_ptr<PeerRequest>& contract);
-    static Identifier GetID(const proto::PeerRequest& contract);
+    static OTIdentifier GetID(const proto::PeerRequest& contract);
     static bool FinalizeContract(PeerRequest& contract);
 
     proto::PeerRequest contract(const Lock& lock) const;
-    Identifier GetID(const Lock& lock) const override;
+    OTIdentifier GetID(const Lock& lock) const override;
     proto::PeerRequest SigVersion(const Lock& lock) const;
 
     bool update_signature(const Lock& lock) override;

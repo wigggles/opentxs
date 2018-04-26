@@ -84,7 +84,7 @@ public:
         const Identifier& accountID,
         const std::uint32_t index,
         const BIP44Chain chain) const;
-    Identifier NewAccount(
+    OTIdentifier NewAccount(
         const Identifier& nymID,
         const BlockchainAccountType standard,
         const proto::ContactItemType type) const;

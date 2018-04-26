@@ -62,7 +62,7 @@ public:
     }
     StorageBox Type() const override { return StorageBox::UNKNOWN; }
     bool Valid() const override { return false; }
-    Identifier WidgetID() const override { return {}; }
+    OTIdentifier WidgetID() const override { return Identifier::Factory(); }
     std::string WidgetName() const override { return {}; }
 
     ~ActivitySummaryItemBlank() = default;

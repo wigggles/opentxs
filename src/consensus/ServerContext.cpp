@@ -754,7 +754,7 @@ TransactionNumber ServerContext::update_highest(
     return output;
 }
 
-Identifier ServerContext::update_remote_hash(
+OTIdentifier ServerContext::update_remote_hash(
     const Lock& lock,
     const Message& reply)
 {

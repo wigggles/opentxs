@@ -91,7 +91,7 @@ public:
         const std::int64_t start,
         const std::int64_t end,
         const std::string& value);
-    static Identifier ClaimID(const proto::Claim& preimage);
+    static OTIdentifier ClaimID(const proto::Claim& preimage);
     static Claim asClaim(
         const String& nymid,
         const std::uint32_t section,

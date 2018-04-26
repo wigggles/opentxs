@@ -74,11 +74,11 @@ public:
     bool HaveRemoteNymboxHash() const;
     std::string Name() const override;
     bool NymboxHashMatch() const;
-    Identifier LocalNymboxHash() const;
+    OTIdentifier LocalNymboxHash() const;
     std::unique_ptr<const class NymFile> Nymfile(
         const OTPasswordData& reason) const;
     const class Nym& RemoteNym() const;
-    Identifier RemoteNymboxHash() const;
+    OTIdentifier RemoteNymboxHash() const;
     RequestNumber Request() const;
     OTData Serialize() const override;
     proto::Context Serialized() const;
@@ -115,7 +115,7 @@ protected:
     OTIdentifier local_nymbox_hash_;
     OTIdentifier remote_nymbox_hash_;
 
-    Identifier GetID(const Lock& lock) const override;
+    OTIdentifier GetID(const Lock& lock) const override;
 
     virtual proto::Context serialize(
         const Lock& lock,

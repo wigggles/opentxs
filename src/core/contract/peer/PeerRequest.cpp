@@ -406,12 +406,12 @@ std::unique_ptr<PeerRequest> PeerRequest::Finish(
     }
 }
 
-Identifier PeerRequest::GetID(const Lock& lock) const
+OTIdentifier PeerRequest::GetID(const Lock& lock) const
 {
     return GetID(IDVersion(lock));
 }
 
-Identifier PeerRequest::GetID(const proto::PeerRequest& contract)
+OTIdentifier PeerRequest::GetID(const proto::PeerRequest& contract)
 {
     Identifier id;
     id.CalculateDigest(proto::ProtoAsData(contract));

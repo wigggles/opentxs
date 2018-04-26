@@ -538,7 +538,7 @@ bool Blockchain::move_transactions(
     return output;
 }
 
-Identifier Blockchain::NewAccount(
+OTIdentifier Blockchain::NewAccount(
     const Identifier& nymID,
     const BlockchainAccountType standard,
     const proto::ContactItemType type) const
@@ -561,7 +561,7 @@ Identifier Blockchain::NewAccount(
         otErr << OT_METHOD << __FUNCTION__ << ": Nym does not exist."
               << std::endl;
 
-        return {};
+        return Identifier::Factory();
     }
 
     proto::HDPath nymPath{};
@@ -569,19 +569,19 @@ Identifier Blockchain::NewAccount(
     if (false == nym->Path(nymPath)) {
         otErr << OT_METHOD << __FUNCTION__ << ": No nym path." << std::endl;
 
-        return {};
+        return Identifier::Factory();
     }
 
     if (0 == nymPath.root().size()) {
         otErr << OT_METHOD << __FUNCTION__ << ": Missing root." << std::endl;
 
-        return {};
+        return Identifier::Factory();
     }
 
     if (2 > nymPath.child().size()) {
         otErr << OT_METHOD << __FUNCTION__ << ": Invalid path." << std::endl;
 
-        return {};
+        return Identifier::Factory();
     }
 
     proto::HDPath accountPath{};
@@ -609,7 +609,7 @@ Identifier Blockchain::NewAccount(
     otErr << OT_METHOD << __FUNCTION__ << ": Failed to save account."
           << std::endl;
 
-    return {};
+    return Identifier::Factory();
 }
 
 bool Blockchain::StoreIncoming(

@@ -130,12 +130,12 @@ Issuer::operator std::string() const
         issuerClaims.Section(proto::CONTACTSECTION_CONTRACT);
     const auto haveAccounts = bool(contractSection);
 
-    if (serverID.empty()) {
+    if (serverID->empty()) {
         output << "* Issuer nym does not advertise a server.\n";
 
         return output.str();
     } else {
-        output << "* Server ID: " << serverID.str() << "\n";
+        output << "* Server ID: " << serverID->str() << "\n";
     }
 
     if (false == bool(haveAccounts)) {
@@ -573,7 +573,7 @@ bool Issuer::Paired() const { return paired_.get(); }
 
 const std::string& Issuer::PairingCode() const { return pairing_code_; }
 
-Identifier Issuer::PrimaryServer() const
+OTIdentifier Issuer::PrimaryServer() const
 {
     Lock lock(lock_);
 
@@ -581,7 +581,7 @@ Identifier Issuer::PrimaryServer() const
 
     if (false == bool(nym)) {
 
-        return {};
+        return Identifier::Factory();
     }
 
     return nym->Claims().PreferredOTServer();

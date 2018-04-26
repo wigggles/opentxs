@@ -95,7 +95,7 @@ std::string ContactCredential::ClaimID(
 }
 
 // static
-Identifier ContactCredential::ClaimID(const proto::Claim& preimage)
+OTIdentifier ContactCredential::ClaimID(const proto::Claim& preimage)
 {
     Identifier output;
     output.CalculateDigest(proto::ProtoAsData<proto::Claim>(preimage));

@@ -59,7 +59,7 @@ class Signable
 {
 public:
     virtual std::string Alias() const;
-    Identifier ID() const;
+    OTIdentifier ID() const;
     virtual std::string Name() const = 0;
     ConstNym Nym() const;
     virtual const std::string& Terms() const;
@@ -84,7 +84,7 @@ protected:
 
     /** Calculate the ID and verify that it matches the existing id_ value */
     bool CheckID(const Lock& lock) const;
-    virtual Identifier id(const Lock& lock) const;
+    virtual OTIdentifier id(const Lock& lock) const;
     virtual bool validate(const Lock& lock) const = 0;
     virtual bool verify_signature(
         const Lock& lock,
@@ -96,7 +96,7 @@ protected:
     virtual bool update_signature(const Lock& lock);
 
     /** Calculate identifier */
-    virtual Identifier GetID(const Lock& lock) const = 0;
+    virtual OTIdentifier GetID(const Lock& lock) const = 0;
 
     Signable() = delete;
     explicit Signable(const ConstNym& nym);

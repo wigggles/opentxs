@@ -158,7 +158,7 @@ std::unique_ptr<proto::AsymmetricKey> NymIDSource::ExtractKey(
     return output;
 }
 
-Identifier NymIDSource::NymID() const
+OTIdentifier NymIDSource::NymID() const
 {
     Identifier nymID;
     auto dataVersion = Data::Factory();

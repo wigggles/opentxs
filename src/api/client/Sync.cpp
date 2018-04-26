@@ -1124,9 +1124,9 @@ bool Sync::message_nym(
         if (action->Reply()->m_bSuccess) {
             const auto messageID = action->MessageID();
 
-            if (false == messageID.empty()) {
+            if (false == messageID->empty()) {
                 otInfo << OT_METHOD << __FUNCTION__ << ": Sent message  "
-                       << messageID.str() << std::endl;
+                       << messageID->str() << std::endl;
                 associate_message_id(messageID, taskID);
             }
 
@@ -1167,10 +1167,10 @@ bool Sync::pay_nym(
         if (action->Reply()->m_bSuccess) {
             const auto messageID = action->MessageID();
 
-            if (false == messageID.empty()) {
+            if (false == messageID->empty()) {
                 otInfo << OT_METHOD << __FUNCTION__ << ": Sent (payment) "
                                                        "message "
-                       << messageID.str() << std::endl;
+                       << messageID->str() << std::endl;
             }
 
             return finish_task(taskID, true);
@@ -1213,9 +1213,9 @@ bool Sync::pay_nym_cash(
         if (action->Reply()->m_bSuccess) {
             const auto messageID = action->MessageID();
 
-            if (false == messageID.empty()) {
+            if (false == messageID->empty()) {
                 otInfo << OT_METHOD << __FUNCTION__ << ": Sent (cash) message  "
-                       << messageID.str() << std::endl;
+                       << messageID->str() << std::endl;
             }
 
             return finish_task(taskID, true);

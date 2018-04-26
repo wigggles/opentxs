@@ -4117,7 +4117,7 @@ std::string OT_API::NymIDFromPaymentCode(__attribute__((unused))
     auto code = PaymentCode::Factory(paymentCode);
 
     if (code->VerifyInternally()) {
-        return code->ID().str();
+        return code->ID()->str();
     } else {
         return "";
     }
@@ -11454,7 +11454,7 @@ CommandResult OT_API::processNymbox(ServerContext& context) const
         return output;
     }
 
-    context.LocalNymboxHash().GetString(message.m_strNymboxHash);
+    context.LocalNymboxHash()->GetString(message.m_strNymboxHash);
 
     if (false == context.FinalizeServerCommand(message)) {
 

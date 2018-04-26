@@ -89,7 +89,7 @@ public:
     virtual const Identifier& LocalNymID() const = 0;
     virtual bool Paired() const = 0;
     virtual const std::string& PairingCode() const = 0;
-    virtual Identifier PrimaryServer() const = 0;
+    virtual OTIdentifier PrimaryServer() const = 0;
     virtual std::set<proto::PeerRequestType> RequestTypes() const = 0;
     virtual proto::Issuer Serialize() const = 0;
     virtual bool StoreSecretComplete() const = 0;

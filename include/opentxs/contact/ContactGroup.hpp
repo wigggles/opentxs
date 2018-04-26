@@ -92,7 +92,7 @@ private:
     const ItemMap items_{};
 
     static ItemMap create_item(const std::shared_ptr<ContactItem>& item);
-    static Identifier get_primary_item(const ItemMap& items);
+    static OTIdentifier get_primary_item(const ItemMap& items);
     static ItemMap normalize_items(const ItemMap& items);
 
     ContactGroup() = delete;

@@ -229,7 +229,7 @@ public:
         const bool attachKey = true,
         const proto::SymmetricMode mode = proto::SMODE_ERROR);
 
-    Identifier ID();
+    OTIdentifier ID();
 
     bool Serialize(proto::SymmetricKey& output) const;
 

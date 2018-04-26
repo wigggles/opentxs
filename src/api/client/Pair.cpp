@@ -679,7 +679,7 @@ void Pair::state_machine(
         issuerClaims.Section(proto::CONTACTSECTION_CONTRACT);
     const auto haveAccounts = bool(contractSection);
 
-    if (serverID.empty()) {
+    if (serverID->empty()) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Issuer nym does not advertise a server." << std::endl;
         // Maybe there's a new version
@@ -842,7 +842,7 @@ void Pair::state_machine(
                             otErr << OT_METHOD << __FUNCTION__
                                   << ": Registering " << unitID.str()
                                   << " account for " << localNymID.str()
-                                  << " on " << serverID.str() << std::endl;
+                                  << " on " << serverID->str() << std::endl;
                             const auto & [ registered, accountID ] =
                                 register_account(localNymID, serverID, unitID);
 
@@ -855,7 +855,7 @@ void Pair::state_machine(
                             otWarn << OT_METHOD << __FUNCTION__ << ": "
                                    << unitID.str() << " account for "
                                    << localNymID.str() << " on "
-                                   << serverID.str() << " already exists."
+                                   << serverID->str() << " already exists."
                                    << std::endl;
                         }
 

@@ -206,7 +206,7 @@ private:
         const std::set<TransactionNumber>& numbers,
         std::set<TransactionNumber>& good,
         std::set<TransactionNumber>& bad);
-    Identifier update_remote_hash(const Lock& lock, const Message& reply);
+    OTIdentifier update_remote_hash(const Lock& lock, const Message& reply);
 
     ServerContext() = delete;
     ServerContext(const ServerContext&) = delete;
