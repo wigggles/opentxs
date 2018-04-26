@@ -52,7 +52,7 @@
 namespace opentxs
 {
 
-Identifier BasketContract::CalculateBasketID(
+OTIdentifier BasketContract::CalculateBasketID(
     const proto::UnitDefinition& serialized)
 {
     auto contract(serialized);
