@@ -96,7 +96,7 @@ protected:
     virtual bool update_signature(const Lock& lock);
 
     /** Calculate identifier */
-    virtual Identifier GetID(const Lock& lock) const = 0;
+    virtual OTIdentifier GetID(const Lock& lock) const = 0;
 
     Signable() = delete;
     explicit Signable(const ConstNym& nym);

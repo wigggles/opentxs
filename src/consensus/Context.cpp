@@ -201,7 +201,7 @@ void Context::finish_acknowledgements(
     }
 }
 
-Identifier Context::GetID(const Lock& lock) const
+OTIdentifier Context::GetID(const Lock& lock) const
 {
     OT_ASSERT(verify_write_lock(lock));
 
@@ -313,7 +313,7 @@ bool Context::issue_number(const Lock& lock, const TransactionNumber& number)
     return output;
 }
 
-Identifier Context::LocalNymboxHash() const
+OTIdentifier Context::LocalNymboxHash() const
 {
     Lock lock(lock_);
 
@@ -391,7 +391,7 @@ const class Nym& Context::RemoteNym() const
     return *remote_nym_;
 }
 
-Identifier Context::RemoteNymboxHash() const
+OTIdentifier Context::RemoteNymboxHash() const
 {
     Lock lock(lock_);
 

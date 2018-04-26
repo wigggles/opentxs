@@ -136,7 +136,7 @@ private:
     // Returns the serialized form to prevent unnecessary serializations
     bool isValid(const Lock& lock, serializedCredential& credential) const;
 
-    Identifier GetID(const Lock& lock) const override;
+    OTIdentifier GetID(const Lock& lock) const override;
     std::string Name() const override;
     bool VerifyMasterID() const;
     bool VerifyNymID() const;

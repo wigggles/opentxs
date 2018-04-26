@@ -158,7 +158,7 @@ ServerContract* ServerContract::Factory(
     return contract.release();
 }
 
-Identifier ServerContract::GetID(const Lock& lock) const
+OTIdentifier ServerContract::GetID(const Lock& lock) const
 {
     auto contract = IDVersion(lock);
     Identifier id;

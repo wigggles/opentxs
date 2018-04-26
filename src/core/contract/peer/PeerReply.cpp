@@ -333,12 +333,12 @@ std::unique_ptr<PeerReply> PeerReply::Finish(
     }
 }
 
-Identifier PeerReply::GetID(const Lock& lock) const
+OTIdentifier PeerReply::GetID(const Lock& lock) const
 {
     return GetID(IDVersion(lock));
 }
 
-Identifier PeerReply::GetID(const proto::PeerReply& contract)
+OTIdentifier PeerReply::GetID(const proto::PeerReply& contract)
 {
     Identifier id;
     id.CalculateDigest(proto::ProtoAsData(contract));

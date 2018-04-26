@@ -59,7 +59,7 @@ private:
     OTIdentifier cookie_;
     proto::PeerRequestType type_{proto::PEERREQUEST_ERROR};
 
-    static Identifier GetID(const proto::PeerReply& contract);
+    static OTIdentifier GetID(const proto::PeerReply& contract);
     static bool FinalizeContract(PeerReply& contract);
     static std::unique_ptr<PeerReply> Finish(
         std::unique_ptr<PeerReply>& contract);
@@ -68,7 +68,7 @@ private:
         const Identifier& requestID);
 
     proto::PeerReply contract(const Lock& lock) const;
-    Identifier GetID(const Lock& lock) const override;
+    OTIdentifier GetID(const Lock& lock) const override;
     proto::PeerReply SigVersion(const Lock& lock) const;
 
     bool update_signature(const Lock& lock) override;

@@ -346,7 +346,7 @@ bool Credential::Validate() const
     return validate(lock);
 }
 
-Identifier Credential::GetID(const Lock& lock) const
+OTIdentifier Credential::GetID(const Lock& lock) const
 {
     OT_ASSERT(verify_write_lock(lock));
 

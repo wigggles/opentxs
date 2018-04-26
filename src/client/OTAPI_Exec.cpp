@@ -2323,7 +2323,7 @@ std::string OTAPI_Exec::GetNym_NymboxHash(
     auto context =
         wallet_.ServerContext(Identifier(NYM_ID), Identifier(NOTARY_ID));
 
-    return context->LocalNymboxHash().str();
+    return context->LocalNymboxHash()->str();
 }
 
 // Returns RecentHash (based on NotaryID)
@@ -2342,7 +2342,7 @@ std::string OTAPI_Exec::GetNym_RecentHash(
     auto context =
         wallet_.ServerContext(Identifier(NYM_ID), Identifier(NOTARY_ID));
 
-    return context->RemoteNymboxHash().str();
+    return context->RemoteNymboxHash()->str();
 }
 
 std::string OTAPI_Exec::GetNym_InboxHash(

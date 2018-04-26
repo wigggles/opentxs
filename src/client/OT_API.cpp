@@ -11454,7 +11454,7 @@ CommandResult OT_API::processNymbox(ServerContext& context) const
         return output;
     }
 
-    context.LocalNymboxHash().GetString(message.m_strNymboxHash);
+    context.LocalNymboxHash()->GetString(message.m_strNymboxHash);
 
     if (false == context.FinalizeServerCommand(message)) {
 

@@ -61,14 +61,14 @@ private:
     std::string short_name_;
 
     proto::UnitDefinition contract(const Lock& lock) const;
-    Identifier GetID(const Lock& lock) const override;
+    OTIdentifier GetID(const Lock& lock) const override;
     bool verify_signature(const Lock& lock, const proto::Signature& signature)
         const override;
 
 protected:
     std::string primary_unit_symbol_;
 
-    static Identifier GetID(const proto::UnitDefinition& contract);
+    static OTIdentifier GetID(const proto::UnitDefinition& contract);
 
     virtual proto::UnitDefinition IDVersion(const Lock& lock) const;
     virtual proto::UnitDefinition SigVersion(const Lock& lock) const;
