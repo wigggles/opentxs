@@ -80,7 +80,7 @@ public:
     const Identifier& LocalNymID() const override;
     bool Paired() const override;
     const std::string& PairingCode() const override;
-    Identifier PrimaryServer() const override;
+    OTIdentifier PrimaryServer() const override;
     std::set<proto::PeerRequestType> RequestTypes() const override;
     proto::Issuer Serialize() const override;
     bool StoreSecretComplete() const override;

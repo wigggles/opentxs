@@ -573,7 +573,7 @@ bool Issuer::Paired() const { return paired_.get(); }
 
 const std::string& Issuer::PairingCode() const { return pairing_code_; }
 
-Identifier Issuer::PrimaryServer() const
+OTIdentifier Issuer::PrimaryServer() const
 {
     Lock lock(lock_);
 
@@ -581,7 +581,7 @@ Identifier Issuer::PrimaryServer() const
 
     if (false == bool(nym)) {
 
-        return {};
+        return Identifier::Factory();
     }
 
     return nym->Claims().PreferredOTServer();
