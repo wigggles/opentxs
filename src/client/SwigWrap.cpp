@@ -3064,7 +3064,7 @@ std::string SwigWrap::comma(const ObjectList& list)
     return output;
 }
 
-std::string SwigWrap::comma(const std::set<Identifier>& list)
+std::string SwigWrap::comma(const std::set<OTIdentifier>& list)
 {
     std::ostringstream stream;
 
@@ -4159,7 +4159,7 @@ std::string SwigWrap::Pair_Status(
 
 std::string SwigWrap::Paired_Issuers(const std::string& localNym)
 {
-    return comma(OT::App().API().Pair().IssuerList(Identifier(localNym), true));
+    return comma(OT::App().API().Pair().IssuerList(Identifier::Factory(localNym), true));
 }
 
 std::string SwigWrap::Paired_Server(
