@@ -122,9 +122,8 @@ extern "C" int32_t default_pass_cb(
     //    otWarn << "OPENSSL_CALLBACK: (Password callback hasn't been set
     // yet...) Using 'test' pass phrase for \"%s\"\n", (char *)u);
 
-    otWarn << __FUNCTION__
-           << ": Using DEFAULT TEST PASSWORD: "
-              "'test' (for \""
+    otWarn << __FUNCTION__ << ": Using DEFAULT TEST PASSWORD: "
+                              "'test' (for \""
            << str_userdata << "\")\n";
 
     // get pass phrase, length 'len' into 'tmp'
@@ -224,9 +223,10 @@ extern "C" int32_t souped_up_pass_cb(
     //
     if (b1 &&  // Normal Nyms, unlike Master passwords, have to look up the
                // master password first.
-        !bOldSystem && b3)  // ...Unless they are still using the old system, in
-                            // which case they do NOT look up the master
-                            // password...
+        !bOldSystem &&
+        b3)  // ...Unless they are still using the old system, in
+             // which case they do NOT look up the master
+             // password...
     {
         // Therefore we need to provide the password from an OTSymmetricKey
         // stored here.
@@ -356,10 +356,9 @@ extern "C" int32_t souped_up_pass_cb(
                                            : thePassword.getMemorySize();
 
     if (len < 0) {
-        otOut << __FUNCTION__
-              << ": <0 length password was "
-                 "returned from the API password callback. "
-                 "Returning 0.\n";
+        otOut << __FUNCTION__ << ": <0 length password was "
+                                 "returned from the API password callback. "
+                                 "Returning 0.\n";
         return 0;
     }
     // --------------------------------------
@@ -470,13 +469,12 @@ bool OT_API_Set_PasswordCallback(OTCaller& theCaller)  // Caller must have
                                                        // already.
 {
     if (!theCaller.isCallbackSet()) {
-        otErr << __FUNCTION__
-              << ": ERROR:\nOTCaller::setCallback() "
-                 "MUST be called first, with an "
-                 "OTCallback-extended class passed to it,\n"
-                 "before then invoking this function (and "
-                 "passing that OTCaller as a parameter "
-                 "into this function.)\n";
+        otErr << __FUNCTION__ << ": ERROR:\nOTCaller::setCallback() "
+                                 "MUST be called first, with an "
+                                 "OTCallback-extended class passed to it,\n"
+                                 "before then invoking this function (and "
+                                 "passing that OTCaller as a parameter "
+                                 "into this function.)\n";
         return false;
     }
 
@@ -509,13 +507,11 @@ void SwigWrap::SetPasswordCallback(OT_OPENSSL_CALLBACK* pCallback)
     const char* szFunc = "SwigWrap::SetPasswordCallback";
 
     if (nullptr != s_pwCallback)
-        otOut << szFunc
-              << ": WARNING: re-setting the password callback (one "
-                 "was already there)...\n";
+        otOut << szFunc << ": WARNING: re-setting the password callback (one "
+                           "was already there)...\n";
     else
-        otWarn << szFunc
-               << ": FYI, setting the password callback to a "
-                  "non-nullptr pointer (which is what we want.)\n";
+        otWarn << szFunc << ": FYI, setting the password callback to a "
+                            "non-nullptr pointer (which is what we want.)\n";
 
     if (nullptr == pCallback)
         otErr << szFunc
@@ -535,14 +531,13 @@ OT_OPENSSL_CALLBACK* SwigWrap::GetPasswordCallback()
     const char* szFunc = "SwigWrap::GetPasswordCallback";
 
 #if defined OT_TEST_PASSWORD
-    otInfo << szFunc
-           << ": WARNING, OT_TEST_PASSWORD *is* defined. The "
-              "internal 'C'-based password callback was just "
-              "requested by OT (to pass to OpenSSL). So, returning "
-              "the default_pass_cb password callback, which will "
-              "automatically return "
-              "the 'test' password to OpenSSL, if/when it calls that "
-              "callback function.\n";
+    otInfo << szFunc << ": WARNING, OT_TEST_PASSWORD *is* defined. The "
+                        "internal 'C'-based password callback was just "
+                        "requested by OT (to pass to OpenSSL). So, returning "
+                        "the default_pass_cb password callback, which will "
+                        "automatically return "
+                        "the 'test' password to OpenSSL, if/when it calls that "
+                        "callback function.\n";
     return &default_pass_cb;
 #else
     if (IsPasswordCallbackSet()) {
@@ -586,12 +581,11 @@ bool SwigWrap::SetPasswordCaller(OTCaller& theCaller)
               "OT 'C'-based password callback is triggered by openssl.)\n";
 
     if (!theCaller.isCallbackSet()) {
-        otErr << szFunc
-              << ": ERROR: OTCaller::setCallback() "
-                 "MUST be called first, with an OTCallback-extended "
-                 "object passed to it,\n"
-                 "BEFORE calling this function with that OTCaller. "
-                 "(Returning false.)\n";
+        otErr << szFunc << ": ERROR: OTCaller::setCallback() "
+                           "MUST be called first, with an OTCallback-extended "
+                           "object passed to it,\n"
+                           "BEFORE calling this function with that OTCaller. "
+                           "(Returning false.)\n";
         return false;
     }
 
@@ -621,10 +615,9 @@ OTCaller* SwigWrap::GetPasswordCaller()
 {
     const char* szFunc = "SwigWrap::GetPasswordCaller";
 
-    otLog4 << szFunc
-           << ": FYI, this was just called by souped_up_pass_cb "
-              "(which must have just been called by OpenSSL.) "
-              "Returning s_pCaller == "
+    otLog4 << szFunc << ": FYI, this was just called by souped_up_pass_cb "
+                        "(which must have just been called by OpenSSL.) "
+                        "Returning s_pCaller == "
            << ((nullptr == s_pCaller) ? "nullptr" : "VALID POINTER")
            << " (Hopefully NOT nullptr, so the "
               "custom password dialog can be triggered.)\n";
@@ -3950,7 +3943,7 @@ std::string SwigWrap::Blockchain_Address_To_Contact(
 
     if (false == existing->empty()) {
 
-        //return String(existing).Get();
+        // return String(existing).Get();
         return existing->str();
     }
 
@@ -4260,5 +4253,21 @@ const ui::PayableList& SwigWrap::PayableList(
 const network::zeromq::Context& SwigWrap::ZMQ()
 {
     return OT::App().ZMQ().Context();
+}
+
+std::string SwigWrap::AvailableServers(const std::string& nymID)
+{
+    std::list<std::string> available;
+    const auto servers = OT::App().Wallet().ServerList();
+
+    for (const auto & [ serverID, alias ] : servers) {
+        [[maybe_unused]] const auto& notUsed = alias;
+
+        if (OT::App().API().Exec().IsNym_RegisteredAtServer(nymID, serverID)) {
+            available.push_back(serverID);
+        }
+    }
+
+    return comma(available);
 }
 }  // namespace opentxs
