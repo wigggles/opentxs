@@ -65,7 +65,7 @@ public:
     std::shared_ptr<proto::Bip44Account> Account(
         const Identifier& nymID,
         const Identifier& accountID) const;
-    std::set<Identifier> AccountList(
+    std::set<OTIdentifier> AccountList(
         const Identifier& nymID,
         const proto::ContactItemType type) const;
     std::unique_ptr<proto::Bip44Address> AllocateAddress(
@@ -105,7 +105,7 @@ public:
     ~Blockchain() = default;
 
 private:
-    typedef std::map<Identifier, std::mutex> IDLock;
+    typedef std::map<OTIdentifier, std::mutex> IDLock;
 
     friend class implementation::Native;
 

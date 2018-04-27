@@ -114,15 +114,16 @@ std::shared_ptr<proto::Bip44Account> Blockchain::Account(
     return account;
 }
 
-std::set<Identifier> Blockchain::AccountList(
+std::set<OTIdentifier> Blockchain::AccountList(
     const Identifier& nymID,
     const proto::ContactItemType type) const
 {
-    std::set<Identifier> output;
+    std::set<OTIdentifier> output;
     auto list = storage_.BlockchainAccountList(nymID.str(), type);
 
     for (const auto& accountID : list) {
-        output.emplace(String(accountID.c_str()));
+        //output.emplace(String(accountID.c_str()));
+        output.emplace(Identifier::Factory(accountID));
     }
 
     return output;

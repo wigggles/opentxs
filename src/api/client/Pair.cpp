@@ -280,7 +280,7 @@ std::string Pair::IssuerDetails(
     return *issuer;
 }
 
-std::set<Identifier> Pair::IssuerList(
+std::set<OTIdentifier> Pair::IssuerList(
     const Identifier& localNymID,
     const bool onlyTrusted) const
 {
@@ -292,7 +292,7 @@ std::set<Identifier> Pair::IssuerList(
         return {};
     }
 
-    std::set<Identifier> output{};
+    std::set<OTIdentifier> output{};
 
     for (const auto & [ key, value ] : pair_status_) {
         const auto& issuerID = std::get<1>(key);

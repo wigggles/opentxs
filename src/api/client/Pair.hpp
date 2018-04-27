@@ -64,7 +64,7 @@ public:
     std::string IssuerDetails(
         const Identifier& localNymID,
         const Identifier& issuerNymID) const override;
-    std::set<Identifier> IssuerList(
+    std::set<OTIdentifier> IssuerList(
         const Identifier& localNymID,
         const bool onlyTrusted) const override;
     void Update() const override;

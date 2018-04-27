@@ -62,7 +62,7 @@ public:
     virtual std::string IssuerDetails(
         const Identifier& localNymID,
         const Identifier& issuerNymID) const = 0;
-    virtual std::set<Identifier> IssuerList(
+    virtual std::set<OTIdentifier> IssuerList(
         const Identifier& localNymID,
         const bool onlyTrusted) const = 0;
     virtual void Update() const = 0;

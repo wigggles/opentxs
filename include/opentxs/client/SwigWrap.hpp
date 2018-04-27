@@ -3757,7 +3757,7 @@ private:
 
     static std::string comma(const std::list<std::string>& list);
     static std::string comma(const ObjectList& list);
-    static std::string comma(const std::set<Identifier>& list);
+    static std::string comma(const std::set<OTIdentifier>& list);
 
     SwigWrap();
     ~SwigWrap() = default;
