@@ -151,6 +151,7 @@ private:
         const Message& msg);
     std::pair<std::string, std::string> parse_seed_backup(
         const std::string& input) const;
+
     bool SendInstrumentToNym(
         const Identifier& notaryID,
         const Identifier& senderNymID,

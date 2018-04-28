@@ -302,7 +302,6 @@ typedef std::tuple<RequestNumber, TransactionNumber, NetworkReplyMessage>
 
 enum class MessageType : std::uint8_t {
     badID = 0,
-
     // Your public key is sent along with this message so the server can
     // reply to you even without your being a registered user. Other than
     // these top two commands, all other commands can only be executed by
@@ -328,104 +327,75 @@ enum class MessageType : std::uint8_t {
     // contract, as well as the private key that matches the public key from
     // the contract.
     pingNotary = 1,
-    pingNotaryR = 2,
-
+    pingNotaryResponse = 2,
     // register user account on a specific server, with public key. Nym ID
     // will be hash of said public key.
     registerNym = 3,
-    registerNymR = 4,
-
+    registerNymResponse = 4,
     // Delete user account from a specific server.
     unregisterNym = 5,
-    unregisterNymR = 6,
-
+    unregisterNymResponse = 6,
     // Get the next request number from the server (for this user). Most
     // requests must be accompanied by a request number, which increments
     // for each Nym with each request.
     getRequestNumber = 7,
-    getRequestNumberR = 8,
-
+    getRequestNumberResponse = 8,
     // Every transaction requires a transaction number. If your wallet
     // doesn't have one, then here it can request the server to send one
     // over. (Or several.)
     getTransactionNumbers = 9,
-    getTransactionNumbersR = 10,
-
+    getTransactionNumbersResponse = 10,
     // Used by AcceptEntireNymbox() as it's setting everything up.
     processNymbox = 11,
-    processNymboxR = 12,
-
+    processNymboxResponse = 12,
     checkNym = 13,
-    checkNymR = 14,
-
+    checkNymResponse = 14,
     sendNymMessage = 15,
-    sendNymMessageR = 16,
-
+    sendNymMessageResponse = 16,
     sendNymInstrument = 17,
-    sendNymInstrumentR = 18,
-
+    // sendNymInstrumentResponse = 18,
     unregisterAccount = 19,
-    unregisterAccountR = 20,
-
+    unregisterAccountResponse = 20,
     registerAccount = 21,
-    registerAccountR = 22,
-
+    registerAccountResponse = 22,
     registerInstrumentDefinition = 23,
-    registerInstrumentDefinitionR = 24,
-
+    registerInstrumentDefinitionResponse = 24,
     issueBasket = 25,
-    issueBasketR = 26,
-
+    issueBasketResponse = 26,
     notarizeTransaction = 27,
-    notarizeTransactionR = 28,
-
+    notarizeTransactionResponse = 28,
     getNymbox = 29,
-    getNymboxR = 30,
-
+    getNymboxResponse = 30,
     getBoxReceipt = 31,
-    getBoxReceiptR = 32,
-
+    getBoxReceiptResponse = 32,
     getAccountData = 33,
-    getAccountDataR = 34,
-
+    getAccountDataResponse = 34,
     processInbox = 35,
-    processInboxR = 36,
-
+    processInboxResponse = 36,
     queryInstrumentDefinitions = 37,
-    queryInstrumentDefinitionsR = 38,
-
+    queryInstrumentDefinitionsResponse = 38,
     getInstrumentDefinition = 39,
-    getInstrumentDefinitionR = 40,
-
+    getInstrumentDefinitionResponse = 40,
     getMint = 41,
-    getMintR = 42,
-
+    getMintResponse = 42,
     getMarketList = 43,
-    getMarketListR = 44,
-
+    getMarketListResponse = 44,
     getMarketOffers = 45,
-    getMarketOffersR = 46,
-
+    getMarketOffersResponse = 46,
     getMarketRecentTrades = 47,
-    getMarketRecentTradesR = 48,
-
+    getMarketRecentTradesResponse = 48,
     getNymMarketOffers = 49,
-    getNymMarketOffersR = 50,
-
+    getNymMarketOffersResponse = 50,
     triggerClause = 51,
-    triggerClauseR = 52,
-
+    triggerClauseResponse = 52,
     usageCredits = 53,
-    usageCreditsR = 54,
-
+    usageCreditsResponse = 54,
     registerContract = 55,
-    registerContractR = 56,
-
+    registerContractResponse = 56,
     requestAdmin = 57,
-    requestAdminR = 58,
-
+    requestAdminResponse = 58,
     addClaim = 59,
-    addClaimR = 60,
+    addClaimResponse = 60,
 };
 
 enum class ThreadStatus : std::uint8_t {
