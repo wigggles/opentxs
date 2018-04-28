@@ -175,7 +175,6 @@ private:
     bool cmd_register_nym(ReplyMessage& reply) const;
     bool cmd_request_admin(ReplyMessage& reply) const;
     bool cmd_send_nym_message(ReplyMessage& reply) const;
-    bool cmd_send_nym_instrument(ReplyMessage& reply) const;
     bool cmd_trigger_clause(ReplyMessage& reply) const;
     bool cmd_usage_credits(ReplyMessage& reply) const;
     std::unique_ptr<Ledger> create_nymbox(

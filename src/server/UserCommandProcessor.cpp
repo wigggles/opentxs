@@ -2348,29 +2348,6 @@ bool UserCommandProcessor::cmd_request_admin(ReplyMessage& reply) const
     return true;
 }
 
-bool UserCommandProcessor::cmd_send_nym_instrument(ReplyMessage& reply) const
-{
-    auto& context = reply.Context();
-    const auto& sender = context.RemoteNym().ID();
-    const auto& server = context.Server();
-    const auto& msgIn = reply.Original();
-    const auto& targetNym = msgIn.m_strNymID2;
-    const Identifier recipient(targetNym);
-    reply.SetTargetNym(targetNym);
-
-    OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_send_message);
-
-    reply.SetSuccess(
-        server_.SendInstrumentToNym(server, sender, recipient, msgIn));
-
-    if (false == reply.Success()) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Failed to send message to nym."
-              << std::endl;
-    }
-
-    return true;
-}
-
 bool UserCommandProcessor::cmd_send_nym_message(ReplyMessage& reply) const
 {
     auto& context = reply.Context();
@@ -3082,9 +3059,6 @@ bool UserCommandProcessor::ProcessUserCommand(
         }
         case MessageType::sendNymMessage: {
             return cmd_send_nym_message(reply);
-        }
-        case MessageType::sendNymInstrument: {
-            return cmd_send_nym_instrument(reply);
         }
         case MessageType::unregisterNym: {
             return cmd_delete_user(reply);

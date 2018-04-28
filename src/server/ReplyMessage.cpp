@@ -129,7 +129,6 @@ void ReplyMessage::attach_request()
         case MessageType::pingNotary:
         case MessageType::usageCredits:
         case MessageType::sendNymMessage:
-        case MessageType::sendNymInstrument:
         case MessageType::getRequestNumber:
         case MessageType::getTransactionNumbers:
         default: {
@@ -174,7 +173,6 @@ void ReplyMessage::clear_request()
         case MessageType::pingNotary:
         case MessageType::usageCredits:
         case MessageType::sendNymMessage:
-        case MessageType::sendNymInstrument:
         case MessageType::getRequestNumber:
         case MessageType::getTransactionNumbers:
         default: {

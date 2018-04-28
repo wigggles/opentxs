@@ -83,7 +83,6 @@
 #define SEND_NYM_MESSAGE "sendNymMessage"
 #define SEND_NYM_MESSAGE_RESPONSE "sendNymMessageResponse"
 #define SEND_NYM_INSTRUMENT "sendNymInstrument"
-#define SEND_NYM_INSTRUMENT_RESPONSE "sendNymInstrumentResponse"
 #define UNREGISTER_ACCOUNT "unregisterAccount"
 #define UNREGISTER_ACCOUNT_RESPONSE "unregisterAccountResponse"
 #define REGISTER_ACCOUNT "registerAccount"
@@ -148,105 +147,109 @@ OTMessageStrategyManager Message::messageStrategyManager;
 const Message::TypeMap Message::message_names_{
     {MessageType::badID, ERROR_STRING},
     {MessageType::pingNotary, PING_NOTARY},
-    {MessageType::pingNotaryR, PING_NOTARY_RESPONSE},
+    {MessageType::pingNotaryResponse, PING_NOTARY_RESPONSE},
     {MessageType::registerNym, REGISTER_NYM},
-    {MessageType::registerNymR, REGISTER_NYM_RESPONSE},
+    {MessageType::registerNymResponse, REGISTER_NYM_RESPONSE},
     {MessageType::unregisterNym, UNREGISTER_NYM},
-    {MessageType::unregisterNymR, UNREGISTER_NYM_RESPONSE},
+    {MessageType::unregisterNymResponse, UNREGISTER_NYM_RESPONSE},
     {MessageType::getRequestNumber, GET_REQUEST_NUMBER},
-    {MessageType::getRequestNumberR, GET_REQUEST_NUMBER_RESPONSE},
+    {MessageType::getRequestNumberResponse, GET_REQUEST_NUMBER_RESPONSE},
     {MessageType::getTransactionNumbers, GET_TRANSACTION_NUMBER},
-    {MessageType::getTransactionNumbersR, GET_TRANSACTION_NUMBER_RESPONSE},
+    {MessageType::getTransactionNumbersResponse,
+     GET_TRANSACTION_NUMBER_RESPONSE},
     {MessageType::processNymbox, PROCESS_NYMBOX},
-    {MessageType::processNymboxR, PROCESS_NYMBOX_RESPONSE},
+    {MessageType::processNymboxResponse, PROCESS_NYMBOX_RESPONSE},
     {MessageType::checkNym, CHECK_NYM},
-    {MessageType::checkNymR, CHECK_NYM_RESPONSE},
+    {MessageType::checkNymResponse, CHECK_NYM_RESPONSE},
     {MessageType::sendNymMessage, SEND_NYM_MESSAGE},
-    {MessageType::sendNymMessageR, SEND_NYM_MESSAGE_RESPONSE},
+    {MessageType::sendNymMessageResponse, SEND_NYM_MESSAGE_RESPONSE},
     {MessageType::sendNymInstrument, SEND_NYM_INSTRUMENT},
-    {MessageType::sendNymInstrumentR, SEND_NYM_INSTRUMENT_RESPONSE},
     {MessageType::unregisterAccount, UNREGISTER_ACCOUNT},
-    {MessageType::unregisterAccountR, UNREGISTER_ACCOUNT_RESPONSE},
+    {MessageType::unregisterAccountResponse, UNREGISTER_ACCOUNT_RESPONSE},
     {MessageType::registerAccount, REGISTER_ACCOUNT},
-    {MessageType::registerAccountR, REGISTER_ACCOUNT_RESPONSE},
+    {MessageType::registerAccountResponse, REGISTER_ACCOUNT_RESPONSE},
     {MessageType::registerInstrumentDefinition, REGISTER_INSTRUMENT_DEFINITION},
-    {MessageType::registerInstrumentDefinitionR,
+    {MessageType::registerInstrumentDefinitionResponse,
      REGISTER_INSTRUMENT_DEFINITION_RESPONSE},
     {MessageType::issueBasket, ISSUE_BASKET},
-    {MessageType::issueBasketR, ISSUE_BASKET_RESPONSE},
+    {MessageType::issueBasketResponse, ISSUE_BASKET_RESPONSE},
     {MessageType::notarizeTransaction, NOTARIZE_TRANSACTION},
-    {MessageType::notarizeTransactionR, NOTARIZE_TRANSACTION_RESPONSE},
+    {MessageType::notarizeTransactionResponse, NOTARIZE_TRANSACTION_RESPONSE},
     {MessageType::getNymbox, GET_NYMBOX},
-    {MessageType::getNymboxR, GET_NYMBOX_RESPONSE},
+    {MessageType::getNymboxResponse, GET_NYMBOX_RESPONSE},
     {MessageType::getBoxReceipt, GET_BOX_RECEIPT},
-    {MessageType::getBoxReceiptR, GET_BOX_RECEIPT_RESPONSE},
+    {MessageType::getBoxReceiptResponse, GET_BOX_RECEIPT_RESPONSE},
     {MessageType::getAccountData, GET_ACCOUNT_DATA},
-    {MessageType::getAccountDataR, GET_ACCOUNT_DATA_RESPONSE},
+    {MessageType::getAccountDataResponse, GET_ACCOUNT_DATA_RESPONSE},
     {MessageType::processNymbox, PROCESS_NYMBOX},
-    {MessageType::processNymboxR, PROCESS_NYMBOX_RESPONSE},
+    {MessageType::processNymboxResponse, PROCESS_NYMBOX_RESPONSE},
     {MessageType::processInbox, PROCESS_INBOX},
-    {MessageType::processInboxR, PROCESS_INBOX_RESPONSE},
+    {MessageType::processInboxResponse, PROCESS_INBOX_RESPONSE},
     {MessageType::queryInstrumentDefinitions, QUERY_INSTRUMENT_DEFINITION},
-    {MessageType::queryInstrumentDefinitionsR,
+    {MessageType::queryInstrumentDefinitionsResponse,
      QUERY_INSTRUMENT_DEFINITION_RESPONSE},
     {MessageType::getInstrumentDefinition, GET_INSTRUMENT_DEFINITION},
-    {MessageType::getInstrumentDefinitionR, GET_INSTRUMENT_DEFINITION_RESPONSE},
+    {MessageType::getInstrumentDefinitionResponse,
+     GET_INSTRUMENT_DEFINITION_RESPONSE},
     {MessageType::getMint, GET_MINT},
-    {MessageType::getMintR, GET_MINT_RESPONSE},
+    {MessageType::getMintResponse, GET_MINT_RESPONSE},
     {MessageType::getMarketList, GET_MARKET_LIST},
-    {MessageType::getMarketListR, GET_MARKET_LIST_RESPONSE},
+    {MessageType::getMarketListResponse, GET_MARKET_LIST_RESPONSE},
     {MessageType::getMarketOffers, GET_MARKET_OFFERS},
-    {MessageType::getMarketOffersR, GET_MARKET_OFFERS_RESPONSE},
+    {MessageType::getMarketOffersResponse, GET_MARKET_OFFERS_RESPONSE},
     {MessageType::getMarketRecentTrades, GET_MARKET_RECENT_TRADES},
-    {MessageType::getMarketRecentTradesR, GET_MARKET_RECENT_TRADES_RESPONSE},
+    {MessageType::getMarketRecentTradesResponse,
+     GET_MARKET_RECENT_TRADES_RESPONSE},
     {MessageType::getNymMarketOffers, GET_NYM_MARKET_OFFERS},
-    {MessageType::getNymMarketOffersR, GET_NYM_MARKET_OFFERS_RESPONSE},
+    {MessageType::getNymMarketOffersResponse, GET_NYM_MARKET_OFFERS_RESPONSE},
     {MessageType::triggerClause, TRIGGER_CLAUSE},
-    {MessageType::triggerClauseR, TRIGGER_CLAUSE_RESPONSE},
+    {MessageType::triggerClauseResponse, TRIGGER_CLAUSE_RESPONSE},
     {MessageType::usageCredits, USAGE_CREDITS},
-    {MessageType::usageCreditsR, USAGE_CREDITS_RESPONSE},
+    {MessageType::usageCreditsResponse, USAGE_CREDITS_RESPONSE},
     {MessageType::registerContract, REGISTER_CONTRACT},
-    {MessageType::registerContractR, REGISTER_CONTRACT_RESPONSE},
+    {MessageType::registerContractResponse, REGISTER_CONTRACT_RESPONSE},
     {MessageType::requestAdmin, REQUEST_ADMIN},
-    {MessageType::requestAdminR, REQUEST_ADMIN_RESPONSE},
+    {MessageType::requestAdminResponse, REQUEST_ADMIN_RESPONSE},
     {MessageType::addClaim, ADD_CLAIM},
-    {MessageType::addClaimR, ADD_CLAIM_RESPONSE},
+    {MessageType::addClaimResponse, ADD_CLAIM_RESPONSE},
 };
 
 const std::map<MessageType, MessageType> Message::reply_message_{
-    {MessageType::pingNotary, MessageType::pingNotaryR},
-    {MessageType::registerNym, MessageType::registerNymR},
-    {MessageType::unregisterNym, MessageType::unregisterNymR},
-    {MessageType::getRequestNumber, MessageType::getRequestNumberR},
-    {MessageType::getTransactionNumbers, MessageType::getTransactionNumbersR},
-    {MessageType::checkNym, MessageType::checkNymR},
-    {MessageType::sendNymMessage, MessageType::sendNymMessageR},
-    {MessageType::sendNymInstrument, MessageType::sendNymInstrumentR},
-    {MessageType::unregisterAccount, MessageType::unregisterAccountR},
-    {MessageType::registerAccount, MessageType::registerAccountR},
+    {MessageType::pingNotary, MessageType::pingNotaryResponse},
+    {MessageType::registerNym, MessageType::registerNymResponse},
+    {MessageType::unregisterNym, MessageType::unregisterNymResponse},
+    {MessageType::getRequestNumber, MessageType::getRequestNumberResponse},
+    {MessageType::getTransactionNumbers,
+     MessageType::getTransactionNumbersResponse},
+    {MessageType::checkNym, MessageType::checkNymResponse},
+    {MessageType::sendNymMessage, MessageType::sendNymMessageResponse},
+    {MessageType::unregisterAccount, MessageType::unregisterAccountResponse},
+    {MessageType::registerAccount, MessageType::registerAccountResponse},
     {MessageType::registerInstrumentDefinition,
-     MessageType::registerInstrumentDefinitionR},
-    {MessageType::issueBasket, MessageType::issueBasketR},
-    {MessageType::notarizeTransaction, MessageType::notarizeTransactionR},
-    {MessageType::getNymbox, MessageType::getNymboxR},
-    {MessageType::getBoxReceipt, MessageType::getBoxReceiptR},
-    {MessageType::getAccountData, MessageType::getAccountDataR},
-    {MessageType::processNymbox, MessageType::processNymboxR},
-    {MessageType::processInbox, MessageType::processInboxR},
+     MessageType::registerInstrumentDefinitionResponse},
+    {MessageType::issueBasket, MessageType::issueBasketResponse},
+    {MessageType::notarizeTransaction,
+     MessageType::notarizeTransactionResponse},
+    {MessageType::getNymbox, MessageType::getNymboxResponse},
+    {MessageType::getBoxReceipt, MessageType::getBoxReceiptResponse},
+    {MessageType::getAccountData, MessageType::getAccountDataResponse},
+    {MessageType::processNymbox, MessageType::processNymboxResponse},
+    {MessageType::processInbox, MessageType::processInboxResponse},
     {MessageType::queryInstrumentDefinitions,
-     MessageType::queryInstrumentDefinitionsR},
+     MessageType::queryInstrumentDefinitionsResponse},
     {MessageType::getInstrumentDefinition,
-     MessageType::getInstrumentDefinitionR},
-    {MessageType::getMint, MessageType::getMintR},
-    {MessageType::getMarketList, MessageType::getMarketListR},
-    {MessageType::getMarketOffers, MessageType::getMarketOffersR},
-    {MessageType::getMarketRecentTrades, MessageType::getMarketRecentTradesR},
-    {MessageType::getNymMarketOffers, MessageType::getNymMarketOffersR},
-    {MessageType::triggerClause, MessageType::triggerClauseR},
-    {MessageType::usageCredits, MessageType::usageCreditsR},
-    {MessageType::registerContract, MessageType::registerContractR},
-    {MessageType::requestAdmin, MessageType::requestAdminR},
-    {MessageType::addClaim, MessageType::addClaimR},
+     MessageType::getInstrumentDefinitionResponse},
+    {MessageType::getMint, MessageType::getMintResponse},
+    {MessageType::getMarketList, MessageType::getMarketListResponse},
+    {MessageType::getMarketOffers, MessageType::getMarketOffersResponse},
+    {MessageType::getMarketRecentTrades,
+     MessageType::getMarketRecentTradesResponse},
+    {MessageType::getNymMarketOffers, MessageType::getNymMarketOffersResponse},
+    {MessageType::triggerClause, MessageType::triggerClauseResponse},
+    {MessageType::usageCredits, MessageType::usageCreditsResponse},
+    {MessageType::registerContract, MessageType::registerContractResponse},
+    {MessageType::requestAdmin, MessageType::requestAdminResponse},
+    {MessageType::addClaim, MessageType::addClaimResponse},
 };
 
 const Message::ReverseTypeMap Message::message_types_ = make_reverse_map();
@@ -1205,9 +1208,8 @@ public:
 
         otWarn << "\nCommand: " << m.m_strCommand
                << "\nSuccess: " << (m.m_bSuccess ? "true" : "false")
-               << "\nNymID:    " << m.m_strNymID
-               << "\n"
-                  "NotaryID: "
+               << "\nNymID:    " << m.m_strNymID << "\n"
+                                                    "NotaryID: "
                << m.m_strNotaryID << "\n\n";
 
         return 1;
@@ -1612,18 +1614,16 @@ public:
             otWarn << "\nCommand: " << m.m_strCommand << "   "
                    << (m.m_bSuccess ? "SUCCESS" : "FAILED")
                    << "\nNymID:    " << m.m_strNymID
-                   << "\nNymID2:    " << m.m_strNymID2
-                   << "\n"
-                      "NotaryID: "
+                   << "\nNymID2:    " << m.m_strNymID2 << "\n"
+                                                          "NotaryID: "
                    << m.m_strNotaryID << "\nNym2 Public Key:\n"
                    << m.m_strNymPublicKey << "\n\n";
         else
             otWarn << "\nCommand: " << m.m_strCommand << "   "
                    << (m.m_bSuccess ? "SUCCESS" : "FAILED")
                    << "\nNymID:    " << m.m_strNymID
-                   << "\nNymID2:    " << m.m_strNymID2
-                   << "\n"
-                      "NotaryID: "
+                   << "\nNymID2:    " << m.m_strNymID2 << "\n"
+                                                          "NotaryID: "
                    << m.m_strNotaryID << "\n\n";  // m.m_ascInReferenceTo.Get()
 
         return 1;
@@ -1712,9 +1712,8 @@ public:
         otWarn << "\nCommand: " << m.m_strCommand << "   "
                << (m.m_bSuccess ? "SUCCESS" : "FAILED")
                << "\nNymID:    " << m.m_strNymID
-               << "\nNymID2:    " << m.m_strNymID2
-               << "\n"
-                  "NotaryID: "
+               << "\nNymID2:    " << m.m_strNymID2 << "\n"
+                                                      "NotaryID: "
                << m.m_strNotaryID << "\nTotal Credits: " << m.m_lDepth
                << " \n\n";
         return 1;
@@ -1870,9 +1869,8 @@ public:
         otWarn << "\nCommand: " << m.m_strCommand << "   "
                << (m.m_bSuccess ? "SUCCESS" : "FAILED")
                << "\nNymID:    " << m.m_strNymID
-               << "\nNymID2:    " << m.m_strNymID2
-               << "\n"
-                  "NotaryID: "
+               << "\nNymID2:    " << m.m_strNymID2 << "\n"
+                                                      "NotaryID: "
                << m.m_strNotaryID << "\n\n";
 
         return 1;
@@ -1957,48 +1955,6 @@ RegisterStrategy StrategySendNymInstrumentOrPayDividend::reg2(
     "payDividend",
     new StrategySendNymInstrumentOrPayDividend());
 
-class StrategySendNymInstrumentResponse : public OTMessageStrategy
-{
-public:
-    virtual void writeXml(Message& m, Tag& parent)
-    {
-        TagPtr pTag(new Tag(m.m_strCommand.Get()));
-
-        pTag->add_attribute("success", formatBool(m.m_bSuccess));
-        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
-        pTag->add_attribute("nymID", m.m_strNymID.Get());
-        pTag->add_attribute("nymID2", m.m_strNymID2.Get());
-        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
-
-        parent.add_tag(pTag);
-    }
-
-    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
-    {
-        processXmlSuccess(m, xml);
-
-        m.m_strCommand = xml->getNodeName();  // Command
-        m.m_strRequestNum = xml->getAttributeValue("requestNum");
-        m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strNymID2 = xml->getAttributeValue("nymID2");
-        m.m_strNotaryID = xml->getAttributeValue("notaryID");
-
-        otWarn << "\nCommand: " << m.m_strCommand << "   "
-               << (m.m_bSuccess ? "SUCCESS" : "FAILED")
-               << "\nNymID:    " << m.m_strNymID
-               << "\nNymID2:    " << m.m_strNymID2
-               << "\n"
-                  "NotaryID: "
-               << m.m_strNotaryID << "\n\n";
-
-        return 1;
-    }
-    static RegisterStrategy reg;
-};
-RegisterStrategy StrategySendNymInstrumentResponse::reg(
-    "sendNymInstrumentResponse",
-    new StrategySendNymInstrumentResponse());
-
 class StrategyGetRequestNumber : public OTMessageStrategy
 {
 public:
@@ -2069,9 +2025,8 @@ public:
 
         otWarn << "\nCommand: " << m.m_strCommand << "   "
                << (m.m_bSuccess ? "SUCCESS" : "FAILED")
-               << "\nNymID:    " << m.m_strNymID
-               << "\n"
-                  "NotaryID: "
+               << "\nNymID:    " << m.m_strNymID << "\n"
+                                                    "NotaryID: "
                << m.m_strNotaryID
                << "\nRequest Number:    " << m.m_strRequestNum
                << "  New Number: " << m.m_lNewRequestNum << "\n\n";
@@ -2126,9 +2081,8 @@ public:
         }
 
         otWarn << "\nCommand: " << m.m_strCommand
-               << " \nNymID:    " << m.m_strNymID
-               << "\n"
-                  "NotaryID: "
+               << " \nNymID:    " << m.m_strNymID << "\n"
+                                                     "NotaryID: "
                << m.m_strNotaryID << "\nRequest#: " << m.m_strRequestNum
                << "\nAsset Type:\n"
                << m.m_strInstrumentDefinitionID << "\n\n";
@@ -2233,9 +2187,8 @@ public:
                << "\nNymID:    " << m.m_strNymID
                << "\nAccountID: " << m.m_strAcctID
                << "\nInstrument Definition ID: "
-               << m.m_strInstrumentDefinitionID
-               << "\n"
-                  "NotaryID: "
+               << m.m_strInstrumentDefinitionID << "\n"
+                                                   "NotaryID: "
                << m.m_strNotaryID << "\n\n";
         //    "****New Account****:\n%s\n",
         //    m.m_ascInReferenceTo.Get(),
@@ -2287,9 +2240,8 @@ public:
         }
 
         otWarn << "\nCommand: " << m.m_strCommand
-               << " \nNymID:    " << m.m_strNymID
-               << "\n"
-                  "NotaryID: "
+               << " \nNymID:    " << m.m_strNymID << "\n"
+                                                     "NotaryID: "
                << m.m_strNotaryID << "\nRequest#: " << m.m_strRequestNum
                << "\n\n";
 
@@ -2440,9 +2392,8 @@ public:
         }
 
         otWarn << "\nCommand: " << m.m_strCommand
-               << " \nNymID:    " << m.m_strNymID
-               << "\n"
-                  "NotaryID: "
+               << " \nNymID:    " << m.m_strNymID << "\n"
+                                                     "NotaryID: "
                << m.m_strNotaryID << "\nRequest#: " << m.m_strRequestNum
                << "\n\n";
 
@@ -2555,9 +2506,8 @@ public:
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
 
         otWarn << "\nCommand: " << m.m_strCommand
-               << " \nNymID:    " << m.m_strNymID
-               << "\n"
-                  "NotaryID: "
+               << " \nNymID:    " << m.m_strNymID << "\n"
+                                                     "NotaryID: "
                << m.m_strNotaryID << "\nRequest#: " << m.m_strRequestNum
                << "\nAsset Type:\n"
                << m.m_strInstrumentDefinitionID << "\n\n";
@@ -2651,9 +2601,8 @@ public:
         otWarn << "\nCommand: " << m.m_strCommand << "   "
                << (m.m_bSuccess ? "SUCCESS" : "FAILED")
                << "\nNymID:    " << m.m_strNymID
-               << "\nAccountID: " << m.m_strAcctID
-               << "\n"
-                  "NotaryID: "
+               << "\nAccountID: " << m.m_strAcctID << "\n"
+                                                      "NotaryID: "
                << m.m_strNotaryID << "\n\n";
         //    "****New Account****:\n%s\n",
         //    m.m_ascInReferenceTo.Get(),
@@ -2719,9 +2668,8 @@ public:
 
         otWarn << "\n Command: " << m.m_strCommand
                << " \n NymID:    " << m.m_strNymID
-               << "\n AccountID:    " << m.m_strAcctID
-               << "\n"
-                  " NotaryID: "
+               << "\n AccountID:    " << m.m_strAcctID << "\n"
+                                                          " NotaryID: "
                << m.m_strNotaryID << "\n Request#: " << m.m_strRequestNum
                << "  Transaction#: " << m.m_lTransactionNum << "   boxType: "
                << ((m.m_lDepth == 0) ? "nymbox"
@@ -2841,9 +2789,8 @@ public:
         otWarn << "\nCommand: " << m.m_strCommand << "   "
                << (m.m_bSuccess ? "SUCCESS" : "FAILED")
                << "\nNymID:    " << m.m_strNymID
-               << "\nAccountID: " << m.m_strAcctID
-               << "\n"
-                  "NotaryID: "
+               << "\nAccountID: " << m.m_strAcctID << "\n"
+                                                      "NotaryID: "
                << m.m_strNotaryID << "\n\n";
         //    "****New Account****:\n%s\n",
 
@@ -2880,9 +2827,8 @@ public:
 
         otWarn << "\n Command: " << m.m_strCommand
                << " \n NymID:    " << m.m_strNymID
-               << "\n AccountID:    " << m.m_strAcctID
-               << "\n"
-                  " NotaryID: "
+               << "\n AccountID:    " << m.m_strAcctID << "\n"
+                                                          " NotaryID: "
                << m.m_strNotaryID << "\n Request#: " << m.m_strRequestNum
                << "\n\n";
 
@@ -2953,9 +2899,8 @@ public:
         otWarn << "\nCommand: " << m.m_strCommand << "   "
                << (m.m_bSuccess ? "SUCCESS" : "FAILED")
                << "\nNymID:    " << m.m_strNymID
-               << "\nAccountID: " << m.m_strAcctID
-               << "\n"
-                  "NotaryID: "
+               << "\nAccountID: " << m.m_strAcctID << "\n"
+                                                      "NotaryID: "
                << m.m_strNotaryID << "\n\n";
         //    "****New Account****:\n%s\n",
         //    m.m_ascInReferenceTo.Get(),
@@ -3014,9 +2959,8 @@ public:
 
         otWarn << "\n Command: " << m.m_strCommand
                << " \n NymID:    " << m.m_strNymID
-               << "\n AccountID:    " << m.m_strAcctID
-               << "\n"
-                  " NotaryID: "
+               << "\n AccountID:    " << m.m_strAcctID << "\n"
+                                                          " NotaryID: "
                << m.m_strNotaryID << "\n Request#: " << m.m_strRequestNum
                << "\n\n";
 
@@ -3146,9 +3090,8 @@ public:
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
 
         otWarn << "\n Command: " << m.m_strCommand
-               << " \n NymID:    " << m.m_strNymID
-               << "\n"
-                  " NotaryID: "
+               << " \n NymID:    " << m.m_strNymID << "\n"
+                                                      " NotaryID: "
                << m.m_strNotaryID << "\n Request#: " << m.m_strRequestNum
                << "\n\n";
 
@@ -3188,9 +3131,8 @@ public:
 
         otWarn << "\n Command: " << m.m_strCommand << "   "
                << (m.m_bSuccess ? "SUCCESS" : "FAILED")
-               << "\n NymID:    " << m.m_strNymID
-               << "\n"
-                  " NotaryID: "
+               << "\n NymID:    " << m.m_strNymID << "\n"
+                                                     " NotaryID: "
                << m.m_strNotaryID << "\n\n";
 
         return 1;
@@ -3291,9 +3233,8 @@ public:
 
         otWarn << "\nCommand: " << m.m_strCommand << "   "
                << (m.m_bSuccess ? "SUCCESS" : "FAILED")
-               << "\nNymID:    " << m.m_strNymID
-               << "\n"
-                  "NotaryID: "
+               << "\nNymID:    " << m.m_strNymID << "\n"
+                                                    "NotaryID: "
                << m.m_strNotaryID << "\n\n";
 
         return 1;
@@ -3424,9 +3365,8 @@ public:
         otWarn << "\nCommand: " << m.m_strCommand << "   "
                << (m.m_bSuccess ? "SUCCESS" : "FAILED")
                << "\nNymID:    " << m.m_strNymID
-               << "\nAccountID:    " << m.m_strAcctID
-               << "\n"
-                  "NotaryID: "
+               << "\nAccountID:    " << m.m_strAcctID << "\n"
+                                                         "NotaryID: "
                << m.m_strNotaryID << "\n\n";
 
         return 1;
@@ -3538,9 +3478,8 @@ public:
                << (m.m_bSuccess ? "SUCCESS" : "FAILED")
                << "\nNymID:    " << m.m_strNymID
                << "\nInstrument Definition ID:    "
-               << m.m_strInstrumentDefinitionID
-               << "\n"
-                  "NotaryID: "
+               << m.m_strInstrumentDefinitionID << "\n"
+                                                   "NotaryID: "
                << m.m_strNotaryID << "\n\n";
 
         return 1;
@@ -3650,9 +3589,8 @@ public:
                << (m.m_bSuccess ? "SUCCESS" : "FAILED")
                << "\nNymID:    " << m.m_strNymID
                << "\nInstrument Definition ID:    "
-               << m.m_strInstrumentDefinitionID
-               << "\n"
-                  "NotaryID: "
+               << m.m_strInstrumentDefinitionID << "\n"
+                                                   "NotaryID: "
                << m.m_strNotaryID << "\n\n";
 
         return 1;
@@ -3708,9 +3646,8 @@ public:
 
         otWarn << "\n Command: " << m.m_strCommand
                << " \n NymID:    " << m.m_strNymID
-               << "\n AccountID:    " << m.m_strAcctID
-               << "\n"
-                  " NotaryID: "
+               << "\n AccountID:    " << m.m_strAcctID << "\n"
+                                                          " NotaryID: "
                << m.m_strNotaryID << "\n Request#: " << m.m_strRequestNum
                << "\n\n";
 
@@ -3855,9 +3792,8 @@ public:
         }
 
         otWarn << "\n Command: " << m.m_strCommand
-               << " \n NymID:    " << m.m_strNymID
-               << "\n"
-                  " NotaryID: "
+               << " \n NymID:    " << m.m_strNymID << "\n"
+                                                      " NotaryID: "
                << m.m_strNotaryID << "\n Request#: " << m.m_strRequestNum
                << "\n\n";
 
@@ -3945,9 +3881,8 @@ public:
 
         otWarn << "\n Command: " << m.m_strCommand << "   "
                << (m.m_bSuccess ? "SUCCESS" : "FAILED")
-               << "\n NymID:    " << m.m_strNymID
-               << "\n"
-                  " NotaryID: "
+               << "\n NymID:    " << m.m_strNymID << "\n"
+                                                     " NotaryID: "
                << m.m_strNotaryID << "\n\n";
         //    "****New Account****:\n%s\n",
 
@@ -4014,9 +3949,8 @@ public:
                << "\nNymID:    " << m.m_strNymID
                << "\nNotaryID: " << m.m_strNotaryID
                << "\nClause TransNum and Name:  " << m.m_lTransactionNum
-               << "  /  " << m.m_strNymID2
-               << " \n"
-                  "Request #: "
+               << "  /  " << m.m_strNymID2 << " \n"
+                                              "Request #: "
                << m.m_strRequestNum << "\n";
 
         return 1;
