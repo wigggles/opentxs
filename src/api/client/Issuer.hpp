@@ -62,7 +62,7 @@ class Issuer : virtual public opentxs::api::client::Issuer, Lockable
 public:
     operator std::string() const override;
 
-    std::set<Identifier> AccountList(
+    std::set<OTIdentifier> AccountList(
         const proto::ContactItemType type,
         const Identifier& unitID) const override;
     bool BailmentInitiated(const Identifier& unitID) const override;
@@ -73,7 +73,7 @@ public:
         const proto::ConnectionInfoType type) const override;
     bool ConnectionInfoInitiated(
         const proto::ConnectionInfoType type) const override;
-    std::set<std::tuple<Identifier, Identifier, bool>> GetRequests(
+    std::set<std::tuple<OTIdentifier, OTIdentifier, bool>> GetRequests(
         const proto::PeerRequestType type,
         const RequestStatus state = RequestStatus::All) const override;
     const Identifier& IssuerID() const override;
@@ -129,7 +129,7 @@ private:
         const Lock& lock,
         const proto::PeerRequestType type,
         const Identifier& requestID);
-    std::set<std::tuple<Identifier, Identifier, bool>> get_requests(
+    std::set<std::tuple<OTIdentifier, OTIdentifier, bool>> get_requests(
         const Lock& lock,
         const proto::PeerRequestType type,
         const RequestStatus state = RequestStatus::All) const;
