@@ -88,7 +88,7 @@ public:
         const Identifier& senderNymID,
         const Identifier& contactID,
         const std::string& message) const override;
-    std::pair<ThreadStatus, Identifier> MessageStatus(
+    std::pair<ThreadStatus, OTIdentifier> MessageStatus(
         const Identifier& taskID) const override;
     OTIdentifier PayContact(
         const Identifier& senderNymID,

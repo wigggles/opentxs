@@ -1263,7 +1263,7 @@ OTIdentifier Sync::MessageContact(
         taskID, queue.send_message_.Push(taskID, {recipientNymID, message}));
 }
 
-std::pair<ThreadStatus, Identifier> Sync::MessageStatus(
+std::pair<ThreadStatus, OTIdentifier> Sync::MessageStatus(
     const Identifier& taskID) const
 {
     std::pair<ThreadStatus, Identifier> output{};

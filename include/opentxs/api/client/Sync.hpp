@@ -89,7 +89,7 @@ public:
         const Identifier& senderNymID,
         const Identifier& contactID,
         const std::string& message) const = 0;
-    EXPORT virtual std::pair<ThreadStatus, Identifier> MessageStatus(
+    EXPORT virtual std::pair<ThreadStatus, OTIdentifier> MessageStatus(
         const Identifier& taskID) const = 0;
     EXPORT virtual OTIdentifier PayContact(
         const Identifier& senderNymID,
