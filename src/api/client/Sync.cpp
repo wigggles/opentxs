@@ -1491,7 +1491,7 @@ void Sync::refresh_contacts() const
 
             const auto nym = wallet_.Nym(nymID);
             otInfo << OT_METHOD << __FUNCTION__
-                   << ": Considering nym: " << nymID.str() << std::endl;
+                   << ": Considering nym: " << nymID->str() << std::endl;
 
             if (nym) {
                 contacts_.Update(nym->asPublicNym());
@@ -1543,7 +1543,7 @@ void Sync::refresh_contacts() const
                     }
 
                     otInfo << OT_METHOD << __FUNCTION__
-                           << ": Will download nym " << nymID.str()
+                           << ": Will download nym " << nymID->str()
                            << " from server " << serverID.str() << std::endl;
                     auto& serverQueue = get_nym_fetch(serverID);
                     const auto taskID(Identifier::Random());
