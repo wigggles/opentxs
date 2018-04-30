@@ -144,6 +144,7 @@ public:
         const proto::CredentialSet& serializedCredentialSet);
     EXPORT CredentialSet(
         const NymParameters& nymParameters,
+        std::uint32_t version,
         const OTPasswordData* pPWData = nullptr);
     EXPORT const OTPassword* GetImportPassword() const
     {

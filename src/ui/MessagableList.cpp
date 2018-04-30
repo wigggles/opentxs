@@ -110,7 +110,8 @@ MessagableListID MessagableList::blank_id() const
 
 void MessagableList::construct_item(
     const MessagableListID& id,
-    const MessagableListSortKey& index) const
+    const MessagableListSortKey& index,
+    void*) const
 {
     names_.emplace(id, index);
     items_[index].emplace(

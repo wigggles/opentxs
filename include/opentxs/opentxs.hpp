@@ -125,6 +125,7 @@
 #include <opentxs/ui/ContactListItem.hpp>
 #include <opentxs/ui/MessagableList.hpp>
 #include <opentxs/ui/PayableList.hpp>
+#include <opentxs/ui/PayableListItem.hpp>
 #include <opentxs/util/Signals.hpp>
 #include <opentxs/OT.hpp>
 #include <opentxs/Proto.hpp>

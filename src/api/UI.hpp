@@ -83,8 +83,9 @@ private:
         std::map<Identifier, std::unique_ptr<ui::ContactList>>;
     using MessagableListMap =
         std::map<Identifier, std::unique_ptr<ui::MessagableList>>;
-    using PayableListMap =
-        std::map<Identifier, std::unique_ptr<ui::PayableList>>;
+    using PayableListMap = std::map<
+        std::pair<Identifier, proto::ContactItemType>,
+        std::unique_ptr<ui::PayableList>>;
 
     const opentxs::network::zeromq::Context& zmq_;
     const api::Activity& activity_;

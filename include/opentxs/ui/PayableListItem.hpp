@@ -36,16 +36,18 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_UI_PAYABLELIST_HPP
-#define OPENTXS_UI_PAYABLELIST_HPP
+#ifndef OPENTXS_UI_PAYABLELISTITEM_HPP
+#define OPENTXS_UI_PAYABLELISTITEM_HPP
 
 #include "opentxs/Forward.hpp"
 
-#include "opentxs/ui/Widget.hpp"
+#include <string>
+
+#include "ContactListItem.hpp"
 
 #ifdef SWIG
 // clang-format off
-%rename(UIPayableList) opentxs::ui::PayableList;
+%rename(UIPayableListItem) opentxs::ui::PayableListItem;
 // clang-format on
 #endif  // SWIG
 
@@ -53,23 +55,22 @@ namespace opentxs
 {
 namespace ui
 {
-class PayableList : virtual public Widget
+class PayableListItem : virtual public ContactListItem
 {
 public:
-    EXPORT virtual const PayableListItem& First() const = 0;
-    EXPORT virtual const PayableListItem& Next() const = 0;
+    EXPORT virtual std::string PaymentCode() const = 0;
 
-    EXPORT virtual ~PayableList() = default;
+    EXPORT virtual ~PayableListItem() = default;
 
 protected:
-    PayableList() = default;
+    PayableListItem() = default;
 
 private:
-    PayableList(const PayableList&) = delete;
-    PayableList(PayableList&&) = delete;
-    PayableList& operator=(const PayableList&) = delete;
-    PayableList& operator=(PayableList&&) = delete;
+    PayableListItem(const PayableListItem&) = delete;
+    PayableListItem(PayableListItem&&) = delete;
+    PayableListItem& operator=(const PayableListItem&) = delete;
+    PayableListItem& operator=(PayableListItem&&) = delete;
 };
 }  // namespace ui
 }  // namespace opentxs
-#endif  // OPENTXS_UI_PAYABLELIST_HPP
+#endif  // OPENTXS_UI_PAYABLELISTITEM_HPP

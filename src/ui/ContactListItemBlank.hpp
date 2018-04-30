@@ -61,11 +61,13 @@ public:
 
     ~ContactListItemBlank() = default;
 
+protected:
+    ContactListItemBlank() = default;
+
 private:
     friend MessagableList;
     friend PayableList;
 
-    ContactListItemBlank() = default;
     ContactListItemBlank(const ContactListItemBlank&) = delete;
     ContactListItemBlank(ContactListItemBlank&&) = delete;
     ContactListItemBlank& operator=(const ContactListItemBlank&) = delete;

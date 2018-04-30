@@ -93,7 +93,8 @@ private:
     MessagableListID blank_id() const override;
     void construct_item(
         const MessagableListID& id,
-        const MessagableListSortKey& index) const override;
+        const MessagableListSortKey& index,
+        void* custom = nullptr) const override;
     bool last(const MessagableListID& id) const override
     {
         return MessagableListType::last(id);

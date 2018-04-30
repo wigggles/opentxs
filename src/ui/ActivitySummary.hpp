@@ -90,7 +90,8 @@ private:
     ActivitySummaryID blank_id() const override;
     void construct_item(
         const ActivitySummaryID& id,
-        const ActivitySummarySortKey& index) const override;
+        const ActivitySummarySortKey& index,
+        void* custom = nullptr) const override;
     ActivitySummaryOuter::const_reverse_iterator outer_first() const override;
     ActivitySummaryOuter::const_reverse_iterator outer_end() const override;
 

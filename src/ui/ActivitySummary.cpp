@@ -98,7 +98,8 @@ ActivitySummaryID ActivitySummary::blank_id() const
 
 void ActivitySummary::construct_item(
     const ActivitySummaryID& id,
-    const ActivitySummarySortKey& index) const
+    const ActivitySummarySortKey& index,
+    void*) const
 {
     items_[index].emplace(
         id,
