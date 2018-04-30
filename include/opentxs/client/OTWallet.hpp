@@ -54,7 +54,7 @@
 namespace opentxs
 {
 /** AccountInfo: accountID, nymID, serverID, unitID*/
-using AccountInfo = std::tuple<Identifier, Identifier, Identifier, Identifier>;
+using AccountInfo = std::tuple<OTIdentifier, OTIdentifier, OTIdentifier, OTIdentifier>;
 
 class OTWallet : Lockable
 {

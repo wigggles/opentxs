@@ -1450,10 +1450,10 @@ void Sync::refresh_accounts() const
         SHUTDOWN()
 
         const auto& notUsed[[maybe_unused]] = unitID;
-        otWarn << OT_METHOD << __FUNCTION__ << ": Account " << accountID.str()
+        otWarn << OT_METHOD << __FUNCTION__ << ": Account " << accountID->str()
                << ":\n"
-               << "  * Owned by nym: " << nymID.str() << "\n"
-               << "  * On server: " << serverID.str() << std::endl;
+               << "  * Owned by nym: " << nymID->str() << "\n"
+               << "  * On server: " << serverID->str() << std::endl;
         auto& queue = get_operations({nymID, serverID});
         const auto taskID(Identifier::Random());
         queue.download_account_.Push(taskID, accountID);
