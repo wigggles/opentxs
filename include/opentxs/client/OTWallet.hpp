@@ -54,7 +54,8 @@
 namespace opentxs
 {
 /** AccountInfo: accountID, nymID, serverID, unitID*/
-using AccountInfo = std::tuple<OTIdentifier, OTIdentifier, OTIdentifier, OTIdentifier>;
+using AccountInfo =
+    std::tuple<OTIdentifier, OTIdentifier, OTIdentifier, OTIdentifier>;
 
 class OTWallet : Lockable
 {
@@ -163,9 +164,12 @@ private:
     friend OT_API;
 
     /** AccountEntry nymID, serverID, unitID, account */
-    using AccountEntry = std::
-        tuple<Identifier, Identifier, Identifier, std::shared_ptr<Account>>;
-    using mapOfAccounts = std::map<Identifier, AccountEntry>;
+    using AccountEntry = std::tuple<
+        OTIdentifier,
+        OTIdentifier,
+        OTIdentifier,
+        std::shared_ptr<Account>>;
+    using mapOfAccounts = std::map<OTIdentifier, AccountEntry>;
     using mapOfSymmetricKeys =
         std::map<std::string, std::shared_ptr<OTSymmetricKey>>;
 
