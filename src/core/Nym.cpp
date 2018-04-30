@@ -443,7 +443,7 @@ bool Nym::CompareID(const Nym& rhs) const { return rhs.CompareID(m_nymID); }
 
 bool Nym::CompareID(const Identifier& rhs) const { return rhs == m_nymID; }
 
-std::set<Identifier> Nym::Contracts(
+std::set<OTIdentifier> Nym::Contracts(
     const proto::ContactItemType currency,
     const bool onlyActive) const
 {

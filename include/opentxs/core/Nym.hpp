@@ -107,7 +107,7 @@ public:
     EXPORT std::int32_t ChildCredentialCount(const std::string& masterID) const;
     EXPORT const class ContactData& Claims() const;
     EXPORT bool CompareID(const Nym& RHS) const;
-    EXPORT std::set<Identifier> Contracts(
+    EXPORT std::set<OTIdentifier> Contracts(
         const proto::ContactItemType currency,
         const bool onlyActive) const;
     EXPORT const Credential* GetChildCredential(
