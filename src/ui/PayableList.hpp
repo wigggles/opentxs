@@ -46,7 +46,7 @@
 #include "opentxs/ui/PayableList.hpp"
 
 #include "ContactListInterface.hpp"
-#include "ContactListItem.hpp"
+#include "PayableListItem.hpp"
 #include "List.hpp"
 
 #include <map>
@@ -54,7 +54,7 @@
 
 namespace opentxs::ui::implementation
 {
-using PayableListPimpl = OTUIContactListItem;
+using PayableListPimpl = OTUIPayableListItem;
 using PayableListID = OTIdentifier;
 using PayableListSortKey = std::string;
 using PayableListInner = std::map<PayableListID, PayableListPimpl>;
@@ -62,7 +62,7 @@ using PayableListOuter = std::map<PayableListSortKey, PayableListInner>;
 using PayableListReverse = std::map<PayableListID, PayableListSortKey>;
 using PayableListType = List<
     opentxs::ui::PayableList,
-    opentxs::ui::ContactListItem,
+    opentxs::ui::PayableListItem,
     PayableListID,
     PayableListPimpl,
     PayableListInner,
@@ -93,7 +93,8 @@ private:
     PayableListID blank_id() const override;
     void construct_item(
         const PayableListID& id,
-        const PayableListSortKey& index) const override;
+        const PayableListSortKey& index,
+        void* custom = nullptr) const override;
     bool last(const PayableListID& id) const override
     {
         return PayableListType::last(id);

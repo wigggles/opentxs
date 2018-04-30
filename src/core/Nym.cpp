@@ -97,7 +97,7 @@ Nym::Nym(
     const String& filename,
     const Identifier& nymID,
     const proto::CredentialIndexMode mode)
-    : version_(NYM_VERSION)
+    : version_(NYM_CREATE_VERSION)
     , index_(0)
     , m_lUsageCredits(0)
     , m_bMarkForDeletion(false)
@@ -169,7 +169,8 @@ Nym::Nym(const NymParameters& nymParameters)
     revisedParameters.SetSeed(fingerprint);
     revisedParameters.SetNym(nymIndex);
 #endif
-    CredentialSet* pNewCredentialSet = new CredentialSet(revisedParameters);
+    CredentialSet* pNewCredentialSet =
+        new CredentialSet(revisedParameters, version_);
 
     OT_ASSERT(nullptr != pNewCredentialSet);
 
@@ -1473,8 +1474,9 @@ bool Nym::LoadNymFromString(
 
                     if (!tempNotaryID.Exists() ||
                         !Contract::LoadEncodedTextField(xml, strTemp)) {
-                        otErr << __FUNCTION__ << ": Error: transactionNums "
-                                                 "field without value.\n";
+                        otErr << __FUNCTION__
+                              << ": Error: transactionNums "
+                                 "field without value.\n";
                         return false;  // error condition
                     }
 
@@ -2142,9 +2144,8 @@ bool Nym::ReEncryptPrivateCredentials(
         CredentialSet* pCredential = it.second;
         OT_ASSERT(nullptr != pCredential);
 
-        if (false ==
-            pCredential->ReEncryptPrivateCredentials(
-                *pExportPassphrase, bImporting))
+        if (false == pCredential->ReEncryptPrivateCredentials(
+                         *pExportPassphrase, bImporting))
             return false;
     }
 
@@ -2615,14 +2616,7 @@ serializedCredentialIndex Nym::SerializeCredentialIndex(
 {
     serializedCredentialIndex index;
 
-    auto version = version_;
-
-    // Upgrade version
-    if (NYM_VERSION > version_) {
-        version = NYM_VERSION;
-    }
-
-    index.set_version(version);
+    index.set_version(version_);
     String nymID(m_nymID);
     index.set_nymid(nymID.Get());
 
@@ -2683,6 +2677,15 @@ bool Nym::set_contact_data(const Lock& lock, const proto::ContactData& data)
 {
     OT_ASSERT(lock);
 
+    auto version = proto::NymRequiredVersion(data.version(), version_);
+
+    if (!version || version > NYM_UPGRADE_VERSION) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Contact data version not supported by this nym."
+              << std::endl;
+        return false;
+    }
+
     if (false == hasCapability(NymCapability::SIGN_CHILDCRED)) {
         otErr << OT_METHOD << __FUNCTION__ << ": This nym can not be modified."
               << std::endl;
@@ -2701,7 +2704,7 @@ bool Nym::set_contact_data(const Lock& lock, const proto::ContactData& data)
 
     if (add_contact_credential(lock, data)) {
 
-        return update_nym(lock);
+        return update_nym(lock, version);
     }
 
     return false;
@@ -2843,7 +2846,7 @@ bool Nym::SetVerificationSet(const proto::VerificationSet& data)
 
     if (add_verification_credential(lock, data)) {
 
-        return update_nym(lock);
+        return update_nym(lock, version_);
     }
 
     return false;
@@ -2874,14 +2877,14 @@ std::unique_ptr<OTPassword> Nym::TransportKey(Data& pubkey) const
     return privateKey;
 }
 
-bool Nym::update_nym(const Lock& lock)
+bool Nym::update_nym(const Lock& lock, const std::int32_t version)
 {
     OT_ASSERT(verify_lock(lock));
 
     if (VerifyPseudonym()) {
         // Upgrade version
-        if (NYM_VERSION > version_) {
-            version_ = NYM_VERSION;
+        if (version > version_) {
+            version_ = version;
         }
 
         ++revision_;

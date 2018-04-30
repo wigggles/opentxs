@@ -92,7 +92,7 @@ void Test_ContactData::testAddItemMethod(
         const bool)> contactDataMethod,
     opentxs::proto::ContactSectionName sectionName)
 {
-    // Add a contract to a group with no primary.
+    // Add a contact to a group with no primary.
     const auto& group1 =
         std::shared_ptr<opentxs::ContactGroup>(new opentxs::ContactGroup(
             "contactGroup1", sectionName, opentxs::proto::CITEMTYPE_BTC, {}));
@@ -131,7 +131,7 @@ void Test_ContactData::testAddItemMethod(
     ASSERT_NE(contactItem1, nullptr);
     ASSERT_TRUE(contactItem1->isPrimary());
 
-    // Add a contract to a group with a primary.
+    // Add a contact to a group with a primary.
     const auto& data3 = contactDataMethod(
         data2,
         "instrumentDefinitionID2",
@@ -151,7 +151,7 @@ void Test_ContactData::testAddItemMethod(
     ASSERT_NE(contactItem2, nullptr);
     ASSERT_FALSE(contactItem2->isPrimary());
 
-    // Add a contract for a type with no group.
+    // Add a contact for a type with no group.
     const auto& data4 = contactDataMethod(
         data3,
         "instrumentDefinitionID3",
@@ -173,7 +173,7 @@ void Test_ContactData::testAddItemMethod(
     ASSERT_NE(contactItem3, nullptr);
     ASSERT_TRUE(contactItem3->isPrimary());
 
-    // Add an active contract.
+    // Add an active contact.
     const auto& data5 = contactDataMethod(
         data4,
         "instrumentDefinitionID4",
@@ -195,7 +195,7 @@ void Test_ContactData::testAddItemMethod(
     ASSERT_NE(contactItem4, nullptr);
     ASSERT_TRUE(contactItem4->isActive());
 
-    // Add a primary contract.
+    // Add a primary contact.
     const auto& data6 = contactDataMethod(
         data5,
         "instrumentDefinitionID5",

@@ -413,7 +413,7 @@ private:
         mapOfIdentifiers& the_map,
         const std::string& str_id,
         const Identifier& theInput);
-    bool update_nym(const Lock& lock);
+    bool update_nym(const Lock& lock, const std::int32_t version);
 
     Nym(const String& name,
         const String& filename,

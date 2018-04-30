@@ -102,7 +102,9 @@ ContactData ContactData::operator+(const ContactData& rhs) const
         }
     }
 
-    return ContactData(nym_, version_, version_, map);
+    std::uint32_t version = std::max(version_, rhs.Version());
+
+    return ContactData(nym_, version, version, map);
 }
 
 ContactData::operator std::string() const
@@ -134,10 +136,12 @@ ContactData ContactData::AddContract(
         attrib.emplace(proto::CITEMATTR_PRIMARY);
     }
 
+    auto version = proto::RequiredVersion(section, currency, version_);
+
     auto item = std::make_shared<ContactItem>(
         nym_,
-        version_,
-        version_,
+        version,
+        version,
         section,
         currency,
         instrumentDefinitionID,
@@ -152,7 +156,12 @@ ContactData ContactData::AddContract(
 
 ContactData ContactData::AddItem(const ClaimTuple& claim) const
 {
-    auto item = std::make_shared<ContactItem>(nym_, version_, version_, claim);
+    auto version = proto::RequiredVersion(
+        static_cast<proto::ContactSectionName>(std::get<1>(claim)),
+        static_cast<proto::ContactItemType>(std::get<2>(claim)),
+        version_);
+
+    auto item = std::make_shared<ContactItem>(nym_, version, version, claim);
 
     return AddItem(item);
 }
@@ -165,10 +174,12 @@ ContactData ContactData::AddItem(const std::shared_ptr<ContactItem>& item) const
     auto map = sections_;
     auto it = map.find(sectionID);
 
+    auto version = proto::RequiredVersion(sectionID, item->Type(), version_);
+
     if (map.end() == it) {
         auto& section = map[sectionID];
         section.reset(
-            new ContactSection(nym_, version_, version_, sectionID, item));
+            new ContactSection(nym_, version, version, sectionID, item));
 
         OT_ASSERT(section);
     } else {
@@ -181,7 +192,7 @@ ContactData ContactData::AddItem(const std::shared_ptr<ContactItem>& item) const
         OT_ASSERT(section);
     }
 
-    return ContactData(nym_, version_, version_, map);
+    return ContactData(nym_, version, version, map);
 }
 
 ContactData ContactData::AddPaymentCode(
@@ -244,10 +255,12 @@ ContactData ContactData::AddPreferredOTServer(
         attrib.emplace(proto::CITEMATTR_PRIMARY);
     }
 
+    auto version = proto::RequiredVersion(section, type, version_);
+
     auto item = std::make_shared<ContactItem>(
         nym_,
-        version_,
-        version_,
+        version,
+        version,
         section,
         type,
         String(id).Get(),
@@ -514,10 +527,12 @@ ContactData ContactData::SetCommonName(const std::string& name) const
     std::set<proto::ContactItemAttribute> attrib{proto::CITEMATTR_ACTIVE,
                                                  proto::CITEMATTR_PRIMARY};
 
+    auto version = proto::RequiredVersion(section, type, version_);
+
     auto item = std::make_shared<ContactItem>(
         nym_,
-        version_,
-        version_,
+        version,
+        version,
         section,
         type,
         name,
@@ -546,10 +561,12 @@ ContactData ContactData::SetName(const std::string& name, const bool primary)
         attrib.emplace(proto::CITEMATTR_PRIMARY);
     }
 
+    auto version = proto::RequiredVersion(section, type, version_);
+
     auto item = std::make_shared<ContactItem>(
         nym_,
-        version_,
-        version_,
+        version,
+        version,
         section,
         type,
         name,
@@ -575,10 +592,13 @@ ContactData ContactData::SetScope(
         mapCopy.erase(section);
         std::set<proto::ContactItemAttribute> attrib{proto::CITEMATTR_ACTIVE,
                                                      proto::CITEMATTR_PRIMARY};
+
+        auto version = proto::RequiredVersion(section, type, version_);
+
         auto item = std::make_shared<ContactItem>(
             nym_,
-            version_,
-            version_,
+            version,
+            version,
             section,
             type,
             name,
@@ -589,13 +609,13 @@ ContactData ContactData::SetScope(
         OT_ASSERT(item);
 
         auto newSection = std::make_shared<ContactSection>(
-            nym_, version_, version_, section, item);
+            nym_, version, version, section, item);
 
         OT_ASSERT(newSection);
 
         mapCopy[section] = newSection;
 
-        return ContactData(nym_, version_, version_, mapCopy);
+        return ContactData(nym_, version, version, mapCopy);
     } else {
         otErr << OT_METHOD << __FUNCTION__ << ": Scope already set."
               << std::endl;

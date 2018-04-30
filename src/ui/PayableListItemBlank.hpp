@@ -36,40 +36,34 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_UI_PAYABLELIST_HPP
-#define OPENTXS_UI_PAYABLELIST_HPP
+#ifndef OPENTXS_UI_PAYABLELISTITEMBLANK_IMPLEMENTATION_HPP
+#define OPENTXS_UI_PAYABLELISTITEMBLANK_IMPLEMENTATION_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Internal.hpp"
 
+#include "opentxs/ui/PayableListItem.hpp"
 #include "opentxs/ui/Widget.hpp"
 
-#ifdef SWIG
-// clang-format off
-%rename(UIPayableList) opentxs::ui::PayableList;
-// clang-format on
-#endif  // SWIG
+#include "ContactListItemBlank.hpp"
 
-namespace opentxs
+namespace opentxs::ui::implementation
 {
-namespace ui
-{
-class PayableList : virtual public Widget
+class PayableListItemBlank : virtual public ui::PayableListItem,
+                             virtual public ContactListItemBlank
 {
 public:
-    EXPORT virtual const PayableListItem& First() const = 0;
-    EXPORT virtual const PayableListItem& Next() const = 0;
+    std::string PaymentCode() const override { return {}; }
 
-    EXPORT virtual ~PayableList() = default;
-
-protected:
-    PayableList() = default;
+    ~PayableListItemBlank() = default;
 
 private:
-    PayableList(const PayableList&) = delete;
-    PayableList(PayableList&&) = delete;
-    PayableList& operator=(const PayableList&) = delete;
-    PayableList& operator=(PayableList&&) = delete;
+    friend PayableList;
+
+    PayableListItemBlank() = default;
+    PayableListItemBlank(const PayableListItemBlank&) = delete;
+    PayableListItemBlank(PayableListItemBlank&&) = delete;
+    PayableListItemBlank& operator=(const PayableListItemBlank&) = delete;
+    PayableListItemBlank& operator=(PayableListItemBlank&&) = delete;
 };
-}  // namespace ui
-}  // namespace opentxs
-#endif  // OPENTXS_UI_PAYABLELIST_HPP
+}  // opentxs::ui::implementation
+#endif  // OPENTXS_UI_PAYABLELISTITEMBLANK_IMPLEMENTATION_HPP

@@ -118,7 +118,9 @@ ContactSection ContactSection::operator+(const ContactSection& rhs) const
         }
     }
 
-    return ContactSection(nym_, version_, version_, section_, map);
+    std::uint32_t version = std::max(version_, rhs.Version());
+
+    return ContactSection(nym_, version, version, section_, map);
 }
 
 ContactSection ContactSection::add_scope(
@@ -148,7 +150,9 @@ ContactSection ContactSection::add_scope(
 
     groups[groupID].reset(new ContactGroup(nym_, section_, scope));
 
-    return ContactSection(nym_, version_, version_, section_, groups);
+    auto version = proto::RequiredVersion(section_, item->Type(), version_);
+
+    return ContactSection(nym_, version, version, section_, groups);
 }
 
 ContactSection ContactSection::AddItem(
@@ -177,7 +181,9 @@ ContactSection ContactSection::AddItem(
         map[groupID].reset(new ContactGroup(nym_, section_, item));
     }
 
-    return ContactSection(nym_, version_, version_, section_, map);
+    auto version = proto::RequiredVersion(section_, item->Type(), version_);
+
+    return ContactSection(nym_, version, version, section_, map);
 }
 
 ContactSection::GroupMap::const_iterator ContactSection::begin() const

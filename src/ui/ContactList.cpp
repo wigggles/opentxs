@@ -65,6 +65,8 @@ ContactList::ContactList(
     , contact_subscriber_(
           zmq_.SubscribeSocket(contact_subscriber_callback_.get()))
 {
+    OT_ASSERT(!last_id_->empty())
+
     // WARNING do not attempt to use blank_ in this class
     init();
     const auto& endpoint = network::zeromq::Socket::ContactUpdateEndpoint;
@@ -81,7 +83,8 @@ ContactList::ContactList(
 
 void ContactList::add_item(
     const ContactListID& id,
-    const ContactListSortKey& index)
+    const ContactListSortKey& index,
+    void*)
 {
     if (owner_contact_id_ == id) {
         Lock lock(owner_.lock_);
@@ -97,7 +100,8 @@ ContactListID ContactList::blank_id() const { return Identifier::Factory(); }
 
 void ContactList::construct_item(
     const ContactListID& id,
-    const ContactListSortKey& index) const
+    const ContactListSortKey& index,
+    void*) const
 {
     names_.emplace(id, index);
     items_[index].emplace(
@@ -143,8 +147,8 @@ void ContactList::process_contact(const network::zeromq::Message& message)
 void ContactList::startup()
 {
     const auto contacts = contact_manager_.ContactList();
-    otWarn << OT_METHOD << __FUNCTION__ << ": Loading " << contacts.size()
-           << " contacts." << std::endl;
+    otErr << OT_METHOD << __FUNCTION__ << ": Loading " << contacts.size()
+          << " contacts." << std::endl;
 
     for (const auto & [ id, alias ] : contacts) {
         add_item(Identifier(id), alias);

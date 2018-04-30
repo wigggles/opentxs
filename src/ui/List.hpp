@@ -130,8 +130,10 @@ protected:
     const OTIdentifier widget_id_;
 
     virtual IDType blank_id() const = 0;
-    virtual void construct_item(const IDType& id, const SortKeyType& index)
-        const = 0;
+    virtual void construct_item(
+        const IDType& id,
+        const SortKeyType& index,
+        void* custom = nullptr) const = 0;
     /** Returns item reference by the inner_ iterator. Does not increment
      *  iterators. */
     const RowType& current(const Lock& lock) const
@@ -362,17 +364,23 @@ protected:
         }
     }
 
-    virtual void add_item(const IDType& id, const SortKeyType& index)
+    virtual void add_item(
+        const IDType& id,
+        const SortKeyType& index,
+        void* custom = nullptr)
     {
-        insert_outer(id, index);
+        insert_outer(id, index, custom);
     }
     void init() { outer_ = outer_first(); }
-    void insert_outer(const IDType& id, const SortKeyType& index)
+    void insert_outer(
+        const IDType& id,
+        const SortKeyType& index,
+        void* custom = nullptr)
     {
         Lock lock(lock_);
 
         if (0 == names_.count(id)) {
-            construct_item(id, index);
+            construct_item(id, index, custom);
 
             OT_ASSERT(1 == items_.count(index))
             OT_ASSERT(1 == names_.count(id))

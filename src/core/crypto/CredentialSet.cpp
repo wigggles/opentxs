@@ -205,12 +205,6 @@ CredentialSet::CredentialSet(
     , index_(serializedCredentialSet.index())
     , mode_(mode)
 {
-
-    // Upgrade version
-    if (NYM_VERSION > version_) {
-        version_ = NYM_VERSION;
-    }
-
     if (proto::CREDSETMODE_INDEX == serializedCredentialSet.mode()) {
         Load_Master(
             String(serializedCredentialSet.nymid()),
@@ -236,8 +230,9 @@ CredentialSet::CredentialSet(
 
 CredentialSet::CredentialSet(
     const NymParameters& nymParameters,
+    std::uint32_t version,
     const OTPasswordData*)
-    : version_(NYM_VERSION)
+    : version_(version)
     , mode_(proto::KEYMODE_PRIVATE)
 {
     CreateMasterCredential(nymParameters);
@@ -374,8 +369,9 @@ CredentialSet* CredentialSet::LoadMaster(
     const bool bLoaded = pCredential->Load_Master(
         strNymID, strMasterCredID, (nullptr == pPWData) ? &thePWData : pPWData);
     if (!bLoaded) {
-        otErr << __FUNCTION__ << ": Failed trying to load master credential "
-                                 "from local storage. 1\n";
+        otErr << __FUNCTION__
+              << ": Failed trying to load master credential "
+                 "from local storage. 1\n";
         return nullptr;
     }
 
@@ -1013,15 +1009,8 @@ bool CredentialSet::WriteCredentials() const
 SerializedCredentialSet CredentialSet::Serialize(
     const CredentialIndexModeFlag mode) const
 {
-    auto version = version_;
-
-    // Upgrade version
-    if (NYM_VERSION > version) {
-        version = NYM_VERSION;
-    }
-
     SerializedCredentialSet credSet = std::make_shared<proto::CredentialSet>();
-    credSet->set_version(version);
+    credSet->set_version(version_);
     credSet->set_nymid(m_strNymID.Get());
     credSet->set_masterid(GetMasterCredID().Get());
 
@@ -1155,6 +1144,12 @@ bool CredentialSet::AddContactCredential(const proto::ContactData& contactData)
 
     auto& it = m_mapCredentials[String(newChildCredential->ID()).Get()];
     it.swap(newChildCredential);
+
+    auto version =
+        proto::RequiredCredentialSetVersion(contactData.version(), version_);
+    if (version > version_) {
+        version_ = version;
+    }
 
     return true;
 }

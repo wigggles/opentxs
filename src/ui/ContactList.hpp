@@ -90,7 +90,8 @@ private:
     ContactListID blank_id() const override;
     void construct_item(
         const ContactListID& id,
-        const ContactListSortKey& index) const override;
+        const ContactListSortKey& index,
+        void* custom = nullptr) const override;
     const opentxs::ui::ContactListItem& first(const Lock& lock) const override;
     bool last(const ContactListID& id) const override
     {
@@ -99,8 +100,10 @@ private:
     ContactListOuter::const_iterator outer_first() const override;
     ContactListOuter::const_iterator outer_end() const override;
 
-    void add_item(const ContactListID& id, const ContactListSortKey& index)
-        override;
+    void add_item(
+        const ContactListID& id,
+        const ContactListSortKey& index,
+        void* custom = nullptr) override;
     void process_contact(const network::zeromq::Message& message);
     void startup();
 

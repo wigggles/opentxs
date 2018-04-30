@@ -102,6 +102,7 @@ class ContactListInterface;
 class ContactListItem;
 class MessagableList;
 class PayableList;
+class PayableListItem;
 }  // namespace opentxs::ui::implementation
 }  // namespace opentxs::ui
 

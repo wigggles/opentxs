@@ -50,8 +50,8 @@
 
 #include "PayableList.hpp"
 
-#include "ContactListItem.hpp"
-#include "ContactListItemBlank.hpp"
+#include "PayableListItem.hpp"
+#include "PayableListItemBlank.hpp"
 
 #define OT_METHOD "opentxs::ui::implementation::PayableList::"
 
@@ -68,7 +68,7 @@ PayableList::PayableList(
           contact,
           contact.ContactID(nymID),
           nymID,
-          new ContactListItemBlank)
+          new PayableListItemBlank)
     , sync_(sync)
     , owner_contact_id_(Identifier::Factory(last_id_))
     , contact_subscriber_callback_(network::zeromq::ListenCallback::Factory(
@@ -111,11 +111,20 @@ PayableListID PayableList::blank_id() const { return Identifier::Factory(); }
 
 void PayableList::construct_item(
     const PayableListID& id,
-    const PayableListSortKey& index) const
+    const PayableListSortKey& index,
+    void* paymentcode) const
 {
+    std::unique_ptr<std::string> paymentCode;
+    paymentCode.reset(static_cast<std::string*>(paymentcode));
+
+    OT_ASSERT(paymentCode);
+    OT_ASSERT(false == paymentCode->empty());
+
     names_.emplace(id, index);
     items_[index].emplace(
-        id, new ContactListItem(*this, zmq_, contact_manager_, id, index));
+        id,
+        new PayableListItem(
+            *this, zmq_, contact_manager_, id, index, *paymentCode, currency_));
 }
 
 const Identifier& PayableList::ID() const { return owner_contact_id_; }
@@ -143,10 +152,14 @@ void PayableList::process_contact(
 
     OT_ASSERT(contact);
 
-    const auto paymentCode = contact->PaymentCode(currency_);
-    if (!paymentCode.empty()) {
+    auto paymentCode =
+        std::make_unique<std::string>(contact->PaymentCode(currency_));
 
-        add_item(id, key);
+    OT_ASSERT(paymentCode);
+
+    if (!paymentCode->empty()) {
+
+        add_item(id, key, paymentCode.release());
     } else {
         otWarn << OT_METHOD << __FUNCTION__ << ": Skipping unpayable contact "
                << id->str() << std::endl;

@@ -39,6 +39,8 @@
 #include "opentxs/stdafx.hpp"
 
 #include "opentxs/api/ContactManager.hpp"
+#include "opentxs/contact/Contact.hpp"
+#include "opentxs/contact/ContactData.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
@@ -46,28 +48,32 @@
 #include "opentxs/network/zeromq/SubscribeSocket.hpp"
 #include "opentxs/Types.hpp"
 
-#include "ContactListItem.hpp"
+#include "PayableListItem.hpp"
 
-#include "ContactList.hpp"
+#include "PayableList.hpp"
 
 #include <locale>
 
 namespace opentxs::ui::implementation
 {
-ContactListItem::ContactListItem(
+PayableListItem::PayableListItem(
     const ContactListInterface& parent,
     const network::zeromq::Context& zmq,
     const api::ContactManager& contact,
     const Identifier& id,
-    const std::string& name)
-    : ContactListItemType(parent, zmq, contact, id, true)
+    const std::string& name,
+    const std::string& paymentcode,
+    const proto::ContactItemType& currency)
+    : PayableListItemType(parent, zmq, contact, id, true)
     , name_(name)
+    , paymentCode_(paymentcode)
     , contact_subscriber_callback_(network::zeromq::ListenCallback::Factory(
           [this](const network::zeromq::Message& message) -> void {
               this->process_contact(message);
           }))
     , contact_subscriber_(
           zmq_.SubscribeSocket(contact_subscriber_callback_.get()))
+    , currency_(currency)
 {
     const auto listening = contact_subscriber_->Start(
         network::zeromq::Socket::ContactUpdateEndpoint);
@@ -75,23 +81,30 @@ ContactListItem::ContactListItem(
     OT_ASSERT(listening)
 }
 
-std::string ContactListItem::ContactID() const { return id_.str(); }
+std::string PayableListItem::ContactID() const { return id_.str(); }
 
-std::string ContactListItem::DisplayName() const
+std::string PayableListItem::DisplayName() const
 {
     Lock lock(lock_);
 
     return name_;
 }
 
-std::string ContactListItem::ImageURI() const
+std::string PayableListItem::ImageURI() const
 {
     // TODO
 
     return {};
 }
 
-void ContactListItem::process_contact(const network::zeromq::Message& message)
+std::string PayableListItem::PaymentCode() const
+{
+    Lock lock(lock_);
+
+    return paymentCode_;
+}
+
+void PayableListItem::process_contact(const network::zeromq::Message& message)
 {
     const Identifier contactID{std::string(message)};
 
@@ -101,10 +114,17 @@ void ContactListItem::process_contact(const network::zeromq::Message& message)
     }
 
     Lock lock(lock_);
+
     name_ = contact_.ContactName(id_);
+
+    const auto contact = contact_.Contact(id_);
+
+    OT_ASSERT(contact);
+
+    paymentCode_ = contact->PaymentCode();
 }
 
-std::string ContactListItem::Section() const
+std::string PayableListItem::Section() const
 {
     Lock lock(lock_);
 

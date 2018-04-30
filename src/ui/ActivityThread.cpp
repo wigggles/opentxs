@@ -186,7 +186,8 @@ std::string ActivityThread::comma(const std::set<std::string>& list) const
 
 void ActivityThread::construct_item(
     const ActivityThreadID& id,
-    const ActivityThreadSortKey& index) const
+    const ActivityThreadSortKey& index,
+    void*) const
 {
     names_.emplace(id, index);
     const auto& time = std::get<0>(index);
@@ -418,7 +419,7 @@ bool ActivityThread::SendDraft() const
     const auto taskID =
         sync_.MessageContact(nym_id_, *participants_.begin(), draft_);
 
-    //if (taskID.empty())
+    // if (taskID.empty())
     if (taskID->empty()) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Failed to queue message for sending" << std::endl;

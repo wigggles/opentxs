@@ -156,7 +156,8 @@ private:
     std::string comma(const std::set<std::string>& list) const;
     void construct_item(
         const ActivityThreadID& id,
-        const ActivityThreadSortKey& index) const override;
+        const ActivityThreadSortKey& index,
+        void* custom = nullptr) const override;
     ActivityThreadOuter::const_iterator outer_first() const override;
     ActivityThreadOuter::const_iterator outer_end() const override;
 
