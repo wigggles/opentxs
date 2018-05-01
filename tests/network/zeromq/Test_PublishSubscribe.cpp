@@ -92,7 +92,7 @@ void Test_PublishSubscribe::subscribeSocketThread(
     const std::set<std::string>& endpoints,
     const std::set<std::string>& msgs)
 {
-    ASSERT_NE(&Test_PublishSubscribe::context_.get(), nullptr);
+    ASSERT_NE(nullptr, &Test_PublishSubscribe::context_.get());
 
     auto listenCallback = network::zeromq::ListenCallback::Factory(
         [this, msgs](const network::zeromq::Message& input) -> void {
@@ -103,13 +103,13 @@ void Test_PublishSubscribe::subscribeSocketThread(
             ++callbackFinishedCount_;
         });
 
-    ASSERT_NE(&listenCallback.get(), nullptr);
+    ASSERT_NE(nullptr, &listenCallback.get());
 
     auto subscribeSocket = network::zeromq::SubscribeSocket::Factory(
         Test_PublishSubscribe::context_, listenCallback);
 
-    ASSERT_NE(&subscribeSocket.get(), nullptr);
-    ASSERT_EQ(subscribeSocket->Type(), SocketType::Subscribe);
+    ASSERT_NE(nullptr, &subscribeSocket.get());
+    ASSERT_EQ(SocketType::Subscribe, subscribeSocket->Type());
 
     subscribeSocket->SetTimeouts(0, -1, 10000);
     for (auto endpoint : endpoints) {
@@ -122,20 +122,20 @@ void Test_PublishSubscribe::subscribeSocketThread(
     while (callbackFinishedCount_ < callbackCount_ && std::time(nullptr) < end)
         std::this_thread::sleep_for(std::chrono::seconds(1));
 
-    ASSERT_EQ(callbackFinishedCount_, callbackCount_);
+    ASSERT_EQ(callbackCount_, callbackFinishedCount_);
 }
 
 void Test_PublishSubscribe::publishSocketThread(
     const std::string& endpoint,
     const std::string& msg)
 {
-    ASSERT_NE(&Test_PublishSubscribe::context_.get(), nullptr);
+    ASSERT_NE(nullptr, &Test_PublishSubscribe::context_.get());
 
     auto publishSocket = network::zeromq::PublishSocket::Factory(
         Test_PublishSubscribe::context_);
 
-    ASSERT_NE(&publishSocket.get(), nullptr);
-    ASSERT_EQ(publishSocket->Type(), SocketType::Publish);
+    ASSERT_NE(nullptr, &publishSocket.get());
+    ASSERT_EQ(SocketType::Publish, publishSocket->Type());
 
     publishSocket->SetTimeouts(0, 10000, -1);
     publishSocket->Start(endpoint);
@@ -155,7 +155,7 @@ void Test_PublishSubscribe::publishSocketThread(
     while (callbackFinishedCount_ < callbackCount_ && std::time(nullptr) < end)
         std::this_thread::sleep_for(std::chrono::seconds(1));
 
-    ASSERT_EQ(callbackFinishedCount_, callbackCount_);
+    ASSERT_EQ(callbackCount_, callbackFinishedCount_);
 }
 
 }  // namespace
@@ -167,8 +167,8 @@ TEST_F(Test_PublishSubscribe, Publish_Subscribe)
     auto publishSocket = network::zeromq::PublishSocket::Factory(
         Test_PublishSubscribe::context_);
 
-    ASSERT_NE(&publishSocket.get(), nullptr);
-    ASSERT_EQ(publishSocket->Type(), SocketType::Publish);
+    ASSERT_NE(nullptr, &publishSocket.get());
+    ASSERT_EQ(SocketType::Publish, publishSocket->Type());
 
     publishSocket->SetTimeouts(0, 10000, -1);
     publishSocket->Start(endpoint_);
@@ -177,17 +177,17 @@ TEST_F(Test_PublishSubscribe, Publish_Subscribe)
         [this](const network::zeromq::Message& input) -> void {
 
             const std::string& inputString = input;
-            EXPECT_EQ(inputString, testMessage_);
+            EXPECT_EQ(testMessage_, inputString);
             ++callbackFinishedCount_;
         });
 
-    ASSERT_NE(&listenCallback.get(), nullptr);
+    ASSERT_NE(nullptr, &listenCallback.get());
 
     auto subscribeSocket = network::zeromq::SubscribeSocket::Factory(
         Test_PublishSubscribe::context_, listenCallback);
 
-    ASSERT_NE(&subscribeSocket.get(), nullptr);
-    ASSERT_EQ(subscribeSocket->Type(), SocketType::Subscribe);
+    ASSERT_NE(nullptr, &subscribeSocket.get());
+    ASSERT_EQ(SocketType::Subscribe, subscribeSocket->Type());
 
     subscribeSocket->SetTimeouts(0, -1, 10000);
     subscribeSocket->Start(endpoint_);
@@ -200,7 +200,7 @@ TEST_F(Test_PublishSubscribe, Publish_Subscribe)
     while (!callbackFinishedCount_ && std::time(nullptr) < end)
         std::this_thread::sleep_for(std::chrono::seconds(1));
 
-    ASSERT_EQ(callbackFinishedCount_, 1);
+    ASSERT_EQ(1, callbackFinishedCount_);
 }
 
 TEST_F(Test_PublishSubscribe, Publish_1_Subscribe_2)
@@ -208,13 +208,13 @@ TEST_F(Test_PublishSubscribe, Publish_1_Subscribe_2)
     subscribeThreadCount_ = 2;
     callbackCount_ = 2;
 
-    ASSERT_NE(&Test_PublishSubscribe::context_.get(), nullptr);
+    ASSERT_NE(nullptr, &Test_PublishSubscribe::context_.get());
 
     auto publishSocket = network::zeromq::PublishSocket::Factory(
         Test_PublishSubscribe::context_);
 
-    ASSERT_NE(&publishSocket.get(), nullptr);
-    ASSERT_EQ(publishSocket->Type(), SocketType::Publish);
+    ASSERT_NE(nullptr, &publishSocket.get());
+    ASSERT_EQ(SocketType::Publish, publishSocket->Type());
 
     publishSocket->SetTimeouts(0, 10000, -1);
     publishSocket->Start(endpoint_);
@@ -235,7 +235,7 @@ TEST_F(Test_PublishSubscribe, Publish_1_Subscribe_2)
            std::time(nullptr) < end)
         std::this_thread::sleep_for(std::chrono::seconds(1));
 
-    ASSERT_EQ(subscribeThreadStartedCount_, subscribeThreadCount_);
+    ASSERT_EQ(subscribeThreadCount_, subscribeThreadStartedCount_);
 
     bool sent = publishSocket->Publish(testMessage_);
 
@@ -265,7 +265,7 @@ TEST_F(Test_PublishSubscribe, Publish_2_Subscribe_1)
     while (publishThreadStartedCount_ < 2 && std::time(nullptr) < end)
         std::this_thread::sleep_for(std::chrono::seconds(1));
 
-    ASSERT_EQ(publishThreadStartedCount_, 2);
+    ASSERT_EQ(2, publishThreadStartedCount_);
 
     auto listenCallback = network::zeromq::ListenCallback::Factory(
         [this](const network::zeromq::Message& input) -> void {
@@ -277,13 +277,13 @@ TEST_F(Test_PublishSubscribe, Publish_2_Subscribe_1)
             ++callbackFinishedCount_;
         });
 
-    ASSERT_NE(&listenCallback.get(), nullptr);
+    ASSERT_NE(nullptr, &listenCallback.get());
 
     auto subscribeSocket = network::zeromq::SubscribeSocket::Factory(
         Test_PublishSubscribe::context_, listenCallback);
 
-    ASSERT_NE(&subscribeSocket.get(), nullptr);
-    ASSERT_EQ(subscribeSocket->Type(), SocketType::Subscribe);
+    ASSERT_NE(nullptr, &subscribeSocket.get());
+    ASSERT_EQ(SocketType::Subscribe, subscribeSocket->Type());
 
     subscribeSocket->SetTimeouts(0, -1, 10000);
     subscribeSocket->Start(endpoint_);
@@ -295,7 +295,7 @@ TEST_F(Test_PublishSubscribe, Publish_2_Subscribe_1)
     while (callbackFinishedCount_ < callbackCount_ && std::time(nullptr) < end)
         std::this_thread::sleep_for(std::chrono::seconds(1));
 
-    ASSERT_EQ(callbackFinishedCount_, callbackCount_);
+    ASSERT_EQ(callbackCount_, callbackFinishedCount_);
 
     publishSocketThread1.join();
     publishSocketThread2.join();
@@ -321,7 +321,7 @@ TEST_F(Test_PublishSubscribe, Publish_2_Subscribe_2)
     while (publishThreadStartedCount_ < 2 && std::time(nullptr) < end)
         std::this_thread::sleep_for(std::chrono::seconds(1));
 
-    ASSERT_EQ(publishThreadStartedCount_, 2);
+    ASSERT_EQ(2, publishThreadStartedCount_);
 
     std::thread subscribeSocketThread1(
         &Test_PublishSubscribe::subscribeSocketThread,
@@ -339,7 +339,7 @@ TEST_F(Test_PublishSubscribe, Publish_2_Subscribe_2)
            std::time(nullptr) < end)
         std::this_thread::sleep_for(std::chrono::seconds(1));
 
-    ASSERT_EQ(subscribeThreadStartedCount_, subscribeThreadCount_);
+    ASSERT_EQ(subscribeThreadCount_, subscribeThreadStartedCount_);
 
     publishSocketThread1.join();
     publishSocketThread2.join();

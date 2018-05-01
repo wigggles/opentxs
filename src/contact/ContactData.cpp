@@ -219,10 +219,12 @@ ContactData ContactData::AddPaymentCode(
         attrib.emplace(proto::CITEMATTR_PRIMARY);
     }
 
+    auto version = proto::RequiredVersion(section, currency, version_);
+
     auto item = std::make_shared<ContactItem>(
         nym_,
-        version_,
-        version_,
+        version,
+        version,
         section,
         currency,
         code,
@@ -527,12 +529,10 @@ ContactData ContactData::SetCommonName(const std::string& name) const
     std::set<proto::ContactItemAttribute> attrib{proto::CITEMATTR_ACTIVE,
                                                  proto::CITEMATTR_PRIMARY};
 
-    auto version = proto::RequiredVersion(section, type, version_);
-
     auto item = std::make_shared<ContactItem>(
         nym_,
-        version,
-        version,
+        version_,
+        version_,
         section,
         type,
         name,
@@ -561,12 +561,10 @@ ContactData ContactData::SetName(const std::string& name, const bool primary)
         attrib.emplace(proto::CITEMATTR_PRIMARY);
     }
 
-    auto version = proto::RequiredVersion(section, type, version_);
-
     auto item = std::make_shared<ContactItem>(
         nym_,
-        version,
-        version,
+        version_,
+        version_,
         section,
         type,
         name,

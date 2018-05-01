@@ -54,7 +54,7 @@ public:
               CONTACT_CONTACT_DATA_VERSION,
               CONTACT_CONTACT_DATA_VERSION,
               opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER,
-              opentxs::proto::ContactItemType::CITEMTYPE_INDIVIDUAL,
+              opentxs::proto::ContactItemType::CITEMTYPE_EMPLOYEE,
               std::string("testValue"),
               {opentxs::proto::ContactItemAttribute::CITEMATTR_ACTIVE},
               NULL_START,
@@ -74,7 +74,7 @@ TEST_F(Test_ContactItem, first_constructor)
         CONTACT_CONTACT_DATA_VERSION,
         CONTACT_CONTACT_DATA_VERSION,
         opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER,
-        opentxs::proto::ContactItemType::CITEMTYPE_INDIVIDUAL,
+        opentxs::proto::ContactItemType::CITEMTYPE_EMPLOYEE,
         std::string("testValue"),
         {opentxs::proto::ContactItemAttribute::CITEMATTR_ACTIVE},
         NULL_START,
@@ -83,21 +83,21 @@ TEST_F(Test_ContactItem, first_constructor)
     const opentxs::Identifier identifier(opentxs::ContactCredential::ClaimID(
         "testContactItemNym",
         opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER,
-        opentxs::proto::ContactItemType::CITEMTYPE_INDIVIDUAL,
+        opentxs::proto::ContactItemType::CITEMTYPE_EMPLOYEE,
         NULL_START,
         NULL_END,
         "testValue"));
-    ASSERT_EQ(contactItem1.ID(), identifier);
-    ASSERT_EQ(contactItem1.Version(), CONTACT_CONTACT_DATA_VERSION);
+    ASSERT_EQ(identifier, contactItem1.ID());
+    ASSERT_EQ(CONTACT_CONTACT_DATA_VERSION, contactItem1.Version());
     ASSERT_EQ(
-        contactItem1.Section(),
-        opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER);
+        opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER,
+        contactItem1.Section());
     ASSERT_EQ(
-        contactItem1.Type(),
-        opentxs::proto::ContactItemType::CITEMTYPE_INDIVIDUAL);
-    ASSERT_EQ(contactItem1.Value(), "testValue");
-    ASSERT_EQ(contactItem1.Start(), NULL_START);
-    ASSERT_EQ(contactItem1.End(), NULL_END);
+        opentxs::proto::ContactItemType::CITEMTYPE_EMPLOYEE,
+        contactItem1.Type());
+    ASSERT_EQ("testValue", contactItem1.Value());
+    ASSERT_EQ(NULL_START, contactItem1.Start());
+    ASSERT_EQ(NULL_END, contactItem1.End());
 
     ASSERT_TRUE(contactItem1.isActive());
     ASSERT_FALSE(contactItem1.isLocal());
@@ -111,12 +111,12 @@ TEST_F(Test_ContactItem, first_constructor_different_versions)
         CONTACT_CONTACT_DATA_VERSION - 1,  // previous version
         CONTACT_CONTACT_DATA_VERSION,
         opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER,
-        opentxs::proto::ContactItemType::CITEMTYPE_INDIVIDUAL,
+        opentxs::proto::ContactItemType::CITEMTYPE_EMPLOYEE,
         std::string("testValue"),
         {opentxs::proto::ContactItemAttribute::CITEMATTR_ACTIVE},
         NULL_START,
         NULL_END);
-    ASSERT_EQ(contactItem1.Version(), CONTACT_CONTACT_DATA_VERSION);
+    ASSERT_EQ(CONTACT_CONTACT_DATA_VERSION, contactItem1.Version());
 }
 
 TEST_F(Test_ContactItem, second_constructor)
@@ -128,7 +128,7 @@ TEST_F(Test_ContactItem, second_constructor)
         opentxs::Claim(
             "",
             opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER,
-            opentxs::proto::ContactItemType::CITEMTYPE_INDIVIDUAL,
+            opentxs::proto::ContactItemType::CITEMTYPE_EMPLOYEE,
             "testValue",
             NULL_START,
             NULL_END,
@@ -137,61 +137,61 @@ TEST_F(Test_ContactItem, second_constructor)
     const opentxs::Identifier identifier(opentxs::ContactCredential::ClaimID(
         "testContactItemNym",
         opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER,
-        opentxs::proto::ContactItemType::CITEMTYPE_INDIVIDUAL,
+        opentxs::proto::ContactItemType::CITEMTYPE_EMPLOYEE,
         NULL_START,
         NULL_END,
         "testValue"));
-    ASSERT_EQ(contactItem1.ID(), identifier);
-    ASSERT_EQ(contactItem1.Version(), CONTACT_CONTACT_DATA_VERSION);
+    ASSERT_EQ(identifier, contactItem1.ID());
+    ASSERT_EQ(CONTACT_CONTACT_DATA_VERSION, contactItem1.Version());
     ASSERT_EQ(
-        contactItem1.Section(),
-        opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER);
+        opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER,
+        contactItem1.Section());
     ASSERT_EQ(
-        contactItem1.Type(),
-        opentxs::proto::ContactItemType::CITEMTYPE_INDIVIDUAL);
-    ASSERT_EQ(contactItem1.Value(), "testValue");
-    ASSERT_EQ(contactItem1.Start(), NULL_START);
-    ASSERT_EQ(contactItem1.End(), NULL_END);
+        opentxs::proto::ContactItemType::CITEMTYPE_EMPLOYEE,
+        contactItem1.Type());
+    ASSERT_EQ("testValue", contactItem1.Value());
+    ASSERT_EQ(NULL_START, contactItem1.Start());
+    ASSERT_EQ(NULL_END, contactItem1.End());
 
     ASSERT_TRUE(contactItem1.isActive());
     ASSERT_FALSE(contactItem1.isLocal());
     ASSERT_FALSE(contactItem1.isPrimary());
 }
 
- TEST_F(Test_ContactItem, third_constructor)
+TEST_F(Test_ContactItem, third_constructor)
 {
-	opentxs::proto::ContactItem data;
-	data.set_version(CONTACT_CONTACT_DATA_VERSION);
-	data.set_type(opentxs::proto::ContactItemType::CITEMTYPE_INDIVIDUAL);
-	data.set_value("testValue");
-	data.add_attribute(opentxs::proto::CITEMATTR_ACTIVE);
-	data.set_start(NULL_START);
-	data.set_end(NULL_END);
+    opentxs::proto::ContactItem data;
+    data.set_version(CONTACT_CONTACT_DATA_VERSION);
+    data.set_type(opentxs::proto::ContactItemType::CITEMTYPE_EMPLOYEE);
+    data.set_value("testValue");
+    data.add_attribute(opentxs::proto::CITEMATTR_ACTIVE);
+    data.set_start(NULL_START);
+    data.set_end(NULL_END);
 
     const opentxs::ContactItem contactItem1(
         std::string("testContactItemNym"),
         CONTACT_CONTACT_DATA_VERSION,
-		opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER,
-		data);
+        opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER,
+        data);
 
     const opentxs::Identifier identifier(opentxs::ContactCredential::ClaimID(
         "testContactItemNym",
         opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER,
-        opentxs::proto::ContactItemType::CITEMTYPE_INDIVIDUAL,
+        opentxs::proto::ContactItemType::CITEMTYPE_EMPLOYEE,
         NULL_START,
         NULL_END,
         "testValue"));
-    ASSERT_EQ(contactItem1.ID(), identifier);
-    ASSERT_EQ(contactItem1.Version(), CONTACT_CONTACT_DATA_VERSION);
+    ASSERT_EQ(identifier, contactItem1.ID());
+    ASSERT_EQ(CONTACT_CONTACT_DATA_VERSION, contactItem1.Version());
     ASSERT_EQ(
-        contactItem1.Section(),
-        opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER);
+        opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER,
+        contactItem1.Section());
     ASSERT_EQ(
-        contactItem1.Type(),
-        opentxs::proto::ContactItemType::CITEMTYPE_INDIVIDUAL);
-    ASSERT_EQ(contactItem1.Value(), "testValue");
-    ASSERT_EQ(contactItem1.Start(), NULL_START);
-    ASSERT_EQ(contactItem1.End(), NULL_END);
+        opentxs::proto::ContactItemType::CITEMTYPE_EMPLOYEE,
+        contactItem1.Type());
+    ASSERT_EQ("testValue", contactItem1.Value());
+    ASSERT_EQ(NULL_START, contactItem1.Start());
+    ASSERT_EQ(NULL_END, contactItem1.End());
 
     ASSERT_TRUE(contactItem1.isActive());
     ASSERT_FALSE(contactItem1.isLocal());
@@ -202,17 +202,17 @@ TEST_F(Test_ContactItem, copy_constructor)
 {
     opentxs::ContactItem copiedContactItem(contactItem_);
 
-    ASSERT_EQ(copiedContactItem.ID(), contactItem_.ID());
-    ASSERT_EQ(copiedContactItem.Version(), contactItem_.Version());
-    ASSERT_EQ(copiedContactItem.Section(), contactItem_.Section());
-    ASSERT_EQ(copiedContactItem.Type(), contactItem_.Type());
-    ASSERT_EQ(copiedContactItem.Value(), contactItem_.Value());
-    ASSERT_EQ(copiedContactItem.Start(), contactItem_.Start());
-    ASSERT_EQ(copiedContactItem.End(), contactItem_.End());
+    ASSERT_EQ(contactItem_.ID(), copiedContactItem.ID());
+    ASSERT_EQ(contactItem_.Version(), copiedContactItem.Version());
+    ASSERT_EQ(contactItem_.Section(), copiedContactItem.Section());
+    ASSERT_EQ(contactItem_.Type(), copiedContactItem.Type());
+    ASSERT_EQ(contactItem_.Value(), copiedContactItem.Value());
+    ASSERT_EQ(contactItem_.Start(), copiedContactItem.Start());
+    ASSERT_EQ(contactItem_.End(), copiedContactItem.End());
 
-    ASSERT_EQ(copiedContactItem.isActive(), contactItem_.isActive());
-    ASSERT_EQ(copiedContactItem.isLocal(), contactItem_.isLocal());
-    ASSERT_EQ(copiedContactItem.isPrimary(), contactItem_.isPrimary());
+    ASSERT_EQ(contactItem_.isActive(), copiedContactItem.isActive());
+    ASSERT_EQ(contactItem_.isLocal(), copiedContactItem.isLocal());
+    ASSERT_EQ(contactItem_.isPrimary(), copiedContactItem.isPrimary());
 }
 
 TEST_F(Test_ContactItem, move_constructor)
@@ -223,21 +223,21 @@ TEST_F(Test_ContactItem, move_constructor)
     const opentxs::Identifier identifier(opentxs::ContactCredential::ClaimID(
         "testNym",
         opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER,
-        opentxs::proto::ContactItemType::CITEMTYPE_INDIVIDUAL,
+        opentxs::proto::ContactItemType::CITEMTYPE_EMPLOYEE,
         NULL_START,
         NULL_END,
         "testValue"));
-    ASSERT_EQ(movedContactItem.ID(), identifier);
-    ASSERT_EQ(movedContactItem.Version(), CONTACT_CONTACT_DATA_VERSION);
+    ASSERT_EQ(identifier, movedContactItem.ID());
+    ASSERT_EQ(CONTACT_CONTACT_DATA_VERSION, movedContactItem.Version());
     ASSERT_EQ(
-    		movedContactItem.Section(),
-        opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER);
+        opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER,
+        movedContactItem.Section());
     ASSERT_EQ(
-    		movedContactItem.Type(),
-        opentxs::proto::ContactItemType::CITEMTYPE_INDIVIDUAL);
-    ASSERT_EQ(movedContactItem.Value(), "testValue");
-    ASSERT_EQ(movedContactItem.Start(), NULL_START);
-    ASSERT_EQ(movedContactItem.End(), NULL_END);
+        opentxs::proto::ContactItemType::CITEMTYPE_EMPLOYEE,
+        movedContactItem.Type());
+    ASSERT_EQ("testValue", movedContactItem.Value());
+    ASSERT_EQ(NULL_START, movedContactItem.Start());
+    ASSERT_EQ(NULL_END, movedContactItem.End());
 
     ASSERT_TRUE(movedContactItem.isActive());
     ASSERT_FALSE(movedContactItem.isLocal());
@@ -256,7 +256,7 @@ TEST_F(Test_ContactItem, operator_equal_false)
         CONTACT_CONTACT_DATA_VERSION,
         CONTACT_CONTACT_DATA_VERSION,
         opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER,
-        opentxs::proto::ContactItemType::CITEMTYPE_INDIVIDUAL,
+        opentxs::proto::ContactItemType::CITEMTYPE_EMPLOYEE,
         std::string("testValue2"),
         {opentxs::proto::ContactItemAttribute::CITEMATTR_ACTIVE},
         NULL_START,
@@ -271,15 +271,12 @@ TEST_F(Test_ContactItem, operator_proto_equal)
 {
     opentxs::proto::ContactItem protoItem = contactItem_;
 
-    opentxs::String id;
-    contactItem_.ID().GetString(id);
-
-    ASSERT_EQ(opentxs::String(protoItem.id()), id);
-    ASSERT_EQ(protoItem.value(), contactItem_.Value());
-    ASSERT_EQ(protoItem.version(), contactItem_.Version());
-    ASSERT_EQ(protoItem.type(), contactItem_.Type());
-    ASSERT_EQ(protoItem.start(), contactItem_.Start());
-    ASSERT_EQ(protoItem.end(), contactItem_.End());
+    ASSERT_EQ(contactItem_.ID().str(), protoItem.id());
+    ASSERT_EQ(contactItem_.Value(), protoItem.value());
+    ASSERT_EQ(contactItem_.Version(), protoItem.version());
+    ASSERT_EQ(contactItem_.Type(), protoItem.type());
+    ASSERT_EQ(contactItem_.Start(), protoItem.start());
+    ASSERT_EQ(contactItem_.End(), protoItem.end());
 }
 
 TEST_F(Test_ContactItem, operator_proto_not_equal)
@@ -287,7 +284,7 @@ TEST_F(Test_ContactItem, operator_proto_not_equal)
     opentxs::proto::ContactItem protoItem = contactItem_;
     opentxs::proto::ContactItem protoItemNoId = contactItem_.Serialize();
 
-    ASSERT_NE(protoItem.id(), protoItemNoId.id());
+    ASSERT_NE(protoItemNoId.id(), protoItem.id());
 }
 
 TEST_F(Test_ContactItem, public_accessors)
@@ -295,21 +292,21 @@ TEST_F(Test_ContactItem, public_accessors)
     const opentxs::Identifier identifier(opentxs::ContactCredential::ClaimID(
         "testNym",
         opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER,
-        opentxs::proto::ContactItemType::CITEMTYPE_INDIVIDUAL,
+        opentxs::proto::ContactItemType::CITEMTYPE_EMPLOYEE,
         NULL_START,
         NULL_END,
         "testValue"));
-    ASSERT_EQ(contactItem_.ID(), identifier);
+    ASSERT_EQ(identifier, contactItem_.ID());
     ASSERT_EQ(
-        contactItem_.Section(),
-        opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER);
+        opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER,
+        contactItem_.Section());
     ASSERT_EQ(
-        contactItem_.Type(),
-        opentxs::proto::ContactItemType::CITEMTYPE_INDIVIDUAL);
-    ASSERT_EQ(contactItem_.Value(), "testValue");
-    ASSERT_EQ(contactItem_.Start(), NULL_START);
-    ASSERT_EQ(contactItem_.End(), NULL_END);
-    ASSERT_EQ(contactItem_.Version(), CONTACT_CONTACT_DATA_VERSION);
+        opentxs::proto::ContactItemType::CITEMTYPE_EMPLOYEE,
+        contactItem_.Type());
+    ASSERT_EQ("testValue", contactItem_.Value());
+    ASSERT_EQ(NULL_START, contactItem_.Start());
+    ASSERT_EQ(NULL_END, contactItem_.End());
+    ASSERT_EQ(CONTACT_CONTACT_DATA_VERSION, contactItem_.Version());
 
     ASSERT_TRUE(contactItem_.isActive());
     ASSERT_FALSE(contactItem_.isLocal());
@@ -326,13 +323,13 @@ TEST_F(Test_ContactItem, public_setters)
 
     const auto& startItem = contactItem_.SetStart(now);
     ASSERT_FALSE(startItem == contactItem_);
-    ASSERT_EQ(startItem.Start(), now);
-    ASSERT_NE(startItem.Start(), NULL_START);
+    ASSERT_EQ(now, startItem.Start());
+    ASSERT_NE(NULL_START, startItem.Start());
 
     const auto& endItem = contactItem_.SetEnd(now);
     ASSERT_FALSE(endItem == contactItem_);
-    ASSERT_EQ(endItem.End(), now);
-    ASSERT_NE(endItem.End(), NULL_END);
+    ASSERT_EQ(now, endItem.End());
+    ASSERT_NE(NULL_END, endItem.End());
 
     // _contactItem is active, so test setting active to false first.
     const auto& notActiveItem = contactItem_.SetActive(false);
@@ -364,24 +361,22 @@ TEST_F(Test_ContactItem, public_setters)
 
 TEST_F(Test_ContactItem, Serialize)
 {
-	// Test without id.
-	opentxs::proto::ContactItem protoItem = contactItem_.Serialize();
+    // Test without id.
+    opentxs::proto::ContactItem protoItem = contactItem_.Serialize();
 
-    ASSERT_EQ(protoItem.value(), contactItem_.Value());
-    ASSERT_EQ(protoItem.version(), contactItem_.Version());
-    ASSERT_EQ(protoItem.type(), contactItem_.Type());
-    ASSERT_EQ(protoItem.start(), contactItem_.Start());
-    ASSERT_EQ(protoItem.end(), contactItem_.End());
+    ASSERT_EQ(contactItem_.Value(), protoItem.value());
+    ASSERT_EQ(contactItem_.Version(), protoItem.version());
+    ASSERT_EQ(contactItem_.Type(), protoItem.type());
+    ASSERT_EQ(contactItem_.Start(), protoItem.start());
+    ASSERT_EQ(contactItem_.End(), protoItem.end());
 
     // Test with id.
-	protoItem = contactItem_.Serialize(true);
-    opentxs::String id;
-    contactItem_.ID().GetString(id);
+    protoItem = contactItem_.Serialize(true);
 
-    ASSERT_EQ(opentxs::String(protoItem.id()), id);
-    ASSERT_EQ(protoItem.value(), contactItem_.Value());
-    ASSERT_EQ(protoItem.version(), contactItem_.Version());
-    ASSERT_EQ(protoItem.type(), contactItem_.Type());
-    ASSERT_EQ(protoItem.start(), contactItem_.Start());
-    ASSERT_EQ(protoItem.end(), contactItem_.End());
+    ASSERT_EQ(contactItem_.ID().str(), protoItem.id());
+    ASSERT_EQ(contactItem_.Value(), protoItem.value());
+    ASSERT_EQ(contactItem_.Version(), protoItem.version());
+    ASSERT_EQ(contactItem_.Type(), protoItem.type());
+    ASSERT_EQ(contactItem_.Start(), protoItem.start());
+    ASSERT_EQ(contactItem_.End(), protoItem.end());
 }

@@ -64,13 +64,13 @@ OTZMQContext Test_RequestSocket::context_{network::zeromq::Context::Factory()};
 
 TEST(RequestSocket, RequestSocket_Factory)
 {
-    ASSERT_NE(&Test_RequestSocket::context_.get(), nullptr);
+    ASSERT_NE(nullptr, &Test_RequestSocket::context_.get());
 
     auto requestSocket =
         network::zeromq::RequestSocket::Factory(Test_RequestSocket::context_);
 
-    ASSERT_NE(&requestSocket.get(), nullptr);
-    ASSERT_EQ(requestSocket->Type(), SocketType::Request);
+    ASSERT_NE(nullptr, &requestSocket.get());
+    ASSERT_EQ(SocketType::Request, requestSocket->Type());
 }
 
 // TODO: Add tests for other public member functions: SetCurve, SetSocksProxy

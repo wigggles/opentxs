@@ -61,7 +61,7 @@ public:
 
 OTZMQContext Test_ReplySocket::context_{network::zeromq::Context::Factory()};
 
-} // namespace
+}  // namespace
 
 TEST(ReplySocket, ReplyCallback_Factory)
 {
@@ -71,7 +71,7 @@ TEST(ReplySocket, ReplyCallback_Factory)
             return network::zeromq::Message::Factory(input);
         });
 
-    ASSERT_NE(&replyCallback.get(), nullptr);
+    ASSERT_NE(nullptr, &replyCallback.get());
 }
 
 TEST_F(Test_ReplySocket, ReplyCallback_Process)
@@ -80,16 +80,16 @@ TEST_F(Test_ReplySocket, ReplyCallback_Process)
         [this](const network::zeromq::Message& input) -> OTZMQMessage {
 
             const std::string& inputString = input;
-            EXPECT_EQ(inputString, testMessage_);
+            EXPECT_EQ(testMessage_, inputString);
 
             return network::zeromq::Message::Factory(input);
         });
 
-    ASSERT_NE(&replyCallback.get(), nullptr);
+    ASSERT_NE(nullptr, &replyCallback.get());
 
     auto testMessage = network::zeromq::Message::Factory(testMessage_);
 
-    ASSERT_NE(&testMessage.get(), nullptr);
+    ASSERT_NE(nullptr, &testMessage.get());
 
     auto message = replyCallback->Process(testMessage);
 
@@ -99,22 +99,21 @@ TEST_F(Test_ReplySocket, ReplyCallback_Process)
 
 TEST(ReplySocket, ReplySocket_Factory)
 {
-	ASSERT_NE(&Test_ReplySocket::context_.get(), nullptr);
-	
+    ASSERT_NE(nullptr, &Test_ReplySocket::context_.get());
+
     auto replyCallback = network::zeromq::ReplyCallback::Factory(
         [this](const network::zeromq::Message& input) -> OTZMQMessage {
 
             return network::zeromq::Message::Factory(input);
         });
 
-    ASSERT_NE(&replyCallback.get(), nullptr);
+    ASSERT_NE(nullptr, &replyCallback.get());
 
     auto replySocket = network::zeromq::ReplySocket::Factory(
-    		Test_ReplySocket::context_, replyCallback);
+        Test_ReplySocket::context_, replyCallback);
 
-    ASSERT_NE(&replySocket.get(), nullptr);
-    ASSERT_EQ(replySocket->Type(), SocketType::Reply);
+    ASSERT_NE(nullptr, &replySocket.get());
+    ASSERT_EQ(SocketType::Reply, replySocket->Type());
 }
 
 // TODO: Add tests for other public member functions: SetCurve
-

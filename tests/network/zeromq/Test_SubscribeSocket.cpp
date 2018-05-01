@@ -71,7 +71,7 @@ TEST(SubscribeSocket, ListenCallback_Factory)
 
         });
 
-    ASSERT_NE(&listenCallback.get(), nullptr);
+    ASSERT_NE(nullptr, &listenCallback.get());
 }
 
 TEST_F(Test_SubscribeSocket, ListenCallback_Process)
@@ -80,14 +80,14 @@ TEST_F(Test_SubscribeSocket, ListenCallback_Process)
         [this](const network::zeromq::Message& input) -> void {
 
             const std::string& inputString = input;
-            EXPECT_EQ(inputString, testMessage_);
+            EXPECT_EQ(testMessage_, inputString);
         });
 
-    ASSERT_NE(&listenCallback.get(), nullptr);
+    ASSERT_NE(nullptr, &listenCallback.get());
 
     auto testMessage = network::zeromq::Message::Factory(testMessage_);
 
-    ASSERT_NE(&testMessage.get(), nullptr);
+    ASSERT_NE(nullptr, &testMessage.get());
 
     listenCallback->Process(testMessage);
 }
@@ -98,20 +98,20 @@ TEST_F(Test_SubscribeSocket, SubscribeSocket_Factory)
         [this](const network::zeromq::Message& input) -> OTZMQMessage {
 
             const std::string& inputString = input;
-            EXPECT_EQ(inputString, testMessage_);
+            EXPECT_EQ(testMessage_, inputString);
 
             return network::zeromq::Message::Factory(input);
         });
 
-    ASSERT_NE(&listenCallback.get(), nullptr);
+    ASSERT_NE(nullptr, &listenCallback.get());
 
-    ASSERT_NE(&Test_SubscribeSocket::context_.get(), nullptr);
+    ASSERT_NE(nullptr, &Test_SubscribeSocket::context_.get());
 
     auto subscribeSocket = network::zeromq::SubscribeSocket::Factory(
         Test_SubscribeSocket::context_, listenCallback);
 
-    ASSERT_NE(&subscribeSocket.get(), nullptr);
-    ASSERT_EQ(subscribeSocket->Type(), SocketType::Subscribe);
+    ASSERT_NE(nullptr, &subscribeSocket.get());
+    ASSERT_EQ(SocketType::Subscribe, subscribeSocket->Type());
 }
 
 // TODO: Add tests for other public member functions: SetCurve, SetSocksProxy
