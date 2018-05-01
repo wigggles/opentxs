@@ -573,7 +573,7 @@ bool Nym::GetHash(
         if (str_id == it.first) {
             // The call has succeeded
             bRetVal = true;
-            theOutput = it.second;
+            theOutput = *it.second;
             break;
         }
     }
@@ -1431,7 +1431,9 @@ bool Nym::LoadNymFromString(
                     //
                     if (strAccountID.Exists() && strHashValue.Exists()) {
                         const Identifier theID(strHashValue);
-                        m_mapInboxHash[strAccountID.Get()] = theID;
+                        OTIdentifier * pID = new OTIdentifier(theID);
+                        OT_ASSERT(pID)
+                        m_mapInboxHash[strAccountID.Get()] = pID;
                     }
                 } else if (strNodeName.Compare("outboxHashItem")) {
                     const String strAccountID =
@@ -1449,7 +1451,9 @@ bool Nym::LoadNymFromString(
                     //
                     if (strAccountID.Exists() && strHashValue.Exists()) {
                         const Identifier theID(strHashValue);
-                        m_mapOutboxHash[strAccountID.Get()] = theID;
+                        OTIdentifier * pID = new OTIdentifier(theID);
+                        OT_ASSERT(pID)
+                        m_mapOutboxHash[strAccountID.Get()] = pID;
                     }
                 } else if (strNodeName.Compare("highestTransNum") && convert) {
                     const String HighNumNotaryID =
@@ -2495,7 +2499,7 @@ bool Nym::SavePseudonym(String& strNym) const
     // client-side
     for (auto& it : m_mapInboxHash) {
         std::string strAcctID = it.first;
-        const Identifier& theID = it.second;
+        const Identifier& theID = *it.second;
 
         if ((strAcctID.size() > 0) && !theID.IsEmpty()) {
             const String strHash(theID);
@@ -2509,7 +2513,7 @@ bool Nym::SavePseudonym(String& strNym) const
     // client-side
     for (auto& it : m_mapOutboxHash) {
         std::string strAcctID = it.first;
-        const Identifier& theID = it.second;
+        const Identifier& theID = *it.second;
 
         if ((strAcctID.size() > 0) && !theID.IsEmpty()) {
             const String strHash(theID);
@@ -2762,7 +2766,9 @@ bool Nym::SetHash(
     {
         // The call has succeeded
         the_map.erase(find_it);
-        the_map[str_id] = theInput;
+        OTIdentifier * pID = new OTIdentifier (theInput);
+        OT_ASSERT(pID)
+        the_map[str_id] = pID;
         bSuccess = true;
     }
 
@@ -2771,8 +2777,9 @@ bool Nym::SetHash(
     // that means it does not exist. (So create it.)
     //
     if (!bSuccess) {
-        the_map[str_id] = theInput;
-        bSuccess = true;
+        OTIdentifier * pID = new OTIdentifier (theInput);
+        OT_ASSERT(pID)
+        the_map[str_id] = pID;
     }
     //    if (bSuccess)
     //    {

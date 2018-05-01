@@ -71,7 +71,7 @@ class Wallet;
 
 typedef std::deque<Message*> dequeOfMail;
 typedef std::deque<std::int64_t> dequeOfTransNums;
-typedef std::map<std::string, Identifier> mapOfIdentifiers;
+typedef std::map<std::string, OTIdentifier*> mapOfIdentifiers;
 typedef std::map<std::string, CredentialSet*> mapOfCredentialSets;
 typedef std::list<OTAsymmetricKey*> listOfAsymmetricKeys;
 typedef bool CredentialIndexModeFlag;
