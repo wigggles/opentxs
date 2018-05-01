@@ -157,7 +157,7 @@ bool OTPartyAccount::IsAccountByID(const Identifier& theAcctID) const
         return false;
     }
 
-    const Identifier theMemberAcctID(m_strAcctID);
+    const auto theMemberAcctID = Identifier::Factory(m_strAcctID);
     if (!(theAcctID == theMemberAcctID)) {
         String strRHS(theAcctID);
         otLog4 << "OTPartyAccount::" << __FUNCTION__
@@ -189,7 +189,7 @@ bool OTPartyAccount::IsAccount(Account& theAccount)
         bCheckAssetId = false;
     }
 
-    const Identifier theAcctID(m_strAcctID);
+    const auto theAcctID = Identifier::Factory(m_strAcctID);
     if (!(theAccount.GetRealAccountID() == theAcctID)) {
         String strRHS(theAccount.GetRealAccountID());
         otLog4 << "OTPartyAccount::" << __FUNCTION__
@@ -201,7 +201,8 @@ bool OTPartyAccount::IsAccount(Account& theAccount)
     }
 
     if (bCheckAssetId) {
-        const Identifier theInstrumentDefinitionID(m_strInstrumentDefinitionID);
+        const auto theInstrumentDefinitionID =
+            Identifier::Factory(m_strInstrumentDefinitionID);
         if (!(theAccount.GetInstrumentDefinitionID() ==
               theInstrumentDefinitionID)) {
             String strRHS(theAccount.GetInstrumentDefinitionID());
@@ -312,7 +313,7 @@ bool OTPartyAccount::DropFinalReceiptToInbox(
     if (nullptr == pAgent)
         otErr << szFunc << ": named agent wasn't found on party.\n";
     else {
-        const Identifier theAccountID(m_strAcctID);
+        const auto theAccountID = Identifier::Factory(m_strAcctID);
 
         return pAgent->DropFinalReceiptToInbox(
             pNymMap,
@@ -348,7 +349,8 @@ Account* OTPartyAccount::LoadAccount(
         return nullptr;
     }
 
-    const Identifier theAcctID(m_strAcctID), theNotaryID(strNotaryID);
+    const auto theAcctID = Identifier::Factory(m_strAcctID),
+               theNotaryID = Identifier::Factory(strNotaryID);
 
     Account* pAccount = Account::LoadExistingAccount(theAcctID, theNotaryID);
 

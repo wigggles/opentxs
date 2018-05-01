@@ -561,8 +561,8 @@ Editor<PeerReplies> Nym::mutable_ProcessedReplyBox()
 
 Editor<Mailbox> Nym::mutable_MailInbox()
 {
-    std::function<void(Mailbox*, Lock&)> callback =
-        [&](Mailbox* in, Lock& lock) -> void {
+    std::function<void(Mailbox*, Lock&)> callback = [&](Mailbox* in,
+                                                        Lock& lock) -> void {
         this->save(in, lock, StorageBox::MAILINBOX);
     };
 
@@ -571,8 +571,8 @@ Editor<Mailbox> Nym::mutable_MailInbox()
 
 Editor<Mailbox> Nym::mutable_MailOutbox()
 {
-    std::function<void(Mailbox*, Lock&)> callback =
-        [&](Mailbox* in, Lock& lock) -> void {
+    std::function<void(Mailbox*, Lock&)> callback = [&](Mailbox* in,
+                                                        Lock& lock) -> void {
         this->save(in, lock, StorageBox::MAILOUTBOX);
     };
 

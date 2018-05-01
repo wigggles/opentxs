@@ -110,7 +110,7 @@ private:
     // takes ownership
     ContactMap::iterator add_contact(const rLock& lock, class Contact* contact)
         const;
-    Identifier address_to_contact(
+    OTIdentifier address_to_contact(
         const rLock& lock,
         const std::string& address,
         const proto::ContactItemType currency) const;

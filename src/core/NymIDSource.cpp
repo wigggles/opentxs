@@ -160,13 +160,13 @@ std::unique_ptr<proto::AsymmetricKey> NymIDSource::ExtractKey(
 
 OTIdentifier NymIDSource::NymID() const
 {
-    Identifier nymID;
+    auto nymID = Identifier::Factory();
     auto dataVersion = Data::Factory();
 
     switch (type_) {
         case proto::SOURCETYPE_PUBKEY:
             dataVersion = asData();
-            nymID.CalculateDigest(dataVersion);
+            nymID->CalculateDigest(dataVersion);
 
             break;
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
@@ -330,7 +330,7 @@ serializedNymIDSource NymIDSource::ExtractArmoredSource(
 String NymIDSource::Description() const
 {
     String description;
-    Identifier keyID;
+    auto keyID = Identifier::Factory();
 
     switch (type_) {
         case (proto::SOURCETYPE_PUBKEY):

@@ -231,7 +231,7 @@ bool OTPaths::LoadSetPrefixFolder   // eg. /usr/local/
     (api::Settings& config,         // optional
      const String& strPrefixFolder  // optional
      // const bool& bIsRelative (cannot be relative);
-     )
+    )
 {
     /*
     The prefix path is special.
@@ -419,7 +419,7 @@ bool OTPaths::LoadSetScriptsFolder    // ie. PrefixFolder() + [ if (NOT Android)
     (api::Settings& config,           // optional
      const String& strScriptsFolder,  // optional
      const bool& bIsRelative          // optional
-     )
+    )
 {
     if (&config == &s_settings) ConfigureDefaultSettings();
 
@@ -868,7 +868,7 @@ bool OTPaths::ConfirmCreateFolder(
         out_IsNew = false;
         return true;  // Already Have Folder, lets return true!
     } else {
-// It dosn't exist: lets create it.
+    // It dosn't exist: lets create it.
 
 #ifdef _WIN32
         bool bCreateDirSuccess = (_mkdir(strExactPath.Get()) == 0);
@@ -877,8 +877,9 @@ bool OTPaths::ConfirmCreateFolder(
 #endif
 
         if (!bCreateDirSuccess) {
-            otInfo << OT_METHOD << __FUNCTION__ << ": Unable To Confirm "
-                                                   "Created Directory "
+            otInfo << OT_METHOD << __FUNCTION__
+                   << ": Unable To Confirm "
+                      "Created Directory "
                    << strExactPath << ".\n";
             out_IsNew = false;
             out_Exists = false;

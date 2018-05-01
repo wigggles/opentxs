@@ -341,10 +341,10 @@ public:
         const std::int64_t& CHEQUE_AMOUNT,
         const time64_t& VALID_FROM,
         const time64_t& VALID_TO,
-        const Identifier& SENDER_ACCT_ID,
+        const Identifier& SENDER_accountID,
         const Identifier& SENDER_NYM_ID,
         const String& CHEQUE_MEMO,
-        const Identifier* pRECIPIENT_NYM_ID = nullptr) const;
+        const OTIdentifier pRECIPIENT_NYM_ID) const;
 
     // DISCARD CHEQUE (recover the transaction number for re-use, so the
     // cheque itself can be discarded.)

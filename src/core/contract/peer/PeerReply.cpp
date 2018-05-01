@@ -65,7 +65,7 @@ PeerReply::PeerReply(const ConstNym& nym, const proto::PeerReply& serialized)
     , cookie_(Identifier::Factory(serialized.cookie()))
     , type_(serialized.type())
 {
-    id_ = Identifier(serialized.id());
+    id_ = Identifier::Factory(serialized.id());
     signatures_.push_front(SerializedSignature(
         std::make_shared<proto::Signature>(serialized.signature())));
     version_ = serialized.version();
@@ -121,7 +121,7 @@ std::unique_ptr<PeerReply> PeerReply::Create(
         case (proto::PEERREQUEST_BAILMENT): {
             contract.reset(new BailmentReply(
                 nym,
-                Identifier(peerRequest->initiator()),
+                Identifier::Factory(peerRequest->initiator()),
                 requestID,
                 server,
                 terms));
@@ -129,7 +129,7 @@ std::unique_ptr<PeerReply> PeerReply::Create(
         case (proto::PEERREQUEST_OUTBAILMENT): {
             contract.reset(new OutBailmentReply(
                 nym,
-                Identifier(peerRequest->initiator()),
+                Identifier::Factory(peerRequest->initiator()),
                 requestID,
                 server,
                 terms));
@@ -165,7 +165,7 @@ std::unique_ptr<PeerReply> PeerReply::Create(
         case (proto::PEERREQUEST_STORESECRET): {
             contract.reset(new NoticeAcknowledgement(
                 nym,
-                Identifier(peerRequest->initiator()),
+                Identifier::Factory(peerRequest->initiator()),
                 requestID,
                 server,
                 type,
@@ -205,7 +205,7 @@ std::unique_ptr<PeerReply> PeerReply::Create(
         case (proto::PEERREQUEST_CONNECTIONINFO): {
             contract.reset(new ConnectionReply(
                 nym,
-                Identifier(peerRequest->initiator()),
+                Identifier::Factory(peerRequest->initiator()),
                 request,
                 server,
                 ack,
@@ -275,7 +275,7 @@ std::unique_ptr<PeerReply> PeerReply::Factory(
         return nullptr;
     }
 
-    const Identifier purportedID(serialized.id());
+    const auto purportedID = Identifier::Factory(serialized.id());
 
     if (!contract->CalculateID(lock)) {
         otErr << OT_METHOD << __FUNCTION__ << ": failed to calculate ID."
@@ -340,8 +340,8 @@ OTIdentifier PeerReply::GetID(const Lock& lock) const
 
 OTIdentifier PeerReply::GetID(const proto::PeerReply& contract)
 {
-    Identifier id;
-    id.CalculateDigest(proto::ProtoAsData(contract));
+    auto id = Identifier::Factory();
+    id->CalculateDigest(proto::ProtoAsData(contract));
     return id;
 }
 

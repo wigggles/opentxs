@@ -217,8 +217,8 @@ std::shared_ptr<const class Context> Wallet::Context(
     const Identifier& notaryID,
     const Identifier& clientNymID) const
 {
-    Identifier serverID = notaryID;
-    Identifier local, remote;
+    auto serverID = Identifier::Factory(notaryID);
+    auto local = Identifier::Factory(), remote = Identifier::Factory();
 
     if (ot_.ServerMode()) {
         local = ot_.Server().NymID();
@@ -248,7 +248,7 @@ std::shared_ptr<const class ServerContext> Wallet::ServerContext(
     const Identifier& localNymID,
     const Identifier& remoteID) const
 {
-    Identifier serverID = remoteID;
+    auto serverID = Identifier::Factory(remoteID);
     auto remoteNymID = ServerToNym(serverID);
     auto base = context(localNymID, remoteNymID);
 
@@ -261,9 +261,9 @@ Editor<class Context> Wallet::mutable_Context(
     const Identifier& notaryID,
     const Identifier& clientNymID) const
 {
-    Identifier serverID = notaryID;
+    auto serverID = Identifier::Factory(notaryID);
     const bool serverMode = ot_.ServerMode();
-    Identifier local, remote;
+    auto local = Identifier::Factory(), remote = Identifier::Factory();
 
     if (serverMode) {
         local = ot_.Server().NymID();
@@ -330,8 +330,8 @@ Editor<class ServerContext> Wallet::mutable_ServerContext(
 {
     Lock lock(context_map_lock_);
 
-    Identifier serverID = remoteID;
-    Identifier remoteNymID = ServerToNym(serverID);
+    auto serverID = Identifier::Factory(remoteID);
+    auto remoteNymID = Identifier::Factory(ServerToNym(serverID));
 
     auto base = context(localNymID, remoteNymID);
 
@@ -351,10 +351,10 @@ Editor<class ServerContext> Wallet::mutable_ServerContext(
         OT_ASSERT_MSG(remoteNym, "Remote nym does not exist in the wallet.");
 
         // Create a new Context
-        const ContextID contextID = {localNymID.str(), remoteNymID.str()};
+        const ContextID contextID = {localNymID.str(), remoteNymID->str()};
         auto& entry = context_map_[contextID];
         auto& zmq = ot_.ZMQ();
-        auto& connection = zmq.Server(serverID.str());
+        auto& connection = zmq.Server(serverID->str());
         entry.reset(new class ServerContext(
             localNym,
             remoteNym,
@@ -542,9 +542,9 @@ ConstNym Wallet::Nym(
 ConstNym Wallet::Nym(const proto::CredentialIndex& publicNym) const
 {
     const auto& id = publicNym.nymid();
-    Identifier nym(id);
+    auto nym = Identifier::Factory(id);
 
-    auto existing = Nym(Identifier(nym));
+    auto existing = Nym(Identifier::Factory(nym));
 
     if (existing) {
         if (existing->Revision() >= publicNym.revision()) {
@@ -1249,7 +1249,7 @@ ConstServerContract Wallet::Server(
         bool loaded = ot_.DB().Load(server, serialized, alias, true);
 
         if (loaded) {
-            auto nym = Nym(Identifier(serialized->nymid()));
+            auto nym = Nym(Identifier::Factory(serialized->nymid()));
 
             if (!nym && serialized->has_publicnym()) {
                 nym = Nym(serialized->publicnym());
@@ -1318,13 +1318,13 @@ ConstServerContract Wallet::Server(
         }
     }
 
-    return Server(Identifier(server));
+    return Server(Identifier::Factory(server));
 }
 
 ConstServerContract Wallet::Server(const proto::ServerContract& contract) const
 {
     std::string server = contract.id();
-    auto nym = Nym(Identifier(contract.nymid()));
+    auto nym = Nym(Identifier::Factory(contract.nymid()));
 
     if (!nym && contract.has_publicnym()) {
         nym = Nym(contract.publicnym());
@@ -1345,7 +1345,7 @@ ConstServerContract Wallet::Server(const proto::ServerContract& contract) const
         }
     }
 
-    return Server(Identifier(server));
+    return Server(Identifier::Factory(server));
 }
 
 ConstServerContract Wallet::Server(
@@ -1356,7 +1356,7 @@ ConstServerContract Wallet::Server(
 {
     std::string server;
 
-    auto nym = Nym(Identifier(nymid));
+    auto nym = Nym(Identifier::Factory(nymid));
 
     if (nym) {
         std::unique_ptr<ServerContract> contract;
@@ -1374,7 +1374,7 @@ ConstServerContract Wallet::Server(
               << std::endl;
     }
 
-    return Server(Identifier(server));
+    return Server(Identifier::Factory(server));
 }
 
 ObjectList Wallet::ServerList() const { return ot_.DB().ServerList(); }
@@ -1392,9 +1392,9 @@ bool Wallet::SetNymAlias(const Identifier& id, const std::string& alias) const
     return ot_.DB().SetNymAlias(id.str(), alias);
 }
 
-Identifier Wallet::ServerToNym(Identifier& input) const
+OTIdentifier Wallet::ServerToNym(Identifier& input) const
 {
-    Identifier output;
+    auto output = Identifier::Factory();
     auto nym = Nym(input);
     const bool inputIsNymID = bool(nym);
 
@@ -1405,7 +1405,7 @@ Identifier Wallet::ServerToNym(Identifier& input) const
 
         for (const auto& item : list) {
             const auto& serverID = item.first;
-            auto server = Server(Identifier(serverID));
+            auto server = Server(Identifier::Factory(serverID));
 
             OT_ASSERT(server);
 
@@ -1421,7 +1421,7 @@ Identifier Wallet::ServerToNym(Identifier& input) const
         auto contract = Server(input);
 
         if (contract) {
-            output = Identifier(contract->Contract().nymid());
+            output = Identifier::Factory(contract->Contract().nymid());
         } else {
             otErr << OT_METHOD << __FUNCTION__
                   << ": Non-existent server: " << String(input) << std::endl;
@@ -1485,7 +1485,7 @@ const ConstUnitDefinition Wallet::UnitDefinition(
         bool loaded = ot_.DB().Load(unit, serialized, alias, true);
 
         if (loaded) {
-            auto nym = Nym(Identifier(serialized->nymid()));
+            auto nym = Nym(Identifier::Factory(serialized->nymid()));
 
             if (!nym && serialized->has_publicnym()) {
                 nym = Nym(serialized->publicnym());
@@ -1553,14 +1553,14 @@ ConstUnitDefinition Wallet::UnitDefinition(
         }
     }
 
-    return UnitDefinition(Identifier(unit));
+    return UnitDefinition(Identifier::Factory(unit));
 }
 
 ConstUnitDefinition Wallet::UnitDefinition(
     const proto::UnitDefinition& contract) const
 {
     std::string unit = contract.id();
-    auto nym = Nym(Identifier(contract.nymid()));
+    auto nym = Nym(Identifier::Factory(contract.nymid()));
 
     if (!nym && contract.has_publicnym()) {
         nym = Nym(contract.publicnym());
@@ -1581,7 +1581,7 @@ ConstUnitDefinition Wallet::UnitDefinition(
         }
     }
 
-    return UnitDefinition(Identifier(unit));
+    return UnitDefinition(Identifier::Factory(unit));
 }
 
 ConstUnitDefinition Wallet::UnitDefinition(
@@ -1596,7 +1596,7 @@ ConstUnitDefinition Wallet::UnitDefinition(
 {
     std::string unit;
 
-    auto nym = Nym(Identifier(nymid));
+    auto nym = Nym(Identifier::Factory(nymid));
 
     if (nym) {
         std::unique_ptr<class UnitDefinition> contract;
@@ -1614,7 +1614,7 @@ ConstUnitDefinition Wallet::UnitDefinition(
               << std::endl;
     }
 
-    return UnitDefinition(Identifier(unit));
+    return UnitDefinition(Identifier::Factory(unit));
 }
 
 ConstUnitDefinition Wallet::UnitDefinition(
@@ -1626,7 +1626,7 @@ ConstUnitDefinition Wallet::UnitDefinition(
 {
     std::string unit;
 
-    auto nym = Nym(Identifier(nymid));
+    auto nym = Nym(Identifier::Factory(nymid));
 
     if (nym) {
         std::unique_ptr<class UnitDefinition> contract;
@@ -1644,7 +1644,7 @@ ConstUnitDefinition Wallet::UnitDefinition(
               << std::endl;
     }
 
-    return UnitDefinition(Identifier(unit));
+    return UnitDefinition(Identifier::Factory(unit));
 }
 
 Wallet::~Wallet() {}

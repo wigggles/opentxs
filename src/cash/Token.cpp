@@ -290,8 +290,9 @@ Token* Token::LowLevelInstantiate(
         OT_ASSERT(nullptr != pToken);
     }
 #else
-    otErr << __FUNCTION__ << ": Open-Transactions is not built for any digital "
-                             "cash algorithms. (Failure.)";
+    otErr << __FUNCTION__
+          << ": Open-Transactions is not built for any digital "
+             "cash algorithms. (Failure.)";
 #endif  // OT_CASH_USING_LUCRE
 
     return pToken;
@@ -324,8 +325,9 @@ Token* Token::LowLevelInstantiate(
         OT_ASSERT(nullptr != pToken);
     }
 #else
-    otErr << __FUNCTION__ << ": Open-Transactions is not built for any digital "
-                             "cash algorithms. (Failure.)";
+    otErr << __FUNCTION__
+          << ": Open-Transactions is not built for any digital "
+             "cash algorithms. (Failure.)";
 #endif  // OT_CASH_USING_LUCRE
 
     return pToken;
@@ -339,8 +341,9 @@ Token* Token::LowLevelInstantiate(const Purse& thePurse)
     pToken = new Token_Lucre(thePurse);
     OT_ASSERT(nullptr != pToken);
 #else
-    otErr << __FUNCTION__ << ": Open-Transactions is not built for any digital "
-                             "cash algorithms. (Failure.)";
+    otErr << __FUNCTION__
+          << ": Open-Transactions is not built for any digital "
+             "cash algorithms. (Failure.)";
 #endif  // OT_CASH_USING_LUCRE
 
     return pToken;
@@ -371,8 +374,9 @@ Token* Token::LowLevelInstantiate(const String& strFirstLine)
         OT_ASSERT(nullptr != pToken);
     }
 #else
-    otErr << __FUNCTION__ << ": Open-Transactions is not built for any digital "
-                             "cash algorithms. (Failure.)";
+    otErr << __FUNCTION__
+          << ": Open-Transactions is not built for any digital "
+             "cash algorithms. (Failure.)";
 #endif  // OT_CASH_USING_LUCRE
 
     return pToken;
@@ -476,8 +480,8 @@ bool Token::IsTokenAlreadySpent(String& theCleartextToken)
     String strInstrumentDefinitionID(GetInstrumentDefinitionID());
 
     // Calculate the filename (a hash of the Lucre cleartext token ID)
-    Identifier theTokenHash;
-    theTokenHash.CalculateDigest(theCleartextToken);
+    auto theTokenHash = Identifier::Factory();
+    theTokenHash->CalculateDigest(theCleartextToken);
 
     // Grab the new hash into a string (for use as a filename)
     String strTokenHash(theTokenHash);
@@ -510,8 +514,8 @@ bool Token::RecordTokenAsSpent(String& theCleartextToken)
     String strInstrumentDefinitionID(GetInstrumentDefinitionID());
 
     // Calculate the filename (a hash of the Lucre cleartext token ID)
-    Identifier theTokenHash;
-    theTokenHash.CalculateDigest(theCleartextToken);
+    auto theTokenHash = Identifier::Factory();
+    theTokenHash->CalculateDigest(theCleartextToken);
 
     // Grab the new hash into a string (for use as a filename)
     String strTokenHash(theTokenHash);
@@ -1140,7 +1144,7 @@ bool Token::VerifyToken(Nym& theNotary, Mint& theMint)
     }
 }
 
-// SUBCLASSES OF OTTOKEN FOR EACH DIGITAL CASH ALGORITHM.
+    // SUBCLASSES OF OTTOKEN FOR EACH DIGITAL CASH ALGORITHM.
 
 #if OT_CASH_USING_MAGIC_MONEY
 // Todo:  Someday...

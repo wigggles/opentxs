@@ -162,7 +162,7 @@ Credential::Credential(
 {
     if (serializedCred.has_nymid()) {
         nym_id_ = String(serializedCred.nymid());
-        id_ = Identifier(serializedCred.id());
+        id_ = Identifier::Factory(serializedCred.id());
     }
 
     SerializedSignature sig;
@@ -279,7 +279,7 @@ bool Credential::verify_master_signature(const Lock& lock) const
     }
 
     return (owner_backlink_->GetMasterCredential().Verify(
-        *serialized, role_, Identifier(MasterID()), *masterSig));
+        *serialized, role_, Identifier::Factory(MasterID()), *masterSig));
 }
 
 SerializedSignature Credential::MasterSignature() const
@@ -358,9 +358,9 @@ OTIdentifier Credential::GetID(const Lock& lock) const
     }
 
     auto serializedData = proto::ProtoAsData(*idVersion);
-    Identifier id;
+    auto id = Identifier::Factory();
 
-    if (!id.CalculateDigest(serializedData)) {
+    if (!id->CalculateDigest(serializedData)) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Error calculating credential digest.\n";
     }

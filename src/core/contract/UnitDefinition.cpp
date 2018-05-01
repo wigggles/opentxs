@@ -349,7 +349,7 @@ bool UnitDefinition::VisitAccountRecords(AccountVisitor& visitor) const
                 Account* pAccount = nullptr;
                 std::unique_ptr<Account> theAcctAngel;
 
-                const Identifier theAccountID(str_acct_id);
+                const auto theAccountID = Identifier::Factory(str_acct_id);
 
                 // Before loading it from local storage, let's first make sure
                 // it's not already loaded.
@@ -421,12 +421,13 @@ bool UnitDefinition::AddAccountRecord(const Account& theAccount) const  // adds
     const char* szFunc = "OTUnitDefinition::AddAccountRecord";
 
     if (theAccount.GetInstrumentDefinitionID() != id_) {
-        otErr << szFunc << ": Error: theAccount doesn't have the same asset "
-                           "type ID as *this does.\n";
+        otErr << szFunc
+              << ": Error: theAccount doesn't have the same asset "
+                 "type ID as *this does.\n";
         return false;
     }
 
-    const Identifier theAcctID(theAccount);
+    const auto theAcctID = Identifier::Factory(theAccount);
     const String strAcctID(theAcctID);
 
     const String strInstrumentDefinitionID(id(lock));
@@ -487,11 +488,13 @@ bool UnitDefinition::AddAccountRecord(const Account& theAccount) const  // adds
                                                                        // never
         // happen.
         {
-            otErr << szFunc << ": Error: wrong instrument definition found in "
-                               "account records "
-                               "file...\n For instrument definition: "
-                  << strInstrumentDefinitionID << "\n "
-                                                  "For account: "
+            otErr << szFunc
+                  << ": Error: wrong instrument definition found in "
+                     "account records "
+                     "file...\n For instrument definition: "
+                  << strInstrumentDefinitionID
+                  << "\n "
+                     "For account: "
                   << strAcctID
                   << "\n Found wrong instrument definition: " << str2 << "\n";
             return false;
@@ -629,7 +632,7 @@ UnitDefinition::UnitDefinition(
     : ot_super(nym)
 {
     if (serialized.has_id()) {
-        id_ = Identifier(serialized.id());
+        id_ = Identifier::Factory(serialized.id());
     }
     if (serialized.has_signature()) {
         signatures_.push_front(SerializedSignature(
@@ -859,8 +862,8 @@ OTIdentifier UnitDefinition::GetID(const Lock& lock) const
 
 OTIdentifier UnitDefinition::GetID(const proto::UnitDefinition& contract)
 {
-    Identifier id;
-    id.CalculateDigest(proto::ProtoAsData<proto::UnitDefinition>(contract));
+    auto id = Identifier::Factory();
+    id->CalculateDigest(proto::ProtoAsData<proto::UnitDefinition>(contract));
     return id;
 }
 

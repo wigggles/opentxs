@@ -181,8 +181,8 @@ std::string OTNameLookup::GetNymName(
     std::string display_label{SwigWrap::GetNym_Name(str_id)};
 
     if (display_label.empty()) {
-        const Identifier contactId =  // Lookup ContactID based on Nym Id.
-            OT::App().Contact().ContactID(Identifier{str_id});
+        const auto contactId =  // Lookup ContactID based on Nym Id.
+            OT::App().Contact().ContactID(Identifier::Factory(str_id));
         const String strContactId{contactId};
 
         if (Identifier::validateID(strContactId.Get())) {
@@ -206,7 +206,7 @@ std::string OTNameLookup::GetContactName(
     if (str_id.empty()) return {};
 
     const auto pContact =
-        OT::App().Contact().Contact(opentxs::Identifier{str_id});
+        OT::App().Contact().Contact(opentxs::Identifier::Factory(str_id));
 
     if (!pContact || pContact->Label().empty()) return {};
 
@@ -446,7 +446,8 @@ void OTRecordList::AddInstrumentDefinitionID(std::string str_id)
     OT_ASSERT_MSG(
         nullptr != pWallet, "Wallet was nullptr. Should never happen.");
     const String strInstrumentDefinitionID(str_id);
-    const Identifier theInstrumentDefinitionID(strInstrumentDefinitionID);
+    const auto theInstrumentDefinitionID =
+        Identifier::Factory(strInstrumentDefinitionID);
     std::string str_asset_name;
     // Name is dollars, fraction is cents, TLA is USD and
     // Symbol is $ (for example.) Here, we're grabbing the TLA.
@@ -705,7 +706,11 @@ bool OTRecordList::accept_from_paymentbox(  // static function
             } else {
                 std::int32_t nTemp = processPayment(
                     transport_notary,
-                    myacct, paymentType, inbox, i, pOptionalOutput);
+                    myacct,
+                    paymentType,
+                    inbox,
+                    i,
+                    pOptionalOutput);
                 if (1 == nNumlistCount) {  // If there's exactly 1 instrument
                                            // being singled-out
                     nReturnValue = nTemp;  // for processing, then return its
@@ -768,9 +773,8 @@ std::int32_t OTRecordList::processPayment(  // a static method
             return -1;
         }
     } else {
-        instrument =
-            OTRecordList::get_payment_instrument(transport_notary, mynym,
-                                                 index, inbox);
+        instrument = OTRecordList::get_payment_instrument(
+            transport_notary, mynym, index, inbox);
         if (instrument.empty()) {
             otOut << "Error: cannot get payment instrument.\n";
             return -1;
@@ -778,8 +782,7 @@ std::int32_t OTRecordList::processPayment(  // a static method
     }
 
     OTPayment thePayment(String(instrument.c_str()));
-    if (!thePayment.IsValid() || !thePayment.SetTempValues())
-    {
+    if (!thePayment.IsValid() || !thePayment.SetTempValues()) {
         otOut << "Error: Failed loading payment instrument from string.\n";
         return -1;
     }
@@ -789,8 +792,7 @@ std::int32_t OTRecordList::processPayment(  // a static method
     OTIdentifier paymentNotaryId = Identifier::Factory();
     const bool bGotPaymentNotaryId = thePayment.GetNotaryID(paymentNotaryId);
 
-    if (!bGotPaymentNotaryId)
-    {
+    if (!bGotPaymentNotaryId) {
         otOut << "Error: Failed getting Notary ID from payment instrument.\n";
         return -1;
     }
@@ -799,12 +801,11 @@ std::int32_t OTRecordList::processPayment(  // a static method
     const bool bGotPaymentAssetTypeId =
         thePayment.GetInstrumentDefinitionID(assetTypeId);
 
-    if (!bGotPaymentAssetTypeId)
-    {
+    if (!bGotPaymentAssetTypeId) {
         // Allowed for now.
 
-//        otOut << "Error: cannot determine instrument's asset type.\n";
-//        return -1;
+        //        otOut << "Error: cannot determine instrument's asset type.\n";
+        //        return -1;
         ;
     }
     const std::string strPaymentAssetTypeId = assetTypeId->str();
@@ -821,7 +822,7 @@ std::int32_t OTRecordList::processPayment(  // a static method
     {                            // Then skip this one.
         // Except:
         if (("CHEQUE" == paymentType || "VOUCHER" == paymentType) &&
-            (thePayment.IsCheque() || thePayment.IsVoucher()) ) {
+            (thePayment.IsCheque() || thePayment.IsVoucher())) {
             // in this case we allow it to drop through.
         } else {
             otOut << "Error: invalid instrument type.\n";
@@ -866,13 +867,13 @@ std::int32_t OTRecordList::processPayment(  // a static method
     // then the transaction will fail. So let's check, before we bother
     // sending it...
 
-    Identifier senderNymId, recipientNymId;
+    auto senderNymId = Identifier::Factory(),
+         recipientNymId = Identifier::Factory();
     std::string sender, recipient;
 
-    if (thePayment.GetSenderNymID(senderNymId))
-        sender = senderNymId.str();
+    if (thePayment.GetSenderNymID(senderNymId)) sender = senderNymId->str();
     if (thePayment.GetRecipientNymID(recipientNymId))
-        recipient = recipientNymId.str();
+        recipient = recipientNymId->str();
 
     std::string endorsee = bIsPaymentPlan ? sender : recipient;
 
@@ -919,32 +920,32 @@ std::int32_t OTRecordList::processPayment(  // a static method
     // They are interchangeable. So presumably the caller already did the
     // heavy lifting of selecting the correct account.
     // ---------------------------------------------
-//    if (bIsPaymentPlan) {
-//        // Note: this block is currently unreachable/disallowed.
-//        //       (But it would otherwise work.)
-//        //
-//        // NOTE: We couldn't even do this for smart contracts, since
-//        // the "confirmSmartContract" function assumes it's being used
-//        // at the command line, and it asks the user to enter various
-//        // data (choose your account, etc) at the command line.
-//        // So ONLY with Payment Plans can we do this here! The GUI has
-//        // to provide its own custom code for smart contracts. However,
-//        // that code will be easy to write: Just copy the code you see
-//        // in confirmInstrument, for smart contracts, and change it to
-//        // use GUI input/output instead of command line i/o.
-//        //
-//        CmdConfirm cmd;
-//        return cmd.confirmInstrument(
-//            acct_server,
-//            mynym,
-//            myacct,
-//            recipient,
-//            instrument,
-//            index,
-//            pOptionalOutput);
-//        // NOTE: we don't perform any RecordPayment here because
-//        // confirmInstrument already does that.
-//    }
+    //    if (bIsPaymentPlan) {
+    //        // Note: this block is currently unreachable/disallowed.
+    //        //       (But it would otherwise work.)
+    //        //
+    //        // NOTE: We couldn't even do this for smart contracts, since
+    //        // the "confirmSmartContract" function assumes it's being used
+    //        // at the command line, and it asks the user to enter various
+    //        // data (choose your account, etc) at the command line.
+    //        // So ONLY with Payment Plans can we do this here! The GUI has
+    //        // to provide its own custom code for smart contracts. However,
+    //        // that code will be easy to write: Just copy the code you see
+    //        // in confirmInstrument, for smart contracts, and change it to
+    //        // use GUI input/output instead of command line i/o.
+    //        //
+    //        CmdConfirm cmd;
+    //        return cmd.confirmInstrument(
+    //            acct_server,
+    //            mynym,
+    //            myacct,
+    //            recipient,
+    //            instrument,
+    //            index,
+    //            pOptionalOutput);
+    //        // NOTE: we don't perform any RecordPayment here because
+    //        // confirmInstrument already does that.
+    //    }
     // ---------------------------------------------
     time64_t now = SwigWrap::GetTime();
     time64_t from{};
@@ -955,13 +956,11 @@ std::int32_t OTRecordList::processPayment(  // a static method
     bool bGotValidTo{false};
     bGotValidTo = thePayment.GetValidTo(until);
 
-    if (!bGotValidFrom)
-    {
-        ; // TODO Maybe log here. But I think this case is allowed.
+    if (!bGotValidFrom) {
+        ;  // TODO Maybe log here. But I think this case is allowed.
     }
-    if (!bGotValidTo)
-    {
-        ; // TODO Maybe log here. But I think this case is allowed.
+    if (!bGotValidTo) {
+        ;  // TODO Maybe log here. But I think this case is allowed.
     }
     // TODO here: make sure the logic accounts for the fact that the boolean
     // could be false. We should behave properly in the event that a valid from
@@ -980,9 +979,8 @@ std::int32_t OTRecordList::processPayment(  // a static method
 
         // Since this instrument is expired, remove it from the payments inbox,
         // and move to record box.
-        if (0 <= index &&
-            SwigWrap::RecordPayment(transport_notary, mynym, true, index, true))
-        {
+        if (0 <= index && SwigWrap::RecordPayment(
+                              transport_notary, mynym, true, index, true)) {
             return 0;
         }
 
@@ -998,10 +996,8 @@ std::int32_t OTRecordList::processPayment(  // a static method
     // That's why you don't see me messing with the payments inbox even when
     // these are successful. They DO need to be removed from the payments inbox,
     // but just not here in the script. (Rather, internally by OT itself.)
-    if (thePayment.IsCheque()  ||
-        thePayment.IsVoucher() ||
-        thePayment.IsInvoice())
-    {
+    if (thePayment.IsCheque() || thePayment.IsVoucher() ||
+        thePayment.IsInvoice()) {
         return depositCheque(
             acct_server, myacct, mynym, instrument, pOptionalOutput);
     } else if (thePayment.IsPurse()) {
@@ -1053,9 +1049,9 @@ std::int32_t OTRecordList::depositCheque(  // a static method
                        .API()
                        .ServerAction()
                        .DepositCheque(
-                           Identifier(mynym),
-                           Identifier(server),
-                           Identifier(myacct),
+                           Identifier::Factory(mynym),
+                           Identifier::Factory(server),
+                           Identifier::Factory(myacct),
                            cheque)
                        ->Run();
     }
@@ -1071,9 +1067,9 @@ std::int32_t OTRecordList::depositCheque(  // a static method
 
     {
         if (!OT::App().API().ServerAction().DownloadAccount(
-                Identifier(mynym),
-                Identifier(server),
-                Identifier(myacct),
+                Identifier::Factory(mynym),
+                Identifier::Factory(server),
+                Identifier::Factory(myacct),
                 true)) {
             otOut << "Error retrieving intermediary files for account.\n";
             return -1;
@@ -1183,7 +1179,9 @@ std::int32_t OTRecordList::confirmPaymentPlan_lowLevel(  // a static method
 
     {
         if (!OT::App().API().ServerAction().GetTransactionNumbers(
-                Identifier(senderUser), Identifier(server), 2)) {
+                Identifier::Factory(senderUser),
+                Identifier::Factory(server),
+                2)) {
             otOut << "Error: cannot reserve transaction numbers.\n";
             return -1;
         }
@@ -1207,13 +1205,14 @@ std::int32_t OTRecordList::confirmPaymentPlan_lowLevel(  // a static method
 
     std::string response;
     {
-        response =
-            OT::App()
-                .API()
-                .ServerAction()
-                .DepositPaymentPlan(
-                    Identifier(senderUser), Identifier(server), paymentPlan)
-                ->Run();
+        response = OT::App()
+                       .API()
+                       .ServerAction()
+                       .DepositPaymentPlan(
+                           Identifier::Factory(senderUser),
+                           Identifier::Factory(server),
+                           paymentPlan)
+                       ->Run();
     }
 
     std::int32_t success = VerifyMessageSuccess(response);
@@ -1236,9 +1235,9 @@ std::int32_t OTRecordList::confirmPaymentPlan_lowLevel(  // a static method
 
     {
         if (!OT::App().API().ServerAction().DownloadAccount(
-                Identifier(senderUser),
-                Identifier(server),
-                Identifier(senderAcct),
+                Identifier::Factory(senderUser),
+                Identifier::Factory(server),
+                Identifier::Factory(senderAcct),
                 true)) {
             otOut << "Error retrieving intermediary files for account.\n";
             return -1;
@@ -1311,11 +1310,11 @@ bool OTRecordList::checkServer(const char* name, std::string& server)
 {
     if (!checkMandatory(name, server)) return false;
 
-    Identifier theID(server);
+    auto theID = Identifier::Factory(server);
     ConstServerContract pServer;  // shared_ptr to const.
 
     // See if it's available using the full length ID.
-    if (!theID.empty()) pServer = OT::App().Wallet().Server(theID);
+    if (!theID->empty()) pServer = OT::App().Wallet().Server(theID);
 
     if (!pServer) {
         const auto servers = OT::App().Wallet().ServerList();
@@ -1323,7 +1322,8 @@ bool OTRecordList::checkServer(const char* name, std::string& server)
         // See if it's available using the partial length ID.
         for (auto& it : servers) {
             if (0 == it.first.compare(0, server.length(), server)) {
-                pServer = OT::App().Wallet().Server(Identifier(it.first));
+                pServer =
+                    OT::App().Wallet().Server(Identifier::Factory(it.first));
                 break;
             }
         }
@@ -1331,7 +1331,8 @@ bool OTRecordList::checkServer(const char* name, std::string& server)
             // See if it's available using the full length name.
             for (auto& it : servers) {
                 if (0 == it.second.compare(0, it.second.length(), server)) {
-                    pServer = OT::App().Wallet().Server(Identifier(it.first));
+                    pServer = OT::App().Wallet().Server(
+                        Identifier::Factory(it.first));
                     break;
                 }
             }
@@ -1340,8 +1341,8 @@ bool OTRecordList::checkServer(const char* name, std::string& server)
                 // See if it's available using the partial name.
                 for (auto& it : servers) {
                     if (0 == it.second.compare(0, server.length(), server)) {
-                        pServer =
-                            OT::App().Wallet().Server(Identifier(it.first));
+                        pServer = OT::App().Wallet().Server(
+                            Identifier::Factory(it.first));
                         break;
                     }
                 }
@@ -1368,9 +1369,9 @@ bool OTRecordList::checkNym(
     if (!checkMandatory(name, nym)) return false;
 
     ConstNym pNym = nullptr;
-    const Identifier nymID(nym);
+    const auto nymID = Identifier::Factory(nym);
 
-    if (!nymID.empty()) pNym = OT::App().Wallet().Nym(nymID);
+    if (!nymID->empty()) pNym = OT::App().Wallet().Nym(nymID);
 
     if (!pNym) pNym = OT::App().Wallet().NymByIDPartialMatch(nym);
 
@@ -1397,9 +1398,9 @@ bool OTRecordList::checkAccount(const char* name, std::string& account)
     std::shared_ptr<Account> pAccount{nullptr};
     OTWallet* wallet = OT::App().API().OTAPI().GetWallet();
 
-    Identifier theID(account);
+    auto theID = Identifier::Factory(account);
 
-    if (!theID.empty()) pAccount = wallet->GetAccount(theID);
+    if (!theID->empty()) pAccount = wallet->GetAccount(theID);
 
     if (false == bool(pAccount)) {
         pAccount = wallet->GetAccountPartialMatch(account);
@@ -1588,7 +1589,8 @@ std::int32_t OTRecordList::cancel_outgoing_payments(
         // drawn on, that will be interpreted by the server as a request to
         // CANCEL the cheque.
 
-        const Identifier theNotaryID{server}, theNymID{the_mynym};
+        const auto theNotaryID = Identifier::Factory(server),
+                   theNymID = Identifier::Factory(the_mynym);
         std::string type = SwigWrap::Instrmnt_GetType(payment);
 
         if ("SMARTCONTRACT" == type) {
@@ -1622,7 +1624,7 @@ std::int32_t OTRecordList::cancel_outgoing_payments(
                                .ActivateSmartContract(
                                    theNymID,
                                    theNotaryID,
-                                   Identifier(the_myacct),
+                                   Identifier::Factory(the_myacct),
                                    "acct_agent_name",
                                    contract)
                                ->Run();
@@ -1792,7 +1794,9 @@ std::int32_t OTRecordList::acceptFromInbox(  // a static method
     // needed, and that call is made before the server transaction request is
     // actually sent.
     //
-    const Identifier theNotaryID{server}, theNymID{mynym}, theAcctID{myacct};
+    const auto theNotaryID = Identifier::Factory(server),
+               theNymID = Identifier::Factory(mynym),
+               theAcctID = Identifier::Factory(myacct);
 
     {
         if (!OT::App().API().ServerAction().GetTransactionNumbers(
@@ -2049,7 +2053,7 @@ bool OTRecordList::PerformAutoAccept()
                        << ": Beginning auto-accept loop through "
                           "Nyms...\n";
             const std::string& str_nym_id(it_nym);
-            const Identifier theNymID(str_nym_id);
+            const auto theNymID = Identifier::Factory(str_nym_id);
             const String strNymID(theNymID);
             ConstNym pNym = OT::App().Wallet().Nym(theNymID);
             if (!pNym) continue;
@@ -2061,7 +2065,8 @@ bool OTRecordList::PerformAutoAccept()
             for (auto& it_server : m_servers) {
                 ++nServerIndex;
                 const std::string& str_msg_notary_id(it_server);
-                const Identifier theMsgNotaryID(str_msg_notary_id);
+                const auto theMsgNotaryID =
+                    Identifier::Factory(str_msg_notary_id);
                 auto pMsgServer = OT::App().Wallet().Server(theMsgNotaryID);
                 if (!pMsgServer) {
                     // This can happen if the user erases the server contract
@@ -2088,7 +2093,7 @@ bool OTRecordList::PerformAutoAccept()
                 // either way.
                 Ledger* pInbox{nullptr};
 
-                if (false == theNymID.empty()) {
+                if (false == theNymID->empty()) {
                     pInbox =
                         m_bRunFast
                             ? OT::App().API().OTAPI().LoadPaymentInboxNoVerify(
@@ -2132,7 +2137,8 @@ bool OTRecordList::PerformAutoAccept()
                         //
                         else if (
                             pPayment->IsValid() && pPayment->SetTempValues()) {
-                            Identifier theInstrumentDefinitionID;
+                            auto theInstrumentDefinitionID =
+                                Identifier::Factory();
 
                             if (pPayment->GetInstrumentDefinitionID(
                                     theInstrumentDefinitionID)) {
@@ -2264,11 +2270,11 @@ bool OTRecordList::PerformAutoAccept()
                         if (it_pmnt_box_trns_num != mapPaymentBoxTransNum.end())
                             lPaymentBoxTransNum = it_pmnt_box_trns_num->second;
 
-                        Identifier paymentAssetType;
+                        auto paymentAssetType = Identifier::Factory();
                         bool bGotAsset = pPayment->GetInstrumentDefinitionID(
                             paymentAssetType);
 
-                        Identifier paymentNotaryId;
+                        auto paymentNotaryId = Identifier::Factory();
                         bool bGotPaymentNotary =
                             pPayment->GetNotaryID(paymentNotaryId);
 
@@ -2304,7 +2310,8 @@ bool OTRecordList::PerformAutoAccept()
                         // pick an account to deposit the cheque into.
                         for (auto& it_acct : m_accounts) {
                             const std::string& str_account_id(it_acct);
-                            const Identifier theAccountID(str_account_id);
+                            const auto theAccountID =
+                                Identifier::Factory(str_account_id);
                             auto pAccount = pWallet->GetAccount(theAccountID);
 
                             if (false == bool(pAccount)) {
@@ -2440,7 +2447,7 @@ bool OTRecordList::PerformAutoAccept()
                           "accounts in the wallet...\n";
             // For each account, loop through its inbox, outbox, and record box.
             const std::string& str_account_id(it_acct);
-            const Identifier theAccountID(str_account_id);
+            const auto theAccountID = Identifier::Factory(str_account_id);
             auto pAccount = pWallet->GetAccount(theAccountID);
 
             if (false == bool(pAccount)) {
@@ -2505,11 +2512,10 @@ bool OTRecordList::PerformAutoAccept()
             Ledger* pInbox{nullptr};
 
             if (false == theNymID.empty()) {
-                pInbox = m_bRunFast
-                             ? OT::App().API().OTAPI().LoadInboxNoVerify(
-                                   theNotaryID, theNymID, theAccountID)
-                             : OT::App().API().OTAPI().LoadInbox(
-                                   theNotaryID, theNymID, theAccountID);
+                pInbox = m_bRunFast ? OT::App().API().OTAPI().LoadInboxNoVerify(
+                                          theNotaryID, theNymID, theAccountID)
+                                    : OT::App().API().OTAPI().LoadInbox(
+                                          theNotaryID, theNymID, theAccountID);
             }
 
             std::unique_ptr<Ledger> theInboxAngel(pInbox);
@@ -2719,7 +2725,7 @@ bool OTRecordList::Populate()
             otInfo << "=============== " << __FUNCTION__
                    << ": Beginning loop through Nyms...\n";
         const std::string& str_nym_id(it_nym);
-        const Identifier theNymID(str_nym_id);
+        const auto theNymID = Identifier::Factory(str_nym_id);
         ConstNym pNym = OT::App().Wallet().Nym(theNymID);
         if (!pNym) continue;
 
@@ -2731,7 +2737,7 @@ bool OTRecordList::Populate()
         otInfo << "--------\n"
                << __FUNCTION__ << ": Nym " << nNymIndex
                << ", nOutpaymentsCount: " << nOutpaymentsCount
-               << ", ID: " << theNymID.str() << "\n";
+               << ", ID: " << theNymID->str() << "\n";
         for (std::int32_t nCurrentOutpayment = 0;
              nCurrentOutpayment < nOutpaymentsCount;
              ++nCurrentOutpayment) {
@@ -2768,7 +2774,7 @@ bool OTRecordList::Populate()
                 strTemp.Format("%" PRId64 "", lAmount);
                 str_amount = strTemp.Get();
             }
-            Identifier theInstrumentDefinitionID;
+            auto theInstrumentDefinitionID = Identifier::Factory();
             const std::string* p_str_asset_type =
                 &OTRecordList::s_blank;  // <========== ASSET TYPE
             const std::string* p_str_asset_name =
@@ -2777,14 +2783,14 @@ bool OTRecordList::Populate()
                                            // on the payment (if we found
                                            // anything.)
             // --------------------------------------------------
-            Identifier paymentNotaryId;
+            auto paymentNotaryId = Identifier::Factory();
             const bool bGotPaymentNotary =
                 theOutPayment.GetNotaryID(paymentNotaryId);
 
             std::string str_outpayment_notary_id;
 
             if (bGotPaymentNotary) {
-                str_outpayment_notary_id = paymentNotaryId.str();
+                str_outpayment_notary_id = paymentNotaryId->str();
             }
             if (str_outpayment_notary_id.empty()) {
                 otErr << __FUNCTION__
@@ -2834,7 +2840,7 @@ bool OTRecordList::Populate()
                 nullptr != p_str_asset_name);  // and it's either blank, or
             // it's one of the instrument definitions
             // we care about.
-            Identifier theAccountID;
+            auto theAccountID = Identifier::Factory();
             const std::string* p_str_account =
                 &OTRecordList::s_blank;      // <========== ACCOUNT
             std::string str_outpmt_account;  // The accountID we found on the
@@ -2856,7 +2862,7 @@ bool OTRecordList::Populate()
                 // Also: Since Nym is ME, the Account must be MY account.
                 //
                 theOutPayment.GetSenderAcctIDForDisplay(theAccountID)) {
-                str_outpmt_account = theAccountID.str();
+                str_outpmt_account = theAccountID->str();
                 auto it_acct = std::find(
                     m_accounts.begin(), m_accounts.end(), str_outpmt_account);
                 if (it_acct != m_accounts.end())  // Found it on the list of
@@ -3055,7 +3061,7 @@ bool OTRecordList::Populate()
 
             for (const auto& id : mail) {
                 otInfo << __FUNCTION__ << ": Mail index: " << index << "\n";
-                const Identifier nymID(str_nym_id);
+                const auto nymID = Identifier::Factory(str_nym_id);
 
                 if (id.empty()) {
                     index++;
@@ -3064,7 +3070,7 @@ bool OTRecordList::Populate()
                 }
 
                 auto message = OT::App().Activity().Mail(
-                    nymID, Identifier(id), StorageBox::MAILINBOX);
+                    nymID, Identifier::Factory(id), StorageBox::MAILINBOX);
 
                 if (!message) {
                     otErr << __FUNCTION__
@@ -3183,7 +3189,7 @@ bool OTRecordList::Populate()
 
             for (const auto& id : outmail) {
                 otInfo << __FUNCTION__ << ": Outmail index: " << index << "\n";
-                const Identifier nymID(str_nym_id);
+                const auto nymID = Identifier::Factory(str_nym_id);
 
                 if (id.empty()) {
                     index++;
@@ -3192,7 +3198,7 @@ bool OTRecordList::Populate()
                 }
 
                 auto message = OT::App().Activity().Mail(
-                    nymID, Identifier(id), StorageBox::MAILOUTBOX);
+                    nymID, Identifier::Factory(id), StorageBox::MAILOUTBOX);
 
                 if (!message) {
                     otErr << __FUNCTION__
@@ -3312,7 +3318,7 @@ bool OTRecordList::Populate()
         std::int32_t nServerIndex = -1;
         for (auto& it_server : m_servers) {
             ++nServerIndex;
-            const Identifier theMsgNotaryID(it_server);
+            const auto theMsgNotaryID = Identifier::Factory(it_server);
             auto pServer = OT::App().Wallet().Server(theMsgNotaryID);
             if (!pServer) {
                 // This can happen if the user erases the server contract
@@ -3334,7 +3340,7 @@ bool OTRecordList::Populate()
             // either way.
             Ledger* pInbox{nullptr};
 
-            if (false == theNymID.empty()) {
+            if (false == theNymID->empty()) {
                 pInbox = m_bRunFast
                              ? OT::App().API().OTAPI().LoadPaymentInboxNoVerify(
                                    theMsgNotaryID, theNymID)
@@ -3364,7 +3370,7 @@ bool OTRecordList::Populate()
                         strMsgNotaryID.Get();
 
                     if (!pBoxTrans->IsAbbreviated()) {
-                        Identifier theSenderID;
+                        auto theSenderID = Identifier::Factory();
 
                         if (pBoxTrans->GetSenderNymIDForDisplay(theSenderID)) {
                             const String strSenderID(theSenderID);
@@ -3385,7 +3391,7 @@ bool OTRecordList::Populate()
                             str_name = strNameTemp.Get();
                         }
 
-                        theSenderID.Release();
+                        theSenderID->Release();
 
                         if (pBoxTrans->GetSenderAcctIDForDisplay(theSenderID)) {
                             const String strSenderID(theSenderID);
@@ -3514,17 +3520,18 @@ bool OTRecordList::Populate()
                                 str_memo = strMemo.Get();
                             }
 
-                            Identifier paymentNotaryId;
+                            auto paymentNotaryId = Identifier::Factory();
                             bool bGotPaymentNotary =
                                 pPayment->GetNotaryID(paymentNotaryId);
 
                             if (bGotPaymentNotary) {
-                                str_payment_notary = paymentNotaryId.str();
+                                str_payment_notary = paymentNotaryId->str();
                             }
 
                             pPayment->GetPaymentContents(strContents);
-                            Identifier theInstrumentDefinitionID,
-                                theSenderAcctID;
+                            auto theInstrumentDefinitionID =
+                                     Identifier::Factory(),
+                                 theSenderAcctID = Identifier::Factory();
 
                             if (pPayment->GetInstrumentDefinitionID(
                                     theInstrumentDefinitionID)) {
@@ -3677,7 +3684,7 @@ bool OTRecordList::Populate()
             // OPTIMIZE FYI: m_bRunFast impacts run speed here.
             Ledger* pRecordbox{nullptr};
 
-            if (false == theNymID.empty()) {
+            if (false == theNymID->empty()) {
                 pRecordbox =
                     m_bRunFast
                         ? OT::App().API().OTAPI().LoadRecordBoxNoVerify(
@@ -3763,8 +3770,10 @@ bool OTRecordList::Populate()
                             if (pBoxTrans->IsCancelled()) bCanceled = true;
                         }
                         // ----------------------------------------
-                        Identifier theSenderID, theSenderAcctID;
-                        Identifier theRecipientID, theRecipientAcctID;
+                        auto theSenderID = Identifier::Factory(),
+                             theSenderAcctID = Identifier::Factory();
+                        auto theRecipientID = Identifier::Factory(),
+                             theRecipientAcctID = Identifier::Factory();
 
                         if (pBoxTrans->GetSenderNymIDForDisplay(theSenderID)) {
                             const String strSenderID(theSenderID);
@@ -3779,12 +3788,11 @@ bool OTRecordList::Populate()
                             // Whereas if Nym were the recipient, then we'd want
                             // the SENDER. (For display.)
                             //
-                            if (0 ==
-                                str_nym_id.compare(
-                                    str_sender_id))  // str_nym_id IS
-                                                     // str_sender_id.
-                                                     // (Therefore we want
-                                                     // recipient.)
+                            if (0 == str_nym_id.compare(
+                                         str_sender_id))  // str_nym_id IS
+                                                          // str_sender_id.
+                                                          // (Therefore we want
+                                                          // recipient.)
                             {
                                 if (OTTransaction::notice ==
                                     pBoxTrans->GetType()) {
@@ -4027,7 +4035,7 @@ bool OTRecordList::Populate()
                                 str_date = strFrom.Get();
                             }
                             pPayment->GetPaymentContents(strContents);
-                            Identifier theAccountID;
+                            auto theAccountID = Identifier::Factory();
 
                             if (bOutgoing)  // Nym is sender.
                             {
@@ -4134,7 +4142,8 @@ bool OTRecordList::Populate()
                                                                   // the
                                                                   // accounts we
                                                                   // care about.
-                            Identifier theInstrumentDefinitionID;
+                            auto theInstrumentDefinitionID =
+                                Identifier::Factory();
 
                             if (pPayment->GetInstrumentDefinitionID(
                                     theInstrumentDefinitionID)) {
@@ -4205,9 +4214,9 @@ bool OTRecordList::Populate()
                                 str_amount = strTemp.Get();
                             }
 
-                            Identifier paymentNotaryId;
+                            auto paymentNotaryId = Identifier::Factory();
                             if (pPayment->GetNotaryID(paymentNotaryId)) {
-                                str_payment_notary_id = paymentNotaryId.str();
+                                str_payment_notary_id = paymentNotaryId->str();
                             }
                         }
                     }
@@ -4217,7 +4226,7 @@ bool OTRecordList::Populate()
 
                     shared_ptr_OTRecord sp_Record(new OTRecord(
                         *this,
-                        theMsgNotaryID.str(),   // Transport Notary
+                        theMsgNotaryID->str(),  // Transport Notary
                         str_payment_notary_id,  // Payment Notary
                         *p_str_asset_type,
                         *p_str_asset_name,
@@ -4288,9 +4297,10 @@ bool OTRecordList::Populate()
 
                 }  // Loop through Recordbox
             } else
-                otWarn << __FUNCTION__ << ": Failed loading payments record "
-                                          "box. (Probably just doesn't exist "
-                                          "yet.)\n";
+                otWarn << __FUNCTION__
+                       << ": Failed loading payments record "
+                          "box. (Probably just doesn't exist "
+                          "yet.)\n";
 
             // EXPIRED RECORDS:
             nIndex = (-1);
@@ -4299,13 +4309,12 @@ bool OTRecordList::Populate()
             // OPTIMIZE FYI: m_bRunFast impacts run speed here.
             Ledger* pExpiredbox{nullptr};
 
-            if (false == theNymID.empty()) {
+            if (false == theNymID->empty()) {
                 pExpiredbox =
-                    m_bRunFast
-                        ? OT::App().API().OTAPI().LoadExpiredBoxNoVerify(
-                              theMsgNotaryID, theNymID)
-                        : OT::App().API().OTAPI().LoadExpiredBox(
-                              theMsgNotaryID, theNymID);
+                    m_bRunFast ? OT::App().API().OTAPI().LoadExpiredBoxNoVerify(
+                                     theMsgNotaryID, theNymID)
+                               : OT::App().API().OTAPI().LoadExpiredBox(
+                                     theMsgNotaryID, theNymID);
             }
 
             std::unique_ptr<Ledger> theExpiredBoxAngel(pExpiredbox);
@@ -4372,8 +4381,10 @@ bool OTRecordList::Populate()
                             if (pBoxTrans->IsCancelled()) bCanceled = true;
                         }
                         // ----------------------------------------
-                        Identifier theSenderID, theSenderAcctID;
-                        Identifier theRecipientID, theRecipientAcctID;
+                        auto theSenderID = Identifier::Factory(),
+                             theSenderAcctID = Identifier::Factory();
+                        auto theRecipientID = Identifier::Factory(),
+                             theRecipientAcctID = Identifier::Factory();
 
                         if (pBoxTrans->GetSenderNymIDForDisplay(theSenderID)) {
                             const String strSenderID(theSenderID);
@@ -4388,12 +4399,11 @@ bool OTRecordList::Populate()
                             // Whereas if Nym were the recipient, then we'd want
                             // the SENDER. (For display.)
                             //
-                            if (0 ==
-                                str_nym_id.compare(
-                                    str_sender_id))  // str_nym_id IS
-                                                     // str_sender_id.
-                                                     // (Therefore we want
-                                                     // recipient.)
+                            if (0 == str_nym_id.compare(
+                                         str_sender_id))  // str_nym_id IS
+                                                          // str_sender_id.
+                                                          // (Therefore we want
+                                                          // recipient.)
                             {
                                 if (OTTransaction::notice ==
                                     pBoxTrans->GetType())
@@ -4625,11 +4635,11 @@ bool OTRecordList::Populate()
                                 str_date = strFrom.Get();
                             }
                             pPayment->GetPaymentContents(strContents);
-                            Identifier theAccountID;
+                            auto theAccountID = Identifier::Factory();
 
-                            Identifier paymentNotaryId;
+                            auto paymentNotaryId = Identifier::Factory();
                             if (pPayment->GetNotaryID(paymentNotaryId)) {
-                                str_payment_notary_id = paymentNotaryId.str();
+                                str_payment_notary_id = paymentNotaryId->str();
                             }
 
                             if (bOutgoing)  // Nym is sender.
@@ -4737,7 +4747,8 @@ bool OTRecordList::Populate()
                                                                   // the
                                                                   // accounts we
                                                                   // care about.
-                            Identifier theInstrumentDefinitionID;
+                            auto theInstrumentDefinitionID =
+                                Identifier::Factory();
 
                             if (pPayment->GetInstrumentDefinitionID(
                                     theInstrumentDefinitionID)) {
@@ -4814,7 +4825,7 @@ bool OTRecordList::Populate()
 
                     shared_ptr_OTRecord sp_Record(new OTRecord(
                         *this,
-                        theMsgNotaryID.str(),   // Transport Notary
+                        theMsgNotaryID->str(),  // Transport Notary
                         str_payment_notary_id,  // Payment Notary
                         *p_str_asset_type,
                         *p_str_asset_name,
@@ -4885,7 +4896,7 @@ bool OTRecordList::Populate()
         // For each account, loop through its inbox, outbox, and record box.
         //
         const std::string& str_account_id(it_acct);
-        const Identifier theAccountID(str_account_id);
+        const auto theAccountID = Identifier::Factory(str_account_id);
         auto pAccount = pWallet->GetAccount(theAccountID);
 
         if (false == bool(pAccount)) {
@@ -4960,11 +4971,10 @@ bool OTRecordList::Populate()
         Ledger* pInbox{nullptr};
 
         if (false == theNymID.empty()) {
-            pInbox = m_bRunFast
-                         ? OT::App().API().OTAPI().LoadInboxNoVerify(
-                               theNotaryID, theNymID, theAccountID)
-                         : OT::App().API().OTAPI().LoadInbox(
-                               theNotaryID, theNymID, theAccountID);
+            pInbox = m_bRunFast ? OT::App().API().OTAPI().LoadInboxNoVerify(
+                                      theNotaryID, theNymID, theAccountID)
+                                : OT::App().API().OTAPI().LoadInbox(
+                                      theNotaryID, theNymID, theAccountID);
         }
 
         std::unique_ptr<Ledger> theInboxAngel(pInbox);
@@ -5004,11 +5014,12 @@ bool OTRecordList::Populate()
                         //                      strBoxTrans(*pBoxTrans);
                         //                      if (strBoxTrans.Exists())
                         //                         str_memo =
-                        //                         SwigWrap::Pending_GetNote(*pstr_notary_id,
+                        //            SwigWrap::Pending_GetNote(*pstr_notary_id,
                         //                                      *pstr_nym_id,
                         //                                      str_account_id,
-                        //                                      strBoxTrans.Get());
-                        Identifier theSenderID, theSenderAcctID;
+                        //                                   strBoxTrans.Get());
+                        auto theSenderID = Identifier::Factory(),
+                             theSenderAcctID = Identifier::Factory();
 
                         if (pBoxTrans->GetSenderAcctIDForDisplay(
                                 theSenderAcctID))  // ACCOUNT name.
@@ -5093,7 +5104,8 @@ bool OTRecordList::Populate()
                     {
                         pBoxTrans->GetSuccess(&bHasSuccess, &bIsSuccess);
                         // -------------------------------
-                        Identifier theRecipientID, theRecipientAcctID;
+                        auto theRecipientID = Identifier::Factory(),
+                             theRecipientAcctID = Identifier::Factory();
 
                         if (pBoxTrans->GetRecipientNymIDForDisplay(
                                 theRecipientID)) {
@@ -5254,11 +5266,10 @@ bool OTRecordList::Populate()
         Ledger* pOutbox{nullptr};
 
         if (false == theNymID.empty()) {
-            pOutbox = m_bRunFast
-                          ? OT::App().API().OTAPI().LoadOutboxNoVerify(
-                                theNotaryID, theNymID, theAccountID)
-                          : OT::App().API().OTAPI().LoadOutbox(
-                                theNotaryID, theNymID, theAccountID);
+            pOutbox = m_bRunFast ? OT::App().API().OTAPI().LoadOutboxNoVerify(
+                                       theNotaryID, theNymID, theAccountID)
+                                 : OT::App().API().OTAPI().LoadOutbox(
+                                       theNotaryID, theNymID, theAccountID);
         }
 
         std::unique_ptr<Ledger> theOutboxAngel(pOutbox);
@@ -5283,7 +5294,8 @@ bool OTRecordList::Populate()
                 std::string str_memo;
 
                 if (!pBoxTrans->IsAbbreviated()) {
-                    Identifier theRecipientID, theRecipientAcctID;
+                    auto theRecipientID = Identifier::Factory(),
+                         theRecipientAcctID = Identifier::Factory();
 
                     if (pBoxTrans->GetRecipientNymIDForDisplay(
                             theRecipientID)) {
@@ -5494,8 +5506,10 @@ bool OTRecordList::Populate()
                     if (pBoxTrans->GetType() != OTTransaction::pending)
                         pBoxTrans->GetSuccess(&bHasSuccess, &bIsSuccess);
                     // ----------------------------------------
-                    Identifier theSenderID, theSenderAcctID;
-                    Identifier theRecipientID, theRecipientAcctID;
+                    auto theSenderID = Identifier::Factory(),
+                         theSenderAcctID = Identifier::Factory();
+                    auto theRecipientID = Identifier::Factory(),
+                         theRecipientAcctID = Identifier::Factory();
 
                     if (pBoxTrans->GetSenderAcctIDForDisplay(theSenderAcctID)) {
                         const String strSenderAcctID(theSenderAcctID);
@@ -5535,7 +5549,8 @@ bool OTRecordList::Populate()
                                 std::string str_recip_nym_id("");
 
                                 if (bGotRecipientNymIDForDisplay) {
-                                    theRecipientID.GetString(strRecipientNymID);
+                                    theRecipientID->GetString(
+                                        strRecipientNymID);
                                     str_recip_nym_id = strRecipientNymID.Get();
                                 }
                                 // NOTE: We check for cancelled here so we don't

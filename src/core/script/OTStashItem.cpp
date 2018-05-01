@@ -130,8 +130,9 @@ bool OTStashItem::DebitStash(const std::int64_t& lAmount)
 
     if (lTentativeNewBalance < 0) {
         otOut << "OTStashItem::DebitStash: Failed attempt to debit (amount of) "
-              << lAmount << ": New stash balance would have been a negative "
-                            "amount ("
+              << lAmount
+              << ": New stash balance would have been a negative "
+                 "amount ("
               << lTentativeNewBalance
               << "). Asset Type: " << m_strInstrumentDefinitionID << " \n";
         return false;

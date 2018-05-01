@@ -122,8 +122,9 @@ extern "C" std::int32_t default_pass_cb(
     //    otWarn << "OPENSSL_CALLBACK: (Password callback hasn't been set
     // yet...) Using 'test' pass phrase for \"%s\"\n", (char *)u);
 
-    otWarn << __FUNCTION__ << ": Using DEFAULT TEST PASSWORD: "
-                              "'test' (for \""
+    otWarn << __FUNCTION__
+           << ": Using DEFAULT TEST PASSWORD: "
+              "'test' (for \""
            << str_userdata << "\")\n";
 
     // get pass phrase, length 'len' into 'tmp'
@@ -223,10 +224,9 @@ extern "C" std::int32_t souped_up_pass_cb(
     //
     if (b1 &&  // Normal Nyms, unlike Master passwords, have to look up the
                // master password first.
-        !bOldSystem &&
-        b3)  // ...Unless they are still using the old system, in
-             // which case they do NOT look up the master
-             // password...
+        !bOldSystem && b3)  // ...Unless they are still using the old system, in
+                            // which case they do NOT look up the master
+                            // password...
     {
         // Therefore we need to provide the password from an OTSymmetricKey
         // stored here.
@@ -356,9 +356,10 @@ extern "C" std::int32_t souped_up_pass_cb(
                                                 : thePassword.getMemorySize();
 
     if (len < 0) {
-        otOut << __FUNCTION__ << ": <0 length password was "
-                                 "returned from the API password callback. "
-                                 "Returning 0.\n";
+        otOut << __FUNCTION__
+              << ": <0 length password was "
+                 "returned from the API password callback. "
+                 "Returning 0.\n";
         return 0;
     }
     // --------------------------------------
@@ -469,12 +470,13 @@ bool OT_API_Set_PasswordCallback(OTCaller& theCaller)  // Caller must have
                                                        // already.
 {
     if (!theCaller.isCallbackSet()) {
-        otErr << __FUNCTION__ << ": ERROR:\nOTCaller::setCallback() "
-                                 "MUST be called first, with an "
-                                 "OTCallback-extended class passed to it,\n"
-                                 "before then invoking this function (and "
-                                 "passing that OTCaller as a parameter "
-                                 "into this function.)\n";
+        otErr << __FUNCTION__
+              << ": ERROR:\nOTCaller::setCallback() "
+                 "MUST be called first, with an "
+                 "OTCallback-extended class passed to it,\n"
+                 "before then invoking this function (and "
+                 "passing that OTCaller as a parameter "
+                 "into this function.)\n";
         return false;
     }
 
@@ -507,11 +509,13 @@ void SwigWrap::SetPasswordCallback(OT_OPENSSL_CALLBACK* pCallback)
     const char* szFunc = "SwigWrap::SetPasswordCallback";
 
     if (nullptr != s_pwCallback)
-        otOut << szFunc << ": WARNING: re-setting the password callback (one "
-                           "was already there)...\n";
+        otOut << szFunc
+              << ": WARNING: re-setting the password callback (one "
+                 "was already there)...\n";
     else
-        otWarn << szFunc << ": FYI, setting the password callback to a "
-                            "non-nullptr pointer (which is what we want.)\n";
+        otWarn << szFunc
+               << ": FYI, setting the password callback to a "
+                  "non-nullptr pointer (which is what we want.)\n";
 
     if (nullptr == pCallback)
         otErr << szFunc
@@ -531,13 +535,14 @@ OT_OPENSSL_CALLBACK* SwigWrap::GetPasswordCallback()
     const char* szFunc = "SwigWrap::GetPasswordCallback";
 
 #if defined OT_TEST_PASSWORD
-    otInfo << szFunc << ": WARNING, OT_TEST_PASSWORD *is* defined. The "
-                        "internal 'C'-based password callback was just "
-                        "requested by OT (to pass to OpenSSL). So, returning "
-                        "the default_pass_cb password callback, which will "
-                        "automatically return "
-                        "the 'test' password to OpenSSL, if/when it calls that "
-                        "callback function.\n";
+    otInfo << szFunc
+           << ": WARNING, OT_TEST_PASSWORD *is* defined. The "
+              "internal 'C'-based password callback was just "
+              "requested by OT (to pass to OpenSSL). So, returning "
+              "the default_pass_cb password callback, which will "
+              "automatically return "
+              "the 'test' password to OpenSSL, if/when it calls that "
+              "callback function.\n";
     return &default_pass_cb;
 #else
     if (IsPasswordCallbackSet()) {
@@ -581,11 +586,12 @@ bool SwigWrap::SetPasswordCaller(OTCaller& theCaller)
               "OT 'C'-based password callback is triggered by openssl.)\n";
 
     if (!theCaller.isCallbackSet()) {
-        otErr << szFunc << ": ERROR: OTCaller::setCallback() "
-                           "MUST be called first, with an OTCallback-extended "
-                           "object passed to it,\n"
-                           "BEFORE calling this function with that OTCaller. "
-                           "(Returning false.)\n";
+        otErr << szFunc
+              << ": ERROR: OTCaller::setCallback() "
+                 "MUST be called first, with an OTCallback-extended "
+                 "object passed to it,\n"
+                 "BEFORE calling this function with that OTCaller. "
+                 "(Returning false.)\n";
         return false;
     }
 
@@ -615,9 +621,10 @@ OTCaller* SwigWrap::GetPasswordCaller()
 {
     const char* szFunc = "SwigWrap::GetPasswordCaller";
 
-    otLog4 << szFunc << ": FYI, this was just called by souped_up_pass_cb "
-                        "(which must have just been called by OpenSSL.) "
-                        "Returning s_pCaller == "
+    otLog4 << szFunc
+           << ": FYI, this was just called by souped_up_pass_cb "
+              "(which must have just been called by OpenSSL.) "
+              "Returning s_pCaller == "
            << ((nullptr == s_pCaller) ? "nullptr" : "VALID POINTER")
            << " (Hopefully NOT nullptr, so the "
               "custom password dialog can be triggered.)\n";
@@ -3490,7 +3497,7 @@ std::uint32_t SwigWrap::GetReciprocalRelationship(
 
 NymData SwigWrap::Wallet_GetNym(const std::string& nymID)
 {
-    return OT::App().Wallet().mutable_Nym(Identifier(nymID));
+    return OT::App().Wallet().mutable_Nym(Identifier::Factory(nymID));
 }
 
 std::string SwigWrap::Wallet_GetSeed()
@@ -3529,9 +3536,9 @@ bool SwigWrap::ChangeConnectionType(
     const std::string& server,
     const std::uint32_t type)
 {
-    Identifier serverID(server);
+    auto serverID = Identifier::Factory(server);
 
-    if (serverID.empty()) {
+    if (serverID->empty()) {
 
         return false;
     }
@@ -3543,9 +3550,9 @@ bool SwigWrap::ChangeConnectionType(
 
 bool SwigWrap::ClearProxy(const std::string& server)
 {
-    Identifier serverID(server);
+    auto serverID = Identifier::Factory(server);
 
-    if (serverID.empty()) {
+    if (serverID->empty()) {
 
         return false;
     }
@@ -3565,7 +3572,7 @@ std::string SwigWrap::AddChildEd25519Credential(
     const std::string& masterID)
 {
     return OT::App().API().Exec().AddChildEd25519Credential(
-        Identifier(nymID), Identifier(masterID));
+        Identifier::Factory(nymID), Identifier::Factory(masterID));
 }
 
 std::string SwigWrap::AddChildSecp256k1Credential(
@@ -3573,7 +3580,7 @@ std::string SwigWrap::AddChildSecp256k1Credential(
     const std::string& masterID)
 {
     return OT::App().API().Exec().AddChildSecp256k1Credential(
-        Identifier(nymID), Identifier(masterID));
+        Identifier::Factory(nymID), Identifier::Factory(masterID));
 }
 
 std::string SwigWrap::AddChildRSACredential(
@@ -3582,7 +3589,7 @@ std::string SwigWrap::AddChildRSACredential(
     const std::uint32_t keysize)
 {
     return OT::App().API().Exec().AddChildRSACredential(
-        Identifier(nymID), Identifier(masterID), keysize);
+        Identifier::Factory(nymID), Identifier::Factory(masterID), keysize);
 }
 
 //-----------------------------------------------------------------------------
@@ -3591,7 +3598,7 @@ void SwigWrap::Activity_Preload(
     const std::string& nymID,
     const std::uint32_t& items)
 {
-    OT::App().Activity().PreloadActivity(Identifier(nymID), items);
+    OT::App().Activity().PreloadActivity(Identifier::Factory(nymID), items);
 }
 
 bool SwigWrap::Activity_Mark_Read(
@@ -3600,7 +3607,9 @@ bool SwigWrap::Activity_Mark_Read(
     const std::string& itemID)
 {
     return OT::App().Activity().MarkRead(
-        Identifier(nymID), Identifier(threadID), Identifier(itemID));
+        Identifier::Factory(nymID),
+        Identifier::Factory(threadID),
+        Identifier::Factory(itemID));
 }
 
 bool SwigWrap::Activity_Mark_Unread(
@@ -3609,7 +3618,9 @@ bool SwigWrap::Activity_Mark_Unread(
     const std::string& itemID)
 {
     return OT::App().Activity().MarkUnread(
-        Identifier(nymID), Identifier(threadID), Identifier(itemID));
+        Identifier::Factory(nymID),
+        Identifier::Factory(threadID),
+        Identifier::Factory(itemID));
 }
 
 std::string SwigWrap::Activity_Thread_base64(
@@ -3617,8 +3628,8 @@ std::string SwigWrap::Activity_Thread_base64(
     const std::string& threadId)
 {
     std::string output{};
-    const auto thread =
-        OT::App().Activity().Thread(Identifier(nymId), Identifier(threadId));
+    const auto thread = OT::App().Activity().Thread(
+        Identifier::Factory(nymId), Identifier::Factory(threadId));
 
     if (thread) {
 
@@ -3638,7 +3649,7 @@ std::string SwigWrap::Activity_Threads(
 
 std::uint64_t SwigWrap::Activity_Unread_Count(const std::string& nymID)
 {
-    return OT::App().Activity().UnreadCount(Identifier(nymID));
+    return OT::App().Activity().UnreadCount(Identifier::Factory(nymID));
 }
 
 void SwigWrap::Thread_Preload(
@@ -3648,7 +3659,10 @@ void SwigWrap::Thread_Preload(
     const std::uint32_t items)
 {
     OT::App().Activity().PreloadThread(
-        Identifier(nymID), Identifier(threadID), start, items);
+        Identifier::Factory(nymID),
+        Identifier::Factory(threadID),
+        start,
+        items);
 }
 
 //-----------------------------------------------------------------------------
@@ -3658,7 +3672,7 @@ std::string SwigWrap::Blockchain_Account(
     const std::string& accountID)
 {
     const auto output = OT::App().Blockchain().Account(
-        Identifier(nymID), Identifier(accountID));
+        Identifier::Factory(nymID), Identifier::Factory(accountID));
 
     if (false == bool(output)) {
 
@@ -3686,7 +3700,7 @@ std::string SwigWrap::Blockchain_Account_List(
     const std::string& nymID,
     const std::uint32_t chain)
 {
-    const Identifier nym(nymID);
+    const auto nym = Identifier::Factory(nymID);
     const auto type = static_cast<proto::ContactItemType>(chain);
     otInfo << OT_METHOD << __FUNCTION__ << ": Loading account list for "
            << proto::TranslateItemType(type) << std::endl;
@@ -3702,7 +3716,10 @@ std::string SwigWrap::Blockchain_Allocate_Address(
     const bool internal)
 {
     const auto output = OT::App().Blockchain().AllocateAddress(
-        Identifier(nymID), Identifier(accountID), label, internal);
+        Identifier::Factory(nymID),
+        Identifier::Factory(accountID),
+        label,
+        internal);
 
     if (false == bool(output)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to allocate address"
@@ -3739,10 +3756,10 @@ bool SwigWrap::Blockchain_Assign_Address(
     const bool internal)
 {
     return OT::App().Blockchain().AssignAddress(
-        Identifier(nymID),
-        Identifier(accountID),
+        Identifier::Factory(nymID),
+        Identifier::Factory(accountID),
         index,
-        Identifier(contact),
+        Identifier::Factory(contact),
         internal);
 }
 
@@ -3753,7 +3770,10 @@ std::string SwigWrap::Blockchain_Load_Address(
     const bool internal)
 {
     const auto output = OT::App().Blockchain().LoadAddress(
-        Identifier(nymID), Identifier(accountID), index, internal);
+        Identifier::Factory(nymID),
+        Identifier::Factory(accountID),
+        index,
+        internal);
 
     if (false == bool(output)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to load address"
@@ -3787,7 +3807,7 @@ std::string SwigWrap::Blockchain_New_Bip44_Account(
     const std::uint32_t chain)
 {
     return String(OT::App().Blockchain().NewAccount(
-                      Identifier(nymID),
+                      Identifier::Factory(nymID),
                       BlockchainAccountType::BIP44,
                       static_cast<proto::ContactItemType>(chain)))
         .Get();
@@ -3798,7 +3818,7 @@ std::string SwigWrap::Blockchain_New_Bip32_Account(
     const std::uint32_t chain)
 {
     return String(OT::App().Blockchain().NewAccount(
-                      Identifier(nymID),
+                      Identifier::Factory(nymID),
                       BlockchainAccountType::BIP32,
                       static_cast<proto::ContactItemType>(chain)))
         .Get();
@@ -3823,7 +3843,11 @@ bool SwigWrap::Blockchain_Store_Incoming(
     }
 
     return OT::App().Blockchain().StoreIncoming(
-        Identifier(nymID), Identifier(accountID), index, internal, input);
+        Identifier::Factory(nymID),
+        Identifier::Factory(accountID),
+        index,
+        internal,
+        input);
 }
 
 bool SwigWrap::Blockchain_Store_Incoming_base64(
@@ -3856,9 +3880,9 @@ bool SwigWrap::Blockchain_Store_Outgoing(
     }
 
     return OT::App().Blockchain().StoreOutgoing(
-        Identifier(nymID),
-        Identifier(accountID),
-        Identifier(recipientContactID),
+        Identifier::Factory(nymID),
+        Identifier::Factory(accountID),
+        Identifier::Factory(recipientContactID),
         input);
 }
 
@@ -3876,7 +3900,8 @@ bool SwigWrap::Blockchain_Store_Outgoing_base64(
 
 std::string SwigWrap::Blockchain_Transaction(const std::string& txid)
 {
-    const auto output = OT::App().Blockchain().Transaction(Identifier(txid));
+    const auto output =
+        OT::App().Blockchain().Transaction(Identifier::Factory(txid));
 
     if (false == bool(output)) {
 
@@ -3914,10 +3939,10 @@ std::string SwigWrap::Add_Contact(
         return {};
     }
 
-    Identifier nym(nymID);
+    auto nym = Identifier::Factory(nymID);
     auto code = PaymentCode::Factory(paymentCode);
 
-    if (nym.empty() && code->VerifyInternally()) {
+    if (nym->empty() && code->VerifyInternally()) {
         nym = code->ID();
     }
 
@@ -3965,7 +3990,8 @@ bool SwigWrap::Contact_Add_Blockchain_Address(
     const std::string& address,
     const std::uint32_t chain)
 {
-    auto contact = OT::App().Contact().mutable_Contact(Identifier(contactID));
+    auto contact =
+        OT::App().Contact().mutable_Contact(Identifier::Factory(contactID));
 
     if (false == bool(contact)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Contact does not exist."
@@ -3987,15 +4013,15 @@ bool SwigWrap::Contact_Merge(
     const std::string& parent,
     const std::string& child)
 {
-    auto contact =
-        OT::App().Contact().Merge(Identifier(parent), Identifier(child));
+    auto contact = OT::App().Contact().Merge(
+        Identifier::Factory(parent), Identifier::Factory(child));
 
     return bool(contact);
 }
 
 std::string SwigWrap::Contact_Name(const std::string& id)
 {
-    auto contact = OT::App().Contact().Contact(Identifier(id));
+    auto contact = OT::App().Contact().Contact(Identifier::Factory(id));
 
     if (contact) {
 
@@ -4009,7 +4035,7 @@ std::string SwigWrap::Contact_PaymentCode(
     const std::string& id,
     const std::uint32_t currency)
 {
-    auto contact = OT::App().Contact().Contact(Identifier(id));
+    auto contact = OT::App().Contact().Contact(Identifier::Factory(id));
 
     if (contact) {
 
@@ -4022,7 +4048,8 @@ std::string SwigWrap::Contact_PaymentCode(
 
 std::string SwigWrap::Contact_to_Nym(const std::string& contactID)
 {
-    const auto contact = OT::App().Contact().Contact(Identifier(contactID));
+    const auto contact =
+        OT::App().Contact().Contact(Identifier::Factory(contactID));
 
     if (false == bool(contact)) {
 
@@ -4041,14 +4068,14 @@ std::string SwigWrap::Contact_to_Nym(const std::string& contactID)
 
 bool SwigWrap::Have_Contact(const std::string& id)
 {
-    auto contact = OT::App().Contact().Contact(Identifier(id));
+    auto contact = OT::App().Contact().Contact(Identifier::Factory(id));
 
     return bool(contact);
 }
 
 bool SwigWrap::Rename_Contact(const std::string& id, const std::string& name)
 {
-    auto contact = OT::App().Contact().mutable_Contact(Identifier(id));
+    auto contact = OT::App().Contact().mutable_Contact(Identifier::Factory(id));
 
     if (contact) {
         contact->It().SetLabel(name);
@@ -4061,7 +4088,8 @@ bool SwigWrap::Rename_Contact(const std::string& id, const std::string& name)
 
 std::string SwigWrap::Nym_to_Contact(const std::string& nymID)
 {
-    return String(OT::App().Contact().ContactID(Identifier(nymID))).Get();
+    return String(OT::App().Contact().ContactID(Identifier::Factory(nymID)))
+        .Get();
 }
 
 //-----------------------------------------------------------------------------
@@ -4071,26 +4099,30 @@ std::uint8_t SwigWrap::Can_Message(
     const std::string& recipientContactID)
 {
     return static_cast<std::uint8_t>(OT::App().API().Sync().CanMessage(
-        Identifier(senderNymID), Identifier(recipientContactID)));
+        Identifier::Factory(senderNymID),
+        Identifier::Factory(recipientContactID)));
 }
 
 std::string SwigWrap::Find_Nym(const std::string& nymID)
 {
-    return String(OT::App().API().Sync().FindNym(Identifier(nymID))).Get();
+    return String(OT::App().API().Sync().FindNym(Identifier::Factory(nymID)))
+        .Get();
 }
 
 std::string SwigWrap::Find_Nym_Hint(
     const std::string& nymID,
     const std::string& serverID)
 {
-    return String(OT::App().API().Sync().FindNym(
-                      Identifier(nymID), Identifier(serverID)))
+    return String(
+               OT::App().API().Sync().FindNym(
+                   Identifier::Factory(nymID), Identifier::Factory(serverID)))
         .Get();
 }
 
 std::string SwigWrap::Find_Server(const std::string& serverID)
 {
-    return String(OT::App().API().Sync().FindServer(Identifier(serverID)))
+    return String(
+               OT::App().API().Sync().FindServer(Identifier::Factory(serverID)))
         .Get();
 }
 
@@ -4118,7 +4150,9 @@ std::string SwigWrap::Message_Contact(
     const std::string& message)
 {
     const auto output = OT::App().API().Sync().MessageContact(
-        Identifier(senderNymID), Identifier(contactID), message);
+        Identifier::Factory(senderNymID),
+        Identifier::Factory(contactID),
+        message);
 
     return String(output).Get();
 }
@@ -4129,7 +4163,7 @@ bool SwigWrap::Pair_Node(
     const std::string& password)
 {
     return OT::App().API().Pair().AddIssuer(
-        Identifier(myNym), Identifier(bridgeNym), password);
+        Identifier::Factory(myNym), Identifier::Factory(bridgeNym), password);
 }
 
 bool SwigWrap::Pair_ShouldRename(
@@ -4137,7 +4171,7 @@ bool SwigWrap::Pair_ShouldRename(
     const std::string& serverID)
 {
     const auto context = OT::App().Wallet().ServerContext(
-        Identifier(localNym), Identifier(serverID));
+        Identifier::Factory(localNym), Identifier::Factory(serverID));
 
     if (false == bool(context)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Server does not exist."
@@ -4154,7 +4188,7 @@ std::string SwigWrap::Pair_Status(
     const std::string& issuerNym)
 {
     return OT::App().API().Pair().IssuerDetails(
-        Identifier(localNym), Identifier(issuerNym));
+        Identifier::Factory(localNym), Identifier::Factory(issuerNym));
 }
 
 std::string SwigWrap::Paired_Issuers(const std::string& localNym)
@@ -4168,7 +4202,7 @@ std::string SwigWrap::Paired_Server(
     const std::string& issuerNymID)
 {
     auto issuer = OT::App().Wallet().Issuer(
-        Identifier(localNymID), Identifier(issuerNymID));
+        Identifier::Factory(localNymID), Identifier::Factory(issuerNymID));
 
     if (false == bool(issuer)) {
 
@@ -4188,7 +4222,7 @@ std::string SwigWrap::Register_Nym_Public(
     const std::string& server)
 {
     const auto taskID = OT::App().API().Sync().RegisterNym(
-        Identifier(nym), Identifier(server), true);
+        Identifier::Factory(nym), Identifier::Factory(server), true);
 
     return String(taskID).Get();
 }
@@ -4210,20 +4244,21 @@ std::string SwigWrap::Set_Introduction_Server(const std::string& contract)
 
 void SwigWrap::Start_Introduction_Server(const std::string& localNymID)
 {
-    OT::App().API().Sync().StartIntroductionServer(Identifier(localNymID));
+    OT::App().API().Sync().StartIntroductionServer(
+        Identifier::Factory(localNymID));
 }
 
 std::uint8_t SwigWrap::Task_Status(const std::string& id)
 {
     return static_cast<std::uint8_t>(
-        OT::App().API().Sync().Status(Identifier(id)));
+        OT::App().API().Sync().Status(Identifier::Factory(id)));
 }
 
 void SwigWrap::Trigger_Refresh() { OT::App().API().Sync().Refresh(); }
 
 const ui::ActivitySummary& SwigWrap::ActivitySummary(const std::string& nymID)
 {
-    return OT::App().UI().ActivitySummary(Identifier(nymID));
+    return OT::App().UI().ActivitySummary(Identifier::Factory(nymID));
 }
 
 const ui::ActivityThread& SwigWrap::ActivityThread(
@@ -4231,7 +4266,7 @@ const ui::ActivityThread& SwigWrap::ActivityThread(
     const std::string& threadID)
 {
     return OT::App().UI().ActivityThread(
-        Identifier(nymID), Identifier(threadID));
+        Identifier::Factory(nymID), Identifier::Factory(threadID));
 }
 
 const ui::Contact& SwigWrap::Contact(const std::string& contactID)
@@ -4241,12 +4276,12 @@ const ui::Contact& SwigWrap::Contact(const std::string& contactID)
 
 const ui::ContactList& SwigWrap::ContactList(const std::string& nymID)
 {
-    return OT::App().UI().ContactList(Identifier(nymID));
+    return OT::App().UI().ContactList(Identifier::Factory(nymID));
 }
 
 const ui::MessagableList& SwigWrap::MessagableList(const std::string& nymID)
 {
-    return OT::App().UI().MessagableList(Identifier(nymID));
+    return OT::App().UI().MessagableList(Identifier::Factory(nymID));
 }
 
 const ui::PayableList& SwigWrap::PayableList(
@@ -4254,12 +4289,15 @@ const ui::PayableList& SwigWrap::PayableList(
     std::uint32_t currency)
 {
     return OT::App().UI().PayableList(
-        Identifier(nymID), static_cast<proto::ContactItemType>(currency));
+        Identifier::Factory(nymID),
+        static_cast<proto::ContactItemType>(currency));
 }
 
 const ui::Profile& SwigWrap::Profile(const std::string& contactID)
 {
-    return OT::App().UI().Profile(Identifier(contactID));
+
+    return OT::App().UI().Profile(Identifier::Factory(contactID));
+
 }
 
 const network::zeromq::Context& SwigWrap::ZMQ()

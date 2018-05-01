@@ -238,7 +238,8 @@ bool VerifyBalanceReceipt(
 {
     const auto& THE_NYM = *context.Nym();
     const auto& SERVER_NYM = context.RemoteNym();
-    Identifier NYM_ID(THE_NYM), NOTARY_NYM_ID(SERVER_NYM);
+    auto NYM_ID = Identifier::Factory(THE_NYM),
+         NOTARY_NYM_ID = Identifier::Factory(SERVER_NYM);
     String strNotaryID(NOTARY_ID), strReceiptID(accountID);
 
     // Load the last successful BALANCE STATEMENT...
@@ -891,7 +892,7 @@ bool OT_API::GetNym(std::int32_t iIndex, Identifier& NYM_ID, String& NYM_NAME)
     const
 {
     if (wallet_.NymNameByIndex(iIndex, NYM_NAME)) {
-        NYM_ID = Identifier(NYM_NAME);
+        NYM_ID = Identifier::Factory(NYM_NAME);
 
         return true;
     }
@@ -1173,10 +1174,11 @@ bool OT_API::Wallet_CanRemoveServer(const Identifier& NOTARY_ID) const
 
     // Loop through all the accounts.
     for (std::int32_t i = 0; i < nCount; i++) {
-        Identifier accountID;
+        auto accountID = Identifier::Factory();
         GetAccount(i, accountID, strName);
         auto account = GetAccount(accountID, __FUNCTION__);
-        Identifier purportedNotaryID(account->GetPurportedNotaryID());
+        auto purportedNotaryID =
+            Identifier::Factory(account->GetPurportedNotaryID());
 
         if (NOTARY_ID == purportedNotaryID) {
             String strPurportedNotaryID(purportedNotaryID),
@@ -1229,10 +1231,11 @@ bool OT_API::Wallet_CanRemoveAssetType(
 
     // Loop through all the accounts.
     for (std::int32_t i = 0; i < nCount; i++) {
-        Identifier accountID;
+        auto accountID = Identifier::Factory();
         GetAccount(i, accountID, strName);
         auto account = GetAccount(accountID, __FUNCTION__);
-        Identifier theTYPE_ID(account->GetInstrumentDefinitionID());
+        auto theTYPE_ID =
+            Identifier::Factory(account->GetInstrumentDefinitionID());
 
         if (INSTRUMENT_DEFINITION_ID == theTYPE_ID) {
             String strINSTRUMENT_DEFINITION_ID(INSTRUMENT_DEFINITION_ID),
@@ -1276,13 +1279,13 @@ bool OT_API::Wallet_CanRemoveNym(const Identifier& NYM_ID) const
 
     // Loop through all the accounts.
     for (std::int32_t i = 0; i < nCount; i++) {
-        Identifier accountID;
+        auto accountID = Identifier::Factory();
         String strName;
         GetAccount(i, accountID, strName);
         auto account = GetAccount(accountID, __FUNCTION__);
-        Identifier theNYM_ID(account->GetNymID());
+        auto theNYM_ID = Identifier::Factory(account->GetNymID());
 
-        if (theNYM_ID.IsEmpty()) {
+        if (theNYM_ID->IsEmpty()) {
             otErr << OT_METHOD << __FUNCTION__
                   << ": Bug in OT_API_Wallet_CanRemoveNym / "
                      "OT_API_GetAccountWallet_NymID\n";
@@ -1303,7 +1306,7 @@ bool OT_API::Wallet_CanRemoveNym(const Identifier& NYM_ID) const
     //
     for (auto& server : wallet_.ServerList()) {
         auto context =
-            wallet_.ServerContext(nym->ID(), Identifier(server.first));
+            wallet_.ServerContext(nym->ID(), Identifier::Factory(server.first));
 
         if (context) {
             if (0 != context->Request()) {
@@ -1635,11 +1638,11 @@ bool OT_API::Wallet_ImportNym(
     //
     // If Nym with this ID is ALREADY in the wallet, set nymfileID and return
     // false.
-    const Identifier theNymID(theMap["id"]);
+    const auto theNymID = Identifier::Factory(theMap["id"]);
     const String strNymName(theMap["name"].c_str());
 
     if (nullptr != nymfileID) nymfileID->SetString(theMap["id"]);
-    if (theNymID.IsEmpty()) {
+    if (theNymID->IsEmpty()) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Error: NYM_ID passed in is empty; returning false";
         return false;
@@ -2803,7 +2806,7 @@ bool OT_API::SmartContract_ConfirmAccount(
     // By this point, nymfile is a good pointer, and is on the wallet. (No need
     // to
     // cleanup.)
-    const Identifier accountID(ACCT_ID);
+    const auto accountID = Identifier::Factory(ACCT_ID);
     auto account = GetAccount(accountID, __FUNCTION__);
 
     if (false == bool(account)) return false;
@@ -2862,7 +2865,7 @@ bool OT_API::SmartContract_ConfirmAccount(
 
     // the actual instrument definition ID
 
-    const Identifier theExpectedInstrumentDefinitionID(
+    const auto theExpectedInstrumentDefinitionID = Identifier::Factory(
         partyAcct->GetInstrumentDefinitionID());  // The expected instrument
                                                   // definition ID,
                                                   // converting
@@ -3042,7 +3045,7 @@ bool OT_API::SmartContract_ConfirmParty(
 
         if (bSuccessID && !partyNymID.empty()) {
             String strPartyNymID(partyNymID);
-            Identifier idParty(strPartyNymID);
+            auto idParty = Identifier::Factory(strPartyNymID);
 
             if (idParty != NYM_ID) {
                 otErr << OT_METHOD << __FUNCTION__ << ": Failure: Party ("
@@ -4008,8 +4011,8 @@ bool OT_API::Msg_HarvestTransactionNumbers(
     bool bTransactionWasFailure) const  // false until positively asserted.
 {
     rLock lock(lock_callback_({NYM_ID.str(), theMsg.m_strNotaryID.Get()}));
-    auto context =
-        wallet_.mutable_ServerContext(NYM_ID, Identifier(theMsg.m_strNotaryID));
+    auto context = wallet_.mutable_ServerContext(
+        NYM_ID, Identifier::Factory(theMsg.m_strNotaryID));
 
     return theMsg.HarvestTransactionNumbers(
         context.It(),
@@ -4242,7 +4245,7 @@ Cheque* OT_API::WriteCheque(
     const Identifier& SENDER_accountID,
     const Identifier& SENDER_NYM_ID,
     const String& CHEQUE_MEMO,
-    const Identifier* pRECIPIENT_NYM_ID) const
+    const OTIdentifier pRECIPIENT_NYM_ID) const
 {
     rLock lock(lock_callback_({SENDER_NYM_ID.str(), NOTARY_ID.str()}));
     auto context = wallet_.mutable_ServerContext(SENDER_NYM_ID, NOTARY_ID);
@@ -4850,7 +4853,7 @@ OTNym_or_SymmetricKey* OT_API::LoadPurseAndOwnerFromString(
     OTNym_or_SymmetricKey* pOwner = nullptr;
     if (strPurse.Exists() && thePurse.LoadContractFromString(strPurse)) {
         const bool bNymIDIncludedInPurse = thePurse.IsNymIDIncluded();
-        Identifier idPurseNym;
+        auto idPurseNym = Identifier::Factory();
 
         if (thePurse.GetNotaryID() != theNotaryID)
             otErr << OT_METHOD << __FUNCTION__
@@ -4975,7 +4978,7 @@ OTNym_or_SymmetricKey* OT_API::LoadPurseAndOwnerForMerge(
     OTNym_or_SymmetricKey* pOwner = nullptr;
 
     if (strPurse.Exists() && thePurse.LoadContractFromString(strPurse)) {
-        Identifier idPurseNym;
+        auto idPurseNym = Identifier::Factory();
 
         if (thePurse.IsNymIDIncluded() && !thePurse.GetNymID(idPurseNym))
             otErr << OT_METHOD << __FUNCTION__
@@ -4997,10 +5000,10 @@ OTNym_or_SymmetricKey* OT_API::LoadPurseAndOwnerForMerge(
                                                //
                                                // checked inside the block.
         ) {
-            const Identifier* pActualOwnerID =
-                thePurse.IsNymIDIncluded() ? &idPurseNym : pOWNER_ID;
+            const Identifier& pActualOwnerID =
+                thePurse.IsNymIDIncluded() ? idPurseNym.get() : *pOWNER_ID;
 
-            if (nullptr == pActualOwnerID) {
+            if (pActualOwnerID.empty()) {
                 otErr << OT_METHOD << __FUNCTION__
                       << ": Failed: The purse is encrypted to a "
                          "specific Nym (not a passphrase) "
@@ -5009,9 +5012,9 @@ OTNym_or_SymmetricKey* OT_API::LoadPurseAndOwnerForMerge(
                          "function. (Failure. Unable to access purse.)\n";
                 return nullptr;
             }
-            auto pOwnerNym = wallet_.Nym(*pActualOwnerID);
+            auto pOwnerNym = wallet_.Nym(pActualOwnerID);
             if (false == bool(pOwnerNym)) {
-                const String strAttemptedID(*pActualOwnerID);
+                const String strAttemptedID(pActualOwnerID);
                 otErr << OT_METHOD << __FUNCTION__
                       << ": Failed: The purse is encrypted to a specific NymID "
                          "(not a passphrase) which was either specified inside "
@@ -5591,8 +5594,9 @@ Token* OT_API::Token_ChangeOwner(
     // and NEW_OWNER each as either a NymID or as a Purse (containing a
     // symmetric key and
     // a corresponding master key.)
-    Identifier oldOwnerNymID,
-        newOwnerNymID;  // if either owner is a Nym, the ID goes here.
+    auto oldOwnerNymID = Identifier::Factory(),
+         newOwnerNymID = Identifier::Factory();  // if either owner is a Nym,
+                                                 // the ID goes here.
     std::unique_ptr<Purse> theOldPurseAngel;
     OTPassword theOldPassword;  // Only used in the case of password-protected
                                 // purses.
@@ -5607,7 +5611,7 @@ Token* OT_API::Token_ChangeOwner(
     const bool bNewOwnerIsPurse = NEW_OWNER.Contains("PURSE");
     if (!bOldOwnerIsPurse)  // The old owner is a NYM (public/private keys.)
     {
-        oldOwnerNymID.SetString(OLD_OWNER);
+        oldOwnerNymID->SetString(OLD_OWNER);
         auto pOldNym = wallet_.Nym(oldOwnerNymID);
 
         if (nullptr == pOldNym) {
@@ -5652,7 +5656,7 @@ Token* OT_API::Token_ChangeOwner(
     }
     if (!bNewOwnerIsPurse)  // The new owner is a NYM
     {
-        newOwnerNymID.SetString(NEW_OWNER);
+        newOwnerNymID->SetString(NEW_OWNER);
         auto pNewNym = wallet_.Nym(newOwnerNymID);
         if (nullptr == pNewNym) return nullptr;
         pNewOwner = new OTNym_or_SymmetricKey(*pNewNym, &strWalletReason);
@@ -6841,7 +6845,8 @@ bool OT_API::RecordPayment(
 
                 bool bShouldHarvestPayment = false;
                 bool bNeedToLoadAssetAcctInbox = false;
-                Identifier theSenderNymID, theSenderAcctID;
+                auto theSenderNymID = Identifier::Factory(),
+                     theSenderAcctID = Identifier::Factory();
 
                 bool bPaymentSenderIsNym = false;
                 bool bFromAcctIsAvailable = false;
@@ -7368,8 +7373,8 @@ bool OT_API::RecordPayment(
                                                 *payment_nym)) {
                                             const String& strAcctID =
                                                 partyAcct->GetAcctID();
-                                            const Identifier accountID(
-                                                strAcctID);
+                                            const auto accountID =
+                                                Identifier::Factory(strAcctID);
 
                                             Ledger theSenderInbox(
                                                 NYM_ID,
@@ -8112,7 +8117,8 @@ bool OT_API::GetBasketMemberType(
         return false;
     }
 
-    theOutputMemberType = Identifier(serialized->basket().item(nIndex).unit());
+    theOutputMemberType =
+        Identifier::Factory(serialized->basket().item(nIndex).unit());
 
     return true;
 }
@@ -8223,7 +8229,7 @@ CommandResult OT_API::issueBasket(
     auto[newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::issueBasket,
         OTASCIIArmor(proto::ProtoAsData(basket)),
-        {},
+        Identifier::Factory(),
         requestNum);
     requestNum = newRequestNumber;
 
@@ -9346,7 +9352,7 @@ CommandResult OT_API::payDividend(
           << managedNumber << std::endl;
     transactionNum = managedNumber;
 
-    const Identifier SHARES_ISSUER_accountID(*issuerAccount);
+    const auto SHARES_ISSUER_accountID = Identifier::Factory(*issuerAccount);
     // Expiration (ignored by server -- it sets its own for its vouchers.)
     const time64_t VALID_FROM = OTTimeGetCurrentTime();
     const time64_t VALID_TO = OTTimeAddTimeInterval(
@@ -9365,7 +9371,8 @@ CommandResult OT_API::payDividend(
         VALID_TO,
         SHARES_ISSUER_accountID,
         nymID,
-        DIVIDEND_MEMO);
+        DIVIDEND_MEMO,
+        Identifier::Factory(nymID));
 
     if (!bIssueCheque) {
 
@@ -9519,10 +9526,10 @@ CommandResult OT_API::withdrawVoucher(
         return output;
     }
 
-    Identifier contractID;
+    auto contractID = Identifier::Factory();
     String strContractID;
     contractID = account->GetInstrumentDefinitionID();
-    contractID.GetString(strContractID);
+    contractID->GetString(strContractID);
     Message theMessage;
     const auto withdrawalNumber =
         context.NextTransactionNumber(MessageType::notarizeTransaction);
@@ -9563,7 +9570,7 @@ CommandResult OT_API::withdrawVoucher(
         accountID,
         nymID,
         strChequeMemo,
-        (strRecipientNymID.GetLength() > 2) ? &(RECIPIENT_NYM_ID) : nullptr);
+        *((strRecipientNymID.GetLength() > 2) ? &(RECIPIENT_NYM_ID) : nullptr));
     std::unique_ptr<Ledger> inbox(account->LoadInbox(nym));
     std::unique_ptr<Ledger> outbox(account->LoadOutbox(nym));
 
@@ -9724,11 +9731,11 @@ bool OT_API::DiscardCheque(
 
     // By this point, account is a good pointer, and is on the wallet. (No need
     // to cleanup.)
-    Identifier contractID;
+    auto contractID = Identifier::Factory();
     String strContractID;
 
     contractID = account->GetInstrumentDefinitionID();
-    contractID.GetString(strContractID);
+    contractID->GetString(strContractID);
     // By this point, nymfile is a good pointer, and is on the wallet.
     //  (No need to cleanup.)  pServer and account are also good.
     //
@@ -10093,7 +10100,7 @@ CommandResult OT_API::depositPaymentPlan(
     // the same as nymID. If so, then we use the RECIPIENT  account here (it's
     // being cancelled.) Otherwise, we use the sender account ID here as normal
     // (it's being activated.)
-    const Identifier accountID(
+    const auto accountID = Identifier::Factory(
         bCancelling ? plan.GetRecipientAcctID() : plan.GetSenderAcctID());
     auto account = GetOrLoadAccount(nym, accountID, serverID, __FUNCTION__);
 
@@ -10192,7 +10199,7 @@ CommandResult OT_API::triggerClause(
     }
 
     auto[newRequestNumber, message] = context.InitializeServerCommand(
-        MessageType::triggerClause, payload, {}, requestNum);
+        MessageType::triggerClause, payload, Identifier::Factory(), requestNum);
     requestNum = newRequestNumber;
 
     if (false == bool(message)) {
@@ -10375,9 +10382,9 @@ CommandResult OT_API::activateSmartContract(
         return output;
     }
 
-    const Identifier accountID(account->GetAcctID());
+    const auto accountID = Identifier::Factory(account->GetAcctID());
 
-    if (accountID.empty()) {
+    if (accountID->empty()) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed. The Account ID is "
               << "blank for asset acct (" << account->GetName() << ") for "
               << "party (" << party->GetPartyName() << "). Did you confirm "
@@ -11534,8 +11541,8 @@ CommandResult OT_API::registerInstrumentDefinition(
         return output;
     }
 
-    Identifier newID = contract->ID();
-    newID.GetString(message->m_strInstrumentDefinitionID);
+    OTIdentifier newID = contract->ID();
+    newID->GetString(message->m_strInstrumentDefinitionID);
     message->m_ascPayload.SetData(
         proto::ProtoAsData<proto::UnitDefinition>(contract->PublicContract()));
 
@@ -12165,8 +12172,8 @@ CommandResult OT_API::sendNymMessage(
 
     sent->SignContract(nym);
     sent->SaveContract();
-    messageID =
-        Identifier(activity_.Mail(nymID, *sent, StorageBox::MAILOUTBOX));
+    messageID = Identifier::Factory(
+        activity_.Mail(nymID, *sent, StorageBox::MAILOUTBOX));
 
     return output;
 }
@@ -13349,7 +13356,7 @@ bool OT_API::IncludeResponse(
 {
     rLock lock(
         lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
-    const auto serverID = context.Server();
+    const auto serverID = Identifier::Factory(context.Server());
     const auto type = source.GetType();
 
     switch (type) {

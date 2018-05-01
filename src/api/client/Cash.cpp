@@ -368,9 +368,9 @@ std::int32_t Cash::send_cash(
                    .API()
                    .ServerAction()
                    .SendCash(
-                       Identifier(mynym),
-                       Identifier(server),
-                       Identifier(hisnym),
+                       Identifier::Factory(mynym),
+                       Identifier::Factory(server),
+                       Identifier::Factory(hisnym),
                        recipientCopy,
                        senderCopy)
                    ->Run();
@@ -596,7 +596,10 @@ std::int32_t Cash::deposit_purse_low_level(
     OT_ASSERT(purse);
 
     auto action = OT::App().API().ServerAction().DepositCashPurse(
-        Identifier(nymID), Identifier(notaryID), Identifier(accountID), purse);
+        Identifier::Factory(nymID),
+        Identifier::Factory(notaryID),
+        Identifier::Factory(accountID),
+        purse);
     std::string strResponse = action->Run();
     std::string strAttempt = "deposit_cash";
 
@@ -616,9 +619,9 @@ std::int32_t Cash::deposit_purse_low_level(
         // since they have probably changed from this operation.
         //
         bool bRetrieved = OT::App().API().ServerAction().DownloadAccount(
-            Identifier(recipientNymID),
-            Identifier(notaryID),
-            Identifier(accountID),
+            Identifier::Factory(recipientNymID),
+            Identifier::Factory(notaryID),
+            Identifier::Factory(accountID),
             true);  // bForceDownload defaults to false.;
 
         otOut << "\nServer response (" << strAttempt
@@ -694,8 +697,10 @@ std::int32_t Cash::easy_withdraw_cash_low_level(
         return -1;
     }
 
-    const opentxs::Identifier theNotaryID{server}, theNymID{mynym},
-        theAssetType{assetType}, theAcctID{myacct};
+    const opentxs::OTIdentifier theNotaryID = Identifier::Factory(server),
+                                theNymID = Identifier::Factory(mynym),
+                                theAssetType = Identifier::Factory(assetType),
+                                theAcctID = Identifier::Factory(myacct);
 
     std::string assetContract = SwigWrap::GetAssetType_Contract(assetType);
     if (assetContract.empty()) {
@@ -752,9 +757,9 @@ std::string Cash::check_nym(
     const std::string& targetNymID) const
 {
     auto action = OT::App().API().ServerAction().DownloadNym(
-        opentxs::Identifier(nymID),
-        opentxs::Identifier(notaryID),
-        opentxs::Identifier(targetNymID));
+        opentxs::Identifier::Factory(nymID),
+        opentxs::Identifier::Factory(notaryID),
+        opentxs::Identifier::Factory(targetNymID));
 
     return action->Run();
 }
@@ -802,9 +807,9 @@ std::string Cash::load_or_retrieve_mint(
                        .API()
                        .ServerAction()
                        .DownloadMint(
-                           Identifier(nymID),
-                           Identifier(notaryID),
-                           Identifier(unitTypeID))
+                           Identifier::Factory(nymID),
+                           Identifier::Factory(notaryID),
+                           Identifier::Factory(unitTypeID))
                        ->Run();
 
         if (1 != VerifyMessageSuccess(response)) {
@@ -992,9 +997,10 @@ bool Cash::process_cash_purse(
             // If change failed, then continue.
             //
             if (!VerifyStringVal(exportedToken)) {
-                otOut << strLocation << ": 1, OT_API_Token_ChangeOwner "
-                                        "returned null...(should never "
-                                        "happen) Returning null.\n";
+                otOut << strLocation
+                      << ": 1, OT_API_Token_ChangeOwner "
+                         "returned null...(should never "
+                         "happen) Returning null.\n";
                 return false;
             }
 
@@ -1010,9 +1016,10 @@ bool Cash::process_cash_purse(
             // If change failed, then continue.
             //
             if (!VerifyStringVal(retainedToken)) {
-                otOut << strLocation << ":  2, OT_API_Token_ChangeOwner "
-                                        "returned null...(should never "
-                                        "happen) Returning null.\n";
+                otOut << strLocation
+                      << ":  2, OT_API_Token_ChangeOwner "
+                         "returned null...(should never "
+                         "happen) Returning null.\n";
                 return false;
             }
 
@@ -1097,8 +1104,9 @@ bool Cash::process_cash_purse(
                 // No modal?
                 //
                 // FT: adding log.
-                otOut << strLocation << ": OT_API_SavePurse "
-                                        "FAILED. SHOULD NEVER HAPPEN!!!!!!\n";
+                otOut << strLocation
+                      << ": OT_API_SavePurse "
+                         "FAILED. SHOULD NEVER HAPPEN!!!!!!\n";
                 return false;
             }
         } else  // old purse IS password protected. (So return its updated
@@ -1240,9 +1248,10 @@ bool Cash::process_cash_purse(
                     strSender,      // old owner
                     strRecipient);  // new owner
                 if (!VerifyStringVal(exportedToken)) {
-                    otOut << strLocation << ": 1  OT_API_Token_ChangeOwner "
-                                            "returned null... SHOULD NEVER "
-                                            "HAPPEN. Returning now.\n";
+                    otOut << strLocation
+                          << ": 1  OT_API_Token_ChangeOwner "
+                             "returned null... SHOULD NEVER "
+                             "HAPPEN. Returning now.\n";
                     return false;
                 }
 
@@ -1254,9 +1263,10 @@ bool Cash::process_cash_purse(
                     strSender,              // old owner
                     strSenderAsRecipient);  // new owner
                 if (!VerifyStringVal(retainedToken)) {
-                    otOut << strLocation << ": 2  OT_API_Token_ChangeOwner "
-                                            "returned null... SHOULD NEVER "
-                                            "HAPPEN. Returning now.\n";
+                    otOut << strLocation
+                          << ": 2  OT_API_Token_ChangeOwner "
+                             "returned null... SHOULD NEVER "
+                             "HAPPEN. Returning now.\n";
                     return false;
                 }
 
@@ -1348,8 +1358,9 @@ bool Cash::process_cash_purse(
                 // No modal?
                 //
                 // FT: adding log.
-                otOut << strLocation << ":  OT_API_SavePurse "
-                                        "FAILED. SHOULD NEVER HAPPEN!!!!!!\n";
+                otOut << strLocation
+                      << ":  OT_API_SavePurse "
+                         "FAILED. SHOULD NEVER HAPPEN!!!!!!\n";
                 return false;
             }
         } else  // old purse IS password protected. (So return its updated

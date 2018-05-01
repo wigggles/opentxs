@@ -146,7 +146,7 @@ const OTCachedKey& Crypto::CachedKey(const Identifier& id) const
 const OTCachedKey& Crypto::CachedKey(const OTCachedKey& source) const
 {
     Lock lock(cached_key_lock_);
-    const Identifier id(source);
+    const auto id = Identifier::Factory(source);
     auto& output = cached_keys_[id];
 
     if (false == bool(output)) {
@@ -186,8 +186,8 @@ Editor<OTCachedKey> Crypto::mutable_DefaultKey() const
 {
     OT_ASSERT(primary_key_);
 
-    std::function<void(OTCachedKey*, Lock&)> callback =
-        [&](OTCachedKey*, Lock&) -> void {};
+    std::function<void(OTCachedKey*, Lock&)> callback = [&](OTCachedKey*,
+                                                            Lock&) -> void {};
 
     return Editor<OTCachedKey>(cached_key_lock_, primary_key_.get(), callback);
 }

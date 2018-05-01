@@ -437,7 +437,7 @@ protected:
         const network::zeromq::Context& zmq,
         const api::ContactManager& contact,
         const IDType lastID,
-        const Identifier nymID,
+        const OTIdentifier nymID,
         RowType* blank)
         : Widget(zmq)
         , contact_manager_(contact)

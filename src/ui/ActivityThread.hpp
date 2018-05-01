@@ -168,8 +168,9 @@ private:
         const api::client::Sync& sync,
         const api::Activity& activity,
         const api::ContactManager& contact,
-        const Identifier& nymID,
+        const OTIdentifier nymID,
         const Identifier& threadID);
+
     ActivityThread() = delete;
     ActivityThread(const ActivityThread&) = delete;
     ActivityThread(ActivityThread&&) = delete;

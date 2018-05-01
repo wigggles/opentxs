@@ -84,17 +84,19 @@ ui::ActivitySummary* Factory::ActivitySummary(
 
 namespace opentxs::ui::implementation
 {
+
 ActivitySummary::ActivitySummary(
     const network::zeromq::Context& zmq,
     const api::Activity& activity,
     const api::ContactManager& contact,
     const Flag& running,
     const Identifier& nymID)
+
     : ActivitySummaryType(
           zmq,
           contact,
           blank_id(),
-          nymID,
+          Identifier::Factory(nymID),
           new ActivitySummaryItemBlank)
     , activity_(activity)
     , running_(running)
@@ -150,7 +152,7 @@ ActivitySummaryOuter::const_reverse_iterator ActivitySummary::outer_end() const
 
 void ActivitySummary::process_thread(const std::string& id)
 {
-    const Identifier threadID(id);
+    const auto threadID = Identifier::Factory(id);
     // It's hypothetically possible for a thread id to not be a contact id
     // However multi-participant threads are not yet implemented yet so this
     // will work most of the time. Even when it doesn't work it should just
@@ -165,9 +167,9 @@ void ActivitySummary::process_thread(const network::zeromq::Message& message)
 {
     wait_for_startup();
     const std::string id(message);
-    const Identifier threadID(id);
+    const auto threadID = Identifier::Factory(id);
 
-    OT_ASSERT(false == threadID.empty())
+    OT_ASSERT(false == threadID->empty())
 
     auto existing = names_.count(threadID);
 

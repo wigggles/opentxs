@@ -139,7 +139,7 @@ bool Transactor::addBasketAccountID(
     const Identifier& BASKET_ACCOUNT_ID,
     const Identifier& BASKET_CONTRACT_ID)
 {
-    Identifier theBasketAcctID;
+    auto theBasketAcctID = Identifier::Factory();
 
     if (lookupBasketAccountID(BASKET_ID, theBasketAcctID)) {
         Log::Output(0, "User attempted to add Basket that already exists.\n");
@@ -170,8 +170,8 @@ bool Transactor::lookupBasketAccountIDByContractID(
         String strBasketContractID = it.first.c_str();
         String strBasketAcctID = it.second.c_str();
 
-        Identifier id_BASKET_CONTRACT(strBasketContractID),
-            id_BASKET_ACCT(strBasketAcctID);
+        auto id_BASKET_CONTRACT = Identifier::Factory(strBasketContractID),
+             id_BASKET_ACCT = Identifier::Factory(strBasketAcctID);
 
         if (BASKET_CONTRACT_ID == id_BASKET_CONTRACT)  // if the basket contract
                                                        // ID passed in matches
@@ -198,8 +198,8 @@ bool Transactor::lookupBasketContractIDByAccountID(
         String strBasketContractID = it.first.c_str();
         String strBasketAcctID = it.second.c_str();
 
-        Identifier id_BASKET_CONTRACT(strBasketContractID),
-            id_BASKET_ACCT(strBasketAcctID);
+        auto id_BASKET_CONTRACT = Identifier::Factory(strBasketContractID),
+             id_BASKET_ACCT = Identifier::Factory(strBasketAcctID);
 
         if (BASKET_ACCOUNT_ID == id_BASKET_ACCT)  // if the basket contract ID
                                                   // passed in matches this
@@ -226,7 +226,8 @@ bool Transactor::lookupBasketAccountID(
         String strBasketID = it.first.c_str();
         String strBasketAcctID = it.second.c_str();
 
-        Identifier id_BASKET(strBasketID), id_BASKET_ACCT(strBasketAcctID);
+        auto id_BASKET = Identifier::Factory(strBasketID),
+             id_BASKET_ACCT = Identifier::Factory(strBasketAcctID);
 
         if (BASKET_ID ==
             id_BASKET)  // if the basket ID passed in matches this one...
@@ -247,8 +248,8 @@ std::shared_ptr<Account> Transactor::getVoucherAccount(
     const Identifier& INSTRUMENT_DEFINITION_ID)
 {
     std::shared_ptr<Account> pAccount;
-    const Identifier NOTARY_NYM_ID(server_->m_nymServer),
-        NOTARY_ID(server_->m_strNotaryID);
+    const auto NOTARY_NYM_ID = Identifier::Factory(server_->m_nymServer),
+               NOTARY_ID = Identifier::Factory(server_->m_strNotaryID);
     bool bWasAcctCreated = false;
     pAccount = voucherAccounts_.GetOrRegisterAccount(
         server_->m_nymServer,

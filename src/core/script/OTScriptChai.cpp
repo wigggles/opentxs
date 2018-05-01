@@ -298,8 +298,8 @@ bool OTScriptChai::ExecuteScript(OTVariable* pReturnVar)
                   << ee.reason << ". \n   File: " << ee.filename
                   << "\n"
                      "   Start position, line: "
-                  << ee.start_position.line
-                  << " column: " << ee.start_position.column
+                  << ee.start_position.line << " column: "
+                  << ee.start_position.column
                   //                  << "\n"
                   //                     "   End position,   line: " <<
                   //                     ee.end_position.line

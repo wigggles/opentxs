@@ -199,8 +199,9 @@ const ui::PayableList& UI::PayableList(
     proto::ContactItemType currency) const
 {
     Lock lock(lock_);
-    auto& output = payable_lists_[std::pair<Identifier, proto::ContactItemType>(
-        nymID, currency)];
+    auto& output =
+        payable_lists_[std::pair<OTIdentifier, proto::ContactItemType>(
+            nymID, currency)];
 
     if (false == bool(output)) {
         output.reset(

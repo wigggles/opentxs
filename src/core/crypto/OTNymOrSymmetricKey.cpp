@@ -239,7 +239,7 @@ void OTNym_or_SymmetricKey::Release_Nym_or_SymmetricKey()
 
 bool OTNym_or_SymmetricKey::CompareID(const OTNym_or_SymmetricKey& rhs) const
 {
-    Identifier idTHIS, idRHS;
+    auto idTHIS = Identifier::Factory(), idRHS = Identifier::Factory();
 
     GetIdentifier(idTHIS);
     rhs.GetIdentifier(idRHS);

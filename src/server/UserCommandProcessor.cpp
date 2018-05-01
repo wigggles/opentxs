@@ -292,13 +292,13 @@ bool UserCommandProcessor::add_numbers_to_nymbox(
 void UserCommandProcessor::check_acknowledgements(ReplyMessage& reply) const
 {
     auto& context = reply.Context();
-    const Identifier NOTARY_ID(server_.m_strNotaryID);
+    const auto NOTARY_ID = Identifier::Factory(server_.m_strNotaryID);
 
     // The server reads the list of acknowledged replies from the incoming
     // client message... If we add any acknowledged replies to the server-side
     // list, we will want to save (at the end.)
     auto numlist_ack_reply = reply.Acknowledged();
-    const auto nymID = context.RemoteNym().ID();
+    const auto nymID = Identifier::Factory(context.RemoteNym().ID());
     Ledger nymbox(nymID, nymID, NOTARY_ID);
 
     if (nymbox.LoadNymbox() && nymbox.VerifySignature(server_.m_nymServer)) {
@@ -593,7 +593,7 @@ bool UserCommandProcessor::cmd_check_nym(ReplyMessage& reply) const
 
     OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_check_nym);
 
-    auto nym = wallet_.Nym(Identifier(targetNym));
+    auto nym = wallet_.Nym(Identifier::Factory(targetNym));
 
     if (nym) {
         reply.SetPayload(proto::ProtoAsData(nym->asPublicNym()));
@@ -613,7 +613,7 @@ bool UserCommandProcessor::cmd_delete_asset_account(ReplyMessage& reply) const
 
     OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_del_asset_acct);
 
-    const Identifier accountID(msgIn.m_strAcctID);
+    const auto accountID = Identifier::Factory(msgIn.m_strAcctID);
     const auto& context = reply.Context();
     const auto& serverID = context.Server();
     const auto& serverNym = *context.Nym();
@@ -830,7 +830,7 @@ bool UserCommandProcessor::cmd_get_account_data(ReplyMessage& reply) const
     const auto& nymID = context.RemoteNym().ID();
     const auto& serverID = context.Server();
     const auto& serverNym = *context.Nym();
-    const Identifier accountID(msgIn.m_strAcctID);
+    const auto accountID = Identifier::Factory(msgIn.m_strAcctID);
     const auto account = Account::LoadExistingAccount(accountID, serverID);
 
     if (nullptr == account) {
@@ -863,8 +863,8 @@ bool UserCommandProcessor::cmd_get_account_data(ReplyMessage& reply) const
         return false;
     }
 
-    Identifier inboxHash{};
-    Identifier outboxHash{};
+    auto inboxHash = Identifier::Factory();
+    auto outboxHash = Identifier::Factory();
     String serializedAccount{};
     String serializedInbox{};
     String serializedOutbox{};
@@ -917,7 +917,7 @@ bool UserCommandProcessor::cmd_get_box_receipt(ReplyMessage& reply) const
     const auto& nymID = context.RemoteNym().ID();
     const auto& serverID = context.Server();
     const auto& serverNym = *context.Nym();
-    const Identifier accountID(msgIn.m_strAcctID);
+    const auto accountID = Identifier::Factory(msgIn.m_strAcctID);
     std::unique_ptr<Ledger> box{};
 
     switch (boxType) {
@@ -985,7 +985,8 @@ bool UserCommandProcessor::cmd_get_instrument_definition(
 
     OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_get_contract);
 
-    const Identifier contractID(msgIn.m_strInstrumentDefinitionID);
+    const auto contractID =
+        Identifier::Factory(msgIn.m_strInstrumentDefinitionID);
 
     auto serialized = Data::Factory();
     auto unitDefiniton = wallet_.UnitDefinition(contractID);
@@ -1043,7 +1044,8 @@ bool UserCommandProcessor::cmd_get_market_offers(ReplyMessage& reply) const
         depth = 0;
     }
 
-    auto market = server_.m_Cron.GetMarket(Identifier(msgIn.m_strNymID2));
+    auto market =
+        server_.m_Cron.GetMarket(Identifier::Factory(msgIn.m_strNymID2));
 
     if (nullptr == market) {
 
@@ -1075,7 +1077,8 @@ bool UserCommandProcessor::cmd_get_market_recent_trades(
 
     OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_get_market_recent_trades);
 
-    auto market = server_.m_Cron.GetMarket(Identifier(msgIn.m_strNymID2));
+    auto market =
+        server_.m_Cron.GetMarket(Identifier::Factory(msgIn.m_strNymID2));
 
     if (nullptr == market) {
 
@@ -1107,7 +1110,7 @@ bool UserCommandProcessor::cmd_get_mint(ReplyMessage& reply) const
     OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_get_mint);
 
     const auto& unitID = msgIn.m_strInstrumentDefinitionID;
-    auto mint = mint_.GetPublicMint(Identifier(unitID));
+    auto mint = mint_.GetPublicMint(Identifier::Factory(unitID));
 
     if (mint) {
         reply.SetSuccess(true);
@@ -1153,8 +1156,8 @@ bool UserCommandProcessor::cmd_get_nymbox(ReplyMessage& reply) const
     const auto& nymID = context.RemoteNym().ID();
     const auto& serverID = context.Server();
     const auto& serverNym = *context.Nym();
-    const Identifier originalNymboxHash = context.LocalNymboxHash();
-    Identifier newNymboxHash{};
+    const auto originalNymboxHash = context.LocalNymboxHash();
+    auto newNymboxHash = Identifier::Factory();
     bool bSavedNymbox{false};
     auto nymbox = load_nymbox(nymID, serverID, serverNym, false);
 
@@ -1201,8 +1204,8 @@ bool UserCommandProcessor::cmd_get_request_number(ReplyMessage& reply) const
     }
 
     reply.SetRequestNumber(number);
-    const Identifier NOTARY_ID(server_.m_strNotaryID);
-    Identifier EXISTING_NYMBOX_HASH = context.LocalNymboxHash();
+    const auto NOTARY_ID = Identifier::Factory(server_.m_strNotaryID);
+    auto EXISTING_NYMBOX_HASH = context.LocalNymboxHash();
 
     if (String(EXISTING_NYMBOX_HASH).Exists()) {
         reply.SetNymboxHash(EXISTING_NYMBOX_HASH);
@@ -1258,7 +1261,7 @@ bool UserCommandProcessor::cmd_get_transaction_numbers(
         return false;
     }
 
-    Identifier NYMBOX_HASH;
+    auto NYMBOX_HASH = Identifier::Factory();
     bool bSuccess = true;
     bool bSavedNymbox = false;
     const auto& serverID = context.Server();
@@ -1344,7 +1347,7 @@ bool UserCommandProcessor::cmd_issue_basket(ReplyMessage& reply) const
     // The contract ID of the basket is calculated based on the UNSIGNED portion
     // of the contract (so it is unique on every server) and for the same reason
     // with the AccountID removed before calculating.
-    Identifier basketAccountID{};
+    auto basketAccountID = Identifier::Factory();
     const auto BASKET_ID = BasketContract::CalculateBasketID(serialized);
 
     const bool exists =
@@ -1368,7 +1371,8 @@ bool UserCommandProcessor::cmd_issue_basket(ReplyMessage& reply) const
     // currency as a sub-currency is if it's already issued on this server.
     for (auto& it : serialized.basket().item()) {
         const auto& subcontractID = it.unit();
-        auto contract = wallet_.UnitDefinition(Identifier(subcontractID));
+        auto contract =
+            wallet_.UnitDefinition(Identifier::Factory(subcontractID));
 
         if (!contract) {
             otErr << OT_METHOD << __FUNCTION__ << ": Missing subcurrency "
@@ -1395,7 +1399,7 @@ bool UserCommandProcessor::cmd_issue_basket(ReplyMessage& reply) const
             serverID,
             *serverNym,
             serverNymID,
-            Identifier(it.unit()),
+            Identifier::Factory(it.unit()),
             Account::basketsub));
 
         if (newAccount) {
@@ -1497,8 +1501,8 @@ bool UserCommandProcessor::cmd_notarize_transaction(ReplyMessage& reply) const
     const auto& serverNym = *context.Nym();
     const auto& serverNymID = serverNym.ID();
     auto& nymfile = reply.Nymfile();
-    const Identifier accountID(msgIn.m_strAcctID);
-    Identifier nymboxHash{};
+    const auto accountID = Identifier::Factory(msgIn.m_strAcctID);
+    auto nymboxHash = Identifier::Factory();
     std::unique_ptr<Ledger> input(new Ledger(nymID, accountID, serverID));
     std::unique_ptr<Ledger> responseLedger(Ledger::GenerateLedger(
         serverNymID, accountID, serverID, Ledger::message, false));
@@ -1604,8 +1608,8 @@ bool UserCommandProcessor::cmd_process_inbox(ReplyMessage& reply) const
     const auto& serverNym = *context.Nym();
     const auto& serverNymID = serverNym.ID();
     auto& nymfile = reply.Nymfile();
-    const Identifier accountID(msgIn.m_strAcctID);
-    Identifier nymboxHash{};
+    const auto accountID = Identifier::Factory(msgIn.m_strAcctID);
+    auto nymboxHash = Identifier::Factory();
     std::unique_ptr<Ledger> input(new Ledger(nymID, accountID, serverID));
     std::unique_ptr<Ledger> responseLedger(Ledger::GenerateLedger(
         serverNymID, accountID, serverID, Ledger::message, false));
@@ -1746,7 +1750,7 @@ bool UserCommandProcessor::cmd_process_nymbox(ReplyMessage& reply) const
     const auto& serverNym = *context.Nym();
     const auto& serverNymID = serverNym.ID();
     auto& nymfile = reply.Nymfile();
-    Identifier nymboxHash{};
+    auto nymboxHash = Identifier::Factory();
     std::unique_ptr<Ledger> input(new Ledger(nymID, nymID, serverID));
     std::unique_ptr<Ledger> responseLedger(Ledger::GenerateLedger(
         serverNymID, nymID, serverID, Ledger::message, false));
@@ -1858,7 +1862,8 @@ bool UserCommandProcessor::cmd_query_instrument_definitions(
         // whether or not it's actually issued on this server." Future options
         // might include "issue", "audit", "contract", etc.
         if (0 == status.compare("exists")) {
-            auto pContract = wallet_.UnitDefinition(Identifier(unitID));
+            auto pContract =
+                wallet_.UnitDefinition(Identifier::Factory(unitID));
 
             if (pContract) {
                 newMap[unitID] = "true";
@@ -1890,7 +1895,8 @@ bool UserCommandProcessor::cmd_register_account(ReplyMessage& reply) const
     const auto& nymID = context.RemoteNym().ID();
     const auto& serverID = context.Server();
     const auto& serverNym = *context.Nym();
-    const Identifier contractID(msgIn.m_strInstrumentDefinitionID);
+    const auto contractID =
+        Identifier::Factory(msgIn.m_strInstrumentDefinitionID);
 
     std::unique_ptr<Account> account(Account::GenerateNewAccount(
         nymID, serverID, serverNym, nymID, contractID));
@@ -1926,7 +1932,7 @@ bool UserCommandProcessor::cmd_register_account(ReplyMessage& reply) const
         }
     }
 
-    Identifier accountID;
+    auto accountID = Identifier::Factory();
     account->GetIdentifier(accountID);
 
     Ledger outbox(nymID, accountID, serverID);
@@ -2048,7 +2054,8 @@ bool UserCommandProcessor::cmd_register_instrument_definition(
 {
     const auto& msgIn = reply.Original();
     reply.SetInstrumentDefinitionID(msgIn.m_strInstrumentDefinitionID);
-    const Identifier contractID(msgIn.m_strInstrumentDefinitionID);
+    const auto contractID =
+        Identifier::Factory(msgIn.m_strInstrumentDefinitionID);
 
     OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_issue_asset);
 
@@ -2103,7 +2110,7 @@ bool UserCommandProcessor::cmd_register_instrument_definition(
     }
 
     reply.SetPayload(String(*account));
-    Identifier accountID{};
+    auto accountID = Identifier::Factory();
     account->GetIdentifier(accountID);
     reply.SetAccount(String(accountID));
     server_.mainFile_.SaveMainFile();
@@ -2255,7 +2262,8 @@ bool UserCommandProcessor::cmd_register_nym(ReplyMessage& reply) const
           << ": Success saving new user account verification file."
           << std::endl;
 
-    Identifier theNewNymID, NOTARY_ID(server_.m_strNotaryID);
+    auto theNewNymID = Identifier::Factory(),
+         NOTARY_ID = Identifier::Factory(server_.m_strNotaryID);
     nymfile.GetIdentifier(theNewNymID);
     Ledger theNymbox(theNewNymID, theNewNymID, NOTARY_ID);
     bool bSuccessLoadingNymbox = theNymbox.LoadNymbox();
@@ -2354,7 +2362,7 @@ bool UserCommandProcessor::cmd_send_nym_message(ReplyMessage& reply) const
     const auto& server = context.Server();
     const auto& msgIn = reply.Original();
     const auto& targetNym = msgIn.m_strNymID2;
-    const Identifier recipient(targetNym);
+    const auto recipient = Identifier::Factory(targetNym);
     reply.SetTargetNym(targetNym);
 
     OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_send_message);
@@ -2506,7 +2514,7 @@ bool UserCommandProcessor::cmd_usage_credits(ReplyMessage& reply) const
         adjustment = 0;
     }
 
-    const Identifier targetNymID(msgIn.m_strNymID2);
+    const auto targetNymID = Identifier::Factory(msgIn.m_strNymID2);
     Nym targetNym(targetNymID);
     const bool sameNym = targetNym.CompareID(adminNym);
     Nym* nymfile{nullptr};
@@ -2604,7 +2612,7 @@ std::unique_ptr<Ledger> UserCommandProcessor::create_nymbox(
         return {};
     }
 
-    Identifier notUsed{};
+    auto notUsed = Identifier::Factory();
 
     if (false == save_nymbox(serverNym, notUsed, *nymbox)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Unable to save nymbox for "
@@ -2701,8 +2709,8 @@ void UserCommandProcessor::drop_reply_notice_to_nymbox(
     theNymbox.ReleaseSignatures();
     theNymbox.SignContract(serverNym);
     theNymbox.SaveContract();
-    Identifier NYMBOX_HASH;
-    theNymbox.SaveNymbox(&NYMBOX_HASH);
+    auto NYMBOX_HASH = Identifier::Factory();
+    theNymbox.SaveNymbox(&NYMBOX_HASH.get());
     pReplyNotice->SaveBoxReceipt(theNymbox);
 
     if ((nullptr != pActualNym) && pActualNym->CompareID(nymID)) {
@@ -2861,7 +2869,7 @@ std::unique_ptr<Ledger> UserCommandProcessor::load_inbox(
         return {};
     }
 
-    Identifier notUsed{};
+    auto notUsed = Identifier::Factory();
 
     if (inbox->LoadedLegacyData()) {
         save_inbox(serverNym, notUsed, *inbox);
@@ -2901,7 +2909,7 @@ std::unique_ptr<Ledger> UserCommandProcessor::load_nymbox(
         return {};
     }
 
-    Identifier notUsed{};
+    auto notUsed = Identifier::Factory();
 
     if (nymbox->LoadedLegacyData()) {
         save_nymbox(serverNym, notUsed, *nymbox);
@@ -2949,7 +2957,7 @@ std::unique_ptr<Ledger> UserCommandProcessor::load_outbox(
         return {};
     }
 
-    Identifier notUsed{};
+    auto notUsed = Identifier::Factory();
 
     if (outbox->LoadedLegacyData()) {
         save_outbox(serverNym, notUsed, *outbox);
@@ -3005,7 +3013,7 @@ bool UserCommandProcessor::ProcessUserCommand(
     OT_ASSERT(reply.HaveContext());
 
     auto& context = reply.Context();
-    context.SetRemoteNymboxHash(Identifier(msgIn.m_strNymboxHash));
+    context.SetRemoteNymboxHash(Identifier::Factory(msgIn.m_strNymboxHash));
 
     // ENTERING THE INNER SANCTUM OF SECURITY. If the user got all the way to
     // here, Then he has passed multiple levels of security, and all commands
@@ -3174,7 +3182,7 @@ bool UserCommandProcessor::reregister_nym(ReplyMessage& reply) const
         return false;
     }
 
-    Identifier nymboxHash;
+    auto nymboxHash = Identifier::Factory();
     nymbox->CalculateNymboxHash(nymboxHash);
     context.SetLocalNymboxHash(nymboxHash);
     reply.SetSuccess(true);

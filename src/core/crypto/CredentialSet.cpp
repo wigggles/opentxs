@@ -369,8 +369,9 @@ CredentialSet* CredentialSet::LoadMaster(
     const bool bLoaded = pCredential->Load_Master(
         strNymID, strMasterCredID, (nullptr == pPWData) ? &thePWData : pPWData);
     if (!bLoaded) {
-        otErr << __FUNCTION__ << ": Failed trying to load master credential "
-                                 "from local storage. 1\n";
+        otErr << __FUNCTION__
+              << ": Failed trying to load master credential "
+                 "from local storage. 1\n";
         return nullptr;
     }
 

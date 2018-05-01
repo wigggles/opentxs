@@ -312,9 +312,9 @@ std::string Activity::Mail(
     const StorageBox box) const
 {
     const std::string nymID = nym.str();
-    Identifier id{};
+    auto id = Identifier::Factory();
     mail.CalculateContractID(id);
-    const std::string output = id.str();
+    const std::string output = id->str();
     const String data(mail);
     std::string participantNymID{};
     const String localName(nym);
@@ -462,7 +462,8 @@ void Activity::MigrateLegacyThreads() const
                 continue;
             }
 
-            auto contactID = contact_.ContactID(Identifier(originalThreadID));
+            auto contactID =
+                contact_.ContactID(Identifier::Factory(originalThreadID));
 
             if (false == contactID->empty()) {
                 storage_.RenameThread(
@@ -478,7 +479,7 @@ void Activity::MigrateLegacyThreads() const
                 if (1 == nymCount) {
                     auto paymentCode = PaymentCode::Factory("");
                     auto newContact = contact_.NewContact(
-                        "", Identifier(originalThreadID), paymentCode);
+                        "", Identifier::Factory(originalThreadID), paymentCode);
 
                     OT_ASSERT(newContact);
 
@@ -497,7 +498,7 @@ void Activity::MigrateLegacyThreads() const
 std::shared_ptr<const Contact> Activity::nym_to_contact(
     const std::string& id) const
 {
-    const Identifier nymID(id);
+    const auto nymID = Identifier::Factory(id);
     auto contactID = contact_.ContactID(nymID);
 
     if (false == contactID->empty()) {
@@ -714,7 +715,10 @@ void Activity::thread_preload_thread(
             case StorageBox::MAILOUTBOX: {
                 otErr << OT_METHOD << __FUNCTION__ << ": Preloading item "
                       << item.id() << " in thread " << threadID << std::endl;
-                MailText(Identifier(nymID), Identifier(item.id()), box);
+                MailText(
+                    Identifier::Factory(nymID),
+                    Identifier::Factory(item.id()),
+                    box);
                 ++cached;
             } break;
             default: {
@@ -742,7 +746,7 @@ ObjectList Activity::Threads(const Identifier& nym, const bool unreadOnly) const
         auto& label = it.second;
 
         if (label.empty()) {
-            auto contact = contact_.Contact(Identifier(threadID));
+            auto contact = contact_.Contact(Identifier::Factory(threadID));
 
             if (contact) {
                 const auto& name = contact->Label();

@@ -203,8 +203,9 @@ bool OTPayment::SetTempValues()  // This version for OTTrackable (all types
         std::unique_ptr<Purse> pPurse(InstantiatePurse());
 
         if (!pPurse) {
-            otErr << __FUNCTION__ << ": Error: Failed instantiating "
-                                     "OTPayment (purported purse) contents:\n\n"
+            otErr << __FUNCTION__
+                  << ": Error: Failed instantiating "
+                     "OTPayment (purported purse) contents:\n\n"
                   << m_strPayment << "\n\n";
             return false;
         }
@@ -236,8 +237,9 @@ bool OTPayment::SetTempValues()  // This version for OTTrackable (all types
         OTTrackable* pTrackable = Instantiate();
 
         if (nullptr == pTrackable) {
-            otErr << __FUNCTION__ << ": Error: Failed instantiating "
-                                     "OTPayment contents:\n\n"
+            otErr << __FUNCTION__
+                  << ": Error: Failed instantiating "
+                     "OTPayment contents:\n\n"
                   << m_strPayment << "\n\n";
             return false;
         }
@@ -294,8 +296,9 @@ bool OTPayment::SetTempValues()  // This version for OTTrackable (all types
                 break;
 
             default:
-                otErr << __FUNCTION__ << ": Failure: Wrong m_Type. "
-                                         "Contents:\n\n"
+                otErr << __FUNCTION__
+                      << ": Failure: Wrong m_Type. "
+                         "Contents:\n\n"
                       << m_strPayment << "\n\n";
                 return false;
         }
@@ -455,8 +458,9 @@ bool OTPayment::SetTempValuesFromNotice(const OTTransaction& theInput)
 
         if (!pCronItemPayment || !pCronItemPayment->IsValid() ||
             !pCronItemPayment->SetTempValues()) {
-            otErr << __FUNCTION__ << ": 1 Failed instantiating or verifying a "
-                                     "(purported) cron item:\n\n"
+            otErr << __FUNCTION__
+                  << ": 1 Failed instantiating or verifying a "
+                     "(purported) cron item:\n\n"
                   << strCronItem << "\n\n";
             return false;
         }
@@ -464,8 +468,9 @@ bool OTPayment::SetTempValuesFromNotice(const OTTransaction& theInput)
         OTTrackable* pTrackable = pCronItemPayment->Instantiate();
 
         if (nullptr == pTrackable) {
-            otErr << __FUNCTION__ << ": 2 Failed instantiating or verifying a "
-                                     "(purported) cron item:\n\n"
+            otErr << __FUNCTION__
+                  << ": 2 Failed instantiating or verifying a "
+                     "(purported) cron item:\n\n"
                   << strCronItem << "\n\n";
             return false;
         }
@@ -483,9 +488,10 @@ bool OTPayment::SetTempValuesFromNotice(const OTTransaction& theInput)
             return true;
         }
         // -------------------------------------------
-        otErr << __FUNCTION__ << ": Error: Apparently it's not a payment plan "
-                                 "or smart contract – but was supposed to be. "
-                                 "(Returning false.)\n";
+        otErr << __FUNCTION__
+              << ": Error: Apparently it's not a payment plan "
+                 "or smart contract – but was supposed to be. "
+                 "(Returning false.)\n";
     } else
         otErr << __FUNCTION__ << ": Error: Wrong type. (Returning false.)\n";
 
@@ -776,8 +782,9 @@ bool OTPayment::GetAllTransactionNumbers(NumList& numlistOutput) const
 
         if (!pCronItemPayment || !pCronItemPayment->IsValid() ||
             !pCronItemPayment->SetTempValues()) {
-            otErr << __FUNCTION__ << ": Failed instantiating or verifying a "
-                                     "(purported) cron item:\n\n"
+            otErr << __FUNCTION__
+                  << ": Failed instantiating or verifying a "
+                     "(purported) cron item:\n\n"
                   << strCronItem << "\n\n";
             return false;
         }
@@ -902,8 +909,9 @@ bool OTPayment::HasTransactionNum(const std::int64_t& lInput) const
 
         if (!pCronItemPayment || !pCronItemPayment->IsValid() ||
             !pCronItemPayment->SetTempValues()) {
-            otErr << __FUNCTION__ << ": Failed instantiating or verifying a "
-                                     "(purported) cron item:\n\n"
+            otErr << __FUNCTION__
+                  << ": Failed instantiating or verifying a "
+                     "(purported) cron item:\n\n"
                   << strCronItem << "\n\n";
             return false;
         }
@@ -1021,8 +1029,9 @@ bool OTPayment::GetClosingNum(
 
         if (!pCronItemPayment || !pCronItemPayment->IsValid() ||
             !pCronItemPayment->SetTempValues()) {
-            otErr << __FUNCTION__ << ": Failed instantiating or verifying a "
-                                     "(purported) cron item:\n\n"
+            otErr << __FUNCTION__
+                  << ": Failed instantiating or verifying a "
+                     "(purported) cron item:\n\n"
                   << strCronItem << "\n\n";
             return false;
         }
@@ -1136,8 +1145,9 @@ bool OTPayment::GetOpeningNum(std::int64_t& lOutput, const Identifier& theNymID)
 
         if (!pCronItemPayment || !pCronItemPayment->IsValid() ||
             !pCronItemPayment->SetTempValues()) {
-            otErr << __FUNCTION__ << ": Failed instantiating or verifying a "
-                                     "(purported) cron item:\n\n"
+            otErr << __FUNCTION__
+                  << ": Failed instantiating or verifying a "
+                     "(purported) cron item:\n\n"
                   << strCronItem << "\n\n";
             return false;
         }
@@ -1705,8 +1715,9 @@ OTTrackable* OTPayment::Instantiate() const
                 } else
                     pTrackable = pCheque;
             } else
-                otErr << __FUNCTION__ << ": Tried to instantiate cheque, but "
-                                         "factory returned nullptr:\n\n"
+                otErr << __FUNCTION__
+                      << ": Tried to instantiate cheque, but "
+                         "factory returned nullptr:\n\n"
                       << m_strPayment << "\n\n";
             break;
 
@@ -1768,8 +1779,9 @@ OTTrackable* OTPayment::Instantiate() const
             return nullptr;
 
         default:
-            otErr << __FUNCTION__ << ": ERROR: Tried to instantiate payment "
-                                     "object, but had a bad type. Contents:\n\n"
+            otErr << __FUNCTION__
+                  << ": ERROR: Tried to instantiate payment "
+                     "object, but had a bad type. Contents:\n\n"
                   << m_strPayment << "\n\n";
             return nullptr;
     }
@@ -1787,13 +1799,15 @@ OTTrackable* OTPayment::Instantiate(const String& strPayment)
 OTTransaction* OTPayment::InstantiateNotice(const String& strNotice)
 {
     if (!SetPayment(strNotice))
-        otErr << __FUNCTION__ << ": WARNING: Failed setting the "
-                                 "notice string based on "
-                                 "what was passed in:\n\n"
+        otErr << __FUNCTION__
+              << ": WARNING: Failed setting the "
+                 "notice string based on "
+                 "what was passed in:\n\n"
               << strNotice << "\n\n";
     else if (OTPayment::NOTICE != m_Type)
-        otErr << __FUNCTION__ << ": WARNING: No notice was found in "
-                                 "provided string:\n\n"
+        otErr << __FUNCTION__
+              << ": WARNING: No notice was found in "
+                 "provided string:\n\n"
               << strNotice << "\n\n";
     else
         return InstantiateNotice();
@@ -1808,9 +1822,10 @@ OTTransaction* OTPayment::InstantiateNotice() const
             OTTransactionType::TransactionFactory(m_strPayment);
 
         if (nullptr == pType) {
-            otErr << __FUNCTION__ << ": Failure 1: This payment object does "
-                                     "NOT contain a notice. "
-                                     "Contents:\n\n"
+            otErr << __FUNCTION__
+                  << ": Failure 1: This payment object does "
+                     "NOT contain a notice. "
+                     "Contents:\n\n"
                   << m_strPayment << "\n\n";
             return nullptr;
         }
@@ -1818,9 +1833,10 @@ OTTransaction* OTPayment::InstantiateNotice() const
         OTTransaction* pNotice = dynamic_cast<OTTransaction*>(pType);
 
         if (nullptr == pNotice) {
-            otErr << __FUNCTION__ << ": Failure 2: This payment object does "
-                                     "NOT contain a notice. "
-                                     "Contents:\n\n"
+            otErr << __FUNCTION__
+                  << ": Failure 2: This payment object does "
+                     "NOT contain a notice. "
+                     "Contents:\n\n"
                   << m_strPayment << "\n\n";
             delete pType;
             pType = nullptr;  // Let the optimizer remove this line.
@@ -1848,9 +1864,10 @@ Purse* OTPayment::InstantiatePurse() const
     if (OTPayment::PURSE == GetType()) {
         return Purse::PurseFactory(m_strPayment);
     } else
-        otErr << __FUNCTION__ << ": Failure: This payment object "
-                                 "does NOT contain a purse. "
-                                 "Contents:\n\n"
+        otErr << __FUNCTION__
+              << ": Failure: This payment object "
+                 "does NOT contain a purse. "
+                 "Contents:\n\n"
               << m_strPayment << "\n\n";
 
     return nullptr;
@@ -1859,13 +1876,15 @@ Purse* OTPayment::InstantiatePurse() const
 Purse* OTPayment::InstantiatePurse(const String& strPayment)
 {
     if (!SetPayment(strPayment))
-        otErr << __FUNCTION__ << ": WARNING: Failed setting the "
-                                 "payment string based on "
-                                 "what was passed in:\n\n"
+        otErr << __FUNCTION__
+              << ": WARNING: Failed setting the "
+                 "payment string based on "
+                 "what was passed in:\n\n"
               << strPayment << "\n\n";
     else if (OTPayment::PURSE != m_Type)
-        otErr << __FUNCTION__ << ": WARNING: No purse was found in "
-                                 "the payment string:\n\n"
+        otErr << __FUNCTION__
+              << ": WARNING: No purse was found in "
+                 "the payment string:\n\n"
               << strPayment << "\n\n";
     else
         return InstantiatePurse();
@@ -1892,8 +1911,8 @@ bool OTPayment::IsCancelledCheque()
         return false;
     }
 
-    Identifier sender;
-    Identifier recipient;
+    auto sender = Identifier::Factory();
+    auto recipient = Identifier::Factory();
     Amount amount{0};
 
     if (false == GetSenderNymID(sender)) {
@@ -2017,8 +2036,9 @@ bool OTPayment::SetPayment(const String& strPayment)
     if (!strContract.DecodeIfArmored(false))  // bEscapedIsAllowed=true
                                               // by default.
     {
-        otErr << __FUNCTION__ << ": Input string apparently was encoded and "
-                                 "then failed decoding. Contents: \n"
+        otErr << __FUNCTION__
+              << ": Input string apparently was encoded and "
+                 "then failed decoding. Contents: \n"
               << strPayment << "\n";
         return false;
     }

@@ -71,7 +71,7 @@ class Wallet;
 
 typedef std::deque<Message*> dequeOfMail;
 typedef std::deque<std::int64_t> dequeOfTransNums;
-typedef std::map<std::string, OTIdentifier*> mapOfIdentifiers;
+typedef std::map<std::string, OTIdentifier> mapOfIdentifiers;
 typedef std::map<std::string, CredentialSet*> mapOfCredentialSets;
 typedef std::list<OTAsymmetricKey*> listOfAsymmetricKeys;
 typedef bool CredentialIndexModeFlag;
@@ -317,7 +317,7 @@ public:
 
     EXPORT Nym();
     EXPORT explicit Nym(const NymParameters& nymParameters);
-    EXPORT explicit Nym(const Identifier& nymID);
+    EXPORT explicit Nym(const OTIdentifier nymID);
     EXPORT explicit Nym(const String& strNymID);
     EXPORT Nym(const Nym&) = default;
     EXPORT ~Nym();
@@ -440,7 +440,7 @@ private:
 
     Nym(const String& name,
         const String& filename,
-        const Identifier& nymID,
+        const OTIdentifier nymID,
         const proto::CredentialIndexMode mode = proto::CREDINDEX_ERROR);
     Nym(const String& name, const String& filename, const String& nymID);
     Nym& operator=(const Nym&) = delete;

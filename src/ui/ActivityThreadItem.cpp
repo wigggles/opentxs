@@ -81,7 +81,7 @@ bool ActivityThreadItem::Loading() const { return loading_.get(); }
 bool ActivityThreadItem::MarkRead() const
 {
     return activity_.MarkRead(
-        nym_id_, Identifier(parent_.ThreadID()), item_id_);
+        nym_id_, Identifier::Factory(parent_.ThreadID()), item_id_);
 }
 
 bool ActivityThreadItem::Pending() const { return pending_.get(); }

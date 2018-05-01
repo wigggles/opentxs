@@ -97,8 +97,8 @@ std::string ContactCredential::ClaimID(
 // static
 OTIdentifier ContactCredential::ClaimID(const proto::Claim& preimage)
 {
-    Identifier output;
-    output.CalculateDigest(proto::ProtoAsData<proto::Claim>(preimage));
+    auto output = Identifier::Factory();
+    output->CalculateDigest(proto::ProtoAsData<proto::Claim>(preimage));
 
     return output;
 }

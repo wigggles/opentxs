@@ -289,9 +289,9 @@ void ActivitySummaryItem::process_thread(
     const std::string id(message);
     otWarn << OT_METHOD << __FUNCTION__ << ": Thread " << id << " has updated.."
            << std::endl;
-    const Identifier threadID(id);
+    const auto threadID = Identifier::Factory(id);
 
-    OT_ASSERT(false == threadID.empty())
+    OT_ASSERT(false == threadID->empty())
 
     if (id_ != threadID) {
         otWarn << OT_METHOD << __FUNCTION__ << ": Update not relevant to me ("

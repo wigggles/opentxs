@@ -77,12 +77,12 @@ PeerObject::PeerObject(
         } break;
         case (proto::PEEROBJECT_RESPONSE): {
             auto senderNym = OT::App().Wallet().Nym(
-                Identifier(serialized.otrequest().initiator()));
+                Identifier::Factory(serialized.otrequest().initiator()));
             request_ = PeerRequest::Factory(senderNym, serialized.otrequest());
 
             if (false == bool(nym_)) {
                 nym_ = OT::App().Wallet().Nym(
-                    Identifier(serialized.otrequest().recipient()));
+                    Identifier::Factory(serialized.otrequest().recipient()));
             }
 
             reply_ = PeerReply::Factory(nym_, serialized.otreply());

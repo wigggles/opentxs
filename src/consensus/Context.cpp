@@ -206,8 +206,8 @@ OTIdentifier Context::GetID(const Lock& lock) const
     OT_ASSERT(verify_write_lock(lock));
 
     auto contract = IDVersion(lock);
-    Identifier id;
-    id.CalculateDigest(proto::ProtoAsData(contract));
+    auto id = Identifier::Factory();
+    id->CalculateDigest(proto::ProtoAsData(contract));
 
     return id;
 }

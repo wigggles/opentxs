@@ -122,8 +122,8 @@ Issuer::Issuer(
         for (const auto& workflow : history.workflow()) {
             peer_requests_[type].emplace(
                 workflow.requestid(),
-                std::pair<Identifier, bool>(
-                    workflow.replyid(), workflow.used()));
+                std::pair<OTIdentifier, bool>(
+                    Identifier::Factory(workflow.replyid()), workflow.used()));
         }
     }
 }
@@ -181,9 +181,10 @@ Issuer::operator std::string() const
 
             const auto& notUsed[[maybe_unused]] = id;
             const auto& claim = *pClaim;
-            const Identifier unitID(claim.Value());
-            output << " * " << proto::TranslateItemType(
-                                   static_cast<std::uint32_t>(claim.Type()))
+            const auto unitID = Identifier::Factory(claim.Value());
+            output << " * "
+                   << proto::TranslateItemType(
+                          static_cast<std::uint32_t>(claim.Type()))
                    << ": " << claim.Value() << "\n";
             const auto accountSet = account_map_.find(type);
 
@@ -302,7 +303,7 @@ bool Issuer::add_request(
     }
 
     peer_requests_[type].emplace(
-        requestID, std::pair<Identifier, bool>(replyID, false));
+        requestID, std::pair<OTIdentifier, bool>(replyID, false));
 
     return true;
 }
@@ -335,7 +336,7 @@ bool Issuer::AddRequest(
 {
     Lock lock(lock_);
     // ReplyID is blank because we don't know it yet.
-    Identifier replyID{};
+    auto replyID = Identifier::Factory();
 
     return add_request(lock, type, requestID, replyID);
 }
@@ -366,7 +367,8 @@ bool Issuer::BailmentInitiated(const Identifier& unitID) const
 
         OT_ASSERT(request);
 
-        const Identifier requestType(request->bailment().unitid());
+        const auto requestType =
+            Identifier::Factory(request->bailment().unitid());
 
         if (unitID == requestType) {
             ++count;
@@ -575,7 +577,7 @@ std::set<std::tuple<OTIdentifier, OTIdentifier, bool>> Issuer::get_requests(
             } break;
             case Issuer::RequestStatus::Requested: {
                 if (replyID.empty()) {
-                    output.emplace(requestID, Identifier(), false);
+                    output.emplace(requestID, Identifier::Factory(), false);
                 }
             } break;
             case Issuer::RequestStatus::All: {
@@ -624,9 +626,10 @@ bool Issuer::RemoveAccount(
 
         return false;
     }
-
+    const auto unitId = Identifier::Factory(unitID);
+    const auto accountId = Identifier::Factory(accountID);
     auto& accounts = accountSet->second;
-    auto it = accounts.find({unitID, accountID});
+    auto it = accounts.find({unitId, accountId});
 
     if (accounts.end() == it) {
 

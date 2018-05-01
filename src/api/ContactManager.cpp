@@ -88,7 +88,7 @@ ContactManager::ContactMap::iterator ContactManager::add_contact(
     return contact_map_.find(id);
 }
 
-Identifier ContactManager::address_to_contact(
+OTIdentifier ContactManager::address_to_contact(
     const rLock& lock,
     const std::string& address,
     const proto::ContactItemType currency) const
@@ -99,7 +99,7 @@ Identifier ContactManager::address_to_contact(
 
     const auto contact = storage_.BlockchainAddressOwner(currency, address);
 
-    return Identifier(contact);
+    return Identifier::Factory(contact);
 }
 
 OTIdentifier ContactManager::BlockchainAddressToContact(
@@ -206,7 +206,7 @@ std::shared_ptr<const class Contact> ContactManager::Contact(
 
 OTIdentifier ContactManager::ContactID(const Identifier& nymID) const
 {
-    return Identifier(storage_.ContactOwnerNym(nymID.str()));
+    return Identifier::Factory(storage_.ContactOwnerNym(nymID.str()));
 }
 
 ObjectList ContactManager::ContactList() const
@@ -232,8 +232,8 @@ void ContactManager::import_contacts(const rLock& lock)
     auto nyms = wallet_.NymList();
 
     for (const auto& it : nyms) {
-        const Identifier nymID(it.first);
-        const auto contactID = storage_.ContactOwnerNym(nymID.str());
+        const auto nymID = Identifier::Factory(it.first);
+        const auto contactID = storage_.ContactOwnerNym(nymID->str());
 
         if (contactID.empty()) {
             const auto nym = wallet_.Nym(nymID);
@@ -264,7 +264,7 @@ void ContactManager::init_nym_map(const rLock& lock)
     otErr << OT_METHOD << __FUNCTION__ << ": Upgrading indices" << std::endl;
 
     for (const auto& it : storage_.ContactList()) {
-        const auto& contactID = Identifier(it.first);
+        const auto& contactID = Identifier::Factory(it.first);
         auto loaded = load_contact(lock, contactID);
 
         if (contact_map_.end() == loaded) {
@@ -290,7 +290,7 @@ void ContactManager::init_nym_map(const rLock& lock)
         const auto nyms = contact->Nyms();
 
         for (const auto& nym : nyms) {
-            update_nym_map(lock, nym, *contact);
+            update_nym_map(lock, Identifier::Factory(nym), *contact);
         }
     }
 
@@ -448,7 +448,7 @@ std::shared_ptr<const class Contact> ContactManager::new_contact(
 
     bool haveNymID{false};
     bool havePaymentCode{false};
-    Identifier inputNymID{};
+    auto inputNymID = Identifier::Factory();
     check_identifiers(nymID, code, haveNymID, havePaymentCode, inputNymID);
 
     if (haveNymID) {
@@ -457,7 +457,7 @@ std::shared_ptr<const class Contact> ContactManager::new_contact(
         if (false == contactID.empty()) {
 
             return update_existing_contact(
-                lock, label, code, Identifier(contactID));
+                lock, label, code, Identifier::Factory(contactID));
         }
     }
 
@@ -468,7 +468,7 @@ std::shared_ptr<const class Contact> ContactManager::new_contact(
         return {};
     }
 
-    Identifier contactID = newContact->ID();
+    OTIdentifier contactID = newContact->ID();
     newContact.reset();
     auto output = mutable_contact(lock, contactID);
 
@@ -527,7 +527,7 @@ std::shared_ptr<const class Contact> ContactManager::NewContactFromAddress(
 
     const auto existingID = address_to_contact(lock, address, currency);
 
-    if (false == existingID.empty()) {
+    if (false == existingID->empty()) {
 
         return contact(lock, existingID);
     }
@@ -536,7 +536,7 @@ std::shared_ptr<const class Contact> ContactManager::NewContactFromAddress(
 
     OT_ASSERT(newContact);
 
-    const auto newContactID = newContact->ID();
+    const auto newContactID = Identifier::Factory(newContact->ID());
     auto& it = contact_map_.at(newContactID);
     auto& contact = *it.second;
 
@@ -663,7 +663,7 @@ std::shared_ptr<const class Contact> ContactManager::Update(
     const auto& nymID = nym->ID();
     rLock lock(lock_);
     const auto contactIdentifier = storage_.ContactOwnerNym(nymID.str());
-    const auto contactID = Identifier(contactIdentifier);
+    const auto contactID = Identifier::Factory(contactIdentifier);
 
     if (contactIdentifier.empty()) {
         otErr << OT_METHOD << __FUNCTION__ << ": Nym " << String(nymID)
@@ -738,7 +738,7 @@ void ContactManager::update_nym_map(
     const auto contactIdentifier = storage_.ContactOwnerNym(nymID.str());
     const bool exists = (false == contactIdentifier.empty());
     const auto& incomingID = contact.ID();
-    const auto contactID = Identifier(contactIdentifier);
+    const auto contactID = Identifier::Factory(contactIdentifier);
     const bool same = (incomingID == contactID);
 
     if (exists && (false == same)) {

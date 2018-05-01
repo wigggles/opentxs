@@ -195,7 +195,7 @@ bool Dht::ProcessPublicNym(
             continue;
         }
 
-        auto existing = wallet.Nym(Identifier(key));
+        auto existing = wallet.Nym(Identifier::Factory(key));
 
         if (existing) {
             if (existing->Revision() >= publicNym.revision()) {

@@ -215,8 +215,8 @@ bool Account::SaveInbox(Ledger& box, Identifier* hash)
         return false;
     }
 
-    Identifier theHash;
-    if (hash == nullptr) hash = &theHash;
+    auto theHash = Identifier::Factory();
+    if (hash == nullptr) hash = &theHash.get();
 
     bool success = box.SaveInbox(hash);
 
@@ -243,8 +243,8 @@ bool Account::SaveOutbox(Ledger& box, Identifier* hash)
         return false;
     }
 
-    Identifier theHash;
-    if (hash == nullptr) hash = &theHash;
+    auto theHash = Identifier::Factory();
+    if (hash == nullptr) hash = &theHash.get();
 
     bool success = box.SaveOutbox(hash);
 
@@ -408,7 +408,7 @@ void Account::InitAccount()
 // before calling this.
 bool Account::VerifyOwner(const Nym& candidate) const
 {
-    Identifier ID_CANDIDATE;
+    auto ID_CANDIDATE = Identifier::Factory();
     // ID_CANDIDATE now contains the ID of the Nym we're testing.
     candidate.GetIdentifier(ID_CANDIDATE);
     return m_AcctNymID == ID_CANDIDATE;
@@ -487,14 +487,13 @@ Account* Account::GenerateNewAccount(
     std::unique_ptr<Account> output(new Account(nymID, notaryID));
 
     if (output) {
-        if (false ==
-            output->GenerateNewAccount(
-                serverNym,
-                userNymID,
-                notaryID,
-                instrumentDefinitionID,
-                acctType,
-                stashTransNum)) {
+        if (false == output->GenerateNewAccount(
+                         serverNym,
+                         userNymID,
+                         notaryID,
+                         instrumentDefinitionID,
+                         acctType,
+                         stashTransNum)) {
             output.reset();
         }
     }
@@ -526,8 +525,8 @@ bool Account::GenerateNewAccount(
 
     // Next we calculate that binary object into a message digest (an
     // OTIdentifier).
-    Identifier newID;
-    if (!newID.CalculateDigest(payload)) {
+    auto newID = Identifier::Factory();
+    if (!newID->CalculateDigest(payload)) {
         otErr << __FUNCTION__ << ": Error generating new account ID.\n";
         return false;
     }
@@ -810,9 +809,9 @@ std::int32_t Account::ProcessXMLNode(IrrXMLReader*& xml)
         String strNotaryID(xml->getAttributeValue("notaryID"));
         String strAcctNymID(xml->getAttributeValue("nymID"));
 
-        Identifier ACCOUNT_ID(strAccountID);
-        Identifier NOTARY_ID(strNotaryID);
-        Identifier NYM_ID(strAcctNymID);
+        auto ACCOUNT_ID = Identifier::Factory(strAccountID);
+        auto NOTARY_ID = Identifier::Factory(strNotaryID);
+        auto NYM_ID = Identifier::Factory(strAcctNymID);
 
         SetPurportedAccountID(ACCOUNT_ID);
         SetPurportedNotaryID(NOTARY_ID);

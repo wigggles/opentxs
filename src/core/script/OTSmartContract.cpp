@@ -1069,8 +1069,9 @@ void OTSmartContract::onActivate()
 
     if (GetCron()->GetTransactionCount() < 1) {
         otOut << __FUNCTION__ << ": Failed to process smart contract "
-              << GetTransactionNum() << ": Out of transaction numbers for "
-                                        "receipts! Flagging for removal.\n";
+              << GetTransactionNum()
+              << ": Out of transaction numbers for "
+                 "receipts! Flagging for removal.\n";
         FlagForRemoval();
         return;
     }
@@ -1242,7 +1243,7 @@ std::string OTSmartContract::GetAcctBalance(std::string from_acct_name)
     // then we can error out here if he's not.  We can then pass in his Nym ID.
     //
 
-    Identifier theFromAgentID;
+    auto theFromAgentID = Identifier::Factory();
     const bool bFromAgentID = pFromAgent->GetSignerID(theFromAgentID);
 
     if (!bFromAgentID) {
@@ -1259,18 +1260,18 @@ std::string OTSmartContract::GetAcctBalance(std::string from_acct_name)
         return 0;
     }
 
-    const Identifier theFromAcctID(pFromAcct->GetAcctID());
+    const auto theFromAcctID = Identifier::Factory(pFromAcct->GetAcctID());
     //
     // BELOW THIS POINT, theFromAcctID and theFromAgentID available.
 
-    const Identifier NOTARY_ID(pCron->GetNotaryID());
-    const Identifier NOTARY_NYM_ID(*pServerNym);
+    const auto NOTARY_ID = Identifier::Factory(pCron->GetNotaryID());
+    const auto NOTARY_NYM_ID = Identifier::Factory(*pServerNym);
 
     const std::string str_party_id = pFromParty->GetPartyID();
     const String strPartyID(str_party_id);
-    const Identifier PARTY_NYM_ID(strPartyID);
+    const auto PARTY_NYM_ID = Identifier::Factory(strPartyID);
 
-    const Identifier PARTY_ACCT_ID(pFromAcct->GetAcctID());
+    const auto PARTY_ACCT_ID = Identifier::Factory(pFromAcct->GetAcctID());
 
     // Load up the party's account so we can get the balance.
     //
@@ -1468,7 +1469,7 @@ std::string OTSmartContract::GetInstrumentDefinitionIDofAcct(
     // then we can error out here if he's not.  We can then pass in his Nym ID.
     //
 
-    Identifier theFromAgentID;
+    auto theFromAgentID = Identifier::Factory();
     const bool bFromAgentID = pFromAgent->GetSignerID(theFromAgentID);
 
     if (!bFromAgentID) {
@@ -1487,18 +1488,18 @@ std::string OTSmartContract::GetInstrumentDefinitionIDofAcct(
         return str_return_value;
     }
 
-    const Identifier theFromAcctID(pFromAcct->GetAcctID());
+    const auto theFromAcctID = Identifier::Factory(pFromAcct->GetAcctID());
     //
     // BELOW THIS POINT, theFromAcctID and theFromAgentID available.
 
-    const Identifier NOTARY_ID(pCron->GetNotaryID());
-    const Identifier NOTARY_NYM_ID(*pServerNym);
+    const auto NOTARY_ID = Identifier::Factory(pCron->GetNotaryID());
+    const auto NOTARY_NYM_ID = Identifier::Factory(*pServerNym);
 
     const std::string str_party_id = pFromParty->GetPartyID();
     const String strPartyID(str_party_id);
-    const Identifier PARTY_NYM_ID(strPartyID);
+    const auto PARTY_NYM_ID = Identifier::Factory(strPartyID);
 
-    const Identifier PARTY_ACCT_ID(pFromAcct->GetAcctID());
+    const auto PARTY_ACCT_ID = Identifier::Factory(pFromAcct->GetAcctID());
 
     // Load up the party's account and get the instrument definition.
     //
@@ -1603,9 +1604,10 @@ bool OTSmartContract::SendANoticeToAllParties()
 
     //    OT_ASSERT(lNewTransactionNumber > 0); // this can be my reminder.
     if (0 == lNewTransactionNumber) {
-        otErr << __FUNCTION__ << ": ** ERROR: Notice not sent to parties, "
-                                 "since no transaction numbers were "
-                                 "available!\n";
+        otErr << __FUNCTION__
+              << ": ** ERROR: Notice not sent to parties, "
+                 "since no transaction numbers were "
+                 "available!\n";
     } else {
         ReleaseSignatures();
         SignContract(*pServerNym);
@@ -1703,8 +1705,9 @@ bool OTSmartContract::SendNoticeToParty(std::string party_name)
 
     //    OT_ASSERT(lNewTransactionNumber > 0); // this can be my reminder.
     if (0 == lNewTransactionNumber) {
-        otErr << __FUNCTION__ << ": ** ERROR: Notice not sent to party, since "
-                                 "no transaction numbers were available!\n";
+        otErr << __FUNCTION__
+              << ": ** ERROR: Notice not sent to party, since "
+                 "no transaction numbers were available!\n";
     } else {
         ReleaseSignatures();
         SignContract(*pServerNym);
@@ -1936,7 +1939,7 @@ bool OTSmartContract::StashAcctFunds(
     // then we can error out here if he's not.  We can then pass in his Nym ID.
     //
 
-    Identifier theFromAgentID;
+    auto theFromAgentID = Identifier::Factory();
     const bool bFromAgentID = pFromAgent->GetSignerID(theFromAgentID);
 
     if (!bFromAgentID) {
@@ -1953,7 +1956,7 @@ bool OTSmartContract::StashAcctFunds(
         return false;
     }
 
-    const Identifier theFromAcctID(pFromAcct->GetAcctID());
+    const auto theFromAcctID = Identifier::Factory(pFromAcct->GetAcctID());
     //
     // BELOW THIS POINT, theFromAcctID and theFromAgentID available.
 
@@ -1962,9 +1965,9 @@ bool OTSmartContract::StashAcctFunds(
     //
     ReleaseLastSenderRecipientIDs();
 
-    theFromAgentID.GetString(m_strLastSenderUser);  // This is the last Nym ID
+    theFromAgentID->GetString(m_strLastSenderUser);  // This is the last Nym ID
     // of a party who SENT money.
-    theFromAcctID.GetString(
+    theFromAcctID->GetString(
         m_strLastSenderAcct);  // This is the last Acct ID of
                                // a party who SENT money.
     //    theToAgentID.GetString(m_strLastRecipientUser);    // This is the last
@@ -2176,7 +2179,7 @@ bool OTSmartContract::UnstashAcctFunds(
     // then we can error out here if he's not.  We can then pass in his Nym ID.
     //
 
-    Identifier theToAgentID;
+    auto theToAgentID = Identifier::Factory();
     const bool bToAgentID = pToAgent->GetSignerID(theToAgentID);
 
     if (!bToAgentID) {
@@ -2193,7 +2196,7 @@ bool OTSmartContract::UnstashAcctFunds(
         return false;
     }
 
-    const Identifier theToAcctID(pToAcct->GetAcctID());
+    const auto theToAcctID = Identifier::Factory(pToAcct->GetAcctID());
     //
     // BELOW THIS POINT, theToAcctID and theToAgentID available.
 
@@ -2202,10 +2205,10 @@ bool OTSmartContract::UnstashAcctFunds(
     //
     ReleaseLastSenderRecipientIDs();
 
-    theToAgentID.GetString(m_strLastRecipientUser);  // This is the last Nym ID
-                                                     // of a party who RECEIVED
-                                                     // money.
-    theToAcctID.GetString(m_strLastRecipientAcct);   // This is the last Acct ID
+    theToAgentID->GetString(m_strLastRecipientUser);  // This is the last Nym ID
+                                                      // of a party who RECEIVED
+                                                      // money.
+    theToAcctID->GetString(m_strLastRecipientAcct);  // This is the last Acct ID
                                                      // of a party who RECEIVED
                                                      // money.
     // Above: the FromAgent and FromAcct are commented out,
@@ -2258,8 +2261,8 @@ bool OTSmartContract::StashFunds(
         return false;
     }
 
-    const Identifier NOTARY_ID(pCron->GetNotaryID());
-    const Identifier NOTARY_NYM_ID(*pServerNym);
+    const auto NOTARY_ID = Identifier::Factory(pCron->GetNotaryID());
+    const auto NOTARY_NYM_ID = Identifier::Factory(*pServerNym);
 
     // Load up the party's account and get the instrument definition, so we know
     // which
@@ -2418,7 +2421,8 @@ bool OTSmartContract::StashFunds(
     // account to transfer
     // to itself, there would be no difference in balance than disallowing it.)
     //
-    const Identifier STASH_ACCT_ID(pStashAccount->GetRealAccountID());
+    const auto STASH_ACCT_ID =
+        Identifier::Factory(pStashAccount->GetRealAccountID());
 
     if (PARTY_ACCT_ID == STASH_ACCT_ID) {
         otErr << "OTSmartContract::StashFunds: ERROR: both account IDs were "
@@ -2444,7 +2448,7 @@ bool OTSmartContract::StashFunds(
         FlagForRemoval();  // Remove from Cron
         return false;
     }
-    const Identifier STASH_NYM_ID(pStashAccount->GetNymID());
+    const auto STASH_NYM_ID = Identifier::Factory(pStashAccount->GetNymID());
 
     bool bSuccess = false;  // The return value.
 
@@ -3264,7 +3268,8 @@ bool OTSmartContract::MoveAcctFundsStr(
     // then we can error out here if he's not.  We can then pass in his Nym ID
     //
 
-    Identifier theFromAgentID, theToAgentID;
+    auto theFromAgentID = Identifier::Factory(),
+         theToAgentID = Identifier::Factory();
     const bool bFromAgentID = pFromAgent->GetSignerID(theFromAgentID);
     const bool bToAgentID = pToAgent->GetSignerID(theToAgentID);
 
@@ -3294,8 +3299,8 @@ bool OTSmartContract::MoveAcctFundsStr(
         return false;
     }
 
-    const Identifier theFromAcctID(pFromAcct->GetAcctID()),
-        theToAcctID(pToAcct->GetAcctID());
+    const auto theFromAcctID = Identifier::Factory(pFromAcct->GetAcctID()),
+               theToAcctID = Identifier::Factory(pToAcct->GetAcctID());
     //
     // BELOW THIS POINT, theFromAcctID, theFromAgentID, theToAcctID, and
     // theToAgentID are all available.
@@ -3305,15 +3310,15 @@ bool OTSmartContract::MoveAcctFundsStr(
     //
     ReleaseLastSenderRecipientIDs();
 
-    theFromAgentID.GetString(m_strLastSenderUser);  // This is the last Nym ID
+    theFromAgentID->GetString(m_strLastSenderUser);  // This is the last Nym ID
     // of a party who SENT money.
-    theFromAcctID.GetString(
+    theFromAcctID->GetString(
         m_strLastSenderAcct);  // This is the last Acct ID of
                                // a party who SENT money.
-    theToAgentID.GetString(m_strLastRecipientUser);  // This is the last Nym ID
-                                                     // of a party who RECEIVED
-                                                     // money.
-    theToAcctID.GetString(m_strLastRecipientAcct);   // This is the last Acct ID
+    theToAgentID->GetString(m_strLastRecipientUser);  // This is the last Nym ID
+                                                      // of a party who RECEIVED
+                                                      // money.
+    theToAcctID->GetString(m_strLastRecipientAcct);  // This is the last Acct ID
                                                      // of a party who RECEIVED
                                                      // money.
 
@@ -3512,7 +3517,7 @@ void OTSmartContract::onFinalReceipt(
 
         // pServerNym
         {
-            const Identifier theServerNymID(*pServerNym);
+            const auto theServerNymID = Identifier::Factory(*pServerNym);
             const String strServerNymID(theServerNymID);
 
             if (nym_map.end() == nym_map.find(strServerNymID.Get())) {
@@ -3523,7 +3528,7 @@ void OTSmartContract::onFinalReceipt(
 
         // theOriginator
         {
-            const Identifier theOriginatorNymID(theOriginator);
+            const auto theOriginatorNymID = Identifier::Factory(theOriginator);
             const String strOriginatorNymID(theOriginatorNymID);
 
             if (nym_map.end() == nym_map.find(strOriginatorNymID.Get())) {
@@ -3533,7 +3538,7 @@ void OTSmartContract::onFinalReceipt(
         }
 
         if (nullptr != pActingNym) {
-            const Identifier theActingNymID(*pActingNym);
+            const auto theActingNymID = Identifier::Factory(*pActingNym);
             const String strActingNymID(theActingNymID);
 
             if (nym_map.end() == nym_map.find(strActingNymID.Get())) {
@@ -3543,7 +3548,7 @@ void OTSmartContract::onFinalReceipt(
         }
 
         if (nullptr != pPartyNym) {
-            const Identifier thePartyNymID(*pPartyNym);
+            const auto thePartyNymID = Identifier::Factory(*pPartyNym);
             const String strPartyNymID(thePartyNymID);
 
             if (nym_map.end() == nym_map.find(strPartyNymID.Get())) {
@@ -4813,13 +4818,15 @@ bool OTSmartContract::VerifySmartContract(
          !bAreAnyInvalidAccounts);  // <=== THE RETURN VALUE
 
     if (bAreAnyInvalidParties)
-        otOut << __FUNCTION__ << ": Failure: There are invalid party(s) on "
-                                 "this smart contract.\n";
+        otOut << __FUNCTION__
+              << ": Failure: There are invalid party(s) on "
+                 "this smart contract.\n";
 
     if (bAreAnyInvalidAccounts)
-        otOut << __FUNCTION__ << ": Failure: there are invalid account(s) or "
-                                 "authorized agent(s) on this smart "
-                                 "contract.\n";
+        otOut << __FUNCTION__
+              << ": Failure: there are invalid account(s) or "
+                 "authorized agent(s) on this smart "
+                 "contract.\n";
 
     // IF we marked the numbers as IN USE (bBurnTransNo) but then FAILURE
     // occurred,
@@ -5347,7 +5354,7 @@ void OTSmartContract::UpdateContents()
     const String NOTARY_ID(GetNotaryID()), ACTIVATOR_NYM_ID(GetSenderNymID()),
         ACTIVATOR_ACCT_ID(GetSenderAcctID());
 
-    OT_ASSERT(nullptr != m_pCancelerNymID);
+    OT_ASSERT(m_pCancelerNymID->empty());
 
     String strCanceler;
 
@@ -5528,15 +5535,17 @@ std::int32_t OTSmartContract::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         const String strCancelerNymID(xml->getAttributeValue("cancelerNymID"));
 
         if (strNotaryID.Exists()) {
-            const Identifier NOTARY_ID(strNotaryID);
+            const auto NOTARY_ID = Identifier::Factory(strNotaryID);
             SetNotaryID(NOTARY_ID);
         }
         if (strActivatorNymID.Exists()) {
-            const Identifier ACTIVATOR_NYM_ID(strActivatorNymID);
+            const auto ACTIVATOR_NYM_ID =
+                Identifier::Factory(strActivatorNymID);
             SetSenderNymID(ACTIVATOR_NYM_ID);
         }
         if (strActivatorAcctID.Exists()) {
-            const Identifier ACTIVATOR_ACCT_ID(strActivatorAcctID);
+            const auto ACTIVATOR_ACCT_ID =
+                Identifier::Factory(strActivatorAcctID);
             SetSenderAcctID(ACTIVATOR_ACCT_ID);
         }
 
@@ -5595,8 +5604,9 @@ std::int32_t OTSmartContract::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                << "   Valid From: " << tValidFrom << "\n Valid To: " << tValidTo
                << "\n"
                   " NotaryID: "
-               << strNotaryID << "\n"
-                                 " activatorNymID: "
+               << strNotaryID
+               << "\n"
+                  " activatorNymID: "
                << strActivatorNymID << "\n ";
 
         nReturnVal = 1;
@@ -5671,8 +5681,8 @@ bool OTSmartContract::MoveFunds(
 
     bool bSuccess = false;  // The return value.
 
-    const Identifier NOTARY_ID(pCron->GetNotaryID());
-    const Identifier NOTARY_NYM_ID(*pServerNym);
+    const auto NOTARY_ID = Identifier::Factory(pCron->GetNotaryID());
+    const auto NOTARY_NYM_ID = Identifier::Factory(*pServerNym);
 
     String strSenderNymID(SENDER_NYM_ID), strRecipientNymID(RECIPIENT_NYM_ID),
         strSourceAcctID(SOURCE_ACCT_ID), strRecipientAcctID(RECIPIENT_ACCT_ID),

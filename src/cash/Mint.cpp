@@ -77,8 +77,9 @@ Mint* Mint::MintFactory()
     pMint = new MintLucre;
 #elif OT_CASH_USING_MAGIC_MONEY
     //  pMint = new Mint_MagicMoney;
-    otErr << __FUCNTION__ << ": Open-Transactions doesn't support Magic Money "
-                             "by Pr0duct Cypher (yet), "
+    otErr << __FUCNTION__
+          << ": Open-Transactions doesn't support Magic Money "
+             "by Pr0duct Cypher (yet), "
           << "so it's impossible to instantiate a mint.\n";
 #else
     otErr
@@ -100,8 +101,9 @@ Mint* Mint::MintFactory(
     pMint = new MintLucre(strNotaryID, strInstrumentDefinitionID);
 #elif OT_CASH_USING_MAGIC_MONEY
     //  pMint = new OTMint_MagicMoney;
-    otErr << __FUNCTION__ << ": Open-Transactions doesn't support Magic Money "
-                             "by Pr0duct Cypher (yet), "
+    otErr << __FUNCTION__
+          << ": Open-Transactions doesn't support Magic Money "
+             "by Pr0duct Cypher (yet), "
           << "so it's impossible to instantiate a mint.\n";
 #else
     otErr
@@ -125,8 +127,9 @@ Mint* Mint::MintFactory(
         new MintLucre(strNotaryID, strServerNymID, strInstrumentDefinitionID);
 #elif OT_CASH_USING_MAGIC_MONEY
     //  pMint = new OTMint_MagicMoney;
-    otErr << __FUNCTION__ << ": Open-Transactions doesn't support Magic Money "
-                             "by Pr0duct Cypher (yet), "
+    otErr << __FUNCTION__
+          << ": Open-Transactions doesn't support Magic Money "
+             "by Pr0duct Cypher (yet), "
           << "so it's impossible to instantiate a mint.\n";
 #else
     otErr
@@ -137,7 +140,7 @@ Mint* Mint::MintFactory(
     return pMint;
 }
 
-// SUBCLASSES OF OTMINT FOR EACH DIGITAL CASH ALGORITHM.
+    // SUBCLASSES OF OTMINT FOR EACH DIGITAL CASH ALGORITHM.
 
 #if OT_CASH_USING_MAGIC_MONEY
 // Todo:  Someday...
@@ -702,8 +705,9 @@ std::int32_t Mint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             "\n\nMint version: " << m_strVersion
                << "\n Notary ID: " << strNotaryID
                << "\n Instrument Definition ID: " << strInstrumentDefinitionID
-               << "\n Cash Acct ID: " << strCashAcctID << "\n"
-                                                          ""
+               << "\n Cash Acct ID: " << strCashAcctID
+               << "\n"
+                  ""
                << ((m_pReserveAcct != nullptr) ? "SUCCESS" : "FAILURE")
                << " loading Cash Account into memory for pointer: "
                   "Mint::m_pReserveAcct\n"
@@ -823,7 +827,7 @@ void Mint::GenerateNewMint(
     m_InstrumentDefinitionID = theInstrumentDefinitionID;
     m_NotaryID = theNotaryID;
 
-    Identifier NOTARY_NYM_ID(theNotary);
+    auto NOTARY_NYM_ID = Identifier::Factory(theNotary);
     m_ServerNymID = NOTARY_NYM_ID;
 
     m_nSeries = nSeries;

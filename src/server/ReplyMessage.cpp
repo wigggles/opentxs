@@ -204,8 +204,8 @@ bool ReplyMessage::HaveContext() const { return bool(context_); }
 
 bool ReplyMessage::init()
 {
-    const Identifier senderNymID = Identifier(original_.m_strNymID);
-    const Identifier purportedServerID = Identifier(original_.m_strNotaryID);
+    const auto senderNymID = Identifier::Factory(original_.m_strNymID);
+    const auto purportedServerID = Identifier::Factory(original_.m_strNotaryID);
 
     bool out = UserCommandProcessor::check_server_lock(senderNymID);
 
@@ -226,7 +226,7 @@ const bool& ReplyMessage::Init() const { return init_; }
 
 bool ReplyMessage::init_nym()
 {
-    sender_nym_ = wallet_.Nym(Identifier(original_.m_strNymID));
+    sender_nym_ = wallet_.Nym(Identifier::Factory(original_.m_strNymID));
 
     return bool(sender_nym_);
 }

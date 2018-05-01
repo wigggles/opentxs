@@ -243,7 +243,7 @@ private:
      *    \param[in] contract the instantiated ServerContract object
      */
     ConstServerContract Server(std::unique_ptr<ServerContract>& contract) const;
-    Identifier ServerToNym(Identifier& serverID) const;
+    OTIdentifier ServerToNym(Identifier& serverID) const;
 
     /**   Save an instantiated unit definition to storage and add to internal
      *    map.

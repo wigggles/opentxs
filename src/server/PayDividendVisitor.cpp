@@ -135,7 +135,7 @@ bool PayDividendVisitor::Trigger(Account& theSharesAccount)  // theSharesAccount
     OT_ASSERT(nullptr != GetServer());
     server::Server& theServer = *(GetServer());
     Nym& theServerNym = const_cast<Nym&>(theServer.GetServerNym());
-    const Identifier theServerNymID(theServerNym);
+    const auto theServerNymID = Identifier::Factory(theServerNym);
     const Identifier& RECIPIENT_ID = theSharesAccount.GetNymID();
     OT_ASSERT(nullptr != GetNymID());
     const Identifier& theSenderNymID = *(GetNymID());
@@ -191,7 +191,7 @@ bool PayDividendVisitor::Trigger(Account& theSharesAccount)  // theSharesAccount
                                // nym.)
             strMemo,  // Optional memo field. Includes item note and request
                       // memo.
-            &RECIPIENT_ID);
+            Identifier::Factory(RECIPIENT_ID));
 
         // All account crediting / debiting happens in the caller, in
         // server::Server.
@@ -268,8 +268,9 @@ bool PayDividendVisitor::Trigger(Account& theSharesAccount)  // theSharesAccount
                                    // server nym.)
                 strMemo,  // Optional memo field. Includes item note and request
                           // memo.
-                &theSenderNymID);  // We're returning the money to its original
-                                   // sender.
+                Identifier::Factory(theSenderNymID));  // We're returning the
+                                                       // money to its original
+                                                       // sender.
             if (bIssueReturnVoucher) {
                 // All this does is set the voucher's internal contract string
                 // to

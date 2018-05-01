@@ -322,7 +322,8 @@ private:
     Identifier get_introduction_server(const Lock& lock) const;
     UniqueQueue<Identifier>& get_nym_fetch(const Identifier& serverID) const;
     OperationQueue& get_operations(const ContextID& id) const;
-    Identifier import_default_introduction_server(const Lock& lock) const;
+    opentxs::OTIdentifier import_default_introduction_server(
+        const Lock& lock) const;
     void load_introduction_server(const Lock& lock) const;
     bool message_nym(
         const Identifier& taskID,

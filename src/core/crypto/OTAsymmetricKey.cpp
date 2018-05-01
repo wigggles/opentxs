@@ -207,8 +207,9 @@ bool OTAsymmetricKey::CalculateID(Identifier& theOutput) const  // Only works
     theOutput.Release();
 
     if (!IsPublic()) {
-        otErr << szFunc << ": Error: !IsPublic() (This function should only be "
-                           "called on a public key.)\n";
+        otErr << szFunc
+              << ": Error: !IsPublic() (This function should only be "
+                 "called on a public key.)\n";
         return false;
     }
 

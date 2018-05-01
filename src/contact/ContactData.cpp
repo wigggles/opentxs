@@ -808,7 +808,7 @@ OTIdentifier ContactData::PreferredOTServer() const
         return Identifier::Factory();
     }
 
-    return Identifier(claim->Value());
+    return Identifier::Factory(claim->Value());
 }
 
 std::string ContactData::PrintContactData(const proto::ContactData& data)

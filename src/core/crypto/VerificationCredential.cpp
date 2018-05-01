@@ -72,8 +72,8 @@ proto::Verification VerificationCredential::SigningForm(
 std::string VerificationCredential::VerificationID(
     const proto::Verification& item)
 {
-    Identifier id;
-    id.CalculateDigest(proto::ProtoAsData<proto::Verification>(item));
+    auto id = Identifier::Factory();
+    id->CalculateDigest(proto::ProtoAsData<proto::Verification>(item));
 
     return String(id).Get();
 }

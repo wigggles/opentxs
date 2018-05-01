@@ -1105,9 +1105,10 @@ bool String::DecodeIfArmored(bool bEscapedIsAllowed)
         bArmoredAndALSOescaped = true;
 
         if (!bEscapedIsAllowed) {
-            otErr << __FUNCTION__ << ": Armored and escaped value passed in, "
-                                     "but escaped are forbidden here. "
-                                     "(Returning.)\n";
+            otErr << __FUNCTION__
+                  << ": Armored and escaped value passed in, "
+                     "but escaped are forbidden here. "
+                     "(Returning.)\n";
             return false;
         }
     } else if (Contains(OT_BEGIN_ARMORED)) {
@@ -1136,9 +1137,10 @@ bool String::DecodeIfArmored(bool bEscapedIsAllowed)
         // We're doing this: "-----BEGIN OT ARMORED" (Should worked for
         // escaped as well, here.)
         {
-            otErr << __FUNCTION__ << ": Error loading string contents from "
-                                     "ascii-armored encoding. "
-                                     "Contents: \n"
+            otErr << __FUNCTION__
+                  << ": Error loading string contents from "
+                     "ascii-armored encoding. "
+                     "Contents: \n"
                   << Get() << "\n";
             return false;
         } else  // success loading the actual contents out of the ascii-armored
