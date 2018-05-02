@@ -72,13 +72,13 @@ OTZMQContext Test_RequestReply::context_{network::zeromq::Context::Factory()};
 
 void Test_RequestReply::requestSocketThread(const std::string& msg)
 {
-    ASSERT_NE(&Test_RequestReply::context_.get(), nullptr);
+    ASSERT_NE(nullptr, &Test_RequestReply::context_.get());
 
     auto requestSocket =
         network::zeromq::RequestSocket::Factory(Test_RequestReply::context_);
 
-    ASSERT_NE(&requestSocket.get(), nullptr);
-    ASSERT_EQ(requestSocket->Type(), SocketType::Request);
+    ASSERT_NE(nullptr, &requestSocket.get());
+    ASSERT_EQ(SocketType::Request, requestSocket->Type());
 
     requestSocket->SetTimeouts(0, -1, 10000);
     requestSocket->Start(endpoint_);
@@ -87,31 +87,31 @@ void Test_RequestReply::requestSocketThread(const std::string& msg)
 
     ASSERT_EQ(result, SendResult::VALID_REPLY);
     const std::string& messageString = message.get();
-    ASSERT_EQ(messageString, msg);
+    ASSERT_EQ(msg, messageString);
 }
 
 }  // namespace
 
 TEST_F(Test_RequestReply, Request_Reply)
 {
-    ASSERT_NE(&Test_RequestReply::context_.get(), nullptr);
+    ASSERT_NE(nullptr, &Test_RequestReply::context_.get());
 
     auto replyCallback = network::zeromq::ReplyCallback::Factory(
         [this](const network::zeromq::Message& input) -> OTZMQMessage {
 
             const std::string& inputString = input;
-            EXPECT_EQ(inputString, testMessage_);
+            EXPECT_EQ(testMessage_, inputString);
 
             return network::zeromq::Message::Factory(input);
         });
 
-    ASSERT_NE(&replyCallback.get(), nullptr);
+    ASSERT_NE(nullptr, &replyCallback.get());
 
     auto replySocket = network::zeromq::ReplySocket::Factory(
         Test_RequestReply::context_, replyCallback);
 
-    ASSERT_NE(&replySocket.get(), nullptr);
-    ASSERT_EQ(replySocket->Type(), SocketType::Reply);
+    ASSERT_NE(nullptr, &replySocket.get());
+    ASSERT_EQ(SocketType::Reply, replySocket->Type());
 
     replySocket->SetTimeouts(0, 10000, -1);
     replySocket->Start(endpoint_);
@@ -119,8 +119,8 @@ TEST_F(Test_RequestReply, Request_Reply)
     auto requestSocket =
         network::zeromq::RequestSocket::Factory(Test_RequestReply::context_);
 
-    ASSERT_NE(&requestSocket.get(), nullptr);
-    ASSERT_EQ(requestSocket->Type(), SocketType::Request);
+    ASSERT_NE(nullptr, &requestSocket.get());
+    ASSERT_EQ(SocketType::Request, requestSocket->Type());
 
     requestSocket->SetTimeouts(0, -1, 10000);
     requestSocket->Start(endpoint_);
@@ -129,12 +129,12 @@ TEST_F(Test_RequestReply, Request_Reply)
 
     ASSERT_EQ(result, SendResult::VALID_REPLY);
     const std::string& messageString = message.get();
-    ASSERT_EQ(messageString, testMessage_);
+    ASSERT_EQ(testMessage_, messageString);
 }
 
 TEST_F(Test_RequestReply, Request_Reply_2_Threads)
 {
-    ASSERT_NE(&Test_RequestReply::context_.get(), nullptr);
+    ASSERT_NE(nullptr, &Test_RequestReply::context_.get());
 
     auto replyCallback = network::zeromq::ReplyCallback::Factory(
         [this](const network::zeromq::Message& input) -> OTZMQMessage {
@@ -147,13 +147,13 @@ TEST_F(Test_RequestReply, Request_Reply_2_Threads)
             return network::zeromq::Message::Factory(input);
         });
 
-    ASSERT_NE(&replyCallback.get(), nullptr);
+    ASSERT_NE(nullptr, &replyCallback.get());
 
     auto replySocket = network::zeromq::ReplySocket::Factory(
         Test_RequestReply::context_, replyCallback);
 
-    ASSERT_NE(&replySocket.get(), nullptr);
-    ASSERT_EQ(replySocket->Type(), SocketType::Reply);
+    ASSERT_NE(nullptr, &replySocket.get());
+    ASSERT_EQ(SocketType::Reply, replySocket->Type());
 
     replySocket->SetTimeouts(0, 10000, -1);
     replySocket->Start(endpoint_);

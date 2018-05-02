@@ -61,13 +61,13 @@ OTZMQContext Test_PublishSocket::context_{network::zeromq::Context::Factory()};
 
 TEST(PublishSocket, PublishSocket_Factory)
 {
-    ASSERT_NE(&Test_PublishSocket::context_.get(), nullptr);
+    ASSERT_NE(nullptr, &Test_PublishSocket::context_.get());
 
     auto publishSocket =
         network::zeromq::PublishSocket::Factory(Test_PublishSocket::context_);
 
-    ASSERT_NE(&publishSocket.get(), nullptr);
-    ASSERT_EQ(publishSocket->Type(), SocketType::Publish);
+    ASSERT_NE(nullptr, &publishSocket.get());
+    ASSERT_EQ(SocketType::Publish, publishSocket->Type());
 }
 
 // TODO: Add tests for other public member functions: SetCurve

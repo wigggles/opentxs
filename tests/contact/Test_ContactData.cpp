@@ -62,7 +62,7 @@ public:
               CONTACT_CONTACT_DATA_VERSION,
               CONTACT_CONTACT_DATA_VERSION,
               opentxs::proto::CONTACTSECTION_IDENTIFIER,
-              opentxs::proto::CITEMTYPE_INDIVIDUAL,
+              opentxs::proto::CITEMTYPE_EMPLOYEE,
               std::string("activeContactItemValue"),
               {opentxs::proto::CITEMATTR_ACTIVE},
               NULL_START,
@@ -80,7 +80,9 @@ public:
             const opentxs::proto::ContactItemType,
             const bool,
             const bool)> contactDataMethod,
-        opentxs::proto::ContactSectionName sectionName);
+        opentxs::proto::ContactSectionName sectionName,
+        uint32_t version = CONTACT_CONTACT_DATA_VERSION,
+        uint32_t targetVersion = 0);
 };
 
 void Test_ContactData::testAddItemMethod(
@@ -90,52 +92,59 @@ void Test_ContactData::testAddItemMethod(
         const opentxs::proto::ContactItemType,
         const bool,
         const bool)> contactDataMethod,
-    opentxs::proto::ContactSectionName sectionName)
+    opentxs::proto::ContactSectionName sectionName,
+    uint32_t version,
+    uint32_t targetVersion)
 {
     // Add a contact to a group with no primary.
     const auto& group1 =
         std::shared_ptr<opentxs::ContactGroup>(new opentxs::ContactGroup(
-            "contactGroup1", sectionName, opentxs::proto::CITEMTYPE_BTC, {}));
+            "contactGroup1", sectionName, opentxs::proto::CITEMTYPE_BCH, {}));
 
     const auto& section1 =
         std::shared_ptr<opentxs::ContactSection>(new opentxs::ContactSection(
             "contactSectionNym1",
-            CONTACT_CONTACT_DATA_VERSION,
-            CONTACT_CONTACT_DATA_VERSION,
+            version,
+            version,
             sectionName,
             opentxs::ContactSection::GroupMap{
-                {opentxs::proto::CITEMTYPE_BTC, group1}}));
+                {opentxs::proto::CITEMTYPE_BCH, group1}}));
 
     const opentxs::ContactData data1(
         std::string("contactDataNym1"),
-        CONTACT_CONTACT_DATA_VERSION,
-        CONTACT_CONTACT_DATA_VERSION,
+        version,
+        version,
         opentxs::ContactData::SectionMap{{sectionName, section1}});
 
     const auto& data2 = contactDataMethod(
         data1,
         "instrumentDefinitionID1",
-        opentxs::proto::CITEMTYPE_BTC,
+        opentxs::proto::CITEMTYPE_BCH,
         false,
         false);
+
+    if (targetVersion) {
+        ASSERT_EQ(targetVersion, data2.Version());
+        return;
+    }
 
     // Verify that the item was made primary.
     const opentxs::Identifier identifier1(opentxs::ContactCredential::ClaimID(
         "contactDataNym1",
         sectionName,
-        opentxs::proto::CITEMTYPE_BTC,
+        opentxs::proto::CITEMTYPE_BCH,
         NULL_START,
         NULL_END,
         "instrumentDefinitionID1"));
     const auto& contactItem1 = data2.Claim(identifier1);
-    ASSERT_NE(contactItem1, nullptr);
+    ASSERT_NE(nullptr, contactItem1);
     ASSERT_TRUE(contactItem1->isPrimary());
 
     // Add a contact to a group with a primary.
     const auto& data3 = contactDataMethod(
         data2,
         "instrumentDefinitionID2",
-        opentxs::proto::CITEMTYPE_BTC,
+        opentxs::proto::CITEMTYPE_BCH,
         false,
         false);
 
@@ -143,12 +152,12 @@ void Test_ContactData::testAddItemMethod(
     const opentxs::Identifier identifier2(opentxs::ContactCredential::ClaimID(
         "contactDataNym1",
         sectionName,
-        opentxs::proto::CITEMTYPE_BTC,
+        opentxs::proto::CITEMTYPE_BCH,
         NULL_START,
         NULL_END,
         "instrumentDefinitionID2"));
     const auto& contactItem2 = data3.Claim(identifier2);
-    ASSERT_NE(contactItem2, nullptr);
+    ASSERT_NE(nullptr, contactItem2);
     ASSERT_FALSE(contactItem2->isPrimary());
 
     // Add a contact for a type with no group.
@@ -160,7 +169,7 @@ void Test_ContactData::testAddItemMethod(
         false);
 
     // Verify the group was created.
-    ASSERT_NE(data4.Group(sectionName, opentxs::proto::CITEMTYPE_EUR), nullptr);
+    ASSERT_NE(nullptr, data4.Group(sectionName, opentxs::proto::CITEMTYPE_EUR));
     // Verify that the item was made primary.
     const opentxs::Identifier identifier3(opentxs::ContactCredential::ClaimID(
         "contactDataNym1",
@@ -170,7 +179,7 @@ void Test_ContactData::testAddItemMethod(
         NULL_END,
         "instrumentDefinitionID3"));
     const auto& contactItem3 = data4.Claim(identifier3);
-    ASSERT_NE(contactItem3, nullptr);
+    ASSERT_NE(nullptr, contactItem3);
     ASSERT_TRUE(contactItem3->isPrimary());
 
     // Add an active contact.
@@ -182,7 +191,7 @@ void Test_ContactData::testAddItemMethod(
         true);
 
     // Verify the group was created.
-    ASSERT_NE(data5.Group(sectionName, opentxs::proto::CITEMTYPE_USD), nullptr);
+    ASSERT_NE(nullptr, data5.Group(sectionName, opentxs::proto::CITEMTYPE_USD));
     // Verify that the item was made active.
     const opentxs::Identifier identifier4(opentxs::ContactCredential::ClaimID(
         "contactDataNym1",
@@ -192,7 +201,7 @@ void Test_ContactData::testAddItemMethod(
         NULL_END,
         "instrumentDefinitionID4"));
     const auto& contactItem4 = data5.Claim(identifier4);
-    ASSERT_NE(contactItem4, nullptr);
+    ASSERT_NE(nullptr, contactItem4);
     ASSERT_TRUE(contactItem4->isActive());
 
     // Add a primary contact.
@@ -212,13 +221,13 @@ void Test_ContactData::testAddItemMethod(
         NULL_END,
         "instrumentDefinitionID5"));
     const auto& contactItem5 = data6.Claim(identifier5);
-    ASSERT_NE(contactItem5, nullptr);
+    ASSERT_NE(nullptr, contactItem5);
     ASSERT_TRUE(contactItem5->isPrimary());
 }
 
 static const auto& expectedStringOutput =
     "Version 5 contact data\nSections found: 1\n- Section: Identifier, "
-    "version: 5 containing 1 item(s).\n-- Item type: \"Individual\", "
+    "version: 5 containing 1 item(s).\n-- Item type: \"employee of\", "
     "value: \"activeContactItemValue\", start: 0, end: 0, version: 5\n--- "
     "Attributes: Active \n";
 
@@ -229,7 +238,7 @@ TEST_F(Test_ContactData, PrintContactData)
     const auto& data1 = contactData_.AddItem(activeContactItem_);
     const auto& dataString =
         opentxs::ContactData::PrintContactData(data1.Serialize());
-    ASSERT_STREQ(dataString.c_str(), expectedStringOutput);
+    ASSERT_STREQ(expectedStringOutput, dataString.c_str());
 }
 
 TEST_F(Test_ContactData, first_constructor)
@@ -249,18 +258,18 @@ TEST_F(Test_ContactData, first_constructor)
         CONTACT_CONTACT_DATA_VERSION,
         CONTACT_CONTACT_DATA_VERSION,
         map);
-    ASSERT_EQ(contactData.Version(), CONTACT_CONTACT_DATA_VERSION);
+    ASSERT_EQ(CONTACT_CONTACT_DATA_VERSION, contactData.Version());
     ASSERT_NE(
-        contactData.Section(opentxs::proto::CONTACTSECTION_IDENTIFIER),
-        nullptr);
+        nullptr,
+        contactData.Section(opentxs::proto::CONTACTSECTION_IDENTIFIER));
     ASSERT_NE(
+        nullptr,
         contactData.Group(
             opentxs::proto::CONTACTSECTION_IDENTIFIER,
-            opentxs::proto::CITEMTYPE_INDIVIDUAL),
-        nullptr);
+            opentxs::proto::CITEMTYPE_EMPLOYEE));
     ASSERT_TRUE(contactData.HaveClaim(
         opentxs::proto::CONTACTSECTION_IDENTIFIER,
-        opentxs::proto::CITEMTYPE_INDIVIDUAL,
+        opentxs::proto::CITEMTYPE_EMPLOYEE,
         activeContactItem_->Value()));
 }
 
@@ -271,7 +280,7 @@ TEST(ContactData, first_constructor_no_sections)
         CONTACT_CONTACT_DATA_VERSION,
         CONTACT_CONTACT_DATA_VERSION,
         {});
-    ASSERT_EQ(contactData.Version(), CONTACT_CONTACT_DATA_VERSION);
+    ASSERT_EQ(CONTACT_CONTACT_DATA_VERSION, contactData.Version());
 }
 
 TEST(ContactData, first_constructor_different_versions)
@@ -281,7 +290,7 @@ TEST(ContactData, first_constructor_different_versions)
         CONTACT_CONTACT_DATA_VERSION - 1,  // previous version
         CONTACT_CONTACT_DATA_VERSION,
         {});
-    ASSERT_EQ(contactData.Version(), CONTACT_CONTACT_DATA_VERSION);
+    ASSERT_EQ(CONTACT_CONTACT_DATA_VERSION, contactData.Version());
 }
 
 TEST_F(Test_ContactData, second_constructor)
@@ -302,18 +311,18 @@ TEST_F(Test_ContactData, second_constructor)
     const opentxs::ContactData contactData(
         std::string("contactDataNym"), CONTACT_CONTACT_DATA_VERSION, data);
 
-    ASSERT_EQ(contactData.Version(), data.version());
+    ASSERT_EQ(data.version(), contactData.Version());
     ASSERT_NE(
-        contactData.Section(opentxs::proto::CONTACTSECTION_IDENTIFIER),
-        nullptr);
+        nullptr,
+        contactData.Section(opentxs::proto::CONTACTSECTION_IDENTIFIER));
     ASSERT_NE(
+        nullptr,
         contactData.Group(
             opentxs::proto::CONTACTSECTION_IDENTIFIER,
-            opentxs::proto::CITEMTYPE_INDIVIDUAL),
-        nullptr);
+            opentxs::proto::CITEMTYPE_EMPLOYEE));
     ASSERT_TRUE(contactData.HaveClaim(
         opentxs::proto::CONTACTSECTION_IDENTIFIER,
-        opentxs::proto::CITEMTYPE_INDIVIDUAL,
+        opentxs::proto::CITEMTYPE_EMPLOYEE,
         activeContactItem_->Value()));
 }
 
@@ -324,7 +333,7 @@ TEST(ContactData, second_constructor_no_sections)
 
     const opentxs::ContactData contactData(
         std::string("contactDataNym"), CONTACT_CONTACT_DATA_VERSION, data);
-    ASSERT_EQ(contactData.Version(), data.version());
+    ASSERT_EQ(data.version(), contactData.Version());
 }
 
 TEST_F(Test_ContactData, copy_constructor)
@@ -347,18 +356,18 @@ TEST_F(Test_ContactData, copy_constructor)
 
     const opentxs::ContactData copiedContactData(contactData);
 
-    ASSERT_EQ(copiedContactData.Version(), CONTACT_CONTACT_DATA_VERSION);
+    ASSERT_EQ(CONTACT_CONTACT_DATA_VERSION, copiedContactData.Version());
     ASSERT_NE(
-        copiedContactData.Section(opentxs::proto::CONTACTSECTION_IDENTIFIER),
-        nullptr);
+        nullptr,
+        copiedContactData.Section(opentxs::proto::CONTACTSECTION_IDENTIFIER));
     ASSERT_NE(
+        nullptr,
         copiedContactData.Group(
             opentxs::proto::CONTACTSECTION_IDENTIFIER,
-            opentxs::proto::CITEMTYPE_INDIVIDUAL),
-        nullptr);
+            opentxs::proto::CITEMTYPE_EMPLOYEE));
     ASSERT_TRUE(copiedContactData.HaveClaim(
         opentxs::proto::CONTACTSECTION_IDENTIFIER,
-        opentxs::proto::CITEMTYPE_INDIVIDUAL,
+        opentxs::proto::CITEMTYPE_EMPLOYEE,
         activeContactItem_->Value()));
 }
 
@@ -367,18 +376,18 @@ TEST_F(Test_ContactData, move_constructor)
     const opentxs::ContactData movedContactData(std::move<opentxs::ContactData>(
         contactData_.AddItem(activeContactItem_)));
 
-    ASSERT_EQ(movedContactData.Version(), CONTACT_CONTACT_DATA_VERSION);
+    ASSERT_EQ(CONTACT_CONTACT_DATA_VERSION, movedContactData.Version());
     ASSERT_NE(
-        movedContactData.Section(opentxs::proto::CONTACTSECTION_IDENTIFIER),
-        nullptr);
+        nullptr,
+        movedContactData.Section(opentxs::proto::CONTACTSECTION_IDENTIFIER));
     ASSERT_NE(
+        nullptr,
         movedContactData.Group(
             opentxs::proto::CONTACTSECTION_IDENTIFIER,
-            opentxs::proto::CITEMTYPE_INDIVIDUAL),
-        nullptr);
+            opentxs::proto::CITEMTYPE_EMPLOYEE));
     ASSERT_TRUE(movedContactData.HaveClaim(
         opentxs::proto::CONTACTSECTION_IDENTIFIER,
-        opentxs::proto::CITEMTYPE_INDIVIDUAL,
+        opentxs::proto::CITEMTYPE_EMPLOYEE,
         activeContactItem_->Value()));
 }
 
@@ -393,7 +402,7 @@ TEST_F(Test_ContactData, operator_plus)
             CONTACT_CONTACT_DATA_VERSION,
             CONTACT_CONTACT_DATA_VERSION,
             opentxs::proto::CONTACTSECTION_IDENTIFIER,
-            opentxs::proto::CITEMTYPE_INDIVIDUAL,
+            opentxs::proto::CITEMTYPE_EMPLOYEE,
             std::string("contactItemValue2"),
             {opentxs::proto::CITEMATTR_ACTIVE},
             NULL_START,
@@ -423,24 +432,24 @@ TEST_F(Test_ContactData, operator_plus)
     const auto& data3 = data1 + data2;
     // Verify the section exists.
     ASSERT_NE(
-        data3.Section(opentxs::proto::CONTACTSECTION_IDENTIFIER), nullptr);
+        nullptr, data3.Section(opentxs::proto::CONTACTSECTION_IDENTIFIER));
     // Verify it has one group.
     ASSERT_EQ(
-        data3.Section(opentxs::proto::CONTACTSECTION_IDENTIFIER)->Size(), 1);
+        1, data3.Section(opentxs::proto::CONTACTSECTION_IDENTIFIER)->Size());
     // Verify the group exists.
     ASSERT_NE(
+        nullptr,
         data3.Group(
             opentxs::proto::CONTACTSECTION_IDENTIFIER,
-            opentxs::proto::CITEMTYPE_INDIVIDUAL),
-        nullptr);
+            opentxs::proto::CITEMTYPE_EMPLOYEE));
     // Verify it has two items.
     ASSERT_EQ(
+        2,
         data3
             .Group(
                 opentxs::proto::CONTACTSECTION_IDENTIFIER,
-                opentxs::proto::CITEMTYPE_INDIVIDUAL)
-            ->Size(),
-        2);
+                opentxs::proto::CITEMTYPE_EMPLOYEE)
+            ->Size());
 
     // Add a ContactData object with a section of a different type.
     const auto& contactItem4 =
@@ -449,7 +458,7 @@ TEST_F(Test_ContactData, operator_plus)
             CONTACT_CONTACT_DATA_VERSION,
             CONTACT_CONTACT_DATA_VERSION,
             opentxs::proto::CONTACTSECTION_ADDRESS,
-            opentxs::proto::CITEMTYPE_INDIVIDUAL,
+            opentxs::proto::CITEMTYPE_PHYSICAL,
             std::string("contactItemValue4"),
             {opentxs::proto::ContactItemAttribute::CITEMATTR_ACTIVE},
             NULL_START,
@@ -479,50 +488,69 @@ TEST_F(Test_ContactData, operator_plus)
     const auto& data5 = data3 + data4;
     // Verify the first section exists.
     ASSERT_NE(
-        data5.Section(opentxs::proto::CONTACTSECTION_IDENTIFIER), nullptr);
+        nullptr, data5.Section(opentxs::proto::CONTACTSECTION_IDENTIFIER));
     // Verify it has one group.
     ASSERT_EQ(
-        data5.Section(opentxs::proto::CONTACTSECTION_IDENTIFIER)->Size(), 1);
+        1, data5.Section(opentxs::proto::CONTACTSECTION_IDENTIFIER)->Size());
     // Verify the group exists.
     ASSERT_NE(
+        nullptr,
         data5.Group(
             opentxs::proto::CONTACTSECTION_IDENTIFIER,
-            opentxs::proto::CITEMTYPE_INDIVIDUAL),
-        nullptr);
+            opentxs::proto::CITEMTYPE_EMPLOYEE));
     // Verify it has two items.
     ASSERT_EQ(
+        2,
         data5
             .Group(
                 opentxs::proto::CONTACTSECTION_IDENTIFIER,
-                opentxs::proto::CITEMTYPE_INDIVIDUAL)
-            ->Size(),
-        2);
+                opentxs::proto::CITEMTYPE_EMPLOYEE)
+            ->Size());
 
     // Verify the second section exists.
-    ASSERT_NE(data5.Section(opentxs::proto::CONTACTSECTION_ADDRESS), nullptr);
+    ASSERT_NE(nullptr, data5.Section(opentxs::proto::CONTACTSECTION_ADDRESS));
     // Verify it has one group.
-    ASSERT_EQ(data5.Section(opentxs::proto::CONTACTSECTION_ADDRESS)->Size(), 1);
+    ASSERT_EQ(1, data5.Section(opentxs::proto::CONTACTSECTION_ADDRESS)->Size());
     // Verify the group exists.
     ASSERT_NE(
+        nullptr,
         data5.Group(
             opentxs::proto::CONTACTSECTION_ADDRESS,
-            opentxs::proto::CITEMTYPE_INDIVIDUAL),
-        nullptr);
+            opentxs::proto::CITEMTYPE_PHYSICAL));
     // Verify it has one item.
     ASSERT_EQ(
+        1,
         data5
             .Group(
                 opentxs::proto::CONTACTSECTION_ADDRESS,
-                opentxs::proto::CITEMTYPE_INDIVIDUAL)
-            ->Size(),
-        1);
+                opentxs::proto::CITEMTYPE_PHYSICAL)
+            ->Size());
+}
+
+TEST_F(Test_ContactData, operator_plus_different_version)
+{
+    // rhs version less than lhs
+    const opentxs::ContactData contactData2(
+        std::string("contactDataNym"),
+        CONTACT_CONTACT_DATA_VERSION - 1,
+        CONTACT_CONTACT_DATA_VERSION - 1,
+        {});
+
+    const auto& contactData3 = contactData_ + contactData2;
+    // Verify the new contact data has the latest version.
+    ASSERT_EQ(CONTACT_CONTACT_DATA_VERSION, contactData3.Version());
+
+    // lhs version less than rhs
+    const auto& contactData4 = contactData2 + contactData_;
+    // Verify the new contact data has the latest version.
+    ASSERT_EQ(CONTACT_CONTACT_DATA_VERSION, contactData4.Version());
 }
 
 TEST_F(Test_ContactData, operator_string)
 {
     const auto& data1 = contactData_.AddItem(activeContactItem_);
     const std::string dataString = data1;
-    ASSERT_EQ(dataString, expectedStringOutput);
+    ASSERT_EQ(expectedStringOutput, dataString);
 }
 
 TEST_F(Test_ContactData, Serialize)
@@ -532,40 +560,38 @@ TEST_F(Test_ContactData, Serialize)
     // Serialize without ids.
     opentxs::proto::ContactData protoData = data1.Serialize(false);
 
-    ASSERT_EQ(protoData.version(), data1.Version());
-    ASSERT_EQ(protoData.section_size(), 1);
+    ASSERT_EQ(data1.Version(), protoData.version());
+    ASSERT_EQ(1, protoData.section_size());
     opentxs::proto::ContactSection protoSection = protoData.section(0);
-    ASSERT_EQ(protoSection.name(), opentxs::proto::CONTACTSECTION_IDENTIFIER);
+    ASSERT_EQ(opentxs::proto::CONTACTSECTION_IDENTIFIER, protoSection.name());
     ASSERT_EQ(
-        protoSection.item_size(),
-        data1.Section(opentxs::proto::CONTACTSECTION_IDENTIFIER)->Size());
+        data1.Section(opentxs::proto::CONTACTSECTION_IDENTIFIER)->Size(),
+        protoSection.item_size());
     opentxs::proto::ContactItem protoItem = protoSection.item(0);
-    ASSERT_EQ(protoItem.value(), activeContactItem_->Value());
-    ASSERT_EQ(protoItem.version(), activeContactItem_->Version());
-    ASSERT_EQ(protoItem.type(), activeContactItem_->Type());
-    ASSERT_EQ(protoItem.start(), activeContactItem_->Start());
-    ASSERT_EQ(protoItem.end(), activeContactItem_->End());
+    ASSERT_EQ(activeContactItem_->Value(), protoItem.value());
+    ASSERT_EQ(activeContactItem_->Version(), protoItem.version());
+    ASSERT_EQ(activeContactItem_->Type(), protoItem.type());
+    ASSERT_EQ(activeContactItem_->Start(), protoItem.start());
+    ASSERT_EQ(activeContactItem_->End(), protoItem.end());
 
     // Serialize with ids.
     protoData = data1.Serialize(true);
 
-    ASSERT_EQ(protoData.version(), data1.Version());
-    ASSERT_EQ(protoData.section_size(), 1);
+    ASSERT_EQ(data1.Version(), protoData.version());
+    ASSERT_EQ(1, protoData.section_size());
     protoSection = protoData.section(0);
-    ASSERT_EQ(protoSection.name(), opentxs::proto::CONTACTSECTION_IDENTIFIER);
+    ASSERT_EQ(opentxs::proto::CONTACTSECTION_IDENTIFIER, protoSection.name());
     ASSERT_EQ(
-        protoSection.item_size(),
-        data1.Section(opentxs::proto::CONTACTSECTION_IDENTIFIER)->Size());
+        data1.Section(opentxs::proto::CONTACTSECTION_IDENTIFIER)->Size(),
+        protoSection.item_size());
     protoItem = protoSection.item(0);
-    opentxs::String id;
-    activeContactItem_->ID().GetString(id);
 
-    ASSERT_EQ(opentxs::String(protoItem.id()), id);
-    ASSERT_EQ(protoItem.value(), activeContactItem_->Value());
-    ASSERT_EQ(protoItem.version(), activeContactItem_->Version());
-    ASSERT_EQ(protoItem.type(), activeContactItem_->Type());
-    ASSERT_EQ(protoItem.start(), activeContactItem_->Start());
-    ASSERT_EQ(protoItem.end(), activeContactItem_->End());
+    ASSERT_EQ(activeContactItem_->ID().str(), protoItem.id());
+    ASSERT_EQ(activeContactItem_->Value(), protoItem.value());
+    ASSERT_EQ(activeContactItem_->Version(), protoItem.version());
+    ASSERT_EQ(activeContactItem_->Type(), protoItem.type());
+    ASSERT_EQ(activeContactItem_->Start(), protoItem.start());
+    ASSERT_EQ(activeContactItem_->End(), protoItem.end());
 }
 
 TEST_F(Test_ContactData, AddContract)
@@ -577,6 +603,20 @@ TEST_F(Test_ContactData, AddContract)
             const bool,
             const bool) const>(&opentxs::ContactData::AddContract),
         opentxs::proto::CONTACTSECTION_CONTRACT);
+}
+
+TEST_F(Test_ContactData, AddContract_different_versions)
+{
+    testAddItemMethod(
+        std::mem_fn<opentxs::ContactData(
+            const std::string&,
+            const opentxs::proto::ContactItemType,
+            const bool,
+            const bool) const>(&opentxs::ContactData::AddContract),
+        opentxs::proto::CONTACTSECTION_CONTRACT,
+        3,  // version of CONTACTSECTION_CONTRACT section before CITEMTYPE_BCH
+            // was added
+        4);
 }
 
 TEST_F(Test_ContactData, AddItem_claim)
@@ -591,17 +631,58 @@ TEST_F(Test_ContactData, AddItem_claim)
         std::set<std::uint32_t>{opentxs::proto::CITEMATTR_ACTIVE});
     const auto& data1 = contactData_.AddItem(claim);
     // Verify the section was added.
-    ASSERT_NE(data1.Section(opentxs::proto::CONTACTSECTION_CONTRACT), nullptr);
+    ASSERT_NE(nullptr, data1.Section(opentxs::proto::CONTACTSECTION_CONTRACT));
     // Verify the group was added.
     ASSERT_NE(
+        nullptr,
         data1.Group(
             opentxs::proto::CONTACTSECTION_CONTRACT,
-            opentxs::proto::CITEMTYPE_USD),
-        nullptr);
+            opentxs::proto::CITEMTYPE_USD));
     ASSERT_TRUE(data1.HaveClaim(
         opentxs::proto::CONTACTSECTION_CONTRACT,
         opentxs::proto::CITEMTYPE_USD,
         "contactItemValue"));
+}
+
+TEST_F(Test_ContactData, AddItem_claim_different_versions)
+{
+    const auto& group1 =
+        std::shared_ptr<opentxs::ContactGroup>(new opentxs::ContactGroup(
+            "contactGroup1",
+            opentxs::proto::CONTACTSECTION_CONTRACT,
+            opentxs::proto::CITEMTYPE_BCH,
+            {}));
+
+    const auto& section1 =
+        std::shared_ptr<opentxs::ContactSection>(new opentxs::ContactSection(
+            "contactSectionNym1",
+            3,  // version of CONTACTSECTION_CONTRACT section before
+                // CITEMTYPE_BCH was added
+            3,
+            opentxs::proto::CONTACTSECTION_CONTRACT,
+            opentxs::ContactSection::GroupMap{
+                {opentxs::proto::CITEMTYPE_BCH, group1}}));
+
+    const opentxs::ContactData data1(
+        std::string("contactDataNym1"),
+        3,  // version of CONTACTSECTION_CONTRACT section before CITEMTYPE_BCH
+            // was added
+        3,
+        opentxs::ContactData::SectionMap{
+            {opentxs::proto::CONTACTSECTION_CONTRACT, section1}});
+
+    opentxs::Claim claim = std::make_tuple(
+        std::string(""),
+        opentxs::proto::CONTACTSECTION_CONTRACT,
+        opentxs::proto::CITEMTYPE_BCH,
+        std::string("contactItemValue"),
+        NULL_START,
+        NULL_END,
+        std::set<std::uint32_t>{opentxs::proto::CITEMATTR_ACTIVE});
+
+    const auto& data2 = data1.AddItem(claim);
+
+    ASSERT_EQ(4, data2.Version());
 }
 
 TEST_F(Test_ContactData, AddItem_item)
@@ -610,13 +691,13 @@ TEST_F(Test_ContactData, AddItem_item)
     const auto& data1 = contactData_.AddItem(activeContactItem_);
     // Verify the section was added.
     ASSERT_NE(
-        data1.Section(opentxs::proto::CONTACTSECTION_IDENTIFIER), nullptr);
+        nullptr, data1.Section(opentxs::proto::CONTACTSECTION_IDENTIFIER));
     // Verify the group was added.
     ASSERT_NE(
+        nullptr,
         data1.Group(
             opentxs::proto::CONTACTSECTION_IDENTIFIER,
-            opentxs::proto::CITEMTYPE_INDIVIDUAL),
-        nullptr);
+            opentxs::proto::CITEMTYPE_EMPLOYEE));
     // Verify the item was added.
     ASSERT_TRUE(data1.HaveClaim(
         activeContactItem_->Section(),
@@ -630,7 +711,7 @@ TEST_F(Test_ContactData, AddItem_item)
             CONTACT_CONTACT_DATA_VERSION,
             CONTACT_CONTACT_DATA_VERSION,
             opentxs::proto::CONTACTSECTION_IDENTIFIER,
-            opentxs::proto::CITEMTYPE_INDIVIDUAL,
+            opentxs::proto::CITEMTYPE_EMPLOYEE,
             std::string("contactItemValue2"),
             {opentxs::proto::ContactItemAttribute::CITEMATTR_ACTIVE},
             NULL_START,
@@ -641,12 +722,56 @@ TEST_F(Test_ContactData, AddItem_item)
         contactItem2->Section(), contactItem2->Type(), contactItem2->Value()));
     // Verify the group has two items.
     ASSERT_EQ(
+        2,
         data2
             .Group(
                 opentxs::proto::CONTACTSECTION_IDENTIFIER,
-                opentxs::proto::CITEMTYPE_INDIVIDUAL)
-            ->Size(),
-        2);
+                opentxs::proto::CITEMTYPE_EMPLOYEE)
+            ->Size());
+}
+
+TEST_F(Test_ContactData, AddItem_item_different_versions)
+{
+    const auto& group1 =
+        std::shared_ptr<opentxs::ContactGroup>(new opentxs::ContactGroup(
+            "contactGroup1",
+            opentxs::proto::CONTACTSECTION_CONTRACT,
+            opentxs::proto::CITEMTYPE_BCH,
+            {}));
+
+    const auto& section1 =
+        std::shared_ptr<opentxs::ContactSection>(new opentxs::ContactSection(
+            "contactSectionNym1",
+            3,  // version of CONTACTSECTION_CONTRACT section before
+                // CITEMTYPE_BCH was added
+            3,
+            opentxs::proto::CONTACTSECTION_CONTRACT,
+            opentxs::ContactSection::GroupMap{
+                {opentxs::proto::CITEMTYPE_BCH, group1}}));
+
+    const opentxs::ContactData data1(
+        std::string("contactDataNym1"),
+        3,  // version of CONTACTSECTION_CONTRACT section before CITEMTYPE_BCH
+            // was added
+        3,
+        opentxs::ContactData::SectionMap{
+            {opentxs::proto::CONTACTSECTION_CONTRACT, section1}});
+
+    const auto& contactItem1 =
+        std::shared_ptr<opentxs::ContactItem>(new opentxs::ContactItem(
+            std::string("contactItem1"),
+            CONTACT_CONTACT_DATA_VERSION,
+            CONTACT_CONTACT_DATA_VERSION,
+            opentxs::proto::CONTACTSECTION_CONTRACT,
+            opentxs::proto::CITEMTYPE_BCH,
+            std::string("contactItemValue1"),
+            {opentxs::proto::ContactItemAttribute::CITEMATTR_ACTIVE},
+            NULL_START,
+            NULL_END));
+
+    const auto& data2 = data1.AddItem(contactItem1);
+
+    ASSERT_EQ(4, data2.Version());
 }
 
 TEST_F(Test_ContactData, AddPaymentCode)
@@ -658,6 +783,20 @@ TEST_F(Test_ContactData, AddPaymentCode)
             const bool,
             const bool) const>(&opentxs::ContactData::AddPaymentCode),
         opentxs::proto::CONTACTSECTION_PROCEDURE);
+}
+
+TEST_F(Test_ContactData, AddPaymentCode_different_versions)
+{
+    testAddItemMethod(
+        std::mem_fn<opentxs::ContactData(
+            const std::string&,
+            const opentxs::proto::ContactItemType,
+            const bool,
+            const bool) const>(&opentxs::ContactData::AddContract),
+        opentxs::proto::CONTACTSECTION_PROCEDURE,
+        3,  // version of CONTACTSECTION_PROCEDURE section before CITEMTYPE_BCH
+            // was added
+        4);
 }
 
 TEST_F(Test_ContactData, AddPreferredOTServer)
@@ -705,7 +844,7 @@ TEST_F(Test_ContactData, AddPreferredOTServer)
         NULL_END,
         opentxs::String(serverIdentifier1).Get()));
     const auto& contactItem1 = data2.Claim(identifier1);
-    ASSERT_NE(contactItem1, nullptr);
+    ASSERT_NE(nullptr, contactItem1);
     ASSERT_TRUE(contactItem1->isPrimary());
 
     // Add a server to a group with a primary.
@@ -728,7 +867,7 @@ TEST_F(Test_ContactData, AddPreferredOTServer)
         NULL_END,
         opentxs::String(serverIdentifier2).Get()));
     const auto& contactItem2 = data3.Claim(identifier2);
-    ASSERT_NE(contactItem2, nullptr);
+    ASSERT_NE(nullptr, contactItem2);
     ASSERT_FALSE(contactItem2->isPrimary());
 
     // Add a server to a ContactData with no group.
@@ -745,10 +884,10 @@ TEST_F(Test_ContactData, AddPreferredOTServer)
 
     // Verify the group was created.
     ASSERT_NE(
+        nullptr,
         data4.Group(
             opentxs::proto::CONTACTSECTION_COMMUNICATION,
-            opentxs::proto::CITEMTYPE_OPENTXS),
-        nullptr);
+            opentxs::proto::CITEMTYPE_OPENTXS));
     // Verify that the item was made primary.
     const opentxs::Identifier identifier3(opentxs::ContactCredential::ClaimID(
         "contactDataNym",
@@ -758,7 +897,7 @@ TEST_F(Test_ContactData, AddPreferredOTServer)
         NULL_END,
         opentxs::String(serverIdentifier3).Get()));
     const auto& contactItem3 = data4.Claim(identifier3);
-    ASSERT_NE(contactItem3, nullptr);
+    ASSERT_NE(nullptr, contactItem3);
     ASSERT_TRUE(contactItem3->isPrimary());
 
     // Add a primary server.
@@ -781,18 +920,25 @@ TEST_F(Test_ContactData, AddPreferredOTServer)
         NULL_END,
         opentxs::String(serverIdentifier4).Get()));
     const auto& contactItem4 = data5.Claim(identifier4);
-    ASSERT_NE(contactItem4, nullptr);
+    ASSERT_NE(nullptr, contactItem4);
     ASSERT_TRUE(contactItem4->isPrimary());
     // Verify the previous preferred server is no longer primary.
     const auto& contactItem5 = data5.Claim(identifier3);
-    ASSERT_NE(contactItem5, nullptr);
+    ASSERT_NE(nullptr, contactItem5);
     ASSERT_FALSE(contactItem5->isPrimary());
+}
+
+TEST_F(Test_ContactData, AddPreferredOTServer_different_versions)
+{
+    // Nothing to test for required version of contact section for OTServer
+    // because all contact item types have been available for all versions of
+    // CONTACTSECTION_COMMUNICATION section.
 }
 
 TEST_F(Test_ContactData, Claim_found)
 {
     const auto& data1 = contactData_.AddItem(activeContactItem_);
-    ASSERT_NE(data1.Claim(activeContactItem_->ID()), nullptr);
+    ASSERT_NE(nullptr, data1.Claim(activeContactItem_->ID()));
 }
 
 TEST_F(Test_ContactData, Claim_not_found)
@@ -806,7 +952,7 @@ TEST_F(Test_ContactData, Contracts)
         "instrumentDefinitionID1", opentxs::proto::CITEMTYPE_USD, false, false);
     const std::set<opentxs::Identifier>& contracts =
         data1.Contracts(opentxs::proto::CITEMTYPE_USD, false);
-    ASSERT_EQ(contracts.size(), 1);
+    ASSERT_EQ(1, contracts.size());
 }
 
 TEST_F(Test_ContactData, Contracts_onlyactive_found)
@@ -817,7 +963,7 @@ TEST_F(Test_ContactData, Contracts_onlyactive_found)
         "instrumentDefinitionID2", opentxs::proto::CITEMTYPE_USD, false, false);
     const std::set<opentxs::Identifier>& contracts =
         data2.Contracts(opentxs::proto::CITEMTYPE_USD, true);
-    ASSERT_EQ(contracts.size(), 1);
+    ASSERT_EQ(1, contracts.size());
 }
 
 TEST_F(Test_ContactData, Contracts_onlyactive_not_found)
@@ -826,7 +972,7 @@ TEST_F(Test_ContactData, Contracts_onlyactive_not_found)
         "instrumentDefinitionID1", opentxs::proto::CITEMTYPE_USD, false, false);
     const std::set<opentxs::Identifier>& contracts =
         data1.Contracts(opentxs::proto::CITEMTYPE_USD, true);
-    ASSERT_EQ(contracts.size(), 0);
+    ASSERT_EQ(0, contracts.size());
 }
 
 TEST_F(Test_ContactData, Delete)
@@ -838,7 +984,7 @@ TEST_F(Test_ContactData, Delete)
             CONTACT_CONTACT_DATA_VERSION,
             CONTACT_CONTACT_DATA_VERSION,
             opentxs::proto::CONTACTSECTION_IDENTIFIER,
-            opentxs::proto::CITEMTYPE_INDIVIDUAL,
+            opentxs::proto::CITEMTYPE_EMPLOYEE,
             std::string("contactItemValue2"),
             {opentxs::proto::ContactItemAttribute::CITEMATTR_ACTIVE},
             NULL_START,
@@ -848,13 +994,13 @@ TEST_F(Test_ContactData, Delete)
     const auto& data3 = data2.Delete(activeContactItem_->ID());
     // Verify the item was deleted.
     ASSERT_EQ(
-        data3.Section(opentxs::proto::CONTACTSECTION_IDENTIFIER)->Size(), 1);
+        1, data3.Section(opentxs::proto::CONTACTSECTION_IDENTIFIER)->Size());
     ASSERT_FALSE(data3.Claim(activeContactItem_->ID()));
 
     const auto& data4 = data3.Delete(activeContactItem_->ID());
     // Verify trying to delete the item again didn't change anything.
     ASSERT_EQ(
-        data4.Section(opentxs::proto::CONTACTSECTION_IDENTIFIER)->Size(), 1);
+        1, data4.Section(opentxs::proto::CONTACTSECTION_IDENTIFIER)->Size());
 
     const auto& data5 = data4.Delete(contactItem2->ID());
     // Verify the section was removed.
@@ -865,17 +1011,17 @@ TEST_F(Test_ContactData, Group_found)
 {
     const auto& data1 = contactData_.AddItem(activeContactItem_);
     ASSERT_NE(
+        nullptr,
         data1.Group(
             opentxs::proto::CONTACTSECTION_IDENTIFIER,
-            opentxs::proto::CITEMTYPE_INDIVIDUAL),
-        nullptr);
+            opentxs::proto::CITEMTYPE_EMPLOYEE));
 }
 
 TEST_F(Test_ContactData, Group_notfound)
 {
     ASSERT_FALSE(contactData_.Group(
         opentxs::proto::CONTACTSECTION_IDENTIFIER,
-        opentxs::proto::CITEMTYPE_INDIVIDUAL));
+        opentxs::proto::CITEMTYPE_EMPLOYEE));
 }
 
 TEST_F(Test_ContactData, HaveClaim_1)
@@ -891,27 +1037,27 @@ TEST_F(Test_ContactData, HaveClaim_2)
     // Test for an item in group that doesn't exist.
     ASSERT_FALSE(contactData_.HaveClaim(
         opentxs::proto::CONTACTSECTION_IDENTIFIER,
-        opentxs::proto::CITEMTYPE_INDIVIDUAL,
+        opentxs::proto::CITEMTYPE_EMPLOYEE,
         "activeContactItemValue"));
 
     // Test for an item that does exist.
     const auto& data1 = contactData_.AddItem(activeContactItem_);
     ASSERT_TRUE(data1.HaveClaim(
         opentxs::proto::CONTACTSECTION_IDENTIFIER,
-        opentxs::proto::CITEMTYPE_INDIVIDUAL,
+        opentxs::proto::CITEMTYPE_EMPLOYEE,
         "activeContactItemValue"));
 
     // Test for an item that doesn't exist in a group that does.
     ASSERT_FALSE(data1.HaveClaim(
         opentxs::proto::CONTACTSECTION_IDENTIFIER,
-        opentxs::proto::CITEMTYPE_INDIVIDUAL,
+        opentxs::proto::CITEMTYPE_EMPLOYEE,
         "dummyContactItemValue"));
 }
 
 TEST_F(Test_ContactData, Name)
 {
     // Verify that Name returns an empty string if there is no scope group.
-    ASSERT_STREQ(contactData_.Name().c_str(), "");
+    ASSERT_STREQ("", contactData_.Name().c_str());
 
     // Test when the scope group is emtpy.
     const auto& group1 =
@@ -937,12 +1083,12 @@ TEST_F(Test_ContactData, Name)
         opentxs::ContactData::SectionMap{
             {opentxs::proto::CONTACTSECTION_SCOPE, section1}});
     // Verify that Name returns an empty string.
-    ASSERT_STREQ(data1.Name().c_str(), "");
+    ASSERT_STREQ("", data1.Name().c_str());
 
     // Test when the scope is set.
     const auto& data2 = contactData_.SetScope(
         opentxs::proto::CITEMTYPE_INDIVIDUAL, "activeContactItemValue");
-    ASSERT_STREQ(data2.Name().c_str(), "activeContactItemValue");
+    ASSERT_STREQ("activeContactItemValue", data2.Name().c_str());
 }
 
 TEST_F(Test_ContactData, PreferredOTServer)
@@ -991,7 +1137,7 @@ TEST_F(Test_ContactData, PreferredOTServer)
         contactData_.AddPreferredOTServer(serverIdentifier2, true);
     const auto& preferredServer = data2.PreferredOTServer();
     ASSERT_FALSE(preferredServer->empty());
-    ASSERT_EQ(preferredServer, serverIdentifier2);
+    ASSERT_EQ(serverIdentifier2, preferredServer);
 }
 
 TEST_F(Test_ContactData, Section)
@@ -1001,7 +1147,7 @@ TEST_F(Test_ContactData, Section)
 
     const auto& data1 = contactData_.AddItem(activeContactItem_);
     ASSERT_NE(
-        data1.Section(opentxs::proto::CONTACTSECTION_IDENTIFIER), nullptr);
+        nullptr, data1.Section(opentxs::proto::CONTACTSECTION_IDENTIFIER));
 }
 
 TEST_F(Test_ContactData, SetCommonName)
@@ -1015,7 +1161,7 @@ TEST_F(Test_ContactData, SetCommonName)
         NULL_END,
         std::string("commonName")));
     const auto& commonNameItem = data1.Claim(identifier);
-    ASSERT_NE(commonNameItem, nullptr);
+    ASSERT_NE(nullptr, commonNameItem);
     ASSERT_TRUE(commonNameItem->isPrimary());
     ASSERT_TRUE(commonNameItem->isActive());
 }
@@ -1036,7 +1182,7 @@ TEST_F(Test_ContactData, SetName)
         NULL_END,
         std::string("secondName")));
     const auto& scopeItem1 = data2.Claim(identifier1);
-    ASSERT_NE(scopeItem1, nullptr);
+    ASSERT_NE(nullptr, scopeItem1);
     ASSERT_TRUE(scopeItem1->isPrimary());
     ASSERT_TRUE(scopeItem1->isActive());
 
@@ -1051,7 +1197,7 @@ TEST_F(Test_ContactData, SetName)
         NULL_END,
         std::string("thirdName")));
     const auto& contactItem2 = data3.Claim(identifier2);
-    ASSERT_NE(contactItem2, nullptr);
+    ASSERT_NE(nullptr, contactItem2);
     ASSERT_FALSE(contactItem2->isPrimary());
     ASSERT_TRUE(contactItem2->isActive());
 }
@@ -1069,7 +1215,7 @@ TEST_F(Test_ContactData, SetScope)
         NULL_END,
         std::string("organizationScope")));
     const auto& scopeItem1 = data1.Claim(identifier1);
-    ASSERT_NE(scopeItem1, nullptr);
+    ASSERT_NE(nullptr, scopeItem1);
     ASSERT_TRUE(scopeItem1->isPrimary());
     ASSERT_TRUE(scopeItem1->isActive());
 
@@ -1087,21 +1233,36 @@ TEST_F(Test_ContactData, SetScope)
     ASSERT_FALSE(data2.Claim(identifier2));
     // Verify the scope wasn't changed.
     const auto& scopeItem2 = data2.Claim(identifier1);
-    ASSERT_NE(scopeItem2, nullptr);
+    ASSERT_NE(nullptr, scopeItem2);
     ASSERT_TRUE(scopeItem2->isPrimary());
     ASSERT_TRUE(scopeItem2->isActive());
 }
 
+TEST_F(Test_ContactData, SetScope_different_versions)
+{
+    const opentxs::ContactData data1(
+        std::string("dataNym1"),
+        3,  // version of CONTACTSECTION_SCOPE section before CITEMTYPE_BOT
+            // was added
+        3,
+        {});
+
+    const auto& data2 =
+        data1.SetScope(opentxs::proto::CITEMTYPE_BOT, "botScope");
+
+    ASSERT_EQ(4, data2.Version());
+}
+
 TEST_F(Test_ContactData, Type)
 {
-    ASSERT_EQ(contactData_.Type(), opentxs::proto::CITEMTYPE_UNKNOWN);
+    ASSERT_EQ(opentxs::proto::CITEMTYPE_UNKNOWN, contactData_.Type());
 
     const auto& data1 = contactData_.SetScope(
         opentxs::proto::CITEMTYPE_INDIVIDUAL, "scopeName");
-    ASSERT_EQ(data1.Type(), opentxs::proto::CITEMTYPE_INDIVIDUAL);
+    ASSERT_EQ(opentxs::proto::CITEMTYPE_INDIVIDUAL, data1.Type());
 }
 
 TEST_F(Test_ContactData, Version)
 {
-    ASSERT_EQ(contactData_.Version(), CONTACT_CONTACT_DATA_VERSION);
+    ASSERT_EQ(CONTACT_CONTACT_DATA_VERSION, contactData_.Version());
 }
