@@ -50,9 +50,12 @@ class ActivityThreadItemBlank : virtual public ui::ActivityThreadItem,
                                 virtual public opentxs::ui::Widget
 {
 public:
+    opentxs::Amount Amount() const override { return 0; }
+    std::string DisplayAmount() const override { return {}; }
     bool Last() const override { return true; }
     bool Loading() const override { return false; }
     bool MarkRead() const override { return false; }
+    std::string Memo() const override { return {}; }
     bool Pending() const override { return false; }
     std::string Text() const override { return {}; }
     std::int64_t Time() const override { return {}; }

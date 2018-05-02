@@ -62,8 +62,11 @@ namespace ui
 class ActivityThreadItem : virtual public ListRow
 {
 public:
+    EXPORT virtual opentxs::Amount Amount() const = 0;
+    EXPORT virtual std::string DisplayAmount() const = 0;
     EXPORT virtual bool Loading() const = 0;
     EXPORT virtual bool MarkRead() const = 0;
+    EXPORT virtual std::string Memo() const = 0;
     EXPORT virtual bool Pending() const = 0;
     EXPORT virtual std::string Text() const = 0;
     EXPORT virtual std::int64_t Time() const = 0;

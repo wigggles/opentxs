@@ -55,8 +55,11 @@ using ActivityThreadItemType =
 class ActivityThreadItem : public ActivityThreadItemType
 {
 public:
+    opentxs::Amount Amount() const override { return 0; }
+    std::string DisplayAmount() const { return {}; }
     bool Loading() const override;
     bool MarkRead() const override;
+    std::string Memo() const override { return {}; }
     bool Pending() const override;
     std::string Text() const override;
     std::int64_t Time() const override;
@@ -71,7 +74,7 @@ protected:
     const std::chrono::system_clock::time_point time_;
     const Identifier& item_id_;
     const StorageBox& box_;
-    const Identifier& accountID_;
+    const Identifier& account_id_;
     std::string text_;
     OTFlag loading_;
     OTFlag pending_;

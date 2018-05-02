@@ -174,13 +174,21 @@ std::string ActivitySummaryItem::DisplayName() const
 std::string ActivitySummaryItem::find_text(const ItemLocator& locator) const
 {
     const auto & [ itemID, box, accountID ] = locator;
-    [[maybe_unused]] const auto& notUsed = accountID;
 
     switch (box) {
         case StorageBox::MAILINBOX:
         case StorageBox::MAILOUTBOX: {
             auto mail =
                 activity_.MailText(nym_id_, Identifier::Factory(itemID), box);
+
+            if (mail) {
+
+                return *mail;
+            }
+        } break;
+        case StorageBox::INCOMINGCHEQUE:
+        case StorageBox::OUTGOINGCHEQUE: {
+            auto mail = activity_.PaymentText(nym_id_, itemID, accountID);
 
             if (mail) {
 

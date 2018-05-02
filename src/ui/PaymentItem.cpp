@@ -39,24 +39,23 @@
 #include "opentxs/stdafx.hpp"
 
 #include "opentxs/api/Activity.hpp"
+#include "opentxs/core/contract/UnitDefinition.hpp"
+#include "opentxs/core/Cheque.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Message.hpp"
 
-#include "MailItem.hpp"
+#include "PaymentItem.hpp"
 
 namespace opentxs::ui::implementation
 {
-MailItem::MailItem(
+PaymentItem::PaymentItem(
     const ActivityThread& parent,
     const network::zeromq::Context& zmq,
     const api::ContactManager& contact,
     const ActivityThreadID& id,
     const Identifier& nymID,
     const api::Activity& activity,
-    const std::chrono::system_clock::time_point& time,
-    const std::string& text,
-    const bool loading,
-    const bool pending)
+    const std::chrono::system_clock::time_point& time)
     : ActivityThreadItem(
           parent,
           zmq,
@@ -65,26 +64,21 @@ MailItem::MailItem(
           nymID,
           activity,
           time,
-          text,
-          loading,
-          pending)
-    , load_(nullptr){OT_ASSERT(false == nym_id_.empty())
-                         OT_ASSERT(false == item_id_.empty())}
-
-    MailItem::MailItem(
-        const ActivityThread& parent,
-        const network::zeromq::Context& zmq,
-        const api::ContactManager& contact,
-        const ActivityThreadID& id,
-        const Identifier& nymID,
-        const api::Activity& activity,
-        const std::chrono::system_clock::time_point& time)
-    : MailItem(parent, zmq, contact, id, nymID, activity, time, "", true, false)
+          "",
+          true,
+          false)
+    , display_amount_()
+    , memo_()
+    , amount_(0)
+    , load_(nullptr)
 {
+    OT_ASSERT(false == nym_id_.empty())
+    OT_ASSERT(false == item_id_.empty())
+
     switch (box_) {
-        case StorageBox::MAILINBOX:
-        case StorageBox::MAILOUTBOX: {
-            load_.reset(new std::thread(&MailItem::load, this));
+        case StorageBox::INCOMINGCHEQUE:
+        case StorageBox::OUTGOINGCHEQUE: {
+            load_.reset(new std::thread(&PaymentItem::load, this));
         } break;
         case StorageBox::SENTPEERREQUEST:
         case StorageBox::INCOMINGPEERREQUEST:
@@ -94,10 +88,10 @@ MailItem::MailItem(
         case StorageBox::FINISHEDPEERREPLY:
         case StorageBox::PROCESSEDPEERREQUEST:
         case StorageBox::PROCESSEDPEERREPLY:
+        case StorageBox::MAILINBOX:
+        case StorageBox::MAILOUTBOX:
         case StorageBox::INCOMINGBLOCKCHAIN:
         case StorageBox::OUTGOINGBLOCKCHAIN:
-        case StorageBox::INCOMINGCHEQUE:
-        case StorageBox::OUTGOINGCHEQUE:
         case StorageBox::DRAFT:
         case StorageBox::UNKNOWN:
         default: {
@@ -107,14 +101,44 @@ MailItem::MailItem(
     OT_ASSERT(load_)
 }
 
-void MailItem::load()
+opentxs::Amount PaymentItem::Amount() const
+{
+    sLock lock(shared_lock_);
+
+    return amount_;
+}
+
+std::string PaymentItem::DisplayAmount() const
+{
+    sLock lock(shared_lock_);
+
+    return display_amount_;
+}
+
+void PaymentItem::load()
 {
     std::shared_ptr<const std::string> text{nullptr};
+    std::string displayAmount{};
+    std::string memo{};
+    opentxs::Amount amount{0};
 
     switch (box_) {
-        case StorageBox::MAILINBOX:
-        case StorageBox::MAILOUTBOX: {
-            text = activity_.MailText(nym_id_, item_id_, box_);
+        case StorageBox::INCOMINGCHEQUE:
+        case StorageBox::OUTGOINGCHEQUE: {
+            text = activity_.PaymentText(
+                nym_id_, item_id_.str(), account_id_.str());
+            const auto[cheque, contract] =
+                activity_.Cheque(nym_id_, item_id_.str(), account_id_.str());
+
+            if (cheque) {
+                memo = cheque->GetMemo().Get();
+                amount = cheque->GetAmount();
+
+                if (contract) {
+                    contract->FormatAmountLocale(
+                        amount, displayAmount, ",", ".");
+                }
+            }
         } break;
         case StorageBox::SENTPEERREQUEST:
         case StorageBox::INCOMINGPEERREQUEST:
@@ -124,10 +148,10 @@ void MailItem::load()
         case StorageBox::FINISHEDPEERREPLY:
         case StorageBox::PROCESSEDPEERREQUEST:
         case StorageBox::PROCESSEDPEERREPLY:
+        case StorageBox::MAILINBOX:
+        case StorageBox::MAILOUTBOX:
         case StorageBox::INCOMINGBLOCKCHAIN:
         case StorageBox::OUTGOINGBLOCKCHAIN:
-        case StorageBox::INCOMINGCHEQUE:
-        case StorageBox::OUTGOINGCHEQUE:
         case StorageBox::DRAFT:
         case StorageBox::UNKNOWN:
         default: {
@@ -139,12 +163,22 @@ void MailItem::load()
 
     eLock lock(shared_lock_);
     text_ = *text;
+    display_amount_ = displayAmount;
+    memo_ = memo;
+    amount_ = amount;
     loading_->Off();
     pending_->Off();
     UpdateNotify();
 }
 
-MailItem::~MailItem()
+std::string PaymentItem::Memo() const
+{
+    sLock lock(shared_lock_);
+
+    return memo_;
+}
+
+PaymentItem::~PaymentItem()
 {
     if (load_ && load_->joinable()) {
         load_->join();

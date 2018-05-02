@@ -9,6 +9,7 @@ set(cxx-sources
   MessagableList.cpp
   PayableList.cpp
   PayableListItem.cpp
+  PaymentItem.cpp
   Widget.cpp
 )
 
@@ -41,6 +42,7 @@ set(cxx-headers
   "${CMAKE_CURRENT_SOURCE_DIR}/MessagableList.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/PayableList.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/PayableListItem.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/PaymentItem.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Widget.hpp"
 )
 
