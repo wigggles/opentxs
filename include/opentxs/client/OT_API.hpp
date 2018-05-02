@@ -69,7 +69,7 @@ class Api;
 }  // namespace api
 
 /** AccountInfo: accountID, nymID, serverID, unitID */
-using AccountInfo = std::tuple<Identifier, Identifier, Identifier, Identifier>;
+using AccountInfo = std::tuple<OTIdentifier, OTIdentifier, OTIdentifier, OTIdentifier>;
 
 // The C++ high-level interface to the Open Transactions client-side.
 class OT_API : Lockable

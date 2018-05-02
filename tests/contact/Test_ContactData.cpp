@@ -950,7 +950,7 @@ TEST_F(Test_ContactData, Contracts)
 {
     const auto& data1 = contactData_.AddContract(
         "instrumentDefinitionID1", opentxs::proto::CITEMTYPE_USD, false, false);
-    const std::set<opentxs::Identifier>& contracts =
+    const auto& contracts =
         data1.Contracts(opentxs::proto::CITEMTYPE_USD, false);
     ASSERT_EQ(1, contracts.size());
 }
@@ -961,7 +961,7 @@ TEST_F(Test_ContactData, Contracts_onlyactive_found)
         "instrumentDefinitionID1", opentxs::proto::CITEMTYPE_USD, false, true);
     const auto& data2 = data1.AddContract(
         "instrumentDefinitionID2", opentxs::proto::CITEMTYPE_USD, false, false);
-    const std::set<opentxs::Identifier>& contracts =
+    const auto& contracts =
         data2.Contracts(opentxs::proto::CITEMTYPE_USD, true);
     ASSERT_EQ(1, contracts.size());
 }
@@ -970,7 +970,7 @@ TEST_F(Test_ContactData, Contracts_onlyactive_not_found)
 {
     const auto& data1 = contactData_.AddContract(
         "instrumentDefinitionID1", opentxs::proto::CITEMTYPE_USD, false, false);
-    const std::set<opentxs::Identifier>& contracts =
+    const auto& contracts =
         data1.Contracts(opentxs::proto::CITEMTYPE_USD, true);
     ASSERT_EQ(0, contracts.size());
 }

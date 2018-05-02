@@ -97,7 +97,7 @@ public:
     ContactData AddPreferredOTServer(const Identifier& id, const bool primary)
         const;
     std::shared_ptr<ContactItem> Claim(const Identifier& item) const;
-    std::set<Identifier> Contracts(
+    std::set<OTIdentifier> Contracts(
         const proto::ContactItemType currency,
         const bool onlyActive) const;
     ContactData Delete(const Identifier& id) const;

@@ -71,7 +71,7 @@ class Wallet;
 
 typedef std::deque<Message*> dequeOfMail;
 typedef std::deque<std::int64_t> dequeOfTransNums;
-typedef std::map<std::string, Identifier> mapOfIdentifiers;
+typedef std::map<std::string, OTIdentifier*> mapOfIdentifiers;
 typedef std::map<std::string, CredentialSet*> mapOfCredentialSets;
 typedef std::list<OTAsymmetricKey*> listOfAsymmetricKeys;
 typedef bool CredentialIndexModeFlag;
@@ -107,7 +107,7 @@ public:
     EXPORT std::int32_t ChildCredentialCount(const std::string& masterID) const;
     EXPORT const class ContactData& Claims() const;
     EXPORT bool CompareID(const Nym& RHS) const;
-    EXPORT std::set<Identifier> Contracts(
+    EXPORT std::set<OTIdentifier> Contracts(
         const proto::ContactItemType currency,
         const bool onlyActive) const;
     EXPORT const Credential* GetChildCredential(

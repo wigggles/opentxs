@@ -79,7 +79,7 @@ public:
     const Identifier& ID() const;
     const std::string& Label() const;
     std::time_t LastUpdated() const;
-    std::vector<Identifier> Nyms(const bool includeInactive = false) const;
+    std::vector <OTIdentifier> Nyms(const bool includeInactive = false) const;
     std::string PaymentCode(
         const proto::ContactItemType currency = proto::CITEMTYPE_BTC) const;
     std::vector<std::string> PaymentCodes(
@@ -114,8 +114,8 @@ private:
     const OTIdentifier id_;
     OTIdentifier parent_;
     OTIdentifier primary_nym_;
-    std::map<Identifier, std::shared_ptr<const Nym>> nyms_{};
-    std::set<Identifier> merged_children_{};
+    std::map<OTIdentifier, std::shared_ptr<const Nym>> nyms_;
+    std::set<OTIdentifier> merged_children_;
     std::unique_ptr<ContactData> contact_data_{};
     mutable std::shared_ptr<ContactData> cached_contact_data_{};
     std::atomic<std::uint64_t> revision_{0};

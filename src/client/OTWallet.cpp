@@ -297,8 +297,16 @@ void OTWallet::add_account(const Lock& lock, std::shared_ptr<Account>& theAcct)
 
         account = theAcct;
     } else {
-        auto& entry = m_mapAccounts[ACCOUNT_ID];
-        auto & [ nymID, serverID, unitID, account ] = entry;
+        auto[entry, success] = m_mapAccounts.emplace(
+            ACCOUNT_ID,
+            AccountEntry{Identifier::Factory(),
+                         Identifier::Factory(),
+                         Identifier::Factory(),
+                         nullptr});
+
+        OT_ASSERT(success)
+
+        auto & [ nymID, serverID, unitID, account ] = entry->second;
         nymID = theAcct->GetNymID();
         serverID = theAcct->GetPurportedNotaryID();
         unitID = theAcct->GetInstrumentDefinitionID();

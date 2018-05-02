@@ -306,11 +306,11 @@ std::shared_ptr<ContactItem> ContactData::Claim(const Identifier& item) const
     return {};
 }
 
-std::set<Identifier> ContactData::Contracts(
+std::set<OTIdentifier> ContactData::Contracts(
     const proto::ContactItemType currency,
     const bool onlyActive) const
 {
-    std::set<Identifier> output{};
+    std::set<OTIdentifier> output{};
     const proto::ContactSectionName section{proto::CONTACTSECTION_CONTRACT};
     auto group = Group(section, currency);
 

@@ -58,8 +58,8 @@ namespace client
 class Issuer
 {
 public:
-    typedef std::pair<Identifier, proto::BailmentReply> BailmentDetails;
-    typedef std::pair<Identifier, proto::ConnectionInfoReply> ConnectionDetails;
+    typedef std::pair<OTIdentifier, proto::BailmentReply> BailmentDetails;
+    typedef std::pair<OTIdentifier, proto::ConnectionInfoReply> ConnectionDetails;
 
     enum class RequestStatus : std::int32_t {
         All = -1,
@@ -71,7 +71,7 @@ public:
 
     virtual operator std::string() const = 0;
 
-    virtual std::set<Identifier> AccountList(
+    virtual std::set<OTIdentifier> AccountList(
         const proto::ContactItemType type,
         const Identifier& unitID) const = 0;
     virtual bool BailmentInitiated(const Identifier& unitID) const = 0;
@@ -82,7 +82,7 @@ public:
         const proto::ConnectionInfoType type) const = 0;
     virtual bool ConnectionInfoInitiated(
         const proto::ConnectionInfoType type) const = 0;
-    virtual std::set<std::tuple<Identifier, Identifier, bool>> GetRequests(
+    virtual std::set<std::tuple<OTIdentifier, OTIdentifier, bool>> GetRequests(
         const proto::PeerRequestType type,
         const RequestStatus state = RequestStatus::All) const = 0;
     virtual const Identifier& IssuerID() const = 0;

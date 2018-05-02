@@ -1263,7 +1263,7 @@ OTIdentifier Sync::MessageContact(
         taskID, queue.send_message_.Push(taskID, {recipientNymID, message}));
 }
 
-std::pair<ThreadStatus, Identifier> Sync::MessageStatus(
+std::pair<ThreadStatus, OTIdentifier> Sync::MessageStatus(
     const Identifier& taskID) const
 {
     std::pair<ThreadStatus, Identifier> output{};
@@ -1450,10 +1450,10 @@ void Sync::refresh_accounts() const
         SHUTDOWN()
 
         const auto& notUsed[[maybe_unused]] = unitID;
-        otWarn << OT_METHOD << __FUNCTION__ << ": Account " << accountID.str()
+        otWarn << OT_METHOD << __FUNCTION__ << ": Account " << accountID->str()
                << ":\n"
-               << "  * Owned by nym: " << nymID.str() << "\n"
-               << "  * On server: " << serverID.str() << std::endl;
+               << "  * Owned by nym: " << nymID->str() << "\n"
+               << "  * On server: " << serverID->str() << std::endl;
         auto& queue = get_operations({nymID, serverID});
         const auto taskID(Identifier::Random());
         queue.download_account_.Push(taskID, accountID);
@@ -1491,7 +1491,7 @@ void Sync::refresh_contacts() const
 
             const auto nym = wallet_.Nym(nymID);
             otInfo << OT_METHOD << __FUNCTION__
-                   << ": Considering nym: " << nymID.str() << std::endl;
+                   << ": Considering nym: " << nymID->str() << std::endl;
 
             if (nym) {
                 contacts_.Update(nym->asPublicNym());
@@ -1543,7 +1543,7 @@ void Sync::refresh_contacts() const
                     }
 
                     otInfo << OT_METHOD << __FUNCTION__
-                           << ": Will download nym " << nymID.str()
+                           << ": Will download nym " << nymID->str()
                            << " from server " << serverID.str() << std::endl;
                     auto& serverQueue = get_nym_fetch(serverID);
                     const auto taskID(Identifier::Random());

@@ -227,12 +227,12 @@ Issuer::operator std::string() const
     return output.str();
 }
 
-std::set<Identifier> Issuer::AccountList(
+std::set<OTIdentifier> Issuer::AccountList(
     const proto::ContactItemType type,
     const Identifier& unitID) const
 {
     Lock lock(lock_);
-    std::set<Identifier> output{};
+    std::set<OTIdentifier> output{};
     auto accountSet = account_map_.find(type);
 
     if (account_map_.end() == accountSet) {
@@ -501,7 +501,7 @@ std::pair<bool, Issuer::Workflow::iterator> Issuer::find_request(
     return {work.end() != it, it};
 }
 
-std::set<std::tuple<Identifier, Identifier, bool>> Issuer::GetRequests(
+std::set<std::tuple<OTIdentifier, OTIdentifier, bool>> Issuer::GetRequests(
     const proto::PeerRequestType type,
     const Issuer::RequestStatus state) const
 {
@@ -510,14 +510,14 @@ std::set<std::tuple<Identifier, Identifier, bool>> Issuer::GetRequests(
     return get_requests(lock, type, state);
 }
 
-std::set<std::tuple<Identifier, Identifier, bool>> Issuer::get_requests(
+std::set<std::tuple<OTIdentifier, OTIdentifier, bool>> Issuer::get_requests(
     const Lock& lock,
     const proto::PeerRequestType type,
     const Issuer::RequestStatus state) const
 {
     OT_ASSERT(verify_lock(lock));
 
-    std::set<std::tuple<Identifier, Identifier, bool>> output;
+    std::set<std::tuple<OTIdentifier, OTIdentifier, bool>> output;
 
     if (Issuer::RequestStatus::None == state) {
 

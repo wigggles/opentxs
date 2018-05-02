@@ -95,7 +95,7 @@ Contact::Contact(
     OT_ASSERT(contact_data_);
 
     for (const auto& child : serialized.merged()) {
-        merged_children_.emplace(child);
+        merged_children_.emplace(Identifier::Factory(child));
     }
 
     init_nyms();
@@ -534,7 +534,7 @@ void Contact::init_nyms()
 
         OT_ASSERT(item);
 
-        const Identifier nymID = Identifier(item->Value());
+        const OTIdentifier nymID = Identifier(item->Value());
         auto& nym = nyms_[nymID];
         nym = wallet_.Nym(nymID);
 
@@ -634,7 +634,7 @@ std::shared_ptr<ContactData> Contact::merged_data(const Lock& lock) const
     return output;
 }
 
-std::vector<Identifier> Contact::Nyms(const bool includeInactive) const
+std::vector< opentxs::OTIdentifier > opentxs::Contact::Nyms(const bool includeInactive) const
 {
     Lock lock(lock_);
     const auto data = merged_data(lock);
@@ -653,7 +653,7 @@ std::vector<Identifier> Contact::Nyms(const bool includeInactive) const
         return {};
     }
 
-    std::vector<Identifier> output{};
+    std::vector<OTIdentifier> output{};
     const auto& primaryID = group->Primary();
 
     for (const auto& it : *group) {
@@ -669,9 +669,9 @@ std::vector<Identifier> Contact::Nyms(const bool includeInactive) const
         }
 
         if (primaryID == itemID) {
-            output.emplace(output.begin(), item->Value());
+            output.emplace(output.begin(), Identifier::Factory(item->Value()));
         } else {
-            output.emplace(output.end(), item->Value());
+            output.emplace(output.end(), Identifier::Factory(item->Value()));
         }
     }
 
@@ -804,7 +804,7 @@ bool Contact::RemoveNym(const Identifier& nymID)
     auto result = nyms_.erase(nymID);
 
     if (primary_nym_ == nymID) {
-        primary_nym_ = Identifier();
+        primary_nym_ = Identifier::Factory();
     }
 
     return (0 < result);
