@@ -119,6 +119,7 @@ const std::map<OTAPI_Func_Type, std::string> OTAPI_Func::type_name_{
     {REQUEST_ADMIN, "REQUEST_ADMIN"},
     {SERVER_ADD_CLAIM, "SERVER_ADD_CLAIM"},
     {STORE_SECRET, "STORE_SECRET"},
+    {GET_TRANSACTION_NUMBERS, "GET_TRANSACTION_NUMBERS"},
 };
 
 const std::map<OTAPI_Func_Type, bool> OTAPI_Func::type_type_{
@@ -168,6 +169,7 @@ const std::map<OTAPI_Func_Type, bool> OTAPI_Func::type_type_{
     {REQUEST_ADMIN, false},
     {SERVER_ADD_CLAIM, false},
     {STORE_SECRET, false},
+    {GET_TRANSACTION_NUMBERS, false},
 };
 
 OTAPI_Func::OTAPI_Func(
@@ -279,7 +281,7 @@ OTAPI_Func::OTAPI_Func(
     } else if (theType == GET_NYM_MARKET_OFFERS)  // FYI
     {
         nTransNumsNeeded_ = 0;
-    } else {
+    } else if (theType != GET_TRANSACTION_NUMBERS) {
         OT_FAIL
     }
 }
@@ -1816,6 +1818,9 @@ void OTAPI_Func::run()
                 value_,
                 isPrimary_);
         } break;
+        case GET_TRANSACTION_NUMBERS: {
+            last_attempt_ = otapi_.getTransactionNumbers(context_);
+        } break;
         default: {
             otErr << OT_METHOD << __FUNCTION__ << ": Error: unhandled function "
                   << " type: " << type_ << std::endl;
@@ -1883,8 +1888,9 @@ std::string OTAPI_Func::send_transaction(std::size_t totalRetries)
             accountID_->str(),
             false))  // bForceDownload=false))
     {
-        otOut << strLocation << ", getIntermediaryFiles returned false. (It "
-                                "couldn't download files that it needed.)\n";
+        otOut << strLocation
+              << ", getIntermediaryFiles returned false. (It "
+                 "couldn't download files that it needed.)\n";
         return "";
     }
 
@@ -1903,58 +1909,9 @@ std::string OTAPI_Func::send_transaction(std::size_t totalRetries)
     }
 
     if (getnym_trnsnum_count < comparative) {
-        otOut << strLocation << ", I don't have enough transaction numbers to "
-                                "perform this transaction. Grabbing more "
-                                "now...\n";
-        MsgUtil.setNbrTransactionCount(comparative);
-        MsgUtil.getTransactionNumbers(
-            context_.Server().str(), context_.Nym()->ID().str());
-        MsgUtil.setNbrTransactionCount(configTxnCount);
-    }
-
-    // second try
-    getnym_trnsnum_count = exec_.GetNym_TransactionNumCount(
-        context_.Server().str(), context_.Nym()->ID().str());
-    if (getnym_trnsnum_count < comparative) {
         otOut << strLocation
-              << ", failure: MsgUtil.getTransactionNumbers. (Trying "
-                 "again...)\n";
-
-        // (the final parameter, the 'false' is us telling getTransNumbers
-        // that it can skip the first call to getTransNumLowLevel)
-        //
-        MsgUtil.setNbrTransactionCount(comparative);
-        MsgUtil.getTransactionNumbers(
-            context_.Server().str(), context_.Nym()->ID().str(), false);
-        MsgUtil.setNbrTransactionCount(configTxnCount);
-    }
-
-    // third try
-    getnym_trnsnum_count = exec_.GetNym_TransactionNumCount(
-        context_.Server().str(), context_.Nym()->ID().str());
-    if (getnym_trnsnum_count < comparative) {
-        otOut << strLocation
-              << ", failure: MsgUtil.getTransactionNumbers. (Trying "
-                 "again...)\n";
-
-        // (the final parameter, the 'false' is us telling getTransNumbers
-        // that it can skip the first call to getTransNumLowLevel)
-        //
-        MsgUtil.setNbrTransactionCount(comparative);
-        MsgUtil.getTransactionNumbers(
-            context_.Server().str(), context_.Nym()->ID().str(), false);
-        MsgUtil.setNbrTransactionCount(configTxnCount);
-    }
-
-    // Giving up, if still a failure by this point.
-    //
-    getnym_trnsnum_count = exec_.GetNym_TransactionNumCount(
-        context_.Server().str(), context_.Nym()->ID().str());
-
-    if (getnym_trnsnum_count < comparative) {
-        otOut << strLocation
-              << ", third failure: MsgUtil.getTransactionNumbers. (Giving "
-                 "up.)\n";
+              << ", I don't have enough transaction numbers to "
+                 "perform this transaction.\n";
         return "";
     }
 
@@ -1970,9 +1927,10 @@ std::string OTAPI_Func::send_transaction(std::size_t totalRetries)
                 context_.Nym()->ID().str(),
                 accountID_->str(),
                 true)) {
-            otOut << strLocation << ", getIntermediaryFiles returned false. "
-                                    "(After a success sending the transaction. "
-                                    "Strange...)\n";
+            otOut << strLocation
+                  << ", getIntermediaryFiles returned false. "
+                     "(After a success sending the transaction. "
+                     "Strange...)\n";
             return "";
         }
 
@@ -2312,10 +2270,11 @@ std::string OTAPI_Func::send_once(
                         context_.Nym()->ID().str(),
                         accountID_->str(),
                         bForceDownload)) {
-                    otOut << strLocation << ", getIntermediaryFiles returned "
-                                            "false. (After a failure to send "
-                                            "the transaction. Thus, I give "
-                                            "up.)\n";
+                    otOut << strLocation
+                          << ", getIntermediaryFiles returned "
+                             "false. (After a failure to send "
+                             "the transaction. Thus, I give "
+                             "up.)\n";
                     return "";
                 }
 
