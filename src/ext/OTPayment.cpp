@@ -74,7 +74,6 @@
 
 namespace opentxs
 {
-
 char const* const __TypeStringsPayment[] = {
 
     // OTCheque is derived from OTTrackable, which is derived from OTInstrument,
@@ -106,6 +105,57 @@ char const* const __TypeStringsPayment[] = {
     // payment is removed when the notice is received into the record box.
     "ERROR_STATE"};
 
+OTPayment::OTPayment()
+    : Contract()
+    , m_strPayment()
+    , m_Type(OTPayment::ERROR_STATE)
+    , m_bAreTempValuesSet(false)
+    , m_bHasRecipient(false)
+    , m_bHasRemitter(false)
+    , m_lAmount(0)
+    , m_lTransactionNum(0)
+    , m_lTransNumDisplay(0)
+    , m_strMemo()
+    , m_InstrumentDefinitionID(Identifier::Factory())
+    , m_NotaryID(Identifier::Factory())
+    , m_SenderNymID(Identifier::Factory())
+    , m_SenderAcctID(Identifier::Factory())
+    , m_RecipientNymID(Identifier::Factory())
+    , m_RecipientAcctID(Identifier::Factory())
+    , m_RemitterNymID(Identifier::Factory())
+    , m_RemitterAcctID(Identifier::Factory())
+    , m_VALID_FROM(OT_TIME_ZERO)
+    , m_VALID_TO(OT_TIME_ZERO)
+{
+    InitPayment();
+}
+
+OTPayment::OTPayment(const String& strPayment)
+    : Contract()
+    , m_strPayment()
+    , m_Type(OTPayment::ERROR_STATE)
+    , m_bAreTempValuesSet(false)
+    , m_bHasRecipient(false)
+    , m_bHasRemitter(false)
+    , m_lAmount(0)
+    , m_lTransactionNum(0)
+    , m_lTransNumDisplay(0)
+    , m_strMemo()
+    , m_InstrumentDefinitionID(Identifier::Factory())
+    , m_NotaryID(Identifier::Factory())
+    , m_SenderNymID(Identifier::Factory())
+    , m_SenderAcctID(Identifier::Factory())
+    , m_RecipientNymID(Identifier::Factory())
+    , m_RecipientAcctID(Identifier::Factory())
+    , m_RemitterNymID(Identifier::Factory())
+    , m_RemitterAcctID(Identifier::Factory())
+    , m_VALID_FROM(OT_TIME_ZERO)
+    , m_VALID_TO(OT_TIME_ZERO)
+{
+    InitPayment();
+    SetPayment(strPayment);
+}
+
 // static
 const char* OTPayment::_GetTypeString(paymentType theType)
 {
@@ -122,6 +172,13 @@ OTPayment::paymentType OTPayment::GetTypeFromString(const String& strType)
     }
 #undef OT_NUM_ELEM
     return OTPayment::ERROR_STATE;
+}
+
+bool OTPayment::SetTempRecipientNymID(const Identifier& id)
+{
+    m_RecipientNymID = Identifier::Factory(id);
+
+    return true;
 }
 
 // Since the temp values are not available until at least ONE instantiating has
@@ -1601,55 +1658,18 @@ bool OTPayment::GetRecipientAcctID(Identifier& theOutput) const
     return bSuccess;
 }
 
-OTPayment::OTPayment()
-    : Contract()
-    , m_strPayment()
-    , m_Type(OTPayment::ERROR_STATE)
-    , m_bAreTempValuesSet(false)
-    , m_bHasRecipient(false)
-    , m_bHasRemitter(false)
-    , m_lAmount(0)
-    , m_lTransactionNum(0)
-    , m_lTransNumDisplay(0)
-    , m_strMemo()
-    , m_InstrumentDefinitionID(Identifier::Factory())
-    , m_NotaryID(Identifier::Factory())
-    , m_SenderNymID(Identifier::Factory())
-    , m_SenderAcctID(Identifier::Factory())
-    , m_RecipientNymID(Identifier::Factory())
-    , m_RecipientAcctID(Identifier::Factory())
-    , m_RemitterNymID(Identifier::Factory())
-    , m_RemitterAcctID(Identifier::Factory())
-    , m_VALID_FROM(OT_TIME_ZERO)
-    , m_VALID_TO(OT_TIME_ZERO)
+void OTPayment::InitPayment()
 {
-    InitPayment();
-}
-
-OTPayment::OTPayment(const String& strPayment)
-    : Contract()
-    , m_strPayment()
-    , m_Type(OTPayment::ERROR_STATE)
-    , m_bAreTempValuesSet(false)
-    , m_bHasRecipient(false)
-    , m_bHasRemitter(false)
-    , m_lAmount(0)
-    , m_lTransactionNum(0)
-    , m_lTransNumDisplay(0)
-    , m_strMemo()
-    , m_InstrumentDefinitionID(Identifier::Factory())
-    , m_NotaryID(Identifier::Factory())
-    , m_SenderNymID(Identifier::Factory())
-    , m_SenderAcctID(Identifier::Factory())
-    , m_RecipientNymID(Identifier::Factory())
-    , m_RecipientAcctID(Identifier::Factory())
-    , m_RemitterNymID(Identifier::Factory())
-    , m_RemitterAcctID(Identifier::Factory())
-    , m_VALID_FROM(OT_TIME_ZERO)
-    , m_VALID_TO(OT_TIME_ZERO)
-{
-    InitPayment();
-    SetPayment(strPayment);
+    m_Type = OTPayment::ERROR_STATE;
+    m_lAmount = 0;
+    m_lTransactionNum = 0;
+    m_lTransNumDisplay = 0;
+    m_VALID_FROM = OT_TIME_ZERO;
+    m_VALID_TO = OT_TIME_ZERO;
+    m_bAreTempValuesSet = false;
+    m_bHasRecipient = false;
+    m_bHasRemitter = false;
+    m_strContractType.Set("PAYMENT");
 }
 
 // CALLER is responsible to delete.
@@ -1850,6 +1870,135 @@ Purse* OTPayment::InstantiatePurse(const String& strPayment)
 }
 #endif  // OT_CASH
 
+bool OTPayment::IsCancelledCheque()
+{
+    if (false == m_bAreTempValuesSet) {
+        if (false == SetTempValues()) {
+            otErr << OT_METHOD << __FUNCTION__ << ": Failed to set temp values"
+                  << std::endl;
+
+            return false;
+        }
+    }
+
+    OT_ASSERT(m_bAreTempValuesSet)
+
+    if (false == IsCheque()) {
+
+        return false;
+    }
+
+    Identifier sender;
+    Identifier recipient;
+    Amount amount{0};
+
+    if (false == GetSenderNymID(sender)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to get sender nym id"
+              << std::endl;
+
+        return false;
+    }
+
+    if (false == GetRecipientNymID(recipient)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to get recipient nym id"
+              << std::endl;
+
+        return false;
+    }
+
+    if (sender != recipient) {
+
+        return false;
+    }
+
+    if (false == GetAmount(amount)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to amount" << std::endl;
+
+        return false;
+    }
+
+    if (0 != amount) {
+
+        return false;
+    }
+
+    return true;
+}
+
+int32_t OTPayment::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
+{
+    const String strNodeName(xml->getNodeName());
+
+    if (strNodeName.Compare("payment")) {
+        m_strVersion = xml->getAttributeValue("version");
+
+        const String strPaymentType = xml->getAttributeValue("type");
+
+        if (strPaymentType.Exists())
+            m_Type = OTPayment::GetTypeFromString(strPaymentType);
+        else
+            m_Type = OTPayment::ERROR_STATE;
+
+        otLog4 << "Loaded payment... Type: " << GetTypeString()
+               << "\n----------\n";
+
+        return (OTPayment::ERROR_STATE == m_Type) ? (-1) : 1;
+    } else if (strNodeName.Compare("contents")) {
+        String strContents;
+
+        if (!Contract::LoadEncodedTextField(xml, strContents) ||
+            !strContents.Exists() || !SetPayment(strContents)) {
+            otErr << "OTPayment::ProcessXMLNode: ERROR: \"contents\" field "
+                     "without a value, OR error setting that "
+                     "value onto this object. Raw:\n\n"
+                  << strContents << "\n\n";
+
+            return (-1);  // error condition
+        }
+        // else success -- the value is now set on this object.
+        // todo security: Make sure the type of the payment that's ACTUALLY
+        // there
+        // matches the type expected (based on the m_Type that we already read,
+        // above.)
+
+        return 1;
+    }
+
+    return 0;
+}
+
+void OTPayment::Release()
+{
+    Release_Payment();
+
+    // Finally, we call the method we overrode:
+    //
+    Contract::Release();
+}
+
+void OTPayment::Release_Payment()
+{
+    m_Type = OTPayment::ERROR_STATE;
+    m_lAmount = 0;
+    m_lTransactionNum = 0;
+    m_lTransNumDisplay = 0;
+    m_VALID_FROM = OT_TIME_ZERO;
+    m_VALID_TO = OT_TIME_ZERO;
+    m_strPayment.Release();
+    m_bAreTempValuesSet = false;
+    m_bHasRecipient = false;
+    m_bHasRemitter = false;
+    m_strMemo.Release();
+    m_InstrumentDefinitionID->Release();
+    m_NotaryID->Release();
+    m_SenderNymID->Release();
+    m_SenderAcctID->Release();
+    m_RecipientNymID->Release();
+    m_RecipientAcctID->Release();
+    m_RemitterNymID->Release();
+    m_RemitterAcctID->Release();
+}
+
 bool OTPayment::SetPayment(const String& strPayment)
 {
     if (!strPayment.Exists()) {
@@ -1905,60 +2054,6 @@ bool OTPayment::SetPayment(const String& strPayment)
     return true;
 }
 
-void OTPayment::InitPayment()
-{
-    m_Type = OTPayment::ERROR_STATE;
-    m_lAmount = 0;
-    m_lTransactionNum = 0;
-    m_lTransNumDisplay = 0;
-    m_VALID_FROM = OT_TIME_ZERO;
-    m_VALID_TO = OT_TIME_ZERO;
-    m_bAreTempValuesSet = false;
-    m_bHasRecipient = false;
-    m_bHasRemitter = false;
-    m_strContractType.Set("PAYMENT");
-}
-
-OTPayment::~OTPayment() { Release_Payment(); }
-
-void OTPayment::Release_Payment()
-{
-    m_Type = OTPayment::ERROR_STATE;
-    m_lAmount = 0;
-    m_lTransactionNum = 0;
-    m_lTransNumDisplay = 0;
-    m_VALID_FROM = OT_TIME_ZERO;
-    m_VALID_TO = OT_TIME_ZERO;
-
-    m_strPayment.Release();
-
-    m_bAreTempValuesSet = false;
-    m_bHasRecipient = false;
-    m_bHasRemitter = false;
-
-    m_strMemo.Release();
-
-    m_InstrumentDefinitionID->Release();
-    m_NotaryID->Release();
-
-    m_SenderNymID->Release();
-    m_SenderAcctID->Release();
-    m_RecipientNymID->Release();
-    m_RecipientAcctID->Release();
-
-    m_RemitterNymID->Release();
-    m_RemitterAcctID->Release();
-}
-
-void OTPayment::Release()
-{
-    Release_Payment();
-
-    // Finally, we call the method we overrode:
-    //
-    Contract::Release();
-}
-
 void OTPayment::UpdateContents()
 {
     // I release this because I'm about to repopulate it.
@@ -1983,46 +2078,5 @@ void OTPayment::UpdateContents()
     m_xmlUnsigned.Concatenate("%s", str_result.c_str());
 }
 
-int32_t OTPayment::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
-{
-    const String strNodeName(xml->getNodeName());
-
-    if (strNodeName.Compare("payment")) {
-        m_strVersion = xml->getAttributeValue("version");
-
-        const String strPaymentType = xml->getAttributeValue("type");
-
-        if (strPaymentType.Exists())
-            m_Type = OTPayment::GetTypeFromString(strPaymentType);
-        else
-            m_Type = OTPayment::ERROR_STATE;
-
-        otLog4 << "Loaded payment... Type: " << GetTypeString()
-               << "\n----------\n";
-
-        return (OTPayment::ERROR_STATE == m_Type) ? (-1) : 1;
-    } else if (strNodeName.Compare("contents")) {
-        String strContents;
-
-        if (!Contract::LoadEncodedTextField(xml, strContents) ||
-            !strContents.Exists() || !SetPayment(strContents)) {
-            otErr << "OTPayment::ProcessXMLNode: ERROR: \"contents\" field "
-                     "without a value, OR error setting that "
-                     "value onto this object. Raw:\n\n"
-                  << strContents << "\n\n";
-
-            return (-1);  // error condition
-        }
-        // else success -- the value is now set on this object.
-        // todo security: Make sure the type of the payment that's ACTUALLY
-        // there
-        // matches the type expected (based on the m_Type that we already read,
-        // above.)
-
-        return 1;
-    }
-
-    return 0;
-}
-
+OTPayment::~OTPayment() { Release_Payment(); }
 }  // namespace opentxs

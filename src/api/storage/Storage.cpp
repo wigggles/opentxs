@@ -49,6 +49,7 @@
 #include "opentxs/storage/tree/Mailbox.hpp"
 #include "opentxs/storage/tree/Nym.hpp"
 #include "opentxs/storage/tree/Nyms.hpp"
+#include "opentxs/storage/tree/PaymentWorkflows.hpp"
 #include "opentxs/storage/tree/PeerReplies.hpp"
 #include "opentxs/storage/tree/PeerRequests.hpp"
 #include "opentxs/storage/tree/Root.hpp"
@@ -205,6 +206,32 @@ bool Storage::DeleteContact(const std::string& id) const
         .Delete(id);
 }
 
+bool Storage::DeletePaymentWorkflow(
+    const std::string& nymID,
+    const std::string& workflowID) const
+{
+    const bool exists = Root().Tree().NymNode().Exists(nymID);
+
+    if (false == exists) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Nym " << nymID
+              << " doesn't exist." << std::endl;
+
+        return false;
+    }
+
+    return mutable_Root()
+        .It()
+        .mutable_Tree()
+        .It()
+        .mutable_Nyms()
+        .It()
+        .mutable_Nym(nymID)
+        .It()
+        .mutable_PaymentWorkflows()
+        .It()
+        .Delete(workflowID);
+}
+
 std::uint32_t Storage::HashType() const { return HASH_TYPE; }
 
 void Storage::InitBackup() { multiplex_.InitBackup(); }
@@ -240,6 +267,8 @@ ObjectList Storage::IssuerList(const std::string& nymID) const
     const bool exists = Root().Tree().NymNode().Exists(nymID);
 
     if (false == exists) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Nym " << nymID
+              << " doesn't exist." << std::endl;
 
         return {};
     }
@@ -329,6 +358,8 @@ bool Storage::Load(
     const bool checking) const
 {
     if (false == Root().Tree().NymNode().Exists(nymID)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Nym " << nymID
+              << " doesn't exist." << std::endl;
 
         return false;
     }
@@ -337,6 +368,23 @@ bool Storage::Load(
 
     return Root().Tree().NymNode().Nym(nymID).Issuers().Load(
         id, issuer, notUsed, checking);
+}
+
+bool Storage::Load(
+    const std::string& nymID,
+    const std::string& workflowID,
+    std::shared_ptr<proto::PaymentWorkflow>& workflow,
+    const bool checking) const
+{
+    if (false == Root().Tree().NymNode().Exists(nymID)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Nym " << nymID
+              << " doesn't exist." << std::endl;
+
+        return false;
+    }
+
+    return Root().Tree().NymNode().Nym(nymID).PaymentWorkflows().Load(
+        workflowID, workflow, checking);
 }
 
 bool Storage::Load(
@@ -728,6 +776,95 @@ ObjectList Storage::NymBoxList(const std::string& nymID, const StorageBox box)
 }
 
 ObjectList Storage::NymList() const { return Root().Tree().NymNode().List(); }
+
+ObjectList Storage::PaymentWorkflowList(const std::string& nymID) const
+{
+    if (false == Root().Tree().NymNode().Exists(nymID)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Nym " << nymID
+              << " doesn't exist." << std::endl;
+
+        return {};
+    }
+
+    return Root().Tree().NymNode().Nym(nymID).PaymentWorkflows().List();
+}
+
+std::string Storage::PaymentWorkflowLookup(
+    const std::string& nymID,
+    const std::string& sourceID) const
+{
+    if (false == Root().Tree().NymNode().Exists(nymID)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Nym " << nymID
+              << " doesn't exist." << std::endl;
+
+        return {};
+    }
+
+    return Root().Tree().NymNode().Nym(nymID).PaymentWorkflows().LookupBySource(
+        sourceID);
+}
+
+std::set<std::string> Storage::PaymentWorkflowsByAccount(
+    const std::string& nymID,
+    const std::string& accountID) const
+{
+    if (false == Root().Tree().NymNode().Exists(nymID)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Nym " << nymID
+              << " doesn't exist." << std::endl;
+
+        return {};
+    }
+
+    return Root().Tree().NymNode().Nym(nymID).PaymentWorkflows().ListByAccount(
+        accountID);
+}
+
+std::set<std::string> Storage::PaymentWorkflowsByState(
+    const std::string& nymID,
+    const proto::PaymentWorkflowType type,
+    const proto::PaymentWorkflowState state) const
+{
+    if (false == Root().Tree().NymNode().Exists(nymID)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Nym " << nymID
+              << " doesn't exist." << std::endl;
+
+        return {};
+    }
+
+    return Root().Tree().NymNode().Nym(nymID).PaymentWorkflows().ListByState(
+        type, state);
+}
+
+std::set<std::string> Storage::PaymentWorkflowsByUnit(
+    const std::string& nymID,
+    const std::string& unitID) const
+{
+    if (false == Root().Tree().NymNode().Exists(nymID)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Nym " << nymID
+              << " doesn't exist." << std::endl;
+
+        return {};
+    }
+
+    return Root().Tree().NymNode().Nym(nymID).PaymentWorkflows().ListByUnit(
+        unitID);
+}
+
+std::pair<proto::PaymentWorkflowType, proto::PaymentWorkflowState> Storage::
+    PaymentWorkflowState(
+        const std::string& nymID,
+        const std::string& workflowID) const
+{
+    if (false == Root().Tree().NymNode().Exists(nymID)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Nym " << nymID
+              << " doesn't exist." << std::endl;
+
+        return {};
+    }
+
+    return Root().Tree().NymNode().Nym(nymID).PaymentWorkflows().GetState(
+        workflowID);
+}
 
 bool Storage::RelabelThread(
     const std::string& threadID,
@@ -1283,6 +1420,8 @@ bool Storage::Store(const std::string& nymID, const proto::Issuer& data) const
     const bool exists = Root().Tree().NymNode().Exists(nymID);
 
     if (false == exists) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Nym " << nymID
+              << " doesn't exist." << std::endl;
 
         return false;
     }
@@ -1301,13 +1440,42 @@ bool Storage::Store(const std::string& nymID, const proto::Issuer& data) const
 }
 
 bool Storage::Store(
+    const std::string& nymID,
+    const proto::PaymentWorkflow& data) const
+{
+    const bool exists = Root().Tree().NymNode().Exists(nymID);
+
+    if (false == exists) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Nym " << nymID
+              << " doesn't exist." << std::endl;
+
+        return false;
+    }
+
+    std::string notUsed{};
+
+    return mutable_Root()
+        .It()
+        .mutable_Tree()
+        .It()
+        .mutable_Nyms()
+        .It()
+        .mutable_Nym(nymID)
+        .It()
+        .mutable_PaymentWorkflows()
+        .It()
+        .Store(data, notUsed);
+}
+
+bool Storage::Store(
     const std::string& nymid,
     const std::string& threadid,
     const std::string& itemid,
     const std::uint64_t time,
     const std::string& alias,
     const std::string& data,
-    const StorageBox box) const
+    const StorageBox box,
+    const std::string& account) const
 {
     return mutable_Root()
         .It()
@@ -1321,7 +1489,7 @@ bool Storage::Store(
         .It()
         .mutable_Thread(threadid)
         .It()
-        .Add(itemid, time, box, alias, data);
+        .Add(itemid, time, box, alias, data, 0, account);
 }
 
 bool Storage::Store(

@@ -338,12 +338,14 @@ private:
     const OT_API& otapi_;
     const OTAPI_Exec& exec_;
     const api::client::Wallet& wallet_;
+    const api::client::Workflow& workflow_;
     ContextLockCallback lock_callback_;
 
     ServerAction(
         const OT_API& otapi,
         const OTAPI_Exec& exec,
         const api::client::Wallet& wallet,
+        const api::client::Workflow& workflow,
         const ContextLockCallback& lockCallback);
     ServerAction() = delete;
     ServerAction(const ServerAction&) = delete;

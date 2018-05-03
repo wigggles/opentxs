@@ -36,45 +36,50 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_API_API_HPP
-#define OPENTXS_API_API_HPP
+#ifndef OPENTXS_UI_PAYMENTITEM_IMPLEMENTATION_HPP
+#define OPENTXS_UI_PAYMENTITEM_IMPLEMENTATION_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Internal.hpp"
 
-#include <string>
+#include "ActivityThreadItem.hpp"
 
-namespace opentxs
+#include <memory>
+#include <thread>
+
+namespace opentxs::ui::implementation
 {
-namespace api
-{
-class Api
+class PaymentItem : virtual public ActivityThreadItem
 {
 public:
-    EXPORT virtual std::recursive_mutex& Lock(
-        const Identifier& nymID,
-        const Identifier& serverID) const = 0;
+    opentxs::Amount Amount() const override;
+    std::string DisplayAmount() const override;
+    std::string Memo() const override;
 
-    EXPORT virtual const OTAPI_Exec& Exec(
-        const std::string& wallet = "") const = 0;
-    EXPORT virtual const OT_API& OTAPI(
-        const std::string& wallet = "") const = 0;
-    EXPORT virtual const client::Cash& Cash() const = 0;
-    EXPORT virtual const client::Pair& Pair() const = 0;
-    EXPORT virtual const client::ServerAction& ServerAction() const = 0;
-    EXPORT virtual const client::Sync& Sync() const = 0;
-    EXPORT virtual const client::Workflow& Workflow() const = 0;
-
-    EXPORT virtual ~Api() = default;
-
-protected:
-    Api() = default;
+    ~PaymentItem();
 
 private:
-    Api(const Api&) = delete;
-    Api(Api&&) = delete;
-    Api& operator=(const Api&) = delete;
-    Api& operator=(Api&&) = delete;
+    friend ActivityThread;
+
+    std::string display_amount_{};
+    std::string memo_{};
+    opentxs::Amount amount_{0};
+    std::unique_ptr<std::thread> load_{nullptr};
+
+    void load();
+
+    PaymentItem(
+        const ActivityThread& parent,
+        const network::zeromq::Context& zmq,
+        const api::ContactManager& contact,
+        const ActivityThreadID& id,
+        const Identifier& nymID,
+        const api::Activity& activity,
+        const std::chrono::system_clock::time_point& time);
+    PaymentItem() = delete;
+    PaymentItem(const PaymentItem&) = delete;
+    PaymentItem(PaymentItem&&) = delete;
+    PaymentItem& operator=(const PaymentItem&) = delete;
+    PaymentItem& operator=(PaymentItem&&) = delete;
 };
-}  // namespace api
-}  // namespace opentxs
-#endif  // OPENTXS_API_API_HPP
+}  // opentxs::ui::implementation
+#endif  // OPENTXS_UI_PAYMENTITEM_IMPLEMENTATION_HPP

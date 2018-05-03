@@ -339,7 +339,7 @@ void Pair::process_connection_info(
 
     if (added) {
         wallet_.PeerRequestComplete(nymID, replyID);
-        update_.Push(Identifier::Factory(), true);
+        update_.Push(Identifier::Random(), true);
     } else {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to add reply."
               << std::endl;
@@ -479,7 +479,7 @@ void Pair::process_pending_bailment(
             const auto replyID(action->SentPeerReply()->ID());
             issuer.AddReply(
                 proto::PEERREQUEST_PENDINGBAILMENT, requestID, replyID);
-            update_.Push(Identifier::Factory(), true);
+            update_.Push(Identifier::Random(), true);
         }
     } else {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to add request."
@@ -506,7 +506,7 @@ void Pair::process_request_bailment(
 
     if (added) {
         wallet_.PeerRequestComplete(nymID, replyID);
-        update_.Push(Identifier::Factory(), true);
+        update_.Push(Identifier::Random(), true);
     } else {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to add reply."
               << std::endl;
@@ -532,7 +532,7 @@ void Pair::process_request_outbailment(
 
     if (added) {
         wallet_.PeerRequestComplete(nymID, replyID);
-        update_.Push(Identifier::Factory(), true);
+        update_.Push(Identifier::Random(), true);
     } else {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to add reply."
               << std::endl;
@@ -558,7 +558,7 @@ void Pair::process_store_secret(
 
     if (added) {
         wallet_.PeerRequestComplete(nymID, replyID);
-        update_.Push(Identifier::Factory(), true);
+        update_.Push(Identifier::Random(), true);
         proto::PairEvent event;
         event.set_version(1);
         event.set_type(proto::PAIREVENT_STORESECRET);
@@ -920,7 +920,7 @@ std::pair<bool, Identifier> Pair::store_secret(
     return output;
 }
 
-void Pair::Update() const { update_.Push(Identifier::Factory(), true); }
+void Pair::Update() const { update_.Push(Identifier::Random(), true); }
 
 void Pair::update_pairing() const
 {

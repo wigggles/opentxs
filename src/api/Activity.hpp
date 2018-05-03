@@ -42,13 +42,14 @@
 #include "opentxs/Internal.hpp"
 
 #include "opentxs/api/Activity.hpp"
+#include "opentxs/core/Lockable.hpp"
 
 #include <map>
 #include <mutex>
 
 namespace opentxs::api::implementation
 {
-class Activity : virtual public opentxs::api::Activity
+class Activity : virtual public opentxs::api::Activity, Lockable
 {
 public:
     bool AddBlockchainTransaction(
@@ -56,6 +57,14 @@ public:
         const Identifier& threadID,
         const StorageBox box,
         const proto::BlockchainTransaction& transaction) const override;
+
+    bool AddPaymentEvent(
+        const Identifier& nymID,
+        const Identifier& threadID,
+        const StorageBox type,
+        const Identifier& itemID,
+        const Identifier& workflowID,
+        std::chrono::time_point<std::chrono::system_clock> time) const override;
 
     bool MoveIncomingBlockchainTransaction(
         const Identifier& nymID,
@@ -145,6 +154,24 @@ public:
         const Identifier& nymId,
         const Identifier& threadId,
         const Identifier& itemId) const override;
+
+    ChequeData Cheque(
+        const Identifier& nym,
+        const std::string& id,
+        const std::string& workflow) const override;
+
+    /**   Summarize a payment workflow event in human-friendly test form
+     *
+     *    \param[in] nym the identifier of the nym who owns the thread
+     *    \param[in] id the identifier of the payment item
+     *    \param[in] workflow the identifier of the payment workflow
+     *    \returns A smart pointer to the object. The smart pointer will not be
+     *             instantiated if the object does not exist or is invalid.
+     */
+    std::shared_ptr<const std::string> PaymentText(
+        const Identifier& nym,
+        const std::string& id,
+        const std::string& workflow) const override;
 
     /**   Asynchronously cache the most recent items in each of a nym's threads
      *

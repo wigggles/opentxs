@@ -39,7 +39,7 @@
 #ifndef OPENTXS_STORAGE_TREE_NYM_HPP
 #define OPENTXS_STORAGE_TREE_NYM_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Internal.hpp"
 
 #include "opentxs/api/Editor.hpp"
 #include "opentxs/core/Flag.hpp"
@@ -51,19 +51,8 @@
 #include <set>
 #include <string>
 
-namespace opentxs
+namespace opentxs::storage
 {
-namespace storage
-{
-class Contexts;
-class Issuers;
-class Mailbox;
-class Nyms;
-class PeerReplies;
-class PeerRequests;
-class Thread;
-class Threads;
-
 class Nym : public Node
 {
 public:
@@ -83,6 +72,7 @@ public:
     const PeerReplies& SentReplyBox() const;
     const PeerRequests& SentRequestBox() const;
     const class Threads& Threads() const;
+    const class PaymentWorkflows& PaymentWorkflows() const;
 
     Editor<class Contexts> mutable_Contexts();
     Editor<PeerReplies> mutable_FinishedReplyBox();
@@ -97,6 +87,7 @@ public:
     Editor<PeerReplies> mutable_SentReplyBox();
     Editor<PeerRequests> mutable_SentRequestBox();
     Editor<class Threads> mutable_Threads();
+    Editor<class PaymentWorkflows> mutable_PaymentWorkflows();
 
     std::string Alias() const;
     bool Load(
@@ -175,6 +166,9 @@ private:
     std::string issuers_root_;
     mutable std::mutex issuers_lock_;
     mutable std::unique_ptr<class Issuers> issuers_;
+    std::string workflows_root_;
+    mutable std::mutex workflows_lock_;
+    mutable std::unique_ptr<class PaymentWorkflows> workflows_;
 
     PeerRequests* sent_request_box() const;
     PeerRequests* incoming_request_box() const;
@@ -189,6 +183,7 @@ private:
     class Threads* threads() const;
     class Contexts* contexts() const;
     class Issuers* issuers() const;
+    class PaymentWorkflows* workflows() const;
 
     void save(PeerReplies* input, const Lock& lock, StorageBox type);
     void save(PeerRequests* input, const Lock& lock, StorageBox type);
@@ -196,6 +191,7 @@ private:
     void save(class Threads* input, const Lock& lock);
     void save(class Contexts* input, const Lock& lock);
     void save(class Issuers* input, const Lock& lock);
+    void save(class PaymentWorkflows* input, const Lock& lock);
 
     void init(const std::string& hash) override;
     bool save(const Lock& lock) const override;
@@ -212,6 +208,5 @@ private:
     Nym operator=(const Nym&) = delete;
     Nym operator=(Nym&&) = delete;
 };
-}  // namespace storage
-}  // namespace opentxs
+}  // namespace opentxs::storage
 #endif  // OPENTXS_STORAGE_TREE_NYM_HPP

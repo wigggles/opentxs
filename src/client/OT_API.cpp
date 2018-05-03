@@ -41,6 +41,7 @@
 #include "opentxs/client/OT_API.hpp"
 
 #include "opentxs/api/client/Wallet.hpp"
+#include "opentxs/api/client/Workflow.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/network/ZMQ.hpp"
 #include "opentxs/api/storage/Storage.hpp"
@@ -524,6 +525,7 @@ OT_API::OT_API(
     const api::Identity& identity,
     const api::storage::Storage& storage,
     const api::client::Wallet& wallet,
+    const api::client::Workflow& workflow,
     const api::network::ZMQ& zmq,
     const ContextLockCallback& lockCallback)
     : activity_(activity)
@@ -533,6 +535,7 @@ OT_API::OT_API(
     , identity_(identity)
     , storage_(storage)
     , wallet_(wallet)
+    , workflow_(workflow)
     , zeromq_(zmq)
     , m_strDataPath("")
     , m_strWalletFilename("")
@@ -611,7 +614,7 @@ bool OT_API::Init()
 
         m_pWallet = new OTWallet(crypto_, storage_);
         m_pClient.reset(
-            new OTClient(*m_pWallet, activity_, contacts_, wallet_));
+            new OTClient(*m_pWallet, activity_, contacts_, wallet_, workflow_));
 
         OT_ASSERT(m_pClient);
 
@@ -1194,7 +1197,7 @@ bool OT_API::Wallet_CanRemoveServer(const Identifier& NOTARY_ID) const
                   << " "
                      "from wallet, because Nym "
                   << nymID->str() << " is registered "
-                                    "there. (Delete that first...)\n";
+                                     "there. (Delete that first...)\n";
             return false;
         }
     }
@@ -4221,10 +4224,7 @@ Cheque* OT_API::WriteCheque(
 {
     rLock lock(lock_callback_({SENDER_NYM_ID.str(), NOTARY_ID.str()}));
     auto context = wallet_.mutable_ServerContext(SENDER_NYM_ID, NOTARY_ID);
-    auto nymfile = context.It().mutable_Nymfile(__FUNCTION__);
-
     auto nym = context.It().Nym();
-
     auto account =
         GetOrLoadAccount(*nym, SENDER_accountID, NOTARY_ID, __FUNCTION__);
 
@@ -4285,39 +4285,22 @@ Cheque* OT_API::WriteCheque(
         return nullptr;
     }
 
-    // Above this line, the transaction number will be recovered automatically
-    number.SetSuccess(true);
     pCheque->SignContract(*nym);
     pCheque->SaveContract();
-    //
-    // DROP A COPY into the Outpayments box...
-    //
-    // (Since we used a transaction number to write the cheque,
-    // we have to track it until it's deposited or until we cancel
-    // it.)
-    //
-    const String strInstrument(*pCheque);
-    Message* pMessage = new Message;
-    OT_ASSERT(nullptr != pMessage);
+    auto workflow = workflow_.WriteCheque(*pCheque);
 
-    const String strNymID(SENDER_NYM_ID);
+    if (workflow->empty()) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to create workflow."
+              << std::endl;
 
-    pMessage->m_strCommand = "outpaymentsMessage";
-    pMessage->m_strNymID = strNymID;
-
-    if (nullptr != pRECIPIENT_NYM_ID) {
-        const String strNymID2(*pRECIPIENT_NYM_ID);
-        pMessage->m_strNymID2 = strNymID2;
+        return nullptr;
+    } else {
+        otErr << OT_METHOD << __FUNCTION__ << ": Started workflow "
+              << workflow->str() << std::endl;
     }
-    pMessage->m_strNotaryID = strNotaryID;
-    pMessage->m_ascPayload.SetString(strInstrument);
 
-    pMessage->SignContract(*nym);
-    pMessage->SaveContract();
-
-    nymfile.It().AddOutpayments(
-        *pMessage);  // Now the Nym is responsible to delete it.
-                     // It's in his "outpayments".
+    // Above this line, the transaction number will be recovered automatically
+    number.SetSuccess(true);
 
     return pCheque;
 }
@@ -9835,7 +9818,7 @@ bool OT_API::DiscardCheque(
 CommandResult OT_API::depositCheque(
     ServerContext& context,
     const Identifier& accountID,
-    const String& THE_CHEQUE) const
+    const Cheque& theCheque) const
 {
     rLock lock(
         lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
@@ -9852,16 +9835,6 @@ CommandResult OT_API::depositCheque(
     auto account = GetOrLoadAccount(nym, accountID, serverID, __FUNCTION__);
 
     if (nullptr == account) {
-
-        return output;
-    }
-
-    Cheque theCheque(serverID, account->GetInstrumentDefinitionID());
-
-    if (!theCheque.LoadContractFromString(THE_CHEQUE)) {
-        otErr << OT_METHOD << __FUNCTION__
-              << ": Unable to load cheque from string. Sorry. Contents:\n\n"
-              << THE_CHEQUE << "\n\n";
 
         return output;
     }
@@ -9887,7 +9860,8 @@ CommandResult OT_API::depositCheque(
 
     // If bCancellingCheque==true, we're actually cancelling the cheque by
     // "depositing" it back into the same account it's drawn on.
-    bool bCancellingCheque = false;
+    bool bCancellingCheque{false};
+    Cheque copy(serverID, account->GetInstrumentDefinitionID());
 
     if (theCheque.HasRemitter()) {
         bCancellingCheque =
@@ -9916,7 +9890,7 @@ CommandResult OT_API::depositCheque(
                      "signature fails to verify,\n"
                      "or the transaction number is already closed "
                      "out. (Failure.) Cheque contents:\n\n"
-                  << THE_CHEQUE << "\n\n";
+                  << String(theCheque) << "\n\n";
 
             return output;
         }
@@ -9938,7 +9912,17 @@ CommandResult OT_API::depositCheque(
                                               : "chequeReceipt")
                   << " for it in the inbox. "
                      "(Failure.) Cheque contents:\n\n"
-                  << THE_CHEQUE << "\n\n";
+                  << String(theCheque) << "\n\n";
+
+            return output;
+        }
+
+        if (!copy.LoadContractFromString(String(theCheque))) {
+            otErr << OT_METHOD << __FUNCTION__
+                  << ": Unable to load cheque from string. Sorry. Contents:\n\n"
+                  << String(theCheque) << "\n\n";
+
+            return output;
         }
     }
 
@@ -9946,17 +9930,20 @@ CommandResult OT_API::depositCheque(
     // we've already verified the signature and transaction number on the
     // cheque. (AND we've already verified that there aren't any chequeReceipts
     // for this cheque, in the inbox.)
-    if (bCancellingCheque && !theCheque.HasRemitter()) {
-        theCheque.CancelCheque();       // Sets the amount to zero.
-        theCheque.ReleaseSignatures();  // Usually when you deposit a
-                                        // cheque,
-                                        // it's signed by someone else.
-        theCheque.SignContract(nym);    // But if we are CANCELING a cheque,
-                                        // that means we wrote that cheque
-        theCheque.SaveContract();       // originally, so we are the original
-                                        // signer.
-    }                                   // cancelling cheque
+    const bool cancel = (bCancellingCheque && !theCheque.HasRemitter());
 
+    if (cancel) {
+        copy.CancelCheque();       // Sets the amount to zero.
+        copy.ReleaseSignatures();  // Usually when you deposit a
+                                   // cheque,
+                                   // it's signed by someone else.
+        copy.SignContract(nym);    // But if we are CANCELING a cheque,
+                                   // that means we wrote that cheque
+        copy.SaveContract();       // originally, so we are the original
+                                   // signer.
+    }                              // cancelling cheque
+
+    const auto& cheque = cancel ? copy : theCheque;
     std::set<ServerContext::ManagedNumber> managed{};
     managed.insert(
         context.NextTransactionNumber(MessageType::notarizeTransaction));
@@ -10000,7 +9987,7 @@ CommandResult OT_API::depositCheque(
         bCancellingCheque ? "Cancel this cheque, please!"
                           : "Deposit this cheque, please!");  // TODO
     item->SetNote(strNote);
-    item->SetAttachment(String(theCheque));
+    item->SetAttachment(String(cheque));
     item->SignContract(nym);
     item->SaveContract();
 
@@ -10015,7 +10002,7 @@ CommandResult OT_API::depositCheque(
     }
 
     std::unique_ptr<Item> balanceItem(inbox->GenerateBalanceStatement(
-        theCheque.GetAmount(), *transaction, context, *account, *outbox));
+        cheque.GetAmount(), *transaction, context, *account, *outbox));
 
     if (false == bool(balanceItem)) {
 
@@ -10059,6 +10046,19 @@ CommandResult OT_API::depositCheque(
     }
 
     result = send_message(managed, context, *message);
+
+    if (0 < cheque.GetAmount()) {
+        const auto workflowUpdated = workflow_.DepositCheque(
+            nymID, accountID, cheque, *message, reply.get());
+
+        if (workflowUpdated) {
+            otErr << OT_METHOD << __FUNCTION__
+                  << ": Successfully updated workflow" << std::endl;
+        } else {
+            otErr << OT_METHOD << __FUNCTION__ << ": Failed to update workflow"
+                  << std::endl;
+        }
+    }
 
     return output;
 }
@@ -11471,8 +11471,9 @@ CommandResult OT_API::processInbox(
     const Identifier& accountID,
     const String& ACCT_LEDGER) const
 {
-    rLock lock(
-        lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
+    const auto& nymID = context.Nym()->ID();
+    const auto& serverID = context.Server();
+    rLock lock(lock_callback_({nymID.str(), serverID.str()}));
     CommandResult output{};
     auto & [ requestNum, transactionNum, result ] = output;
     auto & [ status, reply ] = result;
@@ -11481,10 +11482,20 @@ CommandResult OT_API::processInbox(
     status = SendResult::ERROR;
     reply.reset();
     const auto& nym = *context.Nym();
-    const auto& serverID = context.Server();
     auto account = GetOrLoadAccount(nym, accountID, serverID, __FUNCTION__);
 
     if (nullptr == account) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to load account"
+              << std::endl;
+
+        return output;
+    }
+
+    std::unique_ptr<Ledger> inbox(LoadInbox(serverID, nymID, accountID));
+
+    if (false == bool(inbox)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to load inbox"
+              << std::endl;
 
         return output;
     }
@@ -11507,6 +11518,23 @@ CommandResult OT_API::processInbox(
     }
 
     result = send_message({}, context, *message);
+    const auto cheques =
+        extract_cheques(nymID, accountID, serverID, ACCT_LEDGER, *inbox);
+
+    for (const auto& cheque : cheques) {
+        OT_ASSERT(cheque)
+
+        const auto workflowUpdated =
+            workflow_.FinishCheque(*cheque, *message, reply.get());
+
+        if (workflowUpdated) {
+            otErr << OT_METHOD << __FUNCTION__
+                  << ": Successfully updated workflow" << std::endl;
+        } else {
+            otErr << OT_METHOD << __FUNCTION__ << ": Failed to update workflow"
+                  << std::endl;
+        }
+    }
 
     return output;
 }
@@ -12035,6 +12063,7 @@ CommandResult OT_API::registerContract(
 
 CommandResult OT_API::sendNymObject(
     ServerContext& context,
+    std::unique_ptr<Message>& message,
     const Identifier& recipientNymID,
     const PeerObject& object,
     const RequestNumber provided) const
@@ -12048,8 +12077,9 @@ CommandResult OT_API::sendNymObject(
     transactionNum = 0;
     status = SendResult::ERROR;
     reply.reset();
-    auto[newRequestNumber, message] = context.InitializeServerCommand(
+    auto[newRequestNumber, request] = context.InitializeServerCommand(
         MessageType::sendNymMessage, recipientNymID, provided);
+    message.reset(request.release());
     requestNum = newRequestNumber;
 
     if (false == bool(message)) {
@@ -12122,7 +12152,9 @@ CommandResult OT_API::sendNymMessage(
         return output;
     }
 
-    output = sendNymObject(context, recipientNymID, *object, requestNum);
+    std::unique_ptr<Message> request{nullptr};
+    output =
+        sendNymObject(context, request, recipientNymID, *object, requestNum);
 
     if (SendResult::VALID_REPLY != status) {
 
@@ -12198,8 +12230,10 @@ CommandResult OT_API::sendNymMessage(
 ///
 CommandResult OT_API::sendNymInstrument(
     ServerContext& context,
+    std::unique_ptr<Message>& request,
     const Identifier& recipientNymID,
     const OTPayment& instrument,
+    bool storeOutpayment,
     const OTPayment* senderCopy) const
 {
     rLock lock(
@@ -12247,7 +12281,7 @@ CommandResult OT_API::sendNymInstrument(
                                 : strInstrumentForRecipient)};
 
     // REMOVE OLDER DUPLICATE (if applicable) FROM OUTPAYMENTS BOX.
-    if (false == instrument.IsPurse()) {
+    if ((false == instrument.IsPurse()) && storeOutpayment) {
         auto nymfile = context.mutable_Nymfile(__FUNCTION__);
         std::int64_t lInstrumentOpeningNum{0};
         const bool bGotTransNum =
@@ -12279,41 +12313,38 @@ CommandResult OT_API::sendNymInstrument(
     // (If they're the same Nym, we instead only save a copy in the outbox.)
     if (nymID != recipientNymID) {
         bool bSendIt{false};
-        {
-            // Grab the requestNum here from the context. sendNymObject
-            // doesn't grab its own new request number if a non-zero one is
-            // already passed in. That way we can set it on our outpayments
-            // copy, and save that, before trying to send the message.
-            //
-            requestNum = context.Request();
+        // Grab the requestNum here from the context. sendNymObject
+        // doesn't grab its own new request number if a non-zero one is
+        // already passed in. That way we can set it on our outpayments
+        // copy, and save that, before trying to send the message.
+        requestNum = context.Request();
+        pMessageLocalCopy->m_strRequestNum.Format("%" PRId64, requestNum);
+        theMessage.m_strRequestNum.Format("%" PRId64, requestNum);
+        OTEnvelope theEnvelope;
+        const bool encrypted =
+            theEnvelope.Seal(recipientPubkey, strInstrumentForRecipient) &&
+            theEnvelope.GetCiphertext(theMessage.m_ascPayload);
 
-            if (requestNum > 0) {
-                pMessageLocalCopy->m_strRequestNum.Format(
-                    "%" PRId64, requestNum);
-                theMessage.m_strRequestNum.Format("%" PRId64, requestNum);
+        if (encrypted) {
+            context.IncrementRequest();
+            theMessage.SignContract(nym);
+            theMessage.SaveContract();
 
-                OTEnvelope theEnvelope;
-
-                if (theEnvelope.Seal(
-                        recipientPubkey, strInstrumentForRecipient) &&
-                    theEnvelope.GetCiphertext(theMessage.m_ascPayload)) {
-                    context.IncrementRequest();
-                    theMessage.SignContract(nym);
-                    theMessage.SaveContract();
-                    // Back to the outpayments message...
-                    // (We may want it saved in the outpayment box, before
-                    // the reply from the above message arrives. Actually
-                    // that might be wrong, since we care more about the
-                    // receipt from the recipient depositing the instrument,
-                    // then we do about the reply for the sendInstrument
-                    // itself. Anyway, better safe than sorry...)
-                    pMessageLocalCopy->SignContract(nym);
-                    pMessageLocalCopy->SaveContract();
-                    auto nymfile = context.mutable_Nymfile(__FUNCTION__);
-                    nymfile.It().AddOutpayments(*(pMessageLocalCopy.release()));
-                    bSendIt = true;
-                }
+            if (storeOutpayment) {
+                // Back to the outpayments message...
+                // (We may want it saved in the outpayment box, before
+                // the reply from the above message arrives. Actually
+                // that might be wrong, since we care more about the
+                // receipt from the recipient depositing the instrument,
+                // then we do about the reply for the sendInstrument
+                // itself. Anyway, better safe than sorry...)
+                pMessageLocalCopy->SignContract(nym);
+                pMessageLocalCopy->SaveContract();
+                auto nymfile = context.mutable_Nymfile(__FUNCTION__);
+                nymfile.It().AddOutpayments(*(pMessageLocalCopy.release()));
             }
+
+            bSendIt = true;
         }
 
         if (bSendIt) {
@@ -12327,8 +12358,8 @@ CommandResult OT_API::sendNymInstrument(
             OT_NEW_ASSERT_MSG(
                 true == bool(object), "Failed trying to create a PeerObject.");
 
-            output =
-                sendNymObject(context, recipientNymID, *object, requestNum);
+            output = sendNymObject(
+                context, request, recipientNymID, *object, requestNum);
         }
     } else {
         // You may be wondering why this code seems to repeat?
@@ -12351,13 +12382,16 @@ CommandResult OT_API::sendNymInstrument(
         // Whereas here, we don't HAVE a request number, (since nothing
         // was even sent) so it just gets set to 0 instead, which is also
         // what's returned.
-        //
         requestNum = 0;
-        pMessageLocalCopy->m_strRequestNum.Format("%" PRId64, requestNum);
-        pMessageLocalCopy->SignContract(nym);
-        pMessageLocalCopy->SaveContract();
-        auto nymfile = context.mutable_Nymfile(__FUNCTION__);
-        nymfile.It().AddOutpayments(*(pMessageLocalCopy.release()));
+
+        if (storeOutpayment) {
+            pMessageLocalCopy->m_strRequestNum.Format("%" PRId64, requestNum);
+            pMessageLocalCopy->SignContract(nym);
+            pMessageLocalCopy->SaveContract();
+            auto nymfile = context.mutable_Nymfile(__FUNCTION__);
+            nymfile.It().AddOutpayments(*(pMessageLocalCopy.release()));
+        }
+
         status = SendResult::UNNECESSARY;
     }
 
@@ -13031,7 +13065,7 @@ CommandResult OT_API::unregisterNym(ServerContext& context) const
 NetworkReplyMessage OT_API::send_message(
     const std::set<ServerContext::ManagedNumber>& pending,
     ServerContext& context,
-    Message& message) const
+    const Message& message) const
 {
     rLock lock(
         lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
@@ -13088,7 +13122,8 @@ CommandResult OT_API::initiatePeerRequest(
         return output;
     }
 
-    output = sendNymObject(context, recipient, *object, requestNum);
+    std::unique_ptr<Message> request{nullptr};
+    output = sendNymObject(context, request, recipient, *object, requestNum);
 
     if (SendResult::VALID_REPLY != status) {
         wallet_.PeerRequestCreateRollback(nymID, itemID);
@@ -13166,7 +13201,9 @@ CommandResult OT_API::initiatePeerReply(
         return output;
     }
 
-    output = sendNymObject(context, recipient, *object, requestNum);
+    std::unique_ptr<Message> requestMessage{nullptr};
+    output =
+        sendNymObject(context, requestMessage, recipient, *object, requestNum);
 
     if (SendResult::VALID_REPLY != status) {
         wallet_.PeerReplyCreateRollback(nymID, request, itemID);
@@ -13988,10 +14025,59 @@ TransactionNumber OT_API::get_origin(
     return originNumber;
 }
 
+std::set<std::unique_ptr<Cheque>> OT_API::extract_cheques(
+    const Identifier& nymID,
+    const Identifier& accountID,
+    const Identifier& serverID,
+    const String& serializedProcessInbox,
+    Ledger& inbox) const
+{
+    std::set<std::unique_ptr<Cheque>> output;
+    std::unique_ptr<Ledger> ledger(new Ledger(nymID, accountID, serverID));
+
+    OT_ASSERT(ledger);
+
+    ledger->LoadLedgerFromString(serializedProcessInbox);
+    auto processInbox = ledger->GetTransaction(OTTransaction::processInbox);
+
+    OT_ASSERT(nullptr != processInbox);
+
+    for (const auto& acceptItem : processInbox->GetItemList()) {
+        OT_ASSERT(acceptItem);
+
+        if (Item::acceptItemReceipt != acceptItem->GetType()) {
+            continue;
+        }
+
+        const auto inboxNumber = acceptItem->GetReferenceToNum();
+        const auto inboxItem = inbox.GetTransaction(inboxNumber);
+
+        OT_ASSERT(nullptr != inboxItem)
+
+        String reference;
+        inboxItem->GetReferenceString(reference);
+        std::unique_ptr<Item> item(
+            Item::CreateItemFromString(reference, serverID, inboxNumber));
+
+        OT_ASSERT(item)
+
+        if (Item::depositCheque != item->GetType()) {
+            continue;
+        }
+
+        output.emplace(Cheque::CreateFromReceipt(*inboxItem));
+    }
+
+    return output;
+}
+
 OT_API::~OT_API()
 {
-    if (nullptr != m_pWallet) delete m_pWallet;
-    m_pWallet = nullptr;
+    if (nullptr != m_pWallet) {
+        delete m_pWallet;
+        m_pWallet = nullptr;
+    }
+
     m_pClient.reset();
     Cleanup();
     // this must be last!

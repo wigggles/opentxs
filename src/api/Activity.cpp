@@ -41,16 +41,20 @@
 #include "Activity.hpp"
 
 #include "opentxs/api/client/Wallet.hpp"
+#include "opentxs/api/client/Workflow.hpp"
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/ContactManager.hpp"
 #include "opentxs/contact/Contact.hpp"
 #include "opentxs/contact/ContactData.hpp"
 #include "opentxs/core/contract/peer/PeerObject.hpp"
+#include "opentxs/core/contract/UnitDefinition.hpp"
+#include "opentxs/core/Cheque.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/PublishSocket.hpp"
+#include "opentxs/Types.hpp"
 
 #include <thread>
 
@@ -93,6 +97,7 @@ bool Activity::AddBlockchainTransaction(
     const StorageBox box,
     const proto::BlockchainTransaction& transaction) const
 {
+    eLock lock(shared_lock_);
     const std::string sNymID = nymID.str();
     const std::string sthreadID = threadID.str();
     const auto threadList = storage_.ThreadList(sNymID, false);
@@ -119,6 +124,103 @@ bool Activity::AddBlockchainTransaction(
     }
 
     return saved;
+}
+
+bool Activity::AddPaymentEvent(
+    const Identifier& nymID,
+    const Identifier& threadID,
+    const StorageBox type,
+    const Identifier& itemID,
+    const Identifier& workflowID,
+    std::chrono::time_point<std::chrono::system_clock> time) const
+{
+    eLock lock(shared_lock_);
+    const std::string sNymID = nymID.str();
+    const std::string sthreadID = threadID.str();
+    const auto threadList = storage_.ThreadList(sNymID, false);
+    bool threadExists = false;
+
+    for (const auto it : threadList) {
+        const auto& id = it.first;
+
+        if (id == sthreadID) {
+            threadExists = true;
+            break;
+        }
+    }
+
+    if (false == threadExists) {
+        storage_.CreateThread(sNymID, sthreadID, {sthreadID});
+    }
+
+    const bool saved = storage_.Store(
+        sNymID,
+        sthreadID,
+        itemID.str(),
+        std::chrono::system_clock::to_time_t(time),
+        {},
+        {},
+        type,
+        workflowID.str());
+
+    if (saved) {
+        publish(nymID, sthreadID);
+    }
+
+    return saved;
+}
+
+Activity::ChequeData Activity::Cheque(
+    const Identifier& nym,
+    [[maybe_unused]] const std::string& id,
+    const std::string& workflowID) const
+{
+    ChequeData output;
+    auto & [ cheque, contract ] = output;
+    auto[type, state] = storage_.PaymentWorkflowState(nym.str(), workflowID);
+    [[maybe_unused]] const auto& notUsed = state;
+
+    switch (type) {
+        case proto::PAYMENTWORKFLOWTYPE_OUTGOINGCHEQUE:
+        case proto::PAYMENTWORKFLOWTYPE_INCOMINGCHEQUE:
+        case proto::PAYMENTWORKFLOWTYPE_OUTGOINGINVOICE:
+        case proto::PAYMENTWORKFLOWTYPE_INCOMINGINVOICE: {
+        } break;
+        case proto::PAYMENTWORKFLOWTYPE_ERROR:
+        default: {
+            otErr << OT_METHOD << __FUNCTION__ << ": Wrong workflow type"
+                  << std::endl;
+
+            return output;
+        }
+    }
+
+    std::shared_ptr<proto::PaymentWorkflow> workflow{nullptr};
+    const auto loaded = storage_.Load(nym.str(), workflowID, workflow);
+
+    if (false == loaded) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Workflow " << workflowID
+              << " for nym " << nym.str() << " can not be loaded" << std::endl;
+
+        return output;
+    }
+
+    OT_ASSERT(workflow)
+
+    auto instantiated = client::Workflow::InstantiateCheque(*workflow);
+    cheque.reset(std::get<1>(instantiated).release());
+
+    OT_ASSERT(cheque)
+
+    const auto& unit = cheque->GetInstrumentDefinitionID();
+    contract = wallet_.UnitDefinition(unit);
+
+    if (false == bool(contract)) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Unable to load unit definition contract" << std::endl;
+    }
+
+    return output;
 }
 
 const opentxs::network::zeromq::PublishSocket& Activity::get_publisher(
@@ -229,6 +331,7 @@ std::string Activity::Mail(
 
     OT_ASSERT(contact);
 
+    eLock lock(shared_lock_);
     std::string alias = contact->Label();
     const std::string contactID = contact->ID().str();
     const auto& threadID = contactID;
@@ -337,6 +440,7 @@ bool Activity::MarkUnread(
 
 void Activity::MigrateLegacyThreads() const
 {
+    eLock lock(shared_lock_);
     std::set<std::string> contacts{};
 
     for (const auto& it : contact_.ContactList()) {
@@ -361,7 +465,8 @@ void Activity::MigrateLegacyThreads() const
             auto contactID = contact_.ContactID(Identifier(originalThreadID));
 
             if (false == contactID->empty()) {
-                storage_.RenameThread(nymID, originalThreadID, contactID->str());
+                storage_.RenameThread(
+                    nymID, originalThreadID, contactID->str());
             } else {
                 std::shared_ptr<proto::StorageThread> thread;
                 storage_.Load(nymID, originalThreadID, thread);
@@ -411,6 +516,75 @@ std::shared_ptr<const Contact> Activity::nym_to_contact(
     }
 
     return contact_.NewContact(label, nymID, code);
+}
+
+std::shared_ptr<const std::string> Activity::PaymentText(
+    const Identifier& nym,
+    const std::string& id,
+    const std::string& workflowID) const
+{
+    std::shared_ptr<std::string> output;
+    auto[type, state] = storage_.PaymentWorkflowState(nym.str(), workflowID);
+    [[maybe_unused]] const auto& notUsed = state;
+
+    switch (type) {
+        case proto::PAYMENTWORKFLOWTYPE_OUTGOINGCHEQUE: {
+            output.reset(new std::string("Sent cheque"));
+        } break;
+        case proto::PAYMENTWORKFLOWTYPE_INCOMINGCHEQUE: {
+            output.reset(new std::string("Received cheque"));
+        } break;
+        case proto::PAYMENTWORKFLOWTYPE_OUTGOINGINVOICE:
+        case proto::PAYMENTWORKFLOWTYPE_INCOMINGINVOICE:
+        case proto::PAYMENTWORKFLOWTYPE_ERROR:
+        default: {
+
+            return output;
+        }
+    }
+
+    std::shared_ptr<proto::PaymentWorkflow> workflow{nullptr};
+    const auto loaded = storage_.Load(nym.str(), workflowID, workflow);
+
+    if (false == loaded) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Workflow " << workflowID
+              << " for nym " << nym.str() << " can not be loaded" << std::endl;
+
+        return output;
+    }
+
+    OT_ASSERT(workflow)
+
+    switch (type) {
+        case proto::PAYMENTWORKFLOWTYPE_OUTGOINGCHEQUE:
+        case proto::PAYMENTWORKFLOWTYPE_INCOMINGCHEQUE:
+        case proto::PAYMENTWORKFLOWTYPE_OUTGOINGINVOICE:
+        case proto::PAYMENTWORKFLOWTYPE_INCOMINGINVOICE: {
+            auto chequeData = Cheque(nym, id, workflowID);
+            const auto & [ cheque, contract ] = chequeData;
+
+            OT_ASSERT(cheque)
+
+            if (contract) {
+                std::string amount{};
+                const bool haveAmount = contract->FormatAmountLocale(
+                    cheque->GetAmount(), amount, ",", ".");
+
+                if (haveAmount) {
+                    const std::string text =
+                        *output + std::string{" for "} + amount;
+                    *output = text;
+                }
+            }
+        } break;
+        case proto::PAYMENTWORKFLOWTYPE_ERROR:
+        default: {
+
+            return nullptr;
+        }
+    }
+
+    return output;
 }
 
 void Activity::preload(
@@ -493,6 +667,7 @@ std::shared_ptr<proto::StorageThread> Activity::Thread(
     const Identifier& nymID,
     const Identifier& threadID) const
 {
+    sLock lock(shared_lock_);
     std::shared_ptr<proto::StorageThread> output;
     storage_.Load(nymID.str(), threadID.str(), output);
 

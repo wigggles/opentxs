@@ -107,6 +107,9 @@ public:
         const std::set<std::string>& participants) const override;
     std::string DefaultSeed() const override;
     bool DeleteContact(const std::string& id) const override;
+    bool DeletePaymentWorkflow(
+        const std::string& nymID,
+        const std::string& workflowID) const override;
     std::uint32_t HashType() const override;
     ObjectList IssuerList(const std::string& nymID) const override;
     bool Load(
@@ -149,6 +152,11 @@ public:
         const std::string& nymID,
         const std::string& id,
         std::shared_ptr<proto::Issuer>& issuer,
+        const bool checking = false) const override;
+    bool Load(
+        const std::string& nymID,
+        const std::string& workflowID,
+        std::shared_ptr<proto::PaymentWorkflow>& workflow,
         const bool checking = false) const override;
     bool Load(
         const std::string& nymID,
@@ -213,6 +221,24 @@ public:
     ObjectList NymBoxList(const std::string& nymID, const StorageBox box)
         const override;
     ObjectList NymList() const override;
+    ObjectList PaymentWorkflowList(const std::string& nymID) const override;
+    std::string PaymentWorkflowLookup(
+        const std::string& nymID,
+        const std::string& sourceID) const override;
+    std::set<std::string> PaymentWorkflowsByAccount(
+        const std::string& nymID,
+        const std::string& accountID) const override;
+    std::set<std::string> PaymentWorkflowsByState(
+        const std::string& nymID,
+        const proto::PaymentWorkflowType type,
+        const proto::PaymentWorkflowState state) const override;
+    std::set<std::string> PaymentWorkflowsByUnit(
+        const std::string& nymID,
+        const std::string& unitID) const override;
+    std::pair<proto::PaymentWorkflowType, proto::PaymentWorkflowState>
+    PaymentWorkflowState(
+        const std::string& nymID,
+        const std::string& workflowID) const override;
     bool RelabelThread(const std::string& threadID, const std::string& label)
         const override;
     bool RemoveNymBoxItem(
@@ -265,6 +291,8 @@ public:
         const std::string& alias = std::string("")) const override;
     bool Store(const std::string& nymID, const proto::Issuer& data)
         const override;
+    bool Store(const std::string& nymID, const proto::PaymentWorkflow& data)
+        const override;
     bool Store(
         const std::string& nymid,
         const std::string& threadid,
@@ -272,7 +300,8 @@ public:
         const std::uint64_t time,
         const std::string& alias,
         const std::string& data,
-        const StorageBox box) const override;
+        const StorageBox box,
+        const std::string& account = std::string("")) const override;
     bool Store(
         const proto::PeerReply& data,
         const std::string& nymid,

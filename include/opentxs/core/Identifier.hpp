@@ -65,6 +65,7 @@ public:
     EXPORT static OTIdentifier Factory(const String& rhs);
     EXPORT static OTIdentifier Factory(const Nym& nym);
     EXPORT static OTIdentifier Factory(const Contract& contract);
+    EXPORT static OTIdentifier Factory(const Cheque& cheque);
     EXPORT static OTIdentifier Factory(const OTSymmetricKey& key);
     EXPORT static OTIdentifier Factory(const OTCachedKey& key);
     EXPORT static OTIdentifier Factory(

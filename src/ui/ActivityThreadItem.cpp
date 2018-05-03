@@ -66,7 +66,7 @@ ActivityThreadItem::ActivityThreadItem(
     , time_(time)
     , item_id_(std::get<0>(id_))
     , box_(std::get<1>(id_))
-    , accountID_(std::get<2>(id_))
+    , account_id_(std::get<2>(id_))
     , text_(text)
     , loading_(Flag::Factory(loading))
     , pending_(Flag::Factory(pending))

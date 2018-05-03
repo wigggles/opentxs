@@ -84,7 +84,9 @@ public:
     bool Validate() const;
 
     std::unique_ptr<std::string>& Message() { return message_; }
+    const std::unique_ptr<std::string>& Message() const { return message_; }
     std::unique_ptr<std::string>& Payment() { return payment_; }
+    const std::unique_ptr<std::string>& Payment() const { return payment_; }
 
     ~PeerObject() = default;
 

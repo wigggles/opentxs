@@ -55,6 +55,7 @@
 #include "ActivityThreadItemBlank.hpp"
 #include "ActivityThreadItem.hpp"
 #include "MailItem.hpp"
+#include "PaymentItem.hpp"
 
 #define OT_METHOD "opentxs::ui::implementation::ActivityThread::"
 
@@ -221,6 +222,19 @@ void ActivityThread::construct_item(
                     draft_,
                     false,
                     true));
+        } break;
+        case StorageBox::INCOMINGCHEQUE:
+        case StorageBox::OUTGOINGCHEQUE: {
+            items_[index].emplace(
+                id,
+                new PaymentItem(
+                    *this,
+                    zmq_,
+                    contact_manager_,
+                    id,
+                    nym_id_,
+                    activity_,
+                    time));
         } break;
         case StorageBox::SENTPEERREQUEST:
         case StorageBox::INCOMINGPEERREQUEST:

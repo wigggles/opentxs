@@ -120,6 +120,13 @@ bool Thread::Add(
             saved = true;
             unread = false;
         } break;
+        case StorageBox::INCOMINGCHEQUE: {
+            saved = true;
+        } break;
+        case StorageBox::OUTGOINGCHEQUE: {
+            saved = true;
+            unread = false;
+        } break;
         default: {
             otErr << OT_METHOD << __FUNCTION__ << ": Warning: unknown box."
                   << std::endl;

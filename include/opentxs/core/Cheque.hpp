@@ -46,29 +46,16 @@
 #include "opentxs/core/OTTrackable.hpp"
 #include "opentxs/core/String.hpp"
 
-#include <stdint.h>
+#include <cstdint>
 
 namespace opentxs
 {
 class Cheque : public OTTrackable
 {
-private:  // Private prevents erroneous use by other classes.
-    typedef OTTrackable ot_super;
-
-protected:
-    int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
-
-    int64_t m_lAmount{0};
-    String m_strMemo;
-    OTIdentifier m_RECIPIENT_NYM_ID;  // Optional. If present, must match
-                                      // depositor's user ID.
-    bool m_bHasRecipient{false};
-    OTIdentifier m_REMITTER_NYM_ID;  // In the case of vouchers (cashier's
-                                     // cheques) we store the Remitter's ID.
-    OTIdentifier m_REMITTER_ACCT_ID;
-    bool m_bHasRemitter{false};
-
 public:
+    static std::unique_ptr<Cheque> CreateFromReceipt(
+        const OTTransaction& receipt);
+
     inline void SetAsVoucher(
         const Identifier& remitterNymID,
         const Identifier& remitterAcctID)
@@ -159,10 +146,24 @@ public:
     void Release() override;
     void Release_Cheque();
     void UpdateContents() override;  // Before transmission or serialization,
-                                     // this
-                                     // is where the token saves its contents
+                                     // this is where the token saves its
+                                     // contents
+
+protected:
+    Amount m_lAmount{0};
+    String m_strMemo;
+    // Optional. If present, must match depositor's user ID.
+    OTIdentifier m_RECIPIENT_NYM_ID;
+    bool m_bHasRecipient{false};
+    // In the case of vouchers (cashier's cheques) we store the Remitter's ID.
+    OTIdentifier m_REMITTER_NYM_ID;
+    OTIdentifier m_REMITTER_ACCT_ID;
+    bool m_bHasRemitter{false};
+
+    int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
+
+private:  // Private prevents erroneous use by other classes.
+    typedef OTTrackable ot_super;
 };
-
 }  // namespace opentxs
-
 #endif  // OPENTXS_CORE_OTCHEQUE_HPP

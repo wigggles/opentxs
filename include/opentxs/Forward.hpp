@@ -55,6 +55,7 @@ class Pair;
 class ServerAction;
 class Sync;
 class Wallet;
+class Workflow;
 }  // namespace opentxs::api::client
 
 namespace crypto

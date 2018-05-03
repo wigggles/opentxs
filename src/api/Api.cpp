@@ -53,6 +53,7 @@
 #include "client/Pair.hpp"
 #include "client/ServerAction.hpp"
 #include "client/Sync.hpp"
+#include "client/Workflow.hpp"
 
 #include "Api.hpp"
 
@@ -83,6 +84,7 @@ Api::Api(
     , pair_(nullptr)
     , server_action_(nullptr)
     , sync_(nullptr)
+    , workflow_(nullptr)
     , lock_()
     , map_lock_()
     , context_locks_()
@@ -98,6 +100,7 @@ void Api::Cleanup()
     server_action_.reset();
     otapi_exec_.reset();
     ot_api_.reset();
+    workflow_.reset();
 }
 
 std::recursive_mutex& Api::get_lock(const ContextID context) const
@@ -109,14 +112,13 @@ std::recursive_mutex& Api::get_lock(const ContextID context) const
 
 void Api::Init()
 {
-    // Changed this to otErr (stderr) so it doesn't muddy the output.
     otLog3 << "\n\nWelcome to Open Transactions -- version " << Log::Version()
            << "\n";
 
-    otLog4 << "(transport build: OTMessage -> OTEnvelope -> ZMQ )\n";
+    workflow_.reset(new api::client::implementation::Workflow(
+        activity_, contacts_, storage_));
 
-    // TODO in the case of Windows, figure err into this return val somehow.
-    // (Or log it or something.)
+    OT_ASSERT(workflow_)
 
     ot_api_.reset(new OT_API(
         activity_,
@@ -126,6 +128,7 @@ void Api::Init()
         identity_,
         storage_,
         wallet_,
+        *workflow_,
         zmq_,
         std::bind(&Api::get_lock, this, std::placeholders::_1)));
 
@@ -148,6 +151,7 @@ void Api::Init()
         *ot_api_,
         *otapi_exec_,
         wallet_,
+        *workflow_,
         std::bind(&Api::get_lock, this, std::placeholders::_1)));
 
     OT_ASSERT(server_action_)
@@ -164,6 +168,7 @@ void Api::Init()
         config_,
         *this,
         wallet_,
+        *workflow_,
         crypto_.Encode(),
         zmq_.Context(),
         std::bind(&Api::get_lock, this, std::placeholders::_1)));
@@ -229,6 +234,13 @@ const api::client::Sync& Api::Sync() const
     OT_ASSERT(sync_);
 
     return *sync_;
+}
+
+const api::client::Workflow& Api::Workflow() const
+{
+    OT_ASSERT(workflow_);
+
+    return *workflow_;
 }
 
 Api::~Api() {}

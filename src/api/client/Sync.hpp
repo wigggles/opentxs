@@ -52,6 +52,46 @@
 #include <thread>
 #include <tuple>
 
+namespace std
+{
+using PAYMENTTASK =
+    pair<opentxs::Identifier, shared_ptr<const opentxs::OTPayment>>;
+
+template <>
+struct less<PAYMENTTASK> {
+    bool operator()(const PAYMENTTASK& lhs, const PAYMENTTASK& rhs) const
+    {
+        /* TODO: these lines will cause a segfault in the clang-4 ast parser.
+         * Remove the workaround below once Qubes has a Fedora-27 template
+         available.
+                const auto & [ lID, lPayment ] = lhs;
+                const auto & [ rID, rPayment ] = rhs;
+        */
+        const auto& lID = std::get<0>(lhs);
+        const auto& lPayment = std::get<1>(lhs);
+        const auto& rID = std::get<0>(rhs);
+        const auto& rPayment = std::get<1>(rhs);
+
+        if (lID.str() < rID.str()) {
+
+            return true;
+        }
+
+        if (rID.str() < lID.str()) {
+
+            return false;
+        }
+
+        if (lPayment.get() < rPayment.get()) {
+
+            return true;
+        }
+
+        return false;
+    }
+};
+}  // namespace std
+
 namespace opentxs::api::client::implementation
 {
 class Sync : virtual public client::Sync, Lockable
@@ -72,6 +112,10 @@ public:
     Messagability CanMessage(
         const Identifier& senderNymID,
         const Identifier& recipientContactID) const override;
+    std::size_t DepositCheques(const Identifier& nymID) const override;
+    std::size_t DepositCheques(
+        const Identifier& nymID,
+        const std::set<OTIdentifier>& chequeIDs) const override;
     OTIdentifier DepositPayment(
         const Identifier& recipientNymID,
         const std::shared_ptr<const OTPayment>& payment) const override;
@@ -80,8 +124,9 @@ public:
         const Identifier& accountID,
         const std::shared_ptr<const OTPayment>& payment) const override;
     OTIdentifier FindNym(const Identifier& nymID) const override;
-    OTIdentifier FindNym(const Identifier& nymID, const Identifier& serverIDHint)
-        const override;
+    OTIdentifier FindNym(
+        const Identifier& nymID,
+        const Identifier& serverIDHint) const override;
     OTIdentifier FindServer(const Identifier& serverID) const override;
     const Identifier& IntroductionServer() const override;
     OTIdentifier MessageContact(
@@ -199,6 +244,7 @@ private:
     const api::Api& api_;
     const api::client::ServerAction& server_action_;
     const api::client::Wallet& wallet_;
+    const api::client::Workflow& workflow_;
     const api::crypto::Encode& encoding_;
     const opentxs::network::zeromq::Context& zmq_;
     mutable std::mutex introduction_server_lock_{};
@@ -322,6 +368,8 @@ private:
         const Identifier& nymID,
         const Identifier& serverID,
         const bool forcePrimary) const;
+    bool queue_cheque_deposit(const Identifier& nymID, const Cheque& cheque)
+        const;
     void refresh_accounts() const;
     void refresh_contacts() const;
     bool register_account(
@@ -377,6 +425,7 @@ private:
         const api::Settings& config,
         const api::Api& api,
         const api::client::Wallet& wallet,
+        const api::client::Workflow& workflow,
         const api::crypto::Encode& encoding,
         const opentxs::network::zeromq::Context& zmq,
         const ContextLockCallback& lockCallback);

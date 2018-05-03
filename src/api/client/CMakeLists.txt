@@ -5,6 +5,7 @@ set(cxx-sources
   ServerAction.cpp
   Sync.cpp
   Wallet.cpp
+  Workflow.cpp
 )
 
 file(GLOB cxx-install-headers
@@ -19,6 +20,7 @@ set(cxx-headers
   ${CMAKE_CURRENT_SOURCE_DIR}/ServerAction.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Sync.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Wallet.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/Workflow.hpp
 )
 
 set(MODULE_NAME opentxs-api-client)

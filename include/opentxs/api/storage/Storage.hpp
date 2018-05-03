@@ -85,6 +85,9 @@ public:
         const std::set<std::string>& participants) const = 0;
     virtual std::string DefaultSeed() const = 0;
     virtual bool DeleteContact(const std::string& id) const = 0;
+    virtual bool DeletePaymentWorkflow(
+        const std::string& nymID,
+        const std::string& workflowID) const = 0;
     virtual std::uint32_t HashType() const = 0;
     virtual ObjectList IssuerList(const std::string& nymID) const = 0;
     virtual bool Load(
@@ -127,6 +130,11 @@ public:
         const std::string& nymID,
         const std::string& id,
         std::shared_ptr<proto::Issuer>& issuer,
+        const bool checking = false) const = 0;
+    virtual bool Load(
+        const std::string& nymID,
+        const std::string& workflowID,
+        std::shared_ptr<proto::PaymentWorkflow>& workflow,
         const bool checking = false) const = 0;
     virtual bool Load(
         const std::string& nymID,
@@ -192,6 +200,24 @@ public:
         const std::string& nymID,
         const StorageBox box) const = 0;
     virtual ObjectList NymList() const = 0;
+    virtual ObjectList PaymentWorkflowList(const std::string& nymID) const = 0;
+    virtual std::string PaymentWorkflowLookup(
+        const std::string& nymID,
+        const std::string& sourceID) const = 0;
+    virtual std::set<std::string> PaymentWorkflowsByAccount(
+        const std::string& nymID,
+        const std::string& accountID) const = 0;
+    virtual std::set<std::string> PaymentWorkflowsByState(
+        const std::string& nymID,
+        const proto::PaymentWorkflowType type,
+        const proto::PaymentWorkflowState state) const = 0;
+    virtual std::set<std::string> PaymentWorkflowsByUnit(
+        const std::string& nymID,
+        const std::string& unitID) const = 0;
+    virtual std::pair<proto::PaymentWorkflowType, proto::PaymentWorkflowState>
+    PaymentWorkflowState(
+        const std::string& nymID,
+        const std::string& workflowID) const = 0;
     virtual bool RelabelThread(
         const std::string& threadID,
         const std::string& label) const = 0;
@@ -248,13 +274,17 @@ public:
     virtual bool Store(const std::string& nymID, const proto::Issuer& data)
         const = 0;
     virtual bool Store(
+        const std::string& nymID,
+        const proto::PaymentWorkflow& data) const = 0;
+    virtual bool Store(
         const std::string& nymid,
         const std::string& threadid,
         const std::string& itemid,
         const std::uint64_t time,
         const std::string& alias,
         const std::string& data,
-        const StorageBox box) const = 0;
+        const StorageBox box,
+        const std::string& account = std::string("")) const = 0;
     virtual bool Store(
         const proto::PeerReply& data,
         const std::string& nymid,

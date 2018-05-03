@@ -45,8 +45,10 @@
 #include "opentxs/core/util/Tag.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Item.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/OTStringXML.hpp"
+#include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
 
 #include <irrxml/irrXML.hpp>
@@ -58,8 +60,64 @@
 using namespace irr;
 using namespace io;
 
+#define OT_METHOD "opentxs::Cheque::"
+
 namespace opentxs
 {
+Cheque::Cheque()
+    : ot_super()
+    , m_lAmount(0)
+    , m_strMemo()
+    , m_RECIPIENT_NYM_ID(Identifier::Factory())
+    , m_bHasRecipient(false)
+    , m_REMITTER_NYM_ID(Identifier::Factory())
+    , m_REMITTER_ACCT_ID(Identifier::Factory())
+    , m_bHasRemitter(false)
+{
+    InitCheque();
+}
+
+Cheque::Cheque(
+    const Identifier& NOTARY_ID,
+    const Identifier& INSTRUMENT_DEFINITION_ID)
+    : ot_super(NOTARY_ID, INSTRUMENT_DEFINITION_ID)
+    , m_lAmount(0)
+    , m_strMemo()
+    , m_RECIPIENT_NYM_ID(Identifier::Factory())
+    , m_bHasRecipient(false)
+    , m_REMITTER_NYM_ID(Identifier::Factory())
+    , m_REMITTER_ACCT_ID(Identifier::Factory())
+    , m_bHasRemitter(false)
+{
+    InitCheque();
+}
+
+std::unique_ptr<Cheque> Cheque::CreateFromReceipt(const OTTransaction& receipt)
+{
+    std::unique_ptr<Cheque> output{new Cheque};
+
+    OT_ASSERT(output)
+
+    String serializedItem{};
+    receipt.GetReferenceString(serializedItem);
+    std::unique_ptr<Item> item(Item::CreateItemFromString(
+        serializedItem,
+        receipt.GetRealNotaryID(),
+        receipt.GetReferenceToNum()));
+
+    OT_ASSERT(item)
+
+    String serializedCheque{};
+    item->GetAttachment(serializedCheque);
+    const auto loaded = output->LoadContractFromString(serializedCheque);
+
+    if (false == loaded) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to load cheque,"
+              << std::endl;
+    }
+
+    return output;
+}
 
 void Cheque::UpdateContents()
 {
@@ -286,38 +344,6 @@ void Cheque::InitCheque()
     m_bHasRemitter = false;
 }
 
-Cheque::Cheque()
-    : ot_super()
-    , m_lAmount(0)
-    , m_strMemo()
-    , m_RECIPIENT_NYM_ID(Identifier::Factory())
-    , m_bHasRecipient(false)
-    , m_REMITTER_NYM_ID(Identifier::Factory())
-    , m_REMITTER_ACCT_ID(Identifier::Factory())
-    , m_bHasRemitter(false)
-{
-    InitCheque();
-}
-
-Cheque::Cheque(
-    const Identifier& NOTARY_ID,
-    const Identifier& INSTRUMENT_DEFINITION_ID)
-    : ot_super(NOTARY_ID, INSTRUMENT_DEFINITION_ID)
-    , m_lAmount(0)
-    , m_strMemo()
-    , m_RECIPIENT_NYM_ID(Identifier::Factory())
-    , m_bHasRecipient(false)
-    , m_REMITTER_NYM_ID(Identifier::Factory())
-    , m_REMITTER_ACCT_ID(Identifier::Factory())
-    , m_bHasRemitter(false)
-{
-    InitCheque();
-
-    // m_NotaryID and m_InstrumentDefinitionID are now in a grandparent class
-    // (OTInstrument)
-    // So they are initialized there now.
-}
-
 void Cheque::Release_Cheque()
 {
     // If there were any dynamically allocated objects, clean them up here.
@@ -337,5 +363,4 @@ void Cheque::Release_Cheque()
 void Cheque::Release() { Release_Cheque(); }
 
 Cheque::~Cheque() { Release_Cheque(); }
-
 }  // namespace opentxs

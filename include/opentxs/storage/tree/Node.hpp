@@ -77,12 +77,14 @@ class Node
 protected:
     template <class T>
     bool store_proto(
+        const Lock& lock,
         const T& data,
         const std::string& id,
         const std::string& alias,
         std::string& plaintext)
     {
-        Lock lock(write_lock_);
+        OT_ASSERT(verify_write_lock(lock))
+
         auto& metadata = item_map_[id];
         auto& hash = std::get<0>(metadata);
 
@@ -95,6 +97,18 @@ protected:
         }
 
         return save(lock);
+    }
+
+    template <class T>
+    bool store_proto(
+        const T& data,
+        const std::string& id,
+        const std::string& alias,
+        std::string& plaintext)
+    {
+        Lock lock(write_lock_);
+
+        return store_proto(lock, data, id, alias, plaintext);
     }
 
     template <class T>
