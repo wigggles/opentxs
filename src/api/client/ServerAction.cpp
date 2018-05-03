@@ -169,6 +169,11 @@ ServerAction::Action ServerAction::ActivateSmartContract(
     const std::string& agentName,
     std::unique_ptr<OTSmartContract>& contract) const
 {
+    if (!GetTransactionNumbers(localNymID, serverID, 10)) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Failed to obtain transaction numbers" << std::endl;
+    }
+
     return Action(new OTAPI_Func(
         ACTIVATE_SMART_CONTRACT,
         lock_callback_({localNymID.str(), serverID.str()}),
@@ -239,6 +244,11 @@ ServerAction::Action ServerAction::CancelPaymentPlan(
     // So how do we know the difference between an ACTUAL "failure" versus a
     // purposeful "failure" ? Because if the failure comes from cancelling the
     // plan, the server reply transaction will have IsCancelled() set to true.
+    if (!GetTransactionNumbers(localNymID, serverID, 1)) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Failed to obtain transaction numbers" << std::endl;
+    }
+
     return Action(new OTAPI_Func(
         DEPOSIT_PAYMENT_PLAN,
         lock_callback_({localNymID.str(), serverID.str()}),
@@ -273,6 +283,11 @@ ServerAction::Action ServerAction::CreateMarketOffer(
         notaryID = assetAccount->GetPurportedNotaryID();
     }
 
+    if (!GetTransactionNumbers(nymID, notaryID, 10)) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Failed to obtain transaction numbers" << std::endl;
+    }
+
     return Action(new OTAPI_Func(
         CREATE_MARKET_OFFER,
         lock_callback_({nymID.str(), notaryID.str()}),
@@ -301,6 +316,11 @@ ServerAction::Action ServerAction::DepositCashPurse(
     const Identifier& accountID,
     std::unique_ptr<Purse>& purse) const
 {
+    if (!GetTransactionNumbers(localNymID, serverID, 1)) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Failed to obtain transaction numbers" << std::endl;
+    }
+
     return Action(new OTAPI_Func(
         DEPOSIT_CASH,
         lock_callback_({localNymID.str(), serverID.str()}),
@@ -321,6 +341,11 @@ ServerAction::Action ServerAction::DepositCheque(
     const Identifier& accountID,
     std::unique_ptr<Cheque>& cheque) const
 {
+    if (!GetTransactionNumbers(localNymID, serverID, 1)) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Failed to obtain transaction numbers" << std::endl;
+    }
+
     return Action(new OTAPI_Func(
         DEPOSIT_CHEQUE,
         lock_callback_({localNymID.str(), serverID.str()}),
@@ -488,7 +513,22 @@ bool ServerAction::GetTransactionNumbers(
     if (available < quantity) {
         otErr << OT_METHOD << __FUNCTION__ << ": Asking server for more numbers"
               << std::endl;
-        MsgUtil.getTransactionNumbers(serverID.str(), localNymID.str(), true);
+        auto action = Action(new OTAPI_Func(
+            GET_TRANSACTION_NUMBERS,
+            lock_callback_({localNymID.str(), serverID.str()}),
+            wallet_,
+            workflow_,
+            localNymID,
+            serverID,
+            exec_,
+            otapi_));
+        auto response = action->Run();
+        if (response.empty()) {
+            otErr << OT_METHOD << __FUNCTION__ << ": Failed to obtain "
+                  << quantity << " numbers" << std::endl;
+            return false;
+        }
+
         bool msgWasSent{false};
         const auto download = MsgUtil.getAndProcessNymbox_4(
             serverID.str(), localNymID.str(), msgWasSent, false);
@@ -583,6 +623,11 @@ ServerAction::Action ServerAction::ExchangeBasketCurrency(
     const Identifier& basketID,
     const bool direction) const
 {
+    if (!GetTransactionNumbers(localNymID, serverID, 1)) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Failed to obtain transaction numbers" << std::endl;
+    }
+
     return Action(new OTAPI_Func(
         EXCHANGE_BASKET,
         lock_callback_({localNymID.str(), serverID.str()}),
@@ -606,6 +651,11 @@ ServerAction::Action ServerAction::ExchangeCash(
     const Identifier& instrumentDefinitionID,
     std::unique_ptr<Purse>& purse) const
 {
+    if (!GetTransactionNumbers(localNymID, serverID, 1)) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Failed to obtain transaction numbers" << std::endl;
+    }
+
     return Action(new OTAPI_Func(
         EXCHANGE_CASH,
         lock_callback_({localNymID.str(), serverID.str()}),
@@ -744,6 +794,11 @@ ServerAction::Action ServerAction::KillMarketOffer(
     const Identifier& accountID,
     const TransactionNumber number) const
 {
+    if (!GetTransactionNumbers(localNymID, serverID, 1)) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Failed to obtain transaction numbers" << std::endl;
+    }
+
     return Action(new OTAPI_Func(
         KILL_MARKET_OFFER,
         lock_callback_({localNymID.str(), serverID.str()}),
@@ -763,6 +818,11 @@ ServerAction::Action ServerAction::KillPaymentPlan(
     const Identifier& accountID,
     const TransactionNumber number) const
 {
+    if (!GetTransactionNumbers(localNymID, serverID, 1)) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Failed to obtain transaction numbers" << std::endl;
+    }
+
     return Action(new OTAPI_Func(
         KILL_PAYMENT_PLAN,
         lock_callback_({localNymID.str(), serverID.str()}),
@@ -809,6 +869,11 @@ ServerAction::Action ServerAction::PayDividend(
     const std::string& memo,
     const Amount amountPerShare) const
 {
+    if (!GetTransactionNumbers(localNymID, serverID, 1)) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Failed to obtain transaction numbers" << std::endl;
+    }
+
     return Action(new OTAPI_Func(
         PAY_DIVIDEND,
         lock_callback_({localNymID.str(), serverID.str()}),
@@ -830,6 +895,11 @@ ServerAction::Action ServerAction::ProcessInbox(
     const Identifier& accountID,
     std::unique_ptr<Ledger>& ledger) const
 {
+    if (!GetTransactionNumbers(localNymID, serverID, 1)) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Failed to obtain transaction numbers" << std::endl;
+    }
+
     return Action(new OTAPI_Func(
         PROCESS_INBOX,
         lock_callback_({localNymID.str(), serverID.str()}),
@@ -1032,6 +1102,11 @@ ServerAction::Action ServerAction::SendTransfer(
     const Amount amount,
     const std::string& memo) const
 {
+    if (!GetTransactionNumbers(localNymID, serverID, 1)) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Failed to obtain transaction numbers" << std::endl;
+    }
+
     return Action(new OTAPI_Func(
         SEND_TRANSFER,
         lock_callback_({localNymID.str(), serverID.str()}),
@@ -1107,6 +1182,11 @@ ServerAction::Action ServerAction::WithdrawCash(
     const Identifier& accountID,
     const Amount amount) const
 {
+    if (!GetTransactionNumbers(localNymID, serverID, 1)) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Failed to obtain transaction numbers" << std::endl;
+    }
+
     return Action(new OTAPI_Func(
         WITHDRAW_CASH,
         lock_callback_({localNymID.str(), serverID.str()}),
@@ -1129,6 +1209,11 @@ ServerAction::Action ServerAction::WithdrawVoucher(
     const Amount amount,
     const std::string& memo) const
 {
+    if (!GetTransactionNumbers(localNymID, serverID, 1)) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Failed to obtain transaction numbers" << std::endl;
+    }
+
     return Action(new OTAPI_Func(
         WITHDRAW_VOUCHER,
         lock_callback_({localNymID.str(), serverID.str()}),

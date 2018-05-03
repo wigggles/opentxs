@@ -107,7 +107,8 @@ typedef enum {
     REGISTER_CONTRACT_UNIT = 44,
     REQUEST_ADMIN = 45,
     SERVER_ADD_CLAIM = 46,
-    STORE_SECRET = 47
+    STORE_SECRET = 47,
+    GET_TRANSACTION_NUMBERS = 48
 } OTAPI_Func_Type;
 
 class OTAPI_Func : virtual public opentxs::client::ServerAction, Lockable

@@ -153,14 +153,6 @@ public:
         bool bForceDownload);
     EXPORT std::int32_t getNymboxLowLevel();
     EXPORT std::int32_t getNymboxLowLevel(bool& bWasSent);
-    EXPORT bool getTransactionNumbers(
-        const std::string& notaryID,
-        const std::string& nymID);
-    EXPORT bool getTransactionNumbers(
-        const std::string& notaryID,
-        const std::string& nymID,
-        bool bForceFirstCall);
-    EXPORT std::int32_t getTransactionNumLowLevel(bool& bWasSent);
     EXPORT bool insureHaveAllBoxReceipts(
         const std::string& notaryID,
         const std::string& nymID,
