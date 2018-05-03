@@ -67,11 +67,12 @@ private:
     std::string m_strThreadItemId;  // Will eventually replace Box Index.
     time64_t m_ValidFrom{0};
     time64_t m_ValidTo{0};
-    const std::string& m_str_notary_id;
-    const std::string& m_str_instrument_definition_id;
-    const std::string& m_str_currency_tla;
-    const std::string& m_str_nym_id;
-    const std::string& m_str_account_id;
+    const std::string m_str_msg_notary_id; // Notary where msg was transmitted
+    const std::string m_str_pmnt_notary_id; // Notary the instrument is drawn on
+    const std::string m_str_unit_type_id;
+    const std::string m_str_currency_tla;
+    const std::string m_str_nym_id;
+    const std::string m_str_account_id;
     std::string m_str_other_nym_id;
     std::string m_str_other_account_id;
     std::string m_str_name;
@@ -111,9 +112,9 @@ private:
     // or payment inbox, or record box. (If outpayment, contains
     // transaction number on outgoing instrument.)
     //
-    std::int64_t m_lTransactionNum{0};
-    std::int64_t m_lTransNumForDisplay{0};
-    std::int64_t m_lClosingNum{0};  // Only used for finalReceipts.
+    TransactionNumber m_lTransactionNum{0};
+    TransactionNumber m_lTransNumForDisplay{0};
+    TransactionNumber m_lClosingNum{0};  // Only used for finalReceipts.
 
     bool m_bIsPending{false};
     bool m_bIsOutgoing{false};
@@ -147,7 +148,7 @@ private:
         const std::string& ACCOUNT_ID,
         const std::string& INDICES) const;
     bool discard_incoming_payments(
-        const std::string& NOTARY_ID,
+        const std::string& TRANSPORT_NOTARY_ID,
         const std::string& NYM_ID,
         const std::string& INDICES) const;
 
@@ -172,8 +173,8 @@ public:
     EXPORT void SetSuccess(const bool bIsSuccess);
     EXPORT bool HasSuccess(bool& bIsSuccess) const;
 
-    EXPORT void SetClosingNum(const std::int64_t lClosingNum);
-    EXPORT bool GetClosingNum(std::int64_t& lClosingNum) const;
+    EXPORT void SetClosingNum(const TransactionNumber lClosingNum);
+    EXPORT bool GetClosingNum(TransactionNumber& lClosingNum) const;
 
     EXPORT void SetSpecialMail(bool bIsSpecial = true);
     EXPORT bool IsSpecialMail() const;
@@ -257,20 +258,21 @@ public:
     EXPORT const std::string& GetMsgTypeDisplay() const;  // Used by "special
                                                           // mail."
     EXPORT void SetMsgTypeDisplay(const std::string& str_type);
-    EXPORT std::int64_t GetTransactionNum() const;  // Trans Num of receipt in
+    EXPORT TransactionNumber GetTransactionNum() const;  // Trans Num of receipt in
                                                     // the
                                                     // box. (Unless outpayment,
                                                     // contains number for
                                                     // instrument.)
-    EXPORT void SetTransactionNum(int64_t lTransNum);
-    EXPORT std::int64_t GetTransNumForDisplay() const;  // Trans Num of the
+    EXPORT void SetTransactionNum(TransactionNumber lTransNum);
+    EXPORT TransactionNumber GetTransNumForDisplay() const;  // Trans Num of the
                                                         // cheque
     // inside the receipt in the
     // box.
-    EXPORT void SetTransNumForDisplay(std::int64_t lTransNum);
+    EXPORT void SetTransNumForDisplay(TransactionNumber lTransNum);
     EXPORT OTRecordType GetRecordType() const;
-    EXPORT const std::string& GetNotaryID() const;
-    EXPORT const std::string& GetInstrumentDefinitionID() const;
+    EXPORT const std::string& GetMsgNotaryID() const;
+    EXPORT const std::string& GetPmntNotaryID() const;
+    EXPORT const std::string& GetUnitTypeID() const;
     EXPORT const std::string& GetCurrencyTLA() const;  // BTC, USD, etc.
     EXPORT const std::string& GetNymID() const;
     EXPORT const std::string& GetAccountID() const;
@@ -310,8 +312,8 @@ public:
     EXPORT time64_t GetPaymentPlanStartDate() const;
     EXPORT time64_t GetTimeBetweenPayments() const;
 
-    EXPORT int64_t GetInitialPaymentAmount() const;
-    EXPORT int64_t GetPaymentPlanAmount() const;
+    EXPORT Amount GetInitialPaymentAmount() const;
+    EXPORT Amount GetPaymentPlanAmount() const;
 
     EXPORT int32_t GetMaximumNoPayments() const;
     EXPORT bool FormatAmount(std::string& str_output) const;
@@ -330,8 +332,9 @@ public:
     bool operator<(const OTRecord& rhs);
     OTRecord(
         OTRecordList& backlink,
-        const std::string& str_notary_id,
-        const std::string& str_instrument_definition_id,
+        const std::string& str_msg_notary_id,
+        const std::string& str_pmnt_notary_id,
+        const std::string& str_unit_type_id,
         const std::string& str_currency_tla,
         const std::string& str_nym_id,
         const std::string& str_account_id,
