@@ -41,6 +41,7 @@
 #include "opentxs/core/contract/peer/PeerObject.hpp"
 
 #include "opentxs/api/client/Wallet.hpp"
+#include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/OTEnvelope.hpp"
@@ -64,6 +65,7 @@ PeerObject::PeerObject(
         nym_ = signerNym;
     } else if (serialized.has_nym()) {
         nym_ = OT::App().Wallet().Nym(serialized.nym());
+        OT::App().Contact().Update(serialized.nym());
     }
 
     switch (serialized.type()) {
@@ -211,7 +213,7 @@ std::unique_ptr<PeerObject> PeerObject::Factory(
     const ConstNym& recipientNym,
     const OTASCIIArmor& encrypted)
 {
-    ConstNym notUsed{};
+    ConstNym notUsed{nullptr};
     std::unique_ptr<PeerObject> output;
     OTEnvelope input;
 
