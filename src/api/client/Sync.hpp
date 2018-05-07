@@ -41,23 +41,6 @@
 
 #include "opentxs/Internal.hpp"
 
-#include "opentxs/core/Identifier.hpp"
-
-#include "opentxs/api/client/Sync.hpp"
-#if OT_CASH
-#include "opentxs/cash/Purse.hpp"
-#endif //OT_CASH
-#include "opentxs/core/Lockable.hpp"
-#include "opentxs/core/Flag.hpp"
-#include "opentxs/core/UniqueQueue.hpp"
-#include "opentxs/ext/OTPayment.hpp"
-
-#include <atomic>
-#include <memory>
-#include <map>
-#include <thread>
-#include <tuple>
-
 namespace std
 {
 using PAYMENTTASK =
@@ -201,7 +184,7 @@ public:
 private:
     static const std::string DEFAULT_INTRODUCTION_SERVER;
 
-    friend api::implementation::Api;
+    friend Factory;
 
     /** ContextID: localNymID, serverID */
     using ContextID = std::pair<Identifier, Identifier>;

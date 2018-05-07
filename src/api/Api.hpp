@@ -41,15 +41,6 @@
 
 #include "opentxs/Internal.hpp"
 
-#include "opentxs/api/Api.hpp"
-#include "opentxs/core/Flag.hpp"
-#include "opentxs/Types.hpp"
-
-#include <map>
-#include <memory>
-#include <mutex>
-#include <string>
-
 namespace opentxs::api::implementation
 {
 class Api : virtual public opentxs::api::Api
@@ -70,7 +61,7 @@ public:
     ~Api();
 
 private:
-    friend class implementation::Native;
+    friend Factory;
 
     const Flag& running_;
     const Activity& activity_;

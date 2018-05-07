@@ -41,12 +41,6 @@
 
 #include "opentxs/Internal.hpp"
 
-#include "opentxs/api/client/Wallet.hpp"
-
-#include <map>
-#include <mutex>
-#include <tuple>
-
 namespace opentxs::api::client::implementation
 {
 class Wallet : virtual public opentxs::api::client::Wallet
@@ -206,7 +200,7 @@ private:
         IssuerLock;
     typedef std::map<IssuerID, IssuerLock> IssuerMap;
 
-    friend class opentxs::api::implementation::Native;
+    friend Factory;
 
     Native& ot_;
     mutable NymMap nym_map_;

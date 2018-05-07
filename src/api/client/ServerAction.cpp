@@ -38,6 +38,7 @@
 
 #include "opentxs/stdafx.hpp"
 
+#include "opentxs/api/client/ServerAction.hpp"
 #include "opentxs/cash/Purse.hpp"
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/client/Utility.hpp"
@@ -49,10 +50,25 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/ext/OTPayment.hpp"
 
-#include "api/client/ServerAction.hpp"
 #include "client/OTAPI_Func.hpp"
 
+#include "ServerAction.hpp"
+
 #define OT_METHOD "opentxs::api::client::implementation::ServerAction::"
+
+namespace opentxs
+{
+api::client::ServerAction* Factory::ServerAction(
+    const OT_API& otapi,
+    const OTAPI_Exec& exec,
+    const api::client::Wallet& wallet,
+    const api::client::Workflow& workflow,
+    const ContextLockCallback& lockCallback)
+{
+    return new api::client::implementation::ServerAction(
+        otapi, exec, wallet, workflow, lockCallback);
+}
+}  // namespace opentxs
 
 namespace opentxs::api::client::implementation
 {

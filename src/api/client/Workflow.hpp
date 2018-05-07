@@ -41,13 +41,6 @@
 
 #include "opentxs/Internal.hpp"
 
-#include "opentxs/api/client/Workflow.hpp"
-#include "opentxs/core/Lockable.hpp"
-#include "opentxs/Types.hpp"
-
-#include <cstdint>
-#include <memory>
-
 namespace opentxs::api::client::implementation
 {
 class Workflow : virtual public opentxs::api::client::Workflow, Lockable
@@ -98,7 +91,7 @@ public:
     ~Workflow() = default;
 
 private:
-    friend opentxs::api::implementation::Api;
+    friend Factory;
 
     const api::Activity& activity_;
     const api::ContactManager& contact_;

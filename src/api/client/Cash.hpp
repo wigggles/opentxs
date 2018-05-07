@@ -41,9 +41,6 @@
 
 #include "opentxs/Internal.hpp"
 
-#include "opentxs/api/client/Cash.hpp"
-#include "opentxs/core/Lockable.hpp"
-
 namespace opentxs::api::client::implementation
 {
 class Cash : virtual public client::Cash, Lockable
@@ -182,7 +179,7 @@ protected:
 #endif  // OT_CASH
 
 private:
-    friend api::implementation::Api;
+    friend Factory;
 
     Cash() = default;
     Cash(const Cash&) = delete;
