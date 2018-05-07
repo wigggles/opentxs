@@ -65,10 +65,11 @@
 
 #include <irrxml/irrXML.hpp>
 #include <stdint.h>
-#include <memory>
 #include <ostream>
 #include <string>
 #include <vector>
+
+template class std::shared_ptr<const opentxs::OTPayment>;
 
 #define OT_METHOD "opentxs::OTPayment::"
 

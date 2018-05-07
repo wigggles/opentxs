@@ -7730,11 +7730,18 @@ bool OT_API::RecordPayment(
     return true;
 }
 
+
+// Notice that since the Nym ID is sometimes also passed as the account ID
+// (in the case of Nym recordbox, versus Account recordbox...) which means
+// sometimes the Notary ID is the notary where a payment instrument was
+// transported, versus being a notary where a payment instrument was deposited.
+// (Often a different notary).
+//
+//
 bool OT_API::ClearRecord(
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID,
-    const Identifier& ACCOUNT_ID,  // NYM_ID can be passed
-                                   // here as well.
+    const Identifier& ACCOUNT_ID,  // NYM_ID can be passed here as well.
     std::int32_t nIndex,
     bool bClearAll) const  // if true, nIndex is ignored.
 {
@@ -7752,11 +7759,11 @@ bool OT_API::ClearRecord(
     std::unique_ptr<Ledger> pRecordBox(
         LoadRecordBox(NOTARY_ID, NYM_ID, ACCOUNT_ID));
 
-    if (nullptr == pRecordBox) {
+    if (pRecordBox) {
         pRecordBox.reset(Ledger::GenerateLedger(
             NYM_ID, ACCOUNT_ID, NOTARY_ID, Ledger::recordBox, true));
 
-        if (nullptr == pRecordBox) {
+        if (pRecordBox) {
             otErr << OT_METHOD << __FUNCTION__
                   << ": Unable to load or create record box "
                      "(and thus unable to do anything with it.)\n";

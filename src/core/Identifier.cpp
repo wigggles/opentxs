@@ -55,6 +55,12 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/OT.hpp"
 
+
+template class std::set<opentxs::OTIdentifier>;
+template class std::map<opentxs::OTIdentifier,
+                        std::set<opentxs::OTIdentifier>>;
+
+
 namespace opentxs
 {
 OTIdentifier Identifier::Factory() { return OTIdentifier(new Identifier()); }

@@ -47,6 +47,8 @@
 
 #include <iosfwd>
 #include <string>
+#include <set>
+#include <map>
 
 /** An Identifier is basically a 256 bit hash value. This class makes it easy to
  * convert IDs back and forth to strings. */
@@ -135,4 +137,11 @@ private:
         const proto::HDPath& path);
 };
 }  // namespace opentxs
+
+
+extern template class std::set<opentxs::OTIdentifier>;
+extern template class std::map<opentxs::OTIdentifier,
+                               std::set<opentxs::OTIdentifier>>;
+
+
 #endif  // OPENTXS_CORE_OTIDENTIFIER_HPP

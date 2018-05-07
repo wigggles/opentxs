@@ -237,5 +237,8 @@ public:
     EXPORT void ReleaseTokens();
 };
 }  // namespace opentxs
+
+extern template class std::shared_ptr<const opentxs::Purse>;
+
 #endif  // OT_CASH
 #endif  // OPENTXS_CASH_PURSE_HPP

@@ -38,7 +38,10 @@
 
 #include "opentxs/stdafx.hpp"
 
+#include "opentxs/core/Identifier.hpp"
+
 #include "opentxs/api/client/Pair.hpp"
+#include "opentxs/api/client/Sync.hpp"
 #include "opentxs/api/client/ServerAction.hpp"
 #include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/client/Workflow.hpp"
@@ -60,7 +63,6 @@
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Cheque.hpp"
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Ledger.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Message.hpp"
@@ -132,6 +134,37 @@
 #define PROCESS_INBOX_RETRIES 3
 
 #define OT_METHOD "opentxs::api::client::implementation::Sync::"
+
+namespace opentxs::api::client
+{
+Sync * Sync::Factory(
+    const Flag& running,
+    const OT_API& otapi,
+    const opentxs::OTAPI_Exec& exec,
+    const opentxs::api::ContactManager& contacts,
+    const opentxs::api::Settings& config,
+    const opentxs::api::Api& api,
+    const opentxs::api::client::Wallet& wallet,
+    const opentxs::api::client::Workflow& workflow,
+    const opentxs::api::crypto::Encode& encoding,
+    const opentxs::network::zeromq::Context& zmq,
+    const ContextLockCallback& lockCallback)
+{
+    return new api::client::implementation::Sync(
+        running,
+        otapi,
+        exec,
+        contacts,
+        config,
+        api,
+        wallet,
+        workflow,
+        encoding,
+        zmq,
+        lockCallback);
+}
+} // namespace opentxs::api::client
+
 
 namespace opentxs::api::client::implementation
 {

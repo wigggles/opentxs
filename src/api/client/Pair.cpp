@@ -38,10 +38,13 @@
 
 #include "opentxs/stdafx.hpp"
 
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/api/client/Pair.hpp"
+#include "opentxs/api/client/Sync.hpp"
 #include "opentxs/api/client/Issuer.hpp"
 #include "opentxs/api/client/ServerAction.hpp"
-#include "opentxs/api/client/Sync.hpp"
 #include "opentxs/api/client/Wallet.hpp"
+#include "opentxs/api/Api.hpp"
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
 #include "opentxs/client/ServerAction.hpp"
@@ -50,13 +53,15 @@
 #include "opentxs/contact/ContactItem.hpp"
 #include "opentxs/contact/ContactSection.hpp"
 #include "opentxs/core/contract/peer/PeerRequest.hpp"
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/PublishSocket.hpp"
 #include "opentxs/Proto.hpp"
+
+#include <set>
+#include <map>
 
 #include "Pair.hpp"
 
@@ -73,6 +78,31 @@
     }
 
 #define OT_METHOD "opentxs::api::client::implementation::Pair::"
+
+
+namespace opentxs::api::client
+{
+Pair * Pair::Factory(
+    const Flag& running,
+    const opentxs::api::client::Sync& sync,
+    const opentxs::api::client::ServerAction& action,
+    const opentxs::api::client::Wallet& wallet,
+    const opentxs::OT_API& otapi,
+    const opentxs::OTAPI_Exec& exec,
+    const opentxs::network::zeromq::Context& context)
+{
+    return new api::client::implementation::Pair(
+        running,
+        sync,
+        action,
+        wallet,
+        otapi,
+        exec,
+        context);
+}
+} // namespace opentxs::api::client
+
+
 
 namespace opentxs::api::client::implementation
 {

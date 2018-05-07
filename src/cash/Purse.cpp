@@ -66,10 +66,13 @@
 #include <stdint.h>
 #include <list>
 #include <map>
-#include <memory>
 #include <ostream>
 #include <string>
 #include <utility>
+
+#if OT_CASH
+template class std::shared_ptr<const opentxs::Purse>;
+#endif //OT_CASH
 
 namespace opentxs
 {

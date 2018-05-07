@@ -38,8 +38,7 @@
 
 #include "opentxs/stdafx.hpp"
 
-#include "opentxs/client/SwigWrap.hpp"
-
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/api/client/Issuer.hpp"
 #include "opentxs/api/client/Pair.hpp"
 #include "opentxs/api/client/Sync.hpp"
@@ -63,7 +62,6 @@
 #include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/NumList.hpp"
 #include "opentxs/core/String.hpp"
@@ -73,6 +71,8 @@
 #include "opentxs/OT.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
+
+#include "opentxs/client/SwigWrap.hpp"
 
 #include <algorithm>
 #include <chrono>
