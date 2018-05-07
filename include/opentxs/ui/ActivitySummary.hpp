@@ -65,6 +65,11 @@ protected:
     ActivitySummary() = default;
 
 private:
+    friend OTUIActivitySummary;
+
+    /** WARNING: not implemented */
+    virtual ActivitySummary* clone() const = 0;
+
     ActivitySummary(const ActivitySummary&) = delete;
     ActivitySummary(ActivitySummary&&) = delete;
     ActivitySummary& operator=(const ActivitySummary&) = delete;

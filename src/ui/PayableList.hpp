@@ -91,6 +91,7 @@ private:
     const proto::ContactItemType currency_;
 
     PayableListID blank_id() const override;
+    PayableList* clone() const override { return nullptr; }
     void construct_item(
         const PayableListID& id,
         const PayableListSortKey& index,

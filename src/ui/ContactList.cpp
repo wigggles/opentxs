@@ -47,6 +47,8 @@
 
 #include "ContactList.hpp"
 
+template class opentxs::Pimpl<opentxs::ui::ContactList>;
+
 #define OT_METHOD "opentxs::ui::implementation::ContactList::"
 
 namespace opentxs::ui::implementation

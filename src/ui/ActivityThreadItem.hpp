@@ -56,7 +56,7 @@ class ActivityThreadItem : public ActivityThreadItemType
 {
 public:
     opentxs::Amount Amount() const override { return 0; }
-    std::string DisplayAmount() const { return {}; }
+    std::string DisplayAmount() const override { return {}; }
     bool Loading() const override;
     bool MarkRead() const override;
     std::string Memo() const override { return {}; }
@@ -93,6 +93,8 @@ protected:
 
 private:
     friend ActivityThread;
+
+    ActivityThreadItem* clone() const override { return nullptr; }
 
     ActivityThreadItem() = delete;
     ActivityThreadItem(const ActivityThreadItem&) = delete;

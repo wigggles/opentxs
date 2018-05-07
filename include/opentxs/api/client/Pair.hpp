@@ -41,10 +41,10 @@
 
 #include "opentxs/Forward.hpp"
 
-#include <cstdint>
 #include <set>
-#include <map>
 #include <string>
+
+extern template class std::set<opentxs::OTIdentifier>;
 
 namespace opentxs
 {

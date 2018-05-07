@@ -47,13 +47,6 @@
 
 #ifdef SWIG
 // clang-format off
-%ignore opentxs::Pimpl<opentxs::network::zeromq::PairSocket>::operator+=;
-%ignore opentxs::Pimpl<opentxs::network::zeromq::PairSocket>::operator==;
-%ignore opentxs::Pimpl<opentxs::network::zeromq::PairSocket>::operator!=;
-%ignore opentxs::Pimpl<opentxs::network::zeromq::PairSocket>::operator<;
-%ignore opentxs::Pimpl<opentxs::network::zeromq::PairSocket>::operator<=;
-%ignore opentxs::Pimpl<opentxs::network::zeromq::PairSocket>::operator>;
-%ignore opentxs::Pimpl<opentxs::network::zeromq::PairSocket>::operator>=;
 %template(OTZMQPairSocket) opentxs::Pimpl<opentxs::network::zeromq::PairSocket>;
 %rename($ignore, regextarget=1, fullname=1) "opentxs::network::zeromq::PairSocket::Factory.*";
 %rename(ZMQPairSocket) opentxs::network::zeromq::PairSocket;

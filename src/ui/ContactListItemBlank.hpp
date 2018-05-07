@@ -68,6 +68,8 @@ private:
     friend MessagableList;
     friend PayableList;
 
+    ContactListItem* clone() const override { return nullptr; }
+
     ContactListItemBlank(const ContactListItemBlank&) = delete;
     ContactListItemBlank(ContactListItemBlank&&) = delete;
     ContactListItemBlank& operator=(const ContactListItemBlank&) = delete;

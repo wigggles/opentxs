@@ -72,6 +72,8 @@ private:
     OTZMQSubscribeSocket contact_subscriber_;
     proto::ContactItemType currency_;
 
+    PayableListItem* clone() const override { return nullptr; }
+
     void process_contact(const network::zeromq::Message& message);
 
     PayableListItem(

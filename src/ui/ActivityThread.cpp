@@ -57,6 +57,8 @@
 #include "MailItem.hpp"
 #include "PaymentItem.hpp"
 
+template class opentxs::Pimpl<opentxs::ui::ActivityThread>;
+
 #define OT_METHOD "opentxs::ui::implementation::ActivityThread::"
 
 namespace opentxs::ui::implementation

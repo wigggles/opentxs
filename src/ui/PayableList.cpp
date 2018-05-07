@@ -48,10 +48,11 @@
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/SubscribeSocket.hpp"
 
-#include "PayableList.hpp"
-
 #include "PayableListItem.hpp"
 #include "PayableListItemBlank.hpp"
+#include "PayableList.hpp"
+
+template class opentxs::Pimpl<opentxs::ui::PayableList>;
 
 #define OT_METHOD "opentxs::ui::implementation::PayableList::"
 

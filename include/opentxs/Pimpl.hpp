@@ -96,23 +96,6 @@ public:
         return *this;
     }
 
-    Pimpl& operator+=(const C& rhs)
-    {
-        *pimpl_ += rhs;
-
-        return *this;
-    }
-
-    bool operator==(const Pimpl& rhs) const { return *pimpl_ == *rhs.pimpl_; }
-    bool operator==(const C& rhs) const { return *pimpl_ == rhs; }
-
-    bool operator!=(const C& rhs) const { return *pimpl_ != rhs; }
-    bool operator<(const Pimpl& rhs) const { return *pimpl_ < *rhs.pimpl_; }
-    bool operator<(const C& rhs) const { return *pimpl_ < rhs; }
-    bool operator<=(const C& rhs) const { return *pimpl_ <= rhs; }
-    bool operator>(const C& rhs) const { return *pimpl_ > rhs; }
-    bool operator>=(const C& rhs) const { return *pimpl_ >= rhs; }
-
     operator C&() noexcept { return *pimpl_; }
     operator const C&() const noexcept { return *pimpl_; }
 

@@ -48,8 +48,21 @@
 #include <iomanip>
 #include <sstream>
 
+template class opentxs::Pimpl<opentxs::Data>;
+
 namespace opentxs
 {
+bool operator==(OTData& lhs, const Data& rhs) { return lhs.get() == rhs; }
+
+bool operator!=(OTData& lhs, const Data& rhs) { return lhs.get() != rhs; }
+
+OTData& operator+=(OTData& lhs, const OTData& rhs)
+{
+    lhs.get() += rhs.get();
+
+    return lhs;
+}
+
 OTData Data::Factory() { return OTData(new implementation::Data()); }
 
 OTData Data::Factory(const Data& rhs)

@@ -59,6 +59,8 @@ public:
 private:
     friend PayableList;
 
+    PayableListItem* clone() const override { return nullptr; }
+
     PayableListItemBlank() = default;
     PayableListItemBlank(const PayableListItemBlank&) = delete;
     PayableListItemBlank(PayableListItemBlank&&) = delete;

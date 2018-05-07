@@ -61,9 +61,7 @@ template <>
 struct less<STORAGEID> {
     bool operator()(const STORAGEID& lhs, const STORAGEID& rhs) const
     {
-        /* TODO: these lines will cause a segfault in the clang-4 ast parser.
-         * Remove the workaround below once Qubes has a Fedora-27 template
-         available.
+        /* TODO: these lines will cause a segfault in the clang-5 ast parser.
                 const auto & [ lID, lBox, lAccount ] = lhs;
                 const auto & [ rID, rBox, rAccount ] = rhs;
         */
@@ -163,6 +161,7 @@ private:
     ActivityThreadID blank_id() const override;
     bool check_draft(const ActivityThreadID& id) const;
     void check_drafts() const;
+    ActivityThread* clone() const override { return nullptr; }
     std::string comma(const std::set<std::string>& list) const;
     void construct_item(
         const ActivityThreadID& id,

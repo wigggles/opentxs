@@ -42,6 +42,8 @@
 
 #include "PairEventCallback.hpp"
 
+template class opentxs::Pimpl<opentxs::network::zeromq::PairEventCallback>;
+
 //#define OT_METHOD
 //"opentxs::network::zeromq::implementation::PairEventCallback::"
 

@@ -47,16 +47,16 @@
 
 #ifdef SWIG
 // clang-format off
-%ignore opentxs::Pimpl<opentxs::Data>::operator<;
-%ignore opentxs::Pimpl<opentxs::Data>::operator<=;
-%ignore opentxs::Pimpl<opentxs::Data>::operator>;
-%ignore opentxs::Pimpl<opentxs::Data>::operator>=;
 %template(OTData) opentxs::Pimpl<opentxs::Data>;
 // clang-format on
 #endif  // SWIG
 
 namespace opentxs
 {
+bool operator==(OTData& lhs, const Data& rhs);
+bool operator!=(OTData& lhs, const Data& rhs);
+OTData& operator+=(OTData& lhs, const OTData& rhs);
+
 class Data
 {
 public:

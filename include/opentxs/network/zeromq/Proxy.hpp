@@ -43,13 +43,6 @@
 
 #ifdef SWIG
 // clang-format off
-%ignore opentxs::Pimpl<opentxs::network::zeromq::Proxy>::operator+=;
-%ignore opentxs::Pimpl<opentxs::network::zeromq::Proxy>::operator==;
-%ignore opentxs::Pimpl<opentxs::network::zeromq::Proxy>::operator!=;
-%ignore opentxs::Pimpl<opentxs::network::zeromq::Proxy>::operator<;
-%ignore opentxs::Pimpl<opentxs::network::zeromq::Proxy>::operator<=;
-%ignore opentxs::Pimpl<opentxs::network::zeromq::Proxy>::operator>;
-%ignore opentxs::Pimpl<opentxs::network::zeromq::Proxy>::operator>=;
 %template(OTZMQProxy) opentxs::Pimpl<opentxs::network::zeromq::Proxy>;
 %rename($ignore, regextarget=1, fullname=1) "opentxs::network::zeromq::Proxy::Factory.*";
 %rename(ZMQProxy) opentxs::network::zeromq::Proxy;
@@ -69,6 +62,8 @@ public:
         const Context& context,
         Socket& frontend,
         Socket& backend);
+
+    EXPORT virtual ~Proxy() = default;
 
 protected:
     Proxy() = default;

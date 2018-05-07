@@ -50,9 +50,7 @@ template <>
 struct less<PAYMENTTASK> {
     bool operator()(const PAYMENTTASK& lhs, const PAYMENTTASK& rhs) const
     {
-        /* TODO: these lines will cause a segfault in the clang-4 ast parser.
-         * Remove the workaround below once Qubes has a Fedora-27 template
-         available.
+        /* TODO: these lines will cause a segfault in the clang-5 ast parser.
                 const auto & [ lID, lPayment ] = lhs;
                 const auto & [ rID, rPayment ] = rhs;
         */

@@ -41,16 +41,6 @@
 
 #include "opentxs/Internal.hpp"
 
-#include "opentxs/core/Flag.hpp"
-#include "opentxs/core/Lockable.hpp"
-#include "opentxs/network/ServerConnection.hpp"
-
-#include <atomic>
-#include <ctime>
-#include <memory>
-#include <mutex>
-#include <thread>
-
 namespace opentxs::network::implementation
 {
 class ServerConnection : virtual public opentxs::network::ServerConnection,
@@ -81,6 +71,7 @@ private:
     OTFlag status_;
     OTFlag use_proxy_;
 
+    ServerConnection* clone() const override { return nullptr; }
     std::string endpoint() const;
     void set_curve(const Lock& lock, zeromq::RequestSocket& socket) const;
     void set_proxy(const Lock& lock, zeromq::RequestSocket& socket) const;

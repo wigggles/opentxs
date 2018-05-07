@@ -65,6 +65,8 @@ public:
 private:
     std::atomic<bool> flag_;
 
+    Flag* clone() const override;
+
     Flag() = delete;
     Flag(const Flag&) = delete;
     Flag(Flag&&) = delete;
