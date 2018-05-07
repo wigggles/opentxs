@@ -41,6 +41,8 @@
 
 #include "opentxs/Internal.hpp"
 
+#include "opentxs/core/Identifier.hpp"
+
 #include "opentxs/api/client/Pair.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Lockable.hpp"
@@ -70,6 +72,8 @@ public:
     void Update() const override;
 
     ~Pair();
+
+    friend class opentxs::api::client::Pair;
 
 private:
     class Cleanup

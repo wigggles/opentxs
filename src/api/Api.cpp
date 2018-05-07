@@ -38,22 +38,32 @@
 
 #include "opentxs/stdafx.hpp"
 
+#include "opentxs/core/Identifier.hpp"
+
+#include "opentxs/api/client/Pair.hpp"
+#include "opentxs/api/client/Sync.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/network/ZMQ.hpp"
+#include "opentxs/api/Api.hpp"
 #include "opentxs/api/Activity.hpp"
 #include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Settings.hpp"
+//#if OT_CASH
+//#include "opentxs/cash/Purse.hpp"
+//#endif //OT_CASH
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
 #include "opentxs/core/crypto/OTCachedKey.hpp"
-#include "opentxs/core/Identifier.hpp"
+//#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
+//#include "opentxs/ext/OTPayment.hpp"
 
 #include "client/Cash.hpp"
-#include "client/Pair.hpp"
 #include "client/ServerAction.hpp"
-#include "client/Sync.hpp"
 #include "client/Workflow.hpp"
+
+#include <set>
+#include <map>
 
 #include "Api.hpp"
 
@@ -160,7 +170,7 @@ void Api::Init()
 
     OT_ASSERT(cash_);
 
-    sync_.reset(new api::client::implementation::Sync(
+    sync_.reset(api::client::Sync::Factory(
         running_,
         *ot_api_,
         *otapi_exec_,
@@ -175,7 +185,7 @@ void Api::Init()
 
     OT_ASSERT(sync_);
 
-    pair_.reset(new api::client::implementation::Pair(
+    pair_.reset(api::client::Pair::Factory(
         running_,
         *sync_,
         *server_action_,

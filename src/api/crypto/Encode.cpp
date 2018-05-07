@@ -38,8 +38,6 @@
 
 #include "opentxs/stdafx.hpp"
 
-#include "Encode.hpp"
-
 #include "opentxs/core/crypto/CryptoEncoding.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #if OT_CRYPTO_USING_TREZOR
@@ -51,6 +49,8 @@
 
 #include <iostream>
 #include <regex>
+
+#include "Encode.hpp"
 
 namespace opentxs::api::crypto::implementation
 {

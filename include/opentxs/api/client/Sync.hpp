@@ -45,6 +45,8 @@
 
 #include <cstdint>
 #include <tuple>
+#include <memory>
+#include <set>
 
 #define DEFAULT_PROCESS_INBOX_ITEMS 5
 
@@ -57,6 +59,18 @@ namespace client
 class Sync
 {
 public:
+    EXPORT static Sync * Factory(const Flag& running,
+                                 const OT_API& otapi,
+                                 const opentxs::OTAPI_Exec& exec,
+                                 const opentxs::api::ContactManager& contacts,
+                                 const opentxs::api::Settings& config,
+                                 const opentxs::api::Api& api,
+                                 const opentxs::api::client::Wallet& wallet,
+                                 const opentxs::api::client::Workflow& workflow,
+                                 const opentxs::api::crypto::Encode& encoding,
+                                 const opentxs::network::zeromq::Context& zmq,
+                                 const ContextLockCallback& lockCallback);
+
     EXPORT virtual bool AcceptIncoming(
         const Identifier& nymID,
         const Identifier& accountID,

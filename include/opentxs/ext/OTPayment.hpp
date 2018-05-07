@@ -46,6 +46,8 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/Types.hpp"
 
+#include <memory>
+
 namespace opentxs
 {
 /*
@@ -281,4 +283,7 @@ private:
     using ot_super = Contract;
 };
 }  // namespace opentxs
+
+extern template class std::shared_ptr<const opentxs::OTPayment>;
+
 #endif  // OPENTXS_EXT_OTPAYMENT_HPP
