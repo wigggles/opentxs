@@ -139,7 +139,7 @@ private:
         const Data& iv,
         const Data& tag,
         const char* input,
-        const uint32_t inputLength,
+        const std::uint32_t inputLength,
         bool& AEAD,
         bool& ECB) const;
     void Cleanup_Override() const override;
@@ -159,13 +159,13 @@ public:
     BinarySecret InstantiateBinarySecretSP() const override;
 
     // RANDOM NUMBERS
-    bool RandomizeMemory(uint8_t* szDestination, uint32_t nNewSize)
+    bool RandomizeMemory(std::uint8_t* szDestination, std::uint32_t nNewSize)
         const override;
 
     OTPassword* DeriveNewKey(
         const OTPassword& userPassword,
         const Data& dataSalt,
-        uint32_t uIterations,
+        std::uint32_t uIterations,
         Data& dataCheckHash) const override;
 
     // ENCRYPT / DECRYPT
@@ -174,7 +174,7 @@ public:
         const OTPassword& theRawSymmetricKey,  // The symmetric key, in clear
                                                // form.
         const char* szInput,                   // This is the Plaintext.
-        uint32_t lInputLength,
+        std::uint32_t lInputLength,
         const Data& theIV,  // (We assume this IV is already generated and
                             // passed in.)
         Data& theEncryptedOutput) const override;
@@ -182,41 +182,41 @@ public:
         const CryptoSymmetric::Mode cipher,
         const OTPassword& key,
         const char* plaintext,
-        uint32_t plaintextLength,
+        std::uint32_t plaintextLength,
         Data& ciphertext) const override;
     bool Encrypt(
         const CryptoSymmetric::Mode cipher,
         const OTPassword& key,
         const Data& iv,
         const char* plaintext,
-        uint32_t plaintextLength,
+        std::uint32_t plaintextLength,
         Data& ciphertext) const override;
     bool Encrypt(
         const CryptoSymmetric::Mode cipher,
         const OTPassword& key,
         const Data& iv,
         const char* plaintext,
-        uint32_t plaintextLength,
+        std::uint32_t plaintextLength,
         Data& ciphertext,
         Data& tag) const override;
     bool Decrypt(
         const OTPassword& theRawSymmetricKey,
         const char* szInput,
-        uint32_t lInputLength,
+        std::uint32_t lInputLength,
         const Data& theIV,
         CryptoSymmetricDecryptOutput& theDecryptedOutput) const override;
     bool Decrypt(
         const CryptoSymmetric::Mode cipher,
         const OTPassword& key,
         const char* ciphertext,
-        uint32_t ciphertextLength,
+        std::uint32_t ciphertextLength,
         CryptoSymmetricDecryptOutput& plaintext) const override;
     bool Decrypt(
         const CryptoSymmetric::Mode cipher,
         const OTPassword& key,
         const Data& iv,
         const char* ciphertext,
-        uint32_t ciphertextLength,
+        std::uint32_t ciphertextLength,
         CryptoSymmetricDecryptOutput& plaintext) const override;
     bool Decrypt(
         const CryptoSymmetric::Mode cipher,
@@ -224,7 +224,7 @@ public:
         const Data& iv,
         const Data& tag,
         const char* ciphertext,
-        const uint32_t ciphertextLength,
+        const std::uint32_t ciphertextLength,
         CryptoSymmetricDecryptOutput& plaintext) const override;
 
     bool Digest(

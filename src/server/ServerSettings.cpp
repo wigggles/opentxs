@@ -40,7 +40,7 @@
 
 #include "opentxs/server/ServerSettings.hpp"
 
-#include <stdint.h>
+#include <cstdint>
 #include <string>
 
 namespace opentxs::server
@@ -49,11 +49,11 @@ namespace opentxs::server
 // These are default values. There are configurable in ~/.ot/server.cfg
 // (static)
 
-int64_t ServerSettings::__min_market_scale = 1;
+std::int64_t ServerSettings::__min_market_scale = 1;
 // The number of client requests that will be processed per heartbeat.
-int32_t ServerSettings::__heartbeat_no_requests = 10;
+std::int32_t ServerSettings::__heartbeat_no_requests = 10;
 // number of ms between each heartbeat.
-int32_t ServerSettings::__heartbeat_ms_between_beats = 100;
+std::int32_t ServerSettings::__heartbeat_ms_between_beats = 100;
 // The Nym who's allowed to do certain
 // commands even if they are turned off.
 std::string ServerSettings::__override_nym_id;

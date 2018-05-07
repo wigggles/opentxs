@@ -87,8 +87,8 @@
 #include "opentxs/OT.hpp"
 #include "opentxs/Proto.hpp"
 
-#include <stddef.h>
-#include <stdint.h>
+#include <cstddef>
+#include <cstdint>
 #include <map>
 #include <memory>
 #include <ostream>
@@ -113,13 +113,13 @@ bool CredentialSet::Path(proto::HDPath& output) const
     return false;
 }
 
-int32_t CredentialSet::GetPublicKeysBySignature(
+std::int32_t CredentialSet::GetPublicKeysBySignature(
     listOfAsymmetricKeys& listOutput,
     const OTSignature& theSignature,
     char cKeyType) const  // 'S' (signing key) or 'E' (encryption key)
                           // or 'A' (authentication key)
 {
-    int32_t nCount = 0;
+    std::int32_t nCount = 0;
     for (const auto& it : m_mapCredentials) {
         const auto& pSub = it.second;
 
@@ -131,7 +131,7 @@ int32_t CredentialSet::GetPublicKeysBySignature(
         if (nullptr == pKey)
             continue;  // Skip all non-key credentials. We're looking for keys.
 
-        const int32_t nTempCount =
+        const std::int32_t nTempCount =
             pKey->GetPublicKeysBySignature(listOutput, theSignature, cKeyType);
         nCount += nTempCount;
     }
@@ -369,9 +369,8 @@ CredentialSet* CredentialSet::LoadMaster(
     const bool bLoaded = pCredential->Load_Master(
         strNymID, strMasterCredID, (nullptr == pPWData) ? &thePWData : pPWData);
     if (!bLoaded) {
-        otErr << __FUNCTION__
-              << ": Failed trying to load master credential "
-                 "from local storage. 1\n";
+        otErr << __FUNCTION__ << ": Failed trying to load master credential "
+                                 "from local storage. 1\n";
         return nullptr;
     }
 
@@ -673,13 +672,14 @@ const Credential* CredentialSet::GetChildCredential(
     return nullptr;
 }
 
-const Credential* CredentialSet::GetChildCredentialByIndex(int32_t nIndex) const
+const Credential* CredentialSet::GetChildCredentialByIndex(
+    std::int32_t nIndex) const
 {
     if ((nIndex < 0) ||
-        (nIndex >= static_cast<int64_t>(m_mapCredentials.size()))) {
+        (nIndex >= static_cast<std::int64_t>(m_mapCredentials.size()))) {
         otErr << __FUNCTION__ << ": Index out of bounds: " << nIndex << "\n";
     } else {
-        int32_t nLoopIndex = -1;
+        std::int32_t nLoopIndex = -1;
 
         for (const auto& it : m_mapCredentials) {
             const auto& pSub = it.second;
@@ -701,7 +701,7 @@ const std::string CredentialSet::GetChildCredentialIDByIndex(
     if (nIndex >= m_mapCredentials.size()) {
         otErr << __FUNCTION__ << ": Index out of bounds: " << nIndex << "\n";
     } else {
-        int32_t nLoopIndex = -1;
+        std::int32_t nLoopIndex = -1;
 
         for (const auto& it : m_mapCredentials) {
             const std::string str_cred_id = it.first;
@@ -711,7 +711,8 @@ const std::string CredentialSet::GetChildCredentialIDByIndex(
 
             ++nLoopIndex;  // 0 on first iteration.
 
-            if (static_cast<int64_t>(nIndex) == nLoopIndex) return str_cred_id;
+            if (static_cast<std::int64_t>(nIndex) == nLoopIndex)
+                return str_cred_id;
         }
     }
 

@@ -44,7 +44,7 @@
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/core/String.hpp"
 
-#include <stdint.h>
+#include <cstdint>
 
 // All directories have a trailing "/" while files do not. <== remember to
 // enforce this!!!
@@ -149,9 +149,9 @@ public:
 
     EXPORT static bool FileExists(
         const String& strFilePath,
-        int64_t& nFileLength);  // returns true if file
-                                // exists and its
-                                // length.
+        std::int64_t& nFileLength);  // returns true if file
+                                     // exists and its
+                                     // length.
     EXPORT static bool FolderExists(const String& strFolderPath);  // returns
                                                                    // true if
                                                                    // folder

@@ -90,7 +90,6 @@
 #include "opentxs/OT.hpp"
 #include "opentxs/Types.hpp"
 
-#include <stdint.h>
 #include <cstdint>
 #include <memory>
 #include <ostream>
@@ -169,7 +168,7 @@ bool KeyCredential::VerifySignedBySelf(const Lock& lock) const
 // which is to return all
 // possible matching pubkeys based on a full match of the metadata.
 //
-int32_t KeyCredential::GetPublicKeysBySignature(
+std::int32_t KeyCredential::GetPublicKeysBySignature(
     listOfAsymmetricKeys& listOutput,
     const OTSignature& theSignature,
     char cKeyType) const  // 'S' (signing key) or 'E' (encryption key)
@@ -187,7 +186,7 @@ int32_t KeyCredential::GetPublicKeysBySignature(
     // and that the signature's metadata
     // can additionally narrow the search down, if it's present, which in this
     // case it's not guaranteed to be.
-    int32_t nCount = 0;
+    std::int32_t nCount = 0;
 
     OT_ASSERT(m_AuthentKey);
     OT_ASSERT(m_EncryptKey);
@@ -380,9 +379,9 @@ bool KeyCredential::New(const NymParameters& nymParameters)
 std::shared_ptr<OTKeypair> KeyCredential::DeriveHDKeypair(
     const OTPassword& seed,
     const std::string& fingerprint,
-    const uint32_t nym,
-    const uint32_t credset,
-    const uint32_t credindex,
+    const std::uint32_t nym,
+    const std::uint32_t credset,
+    const std::uint32_t credindex,
     const EcdsaCurve& curve,
     const proto::KeyRole role)
 {

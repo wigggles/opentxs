@@ -41,8 +41,8 @@
 
 #include "opentxs/Forward.hpp"
 
-#include <stdint.h>
 #include <cinttypes>
+#include <cstdint>
 #include <cstring>
 #include <sstream>
 #include <string>
@@ -64,11 +64,11 @@ static Container& split_byChar(
     split::empties_t empties)
 {
     result.clear();
-    int64_t next = -1;
+    std::int64_t next = -1;
     do {
         if (empties == split::no_empties) {
             next = s.find_first_not_of(
-                delimiters, static_cast<uint32_t>(next) + 1);
+                delimiters, static_cast<std::uint32_t>(next) + 1);
             if (static_cast<size_t>(next) == Container::value_type::npos) {
                 break;
             }
@@ -77,7 +77,7 @@ static Container& split_byChar(
         size_t current = static_cast<size_t>(next + 1);
         next = s.find_first_of(delimiters, current);
         result.push_back(
-            s.substr(current, static_cast<uint32_t>(next) - current));
+            s.substr(current, static_cast<std::uint32_t>(next) - current));
     } while (static_cast<size_t>(next) != Container::value_type::npos);
     return result;
 }
@@ -86,7 +86,7 @@ static Container& split_byChar(
 // you can pass the length to str_hsh or str_dup
 // and save it the trouble.
 //
-char* str_dup2(const char* str, uint32_t length);
+char* str_dup2(const char* str, std::uint32_t length);
 
 template <typename T>
 inline std::string to_string(const T& t)

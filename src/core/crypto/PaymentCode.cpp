@@ -66,7 +66,6 @@
 
 #include <array>
 #include <cstdint>
-#include <stdint.h>
 #include <memory>
 #include <ostream>
 #include <string>

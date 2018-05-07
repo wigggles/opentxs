@@ -54,7 +54,7 @@ namespace opentxs
  OTPassword thePass(strPassword, strPassword.length());
 
  const char * szPassword    = thePass.getPassword();
- const int32_t    nPassLength    = thePass.getPasswordSize();
+ const std::int32_t    nPassLength    = thePass.getPasswordSize();
 
  If the instance of OTPassword is not going to be destroyed immediately
  after the password is used, then make sure to call zeroMemory() after
@@ -100,60 +100,64 @@ class OTPassword
 public:
     EXPORT explicit OTPassword();
     EXPORT explicit OTPassword(const OTPassword& rhs);
-    EXPORT explicit OTPassword(const char* input, uint32_t size);
-    EXPORT explicit OTPassword(const uint8_t* input, uint32_t size);
-    EXPORT explicit OTPassword(const void* input, uint32_t size);
+    EXPORT explicit OTPassword(const char* input, std::uint32_t size);
+    EXPORT explicit OTPassword(const std::uint8_t* input, std::uint32_t size);
+    EXPORT explicit OTPassword(const void* input, std::uint32_t size);
 
     EXPORT ~OTPassword();
     EXPORT OTPassword& operator=(const OTPassword& rhs);
 
     EXPORT bool isPassword() const;
-    EXPORT const uint8_t* getPassword_uint8() const;
+    EXPORT const std::uint8_t* getPassword_uint8() const;
 
     EXPORT const char* getPassword() const;
-    EXPORT uint8_t* getPasswordWritable();
+    EXPORT std::uint8_t* getPasswordWritable();
     EXPORT char* getPasswordWritable_char();
     // (FYI, truncates if nInputSize larger than getBlockSize.)
-    EXPORT int32_t setPassword(const std::string& input);
-    EXPORT int32_t setPassword(const char* input, int32_t size);
+    EXPORT std::int32_t setPassword(const std::string& input);
+    EXPORT std::int32_t setPassword(const char* input, std::int32_t size);
     // (FYI, truncates if nInputSize larger than getBlockSize.)
-    EXPORT int32_t setPassword_uint8(const uint8_t* input, uint32_t size);
-    EXPORT bool addChar(uint8_t c);
-    EXPORT int32_t randomizePassword(uint32_t size = OT_DEFAULT_BLOCKSIZE);
+    EXPORT std::int32_t setPassword_uint8(
+        const std::uint8_t* input,
+        std::uint32_t size);
+    EXPORT bool addChar(std::uint8_t c);
+    EXPORT std::int32_t randomizePassword(
+        std::uint32_t size = OT_DEFAULT_BLOCKSIZE);
     EXPORT static bool randomizePassword_uint8(
-        uint8_t* destination,
-        uint32_t size);
-    EXPORT static bool randomizePassword(char* destination, uint32_t size);
+        std::uint8_t* destination,
+        std::uint32_t size);
+    EXPORT static bool randomizePassword(char* destination, std::uint32_t size);
     EXPORT bool isMemory() const;
     EXPORT const void* getMemory() const;
-    EXPORT const uint8_t* getMemory_uint8() const;
+    EXPORT const std::uint8_t* getMemory_uint8() const;
     EXPORT void* getMemoryWritable();
     // (FYI, truncates if size larger than getBlockSize.)
-    EXPORT int32_t setMemory(const Data& data);
-    EXPORT int32_t setMemory(const void* input, uint32_t size);
+    EXPORT std::int32_t setMemory(const Data& data);
+    EXPORT std::int32_t setMemory(const void* input, std::uint32_t size);
     // (FYI, truncates if size + getPasswordSize() is larger than
     // getBlockSize.)
-    EXPORT int32_t addMemory(const void* append, uint32_t size);
-    EXPORT int32_t randomizeMemory(uint32_t size = OT_DEFAULT_BLOCKSIZE);
+    EXPORT std::int32_t addMemory(const void* append, std::uint32_t size);
+    EXPORT std::int32_t randomizeMemory(
+        std::uint32_t size = OT_DEFAULT_BLOCKSIZE);
     EXPORT static bool randomizeMemory_uint8(
-        uint8_t* destination,
-        uint32_t size);
-    EXPORT static bool randomizeMemory(void* destination, uint32_t size);
+        std::uint8_t* destination,
+        std::uint32_t size);
+    EXPORT static bool randomizeMemory(void* destination, std::uint32_t size);
     EXPORT std::size_t getBlockSize() const;
     EXPORT bool Compare(OTPassword& rhs) const;
-    EXPORT uint32_t getPasswordSize() const;
-    EXPORT uint32_t getMemorySize() const;
+    EXPORT std::uint32_t getPasswordSize() const;
+    EXPORT std::uint32_t getMemorySize() const;
     EXPORT void zeroMemory();
-    EXPORT static void zeroMemory(uint8_t* szMemory, uint32_t size);
-    EXPORT static void zeroMemory(void* vMemory, uint32_t size);
+    EXPORT static void zeroMemory(std::uint8_t* szMemory, std::uint32_t size);
+    EXPORT static void zeroMemory(void* vMemory, std::uint32_t size);
     EXPORT static void* safe_memcpy(
         void* dest,
-        uint32_t dsize,
+        std::uint32_t dsize,
         const void* src,
-        uint32_t ssize,
+        std::uint32_t ssize,
         bool zeroSource = false);
     inline void reset() { position_ = 0; }
-    EXPORT uint32_t OTfread(uint8_t* data, uint32_t size);
+    EXPORT std::uint32_t OTfread(std::uint8_t* data, std::uint32_t size);
 
     // OTPassword thePass; will create a text password.
     // But use the below function if you want one that has
@@ -176,7 +180,7 @@ public:
     // those odd cases where it's necessary. That being said, YOU should
     // normally NEVER
     // need to use this function, so just pretend it doesn't exist.
-    EXPORT bool SetSize(uint32_t size);
+    EXPORT bool SetSize(std::uint32_t size);
 
 private:
     std::size_t size_{0};

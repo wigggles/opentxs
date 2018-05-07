@@ -60,7 +60,7 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/OT.hpp"
 
-#include <stdint.h>
+#include <cstdint>
 #include <ostream>
 
 namespace opentxs
@@ -231,15 +231,15 @@ bool Libsecp256k1::DataToECSignature(
     const Data& inSignature,
     secp256k1_ecdsa_signature& outSignature) const
 {
-    const uint8_t* sigStart =
-        static_cast<const uint8_t*>(inSignature.GetPointer());
+    const std::uint8_t* sigStart =
+        static_cast<const std::uint8_t*>(inSignature.GetPointer());
 
     if (nullptr != sigStart) {
 
         if (sizeof(secp256k1_ecdsa_signature) == inSignature.GetSize()) {
             secp256k1_ecdsa_signature ecdsaSignature;
 
-            for (uint32_t i = 0; i < inSignature.GetSize(); i++) {
+            for (std::uint32_t i = 0; i < inSignature.GetSize(); i++) {
                 ecdsaSignature.data[i] = *(sigStart + i);
             }
 
@@ -270,7 +270,7 @@ void Libsecp256k1::Init_Override() const
         false == Initialized_,
         "Libsecp256k1::Init_Override: Tried to initialize twice.");
     // --------------------------------
-    uint8_t randomSeed[32]{};
+    std::uint8_t randomSeed[32]{};
     ssl_.RandomizeMemory(randomSeed, 32);
 
     OT_ASSERT_MSG(

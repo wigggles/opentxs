@@ -44,7 +44,7 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Nym.hpp"
 
-#include <stdint.h>
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <utility>
@@ -123,7 +123,7 @@ BasketContract::BasketContract(
     const std::string& name,
     const std::string& symbol,
     const std::string& terms,
-    const uint64_t weight)
+    const std::uint64_t weight)
     : ot_super(nym, shortname, name, symbol, terms)
     , weight_(weight)
 {

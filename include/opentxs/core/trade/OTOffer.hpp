@@ -48,7 +48,7 @@
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Instrument.hpp"
 
-#include <stdint.h>
+#include <cstdint>
 
 namespace opentxs
 {
@@ -106,7 +106,7 @@ NOTARY_ID; }
      */
     time64_t m_tDateAddedToMarket{0};
 
-    bool isPowerOfTen(const int64_t& x);
+    bool isPowerOfTen(const std::int64_t& x);
 
 protected:
     // If this offer is actually connected to a trade, it will have a pointer.
@@ -118,50 +118,54 @@ protected:
     // will sell for. My limit.
     // (Normally the price I get is whatever is the best one on the market right
     // now.)
-    int64_t m_lPriceLimit{0};  // Denominated in CURRENCY TYPE, and priced per
-                               // SCALE.
-                               // 1oz market price limit might be 1,300
+    std::int64_t m_lPriceLimit{
+        0};  // Denominated in CURRENCY TYPE, and priced per
+             // SCALE.
+             // 1oz market price limit might be 1,300
     // 100oz market price limit might be 130,000 (or 127,987 or whatever)
 
-    int64_t m_lTransactionNum{0};  // Matches to an OTTrade stored in OTCron.
-    int64_t m_lTotalAssetsOffer{
+    std::int64_t m_lTransactionNum{
+        0};  // Matches to an OTTrade stored in OTCron.
+    std::int64_t m_lTotalAssetsOffer{
         0};  // Total amount of ASSET TYPE trying to BUY or
              // SELL, this trade.
-    int64_t m_lFinishedSoFar{
+    std::int64_t m_lFinishedSoFar{
         0};  // Number of ASSETs bought or sold already against
              // the above total.
 
-    int64_t m_lScale{0};  // 1oz market? 100oz market? 10,000oz market? This
-                          // determines size and granularity.
-    int64_t m_lMinimumIncrement{0};  // Each sale or purchase against the above
-                                     // total must be in minimum increments.
+    std::int64_t m_lScale{
+        0};  // 1oz market? 100oz market? 10,000oz market? This
+             // determines size and granularity.
+    std::int64_t m_lMinimumIncrement{
+        0};  // Each sale or purchase against the above
+             // total must be in minimum increments.
     // Minimum Increment must be evenly divisible by m_lScale.
     // (This effectively becomes a "FILL OR KILL" order if set to the same value
     // as m_lTotalAssetsOffer. Also, MUST be 1
     // or great. CANNOT be zero. Enforce this at class level. You cannot sell
     // something in minimum increments of 0.)
-    inline void SetTransactionNum(const int64_t& lTransactionNum)
+    inline void SetTransactionNum(const std::int64_t& lTransactionNum)
     {
         m_lTransactionNum = lTransactionNum;
     }
-    inline void SetPriceLimit(const int64_t& lPriceLimit)
+    inline void SetPriceLimit(const std::int64_t& lPriceLimit)
     {
         m_lPriceLimit = lPriceLimit;
     }
-    inline void SetTotalAssetsOnOffer(const int64_t& lTotalAssets)
+    inline void SetTotalAssetsOnOffer(const std::int64_t& lTotalAssets)
     {
         m_lTotalAssetsOffer = lTotalAssets;
     }
-    inline void SetFinishedSoFar(const int64_t& lFinishedSoFar)
+    inline void SetFinishedSoFar(const std::int64_t& lFinishedSoFar)
     {
         m_lFinishedSoFar = lFinishedSoFar;
     }
-    inline void SetMinimumIncrement(const int64_t& lMinIncrement)
+    inline void SetMinimumIncrement(const std::int64_t& lMinIncrement)
     {
         m_lMinimumIncrement = lMinIncrement;
         if (m_lMinimumIncrement < 1) m_lMinimumIncrement = 1;
     }
-    inline void SetScale(const int64_t& lScale)
+    inline void SetScale(const std::int64_t& lScale)
     {
         m_lScale = lScale;
         if (m_lScale < 1) m_lScale = 1;
@@ -169,43 +173,49 @@ protected:
 
 public:
     EXPORT bool MakeOffer(
-        bool bBuyingOrSelling,             // True == SELLING, False == BUYING
-        const int64_t& lPriceLimit,        // Per Scale...
-        const int64_t& lTotalAssetsOffer,  // Total assets available for sale or
-                                           // purchase.
-        const int64_t& lMinimumIncrement,  // The minimum increment that must be
+        bool bBuyingOrSelling,            // True == SELLING, False == BUYING
+        const std::int64_t& lPriceLimit,  // Per Scale...
+        const std::int64_t& lTotalAssetsOffer,  // Total assets available for
+                                                // sale or
+                                                // purchase.
+        const std::int64_t& lMinimumIncrement,  // The minimum increment that
+                                                // must be
         // bought or sold for each transaction
-        const int64_t& lTransactionNum,  // The transaction number authorizing
-                                         // this trade.
+        const std::int64_t& lTransactionNum,        // The transaction number
+                                                    // authorizing
+                                                    // this trade.
         const time64_t& VALID_FROM = OT_TIME_ZERO,  // defaults to RIGHT NOW
         const time64_t& VALID_TO = OT_TIME_ZERO);   // defaults to 24 hours (a
                                                     // "Day Order")
-    inline void IncrementFinishedSoFar(const int64_t& lFinishedSoFar)
+    inline void IncrementFinishedSoFar(const std::int64_t& lFinishedSoFar)
     {
         m_lFinishedSoFar += lFinishedSoFar;
     }
 
-    inline int64_t GetAmountAvailable() const
+    inline std::int64_t GetAmountAvailable() const
     {
         return GetTotalAssetsOnOffer() - GetFinishedSoFar();
     }
-    inline const int64_t& GetTransactionNum() const
+    inline const std::int64_t& GetTransactionNum() const
     {
         return m_lTransactionNum;
     }
 
-    inline const int64_t& GetPriceLimit() const { return m_lPriceLimit; }
-    inline const int64_t& GetTotalAssetsOnOffer() const
+    inline const std::int64_t& GetPriceLimit() const { return m_lPriceLimit; }
+    inline const std::int64_t& GetTotalAssetsOnOffer() const
     {
         return m_lTotalAssetsOffer;
     }
-    inline const int64_t& GetFinishedSoFar() const { return m_lFinishedSoFar; }
-    inline const int64_t& GetMinimumIncrement()
+    inline const std::int64_t& GetFinishedSoFar() const
+    {
+        return m_lFinishedSoFar;
+    }
+    inline const std::int64_t& GetMinimumIncrement()
     {
         if (m_lMinimumIncrement < 1) m_lMinimumIncrement = 1;
         return m_lMinimumIncrement;
     }
-    inline const int64_t& GetScale() const { return m_lScale; }
+    inline const std::int64_t& GetScale() const { return m_lScale; }
 
     inline const Identifier& GetCurrencyID() const
     {
@@ -244,7 +254,7 @@ public:
         const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID,
         const Identifier& CURRENCY_ID,
-        const int64_t& MARKET_SCALE);
+        const std::int64_t& MARKET_SCALE);
     EXPORT virtual ~OTOffer();
 
     // Overridden from Contract.
@@ -256,7 +266,7 @@ public:
     void Release_Offer();
 
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
-    int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
+    std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
 
     void UpdateContents() override;  // Before transmission or serialization,
                                      // this

@@ -634,7 +634,8 @@ std::shared_ptr<ContactData> Contact::merged_data(const Lock& lock) const
     return output;
 }
 
-std::vector< opentxs::OTIdentifier > opentxs::Contact::Nyms(const bool includeInactive) const
+std::vector<opentxs::OTIdentifier> opentxs::Contact::Nyms(
+    const bool includeInactive) const
 {
     Lock lock(lock_);
     const auto data = merged_data(lock);

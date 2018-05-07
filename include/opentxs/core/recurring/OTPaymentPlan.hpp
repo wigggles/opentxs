@@ -45,7 +45,7 @@
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Contract.hpp"
 
-#include <stdint.h>
+#include <cstdint>
 
 namespace opentxs
 {
@@ -123,7 +123,8 @@ public:
     // From parent:  (This must be called first, before the other two methods
     // below can be called.)
     //
-    //  bool        SetAgreement(const int64_t& lTransactionNum, const OTString&
+    //  bool        SetAgreement(const std::int64_t& lTransactionNum, const
+    //  OTString&
     //  strConsideration,
     //                           const time64_t& VALID_FROM=0,   const time64_t&
     //                           VALID_TO=0);
@@ -131,7 +132,7 @@ public:
     // Then call one (or both) of these:
 
     EXPORT bool SetInitialPayment(
-        const int64_t& lAmount,
+        const std::int64_t& lAmount,
         time64_t tTimeUntilInitialPayment = OT_TIME_ZERO);  // default: now.
 
     // These two methods (above and below) can be called independent of each
@@ -140,12 +141,12 @@ public:
     // Meaning: You can have an initial payment AND/OR a payment plan.
 
     EXPORT bool SetPaymentPlan(
-        const int64_t& lPaymentAmount,
+        const std::int64_t& lPaymentAmount,
         time64_t tTimeUntilPlanStart = OT_TIME_MONTH_IN_SECONDS,
         time64_t tBetweenPayments = OT_TIME_MONTH_IN_SECONDS,  // Default: 30
                                                                // days.
         time64_t tPlanLength = OT_TIME_ZERO,
-        int32_t nMaxPayments = 0);
+        std::int32_t nMaxPayments = 0);
 
     // VerifyAgreement()
     // This function verifies both Nyms and both signatures. Due to the
@@ -177,7 +178,7 @@ public:
     {
         return m_tInitialPaymentDate;
     }
-    inline const int64_t& GetInitialPaymentAmount() const
+    inline const std::int64_t& GetInitialPaymentAmount() const
     {
         return m_lInitialPaymentAmount;
     }
@@ -191,7 +192,7 @@ public:
     {
         return m_tFailedInitialPaymentDate;
     }
-    inline int32_t GetNoInitialFailures() const
+    inline std::int32_t GetNoInitialFailures() const
     {
         return m_nNumberInitialFailures;
     }
@@ -206,9 +207,9 @@ private:
     time64_t m_tFailedInitialPaymentDate{0};  // Date of the last failed
                                               // payment, measured seconds after
                                               // creation.
-    int64_t m_lInitialPaymentAmount{0};       // Amount of the initial payment.
+    std::int64_t m_lInitialPaymentAmount{0};  // Amount of the initial payment.
     bool m_bInitialPaymentDone{false};  // Has the initial payment been made?
-    int32_t m_nNumberInitialFailures{
+    std::int32_t m_nNumberInitialFailures{
         0};  // If we've tried to process this multiple times, we'll know.
 
     // "INITIAL PAYMENT" protected SET METHODS
@@ -217,7 +218,7 @@ protected:
     {
         m_tInitialPaymentDate = tInitialPaymentDate;
     }
-    inline void SetInitialPaymentAmount(const int64_t& lAmount)
+    inline void SetInitialPaymentAmount(const std::int64_t& lAmount)
     {
         m_lInitialPaymentAmount = lAmount;
     }
@@ -237,7 +238,7 @@ protected:
         m_tFailedInitialPaymentDate = tFailedInitialPaymentDate;
     }
 
-    inline void SetNoInitialFailures(const int32_t& nNoFailures)
+    inline void SetNoInitialFailures(const std::int32_t& nNoFailures)
     {
         m_nNumberInitialFailures = nNoFailures;
     }
@@ -246,7 +247,7 @@ protected:
     // ************ "PAYMENT PLAN" public GET METHODS ****************
 public:
     inline bool HasPaymentPlan() const { return m_bPaymentPlan; }
-    inline const int64_t& GetPaymentPlanAmount() const
+    inline const std::int64_t& GetPaymentPlanAmount() const
     {
         return m_lPaymentPlanAmount;
     }
@@ -262,7 +263,10 @@ public:
     {
         return m_tPaymentPlanLength;
     }
-    inline int32_t GetMaximumNoPayments() const { return m_nMaximumNoPayments; }
+    inline std::int32_t GetMaximumNoPayments() const
+    {
+        return m_nMaximumNoPayments;
+    }
 
     inline const time64_t& GetDateOfLastPayment() const
     {
@@ -273,32 +277,35 @@ public:
         return m_tDateOfLastFailedPayment;
     }
 
-    inline int32_t GetNoPaymentsDone() const { return m_nNoPaymentsDone; }
-    inline int32_t GetNoFailedPayments() const { return m_nNoFailedPayments; }
+    inline std::int32_t GetNoPaymentsDone() const { return m_nNoPaymentsDone; }
+    inline std::int32_t GetNoFailedPayments() const
+    {
+        return m_nNoFailedPayments;
+    }
 
     // "PAYMENT PLAN" private MEMBERS
 private:
-    bool m_bPaymentPlan{false};          // Will there be a payment plan?
-    int64_t m_lPaymentPlanAmount{0};     // Amount of each payment.
+    bool m_bPaymentPlan{false};            // Will there be a payment plan?
+    std::int64_t m_lPaymentPlanAmount{0};  // Amount of each payment.
     time64_t m_tTimeBetweenPayments{0};  // How much time between each payment?
     time64_t m_tPaymentPlanStartDate{
         0};  // Date for the first payment plan payment.
     time64_t m_tPaymentPlanLength{
         0};  // Optional. Plan length measured in seconds since plan start.
-    int32_t m_nMaximumNoPayments{
+    std::int32_t m_nMaximumNoPayments{
         0};  // Optional. The most number of payments that are authorized.
 
     time64_t m_tDateOfLastPayment{0};  // Recording of date of the last payment.
     time64_t m_tDateOfLastFailedPayment{
         0};  // Recording of date of the last failed payment.
-    int32_t m_nNoPaymentsDone{
+    std::int32_t m_nNoPaymentsDone{
         0};  // Recording of the number of payments already processed.
-    int32_t m_nNoFailedPayments{
+    std::int32_t m_nNoFailedPayments{
         0};  // Every time a payment fails, we record that here.
 
     // "PAYMENT PLAN" protected SET METHODS
 protected:
-    inline void SetPaymentPlanAmount(const int64_t& lAmount)
+    inline void SetPaymentPlanAmount(const std::int64_t& lAmount)
     {
         m_lPaymentPlanAmount = lAmount;
     }
@@ -314,7 +321,7 @@ protected:
     {
         m_tPaymentPlanLength = tPlanLength;
     }
-    inline void SetMaximumNoPayments(int32_t nMaxNoPayments)
+    inline void SetMaximumNoPayments(std::int32_t nMaxNoPayments)
     {
         m_nMaximumNoPayments = nMaxNoPayments;
     }
@@ -328,11 +335,11 @@ protected:
         m_tDateOfLastFailedPayment = tDateOfLast;
     }
 
-    inline void SetNoPaymentsDone(int32_t nNoPaymentsDone)
+    inline void SetNoPaymentsDone(std::int32_t nNoPaymentsDone)
     {
         m_nNoPaymentsDone = nNoPaymentsDone;
     }
-    inline void SetNoFailedPayments(int32_t nNoFailed)
+    inline void SetNoFailedPayments(std::int32_t nNoFailed)
     {
         m_nNoFailedPayments = nNoFailed;
     }
@@ -356,7 +363,7 @@ protected:
     //  virtual void onRemovalFromCron();     // Now handled in the parent
     //  class.
 
-    bool ProcessPayment(const int64_t& lAmount);
+    bool ProcessPayment(const std::int64_t& lAmount);
     void ProcessInitialPayment();
     void ProcessPaymentPlan();
 
@@ -377,7 +384,7 @@ public:
     void Release() override;
     void Release_PaymentPlan();
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
-    int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
+    std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
     void UpdateContents() override;  // Before transmission or serialization,
                                      // this
                                      // is where the ledger saves its contents

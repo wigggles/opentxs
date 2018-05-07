@@ -69,7 +69,8 @@ class Api;
 }  // namespace api
 
 /** AccountInfo: accountID, nymID, serverID, unitID */
-using AccountInfo = std::tuple<OTIdentifier, OTIdentifier, OTIdentifier, OTIdentifier>;
+using AccountInfo =
+    std::tuple<OTIdentifier, OTIdentifier, OTIdentifier, OTIdentifier>;
 
 // The C++ high-level interface to the Open Transactions client-side.
 class OT_API : Lockable
@@ -994,12 +995,12 @@ public:
         const String& VAR_NAME,    // The Variable's name as referenced in the
                                    // smart contract. (And the scripts...)
         const String& VAR_ACCESS,  // "constant", "persistent", or "important".
-        const String& VAR_TYPE,    // "string", "int64_t", or "bool"
-        const String& VAR_VALUE,   // Contains a string. If type is int64_t,
-                                   // atol() will be used to convert value to a
-                                   // std::int64_t. If type is bool, the strings
-                                   // "true" or "false" are expected here in
-                                   // order to convert to a bool.
+        const String& VAR_TYPE,    // "string", "std::int64_t", or "bool"
+        const String& VAR_VALUE,  // Contains a string. If type is std::int64_t,
+                                  // atol() will be used to convert value to a
+                                  // std::int64_t. If type is bool, the strings
+                                  // "true" or "false" are expected here in
+                                  // order to convert to a bool.
         String& strOutput) const;
 
     EXPORT bool SmartContract_RemoveVariable(

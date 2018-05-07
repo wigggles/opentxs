@@ -68,16 +68,16 @@
 #include "opentxs/server/ConfigLoader.hpp"
 #include "opentxs/server/Transactor.hpp"
 
+#include <sys/types.h>
 #ifndef WIN32
 #include <unistd.h>
 #endif
-#include <inttypes.h>
-#include <stdint.h>
-#include <sys/types.h>
 
+#include <cinttypes>
+#include <cstdint>
 #include <fstream>
-#include <string>
 #include <regex>
+#include <string>
 
 #define SERVER_PID_FILENAME "ot.pid"
 #define SEED_BACKUP_FILE "seed_backup.json"
@@ -93,15 +93,16 @@ namespace opentxs::server
 {
 
 #ifdef _WIN32
-int32_t OTCron::__trans_refill_amount = 500;  // The number of transaction
-                                              // numbers Cron will grab for
-                                              // itself, when it
-                                              // gets low, before each round.
-int32_t OTCron::__cron_ms_between_process =
-    10000;                                      // The number of milliseconds
-                                                // (ideally) between each
-                                                // "Cron Process" event.
-int32_t OTCron::__cron_max_items_per_nym = 10;  // The maximum number of cron
+std::int32_t OTCron::__trans_refill_amount = 500;  // The number of transaction
+                                                   // numbers Cron will grab for
+                                                   // itself, when it
+// gets low, before each round.
+std::int32_t OTCron::__cron_ms_between_process =
+    10000;  // The number of milliseconds
+            // (ideally) between each
+            // "Cron Process" event.
+std::int32_t OTCron::__cron_max_items_per_nym =
+    10;  // The maximum number of cron
 // items any given Nym can have
 // active at the same time.
 #endif
@@ -154,7 +155,7 @@ void Server::ProcessCron()
     // So every time before I call Cron.Process(), I make sure to replenish
     // first.
     while (m_Cron.GetTransactionCount() < OTCron::GetCronRefillAmount()) {
-        int64_t lTransNum = 0;
+        std::int64_t lTransNum = 0;
         bool bSuccess = transactor_.issueNextTransactionNumber(lTransNum);
 
         if (bSuccess) {
@@ -303,7 +304,7 @@ void Server::CreateMainFile(bool& mainFileExists)
     }
 
     const std::string& userListenCommand = mint_.GetListenCommand();
-    uint32_t listenCommand = 0;
+    std::uint32_t listenCommand = 0;
     bool needListenCommand = true;
 
     while (needListenCommand) {
@@ -329,10 +330,10 @@ void Server::CreateMainFile(bool& mainFileExists)
         String(std::to_string(listenCommand)),
         notUsed);
 
-    const uint32_t defaultNotificationPort = DEFAULT_NOTIFY_PORT;
+    const std::uint32_t defaultNotificationPort = DEFAULT_NOTIFY_PORT;
 
     const std::string& userListenNotification = mint_.GetListenNotify();
-    uint32_t listenNotification = 0;
+    std::uint32_t listenNotification = 0;
     bool needListenNotification = true;
 
     while (needListenNotification) {
@@ -415,7 +416,7 @@ void Server::CreateMainFile(bool& mainFileExists)
 
     if (pContract) {
         std::string strHostname;
-        uint32_t nPort = 0;
+        std::uint32_t nPort = 0;
 
         if (!pContract->ConnectInfo(strHostname, nPort)) {
             otOut << __FUNCTION__
@@ -527,13 +528,13 @@ void Server::Init(bool readOnly)
 
             // 2. (IF FILE EXISTS WITH ANY PID INSIDE, THEN DIE.)
             if (pid_infile.is_open()) {
-                uint32_t old_pid = 0;
+                std::uint32_t old_pid = 0;
                 pid_infile >> old_pid;
                 pid_infile.close();
 
                 // There was a real PID in there.
                 if (old_pid != 0) {
-                    uint64_t lPID = old_pid;
+                    std::uint64_t lPID = old_pid;
                     Log::vError(
                         "\n\n\nIS OPEN-TRANSACTIONS ALREADY RUNNING?\n\n"
                         "I found a PID (%" PRIu64
@@ -556,7 +557,7 @@ void Server::Init(bool readOnly)
             // can't trample on US.
 
             // 3. GET THE CURRENT (ACTUAL) PROCESS ID.
-            uint64_t the_pid = 0;
+            std::uint64_t the_pid = 0;
 
 #ifdef _WIN32
             the_pid = GetCurrentProcessId();
@@ -764,7 +765,7 @@ bool Server::DropMessageToNymbox(
         !((nullptr != pMsg) && (nullptr != pstrMessage)),
         "pMsg and pstrMessage -- these can't BOTH be not-nullptr.\n");
     // ^^^ Can't provide both.
-    int64_t lTransNum{0};
+    std::int64_t lTransNum{0};
     const bool bGotNextTransNum =
         transactor_.issueNextTransactionNumber(lTransNum);
 
@@ -967,10 +968,11 @@ bool Server::DropMessageToNymbox(
     return false;
 }
 
-bool Server::GetConnectInfo(std::string& strHostname, uint32_t& nPort) const
+bool Server::GetConnectInfo(std::string& strHostname, std::uint32_t& nPort)
+    const
 {
     bool notUsed = false;
-    int64_t port = 0;
+    std::int64_t port = 0;
 
     const bool haveIP = config_.CheckSet_str(
         SERVER_CONFIG_LISTEN_SECTION,
@@ -1025,7 +1027,7 @@ Server::~Server()
         std::ofstream pid_outfile(strPIDPath.Get());
 
         if (pid_outfile.is_open()) {
-            uint32_t the_pid = 0;
+            std::uint32_t the_pid = 0;
             pid_outfile << the_pid;
             pid_outfile.close();
         } else

@@ -65,7 +65,7 @@ extern "C" {
 #include <netinet/in.h>
 #endif
 }
-#include <stdint.h>
+#include <cstdint>
 #include <ostream>
 
 #define OT_METHOD "opentxs::OTSymmetricKey::"
@@ -239,13 +239,13 @@ bool OTSymmetricKey::GenerateKey(
     OTPassword theActualKey;
 
     {
-        int32_t nRes =
+        std::int32_t nRes =
             theActualKey.randomizeMemory(CryptoConfig::SymmetricKeySize());
         if (0 > nRes) {
             OT_FAIL;
         }
-        uint32_t uRes =
-            static_cast<uint32_t>(nRes);  // we need an uint32_t value.
+        std::uint32_t uRes =
+            static_cast<std::uint32_t>(nRes);  // we need an uint32_t value.
 
         if (CryptoConfig::SymmetricKeySize() != uRes) {
             otErr << __FUNCTION__
@@ -581,12 +581,12 @@ OTPassword* OTSymmetricKey::GetPassphraseFromUser(
                                     // since
                                     // this is for a plain symmetric key.
     // -------------------------------------------------------------------
-    const int32_t nCallback = souped_up_pass_cb(
+    const std::int32_t nCallback = souped_up_pass_cb(
         pPassUserInput->getPasswordWritable_char(),
         pPassUserInput->getBlockSize(),
         bAskTwice ? 1 : 0,
         static_cast<void*>(&thePWData));
-    const uint32_t uCallback = static_cast<uint32_t>(nCallback);
+    const std::uint32_t uCallback = static_cast<uint32_t>(nCallback);
     if ((nCallback > 0) &&  // Success retrieving the passphrase from the user.
         pPassUserInput->SetSize(uCallback)) {
         //      otOut << "%s: Retrieved passphrase (blocksize %d, actual size
@@ -855,15 +855,15 @@ bool OTSymmetricKey::serialize_from(const Lock& lock, Data& theInput)
 {
     OT_ASSERT(verify_lock(lock))
 
-    uint32_t nRead = 0;
+    std::uint32_t nRead = 0;
 
     // Read network-order "is generated" flag. (convert to host order)
     //
     uint16_t n_is_generated = 0;
 
     if (0 == (nRead = theInput.OTfread(
-                  reinterpret_cast<uint8_t*>(&n_is_generated),
-                  static_cast<uint32_t>(sizeof(n_is_generated))))) {
+                  reinterpret_cast<std::uint8_t*>(&n_is_generated),
+                  static_cast<std::uint32_t>(sizeof(n_is_generated))))) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Error reading n_is_generated.\n";
         return false;
@@ -880,13 +880,13 @@ bool OTSymmetricKey::serialize_from(const Lock& lock, Data& theInput)
     else {
         otErr << OT_METHOD << __FUNCTION__
               << ": Error: host_is_generated, Bad value: "
-              << static_cast<int32_t>(host_is_generated)
+              << static_cast<std::int32_t>(host_is_generated)
               << ". (Expected 0 or 1.)\n";
         return false;
     }
 
     otLog5 << __FUNCTION__
-           << ": is_generated: " << static_cast<int32_t>(host_is_generated)
+           << ": is_generated: " << static_cast<std::int32_t>(host_is_generated)
            << " \n";
 
     // Read network-order "key size in bits". (convert to host order)
@@ -894,8 +894,8 @@ bool OTSymmetricKey::serialize_from(const Lock& lock, Data& theInput)
     uint16_t n_key_size_bits = 0;
 
     if (0 == (nRead = theInput.OTfread(
-                  reinterpret_cast<uint8_t*>(&n_key_size_bits),
-                  static_cast<uint32_t>(sizeof(n_key_size_bits))))) {
+                  reinterpret_cast<std::uint8_t*>(&n_key_size_bits),
+                  static_cast<std::uint32_t>(sizeof(n_key_size_bits))))) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Error reading n_key_size_bits.\n";
         return false;
@@ -906,121 +906,124 @@ bool OTSymmetricKey::serialize_from(const Lock& lock, Data& theInput)
     m_nKeySize = ntohs(n_key_size_bits);
 
     otLog5 << __FUNCTION__
-           << ": key_size_bits: " << static_cast<int32_t>(m_nKeySize) << " \n";
+           << ": key_size_bits: " << static_cast<std::int32_t>(m_nKeySize)
+           << " \n";
 
     // Read network-order "iteration count". (convert to host order)
     //
-    uint32_t n_iteration_count = 0;
+    std::uint32_t n_iteration_count = 0;
 
     if (0 == (nRead = theInput.OTfread(
-                  reinterpret_cast<uint8_t*>(&n_iteration_count),
-                  static_cast<uint32_t>(sizeof(n_iteration_count))))) {
+                  reinterpret_cast<std::uint8_t*>(&n_iteration_count),
+                  static_cast<std::uint32_t>(sizeof(n_iteration_count))))) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Error reading n_iteration_count.\n";
         return false;
     }
-    OT_ASSERT(nRead == static_cast<uint32_t>(sizeof(n_iteration_count)));
+    OT_ASSERT(nRead == static_cast<std::uint32_t>(sizeof(n_iteration_count)));
 
     // convert from network to HOST endian.
 
     m_uIterationCount = ntohl(n_iteration_count);
 
-    otLog5 << __FUNCTION__
-           << ": iteration_count: " << static_cast<int64_t>(m_uIterationCount)
-           << " \n";
+    otLog5 << __FUNCTION__ << ": iteration_count: "
+           << static_cast<std::int64_t>(m_uIterationCount) << " \n";
 
     // Read network-order "salt size". (convert to host order)
     //
-    uint32_t n_salt_size = 0;
+    std::uint32_t n_salt_size = 0;
 
     if (0 == (nRead = theInput.OTfread(
-                  reinterpret_cast<uint8_t*>(&n_salt_size),
-                  static_cast<uint32_t>(sizeof(n_salt_size))))) {
+                  reinterpret_cast<std::uint8_t*>(&n_salt_size),
+                  static_cast<std::uint32_t>(sizeof(n_salt_size))))) {
         otErr << OT_METHOD << __FUNCTION__ << ": Error reading n_salt_size.\n";
         return false;
     }
-    OT_ASSERT(nRead == static_cast<uint32_t>(sizeof(n_salt_size)));
+    OT_ASSERT(nRead == static_cast<std::uint32_t>(sizeof(n_salt_size)));
 
     // convert from network to HOST endian.
 
-    const uint32_t lSaltSize = ntohl(n_salt_size);
+    const std::uint32_t lSaltSize = ntohl(n_salt_size);
 
     otLog5 << __FUNCTION__
-           << ": salt_size value: " << static_cast<int64_t>(lSaltSize) << " \n";
+           << ": salt_size value: " << static_cast<std::int64_t>(lSaltSize)
+           << " \n";
 
     // Then read the Salt itself.
     //
     salt_->SetSize(lSaltSize);
 
-    if (0 == (nRead = theInput.OTfread(
-                  static_cast<uint8_t*>(const_cast<void*>(salt_->GetPointer())),
-                  static_cast<uint32_t>(lSaltSize)))) {
+    if (0 ==
+        (nRead = theInput.OTfread(
+             static_cast<std::uint8_t*>(const_cast<void*>(salt_->GetPointer())),
+             static_cast<std::uint32_t>(lSaltSize)))) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Error reading salt for symmetric key.\n";
         return false;
     }
-    otLog5 << __FUNCTION__
-           << ": salt length actually read: " << static_cast<int64_t>(nRead)
-           << " \n";
-    OT_ASSERT(nRead == static_cast<uint32_t>(lSaltSize));
+    otLog5 << __FUNCTION__ << ": salt length actually read: "
+           << static_cast<std::int64_t>(nRead) << " \n";
+    OT_ASSERT(nRead == static_cast<std::uint32_t>(lSaltSize));
 
     // Read network-order "IV size". (convert to host order)
     //
-    uint32_t n_iv_size = 0;
+    std::uint32_t n_iv_size = 0;
 
     if (0 == (nRead = theInput.OTfread(
-                  reinterpret_cast<uint8_t*>(&n_iv_size),
-                  static_cast<uint32_t>(sizeof(n_iv_size))))) {
+                  reinterpret_cast<std::uint8_t*>(&n_iv_size),
+                  static_cast<std::uint32_t>(sizeof(n_iv_size))))) {
         otErr << OT_METHOD << __FUNCTION__ << ": Error reading n_iv_size.\n";
         return false;
     }
 
-    OT_ASSERT(nRead == static_cast<uint32_t>(sizeof(n_iv_size)));
+    OT_ASSERT(nRead == static_cast<std::uint32_t>(sizeof(n_iv_size)));
 
     // convert from network to HOST endian.
 
-    const uint32_t lIVSize = ntohl(n_iv_size);
+    const std::uint32_t lIVSize = ntohl(n_iv_size);
 
     otLog5 << __FUNCTION__
-           << ": iv_size value: " << static_cast<int64_t>(lIVSize) << " \n";
+           << ": iv_size value: " << static_cast<std::int64_t>(lIVSize)
+           << " \n";
 
     // Then read the IV itself.
     //
     iv_->SetSize(lIVSize);
 
-    if (0 == (nRead = theInput.OTfread(
-                  static_cast<uint8_t*>(const_cast<void*>(iv_->GetPointer())),
-                  static_cast<uint32_t>(lIVSize)))) {
+    if (0 ==
+        (nRead = theInput.OTfread(
+             static_cast<std::uint8_t*>(const_cast<void*>(iv_->GetPointer())),
+             static_cast<std::uint32_t>(lIVSize)))) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Error reading IV for symmetric key.\n";
         return false;
     }
 
     otLog5 << __FUNCTION__
-           << ": iv length actually read: " << static_cast<int64_t>(nRead)
+           << ": iv length actually read: " << static_cast<std::int64_t>(nRead)
            << " \n";
 
-    OT_ASSERT(nRead == static_cast<uint32_t>(lIVSize));
+    OT_ASSERT(nRead == static_cast<std::uint32_t>(lIVSize));
 
     // Read network-order "encrypted key size". (convert to host order)
     //
-    uint32_t n_enc_key_size = 0;
+    std::uint32_t n_enc_key_size = 0;
 
     if (0 == (nRead = theInput.OTfread(
-                  reinterpret_cast<uint8_t*>(&n_enc_key_size),
-                  static_cast<uint32_t>(sizeof(n_enc_key_size))))) {
+                  reinterpret_cast<std::uint8_t*>(&n_enc_key_size),
+                  static_cast<std::uint32_t>(sizeof(n_enc_key_size))))) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Error reading n_enc_key_size.\n";
         return false;
     }
-    OT_ASSERT(nRead == static_cast<uint32_t>(sizeof(n_enc_key_size)));
+    OT_ASSERT(nRead == static_cast<std::uint32_t>(sizeof(n_enc_key_size)));
 
     // convert from network to HOST endian.
 
-    const uint32_t lEncKeySize = ntohl(n_enc_key_size);
+    const std::uint32_t lEncKeySize = ntohl(n_enc_key_size);
 
     otLog5 << __FUNCTION__
-           << ": enc_key_size value: " << static_cast<int64_t>(lEncKeySize)
+           << ": enc_key_size value: " << static_cast<std::int64_t>(lEncKeySize)
            << " \n";
 
     // Then read the Encrypted Key itself.
@@ -1028,26 +1031,26 @@ bool OTSymmetricKey::serialize_from(const Lock& lock, Data& theInput)
     encrypted_key_->SetSize(lEncKeySize);
 
     if (0 == (nRead = theInput.OTfread(
-                  static_cast<uint8_t*>(
+                  static_cast<std::uint8_t*>(
                       const_cast<void*>(encrypted_key_->GetPointer())),
-                  static_cast<uint32_t>(lEncKeySize)))) {
+                  static_cast<std::uint32_t>(lEncKeySize)))) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Error reading encrypted symmetric key.\n";
         return false;
     }
 
     otLog5 << __FUNCTION__ << ": encrypted key length actually read: "
-           << static_cast<int64_t>(nRead) << " \n";
+           << static_cast<std::int64_t>(nRead) << " \n";
 
-    OT_ASSERT(nRead == static_cast<uint32_t>(lEncKeySize));
+    OT_ASSERT(nRead == static_cast<std::uint32_t>(lEncKeySize));
 
     // Read network-order "hash check size". (convert to host order)
     //
-    uint32_t n_hash_check_size = 0;
+    std::uint32_t n_hash_check_size = 0;
 
     if (0 == (nRead = theInput.OTfread(
-                  reinterpret_cast<uint8_t*>(&n_hash_check_size),
-                  static_cast<uint32_t>(sizeof(n_hash_check_size))))) {
+                  reinterpret_cast<std::uint8_t*>(&n_hash_check_size),
+                  static_cast<std::uint32_t>(sizeof(n_hash_check_size))))) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Error reading n_hash_check_size.\n";
         otErr
@@ -1058,33 +1061,32 @@ bool OTSymmetricKey::serialize_from(const Lock& lock, Data& theInput)
         return false;
     }
 
-    OT_ASSERT(nRead == static_cast<uint32_t>(sizeof(n_hash_check_size)));
+    OT_ASSERT(nRead == static_cast<std::uint32_t>(sizeof(n_hash_check_size)));
 
     // convert from network to HOST endian.
 
-    const uint32_t lHashCheckSize = ntohl(n_hash_check_size);
+    const std::uint32_t lHashCheckSize = ntohl(n_hash_check_size);
 
     otLog5 << __FUNCTION__ << ": hash_check_size value: "
-           << static_cast<int64_t>(lHashCheckSize) << " \n";
+           << static_cast<std::int64_t>(lHashCheckSize) << " \n";
 
     // Then read the Hashcheck itself.
     //
     hash_check_->SetSize(lHashCheckSize);
 
     if (0 == (nRead = theInput.OTfread(
-                  static_cast<uint8_t*>(
+                  static_cast<std::uint8_t*>(
                       const_cast<void*>(hash_check_->GetPointer())),
-                  static_cast<uint32_t>(lHashCheckSize)))) {
+                  static_cast<std::uint32_t>(lHashCheckSize)))) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Error reading hash check data.\n";
         return false;
     }
 
-    otLog5 << __FUNCTION__
-           << ": hash check data actually read: " << static_cast<int64_t>(nRead)
-           << " \n";
+    otLog5 << __FUNCTION__ << ": hash check data actually read: "
+           << static_cast<std::int64_t>(nRead) << " \n";
 
-    OT_ASSERT(nRead == static_cast<uint32_t>(lHashCheckSize));
+    OT_ASSERT(nRead == static_cast<std::uint32_t>(lHashCheckSize));
 
     has_hash_check_->Set(!hash_check_->IsEmpty());
 
@@ -1157,55 +1159,56 @@ bool OTSymmetricKey::serialize_to(const Lock& lock, Data& theOutput) const
     uint16_t n_is_generated = htons(from_bool_is_generated);
     uint16_t n_key_size_bits = htons(static_cast<uint16_t>(m_nKeySize));
 
-    uint32_t n_iteration_count =
-        htonl(static_cast<uint32_t>(m_uIterationCount));
+    std::uint32_t n_iteration_count =
+        htonl(static_cast<std::uint32_t>(m_uIterationCount));
 
-    uint32_t n_salt_size = htonl(salt_->GetSize());
-    uint32_t n_iv_size = htonl(iv_->GetSize());
-    uint32_t n_enc_key_size = htonl(encrypted_key_->GetSize());
-    uint32_t n_hash_check_size = htonl(hash_check_->GetSize());
+    std::uint32_t n_salt_size = htonl(salt_->GetSize());
+    std::uint32_t n_iv_size = htonl(iv_->GetSize());
+    std::uint32_t n_enc_key_size = htonl(encrypted_key_->GetSize());
+    std::uint32_t n_hash_check_size = htonl(hash_check_->GetSize());
 
-    otLog5 << __FUNCTION__
-           << ": is_generated: " << static_cast<int32_t>(ntohs(n_is_generated))
+    otLog5 << __FUNCTION__ << ": is_generated: "
+           << static_cast<std::int32_t>(ntohs(n_is_generated))
            << "   key_size_bits: "
-           << static_cast<int32_t>(ntohs(n_key_size_bits))
+           << static_cast<std::int32_t>(ntohs(n_key_size_bits))
            << "   iteration_count: "
-           << static_cast<int64_t>(ntohl(n_iteration_count)) << "   \n  "
-                                                                "salt_size: "
-           << static_cast<int64_t>(ntohl(n_salt_size))
-           << "   iv_size: " << static_cast<int64_t>(ntohl(n_iv_size))
-           << "   enc_key_size: " << static_cast<int64_t>(ntohl(n_enc_key_size))
-           << "   \n";
+           << static_cast<std::int64_t>(ntohl(n_iteration_count))
+           << "   \n  "
+              "salt_size: "
+           << static_cast<std::int64_t>(ntohl(n_salt_size))
+           << "   iv_size: " << static_cast<std::int64_t>(ntohl(n_iv_size))
+           << "   enc_key_size: "
+           << static_cast<std::int64_t>(ntohl(n_enc_key_size)) << "   \n";
 
     theOutput.Concatenate(
         reinterpret_cast<void*>(&n_is_generated),
-        static_cast<uint32_t>(sizeof(n_is_generated)));
+        static_cast<std::uint32_t>(sizeof(n_is_generated)));
 
     theOutput.Concatenate(
         reinterpret_cast<void*>(&n_key_size_bits),
-        static_cast<uint32_t>(sizeof(n_key_size_bits)));
+        static_cast<std::uint32_t>(sizeof(n_key_size_bits)));
 
     theOutput.Concatenate(
         reinterpret_cast<void*>(&n_iteration_count),
-        static_cast<uint32_t>(sizeof(n_iteration_count)));
+        static_cast<std::uint32_t>(sizeof(n_iteration_count)));
 
     theOutput.Concatenate(
         reinterpret_cast<void*>(&n_salt_size),
-        static_cast<uint32_t>(sizeof(n_salt_size)));
+        static_cast<std::uint32_t>(sizeof(n_salt_size)));
 
     OT_ASSERT(nullptr != salt_->GetPointer());
     theOutput.Concatenate(salt_->GetPointer(), salt_->GetSize());
 
     theOutput.Concatenate(
         reinterpret_cast<void*>(&n_iv_size),
-        static_cast<uint32_t>(sizeof(n_iv_size)));
+        static_cast<std::uint32_t>(sizeof(n_iv_size)));
 
     OT_ASSERT(nullptr != iv_->GetPointer());
     theOutput.Concatenate(iv_->GetPointer(), iv_->GetSize());
 
     theOutput.Concatenate(
         reinterpret_cast<void*>(&n_enc_key_size),
-        static_cast<uint32_t>(sizeof(n_enc_key_size)));
+        static_cast<std::uint32_t>(sizeof(n_enc_key_size)));
 
     OT_ASSERT(nullptr != encrypted_key_->GetPointer());
     theOutput.Concatenate(
@@ -1213,7 +1216,7 @@ bool OTSymmetricKey::serialize_to(const Lock& lock, Data& theOutput) const
 
     theOutput.Concatenate(
         reinterpret_cast<void*>(&n_hash_check_size),
-        static_cast<uint32_t>(sizeof(n_hash_check_size)));
+        static_cast<std::uint32_t>(sizeof(n_hash_check_size)));
 
     OT_ASSERT(nullptr != hash_check_->GetPointer());
     theOutput.Concatenate(hash_check_->GetPointer(), hash_check_->GetSize());

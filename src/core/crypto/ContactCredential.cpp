@@ -58,7 +58,7 @@ namespace opentxs
 // static
 std::string ContactCredential::ClaimID(
     const std::string& nymid,
-    const uint32_t section,
+    const std::uint32_t section,
     const proto::ContactItem& item)
 {
     proto::Claim preimage;
@@ -106,10 +106,10 @@ OTIdentifier ContactCredential::ClaimID(const proto::Claim& preimage)
 // static
 Claim ContactCredential::asClaim(
     const String& nymid,
-    const uint32_t section,
+    const std::uint32_t section,
     const proto::ContactItem& item)
 {
-    std::set<uint32_t> attributes;
+    std::set<std::uint32_t> attributes;
 
     for (auto& attrib : item.attribute()) {
         attributes.insert(attrib);

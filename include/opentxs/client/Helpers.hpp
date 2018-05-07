@@ -153,12 +153,12 @@ class OTTransaction;
 // Caller is responsible to delete.
 EXPORT OTPayment* GetInstrumentByReceiptID(
     const Nym& theNym,
-    const int64_t& lReceiptId,
+    const std::int64_t& lReceiptId,
     Ledger& ledger);
 
 EXPORT OTPayment* GetInstrumentByIndex(
     const Nym& theNym,
-    const int32_t& nIndex,
+    const std::int32_t& nIndex,
     Ledger& ledger);
 
 // returns financial instrument inside pTransaction.
@@ -173,7 +173,9 @@ EXPORT OTPayment* extract_payment_instrument_from_notice(
     const Nym& theNym,
     OTTransaction*& pTransaction);
 
-EXPORT int32_t GetOutpaymentsIndexByTransNum(const Nym& nym, int64_t lTransNum);
+EXPORT std::int32_t GetOutpaymentsIndexByTransNum(
+    const Nym& nym,
+    std::int64_t lTransNum);
 
 }  // namespace opentxs
 

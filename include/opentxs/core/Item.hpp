@@ -48,7 +48,7 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/Types.hpp"
 
-#include <stdint.h>
+#include <cstdint>
 #include <list>
 
 namespace opentxs
@@ -274,7 +274,7 @@ protected:
     TransactionNumber m_lClosingTransactionNo{0};
 
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
-    int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
+    std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
     // Before transmission or serialization, this is where the ledger saves its
     // contents
     void UpdateContents() override;
@@ -294,33 +294,35 @@ public:
     //
     //
     EXPORT bool AddBlankNumbersToItem(const NumList& theAddition);
-    int64_t GetClosingNum() const;
-    void SetClosingNum(int64_t lClosingNum);
-    EXPORT int64_t GetNumberOfOrigin() override;
+    std::int64_t GetClosingNum() const;
+    void SetClosingNum(std::int64_t lClosingNum);
+    EXPORT std::int64_t GetNumberOfOrigin() override;
     EXPORT void CalculateNumberOfOrigin() override;
     // used for looping through the items in a few places.
     inline listOfItems& GetItemList() { return m_listItems; }
-    Item* GetItem(int32_t nIndex);  // While processing an item, you may wish
-                                    // to query it for sub-items of a certain
-                                    // type.
-    Item* GetItemByTransactionNum(int64_t lTransactionNumber);  // While
-                                                                // processing
-                                                                // an item, you
-                                                                // may
+    Item* GetItem(std::int32_t nIndex);  // While processing an item, you may
+                                         // wish
+    // to query it for sub-items of a certain
+    // type.
+    Item* GetItemByTransactionNum(std::int64_t lTransactionNumber);  // While
+    // processing
+    // an item, you
+    // may
     // wish to query it for sub-items
     Item* GetFinalReceiptItemByReferenceNum(
-        int64_t lReferenceNumber);  // The final receipt item MAY be
-                                    // present, and co-relates to others
-                                    // that share its "in reference to"
-                                    // value. (Others such as
-                                    // marketReceipts and paymentReceipts.)
-    int32_t GetItemCountInRefTo(int64_t lReference);  // Count the number
-                                                      // of items that are
-                                                      // IN REFERENCE TO
-                                                      // some transaction#.
-    inline int32_t GetItemCount() const
+        std::int64_t lReferenceNumber);  // The final receipt item MAY be
+                                         // present, and co-relates to others
+                                         // that share its "in reference to"
+                                         // value. (Others such as
+                                         // marketReceipts and paymentReceipts.)
+    std::int32_t GetItemCountInRefTo(std::int64_t lReference);  // Count the
+                                                                // number
+    // of items that are
+    // IN REFERENCE TO
+    // some transaction#.
+    inline std::int32_t GetItemCount() const
     {
-        return static_cast<int32_t>(m_listItems.size());
+        return static_cast<std::int32_t>(m_listItems.size());
     }
     void AddItem(Item& theItem);  // You have to allocate the item on the heap
                                   // and then pass it in as a reference.
@@ -331,11 +333,11 @@ public:
     // the "From" accountID and the NotaryID are now in the parent class. (2 of
     // each.)
 
-    inline void SetNewOutboxTransNum(int64_t lTransNum)
+    inline void SetNewOutboxTransNum(std::int64_t lTransNum)
     {
         m_lNewOutboxTransNum = lTransNum;
     }
-    inline int64_t GetNewOutboxTransNum() const
+    inline std::int64_t GetNewOutboxTransNum() const
     {
         return m_lNewOutboxTransNum;
     }                        // See above comment in protected section.
@@ -376,8 +378,8 @@ public:
     inline void SetStatus(const Item::itemStatus& theVal) { m_Status = theVal; }
     inline Item::itemType GetType() const { return m_Type; }
     inline void SetType(Item::itemType theType) { m_Type = theType; }
-    inline int64_t GetAmount() const { return m_lAmount; }
-    inline void SetAmount(int64_t lAmount) { m_lAmount = lAmount; }
+    inline std::int64_t GetAmount() const { return m_lAmount; }
+    inline void SetAmount(std::int64_t lAmount) { m_lAmount = lAmount; }
     EXPORT void GetNote(String& theStr) const;
     EXPORT void SetNote(const String& theStr);
     EXPORT void GetAttachment(String& theStr) const;
@@ -390,7 +392,7 @@ public:
     EXPORT static Item* CreateItemFromString(
         const String& strItem,
         const Identifier& theNotaryID,
-        int64_t lTransactionNumber);
+        std::int64_t lTransactionNumber);
 
     EXPORT static Item* CreateItemFromTransaction(
         const OTTransaction& theOwner,

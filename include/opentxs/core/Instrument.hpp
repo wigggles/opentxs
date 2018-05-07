@@ -45,7 +45,7 @@
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Contract.hpp"
 
-#include <stdint.h>
+#include <cstdint>
 
 namespace opentxs
 {
@@ -77,7 +77,7 @@ public:
     void InitInstrument();
 
 protected:
-    int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
+    std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
 
     inline void SetValidFrom(time64_t TIME_FROM) { m_VALID_FROM = TIME_FROM; }
     inline void SetValidTo(time64_t TIME_TO) { m_VALID_TO = TIME_TO; }

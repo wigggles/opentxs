@@ -76,10 +76,10 @@ namespace opentxs
 {
 
 bool UnitDefinition::ParseFormatted(
-    int64_t& lResult,
+    std::int64_t& lResult,
     const std::string& str_input,
-    int32_t nFactor,
-    int32_t nPower,
+    std::int32_t nFactor,
+    std::int32_t nPower,
     const char* szThousandSeparator,
     const char* szDecimalPoint)
 {
@@ -91,24 +91,24 @@ bool UnitDefinition::ParseFormatted(
     char theSeparator = szThousandSeparator[0];
     char theDecimalPoint = szDecimalPoint[0];
 
-    int64_t lDollars = 0;
-    int64_t lCents = 0;
-    int64_t lOutput = 0;
-    int64_t lSign = 1;
+    std::int64_t lDollars = 0;
+    std::int64_t lCents = 0;
+    std::int64_t lOutput = 0;
+    std::int64_t lSign = 1;
 
     bool bHasEnteredDollars = false;
     bool bHasEnteredCents = false;
 
-    int32_t nDigitsCollectedBeforeDot = 0;
-    int32_t nDigitsCollectedAfterDot = 0;
+    std::int32_t nDigitsCollectedBeforeDot = 0;
+    std::int32_t nDigitsCollectedAfterDot = 0;
 
     // BUG: &mp isn't used.
     // const std::moneypunct<char, false> &mp = std::use_facet<
     // std::moneypunct<char, false> >(std::locale ());
 
-    std::deque<int64_t> deque_cents;
+    std::deque<std::int64_t> deque_cents;
 
-    for (uint32_t uIndex = 0; uIndex < str_input.length(); ++uIndex) {
+    for (std::uint32_t uIndex = 0; uIndex < str_input.length(); ++uIndex) {
         char theChar = str_input[uIndex];
 
         if (iscntrl(theChar))  // Break at any newline or other control
@@ -170,7 +170,7 @@ bool UnitDefinition::ParseFormatted(
             if (nDigitsCollectedAfterDot > nPower) break;
 
             // Okay, we're in the cents, so let's add this digit...
-            deque_cents.push_back(static_cast<int64_t>(theChar - '0'));
+            deque_cents.push_back(static_cast<std::int64_t>(theChar - '0'));
 
             continue;
         }
@@ -184,14 +184,15 @@ bool UnitDefinition::ParseFormatted(
         // Let's add this digit...
         lDollars *=
             10;  // Multiply existing dollars by 10, and then add the new digit.
-        lDollars += static_cast<int64_t>(theChar - '0');
+        lDollars += static_cast<std::int64_t>(theChar - '0');
     }
 
     // Time to put it all together...
     lOutput += lDollars;
-    lOutput *= static_cast<int64_t>(nFactor);  // 1 dollar becomes 100 cents.
+    lOutput *=
+        static_cast<std::int64_t>(nFactor);  // 1 dollar becomes 100 cents.
 
-    int32_t nTempPower = nPower;
+    std::int32_t nTempPower = nPower;
 
     while (nTempPower > 0) {
         --nTempPower;
@@ -215,7 +216,7 @@ bool UnitDefinition::ParseFormatted(
 
 inline void separateThousands(
     std::stringstream& sss,
-    int64_t value,
+    std::int64_t value,
     const char* szSeparator)
 {
     if (value < 1000) {
@@ -228,9 +229,9 @@ inline void separateThousands(
 }
 
 std::string UnitDefinition::formatLongAmount(
-    int64_t lValue,
-    int32_t nFactor,
-    int32_t nPower,
+    std::int64_t lValue,
+    std::int32_t nFactor,
+    std::int32_t nPower,
     const char* szCurrencySymbol,
     const char* szThousandSeparator,
     const char* szDecimalPoint)
@@ -325,7 +326,7 @@ bool UnitDefinition::VisitAccountRecords(AccountVisitor& visitor) const
         auto& theMap = pMap->the_map;
 
         // todo: optimize: will probably have to use a database for this,
-        // int64_t term.
+        // std::int64_t term.
         // (What if there are a million acct IDs in this flat file? Not
         // scaleable.)
         //
@@ -658,7 +659,7 @@ UnitDefinition* UnitDefinition::Create(
     const std::string& symbol,
     const std::string& terms,
     const std::string& tla,
-    const uint32_t& power,
+    const std::uint32_t& power,
     const std::string& fraction)
 {
     std::unique_ptr<UnitDefinition> contract(new CurrencyContract(
@@ -741,7 +742,7 @@ UnitDefinition* UnitDefinition::Create(
     const std::string& name,
     const std::string& symbol,
     const std::string& terms,
-    const uint64_t weight)
+    const std::uint64_t weight)
 {
     std::unique_ptr<UnitDefinition> contract(
         new BasketContract(nym, shortname, name, symbol, terms, weight));
@@ -954,7 +955,7 @@ proto::UnitDefinition UnitDefinition::PublicContract() const
 //  separator of "," and decimal point of ".")
 //
 bool UnitDefinition::FormatAmountLocale(
-    int64_t amount,
+    std::int64_t amount,
     std::string& str_output,
     const std::string& str_thousand,
     const std::string& str_decimal) const
@@ -998,7 +999,7 @@ bool UnitDefinition::FormatAmountLocale(
 //  separator of "," and decimal point of ".")
 //
 bool UnitDefinition::FormatAmountWithoutSymbolLocale(
-    int64_t amount,
+    std::int64_t amount,
     std::string& str_output,
     const std::string& str_thousand,
     const std::string& str_decimal) const
@@ -1033,7 +1034,7 @@ bool UnitDefinition::FormatAmountWithoutSymbolLocale(
 // point of ".")
 //
 bool UnitDefinition::StringToAmountLocale(
-    int64_t& amount,
+    std::int64_t& amount,
     const std::string& str_input,
     const std::string& str_thousand,
     const std::string& str_decimal) const

@@ -74,9 +74,9 @@
 namespace opentxs
 {
 
-int32_t OTPaymentPlan::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
+std::int32_t OTPaymentPlan::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 {
-    int32_t nReturnVal = 0;
+    std::int32_t nReturnVal = 0;
 
     // Here we call the parent class first.
     // If the node is found there, or there is some error,
@@ -141,11 +141,11 @@ int32_t OTPaymentPlan::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         const String str_last_attempt =
             xml->getAttributeValue("dateOfLastFailedPayment");
 
-        int64_t tBetween = str_between.ToLong();
-        int64_t tStart = parseTimestamp(str_start.Get());
-        int64_t tLength = str_length.ToLong();
-        int64_t tLast = parseTimestamp(str_last.Get());
-        int64_t tLastAttempt = parseTimestamp(str_last_attempt.Get());
+        std::int64_t tBetween = str_between.ToLong();
+        std::int64_t tStart = parseTimestamp(str_start.Get());
+        std::int64_t tLength = str_length.ToLong();
+        std::int64_t tLast = parseTimestamp(str_last.Get());
+        std::int64_t tLastAttempt = parseTimestamp(str_last_attempt.Get());
 
         SetTimeBetweenPayments(OTTimeGetTimeFromSeconds(tBetween));
         SetPaymentPlanStartDate(OTTimeGetTimeFromSeconds(tStart));
@@ -216,8 +216,8 @@ void OTPaymentPlan::UpdateContents()
     // to be closed out.
 
     // OTCronItem
-    for (int32_t i = 0; i < GetCountClosingNumbers(); i++) {
-        int64_t lClosingNumber = GetClosingTransactionNoAt(i);
+    for (std::int32_t i = 0; i < GetCountClosingNumbers(); i++) {
+        std::int64_t lClosingNumber = GetClosingTransactionNoAt(i);
         OT_ASSERT(lClosingNumber > 0);
 
         TagPtr tagClosingNo(new Tag("closingTransactionNumber"));
@@ -229,8 +229,8 @@ void OTPaymentPlan::UpdateContents()
     // For the recipient, his OPENING *and* CLOSING transaction numbers go on
     // this list. (For sender, the "opening" number is the GetTransactionNum()
     // on this object, and the "closing" number is in the above list.)
-    for (int32_t i = 0; i < GetRecipientCountClosingNumbers(); i++) {
-        int64_t lClosingNumber = GetRecipientClosingTransactionNoAt(i);
+    for (std::int32_t i = 0; i < GetRecipientCountClosingNumbers(); i++) {
+        std::int64_t lClosingNumber = GetRecipientClosingTransactionNoAt(i);
         OT_ASSERT(lClosingNumber > 0);
 
         TagPtr tagClosingNo(new Tag("closingRecipientNumber"));
@@ -261,9 +261,9 @@ void OTPaymentPlan::UpdateContents()
 
     // OTPaymentPlan
     if (HasPaymentPlan()) {
-        const int64_t lTimeBetween =
+        const std::int64_t lTimeBetween =
             OTTimeGetSecondsFromTime(GetTimeBetweenPayments());
-        const int64_t lPlanLength =
+        const std::int64_t lPlanLength =
             OTTimeGetSecondsFromTime(GetPaymentPlanLength());
 
         TagPtr tagPlan(new Tag("paymentPlan"));
@@ -310,7 +310,7 @@ void OTPaymentPlan::UpdateContents()
 // *** Set Initial Payment ***  / Make sure to call SetAgreement() first.
 
 bool OTPaymentPlan::SetInitialPayment(
-    const int64_t& lAmount,
+    const std::int64_t& lAmount,
     time64_t tTimeUntilInitialPayment)
 {
     m_bInitialPayment = true;       // There is now an initial payment.
@@ -424,7 +424,7 @@ bool OTPaymentPlan::VerifyAgreement(
         return false;
     }
 
-    for (int32_t i = 0; i < GetCountClosingNumbers(); i++)
+    for (std::int32_t i = 0; i < GetCountClosingNumbers(); i++)
         if (!sender.VerifyIssuedNumber(GetClosingTransactionNoAt(i))) {
             otErr << "OTPaymentPlan::" << __FUNCTION__
                   << ": Closing transaction number "
@@ -444,7 +444,7 @@ bool OTPaymentPlan::VerifyAgreement(
         return false;
     }
 
-    for (int32_t i = 0; i < GetRecipientCountClosingNumbers(); i++)
+    for (std::int32_t i = 0; i < GetRecipientCountClosingNumbers(); i++)
         if (!recipient.VerifyIssuedNumber(
                 GetRecipientClosingTransactionNoAt(i))) {
             otErr << "OTPaymentPlan::" << __FUNCTION__
@@ -461,12 +461,12 @@ bool OTPaymentPlan::VerifyAgreement(
 // *** Set Payment Plan *** / Make sure to call SetAgreement() first.
 // default: 1st payment in 30 days
 bool OTPaymentPlan::SetPaymentPlan(
-    const int64_t& lPaymentAmount,
+    const std::int64_t& lPaymentAmount,
     time64_t tTimeUntilPlanStart,
     time64_t tBetweenPayments,  // Default: 30
                                 // days.
     time64_t tPlanLength,
-    int32_t nMaxPayments)
+    std::int32_t nMaxPayments)
 {
 
     if (lPaymentAmount <= 0) {
@@ -594,7 +594,7 @@ bool OTPaymentPlan::SetInitialPaymentDone()
 // code.
 // true == success, false == failure.
 //
-bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
+bool OTPaymentPlan::ProcessPayment(const std::int64_t& lAmount)
 {
     const OTCron* pCron = GetCron();
     OT_ASSERT(nullptr != pCron);
@@ -891,7 +891,7 @@ bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
                   << ": ERROR loading or generating inbox ledger.\n";
         } else {
             // Generate new transaction numbers for these new transactions
-            int64_t lNewTransactionNumber =
+            std::int64_t lNewTransactionNumber =
                 GetCron()->GetNextTransactionNumber();
 
             //            OT_ASSERT(lNewTransactionNumber > 0); // this can be
@@ -1473,7 +1473,7 @@ bool OTPaymentPlan::ProcessCron()
         // start date,
         // time between payments, and date of last payment.
 
-        const int64_t DURATION_SINCE_START = OTTimeGetTimeInterval(
+        const std::int64_t DURATION_SINCE_START = OTTimeGetTimeInterval(
             OTTimeGetCurrentTime(), GetPaymentPlanStartDate());
 
         // Let's say the plan charges every week, and it's been 16 DAYS DURATION
@@ -1502,7 +1502,7 @@ bool OTPaymentPlan::ProcessCron()
         //
         // Can also just add the TimeBetweenPayments to the DateOfLastPayment...
         //
-        const int64_t nNoPaymentsThatShouldHaveHappenedByNow =
+        const std::int64_t nNoPaymentsThatShouldHaveHappenedByNow =
             DURATION_SINCE_START /
                 OTTimeGetSecondsFromTime(GetTimeBetweenPayments()) +
             1;
@@ -1637,9 +1637,10 @@ void OTPaymentPlan::InitPaymentPlan()
     // Payment Plan...
     m_bPaymentPlan = false;    // Will there be a payment plan?
     m_lPaymentPlanAmount = 0;  // Amount of each payment.
-    m_tTimeBetweenPayments = OT_TIME_MONTH_IN_SECONDS;  // How int64_t between
-                                                        // each payment?
-                                                        // (Default:
+    m_tTimeBetweenPayments =
+        OT_TIME_MONTH_IN_SECONDS;  // How std::int64_t between
+                                   // each payment?
+                                   // (Default:
     // 30 days) // TODO don't hardcode.
     m_tPaymentPlanStartDate = OT_TIME_ZERO;  // Date for the first payment plan
                                              // payment. Measured seconds after

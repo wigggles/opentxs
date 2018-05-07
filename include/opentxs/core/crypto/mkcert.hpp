@@ -48,12 +48,12 @@
 extern "C" {
 #include <openssl/x509v3.h>
 
-int32_t mkcert(
+std::int32_t mkcert(
     X509** x509p,
     EVP_PKEY** pkeyp,
-    int32_t bits,
-    int32_t serial,
-    int32_t days);
+    std::int32_t bits,
+    std::int32_t serial,
+    std::int32_t days);
 }
 #endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
 #endif  // OPENTXS_CORE_CRYPTO_MKCERT

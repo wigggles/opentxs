@@ -48,7 +48,7 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/Types.hpp"
 
-#include <stdint.h>
+#include <cstdint>
 #include <iosfwd>
 #include <list>
 #include <map>
@@ -137,7 +137,7 @@ protected:
     bool LoadContractXML();
 
     /** return -1 if error, 0 if nothing, and 1 if the node was processed. */
-    EXPORT virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
+    EXPORT virtual std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
 
 public:
     /** Used by OTTransactionType::Factory and OTToken::Factory. In both cases,
@@ -372,7 +372,7 @@ public:
     should have and encryption option also. Because if someone changes my
     account ID in the file, I have no way of re-calculating it from the account
     file, which changes! So my copies of the account file and wallet file are
-    the only records of that account ID which is a giant int64_t number. */
+    the only records of that account ID which is a giant std::int64_t number. */
     EXPORT virtual bool VerifyContractID() const;
     EXPORT virtual void CalculateContractID(Identifier& newID) const;
     EXPORT virtual void CalculateAndSetContractID(Identifier& newID);

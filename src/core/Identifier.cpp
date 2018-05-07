@@ -342,7 +342,7 @@ void Identifier::SetString(const std::string& encoded)
         }
 
         Assign(
-            (reinterpret_cast<const uint8_t*>(data.data()) + 1),
+            (reinterpret_cast<const std::uint8_t*>(data.data()) + 1),
             (data.size() - 1));
     }
 }

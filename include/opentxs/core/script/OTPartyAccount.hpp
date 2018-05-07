@@ -44,7 +44,7 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/Types.hpp"
 
-#include <stdint.h>
+#include <cstdint>
 #include <map>
 #include <string>
 
@@ -101,9 +101,10 @@ class OTPartyAccount
     // NOTE: each party needs to have a list of partyaccounts, AND each account
     // on that list needs to have a CLOSING #!!! Ahh...
     Account* m_pAccount;
-    int64_t m_lClosingTransNo;  // Any account that is party to an agreement,
-                                // must have a closing transaction # for
-                                // finalReceipt.
+    std::int64_t m_lClosingTransNo;  // Any account that is party to an
+                                     // agreement,
+                                     // must have a closing transaction # for
+                                     // finalReceipt.
     // account name (inside the script language, "gold_acct_A" could be used to
     // reference this acct.)
     //
@@ -172,15 +173,18 @@ public:
     bool VerifyAgency();  // I can get a ptr to my agent, and I have one to the
                           // actual account. I will ask him to verify whether he
                           // actually has agency over it.
-    int64_t GetClosingTransNo() const { return m_lClosingTransNo; }
-    void SetClosingTransNo(int64_t lTransNo) { m_lClosingTransNo = lTransNo; }
+    std::int64_t GetClosingTransNo() const { return m_lClosingTransNo; }
+    void SetClosingTransNo(std::int64_t lTransNo)
+    {
+        m_lClosingTransNo = lTransNo;
+    }
     bool Compare(const OTPartyAccount& rhs) const;
     bool DropFinalReceiptToInbox(
         mapOfNyms* pNymMap,
         const String& strNotaryID,
         Nym& theServerNym,
         OTSmartContract& theSmartContract,
-        const int64_t& lNewTransactionNumber,
+        const std::int64_t& lNewTransactionNumber,
         const String& strOrigCronItem,
         String* pstrNote = nullptr,
         String* pstrAttachment = nullptr);
@@ -189,13 +193,13 @@ public:
         const std::string& str_account_name,
         const String& strAgentName,
         Account& theAccount,
-        int64_t lClosingTransNo);
+        std::int64_t lClosingTransNo);
     OTPartyAccount(
         const String& strName,
         const String& strAgentName,
         const String& strAcctID,
         const String& strInstrumentDefinitionID,
-        int64_t lClosingTransNo);
+        std::int64_t lClosingTransNo);
 
     virtual ~OTPartyAccount();
 

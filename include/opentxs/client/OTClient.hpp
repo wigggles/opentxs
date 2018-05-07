@@ -66,12 +66,12 @@ public:
         ServerContext& context,
         std::shared_ptr<Message>& reply,
         Ledger* pNymbox = nullptr);
-    int32_t ProcessUserCommand(
+    std::int32_t ProcessUserCommand(
         const MessageType requestedCommand,
         ServerContext& context,
         Message& theMessage,
         const Account* pAccount = nullptr,
-        const int64_t lTransactionAmount = 0,
+        const std::int64_t lTransactionAmount = 0,
         const UnitDefinition* pMyUnitDefinition = nullptr,
         const Identifier* pHisNymID = nullptr,
         const Identifier* pHisAcctID = nullptr);

@@ -196,9 +196,10 @@ public:
 
     bool IsAuthorizingAgentForParty();  // true/false whether THIS agent is the
                                         // authorizing agent for his party.
-    int32_t GetCountAuthorizedAccts();  // The number of accounts, owned by this
-                                        // agent's party, that this agent is the
-                                        // authorized agent FOR.
+    std::int32_t GetCountAuthorizedAccts();  // The number of accounts, owned by
+                                             // this
+    // agent's party, that this agent is the
+    // authorized agent FOR.
 
     // Only one of these can be true:
     // (I wrestle with making these 2 calls private, since technically it should
@@ -349,7 +350,7 @@ public:
 
     bool DropFinalReceiptToNymbox(
         OTSmartContract& theSmartContract,
-        const int64_t& lNewTransactionNumber,
+        const std::int64_t& lNewTransactionNumber,
         const String& strOrigCronItem,
         String* pstrNote = nullptr,
         String* pstrAttachment = nullptr,
@@ -361,8 +362,8 @@ public:
         Nym& theServerNym,
         OTSmartContract& theSmartContract,
         const Identifier& theAccountID,
-        const int64_t& lNewTransactionNumber,
-        const int64_t& lClosingNumber,
+        const std::int64_t& lNewTransactionNumber,
+        const std::int64_t& lClosingNumber,
         const String& strOrigCronItem,
         String* pstrNote = nullptr,
         String* pstrAttachment = nullptr);
@@ -371,8 +372,8 @@ public:
         bool bSuccessMsg,  // the notice can be "acknowledgment" or "rejection"
         Nym& theServerNym,
         const Identifier& theNotaryID,
-        const int64_t& lNewTransactionNumber,
-        const int64_t& lInReferenceTo,
+        const std::int64_t& lNewTransactionNumber,
+        const std::int64_t& lInReferenceTo,
         const String& strReference,
         String* pstrNote = nullptr,
         String* pstrAttachment = nullptr,

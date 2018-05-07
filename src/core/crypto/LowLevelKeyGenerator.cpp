@@ -72,7 +72,7 @@
 #include "opentxs/OT.hpp"
 #include "opentxs/Types.hpp"
 
-#include <stdint.h>
+#include <cstdint>
 #include <ostream>
 
 namespace opentxs

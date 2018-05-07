@@ -47,7 +47,7 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
 
-#include <stdint.h>
+#include <cstdint>
 #include <memory>
 #include <ostream>
 #include <string>
@@ -157,7 +157,7 @@ OTVariable::OTVariable(
 // INT
 OTVariable::OTVariable(
     const std::string& str_Name,
-    const int32_t nValue,
+    const std::int32_t nValue,
     const OTVariable_Access theAccess)
     : m_strName(str_Name.c_str())
     , m_nValue(nValue)
@@ -200,10 +200,10 @@ OTVariable::~OTVariable()
         nullptr;  // I wasn't the owner, it was a pointer for convenience only.
 }
 
-bool OTVariable::SetValue(const int32_t& nValue)
+bool OTVariable::SetValue(const std::int32_t& nValue)
 {
     if (!IsInteger()) {
-        otErr << "OTVariable::SetValue(int64_t): Error: This variable ("
+        otErr << "OTVariable::SetValue(std::int64_t): Error: This variable ("
               << m_strName << ") is not an integer.\n";
         return false;
     }

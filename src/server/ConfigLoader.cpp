@@ -83,7 +83,7 @@ bool ConfigLoader::load(
         bool bIsNewKey = false;
         std::int64_t lValue = 0;
         config.CheckSet_long("logging", "log_level", 0, lValue, bIsNewKey);
-        Log::SetLogLevel(static_cast<int32_t>(lValue));
+        Log::SetLogLevel(static_cast<std::int32_t>(lValue));
     }
 
     // WALLET
@@ -126,7 +126,7 @@ bool ConfigLoader::load(
         std::int64_t lValue = 0;
         config.CheckSet_long(
             "cron", "refill_trans_number", 500, lValue, bIsNewKey, szComment);
-        OTCron::SetCronRefillAmount(static_cast<int32_t>(lValue));
+        OTCron::SetCronRefillAmount(static_cast<std::int32_t>(lValue));
     }
 
     {
@@ -144,7 +144,7 @@ bool ConfigLoader::load(
             lValue,
             bIsNewKey,
             szComment);
-        OTCron::SetCronMsBetweenProcess(static_cast<int32_t>(lValue));
+        OTCron::SetCronMsBetweenProcess(static_cast<std::int32_t>(lValue));
     }
 
     {
@@ -157,7 +157,7 @@ bool ConfigLoader::load(
         std::int64_t lValue = 0;
         config.CheckSet_long(
             "cron", "max_items_per_nym", 10, lValue, bIsNewKey, szComment);
-        OTCron::SetCronMaxItemsPerNym(static_cast<int32_t>(lValue));
+        OTCron::SetCronMaxItemsPerNym(static_cast<std::int32_t>(lValue));
     }
 
     // HEARTBEAT
@@ -178,7 +178,8 @@ bool ConfigLoader::load(
         std::int64_t lValue = 0;
         config.CheckSet_long(
             "heartbeat", "no_requests", 10, lValue, bIsNewKey, szComment);
-        ServerSettings::SetHeartbeatNoRequests(static_cast<int32_t>(lValue));
+        ServerSettings::SetHeartbeatNoRequests(
+            static_cast<std::int32_t>(lValue));
     }
 
     {
@@ -190,7 +191,7 @@ bool ConfigLoader::load(
         config.CheckSet_long(
             "heartbeat", "ms_between_beats", 100, lValue, bIsNewKey, szComment);
         ServerSettings::SetHeartbeatMsBetweenBeats(
-            static_cast<int32_t>(lValue));
+            static_cast<std::int32_t>(lValue));
     }
 
     // PERMISSIONS

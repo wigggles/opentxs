@@ -458,7 +458,7 @@ bool SymmetricKey::Encrypt(
     const proto::SymmetricMode mode)
 {
     const bool success = Encrypt(
-        reinterpret_cast<const uint8_t*>(plaintext.Get()),
+        reinterpret_cast<const std::uint8_t*>(plaintext.Get()),
         plaintext.GetLength() + 1,
         static_cast<const std::uint8_t*>(iv.GetPointer()),
         iv.GetSize(),
@@ -483,7 +483,7 @@ bool SymmetricKey::Encrypt(
     const proto::SymmetricMode mode)
 {
     const bool success = Encrypt(
-        reinterpret_cast<const uint8_t*>(plaintext.c_str()),
+        reinterpret_cast<const std::uint8_t*>(plaintext.c_str()),
         plaintext.size(),
         static_cast<const std::uint8_t*>(iv.GetPointer()),
         iv.GetSize(),

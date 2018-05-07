@@ -43,7 +43,7 @@
 
 #include "opentxs/core/String.hpp"
 
-#include <stdint.h>
+#include <cstdint>
 #include <iosfwd>
 #include <map>
 #include <memory>
@@ -62,7 +62,7 @@ namespace OTDB
 class OTPacker;
 }
 
-typedef std::map<int64_t, OTASCIIArmor*> mapOfArmor;
+typedef std::map<std::int64_t, OTASCIIArmor*> mapOfArmor;
 
 extern const char* OT_BEGIN_ARMORED;
 extern const char* OT_END_ARMORED;
@@ -180,7 +180,7 @@ public:
 private:
     std::string compress_string(
         const std::string& str,
-        int32_t compressionlevel) const;
+        std::int32_t compressionlevel) const;
     std::string decompress_string(const std::string& str) const;
 
     static std::unique_ptr<OTDB::OTPacker> s_pPacker;

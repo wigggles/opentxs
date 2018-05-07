@@ -52,14 +52,17 @@ namespace server
 struct ServerSettings {
     static std::int64_t GetMinMarketScale() { return __min_market_scale; }
 
-    static void SetMinMarketScale(int64_t value) { __min_market_scale = value; }
+    static void SetMinMarketScale(std::int64_t value)
+    {
+        __min_market_scale = value;
+    }
 
     static std::int32_t GetHeartbeatNoRequests()
     {
         return __heartbeat_no_requests;
     }
 
-    static void SetHeartbeatNoRequests(int32_t value)
+    static void SetHeartbeatNoRequests(std::int32_t value)
     {
         __heartbeat_no_requests = value;
     }
@@ -69,7 +72,7 @@ struct ServerSettings {
         return __heartbeat_ms_between_beats;
     }
 
-    static void SetHeartbeatMsBetweenBeats(int32_t value)
+    static void SetHeartbeatMsBetweenBeats(std::int32_t value)
     {
         __heartbeat_ms_between_beats = value;
     }

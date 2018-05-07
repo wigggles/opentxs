@@ -52,7 +52,7 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/ext/OTPayment.hpp"
 
-#include <stdint.h>
+#include <cstdint>
 #include <memory>
 #include <ostream>
 
@@ -72,7 +72,7 @@ namespace opentxs
 //
 OTPayment* GetInstrumentByReceiptID(
     const Nym& theNym,
-    const int64_t& lReceiptId,
+    const std::int64_t& lReceiptId,
     Ledger& ledger)
 {
     OT_VERIFY_MIN_BOUND(lReceiptId, 1);
@@ -90,7 +90,7 @@ OTPayment* GetInstrumentByReceiptID(
 // ------------------------------------------------------------
 OTPayment* GetInstrumentByIndex(
     const Nym& theNym,
-    const int32_t& nIndex,
+    const std::int32_t& nIndex,
     Ledger& ledger)
 {
     OT_VERIFY_BOUNDS(nIndex, 0, ledger.GetTransactionCount());
@@ -117,10 +117,10 @@ OTPayment* GetInstrument(
 {
     OT_ASSERT(nullptr != pTransaction);
 
-    const int64_t lTransactionNum = pTransaction->GetTransactionNum();
+    const std::int64_t lTransactionNum = pTransaction->GetTransactionNum();
 
     // Update: for transactions in ABBREVIATED form, the string is empty,
-    // since it has never actually been signed (in fact the whole point32_t
+    // since it has never actually been signed (in fact the whole postd::int32_t
     // with abbreviated transactions in a ledger is that they take up very
     // little room, and have no signature of their own, but exist merely as
     // XML tags on their parent ledger.)
@@ -130,12 +130,12 @@ OTPayment* GetInstrument(
     // programmatic user of this API will be able to load it up.
     //
     if (pTransaction->IsAbbreviated()) {
-        ledger.LoadBoxReceipt(static_cast<int64_t>(
+        ledger.LoadBoxReceipt(static_cast<std::int64_t>(
             lTransactionNum));  // I don't check return val here because I still
                                 // want it to send the abbreviated form, if this
                                 // fails.
         pTransaction =
-            ledger.GetTransaction(static_cast<int64_t>(lTransactionNum));
+            ledger.GetTransaction(static_cast<std::int64_t>(lTransactionNum));
 
         if (nullptr == pTransaction) {
             otErr << OT_METHOD << __FUNCTION__
@@ -288,11 +288,14 @@ OTPayment* extract_payment_instrument_from_notice(
     return nullptr;
 }
 
-int32_t GetOutpaymentsIndexByTransNum(const Nym& nym, int64_t lTransNum)
+std::int32_t GetOutpaymentsIndexByTransNum(
+    const Nym& nym,
+    std::int64_t lTransNum)
 {
-    const int32_t lOutpaymentsCount = nym.GetOutpaymentsCount();
+    const std::int32_t lOutpaymentsCount = nym.GetOutpaymentsCount();
 
-    for (int32_t lOutpaymentsIndex = 0; lOutpaymentsIndex < lOutpaymentsCount;
+    for (std::int32_t lOutpaymentsIndex = 0;
+         lOutpaymentsIndex < lOutpaymentsCount;
          ++lOutpaymentsIndex) {
         Message* pOutpaymentMsg = nym.GetOutpaymentsByIndex(lOutpaymentsIndex);
         if (nullptr != pOutpaymentMsg) {

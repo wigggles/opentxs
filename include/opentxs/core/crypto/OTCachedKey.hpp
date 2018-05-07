@@ -104,7 +104,7 @@ it is possible to replace the master key without forcing a change of the
 password itself. Likewise it is also possible to change the password, without
 changing the underlying key that it opens. Adding the session key will further
 ensure that neither password nor master key ever appears in RAM (for very
-int64_t) nor on the harddrive in cleartext form.
+std::int64_t) nor on the harddrive in cleartext form.
  -- Adding the use of a standard protected memory API such as gpg-agent means
 there is no risk of swapping or core dumps revealing vital information from
 within OT itself. Nevertheless, the OTPassword class takes pains to prevent core
@@ -137,7 +137,8 @@ item, sign the main transaction containing those items, AND sign the message
 containing that transaction. Perhaps OT has to use that private key 4 or 5 times
 in a row, all within a fraction of a second. Should the user therefore have to
 enter his passphrase 4 or 5 times, for a cash withdrawal? Isn't once enough? But
-it's not that simple, because each operation opens the master key just int64_t
+it's not that simple, because each operation opens the master key just
+std::int64_t
 enough for OpenSSL to perform the requested operation, and then destroys it
 again immediately after the operation is completed. (Even when the timeout is
 active, what's being stored isn't the master key itself, but the master key

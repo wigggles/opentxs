@@ -127,7 +127,7 @@ private:
                   // to type it a million times (such as during import.) So we
                   // use it when it's available. And usually whoever set it,
                   // will immediately set it back to nullptr when he's done.
-    uint32_t version_{};
+    std::uint32_t version_{};
     std::uint32_t index_{};
     proto::KeyMode mode_{proto::KEYMODE_ERROR};
 
@@ -194,7 +194,8 @@ public:
     EXPORT const Credential* GetChildCredential(
         const String& strSubID,
         const String::List* plistRevokedIDs = nullptr) const;
-    EXPORT const Credential* GetChildCredentialByIndex(int32_t nIndex) const;
+    EXPORT const Credential* GetChildCredentialByIndex(
+        std::int32_t nIndex) const;
     EXPORT const std::string GetChildCredentialIDByIndex(size_t nIndex) const;
     /** Returns: m_MasterCredential's public credential protobuf. */
     EXPORT const serializedCredential GetSerializedPubCredential() const;
@@ -224,7 +225,7 @@ public:
     {
         return *m_MasterCredential;
     }
-    EXPORT int32_t GetPublicKeysBySignature(
+    EXPORT std::int32_t GetPublicKeysBySignature(
         listOfAsymmetricKeys& listOutput,
         const OTSignature& theSignature,
         char cKeyType = '0') const;  // 'S' (signing key) or 'E' (encryption

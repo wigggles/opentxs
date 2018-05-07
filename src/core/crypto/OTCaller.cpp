@@ -44,7 +44,7 @@
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/Log.hpp"
 
-#include <stdint.h>
+#include <cstdint>
 #include <ostream>
 
 namespace opentxs
@@ -73,14 +73,14 @@ const char* OTCaller::GetDisplay() const
 // A display string is set here before the Java dialog is shown, so that the
 // string can be displayed on that dialog.
 //
-void OTCaller::SetDisplay(const char* szDisplay, int32_t nLength)
+void OTCaller::SetDisplay(const char* szDisplay, std::int32_t nLength)
 {
     // I'm using the OTPassword class to store the display string, in addition
     // to
     // storing the password itself. (For convenience.)
     //
     m_Display.setPassword_uint8(
-        reinterpret_cast<const uint8_t*>(szDisplay), nLength);
+        reinterpret_cast<const std::uint8_t*>(szDisplay), nLength);
 }
 
 // The password will be stored here by the Java dialog, so that the C callback
@@ -244,8 +244,8 @@ result in less efficient code. Check compiler
  documentation and the assembly output from the compiler.
 
 // memset_s.c
-void *memset_s(void* v, int32_t c, size_t n) {
-    volatile uint8_t *p = v;
+void *memset_s(void* v, std::int32_t c, size_t n) {
+    volatile std::uint8_t *p = v;
     while (n--)
         *p++ = c;
 
@@ -253,7 +253,7 @@ void *memset_s(void* v, int32_t c, size_t n) {
 }
 
 // getPassword.c
-extern void *memset_s(void* v, int32_t c, size_t n);
+extern void *memset_s(void* v, std::int32_t c, size_t n);
 
 void getPassword(void) {
     char pwd[64];

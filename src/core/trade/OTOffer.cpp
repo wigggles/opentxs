@@ -49,10 +49,11 @@
 #include "opentxs/core/OTStringXML.hpp"
 #include "opentxs/core/String.hpp"
 
-#include <inttypes.h>
-#include <stdint.h>
-#include <cstring>
 #include <irrxml/irrXML.hpp>
+
+#include <cinttypes>
+#include <cstdint>
+#include <cstring>
 #include <ostream>
 #include <string>
 
@@ -65,14 +66,14 @@
 namespace opentxs
 {
 
-bool OTOffer::isPowerOfTen(const int64_t& x)
+bool OTOffer::isPowerOfTen(const std::int64_t& x)
 {
     if (1 == x) return true;
 
-    const int64_t lBase = 10;
-    int64_t lIt = lBase;
+    const std::int64_t lBase = 10;
+    std::int64_t lIt = lBase;
 
-    for (int32_t i = 1; i < 23; i++) {
+    for (std::int32_t i = 1; i < 23; i++) {
         if (x == lIt) return true;
         lIt *= lBase;
     }
@@ -128,7 +129,7 @@ void OTOffer::GetIdentifier(Identifier& theIdentifier) const
     String strTemp, strAsset(GetInstrumentDefinitionID()),
         strCurrency(GetCurrencyID());
 
-    int64_t lScale = GetScale();
+    std::int64_t lScale = GetScale();
 
     // In this way we generate a unique ID that will always be consistent
     // for the same instrument definition id, currency ID, and market scale.
@@ -146,9 +147,9 @@ bool OTOffer::IsMarketOrder() const { return (0 == GetPriceLimit()); }
 bool OTOffer::IsLimitOrder() const { return (0 != GetPriceLimit()); }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
-int32_t OTOffer::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
+std::int32_t OTOffer::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 {
-    int32_t nReturnVal = 0;
+    std::int32_t nReturnVal = 0;
 
     // Here we call the parent class first.
     // If the node is found there, or there is some error,
@@ -187,7 +188,7 @@ int32_t OTOffer::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         SetCurrencyID(CURRENCY_TYPE_ID);
 
         const String strScale = xml->getAttributeValue("marketScale");
-        const int64_t lScale =
+        const std::int64_t lScale =
             strScale.Exists() ? strScale.ToLong() : 0;  // if it doesn't exist,
                                                         // the 0 here causes the
                                                         // below error to fire.
@@ -201,10 +202,10 @@ int32_t OTOffer::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             SetScale(lScale);
 
         const String strPriceLimit = xml->getAttributeValue("priceLimit");
-        const int64_t lPriceLimit = strPriceLimit.Exists()
-                                        ? strPriceLimit.ToLong()
-                                        : 0;  // if it doesn't exist, the 0 here
-                                              // causes the below error to fire.
+        const std::int64_t lPriceLimit =
+            strPriceLimit.Exists() ? strPriceLimit.ToLong()
+                                   : 0;  // if it doesn't exist, the 0 here
+                                         // causes the below error to fire.
 
         // NOTE: Market Orders (new) have a 0 price, so this error condition was
         // changed.
@@ -219,7 +220,7 @@ int32_t OTOffer::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             SetPriceLimit(lPriceLimit);
 
         const String strTotal = xml->getAttributeValue("totalAssetsOnOffer");
-        const int64_t lTotal =
+        const std::int64_t lTotal =
             strTotal.Exists() ? strTotal.ToLong() : 0;  // if it doesn't exist,
                                                         // the 0 here causes the
                                                         // below error to fire.
@@ -232,10 +233,10 @@ int32_t OTOffer::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             SetTotalAssetsOnOffer(lTotal);
 
         const String strFinished = xml->getAttributeValue("finishedSoFar");
-        const int64_t lFinished = strFinished.Exists()
-                                      ? strFinished.ToLong()
-                                      : 0;  // if it doesn't exist, the 0 here
-                                            // causes the below error to fire.
+        const std::int64_t lFinished =
+            strFinished.Exists() ? strFinished.ToLong()
+                                 : 0;  // if it doesn't exist, the 0 here
+                                       // causes the below error to fire.
         if (lFinished < 0) {
             otOut << "OTOffer::ProcessXMLNode: Failure: finishedSoFar *must* "
                      "be 0 or larger. Instead I got: "
@@ -246,7 +247,8 @@ int32_t OTOffer::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         const String strMinInc = xml->getAttributeValue("minimumIncrement");
         // if it doesn't exist, the 0 here causes the below error to fire.
-        const int64_t lMinInc = strMinInc.Exists() ? strMinInc.ToLong() : 0;
+        const std::int64_t lMinInc =
+            strMinInc.Exists() ? strMinInc.ToLong() : 0;
 
         if ((lMinInc < 1) || (lMinInc > lTotal))  // Minimum increment cannot
         // logically be higher than the
@@ -262,7 +264,7 @@ int32_t OTOffer::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             SetMinimumIncrement(lMinInc);
 
         const String strTransNum = xml->getAttributeValue("transactionNum");
-        const int64_t lTransNum =
+        const std::int64_t lTransNum =
             strTransNum.Exists() ? strTransNum.ToLong() : 0;
 
         SetTransactionNum(lTransNum);
@@ -270,9 +272,9 @@ int32_t OTOffer::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         const String str_valid_from = xml->getAttributeValue("validFrom");
         const String str_valid_to = xml->getAttributeValue("validTo");
 
-        int64_t tValidFrom =
+        std::int64_t tValidFrom =
             str_valid_from.Exists() ? parseTimestamp(str_valid_from.Get()) : 0;
-        int64_t tValidTo =
+        std::int64_t tValidTo =
             str_valid_to.Exists() ? parseTimestamp(str_valid_to.Get()) : 0;
 
         if ((tValidTo < tValidFrom) && (tValidTo != 0)) {
@@ -344,17 +346,21 @@ void OTOffer::UpdateContents()
 }
 
 bool OTOffer::MakeOffer(
-    bool bBuyingOrSelling,       // True == SELLING, False == BUYING
-    const int64_t& lPriceLimit,  // Per Minimum Increment... (Zero price means
-                                 // it's a market order.)
-    const int64_t& lTotalAssetsOffer,  // Total assets available for sale or
-                                       // purchase.
-    const int64_t& lMinimumIncrement,  // The minimum increment that must be
-                                       // bought or sold for each transaction
-    const int64_t& lTransactionNum,  // The transaction number authorizing this
-                                     // trade.
-    const time64_t& VALID_FROM,      // defaults to RIGHT NOW
-    const time64_t& VALID_TO)        // defaults to 24 hours (a "Day Order")
+    bool bBuyingOrSelling,            // True == SELLING, False == BUYING
+    const std::int64_t& lPriceLimit,  // Per Minimum Increment... (Zero price
+                                      // means
+                                      // it's a market order.)
+    const std::int64_t& lTotalAssetsOffer,  // Total assets available for sale
+                                            // or
+                                            // purchase.
+    const std::int64_t& lMinimumIncrement,  // The minimum increment that must
+                                            // be
+    // bought or sold for each transaction
+    const std::int64_t& lTransactionNum,  // The transaction number authorizing
+                                          // this
+                                          // trade.
+    const time64_t& VALID_FROM,           // defaults to RIGHT NOW
+    const time64_t& VALID_TO)  // defaults to 24 hours (a "Day Order")
 {
     m_bSelling = bBuyingOrSelling;  // Bid or Ask?
     SetTransactionNum(lTransactionNum);
@@ -365,7 +371,7 @@ bool OTOffer::MakeOffer(
     // Make sure minimum increment isn't bigger than total Assets.
     // (If you pass them into this function as the same value, it's functionally
     // a "FILL OR KILL" order.)
-    int64_t lRealMinInc = lMinimumIncrement;
+    std::int64_t lRealMinInc = lMinimumIncrement;
     if (lMinimumIncrement > lTotalAssetsOffer)  // Once the total, minus finish
                                                 // so far, is smaller than the
                                                 // minimum increment,
@@ -440,7 +446,7 @@ OTOffer::OTOffer(
     const Identifier& NOTARY_ID,
     const Identifier& INSTRUMENT_DEFINITION_ID,
     const Identifier& CURRENCY_ID,
-    const int64_t& lScale)
+    const std::int64_t& lScale)
     : Instrument(NOTARY_ID, INSTRUMENT_DEFINITION_ID)
     , m_tDateAddedToMarket(OT_TIME_ZERO)
     , m_pTrade(nullptr)

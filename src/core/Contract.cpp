@@ -58,10 +58,11 @@
 #include "opentxs/Proto.hpp"
 #include "opentxs/core/String.hpp"
 
-#include <stdint.h>
+#include <irrxml/irrXML.hpp>
+
+#include <cstdint>
 #include <cstring>
 #include <fstream>
-#include <irrxml/irrXML.hpp>
 #include <map>
 #include <memory>
 #include <string>
@@ -576,7 +577,7 @@ bool Contract::VerifySigAuthent(
     String strNymID;
     theNym.GetIdentifier(strNymID);
     char cNymID = '0';
-    uint32_t uIndex = 3;
+    std::uint32_t uIndex = 3;
     const bool bNymID = strNymID.At(uIndex, cNymID);
 
     for (auto& it : m_listSignatures) {
@@ -606,7 +607,7 @@ bool Contract::VerifySignature(const Nym& theNym, const OTPasswordData* pPWData)
     String strNymID;
     theNym.GetIdentifier(strNymID);
     char cNymID = '0';
-    uint32_t uIndex = 3;
+    std::uint32_t uIndex = 3;
     const bool bNymID = strNymID.At(uIndex, cNymID);
 
     for (auto& it : m_listSignatures) {
@@ -673,7 +674,7 @@ bool Contract::VerifySigAuthent(
     OTPasswordData thePWData("Contract::VerifySigAuthent 1");
     listOfAsymmetricKeys listOutput;
 
-    const int32_t nCount = theNym.GetPublicKeysBySignature(
+    const std::int32_t nCount = theNym.GetPublicKeysBySignature(
         listOutput, theSignature, 'A');  // 'A' for authentication key.
 
     if (nCount > 0)  // Found some (potentially) matching keys...
@@ -723,7 +724,7 @@ bool Contract::VerifySignature(
     OTPasswordData thePWData("Contract::VerifySignature 1");
     listOfAsymmetricKeys listOutput;
 
-    const int32_t nCount = theNym.GetPublicKeysBySignature(
+    const std::int32_t nCount = theNym.GetPublicKeysBySignature(
         listOutput, theSignature, 'S');  // 'S' for signing key.
 
     if (nCount > 0)  // Found some (potentially) matching keys...
@@ -894,12 +895,12 @@ bool Contract::SignFlatText(
     strFlatText.Set(str_Trim2.c_str());
 
     char cNewline = 0;
-    const uint32_t lLength = strFlatText.GetLength();
+    const std::uint32_t lLength = strFlatText.GetLength();
 
     if ((3 > lLength) || !strFlatText.At(lLength - 1, cNewline)) {
         otErr << szFunc
               << ": Invalid input: text is less than 3 bytes "
-                 "int64_t, or unable to read a byte from the end where "
+                 "std::int64_t, or unable to read a byte from the end where "
                  "a newline is meant to be.\n";
         return false;
     }
@@ -1374,7 +1375,7 @@ bool Contract::ParseRawFile()
 
                         if (line.length() != 13)  // "Meta:    knms" (It will
                                                   // always be exactly 13
-                        // characters int64_t.) knms represents the
+                        // characters std::int64_t.) knms represents the
                         // first characters of the Key type, NymID,
                         // Master Cred ID, and ChildCred ID. Key type is
                         // (A|E|S) and the others are base62.
@@ -1477,7 +1478,7 @@ bool Contract::ParseRawFile()
 // This function only processes that portion of the contract.
 bool Contract::LoadContractXML()
 {
-    int32_t retProcess = 0;
+    std::int32_t retProcess = 0;
 
     if (!m_xmlUnsigned.Exists()) {
         return false;
@@ -1903,12 +1904,12 @@ bool Contract::CreateContract(const String& strContract, const Nym& theSigner)
 
     char cNewline = 0;  // this is about to contain a byte read from the end of
                         // the contract.
-    const uint32_t lLength = strContract.GetLength();
+    const std::uint32_t lLength = strContract.GetLength();
 
     if ((3 > lLength) || !strContract.At(lLength - 1, cNewline)) {
         otErr << __FUNCTION__
               << ": Invalid input: contract is less than 3 bytes "
-                 "int64_t, or unable to read a byte from the end where a "
+                 "std::int64_t, or unable to read a byte from the end where a "
                  "newline is meant to be.\n";
         return false;
     }
@@ -2072,7 +2073,7 @@ void Contract::CreateContents()
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
-int32_t Contract::ProcessXMLNode(IrrXMLReader*& xml)
+std::int32_t Contract::ProcessXMLNode(IrrXMLReader*& xml)
 {
     const String strNodeName(xml->getNodeName());
 

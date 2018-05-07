@@ -46,7 +46,7 @@
 #include "opentxs/core/NumList.hpp"
 #include "opentxs/core/String.hpp"
 
-#include <stdint.h>
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -65,7 +65,7 @@ class Tag;
 class OTMessageStrategy
 {
 public:
-    virtual int32_t processXml(
+    virtual std::int32_t processXml(
         Message& message,
         irr::io::IrrXMLReader*& xml) = 0;
     virtual void writeXml(Message& message, Tag& parent) = 0;
@@ -95,7 +95,7 @@ private:
 class Message : public Contract
 {
 protected:
-    int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
+    std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
 
     void UpdateContents() override;
 
@@ -114,11 +114,13 @@ private:
 
     bool updateContentsByType(Tag& parent);
 
-    int32_t processXmlNodeAckReplies(Message& m, irr::io::IrrXMLReader*& xml);
-    int32_t processXmlNodeAcknowledgedReplies(
+    std::int32_t processXmlNodeAckReplies(
         Message& m,
         irr::io::IrrXMLReader*& xml);
-    int32_t processXmlNodeNotaryMessage(
+    std::int32_t processXmlNodeAcknowledgedReplies(
+        Message& m,
+        irr::io::IrrXMLReader*& xml);
+    std::int32_t processXmlNodeNotaryMessage(
         Message& m,
         irr::io::IrrXMLReader*& xml);
 
@@ -201,21 +203,21 @@ public:
     // Server reply:   list of client-acknowledged replies (so client knows that
     // server knows.)
 
-    int64_t m_lNewRequestNum{0};  // If you are SENDING a message, you set
-                                  // m_strRequestNum. (For all msgs.)
+    std::int64_t m_lNewRequestNum{0};  // If you are SENDING a message, you set
+                                       // m_strRequestNum. (For all msgs.)
     // Server Reply for all messages copies that same number into
     // m_strRequestNum;
     // But if this is a SERVER REPLY to the "getRequestNumber" MESSAGE, the
     // "request number" expected in that reply is stored HERE in
     // m_lNewRequestNum;
-    int64_t m_lDepth{0};  // For Market-related messages... (Plus for usage
-                          // credits.) Also used by getBoxReceipt
-    int64_t m_lTransactionNum{
+    std::int64_t m_lDepth{0};  // For Market-related messages... (Plus for usage
+                               // credits.) Also used by getBoxReceipt
+    std::int64_t m_lTransactionNum{
         0};  // For Market-related messages... Also used by
              // getBoxReceipt
 
-    int32_t keytypeAuthent_ = 0;
-    int32_t keytypeEncrypt_ = 0;
+    std::int32_t keytypeAuthent_ = 0;
+    std::int32_t keytypeEncrypt_ = 0;
     std::uint8_t enum_{0};
     std::uint32_t enum2_{0};
 
@@ -225,7 +227,7 @@ public:
     bool m_bBool{
         false};  // Some commands need to send a bool. This variable is for
                  // those.
-    int64_t m_lTime{0};  // Timestamp when the message was signed.
+    std::int64_t m_lTime{0};  // Timestamp when the message was signed.
 
     static OTMessageStrategyManager messageStrategyManager;
 };

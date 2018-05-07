@@ -71,18 +71,19 @@ namespace opentxs
 
 // Note: these are only code defaults -- the values are actually loaded from
 // ~/.ot/server.cfg.
-int32_t OTCron::__trans_refill_amount = 500;  // The number of transaction
-                                              // numbers Cron will grab for
-                                              // itself, when it
-                                              // gets low, before each round.
-int32_t OTCron::__cron_ms_between_process =
+std::int32_t OTCron::__trans_refill_amount = 500;  // The number of transaction
+                                                   // numbers Cron will grab for
+                                                   // itself, when it
+// gets low, before each round.
+std::int32_t OTCron::__cron_ms_between_process =
     10000;  // The number of milliseconds
             // (ideally) between each
             // "Cron Process" event.
 
-int32_t OTCron::__cron_max_items_per_nym = 10;  // The maximum number of cron
-                                                // items any given Nym can have
-                                                // active at the same time.
+std::int32_t OTCron::__cron_max_items_per_nym =
+    10;  // The maximum number of cron
+         // items any given Nym can have
+         // active at the same time.
 
 Timer OTCron::tCron(true);
 
@@ -130,7 +131,7 @@ bool OTCron::SaveCron()
 bool OTCron::GetNym_OfferList(
     OTASCIIArmor& ascOutput,
     const Identifier& NYM_ID,
-    int32_t& nOfferCount)
+    std::int32_t& nOfferCount)
 {
     nOfferCount = 0;  // Outputs the number of offers on this nym.
 
@@ -142,7 +143,7 @@ bool OTCron::GetNym_OfferList(
         OTMarket* pMarket = it.second;
         OT_ASSERT(nullptr != pMarket);
 
-        int32_t nNymOfferCount = 0;
+        std::int32_t nNymOfferCount = 0;
 
         if (false ==
             pMarket->GetNym_OfferList(
@@ -183,11 +184,12 @@ bool OTCron::GetNym_OfferList(
 
         // Now we need to translate pBuffer into strOutput.
 
-        const uint8_t* pUint = pBuffer->GetData();
+        const std::uint8_t* pUint = pBuffer->GetData();
         const size_t theSize = pBuffer->GetSize();
 
         if ((nullptr != pUint) || (theSize < 2)) {
-            auto theData = Data::Factory(pUint, static_cast<uint32_t>(theSize));
+            auto theData =
+                Data::Factory(pUint, static_cast<std::uint32_t>(theSize));
 
             // This function will base64 ENCODE theData,
             // and then Set() that as the string contents.
@@ -205,7 +207,7 @@ bool OTCron::GetNym_OfferList(
     return false;
 }
 
-bool OTCron::GetMarketList(OTASCIIArmor& ascOutput, int32_t& nMarketCount)
+bool OTCron::GetMarketList(OTASCIIArmor& ascOutput, std::int32_t& nMarketCount)
 {
     nMarketCount = 0;  // This parameter is set to zero here, and incremented in
                        // the loop below.
@@ -237,22 +239,23 @@ bool OTCron::GetMarketList(OTASCIIArmor& ascOutput, int32_t& nMarketCount)
             str_INSTRUMENT_DEFINITION_ID.Get();
         pMarketData->currency_type_id = str_CURRENCY_ID.Get();
         // --------------------------------------------
-        const int64_t& lScale = pMarket->GetScale();
+        const std::int64_t& lScale = pMarket->GetScale();
 
-        pMarketData->scale = to_string<int64_t>(lScale);
+        pMarketData->scale = to_string<std::int64_t>(lScale);
 
-        const uint64_t theCurrentBid = pMarket->GetHighestBidPrice();
-        const uint64_t theCurrentAsk = pMarket->GetLowestAskPrice();
+        const std::uint64_t theCurrentBid = pMarket->GetHighestBidPrice();
+        const std::uint64_t theCurrentAsk = pMarket->GetLowestAskPrice();
 
-        pMarketData->current_bid = to_string<uint64_t>(theCurrentBid);
-        pMarketData->current_ask = to_string<uint64_t>(theCurrentAsk);
+        pMarketData->current_bid = to_string<std::uint64_t>(theCurrentBid);
+        pMarketData->current_ask = to_string<std::uint64_t>(theCurrentAsk);
 
-        const int64_t& lLastSalePrice = pMarket->GetLastSalePrice();
-        const int64_t& lTotalAvailableAssets =
+        const std::int64_t& lLastSalePrice = pMarket->GetLastSalePrice();
+        const std::int64_t& lTotalAvailableAssets =
             pMarket->GetTotalAvailableAssets();
 
-        pMarketData->total_assets = to_string<int64_t>(lTotalAvailableAssets);
-        pMarketData->last_sale_price = to_string<int64_t>(lLastSalePrice);
+        pMarketData->total_assets =
+            to_string<std::int64_t>(lTotalAvailableAssets);
+        pMarketData->last_sale_price = to_string<std::int64_t>(lLastSalePrice);
 
         pMarketData->last_sale_date = pMarket->GetLastSaleDate();
 
@@ -308,11 +311,12 @@ bool OTCron::GetMarketList(OTASCIIArmor& ascOutput, int32_t& nMarketCount)
 
         // Now we need to translate pBuffer into strOutput.
 
-        const uint8_t* pUint = pBuffer->GetData();
+        const std::uint8_t* pUint = pBuffer->GetData();
         const size_t theSize = pBuffer->GetSize();
 
         if ((theSize > 0) && (nullptr != pUint)) {
-            auto theData = Data::Factory(pUint, static_cast<uint32_t>(theSize));
+            auto theData =
+                Data::Factory(pUint, static_cast<std::uint32_t>(theSize));
 
             // This function will base64 ENCODE theData,
             // and then Set() that as the string contents.
@@ -331,25 +335,25 @@ bool OTCron::GetMarketList(OTASCIIArmor& ascOutput, int32_t& nMarketCount)
     return false;
 }
 
-int32_t OTCron::GetTransactionCount() const
+std::int32_t OTCron::GetTransactionCount() const
 {
     if (m_listTransactionNumbers.empty()) return 0;
 
-    return static_cast<int32_t>(m_listTransactionNumbers.size());
+    return static_cast<std::int32_t>(m_listTransactionNumbers.size());
 }
 
-void OTCron::AddTransactionNumber(const int64_t& lTransactionNum)
+void OTCron::AddTransactionNumber(const std::int64_t& lTransactionNum)
 {
     m_listTransactionNumbers.push_back(lTransactionNum);
 }
 
 // Once this starts returning 0, OTCron can no longer process trades and
 // payment plans until the server object replenishes this list.
-int64_t OTCron::GetNextTransactionNumber()
+std::int64_t OTCron::GetNextTransactionNumber()
 {
     if (m_listTransactionNumbers.empty()) return 0;
 
-    int64_t lTransactionNum = m_listTransactionNumbers.front();
+    std::int64_t lTransactionNum = m_listTransactionNumbers.front();
 
     m_listTransactionNumbers.pop_front();
 
@@ -357,11 +361,11 @@ int64_t OTCron::GetNextTransactionNumber()
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
-int32_t OTCron::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
+std::int32_t OTCron::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 {
     OT_ASSERT(nullptr != GetServerNym());
 
-    int32_t nReturnVal = 0;
+    std::int32_t nReturnVal = 0;
 
     // Here we call the parent class first.
     // If the node is found there, or there is some error,
@@ -385,7 +389,7 @@ int32_t OTCron::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         nReturnVal = 1;
     } else if (!strcmp("transactionNum", xml->getNodeName())) {
-        const int64_t lTransactionNum =
+        const std::int64_t lTransactionNum =
             String::StringToLong(xml->getAttributeValue("value"));
 
         otWarn << "Transaction Number " << lTransactionNum
@@ -398,7 +402,7 @@ int32_t OTCron::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         nReturnVal = 1;
     } else if (!strcmp("cronItem", xml->getNodeName())) {
         const String str_date_added = xml->getAttributeValue("dateAdded");
-        const int64_t lDateAdded =
+        const std::int64_t lDateAdded =
             (!str_date_added.Exists() ? 0
                                       : parseTimestamp(str_date_added.Get()));
         const time64_t tDateAdded = OTTimeGetTimeFromSeconds(lDateAdded);
@@ -468,7 +472,7 @@ int32_t OTCron::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             xml->getAttributeValue("instrumentDefinitionID"));
         const String strCurrencyID(xml->getAttributeValue("currencyID"));
 
-        const int64_t lScale =
+        const std::int64_t lScale =
             String::StringToLong(xml->getAttributeValue("marketScale"));
 
         const Identifier INSTRUMENT_DEFINITION_ID(strInstrumentDefinitionID),
@@ -571,7 +575,7 @@ void OTCron::UpdateContents()
     m_xmlUnsigned.Concatenate("%s", str_result.c_str());
 }
 
-int64_t OTCron::computeTimeout()
+std::int64_t OTCron::computeTimeout()
 {
     return OTCron::GetCronMsBetweenProcess() - tCron.getElapsedTimeInMilliSec();
 }
@@ -591,7 +595,7 @@ void OTCron::ProcessCronItems()
     }
     tCron.start();
 
-    const int32_t nTwentyPercent = OTCron::GetCronRefillAmount() / 5;
+    const std::int32_t nTwentyPercent = OTCron::GetCronRefillAmount() / 5;
     if (GetTransactionCount() <= nTwentyPercent) {
         otErr << "WARNING: Cron has fewer than 20 percent of its normal "
                  "transaction number count available since the previous round! "
@@ -699,7 +703,7 @@ bool OTCron::AddCronItem(
 
         // Insert to the MAP (by Transaction Number)
         //
-        m_mapCronItems.insert(std::pair<int64_t, OTCronItem*>(
+        m_mapCronItems.insert(std::pair<std::int64_t, OTCronItem*>(
             theItem.GetTransactionNum(), &theItem));
 
         // Insert to the MULTIMAP (by Date)
@@ -772,7 +776,7 @@ bool OTCron::AddCronItem(
 }
 
 bool OTCron::RemoveCronItem(
-    int64_t lTransactionNum,
+    std::int64_t lTransactionNum,
     Nym& theRemover)  // if returns false, item
                       // wasn't found.
 {
@@ -820,7 +824,7 @@ bool OTCron::RemoveCronItem(
 // that will work in this function is the "official" one, the one that
 // belongs to the Nym who actually activated this Cron Item.
 //
-mapOfCronItems::iterator OTCron::FindItemOnMap(int64_t lTransactionNum)
+mapOfCronItems::iterator OTCron::FindItemOnMap(std::int64_t lTransactionNum)
 {
     // See if there's something there with lTransactionNum
     // as its "official" number.
@@ -849,7 +853,7 @@ mapOfCronItems::iterator OTCron::FindItemOnMap(int64_t lTransactionNum)
 // belongs to the Nym who actually activated this Cron Item.
 //
 multimapOfCronItems::iterator OTCron::FindItemOnMultimap(
-    int64_t lTransactionNum)
+    std::int64_t lTransactionNum)
 {
     auto itt = m_multimapCronItems.begin();
 
@@ -873,7 +877,7 @@ multimapOfCronItems::iterator OTCron::FindItemOnMultimap(
 // that will work in this function is the "official" one, the one that
 // belongs to the Nym who actually activated this Cron Item.
 //
-OTCronItem* OTCron::GetItemByOfficialNum(int64_t lTransactionNum)
+OTCronItem* OTCron::GetItemByOfficialNum(std::int64_t lTransactionNum)
 {
     // See if there's something there with lTransactionNum
     // as its "official" number.
@@ -903,7 +907,7 @@ OTCronItem* OTCron::GetItemByOfficialNum(int64_t lTransactionNum)
 // This function searches based on any valid opening number, not necessarily
 // by the one "official" number.
 //
-OTCronItem* OTCron::GetItemByValidOpeningNum(int64_t lOpeningNum)
+OTCronItem* OTCron::GetItemByValidOpeningNum(std::int64_t lOpeningNum)
 {
     // See if there's something there with that transaction number.
     auto itt = m_mapCronItems.find(lOpeningNum);
@@ -1011,7 +1015,7 @@ bool OTCron::AddMarket(OTMarket& theMarket, bool bSaveMarketFile)
 OTMarket* OTCron::GetOrCreateMarket(
     const Identifier& INSTRUMENT_DEFINITION_ID,
     const Identifier& CURRENCY_ID,
-    const int64_t& lScale)
+    const std::int64_t& lScale)
 {
     OTMarket* pMarket = new OTMarket(
         GetNotaryID(), INSTRUMENT_DEFINITION_ID, CURRENCY_ID, lScale);

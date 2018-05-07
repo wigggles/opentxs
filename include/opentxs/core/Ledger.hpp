@@ -60,7 +60,8 @@ class Nym;
 class ServerContext;
 class String;
 
-// transaction ID is a int64_t, assigned by the server. Each transaction has
+// transaction ID is a std::int64_t, assigned by the server. Each transaction
+// has
 // one.
 // FIRST the server issues the ID. THEN we create the blank transaction object
 // with the
@@ -69,7 +70,7 @@ class String;
 // the blank to do so. If there is no blank available, we message the server and
 // request one.
 
-typedef std::map<int64_t, OTTransaction*> mapOfTransactions;
+typedef std::map<std::int64_t, OTTransaction*> mapOfTransactions;
 
 // the "inbox" and "outbox" functionality is implemented in this class
 class Ledger : public OTTransactionType
@@ -86,7 +87,7 @@ private:
 
 protected:
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
-    int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
+    std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
     void UpdateContents() override;  // Before transmission or serialization,
                                      // this is where the ledger saves its
                                      // contents
@@ -158,28 +159,29 @@ public:
 
     EXPORT bool AddTransaction(OTTransaction& theTransaction);
     EXPORT bool RemoveTransaction(
-        int64_t lTransactionNum,
+        std::int64_t lTransactionNum,
         bool bDeleteIt = true);  // if false,
                                  // transaction wasn't
                                  // found.
 
-    EXPORT std::set<int64_t> GetTransactionNums(
-        const std::set<int32_t>* pOnlyForIndices = nullptr) const;
+    EXPORT std::set<std::int64_t> GetTransactionNums(
+        const std::set<std::int32_t>* pOnlyForIndices = nullptr) const;
 
     EXPORT OTTransaction* GetTransaction(
         OTTransaction::transactionType theType);
-    EXPORT OTTransaction* GetTransaction(int64_t lTransactionNum) const;
-    EXPORT OTTransaction* GetTransactionByIndex(int32_t nIndex) const;
-    EXPORT OTTransaction* GetFinalReceipt(int64_t lReferenceNum);
-    EXPORT OTTransaction* GetTransferReceipt(int64_t lNumberOfOrigin);
+    EXPORT OTTransaction* GetTransaction(std::int64_t lTransactionNum) const;
+    EXPORT OTTransaction* GetTransactionByIndex(std::int32_t nIndex) const;
+    EXPORT OTTransaction* GetFinalReceipt(std::int64_t lReferenceNum);
+    EXPORT OTTransaction* GetTransferReceipt(std::int64_t lNumberOfOrigin);
     EXPORT OTTransaction* GetChequeReceipt(
-        int64_t lChequeNum,
+        std::int64_t lChequeNum,
         Cheque** ppChequeOut = nullptr);  // CALLER RESPONSIBLE
                                           // TO DELETE.
-    EXPORT int32_t GetTransactionIndex(int64_t lTransactionNum);  // if not
-                                                                  // found,
-                                                                  // returns -1
-    EXPORT OTTransaction* GetReplyNotice(const int64_t& lRequestNum);
+    EXPORT std::int32_t GetTransactionIndex(
+        std::int64_t lTransactionNum);  // if not
+                                        // found,
+                                        // returns -1
+    EXPORT OTTransaction* GetReplyNotice(const std::int64_t& lRequestNum);
 
     // This calls OTTransactionType::VerifyAccount(), which calls
     // VerifyContractID() as well as VerifySignature().
@@ -194,20 +196,21 @@ public:
     EXPORT bool VerifyAccount(const Nym& theNym) override;
     // For ALL abbreviated transactions, load the actual box receipt for each.
     EXPORT bool LoadBoxReceipts(
-        std::set<int64_t>* psetUnloaded = nullptr);  // if psetUnloaded passed
-                                                     // in, then use it to
-                                                     // return the #s that
-                                                     // weren't there.
+        std::set<std::int64_t>* psetUnloaded = nullptr);  // if psetUnloaded
+                                                          // passed
+                                                          // in, then use it to
+                                                          // return the #s that
+                                                          // weren't there.
     EXPORT bool SaveBoxReceipts();  // For all "full version" transactions, save
                                     // the actual box receipt for each.
     // Verifies the abbreviated form exists first, and then loads the
     // full version and compares the two. Returns success / fail.
     //
-    EXPORT bool LoadBoxReceipt(const int64_t& lTransactionNum);
+    EXPORT bool LoadBoxReceipt(const std::int64_t& lTransactionNum);
     // Saves the Box Receipt separately.
-    EXPORT bool SaveBoxReceipt(const int64_t& lTransactionNum);
+    EXPORT bool SaveBoxReceipt(const std::int64_t& lTransactionNum);
     // "Deletes" it by adding MARKED_FOR_DELETION to the bottom of the file.
-    EXPORT bool DeleteBoxReceipt(const int64_t& lTransactionNum);
+    EXPORT bool DeleteBoxReceipt(const std::int64_t& lTransactionNum);
     EXPORT bool LoadInbox();
     EXPORT bool SaveInbox(Identifier* pInboxHash = nullptr);  // If you pass
                                                               // the
@@ -249,14 +252,16 @@ public:
     EXPORT bool LoadRecordBoxFromString(const String& strBox);
     EXPORT bool LoadExpiredBoxFromString(const String& strBox);
     // inline for the top one only.
-    inline int32_t GetTransactionCount() const
+    inline std::int32_t GetTransactionCount() const
     {
-        return static_cast<int32_t>(m_mapTransactions.size());
+        return static_cast<std::int32_t>(m_mapTransactions.size());
     }
-    EXPORT int32_t GetTransactionCountInRefTo(int64_t lReferenceNum) const;
-    EXPORT int64_t GetTotalPendingValue();  // for inbox only, allows you to
-                                            // lookup the total value of pending
-                                            // transfers within.
+    EXPORT std::int32_t GetTransactionCountInRefTo(
+        std::int64_t lReferenceNum) const;
+    EXPORT std::int64_t GetTotalPendingValue();  // for inbox only, allows you
+                                                 // to
+    // lookup the total value of pending
+    // transfers within.
     EXPORT const mapOfTransactions& GetTransactionMap() const;
     EXPORT Ledger(
         const Identifier& theNymID,

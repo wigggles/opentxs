@@ -56,7 +56,7 @@
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/String.hpp"
 
-#include <stdint.h>
+#include <cstdint>
 #include <map>
 #include <memory>
 #include <ostream>
@@ -68,7 +68,7 @@ namespace opentxs
 {
 
 // Checks opening number on party, and closing numbers on his accounts.
-bool OTParty::HasTransactionNum(const int64_t& lInput) const
+bool OTParty::HasTransactionNum(const std::int64_t& lInput) const
 {
     if (lInput == m_lOpeningTransNo) return true;
 
@@ -94,16 +94,16 @@ void OTParty::GetAllTransactionNumbers(NumList& numlistOutput) const
             nullptr != pAcct,
             "Unexpected nullptr partyaccount pointer in party map.");
 
-        const int64_t lTemp = pAcct->GetClosingTransNo();
+        const std::int64_t lTemp = pAcct->GetClosingTransNo();
         if (lTemp > 0) numlistOutput.Add(lTemp);
     }
 }
 
 // Only counts accounts authorized for str_agent_name.
 //
-int32_t OTParty::GetAccountCount(std::string str_agent_name) const
+std::int32_t OTParty::GetAccountCount(std::string str_agent_name) const
 {
-    int32_t nCount = 0;
+    std::int32_t nCount = 0;
 
     for (const auto& it : m_mapPartyAccounts) {
         const OTPartyAccount* pAcct = it.second;
@@ -190,7 +190,7 @@ OTParty::OTParty(
     const std::string str_agent_name,
     Account* pAccount,
     const std::string* pstr_account_name,
-    int64_t lClosingTransNo)
+    std::int64_t lClosingTransNo)
     : m_pstr_party_name(new std::string(str_PartyName))
     , m_bPartyIsNym(true)
     , m_lOpeningTransNo(0)
@@ -279,7 +279,7 @@ bool OTParty::AddAccount(
     const String& strName,
     const String& strAcctID,
     const String& strInstrumentDefinitionID,
-    int64_t lClosingTransNo)
+    std::int64_t lClosingTransNo)
 {
     OTPartyAccount* pPartyAccount = new OTPartyAccount(
         strName,
@@ -301,7 +301,7 @@ bool OTParty::AddAccount(
     const String& strAgentName,
     const char* szAcctName,
     Account& theAccount,
-    int64_t lClosingTransNo)
+    std::int64_t lClosingTransNo)
 {
     OTPartyAccount* pPartyAccount = new OTPartyAccount(
         szAcctName, strAgentName, theAccount, lClosingTransNo);
@@ -378,7 +378,7 @@ bool OTParty::AddAccount(OTPartyAccount& thePartyAcct)
     return false;
 }
 
-int64_t OTParty::GetClosingTransNo(std::string str_for_acct_name) const
+std::int64_t OTParty::GetClosingTransNo(std::string str_for_acct_name) const
 {
     auto it = m_mapPartyAccounts.find(str_for_acct_name);
 
@@ -593,13 +593,13 @@ OTAgent* OTParty::GetAgent(const std::string& str_agent_name) const
 
 /// Get Agent pointer by Index. Returns nullptr on failure.
 ///
-OTAgent* OTParty::GetAgentByIndex(int32_t nIndex) const
+OTAgent* OTParty::GetAgentByIndex(std::int32_t nIndex) const
 {
     if (!((nIndex >= 0) &&
-          (nIndex < static_cast<int64_t>(m_mapAgents.size())))) {
+          (nIndex < static_cast<std::int64_t>(m_mapAgents.size())))) {
         otErr << __FUNCTION__ << ": Index out of bounds: " << nIndex << "\n";
     } else {
-        int32_t nLoopIndex = -1;
+        std::int32_t nLoopIndex = -1;
 
         for (auto& it : m_mapAgents) {
             OTAgent* pAgent = it.second;
@@ -638,13 +638,13 @@ OTPartyAccount* OTParty::GetAccount(const std::string& str_acct_name) const
 
 /// Get OTPartyAccount pointer by Index. Returns nullptr on failure.
 ///
-OTPartyAccount* OTParty::GetAccountByIndex(int32_t nIndex)
+OTPartyAccount* OTParty::GetAccountByIndex(std::int32_t nIndex)
 {
     if (!((nIndex >= 0) &&
-          (nIndex < static_cast<int64_t>(m_mapPartyAccounts.size())))) {
+          (nIndex < static_cast<std::int64_t>(m_mapPartyAccounts.size())))) {
         otErr << __FUNCTION__ << ": Index out of bounds: " << nIndex << "\n";
     } else {
-        int32_t nLoopIndex = -1;
+        std::int32_t nLoopIndex = -1;
 
         for (auto& it : m_mapPartyAccounts) {
             OTPartyAccount* pAcct = it.second;
@@ -925,7 +925,7 @@ bool OTParty::DropFinalReceiptToInboxes(
     mapOfNyms* pNymMap,
     const String& strNotaryID,
     Nym& theServerNym,
-    const int64_t& lNewTransactionNumber,
+    const std::int64_t& lNewTransactionNumber,
     const String& strOrigCronItem,
     String* pstrNote,
     String* pstrAttachment)
@@ -954,16 +954,17 @@ bool OTParty::DropFinalReceiptToInboxes(
             nullptr != pAcct,
             "Unexpected nullptr partyaccount pointer in party map.");
 
-        if (false == pAcct->DropFinalReceiptToInbox(
-                         pNymMap,  // contains any Nyms who might already be
-                                   // loaded, mapped by ID.
-                         strNotaryID,
-                         theServerNym,
-                         *pSmartContract,
-                         lNewTransactionNumber,
-                         strOrigCronItem,
-                         pstrNote,
-                         pstrAttachment)) {
+        if (false ==
+            pAcct->DropFinalReceiptToInbox(
+                pNymMap,  // contains any Nyms who might already be
+                          // loaded, mapped by ID.
+                strNotaryID,
+                theServerNym,
+                *pSmartContract,
+                lNewTransactionNumber,
+                strOrigCronItem,
+                pstrNote,
+                pstrAttachment)) {
             otErr << szFunc
                   << ": Failed dropping final Receipt to agent's Inbox.\n";
             bSuccess = false;  // Notice: no break. We still try to notify them
@@ -977,7 +978,7 @@ bool OTParty::DropFinalReceiptToInboxes(
 // This is only for SmartContracts, NOT all scriptables.
 //
 bool OTParty::DropFinalReceiptToNymboxes(
-    const int64_t& lNewTransactionNumber,
+    const std::int64_t& lNewTransactionNumber,
     const String& strOrigCronItem,
     String* pstrNote,
     String* pstrAttachment,
@@ -1008,13 +1009,14 @@ bool OTParty::DropFinalReceiptToNymboxes(
             nullptr != pAgent,
             "Unexpected nullptr agent pointer in party map.");
 
-        if (false == pAgent->DropFinalReceiptToNymbox(
-                         *pSmartContract,
-                         lNewTransactionNumber,
-                         strOrigCronItem,
-                         pstrNote,
-                         pstrAttachment,
-                         pActualNym))
+        if (false ==
+            pAgent->DropFinalReceiptToNymbox(
+                *pSmartContract,
+                lNewTransactionNumber,
+                strOrigCronItem,
+                pstrNote,
+                pstrAttachment,
+                pActualNym))
             otErr << "OTParty::DropFinalReceiptToNymboxes: Failed dropping "
                      "final Receipt to agent's Nymbox.\n";
         else
@@ -1028,7 +1030,7 @@ bool OTParty::SendNoticeToParty(
     bool bSuccessMsg,
     Nym& theServerNym,
     const Identifier& theNotaryID,
-    const int64_t& lNewTransactionNumber,
+    const std::int64_t& lNewTransactionNumber,
     const String& strReference,
     String* pstrNote,
     String* pstrAttachment,
@@ -1042,7 +1044,7 @@ bool OTParty::SendNoticeToParty(
         return false;
     }
 
-    const int64_t lOpeningTransNo = GetOpeningTransNo();
+    const std::int64_t lOpeningTransNo = GetOpeningTransNo();
 
     if (lOpeningTransNo > 0) {
         for (auto& it : m_mapAgents) {
@@ -1051,16 +1053,17 @@ bool OTParty::SendNoticeToParty(
                 nullptr != pAgent,
                 "Unexpected nullptr agent pointer in party map.");
 
-            if (false == pAgent->DropServerNoticeToNymbox(
-                             bSuccessMsg,
-                             theServerNym,
-                             theNotaryID,
-                             lNewTransactionNumber,
-                             lOpeningTransNo,  // lInReferenceTo
-                             strReference,
-                             pstrNote,
-                             pstrAttachment,
-                             pActualNym))
+            if (false ==
+                pAgent->DropServerNoticeToNymbox(
+                    bSuccessMsg,
+                    theServerNym,
+                    theNotaryID,
+                    lNewTransactionNumber,
+                    lOpeningTransNo,  // lInReferenceTo
+                    strReference,
+                    pstrNote,
+                    pstrAttachment,
+                    pActualNym))
                 otErr << __FUNCTION__
                       << ": Failed dropping server notice to agent's Nymbox.\n";
             else
@@ -1691,8 +1694,8 @@ void OTParty::Serialize(
 {
     TagPtr pTag(new Tag("party"));
 
-    uint32_t numAgents = m_mapAgents.size();
-    uint32_t numAccounts = m_mapPartyAccounts.size();
+    std::uint32_t numAgents = m_mapAgents.size();
+    std::uint32_t numAccounts = m_mapPartyAccounts.size();
 
     pTag->add_attribute("name", GetPartyName());
     pTag->add_attribute(
@@ -1847,12 +1850,13 @@ bool OTParty::CopyAcctsToConfirmingParty(OTParty& theParty) const
         OTPartyAccount* pAcct = it.second;
         OT_ASSERT(nullptr != pAcct);
 
-        if (false == theParty.AddAccount(
-                         pAcct->GetAgentName(),
-                         pAcct->GetName(),
-                         pAcct->GetAcctID(),
-                         pAcct->GetInstrumentDefinitionID(),
-                         pAcct->GetClosingTransNo())) {
+        if (false ==
+            theParty.AddAccount(
+                pAcct->GetAgentName(),
+                pAcct->GetName(),
+                pAcct->GetAcctID(),
+                pAcct->GetInstrumentDefinitionID(),
+                pAcct->GetClosingTransNo())) {
             otOut
                 << "OTParty::CopyAcctsToConfirmingParty: Unable to add Account "
                 << str_acct_name << ", when copying from *this party "

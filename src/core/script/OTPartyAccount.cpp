@@ -51,7 +51,7 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
 
-#include <stdint.h>
+#include <cstdint>
 #include <memory>
 #include <ostream>
 #include <string>
@@ -81,7 +81,7 @@ OTPartyAccount::OTPartyAccount(
     const std::string& str_account_name,
     const String& strAgentName,
     Account& theAccount,
-    int64_t lClosingTransNo)
+    std::int64_t lClosingTransNo)
     : m_pForParty(nullptr)
     // This gets set when this partyaccount is added to its party.
     , m_pAccount(&theAccount)
@@ -98,7 +98,7 @@ OTPartyAccount::OTPartyAccount(
     const String& strAgentName,
     const String& strAcctID,
     const String& strInstrumentDefinitionID,
-    int64_t lClosingTransNo)
+    std::int64_t lClosingTransNo)
     : m_pForParty(nullptr)
     // This gets set when this partyaccount is added to its party.
     , m_pAccount(nullptr)
@@ -284,7 +284,7 @@ bool OTPartyAccount::DropFinalReceiptToInbox(
     const String& strNotaryID,
     Nym& theServerNym,
     OTSmartContract& theSmartContract,
-    const int64_t& lNewTransactionNumber,
+    const std::int64_t& lNewTransactionNumber,
     const String& strOrigCronItem,
     String* pstrNote,
     String* pstrAttachment)

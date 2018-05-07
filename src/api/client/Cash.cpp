@@ -229,7 +229,7 @@ std::string Cash::export_cash_low_level(
     return newPurse;
 }
 
-int32_t Cash::withdraw_and_export_cash_low_level(
+std::int32_t Cash::withdraw_and_export_cash_low_level(
     const std::string& server,
     const std::string& mynym,
     const std::string& assetType,

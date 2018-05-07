@@ -59,7 +59,7 @@
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/ext/OTPayment.hpp"
 
-#include <stdint.h>
+#include <cstdint>
 #include <iostream>
 #include <map>
 #include <string>
@@ -1888,9 +1888,8 @@ std::string OTAPI_Func::send_transaction(std::size_t totalRetries)
             accountID_->str(),
             false))  // bForceDownload=false))
     {
-        otOut << strLocation
-              << ", getIntermediaryFiles returned false. (It "
-                 "couldn't download files that it needed.)\n";
+        otOut << strLocation << ", getIntermediaryFiles returned false. (It "
+                                "couldn't download files that it needed.)\n";
         return "";
     }
 
@@ -1909,9 +1908,8 @@ std::string OTAPI_Func::send_transaction(std::size_t totalRetries)
     }
 
     if (getnym_trnsnum_count < comparative) {
-        otOut << strLocation
-              << ", I don't have enough transaction numbers to "
-                 "perform this transaction.\n";
+        otOut << strLocation << ", I don't have enough transaction numbers to "
+                                "perform this transaction.\n";
         return "";
     }
 
@@ -1927,10 +1925,9 @@ std::string OTAPI_Func::send_transaction(std::size_t totalRetries)
                 context_.Nym()->ID().str(),
                 accountID_->str(),
                 true)) {
-            otOut << strLocation
-                  << ", getIntermediaryFiles returned false. "
-                     "(After a success sending the transaction. "
-                     "Strange...)\n";
+            otOut << strLocation << ", getIntermediaryFiles returned false. "
+                                    "(After a success sending the transaction. "
+                                    "Strange...)\n";
             return "";
         }
 
@@ -2270,11 +2267,10 @@ std::string OTAPI_Func::send_once(
                         context_.Nym()->ID().str(),
                         accountID_->str(),
                         bForceDownload)) {
-                    otOut << strLocation
-                          << ", getIntermediaryFiles returned "
-                             "false. (After a failure to send "
-                             "the transaction. Thus, I give "
-                             "up.)\n";
+                    otOut << strLocation << ", getIntermediaryFiles returned "
+                                            "false. (After a failure to send "
+                                            "the transaction. Thus, I give "
+                                            "up.)\n";
                     return "";
                 }
 

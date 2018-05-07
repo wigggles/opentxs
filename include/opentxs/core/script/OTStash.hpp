@@ -77,16 +77,16 @@ public:
     const std::string GetName() const { return m_str_stash_name; }
     OTStashItem* GetStash(const std::string& str_instrument_definition_id);
 
-    int64_t GetAmount(const std::string& str_instrument_definition_id);
+    std::int64_t GetAmount(const std::string& str_instrument_definition_id);
     bool CreditStash(
         const std::string& str_instrument_definition_id,
-        const int64_t& lAmount);
+        const std::int64_t& lAmount);
     bool DebitStash(
         const std::string& str_instrument_definition_id,
-        const int64_t& lAmount);
+        const std::int64_t& lAmount);
 
     void Serialize(Tag& parent) const;
-    int32_t ReadFromXMLNode(
+    std::int32_t ReadFromXMLNode(
         irr::io::IrrXMLReader*& xml,
         const String& strStashName,
         const String& strItemCount);
@@ -96,8 +96,10 @@ public:
         : m_str_stash_name(str_stash_name)
     {
     }
-    OTStash(const String& strInstrumentDefinitionID, int64_t lAmount = 0);
-    OTStash(const Identifier& theInstrumentDefinitionID, int64_t lAmount = 0);
+    OTStash(const String& strInstrumentDefinitionID, std::int64_t lAmount = 0);
+    OTStash(
+        const Identifier& theInstrumentDefinitionID,
+        std::int64_t lAmount = 0);
     virtual ~OTStash();
 };
 

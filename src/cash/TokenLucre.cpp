@@ -102,8 +102,8 @@ Token_Lucre::~Token_Lucre() {}
 bool Token_Lucre::GenerateTokenRequest(
     const Nym& theNym,
     Mint& theMint,
-    int64_t lDenomination,
-    int32_t nTokenCount)
+    std::int64_t lDenomination,
+    std::int32_t nTokenCount)
 {
     //    otErr << "%s <bank public info> <coin request private output file>
     // <coin request public output file>\n", argv[0]);
@@ -171,7 +171,7 @@ bool Token_Lucre::GenerateTokenRequest(
     SetSeriesAndExpiration(
         theMint.GetSeries(), theMint.GetValidFrom(), theMint.GetValidTo());
 
-    const int32_t nFinalTokenCount =
+    const std::int32_t nFinalTokenCount =
         (nTokenCount < Token::GetMinimumPrototokenCount())
             ? Token::GetMinimumPrototokenCount()
             : nTokenCount;
@@ -180,7 +180,7 @@ bool Token_Lucre::GenerateTokenRequest(
     // potential to work with
     // multiple proto-tokens, you can see this loop as though it always executes
     // just once.
-    for (int32_t i = 0; i < nFinalTokenCount; i++) {
+    for (std::int32_t i = 0; i < nFinalTokenCount; i++) {
         OpenSSL_BIO bioCoin = BIO_new(BIO_s_mem());  // These two are output. We
                                                      // must write these bios,
                                                      // after
@@ -199,14 +199,15 @@ bool Token_Lucre::GenerateTokenRequest(
         char privateCoinBuffer[4096],
             publicCoinBuffer[4096];  // todo stop hardcoding these string
                                      // lengths
-        int32_t privatecoinLen = BIO_read(
+        std::int32_t privatecoinLen = BIO_read(
             bioCoin,
             privateCoinBuffer,
             4000);  // cutting it a little short on
                     // purpose, with the buffer.
                     // Just makes me feel more
                     // comfortable for some reason.
-        int32_t publiccoinLen = BIO_read(bioPublicCoin, publicCoinBuffer, 4000);
+        std::int32_t publiccoinLen =
+            BIO_read(bioPublicCoin, publicCoinBuffer, 4000);
 
         if (privatecoinLen && publiccoinLen) {
             // With this, we have the Lucre public and private bank info
@@ -342,7 +343,7 @@ bool Token_Lucre::ProcessToken(
 
         // convert bioCoin to a C-style string...
         char CoinBuffer[1024];  // todo stop hardcoding these string lengths
-        int32_t coinLen = BIO_read(
+        std::int32_t coinLen = BIO_read(
             bioCoin, CoinBuffer, 1000);  // cutting it a little short on
                                          // purpose, with the buffer.
                                          // Just makes me feel more

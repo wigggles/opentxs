@@ -53,10 +53,11 @@
 #include <cerrno>
 #endif
 
-#include <cxxabi.h>
-#include <stdarg.h>
-#include <stdint.h>
 #include <sys/types.h>
+#include <cxxabi.h>
+
+#include <cstdarg>
+#include <cstdint>
 #include <algorithm>
 #include <chrono>
 #include <cstdlib>
@@ -92,7 +93,7 @@ void LogStackFrames(void* FaultAdress, char*);
 // Fucking Apple!
 struct sigcontext {
     // cppcheck-suppress unusedStructMember
-    int32_t eip;
+    std::int32_t eip;
 };
 #endif  // defined __APPLE__
 
@@ -188,7 +189,7 @@ Log::Log(const api::Settings& config)
 bool Log::Init(
     const api::Settings& config,
     const String& strThreadContext,
-    const int32_t& nLogLevel)
+    const std::int32_t& nLogLevel)
 {
     if (nullptr == pLogger) {
         pLogger = new Log(config);
@@ -308,7 +309,7 @@ const char* Log::LogFilePath() { return Log::GetLogFilePath().Get(); }
 const String& Log::GetLogFilePath() { return pLogger->m_strLogFilePath; }
 
 // static
-int32_t Log::LogLevel()
+std::int32_t Log::LogLevel()
 {
     if (nullptr != pLogger)
         return pLogger->m_nLogLevel;
@@ -317,7 +318,7 @@ int32_t Log::LogLevel()
 }
 
 // static
-bool Log::SetLogLevel(const int32_t& nLogLevel)
+bool Log::SetLogLevel(const std::int32_t& nLogLevel)
 {
     if (nullptr == pLogger) {
         OT_FAIL;
@@ -380,7 +381,7 @@ bool Log::LogToFile(const String& strOutput)
     return bSuccess;
 }
 
-String Log::GetMemlogAtIndex(int32_t nIndex)
+String Log::GetMemlogAtIndex(std::int32_t nIndex)
 {
     // lets check if we are Initialized in this context
     CheckLogger(Log::pLogger);
@@ -389,7 +390,7 @@ String Log::GetMemlogAtIndex(int32_t nIndex)
         rLock lock(Log::pLogger->lock_);
     }
 
-    uint32_t uIndex = static_cast<uint32_t>(nIndex);
+    std::uint32_t uIndex = static_cast<uint32_t>(nIndex);
 
     if ((nIndex < 0) || (uIndex >= Log::pLogger->logDeque.size())) {
         otErr << __FUNCTION__ << ": index out of bounds: " << nIndex << "\n";
@@ -411,7 +412,7 @@ String Log::GetMemlogAtIndex(int32_t nIndex)
 
 // We keep 1024 logs in memory, to make them available via the API.
 
-int32_t Log::GetMemlogSize()
+std::int32_t Log::GetMemlogSize()
 {
     // lets check if we are Initialized in this context
     CheckLogger(Log::pLogger);
@@ -420,7 +421,7 @@ int32_t Log::GetMemlogSize()
         rLock lock(Log::pLogger->lock_);
     }
 
-    return static_cast<int32_t>(Log::pLogger->logDeque.size());
+    return static_cast<std::int32_t>(Log::pLogger->logDeque.size());
 }
 
 String Log::PeekMemlogFront()
@@ -600,7 +601,7 @@ size_t Log::logAssert(
 // For normal output. The higher the verbosity, the less important the message.
 // (Verbose level 0 ALWAYS logs.) Currently goes to stdout.
 
-void Log::Output(int32_t nVerbosity, const char* szOutput)
+void Log::Output(std::int32_t nVerbosity, const char* szOutput)
 {
     bool bHaveLogger(false);
     if (nullptr != pLogger)
@@ -658,7 +659,7 @@ void Log::Output(int32_t nVerbosity, const char* szOutput)
 }
 
 // the vOutput is to avoid name conflicts.
-void Log::vOutput(int32_t nVerbosity, const char* szOutput, ...)
+void Log::vOutput(std::int32_t nVerbosity, const char* szOutput, ...)
 {
     bool bHaveLogger(false);
     if (nullptr != pLogger)
@@ -774,11 +775,11 @@ void Log::Errno(const char* szLocation)  // stderr
         rLock lock(Log::pLogger->lock_);
     }
 
-    const int32_t errnum = errno;
+    const std::int32_t errnum = errno;
     char buf[128];
     buf[0] = '\0';
 
-    int32_t nstrerr = 0;
+    std::int32_t nstrerr = 0;
     char* szErrString = nullptr;
 
 #if defined(_GNU_SOURCE) && defined(__linux__) && !defined(ANDROID)
@@ -808,14 +809,14 @@ void Log::Errno(const char* szLocation)  // stderr
 bool Log::StringFill(
     String& out_strString,
     const char* szString,
-    int32_t iLength,
+    std::int32_t iLength,
     const char* szAppend)
 {
     std::string strString(szString);
 
     if (nullptr != szAppend) strString.append(szAppend);
 
-    for (; (static_cast<int32_t>(strString.length()) < iLength);
+    for (; (static_cast<std::int32_t>(strString.length()) < iLength);
          strString.append(" "))
         ;
 
@@ -903,18 +904,18 @@ void LogStackFrames(void* FaultAdress, char* eNextBP)
     // ## Windows Server 2003 and Windows XP:
     // ## The sum of the FramesToSkip and FramesToCapture parameters must be
     // less than 63.
-    const int32_t kMaxCallers = 62;
+    const std::int32_t kMaxCallers = 62;
 
     void* callers[kMaxCallers];
-    int32_t count = (func)(0, kMaxCallers, callers, nullptr);
-    for (int32_t i = 0; i < count; i++)
+    std::int32_t count = (func)(0, kMaxCallers, callers, nullptr);
+    for (std::int32_t i = 0; i < count; i++)
         fprintf(stderr, "*** %d called from %p\n", i, callers[i]);
 
 #elif defined(_WIN32)  // not _WIN64 ? Must be _WIN32
 
     char* pBP = nullptr;
-    uint32_t i = 0, x = 0, BpPassed = 0;
-    static int32_t CurrentlyInTheStackDump = 0;
+    std::uint32_t i = 0, x = 0, BpPassed = 0;
+    static std::int32_t CurrentlyInTheStackDump = 0;
 
     if (CurrentlyInTheStackDump) {
         fprintf(stderr, "\n***\n*** Recursive Stack Dump skipped\n***\n");
@@ -949,7 +950,7 @@ void LogStackFrames(void* FaultAdress, char* eNextBP)
         fprintf(
             stderr,
             "\n  Fault Occured At $ADDRESS:%08LX\n",
-            (int32_t)FaultAdress);
+            (std::int32_t)FaultAdress);
 
     // prevent infinite loops
     for (i = 0; eNextBP && i < 100; i++) {
@@ -961,7 +962,7 @@ void LogStackFrames(void* FaultAdress, char* eNextBP)
         // Write 20 Bytes of potential arguments
         fprintf(stderr, "         with ");
         for (x = 0; p < eNextBP && x < 20; p++, x++)
-            fprintf(stderr, "%02X ", *(uint8_t*)p);
+            fprintf(stderr, "%02X ", *(std::uint8_t*)p);
 
         fprintf(stderr, "\n\n");
 

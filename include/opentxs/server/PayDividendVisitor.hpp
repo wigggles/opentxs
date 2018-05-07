@@ -78,11 +78,11 @@ class PayDividendVisitor : public AccountVisitor
                    // memo field for each voucher.)
     server::Server* m_pServer{
         nullptr};  // no need to cleanup. It's here for convenience only.
-    int64_t m_lPayoutPerShare{0};
-    int64_t m_lAmountPaidOut{
+    std::int64_t m_lPayoutPerShare{0};
+    std::int64_t m_lAmountPaidOut{
         0};  // as we pay each voucher out, we keep a running
              // count.
-    int64_t m_lAmountReturned{
+    std::int64_t m_lAmountReturned{
         0};  // as we pay each voucher out, we keep a running
              // count.
 
@@ -94,7 +94,7 @@ public:
         const Identifier& theVoucherAcctID,
         const String& strMemo,
         server::Server& theServer,
-        int64_t lPayoutPerShare,
+        std::int64_t lPayoutPerShare,
         mapOfAccounts* pLoadedAccounts = nullptr);
     virtual ~PayDividendVisitor();
 
@@ -106,9 +106,9 @@ public:
     Identifier* GetVoucherAcctID() { return m_pVoucherAcctID; }
     String* GetMemo() { return m_pstrMemo; }
     server::Server* GetServer() { return m_pServer; }
-    int64_t GetPayoutPerShare() { return m_lPayoutPerShare; }
-    int64_t GetAmountPaidOut() { return m_lAmountPaidOut; }
-    int64_t GetAmountReturned() { return m_lAmountReturned; }
+    std::int64_t GetPayoutPerShare() { return m_lPayoutPerShare; }
+    std::int64_t GetAmountPaidOut() { return m_lAmountPaidOut; }
+    std::int64_t GetAmountReturned() { return m_lAmountReturned; }
 
     bool Trigger(Account& theAccount) override;
 };

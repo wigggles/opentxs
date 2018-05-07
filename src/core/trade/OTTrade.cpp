@@ -103,9 +103,9 @@ bool OTTrade::VerifyNymAsAgentForAccount(const Nym& nym, Account& account) const
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
-int32_t OTTrade::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
+std::int32_t OTTrade::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 {
-    int32_t returnVal = 0;
+    std::int32_t returnVal = 0;
 
     // Here we call the parent class first.
     // If the node is found there, or there is some error,
@@ -129,9 +129,9 @@ int32_t OTTrade::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         const std::string validFromStr = xml->getAttributeValue("validFrom");
         const std::string validToStr = xml->getAttributeValue("validTo");
 
-        int64_t creation = parseTimestamp(creationStr);
-        int64_t validFrom = parseTimestamp(validFromStr);
-        int64_t validTo = parseTimestamp(validToStr);
+        std::int64_t creation = parseTimestamp(creationStr);
+        std::int64_t validFrom = parseTimestamp(validFromStr);
+        std::int64_t validTo = parseTimestamp(validToStr);
 
         SetCreationDate(OTTimeGetTimeFromSeconds(creation));
         SetValidFrom(OTTimeGetTimeFromSeconds(validFrom));
@@ -266,8 +266,8 @@ void OTTrade::UpdateContents()
     // where many asset accounts are involved and require receipts to be closed
     // out.
 
-    for (int32_t i = 0; i < GetCountClosingNumbers(); i++) {
-        int64_t closingNumber = GetClosingTransactionNoAt(i);
+    for (std::int32_t i = 0; i < GetCountClosingNumbers(); i++) {
+        std::int64_t closingNumber = GetClosingTransactionNoAt(i);
         OT_ASSERT(closingNumber > 0);
         TagPtr tagClosing(new Tag("closingTransactionNumber"));
         tagClosing->add_attribute("value", formatLong(closingNumber));
@@ -549,7 +549,7 @@ OTOffer* OTTrade::GetOffer(Identifier* offerMarketId, OTMarket** market)
     // Should we activate it now?
     //
     else if (IsStopOrder() && !stopActivated_) {
-        int64_t relevantPrice = 0;
+        std::int64_t relevantPrice = 0;
 
         // If the stop order is trying to sell something, then it cares about
         // the highest bidder.
@@ -640,8 +640,8 @@ void OTTrade::onRemovalFromCron()
     // store the original internally) and I will look up the scale.
     //
 
-    int64_t scale = 1;  // todo stop hardcoding.
-    int64_t transactionNum = 0;
+    std::int64_t scale = 1;  // todo stop hardcoding.
+    std::int64_t transactionNum = 0;
 
     if (offer_ == nullptr) {
         if (!marketOffer_.Exists()) {
@@ -700,7 +700,7 @@ void OTTrade::onRemovalFromCron()
 //    GetSenderAcctID()    -- asset account.
 //    GetCurrencyAcctID()    -- currency account.
 
-int64_t OTTrade::GetClosingNumber(const Identifier& acctId) const
+std::int64_t OTTrade::GetClosingNumber(const Identifier& acctId) const
 {
     if (acctId == GetSenderAcctID())
         return GetAssetAcctClosingNum();
@@ -709,13 +709,13 @@ int64_t OTTrade::GetClosingNumber(const Identifier& acctId) const
     return 0;
 }
 
-int64_t OTTrade::GetAssetAcctClosingNum() const
+std::int64_t OTTrade::GetAssetAcctClosingNum() const
 {
     return (GetCountClosingNumbers() > 0) ? GetClosingTransactionNoAt(0)
                                           : 0;  // todo stop hardcoding.
 }
 
-int64_t OTTrade::GetCurrencyAcctClosingNum() const
+std::int64_t OTTrade::GetCurrencyAcctClosingNum() const
 {
     return (GetCountClosingNumbers() > 1) ? GetClosingTransactionNoAt(1)
                                           : 0;  // todo stop hardcoding.
@@ -794,7 +794,7 @@ bool OTTrade::CanRemoveItemFromCron(const ClientContext& context)
 //
 void OTTrade::onFinalReceipt(
     OTCronItem& origCronItem,
-    const int64_t& newTransactionNumber,
+    const std::int64_t& newTransactionNumber,
     Nym& originator,
     Nym* remover)
 {
@@ -1126,20 +1126,21 @@ X OTIdentifier    currencyTypeID_;    // GOLD (Asset) is trading for DOLLARS
 X OTIdentifier    currencyAcctID_;    // My Dollar account, used for paying
 for my Gold (say) trades.
 
-X int64_t            stopPrice_;        // The price limit that activates the
+X std::int64_t            stopPrice_;        // The price limit that activates
+the
 STOP order.
 X char            stopSign_;        // Value is 0, or '<', or '>'.
 
 X time64_t        m_CREATION_DATE;    // The date, in seconds, when the trade
 was authorized.
-X int32_t            tradesAlreadyDone_;    // How many trades have already
+X std::int32_t            tradesAlreadyDone_;    // How many trades have already
 processed through this order? We keep track.
 */
 
 // This is called by the client side. First you call MakeOffer() to set up the
 // Offer,
 // then you call IssueTrade() and pass the Offer into it here.
-bool OTTrade::IssueTrade(OTOffer& offer, char stopSign, int64_t stopPrice)
+bool OTTrade::IssueTrade(OTOffer& offer, char stopSign, std::int64_t stopPrice)
 {
     // Make sure the Stop Sign is within parameters (0, '<', or '>')
     if ((stopSign == 0) || (stopSign == '<') || (stopSign == '>'))

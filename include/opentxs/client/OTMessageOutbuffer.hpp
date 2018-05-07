@@ -80,12 +80,12 @@ public:
     EXPORT void AddSentMessage(Message& message);
     // null == not found. caller NOT responsible to delete.
     EXPORT Message* GetSentMessage(
-        const int64_t& requestNum,
+        const std::int64_t& requestNum,
         const String& notaryID,
         const String& nymId);
     // true == it was removed. false == it wasn't found.
     EXPORT bool RemoveSentMessage(
-        const int64_t& requestNum,
+        const std::int64_t& requestNum,
         const String& notaryID,
         const String& nymId);
     // null == not found. caller NOT responsible to delete.
@@ -96,7 +96,7 @@ public:
     EXPORT ~OTMessageOutbuffer();
 
 private:
-    typedef std::multimap<int64_t, Message*> mapOfMessages;
+    typedef std::multimap<std::int64_t, Message*> mapOfMessages;
 
     mapOfMessages messagesMap_{};
     String dataFolder_{};

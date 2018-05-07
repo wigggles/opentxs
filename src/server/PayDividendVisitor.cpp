@@ -56,8 +56,8 @@
 #include "opentxs/server/Transactor.hpp"
 #include "opentxs/OT.hpp"
 
-#include <inttypes.h>
-#include <stdint.h>
+#include <cinttypes>
+#include <cstdint>
 
 namespace opentxs
 {
@@ -69,7 +69,7 @@ PayDividendVisitor::PayDividendVisitor(
     const Identifier& theVoucherAcctID,
     const String& strMemo,
     server::Server& theServer,
-    int64_t lPayoutPerShare,
+    std::int64_t lPayoutPerShare,
     mapOfAccounts* pLoadedAccounts)
     : AccountVisitor(theNotaryID, pLoadedAccounts)
     , m_pNymID(new Identifier(theNymID))
@@ -113,7 +113,7 @@ bool PayDividendVisitor::Trigger(Account& theSharesAccount)  // theSharesAccount
 // account.  Here, we'll send a dollars voucher
 // to its owner.
 {
-    const int64_t lPayoutAmount =
+    const std::int64_t lPayoutAmount =
         (theSharesAccount.GetBalance() * GetPayoutPerShare());
 
     if (lPayoutAmount <= 0) {

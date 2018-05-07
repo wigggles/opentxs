@@ -83,7 +83,7 @@ public:
     EXPORT CryptoSymmetricDecryptOutput& operator=(
         CryptoSymmetricDecryptOutput other);  // passed by value.
 
-    EXPORT bool Concatenate(const void* pAppendData, uint32_t lAppendSize)
+    EXPORT bool Concatenate(const void* pAppendData, std::uint32_t lAppendSize)
         const;
 
     EXPORT void Release();  // Someday make this virtual, if we ever subclass
@@ -94,7 +94,7 @@ public:
 class CryptoSymmetric
 {
 public:
-    enum Mode : int32_t {
+    enum Mode : std::int32_t {
         ERROR_MODE,
         AES_128_CBC,
         AES_256_CBC,
@@ -107,9 +107,9 @@ public:
 
     static Mode StringToMode(const String& Mode);
 
-    static uint32_t KeySize(const Mode Mode);
-    static uint32_t IVSize(const Mode Mode);
-    static uint32_t TagSize(const Mode Mode);
+    static std::uint32_t KeySize(const Mode Mode);
+    static std::uint32_t IVSize(const Mode Mode);
+    static std::uint32_t TagSize(const Mode Mode);
 
     // InstantiateBinarySecret
     // (To instantiate a text secret, just do this: OTPassword thePass;)
@@ -142,7 +142,7 @@ public:
     virtual OTPassword* DeriveNewKey(
         const OTPassword& userPassword,
         const Data& dataSalt,
-        uint32_t uIterations,
+        std::uint32_t uIterations,
         Data& dataCheckHash) const = 0;
 
     // ENCRYPT / DECRYPT
@@ -153,7 +153,7 @@ public:
         const OTPassword& theRawSymmetricKey,  // The symmetric key, in clear
                                                // form.
         const char* szInput,                   // This is the Plaintext.
-        uint32_t lInputLength,
+        std::uint32_t lInputLength,
         const Data& theIV,  // (We assume this IV is already generated and
                             // passed in.)
         Data& theEncryptedOutput) const = 0;  // OUTPUT. (Ciphertext.)
@@ -161,21 +161,21 @@ public:
         const CryptoSymmetric::Mode cipher,
         const OTPassword& key,
         const char* plaintext,
-        uint32_t plaintextLength,
+        std::uint32_t plaintextLength,
         Data& ciphertext) const = 0;
     virtual bool Encrypt(
         const CryptoSymmetric::Mode cipher,
         const OTPassword& key,
         const Data& iv,
         const char* plaintext,
-        uint32_t plaintextLength,
+        std::uint32_t plaintextLength,
         Data& ciphertext) const = 0;
     virtual bool Encrypt(
         const CryptoSymmetric::Mode cipher,
         const OTPassword& key,
         const Data& iv,
         const char* plaintext,
-        uint32_t plaintextLength,
+        std::uint32_t plaintextLength,
         Data& ciphertext,
         Data& tag) const = 0;
 
@@ -184,7 +184,7 @@ public:
                                                // key, in clear
                                                // form.
         const char* szInput,                   // This is the Ciphertext.
-        uint32_t lInputLength,
+        std::uint32_t lInputLength,
         const Data& theIV,  // (We assume this IV is
                             // already generated and passed
                             // in.)
@@ -196,14 +196,14 @@ public:
         const CryptoSymmetric::Mode cipher,
         const OTPassword& key,
         const char* ciphertext,
-        uint32_t ciphertextLength,
+        std::uint32_t ciphertextLength,
         CryptoSymmetricDecryptOutput& plaintext) const = 0;
     virtual bool Decrypt(
         const CryptoSymmetric::Mode cipher,
         const OTPassword& key,
         const Data& iv,
         const char* ciphertext,
-        uint32_t ciphertextLength,
+        std::uint32_t ciphertextLength,
         CryptoSymmetricDecryptOutput& plaintext) const = 0;
     virtual bool Decrypt(
         const CryptoSymmetric::Mode cipher,
@@ -211,7 +211,7 @@ public:
         const Data& iv,
         const Data& tag,
         const char* ciphertext,
-        const uint32_t ciphertextLength,
+        const std::uint32_t ciphertextLength,
         CryptoSymmetricDecryptOutput& plaintext) const = 0;
 };
 
@@ -258,14 +258,14 @@ public:
  */
 
 /*
- int32_t PKCS5_PBKDF2_HMAC_SHA1    (
+ std::int32_t PKCS5_PBKDF2_HMAC_SHA1    (
     const void*     password,
     size_t          password_len,
 
     const void*     salt,
     size_t          salt_len,
 
-    uint64_t     iter,
+    std::uint64_t     iter,
 
     size_t          keylen,
     void*          key

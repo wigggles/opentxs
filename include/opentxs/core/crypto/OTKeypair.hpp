@@ -92,7 +92,7 @@ public:
     EXPORT bool GetPublicKey(String& strKey) const;
 
     // TODO this violates encapsulation and should be deprecated
-    EXPORT int32_t GetPublicKeyBySignature(
+    EXPORT std::int32_t GetPublicKeyBySignature(
         listOfAsymmetricKeys& listOutput,  // inclusive means, return keys when
                                            // theSignature has no metadata.
         const OTSignature& theSignature,

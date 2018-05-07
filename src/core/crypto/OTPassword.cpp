@@ -59,7 +59,7 @@
 #ifndef PAGESIZE
 #include <unistd.h>
 
-#include <stdint.h>
+#include <cstdint>
 #include <cstring>
 #include <ostream>
 #include <string>
@@ -89,16 +89,16 @@ namespace opentxs
 // For everything but Windows:
 //
 #ifndef _WIN32
-extern "C" void* ot_secure_memset(void* v, uint8_t c, uint32_t n);
+extern "C" void* ot_secure_memset(void* v, std::uint8_t c, std::uint32_t n);
 
 // This function securely overwrites the contents of a memory buffer
 // (which can otherwise be optimized out by an overzealous compiler...)
 //
-void* ot_secure_memset(void* v, uint8_t c, uint32_t n)
+void* ot_secure_memset(void* v, std::uint8_t c, std::uint32_t n)
 {
     OT_ASSERT((nullptr != v) && (n > 0));
 
-    volatile uint8_t* p = static_cast<volatile uint8_t*>(v);
+    volatile std::uint8_t* p = static_cast<volatile uint8_t*>(v);
     while (n--) *p++ = c;
 
     return v;
@@ -195,20 +195,20 @@ void OTPassword::zeroMemory()
 }
 
 // static
-void OTPassword::zeroMemory(void* vMemory, uint32_t theSize)
+void OTPassword::zeroMemory(void* vMemory, std::uint32_t theSize)
 {
     //  OT_ASSERT_MSG((nullptr != vMemory) && (theSize >
     // 0),"OTPassword::zeroMemory: ASSERT: vMemory is nullptr or theSize is
     // 0.");
 
     if ((nullptr != vMemory) && (theSize > 0)) {
-        uint8_t* szMemory = static_cast<uint8_t*>(vMemory);
+        std::uint8_t* szMemory = static_cast<uint8_t*>(vMemory);
         OTPassword::zeroMemory(szMemory, theSize);
     }
 }
 
 // static
-void OTPassword::zeroMemory(uint8_t* szMemory, uint32_t theSize)
+void OTPassword::zeroMemory(std::uint8_t* szMemory, std::uint32_t theSize)
 {
 #ifdef _WIN32
 
@@ -224,7 +224,7 @@ void OTPassword::zeroMemory(uint8_t* szMemory, uint32_t theSize)
 
 // Dr. UNIX, I presume? So, we meet again...
 #else
-    ot_secure_memset(szMemory, static_cast<uint8_t>(0), theSize);
+    ot_secure_memset(szMemory, static_cast<std::uint8_t>(0), theSize);
 #endif
 }
 
@@ -248,9 +248,9 @@ void OTPassword::zeroMemory(uint8_t* szMemory, uint32_t theSize)
 // static
 void* OTPassword::safe_memcpy(
     void* dest,
-    uint32_t dest_size,
+    std::uint32_t dest_size,
     const void* src,
-    uint32_t src_length,
+    std::uint32_t src_length,
     bool bZeroSource)  // if true, sets the
                        // source buffer to
                        // zero after copying
@@ -278,22 +278,22 @@ void* OTPassword::safe_memcpy(
     // the dest ending!
     //
     OT_ASSERT_MSG(
-        false ==
-            ((static_cast<const uint8_t*>(src) > static_cast<uint8_t*>(dest)) &&
-             (static_cast<const uint8_t*>(src) <
-              (static_cast<uint8_t*>(dest) + dest_size))),
+        false == ((static_cast<const std::uint8_t*>(src) >
+                   static_cast<uint8_t*>(dest)) &&
+                  (static_cast<const std::uint8_t*>(src) <
+                   (static_cast<std::uint8_t*>(dest) + dest_size))),
         "ASSERT: safe_memcpy: Unexpected memory overlap, start of src.\n");
     OT_ASSERT_MSG(
-        false == (((static_cast<const uint8_t*>(src) + src_length) >
-                   static_cast<uint8_t*>(dest)) &&
-                  ((static_cast<const uint8_t*>(src) + src_length) <
-                   (static_cast<uint8_t*>(dest) + dest_size))),
+        false == (((static_cast<const std::uint8_t*>(src) + src_length) >
+                   static_cast<std::uint8_t*>(dest)) &&
+                  ((static_cast<const std::uint8_t*>(src) + src_length) <
+                   (static_cast<std::uint8_t*>(dest) + dest_size))),
         "ASSERT: safe_memcpy: Unexpected memory overlap, end of src.\n");
     OT_ASSERT(
-        false ==
-        ((static_cast<const uint8_t*>(src) <= static_cast<uint8_t*>(dest)) &&
-         ((static_cast<const uint8_t*>(src) + src_length) >=
-          (static_cast<uint8_t*>(dest) + dest_size))));
+        false == ((static_cast<const std::uint8_t*>(src) <=
+                   static_cast<uint8_t*>(dest)) &&
+                  ((static_cast<const std::uint8_t*>(src) + src_length) >=
+                   (static_cast<std::uint8_t*>(dest) + dest_size))));
 
 #ifdef _WIN32
     bool bSuccess =
@@ -332,7 +332,7 @@ OTPassword* OTPassword::CreateTextBuffer()  // asserts already.
     // Caller MUST delete!
 
     char throwaway_text[OT_DEFAULT_BLOCKSIZE];
-    for (int32_t tt = 0; tt < OT_DEFAULT_BLOCKSIZE; ++tt) {
+    for (std::int32_t tt = 0; tt < OT_DEFAULT_BLOCKSIZE; ++tt) {
         throwaway_text[tt] = 'A';  // todo optimization...
     }
     throwaway_text[OT_DEFAULT_BLOCKSIZE - 1] = '\0';
@@ -361,7 +361,7 @@ OTPassword::OTPassword()
     , isPageLocked_(false)
 {
     data_[0] = '\0';
-    setPassword_uint8(reinterpret_cast<const uint8_t*>(""), 0);
+    setPassword_uint8(reinterpret_cast<const std::uint8_t*>(""), 0);
 }
 
 OTPassword& OTPassword::operator=(const OTPassword& rhs)
@@ -391,7 +391,7 @@ OTPassword::OTPassword(const OTPassword& rhs)
     }
 }
 
-OTPassword::OTPassword(const char* szInput, uint32_t nInputSize)
+OTPassword::OTPassword(const char* szInput, std::uint32_t nInputSize)
     : size_(0)
     , isText_(true)
     , isBinary_(false)
@@ -399,10 +399,11 @@ OTPassword::OTPassword(const char* szInput, uint32_t nInputSize)
 {
     data_[0] = '\0';
 
-    setPassword_uint8(reinterpret_cast<const uint8_t*>(szInput), nInputSize);
+    setPassword_uint8(
+        reinterpret_cast<const std::uint8_t*>(szInput), nInputSize);
 }
 
-OTPassword::OTPassword(const uint8_t* szInput, uint32_t nInputSize)
+OTPassword::OTPassword(const std::uint8_t* szInput, std::uint32_t nInputSize)
     : size_(0)
     , isText_(true)
     , isBinary_(false)
@@ -413,7 +414,7 @@ OTPassword::OTPassword(const uint8_t* szInput, uint32_t nInputSize)
     setPassword_uint8(szInput, nInputSize);
 }
 
-OTPassword::OTPassword(const void* vInput, uint32_t nInputSize)
+OTPassword::OTPassword(const void* vInput, std::uint32_t nInputSize)
     : size_(0)
     , isText_(false)
     , isBinary_(true)
@@ -438,18 +439,19 @@ const char* OTPassword::getPassword() const  // asserts if isText_ is false.
 
 // getPassword returns "" if empty, otherwise returns the password.
 //
-const uint8_t* OTPassword::getPassword_uint8() const
+const std::uint8_t* OTPassword::getPassword_uint8() const
 {
     OT_ASSERT(isText_);
-    return (size_ <= 0) ? reinterpret_cast<const uint8_t*>("") : &(data_[0]);
+    return (size_ <= 0) ? reinterpret_cast<const std::uint8_t*>("")
+                        : &(data_[0]);
 }
 
-uint8_t* OTPassword::getPasswordWritable()
+std::uint8_t* OTPassword::getPasswordWritable()
 {
     OT_ASSERT(isText_);
     return (size_ <= 0)
                ? nullptr
-               : static_cast<uint8_t*>(static_cast<void*>(&(data_[0])));
+               : static_cast<std::uint8_t*>(static_cast<void*>(&(data_[0])));
 }
 
 char* OTPassword::getPasswordWritable_char()
@@ -466,7 +468,7 @@ const void* OTPassword::getMemory() const
     return reinterpret_cast<const void*>(getMemory_uint8());
 }
 
-const uint8_t* OTPassword::getMemory_uint8() const
+const std::uint8_t* OTPassword::getMemory_uint8() const
 {
     OT_ASSERT(isBinary_);
     return (size_ <= 0) ? nullptr : &(data_[0]);
@@ -481,19 +483,19 @@ void* OTPassword::getMemoryWritable()
 
 std::size_t OTPassword::getBlockSize() const { return blockSize_; }
 
-uint32_t OTPassword::getPasswordSize() const
+std::uint32_t OTPassword::getPasswordSize() const
 {
     OT_ASSERT(isText_);
     return size_;
 }
 
-uint32_t OTPassword::getMemorySize() const
+std::uint32_t OTPassword::getMemorySize() const
 {
     OT_ASSERT(isBinary_);
     return size_;
 }
 
-bool OTPassword::addChar(uint8_t theChar)
+bool OTPassword::addChar(std::uint8_t theChar)
 {
     OT_ASSERT(isPassword());
     if (getPasswordSize() < getBlockSize()) {
@@ -513,9 +515,9 @@ bool OTPassword::Compare(OTPassword& rhs) const
     if (isPassword() && !rhs.isPassword()) return false;
     if (isMemory() && !rhs.isMemory()) return false;
 
-    const uint32_t nThisSize =
+    const std::uint32_t nThisSize =
         isPassword() ? getPasswordSize() : getMemorySize();
-    const uint32_t nRhsSize =
+    const std::uint32_t nRhsSize =
         rhs.isPassword() ? rhs.getPasswordSize() : rhs.getMemorySize();
 
     if (nThisSize != nRhsSize) return false;
@@ -530,7 +532,7 @@ bool OTPassword::Compare(OTPassword& rhs) const
     return false;
 }
 
-int32_t OTPassword::setPassword(const std::string& input)
+std::int32_t OTPassword::setPassword(const std::string& input)
 {
     return setPassword(input.data(), input.size());
 }
@@ -538,18 +540,18 @@ int32_t OTPassword::setPassword(const std::string& input)
 // Returns size of password (in case truncation is necessary.)
 // Returns -1 in case of error.
 //
-int32_t OTPassword::setPassword(const char* szInput, int32_t nInputSize)
+std::int32_t OTPassword::setPassword(const char* szInput, int32_t nInputSize)
 {
     return setPassword_uint8(
-        reinterpret_cast<const uint8_t*>(szInput),
-        static_cast<uint32_t>(nInputSize));
+        reinterpret_cast<const std::uint8_t*>(szInput),
+        static_cast<std::uint32_t>(nInputSize));
 }
 
 // This adds a null terminator.
 //
-int32_t OTPassword::setPassword_uint8(
-    const uint8_t* szInput,
-    uint32_t nInputSize)
+std::int32_t OTPassword::setPassword_uint8(
+    const std::uint8_t* szInput,
+    std::uint32_t nInputSize)
 {
     OT_ASSERT(nullptr != szInput);
 
@@ -618,7 +620,7 @@ int32_t OTPassword::setPassword_uint8(
 #endif
 
     // force a null terminator in the 129th byte (at index 128.)
-    // (Or at the 6th byte (at index 5), if the size is 5 bytes int64_t.)
+    // (Or at the 6th byte (at index 5), if the size is 5 bytes std::int64_t.)
     //
     data_[nInputSize] = '\0';
     size_ = nInputSize;
@@ -639,7 +641,7 @@ int32_t OTPassword::setPassword_uint8(
 //
 // This adds a null terminator, IF we're in text mode (not binary mode.)
 //
-bool OTPassword::SetSize(uint32_t uSize)
+bool OTPassword::SetSize(std::uint32_t uSize)
 {
     if (isBinary_) {
         if (uSize > getBlockSize())
@@ -665,16 +667,16 @@ bool OTPassword::SetSize(uint32_t uSize)
 }
 
 // static
-bool OTPassword::randomizePassword(char* szDestination, uint32_t nNewSize)
+bool OTPassword::randomizePassword(char* szDestination, std::uint32_t nNewSize)
 {
     return OTPassword::randomizePassword_uint8(
-        reinterpret_cast<uint8_t*>(szDestination), nNewSize);
+        reinterpret_cast<std::uint8_t*>(szDestination), nNewSize);
 }
 
 // static
 bool OTPassword::randomizePassword_uint8(
-    uint8_t* szDestination,
-    uint32_t nNewSize)
+    std::uint8_t* szDestination,
+    std::uint32_t nNewSize)
 {
     OT_ASSERT(nullptr != szDestination);
     OT_ASSERT(nNewSize > 0);
@@ -687,8 +689,8 @@ bool OTPassword::randomizePassword_uint8(
         // same array, where each byte is translated to a byte
         // between the values of 33 and 122 (visible ASCII.)
         //
-        for (uint32_t i = 0; i < nNewSize; ++i) {
-            uint8_t temp = (((szDestination[i]) % 89) + 33);
+        for (std::uint32_t i = 0; i < nNewSize; ++i) {
+            std::uint8_t temp = (((szDestination[i]) % 89) + 33);
             szDestination[i] = temp;
         }
 
@@ -704,9 +706,9 @@ bool OTPassword::randomizePassword_uint8(
 // Returns size of memory (in case truncation is necessary.)
 // Returns -1 in case of error.
 //
-int32_t OTPassword::randomizePassword(uint32_t nNewSize)
+std::int32_t OTPassword::randomizePassword(std::uint32_t nNewSize)
 {
-    uint32_t nSize = nNewSize;
+    std::uint32_t nSize = nNewSize;
 
     // Wipe whatever was in there before.
     //
@@ -740,7 +742,7 @@ int32_t OTPassword::randomizePassword(uint32_t nNewSize)
 
     //
     if (!OTPassword::randomizePassword_uint8(
-            &(data_[0]), static_cast<int32_t>(nSize + 1))) {
+            &(data_[0]), static_cast<std::int32_t>(nSize + 1))) {
         // randomizeMemory (above) already logs, so I'm not logging again twice
         // here.
         //
@@ -754,16 +756,16 @@ int32_t OTPassword::randomizePassword(uint32_t nNewSize)
 }
 
 // static
-bool OTPassword::randomizeMemory(void* szDestination, uint32_t nNewSize)
+bool OTPassword::randomizeMemory(void* szDestination, std::uint32_t nNewSize)
 {
     return OTPassword::randomizeMemory_uint8(
-        reinterpret_cast<uint8_t*>(szDestination), nNewSize);
+        reinterpret_cast<std::uint8_t*>(szDestination), nNewSize);
 }
 
 // static
 bool OTPassword::randomizeMemory_uint8(
-    uint8_t* szDestination,
-    uint32_t nNewSize)
+    std::uint8_t* szDestination,
+    std::uint32_t nNewSize)
 {
     return OT::App().Crypto().Util().RandomizeMemory(szDestination, nNewSize);
 }
@@ -771,9 +773,9 @@ bool OTPassword::randomizeMemory_uint8(
 // Returns size of memory (in case truncation is necessary.)
 // Returns -1 in case of error.
 //
-int32_t OTPassword::randomizeMemory(uint32_t nNewSize)
+std::int32_t OTPassword::randomizeMemory(std::uint32_t nNewSize)
 {
-    uint32_t nSize = nNewSize;
+    std::uint32_t nSize = nNewSize;
 
     // Wipe whatever was in there before.
     //
@@ -824,7 +826,9 @@ int32_t OTPassword::randomizeMemory(uint32_t nNewSize)
 // getBlockSize.)
 // Returns number of bytes appended, or -1 for error.
 //
-int32_t OTPassword::addMemory(const void* vAppend, uint32_t nAppendSize)
+std::int32_t OTPassword::addMemory(
+    const void* vAppend,
+    std::uint32_t nAppendSize)
 {
     OT_ASSERT(nullptr != vAppend);
 
@@ -883,10 +887,10 @@ int32_t OTPassword::addMemory(const void* vAppend, uint32_t nAppendSize)
     return nAppendSize;
 }
 
-int32_t OTPassword::setMemory(const Data& data)
+std::int32_t OTPassword::setMemory(const Data& data)
 {
-    const uint32_t dataSize = data.GetSize();
-    uint32_t returnedSize = dataSize;
+    const std::uint32_t dataSize = data.GetSize();
+    std::uint32_t returnedSize = dataSize;
 
     bool memorySet = setMemory(data.GetPointer(), returnedSize);
     // TODO maybe we should check for truncation?
@@ -896,7 +900,7 @@ int32_t OTPassword::setMemory(const Data& data)
 // Returns size of memory (in case truncation is necessary.)
 // Returns -1 in case of error.
 //
-int32_t OTPassword::setMemory(const void* vInput, uint32_t nInputSize)
+std::int32_t OTPassword::setMemory(const void* vInput, std::uint32_t nInputSize)
 {
     OT_ASSERT(nullptr != vInput);
 
@@ -959,11 +963,11 @@ int32_t OTPassword::setMemory(const void* vInput, uint32_t nInputSize)
 // If you start at position 0, and read 100 bytes, then
 // you are now on position 100, and the next OTfread will
 // proceed from that position. (Unless you reset().)
-uint32_t OTPassword::OTfread(uint8_t* data, uint32_t size)
+std::uint32_t OTPassword::OTfread(std::uint8_t* data, uint32_t size)
 {
     OT_ASSERT(data != nullptr && size > 0);
 
-    uint32_t sizeToRead = 0;
+    std::uint32_t sizeToRead = 0;
 
     if (position_ < size_) {
         // If the size is 20, and position is 5 (I've already read the first 5

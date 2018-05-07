@@ -128,26 +128,26 @@ public:
 public:
     static size_t safe_strlen(const char* s, size_t max);
 
-    EXPORT static std::string LongToString(const int64_t& lNumber);
-    EXPORT static std::string UlongToString(const uint64_t& uNumber);
+    EXPORT static std::string LongToString(const std::int64_t& lNumber);
+    EXPORT static std::string UlongToString(const std::uint64_t& uNumber);
 
-    EXPORT static int64_t StringToLong(const std::string& number);
-    EXPORT static uint64_t StringToUlong(const std::string& number);
+    EXPORT static std::int64_t StringToLong(const std::string& number);
+    EXPORT static std::uint64_t StringToUlong(const std::string& number);
 
-    EXPORT int64_t ToLong() const;
-    EXPORT uint64_t ToUlong() const;
+    EXPORT std::int64_t ToLong() const;
+    EXPORT std::uint64_t ToUlong() const;
 
-    EXPORT static int32_t StringToInt(const std::string& number);
-    EXPORT static uint32_t StringToUint(const std::string& number);
+    EXPORT static std::int32_t StringToInt(const std::string& number);
+    EXPORT static std::uint32_t StringToUint(const std::string& number);
 
-    EXPORT int32_t ToInt() const;
-    EXPORT uint32_t ToUint() const;
+    EXPORT std::int32_t ToInt() const;
+    EXPORT std::uint32_t ToUint() const;
 
-    EXPORT bool At(uint32_t index, char& c) const;
+    EXPORT bool At(std::uint32_t index, char& c) const;
     EXPORT bool Exists() const;
     EXPORT bool empty() const;
     EXPORT bool DecodeIfArmored(bool escapedIsAllowed = true);
-    EXPORT uint32_t GetLength() const;
+    EXPORT std::uint32_t GetLength() const;
     EXPORT bool Compare(const char* compare) const;
     EXPORT bool Compare(const String& compare) const;
 
@@ -161,15 +161,15 @@ public:
     That's because this function forces the null terminator at that length,
     minus 1. For example, if the max is set to 10, then the valid range is 0..9.
     Therefore 9 (10 minus 1) is where the nullptr terminator goes. */
-    EXPORT void Set(const char* data, uint32_t enforcedMaxLength = 0);
+    EXPORT void Set(const char* data, std::uint32_t enforcedMaxLength = 0);
     EXPORT void Set(const String& data);
 
     /** For a straight-across, exact-size copy of bytes. Source not expected to
      * be null-terminated. */
-    EXPORT bool MemSet(const char* mem, uint32_t size);
+    EXPORT bool MemSet(const char* mem, std::uint32_t size);
     EXPORT void Concatenate(const char* arg, ...) ATTR_PRINTF(2, 3);
     void Concatenate(const String& data);
-    void Truncate(uint32_t index);
+    void Truncate(std::uint32_t index);
     EXPORT void Format(const char* fmt, ...) ATTR_PRINTF(2, 3);
     void ConvertToUpperCase() const;
     EXPORT bool TokenizeIntoKeyValuePairs(Map& map) const;
@@ -177,7 +177,7 @@ public:
 
     /** true  == there are more lines to read.
     false == this is the last line. Like EOF. */
-    bool sgets(char* buffer, uint32_t size);
+    bool sgets(char* buffer, std::uint32_t size);
 
     char sgetc();
     void sungetc();
@@ -194,11 +194,11 @@ private:
 
     /** Only call this right after calling Initialize() or Release(). Also, this
      * function ASSUMES the new_string pointer is good. */
-    void LowLevelSet(const char* data, uint32_t enforcedMaxLength);
+    void LowLevelSet(const char* data, std::uint32_t enforcedMaxLength);
 
 protected:
-    uint32_t length_;
-    uint32_t position_;
+    std::uint32_t length_;
+    std::uint32_t position_;
     char* data_;
 };
 }  // namespace opentxs
