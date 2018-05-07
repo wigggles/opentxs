@@ -121,13 +121,13 @@ std::string Encode::BreakLines(const std::string& input) const
 std::string Encode::DataEncode(const std::string& input) const
 {
     return Base64Encode(
-        reinterpret_cast<const uint8_t*>(input.data()), input.size());
+        reinterpret_cast<const std::uint8_t*>(input.data()), input.size());
 }
 
 std::string Encode::DataEncode(const Data& input) const
 {
     return Base64Encode(
-        static_cast<const uint8_t*>(input.GetPointer()), input.GetSize());
+        static_cast<const std::uint8_t*>(input.GetPointer()), input.GetSize());
 }
 
 std::string Encode::DataDecode(const std::string& input) const
@@ -146,18 +146,18 @@ std::string Encode::DataDecode(const std::string& input) const
 std::string Encode::IdentifierEncode(const Data& input) const
 {
     return base58_.Base58CheckEncode(
-        static_cast<const uint8_t*>(input.GetPointer()), input.GetSize());
+        static_cast<const std::uint8_t*>(input.GetPointer()), input.GetSize());
 }
 
 std::string Encode::IdentifierEncode(const OTPassword& input) const
 {
     if (input.isMemory()) {
         return base58_.Base58CheckEncode(
-            static_cast<const uint8_t*>(input.getMemory()),
+            static_cast<const std::uint8_t*>(input.getMemory()),
             input.getMemorySize());
     } else {
         return base58_.Base58CheckEncode(
-            reinterpret_cast<const uint8_t*>(input.getPassword()),
+            reinterpret_cast<const std::uint8_t*>(input.getPassword()),
             input.getPasswordSize());
     }
 }
@@ -181,14 +181,14 @@ bool Encode::IsBase62(const std::string& str) const
                                  "JKLMNOPQRSTUVWXYZ") == std::string::npos;
 }
 
-String Encode::Nonce(const uint32_t size) const
+String Encode::Nonce(const std::uint32_t size) const
 {
     auto unusedOutput = Data::Factory();
 
     return Nonce(size, unusedOutput);
 }
 
-String Encode::Nonce(const uint32_t size, Data& rawOutput) const
+String Encode::Nonce(const std::uint32_t size, Data& rawOutput) const
 {
     rawOutput.zeroMemory();
     rawOutput.SetSize(size);

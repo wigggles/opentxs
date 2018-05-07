@@ -68,7 +68,7 @@ extern "C" {
 #endif
 }
 
-#include <stdint.h>
+#include <cstdint>
 #include <ostream>
 
 namespace opentxs
@@ -190,22 +190,22 @@ bool OTEnvelope::Encrypt(
 
     ciphertext_->Concatenate(
         reinterpret_cast<void*>(&env_type_n),
-        // (uint32_t here is the 2nd parameter to
+        // (std::uint32_t here is the 2nd parameter to
         // Concatenate, and has nothing to do with
         // env_type_n being uint16_t)
-        static_cast<uint32_t>(sizeof(env_type_n)));
+        static_cast<std::uint32_t>(sizeof(env_type_n)));
 
     // Write IV size (in network-order)
     //
-    uint32_t ivlen =
+    std::uint32_t ivlen =
         CryptoConfig::SymmetricIvSize();  // Length of IV for this cipher...
     OT_ASSERT(ivlen >= theIV->GetSize());
-    uint32_t ivlen_n = htonl(
+    std::uint32_t ivlen_n = htonl(
         theIV->GetSize());  // Calculate "network-order" version of iv length.
 
     ciphertext_->Concatenate(
         reinterpret_cast<void*>(&ivlen_n),
-        static_cast<uint32_t>(sizeof(ivlen_n)));
+        static_cast<std::uint32_t>(sizeof(ivlen_n)));
 
     // Write the IV itself.
     //
@@ -246,8 +246,8 @@ bool OTEnvelope::Decrypt(
         return false;
     }
 
-    uint32_t nRead = 0;
-    uint32_t nRunningTotal = 0;
+    std::uint32_t nRead = 0;
+    std::uint32_t nRunningTotal = 0;
 
     OT_ASSERT(false == ciphertext_->empty());
 
@@ -265,14 +265,14 @@ bool OTEnvelope::Decrypt(
     uint16_t env_type_n = 0;
 
     if (0 == (nRead = ciphertext_->OTfread(
-                  reinterpret_cast<uint8_t*>(&env_type_n),
-                  static_cast<uint32_t>(sizeof(env_type_n))))) {
+                  reinterpret_cast<std::uint8_t*>(&env_type_n),
+                  static_cast<std::uint32_t>(sizeof(env_type_n))))) {
         otErr << szFunc << ": Error reading Envelope Type. Expected "
                            "asymmetric(1) or symmetric (2).\n";
         return false;
     }
     nRunningTotal += nRead;
-    OT_ASSERT(nRead == static_cast<uint32_t>(sizeof(env_type_n)));
+    OT_ASSERT(nRead == static_cast<std::uint32_t>(sizeof(env_type_n)));
 
     // convert that envelope type from network to HOST endian.
     //
@@ -281,7 +281,7 @@ bool OTEnvelope::Decrypt(
     // or 2, doesn't mean we add 1 or 2 extra bytes to the length here. Nope!
 
     if (2 != env_type) {
-        const uint32_t l_env_type = static_cast<uint32_t>(env_type);
+        const std::uint32_t l_env_type = static_cast<uint32_t>(env_type);
         otErr << szFunc << ": Error: Expected Envelope for Symmetric key (type "
                            "2) but instead found type: "
               << l_env_type << ".\n";
@@ -290,33 +290,33 @@ bool OTEnvelope::Decrypt(
 
     // Read network-order IV size (and convert to host version)
     //
-    const uint32_t max_iv_length =
+    const std::uint32_t max_iv_length =
         CryptoConfig::SymmetricIvSize();  // I believe this is a max length, so
                                           // it may not match the actual length
                                           // of the IV.
 
     // Read the IV SIZE (network order version -- convert to host version.)
     //
-    uint32_t iv_size_n = 0;
+    std::uint32_t iv_size_n = 0;
 
     if (0 == (nRead = ciphertext_->OTfread(
-                  reinterpret_cast<uint8_t*>(&iv_size_n),
-                  static_cast<uint32_t>(sizeof(iv_size_n))))) {
+                  reinterpret_cast<std::uint8_t*>(&iv_size_n),
+                  static_cast<std::uint32_t>(sizeof(iv_size_n))))) {
         otErr << szFunc << ": Error reading IV Size.\n";
         return false;
     }
     nRunningTotal += nRead;
-    OT_ASSERT(nRead == static_cast<uint32_t>(sizeof(iv_size_n)));
+    OT_ASSERT(nRead == static_cast<std::uint32_t>(sizeof(iv_size_n)));
 
     // convert that iv size from network to HOST endian.
     //
-    const uint32_t iv_size_host_order = ntohl(iv_size_n);
+    const std::uint32_t iv_size_host_order = ntohl(iv_size_n);
 
     if (iv_size_host_order > max_iv_length) {
         otErr << szFunc << ": Error: iv_size ("
-              << static_cast<int64_t>(iv_size_host_order)
+              << static_cast<std::int64_t>(iv_size_host_order)
               << ") is larger than max_iv_length ("
-              << static_cast<int64_t>(max_iv_length) << ").\n";
+              << static_cast<std::int64_t>(max_iv_length) << ").\n";
         return false;
     }
     //  nRunningTotal += iv_size_host_order; // Nope!
@@ -326,14 +326,15 @@ bool OTEnvelope::Decrypt(
     auto theIV = Data::Factory();
     theIV->SetSize(iv_size_host_order);
 
-    if (0 == (nRead = ciphertext_->OTfread(
-                  static_cast<uint8_t*>(const_cast<void*>(theIV->GetPointer())),
-                  static_cast<uint32_t>(iv_size_host_order)))) {
+    if (0 ==
+        (nRead = ciphertext_->OTfread(
+             static_cast<std::uint8_t*>(const_cast<void*>(theIV->GetPointer())),
+             static_cast<std::uint32_t>(iv_size_host_order)))) {
         otErr << szFunc << ": Error reading initialization vector.\n";
         return false;
     }
     nRunningTotal += nRead;
-    OT_ASSERT(nRead == static_cast<uint32_t>(iv_size_host_order));
+    OT_ASSERT(nRead == static_cast<std::uint32_t>(iv_size_host_order));
 
     OT_ASSERT(nRead <= max_iv_length);
 
@@ -346,7 +347,7 @@ bool OTEnvelope::Decrypt(
     //
     auto theCipherText = Data::Factory(
         static_cast<const void*>(
-            static_cast<const uint8_t*>(ciphertext_->GetPointer()) +
+            static_cast<const std::uint8_t*>(ciphertext_->GetPointer()) +
             nRunningTotal),
         ciphertext_->GetSize() - nRunningTotal);
 
@@ -373,8 +374,8 @@ bool OTEnvelope::Decrypt(
 
         // Make sure it's null-terminated...
         //
-        uint32_t nIndex = thePlaintext->GetSize() - 1;
-        (static_cast<uint8_t*>(
+        std::uint32_t nIndex = thePlaintext->GetSize() - 1;
+        (static_cast<std::uint8_t*>(
             const_cast<void*>(thePlaintext->GetPointer())))[nIndex] = '\0';
 
         // Set it into theOutput (to return the plaintext to the caller)

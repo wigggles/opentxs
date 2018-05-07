@@ -119,7 +119,7 @@ public:
     EXPORT bool Check_long(
         const String& strSection,
         const String& strKey,
-        int64_t& out_lResult,
+        std::int64_t& out_lResult,
         bool& out_bKeyExist) const;
     EXPORT bool Check_bool(
         const String& strSection,
@@ -138,7 +138,7 @@ public:
     EXPORT bool Set_long(
         const String& strSection,
         const String& strKey,
-        const int64_t& lValue,
+        const std::int64_t& lValue,
         bool& out_bNewOrUpdate,
         const String& strComment = "") const;
     EXPORT bool Set_bool(
@@ -174,8 +174,8 @@ public:
     EXPORT bool CheckSet_long(
         const String& strSection,
         const String& strKey,
-        const int64_t& lDefault,
-        int64_t& out_lResult,
+        const std::int64_t& lDefault,
+        std::int64_t& out_lResult,
         bool& out_bIsNew,
         const String& strComment = "") const;
     EXPORT bool CheckSet_bool(

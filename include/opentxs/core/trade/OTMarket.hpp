@@ -65,10 +65,10 @@ namespace opentxs
 // Using multi-map since there will be more than one offer for each single
 // price.
 // (Map would only allow a single item on the map for each price.)
-typedef std::multimap<int64_t, OTOffer*> mapOfOffers;
+typedef std::multimap<std::int64_t, OTOffer*> mapOfOffers;
 
 // The same offers are also mapped (uniquely) to transaction number.
-typedef std::map<int64_t, OTOffer*> mapOfOffersTrnsNum;
+typedef std::map<std::int64_t, OTOffer*> mapOfOffersTrnsNum;
 
 class OTMarket : public Contract
 {
@@ -102,9 +102,9 @@ private:
     // equally into.
     // (There is a "gold for dollars, minimum 1 oz" market, a "gold for dollars,
     // min 500 oz" market, etc.)
-    int64_t m_lScale{0};
+    std::int64_t m_lScale{0};
 
-    int64_t m_lLastSalePrice{0};
+    std::int64_t m_lLastSalePrice{0};
     std::string m_strLastSaleDate;
 
     // The server stores a map of markets, one for each unique combination of
@@ -135,41 +135,41 @@ private:
     void rollback_four_accounts(
         Account& p1,
         bool b1,
-        const int64_t& a1,
+        const std::int64_t& a1,
         Account& p2,
         bool b2,
-        const int64_t& a2,
+        const std::int64_t& a2,
         Account& p3,
         bool b3,
-        const int64_t& a3,
+        const std::int64_t& a3,
         Account& p4,
         bool b4,
-        const int64_t& a4);
+        const std::int64_t& a4);
 
 public:
     bool ValidateOfferForMarket(OTOffer& theOffer, String* pReason = nullptr);
 
-    OTOffer* GetOffer(const int64_t& lTransactionNum);
+    OTOffer* GetOffer(const std::int64_t& lTransactionNum);
     bool AddOffer(
         OTTrade* pTrade,
         OTOffer& theOffer,
         bool bSaveFile = true,
         time64_t tDateAddedToMarket = OT_TIME_ZERO);
-    bool RemoveOffer(const int64_t& lTransactionNum);
+    bool RemoveOffer(const std::int64_t& lTransactionNum);
     // returns general information about offers on the market
     EXPORT bool GetOfferList(
         OTASCIIArmor& ascOutput,
-        int64_t lDepth,
-        int32_t& nOfferCount);
+        std::int64_t lDepth,
+        std::int32_t& nOfferCount);
     EXPORT bool GetRecentTradeList(
         OTASCIIArmor& ascOutput,
-        int32_t& nTradeCount);
+        std::int32_t& nTradeCount);
 
     // Returns more detailed information about offers for a specific Nym.
     bool GetNym_OfferList(
         const Identifier& NYM_ID,
         OTDB::OfferListNym& theOutputList,
-        int32_t& nNymOfferCount);
+        std::int32_t& nNymOfferCount);
 
     // Assumes a few things: Offer is part of Trade, and both have been
     // proven already to be a part of this market.
@@ -183,8 +183,8 @@ public:
         OTOffer& theOtherOffer);
     bool ProcessTrade(OTTrade& theTrade, OTOffer& theOffer);
 
-    int64_t GetHighestBidPrice();
-    int64_t GetLowestAskPrice();
+    std::int64_t GetHighestBidPrice();
+    std::int64_t GetLowestAskPrice();
 
     mapOfOffers::size_type GetBidCount() { return m_mapBids.size(); }
     mapOfOffers::size_type GetAskCount() { return m_mapAsks.size(); }
@@ -208,33 +208,33 @@ public:
     }
     inline const Identifier& GetNotaryID() const { return m_NOTARY_ID; }
 
-    inline const int64_t& GetScale() const { return m_lScale; }
-    inline void SetScale(const int64_t& lScale)
+    inline const std::int64_t& GetScale() const { return m_lScale; }
+    inline void SetScale(const std::int64_t& lScale)
     {
         m_lScale = lScale;
         if (m_lScale < 1) m_lScale = 1;
     }
 
-    inline const int64_t& GetLastSalePrice()
+    inline const std::int64_t& GetLastSalePrice()
     {
         if (m_lLastSalePrice < 1) m_lLastSalePrice = 1;
         return m_lLastSalePrice;
     }
-    inline void SetLastSalePrice(const int64_t& lLastSalePrice)
+    inline void SetLastSalePrice(const std::int64_t& lLastSalePrice)
     {
         m_lLastSalePrice = lLastSalePrice;
         if (m_lLastSalePrice < 1) m_lLastSalePrice = 1;
     }
 
     const std::string& GetLastSaleDate() { return m_strLastSaleDate; }
-    int64_t GetTotalAvailableAssets();
+    std::int64_t GetTotalAvailableAssets();
     OTMarket();
     OTMarket(const char* szFilename);
     OTMarket(
         const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID,
         const Identifier& CURRENCY_TYPE_ID,
-        const int64_t& lScale);
+        const std::int64_t& lScale);
 
     virtual ~OTMarket();
 
@@ -251,7 +251,7 @@ public:
     void Release_Market();
 
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
-    int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
+    std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
 
     void UpdateContents() override;  // Before transmission or serialization,
                                      // this

@@ -50,7 +50,7 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
 
-#include <stdint.h>
+#include <cstdint>
 #include <list>
 #include <memory>
 #include <ostream>
@@ -68,10 +68,10 @@ void OTBylaw::Serialize(Tag& parent, bool bCalculatingID) const
     pTag->add_attribute("name", m_strName.Get());
     pTag->add_attribute("language", m_strLanguage.Get());
 
-    const uint64_t numVariables = m_mapVariables.size();
-    const uint64_t numClauses = m_mapClauses.size();
-    const uint64_t numHooks = m_mapHooks.size();
-    const uint64_t numCallbacks = m_mapCallbacks.size();
+    const std::uint64_t numVariables = m_mapVariables.size();
+    const std::uint64_t numClauses = m_mapClauses.size();
+    const std::uint64_t numHooks = m_mapHooks.size();
+    const std::uint64_t numCallbacks = m_mapCallbacks.size();
 
     pTag->add_attribute("numVariables", formatUlong(numVariables));
     pTag->add_attribute("numClauses", formatUlong(numClauses));
@@ -382,13 +382,13 @@ bool OTBylaw::Compare(OTBylaw& rhs)
     return false;
 }
 
-const std::string OTBylaw::GetCallbackNameByIndex(int32_t nIndex)
+const std::string OTBylaw::GetCallbackNameByIndex(std::int32_t nIndex)
 {
     if ((nIndex < 0) ||
-        (nIndex >= static_cast<int64_t>(m_mapCallbacks.size()))) {
+        (nIndex >= static_cast<std::int64_t>(m_mapCallbacks.size()))) {
         otErr << __FUNCTION__ << ": Index out of bounds: " << nIndex << "\n";
     } else {
-        int32_t nLoopIndex = -1;
+        std::int32_t nLoopIndex = -1;
 
         for (auto& it : m_mapCallbacks) {
             const std::string& str_callback_name = it.first;
@@ -688,13 +688,13 @@ OTVariable* OTBylaw::GetVariable(std::string str_var_name)  // not a
 
 /// Get Variable pointer by Index. Returns nullptr on failure.
 ///
-OTVariable* OTBylaw::GetVariableByIndex(int32_t nIndex)
+OTVariable* OTBylaw::GetVariableByIndex(std::int32_t nIndex)
 {
     if (!((nIndex >= 0) &&
-          (nIndex < static_cast<int64_t>(m_mapVariables.size())))) {
+          (nIndex < static_cast<std::int64_t>(m_mapVariables.size())))) {
         otErr << __FUNCTION__ << ": Index out of bounds: " << nIndex << "\n";
     } else {
-        int32_t nLoopIndex = -1;
+        std::int32_t nLoopIndex = -1;
 
         for (auto& it : m_mapVariables) {
             OTVariable* pVar = it.second;
@@ -728,13 +728,13 @@ OTClause* OTBylaw::GetClause(std::string str_clause_name) const
 
 /// Get Clause pointer by Index. Returns nullptr on failure.
 ///
-OTClause* OTBylaw::GetClauseByIndex(int32_t nIndex)
+OTClause* OTBylaw::GetClauseByIndex(std::int32_t nIndex)
 {
     if (!((nIndex >= 0) &&
-          (nIndex < static_cast<int64_t>(m_mapClauses.size())))) {
+          (nIndex < static_cast<std::int64_t>(m_mapClauses.size())))) {
         otErr << __FUNCTION__ << ": Index out of bounds: " << nIndex << "\n";
     } else {
-        int32_t nLoopIndex = -1;
+        std::int32_t nLoopIndex = -1;
 
         for (auto& it : m_mapClauses) {
             OTClause* pClause = it.second;
@@ -748,12 +748,13 @@ OTClause* OTBylaw::GetClauseByIndex(int32_t nIndex)
     return nullptr;
 }
 
-const std::string OTBylaw::GetHookNameByIndex(int32_t nIndex)
+const std::string OTBylaw::GetHookNameByIndex(std::int32_t nIndex)
 {
-    if ((nIndex < 0) || (nIndex >= static_cast<int64_t>(m_mapHooks.size()))) {
+    if ((nIndex < 0) ||
+        (nIndex >= static_cast<std::int64_t>(m_mapHooks.size()))) {
         otErr << __FUNCTION__ << ": Index out of bounds: " << nIndex << "\n";
     } else {
-        int32_t nLoopIndex = -1;
+        std::int32_t nLoopIndex = -1;
 
         for (auto& it : m_mapHooks) {
             const std::string& str_hook_name = it.first;
@@ -888,7 +889,7 @@ bool OTBylaw::AddVariable(
 
 bool OTBylaw::AddVariable(
     std::string str_Name,
-    int32_t nValue,
+    std::int32_t nValue,
     OTVariable::OTVariable_Access theAccess)
 {
     OTVariable* pVar = new OTVariable(str_Name, nValue, theAccess);

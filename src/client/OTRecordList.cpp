@@ -74,8 +74,8 @@
 #include "opentxs/OT.hpp"
 #include "opentxs/Types.hpp"
 
-#include <inttypes.h>
-#include <stdint.h>
+#include <cinttypes>
+#include <cstdint>
 #include <iterator>
 #include <map>
 #include <memory>
@@ -608,8 +608,8 @@ bool OTRecordList::accept_from_paymentbox(  // static function
         return -1;
     }
 
-    std::int32_t items = SwigWrap::Ledger_GetCount(transport_notary, mynym,
-                                                   mynym, inbox);
+    std::int32_t items =
+        SwigWrap::Ledger_GetCount(transport_notary, mynym, mynym, inbox);
     if (0 > items) {
         otOut << "Error: cannot load payment inbox item count.\n";
         return -1;
@@ -1300,11 +1300,9 @@ bool OTRecordList::checkNym(
     ConstNym pNym = nullptr;
     const Identifier nymID(nym);
 
-    if (!nymID.empty())
-        pNym = OT::App().Wallet().Nym(nymID);
+    if (!nymID.empty()) pNym = OT::App().Wallet().Nym(nymID);
 
-    if (!pNym)
-        pNym = OT::App().Wallet().NymByIDPartialMatch(nym);
+    if (!pNym) pNym = OT::App().Wallet().NymByIDPartialMatch(nym);
 
     if (pNym) {
         String tmp;
@@ -1757,19 +1755,20 @@ std::int32_t OTRecordList::acceptFromInbox(  // a static method
 
     bool all = ("" == indices || "all" == indices);
     // -----------------------------------------------------------
-    std::set<int32_t>* pOnlyForIndices{nullptr};
-    std::set<int32_t> setForIndices;
+    std::set<std::int32_t>* pOnlyForIndices{nullptr};
+    std::set<std::int32_t> setForIndices;
     if (!all) {
         NumList numlistForIndices{indices};
-        std::set<int64_t> setForIndices64;
+        std::set<std::int64_t> setForIndices64;
         if (numlistForIndices.Output(setForIndices64)) {
             pOnlyForIndices = &setForIndices;
-            for (const int64_t& lIndex : setForIndices64) {
-                setForIndices.insert(static_cast<int32_t>(lIndex));
+            for (const std::int64_t& lIndex : setForIndices64) {
+                setForIndices.insert(static_cast<std::int32_t>(lIndex));
             }
         }
     }
-    std::set<TransactionNumber> receiptIds{pInbox->GetTransactionNums(pOnlyForIndices)};
+    std::set<TransactionNumber> receiptIds{
+        pInbox->GetTransactionNums(pOnlyForIndices)};
 
     if (receiptIds.size() < 1) {
         otWarn << "There are no inbox receipts to process.\n";
@@ -1957,7 +1956,7 @@ void OTRecordList::notifyOfSuccessfulNotarization(
         lTransNumForDisplay);
 }
 
-typedef std::map<int32_t, OTPayment*> mapOfPayments;
+typedef std::map<std::int32_t, OTPayment*> mapOfPayments;
 
 bool OTRecordList::PerformAutoAccept()
 {
@@ -1971,7 +1970,7 @@ bool OTRecordList::PerformAutoAccept()
     // LOOP NYMS
     //
     if (m_bAutoAcceptCheques || m_bAutoAcceptCash) {
-        int32_t nNymIndex = -1;
+        std::int32_t nNymIndex = -1;
         for (auto& it_nym : m_nyms) {
             ++nNymIndex;
             if (0 == nNymIndex)
@@ -1988,7 +1987,7 @@ bool OTRecordList::PerformAutoAccept()
             //
             // For each nym, for each server, loop through its payments inbox
             //
-            int32_t nServerIndex = -1;
+            std::int32_t nServerIndex = -1;
             for (auto& it_server : m_servers) {
                 ++nServerIndex;
                 const std::string& str_msg_notary_id(it_server);
@@ -2009,7 +2008,7 @@ bool OTRecordList::PerformAutoAccept()
 
                 mapOfPayments thePaymentMap;
 
-                std::map<int32_t, TransactionNumber> mapPaymentBoxTransNum;
+                std::map<std::int32_t, TransactionNumber> mapPaymentBoxTransNum;
 
                 // OPTIMIZE FYI:
                 // The "NoVerify" version is much faster, but you will lose the
@@ -2032,7 +2031,7 @@ bool OTRecordList::PerformAutoAccept()
 
                 // It loaded up, so let's loop through it.
                 if (pInbox) {
-                    int32_t nIndex{-1};
+                    std::int32_t nIndex{-1};
                     for (auto& it : pInbox->GetTransactionMap()) {
                         TransactionNumber lPaymentBoxTransNum = it.first;
                         OTTransaction* pBoxTrans = it.second;
@@ -2119,8 +2118,8 @@ bool OTRecordList::PerformAutoAccept()
                             // types we
                             // care about.
                             // Instrument type (cheque, voucher, etc)
-                            int32_t nType =
-                                static_cast<int32_t>(pPayment->GetType());
+                            std::int32_t nType =
+                                static_cast<std::int32_t>(pPayment->GetType());
 
                             str_type = GetTypeString(nType);
                             // For now, we only accept cash, cheques and
@@ -2137,11 +2136,11 @@ bool OTRecordList::PerformAutoAccept()
                                        << str_type.c_str() << ".\n";
 
                                 mapPaymentBoxTransNum.insert(
-                                    std::pair<int32_t, TransactionNumber>(
+                                    std::pair<std::int32_t, TransactionNumber>(
                                         nIndex, lPaymentBoxTransNum));
 
                                 thePaymentMap.insert(
-                                    std::pair<int32_t, OTPayment*>(
+                                    std::pair<std::int32_t, OTPayment*>(
                                         nIndex, thePaymentAngel.release()));
                             } else
                                 otInfo << __FUNCTION__
@@ -2169,7 +2168,7 @@ bool OTRecordList::PerformAutoAccept()
                          ++it)  // backwards since we are processing (removing)
                                 // payments by index.
                     {
-                        int32_t lIndex = it->first;
+                        std::int32_t lIndex = it->first;
                         OTPayment* pPayment = it->second;
                         if (nullptr == pPayment) {
                             otErr << __FUNCTION__
@@ -2187,7 +2186,7 @@ bool OTRecordList::PerformAutoAccept()
                             continue;
                         }
 
-                        std::map<int32_t, TransactionNumber>::iterator
+                        std::map<std::int32_t, TransactionNumber>::iterator
                             it_pmnt_box_trns_num =
                                 mapPaymentBoxTransNum.find(lIndex);
                         TransactionNumber lPaymentBoxTransNum = 0;
@@ -2200,8 +2199,8 @@ bool OTRecordList::PerformAutoAccept()
                             paymentAssetType);
 
                         Identifier paymentNotaryId;
-                        bool bGotPaymentNotary = pPayment->GetNotaryID(
-                            paymentNotaryId);
+                        bool bGotPaymentNotary =
+                            pPayment->GetNotaryID(paymentNotaryId);
 
                         std::string str_instrument_definition_id,
                             str_payment_notary_id;
@@ -2278,8 +2277,7 @@ bool OTRecordList::PerformAutoAccept()
                                 (strAcctInstrumentDefinitionID.Compare(
                                     str_instrument_definition_id.c_str())) &&
                                 // No issuer accounts allowed here. User only.
-                                (0 == str_acct_type.compare("user")))
-                            {
+                                (0 == str_acct_type.compare("user"))) {
                                 // Accept it.
                                 //
                                 String strIndices;
@@ -2331,8 +2329,9 @@ bool OTRecordList::PerformAutoAccept()
                                     m_pLookup->notifyOfSuccessfulNotarization(
                                         str_account_id,
                                         strAcctNymID.Get(),
-                                        str_msg_notary_id, // MESSAGE NOTARY
-                                        strAcctNotaryID.Get(), // PAYMENT NOTARY
+                                        str_msg_notary_id,  // MESSAGE NOTARY
+                                        strAcctNotaryID.Get(),  // PAYMENT
+                                                                // NOTARY
                                         str_server_response,
                                         lPaymentBoxTransNum,
                                         display_number);
@@ -2347,8 +2346,7 @@ bool OTRecordList::PerformAutoAccept()
                     //
                     for (auto& it : thePaymentMap) {
                         OTPayment* pPayment = it.second;
-                        if (pPayment)
-                            delete pPayment;
+                        if (pPayment) delete pPayment;
                         pPayment = nullptr;
                     }
                     thePaymentMap.clear();
@@ -2362,7 +2360,7 @@ bool OTRecordList::PerformAutoAccept()
     // Loop through the Accounts.
     //
     if (m_bAutoAcceptReceipts || m_bAutoAcceptTransfers) {
-        int32_t nAccountIndex = -1;
+        std::int32_t nAccountIndex = -1;
         for (auto& it_acct : m_accounts) {
             ++nAccountIndex;  // (0 on first iteration.)
             if (0 == nAccountIndex)
@@ -2457,7 +2455,7 @@ bool OTRecordList::PerformAutoAccept()
             const std::string str_inbox(strInbox.Get());
             bool bFoundAnyToAccept = false;
             std::string strResponseLedger;
-            int32_t nInboxIndex = -1;
+            std::int32_t nInboxIndex = -1;
             // It loaded up, so let's loop through it.
             for (auto& it : pInbox->GetTransactionMap()) {
                 ++nInboxIndex;  // (0 on first iteration.)
@@ -2486,7 +2484,7 @@ bool OTRecordList::PerformAutoAccept()
                     if (!bFoundAnyToAccept) {
                         bFoundAnyToAccept = true;
 
-                        int32_t nNumberNeeded =
+                        std::int32_t nNumberNeeded =
                             20;  // I'm just hardcoding: "Make sure I have at
                                  // least 20 transaction numbers."
                         {
@@ -2583,7 +2581,7 @@ bool OTRecordList::PerformAutoAccept()
                 }
                 std::string strAttempt = "process_inbox";
 
-                int32_t nInterpretReply = InterpretTransactionMsgReply(
+                std::int32_t nInterpretReply = InterpretTransactionMsgReply(
                     str_notary_id,
                     str_nym_id,
                     str_account_id,
@@ -2644,7 +2642,7 @@ bool OTRecordList::Populate()
     // OUTPAYMENTS, OUTMAIL, MAIL, PAYMENTS INBOX, and RECORD BOX (2 kinds.)
     // Loop through the Nyms.
     //
-    int32_t nNymIndex = -1;
+    std::int32_t nNymIndex = -1;
     for (auto& it_nym : m_nyms) {
         ++nNymIndex;
         if (0 == nNymIndex)
@@ -2653,19 +2651,18 @@ bool OTRecordList::Populate()
         const std::string& str_nym_id(it_nym);
         const Identifier theNymID(str_nym_id);
         ConstNym pNym = OT::App().Wallet().Nym(theNymID);
-        if (!pNym)
-            continue;
+        if (!pNym) continue;
 
         // For each Nym, loop through his OUTPAYMENTS box.
         //
-        const int32_t nOutpaymentsCount =
+        const std::int32_t nOutpaymentsCount =
             SwigWrap::GetNym_OutpaymentsCount(str_nym_id);
 
         otInfo << "--------\n"
                << __FUNCTION__ << ": Nym " << nNymIndex
                << ", nOutpaymentsCount: " << nOutpaymentsCount
                << ", ID: " << theNymID.str() << "\n";
-        for (int32_t nCurrentOutpayment = 0;
+        for (std::int32_t nCurrentOutpayment = 0;
              nCurrentOutpayment < nOutpaymentsCount;
              ++nCurrentOutpayment) {
             otInfo << __FUNCTION__
@@ -2711,8 +2708,8 @@ bool OTRecordList::Populate()
                                            // anything.)
             // --------------------------------------------------
             Identifier paymentNotaryId;
-            const bool bGotPaymentNotary = theOutPayment.GetNotaryID(
-                paymentNotaryId);
+            const bool bGotPaymentNotary =
+                theOutPayment.GetNotaryID(paymentNotaryId);
 
             std::string str_outpayment_notary_id;
 
@@ -2720,10 +2717,9 @@ bool OTRecordList::Populate()
                 str_outpayment_notary_id = paymentNotaryId.str();
             }
             if (str_outpayment_notary_id.empty()) {
-                otErr
-                << __FUNCTION__
-                << ": Error: Failed while trying to "
-                "get Notary ID from payment. (Skipping.)\n";
+                otErr << __FUNCTION__
+                      << ": Error: Failed while trying to "
+                         "get Notary ID from payment. (Skipping.)\n";
                 continue;
             }
             // --------------------------------------------------
@@ -2785,12 +2781,11 @@ bool OTRecordList::Populate()
             //
             if ((theOutPayment.IsPaymentPlan() &&
                  theOutPayment.GetRecipientAcctID(theAccountID)) ||
-                 // Otherwise if it's not a payment plan then we're looking
-                 // for the Sender (not Recipient) account. See above comment.
-                 // Also: Since Nym is ME, the Account must be MY account.
-                 //
-                 theOutPayment.GetSenderAcctIDForDisplay(theAccountID))
-            {
+                // Otherwise if it's not a payment plan then we're looking
+                // for the Sender (not Recipient) account. See above comment.
+                // Also: Since Nym is ME, the Account must be MY account.
+                //
+                theOutPayment.GetSenderAcctIDForDisplay(theAccountID)) {
                 str_outpmt_account = theAccountID.str();
                 auto it_acct = std::find(
                     m_accounts.begin(), m_accounts.end(), str_outpmt_account);
@@ -2803,7 +2798,8 @@ bool OTRecordList::Populate()
                 // server's account) is definitely not one of my accounts --
                 // so the voucher would end up getting skipped every single
                 // time.
-//              else if (OTPayment::VOUCHER != theOutPayment.GetType())
+                //              else if (OTPayment::VOUCHER !=
+                //              theOutPayment.GetType())
                 else {
                     // There was definitely an account on the instrument, and it
                     // definitely did not match any of the accounts that we care
@@ -2899,7 +2895,7 @@ bool OTRecordList::Populate()
                 time64_t tTo = OT_TIME_ZERO;
 
                 if (theOutPayment.GetValidFrom(tFrom)) {
-                    const uint64_t lFrom = OTTimeGetSecondsFromTime(tFrom);
+                    const std::uint64_t lFrom = OTTimeGetSecondsFromTime(tFrom);
                     String strFrom;
                     strFrom.Format("%" PRIu64 "", lFrom);
                     str_date = strFrom.Get();
@@ -2907,7 +2903,8 @@ bool OTRecordList::Populate()
                 theOutPayment.GetValidTo(tTo);
                 // Instrument type (cheque, voucher, etc)
                 //
-                int32_t nType = static_cast<int32_t>(theOutPayment.GetType());
+                std::int32_t nType =
+                    static_cast<int32_t>(theOutPayment.GetType());
 
                 const std::string& str_type = GetTypeString(nType);
                 // CREATE A OTRecord AND POPULATE IT...
@@ -2918,8 +2915,8 @@ bool OTRecordList::Populate()
 
                 shared_ptr_OTRecord sp_Record(new OTRecord(
                     *this,
-                    str_outpmt_transport_server, // Transport Notary
-                    str_outpayment_notary_id, // The Payment Notary
+                    str_outpmt_transport_server,  // Transport Notary
+                    str_outpayment_notary_id,     // The Payment Notary
                     *p_str_asset_type,
                     *p_str_asset_name,
                     str_nym_id,      // This is the Nym WHOSE BOX IT IS.
@@ -3058,7 +3055,7 @@ bool OTRecordList::Populate()
                     std::string str_amount;  // There IS NO amount, on mail. (So
                                              // we leave this empty.)
 
-                    uint64_t lDate = message->m_lTime;
+                    std::uint64_t lDate = message->m_lTime;
                     String strDate;
                     strDate.Format("%" PRIu64 "", lDate);
                     const std::string str_date(strDate.Get());
@@ -3068,8 +3065,8 @@ bool OTRecordList::Populate()
 
                     shared_ptr_OTRecord sp_Record(new OTRecord(
                         *this,
-                        *it_server, // Transport Notary
-                        OTRecordList::s_blank, // Payment notary blank (mail)
+                        *it_server,             // Transport Notary
+                        OTRecordList::s_blank,  // Payment notary blank (mail)
                         *p_str_asset_type,
                         *p_str_asset_name,
                         str_nym_id,      // This is the Nym WHOSE BOX IT IS.
@@ -3186,7 +3183,7 @@ bool OTRecordList::Populate()
                     std::string str_amount;  // There IS NO amount, on mail. (So
                                              // we leave this empty.)
 
-                    uint64_t lDate = message->m_lTime;
+                    std::uint64_t lDate = message->m_lTime;
                     String strDate;
                     strDate.Format("%" PRIu64 "", lDate);
                     const std::string str_date(strDate.Get());
@@ -3196,8 +3193,8 @@ bool OTRecordList::Populate()
 
                     shared_ptr_OTRecord sp_Record(new OTRecord(
                         *this,
-                        *it_server, // Transport Notary
-                        OTRecordList::s_blank, // Payment notary blank (mail)
+                        *it_server,             // Transport Notary
+                        OTRecordList::s_blank,  // Payment notary blank (mail)
                         *p_str_asset_type,
                         *p_str_asset_name,
                         str_nym_id,      // This is the Nym WHOSE BOX IT IS.
@@ -3242,7 +3239,7 @@ bool OTRecordList::Populate()
         // For each nym, for each server, loop through its payments inbox and
         // record box.
         //
-        int32_t nServerIndex = -1;
+        std::int32_t nServerIndex = -1;
         for (auto& it_server : m_servers) {
             ++nServerIndex;
             const Identifier theMsgNotaryID(it_server);
@@ -3277,7 +3274,7 @@ bool OTRecordList::Populate()
 
             std::unique_ptr<Ledger> theInboxAngel(pInbox);
 
-            int32_t nIndex = (-1);
+            std::int32_t nIndex = (-1);
             // It loaded up, so let's loop through it.
             if (pInbox) {
                 for (auto& it : pInbox->GetTransactionMap()) {
@@ -3332,7 +3329,7 @@ bool OTRecordList::Populate()
 
                     if (tDateSigned > OT_TIME_ZERO) {
                         tValidFrom = tDateSigned;
-                        const uint64_t lDateSigned =
+                        const std::uint64_t lDateSigned =
                             OTTimeGetSecondsFromTime(tDateSigned);
                         String strDateSigned;
                         strDateSigned.Format("%" PRIu64 "", lDateSigned);
@@ -3436,7 +3433,7 @@ bool OTRecordList::Populate()
                             pPayment->GetValidTo(tValidTo);
 
                             if (tValidFrom > OT_TIME_ZERO) {
-                                const uint64_t lFrom =
+                                const std::uint64_t lFrom =
                                     OTTimeGetSecondsFromTime(tValidFrom);
                                 String strFrom;
                                 strFrom.Format("%" PRIu64 "", lFrom);
@@ -3448,11 +3445,10 @@ bool OTRecordList::Populate()
                             }
 
                             Identifier paymentNotaryId;
-                            bool bGotPaymentNotary = pPayment->GetNotaryID(
-                                paymentNotaryId);
+                            bool bGotPaymentNotary =
+                                pPayment->GetNotaryID(paymentNotaryId);
 
-                            if (bGotPaymentNotary)
-                            {
+                            if (bGotPaymentNotary) {
                                 str_payment_notary = paymentNotaryId.str();
                             }
 
@@ -3518,8 +3514,8 @@ bool OTRecordList::Populate()
                             // types we
                             // care about.
                             // Instrument type (cheque, voucher, etc)
-                            int32_t nType =
-                                static_cast<int32_t>(pPayment->GetType());
+                            std::int32_t nType =
+                                static_cast<std::int32_t>(pPayment->GetType());
 
                             str_type = GetTypeString(nType);
                             Amount lAmount = 0;
@@ -3586,16 +3582,16 @@ bool OTRecordList::Populate()
                     sp_Record->SetTransactionNum(
                         pBoxTrans->GetTransactionNum());
 
-//                    otErr << "DEBUGGING! Added pending
-//                    incoming payment. str_type: " <<
-//                    str_type.c_str() <<
-//                    "\n pBoxTrans->GetTransactionNum(): "
-//                    << pBoxTrans->GetTransactionNum() <<
-//                    "\n
-//                    pBoxTrans->GetReferenceNumForDisplay()"
-//                    <<
-//                    pBoxTrans->GetReferenceNumForDisplay()
-//                    << "\n";
+                    //                    otErr << "DEBUGGING! Added pending
+                    //                    incoming payment. str_type: " <<
+                    //                    str_type.c_str() <<
+                    //                    "\n pBoxTrans->GetTransactionNum(): "
+                    //                    << pBoxTrans->GetTransactionNum() <<
+                    //                    "\n
+                    //                    pBoxTrans->GetReferenceNumForDisplay()"
+                    //                    <<
+                    //                    pBoxTrans->GetReferenceNumForDisplay()
+                    //                    << "\n";
 
                     m_contents.push_back(sp_Record);
 
@@ -3876,7 +3872,7 @@ bool OTRecordList::Populate()
 
                     if (tDateSigned > OT_TIME_ZERO) {
                         tValidFrom = tDateSigned;
-                        const uint64_t lDateSigned =
+                        const std::uint64_t lDateSigned =
                             OTTimeGetSecondsFromTime(tDateSigned);
                         String strDateSigned;
                         strDateSigned.Format("%" PRIu64 "", lDateSigned);
@@ -3954,7 +3950,7 @@ bool OTRecordList::Populate()
                             pPayment->GetValidTo(tValidTo);
 
                             if (tValidFrom > OT_TIME_ZERO) {
-                                const uint64_t lFrom =
+                                const std::uint64_t lFrom =
                                     OTTimeGetSecondsFromTime(tValidFrom);
                                 String strFrom;
                                 strFrom.Format("%" PRIu64 "", lFrom);
@@ -4127,8 +4123,8 @@ bool OTRecordList::Populate()
                                 str_memo = strMemo.Get();
                             }
                             // Instrument type (cheque, voucher, etc)
-                            int32_t nType =
-                                static_cast<int32_t>(pPayment->GetType());
+                            std::int32_t nType =
+                                static_cast<std::int32_t>(pPayment->GetType());
 
                             str_type = GetTypeString(nType);
                             Amount lAmount = 0;
@@ -4140,8 +4136,7 @@ bool OTRecordList::Populate()
                             }
 
                             Identifier paymentNotaryId;
-                            if (pPayment->GetNotaryID(paymentNotaryId))
-                            {
+                            if (pPayment->GetNotaryID(paymentNotaryId)) {
                                 str_payment_notary_id = paymentNotaryId.str();
                             }
                         }
@@ -4152,8 +4147,8 @@ bool OTRecordList::Populate()
 
                     shared_ptr_OTRecord sp_Record(new OTRecord(
                         *this,
-                        theMsgNotaryID.str(), // Transport Notary
-                        str_payment_notary_id, // Payment Notary
+                        theMsgNotaryID.str(),   // Transport Notary
+                        str_payment_notary_id,  // Payment Notary
                         *p_str_asset_type,
                         *p_str_asset_name,
                         str_nym_id,      // This is the Nym WHOSE BOX IT IS.
@@ -4204,20 +4199,20 @@ bool OTRecordList::Populate()
 
                     sp_Record->SetOriginType(theOriginType);
 
-//                    otErr << "DEBUGGING! RECORD LIST:
-//                    Added " << (bOutgoing ? "sent":
-//                    "received") << " payment record: " <<
-//                    pBoxTrans->GetTypeString() << "\n
-//                    str_nym_id: " << str_nym_id << "\n
-//                    str_other_nym_id: " <<
-//                    str_other_nym_id <<
-//                    "\n pBoxTrans->GetTransactionNum(): "
-//                    << pBoxTrans->GetTransactionNum() <<
-//                    "\n
-//                    pBoxTrans->GetReferenceNumForDisplay()"
-//                    <<
-//                    pBoxTrans->GetReferenceNumForDisplay()
-//                    << "\n";
+                    //                    otErr << "DEBUGGING! RECORD LIST:
+                    //                    Added " << (bOutgoing ? "sent":
+                    //                    "received") << " payment record: " <<
+                    //                    pBoxTrans->GetTypeString() << "\n
+                    //                    str_nym_id: " << str_nym_id << "\n
+                    //                    str_other_nym_id: " <<
+                    //                    str_other_nym_id <<
+                    //                    "\n pBoxTrans->GetTransactionNum(): "
+                    //                    << pBoxTrans->GetTransactionNum() <<
+                    //                    "\n
+                    //                    pBoxTrans->GetReferenceNumForDisplay()"
+                    //                    <<
+                    //                    pBoxTrans->GetReferenceNumForDisplay()
+                    //                    << "\n";
 
                     m_contents.push_back(sp_Record);
 
@@ -4264,8 +4259,9 @@ bool OTRecordList::Populate()
                     // to her SENT plan, not a received plan. It needs to show
                     // up as outgoing/sent, NOT incoming/received.
                     //
-//                  if (OTTransaction::notice == pBoxTrans->GetType())
-//                      bOutgoing = true;
+                    //                  if (OTTransaction::notice ==
+                    //                  pBoxTrans->GetType())
+                    //                      bOutgoing = true;
                     // -------------------------------------------
                     bool bHasSuccess{false};
                     bool bIsSuccess{false};
@@ -4300,12 +4296,10 @@ bool OTRecordList::Populate()
                         //
                         pBoxTrans->GetSuccess(&bHasSuccess, &bIsSuccess);
 
-                        if (OTTransaction::notice == pBoxTrans->GetType())
-                        {
+                        if (OTTransaction::notice == pBoxTrans->GetType()) {
                             recordType = OTRecord::Notice;
 
-                            if (pBoxTrans->IsCancelled())
-                                bCanceled = true;
+                            if (pBoxTrans->IsCancelled()) bCanceled = true;
                         }
                         // ----------------------------------------
                         Identifier theSenderID, theSenderAcctID;
@@ -4475,7 +4469,7 @@ bool OTRecordList::Populate()
 
                     if (tDateSigned > OT_TIME_ZERO) {
                         tValidFrom = tDateSigned;
-                        const uint64_t lDateSigned =
+                        const std::uint64_t lDateSigned =
                             OTTimeGetSecondsFromTime(tDateSigned);
                         String strDateSigned;
                         strDateSigned.Format("%" PRIu64 "", lDateSigned);
@@ -4554,7 +4548,7 @@ bool OTRecordList::Populate()
                             pPayment->GetValidTo(tValidTo);
 
                             if (tValidFrom > OT_TIME_ZERO) {
-                                const uint64_t lFrom =
+                                const std::uint64_t lFrom =
                                     OTTimeGetSecondsFromTime(tValidFrom);
                                 String strFrom;
                                 strFrom.Format("%" PRIu64 "", lFrom);
@@ -4564,8 +4558,7 @@ bool OTRecordList::Populate()
                             Identifier theAccountID;
 
                             Identifier paymentNotaryId;
-                            if (pPayment->GetNotaryID(paymentNotaryId))
-                            {
+                            if (pPayment->GetNotaryID(paymentNotaryId)) {
                                 str_payment_notary_id = paymentNotaryId.str();
                             }
 
@@ -4732,8 +4725,8 @@ bool OTRecordList::Populate()
                                 str_memo = strMemo.Get();
                             }
                             // Instrument type (cheque, voucher, etc)
-                            int32_t nType =
-                                static_cast<int32_t>(pPayment->GetType());
+                            std::int32_t nType =
+                                static_cast<std::int32_t>(pPayment->GetType());
 
                             str_type = GetTypeString(nType);
                             Amount lAmount = 0;
@@ -4751,8 +4744,8 @@ bool OTRecordList::Populate()
 
                     shared_ptr_OTRecord sp_Record(new OTRecord(
                         *this,
-                        theMsgNotaryID.str(), // Transport Notary
-                        str_payment_notary_id, // Payment Notary
+                        theMsgNotaryID.str(),   // Transport Notary
+                        str_payment_notary_id,  // Payment Notary
                         *p_str_asset_type,
                         *p_str_asset_name,
                         str_nym_id,      // This is the Nym WHOSE BOX IT IS.
@@ -4816,7 +4809,7 @@ bool OTRecordList::Populate()
            //
     otInfo << "================ " << __FUNCTION__
            << ": Looping through the accounts in the wallet...\n";
-    int32_t nAccountIndex = -1;
+    std::int32_t nAccountIndex = -1;
     for (auto& it_acct : m_accounts) {
         ++nAccountIndex;  // (0 on first iteration.)
         // For each account, loop through its inbox, outbox, and record box.
@@ -4908,7 +4901,7 @@ bool OTRecordList::Populate()
 
         // It loaded up, so let's loop through it.
         if (pInbox) {
-            int32_t nInboxIndex = -1;
+            std::int32_t nInboxIndex = -1;
             for (auto& it : pInbox->GetTransactionMap()) {
                 ++nInboxIndex;  // (0 on first iteration.)
                 if (0 == nInboxIndex)
@@ -4937,13 +4930,14 @@ bool OTRecordList::Populate()
                     if (OTTransaction::pending == pBoxTrans->GetType()) {
                         // NOTE: REMOVE THE BELOW CODE. (Found a better way,
                         // above this block.)
-//                      const OTString
-//                      strBoxTrans(*pBoxTrans);
-//                      if (strBoxTrans.Exists())
-//                         str_memo =
-//                         SwigWrap::Pending_GetNote(*pstr_notary_id,
-//                                      *pstr_nym_id,
-//                                      str_account_id, strBoxTrans.Get());
+                        //                      const OTString
+                        //                      strBoxTrans(*pBoxTrans);
+                        //                      if (strBoxTrans.Exists())
+                        //                         str_memo =
+                        //                         SwigWrap::Pending_GetNote(*pstr_notary_id,
+                        //                                      *pstr_nym_id,
+                        //                                      str_account_id,
+                        //                                      strBoxTrans.Get());
                         Identifier theSenderID, theSenderAcctID;
 
                         if (pBoxTrans->GetSenderAcctIDForDisplay(
@@ -5094,7 +5088,7 @@ bool OTRecordList::Populate()
 
                 if (tDateSigned > OT_TIME_ZERO) {
                     tValidFrom = tDateSigned;
-                    const uint64_t lDateSigned =
+                    const std::uint64_t lDateSigned =
                         OTTimeGetSecondsFromTime(tDateSigned);
                     String strDateSigned;
                     strDateSigned.Format("%" PRIu64 "", lDateSigned);
@@ -5201,7 +5195,7 @@ bool OTRecordList::Populate()
 
         // It loaded up, so let's loop through it.
         if (pOutbox) {
-            int32_t nOutboxIndex{-1};
+            std::int32_t nOutboxIndex{-1};
             for (auto& it : pOutbox->GetTransactionMap()) {
                 ++nOutboxIndex;  // (0 on first iteration.)
                 if (0 == nOutboxIndex)
@@ -5279,11 +5273,15 @@ bool OTRecordList::Populate()
                             str_memo = strMemo.Get();
 
                         // DELETE THE BELOW CODE (replaced by above code.)
-//                    const OTString strBoxTrans(*pBoxTrans);
-//
-//                    if (strBoxTrans.Exists())
-//                        str_memo = SwigWrap::Pending_GetNote(*pstr_notary_id,
-//                            *pstr_nym_id, str_account_id, strBoxTrans.Get());
+                        //                    const OTString
+                        //                    strBoxTrans(*pBoxTrans);
+                        //
+                        //                    if (strBoxTrans.Exists())
+                        //                        str_memo =
+                        //                        SwigWrap::Pending_GetNote(*pstr_notary_id,
+                        //                            *pstr_nym_id,
+                        //                            str_account_id,
+                        //                            strBoxTrans.Get());
                     }
                 }
                 time64_t tValidFrom = OT_TIME_ZERO, tValidTo = OT_TIME_ZERO;
@@ -5293,7 +5291,7 @@ bool OTRecordList::Populate()
 
                 if (tDateSigned > OT_TIME_ZERO) {
                     tValidFrom = tDateSigned;
-                    const uint64_t lDateSigned =
+                    const std::uint64_t lDateSigned =
                         OTTimeGetSecondsFromTime(tDateSigned);
                     String strDateSigned;
                     strDateSigned.Format("%" PRIu64 "", lDateSigned);
@@ -5324,8 +5322,8 @@ bool OTRecordList::Populate()
 
                 shared_ptr_OTRecord sp_Record(new OTRecord(
                     *this,
-                    *pstr_notary_id, // Transport Notary.
-                    *pstr_notary_id, // Payment Notary.
+                    *pstr_notary_id,  // Transport Notary.
+                    *pstr_notary_id,  // Payment Notary.
                     *pstr_instrument_definition_id,
                     *pstr_asset_name,
                     *pstr_nym_id,    // This is the Nym WHOSE BOX IT IS.
@@ -5396,7 +5394,7 @@ bool OTRecordList::Populate()
 
         // It loaded up, so let's loop through it.
         if (pRecordbox) {
-            int32_t nRecordIndex{-1};
+            std::int32_t nRecordIndex{-1};
             for (auto& it : pRecordbox->GetTransactionMap()) {
                 ++nRecordIndex;
                 OTTransaction* pBoxTrans = it.second;
@@ -5767,7 +5765,7 @@ bool OTRecordList::Populate()
 
                 if (tDateSigned > OT_TIME_ZERO) {
                     tValidFrom = tDateSigned;
-                    const uint64_t lDateSigned =
+                    const std::uint64_t lDateSigned =
                         OTTimeGetSecondsFromTime(tDateSigned);
                     String strDateSigned;
                     strDateSigned.Format("%" PRIu64 "", lDateSigned);
@@ -5791,10 +5789,10 @@ bool OTRecordList::Populate()
                     bOutgoing = false;  // only the recipient of a transfer will
                                         // have a pending in his recordbox.
                 if (0 != lAmount) {
-//              if (lAmount < 0)
-//                  bOutgoing = true;
-//              else
-//                  bOutgoing = false;
+                    //              if (lAmount < 0)
+                    //                  bOutgoing = true;
+                    //              else
+                    //                  bOutgoing = false;
 
                     // A transfer receipt ALWAYS represents an outgoing
                     // transfer.
@@ -5929,7 +5927,7 @@ void OTRecordList::AddSpecialMsg(
     const std::string& str_msg_id,  // The id of this message, from whatever
                                     // system it came from.
     bool bIsOutgoing,
-    int32_t nMethodID,
+    std::int32_t nMethodID,
     const std::string& str_contents,  // Make sure to concatentate subject with
                                       // contents, before passing here.
     const std::string& str_address,
@@ -5974,7 +5972,7 @@ void OTRecordList::AddSpecialMsg(
     std::string str_amount;  // There IS NO amount, on mail. (So we leave this
                              // empty.)
     // ---------------------------------------------------
-    uint64_t lDate = static_cast<uint64_t>(tDate);
+    std::uint64_t lDate = static_cast<uint64_t>(tDate);
     String strDate;
     strDate.Format("%" PRIu64 "", lDate);
     const std::string str_date(strDate.Get());
@@ -6091,20 +6089,22 @@ void OTRecordList::ClearContents() { m_contents.clear(); }
 // RETRIEVE:
 //
 
-int32_t OTRecordList::size() const { return m_contents.size(); }
+std::int32_t OTRecordList::size() const { return m_contents.size(); }
 
-bool OTRecordList::RemoveRecord(int32_t nIndex)
+bool OTRecordList::RemoveRecord(std::int32_t nIndex)
 {
     OT_ASSERT(
-        (nIndex >= 0) && (nIndex < static_cast<int32_t>(m_contents.size())));
+        (nIndex >= 0) &&
+        (nIndex < static_cast<std::int32_t>(m_contents.size())));
     m_contents.erase(m_contents.begin() + nIndex);
     return true;
 }
 
-OTRecord OTRecordList::GetRecord(int32_t nIndex)
+OTRecord OTRecordList::GetRecord(std::int32_t nIndex)
 {
     OT_ASSERT(
-        (nIndex >= 0) && (nIndex < static_cast<int32_t>(m_contents.size())));
+        (nIndex >= 0) &&
+        (nIndex < static_cast<std::int32_t>(m_contents.size())));
     return *(m_contents[nIndex]);
 }
 

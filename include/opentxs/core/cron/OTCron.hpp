@@ -49,14 +49,14 @@
 namespace opentxs
 {
 /** mapOfCronItems:      Mapped (uniquely) to transaction number. */
-typedef std::map<int64_t, OTCronItem*> mapOfCronItems;
+typedef std::map<std::int64_t, OTCronItem*> mapOfCronItems;
 /** multimapOfCronItems: Mapped to date the item was added to Cron. */
 typedef std::multimap<time64_t, OTCronItem*> multimapOfCronItems;
 /** Mapped (uniquely) to market ID. */
 typedef std::map<std::string, OTMarket*> mapOfMarkets;
 /** Cron stores a bunch of these on this list, which the server refreshes from
  * time to time. */
-typedef std::list<int64_t> listOfLongNumbers;
+typedef std::list<std::int64_t> listOfLongNumbers;
 
 /** OTCron has a list of OTCronItems. (Really subclasses of that such as OTTrade
  * and OTAgreement.) */
@@ -82,32 +82,35 @@ private:
     Nym* m_pServerNym{nullptr};
     // Number of transaction numbers Cron  will grab for itself, when it gets
     // low, before each round.
-    static int32_t __trans_refill_amount;
+    static std::int32_t __trans_refill_amount;
     // Number of milliseconds (ideally) between each "Cron Process" event.
-    static int32_t __cron_ms_between_process;
+    static std::int32_t __cron_ms_between_process;
     // Int. The maximum number of cron items any given Nym can have
     // active at the same time.
-    static int32_t __cron_max_items_per_nym;
+    static std::int32_t __cron_max_items_per_nym;
 
     static Timer tCron;
 
 public:
-    static int32_t GetCronMsBetweenProcess()
+    static std::int32_t GetCronMsBetweenProcess()
     {
         return __cron_ms_between_process;
     }
-    static void SetCronMsBetweenProcess(int32_t lMS)
+    static void SetCronMsBetweenProcess(std::int32_t lMS)
     {
         __cron_ms_between_process = lMS;
     }
 
-    static int32_t GetCronRefillAmount() { return __trans_refill_amount; }
-    static void SetCronRefillAmount(int32_t nAmount)
+    static std::int32_t GetCronRefillAmount() { return __trans_refill_amount; }
+    static void SetCronRefillAmount(std::int32_t nAmount)
     {
         __trans_refill_amount = nAmount;
     }
-    static int32_t GetCronMaxItemsPerNym() { return __cron_max_items_per_nym; }
-    static void SetCronMaxItemsPerNym(int32_t nMax)
+    static std::int32_t GetCronMaxItemsPerNym()
+    {
+        return __cron_max_items_per_nym;
+    }
+    static void SetCronMaxItemsPerNym(std::int32_t nMax)
     {
         __cron_max_items_per_nym = nMax;
     }
@@ -126,12 +129,12 @@ public:
         bool bSaveReceipt,
         time64_t tDateAdded);  // Date it was FIRST added to Cron.
     /** if returns false, item wasn't found. */
-    EXPORT bool RemoveCronItem(int64_t lTransactionNum, Nym& theRemover);
-    EXPORT OTCronItem* GetItemByOfficialNum(int64_t lTransactionNum);
-    EXPORT OTCronItem* GetItemByValidOpeningNum(int64_t lOpeningNum);
-    EXPORT mapOfCronItems::iterator FindItemOnMap(int64_t lTransactionNum);
+    EXPORT bool RemoveCronItem(std::int64_t lTransactionNum, Nym& theRemover);
+    EXPORT OTCronItem* GetItemByOfficialNum(std::int64_t lTransactionNum);
+    EXPORT OTCronItem* GetItemByValidOpeningNum(std::int64_t lOpeningNum);
+    EXPORT mapOfCronItems::iterator FindItemOnMap(std::int64_t lTransactionNum);
     EXPORT multimapOfCronItems::iterator FindItemOnMultimap(
-        int64_t lTransactionNum);
+        std::int64_t lTransactionNum);
     // MARKETS
     bool AddMarket(OTMarket& theMarket, bool bSaveMarketFile = true);
     bool RemoveMarket(const Identifier& MARKET_ID);  // if returns false,
@@ -141,14 +144,16 @@ public:
     OTMarket* GetOrCreateMarket(
         const Identifier& INSTRUMENT_DEFINITION_ID,
         const Identifier& CURRENCY_ID,
-        const int64_t& lScale);
+        const std::int64_t& lScale);
     /** This is informational only. It returns OTStorage-type data objects,
      * packed in a string. */
-    EXPORT bool GetMarketList(OTASCIIArmor& ascOutput, int32_t& nMarketCount);
+    EXPORT bool GetMarketList(
+        OTASCIIArmor& ascOutput,
+        std::int32_t& nMarketCount);
     EXPORT bool GetNym_OfferList(
         OTASCIIArmor& ascOutput,
         const Identifier& NYM_ID,
-        int32_t& nOfferCount);
+        std::int32_t& nOfferCount);
     // TRANSACTION NUMBERS
     /**The server starts out putting a bunch of numbers in here so Cron can use
      * them. Then the internal trades and payment plans get numbers from here as
@@ -156,10 +161,10 @@ public:
      * working. Part of using Cron properly is to call ProcessCron() regularly,
      * as well as to call AddTransactionNumber() regularly, in order to keep
      * GetTransactionCount() at some minimum threshold. */
-    EXPORT void AddTransactionNumber(const int64_t& lTransactionNum);
-    int64_t GetNextTransactionNumber();
+    EXPORT void AddTransactionNumber(const std::int64_t& lTransactionNum);
+    std::int64_t GetNextTransactionNumber();
     /** How many numbers do I currently have on the list? */
-    EXPORT int32_t GetTransactionCount() const;
+    EXPORT std::int32_t GetTransactionCount() const;
     /** Make sure every time you call this, you check the GetTransactionCount()
      * first and replenish it to whatever your minimum supply is. (The
      * transaction numbers in there must be enough to last for the entire
@@ -168,7 +173,7 @@ public:
      * finished.) */
     EXPORT void ProcessCronItems();
 
-    int64_t computeTimeout();
+    std::int64_t computeTimeout();
 
     inline void SetNotaryID(const Identifier& NOTARY_ID)
     {
@@ -198,7 +203,7 @@ public:
     void Release_Cron();
 
     /** return -1 if error, 0 if nothing, and 1 if the node was processed. */
-    int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
+    std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
     /** Before transmission or serialization, this is where the ledger saves its
      * contents */
     void UpdateContents() override;

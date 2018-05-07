@@ -861,7 +861,7 @@ bool OT_API::LoadWallet() const
     return bSuccess;
 }
 
-int32_t OT_API::GetNymCount() const { return wallet_.LocalNymCount(); }
+std::int32_t OT_API::GetNymCount() const { return wallet_.LocalNymCount(); }
 
 std::set<OTIdentifier> OT_API::LocalNymList() const
 {
@@ -877,7 +877,7 @@ std::set<AccountInfo> OT_API::Accounts() const
     return wallet->AccountList();
 }
 
-int32_t OT_API::GetAccountCount() const
+std::int32_t OT_API::GetAccountCount() const
 {
     OTWallet* pWallet =
         GetWallet(__FUNCTION__);  // This logs and ASSERTs already.
@@ -1904,7 +1904,7 @@ bool OT_API::NumList_VerifyAll(
     return theList.Verify(theQueryNumbers);
 }
 
-int32_t OT_API::NumList_Count(const NumList& theList) const
+std::int32_t OT_API::NumList_Count(const NumList& theList) const
 {
     return theList.Count();
 }
@@ -2751,7 +2751,7 @@ bool OT_API::SmartContract_RemoveAccount(
     return false;
 }
 
-int32_t OT_API::SmartContract_CountNumsNeeded(
+std::int32_t OT_API::SmartContract_CountNumsNeeded(
     const String& THE_CONTRACT,  // The contract, about to have the bylaw added
                                  // to it.
     const String& AGENT_NAME) const  // An AGENT will be added by default for
@@ -3651,8 +3651,9 @@ bool OT_API::SmartContract_AddVariable(
     const String& VAR_NAME,    // The Variable's name as referenced in the smart
                                // contract. (And the scripts...)
     const String& VAR_ACCESS,  // "constant", "persistent", or "important".
-    const String& VAR_TYPE,    // "string", "int64_t", or "bool"
-    const String& VAR_VALUE,   // Contains a string. If type is :int64_t, atol()
+    const String& VAR_TYPE,    // "string", "std::int64_t", or "bool"
+    const String& VAR_VALUE,   // Contains a string. If type is :std::int64_t,
+                               // atol()
     // will be used to convert value to a std::int64_t. If
     // type is bool, the strings "true" or "false"
     // are expected here in order to convert to a
@@ -7729,7 +7730,6 @@ bool OT_API::RecordPayment(
 
     return true;
 }
-
 
 // Notice that since the Nym ID is sometimes also passed as the account ID
 // (in the case of Nym recordbox, versus Account recordbox...) which means

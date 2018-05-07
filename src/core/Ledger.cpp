@@ -98,7 +98,7 @@ char const* const __TypeStringsLedger[] = {
 
 char const* Ledger::_GetTypeString(ledgerType theType)
 {
-    int32_t nType = static_cast<int32_t>(theType);
+    std::int32_t nType = static_cast<int32_t>(theType);
     return __TypeStringsLedger[nType];
 }
 
@@ -125,7 +125,7 @@ bool Ledger::VerifyAccount(const Nym& theNym)
         case Ledger::paymentInbox:
         case Ledger::recordBox:
         case Ledger::expiredBox: {
-            std::set<int64_t> setUnloaded;
+            std::set<std::int64_t> setUnloaded;
             // if psetUnloaded passed in, then use it to return the #s that
             // weren't there as box receipts.
             //          bool bLoadedBoxReceipts =
@@ -133,7 +133,7 @@ bool Ledger::VerifyAccount(const Nym& theNym)
                                             // errors here.
         } break;
         default: {
-            const int32_t nLedgerType = static_cast<int32_t>(GetType());
+            const std::int32_t nLedgerType = static_cast<int32_t>(GetType());
             const Identifier theNymID(theNym);
             const String strNymID(theNymID);
             String strAccountID;
@@ -179,7 +179,7 @@ bool Ledger::SaveBoxReceipts()  // For ALL full transactions, save the actual
     return bRetVal;
 }
 
-bool Ledger::SaveBoxReceipt(const int64_t& lTransactionNum)
+bool Ledger::SaveBoxReceipt(const std::int64_t& lTransactionNum)
 {
 
     // First, see if the transaction itself exists on this ledger.
@@ -197,7 +197,7 @@ bool Ledger::SaveBoxReceipt(const int64_t& lTransactionNum)
     return pTransaction->SaveBoxReceipt(*this);
 }
 
-bool Ledger::DeleteBoxReceipt(const int64_t& lTransactionNum)
+bool Ledger::DeleteBoxReceipt(const std::int64_t& lTransactionNum)
 {
 
     // First, see if the transaction itself exists on this ledger.
@@ -224,11 +224,11 @@ bool Ledger::DeleteBoxReceipt(const int64_t& lTransactionNum)
 // then add that transaction# to the set. (psetUnloaded)
 
 // if psetUnloaded passed in, then use it to return the #s that weren't there.
-bool Ledger::LoadBoxReceipts(std::set<int64_t>* psetUnloaded)
+bool Ledger::LoadBoxReceipts(std::set<std::int64_t>* psetUnloaded)
 {
     // Grab a copy of all the transaction #s stored inside this ledger.
     //
-    std::set<int64_t> the_set;
+    std::set<std::int64_t> the_set;
 
     for (auto& it : m_mapTransactions) {
         OTTransaction* pTransaction = it.second;
@@ -241,7 +241,7 @@ bool Ledger::LoadBoxReceipts(std::set<int64_t>* psetUnloaded)
     bool bRetVal = true;
 
     for (auto& it : the_set) {
-        int64_t lSetNum = it;
+        std::int64_t lSetNum = it;
 
         OTTransaction* pTransaction = GetTransaction(lSetNum);
         OT_ASSERT(nullptr != pTransaction);
@@ -296,7 +296,7 @@ bool Ledger::LoadBoxReceipts(std::set<int64_t>* psetUnloaded)
  "nymbox/NOTARY_ID/NYM_ID.r/TRANSACTION_ID.rct"
  */
 
-bool Ledger::LoadBoxReceipt(const int64_t& lTransactionNum)
+bool Ledger::LoadBoxReceipt(const std::int64_t& lTransactionNum)
 {
     // First, see if the transaction itself exists on this ledger.
     // Get a pointer to it.
@@ -359,24 +359,24 @@ bool Ledger::LoadBoxReceipt(const int64_t& lTransactionNum)
     return false;
 }
 
-std::set<int64_t> Ledger::GetTransactionNums(
-    const std::set<int32_t>* pOnlyForIndices /*=nullptr*/) const
+std::set<std::int64_t> Ledger::GetTransactionNums(
+    const std::set<std::int32_t>* pOnlyForIndices /*=nullptr*/) const
 {
-    std::set<int64_t> the_set{};
+    std::set<std::int64_t> the_set{};
 
-    int32_t current_index{-1};
+    std::int32_t current_index{-1};
 
     for (const auto& it : m_mapTransactions) {
         ++current_index;  // 0 on first iteration.
         const OTTransaction* pTransaction = it.second;
         OT_ASSERT(nullptr != pTransaction);
-        const int64_t lTransNum = pTransaction->GetTransactionNum();
+        const std::int64_t lTransNum = pTransaction->GetTransactionNum();
         if (nullptr == pOnlyForIndices) {
             the_set.insert(lTransNum);
             continue;
         }
         // -------------------------------
-        std::set<int32_t>::const_iterator it_indices =
+        std::set<std::int32_t>::const_iterator it_indices =
             pOnlyForIndices->find(current_index);
         if (pOnlyForIndices->end() != it_indices) {
             the_set.insert(lTransNum);
@@ -1087,7 +1087,7 @@ const mapOfTransactions& Ledger::GetTransactionMap() const
 /// If transaction #87, in reference to #74, is in the inbox, you can remove it
 /// by calling this function and passing in 87. Deletes.
 ///
-bool Ledger::RemoveTransaction(int64_t lTransactionNum, bool bDeleteIt)
+bool Ledger::RemoveTransaction(std::int64_t lTransactionNum, bool bDeleteIt)
 {
     // See if there's something there with that transaction number.
     auto it = m_mapTransactions.find(lTransactionNum);
@@ -1152,12 +1152,12 @@ OTTransaction* Ledger::GetTransaction(OTTransaction::transactionType theType)
 }
 
 // if not found, returns -1
-int32_t Ledger::GetTransactionIndex(int64_t lTransactionNum)
+std::int32_t Ledger::GetTransactionIndex(std::int64_t lTransactionNum)
 {
     // loop through the transactions inside this ledger
     // If a specific transaction is found, returns its index inside the ledger
     //
-    int32_t nIndex = -1;
+    std::int32_t nIndex = -1;
 
     for (auto& it : m_mapTransactions) {
         OTTransaction* pTransaction = it.second;
@@ -1177,7 +1177,7 @@ int32_t Ledger::GetTransactionIndex(int64_t lTransactionNum)
 //
 // Do NOT delete the return value, it's owned by the ledger.
 //
-OTTransaction* Ledger::GetTransaction(int64_t lTransactionNum) const
+OTTransaction* Ledger::GetTransaction(std::int64_t lTransactionNum) const
 {
     auto it = m_mapTransactions.find(lTransactionNum);
     if (it != m_mapTransactions.end()) {  // found it
@@ -1196,9 +1196,10 @@ OTTransaction* Ledger::GetTransaction(int64_t lTransactionNum) const
 //
 // Might want to change this so that it only counts ACCEPTED receipts.
 //
-int32_t Ledger::GetTransactionCountInRefTo(int64_t lReferenceNum) const
+std::int32_t Ledger::GetTransactionCountInRefTo(
+    std::int64_t lReferenceNum) const
 {
-    int32_t nCount{0};
+    std::int32_t nCount{0};
 
     for (auto& it : m_mapTransactions) {
         OTTransaction* pTransaction = it.second;
@@ -1215,12 +1216,12 @@ int32_t Ledger::GetTransactionCountInRefTo(int64_t lReferenceNum) const
 //
 // Do NOT delete the pointer returned, since it's owned by the ledger.
 //
-OTTransaction* Ledger::GetTransactionByIndex(int32_t nIndex) const
+OTTransaction* Ledger::GetTransactionByIndex(std::int32_t nIndex) const
 {
     // Out of bounds.
     if ((nIndex < 0) || (nIndex >= GetTransactionCount())) return nullptr;
 
-    int32_t nIndexCount = -1;
+    std::int32_t nIndexCount = -1;
 
     for (auto& it : m_mapTransactions) {
         nIndexCount++;  // On first iteration, this is now 0, same as nIndex.
@@ -1238,7 +1239,7 @@ OTTransaction* Ledger::GetTransactionByIndex(int32_t nIndex) const
 // Nymbox-only.
 // Looks up replyNotice by REQUEST NUMBER.
 //
-OTTransaction* Ledger::GetReplyNotice(const int64_t& lRequestNum)
+OTTransaction* Ledger::GetReplyNotice(const std::int64_t& lRequestNum)
 {
     // loop through the transactions that make up this ledger.
     for (auto& it : m_mapTransactions) {
@@ -1254,7 +1255,7 @@ OTTransaction* Ledger::GetReplyNotice(const int64_t& lRequestNum)
     return nullptr;
 }
 
-OTTransaction* Ledger::GetTransferReceipt(int64_t lNumberOfOrigin)
+OTTransaction* Ledger::GetTransferReceipt(std::int64_t lNumberOfOrigin)
 {
     // loop through the transactions that make up this ledger.
     for (auto& it : m_mapTransactions) {
@@ -1329,7 +1330,7 @@ OTTransaction* Ledger::GetTransferReceipt(int64_t lNumberOfOrigin)
 // owned by the ledger.)
 //
 OTTransaction* Ledger::GetChequeReceipt(
-    int64_t lChequeNum,
+    std::int64_t lChequeNum,
     Cheque** ppChequeOut)  // CALLER
                            // RESPONSIBLE
                            // TO DELETE.
@@ -1433,7 +1434,7 @@ OTTransaction* Ledger::GetChequeReceipt(
 // to find that
 // final receipt, if it exists.
 //
-OTTransaction* Ledger::GetFinalReceipt(int64_t lReferenceNum)
+OTTransaction* Ledger::GetFinalReceipt(std::int64_t lReferenceNum)
 {
     // loop through the transactions that make up this ledger.
     for (auto& it : m_mapTransactions) {
@@ -1460,7 +1461,7 @@ OTTransaction* Ledger::GetFinalReceipt(int64_t lReferenceNum)
 /// returns a new balance statement item containing the inbox report
 /// CALLER IS RESPONSIBLE TO DELETE.
 Item* Ledger::GenerateBalanceStatement(
-    int64_t lAdjustment,
+    std::int64_t lAdjustment,
     const OTTransaction& theOwner,
     const ServerContext& context,
     const Account& theAccount,
@@ -1476,7 +1477,7 @@ Item* Ledger::GenerateBalanceStatement(
 }
 
 Item* Ledger::GenerateBalanceStatement(
-    int64_t lAdjustment,
+    std::int64_t lAdjustment,
     const OTTransaction& theOwner,
     const ServerContext& context,
     const Account& theAccount,
@@ -1599,7 +1600,7 @@ Item* Ledger::GenerateBalanceStatement(
     }
 
     pBalanceItem->SetAttachment(String(*statement));
-    int64_t lCurrentBalance = theAccount.GetBalance();
+    std::int64_t lCurrentBalance = theAccount.GetBalance();
     // The new (predicted) balance for after the transaction is complete.
     // (item.GetAmount)
     pBalanceItem->SetAmount(lCurrentBalance + lAdjustment);
@@ -1635,9 +1636,9 @@ Item* Ledger::GenerateBalanceStatement(
 // (And it really loads the items to check the amount, but does all this ONLY
 // for pending transfers.)
 //
-int64_t Ledger::GetTotalPendingValue()
+std::int64_t Ledger::GetTotalPendingValue()
 {
-    int64_t lTotalPendingValue = 0;
+    std::int64_t lTotalPendingValue = 0;
 
     if (Ledger::inbox != GetType()) {
         otErr << "OTLedger::GetTotalPendingValue: Wrong ledger type (expected "
@@ -1752,9 +1753,10 @@ void Ledger::UpdateContents()  // Before transmission or serialization, this is
 
     // We store this, so we know how many abbreviated records to read back
     // later.
-    int32_t nPartialRecordCount = 0;
+    std::int32_t nPartialRecordCount = 0;
     if (bSavingAbbreviated) {
-        nPartialRecordCount = static_cast<int32_t>(m_mapTransactions.size());
+        nPartialRecordCount =
+            static_cast<std::int32_t>(m_mapTransactions.size());
     }
 
     // Notice I use the PURPORTED Account ID and Notary ID to create the output.
@@ -1844,7 +1846,7 @@ void Ledger::UpdateContents()  // Before transmission or serialization, this is
 
 // LoadContract will call this function at the right time.
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
-int32_t Ledger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
+std::int32_t Ledger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 {
     const char* szFunc = "OTLedger::ProcessXMLNode";
 
@@ -1928,7 +1930,7 @@ int32_t Ledger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         // Load up the partial records, based on the expected count...
         //
         strNumPartialRecords = xml->getAttributeValue("numPartialRecords");
-        int32_t nPartialRecordCount =
+        std::int32_t nPartialRecordCount =
             (strNumPartialRecords.Exists() ? atoi(strNumPartialRecords.Get())
                                            : 0);
 
@@ -2012,24 +2014,24 @@ int32_t Ledger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                 if (strLoopNodeName.Exists() &&
                     (xml->getNodeType() == irr::io::EXN_ELEMENT) &&
                     (strExpected.Compare(strLoopNodeName))) {
-                    int64_t lNumberOfOrigin = 0;
+                    std::int64_t lNumberOfOrigin = 0;
                     int theOriginType = static_cast<int>(
                         originType::not_applicable);  // default
-                    int64_t lTransactionNum = 0;
-                    int64_t lInRefTo = 0;
-                    int64_t lInRefDisplay = 0;
+                    std::int64_t lTransactionNum = 0;
+                    std::int64_t lInRefTo = 0;
+                    std::int64_t lInRefDisplay = 0;
 
                     time64_t the_DATE_SIGNED = OT_TIME_ZERO;
                     int theType = OTTransaction::error_state;  // default
                     String strHash;
 
-                    int64_t lAdjustment = 0;
-                    int64_t lDisplayValue = 0;
-                    int64_t lClosingNum = 0;
-                    int64_t lRequestNum = 0;
+                    std::int64_t lAdjustment = 0;
+                    std::int64_t lDisplayValue = 0;
+                    std::int64_t lClosingNum = 0;
+                    std::int64_t lRequestNum = 0;
                     bool bReplyTransSuccess = false;
 
-                    int32_t nAbbrevRetVal = LoadAbbreviatedRecord(
+                    std::int32_t nAbbrevRetVal = LoadAbbreviatedRecord(
                         xml,
                         lNumberOfOrigin,
                         theOriginType,
@@ -2339,8 +2341,8 @@ int32_t Ledger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                         m_bLoadedLegacyData =
                             true;  // Only place this is set true.
 
-                        const int32_t nBoxType =
-                            static_cast<int32_t>(GetType());
+                        const std::int32_t nBoxType =
+                            static_cast<std::int32_t>(GetType());
 
                         const bool bBoxReceiptAlreadyExists =
                             VerifyBoxReceiptExists(
@@ -2363,8 +2365,8 @@ int32_t Ledger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                      "separately "
                                      "(yet.) Creating it in local storage...\n";
 
-                            const int64_t lBoxType =
-                                static_cast<int64_t>(nBoxType);
+                            const std::int64_t lBoxType =
+                                static_cast<std::int64_t>(nBoxType);
 
                             if (false ==
                                 pTransaction->SaveBoxReceipt(

@@ -97,8 +97,9 @@ protected:
     OTIdentifier m_NymID;                   // Optional
     OTIdentifier m_NotaryID;                // Mandatory
     OTIdentifier m_InstrumentDefinitionID;  // Mandatory
-    int64_t m_lTotalValue{0};  // Push increments this by denomination, and Pop
-                               // decrements it by denomination.
+    std::int64_t m_lTotalValue{
+        0};  // Push increments this by denomination, and Pop
+             // decrements it by denomination.
     bool m_bPasswordProtected{false};  // this purse might be encrypted to a
                                        // passphrase, instead of a Nym.
     // If that's the case, BTW, then there will be a Symmetric Key and a Master
@@ -153,7 +154,7 @@ public:
         const String& strFirstLine,
         const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID);
-    int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
+    std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
     /// What if you DON'T want to encrypt the purse to your Nym?? What if you
     /// just want to use a passphrase instead? That's what these functions are
     /// for. OT just generates an internal symmetric key and stores it INSIDE
@@ -183,9 +184,9 @@ public:
     EXPORT Token* Pop(OTNym_or_SymmetricKey theOwner);
     /** Caller IS responsible to delete. Peek returns a copy of the token.*/
     EXPORT Token* Peek(OTNym_or_SymmetricKey theOwner) const;
-    EXPORT int32_t Count() const;
+    EXPORT std::int32_t Count() const;
     EXPORT bool IsEmpty() const;
-    inline int64_t GetTotalValue() const { return m_lTotalValue; }
+    inline std::int64_t GetTotalValue() const { return m_lTotalValue; }
     EXPORT time64_t GetLatestValidFrom() const;
     EXPORT time64_t GetEarliestValidTo() const;
     /** Verify whether the CURRENT date is WITHIN the VALID FROM / TO dates.

@@ -64,7 +64,8 @@
 #include "opentxs/ext/InstantiateContract.hpp"
 
 #include <irrxml/irrXML.hpp>
-#include <stdint.h>
+
+#include <cstdint>
 #include <ostream>
 #include <string>
 #include <vector>
@@ -160,14 +161,15 @@ OTPayment::OTPayment(const String& strPayment)
 // static
 const char* OTPayment::_GetTypeString(paymentType theType)
 {
-    int32_t nType = static_cast<int32_t>(theType);
+    std::int32_t nType = static_cast<int32_t>(theType);
     return __TypeStringsPayment[nType];
 }
 
 OTPayment::paymentType OTPayment::GetTypeFromString(const String& strType)
 {
 #define OT_NUM_ELEM(blah) (sizeof(blah) / sizeof(*(blah)))
-    for (uint32_t i = 0; i < (OT_NUM_ELEM(__TypeStringsPayment) - 1); i++) {
+    for (std::uint32_t i = 0; i < (OT_NUM_ELEM(__TypeStringsPayment) - 1);
+         i++) {
         if (strType.Compare(__TypeStringsPayment[i]))
             return static_cast<OTPayment::paymentType>(i);
     }
@@ -585,7 +587,7 @@ void OTPayment::lowLevelSetTempValuesFromSmartContract(
     // inside OTScriptable! This way I can see exactly which opening number came
     // first, and I can use that for the display transaction num.
 
-    const std::vector<int64_t>& openingNumsInOrderOfSigning =
+    const std::vector<std::int64_t>& openingNumsInOrderOfSigning =
         theInput.openingNumsInOrderOfSigning();
 
     m_lTransNumDisplay = openingNumsInOrderOfSigning.size() > 0
@@ -659,7 +661,7 @@ bool OTPayment::GetMemo(String& strOutput) const
     return bSuccess;
 }
 
-bool OTPayment::GetAmount(int64_t& lOutput) const
+bool OTPayment::GetAmount(std::int64_t& lOutput) const
 {
     lOutput = 0;
 
@@ -825,7 +827,7 @@ bool OTPayment::GetAllTransactionNumbers(NumList& numlistOutput) const
 // This works with a cheque who has a transaction number.
 // It also works with a payment plan or smart contract, for opening AND closing
 // numbers.
-bool OTPayment::HasTransactionNum(const int64_t& lInput) const
+bool OTPayment::HasTransactionNum(const std::int64_t& lInput) const
 {
     OT_ASSERT_MSG(
         m_bAreTempValuesSet,
@@ -938,8 +940,9 @@ bool OTPayment::HasTransactionNum(const int64_t& lInput) const
     return bSuccess;
 }
 
-bool OTPayment::GetClosingNum(int64_t& lOutput, const Identifier& theAcctID)
-    const
+bool OTPayment::GetClosingNum(
+    std::int64_t& lOutput,
+    const Identifier& theAcctID) const
 {
     lOutput = 0;
 
@@ -1052,7 +1055,7 @@ bool OTPayment::GetClosingNum(int64_t& lOutput, const Identifier& theAcctID)
     return bSuccess;
 }
 
-bool OTPayment::GetOpeningNum(int64_t& lOutput, const Identifier& theNymID)
+bool OTPayment::GetOpeningNum(std::int64_t& lOutput, const Identifier& theNymID)
     const
 {
     lOutput = 0;
@@ -1189,7 +1192,7 @@ bool OTPayment::GetOpeningNum(int64_t& lOutput, const Identifier& theNymID)
     return bSuccess;
 }
 
-bool OTPayment::GetTransNumDisplay(int64_t& lOutput) const
+bool OTPayment::GetTransNumDisplay(std::int64_t& lOutput) const
 {
     lOutput = 0;
 
@@ -1253,7 +1256,7 @@ bool OTPayment::GetTransNumDisplay(int64_t& lOutput) const
     return bSuccess;
 }
 
-bool OTPayment::GetTransactionNum(int64_t& lOutput) const
+bool OTPayment::GetTransactionNum(std::int64_t& lOutput) const
 {
     lOutput = 0;
 
@@ -1926,7 +1929,7 @@ bool OTPayment::IsCancelledCheque()
     return true;
 }
 
-int32_t OTPayment::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
+std::int32_t OTPayment::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 {
     const String strNodeName(xml->getNodeName());
 

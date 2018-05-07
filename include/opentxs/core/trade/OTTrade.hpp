@@ -52,7 +52,7 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/Types.hpp"
 
-#include <stdint.h>
+#include <cstdint>
 
 namespace opentxs
 {
@@ -102,21 +102,23 @@ private:
     bool hasTradeActivated_{false};  // Has the offer yet been first added to a
                                      // market?
 
-    int64_t stopPrice_{0};  // The price limit that activates the STOP order.
-    char stopSign_{0x0};    // Value is 0, or '<', or '>'.
+    std::int64_t stopPrice_{
+        0};               // The price limit that activates the STOP order.
+    char stopSign_{0x0};  // Value is 0, or '<', or '>'.
     bool stopActivated_{
         false};  // If the Stop Order has already activated, I need
                  // to know that.
 
-    int32_t tradesAlreadyDone_{0};  // How many trades have already processed
-                                    // through this order? We keep track.
+    std::int32_t tradesAlreadyDone_{
+        0};  // How many trades have already processed
+             // through this order? We keep track.
 
     String marketOffer_;  // The market offer associated with this trade.
 
 protected:
     void onFinalReceipt(
         OTCronItem& origCronItem,
-        const int64_t& newTransactionNumber,
+        const std::int64_t& newTransactionNumber,
         Nym& originator,
         Nym* remover) override;
     void onRemovalFromCron() override;
@@ -131,7 +133,7 @@ public:
     EXPORT bool IssueTrade(
         OTOffer& offer,
         char stopSign = 0,
-        int64_t stopPrice = 0);
+        std::int64_t stopPrice = 0);
 
     // The Trade always stores the original, signed version of its Offer.
     // This method allows you to grab a copy of it.
@@ -152,7 +154,7 @@ public:
         return false;
     }
 
-    inline const int64_t& GetStopPrice() const { return stopPrice_; }
+    inline const std::int64_t& GetStopPrice() const { return stopPrice_; }
 
     inline bool IsGreaterThan() const
     {
@@ -194,10 +196,10 @@ public:
 
     inline void IncrementTradesAlreadyDone() { tradesAlreadyDone_++; }
 
-    inline int32_t GetCompletedCount() { return tradesAlreadyDone_; }
+    inline std::int32_t GetCompletedCount() { return tradesAlreadyDone_; }
 
-    EXPORT int64_t GetAssetAcctClosingNum() const;
-    EXPORT int64_t GetCurrencyAcctClosingNum() const;
+    EXPORT std::int64_t GetAssetAcctClosingNum() const;
+    EXPORT std::int64_t GetCurrencyAcctClosingNum() const;
 
     // Return True if should stay on OTCron's list for more processing.
     // Return False if expired or otherwise should be removed.
@@ -234,9 +236,9 @@ public:
 
     void Release_Trade();
     void Release() override;
-    int64_t GetClosingNumber(const Identifier& acctId) const override;
+    std::int64_t GetClosingNumber(const Identifier& acctId) const override;
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
-    int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
+    std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
 
     void UpdateContents() override;  // Before transmission or serialization,
                                      // this

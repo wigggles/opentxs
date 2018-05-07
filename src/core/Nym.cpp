@@ -1431,7 +1431,7 @@ bool Nym::LoadNymFromString(
                     //
                     if (strAccountID.Exists() && strHashValue.Exists()) {
                         const Identifier theID(strHashValue);
-                        OTIdentifier * pID = new OTIdentifier(theID);
+                        OTIdentifier* pID = new OTIdentifier(theID);
                         OT_ASSERT(pID)
                         m_mapInboxHash[strAccountID.Get()] = pID;
                     }
@@ -1451,7 +1451,7 @@ bool Nym::LoadNymFromString(
                     //
                     if (strAccountID.Exists() && strHashValue.Exists()) {
                         const Identifier theID(strHashValue);
-                        OTIdentifier * pID = new OTIdentifier(theID);
+                        OTIdentifier* pID = new OTIdentifier(theID);
                         OT_ASSERT(pID)
                         m_mapOutboxHash[strAccountID.Get()] = pID;
                     }
@@ -1478,9 +1478,8 @@ bool Nym::LoadNymFromString(
 
                     if (!tempNotaryID.Exists() ||
                         !Contract::LoadEncodedTextField(xml, strTemp)) {
-                        otErr << __FUNCTION__
-                              << ": Error: transactionNums "
-                                 "field without value.\n";
+                        otErr << __FUNCTION__ << ": Error: transactionNums "
+                                                 "field without value.\n";
                         return false;  // error condition
                     }
 
@@ -2148,8 +2147,9 @@ bool Nym::ReEncryptPrivateCredentials(
         CredentialSet* pCredential = it.second;
         OT_ASSERT(nullptr != pCredential);
 
-        if (false == pCredential->ReEncryptPrivateCredentials(
-                         *pExportPassphrase, bImporting))
+        if (false ==
+            pCredential->ReEncryptPrivateCredentials(
+                *pExportPassphrase, bImporting))
             return false;
     }
 
@@ -2766,7 +2766,7 @@ bool Nym::SetHash(
     {
         // The call has succeeded
         the_map.erase(find_it);
-        OTIdentifier * pID = new OTIdentifier (theInput);
+        OTIdentifier* pID = new OTIdentifier(theInput);
         OT_ASSERT(pID)
         the_map[str_id] = pID;
         bSuccess = true;
@@ -2777,7 +2777,7 @@ bool Nym::SetHash(
     // that means it does not exist. (So create it.)
     //
     if (!bSuccess) {
-        OTIdentifier * pID = new OTIdentifier (theInput);
+        OTIdentifier* pID = new OTIdentifier(theInput);
         OT_ASSERT(pID)
         the_map[str_id] = pID;
     }

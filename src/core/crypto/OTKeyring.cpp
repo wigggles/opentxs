@@ -203,7 +203,7 @@ bool OTKeyring::Windows_StoreSecret(
     Data theOutput;
     theOutput.Assign(
         static_cast<void*>(output.pbData),
-        static_cast<uint32_t>(output.cbData));
+        static_cast<std::uint32_t>(output.cbData));
 
     LocalFree(
         output.pbData);  // Note: should have a check for nullptr here... ?
@@ -289,7 +289,7 @@ bool OTKeyring::Windows_RetrieveSecret(
         } else {
             thePassword.setMemory(
                 reinterpret_cast<void*>(output.pbData),
-                static_cast<uint32_t>(output.cbData));
+                static_cast<std::uint32_t>(output.cbData));
             SecureZeroMemory(output.pbData, output.cbData);
             LocalFree(output.pbData);
             //          LocalFree(pDescrOut);
@@ -333,21 +333,21 @@ class OTMacKeychain
 public:
     OSStatus FindSecret(
         CFTypeRef keychainOrArray,
-        uint32_t serviceNameLength,
+        std::uint32_t serviceNameLength,
         const char* serviceName,
-        uint32_t accountNameLength,
+        std::uint32_t accountNameLength,
         const char* accountName,
-        uint32_t* passwordLength,
+        std::uint32_t* passwordLength,
         void** passwordData,
         SecKeychainItemRef* itemRef) const;
 
     OSStatus AddSecret(
         SecKeychainRef keychain,
-        uint32_t serviceNameLength,
+        std::uint32_t serviceNameLength,
         const char* serviceName,
-        uint32_t accountNameLength,
+        std::uint32_t accountNameLength,
         const char* accountName,
-        uint32_t passwordLength,
+        std::uint32_t passwordLength,
         const void* passwordData,
         SecKeychainItemRef* itemRef) const;
 
@@ -370,11 +370,11 @@ public:
 
 OSStatus OTMacKeychain::FindSecret(
     CFTypeRef keychainOrArray,
-    uint32_t serviceNameLength,
+    std::uint32_t serviceNameLength,
     const char* serviceName,
-    uint32_t accountNameLength,
+    std::uint32_t accountNameLength,
     const char* accountName,
-    uint32_t* passwordLength,
+    std::uint32_t* passwordLength,
     void** passwordData,
     SecKeychainItemRef* itemRef) const
 {
@@ -391,11 +391,11 @@ OSStatus OTMacKeychain::FindSecret(
 
 OSStatus OTMacKeychain::AddSecret(
     SecKeychainRef keychain,
-    uint32_t serviceNameLength,
+    std::uint32_t serviceNameLength,
     const char* serviceName,
-    uint32_t accountNameLength,
+    std::uint32_t accountNameLength,
     const char* accountName,
-    uint32_t passwordLength,
+    std::uint32_t passwordLength,
     const void* passwordData,
     SecKeychainItemRef* itemRef) const
 {
@@ -485,7 +485,7 @@ bool OTKeyring::Mac_RetrieveSecret(
     const std::string service_name = "opentxs";
     const std::string account_name = strUser.Get();
 
-    uint32_t password_length = 0;
+    std::uint32_t password_length = 0;
     void* password_data = nullptr;
 
     OTMacKeychain theKeychain;
@@ -549,7 +549,7 @@ bool OTKeyring::Mac_DeleteSecret(
     if (errSecSuccess == theResult)  // Success searching, now let's iterate the
                                      // results and count them.
     {
-        int32_t numberOfItemsFound = 0;
+        std::int32_t numberOfItemsFound = 0;
         while (theKeychain.SearchCopyNext(theSearch, &theItem) == noErr) {
             numberOfItemsFound++;
         }
@@ -793,8 +793,8 @@ bool OTKeyring::Gnome_RetrieveSecret(
     // if the password exists in the keyring, set it in
     // thePassword (output argument.)
     //
-    int32_t nCount = -1;
-    int64_t lSleep = 1;
+    std::int32_t nCount = -1;
+    std::int64_t lSleep = 1;
 
     while ((GNOME_KEYRING_RESULT_OK != theResult)) {
         ++nCount;  // 0 on first iteration.
@@ -946,7 +946,7 @@ bool OTKeyring::InitKApp()
     if (!bInitialized) {
         if (!KApplication::instance()) {
             static char kdeAppName[] = "opentxs-kwallet";
-            int32_t argc = 1;
+            std::int32_t argc = 1;
             char* argv[2] = {kdeAppName, nullptr};
             QByteArray qbApp(kdeAppName);
             KAboutData about(

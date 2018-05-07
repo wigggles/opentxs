@@ -28,10 +28,10 @@ extern "C" {
 #endif
 #include <sys/types.h>
 
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdint>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 }
 
 #include <cassert>
@@ -84,10 +84,10 @@ bool safe_strcpy(
 
 extern "C" {
 
-int32_t add_ext(X509* cert, int32_t nid, char* value);
+std::int32_t add_ext(X509* cert, int32_t nid, char* value);
 
 #ifndef ANDROID
-static void callback(int32_t p, int32_t, void*)
+static void callback(std::int32_t p, int32_t, void*)
 {
     char c = 'B';
 
@@ -99,12 +99,12 @@ static void callback(int32_t p, int32_t, void*)
 }
 #endif
 
-int32_t mkcert(
+std::int32_t mkcert(
     X509** x509p,
     EVP_PKEY** pkeyp,
-    int32_t bits,
-    int32_t serial,
-    int32_t days)
+    std::int32_t bits,
+    std::int32_t serial,
+    std::int32_t days)
 {
     bool bCreatedKey = false;
     bool bCreatedX509 = false;
@@ -155,7 +155,7 @@ int32_t mkcert(
     ASN1_INTEGER_set(X509_get_serialNumber(x), serial);
     X509_gmtime_adj(X509_get_notBefore(x), 0);
     X509_gmtime_adj(
-        X509_get_notAfter(x), static_cast<int64_t>(60 * 60 * 24 * days));
+        X509_get_notAfter(x), static_cast<std::int64_t>(60 * 60 * 24 * days));
     X509_set_pubkey(x, pk);
 
     name = X509_get_subject_name(x);
@@ -168,7 +168,7 @@ int32_t mkcert(
         name,
         "C",
         MBSTRING_ASC,
-        reinterpret_cast<const uint8_t*>("UK"),
+        reinterpret_cast<const std::uint8_t*>("UK"),
         -1,
         -1,
         0);
@@ -176,7 +176,7 @@ int32_t mkcert(
         name,
         "CN",
         MBSTRING_ASC,
-        reinterpret_cast<const uint8_t*>("OpenSSL Group"),
+        reinterpret_cast<const std::uint8_t*>("OpenSSL Group"),
         -1,
         -1,
         0);
@@ -222,7 +222,7 @@ int32_t mkcert(
 #ifdef CUSTOM_EXT
     // Maybe even add our own extension based on existing
     {
-        int32_t nid;
+        std::int32_t nid;
         nid = OBJ_create("1.2.3.4", "MyAlias", "My Test Alias Extension");
         X509V3_EXT_add_alias(nid, NID_netscape_comment);
         add_ext(x, nid, "example comment alias");
@@ -257,7 +257,7 @@ int32_t mkcert(
  * because we won't reference any other sections.
  */
 
-int32_t add_ext(X509* cert, int32_t nid, char* value)
+std::int32_t add_ext(X509* cert, int32_t nid, char* value)
 {
     X509_EXTENSION* ex;
     X509V3_CTX ctx;

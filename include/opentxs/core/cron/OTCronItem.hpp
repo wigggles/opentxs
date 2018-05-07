@@ -69,11 +69,13 @@ private:
     time64_t m_CREATION_DATE{0};  // The date, in seconds, when the CronItem was
                                   // authorized.
     time64_t m_LAST_PROCESS_DATE{0};  // The last time this item was processed.
-    int64_t m_PROCESS_INTERVAL{0};    // How often to Process Cron on this item.
+    std::int64_t m_PROCESS_INTERVAL{
+        0};  // How often to Process Cron on this item.
 
 protected:
-    std::deque<int64_t> m_dequeClosingNumbers;  // Numbers used for CLOSING a
-                                                // transaction. (finalReceipt.)
+    std::deque<std::int64_t> m_dequeClosingNumbers;  // Numbers used for CLOSING
+                                                     // a
+    // transaction. (finalReceipt.)
 
 protected:
     OTCronItem(
@@ -104,7 +106,7 @@ protected:
 
     virtual void onFinalReceipt(
         OTCronItem& theOrigCronItem,
-        const int64_t& lNewTransactionNumber,
+        const std::int64_t& lNewTransactionNumber,
         Nym& theOriginator,
         Nym* pRemover);  // called by
                          // HookRemovalFromCron().
@@ -117,8 +119,8 @@ public:
     bool DropFinalReceiptToInbox(
         const Identifier& NYM_ID,
         const Identifier& ACCOUNT_ID,
-        const int64_t& lNewTransactionNumber,
-        const int64_t& lClosingNumber,
+        const std::int64_t& lNewTransactionNumber,
+        const std::int64_t& lClosingNumber,
         const String& strOrigCronItem,
         const originType theOriginType,
         String* pstrNote = nullptr,
@@ -152,7 +154,7 @@ public:
 
     // Called in OTCron::RemoveCronItem as well as OTCron::ProcessCron.
     // This calls onFinalReceipt, then onRemovalFromCron. Both are virtual.
-    void HookRemovalFromCron(Nym* pRemover, int64_t newTransactionNo);
+    void HookRemovalFromCron(Nym* pRemover, std::int64_t newTransactionNo);
 
     inline bool IsFlaggedForRemoval() const { return m_bRemovalFlag; }
     inline void FlagForRemoval() { m_bRemovalFlag = true; }
@@ -160,12 +162,12 @@ public:
 
     EXPORT static OTCronItem* NewCronItem(const String& strCronItem);
     EXPORT static OTCronItem* LoadCronReceipt(
-        const int64_t& lTransactionNum);  // Server-side only.
+        const std::int64_t& lTransactionNum);  // Server-side only.
     EXPORT static OTCronItem* LoadActiveCronReceipt(
-        const int64_t& lTransactionNum,
+        const std::int64_t& lTransactionNum,
         const Identifier& notaryID);  // Client-side only.
     EXPORT static bool EraseActiveCronReceipt(
-        const int64_t& lTransactionNum,
+        const std::int64_t& lTransactionNum,
         const Identifier& nymID,
         const Identifier& notaryID);  // Client-side only.
     EXPORT static bool GetActiveCronTransNums(
@@ -191,11 +193,11 @@ public:
         return m_LAST_PROCESS_DATE;
     }
 
-    inline void SetProcessInterval(const int64_t& THE_DATE)
+    inline void SetProcessInterval(const std::int64_t& THE_DATE)
     {
         m_PROCESS_INTERVAL = THE_DATE;
     }
-    inline const int64_t& GetProcessInterval() const
+    inline const std::int64_t& GetProcessInterval() const
     {
         return m_PROCESS_INTERVAL;
     }
@@ -228,21 +230,22 @@ public:
     // has been activated, use this.
     EXPORT bool CancelBeforeActivation(const Nym& theCancelerNym);
 
-    // These are for     std::deque<int64_t> m_dequeClosingNumbers;
+    // These are for     std::deque<std::int64_t> m_dequeClosingNumbers;
     // They are numbers used for CLOSING a transaction. (finalReceipt.)
-    EXPORT int64_t GetClosingTransactionNoAt(uint32_t nIndex) const;
-    EXPORT int32_t GetCountClosingNumbers() const;
+    EXPORT std::int64_t GetClosingTransactionNoAt(std::uint32_t nIndex) const;
+    EXPORT std::int32_t GetCountClosingNumbers() const;
 
-    EXPORT void AddClosingTransactionNo(const int64_t& lClosingTransactionNo);
+    EXPORT void AddClosingTransactionNo(
+        const std::int64_t& lClosingTransactionNo);
 
     // HIGHER LEVEL ABSTRACTIONS:
-    EXPORT int64_t GetOpeningNum() const;
-    EXPORT int64_t GetClosingNum() const;
-    virtual bool IsValidOpeningNumber(const int64_t& lOpeningNum) const;
+    EXPORT std::int64_t GetOpeningNum() const;
+    EXPORT std::int64_t GetClosingNum() const;
+    virtual bool IsValidOpeningNumber(const std::int64_t& lOpeningNum) const;
 
-    virtual int64_t GetOpeningNumber(const Identifier& theNymID) const;
-    virtual int64_t GetClosingNumber(const Identifier& theAcctID) const;
-    int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
+    virtual std::int64_t GetOpeningNumber(const Identifier& theNymID) const;
+    virtual std::int64_t GetClosingNumber(const Identifier& theAcctID) const;
+    std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
     //  virtual void UpdateContents();
 };
 }  // namespace opentxs

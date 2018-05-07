@@ -101,12 +101,12 @@ class ServerContext;
 class Basket : public Contract
 {
 protected:
-    int32_t m_nSubCount{0};
+    std::int32_t m_nSubCount{0};
     // used in the actual basket
     Amount m_lMinimumTransfer{0};
     // used in a request basket. If non-zero, that means this is a request
     // basket.
-    int32_t m_nTransferMultiple{0};
+    std::int32_t m_nTransferMultiple{0};
     // used in a request basket so the server knows your acct ID.
     OTIdentifier m_RequestAccountID;
     dequeOfBasketItems m_dequeItems;
@@ -120,21 +120,27 @@ protected:
     // For the main (basket) account, in a request basket (for exchanges.)
     TransactionNumber m_lClosingTransactionNo{0};
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
-    int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
+    std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
 
 public:
     EXPORT Basket();
-    EXPORT Basket(int32_t nCount, int64_t lMinimumTransferAmount);
+    EXPORT Basket(std::int32_t nCount, std::int64_t lMinimumTransferAmount);
     EXPORT virtual ~Basket();
 
     void UpdateContents() override;
 
     EXPORT void CalculateContractID(Identifier& newID) const override;
 
-    inline int64_t GetMinimumTransfer() const { return m_lMinimumTransfer; }
+    inline std::int64_t GetMinimumTransfer() const
+    {
+        return m_lMinimumTransfer;
+    }
 
-    inline int32_t GetTransferMultiple() const { return m_nTransferMultiple; }
-    inline void SetTransferMultiple(int32_t nTransferMultiple)
+    inline std::int32_t GetTransferMultiple() const
+    {
+        return m_nTransferMultiple;
+    }
+    inline void SetTransferMultiple(std::int32_t nTransferMultiple)
     {
         m_nTransferMultiple = nTransferMultiple;
     }
@@ -147,13 +153,16 @@ public:
         m_bExchangingIn = bDirection;
     }
 
-    EXPORT int32_t Count() const;
-    EXPORT BasketItem* At(uint32_t nIndex);
+    EXPORT std::int32_t Count() const;
+    EXPORT BasketItem* At(std::uint32_t nIndex);
 
-    int64_t GetClosingTransactionNoAt(uint32_t nIndex);
+    std::int64_t GetClosingTransactionNoAt(std::uint32_t nIndex);
 
-    inline int64_t GetClosingNum() const { return m_lClosingTransactionNo; }
-    inline void SetClosingNum(const int64_t& lClosingNum)
+    inline std::int64_t GetClosingNum() const
+    {
+        return m_lClosingTransactionNo;
+    }
+    inline void SetClosingNum(const std::int64_t& lClosingNum)
     {
         m_lClosingTransactionNo = lClosingNum;
     }
@@ -163,7 +172,7 @@ public:
     // (That's why you don't see the account ID being passed in to the method.)
     EXPORT void AddSubContract(
         const Identifier& SUB_CONTRACT_ID,
-        int64_t lMinimumTransferAmount);
+        std::int64_t lMinimumTransferAmount);
     inline void IncrementSubCount() { m_nSubCount++; }
 
     // For generating a user request to exchange in/out of a basket.
@@ -171,7 +180,7 @@ public:
     EXPORT void AddRequestSubContract(
         const Identifier& SUB_CONTRACT_ID,
         const Identifier& SUB_ACCOUNT_ID,
-        const int64_t& lClosingTransactionNo);
+        const std::int64_t& lClosingTransactionNo);
 
     inline void SetRequestAccountID(const Identifier& theAccountID)
     {

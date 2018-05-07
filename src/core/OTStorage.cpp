@@ -522,7 +522,7 @@ bool Exists(
     return pStorage->Exists(strFolder, oneStr, twoStr, threeStr);
 }
 
-int64_t FormPathString(
+std::int64_t FormPathString(
     std::string& strOutput,
     const std::string& strFolder,
     const std::string& oneStr,
@@ -1078,7 +1078,7 @@ AddressBook::~AddressBook()
  // optional string bitcoin_id = 1;
  inline bool has_bitcoin_id() const;
  inline void clear_bitcoin_id();
- static const int32_t kBitcoinIdFieldNumber = 1;
+ static const std::int32_t kBitcoinIdFieldNumber = 1;
  inline const ::std::string& bitcoin_id() const;
  inline void set_bitcoin_id(const ::std::string& value);
  inline void set_bitcoin_id(const char* value);
@@ -1089,7 +1089,7 @@ AddressBook::~AddressBook()
  // optional string bitcoin_name = 2;
  inline bool has_bitcoin_name() const;
  inline void clear_bitcoin_name();
- static const int32_t kBitcoinNameFieldNumber = 2;
+ static const std::int32_t kBitcoinNameFieldNumber = 2;
  inline const ::std::string& bitcoin_name() const;
  inline void set_bitcoin_name(const ::std::string& value);
  inline void set_bitcoin_name(const char* value);
@@ -1100,7 +1100,7 @@ AddressBook::~AddressBook()
  // optional string gui_label = 3;
  inline bool has_gui_label() const;
  inline void clear_gui_label();
- static const int32_t kGuiLabelFieldNumber = 3;
+ static const std::int32_t kGuiLabelFieldNumber = 3;
  inline const ::std::string& gui_label() const;
  inline void set_gui_label(const ::std::string& value);
  inline void set_gui_label(const char* value);
@@ -1401,7 +1401,7 @@ bool BufferPB::UnpackString(std::string& theString)
     return true;
 }
 
-bool BufferPB::ReadFromIStream(std::istream& inStream, int64_t lFilesize)
+bool BufferPB::ReadFromIStream(std::istream& inStream, std::int64_t lFilesize)
 {
     unsigned long size = static_cast<unsigned long>(lFilesize);
 
@@ -1438,14 +1438,14 @@ bool BufferPB::WriteToOStream(std::ostream& outStream)
     // m_buffer.SerializeToOstream(&outStream);
 }
 
-const uint8_t* BufferPB::GetData()
+const std::uint8_t* BufferPB::GetData()
 {
-    return reinterpret_cast<const uint8_t*>(m_buffer.c_str());
+    return reinterpret_cast<const std::uint8_t*>(m_buffer.c_str());
 }
 
 size_t BufferPB::GetSize() { return m_buffer.size(); }
 
-void BufferPB::SetData(const uint8_t* pData, size_t theSize)
+void BufferPB::SetData(const std::uint8_t* pData, size_t theSize)
 {
     m_buffer.assign(reinterpret_cast<const char*>(pData), theSize);
 }
@@ -1487,7 +1487,7 @@ void BufferPB::SetData(const uint8_t* pData, size_t theSize)
 
 #define OT_IMPLEMENT_PB_LIST_UNPACK(pb_name, element_type, ELEMENT_ENUM)       \
     while (Get##element_type##Count() > 0) Remove##element_type(0);            \
-    for (int32_t i = 0; i < __pb_obj.pb_name##_size(); i++) {                  \
+    for (std::int32_t i = 0; i < __pb_obj.pb_name##_size(); i++) {             \
         const element_type##_InternalPB& theInternal = __pb_obj.pb_name(i);    \
         element_type##PB* pNewWrapper = dynamic_cast<element_type##PB*>(       \
             Storable::Create(ELEMENT_ENUM, PACK_PROTOCOL_BUFFERS));            \
@@ -1548,7 +1548,7 @@ void StringMapPB::hookAfterUnpack()
 
     the_map.clear();
 
-    for (int32_t i = 0; i < __pb_obj.node_size(); i++) {
+    for (std::int32_t i = 0; i < __pb_obj.node_size(); i++) {
         const KeyValue_InternalPB& theNode = __pb_obj.node(i);
 
         the_map.insert(std::pair<std::string, std::string>(
@@ -2384,10 +2384,11 @@ std::string Storage::EncodeObject(Storable& theContents)
     }
 
     // OTPackedBuffer:
-    //        virtual const    uint8_t *    GetData()=0;
+    //        virtual const    std::uint8_t *    GetData()=0;
     //        virtual            size_t            GetSize()=0;
     //
-    const uint32_t nNewSize = static_cast<const uint32_t>(pBuffer->GetSize());
+    const std::uint32_t nNewSize =
+        static_cast<const uint32_t>(pBuffer->GetSize());
     const void* pNewData = static_cast<const void*>(pBuffer->GetData());
 
     if ((nNewSize < 1) || (nullptr == pNewData)) {
@@ -2437,13 +2438,13 @@ Storable* Storage::DecodeObject(
     // Below this point, responsible for pBuffer AND pStorable.
 
     OTASCIIArmor theArmor;
-    theArmor.Set(strInput.c_str(), static_cast<uint32_t>(strInput.size()));
+    theArmor.Set(strInput.c_str(), static_cast<std::uint32_t>(strInput.size()));
     const auto thePayload = Data::Factory(theArmor);
 
     // Put thePayload's contents into pBuffer here.
     //
     pBuffer->SetData(
-        static_cast<const uint8_t*>(thePayload->GetPointer()),
+        static_cast<const std::uint8_t*>(thePayload->GetPointer()),
         thePayload->GetSize());
 
     // Now let's unpack it and return the Storable object.
@@ -2532,7 +2533,7 @@ bool StorageFS::ConfirmFile(const char* szFileName, struct stat*)
   1+    -- File found and it's length.
 
  */
-int64_t StorageFS::ConstructAndCreatePath(
+std::int64_t StorageFS::ConstructAndCreatePath(
     std::string& strOutput,
     const std::string& strFolder,
     const std::string& oneStr,
@@ -2543,7 +2544,7 @@ int64_t StorageFS::ConstructAndCreatePath(
         true, strOutput, strFolder, oneStr, twoStr, threeStr);
 }
 
-int64_t StorageFS::ConstructAndConfirmPath(
+std::int64_t StorageFS::ConstructAndConfirmPath(
     std::string& strOutput,
     const std::string& strFolder,
     const std::string& oneStr,
@@ -2554,7 +2555,7 @@ int64_t StorageFS::ConstructAndConfirmPath(
         false, strOutput, strFolder, oneStr, twoStr, threeStr);
 }
 
-int64_t StorageFS::ConstructAndConfirmPathImp(
+std::int64_t StorageFS::ConstructAndConfirmPathImp(
     const bool bMakePath,
     std::string& strOutput,
     const std::string& zeroStr,
@@ -2669,7 +2670,7 @@ ot_exit_block:
     }
 
     {
-        int64_t lFileLength = 0;
+        std::int64_t lFileLength = 0;
         const bool bFileExists =
             OTPaths::FileExists(strPath.c_str(), lFileLength);
 
@@ -2728,7 +2729,7 @@ bool StorageFS::onQueryPackedBuffer(
 {
     std::string strOutput;
 
-    int64_t lRet =
+    std::int64_t lRet =
         ConstructAndConfirmPath(strOutput, strFolder, oneStr, twoStr, threeStr);
 
     if (0 > lRet) {
@@ -2813,7 +2814,7 @@ bool StorageFS::onQueryPlainString(
 {
     std::string strOutput;
 
-    int64_t lRet =
+    std::int64_t lRet =
         ConstructAndConfirmPath(strOutput, strFolder, oneStr, twoStr, threeStr);
 
     if (0 > lRet) {
@@ -2949,7 +2950,7 @@ bool StorageFS::Exists(
 
 // Returns path size, plus path in strOutput.
 //
-int64_t StorageFS::FormPathString(
+std::int64_t StorageFS::FormPathString(
     std::string& strOutput,
     const std::string& strFolder,
     const std::string& oneStr,

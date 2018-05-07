@@ -47,10 +47,10 @@
 #ifdef ANDROID
 #include <time64.h>
 #endif
-#include <stdint.h>
-#include <string.h>
-#include <time.h>
 #include <cinttypes>
+#include <cstdint>
+#include <cstring>
+#include <ctime>
 #include <string>
 
 namespace opentxs
@@ -60,9 +60,10 @@ namespace opentxs
 // then the data is copied, and then the result[10] (11th element)
 // is set to 0. This way the original 10-length string is untouched.
 //
-char* str_dup2(const char* str, uint32_t length)  // length doesn't/shouldn't
-                                                  // include the byte for the
-                                                  // terminating 0.
+char* str_dup2(const char* str, std::uint32_t length)  // length
+                                                       // doesn't/shouldn't
+// include the byte for the
+// terminating 0.
 {
     char* str_new = new char[length + 1];  // CREATE EXTRA BYTE OF SPACE FOR \0
                                            // (NOT PART OF LENGTH)
@@ -107,7 +108,7 @@ std::string formatTimestamp(time64_t tt)
     return std::string(buf);
 }
 
-std::string formatInt(int32_t tt)
+std::string formatInt(std::int32_t tt)
 {
     opentxs::String temp;
 
@@ -116,7 +117,7 @@ std::string formatInt(int32_t tt)
     return temp.Get();
 }
 
-std::string formatUint(uint32_t tt)
+std::string formatUint(std::uint32_t tt)
 {
     opentxs::String temp;
 
@@ -134,7 +135,7 @@ std::string formatChar(char tt)
     return temp;
 }
 
-std::string formatLong(int64_t tt)
+std::string formatLong(std::int64_t tt)
 {
     opentxs::String temp;
 
@@ -143,7 +144,7 @@ std::string formatLong(int64_t tt)
     return temp.Get();
 }
 
-std::string formatUlong(uint64_t tt)
+std::string formatUlong(std::uint64_t tt)
 {
     opentxs::String temp;
 

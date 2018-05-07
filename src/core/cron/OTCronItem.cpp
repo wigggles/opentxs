@@ -65,8 +65,9 @@
 #include "opentxs/OT.hpp"
 #include "opentxs/Types.hpp"
 
-#include <inttypes.h>
 #include <irrxml/irrXML.hpp>
+
+#include <cinttypes>
 #include <cstdint>
 #include <deque>
 #include <memory>
@@ -149,7 +150,7 @@ OTCronItem* OTCronItem::NewCronItem(const String& strCronItem)
     return nullptr;
 }
 
-OTCronItem* OTCronItem::LoadCronReceipt(const int64_t& lTransactionNum)
+OTCronItem* OTCronItem::LoadCronReceipt(const std::int64_t& lTransactionNum)
 {
     String strFilename;
     strFilename.Format("%" PRId64 ".crn", lTransactionNum);
@@ -184,7 +185,7 @@ OTCronItem* OTCronItem::LoadCronReceipt(const int64_t& lTransactionNum)
 
 // static
 OTCronItem* OTCronItem::LoadActiveCronReceipt(
-    const int64_t& lTransactionNum,
+    const std::int64_t& lTransactionNum,
     const Identifier& notaryID)  // Client-side only.
 {
     String strFilename, strNotaryID(notaryID);
@@ -266,7 +267,7 @@ bool OTCronItem::GetActiveCronTransNums(
 // static
 // Client-side only.
 bool OTCronItem::EraseActiveCronReceipt(
-    const int64_t& lTransactionNum,
+    const std::int64_t& lTransactionNum,
     const Identifier& nymID,
     const Identifier& notaryID)
 {
@@ -377,7 +378,7 @@ bool OTCronItem::EraseActiveCronReceipt(
 bool OTCronItem::SaveActiveCronReceipt(
     const Identifier& theNymID)  // Client-side only.
 {
-    const int64_t lOpeningNum = GetOpeningNumber(theNymID);
+    const std::int64_t lOpeningNum = GetOpeningNumber(theNymID);
 
     String strFilename, strNotaryID(GetNotaryID());
     strFilename.Format("%" PRId64 ".crn", lOpeningNum);
@@ -569,8 +570,8 @@ bool OTCronItem::SetDateRange(time64_t VALID_FROM, time64_t VALID_TO)
         if (VALID_TO <
             VALID_FROM)  // If Valid-To date is EARLIER than Valid-From date...
         {
-            int64_t lValidTo = OTTimeGetSecondsFromTime(VALID_TO);
-            int64_t lValidFrom = OTTimeGetSecondsFromTime(VALID_FROM);
+            std::int64_t lValidTo = OTTimeGetSecondsFromTime(VALID_TO);
+            std::int64_t lValidFrom = OTTimeGetSecondsFromTime(VALID_FROM);
             otErr << "OTCronItem::" << __FUNCTION__ << ": VALID_TO ("
                   << lValidTo << ") is earlier than VALID_FROM (" << lValidFrom
                   << ")\n";
@@ -581,7 +582,7 @@ bool OTCronItem::SetDateRange(time64_t VALID_FROM, time64_t VALID_TO)
                                // validated as higher than Valid-From.
     } else                     // VALID_TO is a NEGATIVE number... Error.
     {
-        int64_t lValidTo = OTTimeGetSecondsFromTime(VALID_TO);
+        std::int64_t lValidTo = OTTimeGetSecondsFromTime(VALID_TO);
         otErr << "OTCronItem::" << __FUNCTION__
               << ": Negative value for valid_to: " << lValidTo << "\n";
 
@@ -595,12 +596,12 @@ bool OTCronItem::SetDateRange(time64_t VALID_FROM, time64_t VALID_TO)
 // The Cron Item stores a list of these closing transaction numbers,
 // used for closing a transaction.
 //
-int32_t OTCronItem::GetCountClosingNumbers() const
+std::int32_t OTCronItem::GetCountClosingNumbers() const
 {
-    return static_cast<int32_t>(m_dequeClosingNumbers.size());
+    return static_cast<std::int32_t>(m_dequeClosingNumbers.size());
 }
 
-int64_t OTCronItem::GetClosingTransactionNoAt(uint32_t nIndex) const
+std::int64_t OTCronItem::GetClosingTransactionNoAt(std::uint32_t nIndex) const
 {
     if (m_dequeClosingNumbers.size() <= nIndex) {
         otErr << __FUNCTION__ << ": "
@@ -612,7 +613,8 @@ int64_t OTCronItem::GetClosingTransactionNoAt(uint32_t nIndex) const
     return m_dequeClosingNumbers.at(nIndex);
 }
 
-void OTCronItem::AddClosingTransactionNo(const int64_t& lClosingTransactionNo)
+void OTCronItem::AddClosingTransactionNo(
+    const std::int64_t& lClosingTransactionNo)
 {
     m_dequeClosingNumbers.push_back(lClosingTransactionNo);
 }
@@ -728,14 +730,16 @@ void OTCronItem::HookActivationOnCron(
 // This gives each item a chance to drop a final receipt,
 // and clean up any memory, before being destroyed.
 //
-void OTCronItem::HookRemovalFromCron(Nym* pRemover, int64_t newTransactionNo)
+void OTCronItem::HookRemovalFromCron(
+    Nym* pRemover,
+    std::int64_t newTransactionNo)
 {
     Nym* pServerNym = serverNym_;
     OT_ASSERT(nullptr != pServerNym);
 
     // Generate new transaction number for these new inbox receipts.
     //
-    const int64_t lNewTransactionNumber = newTransactionNo;
+    const std::int64_t lNewTransactionNumber = newTransactionNo;
 
     //    OT_ASSERT(lNewTransactionNumber > 0); // this can be my reminder.
     if (0 == lNewTransactionNumber) {
@@ -906,7 +910,7 @@ void OTCronItem::HookRemovalFromCron(Nym* pRemover, int64_t newTransactionNo)
 //
 void OTCronItem::onFinalReceipt(
     OTCronItem& theOrigCronItem,
-    const int64_t& lNewTransactionNumber,
+    const std::int64_t& lNewTransactionNumber,
     Nym& theOriginator,
     Nym* pRemover)  // may already point to
                     // theOriginator... or
@@ -1075,8 +1079,8 @@ void OTCronItem::onFinalReceipt(
 bool OTCronItem::DropFinalReceiptToInbox(
     const Identifier& NYM_ID,
     const Identifier& ACCOUNT_ID,
-    const int64_t& lNewTransactionNumber,
-    const int64_t& lClosingNumber,
+    const std::int64_t& lNewTransactionNumber,
+    const std::int64_t& lClosingNumber,
     const String& strOrigCronItem,
     const originType theOriginType,
     String* pstrNote,
@@ -1148,7 +1152,7 @@ bool OTCronItem::DropFinalReceiptToInbox(
         // Cron in the
         // first place.)
         //
-        const int64_t lOpeningNum = GetOpeningNumber(NYM_ID);
+        const std::int64_t lOpeningNum = GetOpeningNumber(NYM_ID);
 
         pTrans1->SetReferenceToNum(lOpeningNum);
         pTrans1->SetNumberOfOrigin(lOpeningNum);
@@ -1331,7 +1335,7 @@ bool OTCronItem::DropFinalReceiptToNymbox(
 
         pItem1->SetStatus(Item::acknowledgement);
 
-        const int64_t lOpeningNumber = GetOpeningNumber(NYM_ID);
+        const std::int64_t lOpeningNumber = GetOpeningNumber(NYM_ID);
 
         // Here I make sure that the receipt (the nymbox notice) references the
         // transaction number that the trader originally used to issue the cron
@@ -1488,22 +1492,22 @@ bool OTCronItem::DropFinalReceiptToNymbox(
     return false;  // unreachable.
 }
 
-int64_t OTCronItem::GetOpeningNum() const { return GetTransactionNum(); }
+std::int64_t OTCronItem::GetOpeningNum() const { return GetTransactionNum(); }
 
-int64_t OTCronItem::GetClosingNum() const
+std::int64_t OTCronItem::GetClosingNum() const
 {
     return (GetCountClosingNumbers() > 0) ? GetClosingTransactionNoAt(0)
                                           : 0;  // todo stop hardcoding.
 }
 
-bool OTCronItem::IsValidOpeningNumber(const int64_t& lOpeningNum) const
+bool OTCronItem::IsValidOpeningNumber(const std::int64_t& lOpeningNum) const
 {
     if (GetOpeningNum() == lOpeningNum) return true;
 
     return false;
 }
 
-int64_t OTCronItem::GetOpeningNumber(const Identifier& theNymID) const
+std::int64_t OTCronItem::GetOpeningNumber(const Identifier& theNymID) const
 {
     const Identifier& theSenderNymID = GetSenderNymID();
 
@@ -1512,7 +1516,7 @@ int64_t OTCronItem::GetOpeningNumber(const Identifier& theNymID) const
     return 0;
 }
 
-int64_t OTCronItem::GetClosingNumber(const Identifier& theAcctID) const
+std::int64_t OTCronItem::GetClosingNumber(const Identifier& theAcctID) const
 {
     const Identifier& theSenderAcctID = GetSenderAcctID();
 
@@ -1559,7 +1563,7 @@ void OTCronItem::HarvestClosingNumbers(ServerContext& context)
     // the "Closing" list, which is only for the sender's numbers.
     // Subclasses will have to override this function for recipients, etc.
     if (context.Nym()->CompareID(GetSenderNymID())) {
-        for (int32_t i = 0; i < GetCountClosingNumbers(); i++) {
+        for (std::int32_t i = 0; i < GetCountClosingNumbers(); i++) {
             // This function will only "add it back" if it was really there in
             // the first place. (Verifies it is on issued list first, before
             // adding to available list.)
@@ -1693,9 +1697,9 @@ void OTCronItem::Release()
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
-int32_t OTCronItem::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
+std::int32_t OTCronItem::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 {
-    int32_t nReturnVal = 0;
+    std::int32_t nReturnVal = 0;
 
     // Here we call the parent class first.
     // If the node is found there, or there is some error,
@@ -1718,7 +1722,7 @@ int32_t OTCronItem::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         String strClosingNumber = xml->getAttributeValue("value");
 
         if (strClosingNumber.Exists()) {
-            const int64_t lClosingNumber = strClosingNumber.ToLong();
+            const std::int64_t lClosingNumber = strClosingNumber.ToLong();
 
             AddClosingTransactionNo(lClosingNumber);
         } else {

@@ -59,20 +59,20 @@ EXPORT const char* GetTransactionTypeString(
 EXPORT const char* GetOriginTypeToString(int originTypeIndex);  // enum
                                                                 // originType
 
-int32_t LoadAbbreviatedRecord(
+std::int32_t LoadAbbreviatedRecord(
     irr::io::IrrXMLReader*& xml,
-    int64_t& lNumberOfOrigin,
+    std::int64_t& lNumberOfOrigin,
     int& theOriginType,
-    int64_t& lTransactionNum,
-    int64_t& lInRefTo,
-    int64_t& lInRefDisplay,
+    std::int64_t& lTransactionNum,
+    std::int64_t& lInRefTo,
+    std::int64_t& lInRefDisplay,
     time64_t& the_DATE_SIGNED,
     int& theType,
     String& strHash,
-    int64_t& lAdjustment,
-    int64_t& lDisplayValue,
-    int64_t& lClosingNum,
-    int64_t& lRequestNum,
+    std::int64_t& lAdjustment,
+    std::int64_t& lDisplayValue,
+    std::int64_t& lClosingNum,
+    std::int64_t& lRequestNum,
     bool& bReplyTransSuccess,
     NumList* pNumList = nullptr);
 
@@ -81,17 +81,17 @@ EXPORT bool VerifyBoxReceiptExists(
     const Identifier& NYM_ID,
     const Identifier& ACCOUNT_ID,  // If for Nymbox (vs inbox/outbox) then
     // pass NYM_ID in this field also.
-    int32_t nBoxType,  // 0/nymbox, 1/inbox, 2/outbox
-    const int64_t& lTransactionNum);
+    std::int32_t nBoxType,  // 0/nymbox, 1/inbox, 2/outbox
+    const std::int64_t& lTransactionNum);
 
 OTTransaction* LoadBoxReceipt(OTTransaction& theAbbrev, Ledger& theLedger);
 
 EXPORT OTTransaction* LoadBoxReceipt(
     OTTransaction& theAbbrev,
-    int64_t lLedgerType);
+    std::int64_t lLedgerType);
 
 bool SetupBoxReceiptFilename(
-    int64_t lLedgerType,
+    std::int64_t lLedgerType,
     OTTransaction& theTransaction,
     const char* szCaller,
     String& strFolder1name,
@@ -109,10 +109,10 @@ bool SetupBoxReceiptFilename(
     String& strFilename);
 
 bool SetupBoxReceiptFilename(
-    int64_t lLedgerType,
+    std::int64_t lLedgerType,
     const String& strUserOrAcctID,
     const String& strNotaryID,
-    const int64_t& lTransactionNum,
+    const std::int64_t& lTransactionNum,
     const char* szCaller,
     String& strFolder1name,
     String& strFolder2name,

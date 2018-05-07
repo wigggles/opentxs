@@ -46,7 +46,6 @@
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 #include "opentxs/OT.hpp"
 
-#include <stdint.h>
 #include <cstdint>
 #include <iomanip>
 #include <iostream>
@@ -111,7 +110,7 @@ std::string Bip32::Seed(const std::string& fingerprint) const
 
 serializedAsymmetricKey Bip32::GetPaymentCode(
     std::string& fingerprint,
-    const uint32_t nym) const
+    const std::uint32_t nym) const
 {
     serializedAsymmetricKey output;
     std::uint32_t notUsed = 0;

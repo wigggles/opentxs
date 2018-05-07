@@ -44,7 +44,7 @@
 #include "opentxs/core/script/OTVariable.hpp"
 #include "opentxs/core/String.hpp"
 
-#include <stdint.h>
+#include <cstdint>
 #include <map>
 #include <string>
 
@@ -98,7 +98,7 @@ public:
         OTVariable::OTVariable_Access theAccess = OTVariable::Var_Persistent);
     EXPORT bool AddVariable(
         std::string str_Name,
-        int32_t nValue,
+        std::int32_t nValue,
         OTVariable::OTVariable_Access theAccess = OTVariable::Var_Persistent);
     EXPORT bool AddVariable(
         std::string str_Name,
@@ -149,28 +149,28 @@ public:
         std::string str_HookName,
         mapOfClauses& theResults);  // Look up all clauses
                                     // matching a specific hook.
-    EXPORT int32_t GetVariableCount() const
+    EXPORT std::int32_t GetVariableCount() const
     {
-        return static_cast<int32_t>(m_mapVariables.size());
+        return static_cast<std::int32_t>(m_mapVariables.size());
     }
-    EXPORT int32_t GetClauseCount() const
+    EXPORT std::int32_t GetClauseCount() const
     {
-        return static_cast<int32_t>(m_mapClauses.size());
+        return static_cast<std::int32_t>(m_mapClauses.size());
     }
-    EXPORT int32_t GetCallbackCount() const
+    EXPORT std::int32_t GetCallbackCount() const
     {
-        return static_cast<int32_t>(m_mapCallbacks.size());
+        return static_cast<std::int32_t>(m_mapCallbacks.size());
     }
-    EXPORT int32_t GetHookCount() const
+    EXPORT std::int32_t GetHookCount() const
     {
-        return static_cast<int32_t>(m_mapHooks.size());
+        return static_cast<std::int32_t>(m_mapHooks.size());
     }
-    EXPORT OTVariable* GetVariableByIndex(int32_t nIndex);
-    EXPORT OTClause* GetClauseByIndex(int32_t nIndex);
-    EXPORT OTClause* GetCallbackByIndex(int32_t nIndex);
-    EXPORT OTClause* GetHookByIndex(int32_t nIndex);
-    EXPORT const std::string GetCallbackNameByIndex(int32_t nIndex);
-    EXPORT const std::string GetHookNameByIndex(int32_t nIndex);
+    EXPORT OTVariable* GetVariableByIndex(std::int32_t nIndex);
+    EXPORT OTClause* GetClauseByIndex(std::int32_t nIndex);
+    EXPORT OTClause* GetCallbackByIndex(std::int32_t nIndex);
+    EXPORT OTClause* GetHookByIndex(std::int32_t nIndex);
+    EXPORT const std::string GetCallbackNameByIndex(std::int32_t nIndex);
+    EXPORT const std::string GetHookNameByIndex(std::int32_t nIndex);
     EXPORT void RegisterVariablesForExecution(OTScript& theScript);
     EXPORT bool IsDirty() const;  // So you can tell if any of the persistent or
                                   // important variables have CHANGED since it

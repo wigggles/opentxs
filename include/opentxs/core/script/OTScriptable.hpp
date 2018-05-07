@@ -44,7 +44,7 @@
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/String.hpp"
 
-#include <stdint.h>
+#include <cstdint>
 #include <map>
 #include <string>
 #include <vector>
@@ -69,8 +69,8 @@ typedef std::map<std::string, OTClause*> mapOfClauses;
 typedef std::map<std::string, OTParty*> mapOfParties;
 typedef std::map<std::string, OTVariable*> mapOfVariables;
 
-std::string vectorToString(const std::vector<int64_t>& v);
-std::vector<int64_t> stringToVector(const std::string& s);
+std::string vectorToString(const std::vector<std::int64_t>& v);
+std::vector<std::int64_t> stringToVector(const std::string& s);
 
 class OTScriptable : public Contract
 {
@@ -82,7 +82,7 @@ private:  // Private prevents erroneous use by other classes.
 protected:
     // This is how we know the opening numbers for each signer, IN THE ORDER
     // that they signed.
-    std::vector<int64_t> openingNumsInOrderOfSigning_;
+    std::vector<std::int64_t> openingNumsInOrderOfSigning_;
 
     mapOfParties m_mapParties;  // The parties to the contract. Could be Nyms,
                                 // or
@@ -173,14 +173,14 @@ protected:
     bool m_bSpecifyParties{false};  // Serialized. See above note.
 
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
-    int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
+    std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
 
     String m_strLabel;  // OTSmartContract can put its trans# here. (Allowing
                         // us to use it in the OTScriptable methods where any
                         // smart contract would normally want to log its
                         // transaction #, not just the clause name.)
 public:
-    EXPORT const std::vector<int64_t>& openingNumsInOrderOfSigning() const
+    EXPORT const std::vector<std::int64_t>& openingNumsInOrderOfSigning() const
     {
         return openingNumsInOrderOfSigning_;
     }
@@ -191,13 +191,13 @@ public:
     EXPORT bool areAssetTypesSpecified() const;
 
     EXPORT virtual void SetDisplayLabel(const std::string* pstrLabel = nullptr);
-    int32_t GetPartyCount() const
+    std::int32_t GetPartyCount() const
     {
-        return static_cast<int32_t>(m_mapParties.size());
+        return static_cast<std::int32_t>(m_mapParties.size());
     }
-    int32_t GetBylawCount() const
+    std::int32_t GetBylawCount() const
     {
-        return static_cast<int32_t>(m_mapBylaws.size());
+        return static_cast<std::int32_t>(m_mapBylaws.size());
     }
     EXPORT virtual bool AddParty(OTParty& theParty);  // Takes ownership.
     EXPORT virtual bool AddBylaw(OTBylaw& theBylaw);  // takes ownership.
@@ -209,8 +209,8 @@ public:
     EXPORT OTParty* GetParty(std::string str_party_name) const;
     EXPORT OTBylaw* GetBylaw(std::string str_bylaw_name) const;
     EXPORT OTClause* GetClause(std::string str_clause_name) const;
-    EXPORT OTParty* GetPartyByIndex(int32_t nIndex) const;
-    EXPORT OTBylaw* GetBylawByIndex(int32_t nIndex) const;
+    EXPORT OTParty* GetPartyByIndex(std::int32_t nIndex) const;
+    EXPORT OTBylaw* GetBylawByIndex(std::int32_t nIndex) const;
     EXPORT OTParty* FindPartyBasedOnNymAsAgent(
         const Nym& theNym,
         OTAgent** ppAgent = nullptr) const;
@@ -240,8 +240,8 @@ public:
     // which agent is the
     // authorized agent.)
     //
-    EXPORT int32_t
-    GetCountTransNumsNeededForAgent(std::string str_agent_name) const;
+    EXPORT std::int32_t GetCountTransNumsNeededForAgent(
+        std::string str_agent_name) const;
     // Verifies that Nym is actually an agent for this agreement.
     // (Verifies that Nym has signed this agreement, if it's a trade or a
     // payment plan, OR
@@ -348,8 +348,8 @@ public:
         bool bSuccessMsg,
         Nym& theServerNym,
         const Identifier& theNotaryID,
-        const int64_t& lNewTransactionNumber,
-        // const int64_t& lInReferenceTo, //
+        const std::int64_t& lNewTransactionNumber,
+        // const std::int64_t& lInReferenceTo, //
         // each party has its own opening trans #.
         const String& strReference,
         String* pstrNote = nullptr,
@@ -402,7 +402,7 @@ public:
     // For use from inside server-side scripts.
     //
     static std::string GetTime();  // Returns a string, containing seconds as
-                                   // int32_t. (Time in seconds.)
+                                   // std::int32_t. (Time in seconds.)
     OTScriptable();
     virtual ~OTScriptable();
 

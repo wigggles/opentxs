@@ -113,9 +113,9 @@ private:
     std::shared_ptr<OTKeypair> DeriveHDKeypair(
         const OTPassword& seed,
         const std::string& fingerprint,
-        const uint32_t nym,
-        const uint32_t credset,
-        const uint32_t credindex,
+        const std::uint32_t nym,
+        const std::uint32_t credset,
+        const std::uint32_t credindex,
         const EcdsaCurve& curve,
         const proto::KeyRole role);
 #endif
@@ -144,7 +144,7 @@ public:
     std::shared_ptr<OTKeypair> m_EncryptKey;
 
     bool ReEncryptKeys(const OTPassword& theExportPassword, bool bImporting);
-    EXPORT int32_t GetPublicKeysBySignature(
+    EXPORT std::int32_t GetPublicKeysBySignature(
         listOfAsymmetricKeys& listOutput,
         const OTSignature& theSignature,
         char cKeyType = '0') const;  // 'S' (signing key) or

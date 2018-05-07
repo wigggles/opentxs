@@ -55,29 +55,29 @@ private:
 
     static bool GetSetValue(
         std::string strKeyName,
-        int32_t nDefaultValue,
-        const int32_t*& out_nValue);
+        std::int32_t nDefaultValue,
+        const std::int32_t*& out_nValue);
 
-    static const int32_t& GetValue(const int32_t*& pValue);
+    static const std::int32_t& GetValue(const std::int32_t*& pValue);
 
-    static const int32_t* sp_nIterationCount;
-    static const int32_t* sp_nSymmetricSaltSize;
-    static const int32_t* sp_nSymmetricKeySize;
-    static const int32_t* sp_nSymmetricKeySizeMax;
-    static const int32_t* sp_nSymmetricIvSize;
-    static const int32_t* sp_nSymmetricBufferSize;
-    static const int32_t* sp_nPublicKeysize;
-    static const int32_t* sp_nPublicKeysizeMax;
+    static const std::int32_t* sp_nIterationCount;
+    static const std::int32_t* sp_nSymmetricSaltSize;
+    static const std::int32_t* sp_nSymmetricKeySize;
+    static const std::int32_t* sp_nSymmetricKeySizeMax;
+    static const std::int32_t* sp_nSymmetricIvSize;
+    static const std::int32_t* sp_nSymmetricBufferSize;
+    static const std::int32_t* sp_nPublicKeysize;
+    static const std::int32_t* sp_nPublicKeysizeMax;
 
 public:
-    EXPORT static uint32_t IterationCount();
-    EXPORT static uint32_t SymmetricSaltSize();
-    EXPORT static uint32_t SymmetricKeySize();
-    EXPORT static uint32_t SymmetricKeySizeMax();
-    EXPORT static uint32_t SymmetricIvSize();
-    EXPORT static uint32_t SymmetricBufferSize();
-    EXPORT static uint32_t PublicKeysize();
-    EXPORT static uint32_t PublicKeysizeMax();
+    EXPORT static std::uint32_t IterationCount();
+    EXPORT static std::uint32_t SymmetricSaltSize();
+    EXPORT static std::uint32_t SymmetricKeySize();
+    EXPORT static std::uint32_t SymmetricKeySizeMax();
+    EXPORT static std::uint32_t SymmetricIvSize();
+    EXPORT static std::uint32_t SymmetricBufferSize();
+    EXPORT static std::uint32_t PublicKeysize();
+    EXPORT static std::uint32_t PublicKeysizeMax();
 };
 
 class Crypto

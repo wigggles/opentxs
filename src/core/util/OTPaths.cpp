@@ -49,11 +49,12 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
 
-#include <stdint.h>
-#include <string.h>
 #include <sys/stat.h>
+
 #include <cerrno>
+#include <cstdint>
 #include <cstdlib>
+#include <cstring>
 #include <ostream>
 #include <string>
 #include <vector>
@@ -757,7 +758,7 @@ bool OTPaths::PathExists(const String& strPath)
         stat(l_strPath_stat.c_str(), &st))  // good we have at-least on a node
     {
         if ('/' != *l_strPath.rbegin()) {
-            int64_t temp_l = 0;
+            std::int64_t temp_l = 0;
             return FileExists(strPath, temp_l);
         } else {
             return FolderExists(strPath);
@@ -767,7 +768,7 @@ bool OTPaths::PathExists(const String& strPath)
 }
 
 // static
-bool OTPaths::FileExists(const String& strFilePath, int64_t& nFileLength)
+bool OTPaths::FileExists(const String& strFilePath, std::int64_t& nFileLength)
 {
     if (!strFilePath.Exists()) {
         otErr << __FUNCTION__ << ": Null: "
@@ -800,7 +801,7 @@ bool OTPaths::FileExists(const String& strFilePath, int64_t& nFileLength)
         if (S_ISREG(st_buf.st_mode)) {
             // good we have a file.
             size_t lFileLength = st_buf.st_size;
-            nFileLength = static_cast<int64_t>(lFileLength);
+            nFileLength = static_cast<std::int64_t>(lFileLength);
             return true;
         }
     }
@@ -982,11 +983,11 @@ bool OTPaths::ToReal(const String& strExactPath, String& out_strCanonicalPath)
             "Error (RealPath: ELOOP): Resloving links resulted in a loop.");
         OT_ASSERT_MSG(
             (errno != ENAMETOOLONG),
-            "Error (RealPath: ENAMETOOLONG): Name too int64_t.");
+            "Error (RealPath: ENAMETOOLONG): Name too std::int64_t.");
         OT_ASSERT_MSG(
             (errno != ERANGE),
             "Error (RealPath: ERANGE): Resulting "
-            "path is too int64_t for the buffer");
+            "path is too std::int64_t for the buffer");
         OT_ASSERT_MSG(
             (errno != EIO), "Error (RealPath: EIO): Unable to access path.");
 

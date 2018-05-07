@@ -77,7 +77,8 @@
 #include "opentxs/Proto.hpp"
 
 #include <irrxml/irrXML.hpp>
-#include <stdint.h>
+
+#include <cstdint>
 #include <ostream>
 #include <string>
 

@@ -67,8 +67,9 @@ private:
     std::string m_strThreadItemId;  // Will eventually replace Box Index.
     time64_t m_ValidFrom{0};
     time64_t m_ValidTo{0};
-    const std::string m_str_msg_notary_id; // Notary where msg was transmitted
-    const std::string m_str_pmnt_notary_id; // Notary the instrument is drawn on
+    const std::string m_str_msg_notary_id;   // Notary where msg was transmitted
+    const std::string m_str_pmnt_notary_id;  // Notary the instrument is drawn
+                                             // on
     const std::string m_str_unit_type_id;
     const std::string m_str_currency_tla;
     const std::string m_str_nym_id;
@@ -249,7 +250,7 @@ public:
     EXPORT void SetBoxIndex(std::int32_t nBoxIndex);
     EXPORT const std::string GetThreadItemId() const;
     EXPORT void SetThreadItemId(const std::string& strThreadItemId);
-    EXPORT int32_t GetMethodID() const;  // Used by "special mail."
+    EXPORT std::int32_t GetMethodID() const;  // Used by "special mail."
     EXPORT void SetMethodID(std::int32_t nMethodID);
     EXPORT const std::string& GetMsgID() const;  // Used by "special mail."
     EXPORT void SetMsgID(const std::string& str_id);
@@ -258,14 +259,15 @@ public:
     EXPORT const std::string& GetMsgTypeDisplay() const;  // Used by "special
                                                           // mail."
     EXPORT void SetMsgTypeDisplay(const std::string& str_type);
-    EXPORT TransactionNumber GetTransactionNum() const;  // Trans Num of receipt in
-                                                    // the
-                                                    // box. (Unless outpayment,
-                                                    // contains number for
-                                                    // instrument.)
+    EXPORT TransactionNumber GetTransactionNum() const;  // Trans Num of receipt
+                                                         // in
+                                                         // the
+    // box. (Unless outpayment,
+    // contains number for
+    // instrument.)
     EXPORT void SetTransactionNum(TransactionNumber lTransNum);
     EXPORT TransactionNumber GetTransNumForDisplay() const;  // Trans Num of the
-                                                        // cheque
+                                                             // cheque
     // inside the receipt in the
     // box.
     EXPORT void SetTransNumForDisplay(TransactionNumber lTransNum);
@@ -315,7 +317,7 @@ public:
     EXPORT Amount GetInitialPaymentAmount() const;
     EXPORT Amount GetPaymentPlanAmount() const;
 
-    EXPORT int32_t GetMaximumNoPayments() const;
+    EXPORT std::int32_t GetMaximumNoPayments() const;
     EXPORT bool FormatAmount(std::string& str_output) const;
     EXPORT bool FormatAmountWithoutSymbol(std::string& str_output);
     EXPORT bool FormatAmountLocale(

@@ -61,7 +61,7 @@ class OTNym_or_SymmetricKey;
 class Purse;
 class String;
 
-typedef std::map<int32_t, OTASCIIArmor*> mapOfPrototokens;
+typedef std::map<std::int32_t, OTASCIIArmor*> mapOfPrototokens;
 
 /*
 Here's a rough sketch of the protocol:
@@ -115,7 +115,7 @@ public:
     // per withdrawal. Another might require 100 because it needs more security.
     // Another 1000.  These provide more security but they also cost more in
     // terms of resources to process all those prototokens.
-    EXPORT static int32_t GetMinimumPrototokenCount();
+    EXPORT static std::int32_t GetMinimumPrototokenCount();
 
 protected:
     bool m_bPasswordProtected{false};  // this token might be encrypted to a
@@ -128,7 +128,7 @@ protected:
     OTASCIIArmor m_Signature;     // This is the Mint's signature on the blinded
                                   // prototoken.
 
-    int64_t m_lDenomination{
+    std::int64_t m_lDenomination{
         0};  // The actual value of the token is between issuer
              // and trader.
     // The token must have a denomination so we know which Mint Key to verify it
@@ -142,10 +142,11 @@ protected:
                                     // mapPublic[2] corresponds to
                                     // map_Private[2], etc.
 
-    int32_t m_nTokenCount{0};  // Official token count is stored here for
+    std::int32_t m_nTokenCount{0};  // Official token count is stored here for
     // serialization, etc. The maps' size should match.
-    int32_t m_nChosenIndex{0};  // When the client submits N prototokens, the
-                                // server randomly chooses one to sign.
+    std::int32_t m_nChosenIndex{
+        0};  // When the client submits N prototokens, the
+             // server randomly chooses one to sign.
     // (The server opens the other (N-1) prototokens to verify the amount is
     // correct and that the IDs are random enough.) Expiration dates are
     // necessary because otherwise the spent token database must be stored
@@ -161,14 +162,14 @@ protected:
     // time64_t            m_VALID_TO;        // (In the parent)
     //
     // Tokens (and Mints) also have a SERIES:
-    int32_t m_nSeries{0};
+    std::int32_t m_nSeries{0};
     tokenState m_State{errorToken};
     bool m_bSavePrivateKeys{
         false};  // Determines whether it serializes private keys 1
                  // time (yes if true)
-    int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
+    std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
     void InitToken();
-    bool ChooseIndex(int32_t nIndex);
+    bool ChooseIndex(std::int32_t nIndex);
     EXPORT Token();
     EXPORT Token& operator=(const Token& rhs);
     EXPORT Token(
@@ -240,21 +241,21 @@ protected:
     EXPORT virtual bool GenerateTokenRequest(
         const Nym& theNym,
         Mint& theMint,
-        int64_t lDenomination,
-        int32_t nTokenCount = Token::GetMinimumPrototokenCount()) = 0;
+        std::int64_t lDenomination,
+        std::int32_t nTokenCount = Token::GetMinimumPrototokenCount()) = 0;
 
 public:
     EXPORT static Token* InstantiateAndGenerateTokenRequest(
         const Purse& thePurse,
         const Nym& theNym,
         Mint& theMint,
-        int64_t lDenomination,
-        int32_t nTokenCount = Token::GetMinimumPrototokenCount());
+        std::int64_t lDenomination,
+        std::int32_t nTokenCount = Token::GetMinimumPrototokenCount());
     /** Lucre Step 3: Mint signs token (in OTMint) */
-    inline int32_t GetSeries() const { return m_nSeries; }
+    inline std::int32_t GetSeries() const { return m_nSeries; }
     /** (Called by the mint when signing.) */
     inline void SetSeriesAndExpiration(
-        int32_t nSeries,
+        std::int32_t nSeries,
         time64_t VALID_FROM,
         time64_t VALID_TO)
     {
@@ -277,7 +278,7 @@ public:
     EXPORT bool RecordTokenAsSpent(String& theCleartextToken);
     EXPORT void SetSignature(
         const OTASCIIArmor& theSignature,
-        int32_t nTokenIndex);
+        std::int32_t nTokenIndex);
     EXPORT bool GetSignature(OTASCIIArmor& theSignature) const;
     /** The actual denomination of the token is determined by whether or not it
      * verifies when the server uses the private verify info for THAT
@@ -288,17 +289,19 @@ public:
      * to use the right key when verifying the token. And this only works
      * because we have a specific set of denominations for each digital asset,
      * each with its own key pair in the Mint.*/
-    inline int64_t GetDenomination() const { return m_lDenomination; }
-    inline void SetDenomination(int64_t lVal) { m_lDenomination = lVal; }
+    inline std::int64_t GetDenomination() const { return m_lDenomination; }
+    inline void SetDenomination(std::int64_t lVal) { m_lDenomination = lVal; }
 
     // These are not actually necessary for Lucre itself, which only needs to
     // send a single blinded proto-token. Index is always 0, and Count is always
     // 1. But this does mean OTToken supports digital cash schemes that involve
     // multiple prototokens -- even though Lucre is not one of those.
-    EXPORT bool GetPrototoken(OTASCIIArmor& ascPrototoken, int32_t nTokenIndex);
+    EXPORT bool GetPrototoken(
+        OTASCIIArmor& ascPrototoken,
+        std::int32_t nTokenIndex);
     EXPORT bool GetPrivatePrototoken(
         OTASCIIArmor& ascPrototoken,
-        int32_t nTokenIndex);
+        std::int32_t nTokenIndex);
 };
 }  // namespace opentxs
 #endif  // OT_CASH

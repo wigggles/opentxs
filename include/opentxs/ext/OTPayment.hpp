@@ -202,7 +202,7 @@ public:
 #if OT_CASH
     EXPORT Purse* InstantiatePurse(const String& strPayment);
 #endif  // OT_CASH
-    EXPORT int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
+    EXPORT std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
     EXPORT void Release() override;
     EXPORT void Release_Payment();
     EXPORT bool SetPayment(const String& strPayment);

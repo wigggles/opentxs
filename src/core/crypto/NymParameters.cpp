@@ -42,7 +42,7 @@
 
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 
-#include <stdint.h>
+#include <cstdint>
 #include <memory>
 
 #ifdef __APPLE__
@@ -156,16 +156,16 @@ void NymParameters::SetVerificationSet(
 }
 
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
-NymParameters::NymParameters(const int32_t keySize)
+NymParameters::NymParameters(const std::int32_t keySize)
     : nymType_(NymParameterType::RSA)
     , credentialType_(proto::CREDTYPE_LEGACY)
     , nBits_(keySize)
 {
 }
 
-int32_t NymParameters::keySize() { return nBits_; }
+std::int32_t NymParameters::keySize() { return nBits_; }
 
-void NymParameters::setKeySize(int32_t keySize) { nBits_ = keySize; }
+void NymParameters::setKeySize(std::int32_t keySize) { nBits_ = keySize; }
 #endif
 
 #if OT_CRYPTO_SUPPORTED_KEY_HD

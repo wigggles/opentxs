@@ -46,7 +46,7 @@
 #include "opentxs/cash/Mint.hpp"
 #include "opentxs/core/String.hpp"
 
-#include <stdint.h>
+#include <cstdint>
 
 namespace opentxs
 {
@@ -74,18 +74,18 @@ protected:
 public:
     bool AddDenomination(
         const Nym& theNotary,
-        int64_t lDenomination,
-        int32_t nPrimeLength = 1024) override;
+        std::int64_t lDenomination,
+        std::int32_t nPrimeLength = 1024) override;
 
     EXPORT bool SignToken(
         const Nym& theNotary,
         Token& theToken,
         String& theOutput,
-        int32_t nTokenIndex) override;
+        std::int32_t nTokenIndex) override;
     EXPORT bool VerifyToken(
         const Nym& theNotary,
         String& theCleartextToken,
-        int64_t lDenomination) override;
+        std::int64_t lDenomination) override;
 
     EXPORT virtual ~MintLucre();
 };

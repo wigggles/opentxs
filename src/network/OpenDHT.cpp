@@ -86,7 +86,7 @@ bool OpenDHT::Init() const
         return false;
     }
 
-    int64_t listenPort = config_->listen_port_;
+    std::int64_t listenPort = config_->listen_port_;
 
     if ((listenPort <= 1000) || (listenPort >= 65535)) {
         listenPort = config_->default_port_;
@@ -129,10 +129,10 @@ void OpenDHT::Insert(
     }
 
     dht::InfoHash infoHash = dht::InfoHash::get(
-        reinterpret_cast<const uint8_t*>(key.c_str()), key.size());
+        reinterpret_cast<const std::uint8_t*>(key.c_str()), key.size());
 
     std::shared_ptr<dht::Value> pValue = std::make_shared<dht::Value>(
-        reinterpret_cast<const uint8_t*>(value.c_str()), value.size());
+        reinterpret_cast<const std::uint8_t*>(value.c_str()), value.size());
 
     if (!pValue) {
         return;
@@ -180,7 +180,7 @@ void OpenDHT::Retrieve(
         });
 
     dht::InfoHash infoHash = dht::InfoHash::get(
-        reinterpret_cast<const uint8_t*>(key.c_str()), key.size());
+        reinterpret_cast<const std::uint8_t*>(key.c_str()), key.size());
 
     node_->get(infoHash, cb, dcb, dht::Value::AllFilter());
 }

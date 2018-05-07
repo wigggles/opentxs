@@ -45,7 +45,7 @@
 
 #include "opentxs/cash/Token.hpp"
 
-#include <stdint.h>
+#include <cstdint>
 
 namespace opentxs
 {
@@ -105,8 +105,8 @@ protected:
     EXPORT bool GenerateTokenRequest(
         const Nym& theNym,
         Mint& theMint,
-        int64_t lDenomination,
-        int32_t nTokenCount = Token::GetMinimumPrototokenCount()) override;
+        std::int64_t lDenomination,
+        std::int32_t nTokenCount = Token::GetMinimumPrototokenCount()) override;
 
 public:
     EXPORT bool ProcessToken(

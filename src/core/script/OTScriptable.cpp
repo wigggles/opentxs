@@ -69,11 +69,12 @@
 #endif
 #endif
 #include <irrxml/irrXML.hpp>
+
+#include <cctype>
+#include <cinttypes>
 #include <cstdint>
-#include <ctype.h>
-#include <inttypes.h>
+#include <cstdlib>
 #include <memory>
-#include <stdlib.h>
 #include <string>
 #include <sstream>
 
@@ -343,10 +344,10 @@ void OTScriptable::RegisterOTNativeCallsWithScript(
 
 // static
 std::string OTScriptable::GetTime()  // Returns a string, containing seconds as
-                                     // int32_t. (Time in seconds.)
+                                     // std::int32_t. (Time in seconds.)
 {
     const time64_t CURRENT_TIME = OTTimeGetCurrentTime();
-    const int64_t lTime = OTTimeGetSecondsFromTime(CURRENT_TIME);
+    const std::int64_t lTime = OTTimeGetSecondsFromTime(CURRENT_TIME);
 
     String strTime;
     strTime.Format("%" PRId64, lTime);
@@ -706,8 +707,8 @@ bool OTScriptable::SendNoticeToAllParties(
     bool bSuccessMsg,
     Nym& theServerNym,
     const Identifier& theNotaryID,
-    const int64_t& lNewTransactionNumber,
-    // const int64_t& lInReferenceTo,
+    const std::int64_t& lNewTransactionNumber,
+    // const std::int64_t& lInReferenceTo,
     // // Each party has its own opening trans #.
     const String& strReference,
     String* pstrNote,
@@ -822,10 +823,10 @@ void OTScriptable::SetAsClean()
 // not the
 // authorized agent for any party's accounts.
 //
-int32_t OTScriptable::GetCountTransNumsNeededForAgent(
+std::int32_t OTScriptable::GetCountTransNumsNeededForAgent(
     std::string str_agent_name) const
 {
-    int32_t nReturnVal = 0;
+    std::int32_t nReturnVal = 0;
 
     OTAgent* pAgent = GetAgent(str_agent_name);
     if (nullptr == pAgent)
@@ -1177,7 +1178,7 @@ bool OTScriptable::VerifyPartyAuthorization(
     //     just skip this step.
     //
 
-    const int64_t lOpeningNo = theParty.GetOpeningTransNo();
+    const std::int64_t lOpeningNo = theParty.GetOpeningTransNo();
 
     if (lOpeningNo > 0)  // If one exists, then verify it.
     {
@@ -1635,7 +1636,7 @@ bool OTScriptable::VerifyPartyAcctAuthorization(
     // since the code then DEMANDS a number
     //     be available for use.
 
-    const int64_t lClosingNo = thePartyAcct.GetClosingTransNo();
+    const std::int64_t lClosingNo = thePartyAcct.GetClosingTransNo();
 
     if (lClosingNo > 0)  // If one exists, then verify it.
     {
@@ -1991,13 +1992,14 @@ OTParty* OTScriptable::GetParty(std::string str_party_name) const
     return pParty;
 }
 
-OTParty* OTScriptable::GetPartyByIndex(int32_t nIndex) const
+OTParty* OTScriptable::GetPartyByIndex(std::int32_t nIndex) const
 {
-    if ((nIndex < 0) || (nIndex >= static_cast<int64_t>(m_mapParties.size()))) {
+    if ((nIndex < 0) ||
+        (nIndex >= static_cast<std::int64_t>(m_mapParties.size()))) {
         otErr << __FUNCTION__ << ": Index out of bounds: " << nIndex << "\n";
     } else {
 
-        int32_t nLoopIndex = -1;  // will be 0 on first iteration.
+        std::int32_t nLoopIndex = -1;  // will be 0 on first iteration.
 
         for (auto& it : m_mapParties) {
             OTParty* pParty = it.second;
@@ -2011,13 +2013,14 @@ OTParty* OTScriptable::GetPartyByIndex(int32_t nIndex) const
     return nullptr;
 }
 
-OTBylaw* OTScriptable::GetBylawByIndex(int32_t nIndex) const
+OTBylaw* OTScriptable::GetBylawByIndex(std::int32_t nIndex) const
 {
-    if ((nIndex < 0) || (nIndex >= static_cast<int64_t>(m_mapBylaws.size()))) {
+    if ((nIndex < 0) ||
+        (nIndex >= static_cast<std::int64_t>(m_mapBylaws.size()))) {
         otErr << __FUNCTION__ << ": Index out of bounds: " << nIndex << "\n";
     } else {
 
-        int32_t nLoopIndex = -1;  // will be 0 on first iteration.
+        std::int32_t nLoopIndex = -1;  // will be 0 on first iteration.
 
         for (auto& it : m_mapBylaws) {
             OTBylaw* pBylaw = it.second;
@@ -2412,7 +2415,7 @@ void OTScriptable::CalculateContractID(Identifier& newID) const
     newID.CalculateDigest(xmlUnsigned);
 }
 
-std::string vectorToString(const std::vector<int64_t>& v)
+std::string vectorToString(const std::vector<std::int64_t>& v)
 {
     std::stringstream ss;
 
@@ -2423,13 +2426,13 @@ std::string vectorToString(const std::vector<int64_t>& v)
     return ss.str();
 }
 
-std::vector<int64_t> stringToVector(const std::string& s)
+std::vector<std::int64_t> stringToVector(const std::string& s)
 {
     std::stringstream stream(s);
 
-    std::vector<int64_t> results;
+    std::vector<std::int64_t> results;
 
-    int64_t n;
+    std::int64_t n;
     while (stream >> n) {
         results.push_back(n);
     }
@@ -2443,8 +2446,8 @@ void OTScriptable::UpdateContentsToTag(Tag& parent, bool bCalculatingID) const
 
     TagPtr pTag(new Tag("scriptableContract"));
 
-    uint32_t sizePartyMap = m_mapParties.size();
-    uint32_t sizeBylawMap = m_mapBylaws.size();
+    std::uint32_t sizePartyMap = m_mapParties.size();
+    std::uint32_t sizeBylawMap = m_mapBylaws.size();
 
     pTag->add_attribute(
         "specifyInstrumentDefinitionID",
@@ -2500,12 +2503,14 @@ void OTScriptable::UpdateContents()  // Before transmission or serialization,
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
-int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
+std::int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 {
-    int32_t nReturnVal = 0;  // Unless/until I want to add Contract::Compare(),
-                             // then people would be able to surreptitiously
-                             // insert keys and
-    //    int32_t nReturnVal = ot_super::ProcessXMLNode(xml); // conditions, and
+    std::int32_t nReturnVal =
+        0;  // Unless/until I want to add Contract::Compare(),
+            // then people would be able to surreptitiously
+            // insert keys and
+    //    std::int32_t nReturnVal = ot_super::ProcessXMLNode(xml); //
+    //    conditions, and
     // entities, that passed OTScriptable::Compare() with flying colors
     //  even though they didn't really match. Therefore, here I explicitly
     // disallow loading those things.
@@ -2559,7 +2564,7 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         // Load up the Parties.
         //
-        int32_t nPartyCount =
+        std::int32_t nPartyCount =
             strNumParties.Exists() ? atoi(strNumParties.Get()) : 0;
         if (nPartyCount > 0) {
             while (nPartyCount-- > 0) {
@@ -2604,7 +2609,7 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                     if (strIsCopyProvided.Compare("true"))
                         bIsCopyProvided = true;
 
-                    int64_t lOpeningTransNo = 0;
+                    std::int64_t lOpeningTransNo = 0;
 
                     if (strOpeningTransNo.Exists())
                         lOpeningTransNo = strOpeningTransNo.ToLong();
@@ -2626,7 +2631,7 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
                     // Load up the agents.
                     //
-                    int32_t nAgentCount =
+                    std::int32_t nAgentCount =
                         strNumAgents.Exists() ? atoi(strNumAgents.Get()) : 0;
                     if (nAgentCount > 0) {
                         while (nAgentCount-- > 0) {
@@ -2774,9 +2779,9 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
                     // LOAD PARTY ACCOUNTS.
                     //
-                    int32_t nAcctCount = strNumAccounts.Exists()
-                                             ? atoi(strNumAccounts.Get())
-                                             : 0;
+                    std::int32_t nAcctCount = strNumAccounts.Exists()
+                                                  ? atoi(strNumAccounts.Get())
+                                                  : 0;
                     if (nAcctCount > 0) {
                         while (nAcctCount-- > 0) {
                             if (!Contract::SkipToElement(xml)) {
@@ -2809,7 +2814,7 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                                             // are on the asset
                                                             // accounts.
 
-                                int64_t lClosingTransNo = 0;
+                                std::int64_t lClosingTransNo = 0;
 
                                 if (strClosingTransNo.Exists())
                                     lClosingTransNo =
@@ -2935,7 +2940,7 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         // Load up the Bylaws.
         //
-        int32_t nBylawCount =
+        std::int32_t nBylawCount =
             strNumBylaws.Exists() ? atoi(strNumBylaws.Get()) : 0;
         if (nBylawCount > 0) {
             while (nBylawCount-- > 0) {
@@ -2968,9 +2973,9 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
                     // LOAD VARIABLES AND CONSTANTS.
                     //
-                    int32_t nCount = strNumVariable.Exists()
-                                         ? atoi(strNumVariable.Get())
-                                         : 0;
+                    std::int32_t nCount = strNumVariable.Exists()
+                                              ? atoi(strNumVariable.Get())
+                                              : 0;
                     if (nCount > 0) {
                         while (nCount-- > 0) {
                             if (!Contract::SkipToElement(xml)) {
@@ -2994,7 +2999,7 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                                // field below. Otherwise, it's
                                                // assumed to be a BLANK STRING.)
                                 String strVarType = xml->getAttributeValue(
-                                    "type");  // string or int64_t
+                                    "type");  // string or std::int64_t
                                 String strVarAccess = xml->getAttributeValue(
                                     "access");  // constant, persistent, or
                                                 // important.
@@ -3088,7 +3093,7 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                 switch (theVarType) {
                                     case OTVariable::Var_Integer:
                                         if (strVarValue.Exists()) {
-                                            const int32_t nVarValue =
+                                            const std::int32_t nVarValue =
                                                 atoi(strVarValue.Get());
                                             bAddedVar = pBylaw->AddVariable(
                                                 str_var_name,

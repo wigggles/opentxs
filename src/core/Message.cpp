@@ -58,12 +58,13 @@
 #include "opentxs/Proto.hpp"
 #include "opentxs/core/String.hpp"
 
-#include <stdint.h>
-#include <stdexcept>
-#include <fstream>
 #include <irrxml/irrXML.hpp>
+
+#include <cstdint>
+#include <fstream>
 #include <map>
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <utility>
 
@@ -492,7 +493,7 @@ bool Message::updateContentsByType(Tag& parent)
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
-int32_t Message::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
+std::int32_t Message::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 {
     // Here we call the parent class first.
     // If the node is found there, or there is some error,
@@ -521,7 +522,7 @@ int32_t Message::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     return strategy->processXml(*this, xml);
 }
 
-int32_t Message::processXmlNodeAckReplies(
+std::int32_t Message::processXmlNodeAckReplies(
     __attribute__((unused)) Message& m,
     irr::io::IrrXMLReader*& xml)
 {
@@ -539,7 +540,7 @@ int32_t Message::processXmlNodeAckReplies(
     return 1;
 }
 
-int32_t Message::processXmlNodeAcknowledgedReplies(
+std::int32_t Message::processXmlNodeAcknowledgedReplies(
     __attribute__((unused)) Message& m,
     irr::io::IrrXMLReader*& xml)
 {
@@ -553,7 +554,7 @@ int32_t Message::processXmlNodeAcknowledgedReplies(
     return 1;
 }
 
-int32_t Message::processXmlNodeNotaryMessage(
+std::int32_t Message::processXmlNodeNotaryMessage(
     __attribute__((unused)) Message& m,
     irr::io::IrrXMLReader*& xml)
 {
@@ -570,7 +571,7 @@ int32_t Message::processXmlNodeNotaryMessage(
 
 // OTString StrategyGetMarketListResponse::writeXml(OTMessage &message)
 
-// int32_t StrategyGetMarketListResponse::processXml(OTMessage &message,
+// std::int32_t StrategyGetMarketListResponse::processXml(OTMessage &message,
 // irr::io::IrrXMLReader*& xml)
 
 // Most contracts do not override this function...
@@ -703,7 +704,7 @@ public:
         parent.add_tag(pTag);
     }
 
-    virtual int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
+    virtual std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         m.m_strCommand = xml->getNodeName();  // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
@@ -753,7 +754,7 @@ public:
         parent.add_tag(pTag);
     }
 
-    virtual int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
+    virtual std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         processXmlSuccess(m, xml);
 
@@ -829,7 +830,7 @@ public:
         parent.add_tag(pTag);
     }
 
-    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
+    std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         m.m_strCommand = xml->getNodeName();  // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
@@ -875,7 +876,7 @@ public:
         parent.add_tag(pTag);
     }
 
-    virtual int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
+    virtual std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         processXmlSuccess(m, xml);
 
@@ -950,7 +951,7 @@ public:
         parent.add_tag(pTag);
     }
 
-    virtual int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
+    virtual std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         m.m_strCommand = xml->getNodeName();  // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
@@ -993,7 +994,7 @@ public:
         parent.add_tag(pTag);
     }
 
-    virtual int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
+    virtual std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         processXmlSuccess(m, xml);
 
@@ -1084,7 +1085,7 @@ public:
         parent.add_tag(pTag);
     }
 
-    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
+    std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         m.m_strCommand = xml->getNodeName();  // Command
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
@@ -1197,7 +1198,7 @@ public:
         parent.add_tag(pTag);
     }
 
-    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
+    std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         processXmlSuccess(m, xml);
 
@@ -1236,7 +1237,7 @@ public:
         parent.add_tag(pTag);
     }
 
-    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
+    std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         m.m_strCommand = xml->getNodeName();  // Command
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
@@ -1283,7 +1284,7 @@ public:
         parent.add_tag(pTag);
     }
 
-    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
+    std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         processXmlSuccess(m, xml);
 
@@ -1332,7 +1333,7 @@ public:
         parent.add_tag(pTag);
     }
 
-    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
+    std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         m.m_strCommand = xml->getNodeName();  // Command
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
@@ -1375,7 +1376,7 @@ public:
         parent.add_tag(pTag);
     }
 
-    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
+    std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         processXmlSuccess(m, xml);
 
@@ -1437,7 +1438,7 @@ public:
         parent.add_tag(pTag);
     }
 
-    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
+    std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         m.m_strCommand = xml->getNodeName();  // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
@@ -1475,7 +1476,7 @@ public:
         parent.add_tag(pTag);
     }
 
-    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
+    std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         processXmlSuccess(m, xml);
 
@@ -1524,7 +1525,7 @@ public:
         parent.add_tag(pTag);
     }
 
-    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
+    std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         m.m_strCommand = xml->getNodeName();  // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
@@ -1571,7 +1572,7 @@ public:
         parent.add_tag(pTag);
     }
 
-    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
+    std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         processXmlSuccess(m, xml);
 
@@ -1650,7 +1651,7 @@ public:
         parent.add_tag(pTag);
     }
 
-    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
+    std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         m.m_strCommand = xml->getNodeName();  // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
@@ -1694,7 +1695,7 @@ public:
         parent.add_tag(pTag);
     }
 
-    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
+    std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         processXmlSuccess(m, xml);
 
@@ -1749,7 +1750,7 @@ public:
         parent.add_tag(pTag);
     }
 
-    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
+    std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         m.m_strCommand = xml->getNodeName();  // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
@@ -1806,7 +1807,7 @@ public:
         parent.add_tag(pTag);
     }
 
-    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
+    std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         m.m_strCommand = xml->getNodeName();  // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
@@ -1856,7 +1857,7 @@ public:
         parent.add_tag(pTag);
     }
 
-    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
+    std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         processXmlSuccess(m, xml);
 
@@ -1917,7 +1918,7 @@ public:
         parent.add_tag(pTag);
     }
 
-    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
+    std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         m.m_strCommand = xml->getNodeName();  // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
@@ -1969,7 +1970,7 @@ public:
         parent.add_tag(pTag);
     }
 
-    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
+    std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         m.m_strCommand = xml->getNodeName();  // Command
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
@@ -2009,7 +2010,7 @@ public:
         parent.add_tag(pTag);
     }
 
-    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
+    std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         processXmlSuccess(m, xml);
 
@@ -2059,7 +2060,7 @@ public:
         parent.add_tag(pTag);
     }
 
-    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
+    std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         m.m_strCommand = xml->getNodeName();  // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
@@ -2122,7 +2123,7 @@ public:
         parent.add_tag(pTag);
     }
 
-    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
+    std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         processXmlSuccess(m, xml);
 
@@ -2220,7 +2221,7 @@ public:
         parent.add_tag(pTag);
     }
 
-    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
+    std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         m.m_strCommand = xml->getNodeName();  // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
@@ -2276,7 +2277,7 @@ public:
         parent.add_tag(pTag);
     }
 
-    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
+    std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         processXmlSuccess(m, xml);
 
@@ -2361,7 +2362,7 @@ public:
         parent.add_tag(pTag);
     }
 
-    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
+    std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         m.m_strCommand = xml->getNodeName();  // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
@@ -2427,7 +2428,7 @@ public:
         parent.add_tag(pTag);
     }
 
-    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
+    std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         processXmlSuccess(m, xml);
 
@@ -2496,7 +2497,7 @@ public:
         parent.add_tag(pTag);
     }
 
-    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
+    std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         m.m_strCommand = xml->getNodeName();  // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
@@ -2544,7 +2545,7 @@ public:
         parent.add_tag(pTag);
     }
 
-    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
+    std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         processXmlSuccess(m, xml);
 
@@ -2638,7 +2639,7 @@ public:
         parent.add_tag(pTag);
     }
 
-    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
+    std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         m.m_strCommand = xml->getNodeName();  // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
@@ -2713,7 +2714,7 @@ public:
         parent.add_tag(pTag);
     }
 
-    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
+    std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         processXmlSuccess(m, xml);
 
@@ -2817,7 +2818,7 @@ public:
         parent.add_tag(pTag);
     }
 
-    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
+    std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         m.m_strCommand = xml->getNodeName();  // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
@@ -2860,7 +2861,7 @@ public:
         parent.add_tag(pTag);
     }
 
-    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
+    std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         processXmlSuccess(m, xml);
 
@@ -2934,7 +2935,7 @@ public:
         parent.add_tag(pTag);
     }
 
-    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
+    std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         m.m_strCommand = xml->getNodeName();  // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
@@ -2995,7 +2996,7 @@ public:
         parent.add_tag(pTag);
     }
 
-    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
+    std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         processXmlSuccess(m, xml);
 
@@ -3081,7 +3082,7 @@ public:
         parent.add_tag(pTag);
     }
 
-    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
+    std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         m.m_strCommand = xml->getNodeName();  // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
@@ -3119,7 +3120,7 @@ public:
         parent.add_tag(pTag);
     }
 
-    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
+    std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         processXmlSuccess(m, xml);
 
@@ -3157,7 +3158,7 @@ public:
         parent.add_tag(pTag);
     }
 
-    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
+    std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         m.m_strCommand = xml->getNodeName();  // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
@@ -3199,7 +3200,7 @@ public:
         parent.add_tag(pTag);
     }
 
-    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
+    std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         processXmlSuccess(m, xml);
 
@@ -3260,7 +3261,7 @@ public:
         parent.add_tag(pTag);
     }
 
-    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
+    std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         m.m_strCommand = xml->getNodeName();  // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
@@ -3316,7 +3317,7 @@ public:
         parent.add_tag(pTag);
     }
 
-    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
+    std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         processXmlSuccess(m, xml);
 
@@ -3393,7 +3394,7 @@ public:
         parent.add_tag(pTag);
     }
 
-    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
+    std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         m.m_strCommand = xml->getNodeName();  // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
@@ -3441,7 +3442,7 @@ public:
         parent.add_tag(pTag);
     }
 
-    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
+    std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         processXmlSuccess(m, xml);
 
@@ -3506,7 +3507,7 @@ public:
         parent.add_tag(pTag);
     }
 
-    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
+    std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         m.m_strCommand = xml->getNodeName();  // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
@@ -3552,7 +3553,7 @@ public:
         parent.add_tag(pTag);
     }
 
-    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
+    std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         processXmlSuccess(m, xml);
 
@@ -3621,7 +3622,7 @@ public:
         parent.add_tag(pTag);
     }
 
-    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
+    std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         m.m_strCommand = xml->getNodeName();  // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
@@ -3682,7 +3683,7 @@ public:
         parent.add_tag(pTag);
     }
 
-    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
+    std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         processXmlSuccess(m, xml);
 
@@ -3769,7 +3770,7 @@ public:
         parent.add_tag(pTag);
     }
 
-    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
+    std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         m.m_strCommand = xml->getNodeName();  // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
@@ -3827,7 +3828,7 @@ public:
         parent.add_tag(pTag);
     }
 
-    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
+    std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         processXmlSuccess(m, xml);
 
@@ -3916,7 +3917,7 @@ public:
         parent.add_tag(pTag);
     }
 
-    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
+    std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         m.m_strCommand = xml->getNodeName();  // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
@@ -3980,7 +3981,7 @@ public:
         parent.add_tag(pTag);
     }
 
-    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
+    std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         processXmlSuccess(m, xml);
 
@@ -4031,7 +4032,7 @@ public:
         parent.add_tag(pTag);
     }
 
-    virtual int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
+    virtual std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         m.m_strCommand = xml->getNodeName();  // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
@@ -4054,7 +4055,7 @@ RegisterStrategy StrategyGetMarketList::reg(
 class StrategyGetMarketListResponse : public OTMessageStrategy
 {
 public:
-    virtual int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
+    virtual std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         processXmlSuccess(m, xml);
 
@@ -4148,7 +4149,7 @@ public:
         parent.add_tag(pTag);
     }
 
-    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
+    std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         m.m_strCommand = xml->getNodeName();  // Command
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
@@ -4188,7 +4189,7 @@ public:
         parent.add_tag(pTag);
     }
 
-    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
+    std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         processXmlSuccess(m, xml);
 
@@ -4240,7 +4241,7 @@ public:
         parent.add_tag(pTag);
     }
 
-    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
+    std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         m.m_strCommand = xml->getNodeName();  // Command
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
@@ -4282,7 +4283,7 @@ public:
         parent.add_tag(pTag);
     }
 
-    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
+    std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         processXmlSuccess(m, xml);
 

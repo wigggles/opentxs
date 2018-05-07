@@ -59,7 +59,7 @@ class String;
  * acknowledged request numbers. */
 class NumList
 {
-    std::set<int64_t> m_setData;
+    std::set<std::int64_t> m_setData;
 
     /** private for security reasons, used internally only by a function that
      * knows the string length already. if false, means the numbers were already
@@ -67,11 +67,11 @@ class NumList
     bool Add(const char* szfNumbers);
 
 public:
-    explicit EXPORT NumList(const std::set<int64_t>& theNumbers);
-    explicit EXPORT NumList(std::set<int64_t>&& theNumbers);
+    explicit EXPORT NumList(const std::set<std::int64_t>& theNumbers);
+    explicit EXPORT NumList(std::set<std::int64_t>&& theNumbers);
     explicit EXPORT NumList(const String& strNumbers);
     explicit EXPORT NumList(const std::string& strNumbers);
-    explicit EXPORT NumList(int64_t lInput);
+    explicit EXPORT NumList(std::int64_t lInput);
     EXPORT NumList();
     EXPORT ~NumList();
 
@@ -84,13 +84,13 @@ public:
     EXPORT bool Add(const std::string& strNumbers);
 
     /** if false, means the value was already there. */
-    EXPORT bool Add(const int64_t& theValue);
+    EXPORT bool Add(const std::int64_t& theValue);
 
     /** if false, means the value was NOT already there. */
-    EXPORT bool Remove(const int64_t& theValue);
+    EXPORT bool Remove(const std::int64_t& theValue);
 
     /** returns true/false (whether value is already there.) */
-    EXPORT bool Verify(const int64_t& theValue) const;
+    EXPORT bool Verify(const std::int64_t& theValue) const;
 
     /** if false, means the numbers were already there. (At least one of them.)
      */
@@ -98,15 +98,15 @@ public:
 
     /** if false, means the numbers were already there. (At least one of them.)
      */
-    EXPORT bool Add(const std::set<int64_t>& theNumbers);
+    EXPORT bool Add(const std::set<std::int64_t>& theNumbers);
 
     /** if false, means the numbers were NOT already there. (At least one of
      * them.) */
-    EXPORT bool Remove(const std::set<int64_t>& theNumbers);
+    EXPORT bool Remove(const std::set<std::int64_t>& theNumbers);
 
     /** True/False, based on whether values are already there. (ALL theNumbers
      * must be present.) */
-    EXPORT bool Verify(const std::set<int64_t>& theNumbers) const;
+    EXPORT bool Verify(const std::set<std::int64_t>& theNumbers) const;
 
     /** True/False, based on whether OTNumLists MATCH in COUNT and CONTENT (NOT
      * ORDER.) */
@@ -116,14 +116,14 @@ public:
     EXPORT bool VerifyAny(const NumList& rhs) const;
 
     /** Verify whether ANY of the numbers on *this are found in setData. */
-    EXPORT bool VerifyAny(const std::set<int64_t>& setData) const;
-    EXPORT int32_t Count() const;
-    EXPORT bool Peek(int64_t& lPeek) const;
+    EXPORT bool VerifyAny(const std::set<std::int64_t>& setData) const;
+    EXPORT std::int32_t Count() const;
+    EXPORT bool Peek(std::int64_t& lPeek) const;
     EXPORT bool Pop();
 
     /** Outputs the numlist as set of numbers. (To iterate OTNumList, call this,
      * then iterate the output.) returns false if the numlist was empty.*/
-    EXPORT bool Output(std::set<int64_t>& theOutput) const;
+    EXPORT bool Output(std::set<std::int64_t>& theOutput) const;
 
     /** Outputs the numlist as a comma-separated string (for serialization,
      * usually.) returns false if the numlist was empty. */

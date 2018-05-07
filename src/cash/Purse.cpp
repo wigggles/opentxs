@@ -63,7 +63,8 @@
 #include "opentxs/OT.hpp"
 
 #include <irrxml/irrXML.hpp>
-#include <stdint.h>
+
+#include <cstdint>
 #include <list>
 #include <map>
 #include <ostream>
@@ -72,7 +73,7 @@
 
 #if OT_CASH
 template class std::shared_ptr<const opentxs::Purse>;
-#endif //OT_CASH
+#endif  // OT_CASH
 
 namespace opentxs
 {
@@ -216,7 +217,8 @@ bool Purse::GenerateInternalKey()
     //
     m_pCachedKey = OTCachedKey::CreateMasterPassword(
         thePassphrase,
-        strDisplay.Get());  // int32_t nTimeoutSeconds=OT_MASTER_KEY_TIMEOUT)
+        strDisplay.Get());  // std::int32_t
+                            // nTimeoutSeconds=OT_MASTER_KEY_TIMEOUT)
 
     if ((!m_pCachedKey) || !m_pCachedKey->IsGenerated())  // This one is
                                                           // unnecessary because
@@ -982,7 +984,7 @@ void Purse::UpdateContents()  // Before transmission or serialization, this is
         }
     }
 
-    for (int32_t i = 0; i < Count(); i++) {
+    for (std::int32_t i = 0; i < Count(); i++) {
         tag.add_tag("token", m_dequeTokens[i]->Get());
     }
 
@@ -992,7 +994,7 @@ void Purse::UpdateContents()  // Before transmission or serialization, this is
     m_xmlUnsigned.Concatenate("%s", str_result.c_str());
 }
 
-int32_t Purse::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
+std::int32_t Purse::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 {
     const char* szFunc = "Purse::ProcessXMLNode";
 
@@ -1012,12 +1014,12 @@ int32_t Purse::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         const String str_valid_to = xml->getAttributeValue("validTo");
 
         if (str_valid_from.Exists()) {
-            int64_t lValidFrom = parseTimestamp(str_valid_from.Get());
+            std::int64_t lValidFrom = parseTimestamp(str_valid_from.Get());
 
             m_tLatestValidFrom = OTTimeGetTimeFromSeconds(lValidFrom);
         }
         if (str_valid_to.Exists()) {
-            int64_t lValidTo = parseTimestamp(str_valid_to.Get());
+            std::int64_t lValidTo = parseTimestamp(str_valid_to.Get());
 
             m_tEarliestValidTo = OTTimeGetTimeFromSeconds(lValidTo);
         }
@@ -1559,9 +1561,9 @@ bool Purse::Push(OTNym_or_SymmetricKey theOwner, const Token& theToken)
     return false;
 }
 
-int32_t Purse::Count() const
+std::int32_t Purse::Count() const
 {
-    return static_cast<int32_t>(m_dequeTokens.size());
+    return static_cast<std::int32_t>(m_dequeTokens.size());
 }
 
 bool Purse::IsEmpty() const { return m_dequeTokens.empty(); }

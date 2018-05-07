@@ -90,8 +90,8 @@
 #include "opentxs/Types.hpp"
 #include "opentxs/ext/OTPayment.hpp"
 
-#include <stdint.h>
 #include <cinttypes>
+#include <cstdint>
 #include <cstdio>
 #include <iostream>
 #include <memory>
@@ -1230,7 +1230,7 @@ void OTClient::ProcessIncomingCronItemReply(
                 theOutpayment.GetAllTransactionNumbers(numlistOutpayment);
             }
 
-            const std::set<int64_t> set_receipt_ids{
+            const std::set<std::int64_t> set_receipt_ids{
                 thePmntInbox.GetTransactionNums()};
             for (const auto& receipt_id : set_receipt_ids) {
                 std::unique_ptr<OTPayment> pPayment(GetInstrumentByReceiptID(
@@ -1686,7 +1686,8 @@ void OTClient::ProcessIncomingTransaction(
             // to REMOVE from issued list. But if success, the number stays in
             // play until a later time.
             //
-            const int64_t lNymOpeningNumber = pTransaction->GetTransactionNum();
+            const std::int64_t lNymOpeningNumber =
+                pTransaction->GetTransactionNum();
             Item* pReplyItem = pTransaction->GetItem(theItemType);
 
             if (nullptr != pReplyItem) {
@@ -2040,15 +2041,15 @@ void OTClient::ProcessDepositChequeResponse(
     // Let's loop through the payment inbox and see
     // if there's a matching cheque.
     //
-    const int64_t lChequeTransNum = theCheque.GetTransactionNum();
+    const std::int64_t lChequeTransNum = theCheque.GetTransactionNum();
 
     // Going backwards since we are deleting something.
     // (Probably only one thing, but still...)
     //
-    std::set<int64_t> receipt_ids = pLedger->GetTransactionNums();
+    std::set<std::int64_t> receipt_ids = pLedger->GetTransactionNums();
 
     for (auto& receipt_id : receipt_ids) {
-        int64_t lPaymentTransNum{0};
+        std::int64_t lPaymentTransNum{0};
         std::unique_ptr<OTPayment> pPayment(
             GetInstrumentByReceiptID(nym, receipt_id, *pLedger));
 
@@ -2062,7 +2063,7 @@ void OTClient::ProcessDepositChequeResponse(
         //
         OTTransaction* pTransaction = pLedger->GetTransaction(receipt_id);
         String strPmntInboxTransaction;
-        int64_t lRemoveTransaction{0};
+        std::int64_t lRemoveTransaction{0};
 
         if (nullptr != pTransaction) {
             pTransaction->SaveContractRaw(strPmntInboxTransaction);
@@ -2769,7 +2770,8 @@ bool OTClient::processServerReplyGetBoxReceipt(
                         //  the_nym_id, const OTString& str_trans,
                         //                                   const OTString
                         //                                   str_box_type, const
-                        //                                   int64_t& lTransNum,
+                        //                                   std::int64_t&
+                        //                                   lTransNum,
                         //                                   OTPseudonym&
                         //                                   the_nym, OTLedger&
                         //                                   ledger);
@@ -2981,7 +2983,7 @@ bool OTClient::processServerReplyProcessInbox(
             // There still might be some future application in doing something
             // with these statements when they come in.
             default: {
-                const int32_t nReplyItemType = pReplyItem->GetType();
+                const std::int32_t nReplyItemType = pReplyItem->GetType();
 
                 String strTheType;
                 pReplyItem->GetTypeString(strTheType);
@@ -3120,7 +3122,7 @@ bool OTClient::processServerReplyProcessInbox(
                 break;
 
             default: {
-                const int32_t nReplyItemType = pReplyItem->GetType();
+                const std::int32_t nReplyItemType = pReplyItem->GetType();
 
                 String strTheType;
                 pReplyItem->GetTypeString(strTheType);
@@ -3315,7 +3317,7 @@ bool OTClient::processServerReplyProcessInbox(
                                     OTDB::STORED_OBJ_TRADE_DATA_NYM)));
                         OT_ASSERT(nullptr != pData);
 
-                        int64_t lScale = theOffer.GetScale();
+                        std::int64_t lScale = theOffer.GetScale();
 
                         /*
                         std::stringstream ss;
@@ -3324,15 +3326,15 @@ bool OTClient::processServerReplyProcessInbox(
                         ss.str(""); */
                         // TransID for original offer.
                         // (Offer may trade many times.)
-                        pData->transaction_id =
-                            to_string<int64_t>(theTrade.GetTransactionNum());
+                        pData->transaction_id = to_string<std::int64_t>(
+                            theTrade.GetTransactionNum());
                         // TransID for BOTH receipts for current trade.
                         // (Asset/Currency.)
-                        pData->updated_id = to_string<int64_t>(
+                        pData->updated_id = to_string<std::int64_t>(
                             pServerItem->GetTransactionNum());
 
-                        pData->completed_count =
-                            to_string<int32_t>(theTrade.GetCompletedCount());
+                        pData->completed_count = to_string<std::int32_t>(
+                            theTrade.GetCompletedCount());
                         std::unique_ptr<Account> pAccount(
                             Account::LoadExistingAccount(
                                 accountID, context.Server()));
@@ -3355,12 +3357,13 @@ bool OTClient::processServerReplyProcessInbox(
 
                             const String strInstrumentDefinitionID(
                                 theTrade.GetInstrumentDefinitionID());
-                            int64_t lAssetsThisTrade = pServerItem->GetAmount();
+                            std::int64_t lAssetsThisTrade =
+                                pServerItem->GetAmount();
                             pData->instrument_definition_id =
                                 strInstrumentDefinitionID.Get();
                             // The amount of ASSETS moved, this trade.
                             pData->amount_sold =
-                                to_string<int64_t>(lAssetsThisTrade);
+                                to_string<std::int64_t>(lAssetsThisTrade);
                             pData->asset_acct_id = strAcctID.Get();
                             pData->asset_receipt = strServerTransaction.Get();
                         } else if (bIsCurrency) {
@@ -3371,11 +3374,11 @@ bool OTClient::processServerReplyProcessInbox(
 
                             const String strCurrencyID(
                                 theTrade.GetCurrencyID());
-                            int64_t lCurrencyThisTrade =
+                            std::int64_t lCurrencyThisTrade =
                                 pServerItem->GetAmount();
                             pData->currency_id = strCurrencyID.Get();
                             pData->currency_paid =
-                                to_string<int64_t>(lCurrencyThisTrade);
+                                to_string<std::int64_t>(lCurrencyThisTrade);
                             pData->currency_acct_id = strAcctID.Get();
                             pData->currency_receipt =
                                 strServerTransaction.Get();
@@ -3397,13 +3400,15 @@ bool OTClient::processServerReplyProcessInbox(
                         // The original offer price. (Might
                         // be 0, if it's a market order.)
                         //
-                        const int64_t& lPriceLimit = theOffer.GetPriceLimit();
-                        pData->offer_price = to_string<int64_t>(lPriceLimit);
-                        const int64_t& lFinishedSoFar =
+                        const std::int64_t& lPriceLimit =
+                            theOffer.GetPriceLimit();
+                        pData->offer_price =
+                            to_string<std::int64_t>(lPriceLimit);
+                        const std::int64_t& lFinishedSoFar =
                             theOffer.GetFinishedSoFar();
                         pData->finished_so_far =
-                            to_string<int64_t>(lFinishedSoFar);
-                        pData->scale = to_string<int64_t>(lScale);
+                            to_string<std::int64_t>(lFinishedSoFar);
+                        pData->scale = to_string<std::int64_t>(lScale);
                         pData->is_bid = theOffer.IsBid();
 
                         // save to local storage...
@@ -3498,16 +3503,16 @@ bool OTClient::processServerReplyProcessInbox(
                                 if (!pTradeData->amount_sold.empty() &&
                                     !pTradeData->currency_paid.empty()) {
 
-                                    const int64_t lAmountSold =
+                                    const std::int64_t lAmountSold =
                                         String::StringToLong(
                                             pTradeData->amount_sold);
-                                    const int64_t lCurrencyPaid =
+                                    const std::int64_t lCurrencyPaid =
                                         String::StringToLong(
                                             pTradeData->currency_paid);
 
                                     // just in case (divide by 0.)
                                     if ((lAmountSold != 0) && (lScale != 0)) {
-                                        const int64_t lSalePrice =
+                                        const std::int64_t lSalePrice =
                                             (lCurrencyPaid /
                                              (lAmountSold / lScale));
 
@@ -4495,8 +4500,10 @@ bool OTClient::processServerReplyProcessNymbox(
                                             }
                                         }
                                         // -------------------------------------
-                                        const std::set<int64_t> set_receipt_ids{
-                                            thePmntInbox.GetTransactionNums()};
+                                        const std::set<std::int64_t>
+                                            set_receipt_ids{
+                                                thePmntInbox
+                                                    .GetTransactionNums()};
                                         for (const auto& receipt_id :
                                              set_receipt_ids) {
                                             std::unique_ptr<OTPayment> pPayment(
@@ -4867,7 +4874,8 @@ bool OTClient::processServerReplyProcessNymbox(
                                                         *pNewItem);
                                                 }
 
-                                                int64_t lTransNumForDisplay{0};
+                                                std::int64_t
+                                                    lTransNumForDisplay{0};
 
                                                 if (!theOutpayment.IsValid() ||
                                                     !theOutpayment
@@ -5728,7 +5736,7 @@ bool OTClient::processServerReplyGetMarketList(const Message& theReply)
     OT_ASSERT(nullptr != pBuffer);
 
     pBuffer->SetData(
-        static_cast<const uint8_t*>(thePayload->GetPointer()),
+        static_cast<const std::uint8_t*>(thePayload->GetPointer()),
         thePayload->GetSize());
 
     std::unique_ptr<OTDB::MarketList> pMarketList(
@@ -5808,7 +5816,7 @@ bool OTClient::processServerReplyGetMarketOffers(const Message& theReply)
     OT_ASSERT(nullptr != pBuffer);
 
     pBuffer->SetData(
-        static_cast<const uint8_t*>(thePayload->GetPointer()),
+        static_cast<const std::uint8_t*>(thePayload->GetPointer()),
         thePayload->GetSize());
 
     std::unique_ptr<OTDB::OfferListMarket> pOfferList(
@@ -5889,7 +5897,7 @@ bool OTClient::processServerReplyGetMarketRecentTrades(const Message& theReply)
     OT_ASSERT(nullptr != pBuffer);
 
     pBuffer->SetData(
-        static_cast<const uint8_t*>(thePayload->GetPointer()),
+        static_cast<const std::uint8_t*>(thePayload->GetPointer()),
         thePayload->GetSize());
 
     std::unique_ptr<OTDB::TradeListMarket> pTradeList(
@@ -5965,7 +5973,7 @@ bool OTClient::processServerReplyGetNymMarketOffers(const Message& theReply)
     OT_ASSERT(nullptr != pBuffer);
 
     pBuffer->SetData(
-        static_cast<const uint8_t*>(thePayload->GetPointer()),
+        static_cast<const std::uint8_t*>(thePayload->GetPointer()),
         thePayload->GetSize());
 
     std::unique_ptr<OTDB::OfferListNym> pOfferList(
@@ -6362,12 +6370,12 @@ bool OTClient::processServerReply(
 /// returns >0 for processInbox, containing the number that was there before
 /// processing.
 /// returns >0 for nearly everything else, containing the request number itself.
-int32_t OTClient::ProcessUserCommand(
+std::int32_t OTClient::ProcessUserCommand(
     const MessageType requestedCommand,
     ServerContext& context,
     Message& theMessage,
     const Account* pAccount,
-    const int64_t lTransactionAmount,
+    const std::int64_t lTransactionAmount,
     const UnitDefinition* pMyUnitDefinition,
     const Identifier* pHisNymID,
     const Identifier* pHisAcctID)
@@ -6391,7 +6399,7 @@ int32_t OTClient::ProcessUserCommand(
 
     theMessage.m_strNymID = String(nym.ID());
     theMessage.m_strNotaryID = String(context.Server());
-    int64_t lReturnValue = 0;
+    std::int64_t lReturnValue = 0;
 
     switch (requestedCommand) {
         // EVERY COMMAND BELOW THIS POINT (THEY ARE ALL OUTGOING TO THE
@@ -6503,7 +6511,7 @@ int32_t OTClient::ProcessUserCommand(
         }
     }
 
-    return static_cast<int32_t>(lReturnValue);
+    return static_cast<std::int32_t>(lReturnValue);
 }
 
 }  // namespace opentxs

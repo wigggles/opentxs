@@ -57,14 +57,14 @@
 namespace opentxs
 {
 
-NumList::NumList(const std::set<int64_t>& theNumbers) { Add(theNumbers); }
+NumList::NumList(const std::set<std::int64_t>& theNumbers) { Add(theNumbers); }
 
-NumList::NumList(std::set<int64_t>&& theNumbers)
+NumList::NumList(std::set<std::int64_t>&& theNumbers)
     : m_setData(std::move(theNumbers))
 {
 }
 
-NumList::NumList(int64_t lInput) { Add(lInput); }
+NumList::NumList(std::int64_t lInput) { Add(lInput); }
 
 // removed, security reasons.
 // OTNumList::OTNumList(const char* szNumbers)
@@ -106,7 +106,7 @@ bool NumList::Add(const char* szNumbers)  // if false, means the numbers were
     OT_ASSERT(nullptr != szNumbers);  // Should never happen.
 
     bool bSuccess = true;
-    int64_t lNum = 0;
+    std::int64_t lNum = 0;
     const char* pChar = szNumbers;
     std::locale loc;
 
@@ -126,7 +126,7 @@ bool NumList::Add(const char* szNumbers)  // if false, means the numbers were
         if (std::isdigit(*pChar, loc)) {
             bStartedANumber = true;
 
-            int32_t nDigit = (*pChar - '0');
+            std::int32_t nDigit = (*pChar - '0');
 
             lNum *= 10;  // Move it up a decimal place.
             lNum += nDigit;
@@ -171,8 +171,9 @@ bool NumList::Add(const char* szNumbers)  // if false, means the numbers were
     return bSuccess;
 }
 
-bool NumList::Add(const int64_t& theValue)  // if false, means the value was
-                                            // already there.
+bool NumList::Add(const std::int64_t& theValue)  // if false, means the value
+                                                 // was
+                                                 // already there.
 {
     auto it = m_setData.find(theValue);
 
@@ -184,7 +185,7 @@ bool NumList::Add(const int64_t& theValue)  // if false, means the value was
     return false;  // it was already there.
 }
 
-bool NumList::Peek(int64_t& lPeek) const
+bool NumList::Peek(std::int64_t& lPeek) const
 {
     auto it = m_setData.begin();
 
@@ -208,8 +209,9 @@ bool NumList::Pop()
     return false;
 }
 
-bool NumList::Remove(const int64_t& theValue)  // if false, means the value was
-                                               // NOT already there.
+bool NumList::Remove(const std::int64_t& theValue)  // if false, means the value
+                                                    // was
+                                                    // NOT already there.
 {
     auto it = m_setData.find(theValue);
 
@@ -221,9 +223,9 @@ bool NumList::Remove(const int64_t& theValue)  // if false, means the value was
     return false;  // it wasn't there (so how could you remove it then?)
 }
 
-bool NumList::Verify(const int64_t& theValue) const  // returns true/false
-                                                     // (whether value is
-                                                     // already there.)
+bool NumList::Verify(const std::int64_t& theValue) const  // returns true/false
+                                                          // (whether value is
+                                                          // already there.)
 {
     auto it = m_setData.find(theValue);
 
@@ -234,7 +236,7 @@ bool NumList::Verify(const int64_t& theValue) const  // returns true/false
 // (ALL theNumbersmust be present.)
 // So if *this contains "3,4,5,6" and rhs contains "4,5" then match is TRUE.
 //
-bool NumList::Verify(const std::set<int64_t>& theNumbers) const
+bool NumList::Verify(const std::set<std::int64_t>& theNumbers) const
 {
     bool bSuccess = true;
 
@@ -273,7 +275,7 @@ bool NumList::VerifyAny(const NumList& rhs) const
 
 /// Verify whether ANY of the numbers on *this are found in setData.
 ///
-bool NumList::VerifyAny(const std::set<int64_t>& setData) const
+bool NumList::VerifyAny(const std::set<std::int64_t>& setData) const
 {
     for (const auto& it : m_setData) {
         auto it_find = setData.find(it);
@@ -289,16 +291,17 @@ bool NumList::Add(const NumList& theNumList)  // if false, means the numbers
                                               // were already there. (At
                                               // least one of them.)
 {
-    std::set<int64_t> theOutput;
+    std::set<std::int64_t> theOutput;
     theNumList.Output(theOutput);  // returns false if the numlist was empty.
 
     return Add(theOutput);
 }
 
-bool NumList::Add(const std::set<int64_t>& theNumbers)  // if false, means the
-                                                        // numbers were already
-                                                        // there. (At least one
-                                                        // of them.)
+bool NumList::Add(const std::set<std::int64_t>& theNumbers)  // if false, means
+                                                             // the
+// numbers were already
+// there. (At least one
+// of them.)
 {
     bool bSuccess = true;
 
@@ -310,11 +313,12 @@ bool NumList::Add(const std::set<int64_t>& theNumbers)  // if false, means the
     return bSuccess;
 }
 
-bool NumList::Remove(const std::set<int64_t>& theNumbers)  // if false, means
-                                                           // the numbers were
-                                                           // NOT already
-                                                           // there. (At least
-                                                           // one of them.)
+bool NumList::Remove(const std::set<std::int64_t>& theNumbers)  // if false,
+                                                                // means
+// the numbers were
+// NOT already
+// there. (At least
+// one of them.)
 {
     bool bSuccess = true;
 
@@ -329,9 +333,10 @@ bool NumList::Remove(const std::set<int64_t>& theNumbers)  // if false, means
 // Outputs the numlist as a set of numbers.
 // (To iterate OTNumList, call this, then iterate the output.)
 //
-bool NumList::Output(std::set<int64_t>& theOutput) const  // returns false if
-                                                          // the numlist was
-                                                          // empty.
+bool NumList::Output(std::set<std::int64_t>& theOutput) const  // returns false
+                                                               // if
+// the numlist was
+// empty.
 {
     theOutput = m_setData;
 
@@ -343,7 +348,7 @@ bool NumList::Output(std::set<int64_t>& theOutput) const  // returns false if
 bool NumList::Output(String& strOutput) const  // returns false if the
                                                // numlist was empty.
 {
-    int32_t nIterationCount = 0;
+    std::int32_t nIterationCount = 0;
 
     for (auto& it : m_setData) {
         nIterationCount++;
@@ -360,9 +365,9 @@ bool NumList::Output(String& strOutput) const  // returns false if the
     return !m_setData.empty();
 }
 
-int32_t NumList::Count() const
+std::int32_t NumList::Count() const
 {
-    return static_cast<int32_t>(m_setData.size());
+    return static_cast<std::int32_t>(m_setData.size());
 }
 
 void NumList::Release() { m_setData.clear(); }

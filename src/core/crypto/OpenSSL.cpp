@@ -81,10 +81,10 @@ extern "C" {
 #include <openssl/ui.h>
 }
 
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstdint>
+#include <cstdio>
+#include <cstring>
 #include <mutex>
 #include <ostream>
 #include <string>
@@ -194,10 +194,10 @@ void ot_openssl_thread_id(CRYPTO_THREADID*);
 #endif
 
 void ot_openssl_locking_callback(
-    int32_t mode,
-    int32_t type,
+    std::int32_t mode,
+    std::int32_t type,
     const char* file,
-    int32_t line);
+    std::int32_t line);
 }
 
 // done
@@ -221,7 +221,8 @@ void ot_openssl_locking_callback(
 #if OPENSSL_VERSION_NUMBER - 0 < 0x10000000L
 unsigned long ot_openssl_thread_id(void)
 {
-    uint64_t ret = std::hash<std::thread::id>()(std::this_thread::get_id());
+    std::uint64_t ret =
+        std::hash<std::thread::id>()(std::this_thread::get_id());
 
     return (ret);
 }
@@ -231,14 +232,15 @@ void ot_openssl_thread_id(CRYPTO_THREADID* id)
 {
     OT_ASSERT(nullptr != id);
 
-    // TODO: Possibly do this by pointer instead of by uint64_t,
+    // TODO: Possibly do this by pointer instead of by std::uint64_t,
     // for certain platforms. (OpenSSL provides functions for both.)
     //
 
     [[maybe_unused]] unsigned long val =
         std::hash<std::thread::id>()(std::this_thread::get_id());
 
-    //    void CRYPTO_THREADID_set_numeric(CRYPTO_THREADID* id, uint64_t val);
+    //    void CRYPTO_THREADID_set_numeric(CRYPTO_THREADID* id, std::uint64_t
+    //    val);
     //    void CRYPTO_THREADID_set_pointer(CRYPTO_THREADID* id, void* ptr);
 
     CRYPTO_THREADID_set_numeric(id, val);
@@ -246,7 +248,8 @@ void ot_openssl_thread_id(CRYPTO_THREADID* id)
 #endif
 
 /*
- locking_function(int32_t mode, int32_t n, const char* file, int32_t line) is
+ locking_function(std::int32_t mode, int32_t n, const char* file, int32_t line)
+ is
  needed to perform locking on
  shared data structures. (Note that OpenSSL uses a number of global data
  structures that will
@@ -265,10 +268,10 @@ void ot_openssl_thread_id(CRYPTO_THREADID* id)
 
 extern "C" {
 void ot_openssl_locking_callback(
-    int32_t mode,
-    int32_t type,
+    std::int32_t mode,
+    std::int32_t type,
     const char*,
-    int32_t)
+    std::int32_t)
 {
     if (mode & CRYPTO_LOCK) {
         OpenSSL::s_arrayMutex[type].lock();
@@ -278,7 +281,9 @@ void ot_openssl_locking_callback(
 }
 }  // extern "C"
 
-bool OpenSSL::RandomizeMemory(uint8_t* szDestination, uint32_t nNewSize) const
+bool OpenSSL::RandomizeMemory(
+    std::uint8_t* szDestination,
+    std::uint32_t nNewSize) const
 {
     Lock lock(lock_);
 
@@ -293,8 +298,8 @@ bool OpenSSL::RandomizeMemory(uint8_t* szDestination, uint32_t nNewSize) const
      Both functions return -1 if they are not supported by the current RAND
      method.
      */
-    const int32_t nRAND_bytes =
-        RAND_bytes(szDestination, static_cast<int32_t>(nNewSize));
+    const std::int32_t nRAND_bytes =
+        RAND_bytes(szDestination, static_cast<std::int32_t>(nNewSize));
 
     if ((-1) == nRAND_bytes) {
         otErr
@@ -331,8 +336,9 @@ OTPassword* OpenSSL::DeriveNewKey(
 
     // Key derivation in OpenSSL.
     //
-    // int32_t PKCS5_PBKDF2_HMAC_SHA1(const char*, int32_t, const uint8_t*,
-    // int32_t, int32_t, int32_t, uint8_t*)
+    // std::int32_t PKCS5_PBKDF2_HMAC_SHA1(const char*, int32_t, const
+    // std::uint8_t*,
+    // std::int32_t, int32_t, int32_t, std::uint8_t*)
     //
     PKCS5_PBKDF2_HMAC_SHA1(
         reinterpret_cast<const char*>  // If is password... supply password,
@@ -463,10 +469,10 @@ const EVP_CIPHER* OpenSSL::OpenSSLdp::CipherModeToOpenSSLMode(
 
 /*
  SHA256_CTX context;
- uint8_t md[SHA256_DIGEST_LENGTH];
+ std::uint8_t md[SHA256_DIGEST_LENGTH];
 
  SHA256_Init(&context);
- SHA256_Update(&context, (uint8_t*)input, length);
+ SHA256_Update(&context, (std::uint8_t*)input, length);
  SHA256_Final(md, &context);
  */
 
@@ -476,7 +482,7 @@ const EVP_CIPHER* OpenSSL::OpenSSLdp::CipherModeToOpenSSLMode(
 // todo return a smartpointer here.
 OTPassword* OpenSSL::InstantiateBinarySecret() const
 {
-    uint8_t* tmp_data = new uint8_t[CryptoConfig::SymmetricKeySize()];
+    std::uint8_t* tmp_data = new uint8_t[CryptoConfig::SymmetricKeySize()];
     OTPassword* pNewKey = new OTPassword(
         static_cast<void*>(&tmp_data[0]), CryptoConfig::SymmetricKeySize());
     OT_ASSERT_MSG(nullptr != pNewKey, "pNewKey = new OTPassword");
@@ -544,7 +550,7 @@ bool OpenSSL::get_password(OTPassword& theOutput, const char* szPrompt) const
 #endif
             theOutput.setPassword(
                 strPassword.c_str(),
-                static_cast<int32_t>(strPassword.length() - 1));
+                static_cast<std::int32_t>(strPassword.length() - 1));
         }
 
         std::cout << std::endl;  // new line.
@@ -563,7 +569,7 @@ bool OpenSSL::get_password(OTPassword& theOutput, const char* szPrompt) const
         if (UI_UTIL_read_pw(buf, buff, _PASSWORD_LEN, szPrompt, 0) == 0) {
             size_t nPassLength = String::safe_strlen(buf, _PASSWORD_LEN);
             theOutput.setPassword_uint8(
-                reinterpret_cast<uint8_t*>(buf), nPassLength);
+                reinterpret_cast<std::uint8_t*>(buf), nPassLength);
             OTPassword::zeroMemory(buf, nPassLength);
             OTPassword::zeroMemory(buff, nPassLength);
             return true;
@@ -595,7 +601,7 @@ void OpenSSL::thread_setup() const
 #if OPENSSL_VERSION_NUMBER - 0 < 0x10000000L
     CRYPTO_set_id_callback(ot_openssl_thread_id);
 #else
-    int32_t nResult = CRYPTO_THREADID_set_callback(ot_openssl_thread_id);
+    std::int32_t nResult = CRYPTO_THREADID_set_callback(ot_openssl_thread_id);
     ++nResult;
     --nResult;
 #endif
@@ -1012,7 +1018,7 @@ bool OpenSSL::ArgumentCheck(
     const Data& iv,
     const Data& tag,
     const char* input,
-    const uint32_t inputLength,
+    const std::uint32_t inputLength,
     bool& AEAD,
     bool& ECB) const
 {
@@ -1086,7 +1092,7 @@ bool OpenSSL::ArgumentCheck(
 bool OpenSSL::Encrypt(
     const OTPassword& theRawSymmetricKey,  // The symmetric key, in clear form.
     const char* szInput,                   // This is the Plaintext.
-    const uint32_t lInputLength,
+    const std::uint32_t lInputLength,
     const Data& theIV,               // (We assume this IV
                                      // is already generated
                                      // and passed in.)
@@ -1105,7 +1111,7 @@ bool OpenSSL::Encrypt(
     const CryptoSymmetric::Mode cipher,
     const OTPassword& key,
     const char* plaintext,
-    uint32_t plaintextLength,
+    std::uint32_t plaintextLength,
     Data& ciphertext) const
 {
     auto unusedIV = Data::Factory();
@@ -1119,7 +1125,7 @@ bool OpenSSL::Encrypt(
     const OTPassword& key,
     const Data& iv,
     const char* plaintext,
-    uint32_t plaintextLength,
+    std::uint32_t plaintextLength,
     Data& ciphertext) const
 {
     auto unusedTag = Data::Factory();
@@ -1133,7 +1139,7 @@ bool OpenSSL::Encrypt(
     const OTPassword& key,
     const Data& iv,
     const char* plaintext,
-    uint32_t plaintextLength,
+    std::uint32_t plaintextLength,
     Data& ciphertext,
     Data& tag) const
 {
@@ -1156,10 +1162,11 @@ bool OpenSSL::Encrypt(
     EVP_CIPHER_CTX* pCONTEXT = (EVP_CIPHER_CTX*)(context);
 #endif
 
-    std::vector<uint8_t> vBuffer(CryptoConfig::SymmetricBufferSize());  // 4096
-    std::vector<uint8_t> vBuffer_out(
+    std::vector<std::uint8_t> vBuffer(
+        CryptoConfig::SymmetricBufferSize());  // 4096
+    std::vector<std::uint8_t> vBuffer_out(
         CryptoConfig::SymmetricBufferSize() + EVP_MAX_IV_LENGTH);
-    int32_t len_out = 0;
+    std::int32_t len_out = 0;
 
     memset(&vBuffer.at(0), 0, CryptoConfig::SymmetricBufferSize());
     memset(
@@ -1253,7 +1260,8 @@ bool OpenSSL::Encrypt(
                 nullptr,
                 nullptr,
                 nullptr,
-                static_cast<uint8_t*>(const_cast<void*>(iv.GetPointer())))) {
+                static_cast<std::uint8_t*>(
+                    const_cast<void*>(iv.GetPointer())))) {
             otErr << szFunc << ": Could not set IV.\n";
             return false;
         }
@@ -1264,7 +1272,7 @@ bool OpenSSL::Encrypt(
             pCONTEXT,
             nullptr,
             nullptr,
-            const_cast<uint8_t*>(key.getMemory_uint8()),
+            const_cast<std::uint8_t*>(key.getMemory_uint8()),
             nullptr)) {
         otErr << szFunc << ": Could not set key.\n";
         return false;
@@ -1275,8 +1283,8 @@ bool OpenSSL::Encrypt(
     // Now we process the input and write the encrypted data to
     // the output.
     //
-    uint32_t lRemainingLength = plaintextLength;
-    uint32_t lCurrentIndex = 0;
+    std::uint32_t lRemainingLength = plaintextLength;
+    std::uint32_t lCurrentIndex = 0;
 
     while (lRemainingLength > 0) {
         // If the remaining length is less than the default buffer size, then
@@ -1286,15 +1294,16 @@ bool OpenSSL::Encrypt(
         // Resulting value stored in len.
         //
 
-        uint32_t len = (lRemainingLength < CryptoConfig::SymmetricBufferSize())
-                           ? lRemainingLength
-                           : CryptoConfig::SymmetricBufferSize();  // 4096
+        std::uint32_t len =
+            (lRemainingLength < CryptoConfig::SymmetricBufferSize())
+                ? lRemainingLength
+                : CryptoConfig::SymmetricBufferSize();  // 4096
 
         if (!EVP_EncryptUpdate(
                 pCONTEXT,
                 &vBuffer_out.at(0),
                 &len_out,
-                const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(
+                const_cast<std::uint8_t*>(reinterpret_cast<const uint8_t*>(
                     &(plaintext[lCurrentIndex]))),
                 len)) {
             otErr << szFunc << ": EVP_EncryptUpdate: failed.\n";
@@ -1306,7 +1315,7 @@ bool OpenSSL::Encrypt(
         if (len_out > 0)
             ciphertext.Concatenate(
                 reinterpret_cast<void*>(&vBuffer_out.at(0)),
-                static_cast<uint32_t>(len_out));
+                static_cast<std::uint32_t>(len_out));
     }
 
     if (!EVP_EncryptFinal_ex(pCONTEXT, &vBuffer_out.at(0), &len_out)) {
@@ -1334,7 +1343,7 @@ bool OpenSSL::Encrypt(
     if (len_out > 0) {
         ciphertext.Concatenate(
             reinterpret_cast<void*>(&vBuffer_out.at(0)),
-            static_cast<uint32_t>(len_out));
+            static_cast<std::uint32_t>(len_out));
     }
 
     return true;
@@ -1343,7 +1352,7 @@ bool OpenSSL::Encrypt(
 bool OpenSSL::Decrypt(
     const OTPassword& theRawSymmetricKey,  // The symmetric key, in clear form.
     const char* szInput,                   // This is the Ciphertext.
-    const uint32_t lInputLength,
+    const std::uint32_t lInputLength,
     const Data& theIV,  // (We assume this IV
                         // is already generated
                         // and passed in.)
@@ -1367,7 +1376,7 @@ bool OpenSSL::Decrypt(
     const CryptoSymmetric::Mode cipher,
     const OTPassword& key,
     const char* ciphertext,
-    uint32_t ciphertextLength,
+    std::uint32_t ciphertextLength,
     CryptoSymmetricDecryptOutput& plaintext) const
 {
     auto unusedIV = Data::Factory();
@@ -1381,7 +1390,7 @@ bool OpenSSL::Decrypt(
     const OTPassword& key,
     const Data& iv,
     const char* ciphertext,
-    const uint32_t ciphertextLength,
+    const std::uint32_t ciphertextLength,
     CryptoSymmetricDecryptOutput& plaintext) const
 {
     auto unusedTag = Data::Factory();
@@ -1396,7 +1405,7 @@ bool OpenSSL::Decrypt(
     const Data& iv,
     const Data& tag,
     const char* ciphertext,
-    const uint32_t ciphertextLength,
+    const std::uint32_t ciphertextLength,
     CryptoSymmetricDecryptOutput& plaintext) const
 {
     const char* szFunc = "OpenSSL::Decrypt";
@@ -1415,10 +1424,11 @@ bool OpenSSL::Decrypt(
 #else
     CipherContext context;
 #endif
-    std::vector<uint8_t> vBuffer(CryptoConfig::SymmetricBufferSize());  // 4096
-    std::vector<uint8_t> vBuffer_out(
+    std::vector<std::uint8_t> vBuffer(
+        CryptoConfig::SymmetricBufferSize());  // 4096
+    std::vector<std::uint8_t> vBuffer_out(
         CryptoConfig::SymmetricBufferSize() + EVP_MAX_IV_LENGTH);
-    int32_t len_out = 0;
+    std::int32_t len_out = 0;
 
     memset(&vBuffer.at(0), 0, CryptoConfig::SymmetricBufferSize());
     memset(
@@ -1500,7 +1510,8 @@ bool OpenSSL::Decrypt(
                 nullptr,
                 nullptr,
                 nullptr,
-                static_cast<uint8_t*>(const_cast<void*>(iv.GetPointer())))) {
+                static_cast<std::uint8_t*>(
+                    const_cast<void*>(iv.GetPointer())))) {
             otErr << szFunc << ": Could not set IV.\n";
             return false;
         }
@@ -1515,7 +1526,7 @@ bool OpenSSL::Decrypt(
 #endif
             nullptr,
             nullptr,
-            const_cast<uint8_t*>(key.getMemory_uint8()),
+            const_cast<std::uint8_t*>(key.getMemory_uint8()),
             nullptr)) {
         otErr << szFunc << ": Could not set key.\n";
         return false;
@@ -1525,8 +1536,8 @@ bool OpenSSL::Decrypt(
     // Now we process the input and write the decrypted data to
     // the output.
     //
-    uint32_t lRemainingLength = ciphertextLength;
-    uint32_t lCurrentIndex = 0;
+    std::uint32_t lRemainingLength = ciphertextLength;
+    std::uint32_t lCurrentIndex = 0;
 
     while (lRemainingLength > 0) {
         // If the remaining length is less than the default buffer size, then
@@ -1535,9 +1546,10 @@ bool OpenSSL::Decrypt(
         // size, then use the default buffer size.
         // Resulting value stored in len.
         //
-        uint32_t len = (lRemainingLength < CryptoConfig::SymmetricBufferSize())
-                           ? lRemainingLength
-                           : CryptoConfig::SymmetricBufferSize();  // 4096
+        std::uint32_t len =
+            (lRemainingLength < CryptoConfig::SymmetricBufferSize())
+                ? lRemainingLength
+                : CryptoConfig::SymmetricBufferSize();  // 4096
         lRemainingLength -= len;
 
         if (!EVP_DecryptUpdate(
@@ -1548,7 +1560,7 @@ bool OpenSSL::Decrypt(
 #endif
                 &vBuffer_out.at(0),
                 &len_out,
-                const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(
+                const_cast<std::uint8_t*>(reinterpret_cast<const uint8_t*>(
                     &(ciphertext[lCurrentIndex]))),
                 len)) {
             otErr << szFunc << ": EVP_DecryptUpdate: failed.\n";
@@ -1560,7 +1572,7 @@ bool OpenSSL::Decrypt(
             if (false ==
                 plaintext.Concatenate(
                     reinterpret_cast<void*>(&vBuffer_out.at(0)),
-                    static_cast<uint32_t>(len_out))) {
+                    static_cast<std::uint32_t>(len_out))) {
                 otErr << szFunc << ": Failure: theDecryptedOutput isn't large "
                                    "enough for the decrypted output (1).\n";
                 return false;
@@ -1598,7 +1610,7 @@ bool OpenSSL::Decrypt(
         if (false ==
             plaintext.Concatenate(
                 reinterpret_cast<void*>(&vBuffer_out.at(0)),
-                static_cast<uint32_t>(len_out))) {
+                static_cast<std::uint32_t>(len_out))) {
             otErr << szFunc << ": Failure: theDecryptedOutput isn't large "
                                "enough for the decrypted output (2).\n";
             return false;
@@ -1609,20 +1621,24 @@ bool OpenSSL::Decrypt(
 
 /*
 #include <openssl/evp.h>
-int32_t EVP_OpenInit(EVP_CIPHER_CTX* ctx, EVP_CIPHER* type, uint8_t* ek,
-                 int32_t ekl, uint8_t* iv, EVP_PKEY* priv);
-int32_t EVP_OpenUpdate(EVP_CIPHER_CTX* ctx, uint8_t* out, int32_t* outl,
-uint8_t* in, int32_t inl);
-int32_t EVP_OpenFinal(EVP_CIPHER_CTX* ctx, uint8_t* out, int32_t* outl);
+std::int32_t EVP_OpenInit(EVP_CIPHER_CTX* ctx, EVP_CIPHER* type, std::uint8_t*
+ek,
+                 std::int32_t ekl, std::uint8_t* iv, EVP_PKEY* priv);
+std::int32_t EVP_OpenUpdate(EVP_CIPHER_CTX* ctx, std::uint8_t* out, int32_t*
+outl,
+std::uint8_t* in, std::int32_t inl);
+std::int32_t EVP_OpenFinal(EVP_CIPHER_CTX* ctx, std::uint8_t* out, int32_t*
+outl);
 DESCRIPTION
 
 The EVP envelope routines are a high level interface to envelope decryption.
 They decrypt a public key
  encrypted symmetric key and then decrypt data using it.
 
- int32_t EVP_OpenInit(EVP_CIPHER_CTX* ctx, EVP_CIPHER* type, uint8_t* ek,
-int32_t
-ekl, uint8_t* iv, EVP_PKEY* priv);
+ std::int32_t EVP_OpenInit(EVP_CIPHER_CTX* ctx, EVP_CIPHER* type, std::uint8_t*
+ek,
+std::int32_t
+ekl, std::uint8_t* iv, EVP_PKEY* priv);
 EVP_OpenInit() initializes a cipher context ctx for decryption with cipher type.
 It decrypts the encrypted
  symmetric key of length ekl bytes passed in the ek parameter using the private
@@ -1786,8 +1802,8 @@ bool OpenSSL::OpenSSLdp::SignContractDefaultHash(
 
     // This stores the final signature, when the EM value has been signed by RSA
     // private key.
-    std::vector<uint8_t> vEM(CryptoConfig::PublicKeysizeMax());
-    std::vector<uint8_t> vpSignature(CryptoConfig::PublicKeysizeMax());
+    std::vector<std::uint8_t> vEM(CryptoConfig::PublicKeysizeMax());
+    std::vector<std::uint8_t> vpSignature(CryptoConfig::PublicKeysizeMax());
 
     OTPassword::zeroMemory(&vEM.at(0), CryptoConfig::PublicKeysizeMax());
     OTPassword::zeroMemory(
@@ -1826,11 +1842,12 @@ bool OpenSSL::OpenSSLdp::SignContractDefaultHash(
     // the result goes into EM.
 
     /*
-     int32_t RSA_padding_add_PKCS1_PSS(RSA* rsa, uint8_t* EM, const uint8_t*
-     mHash, const EVP_MD* Hash, int32_t sLen);
+     std::int32_t RSA_padding_add_PKCS1_PSS(RSA* rsa, std::uint8_t* EM, const
+     uint8_t*
+     mHash, const EVP_MD* Hash, std::int32_t sLen);
      */
-    //    int32_t RSA_padding_add_xxx(uint8_t* to, int32_t tlen,
-    //                            uint8_t *f, int32_t fl);
+    //    std::int32_t RSA_padding_add_xxx(std::uint8_t* to, int32_t tlen,
+    //                            std::uint8_t *f, std::int32_t fl);
     // RSA_padding_add_xxx() encodes *fl* bytes from *f* so as to fit into
     // *tlen*
     // bytes and stores the result at *to*.
@@ -1843,7 +1860,7 @@ bool OpenSSL::OpenSSLdp::SignContractDefaultHash(
     //   rsa    EM    mHash      Hash      sLen
     //      in    OUT      IN        in        in
     const EVP_MD* md_sha256 = EVP_sha256();
-    int32_t status = RSA_padding_add_PKCS1_PSS(
+    std::int32_t status = RSA_padding_add_PKCS1_PSS(
         pRsaKey,
         &vEM.at(0),
         static_cast<const unsigned char*>(hash->GetPointer()),
@@ -1856,7 +1873,7 @@ bool OpenSSL::OpenSSLdp::SignContractDefaultHash(
     // ==
     // 256 bits.
 
-    // More clearly: pDigest is 256 bits int64_t, aka 32 bytes. The call to
+    // More clearly: pDigest is 256 bits std::int64_t, aka 32 bytes. The call to
     // RSA_padding_add_PKCS1_PSS above
     // is transforming its contents based on digest1, into EM. Once this is
     // done, the new digest stored in
@@ -1887,8 +1904,9 @@ bool OpenSSL::OpenSSLdp::SignContractDefaultHash(
     // RSA_NO_PADDING: of size tlen) at to.
 
     // RSA_private_encrypt
-    //    int32_t RSA_private_encrypt(int32_t flen, uint8_t* from,
-    //                            uint8_t *to, RSA* rsa, int32_t padding);
+    //    std::int32_t RSA_private_encrypt(int32_t flen, std::uint8_t* from,
+    //                            std::uint8_t *to, RSA* rsa, std::int32_t
+    //                            padding);
     // RSA_private_encrypt() signs the *flen* bytes at *from* (usually a message
     // digest with
     // an algorithm identifier) using the private key rsa and stores the
@@ -1941,7 +1959,7 @@ bool OpenSSL::OpenSSLdp::VerifyContractDefaultHash(
     OT::App().Crypto().Hash().Digest(
         proto::HASHTYPE_SHA256, strContractToVerify, hash);
 
-    std::vector<uint8_t> vDecrypted(
+    std::vector<std::uint8_t> vDecrypted(
         CryptoConfig::PublicKeysizeMax());  // Contains the decrypted
                                             // signature.
 
@@ -1957,11 +1975,12 @@ bool OpenSSL::OpenSSLdp::VerifyContractDefaultHash(
         return false;
     }
 
-    const int32_t nSignatureSize = static_cast<int32_t>(
+    const std::int32_t nSignatureSize = static_cast<int32_t>(
         theSignature.GetSize());  // converting from unsigned to signed (since
                                   // openssl wants it that way.)
 
-    if ((theSignature.GetSize() < static_cast<uint32_t>(RSA_size(pRsaKey))) ||
+    if ((theSignature.GetSize() <
+         static_cast<std::uint32_t>(RSA_size(pRsaKey))) ||
         (nSignatureSize < RSA_size(pRsaKey)))  // this one probably unnecessary.
     {
         otErr << szFunc << ": Decoded base64-encoded data for signature, but "
@@ -1987,11 +2006,11 @@ bool OpenSSL::OpenSSLdp::VerifyContractDefaultHash(
     // Rather, the size of the signature is RSA_size(pRsaKey).  Will have to
     // revisit this likely, elsewhere in the code.
     //    status = RSA_public_decrypt(128, static_cast<const
-    // uint8_t*>(theSignature.GetPointer()), pDecrypted, pRsaKey,
+    // std::uint8_t*>(theSignature.GetPointer()), pDecrypted, pRsaKey,
     // RSA_NO_PADDING);
-    int32_t status = RSA_public_decrypt(
+    std::int32_t status = RSA_public_decrypt(
         nSignatureSize,  // length of signature, aka RSA_size(rsa)
-        static_cast<const uint8_t*>(
+        static_cast<const std::uint8_t*>(
             theSignature.GetPointer()),  // location of signature
         &vDecrypted.at(
             0),   // Output--must be large enough to hold the md (which
@@ -1999,11 +2018,12 @@ bool OpenSSL::OpenSSLdp::VerifyContractDefaultHash(
         pRsaKey,  // signer's public key
         RSA_NO_PADDING);
 
-    // int32_t RSA_public_decrypt(int32_t flen, uint8_t* from,
-    //                            uint8_t *to, RSA* rsa, int32_t padding);
+    // std::int32_t RSA_public_decrypt(int32_t flen, std::uint8_t* from,
+    //                            std::uint8_t *to, RSA* rsa, std::int32_t
+    //                            padding);
 
     // RSA_public_decrypt() recovers the message digest from the *flen* bytes
-    // int64_t signature at *from*,
+    // std::int64_t signature at *from*,
     // using the signer's public key *rsa*.
     // padding is the padding mode that was used to sign the data.
     // *to* must point to a memory section large enough to hold the message
@@ -2035,7 +2055,7 @@ bool OpenSSL::OpenSSLdp::VerifyContractDefaultHash(
     // the message itself.)
     // They SHOULD be the same.
     /*
-     int32_t RSA_verify_PKCS1_PSS(RSA* rsa, const uint8_t* mHash, const EVP_MD* Hash, const uint8_t* EM, int32_t sLen)
+     std::int32_t RSA_verify_PKCS1_PSS(RSA* rsa, const std::uint8_t* mHash, const EVP_MD* Hash, const uint8_t* EM, int32_t sLen)
      */  // rsa        mHash    Hash alg.    EM         sLen
 
     const EVP_MD* md_sha256 = EVP_sha256();
@@ -2130,10 +2150,12 @@ bool OpenSSL::OpenSSLdp::VerifyContractDefaultHash(
     /*
      #include <openssl/rsa.h>
 
-     int32_t RSA_sign(int32_t type, const uint8_t* m, uint32_t m_len, uint8_t*
-     sigret, uint32_t* siglen, RSA* rsa);
-     int32_t RSA_verify(int32_t type, const uint8_t* m, uint32_t m_len, uint8_t*
-     sigbuf, uint32_t siglen, RSA* rsa);
+     std::int32_t RSA_sign(int32_t type, const std::uint8_t* m, std::uint32_t
+     m_len, uint8_t*
+     sigret, std::uint32_t* siglen, RSA* rsa);
+     std::int32_t RSA_verify(int32_t type, const std::uint8_t* m, std::uint32_t
+     m_len, uint8_t*
+     sigbuf, std::uint32_t siglen, RSA* rsa);
 
      DESCRIPTION
 
@@ -2227,7 +2249,7 @@ bool OpenSSL::OpenSSLdp::VerifyContractDefaultHash(
      >  * The minimum signable data quantity in OpenSSL is 1 byte
      >  * The minimum size RSA key that can be used to sign 1 byte is 89 bits
      >  * A signature created using a 64-bit RSA key would create a number 64
-     > bits int64_t, BUT:
+     > bits std::int64_t, BUT:
      >    - This is not possible to do in OpenSSL because the maximum signable
      > quantity for a 64
      >       bit RSA key is only a few bits, and OpenSSL input/output is done on
@@ -2320,12 +2342,14 @@ bool OpenSSL::OpenSSLdp::VerifyContractDefaultHash(
      > Hi all :x
      > I encountered an error when using function RSA_private_encrypt with
      > RSA_NO_PADDING option.
-     > I had an uint8_t array a with length = 20, RSA* r,
-     > uint8_t* sig = (uint8_t*) malloc(RSA_size(r)) and then I invoked
-     > function int32_t i = RSA_private_encrypt(20,a ,sign,r,RSA_NO_PADDING );
+     > I had an std::uint8_t array a with length = 20, RSA* r,
+     > std::uint8_t* sig = (uint8_t*) malloc(RSA_size(r)) and then I invoked
+     > function std::int32_t i = RSA_private_encrypt(20,a ,sign,r,RSA_NO_PADDING
+     );
      The
      > returned value  i = -1 means that this function failed. However, when I
-     > invoked int32_t i = RSA_private_encrypt(20,a,sig,r,RSA_PKCS1_PADDING ),
+     > invoked std::int32_t i = RSA_private_encrypt(20,a,sig,r,RSA_PKCS1_PADDING
+     ),
      it did
      > run smoothly. I'm confused whether it is an error of the library or not
      but
@@ -2439,7 +2463,8 @@ bool OpenSSL::OpenSSLdp::VerifyContractDefaultHash(
      RSA_size(pRsaKey)
      for now you can change the entire line to this:
      status = RSA_public_decrypt(RSA_size(pRsaKey), static_cast<const
-     uint8_t*>(theSignature.GetPointer()), pDecrypted, pRsaKey, RSA_NO_PADDING);
+     std::uint8_t*>(theSignature.GetPointer()), pDecrypted, pRsaKey,
+     RSA_NO_PADDING);
      Then see if your bug goes away
      I will still need to make fixes someday though, even if this works, and
      will have to lose or convert data.
@@ -2559,13 +2584,13 @@ bool OpenSSL::OpenSSLdp::SignContract(
         strContractUnsigned.GetSize());
 #endif
 
-    uint8_t sig_buf[4096];  // Safe since we pass the size when we use it.
+    std::uint8_t sig_buf[4096];  // Safe since we pass the size when we use it.
 
-    int32_t sig_len = sizeof(sig_buf);
-    int32_t err = EVP_SignFinal(
+    std::int32_t sig_len = sizeof(sig_buf);
+    std::int32_t err = EVP_SignFinal(
         context,
         sig_buf,
-        reinterpret_cast<uint32_t*>(&sig_len),
+        reinterpret_cast<std::uint32_t*>(&sig_len),
         const_cast<EVP_PKEY*>(pkey));
 
     if (err != 1) {
@@ -2647,13 +2672,13 @@ bool OpenSSL::OpenSSLdp::VerifySignature(
     // EVP_VerifyFinal() returns 1 for a correct signature,
     // 0 for failure and -1 if some other error occurred.
     //
-    int32_t nErr = EVP_VerifyFinal(
+    std::int32_t nErr = EVP_VerifyFinal(
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
         &ctx,
 #else
         context,
 #endif
-        static_cast<const uint8_t*>(theSignature.GetPointer()),
+        static_cast<const std::uint8_t*>(theSignature.GetPointer()),
         theSignature.GetSize(),
         const_cast<EVP_PKEY*>(pkey));
 
@@ -2740,12 +2765,12 @@ bool OpenSSL::EncryptSessionKey(
     CipherContext context;
 #endif
 
-    uint8_t buffer[4096];
-    uint8_t buffer_out[4096 + EVP_MAX_IV_LENGTH];
-    uint8_t iv[EVP_MAX_IV_LENGTH];
+    std::uint8_t buffer[4096];
+    std::uint8_t buffer_out[4096 + EVP_MAX_IV_LENGTH];
+    std::uint8_t iv[EVP_MAX_IV_LENGTH];
 
-    uint32_t len = 0;
-    int32_t len_out = 0;
+    std::uint32_t len = 0;
+    std::int32_t len_out = 0;
 
     memset(buffer, 0, 4096);
     memset(buffer_out, 0, 4096 + EVP_MAX_IV_LENGTH);
@@ -2760,8 +2785,8 @@ bool OpenSSL::EncryptSessionKey(
     //
     EVP_PKEY** array_pubkey =
         nullptr;  // These will be pointers we use, but do NOT need to clean-up.
-    uint8_t** ek = nullptr;    // These we DO need to cleanup...
-    int32_t* eklen = nullptr;  // This will just be an array of integers.
+    std::uint8_t** ek = nullptr;    // These we DO need to cleanup...
+    std::int32_t* eklen = nullptr;  // This will just be an array of integers.
 
     bool bFinalized = false;  // If this is set true, then we don't bother to
                               // cleanup the ctx. (See the destructor below.)
@@ -2784,15 +2809,17 @@ bool OpenSSL::EncryptSessionKey(
         EVP_CIPHER_CTX& m_ctx;  // reference to openssl cipher context.
 #endif
         EVP_PKEY*** m_array_pubkey;  // pointer to array of public key pointers.
-        uint8_t*** m_ek;    // pointer to array of encrypted symmetric keys.
-        int32_t** m_eklen;  // pointer to array of lengths for each encrypted
-                            // symmetric key
+        std::uint8_t*** m_ek;  // pointer to array of encrypted symmetric keys.
+        std::int32_t** m_eklen;  // pointer to array of lengths for each
+                                 // encrypted
+                                 // symmetric key
         const mapOfAsymmetricKeys& m_RecipPubKeys;  // array of public keys (to
         // initialize the above members
         // with.)
-        int32_t m_nLastPopulatedIndex;  // We store the highest-populated index
-                                        // (so we can free() up 'til the same
-                                        // index, in destructor.)
+        std::int32_t m_nLastPopulatedIndex;  // We store the highest-populated
+                                             // index
+        // (so we can free() up 'til the same
+        // index, in destructor.)
         bool& m_bFinalized;
 
     public:
@@ -2802,8 +2829,8 @@ bool OpenSSL::EncryptSessionKey(
             EVP_CIPHER_CTX& theCTX,
 #endif
             EVP_PKEY*** param_array_pubkey,
-            uint8_t*** param_ek,
-            int32_t** param_eklen,
+            std::uint8_t*** param_ek,
+            std::int32_t** param_eklen,
             const mapOfAsymmetricKeys& param_RecipPubKeys,
             bool& param_Finalized)
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
@@ -2864,28 +2891,30 @@ bool OpenSSL::EncryptSessionKey(
             // (*m_ek)[] array must have m_RecipPubKeys.size() no. of elements
             // (each will contain a pointer from OpenSSL that we must clean up.)
             //
-            *m_ek = static_cast<uint8_t**>(
-                malloc(m_RecipPubKeys.size() * sizeof(uint8_t*)));
+            *m_ek = static_cast<std::uint8_t**>(
+                malloc(m_RecipPubKeys.size() * sizeof(std::uint8_t*)));
             if (nullptr == *m_ek) OT_FAIL;
             memset(
-                *m_ek, 0, m_RecipPubKeys.size() * sizeof(uint8_t*));  // size of
-                                                                      // array
-                                                                      // length
-                                                                      // *
+                *m_ek,
+                0,
+                m_RecipPubKeys.size() * sizeof(std::uint8_t*));  // size of
+                                                                 // array
+                                                                 // length
+                                                                 // *
             // sizeof(pointer)
 
             // (*m_eklen)[] array must also have m_RecipPubKeys.size() no. of
             // elements (each containing a size as integer.)
             //
-            *m_eklen = static_cast<int32_t*>(
-                malloc(m_RecipPubKeys.size() * sizeof(int32_t)));
+            *m_eklen = static_cast<std::int32_t*>(
+                malloc(m_RecipPubKeys.size() * sizeof(std::int32_t)));
             OT_ASSERT(nullptr != *m_eklen);
             memset(
                 *m_eklen,
                 0,
                 m_RecipPubKeys.size() *
-                    sizeof(int32_t));  // size of array length *
-                                       // sizeof(int32_t)
+                    sizeof(std::int32_t));  // size of array length *
+                                            // sizeof(std::int32_t)
 
             //
             // ABOVE is all just above allocating the memory and setting it to 0
@@ -2895,7 +2924,7 @@ bool OpenSSL::EncryptSessionKey(
             // OTEnvelope::Seal() function can use it.
             //
 
-            int32_t nKeyIndex = -1;  // it will be 0 upon first iteration.
+            std::int32_t nKeyIndex = -1;  // it will be 0 upon first iteration.
 
             for (auto& it : m_RecipPubKeys) {
                 ++nKeyIndex;  // 0 on first iteration.
@@ -2929,8 +2958,8 @@ bool OpenSSL::EncryptSessionKey(
                 // to populate.
 
                 // (*m_ek)[i] must have room for EVP_PKEY_size(pubk[i]) bytes.
-                (*m_ek)[nKeyIndex] =
-                    static_cast<uint8_t*>(malloc(EVP_PKEY_size(public_key)));
+                (*m_ek)[nKeyIndex] = static_cast<std::uint8_t*>(
+                    malloc(EVP_PKEY_size(public_key)));
                 OT_ASSERT(nullptr != (*m_ek)[nKeyIndex]);
                 memset((*m_ek)[nKeyIndex], 0, EVP_PKEY_size(public_key));
             }
@@ -2956,7 +2985,7 @@ bool OpenSSL::EncryptSessionKey(
             // we will go.
             //
 
-            int32_t nKeyIndex = -1;  // it will be 0 upon first iteration.
+            std::int32_t nKeyIndex = -1;  // it will be 0 upon first iteration.
             while (nKeyIndex < m_nLastPopulatedIndex)  // if
                                                        // m_nLastPopulatedIndex
                                                        // is 0, then this loop
@@ -3034,9 +3063,9 @@ bool OpenSSL::EncryptSessionKey(
     const EVP_CIPHER* cipher_type = EVP_aes_256_cbc();  // todo hardcoding.
 
     /*
-    int32_t EVP_SealInit(EVP_CIPHER_CTX* ctx, const EVP_CIPHER* type,
-                     uint8_t **ek, int32_t* ekl, uint8_t* iv,
-                     EVP_PKEY **pubk,     int32_t npubk);
+    std::int32_t EVP_SealInit(EVP_CIPHER_CTX* ctx, const EVP_CIPHER* type,
+                     std::uint8_t **ek, std::int32_t* ekl, uint8_t* iv,
+                     EVP_PKEY **pubk,     std::int32_t npubk);
 
      -- ek is an array of buffers where the public-key-encrypted secret key will
     be written (for each recipient.)
@@ -3050,8 +3079,10 @@ bool OpenSSL::EncryptSessionKey(
 
     //    EVP_PKEY      ** array_pubkey = nullptr;  // These will be pointers we
     // use, but do NOT need to clean-up.
-    //    uint8_t ** ek           = nullptr;  // These we DO need to cleanup...
-    //    int32_t           *  eklen        = nullptr;  // This will just be an
+    //    std::uint8_t ** ek           = nullptr;  // These we DO need to
+    //    cleanup...
+    //    std::int32_t           *  eklen        = nullptr;  // This will just
+    //    be an
     // array of integers.
 
     if (!EVP_SealInit(
@@ -3069,9 +3100,10 @@ bool OpenSSL::EncryptSessionKey(
                     // room for the corresponding cipher's IV, as determined by
                     // (for example) EVP_CIPHER_iv_length(type).
             array_pubkey,
-            static_cast<int32_t>(RecipPubKeys.size())))  // array of public keys
-                                                         // we are addressing
-                                                         // this envelope to.
+            static_cast<std::int32_t>(RecipPubKeys.size())))  // array of public
+                                                              // keys
+    // we are addressing
+    // this envelope to.
     {
         otErr << szFunc << ": EVP_SealInit: failed.\n";
         return false;
@@ -3090,21 +3122,20 @@ bool OpenSSL::EncryptSessionKey(
 
     dataOutput.Concatenate(
         reinterpret_cast<void*>(&env_type_n),
-        static_cast<uint32_t>(sizeof(env_type_n)));
+        static_cast<std::uint32_t>(sizeof(env_type_n)));
 
     // Write the ARRAY SIZE (network order version.)
 
     // Calculate "network-order" version of array size.
-    uint32_t array_size_n = htonl(RecipPubKeys.size());
+    std::uint32_t array_size_n = htonl(RecipPubKeys.size());
 
     dataOutput.Concatenate(
         reinterpret_cast<void*>(&array_size_n),
-        static_cast<uint32_t>(sizeof(array_size_n)));
+        static_cast<std::uint32_t>(sizeof(array_size_n)));
 
-    otLog5 << __FUNCTION__
-           << ": Envelope type:  " << static_cast<int32_t>(ntohs(env_type_n))
-           << "    Array size: " << static_cast<int64_t>(ntohl(array_size_n))
-           << "\n";
+    otLog5 << __FUNCTION__ << ": Envelope type:  "
+           << static_cast<std::int32_t>(ntohs(env_type_n)) << "    Array size: "
+           << static_cast<std::int64_t>(ntohl(array_size_n)) << "\n";
 
     OT_ASSERT(nullptr != ek);
     OT_ASSERT(nullptr != eklen);
@@ -3115,7 +3146,7 @@ bool OpenSSL::EncryptSessionKey(
     // and its content, to the envelope data contents
     // (that we are currently building...)
     //
-    int32_t ii = -1;  // it will be 0 upon first iteration.
+    std::int32_t ii = -1;  // it will be 0 upon first iteration.
 
     for (auto& it : RecipPubKeys) {
         ++ii;  // 0 on first iteration.
@@ -3142,34 +3173,36 @@ bool OpenSSL::EncryptSessionKey(
         const String strNymID(str_nym_id.c_str());
 
         // +1 for null terminator.
-        uint32_t nymid_len = strNymID.GetLength() + 1;
+        std::uint32_t nymid_len = strNymID.GetLength() + 1;
         // Calculate "network-order" version of length (+1 for null terminator)
-        uint32_t nymid_len_n = htonl(nymid_len);
+        std::uint32_t nymid_len_n = htonl(nymid_len);
 
         // Write nymid_len_n and strNymID for EACH encrypted symmetric key.
         //
         dataOutput.Concatenate(
             reinterpret_cast<void*>(&nymid_len_n),
-            static_cast<uint32_t>(sizeof(nymid_len_n)));
+            static_cast<std::uint32_t>(sizeof(nymid_len_n)));
 
         // (+1 for null terminator is included here already, from above.)
         dataOutput.Concatenate(
             reinterpret_cast<const void*>(strNymID.Get()), nymid_len);
 
-        otLog5 << __FUNCTION__ << ": INDEX: " << static_cast<int64_t>(ii)
+        otLog5 << __FUNCTION__ << ": INDEX: " << static_cast<std::int64_t>(ii)
                << "  NymID length:  "
-               << static_cast<int64_t>(ntohl(nymid_len_n))
+               << static_cast<std::int64_t>(ntohl(nymid_len_n))
                << "   Nym ID: " << strNymID
                << "   Strlen (should be a byte shorter): "
-               << static_cast<int64_t>(strNymID.GetLength()) << "\n";
+               << static_cast<std::int64_t>(strNymID.GetLength()) << "\n";
 
         //      Write eklen_n and ek for EACH encrypted symmetric key,
         //
         //        EVP_PKEY      ** array_pubkey = nullptr;  // These will be
         // pointers we use, but do NOT need to clean-up.
-        //        uint8_t ** ek           = nullptr;  // These we DO need to
+        //        std::uint8_t ** ek           = nullptr;  // These we DO need
+        //        to
         // cleanup...
-        //        int32_t           *  eklen        = nullptr;  // This will
+        //        std::int32_t           *  eklen        = nullptr;  // This
+        //        will
         // just
         // be an array of integers.
 
@@ -3177,72 +3210,73 @@ bool OpenSSL::EncryptSessionKey(
         OT_ASSERT(eklen[ii] > 0);      // assert key length larger than 0.
 
         // Calculate "network-order" version of length.
-        uint32_t eklen_n = htonl(static_cast<uint32_t>(eklen[ii]));
+        std::uint32_t eklen_n = htonl(static_cast<uint32_t>(eklen[ii]));
 
         dataOutput.Concatenate(
             reinterpret_cast<void*>(&eklen_n),
-            static_cast<uint32_t>(sizeof(eklen_n)));
+            static_cast<std::uint32_t>(sizeof(eklen_n)));
 
         dataOutput.Concatenate(
-            reinterpret_cast<void*>(ek[ii]), static_cast<uint32_t>(eklen[ii]));
+            reinterpret_cast<void*>(ek[ii]),
+            static_cast<std::uint32_t>(eklen[ii]));
 
         otLog5 << __FUNCTION__
-               << ": EK length:  " << static_cast<int64_t>(ntohl(eklen_n))
-               << "     First byte: " << static_cast<int32_t>((ek[ii])[0])
+               << ": EK length:  " << static_cast<std::int64_t>(ntohl(eklen_n))
+               << "     First byte: " << static_cast<std::int32_t>((ek[ii])[0])
                << "      Last byte: "
-               << static_cast<int32_t>((ek[ii])[eklen[ii] - 1]) << "\n";
+               << static_cast<std::int32_t>((ek[ii])[eklen[ii] - 1]) << "\n";
     }
 
     // Write IV size before then writing IV itself.
     //
-    uint32_t ivlen = static_cast<uint32_t>(
+    std::uint32_t ivlen = static_cast<uint32_t>(
         EVP_CIPHER_iv_length(cipher_type));  // Length of IV for this cipher...
     // (TODO: add cipher name to output,
     // and use it for looking up cipher
     // upon Open.)
     //  OT_ASSERT(ivlen > 0);
     // Calculate "network-order" version of iv length.
-    uint32_t ivlen_n = htonl(ivlen);
+    std::uint32_t ivlen_n = htonl(ivlen);
 
     dataOutput.Concatenate(
         reinterpret_cast<void*>(&ivlen_n),
-        static_cast<uint32_t>(sizeof(ivlen_n)));
+        static_cast<std::uint32_t>(sizeof(ivlen_n)));
 
     dataOutput.Concatenate(reinterpret_cast<void*>(iv), ivlen);
 
     otLog5 << __FUNCTION__
-           << ": iv_size: " << static_cast<int64_t>(ntohl(ivlen_n))
-           << "   IV first byte: " << static_cast<int32_t>(iv[0])
-           << "    IV last byte: " << static_cast<int32_t>(iv[ivlen - 1])
+           << ": iv_size: " << static_cast<std::int64_t>(ntohl(ivlen_n))
+           << "   IV first byte: " << static_cast<std::int32_t>(iv[0])
+           << "    IV last byte: " << static_cast<std::int32_t>(iv[ivlen - 1])
            << "   \n";
 
     // Now we process the input and write the encrypted data to the
     // output.
     //
     while (0 < (len = plaintext.OTfread(
-                    reinterpret_cast<uint8_t*>(buffer),
-                    static_cast<uint32_t>(sizeof(buffer))))) {
+                    reinterpret_cast<std::uint8_t*>(buffer),
+                    static_cast<std::uint32_t>(sizeof(buffer))))) {
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
         if (!EVP_SealUpdate(
                 &ctx,
                 buffer_out,
                 &len_out,
                 buffer,
-                static_cast<int32_t>(len))) {
+                static_cast<std::int32_t>(len))) {
 #else
         if (!EVP_SealUpdate(
                 context,
                 buffer_out,
                 &len_out,
                 buffer,
-                static_cast<int32_t>(len))) {
+                static_cast<std::int32_t>(len))) {
 #endif
             otErr << szFunc << ": EVP_SealUpdate failed.\n";
             return false;
         } else if (len_out > 0)
             dataOutput.Concatenate(
                 reinterpret_cast<void*>(buffer_out),
-                static_cast<uint32_t>(len_out));
+                static_cast<std::uint32_t>(len_out));
         else
             break;
     }
@@ -3261,7 +3295,7 @@ bool OpenSSL::EncryptSessionKey(
         bFinalized = true;
         dataOutput.Concatenate(
             reinterpret_cast<void*>(buffer_out),
-            static_cast<uint32_t>(len_out));
+            static_cast<std::uint32_t>(len_out));
     } else {
         // cppcheck-suppress unreadVariable
         bFinalized = true;
@@ -3279,12 +3313,12 @@ bool OpenSSL::DecryptSessionKey(
 {
     const char* szFunc = "OpenSSL::DecryptSessionKey";
 
-    uint8_t buffer[4096];
-    uint8_t buffer_out[4096 + EVP_MAX_IV_LENGTH];
-    uint8_t iv[EVP_MAX_IV_LENGTH];
+    std::uint8_t buffer[4096];
+    std::uint8_t buffer_out[4096 + EVP_MAX_IV_LENGTH];
+    std::uint8_t iv[EVP_MAX_IV_LENGTH];
 
-    uint32_t len = 0;
-    int32_t len_out = 0;
+    std::uint32_t len = 0;
+    std::int32_t len_out = 0;
     bool bFinalized = false;  // We only clean up the ctx if the Open "Final"
                               // function hasn't been called, since it does that
                               // automatically already.
@@ -3396,12 +3430,12 @@ bool OpenSSL::DecryptSessionKey(
 
     dataInput.reset();  // Reset the fread position on this object to 0.
 
-    uint32_t nRunningTotal =
+    std::uint32_t nRunningTotal =
         0;  // Everytime we read something, we add the length to this variable.
 
-    uint32_t nReadEnvType = 0;
-    uint32_t nReadArraySize = 0;
-    uint32_t nReadIV = 0;
+    std::uint32_t nReadEnvType = 0;
+    std::uint32_t nReadArraySize = 0;
+    std::uint32_t nReadIV = 0;
 
     // Read the ARRAY SIZE (network order version -- convert to host version.)
 
@@ -3431,14 +3465,14 @@ bool OpenSSL::DecryptSessionKey(
     uint16_t env_type_n = 0;
 
     if (0 == (nReadEnvType = dataInput.OTfread(
-                  reinterpret_cast<uint8_t*>(&env_type_n),
-                  static_cast<uint32_t>(sizeof(env_type_n))))) {
+                  reinterpret_cast<std::uint8_t*>(&env_type_n),
+                  static_cast<std::uint32_t>(sizeof(env_type_n))))) {
         otErr << szFunc << ": Error reading Envelope Type. Expected "
                            "asymmetric(1) or symmetric (2).\n";
         return false;
     }
     nRunningTotal += nReadEnvType;
-    OT_ASSERT(nReadEnvType == static_cast<uint32_t>(sizeof(env_type_n)));
+    OT_ASSERT(nReadEnvType == static_cast<std::uint32_t>(sizeof(env_type_n)));
 
     // convert that envelope type from network to HOST endian.
     //
@@ -3452,24 +3486,25 @@ bool OpenSSL::DecryptSessionKey(
 
     // Read the ARRAY SIZE (network order version -- convert to host version.)
     //
-    uint32_t array_size_n = 0;
+    std::uint32_t array_size_n = 0;
 
     if (0 == (nReadArraySize = dataInput.OTfread(
-                  reinterpret_cast<uint8_t*>(&array_size_n),
-                  static_cast<uint32_t>(sizeof(array_size_n))))) {
+                  reinterpret_cast<std::uint8_t*>(&array_size_n),
+                  static_cast<std::uint32_t>(sizeof(array_size_n))))) {
         otErr << szFunc
               << ": Error reading Array Size for encrypted symmetric keys.\n";
         return false;
     }
     nRunningTotal += nReadArraySize;
-    OT_ASSERT(nReadArraySize == static_cast<uint32_t>(sizeof(array_size_n)));
+    OT_ASSERT(
+        nReadArraySize == static_cast<std::uint32_t>(sizeof(array_size_n)));
 
     // convert that array size from network to HOST endian.
     //
-    const uint32_t array_size = ntohl(array_size_n);
+    const std::uint32_t array_size = ntohl(array_size_n);
 
     otLog5 << __FUNCTION__
-           << ": Array size: " << static_cast<int64_t>(array_size) << "\n";
+           << ": Array size: " << static_cast<std::int64_t>(array_size) << "\n";
 
     //  nRunningTotal += array_size;    // NOPE! Just because there are 10 array
     // elements doesn't mean I want to add "10" here to the running total!! Not
@@ -3490,7 +3525,7 @@ bool OpenSSL::DecryptSessionKey(
     //      read its network-order key content size (convert to host), and then
     // read its key content,
     //
-    for (uint32_t ii = 0; ii < array_size; ++ii) {
+    for (std::uint32_t ii = 0; ii < array_size; ++ii) {
 
         // Loop through the encrypted symmetric keys, and for each:
         //      read its network-order NymID size (convert to host version), and
@@ -3498,42 +3533,44 @@ bool OpenSSL::DecryptSessionKey(
         //      read its network-order key content size (convert to host), and
         // then read its key content.
 
-        uint32_t nymid_len_n = 0;
-        uint32_t nReadNymIDSize = 0;
+        std::uint32_t nymid_len_n = 0;
+        std::uint32_t nReadNymIDSize = 0;
 
         if (0 == (nReadNymIDSize = dataInput.OTfread(
-                      reinterpret_cast<uint8_t*>(&nymid_len_n),
-                      static_cast<uint32_t>(sizeof(nymid_len_n))))) {
+                      reinterpret_cast<std::uint8_t*>(&nymid_len_n),
+                      static_cast<std::uint32_t>(sizeof(nymid_len_n))))) {
             otErr << szFunc << ": Error reading NymID length for an encrypted "
                                "symmetric key.\n";
             return false;
         }
         nRunningTotal += nReadNymIDSize;
-        OT_ASSERT(nReadNymIDSize == static_cast<uint32_t>(sizeof(nymid_len_n)));
+        OT_ASSERT(
+            nReadNymIDSize == static_cast<std::uint32_t>(sizeof(nymid_len_n)));
 
         // convert that array size from network to HOST endian.
         //
-        uint32_t nymid_len = ntohl(nymid_len_n);
+        std::uint32_t nymid_len = ntohl(nymid_len_n);
 
         otLog5 << __FUNCTION__
-               << ": NymID length: " << static_cast<int64_t>(nymid_len) << "\n";
+               << ": NymID length: " << static_cast<std::int64_t>(nymid_len)
+               << "\n";
 
         //      nRunningTotal += nymid_len; // Nope!
 
-        uint8_t* nymid =
-            static_cast<uint8_t*>(malloc(sizeof(uint8_t) * nymid_len));
+        std::uint8_t* nymid =
+            static_cast<std::uint8_t*>(malloc(sizeof(uint8_t) * nymid_len));
         OT_ASSERT(nullptr != nymid);
         nymid[0] = '\0';  // null terminator.
 
-        uint32_t nReadNymID = 0;
+        std::uint32_t nReadNymID = 0;
 
         if (0 == (nReadNymID = dataInput.OTfread(
                       nymid,
-                      static_cast<uint32_t>(
-                          sizeof(uint8_t) * nymid_len))))  // this length
-                                                           // includes the null
-                                                           // terminator (it was
-                                                           // written that way.)
+                      static_cast<std::uint32_t>(
+                          sizeof(std::uint8_t) * nymid_len))))  // this length
+        // includes the null
+        // terminator (it was
+        // written that way.)
         {
             otErr << szFunc
                   << ": Error reading NymID for an encrypted symmetric key.\n";
@@ -3543,19 +3580,20 @@ bool OpenSSL::DecryptSessionKey(
         }
         nRunningTotal += nReadNymID;
         OT_ASSERT(
-            nReadNymID == static_cast<uint32_t>(sizeof(uint8_t) * nymid_len));
+            nReadNymID ==
+            static_cast<std::uint32_t>(sizeof(std::uint8_t) * nymid_len));
         //      OT_ASSERT(nymid_len == nReadNymID);
 
         nymid[nymid_len - 1] = '\0';  // for null terminator. If string is 10
-                                      // bytes int64_t, it's from 0-9, and the
-                                      // null terminator is at index 9.
+        // bytes std::int64_t, it's from 0-9, and the
+        // null terminator is at index 9.
         const String loopStrNymID(reinterpret_cast<char*>(nymid));
         free(nymid);
         nymid = nullptr;
 
         otLog5 << __FUNCTION__ << ": (LOOP) Current NymID: " << loopStrNymID
                << "    Strlen:  "
-               << static_cast<int64_t>(loopStrNymID.GetLength()) << "\n";
+               << static_cast<std::int64_t>(loopStrNymID.GetLength()) << "\n";
 
         // loopStrNymID ... if this matches strNymID then it's the one we're
         // looking for.
@@ -3568,22 +3606,22 @@ bool OpenSSL::DecryptSessionKey(
         // Read its network-order key content size (convert to host-order), and
         // then
         // read its key content.
-        uint8_t* ek = nullptr;
-        uint32_t eklen = 0;
-        uint32_t eklen_n = 0;
-        uint32_t nReadLength = 0;
-        uint32_t nReadKey = 0;
+        std::uint8_t* ek = nullptr;
+        std::uint32_t eklen = 0;
+        std::uint32_t eklen_n = 0;
+        std::uint32_t nReadLength = 0;
+        std::uint32_t nReadKey = 0;
 
         // First we read the encrypted key size.
         //
         if (0 == (nReadLength = dataInput.OTfread(
-                      reinterpret_cast<uint8_t*>(&eklen_n),
-                      static_cast<uint32_t>(sizeof(eklen_n))))) {
+                      reinterpret_cast<std::uint8_t*>(&eklen_n),
+                      static_cast<std::uint32_t>(sizeof(eklen_n))))) {
             otErr << szFunc << ": Error reading encrypted key size.\n";
             return false;
         }
         nRunningTotal += nReadLength;
-        OT_ASSERT(nReadLength == static_cast<uint32_t>(sizeof(eklen_n)));
+        OT_ASSERT(nReadLength == static_cast<std::uint32_t>(sizeof(eklen_n)));
 
         // convert that key size from network to host endian.
         //
@@ -3592,15 +3630,16 @@ bool OpenSSL::DecryptSessionKey(
         // file now...
 
         otLog5 << __FUNCTION__
-               << ": EK length:  " << static_cast<int64_t>(eklen) << "   \n";
+               << ": EK length:  " << static_cast<std::int64_t>(eklen)
+               << "   \n";
 
         //      nRunningTotal += eklen;  // Nope!
 
-        ek = static_cast<uint8_t*>(malloc(
-            static_cast<int32_t>(eklen) *
-            sizeof(uint8_t)));  // I assume this is for the AES key
+        ek = static_cast<std::uint8_t*>(malloc(
+            static_cast<std::int32_t>(eklen) *
+            sizeof(std::uint8_t)));  // I assume this is for the AES key
         OT_ASSERT(nullptr != ek);
-        memset(static_cast<void*>(ek), 0, static_cast<int32_t>(eklen));
+        memset(static_cast<void*>(ek), 0, static_cast<std::int32_t>(eklen));
 
         // Next we read the encrypted key itself...
         //
@@ -3613,9 +3652,9 @@ bool OpenSSL::DecryptSessionKey(
         nRunningTotal += nReadKey;
 
         otLog5 << __FUNCTION__
-               << ":    EK First byte: " << static_cast<int32_t>(ek[0])
-               << "     EK Last byte: " << static_cast<int32_t>(ek[eklen - 1])
-               << "\n";
+               << ":    EK First byte: " << static_cast<std::int32_t>(ek[0])
+               << "     EK Last byte: "
+               << static_cast<std::int32_t>(ek[eklen - 1]) << "\n";
 
         OT_ASSERT(nReadKey == eklen);
 
@@ -3683,56 +3722,56 @@ bool OpenSSL::DecryptSessionKey(
     // IV itself.
     // (Then update encrypted blocks until evp open final...)
     //
-    const uint32_t max_iv_length =
+    const std::uint32_t max_iv_length =
         CryptoConfig::SymmetricIvSize();  // I believe this is a max length, so
                                           // it may not match the actual
                                           // length.
 
     // Read the IV SIZE (network order version -- convert to host version.)
     //
-    uint32_t iv_size_n = 0;
-    uint32_t nReadIVSize = 0;
+    std::uint32_t iv_size_n = 0;
+    std::uint32_t nReadIVSize = 0;
 
     if (0 == (nReadIVSize = dataInput.OTfread(
-                  reinterpret_cast<uint8_t*>(&iv_size_n),
-                  static_cast<uint32_t>(sizeof(iv_size_n))))) {
+                  reinterpret_cast<std::uint8_t*>(&iv_size_n),
+                  static_cast<std::uint32_t>(sizeof(iv_size_n))))) {
         otErr << szFunc
               << ": Error reading IV Size for encrypted symmetric keys.\n";
         return false;
     }
     nRunningTotal += nReadIVSize;
-    OT_ASSERT(nReadIVSize == static_cast<uint32_t>(sizeof(iv_size_n)));
+    OT_ASSERT(nReadIVSize == static_cast<std::uint32_t>(sizeof(iv_size_n)));
 
     // convert that iv size from network to HOST endian.
     //
-    const uint32_t iv_size_host_order = ntohl(iv_size_n);
+    const std::uint32_t iv_size_host_order = ntohl(iv_size_n);
 
     if (iv_size_host_order > max_iv_length) {
-        const int64_t l1 = iv_size_host_order, l2 = max_iv_length;
+        const std::int64_t l1 = iv_size_host_order, l2 = max_iv_length;
         otErr << __FUNCTION__ << ": Error: iv_size (" << l1
               << ") is larger than max_iv_length (" << l2 << ").\n";
         return false;
     } else
         otLog5 << __FUNCTION__
-               << ": IV size: " << static_cast<int64_t>(iv_size_host_order)
+               << ": IV size: " << static_cast<std::int64_t>(iv_size_host_order)
                << "\n";
 
     // Then read the IV (initialization vector) itself.
     //
     if (0 == (nReadIV = dataInput.OTfread(
-                  reinterpret_cast<uint8_t*>(iv),
-                  static_cast<uint32_t>(iv_size_host_order)))) {
+                  reinterpret_cast<std::uint8_t*>(iv),
+                  static_cast<std::uint32_t>(iv_size_host_order)))) {
         otErr << szFunc << ": Error reading initialization vector.\n";
         return false;
     }
 
     nRunningTotal += nReadIV;
-    OT_ASSERT(nReadIV == static_cast<uint32_t>(iv_size_host_order));
+    OT_ASSERT(nReadIV == static_cast<std::uint32_t>(iv_size_host_order));
 
     otLog5 << __FUNCTION__
-           << ":    IV First byte: " << static_cast<int32_t>(iv[0])
+           << ":    IV First byte: " << static_cast<std::int32_t>(iv[0])
            << "     IV Last byte: "
-           << static_cast<int32_t>(iv[iv_size_host_order - 1]) << "\n";
+           << static_cast<std::int32_t>(iv[iv_size_host_order - 1]) << "\n";
 
     // We read the encrypted key size, then we read the encrypted key itself,
     // with nReadKey containing
@@ -3749,19 +3788,19 @@ bool OpenSSL::DecryptSessionKey(
     //
     auto ciphertext = Data::Factory(
         static_cast<const void*>(
-            static_cast<const uint8_t*>(dataInput.GetPointer()) +
+            static_cast<const std::uint8_t*>(dataInput.GetPointer()) +
             nRunningTotal),
         dataInput.GetSize() - nRunningTotal);
 
     //
     const EVP_CIPHER* cipher_type = EVP_aes_256_cbc();  // todo hardcoding.
 
-    // int32_t EVP_OpenInit(
+    // std::int32_t EVP_OpenInit(
     //          EVP_CIPHER_CTX *ctx,
     //          EVP_CIPHER *type,
-    //          uint8_t *ek,
-    //          int32_t ekl,
-    //          uint8_t *iv,
+    //          std::uint8_t *ek,
+    //          std::int32_t ekl,
+    //          std::uint8_t *iv,
     //          EVP_PKEY *priv);
 
     //  if (!EVP_OpenInit(&ctx, cipher_type, ek, eklen, iv, private_key))
@@ -3772,9 +3811,9 @@ bool OpenSSL::DecryptSessionKey(
             context,
 #endif
             cipher_type,
-            static_cast<const uint8_t*>(theRawEncryptedKey->GetPointer()),
-            static_cast<int32_t>(theRawEncryptedKey->GetSize()),
-            static_cast<const uint8_t*>(iv),
+            static_cast<const std::uint8_t*>(theRawEncryptedKey->GetPointer()),
+            static_cast<std::int32_t>(theRawEncryptedKey->GetSize()),
+            static_cast<const std::uint8_t*>(iv),
             private_key)) {
 
         // EVP_OpenInit() initializes a cipher context ctx for decryption with
@@ -3791,29 +3830,29 @@ bool OpenSSL::DecryptSessionKey(
     // We loop through the ciphertext and process it in blocks...
     //
     while (0 < (len = ciphertext->OTfread(
-                    reinterpret_cast<uint8_t*>(buffer),
-                    static_cast<uint32_t>(sizeof(buffer))))) {
+                    reinterpret_cast<std::uint8_t*>(buffer),
+                    static_cast<std::uint32_t>(sizeof(buffer))))) {
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
         if (!EVP_OpenUpdate(
                 &ctx,
                 buffer_out,
                 &len_out,
                 buffer,
-                static_cast<int32_t>(len))) {
+                static_cast<std::int32_t>(len))) {
 #else
         if (!EVP_OpenUpdate(
                 context,
                 buffer_out,
                 &len_out,
                 buffer,
-                static_cast<int32_t>(len))) {
+                static_cast<std::int32_t>(len))) {
 #endif
             otErr << szFunc << ": EVP_OpenUpdate: failed.\n";
             return false;
         } else if (len_out > 0)
             plaintext.Concatenate(
                 reinterpret_cast<void*>(buffer_out),
-                static_cast<uint32_t>(len_out));
+                static_cast<std::uint32_t>(len_out));
         else
             break;
     }
@@ -3829,7 +3868,7 @@ bool OpenSSL::DecryptSessionKey(
         bFinalized = true;
         plaintext.Concatenate(
             reinterpret_cast<void*>(buffer_out),
-            static_cast<uint32_t>(len_out));
+            static_cast<std::uint32_t>(len_out));
 
     } else {
         // cppcheck-suppress unreadVariable

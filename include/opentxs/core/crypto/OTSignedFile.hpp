@@ -44,7 +44,7 @@
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/String.hpp"
 
-#include <stdint.h>
+#include <cstdint>
 
 namespace opentxs
 {
@@ -88,7 +88,7 @@ protected:
     // the attacker has write/erase access to the filesystem. I'd like to make
     // it impervious even to that.
 
-    int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
+    std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
 
 public:
     // These assume SetFilename() was already called,

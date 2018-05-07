@@ -47,7 +47,7 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/OT.hpp"
 
-#include <stdint.h>
+#include <cstdint>
 #include <ostream>
 #include <string>
 
@@ -77,14 +77,14 @@ namespace opentxs
 #define OT_KEY_PUBLIC_KEYSIZE "public_keysize"
 #define OT_KEY_PUBLIC_KEYSIZE_MAX "public_keysize_max"
 
-const int32_t* CryptoConfig::sp_nIterationCount = nullptr;
-const int32_t* CryptoConfig::sp_nSymmetricSaltSize = nullptr;
-const int32_t* CryptoConfig::sp_nSymmetricKeySize = nullptr;
-const int32_t* CryptoConfig::sp_nSymmetricKeySizeMax = nullptr;
-const int32_t* CryptoConfig::sp_nSymmetricIvSize = nullptr;
-const int32_t* CryptoConfig::sp_nSymmetricBufferSize = nullptr;
-const int32_t* CryptoConfig::sp_nPublicKeysize = nullptr;
-const int32_t* CryptoConfig::sp_nPublicKeysizeMax = nullptr;
+const std::int32_t* CryptoConfig::sp_nIterationCount = nullptr;
+const std::int32_t* CryptoConfig::sp_nSymmetricSaltSize = nullptr;
+const std::int32_t* CryptoConfig::sp_nSymmetricKeySize = nullptr;
+const std::int32_t* CryptoConfig::sp_nSymmetricKeySizeMax = nullptr;
+const std::int32_t* CryptoConfig::sp_nSymmetricIvSize = nullptr;
+const std::int32_t* CryptoConfig::sp_nSymmetricBufferSize = nullptr;
+const std::int32_t* CryptoConfig::sp_nPublicKeysize = nullptr;
+const std::int32_t* CryptoConfig::sp_nPublicKeysizeMax = nullptr;
 
 bool CryptoConfig::GetSetAll()
 {
@@ -134,8 +134,8 @@ bool CryptoConfig::GetSetAll()
 
 bool CryptoConfig::GetSetValue(
     std::string strKeyName,
-    int32_t nDefaultValue,
-    const int32_t*& out_nValue)
+    std::int32_t nDefaultValue,
+    const std::int32_t*& out_nValue)
 
 {
     if (strKeyName.empty()) return false;
@@ -143,7 +143,7 @@ bool CryptoConfig::GetSetValue(
 
     {
         bool bIsNew = false;
-        int64_t nValue = 0;
+        std::int64_t nValue = 0;
         OT::App().Config().CheckSet_long(
             "crypto", String(strKeyName), nDefaultValue, nValue, bIsNew);
 
@@ -152,14 +152,14 @@ bool CryptoConfig::GetSetValue(
             out_nValue = nullptr;
         }
 
-        out_nValue =
-            new int32_t(bIsNew ? nDefaultValue : static_cast<int32_t>(nValue));
+        out_nValue = new std::int32_t(
+            bIsNew ? nDefaultValue : static_cast<int32_t>(nValue));
     }
 
     return true;
 }
 
-const int32_t& CryptoConfig::GetValue(const int32_t*& pValue)
+const std::int32_t& CryptoConfig::GetValue(const int32_t*& pValue)
 {
     if (nullptr == pValue) {
         if (!GetSetAll()) OT_FAIL;
@@ -170,29 +170,35 @@ const int32_t& CryptoConfig::GetValue(const int32_t*& pValue)
     return *pValue;
 }
 
-uint32_t CryptoConfig::IterationCount() { return GetValue(sp_nIterationCount); }
-uint32_t CryptoConfig::SymmetricSaltSize()
+std::uint32_t CryptoConfig::IterationCount()
+{
+    return GetValue(sp_nIterationCount);
+}
+std::uint32_t CryptoConfig::SymmetricSaltSize()
 {
     return GetValue(sp_nSymmetricSaltSize);
 }
-uint32_t CryptoConfig::SymmetricKeySize()
+std::uint32_t CryptoConfig::SymmetricKeySize()
 {
     return GetValue(sp_nSymmetricKeySize);
 }
-uint32_t CryptoConfig::SymmetricKeySizeMax()
+std::uint32_t CryptoConfig::SymmetricKeySizeMax()
 {
     return GetValue(sp_nSymmetricKeySizeMax);
 }
-uint32_t CryptoConfig::SymmetricIvSize()
+std::uint32_t CryptoConfig::SymmetricIvSize()
 {
     return GetValue(sp_nSymmetricIvSize);
 }
-uint32_t CryptoConfig::SymmetricBufferSize()
+std::uint32_t CryptoConfig::SymmetricBufferSize()
 {
     return GetValue(sp_nSymmetricBufferSize);
 }
-uint32_t CryptoConfig::PublicKeysize() { return GetValue(sp_nPublicKeysize); }
-uint32_t CryptoConfig::PublicKeysizeMax()
+std::uint32_t CryptoConfig::PublicKeysize()
+{
+    return GetValue(sp_nPublicKeysize);
+}
+std::uint32_t CryptoConfig::PublicKeysizeMax()
 {
     return GetValue(sp_nPublicKeysizeMax);
 }

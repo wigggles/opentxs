@@ -58,7 +58,7 @@ private:
     std::string tla_;
     // If value is 103, decimal power of 0 displays 103 (actual value.) Whereas
     // decimal power of 2 displays 1.03 and 4 displays .0103
-    uint32_t power_{};
+    std::uint32_t power_{};
     // "cents"
     std::string fractional_unit_name_;
 
@@ -72,7 +72,7 @@ private:
         const std::string& symbol,
         const std::string& terms,
         const std::string& tla,
-        const uint32_t& power,
+        const std::uint32_t& power,
         const std::string& fraction);
 
     EXPORT proto::UnitDefinition IDVersion(const Lock& lock) const override;
@@ -83,7 +83,7 @@ public:
         return proto::UNITTYPE_CURRENCY;
     }
 
-    EXPORT int32_t DecimalPower() const override { return power_; }
+    EXPORT std::int32_t DecimalPower() const override { return power_; }
     EXPORT std::string FractionalUnitName() const override
     {
         return fractional_unit_name_;

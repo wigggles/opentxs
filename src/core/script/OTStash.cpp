@@ -50,9 +50,10 @@
 #include "opentxs/core/String.hpp"
 
 #include <irrxml/irrXML.hpp>
-#include <stdint.h>
-#include <stdlib.h>
 #include <sys/types.h>
+
+#include <cstdint>
+#include <cstdlib>
 #include <cstring>
 #include <map>
 #include <memory>
@@ -65,7 +66,7 @@ namespace opentxs
 
 void OTStash::Serialize(Tag& parent) const
 {
-    uint32_t sizeMapStashItems = m_mapStashItems.size();
+    std::uint32_t sizeMapStashItems = m_mapStashItems.size();
 
     TagPtr pTag(new Tag("stash"));
 
@@ -92,7 +93,7 @@ void OTStash::Serialize(Tag& parent) const
     parent.add_tag(pTag);
 }
 
-int32_t OTStash::ReadFromXMLNode(
+std::int32_t OTStash::ReadFromXMLNode(
     irr::io::IrrXMLReader*& xml,
     const String& strStashName,
     const String& strItemCount)
@@ -108,7 +109,7 @@ int32_t OTStash::ReadFromXMLNode(
     //
     // Load up the stash items.
     //
-    int32_t nCount = strItemCount.Exists() ? atoi(strItemCount.Get()) : 0;
+    std::int32_t nCount = strItemCount.Exists() ? atoi(strItemCount.Get()) : 0;
     if (nCount > 0) {
         while (nCount-- > 0) {
             //            xml->read();
@@ -172,7 +173,7 @@ OTStash::OTStash()
     // m_mapStashItems
 }
 
-OTStash::OTStash(const String& strInstrumentDefinitionID, int64_t lAmount)
+OTStash::OTStash(const String& strInstrumentDefinitionID, std::int64_t lAmount)
 {
     OTStashItem* pItem = new OTStashItem(strInstrumentDefinitionID, lAmount);
     OT_ASSERT(nullptr != pItem);
@@ -181,7 +182,9 @@ OTStash::OTStash(const String& strInstrumentDefinitionID, int64_t lAmount)
         strInstrumentDefinitionID.Get(), pItem));
 }
 
-OTStash::OTStash(const Identifier& theInstrumentDefinitionID, int64_t lAmount)
+OTStash::OTStash(
+    const Identifier& theInstrumentDefinitionID,
+    std::int64_t lAmount)
 {
     OTStashItem* pItem = new OTStashItem(theInstrumentDefinitionID, lAmount);
     OT_ASSERT(nullptr != pItem);
@@ -229,7 +232,7 @@ OTStashItem* OTStash::GetStash(const std::string& str_instrument_definition_id)
     return pStashItem;
 }
 
-int64_t OTStash::GetAmount(const std::string& str_instrument_definition_id)
+std::int64_t OTStash::GetAmount(const std::string& str_instrument_definition_id)
 {
     OTStashItem* pStashItem =
         GetStash(str_instrument_definition_id);  // (Always succeeds, and will
@@ -241,7 +244,7 @@ int64_t OTStash::GetAmount(const std::string& str_instrument_definition_id)
 
 bool OTStash::CreditStash(
     const std::string& str_instrument_definition_id,
-    const int64_t& lAmount)
+    const std::int64_t& lAmount)
 {
     OTStashItem* pStashItem =
         GetStash(str_instrument_definition_id);  // (Always succeeds, and will
@@ -253,7 +256,7 @@ bool OTStash::CreditStash(
 
 bool OTStash::DebitStash(
     const std::string& str_instrument_definition_id,
-    const int64_t& lAmount)
+    const std::int64_t& lAmount)
 {
     OTStashItem* pStashItem =
         GetStash(str_instrument_definition_id);  // (Always succeeds, and will

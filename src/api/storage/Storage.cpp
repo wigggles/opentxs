@@ -60,10 +60,10 @@
 #include "opentxs/storage/tree/Tree.hpp"
 #include "opentxs/storage/tree/Units.hpp"
 
-#include <assert.h>
-#include <stdint.h>
+#include <cassert>
 #include <atomic>
 #include <chrono>
+#include <cstdint>
 #include <cstdlib>
 #include <stdexcept>
 #include <utility>

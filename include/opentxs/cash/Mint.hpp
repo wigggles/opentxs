@@ -55,7 +55,7 @@ class Account;
 class OTASCIIArmor;
 class Token;
 
-typedef std::map<int64_t, OTASCIIArmor*> mapOfArmor;
+typedef std::map<std::int64_t, OTASCIIArmor*> mapOfArmor;
 
 class Mint : public Contract
 {
@@ -63,7 +63,7 @@ private:  // Private prevents erroneous use by other classes.
     typedef Contract ot_super;
 
 protected:
-    int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
+    std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
 
     void InitMint();
 
@@ -82,7 +82,7 @@ protected:
     // Each Asset type has its own mint.
     OTIdentifier m_InstrumentDefinitionID;
 
-    int32_t m_nDenominationCount{
+    std::int32_t m_nDenominationCount{
         0};  // How many denominations of the currency are
              // issued by this Mint?
              // (Each requires its own key pair.)
@@ -94,7 +94,7 @@ protected:
     // (The signing process will then automatically set it back to false again.)
 
     // --- MINT SERIES with EXPIRATION DATES ------------------
-    int32_t m_nSeries{
+    std::int32_t m_nSeries{
         0};  // Each series of the mint has a valid from and to date.
              // Series should rotate.
     // (That is, the new one should be introduced halfway through the validity
@@ -127,7 +127,10 @@ protected:
     // after
     // the tokens expire, is the server operator's money to keep!
 public:
-    inline int32_t GetSeries() const { return m_nSeries; }  // The series ID
+    inline std::int32_t GetSeries() const
+    {
+        return m_nSeries;
+    }  // The series ID
     inline time64_t GetValidFrom() const
     {
         return m_VALID_FROM;
@@ -187,17 +190,20 @@ public:
 
     // The denomination indicated here is the actual denomination...1, 5, 20,
     // 50, 100, etc
-    bool GetPrivate(OTASCIIArmor& theArmor, int64_t lDenomination);
-    bool GetPublic(OTASCIIArmor& theArmor, int64_t lDenomination);
+    bool GetPrivate(OTASCIIArmor& theArmor, std::int64_t lDenomination);
+    bool GetPublic(OTASCIIArmor& theArmor, std::int64_t lDenomination);
 
-    int64_t GetDenomination(int32_t nIndex);
-    EXPORT int64_t GetLargestDenomination(int64_t lAmount);
+    std::int64_t GetDenomination(std::int32_t nIndex);
+    EXPORT std::int64_t GetLargestDenomination(std::int64_t lAmount);
     virtual bool AddDenomination(
         const Nym& theNotary,
-        int64_t lDenomination,
-        int32_t nPrimeLength = 1024) = 0;
+        std::int64_t lDenomination,
+        std::int32_t nPrimeLength = 1024) = 0;
 
-    inline int32_t GetDenominationCount() const { return m_nDenominationCount; }
+    inline std::int32_t GetDenominationCount() const
+    {
+        return m_nDenominationCount;
+    }
 
     bool VerifyContractID() const override;
 
@@ -214,23 +220,23 @@ public:
 
     // Lucre step 1: generate new mint
     EXPORT void GenerateNewMint(
-        int32_t nSeries,
+        std::int32_t nSeries,
         time64_t VALID_FROM,
         time64_t VALID_TO,
         time64_t MINT_EXPIRATION,
         const Identifier& theInstrumentDefinitionID,
         const Identifier& theNotaryID,
         const Nym& theNotary,
-        int64_t nDenom1 = 0,
-        int64_t nDenom2 = 0,
-        int64_t nDenom3 = 0,
-        int64_t nDenom4 = 0,
-        int64_t nDenom5 = 0,
-        int64_t nDenom6 = 0,
-        int64_t nDenom7 = 0,
-        int64_t nDenom8 = 0,
-        int64_t nDenom9 = 0,
-        int64_t nDenom10 = 0);
+        std::int64_t nDenom1 = 0,
+        std::int64_t nDenom2 = 0,
+        std::int64_t nDenom3 = 0,
+        std::int64_t nDenom4 = 0,
+        std::int64_t nDenom5 = 0,
+        std::int64_t nDenom6 = 0,
+        std::int64_t nDenom7 = 0,
+        std::int64_t nDenom8 = 0,
+        std::int64_t nDenom9 = 0,
+        std::int64_t nDenom10 = 0);
 
     // step 2: (coin request is in Token)
 
@@ -239,7 +245,7 @@ public:
         const Nym& theNotary,
         Token& theToken,
         String& theOutput,
-        int32_t nTokenIndex) = 0;
+        std::int32_t nTokenIndex) = 0;
 
     // step 4: (unblind coin is in Token)
 
@@ -247,7 +253,7 @@ public:
     EXPORT virtual bool VerifyToken(
         const Nym& theNotary,
         String& theCleartextToken,
-        int64_t lDenomination) = 0;
+        std::int64_t lDenomination) = 0;
 };
 }  // namespace opentxs
 #endif  // OT_CASH

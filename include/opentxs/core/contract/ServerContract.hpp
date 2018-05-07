@@ -100,7 +100,7 @@ public:
 
     bool ConnectInfo(
         std::string& strHostname,
-        uint32_t& nPort,
+        std::uint32_t& nPort,
         const proto::AddressType& preferred = proto::ADDRESSTYPE_IPV4) const;
     proto::ServerContract Contract() const;
     proto::ServerContract PublicContract() const;

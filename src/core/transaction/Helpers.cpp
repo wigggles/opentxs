@@ -54,9 +54,10 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/Types.hpp"
 
-#include <inttypes.h>
 #include <irrxml/irrXML.hpp>
-#include <stdint.h>
+
+#include <cinttypes>
+#include <cstdint>
 #include <ostream>
 #include <string>
 
@@ -153,20 +154,20 @@ const char* GetOriginTypeToString(int originTypeIndex)  // enum originType
 }
 
 // Returns 1 if success, -1 if error.
-int32_t LoadAbbreviatedRecord(
+std::int32_t LoadAbbreviatedRecord(
     irr::io::IrrXMLReader*& xml,
-    int64_t& lNumberOfOrigin,
+    std::int64_t& lNumberOfOrigin,
     int& theOriginType,
-    int64_t& lTransactionNum,
-    int64_t& lInRefTo,
-    int64_t& lInRefDisplay,
+    std::int64_t& lTransactionNum,
+    std::int64_t& lInRefTo,
+    std::int64_t& lInRefDisplay,
     time64_t& the_DATE_SIGNED,
     int& theType,
     String& strHash,
-    int64_t& lAdjustment,
-    int64_t& lDisplayValue,
-    int64_t& lClosingNum,
-    int64_t& lRequestNum,
+    std::int64_t& lAdjustment,
+    std::int64_t& lDisplayValue,
+    std::int64_t& lClosingNum,
+    std::int64_t& lRequestNum,
     bool& bReplyTransSuccess,
     NumList* pNumList)
 {
@@ -307,10 +308,10 @@ bool VerifyBoxReceiptExists(
     const Identifier& NYM_ID,      // Unused here for now, but still convention.
     const Identifier& ACCOUNT_ID,  // If for Nymbox (vs inbox/outbox) then pass
                                    // NYM_ID in this field also.
-    const int32_t nBoxType,        // 0/nymbox, 1/inbox, 2/outbox
-    const int64_t& lTransactionNum)
+    const std::int32_t nBoxType,   // 0/nymbox, 1/inbox, 2/outbox
+    const std::int64_t& lTransactionNum)
 {
-    const int64_t lLedgerType = static_cast<int64_t>(nBoxType);
+    const std::int64_t lLedgerType = static_cast<int64_t>(nBoxType);
 
     const String strNotaryID(NOTARY_ID),
         strUserOrAcctID(0 == lLedgerType ? NYM_ID : ACCOUNT_ID);  // (For Nymbox
@@ -352,11 +353,13 @@ bool VerifyBoxReceiptExists(
 
 OTTransaction* LoadBoxReceipt(OTTransaction& theAbbrev, Ledger& theLedger)
 {
-    const int64_t lLedgerType = static_cast<int64_t>(theLedger.GetType());
+    const std::int64_t lLedgerType = static_cast<int64_t>(theLedger.GetType());
     return LoadBoxReceipt(theAbbrev, lLedgerType);
 }
 
-OTTransaction* LoadBoxReceipt(OTTransaction& theAbbrev, int64_t lLedgerType)
+OTTransaction* LoadBoxReceipt(
+    OTTransaction& theAbbrev,
+    std::int64_t lLedgerType)
 {
     // See if the appropriate file exists, and load it up from
     // local storage, into a string.
@@ -498,10 +501,10 @@ OTTransaction* LoadBoxReceipt(OTTransaction& theAbbrev, int64_t lLedgerType)
 }
 
 bool SetupBoxReceiptFilename(
-    int64_t lLedgerType,
+    std::int64_t lLedgerType,
     const String& strUserOrAcctID,
     const String& strNotaryID,
-    const int64_t& lTransactionNum,
+    const std::int64_t& lTransactionNum,
     const char* szCaller,
     String& strFolder1name,
     String& strFolder2name,
@@ -552,7 +555,7 @@ bool SetupBoxReceiptFilename(
 }
 
 bool SetupBoxReceiptFilename(
-    int64_t lLedgerType,
+    std::int64_t lLedgerType,
     OTTransaction& theTransaction,
     const char* szCaller,
     String& strFolder1name,
@@ -586,7 +589,7 @@ bool SetupBoxReceiptFilename(
     String& strFolder3name,
     String& strFilename)
 {
-    int64_t lLedgerType = 0;
+    std::int64_t lLedgerType = 0;
 
     switch (theLedger.GetType()) {
         case Ledger::nymbox:

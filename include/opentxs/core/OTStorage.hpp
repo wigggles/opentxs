@@ -328,13 +328,15 @@ public:
     virtual bool PackString(const std::string& theString) = 0;
     virtual bool UnpackString(std::string& theString) = 0;
 
-    virtual bool ReadFromIStream(std::istream& inStream, int64_t lFilesize) = 0;
+    virtual bool ReadFromIStream(
+        std::istream& inStream,
+        std::int64_t lFilesize) = 0;
     virtual bool WriteToOStream(std::ostream& outStream) = 0;
 
-    virtual const uint8_t* GetData() = 0;
+    virtual const std::uint8_t* GetData() = 0;
     virtual size_t GetSize() = 0;
 
-    virtual void SetData(const uint8_t* pData, size_t theSize) = 0;
+    virtual void SetData(const std::uint8_t* pData, size_t theSize) = 0;
 };
 
 // PACKER (now OTPacker since MsgPack also has a "Packer" in a #define).
@@ -497,7 +499,7 @@ public:
         const std::string& twoStr = "",
         const std::string& threeStr = "") = 0;
 
-    virtual int64_t FormPathString(
+    virtual std::int64_t FormPathString(
         std::string& strOutput,
         const std::string& strFolder,
         const std::string& oneStr = "",
@@ -628,7 +630,7 @@ EXPORT bool Exists(
     const std::string twoStr = "",
     const std::string threeStr = "");
 
-EXPORT int64_t FormPathString(
+EXPORT std::int64_t FormPathString(
     std::string& strOutput,
     const std::string& strFolder,
     const std::string& oneStr = "",
@@ -769,9 +771,9 @@ protected:
 public:
     virtual ~Blob() {}
 
-    std::vector<uint8_t> m_memBuffer;  // Where the actual binary data is
-                                       // stored,
-                                       // before packing.
+    std::vector<std::uint8_t> m_memBuffer;  // Where the actual binary data is
+                                            // stored,
+                                            // before packing.
 
     DEFINE_OT_DYNAMIC_CAST(Blob)
 };
@@ -1608,7 +1610,7 @@ protected:
     // you.
 
     // Confirms if a file exists.  If it exists at path; return length.
-    int64_t ConstructAndConfirmPath(
+    std::int64_t ConstructAndConfirmPath(
         std::string& strOutput,
         const std::string& strFolder,
         const std::string& oneStr = "",
@@ -1617,7 +1619,7 @@ protected:
 
 public:
     // Verifies whether path exists AND creates folders where necessary.
-    int64_t ConstructAndCreatePath(
+    std::int64_t ConstructAndCreatePath(
         std::string& strOutput,
         const std::string& strFolder,
         const std::string& oneStr = "",
@@ -1625,7 +1627,7 @@ public:
         const std::string& threeStr = "");
 
 private:
-    int64_t ConstructAndConfirmPathImp(
+    std::int64_t ConstructAndConfirmPathImp(
         const bool bMakePath,
         std::string& strOutput,
         const std::string& zeroStr,
@@ -1679,7 +1681,7 @@ public:
         const std::string& twoStr = "",
         const std::string& threeStr = "") override;
 
-    int64_t FormPathString(
+    std::int64_t FormPathString(
         std::string& strOutput,
         const std::string& strFolder,
         const std::string& oneStr = "",

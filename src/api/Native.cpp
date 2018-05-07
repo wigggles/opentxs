@@ -615,7 +615,7 @@ void Native::Init_Storage()
 
     Digest hash = std::bind(
         static_cast<bool (api::crypto::Hash::*)(
-            const uint32_t, const std::string&, std::string&) const>(
+            const std::uint32_t, const std::string&, std::string&) const>(
             &api::crypto::Hash::Digest),
         &(Crypto().Hash()),
         std::placeholders::_1,

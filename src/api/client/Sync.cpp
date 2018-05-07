@@ -1896,7 +1896,7 @@ bool Sync::send_transfer(
     const Identifier& serverID,
     const Identifier& sourceAccountID,
     const Identifier& targetAccountID,
-    const int64_t value,
+    const std::int64_t value,
     const std::string& memo) const
 {
     auto action = server_action_.SendTransfer(
@@ -1928,7 +1928,7 @@ OTIdentifier Sync::SendTransfer(
     const Identifier& serverID,
     const Identifier& sourceAccountID,
     const Identifier& targetAccountID,
-    const int64_t value,
+    const std::int64_t value,
     const std::string& memo) const
 {
     CHECK_ARGS(localNymID, serverID, targetAccountID)

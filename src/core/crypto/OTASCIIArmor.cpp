@@ -51,10 +51,11 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/OT.hpp"
 
-#include <stdint.h>
 #include <sys/types.h>
 #include <zconf.h>
 #include <zlib.h>
+
+#include <cstdint>
 #include <cstring>
 #include <fstream>
 #include <sstream>
@@ -198,7 +199,7 @@ OTASCIIArmor& OTASCIIArmor::operator=(const OTASCIIArmor& strValue)
  * the binary data. */
 std::string OTASCIIArmor::compress_string(
     const std::string& str,
-    int32_t compressionlevel = Z_BEST_COMPRESSION) const
+    std::int32_t compressionlevel = Z_BEST_COMPRESSION) const
 {
     z_stream zs;  // z_stream is zlib's control structure
     memset(&zs, 0, sizeof(zs));
@@ -209,7 +210,7 @@ std::string OTASCIIArmor::compress_string(
     zs.next_in = reinterpret_cast<Bytef*>(const_cast<char*>(str.data()));
     zs.avail_in = static_cast<uInt>(str.size());  // set the z_stream's input
 
-    int32_t ret;
+    std::int32_t ret;
     char outbuffer[32768];
     std::string outstring;
 
@@ -249,7 +250,7 @@ std::string OTASCIIArmor::decompress_string(const std::string& str) const
     zs.next_in = reinterpret_cast<Bytef*>(const_cast<char*>(str.data()));
     zs.avail_in = static_cast<uInt>(str.size());
 
-    int32_t ret;
+    std::int32_t ret;
     char outbuffer[32768];
     std::string outstring;
 
@@ -576,8 +577,8 @@ bool OTASCIIArmor::LoadFromString(
     const std::string str_end_line =
         "-----END";  // Someday maybe allow parameterized option for this.
 
-    const int32_t nBufSize = 2100;   // todo: hardcoding
-    const int32_t nBufSize2 = 2048;  // todo: hardcoding
+    const std::int32_t nBufSize = 2100;   // todo: hardcoding
+    const std::int32_t nBufSize2 = 2048;  // todo: hardcoding
 
     char buffer1[2100];  // todo: hardcoding
 

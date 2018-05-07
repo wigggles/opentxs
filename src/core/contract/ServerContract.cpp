@@ -168,7 +168,7 @@ OTIdentifier ServerContract::GetID(const Lock& lock) const
 
 bool ServerContract::ConnectInfo(
     std::string& strHostname,
-    uint32_t& nPort,
+    std::uint32_t& nPort,
     const proto::AddressType& preferred) const
 {
     if (0 < listen_params_.size()) {

@@ -55,14 +55,14 @@ class BasketContract : public UnitDefinition
 private:
     typedef UnitDefinition ot_super;
     // account number, weight
-    typedef std::pair<std::string, uint64_t> Subcontract;
+    typedef std::pair<std::string, std::uint64_t> Subcontract;
     // unit definition id, subcontract
     typedef std::map<std::string, Subcontract> MapOfSubcontracts;
     friend ot_super;
     friend UserCommandProcessor;
 
     MapOfSubcontracts subcontracts_;
-    uint64_t weight_;
+    std::uint64_t weight_;
 
     EXPORT BasketContract(
         const ConstNym& nym,
@@ -73,7 +73,7 @@ private:
         const std::string& name,
         const std::string& symbol,
         const std::string& terms,
-        const uint64_t weight);
+        const std::uint64_t weight);
 
     EXPORT proto::UnitDefinition BasketIDVersion(const Lock& lock) const;
     EXPORT proto::UnitDefinition IDVersion(const Lock& lock) const override;
@@ -91,7 +91,7 @@ public:
     {
         return proto::UNITTYPE_BASKET;
     }
-    EXPORT uint64_t Weight() const { return weight_; }
+    EXPORT std::uint64_t Weight() const { return weight_; }
 
     virtual ~BasketContract() = default;
 };

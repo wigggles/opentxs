@@ -46,7 +46,7 @@
 #include "opentxs/core/NumList.hpp"
 #include "opentxs/Types.hpp"
 
-#include <stdint.h>
+#include <cstdint>
 
 namespace opentxs
 {
@@ -703,7 +703,7 @@ public:
         const Identifier& theNymID,
         const Identifier& theAccountID,
         const Identifier& theNotaryID,
-        int64_t lTransactionNum,
+        std::int64_t lTransactionNum,
         originType theOriginType = originType::not_applicable);
 
     void InitTransactionType();
@@ -712,21 +712,23 @@ public:
     void Release_TransactionType();
 
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
-    //    virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
+    //    virtual std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
     //    void UpdateContents(); // I don't think I need this here. My parent
     // and child classes do well enough.
 
     // need to know the transaction number of this transaction? Call this.
-    EXPORT int64_t GetTransactionNum() const;
-    void SetTransactionNum(int64_t lTransactionNum);
+    EXPORT std::int64_t GetTransactionNum() const;
+    void SetTransactionNum(std::int64_t lTransactionNum);
 
-    EXPORT virtual void CalculateNumberOfOrigin();  // Calculates number of
-                                                    // origin.
-    EXPORT virtual int64_t GetNumberOfOrigin();     // Calculates IF NECESSARY.
+    EXPORT virtual void CalculateNumberOfOrigin();    // Calculates number of
+                                                      // origin.
+    EXPORT virtual std::int64_t GetNumberOfOrigin();  // Calculates IF
+                                                      // NECESSARY.
 
-    EXPORT int64_t GetRawNumberOfOrigin() const;  // Gets WITHOUT calculating.
+    EXPORT std::int64_t GetRawNumberOfOrigin() const;  // Gets WITHOUT
+                                                       // calculating.
 
-    EXPORT void SetNumberOfOrigin(int64_t lTransactionNum);
+    EXPORT void SetNumberOfOrigin(std::int64_t lTransactionNum);
     EXPORT void SetNumberOfOrigin(OTTransactionType& setFrom);
 
     EXPORT bool VerifyNumberOfOrigin(OTTransactionType& compareTo);
@@ -740,8 +742,8 @@ public:
 
     const char* GetOriginTypeString() const;
     // --------------------------------------------------------
-    EXPORT int64_t GetReferenceToNum() const;
-    EXPORT void SetReferenceToNum(int64_t lTransactionNum);
+    EXPORT std::int64_t GetReferenceToNum() const;
+    EXPORT void SetReferenceToNum(std::int64_t lTransactionNum);
 
     EXPORT void GetReferenceString(String& theStr) const;
     EXPORT void SetReferenceString(const String& theStr);

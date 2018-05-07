@@ -45,12 +45,12 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/Types.hpp"
 
+#include <cinttypes>
 // NOTE: cstdlib HAS to be included here above SimpleIni, since for some reason
 // it uses stdlib functions without including that header.
 #include <cstdlib>
 #include <simpleini/SimpleIni.h>
-#include <stdint.h>
-#include <cinttypes>
+#include <cstdint>
 #include <memory>
 #include <ostream>
 #include <string>

@@ -111,11 +111,12 @@ public:
     virtual ~BufferPB() {}
     bool PackString(const std::string& theString) override;
     bool UnpackString(std::string& theString) override;
-    bool ReadFromIStream(std::istream& inStream, int64_t lFilesize) override;
+    bool ReadFromIStream(std::istream& inStream, std::int64_t lFilesize)
+        override;
     bool WriteToOStream(std::ostream& outStream) override;
-    const uint8_t* GetData() override;
+    const std::uint8_t* GetData() override;
     size_t GetSize() override;
-    void SetData(const uint8_t* pData, size_t theSize) override;
+    void SetData(const std::uint8_t* pData, size_t theSize) override;
     std::string& GetBuffer() { return m_buffer; }
 };
 
@@ -145,7 +146,8 @@ public:
     ProtobufSubclass()
         : theBaseType()
         , IStorablePB()
-        , m_Type(StoredObjectTypeStrings[static_cast<int32_t>(theObjectType)])
+        , m_Type(
+              StoredObjectTypeStrings[static_cast<std::int32_t>(theObjectType)])
     {
         m_Type += "PB";
         /*std::cout << m_Type << " -- Constructor" << std::endl;*/ }
@@ -155,8 +157,8 @@ public:
                 rhs)
             : theBaseType()
             , IStorablePB()
-            , m_Type(
-                  StoredObjectTypeStrings[static_cast<int32_t>(theObjectType)])
+            , m_Type(StoredObjectTypeStrings[static_cast<std::int32_t>(
+                  theObjectType)])
         {
             m_Type += "PB";
             /*std::cout << m_Type << " -- Copy Constructor" << std::endl; */ rhs

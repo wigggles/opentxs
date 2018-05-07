@@ -44,7 +44,7 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/Types.hpp"
 
-#include <stdint.h>
+#include <cstdint>
 #include <map>
 #include <string>
 
@@ -145,7 +145,7 @@ public:
         std::string str_agent_name,
         Account* pAccount = nullptr,
         const std::string* pstr_account_name = nullptr,
-        int64_t lClosingTransNo = 0);
+        std::int64_t lClosingTransNo = 0);
     virtual ~OTParty();
     void CleanupAgents();
     void CleanupAccounts();
@@ -164,7 +164,7 @@ public:
                                                   // authorizing agent.
     // See if a certain transaction number is present.
     // Checks opening number on party, and closing numbers on his accounts.
-    bool HasTransactionNum(const int64_t& lInput) const;
+    bool HasTransactionNum(const std::int64_t& lInput) const;
     void GetAllTransactionNumbers(NumList& numlistOutput) const;
     // Set aside all the necessary transaction #s from the various Nyms.
     // (Assumes those Nym pointers are available inside their various agents.)
@@ -179,7 +179,7 @@ public:
     // Iterates through the agents.
     //
     bool DropFinalReceiptToNymboxes(
-        const int64_t& lNewTransactionNumber,
+        const std::int64_t& lNewTransactionNumber,
         const String& strOrigCronItem,
         String* pstrNote = nullptr,
         String* pstrAttachment = nullptr,
@@ -190,7 +190,7 @@ public:
         mapOfNyms* pNymMap,
         const String& strNotaryID,
         Nym& theServerNym,
-        const int64_t& lNewTransactionNumber,
+        const std::int64_t& lNewTransactionNumber,
         const String& strOrigCronItem,
         String* pstrNote = nullptr,
         String* pstrAttachment = nullptr);
@@ -198,8 +198,8 @@ public:
         bool bSuccessMsg,
         Nym& theServerNym,
         const Identifier& theNotaryID,
-        const int64_t& lNewTransactionNumber,
-        // const int64_t& lInReferenceTo,
+        const std::int64_t& lNewTransactionNumber,
+        // const std::int64_t& lInReferenceTo,
         // We use GetOpenTransNo() now.
         const String& strReference,
         String* pstrNote = nullptr,
@@ -217,15 +217,15 @@ public:
         m_strMySignedCopy = strMyCopy;
     }
     const String& GetMySignedCopy() { return m_strMySignedCopy; }
-    int64_t GetOpeningTransNo() const { return m_lOpeningTransNo; }
-    void SetOpeningTransNo(const int64_t& theNumber)
+    std::int64_t GetOpeningTransNo() const { return m_lOpeningTransNo; }
+    void SetOpeningTransNo(const std::int64_t& theNumber)
     {
         m_lOpeningTransNo = theNumber;
     }
     // There is one of these for each asset account on the party.
     // You need the acct name to look it up.
     //
-    int64_t GetClosingTransNo(std::string str_for_acct_name) const;
+    std::int64_t GetClosingTransNo(std::string str_for_acct_name) const;
     // as used "IN THE SCRIPT."
     //
     EXPORT std::string GetPartyName(bool* pBoolSuccess = nullptr)
@@ -263,12 +263,12 @@ public:
     //
     bool HasActiveAgent() const;
     bool AddAgent(OTAgent& theAgent);
-    int32_t GetAgentCount() const
+    std::int32_t GetAgentCount() const
     {
-        return static_cast<int32_t>(m_mapAgents.size());
+        return static_cast<std::int32_t>(m_mapAgents.size());
     }
     EXPORT OTAgent* GetAgent(const std::string& str_agent_name) const;
-    EXPORT OTAgent* GetAgentByIndex(int32_t nIndex) const;
+    EXPORT OTAgent* GetAgentByIndex(std::int32_t nIndex) const;
     const std::string& GetAuthorizingAgentName() const
     {
         return m_str_authorizing_agent;
@@ -318,24 +318,24 @@ public:
         const String& strName,
         const String& strAcctID,
         const String& strInstrumentDefinitionID,
-        int64_t lClosingTransNo);
+        std::int64_t lClosingTransNo);
     EXPORT bool AddAccount(
         const String& strAgentName,
         const char* szAcctName,
         Account& theAccount,
-        int64_t lClosingTransNo);
+        std::int64_t lClosingTransNo);
 
     EXPORT bool RemoveAccount(const std::string str_Name);
 
-    int32_t GetAccountCount() const
+    std::int32_t GetAccountCount() const
     {
-        return static_cast<int32_t>(m_mapPartyAccounts.size());
+        return static_cast<std::int32_t>(m_mapPartyAccounts.size());
     }  // returns total of all accounts owned by this party.
-    int32_t GetAccountCount(std::string str_agent_name)
+    std::int32_t GetAccountCount(std::string str_agent_name)
         const;  // Only counts accounts authorized for str_agent_name.
     EXPORT OTPartyAccount* GetAccount(
         const std::string& str_acct_name) const;  // Get PartyAcct by name.
-    EXPORT OTPartyAccount* GetAccountByIndex(int32_t nIndex);  // by index
+    EXPORT OTPartyAccount* GetAccountByIndex(std::int32_t nIndex);  // by index
     EXPORT OTPartyAccount* GetAccountByAgent(
         const std::string& str_agent_name);  // by agent name
     EXPORT OTPartyAccount* GetAccountByID(

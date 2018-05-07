@@ -64,11 +64,11 @@
 #include "opentxs/Types.hpp"
 
 #include <irrxml/irrXML.hpp>
+
 #include <cstdint>
 #include <cstring>
 #include <memory>
 #include <ostream>
-#include <stdint.h>
 #include <string>
 #include <utility>
 
@@ -254,12 +254,12 @@ bool Item::VerifyBalanceStatement(
     const char* szOutbox = "Outbox";
     const char* pszLedgerType = nullptr;
 
-    for (int32_t i = 0; i < GetItemCount(); i++) {
+    for (std::int32_t i = 0; i < GetItemCount(); i++) {
         Item* pSubItem = GetItem(i);
 
         OT_ASSERT(nullptr != pSubItem);
 
-        int64_t lReceiptAmountMultiplier = 1;  // needed for outbox items.
+        std::int64_t lReceiptAmountMultiplier = 1;  // needed for outbox items.
         Ledger* pLedger = nullptr;
 
         switch (pSubItem->GetType()) {
@@ -403,7 +403,7 @@ bool Item::VerifyBalanceStatement(
             return false;
         }
 
-        int64_t lTransactionAmount = pTransaction->GetReceiptAmount();
+        std::int64_t lTransactionAmount = pTransaction->GetReceiptAmount();
         lTransactionAmount *= lReceiptAmountMultiplier;
 
         if (pSubItem->GetAmount() != lTransactionAmount) {
@@ -627,9 +627,9 @@ void Item::AddItem(Item& theItem) { m_listItems.push_back(&theItem); }
 
 // While processing a transaction, you may wish to query it for items of a
 // certain type.
-Item* Item::GetItem(int32_t nIndex)
+Item* Item::GetItem(std::int32_t nIndex)
 {
-    int32_t nTempIndex = (-1);
+    std::int32_t nTempIndex = (-1);
 
     for (auto& it : m_listItems) {
         Item* pItem = it;
@@ -644,7 +644,7 @@ Item* Item::GetItem(int32_t nIndex)
 }
 
 // While processing an item, you may wish to query it for sub-items
-Item* Item::GetItemByTransactionNum(int64_t lTransactionNumber)
+Item* Item::GetItemByTransactionNum(std::int64_t lTransactionNumber)
 {
     for (auto& it : m_listItems) {
         Item* pItem = it;
@@ -660,9 +660,9 @@ Item* Item::GetItemByTransactionNum(int64_t lTransactionNumber)
 //
 // Might want to change this so that it only counts ACCEPTED receipts.
 //
-int32_t Item::GetItemCountInRefTo(int64_t lReference)
+std::int32_t Item::GetItemCountInRefTo(std::int64_t lReference)
 {
-    int32_t nCount = 0;
+    std::int32_t nCount = 0;
 
     for (auto& it : m_listItems) {
         Item* pItem = it;
@@ -678,7 +678,7 @@ int32_t Item::GetItemCountInRefTo(int64_t lReference)
 // its "in reference to" value. (Others such as marketReceipts and
 // paymentReceipts.)
 //
-Item* Item::GetFinalReceiptItemByReferenceNum(int64_t lReferenceNumber)
+Item* Item::GetFinalReceiptItemByReferenceNum(std::int64_t lReferenceNumber)
 {
     for (auto& it : m_listItems) {
         Item* pItem = it;
@@ -700,7 +700,7 @@ bool Item::AddBlankNumbersToItem(const NumList& theAddition)
 
 // Need to know the transaction number of the ORIGINAL transaction? Call this.
 // virtual
-int64_t Item::GetNumberOfOrigin()
+std::int64_t Item::GetNumberOfOrigin()
 {
 
     if (0 == m_lNumberOfOrigin) {
@@ -1067,7 +1067,7 @@ Item* Item::CreateItemFromTransaction(
 Item* Item::CreateItemFromString(
     const String& strItem,
     const Identifier& theNotaryID,
-    int64_t lTransactionNumber)
+    std::int64_t lTransactionNumber)
 {
     if (!strItem.Exists()) {
         otErr << "Item::CreateItemFromString: strItem is empty. (Expected an "
@@ -1412,7 +1412,7 @@ Item::itemType Item::GetItemTypeFromString(const String& strType)
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
-int32_t Item::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
+std::int32_t Item::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 {
     if (!strcmp("item", xml->getNodeName())) {
         String strType, strStatus;
@@ -1458,7 +1458,7 @@ int32_t Item::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             if (strTotalList.Exists())
                 m_Numlist.Add(
                     strTotalList);  // (Comma-separated list of numbers
-                                    // now becomes std::set<int64_t>.)
+                                    // now becomes std::set<std::int64_t>.)
         }
 
         Identifier ACCOUNT_ID(strAcctFromID), NOTARY_ID(strNotaryID),
@@ -1626,9 +1626,9 @@ int32_t Item::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 }
 
 // Used in balance agreement, part of the inbox report.
-int64_t Item::GetClosingNum() const { return m_lClosingTransactionNo; }
+std::int64_t Item::GetClosingNum() const { return m_lClosingTransactionNo; }
 
-void Item::SetClosingNum(int64_t lClosingNum)
+void Item::SetClosingNum(std::int64_t lClosingNum)
 {
     m_lClosingTransactionNo = lClosingNum;
 }

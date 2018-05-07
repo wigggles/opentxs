@@ -43,15 +43,15 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
 
-#include <stdint.h>
+#include <cstdint>
 #include <ostream>
 
 namespace opentxs
 {
 
 /*
- int64_t GetAmount() const { return m_lAmount; }
- void SetAmount( int64_t lAmount) { m_lAmount = lAmount; }
+ std::int64_t GetAmount() const { return m_lAmount; }
+ void SetAmount( std::int64_t lAmount) { m_lAmount = lAmount; }
 
  const OTString& GetInstrumentDefinitionID() { return
  m_strInstrumentDefinitionID; }
@@ -64,7 +64,7 @@ OTStashItem::OTStashItem()
 
 OTStashItem::OTStashItem(
     const String& strInstrumentDefinitionID,
-    int64_t lAmount)
+    std::int64_t lAmount)
     : m_strInstrumentDefinitionID(strInstrumentDefinitionID)
     , m_lAmount(lAmount)
 {
@@ -72,7 +72,7 @@ OTStashItem::OTStashItem(
 
 OTStashItem::OTStashItem(
     const Identifier& theInstrumentDefinitionID,
-    int64_t lAmount)
+    std::int64_t lAmount)
     : m_strInstrumentDefinitionID(theInstrumentDefinitionID)
     , m_lAmount(lAmount)
 {
@@ -101,7 +101,7 @@ OTStashItem::~OTStashItem() {}
 
  */
 
-bool OTStashItem::CreditStash(const int64_t& lAmount)
+bool OTStashItem::CreditStash(const std::int64_t& lAmount)
 {
     if (lAmount < 0) {
         otOut << "OTStashItem::CreditStash: Failed attempt to credit a "
@@ -116,7 +116,7 @@ bool OTStashItem::CreditStash(const int64_t& lAmount)
     return true;
 }
 
-bool OTStashItem::DebitStash(const int64_t& lAmount)
+bool OTStashItem::DebitStash(const std::int64_t& lAmount)
 {
     if (lAmount < 0) {
         otOut << "OTStashItem::DebitStash: Failed attempt to debit a negative "
@@ -126,7 +126,7 @@ bool OTStashItem::DebitStash(const int64_t& lAmount)
         return false;
     }
 
-    const int64_t lTentativeNewBalance = (m_lAmount - lAmount);
+    const std::int64_t lTentativeNewBalance = (m_lAmount - lAmount);
 
     if (lTentativeNewBalance < 0) {
         otOut << "OTStashItem::DebitStash: Failed attempt to debit (amount of) "

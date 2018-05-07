@@ -69,7 +69,8 @@
 #include "opentxs/Types.hpp"
 
 #include <irrxml/irrXML.hpp>
-#include <stdint.h>
+
+#include <cstdint>
 #include <cstdlib>
 #include <cstring>
 #include <memory>
@@ -177,9 +178,12 @@ OTTransaction::transactionType OTTransaction::GetTypeFromString(
 }
 
 // Used in balance agreement, part of the inbox report.
-int64_t OTTransaction::GetClosingNum() const { return m_lClosingTransactionNo; }
+std::int64_t OTTransaction::GetClosingNum() const
+{
+    return m_lClosingTransactionNo;
+}
 
-void OTTransaction::SetClosingNum(int64_t lClosingNum)
+void OTTransaction::SetClosingNum(std::int64_t lClosingNum)
 {
     m_lClosingTransactionNo = lClosingNum;
 }
@@ -689,7 +693,7 @@ bool OTTransaction::HarvestOpeningNumber(
                     class _getRecipientOpeningNum
                     {
                     public:
-                        int64_t Run(OTTransaction& theTransaction)
+                        std::int64_t Run(OTTransaction& theTransaction)
                         {
                             Item* pItem =
                                 theTransaction.GetItem(Item::paymentPlan);
@@ -727,7 +731,7 @@ bool OTTransaction::HarvestOpeningNumber(
                     //
                     if (bReplyWasFailure && !bHarvestingForRetry) {
                         _getRecipientOpeningNum getRecipientOpeningNum;
-                        const int64_t lRecipientOpeningNum =
+                        const std::int64_t lRecipientOpeningNum =
                             getRecipientOpeningNum.Run(*this);
 
                         if (lRecipientOpeningNum > 0) {
@@ -775,7 +779,7 @@ bool OTTransaction::HarvestOpeningNumber(
                             // DEFINITELY STILL GOOD.
                             //
                             _getRecipientOpeningNum getRecipientOpeningNum;
-                            const int64_t lRecipientOpeningNum =
+                            const std::int64_t lRecipientOpeningNum =
                                 getRecipientOpeningNum.Run(*this);
 
                             if (lRecipientOpeningNum > 0) {
@@ -1731,13 +1735,13 @@ bool OTTransaction::VerifyBalanceReceipt(const ServerContext& context)
     // LOOP THROUGH THE BALANCE STATEMENT ITEMS (INBOX AND OUTBOX) TO GATHER
     // SOME DATA...
 
-    int32_t nInboxItemCount = 0, nOutboxItemCount = 0;
+    std::int32_t nInboxItemCount = 0, nOutboxItemCount = 0;
     const char* szInbox = "Inbox";
     const char* szOutbox = "Outbox";
     const char* pszLedgerType = nullptr;
     // For measuring the amount of the total of items in the inbox that have
     // changed the balance (like cheque receipts)
-    int64_t lReceiptBalanceChange = 0;
+    std::int64_t lReceiptBalanceChange = 0;
 
     // Notice here, I'm back to using pBalanceItem instead of
     // pItemWithIssuedList, since this is the inbox/outbox section...
@@ -1751,10 +1755,10 @@ bool OTTransaction::VerifyBalanceReceipt(const ServerContext& context)
     // to MAKE SURE that all its related paymentReceipts/marketReceipts have
     // been CLOSED OUT.)
 
-    for (int32_t i = 0; i < pBalanceItem->GetItemCount(); i++) {
+    for (std::int32_t i = 0; i < pBalanceItem->GetItemCount(); i++) {
         // for outbox calculations. (It's the only case where GetReceiptAmount()
         // is wrong and needs -1 multiplication.)
-        int64_t lReceiptAmountMultiplier = 1;
+        std::int64_t lReceiptAmountMultiplier = 1;
         Item* pSubItem = pBalanceItem->GetItem(i);
 
         OT_ASSERT(nullptr != pSubItem);
@@ -1826,9 +1830,9 @@ bool OTTransaction::VerifyBalanceReceipt(const ServerContext& context)
         }
 
         OTTransaction* pTransaction = nullptr;
-        int64_t lTempTransactionNum = 0;
-        int64_t lTempReferenceToNum = 0;
-        int64_t lTempNumberOfOrigin = 0;
+        std::int64_t lTempTransactionNum = 0;
+        std::int64_t lTempReferenceToNum = 0;
+        std::int64_t lTempNumberOfOrigin = 0;
 
         // What's going on here? In the original balance statement, ONLY IN
         // CASES OF OUTOING TRANSFER, the user has put transaction # "1" in his
@@ -1989,7 +1993,7 @@ bool OTTransaction::VerifyBalanceReceipt(const ServerContext& context)
             return false;
         }
 
-        int64_t lTransactionAmount = pTransaction->GetReceiptAmount();
+        std::int64_t lTransactionAmount = pTransaction->GetReceiptAmount();
         lTransactionAmount *= lReceiptAmountMultiplier;
 
         if (pSubItem->GetAmount() != lTransactionAmount) {
@@ -2117,12 +2121,12 @@ bool OTTransaction::VerifyBalanceReceipt(const ServerContext& context)
 
     // Change in the account balance we'd expect, based on TOTAL receipts in the
     // inbox.
-    int64_t lInboxBalanceChange = 0;
+    std::int64_t lInboxBalanceChange = 0;
     // Change in the account balance we'd expect, based on the NEW receipts in
     // the inbox.
-    int64_t lInboxSupposedDifference = 0;
+    std::int64_t lInboxSupposedDifference = 0;
 
-    for (int32_t i = 0; i < pInbox->GetTransactionCount(); i++) {
+    for (std::int32_t i = 0; i < pInbox->GetTransactionCount(); i++) {
         OTTransaction* pTransaction = pInbox->GetTransactionByIndex(i);
 
         OT_ASSERT(nullptr != pTransaction);
@@ -2549,9 +2553,9 @@ bool OTTransaction::VerifyBalanceReceipt(const ServerContext& context)
 
     // How much money came out? (Or went in, if the chequeReceipt was for
     // an invoice...) 901 -99 (example of 1000 absolute difference)
-    const int64_t lAbsoluteDifference =
+    const std::int64_t lAbsoluteDifference =
         std::abs(lInboxBalanceChange - lReceiptBalanceChange);
-    const int64_t lNegativeDifference = (lAbsoluteDifference * (-1));
+    const std::int64_t lNegativeDifference = (lAbsoluteDifference * (-1));
 
     // The new (current) inbox has a larger overall value than the balance in
     // the old (receipt) inbox. (As shown by subitem.)
@@ -2559,7 +2563,7 @@ bool OTTransaction::VerifyBalanceReceipt(const ServerContext& context)
         ((lInboxBalanceChange > lReceiptBalanceChange) ? true : false);
     const bool bNewInboxWasSmaller =
         ((lInboxBalanceChange < lReceiptBalanceChange) ? true : false);
-    int64_t lActualDifference;
+    std::int64_t lActualDifference;
 
     if (bNewInboxWasBigger) {
         lActualDifference = lAbsoluteDifference;
@@ -2704,7 +2708,7 @@ bool OTTransaction::DeleteBoxReceipt(Ledger& theLedger)
     return bDeleted;
 }
 
-bool OTTransaction::SaveBoxReceipt(int64_t lLedgerType)
+bool OTTransaction::SaveBoxReceipt(std::int64_t lLedgerType)
 {
 
     if (IsAbbreviated()) {
@@ -2783,7 +2787,7 @@ bool OTTransaction::SaveBoxReceipt(int64_t lLedgerType)
 // reading from.
 bool OTTransaction::SaveBoxReceipt(Ledger& theLedger)
 {
-    int64_t lLedgerType = 0;
+    std::int64_t lLedgerType = 0;
 
     switch (theLedger.GetType()) {
         case Ledger::nymbox:
@@ -3013,7 +3017,7 @@ OTTransaction::OTTransaction(
     const Identifier& theNymID,
     const Identifier& theAccountID,
     const Identifier& theNotaryID,
-    int64_t lTransactionNum,
+    std::int64_t lTransactionNum,
     originType theOriginType /*=originType::not_applicable*/)
     : OTTransactionType(
           theNymID,
@@ -3069,18 +3073,18 @@ OTTransaction::OTTransaction(
     const Identifier& theNymID,
     const Identifier& theAccountID,
     const Identifier& theNotaryID,
-    const int64_t& lNumberOfOrigin,
+    const std::int64_t& lNumberOfOrigin,
     originType theOriginType,
-    const int64_t& lTransactionNum,
-    const int64_t& lInRefTo,
-    const int64_t& lInRefDisplay,
+    const std::int64_t& lTransactionNum,
+    const std::int64_t& lInRefTo,
+    const std::int64_t& lInRefDisplay,
     time64_t the_DATE_SIGNED,
     OTTransaction::transactionType theType,
     const String& strHash,
-    const int64_t& lAdjustment,
-    const int64_t& lDisplayValue,
-    const int64_t& lClosingNum,
-    const int64_t& lRequestNum,
+    const std::int64_t& lAdjustment,
+    const std::int64_t& lDisplayValue,
+    const std::int64_t& lClosingNum,
+    const std::int64_t& lRequestNum,
     bool bReplyTransSuccess,
     NumList* pNumList)
     : OTTransactionType(
@@ -3177,24 +3181,24 @@ OTTransaction::OTTransaction(
 }
 
 // bool GenerateTransaction(const OTIdentifier& theAccountID, const
-// OTIdentifier& theNotaryID, int64_t lTransactionNum);
+// OTIdentifier& theNotaryID, std::int64_t lTransactionNum);
 //
 // static
 // OTTransaction * GenerateTransaction(const OTIdentifier& theNymID, const
 // OTIdentifier& theAccountID,
 //                                    const OTIdentifier& theNotaryID,
 // transactionType theType,
-//                                    int64_t lTransactionNum=0);
+//                                    std::int64_t lTransactionNum=0);
 // static
 // OTTransaction * GenerateTransaction(const OTLedger& theOwner,
-// transactionType theType, int64_t lTransactionNum=0);
+// transactionType theType, std::int64_t lTransactionNum=0);
 
 // static
 OTTransaction* OTTransaction::GenerateTransaction(
     const Ledger& theOwner,
     OTTransaction::transactionType theType,
     originType theOriginType /*=originType::not_applicable*/,
-    int64_t lTransactionNum /*=0*/)
+    std::int64_t lTransactionNum /*=0*/)
 {
     OTTransaction* pTransaction = GenerateTransaction(
         theOwner.GetNymID(),
@@ -3215,7 +3219,7 @@ OTTransaction* OTTransaction::GenerateTransaction(
     const Identifier& theNotaryID,
     OTTransaction::transactionType theType,
     originType theOriginType /*=originType::not_applicable*/,
-    int64_t lTransactionNum /*=0*/)
+    std::int64_t lTransactionNum /*=0*/)
 {
     OTTransaction* pTransaction = new OTTransaction(
         theNymID, theAccountID, theNotaryID, lTransactionNum, theOriginType);
@@ -3276,7 +3280,7 @@ Item* OTTransaction::GetItem(Item::itemType theType)
 // While processing a transaction, you may wish to query it for items in
 // reference to a particular transaction number.
 //
-Item* OTTransaction::GetItemInRefTo(int64_t lReference)
+Item* OTTransaction::GetItemInRefTo(std::int64_t lReference)
 {
     if (GetItemCountInRefTo(lReference) > 1) {
         OT_FAIL_MSG("CAN'T USE GetItemInRefTo! (There are multiple items in "
@@ -3298,9 +3302,9 @@ Item* OTTransaction::GetItemInRefTo(int64_t lReference)
 //
 // Might want to change this so that it only counts ACCEPTED receipts.
 //
-int32_t OTTransaction::GetItemCountInRefTo(int64_t lReference)
+std::int32_t OTTransaction::GetItemCountInRefTo(std::int64_t lReference)
 {
-    int32_t nCount = 0;
+    std::int32_t nCount = 0;
 
     for (auto& it : m_listItems) {
         Item* pItem = it;
@@ -3832,7 +3836,7 @@ const char* OTTransaction::GetTypeString() const
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
-int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
+std::int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 {
     const String strNodeName = xml->getNodeName();
 
@@ -3847,24 +3851,24 @@ int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         strNodeName.Compare("paymentInboxRecord") ||
         strNodeName.Compare("recordBoxRecord") ||
         strNodeName.Compare("expiredBoxRecord")) {
-        int64_t lNumberOfOrigin = 0;
+        std::int64_t lNumberOfOrigin = 0;
         int theOriginType =
             static_cast<int>(originType::not_applicable);  // default
-        int64_t lTransactionNum = 0;
-        int64_t lInRefTo = 0;
-        int64_t lInRefDisplay = 0;
+        std::int64_t lTransactionNum = 0;
+        std::int64_t lInRefTo = 0;
+        std::int64_t lInRefDisplay = 0;
 
         time64_t the_DATE_SIGNED = OT_TIME_ZERO;
         int theType = OTTransaction::error_state;  // default
         String strHash;
 
-        int64_t lAdjustment = 0;
-        int64_t lDisplayValue = 0;
-        int64_t lClosingNum = 0;
-        int64_t lRequestNumber = 0;
+        std::int64_t lAdjustment = 0;
+        std::int64_t lDisplayValue = 0;
+        std::int64_t lClosingNum = 0;
+        std::int64_t lRequestNumber = 0;
         bool bReplyTransSuccess = false;
 
-        int32_t nAbbrevRetVal = LoadAbbreviatedRecord(
+        std::int32_t nAbbrevRetVal = LoadAbbreviatedRecord(
             xml,
             lNumberOfOrigin,
             theOriginType,
@@ -3940,7 +3944,7 @@ int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             m_bCancelled = false;
 
         String strDateSigned = xml->getAttributeValue("dateSigned");
-        const int64_t lDateSigned =
+        const std::int64_t lDateSigned =
             strDateSigned.Exists() ? parseTimestamp(strDateSigned.Get()) : 0;
         m_DATE_SIGNED =
             OTTimeGetTimeFromSeconds(lDateSigned);  // Todo casting ?
@@ -3998,7 +4002,7 @@ int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             if (strTotalList.Exists())
                 m_Numlist.Add(
                     strTotalList);  // (Comma-separated list of numbers
-                                    // now becomes std::set<int64_t>.)
+                                    // now becomes std::set<std::int64_t>.)
         }
 
         Identifier ACCOUNT_ID(strAcctID), NOTARY_ID(strNotaryID),
@@ -4352,7 +4356,7 @@ paymentInbox.
  */
 void OTTransaction::SaveAbbrevPaymentInboxRecord(Tag& parent)
 {
-    int64_t lDisplayValue = 0;
+    std::int64_t lDisplayValue = 0;
 
     switch (m_Type) {
         case OTTransaction::instrumentNotice:
@@ -4428,7 +4432,7 @@ void OTTransaction::SaveAbbrevPaymentInboxRecord(Tag& parent)
 
 void OTTransaction::SaveAbbrevExpiredBoxRecord(Tag& parent)
 {
-    int64_t lDisplayValue = 0;
+    std::int64_t lDisplayValue = 0;
 
     switch (m_Type) {
         // PAYMENT INBOX / PAYMENT OUTBOX
@@ -4561,7 +4565,7 @@ void OTTransaction::SaveAbbrevRecordBoxRecord(Tag& parent)
     // Some recordBoxes DO, and some DON'T (the different kinds store different
     // kinds of receipts. See above comment.)
 
-    int64_t lAdjustment = 0, lDisplayValue = 0;
+    std::int64_t lAdjustment = 0, lDisplayValue = 0;
 
     switch (m_Type) {
         // ASSET ACCOUNT INBOX
@@ -4737,7 +4741,7 @@ void OTTransaction::SaveAbbrevRecordBoxRecord(Tag& parent)
 //
 void OTTransaction::SaveAbbreviatedNymboxRecord(Tag& parent)
 {
-    int64_t lDisplayValue = 0;
+    std::int64_t lDisplayValue = 0;
     bool bAddRequestNumber = false;
 
     String strListOfBlanks;  // IF this transaction is "blank" or
@@ -4874,7 +4878,7 @@ void OTTransaction::SaveAbbreviatedNymboxRecord(Tag& parent)
 
 void OTTransaction::SaveAbbreviatedOutboxRecord(Tag& parent)
 {
-    int64_t lAdjustment = 0, lDisplayValue = 0;
+    std::int64_t lAdjustment = 0, lDisplayValue = 0;
 
     switch (m_Type) {
         case OTTransaction::pending:
@@ -4980,7 +4984,7 @@ void OTTransaction::SaveAbbreviatedInboxRecord(Tag& parent)
     // ref# that OT needs to use, it will return the one that the user probably
     // wants to see.
     //
-    int64_t lAdjustment = 0, lDisplayValue = 0;
+    std::int64_t lAdjustment = 0, lDisplayValue = 0;
 
     switch (m_Type) {
         // -- In inbox, pending hasn't been accepted yet. In outbox, it's
@@ -5215,7 +5219,7 @@ void OTTransaction::ProduceInboxReportItem(Item& theBalanceItem)
     if (nullptr !=
         pReportItem)  // above line will assert if mem allocation fails.
     {
-        int64_t lAmount = GetReceiptAmount();
+        std::int64_t lAmount = GetReceiptAmount();
         pReportItem->SetAmount(lAmount);
 
         pReportItem->SetTransactionNum(
@@ -5288,7 +5292,7 @@ void OTTransaction::ProduceOutboxReportItem(Item& theBalanceItem)
         // getting this far. There is no other transaction type that I even have
         // to
         // worry about.
-        const int64_t lAmount =
+        const std::int64_t lAmount =
             GetReceiptAmount() * (-1);  // in outbox, a transfer is leaving my
                                         // account. Balance gets smaller.
         pReportItem->SetAmount(lAmount);
@@ -5319,11 +5323,11 @@ void OTTransaction::ProduceOutboxReportItem(Item& theBalanceItem)
 // NOTE: Not ALL transaction types with an amount are listed here,
 // just the ones necessary for balance agreement.
 //
-int64_t OTTransaction::GetReceiptAmount()
+std::int64_t OTTransaction::GetReceiptAmount()
 {
     if (IsAbbreviated()) return GetAbbrevAdjustment();
 
-    int64_t lAdjustment = 0;
+    std::int64_t lAdjustment = 0;
 
     Item* pOriginalItem = nullptr;
     std::unique_ptr<Item> theItemAngel;
@@ -5528,7 +5532,7 @@ int64_t OTTransaction::GetReceiptAmount()
 
 // Need to know the transaction number of the ORIGINAL transaction? Call this.
 // virtual
-int64_t OTTransaction::GetNumberOfOrigin()
+std::int64_t OTTransaction::GetNumberOfOrigin()
 {
 
     if (0 == m_lNumberOfOrigin) {
@@ -5729,11 +5733,11 @@ void OTTransaction::CalculateNumberOfOrigin()
 /// that his receipt is in reference to the original market offer, so he can
 /// line up his receipts with his offers. What else does he care?
 ///
-int64_t OTTransaction::GetReferenceNumForDisplay()
+std::int64_t OTTransaction::GetReferenceNumForDisplay()
 {
     if (IsAbbreviated()) return GetAbbrevInRefDisplay();
 
-    int64_t lReferenceNum = 0;
+    std::int64_t lReferenceNum = 0;
 
     switch (GetType()) {
         // "in ref to #" is stored on me: GetReferenceToNum()
@@ -5790,7 +5794,7 @@ int64_t OTTransaction::GetReferenceNumForDisplay()
                     if (nullptr != pPlan) {
                         lReferenceNum = pPlan->GetRecipientOpeningNum();
                     } else if (nullptr != pSmartContract) {
-                        const std::vector<int64_t>&
+                        const std::vector<std::int64_t>&
                             openingNumsInOrderOfSigning =
                                 pSmartContract->openingNumsInOrderOfSigning();
 

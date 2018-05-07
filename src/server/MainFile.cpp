@@ -61,9 +61,10 @@
 #include "opentxs/server/Server.hpp"
 #include "opentxs/server/Transactor.hpp"
 
-#include <inttypes.h>
 #include <irrxml/irrXML.hpp>
-#include <stdint.h>
+
+#include <cinttypes>
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <utility>
@@ -229,7 +230,7 @@ bool MainFile::CreateMainFile(
         "\n"
         "</notaryServer>\n\n";
 
-    int64_t lTransNum = 5;  // a starting point, for the new server.
+    std::int64_t lTransNum = 5;  // a starting point, for the new server.
 
     String strNotaryFile;
     strNotaryFile.Format(
@@ -455,9 +456,10 @@ bool MainFile::LoadMainFile(bool bReadOnly)
                         const String strAcctCount =
                             xml->getAttributeValue("count");
 
-                        if ((-1) == server_.transactor_.voucherAccounts_
-                                        .ReadFromXMLNode(
-                                            xml, strAcctType, strAcctCount))
+                        if ((-1) ==
+                            server_.transactor_.voucherAccounts_
+                                .ReadFromXMLNode(
+                                    xml, strAcctType, strAcctCount))
                             Log::vError(
                                 "%s: Error loading voucher accountList.\n",
                                 __FUNCTION__);

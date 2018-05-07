@@ -43,7 +43,7 @@
 
 #include "opentxs/core/String.hpp"
 
-#include <stdint.h>
+#include <cstdint>
 
 namespace opentxs
 {
@@ -53,22 +53,24 @@ class Identifier;
 class OTStashItem
 {
     String m_strInstrumentDefinitionID;
-    int64_t m_lAmount;
+    std::int64_t m_lAmount;
 
 public:
-    int64_t GetAmount() const { return m_lAmount; }
-    void SetAmount(int64_t lAmount) { m_lAmount = lAmount; }
-    bool CreditStash(const int64_t& lAmount);
-    bool DebitStash(const int64_t& lAmount);
+    std::int64_t GetAmount() const { return m_lAmount; }
+    void SetAmount(std::int64_t lAmount) { m_lAmount = lAmount; }
+    bool CreditStash(const std::int64_t& lAmount);
+    bool DebitStash(const std::int64_t& lAmount);
     const String& GetInstrumentDefinitionID()
     {
         return m_strInstrumentDefinitionID;
     }
     OTStashItem();
-    OTStashItem(const String& strInstrumentDefinitionID, int64_t lAmount = 0);
+    OTStashItem(
+        const String& strInstrumentDefinitionID,
+        std::int64_t lAmount = 0);
     OTStashItem(
         const Identifier& theInstrumentDefinitionID,
-        int64_t lAmount = 0);
+        std::int64_t lAmount = 0);
     virtual ~OTStashItem();
 };
 

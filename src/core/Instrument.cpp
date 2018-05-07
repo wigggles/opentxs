@@ -46,7 +46,7 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/String.hpp"
 
-#include <stdint.h>
+#include <cstdint>
 
 namespace opentxs
 {
@@ -131,10 +131,10 @@ void Instrument::Release()
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
-int32_t Instrument::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
+std::int32_t Instrument::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 {
     //    otErr << "OTInstrument::ProcessXMLNode...\n";
-    int32_t nReturnVal = 0;
+    std::int32_t nReturnVal = 0;
 
     // Here we call the parent class first.
     // If the node is found there, or there is some error,
@@ -159,7 +159,8 @@ int32_t Instrument::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     //
     //        if (strClosingNumber.Exists())
     //        {
-    //            const int64_t lClosingNumber = atol(strClosingNumber.Get());
+    //            const std::int64_t lClosingNumber =
+    //            atol(strClosingNumber.Get());
     //
     //            AddClosingTransactionNo(lClosingNumber);
     //        }
