@@ -71,6 +71,11 @@ protected:
     ServerConnection() = default;
 
 private:
+    friend OTServerConnection;
+
+    /** WARNING: not implemented */
+    virtual ServerConnection* clone() const = 0;
+
     ServerConnection(const ServerConnection&) = delete;
     ServerConnection(ServerConnection&&) = delete;
     ServerConnection& operator=(const ServerConnection&) = delete;

@@ -46,10 +46,11 @@
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/SubscribeSocket.hpp"
 
-#include "MessagableList.hpp"
-
 #include "ContactListItem.hpp"
 #include "ContactListItemBlank.hpp"
+#include "MessagableList.hpp"
+
+template class opentxs::Pimpl<opentxs::ui::MessagableList>;
 
 #define OT_METHOD "opentxs::ui::implementation::MessagableList::"
 

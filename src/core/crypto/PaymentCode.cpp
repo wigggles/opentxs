@@ -71,6 +71,8 @@
 #include <ostream>
 #include <string>
 
+template class opentxs::Pimpl<opentxs::PaymentCode>;
+
 #define OT_METHOD "opentxs::implementation::PaymentCode::"
 
 namespace opentxs

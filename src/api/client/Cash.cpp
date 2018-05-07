@@ -36,19 +36,29 @@
  *
  ************************************************************/
 
-#include "Cash.hpp"
-
+#include "opentxs/api/client/Cash.hpp"
+#include "opentxs/api/client/ServerAction.hpp"
 #include "opentxs/api/Api.hpp"
 #include "opentxs/api/Native.hpp"
-#include "opentxs/api/client/ServerAction.hpp"
 #include "opentxs/cash/Purse.hpp"
 #include "opentxs/client/ServerAction.hpp"
 #include "opentxs/client/SwigWrap.hpp"
 #include "opentxs/client/Utility.hpp"
 #include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Lockable.hpp"
 #include "opentxs/OT.hpp"
 
+#include "Cash.hpp"
+
 //#define OT_METHOD "opentxs::api::client::implementation::Cash::"
+
+namespace opentxs
+{
+api::client::Cash* Factory::Cash()
+{
+    return new api::client::implementation::Cash();
+}
+}  // namespace opentxs
 
 namespace opentxs::api::client::implementation
 {

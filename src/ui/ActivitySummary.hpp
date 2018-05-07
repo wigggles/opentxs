@@ -88,6 +88,7 @@ private:
     OTZMQSubscribeSocket activity_subscriber_;
 
     ActivitySummaryID blank_id() const override;
+    ActivitySummary* clone() const override { return nullptr; }
     void construct_item(
         const ActivitySummaryID& id,
         const ActivitySummarySortKey& index,

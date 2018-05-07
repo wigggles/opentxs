@@ -41,17 +41,8 @@
 
 #include "opentxs/Internal.hpp"
 
-#include "opentxs/api/client/ServerAction.hpp"
-
-namespace opentxs
+namespace opentxs::api::client::implementation
 {
-namespace api
-{
-namespace client
-{
-namespace implementation
-{
-
 class ServerAction : virtual public opentxs::api::client::ServerAction
 {
 public:
@@ -333,7 +324,7 @@ public:
     ~ServerAction() = default;
 
 private:
-    friend api::implementation::Api;
+    friend Factory;
 
     const OT_API& otapi_;
     const OTAPI_Exec& exec_;
@@ -353,9 +344,5 @@ private:
     ServerAction& operator=(const ServerAction&) = delete;
     ServerAction& operator=(ServerAction&&) = delete;
 };
-}  // namespace implementation
-}  // namespace client
-}  // namespace api
-}  // namespace opentxs
-
+}  // namespace opentxs::api::client::implementation
 #endif  // OPENTXS_API_CLIENT_IMPLEMENTATION_SERVER_ACTION_HPP

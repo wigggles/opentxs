@@ -41,10 +41,10 @@
 
 #include "opentxs/Forward.hpp"
 
-#include <cstdint>
 #include <set>
-#include <map>
 #include <string>
+
+extern template class std::set<opentxs::OTIdentifier>;
 
 namespace opentxs
 {
@@ -52,19 +52,9 @@ namespace api
 {
 namespace client
 {
-
 class Pair
 {
 public:
-    static Pair * Factory(
-        const Flag& running,
-        const opentxs::api::client::Sync& sync,
-        const opentxs::api::client::ServerAction& action,
-        const opentxs::api::client::Wallet& wallet,
-        const opentxs::OT_API& otapi,
-        const opentxs::OTAPI_Exec& exec,
-        const opentxs::network::zeromq::Context& context);
-
     virtual bool AddIssuer(
         const Identifier& localNymID,
         const Identifier& issuerNymID,

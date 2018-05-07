@@ -40,6 +40,8 @@
 
 #include "ListenCallback.hpp"
 
+template class opentxs::Pimpl<opentxs::network::zeromq::ListenCallback>;
+
 //#define OT_METHOD "opentxs::network::zeromq::implementation::ListenCallback::"
 
 namespace opentxs::network::zeromq

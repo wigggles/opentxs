@@ -69,6 +69,11 @@ protected:
     ContactListItem() = default;
 
 private:
+    friend OTUIContactListItem;
+
+    /** WARNING: not implemented */
+    virtual ContactListItem* clone() const = 0;
+
     ContactListItem(const ContactListItem&) = delete;
     ContactListItem(ContactListItem&&) = delete;
     ContactListItem& operator=(const ContactListItem&) = delete;

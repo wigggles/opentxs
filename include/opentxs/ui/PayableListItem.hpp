@@ -66,6 +66,11 @@ protected:
     PayableListItem() = default;
 
 private:
+    friend OTUIPayableListItem;
+
+    /** WARNING: not implemented */
+    virtual PayableListItem* clone() const = 0;
+
     PayableListItem(const PayableListItem&) = delete;
     PayableListItem(PayableListItem&&) = delete;
     PayableListItem& operator=(const PayableListItem&) = delete;

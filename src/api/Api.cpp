@@ -38,34 +38,57 @@
 
 #include "opentxs/stdafx.hpp"
 
-#include "opentxs/core/Identifier.hpp"
-
+#include "opentxs/api/client/Cash.hpp"
 #include "opentxs/api/client/Pair.hpp"
+#include "opentxs/api/client/ServerAction.hpp"
 #include "opentxs/api/client/Sync.hpp"
+#include "opentxs/api/client/Workflow.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/network/ZMQ.hpp"
 #include "opentxs/api/Api.hpp"
 #include "opentxs/api/Activity.hpp"
 #include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Settings.hpp"
-//#if OT_CASH
-//#include "opentxs/cash/Purse.hpp"
-//#endif //OT_CASH
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
 #include "opentxs/core/crypto/OTCachedKey.hpp"
-//#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Flag.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
-//#include "opentxs/ext/OTPayment.hpp"
-
-#include "client/Cash.hpp"
-#include "client/ServerAction.hpp"
-#include "client/Workflow.hpp"
 
 #include <set>
 #include <map>
+#include <memory>
+#include <mutex>
+#include <string>
 
 #include "Api.hpp"
+
+namespace opentxs
+{
+api::Api* Factory::Api(
+    const Flag& running,
+    const api::Activity& activity,
+    const api::Settings& config,
+    const api::ContactManager& contacts,
+    const api::Crypto& crypto,
+    const api::Identity& identity,
+    const api::storage::Storage& storage,
+    const api::client::Wallet& wallet,
+    const api::network::ZMQ& zmq)
+{
+    return new api::implementation::Api(
+        running,
+        activity,
+        config,
+        contacts,
+        crypto,
+        identity,
+        storage,
+        wallet,
+        zmq);
+}
+}  // namespace opentxs
 
 namespace opentxs::api::implementation
 {
@@ -115,7 +138,7 @@ void Api::Cleanup()
 
 std::recursive_mutex& Api::get_lock(const ContextID context) const
 {
-    std::unique_lock<std::mutex> lock(map_lock_);
+    opentxs::Lock lock(map_lock_);
 
     return context_locks_[context];
 }
@@ -125,8 +148,7 @@ void Api::Init()
     otLog3 << "\n\nWelcome to Open Transactions -- version " << Log::Version()
            << "\n";
 
-    workflow_.reset(new api::client::implementation::Workflow(
-        activity_, contacts_, storage_));
+    workflow_.reset(Factory::Workflow(activity_, contacts_, storage_));
 
     OT_ASSERT(workflow_)
 
@@ -157,7 +179,7 @@ void Api::Init()
 
     OT_ASSERT(otapi_exec_);
 
-    server_action_.reset(new api::client::implementation::ServerAction(
+    server_action_.reset(Factory::ServerAction(
         *ot_api_,
         *otapi_exec_,
         wallet_,
@@ -166,11 +188,11 @@ void Api::Init()
 
     OT_ASSERT(server_action_)
 
-    cash_.reset(new api::client::implementation::Cash());
+    cash_.reset(Factory::Cash());
 
     OT_ASSERT(cash_);
 
-    sync_.reset(api::client::Sync::Factory(
+    sync_.reset(Factory::Sync(
         running_,
         *ot_api_,
         *otapi_exec_,
@@ -185,7 +207,7 @@ void Api::Init()
 
     OT_ASSERT(sync_);
 
-    pair_.reset(api::client::Pair::Factory(
+    pair_.reset(Factory::Pair(
         running_,
         *sync_,
         *server_action_,
@@ -253,5 +275,5 @@ const api::client::Workflow& Api::Workflow() const
     return *workflow_;
 }
 
-Api::~Api() {}
+Api::~Api() { Cleanup(); }
 }  // namespace opentxs::api::implementation

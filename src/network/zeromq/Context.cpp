@@ -54,6 +54,8 @@
 
 #include <zmq.h>
 
+template class opentxs::Pimpl<opentxs::network::zeromq::Context>;
+
 namespace opentxs::network::zeromq
 {
 OTZMQContext Context::Factory()

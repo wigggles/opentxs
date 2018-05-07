@@ -47,6 +47,8 @@
 
 #include "ActivityThread.hpp"
 
+template class opentxs::Pimpl<opentxs::ui::ActivityThreadItem>;
+
 namespace opentxs::ui::implementation
 {
 ActivityThreadItem::ActivityThreadItem(

@@ -46,6 +46,8 @@
 
 #include <zmq.h>
 
+template class opentxs::Pimpl<opentxs::network::zeromq::Message>;
+
 namespace opentxs::network::zeromq
 {
 OTZMQMessage Message::Factory()

@@ -41,6 +41,8 @@
 
 #include "opentxs/Forward.hpp"
 
+#include "Factory.hpp"
+
 namespace opentxs
 {
 namespace api

@@ -73,6 +73,8 @@ public:
 private:
     friend ActivityThread;
 
+    ActivityThreadItem* clone() const override { return nullptr; }
+
     ActivityThreadItemBlank() = default;
     ActivityThreadItemBlank(const ActivityThreadItemBlank&) = delete;
     ActivityThreadItemBlank(ActivityThreadItemBlank&&) = delete;

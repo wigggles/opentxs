@@ -47,10 +47,11 @@
 #include "opentxs/Types.hpp"
 
 #include "ContactListItem.hpp"
-
 #include "ContactList.hpp"
 
 #include <locale>
+
+template class opentxs::Pimpl<opentxs::ui::ContactListItem>;
 
 namespace opentxs::ui::implementation
 {

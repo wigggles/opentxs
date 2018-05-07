@@ -91,6 +91,7 @@ private:
     OTZMQSubscribeSocket activity_subscriber_;
 
     bool check_thread(const proto::StorageThread& thread) const;
+    ActivitySummaryItem* clone() const override { return nullptr; }
     std::string display_name(const proto::StorageThread& thread) const;
     std::string find_text(const ItemLocator& locator) const;
     const proto::StorageThreadItem& newest_item(

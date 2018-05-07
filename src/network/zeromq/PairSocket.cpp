@@ -47,6 +47,8 @@
 
 #include <zmq.h>
 
+template class opentxs::Pimpl<opentxs::network::zeromq::PairSocket>;
+
 #define OT_METHOD "opentxs::network::zeromq::implementation::PairSocket::"
 
 namespace opentxs::network::zeromq

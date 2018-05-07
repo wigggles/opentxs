@@ -51,6 +51,8 @@
 #include "ActivitySummaryItemBlank.hpp"
 #include "ActivitySummaryItem.hpp"
 
+template class opentxs::Pimpl<opentxs::ui::ActivitySummary>;
+
 #define OT_METHOD "opentxs::ui::implementation::ActivitySummary::"
 
 namespace opentxs::ui::implementation

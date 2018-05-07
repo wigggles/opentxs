@@ -45,13 +45,6 @@
 
 #ifdef SWIG
 // clang-format off
-%ignore opentxs::Pimpl<opentxs::network::zeromq::ListenCallback>::operator+=;
-%ignore opentxs::Pimpl<opentxs::network::zeromq::ListenCallback>::operator==;
-%ignore opentxs::Pimpl<opentxs::network::zeromq::ListenCallback>::operator!=;
-%ignore opentxs::Pimpl<opentxs::network::zeromq::ListenCallback>::operator<;
-%ignore opentxs::Pimpl<opentxs::network::zeromq::ListenCallback>::operator<=;
-%ignore opentxs::Pimpl<opentxs::network::zeromq::ListenCallback>::operator>;
-%ignore opentxs::Pimpl<opentxs::network::zeromq::ListenCallback>::operator>=;
 %template(OTZMQListenCallback) opentxs::Pimpl<opentxs::network::zeromq::ListenCallback>;
 %rename(ZMQListenCallback) opentxs::network::zeromq::ListenCallback;
 // clang-format on

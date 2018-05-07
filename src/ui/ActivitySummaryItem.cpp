@@ -47,12 +47,13 @@
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/SubscribeSocket.hpp"
 
-#include "ActivitySummaryItem.hpp"
-
-#include "ActivitySummary.hpp"
-
 #include <set>
 #include <sstream>
+
+#include "ActivitySummaryItem.hpp"
+#include "ActivitySummary.hpp"
+
+template class opentxs::Pimpl<opentxs::ui::ActivitySummaryItem>;
 
 #define GET_TEXT_MILLISECONDS 10
 

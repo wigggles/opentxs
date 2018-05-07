@@ -41,19 +41,6 @@
 
 #include "opentxs/Internal.hpp"
 
-#include "opentxs/core/Identifier.hpp"
-
-#include "opentxs/api/client/Pair.hpp"
-#include "opentxs/core/Flag.hpp"
-#include "opentxs/core/Lockable.hpp"
-#include "opentxs/core/UniqueQueue.hpp"
-#include "opentxs/Proto.hpp"
-
-#include <atomic>
-#include <memory>
-#include <thread>
-#include <tuple>
-
 namespace opentxs::api::client::implementation
 {
 class Pair : virtual public opentxs::api::client::Pair, Lockable
@@ -93,7 +80,7 @@ private:
         Registered = 2,
     };
 
-    friend class api::implementation::Api;
+    friend Factory;
     /// local nym id, issuer nym id
     typedef std::pair<Identifier, Identifier> IssuerID;
 

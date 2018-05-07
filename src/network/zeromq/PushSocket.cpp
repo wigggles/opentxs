@@ -46,6 +46,8 @@
 
 #include <zmq.h>
 
+template class opentxs::Pimpl<opentxs::network::zeromq::PushSocket>;
+
 #define OT_METHOD "opentxs::network::zeromq::implementation::PushSocket::"
 
 namespace opentxs::network::zeromq

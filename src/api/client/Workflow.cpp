@@ -38,21 +38,25 @@
 
 #include "opentxs/stdafx.hpp"
 
+#include "opentxs/api/client/Workflow.hpp"
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Activity.hpp"
 #include "opentxs/api/ContactManager.hpp"
 #include "opentxs/core/Cheque.hpp"
 #include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Lockable.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/Proto.hpp"
 
-#include "Workflow.hpp"
-
 #include <algorithm>
 #include <chrono>
+#include <cstdint>
 #include <ctime>
+#include <memory>
+
+#include "Workflow.hpp"
 
 #define OUTGOING_CHEQUE_EVENT_VERSION 1
 #define OUTGOING_CHEQUE_SOURCE_VERSION 1
@@ -62,6 +66,18 @@
 #define INCOMING_CHEQUE_WORKFLOW_VERSION 1
 
 #define OT_METHOD "opentxs::api::client::implementation::Workflow::"
+
+namespace opentxs
+{
+api::client::Workflow* Factory::Workflow(
+    const api::Activity& activity,
+    const api::ContactManager& contact,
+    const api::storage::Storage& storage)
+{
+    return new api::client::implementation::Workflow(
+        activity, contact, storage);
+}
+}  // namespace opentxs
 
 namespace opentxs::api::client
 {

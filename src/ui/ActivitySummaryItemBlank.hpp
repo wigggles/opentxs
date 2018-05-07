@@ -70,6 +70,8 @@ public:
 private:
     friend ActivitySummary;
 
+    ActivitySummaryItemBlank* clone() const override { return nullptr; }
+
     ActivitySummaryItemBlank() = default;
     ActivitySummaryItemBlank(const ActivitySummaryItemBlank&) = delete;
     ActivitySummaryItemBlank(ActivitySummaryItemBlank&&) = delete;

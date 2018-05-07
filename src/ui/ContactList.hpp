@@ -88,6 +88,7 @@ private:
     OTZMQSubscribeSocket contact_subscriber_;
 
     ContactListID blank_id() const override;
+    ContactList* clone() const override { return nullptr; }
     void construct_item(
         const ContactListID& id,
         const ContactListSortKey& index,

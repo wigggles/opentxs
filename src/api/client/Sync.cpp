@@ -38,8 +38,6 @@
 
 #include "opentxs/stdafx.hpp"
 
-#include "opentxs/core/Identifier.hpp"
-
 #include "opentxs/api/client/Pair.hpp"
 #include "opentxs/api/client/Sync.hpp"
 #include "opentxs/api/client/ServerAction.hpp"
@@ -49,6 +47,9 @@
 #include "opentxs/api/Api.hpp"
 #include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Settings.hpp"
+#if OT_CASH
+#include "opentxs/cash/Purse.hpp"
+#endif  // OT_CASH
 #include "opentxs/client/NymData.hpp"
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
@@ -63,15 +64,24 @@
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Cheque.hpp"
+#include "opentxs/core/Flag.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Ledger.hpp"
+#include "opentxs/core/Lockable.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/core/UniqueQueue.hpp"
 #include "opentxs/ext/OTPayment.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/PublishSocket.hpp"
 
+#include <atomic>
 #include <chrono>
+#include <memory>
+#include <map>
+#include <thread>
+#include <tuple>
 
 #include "Sync.hpp"
 
@@ -135,19 +145,19 @@
 
 #define OT_METHOD "opentxs::api::client::implementation::Sync::"
 
-namespace opentxs::api::client
+namespace opentxs
 {
-Sync * Sync::Factory(
+api::client::Sync* Factory::Sync(
     const Flag& running,
     const OT_API& otapi,
-    const opentxs::OTAPI_Exec& exec,
-    const opentxs::api::ContactManager& contacts,
-    const opentxs::api::Settings& config,
-    const opentxs::api::Api& api,
-    const opentxs::api::client::Wallet& wallet,
-    const opentxs::api::client::Workflow& workflow,
-    const opentxs::api::crypto::Encode& encoding,
-    const opentxs::network::zeromq::Context& zmq,
+    const OTAPI_Exec& exec,
+    const api::ContactManager& contacts,
+    const api::Settings& config,
+    const api::Api& api,
+    const api::client::Wallet& wallet,
+    const api::client::Workflow& workflow,
+    const api::crypto::Encode& encoding,
+    const network::zeromq::Context& zmq,
     const ContextLockCallback& lockCallback)
 {
     return new api::client::implementation::Sync(
@@ -163,12 +173,10 @@ Sync * Sync::Factory(
         zmq,
         lockCallback);
 }
-} // namespace opentxs::api::client
-
+}  // namespace opentxs
 
 namespace opentxs::api::client::implementation
 {
-
 const std::string Sync::DEFAULT_INTRODUCTION_SERVER =
     R"(-----BEGIN OT ARMORED SERVER CONTRACT-----
 Version: Open Transactions 0.99.1-113-g2b3acf5

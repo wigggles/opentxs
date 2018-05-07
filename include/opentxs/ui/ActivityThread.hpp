@@ -80,6 +80,11 @@ protected:
     ActivityThread() = default;
 
 private:
+    friend OTUIActivityThread;
+
+    /** WARNING: not implemented */
+    virtual ActivityThread* clone() const = 0;
+
     ActivityThread(const ActivityThread&) = delete;
     ActivityThread(ActivityThread&&) = delete;
     ActivityThread& operator=(const ActivityThread&) = delete;

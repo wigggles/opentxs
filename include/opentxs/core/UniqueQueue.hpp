@@ -61,8 +61,12 @@ public:
         }
 
         for (auto i = queue_.cbegin(); i < queue_.cend(); ++i) {
+            /* TODO: these lines will cause a segfault in the clang-5 ast
+             *  parser.
             const auto & [ key, value ] = *i;
             [[maybe_unused]] const auto& notUsed = key;
+            */
+            const auto& value = std::get<1>(*i);
 
             if (value == in) {
                 set_.erase(value);
@@ -79,7 +83,11 @@ public:
         Lock lock(lock_);
 
         for (auto i = queue_.cbegin(); i < queue_.cend(); ++i) {
+            /* TODO: this line will cause a segfault in the clang-5 ast parser.
             const auto & [ key, value ] = *i;
+            */
+            const auto& key = std::get<0>(*i);
+            const auto& value = std::get<1>(*i);
 
             if (key == in) {
                 set_.erase(value);
@@ -96,7 +104,12 @@ public:
         std::map<T, OTIdentifier> output{};
         Lock lock(lock_);
 
+        /* TODO: this line will cause a segfault in the clang-5 ast parser.
         for (const auto & [ key, value ] : queue_) {
+        */
+        for (const auto& it : queue_) {
+            const auto& key = it.first;
+            const auto& value = it.second;
             output.emplace(value, Identifier::Factory(key->str()));
         }
 
@@ -130,7 +143,11 @@ public:
             return false;
         }
 
+        /* TODO: this line will cause a segfault in the clang-5 ast parser.
         const auto & [ outKey, outValue ] = queue_.back();
+        */
+        const auto& outKey = queue_.back().first;
+        const auto& outValue = queue_.back().second;
         set_.erase(outValue);
         out = outValue;
         key->SetString(String(outKey));

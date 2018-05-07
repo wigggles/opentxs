@@ -48,6 +48,8 @@
 
 #include <zmq.h>
 
+template class opentxs::Pimpl<opentxs::network::zeromq::PullSocket>;
+
 //#define OT_METHOD "opentxs::network::zeromq::implementation::PullSocket::"
 
 namespace opentxs::network::zeromq

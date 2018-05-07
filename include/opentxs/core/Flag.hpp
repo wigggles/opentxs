@@ -64,6 +64,10 @@ protected:
     Flag() = default;
 
 private:
+    friend OTFlag;
+
+    virtual Flag* clone() const = 0;
+
     Flag(const Flag&) = delete;
     Flag(Flag&&) = delete;
     Flag& operator=(const Flag&) = delete;

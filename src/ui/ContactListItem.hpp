@@ -70,6 +70,8 @@ private:
     OTZMQListenCallback contact_subscriber_callback_;
     OTZMQSubscribeSocket contact_subscriber_;
 
+    ContactListItem* clone() const override { return nullptr; }
+
     void process_contact(const network::zeromq::Message& message);
 
     ContactListItem(

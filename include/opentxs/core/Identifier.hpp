@@ -50,10 +50,20 @@
 #include <set>
 #include <map>
 
-/** An Identifier is basically a 256 bit hash value. This class makes it easy to
- * convert IDs back and forth to strings. */
 namespace opentxs
 {
+bool operator==(
+    const opentxs::OTIdentifier& lhs,
+    const opentxs::Identifier& rhs);
+bool operator!=(
+    const opentxs::OTIdentifier& lhs,
+    const opentxs::Identifier& rhs);
+bool operator<(
+    const opentxs::OTIdentifier& lhs,
+    const opentxs::OTIdentifier& rhs);
+
+/** An Identifier is basically a 256 bit hash value. This class makes it easy to
+ * convert IDs back and forth to strings. */
 class Identifier : virtual public implementation::Data
 {
 private:
@@ -136,12 +146,5 @@ private:
         const proto::ContactItemType type,
         const proto::HDPath& path);
 };
-}  // namespace opentxs
-
-
-extern template class std::set<opentxs::OTIdentifier>;
-extern template class std::map<opentxs::OTIdentifier,
-                               std::set<opentxs::OTIdentifier>>;
-
-
+}  // namespace opentxs0
 #endif  // OPENTXS_CORE_OTIDENTIFIER_HPP

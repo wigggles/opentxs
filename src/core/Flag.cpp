@@ -42,6 +42,8 @@
 
 #include "Flag.hpp"
 
+template class opentxs::Pimpl<opentxs::Flag>;
+
 namespace opentxs
 {
 OTFlag Flag::Factory(const bool state)
@@ -64,6 +66,8 @@ Flag::operator bool() const
 
     return flag_.load();
 }
+
+Flag* Flag::clone() const { return new Flag(flag_.load()); }
 
 void Flag::Off() { Set(false); }
 

@@ -38,6 +38,8 @@
 
 #include "opentxs/stdafx.hpp"
 
+#include "opentxs/api/client/Issuer.hpp"
+#include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/network/Dht.hpp"
 #include "opentxs/api/network/ZMQ.hpp"
 #include "opentxs/api/storage/Storage.hpp"
@@ -64,17 +66,25 @@
 #include "opentxs/Proto.hpp"
 #include "opentxs/core/String.hpp"
 
-#include "Issuer.hpp"
+#include <functional>
+#include <map>
+#include <mutex>
+#include <tuple>
 
 #include "Wallet.hpp"
 
-#include <functional>
-
 #define OT_METHOD "opentxs::api::client::implementation::Wallet::"
+
+namespace opentxs
+{
+api::client::Wallet* Factory::Wallet(api::Native& ot)
+{
+    return new api::client::implementation::Wallet(ot);
+}
+}  // namespace opentxs
 
 namespace opentxs::api::client::implementation
 {
-
 Wallet::Wallet(Native& ot)
     : ot_(ot)
     , nym_map_()
@@ -417,8 +427,7 @@ Wallet::IssuerLock& Wallet::issuer(
     if (loaded) {
         OT_ASSERT(serialized)
 
-        pIssuer.reset(
-            new api::client::implementation::Issuer(*this, nymID, *serialized));
+        pIssuer.reset(Factory::Issuer(*this, nymID, *serialized));
 
         OT_ASSERT(pIssuer)
 
@@ -426,8 +435,7 @@ Wallet::IssuerLock& Wallet::issuer(
     }
 
     if (create) {
-        pIssuer.reset(
-            new api::client::implementation::Issuer(*this, nymID, issuerID));
+        pIssuer.reset(Factory::Issuer(*this, nymID, issuerID));
 
         OT_ASSERT(pIssuer);
 
@@ -456,7 +464,9 @@ std::set<OTIdentifier> Wallet::LocalNyms() const
         ids.begin(),
         ids.end(),
         std::inserter(nymIds, nymIds.end()),
-        [](std::string nym) -> OTIdentifier {return Identifier::Factory(nym);});
+        [](std::string nym) -> OTIdentifier {
+            return Identifier::Factory(nym);
+        });
 
     return nymIds;
 }

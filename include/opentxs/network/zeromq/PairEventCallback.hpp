@@ -48,13 +48,6 @@
 
 #ifdef SWIG
 // clang-format off
-%ignore opentxs::Pimpl<opentxs::network::zeromq::PairEventCallback>::operator+=;
-%ignore opentxs::Pimpl<opentxs::network::zeromq::PairEventCallback>::operator==;
-%ignore opentxs::Pimpl<opentxs::network::zeromq::PairEventCallback>::operator!=;
-%ignore opentxs::Pimpl<opentxs::network::zeromq::PairEventCallback>::operator<;
-%ignore opentxs::Pimpl<opentxs::network::zeromq::PairEventCallback>::operator<=;
-%ignore opentxs::Pimpl<opentxs::network::zeromq::PairEventCallback>::operator>;
-%ignore opentxs::Pimpl<opentxs::network::zeromq::PairEventCallback>::operator>=;
 %template(OTZMQPairEventCallback) opentxs::Pimpl<opentxs::network::zeromq::PairEventCallback>;
 %rename(ZMQPairEventCallback) opentxs::network::zeromq::PairEventCallback;
 // clang-format on

@@ -55,14 +55,27 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/OT.hpp"
 
-
+template class opentxs::Pimpl<opentxs::Identifier>;
 template class std::set<opentxs::OTIdentifier>;
-template class std::map<opentxs::OTIdentifier,
-                        std::set<opentxs::OTIdentifier>>;
-
+template class std::map<opentxs::OTIdentifier, std::set<opentxs::OTIdentifier>>;
 
 namespace opentxs
 {
+bool operator==(const OTIdentifier& lhs, const Identifier& rhs)
+{
+    return lhs.get() == rhs;
+}
+
+bool operator!=(const OTIdentifier& lhs, const Identifier& rhs)
+{
+    return lhs.get() != rhs;
+}
+
+bool operator<(const OTIdentifier& lhs, const OTIdentifier& rhs)
+{
+    return lhs.get() < rhs.get();
+}
+
 OTIdentifier Identifier::Factory() { return OTIdentifier(new Identifier()); }
 
 OTIdentifier Identifier::Factory(const Identifier& rhs)

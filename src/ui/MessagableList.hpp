@@ -91,6 +91,7 @@ private:
     OTZMQSubscribeSocket nym_subscriber_;
 
     MessagableListID blank_id() const override;
+    MessagableList* clone() const override { return nullptr; }
     void construct_item(
         const MessagableListID& id,
         const MessagableListSortKey& index,

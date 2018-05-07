@@ -38,26 +38,36 @@
 
 #include "opentxs/stdafx.hpp"
 
-#include "ServerConnection.hpp"
-
 #include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/network/ZMQ.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/core/contract/ServerContract.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Lockable.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/RequestSocket.hpp"
+#include "opentxs/network/ServerConnection.hpp"
 #include "opentxs/OT.hpp"
 #include "opentxs/Proto.hpp"
 
+#include <atomic>
 #include <chrono>
 #include <cstdint>
+#include <ctime>
+#include <memory>
+#include <mutex>
+#include <thread>
+
+#include "ServerConnection.hpp"
+
+template class opentxs::Pimpl<opentxs::network::ServerConnection>;
 
 #define OT_METHOD "opentxs::ServerConnection::"
 

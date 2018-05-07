@@ -45,13 +45,6 @@
 
 #ifdef SWIG
 // clang-format off
-%ignore opentxs::Pimpl<opentxs::network::zeromq::ReplySocket>::operator+=;
-%ignore opentxs::Pimpl<opentxs::network::zeromq::ReplySocket>::operator==;
-%ignore opentxs::Pimpl<opentxs::network::zeromq::ReplySocket>::operator!=;
-%ignore opentxs::Pimpl<opentxs::network::zeromq::ReplySocket>::operator<;
-%ignore opentxs::Pimpl<opentxs::network::zeromq::ReplySocket>::operator<=;
-%ignore opentxs::Pimpl<opentxs::network::zeromq::ReplySocket>::operator>;
-%ignore opentxs::Pimpl<opentxs::network::zeromq::ReplySocket>::operator>=;
 %template(OTZMQReplySocket) opentxs::Pimpl<opentxs::network::zeromq::ReplySocket>;
 %rename($ignore, regextarget=1, fullname=1) "opentxs::network::zeromq::ReplySocket::Factory.*";
 %rename($ignore, regextarget=1, fullname=1) "opentxs::network::zeromq::ReplySocket::SetCurve.*";

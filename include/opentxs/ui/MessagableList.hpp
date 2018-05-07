@@ -65,6 +65,11 @@ protected:
     MessagableList() = default;
 
 private:
+    friend OTUIMessagableList;
+
+    /** WARNING: not implemented */
+    virtual MessagableList* clone() const = 0;
+
     MessagableList(const MessagableList&) = delete;
     MessagableList(MessagableList&&) = delete;
     MessagableList& operator=(const MessagableList&) = delete;

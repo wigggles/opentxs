@@ -49,10 +49,11 @@
 #include "opentxs/Types.hpp"
 
 #include "PayableListItem.hpp"
-
 #include "PayableList.hpp"
 
 #include <locale>
+
+template class opentxs::Pimpl<opentxs::ui::PayableListItem>;
 
 namespace opentxs::ui::implementation
 {
