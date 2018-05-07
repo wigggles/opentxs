@@ -273,17 +273,17 @@ using OTUIPayableList = Pimpl<ui::PayableList>;
 using OTUIPayableListItem = Pimpl<ui::PayableListItem>;
 }  // namespace opentxs
 
-extern template class opentxs::Pimpl<opentxs::Data>;
-extern template class opentxs::Pimpl<opentxs::Flag>;
+//extern template class opentxs::Pimpl<opentxs::Data>;
+//extern template class opentxs::Pimpl<opentxs::Flag>;
 extern template class opentxs::Pimpl<opentxs::Identifier>;
 extern template class opentxs::Pimpl<opentxs::PaymentCode>;
 extern template class opentxs::Pimpl<opentxs::network::ServerConnection>;
-extern template class opentxs::Pimpl<opentxs::network::zeromq::Context>;
-extern template class opentxs::Pimpl<opentxs::network::zeromq::ListenCallback>;
+//extern template class opentxs::Pimpl<opentxs::network::zeromq::Context>;
+//extern template class opentxs::Pimpl<opentxs::network::zeromq::ListenCallback>;
 extern template class opentxs::Pimpl<opentxs::network::zeromq::Message>;
 extern template class opentxs::Pimpl<
     opentxs::network::zeromq::PairEventCallback>;
-extern template class opentxs::Pimpl<opentxs::network::zeromq::PairSocket>;
+//extern template class opentxs::Pimpl<opentxs::network::zeromq::PairSocket>;
 extern template class opentxs::Pimpl<opentxs::network::zeromq::Proxy>;
 extern template class opentxs::Pimpl<opentxs::network::zeromq::PublishSocket>;
 extern template class opentxs::Pimpl<opentxs::network::zeromq::PullSocket>;
@@ -291,7 +291,7 @@ extern template class opentxs::Pimpl<opentxs::network::zeromq::PushSocket>;
 extern template class opentxs::Pimpl<opentxs::network::zeromq::ReplyCallback>;
 extern template class opentxs::Pimpl<opentxs::network::zeromq::ReplySocket>;
 extern template class opentxs::Pimpl<opentxs::network::zeromq::RequestSocket>;
-extern template class opentxs::Pimpl<opentxs::network::zeromq::SubscribeSocket>;
+//extern template class opentxs::Pimpl<opentxs::network::zeromq::SubscribeSocket>;
 extern template class opentxs::Pimpl<opentxs::ui::ActivitySummary>;
 extern template class opentxs::Pimpl<opentxs::ui::ActivitySummaryItem>;
 extern template class opentxs::Pimpl<opentxs::ui::ActivityThread>;
