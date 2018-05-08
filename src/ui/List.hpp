@@ -41,18 +41,7 @@
 
 #include "opentxs/Internal.hpp"
 
-#include "opentxs/core/Flag.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/Types.hpp"
-
 #include "Widget.hpp"
-
-#include <memory>
-#include <set>
-#include <thread>
-#include <tuple>
-#include <vector>
 
 #define STARTUP_WAIT_MILLISECONDS 100
 
@@ -60,6 +49,7 @@ namespace opentxs::ui::implementation
 {
 template <
     typename InterfaceType,
+    typename InternalInterfaceType,
     typename RowType,
     typename IDType,
     typename PimplType,
@@ -68,7 +58,10 @@ template <
     typename OuterType,
     typename OuterIteratorType,
     typename ReverseType>
-class List : virtual public InterfaceType, public Widget, public Lockable
+class List : virtual public InterfaceType,
+             virtual public InternalInterfaceType,
+             public Widget,
+             public Lockable
 {
 public:
     const RowType& First() const override
@@ -78,7 +71,7 @@ public:
         return first(lock);
     }
 
-    virtual bool last(const IDType& id) const
+    virtual bool last(const IDType& id) const override
     {
         Lock lock(lock_);
 
@@ -96,7 +89,9 @@ public:
 
         return next(lock);
     }
-    void reindex_item(const IDType& id, const SortKeyType& newIndex) const
+    using InternalInterfaceType::reindex_item;
+    void reindex_item(const IDType& id, const SortKeyType& newIndex)
+        const override
     {
         Lock lock(lock_);
         const auto& oldIndex = names_.at(id);
@@ -144,7 +139,9 @@ protected:
         const auto & [ id, item ] = *inner_;
         last_id_ = id;
 
-        return item.get();
+        OT_ASSERT(item)
+
+        return *item;
     }
     void delete_inactive(const std::set<IDType>& active) const
     {

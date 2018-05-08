@@ -59,16 +59,16 @@ public:
     OTIdentifier WidgetID() const override { return Identifier::Factory(); }
     std::string WidgetName() const override { return {}; }
 
+    void SetName(const std::string& name) override {}
+
     ~ContactListItemBlank() = default;
 
 protected:
     ContactListItemBlank() = default;
 
 private:
-    friend MessagableList;
-    friend PayableList;
-
-    ContactListItem* clone() const override { return nullptr; }
+    friend opentxs::ui::implementation::MessagableList;
+    friend opentxs::ui::implementation::PayableList;
 
     ContactListItemBlank(const ContactListItemBlank&) = delete;
     ContactListItemBlank(ContactListItemBlank&&) = delete;

@@ -41,16 +41,12 @@
 
 #include "opentxs/Internal.hpp"
 
-#include "opentxs/ui/ActivityThreadItem.hpp"
-#include "opentxs/Types.hpp"
-
-#include "ActivityThread.hpp"
-#include "Row.hpp"
-
 namespace opentxs::ui::implementation
 {
 using ActivityThreadItemType =
-    Row<opentxs::ui::ActivityThreadItem, ActivityThread, ActivityThreadID>;
+    Row<opentxs::ui::ActivityThreadItem,
+        ActivityThreadParent,
+        ActivityThreadID>;
 
 class ActivityThreadItem : public ActivityThreadItemType
 {
@@ -80,7 +76,7 @@ protected:
     OTFlag pending_;
 
     ActivityThreadItem(
-        const ActivityThread& parent,
+        const ActivityThreadParent& parent,
         const network::zeromq::Context& zmq,
         const api::ContactManager& contact,
         const ActivityThreadID& id,
@@ -92,10 +88,6 @@ protected:
         const bool pending);
 
 private:
-    friend ActivityThread;
-
-    ActivityThreadItem* clone() const override { return nullptr; }
-
     ActivityThreadItem() = delete;
     ActivityThreadItem(const ActivityThreadItem&) = delete;
     ActivityThreadItem(ActivityThreadItem&&) = delete;

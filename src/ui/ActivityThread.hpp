@@ -41,17 +41,6 @@
 
 #include "opentxs/Internal.hpp"
 
-#include "opentxs/core/Flag.hpp"
-#include "opentxs/core/Lockable.hpp"
-#include "opentxs/ui/ActivityThread.hpp"
-#include "opentxs/ui/ActivityThreadItem.hpp"
-
-#include "List.hpp"
-
-#include <map>
-#include <set>
-#include <tuple>
-
 namespace std
 {
 using STORAGEID = std::
@@ -104,9 +93,7 @@ struct less<STORAGEID> {
 
 namespace opentxs::ui::implementation
 {
-using ActivityThreadPimpl = OTUIActivityThreadItem;
-/** item id, box, accountID */
-using ActivityThreadID = std::tuple<OTIdentifier, StorageBox, OTIdentifier>;
+using ActivityThreadPimpl = std::unique_ptr<opentxs::ui::ActivityThreadItem>;
 /** timestamp, index */
 using ActivityThreadSortKey =
     std::pair<std::chrono::system_clock::time_point, std::uint64_t>;
@@ -116,6 +103,7 @@ using ActivityThreadOuter =
 using ActivityThreadReverse = std::map<ActivityThreadID, ActivityThreadSortKey>;
 using ActivityThreadType = List<
     opentxs::ui::ActivityThread,
+    ActivityThreadParent,
     opentxs::ui::ActivityThreadItem,
     ActivityThreadID,
     ActivityThreadPimpl,
@@ -143,7 +131,7 @@ public:
     ~ActivityThread();
 
 private:
-    friend api::implementation::UI;
+    friend Factory;
 
     const api::Activity& activity_;
     const api::client::Sync& sync_;
@@ -161,7 +149,6 @@ private:
     ActivityThreadID blank_id() const override;
     bool check_draft(const ActivityThreadID& id) const;
     void check_drafts() const;
-    ActivityThread* clone() const override { return nullptr; }
     std::string comma(const std::set<std::string>& list) const;
     void construct_item(
         const ActivityThreadID& id,

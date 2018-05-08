@@ -63,17 +63,14 @@ public:
     EXPORT virtual std::string ImageURI() const = 0;
     EXPORT virtual std::string Section() const = 0;
 
+    virtual void SetName(const std::string& name) = 0;
+
     EXPORT virtual ~ContactListItem() = default;
 
 protected:
     ContactListItem() = default;
 
 private:
-    friend OTUIContactListItem;
-
-    /** WARNING: not implemented */
-    virtual ContactListItem* clone() const = 0;
-
     ContactListItem(const ContactListItem&) = delete;
     ContactListItem(ContactListItem&&) = delete;
     ContactListItem& operator=(const ContactListItem&) = delete;

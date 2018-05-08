@@ -48,6 +48,7 @@
 #include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Identity.hpp"
 #include "opentxs/api/Settings.hpp"
+#include "opentxs/api/UI.hpp"
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/client/OTWallet.hpp"
 #include "opentxs/core/crypto/Bip39.hpp"
@@ -78,7 +79,6 @@
 #include "api/Activity.hpp"
 #include "api/ContactManager.hpp"
 #include "api/Server.hpp"
-#include "api/UI.hpp"
 #include "network/DhtConfig.hpp"
 #include "network/OpenDHT.hpp"
 
@@ -819,7 +819,7 @@ void Native::Init_UI()
     OT_ASSERT(api_)
     OT_ASSERT(contacts_);
 
-    ui_.reset(new class UI(
+    ui_.reset(Factory::UI(
         zmq_context_, *activity_, *contacts_, api_->Sync(), running_));
 
     OT_ASSERT(ui_);

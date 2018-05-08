@@ -38,22 +38,49 @@
 
 #include "opentxs/stdafx.hpp"
 
-#include "ActivitySummary.hpp"
-
 #include "opentxs/api/Activity.hpp"
 #include "opentxs/api/ContactManager.hpp"
+#include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Lockable.hpp"
+#include "opentxs/core/Log.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/SubscribeSocket.hpp"
+#include "opentxs/ui/ActivitySummary.hpp"
+#include "opentxs/ui/ActivitySummaryItem.hpp"
 
 #include "ActivitySummaryItemBlank.hpp"
-#include "ActivitySummaryItem.hpp"
+#include "ActivitySummaryParent.hpp"
+#include "List.hpp"
 
-template class opentxs::Pimpl<opentxs::ui::ActivitySummary>;
+#include <map>
+#include <memory>
+#include <set>
+#include <string>
+#include <tuple>
+#include <thread>
+#include <tuple>
+#include <vector>
+
+#include "ActivitySummary.hpp"
 
 #define OT_METHOD "opentxs::ui::implementation::ActivitySummary::"
+
+namespace opentxs
+{
+ui::ActivitySummary* Factory::ActivitySummary(
+    const network::zeromq::Context& zmq,
+    const api::Activity& activity,
+    const api::ContactManager& contact,
+    const Flag& running,
+    const Identifier& nymID)
+{
+    return new ui::implementation::ActivitySummary(
+        zmq, activity, contact, running, nymID);
+}
+}  // namespace opentxs
 
 namespace opentxs::ui::implementation
 {
@@ -105,7 +132,7 @@ void ActivitySummary::construct_item(
 {
     items_[index].emplace(
         id,
-        new ActivitySummaryItem(
+        Factory::ActivitySummaryItem(
             *this, zmq_, activity_, contact_manager_, running_, nym_id_, id));
     names_.emplace(id, index);
 }

@@ -42,19 +42,46 @@
 #include "opentxs/api/ContactManager.hpp"
 #include "opentxs/contact/Contact.hpp"
 #include "opentxs/contact/ContactData.hpp"
+#include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Lockable.hpp"
+#include "opentxs/core/Log.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/SubscribeSocket.hpp"
+#include "opentxs/ui/ContactListItem.hpp"
+#include "opentxs/ui/PayableList.hpp"
 
-#include "PayableListItem.hpp"
 #include "PayableListItemBlank.hpp"
+#include "ContactListParent.hpp"
+#include "List.hpp"
+
+#include <map>
+#include <memory>
+#include <set>
+#include <string>
+#include <thread>
+#include <tuple>
+#include <vector>
+
 #include "PayableList.hpp"
 
-template class opentxs::Pimpl<opentxs::ui::PayableList>;
-
 #define OT_METHOD "opentxs::ui::implementation::PayableList::"
+
+namespace opentxs
+{
+ui::PayableList* Factory::PayableList(
+    const network::zeromq::Context& zmq,
+    const api::ContactManager& contact,
+    const api::client::Sync& sync,
+    const Identifier& nymID,
+    const proto::ContactItemType& currency)
+{
+    return new ui::implementation::PayableList(
+        zmq, contact, sync, nymID, currency);
+}
+}  // namespace opentxs
 
 namespace opentxs::ui::implementation
 {
@@ -124,7 +151,7 @@ void PayableList::construct_item(
     names_.emplace(id, index);
     items_[index].emplace(
         id,
-        new PayableListItem(
+        Factory::PayableListItem(
             *this, zmq_, contact_manager_, id, index, *paymentCode, currency_));
 }
 

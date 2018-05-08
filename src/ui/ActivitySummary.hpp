@@ -41,20 +41,9 @@
 
 #include "opentxs/Internal.hpp"
 
-#include "opentxs/core/Flag.hpp"
-#include "opentxs/core/Lockable.hpp"
-#include "opentxs/ui/ActivitySummary.hpp"
-#include "opentxs/ui/ActivitySummaryItem.hpp"
-
-#include "List.hpp"
-
-#include <map>
-#include <string>
-#include <tuple>
-
 namespace opentxs::ui::implementation
 {
-using ActivitySummaryPimpl = OTUIActivitySummaryItem;
+using ActivitySummaryPimpl = std::unique_ptr<opentxs::ui::ActivitySummaryItem>;
 using ActivitySummaryID = OTIdentifier;
 using ActivitySummarySortKey =
     std::pair<std::chrono::system_clock::time_point, std::string>;
@@ -65,6 +54,7 @@ using ActivitySummaryReverse =
     std::map<ActivitySummaryID, ActivitySummarySortKey>;
 using ActivitySummaryType = List<
     opentxs::ui::ActivitySummary,
+    ActivitySummaryParent,
     opentxs::ui::ActivitySummaryItem,
     ActivitySummaryID,
     ActivitySummaryPimpl,
@@ -80,7 +70,7 @@ public:
     ~ActivitySummary() = default;
 
 private:
-    friend api::implementation::UI;
+    friend Factory;
 
     const api::Activity& activity_;
     const Flag& running_;
@@ -88,7 +78,6 @@ private:
     OTZMQSubscribeSocket activity_subscriber_;
 
     ActivitySummaryID blank_id() const override;
-    ActivitySummary* clone() const override { return nullptr; }
     void construct_item(
         const ActivitySummaryID& id,
         const ActivitySummarySortKey& index,

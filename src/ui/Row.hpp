@@ -41,8 +41,6 @@
 
 #include "opentxs/Internal.hpp"
 
-#include "opentxs/core/Lockable.hpp"
-
 #include "Widget.hpp"
 
 namespace opentxs::ui::implementation

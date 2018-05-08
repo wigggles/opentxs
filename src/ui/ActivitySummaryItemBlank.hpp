@@ -68,9 +68,7 @@ public:
     ~ActivitySummaryItemBlank() = default;
 
 private:
-    friend ActivitySummary;
-
-    ActivitySummaryItemBlank* clone() const override { return nullptr; }
+    friend opentxs::ui::implementation::ActivitySummary;
 
     ActivitySummaryItemBlank() = default;
     ActivitySummaryItemBlank(const ActivitySummaryItemBlank&) = delete;

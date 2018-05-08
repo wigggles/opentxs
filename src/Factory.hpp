@@ -39,14 +39,32 @@
 #ifndef OPENTXS_FACTORY_HPP
 #define OPENTXS_FACTORY_HPP
 
-#include "opentxs/Proto.hpp"
-#include "opentxs/Types.hpp"
-
 namespace opentxs
 {
 class Factory
 {
 public:
+    static ui::ActivitySummary* ActivitySummary(
+        const network::zeromq::Context& zmq,
+        const api::Activity& activity,
+        const api::ContactManager& contact,
+        const Flag& running,
+        const Identifier& nymID);
+    static ui::ActivitySummaryItem* ActivitySummaryItem(
+        const ui::implementation::ActivitySummaryParent& parent,
+        const network::zeromq::Context& zmq,
+        const api::Activity& activity,
+        const api::ContactManager& contact,
+        const Flag& running,
+        const Identifier& nymID,
+        const Identifier& threadID);
+    static ui::ActivityThread* ActivityThread(
+        const network::zeromq::Context& zmq,
+        const api::client::Sync& sync,
+        const api::Activity& activity,
+        const api::ContactManager& contact,
+        const Identifier& nymID,
+        const Identifier& threadID);
     static api::Api* Api(
         const Flag& running,
         const api::Activity& activity,
@@ -58,6 +76,16 @@ public:
         const api::client::Wallet& wallet,
         const api::network::ZMQ& zmq);
     static api::client::Cash* Cash();
+    static ui::ContactList* ContactList(
+        const network::zeromq::Context& zmq,
+        const api::ContactManager& contact,
+        const Identifier& nymID);
+    static ui::ContactListItem* ContactListItem(
+        const ui::implementation::ContactListParent& parent,
+        const network::zeromq::Context& zmq,
+        const api::ContactManager& contact,
+        const Identifier& id,
+        const std::string& name);
     static api::client::Issuer* Issuer(
         const api::client::Wallet& wallet,
         const Identifier& nymID,
@@ -66,6 +94,30 @@ public:
         const api::client::Wallet& wallet,
         const Identifier& nymID,
         const Identifier& issuerID);
+    static ui::ActivityThreadItem* MailItem(
+        const ui::implementation::ActivityThreadParent& parent,
+        const network::zeromq::Context& zmq,
+        const api::ContactManager& contact,
+        const ui::implementation::ActivityThreadID& id,
+        const Identifier& nymID,
+        const api::Activity& activity,
+        const std::chrono::system_clock::time_point& time,
+        const std::string& text,
+        const bool loading,
+        const bool pending);
+    static ui::ActivityThreadItem* MailItem(
+        const ui::implementation::ActivityThreadParent& parent,
+        const network::zeromq::Context& zmq,
+        const api::ContactManager& contact,
+        const ui::implementation::ActivityThreadID& id,
+        const Identifier& nymID,
+        const api::Activity& activity,
+        const std::chrono::system_clock::time_point& time);
+    static ui::MessagableList* MessagableList(
+        const network::zeromq::Context& zmq,
+        const api::ContactManager& contact,
+        const api::client::Sync& sync,
+        const Identifier& nymID);
     static api::client::Pair* Pair(
         const Flag& running,
         const api::client::Sync& sync,
@@ -74,6 +126,28 @@ public:
         const OT_API& otapi,
         const OTAPI_Exec& exec,
         const network::zeromq::Context& context);
+    static ui::ActivityThreadItem* PaymentItem(
+        const ui::implementation::ActivityThreadParent& parent,
+        const network::zeromq::Context& zmq,
+        const api::ContactManager& contact,
+        const ui::implementation::ActivityThreadID& id,
+        const Identifier& nymID,
+        const api::Activity& activity,
+        const std::chrono::system_clock::time_point& time);
+    static ui::PayableList* PayableList(
+        const network::zeromq::Context& zmq,
+        const api::ContactManager& contact,
+        const api::client::Sync& sync,
+        const Identifier& nymID,
+        const proto::ContactItemType& currency);
+    static ui::PayableListItem* PayableListItem(
+        const ui::implementation::ContactListParent& parent,
+        const network::zeromq::Context& zmq,
+        const api::ContactManager& contact,
+        const Identifier& id,
+        const std::string& name,
+        const std::string& paymentcode,
+        const proto::ContactItemType& currency);
     static api::client::ServerAction* ServerAction(
         const OT_API& otapi,
         const OTAPI_Exec& exec,
@@ -92,6 +166,12 @@ public:
         const api::crypto::Encode& encoding,
         const network::zeromq::Context& zmq,
         const ContextLockCallback& lockCallback);
+    static api::UI* UI(
+        const network::zeromq::Context& zmq,
+        const api::Activity& activity,
+        const api::ContactManager& contact,
+        const api::client::Sync& sync,
+        const Flag& running);
     static api::client::Wallet* Wallet(api::Native& ot);
     static api::client::Workflow* Workflow(
         const api::Activity& activity,

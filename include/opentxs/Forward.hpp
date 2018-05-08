@@ -262,28 +262,20 @@ using OTZMQReplyCallback = Pimpl<network::zeromq::ReplyCallback>;
 using OTZMQReplySocket = Pimpl<network::zeromq::ReplySocket>;
 using OTZMQRequestSocket = Pimpl<network::zeromq::RequestSocket>;
 using OTZMQSubscribeSocket = Pimpl<network::zeromq::SubscribeSocket>;
-using OTUIActivitySummary = Pimpl<ui::ActivitySummary>;
-using OTUIActivitySummaryItem = Pimpl<ui::ActivitySummaryItem>;
-using OTUIActivityThread = Pimpl<ui::ActivityThread>;
-using OTUIActivityThreadItem = Pimpl<ui::ActivityThreadItem>;
-using OTUIContactList = Pimpl<ui::ContactList>;
-using OTUIContactListItem = Pimpl<ui::ContactListItem>;
-using OTUIMessagableList = Pimpl<ui::MessagableList>;
-using OTUIPayableList = Pimpl<ui::PayableList>;
-using OTUIPayableListItem = Pimpl<ui::PayableListItem>;
 }  // namespace opentxs
 
-//extern template class opentxs::Pimpl<opentxs::Data>;
-//extern template class opentxs::Pimpl<opentxs::Flag>;
+// extern template class opentxs::Pimpl<opentxs::Data>;
+// extern template class opentxs::Pimpl<opentxs::Flag>;
 extern template class opentxs::Pimpl<opentxs::Identifier>;
 extern template class opentxs::Pimpl<opentxs::PaymentCode>;
 extern template class opentxs::Pimpl<opentxs::network::ServerConnection>;
-//extern template class opentxs::Pimpl<opentxs::network::zeromq::Context>;
-//extern template class opentxs::Pimpl<opentxs::network::zeromq::ListenCallback>;
+// extern template class opentxs::Pimpl<opentxs::network::zeromq::Context>;
+// extern template class
+// opentxs::Pimpl<opentxs::network::zeromq::ListenCallback>;
 extern template class opentxs::Pimpl<opentxs::network::zeromq::Message>;
 extern template class opentxs::Pimpl<
     opentxs::network::zeromq::PairEventCallback>;
-//extern template class opentxs::Pimpl<opentxs::network::zeromq::PairSocket>;
+// extern template class opentxs::Pimpl<opentxs::network::zeromq::PairSocket>;
 extern template class opentxs::Pimpl<opentxs::network::zeromq::Proxy>;
 extern template class opentxs::Pimpl<opentxs::network::zeromq::PublishSocket>;
 extern template class opentxs::Pimpl<opentxs::network::zeromq::PullSocket>;
@@ -291,15 +283,7 @@ extern template class opentxs::Pimpl<opentxs::network::zeromq::PushSocket>;
 extern template class opentxs::Pimpl<opentxs::network::zeromq::ReplyCallback>;
 extern template class opentxs::Pimpl<opentxs::network::zeromq::ReplySocket>;
 extern template class opentxs::Pimpl<opentxs::network::zeromq::RequestSocket>;
-//extern template class opentxs::Pimpl<opentxs::network::zeromq::SubscribeSocket>;
-extern template class opentxs::Pimpl<opentxs::ui::ActivitySummary>;
-extern template class opentxs::Pimpl<opentxs::ui::ActivitySummaryItem>;
-extern template class opentxs::Pimpl<opentxs::ui::ActivityThread>;
-extern template class opentxs::Pimpl<opentxs::ui::ActivityThreadItem>;
-extern template class opentxs::Pimpl<opentxs::ui::ContactList>;
-extern template class opentxs::Pimpl<opentxs::ui::ContactListItem>;
-extern template class opentxs::Pimpl<opentxs::ui::MessagableList>;
-extern template class opentxs::Pimpl<opentxs::ui::PayableList>;
-extern template class opentxs::Pimpl<opentxs::ui::PayableListItem>;
+// extern template class
+// opentxs::Pimpl<opentxs::network::zeromq::SubscribeSocket>;
 
 #endif  // OPENTXS_FORWARD_HPP

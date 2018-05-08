@@ -43,23 +43,50 @@
 #include "opentxs/api/ContactManager.hpp"
 #include "opentxs/contact/Contact.hpp"
 #include "opentxs/contact/ContactData.hpp"
+#include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Lockable.hpp"
+#include "opentxs/core/Log.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/SubscribeSocket.hpp"
+#include "opentxs/ui/ActivityThread.hpp"
+#include "opentxs/ui/ActivityThreadItem.hpp"
 #include "opentxs/Types.hpp"
+
+#include "ActivityThreadItemBlank.hpp"
+#include "ActivityThreadParent.hpp"
+#include "List.hpp"
+
+#include <map>
+#include <memory>
+#include <set>
+#include <thread>
+#include <tuple>
+#include <vector>
 
 #include "ActivityThread.hpp"
 
-#include "ActivityThreadItemBlank.hpp"
-#include "ActivityThreadItem.hpp"
-#include "MailItem.hpp"
-#include "PaymentItem.hpp"
-
-template class opentxs::Pimpl<opentxs::ui::ActivityThread>;
+template class std::
+    tuple<opentxs::OTIdentifier, opentxs::StorageBox, opentxs::OTIdentifier>;
 
 #define OT_METHOD "opentxs::ui::implementation::ActivityThread::"
+
+namespace opentxs
+{
+ui::ActivityThread* Factory::ActivityThread(
+    const network::zeromq::Context& zmq,
+    const api::client::Sync& sync,
+    const api::Activity& activity,
+    const api::ContactManager& contact,
+    const Identifier& nymID,
+    const Identifier& threadID)
+{
+    return new ui::implementation::ActivityThread(
+        zmq, sync, activity, contact, nymID, threadID);
+}
+}  // namespace opentxs
 
 namespace opentxs::ui::implementation
 {
@@ -201,7 +228,7 @@ void ActivityThread::construct_item(
         case StorageBox::MAILOUTBOX: {
             items_[index].emplace(
                 id,
-                new MailItem(
+                Factory::MailItem(
                     *this,
                     zmq_,
                     contact_manager_,
@@ -213,7 +240,7 @@ void ActivityThread::construct_item(
         case StorageBox::DRAFT: {
             items_[index].emplace(
                 id,
-                new MailItem(
+                Factory::MailItem(
                     *this,
                     zmq_,
                     contact_manager_,
@@ -229,7 +256,7 @@ void ActivityThread::construct_item(
         case StorageBox::OUTGOINGCHEQUE: {
             items_[index].emplace(
                 id,
-                new PaymentItem(
+                Factory::PaymentItem(
                     *this,
                     zmq_,
                     contact_manager_,

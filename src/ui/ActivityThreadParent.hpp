@@ -36,31 +36,38 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_UI_CONTACTLISTINTERFACE_HPP
-#define OPENTXS_UI_CONTACTLISTINTERFACE_HPP
+#ifndef OPENTXS_UI_ACTIVITY_THREAD_PARENT_HPP
+#define OPENTXS_UI_ACTIVITY_THREAD_PARENT_HPP
 
 #include "opentxs/Internal.hpp"
 
-#include "opentxs/ui/Widget.hpp"
+#include <chrono>
+#include <cstdint>
+#include <tuple>
 
 namespace opentxs::ui::implementation
 {
-class ContactListInterface : virtual public opentxs::ui::Widget
+using ActivityThreadSortKey =
+    std::pair<std::chrono::system_clock::time_point, std::uint64_t>;
+
+class ActivityThreadParent
 {
 public:
-    virtual const Identifier& ID() const = 0;
-    virtual bool last(const OTIdentifier& id) const = 0;
+    virtual bool last(const ActivityThreadID& id) const = 0;
+    virtual void reindex_item(
+        const ActivityThreadID& id,
+        const ActivityThreadSortKey& newIndex) const = 0;
+    virtual std::string ThreadID() const = 0;
+    virtual OTIdentifier WidgetID() const = 0;
+
+    virtual ~ActivityThreadParent() = default;
 
 protected:
-    ContactListInterface() = default;
-
-    virtual ~ContactListInterface() = default;
-
-private:
-    ContactListInterface(const ContactListInterface&) = delete;
-    ContactListInterface(ContactListInterface&&) = delete;
-    ContactListInterface& operator=(const ContactListInterface&) = delete;
-    ContactListInterface& operator=(ContactListInterface&&) = delete;
+    ActivityThreadParent() = default;
+    ActivityThreadParent(const ActivityThreadParent&) = delete;
+    ActivityThreadParent(ActivityThreadParent&&) = delete;
+    ActivityThreadParent& operator=(const ActivityThreadParent&) = delete;
+    ActivityThreadParent& operator=(ActivityThreadParent&&) = delete;
 };
 }  // opentxs::ui::implementation
-#endif  // OPENTXS_UI_CONTACTLISTINTERFACE_HPP
+#endif  // OPENTXS_UI_ACTIVITY_THREAD_PARENT_HPP

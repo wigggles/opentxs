@@ -36,40 +36,38 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_UI_MESSAGABLELIST_HPP
-#define OPENTXS_UI_MESSAGABLELIST_HPP
+#ifndef OPENTXS_UI_ACTIVITY_SUMMARY_PARENT_HPP
+#define OPENTXS_UI_ACTIVITY_SUMMARY_PARENT_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Internal.hpp"
 
-#include "opentxs/ui/Widget.hpp"
+#include <chrono>
+#include <tuple>
+#include <string>
 
-#ifdef SWIG
-// clang-format off
-%rename(UIMessagableList) opentxs::ui::MessagableList;
-// clang-format on
-#endif  // SWIG
-
-namespace opentxs
+namespace opentxs::ui::implementation
 {
-namespace ui
-{
-class MessagableList : virtual public Widget
+using ActivitySummaryID = OTIdentifier;
+using ActivitySummarySortKey =
+    std::pair<std::chrono::system_clock::time_point, std::string>;
+
+class ActivitySummaryParent
 {
 public:
-    EXPORT virtual const ContactListItem& First() const = 0;
-    EXPORT virtual const ContactListItem& Next() const = 0;
+    virtual bool last(const ActivitySummaryID& id) const = 0;
+    virtual void reindex_item(
+        const ActivitySummaryID& id,
+        const ActivitySummarySortKey& newIndex) const = 0;
+    virtual OTIdentifier WidgetID() const = 0;
 
-    EXPORT virtual ~MessagableList() = default;
+    virtual ~ActivitySummaryParent() = default;
 
 protected:
-    MessagableList() = default;
-
-private:
-    MessagableList(const MessagableList&) = delete;
-    MessagableList(MessagableList&&) = delete;
-    MessagableList& operator=(const MessagableList&) = delete;
-    MessagableList& operator=(MessagableList&&) = delete;
+    ActivitySummaryParent() = default;
+    ActivitySummaryParent(const ActivitySummaryParent&) = delete;
+    ActivitySummaryParent(ActivitySummaryParent&&) = delete;
+    ActivitySummaryParent& operator=(const ActivitySummaryParent&) = delete;
+    ActivitySummaryParent& operator=(ActivitySummaryParent&&) = delete;
 };
-}  // namespace ui
-}  // namespace opentxs
-#endif  // OPENTXS_UI_MESSAGABLELIST_HPP
+}  // opentxs::ui::implementation
+#endif  // OPENTXS_UI_ACTIVITY_SUMMARY_PARENT_HPP
