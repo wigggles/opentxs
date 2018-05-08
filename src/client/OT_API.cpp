@@ -432,8 +432,9 @@ void OT_API::Pid::OpenPid(const String& strPidFilePath)
                     << "\n\n\nIS OPEN-TRANSACTIONS ALREADY RUNNING?\n\n"
                        "I found a PID ("
                     << lPID << ") in the data lock file, located at: "
-                    << m_strPidFilePath << "\n\n"
-                                           "If the OT process with PID "
+                    << m_strPidFilePath
+                    << "\n\n"
+                       "If the OT process with PID "
                     << lPID
                     << " is truly not running "
                        "anymore, "
@@ -960,8 +961,9 @@ std::shared_ptr<Account> OT_API::GetAccount(
             (nullptr != szFunc))  // We only log if the caller asked us to.
         {
             const String strID(THE_ID);
-            otWarn << __FUNCTION__ << " " << szFunc << ": No account found in "
-                                                       "wallet with ID: "
+            otWarn << __FUNCTION__ << " " << szFunc
+                   << ": No account found in "
+                      "wallet with ID: "
                    << strID << "\n";
         }
 
@@ -1196,8 +1198,9 @@ bool OT_API::Wallet_CanRemoveServer(const Identifier& NOTARY_ID) const
                   << ": Unable to remove server contract " << NOTARY_ID.str()
                   << " "
                      "from wallet, because Nym "
-                  << nymID->str() << " is registered "
-                                     "there. (Delete that first...)\n";
+                  << nymID->str()
+                  << " is registered "
+                     "there. (Delete that first...)\n";
             return false;
         }
     }
@@ -1533,7 +1536,7 @@ bool OT_API::Wallet_ExportNym(const Identifier& NYM_ID, String& strOutput) const
         strOutput.Release();
         bReturnVal = ascTemp.WriteArmoredString(
             strOutput, "EXPORTED NYM"  // -----BEGIN OT EXPORTED NYM-----
-            );                         // (bool bEscaped=false by default.)
+        );                             // (bool bEscaped=false by default.)
     }
 
     return bReturnVal;
@@ -1745,13 +1748,12 @@ bool OT_API::Wallet_ImportNym(
                     String::Map& thePrivateMap = pPrivateMap->the_map;
                     bool unused = false;
 
-                    if (false ==
-                        nym->LoadNymFromString(
-                            strCredList,
-                            unused,
-                            &thePrivateMap,
-                            &strReasonToLoad,
-                            pExportPassphrase.get())) {
+                    if (false == nym->LoadNymFromString(
+                                     strCredList,
+                                     unused,
+                                     &thePrivateMap,
+                                     &strReasonToLoad,
+                                     pExportPassphrase.get())) {
                         otErr << OT_METHOD << __FUNCTION__
                               << ": Failure loading nym " << strNymID
                               << " from credential string.\n";
@@ -1814,8 +1816,9 @@ bool OT_API::Wallet_ImportNym(
             // Insert to wallet's list of Nyms.
             auto pNym = wallet_.Nym(nym->ID());
             if (false == bool(pNym)) {
-                otErr << OT_METHOD << __FUNCTION__ << ": Failed while saving "
-                                                      "the nym to the wallet.";
+                otErr << OT_METHOD << __FUNCTION__
+                      << ": Failed while saving "
+                         "the nym to the wallet.";
                 return false;
             } else
                 bConverted = true;
@@ -1943,7 +1946,7 @@ bool OT_API::Encode(
         strOutput.Release();
         bSuccess = ascArmor.WriteArmoredString(
             strOutput, "ENCODED TEXT"  // -----BEGIN OT ENCODED TEXT-----
-            );                         // (bool bEscaped=false by default.)
+        );                             // (bool bEscaped=false by default.)
     }
     return bSuccess;
 }
@@ -2014,7 +2017,7 @@ bool OT_API::Encrypt(
 
         bSuccess = ascCiphertext.WriteArmoredString(
             strOutput, "ENCRYPTED TEXT"  // -----BEGIN OT ENCRYPTED TEXT-----
-            );                           // (bool bEscaped=false by default.)
+        );                               // (bool bEscaped=false by default.)
     }
     return bSuccess;
 }
@@ -2401,8 +2404,9 @@ bool OT_API::Create_SmartContract(
         "while trying to instantiate blank smart "
         "contract.\n");
     if (!contract->SetDateRange(VALID_FROM, VALID_TO)) {
-        otErr << "OT_API::" << __FUNCTION__ << ": Failed trying to set date "
-                                               "range.\n";
+        otErr << "OT_API::" << __FUNCTION__
+              << ": Failed trying to set date "
+                 "range.\n";
         return false;
     }
 
@@ -2444,8 +2448,9 @@ bool OT_API::SmartContract_SetDates(
         return false;
     }
     if (!contract->SetDateRange(VALID_FROM, VALID_TO)) {
-        otErr << "OT_API::" << __FUNCTION__ << ": Failed trying to set date "
-                                               "range.\n";
+        otErr << "OT_API::" << __FUNCTION__
+              << ": Failed trying to set date "
+                 "range.\n";
         return false;
     }
     contract->ReleaseSignatures();
@@ -2637,8 +2642,9 @@ bool OT_API::SmartContract_AddAccount(
     if (nullptr != party->GetAccount(str_name)) {
         otErr << "OT_API::SmartContract_AddAccount: Failed adding: "
                  "account is already there with that name ("
-              << str_name << ") on "
-                             "party: "
+              << str_name
+              << ") on "
+                 "party: "
               << str_party_name << " \n";
         return false;
     }
@@ -2675,13 +2681,12 @@ bool OT_API::SmartContract_AddAccount(
 
     if (nullptr != szAssetTypeID) strInstrumentDefinitionID.Set(szAssetTypeID);
 
-    if (false ==
-        party->AddAccount(
-            strAgentName,
-            strAcctName,
-            strAcctID,
-            strInstrumentDefinitionID,
-            0)) {
+    if (false == party->AddAccount(
+                     strAgentName,
+                     strAcctName,
+                     strAcctID,
+                     strInstrumentDefinitionID,
+                     0)) {
         otErr << "OT_API::SmartContract_AddAccount: Failed trying to "
                  "add account ("
               << str_name << ") to party: " << str_party_name << " \n";
@@ -2939,8 +2944,9 @@ bool OT_API::SmartContract_ConfirmAccount(
         otErr << OT_METHOD << __FUNCTION__
               << ": Failure: The smart contract has a different "
                  "server ID on it already ("
-              << strServer1 << ") than the one "
-                               "that goes with this account (server "
+              << strServer1
+              << ") than the one "
+                 "that goes with this account (server "
               << strServer2 << ", for account " << ACCT_ID << ")\n";
         return false;
     }
@@ -3484,8 +3490,9 @@ bool OT_API::SmartContract_AddClause(
     std::unique_ptr<OTScriptable> contract(
         OTScriptable::InstantiateScriptable(THE_CONTRACT));
     if (nullptr == contract) {
-        otErr << "OT_API::" << __FUNCTION__ << ": Error loading "
-                                               "smart contract:\n\n"
+        otErr << "OT_API::" << __FUNCTION__
+              << ": Error loading "
+                 "smart contract:\n\n"
               << THE_CONTRACT << "\n\n";
         return false;
     }
@@ -3494,8 +3501,9 @@ bool OT_API::SmartContract_AddClause(
     OTBylaw* pBylaw = contract->GetBylaw(str_bylaw_name);
 
     if (nullptr == pBylaw) {
-        otErr << "OT_API::" << __FUNCTION__ << ": Failure: Bylaw "
-                                               "doesn't exist: "
+        otErr << "OT_API::" << __FUNCTION__
+              << ": Failure: Bylaw "
+                 "doesn't exist: "
               << str_bylaw_name << " \n Input contract: \n\n"
               << THE_CONTRACT << "\n\n";
         return false;
@@ -3506,14 +3514,16 @@ bool OT_API::SmartContract_AddClause(
         otErr << "OT_API::" << __FUNCTION__
               << ": Failed adding: "
                  "clause is already there with that name ("
-              << str_name << ") on "
-                             "bylaw: "
+              << str_name
+              << ") on "
+                 "bylaw: "
               << str_bylaw_name << " \n";
         return false;
     }
     if (!pBylaw->AddClause(str_name.c_str(), str_code.c_str())) {
-        otErr << "OT_API::" << __FUNCTION__ << ": Failed trying to "
-                                               "add clause ("
+        otErr << "OT_API::" << __FUNCTION__
+              << ": Failed trying to "
+                 "add clause ("
               << str_name << ") to bylaw: " << str_bylaw_name << " \n";
         return false;
     }
@@ -3552,8 +3562,9 @@ bool OT_API::SmartContract_UpdateClause(
     std::unique_ptr<OTScriptable> contract(
         OTScriptable::InstantiateScriptable(THE_CONTRACT));
     if (nullptr == contract) {
-        otErr << "OT_API::" << __FUNCTION__ << ": Error loading "
-                                               "smart contract:\n\n"
+        otErr << "OT_API::" << __FUNCTION__
+              << ": Error loading "
+                 "smart contract:\n\n"
               << THE_CONTRACT << "\n\n";
         return false;
     }
@@ -3562,8 +3573,9 @@ bool OT_API::SmartContract_UpdateClause(
     OTBylaw* pBylaw = contract->GetBylaw(str_bylaw_name);
 
     if (nullptr == pBylaw) {
-        otErr << "OT_API::" << __FUNCTION__ << ": Failure: Bylaw "
-                                               "doesn't exist: "
+        otErr << "OT_API::" << __FUNCTION__
+              << ": Failure: Bylaw "
+                 "doesn't exist: "
               << str_bylaw_name << " \n Input contract: \n\n"
               << THE_CONTRACT << "\n\n";
         return false;
@@ -3608,8 +3620,9 @@ bool OT_API::SmartContract_RemoveClause(
     std::unique_ptr<OTScriptable> contract(
         OTScriptable::InstantiateScriptable(THE_CONTRACT));
     if (nullptr == contract) {
-        otErr << "OT_API::" << __FUNCTION__ << ": Error loading "
-                                               "smart contract:\n\n"
+        otErr << "OT_API::" << __FUNCTION__
+              << ": Error loading "
+                 "smart contract:\n\n"
               << THE_CONTRACT << "\n\n";
         return false;
     }
@@ -3618,8 +3631,9 @@ bool OT_API::SmartContract_RemoveClause(
     OTBylaw* pBylaw = contract->GetBylaw(str_bylaw_name);
 
     if (nullptr == pBylaw) {
-        otErr << "OT_API::" << __FUNCTION__ << ": Failure: Bylaw "
-                                               "doesn't exist: "
+        otErr << "OT_API::" << __FUNCTION__
+              << ": Failure: Bylaw "
+                 "doesn't exist: "
               << str_bylaw_name << " \n Input contract: \n\n"
               << THE_CONTRACT << "\n\n";
         return false;
@@ -3672,8 +3686,9 @@ bool OT_API::SmartContract_AddVariable(
     std::unique_ptr<OTScriptable> contract(
         OTScriptable::InstantiateScriptable(THE_CONTRACT));
     if (nullptr == contract) {
-        otErr << "OT_API::" << __FUNCTION__ << ": Error loading "
-                                               "smart contract:\n\n"
+        otErr << "OT_API::" << __FUNCTION__
+              << ": Error loading "
+                 "smart contract:\n\n"
               << THE_CONTRACT << "\n\n";
         return false;
     }
@@ -3682,8 +3697,9 @@ bool OT_API::SmartContract_AddVariable(
     OTBylaw* pBylaw = contract->GetBylaw(str_bylaw_name);
 
     if (nullptr == pBylaw) {
-        otErr << "OT_API::" << __FUNCTION__ << ": Failure: Bylaw "
-                                               "doesn't exist: "
+        otErr << "OT_API::" << __FUNCTION__
+              << ": Failure: Bylaw "
+                 "doesn't exist: "
               << str_bylaw_name << " \n";
         return false;
     }
@@ -3691,8 +3707,9 @@ bool OT_API::SmartContract_AddVariable(
         str_type(VAR_TYPE.Get()), str_value(VAR_VALUE.Get());
 
     if (nullptr != pBylaw->GetVariable(str_name)) {
-        otErr << "OT_API::" << __FUNCTION__ << ": Failure: "
-                                               "Variable ("
+        otErr << "OT_API::" << __FUNCTION__
+              << ": Failure: "
+                 "Variable ("
               << str_name << ") already exists on bylaw: " << str_bylaw_name
               << " \n";
         return false;
@@ -3743,8 +3760,9 @@ bool OT_API::SmartContract_AddVariable(
     }
 
     if (!bAdded) {
-        otErr << "OT_API::" << __FUNCTION__ << ": Failed trying to "
-                                               "add variable ("
+        otErr << "OT_API::" << __FUNCTION__
+              << ": Failed trying to "
+                 "add variable ("
               << str_name << ") to bylaw: " << str_bylaw_name << " \n";
         return false;
     }
@@ -3782,8 +3800,9 @@ bool OT_API::SmartContract_RemoveVariable(
     std::unique_ptr<OTScriptable> contract(
         OTScriptable::InstantiateScriptable(THE_CONTRACT));
     if (nullptr == contract) {
-        otErr << "OT_API::" << __FUNCTION__ << ": Error loading "
-                                               "smart contract:\n\n"
+        otErr << "OT_API::" << __FUNCTION__
+              << ": Error loading "
+                 "smart contract:\n\n"
               << THE_CONTRACT << "\n\n";
         return false;
     }
@@ -3792,8 +3811,9 @@ bool OT_API::SmartContract_RemoveVariable(
     OTBylaw* pBylaw = contract->GetBylaw(str_bylaw_name);
 
     if (nullptr == pBylaw) {
-        otErr << "OT_API::" << __FUNCTION__ << ": Failure: Bylaw "
-                                               "doesn't exist: "
+        otErr << "OT_API::" << __FUNCTION__
+              << ": Failure: Bylaw "
+                 "doesn't exist: "
               << str_bylaw_name << " \n";
         return false;
     }
@@ -3897,8 +3917,9 @@ bool OT_API::SetAccount_Name(
 
     if (!ACCT_NEW_NAME.Exists())  // Any other validation to do on the name?
     {
-        otErr << OT_METHOD << __FUNCTION__ << ": FYI, new name is empty. "
-                                              "(Proceeding anyway)\n";
+        otErr << OT_METHOD << __FUNCTION__
+              << ": FYI, new name is empty. "
+                 "(Proceeding anyway)\n";
     }
     account->SetName(ACCT_NEW_NAME);
     account->ReleaseSignatures();
@@ -4143,7 +4164,7 @@ bool OT_API::AddClaim(
 {
     std::set<std::uint32_t> attribute;
 
-    if (active) {
+    if (active || primary) {
         attribute.insert(proto::CITEMATTR_ACTIVE);
     }
 
@@ -4975,7 +4996,7 @@ OTNym_or_SymmetricKey* OT_API::LoadPurseAndOwnerForMerge(
              !thePurse.IsPasswordProtected())  // && (nullptr != pOWNER_ID))
                                                //
                                                // checked inside the block.
-            ) {
+        ) {
             const Identifier* pActualOwnerID =
                 thePurse.IsNymIDIncluded() ? &idPurseNym : pOWNER_ID;
 
@@ -5505,8 +5526,9 @@ bool OT_API::Wallet_ImportPurse(
         nym->GetIdentifier(strNymID1);
         pNewOwner->GetIdentifier(strNymID2);
         otErr << OT_METHOD << __FUNCTION__ << ": (OldNymID: " << strNymID1
-              << ".) (New Owner ID: " << strNymID2 << ".) Failure merging new "
-                                                      "purse:\n\n"
+              << ".) (New Owner ID: " << strNymID2
+              << ".) Failure merging new "
+                 "purse:\n\n"
               << THE_PURSE << "\n\n";
     }
     return false;
@@ -5677,10 +5699,9 @@ Token* OT_API::Token_ChangeOwner(
     std::unique_ptr<Token> token(
         Token::TokenFactory(THE_TOKEN, NOTARY_ID, INSTRUMENT_DEFINITION_ID));
     OT_ASSERT(nullptr != token);
-    if (false ==
-        token->ReassignOwnership(
-            *pOldOwner,   // must be private, if a Nym.
-            *pNewOwner))  // can be public, if a Nym.
+    if (false == token->ReassignOwnership(
+                     *pOldOwner,   // must be private, if a Nym.
+                     *pNewOwner))  // can be public, if a Nym.
     {
         otErr << OT_METHOD << __FUNCTION__
               << ": Error re-assigning ownership of token.\n";
@@ -6461,8 +6482,9 @@ bool OT_API::ClearExpired(
 //
 // UPDATE: This should now also work for smart contracts and payment plans.
 bool OT_API::RecordPayment(
-    const Identifier& TRANSPORT_NOTARY_ID, // Transport Notary for inPayments
-                    // box. (May differ from notary ID on the payment itself)
+    const Identifier& TRANSPORT_NOTARY_ID,  // Transport Notary for inPayments
+                                            // box. (May differ from notary ID
+                                            // on the payment itself)
     const Identifier& NYM_ID,
     bool bIsInbox,        // true == payments inbox. false == outpayments box.
     std::int32_t nIndex,  // removes payment instrument (from payments inbox or
@@ -6472,16 +6494,15 @@ bool OT_API::RecordPayment(
     // ----------------------------------------
     rLock transport_lock(
         lock_callback_({NYM_ID.str(), TRANSPORT_NOTARY_ID.str()}));
-    auto transport_context = wallet_.mutable_ServerContext(
-        NYM_ID,
-        TRANSPORT_NOTARY_ID);
-    auto transport_nymfile = transport_context.It()
-        .mutable_Nymfile(__FUNCTION__);
+    auto transport_context =
+        wallet_.mutable_ServerContext(NYM_ID, TRANSPORT_NOTARY_ID);
+    auto transport_nymfile =
+        transport_context.It().mutable_Nymfile(__FUNCTION__);
     auto transport_nym = transport_context.It().Nym();
 
     // Sometimes the payment and transport notaries are the same
     // notary. Sometimes they are different, we handle both cases.
-    ConstNym payment_nym; // So far, still null.
+    ConstNym payment_nym;  // So far, still null.
     // ----------------------------------------
     std::unique_ptr<rLock> payment_lock;
 
@@ -6489,34 +6510,39 @@ bool OT_API::RecordPayment(
     class recordpayment_cleanup1
     {
         Editor<opentxs::ServerContext> payment_context_;
+
     public:
-        Editor<opentxs::ServerContext> & paymentContext()
-        { return payment_context_; }
+        Editor<opentxs::ServerContext>& paymentContext()
+        {
+            return payment_context_;
+        }
 
         recordpayment_cleanup1(Editor<opentxs::ServerContext>&& payment_context)
-        : payment_context_(std::move(payment_context))
-        { }
+            : payment_context_(std::move(payment_context))
+        {
+        }
     };
     class recordpayment_cleanup2
     {
         Editor<class NymFile> payment_nymfile_;
+
     public:
-        Editor<class NymFile> & paymentNymfile()
-        { return payment_nymfile_; }
+        Editor<class NymFile>& paymentNymfile() { return payment_nymfile_; }
 
         recordpayment_cleanup2(Editor<class NymFile>&& payment_nymfile)
-        : payment_nymfile_(std::move(payment_nymfile))
-        { }
+            : payment_nymfile_(std::move(payment_nymfile))
+        {
+        }
     };
     std::unique_ptr<recordpayment_cleanup1> pCleanup1;
     std::unique_ptr<recordpayment_cleanup2> pCleanup2;
 
-    Editor<opentxs::ServerContext> * payment_context{nullptr};
-    Editor<class NymFile> * payment_nymfile{nullptr};
+    Editor<opentxs::ServerContext>* payment_context{nullptr};
+    Editor<class NymFile>* payment_nymfile{nullptr};
     // ----------------------------------------
-    Ledger* pRecordBox {nullptr};
+    Ledger* pRecordBox{nullptr};
     Ledger* pExpiredBox{nullptr};
-    Ledger* pActualBox {nullptr};  // Points to either pRecordBox or pExpiredBox
+    Ledger* pActualBox{nullptr};  // Points to either pRecordBox or pExpiredBox
 
     std::unique_ptr<Ledger> theRecordBoxAngel;
     std::unique_ptr<Ledger> theExpiredBoxAngel;
@@ -6593,19 +6619,17 @@ bool OT_API::RecordPayment(
                   << nIndex << ".\n";
             return false;
         }
-        pPayment.reset(GetInstrumentByIndex(*transport_nym, nIndex,
-                                            *pPaymentInbox));
+        pPayment.reset(
+            GetInstrumentByIndex(*transport_nym, nIndex, *pPaymentInbox));
         // ------------------------------------------
         // Payment Notary (versus the Transport Notary).
         //
         OTIdentifier paymentNotaryId = Identifier::Factory();
 
-        if (pPayment->GetNotaryID(paymentNotaryId))
-        {
-            if (paymentNotaryId != TRANSPORT_NOTARY_ID)
-            {
-                payment_lock.reset(new rLock(lock_callback_({NYM_ID.str(),
-                    paymentNotaryId->str()})));
+        if (pPayment->GetNotaryID(paymentNotaryId)) {
+            if (paymentNotaryId != TRANSPORT_NOTARY_ID) {
+                payment_lock.reset(new rLock(
+                    lock_callback_({NYM_ID.str(), paymentNotaryId->str()})));
 
                 pCleanup1.reset(new recordpayment_cleanup1(
                     wallet_.mutable_ServerContext(NYM_ID, paymentNotaryId)));
@@ -6616,9 +6640,7 @@ bool OT_API::RecordPayment(
                 payment_nymfile = &(pCleanup2->paymentNymfile());
 
                 payment_nym = payment_context->It().Nym();
-            }
-            else
-            {
+            } else {
                 payment_context = &transport_context;
                 payment_nymfile = &transport_nymfile;
                 payment_nym = transport_nym;
@@ -6627,8 +6649,7 @@ bool OT_API::RecordPayment(
         // ------------------------------------------
         pPayment->IsExpired(bIsExpired);
 
-        if (bIsExpired)
-            pActualBox = pExpiredBox;
+        if (bIsExpired) pActualBox = pExpiredBox;
 
         // Remove it from the payments inbox...
         //
@@ -6690,19 +6711,16 @@ bool OT_API::RecordPayment(
         OTPayment thePayment(strInstrument);
         originType theOriginType = originType::not_applicable;
 
-        if (thePayment.IsValid() && thePayment.SetTempValues())
-        {
+        if (thePayment.IsValid() && thePayment.SetTempValues()) {
             // EXPIRED?
             //
             thePayment.IsExpired(bIsExpired);
-            if (bIsExpired)
-                pActualBox = pExpiredBox;
+            if (bIsExpired) pActualBox = pExpiredBox;
             // ------------------------------------------
             // Payment Notary (versus the Transport Notary).
             //
             OTIdentifier paymentNotaryId = Identifier::Factory();
-            if (thePayment.GetNotaryID(paymentNotaryId))
-            {
+            if (thePayment.GetNotaryID(paymentNotaryId)) {
                 // If you write a cheque drawn on server ABC, and then you send
                 // it to me on my server DEF, then I will open my payments inbox
                 // on server DEF, which is the Transport Notary, and inside I
@@ -6720,23 +6738,21 @@ bool OT_API::RecordPayment(
                 // was received. (Which is what we locked at the top of this
                 // function).
                 //
-                if (paymentNotaryId != TRANSPORT_NOTARY_ID)
-                {
-                    payment_lock.reset(new rLock(lock_callback_({NYM_ID.str(),
-                        paymentNotaryId->str()})));
+                if (paymentNotaryId != TRANSPORT_NOTARY_ID) {
+                    payment_lock.reset(new rLock(lock_callback_(
+                        {NYM_ID.str(), paymentNotaryId->str()})));
 
                     pCleanup1.reset(new recordpayment_cleanup1(
-                       wallet_.mutable_ServerContext(NYM_ID, paymentNotaryId)));
+                        wallet_.mutable_ServerContext(
+                            NYM_ID, paymentNotaryId)));
                     payment_context = &(pCleanup1->paymentContext());
 
                     pCleanup2.reset(new recordpayment_cleanup2(
-                       payment_context->It().mutable_Nymfile(__FUNCTION__)));
+                        payment_context->It().mutable_Nymfile(__FUNCTION__)));
                     payment_nymfile = &(pCleanup2->paymentNymfile());
 
                     payment_nym = payment_context->It().Nym();
-                }
-                else
-                {
+                } else {
                     payment_context = &transport_context;
                     payment_nymfile = &transport_nymfile;
                     payment_nym = transport_nym;
@@ -6864,8 +6880,8 @@ bool OT_API::RecordPayment(
                     //
 
                     // If I'm in the middle of trying to sign it out...
-                    if (payment_context->It()
-                        .VerifyTentativeNumber(lPaymentTransNum)) {
+                    if (payment_context->It().VerifyTentativeNumber(
+                            lPaymentTransNum)) {
                         otErr << OT_METHOD << __FUNCTION__
                               << ": Error: Why on earth is this "
                                  "transaction number ("
@@ -6879,8 +6895,8 @@ bool OT_API::RecordPayment(
                         return false;
                     }
                     const bool bIsIssued =
-                        payment_context->It()
-                            .VerifyIssuedNumber(lPaymentTransNum);
+                        payment_context->It().VerifyIssuedNumber(
+                            lPaymentTransNum);
 
                     // If nymfile is the sender AND the payment instrument IS
                     // expired.
@@ -7348,8 +7364,8 @@ bool OT_API::RecordPayment(
                                         // paymentReceipts or finalReceipts
                                         // lingering in there...
                                         //
-                                        if (agent->IsValidSigner(*payment_nym))
-                                        {
+                                        if (agent->IsValidSigner(
+                                                *payment_nym)) {
                                             const String& strAcctID =
                                                 partyAcct->GetAcctID();
                                             const Identifier accountID(
@@ -7364,8 +7380,9 @@ bool OT_API::RecordPayment(
                                                 bSuccessLoadingSenderInbox =
                                                     (theSenderInbox
                                                          .LoadInbox() &&
-                                                theSenderInbox
-                                                .VerifyAccount(*payment_nym));
+                                                     theSenderInbox
+                                                         .VerifyAccount(
+                                                             *payment_nym));
 
                                             if (bSuccessLoadingSenderInbox) {
                                                 // Loop through the inbox and
@@ -7471,13 +7488,11 @@ bool OT_API::RecordPayment(
                         pSmartContract->HarvestClosingNumbers(
                             payment_context->It());
                     } else if (nullptr != pPlan) {
-                        pPlan->HarvestOpeningNumber(
-                            payment_context->It());
-                        pPlan->HarvestClosingNumbers(
-                            payment_context->It());
+                        pPlan->HarvestOpeningNumber(payment_context->It());
+                        pPlan->HarvestClosingNumbers(payment_context->It());
                     } else {
-                        payment_context->It()
-                            .RecoverAvailableNumber(lPaymentTransNum);
+                        payment_context->It().RecoverAvailableNumber(
+                            lPaymentTransNum);
                     }
 
                     // Note, food for thought: IF the receipt had popped into
@@ -9049,8 +9064,9 @@ CommandResult OT_API::notarizeDeposit(
         Item::CreateItemFromTransaction(*transaction, Item::deposit));
 
     if (false == bool(item)) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Failed generate deposit txn "
-                                              "item. "
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Failed generate deposit txn "
+                 "item. "
               << "account " << String(accountID) << std::endl;
 
         return output;
@@ -12741,8 +12757,9 @@ bool OT_API::Ledger_AddTransaction(
     if (!transaction->VerifyAccount(*nym)) {
         const Identifier& theAccountID = ledger.GetPurportedAccountID();
         String strAcctID(theAccountID);
-        otErr << OT_METHOD << __FUNCTION__ << ": Error verifying transaction. "
-                                              "Acct ID: "
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Error verifying transaction. "
+                 "Acct ID: "
               << strAcctID << "\n";
         return false;
     }
@@ -12882,8 +12899,9 @@ bool OT_API::Ledger_FinalizeResponse(
 
     if (!inbox) {
         String strAcctID(accountID);
-        otErr << OT_METHOD << __FUNCTION__ << ": Unable to load inbox."
-                                              " Acct ID: "
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Unable to load inbox."
+                 " Acct ID: "
               << strAcctID << std::endl;
 
         return false;
@@ -12891,8 +12909,9 @@ bool OT_API::Ledger_FinalizeResponse(
     // -------------------------------------------------------
     if (false == inbox->VerifyAccount(*nym)) {
         String strAcctID(accountID);
-        otErr << OT_METHOD << __FUNCTION__ << ": Unable to verify inbox."
-                                              " Acct ID: "
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Unable to verify inbox."
+                 " Acct ID: "
               << strAcctID << std::endl;
 
         return false;

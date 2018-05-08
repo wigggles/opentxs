@@ -212,7 +212,7 @@ public:
 
     EXPORT virtual std::string ThreadPublisher(const Identifier& nym) const = 0;
 
-    ~Activity() = default;
+    virtual ~Activity() = default;
 
 protected:
     Activity() = default;
