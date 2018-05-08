@@ -237,6 +237,7 @@ public:
         std::string* pOptionalOutput = nullptr);
 
     EXPORT static std::int32_t processPayment(
+        const std::string& transport_notary,
         const std::string& myacct,
         const std::string& paymentType,
         const std::string& inbox,

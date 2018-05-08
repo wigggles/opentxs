@@ -684,7 +684,7 @@ public:
     // Note: if instrument is expired BEFORE being recorded, it will go into the
     // expired box instead of the record box.
     EXPORT bool RecordPayment(
-        const Identifier& NOTARY_ID,
+        const Identifier& TRANSPORT_NOTARY_ID,
         const Identifier& NYM_ID,
         bool bIsInbox,  // true == payments inbox. false == payments outbox.
         std::int32_t nIndex,  // removes payment instrument (from payments in or
