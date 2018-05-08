@@ -110,7 +110,13 @@ class ActivitySummary;
 class ActivitySummaryParent;
 class ActivityThread;
 class ActivityThreadParent;
+class Contact;
 class ContactListParent;
+class ContactParent;
+class ContactSection;
+class ContactSectionParent;
+class ContactSubsection;
+class ContactSubsectionParent;
 class MessagableList;
 class PayableList;
 

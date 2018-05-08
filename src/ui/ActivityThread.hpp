@@ -143,7 +143,7 @@ private:
     mutable std::shared_mutex draft_lock_;
     mutable std::string draft_{""};
     mutable std::set<ActivityThreadID> draft_tasks_;
-    std::shared_ptr<const Contact> contact_;
+    std::shared_ptr<const opentxs::Contact> contact_;
     std::unique_ptr<std::thread> contact_thread_{nullptr};
 
     ActivityThreadID blank_id() const override;

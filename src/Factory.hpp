@@ -86,6 +86,25 @@ public:
         const api::ContactManager& contact,
         const Identifier& id,
         const std::string& name);
+    static ui::Contact* ContactWidget(
+        const network::zeromq::Context& zmq,
+        const api::ContactManager& contact,
+        const Identifier& contactID);
+    static ui::ContactItem* ContactItemWidget(
+        const network::zeromq::Context& zmq,
+        const api::ContactManager& contact,
+        const ui::implementation::ContactSubsectionParent& parent,
+        const ContactItem& item);
+    static ui::ContactSection* ContactSectionWidget(
+        const network::zeromq::Context& zmq,
+        const api::ContactManager& contact,
+        const ui::implementation::ContactParent& parent,
+        const ContactSection& section);
+    static ui::ContactSubsection* ContactSubsectionWidget(
+        const network::zeromq::Context& zmq,
+        const api::ContactManager& contact,
+        const ui::implementation::ContactSectionParent& parent,
+        const ContactGroup& group);
     static api::client::Issuer* Issuer(
         const api::client::Wallet& wallet,
         const Identifier& nymID,

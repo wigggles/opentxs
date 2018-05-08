@@ -36,41 +36,47 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_UI_ROW_IMPLEMENTATION_HPP
-#define OPENTXS_UI_ROW_IMPLEMENTATION_HPP
+#include "opentxs/stdafx.hpp"
 
-#include "opentxs/Internal.hpp"
+#include "opentxs/contact/ContactItem.hpp"
+#include "opentxs/core/Flag.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Lockable.hpp"
+#include "opentxs/ui/ContactItem.hpp"
 
-#include "RowType.hpp"
-#include "Widget.hpp"
+#include "ContactSubsectionParent.hpp"
+#include "Row.hpp"
+
+#include "ContactItem.hpp"
+
+namespace opentxs
+{
+ui::ContactItem* Factory::ContactItemWidget(
+    const network::zeromq::Context& zmq,
+    const api::ContactManager& contact,
+    const ui::implementation::ContactSubsectionParent& parent,
+    const ContactItem& item)
+{
+    return new ui::implementation::ContactItem(zmq, contact, parent, item);
+}
+}  // namespace opentxs
 
 namespace opentxs::ui::implementation
 {
-template <typename InterfaceType, typename ParentType, typename IdentifierType>
-class Row : public RowType<InterfaceType, ParentType, IdentifierType>,
-            public Widget,
-            public Lockable
+ContactItem::ContactItem(
+    const network::zeromq::Context& zmq,
+    const api::ContactManager& contact,
+    const ContactSubsectionParent& parent,
+    const opentxs::ContactItem& item)
+    : ContactItemType(
+          parent,
+          zmq,
+          contact,
+          Identifier::Factory(item.ID()),
+          true)
+    , active_(item.isActive())
+    , primary_(item.isPrimary())
+    , value_(item.Value())
 {
-protected:
-    const api::ContactManager& contact_;
-
-    Row(const ParentType& parent,
-        const network::zeromq::Context& zmq,
-        const api::ContactManager& contact,
-        const IdentifierType id,
-        const bool valid)
-        : RowType<InterfaceType, ParentType, IdentifierType>(parent, id, valid)
-        , Widget(zmq, parent.WidgetID())
-        , contact_(contact)
-    {
-    }
-    Row() = delete;
-    Row(const Row&) = delete;
-    Row(Row&&) = delete;
-    Row& operator=(const Row&) = delete;
-    Row& operator=(Row&&) = delete;
-
-    virtual ~Row() = default;
-};
-}  // opentxs::ui::implementation
-#endif  // OPENTXS_UI_ROW_IMPLEMENTATION_HPP
+}
+}  // namespace opentxs::ui::implementation

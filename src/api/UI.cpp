@@ -49,6 +49,7 @@
 #include "opentxs/core/Lockable.hpp"
 #include "opentxs/ui/ActivitySummary.hpp"
 #include "opentxs/ui/ActivityThread.hpp"
+#include "opentxs/ui/Contact.hpp"
 #include "opentxs/ui/ContactList.hpp"
 #include "opentxs/ui/MessagableList.hpp"
 #include "opentxs/ui/PayableList.hpp"
@@ -89,6 +90,7 @@ UI::UI(
     , sync_(sync)
     , running_(running)
     , activity_summaries_()
+    , contacts_()
     , contact_lists_()
     , messagable_lists_()
     , widget_callback_(opentxs::network::zeromq::ReplyCallback::Factory(
@@ -138,6 +140,25 @@ const ui::ActivityThread& UI::ActivityThread(
     OT_ASSERT(output)
 
     return *output;
+}
+
+const ui::Contact& UI::Contact(const Identifier& contactID) const
+{
+    Lock lock(lock_);
+    auto id = Identifier::Factory(contactID);
+    auto it = contacts_.find(id);
+
+    if (contacts_.end() == it) {
+        it = contacts_
+                 .emplace(
+                     std::move(id),
+                     Factory::ContactWidget(zmq_, contact_, contactID))
+                 .first;
+    }
+
+    OT_ASSERT(it->second)
+
+    return *(it->second);
 }
 
 const ui::ContactList& UI::ContactList(const Identifier& nymID) const
