@@ -74,22 +74,13 @@ public:
     operator proto::Contact() const;
     Contact& operator+=(Contact& rhs);
 
-    std::vector<BlockchainAddress> BlockchainAddresses() const;
-    std::shared_ptr<ContactData> Data() const;
-    const Identifier& ID() const;
-    const std::string& Label() const;
-    std::time_t LastUpdated() const;
-    std::vector <OTIdentifier> Nyms(const bool includeInactive = false) const;
-    std::string PaymentCode(
-        const proto::ContactItemType currency = proto::CITEMTYPE_BTC) const;
-    std::vector<std::string> PaymentCodes(
-        const proto::ContactItemType currency = proto::CITEMTYPE_BTC) const;
-    std::string Print() const;
-    proto::ContactItemType Type() const;
-
     bool AddBlockchainAddress(
         const std::string& address,
         const proto::ContactItemType currency = proto::CITEMTYPE_BTC);
+    bool AddEmail(
+        const std::string& value,
+        const bool primary,
+        const bool active);
     bool AddNym(const std::shared_ptr<const Nym>& nym, const bool primary);
     bool AddNym(const Identifier& nymID, const bool primary);
     bool AddPaymentCode(
@@ -97,11 +88,40 @@ public:
         const bool primary,
         const proto::ContactItemType currency = proto::CITEMTYPE_BTC,
         const bool active = true);
+    bool AddPhoneNumber(
+        const std::string& value,
+        const bool primary,
+        const bool active);
+    bool AddSocialMediaProfile(
+        const std::string& value,
+        const proto::ContactItemType type,
+        const bool primary,
+        const bool active);
+    std::string BestEmail() const;
+    std::string BestPhoneNumber() const;
+    std::string BestSocialMediaProfile(const proto::ContactItemType type) const;
+    std::vector<BlockchainAddress> BlockchainAddresses() const;
+    std::shared_ptr<ContactData> Data() const;
+    std::string EmailAddresses(bool active = true) const;
+    const Identifier& ID() const;
+    const std::string& Label() const;
+    std::time_t LastUpdated() const;
+    std::vector<OTIdentifier> Nyms(const bool includeInactive = false) const;
+    std::string PaymentCode(
+        const proto::ContactItemType currency = proto::CITEMTYPE_BTC) const;
+    std::vector<std::string> PaymentCodes(
+        const proto::ContactItemType currency = proto::CITEMTYPE_BTC) const;
+    std::string PhoneNumbers(bool active = true) const;
+    std::string Print() const;
     bool RemoveBlockchainAddress(
         const std::string& address,
         const proto::ContactItemType currency = proto::CITEMTYPE_BTC);
     bool RemoveNym(const Identifier& nymID);
     void SetLabel(const std::string& label);
+    std::string SocialMediaProfiles(
+        const proto::ContactItemType type,
+        bool active = true) const;
+    proto::ContactItemType Type() const;
     void Update(const proto::CredentialIndex& nym);
 
     ~Contact() = default;
