@@ -38,22 +38,42 @@
 
 #include "opentxs/stdafx.hpp"
 
-#include "UI.hpp"
-
 #include "opentxs/api/network/ZMQ.hpp"
+#include "opentxs/api/UI.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/ReplyCallback.hpp"
 #include "opentxs/network/zeromq/ReplySocket.hpp"
 #include "opentxs/network/zeromq/PublishSocket.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Lockable.hpp"
+#include "opentxs/ui/ActivitySummary.hpp"
+#include "opentxs/ui/ActivityThread.hpp"
+#include "opentxs/ui/ContactList.hpp"
+#include "opentxs/ui/MessagableList.hpp"
+#include "opentxs/ui/PayableList.hpp"
+#include "opentxs/Types.hpp"
 
-#include "ui/ActivitySummary.hpp"
-#include "ui/ActivityThread.hpp"
-#include "ui/ContactList.hpp"
-#include "ui/MessagableList.hpp"
-#include "ui/PayableList.hpp"
+#include <map>
+#include <memory>
+#include <tuple>
+
+#include "UI.hpp"
 
 //#define OT_METHOD "opentxs::api::implementation::UI"
+
+namespace opentxs
+{
+api::UI* Factory::UI(
+    const network::zeromq::Context& zmq,
+    const api::Activity& activity,
+    const api::ContactManager& contact,
+    const api::client::Sync& sync,
+    const Flag& running)
+{
+    return new api::implementation::UI(zmq, activity, contact, sync, running);
+}
+}  // namespace opentxs
 
 namespace opentxs::api::implementation
 {
@@ -94,7 +114,7 @@ const ui::ActivitySummary& UI::ActivitySummary(const Identifier& nymID) const
     auto& output = activity_summaries_[nymID];
 
     if (false == bool(output)) {
-        output.reset(new ui::implementation::ActivitySummary(
+        output.reset(Factory::ActivitySummary(
             zmq_, activity_, contact_, running_, nymID));
     }
 
@@ -111,7 +131,7 @@ const ui::ActivityThread& UI::ActivityThread(
     auto& output = activity_threads_[{nymID, threadID}];
 
     if (false == bool(output)) {
-        output.reset(new ui::implementation::ActivityThread(
+        output.reset(Factory::ActivityThread(
             zmq_, sync_, activity_, contact_, nymID, threadID));
     }
 
@@ -126,8 +146,7 @@ const ui::ContactList& UI::ContactList(const Identifier& nymID) const
     auto& output = contact_lists_[nymID];
 
     if (false == bool(output)) {
-        output.reset(
-            new ui::implementation::ContactList(zmq_, contact_, nymID));
+        output.reset(Factory::ContactList(zmq_, contact_, nymID));
     }
 
     OT_ASSERT(output)
@@ -141,8 +160,7 @@ const ui::MessagableList& UI::MessagableList(const Identifier& nymID) const
     auto& output = messagable_lists_[nymID];
 
     if (false == bool(output)) {
-        output.reset(new ui::implementation::MessagableList(
-            zmq_, contact_, sync_, nymID));
+        output.reset(Factory::MessagableList(zmq_, contact_, sync_, nymID));
     }
 
     OT_ASSERT(output)
@@ -159,8 +177,8 @@ const ui::PayableList& UI::PayableList(
         nymID, currency)];
 
     if (false == bool(output)) {
-        output.reset(new ui::implementation::PayableList(
-            zmq_, contact_, sync_, nymID, currency));
+        output.reset(
+            Factory::PayableList(zmq_, contact_, sync_, nymID, currency));
     }
 
     OT_ASSERT(output)

@@ -71,9 +71,7 @@ public:
     ~ActivityThreadItemBlank() = default;
 
 private:
-    friend ActivityThread;
-
-    ActivityThreadItem* clone() const override { return nullptr; }
+    friend opentxs::ui::implementation::ActivityThread;
 
     ActivityThreadItemBlank() = default;
     ActivityThreadItemBlank(const ActivityThreadItemBlank&) = delete;

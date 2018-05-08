@@ -41,17 +41,12 @@
 
 #include "opentxs/Internal.hpp"
 
-#include "opentxs/core/Lockable.hpp"
-#include "opentxs/ui/ContactListItem.hpp"
-
-#include "Row.hpp"
-
 namespace opentxs::ui::implementation
 {
 using ContactListItemType =
-    Row<opentxs::ui::ContactListItem, ContactListInterface, Identifier>;
+    Row<opentxs::ui::ContactListItem, ContactListParent, Identifier>;
 
-class ContactListItem : virtual public ContactListItemType
+class ContactListItem : public ContactListItemType
 {
 public:
     std::string ContactID() const override;
@@ -59,27 +54,27 @@ public:
     std::string ImageURI() const override;
     std::string Section() const override;
 
-    ~ContactListItem() = default;
+    void SetName(const std::string& name) override;
 
-private:
-    friend ContactList;
-    friend MessagableList;
-    friend PayableList;
+    virtual ~ContactListItem() = default;
 
+protected:
     std::string name_{""};
     OTZMQListenCallback contact_subscriber_callback_;
     OTZMQSubscribeSocket contact_subscriber_;
 
-    ContactListItem* clone() const override { return nullptr; }
-
-    void process_contact(const network::zeromq::Message& message);
+    virtual void process_contact(const network::zeromq::Message& message);
 
     ContactListItem(
-        const ContactListInterface& parent,
+        const ContactListParent& parent,
         const network::zeromq::Context& zmq,
         const api::ContactManager& contact,
         const Identifier& id,
         const std::string& name);
+
+private:
+    friend Factory;
+
     ContactListItem() = delete;
     ContactListItem(const ContactListItem&) = delete;
     ContactListItem(ContactListItem&&) = delete;

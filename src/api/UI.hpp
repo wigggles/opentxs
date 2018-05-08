@@ -41,14 +41,6 @@
 
 #include "opentxs/Internal.hpp"
 
-#include "opentxs/api/UI.hpp"
-#include "opentxs/core/Lockable.hpp"
-#include "opentxs/Types.hpp"
-
-#include <map>
-#include <memory>
-#include <tuple>
-
 namespace opentxs::api::implementation
 {
 class UI : virtual public opentxs::api::UI, Lockable
@@ -73,7 +65,8 @@ public:
     ~UI();
 
 private:
-    friend class implementation::Native;
+    friend Factory;
+
     using ActivitySummaryMap =
         std::map<Identifier, std::unique_ptr<ui::ActivitySummary>>;
     using ActivityThreadID = std::pair<Identifier, Identifier>;

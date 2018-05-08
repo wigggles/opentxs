@@ -41,20 +41,9 @@
 
 #include "opentxs/Internal.hpp"
 
-#include "opentxs/core/Lockable.hpp"
-#include "opentxs/ui/ContactList.hpp"
-#include "opentxs/ui/ContactListItem.hpp"
-
-#include "ContactListInterface.hpp"
-#include "ContactListItem.hpp"
-#include "List.hpp"
-
-#include <map>
-#include <string>
-
 namespace opentxs::ui::implementation
 {
-using ContactListPimpl = OTUIContactListItem;
+using ContactListPimpl = std::unique_ptr<opentxs::ui::ContactListItem>;
 using ContactListID = OTIdentifier;
 using ContactListSortKey = std::string;
 using ContactListInner = std::map<ContactListID, ContactListPimpl>;
@@ -62,6 +51,7 @@ using ContactListOuter = std::map<ContactListSortKey, ContactListInner>;
 using ContactListReverse = std::map<ContactListID, ContactListSortKey>;
 using ContactListType = List<
     opentxs::ui::ContactList,
+    ContactListParent,
     opentxs::ui::ContactListItem,
     ContactListID,
     ContactListPimpl,
@@ -71,8 +61,7 @@ using ContactListType = List<
     ContactListOuter::const_iterator,
     ContactListReverse>;
 
-class ContactList : virtual public ContactListType,
-                    virtual public ContactListInterface
+class ContactList : virtual public ContactListType
 {
 public:
     const Identifier& ID() const override;
@@ -80,15 +69,15 @@ public:
     ~ContactList() = default;
 
 private:
-    friend api::implementation::UI;
+    friend Factory;
 
     const OTIdentifier owner_contact_id_;
-    ContactListItem owner_;
+    std::unique_ptr<opentxs::ui::ContactListItem> owner_p_;
+    opentxs::ui::ContactListItem& owner_;
     OTZMQListenCallback contact_subscriber_callback_;
     OTZMQSubscribeSocket contact_subscriber_;
 
     ContactListID blank_id() const override;
-    ContactList* clone() const override { return nullptr; }
     void construct_item(
         const ContactListID& id,
         const ContactListSortKey& index,

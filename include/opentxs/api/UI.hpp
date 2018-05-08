@@ -40,6 +40,7 @@
 #define OPENTXS_API_UI_HPP
 
 #include "opentxs/Forward.hpp"
+
 #include "opentxs/Proto.hpp"
 
 namespace opentxs
@@ -80,5 +81,4 @@ private:
 };
 }  // namespace api
 }  // namespace opentxs
-
 #endif  // OPENTXS_API_UI_HPP

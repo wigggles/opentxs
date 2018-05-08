@@ -36,40 +36,36 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_UI_MESSAGABLELIST_HPP
-#define OPENTXS_UI_MESSAGABLELIST_HPP
+#ifndef OPENTXS_UI_CONTACT_LIST_PARENT_HPP
+#define OPENTXS_UI_CONTACT_LIST_PARENT_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Internal.hpp"
 
-#include "opentxs/ui/Widget.hpp"
+#include <string>
 
-#ifdef SWIG
-// clang-format off
-%rename(UIMessagableList) opentxs::ui::MessagableList;
-// clang-format on
-#endif  // SWIG
-
-namespace opentxs
+namespace opentxs::ui::implementation
 {
-namespace ui
-{
-class MessagableList : virtual public Widget
+class ContactListParent
 {
 public:
-    EXPORT virtual const ContactListItem& First() const = 0;
-    EXPORT virtual const ContactListItem& Next() const = 0;
+    using ContactListID = OTIdentifier;
+    using ContactListSortKey = std::string;
 
-    EXPORT virtual ~MessagableList() = default;
+    virtual const Identifier& ID() const = 0;
+    virtual bool last(const ContactListID& id) const = 0;
+    virtual void reindex_item(
+        const ContactListID& id,
+        const ContactListSortKey& newIndex) const = 0;
+    virtual OTIdentifier WidgetID() const = 0;
+
+    virtual ~ContactListParent() = default;
 
 protected:
-    MessagableList() = default;
-
-private:
-    MessagableList(const MessagableList&) = delete;
-    MessagableList(MessagableList&&) = delete;
-    MessagableList& operator=(const MessagableList&) = delete;
-    MessagableList& operator=(MessagableList&&) = delete;
+    ContactListParent() = default;
+    ContactListParent(const ContactListParent&) = delete;
+    ContactListParent(ContactListParent&&) = delete;
+    ContactListParent& operator=(const ContactListParent&) = delete;
+    ContactListParent& operator=(ContactListParent&&) = delete;
 };
-}  // namespace ui
-}  // namespace opentxs
-#endif  // OPENTXS_UI_MESSAGABLELIST_HPP
+}  // opentxs::ui::implementation
+#endif  // OPENTXS_UI_CONTACT_LIST_PARENT_HPP

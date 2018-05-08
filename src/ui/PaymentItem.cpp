@@ -41,15 +41,41 @@
 #include "opentxs/api/Activity.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/core/Cheque.hpp"
+#include "opentxs/core/Flag.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Lockable.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Message.hpp"
+#include "opentxs/ui/ActivityThreadItem.hpp"
+
+#include "ActivityThreadParent.hpp"
+#include "Row.hpp"
+
+#include <memory>
+#include <thread>
 
 #include "PaymentItem.hpp"
+
+namespace opentxs
+{
+ui::ActivityThreadItem* Factory::PaymentItem(
+    const ui::implementation::ActivityThreadParent& parent,
+    const network::zeromq::Context& zmq,
+    const api::ContactManager& contact,
+    const ui::implementation::ActivityThreadID& id,
+    const Identifier& nymID,
+    const api::Activity& activity,
+    const std::chrono::system_clock::time_point& time)
+{
+    return new ui::implementation::PaymentItem(
+        parent, zmq, contact, id, nymID, activity, time);
+}
+}  // namespace opentxs
 
 namespace opentxs::ui::implementation
 {
 PaymentItem::PaymentItem(
-    const ActivityThread& parent,
+    const ActivityThreadParent& parent,
     const network::zeromq::Context& zmq,
     const api::ContactManager& contact,
     const ActivityThreadID& id,

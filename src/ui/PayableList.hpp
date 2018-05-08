@@ -41,20 +41,9 @@
 
 #include "opentxs/Internal.hpp"
 
-#include "opentxs/core/Lockable.hpp"
-#include "opentxs/ui/ContactListItem.hpp"
-#include "opentxs/ui/PayableList.hpp"
-
-#include "ContactListInterface.hpp"
-#include "PayableListItem.hpp"
-#include "List.hpp"
-
-#include <map>
-#include <string>
-
 namespace opentxs::ui::implementation
 {
-using PayableListPimpl = OTUIPayableListItem;
+using PayableListPimpl = std::unique_ptr<opentxs::ui::PayableListItem>;
 using PayableListID = OTIdentifier;
 using PayableListSortKey = std::string;
 using PayableListInner = std::map<PayableListID, PayableListPimpl>;
@@ -62,6 +51,7 @@ using PayableListOuter = std::map<PayableListSortKey, PayableListInner>;
 using PayableListReverse = std::map<PayableListID, PayableListSortKey>;
 using PayableListType = List<
     opentxs::ui::PayableList,
+    ContactListParent,
     opentxs::ui::PayableListItem,
     PayableListID,
     PayableListPimpl,
@@ -71,8 +61,7 @@ using PayableListType = List<
     PayableListOuter::const_iterator,
     PayableListReverse>;
 
-class PayableList : virtual public PayableListType,
-                    virtual public ContactListInterface
+class PayableList : virtual public PayableListType
 {
 public:
     const Identifier& ID() const override;
@@ -80,7 +69,7 @@ public:
     ~PayableList() = default;
 
 private:
-    friend api::implementation::UI;
+    friend Factory;
 
     const api::client::Sync& sync_;
     const OTIdentifier owner_contact_id_;
@@ -91,7 +80,6 @@ private:
     const proto::ContactItemType currency_;
 
     PayableListID blank_id() const override;
-    PayableList* clone() const override { return nullptr; }
     void construct_item(
         const PayableListID& id,
         const PayableListSortKey& index,

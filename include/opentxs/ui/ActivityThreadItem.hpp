@@ -81,11 +81,6 @@ protected:
     ActivityThreadItem() = default;
 
 private:
-    friend OTUIActivityThreadItem;
-
-    /** WARNING: not implemented */
-    virtual ActivityThreadItem* clone() const = 0;
-
     ActivityThreadItem(const ActivityThreadItem&) = delete;
     ActivityThreadItem(ActivityThreadItem&&) = delete;
     ActivityThreadItem& operator=(const ActivityThreadItem&) = delete;

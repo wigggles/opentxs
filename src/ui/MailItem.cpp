@@ -39,15 +39,66 @@
 #include "opentxs/stdafx.hpp"
 
 #include "opentxs/api/Activity.hpp"
+#include "opentxs/core/Flag.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Lockable.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Message.hpp"
+#include "opentxs/ui/ActivityThreadItem.hpp"
+
+#include "ActivityThreadParent.hpp"
+#include "Row.hpp"
+
+#include <memory>
+#include <thread>
 
 #include "MailItem.hpp"
+
+namespace opentxs
+{
+ui::ActivityThreadItem* Factory::MailItem(
+    const ui::implementation::ActivityThreadParent& parent,
+    const network::zeromq::Context& zmq,
+    const api::ContactManager& contact,
+    const ui::implementation::ActivityThreadID& id,
+    const Identifier& nymID,
+    const api::Activity& activity,
+    const std::chrono::system_clock::time_point& time,
+    const std::string& text,
+    const bool loading,
+    const bool pending)
+{
+    return new ui::implementation::MailItem(
+        parent,
+        zmq,
+        contact,
+        id,
+        nymID,
+        activity,
+        time,
+        text,
+        loading,
+        pending);
+}
+
+ui::ActivityThreadItem* Factory::MailItem(
+    const ui::implementation::ActivityThreadParent& parent,
+    const network::zeromq::Context& zmq,
+    const api::ContactManager& contact,
+    const ui::implementation::ActivityThreadID& id,
+    const Identifier& nymID,
+    const api::Activity& activity,
+    const std::chrono::system_clock::time_point& time)
+{
+    return new ui::implementation::MailItem(
+        parent, zmq, contact, id, nymID, activity, time);
+}
+}  // namespace opentxs
 
 namespace opentxs::ui::implementation
 {
 MailItem::MailItem(
-    const ActivityThread& parent,
+    const ActivityThreadParent& parent,
     const network::zeromq::Context& zmq,
     const api::ContactManager& contact,
     const ActivityThreadID& id,
@@ -72,7 +123,7 @@ MailItem::MailItem(
                          OT_ASSERT(false == item_id_.empty())}
 
     MailItem::MailItem(
-        const ActivityThread& parent,
+        const ActivityThreadParent& parent,
         const network::zeromq::Context& zmq,
         const api::ContactManager& contact,
         const ActivityThreadID& id,
