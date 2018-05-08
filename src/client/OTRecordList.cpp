@@ -590,8 +590,8 @@ bool OTRecordList::accept_from_paymentbox(  // static function
         return -1;
     }
 
-    std::string server = SwigWrap::GetAccountWallet_NotaryID(myacct);
-    if (server.empty()) {
+    std::string acct_server = SwigWrap::GetAccountWallet_NotaryID(myacct);
+    if (acct_server.empty()) {
         otOut << "Error: cannot determine payment notary from myacct.\n";
         return -1;
     }
@@ -704,6 +704,7 @@ bool OTRecordList::accept_from_paymentbox(  // static function
                 }
             } else {
                 std::int32_t nTemp = processPayment(
+                    transport_notary,
                     myacct, paymentType, inbox, i, pOptionalOutput);
                 if (1 == nNumlistCount) {  // If there's exactly 1 instrument
                                            // being singled-out
@@ -731,6 +732,7 @@ std::string OTRecordList::inputText(const char* what)  // static method
 }
 
 std::int32_t OTRecordList::processPayment(  // a static method
+    const std::string& transport_notary,
     const std::string& myacct,
     const std::string& paymentType,
     const std::string& inbox,
@@ -743,11 +745,13 @@ std::int32_t OTRecordList::processPayment(  // a static method
         return -1;
     }
 
-    std::string server = SwigWrap::GetAccountWallet_NotaryID(myacct);
-    if (server.empty()) {
-        otOut << "Error: cannot determine server from myacct.\n";
+    OTIdentifier accountNotaryId = Identifier::Factory();
+    std::string acct_server = SwigWrap::GetAccountWallet_NotaryID(myacct);
+    if (acct_server.empty()) {
+        otOut << "Error: cannot determine acct_server from myacct.\n";
         return -1;
     }
+    accountNotaryId = Identifier::Factory(acct_server);
 
     std::string mynym = SwigWrap::GetAccountWallet_NymID(myacct);
     if (mynym.empty()) {
@@ -765,18 +769,46 @@ std::int32_t OTRecordList::processPayment(  // a static method
         }
     } else {
         instrument =
-            OTRecordList::get_payment_instrument(server, mynym, index, inbox);
+            OTRecordList::get_payment_instrument(transport_notary, mynym,
+                                                 index, inbox);
         if (instrument.empty()) {
             otOut << "Error: cannot get payment instrument.\n";
             return -1;
         }
     }
 
-    std::string type = SwigWrap::Instrmnt_GetType(instrument);
-    if (type.empty()) {
-        otOut << "Error: cannot determine instrument type.\n";
+    OTPayment thePayment(String(instrument.c_str()));
+    if (!thePayment.IsValid() || !thePayment.SetTempValues())
+    {
+        otOut << "Error: Failed loading payment instrument from string.\n";
         return -1;
     }
+
+    // The Notary ID we found on the payment instrument itself.
+    //
+    OTIdentifier paymentNotaryId = Identifier::Factory();
+    const bool bGotPaymentNotaryId = thePayment.GetNotaryID(paymentNotaryId);
+
+    if (!bGotPaymentNotaryId)
+    {
+        otOut << "Error: Failed getting Notary ID from payment instrument.\n";
+        return -1;
+    }
+
+    OTIdentifier assetTypeId = Identifier::Factory();
+    const bool bGotPaymentAssetTypeId =
+        thePayment.GetInstrumentDefinitionID(assetTypeId);
+
+    if (!bGotPaymentAssetTypeId)
+    {
+        // Allowed for now.
+
+//        otOut << "Error: cannot determine instrument's asset type.\n";
+//        return -1;
+        ;
+    }
+    const std::string strPaymentAssetTypeId = assetTypeId->str();
+    std::string type = thePayment.GetTypeString();
 
     std::string strIndexErrorMsg = "";
     if (-1 != index) {
@@ -788,8 +820,8 @@ std::int32_t OTRecordList::processPayment(  // a static method
         paymentType != type)     // ...and it's the wrong type:
     {                            // Then skip this one.
         // Except:
-        if (("CHEQUE" == paymentType && "VOUCHER" == type) ||
-            ("VOUCHER" == paymentType && "CHEQUE" == type)) {
+        if (("CHEQUE" == paymentType || "VOUCHER" == paymentType) &&
+            (thePayment.IsCheque() || thePayment.IsVoucher()) ) {
             // in this case we allow it to drop through.
         } else {
             otOut << "Error: invalid instrument type.\n";
@@ -797,8 +829,8 @@ std::int32_t OTRecordList::processPayment(  // a static method
         }
     }
 
-    const bool bIsPaymentPlan = ("PAYMENT PLAN" == type);
-    const bool bIsSmartContract = ("SMARTCONTRACT" == type);
+    const bool bIsPaymentPlan = thePayment.IsPaymentPlan();
+    const bool bIsSmartContract = thePayment.IsSmartContract();
 
     if (bIsPaymentPlan) {
         otOut << "Error: Cannot process a payment plan here. You HAVE to "
@@ -833,8 +865,14 @@ std::int32_t OTRecordList::processPayment(  // a static method
     // one.) Because if it IS endorsed to a Nym, and mynym is NOT that nym,
     // then the transaction will fail. So let's check, before we bother
     // sending it...
-    std::string sender = SwigWrap::Instrmnt_GetSenderNymID(instrument);
-    std::string recipient = SwigWrap::Instrmnt_GetRecipientNymID(instrument);
+
+    Identifier senderNymId, recipientNymId;
+    std::string sender, recipient;
+
+    if (thePayment.GetSenderNymID(senderNymId))
+        sender = senderNymId.str();
+    if (thePayment.GetRecipientNymID(recipientNymId))
+        recipient = recipientNymId.str();
 
     std::string endorsee = bIsPaymentPlan ? sender : recipient;
 
@@ -857,51 +895,79 @@ std::int32_t OTRecordList::processPayment(  // a static method
     // use to pay the invoice from. So let's pay it!
     // P.S. recipient might be empty, but mynym is guaranteed to be good.
 
-    std::string assetType =
-        SwigWrap::Instrmnt_GetInstrumentDefinitionID(instrument);
     std::string accountAssetType =
         SwigWrap::GetAccountWallet_InstrumentDefinitionID(myacct);
 
-    if (!assetType.empty() && accountAssetType != assetType) {
+    if (!strPaymentAssetTypeId.empty() &&
+        accountAssetType != strPaymentAssetTypeId) {
         otOut << "The instrument at index " << index
-              << " has a different unit type than the selected "
-                 "account. "
+              << " has a different unit type than the selected account. "
                  "(Skipping.)\nTry specifying a different account, using "
                  "--myacct ACCT_ID \n";
         return -1;
     }
     // ---------------------------------------------
-    //    if (bIsPaymentPlan) {
-    //        // Note: this block is currently unreachable/disallowed.
-    //        //       (But it would otherwise work.)
-    //        //
-    //        // NOTE: We couldn't even do this for smart contracts, since
-    //        // the "confirmSmartContract" function assumes it's being used
-    //        // at the command line, and it asks the user to enter various
-    //        // data (choose your account, etc) at the command line.
-    //        // So ONLY with Payment Plans can we do this here! The GUI has
-    //        // to provide its own custom code for smart contracts. However,
-    //        // that code will be easy to write: Just copy the code you see
-    //        // in confirmInstrument, for smart contracts, and change it to
-    //        // use GUI input/output instead of command line i/o.
-    //        //
-    //        CmdConfirm cmd;
-    //        return cmd.confirmInstrument(
-    //            server,
-    //            mynym,
-    //            myacct,
-    //            recipient,
-    //            instrument,
-    //            index,
-    //            pOptionalOutput);
-    //        // NOTE: we don't perform any RecordPayment here because
-    //        // confirmInstrument already does that.
-    //    }
+    if (paymentNotaryId != accountNotaryId) {
+        otOut << "The instrument at index " << index
+              << " has a different Notary ID than the selected account. "
+                 "(Skipping.)\nTry specifying a different account, using "
+                 "--myacct ACCT_ID \n";
+        return -1;
+    }
+    // Below this point we know for a fact that the notary ID on the payment
+    // instrument is the same as the notary ID for the account (myacct).
+    // They are interchangeable. So presumably the caller already did the
+    // heavy lifting of selecting the correct account.
     // ---------------------------------------------
-    time64_t from = SwigWrap::Instrmnt_GetValidFrom(instrument);
-    time64_t until = SwigWrap::Instrmnt_GetValidTo(instrument);
+//    if (bIsPaymentPlan) {
+//        // Note: this block is currently unreachable/disallowed.
+//        //       (But it would otherwise work.)
+//        //
+//        // NOTE: We couldn't even do this for smart contracts, since
+//        // the "confirmSmartContract" function assumes it's being used
+//        // at the command line, and it asks the user to enter various
+//        // data (choose your account, etc) at the command line.
+//        // So ONLY with Payment Plans can we do this here! The GUI has
+//        // to provide its own custom code for smart contracts. However,
+//        // that code will be easy to write: Just copy the code you see
+//        // in confirmInstrument, for smart contracts, and change it to
+//        // use GUI input/output instead of command line i/o.
+//        //
+//        CmdConfirm cmd;
+//        return cmd.confirmInstrument(
+//            acct_server,
+//            mynym,
+//            myacct,
+//            recipient,
+//            instrument,
+//            index,
+//            pOptionalOutput);
+//        // NOTE: we don't perform any RecordPayment here because
+//        // confirmInstrument already does that.
+//    }
+    // ---------------------------------------------
     time64_t now = SwigWrap::GetTime();
+    time64_t from{};
+    time64_t until{};
 
+    bool bGotValidFrom{false};
+    bGotValidFrom = thePayment.GetValidFrom(from);
+    bool bGotValidTo{false};
+    bGotValidTo = thePayment.GetValidTo(until);
+
+    if (!bGotValidFrom)
+    {
+        ; // TODO Maybe log here. But I think this case is allowed.
+    }
+    if (!bGotValidTo)
+    {
+        ; // TODO Maybe log here. But I think this case is allowed.
+    }
+    // TODO here: make sure the logic accounts for the fact that the boolean
+    // could be false. We should behave properly in the event that a valid from
+    // or valid to date isn't set on this particular instrument, or if it has
+    // a zero value or whatever.
+    //
     if (now < from) {
         otOut << "The instrument at index " << index
               << " is not yet within its valid date range. (Skipping.)\n";
@@ -915,7 +981,8 @@ std::int32_t OTRecordList::processPayment(  // a static method
         // Since this instrument is expired, remove it from the payments inbox,
         // and move to record box.
         if (0 <= index &&
-            SwigWrap::RecordPayment(server, mynym, true, index, true)) {
+            SwigWrap::RecordPayment(transport_notary, mynym, true, index, true))
+        {
             return 0;
         }
 
@@ -931,19 +998,22 @@ std::int32_t OTRecordList::processPayment(  // a static method
     // That's why you don't see me messing with the payments inbox even when
     // these are successful. They DO need to be removed from the payments inbox,
     // but just not here in the script. (Rather, internally by OT itself.)
-    if ("CHEQUE" == type || "VOUCHER" == type || "INVOICE" == type) {
+    if (thePayment.IsCheque()  ||
+        thePayment.IsVoucher() ||
+        thePayment.IsInvoice())
+    {
         return depositCheque(
-            server, myacct, mynym, instrument, pOptionalOutput);
-    } else if ("PURSE" == type) {
+            acct_server, myacct, mynym, instrument, pOptionalOutput);
+    } else if (thePayment.IsPurse()) {
         std::int32_t success{-1};
 #if OT_CASH
         success = OT::App().API().Cash().deposit_purse(
-            server, myacct, mynym, instrument, "", pOptionalOutput);
+            acct_server, myacct, mynym, instrument, "", pOptionalOutput);
 #endif  // OT_CASH
         // if index != -1, go ahead and call RecordPayment on the purse at that
         // index, to remove it from payments inbox and move it to the recordbox.
         if (index != -1 && 1 == success) {
-            SwigWrap::RecordPayment(server, mynym, true, index, true);
+            SwigWrap::RecordPayment(transport_notary, mynym, true, index, true);
         }
 
         return success;

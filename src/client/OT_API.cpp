@@ -4973,7 +4973,7 @@ OTNym_or_SymmetricKey* OT_API::LoadPurseAndOwnerForMerge(
             // failed.
             (!thePurse.IsNymIDIncluded() &&
              !thePurse.IsPasswordProtected())  // && (nullptr != pOWNER_ID))
-                                               // //
+                                               //
                                                // checked inside the block.
             ) {
             const Identifier* pActualOwnerID =
@@ -6461,36 +6461,75 @@ bool OT_API::ClearExpired(
 //
 // UPDATE: This should now also work for smart contracts and payment plans.
 bool OT_API::RecordPayment(
-    const Identifier& NOTARY_ID,
+    const Identifier& TRANSPORT_NOTARY_ID, // Transport Notary for inPayments
+                    // box. (May differ from notary ID on the payment itself)
     const Identifier& NYM_ID,
     bool bIsInbox,        // true == payments inbox. false == outpayments box.
     std::int32_t nIndex,  // removes payment instrument (from payments inbox or
                           // outpayments box) and moves to record box.
     bool bSaveCopy) const
 {
-    rLock lock(lock_callback_({NYM_ID.str(), NOTARY_ID.str()}));
-    auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
-    auto nymfile = context.It().mutable_Nymfile(__FUNCTION__);
+    // ----------------------------------------
+    rLock transport_lock(
+        lock_callback_({NYM_ID.str(), TRANSPORT_NOTARY_ID.str()}));
+    auto transport_context = wallet_.mutable_ServerContext(
+        NYM_ID,
+        TRANSPORT_NOTARY_ID);
+    auto transport_nymfile = transport_context.It()
+        .mutable_Nymfile(__FUNCTION__);
+    auto transport_nym = transport_context.It().Nym();
 
-    auto nym = context.It().Nym();
+    // Sometimes the payment and transport notaries are the same
+    // notary. Sometimes they are different, we handle both cases.
+    ConstNym payment_nym; // So far, still null.
+    // ----------------------------------------
+    std::unique_ptr<rLock> payment_lock;
 
-    Ledger* pRecordBox = nullptr;
-    Ledger* pExpiredBox = nullptr;
-    Ledger* pActualBox =
-        nullptr;  // This points to either pRecordBox or pExpiredBox.
+    // All this to solve a problem of scope...
+    class recordpayment_cleanup1
+    {
+        Editor<opentxs::ServerContext> payment_context_;
+    public:
+        Editor<opentxs::ServerContext> & paymentContext()
+        { return payment_context_; }
+
+        recordpayment_cleanup1(Editor<opentxs::ServerContext>&& payment_context)
+        : payment_context_(std::move(payment_context))
+        { }
+    };
+    class recordpayment_cleanup2
+    {
+        Editor<class NymFile> payment_nymfile_;
+    public:
+        Editor<class NymFile> & paymentNymfile()
+        { return payment_nymfile_; }
+
+        recordpayment_cleanup2(Editor<class NymFile>&& payment_nymfile)
+        : payment_nymfile_(std::move(payment_nymfile))
+        { }
+    };
+    std::unique_ptr<recordpayment_cleanup1> pCleanup1;
+    std::unique_ptr<recordpayment_cleanup2> pCleanup2;
+
+    Editor<opentxs::ServerContext> * payment_context{nullptr};
+    Editor<class NymFile> * payment_nymfile{nullptr};
+    // ----------------------------------------
+    Ledger* pRecordBox {nullptr};
+    Ledger* pExpiredBox{nullptr};
+    Ledger* pActualBox {nullptr};  // Points to either pRecordBox or pExpiredBox
 
     std::unique_ptr<Ledger> theRecordBoxAngel;
     std::unique_ptr<Ledger> theExpiredBoxAngel;
 
     if (bSaveCopy) {
-        pRecordBox = LoadRecordBox(NOTARY_ID, NYM_ID, NYM_ID);
-        pExpiredBox = LoadExpiredBox(NOTARY_ID, NYM_ID);
+        pRecordBox = LoadRecordBox(TRANSPORT_NOTARY_ID, NYM_ID, NYM_ID);
+        pExpiredBox = LoadExpiredBox(TRANSPORT_NOTARY_ID, NYM_ID);
         theRecordBoxAngel.reset(pRecordBox);
         theExpiredBoxAngel.reset(pExpiredBox);
 
         if (nullptr == pRecordBox) {
             pRecordBox = Ledger::GenerateLedger(
-                NYM_ID, NYM_ID, NOTARY_ID, Ledger::recordBox, true);
+                NYM_ID, NYM_ID, TRANSPORT_NOTARY_ID, Ledger::recordBox, true);
             if (nullptr == pRecordBox) {
                 otErr << OT_METHOD << __FUNCTION__
                       << ": Unable to load or create record box "
@@ -6501,7 +6540,7 @@ bool OT_API::RecordPayment(
         }
         if (nullptr == pExpiredBox) {
             pExpiredBox = Ledger::GenerateLedger(
-                NYM_ID, NYM_ID, NOTARY_ID, Ledger::expiredBox, true);
+                NYM_ID, NYM_ID, TRANSPORT_NOTARY_ID, Ledger::expiredBox, true);
             if (nullptr == pExpiredBox) {
                 otErr << OT_METHOD << __FUNCTION__
                       << ": Unable to load or create expired box"
@@ -6512,22 +6551,24 @@ bool OT_API::RecordPayment(
         }
     }
     pActualBox = pRecordBox;
-    Ledger* pPaymentInbox = nullptr;
+    Ledger* pPaymentInbox{nullptr};
     std::unique_ptr<Ledger> thePaymentBoxAngel;
 
-    bool bIsExpired = false;
+    bool bIsExpired{false};
 
     // first block:
-    OTTransaction* transaction = nullptr;
+    OTTransaction* transaction{nullptr};
     std::unique_ptr<OTTransaction> theTransactionAngel;
 
     // second block:
     std::unique_ptr<Message> theMessageAngel;
 
-    bool bRemoved = false;
+    bool bRemoved{false};
+
+    std::unique_ptr<OTPayment> pPayment;
 
     if (bIsInbox) {
-        pPaymentInbox = LoadPaymentInbox(NOTARY_ID, NYM_ID);
+        pPaymentInbox = LoadPaymentInbox(TRANSPORT_NOTARY_ID, NYM_ID);
         thePaymentBoxAngel.reset(pPaymentInbox);
 
         if (nullptr == pPaymentInbox) {
@@ -6552,12 +6593,43 @@ bool OT_API::RecordPayment(
                   << nIndex << ".\n";
             return false;
         }
-        std::unique_ptr<OTPayment> pPayment(
-            GetInstrumentByIndex(*nym, nIndex, *pPaymentInbox));
+        pPayment.reset(GetInstrumentByIndex(*transport_nym, nIndex,
+                                            *pPaymentInbox));
+        // ------------------------------------------
+        // Payment Notary (versus the Transport Notary).
+        //
+        OTIdentifier paymentNotaryId = Identifier::Factory();
 
+        if (pPayment->GetNotaryID(paymentNotaryId))
+        {
+            if (paymentNotaryId != TRANSPORT_NOTARY_ID)
+            {
+                payment_lock.reset(new rLock(lock_callback_({NYM_ID.str(),
+                    paymentNotaryId->str()})));
+
+                pCleanup1.reset(new recordpayment_cleanup1(
+                    wallet_.mutable_ServerContext(NYM_ID, paymentNotaryId)));
+                payment_context = &(pCleanup1->paymentContext());
+
+                pCleanup2.reset(new recordpayment_cleanup2(
+                    payment_context->It().mutable_Nymfile(__FUNCTION__)));
+                payment_nymfile = &(pCleanup2->paymentNymfile());
+
+                payment_nym = payment_context->It().Nym();
+            }
+            else
+            {
+                payment_context = &transport_context;
+                payment_nymfile = &transport_nymfile;
+                payment_nym = transport_nym;
+            }
+        }
+        // ------------------------------------------
         pPayment->IsExpired(bIsExpired);
 
-        if (bIsExpired) pActualBox = pExpiredBox;
+        if (bIsExpired)
+            pActualBox = pExpiredBox;
+
         // Remove it from the payments inbox...
         //
         const std::int64_t lTransactionNum = transaction->GetTransactionNum();
@@ -6588,14 +6660,16 @@ bool OT_API::RecordPayment(
     } else  // Outpayments box (which is not stored in an OTLedger like payments
             // inbox, but rather, is stored similarly to outmail.)
     {
-        if ((nIndex < 0) || (nIndex >= nymfile.It().GetOutpaymentsCount())) {
+        if ((nIndex < 0) ||
+            (nIndex >= transport_nymfile.It().GetOutpaymentsCount())) {
             otErr << OT_METHOD << __FUNCTION__
                   << ": Unable to find payment in outpayment box based "
                      "on index "
                   << nIndex << ". (Out of bounds.)\n";
             return false;
         }
-        Message* pMessage = nymfile.It().GetOutpaymentsByIndex(nIndex);
+        Message* pMessage =
+            transport_nymfile.It().GetOutpaymentsByIndex(nIndex);
 
         if (nullptr == pMessage) {
             otErr << OT_METHOD << __FUNCTION__
@@ -6614,16 +6688,61 @@ bool OT_API::RecordPayment(
             return false;
         }
         OTPayment thePayment(strInstrument);
-
         originType theOriginType = originType::not_applicable;
 
-        if (thePayment.IsValid() && thePayment.SetTempValues()) {
+        if (thePayment.IsValid() && thePayment.SetTempValues())
+        {
             // EXPIRED?
             //
             thePayment.IsExpired(bIsExpired);
+            if (bIsExpired)
+                pActualBox = pExpiredBox;
+            // ------------------------------------------
+            // Payment Notary (versus the Transport Notary).
+            //
+            OTIdentifier paymentNotaryId = Identifier::Factory();
+            if (thePayment.GetNotaryID(paymentNotaryId))
+            {
+                // If you write a cheque drawn on server ABC, and then you send
+                // it to me on my server DEF, then I will open my payments inbox
+                // on server DEF, which is the Transport Notary, and inside I
+                // will find a cheque from you, drawn on server ABC, which is
+                // the Payment Notary.
+                // So one is the notary where I prefer to receive messages, and
+                // the other is the notary where your cheque is drawn on. They
+                // are not necessarily the same, and usually different in fact.
+                // So we distinguish between the two notaries depending on what
+                // we need to do.
+                //
+                // In this case, if the notary IDs do not match, then I need to
+                // lock ANOTHER context here -- the one where the payment is
+                // processed, versus the notary where the payment instrument
+                // was received. (Which is what we locked at the top of this
+                // function).
+                //
+                if (paymentNotaryId != TRANSPORT_NOTARY_ID)
+                {
+                    payment_lock.reset(new rLock(lock_callback_({NYM_ID.str(),
+                        paymentNotaryId->str()})));
 
-            if (bIsExpired) pActualBox = pExpiredBox;
+                    pCleanup1.reset(new recordpayment_cleanup1(
+                       wallet_.mutable_ServerContext(NYM_ID, paymentNotaryId)));
+                    payment_context = &(pCleanup1->paymentContext());
 
+                    pCleanup2.reset(new recordpayment_cleanup2(
+                       payment_context->It().mutable_Nymfile(__FUNCTION__)));
+                    payment_nymfile = &(pCleanup2->paymentNymfile());
+
+                    payment_nym = payment_context->It().Nym();
+                }
+                else
+                {
+                    payment_context = &transport_context;
+                    payment_nymfile = &transport_nymfile;
+                    payment_nym = transport_nym;
+                }
+            }
+            // ------------------------------------------
             // Anything but a purse?
             //
             std::int64_t lPaymentOpeningNum = 0;
@@ -6646,9 +6765,8 @@ bool OT_API::RecordPayment(
                              "RIGHT AFTER succeeded getting opening num.\n";
                 }
                 // However, if it IS a different number, in the case of smart
-                // contracts and payment plans,
-                // we then change it BACK to the opening number again. Read the
-                // next comment for details why.
+                // contracts and payment plans, we then change it BACK to the
+                // opening number again. Read the next comment for details why.
                 //
                 bool bIsRecurring = false;
 
@@ -6665,57 +6783,45 @@ bool OT_API::RecordPayment(
 
                     lPaymentTransNum = lPaymentOpeningNum;
                     // We do this because the ACTUAL transaction number on a
-                    // smart contract
-                    // or payment plan might be different that THIS Nym's
-                    // opening number (it
-                    // might be some other Nym's opening number.) But even if
-                    // that's the
-                    // case, we still want to harvest THIS Nym's opening number,
-                    // not the
-                    // other Nym's opening number. So for these instruments, we
-                    // set the
-                    // "transaction number" to be THIS Nym's opening number.
-                    // (Versus just
-                    // saying, "Oh the trans number is for some other Nym, so
-                    // just ignore
-                    // this" which would cause us to not harvest the numbers for
-                    // THIS Nym
-                    // that we probably SHOULD be harvesting.
+                    // smart contract or payment plan might be different that
+                    // THIS Nym's opening number (it might be some other Nym's
+                    // opening number.) But even if that's the case, we still
+                    // want to harvest THIS Nym's opening number, not the other
+                    // Nym's opening number. So for these instruments, we set
+                    // the "transaction number" to be THIS Nym's opening number.
+                    // (Versus just saying, "Oh the trans number is for some
+                    // other Nym, so just ignore this" which would cause us to
+                    // not harvest the numbers for THIS Nym that we probably
+                    // SHOULD be harvesting.
                 }
 
                 // See what account the payment instrument is drawn from. Is it
-                // mine?
-                // If so, load up the inbox and see if there are any related
-                // receipts inside.
-                // If so, do NOT harvest the transaction numbers from the
-                // instrument.
-                // Otherwise, harvest them. (The instrument hasn't been redeemed
-                // yet.)
-                // Also, use the transaction number on the instrument to see if
-                // it's signed out to me.
+                // mine? If so, load up the inbox and see if there are any
+                // related receipts inside. If so, do NOT harvest the
+                // transaction numbers from the instrument. Otherwise, harvest
+                // them. (The instrument hasn't been redeemed yet.) Also, use
+                // the transaction number on the instrument to see if it's
+                // signed out to me.
                 //
                 // Hmm: If the instrument is definitely expired, and there's
-                // definitely nothing in the asset
-                // accountinbox, then I can DEFINITELY harvest it back.
+                // definitely nothing in the asset accountinbox, then I can
+                // DEFINITELY harvest it back.
                 //
                 // But if the instrument is definitely NOT expired, and the
-                // transaction # IS signed out to ME,
-                // then I can't just harvest the numbers, since the original
-                // recipient could still come through
-                // and deposit that cheque. So in this case, I would HAVE to
-                // cancel the transaction, and then
-                // such cancellation would automatically harvest while
-                // processing the successful server reply.
+                // transaction # IS signed out to ME, then I can't just harvest
+                // the numbers, since the original recipient could still come
+                // through and deposit that cheque. So in this case, I would
+                // HAVE to cancel the transaction, and then such cancellation
+                // would automatically harvest while processing the successful
+                // server reply.
                 //
                 // Therefore make sure not to move the instrument here, unless
-                // it's definitely expired.
-                // Whereas if it's not expired, then the API must cancel it with
-                // the server, and can't simply
-                // come in here and move/harvest it. So this function can only
-                // be for expired transactions or
-                // those where the transaction number is no longer issued. (And
-                // in cases where it's expired but
-                // STILL issued, then it definitely DOES need to harvest.)
+                // it's definitely expired. Whereas if it's not expired, then
+                // the API must cancel it with the server, and can't simply come
+                // in here and move/harvest it. So this function can only be for
+                // expired transactions or those where the transaction number is
+                // no longer issued. (And in cases where it's expired but STILL
+                // issued, then it definitely DOES need to harvest.)
 
                 bool bShouldHarvestPayment = false;
                 bool bNeedToLoadAssetAcctInbox = false;
@@ -6726,13 +6832,13 @@ bool OT_API::RecordPayment(
                 if (thePayment.IsVoucher()) {
                     bPaymentSenderIsNym =
                         (thePayment.GetRemitterNymID(theSenderNymID) &&
-                         nymfile.It().CompareID(theSenderNymID));
+                         payment_nymfile->It().CompareID(theSenderNymID));
                     bFromAcctIsAvailable =
                         thePayment.GetRemitterAcctID(theSenderAcctID);
                 } else {
                     bPaymentSenderIsNym =
                         (thePayment.GetSenderNymID(theSenderNymID) &&
-                         nymfile.It().CompareID(theSenderNymID));
+                         payment_nymfile->It().CompareID(theSenderNymID));
                     bFromAcctIsAvailable =
                         thePayment.GetSenderAcctID(theSenderAcctID);
                 }
@@ -6746,15 +6852,11 @@ bool OT_API::RecordPayment(
                     // transaction number on the cheque.
                     // NOTE: with bIsRecurring, we know nymfile is one of the
                     // parties of the smart contract.
-                    //       (Since we found an opening number for nymfile on
-                    //       it.)
-
-                    const String strNotaryID(NOTARY_ID);
+                    // (Since we found an opening number for nymfile on it.)
 
                     // If the transaction # isn't signed out to me, then there's
-                    // no need to check the inbox
-                    // for any receipts, since those would have to have been
-                    // already closed out, in order for
+                    // no need to check the inbox for any receipts, since those
+                    // would have to have been already closed out, in order for
                     // the number not to be signed out to me anymore.
                     //
                     // Therefore let's check that first, before bothering to
@@ -6762,7 +6864,8 @@ bool OT_API::RecordPayment(
                     //
 
                     // If I'm in the middle of trying to sign it out...
-                    if (context.It().VerifyTentativeNumber(lPaymentTransNum)) {
+                    if (payment_context->It()
+                        .VerifyTentativeNumber(lPaymentTransNum)) {
                         otErr << OT_METHOD << __FUNCTION__
                               << ": Error: Why on earth is this "
                                  "transaction number ("
@@ -6776,7 +6879,8 @@ bool OT_API::RecordPayment(
                         return false;
                     }
                     const bool bIsIssued =
-                        context.It().VerifyIssuedNumber(lPaymentTransNum);
+                        payment_context->It()
+                            .VerifyIssuedNumber(lPaymentTransNum);
 
                     // If nymfile is the sender AND the payment instrument IS
                     // expired.
@@ -6785,60 +6889,46 @@ bool OT_API::RecordPayment(
                                         // out to nymfile...
                         {
                             // If the instrument is definitely expired, and its
-                            // number is still
-                            // issued to nymfile, and there's definitely no
-                            // related
-                            // chequeReceipts in
-                            // the asset acocunt inbox, then I can DEFINITELY
-                            // harvest it back. After
-                            // all, it hasn't been used, and since it's expired,
-                            // now it CAN'T be
-                            // used. So might as well harvest the number back,
-                            // since we've
+                            // number is still issued to nymfile, and there's
+                            // definitely no related chequeReceipts in the asset
+                            // acocunt inbox, then I can DEFINITELY harvest it
+                            // back. After all, it hasn't been used, and since
+                            // it's expired, now it CAN'T be used. So might as
+                            // well harvest the number back, since we've
                             // established that it's still signed out.
                             //
                             // You might ask, but what if there IS a
-                            // chequeReceipt in the asset
-                            // account inbox? How does that change things? The
-                            // answer is, because
+                            // chequeReceipt in the asset account inbox? How
+                            // does that change things? The answer is, because
                             // the transaction # might still be signed out to
-                            // me, even in a case
-                            // where the payment instrument is expired, but a
-                            // chequeReceipt still IS
-                            // present! How so? Simple: I sent him the cheque,
-                            // he cashed it. It's in
-                            // my outpayments still, because his chequeReceipt
-                            // is in my inbox still,
-                            // and hasn't been processed out. Meanwhile I wait a
-                            // few weeks, and then
-                            // the instrument, meanwhile, expires. It's already
-                            // been processed, so
-                            // it doesn't matter that it's expired. But
-                            // nonetheless, according to
-                            // the dates affixed to it, it IS expired, and the
-                            // receipt IS present.
-                            // So this is clearly a realistic and legitimate
-                            // case for our logic to
+                            // me, even in a case where the payment instrument
+                            // is expired, but a chequeReceipt still IS present!
+                            // How so? Simple: I sent him the cheque, he cashed
+                            // it. It's in my outpayments still, because his
+                            // chequeReceipt is in my inbox still, and hasn't
+                            // been processed out. Meanwhile I wait a few weeks,
+                            // and then the instrument, meanwhile, expires. It's
+                            // already been processed, so it doesn't matter that
+                            // it's expired. But nonetheless, according to the
+                            // dates affixed to it, it IS expired, and the
+                            // receipt IS present. So this is clearly a
+                            // realistic and legitimate case for our logic to
                             // take into account. When this happens, we should
-                            // NOT harvest the
-                            // transaction # back when recording the payment,
-                            // because that number
-                            // has been used already!
+                            // NOT harvest the transaction # back when recording
+                            // the payment, because that number has been used
+                            // already!
                             //
                             // That, in a nutshell, is why we have to load the
-                            // inbox and see if that
-                            // receipt's there, to MAKE SURE whether the
-                            // instrument was negotiated
+                            // inbox and see if that receipt's there, to MAKE
+                            // SURE whether the instrument was negotiated
                             // already, before it expired, even though I haven't
-                            // accepted the
-                            // receipt and closed out the transaction # yet,
-                            // because it impacts our
+                            // accepted the receipt and closed out the
+                            // transaction # yet, because it impacts our
                             // decision of whether or not to harvest back the
                             // number.
                             //
                             // The below two statements are interpreted based on
-                            // this logic (see
-                            // comment for each.)
+                            // this logic (see comment for each.)
                             //
                             bShouldHarvestPayment = true;  // If NO
                             // chequeReceipt/paymentReceipt/finalReceipt
@@ -6846,10 +6936,9 @@ bool OT_API::RecordPayment(
                             // back the trans # (since the cheque's expired and
                             // could never otherwise be closed out)...
                             bNeedToLoadAssetAcctInbox = true;  // ...But if
-                            // chequeReceipt/paymentReceipt/finalReceipt
-                            // IS in inbox, definitely should NOT
-                            // harvest back the # (since it's already been
-                            // used.)
+                            // chequeReceipt/paymentReceipt/finalReceipt IS in
+                            // inbox, definitely should NOT harvest back the #
+                            // (since it's already been used.)
                             //
                             // =====> Therefore bNeedToLoadAssetAcctInbox is a
                             // caveat, which OVERRIDES bShouldHarvestPayment.
@@ -6866,90 +6955,74 @@ bool OT_API::RecordPayment(
                                 false;  // The # isn't signed out anymore, so we
                                         // don't want to harvest it (which would
                             // cause the wallet to try and use it again -- but
-                            // we don't want that, since
-                            // we can't be using numnbers that aren't even
-                            // signed out to us!)
+                            // we don't want that, since we can't be using
+                            // numbers that aren't even signed out to us!)
                             bNeedToLoadAssetAcctInbox =
                                 false;  // No need to check the inbox since the
                                         // # isn't even signed out anymore. Even
                                         // if
                             // some related receipt was in the inbox (for some
-                            // non-cheque instrument, say)
-                            // we'd still never need to harvest it back for
-                            // re-use, since it's not even
-                            // signed out to us anymore, and we can only use
-                            // numbers that are signed out
-                            // to us.
+                            // non-cheque instrument, say) we'd still never need
+                            // to harvest it back for re-use, since it's not
+                            // even signed out to us anymore, and we can only
+                            // use numbers that are signed out to us.
                         }
                     }     // if bIsExpired.
                     else  // Not expired. nymfile is the sender but the payment
                           // instrument is NOT expired.
                     {
                         // Remember that the transaction number is still signed
-                        // out to me until I accept that
-                        // chequeReceipt. So whether the receipt is there or
-                        // not, the # will still be signed
-                        // out to me. But if there's no receipt yet in my inbox,
-                        // that means the cheque hasn't
-                        // been cashed yet. And THAT means I still have time to
-                        // cancel it. I can't just discard
-                        // the payment instrument, since its trans# would still
-                        // need to be harvested if it's not
+                        // out to me until I accept that chequeReceipt. So
+                        // whether the receipt is there or not, the # will still
+                        // be signed out to me. But if there's no receipt yet in
+                        // my inbox, that means the cheque hasn't been cashed
+                        // yet. And THAT means I still have time to cancel it. I
+                        // can't just discard the payment instrument, since its
+                        // trans# would still need to be harvested if it's not
                         // being cancelled (so as to get it closed out on some
-                        // other instrument, presumably), but
-                        // I can't just harvest a number when there's some
-                        // instrument still floating around out
-                        // there, with that same number already on it! I HAVE to
-                        // cancel it.
+                        // other instrument, presumably), but I can't just
+                        // harvest a number when there's some instrument still
+                        // floating around out there, with that same number
+                        // already on it! I HAVE to cancel it.
                         //
                         // If I discard it without harvesting, and if the
-                        // recipient never cashes it, then that
-                        // transaction # will end up signed out to me FOREVER
-                        // (bad thing.) So I would have to
-                        // cancel it first, in order to discard it. The server's
-                        // success reply to my cancel
-                        // would be the proper time to discard the old
-                        // outpayment. Until I see that, how do I know
-                        // if I won't need it in the future, for harvesting
-                        // back?
+                        // recipient never cashes it, then that transaction #
+                        // will end up signed out to me FOREVER (bad thing.) So
+                        // I would have to cancel it first, in order to discard
+                        // it. The server's success reply to my cancel would be
+                        // the proper time to discard the old outpayment. Until
+                        // I see that, how do I know if I won't need it in the
+                        // future, for harvesting back?
                         //
                         if (bIsIssued)  // If this number is still signed out to
                                         // nymfile...
                         {
                             // If the instrument is definitely NOT expired, and
-                            // the transaction #
-                            // definitely IS issued to ME, then I can't just
-                            // harvest the numbers,
-                            // since the original recipient could still come
-                            // through and deposit
-                            // that cheque.  So in this case, I would HAVE to
-                            // cancel the transaction
-                            // first, and then such cancellation could sign a
-                            // new transaction
+                            // the transaction # definitely IS issued to ME,
+                            // then I can't just harvest the numbers, since the
+                            // original recipient could still come through and
+                            // deposit that cheque.  So in this case, I would
+                            // HAVE to cancel the transaction first, and then
+                            // such cancellation could sign a new transaction
                             // statement with that # removed from my list of
-                            // "signed out" numbers.
-                            // Only then am I safe from the cheque being cashed
-                            // by the recipient,
-                            // and only then could I even think about harvesting
-                            // the number
-                            // back--that itself being unnecessary, since the
-                            // transaction
+                            // "signed out" numbers. Only then am I safe from
+                            // the cheque being cashed by the recipient, and
+                            // only then could I even think about harvesting the
+                            // number back--that itself being unnecessary, since
+                            // the transaction
                             // # would then be cancelled/closed and thus would
-                            // eliminate any need
-                            // of harvesting it (since now I will never use it.)
+                            // eliminate any need of harvesting it (since now I
+                            // will never use it.)
                             //
                             // Also, if I DON'T cancel it, then I don't want to
-                            // remove it from the
-                            // outpayments box, because it will be removed
-                            // automatically whenever
-                            // the cheque is eventually cashed, and until/unless
-                            // that happens, I
-                            // need to keep it around for potential harvesting
-                            // or cancellation.
-                            // Therefore I can't discard the instrument
-                            // either--I need to keep it in
-                            // the outpayments box for now, in case it's needed
-                            // later.
+                            // remove it from the outpayments box, because it
+                            // will be removed automatically whenever the cheque
+                            // is eventually cashed, and until/unless that
+                            // happens, I need to keep it around for potential
+                            // harvesting or cancellation. Therefore I can't
+                            // discard the instrument either--I need to keep it
+                            // in the outpayments box for now, in case it's
+                            // needed later.
                             //
                             otErr << OT_METHOD << __FUNCTION__
                                   << ": This outpayment isn't expired yet, and "
@@ -6985,281 +7058,180 @@ bool OT_API::RecordPayment(
                 }      // sender is nymfile
 
                 // TODO: Add OPTIONAL field to Purse: "Remitter". This way the
-                // sender
-                // has the OPTION to attach his ID "for the record" even though
-                // a cash
-                // transaction HAS NO "SENDER."
+                // sender has the OPTION to attach his ID "for the record" even
+                // though a cash transaction HAS NO "SENDER."
                 //
                 // This would make it convenient for a purse to, for example,
-                // create a
-                // second copy of the cash, encrypted to the remitter's public
-                // key. This
-                // is important, since the if the remitter has the cash in his
-                // outpayment's box, he will want a way to recover it if his
-                // friend
-                // returns and says, "I lost that USB key! Do you still have
-                // that
-                // cash?!?"
+                // create a second copy of the cash, encrypted to the remitter's
+                // public key. This is important, since the if the remitter has
+                // the cash in his outpayment's box, he will want a way to
+                // recover it if his friend returns and says, "I lost that USB
+                // key! Do you still have that cash?!?"
                 //
                 // In fact we may want to use the field for that purpose,
-                // WHETHER OR NOT
-                // the final sent instrument actually includes the remitter's
-                // ID.
+                // WHETHER OR NOT the final sent instrument actually includes
+                // the remitter's ID.
                 //
                 // If the SenderNymID on this instrument isn't Nym's ID (as in
-                // the case
-                // of vouchers), or isn't even there (as in the case of cash)
-                // then why
-                // is it in Nym's payment outbox? Well, maybe the recipient of
-                // your
-                // voucher, lost it. You still need to be able to get another
-                // copy for
-                // him, or get it refunded (if you are listed as the
-                // remitter...)
-                // Therefore you keep it in your outpayments box "just in case."
-                // In the
-                // case of cash, the same could be true.
+                // the case of vouchers), or isn't even there (as in the case of
+                // cash) then why is it in Nym's payment outbox? Well, maybe the
+                // recipient of your voucher, lost it. You still need to be able
+                // to get another copy for him, or get it refunded (if you are
+                // listed as the remitter...) Therefore you keep it in your
+                // outpayments box "just in case." In the case of cash, the same
+                // could be true.
                 //
                 // In a way it doesn't matter, since eventually those
-                // instruments will
-                // expire and then they will be swept into the record box with
-                // everything else (probably by this function.)
+                // instruments will expire and then they will be swept into the
+                // record box with everything else (probably by this function.)
                 //
                 // But what if the instruments never expire? Say a voucher with
-                // a very
-                // very std::int64_t expiration date? It's still going to sit
-                // there,
-                // stuck in
-                // your outpayments box, even though the recipient have have
-                // cashed it
-                // std::int64_t, std::int64_t ago! The only way to get rid of it
-                // is to
-                // have the
-                // server send you a notice when it's cashed, which is only
-                // possible if
-                // your ID is listed as the remitter. (Otherwise the server
-                // wouldn't
+                // a very very std::int64_t expiration date? It's still going to
+                // sit there, stuck in your outpayments box, even though the
+                // recipient have have cashed it std::int64_t, std::int64_t ago!
+                // The only way to get rid of it is to have the server send you
+                // a notice when it's cashed, which is only possible if your ID
+                // is listed as the remitter. (Otherwise the server wouldn't
                 // know who to send the notice to.)
                 //
                 // Further, there's no PROVING whether the server sent you
-                // notice for
-                // anything -- whether you are listed as the remitter or not,
-                // the server
-                // could choose to LIE and just NOT TELL YOU that the voucher
-                // was
-                // cashed. How would you know the difference? Thus "Notice" is
-                // an
-                // important problem, peripheral to OT. Balances are safe from
-                // any
-                // change without a proper signed and authorized receipt--that
-                // is a
-                // powerful strength of OT--but notice cannot be proven.
+                // notice for anything -- whether you are listed as the remitter
+                // or not, the server could choose to LIE and just NOT TELL YOU
+                // that the voucher was cashed. How would you know the
+                // difference? Thus "Notice" is an important problem, peripheral
+                // to OT. Balances are safe from any change without a proper
+                // signed and authorized receipt--that is a powerful strength of
+                // OT--but notice cannot be proven.
                 //
                 // If the remitter has no way to prove that the recipient
-                // actually
-                // deposited the cheque, (even though most servers will of
-                // course
-                // provide this, they cannot PROVE that they provided it) then
-                // what good
-                // is the instrument to the remitter? What good is such a
-                // cashier's
-                // cheque? Well, the voucher is still in my outpayments, so I
-                // can see
-                // the transaction number on it, and then I should be able to
-                // query the
-                // server and see which transaction numbers are signed out to
-                // it. In
-                // which case a simple server message (available to all users)
-                // will
-                // return the numbers signed out to the server and thus I can
-                // see
+                // actually deposited the cheque, (even though most servers will
+                // of course provide this, they cannot PROVE that they provided
+                // it) then what good is the instrument to the remitter? What
+                // good is such a cashier's cheque? Well, the voucher is still
+                // in my outpayments, so I can see the transaction number on it,
+                // and then I should be able to query the server and see which
+                // transaction numbers are signed out to it. In which case a
+                // simple server message (available to all users) will return
+                // the numbers signed out to the server and thus I can see
                 // whether or not the number on the voucher is still valid. If
-                // it's not,
-                // the server reply to that message would be the appropriate
-                // place to
-                // move the outpayment to the record box.
+                // it's not, the server reply to that message would be the
+                // appropriate place to move the outpayment to the record box.
                 //
                 // What if we don't want to have these transaction numbers
-                // signed out to
-                // the server at all? Maybe we use numbers signed out to the
-                // users
-                // instead. Then when the voucher is cashed, instead of checking
-                // the
-                // server's list of issued transaction numbers to see if the
-                // voucher is
-                // valid, we would be checking the remitter's list instead. And
-                // thus
-                // whenever the voucher is cashed, we would have to drop a
-                // voucherReceipt in the REMITTER's inbox (and nymbox) so he
-                // would know
-                // to discard the transaction number.
+                // signed out to the server at all? Maybe we use numbers signed
+                // out to the users instead. Then when the voucher is cashed,
+                // instead of checking the server's list of issued transaction
+                // numbers to see if the voucher is valid, we would be checking
+                // the remitter's list instead. And thus whenever the voucher is
+                // cashed, we would have to drop a voucherReceipt in the
+                // REMITTER's inbox (and nymbox) so he would know to discard the
+                // transaction number.
                 //
                 // This would require adding the voucherReceipt, and would
-                // restrict the
-                // use of vouchers to those people who have an asset account
-                // (though
-                // that's currently the only people who can use them now anyway,
-                // since
-                // vouchers are withdrawn from accounts) but it would eliminate
-                // the need
-                // for the server nym to store all the transaction numbers for
-                // all the
-                // open vouchers, and it would also eliminate the problem of "no
-                // notice"
-                // for the remitters of vouchers. They'd be guaranteed, in fact,
-                // to get
-                // notice, since the voucherReceipt is what removes the
-                // transaction
-                // number from the user's list of signed-out transaction numbers
-                // (and
-                // thus prevents anyone from spending the voucher twice, which
-                // the
-                // server wants to avoid at all costs.) Thus if the server wants
-                // to
-                // avoid having a voucher spent twice, then it needs to get that
-                // transaction number off of my list of numbers, and it can't do
-                // that
+                // restrict the use of vouchers to those people who have an
+                // asset account (though that's currently the only people who
+                // can use them now anyway, since vouchers are withdrawn from
+                // accounts) but it would eliminate the need for the server nym
+                // to store all the transaction numbers for all the open
+                // vouchers, and it would also eliminate the problem of "no
+                // notice" for the remitters of vouchers. They'd be guaranteed,
+                // in fact, to get notice, since the voucherReceipt is what
+                // removes the transaction number from the user's list of
+                // signed-out transaction numbers (and thus prevents anyone from
+                // spending the voucher twice, which the server wants to avoid
+                // at all costs.) Thus if the server wants to avoid having a
+                // voucher spent twice, then it needs to get that transaction
+                // number off of my list of numbers, and it can't do that
                 // without putting a receipt in my inbox to justify the removal
-                // of the
-                // number. Otherwise my receipt verifications will start failing
-                // and
-                // I'll be unable to do any new transactions, and then the
-                // server will
-                // have to explain why it removed a transaction number from my
-                // list,
-                // even though it still was on my list during the last
-                // transaction
-                // statement, and even though there's no new receipt in my inbox
-                // to
-                // justify removing it.
+                // of the number. Otherwise my receipt verifications will start
+                // failing and I'll be unable to do any new transactions, and
+                // then the server will have to explain why it removed a
+                // transaction number from my list, even though it still was on
+                // my list during the last transaction statement, and even
+                // though there's no new receipt in my inbox to justify removing
+                // it.
                 //
                 // Conclusion, DONE: vouchers WITH a remitter acct, should store
-                // the
-                // remitter's user AND acct IDs, and should use a transaction #
-                // that's
-                // signed out to the remitter (instead of the server) and should
-                // drop a
-                // voucherReceipt in the remitter's asset account inbox when
-                // they are
-                // cashed. These vouchers are guaranteed to provide notice to
-                // the
-                // remitter.
+                // the remitter's user AND acct IDs, and should use a
+                // transaction # that's signed out to the remitter (instead of
+                // the server) and should drop a voucherReceipt in the
+                // remitter's asset account inbox when they are cashed. These
+                // vouchers are guaranteed to provide notice to the remitter.
                 //
                 // Whereas vouchers WITHOUT a remitter acct should store the
-                // remitter's
-                // user ID (or not), but should NOT store the remitter's acct
-                // ID, and
-                // should use a transaction # that's signed out to the server,
-                // and
-                // should drop a notice in the Nymbox of the remitter IF his
-                // user ID is
-                // available, but it should be understood that such notice is a
-                // favor
-                // the server is doing, and not something that's PROVABLE as in
-                // the case
-                // of the vouchers in the above paragraph.
+                // remitter's user ID (or not), but should NOT store the
+                // remitter's acct ID, and should use a transaction # that's
+                // signed out to the server, and should drop a notice in the
+                // Nymbox of the remitter IF his user ID is available, but it
+                // should be understood that such notice is a favor the server
+                // is doing, and not something that's PROVABLE as in the case of
+                // the vouchers in the above paragraph.
                 //
                 // This is similar to smart contracts, which can only be
-                // activated by a
-                // party who has an asset account, so he has somewhere to
-                // receive the
-                // finalReceipt for that contract. (And thus close out the
-                // transcation
-                // number he used to open it...)
+                // activated by a party who has an asset account, so he has
+                // somewhere to receive the finalReceipt for that contract. (And
+                // thus close out the transcation number he used to open it...)
                 //
                 // Perhaps we'll just offer both types of vouchers, and just let
-                // users
-                // choose which they are willing to pay for, and which trade-off
-                // is most
-                // palatable to them (having to have an asset account to get
-                // notice, or
-                // instead verifying the voucher's spent status based on some
-                // publicly-available listing of the transaction #'s currently
-                // signed
-                // out to the server.)
+                // users choose which they are willing to pay for, and which
+                // trade-off is most palatable to them (having to have an asset
+                // account to get notice, or instead verifying the voucher's
+                // spent status based on some publicly-available listing of the
+                // transaction #'s currently signed out to the server.)
                 //
                 // In the case of having transaction #'s signed out to the
-                // server,
-                // perhaps the server's internal storage of these should be
-                // paired each
-                // with the NymID of the owner nym for that number, just so no
-                // one would
-                // ever have any incentive to try and use one of those numbers
-                // on some
-                // instrument somehow, and also so that the server wouldn't
-                // necessarily
-                // have to post the entire list of numbers, but just rather give
-                // you the
-                // ones that are relevant to you (although the entire list may
-                // have to
-                // be posted in some public way in any case, for notice
+                // server, perhaps the server's internal storage of these should
+                // be paired each with the NymID of the owner nym for that
+                // number, just so no one would ever have any incentive to try
+                // and use one of those numbers on some instrument somehow, and
+                // also so that the server wouldn't necessarily have to post the
+                // entire list of numbers, but just rather give you the ones
+                // that are relevant to you (although the entire list may have
+                // to be posted in some public way in any case, for notice
                 // reasons.)
                 //
                 // By this point, you may be wondering, but what does all this
-                // have to
-                // do with the function we're in now? Well... in the below
-                // block, with a
-                // voucher, nymfile would NOT be the sender. The voucher would
-                // still be
-                // drawn off a server account. But nevertheless, nymfile might
-                // still be the
-                // owner of the transaction # for that voucher (assuming I
-                // change OT
-                // around to use the above system, which I will have to do if I
-                // want
+                // have to do with the function we're in now? Well... in the
+                // below block, with a voucher, nymfile would NOT be the sender.
+                // The voucher would still be drawn off a server account. But
+                // nevertheless, nymfile might still be the owner of the
+                // transaction # for that voucher (assuming I change OT around
+                // to use the above system, which I will have to do if I want
                 // provable notice for vouchers.) And if nymfile is the owner of
-                // that
-                // number, then he will want the option later of refunding it or
-                // re-issuing it, and he will have to possibly load up his inbox
-                // to make
-                // sure there's no voucherReceipt in it, etc. So for now, the
-                // vouchers
-                // will be handled by the below code, but in the future, they
-                // might be
-                // moved to the above code.
+                // that number, then he will want the option later of refunding
+                // it or re-issuing it, and he will have to possibly load up his
+                // inbox to make sure there's no voucherReceipt in it, etc. So
+                // for now, the vouchers will be handled by the below code, but
+                // in the future, they might be moved to the above code.
                 //
                 else  // nymfile is not the sender.
                 {
                     // nymfile isn't even the "sender" (although he is) but
-                    // since
-                    // it's cash or
-                    // voucher, he's not waiting on any transaction number to
-                    // close out or
-                    // be harvested. (In the case of cash, in fact, we might as
-                    // well just
-                    // put it straight in the records and bypass the outpayments
-                    // box
+                    // since it's cash or voucher, he's not waiting on any
+                    // transaction number to close out or be harvested. (In the
+                    // case of cash, in fact, we might as well just put it
+                    // straight in the records and bypass the outpayments box
                     // entirely.) But this function can sweep it into there all
-                    // in due time
-                    // anyway, once it expires, so it seems harmless to leave it
-                    // there
-                    // before then. Plus, that way we always know which tokens
-                    // are still
-                    // potentially exchangeable, for cases where the recipient
-                    // never cashed
-                    // them.
+                    // in due time anyway, once it expires, so it seems harmless
+                    // to leave it there before then. Plus, that way we always
+                    // know which tokens are still potentially exchangeable, for
+                    // cases where the recipient never cashed them.
                     //
                     if (bIsExpired) {
                         // nymfile is NOT the sender AND the payment instrument
-                        // IS
-                        // expired.
-                        // Therefore, say in the case of sent vouchers and sent
-                        // cash, there may
-                        // have been some legitimate reason for keeping them in
-                        // outpayments up
+                        // IS expired. Therefore, say in the case of sent
+                        // vouchers and sent cash, there may have been some
+                        // legitimate reason for keeping them in outpayments up
                         // until this point, but now that the instrument is
-                        // expired, might as
-                        // well get it out of the outpayments box and move it to
-                        // the record box.
-                        // Let the client software do its own historical
-                        // archiving.
+                        // expired, might as well get it out of the outpayments
+                        // box and move it to the record box. Let the client
+                        // software do its own historical archiving.
                         //
                         bShouldHarvestPayment =
                             false;  // The # isn't signed out to nymfile, so we
                                     // don't want to harvest it (which would
                         // cause the wallet to try and use it even though it's
-                        // signed out to someone else --
-                        // bad.)
+                        // signed out to someone else -- bad.)
                         bNeedToLoadAssetAcctInbox =
                             false;  // No need to check the inbox since the #
                         // isn't even signed out to nymfile and we're
@@ -7267,20 +7239,16 @@ bool OT_API::RecordPayment(
                         // even signed out to us.
                         // (Thus no reason to check the inbox.)
                     } else  // nymfile is NOT the sender and the payment
-                            // instrument
-                            // is NOT expired.
+                            // instrument is NOT expired.
                     {
-                        // For example, for a sent voucher that has not expired
-                        // yet. Those we'll
-                        // keep here for now, until some server notice is
-                        // received, or the
-                        // instrument expires. What if we need to re-issue the
-                        // cheque to the
-                        // recipient who lost it? Or what if we want to cancel
-                        // it before he
-                        // tries to cash it? Since it's not expired yet, it's
-                        // wise to keep a
-                        // copy in the outpayments box for now.
+                        // For example, for a sent voucher that has not
+                        // expired yet. Those we'll keep here for now, until
+                        // some server notice is received, or the instrument
+                        // expires. What if we need to re-issue the cheque to
+                        // the recipient who lost it? Or what if we want to
+                        // cancel it before he tries to cash it? Since it's
+                        // not expired yet, it's wise to keep a copy in the
+                        // outpayments box for now.
                         //
                         otErr << OT_METHOD << __FUNCTION__
                               << ": This outpayment isn't expired yet.\n";
@@ -7293,10 +7261,9 @@ bool OT_API::RecordPayment(
                 OTPaymentPlan* pPlan = nullptr;
                 //
                 // In certain cases (logic above) it is determined that we have
-                // to load the
-                // asset account inbox and make sure there aren't any
-                // chequeReceipts there,
-                // before we go ahead and harvest any transaction numbers.
+                // to load the asset account inbox and make sure there aren't
+                // any chequeReceipts there, before we go ahead and harvest any
+                // transaction numbers.
                 //
                 if (bNeedToLoadAssetAcctInbox &&
                     (bFromAcctIsAvailable || bIsRecurring)) {
@@ -7325,15 +7292,13 @@ bool OT_API::RecordPayment(
                         } else if (nullptr != pPlan) {
                             // Payment plan is a funny case.
                             // The merchant (RECIPIENT aka payee) creates the
-                            // payment plan, and then he SENDS
-                            // it to the customer (SENDER aka payer). From
-                            // there, the customer ACTIVATES it on
-                            // the server. BOTH could potentially have it in
-                            // their outpayments box. In one case.
-                            // the Nym is the "sender" and in another case, he's
-                            // the "recipient."
-                            // (So we need to figure out which, and set the
-                            // account accordingly.)
+                            // payment plan, and then he SENDS it to the
+                            // customer (SENDER aka payer). From there, the
+                            // customer ACTIVATES it on the server. BOTH could
+                            // potentially have it in their outpayments box. In
+                            // one case. the Nym is the "sender" and in another
+                            // case, he's the "recipient." (So we need to figure
+                            // out which, and set the account accordingly.)
                             //
                             if (NYM_ID == pPlan->GetRecipientNymID())
                                 theSenderAcctID = pPlan->GetRecipientAcctID();
@@ -7377,29 +7342,30 @@ bool OT_API::RecordPayment(
                                         OTAgent* agent =
                                             partyAcct->GetAuthorizedAgent();
 
-                                        // If nymfile is a signer for
-                                        // partyAcct,
+                                        // If nymfile is a signer for partyAcct,
                                         // then we need to check partyAcct's
-                                        // inbox
-                                        // to make sure there aren't any
+                                        // inbox to make sure there aren't any
                                         // paymentReceipts or finalReceipts
                                         // lingering in there...
                                         //
-                                        if (agent->IsValidSigner(*nym)) {
+                                        if (agent->IsValidSigner(*payment_nym))
+                                        {
                                             const String& strAcctID =
                                                 partyAcct->GetAcctID();
                                             const Identifier accountID(
                                                 strAcctID);
 
                                             Ledger theSenderInbox(
-                                                NYM_ID, accountID, NOTARY_ID);
+                                                NYM_ID,
+                                                accountID,
+                                                paymentNotaryId);
 
                                             const bool
                                                 bSuccessLoadingSenderInbox =
                                                     (theSenderInbox
                                                          .LoadInbox() &&
-                                                     theSenderInbox
-                                                         .VerifyAccount(*nym));
+                                                theSenderInbox
+                                                .VerifyAccount(*payment_nym));
 
                                             if (bSuccessLoadingSenderInbox) {
                                                 // Loop through the inbox and
@@ -7438,28 +7404,25 @@ bool OT_API::RecordPayment(
                            // cheque, most likely.)
                     {
                         Ledger theSenderInbox(
-                            NYM_ID, theSenderAcctID, NOTARY_ID);
+                            NYM_ID, theSenderAcctID, paymentNotaryId);
 
                         const bool bSuccessLoadingSenderInbox =
                             (theSenderInbox.LoadInbox() &&
-                             theSenderInbox.VerifyAccount(*nym));
+                             theSenderInbox.VerifyAccount(*payment_nym));
 
                         if (bSuccessLoadingSenderInbox) {
                             // Loop through the inbox and see if there are any
-                            // receipts for
-                            // lPaymentTransNum inside. Technically this would
-                            // have to be a
-                            // chequeReceipt, or possibly a voucherReceipt if I
-                            // add that (see giant
-                            // comment above.)
+                            // receipts for lPaymentTransNum inside.
+                            // Technically this would have to be a
+                            // chequeReceipt, or possibly a voucherReceipt if
+                            // I add that (see giant comment above.)
                             //
                             // There are other instrument types but only a
-                            // cheque, at this point,
-                            // would be in my outpayments box AND could have a
-                            // receipt in my asset
-                            // account inbox. So let's see if there's a
-                            // chequeReceipt in there that
-                            // corresponds to lPaymentTransNum...
+                            // cheque, at this point, would be in my
+                            // outpayments box AND could have a receipt in my
+                            // asset account inbox. So let's see if there's a
+                            // chequeReceipt in there that corresponds to
+                            // lPaymentTransNum...
                             //
                             OTTransaction* pChequeReceipt =
                                 theSenderInbox.GetChequeReceipt(
@@ -7493,10 +7456,9 @@ bool OT_API::RecordPayment(
                    // bIsRecurring))
 
                 // If we should harvest the transaction numbers, AND if we don't
-                // need to double-check that against the asset
-                // inbox to make sure the receipt's not there, (or if we do,
-                // that it was a successful double-check and the
-                // receipt indeed is not there.)
+                // need to double-check that against the asset inbox to make
+                // sure the receipt's not there, (or if we do, that it was a
+                // successful double-check and the receipt indeed is not there.)
                 //
                 if (bShouldHarvestPayment &&
                     ((!bNeedToLoadAssetAcctInbox) ||
@@ -7504,58 +7466,48 @@ bool OT_API::RecordPayment(
                     // Harvest the transaction number(s).
                     //
                     if (nullptr != pSmartContract) {
-                        pSmartContract->HarvestOpeningNumber(context.It());
-                        pSmartContract->HarvestClosingNumbers(context.It());
+                        pSmartContract->HarvestOpeningNumber(
+                            payment_context->It());
+                        pSmartContract->HarvestClosingNumbers(
+                            payment_context->It());
                     } else if (nullptr != pPlan) {
-                        pPlan->HarvestOpeningNumber(context.It());
-                        pPlan->HarvestClosingNumbers(context.It());
+                        pPlan->HarvestOpeningNumber(
+                            payment_context->It());
+                        pPlan->HarvestClosingNumbers(
+                            payment_context->It());
                     } else {
-                        context.It().RecoverAvailableNumber(lPaymentTransNum);
+                        payment_context->It()
+                            .RecoverAvailableNumber(lPaymentTransNum);
                     }
 
                     // Note, food for thought: IF the receipt had popped into
-                    // your asset
-                    // inbox on the server side, since the last time you
-                    // downloaded your
-                    // inbox, then you could be making the wrong decision here,
-                    // and
-                    // harvesting a number that's already spent. (You just
-                    // didn't know it
-                    // yet.)
+                    // your asset inbox on the server side, since the last
+                    // time you downloaded your inbox, then you could be
+                    // making the wrong decision here, and harvesting a number
+                    // that's already spent. (You just didn't know it yet.)
                     //
                     // What happens in that case, when I download the inbox
-                    // again? A new
-                    // receipt is there, and a transaction # is used, which I
-                    // thought was
-                    // still available for use? (Since I harvested it?) The
-                    // appearance of
-                    // the receipt in the inbox, as long as properly formed and
-                    // signed by
+                    // again? A new receipt is there, and a transaction # is
+                    // used, which I thought was still available for use?
+                    // (Since I harvested it?) The appearance of the receipt
+                    // in the inbox, as long as properly formed and signed by
                     // me, should be enough information for the client side to
-                    // adjust its
-                    // records, because if it doesn't anticipate this
-                    // possibility, then it
-                    // will be forced to resync entirely, which I want to avoid
-                    // in all cases
-                    // period.
+                    // adjust its records, because if it doesn't anticipate
+                    // this possibility, then it will be forced to resync
+                    // entirely, which I want to avoid in all cases period.
                     //
                     // In this block, we clawed back the number because if
-                    // there's no
-                    // chequeReceipt in the inbox, then that means the cheque
-                    // has never been
-                    // used, since if I had closed the chequeReceipt out
-                    // already, then the
-                    // transaction number on that cheque would already have been
-                    // closed out
-                    // at that time. We only clawback for expired instruments,
-                    // where the
-                    // transaction # is still outstanding and where no receipt
-                    // is present in
-                    // the asset acct inbox. If the instrument is not expired,
-                    // then you must
-                    // cancel it properly. And if the cheque receipt is in the
-                    // inbox, then
-                    // you must close it properly.
+                    // there's no chequeReceipt in the inbox, then that means
+                    // the cheque has never been used, since if I had closed
+                    // the chequeReceipt out already, then the transaction
+                    // number on that cheque would already have been closed
+                    // out at that time. We only clawback for expired
+                    // instruments, where the transaction # is still
+                    // outstanding and where no receipt is present in the
+                    // asset acct inbox. If the instrument is not expired,
+                    // then you must cancel it properly. And if the cheque
+                    // receipt is in the inbox, then you must close it
+                    // properly.
                 }
             }  // if (thePayment.GetTransactionNum(lPaymentTransNum))
             else if (
@@ -7563,30 +7515,21 @@ bool OT_API::RecordPayment(
                 OT_ASSERT(nullptr != pActualBox);
 
                 // A purse has no transaction number on itself, and if it's in
-                // the
-                // outpayment box, it has no transaction number from its ledger,
-                // either!
-                // It's numberless. So what we do for now is, we use the
-                // expiration
-                // timestamp for the purse to create its "transaction number"
-                // (we also
-                // add a billion to it, and then increment it until we are sure
-                // it's
-                // unused in the box already) for the new receipt we're
-                // inserting for
-                // this purse into the record box. (Otherwise we'd have to skip
-                // this
-                // part and we wouldn't save a record of the purse at all.)
-                // //
+                // the outpayment box, it has no transaction number from its
+                // ledger, either! It's numberless. So what we do for now is,
+                // we use the expiration timestamp for the purse to create its
+                // "transaction number" (we also add a billion to it, and then
+                // increment it until we are sure it's unused in the box
+                // already) for the new receipt we're inserting for this purse
+                // into the record box. (Otherwise we'd have to skip this part
+                // and we wouldn't save a record of the purse at all.)
+                //
                 // ALSO NOTE that people shouldn't really be discarding the
-                // purse anyway
-                // from the outpayment box, since it will ALREADY disappear once
-                // it
-                // expires. (Presumably you'd want the option to recover it, at
-                // any time
-                // prior to that point...) But we still must consider that
-                // people sent
-                // cash and they just want it erased, so...
+                // purse anyway from the outpayment box, since it will ALREADY
+                // disappear once it expires. (Presumably you'd want the
+                // option to recover it, at any time prior to that point...)
+                // But we still must consider that people sent cash and they
+                // just want it erased, so...
                 //
                 time64_t tValidTo = OT_TIME_ZERO;
 
@@ -7597,9 +7540,8 @@ bool OT_API::RecordPayment(
                                                     // this is record box.)
 
                     // Since we're using a made-up transaction number here,
-                    // let's
-                    // make sure it's not already being used. If it is, we'll
-                    // increment it until nothing is found.
+                    // let's make sure it's not already being used. If it is,
+                    // we'll increment it until nothing is found.
                     //
                     while (nullptr !=
                            pActualBox->GetTransaction(lPaymentTransNum))
@@ -7632,7 +7574,7 @@ bool OT_API::RecordPayment(
                         strInstrument);  // the cheque, invoice, etc that used
                                          // to be in the outpayments box.
 
-                    pNewTransaction->SignContract(*nym);
+                    pNewTransaction->SignContract(*transport_nym);
                     pNewTransaction->SaveContract();
                     transaction = pNewTransaction;
 
@@ -7653,7 +7595,7 @@ bool OT_API::RecordPayment(
         //
         // Now we actually remove the message from the outpayments...
         //
-        bRemoved = nymfile.It().RemoveOutpaymentsByIndex(
+        bRemoved = transport_nymfile.It().RemoveOutpaymentsByIndex(
             nIndex, false);  // bDeleteIt=true by default
         theMessageAngel.reset(
             pMessage);  // Since we chose to keep pMessage alive after removing
@@ -7665,8 +7607,8 @@ bool OT_API::RecordPayment(
     //
     // Okay by this point, whether the payment was in the payments inbox, or
     // whether it was in the outpayments box, either way, it has now been
-    // removed
-    // from that box. (Otherwise we would have returned already by this point.)
+    // removed from that box. (Otherwise we would have returned already by this
+    // point.)
     //
     // It's still safer to explicitly check bRemoved, just in case.
     //
@@ -7692,7 +7634,7 @@ bool OT_API::RecordPayment(
             }
 
             pActualBox->ReleaseSignatures();
-            pActualBox->SignContract(*nym);
+            pActualBox->SignContract(*transport_nym);
             pActualBox->SaveContract();
             if (bIsExpired)
                 pActualBox->SaveExpiredBox();  // todo log failure.
@@ -7703,15 +7645,14 @@ bool OT_API::RecordPayment(
             // abbreviated versions of the receipts, including their hashes.
             //
             // The rest is stored separately, in the box receipt, which is
-            // created
-            // whenever a receipt is added to a box, and deleted after a receipt
-            // is removed from a box.
+            // created whenever a receipt is added to a box, and deleted after a
+            // receipt is removed from a box.
             //
             transaction->SaveBoxReceipt(*pActualBox);  // todo: log failure
         }
         if (bIsInbox) {
             pPaymentInbox->ReleaseSignatures();
-            pPaymentInbox->SignContract(*nym);
+            pPaymentInbox->SignContract(*transport_nym);
             pPaymentInbox->SaveContract();
 
             const bool bSavedInbox =
