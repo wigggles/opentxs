@@ -41,22 +41,8 @@
 
 #include "opentxs/Internal.hpp"
 
-#include "opentxs/api/client/Issuer.hpp"
-#include "opentxs/core/Flag.hpp"
-#include "opentxs/core/Lockable.hpp"
-
-#include <cstdint>
-#include <mutex>
-
-namespace opentxs
+namespace opentxs::api::client::implementation
 {
-namespace api
-{
-namespace client
-{
-namespace implementation
-{
-
 class Issuer : virtual public opentxs::api::client::Issuer, Lockable
 {
 public:
@@ -115,7 +101,7 @@ private:
     typedef std::map<proto::PeerRequestType, Workflow> WorkflowMap;
     typedef std::pair<Identifier, Identifier> UnitAccountPair;
 
-    friend class Wallet;
+    friend Factory;
     const api::client::Wallet& wallet_;
     std::uint32_t version_{0};
     std::string pairing_code_{""};
@@ -154,9 +140,5 @@ private:
     Issuer& operator=(const Issuer&) = delete;
     Issuer& operator=(Issuer&&) = delete;
 };
-}  // namespace implementation
-}  // namespace client
-}  // namespace api
-}  // namespace opentxs
-
+}  // namespace opentxs::api::client::implementation
 #endif  // OPENTXS_API_CLIENT_IMPLEMENTATION_ISSUER_HPP

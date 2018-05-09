@@ -48,7 +48,7 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/OT.hpp"
 
-#include <stdint.h>
+#include <cstdint>
 
 namespace opentxs
 {
@@ -79,8 +79,8 @@ CryptoSymmetricDecryptOutput::~CryptoSymmetricDecryptOutput()
 
 CryptoSymmetricDecryptOutput::CryptoSymmetricDecryptOutput(
     const CryptoSymmetricDecryptOutput& rhs)  // passed
-    : m_pPassword(nullptr),
-      m_pPayload(nullptr)
+    : m_pPassword(nullptr)
+    , m_pPayload(nullptr)
 {
     m_pPassword = rhs.m_pPassword;
     m_pPayload = rhs.m_pPayload;
@@ -144,12 +144,12 @@ void CryptoSymmetricDecryptOutput::Release_Envelope_Decrypt_Output() const
 
 bool CryptoSymmetricDecryptOutput::Concatenate(
     const void* pAppendData,
-    uint32_t lAppendSize) const
+    std::uint32_t lAppendSize) const
 {
     OT_ASSERT((m_pPassword != nullptr) || (m_pPayload != nullptr));
 
     if (nullptr != m_pPassword) {
-        if (static_cast<int32_t>(lAppendSize) ==
+        if (static_cast<std::int32_t>(lAppendSize) ==
             m_pPassword->addMemory(pAppendData, lAppendSize))
             return true;
         else
@@ -199,9 +199,9 @@ CryptoSymmetric::Mode CryptoSymmetric::StringToMode(const String& Mode)
     return CryptoSymmetric::ERROR_MODE;
 }
 
-uint32_t CryptoSymmetric::KeySize(const Mode Mode)
+std::uint32_t CryptoSymmetric::KeySize(const Mode Mode)
 {
-    uint32_t keySize;
+    std::uint32_t keySize;
 
     switch (Mode) {
         case CryptoSymmetric::AES_128_CBC:
@@ -225,11 +225,11 @@ uint32_t CryptoSymmetric::KeySize(const Mode Mode)
     return keySize;
 }
 
-uint32_t CryptoSymmetric::IVSize(const Mode Mode) { return KeySize(Mode); }
+std::uint32_t CryptoSymmetric::IVSize(const Mode Mode) { return KeySize(Mode); }
 
-uint32_t CryptoSymmetric::TagSize(const Mode Mode)
+std::uint32_t CryptoSymmetric::TagSize(const Mode Mode)
 {
-    uint32_t tagSize;
+    std::uint32_t tagSize;
 
     switch (Mode) {
         case CryptoSymmetric::AES_128_GCM:

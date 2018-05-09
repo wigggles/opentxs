@@ -48,6 +48,8 @@
 
 #include <zmq.h>
 
+template class opentxs::Pimpl<opentxs::network::zeromq::Proxy>;
+
 //#define OT_METHOD "opentxs::network::zeromq::implementation::Proxy::"
 
 namespace opentxs::network::zeromq

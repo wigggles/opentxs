@@ -79,7 +79,7 @@
 #include "opentxs/server/ServerSettings.hpp"
 #include "opentxs/server/Transactor.hpp"
 
-#include <inttypes.h>
+#include <cinttypes>
 #include <memory>
 #include <set>
 #include <string>

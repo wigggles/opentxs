@@ -66,7 +66,7 @@ public:
         m_strContractType = "VOUCHER";
     }
     inline const String& GetMemo() const { return m_strMemo; }
-    inline const int64_t& GetAmount() const { return m_lAmount; }
+    inline const std::int64_t& GetAmount() const { return m_lAmount; }
     inline const Identifier& GetRecipientNymID() const
     {
         return m_RECIPIENT_NYM_ID;
@@ -90,8 +90,8 @@ public:
 
     // Calling this function is like writing a check...
     EXPORT bool IssueCheque(
-        const int64_t& lAmount,
-        const int64_t& lTransactionNum,
+        const std::int64_t& lAmount,
+        const std::int64_t& lTransactionNum,
         const time64_t& VALID_FROM,
         const time64_t& VALID_TO,  // The expiration date (valid from/to dates.)
         const Identifier& SENDER_ACCT_ID,  // The asset account the cheque is
@@ -112,7 +112,7 @@ public:
     /*
      // A cheque can be written offline, provided you have a transaction
      // number handy to write it with. (Necessary to prevent double-spending.)
-     inline       int64_t              GetTransactionNum() const  { return
+     inline       std::int64_t              GetTransactionNum() const  { return
      m_lTransactionNum; }
      inline const OTIdentifier&    GetSenderAcctID()           { return
      m_SENDER_ACCT_ID; }
@@ -160,7 +160,7 @@ protected:
     OTIdentifier m_REMITTER_ACCT_ID;
     bool m_bHasRemitter{false};
 
-    int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
+    std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
 
 private:  // Private prevents erroneous use by other classes.
     typedef OTTrackable ot_super;

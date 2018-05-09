@@ -66,10 +66,11 @@
 
 #include <array>
 #include <cstdint>
-#include <stdint.h>
 #include <memory>
 #include <ostream>
 #include <string>
+
+template class opentxs::Pimpl<opentxs::PaymentCode>;
 
 #define OT_METHOD "opentxs::implementation::PaymentCode::"
 

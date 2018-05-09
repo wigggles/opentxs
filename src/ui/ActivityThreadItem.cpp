@@ -38,19 +38,22 @@
 
 #include "opentxs/stdafx.hpp"
 
-#include "ActivityThreadItem.hpp"
-
 #include "opentxs/api/Activity.hpp"
 #include "opentxs/api/ContactManager.hpp"
+#include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
-#include "opentxs/Types.hpp"
+#include "opentxs/core/Lockable.hpp"
+#include "opentxs/ui/ActivityThreadItem.hpp"
 
-#include "ActivityThread.hpp"
+#include "ActivityThreadParent.hpp"
+#include "Row.hpp"
+
+#include "ActivityThreadItem.hpp"
 
 namespace opentxs::ui::implementation
 {
 ActivityThreadItem::ActivityThreadItem(
-    const ActivityThread& parent,
+    const ActivityThreadParent& parent,
     const network::zeromq::Context& zmq,
     const api::ContactManager& contact,
     const ActivityThreadID& id,

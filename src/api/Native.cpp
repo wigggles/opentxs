@@ -40,12 +40,15 @@
 
 #include "Native.hpp"
 
+#include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
+#include "opentxs/api/Api.hpp"
 #include "opentxs/api/Blockchain.hpp"
 #include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Identity.hpp"
 #include "opentxs/api/Settings.hpp"
+#include "opentxs/api/UI.hpp"
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/client/OTWallet.hpp"
 #include "opentxs/core/crypto/Bip39.hpp"
@@ -69,16 +72,13 @@
 #include "opentxs/util/Signals.hpp"
 #include "opentxs/OT.hpp"
 
-#include "api/client/Wallet.hpp"
 #include "api/crypto/Crypto.hpp"
 #include "api/network/Dht.hpp"
 #include "api/network/ZMQ.hpp"
 #include "api/storage/Storage.hpp"
 #include "api/Activity.hpp"
-#include "api/Api.hpp"
 #include "api/ContactManager.hpp"
 #include "api/Server.hpp"
-#include "api/UI.hpp"
 #include "network/DhtConfig.hpp"
 #include "network/OpenDHT.hpp"
 
@@ -350,7 +350,7 @@ void Native::Init_Api()
         return;
     }
 
-    api_.reset(new api::implementation::Api(
+    api_.reset(Factory::Api(
         running_,
         *activity_,
         *config,
@@ -408,10 +408,7 @@ void Native::Init_Contacts()
         *storage_, *wallet_, zmq_context_.get()));
 }
 
-void Native::Init_Contracts()
-{
-    wallet_.reset(new api::client::implementation::Wallet(*this));
-}
+void Native::Init_Contracts() { wallet_.reset(Factory::Wallet(*this)); }
 
 void Native::Init_Crypto() { crypto_.reset(new class Crypto(*this)); }
 
@@ -618,7 +615,7 @@ void Native::Init_Storage()
 
     Digest hash = std::bind(
         static_cast<bool (api::crypto::Hash::*)(
-            const uint32_t, const std::string&, std::string&) const>(
+            const std::uint32_t, const std::string&, std::string&) const>(
             &api::crypto::Hash::Digest),
         &(Crypto().Hash()),
         std::placeholders::_1,
@@ -822,7 +819,7 @@ void Native::Init_UI()
     OT_ASSERT(api_)
     OT_ASSERT(contacts_);
 
-    ui_.reset(new class UI(
+    ui_.reset(Factory::UI(
         zmq_context_, *activity_, *contacts_, api_->Sync(), running_));
 
     OT_ASSERT(ui_);
@@ -949,14 +946,6 @@ void Native::shutdown()
         OT_ASSERT(server);
 
         server->Cleanup();
-    }
-
-    if (api_) {
-        auto api = dynamic_cast<implementation::Api*>(api_.get());
-
-        OT_ASSERT(api);
-
-        api->Cleanup();
     }
 
     server_.reset();

@@ -68,7 +68,7 @@ public:
     ~ActivitySummaryItemBlank() = default;
 
 private:
-    friend ActivitySummary;
+    friend opentxs::ui::implementation::ActivitySummary;
 
     ActivitySummaryItemBlank() = default;
     ActivitySummaryItemBlank(const ActivitySummaryItemBlank&) = delete;

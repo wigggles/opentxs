@@ -17,8 +17,8 @@
 
 #include "opentxs/Forward.hpp"
 
-#include <stdint.h>
 #include <cinttypes>
+#include <cstdint>
 
 #ifdef _WIN32
 #ifndef _WINDOWS_
@@ -53,7 +53,7 @@ protected:
 private:
     double startTimeInMicroSec;  // starting time in micro-second
     double endTimeInMicroSec;    // ending time in micro-second
-    int32_t stopped;             // stop flag
+    std::int32_t stopped;        // stop flag
 #ifdef WIN32
     LARGE_INTEGER frequency;   // ticks per second
     LARGE_INTEGER startCount;  //

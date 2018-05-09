@@ -104,14 +104,14 @@ OTStringXML::~OTStringXML() { delete pvt_; }
 
 OTStringXML::operator irr::io::IFileReadCallBack*() { return pvt_; }
 
-int32_t OTStringXML::read(void* buffer, uint32_t sizeToRead)
+std::int32_t OTStringXML::read(void* buffer, std::uint32_t sizeToRead)
 {
     if (buffer && sizeToRead && Exists()) {
         char* pBuf = static_cast<char*>(buffer);
 
-        int32_t nBytesToCopy =
+        std::int32_t nBytesToCopy =
             (sizeToRead > GetLength() ? GetLength() : sizeToRead);
-        int32_t i;
+        std::int32_t i;
         for (i = 0; i < nBytesToCopy; i++) {
             pBuf[i] = sgetc();
         }
@@ -121,6 +121,6 @@ int32_t OTStringXML::read(void* buffer, uint32_t sizeToRead)
     }
 }
 
-int32_t OTStringXML::getSize() { return GetLength(); }
+std::int32_t OTStringXML::getSize() { return GetLength(); }
 
 }  // namespace opentxs

@@ -71,7 +71,7 @@ public:
     ~ActivityThreadItemBlank() = default;
 
 private:
-    friend ActivityThread;
+    friend opentxs::ui::implementation::ActivityThread;
 
     ActivityThreadItemBlank() = default;
     ActivityThreadItemBlank(const ActivityThreadItemBlank&) = delete;

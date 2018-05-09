@@ -67,7 +67,7 @@ extern "C" {
 #include <trezor-crypto/ripemd160.h>
 }
 
-#include <stdint.h>
+#include <cstdint>
 #include <array>
 
 #define OT_METHOD "opentxs::TrezorCrypto::"
@@ -78,7 +78,8 @@ namespace opentxs
 bool TrezorCrypto::toWords(const OTPassword& seed, OTPassword& words) const
 {
     return words.setPassword(std::string(::mnemonic_from_data(
-        static_cast<const uint8_t*>(seed.getMemory()), seed.getMemorySize())));
+        static_cast<const std::uint8_t*>(seed.getMemory()),
+        seed.getMemorySize())));
 }
 
 void TrezorCrypto::WordsToSeed(
@@ -94,7 +95,7 @@ void TrezorCrypto::WordsToSeed(
     ::mnemonic_to_seed(
         words.getPassword(),
         passphrase.getPassword(),
-        static_cast<uint8_t*>(seed.getMemoryWritable()),
+        static_cast<std::uint8_t*>(seed.getMemoryWritable()),
         nullptr);
 }
 #endif  // OT_CRYPTO_WITH_BIP39
@@ -158,7 +159,7 @@ serializedAsymmetricKey TrezorCrypto::SeedToPrivateKey(
 
 serializedAsymmetricKey TrezorCrypto::GetChild(
     const proto::AsymmetricKey& parent,
-    const uint32_t index) const
+    const std::uint32_t index) const
 {
     auto node = SerializedToHDNode(parent);
 
@@ -175,7 +176,7 @@ serializedAsymmetricKey TrezorCrypto::GetChild(
 
 std::unique_ptr<HDNode> TrezorCrypto::GetChild(
     const HDNode& parent,
-    const uint32_t index,
+    const std::uint32_t index,
     const DerivationMode privateVersion)
 {
     std::unique_ptr<HDNode> output;
@@ -317,7 +318,7 @@ std::unique_ptr<HDNode> TrezorCrypto::InstantiateHDNode(
     }
 
     int result = ::hdnode_from_seed(
-        static_cast<const uint8_t*>(seed.getMemory()),
+        static_cast<const std::uint8_t*>(seed.getMemory()),
         seed.getMemorySize(),
         CurveName(curve).c_str(),
         output.get());
@@ -442,7 +443,7 @@ bool TrezorCrypto::ECDH(
 
     const bool havePublic = ecdsa_read_pubkey(
         secp256k1_->params,
-        static_cast<const uint8_t*>(publicKey.GetPointer()),
+        static_cast<const std::uint8_t*>(publicKey.GetPointer()),
         &point);
 
     if (!havePublic) {

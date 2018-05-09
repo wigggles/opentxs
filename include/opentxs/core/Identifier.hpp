@@ -47,11 +47,23 @@
 
 #include <iosfwd>
 #include <string>
+#include <set>
+#include <map>
+
+namespace opentxs
+{
+bool operator==(
+    const opentxs::OTIdentifier& lhs,
+    const opentxs::Identifier& rhs);
+bool operator!=(
+    const opentxs::OTIdentifier& lhs,
+    const opentxs::Identifier& rhs);
+bool operator<(
+    const opentxs::OTIdentifier& lhs,
+    const opentxs::OTIdentifier& rhs);
 
 /** An Identifier is basically a 256 bit hash value. This class makes it easy to
  * convert IDs back and forth to strings. */
-namespace opentxs
-{
 class Identifier : virtual public implementation::Data
 {
 private:
@@ -134,5 +146,5 @@ private:
         const proto::ContactItemType type,
         const proto::HDPath& path);
 };
-}  // namespace opentxs
+}  // namespace opentxs0
 #endif  // OPENTXS_CORE_OTIDENTIFIER_HPP

@@ -52,7 +52,7 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/Types.hpp"
 
-#include <stdint.h>
+#include <cstdint>
 #include <memory>
 #include <ostream>
 #include <set>
@@ -77,8 +77,8 @@ bool Identity::AddInternalVerification(
     const std::string& claimantNymID,
     const std::string& claimID,
     const ClaimPolarity polarity,
-    const int64_t start,
-    const int64_t end,
+    const std::int64_t start,
+    const std::int64_t end,
     const OTPasswordData* pPWData) const
 {
     auto& internal =
@@ -123,8 +123,8 @@ void Identity::DeleteVerification(
     bool& changed,
     proto::VerificationIdentity& identity,
     const std::string& claimID,
-    const int64_t start,
-    const int64_t end) const
+    const std::int64_t start,
+    const std::int64_t end) const
 {
     proto::VerificationIdentity newData;
     newData.set_version(identity.version());
@@ -184,8 +184,8 @@ bool Identity::HaveVerification(
     proto::VerificationIdentity& identity,
     const std::string& claimID,
     const ClaimPolarity polarity,
-    const int64_t start,
-    const int64_t end) const
+    const std::int64_t start,
+    const std::int64_t end) const
 {
     bool match = false;
 
@@ -235,8 +235,8 @@ std::unique_ptr<proto::VerificationSet> Identity::InitializeVerificationSet(
 bool Identity::MatchVerification(
     const proto::Verification& item,
     const std::string& claimID,
-    const int64_t start,
-    const int64_t end) const
+    const std::int64_t start,
+    const std::int64_t end) const
 {
     // different claim
     if (item.claim() != claimID) {
@@ -273,8 +273,8 @@ bool Identity::RemoveInternalVerification(
     proto::VerificationSet& verifications,
     const std::string& claimantNymID,
     const std::string& claimID,
-    const int64_t start,
-    const int64_t end) const
+    const std::int64_t start,
+    const std::int64_t end) const
 {
     if (verifications.has_internal()) {
         auto& internalGroup = *verifications.mutable_internal();
@@ -329,8 +329,8 @@ std::unique_ptr<proto::VerificationSet> Identity::Verify(
     const std::string& claimantNymID,
     const std::string& claimID,
     const ClaimPolarity polarity,
-    const int64_t start,
-    const int64_t end,
+    const std::int64_t start,
+    const std::int64_t end,
     const OTPasswordData* pPWData) const
 {
     changed = false;

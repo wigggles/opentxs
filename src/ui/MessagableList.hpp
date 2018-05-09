@@ -41,20 +41,9 @@
 
 #include "opentxs/Internal.hpp"
 
-#include "opentxs/core/Lockable.hpp"
-#include "opentxs/ui/ContactListItem.hpp"
-#include "opentxs/ui/MessagableList.hpp"
-
-#include "ContactListInterface.hpp"
-#include "ContactListItem.hpp"
-#include "List.hpp"
-
-#include <map>
-#include <string>
-
 namespace opentxs::ui::implementation
 {
-using MessagableListPimpl = OTUIContactListItem;
+using MessagableListPimpl = std::unique_ptr<opentxs::ui::ContactListItem>;
 using MessagableListID = OTIdentifier;
 using MessagableListSortKey = std::string;
 using MessagableListInner = std::map<MessagableListID, MessagableListPimpl>;
@@ -63,6 +52,7 @@ using MessagableListOuter =
 using MessagableListReverse = std::map<MessagableListID, MessagableListSortKey>;
 using MessagableListType = List<
     opentxs::ui::MessagableList,
+    ContactListParent,
     opentxs::ui::ContactListItem,
     MessagableListID,
     MessagableListPimpl,
@@ -72,8 +62,7 @@ using MessagableListType = List<
     MessagableListOuter::const_iterator,
     MessagableListReverse>;
 
-class MessagableList : virtual public MessagableListType,
-                       virtual public ContactListInterface
+class MessagableList : virtual public MessagableListType
 {
 public:
     const Identifier& ID() const override;
@@ -81,7 +70,7 @@ public:
     ~MessagableList() = default;
 
 private:
-    friend api::implementation::UI;
+    friend Factory;
 
     const api::client::Sync& sync_;
     const OTIdentifier owner_contact_id_;

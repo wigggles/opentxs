@@ -50,7 +50,8 @@
 #include "opentxs/core/String.hpp"
 
 #include <irrxml/irrXML.hpp>
-#include <stdint.h>
+
+#include <cstdint>
 #include <cstring>
 #include <ostream>
 #include <string>
@@ -98,9 +99,9 @@ void OTSignedFile::UpdateContents()
     m_xmlUnsigned.Concatenate("%s", str_result.c_str());
 }
 
-int32_t OTSignedFile::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
+std::int32_t OTSignedFile::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 {
-    int32_t nReturnVal = 0;
+    std::int32_t nReturnVal = 0;
 
     // Here we call the parent class first.
     // If the node is found there, or there is some error,

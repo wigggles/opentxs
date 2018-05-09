@@ -38,19 +38,44 @@
 
 #include "opentxs/stdafx.hpp"
 
+#include "opentxs/api/client/Issuer.hpp"
 #include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/contact/ContactData.hpp"
 #include "opentxs/contact/ContactGroup.hpp"
 #include "opentxs/contact/ContactItem.hpp"
 #include "opentxs/contact/ContactSection.hpp"
 #include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Flag.hpp"
+#include "opentxs/core/Lockable.hpp"
 #include "opentxs/core/Log.hpp"
+
+#include <cstdint>
+#include <mutex>
 
 #include "Issuer.hpp"
 
 #define CURRENT_VERSION 1
 
 #define OT_METHOD "opentxs::api::client::implementation::Issuer::"
+
+namespace opentxs
+{
+api::client::Issuer* Factory::Issuer(
+    const api::client::Wallet& wallet,
+    const Identifier& nymID,
+    const proto::Issuer& serialized)
+{
+    return new api::client::implementation::Issuer(wallet, nymID, serialized);
+}
+
+api::client::Issuer* Factory::Issuer(
+    const api::client::Wallet& wallet,
+    const Identifier& nymID,
+    const Identifier& issuerID)
+{
+    return new api::client::implementation::Issuer(wallet, nymID, issuerID);
+}
+}  // namespace opentxs
 
 namespace opentxs::api::client::implementation
 {

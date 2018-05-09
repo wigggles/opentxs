@@ -61,7 +61,7 @@
 #include <openssl/pem.h>
 #include <openssl/x509.h>
 
-#include <stdint.h>
+#include <cstdint>
 #include <ostream>
 
 // BIO_get_mem_data() macro from OpenSSL uses old style cast
@@ -217,7 +217,7 @@ EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::CopyPublicKey(
 
     // write a public key to that buffer, from theKey (parameter.)
     //
-    int32_t nWriteBio = PEM_write_bio_PUBKEY(bmem, &theKey);
+    std::int32_t nWriteBio = PEM_write_bio_PUBKEY(bmem, &theKey);
 
     if (0 == nWriteBio) {
         otErr << __FUNCTION__
@@ -232,8 +232,8 @@ EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::CopyPublicKey(
         // public key
         // supposedly is, and lSize will contain the size of that memory.
         //
-        const int64_t lSize = BIO_get_mem_data(bmem, &pChar);
-        const uint32_t nSize = static_cast<uint32_t>(lSize);
+        const std::int64_t lSize = BIO_get_mem_data(bmem, &pChar);
+        const std::uint32_t nSize = static_cast<uint32_t>(lSize);
 
         if (nSize > 0) {
             auto theData = Data::Factory();
@@ -346,7 +346,7 @@ EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::
     // occurs, and then as long as we OpenSSL_cleanse
     // the BIO, then it SHOULD stil be safe, right?
     //
-    int32_t nWriteBio = false;
+    std::int32_t nWriteBio = false;
 
     if (nullptr == pImportPassword)
         nWriteBio = PEM_write_bio_PrivateKey(
@@ -382,8 +382,8 @@ EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::
         // private key supposedly is,
         // and lSize will contain the size of that memory.
         //
-        const int64_t lSize = BIO_get_mem_data(bmem, &pChar);
-        const uint32_t nSize = static_cast<uint32_t>(lSize);
+        const std::int64_t lSize = BIO_get_mem_data(bmem, &pChar);
+        const std::uint32_t nSize = static_cast<uint32_t>(lSize);
 
         if (nSize > 0) {
             auto theData = Data::Factory();
@@ -474,7 +474,7 @@ bool OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::ArmorPublicKey(
 
     // write a public key to that buffer, from theKey (parameter.)
     //
-    int32_t nWriteBio = PEM_write_bio_PUBKEY(bmem, &theKey);
+    std::int32_t nWriteBio = PEM_write_bio_PUBKEY(bmem, &theKey);
 
     if (0 == nWriteBio) {
         otErr << szFunc
@@ -489,8 +489,8 @@ bool OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::ArmorPublicKey(
         // public key
         // supposedly is, and lSize will contain the size of that memory.
         //
-        int64_t lSize = BIO_get_mem_data(bmem, &pChar);
-        uint32_t nSize = static_cast<uint32_t>(
+        std::int64_t lSize = BIO_get_mem_data(bmem, &pChar);
+        std::uint32_t nSize = static_cast<uint32_t>(
             lSize);  // todo security, etc. Fix this assumed type conversion.
 
         if (nSize > 0) {
@@ -701,7 +701,7 @@ bool OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::ArmorPrivateKey(
 
     if (nullptr == pPWData) pPWData = &thePWData;
 
-    int32_t nWriteBio = 0;
+    std::int32_t nWriteBio = 0;
 
     if (nullptr == pImportPassword)
         nWriteBio = PEM_write_bio_PrivateKey(
@@ -751,8 +751,8 @@ bool OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::ArmorPrivateKey(
         // private key supposedly is,
         // and lSize will contain the size of that memory.
         //
-        int64_t lSize = BIO_get_mem_data(bmem, &pChar);
-        uint32_t nSize = static_cast<uint32_t>(lSize);
+        std::int64_t lSize = BIO_get_mem_data(bmem, &pChar);
+        std::uint32_t nSize = static_cast<uint32_t>(lSize);
 
         if (nSize > 0) {
             // Set the buffer size in our own memory.

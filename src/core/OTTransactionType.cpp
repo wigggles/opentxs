@@ -54,7 +54,7 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/Types.hpp"
 
-#include <stdint.h>
+#include <cstdint>
 #include <ostream>
 
 namespace opentxs
@@ -251,7 +251,7 @@ OTTransactionType::OTTransactionType(
     const Identifier& theNymID,
     const Identifier& theAccountID,
     const Identifier& theNotaryID,
-    int64_t lTransactionNum,
+    std::int64_t lTransactionNum,
     originType theOriginType)
     : Contract(theAccountID)
     , m_AcctID(Identifier::Factory())
@@ -408,12 +408,12 @@ bool OTTransactionType::VerifyContractID() const
 }
 
 // Need to know the transaction number of this transaction? Call this.
-int64_t OTTransactionType::GetTransactionNum() const
+std::int64_t OTTransactionType::GetTransactionNum() const
 {
     return m_lTransactionNum;
 }
 
-void OTTransactionType::SetTransactionNum(int64_t lTransactionNum)
+void OTTransactionType::SetTransactionNum(std::int64_t lTransactionNum)
 {
     m_lTransactionNum = lTransactionNum;
 }
@@ -426,7 +426,7 @@ void OTTransactionType::CalculateNumberOfOrigin()
 
 // Need to know the transaction number of the ORIGINAL transaction? Call this.
 // virtual
-int64_t OTTransactionType::GetNumberOfOrigin()
+std::int64_t OTTransactionType::GetNumberOfOrigin()
 {
     if (0 == m_lNumberOfOrigin) CalculateNumberOfOrigin();
 
@@ -434,12 +434,12 @@ int64_t OTTransactionType::GetNumberOfOrigin()
 }
 
 // Gets WITHOUT calculating.
-int64_t OTTransactionType::GetRawNumberOfOrigin() const
+std::int64_t OTTransactionType::GetRawNumberOfOrigin() const
 {
     return m_lNumberOfOrigin;
 }
 
-void OTTransactionType::SetNumberOfOrigin(int64_t lTransactionNum)
+void OTTransactionType::SetNumberOfOrigin(std::int64_t lTransactionNum)
 {
     m_lNumberOfOrigin = lTransactionNum;
 }
@@ -474,12 +474,12 @@ bool OTTransactionType::VerifyNumberOfOrigin(OTTransactionType& compareTo)
 }
 
 // Need to know the transaction number that this is in reference to? Call this.
-int64_t OTTransactionType::GetReferenceToNum() const
+std::int64_t OTTransactionType::GetReferenceToNum() const
 {
     return m_lInReferenceToTransaction;
 }
 
-void OTTransactionType::SetReferenceToNum(int64_t lTransactionNum)
+void OTTransactionType::SetReferenceToNum(std::int64_t lTransactionNum)
 {
     m_lInReferenceToTransaction = lTransactionNum;
 }

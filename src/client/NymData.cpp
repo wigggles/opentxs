@@ -103,6 +103,14 @@ bool NymData::AddContract(
         active);
 }
 
+bool NymData::AddEmail(
+    const std::string& value,
+    const bool primary,
+    const bool active)
+{
+    return nym().AddEmail(value, primary, active);
+}
+
 bool NymData::AddPaymentCode(
     const std::string& code,
     const proto::ContactItemType currency,
@@ -134,14 +142,59 @@ bool NymData::AddPaymentCode(
         active);
 }
 
+bool NymData::AddPhoneNumber(
+    const std::string& value,
+    const bool primary,
+    const bool active)
+{
+    return nym().AddPhoneNumber(value, primary, active);
+}
+
 bool NymData::AddPreferredOTServer(const std::string& id, const bool primary)
 {
     return nym().AddPreferredOTServer(Identifier(id), primary);
 }
 
+bool NymData::AddSocialMediaProfile(
+    const std::string& value,
+    const proto::ContactItemType type,
+    const bool primary,
+    const bool active)
+{
+    return nym().AddSocialMediaProfile(value, type, primary, active);
+}
+
+bool NymData::AddSocialMediaProfile(
+    const std::string& value,
+    const std::uint32_t type,
+    const bool primary,
+    const bool active)
+{
+    return AddSocialMediaProfile(
+        value,
+        static_cast<const proto::ContactItemType>(type),
+        primary,
+        active);
+}
+
 const serializedCredentialIndex NymData::asPublicNym() const
 {
     return nym_->asPublicNym();
+}
+
+std::string NymData::BestEmail() const { return Nym().BestEmail(); }
+
+std::string NymData::BestPhoneNumber() const { return Nym().BestPhoneNumber(); }
+
+std::string NymData::BestSocialMediaProfile(const std::uint32_t type) const
+{
+    return BestSocialMediaProfile(static_cast<proto::ContactItemType>(type));
+}
+
+std::string NymData::BestSocialMediaProfile(
+    const proto::ContactItemType type) const
+{
+    return Nym().BestSocialMediaProfile(type);
 }
 
 const class ContactData& NymData::Claims() const { return nym_->Claims(); }
@@ -151,6 +204,11 @@ const ContactData& NymData::data() const
     OT_ASSERT(nym_);
 
     return nym_->Claims();
+}
+
+std::string NymData::EmailAddresses(bool active) const
+{
+    return Nym().EmailAddresses(active);
 }
 
 std::uint32_t NymData::GetType() const
@@ -241,6 +299,11 @@ std::string NymData::PaymentCode(const std::uint32_t currency) const
         data(), static_cast<proto::ContactItemType>(currency));
 }
 
+std::string NymData::PhoneNumbers(bool active) const
+{
+    return Nym().PhoneNumbers(active);
+}
+
 std::string NymData::PreferredOTServer() const
 {
     return String(data().PreferredOTServer()).Get();
@@ -280,6 +343,20 @@ bool NymData::SetType(
 bool NymData::SetVerificationSet(const proto::VerificationSet& data)
 {
     return nym().SetVerificationSet(data);
+}
+
+std::string NymData::SocialMediaProfiles(const std::uint32_t type, bool active)
+    const
+{
+    return SocialMediaProfiles(
+        static_cast<proto::ContactItemType>(type), active);
+}
+
+std::string NymData::SocialMediaProfiles(
+    const proto::ContactItemType type,
+    bool active) const
+{
+    return Nym().SocialMediaProfiles(type, active);
 }
 
 proto::ContactItemType NymData::Type() const { return data().Type(); }

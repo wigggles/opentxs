@@ -41,17 +41,6 @@
 
 #include "opentxs/Internal.hpp"
 
-#include "opentxs/api/client/Sync.hpp"
-#include "opentxs/core/Lockable.hpp"
-#include "opentxs/core/Flag.hpp"
-#include "opentxs/core/UniqueQueue.hpp"
-
-#include <atomic>
-#include <memory>
-#include <map>
-#include <thread>
-#include <tuple>
-
 namespace std
 {
 using PAYMENTTASK =
@@ -61,9 +50,7 @@ template <>
 struct less<PAYMENTTASK> {
     bool operator()(const PAYMENTTASK& lhs, const PAYMENTTASK& rhs) const
     {
-        /* TODO: these lines will cause a segfault in the clang-4 ast parser.
-         * Remove the workaround below once Qubes has a Fedora-27 template
-         available.
+        /* TODO: these lines will cause a segfault in the clang-5 ast parser.
                 const auto & [ lID, lPayment ] = lhs;
                 const auto & [ rID, rPayment ] = rhs;
         */
@@ -195,7 +182,7 @@ public:
 private:
     static const std::string DEFAULT_INTRODUCTION_SERVER;
 
-    friend api::implementation::Api;
+    friend Factory;
 
     /** ContextID: localNymID, serverID */
     using ContextID = std::pair<Identifier, Identifier>;

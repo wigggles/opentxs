@@ -39,15 +39,42 @@
 #include "opentxs/stdafx.hpp"
 
 #include "opentxs/api/ContactManager.hpp"
+#include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Lockable.hpp"
+#include "opentxs/core/Log.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/SubscribeSocket.hpp"
+#include "opentxs/ui/ContactList.hpp"
+#include "opentxs/ui/ContactListItem.hpp"
+
+#include "ContactListParent.hpp"
+#include "List.hpp"
+
+#include <map>
+#include <memory>
+#include <set>
+#include <string>
+#include <thread>
+#include <tuple>
+#include <vector>
 
 #include "ContactList.hpp"
 
 #define OT_METHOD "opentxs::ui::implementation::ContactList::"
+
+namespace opentxs
+{
+ui::ContactList* Factory::ContactList(
+    const network::zeromq::Context& zmq,
+    const api::ContactManager& contact,
+    const Identifier& nymID)
+{
+    return new ui::implementation::ContactList(zmq, contact, nymID);
+}
+}  // namespace opentxs
 
 namespace opentxs::ui::implementation
 {
@@ -57,7 +84,13 @@ ContactList::ContactList(
     const Identifier& nymID)
     : ContactListType(zmq, contact, contact.ContactID(nymID), nymID, nullptr)
     , owner_contact_id_(Identifier::Factory(last_id_))
-    , owner_(*this, zmq, contact, owner_contact_id_, "Owner")
+    , owner_p_(Factory::ContactListItem(
+          *this,
+          zmq,
+          contact,
+          owner_contact_id_,
+          "Owner"))
+    , owner_(*owner_p_)
     , contact_subscriber_callback_(network::zeromq::ListenCallback::Factory(
           [this](const network::zeromq::Message& message) -> void {
               this->process_contact(message);
@@ -66,6 +99,7 @@ ContactList::ContactList(
           zmq_.SubscribeSocket(contact_subscriber_callback_.get()))
 {
     OT_ASSERT(!last_id_->empty())
+    OT_ASSERT(owner_p_)
 
     // WARNING do not attempt to use blank_ in this class
     init();
@@ -87,8 +121,7 @@ void ContactList::add_item(
     void*)
 {
     if (owner_contact_id_ == id) {
-        Lock lock(owner_.lock_);
-        owner_.name_ = index;
+        owner_.SetName(index);
 
         return;
     }
@@ -105,7 +138,7 @@ void ContactList::construct_item(
 {
     names_.emplace(id, index);
     items_[index].emplace(
-        id, new ContactListItem(*this, zmq_, contact_manager_, id, index));
+        id, Factory::ContactListItem(*this, zmq_, contact_manager_, id, index));
 }
 
 /** Returns owner contact. Sets up iterators for next row */

@@ -47,13 +47,6 @@
 #ifdef SWIG
 // clang-format off
 %ignore opentxs::network::zeromq::Context::operator void*() const;
-%ignore opentxs::Pimpl<opentxs::network::zeromq::Context>::operator+=;
-%ignore opentxs::Pimpl<opentxs::network::zeromq::Context>::operator==;
-%ignore opentxs::Pimpl<opentxs::network::zeromq::Context>::operator!=;
-%ignore opentxs::Pimpl<opentxs::network::zeromq::Context>::operator<;
-%ignore opentxs::Pimpl<opentxs::network::zeromq::Context>::operator<=;
-%ignore opentxs::Pimpl<opentxs::network::zeromq::Context>::operator>;
-%ignore opentxs::Pimpl<opentxs::network::zeromq::Context>::operator>=;
 %template(OTZMQContext) opentxs::Pimpl<opentxs::network::zeromq::Context>;
 %rename(ZMQContext) opentxs::network::zeromq::Context;
 // clang-format on

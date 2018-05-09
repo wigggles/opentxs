@@ -79,7 +79,7 @@
 #include "opentxs/server/ServerSettings.hpp"
 #include "opentxs/server/Transactor.hpp"
 
-#include <inttypes.h>
+#include <cinttypes>
 #include <cstdint>
 #include <deque>
 #include <list>
@@ -374,7 +374,7 @@ void Notary::NotarizeTransfer(
             } else {
                 // Generate new transaction number for these new transactions
                 // todo check this generation for failure (can it fail?)
-                int64_t lNewTransactionNumber = 0;
+                std::int64_t lNewTransactionNumber = 0;
 
                 server_.transactor_.issueNextTransactionNumber(
                     lNewTransactionNumber);
@@ -919,12 +919,12 @@ void Notary::NotarizeWithdrawal(
                 // UPDATE: We now use a transaction number owned by the
                 // remitter, instead of the transaction server.
                 //
-                //                int64_t lNewTransactionNumber = 0;
+                //                std::int64_t lNewTransactionNumber = 0;
                 //                transactor_.issueNextTransactionNumberToNym(server_.m_nymServer,
                 // lNewTransactionNumber);
                 // We save the transaction
                 // number on the server Nym (normally we'd discard it) because
-                const int64_t lAmount =
+                const std::int64_t lAmount =
                     theVoucherRequest.GetAmount();  // when the cheque is
                 // deposited, the server nym,
                 // as the owner of
@@ -965,8 +965,9 @@ void Notary::NotarizeWithdrawal(
                 //
                 if (bIssueVoucher && (lAmount > 0) &&
                     theAccount.Debit(theVoucherRequest.GetAmount())) {
-                    if (false == pVoucherReserveAcct->Credit(
-                                     theVoucherRequest.GetAmount())) {
+                    if (false ==
+                        pVoucherReserveAcct->Credit(
+                            theVoucherRequest.GetAmount())) {
                         Log::Error("Notary::NotarizeWithdrawal: Failed "
                                    "crediting voucher reserve account.\n");
 
@@ -1309,8 +1310,9 @@ void Notary::NotarizeWithdrawal(
 
                                     // Reverse the account debit (even though
                                     // we're not going to save it anyway.)
-                                    if (false == theAccount.Credit(
-                                                     pToken->GetDenomination()))
+                                    if (false ==
+                                        theAccount.Credit(
+                                            pToken->GetDenomination()))
                                         Log::vError(
                                             "%s: Failed crediting "
                                             "user account back.\n",
@@ -1605,7 +1607,7 @@ void Notary::NotarizePayDividend(
         pResponseBalanceItem->SetReferenceString(strBalanceItem);
         // This response item is IN RESPONSE to pItem and its Owner Transaction.
         pResponseBalanceItem->SetReferenceToNum(pItem->GetTransactionNum());
-        const int64_t lTotalCostOfDividend = pItem->GetAmount();
+        const std::int64_t lTotalCostOfDividend = pItem->GetAmount();
         Cheque theVoucherRequest;
         String strVoucherRequest;
         // When paying a dividend, you create a voucher request (the same as in
@@ -1636,7 +1638,7 @@ void Notary::NotarizePayDividend(
             // the total cost (the payout multiplied by number of shares.)
             //
             // already validated, just above.
-            const int64_t lAmountPerShare = theVoucherRequest.GetAmount();
+            const std::int64_t lAmountPerShare = theVoucherRequest.GetAmount();
             const Identifier SHARES_ISSUER_ACCT_ID =
                 theVoucherRequest.GetSenderAcctID();
             const String strSharesIssuerAcct(SHARES_ISSUER_ACCT_ID);
@@ -1882,7 +1884,7 @@ void Notary::NotarizePayDividend(
                                                        // sensitive area. need
                                                        // better funds transfer
                                                        // code.
-                        ) {
+                            ) {
                             const String strVoucherAcctID(VOUCHER_ACCOUNT_ID);
 
                             if (false ==
@@ -1902,8 +1904,9 @@ void Notary::NotarizePayDividend(
                                 // the funds from theSourceAccount.Debit (Credit
                                 // them back.)
                                 //
-                                if (false == theSourceAccount.Credit(
-                                                 lTotalCostOfDividend))
+                                if (false ==
+                                    theSourceAccount.Credit(
+                                        lTotalCostOfDividend))
                                     Log::vError(
                                         "%s: Failed crediting back the user "
                                         "account, after taking his funds "
@@ -2062,7 +2065,7 @@ void Notary::NotarizePayDividend(
                                 //
                                 // REFUND ANY LEFTOVERS
                                 //
-                                const int64_t lLeftovers =
+                                const std::int64_t lLeftovers =
                                     lTotalCostOfDividend -
                                     (actionPayDividend.GetAmountPaidOut() +
                                      actionPayDividend.GetAmountReturned());
@@ -2106,7 +2109,7 @@ void Notary::NotarizePayDividend(
                                             OTTimeGetSecondsFromTime(
                                                 OT_TIME_SIX_MONTHS_IN_SECONDS));  // This time occurs in 180 days (6 months).  Todo hardcoding.
 
-                                    int64_t lNewTransactionNumber = 0;
+                                    std::int64_t lNewTransactionNumber = 0;
                                     const bool bGotNextTransNum =
                                         server_.transactor_
                                             .issueNextTransactionNumberToNym(
@@ -2658,7 +2661,7 @@ void Notary::NotarizeDeposit(
                         // Generate new transaction number (for putting the
                         // check receipt in the sender's inbox.)
                         // todo check this generation for failure (can it fail?)
-                        int64_t lNewTransactionNumber = 0;
+                        std::int64_t lNewTransactionNumber = 0;
 
                         server_.transactor_.issueNextTransactionNumber(
                             lNewTransactionNumber);
@@ -2861,7 +2864,7 @@ void Notary::NotarizeDeposit(
                 //
                 // I THEN do the logic BELOW as additional to that. Make sure if
                 // you change anything that you
-                // think int64_t and hard about what you are doing!!
+                // think std::int64_t and hard about what you are doing!!
                 //
                 // Here's the logic:
                 // -- theNym is the depositor (for sure.)
@@ -3061,7 +3064,7 @@ void Notary::NotarizeDeposit(
                                                     // directly, once
                                                     // LoadPublicKey is
                                                     // removed for good.
-                ) {
+                    ) {
                     Log::vOutput(
                         0,
                         "Notary::%s: Error loading public key for %s "
@@ -3128,7 +3131,7 @@ void Notary::NotarizeDeposit(
                                                       // directly, once
                                                       // LoadPublicKey is
                                                       // removed for good.
-                ) {
+                    ) {
                     Log::vOutput(
                         0,
                         "Notary::%s: Error loading public key for "
@@ -3237,7 +3240,7 @@ void Notary::NotarizeDeposit(
                              // SetCleanup to call.
                       ))     // Also, SetCleanup() is safe even if pointer is
                              // nullptr.
-                ) {
+                    ) {
                     Log::vOutput(
                         0,
                         "%s: %s deposit failure, "
@@ -3664,7 +3667,7 @@ void Notary::NotarizeDeposit(
                                 // the check receipt in the sender's inbox.)
                                 // todo check this generation for failure (can
                                 // it fail?)
-                                int64_t lNewTransactionNumber = 0;
+                                std::int64_t lNewTransactionNumber = 0;
 
                                 server_.transactor_.issueNextTransactionNumber(
                                     lNewTransactionNumber);
@@ -4061,8 +4064,9 @@ void Notary::NotarizeDeposit(
                             // two defense mechanisms here:  mint cash reserve
                             // acct, and spent token database
                             //
-                            if (false == pMintCashReserveAcct->Debit(
-                                             pToken->GetDenomination())) {
+                            if (false ==
+                                pMintCashReserveAcct->Debit(
+                                    pToken->GetDenomination())) {
                                 Log::Error("Notary::NotarizeDeposit: Error "
                                            "debiting the mint cash reserve "
                                            "account. "
@@ -4078,8 +4082,9 @@ void Notary::NotarizeDeposit(
                                            "crediting the user's asset "
                                            "account...\n");
 
-                                if (false == pMintCashReserveAcct->Credit(
-                                                 pToken->GetDenomination()))
+                                if (false ==
+                                    pMintCashReserveAcct->Credit(
+                                        pToken->GetDenomination()))
                                     Log::Error("Notary::NotarizeDeposit: "
                                                "Failure crediting-back "
                                                "mint's cash reserve account "
@@ -4097,8 +4102,9 @@ void Notary::NotarizeDeposit(
                                            "Failed recording token as "
                                            "spent...\n");
 
-                                if (false == pMintCashReserveAcct->Credit(
-                                                 pToken->GetDenomination()))
+                                if (false ==
+                                    pMintCashReserveAcct->Credit(
+                                        pToken->GetDenomination()))
                                     Log::Error("Notary::NotarizeDeposit: "
                                                "Failure crediting-back "
                                                "mint's cash reserve account "
@@ -4772,7 +4778,7 @@ void Notary::NotarizePaymentPlan(
                                     // copies of the instrument may still
                                     // be waiting.)
                                     //
-                                    int64_t lOtherNewTransNumber = 0;
+                                    std::int64_t lOtherNewTransNumber = 0;
                                     server_.transactor_
                                         .issueNextTransactionNumber(
                                             lOtherNewTransNumber);
@@ -4823,7 +4829,7 @@ void Notary::NotarizePaymentPlan(
                                     // SO THEY CAN CLAW BACK THEIR TRANSACTION
                                     // #s....
                                     //
-                                    int64_t lOtherNewTransNumber = 0;
+                                    std::int64_t lOtherNewTransNumber = 0;
                                     server_.transactor_
                                         .issueNextTransactionNumber(
                                             lOtherNewTransNumber);
@@ -5034,10 +5040,10 @@ void Notary::NotarizeSmartContract(
                 const bool bCancelling =
                     (pContract->IsCanceled() &&
                      pContract->GetCancelerID(theCancelerNymID));
-                const int64_t lFoundNum = pContract->GetTransactionNum();
-                const int64_t lExpectedNum = pItem->GetTransactionNum();
-                int64_t lFoundOpeningNum = 0;
-                int64_t lFoundClosingNum = 0;
+                const std::int64_t lFoundNum = pContract->GetTransactionNum();
+                const std::int64_t lExpectedNum = pItem->GetTransactionNum();
+                std::int64_t lFoundOpeningNum = 0;
+                std::int64_t lFoundClosingNum = 0;
 
                 Identifier FOUND_NYM_ID;
                 Identifier FOUND_ACCT_ID;
@@ -5141,8 +5147,9 @@ void Notary::NotarizeSmartContract(
                 // the activator!
                 else if (
                     (pContract->GetSenderNymID() == NOTARY_NYM_ID) ||
-                    (nullptr != pContract->FindPartyBasedOnNymAsAgent(
-                                    server_.m_nymServer))) {
+                    (nullptr !=
+                     pContract->FindPartyBasedOnNymAsAgent(
+                         server_.m_nymServer))) {
                     Log::vOutput(
                         0,
                         "%s: ** SORRY ** but the server itself is NOT ALLOWED "
@@ -5519,7 +5526,7 @@ void Notary::NotarizeSmartContract(
                     // DROP REJECTION NOTICE HERE TO ALL PARTIES....
                     // SO THEY CAN CLAW BACK THEIR TRANSACTION #s....
                     //
-                    int64_t lNewTransactionNumber = 0;
+                    std::int64_t lNewTransactionNumber = 0;
                     server_.transactor_.issueNextTransactionNumber(
                         lNewTransactionNumber);
 
@@ -5563,7 +5570,7 @@ void Notary::NotarizeSmartContract(
                 // the activation receipt comes first.
                 //
                 else {
-                    int64_t lNewTransactionNumber = 0;
+                    std::int64_t lNewTransactionNumber = 0;
                     server_.transactor_.issueNextTransactionNumber(
                         lNewTransactionNumber);
 
@@ -5782,7 +5789,7 @@ void Notary::NotarizeCancelCronItem(
                 Item::acknowledgement);  // the transaction agreement was
                                          // successful.
 
-            const int64_t lReferenceToNum = pItem->GetReferenceToNum();
+            const std::int64_t lReferenceToNum = pItem->GetReferenceToNum();
 
             // I'm using the operator== because it exists. (Although now I
             // believe != exists also)
@@ -5994,7 +6001,7 @@ void Notary::NotarizeExchangeBasket(
 
             pItem->GetAttachment(strBasket);
 
-            int64_t lTransferAmount = 0;
+            std::int64_t lTransferAmount = 0;
 
             // Now we have the Contract ID from the basket account,
             // we can get a pointer to its asset contract...
@@ -6061,8 +6068,8 @@ void Notary::NotarizeExchangeBasket(
 
                     // Now let's load up the actual basket, from the actual
                     // asset contract.
-                    int64_t currencies = basket->Currencies().size();
-                    int64_t weight = basket->Weight();
+                    std::int64_t currencies = basket->Currencies().size();
+                    std::int64_t weight = basket->Weight();
                     if ((nullptr != basket) &&
                         currencies == theRequestBasket.Count() &&
                         weight == theRequestBasket.GetMinimumTransfer()) {
@@ -6075,7 +6082,8 @@ void Notary::NotarizeExchangeBasket(
 
                         bool bFoundSameAcctTwice = false;
 
-                        for (int32_t i = 0; i < theRequestBasket.Count(); i++) {
+                        for (std::int32_t i = 0; i < theRequestBasket.Count();
+                             i++) {
                             BasketItem* item = theRequestBasket.At(i);
                             OT_ASSERT(nullptr != item);
                             std::set<Identifier>::iterator it_account =
@@ -6100,7 +6108,8 @@ void Notary::NotarizeExchangeBasket(
                         {
                             // Loop through the request AND the actual basket
                             // TOGETHER...
-                            for (int32_t i = 0; i < theRequestBasket.Count();
+                            for (std::int32_t i = 0;
+                                 i < theRequestBasket.Count();
                                  i++) {
 
                                 BasketItem* pRequestItem =
@@ -6127,7 +6136,7 @@ void Notary::NotarizeExchangeBasket(
                                         .at(requestContractID.Get())
                                         .first);
 
-                                const uint64_t weight =
+                                const std::uint64_t weight =
                                     basket->Currencies()
                                         .at(requestContractID.Get())
                                         .second;
@@ -6355,7 +6364,8 @@ void Notary::NotarizeExchangeBasket(
                                             // the exchanger's inbox.)
                                             // todo check this generation for
                                             // failure (can it fail?)
-                                            int64_t lNewTransactionNumber = 0;
+                                            std::int64_t lNewTransactionNumber =
+                                                0;
 
                                             server_.transactor_
                                                 .issueNextTransactionNumber(
@@ -6479,8 +6489,9 @@ void Notary::NotarizeExchangeBasket(
                                                        "user basket "
                                                        "account.\n");
 
-                                            if (false == pBasketAcct->Credit(
-                                                             lTransferAmount))
+                                            if (false ==
+                                                pBasketAcct->Credit(
+                                                    lTransferAmount))
                                                 Log::Error(
                                                     "Notary::"
                                                     "NotarizeExchangeBasket: "
@@ -6511,8 +6522,9 @@ void Notary::NotarizeExchangeBasket(
                                                        "basket issuer "
                                                        "account.\n");
 
-                                            if (false == theAccount.Credit(
-                                                             lTransferAmount))
+                                            if (false ==
+                                                theAccount.Credit(
+                                                    lTransferAmount))
                                                 Log::Error(
                                                     "Notary::"
                                                     "NotarizeExchangeBasket: "
@@ -6550,7 +6562,7 @@ void Notary::NotarizeExchangeBasket(
                                     // exchanger's inbox.)
                                     // todo check this generation for failure
                                     // (can it fail?)
-                                    int64_t lNewTransactionNumber = 0;
+                                    std::int64_t lNewTransactionNumber = 0;
 
                                     server_.transactor_
                                         .issueNextTransactionNumber(
@@ -6715,7 +6727,7 @@ void Notary::NotarizeExchangeBasket(
                                 // numbers in the future.
                                 // (Since I'm using them to do this exchange...)
                                 //
-                                for (int32_t i = 0;
+                                for (std::int32_t i = 0;
                                      i < theRequestBasket.Count();
                                      i++) {
                                     BasketItem* pRequestItem =
@@ -7081,7 +7093,7 @@ void Notary::NotarizeMarketOffer(
                     theOffer.GetScale(),
                     ServerSettings::GetMinMarketScale());
             } else if (
-                static_cast<int64_t>((context.OpenCronItems() / 3)) >=
+                static_cast<std::int64_t>((context.OpenCronItems() / 3)) >=
                 OTCron::GetCronMaxItemsPerNym()) {
                 // NOTE:
                 // We divided by 3 since this set contains THREE numbers for
@@ -7218,7 +7230,7 @@ void Notary::NotarizeTransaction(
     OTTransaction& tranOut,
     bool& bOutSuccess)
 {
-    const int64_t lTransactionNumber = tranIn.GetTransactionNum();
+    const std::int64_t lTransactionNumber = tranIn.GetTransactionNum();
     const Identifier NOTARY_ID(server_.m_strNotaryID);
     Identifier NYM_ID;
     theNym.GetIdentifier(NYM_ID);
@@ -8061,7 +8073,7 @@ void Notary::NotarizeProcessNymbox(
                             // transaction # later, from the notice, instead of
                             // going out of sync.
                             //
-                            int64_t lSuccessNoticeTransNum = 0;
+                            std::int64_t lSuccessNoticeTransNum = 0;
                             bool bGotNextTransNum =
                                 server_.transactor_.issueNextTransactionNumber(
                                     lSuccessNoticeTransNum);
@@ -8213,7 +8225,7 @@ void Notary::NotarizeProcessNymbox(
                     pResponseItem->SignContract(server_.m_nymServer);
                     pResponseItem->SaveContract();
                 } else {
-                    const int32_t nStatus = pItem->GetStatus();
+                    const std::int32_t nStatus = pItem->GetStatus();
                     String strItemType;
                     pItem->GetTypeString(strItemType);
 
@@ -8497,7 +8509,7 @@ void Notary::NotarizeProcessInbox(
 
                 // we'll store them here, and disallow duplicates, to make
                 // sure they are all unique IDs (no repeats.)
-                std::set<int64_t> setOfRefNumbers;
+                std::set<std::int64_t> setOfRefNumbers;
 
                 for (auto& it : processInbox.GetItemList()) {
                     Item* pItemPointer = it;
@@ -8518,7 +8530,7 @@ void Notary::NotarizeProcessInbox(
 
                 if (pInbox->GetTransactionCountInRefTo(
                         pServerTransaction->GetReferenceToNum()) !=
-                    static_cast<int32_t>(setOfRefNumbers.size())) {
+                    static_cast<std::int32_t>(setOfRefNumbers.size())) {
                     Log::vOutput(
                         0,
                         "%s: User tried to close a finalReceipt, "
@@ -8784,7 +8796,7 @@ void Notary::NotarizeProcessInbox(
     // Remove certain receipts (determined in the big loop above) from the
     // inbox copy, to see if it will verify in the balance agreement.
     while (!theListOfInboxReceiptsBeingRemoved.empty()) {
-        int64_t lTemp = theListOfInboxReceiptsBeingRemoved.front();
+        std::int64_t lTemp = theListOfInboxReceiptsBeingRemoved.front();
         theListOfInboxReceiptsBeingRemoved.pop_front();
 
         // Notice I don't call DeleteBoxReceipt(lTemp) here like I
@@ -8856,7 +8868,7 @@ void Notary::NotarizeProcessInbox(
               pItem->GetType()) ||  // Accepting finalReceipt
              (Item::acceptBasketReceipt ==
               pItem->GetType())  // Accepting basketReceipt
-            );
+             );
 
         if (false == validType) {
             String strItemType;
@@ -8972,8 +8984,9 @@ void Notary::NotarizeProcessInbox(
              // keeping this safe.
              )  // especially in case this block moves
             // or is used elsewhere.
-            && (nullptr != (pServerTransaction = theInbox.GetTransaction(
-                                pItem->GetReferenceToNum()))) &&
+            &&
+            (nullptr != (pServerTransaction = theInbox.GetTransaction(
+                             pItem->GetReferenceToNum()))) &&
             ((OTTransaction::paymentReceipt == pServerTransaction->GetType()) ||
              (OTTransaction::marketReceipt == pServerTransaction->GetType()))) {
             // pItem contains the current user's attempt to
@@ -9004,8 +9017,9 @@ void Notary::NotarizeProcessInbox(
              // keeping this safe.
              )  // especially in case this block moves
             // or is used elsewhere.
-            && (nullptr != (pServerTransaction = theInbox.GetTransaction(
-                                pItem->GetReferenceToNum()))) &&
+            &&
+            (nullptr != (pServerTransaction = theInbox.GetTransaction(
+                             pItem->GetReferenceToNum()))) &&
             ((OTTransaction::finalReceipt == pServerTransaction->GetType()))) {
             // pItem contains the current user's attempt to
             // accept the Receipt
@@ -9035,8 +9049,9 @@ void Notary::NotarizeProcessInbox(
              // keeping this safe.
              )  // especially in case this block moves
             // or is used elsewhere.
-            && (nullptr != (pServerTransaction = theInbox.GetTransaction(
-                                pItem->GetReferenceToNum()))) &&
+            &&
+            (nullptr != (pServerTransaction = theInbox.GetTransaction(
+                             pItem->GetReferenceToNum()))) &&
             ((OTTransaction::basketReceipt == pServerTransaction->GetType()))) {
             // pItem contains the current user's attempt to
             // accept the Receipt
@@ -9078,14 +9093,14 @@ void Notary::NotarizeProcessInbox(
         // for pending transactions and cheque receipts, is NOT
         // the case above, with receipts from cron.
         else if (
-            ((Item::acceptItemReceipt ==
-              pItem->GetType())  // acceptItemReceipt
-                                 // includes checkReceipt
-                                 // and transferReceipts.
-             || (Item::acceptPending ==
-                 pItem->GetType())  // acceptPending includes
-                                    // checkReceipts. Because
-                                    // they are
+            ((Item::acceptItemReceipt == pItem->GetType())  // acceptItemReceipt
+             // includes checkReceipt
+             // and transferReceipts.
+             ||
+             (Item::acceptPending ==
+              pItem->GetType())  // acceptPending includes
+                                 // checkReceipts. Because
+                                 // they are
              ) &&
             (nullptr != (pServerTransaction = theInbox.GetTransaction(
                              pItem->GetReferenceToNum()))) &&
@@ -9322,7 +9337,7 @@ void Notary::NotarizeProcessInbox(
                         // Generate a new transaction number for
                         // the sender's inbox (to notice him of
                         // acceptance.)
-                        int64_t lNewTransactionNumber = 0;
+                        std::int64_t lNewTransactionNumber = 0;
                         server_.transactor_.issueNextTransactionNumber(
                             lNewTransactionNumber);
 

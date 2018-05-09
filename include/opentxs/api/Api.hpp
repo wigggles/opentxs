@@ -41,6 +41,8 @@
 
 #include "opentxs/Forward.hpp"
 
+//#include "opentxs/Types.hpp"
+
 #include <string>
 
 namespace opentxs

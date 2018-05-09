@@ -106,9 +106,12 @@ public:
     // For accounts used by smart contracts, to stash funds while running.
     EXPORT bool IsStashAcct() const { return (acctType_ == stash); }
 
-    EXPORT const int64_t& GetStashTransNum() const { return stashTransNum_; }
+    EXPORT const std::int64_t& GetStashTransNum() const
+    {
+        return stashTransNum_;
+    }
 
-    EXPORT void SetStashTransNum(const int64_t& transNum)
+    EXPORT void SetStashTransNum(const std::int64_t& transNum)
     {
         stashTransNum_ = transNum;
     }
@@ -148,13 +151,13 @@ public:
     // If you pass the identifier in, the outbox hash is recorded there
     EXPORT bool SaveOutbox(Ledger& box, Identifier* nash = nullptr);
     EXPORT const Identifier& GetInstrumentDefinitionID() const;
-    EXPORT int64_t GetBalance() const;
+    EXPORT std::int64_t GetBalance() const;
     // Debit a certain amount from the account (presumably the same amount is
     // being added somewhere)
-    EXPORT bool Debit(const int64_t& amount);
+    EXPORT bool Debit(const std::int64_t& amount);
     // Credit a certain amount from the account (presumably the same amount is
     // being subtracted somewhere)
-    EXPORT bool Credit(const int64_t& amount);
+    EXPORT bool Credit(const std::int64_t& amount);
     // Compares the NymID loaded from the account file with whatever Nym the
     // programmer wants to verify.
     EXPORT bool VerifyOwner(const Nym& candidate) const;
@@ -180,7 +183,7 @@ protected:
     Account();
 
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
-    int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
+    std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
 
     void UpdateContents() override;
 

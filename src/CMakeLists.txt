@@ -115,6 +115,7 @@ set(MODULE_NAME opentxs)
 add_library(${MODULE_NAME} SHARED
   ${cxx-headers}
   ${object-deps}
+  ${CMAKE_CURRENT_SOURCE_DIR}/Factory.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/OT.cpp
 )
 

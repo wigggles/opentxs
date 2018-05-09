@@ -41,22 +41,18 @@
 
 #include "opentxs/Internal.hpp"
 
-#include "opentxs/ui/ActivityThreadItem.hpp"
-#include "opentxs/Types.hpp"
-
-#include "ActivityThread.hpp"
-#include "Row.hpp"
-
 namespace opentxs::ui::implementation
 {
 using ActivityThreadItemType =
-    Row<opentxs::ui::ActivityThreadItem, ActivityThread, ActivityThreadID>;
+    Row<opentxs::ui::ActivityThreadItem,
+        ActivityThreadParent,
+        ActivityThreadID>;
 
 class ActivityThreadItem : public ActivityThreadItemType
 {
 public:
     opentxs::Amount Amount() const override { return 0; }
-    std::string DisplayAmount() const { return {}; }
+    std::string DisplayAmount() const override { return {}; }
     bool Loading() const override;
     bool MarkRead() const override;
     std::string Memo() const override { return {}; }
@@ -80,7 +76,7 @@ protected:
     OTFlag pending_;
 
     ActivityThreadItem(
-        const ActivityThread& parent,
+        const ActivityThreadParent& parent,
         const network::zeromq::Context& zmq,
         const api::ContactManager& contact,
         const ActivityThreadID& id,
@@ -92,8 +88,6 @@ protected:
         const bool pending);
 
 private:
-    friend ActivityThread;
-
     ActivityThreadItem() = delete;
     ActivityThreadItem(const ActivityThreadItem&) = delete;
     ActivityThreadItem(ActivityThreadItem&&) = delete;

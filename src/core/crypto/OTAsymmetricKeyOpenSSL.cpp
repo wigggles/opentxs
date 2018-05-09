@@ -63,11 +63,10 @@
 #include <openssl/ossl_typ.h>
 #include <openssl/pem.h>
 #include <openssl/x509.h>
-#include <opentxs-proto/AsymmetricKey.pb.h>
-#include <opentxs-proto/Enums.pb.h>
 #include <sodium/crypto_box.h>
-#include <stdint.h>
 #include <sys/types.h>
+
+#include <cstdint>
 #include <ostream>
 #include <string>
 
@@ -560,7 +559,7 @@ bool OTAsymmetricKey_OpenSSL::ReEncryptPrivateKey(
 
             // write a private key to that buffer, from pClearKey
             //
-            int32_t nWriteBio = 0;
+            std::int32_t nWriteBio = 0;
 
             // If we're importing, that means we just loaded up the (previously)
             // exported Nym
@@ -620,8 +619,8 @@ bool OTAsymmetricKey_OpenSSL::ReEncryptPrivateKey(
                 // where the private key supposedly is,
                 // and lSize will contain the size of that memory.
                 //
-                int64_t lSize = BIO_get_mem_data(bmem, &pChar);
-                uint32_t nSize = static_cast<uint32_t>(lSize);
+                std::int64_t lSize = BIO_get_mem_data(bmem, &pChar);
+                std::uint32_t nSize = static_cast<uint32_t>(lSize);
 
                 if (nSize > 0) {
                     // Set the buffer size in our own memory.
@@ -682,9 +681,9 @@ bool OTAsymmetricKey_OpenSSL::SaveCertToString(
 
     bool bSuccess = false;
 
-    uint8_t buffer_x509[8192] = "";  // todo hardcoded
+    std::uint8_t buffer_x509[8192] = "";  // todo hardcoded
     String strx509;
-    int32_t len = 0;
+    std::int32_t len = 0;
 
     // todo hardcoded 4080 (see array above.)
     //
@@ -773,8 +772,8 @@ bool OTAsymmetricKey_OpenSSL::GetPrivateKey(
     bool privateSuccess = false;
     bool publicSuccess = false;
 
-    int32_t len = 0;
-    uint8_t buffer_pri[4096] = "";  // todo hardcoded
+    std::int32_t len = 0;
+    std::uint8_t buffer_pri[4096] = "";  // todo hardcoded
     String privateKey, publicKey;
 
     // todo hardcoded 4080 (see array above.)

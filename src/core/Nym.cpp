@@ -294,6 +294,29 @@ bool Nym::AddContract(
     return set_contact_data(lock, contact_data_->Serialize());
 }
 
+bool Nym::AddEmail(
+    const std::string& value,
+    const bool primary,
+    const bool active)
+{
+    if (value.empty()) {
+        return false;
+    }
+
+    Lock lock(lock_);
+
+    if (false == bool(contact_data_)) {
+        init_claims(lock);
+    }
+
+    contact_data_.reset(
+        new ContactData(contact_data_->AddEmail(value, primary, active)));
+
+    OT_ASSERT(contact_data_);
+
+    return set_contact_data(lock, contact_data_->Serialize());
+}
+
 /// a payments message is a form of transaction, transported via Nymbox
 /// Though the parameter is a reference (forcing you to pass a real object),
 /// the Nym DOES take ownership of the object. Therefore it MUST be allocated
@@ -330,6 +353,29 @@ bool Nym::AddPaymentCode(
     return set_contact_data(lock, contact_data_->Serialize());
 }
 
+bool Nym::AddPhoneNumber(
+    const std::string& value,
+    const bool primary,
+    const bool active)
+{
+    if (value.empty()) {
+        return false;
+    }
+
+    Lock lock(lock_);
+
+    if (false == bool(contact_data_)) {
+        init_claims(lock);
+    }
+
+    contact_data_.reset(
+        new ContactData(contact_data_->AddPhoneNumber(value, primary, active)));
+
+    OT_ASSERT(contact_data_);
+
+    return set_contact_data(lock, contact_data_->Serialize());
+}
+
 bool Nym::AddPreferredOTServer(const Identifier& id, const bool primary)
 {
     Lock lock(lock_);
@@ -340,6 +386,30 @@ bool Nym::AddPreferredOTServer(const Identifier& id, const bool primary)
 
     contact_data_.reset(
         new ContactData(contact_data_->AddPreferredOTServer(id, primary)));
+
+    OT_ASSERT(contact_data_);
+
+    return set_contact_data(lock, contact_data_->Serialize());
+}
+
+bool Nym::AddSocialMediaProfile(
+    const std::string& value,
+    const proto::ContactItemType type,
+    const bool primary,
+    const bool active)
+{
+    if (value.empty()) {
+        return false;
+    }
+
+    Lock lock(lock_);
+
+    if (false == bool(contact_data_)) {
+        init_claims(lock);
+    }
+
+    contact_data_.reset(new ContactData(
+        contact_data_->AddSocialMediaProfile(value, type, primary, active)));
 
     OT_ASSERT(contact_data_);
 
@@ -366,6 +436,43 @@ std::shared_ptr<const proto::Credential> Nym::ChildCredentialContents(
     }
 
     return output;
+}
+
+std::string Nym::BestEmail() const
+{
+    Lock lock(lock_);
+
+    if (false == bool(contact_data_)) {
+        init_claims(lock);
+    }
+
+    OT_ASSERT(contact_data_);
+
+    return contact_data_->BestEmail();
+}
+
+std::string Nym::BestPhoneNumber() const
+{
+    Lock lock(lock_);
+    if (false == bool(contact_data_)) {
+        init_claims(lock);
+    }
+
+    OT_ASSERT(contact_data_);
+
+    return contact_data_->BestPhoneNumber();
+}
+
+std::string Nym::BestSocialMediaProfile(const proto::ContactItemType type) const
+{
+    Lock lock(lock_);
+    if (false == bool(contact_data_)) {
+        init_claims(lock);
+    }
+
+    OT_ASSERT(contact_data_);
+
+    return contact_data_->BestSocialMediaProfile(type);
 }
 
 std::int32_t Nym::ChildCredentialCount(const std::string& id) const
@@ -527,6 +634,19 @@ void Nym::DisplayStatistics(String& strOutput) const
     String theStringID;
     GetIdentifier(theStringID);
     strOutput.Concatenate("Nym ID: %s\n", theStringID.Get());
+}
+
+std::string Nym::EmailAddresses(bool active) const
+{
+    Lock lock(lock_);
+
+    if (false == bool(contact_data_)) {
+        init_claims(lock);
+    }
+
+    OT_ASSERT(contact_data_);
+
+    return contact_data_->EmailAddresses(active);
 }
 
 const Credential* Nym::GetChildCredential(
@@ -1431,7 +1551,7 @@ bool Nym::LoadNymFromString(
                     //
                     if (strAccountID.Exists() && strHashValue.Exists()) {
                         const Identifier theID(strHashValue);
-                        OTIdentifier * pID = new OTIdentifier(theID);
+                        OTIdentifier* pID = new OTIdentifier(theID);
                         OT_ASSERT(pID)
                         m_mapInboxHash[strAccountID.Get()] = pID;
                     }
@@ -1451,7 +1571,7 @@ bool Nym::LoadNymFromString(
                     //
                     if (strAccountID.Exists() && strHashValue.Exists()) {
                         const Identifier theID(strHashValue);
-                        OTIdentifier * pID = new OTIdentifier(theID);
+                        OTIdentifier* pID = new OTIdentifier(theID);
                         OT_ASSERT(pID)
                         m_mapOutboxHash[strAccountID.Get()] = pID;
                     }
@@ -2105,6 +2225,19 @@ std::string Nym::PaymentCode() const
 #else
     return "";
 #endif
+}
+
+std::string Nym::PhoneNumbers(bool active) const
+{
+    Lock lock(lock_);
+
+    if (false == bool(contact_data_)) {
+        init_claims(lock);
+    }
+
+    OT_ASSERT(contact_data_);
+
+    return contact_data_->PhoneNumbers(active);
 }
 
 // Used when importing/exporting Nym into and out-of the sphere of the
@@ -2766,7 +2899,7 @@ bool Nym::SetHash(
     {
         // The call has succeeded
         the_map.erase(find_it);
-        OTIdentifier * pID = new OTIdentifier (theInput);
+        OTIdentifier* pID = new OTIdentifier(theInput);
         OT_ASSERT(pID)
         the_map[str_id] = pID;
         bSuccess = true;
@@ -2777,7 +2910,7 @@ bool Nym::SetHash(
     // that means it does not exist. (So create it.)
     //
     if (!bSuccess) {
-        OTIdentifier * pID = new OTIdentifier (theInput);
+        OTIdentifier* pID = new OTIdentifier(theInput);
         OT_ASSERT(pID)
         the_map[str_id] = pID;
     }
@@ -2857,6 +2990,21 @@ bool Nym::SetVerificationSet(const proto::VerificationSet& data)
     }
 
     return false;
+}
+
+std::string Nym::SocialMediaProfiles(
+    const proto::ContactItemType type,
+    bool active) const
+{
+    Lock lock(lock_);
+
+    if (false == bool(contact_data_)) {
+        init_claims(lock);
+    }
+
+    OT_ASSERT(contact_data_);
+
+    return contact_data_->SocialMediaProfiles(type, active);
 }
 
 std::unique_ptr<OTPassword> Nym::TransportKey(Data& pubkey) const

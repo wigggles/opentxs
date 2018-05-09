@@ -147,7 +147,7 @@ public:
     EXPORT static bool Init(
         const api::Settings& config,
         const String& strThreadContext = "",
-        const int32_t& nLogLevel = 0);
+        const std::int32_t& nLogLevel = 0);
 
     EXPORT static bool IsInitialized();
 
@@ -171,8 +171,8 @@ public:
     EXPORT static const char* LogFilePath();
     EXPORT static const String& GetLogFilePath();
 
-    EXPORT static int32_t LogLevel();
-    EXPORT static bool SetLogLevel(const int32_t& nLogLevel);
+    EXPORT static std::int32_t LogLevel();
+    EXPORT static bool SetLogLevel(const std::int32_t& nLogLevel);
 
     // OTLog Functions:
     //
@@ -180,8 +180,8 @@ public:
     EXPORT static bool LogToFile(const String& strOutput);
 
     /** We keep 1024 logs in memory, to make them available via the API. */
-    EXPORT static int32_t GetMemlogSize();
-    EXPORT static String GetMemlogAtIndex(int32_t nIndex);
+    EXPORT static std::int32_t GetMemlogSize();
+    EXPORT static String GetMemlogAtIndex(std::int32_t nIndex);
     EXPORT static String PeekMemlogFront();
     EXPORT static String PeekMemlogBack();
     EXPORT static bool PopMemlogFront();
@@ -201,10 +201,12 @@ public:
      * often, set it up to 1. Set it up even higher for the really verbose stuff
      * (e.g. only if you really want to see EVERYTHING.) */
     EXPORT static void Output(
-        int32_t nVerbosity,
+        std::int32_t nVerbosity,
         const char* szOutput);  // stdout
-    EXPORT static void vOutput(int32_t nVerbosity, const char* szOutput, ...)
-        ATTR_PRINTF(2, 3);
+    EXPORT static void vOutput(
+        std::int32_t nVerbosity,
+        const char* szOutput,
+        ...) ATTR_PRINTF(2, 3);
 
     /** This logs an error condition, which usually means bad input from the
      * user, or a file wouldn't open, or something like that. This contrasted
@@ -225,7 +227,7 @@ public:
     EXPORT static bool StringFill(
         String& out_strString,
         const char* szString,
-        int32_t iLength,
+        std::int32_t iLength,
         const char* szAppend = nullptr);
 };
 

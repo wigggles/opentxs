@@ -223,7 +223,7 @@ bool Hash::Digest(
 }
 
 bool Hash::Digest(
-    const uint32_t type,
+    const std::uint32_t type,
     const std::string& data,
     std::string& encodedDigest) const
 {
@@ -239,7 +239,7 @@ bool Hash::Digest(
 
     const bool success = Digest(
         hashType,
-        reinterpret_cast<const uint8_t*>(data.c_str()),
+        reinterpret_cast<const std::uint8_t*>(data.c_str()),
         data.size(),
         static_cast<std::uint8_t*>(const_cast<void*>(result->GetPointer())));
 

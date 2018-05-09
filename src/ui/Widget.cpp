@@ -38,11 +38,11 @@
 
 #include "opentxs/stdafx.hpp"
 
-#include "Widget.hpp"
-
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
+
+#include "Widget.hpp"
 
 namespace opentxs::ui::implementation
 {

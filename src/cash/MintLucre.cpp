@@ -96,8 +96,8 @@ MintLucre::~MintLucre() {}
 // Pass the actual denomination such as 5, 10, 20, 50, 100...
 bool MintLucre::AddDenomination(
     const Nym& theNotary,
-    int64_t lDenomination,
-    int32_t nPrimeLength)
+    std::int64_t lDenomination,
+    std::int32_t nPrimeLength)
 {
     bool bReturnValue = false;
 
@@ -147,10 +147,10 @@ bool MintLucre::AddDenomination(
     // Copy from BIO back to a normal OTString or Ascii-Armor
     char privateBankBuffer[4096],
         publicBankBuffer[4096];  // todo stop hardcoding these string lengths
-    int32_t privatebankLen =
+    std::int32_t privatebankLen =
         BIO_read(bio, privateBankBuffer, 4000);  // cutting it a little short on
                                                  // purpose, with the buffer.
-    int32_t publicbankLen = BIO_read(
+    std::int32_t publicbankLen = BIO_read(
         bioPublic,
         publicBankBuffer,
         4000);  // Just makes me feel more comfortable for some reason.
@@ -202,7 +202,7 @@ bool MintLucre::SignToken(
     const Nym& theNotary,
     Token& theToken,
     String& theOutput,
-    int32_t nTokenIndex)
+    std::int32_t nTokenIndex)
 {
     bool bReturnValue = false;
 
@@ -265,7 +265,7 @@ bool MintLucre::SignToken(
             // Read the signature bio into a C-style buffer...
             char sig_buf[1024];  // todo stop hardcoding these string lengths
 
-            int32_t sig_len = BIO_read(
+            std::int32_t sig_len = BIO_read(
                 bioSignature,
                 sig_buf,
                 1000);  // cutting it a little short on
@@ -311,7 +311,7 @@ bool MintLucre::SignToken(
 bool MintLucre::VerifyToken(
     const Nym& theNotary,
     String& theCleartextToken,
-    int64_t lDenomination)
+    std::int64_t lDenomination)
 {
     bool bReturnValue = false;
     LucreDumper setDumper;

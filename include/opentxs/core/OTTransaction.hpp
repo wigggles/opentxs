@@ -158,14 +158,18 @@ receipt itself is available for
 transfer, deposit, withdrawal, trade, etc.
  time64_t                    m_DATE_SIGNED;        // The date, in seconds, when
 the instrument was last signed.
- int64_t                    m_lTransactionNum;    // The server issues this and
+ std::int64_t                    m_lTransactionNum;    // The server issues this
+and
 it must be sent with transaction request.
- int64_t                    m_lInReferenceToTransaction;
- int64_t                    m_lClosingTransactionNo; // used by finalReceipt
+ std::int64_t                    m_lInReferenceToTransaction;
+ std::int64_t                    m_lClosingTransactionNo; // used by
+finalReceipt
  also:                AMOUNT.  // GetReceiptAmount()
- int64_t                m_lAbbrevAmount; // Stored here after loading, but not
+ std::int64_t                m_lAbbrevAmount; // Stored here after loading, but
+not
 saved from here in the first place (see GetReceiptAmount())
- int64_t                m_lDisplayAmount; // Just like m_lAbbrevAmount, except
+ std::int64_t                m_lDisplayAmount; // Just like m_lAbbrevAmount,
+except
 it stores the display amount. For example, a transferReceipt for a 5000 clam
 transfer has an effective value of 0 (since the transfer is already done) but it
 has a display amount of 5000.
@@ -442,7 +446,7 @@ public:
         const Identifier& theNymID,
         const Identifier& theAccountID,
         const Identifier& theNotaryID,
-        int64_t lTransactionNum,
+        std::int64_t lTransactionNum,
         originType theOriginType = originType::not_applicable);
 
     // THIS constructor only used when loading an abbreviated box receipt
@@ -453,25 +457,25 @@ public:
         const Identifier& theNymID,
         const Identifier& theAccountID,
         const Identifier& theNotaryID,
-        const int64_t& lNumberOfOrigin,
+        const std::int64_t& lNumberOfOrigin,
         originType theOriginType,
-        const int64_t& lTransactionNum,
-        const int64_t& lInRefTo,
-        const int64_t& lInRefDisplay,
+        const std::int64_t& lTransactionNum,
+        const std::int64_t& lInRefTo,
+        const std::int64_t& lInRefDisplay,
         time64_t the_DATE_SIGNED,
         transactionType theType,
         const String& strHash,
-        const int64_t& lAdjustment,
-        const int64_t& lDisplayValue,
-        const int64_t& lClosingNum,
-        const int64_t& lRequestNum,
+        const std::int64_t& lAdjustment,
+        const std::int64_t& lDisplayValue,
+        const std::int64_t& lClosingNum,
+        const std::int64_t& lRequestNum,
         bool bReplyTransSuccess,
         NumList* pNumList = nullptr);
 
     EXPORT virtual ~OTTransaction();
 
     void Release() override;
-    EXPORT int64_t GetNumberOfOrigin() override;
+    EXPORT std::int64_t GetNumberOfOrigin() override;
     EXPORT void CalculateNumberOfOrigin() override;
 
     // This calls VerifyContractID() as well as VerifySignature()
@@ -491,32 +495,39 @@ public:
 
     bool IsAbbreviated() const { return m_bIsAbbreviated; }
 
-    int64_t GetAbbrevAdjustment() const { return m_lAbbrevAmount; }
+    std::int64_t GetAbbrevAdjustment() const { return m_lAbbrevAmount; }
 
-    void SetAbbrevAdjustment(int64_t lAmount) { m_lAbbrevAmount = lAmount; }
+    void SetAbbrevAdjustment(std::int64_t lAmount)
+    {
+        m_lAbbrevAmount = lAmount;
+    }
 
-    int64_t GetAbbrevDisplayAmount() const { return m_lDisplayAmount; }
+    std::int64_t GetAbbrevDisplayAmount() const { return m_lDisplayAmount; }
 
-    void SetAbbrevDisplayAmount(int64_t lAmount) { m_lDisplayAmount = lAmount; }
+    void SetAbbrevDisplayAmount(std::int64_t lAmount)
+    {
+        m_lDisplayAmount = lAmount;
+    }
 
-    int64_t GetAbbrevInRefDisplay() const { return m_lInRefDisplay; }
+    std::int64_t GetAbbrevInRefDisplay() const { return m_lInRefDisplay; }
 
-    void SetAbbrevInRefDisplay(int64_t lVal) { m_lInRefDisplay = lVal; }
+    void SetAbbrevInRefDisplay(std::int64_t lVal) { m_lInRefDisplay = lVal; }
 
     // These are used exclusively by replyNotice (so you can tell
     // which reply message it's a notice of.)
-    const int64_t& GetRequestNum() const { return m_lRequestNumber; }
+    const std::int64_t& GetRequestNum() const { return m_lRequestNumber; }
 
-    void SetRequestNum(const int64_t& lNum) { m_lRequestNumber = lNum; }
+    void SetRequestNum(const std::int64_t& lNum) { m_lRequestNumber = lNum; }
 
     bool GetReplyTransSuccess() { return m_bReplyTransSuccess; }
 
     void SetReplyTransSuccess(bool bVal) { m_bReplyTransSuccess = bVal; }
 
     // These are used for finalReceipt and basketReceipt
-    EXPORT int64_t GetClosingNum() const;
-    EXPORT void SetClosingNum(int64_t lClosingNum);
-    EXPORT int64_t GetReferenceNumForDisplay();  /// For display purposes. The
+    EXPORT std::int64_t GetClosingNum() const;
+    EXPORT void SetClosingNum(std::int64_t lClosingNum);
+    EXPORT std::int64_t GetReferenceNumForDisplay();  /// For display purposes.
+                                                      /// The
     /// "ref #" you actually display
     /// (versus the one you use
     /// internally) might change
@@ -560,9 +571,10 @@ public:
         bool* pbHasSuccess = nullptr,
         bool* pbIsSuccess = nullptr);
 
-    EXPORT int64_t GetReceiptAmount();  // Tries to determine IF there is an
-                                        // amount (depending on type) and return
-                                        // it.
+    EXPORT std::int64_t GetReceiptAmount();  // Tries to determine IF there is
+                                             // an
+    // amount (depending on type) and return
+    // it.
 
     EXPORT static OTTransaction* GenerateTransaction(
         const Identifier& theNymID,
@@ -570,13 +582,13 @@ public:
         const Identifier& theNotaryID,
         transactionType theType,
         originType theOriginType = originType::not_applicable,
-        int64_t lTransactionNum = 0);
+        std::int64_t lTransactionNum = 0);
 
     EXPORT static OTTransaction* GenerateTransaction(
         const Ledger& theOwner,
         transactionType theType,
         originType theOriginType = originType::not_applicable,
-        int64_t lTransactionNum = 0);
+        std::int64_t lTransactionNum = 0);
 
     transactionType GetType() const;
     void SetType(transactionType theType);
@@ -584,7 +596,7 @@ public:
     // This function assumes that theLedger is the owner of this transaction.
     // We pass the ledger in so we can determine the proper directory we're
     // reading from.
-    EXPORT bool SaveBoxReceipt(int64_t lLedgerType);
+    EXPORT bool SaveBoxReceipt(std::int64_t lLedgerType);
 
     EXPORT bool SaveBoxReceipt(Ledger& theLedger);
 
@@ -601,21 +613,22 @@ public:
     // (We go deeper.)
     EXPORT bool VerifyItems(Nym& theNym);
 
-    inline int32_t GetItemCount() const
+    inline std::int32_t GetItemCount() const
     {
-        return static_cast<int32_t>(m_listItems.size());
+        return static_cast<std::int32_t>(m_listItems.size());
     }
 
-    int32_t GetItemCountInRefTo(int64_t lReference);  // Count the number
-                                                      // of items that are
-                                                      // IN REFERENCE TO
-                                                      // some transaction#.
+    std::int32_t GetItemCountInRefTo(std::int64_t lReference);  // Count the
+                                                                // number
+    // of items that are
+    // IN REFERENCE TO
+    // some transaction#.
 
     // While processing a transaction, you may wish to query it for items of a
     // certain type.
     EXPORT Item* GetItem(Item::itemType theType);
 
-    EXPORT Item* GetItemInRefTo(int64_t lReference);
+    EXPORT Item* GetItemInRefTo(std::int64_t lReference);
 
     EXPORT void AddItem(Item& theItem);  // You have to allocate the item on
                                          // the heap and then pass it in as a
@@ -682,7 +695,7 @@ public:
 
 protected:
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
-    int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
+    std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
 
     void UpdateContents() override;  // Before transmission or serialization,
                                      // this
@@ -715,7 +728,7 @@ protected:
     // being forced to load up
     // all of the box receipts to do so.
 
-    int64_t m_lAbbrevAmount{0};
+    std::int64_t m_lAbbrevAmount{0};
 
     // Just like m_lAbbrevAmount, except it stores the display amount. For
     // example, a transferReceipt for
@@ -734,13 +747,13 @@ protected:
     // current process of loading
     // transaction items from a string every time we need to check the amount,
     // can be time-consuming, CPU-wise.)
-    int64_t m_lDisplayAmount{0};
+    std::int64_t m_lDisplayAmount{0};
 
     // The value of GetReferenceNumForDisplay() is saved when saving an
     // abbreviated record of this transaction,
     // and then loaded into THIS member variable when loading the abbreviated
     // record.
-    int64_t m_lInRefDisplay{0};
+    std::int64_t m_lInRefDisplay{0};
 
     // This hash is not stored inside the box receipt itself (a transaction that
     // appears in an inbox, outbox, or nymbox)

@@ -54,10 +54,12 @@ class PayableListItemBlank : virtual public ui::PayableListItem,
 public:
     std::string PaymentCode() const override { return {}; }
 
+    void SetName(const std::string& name) override {}
+
     ~PayableListItemBlank() = default;
 
 private:
-    friend PayableList;
+    friend opentxs::ui::implementation::PayableList;
 
     PayableListItemBlank() = default;
     PayableListItemBlank(const PayableListItemBlank&) = delete;

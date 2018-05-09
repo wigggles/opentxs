@@ -45,7 +45,7 @@
 #include "opentxs/core/NumList.hpp"
 #include "opentxs/core/String.hpp"
 
-#include <stdint.h>
+#include <cstdint>
 
 namespace opentxs
 {
@@ -95,7 +95,7 @@ void OTTrackable::InitTrackable()
     m_lTransactionNum = 0;
 }
 
-bool OTTrackable::HasTransactionNum(const int64_t& lInput) const
+bool OTTrackable::HasTransactionNum(const std::int64_t& lInput) const
 {
     return lInput == m_lTransactionNum;
 }

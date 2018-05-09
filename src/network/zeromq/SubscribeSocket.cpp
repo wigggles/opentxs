@@ -48,6 +48,8 @@
 
 #include <zmq.h>
 
+template class opentxs::Pimpl<opentxs::network::zeromq::SubscribeSocket>;
+
 #define OT_METHOD "opentxs::network::zeromq::implementation::SubscribeSocket::"
 
 namespace opentxs::network::zeromq

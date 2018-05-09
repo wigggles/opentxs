@@ -356,7 +356,7 @@ bool OTAgent::IsAGroup() const { return !m_bIsAnIndividual; }
 // But if one prefers to have his private key, and another his, then they will
 // begin as separate and
 // independent individuals. One Nym will not be found within the other as a
-// int64_t-lost, under-developed
+// std::int64_t-lost, under-developed
 // twin!
 // Just as reality enforces separate individuals, so does the software end up in
 // the situation where
@@ -428,7 +428,7 @@ bool OTAgent::GetRoleID(Identifier& theOutput) const
 // There is an "active" agent who has a signerID, but there is also a "passive"
 // agent who only has
 // a group name, and acts based on notifications and replies in the
-// int64_t-term, versus being immediately
+// std::int64_t-term, versus being immediately
 // able to act as part of the operation of a script.
 //
 // Basically if !IsIndividual(), then GetSignerID() will fail and thus anything
@@ -551,7 +551,7 @@ bool OTAgent::IsAuthorizingAgentForParty()
 // Returns the number of accounts, owned by this agent's party, that this agent
 // is the authorized agent FOR.
 //
-int32_t OTAgent::GetCountAuthorizedAccts()
+std::int32_t OTAgent::GetCountAuthorizedAccts()
 {
     if (nullptr == m_pForParty) {
         otErr << "OTAgent::CountAuthorizedAccts: Error: m_pForParty was "
@@ -637,8 +637,8 @@ bool OTAgent::DropFinalReceiptToInbox(
     Nym& theServerNym,
     OTSmartContract& theSmartContract,
     const Identifier& theAccountID,
-    const int64_t& lNewTransactionNumber,
-    const int64_t& lClosingNumber,
+    const std::int64_t& lNewTransactionNumber,
+    const std::int64_t& lClosingNumber,
     const String& strOrigCronItem,
     String* pstrNote,
     String* pstrAttachment)
@@ -739,7 +739,7 @@ bool OTAgent::DropFinalReceiptToInbox(
 
 bool OTAgent::DropFinalReceiptToNymbox(
     OTSmartContract& theSmartContract,
-    const int64_t& lNewTransactionNumber,
+    const std::int64_t& lNewTransactionNumber,
     const String& strOrigCronItem,
     String* pstrNote,
     String* pstrAttachment,
@@ -782,8 +782,8 @@ bool OTAgent::DropServerNoticeToNymbox(
                        // it FAILS to activate.
     Nym& theServerNym,
     const Identifier& theNotaryID,
-    const int64_t& lNewTransactionNumber,
-    const int64_t& lInReferenceTo,
+    const std::int64_t& lNewTransactionNumber,
+    const std::int64_t& lInReferenceTo,
     const String& strReference,
     String* pstrNote,
     String* pstrAttachment,

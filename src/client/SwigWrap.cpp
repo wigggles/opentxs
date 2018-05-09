@@ -38,8 +38,7 @@
 
 #include "opentxs/stdafx.hpp"
 
-#include "opentxs/client/SwigWrap.hpp"
-
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/api/client/Issuer.hpp"
 #include "opentxs/api/client/Pair.hpp"
 #include "opentxs/api/client/Sync.hpp"
@@ -63,7 +62,6 @@
 #include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/NumList.hpp"
 #include "opentxs/core/String.hpp"
@@ -73,6 +71,8 @@
 #include "opentxs/OT.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
+
+#include "opentxs/client/SwigWrap.hpp"
 
 #include <algorithm>
 #include <chrono>
@@ -96,14 +96,14 @@ namespace opentxs
 {
 // If the password callback isn't set, then it uses the default ("test")
 // password.
-extern "C" int32_t default_pass_cb(
+extern "C" std::int32_t default_pass_cb(
     char* buf,
-    int32_t size,
-    __attribute__((unused)) int32_t rwflag,
+    std::int32_t size,
+    __attribute__((unused)) std::int32_t rwflag,
     void* userdata)
 {
-    int32_t len = 0;
-    const uint32_t theSize = uint32_t(size);
+    std::int32_t len = 0;
+    const std::uint32_t theSize = uint32_t(size);
 
     // We'd probably do something else if 'rwflag' is 1
 
@@ -136,7 +136,7 @@ extern "C" int32_t default_pass_cb(
     const char* tmp_passwd = "test";
     //    const char *tmp_passwd = str_Password.c_str();
 
-    len = static_cast<int32_t>(strlen(tmp_passwd));
+    len = static_cast<std::int32_t>(strlen(tmp_passwd));
     //    len = str_Password.size();
 
     if (len <= 0) {
@@ -144,10 +144,10 @@ extern "C" int32_t default_pass_cb(
         return 0;
     }
 
-    // if too int64_t, truncate
+    // if too std::int64_t, truncate
     if (len > size) len = size;
 
-    const uint32_t theLength = static_cast<const uint32_t>(len);
+    const std::uint32_t theLength = static_cast<const uint32_t>(len);
 
     // void * pv =
     OTPassword::safe_memcpy(
@@ -164,10 +164,10 @@ extern "C" int32_t default_pass_cb(
 // password.
 // If we return 0, that's bad, that means the password caller and callback
 // failed somehow.
-extern "C" int32_t souped_up_pass_cb(
+extern "C" std::int32_t souped_up_pass_cb(
     char* buf,
-    int32_t size,
-    int32_t rwflag,
+    std::int32_t size,
+    std::int32_t rwflag,
     void* userdata)
 {
     //  OT_ASSERT(nullptr != buf); // apparently it CAN be nullptr sometimes.
@@ -299,7 +299,7 @@ extern "C" int32_t souped_up_pass_cb(
             //
             pCaller->SetDisplay(
                 str_userdata.c_str(),
-                static_cast<int32_t>(str_userdata.size()));
+                static_cast<std::int32_t>(str_userdata.size()));
 
             if (1 == rwflag) {
                 otLog4 << __FUNCTION__
@@ -352,8 +352,8 @@ extern "C" int32_t souped_up_pass_cb(
      "The callback must return the number of characters in the passphrase or 0
      if an error occurred."
      */
-    int32_t len = thePassword.isPassword() ? thePassword.getPasswordSize()
-                                           : thePassword.getMemorySize();
+    std::int32_t len = thePassword.isPassword() ? thePassword.getPasswordSize()
+                                                : thePassword.getMemorySize();
 
     if (len < 0) {
         otOut << __FUNCTION__ << ": <0 length password was "
@@ -397,12 +397,12 @@ extern "C" int32_t souped_up_pass_cb(
         if (thePassword.isPassword())
             thePassword.setPassword(
                 szDefault,
-                static_cast<int32_t>(
+                static_cast<std::int32_t>(
                     String::safe_strlen(szDefault, _PASSWORD_LEN)));
         else
             thePassword.setMemory(
                 static_cast<const void*>(szDefault),
-                static_cast<uint32_t>(
+                static_cast<std::uint32_t>(
                     String::safe_strlen(szDefault, _PASSWORD_LEN)) +
                     1);  // setMemory doesn't assume the null
                          // terminator like setPassword does.
@@ -417,11 +417,11 @@ extern "C" int32_t souped_up_pass_cb(
     }
     // --------------------------------------
     else if (nullptr != buf) {
-        // if too int64_t, truncate
+        // if too std::int64_t, truncate
         if (len > size) len = size;
 
-        const uint32_t theSize = static_cast<uint32_t>(size);
-        const uint32_t theLength = static_cast<uint32_t>(len);
+        const std::uint32_t theSize = static_cast<uint32_t>(size);
+        const std::uint32_t theLength = static_cast<uint32_t>(len);
 
         if (thePassword.isPassword()) {
             //          otErr << "%s: BEFORE TEXT PASSWORD: %s  LENGTH: %d\n",
@@ -436,8 +436,8 @@ extern "C" int32_t souped_up_pass_cb(
             // OTPassword (source) already zeros its memory automatically.
             buf[theLength] = '\0';  // null terminator.
 
-            //          int32_t nSize =
-            // static_cast<int32_t>(thePassword.getPasswordSize());
+            //          std::int32_t nSize =
+            // static_cast<std::int32_t>(thePassword.getPasswordSize());
             //          otErr << "%s: AFTER TEXT PASSWORD: %s  LENGTH: %d\n",
             // __FUNCTION__, buf, nSize);
         } else {
@@ -449,8 +449,8 @@ extern "C" int32_t souped_up_pass_cb(
             // bool bZeroSource=false); // No need to set this true, since
             // OTPassword (source) already zeros its memory automatically.
 
-            //          int32_t nSize =
-            // static_cast<int32_t>(thePassword.getMemorySize());
+            //          std::int32_t nSize =
+            // static_cast<std::int32_t>(thePassword.getMemorySize());
             //          otErr << "%s: (BINARY PASSWORD)  LENGTH: %d\n",
             // __FUNCTION__, nSize);
         }
@@ -4159,7 +4159,8 @@ std::string SwigWrap::Pair_Status(
 
 std::string SwigWrap::Paired_Issuers(const std::string& localNym)
 {
-    return comma(OT::App().API().Pair().IssuerList(Identifier::Factory(localNym), true));
+    return comma(
+        OT::App().API().Pair().IssuerList(Identifier::Factory(localNym), true));
 }
 
 std::string SwigWrap::Paired_Server(

@@ -94,13 +94,30 @@ public:
         const OTPasswordData* pPWData = nullptr,
         const OTPassword* pImportPassword = nullptr);
 
+    EXPORT bool AddEmail(
+        const std::string& value,
+        const bool primary,
+        const bool active);
     // Whenever a Nym sends a payment, a copy is dropped std::into his
     // Outpayments.
     // (Payments screen.)
     // A payments message is the original OTMessage that this Nym sent.
     EXPORT void AddOutpayments(Message& theMessage) override;
+    EXPORT bool AddPhoneNumber(
+        const std::string& value,
+        const bool primary,
+        const bool active);
+    EXPORT bool AddSocialMediaProfile(
+        const std::string& value,
+        const proto::ContactItemType type,
+        const bool primary,
+        const bool active);
     EXPORT std::string Alias() const;
     EXPORT const serializedCredentialIndex asPublicNym() const;
+    EXPORT std::string BestEmail() const;
+    EXPORT std::string BestPhoneNumber() const;
+    EXPORT std::string BestSocialMediaProfile(
+        const proto::ContactItemType type) const;
     EXPORT std::shared_ptr<const proto::Credential> ChildCredentialContents(
         const std::string& masterID,
         const std::string& childID) const;
@@ -117,6 +134,7 @@ public:
         const std::string& masterID,
         const std::uint32_t index) const;
     EXPORT bool CompareID(const Identifier& rhs) const override;
+    EXPORT std::string EmailAddresses(bool active = true) const;
     EXPORT const Identifier& GetConstID() const override { return m_nymID; }
     EXPORT const String& GetDescription() const { return m_strDescription; }
     EXPORT bool GetInboxHash(
@@ -169,10 +187,14 @@ public:
         const std::string& id) const;
     EXPORT std::string Name() const;
     EXPORT bool Path(proto::HDPath& output) const;
+    EXPORT std::string PhoneNumbers(bool active = true) const;
     EXPORT std::uint64_t Revision() const;
     EXPORT std::shared_ptr<const proto::Credential> RevokedCredentialContents(
         const std::string& id) const;
     EXPORT bool SavePseudonymWallet(Tag& parent) const;
+    EXPORT std::string SocialMediaProfiles(
+        const proto::ContactItemType type,
+        bool active = true) const;
     EXPORT const NymIDSource& Source() const { return *source_; }
     EXPORT std::unique_ptr<OTPassword> TransportKey(Data& pubkey) const;
     EXPORT std::unique_ptr<proto::VerificationSet> VerificationSet() const;

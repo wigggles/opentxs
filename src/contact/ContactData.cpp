@@ -128,7 +128,7 @@ ContactData ContactData::AddContract(
 
     std::set<proto::ContactItemAttribute> attrib{};
 
-    if (active) {
+    if (active || primary || needPrimary) {
         attrib.emplace(proto::CITEMATTR_ACTIVE);
     }
 
@@ -145,6 +145,49 @@ ContactData ContactData::AddContract(
         section,
         currency,
         instrumentDefinitionID,
+        attrib,
+        NULL_START,
+        NULL_END);
+
+    OT_ASSERT(item);
+
+    return AddItem(item);
+}
+
+ContactData ContactData::AddEmail(
+    const std::string& value,
+    const bool primary,
+    const bool active) const
+{
+    bool needPrimary{true};
+    const proto::ContactSectionName section{
+        proto::CONTACTSECTION_COMMUNICATION};
+    const proto::ContactItemType type{proto::CITEMTYPE_EMAIL};
+    auto group = Group(section, type);
+
+    if (group) {
+        needPrimary = group->Primary().empty();
+    }
+
+    std::set<proto::ContactItemAttribute> attrib{};
+
+    if (active || primary || needPrimary) {
+        attrib.emplace(proto::CITEMATTR_ACTIVE);
+    }
+
+    if (primary || needPrimary) {
+        attrib.emplace(proto::CITEMATTR_PRIMARY);
+    }
+
+    auto version = proto::RequiredVersion(section, type, version_);
+
+    auto item = std::make_shared<ContactItem>(
+        nym_,
+        version,
+        version,
+        section,
+        type,
+        value,
         attrib,
         NULL_START,
         NULL_END);
@@ -211,7 +254,7 @@ ContactData ContactData::AddPaymentCode(
 
     std::set<proto::ContactItemAttribute> attrib{};
 
-    if (active) {
+    if (active || primary || needPrimary) {
         attrib.emplace(proto::CITEMATTR_ACTIVE);
     }
 
@@ -228,6 +271,49 @@ ContactData ContactData::AddPaymentCode(
         section,
         currency,
         code,
+        attrib,
+        NULL_START,
+        NULL_END);
+
+    OT_ASSERT(item);
+
+    return AddItem(item);
+}
+
+ContactData ContactData::AddPhoneNumber(
+    const std::string& value,
+    const bool primary,
+    const bool active) const
+{
+    bool needPrimary{true};
+    const proto::ContactSectionName section{
+        proto::CONTACTSECTION_COMMUNICATION};
+    const proto::ContactItemType type{proto::CITEMTYPE_PHONE};
+    auto group = Group(section, type);
+
+    if (group) {
+        needPrimary = group->Primary().empty();
+    }
+
+    std::set<proto::ContactItemAttribute> attrib{};
+
+    if (active || primary || needPrimary) {
+        attrib.emplace(proto::CITEMATTR_ACTIVE);
+    }
+
+    if (primary || needPrimary) {
+        attrib.emplace(proto::CITEMATTR_PRIMARY);
+    }
+
+    auto version = proto::RequiredVersion(section, type, version_);
+
+    auto item = std::make_shared<ContactItem>(
+        nym_,
+        version,
+        version,
+        section,
+        type,
+        value,
         attrib,
         NULL_START,
         NULL_END);
@@ -273,6 +359,201 @@ ContactData ContactData::AddPreferredOTServer(
     OT_ASSERT(item);
 
     return AddItem(item);
+}
+
+ContactData ContactData::AddSocialMediaProfile(
+    const std::string& value,
+    const proto::ContactItemType type,
+    const bool primary,
+    const bool active) const
+{
+    auto map = sections_;
+    // Add the item to the profile section.
+    auto& section = map[proto::CONTACTSECTION_PROFILE];
+
+    bool needPrimary{true};
+    if (section) {
+        auto group = section->Group(type);
+
+        if (group) {
+            needPrimary = group->Primary().empty();
+        }
+    }
+
+    std::set<proto::ContactItemAttribute> attrib{};
+
+    if (active || primary || needPrimary) {
+        attrib.emplace(proto::CITEMATTR_ACTIVE);
+    }
+
+    if (primary || needPrimary) {
+        attrib.emplace(proto::CITEMATTR_PRIMARY);
+    }
+
+    auto version =
+        proto::RequiredVersion(proto::CONTACTSECTION_PROFILE, type, version_);
+
+    auto item = std::make_shared<ContactItem>(
+        nym_,
+        version,
+        version,
+        proto::CONTACTSECTION_PROFILE,
+        type,
+        value,
+        attrib,
+        NULL_START,
+        NULL_END);
+
+    OT_ASSERT(item);
+
+    if (section) {
+        section.reset(new ContactSection(section->AddItem(item)));
+    } else {
+        section.reset(new ContactSection(
+            nym_, version, version, proto::CONTACTSECTION_PROFILE, item));
+    }
+
+    OT_ASSERT(section);
+
+    // Add the item to the communication section.
+    auto commSectionTypes =
+        proto::AllowedItemTypes.at(proto::ContactSectionVersion(
+            version, proto::CONTACTSECTION_COMMUNICATION));
+    if (commSectionTypes.count(type)) {
+        auto& commSection = map[proto::CONTACTSECTION_COMMUNICATION];
+
+        if (commSection) {
+            auto group = commSection->Group(type);
+
+            if (group) {
+                needPrimary = group->Primary().empty();
+            }
+        }
+
+        item = std::make_shared<ContactItem>(
+            nym_,
+            version,
+            version,
+            proto::CONTACTSECTION_COMMUNICATION,
+            type,
+            value,
+            attrib,
+            NULL_START,
+            NULL_END);
+
+        OT_ASSERT(item);
+
+        if (commSection) {
+            commSection.reset(new ContactSection(commSection->AddItem(item)));
+        } else {
+            commSection.reset(new ContactSection(
+                nym_,
+                version,
+                version,
+                proto::CONTACTSECTION_COMMUNICATION,
+                item));
+        }
+
+        OT_ASSERT(commSection);
+    }
+
+    // Add the item to the identifier section.
+    auto identifierSectionTypes =
+        proto::AllowedItemTypes.at(proto::ContactSectionVersion(
+            version, proto::CONTACTSECTION_IDENTIFIER));
+    if (identifierSectionTypes.count(type)) {
+        auto& identifierSection = map[proto::CONTACTSECTION_IDENTIFIER];
+
+        if (identifierSection) {
+            auto group = identifierSection->Group(type);
+
+            if (group) {
+                needPrimary = group->Primary().empty();
+            }
+        }
+
+        item = std::make_shared<ContactItem>(
+            nym_,
+            version,
+            version,
+            proto::CONTACTSECTION_IDENTIFIER,
+            type,
+            value,
+            attrib,
+            NULL_START,
+            NULL_END);
+
+        OT_ASSERT(item);
+
+        if (identifierSection) {
+            identifierSection.reset(
+                new ContactSection(identifierSection->AddItem(item)));
+        } else {
+            identifierSection.reset(new ContactSection(
+                nym_,
+                version,
+                version,
+                proto::CONTACTSECTION_IDENTIFIER,
+                item));
+        }
+
+        OT_ASSERT(identifierSection);
+    }
+
+    return ContactData(nym_, version, version, map);
+}
+
+std::string ContactData::BestEmail() const
+{
+    std::string bestEmail;
+
+    auto group =
+        Group(proto::CONTACTSECTION_COMMUNICATION, proto::CITEMTYPE_EMAIL);
+
+    if (group) {
+        std::shared_ptr<ContactItem> best = group->Best();
+
+        if (best) {
+            bestEmail = best->Value();
+        }
+    }
+
+    return bestEmail;
+}
+
+std::string ContactData::BestPhoneNumber() const
+{
+    std::string bestEmail;
+
+    auto group =
+        Group(proto::CONTACTSECTION_COMMUNICATION, proto::CITEMTYPE_PHONE);
+
+    if (group) {
+        std::shared_ptr<ContactItem> best = group->Best();
+
+        if (best) {
+            bestEmail = best->Value();
+        }
+    }
+
+    return bestEmail;
+}
+
+std::string ContactData::BestSocialMediaProfile(
+    const proto::ContactItemType type) const
+{
+    std::string bestProfile;
+
+    auto group = Group(proto::CONTACTSECTION_PROFILE, type);
+    if (group) {
+        std::shared_ptr<ContactItem> best = group->Best();
+
+        if (best) {
+            bestProfile = best->Value();
+        }
+    }
+
+    return bestProfile;
 }
 
 std::uint32_t ContactData::check_version(
@@ -362,6 +643,33 @@ ContactData ContactData::Delete(const Identifier& id) const
     }
 
     return ContactData(nym_, version_, version_, map);
+}
+
+std::string ContactData::EmailAddresses(bool active) const
+{
+    std::ostringstream stream;
+
+    auto group =
+        Group(proto::CONTACTSECTION_COMMUNICATION, proto::CITEMTYPE_EMAIL);
+    if (group) {
+        for (const auto& it : *group) {
+            OT_ASSERT(it.second);
+
+            const auto& claim = *it.second;
+
+            if ((false == active) || claim.isActive()) {
+                stream << claim.Value() << ',';
+            }
+        }
+    }
+
+    std::string output = stream.str();
+
+    if (0 < output.size()) {
+        output.erase(output.size() - 1, 1);
+    }
+
+    return output;
 }
 
 ContactData::SectionMap ContactData::extract_sections(
@@ -454,6 +762,33 @@ std::string ContactData::Name() const
     }
 
     return claim->Value();
+}
+
+std::string ContactData::PhoneNumbers(bool active) const
+{
+    std::ostringstream stream;
+
+    auto group =
+        Group(proto::CONTACTSECTION_COMMUNICATION, proto::CITEMTYPE_PHONE);
+    if (group) {
+        for (const auto& it : *group) {
+            OT_ASSERT(it.second);
+
+            const auto& claim = *it.second;
+
+            if ((false == active) || claim.isActive()) {
+                stream << claim.Value() << ',';
+            }
+        }
+    }
+
+    std::string output = stream.str();
+
+    if (0 < output.size()) {
+        output.erase(output.size() - 1, 1);
+    }
+
+    return output;
 }
 
 OTIdentifier ContactData::PreferredOTServer() const
@@ -656,6 +991,41 @@ proto::ContactData ContactData::Serialize(const bool withID) const
     }
 
     return output;
+}
+
+std::string ContactData::SocialMediaProfiles(
+    const proto::ContactItemType type,
+    bool active) const
+{
+    std::ostringstream stream;
+
+    auto group = Group(proto::CONTACTSECTION_PROFILE, type);
+    if (group) {
+        for (const auto& it : *group) {
+            OT_ASSERT(it.second);
+
+            const auto& claim = *it.second;
+
+            if ((false == active) || claim.isActive()) {
+                stream << claim.Value() << ',';
+            }
+        }
+    }
+
+    std::string output = stream.str();
+
+    if (0 < output.size()) {
+        output.erase(output.size() - 1, 1);
+    }
+
+    return output;
+}
+
+const std::set<proto::ContactItemType> ContactData::SocialMediaProfileTypes()
+    const
+{
+    return proto::AllowedItemTypes.at(proto::ContactSectionVersion(
+        CONTACT_CONTACT_DATA_VERSION, proto::CONTACTSECTION_PROFILE));
 }
 
 proto::ContactItemType ContactData::Type() const { return scope().first; }

@@ -41,22 +41,10 @@
 
 #include "opentxs/Internal.hpp"
 
-#include "opentxs/core/Lockable.hpp"
-#include "opentxs/core/UniqueQueue.hpp"
-#include "opentxs/ui/ActivitySummaryItem.hpp"
-#include "opentxs/Proto.hpp"
-
-#include <memory>
-#include <string>
-#include <thread>
-#include <tuple>
-
-#include "Row.hpp"
-
 namespace opentxs::ui::implementation
 {
 using ActivitySummaryItemType =
-    Row<opentxs::ui::ActivitySummaryItem, ActivitySummary, OTIdentifier>;
+    Row<opentxs::ui::ActivitySummaryItem, ActivitySummaryParent, OTIdentifier>;
 
 class ActivitySummaryItem : virtual public ActivitySummaryItemType
 {
@@ -72,7 +60,7 @@ public:
     ~ActivitySummaryItem();
 
 private:
-    friend ActivitySummary;
+    friend Factory;
     // id, box, account
     using ItemLocator = std::tuple<std::string, StorageBox, std::string>;
 
@@ -102,7 +90,7 @@ private:
     void update(const proto::StorageThread& thread);
 
     ActivitySummaryItem(
-        const ActivitySummary& parent,
+        const ActivitySummaryParent& parent,
         const network::zeromq::Context& zmq,
         const api::Activity& activity,
         const api::ContactManager& contact,

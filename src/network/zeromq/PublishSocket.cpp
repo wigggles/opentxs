@@ -46,6 +46,8 @@
 
 #include <zmq.h>
 
+template class opentxs::Pimpl<opentxs::network::zeromq::PublishSocket>;
+
 #define OT_METHOD "opentxs::network::zeromq::implementation::PublishSocket::"
 
 namespace opentxs::network::zeromq

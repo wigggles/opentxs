@@ -41,41 +41,30 @@
 
 #include "opentxs/Internal.hpp"
 
-#include "opentxs/core/Lockable.hpp"
-#include "opentxs/ui/ContactListItem.hpp"
-#include "opentxs/ui/PayableListItem.hpp"
-
-#include "Row.hpp"
+#include "ContactListItem.hpp"
 
 namespace opentxs::ui::implementation
 {
-using PayableListItemType =
-    Row<opentxs::ui::PayableListItem, ContactListInterface, Identifier>;
-
-class PayableListItem : virtual public PayableListItemType
+class PayableListItem : virtual public opentxs::ui::PayableListItem,
+                        public ContactListItem
 {
 public:
-    std::string ContactID() const override;
-    std::string DisplayName() const override;
-    std::string ImageURI() const override;
     std::string PaymentCode() const override;
-    std::string Section() const override;
 
     ~PayableListItem() = default;
 
 private:
-    friend PayableList;
+    friend Factory;
 
-    std::string name_{""};
-    std::string paymentCode_{""};
-    OTZMQListenCallback contact_subscriber_callback_;
-    OTZMQSubscribeSocket contact_subscriber_;
-    proto::ContactItemType currency_;
+    using ot_super = ContactListItem;
 
-    void process_contact(const network::zeromq::Message& message);
+    std::string payment_code_{""};
+    const proto::ContactItemType currency_;
+
+    void process_contact(const network::zeromq::Message& message) override;
 
     PayableListItem(
-        const ContactListInterface& parent,
+        const ContactListParent& parent,
         const network::zeromq::Context& zmq,
         const api::ContactManager& contact,
         const Identifier& id,

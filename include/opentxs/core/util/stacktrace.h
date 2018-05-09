@@ -45,7 +45,8 @@ static inline void print_stacktrace(ANDROID_UNUSED FILE* out = stderr)
     void* addrlist[64];
 
     // retrieve current stack addresses
-    int32_t addrlen = backtrace(addrlist, sizeof(addrlist) / sizeof(void*));
+    std::int32_t addrlen =
+        backtrace(addrlist, sizeof(addrlist) / sizeof(void*));
 
     if (addrlen == 0) {
         fprintf(out, "  <empty, possibly corrupt>\n");
@@ -62,7 +63,7 @@ static inline void print_stacktrace(ANDROID_UNUSED FILE* out = stderr)
 
     // iterate over the returned symbol lines. skip the first, it is the
     // address of this function.
-    for (int32_t i = 1; i < addrlen; i++) {
+    for (std::int32_t i = 1; i < addrlen; i++) {
         char *begin_name = 0, *begin_offset = 0, *end_offset = 0;
 
         // find parentheses and +address offset surrounding the mangled name:
@@ -88,7 +89,7 @@ static inline void print_stacktrace(ANDROID_UNUSED FILE* out = stderr)
             // offset in [begin_offset, end_offset). now apply
             // __cxa_demangle():
 
-            int32_t status;
+            std::int32_t status;
             char* ret = abi::__cxa_demangle(
                 begin_name, funcname, &funcnamesize, &status);
             if (status == 0) {

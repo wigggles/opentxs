@@ -40,18 +40,44 @@
 
 #include "opentxs/api/client/Sync.hpp"
 #include "opentxs/api/ContactManager.hpp"
+#include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Lockable.hpp"
+#include "opentxs/core/Log.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/SubscribeSocket.hpp"
+#include "opentxs/ui/ContactListItem.hpp"
+#include "opentxs/ui/MessagableList.hpp"
+
+#include "ContactListItemBlank.hpp"
+#include "ContactListParent.hpp"
+#include "List.hpp"
+
+#include <map>
+#include <memory>
+#include <set>
+#include <string>
+#include <thread>
+#include <tuple>
+#include <vector>
 
 #include "MessagableList.hpp"
 
-#include "ContactListItem.hpp"
-#include "ContactListItemBlank.hpp"
-
 #define OT_METHOD "opentxs::ui::implementation::MessagableList::"
+
+namespace opentxs
+{
+ui::MessagableList* Factory::MessagableList(
+    const network::zeromq::Context& zmq,
+    const api::ContactManager& contact,
+    const api::client::Sync& sync,
+    const Identifier& nymID)
+{
+    return new ui::implementation::MessagableList(zmq, contact, sync, nymID);
+}
+}  // namespace opentxs
 
 namespace opentxs::ui::implementation
 {
@@ -115,7 +141,7 @@ void MessagableList::construct_item(
 {
     names_.emplace(id, index);
     items_[index].emplace(
-        id, new ContactListItem(*this, zmq_, contact_manager_, id, index));
+        id, Factory::ContactListItem(*this, zmq_, contact_manager_, id, index));
 }
 
 const Identifier& MessagableList::ID() const { return owner_contact_id_; }

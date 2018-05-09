@@ -42,6 +42,8 @@
 
 #include "ReplyCallback.hpp"
 
+template class opentxs::Pimpl<opentxs::network::zeromq::ReplyCallback>;
+
 //#define OT_METHOD "opentxs::network::zeromq::implementation::ReplyCallback::"
 
 namespace opentxs::network::zeromq

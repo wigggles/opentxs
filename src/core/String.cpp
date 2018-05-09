@@ -76,7 +76,7 @@ std::ostream& operator<<(std::ostream& os, const String& obj)
 }
 
 // static
-std::string String::LongToString(const int64_t& lNumber)
+std::string String::LongToString(const std::int64_t& lNumber)
 {
     std::string strNumber;
     std::stringstream strstream;
@@ -88,7 +88,7 @@ std::string String::LongToString(const int64_t& lNumber)
 }
 
 // static
-std::string String::UlongToString(const uint64_t& uNumber)
+std::string String::UlongToString(const std::uint64_t& uNumber)
 {
     std::string strNumber;
     std::stringstream strstream;
@@ -100,7 +100,7 @@ std::string String::UlongToString(const uint64_t& uNumber)
 }
 
 /*
- int32_t vsnprintf(char* str, size_t size, const char* format, va_list ap);
+ std::int32_t vsnprintf(char* str, size_t size, const char* format, va_list ap);
 
        Upon successful return, these functions return the number of characters
        printed  (not  including  the  trailing  '\0'  used  to  end  output to
@@ -139,8 +139,8 @@ bool String::vformat(const char* fmt, va_list* pvl, std::string& str_Output)
     OT_ASSERT(nullptr != fmt);
     OT_ASSERT(nullptr != pvl);
 
-    int32_t size = 0;
-    int32_t nsize = 0;
+    std::int32_t size = 0;
+    std::int32_t nsize = 0;
     char* buffer = nullptr;
     va_list args;
 
@@ -309,8 +309,8 @@ std::string String::replace_chars(
 
 std::wstring String::s2ws(const std::string& s)
 {
-    int32_t len;
-    int32_t slength = (int32_t)s.length() + 1;
+    std::int32_t len;
+    std::int32_t slength = (int32_t)s.length() + 1;
     len = MultiByteToWideChar(CP_ACP, 0, s.c_str(), slength, 0, 0);
     std::wstring r(len, L'\0');
     MultiByteToWideChar(CP_ACP, 0, s.c_str(), slength, &r[0], len);
@@ -319,8 +319,8 @@ std::wstring String::s2ws(const std::string& s)
 
 std::string String::ws2s(const std::wstring& s)
 {
-    int32_t len;
-    int32_t slength = (int32_t)s.length() + 1;
+    std::int32_t len;
+    std::int32_t slength = (int32_t)s.length() + 1;
     len = WideCharToMultiByte(CP_ACP, 0, s.c_str(), slength, 0, 0, 0, 0);
     std::string r(len, '\0');
     WideCharToMultiByte(CP_ACP, 0, s.c_str(), slength, &r[0], len, 0, 0);
@@ -423,7 +423,7 @@ bool String::TokenizeIntoKeyValuePairs(
         // string
         // with spaces between the tokens.
         //
-        for (uint32_t i = 0;
+        for (std::uint32_t i = 0;
              (i < (exp_result.we_wordc - 1)) &&
              (exp_result.we_wordv[i] != nullptr) &&
              (exp_result.we_wordv[i + 1] !=
@@ -449,10 +449,10 @@ bool String::TokenizeIntoKeyValuePairs(
 
     const char* txt = Get();
     std::string buf = txt;
-    for (int32_t i = 0; txt[i] != 0;) {
+    for (std::int32_t i = 0; txt[i] != 0;) {
         while (txt[i] == ' ') i++;
-        int32_t k = i;
-        int32_t k2 = i;
+        std::int32_t k = i;
+        std::int32_t k2 = i;
         if (txt[i] == '\'' || txt[i] == '"') {
             // quoted string
             char quote = txt[i++];
@@ -472,8 +472,8 @@ bool String::TokenizeIntoKeyValuePairs(
         const std::string key = buf.substr(k, k2 - k);
 
         while (txt[i] == ' ') i++;
-        int32_t v = i;
-        int32_t v2 = i;
+        std::int32_t v = i;
+        std::int32_t v2 = i;
         if (txt[i] == '\'' || txt[i] == '"') {
             // quoted string
             char quote = txt[i++];
@@ -503,11 +503,11 @@ bool String::TokenizeIntoKeyValuePairs(
 }
 
 // static
-uint64_t String::StringToUlong(const std::string& strNumber)
+std::uint64_t String::StringToUlong(const std::string& strNumber)
 {
     if (strNumber.size() == 0) return 0;
 
-    uint64_t v = 0;
+    std::uint64_t v = 0;
     size_t i = 0;
 
     for (; i < strNumber.size(); ++i) {
@@ -518,11 +518,11 @@ uint64_t String::StringToUlong(const std::string& strNumber)
 }
 
 // static
-int64_t String::StringToLong(const std::string& strNumber)
+std::int64_t String::StringToLong(const std::string& strNumber)
 {
     if (strNumber.size() == 0) return 0;
 
-    int64_t v = 0;
+    std::int64_t v = 0;
     size_t i = 0;
 
     char sign = (strNumber[0] == '-' || strNumber[0] == '+')
@@ -536,14 +536,14 @@ int64_t String::StringToLong(const std::string& strNumber)
     return ((0 == v) ? 0 : ((sign == '-') ? -v : v));
 }
 
-uint64_t String::ToUlong() const
+std::uint64_t String::ToUlong() const
 {
     const std::string str_number(Get());
 
     return String::StringToUlong(str_number);
 }
 
-int64_t String::ToLong() const
+std::int64_t String::ToLong() const
 {
     const std::string str_number(Get());
 
@@ -551,11 +551,11 @@ int64_t String::ToLong() const
 }
 
 // static
-uint32_t String::StringToUint(const std::string& strNumber)
+std::uint32_t String::StringToUint(const std::string& strNumber)
 {
     if (strNumber.size() == 0) return 0;
 
-    uint32_t v = 0;
+    std::uint32_t v = 0;
     size_t i = 0;
 
     for (; i < strNumber.size(); ++i) {
@@ -566,11 +566,11 @@ uint32_t String::StringToUint(const std::string& strNumber)
 }
 
 // static
-int32_t String::StringToInt(const std::string& strNumber)
+std::int32_t String::StringToInt(const std::string& strNumber)
 {
     if (strNumber.size() == 0) return 0;
 
-    int32_t v = 0;
+    std::int32_t v = 0;
     size_t i = 0;
 
     char sign = (strNumber[0] == '-' || strNumber[0] == '+')
@@ -584,14 +584,14 @@ int32_t String::StringToInt(const std::string& strNumber)
     return ((0 == v) ? 0 : ((sign == '-') ? -v : v));
 }
 
-uint32_t String::ToUint() const
+std::uint32_t String::ToUint() const
 {
     const std::string str_number(Get());
 
     return String::StringToUint(str_number);
 }
 
-int32_t String::ToInt() const
+std::int32_t String::ToInt() const
 {
     const std::string str_number(Get());
 
@@ -599,15 +599,15 @@ int32_t String::ToInt() const
 }
 
 /*
- int64_t OTString::StringToLong(const std::string& strNumber)
+ std::int64_t OTString::StringToLong(const std::string& strNumber)
  {
     char* end;
-    int64_t lNumber = strtol(strNumber.c_str(), &end, 10);
+    std::int64_t lNumber = strtol(strNumber.c_str(), &end, 10);
 
     if (!*end) return lNumber;
     else
     {
-        otErr << "Conversion error (str to int64_t), non-convertible part:
+        otErr << "Conversion error (str to std::int64_t), non-convertible part:
  %s",end);
         OT_FAIL;
         return -1;
@@ -767,7 +767,7 @@ String::String(const char* new_string, size_t sizeLength)
     , data_(nullptr)
 {
     //    Initialize();
-    LowLevelSet(new_string, static_cast<uint32_t>(sizeLength));
+    LowLevelSet(new_string, static_cast<std::uint32_t>(sizeLength));
 }
 
 String::String(const std::string& new_string)
@@ -776,7 +776,8 @@ String::String(const std::string& new_string)
     , data_(nullptr)
 {
     //    Initialize();
-    LowLevelSet(new_string.c_str(), static_cast<uint32_t>(new_string.length()));
+    LowLevelSet(
+        new_string.c_str(), static_cast<std::uint32_t>(new_string.length()));
 }
 
 void String::LowLevelSetStr(const String& strBuf)
@@ -807,20 +808,23 @@ void String::LowLevelSetStr(const String& strBuf)
 // (10th byte)
 // MUST be reserved for the null terminating '\0'. Therefore, if the string is
 // actually 10
-// bytes int64_t, necessitating an 11th byte for the null terminator, then you
+// bytes std::int64_t, necessitating an 11th byte for the null terminator, then
+// you
 // should pass 11
 // here, aka OTString::GetLength()+1. That way the entire string will fit.
 //
-void String::LowLevelSet(const char* new_string, uint32_t nEnforcedMaxLength)
+void String::LowLevelSet(
+    const char* new_string,
+    std::uint32_t nEnforcedMaxLength)
 {
     OT_ASSERT(nullptr == data_);  // otherwise memory leak.
 
     if (nullptr != new_string) {
-        uint32_t nLength =
+        std::uint32_t nLength =
             (nEnforcedMaxLength > 0)
-                ? static_cast<uint32_t>(String::safe_strlen(
+                ? static_cast<std::uint32_t>(String::safe_strlen(
                       new_string, static_cast<size_t>(nEnforcedMaxLength)))
-                : static_cast<uint32_t>(String::safe_strlen(
+                : static_cast<std::uint32_t>(String::safe_strlen(
                       new_string,
                       static_cast<size_t>(MAX_STRING_LENGTH - 1)));  // room for
                                                                      // \0
@@ -856,7 +860,8 @@ void String::LowLevelSet(const char* new_string, uint32_t nEnforcedMaxLength)
 // The source is probably NOT null-terminated.
 // Size must be exact (not a max.)
 //
-bool String::MemSet(const char* pMem, uint32_t theSize)  // if theSize is 10...
+bool String::MemSet(const char* pMem, std::uint32_t theSize)  // if theSize is
+                                                              // 10...
 {
     Release();
     // -------------------
@@ -868,10 +873,10 @@ bool String::MemSet(const char* pMem, uint32_t theSize)  // if theSize is 10...
     OTPassword::zeroMemory(str_new, theSize + 1);
 
     //  void * OTPassword::safe_memcpy(void* dest,
-    //                                 uint32_t dest_size,
+    //                                 std::uint32_t dest_size,
     //                                 const
     //                                 void   * src,
-    //                                 uint32_t src_length,
+    //                                 std::uint32_t src_length,
     //                                 bool     bZeroSource)
 
     OTPassword::safe_memcpy(
@@ -890,7 +895,7 @@ bool String::MemSet(const char* pMem, uint32_t theSize)  // if theSize is 10...
     // middle...)
     // This way we're guaranteed to have the correct length.
     //
-    uint32_t nLength = static_cast<uint32_t>(
+    std::uint32_t nLength = static_cast<uint32_t>(
         String::safe_strlen(str_new, static_cast<size_t>(theSize)));
     str_new[nLength] = '\0';  // This SHOULD be superfluous as well...
 
@@ -914,7 +919,7 @@ void String::swap(String& rhs)
     std::swap(data_, rhs.data_);
 }
 
-bool String::At(uint32_t lIndex, char& c) const
+bool String::At(std::uint32_t lIndex, char& c) const
 {
     if (lIndex < length_) {
         c = data_[lIndex];
@@ -930,7 +935,7 @@ bool String::Exists(void) const  // Deprecated
     return !empty();
 }
 
-uint32_t String::GetLength(void) const { return length_; }
+std::uint32_t String::GetLength(void) const { return length_; }
 
 const char* String::Get(void) const
 {
@@ -942,7 +947,7 @@ const char* String::Get(void) const
 // That's because this function forces the null terminator at that length of the
 // string minus 1.
 
-void String::Set(const char* new_string, uint32_t nEnforcedMaxLength)
+void String::Set(const char* new_string, std::uint32_t nEnforcedMaxLength)
 {
     if (new_string == data_)  // Already the same string.
         return;
@@ -1069,7 +1074,7 @@ void String::ConvertToUpperCase() const
     }
 }
 
-void String::Truncate(uint32_t lAt)
+void String::Truncate(std::uint32_t lAt)
 {
     String strTruncated;
 
@@ -1163,7 +1168,7 @@ bool String::DecodeIfArmored(bool bEscapedIsAllowed)
 }
 
 /*
- char *str_dup2(const char* str, int32_t length)
+ char *str_dup2(const char* str, std::int32_t length)
  {
      char *str_new;
      str_new = new char [length + 1];
@@ -1175,11 +1180,11 @@ bool String::DecodeIfArmored(bool bEscapedIsAllowed)
 
 // inline bool vformat(const char* fmt, va_list vl, std::string& str_output)
 //{
-//    int32_t size      = 512;
+//    std::int32_t size      = 512;
 //    char * buffer = new char[size];
 //    buffer[0]     = '\0';
 //
-//    int32_t nsize = vsnprintf(buffer,size,fmt,vl);
+//    std::int32_t nsize = vsnprintf(buffer,size,fmt,vl);
 //
 //    //fail -- delete buffer and try again
 //    if(size <= nsize)
@@ -1254,7 +1259,7 @@ void String::WriteToFile(std::ostream& ofs) const
 // true  == there are more lines to read.
 // false == this is the last line. Like EOF.
 //
-bool String::sgets(char* szBuffer, uint32_t nBufSize)
+bool String::sgets(char* szBuffer, std::uint32_t nBufSize)
 {
     if (nullptr == szBuffer) {
         return false;
@@ -1262,7 +1267,7 @@ bool String::sgets(char* szBuffer, uint32_t nBufSize)
 
     if (position_ >= length_) return false;
 
-    uint32_t lIndex = 0;
+    std::uint32_t lIndex = 0;
     char* pChar = data_ + position_;
 
     // while *pChar isn't at the end of the source string,

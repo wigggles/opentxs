@@ -63,6 +63,8 @@ public:
     EXPORT virtual std::string ImageURI() const = 0;
     EXPORT virtual std::string Section() const = 0;
 
+    virtual void SetName(const std::string& name) = 0;
+
     EXPORT virtual ~ContactListItem() = default;
 
 protected:

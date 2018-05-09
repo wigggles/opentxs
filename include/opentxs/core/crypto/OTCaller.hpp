@@ -74,7 +74,7 @@ public:
                                     // around...
 
     EXPORT const char* GetDisplay() const;
-    EXPORT void SetDisplay(const char* szDisplay, int32_t nLength);
+    EXPORT void SetDisplay(const char* szDisplay, std::int32_t nLength);
 
     EXPORT void delCallback();
     EXPORT void setCallback(OTCallback* cb);

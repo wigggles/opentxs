@@ -93,10 +93,11 @@ public:
     EXPORT virtual void notifyOfSuccessfulNotarization(
         const std::string& str_acct_id,
         const std::string p_nym_id,
-        const std::string p_notary_id,
+        const std::string p_msg_notary_id,
+        const std::string p_pmnt_notary_id,
         const std::string p_txn_contents,
-        std::int64_t lTransactionNum,
-        std::int64_t lTransNumForDisplay) const;
+        TransactionNumber lTransactionNum,
+        TransactionNumber lTransNumForDisplay) const;
 };
 
 /*
@@ -203,6 +204,7 @@ public:
     EXPORT ~OTRecordList();
 
     EXPORT static bool accept_from_paymentbox(
+        const std::string& transport_notary,
         const std::string& myacct,
         const std::string& indices,
         const std::string& paymentType,
@@ -235,6 +237,7 @@ public:
         std::string* pOptionalOutput = nullptr);
 
     EXPORT static std::int32_t processPayment(
+        const std::string& transport_notary,
         const std::string& myacct,
         const std::string& paymentType,
         const std::string& inbox,
@@ -270,7 +273,7 @@ public:
     EXPORT static bool checkServer(const char* name, std::string& server);
 
     EXPORT static std::int32_t discard_incoming_payments(
-        const std::string& server,
+        const std::string& transportNotaryId,
         const std::string& mynym,
         const std::string& indices);
 
@@ -323,10 +326,11 @@ public:
     EXPORT void notifyOfSuccessfulNotarization(
         const std::string& str_acct_id,
         const std::string p_nym_id,
-        const std::string p_notary_id,
+        const std::string p_msg_notary_id,
+        const std::string p_pmnt_notary_id,
         const std::string p_txn_contents,
-        std::int64_t lTransactionNum,
-        std::int64_t lTransNumForDisplay) const;
+        TransactionNumber lTransactionNum,
+        TransactionNumber lTransNumForDisplay) const;
     /** Populates m_contents from OT API. Calls ClearContents(). */
     EXPORT bool Populate();
     /** Clears m_contents (NOT nyms, accounts, servers, or instrument

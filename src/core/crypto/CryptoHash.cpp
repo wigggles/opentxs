@@ -44,7 +44,7 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/OT.hpp"
 
-#include <stdint.h>
+#include <cstdint>
 #include <string>
 
 namespace opentxs

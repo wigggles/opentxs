@@ -128,7 +128,7 @@ private:
     static std::unique_ptr<HDNode> InstantiateHDNode(const EcdsaCurve& curve);
     static std::unique_ptr<HDNode> GetChild(
         const HDNode& parent,
-        const uint32_t index,
+        const std::uint32_t index,
         const DerivationMode privateVersion);
 
     std::unique_ptr<HDNode> DeriveChild(
@@ -164,7 +164,7 @@ public:
 #if OT_CRYPTO_WITH_BIP32
     serializedAsymmetricKey GetChild(
         const proto::AsymmetricKey& parent,
-        const uint32_t index) const override;
+        const std::uint32_t index) const override;
     serializedAsymmetricKey GetHDKey(
         const EcdsaCurve& curve,
         const OTPassword& seed,

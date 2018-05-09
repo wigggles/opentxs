@@ -43,9 +43,6 @@
 
 #include "ActivityThreadItem.hpp"
 
-#include <memory>
-#include <thread>
-
 namespace opentxs::ui::implementation
 {
 class PaymentItem : virtual public ActivityThreadItem
@@ -58,7 +55,7 @@ public:
     ~PaymentItem();
 
 private:
-    friend ActivityThread;
+    friend Factory;
 
     std::string display_amount_{};
     std::string memo_{};
@@ -68,7 +65,7 @@ private:
     void load();
 
     PaymentItem(
-        const ActivityThread& parent,
+        const ActivityThreadParent& parent,
         const network::zeromq::Context& zmq,
         const api::ContactManager& contact,
         const ActivityThreadID& id,

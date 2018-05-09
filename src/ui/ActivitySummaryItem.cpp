@@ -42,26 +42,50 @@
 #include "opentxs/api/ContactManager.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Lockable.hpp"
+#include "opentxs/core/UniqueQueue.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/SubscribeSocket.hpp"
+#include "opentxs/ui/ActivitySummaryItem.hpp"
 
-#include "ActivitySummaryItem.hpp"
+#include "ActivitySummaryParent.hpp"
+#include "Row.hpp"
 
-#include "ActivitySummary.hpp"
-
+#include <memory>
 #include <set>
 #include <sstream>
+#include <string>
+#include <thread>
+#include <tuple>
+
+#include "ActivitySummaryItem.hpp"
 
 #define GET_TEXT_MILLISECONDS 10
 
 #define OT_METHOD "opentxs::ui::implementation::ActivitySummaryItem::"
 
+namespace opentxs
+{
+ui::ActivitySummaryItem* Factory::ActivitySummaryItem(
+    const ui::implementation::ActivitySummaryParent& parent,
+    const network::zeromq::Context& zmq,
+    const api::Activity& activity,
+    const api::ContactManager& contact,
+    const Flag& running,
+    const Identifier& nymID,
+    const Identifier& threadID)
+{
+    return new ui::implementation::ActivitySummaryItem(
+        parent, zmq, activity, contact, running, nymID, threadID);
+}
+}  // namespace opentxs
+
 namespace opentxs::ui::implementation
 {
 ActivitySummaryItem::ActivitySummaryItem(
-    const ActivitySummary& parent,
+    const ActivitySummaryParent& parent,
     const network::zeromq::Context& zmq,
     const api::Activity& activity,
     const api::ContactManager& contact,

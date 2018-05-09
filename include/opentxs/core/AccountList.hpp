@@ -45,7 +45,7 @@
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/String.hpp"
 
-#include <stdint.h>
+#include <cstdint>
 #include <map>
 #include <memory>
 #include <string>
@@ -67,14 +67,14 @@ public:
     EXPORT AccountList();
     EXPORT explicit AccountList(Account::AccountType acctType);
     EXPORT ~AccountList();
-    EXPORT int32_t GetCountAccountIDs() const
+    EXPORT std::int32_t GetCountAccountIDs() const
     {
-        return static_cast<int32_t>(mapAcctIDs_.size());
+        return static_cast<std::int32_t>(mapAcctIDs_.size());
     }
     EXPORT void Release();
     EXPORT void Release_AcctList();
     EXPORT void Serialize(Tag& parent) const;
-    EXPORT int32_t ReadFromXMLNode(
+    EXPORT std::int32_t ReadFromXMLNode(
         irr::io::IrrXMLReader*& xml,
         const String& acctType,
         const String& acctCount);
@@ -86,7 +86,7 @@ public:
         const Identifier& NOTARY_ID,
         bool& wasAcctCreated,  // this will be set to true if the acct is
                                // created here. Otherwise set to false;
-        int64_t stashTransNum = 0);
+        std::int64_t stashTransNum = 0);
 
 private:
     typedef std::map<std::string, std::weak_ptr<Account>> MapOfWeakAccounts;

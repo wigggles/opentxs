@@ -103,11 +103,11 @@ OTNym_or_SymmetricKey::~OTNym_or_SymmetricKey()
 
 OTNym_or_SymmetricKey::OTNym_or_SymmetricKey(
     const OTNym_or_SymmetricKey& rhs)  // same type
-    : m_pNym(nullptr),
-      m_pKey(nullptr),
-      m_pPassword(nullptr),
-      m_bCleanupPassword(false),
-      m_pstrDisplay(rhs.m_pstrDisplay)
+    : m_pNym(nullptr)
+    , m_pKey(nullptr)
+    , m_pPassword(nullptr)
+    , m_bCleanupPassword(false)
+    , m_pstrDisplay(rhs.m_pstrDisplay)
 {
     // This class doesn't do any cleanup, it's just a temporary wrapper.
     // So we won't have anything get deleted twice, because this class won't
@@ -148,22 +148,22 @@ OTNym_or_SymmetricKey::OTNym_or_SymmetricKey(
 OTNym_or_SymmetricKey::OTNym_or_SymmetricKey(
     const Nym& theNym,
     const String* pstrDisplay)  // construct with nym
-    : m_pNym(const_cast<Nym*>(&theNym)),
-      m_pKey(nullptr),
-      m_pPassword(nullptr),
-      m_bCleanupPassword(false),
-      m_pstrDisplay(pstrDisplay)
+    : m_pNym(const_cast<Nym*>(&theNym))
+    , m_pKey(nullptr)
+    , m_pPassword(nullptr)
+    , m_bCleanupPassword(false)
+    , m_pstrDisplay(pstrDisplay)
 {
 }
 
 OTNym_or_SymmetricKey::OTNym_or_SymmetricKey(
     const OTSymmetricKey& theKey,
     const String* pstrDisplay)  // construct with key
-    : m_pNym(nullptr),
-      m_pKey(const_cast<OTSymmetricKey*>(&theKey)),
-      m_pPassword(nullptr),
-      m_bCleanupPassword(false),
-      m_pstrDisplay(pstrDisplay)
+    : m_pNym(nullptr)
+    , m_pKey(const_cast<OTSymmetricKey*>(&theKey))
+    , m_pPassword(nullptr)
+    , m_bCleanupPassword(false)
+    , m_pstrDisplay(pstrDisplay)
 {
 }
 

@@ -50,7 +50,7 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/Types.hpp"
 
-#include <stdint.h>
+#include <cstdint>
 #include <deque>
 
 namespace opentxs
@@ -103,7 +103,7 @@ protected:
 
     void onFinalReceipt(
         OTCronItem& theOrigCronItem,
-        const int64_t& lNewTransactionNumber,
+        const std::int64_t& lNewTransactionNumber,
         Nym& theOriginator,
         Nym* pRemover) override;
     void onRemovalFromCron() override;
@@ -131,7 +131,7 @@ public:
 
     // SetAgreement replaced with the 2 functions below. See notes even lower.
     //
-    //    bool    SetAgreement(const int64_t& lTransactionNum,    const
+    //    bool    SetAgreement(const std::int64_t& lTransactionNum,    const
     // OTString& strConsideration,
     //                       const time64_t& VALID_FROM=0,    const time64_t&
     // VALID_TO=0);
@@ -180,14 +180,15 @@ public:
      THEN, (OTPaymentPlan) adds TWO OPTIONS (additional and independent of each
     other):
 
-     bool        SetInitialPayment(const int64_t& lAmount, time64_t
+     bool        SetInitialPayment(const std::int64_t& lAmount, time64_t
                     tTimeUntilInitialPayment=0); // default: now.
-     bool        SetPaymentPlan(const int64_t& lPaymentAmount, time64_t
+     bool        SetPaymentPlan(const std::int64_t& lPaymentAmount, time64_t
                                 tTimeUntilPlanStart=OT_TIME_MONTH_IN_SECONDS,
                                 time64_t
                                 tBetweenPayments=OT_TIME_MONTH_IN_SECONDS, //
     Default: 30 days.
-                                time64_t tPlanLength=0, int32_t nMaxPayments=0);
+                                time64_t tPlanLength=0, std::int32_t
+    nMaxPayments=0);
 
 
      The new process is the same, but it adds some additional transaction
@@ -289,10 +290,12 @@ public:
     // The recipient must also provide an opening and closing transaction
     // number(s).
     //
-    EXPORT int64_t GetRecipientClosingTransactionNoAt(uint32_t nIndex) const;
-    EXPORT int32_t GetRecipientCountClosingNumbers() const;
+    EXPORT std::int64_t GetRecipientClosingTransactionNoAt(
+        std::uint32_t nIndex) const;
+    EXPORT std::int32_t GetRecipientCountClosingNumbers() const;
 
-    void AddRecipientClosingTransactionNo(const int64_t& lClosingTransactionNo);
+    void AddRecipientClosingTransactionNo(
+        const std::int64_t& lClosingTransactionNo);
 
     // This is a higher-level than the above functions. It calls them.
     // Below is the abstraction, above is the implementation.
@@ -309,15 +312,15 @@ public:
      inline const time64_t& GetCreationDate() const { return m_CREATION_DATE; }
 
      // These are for:
-     // std::deque<int64_t> m_dequeClosingNumbers;
+     // std::deque<std::int64_t> m_dequeClosingNumbers;
      //
      // They are numbers used for CLOSING a transaction. (finalReceipt, someday
      more.)
 
-     int64_t    GetClosingTransactionNoAt(int32_t nIndex) const;
-     int32_t     GetCountClosingNumbers() const;
+     std::int64_t    GetClosingTransactionNoAt(std::int32_t nIndex) const;
+     std::int32_t     GetCountClosingNumbers() const;
 
-     void    AddClosingTransactionNo(const int64_t& lClosingTransactionNo);
+     void    AddClosingTransactionNo(const std::int64_t& lClosingTransactionNo);
      */
     bool CanRemoveItemFromCron(const ClientContext& context) override;
 
@@ -331,8 +334,9 @@ public:
 
     // From OTTrackable (parent class of OTCronItem, parent class of this)
     /*
-     inline int64_t GetTransactionNum() const { return m_lTransactionNum; }
-     inline void SetTransactionNum(int64_t lTransactionNum) { m_lTransactionNum
+     inline std::int64_t GetTransactionNum() const { return m_lTransactionNum; }
+     inline void SetTransactionNum(std::int64_t lTransactionNum) {
+     m_lTransactionNum
      = lTransactionNum; }
 
      inline const OTIdentifier&    GetSenderAcctID()        { return
@@ -345,7 +349,7 @@ public:
      { m_SENDER_NYM_ID = NYM_ID; }
      */
 
-    bool HasTransactionNum(const int64_t& lInput) const override;
+    bool HasTransactionNum(const std::int64_t& lInput) const override;
     void GetAllTransactionNumbers(NumList& numlistOutput) const override;
 
     // From OTInstrument (parent class of OTTrackable, parent class of
@@ -404,8 +408,8 @@ public:
         bool bSuccessMsg,
         Nym& theServerNym,
         const Identifier& theNotaryID,
-        const int64_t& lNewTransactionNumber,
-        // const int64_t& lInReferenceTo, //
+        const std::int64_t& lNewTransactionNumber,
+        // const std::int64_t& lInReferenceTo, //
         // each party has its own opening trans #.
         const String& strReference,
         String* pstrNote = nullptr,
@@ -443,11 +447,12 @@ public:
 
     void Release() override;
     void Release_Agreement();
-    bool IsValidOpeningNumber(const int64_t& lOpeningNum) const override;
-    EXPORT int64_t GetOpeningNumber(const Identifier& theNymID) const override;
-    int64_t GetClosingNumber(const Identifier& theAcctID) const override;
+    bool IsValidOpeningNumber(const std::int64_t& lOpeningNum) const override;
+    EXPORT std::int64_t GetOpeningNumber(
+        const Identifier& theNymID) const override;
+    std::int64_t GetClosingNumber(const Identifier& theAcctID) const override;
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
-    int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
+    std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
     void UpdateContents() override;  // Before transmission or serialization,
                                      // this
                                      // is where the ledger saves its contents

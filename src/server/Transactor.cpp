@@ -52,8 +52,8 @@
 #include "opentxs/server/MainFile.hpp"
 #include "opentxs/server/Server.hpp"
 
-#include <inttypes.h>
-#include <stdint.h>
+#include <cinttypes>
+#include <cstdint>
 #include <map>
 #include <memory>
 #include <string>

@@ -45,6 +45,8 @@
 
 #include <cstdint>
 #include <tuple>
+#include <memory>
+#include <set>
 
 #define DEFAULT_PROCESS_INBOX_ITEMS 5
 
@@ -157,7 +159,7 @@ public:
         const Identifier& serverID,
         const Identifier& sourceAccountID,
         const Identifier& targetAccountID,
-        const int64_t value,
+        const std::int64_t value,
         const std::string& memo) const = 0;
     EXPORT virtual void StartIntroductionServer(
         const Identifier& localNymID) const = 0;

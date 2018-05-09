@@ -60,10 +60,11 @@
 #include "opentxs/core/OTTransactionType.hpp"
 #include "opentxs/core/String.hpp"
 
-#include <inttypes.h>
-#include <stdint.h>
-#include <fstream>
 #include <irrxml/irrXML.hpp>
+
+#include <cinttypes>
+#include <cstdint>
+#include <fstream>
 #include <memory>
 #include <string>
 
@@ -158,7 +159,7 @@ Account::~Account() { Release_Account(); }
 
 char const* Account::_GetTypeString(AccountType accountType)
 {
-    int32_t index = static_cast<int32_t>(accountType);
+    std::int32_t index = static_cast<int32_t>(accountType);
     return __TypeStringsAccount[index];
 }
 
@@ -322,11 +323,11 @@ bool Account::SaveAccount()
 
 // Debit a certain amount from the account (presumably the same amount is being
 // credited somewhere else)
-bool Account::Debit(const int64_t& amount)
+bool Account::Debit(const std::int64_t& amount)
 {
-    int64_t oldBalance = balanceAmount_.ToLong();
+    std::int64_t oldBalance = balanceAmount_.ToLong();
     // The MINUS here is the big difference between Debit and Credit
-    int64_t newBalance = oldBalance - amount;
+    std::int64_t newBalance = oldBalance - amount;
 
     // fail if integer overflow
     if ((amount > 0 && oldBalance < INT64_MIN + amount) ||
@@ -353,11 +354,11 @@ bool Account::Debit(const int64_t& amount)
 
 // Credit a certain amount to the account (presumably the same amount is being
 // debited somewhere else)
-bool Account::Credit(const int64_t& amount)
+bool Account::Credit(const std::int64_t& amount)
 {
-    int64_t oldBalance = balanceAmount_.ToLong();
+    std::int64_t oldBalance = balanceAmount_.ToLong();
     // The PLUS here is the big difference between Debit and Credit.
-    int64_t newBalance = oldBalance + amount;
+    std::int64_t newBalance = oldBalance + amount;
 
     // fail if integer overflow
     if ((amount > 0 && oldBalance > INT64_MAX - amount) ||
@@ -365,7 +366,7 @@ bool Account::Credit(const int64_t& amount)
         return false;
 
     // If the balance gets too big, it may flip to negative due to us using
-    // int64_t int32_t.
+    // std::int64_t std::int32_t.
     // We'll maybe explicitly check that it's not negative in order to prevent
     // that. TODO.
     //    if (newBalance > 0 || (OTAccount::user != acctType_))
@@ -481,7 +482,7 @@ Account* Account::GenerateNewAccount(
     const Identifier& userNymID,
     const Identifier& instrumentDefinitionID,
     Account::AccountType acctType,
-    int64_t stashTransNum)
+    std::int64_t stashTransNum)
 {
     std::unique_ptr<Account> output(new Account(nymID, notaryID));
 
@@ -513,7 +514,7 @@ bool Account::GenerateNewAccount(
     const Identifier& notaryID,
     const Identifier& instrumentDefinitionID,
     Account::AccountType acctType,
-    int64_t stashTransNum)
+    std::int64_t stashTransNum)
 {
     // First we generate a secure random number into a binary object...
     auto payload = Data::Factory();
@@ -610,7 +611,7 @@ bool Account::GenerateNewAccount(
     return true;
 }
 
-int64_t Account::GetBalance() const
+std::int64_t Account::GetBalance() const
 {
     if (balanceAmount_.Exists()) {
         return balanceAmount_.ToLong();
@@ -758,9 +759,9 @@ void Account::UpdateContents()
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
-int32_t Account::ProcessXMLNode(IrrXMLReader*& xml)
+std::int32_t Account::ProcessXMLNode(IrrXMLReader*& xml)
 {
-    int32_t retval = 0;
+    std::int32_t retval = 0;
 
     String strNodeName(xml->getNodeName());
 
@@ -854,11 +855,11 @@ int32_t Account::ProcessXMLNode(IrrXMLReader*& xml)
         balanceDate_ = xml->getAttributeValue("date");
         balanceAmount_ = xml->getAttributeValue("amount");
 
-        // I convert to integer / int64_t and back to string.
+        // I convert to integer / std::int64_t and back to string.
         // (Just an easy way to keep the data clean.)
 
         time64_t date = parseTimestamp((balanceDate_.Get()));
-        int64_t amount = balanceAmount_.ToLong();
+        std::int64_t amount = balanceAmount_.ToLong();
 
         balanceDate_.Set(String(formatTimestamp(date)));
         balanceAmount_.Format("%" PRId64, amount);
@@ -874,7 +875,7 @@ int32_t Account::ProcessXMLNode(IrrXMLReader*& xml)
             return -1;
         }
 
-        int64_t lTransNum = 0;
+        std::int64_t lTransNum = 0;
         String strStashTransNum = xml->getAttributeValue("cronItemNum");
         if (!strStashTransNum.Exists() ||
             ((lTransNum = strStashTransNum.ToLong()) <= 0)) {

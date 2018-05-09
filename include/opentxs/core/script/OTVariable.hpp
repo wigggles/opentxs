@@ -43,7 +43,7 @@
 
 #include "opentxs/core/String.hpp"
 
-#include <stdint.h>
+#include <cstdint>
 #include <string>
 
 namespace opentxs
@@ -58,9 +58,9 @@ class OTVariable
 {
 public:
     enum OTVariable_Type {
-        Var_String,     // std::string
-        Var_Integer,    // Integer. (For int64_t int32_t: use strings.)
-        Var_Bool,       // Boolean. (True / False)
+        Var_String,   // std::string
+        Var_Integer,  // Integer. (For std::int64_t std::int32_t: use strings.)
+        Var_Bool,     // Boolean. (True / False)
         Var_Error_Type  // should never happen.
     };
 
@@ -76,12 +76,12 @@ public:
 private:
     String m_strName;               // Name of this variable.
     std::string m_str_Value;        // If a string, the value is stored here.
-    int32_t m_nValue{};             // If an integer, the value is stored here.
+    std::int32_t m_nValue{};        // If an integer, the value is stored here.
     bool m_bValue{false};           // If a bool, the value is stored here.
     std::string m_str_ValueBackup;  // If a string, the value backup is stored
                                     // here. (So we can see if it has changed
                                     // since execution)
-    int32_t m_nValueBackup{};       // If an integer, the value backup is stored
+    std::int32_t m_nValueBackup{};  // If an integer, the value backup is stored
                                     // here.
     // (So we can see if it has changed since execution)
     bool m_bValueBackup{
@@ -89,7 +89,7 @@ private:
                  // can check for dirtiness later...)
     OTBylaw* m_pBylaw{nullptr};  // the Bylaw that this variable belongs to.
     OTVariable_Type m_Type{
-        Var_Error_Type};  // Currently bool, int32_t, or string.
+        Var_Error_Type};  // Currently bool, std::int32_t, or string.
     OTVariable_Access m_Access{
         Var_Error_Access};  // Determines how the variable is used inside
                             // the script.
@@ -121,7 +121,7 @@ public:
     }  // important vars are persistent, too.
     bool IsImportant() const { return (Var_Important == m_Access); }
     void SetBylaw(OTBylaw& theBylaw) { m_pBylaw = &theBylaw; }
-    bool SetValue(const int32_t& nValue);
+    bool SetValue(const std::int32_t& nValue);
     bool SetValue(bool bValue);
     bool SetValue(const std::string& str_Value);
 
@@ -136,11 +136,11 @@ public:
     bool IsBool() const { return (Var_Bool == m_Type); }
     bool IsString() const { return (Var_String == m_Type); }
 
-    int32_t CopyValueInteger() const { return m_nValue; }
+    std::int32_t CopyValueInteger() const { return m_nValue; }
     bool CopyValueBool() const { return m_bValue; }
     std::string CopyValueString() const { return m_str_Value; }
 
-    int32_t& GetValueInteger() { return m_nValue; }
+    std::int32_t& GetValueInteger() { return m_nValue; }
     bool& GetValueBool() { return m_bValue; }
     std::string& GetValueString() { return m_str_Value; }
 
@@ -149,7 +149,7 @@ public:
     EXPORT OTVariable();
     EXPORT OTVariable(
         const std::string& str_Name,
-        const int32_t nValue,
+        const std::int32_t nValue,
         const OTVariable_Access theAccess = Var_Persistent);
     EXPORT OTVariable(
         const std::string& str_Name,

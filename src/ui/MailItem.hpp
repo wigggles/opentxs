@@ -43,9 +43,6 @@
 
 #include "ActivityThreadItem.hpp"
 
-#include <memory>
-#include <thread>
-
 namespace opentxs::ui::implementation
 {
 class MailItem : virtual public ActivityThreadItem
@@ -54,14 +51,14 @@ public:
     ~MailItem();
 
 private:
-    friend ActivityThread;
+    friend Factory;
 
     std::unique_ptr<std::thread> load_{nullptr};
 
     void load();
 
     MailItem(
-        const ActivityThread& parent,
+        const ActivityThreadParent& parent,
         const network::zeromq::Context& zmq,
         const api::ContactManager& contact,
         const ActivityThreadID& id,
@@ -72,7 +69,7 @@ private:
         const bool loading,
         const bool pending);
     MailItem(
-        const ActivityThread& parent,
+        const ActivityThreadParent& parent,
         const network::zeromq::Context& zmq,
         const api::ContactManager& contact,
         const ActivityThreadID& id,

@@ -73,10 +73,38 @@ public:
         const Identifier& strMasterID,
         const NymParameters& nymParameters);
     bool AddClaim(const Claim& claim);
+#endif
+    bool AddEmail(
+        const std::string& value,
+        const bool primary,
+        const bool active);
+#ifndef SWIG
     const proto::CredentialIndex asPublicNym() const;
+#endif
+    bool AddPhoneNumber(
+        const std::string& value,
+        const bool primary,
+        const bool active);
+#ifndef SWIG
+    bool AddSocialMediaProfile(
+        const std::string& value,
+        const proto::ContactItemType type,
+        const bool primary,
+        const bool active);
+#endif
+    bool AddSocialMediaProfile(
+        const std::string& value,
+        const std::uint32_t type,
+        const bool primary,
+        const bool active);
+    std::string BestEmail() const;
+    std::string BestPhoneNumber() const;
+    std::string BestSocialMediaProfile(const std::uint32_t type) const;
+#ifndef SWIG
+    std::string BestSocialMediaProfile(const proto::ContactItemType type) const;
     const class ContactData& Claims() const;
     bool DeleteClaim(const Identifier& id);
-
+    std::string EmailAddresses(bool active = true) const;
 #endif
     std::uint32_t GetType() const;
 #ifndef SWIG
@@ -97,6 +125,7 @@ public:
     std::string PaymentCode(const proto::ContactItemType currency) const;
 #endif
     std::string PaymentCode(const std::uint32_t currency) const;
+    std::string PhoneNumbers(bool active = true) const;
     std::string PreferredOTServer() const;
     std::string PrintContactData() const;
     bool SetAlias(const std::string& alias);
@@ -111,7 +140,13 @@ public:
         const std::uint32_t type,
         const std::string& name,
         const bool primary);
+    std::string SocialMediaProfiles(
+        const std::uint32_t type,
+        bool active = true) const;
 #ifndef SWIG
+    std::string SocialMediaProfiles(
+        const proto::ContactItemType type,
+        bool active = true) const;
     proto::ContactItemType Type() const;
 #endif
     bool Valid() const;

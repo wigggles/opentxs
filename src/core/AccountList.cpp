@@ -52,9 +52,10 @@
 #include "opentxs/core/String.hpp"
 
 #include <irrxml/irrXML.hpp>
-#include <stdint.h>
-#include <stdlib.h>
 #include <sys/types.h>
+
+#include <cstdint>
+#include <cstdlib>
 #include <cstring>
 #include <map>
 #include <memory>
@@ -87,7 +88,7 @@ void AccountList::Serialize(Tag& parent) const
     String acctType;
     TranslateAccountTypeToString(acctType_, acctType);
 
-    uint32_t sizeMapAcctIDs = mapAcctIDs_.size();
+    std::uint32_t sizeMapAcctIDs = mapAcctIDs_.size();
 
     TagPtr pTag(new Tag("accountList"));
 
@@ -112,7 +113,7 @@ void AccountList::Serialize(Tag& parent) const
     parent.add_tag(pTag);
 }
 
-int32_t AccountList::ReadFromXMLNode(
+std::int32_t AccountList::ReadFromXMLNode(
     irr::io::IrrXMLReader*& xml,
     const String& acctType,
     const String& acctCount)
@@ -132,7 +133,7 @@ int32_t AccountList::ReadFromXMLNode(
     }
 
     // Load up the account IDs.
-    int32_t count = acctCount.Exists() ? atoi(acctCount.Get()) : 0;
+    std::int32_t count = acctCount.Exists() ? atoi(acctCount.Get()) : 0;
     if (count > 0) {
         while (count-- > 0) {
             if (!Contract::SkipToElement(xml)) {
@@ -194,7 +195,7 @@ std::shared_ptr<Account> AccountList::GetOrRegisterAccount(
     // this will be set to true if the acct is created here.
     // Otherwise set to false;
     bool& wasAcctCreated,
-    int64_t stashTransNum)
+    std::int64_t stashTransNum)
 {
     std::shared_ptr<Account> account;
     wasAcctCreated = false;

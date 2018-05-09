@@ -41,9 +41,10 @@
 
 #include "opentxs/Forward.hpp"
 
-#include <cstdint>
 #include <set>
 #include <string>
+
+extern template class std::set<opentxs::OTIdentifier>;
 
 namespace opentxs
 {
@@ -51,7 +52,6 @@ namespace api
 {
 namespace client
 {
-
 class Pair
 {
 public:

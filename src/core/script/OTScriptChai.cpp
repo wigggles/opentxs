@@ -54,8 +54,8 @@
 #include <chaiscript/chaiscript_stdlib.hpp>
 #endif
 
-#include <stddef.h>
-#include <stdint.h>
+#include <cstddef>
+#include <cstdint>
 #include <exception>
 #include <string>
 
@@ -160,7 +160,7 @@ bool OTScriptChai::ExecuteScript(OTVariable* pReturnVar)
 
          OTVariable_Access      GetAccess() const { return m_Access; }
 
-         int64_t& GetValueLong() { return m_lValue; }
+         std::int64_t& GetValueLong() { return m_lValue; }
          bool& GetValueBool() { return m_bValue; }
          std::string& GetValueString() { return m_str_Value; }
          */
@@ -172,7 +172,7 @@ bool OTScriptChai::ExecuteScript(OTVariable* pReturnVar)
 
             switch (pVar->GetType()) {
                 case OTVariable::Var_Integer: {
-                    int32_t& nValue = pVar->GetValueInteger();
+                    std::int32_t& nValue = pVar->GetValueInteger();
 
                     if (OTVariable::Var_Constant ==
                         pVar->GetAccess())  // no pointer here, since it's
@@ -259,7 +259,7 @@ bool OTScriptChai::ExecuteScript(OTVariable* pReturnVar)
             {
                 switch (pReturnVar->GetType()) {
                     case OTVariable::Var_Integer: {
-                        int32_t nResult = chai_->eval<int32_t>(
+                        std::int32_t nResult = chai_->eval<int32_t>(
                             m_str_script.c_str(),
                             exception_specification<const std::exception&>(),
                             m_str_display_filename);
@@ -361,7 +361,7 @@ bool OTScriptChai::ExecuteScript(OTVariable* pReturnVar)
         }
         //      catch (chaiscript::Boxed_Value bv)
         catch (...) {
-            //          int32_t i = chaiscript::boxed_cast<int32_t>(bv);
+            //          std::int32_t i = chaiscript::boxed_cast<int32_t>(bv);
             otErr << "OTScriptChai::ExecuteScript: Caught exception.\n";
             return false;
         }

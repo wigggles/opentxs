@@ -44,7 +44,7 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/Proto.hpp"
 
-#include <stdint.h>
+#include <cstdint>
 #include <string>
 
 namespace opentxs
@@ -67,7 +67,7 @@ CurrencyContract::CurrencyContract(
     const std::string& symbol,
     const std::string& terms,
     const std::string& tla,
-    const uint32_t& power,
+    const std::uint32_t& power,
     const std::string& fraction)
     : ot_super(nym, shortname, name, symbol, terms)
     , tla_(tla)

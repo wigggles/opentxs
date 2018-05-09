@@ -40,22 +40,38 @@
 
 #include "opentxs/api/ContactManager.hpp"
 #include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Lockable.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/SubscribeSocket.hpp"
-#include "opentxs/Types.hpp"
+#include "opentxs/ui/ContactListItem.hpp"
+
+#include <locale>
+
+#include "ContactListParent.hpp"
+#include "Row.hpp"
 
 #include "ContactListItem.hpp"
 
-#include "ContactList.hpp"
-
-#include <locale>
+namespace opentxs
+{
+ui::ContactListItem* Factory::ContactListItem(
+    const ui::implementation::ContactListParent& parent,
+    const network::zeromq::Context& zmq,
+    const api::ContactManager& contact,
+    const Identifier& id,
+    const std::string& name)
+{
+    return new ui::implementation::ContactListItem(
+        parent, zmq, contact, id, name);
+}
+}  // namespace opentxs
 
 namespace opentxs::ui::implementation
 {
 ContactListItem::ContactListItem(
-    const ContactListInterface& parent,
+    const ContactListParent& parent,
     const network::zeromq::Context& zmq,
     const api::ContactManager& contact,
     const Identifier& id,
@@ -123,5 +139,11 @@ std::string ContactListItem::Section() const
     output[0] = std::toupper(name_[0], loc);
 
     return output;
+}
+
+void ContactListItem::SetName(const std::string& name)
+{
+    Lock lock(lock_);
+    name_ = name;
 }
 }  // namespace opentxs::ui::implementation

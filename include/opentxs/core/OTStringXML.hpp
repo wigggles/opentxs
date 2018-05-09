@@ -43,7 +43,7 @@
 
 #include "opentxs/core/String.hpp"
 
-#include <stdint.h>
+#include <cstdint>
 
 namespace irr
 {
@@ -70,8 +70,8 @@ public:
     EXPORT OTStringXML& operator=(const String& rhs);
     EXPORT OTStringXML& operator=(const OTStringXML& rhs);
 
-    int32_t read(void* buffer, uint32_t sizeToRead);
-    int32_t getSize();
+    std::int32_t read(void* buffer, std::uint32_t sizeToRead);
+    std::int32_t getSize();
 
 private:
     class OTStringXMLPvt;

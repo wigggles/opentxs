@@ -55,7 +55,7 @@
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
 
-#include <inttypes.h>
+#include <cinttypes>
 #include <cstdint>
 #include <map>
 #include <memory>
@@ -76,7 +76,7 @@ void OTMessageOutbuffer::AddSentMessage(Message& theMessage)  // must be heap
                                                               // allocated.
 {
     Lock lock(lock_);
-    int64_t lRequestNum = 0;
+    std::int64_t lRequestNum = 0;
 
     if (theMessage.m_strRequestNum.Exists())
         lRequestNum = theMessage.m_strRequestNum.ToLong();  // The map index
@@ -92,7 +92,7 @@ void OTMessageOutbuffer::AddSentMessage(Message& theMessage)  // must be heap
 
     for (; it != messagesMap_.end(); ++it) {
 
-        const int64_t& lTempReqNum = it->first;
+        const std::int64_t& lTempReqNum = it->first;
 
         if (lTempReqNum != lRequestNum) {
             continue;
@@ -123,7 +123,8 @@ void OTMessageOutbuffer::AddSentMessage(Message& theMessage)  // must be heap
     // server ID and Nym ID), we go ahead and add the new message to the map.
     // (And take ownership.)
     //
-    messagesMap_.insert(std::pair<int64_t, Message*>(lRequestNum, &theMessage));
+    messagesMap_.insert(
+        std::pair<std::int64_t, Message*>(lRequestNum, &theMessage));
 
     //
     // Save it to local storage, in case we don't see the reply until the next
@@ -181,7 +182,7 @@ void OTMessageOutbuffer::AddSentMessage(Message& theMessage)  // must be heap
         it = messagesMap_.begin();
         while (it != messagesMap_.end()) {
 
-            const int64_t& lTempReqNum = it->first;
+            const std::int64_t& lTempReqNum = it->first;
 
             Message* pMsg = it->second;
             OT_ASSERT(nullptr != pMsg);
@@ -226,7 +227,7 @@ void OTMessageOutbuffer::AddSentMessage(Message& theMessage)  // must be heap
 // ownership until you call RemoveSentMessage().
 
 Message* OTMessageOutbuffer::GetSentMessage(
-    const int64_t& lRequestNum,
+    const std::int64_t& lRequestNum,
     const String& strNotaryID,
     const String& strNymID)
 {
@@ -235,7 +236,7 @@ Message* OTMessageOutbuffer::GetSentMessage(
 
     for (; it != messagesMap_.end(); ++it) {
 
-        const int64_t& lTempReqNum = it->first;
+        const std::int64_t& lTempReqNum = it->first;
 
         if (lTempReqNum != lRequestNum) {
             continue;
@@ -297,7 +298,7 @@ Message* OTMessageOutbuffer::GetSentMessage(
                 // Since we had to load it from local storage, let's add it to
                 // the list in RAM.
                 //
-                messagesMap_.insert(std::pair<int64_t, Message*>(
+                messagesMap_.insert(std::pair<std::int64_t, Message*>(
                     lRequestNum, theMsgAngel.release()));
                 return pMsg;
             }
@@ -328,7 +329,7 @@ void OTMessageOutbuffer::Clear(
     auto it = messagesMap_.begin();
 
     while (it != messagesMap_.end()) {
-        const int64_t& lRequestNum = it->first;
+        const std::int64_t& lRequestNum = it->first;
         Message* pThisMsg = it->second;
 
         OT_ASSERT(nullptr != pThisMsg);
@@ -529,7 +530,7 @@ void OTMessageOutbuffer::Clear(
 // OTMessageOutbuffer deletes the OTMessage when you call this.
 //
 bool OTMessageOutbuffer::RemoveSentMessage(
-    const int64_t& lRequestNum,
+    const std::int64_t& lRequestNum,
     const String& strNotaryID,
     const String& strNymID)
 {
@@ -552,7 +553,7 @@ bool OTMessageOutbuffer::RemoveSentMessage(
 
     while (it != messagesMap_.end()) {
 
-        const int64_t& lTempReqNum = it->first;
+        const std::int64_t& lTempReqNum = it->first;
 
         if (lTempReqNum != lRequestNum) {
             ++it;
@@ -607,7 +608,7 @@ bool OTMessageOutbuffer::RemoveSentMessage(
         it = messagesMap_.begin();
         while (it != messagesMap_.end()) {
 
-            const int64_t& lTempReqNum = it->first;
+            const std::int64_t& lTempReqNum = it->first;
 
             Message* pMsg = it->second;
             OT_ASSERT(nullptr != pMsg);
@@ -664,7 +665,7 @@ bool OTMessageOutbuffer::RemoveSentMessage(
 
 Message* OTMessageOutbuffer::GetSentMessage(const OTTransaction& theTransaction)
 {
-    const int64_t& lRequestNum = theTransaction.GetRequestNum();
+    const std::int64_t& lRequestNum = theTransaction.GetRequestNum();
     const String strNotaryID(theTransaction.GetPurportedNotaryID());
     const String strNymID(theTransaction.GetNymID());
 
@@ -675,7 +676,7 @@ Message* OTMessageOutbuffer::GetSentMessage(const OTTransaction& theTransaction)
 //
 bool OTMessageOutbuffer::RemoveSentMessage(const OTTransaction& theTransaction)
 {
-    const int64_t& lRequestNum = theTransaction.GetRequestNum();
+    const std::int64_t& lRequestNum = theTransaction.GetRequestNum();
     const String strNotaryID(theTransaction.GetPurportedNotaryID());
     const String strNymID(theTransaction.GetNymID());
 

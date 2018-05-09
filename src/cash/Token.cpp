@@ -62,8 +62,9 @@
 #include "opentxs/core/util/Tag.hpp"
 
 #include <irrxml/irrXML.hpp>
-#include <stdint.h>
-#include <stdlib.h>
+
+#include <cstdint>
+#include <cstdlib>
 #include <memory>
 #include <ostream>
 #include <string>
@@ -96,9 +97,9 @@ namespace opentxs
 // server in order for the server to accept the withdrawal request and sign one
 // of them.
 // (more prototokens == more resource cost, but more security.)
-const int32_t Token__nMinimumPrototokenCount = 1;
+const std::int32_t Token__nMinimumPrototokenCount = 1;
 
-int32_t Token::GetMinimumPrototokenCount()
+std::int32_t Token::GetMinimumPrototokenCount()
 {
     return Token__nMinimumPrototokenCount;
 }
@@ -150,10 +151,10 @@ Token::Token()
     InitToken();
 }
 
-// int64_t                m_lDenomination;
-// int32_t                m_nTokenCount;
-// int32_t                m_nChosenIndex;
-// int32_t                m_nSeries;
+// std::int64_t                m_lDenomination;
+// std::int32_t                m_nTokenCount;
+// std::int32_t                m_nChosenIndex;
+// std::int32_t                m_nSeries;
 // tokenState        m_State;
 // bool                m_bSavePrivateKeys; // Determines whether it serializes
 // private keys 1 time (yes if true)
@@ -783,12 +784,12 @@ void Token::UpdateContents()
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
-int32_t Token::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
+std::int32_t Token::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 {
-    static int32_t nPublicTokenCount = 0;
-    static int32_t nPrivateTokenCount = 0;
+    static std::int32_t nPublicTokenCount = 0;
+    static std::int32_t nPrivateTokenCount = 0;
 
-    int32_t nReturnVal = 0;
+    std::int32_t nReturnVal = 0;
 
     const String strNodeName(xml->getNodeName());
 
@@ -811,8 +812,9 @@ int32_t Token::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         m_nSeries = atoi(xml->getAttributeValue("series"));
 
-        int64_t tFrom = parseTimestamp(xml->getAttributeValue("validFrom"));
-        int64_t tTo = parseTimestamp(xml->getAttributeValue("validTo"));
+        std::int64_t tFrom =
+            parseTimestamp(xml->getAttributeValue("validFrom"));
+        std::int64_t tTo = parseTimestamp(xml->getAttributeValue("validTo"));
 
         m_VALID_FROM = OTTimeGetTimeFromSeconds(tFrom);
         m_VALID_TO = OTTimeGetTimeFromSeconds(tTo);
@@ -944,7 +946,7 @@ int32_t Token::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
  */
 
-bool Token::GetPrototoken(OTASCIIArmor& ascPrototoken, int32_t nTokenIndex)
+bool Token::GetPrototoken(OTASCIIArmor& ascPrototoken, std::int32_t nTokenIndex)
 {
     // out of bounds. For a count 10 element array, index 10 is out of bounds.
     // thus if attempted index is equal or larger to the count, out of bounds.
@@ -969,7 +971,7 @@ bool Token::GetPrototoken(OTASCIIArmor& ascPrototoken, int32_t nTokenIndex)
 
 bool Token::GetPrivatePrototoken(
     OTASCIIArmor& ascPrototoken,
-    int32_t nTokenIndex)
+    std::int32_t nTokenIndex)
 {
     // out of bounds. For a count 10 element array, index 10 is out of bounds.
     // thus if attempted index is equal or larger to the count, out of bounds.
@@ -996,8 +998,8 @@ Token* Token::InstantiateAndGenerateTokenRequest(
     const Purse& thePurse,
     const Nym& theNym,
     Mint& theMint,
-    int64_t lDenomination,
-    int32_t nTokenCount)
+    std::int64_t lDenomination,
+    std::int32_t nTokenCount)
 {
     Token* pToken = Token::LowLevelInstantiate(thePurse);  // already asserts.
     OT_ASSERT(nullptr != pToken);  // Just for good measure.
@@ -1014,7 +1016,7 @@ Token* Token::InstantiateAndGenerateTokenRequest(
     return pToken;
 }
 
-inline bool Token::ChooseIndex(const int32_t nIndex)
+inline bool Token::ChooseIndex(const std::int32_t nIndex)
 {
     if (nIndex > (m_nTokenCount - 1) || nIndex < 0)
         return false;
@@ -1026,7 +1028,9 @@ inline bool Token::ChooseIndex(const int32_t nIndex)
 
 // The Mint has signed the token, and is sending it back to the client.
 // (we're near Lucre step 3 with this function)
-void Token::SetSignature(const OTASCIIArmor& theSignature, int32_t nTokenIndex)
+void Token::SetSignature(
+    const OTASCIIArmor& theSignature,
+    std::int32_t nTokenIndex)
 {
     // The server sets the signature, and then sends the token back to the
     // client. We release all these prototokens before doing so, because there's

@@ -77,7 +77,7 @@ private:
     friend class opentxs::StorageMultiplex;
     friend class api::storage::implementation::Storage;
 
-    const std::uint64_t gc_interval_{std::numeric_limits<int64_t>::max()};
+    const std::uint64_t gc_interval_{std::numeric_limits<std::int64_t>::max()};
     mutable std::string gc_root_;
     Flag& current_bucket_;
     mutable OTFlag gc_running_;

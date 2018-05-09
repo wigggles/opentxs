@@ -39,6 +39,7 @@
 #include "opentxs/stdafx.hpp"
 
 #include "opentxs/api/client/Pair.hpp"
+#include "opentxs/api/client/Sync.hpp"
 #include "opentxs/api/client/ServerAction.hpp"
 #include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/client/Workflow.hpp"
@@ -46,6 +47,9 @@
 #include "opentxs/api/Api.hpp"
 #include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Settings.hpp"
+#if OT_CASH
+#include "opentxs/cash/Purse.hpp"
+#endif  // OT_CASH
 #include "opentxs/client/NymData.hpp"
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
@@ -60,16 +64,24 @@
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Cheque.hpp"
+#include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Ledger.hpp"
+#include "opentxs/core/Lockable.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/core/UniqueQueue.hpp"
 #include "opentxs/ext/OTPayment.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/PublishSocket.hpp"
 
+#include <atomic>
 #include <chrono>
+#include <memory>
+#include <map>
+#include <thread>
+#include <tuple>
 
 #include "Sync.hpp"
 
@@ -133,9 +145,38 @@
 
 #define OT_METHOD "opentxs::api::client::implementation::Sync::"
 
+namespace opentxs
+{
+api::client::Sync* Factory::Sync(
+    const Flag& running,
+    const OT_API& otapi,
+    const OTAPI_Exec& exec,
+    const api::ContactManager& contacts,
+    const api::Settings& config,
+    const api::Api& api,
+    const api::client::Wallet& wallet,
+    const api::client::Workflow& workflow,
+    const api::crypto::Encode& encoding,
+    const network::zeromq::Context& zmq,
+    const ContextLockCallback& lockCallback)
+{
+    return new api::client::implementation::Sync(
+        running,
+        otapi,
+        exec,
+        contacts,
+        config,
+        api,
+        wallet,
+        workflow,
+        encoding,
+        zmq,
+        lockCallback);
+}
+}  // namespace opentxs
+
 namespace opentxs::api::client::implementation
 {
-
 const std::string Sync::DEFAULT_INTRODUCTION_SERVER =
     R"(-----BEGIN OT ARMORED SERVER CONTRACT-----
 Version: Open Transactions 0.99.1-113-g2b3acf5
@@ -1855,7 +1896,7 @@ bool Sync::send_transfer(
     const Identifier& serverID,
     const Identifier& sourceAccountID,
     const Identifier& targetAccountID,
-    const int64_t value,
+    const std::int64_t value,
     const std::string& memo) const
 {
     auto action = server_action_.SendTransfer(
@@ -1887,7 +1928,7 @@ OTIdentifier Sync::SendTransfer(
     const Identifier& serverID,
     const Identifier& sourceAccountID,
     const Identifier& targetAccountID,
-    const int64_t value,
+    const std::int64_t value,
     const std::string& memo) const
 {
     CHECK_ARGS(localNymID, serverID, targetAccountID)

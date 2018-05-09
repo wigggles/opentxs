@@ -122,7 +122,7 @@ std::set<OTIdentifier> Blockchain::AccountList(
     auto list = storage_.BlockchainAccountList(nymID.str(), type);
 
     for (const auto& accountID : list) {
-        //output.emplace(String(accountID.c_str()));
+        // output.emplace(String(accountID.c_str()));
         output.emplace(Identifier::Factory(accountID));
     }
 

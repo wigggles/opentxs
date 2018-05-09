@@ -336,6 +336,28 @@ bool Contact::AddBlockchainAddress(
     return add_claim(lock, claim);
 }
 
+bool Contact::AddEmail(
+    const std::string& value,
+    const bool primary,
+    const bool active)
+{
+    if (value.empty()) {
+        return false;
+    }
+
+    Lock lock(lock_);
+
+    contact_data_.reset(
+        new ContactData(contact_data_->AddEmail(value, primary, active)));
+
+    OT_ASSERT(contact_data_);
+
+    revision_++;
+    cached_contact_data_.reset();
+
+    return true;
+}
+
 bool Contact::AddNym(const std::shared_ptr<const Nym>& nym, const bool primary)
 {
     Lock lock(lock_);
@@ -400,6 +422,51 @@ bool Contact::AddPaymentCode(
     return true;
 }
 
+bool Contact::AddPhoneNumber(
+    const std::string& value,
+    const bool primary,
+    const bool active)
+{
+    if (value.empty()) {
+        return false;
+    }
+
+    Lock lock(lock_);
+
+    contact_data_.reset(
+        new ContactData(contact_data_->AddPhoneNumber(value, primary, active)));
+
+    OT_ASSERT(contact_data_);
+
+    revision_++;
+    cached_contact_data_.reset();
+
+    return true;
+}
+
+bool Contact::AddSocialMediaProfile(
+    const std::string& value,
+    const proto::ContactItemType type,
+    const bool primary,
+    const bool active)
+{
+    if (value.empty()) {
+        return false;
+    }
+
+    Lock lock(lock_);
+
+    contact_data_.reset(new ContactData(
+        contact_data_->AddSocialMediaProfile(value, type, primary, active)));
+
+    OT_ASSERT(contact_data_);
+
+    revision_++;
+    cached_contact_data_.reset();
+
+    return true;
+}
+
 std::shared_ptr<ContactItem> Contact::Best(const ContactGroup& group)
 {
     if (0 == group.Size()) {
@@ -424,6 +491,49 @@ std::shared_ptr<ContactItem> Contact::Best(const ContactGroup& group)
     }
 
     return group.begin()->second;
+}
+
+std::string Contact::BestEmail() const
+{
+    Lock lock(lock_);
+    const auto data = merged_data(lock);
+    lock.unlock();
+
+    if (false == bool(data)) {
+
+        return {};
+    }
+
+    return data->BestEmail();
+}
+
+std::string Contact::BestPhoneNumber() const
+{
+    Lock lock(lock_);
+    const auto data = merged_data(lock);
+    lock.unlock();
+
+    if (false == bool(data)) {
+
+        return {};
+    }
+
+    return data->BestPhoneNumber();
+}
+
+std::string Contact::BestSocialMediaProfile(
+    const proto::ContactItemType type) const
+{
+    Lock lock(lock_);
+    const auto data = merged_data(lock);
+    lock.unlock();
+
+    if (false == bool(data)) {
+
+        return {};
+    }
+
+    return data->BestSocialMediaProfile(type);
 }
 
 std::vector<Contact::BlockchainAddress> Contact::BlockchainAddresses() const
@@ -501,6 +611,20 @@ OTIdentifier Contact::generate_id() const
     output.CalculateDigest(random);
 
     return output;
+}
+
+std::string Contact::EmailAddresses(bool active) const
+{
+    Lock lock(lock_);
+    const auto data = merged_data(lock);
+    lock.unlock();
+
+    if (false == bool(data)) {
+
+        return {};
+    }
+
+    return data->EmailAddresses(active);
 }
 
 std::string Contact::ExtractLabel(const Nym& nym)
@@ -634,7 +758,8 @@ std::shared_ptr<ContactData> Contact::merged_data(const Lock& lock) const
     return output;
 }
 
-std::vector< opentxs::OTIdentifier > opentxs::Contact::Nyms(const bool includeInactive) const
+std::vector<opentxs::OTIdentifier> opentxs::Contact::Nyms(
+    const bool includeInactive) const
 {
     Lock lock(lock_);
     const auto data = merged_data(lock);
@@ -751,6 +876,20 @@ std::vector<std::string> Contact::PaymentCodes(
     return output;
 }
 
+std::string Contact::PhoneNumbers(bool active) const
+{
+    Lock lock(lock_);
+    const auto data = merged_data(lock);
+    lock.unlock();
+
+    if (false == bool(data)) {
+
+        return {};
+    }
+
+    return data->PhoneNumbers(active);
+}
+
 std::string Contact::Print() const
 {
     Lock lock(lock_);
@@ -820,6 +959,22 @@ void Contact::SetLabel(const std::string& label)
         const auto& nymID = it.first;
         wallet_.SetNymAlias(nymID, label);
     }
+}
+
+std::string Contact::SocialMediaProfiles(
+    const proto::ContactItemType type,
+    bool active) const
+{
+    Lock lock(lock_);
+    const auto data = merged_data(lock);
+    lock.unlock();
+
+    if (false == bool(data)) {
+
+        return {};
+    }
+
+    return data->SocialMediaProfiles(type, active);
 }
 
 proto::ContactItemType Contact::type(const Lock& lock) const

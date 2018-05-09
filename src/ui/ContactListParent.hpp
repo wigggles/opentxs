@@ -36,49 +36,36 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_NETWORK_ZEROMQ_PROXY_HPP
-#define OPENTXS_NETWORK_ZEROMQ_PROXY_HPP
+#ifndef OPENTXS_UI_CONTACT_LIST_PARENT_HPP
+#define OPENTXS_UI_CONTACT_LIST_PARENT_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Internal.hpp"
 
-#ifdef SWIG
-// clang-format off
-%template(OTZMQProxy) opentxs::Pimpl<opentxs::network::zeromq::Proxy>;
-%rename($ignore, regextarget=1, fullname=1) "opentxs::network::zeromq::Proxy::Factory.*";
-%rename(ZMQProxy) opentxs::network::zeromq::Proxy;
-// clang-format on
-#endif  // SWIG
+#include <string>
 
-namespace opentxs
+namespace opentxs::ui::implementation
 {
-namespace network
-{
-namespace zeromq
-{
-class Proxy
+class ContactListParent
 {
 public:
-    static OTZMQProxy Factory(
-        const Context& context,
-        Socket& frontend,
-        Socket& backend);
+    using ContactListID = OTIdentifier;
+    using ContactListSortKey = std::string;
 
-    EXPORT virtual ~Proxy() = default;
+    virtual const Identifier& ID() const = 0;
+    virtual bool last(const ContactListID& id) const = 0;
+    virtual void reindex_item(
+        const ContactListID& id,
+        const ContactListSortKey& newIndex) const = 0;
+    virtual OTIdentifier WidgetID() const = 0;
+
+    virtual ~ContactListParent() = default;
 
 protected:
-    Proxy() = default;
-
-private:
-    friend OTZMQProxy;
-
-    virtual Proxy* clone() const = 0;
-
-    Proxy(const Proxy&) = delete;
-    Proxy(Proxy&&) = default;
-    Proxy& operator=(const Proxy&) = delete;
-    Proxy& operator=(Proxy&&) = default;
+    ContactListParent() = default;
+    ContactListParent(const ContactListParent&) = delete;
+    ContactListParent(ContactListParent&&) = delete;
+    ContactListParent& operator=(const ContactListParent&) = delete;
+    ContactListParent& operator=(ContactListParent&&) = delete;
 };
-}  // namespace zeromq
-}  // namespace network
-}  // namespace opentxs
-#endif  // OPENTXS_NETWORK_ZEROMQ_PROXY_HPP
+}  // opentxs::ui::implementation
+#endif  // OPENTXS_UI_CONTACT_LIST_PARENT_HPP

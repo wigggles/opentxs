@@ -22,7 +22,7 @@
 extern "C" {
 #endif
 
-typedef uint8_t BYTE;
+typedef std::uint8_t BYTE;
 typedef uint16_t USHORT;
 
 #ifdef __cplusplus

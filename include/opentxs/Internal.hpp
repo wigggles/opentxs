@@ -40,6 +40,8 @@
 #define OPENTXS_FORWARD_INTERNAL_HPP
 
 #include "opentxs/Forward.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
 
 namespace opentxs
 {
@@ -104,16 +106,16 @@ namespace ui
 {
 namespace implementation
 {
-class ActivityThread;
-class ActivityThreadItem;
 class ActivitySummary;
-class ActivitySummaryItem;
-class ContactList;
-class ContactListInterface;
-class ContactListItem;
+class ActivitySummaryParent;
+class ActivityThread;
+class ActivityThreadParent;
+class ContactListParent;
 class MessagableList;
 class PayableList;
-class PayableListItem;
+
+/** item id, box, accountID */
+using ActivityThreadID = std::tuple<OTIdentifier, StorageBox, OTIdentifier>;
 }  // namespace opentxs::ui::implementation
 }  // namespace opentxs::ui
 
@@ -131,4 +133,10 @@ class StorageMultiplex;
 class TrezorCrypto;
 #endif
 }  // namespace opentxs
+
+extern template class std::
+    tuple<opentxs::OTIdentifier, opentxs::StorageBox, opentxs::OTIdentifier>;
+
+#include "Factory.hpp"
+
 #endif  // OPENTXS_FORWARD_INTERNAL_HPP

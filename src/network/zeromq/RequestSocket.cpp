@@ -46,6 +46,8 @@
 
 #include <zmq.h>
 
+template class opentxs::Pimpl<opentxs::network::zeromq::RequestSocket>;
+
 #define POLL_MILLISECONDS 1000
 
 #define OT_METHOD "opentxs::network::zeromq::implementation::RequestSocket::"

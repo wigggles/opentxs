@@ -56,8 +56,9 @@
 #include "opentxs/core/util/Tag.hpp"
 
 #include <irrxml/irrXML.hpp>
-#include <stdint.h>
-#include <stdlib.h>
+
+#include <cstdint>
+#include <cstdlib>
 #include <map>
 #include <memory>
 #include <ostream>
@@ -502,7 +503,7 @@ bool Mint::VerifyContractID() const
 
 // The mint has a different key pair for each denomination.
 // Pass in the actual denomination such as 5, 10, 20, 50, 100...
-bool Mint::GetPrivate(OTASCIIArmor& theArmor, int64_t lDenomination)
+bool Mint::GetPrivate(OTASCIIArmor& theArmor, std::int64_t lDenomination)
 {
     for (auto& it : m_mapPrivate) {
         OTASCIIArmor* pArmor = it.second;
@@ -519,7 +520,7 @@ bool Mint::GetPrivate(OTASCIIArmor& theArmor, int64_t lDenomination)
 
 // The mint has a different key pair for each denomination.
 // Pass in the actual denomination such as 5, 10, 20, 50, 100...
-bool Mint::GetPublic(OTASCIIArmor& theArmor, int64_t lDenomination)
+bool Mint::GetPublic(OTASCIIArmor& theArmor, std::int64_t lDenomination)
 {
     for (auto& it : m_mapPublic) {
         OTASCIIArmor* pArmor = it.second;
@@ -541,10 +542,11 @@ bool Mint::GetPublic(OTASCIIArmor& theArmor, int64_t lDenomination)
 // Then you can subtract the denomination from the amount and call this method
 // again, and again, until it reaches 0, in order to create all the necessary
 // tokens to reach the full withdrawal amount.
-int64_t Mint::GetLargestDenomination(int64_t lAmount)
+std::int64_t Mint::GetLargestDenomination(int64_t lAmount)
 {
-    for (int32_t nIndex = GetDenominationCount() - 1; nIndex >= 0; nIndex--) {
-        int64_t lDenom = GetDenomination(nIndex);
+    for (std::int32_t nIndex = GetDenominationCount() - 1; nIndex >= 0;
+         nIndex--) {
+        std::int64_t lDenom = GetDenomination(nIndex);
 
         if (lDenom <= lAmount) return lDenom;
     }
@@ -555,14 +557,14 @@ int64_t Mint::GetLargestDenomination(int64_t lAmount)
 // If you call GetDenominationCount, you can then use this method
 // to look up a denomination by index.
 // You could also iterate through them by index.
-int64_t Mint::GetDenomination(int32_t nIndex)
+std::int64_t Mint::GetDenomination(std::int32_t nIndex)
 {
     // index out of bounds.
     if (nIndex > (m_nDenominationCount - 1)) {
         return 0;
     }
 
-    int32_t nIterateIndex = 0;
+    std::int32_t nIterateIndex = 0;
 
     for (auto it = m_mapPublic.begin(); it != m_mapPublic.end();
          ++it, nIterateIndex++) {
@@ -641,9 +643,9 @@ void Mint::UpdateContents()
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
-int32_t Mint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
+std::int32_t Mint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 {
-    int32_t nReturnVal = 0;
+    std::int32_t nReturnVal = 0;
 
     const String strNodeName(xml->getNodeName());
 
@@ -691,9 +693,9 @@ int32_t Mint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             m_pReserveAcct =
                 Account::LoadExistingAccount(m_CashAccountID, m_NotaryID);
 
-        int64_t nValidFrom = OTTimeGetSecondsFromTime(m_VALID_FROM);
-        int64_t nValidTo = OTTimeGetSecondsFromTime(m_VALID_TO);
-        int64_t nExpiration = OTTimeGetSecondsFromTime(m_EXPIRATION);
+        std::int64_t nValidFrom = OTTimeGetSecondsFromTime(m_VALID_FROM);
+        std::int64_t nValidTo = OTTimeGetSecondsFromTime(m_VALID_TO);
+        std::int64_t nExpiration = OTTimeGetSecondsFromTime(m_EXPIRATION);
 
         otWarn <<
             //    "\n===> Loading XML for mint into memory structures..."
@@ -712,7 +714,7 @@ int32_t Mint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         nReturnVal = 1;
     } else if (strNodeName.Compare("mintPrivateInfo")) {
-        int64_t lDenomination =
+        std::int64_t lDenomination =
             String::StringToLong(xml->getAttributeValue("denomination"));
 
         OTASCIIArmor* pArmor = new OTASCIIArmor;
@@ -734,7 +736,7 @@ int32_t Mint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         return 1;
     } else if (strNodeName.Compare("mintPublicInfo")) {
-        int64_t lDenomination =
+        std::int64_t lDenomination =
             String::StringToLong(xml->getAttributeValue("denomination"));
 
         OTASCIIArmor* pArmor = new OTASCIIArmor;
@@ -798,23 +800,23 @@ int32_t Mint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 // INSTRUMENT_DEFINITION_ID, m_nymServer,
 // 1, 5, 10, 20, 50, 100, 500, 1000, 10000, 100000);
 void Mint::GenerateNewMint(
-    int32_t nSeries,
+    std::int32_t nSeries,
     time64_t VALID_FROM,
     time64_t VALID_TO,
     time64_t MINT_EXPIRATION,
     const Identifier& theInstrumentDefinitionID,
     const Identifier& theNotaryID,
     const Nym& theNotary,
-    int64_t nDenom1,
-    int64_t nDenom2,
-    int64_t nDenom3,
-    int64_t nDenom4,
-    int64_t nDenom5,
-    int64_t nDenom6,
-    int64_t nDenom7,
-    int64_t nDenom8,
-    int64_t nDenom9,
-    int64_t nDenom10)
+    std::int64_t nDenom1,
+    std::int64_t nDenom2,
+    std::int64_t nDenom3,
+    std::int64_t nDenom4,
+    std::int64_t nDenom5,
+    std::int64_t nDenom6,
+    std::int64_t nDenom7,
+    std::int64_t nDenom8,
+    std::int64_t nDenom9,
+    std::int64_t nDenom10)
 {
     Release();
 
@@ -846,52 +848,52 @@ void Mint::GenerateNewMint(
     if (nDenom1) {
         AddDenomination(
             theNotary,
-            nDenom1);  // int32_t nPrimeLength default = 1024
+            nDenom1);  // std::int32_t nPrimeLength default = 1024
     }
     if (nDenom2) {
         AddDenomination(
             theNotary,
-            nDenom2);  // int32_t nPrimeLength default = 1024
+            nDenom2);  // std::int32_t nPrimeLength default = 1024
     }
     if (nDenom3) {
         AddDenomination(
             theNotary,
-            nDenom3);  // int32_t nPrimeLength default = 1024
+            nDenom3);  // std::int32_t nPrimeLength default = 1024
     }
     if (nDenom4) {
         AddDenomination(
             theNotary,
-            nDenom4);  // int32_t nPrimeLength default = 1024
+            nDenom4);  // std::int32_t nPrimeLength default = 1024
     }
     if (nDenom5) {
         AddDenomination(
             theNotary,
-            nDenom5);  // int32_t nPrimeLength default = 1024
+            nDenom5);  // std::int32_t nPrimeLength default = 1024
     }
     if (nDenom6) {
         AddDenomination(
             theNotary,
-            nDenom6);  // int32_t nPrimeLength default = 1024
+            nDenom6);  // std::int32_t nPrimeLength default = 1024
     }
     if (nDenom7) {
         AddDenomination(
             theNotary,
-            nDenom7);  // int32_t nPrimeLength default = 1024
+            nDenom7);  // std::int32_t nPrimeLength default = 1024
     }
     if (nDenom8) {
         AddDenomination(
             theNotary,
-            nDenom8);  // int32_t nPrimeLength default = 1024
+            nDenom8);  // std::int32_t nPrimeLength default = 1024
     }
     if (nDenom9) {
         AddDenomination(
             theNotary,
-            nDenom9);  // int32_t nPrimeLength default = 1024
+            nDenom9);  // std::int32_t nPrimeLength default = 1024
     }
     if (nDenom10) {
         AddDenomination(
             theNotary,
-            nDenom10);  // int32_t nPrimeLength default = 1024
+            nDenom10);  // std::int32_t nPrimeLength default = 1024
     }
 }
 

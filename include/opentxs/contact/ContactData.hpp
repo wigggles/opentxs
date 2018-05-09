@@ -87,6 +87,10 @@ public:
         const proto::ContactItemType currency,
         const bool primary,
         const bool active) const;
+    ContactData AddEmail(
+        const std::string& value,
+        const bool primary,
+        const bool active) const;
     ContactData AddItem(const Claim& claim) const;
     ContactData AddItem(const std::shared_ptr<ContactItem>& item) const;
     ContactData AddPaymentCode(
@@ -94,13 +98,28 @@ public:
         const proto::ContactItemType currency,
         const bool primary,
         const bool active) const;
+    ContactData AddPhoneNumber(
+        const std::string& value,
+        const bool primary,
+        const bool active) const;
     ContactData AddPreferredOTServer(const Identifier& id, const bool primary)
         const;
+    ContactData AddSocialMediaProfile(
+        const std::string& value,
+        const proto::ContactItemType type,
+        const bool primary,
+        const bool active) const;
+    SectionMap::const_iterator begin() const { return sections_.begin(); }
+    std::string BestEmail() const;
+    std::string BestPhoneNumber() const;
+    std::string BestSocialMediaProfile(const proto::ContactItemType type) const;
     std::shared_ptr<ContactItem> Claim(const Identifier& item) const;
     std::set<OTIdentifier> Contracts(
         const proto::ContactItemType currency,
         const bool onlyActive) const;
     ContactData Delete(const Identifier& id) const;
+    std::string EmailAddresses(bool active = true) const;
+    SectionMap::const_iterator end() const { return sections_.end(); }
     std::shared_ptr<ContactGroup> Group(
         const proto::ContactSectionName& section,
         const proto::ContactItemType& type) const;
@@ -110,6 +129,7 @@ public:
         const proto::ContactItemType& type,
         const std::string& value) const;
     std::string Name() const;
+    std::string PhoneNumbers(bool active = true) const;
     OTIdentifier PreferredOTServer() const;
     std::shared_ptr<ContactSection> Section(
         const proto::ContactSectionName& section) const;
@@ -120,6 +140,10 @@ public:
     ContactData SetScope(
         const proto::ContactItemType type,
         const std::string& name) const;
+    std::string SocialMediaProfiles(
+        const proto::ContactItemType type,
+        bool active = true) const;
+    const std::set<proto::ContactItemType> SocialMediaProfileTypes() const;
     proto::ContactItemType Type() const;
     std::uint32_t Version() const;
 

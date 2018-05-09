@@ -77,7 +77,7 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
 
-#include <stdint.h>
+#include <cstdint>
 #include <memory>
 #include <ostream>
 
@@ -214,7 +214,7 @@ bool OTKeypair::CalculateID(Identifier& theOutput) const
     return m_pkeyPublic->CalculateID(theOutput);  // Only works for public keys.
 }
 
-int32_t OTKeypair::GetPublicKeyBySignature(
+std::int32_t OTKeypair::GetPublicKeyBySignature(
     listOfAsymmetricKeys& listOutput,  // Inclusive means, return the key even
                                        // when theSignature has no metadata.
     const OTSignature& theSignature,

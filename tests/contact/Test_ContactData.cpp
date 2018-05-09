@@ -83,6 +83,17 @@ public:
         opentxs::proto::ContactSectionName sectionName,
         uint32_t version = CONTACT_CONTACT_DATA_VERSION,
         uint32_t targetVersion = 0);
+
+    void testAddItemMethod2(
+        std::function<opentxs::ContactData(
+            const opentxs::ContactData&,
+            const std::string&,
+            const bool,
+            const bool)> contactDataMethod,
+        opentxs::proto::ContactSectionName sectionName,
+        opentxs::proto::ContactItemType itemType,
+        uint32_t version = CONTACT_CONTACT_DATA_VERSION,
+        uint32_t targetVersion = 0);
 };
 
 void Test_ContactData::testAddItemMethod(
@@ -223,6 +234,116 @@ void Test_ContactData::testAddItemMethod(
     const auto& contactItem5 = data6.Claim(identifier5);
     ASSERT_NE(nullptr, contactItem5);
     ASSERT_TRUE(contactItem5->isPrimary());
+}
+
+void Test_ContactData::testAddItemMethod2(
+    std::function<opentxs::ContactData(
+        const opentxs::ContactData&,
+        const std::string&,
+        const bool,
+        const bool)> contactDataMethod,
+    opentxs::proto::ContactSectionName sectionName,
+    opentxs::proto::ContactItemType itemType,
+    uint32_t version,
+    uint32_t targetVersion)
+{
+    // Add a contact to a group with no primary.
+    const auto& group1 = std::shared_ptr<opentxs::ContactGroup>(
+        new opentxs::ContactGroup("contactGroup1", sectionName, itemType, {}));
+
+    const auto& section1 =
+        std::shared_ptr<opentxs::ContactSection>(new opentxs::ContactSection(
+            "contactSectionNym1",
+            version,
+            version,
+            sectionName,
+            opentxs::ContactSection::GroupMap{{itemType, group1}}));
+
+    const opentxs::ContactData data1(
+        std::string("contactDataNym1"),
+        version,
+        version,
+        opentxs::ContactData::SectionMap{{sectionName, section1}});
+
+    const auto& data2 = contactDataMethod(data1, "contactValue1", false, false);
+
+    if (targetVersion) {
+        ASSERT_EQ(targetVersion, data2.Version());
+        return;
+    }
+
+    // Verify that the item was made primary.
+    const opentxs::Identifier identifier1(opentxs::ContactCredential::ClaimID(
+        "contactDataNym1",
+        sectionName,
+        itemType,
+        NULL_START,
+        NULL_END,
+        "contactValue1"));
+    const auto& contactItem1 = data2.Claim(identifier1);
+    ASSERT_NE(nullptr, contactItem1);
+    ASSERT_TRUE(contactItem1->isPrimary());
+
+    // Add a contact to a group with a primary.
+    const auto& data3 = contactDataMethod(data2, "contactValue2", false, false);
+
+    // Verify that the item wasn't made primary.
+    const opentxs::Identifier identifier2(opentxs::ContactCredential::ClaimID(
+        "contactDataNym1",
+        sectionName,
+        itemType,
+        NULL_START,
+        NULL_END,
+        "contactValue2"));
+    const auto& contactItem2 = data3.Claim(identifier2);
+    ASSERT_NE(nullptr, contactItem2);
+    ASSERT_FALSE(contactItem2->isPrimary());
+
+    // Add a contact for a type with no group.
+    const auto& section2 =
+        std::shared_ptr<opentxs::ContactSection>(new opentxs::ContactSection(
+            "contactSectionNym2",
+            version,
+            version,
+            sectionName,
+            opentxs::ContactSection::GroupMap{}));
+
+    const opentxs::ContactData data4(
+        std::string("contactDataNym4"),
+        version,
+        version,
+        opentxs::ContactData::SectionMap{{sectionName, section2}});
+
+    const auto& data5 = contactDataMethod(data4, "contactValue3", false, false);
+
+    // Verify the group was created.
+    ASSERT_NE(nullptr, data5.Group(sectionName, itemType));
+    // Verify that the item was made primary.
+    const opentxs::Identifier identifier3(opentxs::ContactCredential::ClaimID(
+        "contactDataNym4",
+        sectionName,
+        itemType,
+        NULL_START,
+        NULL_END,
+        "contactValue3"));
+    const auto& contactItem3 = data5.Claim(identifier3);
+    ASSERT_NE(nullptr, contactItem3);
+    ASSERT_TRUE(contactItem3->isPrimary());
+
+    // Add an active contact.
+    const auto& data6 = contactDataMethod(data5, "contactValue4", false, true);
+
+    // Verify that the item was made active.
+    const opentxs::Identifier identifier4(opentxs::ContactCredential::ClaimID(
+        "contactDataNym4",
+        sectionName,
+        itemType,
+        NULL_START,
+        NULL_END,
+        "contactValue4"));
+    const auto& contactItem4 = data6.Claim(identifier4);
+    ASSERT_NE(nullptr, contactItem4);
+    ASSERT_TRUE(contactItem4->isActive());
 }
 
 static const auto& expectedStringOutput =
@@ -619,6 +740,34 @@ TEST_F(Test_ContactData, AddContract_different_versions)
         4);
 }
 
+TEST_F(Test_ContactData, AddEmail)
+{
+    testAddItemMethod2(
+        std::mem_fn<opentxs::ContactData(
+            const std::string&, const bool, const bool) const>(
+            &opentxs::ContactData::AddEmail),
+        opentxs::proto::CONTACTSECTION_COMMUNICATION,
+        opentxs::proto::CITEMTYPE_EMAIL);
+}
+
+// Nothing to test for required version of contact section for email
+// because all current contact item types have been available for all
+// versions of CONTACTSECTION_COMMUNICATION section.
+
+// TEST_F(Test_ContactData, AddEmail_different_versions)
+//{
+//    testAddItemMethod2(
+//        std::mem_fn<opentxs::ContactData(
+//            const std::string&, const bool, const bool) const>(
+//            &opentxs::ContactData::AddEmail),
+//        opentxs::proto::CONTACTSECTION_COMMUNICATION,
+//        opentxs::proto::CITEMTYPE_EMAIL,
+//        5,   // Change this to the old version of the section when a new
+//             // version is added with new item types.
+//        5);  // Change this to the version of the section with the new
+//             // item type.
+//}
+
 TEST_F(Test_ContactData, AddItem_claim)
 {
     opentxs::Claim claim = std::make_tuple(
@@ -799,6 +948,34 @@ TEST_F(Test_ContactData, AddPaymentCode_different_versions)
         4);
 }
 
+TEST_F(Test_ContactData, AddPhoneNumber)
+{
+    testAddItemMethod2(
+        std::mem_fn<opentxs::ContactData(
+            const std::string&, const bool, const bool) const>(
+            &opentxs::ContactData::AddPhoneNumber),
+        opentxs::proto::CONTACTSECTION_COMMUNICATION,
+        opentxs::proto::CITEMTYPE_PHONE);
+}
+
+// Nothing to test for required version of contact section for phone number
+// because all current contact item types have been available for all
+// versions of CONTACTSECTION_COMMUNICATION section.
+
+// TEST_F(Test_ContactData, AddPhoneNumber_different_versions)
+//{
+//    testAddItemMethod2(
+//        std::mem_fn<opentxs::ContactData(
+//            const std::string&, const bool, const bool) const>(
+//            &opentxs::ContactData::AddPhoneNumber),
+//        opentxs::proto::CONTACTSECTION_COMMUNICATION,
+//        opentxs::proto::CITEMTYPE_PHONE,
+//        5,   // Change this to the old version of the section when a new
+//             // version is added with new item types.
+//        5);  // Change this to the version of the section with the new
+//             // item type.
+//}
+
 TEST_F(Test_ContactData, AddPreferredOTServer)
 {
     // Add a server to a group with no primary.
@@ -928,11 +1105,260 @@ TEST_F(Test_ContactData, AddPreferredOTServer)
     ASSERT_FALSE(contactItem5->isPrimary());
 }
 
-TEST_F(Test_ContactData, AddPreferredOTServer_different_versions)
+// Nothing to test for required version of contact section for OTServer
+// because CMITEMTYPE_OPENTXS has been available for all versions of
+// CONTACTSECTION_COMMUNICATION section.
+
+// TEST_F(Test_ContactData, AddPreferredOTServer_different_versions)
+//{
+//}
+
+TEST_F(Test_ContactData, AddSocialMediaProfile)
 {
-    // Nothing to test for required version of contact section for OTServer
-    // because all contact item types have been available for all versions of
-    // CONTACTSECTION_COMMUNICATION section.
+    // Add a profile that only resides in the profile section.
+
+    // Add a profile to a contact with no primary profile.
+    const auto& data2 = contactData_.AddSocialMediaProfile(
+        "profileValue1", opentxs::proto::CITEMTYPE_ABOUTME, false, false);
+    // Verify that the item was made primary.
+    const opentxs::Identifier identifier1(opentxs::ContactCredential::ClaimID(
+        "contactDataNym",
+        opentxs::proto::CONTACTSECTION_PROFILE,
+        opentxs::proto::CITEMTYPE_ABOUTME,
+        NULL_START,
+        NULL_END,
+        "profileValue1"));
+    const auto& contactItem1 = data2.Claim(identifier1);
+    ASSERT_NE(nullptr, contactItem1);
+    ASSERT_TRUE(contactItem1->isPrimary());
+
+    // Add a primary profile.
+    const auto& data3 = data2.AddSocialMediaProfile(
+        "profileValue2", opentxs::proto::CITEMTYPE_ABOUTME, true, false);
+    // Verify that the item was made primary.
+    const opentxs::Identifier identifier2(opentxs::ContactCredential::ClaimID(
+        "contactDataNym",
+        opentxs::proto::CONTACTSECTION_PROFILE,
+        opentxs::proto::CITEMTYPE_ABOUTME,
+        NULL_START,
+        NULL_END,
+        "profileValue2"));
+    const auto& contactItem2 = data3.Claim(identifier2);
+    ASSERT_NE(nullptr, contactItem2);
+    ASSERT_TRUE(contactItem2->isPrimary());
+
+    // Add an active profile.
+    const auto& data4 = data3.AddSocialMediaProfile(
+        "profileValue3", opentxs::proto::CITEMTYPE_ABOUTME, false, true);
+    // Verify that the item was made active.
+    const opentxs::Identifier identifier3(opentxs::ContactCredential::ClaimID(
+        "contactDataNym",
+        opentxs::proto::CONTACTSECTION_PROFILE,
+        opentxs::proto::CITEMTYPE_ABOUTME,
+        NULL_START,
+        NULL_END,
+        "profileValue3"));
+    const auto& contactItem3 = data4.Claim(identifier3);
+    ASSERT_NE(nullptr, contactItem3);
+    ASSERT_TRUE(contactItem3->isActive());
+
+    // Add a profile that resides in the profile and communication sections.
+
+    const auto& data5 = contactData_.AddSocialMediaProfile(
+        "profileValue4", opentxs::proto::CITEMTYPE_LINKEDIN, false, false);
+    // Verify that it was added to the profile section.
+    const opentxs::Identifier identifier4(opentxs::ContactCredential::ClaimID(
+        "contactDataNym",
+        opentxs::proto::CONTACTSECTION_PROFILE,
+        opentxs::proto::CITEMTYPE_LINKEDIN,
+        NULL_START,
+        NULL_END,
+        "profileValue4"));
+    const auto& contactItem4 = data5.Claim(identifier4);
+    ASSERT_NE(nullptr, contactItem4);
+    // Verify that it was added to the communication section.
+    const opentxs::Identifier identifier5(opentxs::ContactCredential::ClaimID(
+        "contactDataNym",
+        opentxs::proto::CONTACTSECTION_COMMUNICATION,
+        opentxs::proto::CITEMTYPE_LINKEDIN,
+        NULL_START,
+        NULL_END,
+        "profileValue4"));
+    const auto& contactItem5 = data5.Claim(identifier5);
+    ASSERT_NE(nullptr, contactItem5);
+
+    // Add a profile that resides in the profile and identifier sections.
+
+    const auto& data6 = data5.AddSocialMediaProfile(
+        "profileValue5", opentxs::proto::CITEMTYPE_YAHOO, false, false);
+    // Verify that it was added to the profile section.
+    const opentxs::Identifier identifier6(opentxs::ContactCredential::ClaimID(
+        "contactDataNym",
+        opentxs::proto::CONTACTSECTION_PROFILE,
+        opentxs::proto::CITEMTYPE_YAHOO,
+        NULL_START,
+        NULL_END,
+        "profileValue5"));
+    const auto& contactItem6 = data6.Claim(identifier6);
+    ASSERT_NE(nullptr, contactItem6);
+    // Verify that it was added to the identifier section.
+    const opentxs::Identifier identifier7(opentxs::ContactCredential::ClaimID(
+        "contactDataNym",
+        opentxs::proto::CONTACTSECTION_IDENTIFIER,
+        opentxs::proto::CITEMTYPE_YAHOO,
+        NULL_START,
+        NULL_END,
+        "profileValue5"));
+    const auto& contactItem7 = data6.Claim(identifier7);
+    ASSERT_NE(nullptr, contactItem7);
+
+    // Add a profile that resides in all three sections.
+
+    const auto& data7 = data6.AddSocialMediaProfile(
+        "profileValue6", opentxs::proto::CITEMTYPE_TWITTER, false, false);
+    // Verify that it was added to the profile section.
+    const opentxs::Identifier identifier8(opentxs::ContactCredential::ClaimID(
+        "contactDataNym",
+        opentxs::proto::CONTACTSECTION_PROFILE,
+        opentxs::proto::CITEMTYPE_TWITTER,
+        NULL_START,
+        NULL_END,
+        "profileValue6"));
+    const auto& contactItem8 = data7.Claim(identifier8);
+    ASSERT_NE(nullptr, contactItem8);
+    // Verify that it was added to the communication section.
+    const opentxs::Identifier identifier9(opentxs::ContactCredential::ClaimID(
+        "contactDataNym",
+        opentxs::proto::CONTACTSECTION_COMMUNICATION,
+        opentxs::proto::CITEMTYPE_TWITTER,
+        NULL_START,
+        NULL_END,
+        "profileValue6"));
+    const auto& contactItem9 = data7.Claim(identifier9);
+    ASSERT_NE(nullptr, contactItem9);
+    // Verify that it was added to the identifier section.
+    const opentxs::Identifier identifier10(opentxs::ContactCredential::ClaimID(
+        "contactDataNym",
+        opentxs::proto::CONTACTSECTION_IDENTIFIER,
+        opentxs::proto::CITEMTYPE_TWITTER,
+        NULL_START,
+        NULL_END,
+        "profileValue6"));
+    const auto& contactItem10 = data7.Claim(identifier10);
+    ASSERT_NE(nullptr, contactItem10);
+}
+
+// Nothing to test for required version of contact sections for social media
+// profiles because all current contact item types have been available for
+// all versions of CONTACTSECTION_COMMUNICATION, CONTACTSECTION_IDENTIFIER,
+// and CONTACTSECTION_PROFILE sections.
+
+// TEST_F(Test_ContactData, AddSocialMediaProfile_different_versions)
+//{
+//    // Add a profile to the CONTACTSECTION_PROFILE section.
+//    testAddItemMethod3(
+//        std::mem_fn<opentxs::ContactData(
+//            const std::string&,
+//            const opentxs::proto::ContactSectionName,
+//            const opentxs::proto::ContactItemType,
+//            const bool,
+//            const bool) const>(&opentxs::ContactData::AddSocialMediaProfile),
+//        opentxs::proto::CONTACTSECTION_PROFILE,
+//        opentxs::proto::CITEMTYPE_TWITTER,
+//        5,   // Change this to the old version of the section when a new
+//             // version is added with new item types.
+//        5);  // Change this to the version of the section with the new
+//             // item type.
+//}
+
+TEST_F(Test_ContactData, BestEmail)
+{
+    // Add a non-active, non-primary email.
+    const auto& data1 = contactData_.AddEmail("emailValue", false, false);
+    // Verify it is the best email.
+    ASSERT_STREQ("emailValue", data1.BestEmail().c_str());
+
+    // Add an active, non-primary email.
+    const auto& data2 = contactData_.AddEmail("activeEmailValue", false, true);
+    // Verify it is the best email.
+    ASSERT_STREQ("activeEmailValue", data2.BestEmail().c_str());
+
+    // Add an active email to a contact data with a primary email (data1).
+    const auto& data3 = data1.AddEmail("activeEmailValue", false, true);
+    // Verify the primary email is the best.
+    ASSERT_STREQ("emailValue", data3.BestEmail().c_str());
+
+    // Add a new primary email.
+    const auto& data4 = data3.AddEmail("primaryEmailValue", true, false);
+    // Verify it is the best email.
+    ASSERT_STREQ("primaryEmailValue", data4.BestEmail().c_str());
+}
+
+TEST_F(Test_ContactData, BestPhoneNumber)
+{
+    // Add a non-active, non-primary phone number.
+    const auto& data1 =
+        contactData_.AddPhoneNumber("phoneNumberValue", false, false);
+    // Verify it is the best phone number.
+    ASSERT_STREQ("phoneNumberValue", data1.BestPhoneNumber().c_str());
+
+    // Add an active, non-primary phone number.
+    const auto& data2 =
+        contactData_.AddPhoneNumber("activePhoneNumberValue", false, true);
+    // Verify it is the best phone number.
+    ASSERT_STREQ("activePhoneNumberValue", data2.BestPhoneNumber().c_str());
+
+    // Add an active phone number to a contact data with a primary phone number
+    // (data1).
+    const auto& data3 =
+        data1.AddPhoneNumber("activePhoneNumberValue", false, true);
+    // Verify the primary phone number is the best.
+    ASSERT_STREQ("phoneNumberValue", data3.BestPhoneNumber().c_str());
+
+    // Add a new primary phone number.
+    const auto& data4 =
+        data3.AddPhoneNumber("primaryPhoneNumberValue", true, false);
+    // Verify it is the best phone number.
+    ASSERT_STREQ("primaryPhoneNumberValue", data4.BestPhoneNumber().c_str());
+}
+
+TEST_F(Test_ContactData, BestSocialMediaProfile)
+{
+    // Add a non-active, non-primary profile.
+    const auto& data1 = contactData_.AddSocialMediaProfile(
+        "profileValue", opentxs::proto::CITEMTYPE_FACEBOOK, false, false);
+    // Verify it is the best profile.
+    ASSERT_STREQ(
+        "profileValue",
+        data1.BestSocialMediaProfile(opentxs::proto::CITEMTYPE_FACEBOOK)
+            .c_str());
+
+    // Add an active, non-primary profile.
+    const auto& data2 = contactData_.AddSocialMediaProfile(
+        "activeProfileValue", opentxs::proto::CITEMTYPE_FACEBOOK, false, true);
+    // Verify it is the best profile.
+    ASSERT_STREQ(
+        "activeProfileValue",
+        data2.BestSocialMediaProfile(opentxs::proto::CITEMTYPE_FACEBOOK)
+            .c_str());
+
+    // Add an active profile to a contact data with a primary profile (data1).
+    const auto& data3 = data1.AddSocialMediaProfile(
+        "activeProfileValue", opentxs::proto::CITEMTYPE_FACEBOOK, false, true);
+    // Verify the primary profile is the best.
+    ASSERT_STREQ(
+        "profileValue",
+        data3.BestSocialMediaProfile(opentxs::proto::CITEMTYPE_FACEBOOK)
+            .c_str());
+
+    // Add a new primary profile.
+    const auto& data4 = data3.AddSocialMediaProfile(
+        "primaryProfileValue", opentxs::proto::CITEMTYPE_FACEBOOK, true, false);
+    // Verify it is the best profile.
+    ASSERT_STREQ(
+        "primaryProfileValue",
+        data4.BestSocialMediaProfile(opentxs::proto::CITEMTYPE_FACEBOOK)
+            .c_str());
 }
 
 TEST_F(Test_ContactData, Claim_found)
@@ -955,7 +1381,7 @@ TEST_F(Test_ContactData, Contracts)
     ASSERT_EQ(1, contracts.size());
 }
 
-TEST_F(Test_ContactData, Contracts_onlyactive_found)
+TEST_F(Test_ContactData, Contracts_onlyactive)
 {
     const auto& data1 = contactData_.AddContract(
         "instrumentDefinitionID1", opentxs::proto::CITEMTYPE_USD, false, true);
@@ -964,15 +1390,6 @@ TEST_F(Test_ContactData, Contracts_onlyactive_found)
     const auto& contracts =
         data2.Contracts(opentxs::proto::CITEMTYPE_USD, true);
     ASSERT_EQ(1, contracts.size());
-}
-
-TEST_F(Test_ContactData, Contracts_onlyactive_not_found)
-{
-    const auto& data1 = contactData_.AddContract(
-        "instrumentDefinitionID1", opentxs::proto::CITEMTYPE_USD, false, false);
-    const auto& contracts =
-        data1.Contracts(opentxs::proto::CITEMTYPE_USD, true);
-    ASSERT_EQ(0, contracts.size());
 }
 
 TEST_F(Test_ContactData, Delete)
@@ -1005,6 +1422,25 @@ TEST_F(Test_ContactData, Delete)
     const auto& data5 = data4.Delete(contactItem2->ID());
     // Verify the section was removed.
     ASSERT_FALSE(data5.Section(opentxs::proto::CONTACTSECTION_IDENTIFIER));
+}
+
+TEST_F(Test_ContactData, EmailAddresses)
+{
+    const auto& data2 = contactData_.AddEmail("email1", true, false);
+    const auto& data3 = data2.AddEmail("email2", false, true);
+    const auto& data4 = data3.AddEmail("email3", false, false);
+
+    auto emails = data4.EmailAddresses(false);
+    ASSERT_TRUE(
+        emails.find("email1") != std::string::npos &&
+        emails.find("email2") != std::string::npos &&
+        emails.find("email3") != std::string::npos);
+
+    emails = data4.EmailAddresses();
+    ASSERT_TRUE(
+        emails.find("email1") != std::string::npos &&
+        emails.find("email2") != std::string::npos);
+    ASSERT_TRUE(emails.find("email3") == std::string::npos);
 }
 
 TEST_F(Test_ContactData, Group_found)
@@ -1089,6 +1525,26 @@ TEST_F(Test_ContactData, Name)
     const auto& data2 = contactData_.SetScope(
         opentxs::proto::CITEMTYPE_INDIVIDUAL, "activeContactItemValue");
     ASSERT_STREQ("activeContactItemValue", data2.Name().c_str());
+}
+
+TEST_F(Test_ContactData, PhoneNumbers)
+{
+    const auto& data2 =
+        contactData_.AddPhoneNumber("phonenumber1", true, false);
+    const auto& data3 = data2.AddPhoneNumber("phonenumber2", false, true);
+    const auto& data4 = data3.AddPhoneNumber("phonenumber3", false, false);
+
+    auto phonenumbers = data4.PhoneNumbers(false);
+    ASSERT_TRUE(
+        phonenumbers.find("phonenumber1") != std::string::npos &&
+        phonenumbers.find("phonenumber2") != std::string::npos &&
+        phonenumbers.find("phonenumber3") != std::string::npos);
+
+    phonenumbers = data4.PhoneNumbers();
+    ASSERT_TRUE(
+        phonenumbers.find("phonenumber1") != std::string::npos &&
+        phonenumbers.find("phonenumber2") != std::string::npos);
+    ASSERT_TRUE(phonenumbers.find("phonenumber3") == std::string::npos);
 }
 
 TEST_F(Test_ContactData, PreferredOTServer)
@@ -1251,6 +1707,31 @@ TEST_F(Test_ContactData, SetScope_different_versions)
         data1.SetScope(opentxs::proto::CITEMTYPE_BOT, "botScope");
 
     ASSERT_EQ(4, data2.Version());
+}
+
+TEST_F(Test_ContactData, SocialMediaProfiles)
+{
+    const auto& data2 = contactData_.AddSocialMediaProfile(
+        "facebook1", opentxs::proto::CITEMTYPE_FACEBOOK, true, false);
+    const auto& data3 = data2.AddSocialMediaProfile(
+        "linkedin1", opentxs::proto::CITEMTYPE_LINKEDIN, false, true);
+    const auto& data4 = data3.AddSocialMediaProfile(
+        "facebook2", opentxs::proto::CITEMTYPE_FACEBOOK, false, false);
+
+    auto profiles =
+        data4.SocialMediaProfiles(opentxs::proto::CITEMTYPE_FACEBOOK, false);
+    ASSERT_TRUE(
+        profiles.find("facebook1") != std::string::npos &&
+        profiles.find("facebook2") != std::string::npos);
+
+    profiles =
+        data4.SocialMediaProfiles(opentxs::proto::CITEMTYPE_LINKEDIN, false);
+    ASSERT_STREQ("linkedin1", profiles.c_str());
+
+    profiles = data4.SocialMediaProfiles(opentxs::proto::CITEMTYPE_FACEBOOK);
+    ASSERT_STREQ("facebook1", profiles.c_str());
+    ASSERT_TRUE(profiles.find("facebook2") == std::string::npos);
+    ASSERT_TRUE(profiles.find("linkedin1") == std::string::npos);
 }
 
 TEST_F(Test_ContactData, Type)

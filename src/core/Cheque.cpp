@@ -52,7 +52,8 @@
 #include "opentxs/core/String.hpp"
 
 #include <irrxml/irrXML.hpp>
-#include <stdint.h>
+
+#include <cstdint>
 #include <cstring>
 #include <ostream>
 #include <string>
@@ -166,9 +167,9 @@ void Cheque::UpdateContents()
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
-int32_t Cheque::ProcessXMLNode(IrrXMLReader*& xml)
+std::int32_t Cheque::ProcessXMLNode(IrrXMLReader*& xml)
 {
-    int32_t nReturnVal = 0;
+    std::int32_t nReturnVal = 0;
 
     // Here we call the parent class first.
     // If the node is found there, or there is some error,
@@ -294,8 +295,8 @@ void Cheque::CancelCheque()
 // That's basically what this function does.
 // Make sure to sign it afterwards.
 bool Cheque::IssueCheque(
-    const int64_t& lAmount,
-    const int64_t& lTransactionNum,
+    const std::int64_t& lAmount,
+    const std::int64_t& lTransactionNum,
     const time64_t& VALID_FROM,
     const time64_t& VALID_TO,  // The expiration date (valid from/to dates) of
                                // the cheque

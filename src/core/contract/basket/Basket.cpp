@@ -53,8 +53,9 @@
 #include "opentxs/core/String.hpp"
 
 #include <irrxml/irrXML.hpp>
-#include <stdint.h>
-#include <stdlib.h>
+
+#include <cstdint>
+#include <cstdlib>
 #include <memory>
 #include <ostream>
 #include <string>
@@ -112,9 +113,9 @@ void Basket::HarvestClosingNumbers(
     const String strNotaryID(theNotaryID);
 
     // The SUB-CURRENCIES first...
-    const uint32_t nCount = static_cast<uint32_t>(Count());
+    const std::uint32_t nCount = static_cast<uint32_t>(Count());
 
-    for (uint32_t i = 0; i < nCount; i++) {
+    for (std::uint32_t i = 0; i < nCount; i++) {
         BasketItem* pRequestItem = At(i);
 
         OT_ASSERT(nullptr != pRequestItem);
@@ -142,7 +143,7 @@ void Basket::HarvestClosingNumbers(
 void Basket::AddRequestSubContract(
     const Identifier& SUB_CONTRACT_ID,
     const Identifier& SUB_ACCOUNT_ID,
-    const int64_t& lClosingTransactionNo)
+    const std::int64_t& lClosingTransactionNo)
 {
     BasketItem* pItem = new BasketItem;
 
@@ -170,7 +171,7 @@ void Basket::AddRequestSubContract(
 // For generating a real basket
 void Basket::AddSubContract(
     const Identifier& SUB_CONTRACT_ID,
-    int64_t lMinimumTransferAmount)
+    std::int64_t lMinimumTransferAmount)
 {
     BasketItem* pItem = new BasketItem;
 
@@ -190,7 +191,7 @@ void Basket::AddSubContract(
 // nIndex.
 // (Each asset account gets its own basketReceipt when an exchange happens.)
 //
-int64_t Basket::GetClosingTransactionNoAt(uint32_t nIndex)
+std::int64_t Basket::GetClosingTransactionNoAt(std::uint32_t nIndex)
 {
     OT_ASSERT_MSG(
         (nIndex < m_dequeItems.size()),
@@ -206,20 +207,20 @@ int64_t Basket::GetClosingTransactionNoAt(uint32_t nIndex)
     return pItem->lClosingTransactionNo;
 }
 
-BasketItem* Basket::At(uint32_t nIndex)
+BasketItem* Basket::At(std::uint32_t nIndex)
 {
     if (nIndex < m_dequeItems.size()) return m_dequeItems.at(nIndex);
 
     return nullptr;
 }
 
-int32_t Basket::Count() const
+std::int32_t Basket::Count() const
 {
-    return static_cast<int32_t>(m_dequeItems.size());
+    return static_cast<std::int32_t>(m_dequeItems.size());
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
-int32_t Basket::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
+std::int32_t Basket::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 {
     const String strNodeName(xml->getNodeName());
 
@@ -322,7 +323,7 @@ void Basket::GenerateContents(OTStringXML& xmlUnsigned, bool bHideAccountID)
         tag.add_tag(tagRequest);
     }
 
-    for (int32_t i = 0; i < Count(); i++) {
+    for (std::int32_t i = 0; i < Count(); i++) {
         BasketItem* pItem = m_dequeItems[i];
 
         OT_ASSERT_MSG(
@@ -372,7 +373,7 @@ void Basket::CalculateContractID(Identifier& newID) const
     newID.CalculateDigest(xmlUnsigned);
 }
 
-Basket::Basket(int32_t nCount, int64_t lMinimumTransferAmount)
+Basket::Basket(std::int32_t nCount, std::int64_t lMinimumTransferAmount)
     : Contract()
     , m_nSubCount(nCount)
     , m_lMinimumTransfer(lMinimumTransferAmount)

@@ -41,17 +41,6 @@
 
 #include "opentxs/Internal.hpp"
 
-#include "opentxs/core/Flag.hpp"
-#include "opentxs/core/Lockable.hpp"
-#include "opentxs/ui/ActivityThread.hpp"
-#include "opentxs/ui/ActivityThreadItem.hpp"
-
-#include "List.hpp"
-
-#include <map>
-#include <set>
-#include <tuple>
-
 namespace std
 {
 using STORAGEID = std::
@@ -61,9 +50,7 @@ template <>
 struct less<STORAGEID> {
     bool operator()(const STORAGEID& lhs, const STORAGEID& rhs) const
     {
-        /* TODO: these lines will cause a segfault in the clang-4 ast parser.
-         * Remove the workaround below once Qubes has a Fedora-27 template
-         available.
+        /* TODO: these lines will cause a segfault in the clang-5 ast parser.
                 const auto & [ lID, lBox, lAccount ] = lhs;
                 const auto & [ rID, rBox, rAccount ] = rhs;
         */
@@ -106,9 +93,7 @@ struct less<STORAGEID> {
 
 namespace opentxs::ui::implementation
 {
-using ActivityThreadPimpl = OTUIActivityThreadItem;
-/** item id, box, accountID */
-using ActivityThreadID = std::tuple<OTIdentifier, StorageBox, OTIdentifier>;
+using ActivityThreadPimpl = std::unique_ptr<opentxs::ui::ActivityThreadItem>;
 /** timestamp, index */
 using ActivityThreadSortKey =
     std::pair<std::chrono::system_clock::time_point, std::uint64_t>;
@@ -118,6 +103,7 @@ using ActivityThreadOuter =
 using ActivityThreadReverse = std::map<ActivityThreadID, ActivityThreadSortKey>;
 using ActivityThreadType = List<
     opentxs::ui::ActivityThread,
+    ActivityThreadParent,
     opentxs::ui::ActivityThreadItem,
     ActivityThreadID,
     ActivityThreadPimpl,
@@ -145,7 +131,7 @@ public:
     ~ActivityThread();
 
 private:
-    friend api::implementation::UI;
+    friend Factory;
 
     const api::Activity& activity_;
     const api::client::Sync& sync_;
