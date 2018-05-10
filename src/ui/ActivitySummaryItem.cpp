@@ -202,21 +202,27 @@ std::string ActivitySummaryItem::find_text(const ItemLocator& locator) const
     switch (box) {
         case StorageBox::MAILINBOX:
         case StorageBox::MAILOUTBOX: {
-            auto mail =
+            auto text =
                 activity_.MailText(nym_id_, Identifier::Factory(itemID), box);
 
-            if (mail) {
+            if (text) {
 
-                return *mail;
+                return *text;
+            } else {
+                otErr << OT_METHOD << __FUNCTION__
+                      << ": Mail item does not exist." << std::endl;
             }
         } break;
         case StorageBox::INCOMINGCHEQUE:
         case StorageBox::OUTGOINGCHEQUE: {
-            auto mail = activity_.PaymentText(nym_id_, itemID, accountID);
+            auto text = activity_.PaymentText(nym_id_, itemID, accountID);
 
-            if (mail) {
+            if (text) {
 
-                return *mail;
+                return *text;
+            } else {
+                otErr << OT_METHOD << __FUNCTION__
+                      << ": Cheque item does not exist." << std::endl;
             }
         } break;
         default: {
@@ -239,6 +245,7 @@ void ActivitySummaryItem::get_text()
             lock.lock();
             text_ = text;
             lock.unlock();
+            UpdateNotify();
         }
 
         Log::Sleep(std::chrono::milliseconds(GET_TEXT_MILLISECONDS));
