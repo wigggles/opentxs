@@ -121,8 +121,12 @@
 #include <opentxs/ui/ActivitySummaryItem.hpp>
 #include <opentxs/ui/ActivityThread.hpp>
 #include <opentxs/ui/ActivityThreadItem.hpp>
+#include <opentxs/ui/Contact.hpp>
+#include <opentxs/ui/ContactItem.hpp>
 #include <opentxs/ui/ContactList.hpp>
 #include <opentxs/ui/ContactListItem.hpp>
+#include <opentxs/ui/ContactSection.hpp>
+#include <opentxs/ui/ContactSubsection.hpp>
 #include <opentxs/ui/MessagableList.hpp>
 #include <opentxs/ui/PayableList.hpp>
 #include <opentxs/ui/PayableListItem.hpp>

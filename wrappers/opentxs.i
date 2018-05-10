@@ -17,6 +17,7 @@
 #include "opentxs/client/NymData.hpp"
 #include "opentxs/client/OTRecordList.hpp"
 #include "opentxs/client/SwigWrap.hpp"
+#include "opentxs/contact/ContactSection.hpp"
 #include "opentxs/core/crypto/OTCallback.hpp"
 #include "opentxs/core/crypto/OTCaller.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
@@ -42,6 +43,10 @@
 #include "opentxs/ui/ActivitySummaryItem.hpp"
 #include "opentxs/ui/ActivityThread.hpp"
 #include "opentxs/ui/ActivityThreadItem.hpp"
+#include "opentxs/ui/Contact.hpp"
+#include "opentxs/ui/ContactItem.hpp"
+#include "opentxs/ui/ContactSection.hpp"
+#include "opentxs/ui/ContactSubsection.hpp"
 #include "opentxs/ui/ContactList.hpp"
 #include "opentxs/ui/ContactListItem.hpp"
 #include "opentxs/ui/ListRow.hpp"
@@ -69,6 +74,7 @@
 %include "inttypes.i";
 %include "std_pair.i"
 %include "std_string.i";
+%include "std_vector.i";
 %include "typemaps.i"
 
 namespace std {
@@ -94,6 +100,10 @@ typedef int64_t time64_t;
 %include "../../include/opentxs/ui/ContactList.hpp"
 %include "../../include/opentxs/ui/MessagableList.hpp"
 %include "../../include/opentxs/ui/PayableList.hpp"
+%include "../../include/opentxs/ui/ContactItem.hpp"
+%include "../../include/opentxs/ui/ContactSubsection.hpp"
+%include "../../include/opentxs/ui/ContactSection.hpp"
+%include "../../include/opentxs/ui/Contact.hpp"
 %include "../../include/opentxs/network/zeromq/Message.hpp"
 %include "../../include/opentxs/Types.hpp"
 %include "../../include/opentxs/network/zeromq/Socket.hpp"

@@ -14,7 +14,7 @@
  *       -- Scripted smart contracts.
  *
  *  EMAIL:
- *  fellowtraveler\opentransactions.org
+ *  fellowtraveler@opentransactions.org
  *
  *  WEBSITE:
  *  http://www.opentransactions.org/
@@ -36,51 +36,50 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_API_UI_HPP
-#define OPENTXS_API_UI_HPP
+#ifndef OPENTXS_UI_CONTACTSUBSECTION_HPP
+#define OPENTXS_UI_CONTACTSUBSECTION_HPP
 
 #include "opentxs/Forward.hpp"
 
+#include "opentxs/ui/ListRow.hpp"
 #include "opentxs/Proto.hpp"
+
+#include <string>
+
+#ifdef SWIG
+// clang-format off
+%rename(UIContactSubsection) opentxs::ui::ContactSubsection;
+// clang-format on
+#endif  // SWIG
 
 namespace opentxs
 {
-namespace api
+namespace ui
 {
-class UI
+class ContactSubsection : virtual public ListRow
 {
 public:
-    EXPORT virtual const ui::ActivitySummary& ActivitySummary(
-        const Identifier& nymID) const = 0;
-    EXPORT virtual const ui::ActivityThread& ActivityThread(
-        const Identifier& nymID,
-        const Identifier& threadID) const = 0;
-    EXPORT virtual const ui::Contact& Contact(
-        const Identifier& contactID) const = 0;
-    EXPORT virtual const ui::ContactList& ContactList(
-        const Identifier& nymID) const = 0;
-    EXPORT virtual const ui::MessagableList& MessagableList(
-        const Identifier& nymID) const = 0;
+    EXPORT virtual std::string Name(const std::string& lang) const = 0;
+    EXPORT virtual const ContactItem& First() const = 0;
+    EXPORT virtual const ContactItem& Next() const = 0;
 #ifndef SWIG
-    EXPORT virtual const ui::PayableList& PayableList(
-        const Identifier& nymID,
-        proto::ContactItemType currency) const = 0;
+    EXPORT virtual proto::ContactItemType Type() const = 0;
 #endif
-    EXPORT virtual const ui::PayableList& PayableList(
-        const Identifier& nymID,
-        std::uint32_t currency) const = 0;
+    EXPORT virtual int SubsectionType() const = 0;
 
-    virtual ~UI() = default;
+    virtual void Update(const opentxs::ContactGroup& group) = 0;
+
+    EXPORT virtual ~ContactSubsection() = default;
 
 protected:
-    UI() = default;
+    ContactSubsection() = default;
 
 private:
-    UI(const UI&) = delete;
-    UI(UI&&) = delete;
-    UI& operator=(const UI&) = delete;
-    UI& operator=(UI&&) = delete;
+    ContactSubsection(const ContactSubsection&) = delete;
+    ContactSubsection(ContactSubsection&&) = delete;
+    ContactSubsection& operator=(const ContactSubsection&) = delete;
+    ContactSubsection& operator=(ContactSubsection&&) = delete;
 };
-}  // namespace api
+}  // namespace ui
 }  // namespace opentxs
-#endif  // OPENTXS_API_UI_HPP
+#endif  // OPENTXS_UI_CONTACTSUBSECTION_HPP

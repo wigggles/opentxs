@@ -36,41 +36,38 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_UI_ROW_IMPLEMENTATION_HPP
-#define OPENTXS_UI_ROW_IMPLEMENTATION_HPP
+#ifndef OPENTXS_UI_CONTACT_SECTION_PARENT_HPP
+#define OPENTXS_UI_CONTACT_SECTION_PARENT_HPP
 
 #include "opentxs/Internal.hpp"
 
-#include "RowType.hpp"
-#include "Widget.hpp"
+#include <string>
 
 namespace opentxs::ui::implementation
 {
-template <typename InterfaceType, typename ParentType, typename IdentifierType>
-class Row : public RowType<InterfaceType, ParentType, IdentifierType>,
-            public Widget,
-            public Lockable
+class ContactSectionParent
 {
+public:
+    using ContactSectionIDType =
+        std::pair<proto::ContactSectionName, proto::ContactItemType>;
+    using ContactSectionSortKey = int;
+
+    virtual std::string ContactID() const = 0;
+    virtual bool last(const ContactSectionIDType& id) const = 0;
+    virtual void reindex_item(
+        const ContactSectionIDType& id,
+        const ContactSectionSortKey& newIndex) const = 0;
+    virtual proto::ContactSectionName Type() const = 0;
+    virtual OTIdentifier WidgetID() const = 0;
+
+    virtual ~ContactSectionParent() = default;
+
 protected:
-    const api::ContactManager& contact_;
-
-    Row(const ParentType& parent,
-        const network::zeromq::Context& zmq,
-        const api::ContactManager& contact,
-        const IdentifierType id,
-        const bool valid)
-        : RowType<InterfaceType, ParentType, IdentifierType>(parent, id, valid)
-        , Widget(zmq, parent.WidgetID())
-        , contact_(contact)
-    {
-    }
-    Row() = delete;
-    Row(const Row&) = delete;
-    Row(Row&&) = delete;
-    Row& operator=(const Row&) = delete;
-    Row& operator=(Row&&) = delete;
-
-    virtual ~Row() = default;
+    ContactSectionParent() = default;
+    ContactSectionParent(const ContactSectionParent&) = delete;
+    ContactSectionParent(ContactSectionParent&&) = delete;
+    ContactSectionParent& operator=(const ContactSectionParent&) = delete;
+    ContactSectionParent& operator=(ContactSectionParent&&) = delete;
 };
 }  // opentxs::ui::implementation
-#endif  // OPENTXS_UI_ROW_IMPLEMENTATION_HPP
+#endif  // OPENTXS_UI_CONTACT_SECTION_PARENT_HPP

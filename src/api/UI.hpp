@@ -51,6 +51,7 @@ public:
     const ui::ActivityThread& ActivityThread(
         const Identifier& nymID,
         const Identifier& threadID) const override;
+    const ui::Contact& Contact(const Identifier& contactID) const override;
     const ui::ContactList& ContactList(const Identifier& nymID) const override;
     const ui::MessagableList& MessagableList(
         const Identifier& nymID) const override;
@@ -72,6 +73,7 @@ private:
     using ActivityThreadID = std::pair<Identifier, Identifier>;
     using ActivityThreadMap =
         std::map<ActivityThreadID, std::unique_ptr<ui::ActivityThread>>;
+    using ContactMap = std::map<OTIdentifier, std::unique_ptr<ui::Contact>>;
     using ContactListMap =
         std::map<Identifier, std::unique_ptr<ui::ContactList>>;
     using MessagableListMap =
@@ -86,6 +88,7 @@ private:
     const api::client::Sync& sync_;
     const Flag& running_;
     mutable ActivitySummaryMap activity_summaries_{};
+    mutable ContactMap contacts_{};
     mutable ContactListMap contact_lists_{};
     mutable MessagableListMap messagable_lists_{};
     mutable PayableListMap payable_lists_{};

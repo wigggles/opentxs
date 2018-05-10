@@ -36,41 +36,38 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_UI_ROW_IMPLEMENTATION_HPP
-#define OPENTXS_UI_ROW_IMPLEMENTATION_HPP
+#ifndef OPENTXS_UI_ROW_TYPE_HPP
+#define OPENTXS_UI_ROW_TYPE_HPP
 
 #include "opentxs/Internal.hpp"
-
-#include "RowType.hpp"
-#include "Widget.hpp"
 
 namespace opentxs::ui::implementation
 {
 template <typename InterfaceType, typename ParentType, typename IdentifierType>
-class Row : public RowType<InterfaceType, ParentType, IdentifierType>,
-            public Widget,
-            public Lockable
+class RowType : virtual public InterfaceType
 {
-protected:
-    const api::ContactManager& contact_;
+public:
+    bool Last() const override { return parent_.last(id_); }
+    bool Valid() const override { return valid_; }
 
-    Row(const ParentType& parent,
-        const network::zeromq::Context& zmq,
-        const api::ContactManager& contact,
-        const IdentifierType id,
-        const bool valid)
-        : RowType<InterfaceType, ParentType, IdentifierType>(parent, id, valid)
-        , Widget(zmq, parent.WidgetID())
-        , contact_(contact)
+protected:
+    const ParentType& parent_;
+    const IdentifierType id_;
+    const bool valid_{false};
+
+    RowType(const ParentType& parent, const IdentifierType id, const bool valid)
+        : parent_(parent)
+        , id_(id)
+        , valid_(valid)
     {
     }
-    Row() = delete;
-    Row(const Row&) = delete;
-    Row(Row&&) = delete;
-    Row& operator=(const Row&) = delete;
-    Row& operator=(Row&&) = delete;
+    RowType() = delete;
+    RowType(const RowType&) = delete;
+    RowType(RowType&&) = delete;
+    RowType& operator=(const RowType&) = delete;
+    RowType& operator=(RowType&&) = delete;
 
-    virtual ~Row() = default;
+    virtual ~RowType() = default;
 };
 }  // opentxs::ui::implementation
-#endif  // OPENTXS_UI_ROW_IMPLEMENTATION_HPP
+#endif  // OPENTXS_UI_ROW_TYPE_HPP

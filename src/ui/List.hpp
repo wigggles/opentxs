@@ -136,7 +136,11 @@ protected:
         OT_ASSERT(verify_lock(lock))
 
         valid_iterators();
+        /* TODO: this line will cause a segfault in the clang-5 ast parser.
         const auto & [ id, item ] = *inner_;
+        */
+        const auto& id = std::get<0>(*inner_);
+        const auto& item = std::get<1>(*inner_);
         last_id_ = id;
 
         OT_ASSERT(item)
@@ -159,6 +163,8 @@ protected:
         for (const auto& id : deleteIDs) {
             delete_item(lock, id);
         }
+
+        UpdateNotify();
     }
     void delete_item(const Lock& lock, const IDType& id) const
     {
@@ -310,7 +316,8 @@ protected:
         const Lock& lock,
         const IDType& id,
         const SortKeyType& oldIndex,
-        const SortKeyType& newIndex) const
+        const SortKeyType& newIndex,
+        void* custom = nullptr) const
     {
         OT_ASSERT(verify_lock(lock));
         OT_ASSERT(1 == items_.count(oldIndex))
@@ -339,6 +346,10 @@ protected:
             items_.erase(index);
         }
 
+        if (nullptr != custom) {
+            update(row, custom);
+        }
+
         names_[id] = newIndex;
         items_[newIndex].emplace(id, std::move(row));
     }
@@ -346,6 +357,7 @@ protected:
     {
         return (lhs == rhs);
     }
+    virtual void update(PimplType& row, const void* custom) const {}
     void valid_iterators() const
     {
         OT_ASSERT(outer_end() != outer_)
@@ -394,7 +406,7 @@ protected:
             return;
         }
 
-        reindex_item(lock, id, oldIndex, index);
+        reindex_item(lock, id, oldIndex, index, custom);
         UpdateNotify();
     }
 
