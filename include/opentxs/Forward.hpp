@@ -149,6 +149,10 @@ class PayableListItem;
 class ListRow;
 class MessagableList;
 class PayableList;
+class Profile;
+class ProfileItem;
+class ProfileSection;
+class ProfileSubsection;
 }  // namespace opentxs::ui
 
 class Account;

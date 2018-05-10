@@ -4263,6 +4263,11 @@ const ui::PayableList& SwigWrap::PayableList(
     return OT::App().UI().PayableList(Identifier(nymID), currency);
 }
 
+const ui::Profile& SwigWrap::Profile(const std::string& contactID)
+{
+    return OT::App().UI().Profile(Identifier(contactID));
+}
+
 const network::zeromq::Context& SwigWrap::ZMQ()
 {
     return OT::App().ZMQ().Context();

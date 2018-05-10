@@ -53,6 +53,7 @@
 #include "opentxs/ui/ContactList.hpp"
 #include "opentxs/ui/MessagableList.hpp"
 #include "opentxs/ui/PayableList.hpp"
+#include "opentxs/ui/Profile.hpp"
 #include "opentxs/Types.hpp"
 
 #include <map>
@@ -70,9 +71,11 @@ api::UI* Factory::UI(
     const api::Activity& activity,
     const api::ContactManager& contact,
     const api::client::Sync& sync,
+    const api::client::Wallet& wallet,
     const Flag& running)
 {
-    return new api::implementation::UI(zmq, activity, contact, sync, running);
+    return new api::implementation::UI(
+        zmq, activity, contact, sync, wallet, running);
 }
 }  // namespace opentxs
 
@@ -83,11 +86,13 @@ UI::UI(
     const api::Activity& activity,
     const api::ContactManager& contact,
     const api::client::Sync& sync,
+    const api::client::Wallet& wallet,
     const Flag& running)
     : zmq_(zmq)
     , activity_(activity)
     , contact_(contact)
     , sync_(sync)
+    , wallet_(wallet)
     , running_(running)
     , activity_summaries_()
     , contacts_()
@@ -213,6 +218,25 @@ const ui::PayableList& UI::PayableList(
 {
     return PayableList(
         nymID, static_cast<const proto::ContactItemType>(currency));
+}
+
+const ui::Profile& UI::Profile(const Identifier& contactID) const
+{
+    Lock lock(lock_);
+    auto id = Identifier::Factory(contactID);
+    auto it = profiles_.find(id);
+
+    if (profiles_.end() == it) {
+        it = profiles_
+                 .emplace(
+                     std::move(id),
+                     Factory::ProfileWidget(zmq_, contact_, wallet_, contactID))
+                 .first;
+    }
+
+    OT_ASSERT(it->second)
+
+    return *(it->second);
 }
 
 UI::~UI() {}

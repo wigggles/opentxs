@@ -119,6 +119,12 @@ class ContactSubsection;
 class ContactSubsectionParent;
 class MessagableList;
 class PayableList;
+class Profile;
+class ProfileParent;
+class ProfileSection;
+class ProfileSectionParent;
+class ProfileSubsection;
+class ProfileSubsectionParent;
 
 /** item id, box, accountID */
 using ActivityThreadID = std::tuple<OTIdentifier, StorageBox, OTIdentifier>;

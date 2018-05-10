@@ -167,6 +167,29 @@ public:
         const std::string& name,
         const std::string& paymentcode,
         const proto::ContactItemType& currency);
+    static ui::Profile* ProfileWidget(
+        const network::zeromq::Context& zmq,
+        const api::ContactManager& contact,
+        const api::client::Wallet& wallet,
+        const Identifier& nymID);
+    static ui::ProfileItem* ProfileItemWidget(
+        const network::zeromq::Context& zmq,
+        const api::ContactManager& contact,
+        const api::client::Wallet& wallet,
+        const ui::implementation::ProfileSubsectionParent& parent,
+        const ContactItem& item);
+    static ui::ProfileSection* ProfileSectionWidget(
+        const network::zeromq::Context& zmq,
+        const api::ContactManager& contact,
+        const api::client::Wallet& wallet,
+        const ui::implementation::ProfileParent& parent,
+        const ContactSection& section);
+    static ui::ProfileSubsection* ProfileSubsectionWidget(
+        const network::zeromq::Context& zmq,
+        const api::ContactManager& contact,
+        const api::client::Wallet& wallet,
+        const ui::implementation::ProfileSectionParent& parent,
+        const ContactGroup& group);
     static api::client::ServerAction* ServerAction(
         const OT_API& otapi,
         const OTAPI_Exec& exec,
@@ -190,8 +213,11 @@ public:
         const api::Activity& activity,
         const api::ContactManager& contact,
         const api::client::Sync& sync,
+        const api::client::Wallet& wallet,
         const Flag& running);
-    static api::client::Wallet* Wallet(api::Native& ot);
+    static api::client::Wallet* Wallet(
+        const api::Native& ot,
+        const network::zeromq::Context& zmq);
     static api::client::Workflow* Workflow(
         const api::Activity& activity,
         const api::ContactManager& contact,
