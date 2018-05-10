@@ -103,7 +103,7 @@ const std::map<proto::ContactSectionName, std::set<proto::ContactItemType>>
          }},
         {proto::CONTACTSECTION_PROFILE,
          {
-             proto::CITEMTYPE_FACEBOOK,  proto::CITEMTYPE_GOGGLE,
+             proto::CITEMTYPE_FACEBOOK,  proto::CITEMTYPE_GOOGLE,
              proto::CITEMTYPE_LINKEDIN,  proto::CITEMTYPE_VK,
              proto::CITEMTYPE_ABOUTME,   proto::CITEMTYPE_ONENAME,
              proto::CITEMTYPE_TWITTER,   proto::CITEMTYPE_MEDIUM,
@@ -136,7 +136,7 @@ const std::map<proto::ContactSectionName, std::map<proto::ContactItemType, int>>
          }},
         {proto::CONTACTSECTION_PROFILE,
          {
-             {proto::CITEMTYPE_FACEBOOK, 0},  {proto::CITEMTYPE_GOGGLE, 11},
+             {proto::CITEMTYPE_FACEBOOK, 0},  {proto::CITEMTYPE_GOOGLE, 11},
              {proto::CITEMTYPE_LINKEDIN, 1},  {proto::CITEMTYPE_VK, 12},
              {proto::CITEMTYPE_ABOUTME, 2},   {proto::CITEMTYPE_ONENAME, 13},
              {proto::CITEMTYPE_TWITTER, 3},   {proto::CITEMTYPE_MEDIUM, 14},
