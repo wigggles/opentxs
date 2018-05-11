@@ -152,6 +152,13 @@ bool NymData::AddPhoneNumber(
 
 bool NymData::AddPreferredOTServer(const std::string& id, const bool primary)
 {
+    if (id.empty()) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Invalid server id."
+              << std::endl;
+
+        return false;
+    }
+
     return nym().AddPreferredOTServer(Identifier(id), primary);
 }
 
@@ -306,7 +313,7 @@ std::string NymData::PhoneNumbers(bool active) const
 
 std::string NymData::PreferredOTServer() const
 {
-    return String(data().PreferredOTServer()).Get();
+    return data().PreferredOTServer()->str();
 }
 
 std::string NymData::PrintContactData() const
@@ -357,6 +364,22 @@ std::string NymData::SocialMediaProfiles(
     bool active) const
 {
     return Nym().SocialMediaProfiles(type, active);
+}
+
+const std::set<std::uint32_t> NymData::SocialMediaProfileTypes() const
+{
+    const auto& profileTypes = Nym().SocialMediaProfileTypes();
+
+    std::set<std::uint32_t> profileNums;
+    std::transform(
+        profileTypes.begin(),
+        profileTypes.end(),
+        std::inserter(profileNums, profileNums.end()),
+        [](proto::ContactItemType itemType) -> std::uint32_t {
+            return static_cast<std::uint32_t>(itemType);
+        });
+
+    return profileNums;
 }
 
 proto::ContactItemType NymData::Type() const { return data().Type(); }

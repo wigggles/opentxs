@@ -195,6 +195,7 @@ public:
     EXPORT std::string SocialMediaProfiles(
         const proto::ContactItemType type,
         bool active = true) const;
+    const std::set<proto::ContactItemType> SocialMediaProfileTypes() const;
     EXPORT const NymIDSource& Source() const { return *source_; }
     EXPORT std::unique_ptr<OTPassword> TransportKey(Data& pubkey) const;
     EXPORT std::unique_ptr<proto::VerificationSet> VerificationSet() const;
