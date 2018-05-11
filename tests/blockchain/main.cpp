@@ -36,21 +36,11 @@
  *
  ************************************************************/
 
+#include <gtest/gtest.h>
 #include "OTTestEnvironment.hpp"
 
-#include "opentxs/OT.hpp"
-#include "opentxs/Types.hpp"
-
-void OTTestEnvironment::SetUp() {
-	opentxs::ArgList args;
-  opentxs::OT::ClientFactory(args);
+int main(int argc, char **argv) {
+  ::testing::AddGlobalTestEnvironment(new OTTestEnvironment());
+  ::testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
 }
-
-void OTTestEnvironment::TearDown() {
-	opentxs::OT::Cleanup();
-}
-
-OTTestEnvironment::~OTTestEnvironment() {
-	// TODO Auto-generated destructor stub
-}
-
