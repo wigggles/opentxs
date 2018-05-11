@@ -69,34 +69,8 @@ public:
     NymData(NymData&&) = default;
 
 #ifndef SWIG
-    std::string AddChildKeyCredential(
-        const Identifier& strMasterID,
-        const NymParameters& nymParameters);
-    bool AddClaim(const Claim& claim);
-#endif
-    bool AddEmail(
-        const std::string& value,
-        const bool primary,
-        const bool active);
-#ifndef SWIG
     const proto::CredentialIndex asPublicNym() const;
 #endif
-    bool AddPhoneNumber(
-        const std::string& value,
-        const bool primary,
-        const bool active);
-#ifndef SWIG
-    bool AddSocialMediaProfile(
-        const std::string& value,
-        const proto::ContactItemType type,
-        const bool primary,
-        const bool active);
-#endif
-    bool AddSocialMediaProfile(
-        const std::string& value,
-        const std::uint32_t type,
-        const bool primary,
-        const bool active);
     std::string BestEmail() const;
     std::string BestPhoneNumber() const;
     std::string BestSocialMediaProfile(const std::uint32_t type) const;
@@ -128,6 +102,72 @@ public:
     std::string PhoneNumbers(bool active = true) const;
     std::string PreferredOTServer() const;
     std::string PrintContactData() const;
+    std::string SocialMediaProfiles(
+        const std::uint32_t type,
+        bool active = true) const;
+#ifndef SWIG
+    std::string SocialMediaProfiles(
+        const proto::ContactItemType type,
+        bool active = true) const;
+#endif
+    const std::set<std::uint32_t> SocialMediaProfileTypes() const;
+#ifndef SWIG
+    proto::ContactItemType Type() const;
+#endif
+    bool Valid() const;
+#ifndef SWIG
+    std::unique_ptr<proto::VerificationSet> VerificationSet() const;
+#endif
+
+#ifndef SWIG
+    std::string AddChildKeyCredential(
+        const Identifier& strMasterID,
+        const NymParameters& nymParameters);
+    bool AddClaim(const Claim& claim);
+    bool AddContract(
+        const std::string& instrumentDefinitionID,
+        const proto::ContactItemType currency,
+        const bool primary,
+        const bool active);
+#endif
+    bool AddContract(
+        const std::string& instrumentDefinitionID,
+        const std::uint32_t currency,
+        const bool primary,
+        const bool active);
+    bool AddEmail(
+        const std::string& value,
+        const bool primary,
+        const bool active);
+#ifndef SWIG
+    bool AddPaymentCode(
+        const std::string& code,
+        const proto::ContactItemType currency,
+        const bool primary,
+        const bool active);
+#endif
+    bool AddPaymentCode(
+        const std::string& code,
+        const std::uint32_t currency,
+        const bool primary,
+        const bool active);
+    bool AddPhoneNumber(
+        const std::string& value,
+        const bool primary,
+        const bool active);
+    bool AddPreferredOTServer(const std::string& id, const bool primary);
+#ifndef SWIG
+    bool AddSocialMediaProfile(
+        const std::string& value,
+        const proto::ContactItemType type,
+        const bool primary,
+        const bool active);
+#endif
+    bool AddSocialMediaProfile(
+        const std::string& value,
+        const std::uint32_t type,
+        const bool primary,
+        const bool active);
     bool SetAlias(const std::string& alias);
 #ifndef SWIG
     bool SetContactData(const proto::ContactData& data);
@@ -140,43 +180,6 @@ public:
         const std::uint32_t type,
         const std::string& name,
         const bool primary);
-    std::string SocialMediaProfiles(
-        const std::uint32_t type,
-        bool active = true) const;
-#ifndef SWIG
-    std::string SocialMediaProfiles(
-        const proto::ContactItemType type,
-        bool active = true) const;
-    proto::ContactItemType Type() const;
-#endif
-    bool Valid() const;
-#ifndef SWIG
-    std::unique_ptr<proto::VerificationSet> VerificationSet() const;
-
-    bool AddContract(
-        const std::string& instrumentDefinitionID,
-        const proto::ContactItemType currency,
-        const bool primary,
-        const bool active);
-#endif
-    bool AddContract(
-        const std::string& instrumentDefinitionID,
-        const std::uint32_t currency,
-        const bool primary,
-        const bool active);
-#ifndef SWIG
-    bool AddPaymentCode(
-        const std::string& code,
-        const proto::ContactItemType currency,
-        const bool primary,
-        const bool active);
-#endif
-    bool AddPaymentCode(
-        const std::string& code,
-        const std::uint32_t currency,
-        const bool primary,
-        const bool active);
-    bool AddPreferredOTServer(const std::string& id, const bool primary);
 #ifndef SWIG
     bool SetVerificationSet(const proto::VerificationSet& data);
 #endif

@@ -197,8 +197,7 @@ bool Nym::add_contact_credential(
     for (auto& it : m_mapCredentialSets) {
         if (nullptr != it.second) {
             if (it.second->hasCapability(NymCapability::SIGN_CHILDCRED)) {
-                it.second->AddContactCredential(data);
-                added = true;
+                added = it.second->AddContactCredential(data);
 
                 break;
             }
@@ -219,8 +218,7 @@ bool Nym::add_verification_credential(
     for (auto& it : m_mapCredentialSets) {
         if (nullptr != it.second) {
             if (it.second->hasCapability(NymCapability::SIGN_CHILDCRED)) {
-                it.second->AddVerificationCredential(data);
-                added = true;
+                added = it.second->AddVerificationCredential(data);
 
                 break;
             }
@@ -2873,7 +2871,6 @@ bool Nym::SetCommonName(const std::string& name)
     OT_ASSERT(contact_data_);
 
     return set_contact_data(lock, contact_data_->Serialize());
-    ;
 }
 
 bool Nym::SetContactData(const proto::ContactData& data)
@@ -2881,7 +2878,7 @@ bool Nym::SetContactData(const proto::ContactData& data)
     Lock lock(lock_);
 
     contact_data_.reset(
-        new ContactData(String(m_nymID).Get(), NYM_CONTACT_DATA_VERSION, data));
+        new ContactData(m_nymID->str(), NYM_CONTACT_DATA_VERSION, data));
 
     return set_contact_data(lock, data);
 }
@@ -3005,6 +3002,11 @@ std::string Nym::SocialMediaProfiles(
     OT_ASSERT(contact_data_);
 
     return contact_data_->SocialMediaProfiles(type, active);
+}
+
+const std::set<proto::ContactItemType> Nym::SocialMediaProfileTypes() const
+{
+    return contact_data_->SocialMediaProfileTypes();
 }
 
 std::unique_ptr<OTPassword> Nym::TransportKey(Data& pubkey) const
