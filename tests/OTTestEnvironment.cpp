@@ -43,7 +43,7 @@
 
 void OTTestEnvironment::SetUp() {
 	opentxs::ArgList args;
-	opentxs::OT::ClientFactory(args);
+  opentxs::OT::ClientFactory(args);
 }
 
 void OTTestEnvironment::TearDown() {
