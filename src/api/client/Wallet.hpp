@@ -202,7 +202,7 @@ private:
 
     friend Factory;
 
-    Native& ot_;
+    const Native& ot_;
     mutable NymMap nym_map_;
     mutable ServerMap server_map_;
     mutable UnitMap unit_map_;
@@ -217,6 +217,7 @@ private:
     mutable std::map<std::string, std::mutex> peer_lock_;
     mutable std::mutex nymfile_map_lock_;
     mutable std::map<Identifier, std::mutex> nymfile_lock_;
+    OTZMQPublishSocket nym_publisher_;
 
     std::mutex& nymfile_lock(const Identifier& nymID) const;
     std::mutex& peer_lock(const std::string& nymID) const;
@@ -255,7 +256,7 @@ private:
     ConstUnitDefinition UnitDefinition(
         std::unique_ptr<class UnitDefinition>& contract) const;
 
-    Wallet(Native& ot);
+    Wallet(const Native& ot, const opentxs::network::zeromq::Context& zmq);
     Wallet() = delete;
     Wallet(const Wallet&) = delete;
     Wallet(Wallet&&) = delete;

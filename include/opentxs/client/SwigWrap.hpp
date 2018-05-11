@@ -3756,6 +3756,7 @@ public:
     EXPORT static const ui::PayableList& PayableList(
         const std::string& nymID,
         std::uint32_t currency);
+    EXPORT static const ui::Profile& Profile(const std::string& contactID);
 
     // Wrapped Native methods
 

@@ -214,6 +214,29 @@ protected:
             return blank_;
         }
     }
+    RowType& find_by_id(const Lock& lock, const IDType& id) const
+    {
+        OT_ASSERT(verify_lock(lock))
+
+        try {
+            auto& key = names_.at(id);
+            auto& inner = items_.at(key);
+            auto item = inner.find(id);
+
+            if (inner.end() == item) {
+
+                return const_cast<RowType&>(blank_);
+            }
+
+            OT_ASSERT(item->second)
+
+            return *item->second;
+        } catch (const std::out_of_range&) {
+        }
+
+        return const_cast<RowType&>(blank_);
+    }
+
     /** Searches for the first name with at least one contact and sets
      *  iterators to match
      *

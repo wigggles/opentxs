@@ -14,6 +14,10 @@ set(cxx-sources
   PayableList.cpp
   PayableListItem.cpp
   PaymentItem.cpp
+  Profile.cpp
+  ProfileItem.cpp
+  ProfileSection.cpp
+  ProfileSubsection.cpp
   Widget.cpp
 )
 
@@ -32,6 +36,10 @@ set(cxx-install-headers
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/MessagableList.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/PayableList.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/PayableListItem.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/Profile.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/ProfileItem.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/ProfileSection.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/ProfileSubsection.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/Widget.hpp"
 )
 
@@ -65,6 +73,16 @@ set(cxx-headers
   "${CMAKE_CURRENT_SOURCE_DIR}/PayableList.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/PayableListItem.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/PayableListItemBlank.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Profile.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/ProfileItem.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/ProfileItemBlank.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/ProfileParent.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/ProfileSection.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/ProfileSectionBlank.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/ProfileSectionParent.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/ProfileSubsection.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/ProfileSubsectionBlank.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/ProfileSubsectionParent.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Row.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/RowType.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Widget.hpp"

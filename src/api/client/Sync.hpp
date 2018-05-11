@@ -245,7 +245,6 @@ private:
     mutable std::map<ContextID, std::unique_ptr<std::thread>> state_machines_;
     mutable std::unique_ptr<Identifier> introduction_server_id_;
     mutable std::map<Identifier, ThreadStatus> task_status_;
-    OTZMQPublishSocket nym_publisher_;
     // taskID, messageID
     mutable std::map<Identifier, Identifier> task_message_id_;
 

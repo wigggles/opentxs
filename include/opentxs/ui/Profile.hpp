@@ -1,0 +1,134 @@
+/************************************************************
+ *
+ *                 OPEN TRANSACTIONS
+ *
+ *       Financial Cryptography and Digital Cash
+ *       Library, Protocol, API, Server, CLI, GUI
+ *
+ *       -- Anonymous Numbered Accounts.
+ *       -- Untraceable Digital Cash.
+ *       -- Triple-Signed Receipts.
+ *       -- Cheques, Vouchers, Transfers, Inboxes.
+ *       -- Basket Currencies, Markets, Payment Plans.
+ *       -- Signed, XML, Ricardian-style Contracts.
+ *       -- Scripted smart contracts.
+ *
+ *  EMAIL:
+ *  fellowtraveler@opentransactions.org
+ *
+ *  WEBSITE:
+ *  http://www.opentransactions.org/
+ *
+ *  -----------------------------------------------------
+ *
+ *   LICENSE:
+ *   This Source Code Form is subject to the terms of the
+ *   Mozilla Public License, v. 2.0. If a copy of the MPL
+ *   was not distributed with this file, You can obtain one
+ *   at http://mozilla.org/MPL/2.0/.
+ *
+ *   DISCLAIMER:
+ *   This program is distributed in the hope that it will
+ *   be useful, but WITHOUT ANY WARRANTY; without even the
+ *   implied warranty of MERCHANTABILITY or FITNESS FOR A
+ *   PARTICULAR PURPOSE.  See the Mozilla Public License
+ *   for more details.
+ *
+ ************************************************************/
+
+#ifndef OPENTXS_UI_PROFILE_HPP
+#define OPENTXS_UI_PROFILE_HPP
+
+#include "opentxs/Forward.hpp"
+
+#include "opentxs/ui/Widget.hpp"
+#include "opentxs/Proto.hpp"
+
+#include <string>
+#include <tuple>
+#include <vector>
+
+#ifdef SWIG
+// clang-format off
+%ignore opentxs::ui::Profile::AddClaim;
+%ignore opentxs::ui::Profile::AllowedItems;
+%ignore opentxs::ui::Profile::AllowedSections;
+%rename(UIProfile) opentxs::ui::Profile;
+// clang-format on
+#endif  // SWIG
+
+extern template class std::pair<int, std::string>;
+
+namespace opentxs
+{
+namespace ui
+{
+class Profile : virtual public Widget
+{
+public:
+    using ItemType = std::pair<proto::ContactItemType, std::string>;
+    using ItemTypeList = std::vector<ItemType>;
+    using SectionType = std::pair<proto::ContactSectionName, std::string>;
+    using SectionTypeList = std::vector<SectionType>;
+
+    EXPORT virtual bool AddClaim(
+        const proto::ContactSectionName section,
+        const proto::ContactItemType type,
+        const std::string& value,
+        const bool primary,
+        const bool active) const = 0;
+    EXPORT virtual bool AddItem(
+        const int section,
+        const int type,
+        const std::string& value,
+        const bool primary,
+        const bool active) const = 0;
+    EXPORT virtual ItemTypeList AllowedItems(
+        const proto::ContactSectionName section,
+        const std::string& lang) const = 0;
+    EXPORT virtual std::vector<std::pair<int, std::string>> AllowedItemTypes(
+        const int section,
+        const std::string& lang) const = 0;
+    EXPORT virtual SectionTypeList AllowedSections(
+        const std::string& lang) const = 0;
+    EXPORT virtual std::vector<std::pair<int, std::string>> AllowedSectionTypes(
+        const std::string& lang) const = 0;
+    EXPORT virtual bool Delete(
+        const int section,
+        const int type,
+        const std::string& claimID) const = 0;
+    EXPORT virtual std::string DisplayName() const = 0;
+    EXPORT virtual const ProfileSection& First() const = 0;
+    EXPORT virtual std::string ID() const = 0;
+    EXPORT virtual const ProfileSection& Next() const = 0;
+    EXPORT virtual std::string PaymentCode() const = 0;
+    EXPORT virtual bool SetActive(
+        const int section,
+        const int type,
+        const std::string& claimID,
+        const bool active) const = 0;
+    EXPORT virtual bool SetPrimary(
+        const int section,
+        const int type,
+        const std::string& claimID,
+        const bool primary) const = 0;
+    EXPORT virtual bool SetValue(
+        const int section,
+        const int type,
+        const std::string& claimID,
+        const std::string& value) const = 0;
+
+    EXPORT virtual ~Profile() = default;
+
+protected:
+    Profile() = default;
+
+private:
+    Profile(const Profile&) = delete;
+    Profile(Profile&&) = delete;
+    Profile& operator=(const Profile&) = delete;
+    Profile& operator=(Profile&&) = delete;
+};
+}  // namespace ui
+}  // namespace opentxs
+#endif  // OPENTXS_UI_PROFILE_HPP

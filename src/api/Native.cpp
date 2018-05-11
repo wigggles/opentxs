@@ -297,9 +297,9 @@ void Native::Init()
     Init_Config();
     Init_Log();  // requires Init_Config()
     Init_Crypto();
-    Init_Storage();  // requires Init_Config(), Init_Crypto()
-    Init_ZMQ();      // requires Init_Config()
-    Init_Contracts();
+    Init_Storage();     // requires Init_Config(), Init_Crypto()
+    Init_ZMQ();         // requires Init_Config()
+    Init_Contracts();   // requires Init_ZMQ()
     Init_Dht();         // requires Init_Config()
     Init_Identity();    // requires Init_Contracts()
     Init_Contacts();    // requires Init_Contracts(), Init_Storage(), Init_ZMQ()
@@ -408,7 +408,12 @@ void Native::Init_Contacts()
         *storage_, *wallet_, zmq_context_.get()));
 }
 
-void Native::Init_Contracts() { wallet_.reset(Factory::Wallet(*this)); }
+void Native::Init_Contracts()
+{
+    OT_ASSERT(zeromq_)
+
+    wallet_.reset(Factory::Wallet(*this, zeromq_->Context()));
+}
 
 void Native::Init_Crypto() { crypto_.reset(new class Crypto(*this)); }
 
@@ -818,9 +823,15 @@ void Native::Init_UI()
     OT_ASSERT(activity_);
     OT_ASSERT(api_)
     OT_ASSERT(contacts_);
+    OT_ASSERT(wallet_);
 
     ui_.reset(Factory::UI(
-        zmq_context_, *activity_, *contacts_, api_->Sync(), running_));
+        zmq_context_,
+        *activity_,
+        *contacts_,
+        api_->Sync(),
+        *wallet_,
+        running_));
 
     OT_ASSERT(ui_);
 }

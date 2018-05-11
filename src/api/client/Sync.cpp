@@ -261,10 +261,7 @@ Sync::Sync(
     , state_machines_()
     , introduction_server_id_()
     , task_status_()
-    , nym_publisher_(zmq.PublishSocket())
 {
-    nym_publisher_->Start(
-        opentxs::network::zeromq::Socket::NymDownloadEndpoint);
 }
 
 std::pair<bool, std::size_t> Sync::accept_incoming(
@@ -948,7 +945,6 @@ bool Sync::download_nym(
 
         if (action->Reply()->m_bSuccess) {
             api_.Pair().Update();
-            nym_publisher_->Publish(targetNymID.str());
 
             return finish_task(taskID, true);
         } else {
@@ -1280,8 +1276,9 @@ bool Sync::pay_nym(
             const auto messageID = action->MessageID();
 
             if (false == messageID->empty()) {
-                otInfo << OT_METHOD << __FUNCTION__ << ": Sent (payment) "
-                                                       "message "
+                otInfo << OT_METHOD << __FUNCTION__
+                       << ": Sent (payment) "
+                          "message "
                        << messageID->str() << std::endl;
             }
 

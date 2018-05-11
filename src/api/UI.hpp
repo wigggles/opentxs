@@ -63,6 +63,8 @@ public:
     const ui::PayableList& PayableList(
         const Identifier& nymID,
         std::uint32_t currency) const override;
+    const ui::Profile& Profile(const Identifier& contactID) const override;
+
     ~UI();
 
 private:
@@ -81,11 +83,13 @@ private:
     using PayableListMap = std::map<
         std::pair<Identifier, proto::ContactItemType>,
         std::unique_ptr<ui::PayableList>>;
+    using ProfileMap = std::map<OTIdentifier, std::unique_ptr<ui::Profile>>;
 
     const opentxs::network::zeromq::Context& zmq_;
     const api::Activity& activity_;
     const api::ContactManager& contact_;
     const api::client::Sync& sync_;
+    const api::client::Wallet& wallet_;
     const Flag& running_;
     mutable ActivitySummaryMap activity_summaries_{};
     mutable ContactMap contacts_{};
@@ -93,6 +97,7 @@ private:
     mutable MessagableListMap messagable_lists_{};
     mutable PayableListMap payable_lists_{};
     mutable ActivityThreadMap activity_threads_{};
+    mutable ProfileMap profiles_{};
     OTZMQReplyCallback widget_callback_;
     OTZMQReplySocket widget_update_collector_;
     OTZMQPublishSocket widget_update_publisher_;
@@ -101,6 +106,7 @@ private:
        const api::Activity& activity,
        const api::ContactManager& contact,
        const api::client::Sync& sync,
+       const api::client::Wallet& wallet,
        const Flag& running);
     UI() = delete;
     UI(const UI&) = delete;

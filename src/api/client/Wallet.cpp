@@ -63,8 +63,9 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/Nym.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/network/zeromq/Context.hpp"
+#include "opentxs/network/zeromq/PublishSocket.hpp"
 
 #include <functional>
 #include <map>
@@ -77,15 +78,17 @@
 
 namespace opentxs
 {
-api::client::Wallet* Factory::Wallet(api::Native& ot)
+api::client::Wallet* Factory::Wallet(
+    const api::Native& ot,
+    const network::zeromq::Context& zmq)
 {
-    return new api::client::implementation::Wallet(ot);
+    return new api::client::implementation::Wallet(ot, zmq);
 }
 }  // namespace opentxs
 
 namespace opentxs::api::client::implementation
 {
-Wallet::Wallet(Native& ot)
+Wallet::Wallet(const Native& ot, const opentxs::network::zeromq::Context& zmq)
     : ot_(ot)
     , nym_map_()
     , server_map_()
@@ -101,7 +104,10 @@ Wallet::Wallet(Native& ot)
     , peer_lock_()
     , nymfile_map_lock_()
     , nymfile_lock_()
+    , nym_publisher_(zmq.PublishSocket())
 {
+    nym_publisher_->Start(
+        opentxs::network::zeromq::Socket::NymDownloadEndpoint);
 }
 
 std::shared_ptr<class Context> Wallet::context(
@@ -558,6 +564,7 @@ ConstNym Wallet::Nym(const proto::CredentialIndex& publicNym) const
             Lock mapLock(nym_map_lock_);
             nym_map_.erase(id);
             mapLock.unlock();
+            nym_publisher_->Publish(id);
         }
     }
 

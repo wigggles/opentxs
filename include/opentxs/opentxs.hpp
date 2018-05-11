@@ -130,6 +130,10 @@
 #include <opentxs/ui/MessagableList.hpp>
 #include <opentxs/ui/PayableList.hpp>
 #include <opentxs/ui/PayableListItem.hpp>
+#include <opentxs/ui/Profile.hpp>
+#include <opentxs/ui/ProfileItem.hpp>
+#include <opentxs/ui/ProfileSection.hpp>
+#include <opentxs/ui/ProfileSubsection.hpp>
 #include <opentxs/util/Signals.hpp>
 #include <opentxs/OT.hpp>
 #include <opentxs/Proto.hpp>
