@@ -55,15 +55,6 @@ using namespace opentxs;
 namespace
 {
 
-  class Test_NewAccount : public :: testing :: Test
-  {
-  public:          
-  
-    //const std::string aliceNymID = "Alice";
-    //static std::string alice_seed;
-  };
-
-
   TEST(Test_NewAccount, TestNymDoesNotExist)
   {
     const std::uint32_t BTC = proto::CITEMTYPE_BTC;
