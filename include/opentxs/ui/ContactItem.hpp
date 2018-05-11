@@ -14,7 +14,7 @@
  *       -- Scripted smart contracts.
  *
  *  EMAIL:
- *  fellowtraveler\opentransactions.org
+ *  fellowtraveler@opentransactions.org
  *
  *  WEBSITE:
  *  http://www.opentransactions.org/
@@ -36,51 +36,46 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_API_UI_HPP
-#define OPENTXS_API_UI_HPP
+#ifndef OPENTXS_UI_CONTACTITEM_HPP
+#define OPENTXS_UI_CONTACTITEM_HPP
 
 #include "opentxs/Forward.hpp"
 
-#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+
+#include <string>
+
+#include "ListRow.hpp"
+
+#ifdef SWIG
+// clang-format off
+%rename(UIContactItem) opentxs::ui::ContactItem;
+// clang-format on
+#endif  // SWIG
 
 namespace opentxs
 {
-namespace api
+namespace ui
 {
-class UI
+class ContactItem : virtual public ListRow
 {
 public:
-    EXPORT virtual const ui::ActivitySummary& ActivitySummary(
-        const Identifier& nymID) const = 0;
-    EXPORT virtual const ui::ActivityThread& ActivityThread(
-        const Identifier& nymID,
-        const Identifier& threadID) const = 0;
-    EXPORT virtual const ui::Contact& Contact(
-        const Identifier& contactID) const = 0;
-    EXPORT virtual const ui::ContactList& ContactList(
-        const Identifier& nymID) const = 0;
-    EXPORT virtual const ui::MessagableList& MessagableList(
-        const Identifier& nymID) const = 0;
-#ifndef SWIG
-    EXPORT virtual const ui::PayableList& PayableList(
-        const Identifier& nymID,
-        proto::ContactItemType currency) const = 0;
-#endif
-    EXPORT virtual const ui::PayableList& PayableList(
-        const Identifier& nymID,
-        std::uint32_t currency) const = 0;
+    EXPORT virtual std::string ClaimID() const = 0;
+    EXPORT virtual bool IsActive() const = 0;
+    EXPORT virtual bool IsPrimary() const = 0;
+    EXPORT virtual std::string Value() const = 0;
 
-    virtual ~UI() = default;
+    EXPORT virtual ~ContactItem() = default;
 
 protected:
-    UI() = default;
+    ContactItem() = default;
 
 private:
-    UI(const UI&) = delete;
-    UI(UI&&) = delete;
-    UI& operator=(const UI&) = delete;
-    UI& operator=(UI&&) = delete;
+    ContactItem(const ContactItem&) = delete;
+    ContactItem(ContactItem&&) = delete;
+    ContactItem& operator=(const ContactItem&) = delete;
+    ContactItem& operator=(ContactItem&&) = delete;
 };
-}  // namespace api
+}  // namespace ui
 }  // namespace opentxs
-#endif  // OPENTXS_API_UI_HPP
+#endif  // OPENTXS_UI_CONTACTITEM_HPP

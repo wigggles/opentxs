@@ -977,6 +977,15 @@ std::string Contact::SocialMediaProfiles(
     return data->SocialMediaProfiles(type, active);
 }
 
+const std::set<proto::ContactItemType> Contact::SocialMediaProfileTypes() const
+{
+    Lock lock(lock_);
+    const auto data = merged_data(lock);
+    lock.unlock();
+
+    return data->SocialMediaProfileTypes();
+}
+
 proto::ContactItemType Contact::type(const Lock& lock) const
 {
     OT_ASSERT(verify_write_lock(lock));

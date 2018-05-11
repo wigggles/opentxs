@@ -36,12 +36,38 @@
  *
  ************************************************************/
 
-#include <gtest/gtest.h>
-#include "OTTestEnvironment.hpp"
+#ifndef OPENTXS_UI_CONTACT_SECTION_PARENT_HPP
+#define OPENTXS_UI_CONTACT_SECTION_PARENT_HPP
 
-int main(int argc, char **argv) {
-  ::testing::AddGlobalTestEnvironment(new OTTestEnvironment());
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}
+#include "opentxs/Internal.hpp"
 
+#include <string>
+
+namespace opentxs::ui::implementation
+{
+class ContactSectionParent
+{
+public:
+    using ContactSectionIDType =
+        std::pair<proto::ContactSectionName, proto::ContactItemType>;
+    using ContactSectionSortKey = int;
+
+    virtual std::string ContactID() const = 0;
+    virtual bool last(const ContactSectionIDType& id) const = 0;
+    virtual void reindex_item(
+        const ContactSectionIDType& id,
+        const ContactSectionSortKey& newIndex) const = 0;
+    virtual proto::ContactSectionName Type() const = 0;
+    virtual OTIdentifier WidgetID() const = 0;
+
+    virtual ~ContactSectionParent() = default;
+
+protected:
+    ContactSectionParent() = default;
+    ContactSectionParent(const ContactSectionParent&) = delete;
+    ContactSectionParent(ContactSectionParent&&) = delete;
+    ContactSectionParent& operator=(const ContactSectionParent&) = delete;
+    ContactSectionParent& operator=(ContactSectionParent&&) = delete;
+};
+}  // opentxs::ui::implementation
+#endif  // OPENTXS_UI_CONTACT_SECTION_PARENT_HPP

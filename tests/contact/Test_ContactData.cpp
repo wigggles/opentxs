@@ -346,6 +346,8 @@ void Test_ContactData::testAddItemMethod2(
     ASSERT_TRUE(contactItem4->isActive());
 }
 
+// This needs to be updated when CONTACT_CONTACT_DATA_VERSION in Types.hpp
+// changes.
 static const auto& expectedStringOutput =
     "Version 5 contact data\nSections found: 1\n- Section: Identifier, "
     "version: 5 containing 1 item(s).\n-- Item type: \"employee of\", "
@@ -353,6 +355,13 @@ static const auto& expectedStringOutput =
     "Attributes: Active \n";
 
 }  // namespace
+
+TEST(ContactData, Check_Version)
+{
+    ASSERT_EQ(5, CONTACT_CONTACT_DATA_VERSION)
+        << "Update the assert in this test case and expectedStringOutput if "
+           "CONTACT_CONTACT_DATA_VERSION has changed.";
+}
 
 TEST_F(Test_ContactData, PrintContactData)
 {

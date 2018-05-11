@@ -36,41 +36,40 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_UI_ROW_IMPLEMENTATION_HPP
-#define OPENTXS_UI_ROW_IMPLEMENTATION_HPP
+#ifndef OPENTXS_UI_CONTACT_ITEM_BLANK_IMPLEMENTATION_HPP
+#define OPENTXS_UI_CONTACT_ITEM_BLANK_IMPLEMENTATION_HPP
 
 #include "opentxs/Internal.hpp"
 
-#include "RowType.hpp"
-#include "Widget.hpp"
+#include "opentxs/ui/ContactItem.hpp"
+#include "opentxs/ui/Widget.hpp"
 
 namespace opentxs::ui::implementation
 {
-template <typename InterfaceType, typename ParentType, typename IdentifierType>
-class Row : public RowType<InterfaceType, ParentType, IdentifierType>,
-            public Widget,
-            public Lockable
+class ContactItemBlank : virtual public ui::ContactItem
 {
+public:
+    std::string ClaimID() const override { return {}; }
+    bool IsActive() const override { return false; }
+    bool IsPrimary() const override { return false; }
+    std::string Value() const override { return {}; }
+    bool Last() const override { return true; }
+    bool Valid() const override { return false; }
+    OTIdentifier WidgetID() const override { return Identifier::Factory(); }
+    std::string WidgetName() const override { return {}; }
+
+    ~ContactItemBlank() = default;
+
 protected:
-    const api::ContactManager& contact_;
+    ContactItemBlank() = default;
 
-    Row(const ParentType& parent,
-        const network::zeromq::Context& zmq,
-        const api::ContactManager& contact,
-        const IdentifierType id,
-        const bool valid)
-        : RowType<InterfaceType, ParentType, IdentifierType>(parent, id, valid)
-        , Widget(zmq, parent.WidgetID())
-        , contact_(contact)
-    {
-    }
-    Row() = delete;
-    Row(const Row&) = delete;
-    Row(Row&&) = delete;
-    Row& operator=(const Row&) = delete;
-    Row& operator=(Row&&) = delete;
+private:
+    friend opentxs::ui::implementation::ContactSubsection;
 
-    virtual ~Row() = default;
+    ContactItemBlank(const ContactItemBlank&) = delete;
+    ContactItemBlank(ContactItemBlank&&) = delete;
+    ContactItemBlank& operator=(const ContactItemBlank&) = delete;
+    ContactItemBlank& operator=(ContactItemBlank&&) = delete;
 };
 }  // opentxs::ui::implementation
-#endif  // OPENTXS_UI_ROW_IMPLEMENTATION_HPP
+#endif  // OPENTXS_UI_CONTACT_ITEM_BLANK_IMPLEMENTATION_HPP
