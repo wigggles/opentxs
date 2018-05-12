@@ -15,7 +15,6 @@
 #endif
 
 #include "opentxs/client/NymData.hpp"
-#include "opentxs/client/OTRecordList.hpp"
 #include "opentxs/client/SwigWrap.hpp"
 #include "opentxs/contact/ContactSection.hpp"
 #include "opentxs/core/crypto/OTCallback.hpp"
@@ -61,20 +60,13 @@
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/Types.hpp"
 %}
-
-%apply std::string &OUTPUT { std::string& STR_RETAINED_COPY };
-
 %feature("director") OTCallback;
-%feature("director") OTNameLookup;
 
 /* Parse the header file to generate wrappers */
 #ifndef EXPORT
 #define EXPORT
 #endif
 
-%include "carrays.i"
-%include "cdata.i"
-%include "cpointer.i";
 %include "inttypes.i";
 %include "std_pair.i"
 %include "std_string.i";
@@ -130,7 +122,6 @@ typedef int64_t time64_t;
 %include "../../include/opentxs/network/zeromq/PairSocket.hpp"
 %include "../../include/opentxs/network/zeromq/Context.hpp"
 %include "../../include/opentxs/client/SwigWrap.hpp"
-%include "../../include/opentxs/client/OTRecordList.hpp"
 
 // add the following to every .cxx file.
 %inline %{

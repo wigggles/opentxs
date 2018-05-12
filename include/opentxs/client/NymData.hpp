@@ -49,6 +49,23 @@
 #include <memory>
 #include <string>
 
+#ifdef SWIG
+// clang-format off
+%ignore opentxs::NymData::AddChildKeyCredential;
+%ignore opentxs::NymData::AddClaim;
+%ignore opentxs::NymData::asPublicNym;
+%ignore opentxs::NymData::Claims;
+%ignore opentxs::NymData::DeleteClaim;
+%ignore opentxs::NymData::Nym;
+%ignore opentxs::NymData::SetContactData;
+%ignore opentxs::NymData::SetScope;
+%ignore opentxs::NymData::SetVerificationSet;
+%ignore opentxs::NymData::SocialMediaProfileTypes;
+%ignore opentxs::NymData::Type;
+%ignore opentxs::NymData::VerificationSet;
+// clang-format on
+#endif
+
 namespace opentxs
 {
 namespace api
@@ -68,18 +85,16 @@ public:
     NymData(const NymData&) = default;
     NymData(NymData&&) = default;
 
-#ifndef SWIG
     const proto::CredentialIndex asPublicNym() const;
-#endif
     std::string BestEmail() const;
     std::string BestPhoneNumber() const;
     std::string BestSocialMediaProfile(const std::uint32_t type) const;
 #ifndef SWIG
     std::string BestSocialMediaProfile(const proto::ContactItemType type) const;
+#endif
     const class ContactData& Claims() const;
     bool DeleteClaim(const Identifier& id);
     std::string EmailAddresses(bool active = true) const;
-#endif
     std::uint32_t GetType() const;
 #ifndef SWIG
     bool HaveContract(
@@ -94,8 +109,8 @@ public:
         const bool primary,
         const bool active) const;
     std::string Name() const;
-#ifndef SWIG
     const class Nym& Nym() const;
+#ifndef SWIG
     std::string PaymentCode(const proto::ContactItemType currency) const;
 #endif
     std::string PaymentCode(const std::uint32_t currency) const;
@@ -111,19 +126,15 @@ public:
         bool active = true) const;
 #endif
     const std::set<std::uint32_t> SocialMediaProfileTypes() const;
-#ifndef SWIG
     proto::ContactItemType Type() const;
-#endif
     bool Valid() const;
-#ifndef SWIG
     std::unique_ptr<proto::VerificationSet> VerificationSet() const;
-#endif
 
-#ifndef SWIG
     std::string AddChildKeyCredential(
         const Identifier& strMasterID,
         const NymParameters& nymParameters);
     bool AddClaim(const Claim& claim);
+#ifndef SWIG
     bool AddContract(
         const std::string& instrumentDefinitionID,
         const proto::ContactItemType currency,
@@ -169,20 +180,16 @@ public:
         const bool primary,
         const bool active);
     bool SetAlias(const std::string& alias);
-#ifndef SWIG
     bool SetContactData(const proto::ContactData& data);
     bool SetScope(
         const proto::ContactItemType type,
         const std::string& name,
         const bool primary);
-#endif
     bool SetType(
         const std::uint32_t type,
         const std::string& name,
         const bool primary);
-#ifndef SWIG
     bool SetVerificationSet(const proto::VerificationSet& data);
-#endif
 
     ~NymData() = default;
 

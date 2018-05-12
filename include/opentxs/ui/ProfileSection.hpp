@@ -50,6 +50,7 @@
 // clang-format off
 %ignore opentxs::ui::ProfileSection::AddClaim;
 %ignore opentxs::ui::ProfileSection::AllowedItems;
+%ignore opentxs::ui::ProfileSection::Items;
 %ignore opentxs::ui::ProfileSection::Type;
 %ignore opentxs::ui::ProfileSection::Update;
 %template(UIProfileItemType) std::pair<int, std::string>;
