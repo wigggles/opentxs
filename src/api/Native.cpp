@@ -831,6 +831,7 @@ void Native::Init_UI()
         *contacts_,
         api_->Sync(),
         *wallet_,
+        api_->Workflow(),
         running_));
 
     OT_ASSERT(ui_);

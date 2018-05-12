@@ -138,10 +138,12 @@ class Server;
 
 namespace ui
 {
+class AccountActivity;
 class ActivityThread;
 class ActivityThreadItem;
 class ActivitySummary;
 class ActivitySummaryItem;
+class BalanceItem;
 class Contact;
 class ContactItem;
 class ContactSection;

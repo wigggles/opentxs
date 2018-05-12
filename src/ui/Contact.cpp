@@ -131,13 +131,15 @@ bool Contact::check_type(const proto::ContactSectionName type)
 void Contact::construct_item(
     const ContactIDType& id,
     const ContactSortKey& index,
-    void* custom) const
+    const CustomData& custom) const
 {
+    OT_ASSERT(1 == custom.size())
+
     names_.emplace(id, index);
     items_[index].emplace(
         id,
         Factory::ContactSectionWidget(
-            zmq_, contact_manager_, *this, recover(custom)));
+            zmq_, contact_manager_, *this, recover(custom[0])));
 }
 
 std::string Contact::ContactID() const { return nym_id_->str(); }
@@ -171,7 +173,7 @@ void Contact::process_contact(const opentxs::Contact& contact)
             auto& type = section.first;
 
             if (check_type(type)) {
-                add_item(type, sort_key(type), section.second.get());
+                add_item(type, sort_key(type), {section.second.get()});
                 active.emplace(type);
             }
         }
@@ -191,10 +193,7 @@ void Contact::process_contact(const network::zeromq::Message& message)
 
     OT_ASSERT(false == contactID.empty())
 
-    if (contactID != nym_id_) {
-
-        return;
-    }
+    if (contactID != nym_id_) { return; }
 
     const auto contact = contact_manager_.Contact(contactID);
 
@@ -227,10 +226,11 @@ void Contact::startup()
     startup_complete_->On();
 }
 
-void Contact::update(ContactPimpl& row, const void* custom) const
+void Contact::update(ContactPimpl& row, const CustomData& custom) const
 {
     OT_ASSERT(row)
+    OT_ASSERT(1 == custom.size())
 
-    row->Update(recover(custom));
+    row->Update(recover(custom[0]));
 }
 }  // namespace opentxs::ui::implementation

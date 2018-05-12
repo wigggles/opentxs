@@ -193,13 +193,15 @@ bool ContactSection::check_type(const ContactSectionIDType type)
 void ContactSection::construct_item(
     const ContactSectionIDType& id,
     const ContactSectionSortKey& index,
-    void* custom) const
+    const CustomData& custom) const
 {
+    OT_ASSERT(1 == custom.size())
+
     names_.emplace(id, index);
     items_[index].emplace(
         id,
         Factory::ContactSubsectionWidget(
-            zmq_, contact_manager_, *this, recover(custom)));
+            zmq_, contact_manager_, *this, recover(custom[0])));
 }
 
 std::string ContactSection::ContactID() const { return nym_id_->str(); }
@@ -216,13 +218,13 @@ std::set<ContactSectionIDType> ContactSection::process_section(
 
     std::set<ContactSectionIDType> active{};
 
-    for (const auto & [ type, group ] : section) {
+    for (const auto& [type, group] : section) {
         OT_ASSERT(group)
 
         const ContactSectionIDType key{id_, type};
 
         if (check_type(key)) {
-            add_item(key, sort_key(key), group.get());
+            add_item(key, sort_key(key), {group.get()});
             active.emplace(key);
         }
     }
@@ -248,11 +250,13 @@ void ContactSection::startup(const opentxs::ContactSection section)
     startup_complete_->On();
 }
 
-void ContactSection::update(ContactSectionPimpl& row, const void* custom) const
+void ContactSection::update(ContactSectionPimpl& row, const CustomData& custom)
+    const
 {
     OT_ASSERT(row)
+    OT_ASSERT(1 == custom.size())
 
-    row->Update(recover(custom));
+    row->Update(recover(custom[0]));
 }
 
 void ContactSection::Update(const opentxs::ContactSection& section)

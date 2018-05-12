@@ -137,7 +137,7 @@ MessagableListID MessagableList::blank_id() const
 void MessagableList::construct_item(
     const MessagableListID& id,
     const MessagableListSortKey& index,
-    void*) const
+    const CustomData&) const
 {
     names_.emplace(id, index);
     items_[index].emplace(
@@ -160,16 +160,13 @@ void MessagableList::process_contact(
     const MessagableListID& id,
     const MessagableListSortKey& key)
 {
-    if (owner_contact_id_ == id) {
-
-        return;
-    }
+    if (owner_contact_id_ == id) { return; }
 
     switch (sync_.CanMessage(nym_id_, id)) {
         case Messagability::READY:
         case Messagability::MISSING_RECIPIENT:
         case Messagability::UNREGISTERED: {
-            add_item(id, key);
+            add_item(id, key, {});
         } break;
         case Messagability::MISSING_SENDER:
         case Messagability::INVALID_SENDER:
@@ -215,7 +212,7 @@ void MessagableList::startup()
     otWarn << OT_METHOD << __FUNCTION__ << ": Loading " << contacts.size()
            << " contacts." << std::endl;
 
-    for (const auto & [ id, alias ] : contacts) {
+    for (const auto& [id, alias] : contacts) {
         process_contact(Identifier(id), alias);
     }
 

@@ -107,6 +107,8 @@ namespace ui
 {
 namespace implementation
 {
+class AccountActivity;
+class AccountActivityParent;
 class ActivitySummary;
 class ActivitySummaryParent;
 class ActivityThread;
@@ -127,6 +129,15 @@ class ProfileSectionParent;
 class ProfileSubsection;
 class ProfileSubsectionParent;
 
+using AccountActivityPimpl = std::unique_ptr<opentxs::ui::BalanceItem>;
+/** WorkflowID, state */
+using AccountActivityID = std::pair<OTIdentifier, proto::PaymentEventType>;
+using AccountActivitySortKey = std::chrono::system_clock::time_point;
+using AccountActivityInner = std::map<AccountActivityID, AccountActivityPimpl>;
+using AccountActivityOuter =
+    std::map<AccountActivitySortKey, AccountActivityInner>;
+using AccountActivityReverse =
+    std::map<AccountActivityID, AccountActivitySortKey>;
 /** item id, box, accountID */
 using ActivityThreadID = std::tuple<OTIdentifier, StorageBox, OTIdentifier>;
 }  // namespace opentxs::ui::implementation

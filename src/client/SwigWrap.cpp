@@ -4199,6 +4199,14 @@ const ui::ActivitySummary& SwigWrap::ActivitySummary(const std::string& nymID)
     return OT::App().UI().ActivitySummary(Identifier::Factory(nymID));
 }
 
+const ui::AccountActivity& SwigWrap::AccountActivity(
+    const std::string& nymID,
+    const std::string& accountID)
+{
+    return OT::App().UI().AccountActivity(
+        Identifier::Factory(nymID), Identifier::Factory(accountID));
+}
+
 const ui::ActivityThread& SwigWrap::ActivityThread(
     const std::string& nymID,
     const std::string& threadID)

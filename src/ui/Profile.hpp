@@ -124,7 +124,7 @@ private:
     void construct_item(
         const ProfileIDType& id,
         const ProfileSortKey& index,
-        void* custom = nullptr) const override;
+        const CustomData& custom) const override;
 
     bool last(const ProfileIDType& id) const override
     {
@@ -138,7 +138,7 @@ private:
     {
         return items_.end();
     }
-    void update(ProfilePimpl& row, const void* custom) const override;
+    void update(ProfilePimpl& row, const CustomData& custom) const override;
 
     void process_nym(const Nym& nym);
     void process_nym(const network::zeromq::Message& message);
@@ -155,5 +155,5 @@ private:
     Profile& operator=(const Profile&) = delete;
     Profile& operator=(Profile&&) = delete;
 };
-}  // opentxs::ui::implementation
+}  // namespace opentxs::ui::implementation
 #endif  // OPENTXS_UI_PROFILE_IMPLEMENTATION_HPP

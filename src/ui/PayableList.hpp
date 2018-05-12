@@ -83,7 +83,7 @@ private:
     void construct_item(
         const PayableListID& id,
         const PayableListSortKey& index,
-        void* custom = nullptr) const override;
+        const CustomData& custom) const override;
     bool last(const PayableListID& id) const override
     {
         return PayableListType::last(id);
@@ -110,5 +110,5 @@ private:
     PayableList& operator=(const PayableList&) = delete;
     PayableList& operator=(PayableList&&) = delete;
 };
-}  // opentxs::ui::implementation
+}  // namespace opentxs::ui::implementation
 #endif  // OPENTXS_UI_PAYABLELIST_IMPLEMENTATION_HPP

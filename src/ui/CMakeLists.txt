@@ -1,8 +1,10 @@
 set(cxx-sources
+  AccountActivity.cpp
   ActivitySummary.cpp
   ActivitySummaryItem.cpp
   ActivityThread.cpp
   ActivityThreadItem.cpp
+  BalanceItem.cpp
   Contact.cpp
   ContactItem.cpp
   ContactList.cpp
@@ -22,10 +24,12 @@ set(cxx-sources
 )
 
 set(cxx-install-headers
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/AccountActivity.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/ActivitySummary.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/ActivitySummaryItem.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/ActivityThread.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/ActivityThreadItem.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/BalanceItem.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/Contact.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/ContactItem.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/ContactList.hpp"
@@ -45,6 +49,8 @@ set(cxx-install-headers
 
 set(cxx-headers
   ${cxx-install-headers}
+  "${CMAKE_CURRENT_SOURCE_DIR}/AccountActivity.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/AccountActivityParent.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/ActivitySummary.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/ActivitySummaryItem.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/ActivitySummaryItemBlank.hpp"
@@ -53,6 +59,8 @@ set(cxx-headers
   "${CMAKE_CURRENT_SOURCE_DIR}/ActivityThreadItem.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/ActivityThreadItemBlank.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/ActivityThreadParent.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/BalanceItem.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/BalanceItemBlank.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Contact.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/ContactItem.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/ContactItemBlank.hpp"

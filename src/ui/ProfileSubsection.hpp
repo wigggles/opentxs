@@ -107,7 +107,7 @@ private:
     void construct_item(
         const ProfileSubsectionIDType& id,
         const ProfileSubsectionSortKey& index,
-        void* custom = nullptr) const override;
+        const CustomData& custom) const override;
 
     bool last(const ProfileSubsectionIDType& id) const override
     {
@@ -137,5 +137,5 @@ private:
     ProfileSubsection& operator=(const ProfileSubsection&) = delete;
     ProfileSubsection& operator=(ProfileSubsection&&) = delete;
 };
-}  // opentxs::ui::implementation
+}  // namespace opentxs::ui::implementation
 #endif  // OPENTXS_UI_PROFILE_SUBSECTION_IMPLEMENTATION_HPP

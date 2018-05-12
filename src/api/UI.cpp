@@ -47,6 +47,7 @@
 #include "opentxs/network/zeromq/PublishSocket.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Lockable.hpp"
+#include "opentxs/ui/AccountActivity.hpp"
 #include "opentxs/ui/ActivitySummary.hpp"
 #include "opentxs/ui/ActivityThread.hpp"
 #include "opentxs/ui/Contact.hpp"
@@ -72,10 +73,11 @@ api::UI* Factory::UI(
     const api::ContactManager& contact,
     const api::client::Sync& sync,
     const api::client::Wallet& wallet,
+    const api::client::Workflow& workflow,
     const Flag& running)
 {
     return new api::implementation::UI(
-        zmq, activity, contact, sync, wallet, running);
+        zmq, activity, contact, sync, wallet, workflow, running);
 }
 }  // namespace opentxs
 
@@ -87,13 +89,16 @@ UI::UI(
     const api::ContactManager& contact,
     const api::client::Sync& sync,
     const api::client::Wallet& wallet,
+    const api::client::Workflow& workflow,
     const Flag& running)
     : zmq_(zmq)
     , activity_(activity)
     , contact_(contact)
     , sync_(sync)
     , wallet_(wallet)
+    , workflow_(workflow)
     , running_(running)
+    , accounts_()
     , activity_summaries_()
     , contacts_()
     , contact_lists_()
@@ -116,6 +121,25 @@ UI::UI(
         opentxs::network::zeromq::Socket::WidgetUpdateEndpoint);
     widget_update_collector_->Start(
         opentxs::network::zeromq::Socket::WidgetUpdateCollectorEndpoint);
+}
+
+const ui::AccountActivity& UI::AccountActivity(
+    const Identifier& nymID,
+    const Identifier& accountID) const
+{
+    Lock lock(lock_);
+    const AccountKey key(
+        Identifier::Factory(nymID), Identifier::Factory(accountID));
+    auto& output = accounts_[key];
+
+    if (false == bool(output)) {
+        output.reset(Factory::AccountActivity(
+            zmq_, sync_, wallet_, workflow_, contact_, nymID, accountID));
+    }
+
+    OT_ASSERT(output)
+
+    return *output;
 }
 
 const ui::ActivitySummary& UI::ActivitySummary(const Identifier& nymID) const

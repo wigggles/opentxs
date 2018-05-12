@@ -83,7 +83,7 @@ private:
     void construct_item(
         const MessagableListID& id,
         const MessagableListSortKey& index,
-        void* custom = nullptr) const override;
+        const CustomData& custom) const override;
     bool last(const MessagableListID& id) const override
     {
         return MessagableListType::last(id);
@@ -109,5 +109,5 @@ private:
     MessagableList& operator=(const MessagableList&) = delete;
     MessagableList& operator=(MessagableList&&) = delete;
 };
-}  // opentxs::ui::implementation
+}  // namespace opentxs::ui::implementation
 #endif  // OPENTXS_UI_MESSAGABLELIST_IMPLEMENTATION_HPP

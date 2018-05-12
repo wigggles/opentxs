@@ -177,7 +177,7 @@ bool Profile::AddClaim(
     }
 
     Claim claim{};
-    auto & [ id, claimSection, claimType, claimValue, start, end, attributes ] =
+    auto& [id, claimSection, claimType, claimValue, start, end, attributes] =
         claim;
     id = "";
     claimSection = section;
@@ -186,13 +186,9 @@ bool Profile::AddClaim(
     start = 0;
     end = 0;
 
-    if (primary) {
-        attributes.emplace(proto::CITEMATTR_PRIMARY);
-    }
+    if (primary) { attributes.emplace(proto::CITEMATTR_PRIMARY); }
 
-    if (primary || active) {
-        attributes.emplace(proto::CITEMATTR_ACTIVE);
-    }
+    if (primary || active) { attributes.emplace(proto::CITEMATTR_ACTIVE); }
 
     return nym.AddClaim(claim);
 }
@@ -223,13 +219,15 @@ bool Profile::check_type(const proto::ContactSectionName type)
 void Profile::construct_item(
     const ProfileIDType& id,
     const ContactSortKey& index,
-    void* custom) const
+    const CustomData& custom) const
 {
+    OT_ASSERT(1 == custom.size())
+
     names_.emplace(id, index);
     items_[index].emplace(
         id,
         Factory::ProfileSectionWidget(
-            zmq_, contact_manager_, wallet_, *this, recover(custom)));
+            zmq_, contact_manager_, wallet_, *this, recover(custom[0])));
 }
 
 bool Profile::Delete(
@@ -240,10 +238,7 @@ bool Profile::Delete(
     Lock lock(lock_);
     auto& section = find_by_id(lock, static_cast<ProfileIDType>(sectionType));
 
-    if (false == section.Valid()) {
-
-        return false;
-    }
+    if (false == section.Valid()) { return false; }
 
     return section.Delete(type, claimID);
 }
@@ -261,11 +256,8 @@ std::string Profile::nym_name(
     const api::client::Wallet& wallet,
     const Identifier& nymID)
 {
-    for (const auto & [ id, name ] : wallet.NymList()) {
-        if (nymID.str() == id) {
-
-            return name;
-        }
+    for (const auto& [id, name] : wallet.NymList()) {
+        if (nymID.str() == id) { return name; }
     }
 
     return {};
@@ -291,7 +283,7 @@ void Profile::process_nym(const Nym& nym)
         auto& type = section.first;
 
         if (check_type(type)) {
-            add_item(type, sort_key(type), section.second.get());
+            add_item(type, sort_key(type), {section.second.get()});
             active.emplace(type);
         }
     }
@@ -308,10 +300,7 @@ void Profile::process_nym(const network::zeromq::Message& message)
 
     OT_ASSERT(false == nymID.empty())
 
-    if (nymID != nym_id_) {
-
-        return;
-    }
+    if (nymID != nym_id_) { return; }
 
     const auto nym = wallet_.Nym(nymID);
 
@@ -336,10 +325,7 @@ bool Profile::SetActive(
     Lock lock(lock_);
     auto& section = find_by_id(lock, static_cast<ProfileIDType>(sectionType));
 
-    if (false == section.Valid()) {
-
-        return false;
-    }
+    if (false == section.Valid()) { return false; }
 
     return section.SetActive(type, claimID, active);
 }
@@ -353,10 +339,7 @@ bool Profile::SetPrimary(
     Lock lock(lock_);
     auto& section = find_by_id(lock, static_cast<ProfileIDType>(sectionType));
 
-    if (false == section.Valid()) {
-
-        return false;
-    }
+    if (false == section.Valid()) { return false; }
 
     return section.SetPrimary(type, claimID, primary);
 }
@@ -370,10 +353,7 @@ bool Profile::SetValue(
     Lock lock(lock_);
     auto& section = find_by_id(lock, static_cast<ProfileIDType>(sectionType));
 
-    if (false == section.Valid()) {
-
-        return false;
-    }
+    if (false == section.Valid()) { return false; }
 
     return section.SetValue(type, claimID, value);
 }
@@ -395,10 +375,11 @@ void Profile::startup()
     startup_complete_->On();
 }
 
-void Profile::update(ProfilePimpl& row, const void* custom) const
+void Profile::update(ProfilePimpl& row, const CustomData& custom) const
 {
     OT_ASSERT(row)
+    OT_ASSERT(1 == custom.size())
 
-    row->Update(recover(custom));
+    row->Update(recover(custom[0]));
 }
 }  // namespace opentxs::ui::implementation

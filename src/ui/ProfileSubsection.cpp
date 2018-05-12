@@ -120,13 +120,15 @@ bool ProfileSubsection::AddItem(
 void ProfileSubsection::construct_item(
     const ProfileSubsectionIDType& id,
     const ProfileSubsectionSortKey& index,
-    void* custom) const
+    const CustomData& custom) const
 {
+    OT_ASSERT(1 == custom.size())
+
     names_.emplace(id, index);
     items_[index].emplace(
         id,
         Factory::ProfileItemWidget(
-            zmq_, contact_manager_, wallet_, *this, recover(custom)));
+            zmq_, contact_manager_, wallet_, *this, recover(custom[0])));
 }
 
 bool ProfileSubsection::Delete(const std::string& claimID) const
@@ -134,10 +136,7 @@ bool ProfileSubsection::Delete(const std::string& claimID) const
     Lock lock(lock_);
     auto& claim = find_by_id(lock, Identifier::Factory(claimID));
 
-    if (false == claim.Valid()) {
-
-        return false;
-    }
+    if (false == claim.Valid()) { return false; }
 
     return claim.Delete();
 }
@@ -157,10 +156,10 @@ void ProfileSubsection::process_group(const opentxs::ContactGroup& group)
     init();
     lock.unlock();
 
-    for (const auto & [ id, claim ] : group) {
+    for (const auto& [id, claim] : group) {
         OT_ASSERT(claim)
 
-        add_item(id, sort_key(id), claim.get());
+        add_item(id, sort_key(id), {claim.get()});
     }
 
     UpdateNotify();
@@ -179,10 +178,7 @@ bool ProfileSubsection::SetActive(const std::string& claimID, const bool active)
     Lock lock(lock_);
     auto& claim = find_by_id(lock, Identifier::Factory(claimID));
 
-    if (false == claim.Valid()) {
-
-        return false;
-    }
+    if (false == claim.Valid()) { return false; }
 
     return claim.SetActive(active);
 }
@@ -194,10 +190,7 @@ bool ProfileSubsection::SetPrimary(
     Lock lock(lock_);
     auto& claim = find_by_id(lock, Identifier::Factory(claimID));
 
-    if (false == claim.Valid()) {
-
-        return false;
-    }
+    if (false == claim.Valid()) { return false; }
 
     return claim.SetPrimary(primary);
 }
@@ -209,10 +202,7 @@ bool ProfileSubsection::SetValue(
     Lock lock(lock_);
     auto& claim = find_by_id(lock, Identifier::Factory(claimID));
 
-    if (false == claim.Valid()) {
-
-        return false;
-    }
+    if (false == claim.Valid()) { return false; }
 
     return claim.SetValue(value);
 }

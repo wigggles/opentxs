@@ -45,6 +45,8 @@
 
 #define STARTUP_WAIT_MILLISECONDS 100
 
+#define LIST_METHOD "opentxs::ui::implementation::List::"
+
 namespace opentxs::ui::implementation
 {
 template <
@@ -82,10 +84,7 @@ public:
     {
         Lock lock(lock_);
 
-        if (start_.get()) {
-
-            return first(lock);
-        }
+        if (start_.get()) { return first(lock); }
 
         return next(lock);
     }
@@ -95,7 +94,7 @@ public:
     {
         Lock lock(lock_);
         const auto& oldIndex = names_.at(id);
-        reindex_item(lock, id, oldIndex, newIndex);
+        reindex_item(lock, id, oldIndex, newIndex, {});
     }
 
     OTIdentifier WidgetID() const override { return widget_id_; }
@@ -109,6 +108,8 @@ public:
     }
 
 protected:
+    using CustomData = std::vector<const void*>;
+
     const api::ContactManager& contact_manager_;
     const OTIdentifier nym_id_;
     mutable OuterType items_;
@@ -128,7 +129,7 @@ protected:
     virtual void construct_item(
         const IDType& id,
         const SortKeyType& index,
-        void* custom = nullptr) const = 0;
+        const CustomData& custom) const = 0;
     /** Returns item reference by the inner_ iterator. Does not increment
      *  iterators. */
     const RowType& current(const Lock& lock) const
@@ -150,19 +151,20 @@ protected:
     void delete_inactive(const std::set<IDType>& active) const
     {
         Lock lock(lock_);
+        otInfo << LIST_METHOD << __FUNCTION__ << ": Removing "
+               << std::to_string(names_.size() - active.size()) << " items."
+               << std::endl;
         std::vector<IDType> deleteIDs{};
 
         for (const auto& it : names_) {
             const auto& id = it.first;
 
-            if (0 == active.count(id)) {
-                deleteIDs.emplace_back(id);
-            }
+            if (0 == active.count(id)) { deleteIDs.emplace_back(id); }
         }
 
-        for (const auto& id : deleteIDs) {
-            delete_item(lock, id);
-        }
+        for (const auto& id : deleteIDs) { delete_item(lock, id); }
+
+        OT_ASSERT(names_.size() == active.size())
 
         UpdateNotify();
     }
@@ -176,17 +178,13 @@ protected:
 
         // I'm about to delete this row. Make sure iterators are not pointing
         // to it
-        if (inner_ == item) {
-            increment_inner(lock);
-        }
+        if (inner_ == item) { increment_inner(lock); }
 
         const auto itemDeleted = inner.erase(id);
 
         OT_ASSERT(1 == itemDeleted)
 
-        if (0 == inner.size()) {
-            items_.erase(key);
-        }
+        if (0 == inner.size()) { items_.erase(key); }
 
         const auto indexDeleted = names_.erase(id);
 
@@ -223,10 +221,7 @@ protected:
             auto& inner = items_.at(key);
             auto item = inner.find(id);
 
-            if (inner.end() == item) {
-
-                return const_cast<RowType&>(blank_);
-            }
+            if (inner.end() == item) { return const_cast<RowType&>(blank_); }
 
             OT_ASSERT(item->second)
 
@@ -306,9 +301,7 @@ protected:
                 start_->On();
                 have_items_->Set(first_valid_item(lock));
 
-                if (have_items_.get()) {
-                    valid_iterators();
-                }
+                if (have_items_.get()) { valid_iterators(); }
 
                 return false;
             }
@@ -340,7 +333,7 @@ protected:
         const IDType& id,
         const SortKeyType& oldIndex,
         const SortKeyType& newIndex,
-        void* custom = nullptr) const
+        const CustomData& custom) const
     {
         OT_ASSERT(verify_lock(lock));
         OT_ASSERT(1 == items_.count(oldIndex))
@@ -356,22 +349,16 @@ protected:
 
         // I'm about to delete this row. Make sure iterators are not pointing
         // to it
-        if (inner_ == item) {
-            increment_inner(lock);
-        }
+        if (inner_ == item) { increment_inner(lock); }
 
         PimplType row = std::move(item->second);
         const auto deleted = itemMap.erase(id);
 
         OT_ASSERT(1 == deleted)
 
-        if (0 == itemMap.size()) {
-            items_.erase(index);
-        }
+        if (0 == itemMap.size()) { items_.erase(index); }
 
-        if (nullptr != custom) {
-            update(row, custom);
-        }
+        if (0 < custom.size()) { update(row, custom); }
 
         names_[id] = newIndex;
         items_[newIndex].emplace(id, std::move(row));
@@ -380,7 +367,7 @@ protected:
     {
         return (lhs == rhs);
     }
-    virtual void update(PimplType& row, const void* custom) const {}
+    virtual void update(PimplType& row, const CustomData& custom) const {}
     void valid_iterators() const
     {
         OT_ASSERT(outer_end() != outer_)
@@ -399,7 +386,7 @@ protected:
     virtual void add_item(
         const IDType& id,
         const SortKeyType& index,
-        void* custom = nullptr)
+        const CustomData& custom)
     {
         insert_outer(id, index, custom);
     }
@@ -407,7 +394,7 @@ protected:
     void insert_outer(
         const IDType& id,
         const SortKeyType& index,
-        void* custom = nullptr)
+        const CustomData& custom)
     {
         Lock lock(lock_);
 
@@ -424,10 +411,7 @@ protected:
 
         const auto& oldIndex = names_.at(id);
 
-        if (oldIndex == index) {
-
-            return;
-        }
+        if (oldIndex == index) { return; }
 
         reindex_item(lock, id, oldIndex, index, custom);
         UpdateNotify();
@@ -466,5 +450,5 @@ private:
     List& operator=(const List&) = delete;
     List& operator=(List&&) = delete;
 };
-}  // opentxs::ui::implementation
+}  // namespace opentxs::ui::implementation
 #endif  // OPENTXS_UI_LIST_HPP

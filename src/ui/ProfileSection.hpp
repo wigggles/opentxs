@@ -114,7 +114,7 @@ private:
     void construct_item(
         const ProfileSectionIDType& id,
         const ProfileSectionSortKey& index,
-        void* custom = nullptr) const override;
+        const CustomData& custom) const override;
 
     bool last(const ProfileSectionIDType& id) const override
     {
@@ -131,7 +131,8 @@ private:
     std::set<ProfileSectionIDType> process_section(
         const opentxs::ContactSection& section);
     void startup(const opentxs::ContactSection section);
-    void update(ProfileSectionPimpl& row, const void* custom) const override;
+    void update(ProfileSectionPimpl& row, const CustomData& custom)
+        const override;
 
     ProfileSection(
         const network::zeromq::Context& zmq,
@@ -145,5 +146,5 @@ private:
     ProfileSection& operator=(const ProfileSection&) = delete;
     ProfileSection& operator=(ProfileSection&&) = delete;
 };
-}  // opentxs::ui::implementation
+}  // namespace opentxs::ui::implementation
 #endif  // OPENTXS_UI_PROFILE_SECTION_IMPLEMENTATION_HPP
