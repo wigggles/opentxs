@@ -48,6 +48,7 @@
 
 #ifdef SWIG
 // clang-format off
+%ignore opentxs::ui::ContactSubsection::Update;
 %rename(UIContactSubsection) opentxs::ui::ContactSubsection;
 // clang-format on
 #endif  // SWIG

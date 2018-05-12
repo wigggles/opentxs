@@ -52,12 +52,6 @@
 #include <vector>
 #include <mutex>
 
-#ifdef SWIG
-// clang-format off
-%rename($ignore) OTRecordList;
-// clang-format on
-#endif  // SWIG
-
 namespace opentxs
 {
 /** For address book lookups. Your client app inherits this and provides addr

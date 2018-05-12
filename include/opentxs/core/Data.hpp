@@ -47,6 +47,9 @@
 
 #ifdef SWIG
 // clang-format off
+%ignore opentxs::Data::Concatenate;
+%ignore opentxs::Data::GetPointer;
+%ignore opentxs::Data::OTfread;
 %template(OTData) opentxs::Pimpl<opentxs::Data>;
 // clang-format on
 #endif  // SWIG
@@ -62,10 +65,10 @@ class Data
 public:
     EXPORT static Pimpl<opentxs::Data> Factory();
     EXPORT static Pimpl<opentxs::Data> Factory(const Data& rhs);
+#ifndef SWIG
     EXPORT static Pimpl<opentxs::Data> Factory(
         const void* data,
         std::size_t size);
-#ifndef SWIG
     EXPORT static OTData Factory(const OTASCIIArmor& source);
     EXPORT static OTData Factory(const std::vector<unsigned char>& source);
 #endif
@@ -82,7 +85,9 @@ public:
 
     EXPORT virtual Data& operator+=(const Data& rhs) = 0;
     EXPORT virtual void Assign(const Data& source) = 0;
+#ifndef SWIG
     EXPORT virtual void Assign(const void* data, const std::size_t& size) = 0;
+#endif
     EXPORT virtual void Concatenate(
         const void* data,
         const std::size_t& size) = 0;

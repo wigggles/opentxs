@@ -44,6 +44,23 @@
 #include <cstddef>
 #include <string>
 
+#ifdef SWIG
+// clang-format off
+%ignore opentxs::OTPassword::CreateTextBuffer;
+%ignore opentxs::OTPassword::getMemory;
+%ignore opentxs::OTPassword::getMemory_uint8;
+%ignore opentxs::OTPassword::getMemoryWritable;
+%ignore opentxs::OTPassword::getPassword_uint8;
+%ignore opentxs::OTPassword::getPasswordWritable;
+%ignore opentxs::OTPassword::OTfread;
+%ignore opentxs::OTPassword::randomizeMemory;
+%ignore opentxs::OTPassword::randomizeMemory_uint8;
+%ignore opentxs::OTPassword::randomizePassword_uint8;
+%ignore opentxs::OTPassword::safe_memcpy;
+%ignore opentxs::OTPassword::zeroMemory;
+// clang-format on
+#endif  // SWIG
+
 namespace opentxs
 {
 /*
@@ -100,10 +117,11 @@ class OTPassword
 public:
     EXPORT explicit OTPassword();
     EXPORT explicit OTPassword(const OTPassword& rhs);
+#ifndef SWIG
     EXPORT explicit OTPassword(const char* input, std::uint32_t size);
     EXPORT explicit OTPassword(const std::uint8_t* input, std::uint32_t size);
     EXPORT explicit OTPassword(const void* input, std::uint32_t size);
-
+#endif
     EXPORT ~OTPassword();
     EXPORT OTPassword& operator=(const OTPassword& rhs);
 
@@ -115,11 +133,13 @@ public:
     EXPORT char* getPasswordWritable_char();
     // (FYI, truncates if nInputSize larger than getBlockSize.)
     EXPORT std::int32_t setPassword(const std::string& input);
+#ifndef SWIG
     EXPORT std::int32_t setPassword(const char* input, std::int32_t size);
     // (FYI, truncates if nInputSize larger than getBlockSize.)
     EXPORT std::int32_t setPassword_uint8(
         const std::uint8_t* input,
         std::uint32_t size);
+#endif
     EXPORT bool addChar(std::uint8_t c);
     EXPORT std::int32_t randomizePassword(
         std::uint32_t size = OT_DEFAULT_BLOCKSIZE);
@@ -133,10 +153,12 @@ public:
     EXPORT void* getMemoryWritable();
     // (FYI, truncates if size larger than getBlockSize.)
     EXPORT std::int32_t setMemory(const Data& data);
+#ifndef SWIG
     EXPORT std::int32_t setMemory(const void* input, std::uint32_t size);
     // (FYI, truncates if size + getPasswordSize() is larger than
     // getBlockSize.)
     EXPORT std::int32_t addMemory(const void* append, std::uint32_t size);
+#endif
     EXPORT std::int32_t randomizeMemory(
         std::uint32_t size = OT_DEFAULT_BLOCKSIZE);
     EXPORT static bool randomizeMemory_uint8(

@@ -52,6 +52,15 @@
 #include <set>
 #include <string>
 
+#ifdef SWIG
+// clang-format off
+%ignore opentxs::default_pass_cb;
+%ignore opentxs::souped_up_pass_cb;
+%ignore opentxs::SwigWrap::GetPasswordCallback;
+%ignore opentxs::SwigWrap::SetPasswordCallback;
+// clang-format on
+#endif  // SWIG
+
 namespace opentxs
 {
 /** For getting the password from the user, for using his private key. */
@@ -1369,7 +1378,7 @@ public:
         const std::int32_t& PAYMENT_PLAN_MAX_PAYMENTS  // integer. Defaults to 0
                                                        // or
         // nullptr (no maximum payments.)
-    );
+        );
 
     // The above version has too many arguments for boost::function apparently
     // (for Chaiscript.)
@@ -1406,7 +1415,7 @@ public:
                                         // lifetime in seconds. 'number' is
         // maximum number of payments in seconds.
         // 0 or "" is unlimited (for both.)
-    );
+        );
 
     // Called by Customer. Pass in the plan obtained in the above call.
     //
@@ -1432,7 +1441,7 @@ public:
                               // every named account.
         bool SPECIFY_PARTIES  // This means Nym IDs must be provided for every
                               // party.
-    );
+        );
 
     EXPORT static std::string SmartContract_SetDates(
         const std::string& THE_CONTRACT,   // The contract, about to have the
@@ -1444,7 +1453,7 @@ public:
         const time64_t& VALID_TO  // Default (0 or nullptr) == no expiry /
                                   // cancel anytime.
 
-    );
+        );
 
     EXPORT static bool Smart_ArePartiesSpecified(
         const std::string& THE_CONTRACT);
@@ -1467,7 +1476,7 @@ public:
                                            // cause a save.)
         const std::string& BYLAW_NAME  // The Bylaw's NAME as referenced in the
                                        // smart contract. (And the scripts...)
-    );
+        );
 
     // returns: the updated smart contract (or nullptr)
     EXPORT static std::string SmartContract_RemoveBylaw(
@@ -1478,7 +1487,7 @@ public:
                                            // cause a save.)
         const std::string& BYLAW_NAME  // The Bylaw's NAME as referenced in the
                                        // smart contract. (And the scripts...)
-    );
+        );
 
     // returns: the updated smart contract (or nullptr)
     EXPORT static std::string SmartContract_AddClause(
@@ -1494,7 +1503,7 @@ public:
                                            // scripts...)
         const std::string& SOURCE_CODE     // The actual source code for the
                                            // clause.
-    );
+        );
 
     // returns: the updated smart contract (or nullptr)
     EXPORT static std::string SmartContract_UpdateClause(
@@ -1510,7 +1519,7 @@ public:
                                            // scripts...)
         const std::string& SOURCE_CODE     // The actual source code for the
                                            // clause.
-    );
+        );
 
     // returns: the updated smart contract (or nullptr)
     EXPORT static std::string SmartContract_RemoveClause(
@@ -1524,7 +1533,7 @@ public:
         const std::string& CLAUSE_NAME     // The Clause's name as referenced in
                                            // the smart contract. (And the
                                            // scripts...)
-    );
+        );
 
     // returns: the updated smart contract (or nullptr)
     EXPORT static std::string SmartContract_AddVariable(
@@ -1547,7 +1556,7 @@ public:
         // a std::int64_t. If type is bool, the strings
         // "true" or "false" are expected here in
         // order to convert to a bool.
-    );
+        );
 
     // returns: the updated smart contract (or nullptr)
     EXPORT static std::string SmartContract_RemoveVariable(
@@ -1560,7 +1569,7 @@ public:
                                            // (This way we can find it.)
         const std::string& VAR_NAME  // The Variable's name as referenced in the
                                      // smart contract. (And the scripts...)
-    );
+        );
 
     // returns: the updated smart contract (or nullptr)
     EXPORT static std::string SmartContract_AddCallback(
@@ -1577,7 +1586,7 @@ public:
         const std::string& CLAUSE_NAME     // The actual clause that will be
                                            // triggered by the callback. (Must
                                            // exist.)
-    );
+        );
 
     // returns: the updated smart contract (or nullptr)
     EXPORT static std::string SmartContract_RemoveCallback(
@@ -1591,7 +1600,7 @@ public:
         const std::string& CALLBACK_NAME   // The Callback's name as referenced
                                            // in the smart contract. (And the
                                            // scripts...)
-    );
+        );
 
     // returns: the updated smart contract (or nullptr)
     EXPORT static std::string SmartContract_AddHook(
@@ -1609,7 +1618,7 @@ public:
                                         // triggered by the hook. (You can call
         // this multiple times, and have multiple
         // clauses trigger on the same hook.)
-    );
+        );
 
     // returns: the updated smart contract (or nullptr)
     EXPORT static std::string SmartContract_RemoveHook(
@@ -1627,7 +1636,7 @@ public:
                                         // triggered by the hook. (You can call
         // this multiple times, and have multiple
         // clauses trigger on the same hook.)
-    );
+        );
 
     // RETURNS: Updated version of THE_CONTRACT. (Or nullptr.)
     EXPORT static std::string SmartContract_AddParty(
@@ -1643,7 +1652,7 @@ public:
                                         // smart contract. (And the scripts...)
         const std::string& AGENT_NAME   // An AGENT will be added by default for
                                         // this party. Need Agent NAME.
-    );
+        );
 
     // RETURNS: Updated version of THE_CONTRACT. (Or nullptr.)
     EXPORT static std::string SmartContract_RemoveParty(
@@ -1654,7 +1663,7 @@ public:
                                            // cause a save.)
         const std::string& PARTY_NAME  // The Party's NAME as referenced in the
                                        // smart contract. (And the scripts...)
-    );
+        );
 
     // (FYI, that is basically the only option, until I code Entities and Roles.
     // Until then, a party can ONLY be
@@ -1679,7 +1688,7 @@ public:
         const std::string& INSTRUMENT_DEFINITION_ID  // Instrument Definition ID
                                                      // for the
                                                      // Account.
-    );
+        );
 
     // returns: the updated smart contract (or nullptr)
     EXPORT static std::string SmartContract_RemoveAccount(
@@ -1692,7 +1701,7 @@ public:
                                         // smart contract. (And the scripts...)
         const std::string& ACCT_NAME  // The Account's name as referenced in the
                                       // smart contract
-    );
+        );
 
     /** This function returns the count of how many trans#s a Nym needs in order
     to confirm as
@@ -1727,7 +1736,7 @@ public:
                                            // account.
         const std::string& ACCT_ID         // AcctID for the asset account. (For
                                            // acct_name).
-    );
+        );
 
     /** ----------------------------------------
     // Called by each Party. Pass in the smart contract obtained in the above
@@ -2146,7 +2155,7 @@ public:
         const std::string& ACCOUNT_ID,  // NYM_ID can be passed here as well.
         const std::int32_t& nIndex,
         const bool& bClearAll  // if true, nIndex is ignored.
-    );
+        );
 
     // The expired box is only for incoming/outgoing payments that expired
     // before proecssing.
@@ -2182,7 +2191,7 @@ public:
         const std::string& NYM_ID,
         const std::int32_t& nIndex,
         const bool& bClearAll  // if true, nIndex is ignored.
-    );
+        );
 
     //! Find out how many pending transactions (and receipts) are in this inbox.
     EXPORT static std::int32_t Ledger_GetCount(
@@ -2278,7 +2287,7 @@ public:
         const std::string& ACCOUNT_ID,
         const std::string& THE_LEDGER  // 'Response' ledger be sent to the
                                        // server...
-    );
+        );
 
     /**
     -------------------------------------------------------------------------
@@ -2719,7 +2728,7 @@ public:
         const std::string& THE_PURSE  // It should either have your Nym ID on
                                       // it, or the key should be inside so you
                                       // can import.
-    );
+        );
 
     /** Tokens are stored in an encrypted state for security reasons.
     // This function is used for exporting those tokens to another Nym,
@@ -2736,7 +2745,7 @@ public:
         const std::string& NEW_OWNER  // Pass a NymID here as a string, or a
                                       // purse. (IF symmetrically encrypted, the
                                       // relevant key is in the purse.)
-    );
+        );
 
     /** Returns an encrypted form of the actual blinded token ID.
     // (There's no need to decrypt the ID until redeeming the token, when
