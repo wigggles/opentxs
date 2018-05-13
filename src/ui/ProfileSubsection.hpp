@@ -86,7 +86,6 @@ public:
         const override;
     bool SetValue(const std::string& claimID, const std::string& value)
         const override;
-    int SubsectionType() const override { return static_cast<int>(Type()); }
     proto::ContactItemType Type() const override { return id_.second; }
 
     void Update(const opentxs::ContactGroup& group) override;

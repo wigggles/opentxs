@@ -45,8 +45,8 @@
 
 #ifdef SWIG
 // clang-format off
+%ignore opentxs::network::zeromq::PushSocket::Factory;
 %template(OTZMQPushSocket) opentxs::Pimpl<opentxs::network::zeromq::PushSocket>;
-%rename($ignore, regextarget=1, fullname=1) "opentxs::network::zeromq::PushSocket::Factory.*";
 %rename(ZMQPushSocket) opentxs::network::zeromq::PushSocket;
 // clang-format on
 #endif  // SWIG

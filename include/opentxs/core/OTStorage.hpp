@@ -41,8 +41,6 @@
 
 #include "opentxs/Forward.hpp"
 
-#ifndef SWIG
-
 #include "opentxs/core/util/Assert.hpp"
 #include "containers/simple_ptr.hpp"
 
@@ -57,8 +55,6 @@
 
 #define OTDB_DEFAULT_PACKER OTDB::PACK_PROTOCOL_BUFFERS
 #define OTDB_DEFAULT_STORAGE OTDB::STORE_FILESYSTEM
-
-#endif  // (not) SWIG
 
 namespace opentxs
 {
@@ -83,9 +79,7 @@ enum StorageType         // STORAGE TYPE
   STORE_TYPE_SUBCLASS    // (Subclass provided by API client via SWIG.)
 };
 
-#ifndef SWIG
 extern const char* StoredObjectTypeStrings[];
-#endif  // (not) SWIG
 
 enum StoredObjectType {
     STORED_OBJ_STRING = 0,   // Just a string.
@@ -131,8 +125,6 @@ enum StoredObjectType {
                                    // particular Nym and Offer.
     STORED_OBJ_ERROR               // (Should never be.)
 };
-
-#ifndef SWIG
 
 // ABSTRACT BASE CLASSES
 //
@@ -245,24 +237,6 @@ public:
     virtual void hookAfterUnpack() {}
 };
 
-#endif  // (not) SWIG
-
-#ifdef SWIG
-#define DEFINE_OT_DYNAMIC_CAST(CLASS_NAME_A)                                   \
-    CLASS_NAME_A* clone() const                                                \
-    {                                                                          \
-        std::cerr                                                              \
-            << "********* THIS SHOULD NEVER HAPPEN!!!!! *****************"     \
-            << std::endl;                                                      \
-        return nullptr;                                                        \
-    }                                                                          \
-    static CLASS_NAME_A* ot_dynamic_cast(Storable* pObject)                    \
-    {                                                                          \
-        return dynamic_cast<CLASS_NAME_A*>(pObject);                           \
-    }
-#endif  // SWIG
-
-#ifndef SWIG
 #define DEFINE_OT_DYNAMIC_CAST(CLASS_NAME)                                     \
     virtual CLASS_NAME* clone() const                                          \
     {                                                                          \
@@ -275,7 +249,6 @@ public:
     {                                                                          \
         return dynamic_cast<CLASS_NAME*>(pObject);                             \
     }
-#endif  // (not) SWIG
 
 // STORABLE
 //
@@ -310,8 +283,6 @@ public:
     DEFINE_OT_DYNAMIC_CAST(Storable)
 #endif
 };
-
-#ifndef SWIG
 
 // PACKED BUFFER (for storing PACKED DATA)
 //
@@ -393,8 +364,6 @@ public:
 //
 //    typedef PackerSubclass<BufferPB>        PackerPB;
 //
-#endif
-
 //
 // STORAGE  -- abstract base class
 //
@@ -697,21 +666,6 @@ EXPORT bool EraseValueByKey(
     const std::string& twoStr = "",
     const std::string& threeStr = "");
 
-#ifdef SWIG
-#define DECLARE_GET_ADD_REMOVE(name)                                           \
-                                                                               \
-protected:                                                                     \
-    std::deque<stlplus::simple_ptr_clone<name>> list_##name##s;                \
-                                                                               \
-public:                                                                        \
-    size_t Get##name##Count();                                                 \
-    name* Get##name(size_t nIndex);                                            \
-    bool Remove##name(size_t nIndex##name);                                    \
-    bool Add##name(name& disownObject)
-
-#endif
-
-#ifndef SWIG
 #define DECLARE_GET_ADD_REMOVE(name)                                           \
                                                                                \
 protected:                                                                     \
@@ -722,7 +676,6 @@ public:                                                                        \
     EXPORT name* Get##name(size_t nIndex);                                     \
     EXPORT bool Remove##name(size_t nIndex##name);                             \
     EXPORT bool Add##name(name& disownObject)
-#endif  // (not) SWIG
 
 // Serialized types...
 //
@@ -1586,8 +1539,6 @@ public:
 };
 }  // Namespace OTDB
 
-#ifndef SWIG
-
 // StorageFS -- FILE-SYSTEM Storage Context
 //
 //
@@ -1721,8 +1672,6 @@ public:
 #define OT_USING_ISTORABLE_HOOKS                                               \
     using IStorable::hookBeforePack;                                           \
     using IStorable::hookAfterUnpack
-
-#endif  // (not) SWIG
 
 }  // namespace opentxs
 

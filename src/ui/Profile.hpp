@@ -70,21 +70,10 @@ public:
         const std::string& value,
         const bool primary,
         const bool active) const override;
-    bool AddItem(
-        const int section,
-        const int type,
-        const std::string& value,
-        const bool primary,
-        const bool active) const override;
     ItemTypeList AllowedItems(
         const proto::ContactSectionName section,
         const std::string& lang) const override;
-    std::vector<std::pair<int, std::string>> AllowedItemTypes(
-        const int section,
-        const std::string& lang) const override;
     SectionTypeList AllowedSections(const std::string& lang) const override;
-    std::vector<std::pair<int, std::string>> AllowedSectionTypes(
-        const std::string& lang) const override;
     bool Delete(const int section, const int type, const std::string& claimID)
         const override;
     std::string DisplayName() const override;

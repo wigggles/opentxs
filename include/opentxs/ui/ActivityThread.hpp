@@ -48,6 +48,14 @@
 
 #ifdef SWIG
 // clang-format off
+%extend opentxs::ui::ActivityThread {
+    std::string PaymentCode(const int currency) const
+    {
+        return $self->PaymentCode(
+            static_cast<opentxs::proto::ContactItemType>(currency));
+    }
+}
+%ignore opentxs::ui::ActivityThread::PaymentCode;
 %rename(UIActivityThread) opentxs::ui::ActivityThread;
 // clang-format on
 #endif  // SWIG
@@ -64,12 +72,8 @@ public:
     EXPORT virtual const ActivityThreadItem& Next() const = 0;
     EXPORT virtual std::string GetDraft() const = 0;
     EXPORT virtual std::string Participants() const = 0;
-#ifndef SWIG
     EXPORT virtual std::string PaymentCode(
         const proto::ContactItemType currency) const = 0;
-#endif
-    EXPORT virtual std::string PaymentCode(
-        const std::uint32_t currency) const = 0;
     EXPORT virtual bool SendDraft() const = 0;
     EXPORT virtual bool SetDraft(const std::string& draft) const = 0;
     EXPORT virtual std::string ThreadID() const = 0;

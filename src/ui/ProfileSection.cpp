@@ -179,24 +179,6 @@ ProfileSection::ItemTypeList ProfileSection::AllowedItems(
 
     return output;
 }
-
-std::vector<std::pair<int, std::string>> ProfileSection::AllowedItemTypes(
-    const int section,
-    const std::string& lang)
-{
-    std::vector<std::pair<int, std::string>> output{};
-    const auto sectionType = static_cast<proto::ContactSectionName>(section);
-
-    try {
-        for (const auto& type : allowed_types_.at(sectionType)) {
-            output.emplace_back(
-                static_cast<int>(type), proto::TranslateItemType(type, lang));
-        }
-    } catch (const std::out_of_range&) {
-    }
-
-    return output;
-}
 }  // namespace opentxs::ui
 
 namespace opentxs::ui::implementation
@@ -231,16 +213,6 @@ bool ProfileSection::AddClaim(
     const bool active) const
 {
     return parent_.AddClaim(id_, type, value, primary, active);
-}
-
-bool ProfileSection::AddItem(
-    const int type,
-    const std::string& value,
-    const bool primary,
-    const bool active) const
-{
-    return AddClaim(
-        static_cast<proto::ContactItemType>(type), value, primary, active);
 }
 
 bool ProfileSection::check_type(const ProfileSectionIDType type)
@@ -286,12 +258,6 @@ ProfileSection::ItemTypeList ProfileSection::Items(
     const std::string& lang) const
 {
     return AllowedItems(id_, lang);
-}
-
-std::vector<std::pair<int, std::string>> ProfileSection::ItemTypes(
-    const std::string& lang) const
-{
-    return AllowedItemTypes(static_cast<int>(id_), lang);
 }
 
 std::string ProfileSection::Name(const std::string& lang) const

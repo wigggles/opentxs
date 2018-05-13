@@ -50,7 +50,6 @@ class Widget : virtual public opentxs::ui::Widget
 {
 public:
     OTIdentifier WidgetID() const override;
-    std::string WidgetName() const override;
 
     virtual ~Widget() = default;
 

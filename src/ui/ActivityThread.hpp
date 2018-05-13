@@ -121,7 +121,6 @@ public:
     std::string Participants() const override;
     std::string PaymentCode(
         const proto::ContactItemType currency) const override;
-    std::string PaymentCode(const std::uint32_t currency) const override;
     bool same(const ActivityThreadID& lhs, const ActivityThreadID& rhs)
         const override;
     bool SendDraft() const override;

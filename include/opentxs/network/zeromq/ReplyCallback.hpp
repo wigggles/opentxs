@@ -45,8 +45,8 @@
 
 #ifdef SWIG
 // clang-format off
+%ignore opentxs::network::zeromq::ReplyCallback::Factory;
 %template(OTZMQReplyCallback) opentxs::Pimpl<opentxs::network::zeromq::ReplyCallback>;
-%rename($ignore, regextarget=1, fullname=1) "opentxs::network::zeromq::ReplyCallback::Factory.*";
 %rename(ZMQReplyCallback) opentxs::network::zeromq::ReplyCallback;
 // clang-format on
 #endif  // SWIG

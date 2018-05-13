@@ -58,32 +58,18 @@ public:
     {
         return false;
     }
-    bool AddItem(
-        const int type,
-        const std::string& value,
-        const bool primary,
-        const bool active) const override
-    {
-        return false;
-    }
     bool Delete(const int, const std::string&) const override { return false; }
     const opentxs::ui::ProfileSubsection& First() const override
     {
         return *static_cast<const opentxs::ui::ProfileSubsection*>(nullptr);
     }
     ItemTypeList Items(const std::string&) const override { return {}; }
-    std::vector<std::pair<int, std::string>> ItemTypes(
-        const std::string&) const override
-    {
-        return {};
-    }
     bool Last() const override { return true; }
     std::string Name(const std::string& lang) const override { return {}; }
     const opentxs::ui::ProfileSubsection& Next() const override
     {
         return *static_cast<const opentxs::ui::ProfileSubsection*>(nullptr);
     }
-    int SectionType() const override { return {}; }
     bool SetActive(const int, const std::string&, const bool) const override
     {
         return false;
@@ -100,7 +86,6 @@ public:
     proto::ContactSectionName Type() const override { return {}; }
     bool Valid() const override { return false; }
     OTIdentifier WidgetID() const override { return Identifier::Factory(); }
-    std::string WidgetName() const override { return {}; }
 
     void Update(const opentxs::ContactSection& section) override {}
 

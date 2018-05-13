@@ -212,14 +212,6 @@ const ui::PayableList& UI::PayableList(
     return *output;
 }
 
-const ui::PayableList& UI::PayableList(
-    const Identifier& nymID,
-    std::uint32_t currency) const
-{
-    return PayableList(
-        nymID, static_cast<const proto::ContactItemType>(currency));
-}
-
 const ui::Profile& UI::Profile(const Identifier& contactID) const
 {
     Lock lock(lock_);

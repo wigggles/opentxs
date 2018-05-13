@@ -76,18 +76,10 @@ public:
         const std::string& value,
         const bool primary,
         const bool active) const override;
-    bool AddItem(
-        const int type,
-        const std::string& value,
-        const bool primary,
-        const bool active) const override;
     bool Delete(const int type, const std::string& claimID) const override;
     ItemTypeList Items(const std::string& lang) const override;
-    std::vector<std::pair<int, std::string>> ItemTypes(
-        const std::string& lang) const override;
     std::string Name(const std::string& lang) const override;
     const Identifier& NymID() const override;
-    int SectionType() const override { return static_cast<int>(id_); }
     bool SetActive(
         const int type,
         const std::string& claimID,

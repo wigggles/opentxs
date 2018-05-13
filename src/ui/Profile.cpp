@@ -197,33 +197,11 @@ bool Profile::AddClaim(
     return nym.AddClaim(claim);
 }
 
-bool Profile::AddItem(
-    const int section,
-    const int type,
-    const std::string& value,
-    const bool primary,
-    const bool active) const
-{
-    return AddClaim(
-        static_cast<proto::ContactSectionName>(section),
-        static_cast<proto::ContactItemType>(type),
-        value,
-        primary,
-        active);
-}
-
 Profile::ItemTypeList Profile::AllowedItems(
     const proto::ContactSectionName section,
     const std::string& lang) const
 {
     return ui::ProfileSection::AllowedItems(section, lang);
-}
-
-std::vector<std::pair<int, std::string>> Profile::AllowedItemTypes(
-    const int section,
-    const std::string& lang) const
-{
-    return ui::ProfileSection::AllowedItemTypes(section, lang);
 }
 
 Profile::SectionTypeList Profile::AllowedSections(const std::string& lang) const
@@ -232,19 +210,6 @@ Profile::SectionTypeList Profile::AllowedSections(const std::string& lang) const
 
     for (const auto& type : allowed_types_) {
         output.emplace_back(type, proto::TranslateSectionName(type, lang));
-    }
-
-    return output;
-}
-
-std::vector<std::pair<int, std::string>> Profile::AllowedSectionTypes(
-    const std::string& lang) const
-{
-    std::vector<std::pair<int, std::string>> output{};
-
-    for (const auto& type : allowed_types_) {
-        output.emplace_back(
-            static_cast<int>(type), proto::TranslateSectionName(type, lang));
     }
 
     return output;

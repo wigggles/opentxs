@@ -48,6 +48,12 @@
 
 #ifdef SWIG
 // clang-format off
+%extend opentxs::ui::ContactSubsection {
+    int Type() const
+    {
+        return static_cast<int>($self->Type());
+    }
+}
 %ignore opentxs::ui::ContactSubsection::Update;
 %rename(UIContactSubsection) opentxs::ui::ContactSubsection;
 // clang-format on
@@ -63,10 +69,7 @@ public:
     EXPORT virtual std::string Name(const std::string& lang) const = 0;
     EXPORT virtual const ContactItem& First() const = 0;
     EXPORT virtual const ContactItem& Next() const = 0;
-#ifndef SWIG
     EXPORT virtual proto::ContactItemType Type() const = 0;
-#endif
-    EXPORT virtual int SubsectionType() const = 0;
 
     virtual void Update(const opentxs::ContactGroup& group) = 0;
 

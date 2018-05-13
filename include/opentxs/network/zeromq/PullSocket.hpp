@@ -45,9 +45,9 @@
 
 #ifdef SWIG
 // clang-format off
+%ignore opentxs::network::zeromq::PullSocket::Factory;
+%ignore opentxs::network::zeromq::PullSocket::SetCurve;
 %template(OTZMQPullSocket) opentxs::Pimpl<opentxs::network::zeromq::PullSocket>;
-%rename($ignore, regextarget=1, fullname=1) "opentxs::network::zeromq::PullSocket::Factory.*";
-%rename($ignore, regextarget=1, fullname=1) "opentxs::network::zeromq::PullSocket::SetCurve.*";
 %rename(ZMQPullSocket) opentxs::network::zeromq::PullSocket;
 // clang-format on
 #endif  // SWIG

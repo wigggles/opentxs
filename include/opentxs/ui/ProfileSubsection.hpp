@@ -48,6 +48,13 @@
 
 #ifdef SWIG
 // clang-format off
+%extend opentxs::ui::ProfileSubsection {
+    int Type() const
+    {
+        return static_cast<int>($self->Type());
+    }
+}
+%ignore opentxs::ui::ProfileSubsection::Type;
 %ignore opentxs::ui::ProfileSubsection::Update;
 %rename(UIProfileSubsection) opentxs::ui::ProfileSubsection;
 // clang-format on
@@ -76,10 +83,7 @@ public:
     EXPORT virtual bool SetValue(
         const std::string& claimID,
         const std::string& value) const = 0;
-    EXPORT virtual int SubsectionType() const = 0;
-#ifndef SWIG
     EXPORT virtual proto::ContactItemType Type() const = 0;
-#endif
 
     virtual void Update(const opentxs::ContactGroup& group) = 0;
 

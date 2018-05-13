@@ -55,14 +55,9 @@ public:
     const ui::ContactList& ContactList(const Identifier& nymID) const override;
     const ui::MessagableList& MessagableList(
         const Identifier& nymID) const override;
-#ifndef SWIG
     const ui::PayableList& PayableList(
         const Identifier& nymID,
         proto::ContactItemType currency) const override;
-#endif
-    const ui::PayableList& PayableList(
-        const Identifier& nymID,
-        std::uint32_t currency) const override;
     const ui::Profile& Profile(const Identifier& contactID) const override;
 
     ~UI();

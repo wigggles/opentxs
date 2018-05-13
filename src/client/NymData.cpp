@@ -90,19 +90,6 @@ bool NymData::AddContract(
     return nym().AddContract(id, currency, primary, active);
 }
 
-bool NymData::AddContract(
-    const std::string& instrumentDefinitionID,
-    const std::uint32_t currency,
-    const bool primary,
-    const bool active)
-{
-    return AddContract(
-        instrumentDefinitionID,
-        static_cast<const proto::ContactItemType>(currency),
-        primary,
-        active);
-}
-
 bool NymData::AddEmail(
     const std::string& value,
     const bool primary,
@@ -127,19 +114,6 @@ bool NymData::AddPaymentCode(
     }
 
     return nym().AddPaymentCode(paymentCode, currency, primary, active);
-}
-
-bool NymData::AddPaymentCode(
-    const std::string& code,
-    const std::uint32_t currency,
-    const bool primary,
-    const bool active)
-{
-    return AddPaymentCode(
-        code,
-        static_cast<const proto::ContactItemType>(currency),
-        primary,
-        active);
 }
 
 bool NymData::AddPhoneNumber(
@@ -171,19 +145,6 @@ bool NymData::AddSocialMediaProfile(
     return nym().AddSocialMediaProfile(value, type, primary, active);
 }
 
-bool NymData::AddSocialMediaProfile(
-    const std::string& value,
-    const std::uint32_t type,
-    const bool primary,
-    const bool active)
-{
-    return AddSocialMediaProfile(
-        value,
-        static_cast<const proto::ContactItemType>(type),
-        primary,
-        active);
-}
-
 const serializedCredentialIndex NymData::asPublicNym() const
 {
     return nym_->asPublicNym();
@@ -192,11 +153,6 @@ const serializedCredentialIndex NymData::asPublicNym() const
 std::string NymData::BestEmail() const { return Nym().BestEmail(); }
 
 std::string NymData::BestPhoneNumber() const { return Nym().BestPhoneNumber(); }
-
-std::string NymData::BestSocialMediaProfile(const std::uint32_t type) const
-{
-    return BestSocialMediaProfile(static_cast<proto::ContactItemType>(type));
-}
 
 std::string NymData::BestSocialMediaProfile(
     const proto::ContactItemType type) const
@@ -216,11 +172,6 @@ const ContactData& NymData::data() const
 std::string NymData::EmailAddresses(bool active) const
 {
     return Nym().EmailAddresses(active);
-}
-
-std::uint32_t NymData::GetType() const
-{
-    return static_cast<std::uint32_t>(Type());
 }
 
 bool NymData::HaveContract(
@@ -261,19 +212,6 @@ bool NymData::HaveContract(
     return false;
 }
 
-bool NymData::HaveContract(
-    const std::string& id,
-    const std::uint32_t currency,
-    const bool primary,
-    const bool active) const
-{
-    return HaveContract(
-        Identifier(id),
-        static_cast<const proto::ContactItemType>(currency),
-        primary,
-        active);
-}
-
 std::string NymData::Name() const
 {
     OT_ASSERT(nym_);
@@ -298,12 +236,6 @@ Nym& NymData::nym()
 std::string NymData::PaymentCode(const proto::ContactItemType currency) const
 {
     return Contact::PaymentCode(data(), currency);
-}
-
-std::string NymData::PaymentCode(const std::uint32_t currency) const
-{
-    return Contact::PaymentCode(
-        data(), static_cast<proto::ContactItemType>(currency));
 }
 
 std::string NymData::PhoneNumbers(bool active) const
@@ -339,24 +271,9 @@ bool NymData::SetScope(
     return nym().SetScope(type, name, primary);
 }
 
-bool NymData::SetType(
-    const std::uint32_t type,
-    const std::string& name,
-    const bool primary)
-{
-    return SetScope(static_cast<proto::ContactItemType>(type), name, primary);
-}
-
 bool NymData::SetVerificationSet(const proto::VerificationSet& data)
 {
     return nym().SetVerificationSet(data);
-}
-
-std::string NymData::SocialMediaProfiles(const std::uint32_t type, bool active)
-    const
-{
-    return SocialMediaProfiles(
-        static_cast<proto::ContactItemType>(type), active);
 }
 
 std::string NymData::SocialMediaProfiles(
@@ -366,20 +283,9 @@ std::string NymData::SocialMediaProfiles(
     return Nym().SocialMediaProfiles(type, active);
 }
 
-const std::set<std::uint32_t> NymData::SocialMediaProfileTypes() const
+std::set<proto::ContactItemType> NymData::SocialMediaProfileTypes() const
 {
-    const auto& profileTypes = Nym().SocialMediaProfileTypes();
-
-    std::set<std::uint32_t> profileNums;
-    std::transform(
-        profileTypes.begin(),
-        profileTypes.end(),
-        std::inserter(profileNums, profileNums.end()),
-        [](proto::ContactItemType itemType) -> std::uint32_t {
-            return static_cast<std::uint32_t>(itemType);
-        });
-
-    return profileNums;
+    return Nym().SocialMediaProfileTypes();
 }
 
 proto::ContactItemType NymData::Type() const { return data().Type(); }

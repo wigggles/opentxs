@@ -48,9 +48,15 @@
 
 #ifdef SWIG
 // clang-format off
-%rename(UIContactSection) opentxs::ui::ContactSection;
+%extend opentxs::ui::ContactSection {
+    int Type() const
+    {
+        return static_cast<int>($self->Type());
+    }
+}
 %ignore opentxs::ui::ContactSection::Type;
 %ignore opentxs::ui::ContactSection::Update;
+%rename(UIContactSection) opentxs::ui::ContactSection;
 // clang-format on
 #endif  // SWIG
 
@@ -65,7 +71,6 @@ public:
     EXPORT virtual const ContactSubsection& First() const = 0;
     EXPORT virtual const ContactSubsection& Next() const = 0;
     EXPORT virtual proto::ContactSectionName Type() const = 0;
-    EXPORT virtual int SectionType() const = 0;
 
     virtual void Update(const opentxs::ContactSection& section) = 0;
 

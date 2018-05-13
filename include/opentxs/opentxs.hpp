@@ -115,6 +115,15 @@
 #include <opentxs/network/zeromq/ListenCallback.hpp>
 #include <opentxs/network/zeromq/Message.hpp>
 #include <opentxs/network/zeromq/PairEventCallback.hpp>
+#include <opentxs/network/zeromq/PairSocket.hpp>
+#include <opentxs/network/zeromq/Proxy.hpp>
+#include <opentxs/network/zeromq/PublishSocket.hpp>
+#include <opentxs/network/zeromq/PullSocket.hpp>
+#include <opentxs/network/zeromq/PushSocket.hpp>
+#include <opentxs/network/zeromq/ReplyCallback.hpp>
+#include <opentxs/network/zeromq/ReplySocket.hpp>
+#include <opentxs/network/zeromq/RequestSocket.hpp>
+#include <opentxs/network/zeromq/Socket.hpp>
 #include <opentxs/network/zeromq/SubscribeSocket.hpp>
 #include <opentxs/network/ServerConnection.hpp>
 #include <opentxs/ui/ActivitySummary.hpp>
@@ -127,6 +136,7 @@
 #include <opentxs/ui/ContactListItem.hpp>
 #include <opentxs/ui/ContactSection.hpp>
 #include <opentxs/ui/ContactSubsection.hpp>
+#include <opentxs/ui/ListRow.hpp>
 #include <opentxs/ui/MessagableList.hpp>
 #include <opentxs/ui/PayableList.hpp>
 #include <opentxs/ui/PayableListItem.hpp>
@@ -134,6 +144,7 @@
 #include <opentxs/ui/ProfileItem.hpp>
 #include <opentxs/ui/ProfileSection.hpp>
 #include <opentxs/ui/ProfileSubsection.hpp>
+#include <opentxs/ui/Widget.hpp>
 #include <opentxs/util/Signals.hpp>
 #include <opentxs/OT.hpp>
 #include <opentxs/Proto.hpp>

@@ -55,7 +55,6 @@ public:
     bool Last() const override { return true; }
     std::string Text() const override { return {}; }
     std::string ThreadID() const override { return {}; }
-    std::int64_t Time() const override { return {}; }
     std::chrono::system_clock::time_point Timestamp() const override
     {
         return {};
@@ -63,7 +62,6 @@ public:
     StorageBox Type() const override { return StorageBox::UNKNOWN; }
     bool Valid() const override { return false; }
     OTIdentifier WidgetID() const override { return Identifier::Factory(); }
-    std::string WidgetName() const override { return {}; }
 
     ~ActivitySummaryItemBlank() = default;
 

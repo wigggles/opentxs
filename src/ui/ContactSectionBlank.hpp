@@ -61,10 +61,8 @@ public:
         return *static_cast<const opentxs::ui::ContactSubsection*>(nullptr);
     }
     proto::ContactSectionName Type() const override { return {}; }
-    int SectionType() const override { return {}; }
     bool Valid() const override { return false; }
     OTIdentifier WidgetID() const override { return Identifier::Factory(); }
-    std::string WidgetName() const override { return {}; }
 
     void Update(const opentxs::ContactSection& section) override {}
 

@@ -78,10 +78,8 @@ public:
     {
         return false;
     }
-    int SubsectionType() const override { return {}; }
     bool Valid() const override { return false; }
     OTIdentifier WidgetID() const override { return Identifier::Factory(); }
-    std::string WidgetName() const override { return {}; }
 
     void Update(const opentxs::ContactGroup& group) override {}
 
