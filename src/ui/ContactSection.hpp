@@ -74,7 +74,6 @@ public:
     std::string ContactID() const override;
     std::string Name(const std::string& lang) const override;
     proto::ContactSectionName Type() const override { return id_; }
-    int SectionType() const override { return static_cast<int>(id_); }
 
     void Update(const opentxs::ContactSection& section) override;
 

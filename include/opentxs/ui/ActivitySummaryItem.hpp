@@ -50,6 +50,13 @@
 
 #ifdef SWIG
 // clang-format off
+%extend opentxs::ui::UIActivitySummaryItem {
+    int Timestamp() const
+    {
+        return std::chrono::system_clock::to_time_t($self->Timestamp());
+    }
+}
+%ignore opentxs::ui::ActivitySummaryItem::Timestamp;
 %rename(UIActivitySummaryItem) opentxs::ui::ActivitySummaryItem;
 // clang-format on
 #endif  // SWIG
@@ -65,10 +72,7 @@ public:
     EXPORT virtual std::string ImageURI() const = 0;
     EXPORT virtual std::string Text() const = 0;
     EXPORT virtual std::string ThreadID() const = 0;
-    EXPORT virtual std::int64_t Time() const = 0;
-#ifndef SWIG
     EXPORT virtual std::chrono::system_clock::time_point Timestamp() const = 0;
-#endif
     EXPORT virtual StorageBox Type() const = 0;
 
     EXPORT virtual ~ActivitySummaryItem() = default;

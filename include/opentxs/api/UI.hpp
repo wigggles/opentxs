@@ -43,6 +43,22 @@
 
 #include "opentxs/Proto.hpp"
 
+#ifdef SWIG
+// clang-format off
+%extend opentxs::api::UI {
+    const opentxs::ui::PayableList& PayableList(
+        const Identifier& nymID,
+        int currency) const
+    {
+        return $self->PayableList(
+            nymID,
+            static_cast<opentxs::proto::ContactItemType>(currency));
+    }
+}
+%ignore opentxs::api::UI::PayableList;
+// clang-format on
+#endif  // SWIG
+
 namespace opentxs
 {
 namespace api
@@ -61,14 +77,9 @@ public:
         const Identifier& nymID) const = 0;
     EXPORT virtual const ui::MessagableList& MessagableList(
         const Identifier& nymID) const = 0;
-#ifndef SWIG
     EXPORT virtual const ui::PayableList& PayableList(
         const Identifier& nymID,
         proto::ContactItemType currency) const = 0;
-#endif
-    EXPORT virtual const ui::PayableList& PayableList(
-        const Identifier& nymID,
-        std::uint32_t currency) const = 0;
     EXPORT virtual const ui::Profile& Profile(
         const Identifier& contactID) const = 0;
 

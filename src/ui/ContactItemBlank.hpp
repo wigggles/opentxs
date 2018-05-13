@@ -56,7 +56,6 @@ public:
     bool Last() const override { return true; }
     bool Valid() const override { return false; }
     OTIdentifier WidgetID() const override { return Identifier::Factory(); }
-    std::string WidgetName() const override { return {}; }
 
     ~ContactItemBlank() = default;
 

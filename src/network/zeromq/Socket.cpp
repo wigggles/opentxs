@@ -177,17 +177,6 @@ bool Socket::SetTimeouts(
     return apply_timeouts(lock);
 }
 
-bool Socket::SetTimeouts(
-    const std::uint64_t& lingerMilliseconds,
-    const std::uint64_t& sendMilliseconds,
-    const std::uint64_t& receiveMilliseconds) const
-{
-    return SetTimeouts(
-        std::chrono::milliseconds(lingerMilliseconds),
-        std::chrono::milliseconds(sendMilliseconds),
-        std::chrono::milliseconds(receiveMilliseconds));
-}
-
 bool Socket::start_client(const Lock& lock, const std::string& endpoint) const
 {
     OT_ASSERT(nullptr != socket_);

@@ -53,7 +53,6 @@ public:
     std::string ImageURI() const override;
     std::string Text() const override;
     std::string ThreadID() const override;
-    std::int64_t Time() const override;
     std::chrono::system_clock::time_point Timestamp() const override;
     StorageBox Type() const override;
 

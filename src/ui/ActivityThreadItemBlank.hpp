@@ -58,7 +58,6 @@ public:
     std::string Memo() const override { return {}; }
     bool Pending() const override { return false; }
     std::string Text() const override { return {}; }
-    std::int64_t Time() const override { return {}; }
     std::chrono::system_clock::time_point Timestamp() const override
     {
         return {};
@@ -66,7 +65,6 @@ public:
     StorageBox Type() const override { return StorageBox::UNKNOWN; }
     bool Valid() const override { return false; }
     OTIdentifier WidgetID() const override { return Identifier::Factory(); }
-    std::string WidgetName() const override { return {}; }
 
     ~ActivityThreadItemBlank() = default;
 

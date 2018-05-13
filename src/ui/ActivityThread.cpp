@@ -381,11 +381,6 @@ std::string ActivityThread::PaymentCode(
     return {};
 }
 
-std::string ActivityThread::PaymentCode(const std::uint32_t currency) const
-{
-    return PaymentCode(static_cast<proto::ContactItemType>(currency));
-}
-
 ActivityThreadID ActivityThread::process_item(
     const proto::StorageThreadItem& item)
 {

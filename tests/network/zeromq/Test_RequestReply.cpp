@@ -80,7 +80,10 @@ void Test_RequestReply::requestSocketThread(const std::string& msg)
     ASSERT_NE(nullptr, &requestSocket.get());
     ASSERT_EQ(SocketType::Request, requestSocket->Type());
 
-    requestSocket->SetTimeouts(0, -1, 10000);
+    requestSocket->SetTimeouts(
+        std::chrono::milliseconds(0),
+        std::chrono::milliseconds(-1),
+        std::chrono::milliseconds(10000));
     requestSocket->Start(endpoint_);
 
     auto[result, message] = requestSocket->SendRequest(msg);
@@ -113,7 +116,10 @@ TEST_F(Test_RequestReply, Request_Reply)
     ASSERT_NE(nullptr, &replySocket.get());
     ASSERT_EQ(SocketType::Reply, replySocket->Type());
 
-    replySocket->SetTimeouts(0, 10000, -1);
+    replySocket->SetTimeouts(
+        std::chrono::milliseconds(0),
+        std::chrono::milliseconds(10000),
+        std::chrono::milliseconds(-1));
     replySocket->Start(endpoint_);
 
     auto requestSocket =
@@ -122,7 +128,10 @@ TEST_F(Test_RequestReply, Request_Reply)
     ASSERT_NE(nullptr, &requestSocket.get());
     ASSERT_EQ(SocketType::Request, requestSocket->Type());
 
-    requestSocket->SetTimeouts(0, -1, 10000);
+    requestSocket->SetTimeouts(
+        std::chrono::milliseconds(0),
+        std::chrono::milliseconds(-1),
+        std::chrono::milliseconds(10000));
     requestSocket->Start(endpoint_);
 
     auto[result, message] = requestSocket->SendRequest(testMessage_);
@@ -155,7 +164,10 @@ TEST_F(Test_RequestReply, Request_Reply_2_Threads)
     ASSERT_NE(nullptr, &replySocket.get());
     ASSERT_EQ(SocketType::Reply, replySocket->Type());
 
-    replySocket->SetTimeouts(0, 10000, -1);
+    replySocket->SetTimeouts(
+        std::chrono::milliseconds(0),
+        std::chrono::milliseconds(10000),
+        std::chrono::milliseconds(-1));
     replySocket->Start(endpoint_);
 
     std::thread requestSocketThread1(

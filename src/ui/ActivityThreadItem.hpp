@@ -58,7 +58,6 @@ public:
     std::string Memo() const override { return {}; }
     bool Pending() const override;
     std::string Text() const override;
-    std::int64_t Time() const override;
     std::chrono::system_clock::time_point Timestamp() const override;
     StorageBox Type() const override;
 

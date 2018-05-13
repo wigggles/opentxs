@@ -45,10 +45,10 @@
 
 #ifdef SWIG
 // clang-format off
+%ignore opentxs::network::zeromq::RequestSocket::Factory;
+%ignore opentxs::network::zeromq::RequestSocket::SetCurve;
 %template(ZMQMessageSendResult) std::pair<opentxs::SendResult, Pimpl<opentxs::network::zeromq::Message>>;
 %template(OTZMQRequestSocket) opentxs::Pimpl<opentxs::network::zeromq::RequestSocket>;
-%rename($ignore, regextarget=1, fullname=1) "opentxs::network::zeromq::RequestSocket::Factory.*";
-%rename($ignore, regextarget=1, fullname=1) "opentxs::network::zeromq::RequestSocket::SetCurve.*";
 %rename(ZMQRequestSocket) opentxs::network::zeromq::RequestSocket;
 // clang-format on
 #endif  // SWIG

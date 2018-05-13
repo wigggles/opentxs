@@ -52,6 +52,20 @@
 
 #ifdef SWIG
 // clang-format off
+%extend opentxs::network::zeromq::Socket {
+    bool SetTimeouts(
+        const int& lingerMilliseconds,
+        const int& sendMilliseconds,
+        const int& receiveMilliseconds) const
+    {
+        return $self->SetTimeouts(
+            std::chrono::milliseconds(lingerMilliseconds),
+            std::chrono::milliseconds(sendMilliseconds),
+            std::chrono::milliseconds(receiveMilliseconds));
+    }
+}
+%ignore opentxs::network::zeromq::Socket::Context;
+%ignore opentxs::network::zeromq::Socket::SetTimeouts;
 %rename(ZMQSocket) opentxs::network::zeromq::Socket;
 // clang-format on
 #endif  // SWIG
@@ -79,17 +93,11 @@ public:
     EXPORT virtual operator void*() const = 0;
 
     EXPORT virtual bool Close() const = 0;
-#ifndef SWIG
     EXPORT virtual const class Context& Context() const = 0;
     EXPORT virtual bool SetTimeouts(
         const std::chrono::milliseconds& linger,
         const std::chrono::milliseconds& send,
         const std::chrono::milliseconds& receive) const = 0;
-#endif
-    EXPORT virtual bool SetTimeouts(
-        const std::uint64_t& lingerMilliseconds,
-        const std::uint64_t& sendMilliseconds,
-        const std::uint64_t& receiveMilliseconds) const = 0;
     EXPORT virtual bool Start(const std::string& endpoint) const = 0;
     EXPORT virtual SocketType Type() const = 0;
 

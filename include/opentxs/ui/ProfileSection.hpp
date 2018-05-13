@@ -47,14 +47,70 @@
 #include <string>
 
 #ifdef SWIG
+#include <algorithm>
+#include <tuple>
+#include <vector>
+
 // clang-format off
+%template(UIProfileItemType) std::pair<int, std::string>;
+%template(UIProfileTypeList) std::vector<std::pair<int, std::string>>;
+%extend opentxs::ui::ProfileSection {
+    bool AddClaim(
+        const int type,
+        const std::string& value,
+        const bool primary,
+        const bool active) const
+    {
+        return $self->AddClaim(
+            static_cast<opentxs::proto::ContactItemType>(type),
+            value,
+            primary,
+            active);
+    }
+    static std::vector<std::pair<int, std::string>> AllowedItemTypes(
+        const int section,
+        const std::string& lang)
+    {
+        const auto types = opentxs::ui::ProfileSection::AllowedItems(
+            static_cast<opentxs::proto::ContactSectionName>(section),
+            lang);
+        std::vector<std::pair<int, std::string>> output;
+        std::transform(
+            types.begin(),
+            types.end(),
+            std::inserter(output, output.end()),
+            [](std::pair<opentxs::proto::ContactItemType, std::string> type) ->
+                std::pair<int, std::string> {
+                    return {static_cast<int>(type.first), type.second};} );
+
+        return output;
+    }
+    std::vector<std::pair<int, std::string>> Items(
+        const std::string& lang) const
+    {
+        const auto types =
+            opentxs::ui::ProfileSection::AllowedItems($self->Type(), lang);
+        std::vector<std::pair<int, std::string>> output;
+        std::transform(
+            types.begin(),
+            types.end(),
+            std::inserter(output, output.end()),
+            [](std::pair<opentxs::proto::ContactItemType, std::string> type) ->
+                std::pair<int, std::string> {
+                    return {static_cast<int>(type.first), type.second};} );
+
+        return output;
+    }
+    int Type() const
+    {
+        return static_cast<int>($self->Type());
+    }
+}
 %ignore opentxs::ui::ProfileSection::AddClaim;
 %ignore opentxs::ui::ProfileSection::AllowedItems;
 %ignore opentxs::ui::ProfileSection::Items;
 %ignore opentxs::ui::ProfileSection::Type;
 %ignore opentxs::ui::ProfileSection::Update;
-%template(UIProfileItemType) std::pair<int, std::string>;
-%template(UIProfileTypeList) std::vector<std::pair<int, std::string>>;
 %rename(UIProfileSection) opentxs::ui::ProfileSection;
 // clang-format on
 #endif  // SWIG
@@ -74,25 +130,15 @@ public:
     EXPORT static ItemTypeList AllowedItems(
         const proto::ContactSectionName section,
         const std::string& lang);
-    EXPORT static std::vector<std::pair<int, std::string>> AllowedItemTypes(
-        const int section,
-        const std::string& lang);
 
     EXPORT virtual bool AddClaim(
         const proto::ContactItemType type,
         const std::string& value,
         const bool primary,
         const bool active) const = 0;
-    EXPORT virtual bool AddItem(
-        const int type,
-        const std::string& value,
-        const bool primary,
-        const bool active) const = 0;
     EXPORT virtual bool Delete(const int type, const std::string& claimID)
         const = 0;
     EXPORT virtual ItemTypeList Items(const std::string& lang) const = 0;
-    EXPORT virtual std::vector<std::pair<int, std::string>> ItemTypes(
-        const std::string& lang) const = 0;
     EXPORT virtual std::string Name(const std::string& lang) const = 0;
     EXPORT virtual const ProfileSubsection& First() const = 0;
     EXPORT virtual const ProfileSubsection& Next() const = 0;
@@ -109,7 +155,6 @@ public:
         const std::string& claimID,
         const std::string& value) const = 0;
     EXPORT virtual proto::ContactSectionName Type() const = 0;
-    EXPORT virtual int SectionType() const = 0;
 
     virtual void Update(const opentxs::ContactSection& section) = 0;
 

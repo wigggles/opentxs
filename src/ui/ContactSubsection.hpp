@@ -74,7 +74,6 @@ class ContactSubsection : public ContactSubsectionType,
 public:
     std::string Name(const std::string& lang) const override;
     proto::ContactItemType Type() const override { return id_.second; }
-    int SubsectionType() const override { return static_cast<int>(Type()); }
 
     void Update(const opentxs::ContactGroup& group) override;
 

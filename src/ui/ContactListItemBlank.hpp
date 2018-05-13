@@ -57,7 +57,6 @@ public:
     std::string Section() const override { return {}; }
     bool Valid() const override { return false; }
     OTIdentifier WidgetID() const override { return Identifier::Factory(); }
-    std::string WidgetName() const override { return {}; }
 
     void SetName(const std::string& name) override {}
 

@@ -45,6 +45,13 @@
 
 #ifdef SWIG
 // clang-format off
+%extend opentxs::ui::Widget {
+    std::string WidgetID() const
+    {
+        return $self->WidgetID()->str();
+    }
+}
+%ignore opentxs::ui::Widget::WidgetID;
 %rename(UIWidget) opentxs::ui::Widget;
 // clang-format on
 #endif  // SWIG
@@ -56,10 +63,7 @@ namespace ui
 class Widget
 {
 public:
-#ifndef SWIG
     EXPORT virtual OTIdentifier WidgetID() const = 0;
-#endif
-    EXPORT virtual std::string WidgetName() const = 0;
 
     EXPORT virtual ~Widget() = default;
 

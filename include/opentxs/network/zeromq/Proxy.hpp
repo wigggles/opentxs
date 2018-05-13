@@ -43,8 +43,8 @@
 
 #ifdef SWIG
 // clang-format off
+%ignore opentxs::network::zeromq::Proxy::Factory;
 %template(OTZMQProxy) opentxs::Pimpl<opentxs::network::zeromq::Proxy>;
-%rename($ignore, regextarget=1, fullname=1) "opentxs::network::zeromq::Proxy::Factory.*";
 %rename(ZMQProxy) opentxs::network::zeromq::Proxy;
 // clang-format on
 #endif  // SWIG

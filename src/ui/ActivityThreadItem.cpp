@@ -93,13 +93,6 @@ std::string ActivityThreadItem::Text() const
     return text_;
 }
 
-std::int64_t ActivityThreadItem::Time() const
-{
-    return std::chrono::duration_cast<std::chrono::seconds>(
-               time_.time_since_epoch())
-        .count();
-}
-
 std::chrono::system_clock::time_point ActivityThreadItem::Timestamp() const
 {
     return time_;

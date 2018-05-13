@@ -49,7 +49,60 @@
 #include <vector>
 
 #ifdef SWIG
+#include <algorithm>
+#include <tuple>
+#include <vector>
+
 // clang-format off
+%extend opentxs::ui::Profile {
+    bool AddClaim(
+        const int section,
+        const int type,
+        const std::string& value,
+        const bool primary,
+        const bool active) const
+    {
+        return $self->AddClaim(
+            static_cast<opentxs::proto::ContactSectionName>(section),
+            static_cast<opentxs::proto::ContactItemType>(type),
+            value,
+            primary,
+            active);
+    }
+    std::vector<std::pair<int, std::string>> AllowedItems(
+        const int section,
+        const std::string& lang)
+    {
+        const auto types = opentxs::ui::ProfileSection::AllowedItems(
+            static_cast<opentxs::proto::ContactSectionName>(section),
+            lang);
+        std::vector<std::pair<int, std::string>> output;
+        std::transform(
+            types.begin(),
+            types.end(),
+            std::inserter(output, output.end()),
+            [](std::pair<opentxs::proto::ContactItemType, std::string> type) ->
+                std::pair<int, std::string> {
+                    return {static_cast<int>(type.first), type.second};} );
+
+        return output;
+    }
+    std::vector<std::pair<int, std::string>> AllowedSections(
+        const std::string& lang)
+    {
+        const auto sections = $self->AllowedSections(lang);
+        std::vector<std::pair<int, std::string>> output;
+        std::transform(
+            sections.begin(),
+            sections.end(),
+            std::inserter(output, output.end()),
+            [](std::pair<opentxs::proto::ContactSectionName, std::string> type) ->
+                std::pair<int, std::string> {
+                    return {static_cast<int>(type.first), type.second};} );
+
+        return output;
+    }
+}
 %ignore opentxs::ui::Profile::AddClaim;
 %ignore opentxs::ui::Profile::AllowedItems;
 %ignore opentxs::ui::Profile::AllowedSections;
@@ -77,21 +130,10 @@ public:
         const std::string& value,
         const bool primary,
         const bool active) const = 0;
-    EXPORT virtual bool AddItem(
-        const int section,
-        const int type,
-        const std::string& value,
-        const bool primary,
-        const bool active) const = 0;
     EXPORT virtual ItemTypeList AllowedItems(
         const proto::ContactSectionName section,
         const std::string& lang) const = 0;
-    EXPORT virtual std::vector<std::pair<int, std::string>> AllowedItemTypes(
-        const int section,
-        const std::string& lang) const = 0;
     EXPORT virtual SectionTypeList AllowedSections(
-        const std::string& lang) const = 0;
-    EXPORT virtual std::vector<std::pair<int, std::string>> AllowedSectionTypes(
         const std::string& lang) const = 0;
     EXPORT virtual bool Delete(
         const int section,

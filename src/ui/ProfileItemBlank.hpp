@@ -60,7 +60,6 @@ public:
     bool SetValue(const std::string& value) const override { return false; }
     bool Valid() const override { return false; }
     OTIdentifier WidgetID() const override { return Identifier::Factory(); }
-    std::string WidgetName() const override { return {}; }
 
     ~ProfileItemBlank() = default;
 
