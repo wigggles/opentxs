@@ -337,12 +337,14 @@ void ActivityThread::load_thread(const proto::StorageThread& thread)
         process_item(item);
     }
 
+    UpdateNotify();
     startup_complete_->On();
 }
 
 void ActivityThread::new_thread()
 {
     participants_.emplace(threadID_);
+    UpdateNotify();
     startup_complete_->On();
 }
 
@@ -390,6 +392,7 @@ ActivityThreadID ActivityThread::process_item(
     const ActivityThreadSortKey key{std::chrono::seconds(item.time()),
                                     item.index()};
     add_item(id, key);
+    UpdateNotify();
 
     return id;
 }
@@ -470,6 +473,7 @@ bool ActivityThread::SendDraft() const
     draft_tasks_.insert(id);
     draft_.clear();
     const_cast<ActivityThread&>(*this).add_item(id, key);
+    UpdateNotify();
 
     return true;
 }

@@ -62,7 +62,7 @@
 
 #include "UI.hpp"
 
-//#define OT_METHOD "opentxs::api::implementation::UI"
+#define OT_METHOD "opentxs::api::implementation::UI"
 
 namespace opentxs
 {
@@ -102,17 +102,20 @@ UI::UI(
           [this](
               const opentxs::network::zeromq::Message& input) -> OTZMQMessage {
               std::string message(input);
+              otinfo << OT_METHOD << ": Relaying notification for widget "
+                     << message << "..." << std::endl;
               widget_update_publisher_->Publish(message);
+              otInfo << "...done" << std::endl;
 
               return opentxs::network::zeromq::Message::Factory();
           }))
     , widget_update_collector_(zmq_.ReplySocket(widget_callback_))
     , widget_update_publisher_(zmq_.PublishSocket())
 {
-    widget_update_collector_->Start(
-        opentxs::network::zeromq::Socket::WidgetUpdateCollectorEndpoint);
     widget_update_publisher_->Start(
         opentxs::network::zeromq::Socket::WidgetUpdateEndpoint);
+    widget_update_collector_->Start(
+        opentxs::network::zeromq::Socket::WidgetUpdateCollectorEndpoint);
 }
 
 const ui::ActivitySummary& UI::ActivitySummary(const Identifier& nymID) const
