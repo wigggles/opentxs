@@ -50,7 +50,7 @@
 
 #ifdef SWIG
 // clang-format off
-%extend opentxs::ui::UIActivitySummaryItem {
+%extend opentxs::ui::ActivitySummaryItem {
     int Timestamp() const
     {
         return std::chrono::system_clock::to_time_t($self->Timestamp());
