@@ -70,11 +70,11 @@ public:
         const MessageType requestedCommand,
         ServerContext& context,
         Message& theMessage,
+        const Identifier& pHisNymID,
+        const Identifier& pHisAcctID,
+        const Amount lTransactionAmount = 0,
         const Account* pAccount = nullptr,
-        const std::int64_t lTransactionAmount = 0,
-        const UnitDefinition* pMyUnitDefinition = nullptr,
-        const Identifier* pHisNymID = nullptr,
-        const Identifier* pHisAcctID = nullptr);
+        const UnitDefinition* pMyUnitDefinition = nullptr);
     void QueueOutgoingMessage(const Message& theMessage);
 
     explicit OTClient(

@@ -871,7 +871,7 @@ bool OT_API::GetNym(std::int32_t iIndex, Identifier& NYM_ID, String& NYM_NAME)
     const
 {
     if (wallet_.NymNameByIndex(iIndex, NYM_NAME)) {
-        NYM_ID = Identifier::Factory(NYM_NAME);
+        NYM_ID.SetString(NYM_NAME);
 
         return true;
     }
@@ -1514,7 +1514,7 @@ bool OT_API::Wallet_ImportNym(
     const auto theNymID = Identifier::Factory(theMap["id"]);
     const String strNymName(theMap["name"].c_str());
 
-    if (nullptr != nymfileID) nymfileID->SetString(theMap["id"]);
+    if (!nymfileID->empty()) nymfileID->SetString(theMap["id"]);
     if (theNymID->IsEmpty()) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Error: NYM_ID passed in is empty; returning false";
@@ -4005,12 +4005,7 @@ Cheque* OT_API::WriteCheque(
     auto nym = context.It().Nym();
     auto account = wallet_.Account(SENDER_accountID);
 
-    if (false == bool(account)) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Failed to load account"
-              << std::endl;
-
-        return nullptr;
-    }
+    if (false == bool(account)) { return nullptr; }
 
     // By this point, account is a good pointer, and is on the wallet. (No need
     // to cleanup.)
@@ -4121,7 +4116,7 @@ OTPaymentPlan* OT_API::ProposePaymentPlan(
     const time64_t& VALID_TO,    // Default (0) == no expiry / cancel anytime.
                                  // Otherwise this is a LENGTH and is ADDED to
                                  // VALID_FROM
-    const Identifier* pSENDER_accountID,
+    const Identifier& pSENDER_accountID,
     const Identifier& SENDER_NYM_ID,
     const String& PLAN_CONSIDERATION,  // Like a memo.
     const Identifier& RECIPIENT_accountID,
@@ -4162,7 +4157,7 @@ OTPaymentPlan* OT_API::ProposePaymentPlan(
     // confirmation, which is after the merchant has created the proposal (here)
     // and
     // sent it to him.)
-    if (nullptr == pSENDER_accountID) {
+    if (pSENDER_accountID.empty()) {
         pPlan = new OTPaymentPlan(
             NOTARY_ID, account.get().GetInstrumentDefinitionID());
 
@@ -4179,7 +4174,7 @@ OTPaymentPlan* OT_API::ProposePaymentPlan(
         pPlan = new OTPaymentPlan(
             NOTARY_ID,
             account.get().GetInstrumentDefinitionID(),
-            *pSENDER_accountID,
+            pSENDER_accountID,
             SENDER_NYM_ID,
             RECIPIENT_accountID,
             RECIPIENT_NYM_ID);
@@ -4193,7 +4188,7 @@ OTPaymentPlan* OT_API::ProposePaymentPlan(
     // At this point, I know that pPlan is a good pointer that I either
     // have to delete, or return to the caller. CLEANUP WARNING!
     bool bSuccessSetProposal = pPlan->SetProposal(
-        context.It(), account, PLAN_CONSIDERATION, VALID_FROM, VALID_TO);
+        context.It(), account.get(), PLAN_CONSIDERATION, VALID_FROM, VALID_TO);
     // WARNING!!!! SetProposal() burns TWO transaction numbers for RECIPIENT.
     // (*nymfile)
     // BELOW THIS POINT, if you have an error, then you must retrieve those
@@ -4361,7 +4356,7 @@ bool OT_API::ConfirmPaymentPlan(
     // The "Creation Date" of the agreement is re-set here.
     //
     bool bConfirmed = thePlan.Confirm(
-        context.It(), account, pMerchantNym.get(), &RECIPIENT_NYM_ID);
+        context.It(), account.get(), RECIPIENT_NYM_ID, pMerchantNym.get());
     //
     // WARNING:  The call to "Confirm()" uses TWO transaction numbers from
     // nymfile!
@@ -4564,20 +4559,22 @@ OTNym_or_SymmetricKey* OT_API::LoadPurseAndOwnerFromString(
     OTPassword& thePassword,  // Only used in the case of password-protected
                               // purses. Passed in so it won't go out of scope
                               // when pOwner is set to point to it.
-    bool bForEncrypting,      // true==encrypting,false==decrypting.
-                              // Only relevant if there's an owner.
-    const Identifier* pOWNER_ID,       // This can be nullptr, **IF** purse
+    const Identifier& pOWNER_ID =
+        Identifier::Factory(),         // This can be nullptr, **IF** purse
                                        // is password-protected. (It's
                                        // just ignored in that case.)
                                        // Otherwise MUST contain the NymID
                                        // for the Purse owner.
+    bool bForEncrypting,               // true==encrypting,false==decrypting.
+                                       // Only relevant if there's an owner.
     const String* pstrDisplay1,        // for purses owned by the wallet
                                        // already
     const String* pstrDisplay2) const  // for password-protected purses
 {
     const bool bDoesOwnerIDExist =
-        (nullptr != pOWNER_ID);  // If not true, purse MUST be
-                                 // password-protected.
+
+        (!pOWNER_ID.empty());  // If not true, purse MUST be
+                               // password-protected.
     OTPasswordData thePWData1(
         (nullptr == pstrDisplay1)
             ? "Enter the master passphrase for your wallet. "
@@ -4591,7 +4588,7 @@ OTNym_or_SymmetricKey* OT_API::LoadPurseAndOwnerFromString(
     const Nym* pOwnerNym =
         nullptr;  // In the case where there is an owner, this will point to it.
     if (bDoesOwnerIDExist) {
-        pOwnerNym = wallet_.Nym(*pOWNER_ID).get();
+        pOwnerNym = wallet_.Nym(pOWNER_ID).get();
 
         if (nullptr == pOwnerNym) { return nullptr; }
     }
@@ -4708,18 +4705,20 @@ OTNym_or_SymmetricKey* OT_API::LoadPurseAndOwnerForMerge(
     OTPassword& thePassword,  // Only used in the case of password-protected
                               // purses. Passed in so it won't go out of scope
                               // when pOwner is set to point to it.
-    bool bCanBePublic,        // true==private nym isn't mandatory.
-                              // false==private nym IS mandatory.
-                              // (Only relevant if there's an owner.)
-    const Identifier* pOWNER_ID,  // This can be nullptr, **IF** purse
-                                  // is password-protected. (It's
-                                  // just ignored in that case.)
-                                  // Otherwise if it's Nym-protected,
-                                  // the purse will have a NymID on
-                                  // it already. If not (it's
-                                  // optional), then pOWNER_ID is the
-                                  // ID it will try next, before
-                                  // failing.
+
+    const Identifier& pOWNER_ID =
+        Identifier::Factory(),  // This can be nullptr, **IF** purse
+                                // is password-protected. (It's
+                                // just ignored in that case.)
+                                // Otherwise if it's Nym-protected,
+                                // the purse will have a NymID on
+                                // it already. If not (it's
+                                // optional), then pOWNER_ID is the
+                                // ID it will try next, before
+                                // failing.
+    bool bCanBePublic,          // true==private nym isn't mandatory.
+                                // false==private nym IS mandatory.
+                                // (Only relevant if there's an owner.)
     const String* pstrDisplay) const
 {
     OTPasswordData thePWData(
@@ -4749,8 +4748,8 @@ OTNym_or_SymmetricKey* OT_API::LoadPurseAndOwnerForMerge(
                                                //
                                                // checked inside the block.
         ) {
-            const Identifier& pActualOwnerID =
-                thePurse.IsNymIDIncluded() ? idPurseNym.get() : *pOWNER_ID;
+            const auto& pActualOwnerID =
+                thePurse.IsNymIDIncluded() ? idPurseNym.get() : pOWNER_ID;
 
             if (pActualOwnerID.empty()) {
                 otErr << OT_METHOD << __FUNCTION__
@@ -4847,9 +4846,9 @@ Token* OT_API::Purse_Peek(
     const Identifier& NOTARY_ID,
     const Identifier& INSTRUMENT_DEFINITION_ID,
     const String& THE_PURSE,
-    const Identifier* pOWNER_ID,  // This can be
-                                  // nullptr,
-                                  // **IF** purse
+    const Identifier& pOWNER_ID = Identifier::Factory(),  // This can be
+                                                          // nullptr,
+                                                          // **IF** purse
     // is password-protected. (It's
     // just ignored in that case.)
     // Otherwise MUST contain the NymID
@@ -4894,8 +4893,8 @@ Token* OT_API::Purse_Peek(
         THE_PURSE,
         thePurse,
         thePassword,
-        false,  // bForEncrypting=true by default. (Peek needs to decrypt.)
         pOWNER_ID,
+        false,  // bForEncrypting=true by default. (Peek needs to decrypt.)
         &strReason1,
         &strReason2));
     if (nullptr == pOwner)
@@ -4936,9 +4935,9 @@ Purse* OT_API::Purse_Pop(
     const Identifier& NOTARY_ID,
     const Identifier& INSTRUMENT_DEFINITION_ID,
     const String& THE_PURSE,
-    const Identifier* pOWNER_ID,  // This can be
-                                  // nullptr,
-                                  // **IF** purse
+    const Identifier& pOWNER_ID = Identifier::Factory(),  // This can be
+                                                          // nullptr,
+                                                          // **IF** purse
     // is password-protected. (It's
     // just ignored in that case.)
     // Otherwise MUST contain the NymID
@@ -4985,8 +4984,8 @@ Purse* OT_API::Purse_Pop(
         THE_PURSE,
         *pPurse,
         thePassword,
+        Identifier::Factory(pOWNER_ID),
         false,  // bForEncrypting=true by default, but Pop needs to decrypt.
-        pOWNER_ID,
         &strReason1,
         &strReason2));
     if (nullptr == pOwner)
@@ -5055,8 +5054,9 @@ Purse* OT_API::Purse_Push(
     const Identifier& INSTRUMENT_DEFINITION_ID,
     const String& THE_PURSE,
     const String& THE_TOKEN,
-    const Identifier* pOWNER_ID,  // This can be nullptr,
-                                  // **IF** purse
+    const Identifier& pOWNER_ID = Identifier::Factory(),  // This can be
+                                                          // nullptr,
+                                                          // **IF** purse
     // is password-protected. (It's
     // just ignored in that case.)
     // Otherwise MUST contain the NymID
@@ -5120,8 +5120,8 @@ Purse* OT_API::Purse_Push(
         THE_PURSE,
         *pPurse,
         thePassword,
-        true,  // bForEncrypting=true by default.
-        pOWNER_ID,
+        Identifier::Factory(pOWNER_ID),
+        true,  // bForEncrypting=true by default
         &strReason1,
         &strReason2));
     if (nullptr == pOwner)
@@ -5206,16 +5206,17 @@ bool OT_API::Wallet_ImportPurse(
         THE_PURSE,
         *pNewPurse,
         thePassword,
-        false,       // bCanBePublic=false by default. (Private Nym must be
-                     // loaded, if
-                     // a nym is the owner.)
-        &SIGNER_ID,  // This can be nullptr, **IF** purse is
-                     // password-protected.
-                     // (It's just ignored in that case.) Otherwise if it's
+
+        SIGNER_ID,  // This can be nullptr, **IF** purse is
+                    // password-protected.
+                    // (It's just ignored in that case.) Otherwise if it's
         // Nym-protected, the purse will have a NymID on it already,
         // which is what LoadPurseAndOwnerForMerge will try first.
         // If not (it's optional), then SIGNER_ID is the ID it will
         // try next, before failing altogether.
+        false,  // bCanBePublic=false by default. (Private Nym must be
+                // loaded, if
+                // a nym is the owner.)
         &reason));
     if (nullptr == pNewOwner)
         return false;  // This already logs, no need for more logs.
@@ -5378,11 +5379,9 @@ Token* OT_API::Token_ChangeOwner(
             OLD_OWNER,
             *pOldPurse,
             theOldPassword,
-            false,           // bCanBePublic=false by default. In this case, it
-                             // definitely
-                             // must be private.
-            &SIGNER_NYM_ID,  // This can be nullptr, **IF** purse is
-                             // password-protected. (It's just ignored in that
+
+            SIGNER_NYM_ID,  // This can be nullptr, **IF** purse is
+                            // password-protected. (It's just ignored in that
             // case.) Otherwise if it's Nym-protected, the purse
             // will have a NymID on it already, which is what
             // LoadPurseAndOwnerForMerge will try first. If not
@@ -5394,6 +5393,9 @@ Token* OT_API::Token_ChangeOwner(
             // keys. Otherwise if this token's owner was already
             // a Nym, then we would have passed a NymID in here,
             // instead of a purse, in the first place.
+            false,  // bCanBePublic=false by default. In this case, it
+                    // definitely
+                    // must be private.
             &reason);
         theOldOwnerAngel.reset(pOldOwner);
         if (nullptr == pOldOwner)
@@ -5418,14 +5420,9 @@ Token* OT_API::Token_ChangeOwner(
             NEW_OWNER,
             *pNewPurse,
             theNewPassword,
-            true,  // bCanBePublic=false by default, but set TRUE here, since
-                   // you
-            // SHOULD be able to re-assign ownership of a token to someone
-            // else, without having to load their PRIVATE key (which you
-            // don't have.) Sort of irrelevant here actually, since this
-            // block is for purses only...
-            &SIGNER_NYM_ID,  // This can be nullptr, **IF** purse is
-                             // password-protected. (It's just ignored in that
+
+            SIGNER_NYM_ID,  // This can be nullptr, **IF** purse is
+                            // password-protected. (It's just ignored in that
             // case.) Otherwise if it's Nym-protected, the purse
             // will have a NymID on it already, which is what
             // LoadPurseAndOwnerForMerge will try first. If not
@@ -5437,6 +5434,12 @@ Token* OT_API::Token_ChangeOwner(
             // keys. Otherwise if this token's owner was already
             // a Nym, then we would have passed a NymID in here,
             // instead of a purse, in the first place.
+            true,  // bCanBePublic=false by default, but set TRUE here, since
+                   // you
+            // SHOULD be able to re-assign ownership of a token to someone
+            // else, without having to load their PRIVATE key (which you
+            // don't have.) Sort of irrelevant here actually, since this
+            // block is for purses only...
             &reason);
         theNewOwnerAngel.reset(pNewOwner);
         if (nullptr == pNewOwner)
@@ -6325,7 +6328,7 @@ bool OT_API::RecordPayment(
         // ------------------------------------------
         // Payment Notary (versus the Transport Notary).
         //
-        OTIdentifier paymentNotaryId = Identifier::Factory();
+        auto paymentNotaryId = Identifier::Factory();
 
         if (pPayment->GetNotaryID(paymentNotaryId)) {
             if (paymentNotaryId != TRANSPORT_NOTARY_ID) {
@@ -6420,7 +6423,7 @@ bool OT_API::RecordPayment(
             // ------------------------------------------
             // Payment Notary (versus the Transport Notary).
             //
-            OTIdentifier paymentNotaryId = Identifier::Factory();
+            auto paymentNotaryId = Identifier::Factory();
             if (thePayment.GetNotaryID(paymentNotaryId)) {
                 // If you write a cheque drawn on server ABC, and then you send
                 // it to me on my server DEF, then I will open my payments inbox
@@ -7804,8 +7807,7 @@ bool OT_API::GetBasketMemberType(
         return false;
     }
 
-    theOutputMemberType =
-        Identifier::Factory(serialized->basket().item(nIndex).unit());
+    theOutputMemberType.SetString(serialized->basket().item(nIndex).unit());
 
     return true;
 }
@@ -8033,6 +8035,7 @@ bool OT_API::AddBasketExchangeItem(
 
         return false;
     }
+    if (false == bool(account)) { return false; }
 
     // By this point, account is a good pointer, and is on the wallet. (No need
     // to cleanup.)
@@ -8302,8 +8305,8 @@ CommandResult OT_API::exchangeBasket(
 
     if (false == bool(transaction)) { return output; }
 
-    std::unique_ptr<Item> item(
-        Item::CreateItemFromTransaction(*transaction, Item::exchangeBasket));
+    std::unique_ptr<Item> item(Item::CreateItemFromTransaction(
+        *transaction, Item::exchangeBasket, Identifier::Factory()));
 
     if (false == bool(item)) { return output; }
 
@@ -8389,7 +8392,11 @@ CommandResult OT_API::getTransactionNumbers(ServerContext& context) const
 
     Message message;
     requestNum = m_pClient->ProcessUserCommand(
-        MessageType::getTransactionNumbers, context, message);
+        MessageType::getTransactionNumbers,
+        context,
+        message,
+        Identifier::Factory(),
+        Identifier::Factory());
 
     if (1 > requestNum) {
         otErr << OT_METHOD << __FUNCTION__ << ": Error processing "
@@ -8505,8 +8512,8 @@ CommandResult OT_API::notarizeWithdrawal(
 
     if (false == bool(transaction)) { return output; }
 
-    std::unique_ptr<Item> item(
-        Item::CreateItemFromTransaction(*transaction, Item::withdrawal));
+    std::unique_ptr<Item> item(Item::CreateItemFromTransaction(
+        *transaction, Item::withdrawal, Identifier::Factory()));
 
     if (false == bool(item)) { return output; }
 
@@ -8688,8 +8695,8 @@ CommandResult OT_API::notarizeDeposit(
         return output;
     }
 
-    std::unique_ptr<Item> item(
-        Item::CreateItemFromTransaction(*transaction, Item::deposit));
+    std::unique_ptr<Item> item(Item::CreateItemFromTransaction(
+        *transaction, Item::deposit, Identifier::Factory()));
 
     if (false == bool(item)) {
         otErr << OT_METHOD << __FUNCTION__
@@ -8721,13 +8728,13 @@ CommandResult OT_API::notarizeDeposit(
         THE_PURSE,
         sourcePurse,
         pursePassword,
-        false,   // MUST be private, if a nym.
-        &nymID,  // This can be nullptr, *IF* purse is password-protected.
-                 // (It's just ignored in that case.) Otherwise if it's
-                 // Nym-protected, the purse will have a NymID on it
-                 // already, which is what LoadPurseAndOwnerForMerge will
-                 // try first. If not (it's optional), then nymID is the
-                 // ID it will try next, before failing altogether.
+        nymID,  // This can be nullptr, *IF* purse is password-protected.
+                // (It's just ignored in that case.) Otherwise if it's
+                // Nym-protected, the purse will have a NymID on it
+                // already, which is what LoadPurseAndOwnerForMerge will
+                // try first. If not (it's optional), then nymID is the
+                // ID it will try next, before failing altogether.
+        false,  // MUST be private, if a nym.
         &reason));
 
     if (false == bool(purseOwner)) {
@@ -9032,8 +9039,8 @@ CommandResult OT_API::payDividend(
 
     if (false == bool(transaction)) { return output; }
 
-    std::unique_ptr<Item> item(
-        Item::CreateItemFromTransaction(*transaction, Item::payDividend));
+    std::unique_ptr<Item> item(Item::CreateItemFromTransaction(
+        *transaction, Item::payDividend, Identifier::Factory()));
 
     if (false == bool(item)) { return output; }
 
@@ -9200,8 +9207,8 @@ CommandResult OT_API::withdrawVoucher(
             withdrawalNumber));
     if (false == bool(transaction)) { return output; }
 
-    std::unique_ptr<Item> item(
-        Item::CreateItemFromTransaction(*transaction, Item::withdrawVoucher));
+    std::unique_ptr<Item> item(Item::CreateItemFromTransaction(
+        *transaction, Item::withdrawVoucher, Identifier::Factory()));
 
     if (false == bool(item)) { return output; }
 
@@ -9310,6 +9317,8 @@ bool OT_API::DiscardCheque(
 
         return false;
     }
+
+    if (false == bool(account)) { return false; }
 
     // By this point, account is a good pointer, and is on the wallet. (No need
     // to cleanup.)
@@ -9527,8 +9536,8 @@ CommandResult OT_API::depositCheque(
 
     if (false == bool(transaction)) { return output; }
 
-    std::unique_ptr<Item> item(
-        Item::CreateItemFromTransaction(*transaction, Item::depositCheque));
+    std::unique_ptr<Item> item(Item::CreateItemFromTransaction(
+        *transaction, Item::depositCheque, Identifier::Factory()));
 
     if (false == bool(item)) { return output; }
 
@@ -9693,8 +9702,8 @@ CommandResult OT_API::depositPaymentPlan(
 
     if (false == bool(transaction)) { return output; }
 
-    std::unique_ptr<Item> item(
-        Item::CreateItemFromTransaction(*transaction, Item::paymentPlan));
+    std::unique_ptr<Item> item(Item::CreateItemFromTransaction(
+        *transaction, Item::paymentPlan, Identifier::Factory()));
 
     if (false == bool(item)) { return output; }
 
@@ -10017,8 +10026,8 @@ CommandResult OT_API::activateSmartContract(
 
     if (false == bool(transaction)) { return output; }
 
-    std::unique_ptr<Item> item(
-        Item::CreateItemFromTransaction(*transaction, Item::smartContract));
+    std::unique_ptr<Item> item(Item::CreateItemFromTransaction(
+        *transaction, Item::smartContract, Identifier::Factory()));
 
     if (false == bool(item)) { return output; }
 
@@ -10161,8 +10170,8 @@ CommandResult OT_API::cancelCronItem(
 
     if (false == bool(transaction)) { return output; }
 
-    std::unique_ptr<Item> item(
-        Item::CreateItemFromTransaction(*transaction, Item::cancelCronItem));
+    std::unique_ptr<Item> item(Item::CreateItemFromTransaction(
+        *transaction, Item::cancelCronItem, Identifier::Factory()));
 
     if (false == bool(item)) { return output; }
 
@@ -10486,7 +10495,7 @@ CommandResult OT_API::issueMarketOffer(
     if (false == bool(transaction)) { return output; }
 
     std::unique_ptr<Item> item(Item::CreateItemFromTransaction(
-        *transaction, Item::marketOffer, &CURRENCY_ACCOUNT_ID));
+        *transaction, Item::marketOffer, CURRENCY_ACCOUNT_ID));
 
     if (false == bool(item)) { return output; }
 
@@ -10716,8 +10725,8 @@ CommandResult OT_API::notarizeTransfer(
 
     if (false == bool(transaction)) { return output; }
 
-    std::unique_ptr<Item> item(Item::CreateItemFromTransaction(
-        *transaction, Item::transfer, &ACCT_TO));
+    std::unique_ptr<Item> item(
+        Item::CreateItemFromTransaction(*transaction, Item::transfer, ACCT_TO));
 
     if (false == bool(item)) { return output; }
 
@@ -11536,8 +11545,7 @@ CommandResult OT_API::sendNymMessage(
 
     sent->SignContract(nym);
     sent->SaveContract();
-    messageID = Identifier::Factory(
-        activity_.Mail(nymID, *sent, StorageBox::MAILOUTBOX));
+    messageID.SetString(activity_.Mail(nymID, *sent, StorageBox::MAILOUTBOX));
 
     return output;
 }
@@ -12376,7 +12384,11 @@ CommandResult OT_API::unregisterNym(ServerContext& context) const
     reply.reset();
     Message message;
     requestNum = m_pClient->ProcessUserCommand(
-        MessageType::unregisterNym, context, message);
+        MessageType::unregisterNym,
+        context,
+        message,
+        Identifier::Factory(),
+        Identifier::Factory());
 
     if (0 < requestNum) {
         result = send_message({}, context, message);
@@ -13120,8 +13132,8 @@ bool OT_API::add_accept_item(
     const Amount amount,
     OTTransaction& processInbox) const
 {
-    std::unique_ptr<Item> acceptItem(
-        Item::CreateItemFromTransaction(processInbox, type));
+    std::unique_ptr<Item> acceptItem(Item::CreateItemFromTransaction(
+        processInbox, type, Identifier::Factory()));
 
     if (false == bool(acceptItem)) { return false; }
 

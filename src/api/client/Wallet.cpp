@@ -2119,7 +2119,7 @@ ConstServerContract Wallet::Server(
 
 ObjectList Wallet::ServerList() const { return ot_.DB().ServerList(); }
 
-OTIdentifier Wallet::ServerToNym(Identifier& input) const
+OTIdentifier Wallet::ServerToNym(OTIdentifier& input) const
 {
     auto output = Identifier::Factory();
     auto nym = Nym(input);
@@ -2139,7 +2139,7 @@ OTIdentifier Wallet::ServerToNym(Identifier& input) const
             if (server->Nym()->ID() == input) {
                 matches++;
                 // set input to the notary ID
-                input = server->ID();
+                input = Identifier::Factory(server->ID());
             }
         }
 

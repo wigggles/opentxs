@@ -148,8 +148,8 @@ public:
     EXPORT bool Confirm(
         ServerContext& context,
         const Account& PAYER_ACCT,
-        const Nym* pMERCHANT_NYM = nullptr,
-        const Identifier* p_id_MERCHANT_NYM = nullptr);
+        const Identifier& p_id_MERCHANT_NYM,
+        const Nym* pMERCHANT_NYM = nullptr);
 
     // What should be the process here?
 

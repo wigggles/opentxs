@@ -217,7 +217,7 @@ private:
         std::map<std::string, std::shared_ptr<class UnitDefinition>>;
     using ContextID = std::pair<std::string, std::string>;
     using ContextMap = std::map<ContextID, std::shared_ptr<class Context>>;
-    using IssuerID = std::pair<Identifier, Identifier>;
+    using IssuerID = std::pair<OTIdentifier, OTIdentifier>;
     using IssuerLock =
         std::pair<std::mutex, std::shared_ptr<api::client::Issuer>>;
     using IssuerMap = std::map<IssuerID, IssuerLock>;
@@ -295,7 +295,7 @@ private:
      *    \param[in] contract the instantiated ServerContract object
      */
     ConstServerContract Server(std::unique_ptr<ServerContract>& contract) const;
-    OTIdentifier ServerToNym(Identifier& serverID) const;
+    OTIdentifier ServerToNym(OTIdentifier& serverID) const;
 
     /**   Save an instantiated unit definition to storage and add to internal
      *    map.

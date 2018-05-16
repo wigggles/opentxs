@@ -137,12 +137,16 @@ Nym::Nym(const api::client::Wallet& wallet, const Identifier& nymID)
 }
 
 Nym::Nym(const api::client::Wallet& wallet, const String& strNymID)
-    : Nym(wallet, Identifier(strNymID))
+    : Nym(wallet, Identifier::Factory(std::string(strNymID.Get())))
 {
 }
 
 Nym::Nym(const api::client::Wallet& wallet, const NymParameters& nymParameters)
-    : Nym(wallet, String(), String(), Identifier(), proto::CREDINDEX_PRIVATE)
+    : Nym(wallet,
+          String(),
+          String(),
+          Identifier::Factory(),
+          proto::CREDINDEX_PRIVATE)
 {
     NymParameters revisedParameters = nymParameters;
 #if OT_CRYPTO_SUPPORTED_KEY_HD
@@ -889,15 +893,13 @@ bool Nym::GetHash(
         if (str_id == it.first) {
             // The call has succeeded
             bRetVal = true;
-            theOutput = it.second;
+            theOutput.SetString(it.second->str());
             break;
         }
     }
 
     return bRetVal;
 }
-
-// sets argument based on internal member
 void Nym::GetIdentifier(Identifier& theIdentifier) const
 {
     sLock lock(shared_lock_);
@@ -1356,8 +1358,10 @@ bool Nym::load_credential_index(
 
     OT_ASSERT(verify_lock(lock));
 
-    Identifier nymID(index.nymid());
+    const auto nymID = Identifier::Factory(index.nymid());
+
     if (m_nymID != nymID) { return false; }
+
     version_ = index.version();
     index_ = index.index();
     revision_.store(index.revision());
@@ -1366,10 +1370,9 @@ bool Nym::load_credential_index(
     proto::KeyMode mode = (proto::CREDINDEX_PRIVATE == mode_)
                               ? proto::KEYMODE_PRIVATE
                               : proto::KEYMODE_PUBLIC;
-
     contact_data_.reset();
-
     m_mapCredentialSets.clear();
+
     for (auto& it : index.activecredentials()) {
         CredentialSet* newSet = new CredentialSet(wallet_, mode, it);
 
@@ -1380,6 +1383,7 @@ bool Nym::load_credential_index(
     }
 
     m_mapRevokedSets.clear();
+
     for (auto& it : index.revokedcredentials()) {
         CredentialSet* newSet = new CredentialSet(wallet_, mode, it);
 
@@ -2534,7 +2538,7 @@ bool Nym::verify_pseudonym(const eLock& lock) const
             const CredentialSet* pCredential = it.second;
             OT_ASSERT(nullptr != pCredential);
 
-            const auto theCredentialNymID =
+            const OTIdentifier theCredentialNymID =
                 Identifier::Factory(pCredential->GetNymID());
             if (m_nymID != theCredentialNymID) {
                 otOut << __FUNCTION__ << ": Credential NymID ("

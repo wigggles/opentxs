@@ -1057,7 +1057,8 @@ void OTMarket::ProcessTrade(
     // using the pointers from there.
 
     const auto FIRST_NYM_ID = Identifier::Factory(
-                   theTrade.GetSenderNymID()),  // The newest trade's Nym.
+                   theTrade.GetSenderNymID()),  // The newest trade's
+                                                // Nym.
         OTHER_NYM_ID = Identifier::Factory(
             pOtherTrade->GetSenderNymID()),  // The Nym of the trade
                                              // that was already on the
@@ -1424,14 +1425,14 @@ void OTMarket::ProcessTrade(
 
             // set up the transaction items (each transaction may have multiple
             // items... but not in this case.)
-            Item* pItem1 =
-                Item::CreateItemFromTransaction(*pTrans1, Item::marketReceipt);
-            Item* pItem2 =
-                Item::CreateItemFromTransaction(*pTrans2, Item::marketReceipt);
-            Item* pItem3 =
-                Item::CreateItemFromTransaction(*pTrans3, Item::marketReceipt);
-            Item* pItem4 =
-                Item::CreateItemFromTransaction(*pTrans4, Item::marketReceipt);
+            Item* pItem1 = Item::CreateItemFromTransaction(
+                *pTrans1, Item::marketReceipt, Identifier::Factory());
+            Item* pItem2 = Item::CreateItemFromTransaction(
+                *pTrans2, Item::marketReceipt, Identifier::Factory());
+            Item* pItem3 = Item::CreateItemFromTransaction(
+                *pTrans3, Item::marketReceipt, Identifier::Factory());
+            Item* pItem4 = Item::CreateItemFromTransaction(
+                *pTrans4, Item::marketReceipt, Identifier::Factory());
 
             // these may be unnecessary, I'll have to check
             // CreateItemFromTransaction. I'll leave em.
@@ -2077,10 +2078,14 @@ void OTMarket::ProcessTrade(
                 // Save the four inboxes to storage. (File, DB, wherever it
                 // goes.)
 
-                pFirstAssetAcct.get().SaveInbox(theFirstAssetInbox);
-                pFirstCurrencyAcct.get().SaveInbox(theFirstCurrencyInbox);
-                pOtherAssetAcct.get().SaveInbox(theOtherAssetInbox);
-                pOtherCurrencyAcct.get().SaveInbox(theOtherCurrencyInbox);
+                pFirstAssetAcct.get().SaveInbox(
+                    theFirstAssetInbox, Identifier::Factory());
+                pFirstCurrencyAcct.get().SaveInbox(
+                    theFirstCurrencyInbox, Identifier::Factory());
+                pOtherAssetAcct.get().SaveInbox(
+                    theOtherAssetInbox, Identifier::Factory());
+                pOtherCurrencyAcct.get().SaveInbox(
+                    theOtherCurrencyInbox, Identifier::Factory());
 
                 // These correspond to the AddTransaction() calls just above.
                 // The actual receipts are stored in separate files now.
@@ -2165,7 +2170,7 @@ void OTMarket::ProcessTrade(
                     pTempInbox->ReleaseSignatures();
                     pTempInbox->SignContract(*pServerNym);
                     pTempInbox->SaveContract();
-                    pTempInbox->SaveInbox();
+                    pTempInbox->SaveInbox(Identifier::Factory());
 
                     pTempTransaction->SaveBoxReceipt(*pTempInbox);
                 } else {
@@ -2223,7 +2228,7 @@ void OTMarket::ProcessTrade(
                     pTempInbox->ReleaseSignatures();
                     pTempInbox->SignContract(*pServerNym);
                     pTempInbox->SaveContract();
-                    pTempInbox->SaveInbox();
+                    pTempInbox->SaveInbox(Identifier::Factory());
 
                     pTempTransaction->SaveBoxReceipt(*pTempInbox);
                 } else {

@@ -69,9 +69,9 @@ class Server;
 //
 class PayDividendVisitor : public AccountVisitor
 {
-    Identifier* m_pNymID{nullptr};
-    Identifier* m_pPayoutInstrumentDefinitionID{nullptr};
-    Identifier* m_pVoucherAcctID{nullptr};
+    const OTIdentifier nymId_;
+    const OTIdentifier payoutUnitTypeId_;
+    const OTIdentifier voucherAcctId_;
     String* m_pstrMemo{nullptr};  // contains the original payDividend item from
                                   // the payDividend transaction request.
                                   // (Stored in the memo field for each
@@ -88,19 +88,16 @@ public:
     PayDividendVisitor(
         const Identifier& theNotaryID,
         const Identifier& theNymID,
-        const Identifier& thePayoutInstrumentDefinitionID,
+        const Identifier& thePayoutUnitTypeId,
         const Identifier& theVoucherAcctID,
         const String& strMemo,
         server::Server& theServer,
         std::int64_t lPayoutPerShare);
     virtual ~PayDividendVisitor();
 
-    Identifier* GetNymID() { return m_pNymID; }
-    Identifier* GetPayoutInstrumentDefinitionID()
-    {
-        return m_pPayoutInstrumentDefinitionID;
-    }
-    Identifier* GetVoucherAcctID() { return m_pVoucherAcctID; }
+    const OTIdentifier GetNymID() { return nymId_; }
+    const OTIdentifier GetPayoutUnitTypeId() { return payoutUnitTypeId_; }
+    const OTIdentifier GetVoucherAcctID() { return voucherAcctId_; }
     String* GetMemo() { return m_pstrMemo; }
     server::Server* GetServer() { return m_pServer; }
     std::int64_t GetPayoutPerShare() { return m_lPayoutPerShare; }

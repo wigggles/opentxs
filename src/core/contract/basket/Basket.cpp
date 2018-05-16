@@ -369,7 +369,6 @@ void Basket::CalculateContractID(Identifier& newID) const
     // do this on a copy since we don't want to modify this basket
     OTStringXML xmlUnsigned;
     GenerateContents(xmlUnsigned, true);
-
     newID.CalculateDigest(xmlUnsigned);
 }
 

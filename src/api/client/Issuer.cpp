@@ -113,7 +113,8 @@ Issuer::Issuer(
         const auto& type = it.type();
         const auto& unitID = it.unitdefinitionid();
         const auto& accountID = it.accountid();
-        account_map_[type].emplace(unitID, accountID);
+        account_map_[type].emplace(
+            Identifier::Factory(unitID), Identifier::Factory(accountID));
     }
 
     for (const auto& history : serialized.peerrequests()) {
@@ -121,7 +122,7 @@ Issuer::Issuer(
 
         for (const auto& workflow : history.workflow()) {
             peer_requests_[type].emplace(
-                workflow.requestid(),
+                Identifier::Factory(workflow.requestid()),
                 std::pair<OTIdentifier, bool>(
                     Identifier::Factory(workflow.replyid()), workflow.used()));
         }
@@ -192,7 +193,7 @@ Issuer::operator std::string() const
 
             for (const auto& [unit, accountID] : accountSet->second) {
                 if (unit == unitID) {
-                    output << "  * Account ID: " << accountID.str() << "\n";
+                    output << "  * Account ID: " << accountID->str() << "\n";
                 }
             }
         }
@@ -255,7 +256,7 @@ std::set<OTIdentifier> Issuer::AccountList(
     const Identifier& unitID) const
 {
     Lock lock(lock_);
-    std::set<OTIdentifier> output{};
+    std::set<OTIdentifier> output;
     auto accountSet = account_map_.find(type);
 
     if (account_map_.end() == accountSet) { return output; }
@@ -316,7 +317,7 @@ bool Issuer::AddReply(
         return add_request(lock, type, requestID, replyID);
     }
 
-    reply = replyID;
+    reply = Identifier::Factory(replyID);
     used = false;
 
     return true;
@@ -546,7 +547,7 @@ std::set<std::tuple<OTIdentifier, OTIdentifier, bool>> Issuer::get_requests(
 
         switch (state) {
             case Issuer::RequestStatus::Unused: {
-                const bool exists = (false == replyID.empty());
+                const bool exists = (false == replyID->empty());
                 const bool unused = (false == used);
 
                 if (exists && unused) {
@@ -554,12 +555,12 @@ std::set<std::tuple<OTIdentifier, OTIdentifier, bool>> Issuer::get_requests(
                 }
             } break;
             case Issuer::RequestStatus::Replied: {
-                if (false == replyID.empty()) {
+                if (false == replyID->empty()) {
                     output.emplace(requestID, replyID, used);
                 }
             } break;
             case Issuer::RequestStatus::Requested: {
-                if (replyID.empty()) {
+                if (replyID->empty()) {
                     output.emplace(requestID, Identifier::Factory(), false);
                 }
             } break;
@@ -642,8 +643,8 @@ proto::Issuer Issuer::Serialize() const
             auto& map = *output.add_accounts();
             map.set_version(version_);
             map.set_type(type);
-            map.set_unitdefinitionid(unitID.str());
-            map.set_accountid(accountID.str());
+            map.set_unitdefinitionid(unitID->str());
+            map.set_accountid(accountID->str());
         }
     }
 
@@ -656,8 +657,8 @@ proto::Issuer Issuer::Serialize() const
             const auto& [reply, isUsed] = data;
             auto& workflow = *history.add_workflow();
             workflow.set_version(version_);
-            workflow.set_requestid(request.str());
-            workflow.set_replyid(reply.str());
+            workflow.set_requestid(request->str());
+            workflow.set_replyid(reply->str());
             workflow.set_used(isUsed);
         }
     }

@@ -98,7 +98,7 @@ ContactListItem::ContactListItem(
     OT_ASSERT(listening)
 }
 
-std::string ContactListItem::ContactID() const { return id_.str(); }
+std::string ContactListItem::ContactID() const { return id_->str(); }
 
 std::string ContactListItem::DisplayName() const
 {
@@ -118,7 +118,8 @@ void ContactListItem::process_contact(const network::zeromq::Message& message)
 {
     OT_ASSERT(1 == message.Body().size());
 
-    const Identifier contactID{std::string(*message.Body().begin())};
+    const OTIdentifier contactID =
+        Identifier::Factory({std::string(*message.Body().begin())});
 
     if (id_ != contactID) { return; }
 

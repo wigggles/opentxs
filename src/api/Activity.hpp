@@ -219,7 +219,8 @@ public:
 private:
     friend class implementation::Native;
 
-    typedef std::map<Identifier, std::shared_ptr<const std::string>> MailCache;
+    typedef std::map<OTIdentifier, std::shared_ptr<const std::string>>
+        MailCache;
 
     const ContactManager& contact_;
     const storage::Storage& storage_;
@@ -228,7 +229,7 @@ private:
     mutable std::mutex mail_cache_lock_;
     mutable MailCache mail_cache_;
     mutable std::mutex publisher_lock_;
-    mutable std::map<Identifier, OTZMQPublishSocket> thread_publishers_;
+    mutable std::map<OTIdentifier, OTZMQPublishSocket> thread_publishers_;
 
     /**   Migrate nym-based thread IDs to contact-based thread IDs
      *
@@ -236,11 +237,11 @@ private:
      */
     void MigrateLegacyThreads() const;
     void activity_preload_thread(
-        const Identifier nymID,
+        const OTIdentifier nymID,
         const std::size_t count) const;
     void preload(
-        const Identifier nym,
-        const Identifier id,
+        const OTIdentifier nym,
+        const OTIdentifier id,
         const StorageBox box) const;
     void thread_preload_thread(
         const std::string nymID,

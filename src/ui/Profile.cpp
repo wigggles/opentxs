@@ -311,9 +311,9 @@ void Profile::process_nym(const network::zeromq::Message& message)
     OT_ASSERT(1 == message.Body().size());
 
     const std::string id(*message.Body().begin());
-    const Identifier nymID(id);
+    const auto nymID = Identifier::Factory(id);
 
-    OT_ASSERT(false == nymID.empty())
+    OT_ASSERT(false == nymID->empty())
 
     if (nymID != nym_id_) { return; }
 

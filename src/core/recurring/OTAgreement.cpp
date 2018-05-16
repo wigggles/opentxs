@@ -91,8 +91,8 @@ bool OTAgreement::SendNoticeToAllParties(
     String* pstrAttachment,
     Nym* pActualNym) const
 {
-    bool bSuccess =
-        true;  // Success is defined as ALL parties receiving a notice
+    // Success is defined as ALL parties receiving a notice
+    bool bSuccess = true;
 
     // Sender
     if (!OTAgreement::DropServerNoticeToNymbox(
@@ -174,8 +174,8 @@ bool OTAgreement::DropServerNoticeToNymbox(
 
         // Set up the transaction items (each transaction may have multiple
         // items... but not in this case.)
-        Item* pItem1 =
-            Item::CreateItemFromTransaction(*pTransaction, Item::notice);
+        Item* pItem1 = Item::CreateItemFromTransaction(
+            *pTransaction, Item::notice, Identifier::Factory());
         OT_ASSERT(nullptr != pItem1);  // This may be unnecessary, I'll have to
                                        // check CreateItemFromTransaction. I'll
                                        // leave it for now.
@@ -347,6 +347,7 @@ void OTAgreement::onFinalReceipt(
     String strUpdatedCronItem(*this);
     String* pstrAttachment = &strUpdatedCronItem;
     const String strOrigCronItem(theOrigCronItem);
+    const auto NYM_ID = Identifier::Factory(GetRecipientNymID());
 
     // First, we are closing the transaction number ITSELF, of this cron item,
     // as an active issued number on the originating nym. (Changing it to
@@ -912,8 +913,8 @@ bool OTAgreement::SetProposal(
 bool OTAgreement::Confirm(
     ServerContext& context,
     const Account& PAYER_ACCT,
-    const Nym* pMERCHANT_NYM,
-    const Identifier* p_id_MERCHANT_NYM)
+    const Identifier& p_id_MERCHANT_NYM,
+    const Nym* pMERCHANT_NYM)
 {
     auto nym = context.Nym();
     if (nullptr == nym) { return false; }
@@ -928,8 +929,8 @@ bool OTAgreement::Confirm(
                  "Nym ID (not allowed.)\n";
         return false;
     } else if (
-        (nullptr != p_id_MERCHANT_NYM) &&
-        (GetRecipientNymID() != *p_id_MERCHANT_NYM)) {
+        (!p_id_MERCHANT_NYM.empty()) &&
+        (GetRecipientNymID() != p_id_MERCHANT_NYM)) {
         otOut << __FUNCTION__
               << ": Merchant has wrong NymID (should be same "
                  "as RecipientNymID.)\n";

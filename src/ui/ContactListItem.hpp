@@ -44,7 +44,7 @@
 namespace opentxs::ui::implementation
 {
 using ContactListItemType =
-    Row<opentxs::ui::ContactListItem, ContactListParent, Identifier>;
+    Row<opentxs::ui::ContactListItem, ContactListParent, OTIdentifier>;
 
 class ContactListItem : public ContactListItemType
 {

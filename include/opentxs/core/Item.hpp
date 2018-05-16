@@ -397,7 +397,7 @@ public:
     EXPORT static Item* CreateItemFromTransaction(
         const OTTransaction& theOwner,
         Item::itemType theType,
-        const Identifier* pDestinationAcctID = nullptr);
+        const Identifier& pDestinationAcctID);
     EXPORT static void GetStringFromType(
         Item::itemType theType,
         String& strType);
@@ -417,7 +417,7 @@ public:
         const Identifier& theNymID,
         const OTTransaction& theOwner,
         Item::itemType theType,
-        const Identifier* pDestinationAcctID = nullptr);
+        const Identifier& pDestinationAcctID);
 
     virtual ~Item();
     //    OTItem& operator=(const OTItem& rhs);

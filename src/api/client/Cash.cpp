@@ -219,9 +219,7 @@ std::string Cash::export_cash_low_level(
         false,
         bPasswordProtected);
 
-    if (bSuccessProcess) {
-        strRetainedCopy = newPurseForSender;
-    }
+    if (bSuccessProcess) { strRetainedCopy = newPurseForSender; }
 
     // Whatever is returned from that function, I return here also.
     // Presumably a purse...
@@ -487,9 +485,7 @@ bool Cash::get_purse_indices_or_amount(
         if (denomination <= remain) {
             indices = SwigWrap::NumList_Add(indices, std::to_string(i));
             remain -= denomination;
-            if (0 == remain) {
-                return true;
-            }
+            if (0 == remain) { return true; }
         }
     }
 
@@ -610,9 +606,7 @@ std::int32_t Cash::deposit_purse_low_level(
 
     if (1 == nInterpretReply) {
 
-        if (nullptr != pOptionalOutput) {
-            *pOptionalOutput = strResponse;
-        }
+        if (nullptr != pOptionalOutput) { *pOptionalOutput = strResponse; }
 
         // Download all the intermediary files (account balance, inbox, outbox,
         // etc)
@@ -693,9 +687,7 @@ std::int32_t Cash::easy_withdraw_cash_low_level(
 
     std::string assetType =
         SwigWrap::GetAccountWallet_InstrumentDefinitionID(myacct);
-    if (assetType.empty()) {
-        return -1;
-    }
+    if (assetType.empty()) { return -1; }
 
     const opentxs::OTIdentifier theNotaryID = Identifier::Factory(server),
                                 theNymID = Identifier::Factory(mynym),
@@ -736,9 +728,7 @@ std::int32_t Cash::easy_withdraw_cash_low_level(
             ->Run();
     std::int32_t reply = InterpretTransactionMsgReply(
         server, mynym, myacct, "withdraw_cash", response);
-    if (1 != reply) {
-        return reply;
-    }
+    if (1 != reply) { return reply; }
 
     if (!OT::App().API().ServerAction().DownloadAccount(
             theNymID, theNotaryID, theAcctID, true)) {
@@ -1222,9 +1212,9 @@ bool Cash::process_cash_purse(
             if (find(
                     selectedTokens.begin(),
                     selectedTokens.end(),
-                    tokenID) !=
-                selectedTokens.end())  // We ARE exporting this token.
-                                       // (Its ID was on the list.)
+                    tokenID) != selectedTokens.end())  // We ARE exporting this
+                                                       // token. (Its ID was on
+                                                       // the list.)
             {
                 // CHANGE OWNER from NYM to RECIPIENT
                 // "token" will now contain the EXPORTED TOKEN, with the
@@ -1394,9 +1384,7 @@ bool Cash::get_tokens(
     std::string purse,
     const std::string& indices) const
 {
-    if (indices.empty()) {
-        return true;
-    }
+    if (indices.empty()) { return true; }
 
     std::int32_t items = SwigWrap::Purse_Count(server, assetType, purse);
     if (0 > items) {
@@ -1439,4 +1427,4 @@ bool Cash::get_tokens(
 }
 
 #endif
-}  // namespace opentxs
+}  // namespace opentxs::api::client::implementation

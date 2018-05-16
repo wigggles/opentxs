@@ -62,20 +62,18 @@
 
 namespace opentxs
 {
-
 PayDividendVisitor::PayDividendVisitor(
     const Identifier& theNotaryID,
     const Identifier& theNymID,
-    const Identifier& thePayoutInstrumentDefinitionID,
+    const Identifier& thePayoutUnitTypeId,
     const Identifier& theVoucherAcctID,
     const String& strMemo,
     server::Server& theServer,
     std::int64_t lPayoutPerShare)
-    : AccountVisitor(theNotaryID)
-    , m_pNymID(new Identifier(theNymID))
-    , m_pPayoutInstrumentDefinitionID(
-          new Identifier(thePayoutInstrumentDefinitionID))
-    , m_pVoucherAcctID(new Identifier(theVoucherAcctID))
+    : AccountVisitor(Identifier::Factory(theNotaryID))
+    , nymId_(Identifier::Factory(theNymID))
+    , payoutUnitTypeId_(Identifier::Factory(thePayoutUnitTypeId))
+    , voucherAcctId_(Identifier::Factory(theVoucherAcctID))
     , m_pstrMemo(new String(strMemo))
     , m_pServer(&theServer)
     , m_lPayoutPerShare(lPayoutPerShare)
@@ -86,13 +84,7 @@ PayDividendVisitor::PayDividendVisitor(
 
 PayDividendVisitor::~PayDividendVisitor()
 {
-    if (nullptr != m_pNymID) delete m_pNymID;
-    m_pNymID = nullptr;
-    if (nullptr != m_pPayoutInstrumentDefinitionID)
-        delete m_pPayoutInstrumentDefinitionID;
-    m_pPayoutInstrumentDefinitionID = nullptr;
-    if (nullptr != m_pVoucherAcctID) delete m_pVoucherAcctID;
-    m_pVoucherAcctID = nullptr;
+
     if (nullptr != m_pstrMemo) delete m_pstrMemo;
     m_pstrMemo = nullptr;
     m_pServer = nullptr;  // don't delete this one (I don't own it.)
@@ -128,18 +120,17 @@ bool PayDividendVisitor::Trigger(
     }
     OT_ASSERT(false == GetNotaryID()->empty());
     const auto theNotaryID = GetNotaryID();
-    OT_ASSERT(nullptr != GetPayoutInstrumentDefinitionID());
-    const Identifier& thePayoutInstrumentDefinitionID =
-        *(GetPayoutInstrumentDefinitionID());
-    OT_ASSERT(nullptr != GetVoucherAcctID());
-    const Identifier& theVoucherAcctID = *(GetVoucherAcctID());
+    OT_ASSERT(!GetPayoutUnitTypeId()->empty());
+    const Identifier& payoutUnitTypeId_ = (Identifier::Factory());
+    OT_ASSERT(!GetVoucherAcctID()->empty());
+    const Identifier& theVoucherAcctID = (GetVoucherAcctID());
     OT_ASSERT(nullptr != GetServer());
     server::Server& theServer = *(GetServer());
     Nym& theServerNym = const_cast<Nym&>(theServer.GetServerNym());
     const auto theServerNymID = Identifier::Factory(theServerNym);
     const Identifier& RECIPIENT_ID = theSharesAccount.GetNymID();
-    OT_ASSERT(nullptr != GetNymID());
-    const Identifier& theSenderNymID = *(GetNymID());
+    OT_ASSERT(!GetNymID()->empty());
+    const Identifier& theSenderNymID = (GetNymID());
     OT_ASSERT(nullptr != GetMemo());
     const String& strMemo = *(GetMemo());
     // Note: theSenderNymID is the originator of the Dividend Payout.
@@ -150,7 +141,7 @@ bool PayDividendVisitor::Trigger(
     // just having it get lost in the ether.)
     bool bReturnValue = false;
 
-    Cheque theVoucher(theNotaryID, thePayoutInstrumentDefinitionID);
+    Cheque theVoucher(theNotaryID, Identifier::Factory());
 
     // 10 minutes ==    600 Seconds
     // 1 hour    ==     3600 Seconds
@@ -236,8 +227,8 @@ bool PayDividendVisitor::Trigger(
             // lTotalPayoutAmount, then we return to rest
             // to the sender.
         } else {
-            const String strPayoutInstrumentDefinitionID(
-                thePayoutInstrumentDefinitionID),
+            const String strPayoutUnitTypeId(
+                Identifier::Factory(payoutUnitTypeId_)),
                 strRecipientNymID(RECIPIENT_ID);
             Log::vError(
                 "PayDividendVisitor::Trigger: ERROR failed "
@@ -246,15 +237,14 @@ bool PayDividendVisitor::Trigger(
                 "WAS TRYING TO PAY %" PRId64
                 " of instrument definition %s to Nym %s.\n",
                 lPayoutAmount,
-                strPayoutInstrumentDefinitionID.Get(),
+                strPayoutUnitTypeId.Get(),
                 strRecipientNymID.Get());
         }
         // If we didn't send it, then we need to return the funds to where they
         // came from.
         //
         if (!bSent) {
-            Cheque theReturnVoucher(
-                theNotaryID, thePayoutInstrumentDefinitionID);
+            Cheque theReturnVoucher(theNotaryID, Identifier::Factory());
 
             const bool bIssueReturnVoucher = theReturnVoucher.IssueCheque(
                 lPayoutAmount,          // The amount of the cheque.
@@ -301,8 +291,7 @@ bool PayDividendVisitor::Trigger(
                                         // is less than lTotalPayoutAmount, then
                                         // we return the rest to the sender.
             } else {
-                const String strPayoutInstrumentDefinitionID(
-                    thePayoutInstrumentDefinitionID),
+                const String strPayoutUnitTypeId(payoutUnitTypeId_),
                     strSenderNymID(theSenderNymID);
                 Log::vError(
                     "PayDividendVisitor::Trigger: ERROR "
@@ -313,14 +302,13 @@ bool PayDividendVisitor::Trigger(
                     " of instrument definition "
                     "%s to Nym %s.\n",
                     lPayoutAmount,
-                    strPayoutInstrumentDefinitionID.Get(),
+                    strPayoutUnitTypeId.Get(),
                     strSenderNymID.Get());
             }
         }   // if !bSent
     } else  // !bGotNextTransNum
     {
-        const String strPayoutInstrumentDefinitionID(
-            thePayoutInstrumentDefinitionID),
+        const String strPayoutUnitTypeId(payoutUnitTypeId_),
             strRecipientNymID(RECIPIENT_ID);
         Log::vError(
             "PayDividendVisitor::Trigger: ERROR!! Failed issuing next "
@@ -329,7 +317,7 @@ bool PayDividendVisitor::Trigger(
             "WAS TRYING TO PAY %" PRId64
             " of instrument definition %s to Nym %s.\n",
             lPayoutAmount,
-            strPayoutInstrumentDefinitionID.Get(),
+            strPayoutUnitTypeId.Get(),
             strRecipientNymID.Get());
     }
 

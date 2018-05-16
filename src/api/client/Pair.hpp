@@ -82,7 +82,7 @@ private:
 
     friend Factory;
     /// local nym id, issuer nym id
-    typedef std::pair<Identifier, Identifier> IssuerID;
+    typedef std::pair<OTIdentifier, OTIdentifier> IssuerID;
 
     const Flag& running_;
     const api::client::Sync& sync_;
@@ -162,7 +162,7 @@ private:
     void state_machine(
         const Identifier& localNymID,
         const Identifier& issuerNymID) const;
-    std::pair<bool, Identifier> store_secret(
+    std::pair<bool, OTIdentifier> store_secret(
         const Identifier& localNymID,
         const Identifier& issuerNymID,
         const Identifier& serverID) const;

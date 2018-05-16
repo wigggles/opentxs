@@ -467,7 +467,7 @@ void Pair::process_pending_bailment(
 
     if (added) {
         pending_bailment_->Publish(proto::ProtoAsString(request));
-        const auto originalRequest =
+        const OTIdentifier originalRequest =
             Identifier::Factory(request.pendingbailment().requestid());
         if (!originalRequest->empty()) {
             issuer.SetUsed(proto::PEERREQUEST_BAILMENT, originalRequest, true);
@@ -838,7 +838,8 @@ void Pair::state_machine(
 
                         const auto& notUsed[[maybe_unused]] = id;
                         const auto& claim = *pClaim;
-                        const auto unitID = Identifier::Factory(claim.Value());
+                        const OTIdentifier unitID =
+                            Identifier::Factory(claim.Value());
                         const auto accountList =
                             issuer.AccountList(type, unitID);
 
@@ -891,7 +892,7 @@ void Pair::state_machine(
     }
 }
 
-std::pair<bool, Identifier> Pair::store_secret(
+std::pair<bool, OTIdentifier> Pair::store_secret(
     const Identifier& localNymID,
     const Identifier& issuerNymID,
     const Identifier& serverID) const

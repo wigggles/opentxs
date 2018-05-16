@@ -255,7 +255,7 @@ bool Account::GetInboxHash(Identifier& output)
     output.Release();
 
     if (!inboxHash_->IsEmpty()) {
-        output = inboxHash_;
+        output.SetString(inboxHash_->str());
         return true;
     } else if (
         !GetNymID().IsEmpty() && !GetRealAccountID().IsEmpty() &&
@@ -278,7 +278,7 @@ bool Account::GetOutboxHash(Identifier& output)
     output.Release();
 
     if (!outboxHash_->IsEmpty()) {
-        output = outboxHash_;
+        output.SetString(outboxHash_->str());
         return true;
     } else if (
         !GetNymID().IsEmpty() && !GetRealAccountID().IsEmpty() &&

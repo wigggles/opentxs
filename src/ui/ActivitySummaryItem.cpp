@@ -152,7 +152,7 @@ std::string ActivitySummaryItem::display_name(
     std::set<std::string> names{};
 
     for (const auto& participant : thread.participant()) {
-        auto name = contact_.ContactName(Identifier(participant));
+        auto name = contact_.ContactName(Identifier::Factory(participant));
 
         if (name.empty()) {
             names.emplace(participant);

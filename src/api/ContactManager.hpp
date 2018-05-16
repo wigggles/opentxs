@@ -104,7 +104,7 @@ private:
         const PaymentCode& paymentCode,
         bool& haveNymID,
         bool& havePaymentCode,
-        Identifier& outputNymID) const;
+        OTIdentifier& outputNymID) const;
     bool verify_write_lock(const rLock& lock) const;
 
     // takes ownership
@@ -144,7 +144,7 @@ private:
         const Identifier& contactID) const;
     void update_nym_map(
         const rLock& lock,
-        const Identifier nymID,
+        const OTIdentifier nymID,
         class Contact& contact,
         const bool replace = false) const;
 

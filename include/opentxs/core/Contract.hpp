@@ -183,8 +183,8 @@ public:
         const String& foldername,
         const String& filename,
         const String& strID);
-    EXPORT explicit Contract(const String& strID);
     EXPORT explicit Contract(const Identifier& theID);
+    EXPORT explicit Contract(const String& strID);
 
     // TODO: a contract needs to have certain required fields in order to be
     // accepted for notarization. One of those should be a URL where anyone can

@@ -524,7 +524,7 @@ bool MainFile::LoadServerUserAndContract()
     // (I WAS loading this erroneously in Server.Init(), before
     // the Nym had actually been loaded from disk. That didn't work.)
     //
-    const auto NOTARY_ID = server_.GetServerID();
+    const auto NOTARY_ID = Identifier::Factory(server_.GetServerID());
 
     // Make sure the Cron object has a pointer to the server's Nym.
     // (For signing stuff...)

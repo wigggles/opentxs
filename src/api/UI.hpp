@@ -73,17 +73,17 @@ private:
     using AccountActivityMap =
         std::map<AccountKey, std::unique_ptr<ui::AccountActivity>>;
     using ActivitySummaryMap =
-        std::map<Identifier, std::unique_ptr<ui::ActivitySummary>>;
+        std::map<OTIdentifier, std::unique_ptr<ui::ActivitySummary>>;
     using ActivityThreadID = std::pair<OTIdentifier, OTIdentifier>;
     using ActivityThreadMap =
         std::map<ActivityThreadID, std::unique_ptr<ui::ActivityThread>>;
     using ContactMap = std::map<OTIdentifier, std::unique_ptr<ui::Contact>>;
     using ContactListMap =
-        std::map<Identifier, std::unique_ptr<ui::ContactList>>;
+        std::map<OTIdentifier, std::unique_ptr<ui::ContactList>>;
     using MessagableListMap =
-        std::map<Identifier, std::unique_ptr<ui::MessagableList>>;
+        std::map<OTIdentifier, std::unique_ptr<ui::MessagableList>>;
     using PayableListMap = std::map<
-        std::pair<Identifier, proto::ContactItemType>,
+        std::pair<OTIdentifier, proto::ContactItemType>,
         std::unique_ptr<ui::PayableList>>;
     using ProfileMap = std::map<OTIdentifier, std::unique_ptr<ui::Profile>>;
 

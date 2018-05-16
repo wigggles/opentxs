@@ -473,9 +473,9 @@ std::int32_t OTCron::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         const std::int64_t lScale =
             String::StringToLong(xml->getAttributeValue("marketScale"));
 
-        const auto INSTRUMENT_DEFINITION_ID =
-                       Identifier::Factory(strInstrumentDefinitionID),
-                   CURRENCY_ID = Identifier::Factory(strCurrencyID);
+        const OTIdentifier INSTRUMENT_DEFINITION_ID =
+                               Identifier::Factory(strInstrumentDefinitionID),
+                           CURRENCY_ID = Identifier::Factory(strCurrencyID);
 
         otWarn << "Loaded cron entry for Market:\n" << strMarketID << ".\n";
 

@@ -198,9 +198,9 @@ void Contact::process_contact(const network::zeromq::Message& message)
     OT_ASSERT(1 == message.Body().size());
 
     const std::string id(*message.Body().begin());
-    const Identifier contactID(id);
+    const auto contactID = Identifier::Factory(id);
 
-    OT_ASSERT(false == contactID.empty())
+    OT_ASSERT(false == contactID->empty())
 
     if (contactID != nym_id_) { return; }
 

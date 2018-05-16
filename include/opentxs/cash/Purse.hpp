@@ -97,9 +97,8 @@ protected:
     OTIdentifier m_NymID;                   // Optional
     OTIdentifier m_NotaryID;                // Mandatory
     OTIdentifier m_InstrumentDefinitionID;  // Mandatory
-    std::int64_t m_lTotalValue{
-        0};  // Push increments this by denomination, and Pop
-             // decrements it by denomination.
+    std::int64_t m_lTotalValue{0};  // Push increments this by denomination, and
+                                    // Pop decrements it by denomination.
     bool m_bPasswordProtected{false};  // this purse might be encrypted to a
                                        // passphrase, instead of a Nym.
     // If that's the case, BTW, then there will be a Symmetric Key and a Master
@@ -112,25 +111,24 @@ protected:
     // which is used to derived a key to unlock it. This key may then be cached
     // in memory by OTCachedKey until a timeout, and later be zapped by a thread
     // for that purpose.
-    bool m_bIsNymIDIncluded{
-        false};  // It's possible to use a purse WITHOUT attaching
-                 // the relevant NymID. (The holder of the purse
-                 // just has to "know" what the correct NymID is,
-                 // or it won't work.) This bool tells us whether
-                 // the ID is attached, or not.
+    bool m_bIsNymIDIncluded{false};  // It's possible to use a purse WITHOUT
+                                     // attaching the relevant NymID. (The
+                                     // holder of the purse just has to "know"
+                                     // what the correct NymID is, or it won't
+                                     // work.) This bool tells us whether the ID
+                                     // is attached, or not.
     OTSymmetricKey* m_pSymmetricKey{nullptr};  // If this purse contains its own
     // symmetric key (instead of using an
     // owner Nym)...
     // ...then it will have a master key as well, for unlocking that symmetric
     // key, and managing timeouts, etc.
     std::shared_ptr<OTCachedKey> m_pCachedKey;
-    time64_t m_tLatestValidFrom{
-        0};  // The tokens in the purse may become valid on
-             // different dates. This stores the latest
-             // one.
-    time64_t m_tEarliestValidTo{
-        0};  // The tokens in the purse may have different
-             // expirations. This stores the earliest one.
+    time64_t m_tLatestValidFrom{0};  // The tokens in the purse may become valid
+                                     // on different dates. This stores the
+                                     // latest one.
+    time64_t m_tEarliestValidTo{0};  // The tokens in the purse may have
+                                     // different expirations. This stores the
+                                     // earliest one.
     void RecalculateExpirationDates(OTNym_or_SymmetricKey& theOwner);
     Purse();  // private
 
@@ -190,7 +188,7 @@ public:
     EXPORT time64_t GetLatestValidFrom() const;
     EXPORT time64_t GetEarliestValidTo() const;
     /** Verify whether the CURRENT date is WITHIN the VALID FROM / TO dates.
-      * NOTE: Keep in mind that a purse's expiration dates are based on ALL the
+     * NOTE: Keep in mind that a purse's expiration dates are based on ALL the
      * tokens within. Therefore this will never be as accurate as individually
      * examining those tokens... */
     EXPORT bool VerifyCurrentDate();

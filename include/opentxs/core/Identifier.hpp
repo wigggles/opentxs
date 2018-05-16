@@ -87,21 +87,6 @@ public:
     EXPORT friend std::ostream& operator<<(std::ostream& os, const String& obj);
     EXPORT static bool validateID(const std::string& strPurportedID);
 
-    EXPORT Identifier();
-    EXPORT explicit Identifier(const std::string& rhs);
-    EXPORT explicit Identifier(const String& rhs);
-    EXPORT explicit Identifier(const Nym& nym);
-    EXPORT explicit Identifier(const Contract& contract);
-    EXPORT explicit Identifier(const OTSymmetricKey& key);
-    EXPORT explicit Identifier(const OTCachedKey& key);
-    EXPORT explicit Identifier(
-        const proto::ContactItemType type,
-        const proto::HDPath& path);
-    EXPORT Identifier(const Identifier& rhs);
-
-    EXPORT Identifier& operator=(const Identifier& rhs);
-    EXPORT Identifier& operator=(Identifier&& rhs);
-
     using ot_super::operator==;
     EXPORT bool operator==(const Identifier& s2) const;
     using ot_super::operator!=;
@@ -145,6 +130,22 @@ private:
     static OTData path_to_data(
         const proto::ContactItemType type,
         const proto::HDPath& path);
+
+public:
+    Identifier();
+    explicit Identifier(const std::string& rhs);
+    explicit Identifier(const String& rhs);
+    explicit Identifier(const Nym& nym);
+    explicit Identifier(const Contract& contract);
+    explicit Identifier(const OTSymmetricKey& key);
+    explicit Identifier(const OTCachedKey& key);
+    explicit Identifier(
+        const proto::ContactItemType type,
+        const proto::HDPath& path);
+    Identifier(const Identifier& rhs);
+
+    Identifier& operator=(const Identifier& rhs);
+    Identifier& operator=(Identifier&& rhs);
 };
-}  // namespace opentxs0
+}  // namespace opentxs
 #endif  // OPENTXS_CORE_OTIDENTIFIER_HPP

@@ -1432,7 +1432,8 @@ bool OTTransaction::VerifyBalanceReceipt(const ServerContext& context)
 
     const auto& THE_NYM = *context.Nym();
     const auto& SERVER_NYM = context.RemoteNym();
-    Identifier NYM_ID(THE_NYM), NOTARY_NYM_ID(SERVER_NYM);
+    auto NYM_ID = Identifier::Factory(THE_NYM),
+         NOTARY_NYM_ID = Identifier::Factory(SERVER_NYM);
     const String strNotaryID(GetRealNotaryID()), strReceiptID(NYM_ID);
 
     // Load the last TRANSACTION STATEMENT as well...
@@ -2827,7 +2828,8 @@ bool OTTransaction::VerifyBoxReceipt(OTTransaction& theFullVersion)
 
     // VERIFY THE HASH
     //
-    Identifier idFullVersion;  // Generate a message digest of that string.
+    auto idFullVersion =
+        Identifier::Factory();  // Generate a message digest of that string.
     theFullVersion.CalculateContractID(idFullVersion);
 
     // Abbreviated version (*this) stores a hash of the original full version.
@@ -2878,7 +2880,7 @@ bool OTTransaction::VerifyBoxReceipt(OTTransaction& theFullVersion)
 //
 bool OTTransaction::VerifyItems(const Nym& theNym)
 {
-    const Identifier NYM_ID(theNym);
+    const auto NYM_ID = Identifier::Factory(theNym);
 
     if (NYM_ID != GetNymID()) {
         otErr << "Wrong owner passed to OTTransaction::VerifyItems\n";
@@ -3996,8 +3998,9 @@ std::int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                               // std::set<std::int64_t>.)
         }
 
-        Identifier ACCOUNT_ID(strAcctID), NOTARY_ID(strNotaryID),
-            NYM_ID(strNymID);
+        auto ACCOUNT_ID = Identifier::Factory(strAcctID),
+             NOTARY_ID = Identifier::Factory(strNotaryID),
+             NYM_ID = Identifier::Factory(strNymID);
 
         SetPurportedAccountID(ACCOUNT_ID);  // GetPurportedAccountID() const {
                                             // return m_AcctID; }
@@ -4394,12 +4397,13 @@ void OTTransaction::SaveAbbrevPaymentInboxRecord(Tag& parent)
     if (IsAbbreviated()) m_Hash->GetString(strHash);
     // Otherwise if it's a full record, then calculate the hash and save it.
     else {
-        Identifier idReceiptHash;  // a hash of the actual transaction is
-                                   // stored with its
+        auto idReceiptHash =
+            Identifier::Factory();  // a hash of the actual transaction is
+                                    // stored with its
         CalculateContractID(idReceiptHash);  // abbreviated short-form
                                              // record (in the payment
                                              // inbox, for example.)
-        idReceiptHash.GetString(strHash);
+        idReceiptHash->GetString(strHash);
     }
 
     TagPtr pTag(new Tag("paymentInboxRecord"));
@@ -4482,12 +4486,13 @@ void OTTransaction::SaveAbbrevExpiredBoxRecord(Tag& parent)
     if (IsAbbreviated()) m_Hash->GetString(strHash);
     // Otherwise if it's a full record, then calculate the hash and save it.
     else {
-        Identifier idReceiptHash;  // a hash of the actual transaction is
-                                   // stored with its
+        auto idReceiptHash =
+            Identifier::Factory();  // a hash of the actual transaction is
+                                    // stored with its
         CalculateContractID(idReceiptHash);  // abbreviated short-form
                                              // record (in the expired box,
                                              // for example.)
-        idReceiptHash.GetString(strHash);
+        idReceiptHash->GetString(strHash);
     }
 
     TagPtr pTag(new Tag("expiredBoxRecord"));
@@ -4689,12 +4694,13 @@ void OTTransaction::SaveAbbrevRecordBoxRecord(Tag& parent)
     if (IsAbbreviated()) m_Hash->GetString(strHash);
     // Otherwise if it's a full record, then calculate the hash and save it.
     else {
-        Identifier idReceiptHash;  // a hash of the actual transaction is
-                                   // stored with its
+        auto idReceiptHash =
+            Identifier::Factory();  // a hash of the actual transaction is
+                                    // stored with its
         CalculateContractID(idReceiptHash);  // abbreviated short-form
                                              // record (in the record box,
                                              // for example.)
-        idReceiptHash.GetString(strHash);
+        idReceiptHash->GetString(strHash);
     }
 
     TagPtr pTag(new Tag("recordBoxRecord"));
@@ -4819,12 +4825,13 @@ void OTTransaction::SaveAbbreviatedNymboxRecord(Tag& parent)
     if (IsAbbreviated()) m_Hash->GetString(strHash);
     // Otherwise if it's a full record, then calculate the hash and save it.
     else {
-        Identifier idReceiptHash;  // a hash of the actual transaction is
-                                   // stored with its
+        auto idReceiptHash =
+            Identifier::Factory();  // a hash of the actual transaction is
+                                    // stored with its
         CalculateContractID(idReceiptHash);  // abbreviated short-form
                                              // record (in the inbox, for
                                              // example.)
-        idReceiptHash.GetString(strHash);
+        idReceiptHash->GetString(strHash);
     }
 
     TagPtr pTag(new Tag("nymboxRecord"));
@@ -4921,12 +4928,13 @@ void OTTransaction::SaveAbbreviatedOutboxRecord(Tag& parent)
     if (IsAbbreviated()) m_Hash->GetString(strHash);
     // Otherwise if it's a full record, then calculate the hash and save it.
     else {
-        Identifier idReceiptHash;  // a hash of the actual transaction is
-                                   // stored with its
+        auto idReceiptHash =
+            Identifier::Factory();  // a hash of the actual transaction is
+                                    // stored with its
         CalculateContractID(idReceiptHash);  // abbreviated short-form
                                              // record (in the inbox, for
                                              // example.)
-        idReceiptHash.GetString(strHash);
+        idReceiptHash->GetString(strHash);
     }
 
     TagPtr pTag(new Tag("outboxRecord"));
@@ -5074,12 +5082,13 @@ void OTTransaction::SaveAbbreviatedInboxRecord(Tag& parent)
     if (IsAbbreviated()) m_Hash->GetString(strHash);
     // Otherwise if it's a full record, then calculate the hash and save it.
     else {
-        Identifier idReceiptHash;  // a hash of the actual transaction is
-                                   // stored with its
+        auto idReceiptHash =
+            Identifier::Factory();  // a hash of the actual transaction is
+                                    // stored with its
         CalculateContractID(idReceiptHash);  // abbreviated short-form
                                              // record (in the inbox, for
                                              // example.)
-        idReceiptHash.GetString(strHash);
+        idReceiptHash->GetString(strHash);
     }
 
     TagPtr pTag(new Tag("inboxRecord"));
@@ -5204,7 +5213,8 @@ void OTTransaction::ProduceInboxReportItem(Item& theBalanceItem)
     // the item will represent THIS TRANSACTION, and will be added to
     // theBalanceItem.
 
-    Item* pReportItem = Item::CreateItemFromTransaction(*this, theItemType);
+    Item* pReportItem = Item::CreateItemFromTransaction(
+        *this, theItemType, Identifier::Factory());
 
     if (nullptr != pReportItem)  // above line will assert if mem allocation
                                  // fails.
@@ -5270,7 +5280,8 @@ void OTTransaction::ProduceOutboxReportItem(Item& theBalanceItem)
     // the item will represent THIS TRANSACTION, and will be added to
     // theBalanceItem.
 
-    Item* pReportItem = Item::CreateItemFromTransaction(*this, theItemType);
+    Item* pReportItem = Item::CreateItemFromTransaction(
+        *this, theItemType, Identifier::Factory());
 
     if (nullptr != pReportItem)  // above line will assert if mem allocation
                                  // fails.
@@ -5914,7 +5925,7 @@ bool OTTransaction::GetSenderNymIDForDisplay(Identifier& theReturnID)
             } else if (nullptr != pCronItem)  // else if it is any other kind of
                                               // cron item...
             {
-                theReturnID = pCronItem->GetSenderNymID();
+                theReturnID.SetString(pCronItem->GetSenderNymID().str());
                 return !theReturnID.IsEmpty();
             } else {
                 otErr << "OTTransaction::" << __FUNCTION__
@@ -5960,7 +5971,7 @@ bool OTTransaction::GetSenderNymIDForDisplay(Identifier& theReturnID)
                                               // kind of
                                               // cron item...
             {
-                theReturnID = pCronItem->GetSenderNymID();
+                theReturnID.SetString(pCronItem->GetSenderNymID().str());
                 return !theReturnID.IsEmpty();
             } else {
                 otErr << "OTTransaction::" << __FUNCTION__
@@ -6081,9 +6092,9 @@ bool OTTransaction::GetSenderNymIDForDisplay(Identifier& theReturnID)
                       << strCheque << "\n";
             } else {
                 if (OTTransaction::chequeReceipt == GetType())
-                    theReturnID = theCheque.GetSenderNymID();
+                    theReturnID.SetString(theCheque.GetSenderNymID().str());
                 else
-                    theReturnID = theCheque.GetRemitterNymID();
+                    theReturnID.SetString(theCheque.GetRemitterNymID().str());
 
                 bSuccess = true;
             }
@@ -6094,7 +6105,7 @@ bool OTTransaction::GetSenderNymIDForDisplay(Identifier& theReturnID)
             if (pOriginalItem->GetType() != Item::transfer) {
                 otErr << "Wrong item type attached to pending transfer\n";
             } else {
-                theReturnID = pOriginalItem->GetNymID();
+                theReturnID.SetString(pOriginalItem->GetNymID().str());
                 bSuccess = true;
             }
             break;
@@ -6167,7 +6178,7 @@ bool OTTransaction::GetRecipientNymIDForDisplay(Identifier& theReturnID)
                 return !theReturnID.IsEmpty();
             } else if (nullptr != pPlan)  // else if it is a payment plan...
             {
-                theReturnID = pPlan->GetRecipientNymID();
+                theReturnID.SetString(pPlan->GetRecipientNymID().str());
                 return !theReturnID.IsEmpty();
             } else {
                 otErr << "OTTransaction::" << __FUNCTION__
@@ -6212,7 +6223,7 @@ bool OTTransaction::GetRecipientNymIDForDisplay(Identifier& theReturnID)
                 return !theReturnID.IsEmpty();
             } else if (nullptr != pPlan)  // else if it is a payment plan...
             {
-                theReturnID = pPlan->GetRecipientNymID();
+                theReturnID.SetString(pPlan->GetRecipientNymID().str());
                 return !theReturnID.IsEmpty();
             } else {
                 otErr << "OTTransaction::" << __FUNCTION__
@@ -6297,12 +6308,13 @@ bool OTTransaction::GetRecipientNymIDForDisplay(Identifier& theReturnID)
                 otErr << "Wrong item type attached to transferReceipt\n";
                 return false;
             } else {
-                theReturnID =
-                    pOriginalItem->GetNymID();  // Even though a transfer
-                                                // has no recipient user
-                                                // (just a recipient acct)
-                                                // I still get the Nym ID
-                                                // when he accepts it!
+                theReturnID.SetString(
+                    pOriginalItem->GetNymID().str());  // Even though a transfer
+                                                       // has no recipient user
+                                                       // (just a recipient
+                                                       // acct) I still get the
+                                                       // Nym ID when he accepts
+                                                       // it!
                 bSuccess = true;
             }
         } break;
@@ -6340,11 +6352,13 @@ bool OTTransaction::GetRecipientNymIDForDisplay(Identifier& theReturnID)
                       << __FUNCTION__ << ":\n"
                       << strCheque << "\n";
             } else if (theCheque.HasRecipient()) {
-                theReturnID = theCheque.GetRecipientNymID();
+                theReturnID =
+                    Identifier::Factory(theCheque.GetRecipientNymID());
                 bSuccess = true;
             } else {
-                theReturnID = pOriginalItem->GetNymID();  // Even though the
-                                                          // cheque has no
+                theReturnID.SetString(
+                    pOriginalItem->GetNymID().str());  // Even though the
+                                                       // cheque has no
                 // recipient, I still get the
                 // Nym ID when he deposits it!
                 bSuccess = true;
@@ -6399,7 +6413,7 @@ bool OTTransaction::GetSenderAcctIDForDisplay(Identifier& theReturnID)
             } else if (nullptr != pCronItem)  // else if it is any other kind of
                                               // cron item...
             {
-                theReturnID = pCronItem->GetSenderAcctID();
+                theReturnID.SetString(pCronItem->GetSenderAcctID().str());
                 return true;
             } else {
                 otErr << "OTTransaction::" << __FUNCTION__
@@ -6473,7 +6487,8 @@ bool OTTransaction::GetSenderAcctIDForDisplay(Identifier& theReturnID)
                 if (OTTransaction::chequeReceipt == GetType())
                     theReturnID = theCheque.GetSenderAcctID();
                 else
-                    theReturnID = theCheque.GetRemitterAcctID();
+                    theReturnID =
+                        Identifier::Factory(theCheque.GetRemitterAcctID());
 
                 bSuccess = true;
             }
@@ -6484,7 +6499,8 @@ bool OTTransaction::GetSenderAcctIDForDisplay(Identifier& theReturnID)
             if (pOriginalItem->GetType() != Item::transfer) {
                 otErr << "Wrong item type attached to pending transfer\n";
             } else {
-                theReturnID = pOriginalItem->GetPurportedAccountID();
+                theReturnID =
+                    Identifier::Factory(pOriginalItem->GetPurportedAccountID());
                 bSuccess = true;
             }
             break;
@@ -6536,7 +6552,7 @@ bool OTTransaction::GetRecipientAcctIDForDisplay(Identifier& theReturnID)
                 return true;
             } else if (nullptr != pPlan)  // else if it's a payment plan.
             {
-                theReturnID = pPlan->GetRecipientAcctID();
+                theReturnID.SetString(pPlan->GetRecipientAcctID().str());
                 return true;
             } else  // else if it is any other kind of cron item...
             {
@@ -6578,7 +6594,8 @@ bool OTTransaction::GetRecipientAcctIDForDisplay(Identifier& theReturnID)
                 otErr << "Wrong item type attached to transferReceipt\n";
                 return false;
             } else {
-                theReturnID = pOriginalItem->GetPurportedAccountID();
+                theReturnID =
+                    Identifier::Factory(pOriginalItem->GetPurportedAccountID());
                 bSuccess = true;
             }
         } break;
@@ -6593,8 +6610,9 @@ bool OTTransaction::GetRecipientAcctIDForDisplay(Identifier& theReturnID)
                       << " (expected depositCheque)\n";
                 return false;
             } else {
-                theReturnID =
-                    pOriginalItem->GetPurportedAccountID();  // Here's the
+                theReturnID.SetString(
+                    pOriginalItem->GetPurportedAccountID().str());  // Here's
+                                                                    // the
                 // depositor's account
                 // ID (even though the
                 // cheque was made out
@@ -6612,7 +6630,8 @@ bool OTTransaction::GetRecipientAcctIDForDisplay(Identifier& theReturnID)
             if (pOriginalItem->GetType() != Item::transfer) {
                 otErr << "Wrong item type attached to pending transfer\n";
             } else {
-                theReturnID = pOriginalItem->GetDestinationAcctID();
+                theReturnID =
+                    Identifier::Factory(pOriginalItem->GetDestinationAcctID());
                 bSuccess = true;
             }
             break;

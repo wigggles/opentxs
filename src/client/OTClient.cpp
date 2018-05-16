@@ -442,7 +442,9 @@ bool OTClient::AcceptEntireNymbox(
 
         if ((OTTransaction::message == pTransaction->GetType())) {
             Item* pAcceptItem = Item::CreateItemFromTransaction(
-                *pAcceptTransaction, Item::acceptMessage);
+                *pAcceptTransaction,
+                Item::acceptMessage,
+                Identifier::Factory());
 
             // The above already has OT_ASSERT so, no need to check the pointer
             // for nullptr.
@@ -467,7 +469,7 @@ bool OTClient::AcceptEntireNymbox(
         // INSTRUMENT (From Another Nym)
         else if ((OTTransaction::instrumentNotice == pTransaction->GetType())) {
             Item* pAcceptItem = Item::CreateItemFromTransaction(
-                *pAcceptTransaction, Item::acceptNotice);
+                *pAcceptTransaction, Item::acceptNotice, Identifier::Factory());
 
             // The above already has OT_ASSERT so, no need to check the pointer
             // for nullptr.
@@ -491,7 +493,7 @@ bool OTClient::AcceptEntireNymbox(
         // SERVER NOTIFICATION
         else if ((OTTransaction::notice == pTransaction->GetType())) {
             Item* pAcceptItem = Item::CreateItemFromTransaction(
-                *pAcceptTransaction, Item::acceptNotice);
+                *pAcceptTransaction, Item::acceptNotice, Identifier::Factory());
 
             // The above already has OT_ASSERT so, no need to check the pointer
             // for nullptr.
@@ -559,7 +561,7 @@ bool OTClient::AcceptEntireNymbox(
             }
 
             Item* pAcceptItem = Item::CreateItemFromTransaction(
-                *pAcceptTransaction, Item::acceptNotice);
+                *pAcceptTransaction, Item::acceptNotice, Identifier::Factory());
 
             // the transaction will handle cleaning up the transaction item.
             pAcceptTransaction->AddItem(*pAcceptItem);
@@ -609,7 +611,9 @@ bool OTClient::AcceptEntireNymbox(
             // us he dropped a copy into the Nymbox! Now we can process it!
             else {
                 Item* pAcceptItem = Item::CreateItemFromTransaction(
-                    *pAcceptTransaction, Item::acceptNotice);
+                    *pAcceptTransaction,
+                    Item::acceptNotice,
+                    Identifier::Factory());
                 OT_ASSERT_MSG(
                     nullptr != pAcceptItem,
                     "OTItem * pAcceptItem = "
@@ -745,7 +749,9 @@ bool OTClient::AcceptEntireNymbox(
             }
 
             Item* pAcceptItem = Item::CreateItemFromTransaction(
-                *pAcceptTransaction, Item::acceptTransaction);
+                *pAcceptTransaction,
+                Item::acceptTransaction,
+                Identifier::Factory());
             pAcceptItem->AddBlankNumbersToItem(theBlankList);
             // the transaction will handle cleaning up the transaction item.
             pAcceptTransaction->AddItem(*pAcceptItem);
@@ -815,7 +821,9 @@ bool OTClient::AcceptEntireNymbox(
                 nymID,
                 pTransaction->GetPurportedNotaryID());
             Item* pAcceptItem = Item::CreateItemFromTransaction(
-                *pAcceptTransaction, Item::acceptFinalReceipt);
+                *pAcceptTransaction,
+                Item::acceptFinalReceipt,
+                Identifier::Factory());
             // the transaction will handle cleaning up the transaction item.
             pAcceptTransaction->AddItem(*pAcceptItem);
             // This is critical. Server needs this to look up the original.
@@ -851,9 +859,12 @@ bool OTClient::AcceptEntireNymbox(
             // here...)
         }
 
-        const bool processed =
-            0 <
-            ProcessUserCommand(MessageType::processNymbox, context, theMessage);
+        const bool processed = 0 < ProcessUserCommand(
+                                       MessageType::processNymbox,
+                                       context,
+                                       theMessage,
+                                       Identifier::Factory(),
+                                       Identifier::Factory());
 
         if (processed) {
             bool ready{true};
@@ -1379,7 +1390,7 @@ void OTClient::ProcessIncomingCronItemReply(
                     // the final signer...)
                     //
                     Item* pNewItem = Item::CreateItemFromTransaction(
-                        *pNewTransaction, Item::notice);
+                        *pNewTransaction, Item::notice, Identifier::Factory());
                     OT_ASSERT(nullptr != pNewItem);
                     // This may be unnecessary, I'll have to check
                     // CreateItemFromTransaction.
@@ -2478,8 +2489,11 @@ bool OTClient::processServerReplyGetNymBox(
         theNymbox.SaveContract();  // Thus we can prove the Nymbox using the
                                    // last signed transaction receipt. This
                                    // means
-        theNymbox.SaveNymbox();    // the receipt is our proof, and the nymbox
-                                   // becomes just an intermediary file that is
+        theNymbox.SaveNymbox(Identifier::Factory());  // the receipt is our
+                                                      // proof, and the nymbox
+                                                      // becomes just an
+                                                      // intermediary file that
+                                                      // is
         // downloaded occasionally (like checking for new email) but no
         // trust is risked since
         // the downloaded file is always verified against the receipt!
@@ -3694,7 +3708,7 @@ bool OTClient::processServerReplyProcessInbox(
     theInbox.ReleaseSignatures();
     theInbox.SignContract(*context.Nym());
     theInbox.SaveContract();
-    theInbox.SaveInbox();
+    theInbox.SaveInbox(Identifier::Factory());
 
     return true;
 }
@@ -4832,7 +4846,9 @@ bool OTClient::processServerReplyProcessNymbox(
                                                     Item* pNewItem = Item::
                                                         CreateItemFromTransaction(
                                                             *pNewTransaction,
-                                                            Item::notice);
+                                                            Item::notice,
+                                                            Identifier::
+                                                                Factory());
                                                     OT_ASSERT(
                                                         nullptr != pNewItem);
                                                     // This may be unnecessary,
@@ -5095,7 +5111,7 @@ bool OTClient::processServerReplyProcessNymbox(
     pNymbox->ReleaseSignatures();
     pNymbox->SignContract(*context.Nym());
     pNymbox->SaveContract();
-    pNymbox->SaveNymbox();
+    pNymbox->SaveNymbox(Identifier::Factory());
 
     return true;
 }
@@ -5544,7 +5560,7 @@ bool OTClient::processServerReplyGetAccountData(
                                            // receipts functional now.
             theInbox.SignContract(*context.Nym());
             theInbox.SaveContract();
-            theInbox.SaveInbox();
+            theInbox.SaveInbox(Identifier::Factory());
         } else {
             otErr << OT_METHOD << __FUNCTION__
                   << ": Error loading (from string) or verifying "
@@ -5591,7 +5607,7 @@ bool OTClient::processServerReplyGetAccountData(
             // signature again, since we have
             // receipts functional now.
             theOutbox.SaveContract();
-            theOutbox.SaveOutbox();
+            theOutbox.SaveOutbox(Identifier::Factory());
         } else {
             otErr << OT_METHOD << __FUNCTION__
                   << ": Error loading (from string) or verifying "
@@ -6274,11 +6290,11 @@ std::int32_t OTClient::ProcessUserCommand(
     const MessageType requestedCommand,
     ServerContext& context,
     Message& theMessage,
+    const Identifier& pHisNymID,
+    const Identifier& pHisAcctID,
+    const Amount lTransactionAmount,
     const Account* pAccount,
-    const std::int64_t lTransactionAmount,
-    const UnitDefinition* pMyUnitDefinition,
-    const Identifier* pHisNymID,
-    const Identifier* pHisAcctID)
+    const UnitDefinition* pMyUnitDefinition)
 {
     // This is all preparatory work to get the various pieces of data together
     // -- only then can we put those pieces into a message.

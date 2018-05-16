@@ -244,7 +244,7 @@ void Server::CreateMainFile(bool& mainFileExists)
 
     if (!newNym->VerifyPseudonym()) { OT_FAIL; }
 
-    const Identifier nymID = newNym->ID();
+    const OTIdentifier nymID = newNym->ID();
 
     const std::string defaultTerms = "This is an example server contract.";
     const std::string& userTerms = mint_.GetUserTerms();
@@ -391,7 +391,7 @@ void Server::CreateMainFile(bool& mainFileExists)
     const String existing = OTDB::QueryPlainString(SERVER_CONTRACT_FILE).data();
 
     if (existing.empty()) {
-        pContract = wallet.Server(nymID.str(), name, terms, endpoints);
+        pContract = wallet.Server(nymID->str(), name, terms, endpoints);
     } else {
         otErr << OT_METHOD << __FUNCTION__
               << ": Existing contract found. Restoring." << std::endl;
@@ -471,7 +471,7 @@ void Server::CreateMainFile(bool& mainFileExists)
     OTDB::StorePlainString(json, SEED_BACKUP_FILE);
 
     mainFileExists = mainFile_.CreateMainFile(
-        strBookended.Get(), strNotaryID, "", nymID.str(), strCachedKey);
+        strBookended.Get(), strNotaryID, "", nymID->str(), strCachedKey);
 
     config_.Save();
 }
@@ -910,8 +910,9 @@ bool Server::DropMessageToNymbox(
             theLedger.ReleaseSignatures();
             theLedger.SignContract(*m_nymServer);
             theLedger.SaveContract();
-            theLedger.SaveNymbox();  // We don't grab the Nymbox hash here,
-                                     // since
+            theLedger.SaveNymbox(Identifier::Factory());  // We don't grab the
+                                                          // Nymbox hash here,
+                                                          // since
             // nothing important changed (just a message
             // was sent.)
 

@@ -197,12 +197,12 @@ private:
         std::tuple<Identifier, Identifier, uint64_t, std::string>;
 
     struct OperationQueue {
-        UniqueQueue<Identifier> check_nym_;
+        UniqueQueue<OTIdentifier> check_nym_;
         UniqueQueue<DepositPaymentTask> deposit_payment_;
-        UniqueQueue<Identifier> download_account_;
-        UniqueQueue<Identifier> download_contract_;
+        UniqueQueue<OTIdentifier> download_account_;
+        UniqueQueue<OTIdentifier> download_contract_;
         UniqueQueue<bool> download_nymbox_;
-        UniqueQueue<Identifier> register_account_;
+        UniqueQueue<OTIdentifier> register_account_;
         UniqueQueue<bool> register_nym_;
         UniqueQueue<MessageTask> send_message_;
         UniqueQueue<PaymentTask> send_payment_;
@@ -210,7 +210,7 @@ private:
         UniqueQueue<PayCashTask> send_cash_;
 #endif  // OT_CASH
         UniqueQueue<SendTransferTask> send_transfer_;
-        UniqueQueue<Identifier> publish_server_contract_;
+        UniqueQueue<OTIdentifier> publish_server_contract_;
     };
 
     ContextLockCallback lock_callback_;
@@ -231,14 +231,14 @@ private:
     mutable std::mutex task_status_lock_{};
     mutable std::atomic<std::uint64_t> refresh_counter_{0};
     mutable std::map<ContextID, OperationQueue> operations_;
-    mutable std::map<Identifier, UniqueQueue<Identifier>> server_nym_fetch_;
-    UniqueQueue<Identifier> missing_nyms_;
-    UniqueQueue<Identifier> missing_servers_;
+    mutable std::map<OTIdentifier, UniqueQueue<OTIdentifier>> server_nym_fetch_;
+    UniqueQueue<OTIdentifier> missing_nyms_;
+    UniqueQueue<OTIdentifier> missing_servers_;
     mutable std::map<ContextID, std::unique_ptr<std::thread>> state_machines_;
-    mutable std::unique_ptr<Identifier> introduction_server_id_;
-    mutable std::map<Identifier, ThreadStatus> task_status_;
+    mutable std::unique_ptr<OTIdentifier> introduction_server_id_;
+    mutable std::map<OTIdentifier, ThreadStatus> task_status_;
     // taskID, messageID
-    mutable std::map<Identifier, Identifier> task_message_id_;
+    mutable std::map<OTIdentifier, OTIdentifier> task_message_id_;
     OTZMQListenCallback account_subscriber_callback_;
     OTZMQSubscribeSocket account_subscriber_;
 
@@ -255,13 +255,13 @@ private:
         const OTPayment& payment,
         const Identifier& recipient,
         const Identifier& accountIDHint,
-        Identifier& depositServer,
-        Identifier& depositAccount) const;
+        OTIdentifier& depositServer,
+        OTIdentifier& depositAccount) const;
     Messagability can_message(
         const Identifier& senderID,
         const Identifier& recipientID,
-        Identifier& recipientNymID,
-        Identifier& serverID) const;
+        OTIdentifier& recipientNymID,
+        OTIdentifier& serverID) const;
     void check_nym_revision(const ServerContext& context, OperationQueue& queue)
         const;
     bool check_registration(
@@ -297,9 +297,9 @@ private:
         const Identifier& serverID) const;
     bool extract_payment_data(
         const OTPayment& payment,
-        Identifier& nymID,
-        Identifier& serverID,
-        Identifier& unitID) const;
+        OTIdentifier& nymID,
+        OTIdentifier& serverID,
+        OTIdentifier& unitID) const;
     bool find_nym(
         const Identifier& nymID,
         const Identifier& serverID,
@@ -313,11 +313,10 @@ private:
         const Identifier& nymID,
         const Identifier& serverID,
         const OTPassword& password) const;
-    Identifier get_introduction_server(const Lock& lock) const;
-    UniqueQueue<Identifier>& get_nym_fetch(const Identifier& serverID) const;
+    OTIdentifier get_introduction_server(const Lock& lock) const;
+    UniqueQueue<OTIdentifier>& get_nym_fetch(const Identifier& serverID) const;
     OperationQueue& get_operations(const ContextID& id) const;
-    opentxs::OTIdentifier import_default_introduction_server(
-        const Lock& lock) const;
+    OTIdentifier import_default_introduction_server(const Lock& lock) const;
     void load_introduction_server(const Lock& lock) const;
     bool message_nym(
         const Identifier& taskID,
@@ -394,7 +393,7 @@ private:
         const Identifier& serverID,
         const Identifier& unitID,
         const Identifier& accountIDHint,
-        Identifier& depositAccount) const;
+        OTIdentifier& depositAccount) const;
     Depositability valid_recipient(
         const OTPayment& payment,
         const Identifier& specifiedNymID,

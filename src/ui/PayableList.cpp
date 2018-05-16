@@ -220,9 +220,9 @@ void PayableList::process_contact(const network::zeromq::Message& message)
     OT_ASSERT(1 == message.Body().size());
 
     const std::string id(*message.Body().begin());
-    const Identifier contactID(id);
+    const auto contactID = Identifier::Factory(id);
 
-    OT_ASSERT(false == contactID.empty())
+    OT_ASSERT(false == contactID->empty())
 
     const auto name = contact_manager_.ContactName(contactID);
     process_contact(contactID, name);
@@ -235,9 +235,9 @@ void PayableList::process_nym(const network::zeromq::Message& message)
     OT_ASSERT(1 == message.Body().size());
 
     const std::string id(*message.Body().begin());
-    const Identifier nymID(id);
+    const auto nymID = Identifier::Factory(id);
 
-    OT_ASSERT(false == nymID.empty())
+    OT_ASSERT(false == nymID->empty())
 
     const auto contactID = contact_manager_.ContactID(nymID);
     const auto name = contact_manager_.ContactName(contactID);
@@ -251,7 +251,7 @@ void PayableList::startup()
            << " contacts." << std::endl;
 
     for (const auto& [id, alias] : contacts) {
-        process_contact(Identifier(id), alias);
+        process_contact(Identifier::Factory(id), alias);
     }
 
     startup_complete_->On();

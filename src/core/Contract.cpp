@@ -228,7 +228,7 @@ void Contract::GetFilename(String& strFilename) const
 
 void Contract::GetIdentifier(Identifier& theIdentifier) const
 {
-    theIdentifier = m_ID;
+    theIdentifier.SetString(m_ID->str());
 }
 
 void Contract::GetIdentifier(String& theIdentifier) const
@@ -291,10 +291,8 @@ void Contract::CalculateContractID(Identifier& newID) const
 
 void Contract::CalculateAndSetContractID(Identifier& newID)
 {
-    auto contractID = Identifier::Factory();
-    CalculateContractID(contractID);
-    SetIdentifier(contractID);
-    newID = contractID;
+    CalculateContractID(newID);
+    SetIdentifier(newID);
 }
 
 bool Contract::VerifyContractID() const

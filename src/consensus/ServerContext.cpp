@@ -610,7 +610,7 @@ std::unique_ptr<Item> ServerContext::Statement(
     // Since it uses up a transaction number, I will be sure to remove that one
     // from my list before signing the list.
     output.reset(Item::CreateItemFromTransaction(
-        transaction, Item::transactionStatement));
+        transaction, Item::transactionStatement, Identifier::Factory()));
 
     // The above has an ASSERT, so this this will never actually happen.
     if (!output) { return output; }

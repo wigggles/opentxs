@@ -1427,7 +1427,7 @@ SendResult OTAPI_Func::LastSendResult() const
     return std::get<0>(std::get<2>(last_attempt_));
 }
 
-const Identifier OTAPI_Func::MessageID() const
+const OTIdentifier OTAPI_Func::MessageID() const
 {
     Lock lock(lock_);
 

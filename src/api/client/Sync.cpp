@@ -463,8 +463,8 @@ Depositability Sync::can_deposit(
     const OTPayment& payment,
     const Identifier& recipient,
     const Identifier& accountIDHint,
-    Identifier& depositServer,
-    Identifier& depositAccount) const
+    OTIdentifier& depositServer,
+    OTIdentifier& depositAccount) const
 {
     auto unitID = Identifier::Factory();
     auto nymID = Identifier::Factory();
@@ -479,13 +479,13 @@ Depositability Sync::can_deposit(
     if (Depositability::READY != output) { return output; }
 
     const bool registered =
-        exec_.IsNym_RegisteredAtServer(recipient.str(), depositServer.str());
+        exec_.IsNym_RegisteredAtServer(recipient.str(), depositServer->str());
 
     if (false == registered) {
         schedule_download_nymbox(recipient, depositServer);
         otErr << OT_METHOD << __FUNCTION__ << ": Recipient nym "
               << recipient.str() << " not registered on server "
-              << depositServer.str() << std::endl;
+              << depositServer->str() << std::endl;
 
         return Depositability::NOT_REGISTERED;
     }
@@ -513,7 +513,7 @@ Depositability Sync::can_deposit(
         case Depositability::NO_ACCOUNT: {
             otErr << OT_METHOD << __FUNCTION__ << ": Recipient "
                   << recipient.str() << " needs an account for "
-                  << unitID->str() << " on server " << depositServer.str()
+                  << unitID->str() << " on server " << depositServer->str()
                   << std::endl;
             schedule_register_account(recipient, depositServer, unitID);
         } break;
@@ -532,8 +532,8 @@ Depositability Sync::can_deposit(
 Messagability Sync::can_message(
     const Identifier& senderNymID,
     const Identifier& recipientContactID,
-    Identifier& recipientNymID,
-    Identifier& serverID) const
+    OTIdentifier& recipientNymID,
+    OTIdentifier& serverID) const
 {
     auto senderNym = wallet_.Nym(senderNymID);
 
@@ -579,7 +579,7 @@ Messagability Sync::can_message(
         recipientNym = wallet_.Nym(it);
 
         if (recipientNym) {
-            recipientNymID = it;
+            recipientNymID = Identifier::Factory(it);
             break;
         }
     }
@@ -597,12 +597,12 @@ Messagability Sync::can_message(
     }
 
     const auto claims = recipientNym->Claims();
-    serverID = claims.PreferredOTServer();
+    serverID = Identifier::Factory(claims.PreferredOTServer());
 
     // TODO maybe some of the other nyms in this contact do specify a server
-    if (serverID.empty()) {
+    if (serverID->empty()) {
         otErr << OT_METHOD << __FUNCTION__ << ": Recipient contact "
-              << recipientContactID.str() << ", nym " << recipientNymID.str()
+              << recipientContactID.str() << ", nym " << recipientNymID->str()
               << ": credentials do not specify a server." << std::endl;
         missing_nyms_.Push(Identifier::Random(), recipientNymID);
 
@@ -610,13 +610,13 @@ Messagability Sync::can_message(
     }
 
     const bool registered =
-        exec_.IsNym_RegisteredAtServer(senderNymID.str(), serverID.str());
+        exec_.IsNym_RegisteredAtServer(senderNymID.str(), serverID->str());
 
     if (false == registered) {
         schedule_download_nymbox(senderNymID, serverID);
         otErr << OT_METHOD << __FUNCTION__ << ": Sender nym "
               << senderNymID.str() << " not registered on server "
-              << serverID.str() << std::endl;
+              << serverID->str() << std::endl;
 
         return Messagability::UNREGISTERED;
     }
@@ -980,9 +980,9 @@ bool Sync::download_nymbox(
 
 bool Sync::extract_payment_data(
     const OTPayment& payment,
-    Identifier& nymID,
-    Identifier& serverID,
-    Identifier& unitID) const
+    OTIdentifier& nymID,
+    OTIdentifier& serverID,
+    OTIdentifier& unitID) const
 {
     if (false == payment.GetRecipientNymID(nymID)) {
         otErr << OT_METHOD << __FUNCTION__
@@ -998,7 +998,7 @@ bool Sync::extract_payment_data(
         return false;
     }
 
-    OT_ASSERT(false == serverID.empty())
+    OT_ASSERT(false == serverID->empty())
 
     if (false == payment.GetInstrumentDefinitionID(unitID)) {
         otErr << OT_METHOD << __FUNCTION__
@@ -1007,7 +1007,7 @@ bool Sync::extract_payment_data(
         return false;
     }
 
-    OT_ASSERT(false == unitID.empty())
+    OT_ASSERT(false == unitID->empty())
 
     return true;
 }
@@ -1143,7 +1143,7 @@ bool Sync::get_admin(
     return success;
 }
 
-Identifier Sync::get_introduction_server(const Lock& lock) const
+OTIdentifier Sync::get_introduction_server(const Lock& lock) const
 {
     OT_ASSERT(verify_lock(lock, introduction_server_lock_))
 
@@ -1160,7 +1160,7 @@ Identifier Sync::get_introduction_server(const Lock& lock) const
     return Identifier::Factory(serverID);
 }
 
-UniqueQueue<Identifier>& Sync::get_nym_fetch(const Identifier& serverID) const
+UniqueQueue<OTIdentifier>& Sync::get_nym_fetch(const Identifier& serverID) const
 {
     Lock lock(nym_fetch_lock_);
 
@@ -1212,7 +1212,7 @@ void Sync::load_introduction_server(const Lock& lock) const
     OT_ASSERT(verify_lock(lock, introduction_server_lock_))
 
     introduction_server_id_.reset(
-        new Identifier(get_introduction_server(lock)));
+        new OTIdentifier(get_introduction_server(lock)));
 }
 
 bool Sync::message_nym(
@@ -1236,9 +1236,9 @@ bool Sync::message_nym(
         if (action->Reply()->m_bSuccess) {
             const auto messageID = action->MessageID();
 
-            if (false == messageID.empty()) {
+            if (false == messageID->empty()) {
                 otInfo << OT_METHOD << __FUNCTION__ << ": Sent message  "
-                       << messageID.str() << std::endl;
+                       << messageID->str() << std::endl;
                 associate_message_id(messageID, taskID);
             }
 
@@ -1279,11 +1279,11 @@ bool Sync::pay_nym(
         if (action->Reply()->m_bSuccess) {
             const auto messageID = action->MessageID();
 
-            if (false == messageID.empty()) {
+            if (false == messageID->empty()) {
                 otInfo << OT_METHOD << __FUNCTION__
                        << ": Sent (payment) "
                           "message "
-                       << messageID.str() << std::endl;
+                       << messageID->str() << std::endl;
             }
 
             return finish_task(taskID, true);
@@ -1326,9 +1326,9 @@ bool Sync::pay_nym_cash(
         if (action->Reply()->m_bSuccess) {
             const auto messageID = action->MessageID();
 
-            if (false == messageID.empty()) {
+            if (false == messageID->empty()) {
                 otInfo << OT_METHOD << __FUNCTION__ << ": Sent (cash) message  "
-                       << messageID.str() << std::endl;
+                       << messageID->str() << std::endl;
             }
 
             return finish_task(taskID, true);
@@ -1671,7 +1671,8 @@ void Sync::refresh_contacts() const
                     OT_ASSERT(item)
 
                     const auto& notUsed[[maybe_unused]] = claimID;
-                    const auto serverID = Identifier::Factory(item->Value());
+                    const OTIdentifier serverID =
+                        Identifier::Factory(item->Value());
 
                     if (serverID->empty()) { continue; }
 
@@ -2005,7 +2006,7 @@ OTIdentifier Sync::set_introduction_server(
     if (false == bool(instantiated)) { return Identifier::Factory(); }
 
     const auto& id = instantiated->ID();
-    introduction_server_id_.reset(new Identifier(id));
+    introduction_server_id_.reset(new OTIdentifier(id));
 
     OT_ASSERT(introduction_server_id_)
 
@@ -2149,7 +2150,7 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
         for (const auto& [targetID, taskID] : servers) {
             SHUTDOWN()
 
-            if (targetID.empty()) {
+            if (targetID->empty()) {
                 otErr << OT_METHOD << __FUNCTION__
                       << ": How did an empty serverID get in here?"
                       << std::endl;
@@ -2158,7 +2159,7 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
             } else {
                 otWarn << OT_METHOD << __FUNCTION__
                        << ": Searching for server contract for "
-                       << targetID.str() << std::endl;
+                       << targetID->str() << std::endl;
             }
 
             const auto& notUsed[[maybe_unused]] = taskID;
@@ -2193,14 +2194,14 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
         for (const auto& [targetID, taskID] : nyms) {
             SHUTDOWN()
 
-            if (targetID.empty()) {
+            if (targetID->empty()) {
                 otErr << OT_METHOD << __FUNCTION__
                       << ": How did an empty nymID get in here?" << std::endl;
 
                 continue;
             } else {
                 otWarn << OT_METHOD << __FUNCTION__ << ": Searching for nym "
-                       << targetID.str() << std::endl;
+                       << targetID->str() << std::endl;
             }
 
             const auto& notUsed[[maybe_unused]] = taskID;
@@ -2487,9 +2488,9 @@ Depositability Sync::valid_account(
     const Identifier& paymentServerID,
     const Identifier& paymentUnitID,
     const Identifier& accountIDHint,
-    Identifier& depositAccount) const
+    OTIdentifier& depositAccount) const
 {
-    std::set<Identifier> matchingAccounts{};
+    std::set<OTIdentifier> matchingAccounts{};
 
     for (const auto& it : storage_.AccountList()) {
         const auto accountID = Identifier::Factory(it.first);

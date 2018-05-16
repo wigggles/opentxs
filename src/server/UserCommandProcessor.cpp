@@ -292,14 +292,12 @@ bool UserCommandProcessor::add_numbers_to_nymbox(
 void UserCommandProcessor::check_acknowledgements(ReplyMessage& reply) const
 {
     auto& context = reply.Context();
-    const auto NOTARY_ID = Identifier::Factory(server_.GetServerID());
-
     // The server reads the list of acknowledged replies from the incoming
     // client message... If we add any acknowledged replies to the server-side
     // list, we will want to save (at the end.)
     auto numlist_ack_reply = reply.Acknowledged();
     const auto nymID = Identifier::Factory(context.RemoteNym().ID());
-    Ledger nymbox(nymID, nymID, NOTARY_ID);
+    Ledger nymbox(nymID, nymID, context.Server());
 
     if (nymbox.LoadNymbox() && nymbox.VerifySignature(server_.GetServerNym())) {
         bool bIsDirtyNymbox = false;
@@ -349,7 +347,7 @@ void UserCommandProcessor::check_acknowledgements(ReplyMessage& reply) const
             nymbox.ReleaseSignatures();
             nymbox.SignContract(server_.GetServerNym());
             nymbox.SaveContract();
-            nymbox.SaveNymbox();
+            nymbox.SaveNymbox(Identifier::Factory());
         }
     }
 
@@ -1844,7 +1842,9 @@ bool UserCommandProcessor::cmd_register_account(ReplyMessage& reply) const
 
         if (inboxLoaded) { inboxLoaded = inbox.SaveContract(); }
 
-        if (inboxLoaded) { inboxLoaded = account.get().SaveInbox(inbox); }
+        if (inboxLoaded) {
+            inboxLoaded = account.get().SaveInbox(inbox, Identifier::Factory());
+        }
     }
 
     if (true == outboxLoaded) {
@@ -1857,7 +1857,10 @@ bool UserCommandProcessor::cmd_register_account(ReplyMessage& reply) const
 
         if (outboxLoaded) { outboxLoaded = outbox.SaveContract(); }
 
-        if (outboxLoaded) { outboxLoaded = account.get().SaveOutbox(outbox); }
+        if (outboxLoaded) {
+            outboxLoaded =
+                account.get().SaveOutbox(outbox, Identifier::Factory());
+        }
     }
 
     if (false == inboxLoaded) {
@@ -2013,7 +2016,9 @@ bool UserCommandProcessor::cmd_register_instrument_definition(
 
         if (inboxLoaded) { inboxLoaded = inbox.SaveContract(); }
 
-        if (inboxLoaded) { inboxLoaded = account.get().SaveInbox(inbox); }
+        if (inboxLoaded) {
+            inboxLoaded = account.get().SaveInbox(inbox, Identifier::Factory());
+        }
     }
 
     if (outboxLoaded) {
@@ -2026,7 +2031,10 @@ bool UserCommandProcessor::cmd_register_instrument_definition(
 
         if (outboxLoaded) { outboxLoaded = outbox.SaveContract(); }
 
-        if (outboxLoaded) { outboxLoaded = account.get().SaveOutbox(outbox); }
+        if (outboxLoaded) {
+            outboxLoaded =
+                account.get().SaveOutbox(outbox, Identifier::Factory());
+        }
     }
 
     if (false == inboxLoaded) {
@@ -2130,7 +2138,7 @@ bool UserCommandProcessor::cmd_register_nym(ReplyMessage& reply) const
             theNymbox.GenerateLedger(
                 sender_nym->ID(), NOTARY_ID, Ledger::nymbox, true) &&
             theNymbox.SignContract(serverNym) && theNymbox.SaveContract() &&
-            theNymbox.SaveNymbox();
+            theNymbox.SaveNymbox(Identifier::Factory());
     }
 
     if (!bSuccessLoadingNymbox) {
@@ -2496,8 +2504,8 @@ void UserCommandProcessor::drop_reply_notice_to_nymbox(
 
     OT_ASSERT(nullptr != pReplyNotice);
 
-    Item* pReplyNoticeItem =
-        Item::CreateItemFromTransaction(*pReplyNotice, Item::replyNotice);
+    Item* pReplyNoticeItem = Item::CreateItemFromTransaction(
+        *pReplyNotice, Item::replyNotice, Identifier::Factory());
 
     OT_ASSERT(nullptr != pReplyNoticeItem);
 
@@ -2542,7 +2550,7 @@ bool UserCommandProcessor::hash_check(
     Identifier& nymboxHash) const
 {
     if (context.HaveLocalNymboxHash()) {
-        nymboxHash = context.LocalNymboxHash();
+        nymboxHash = Identifier::Factory(context.LocalNymboxHash());
     } else {
         otErr << OT_METHOD << __FUNCTION__
               << ": Continuing without server side nymbox hash." << std::endl;
