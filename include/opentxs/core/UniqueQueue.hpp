@@ -118,7 +118,7 @@ public:
 
     bool Push(const Identifier& key, const T& in) const
     {
-        OT_ASSERT(false == key->empty())
+        OT_ASSERT(false == key.empty())
 
         Lock lock(lock_);
 

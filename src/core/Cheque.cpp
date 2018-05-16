@@ -324,7 +324,7 @@ bool Cheque::IssueCheque(
     SetSenderAcctID(SENDER_ACCT_ID);
     SetSenderNymID(SENDER_NYM_ID);
 
-    if (pRECIPIENT_NYM_ID->empty()) {
+    if (pRECIPIENT_NYM_ID.empty()) {
         m_bHasRecipient = false;
         m_RECIPIENT_NYM_ID->Release();
     } else {
