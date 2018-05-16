@@ -7,6 +7,7 @@ set(cxx-sources
         Test_AccountList.cpp
         Test_AllocateAddress.cpp
         Test_AssignAddress.cpp
+        Test_StoreIncoming.cpp
         ${PROJECT_SOURCE_DIR}/tests/OTTestEnvironment.cpp
         )
 
