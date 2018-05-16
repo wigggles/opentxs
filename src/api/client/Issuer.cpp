@@ -132,7 +132,7 @@ Issuer::operator std::string() const
 {
     Lock lock(lock_);
     std::stringstream output{};
-    output << "Connected issuer: " << issuer_id_.str() << "\n";
+    output << "Connected issuer: " << issuer_id_->str() << "\n";
 
     if (pairing_code_.empty()) {
         output << "* Not paired to this issuer\n";
@@ -659,7 +659,7 @@ proto::Issuer Issuer::Serialize() const
     Lock lock(lock_);
     proto::Issuer output;
     output.set_version(version_);
-    output.set_id(issuer_id_.str());
+    output.set_id(issuer_id_->str());
     output.set_paired(paired_.get());
     output.set_pairingcode(pairing_code_);
 

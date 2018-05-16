@@ -62,7 +62,7 @@ protected:
     Widget(const network::zeromq::Context& zmq);
 
 private:
-    const Identifier& widget_id_;
+    const OTIdentifier widget_id_;
     const OTZMQRequestSocket update_socket_;
 
     Widget() = delete;

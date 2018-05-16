@@ -344,7 +344,7 @@ public:
         const Identifier& SENDER_accountID,
         const Identifier& SENDER_NYM_ID,
         const String& CHEQUE_MEMO,
-        const Identifier& pRECIPIENT_NYM_ID) const;
+        const OTIdentifier pRECIPIENT_NYM_ID) const;
 
     // DISCARD CHEQUE (recover the transaction number for re-use, so the
     // cheque itself can be discarded.)

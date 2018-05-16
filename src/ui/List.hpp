@@ -110,7 +110,7 @@ public:
 
 protected:
     const api::ContactManager& contact_manager_;
-    const Identifier& nym_id_;
+    const OTIdentifier nym_id_;
     mutable OuterType items_;
     mutable OuterIteratorType outer_;
     mutable typename InnerType::const_iterator inner_;
