@@ -34,6 +34,14 @@ namespace std {
   typedef uint64_t size_t;
 };
 
+namespace opentxs {
+namespace network {
+namespace zeromq {
+    class MultipartMessage;
+};
+};
+};
+
 typedef int64_t time64_t;
 
 %include "../../include/opentxs/client/NymData.hpp"
@@ -62,6 +70,9 @@ typedef int64_t time64_t;
 %include "../../include/opentxs/ui/ProfileSection.hpp"
 %include "../../include/opentxs/ui/Profile.hpp"
 %include "../../include/opentxs/network/zeromq/Message.hpp"
+%include "../../include/opentxs/network/zeromq/FrameIterator.hpp"
+%include "../../include/opentxs/network/zeromq/FrameSection.hpp"
+%include "../../include/opentxs/network/zeromq/MultipartMessage.hpp"
 %include "../../include/opentxs/Types.hpp"
 %include "../../include/opentxs/network/zeromq/Socket.hpp"
 %include "../../include/opentxs/network/zeromq/PublishSocket.hpp"

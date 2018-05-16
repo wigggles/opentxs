@@ -2,9 +2,11 @@ set(cxx-sources
   Context.cpp
   CurveClient.cpp
   CurveServer.cpp
+  FrameIterator.cpp
   ListenCallback.cpp
   ListenCallbackSwig.cpp
   Message.cpp
+  MultipartMessage.cpp
   PairEventCallback.cpp
   PairEventCallbackSwig.cpp
   PairEventListener.cpp
