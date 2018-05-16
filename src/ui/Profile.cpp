@@ -385,7 +385,7 @@ int Profile::sort_key(const proto::ContactSectionName type)
 
 void Profile::startup()
 {
-    otErr << OT_METHOD << __FUNCTION__ << ": Loading nym " << nym_id_->str()
+    otErr << OT_METHOD << __FUNCTION__ << ": Loading nym " << nym_id_.str()
           << std::endl;
     const auto nym = wallet_.Nym(nym_id_);
 

@@ -95,7 +95,7 @@ ActivityThread::ActivityThread(
     const api::client::Sync& sync,
     const api::Activity& activity,
     const api::ContactManager& contact,
-    const OTIdentifier nymID,
+    const Identifier& nymID,
     const Identifier& threadID)
     : ActivityThreadType(
           zmq,
@@ -506,7 +506,7 @@ std::string ActivityThread::ThreadID() const
 {
     Lock lock(lock_);
 
-    return threadID_->str();
+    return threadID_.str();
 }
 
 ActivityThread::~ActivityThread()

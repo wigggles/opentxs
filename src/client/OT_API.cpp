@@ -4145,7 +4145,7 @@ std::string OT_API::NymIDFromPaymentCode(__attribute__((unused))
     auto code = PaymentCode::Factory(paymentCode);
 
     if (code->VerifyInternally()) {
-        return code->ID()->str();
+        return code->ID().str();
     } else {
         return "";
     }
@@ -4245,7 +4245,7 @@ Cheque* OT_API::WriteCheque(
     const Identifier& SENDER_accountID,
     const Identifier& SENDER_NYM_ID,
     const String& CHEQUE_MEMO,
-    const OTIdentifier pRECIPIENT_NYM_ID) const
+    const Identifier& pRECIPIENT_NYM_ID) const
 {
     rLock lock(lock_callback_({SENDER_NYM_ID.str(), NOTARY_ID.str()}));
     auto context = wallet_.mutable_ServerContext(SENDER_NYM_ID, NOTARY_ID);

@@ -79,7 +79,7 @@ ContactGroup ContactGroup::operator+(const ContactGroup& rhs) const
 
     auto primary = Identifier::Factory();
 
-    if (primary_->empty()) {
+    if (primary_.empty()) {
         primary = rhs.primary_;
     }
 
@@ -145,7 +145,7 @@ ContactGroup ContactGroup::AddPrimary(
     const auto& incomingID = item->ID();
     const bool isExistingPrimary = (primary_ == incomingID);
     const bool haveExistingPrimary =
-        ((false == primary_->empty()) && (false == isExistingPrimary));
+        ((false == primary_.empty()) && (false == isExistingPrimary));
     auto map = items_;
     auto& newPrimary = map[incomingID];
     newPrimary.reset(new ContactItem(item->SetPrimary(true)));
@@ -177,7 +177,7 @@ std::shared_ptr<ContactItem> ContactGroup::Best() const
         return {};
     }
 
-    if (false == primary_->empty()) {
+    if (false == primary_.empty()) {
 
         return items_.at(primary_);
     }
@@ -314,7 +314,7 @@ bool ContactGroup::SerializeTo(
 
 std::shared_ptr<ContactItem> ContactGroup::PrimaryClaim() const
 {
-    if (primary_->empty()) {
+    if (primary_.empty()) {
 
         return {};
     }
