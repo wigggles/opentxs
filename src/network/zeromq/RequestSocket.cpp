@@ -39,9 +39,12 @@
 #include "opentxs/stdafx.hpp"
 
 #include "RequestSocket.hpp"
+#include "MultipartMessage.hpp"
 
 #include "opentxs/core/Log.hpp"
+#include "opentxs/network/zeromq/FrameIterator.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/network/zeromq/MultipartMessage.hpp"
 #include "opentxs/OT.hpp"
 
 #include <zmq.h>
@@ -125,6 +128,85 @@ Socket::MessageSendResult RequestSocket::SendRequest(
               << ": Receive error: " << zmq_strerror(zmq_errno()) << std::endl;
 
         return output;
+    }
+
+    status = SendResult::VALID_REPLY;
+
+    return output;
+}
+
+Socket::MultipartSendResult RequestSocket::SendRequest(
+    zeromq::MultipartMessage& request) const
+{
+    OT_ASSERT(nullptr != socket_);
+
+    Lock lock(lock_);
+    MultipartSendResult output{SendResult::ERROR, MultipartMessage::Factory()};
+    auto& status = output.first;
+    auto& reply = output.second;
+    bool sent{true};
+    const auto parts = request.size();
+    std::size_t counter{0};
+
+    for (auto& frame : request) {
+        int flags{0};
+
+        if (++counter < parts) {
+            flags = ZMQ_SNDMORE;
+        }
+
+        sent |= (-1 != zmq_msg_send(frame, socket_, flags));
+    }
+
+    if (false == sent) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Send error:\n"
+              << zmq_strerror(zmq_errno()) << std::endl;
+
+        return output;
+    }
+
+    const auto ready = wait(lock);
+
+    if (false == ready) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Receive timeout." << std::endl;
+        status = SendResult::TIMEOUT;
+
+        return output;
+    }
+
+    bool receiving{true};
+
+    while (receiving) {
+        auto& frame = reply->AddFrame();
+        const bool received = (-1 != zmq_msg_recv(frame, socket_, 0));
+
+        if (false == received) {
+            otErr << OT_METHOD << __FUNCTION__
+                  << ": Receive error: " << zmq_strerror(zmq_errno())
+                  << std::endl;
+
+            return output;
+        }
+
+        int option{0};
+        std::size_t optionBytes{sizeof(option)};
+
+        const bool haveOption =
+            (-1 != zmq_getsockopt(socket_, ZMQ_RCVMORE, &option, &optionBytes));
+
+        if (false == haveOption) {
+            otErr << OT_METHOD << __FUNCTION__
+                  << ": Failed to check socket options error:\n"
+                  << zmq_strerror(zmq_errno()) << std::endl;
+
+            return output;
+        }
+
+        OT_ASSERT(optionBytes == sizeof(option))
+
+        if (1 != option) {
+            receiving = false;
+        }
     }
 
     status = SendResult::VALID_REPLY;

@@ -6945,7 +6945,7 @@ bool OTAPI_Exec::Msg_HarvestTransactionNumbers(
                 return false;
             }
             // Now let's get the server ID...
-            const Identifier& serverID = pAccount->GetPurportedNotaryID();
+            const Identifier serverID = pAccount->GetPurportedNotaryID();
             auto pServer = wallet_.Server(serverID);
 
             if (!pServer) {

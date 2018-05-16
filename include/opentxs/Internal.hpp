@@ -82,6 +82,7 @@ namespace implementation
 {
 class Context;
 class Proxy;
+class MultipartMessage;
 }  // namespace network::zeromq::implementation
 }  // namespace network::zeromq
 }  // namespace network

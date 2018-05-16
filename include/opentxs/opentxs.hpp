@@ -112,8 +112,11 @@
 #include <opentxs/ext/Helpers.hpp>
 #include <opentxs/ext/OTPayment.hpp>
 #include <opentxs/network/zeromq/Context.hpp>
+#include "opentxs/network/zeromq/FrameIterator.hpp"
+#include "opentxs/network/zeromq/FrameSection.hpp"
 #include <opentxs/network/zeromq/ListenCallback.hpp>
 #include <opentxs/network/zeromq/Message.hpp>
+#include "opentxs/network/zeromq/MultipartMessage.hpp"
 #include <opentxs/network/zeromq/PairEventCallback.hpp>
 #include <opentxs/network/zeromq/PairSocket.hpp>
 #include <opentxs/network/zeromq/Proxy.hpp>

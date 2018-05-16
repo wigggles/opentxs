@@ -36,48 +36,43 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_CLIENT_SERVER_ACTION_HPP
-#define OPENTXS_CLIENT_SERVER_ACTION_HPP
+#ifndef OPENTXS_NETWORK_ZEROMQ_FRAMESECTION_HPP
+#define OPENTXS_NETWORK_ZEROMQ_FRAMESECTION_HPP
 
 #include "opentxs/Forward.hpp"
 
-#include "opentxs/Types.hpp"
-
-#include <memory>
-#include <string>
+#ifdef SWIG
+// clang-format off
+%rename(ZMQFrameSection) opentxs::network::zeromq::FrameSection;
+// clang-format on
+#endif  // SWIG
 
 namespace opentxs
 {
-class Message;
-class PeerReply;
-class PeerRequest;
-
-namespace client
+namespace network
 {
-class ServerAction
+namespace zeromq
+{
+class FrameSection
 {
 public:
-    EXPORT virtual TransactionNumber GetTransactionNumber() const = 0;
-    EXPORT virtual SendResult LastSendResult() const = 0;
-    EXPORT virtual const Identifier MessageID() const = 0;
-    EXPORT virtual const std::shared_ptr<PeerRequest>& SentPeerRequest()
-        const = 0;
-    EXPORT virtual const std::shared_ptr<PeerReply>& SentPeerReply() const = 0;
-    EXPORT virtual const std::shared_ptr<Message>& Reply() const = 0;
+    EXPORT const Message& at(const std::size_t index) const;
+    EXPORT FrameIterator begin() const;
+    EXPORT FrameIterator end() const;
+    EXPORT std::size_t size() const;
 
-    EXPORT virtual std::string Run(const std::size_t totalRetries = 2) = 0;
-
-    EXPORT virtual ~ServerAction() = default;
+    EXPORT virtual ~FrameSection() = default;
 
 protected:
-    ServerAction() = default;
+    FrameSection() = default;
 
 private:
-    ServerAction(const ServerAction&) = delete;
-    ServerAction(ServerAction&&) = delete;
-    ServerAction& operator=(const ServerAction&) = delete;
-    ServerAction& operator=(ServerAction&&) = delete;
+    FrameSection(const FrameSection&) = delete;
+    FrameSection(FrameSection&&) = delete;
+    FrameSection& operator=(const FrameSection&) = delete;
+    FrameSection& operator=(FrameSection&&) = delete;
 };
-}  // namespace client
+}  // namespace zeromq
+}  // namespace network
 }  // namespace opentxs
-#endif  // OPENTXS_CLIENT_SERVER_ACTION_HPP
+#endif  // OPENTXS_NETWORK_ZEROMQ_FRAMESECTION_HPP

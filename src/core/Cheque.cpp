@@ -309,7 +309,7 @@ bool Cheque::IssueCheque(
                                        // asset account,
     // AND must verify the cheque signature with that user's key.
     const String& strMemo,                // Optional memo field.
-    const Identifier& pRECIPIENT_NYM_ID)  // Recipient optional.
+    const Identifier* pRECIPIENT_NYM_ID)  // Recipient optional.
                                           // (Might be a blank
                                           // cheque.)
 {
@@ -324,12 +324,12 @@ bool Cheque::IssueCheque(
     SetSenderAcctID(SENDER_ACCT_ID);
     SetSenderNymID(SENDER_NYM_ID);
 
-    if (pRECIPIENT_NYM_ID.empty()) {
+    if (nullptr == pRECIPIENT_NYM_ID) {
         m_bHasRecipient = false;
         m_RECIPIENT_NYM_ID->Release();
     } else {
         m_bHasRecipient = true;
-        m_RECIPIENT_NYM_ID = pRECIPIENT_NYM_ID;
+        m_RECIPIENT_NYM_ID = Identifier::Factor(*pRECIPIENT_NYM_ID);
     }
 
     m_bHasRemitter = false;  // OTCheque::SetAsVoucher() will set this to true.
