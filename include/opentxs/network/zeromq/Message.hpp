@@ -49,7 +49,11 @@ struct zmq_msg_t;
 // clang-format off
 %ignore opentxs::network::zeromq::Message::data;
 %ignore opentxs::network::zeromq::Message::operator zmq_msg_t*;
+%ignore opentxs::Pimpl<opentxs::network::zeromq::Message>::Pimpl(opentxs::network::zeromq::Message const &);
+%ignore opentxs::Pimpl<opentxs::network::zeromq::Message>::operator opentxs::network::zeromq::Message&;
+%ignore opentxs::Pimpl<opentxs::network::zeromq::Message>::operator const opentxs::network::zeromq::Message &;
 %rename(string) opentxs::network::zeromq::Message::operator std::string() const;
+%rename(assign) operator=(const opentxs::network::zeromq::Message&);
 %rename(ZMQMessage) opentxs::network::zeromq::Message;
 %template(OTZMQMessage) opentxs::Pimpl<opentxs::network::zeromq::Message>;
 // clang-format on

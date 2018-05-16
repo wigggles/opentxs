@@ -80,59 +80,18 @@ RequestSocket* RequestSocket::clone() const
     return new RequestSocket(context_, running_);
 }
 
-Socket::MessageSendResult RequestSocket::SendRequest(opentxs::Data& input) const
+Socket::MultipartSendResult RequestSocket::SendRequest(
+    opentxs::Data& input) const
 {
-    return SendRequest(Message::Factory(input));
+    return SendRequest(MultipartMessage::Factory(input));
 }
 
-Socket::MessageSendResult RequestSocket::SendRequest(
+Socket::MultipartSendResult RequestSocket::SendRequest(
     const std::string& input) const
 {
     auto copy = input;
 
-    return SendRequest(Message::Factory(copy));
-}
-
-Socket::MessageSendResult RequestSocket::SendRequest(
-    zeromq::Message& request) const
-{
-    OT_ASSERT(nullptr != socket_);
-
-    Lock lock(lock_);
-    MessageSendResult output{SendResult::ERROR, Message::Factory()};
-    auto& status = output.first;
-    auto& reply = output.second;
-    Message& message = reply;
-    const bool sent = (-1 != zmq_msg_send(request, socket_, 0));
-
-    if (false == sent) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Send error:\n"
-              << zmq_strerror(zmq_errno()) << std::endl;
-
-        return output;
-    }
-
-    const auto ready = wait(lock);
-
-    if (false == ready) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Receive timeout." << std::endl;
-        status = SendResult::TIMEOUT;
-
-        return output;
-    }
-
-    const bool received = (-1 != zmq_msg_recv(message, socket_, 0));
-
-    if (false == received) {
-        otErr << OT_METHOD << __FUNCTION__
-              << ": Receive error: " << zmq_strerror(zmq_errno()) << std::endl;
-
-        return output;
-    }
-
-    status = SendResult::VALID_REPLY;
-
-    return output;
+    return SendRequest(MultipartMessage::Factory(copy));
 }
 
 Socket::MultipartSendResult RequestSocket::SendRequest(

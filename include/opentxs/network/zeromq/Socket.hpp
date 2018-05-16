@@ -66,6 +66,7 @@
 }
 %ignore opentxs::network::zeromq::Socket::Context;
 %ignore opentxs::network::zeromq::Socket::SetTimeouts;
+%ignore opentxs::network::zeromq::Socket::operator void*() const;
 %rename(ZMQSocket) opentxs::network::zeromq::Socket;
 // clang-format on
 #endif  // SWIG

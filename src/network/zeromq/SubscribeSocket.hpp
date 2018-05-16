@@ -75,7 +75,7 @@ private:
     SubscribeSocket* clone() const override;
     bool have_callback() const override;
 
-    void process_incoming(const Lock& lock, Message& message) override;
+    void process_incoming(const Lock& lock, MultipartMessage& message) override;
 
     SubscribeSocket() = delete;
     SubscribeSocket(const SubscribeSocket&) = delete;

@@ -170,6 +170,7 @@
 %ignore opentxs::NymData::SocialMediaProfileTypes;
 %ignore opentxs::NymData::Type;
 %ignore opentxs::NymData::VerificationSet;
+%ignore opentxs::NymData::NymData(NymData&&);
 // clang-format on
 #endif
 

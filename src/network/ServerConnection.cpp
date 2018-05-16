@@ -51,7 +51,10 @@
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
+#include "opentxs/network/zeromq/FrameIterator.hpp"
+#include "opentxs/network/zeromq/FrameSection.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/network/zeromq/MultipartMessage.hpp"
 #include "opentxs/network/zeromq/RequestSocket.hpp"
 #include "opentxs/network/ServerConnection.hpp"
 #include "opentxs/OT.hpp"
@@ -80,7 +83,7 @@ OTServerConnection ServerConnection::Factory(
     return OTServerConnection(
         new implementation::ServerConnection(zmq, serverID));
 }
-}  // opentxs::network
+}  // namespace opentxs::network
 
 namespace opentxs::network::implementation
 {
@@ -187,10 +190,10 @@ NetworkReplyRaw ServerConnection::Send(const std::string& input)
 
     OT_ASSERT(reply);
 
-    auto result =
-        get_socket(lock).SendRequest(network::zeromq::Message::Factory(input));
+    auto result = get_socket(lock).SendRequest(
+        network::zeromq::MultipartMessage::Factory(input));
     status = result.first;
-    network::zeromq::Message& message = result.second;
+    network::zeromq::MultipartMessage& message = result.second;
 
     switch (status) {
         case SendResult::ERROR: {
@@ -204,7 +207,12 @@ NetworkReplyRaw ServerConnection::Send(const std::string& input)
         case SendResult::VALID_REPLY: {
             status_->On();
             reset_timer();
-            reply.reset(new std::string(message));
+
+            if (0 < input.size()) {
+                OT_ASSERT(1 == message.Body().size());
+
+                reply.reset(new std::string(*message.Body().begin()));
+            }
 
             OT_ASSERT(reply);
         } break;
@@ -226,9 +234,7 @@ NetworkReplyString ServerConnection::Send(const String& message)
 
     OT_ASSERT(reply);
 
-    if (!envelope.Exists()) {
-        return output;
-    }
+    if (!envelope.Exists()) { return output; }
 
     auto rawOutput = Send(std::string(envelope.Get()));
     status = rawOutput.first;
@@ -291,10 +297,7 @@ void ServerConnection::set_proxy(
 {
     OT_ASSERT(verify_lock(lock));
 
-    if (false == use_proxy_.get()) {
-
-        return;
-    }
+    if (false == use_proxy_.get()) { return; }
 
     auto proxy = zmq_.SocksProxy();
 
@@ -354,8 +357,6 @@ void ServerConnection::activity_timer()
 
 ServerConnection::~ServerConnection()
 {
-    if (thread_) {
-        thread_->join();
-    }
+    if (thread_) { thread_->join(); }
 }
 }  // namespace opentxs::network::implementation

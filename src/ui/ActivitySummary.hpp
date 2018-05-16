@@ -86,7 +86,7 @@ private:
     ActivitySummaryOuter::const_reverse_iterator outer_end() const override;
 
     void process_thread(const std::string& threadID);
-    void process_thread(const network::zeromq::Message& message);
+    void process_thread(const network::zeromq::MultipartMessage& message);
     void startup();
 
     ActivitySummary(

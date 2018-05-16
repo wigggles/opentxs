@@ -50,6 +50,16 @@
 %ignore opentxs::Data::Concatenate;
 %ignore opentxs::Data::GetPointer;
 %ignore opentxs::Data::OTfread;
+%ignore opentxs::Pimpl<opentxs::Data>::Pimpl(opentxs::Data const &);
+%ignore opentxs::Pimpl<opentxs::Data>::operator opentxs::Data&;
+%ignore opentxs::Pimpl<opentxs::Data>::operator const opentxs::Data &;
+%ignore operator==(OTData& lhs, const Data& rhs);
+%ignore operator!=(OTData& lhs, const Data& rhs);
+%ignore operator+=(OTData& lhs, const OTData& rhs);
+%rename(dataCompareEqual) opentxs::Data::operator==(const Data& rhs) const;
+%rename(dataCompareNotEqual) opentxs::Data::operator!=(const Data& rhs) const;
+%rename(dataPlusEqual) opentxs::Data::operator+=(const Data& rhs);
+%rename(assign) operator=(const opentxs::Data&);
 %template(OTData) opentxs::Pimpl<opentxs::Data>;
 // clang-format on
 #endif  // SWIG

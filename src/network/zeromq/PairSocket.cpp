@@ -43,7 +43,9 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
+#include "opentxs/network/zeromq/FrameIterator.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/network/zeromq/MultipartMessage.hpp"
 
 #include <zmq.h>
 
@@ -148,7 +150,7 @@ const std::string& PairSocket::Endpoint() const { return endpoint_; }
 
 bool PairSocket::have_callback() const { return true; }
 
-void PairSocket::process_incoming(const Lock& lock, Message& message)
+void PairSocket::process_incoming(const Lock& lock, MultipartMessage& message)
 {
     OT_ASSERT(verify_lock(lock))
 
@@ -157,25 +159,37 @@ void PairSocket::process_incoming(const Lock& lock, Message& message)
 
 bool PairSocket::Send(const std::string& data) const
 {
-    return Send(Message::Factory(data));
+    return Send(MultipartMessage::Factory(data));
 }
 
 bool PairSocket::Send(const opentxs::Data& data) const
 {
-    return Send(Message::Factory(data));
+    return Send(MultipartMessage::Factory(data));
 }
 
-bool PairSocket::Send(zeromq::Message& data) const
+bool PairSocket::Send(zeromq::MultipartMessage& data) const
 {
     Lock lock(lock_);
-    auto sent = zmq_msg_send(data, socket_, 0);
+    bool sent{true};
+    const auto parts = data.size();
+    std::size_t counter{0};
 
-    if (-1 == sent) {
+    for (auto& frame : data) {
+        int flags{0};
+
+        if (++counter < parts) {
+            flags = ZMQ_SNDMORE;
+        }
+
+        sent |= (-1 != zmq_msg_send(frame, socket_, flags));
+    }
+
+    if (false == sent) {
         otErr << OT_METHOD << __FUNCTION__ << ": Send error:\n"
               << zmq_strerror(zmq_errno()) << std::endl;
     }
 
-    return (-1 != sent);
+    return (false != sent);
 }
 
 bool PairSocket::Start(const std::string&) const { return false; }

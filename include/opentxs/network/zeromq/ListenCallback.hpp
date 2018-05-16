@@ -45,8 +45,12 @@
 
 #ifdef SWIG
 // clang-format off
-%template(OTZMQListenCallback) opentxs::Pimpl<opentxs::network::zeromq::ListenCallback>;
+%ignore opentxs::Pimpl<opentxs::network::zeromq::ListenCallback>::Pimpl(opentxs::network::zeromq::ListenCallback const &);
+%ignore opentxs::Pimpl<opentxs::network::zeromq::ListenCallback>::operator opentxs::network::zeromq::ListenCallback&;
+%ignore opentxs::Pimpl<opentxs::network::zeromq::ListenCallback>::operator const opentxs::network::zeromq::ListenCallback &;
+%rename(assign) operator=(const opentxs::network::zeromq::ListenCallback&);
 %rename(ZMQListenCallback) opentxs::network::zeromq::ListenCallback;
+%template(OTZMQListenCallback) opentxs::Pimpl<opentxs::network::zeromq::ListenCallback>;
 // clang-format on
 #endif  // SWIG
 
@@ -59,7 +63,7 @@ namespace zeromq
 class ListenCallback
 {
 public:
-    using ReceiveCallback = std::function<void(const Message&)>;
+    using ReceiveCallback = std::function<void(const MultipartMessage&)>;
 
 #ifndef SWIG
     EXPORT static OTZMQListenCallback Factory(ReceiveCallback callback);
@@ -68,7 +72,7 @@ public:
     EXPORT static opentxs::Pimpl<opentxs::network::zeromq::ListenCallback>
     Factory(ListenCallbackSwig* callback);
 
-    EXPORT virtual void Process(const Message& message) const = 0;
+    EXPORT virtual void Process(const MultipartMessage& message) const = 0;
 
     EXPORT virtual ~ListenCallback() = default;
 

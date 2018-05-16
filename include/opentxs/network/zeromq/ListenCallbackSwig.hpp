@@ -52,7 +52,8 @@ namespace opentxs
 class ListenCallbackSwig
 {
 public:
-    virtual void Process(const network::zeromq::Message& message) const = 0;
+    virtual void Process(
+        const network::zeromq::MultipartMessage& message) const = 0;
 
     virtual ~ListenCallbackSwig() = default;
 

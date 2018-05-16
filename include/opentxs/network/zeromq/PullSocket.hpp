@@ -47,8 +47,12 @@
 // clang-format off
 %ignore opentxs::network::zeromq::PullSocket::Factory;
 %ignore opentxs::network::zeromq::PullSocket::SetCurve;
-%template(OTZMQPullSocket) opentxs::Pimpl<opentxs::network::zeromq::PullSocket>;
+%ignore opentxs::Pimpl<opentxs::network::zeromq::PullSocket>::Pimpl(opentxs::network::zeromq::PullSocket const &);
+%ignore opentxs::Pimpl<opentxs::network::zeromq::PullSocket>::operator opentxs::network::zeromq::PullSocket&;
+%ignore opentxs::Pimpl<opentxs::network::zeromq::PullSocket>::operator const opentxs::network::zeromq::PullSocket &;
+%rename(assign) operator=(const opentxs::network::zeromq::PullSocket&);
 %rename(ZMQPullSocket) opentxs::network::zeromq::PullSocket;
+%template(OTZMQPullSocket) opentxs::Pimpl<opentxs::network::zeromq::PullSocket>;
 // clang-format on
 #endif  // SWIG
 

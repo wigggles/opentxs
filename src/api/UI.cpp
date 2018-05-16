@@ -41,7 +41,10 @@
 #include "opentxs/api/network/ZMQ.hpp"
 #include "opentxs/api/UI.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
+#include "opentxs/network/zeromq/FrameIterator.hpp"
+#include "opentxs/network/zeromq/FrameSection.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/network/zeromq/MultipartMessage.hpp"
 #include "opentxs/network/zeromq/ReplyCallback.hpp"
 #include "opentxs/network/zeromq/ReplySocket.hpp"
 #include "opentxs/network/zeromq/PublishSocket.hpp"
@@ -104,15 +107,18 @@ UI::UI(
     , contact_lists_()
     , messagable_lists_()
     , widget_callback_(opentxs::network::zeromq::ReplyCallback::Factory(
-          [this](
-              const opentxs::network::zeromq::Message& input) -> OTZMQMessage {
-              std::string message(input);
+          [this](const opentxs::network::zeromq::MultipartMessage& input)
+              -> OTZMQMultipartMessage {
+
+              OT_ASSERT(1 == input.Body().size());
+
+              std::string message(*input.Body().begin());
               otInfo << OT_METHOD << ": Relaying notification for widget "
                      << message << "..." << std::endl;
               widget_update_publisher_->Publish(message);
               otInfo << "...done" << std::endl;
 
-              return opentxs::network::zeromq::Message::Factory();
+              return opentxs::network::zeromq::MultipartMessage::Factory();
           }))
     , widget_update_collector_(zmq_.ReplySocket(widget_callback_))
     , widget_update_publisher_(zmq_.PublishSocket())

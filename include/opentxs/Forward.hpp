@@ -196,6 +196,7 @@ class ListenCallbackSwig;
 class Log;
 class MasterCredential;
 class Message;
+class MultipartMessage;
 #if OT_CASH
 class Mint;
 #endif  // OT_CASH

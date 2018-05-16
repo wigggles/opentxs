@@ -73,7 +73,7 @@ Proxy::Proxy(
     , frontend_(frontend)
     , backend_(backend)
     , null_callback_(opentxs::network::zeromq::ListenCallback::Factory(
-          [](const zeromq::Message&) -> void {}))
+          [](const zeromq::MultipartMessage&) -> void {}))
     , control_listener_(new PairSocket(context, null_callback_, false))
     , control_sender_(new PairSocket(null_callback_, control_listener_, false))
     , thread_(nullptr)

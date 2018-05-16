@@ -42,7 +42,9 @@
 
 #include "opentxs/core/Log.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
+#include "opentxs/network/zeromq/FrameIterator.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/network/zeromq/MultipartMessage.hpp"
 
 #include <zmq.h>
 
@@ -70,25 +72,37 @@ PushSocket::PushSocket(const zeromq::Context& context, const bool client)
 
 bool PushSocket::Push(const std::string& data) const
 {
-    return Push(Message::Factory(data));
+    return Push(MultipartMessage::Factory(data));
 }
 
 bool PushSocket::Push(const opentxs::Data& data) const
 {
-    return Push(Message::Factory(data));
+    return Push(MultipartMessage::Factory(data));
 }
 
-bool PushSocket::Push(zeromq::Message& data) const
+bool PushSocket::Push(zeromq::MultipartMessage& data) const
 {
     Lock lock(lock_);
-    auto sent = zmq_msg_send(data, socket_, 0);
+    bool sent{true};
+    const auto parts = data.size();
+    std::size_t counter{0};
 
-    if (-1 == sent) {
+    for (auto& frame : data) {
+        int flags{0};
+
+        if (++counter < parts) {
+            flags = ZMQ_SNDMORE;
+        }
+
+        sent |= (-1 != zmq_msg_send(frame, socket_, flags));
+    }
+
+    if (false == sent) {
         otErr << OT_METHOD << __FUNCTION__ << ": Send error:\n"
               << zmq_strerror(zmq_errno()) << std::endl;
     }
 
-    return (-1 != sent);
+    return (false != sent);
 }
 
 PushSocket* PushSocket::clone() const

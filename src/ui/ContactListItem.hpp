@@ -63,7 +63,8 @@ protected:
     OTZMQListenCallback contact_subscriber_callback_;
     OTZMQSubscribeSocket contact_subscriber_;
 
-    virtual void process_contact(const network::zeromq::Message& message);
+    virtual void process_contact(
+        const network::zeromq::MultipartMessage& message);
 
     ContactListItem(
         const ContactListParent& parent,

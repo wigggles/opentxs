@@ -43,7 +43,10 @@
 #include "gtest/gtest-test-part.h"
 
 #include "opentxs/network/zeromq/Context.hpp"
+#include "opentxs/network/zeromq/FrameIterator.hpp"
+#include "opentxs/network/zeromq/FrameSection.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/network/zeromq/MultipartMessage.hpp"
 #include "opentxs/network/zeromq/ReplyCallback.hpp"
 #include "opentxs/network/zeromq/ReplySocket.hpp"
 
@@ -66,9 +69,10 @@ OTZMQContext Test_ReplySocket::context_{network::zeromq::Context::Factory()};
 TEST(ReplySocket, ReplyCallback_Factory)
 {
     auto replyCallback = network::zeromq::ReplyCallback::Factory(
-        [this](const network::zeromq::Message& input) -> OTZMQMessage {
+        [this](const network::zeromq::MultipartMessage& input)
+            -> OTZMQMultipartMessage {
 
-            return network::zeromq::Message::Factory(input);
+            return network::zeromq::MultipartMessage::ReplyFactory(input);
         });
 
     ASSERT_NE(nullptr, &replyCallback.get());
@@ -77,23 +81,27 @@ TEST(ReplySocket, ReplyCallback_Factory)
 TEST_F(Test_ReplySocket, ReplyCallback_Process)
 {
     auto replyCallback = network::zeromq::ReplyCallback::Factory(
-        [this](const network::zeromq::Message& input) -> OTZMQMessage {
+        [this](const network::zeromq::MultipartMessage& input)
+            -> OTZMQMultipartMessage {
 
-            const std::string& inputString = input;
+            const std::string& inputString = *input.Body().begin();
             EXPECT_EQ(testMessage_, inputString);
 
-            return network::zeromq::Message::Factory(input);
+            auto reply = network::zeromq::MultipartMessage::ReplyFactory(input);
+            reply->AddFrame(inputString);
+            return reply;
         });
 
     ASSERT_NE(nullptr, &replyCallback.get());
 
-    auto testMessage = network::zeromq::Message::Factory(testMessage_);
+    auto testMessage = network::zeromq::MultipartMessage::Factory();
+    testMessage->AddFrame(testMessage_);
 
     ASSERT_NE(nullptr, &testMessage.get());
 
     auto message = replyCallback->Process(testMessage);
 
-    const std::string& messageString = message.get();
+    const std::string& messageString = *message->Body().begin();
     ASSERT_EQ(testMessage_, messageString);
 }
 
@@ -102,9 +110,10 @@ TEST(ReplySocket, ReplySocket_Factory)
     ASSERT_NE(nullptr, &Test_ReplySocket::context_.get());
 
     auto replyCallback = network::zeromq::ReplyCallback::Factory(
-        [this](const network::zeromq::Message& input) -> OTZMQMessage {
+        [this](const network::zeromq::MultipartMessage& input)
+            -> OTZMQMultipartMessage {
 
-            return network::zeromq::Message::Factory(input);
+            return network::zeromq::MultipartMessage::Factory();
         });
 
     ASSERT_NE(nullptr, &replyCallback.get());

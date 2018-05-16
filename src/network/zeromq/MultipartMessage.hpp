@@ -42,6 +42,7 @@
 #include "opentxs/Internal.hpp"
 
 #include "opentxs/network/zeromq/MultipartMessage.hpp"
+#include "opentxs/network/zeromq/FrameSection.hpp"
 
 namespace opentxs::network::zeromq::implementation
 {
@@ -49,26 +50,22 @@ class MultipartMessage : virtual public zeromq::MultipartMessage
 {
 public:
     const Message& at(const std::size_t index) const override;
-    Message& at(const std::size_t index) override;
-    const FrameIterator begin() const override;
-    FrameIterator begin() override;
-    //    FrameIterator Body_begin() const override;
-    //    FrameIterator Body_end() const override;
-    //    const Message& Body_at(const std::size_t index) const =
-    //    0;
-    // const FrameSection& Body() const override;
-    const FrameIterator end() const override;
-    FrameIterator end() override;
-    //    const FrameSection& Header() const override;
-    //    FrameIterator Header_begin() const override;
-    //    FrameIterator Header_end() const override;
-    //    const Message& Header_at(const std::size_t index) const
-    //    override;
+    FrameIterator begin() const override;
+    const FrameSection Body() const override;
+    const Message& Body_at(const std::size_t index) const override;
+    FrameIterator Body_begin() const override;
+    FrameIterator Body_end() const override;
+    FrameIterator end() const override;
+    const FrameSection Header() const override;
+    const Message& Header_at(const std::size_t index) const override;
+    FrameIterator Header_begin() const override;
+    FrameIterator Header_end() const override;
     std::size_t size() const override;
 
     Message& AddFrame() override;
     Message& AddFrame(const opentxs::Data& input) override;
     Message& AddFrame(const std::string& input) override;
+    Message& at(const std::size_t index) override;
 
     ~MultipartMessage() = default;
 
@@ -78,6 +75,8 @@ private:
     std::vector<OTZMQMessage> messages_{};
 
     MultipartMessage* clone() const override;
+    bool hasDivider() const;
+    std::size_t findDivider() const;
 
     MultipartMessage();
     MultipartMessage(const MultipartMessage&) = delete;

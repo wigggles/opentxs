@@ -105,7 +105,7 @@ PullSocket* PullSocket::clone() const
 
 bool PullSocket::have_callback() const { return true; }
 
-void PullSocket::process_incoming(const Lock& lock, Message& message)
+void PullSocket::process_incoming(const Lock& lock, MultipartMessage& message)
 {
     OT_ASSERT(verify_lock(lock))
 

@@ -38,7 +38,9 @@
 
 #include "opentxs/stdafx.hpp"
 
+#include "opentxs/network/zeromq/FrameSection.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/network/zeromq/MultipartMessage.hpp"
 
 #include "PairEventCallback.hpp"
 
@@ -70,9 +72,11 @@ PairEventCallback* PairEventCallback::clone() const
     return new PairEventCallback(callback_);
 }
 
-void PairEventCallback::Process(const zeromq::Message& message) const
+void PairEventCallback::Process(const zeromq::MultipartMessage& message) const
 {
-    const auto event = proto::TextToProto<proto::PairEvent>(message);
+    OT_ASSERT(1 == message.Body().size());
+
+    const auto event = proto::TextToProto<proto::PairEvent>(message.Body_at(0));
     callback_(event);
 }
 

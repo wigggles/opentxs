@@ -42,6 +42,15 @@
 #include <cassert>
 #include <memory>
 
+#ifdef SWIG
+%ignore opentxs::Pimpl::Pimpl(Pimpl&&);
+%ignore opentxs::Pimpl::operator->;
+%ignore opentxs::Pimpl::operator-> const;
+%ignore opentxs::Pimpl::get() const;
+%rename(assign) opentxs::Pimpl::operator=(const Pimpl&);
+%rename(move) opentxs::Pimpl::operator=(Pimpl&&);
+#endif
+
 namespace opentxs
 {
 template <class C>

@@ -49,7 +49,10 @@
 #include "opentxs/Forward.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
+#include "opentxs/network/zeromq/FrameIterator.hpp"
+#include "opentxs/network/zeromq/FrameSection.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/network/zeromq/MultipartMessage.hpp"
 #include "opentxs/network/zeromq/PublishSocket.hpp"
 #include "opentxs/network/zeromq/SubscribeSocket.hpp"
 
@@ -95,9 +98,9 @@ void Test_PublishSubscribe::subscribeSocketThread(
     ASSERT_NE(nullptr, &Test_PublishSubscribe::context_.get());
 
     auto listenCallback = network::zeromq::ListenCallback::Factory(
-        [this, msgs](const network::zeromq::Message& input) -> void {
+        [this, msgs](const network::zeromq::MultipartMessage& input) -> void {
 
-            const std::string& inputString = input;
+            const std::string& inputString = *input.Body().begin();
             bool found = msgs.count(inputString);
             EXPECT_TRUE(found);
             ++callbackFinishedCount_;
@@ -114,14 +117,14 @@ void Test_PublishSubscribe::subscribeSocketThread(
     subscribeSocket->SetTimeouts(
         std::chrono::milliseconds(0),
         std::chrono::milliseconds(-1),
-        std::chrono::milliseconds(10000));
+        std::chrono::milliseconds(30000));
     for (auto endpoint : endpoints) {
         subscribeSocket->Start(endpoint);
     }
 
     ++subscribeThreadStartedCount_;
 
-    auto end = std::time(nullptr) + 10;
+    auto end = std::time(nullptr) + 30;
     while (callbackFinishedCount_ < callbackCount_ && std::time(nullptr) < end)
         std::this_thread::sleep_for(std::chrono::seconds(1));
 
@@ -142,13 +145,13 @@ void Test_PublishSubscribe::publishSocketThread(
 
     publishSocket->SetTimeouts(
         std::chrono::milliseconds(0),
-        std::chrono::milliseconds(10000),
+        std::chrono::milliseconds(30000),
         std::chrono::milliseconds(-1));
     publishSocket->Start(endpoint);
 
     ++publishThreadStartedCount_;
 
-    auto end = std::time(nullptr) + 5;
+    auto end = std::time(nullptr) + 15;
     while (subscribeThreadStartedCount_ < subscribeThreadCount_ &&
            std::time(nullptr) < end)
         std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -157,7 +160,7 @@ void Test_PublishSubscribe::publishSocketThread(
 
     ASSERT_TRUE(sent);
 
-    end = std::time(nullptr) + 5;
+    end = std::time(nullptr) + 15;
     while (callbackFinishedCount_ < callbackCount_ && std::time(nullptr) < end)
         std::this_thread::sleep_for(std::chrono::seconds(1));
 
@@ -178,14 +181,14 @@ TEST_F(Test_PublishSubscribe, Publish_Subscribe)
 
     publishSocket->SetTimeouts(
         std::chrono::milliseconds(0),
-        std::chrono::milliseconds(10000),
+        std::chrono::milliseconds(30000),
         std::chrono::milliseconds(-1));
     publishSocket->Start(endpoint_);
 
     auto listenCallback = network::zeromq::ListenCallback::Factory(
-        [this](const network::zeromq::Message& input) -> void {
+        [this](const network::zeromq::MultipartMessage& input) -> void {
 
-            const std::string& inputString = input;
+            const std::string& inputString = *input.Body().begin();
             EXPECT_EQ(testMessage_, inputString);
             ++callbackFinishedCount_;
         });
@@ -201,14 +204,14 @@ TEST_F(Test_PublishSubscribe, Publish_Subscribe)
     subscribeSocket->SetTimeouts(
         std::chrono::milliseconds(0),
         std::chrono::milliseconds(-1),
-        std::chrono::milliseconds(10000));
+        std::chrono::milliseconds(30000));
     subscribeSocket->Start(endpoint_);
 
     bool sent = publishSocket->Publish(testMessage_);
 
     ASSERT_TRUE(sent);
 
-    auto end = std::time(nullptr) + 10;
+    auto end = std::time(nullptr) + 30;
     while (!callbackFinishedCount_ && std::time(nullptr) < end)
         std::this_thread::sleep_for(std::chrono::seconds(1));
 
@@ -230,7 +233,7 @@ TEST_F(Test_PublishSubscribe, Publish_1_Subscribe_2)
 
     publishSocket->SetTimeouts(
         std::chrono::milliseconds(0),
-        std::chrono::milliseconds(10000),
+        std::chrono::milliseconds(30000),
         std::chrono::milliseconds(-1));
     publishSocket->Start(endpoint_);
 
@@ -245,7 +248,7 @@ TEST_F(Test_PublishSubscribe, Publish_1_Subscribe_2)
         std::set<std::string>({endpoint_}),
         std::set<std::string>({testMessage_}));
 
-    auto end = std::time(nullptr) + 10;
+    auto end = std::time(nullptr) + 30;
     while (subscribeThreadStartedCount_ < subscribeThreadCount_ &&
            std::time(nullptr) < end)
         std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -276,16 +279,16 @@ TEST_F(Test_PublishSubscribe, Publish_2_Subscribe_1)
         endpoint2_,
         testMessage2_);
 
-    auto end = std::time(nullptr) + 5;
+    auto end = std::time(nullptr) + 15;
     while (publishThreadStartedCount_ < 2 && std::time(nullptr) < end)
         std::this_thread::sleep_for(std::chrono::seconds(1));
 
     ASSERT_EQ(2, publishThreadStartedCount_);
 
     auto listenCallback = network::zeromq::ListenCallback::Factory(
-        [this](const network::zeromq::Message& input) -> void {
+        [this](const network::zeromq::MultipartMessage& input) -> void {
 
-            const std::string& inputString = input;
+            const std::string& inputString = *input.Body().begin();
             bool match =
                 inputString == testMessage_ || inputString == testMessage2_;
             EXPECT_TRUE(match);
@@ -303,13 +306,13 @@ TEST_F(Test_PublishSubscribe, Publish_2_Subscribe_1)
     subscribeSocket->SetTimeouts(
         std::chrono::milliseconds(0),
         std::chrono::milliseconds(-1),
-        std::chrono::milliseconds(10000));
+        std::chrono::milliseconds(30000));
     subscribeSocket->Start(endpoint_);
     subscribeSocket->Start(endpoint2_);
 
     ++subscribeThreadStartedCount_;
 
-    end = std::time(nullptr) + 10;
+    end = std::time(nullptr) + 30;
     while (callbackFinishedCount_ < callbackCount_ && std::time(nullptr) < end)
         std::this_thread::sleep_for(std::chrono::seconds(1));
 
@@ -335,7 +338,7 @@ TEST_F(Test_PublishSubscribe, Publish_2_Subscribe_2)
         endpoint2_,
         testMessage2_);
 
-    auto end = std::time(nullptr) + 5;
+    auto end = std::time(nullptr) + 15;
     while (publishThreadStartedCount_ < 2 && std::time(nullptr) < end)
         std::this_thread::sleep_for(std::chrono::seconds(1));
 
@@ -352,7 +355,7 @@ TEST_F(Test_PublishSubscribe, Publish_2_Subscribe_2)
         std::set<std::string>({endpoint_, endpoint2_}),
         std::set<std::string>({testMessage_, testMessage2_}));
 
-    end = std::time(nullptr) + 10;
+    end = std::time(nullptr) + 30;
     while (subscribeThreadStartedCount_ < subscribeThreadCount_ &&
            std::time(nullptr) < end)
         std::this_thread::sleep_for(std::chrono::seconds(1));

@@ -41,6 +41,8 @@
 
 #include "opentxs/Forward.hpp"
 
+#include <atomic>
+
 #ifdef SWIG
 // clang-format off
 %rename(ZMQFrameSection) opentxs::network::zeromq::FrameSection;
@@ -56,6 +58,18 @@ namespace zeromq
 class FrameSection
 {
 public:
+    using difference_type = std::size_t;
+    using value_type = Message;
+    using pointer = Message*;
+    using reference = Message&;
+    using iterator_category = std::forward_iterator_tag;
+
+    FrameSection(const FrameSection&);
+    FrameSection(
+        const MultipartMessage* parent,
+        std::size_t position,
+        std::size_t size);
+
     EXPORT const Message& at(const std::size_t index) const;
     EXPORT FrameIterator begin() const;
     EXPORT FrameIterator end() const;
@@ -67,7 +81,10 @@ protected:
     FrameSection() = default;
 
 private:
-    FrameSection(const FrameSection&) = delete;
+    const MultipartMessage* parent_{nullptr};
+    std::atomic<std::size_t> position_{0};
+    std::atomic<std::size_t> size_{0};
+
     FrameSection(FrameSection&&) = delete;
     FrameSection& operator=(const FrameSection&) = delete;
     FrameSection& operator=(FrameSection&&) = delete;

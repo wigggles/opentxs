@@ -53,9 +53,8 @@ class RequestSocket : virtual public zeromq::RequestSocket,
                       CurveClient
 {
 public:
-    MessageSendResult SendRequest(opentxs::Data& message) const override;
-    MessageSendResult SendRequest(const std::string& message) const override;
-    MessageSendResult SendRequest(zeromq::Message& message) const override;
+    MultipartSendResult SendRequest(opentxs::Data& message) const override;
+    MultipartSendResult SendRequest(const std::string& message) const override;
     MultipartSendResult SendRequest(
         zeromq::MultipartMessage& message) const override;
     bool SetCurve(const ServerContract& contract) const override;

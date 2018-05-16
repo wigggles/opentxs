@@ -48,8 +48,12 @@
 #ifdef SWIG
 // clang-format off
 %ignore opentxs::network::zeromq::PairSocket::Factory;
-%template(OTZMQPairSocket) opentxs::Pimpl<opentxs::network::zeromq::PairSocket>;
+%ignore opentxs::Pimpl<opentxs::network::zeromq::PairSocket>::Pimpl(opentxs::network::zeromq::PairSocket const &);
+%ignore opentxs::Pimpl<opentxs::network::zeromq::PairSocket>::operator opentxs::network::zeromq::PairSocket&;
+%ignore opentxs::Pimpl<opentxs::network::zeromq::PairSocket>::operator const opentxs::network::zeromq::PairSocket &;
+%rename(assign) operator=(const opentxs::network::zeromq::PairSocket&);
 %rename(ZMQPairSocket) opentxs::network::zeromq::PairSocket;
+%template(OTZMQPairSocket) opentxs::Pimpl<opentxs::network::zeromq::PairSocket>;
 // clang-format on
 #endif  // SWIG
 
@@ -95,7 +99,7 @@ public:
     EXPORT virtual const std::string& Endpoint() const = 0;
     EXPORT virtual bool Send(const std::string& data) const = 0;
     EXPORT virtual bool Send(const opentxs::Data& data) const = 0;
-    EXPORT virtual bool Send(network::zeromq::Message& data) const = 0;
+    EXPORT virtual bool Send(network::zeromq::MultipartMessage& data) const = 0;
 
     EXPORT virtual ~PairSocket() = default;
 
