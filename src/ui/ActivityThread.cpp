@@ -506,7 +506,7 @@ std::string ActivityThread::ThreadID() const
 {
     Lock lock(lock_);
 
-    return threadID_.str();
+    return threadID_->str();
 }
 
 ActivityThread::~ActivityThread()
