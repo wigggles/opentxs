@@ -78,7 +78,7 @@ public:
         const override;
     std::string DisplayName() const override;
     const Identifier& NymID() const override;
-    std::string ID() const override { return nym_id_.str(); }
+    std::string ID() const override { return nym_id_->str(); }
     std::string PaymentCode() const override;
     bool SetActive(
         const int section,

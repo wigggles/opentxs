@@ -140,7 +140,7 @@ void Contact::construct_item(
             zmq_, contact_manager_, *this, recover(custom)));
 }
 
-std::string Contact::ContactID() const { return nym_id_.str(); }
+std::string Contact::ContactID() const { return nym_id_->str(); }
 
 std::string Contact::DisplayName() const
 {
@@ -217,7 +217,7 @@ int Contact::sort_key(const proto::ContactSectionName type)
 
 void Contact::startup()
 {
-    otErr << OT_METHOD << __FUNCTION__ << ": Loading contact " << nym_id_.str()
+    otErr << OT_METHOD << __FUNCTION__ << ": Loading contact " << nym_id_->str()
           << std::endl;
     const auto contact = contact_manager_.Contact(nym_id_);
 

@@ -202,7 +202,7 @@ void ContactSection::construct_item(
             zmq_, contact_manager_, *this, recover(custom)));
 }
 
-std::string ContactSection::ContactID() const { return nym_id_.str(); }
+std::string ContactSection::ContactID() const { return nym_id_->str(); }
 
 std::string ContactSection::Name(const std::string& lang) const
 {

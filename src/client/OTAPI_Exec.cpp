@@ -4378,6 +4378,10 @@ std::string OTAPI_Exec::WriteCheque(
 
     if (!CHEQUE_MEMO.empty()) strMemo.Set(String(CHEQUE_MEMO));
 
+    OTIdentifier idForRecipient( bHasRecipient
+        ? Identifier::Factory(theRecipientNymID)
+        : Identifier::Factory());
+
     std::unique_ptr<Cheque> pCheque(ot_api_.WriteCheque(
         theNotaryID,
         static_cast<std::int64_t>(lAmount),
@@ -4386,7 +4390,8 @@ std::string OTAPI_Exec::WriteCheque(
         theSenderAcctID,
         theSenderNymID,
         strMemo,
-        bHasRecipient ? theRecipientNymID : Identifier::Factory()));
+        idForRecipient
+       ));
 
     if (!pCheque) {
         otErr << OT_METHOD << __FUNCTION__ << ": OT_API::WriteCheque failed.\n";

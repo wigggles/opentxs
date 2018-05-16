@@ -100,7 +100,7 @@ public:
                                            // the asset account,
         // AND must verify the cheque signature with that user's key.
         const String& strMemo,                 // Optional memo field.
-        const Identifier* pRECIPIENT_NYM_ID=nullptr);  // Recipient
+        const OTIdentifier pRECIPIENT_NYM_ID);  // Recipient
                                                // optional. (Might
                                                // be a blank
                                                // cheque.)
