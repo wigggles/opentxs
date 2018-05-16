@@ -39,10 +39,13 @@
 #include "opentxs/stdafx.hpp"
 
 #include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Log.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 
 #include "Widget.hpp"
+
+#define OT_METHOD "opentxs::ui::implementation::Widget"
 
 namespace opentxs::ui::implementation
 {
@@ -63,6 +66,8 @@ Widget::Widget(const network::zeromq::Context& zmq)
 void Widget::UpdateNotify() const
 {
     auto id(widget_id_->str());
+    otWarn << OT_METHOD << __FUNCTION__ << ": widget " << id << " updated"
+           << std::endl;
     update_socket_->SendRequest(id);
 }
 

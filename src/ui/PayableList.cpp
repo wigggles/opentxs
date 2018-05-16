@@ -178,6 +178,13 @@ void PayableList::process_contact(
 
     const auto contact = contact_manager_.Contact(id);
 
+    if (false == bool(contact)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Error: Contact " << id->str()
+              << " can not be loaded." << std::endl;
+
+        return;
+    }
+
     OT_ASSERT(contact);
 
     auto paymentCode =

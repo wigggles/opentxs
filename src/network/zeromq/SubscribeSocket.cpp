@@ -90,9 +90,10 @@ void SubscribeSocket::process_incoming(const Lock& lock, Message& message)
 {
     OT_ASSERT(verify_lock(lock))
 
-    otInfo << OT_METHOD << __FUNCTION__
+    otWarn << OT_METHOD << __FUNCTION__
            << ": Incoming messaged received. Triggering callback." << std::endl;
     callback_.Process(message);
+    otWarn << "Done." << std::endl;
 }
 
 bool SubscribeSocket::SetCurve(const ServerContract& contract) const
