@@ -102,7 +102,7 @@ UI::UI(
           [this](
               const opentxs::network::zeromq::Message& input) -> OTZMQMessage {
               std::string message(input);
-              otinfo << OT_METHOD << ": Relaying notification for widget "
+              otInfo << OT_METHOD << ": Relaying notification for widget "
                      << message << "..." << std::endl;
               widget_update_publisher_->Publish(message);
               otInfo << "...done" << std::endl;
