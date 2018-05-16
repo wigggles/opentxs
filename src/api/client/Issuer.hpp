@@ -106,8 +106,8 @@ private:
     std::uint32_t version_{0};
     std::string pairing_code_{""};
     mutable OTFlag paired_;
-    const OTIdentifier nym_id_;
-    const OTIdentifier issuer_id_;
+    const Identifier& nym_id_;
+    const Identifier& issuer_id_;
     std::map<proto::ContactItemType, std::set<UnitAccountPair>> account_map_{};
     WorkflowMap peer_requests_{};
 
