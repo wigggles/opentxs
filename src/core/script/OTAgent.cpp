@@ -153,7 +153,7 @@ bool OTAgent::VerifySignature(const Contract& theContract) const
 //
 Nym* OTAgent::LoadNym(const Nym& theServerNym)
 {
-    Identifier theAgentNymID;
+    auto theAgentNymID = Identifier::Factory();
     bool bNymID = GetNymID(theAgentNymID);
 
     if (bNymID) {
@@ -231,9 +231,9 @@ OTAgent::OTAgent(
     , m_strName(str_agent_name.c_str())
 {
     // Grab m_strNymID
-    Identifier theNymID;
+    auto theNymID = Identifier::Factory();
     theNym.GetIdentifier(theNymID);
-    theNymID.GetString(m_strNymID);
+    theNymID->GetString(m_strNymID);
 
     //
 
@@ -459,7 +459,7 @@ bool OTAgent::GetSignerID(Identifier& theOutput) const
 
 bool OTAgent::IsValidSignerID(const Identifier& theNymID)
 {
-    Identifier theAgentNymID;
+    auto theAgentNymID = Identifier::Factory();
     bool bNymID = GetNymID(theAgentNymID);
 
     // If there's a NymID on this agent, and it matches theNymID...
@@ -475,7 +475,7 @@ bool OTAgent::IsValidSignerID(const Identifier& theNymID)
 //
 bool OTAgent::IsValidSigner(const Nym& theNym)
 {
-    Identifier theAgentNymID;
+    auto theAgentNymID = Identifier::Factory();
     bool bNymID = GetNymID(theAgentNymID);
 
     // If there's a NymID on this agent, and it matches theNym's ID...
@@ -615,7 +615,7 @@ void OTAgent::RetrieveNymPointer(mapOfConstNyms& map_Nyms_Already_Loaded)
 
 bool OTAgent::VerifyAgencyOfAccount(const Account& theAccount) const
 {
-    Identifier theSignerID;
+    auto theSignerID = Identifier::Factory();
 
     if (!GetSignerID(theSignerID)) {
         otErr << "OTAgent::VerifyAgencyOfAccount: ERROR: Entities and roles "
@@ -647,7 +647,7 @@ bool OTAgent::DropFinalReceiptToInbox(
     // accommodate them.
     const char* szFunc = "OTAgent::DropFinalReceiptToInbox";
 
-    Identifier theAgentNymID;
+    auto theAgentNymID = Identifier::Factory();
     bool bNymID = GetNymID(theAgentNymID);
 
     // Not all agents have Nyms. (Might be a voting group.) But in the case of
@@ -701,7 +701,7 @@ bool OTAgent::DropFinalReceiptToInbox(
         }
 
         auto context = OT::App().Wallet().ClientContext(
-            Identifier(strNotaryID), pNym->ID());
+            Identifier::Factory(strNotaryID), pNym->ID());
 
         OT_ASSERT(context);
 
@@ -749,7 +749,7 @@ bool OTAgent::DropFinalReceiptToNymbox(
                       // Nym, so need to check before actually
                       // using for anything.
 {
-    Identifier theAgentNymID;
+    auto theAgentNymID = Identifier::Factory();
     bool bNymID = GetNymID(theAgentNymID);
 
     // Not all agents have Nyms. (Might be a voting group.)
@@ -789,7 +789,7 @@ bool OTAgent::DropServerNoticeToNymbox(
     String* pstrAttachment,
     Nym* pActualNym)
 {
-    Identifier theAgentNymID;
+    auto theAgentNymID = Identifier::Factory();
     bool bNymID = GetNymID(theAgentNymID);
 
     // Not all agents have Nyms. (Might be a voting group.)
@@ -854,8 +854,8 @@ bool OTAgent::VerifyIssuedNumber(
     }
 
     if (nullptr != m_pNym) {
-        auto context =
-            OT::App().Wallet().Context(Identifier(strNotaryID), m_pNym->ID());
+        auto context = OT::App().Wallet().Context(
+            Identifier::Factory(strNotaryID), m_pNym->ID());
 
         OT_ASSERT(context);
 
@@ -882,8 +882,8 @@ bool OTAgent::VerifyTransactionNumber(
     }
 
     if (nullptr != m_pNym) {
-        auto context =
-            OT::App().Wallet().Context(Identifier(strNotaryID), m_pNym->ID());
+        auto context = OT::App().Wallet().Context(
+            Identifier::Factory(strNotaryID), m_pNym->ID());
 
         OT_ASSERT(context);
 
@@ -945,7 +945,7 @@ bool OTAgent::RecoverTransactionNumber(
 {
     if (nullptr != m_pNym) {
         auto context = OT::App().Wallet().mutable_Context(
-            Identifier(strNotaryID), m_pNym->ID());
+            Identifier::Factory(strNotaryID), m_pNym->ID());
 
         return RecoverTransactionNumber(lNumber, context.It());
     } else {
@@ -981,7 +981,7 @@ bool OTAgent::RemoveTransactionNumber(
     }
 
     auto context = OT::App().Wallet().mutable_Context(
-        Identifier(strNotaryID), m_pNym->ID());
+        Identifier::Factory(strNotaryID), m_pNym->ID());
 
     if (context.It().ConsumeAvailable(lNumber)) {
         context.It().OpenCronItem(lNumber);
@@ -1021,7 +1021,7 @@ bool OTAgent::RemoveIssuedNumber(
     }
 
     auto context = OT::App().Wallet().mutable_Context(
-        Identifier(strNotaryID), m_pNym->ID());
+        Identifier::Factory(strNotaryID), m_pNym->ID());
 
     if (context.It().ConsumeIssued(lNumber)) {
         context.It().CloseCronItem(lNumber);

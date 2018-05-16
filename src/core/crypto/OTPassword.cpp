@@ -661,8 +661,9 @@ bool OTPassword::SetSize(std::uint32_t uSize)
         // data_[3] (which is the 4th byte.)
         return true;
     }
-    otErr << __FUNCTION__ << ": Error: isBinary_ and isText_ are both "
-                             "false. (Should never happen.)\n";
+    otErr << __FUNCTION__
+          << ": Error: isBinary_ and isText_ are both "
+             "false. (Should never happen.)\n";
     return false;
 }
 

@@ -187,11 +187,11 @@ void OTPaymentPlan::UpdateContents()
         RECIPIENT_ACCT_ID(GetRecipientAcctID()),
         RECIPIENT_NYM_ID(GetRecipientNymID());
 
-    OT_ASSERT(nullptr != m_pCancelerNymID);
+    OT_ASSERT(!m_pCancelerNymID->empty());
 
     String strCanceler;
 
-    if (m_bCanceled) m_pCancelerNymID->GetString(strCanceler);
+    if (m_bCanceled) m_pCancelerNymID->GetString((strCanceler));
 
     // OTAgreement
     Tag tag("agreement");
@@ -604,8 +604,8 @@ bool OTPaymentPlan::ProcessPayment(const std::int64_t& lAmount)
 
     bool bSuccess = false;  // The return value.
 
-    const Identifier NOTARY_ID(pCron->GetNotaryID());
-    const Identifier NOTARY_NYM_ID(*pServerNym);
+    const auto NOTARY_ID = Identifier::Factory(pCron->GetNotaryID());
+    const auto NOTARY_NYM_ID = Identifier::Factory(*pServerNym);
 
     const Identifier& SOURCE_ACCT_ID = GetSenderAcctID();
     const Identifier& SENDER_NYM_ID = GetSenderNymID();
@@ -836,8 +836,9 @@ bool OTPaymentPlan::ProcessPayment(const std::int64_t& lAmount)
     } else if (
         !pRecipientAcct->VerifyOwner(*pRecipientNym) ||
         !pRecipientAcct->VerifySignature(*pServerNym)) {
-        otOut << __FUNCTION__ << ": ERROR verifying ownership or signature on "
-                                 "recipient account.\n";
+        otOut << __FUNCTION__
+              << ": ERROR verifying ownership or signature on "
+                 "recipient account.\n";
         FlagForRemoval();  // Remove it from future Cron processing, please.
         return false;
     }
@@ -1444,7 +1445,7 @@ bool OTPaymentPlan::ProcessCron()
                                                               // failed
                                                               // attmpting
                                                               // this...
-        ) {  // THEN we're due for the initial payment! Process it!
+    ) {  // THEN we're due for the initial payment! Process it!
 
         otOut << "Cron: Processing initial payment...\n";
 

@@ -939,11 +939,11 @@ public:
 
     using Displayable::gui_label;  // The label that appears in the GUI
 
-    using OfferDataMarket::transaction_id;
-    using OfferDataMarket::price_per_scale;
     using OfferDataMarket::available_assets;
-    using OfferDataMarket::minimum_increment;
     using OfferDataMarket::date;
+    using OfferDataMarket::minimum_increment;
+    using OfferDataMarket::price_per_scale;
+    using OfferDataMarket::transaction_id;
 
     DEFINE_OT_DYNAMIC_CAST(BidData)
 };
@@ -965,11 +965,11 @@ public:
 
     using Displayable::gui_label;  // The label that appears in the GUI
 
-    using OfferDataMarket::transaction_id;
-    using OfferDataMarket::price_per_scale;
     using OfferDataMarket::available_assets;
-    using OfferDataMarket::minimum_increment;
     using OfferDataMarket::date;
+    using OfferDataMarket::minimum_increment;
+    using OfferDataMarket::price_per_scale;
+    using OfferDataMarket::transaction_id;
 
     DEFINE_OT_DYNAMIC_CAST(AskData)
 };

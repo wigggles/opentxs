@@ -179,9 +179,10 @@ std::int32_t OTOffer::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                 xml->getAttributeValue("instrumentDefinitionID")),
             strCurrencyTypeID(xml->getAttributeValue("currencyTypeID"));
 
-        const Identifier NOTARY_ID(strNotaryID),
-            INSTRUMENT_DEFINITION_ID(strInstrumentDefinitionID),
-            CURRENCY_TYPE_ID(strCurrencyTypeID);
+        const auto NOTARY_ID = Identifier::Factory(strNotaryID),
+                   INSTRUMENT_DEFINITION_ID =
+                       Identifier::Factory(strInstrumentDefinitionID),
+                   CURRENCY_TYPE_ID = Identifier::Factory(strCurrencyTypeID);
 
         SetNotaryID(NOTARY_ID);
         SetInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
@@ -279,8 +280,9 @@ std::int32_t OTOffer::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         if ((tValidTo < tValidFrom) && (tValidTo != 0)) {
             otOut << "OTOffer::" << __FUNCTION__ << ": Failure: validTo date ("
-                  << tValidFrom << ") cannot be earlier than "
-                                   "validFrom date ("
+                  << tValidFrom
+                  << ") cannot be earlier than "
+                     "validFrom date ("
                   << tValidTo << ").\n";
             return (-1);
         }
@@ -294,13 +296,15 @@ std::int32_t OTOffer::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                   " InstrumentDefinitionID: "
                << strInstrumentDefinitionID
                << "\n  CurrencyTypeID: " << strCurrencyTypeID
-               << "\n NotaryID: " << strNotaryID << "\n"
-                                                    " Price Limit: "
+               << "\n NotaryID: " << strNotaryID
+               << "\n"
+                  " Price Limit: "
                << GetPriceLimit()
                << ",  Total Assets on Offer: " << GetTotalAssetsOnOffer()
                << ",  " << (m_bSelling ? "sold" : "bought")
-               << " so far: " << GetFinishedSoFar() << "\n "
-                                                       " Scale: "
+               << " so far: " << GetFinishedSoFar()
+               << "\n "
+                  " Scale: "
                << GetScale()
                << ".   Minimum Increment: " << GetMinimumIncrement()
                << ".  This offer is a" << (m_bSelling ? "n ASK" : " BID")

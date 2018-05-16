@@ -249,7 +249,7 @@ void OTWallet::DisplayStatistics(String& strOutput) const
     strOutput.Concatenate("\nPSEUDONYM(s):\n\n");
 
     for (auto& it : storage_.LocalNyms()) {
-        const auto& nymId = Identifier(it);
+        const auto& nymId = Identifier::Factory(it);
         const auto& pNym = OT::App().Wallet().Nym(nymId);
 
         OT_ASSERT(pNym);
@@ -281,7 +281,7 @@ void OTWallet::add_account(const Lock& lock, std::shared_ptr<Account>& theAcct)
     OT_ASSERT(theAcct)
     OT_ASSERT(verify_lock(lock))
 
-    const Identifier ACCOUNT_ID(*theAcct);
+    const auto ACCOUNT_ID = Identifier::Factory(*theAcct);
     auto existing = m_mapAccounts.find(ACCOUNT_ID);
 
     if (m_mapAccounts.end() != existing) {
@@ -361,7 +361,7 @@ std::shared_ptr<Account> OTWallet::GetAccountPartialMatch(
 
         OT_ASSERT(pAccount);
 
-        Identifier anAccountID;
+        auto anAccountID = Identifier::Factory();
         pAccount->GetIdentifier(anAccountID);
         String strTemp(anAccountID);
         std::string strIdentifier = strTemp.Get();
@@ -430,8 +430,9 @@ bool OTWallet::verify_account(
     if (NOTARY_ID != theAcct.GetRealNotaryID()) {
         const String s1(NOTARY_ID), s2(theAcct.GetRealNotaryID());
         otOut << "OTWallet::VerifyAssetAccount " << szFunc
-              << ": Notary ID passed in (" << s1 << ") didn't match the one "
-                                                    "on the account ("
+              << ": Notary ID passed in (" << s1
+              << ") didn't match the one "
+                 "on the account ("
               << s2 << "). Acct ID: " << strAcctID << "\n";
         return false;
     }
@@ -481,8 +482,9 @@ std::shared_ptr<Account> OTWallet::GetOrLoadAccount(
     {
         otOut << "OTWallet::GetOrLoadAccount " << szFunc
               << ": There's no asset account in the wallet with that ID ("
-              << strAcctID << "). "
-                              "Attempting to load it from storage...\n";
+              << strAcctID
+              << "). "
+                 "Attempting to load it from storage...\n";
         pAccount = load_account(lock, theNym, ACCT_ID, NOTARY_ID, szFuncName);
     }  // pAccount == nullptr.
 
@@ -992,8 +994,9 @@ bool OTWallet::LoadWallet(const char* szFilename)
             otErr << __FUNCTION__
                   << ": Input string apparently was encoded and then failed "
                      "decoding. Filename: "
-                  << szFilename << " \n"
-                                   "Contents: \n"
+                  << szFilename
+                  << " \n"
+                     "Contents: \n"
                   << strFileContents << "\n";
             return false;
         }
@@ -1075,9 +1078,10 @@ bool OTWallet::LoadWallet(const char* szFilename)
                                                                    // ==
                             // false (true by
                             // default.)
-                            otErr << __FUNCTION__ << ": Failed loading "
-                                                     "symmetricKey ID (it was "
-                                                     "blank.)\n";
+                            otErr << __FUNCTION__
+                                  << ": Failed loading "
+                                     "symmetricKey ID (it was "
+                                     "blank.)\n";
 
                         else if (Contract::LoadEncodedTextField(
                                      xml, ascSymmetricKey)) {
@@ -1118,8 +1122,8 @@ bool OTWallet::LoadWallet(const char* szFilename)
                                   " Account Name: "
                                << AcctName << "\n   Account ID: " << AcctID
                                << "\n    Notary ID: " << NotaryID << "\n";
-                        const Identifier ACCOUNT_ID(AcctID),
-                            NOTARY_ID(NotaryID);
+                        const auto ACCOUNT_ID = Identifier::Factory(AcctID),
+                                   NOTARY_ID = Identifier::Factory(NotaryID);
                         std::shared_ptr<Account> pAccount(
                             Account::LoadExistingAccount(
                                 ACCOUNT_ID, NOTARY_ID));

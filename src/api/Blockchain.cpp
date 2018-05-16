@@ -533,7 +533,10 @@ bool Blockchain::move_transactions(
 
     for (const auto& txid : address.incoming()) {
         output &= activity_.MoveIncomingBlockchainTransaction(
-            nymID, Identifier(fromContact), Identifier(toContact), txid);
+            nymID,
+            Identifier::Factory(fromContact),
+            Identifier::Factory(toContact),
+            txid);
     }
 
     return output;
@@ -553,7 +556,7 @@ OTIdentifier Blockchain::NewAccount(
         otErr << OT_METHOD << __FUNCTION__ << ": Account already exists."
               << std::endl;
 
-        return Identifier(*existing.begin());
+        return Identifier::Factory(*existing.begin());
     }
 
     auto nym = wallet_.Nym(nymID);
@@ -587,11 +590,11 @@ OTIdentifier Blockchain::NewAccount(
 
     proto::HDPath accountPath{};
     init_path(nymPath.root(), type, nymPath.child(1), standard, accountPath);
-    const Identifier accountID(type, accountPath);
+    const auto accountID = Identifier::Factory(type, accountPath);
     Lock accountLock(account_lock_[accountID]);
     proto::Bip44Account account{};
     account.set_version(ACCOUNT_VERSION);
-    account.set_id(accountID.str());
+    account.set_id(accountID->str());
     account.set_type(type);
     account.set_revision(0);
     *account.mutable_path() = accountPath;
@@ -680,7 +683,7 @@ bool Blockchain::StoreIncoming(
         return true;
     }
 
-    const Identifier contactID(address.contact());
+    const auto contactID = Identifier::Factory(address.contact());
 
     return activity_.AddBlockchainTransaction(
         nymID, contactID, StorageBox::INCOMINGBLOCKCHAIN, transaction);

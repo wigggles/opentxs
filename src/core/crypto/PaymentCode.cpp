@@ -326,9 +326,9 @@ const OTIdentifier PaymentCode::ID() const
 
     auto dataVersion = Data::Factory(core, sizeof(core));
 
-    Identifier paymentCodeID;
+    auto paymentCodeID = Identifier::Factory();
 
-    paymentCodeID.CalculateDigest(dataVersion);
+    paymentCodeID->CalculateDigest(dataVersion);
 
     return paymentCodeID;
 }

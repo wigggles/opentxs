@@ -136,7 +136,7 @@ ServerContext::ServerContext(
           serialized,
           local,
           remote,
-          Identifier(serialized.servercontext().serverid()),
+          Identifier::Factory(serialized.servercontext().serverid()),
           nymfileLock)
     , connection_(connection)
     , admin_password_(serialized.servercontext().adminpassword())
@@ -760,11 +760,11 @@ OTIdentifier ServerContext::update_remote_hash(
 {
     OT_ASSERT(verify_write_lock(lock));
 
-    Identifier output{};
+    auto output = Identifier::Factory();
     const auto& input = reply.m_strNymboxHash;
 
     if (input.Exists()) {
-        output.SetString(input);
+        output->SetString(input);
         remote_nymbox_hash_ = Identifier::Factory(output);
     }
 

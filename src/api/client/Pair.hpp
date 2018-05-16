@@ -105,12 +105,12 @@ private:
     void check_pairing() const;
     void check_refresh() const;
     std::map<OTIdentifier, std::set<OTIdentifier>> create_issuer_map() const;
-    std::pair<bool, Identifier> get_connection(
+    std::pair<bool, OTIdentifier> get_connection(
         const Identifier& localNymID,
         const Identifier& issuerNymID,
         const Identifier& serverID,
         const proto::ConnectionInfoType type) const;
-    std::pair<bool, Identifier> initiate_bailment(
+    std::pair<bool, OTIdentifier> initiate_bailment(
         const Identifier& nymID,
         const Identifier& serverID,
         const Identifier& issuerID,
@@ -152,7 +152,7 @@ private:
         const Identifier& serverID,
         const Identifier& unitID) const;
     void refresh() const;
-    std::pair<bool, Identifier> register_account(
+    std::pair<bool, OTIdentifier> register_account(
         const Identifier& nymID,
         const Identifier& serverID,
         const Identifier& unitID) const;

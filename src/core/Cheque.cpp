@@ -210,9 +210,11 @@ std::int32_t Cheque::ProcessXMLNode(IrrXMLReader*& xml)
             strRemitterNymID(xml->getAttributeValue("remitterNymID")),
             strRemitterAcctID(xml->getAttributeValue("remitterAcctID"));
 
-        Identifier INSTRUMENT_DEFINITION_ID(strInstrumentDefinitionID),
-            NOTARY_ID(strNotaryID), SENDER_ACCT_ID(strSenderAcctID),
-            SENDER_NYM_ID(strSenderNymID);
+        auto INSTRUMENT_DEFINITION_ID =
+                 Identifier::Factory(strInstrumentDefinitionID),
+             NOTARY_ID = Identifier::Factory(strNotaryID),
+             SENDER_ACCT_ID = Identifier::Factory(strSenderAcctID),
+             SENDER_NYM_ID = Identifier::Factory(strSenderNymID);
 
         SetInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
         SetNotaryID(NOTARY_ID);
@@ -239,8 +241,9 @@ std::int32_t Cheque::ProcessXMLNode(IrrXMLReader*& xml)
                << "\n Valid From: " << str_valid_from
                << "\n Valid To: " << str_valid_to
                << "\n InstrumentDefinitionID: " << strInstrumentDefinitionID
-               << "\n NotaryID: " << strNotaryID << "\n"
-                                                    " senderAcctID: "
+               << "\n NotaryID: " << strNotaryID
+               << "\n"
+                  " senderAcctID: "
                << strSenderAcctID << "\n senderNymID: " << strSenderNymID
                << "\n "
                   " Has Recipient? "
@@ -300,15 +303,15 @@ bool Cheque::IssueCheque(
     const time64_t& VALID_FROM,
     const time64_t& VALID_TO,  // The expiration date (valid from/to dates) of
                                // the cheque
-    const Identifier& SENDER_ACCT_ID,  // The asset account the cheque is drawn
-                                       // on.
-    const Identifier& SENDER_NYM_ID,   // This ID must match the user ID on the
-                                       // asset account,
+    const OTIdentifier SENDER_ACCT_ID,  // The asset account the cheque is drawn
+                                        // on.
+    const OTIdentifier SENDER_NYM_ID,   // This ID must match the user ID on the
+                                        // asset account,
     // AND must verify the cheque signature with that user's key.
-    const String& strMemo,                // Optional memo field.
-    const Identifier* pRECIPIENT_NYM_ID)  // Recipient optional.
-                                          // (Might be a blank
-                                          // cheque.)
+    const String& strMemo,                 // Optional memo field.
+    const OTIdentifier pRECIPIENT_NYM_ID)  // Recipient optional.
+                                           // (Might be a blank
+                                           // cheque.)
 {
     m_lAmount = lAmount;
     m_strMemo = strMemo;
@@ -321,12 +324,12 @@ bool Cheque::IssueCheque(
     SetSenderAcctID(SENDER_ACCT_ID);
     SetSenderNymID(SENDER_NYM_ID);
 
-    if (nullptr == pRECIPIENT_NYM_ID) {
+    if (pRECIPIENT_NYM_ID->empty()) {
         m_bHasRecipient = false;
         m_RECIPIENT_NYM_ID->Release();
     } else {
         m_bHasRecipient = true;
-        m_RECIPIENT_NYM_ID = *pRECIPIENT_NYM_ID;
+        m_RECIPIENT_NYM_ID = pRECIPIENT_NYM_ID;
     }
 
     m_bHasRemitter = false;  // OTCheque::SetAsVoucher() will set this to true.

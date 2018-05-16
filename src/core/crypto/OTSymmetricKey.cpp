@@ -99,11 +99,11 @@ void OTSymmetricKey::GetIdentifier(Identifier& theIdentifier) const
 void OTSymmetricKey::GetIdentifier(String& strIdentifier) const
 {
     Lock lock(lock_);
-    Identifier theIdentifier;
-    const bool bCalc = theIdentifier.CalculateDigest(encrypted_key_.get());
+    auto theIdentifier = Identifier::Factory();
+    const bool bCalc = theIdentifier->CalculateDigest(encrypted_key_.get());
 
     if (bCalc) {
-        theIdentifier.GetString(strIdentifier);
+        theIdentifier->GetString(strIdentifier);
     }
 }
 
@@ -139,16 +139,18 @@ bool OTSymmetricKey::ChangePassphrase(
     // OTEnvelope.
     //
     if (!dataIV->Randomize(CryptoConfig::SymmetricIvSize())) {
-        otErr << __FUNCTION__ << ": Failed generating iv for changing "
-                                 "passphrase on a symmetric key. (Returning "
-                                 "false.)\n";
+        otErr << __FUNCTION__
+              << ": Failed generating iv for changing "
+                 "passphrase on a symmetric key. (Returning "
+                 "false.)\n";
         return false;
     }
 
     if (!dataSalt->Randomize(CryptoConfig::SymmetricSaltSize())) {
-        otErr << __FUNCTION__ << ": Failed generating random salt for changing "
-                                 "passphrase on a symmetric key. (Returning "
-                                 "false.)\n";
+        otErr << __FUNCTION__
+              << ": Failed generating random salt for changing "
+                 "passphrase on a symmetric key. (Returning "
+                 "false.)\n";
         return false;
     }
 
@@ -222,8 +224,9 @@ bool OTSymmetricKey::GenerateKey(
            << ": GENERATING keys and passwords...\n";
 
     if (!iv_->Randomize(CryptoConfig::SymmetricIvSize())) {
-        otErr << __FUNCTION__ << ": Failed generating iv for encrypting a "
-                                 "symmetric key. (Returning false.)\n";
+        otErr << __FUNCTION__
+              << ": Failed generating iv for encrypting a "
+                 "symmetric key. (Returning false.)\n";
         return false;
     }
 
@@ -312,8 +315,9 @@ bool OTSymmetricKey::GenerateHashCheck(const OTPassword& thePassphrase)
     Lock lock(lock_);
 
     if (!m_bIsGenerated) {
-        otErr << __FUNCTION__ << ": No Key Generated, run GenerateKey(), and "
-                                 "this function will not be needed!";
+        otErr << __FUNCTION__
+              << ": No Key Generated, run GenerateKey(), and "
+                 "this function will not be needed!";
         OT_FAIL;
     }
 
@@ -399,16 +403,18 @@ OTPassword* OTSymmetricKey::calculate_derived_key_from_passphrase(
 
     if (bCheckForHashCheck) {
         if (!HasHashCheck()) {
-            otErr << __FUNCTION__ << ": Unable to calculate derived key, as "
-                                     "hash check is missing!";
+            otErr << __FUNCTION__
+                  << ": Unable to calculate derived key, as "
+                     "hash check is missing!";
             OT_FAIL;
         }
         OT_ASSERT(false == hash_check_->empty());
         OT_ASSERT(false == tmpDataHashCheck->empty());
     } else {
         if (!HasHashCheck()) {
-            otOut << __FUNCTION__ << ": Warning!! No hash check, ignoring... "
-                                     "(since bCheckForHashCheck was set false)";
+            otOut << __FUNCTION__
+                  << ": Warning!! No hash check, ignoring... "
+                     "(since bCheckForHashCheck was set false)";
             OT_ASSERT(tmpDataHashCheck->IsEmpty());
         }
     }
@@ -659,16 +665,18 @@ bool OTSymmetricKey::Encrypt(
     const OTPassword* pAlreadyHavePW)
 {
     if (!strKey.Exists() || !strPlaintext.Exists()) {
-        otWarn << __FUNCTION__ << ": Nonexistent: either the key or the "
-                                  "plaintext. Please supply. (Failure.)\n";
+        otWarn << __FUNCTION__
+               << ": Nonexistent: either the key or the "
+                  "plaintext. Please supply. (Failure.)\n";
         return false;
     }
 
     OTSymmetricKey theKey;
 
     if (!theKey.SerializeFrom(strKey)) {
-        otWarn << __FUNCTION__ << ": Failed trying to load symmetric key from "
-                                  "string. (Returning false.)\n";
+        otWarn << __FUNCTION__
+               << ": Failed trying to load symmetric key from "
+                  "string. (Returning false.)\n";
         return false;
     }
 
@@ -773,8 +781,9 @@ bool OTSymmetricKey::Decrypt(
     OTSymmetricKey theKey;
 
     if (!theKey.SerializeFrom(strKey)) {
-        otWarn << __FUNCTION__ << ": Failed trying to load symmetric key from "
-                                  "string. (Returning false.)\n";
+        otWarn << __FUNCTION__
+               << ": Failed trying to load symmetric key from "
+                  "string. (Returning false.)\n";
         return false;
     }
 
@@ -1126,11 +1135,10 @@ bool OTSymmetricKey::SerializeFrom(const String& strInput, bool bEscaped)
     Lock lock(lock_);
     OTASCIIArmor ascInput;
 
-    if (strInput.Exists() &&
-        ascInput.LoadFromString(
-            const_cast<String&>(strInput),
-            bEscaped,
-            "-----BEGIN OT ARMORED SYMMETRIC KEY")) {
+    if (strInput.Exists() && ascInput.LoadFromString(
+                                 const_cast<String&>(strInput),
+                                 bEscaped,
+                                 "-----BEGIN OT ARMORED SYMMETRIC KEY")) {
         return serialize_from(lock, ascInput);
     }
 
@@ -1176,9 +1184,9 @@ bool OTSymmetricKey::serialize_to(const Lock& lock, Data& theOutput) const
            << "   \n  "
               "salt_size: "
            << static_cast<std::int64_t>(ntohl(n_salt_size))
-           << "   iv_size: " << static_cast<std::int64_t>(ntohl(n_iv_size))
-           << "   enc_key_size: "
-           << static_cast<std::int64_t>(ntohl(n_enc_key_size)) << "   \n";
+           << "   iv_size: " << static_cast<int64_t>(ntohl(n_iv_size))
+           << "   enc_key_size: " << static_cast<int64_t>(ntohl(n_enc_key_size))
+           << "   \n";
 
     theOutput.Concatenate(
         reinterpret_cast<void*>(&n_is_generated),

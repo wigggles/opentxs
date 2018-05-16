@@ -290,8 +290,8 @@ ServerAction::Action ServerAction::CreateMarketOffer(
     const std::string& stopSign,
     const Amount activationPrice) const
 {
-    Identifier notaryID{};
-    Identifier nymID{};
+    auto notaryID = Identifier::Factory();
+    auto nymID = Identifier::Factory();
     const auto assetAccount = otapi_.GetAccount(assetAccountID, __FUNCTION__);
 
     if (nullptr != assetAccount) {
@@ -306,7 +306,7 @@ ServerAction::Action ServerAction::CreateMarketOffer(
 
     return Action(new OTAPI_Func(
         CREATE_MARKET_OFFER,
-        lock_callback_({nymID.str(), notaryID.str()}),
+        lock_callback_({nymID->str(), notaryID->str()}),
         wallet_,
         workflow_,
         nymID,

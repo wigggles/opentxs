@@ -1697,8 +1697,9 @@ void OTAPI_Func::run()
             last_attempt_ = otapi_.getMarketRecentTrades(context_, marketID_);
         } break;
         case CREATE_MARKET_OFFER: {
-            const Identifier ASSET_ACCT_ID(accountID_);
-            const Identifier CURRENCY_ACCT_ID(currencyAccountID_);
+            const auto ASSET_ACCT_ID = Identifier::Factory(accountID_);
+            const auto CURRENCY_ACCT_ID =
+                Identifier::Factory(currencyAccountID_);
             const std::int64_t MARKET_SCALE = scale_;
             const std::int64_t MINIMUM_INCREMENT = increment_;
             const std::int64_t TOTAL_ASSETS_ON_OFFER = quantity_;
@@ -1888,8 +1889,9 @@ std::string OTAPI_Func::send_transaction(std::size_t totalRetries)
             accountID_->str(),
             false))  // bForceDownload=false))
     {
-        otOut << strLocation << ", getIntermediaryFiles returned false. (It "
-                                "couldn't download files that it needed.)\n";
+        otOut << strLocation
+              << ", getIntermediaryFiles returned false. (It "
+                 "couldn't download files that it needed.)\n";
         return "";
     }
 
@@ -1908,8 +1910,9 @@ std::string OTAPI_Func::send_transaction(std::size_t totalRetries)
     }
 
     if (getnym_trnsnum_count < comparative) {
-        otOut << strLocation << ", I don't have enough transaction numbers to "
-                                "perform this transaction.\n";
+        otOut << strLocation
+              << ", I don't have enough transaction numbers to "
+                 "perform this transaction.\n";
         return "";
     }
 
@@ -1925,9 +1928,10 @@ std::string OTAPI_Func::send_transaction(std::size_t totalRetries)
                 context_.Nym()->ID().str(),
                 accountID_->str(),
                 true)) {
-            otOut << strLocation << ", getIntermediaryFiles returned false. "
-                                    "(After a success sending the transaction. "
-                                    "Strange...)\n";
+            otOut << strLocation
+                  << ", getIntermediaryFiles returned false. "
+                     "(After a success sending the transaction. "
+                     "Strange...)\n";
             return "";
         }
 
@@ -2267,10 +2271,11 @@ std::string OTAPI_Func::send_once(
                         context_.Nym()->ID().str(),
                         accountID_->str(),
                         bForceDownload)) {
-                    otOut << strLocation << ", getIntermediaryFiles returned "
-                                            "false. (After a failure to send "
-                                            "the transaction. Thus, I give "
-                                            "up.)\n";
+                    otOut << strLocation
+                          << ", getIntermediaryFiles returned "
+                             "false. (After a failure to send "
+                             "the transaction. Thus, I give "
+                             "up.)\n";
                     return "";
                 }
 

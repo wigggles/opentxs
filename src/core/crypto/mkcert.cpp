@@ -1,6 +1,6 @@
 /* Certificate creation. Demonstrates some certificate related
-* operations.
-*/
+ * operations.
+ */
 #include "opentxs/stdafx.hpp"
 
 #include "opentxs/core/crypto/mkcert.hpp"
@@ -229,8 +229,7 @@ std::int32_t mkcert(
     }
 #endif
     if (!X509_sign(x, pk, EVP_md5()) ||  // TODO security:  md5 ???
-        (nullptr == x509p) ||
-        (nullptr == pkeyp)) {
+        (nullptr == x509p) || (nullptr == pkeyp)) {
         // ERROR
         //
         if (bCreatedX509) X509_free(x);

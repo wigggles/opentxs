@@ -473,13 +473,15 @@ bool CheckStringsExistInOrder(
         if (!ot_oneStr.Exists()) {
             if ((!ot_twoStr.Exists()) && (!ot_threeStr.Exists())) {
             } else {
-                otErr << szFuncName << ": ot_twoStr or ot_threeStr exist, when "
-                                       "ot_oneStr doesn't exist! \n";
+                otErr << szFuncName
+                      << ": ot_twoStr or ot_threeStr exist, when "
+                         "ot_oneStr doesn't exist! \n";
                 OT_FAIL;
             }
         } else if ((!ot_twoStr.Exists()) && (ot_threeStr.Exists())) {
-            otErr << szFuncName << ": ot_twoStr or ot_threeStr exist, when "
-                                   "ot_oneStr doesn't exist! \n";
+            otErr << szFuncName
+                  << ": ot_twoStr or ot_threeStr exist, when "
+                     "ot_oneStr doesn't exist! \n";
             OT_FAIL;
         }
     } else {
@@ -954,9 +956,9 @@ bool OTPacker::Unpack(PackedBuffer& inBuf, std::string& outObj)
     return true;
 }
 
-// NOTICE!!! that when you add something to the list, it is CLONED. (Caller is
-// still responsible to delete the argument.)
-//
+    // NOTICE!!! that when you add something to the list, it is CLONED. (Caller
+    // is still responsible to delete the argument.)
+    //
 
 #define IMPLEMENT_GET_ADD_REMOVE(scope, name)                                  \
                                                                                \
@@ -1069,7 +1071,7 @@ AddressBook::~AddressBook()
 // Msgpack packer.
 #if defined(OTDB_MESSAGE_PACK)
 
-// look into git history for old (dead) code.
+    // look into git history for old (dead) code.
 
 #endif  // defined (OTDB_MESSAGE_PACK)
 
@@ -1450,20 +1452,19 @@ void BufferPB::SetData(const std::uint8_t* pData, size_t theSize)
     m_buffer.assign(reinterpret_cast<const char*>(pData), theSize);
 }
 
-// !! All of these have to provide implementations for the hookBeforePack and
-// hookAfterUnpack methods.
-// In .cpp file:
-/*
- void SUBCLASS_HERE::hookBeforePack()
- {
- __pb_obj.set_PROPERTY_NAME_GOES_HERE(PROPERTY_NAME_GOES_HERE);
- }
- void SUBCLASS_HERE::hookAfterUnpack()
- {
- PROPERTY_NAME_GOES_HERE    = __pb_obj.PROPERTY_NAME_GOES_HERE();
- }
- */
-//
+    // !! All of these have to provide implementations for the hookBeforePack
+    // and hookAfterUnpack methods. In .cpp file:
+    /*
+     void SUBCLASS_HERE::hookBeforePack()
+     {
+     __pb_obj.set_PROPERTY_NAME_GOES_HERE(PROPERTY_NAME_GOES_HERE);
+     }
+     void SUBCLASS_HERE::hookAfterUnpack()
+     {
+     PROPERTY_NAME_GOES_HERE    = __pb_obj.PROPERTY_NAME_GOES_HERE();
+     }
+     */
+    //
 
 #define OT_IMPLEMENT_PB_LIST_PACK(pb_name, element_type)                       \
     __pb_obj.clear_##pb_name();                                                \
@@ -2659,8 +2660,9 @@ ot_exit_block:
         const bool bFolderExists = OTPaths::PathExists(strFolder.c_str());
 
         if (bMakePath && !bFolderExists) {
-            otErr << __FUNCTION__ << ": Error: was told to make path, however "
-                                     "cannot confirm the path!\n";
+            otErr << __FUNCTION__
+                  << ": Error: was told to make path, however "
+                     "cannot confirm the path!\n";
             return -4;
         }
         if (!bMakePath && !bFolderExists) {

@@ -258,8 +258,9 @@ bool OTKeyring::Windows_RetrieveSecret(
     const Data theCipherblob(ascFileContents);
     //
     if (theCipherblob.IsEmpty()) {
-        otErr << __FUNCTION__ << ": Error: Data is empty after decoding "
-                                 "OTASCIIArmor (that wasn't empty.)\n";
+        otErr << __FUNCTION__
+              << ": Error: Data is empty after decoding "
+                 "OTASCIIArmor (that wasn't empty.)\n";
     } else {
         DATA_BLOB input;
         input.pbData = const_cast<BYTE*>(
@@ -871,15 +872,17 @@ bool OTKeyring::Gnome_RetrieveSecret(
             strData.zeroMemory();
 
             if (!bLoaded)
-                otErr << __FUNCTION__ << ": Failed trying to decode secret "
-                                         "from Gnome Keyring contents:\n\n"
+                otErr << __FUNCTION__
+                      << ": Failed trying to decode secret "
+                         "from Gnome Keyring contents:\n\n"
                       << strData.Get() << "\n\n";
             else {
                 Data thePayload(ascData);
                 ascData.zeroMemory();
                 if (thePayload.IsEmpty())
-                    otErr << __FUNCTION__ << ": Failed trying to decode secret "
-                                             "Data from OTASCIIArmor "
+                    otErr << __FUNCTION__
+                          << ": Failed trying to decode secret "
+                             "Data from OTASCIIArmor "
                           << "from Gnome Keyring contents:\n\n"
                           << strData.Get() << "\n\n";
                 else {
@@ -1114,15 +1117,17 @@ bool OTKeyring::KWallet_RetrieveSecret(
             strData.zeroMemory();
 
             if (!bLoaded)
-                otErr << __FUNCTION__ << ": Failed trying to decode secret "
-                                         "from KWallet contents.\n";
+                otErr << __FUNCTION__
+                      << ": Failed trying to decode secret "
+                         "from KWallet contents.\n";
             else {
                 Data thePayload(ascData);
                 ascData.zeroMemory();
                 if (thePayload.IsEmpty())
-                    otErr << __FUNCTION__ << ": Failed trying to decode secret "
-                                             "Data from OTASCIIArmor from "
-                                             "KWallet contents.\n";
+                    otErr << __FUNCTION__
+                          << ": Failed trying to decode secret "
+                             "Data from OTASCIIArmor from "
+                             "KWallet contents.\n";
                 else {
                     thePassword.setMemory(
                         thePayload.GetPayloadPointer(), thePayload.GetSize());
@@ -1263,9 +1268,10 @@ bool OTKeyring::FlatFile_RetrieveSecret(
             Data thePayload(ascData);
             ascData.zeroMemory();
             if (thePayload.IsEmpty())
-                otErr << __FUNCTION__ << ": Failed trying to decode secret "
-                                         "Data from OTASCIIArmor from "
-                                         "flat file contents.\n";
+                otErr << __FUNCTION__
+                      << ": Failed trying to decode secret "
+                         "Data from OTASCIIArmor from "
+                         "flat file contents.\n";
             else {
                 thePassword.setMemory(
                     thePayload.GetPointer(), thePayload.GetSize());
@@ -1277,8 +1283,9 @@ bool OTKeyring::FlatFile_RetrieveSecret(
 
     // Not an error: what if it just hasn't been set there yet?
     //
-    otWarn << __FUNCTION__ << ": Unable to retrieve any derived key, since "
-                              "password_folder not provided in config file.\n";
+    otWarn << __FUNCTION__
+           << ": Unable to retrieve any derived key, since "
+              "password_folder not provided in config file.\n";
 
     return false;
 }

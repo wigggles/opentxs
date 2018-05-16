@@ -78,9 +78,9 @@ bool NymData::AddContract(
     const bool primary,
     const bool active)
 {
-    Identifier id(instrumentDefinitionID);
+    auto id = Identifier::Factory(instrumentDefinitionID);
 
-    if (id.empty()) {
+    if (id->empty()) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Invalid instrument definition id." << std::endl;
 
@@ -133,7 +133,8 @@ bool NymData::AddPreferredOTServer(const std::string& id, const bool primary)
         return false;
     }
 
-    return nym().AddPreferredOTServer(Identifier(id), primary);
+    return nym().AddPreferredOTServer(Identifier::Factory(id), primary);
+
 }
 
 bool NymData::AddSocialMediaProfile(
@@ -196,7 +197,7 @@ bool NymData::HaveContract(
 
         OT_ASSERT(claim);
 
-        const Identifier value(claim->Value());
+        const auto value = Identifier::Factory(claim->Value());
 
         if (false == (instrumentDefinitionID == value)) {
 

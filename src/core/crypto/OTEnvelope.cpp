@@ -151,8 +151,9 @@ bool OTEnvelope::Encrypt(
 
     if (false ==
         theKey.GetRawKeyFromPassphrase(thePassword, theRawSymmetricKey)) {
-        otErr << __FUNCTION__ << ": Failed trying to retrieve raw symmetric "
-                                 "key using password.\n";
+        otErr << __FUNCTION__
+              << ": Failed trying to retrieve raw symmetric "
+                 "key using password.\n";
         return false;
     }
 
@@ -168,8 +169,9 @@ bool OTEnvelope::Encrypt(
     // Success?
     //
     if (!bEncrypted) {
-        otErr << __FUNCTION__ << ": (static) call failed to encrypt. Wrong "
-                                 "key? (Returning false.)\n";
+        otErr << __FUNCTION__
+              << ": (static) call failed to encrypt. Wrong "
+                 "key? (Returning false.)\n";
         return false;
     }
 
@@ -241,8 +243,9 @@ bool OTEnvelope::Decrypt(
 
     if (false ==
         theKey.GetRawKeyFromPassphrase(thePassword, theRawSymmetricKey)) {
-        otErr << szFunc << ": Failed trying to retrieve raw symmetric key "
-                           "using password. (Wrong password?)\n";
+        otErr << szFunc
+              << ": Failed trying to retrieve raw symmetric key "
+                 "using password. (Wrong password?)\n";
         return false;
     }
 
@@ -267,8 +270,9 @@ bool OTEnvelope::Decrypt(
     if (0 == (nRead = ciphertext_->OTfread(
                   reinterpret_cast<std::uint8_t*>(&env_type_n),
                   static_cast<std::uint32_t>(sizeof(env_type_n))))) {
-        otErr << szFunc << ": Error reading Envelope Type. Expected "
-                           "asymmetric(1) or symmetric (2).\n";
+        otErr << szFunc
+              << ": Error reading Envelope Type. Expected "
+                 "asymmetric(1) or symmetric (2).\n";
         return false;
     }
     nRunningTotal += nRead;
@@ -282,8 +286,9 @@ bool OTEnvelope::Decrypt(
 
     if (2 != env_type) {
         const std::uint32_t l_env_type = static_cast<uint32_t>(env_type);
-        otErr << szFunc << ": Error: Expected Envelope for Symmetric key (type "
-                           "2) but instead found type: "
+        otErr << szFunc
+              << ": Error: Expected Envelope for Symmetric key (type "
+                 "2) but instead found type: "
               << l_env_type << ".\n";
         return false;
     }

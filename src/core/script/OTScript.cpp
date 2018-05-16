@@ -126,12 +126,12 @@ std::shared_ptr<OTScript> OTScriptFactory(const std::string& script_type)
         return pChaiScript;
     }
 
-//#elif OT_USE_SCRIPT_LUA
-//  if (script_type =="lua") // todo no hardcoding.
-//  {
-//      std::shared_ptr<OTScript> pLuaScript(new OTScriptLua);
-//      return pLuaScript;
-//  }
+        //#elif OT_USE_SCRIPT_LUA
+        //  if (script_type =="lua") // todo no hardcoding.
+        //  {
+        //      std::shared_ptr<OTScript> pLuaScript(new OTScriptLua);
+        //      return pLuaScript;
+        //  }
 
 #else
     // default no script interpreter
@@ -164,12 +164,12 @@ std::shared_ptr<OTScript> OTScriptFactory(
         return pChaiScript;
     }
 
-//#elif OT_USE_SCRIPT_LUA
-//  if (script_type =="lua") // todo no hardcoding.
-//  {
-//      std::shared_ptr<OTScript> pLuaScript(new OTScriptLua(script_contents));
-//      return pLuaScript;
-//  }
+        //#elif OT_USE_SCRIPT_LUA
+        //  if (script_type =="lua") // todo no hardcoding.
+        //  {
+        //      std::shared_ptr<OTScript> pLuaScript(new
+        //      OTScriptLua(script_contents)); return pLuaScript;
+        //  }
 
 #else
     // default no script interpreter

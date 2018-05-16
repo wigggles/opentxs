@@ -67,7 +67,7 @@ private:
 
     using ActivitySummaryMap =
         std::map<Identifier, std::unique_ptr<ui::ActivitySummary>>;
-    using ActivityThreadID = std::pair<Identifier, Identifier>;
+    using ActivityThreadID = std::pair<OTIdentifier, OTIdentifier>;
     using ActivityThreadMap =
         std::map<ActivityThreadID, std::unique_ptr<ui::ActivityThread>>;
     using ContactMap = std::map<OTIdentifier, std::unique_ptr<ui::Contact>>;

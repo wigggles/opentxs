@@ -291,8 +291,9 @@ EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::CopyPublicKey(
                 // scope).
                 //
             } else {
-                otErr << __FUNCTION__ << ": Error: Failed copying memory from "
-                                         "BIO into Data.\n";
+                otErr << __FUNCTION__
+                      << ": Error: Failed copying memory from "
+                         "BIO into Data.\n";
             }
         } else {
             otErr << __FUNCTION__
@@ -439,8 +440,9 @@ EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::
                             pImportPassword->getPassword())));
 
             } else
-                otErr << __FUNCTION__ << ": Error: Failed copying memory from "
-                                         "BIO into Data.\n";
+                otErr << __FUNCTION__
+                      << ": Error: Failed copying memory from "
+                         "BIO into Data.\n";
 
         } else {
             otErr << __FUNCTION__

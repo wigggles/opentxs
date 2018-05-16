@@ -589,8 +589,8 @@ OTIdentifier SymmetricKey::ID()
         }
     }
 
-    Identifier output;
-    output.CalculateDigest(Data::Factory(
+    auto output = Identifier::Factory();
+    output->CalculateDigest(Data::Factory(
         plaintext_key_->getMemory(), plaintext_key_->getMemorySize()));
 
     return output;

@@ -315,9 +315,10 @@ bool OTKeypair::ReEncrypt(const OTPassword& theExportPassword, bool bImporting)
         theExportPassword, bImporting);  // <==== IMPORT or EXPORT occurs here.
 
     if (!(bReEncrypted)) {
-        otErr << __FUNCTION__ << ": Failure, either when re-encrypting, or "
-                                 "when subsequently retrieving "
-                                 "the public/private keys. bImporting == "
+        otErr << __FUNCTION__
+              << ": Failure, either when re-encrypting, or "
+                 "when subsequently retrieving "
+                 "the public/private keys. bImporting == "
               << (bImporting ? "true" : "false") << "\n";
     }
 

@@ -802,11 +802,10 @@ bool OTBylaw::GetHooks(std::string str_HookName, mapOfClauses& theResults)
                 // clauses are inserted into
                 // the result map, the duplicates are automatically weeded out.
                 //
-                if (theResults.end() !=
-                    theResults.insert(
-                        theResults.begin(),
-                        std::pair<std::string, OTClause*>(
-                            str_clause_name, pClause)))
+                if (theResults.end() != theResults.insert(
+                                            theResults.begin(),
+                                            std::pair<std::string, OTClause*>(
+                                                str_clause_name, pClause)))
                     bReturnVal = true;
             } else {
                 otOut << __FUNCTION__ << ": Couldn't find clause ("

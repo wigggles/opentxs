@@ -95,7 +95,7 @@ namespace opentxs
 Nym::Nym(
     const String& name,
     const String& filename,
-    const Identifier& nymID,
+    const OTIdentifier nymID,
     const proto::CredentialIndexMode mode)
     : version_(NYM_CREATE_VERSION)
     , index_(0)
@@ -127,11 +127,11 @@ Nym::Nym()
 }
 
 Nym::Nym(const String& name, const String& filename, const String& nymID)
-    : Nym(name, filename, Identifier(std::string(nymID.Get())))
+    : Nym(name, filename, Identifier::Factory(std::string(nymID.Get())))
 {
 }
 
-Nym::Nym(const Identifier& nymID)
+Nym::Nym(const OTIdentifier nymID)
     : Nym(String(), String(), nymID)
 {
 }
@@ -691,7 +691,7 @@ bool Nym::GetHash(
         if (str_id == it.first) {
             // The call has succeeded
             bRetVal = true;
-            theOutput = *it.second;
+            theOutput = it.second;
             break;
         }
     }
@@ -1548,10 +1548,9 @@ bool Nym::LoadNymFromString(
                     // internal map so that it is available for future lookups.
                     //
                     if (strAccountID.Exists() && strHashValue.Exists()) {
-                        const Identifier theID(strHashValue);
-                        OTIdentifier* pID = new OTIdentifier(theID);
-                        OT_ASSERT(pID)
-                        m_mapInboxHash[strAccountID.Get()] = pID;
+                        auto pID = Identifier::Factory(strHashValue);
+                        OT_ASSERT(!pID->empty())
+                        m_mapInboxHash.emplace(strAccountID.Get(), pID);
                     }
                 } else if (strNodeName.Compare("outboxHashItem")) {
                     const String strAccountID =
@@ -1568,10 +1567,9 @@ bool Nym::LoadNymFromString(
                     // internal map so that it is available for future lookups.
                     //
                     if (strAccountID.Exists() && strHashValue.Exists()) {
-                        const Identifier theID(strHashValue);
-                        OTIdentifier* pID = new OTIdentifier(theID);
-                        OT_ASSERT(pID)
-                        m_mapOutboxHash[strAccountID.Get()] = pID;
+                        OTIdentifier pID = Identifier::Factory(strHashValue);
+                        OT_ASSERT(!pID->empty())
+                        m_mapOutboxHash.emplace(strAccountID.Get(), pID);
                     }
                 } else if (strNodeName.Compare("highestTransNum") && convert) {
                     const String HighNumNotaryID =
@@ -2630,7 +2628,7 @@ bool Nym::SavePseudonym(String& strNym) const
     // client-side
     for (auto& it : m_mapInboxHash) {
         std::string strAcctID = it.first;
-        const Identifier& theID = *it.second;
+        const Identifier& theID = it.second;
 
         if ((strAcctID.size() > 0) && !theID.IsEmpty()) {
             const String strHash(theID);
@@ -2644,7 +2642,7 @@ bool Nym::SavePseudonym(String& strNym) const
     // client-side
     for (auto& it : m_mapOutboxHash) {
         std::string strAcctID = it.first;
-        const Identifier& theID = *it.second;
+        const Identifier& theID = it.second;
 
         if ((strAcctID.size() > 0) && !theID.IsEmpty()) {
             const String strHash(theID);
@@ -2896,9 +2894,9 @@ bool Nym::SetHash(
     {
         // The call has succeeded
         the_map.erase(find_it);
-        OTIdentifier* pID = new OTIdentifier(theInput);
-        OT_ASSERT(pID)
-        the_map[str_id] = pID;
+        OTIdentifier pID = Identifier::Factory(theInput);
+        OT_ASSERT(!pID->empty())
+        the_map.emplace(str_id, pID);
         bSuccess = true;
     }
 
@@ -2907,9 +2905,9 @@ bool Nym::SetHash(
     // that means it does not exist. (So create it.)
     //
     if (!bSuccess) {
-        OTIdentifier* pID = new OTIdentifier(theInput);
-        OT_ASSERT(pID)
-        the_map[str_id] = pID;
+        OTIdentifier pID = Identifier::Factory(theInput);
+        OT_ASSERT(!pID->empty())
+        the_map.emplace(str_id, pID);
     }
     //    if (bSuccess)
     //    {
@@ -3104,7 +3102,8 @@ bool Nym::VerifyPseudonym() const
             const CredentialSet* pCredential = it.second;
             OT_ASSERT(nullptr != pCredential);
 
-            const Identifier theCredentialNymID(pCredential->GetNymID());
+            const auto theCredentialNymID =
+                Identifier::Factory(pCredential->GetNymID());
             if (!CompareID(theCredentialNymID)) {
                 String strNymID;
                 GetIdentifier(strNymID);

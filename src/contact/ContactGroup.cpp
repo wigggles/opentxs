@@ -77,7 +77,7 @@ ContactGroup ContactGroup::operator+(const ContactGroup& rhs) const
 {
     OT_ASSERT(section_ == rhs.section_);
 
-    Identifier primary{};
+    auto primary = Identifier::Factory();
 
     if (primary_->empty()) {
         primary = rhs.primary_;
@@ -241,7 +241,7 @@ ContactGroup::ItemMap::const_iterator ContactGroup::end() const
 
 OTIdentifier ContactGroup::get_primary_item(const ItemMap& items)
 {
-    Identifier primary{};
+    auto primary = Identifier::Factory();
 
     for (const auto& it : items) {
         const auto& item = it.second;
@@ -260,7 +260,7 @@ OTIdentifier ContactGroup::get_primary_item(const ItemMap& items)
 
 ContactGroup::ItemMap ContactGroup::normalize_items(const ItemMap& items)
 {
-    Identifier primary{};
+    auto primary = Identifier::Factory();
 
     auto map = items;
 
@@ -270,7 +270,7 @@ ContactGroup::ItemMap ContactGroup::normalize_items(const ItemMap& items)
         OT_ASSERT(item);
 
         if (item->isPrimary()) {
-            if (primary.empty()) {
+            if (primary->empty()) {
                 primary = item->ID();
             } else {
                 const auto& id = item->ID();

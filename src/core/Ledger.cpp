@@ -134,7 +134,7 @@ bool Ledger::VerifyAccount(const Nym& theNym)
         } break;
         default: {
             const std::int32_t nLedgerType = static_cast<int32_t>(GetType());
-            const Identifier theNymID(theNym);
+            const auto theNymID = Identifier::Factory(theNym);
             const String strNymID(theNymID);
             String strAccountID;
             GetIdentifier(strAccountID);
@@ -1901,8 +1901,9 @@ std::int32_t Ledger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         if (!strLedgerAcctID.Exists() || !strLedgerAcctNotaryID.Exists() ||
             !strNymID.Exists()) {
             otOut << szFunc << ": Failure: missing strLedgerAcctID ("
-                  << strLedgerAcctID << ") or "
-                                        "strLedgerAcctNotaryID ("
+                  << strLedgerAcctID
+                  << ") or "
+                     "strLedgerAcctNotaryID ("
                   << strLedgerAcctNotaryID << ") or strNymID (" << strNymID
                   << ") while loading transaction "
                      "from "
@@ -1910,8 +1911,9 @@ std::int32_t Ledger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             return (-1);
         }
 
-        Identifier ACCOUNT_ID(strLedgerAcctID),
-            NOTARY_ID(strLedgerAcctNotaryID), NYM_ID(strNymID);
+        auto ACCOUNT_ID = Identifier::Factory(strLedgerAcctID),
+             NOTARY_ID = Identifier::Factory(strLedgerAcctNotaryID),
+             NYM_ID = Identifier::Factory(strNymID);
 
         SetPurportedAccountID(ACCOUNT_ID);
         SetPurportedNotaryID(NOTARY_ID);
@@ -1973,8 +1975,9 @@ std::int32_t Ledger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                 break;
             default:
                 otErr << "OTLedger::ProcessXMLNode: Unexpected ledger type ("
-                      << strType << "). (Failed loading "
-                                    "ledger for account: "
+                      << strType
+                      << "). (Failed loading "
+                         "ledger for account: "
                       << strLedgerAcctID << ")\n";
                 return (-1);
         }  // switch (to set strExpected to the abbreviated record type.)
@@ -1990,8 +1993,9 @@ std::int32_t Ledger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             while (nPartialRecordCount-- > 0) {
                 //                xml->read(); // <==================
                 if (!SkipToElement(xml)) {
-                    otOut << szFunc << ": Failure: Unable to find element when "
-                                       "one was expected ("
+                    otOut << szFunc
+                          << ": Failure: Unable to find element when "
+                             "one was expected ("
                           << strExpected
                           << ") "
                              "for abbreviated record of receipt in "
@@ -2153,8 +2157,9 @@ std::int32_t Ledger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                         // transaction and adding to m_mapTransactions in
                         // OTLedger\n");
                     } else {
-                        otErr << szFunc << ": ERROR: verifying contract ID on "
-                                           "abbreviated transaction "
+                        otErr << szFunc
+                              << ": ERROR: verifying contract ID on "
+                                 "abbreviated transaction "
                               << pTransaction->GetTransactionNum() << "\n";
                         delete pTransaction;
                         pTransaction = nullptr;

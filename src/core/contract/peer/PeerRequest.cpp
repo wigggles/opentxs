@@ -69,7 +69,7 @@ PeerRequest::PeerRequest(
     , cookie_(Identifier::Factory(serialized.cookie()))
     , type_(serialized.type())
 {
-    id_ = Identifier(serialized.id());
+    id_ = Identifier::Factory(serialized.id());
     signatures_.push_front(SerializedSignature(
         std::make_shared<proto::Signature>(serialized.signature())));
 }
@@ -85,7 +85,7 @@ PeerRequest::PeerRequest(
     , cookie_(Identifier::Factory(serialized.cookie()))
     , type_(serialized.type())
 {
-    id_ = Identifier(serialized.id());
+    id_ = Identifier::Factory(serialized.id());
     signatures_.push_front(SerializedSignature(
         std::make_shared<proto::Signature>(serialized.signature())));
 }
@@ -348,7 +348,7 @@ std::unique_ptr<PeerRequest> PeerRequest::Factory(
         return nullptr;
     }
 
-    const Identifier purportedID(serialized.id());
+    const auto purportedID = Identifier::Factory(serialized.id());
 
     if (!contract->CalculateID(lock)) {
         otErr << __FUNCTION__ << ": failed to calculate ID." << std::endl;
@@ -413,8 +413,8 @@ OTIdentifier PeerRequest::GetID(const Lock& lock) const
 
 OTIdentifier PeerRequest::GetID(const proto::PeerRequest& contract)
 {
-    Identifier id;
-    id.CalculateDigest(proto::ProtoAsData(contract));
+    auto id = Identifier::Factory();
+    id->CalculateDigest(proto::ProtoAsData(contract));
     return id;
 }
 

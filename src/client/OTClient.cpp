@@ -733,9 +733,10 @@ bool OTClient::AcceptEntireNymbox(
                 // Trans number is already issued to this nym (must be an old
                 // notice.)
                 if (context.VerifyIssuedNumber(it)) {
-                    otOut << __FUNCTION__ << ": Attempted to accept a blank "
-                                             "transaction number that I "
-                                             "ALREADY HAD...(Skipping.)\n";
+                    otOut << __FUNCTION__
+                          << ": Attempted to accept a blank "
+                             "transaction number that I "
+                             "ALREADY HAD...(Skipping.)\n";
                 } else if (context.VerifyTentativeNumber(it)) {
                     otOut << __FUNCTION__
                           << ": Attempted to accept a blank transaction number "
@@ -1025,7 +1026,7 @@ void OTClient::ProcessIncomingCronItemReply(
 {
     OT_ASSERT(nullptr != pReplyItem);
 
-    const Identifier NYM_ID = context.Nym()->ID();
+    const auto NYM_ID = Identifier::Factory(context.Nym()->ID());
     const String& strNotaryID = String(context.Server());
 
     // (This is where we remove the opening number,
@@ -1482,7 +1483,7 @@ void OTClient::ProcessIncomingTransaction(
 {
     OT_ASSERT(nullptr != pTransaction);
 
-    const Identifier NYM_ID = context.Nym()->ID();
+    const auto NYM_ID = Identifier::Factory(context.Nym()->ID());
     const String& strNotaryID = String(context.Server());
 
     // We had to burn a transaction number to run the transaction that
@@ -1881,7 +1882,7 @@ void OTClient::ProcessIncomingTransactions(
     const Identifier& accountID,
     ServerContext& context) const
 {
-    const Identifier NYM_ID = context.Nym()->ID();
+    const auto NYM_ID = Identifier::Factory(context.Nym()->ID());
     const auto& serverNym = context.RemoteNym();
 
     // This will be user ID or acct ID depending on whether trans statement or
@@ -2003,8 +2004,9 @@ void OTClient::ProcessDepositChequeResponse(
     if (!pLedger || !pLedger->LoadPaymentInbox() ||
         !pLedger->VerifyAccount(nym)) {
         // Not necessarily a problem.
-        otWarn << __FUNCTION__ << ": Unable to load or verify "
-                                  "payments inbox: User "
+        otWarn << __FUNCTION__
+               << ": Unable to load or verify "
+                  "payments inbox: User "
                << String(nymID) << " / Acct " << String(nymID) << "\n";
         return;
     }
@@ -2347,11 +2349,12 @@ void OTClient::setRecentHash(
     ServerContext& context)
 {
     if (theReply.m_strNymboxHash.Exists()) {
-        const Identifier RECENT_HASH(theReply.m_strNymboxHash);
+        const auto RECENT_HASH = Identifier::Factory(theReply.m_strNymboxHash);
         context.SetRemoteNymboxHash(RECENT_HASH);
 
         if (setNymboxHash) {
-            const Identifier NYMBOX_HASH(theReply.m_strNymboxHash);
+            const auto NYMBOX_HASH =
+                Identifier::Factory(theReply.m_strNymboxHash);
             context.SetLocalNymboxHash(NYMBOX_HASH);
         }
     }
@@ -2642,8 +2645,8 @@ bool OTClient::processServerReplyGetBoxReceipt(
                     // transit purposes only in there).
                     //
                     if (pMessage->LoadContractFromString(strOTMessage)) {
-                        auto recipientNymId = Identifier(pMessage->m_strNymID2);
-
+                        auto recipientNymId =
+                            Identifier::Factory(pMessage->m_strNymID2);
                         if (recipientNymId == nymID) {
                             const auto peerObject = PeerObject::Factory(
                                 context.Nym(), pMessage->m_ascPayload);
@@ -3462,9 +3465,8 @@ bool OTClient::processServerReplyProcessInbox(
                             if (nullptr == pTradeData)
                                 continue;  // Should never happen.
 
-                            if (0 ==
-                                pTradeData->updated_id.compare(
-                                    pData->updated_id))  // Found it!
+                            if (0 == pTradeData->updated_id.compare(
+                                         pData->updated_id))  // Found it!
                             {
                                 // It's a repeat of the same one. (Discard.)
                                 if ((!pTradeData->instrument_definition_id
@@ -4149,7 +4151,7 @@ bool OTClient::processServerReplyProcessNymbox(
                                                 // plan object that I sent.
                         {  // (Probably contains an updated version, with Bob's
                             // signature added.)
-                            Identifier theCancelerNymID;
+                            auto theCancelerNymID = Identifier::Factory();
                             const TransactionNumber lNymOpeningNumber =
                                 pOriginalCronItem->GetOpeningNumber(
                                     context.Nym()->ID());
@@ -4183,7 +4185,7 @@ bool OTClient::processServerReplyProcessNymbox(
                                 (!bCancelling && !bIsActivatingNym)
                                 // or if activating, and Nym is not the
                                 // activator...
-                                ) {
+                            ) {
                                 // REJECTION
                                 if (Item::rejection == pReplyItem->GetStatus())
                                 // (This is where we remove the opening number,
@@ -5043,7 +5045,7 @@ bool OTClient::processServerReplyProcessNymbox(
             case Item::atAcceptMessage:
             case Item::atAcceptTransaction:
                 break;
-            // I don't think we need to do anything here...
+                // I don't think we need to do anything here...
 
             case Item::atAcceptFinalReceipt: {
                 otInfo << __FUNCTION__
@@ -5129,7 +5131,7 @@ bool OTClient::processServerReplyProcessBox(
     // the number of transaction numbers on my Nym has probably changed. But the
     // server acknowledgment here confirms it, so I should remove any issued
     // numbers, save the nym, etc.
-    Identifier ACCOUNT_ID = accountID;
+    auto ACCOUNT_ID = Identifier::Factory(accountID);
     const auto& NYM_ID = context.Nym()->ID();
     const auto& serverNym = context.RemoteNym();
     String strNotaryID(context.Server()), strReply(theReply);
@@ -5369,9 +5371,8 @@ bool OTClient::processServerReplyProcessBox(
                 String strFinal;
                 OTASCIIArmor ascTemp(strTransaction);
 
-                if (false ==
-                    ascTemp.WriteArmoredString(
-                        strFinal, "TRANSACTION"))  // todo hardcoding.
+                if (false == ascTemp.WriteArmoredString(
+                                 strFinal, "TRANSACTION"))  // todo hardcoding.
                 {
                     otErr << "OTClient::ProcessServerReply: Error saving "
                              "transaction receipt "
@@ -5499,11 +5500,11 @@ bool OTClient::processServerReplyGetAccountData(
         // with this inbox -- and VerifyAccount() tries to load those, which
         // would fail here...
         {
-            Identifier THE_HASH;
+            auto THE_HASH = Identifier::Factory();
 
             if (theReply.m_strInboxHash.Exists()) {
                 auto nymfile = context.mutable_Nymfile("");
-                THE_HASH.SetString(theReply.m_strInboxHash);
+                THE_HASH->SetString(theReply.m_strInboxHash);
                 const bool bHash =
                     nymfile.It().SetInboxHash(str_acct_id, THE_HASH);
 
@@ -5606,11 +5607,11 @@ bool OTClient::processServerReplyGetAccountData(
         // since the client hasn't even had a
         // chance to download the box receipts yet...
         {
-            Identifier THE_HASH;
+            auto THE_HASH = Identifier::Factory();
 
             if (theReply.m_strOutboxHash.Exists()) {
                 auto nymfile = context.mutable_Nymfile("");
-                THE_HASH.SetString(theReply.m_strOutboxHash);
+                THE_HASH->SetString(theReply.m_strOutboxHash);
                 const bool bHash =
                     nymfile.It().SetOutboxHash(str_acct_id, THE_HASH);
 
@@ -6050,7 +6051,7 @@ bool OTClient::processServerReplyUnregisterAccount(
         theOriginalMessage.m_strAcctID.Compare(theReply.m_strAcctID) &&
         theOriginalMessage.m_strCommand.Compare("unregisterAccount")) {
 
-        const Identifier theAccountID(theReply.m_strAcctID);
+        const auto theAccountID = Identifier::Factory(theReply.m_strAcctID);
 
         auto pDeletedAcct = m_pWallet.GetAccount(theAccountID);
 
@@ -6202,7 +6203,7 @@ bool OTClient::processServerReply(
     Message& theReply = *reply;
     const String serverID(context.Server());
     const auto& serverNym = context.RemoteNym();
-    const Identifier accountID(theReply.m_strAcctID);
+    const auto accountID = Identifier::Factory(theReply.m_strAcctID);
 
     // Just like the server verifies all messages before processing them,
     // so does the client need to verify the signatures against each message
@@ -6457,8 +6458,8 @@ std::int32_t OTClient::ProcessUserCommand(
             // (1) Set up member variables
             theMessage.m_strCommand = "processNymbox";
             theMessage.SetAcknowledgments(context);
-            Identifier NYMBOX_HASH = context.LocalNymboxHash();
-            NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
+            auto NYMBOX_HASH = Identifier::Factory(context.LocalNymboxHash());
+            NYMBOX_HASH->GetString(theMessage.m_strNymboxHash);
 
             if (!String(NYMBOX_HASH).Exists()) {
                 otErr << "Failed getting NymboxHash from Nym for server: "
@@ -6489,8 +6490,8 @@ std::int32_t OTClient::ProcessUserCommand(
             // (1) Set up member variables
             theMessage.m_strCommand = "getTransactionNumbers";
             theMessage.SetAcknowledgments(context);
-            Identifier NYMBOX_HASH = context.LocalNymboxHash();
-            NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
+            auto NYMBOX_HASH = Identifier::Factory(context.LocalNymboxHash());
+            NYMBOX_HASH->GetString(theMessage.m_strNymboxHash);
 
             if (!String(NYMBOX_HASH).Exists()) {
                 otErr << "Failed getting NymboxHash from Nym for server: "

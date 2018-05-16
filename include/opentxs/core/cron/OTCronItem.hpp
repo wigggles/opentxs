@@ -87,7 +87,7 @@ protected:
         const Identifier& ACCT_ID,
         const Identifier& NYM_ID);
 
-    Identifier* m_pCancelerNymID{nullptr};
+    OTIdentifier m_pCancelerNymID;
 
     bool m_bCanceled{
         false};  // This defaults to false. But if someone cancels it

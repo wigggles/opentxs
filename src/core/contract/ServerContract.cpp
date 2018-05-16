@@ -69,7 +69,7 @@ ServerContract::ServerContract(
     const proto::ServerContract& serialized)
     : ServerContract(nym)
 {
-    id_ = Identifier(serialized.id());
+    id_ = Identifier::Factory(serialized.id());
     signatures_.push_front(SerializedSignature(
         std::make_shared<proto::Signature>(serialized.signature())));
     version_ = serialized.version();
@@ -161,8 +161,8 @@ ServerContract* ServerContract::Factory(
 OTIdentifier ServerContract::GetID(const Lock& lock) const
 {
     auto contract = IDVersion(lock);
-    Identifier id;
-    id.CalculateDigest(proto::ProtoAsData(contract));
+    auto id = Identifier::Factory();
+    id->CalculateDigest(proto::ProtoAsData(contract));
     return id;
 }
 

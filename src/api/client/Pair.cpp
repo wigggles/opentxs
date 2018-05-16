@@ -230,13 +230,13 @@ std::map<OTIdentifier, std::set<OTIdentifier>> Pair::create_issuer_map() const
     return output;
 }
 
-std::pair<bool, Identifier> Pair::get_connection(
+std::pair<bool, OTIdentifier> Pair::get_connection(
     const Identifier& localNymID,
     const Identifier& issuerNymID,
     const Identifier& serverID,
     const proto::ConnectionInfoType type) const
 {
-    std::pair<bool, Identifier> output{false, {}};
+    std::pair<bool, OTIdentifier> output{false, Identifier::Factory()};
     auto & [ success, requestID ] = output;
     auto action = action_.InitiateRequestConnection(
         localNymID, serverID, issuerNymID, type);
@@ -258,13 +258,13 @@ std::pair<bool, Identifier> Pair::get_connection(
     return output;
 }
 
-std::pair<bool, Identifier> Pair::initiate_bailment(
+std::pair<bool, OTIdentifier> Pair::initiate_bailment(
     const Identifier& nymID,
     const Identifier& serverID,
     const Identifier& issuerID,
     const Identifier& unitID) const
 {
-    std::pair<bool, Identifier> output{false, {}};
+    std::pair<bool, OTIdentifier> output(false, Identifier::Factory());
     auto & [ success, requestID ] = output;
     const auto contract = wallet_.UnitDefinition(unitID);
 
@@ -353,12 +353,12 @@ void Pair::process_connection_info(
     const proto::PeerReply& reply) const
 {
     OT_ASSERT(verify_lock(lock, peer_lock_))
-    OT_ASSERT(nymID == Identifier(reply.initiator()))
+    OT_ASSERT(nymID == Identifier::Factory(reply.initiator()))
     OT_ASSERT(proto::PEERREQUEST_CONNECTIONINFO == reply.type())
 
-    const Identifier requestID(reply.cookie());
-    const Identifier replyID(reply.id());
-    const Identifier issuerNymID(reply.recipient());
+    const auto requestID = Identifier::Factory(reply.cookie());
+    const auto replyID = Identifier::Factory(reply.id());
+    const auto issuerNymID = Identifier::Factory(reply.recipient());
     auto editor = wallet_.mutable_Issuer(nymID, issuerNymID);
     auto& issuer = editor.It();
     const auto added =
@@ -380,7 +380,7 @@ void Pair::process_peer_replies(const Lock& lock, const Identifier& nymID) const
     auto replies = wallet_.PeerReplyIncoming(nymID);
 
     for (const auto& it : replies) {
-        const Identifier replyID(it.first);
+        const auto replyID = Identifier::Factory(it.first);
         const auto reply =
             wallet_.PeerReply(nymID, replyID, StorageBox::INCOMINGPEERREPLY);
 
@@ -433,7 +433,7 @@ void Pair::process_peer_requests(const Lock& lock, const Identifier& nymID)
     const auto requests = wallet_.PeerRequestIncoming(nymID);
 
     for (const auto& it : requests) {
-        const Identifier requestID(it.first);
+        const auto requestID = Identifier::Factory(it.first);
         std::time_t time{};
         const auto request = wallet_.PeerRequest(
             nymID, requestID, StorageBox::INCOMINGPEERREQUEST, time);
@@ -475,12 +475,12 @@ void Pair::process_pending_bailment(
     const proto::PeerRequest& request) const
 {
     OT_ASSERT(verify_lock(lock, peer_lock_))
-    OT_ASSERT(nymID == Identifier(request.recipient()))
+    OT_ASSERT(nymID == Identifier::Factory(request.recipient()))
     OT_ASSERT(proto::PEERREQUEST_PENDINGBAILMENT == request.type())
 
-    const Identifier requestID(request.id());
-    const Identifier issuerNymID(request.initiator());
-    const Identifier serverID(request.server());
+    const auto requestID = Identifier::Factory(request.id());
+    const auto issuerNymID = Identifier::Factory(request.initiator());
+    const auto serverID = Identifier::Factory(request.server());
     auto editor = wallet_.mutable_Issuer(nymID, issuerNymID);
     auto& issuer = editor.It();
     const auto added =
@@ -488,8 +488,9 @@ void Pair::process_pending_bailment(
 
     if (added) {
         pending_bailment_->Publish(proto::ProtoAsString(request));
-        const Identifier originalRequest(request.pendingbailment().requestid());
-        if (!originalRequest.empty()) {
+        const auto originalRequest =
+            Identifier::Factory(request.pendingbailment().requestid());
+        if (!originalRequest->empty()) {
             issuer.SetUsed(proto::PEERREQUEST_BAILMENT, originalRequest, true);
         } else {
             otErr << OT_METHOD << __FUNCTION__
@@ -520,12 +521,12 @@ void Pair::process_request_bailment(
     const proto::PeerReply& reply) const
 {
     OT_ASSERT(verify_lock(lock, peer_lock_))
-    OT_ASSERT(nymID == Identifier(reply.initiator()))
+    OT_ASSERT(nymID == Identifier::Factory(reply.initiator()))
     OT_ASSERT(proto::PEERREQUEST_BAILMENT == reply.type())
 
-    const Identifier requestID(reply.cookie());
-    const Identifier replyID(reply.id());
-    const Identifier issuerNymID(reply.recipient());
+    const auto requestID = Identifier::Factory(reply.cookie());
+    const auto replyID = Identifier::Factory(reply.id());
+    const auto issuerNymID = Identifier::Factory(reply.recipient());
     auto editor = wallet_.mutable_Issuer(nymID, issuerNymID);
     auto& issuer = editor.It();
     const auto added =
@@ -546,12 +547,12 @@ void Pair::process_request_outbailment(
     const proto::PeerReply& reply) const
 {
     OT_ASSERT(verify_lock(lock, peer_lock_))
-    OT_ASSERT(nymID == Identifier(reply.initiator()))
+    OT_ASSERT(nymID == Identifier::Factory(reply.initiator()))
     OT_ASSERT(proto::PEERREQUEST_OUTBAILMENT == reply.type())
 
-    const Identifier requestID(reply.cookie());
-    const Identifier replyID(reply.id());
-    const Identifier issuerNymID(reply.recipient());
+    const auto requestID = Identifier::Factory(reply.cookie());
+    const auto replyID = Identifier::Factory(reply.id());
+    const auto issuerNymID = Identifier::Factory(reply.recipient());
     auto editor = wallet_.mutable_Issuer(nymID, issuerNymID);
     auto& issuer = editor.It();
     const auto added =
@@ -572,12 +573,12 @@ void Pair::process_store_secret(
     const proto::PeerReply& reply) const
 {
     OT_ASSERT(verify_lock(lock, peer_lock_))
-    OT_ASSERT(nymID == Identifier(reply.initiator()))
+    OT_ASSERT(nymID == Identifier::Factory(reply.initiator()))
     OT_ASSERT(proto::PEERREQUEST_STORESECRET == reply.type())
 
-    const Identifier requestID(reply.cookie());
-    const Identifier replyID(reply.id());
-    const Identifier issuerNymID(reply.recipient());
+    const auto requestID = Identifier::Factory(reply.cookie());
+    const auto replyID = Identifier::Factory(reply.id());
+    const auto issuerNymID = Identifier::Factory(reply.recipient());
     auto editor = wallet_.mutable_Issuer(nymID, issuerNymID);
     auto& issuer = editor.It();
     const auto added =
@@ -589,7 +590,7 @@ void Pair::process_store_secret(
         proto::PairEvent event;
         event.set_version(1);
         event.set_type(proto::PAIREVENT_STORESECRET);
-        event.set_issuer(issuerNymID.str());
+        event.set_issuer(issuerNymID->str());
         const auto published =
             pair_event_->Publish(proto::ProtoAsString(event));
 
@@ -645,12 +646,12 @@ void Pair::refresh() const
     update_peer();
 }
 
-std::pair<bool, Identifier> Pair::register_account(
+std::pair<bool, OTIdentifier> Pair::register_account(
     const Identifier& nymID,
     const Identifier& serverID,
     const Identifier& unitID) const
 {
-    std::pair<bool, Identifier> output{false, {}};
+    std::pair<bool, OTIdentifier> output{false, Identifier::Factory()};
     auto & [ success, accountID ] = output;
     const auto contract = wallet_.UnitDefinition(unitID);
 
@@ -673,7 +674,7 @@ std::pair<bool, Identifier> Pair::register_account(
     const auto& reply = *action->Reply();
 
     success = reply.m_bSuccess;
-    accountID.SetString(reply.m_strAcctID);
+    accountID->SetString(reply.m_strAcctID);
 
     return output;
 }
@@ -827,9 +828,9 @@ void Pair::state_machine(
                 const auto btcrpc =
                     issuer.ConnectionInfo(proto::CONNECTIONINFO_BTCRPC);
                 const bool needInfo =
-                    (btcrpc.empty() && (false ==
-                                        issuer.ConnectionInfoInitiated(
-                                            proto::CONNECTIONINFO_BTCRPC)));
+                    (btcrpc.empty() &&
+                     (false == issuer.ConnectionInfoInitiated(
+                                   proto::CONNECTIONINFO_BTCRPC)));
 
                 if (needInfo) {
                     otErr << OT_METHOD << __FUNCTION__
@@ -861,13 +862,13 @@ void Pair::state_machine(
 
                         const auto& notUsed[[maybe_unused]] = id;
                         const auto& claim = *pClaim;
-                        const Identifier unitID(claim.Value());
+                        const auto unitID = Identifier::Factory(claim.Value());
                         const auto accountList =
                             issuer.AccountList(type, unitID);
 
                         if (0 == accountList.size()) {
                             otErr << OT_METHOD << __FUNCTION__
-                                  << ": Registering " << unitID.str()
+                                  << ": Registering " << unitID->str()
                                   << " account for " << localNymID.str()
                                   << " on " << serverID->str() << std::endl;
                             const auto & [ registered, accountID ] =
@@ -880,7 +881,7 @@ void Pair::state_machine(
                             }
                         } else {
                             otWarn << OT_METHOD << __FUNCTION__ << ": "
-                                   << unitID.str() << " account for "
+                                   << unitID->str() << " account for "
                                    << localNymID.str() << " on "
                                    << serverID->str() << " already exists."
                                    << std::endl;
@@ -920,7 +921,7 @@ std::pair<bool, Identifier> Pair::store_secret(
     const Identifier& issuerNymID,
     const Identifier& serverID) const
 {
-    std::pair<bool, Identifier> output{false, {}};
+    std::pair<bool, OTIdentifier> output{false, Identifier::Factory()};
     auto & [ success, requestID ] = output;
     auto action = action_.InitiateStoreSecret(
         localNymID,

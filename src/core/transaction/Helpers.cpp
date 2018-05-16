@@ -222,8 +222,9 @@ std::int32_t LoadAbbreviatedRecord(
     } else {
         otOut << "LoadAbbreviatedRecord: Failure: unknown "
                  "transaction type ("
-              << strAbbrevType << ") when "
-                                  "loading abbreviated receipt for trans num: "
+              << strAbbrevType
+              << ") when "
+                 "loading abbreviated receipt for trans num: "
               << lTransactionNum << " (In Reference To: " << lInRefTo << ") \n";
         return (-1);
     }
@@ -342,8 +343,9 @@ bool VerifyBoxReceiptExists(
         strFolder3name.Get(),
         strFilename.Get());
 
-    otWarn << "OTTransaction::" << (bExists ? "(Already have this one)"
-                                            : "(Need to download this one)")
+    otWarn << "OTTransaction::"
+           << (bExists ? "(Already have this one)"
+                       : "(Need to download this one)")
            << ": " << __FUNCTION__ << ": " << strFolder1name
            << Log::PathSeparator() << strFolder2name << Log::PathSeparator()
            << strFolder3name << Log::PathSeparator() << strFilename << "\n";
@@ -423,8 +425,9 @@ OTTransaction* LoadBoxReceipt(
     String strRawFile(strFileContents.c_str());
 
     if (!strRawFile.Exists()) {
-        otErr << __FUNCTION__ << ": Error reading file (resulting output "
-                                 "string is empty): "
+        otErr << __FUNCTION__
+              << ": Error reading file (resulting output "
+                 "string is empty): "
               << strFolder1name << Log::PathSeparator() << strFolder2name
               << Log::PathSeparator() << strFolder3name << Log::PathSeparator()
               << strFilename << "\n";
@@ -438,8 +441,9 @@ OTTransaction* LoadBoxReceipt(
         OTTransactionType::TransactionFactory(strRawFile);
 
     if (nullptr == pTransType) {
-        otErr << __FUNCTION__ << ": Error instantiating transaction "
-                                 "type based on strRawFile: "
+        otErr << __FUNCTION__
+              << ": Error instantiating transaction "
+                 "type based on strRawFile: "
               << strFolder1name << Log::PathSeparator() << strFolder2name
               << Log::PathSeparator() << strFolder3name << Log::PathSeparator()
               << strFilename << "\n";
@@ -449,8 +453,9 @@ OTTransaction* LoadBoxReceipt(
     OTTransaction* pBoxReceipt = dynamic_cast<OTTransaction*>(pTransType);
 
     if (nullptr == pBoxReceipt) {
-        otErr << __FUNCTION__ << ": Error dynamic_cast from transaction "
-                                 "type to transaction, based on strRawFile: "
+        otErr << __FUNCTION__
+              << ": Error dynamic_cast from transaction "
+                 "type to transaction, based on strRawFile: "
               << strFolder1name << Log::PathSeparator() << strFolder2name
               << Log::PathSeparator() << strFolder3name << Log::PathSeparator()
               << strFilename << "\n";

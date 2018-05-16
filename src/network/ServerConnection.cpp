@@ -90,7 +90,7 @@ ServerConnection::ServerConnection(
     : zmq_(zmq)
     , server_id_(serverID)
     , address_type_(zmq.DefaultAddressType())
-    , remote_contract_(OT::App().Wallet().Server(Identifier(serverID)))
+    , remote_contract_(OT::App().Wallet().Server(Identifier::Factory(serverID)))
     , thread_(nullptr)
     , socket_(zmq.Context().RequestSocket())
     , last_activity_(std::time(nullptr))

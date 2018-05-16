@@ -114,8 +114,9 @@ std::int32_t OTMarket::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         otWarn << " instrumentDefinitionID: " << strInstrumentDefinitionID
                << "\n"
                   " currencyTypeID: "
-               << strCurrencyTypeID << "\n"
-                                       " NotaryID: "
+               << strCurrencyTypeID
+               << "\n"
+                  " NotaryID: "
                << strNotaryID << "\n";
 
         nReturnVal = 1;
@@ -767,7 +768,7 @@ bool OTMarket::LoadMarket()
     OT_ASSERT(nullptr != GetCron());
     OT_ASSERT(nullptr != GetCron()->GetServerNym());
 
-    Identifier MARKET_ID(*this);
+    auto MARKET_ID = Identifier::Factory(*this);
     String str_MARKET_ID(MARKET_ID);
 
     const char* szFoldername = OTFolders::Market().Get();
@@ -804,7 +805,7 @@ bool OTMarket::SaveMarket()
     OT_ASSERT(nullptr != GetCron());
     OT_ASSERT(nullptr != GetCron()->GetServerNym());
 
-    Identifier MARKET_ID(*this);
+    auto MARKET_ID = Identifier::Factory(*this);
     String str_MARKET_ID(MARKET_ID);
 
     const char* szFoldername = OTFolders::Market().Get();
@@ -1015,7 +1016,7 @@ void OTMarket::ProcessTrade(
         "there is no Server Nym on the Cron "
         "object authorizing the trades.");
 
-    const Identifier NOTARY_ID(pCron->GetNotaryID());
+    const auto NOTARY_ID = Identifier::Factory(pCron->GetNotaryID());
 
     if (pCron->GetTransactionCount() < 1) {
         otOut << "Failed to process trades: Out of transaction numbers!\n";
@@ -1069,14 +1070,16 @@ void OTMarket::ProcessTrade(
     // the pointers accordingly, and then operate
     // using the pointers from there.
 
-    const Identifier FIRST_NYM_ID(
-        theTrade.GetSenderNymID()),                   // The newest trade's Nym.
-        OTHER_NYM_ID(pOtherTrade->GetSenderNymID()),  // The Nym of the trade
-                                                      // that was already on the
-                                                      // market. (Could be same
-                                                      // Nym.)
-        NOTARY_NYM_ID(*pServerNym);  // The Server Nym (could be one or both of
-                                     // the above.)
+    const auto FIRST_NYM_ID = Identifier::Factory(
+                   theTrade.GetSenderNymID()),  // The newest trade's Nym.
+        OTHER_NYM_ID = Identifier::Factory(
+            pOtherTrade->GetSenderNymID()),  // The Nym of the trade
+                                             // that was already on the
+                                             // market. (Could be same
+                                             // Nym.)
+        NOTARY_NYM_ID = Identifier::Factory(
+            *pServerNym);  // The Server Nym (could be one or both of
+                           // the above.)
 
     Nym theNym, theOtherNym;  // We MIGHT use ONE, OR BOTH, of these, or none.
 
@@ -1243,7 +1246,7 @@ void OTMarket::ProcessTrade(
         (pFirstCurrencyAcct->GetInstrumentDefinitionID() !=
          GetCurrencyID())  // the trader's currency accts have same asset
                            // type as the market.
-        ) {
+    ) {
         otErr << "ERROR - First Trader has accounts of wrong "
                  "instrument definitions in OTMarket::"
               << __FUNCTION__ << "\n";

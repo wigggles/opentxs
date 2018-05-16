@@ -103,7 +103,7 @@ private:
         ,
         TrezorCrypto& bitcoin
 #endif
-        );
+    );
     bool HMAC(
         const proto::HashType hashType,
         const std::uint8_t* input,

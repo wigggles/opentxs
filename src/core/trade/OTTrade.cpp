@@ -152,10 +152,13 @@ std::int32_t OTTrade::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             currencyTypeID(xml->getAttributeValue("currencyTypeID")),
             currencyAcctID(xml->getAttributeValue("currencyAcctID"));
 
-        const Identifier NOTARY_ID(notaryID), NYM_ID(nymID),
-            INSTRUMENT_DEFINITION_ID(instrumentDefinitionID),
-            ASSET_ACCT_ID(assetAcctID), CURRENCY_TYPE_ID(currencyTypeID),
-            CURRENCY_ACCT_ID(currencyAcctID);
+        const auto NOTARY_ID = Identifier::Factory(notaryID),
+                   NYM_ID = Identifier::Factory(nymID),
+                   INSTRUMENT_DEFINITION_ID =
+                       Identifier::Factory(instrumentDefinitionID),
+                   ASSET_ACCT_ID = Identifier::Factory(assetAcctID),
+                   CURRENCY_TYPE_ID = Identifier::Factory(currencyTypeID),
+                   CURRENCY_ACCT_ID = Identifier::Factory(currencyAcctID);
 
         SetNotaryID(NOTARY_ID);
         SetSenderNymID(NYM_ID);
@@ -174,8 +177,9 @@ std::int32_t OTTrade::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                << instrumentDefinitionID << "\n assetAcctID: " << assetAcctID
                << "\n"
                   " NotaryID: "
-               << notaryID << "\n NymID: " << nymID << "\n "
-                                                       " currencyTypeID: "
+               << notaryID << "\n NymID: " << nymID
+               << "\n "
+                  " currencyTypeID: "
                << currencyTypeID << "\n currencyAcctID: " << currencyAcctID
                << "\n ";
 
@@ -350,7 +354,7 @@ OTOffer* OTTrade::GetOffer(Identifier* offerMarketId, OTMarket** market)
 
         // It loaded. Let's get the Market ID off of it so we can locate the
         // market.
-        const Identifier OFFER_MARKET_ID(*offer_);
+        const auto OFFER_MARKET_ID = Identifier::Factory(*offer_);
 
         if (market != nullptr) {
             OTMarket* pMarket = GetCron()->GetMarket(OFFER_MARKET_ID);
@@ -405,7 +409,7 @@ OTOffer* OTTrade::GetOffer(Identifier* offerMarketId, OTMarket** market)
     // *Also remember we saved a copy of the original in the cron folder.
 
     // It loaded. Let's get the Market ID off of it so we can locate the market.
-    Identifier OFFER_MARKET_ID(*offer);
+    auto OFFER_MARKET_ID = Identifier::Factory(*offer);
 
     if (offerMarketId != nullptr) {
         // Sometimes the caller function would like a copy of this ID. So I
@@ -936,8 +940,9 @@ void OTTrade::onFinalReceipt(
                 otErr
                     << szFunc
                     << ": Failure loading or verifying Actual Nym public key: "
-                    << strNymID << ". "
-                                   "(To update his NymboxHash.)\n";
+                    << strNymID
+                    << ". "
+                       "(To update his NymboxHash.)\n";
             }
         }
 
@@ -952,8 +957,9 @@ void OTTrade::onFinalReceipt(
             otErr << szFunc << ": Failure dropping receipt into nymbox.\n";
         }
     } else {
-        otErr << szFunc << ": Problem verifying Opening Number when calling "
-                           "VerifyIssuedNum(openingNumber)\n";
+        otErr << szFunc
+              << ": Problem verifying Opening Number when calling "
+                 "VerifyIssuedNum(openingNumber)\n";
     }
 
     // ASSET ACCT
@@ -1061,7 +1067,7 @@ bool OTTrade::ProcessCron()
     bool bStayOnMarket =
         true;  // by default stay on the market (until some rule expires me.)
 
-    Identifier OFFER_MARKET_ID;
+    auto OFFER_MARKET_ID = Identifier::Factory();
     OTMarket* market = nullptr;
 
     // If the Offer is already active on a market, then I already have a pointer
@@ -1071,8 +1077,9 @@ bool OTTrade::ProcessCron()
     // the market and then sets the pointer and returns. If it can't find it, IT
     // TRIES
     // TO ADD IT TO THE MARKET and sets the pointer and returns it.
-    OTOffer* offer = GetOffer(
-        &OFFER_MARKET_ID, &market);  // Both of these parameters are optional.
+    OTOffer* offer =
+        GetOffer(&OFFER_MARKET_ID.get(), &market);  // Both of these parameters
+                                                    // are optional.
 
     // In this case, the offer is NOT on the market.
     // Perhaps it wasn't ready to activate yet.

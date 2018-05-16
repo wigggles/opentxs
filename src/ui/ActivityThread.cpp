@@ -95,7 +95,7 @@ ActivityThread::ActivityThread(
     const api::client::Sync& sync,
     const api::Activity& activity,
     const api::ContactManager& contact,
-    const Identifier& nymID,
+    const OTIdentifier nymID,
     const Identifier& threadID)
     : ActivityThreadType(
           zmq,
@@ -399,9 +399,9 @@ void ActivityThread::process_thread(const network::zeromq::Message& message)
     wait_for_startup();
     check_drafts();
     const std::string id(message);
-    const Identifier threadID(id);
+    const auto threadID = Identifier::Factory(id);
 
-    OT_ASSERT(false == threadID.empty())
+    OT_ASSERT(false == threadID->empty())
 
     if (threadID_ != threadID) {
 
@@ -465,7 +465,7 @@ bool ActivityThread::SendDraft() const
         return false;
     }
 
-    const ActivityThreadID id{taskID, StorageBox::DRAFT, Identifier()};
+    const ActivityThreadID id{taskID, StorageBox::DRAFT, Identifier::Factory()};
     const ActivityThreadSortKey key{std::chrono::system_clock::now(), 0};
     draft_tasks_.insert(id);
     draft_.clear();

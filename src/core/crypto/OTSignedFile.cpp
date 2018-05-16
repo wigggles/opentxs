@@ -151,8 +151,9 @@ bool OTSignedFile::VerifyFile()
         m_strSignedFilename.Compare(m_strPurportedFilename))
         return true;
 
-    otErr << __FUNCTION__ << ": Failed verifying signed file:\n"
-                             "Expected directory: "
+    otErr << __FUNCTION__
+          << ": Failed verifying signed file:\n"
+             "Expected directory: "
           << m_strLocalDir << "  Found: " << m_strPurportedLocalDir
           << "\n"
              "Expected filename:  "

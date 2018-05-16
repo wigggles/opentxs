@@ -120,8 +120,8 @@ std::string TrezorCrypto::SeedToFingerprint(
     if (node) {
         auto pubkey = Data::Factory(
             static_cast<void*>(node->public_key), sizeof(node->public_key));
-        Identifier identifier;
-        identifier.CalculateDigest(pubkey);
+        auto identifier = Identifier::Factory();
+        identifier->CalculateDigest(pubkey);
         String fingerprint(identifier);
 
         return fingerprint.Get();

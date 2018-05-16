@@ -533,7 +533,7 @@ bool Item::VerifyBalanceStatement(
     // 3) Also need to verify the transactions on the Nym, against the
     // transactions stored on this (in a message Nym attached to this.) Check
     // for presence of each, then compare count, like above.
-    const auto notaryID = GetPurportedNotaryID();
+    const auto notaryID = Identifier::Factory(GetPurportedNotaryID());
     const String notary(notaryID);
     const auto targetNumber = GetTransactionNum();
 
@@ -918,8 +918,9 @@ void Item::CalculateNumberOfOrigin()
                  (Item::disputeBasketReceipt != pOriginalItem->GetType()))) {
                 String strType;
                 pOriginalItem->GetTypeString(strType);
-                otErr << __FUNCTION__ << ": ERROR: Wrong item type as 'in "
-                                         "reference to' string on "
+                otErr << __FUNCTION__
+                      << ": ERROR: Wrong item type as 'in "
+                         "reference to' string on "
                       << strType << " item.\n";
                 SetNumberOfOrigin(0);
                 return;
@@ -1461,8 +1462,10 @@ std::int32_t Item::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                     // now becomes std::set<std::int64_t>.)
         }
 
-        Identifier ACCOUNT_ID(strAcctFromID), NOTARY_ID(strNotaryID),
-            DESTINATION_ACCOUNT(strAcctToID), NYM_ID(strNymID);
+        auto ACCOUNT_ID = Identifier::Factory(strAcctFromID),
+             NOTARY_ID = Identifier::Factory(strNotaryID),
+             DESTINATION_ACCOUNT = Identifier::Factory(strAcctToID),
+             NYM_ID = Identifier::Factory(strNymID);
 
         SetPurportedAccountID(ACCOUNT_ID);  // OTTransactionType::m_AcctID  the
                                             // PURPORTED Account ID
@@ -1573,8 +1576,9 @@ std::int32_t Item::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             strNotaryID = xml->getAttributeValue("notaryID");
             strNymID = xml->getAttributeValue("nymID");
 
-            Identifier ACCOUNT_ID(strAccountID), NOTARY_ID(strNotaryID),
-                NYM_ID(strNymID);
+            auto ACCOUNT_ID = Identifier::Factory(strAccountID),
+                 NOTARY_ID = Identifier::Factory(strNotaryID),
+                 NYM_ID = Identifier::Factory(strNymID);
 
             pItem->SetPurportedAccountID(
                 ACCOUNT_ID);  // OTTransactionType::m_AcctID  the PURPORTED

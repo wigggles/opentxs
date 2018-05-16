@@ -171,8 +171,8 @@ const std::string AsymmetricKeyEC::Path() const
 
     if (path_) {
         if (path_->has_root()) {
-            Identifier root;
-            root.SetString(path_->root());
+            auto root = Identifier::Factory();
+            root->SetString(path_->root());
             path.Concatenate(String(root));
 
             for (auto& it : path_->child()) {

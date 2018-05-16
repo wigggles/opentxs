@@ -380,16 +380,17 @@ bool Purse::Merge(
         // UPDATE: the above line was moved INSIDE OTToken::ReassignOwnership,
         // FYI.
         //
-        if (false ==
-            pToken->ReassignOwnership(
-                theNewNym,   // must be private, if a Nym.
-                theOldNym))  // can be public, if a Nym.
+        if (false == pToken->ReassignOwnership(
+                         theNewNym,   // must be private, if a Nym.
+                         theOldNym))  // can be public, if a Nym.
         {
-            otErr << szFunc << ": Error: Failed while attempting to re-assign "
-                               "ownership of token during purse merge.\n";
+            otErr << szFunc
+                  << ": Error: Failed while attempting to re-assign "
+                     "ownership of token during purse merge.\n";
         } else {
-            otWarn << szFunc << ": FYI: Success re-assigning ownership of "
-                                "token during purse merge.\n";
+            otWarn << szFunc
+                   << ": FYI: Success re-assigning ownership of "
+                      "token during purse merge.\n";
 
             pToken->ReleaseSignatures();
             pToken->SignContract(theSigner);
@@ -526,8 +527,9 @@ Purse* Purse::PurseFactory(
                 const String strNotaryID(NOTARY_ID),
                     strPurseNotaryID(pPurse->GetNotaryID());
                 otErr << szFunc << ": Failure: NotaryID on purse ("
-                      << strPurseNotaryID << ") doesn't match expected "
-                                             "server ID ("
+                      << strPurseNotaryID
+                      << ") doesn't match expected "
+                         "server ID ("
                       << strNotaryID << ").\n";
                 delete pPurse;
                 pPurse = nullptr;
@@ -943,20 +945,23 @@ void Purse::UpdateContents()  // Before transmission or serialization, this is
                 << ": Error: m_pCachedKey is unexpectedly nullptr, even though "
                    "m_bPasswordProtected is true!\n";
         else if (nullptr == m_pSymmetricKey)
-            otErr << __FUNCTION__ << ": Error: m_pSymmetricKey is unexpectedly "
-                                     "nullptr, even though "
-                                     "m_bPasswordProtected is true!\n";
+            otErr << __FUNCTION__
+                  << ": Error: m_pSymmetricKey is unexpectedly "
+                     "nullptr, even though "
+                     "m_bPasswordProtected is true!\n";
         else  // m_pCachedKey and m_pSymmetricKey are good pointers. (Or at
               // least, not-null.)
         {
             if (!m_pCachedKey->IsGenerated())
-                otErr << __FUNCTION__ << ": Error: m_pCachedKey wasn't a "
-                                         "generated key! Even though "
-                                         "m_bPasswordProtected is true.\n";
+                otErr << __FUNCTION__
+                      << ": Error: m_pCachedKey wasn't a "
+                         "generated key! Even though "
+                         "m_bPasswordProtected is true.\n";
             else if (!m_pSymmetricKey->IsGenerated())
-                otErr << __FUNCTION__ << ": Error: m_pSymmetricKey wasn't a "
-                                         "generated key! Even though "
-                                         "m_bPasswordProtected is true.\n";
+                otErr << __FUNCTION__
+                      << ": Error: m_pSymmetricKey wasn't a "
+                         "generated key! Even though "
+                         "m_bPasswordProtected is true.\n";
             else {
                 OTASCIIArmor ascCachedKey, ascSymmetricKey;
 
@@ -1055,8 +1060,9 @@ std::int32_t Purse::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             m_InstrumentDefinitionID->SetString(strInstrumentDefinitionID);
         else {
             m_InstrumentDefinitionID->Release();
-            otErr << szFunc << ": Failed loading instrumentDefinitionID, when "
-                               "one was expected.\n";
+            otErr << szFunc
+                  << ": Failed loading instrumentDefinitionID, when "
+                     "one was expected.\n";
             return (-1);
         }
 
@@ -1109,18 +1115,20 @@ std::int32_t Purse::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                     // why am I in the middle of loading one
                                     // here?
         {
-            otErr << szFunc << ": Error: Unexpected 'internalKey' data, "
-                               "since m_bPasswordProtected is set to false!\n";
+            otErr << szFunc
+                  << ": Error: Unexpected 'internalKey' data, "
+                     "since m_bPasswordProtected is set to false!\n";
             return (-1);  // error condition
         }
 
         if (!m_NymID->IsEmpty())  // If the NymID isn't empty, then why am I in
                                   // the middle of loading an internal Key?
         {
-            otErr << szFunc << ": Error: Unexpected 'internalKey' data, since "
-                               "m_NymID is not blank! "
-                               "(The NymID should have loaded before THIS "
-                               "node ever popped up...)\n";
+            otErr << szFunc
+                  << ": Error: Unexpected 'internalKey' data, since "
+                     "m_NymID is not blank! "
+                     "(The NymID should have loaded before THIS "
+                     "node ever popped up...)\n";
             return (-1);  // error condition
         }
 
@@ -1194,16 +1202,18 @@ std::int32_t Purse::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                     // keys, then why am I in the middle of
                                     // loading one here?
         {
-            otErr << szFunc << ": Error: Unexpected 'cachedKey' data, "
-                               "since m_bPasswordProtected is set to false!\n";
+            otErr << szFunc
+                  << ": Error: Unexpected 'cachedKey' data, "
+                     "since m_bPasswordProtected is set to false!\n";
             return (-1);  // error condition
         }
 
         if (!m_NymID->IsEmpty())  // If the NymID isn't empty, then why am I in
                                   // the middle of loading an internal Key?
         {
-            otErr << szFunc << ": Error: Unexpected 'cachedKey' data, since "
-                               "m_NymID is not blank!\n";
+            otErr << szFunc
+                  << ": Error: Unexpected 'cachedKey' data, since "
+                     "m_NymID is not blank!\n";
             return (-1);  // error condition
         }
 
@@ -1374,8 +1384,9 @@ Token* Purse::Peek(OTNym_or_SymmetricKey theOwner) const
             delete pToken;
             pToken = nullptr;
 
-            otErr << __FUNCTION__ << ": ERROR: Cash token with wrong server or "
-                                     "instrument definition.\n";
+            otErr << __FUNCTION__
+                  << ": ERROR: Cash token with wrong server or "
+                     "instrument definition.\n";
         } else {
             // CALLER is responsible to delete this token.
             return pToken;
@@ -1402,8 +1413,9 @@ Token* Purse::Pop(OTNym_or_SymmetricKey theOwner)
     Token* pToken = Peek(theOwner);
 
     if (nullptr == pToken) {
-        otErr << __FUNCTION__ << ": Failure: Peek(theOwner) "
-                                 "(And m_dequeTokens isn't empty, either.)\n";
+        otErr << __FUNCTION__
+              << ": Failure: Peek(theOwner) "
+                 "(And m_dequeTokens isn't empty, either.)\n";
         return nullptr;
     }
 
@@ -1541,20 +1553,24 @@ bool Purse::Push(OTNym_or_SymmetricKey theOwner, const Token& theToken)
         } else {
             String strPurseAssetType(m_InstrumentDefinitionID),
                 strTokenAssetType(theToken.GetInstrumentDefinitionID());
-            otErr << __FUNCTION__ << ": Failed while calling: "
-                                     "theOwner.Seal_or_Encrypt(theEnvelope, "
-                                     "strToken)\nPurse Asset Type:\n"
-                  << strPurseAssetType << "\n"
-                                          "Token Asset Type:\n"
+            otErr << __FUNCTION__
+                  << ": Failed while calling: "
+                     "theOwner.Seal_or_Encrypt(theEnvelope, "
+                     "strToken)\nPurse Asset Type:\n"
+                  << strPurseAssetType
+                  << "\n"
+                     "Token Asset Type:\n"
                   << strTokenAssetType << "\n";
         }
     } else {
         String strPurseAssetType(m_InstrumentDefinitionID),
             strTokenAssetType(theToken.GetInstrumentDefinitionID());
-        otErr << __FUNCTION__ << ": ERROR: Tried to push token with wrong "
-                                 "instrument definition.\nPurse Asset Type:\n"
-              << strPurseAssetType << "\n"
-                                      "Token Asset Type:\n"
+        otErr << __FUNCTION__
+              << ": ERROR: Tried to push token with wrong "
+                 "instrument definition.\nPurse Asset Type:\n"
+              << strPurseAssetType
+              << "\n"
+                 "Token Asset Type:\n"
               << strTokenAssetType << "\n";
     }
 

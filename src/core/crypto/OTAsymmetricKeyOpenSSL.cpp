@@ -285,8 +285,9 @@ bool OTAsymmetricKey_OpenSSL::SetPrivateKey(
     // Read private key
     //
     String strWithBookends;
-    otLog3 << __FUNCTION__ << ": FYI, Reading private key from x509 stored in "
-                              "bookended string...\n";
+    otLog3 << __FUNCTION__
+           << ": FYI, Reading private key from x509 stored in "
+              "bookended string...\n";
 
     strWithBookends = strCert;
 
@@ -448,8 +449,9 @@ bool OTAsymmetricKey_OpenSSL::SetPublicKeyFromPrivateKey(
 
             EVP_PKEY_free(pkey);
             pkey = nullptr;
-            otLog3 << __FUNCTION__ << ": Successfully extracted a public key "
-                                      "from an x509 certificate.\n";
+            otLog3 << __FUNCTION__
+                   << ": Successfully extracted a public key "
+                      "from an x509 certificate.\n";
             bReturnValue = true;
         }
     } else {
@@ -647,8 +649,9 @@ bool OTAsymmetricKey_OpenSSL::ReEncryptPrivateKey(
             }  // (nWriteBio != 0)
 
         } else
-            otErr << __FUNCTION__ << ": Failed loading actual private key from "
-                                     "BIO containing ASCII-armored data:\n\n"
+            otErr << __FUNCTION__
+                  << ": Failed loading actual private key from "
+                     "BIO containing ASCII-armored data:\n\n"
                   << m_p_ascKey->Get() << "\n\n";
     } else
         otErr << __FUNCTION__
@@ -727,8 +730,9 @@ bool OTAsymmetricKey_OpenSSL::GetPrivateKey(
         EVP_des_ede3_cbc();  // todo security (revisit this mode...)
 
     if (!IsPrivate()) {
-        otErr << __FUNCTION__ << ": Error: !IsPrivate() (This function should "
-                                 "only be called on a private key.)\n";
+        otErr << __FUNCTION__
+              << ": Error: !IsPrivate() (This function should "
+                 "only be called on a private key.)\n";
         return false;
     }
 

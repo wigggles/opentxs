@@ -830,13 +830,6 @@ bool OTRecord::DeleteRecord() const
         return false;
     }
 
-    const Identifier theNotaryID(
-        bUsingAccountOrNym ? m_str_pmnt_notary_id : m_str_msg_notary_id);
-
-    const Identifier theNymID(m_str_nym_id),
-        theAcctID(str_using_account);  // this one sometimes
-                                       // contains NymID.
-
     // Sometimes this is an asset account record box for the payment notary.
     // Sometimes this is a Nym's payments record box for the transport notary.
     //
@@ -853,12 +846,23 @@ bool OTRecord::DeleteRecord() const
     // So in some cases, we want to use your payment notary, and in other cases,
     // we want to use your transport notary.
 
+    const auto theNotaryID = Identifier::Factory(
+                   bUsingAccountOrNym ? m_str_pmnt_notary_id
+                                      : m_str_msg_notary_id),
+               theNymID = Identifier::Factory(m_str_nym_id),
+               theAcctID =
+                   Identifier::Factory(str_using_account);  // this last one
+                                                            // sometimes
+                                                            // contains NymID
+                                                            // (see above.)
+
     Ledger* pRecordbox =
         OT::App().API().OTAPI().LoadRecordBox(theNotaryID, theNymID, theAcctID);
     std::unique_ptr<Ledger> theRecordBoxAngel(pRecordbox);
     if (!pRecordbox) {
-        otErr << __FUNCTION__ << ": Failed loading record box for msg notary ID"
-                                 " ("
+        otErr << __FUNCTION__
+              << ": Failed loading record box for msg notary ID"
+                 " ("
               << m_str_msg_notary_id << ") nymID (" << m_str_nym_id
               << ") accountID (" << str_using_account << ")\n";
         return false;
@@ -869,9 +873,10 @@ bool OTRecord::DeleteRecord() const
 
     if ((-1) == nIndex) {
         otErr << __FUNCTION__ << ": Error: Unable to find transaction "
-              << m_lTransactionNum << " in recordbox "
-                                      "for server id ("
-              << theNotaryID.str() << "), nym id (" << m_str_nym_id
+              << m_lTransactionNum
+              << " in recordbox "
+                 "for server id ("
+              << theNotaryID->str() << "), nym id (" << m_str_nym_id
               << "), acct id (" << str_using_account << ")\n";
         return false;
     }
@@ -879,7 +884,7 @@ bool OTRecord::DeleteRecord() const
     //
     return SwigWrap::ClearRecord(
         // m_str_msg_notary_id,
-        theNotaryID.str(),
+        theNotaryID->str(),
         m_str_nym_id,
         str_using_account,
         nIndex,
@@ -968,8 +973,10 @@ bool OTRecord::AcceptIncomingTransferOrReceipt() const
                       << ")\n";
                 return false;
             }
-            const Identifier thePmntNotaryID(m_str_pmnt_notary_id),
-                theNymID(m_str_nym_id), theAcctID(m_str_account_id);
+            const auto thePmntNotaryID =
+                           Identifier::Factory(m_str_pmnt_notary_id),
+                       theNymID = Identifier::Factory(m_str_nym_id),
+                       theAcctID = Identifier::Factory(m_str_account_id);
 
             // Open the Nym's asset account inbox.
             Ledger* pInbox = OT::App().API().OTAPI().LoadInbox(
@@ -990,8 +997,9 @@ bool OTRecord::AcceptIncomingTransferOrReceipt() const
 
             if ((-1) == nIndex) {
                 otErr << __FUNCTION__ << ": Error: Unable to find transaction "
-                      << m_lTransactionNum << " in asset account inbox "
-                                              "for pmnt notary id ("
+                      << m_lTransactionNum
+                      << " in asset account inbox "
+                         "for pmnt notary id ("
                       << m_str_pmnt_notary_id << "), nym id (" << m_str_nym_id
                       << "), acct id (" << m_str_account_id << ")\n";
                 return false;
@@ -1036,8 +1044,9 @@ bool OTRecord::AcceptIncomingInstrument(const std::string& str_into_acct) const
                       << ")\n";
                 return false;
             }
-            const Identifier theMsgNotaryID(m_str_msg_notary_id),
-                theNymID(m_str_nym_id);
+            const auto theMsgNotaryID =
+                           Identifier::Factory(m_str_msg_notary_id),
+                       theNymID = Identifier::Factory(m_str_nym_id);
 
             // Open the Nym's payments inbox.
             Ledger* pInbox = OT::App().API().OTAPI().LoadPaymentInbox(
@@ -1147,8 +1156,9 @@ bool OTRecord::DiscardIncoming() const
                       << ")\n";
                 return false;
             }
-            const Identifier theMsgNotaryID(m_str_msg_notary_id),
-                theNymID(m_str_nym_id);
+            const auto theMsgNotaryID =
+                           Identifier::Factory(m_str_msg_notary_id),
+                       theNymID = Identifier::Factory(m_str_nym_id);
 
             // Open the Nym's payments inbox.
             Ledger* pInbox = OT::App().API().OTAPI().LoadPaymentInbox(
@@ -1235,7 +1245,7 @@ bool OTRecord::CancelOutgoing(std::string str_via_acct) const  // This can be
                 return false;
             }
 
-            const Identifier theNymID(m_str_nym_id);
+            const auto theNymID = Identifier::Factory(m_str_nym_id);
             std::string str_using_acct;
 
             if (IsCheque()) {

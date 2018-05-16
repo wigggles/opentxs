@@ -115,8 +115,8 @@ bool MainFile::SaveMainFileToString(String& strMainFile)
         String strBasketID = it.first.c_str();
         String strBasketAcctID = it.second.c_str();
 
-        const Identifier BASKET_ACCOUNT_ID(strBasketAcctID);
-        Identifier BASKET_CONTRACT_ID;
+        const auto BASKET_ACCOUNT_ID = Identifier::Factory(strBasketAcctID);
+        auto BASKET_CONTRACT_ID = Identifier::Factory();
 
         bool bContractID =
             server_.transactor_.lookupBasketContractIDByAccountID(
@@ -364,7 +364,7 @@ bool MainFile::LoadMainFile(bool bReadOnly)
                 case irr::io::EXN_ELEMENT: {
                     if (strNodeName.Compare("notaryServer")) {
                         version_ = xml->getAttributeValue("version");
-                        server_.m_strNotaryID = Identifier(
+                        server_.m_strNotaryID = Identifier::Factory(
                             String(xml->getAttributeValue("notaryID")));
                         server_.m_strServerNymID =
                             xml->getAttributeValue("serverNymID");
@@ -456,10 +456,9 @@ bool MainFile::LoadMainFile(bool bReadOnly)
                         const String strAcctCount =
                             xml->getAttributeValue("count");
 
-                        if ((-1) ==
-                            server_.transactor_.voucherAccounts_
-                                .ReadFromXMLNode(
-                                    xml, strAcctType, strAcctCount))
+                        if ((-1) == server_.transactor_.voucherAccounts_
+                                        .ReadFromXMLNode(
+                                            xml, strAcctType, strAcctCount))
                             Log::vError(
                                 "%s: Error loading voucher accountList.\n",
                                 __FUNCTION__);
@@ -470,9 +469,11 @@ bool MainFile::LoadMainFile(bool bReadOnly)
                         String strBasketContractID =
                             xml->getAttributeValue("basketContractID");
 
-                        const Identifier BASKET_ID(strBasketID),
-                            BASKET_ACCT_ID(strBasketAcctID),
-                            BASKET_CONTRACT_ID(strBasketContractID);
+                        const auto BASKET_ID = Identifier::Factory(strBasketID),
+                                   BASKET_ACCT_ID =
+                                       Identifier::Factory(strBasketAcctID),
+                                   BASKET_CONTRACT_ID =
+                                       Identifier::Factory(strBasketContractID);
 
                         if (server_.transactor_.addBasketAccountID(
                                 BASKET_ID, BASKET_ACCT_ID, BASKET_CONTRACT_ID))
@@ -567,7 +568,7 @@ bool MainFile::LoadServerUserAndContract()
     // (I WAS loading this erroneously in Server.Init(), before
     // the Nym had actually been loaded from disk. That didn't work.)
     //
-    const Identifier NOTARY_ID(server_.m_strNotaryID);
+    const auto NOTARY_ID = Identifier::Factory(server_.m_strNotaryID);
 
     // Make sure the Cron object has a pointer to the server's Nym.
     // (For signing stuff...)

@@ -264,7 +264,7 @@ std::shared_ptr<Account> AccountList::GetOrRegisterAccount(
         // erased it...)
         // So let's load it now. After all, the Account ID *does* exist...
         String acctIDString(accountIdString.c_str());
-        Identifier accountID(acctIDString);
+        auto accountID = Identifier::Factory(acctIDString);
 
         // The Account ID exists, but we don't have the pointer to a loaded
         // account for it. So, let's load it.

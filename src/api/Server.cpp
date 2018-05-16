@@ -122,7 +122,7 @@ void Server::generate_mint(
     const std::string& unitID,
     const std::uint32_t series) const
 {
-    auto mint = GetPrivateMint(Identifier(unitID), series);
+    auto mint = GetPrivateMint(Identifier::Factory(unitID), series);
 
     if (mint) {
         otErr << OT_METHOD << __FUNCTION__ << ": Mint already exists."
@@ -160,8 +160,8 @@ void Server::generate_mint(
         now,
         validTo,
         expires,
-        Identifier(unitID),
-        Identifier(serverID),
+        Identifier::Factory(unitID),
+        Identifier::Factory(serverID),
         nym,
         1,
         5,
@@ -397,7 +397,7 @@ void Server::mint() const
             continue;
         }
 
-        auto mint = GetPrivateMint(Identifier(unitID), last);
+        auto mint = GetPrivateMint(Identifier::Factory(unitID), last);
 
         if (false == bool(mint)) {
             otErr << OT_METHOD << __FUNCTION__
@@ -497,7 +497,7 @@ std::shared_ptr<Mint> Server::verify_mint(
     OT_ASSERT(verify_lock(lock, mint_lock_));
 
     if (false == mint->LoadMint(seriesID.c_str())) {
-        UpdateMint(Identifier(unitID));
+        UpdateMint(Identifier::Factory(unitID));
 
         return {};
     }

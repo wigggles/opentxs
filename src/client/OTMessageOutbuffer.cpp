@@ -323,7 +323,7 @@ void OTMessageOutbuffer::Clear(
 {
     OT_ASSERT(pstrNymID.Exists());
     OT_ASSERT(pstrNotaryID.Exists());
-    OT_ASSERT(nymID == Identifier(pstrNymID));
+    OT_ASSERT(nymID == Identifier::Factory(pstrNymID));
 
     Lock lock(lock_);
     auto it = messagesMap_.begin();

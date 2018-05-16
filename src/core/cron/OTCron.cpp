@@ -145,14 +145,13 @@ bool OTCron::GetNym_OfferList(
 
         std::int32_t nNymOfferCount = 0;
 
-        if (false ==
-            pMarket->GetNym_OfferList(
-                NYM_ID,
-                *pOfferList,
-                nNymOfferCount))  // appends to
-                                  // *pOfferList,
-                                  // each
-                                  // iteration.
+        if (false == pMarket->GetNym_OfferList(
+                         NYM_ID,
+                         *pOfferList,
+                         nNymOfferCount))  // appends to
+                                           // *pOfferList,
+                                           // each
+                                           // iteration.
         {
             // may wish to add a log later. Anyway, keep iterationg and
             // appending, then send back whatever we have.
@@ -226,7 +225,7 @@ bool OTCron::GetMarketList(OTASCIIArmor& ascOutput, std::int32_t& nMarketCount)
             dynamic_cast<OTDB::MarketData*>(
                 OTDB::CreateObject(OTDB::STORED_OBJ_MARKET_DATA)));
 
-        const Identifier MARKET_ID(*pMarket);
+        const auto MARKET_ID = Identifier::Factory(*pMarket);
         const String str_MARKET_ID(MARKET_ID);
         const String str_NotaryID(pMarket->GetNotaryID());
         const String str_INSTRUMENT_DEFINITION_ID(
@@ -475,8 +474,9 @@ std::int32_t OTCron::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         const std::int64_t lScale =
             String::StringToLong(xml->getAttributeValue("marketScale"));
 
-        const Identifier INSTRUMENT_DEFINITION_ID(strInstrumentDefinitionID),
-            CURRENCY_ID(strCurrencyID);
+        const auto INSTRUMENT_DEFINITION_ID =
+                       Identifier::Factory(strInstrumentDefinitionID),
+                   CURRENCY_ID = Identifier::Factory(strCurrencyID);
 
         otWarn << "Loaded cron entry for Market:\n" << strMarketID << ".\n";
 
@@ -529,7 +529,7 @@ void OTCron::UpdateContents()
         OTMarket* pMarket = it.second;
         OT_ASSERT(nullptr != pMarket);
 
-        Identifier MARKET_ID(*pMarket);
+        auto MARKET_ID = Identifier::Factory(*pMarket);
         String str_MARKET_ID(MARKET_ID);
 
         String str_INSTRUMENT_DEFINITION_ID(
@@ -696,8 +696,9 @@ bool OTCron::AddCronItem(
                              // now--user's and server's.)
                              !theItem.SaveContract() ||
                              !theItem.SaveCronReceipt())) {
-            otErr << __FUNCTION__ << ": Error saving receipt while adding new "
-                                     "CronItem to Cron.\n";
+            otErr << __FUNCTION__
+                  << ": Error saving receipt while adding new "
+                     "CronItem to Cron.\n";
             return false;
         }
 
@@ -955,7 +956,7 @@ bool OTCron::AddMarket(OTMarket& theMarket, bool bSaveMarketFile)
     theMarket.SetCronPointer(
         *this);  // This way every Market has a pointer to Cron.
 
-    Identifier MARKET_ID(theMarket);
+    auto MARKET_ID = Identifier::Factory(theMarket);
     String str_MARKET_ID(MARKET_ID);
     std::string std_MARKET_ID = str_MARKET_ID.Get();
 
@@ -1022,7 +1023,7 @@ OTMarket* OTCron::GetOrCreateMarket(
 
     OT_ASSERT(nullptr != pMarket);
 
-    Identifier MARKET_ID(*pMarket);
+    auto MARKET_ID = Identifier::Factory(*pMarket);
 
     OTMarket* pExistingMarket = GetMarket(MARKET_ID);
 
@@ -1070,7 +1071,7 @@ OTMarket* OTCron::GetMarket(const Identifier& MARKET_ID)
 
         OT_ASSERT((nullptr != pMarket));
 
-        const Identifier LOOP_MARKET_ID(*pMarket);
+        const auto LOOP_MARKET_ID = Identifier::Factory(*pMarket);
         const String str_LOOP_MARKET_ID(LOOP_MARKET_ID);
 
         if (MARKET_ID == LOOP_MARKET_ID)

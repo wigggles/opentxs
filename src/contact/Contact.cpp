@@ -607,8 +607,8 @@ OTIdentifier Contact::generate_id() const
     auto& crypto = OT::App().Crypto().Encode();
     auto random = Data::Factory();
     crypto.Nonce(ID_BYTES, random);
-    Identifier output{};
-    output.CalculateDigest(random);
+    auto output = Identifier::Factory();
+    output->CalculateDigest(random);
 
     return output;
 }
@@ -658,7 +658,7 @@ void Contact::init_nyms()
 
         OT_ASSERT(item);
 
-        const OTIdentifier nymID = Identifier(item->Value());
+        const OTIdentifier nymID = Identifier::Factory(item->Value());
         auto& nym = nyms_[nymID];
         nym = wallet_.Nym(nymID);
 
