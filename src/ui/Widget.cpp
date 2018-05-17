@@ -71,5 +71,8 @@ void Widget::UpdateNotify() const
     update_socket_->SendRequest(id);
 }
 
-    OTIdentifier Widget::WidgetID() const { return Identifier::Factory(widget_id_); }
+OTIdentifier Widget::WidgetID() const
+{
+    return Identifier::Factory(widget_id_);
+}
 }  // namespace opentxs::ui::implementation

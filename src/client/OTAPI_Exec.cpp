@@ -1746,9 +1746,8 @@ bool OTAPI_Exec::Wallet_CanRemoveAssetType(
         if (theID == theCompareID) {
             otOut << OT_METHOD << __FUNCTION__
                   << ": Unable to remove asset contract "
-                  << INSTRUMENT_DEFINITION_ID
-                  << " from "
-                     "wallet: Account "
+                  << INSTRUMENT_DEFINITION_ID << " from "
+                                                 "wallet: Account "
                   << strAcctID << " uses it.\n";
             return false;
         }
@@ -4162,8 +4161,9 @@ std::string OTAPI_Exec::VerifyAndRetrieveXMLContents(
     const auto theSignerID = Identifier::Factory(SIGNER_ID);
     String strOutput;
 
-    if (false == ot_api_.VerifyAndRetrieveXMLContents(
-                     strContract, theSignerID, strOutput)) {
+    if (false ==
+        ot_api_.VerifyAndRetrieveXMLContents(
+            strContract, theSignerID, strOutput)) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Failure: "
                  "ot_api_.VerifyAndRetrieveXMLContents() "
@@ -4378,9 +4378,9 @@ std::string OTAPI_Exec::WriteCheque(
 
     if (!CHEQUE_MEMO.empty()) strMemo.Set(String(CHEQUE_MEMO));
 
-    OTIdentifier idForRecipient( bHasRecipient
-        ? Identifier::Factory(theRecipientNymID)
-        : Identifier::Factory());
+    OTIdentifier idForRecipient(
+        bHasRecipient ? Identifier::Factory(theRecipientNymID)
+                      : Identifier::Factory());
 
     std::unique_ptr<Cheque> pCheque(ot_api_.WriteCheque(
         theNotaryID,
@@ -4390,8 +4390,7 @@ std::string OTAPI_Exec::WriteCheque(
         theSenderAcctID,
         theSenderNymID,
         strMemo,
-        idForRecipient
-       ));
+        idForRecipient));
 
     if (!pCheque) {
         otErr << OT_METHOD << __FUNCTION__ << ": OT_API::WriteCheque failed.\n";
@@ -6950,7 +6949,7 @@ bool OTAPI_Exec::Msg_HarvestTransactionNumbers(
                 return false;
             }
             // Now let's get the server ID...
-            const Identifier serverID = pAccount->GetPurportedNotaryID();
+            const auto serverID = pAccount->GetPurportedNotaryID();
             auto pServer = wallet_.Server(serverID);
 
             if (!pServer) {
@@ -8076,7 +8075,7 @@ std::string OTAPI_Exec::Ledger_GetTransactionByIndex(
         //      || !theLedger.LoadBoxReceipts(&setUnloaded)
         // This is done below, for the individual transaction,
         // for better optimization.
-    ) {
+        ) {
         String strAcctID(theAccountID);
         otErr << OT_METHOD << __FUNCTION__
               << ": Error loading ledger from string, or loading box receipts "
@@ -11704,8 +11703,9 @@ std::string OTAPI_Exec::Message_GetNewInstrumentDefinitionID(
     // contain a ledger. (Don't want to pass back whatever it DOES contain
     // in that case, now do I?)
     //
-    if ((false == theMessage.m_strCommand.Compare(
-                      "registerInstrumentDefinitionResponse")) &&
+    if ((false ==
+         theMessage.m_strCommand.Compare(
+             "registerInstrumentDefinitionResponse")) &&
         (false == theMessage.m_strCommand.Compare("issueBasketResponse"))) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Wrong message type: " << theMessage.m_strCommand << "\n";

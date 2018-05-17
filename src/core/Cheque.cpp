@@ -241,9 +241,8 @@ std::int32_t Cheque::ProcessXMLNode(IrrXMLReader*& xml)
                << "\n Valid From: " << str_valid_from
                << "\n Valid To: " << str_valid_to
                << "\n InstrumentDefinitionID: " << strInstrumentDefinitionID
-               << "\n NotaryID: " << strNotaryID
-               << "\n"
-                  " senderAcctID: "
+               << "\n NotaryID: " << strNotaryID << "\n"
+                                                    " senderAcctID: "
                << strSenderAcctID << "\n senderNymID: " << strSenderNymID
                << "\n "
                   " Has Recipient? "
@@ -309,7 +308,7 @@ bool Cheque::IssueCheque(
                                        // asset account,
     // AND must verify the cheque signature with that user's key.
     const String& strMemo,                // Optional memo field.
-    const OTIdentifier pRECIPIENT_NYM_ID)  // Recipient optional.
+    const Identifier& pRECIPIENT_NYM_ID)  // Recipient optional.
                                           // (Might be a blank
                                           // cheque.)
 {
@@ -324,7 +323,7 @@ bool Cheque::IssueCheque(
     SetSenderAcctID(SENDER_ACCT_ID);
     SetSenderNymID(SENDER_NYM_ID);
 
-    if (pRECIPIENT_NYM_ID->empty()) {
+    if (pRECIPIENT_NYM_ID.empty()) {
         m_bHasRecipient = false;
         m_RECIPIENT_NYM_ID->Release();
     } else {
