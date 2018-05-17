@@ -122,7 +122,7 @@ protected:
     std::unique_ptr<std::thread> startup_{nullptr};
     const std::unique_ptr<RowType> blank_p_{nullptr};
     const RowType& blank_;
-    const Identifier& widget_id_;
+    const OTIdentifier widget_id_;
 
     virtual IDType blank_id() const = 0;
     virtual void construct_item(
