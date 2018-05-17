@@ -57,25 +57,13 @@ public:
     bool Delete(const std::string& claimID) const override { return false; }
     const opentxs::ui::ProfileItem& First() const override
     {
-#if defined(TARGET_OS_MAC) && TARGET_OS_MAC
-        OT_FAIL;
-#else // Notice the below line deliberately dereferences a null pointer,
-      // then returns it as a reference. Undefined behavior; clang wouldn't
-      // even compile on my Mac.
         return *static_cast<const opentxs::ui::ProfileItem*>(nullptr);
-#endif
     }
     bool Last() const override { return true; }
     std::string Name(const std::string& lang) const override { return {}; }
     const opentxs::ui::ProfileItem& Next() const override
     {
-#if defined(TARGET_OS_MAC) && TARGET_OS_MAC
-        OT_FAIL;
-#else // Notice the below line deliberately dereferences a null pointer,
-      // then returns it as a reference. Undefined behavior; clang wouldn't
-      // even compile on my Mac.
         return *static_cast<const opentxs::ui::ProfileItem*>(nullptr);
-#endif
     }
     proto::ContactItemType Type() const override { return {}; }
     bool SetActive(const std::string&, const bool) const override

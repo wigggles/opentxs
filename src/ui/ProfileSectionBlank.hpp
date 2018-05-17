@@ -61,26 +61,14 @@ public:
     bool Delete(const int, const std::string&) const override { return false; }
     const opentxs::ui::ProfileSubsection& First() const override
     {
-#if defined(TARGET_OS_MAC) && TARGET_OS_MAC
-        OT_FAIL;
-#else // Notice the below line deliberately dereferences a null pointer,
-      // then returns it as a reference. Undefined behavior; clang wouldn't
-      // even compile on my Mac.
         return *static_cast<const opentxs::ui::ProfileSubsection*>(nullptr);
-#endif
     }
     ItemTypeList Items(const std::string&) const override { return {}; }
     bool Last() const override { return true; }
     std::string Name(const std::string& lang) const override { return {}; }
     const opentxs::ui::ProfileSubsection& Next() const override
     {
-#if defined(TARGET_OS_MAC) && TARGET_OS_MAC
-        OT_FAIL;
-#else // Notice the below line deliberately dereferences a null pointer,
-      // then returns it as a reference. Undefined behavior; clang wouldn't
-      // even compile on my Mac.
         return *static_cast<const opentxs::ui::ProfileSubsection*>(nullptr);
-#endif
     }
     bool SetActive(const int, const std::string&, const bool) const override
     {
