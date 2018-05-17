@@ -100,7 +100,7 @@ public:
         const Identifier& recipientContactID,
         const proto::BlockchainTransaction& transaction) const;
     std::shared_ptr<proto::BlockchainTransaction> Transaction(
-        const Identifier& id) const;
+        const std::string& id) const;
 
     ~Blockchain() = default;
 

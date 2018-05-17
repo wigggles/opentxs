@@ -3900,8 +3900,7 @@ bool SwigWrap::Blockchain_Store_Outgoing_base64(
 
 std::string SwigWrap::Blockchain_Transaction(const std::string& txid)
 {
-    const auto output =
-        OT::App().Blockchain().Transaction(Identifier::Factory(txid));
+    const auto output = OT::App().Blockchain().Transaction(txid);
 
     if (false == bool(output)) {
 

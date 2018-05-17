@@ -741,11 +741,11 @@ bool Blockchain::StoreOutgoing(
 }
 
 std::shared_ptr<proto::BlockchainTransaction> Blockchain::Transaction(
-    const Identifier& id) const
+    const std::string& txid) const
 {
     std::shared_ptr<proto::BlockchainTransaction> output;
 
-    if (false == storage_.Load(id.str(), output, false)) {
+    if (false == storage_.Load(txid, output, false)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to load transaction."
               << std::endl;
     }
