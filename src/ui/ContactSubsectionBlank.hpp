@@ -53,12 +53,24 @@ public:
     std::string Name(const std::string& lang) const override { return {}; }
     const opentxs::ui::ContactItem& First() const override
     {
+#if defined(TARGET_OS_MAC) && TARGET_OS_MAC
+        OT_FAIL;
+#else // Notice the below line deliberately dereferences a null pointer,
+      // then returns it as a reference. Undefined behavior; clang wouldn't
+      // even compile on my Mac.
         return *static_cast<const opentxs::ui::ContactItem*>(nullptr);
+#endif
     }
     bool Last() const override { return true; }
     const opentxs::ui::ContactItem& Next() const override
     {
+#if defined(TARGET_OS_MAC) && TARGET_OS_MAC
+        OT_FAIL;
+#else // Notice the below line deliberately dereferences a null pointer,
+        // then returns it as a reference. Undefined behavior; clang wouldn't
+        // even compile on my Mac.
         return *static_cast<const opentxs::ui::ContactItem*>(nullptr);
+#endif
     }
     proto::ContactItemType Type() const override { return {}; }
     bool Valid() const override { return false; }

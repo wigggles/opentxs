@@ -68,7 +68,7 @@
 
 #include "Profile.hpp"
 
-template class std::pair<int, std::string>;
+template struct std::pair<int, std::string>;
 
 #define OT_METHOD "opentxs::ui::implementation::Profile::"
 
