@@ -50,7 +50,7 @@ class ProfileItemBlank : virtual public ui::ProfileItem
 {
 public:
     std::string ClaimID() const override { return {}; }
-    bool Delete() const { return false; }
+    bool Delete() const override{ return false; }
     bool IsActive() const override { return false; }
     bool IsPrimary() const override { return false; }
     std::string Value() const override { return {}; }

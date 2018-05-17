@@ -115,7 +115,7 @@
 // clang-format on
 #endif  // SWIG
 
-extern template class std::pair<int, std::string>;
+extern template struct std::pair<int, std::string>;
 
 namespace opentxs
 {
