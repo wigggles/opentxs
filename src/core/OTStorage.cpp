@@ -440,9 +440,7 @@ Storable* CreateObject(StoredObjectType eType)
 {
     Storage* pStorage = details::s_pStorage;
 
-    if (nullptr == pStorage) {
-        return nullptr;
-    }
+    if (nullptr == pStorage) { return nullptr; }
 
     return pStorage->CreateObject(eType);
 }
@@ -580,9 +578,7 @@ bool StoreString(
 
     Storage* pStorage = details::s_pStorage;
 
-    if (nullptr == pStorage) {
-        return false;
-    }
+    if (nullptr == pStorage) { return false; }
 
     return pStorage->StoreString(
         strContents, ot_strFolder.Get(), ot_oneStr.Get(), twoStr, threeStr);
@@ -643,9 +639,7 @@ bool StorePlainString(
     OT_ASSERT((strFolder.length() > 3) || (0 == strFolder.compare(0, 1, ".")));
     OT_ASSERT((oneStr.length() < 1) || (oneStr.length() > 3));
 
-    if (nullptr == pStorage) {
-        return false;
-    }
+    if (nullptr == pStorage) { return false; }
 
     return pStorage->StorePlainString(
         strContents, ot_strFolder.Get(), ot_oneStr.Get(), twoStr, threeStr);
@@ -675,9 +669,7 @@ std::string QueryPlainString(
     OT_ASSERT((strFolder.length() > 3) || (0 == strFolder.compare(0, 1, ".")));
     OT_ASSERT((oneStr.length() < 1) || (oneStr.length() > 3));
 
-    if (nullptr == pStorage) {
-        return std::string("");
-    }
+    if (nullptr == pStorage) { return std::string(""); }
 
     return pStorage->QueryPlainString(
         ot_strFolder.Get(), ot_oneStr.Get(), twoStr, threeStr);
@@ -738,9 +730,7 @@ Storable* QueryObject(
 
     Storage* pStorage = details::s_pStorage;
 
-    if (nullptr == pStorage) {
-        return nullptr;
-    }
+    if (nullptr == pStorage) { return nullptr; }
 
     return pStorage->QueryObject(
         theObjectType, ot_strFolder.Get(), ot_oneStr.Get(), twoStr, threeStr);
@@ -766,9 +756,7 @@ Storable* DecodeObject(
 {
     Storage* pStorage = details::s_pStorage;
 
-    if (nullptr == pStorage) {
-        return nullptr;
-    }
+    if (nullptr == pStorage) { return nullptr; }
 
     return pStorage->DecodeObject(theObjectType, strInput);
 }
@@ -869,9 +857,8 @@ PackedBuffer* OTPacker::Pack(Storable& inObj)
 {
     IStorable* pStorable = dynamic_cast<IStorable*>(&inObj);
 
-    if (nullptr ==
-        pStorable)  // ALL Storables should implement SOME subinterface
-                    // of IStorable
+    if (nullptr == pStorable)  // ALL Storables should implement SOME
+                               // subinterface of IStorable
     {
         otErr << "OTPacker::Pack: Error: IStorable dynamic_cast failed.\n";
         return nullptr;
@@ -917,9 +904,7 @@ bool OTPacker::Unpack(PackedBuffer& inBuf, Storable& outObj)
     // If we're unable to unpack the contents of inBuf
     // into outObj, return false.
     //
-    if (!pStorable->onUnpack(inBuf, outObj)) {
-        return false;
-    }
+    if (!pStorable->onUnpack(inBuf, outObj)) { return false; }
 
     pStorable->hookAfterUnpack();  // Give the subclass a chance to settle its
                                    // data after unpacking...
@@ -956,9 +941,9 @@ bool OTPacker::Unpack(PackedBuffer& inBuf, std::string& outObj)
     return true;
 }
 
-    // NOTICE!!! that when you add something to the list, it is CLONED. (Caller
-    // is still responsible to delete the argument.)
-    //
+// NOTICE!!! that when you add something to the list, it is CLONED. (Caller
+// is still responsible to delete the argument.)
+//
 
 #define IMPLEMENT_GET_ADD_REMOVE(scope, name)                                  \
                                                                                \
@@ -1071,7 +1056,7 @@ AddressBook::~AddressBook()
 // Msgpack packer.
 #if defined(OTDB_MESSAGE_PACK)
 
-    // look into git history for old (dead) code.
+// look into git history for old (dead) code.
 
 #endif  // defined (OTDB_MESSAGE_PACK)
 
@@ -1452,19 +1437,19 @@ void BufferPB::SetData(const std::uint8_t* pData, size_t theSize)
     m_buffer.assign(reinterpret_cast<const char*>(pData), theSize);
 }
 
-    // !! All of these have to provide implementations for the hookBeforePack
-    // and hookAfterUnpack methods. In .cpp file:
-    /*
-     void SUBCLASS_HERE::hookBeforePack()
-     {
-     __pb_obj.set_PROPERTY_NAME_GOES_HERE(PROPERTY_NAME_GOES_HERE);
-     }
-     void SUBCLASS_HERE::hookAfterUnpack()
-     {
-     PROPERTY_NAME_GOES_HERE    = __pb_obj.PROPERTY_NAME_GOES_HERE();
-     }
-     */
-    //
+// !! All of these have to provide implementations for the hookBeforePack
+// and hookAfterUnpack methods. In .cpp file:
+/*
+ void SUBCLASS_HERE::hookBeforePack()
+ {
+ __pb_obj.set_PROPERTY_NAME_GOES_HERE(PROPERTY_NAME_GOES_HERE);
+ }
+ void SUBCLASS_HERE::hookAfterUnpack()
+ {
+ PROPERTY_NAME_GOES_HERE    = __pb_obj.PROPERTY_NAME_GOES_HERE();
+ }
+ */
+//
 
 #define OT_IMPLEMENT_PB_LIST_PACK(pb_name, element_type)                       \
     __pb_obj.clear_##pb_name();                                                \
@@ -2068,9 +2053,7 @@ OTPacker* Storage::GetPacker(PackType ePackType)
     // Get() call), and the coder using the API still has the ability to choose
     // what type of packer will be used.
     //
-    if (nullptr == m_pPacker) {
-        m_pPacker = OTPacker::Create(ePackType);
-    }
+    if (nullptr == m_pPacker) { m_pPacker = OTPacker::Create(ePackType); }
 
     return m_pPacker;  // May return nullptr. (If Create call above fails.)
 }
@@ -2388,8 +2371,7 @@ std::string Storage::EncodeObject(Storable& theContents)
     //        virtual const    std::uint8_t *    GetData()=0;
     //        virtual            size_t            GetSize()=0;
     //
-    const std::uint32_t nNewSize =
-        static_cast<const uint32_t>(pBuffer->GetSize());
+    const auto nNewSize = static_cast<std::uint32_t>(pBuffer->GetSize());
     const void* pNewData = static_cast<const void*>(pBuffer->GetData());
 
     if ((nNewSize < 1) || (nullptr == pNewData)) {

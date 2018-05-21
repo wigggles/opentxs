@@ -215,7 +215,7 @@ else()
 endif()
 
 if(${CMAKE_CXX_COMPILER_ID} MATCHES GNU)
-  set(GCC_WARN_FLAGS "-Wno-attributes -Wnoexcept -Wstrict-null-sentinel -Wlogical-op")
+  set(GCC_WARN_FLAGS "-Wno-attributes -Wnoexcept -Wstrict-null-sentinel -Wlogical-op -Wno-parentheses")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
 
   if(ANDROID)
@@ -229,6 +229,13 @@ elseif(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
     set(CMAKE_CXX_LINK_FLAGS "${CMAKE_CXX_LINK_FLAGS} -stdlib=libc++")
   else()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
+  endif()
+endif()
+
+if(BUILD_SHARED_LIBS)
+  # Windows would complain about unknown flag -fPIC
+  if(NOT WIN32)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
   endif()
 endif()
 
@@ -254,7 +261,7 @@ endif()
 
 message(STATUS "C++ Compiler ID: ${CMAKE_CXX_COMPILER_ID}")
 message(STATUS "C Flags:         ${CMAKE_C_FLAGS}")
-message(STATUS "C++ Flags:       ${CMAKE_CXX_FLAGS}")
+message(STATUS "C++ Flags:       ${CMAKE_CXX_FLAGS} ${PEDANTIC_CXX_FLAGS}")
 message(STATUS "C++ link flags:  ${CMAKE_CXX_LINK_FLAGS}")
 
 #-----------------------------------------------------------------------------

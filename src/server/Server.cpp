@@ -165,9 +165,7 @@ void Server::ProcessCron()
             break;
     }
 
-    if (bAddedNumbers) {
-        m_Cron.SaveCron();
-    }
+    if (bAddedNumbers) { m_Cron.SaveCron(); }
 
     m_Cron.ProcessCronItems();  // This needs to be called regularly for trades,
                                 // markets, payment plans, etc to process.
@@ -242,9 +240,7 @@ void Server::CreateMainFile(bool& mainFileExists)
         OT_FAIL;
     }
 
-    if (!newNym->VerifyPseudonym()) {
-        OT_FAIL;
-    }
+    if (!newNym->VerifyPseudonym()) { OT_FAIL; }
 
     String serverNymID;
     newNym->GetIdentifier(serverNymID);
@@ -254,25 +250,19 @@ void Server::CreateMainFile(bool& mainFileExists)
     const std::string& userTerms = mint_.GetUserTerms();
     std::string terms = userTerms;
 
-    if (1 > userTerms.size()) {
-        terms = defaultTerms;
-    }
+    if (1 > userTerms.size()) { terms = defaultTerms; }
 
     const std::string defaultExternalIP = DEFAULT_EXTERNAL_IP;
     const std::string& userExternalIP = mint_.GetExternalIP();
     std::string hostname = userExternalIP;
 
-    if (5 > hostname.size()) {
-        hostname = defaultExternalIP;
-    }
+    if (5 > hostname.size()) { hostname = defaultExternalIP; }
 
     const std::string defaultBindIP = DEFAULT_BIND_IP;
     const std::string& userBindIP = mint_.GetDefaultBindIP();
     std::string bindIP = userBindIP;
 
-    if (5 > bindIP.size()) {
-        bindIP = defaultBindIP;
-    }
+    if (5 > bindIP.size()) { bindIP = defaultBindIP; }
 
     bool notUsed = false;
     config_.Set_str(
@@ -289,10 +279,10 @@ void Server::CreateMainFile(bool& mainFileExists)
     while (needPort) {
         try {
             commandPort = std::stoi(userCommandPort.c_str());
-        } catch (std::invalid_argument) {
+        } catch (const std::invalid_argument&) {
             commandPort = defaultCommandPort;
             needPort = false;
-        } catch (std::out_of_range) {
+        } catch (const std::out_of_range&) {
             commandPort = defaultCommandPort;
             needPort = false;
         }
@@ -310,10 +300,10 @@ void Server::CreateMainFile(bool& mainFileExists)
     while (needListenCommand) {
         try {
             listenCommand = std::stoi(userListenCommand.c_str());
-        } catch (std::invalid_argument) {
+        } catch (const std::invalid_argument&) {
             listenCommand = defaultCommandPort;
             needListenCommand = false;
-        } catch (std::out_of_range) {
+        } catch (const std::out_of_range&) {
             listenCommand = defaultCommandPort;
             needListenCommand = false;
         }
@@ -339,10 +329,10 @@ void Server::CreateMainFile(bool& mainFileExists)
     while (needListenNotification) {
         try {
             listenNotification = std::stoi(userListenNotification.c_str());
-        } catch (std::invalid_argument) {
+        } catch (const std::invalid_argument&) {
             listenNotification = defaultNotificationPort;
             needListenNotification = false;
-        } catch (std::out_of_range) {
+        } catch (const std::out_of_range&) {
             listenNotification = defaultNotificationPort;
             needListenNotification = false;
         }
@@ -365,9 +355,7 @@ void Server::CreateMainFile(bool& mainFileExists)
     const std::string& userName = mint_.GetUserName();
     std::string name = userName;
 
-    if (1 > name.size()) {
-        name = defaultName;
-    }
+    if (1 > name.size()) { name = defaultName; }
 
     std::list<ServerContract::Endpoint> endpoints;
     ServerContract::Endpoint ipv4{proto::ADDRESSTYPE_IPV4,
@@ -607,9 +595,7 @@ void Server::Init(bool readOnly)
 
             OT_ASSERT(mainFileExists);
 
-            if (!mainFile_.LoadMainFile(readOnly)) {
-                OT_FAIL;
-            }
+            if (!mainFile_.LoadMainFile(readOnly)) { OT_FAIL; }
         }
     }
 
@@ -900,9 +886,8 @@ bool Server::DropMessageToNymbox(
         OTTransaction* pTransaction = OTTransaction::GenerateTransaction(
             theLedger, theType, originType::not_applicable, lTransNum);
 
-        if (nullptr !=
-            pTransaction)  // The above has an OT_ASSERT within, but I
-                           // just like to check my pointers.
+        if (nullptr != pTransaction)  // The above has an OT_ASSERT within, but
+                                      // I just like to check my pointers.
         {
             // NOTE: todo: SHOULD this be "in reference to" itself? The reason,
             // I assume we are doing this

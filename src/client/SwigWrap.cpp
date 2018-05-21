@@ -103,7 +103,7 @@ extern "C" std::int32_t default_pass_cb(
     void* userdata)
 {
     std::int32_t len = 0;
-    const std::uint32_t theSize = uint32_t(size);
+    const std::uint32_t theSize = std::uint32_t(size);
 
     // We'd probably do something else if 'rwflag' is 1
 
@@ -113,9 +113,7 @@ extern "C" std::int32_t default_pass_cb(
     if (nullptr != userdata) {
         pPWData = static_cast<const OTPasswordData*>(userdata);
 
-        if (nullptr != pPWData) {
-            str_userdata = pPWData->GetDisplayString();
-        }
+        if (nullptr != pPWData) { str_userdata = pPWData->GetDisplayString(); }
     } else
         str_userdata = "";
 
@@ -148,7 +146,7 @@ extern "C" std::int32_t default_pass_cb(
     // if too std::int64_t, truncate
     if (len > size) len = size;
 
-    const std::uint32_t theLength = static_cast<const uint32_t>(len);
+    const auto theLength = len;
 
     // void * pv =
     OTPassword::safe_memcpy(
@@ -3045,9 +3043,7 @@ std::string SwigWrap::comma(const std::list<std::string>& list)
 
     std::string output = stream.str();
 
-    if (0 < output.size()) {
-        output.erase(output.size() - 1, 1);
-    }
+    if (0 < output.size()) { output.erase(output.size() - 1, 1); }
 
     return output;
 }
@@ -3064,9 +3060,7 @@ std::string SwigWrap::comma(const ObjectList& list)
 
     std::string output = stream.str();
 
-    if (0 < output.size()) {
-        output.erase(output.size() - 1, 1);
-    }
+    if (0 < output.size()) { output.erase(output.size() - 1, 1); }
 
     return output;
 }
@@ -3082,9 +3076,7 @@ std::string SwigWrap::comma(const std::set<OTIdentifier>& list)
 
     std::string output = stream.str();
 
-    if (0 < output.size()) {
-        output.erase(output.size() - 1, 1);
-    }
+    if (0 < output.size()) { output.erase(output.size() - 1, 1); }
 
     return output;
 }
@@ -3444,9 +3436,7 @@ std::string SwigWrap::GetContactSections(const std::uint32_t version)
     const auto data = OT::App().API().Exec().ContactSectionList(version);
     NumList list;
 
-    for (const auto& it : data) {
-        list.Add(it);
-    }
+    for (const auto& it : data) { list.Add(it); }
 
     String output;
     list.Output(output);
@@ -3470,9 +3460,7 @@ std::string SwigWrap::GetContactSectionTypes(
         static_cast<proto::ContactSectionName>(section), version);
     NumList list;
 
-    for (const auto& it : data) {
-        list.Add(it);
-    }
+    for (const auto& it : data) { list.Add(it); }
 
     String output;
     list.Output(output);
@@ -3538,10 +3526,7 @@ bool SwigWrap::ChangeConnectionType(
 {
     auto serverID = Identifier::Factory(server);
 
-    if (serverID->empty()) {
-
-        return false;
-    }
+    if (serverID->empty()) { return false; }
 
     auto& connection = OT::App().ZMQ().Server(server);
 
@@ -3552,10 +3537,7 @@ bool SwigWrap::ClearProxy(const std::string& server)
 {
     auto serverID = Identifier::Factory(server);
 
-    if (serverID->empty()) {
-
-        return false;
-    }
+    if (serverID->empty()) { return false; }
 
     auto& connection = OT::App().ZMQ().Server(server);
 
@@ -3674,10 +3656,7 @@ std::string SwigWrap::Blockchain_Account(
     const auto output = OT::App().Blockchain().Account(
         Identifier::Factory(nymID), Identifier::Factory(accountID));
 
-    if (false == bool(output)) {
-
-        return {};
-    }
+    if (false == bool(output)) { return {}; }
 
     return proto::ProtoAsString(*output);
 }
@@ -3688,10 +3667,7 @@ std::string SwigWrap::Blockchain_Account_base64(
 {
     const auto account = Blockchain_Account(nymID, accountID);
 
-    if (account.empty()) {
-
-        return {};
-    }
+    if (account.empty()) { return {}; }
 
     return OT::App().Crypto().Encode().DataEncode(account);
 }
@@ -3740,10 +3716,7 @@ std::string SwigWrap::Blockchain_Allocate_Address_base64(
     const auto address =
         Blockchain_Allocate_Address(nymID, accountID, label, internal);
 
-    if (address.empty()) {
-
-        return {};
-    }
+    if (address.empty()) { return {}; }
 
     return OT::App().Crypto().Encode().DataEncode(address);
 }
@@ -3794,10 +3767,7 @@ std::string SwigWrap::Blockchain_Load_Address_base64(
     const auto address =
         Blockchain_Load_Address(nymID, accountID, index, internal);
 
-    if (address.empty()) {
-
-        return {};
-    }
+    if (address.empty()) { return {}; }
 
     return OT::App().Crypto().Encode().DataEncode(address);
 }
@@ -3902,10 +3872,7 @@ std::string SwigWrap::Blockchain_Transaction(const std::string& txid)
 {
     const auto output = OT::App().Blockchain().Transaction(txid);
 
-    if (false == bool(output)) {
-
-        return {};
-    }
+    if (false == bool(output)) { return {}; }
 
     return proto::ProtoAsString(*output);
 }
@@ -3914,10 +3881,7 @@ std::string SwigWrap::Blockchain_Transaction_base64(const std::string& txid)
 {
     const auto transaction = Blockchain_Transaction(txid);
 
-    if (transaction.empty()) {
-
-        return {};
-    }
+    if (transaction.empty()) { return {}; }
 
     return OT::App().Crypto().Encode().DataEncode(transaction);
 }
@@ -3933,24 +3897,16 @@ std::string SwigWrap::Add_Contact(
     const bool noNym = nymID.empty();
     const bool noPaymentCode = paymentCode.empty();
 
-    if (noLabel && noNym && noPaymentCode) {
-
-        return {};
-    }
+    if (noLabel && noNym && noPaymentCode) { return {}; }
 
     auto nym = Identifier::Factory(nymID);
     auto code = PaymentCode::Factory(paymentCode);
 
-    if (nym->empty() && code->VerifyInternally()) {
-        nym = code->ID();
-    }
+    if (nym->empty() && code->VerifyInternally()) { nym = code->ID(); }
 
     auto output = OT::App().Contact().NewContact(label, nym, code);
 
-    if (false == bool(output)) {
-
-        return {};
-    }
+    if (false == bool(output)) { return {}; }
 
     return String(output->ID()).Get();
 }
@@ -4022,10 +3978,7 @@ std::string SwigWrap::Contact_Name(const std::string& id)
 {
     auto contact = OT::App().Contact().Contact(Identifier::Factory(id));
 
-    if (contact) {
-
-        return contact->Label();
-    }
+    if (contact) { return contact->Label(); }
 
     return {};
 }
@@ -4050,17 +4003,11 @@ std::string SwigWrap::Contact_to_Nym(const std::string& contactID)
     const auto contact =
         OT::App().Contact().Contact(Identifier::Factory(contactID));
 
-    if (false == bool(contact)) {
-
-        return {};
-    }
+    if (false == bool(contact)) { return {}; }
 
     const auto nyms = contact->Nyms();
 
-    if (0 == nyms.size()) {
-
-        return {};
-    }
+    if (0 == nyms.size()) { return {}; }
 
     return String(*nyms.begin()).Get();
 }
@@ -4136,9 +4083,7 @@ std::string SwigWrap::Import_Nym(const std::string& armored)
         proto::StringToProto<proto::CredentialIndex>(String(armored.c_str()));
     const auto nym = OT::App().Wallet().Nym(serialized);
 
-    if (nym) {
-        return String(nym->ID()).Get();
-    }
+    if (nym) { return String(nym->ID()).Get(); }
 
     return {};
 }
@@ -4203,10 +4148,7 @@ std::string SwigWrap::Paired_Server(
     auto issuer = OT::App().Wallet().Issuer(
         Identifier::Factory(localNymID), Identifier::Factory(issuerNymID));
 
-    if (false == bool(issuer)) {
-
-        return {""};
-    }
+    if (false == bool(issuer)) { return {""}; }
 
     return String(issuer->PrimaryServer()).Get();
 }
@@ -4232,10 +4174,7 @@ std::string SwigWrap::Set_Introduction_Server(const std::string& contract)
         proto::StringToProto<proto::ServerContract>(contract.c_str());
     const auto instantiated = OT::App().Wallet().Server(serialized);
 
-    if (false == bool(instantiated)) {
-
-        return {};
-    }
+    if (false == bool(instantiated)) { return {}; }
 
     return String(OT::App().API().Sync().SetIntroductionServer(*instantiated))
         .Get();
@@ -4296,7 +4235,6 @@ const ui::Profile& SwigWrap::Profile(const std::string& contactID)
 {
 
     return OT::App().UI().Profile(Identifier::Factory(contactID));
-
 }
 
 const network::zeromq::Context& SwigWrap::ZMQ()
@@ -4309,7 +4247,7 @@ std::string SwigWrap::AvailableServers(const std::string& nymID)
     std::list<std::string> available;
     const auto servers = OT::App().Wallet().ServerList();
 
-    for (const auto & [ serverID, alias ] : servers) {
+    for (const auto& [serverID, alias] : servers) {
         [[maybe_unused]] const auto& notUsed = alias;
 
         if (OT::App().API().Exec().IsNym_RegisteredAtServer(nymID, serverID)) {
