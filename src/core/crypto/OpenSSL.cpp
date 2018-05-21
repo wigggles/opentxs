@@ -170,9 +170,7 @@ OpenSSL::DigestContext::DigestContext()
 
 OpenSSL::DigestContext::~DigestContext()
 {
-    if (nullptr != context_) {
-        EVP_MD_CTX_free(context_);
-    }
+    if (nullptr != context_) { EVP_MD_CTX_free(context_); }
 }
 
 OpenSSL::DigestContext::operator EVP_MD_CTX*() { return context_; }
@@ -345,13 +343,13 @@ OTPassword* OpenSSL::DeriveNewKey(
                                        // otherwise supply memory.
         (userPassword.isPassword() ? userPassword.getPassword_uint8()
                                    : userPassword.getMemory_uint8()),
-        static_cast<const std::int32_t>(
+        static_cast<std::int32_t>(
             userPassword.isPassword() ? userPassword.getPasswordSize()
                                       : userPassword.getMemorySize()),
         static_cast<const std::uint8_t*>(dataSalt.GetPointer()),
-        static_cast<const std::int32_t>(dataSalt.GetSize()),
-        static_cast<const std::int32_t>(uIterations),
-        static_cast<const std::int32_t>(pDerivedKey->getMemorySize()),
+        static_cast<std::int32_t>(dataSalt.GetSize()),
+        static_cast<std::int32_t>(uIterations),
+        static_cast<std::int32_t>(pDerivedKey->getMemorySize()),
         static_cast<std::uint8_t*>(pDerivedKey->getMemoryWritable()));
 
     // For The HashCheck
@@ -366,11 +364,11 @@ OTPassword* OpenSSL::DeriveNewKey(
 
     PKCS5_PBKDF2_HMAC_SHA1(
         reinterpret_cast<const char*>(pDerivedKey->getMemory()),
-        static_cast<const std::int32_t>(pDerivedKey->getMemorySize()),
+        static_cast<std::int32_t>(pDerivedKey->getMemorySize()),
         static_cast<const std::uint8_t*>(dataSalt.GetPointer()),
-        static_cast<const std::int32_t>(dataSalt.GetSize()),
-        static_cast<const std::int32_t>(uIterations),
-        static_cast<const std::int32_t>(tmpHashCheck->GetSize()),
+        static_cast<std::int32_t>(dataSalt.GetSize()),
+        static_cast<std::int32_t>(uIterations),
+        static_cast<std::int32_t>(tmpHashCheck->GetSize()),
         const_cast<std::uint8_t*>(
             static_cast<const std::uint8_t*>(tmpHashCheck->GetPointer())));
 
@@ -619,9 +617,7 @@ void OpenSSL::thread_cleanup() const
 {
     CRYPTO_set_locking_callback(nullptr);
 
-    if (nullptr != OpenSSL::s_arrayMutex) {
-        delete[] OpenSSL::s_arrayMutex;
-    }
+    if (nullptr != OpenSSL::s_arrayMutex) { delete[] OpenSSL::s_arrayMutex; }
 
     OpenSSL::s_arrayMutex = nullptr;
 }
@@ -634,9 +630,7 @@ void OpenSSL::Init_Override() const
 
     static bool Initialized = false;
 
-    if (Initialized) {
-        return;
-    }
+    if (Initialized) { return; }
 
     Initialized = true;
 
@@ -871,9 +865,8 @@ void OpenSSL::Init_Override() const
     // file format is documented in the conf(5) manual page.
     //
 
-    OPENSSL_config(
-        nullptr);  // const char *config_name = nullptr: the default name
-                   // openssl_conf will be used.
+    OPENSSL_config(nullptr);  // const char *config_name = nullptr: the default
+                              // name openssl_conf will be used.
 
     //
     // Corresponds to CONF_modules_free() in OT_Cleanup().
@@ -1031,13 +1024,9 @@ bool OpenSSL::ArgumentCheck(
     // Debug logging
     otLog3 << "Using cipher: " << CryptoSymmetric::ModeToString(cipher) << "\n";
 
-    if (ECB) {
-        otLog3 << "...in ECB mode.\n";
-    }
+    if (ECB) { otLog3 << "...in ECB mode.\n"; }
 
-    if (AEAD) {
-        otLog3 << "...in AEAD mode.\n";
-    }
+    if (AEAD) { otLog3 << "...in AEAD mode.\n"; }
 
     otLog3 << "...with a " << (8 * CryptoSymmetric::KeySize(cipher))
            << "bit key.\n";
@@ -1151,9 +1140,7 @@ bool OpenSSL::Encrypt(
     bool goodInputs = ArgumentCheck(
         true, cipher, key, iv, tag, plaintext, plaintextLength, AEAD, ECB);
 
-    if (!goodInputs) {
-        return false;
-    }
+    if (!goodInputs) { return false; }
 
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
     EVP_CIPHER_CTX ctx;
@@ -1417,9 +1404,7 @@ bool OpenSSL::Decrypt(
     bool goodInputs = ArgumentCheck(
         false, cipher, key, iv, tag, ciphertext, ciphertextLength, AEAD, ECB);
 
-    if (!goodInputs) {
-        return false;
-    }
+    if (!goodInputs) { return false; }
 
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
     EVP_CIPHER_CTX ctx;
@@ -1500,7 +1485,7 @@ bool OpenSSL::Decrypt(
             otErr << szFunc << ": Could not set IV length.\n";
             return false;
         }
-    }
+    }  // namespace opentxs
 
     if (!ECB) {
         // set IV
@@ -1940,9 +1925,7 @@ bool OpenSSL::OpenSSLdp::SignContractDefaultHash(
     const auto binSignature = Data::Factory(&vpSignature.at(0), status);
     theSignature.Assign(binSignature->GetPointer(), binSignature->GetSize());
 
-    if (pRsaKey) {
-        RSA_free(pRsaKey);
-    }
+    if (pRsaKey) { RSA_free(pRsaKey); }
 
     pRsaKey = nullptr;
 
@@ -2016,10 +1999,9 @@ bool OpenSSL::OpenSSLdp::VerifyContractDefaultHash(
         nSignatureSize,  // length of signature, aka RSA_size(rsa)
         static_cast<const std::uint8_t*>(
             theSignature.GetPointer()),  // location of signature
-        &vDecrypted.at(
-            0),   // Output--must be large enough to hold the md (which
-                  // is smaller than RSA_size(rsa) - 11)
-        pRsaKey,  // signer's public key
+        &vDecrypted.at(0),  // Output--must be large enough to hold the md
+                            // (which is smaller than RSA_size(rsa) - 11)
+        pRsaKey,            // signer's public key
         RSA_NO_PADDING);
 
     // std::int32_t RSA_public_decrypt(int32_t flen, std::uint8_t* from,
@@ -2059,7 +2041,8 @@ bool OpenSSL::OpenSSLdp::VerifyContractDefaultHash(
     // the message itself.)
     // They SHOULD be the same.
     /*
-     std::int32_t RSA_verify_PKCS1_PSS(RSA* rsa, const std::uint8_t* mHash, const EVP_MD* Hash, const uint8_t* EM, int32_t sLen)
+     std::int32_t RSA_verify_PKCS1_PSS(RSA* rsa, const std::uint8_t* mHash,
+     const EVP_MD* Hash, const uint8_t* EM, int32_t sLen)
      */  // rsa        mHash    Hash alg.    EM         sLen
 
     const EVP_MD* md_sha256 = EVP_sha256();
@@ -2888,9 +2871,9 @@ bool OpenSSL::EncryptSessionKey(
             memset(
                 *m_array_pubkey,
                 0,
-                m_RecipPubKeys.size() *
-                    sizeof(EVP_PKEY*));  // size of array length *
-                                         // sizeof(pointer)
+                m_RecipPubKeys.size() * sizeof(EVP_PKEY*));  // size of array
+                                                             // length *
+                                                             // sizeof(pointer)
 
             // (*m_ek)[] array must have m_RecipPubKeys.size() no. of elements
             // (each will contain a pointer from OpenSSL that we must clean up.)
@@ -2973,12 +2956,10 @@ bool OpenSSL::EncryptSessionKey(
         {
             OT_ASSERT(nullptr != m_array_pubkey);  // 1. pointer to an array of
                                                    // pointers to EVP_PKEY,
-            OT_ASSERT(
-                nullptr != m_ek);  // 2. pointer to an array of pointers to
-                                   // encrypted symmetric keys
-            OT_ASSERT(
-                nullptr != m_eklen);  // 3. pointer to an array storing the
-                                      // lengths of those keys.
+            OT_ASSERT(nullptr != m_ek);  // 2. pointer to an array of pointers
+                                         // to encrypted symmetric keys
+            OT_ASSERT(nullptr != m_eklen);  // 3. pointer to an array storing
+                                            // the lengths of those keys.
 
             // Iterate the array of encrypted symmetric keys, and free the key
             // at each index...
@@ -3015,11 +2996,10 @@ bool OpenSSL::EncryptSessionKey(
             // 3. an array storing the lengths of those keys.
             //
 
-            if (nullptr !=
-                *m_array_pubkey)  // NOTE: The individual pubkeys are NOT
-                                  // to be cleaned up, but this array,
-                                  // containing pointers to those
-                                  // pubkeys, IS cleaned up.
+            if (nullptr != *m_array_pubkey)  // NOTE: The individual pubkeys are
+                                             // NOT to be cleaned up, but this
+                                             // array, containing pointers to
+                                             // those pubkeys, IS cleaned up.
                 free(*m_array_pubkey);
             *m_array_pubkey = nullptr;
             m_array_pubkey = nullptr;
@@ -3487,9 +3467,7 @@ bool OpenSSL::DecryptSessionKey(
     //  nRunningTotal += env_type;    // NOPE! Just because envelope type is 1
     // or 2, doesn't mean we add 1 or 2 extra bytes to the length here. Nope!
 
-    if (1 != env_type) {
-        return false;
-    }
+    if (1 != env_type) { return false; }
 
     // Read the ARRAY SIZE (network order version -- convert to host version.)
     //
@@ -3681,10 +3659,9 @@ bool OpenSSL::DecryptSessionKey(
             const bool bNymIDMatches =
                 strNymID.Compare(loopStrNymID);  // FOUND IT! <==========
 
-            if ((ii ==
-                 (array_size - 1)) ||  // If we're on the LAST INDEX in the
-                                       // array (often the only index), OR
-                                       // if the
+            if ((ii == (array_size - 1)) ||  // If we're on the LAST INDEX in
+                                             // the array (often the only
+                                             // index), OR if the
                 bNymIDMatches)  // NymID is a guaranteed match, then we'll try
                                 // to
                                 // decrypt using this session key.

@@ -420,9 +420,7 @@ void Message::SetAcknowledgments(const std::set<RequestNumber>& numbers)
 {
     m_AcknowledgedReplies.Release();
 
-    for (const auto& it : numbers) {
-        m_AcknowledgedReplies.Add(it);
-    }
+    for (const auto& it : numbers) { m_AcknowledgedReplies.Add(it); }
 }
 
 // The framework (Contract) will call this function at the appropriate time.
@@ -473,9 +471,7 @@ void Message::UpdateContents()
         String strAck;
         if (m_AcknowledgedReplies.Output(strAck) && strAck.Exists()) {
             const OTASCIIArmor ascTemp(strAck);
-            if (ascTemp.Exists()) {
-                tag.add_tag("ackReplies", ascTemp.Get());
-            }
+            if (ascTemp.Exists()) { tag.add_tag("ackReplies", ascTemp.Get()); }
         }
     }
 
@@ -549,9 +545,7 @@ std::int32_t Message::processXmlNodeAcknowledgedReplies(
     otErr << "OTMessage::ProcessXMLNode: SKIPPING DEPRECATED FIELD: "
              "acknowledgedReplies\n";
 
-    while (xml->getNodeType() != irr::io::EXN_ELEMENT_END) {
-        xml->read();
-    }
+    while (xml->getNodeType() != irr::io::EXN_ELEMENT_END) { xml->read(); }
 
     return 1;
 }
@@ -1250,9 +1244,9 @@ public:
 
         try {
             m.enum_ = std::stoi(xml->getAttributeValue("type"));
-        } catch (std::invalid_argument) {
+        } catch (const std::invalid_argument&) {
             m.enum_ = 0;
-        } catch (std::out_of_range) {
+        } catch (const std::out_of_range&) {
             m.enum_ = 0;
         }
 

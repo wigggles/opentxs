@@ -126,14 +126,10 @@ ObjectList Storage::BlockchainTransactionList() const
 void Storage::Cleanup_Storage()
 {
     for (auto& thread : background_threads_) {
-        if (thread.joinable()) {
-            thread.join();
-        }
+        if (thread.joinable()) { thread.join(); }
     }
 
-    if (root_) {
-        root_->cleanup();
-    }
+    if (root_) { root_->cleanup(); }
 }
 
 void Storage::Cleanup() { Cleanup_Storage(); }
@@ -246,10 +242,7 @@ void Storage::InitPlugins()
     bool syncPrimary{false};
     const auto hash = multiplex_.best_root(syncPrimary);
 
-    if (hash.empty()) {
-
-        return;
-    }
+    if (hash.empty()) { return; }
 
     std::unique_ptr<opentxs::storage::Root> root{new opentxs::storage::Root(
         multiplex_,
@@ -478,9 +471,9 @@ bool Storage::Load(
     if (output) {
         try {
             time = std::stoi(alias);
-        } catch (std::invalid_argument) {
+        } catch (const std::invalid_argument&) {
             time = 0;
-        } catch (std::out_of_range) {
+        } catch (const std::out_of_range&) {
             time = 0;
         }
     }
@@ -534,15 +527,11 @@ bool Storage::Load(
     const bool exists =
         Root().Tree().NymNode().Nym(nymId).Threads().Exists(threadId);
 
-    if (!exists) {
-        return false;
-    }
+    if (!exists) { return false; }
 
     thread.reset(new proto::StorageThread);
 
-    if (!thread) {
-        return false;
-    }
+    if (!thread) { return false; }
 
     *thread =
         Root().Tree().NymNode().Nym(nymId).Threads().Thread(threadId).Items();
@@ -1092,10 +1081,7 @@ bool Storage::RenameThread(
 
 void Storage::RunGC() const
 {
-    if (!running_) {
-
-        return;
-    }
+    if (!running_) { return; }
 
     CollectGarbage();
 }
