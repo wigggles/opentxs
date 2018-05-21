@@ -27,14 +27,14 @@ extern "C" {
 #include <openssl/x509v3.h>
 #endif
 #include <sys/types.h>
+}
 
+#include <cassert>
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-}
-
-#include <cassert>
+#include <string>
 
 bool safe_strcpy(
     char* dest,
@@ -114,17 +114,13 @@ std::int32_t mkcert(
     X509_NAME* name = nullptr;
 
     if ((pkeyp == nullptr) || (*pkeyp == nullptr)) {
-        if ((pk = EVP_PKEY_new()) == nullptr) {
-            abort();
-        }
+        if ((pk = EVP_PKEY_new()) == nullptr) { abort(); }
         bCreatedKey = true;
     } else
         pk = *pkeyp;
     if ((x509p == nullptr) || (*x509p == nullptr)) {
         if ((x = X509_new()) == nullptr) {
-            if (bCreatedKey) {
-                EVP_PKEY_free(pk);
-            }
+            if (bCreatedKey) { EVP_PKEY_free(pk); }
             return (0);
         }
 
@@ -146,9 +142,7 @@ std::int32_t mkcert(
 #else
     rsa = RSA_generate_key(bits, RSA_F4, callback, nullptr);
 #endif
-    if (!EVP_PKEY_assign_RSA(pk, rsa)) {
-        abort();
-    }
+    if (!EVP_PKEY_assign_RSA(pk, rsa)) { abort(); }
     rsa = nullptr;
 
     X509_set_version(x, 2);

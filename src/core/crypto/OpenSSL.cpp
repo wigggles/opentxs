@@ -3356,7 +3356,9 @@ bool OpenSSL::DecryptSessionKey(
         EVP_CIPHER_CTX& m_ctx;  // reference to openssl cipher context.
 #endif
         OTAsymmetricKey& m_privateKey;  // reference to OTAsymmetricKey object.
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
         bool& m_bFinalized;
+#endif
 
     public:
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
@@ -3368,11 +3370,11 @@ bool OpenSSL::DecryptSessionKey(
             : m_szFunc(param_szFunc)
             , m_ctx(theCTX)
             , m_privateKey(param_privateKey)
+            , m_bFinalized(param_Finalized)
 #else
-        _OTEnv_Open(OTAsymmetricKey& param_privateKey, bool& param_Finalized)
+        _OTEnv_Open(OTAsymmetricKey& param_privateKey, bool&)
             : m_privateKey(param_privateKey)
 #endif
-            , m_bFinalized(param_Finalized)
         {
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
             OT_ASSERT(nullptr != param_szFunc);
