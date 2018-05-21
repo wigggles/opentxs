@@ -274,8 +274,6 @@ execute_process(COMMAND git "submodule" "update" "--init" "--recursive" WORKING_
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
-add_definitions(-DPROTOBUF_INLINE_NOT_IN_HEADERS=0)
-
 if(OT_VALGRIND)
   add_definitions(-DOT_VALGRIND=1)
 else()
