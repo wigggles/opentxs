@@ -79,6 +79,8 @@ public:
     EXPORT virtual void RegisterCallbacks(
         const CallbackMap& callbacks) const = 0;
 
+    EXPORT virtual ~Dht() = default;
+
 protected:
     Dht() = default;
 
