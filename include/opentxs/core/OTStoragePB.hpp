@@ -62,6 +62,9 @@
 #pragma GCC diagnostic ignored "-Wuseless-cast"
 #endif
 #endif
+#ifndef PROTOBUF_INLINE_NOT_IN_HEADERS
+#define PROTOBUF_INLINE_NOT_IN_HEADERS 0
+#endif
 
 #include "Generics.pb.h"
 #include "Markets.pb.h"
@@ -183,20 +186,14 @@ public:
             const OTDB::Storable* pIntermediate =
                 dynamic_cast<const OTDB::Storable*>(this);
 
-            if (!pPacker) {
-                OT_FAIL;
-            }
+            if (!pPacker) { OT_FAIL; }
 
             std::unique_ptr<PackedBuffer> pBuffer(
                 pPacker->Pack(*(const_cast<OTDB::Storable*>(pIntermediate))));
 
-            if (!pBuffer) {
-                OT_FAIL;
-            }
+            if (!pBuffer) { OT_FAIL; }
 
-            if (!pPacker->Unpack(*pBuffer, theNewStorable)) {
-                OT_FAIL;
-            }
+            if (!pPacker->Unpack(*pBuffer, theNewStorable)) { OT_FAIL; }
         }
 
         virtual ::google::protobuf::MessageLite* getPBMessage();
