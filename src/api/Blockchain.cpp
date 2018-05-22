@@ -459,7 +459,7 @@ void Blockchain::init_path(
     switch (standard) {
         case BlockchainAccountType::BIP32: {
             path.add_child(
-                account | static_cast<std::uint32_t>(Bip32Child::HARDENED));
+                0 | static_cast<std::uint32_t>(Bip32Child::HARDENED));
         } break;
         case BlockchainAccountType::BIP44: {
             path.add_child(
