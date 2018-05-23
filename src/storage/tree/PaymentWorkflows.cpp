@@ -113,14 +113,14 @@ PaymentWorkflows::State PaymentWorkflows::GetState(
 {
     State output{proto::PAYMENTWORKFLOWTYPE_ERROR,
                  proto::PAYMENTWORKFLOWSTATE_ERROR};
-    auto & [ outType, outState ] = output;
+    auto& [outType, outState] = output;
     Lock lock(write_lock_);
     const auto& it = workflow_state_map_.find(workflowID);
     const bool found = workflow_state_map_.end() != it;
     lock.unlock();
 
     if (found) {
-        const auto & [ type, state ] = it->second;
+        const auto& [type, state] = it->second;
         outType = type;
         outState = state;
     }
@@ -141,9 +141,7 @@ void PaymentWorkflows::init(const std::string& hash)
 
     version_ = serialized->version();
 
-    if (CURRENT_VERSION > version_) {
-        version_ = CURRENT_VERSION;
-    }
+    if (CURRENT_VERSION > version_) { version_ = CURRENT_VERSION; }
 
     for (const auto& it : serialized->workflow()) {
         item_map_.emplace(
@@ -162,9 +160,7 @@ void PaymentWorkflows::init(const std::string& hash)
         unit_workflow_map_[it.item()].emplace(it.workflow());
     }
 
-    for (const auto& it : serialized->archived()) {
-        archived_.emplace(it);
-    }
+    for (const auto& it : serialized->archived()) { archived_.emplace(it); }
 
     Lock lock(write_lock_);
 
@@ -182,10 +178,7 @@ PaymentWorkflows::Workflows PaymentWorkflows::ListByAccount(
     Lock lock(write_lock_);
     const auto it = account_workflow_map_.find(accountID);
 
-    if (account_workflow_map_.end() == it) {
-
-        return {};
-    }
+    if (account_workflow_map_.end() == it) { return {}; }
 
     return it->second;
 }
@@ -196,10 +189,7 @@ PaymentWorkflows::Workflows PaymentWorkflows::ListByUnit(
     Lock lock(write_lock_);
     const auto it = unit_workflow_map_.find(accountID);
 
-    if (unit_workflow_map_.end() == it) {
-
-        return {};
-    }
+    if (unit_workflow_map_.end() == it) { return {}; }
 
     return it->second;
 }
@@ -211,10 +201,7 @@ PaymentWorkflows::Workflows PaymentWorkflows::ListByState(
     Lock lock(write_lock_);
     const auto it = state_workflow_map_.find(State{type, state});
 
-    if (state_workflow_map_.end() == it) {
-
-        return {};
-    }
+    if (state_workflow_map_.end() == it) { return {}; }
 
     return it->second;
 }
@@ -234,10 +221,7 @@ std::string PaymentWorkflows::LookupBySource(const std::string& sourceID) const
     Lock lock(write_lock_);
     const auto it = item_workflow_map_.find(sourceID);
 
-    if (item_workflow_map_.end() == it) {
-
-        return {};
-    }
+    if (item_workflow_map_.end() == it) { return {}; }
 
     return it->second;
 }
@@ -256,9 +240,7 @@ void PaymentWorkflows::reindex(
     auto& oldSet = state_workflow_map_[oldKey];
     oldSet.erase(workflowID);
 
-    if (0 == oldSet.size()) {
-        state_workflow_map_.erase(oldKey);
-    }
+    if (0 == oldSet.size()) { state_workflow_map_.erase(oldKey); }
 
     state = newState;
 
@@ -278,9 +260,7 @@ bool PaymentWorkflows::save(const Lock& lock) const
 
     auto serialized = serialize();
 
-    if (!proto::Validate(serialized, VERBOSE)) {
-        return false;
-    }
+    if (!proto::Validate(serialized, VERBOSE)) { return false; }
 
     return driver_.StoreProto(serialized, root_);
 }
@@ -301,14 +281,14 @@ proto::StoragePaymentWorkflows PaymentWorkflows::serialize() const
         }
     }
 
-    for (const auto & [ item, workflow ] : item_workflow_map_) {
+    for (const auto& [item, workflow] : item_workflow_map_) {
         auto& newIndex = *serialized.add_items();
         newIndex.set_version(1);
         newIndex.set_workflow(workflow);
         newIndex.set_item(item);
     }
 
-    for (const auto & [ account, workflowSet ] : account_workflow_map_) {
+    for (const auto& [account, workflowSet] : account_workflow_map_) {
         OT_ASSERT(false == account.empty())
 
         for (const auto& workflow : workflowSet) {
@@ -321,7 +301,7 @@ proto::StoragePaymentWorkflows PaymentWorkflows::serialize() const
         }
     }
 
-    for (const auto & [ unit, workflowSet ] : unit_workflow_map_) {
+    for (const auto& [unit, workflowSet] : unit_workflow_map_) {
         OT_ASSERT(false == unit.empty())
 
         for (const auto& workflow : workflowSet) {
@@ -334,10 +314,10 @@ proto::StoragePaymentWorkflows PaymentWorkflows::serialize() const
         }
     }
 
-    for (const auto & [ workflow, stateTuple ] : workflow_state_map_) {
+    for (const auto& [workflow, stateTuple] : workflow_state_map_) {
         OT_ASSERT(false == workflow.empty())
 
-        const auto & [ type, state ] = stateTuple;
+        const auto& [type, state] = stateTuple;
 
         OT_ASSERT(proto::PAYMENTWORKFLOWTYPE_ERROR != type)
         OT_ASSERT(proto::PAYMENTWORKFLOWSTATE_ERROR != state)
@@ -376,8 +356,16 @@ bool PaymentWorkflows::Store(
     if (workflow_state_map_.end() == it) {
         add_state_index(lock, id, data.type(), data.state());
     } else {
-        auto & [ type, state ] = it->second;
+        auto& [type, state] = it->second;
         reindex(lock, id, type, data.state(), state);
+    }
+
+    for (const auto& account : data.account()) {
+        account_workflow_map_[account].emplace(id);
+    }
+
+    for (const auto& unit : data.unit()) {
+        unit_workflow_map_[unit].emplace(id);
     }
 
     return store_proto(lock, data, id, alias, plaintext);

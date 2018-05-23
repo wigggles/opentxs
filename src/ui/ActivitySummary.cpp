@@ -130,7 +130,7 @@ ActivitySummaryID ActivitySummary::blank_id() const
 void ActivitySummary::construct_item(
     const ActivitySummaryID& id,
     const ActivitySummarySortKey& index,
-    void*) const
+    const CustomData&) const
 {
     items_[index].emplace(
         id,
@@ -160,7 +160,7 @@ void ActivitySummary::process_thread(const std::string& id)
     // name gets set properly.
     const auto name = contact_manager_.ContactName(threadID);
     const ActivitySummarySortKey index{{}, name};
-    add_item(threadID, index);
+    add_item(threadID, index, {});
 }
 
 void ActivitySummary::process_thread(const network::zeromq::Message& message)
@@ -173,9 +173,7 @@ void ActivitySummary::process_thread(const network::zeromq::Message& message)
 
     auto existing = names_.count(threadID);
 
-    if (0 == existing) {
-        process_thread(id);
-    }
+    if (0 == existing) { process_thread(id); }
 }
 
 void ActivitySummary::startup()
@@ -184,7 +182,7 @@ void ActivitySummary::startup()
     otWarn << OT_METHOD << __FUNCTION__ << ": Loading " << threads.size()
            << " threads." << std::endl;
 
-    for (const auto & [ id, alias ] : threads) {
+    for (const auto& [id, alias] : threads) {
         [[maybe_unused]] const auto& notUsed = alias;
         process_thread(id);
     }

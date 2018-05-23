@@ -55,6 +55,8 @@
 #define WIDGET_UPDATE_ENDPOINT "inproc://opentxs/ui/widgetupdate/1"
 #define WIDGET_UPDATE_COLLECTOR_ENDPOINT                                       \
     "inproc://opentxs/ui/widgetupdate/internal/1"
+#define WORKFLOW_ACCOUNT_UPDATE_ENDPOINT                                       \
+    "inproc://opentxs/ui/workflowupdate/account/1"
 
 #define OT_METHOD "opentxs::network::zeromq::implementation::Socket::"
 
@@ -69,6 +71,8 @@ const std::string Socket::ThreadUpdateEndpoint{THREAD_UPDATE_ENDPOINT};
 const std::string Socket::WidgetUpdateEndpoint{WIDGET_UPDATE_ENDPOINT};
 const std::string Socket::WidgetUpdateCollectorEndpoint{
     WIDGET_UPDATE_COLLECTOR_ENDPOINT};
+const std::string Socket::WorkflowAccountUpdateEndpoint{
+    WORKFLOW_ACCOUNT_UPDATE_ENDPOINT};
 }  // namespace opentxs::network::zeromq
 
 namespace opentxs::network::zeromq::implementation

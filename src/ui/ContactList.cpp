@@ -118,7 +118,7 @@ ContactList::ContactList(
 void ContactList::add_item(
     const ContactListID& id,
     const ContactListSortKey& index,
-    void*)
+    const CustomData& custom)
 {
     if (owner_contact_id_ == id) {
         owner_.SetName(index);
@@ -126,7 +126,7 @@ void ContactList::add_item(
         return;
     }
 
-    insert_outer(id, index);
+    insert_outer(id, index, custom);
 }
 
 ContactListID ContactList::blank_id() const { return Identifier::Factory(); }
@@ -134,7 +134,7 @@ ContactListID ContactList::blank_id() const { return Identifier::Factory(); }
 void ContactList::construct_item(
     const ContactListID& id,
     const ContactListSortKey& index,
-    void*) const
+    const CustomData&) const
 {
     names_.emplace(id, index);
     items_[index].emplace(
@@ -174,7 +174,7 @@ void ContactList::process_contact(const network::zeromq::Message& message)
     OT_ASSERT(false == contactID.empty())
 
     const auto name = contact_manager_.ContactName(contactID);
-    add_item(contactID, name);
+    add_item(contactID, name, {});
 }
 
 void ContactList::startup()
@@ -183,8 +183,8 @@ void ContactList::startup()
     otErr << OT_METHOD << __FUNCTION__ << ": Loading " << contacts.size()
           << " contacts." << std::endl;
 
-    for (const auto & [ id, alias ] : contacts) {
-        add_item(Identifier(id), alias);
+    for (const auto& [id, alias] : contacts) {
+        add_item(Identifier(id), alias, {});
     }
 
     startup_complete_->On();

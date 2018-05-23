@@ -92,7 +92,7 @@ private:
     void construct_item(
         const ContactSubsectionIDType& id,
         const ContactSubsectionSortKey& index,
-        void* custom = nullptr) const override;
+        const CustomData& custom) const override;
 
     bool last(const ContactSubsectionIDType& id) const override
     {
@@ -121,5 +121,5 @@ private:
     ContactSubsection& operator=(const ContactSubsection&) = delete;
     ContactSubsection& operator=(ContactSubsection&&) = delete;
 };
-}  // opentxs::ui::implementation
+}  // namespace opentxs::ui::implementation
 #endif  // OPENTXS_UI_CONTACT_SUBSECTION_IMPLEMENTATION_HPP

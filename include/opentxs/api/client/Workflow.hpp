@@ -43,6 +43,9 @@
 
 #include "opentxs/Proto.hpp"
 
+#include <memory>
+#include <vector>
+
 namespace opentxs
 {
 namespace api
@@ -124,6 +127,10 @@ public:
     EXPORT virtual Cheque LoadChequeByWorkflow(
         const Identifier& nymID,
         const Identifier& workflowID) const = 0;
+    /** Load a serialized workflow, if it exists*/
+    EXPORT virtual std::shared_ptr<proto::PaymentWorkflow> LoadWorkflow(
+        const Identifier& nymID,
+        const Identifier& workflowID) const = 0;
     /** Create a new incoming cheque workflow from an OT message */
     EXPORT virtual OTIdentifier ReceiveCheque(
         const Identifier& nymID,
@@ -134,6 +141,10 @@ public:
         const opentxs::Cheque& cheque,
         const Message& request,
         const Message* reply) const = 0;
+    /** Get a list of workflow IDs relevant to a specified account */
+    EXPORT virtual std::vector<OTIdentifier> WorkflowsByAccount(
+        const Identifier& nymID,
+        const Identifier& accountID) const = 0;
     /** Create a new outgoing cheque workflow */
     EXPORT virtual OTIdentifier WriteCheque(
         const opentxs::Cheque& cheque) const = 0;

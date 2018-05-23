@@ -129,10 +129,12 @@
 #include <opentxs/network/zeromq/Socket.hpp>
 #include <opentxs/network/zeromq/SubscribeSocket.hpp>
 #include <opentxs/network/ServerConnection.hpp>
+#include <opentxs/ui/AccountActivity.hpp>
 #include <opentxs/ui/ActivitySummary.hpp>
 #include <opentxs/ui/ActivitySummaryItem.hpp>
 #include <opentxs/ui/ActivityThread.hpp>
 #include <opentxs/ui/ActivityThreadItem.hpp>
+#include <opentxs/ui/BalanceItem.hpp>
 #include <opentxs/ui/Contact.hpp>
 #include <opentxs/ui/ContactItem.hpp>
 #include <opentxs/ui/ContactList.hpp>

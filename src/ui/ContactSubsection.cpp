@@ -106,13 +106,15 @@ ContactSubsection::ContactSubsection(
 void ContactSubsection::construct_item(
     const ContactSubsectionIDType& id,
     const ContactSubsectionSortKey& index,
-    void* custom) const
+    const CustomData& custom) const
 {
+    OT_ASSERT(1 == custom.size())
+
     names_.emplace(id, index);
     items_[index].emplace(
         id,
         Factory::ContactItemWidget(
-            zmq_, contact_manager_, *this, recover(custom)));
+            zmq_, contact_manager_, *this, recover(custom[0])));
 }
 
 std::string ContactSubsection::Name(const std::string& lang) const
@@ -130,10 +132,10 @@ void ContactSubsection::process_group(const opentxs::ContactGroup& group)
     init();
     lock.unlock();
 
-    for (const auto & [ id, claim ] : group) {
+    for (const auto& [id, claim] : group) {
         OT_ASSERT(claim)
 
-        add_item(id, sort_key(id), claim.get());
+        add_item(id, sort_key(id), {claim.get()});
     }
 
     UpdateNotify();

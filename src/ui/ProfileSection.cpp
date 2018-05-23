@@ -228,13 +228,15 @@ bool ProfileSection::check_type(const ProfileSectionIDType type)
 void ProfileSection::construct_item(
     const ProfileSectionIDType& id,
     const ProfileSectionSortKey& index,
-    void* custom) const
+    const CustomData& custom) const
 {
+    OT_ASSERT(1 == custom.size())
+
     names_.emplace(id, index);
     items_[index].emplace(
         id,
         Factory::ProfileSubsectionWidget(
-            zmq_, contact_manager_, wallet_, *this, recover(custom)));
+            zmq_, contact_manager_, wallet_, *this, recover(custom[0])));
 }
 
 bool ProfileSection::Delete(const int type, const std::string& claimID) const
@@ -244,10 +246,7 @@ bool ProfileSection::Delete(const int type, const std::string& claimID) const
                                    static_cast<proto::ContactItemType>(type)};
     auto& group = find_by_id(lock, key);
 
-    if (false == group.Valid()) {
-
-        return false;
-    }
+    if (false == group.Valid()) { return false; }
 
     return group.Delete(claimID);
 }
@@ -272,13 +271,13 @@ std::set<ProfileSectionIDType> ProfileSection::process_section(
 
     std::set<ProfileSectionIDType> active{};
 
-    for (const auto & [ type, group ] : section) {
+    for (const auto& [type, group] : section) {
         OT_ASSERT(group)
 
         const ProfileSectionIDType key{id_, type};
 
         if (check_type(key)) {
-            add_item(key, sort_key(key), group.get());
+            add_item(key, sort_key(key), {group.get()});
             active.emplace(key);
         }
     }
@@ -303,10 +302,7 @@ bool ProfileSection::SetActive(
                                    static_cast<proto::ContactItemType>(type)};
     auto& group = find_by_id(lock, key);
 
-    if (false == group.Valid()) {
-
-        return false;
-    }
+    if (false == group.Valid()) { return false; }
 
     return group.SetActive(claimID, active);
 }
@@ -321,10 +317,7 @@ bool ProfileSection::SetPrimary(
                                    static_cast<proto::ContactItemType>(type)};
     auto& group = find_by_id(lock, key);
 
-    if (false == group.Valid()) {
-
-        return false;
-    }
+    if (false == group.Valid()) { return false; }
 
     return group.SetPrimary(claimID, primary);
 }
@@ -339,10 +332,7 @@ bool ProfileSection::SetValue(
                                    static_cast<proto::ContactItemType>(type)};
     auto& group = find_by_id(lock, key);
 
-    if (false == group.Valid()) {
-
-        return false;
-    }
+    if (false == group.Valid()) { return false; }
 
     return group.SetValue(claimID, value);
 }
@@ -358,11 +348,13 @@ void ProfileSection::startup(const opentxs::ContactSection section)
     startup_complete_->On();
 }
 
-void ProfileSection::update(ProfileSectionPimpl& row, const void* custom) const
+void ProfileSection::update(ProfileSectionPimpl& row, const CustomData& custom)
+    const
 {
     OT_ASSERT(row)
+    OT_ASSERT(1 == custom.size())
 
-    row->Update(recover(custom));
+    row->Update(recover(custom[0]));
 }
 
 void ProfileSection::Update(const opentxs::ContactSection& section)

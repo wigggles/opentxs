@@ -147,7 +147,7 @@ ActivityThreadID ActivityThread::blank_id() const
 bool ActivityThread::check_draft(const ActivityThreadID& id) const
 {
     const auto& taskID = std::get<0>(id);
-    const auto[status, contactID] = sync_.MessageStatus(taskID);
+    const auto [status, contactID] = sync_.MessageStatus(taskID);
     [[maybe_unused]] const auto& notUsed = contactID;
 
     switch (status) {
@@ -191,9 +191,7 @@ void ActivityThread::check_drafts() const
         }
     }
 
-    for (const auto& id : deleted) {
-        draft_tasks_.erase(id);
-    }
+    for (const auto& id : deleted) { draft_tasks_.erase(id); }
 }
 
 std::string ActivityThread::comma(const std::set<std::string>& list) const
@@ -207,9 +205,7 @@ std::string ActivityThread::comma(const std::set<std::string>& list) const
 
     std::string output = stream.str();
 
-    if (0 < output.size()) {
-        output.erase(output.size() - 2, 2);
-    }
+    if (0 < output.size()) { output.erase(output.size() - 2, 2); }
 
     return output;
 }
@@ -217,7 +213,7 @@ std::string ActivityThread::comma(const std::set<std::string>& list) const
 void ActivityThread::construct_item(
     const ActivityThreadID& id,
     const ActivityThreadSortKey& index,
-    void*) const
+    const CustomData&) const
 {
     names_.emplace(id, index);
     const auto& time = std::get<0>(index);
@@ -333,9 +329,7 @@ void ActivityThread::load_thread(const proto::StorageThread& thread)
     otWarn << OT_METHOD << __FUNCTION__ << ": Loading " << thread.item().size()
            << " items." << std::endl;
 
-    for (const auto& item : thread.item()) {
-        process_item(item);
-    }
+    for (const auto& item : thread.item()) { process_item(item); }
 
     UpdateNotify();
     startup_complete_->On();
@@ -363,9 +357,7 @@ std::string ActivityThread::Participants() const
     Lock lock(lock_);
     std::set<std::string> ids{};
 
-    for (const auto& id : participants_) {
-        ids.emplace(id->str());
-    }
+    for (const auto& id : participants_) { ids.emplace(id->str()); }
 
     return comma(ids);
 }
@@ -375,10 +367,7 @@ std::string ActivityThread::PaymentCode(
 {
     Lock lock(contact_lock_);
 
-    if (contact_) {
-
-        return contact_->PaymentCode(currency);
-    }
+    if (contact_) { return contact_->PaymentCode(currency); }
 
     return {};
 }
@@ -391,7 +380,7 @@ ActivityThreadID ActivityThread::process_item(
                               Identifier::Factory(item.account())};
     const ActivityThreadSortKey key{std::chrono::seconds(item.time()),
                                     item.index()};
-    add_item(id, key);
+    add_item(id, key, {});
     UpdateNotify();
 
     return id;
@@ -406,10 +395,7 @@ void ActivityThread::process_thread(const network::zeromq::Message& message)
 
     OT_ASSERT(false == threadID->empty())
 
-    if (threadID_ != threadID) {
-
-        return;
-    }
+    if (threadID_ != threadID) { return; }
 
     const auto thread = activity_.Thread(nym_id_, threadID_);
 
@@ -429,8 +415,8 @@ bool ActivityThread::same(
     const ActivityThreadID& lhs,
     const ActivityThreadID& rhs) const
 {
-    const auto & [ lID, lBox, lAccount ] = lhs;
-    const auto & [ rID, rBox, rAccount ] = rhs;
+    const auto& [lID, lBox, lAccount] = lhs;
+    const auto& [rID, rBox, rAccount] = rhs;
     const bool sameID = (lID->str() == rID->str());
     const bool sameBox = (lBox == rBox);
     const bool sameAccount = (lAccount->str() == rAccount->str());
@@ -472,7 +458,7 @@ bool ActivityThread::SendDraft() const
     const ActivityThreadSortKey key{std::chrono::system_clock::now(), 0};
     draft_tasks_.insert(id);
     draft_.clear();
-    const_cast<ActivityThread&>(*this).add_item(id, key);
+    const_cast<ActivityThread&>(*this).add_item(id, key, {});
     UpdateNotify();
 
     return true;
@@ -480,10 +466,7 @@ bool ActivityThread::SendDraft() const
 
 bool ActivityThread::SetDraft(const std::string& draft) const
 {
-    if (draft.empty()) {
-
-        return false;
-    }
+    if (draft.empty()) { return false; }
 
     eLock lock(draft_lock_);
     draft_ = draft;

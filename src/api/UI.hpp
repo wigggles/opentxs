@@ -46,6 +46,9 @@ namespace opentxs::api::implementation
 class UI : virtual public opentxs::api::UI, Lockable
 {
 public:
+    const ui::AccountActivity& AccountActivity(
+        const Identifier& nymID,
+        const Identifier& accountID) const override;
     const ui::ActivitySummary& ActivitySummary(
         const Identifier& nymID) const override;
     const ui::ActivityThread& ActivityThread(
@@ -65,6 +68,10 @@ public:
 private:
     friend Factory;
 
+    /** NymID, AccountID */
+    using AccountKey = std::pair<OTIdentifier, OTIdentifier>;
+    using AccountActivityMap =
+        std::map<AccountKey, std::unique_ptr<ui::AccountActivity>>;
     using ActivitySummaryMap =
         std::map<Identifier, std::unique_ptr<ui::ActivitySummary>>;
     using ActivityThreadID = std::pair<OTIdentifier, OTIdentifier>;
@@ -85,7 +92,9 @@ private:
     const api::ContactManager& contact_;
     const api::client::Sync& sync_;
     const api::client::Wallet& wallet_;
+    const api::client::Workflow& workflow_;
     const Flag& running_;
+    mutable AccountActivityMap accounts_{};
     mutable ActivitySummaryMap activity_summaries_{};
     mutable ContactMap contacts_{};
     mutable ContactListMap contact_lists_{};
@@ -102,6 +111,7 @@ private:
        const api::ContactManager& contact,
        const api::client::Sync& sync,
        const api::client::Wallet& wallet,
+       const api::client::Workflow& workflow,
        const Flag& running);
     UI() = delete;
     UI(const UI&) = delete;

@@ -66,6 +66,9 @@ namespace api
 class UI
 {
 public:
+    EXPORT virtual const ui::AccountActivity& AccountActivity(
+        const Identifier& nymID,
+        const Identifier& accountID) const = 0;
     EXPORT virtual const ui::ActivitySummary& ActivitySummary(
         const Identifier& nymID) const = 0;
     EXPORT virtual const ui::ActivityThread& ActivityThread(

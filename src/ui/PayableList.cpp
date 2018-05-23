@@ -140,10 +140,12 @@ PayableListID PayableList::blank_id() const { return Identifier::Factory(); }
 void PayableList::construct_item(
     const PayableListID& id,
     const PayableListSortKey& index,
-    void* paymentcode) const
+    const CustomData& custom) const
 {
-    std::unique_ptr<std::string> paymentCode;
-    paymentCode.reset(static_cast<std::string*>(paymentcode));
+    OT_ASSERT(1 == custom.size())
+
+    std::unique_ptr<const std::string> paymentCode;
+    paymentCode.reset(static_cast<const std::string*>(custom[0]));
 
     OT_ASSERT(paymentCode);
     OT_ASSERT(false == paymentCode->empty());
@@ -171,10 +173,7 @@ void PayableList::process_contact(
     const PayableListID& id,
     const PayableListSortKey& key)
 {
-    if (owner_contact_id_ == id) {
-
-        return;
-    }
+    if (owner_contact_id_ == id) { return; }
 
     const auto contact = contact_manager_.Contact(id);
 
@@ -194,7 +193,7 @@ void PayableList::process_contact(
 
     if (!paymentCode->empty()) {
 
-        add_item(id, key, paymentCode.release());
+        add_item(id, key, {paymentCode.release()});
     } else {
         otWarn << OT_METHOD << __FUNCTION__ << ": Skipping unpayable contact "
                << id->str() << std::endl;
@@ -232,7 +231,7 @@ void PayableList::startup()
     otWarn << OT_METHOD << __FUNCTION__ << ": Loading " << contacts.size()
            << " contacts." << std::endl;
 
-    for (const auto & [ id, alias ] : contacts) {
+    for (const auto& [id, alias] : contacts) {
         process_contact(Identifier(id), alias);
     }
 

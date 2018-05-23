@@ -78,6 +78,9 @@ public:
     Cheque LoadChequeByWorkflow(
         const Identifier& nymID,
         const Identifier& workflowID) const override;
+    std::shared_ptr<proto::PaymentWorkflow> LoadWorkflow(
+        const Identifier& nymID,
+        const Identifier& workflowID) const override;
     bool SendCheque(
         const opentxs::Cheque& cheque,
         const Message& request,
@@ -86,6 +89,9 @@ public:
         const Identifier& nymID,
         const opentxs::Cheque& cheque,
         const Message& message) const override;
+    std::vector<OTIdentifier> WorkflowsByAccount(
+        const Identifier& nymID,
+        const Identifier& accountID) const override;
     OTIdentifier WriteCheque(const opentxs::Cheque& cheque) const override;
 
     ~Workflow() = default;
@@ -96,6 +102,8 @@ private:
     const api::Activity& activity_;
     const api::ContactManager& contact_;
     const storage::Storage& storage_;
+    const opentxs::network::zeromq::Context& zmq_;
+    const OTZMQPublishSocket account_publisher_;
 
     static bool can_accept_cheque(const proto::PaymentWorkflow& workflow);
     static bool can_cancel_cheque(const proto::PaymentWorkflow& workflow);
@@ -125,6 +133,7 @@ private:
         const std::string& account = "") const;
     bool add_cheque_event(
         const std::string& nymID,
+        const std::string& accountID,
         proto::PaymentWorkflow& workflow,
         const proto::PaymentWorkflowState newState,
         const proto::PaymentEventType newEventType,
@@ -151,20 +160,26 @@ private:
         const std::set<proto::PaymentWorkflowType>& types,
         const std::string& nymID,
         const std::string& workflowID) const;
+    std::shared_ptr<proto::PaymentWorkflow> get_workflow_by_id(
+        const std::string& nymID,
+        const std::string& workflowID) const;
     std::shared_ptr<proto::PaymentWorkflow> get_workflow_by_source(
         const std::set<proto::PaymentWorkflowType>& types,
         const std::string& nymID,
         const std::string& sourceID) const;
     bool save_workflow(
         const std::string& nymID,
+        const std::string& accountID,
         const proto::PaymentWorkflow& workflow) const;
     OTIdentifier save_workflow(
         OTIdentifier&& workflowID,
         const std::string& nymID,
+        const std::string& accountID,
         const proto::PaymentWorkflow& workflow) const;
     std::pair<OTIdentifier, proto::PaymentWorkflow> save_workflow(
         std::pair<OTIdentifier, proto::PaymentWorkflow>&& workflowID,
         const std::string& nymID,
+        const std::string& accountID,
         const proto::PaymentWorkflow& workflow) const;
     void update_activity(
         const Identifier& localNymID,
@@ -177,7 +192,8 @@ private:
     Workflow(
         const api::Activity& activity,
         const api::ContactManager& contact,
-        const storage::Storage& storage);
+        const storage::Storage& storage,
+        const opentxs::network::zeromq::Context& zmq);
     Workflow() = delete;
     Workflow(const Workflow&) = delete;
     Workflow(Workflow&&) = delete;

@@ -148,7 +148,8 @@ void Api::Init()
     otLog3 << "\n\nWelcome to Open Transactions -- version " << Log::Version()
            << "\n";
 
-    workflow_.reset(Factory::Workflow(activity_, contacts_, storage_));
+    workflow_.reset(
+        Factory::Workflow(activity_, contacts_, storage_, zmq_.Context()));
 
     OT_ASSERT(workflow_)
 

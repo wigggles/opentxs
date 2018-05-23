@@ -52,6 +52,8 @@ typedef int64_t time64_t;
 %include "../../include/opentxs/core/crypto/OTCaller.hpp"
 %include "../../include/opentxs/ui/Widget.hpp"
 %include "../../include/opentxs/ui/ListRow.hpp"
+%include "../../include/opentxs/ui/BalanceItem.hpp"
+%include "../../include/opentxs/ui/AccountActivity.hpp"
 %include "../../include/opentxs/ui/ActivitySummaryItem.hpp"
 %include "../../include/opentxs/ui/ActivitySummary.hpp"
 %include "../../include/opentxs/ui/ActivityThreadItem.hpp"

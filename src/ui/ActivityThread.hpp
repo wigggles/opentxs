@@ -61,30 +61,15 @@ struct less<STORAGEID> {
         const auto& rBox = std::get<1>(rhs);
         const auto& rAccount = std::get<2>(rhs);
 
-        if (lID->str() < rID->str()) {
+        if (lID->str() < rID->str()) { return true; }
 
-            return true;
-        }
+        if (rID->str() < lID->str()) { return false; }
 
-        if (rID->str() < lID->str()) {
+        if (lBox < rBox) { return true; }
 
-            return false;
-        }
+        if (rBox < lBox) { return false; }
 
-        if (lBox < rBox) {
-
-            return true;
-        }
-
-        if (rBox < lBox) {
-
-            return false;
-        }
-
-        if (lAccount->str() < rAccount->str()) {
-
-            return true;
-        }
+        if (lAccount->str() < rAccount->str()) { return true; }
 
         return false;
     }
@@ -152,7 +137,7 @@ private:
     void construct_item(
         const ActivityThreadID& id,
         const ActivityThreadSortKey& index,
-        void* custom = nullptr) const override;
+        const CustomData& custom) const override;
     ActivityThreadOuter::const_iterator outer_first() const override;
     ActivityThreadOuter::const_iterator outer_end() const override;
 
@@ -177,5 +162,5 @@ private:
     ActivityThread& operator=(const ActivityThread&) = delete;
     ActivityThread& operator=(ActivityThread&&) = delete;
 };
-}  // opentxs::ui::implementation
+}  // namespace opentxs::ui::implementation
 #endif  // OPENTXS_UI_ACTIVITYTHREAD_IMPLEMENTATION_HPP

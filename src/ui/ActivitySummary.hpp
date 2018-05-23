@@ -81,7 +81,7 @@ private:
     void construct_item(
         const ActivitySummaryID& id,
         const ActivitySummarySortKey& index,
-        void* custom = nullptr) const override;
+        const CustomData& custom) const override;
     ActivitySummaryOuter::const_reverse_iterator outer_first() const override;
     ActivitySummaryOuter::const_reverse_iterator outer_end() const override;
 
@@ -101,5 +101,5 @@ private:
     ActivitySummary& operator=(const ActivitySummary&) = delete;
     ActivitySummary& operator=(ActivitySummary&&) = delete;
 };
-}  // opentxs::ui::implementation
+}  // namespace opentxs::ui::implementation
 #endif  // OPENTXS_UI_ACTIVITYSUMMARY_IMPLEMENTATION_HPP

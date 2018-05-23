@@ -100,7 +100,7 @@ private:
     void construct_item(
         const ContactSectionIDType& id,
         const ContactSectionSortKey& index,
-        void* custom = nullptr) const override;
+        const CustomData& custom) const override;
 
     bool last(const ContactSectionIDType& id) const override
     {
@@ -117,7 +117,8 @@ private:
     std::set<ContactSectionIDType> process_section(
         const opentxs::ContactSection& section);
     void startup(const opentxs::ContactSection section);
-    void update(ContactSectionPimpl& row, const void* custom) const override;
+    void update(ContactSectionPimpl& row, const CustomData& custom)
+        const override;
 
     ContactSection(
         const network::zeromq::Context& zmq,
@@ -130,5 +131,5 @@ private:
     ContactSection& operator=(const ContactSection&) = delete;
     ContactSection& operator=(ContactSection&&) = delete;
 };
-}  // opentxs::ui::implementation
+}  // namespace opentxs::ui::implementation
 #endif  // OPENTXS_UI_CONTACT_SECTION_IMPLEMENTATION_HPP

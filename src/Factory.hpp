@@ -44,6 +44,14 @@ namespace opentxs
 class Factory
 {
 public:
+    static ui::AccountActivity* AccountActivity(
+        const network::zeromq::Context& zmq,
+        const api::client::Sync& sync,
+        const api::client::Wallet& wallet,
+        const api::client::Workflow& workflow,
+        const api::ContactManager& contact,
+        const Identifier& nymID,
+        const Identifier& accountID);
     static ui::ActivitySummary* ActivitySummary(
         const network::zeromq::Context& zmq,
         const api::Activity& activity,
@@ -75,6 +83,16 @@ public:
         const api::storage::Storage& storage,
         const api::client::Wallet& wallet,
         const api::network::ZMQ& zmq);
+    static ui::BalanceItem* BalanceItem(
+        const ui::implementation::AccountActivityParent& parent,
+        const network::zeromq::Context& zmq,
+        const api::ContactManager& contact,
+        const api::client::Sync& sync,
+        const api::client::Wallet& wallet,
+        const proto::PaymentWorkflow& workflow,
+        const proto::PaymentEvent& event,
+        const Identifier& nymID,
+        const Identifier& accountID);
     static api::client::Cash* Cash();
     static ui::ContactList* ContactList(
         const network::zeromq::Context& zmq,
@@ -214,6 +232,7 @@ public:
         const api::ContactManager& contact,
         const api::client::Sync& sync,
         const api::client::Wallet& wallet,
+        const api::client::Workflow& workflow,
         const Flag& running);
     static api::client::Wallet* Wallet(
         const api::Native& ot,
@@ -221,7 +240,8 @@ public:
     static api::client::Workflow* Workflow(
         const api::Activity& activity,
         const api::ContactManager& contact,
-        const api::storage::Storage& storage);
+        const api::storage::Storage& storage,
+        const network::zeromq::Context& zmq);
 };
 }  // namespace opentxs
 #endif  // OPENTXS_FACTORY_HPP

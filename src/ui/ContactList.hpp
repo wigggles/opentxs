@@ -81,7 +81,7 @@ private:
     void construct_item(
         const ContactListID& id,
         const ContactListSortKey& index,
-        void* custom = nullptr) const override;
+        const CustomData& custom) const override;
     const opentxs::ui::ContactListItem& first(const Lock& lock) const override;
     bool last(const ContactListID& id) const override
     {
@@ -93,7 +93,7 @@ private:
     void add_item(
         const ContactListID& id,
         const ContactListSortKey& index,
-        void* custom = nullptr) override;
+        const CustomData& custom) override;
     void process_contact(const network::zeromq::Message& message);
     void startup();
 
@@ -107,5 +107,5 @@ private:
     ContactList& operator=(const ContactList&) = delete;
     ContactList& operator=(ContactList&&) = delete;
 };
-}  // opentxs::ui::implementation
+}  // namespace opentxs::ui::implementation
 #endif  // OPENTXS_UI_CONTACTLIST_IMPLEMENTATION_HPP
