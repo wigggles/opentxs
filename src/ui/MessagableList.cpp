@@ -46,7 +46,10 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
+#include "opentxs/network/zeromq/FrameIterator.hpp"
+#include "opentxs/network/zeromq/FrameSection.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/network/zeromq/MultipartMessage.hpp"
 #include "opentxs/network/zeromq/SubscribeSocket.hpp"
 #include "opentxs/ui/ContactListItem.hpp"
 #include "opentxs/ui/MessagableList.hpp"
@@ -95,13 +98,13 @@ MessagableList::MessagableList(
     , sync_(sync)
     , owner_contact_id_(Identifier::Factory(last_id_))
     , contact_subscriber_callback_(network::zeromq::ListenCallback::Factory(
-          [this](const network::zeromq::Message& message) -> void {
+          [this](const network::zeromq::MultipartMessage& message) -> void {
               this->process_contact(message);
           }))
     , contact_subscriber_(
           zmq_.SubscribeSocket(contact_subscriber_callback_.get()))
     , nym_subscriber_callback_(network::zeromq::ListenCallback::Factory(
-          [this](const network::zeromq::Message& message) -> void {
+          [this](const network::zeromq::MultipartMessage& message) -> void {
               this->process_nym(message);
           }))
     , nym_subscriber_(zmq_.SubscribeSocket(contact_subscriber_callback_.get()))
@@ -181,10 +184,14 @@ void MessagableList::process_contact(
     }
 }
 
-void MessagableList::process_contact(const network::zeromq::Message& message)
+void MessagableList::process_contact(
+    const network::zeromq::MultipartMessage& message)
 {
     wait_for_startup();
-    const std::string id(message);
+
+    OT_ASSERT(1 == message.Body().size());
+
+    const std::string id(*message.Body().begin());
     const Identifier contactID(id);
 
     OT_ASSERT(false == contactID.empty())
@@ -193,10 +200,14 @@ void MessagableList::process_contact(const network::zeromq::Message& message)
     process_contact(contactID, name);
 }
 
-void MessagableList::process_nym(const network::zeromq::Message& message)
+void MessagableList::process_nym(
+    const network::zeromq::MultipartMessage& message)
 {
     wait_for_startup();
-    const std::string id(message);
+
+    OT_ASSERT(1 == message.Body().size());
+
+    const std::string id(*message.Body().begin());
     const Identifier nymID(id);
 
     OT_ASSERT(false == nymID.empty())

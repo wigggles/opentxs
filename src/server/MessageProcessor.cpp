@@ -49,7 +49,10 @@
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
+#include "opentxs/network/zeromq/FrameIterator.hpp"
+#include "opentxs/network/zeromq/FrameSection.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/network/zeromq/MultipartMessage.hpp"
 #include "opentxs/network/zeromq/ReplyCallback.hpp"
 #include "opentxs/network/zeromq/ReplySocket.hpp"
 #include "opentxs/server/Server.hpp"
@@ -73,7 +76,8 @@ MessageProcessor::MessageProcessor(
     , running_(running)
     , context_(context)
     , reply_socket_callback_(network::zeromq::ReplyCallback::Factory(
-          [this](const network::zeromq::Message& incoming) -> OTZMQMessage {
+          [this](const network::zeromq::MultipartMessage& incoming)
+              -> OTZMQMultipartMessage {
               return this->processSocket(incoming);
           }))
     , reply_socket_(context.ReplySocket(reply_socket_callback_.get()))
@@ -91,9 +95,7 @@ void MessageProcessor::cleanup()
 
 void MessageProcessor::init(const int port, const OTPassword& privkey)
 {
-    if (port == 0) {
-        OT_FAIL;
-    }
+    if (port == 0) { OT_FAIL; }
 
     const auto set = reply_socket_->SetCurve(privkey);
 
@@ -121,29 +123,33 @@ void MessageProcessor::run()
     }
 }
 
-OTZMQMessage MessageProcessor::processSocket(
-    const network::zeromq::Message& incoming)
+OTZMQMultipartMessage MessageProcessor::processSocket(
+    const network::zeromq::MultipartMessage& incoming)
 {
     // ProcessCron and processSocket must not run simultaneously
     Lock lock(lock_);
     std::string reply{};
-    bool error = processMessage(std::string(incoming), reply);
 
-    if (error) {
-        reply = "";
+    std::string messageString{};
+    if (0 < incoming.Body().size()) {
+        messageString = *incoming.Body().begin();
     }
 
-    return network::zeromq::Message::Factory(reply);
+    bool error = processMessage(messageString, reply);
+
+    if (error) { reply = ""; }
+
+    auto output = network::zeromq::MultipartMessage::ReplyFactory(incoming);
+    output->AddFrame(reply);
+
+    return output;
 }
 
 bool MessageProcessor::processMessage(
     const std::string& messageString,
     std::string& reply)
 {
-    if (messageString.size() < 1) {
-
-        return true;
-    }
+    if (messageString.size() < 1) { return true; }
 
     OTASCIIArmor armored;
     armored.MemSet(messageString.data(), messageString.size());

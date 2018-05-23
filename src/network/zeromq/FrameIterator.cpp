@@ -55,10 +55,18 @@ FrameIterator::FrameIterator(
 }
 
 FrameIterator::FrameIterator(const FrameIterator& frameIterator)
-    : position_(std::atomic<std::size_t>(frameIterator.position_.load()))
+    : position_(frameIterator.position_.load())
     , parent_(frameIterator.parent_)
 {
     OT_ASSERT(nullptr != parent_);
+}
+
+FrameIterator& FrameIterator::operator=(const FrameIterator& frameIterator)
+{
+    position_ = frameIterator.position_.load();
+    parent_ = frameIterator.parent_;
+
+    return *this;
 }
 
 const Message& FrameIterator::operator*() const

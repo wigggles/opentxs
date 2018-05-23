@@ -65,7 +65,7 @@ private:
     PullSocket* clone() const override;
     bool have_callback() const override;
 
-    void process_incoming(const Lock& lock, Message& message) override;
+    void process_incoming(const Lock& lock, MultipartMessage& message) override;
 
     PullSocket(
         const zeromq::Context& context,

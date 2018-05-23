@@ -46,7 +46,10 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
+#include "opentxs/network/zeromq/FrameIterator.hpp"
+#include "opentxs/network/zeromq/FrameSection.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/network/zeromq/MultipartMessage.hpp"
 #include "opentxs/network/zeromq/SubscribeSocket.hpp"
 #include "opentxs/ui/ActivitySummary.hpp"
 #include "opentxs/ui/ActivitySummaryItem.hpp"
@@ -101,7 +104,7 @@ ActivitySummary::ActivitySummary(
     , activity_(activity)
     , running_(running)
     , activity_subscriber_callback_(network::zeromq::ListenCallback::Factory(
-          [this](const network::zeromq::Message& message) -> void {
+          [this](const network::zeromq::MultipartMessage& message) -> void {
               this->process_thread(message);
           }))
     , activity_subscriber_(
@@ -163,10 +166,14 @@ void ActivitySummary::process_thread(const std::string& id)
     add_item(threadID, index, {});
 }
 
-void ActivitySummary::process_thread(const network::zeromq::Message& message)
+void ActivitySummary::process_thread(
+    const network::zeromq::MultipartMessage& message)
 {
     wait_for_startup();
-    const std::string id(message);
+
+    OT_ASSERT(1 == message.Body().size());
+
+    const std::string id(*message.Body().begin());
     const auto threadID = Identifier::Factory(id);
 
     OT_ASSERT(false == threadID->empty())

@@ -52,7 +52,7 @@ class PushSocket : virtual public zeromq::PushSocket, public Socket
 public:
     bool Push(const std::string& data) const override;
     bool Push(const opentxs::Data& data) const override;
-    bool Push(zeromq::Message& data) const override;
+    bool Push(zeromq::MultipartMessage& data) const override;
     bool Start(const std::string& endpoint) const override;
 
     ~PushSocket() = default;

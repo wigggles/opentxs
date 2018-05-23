@@ -61,7 +61,8 @@ private:
     std::string payment_code_{""};
     const proto::ContactItemType currency_;
 
-    void process_contact(const network::zeromq::Message& message) override;
+    void process_contact(
+        const network::zeromq::MultipartMessage& message) override;
 
     PayableListItem(
         const ContactListParent& parent,

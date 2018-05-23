@@ -54,6 +54,7 @@
         return static_cast<int>($self->Type());
     }
 }
+%ignore opentxs::ui::ContactSubsection::Type;
 %ignore opentxs::ui::ContactSubsection::Update;
 %rename(UIContactSubsection) opentxs::ui::ContactSubsection;
 // clang-format on

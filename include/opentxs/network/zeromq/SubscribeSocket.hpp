@@ -45,10 +45,14 @@
 
 #ifdef SWIG
 // clang-format off
-%template(OTZMQSubscribeSocket) opentxs::Pimpl<opentxs::network::zeromq::SubscribeSocket>;
 %ignore opentxs::network::zeromq::SubscribeSocket::Factory;
 %ignore opentxs::network::zeromq::SubscribeSocket::SetCurve;
+%ignore opentxs::Pimpl<opentxs::network::zeromq::SubscribeSocket>::Pimpl(opentxs::network::zeromq::SubscribeSocket const &);
+%ignore opentxs::Pimpl<opentxs::network::zeromq::SubscribeSocket>::operator opentxs::network::zeromq::SubscribeSocket&;
+%ignore opentxs::Pimpl<opentxs::network::zeromq::SubscribeSocket>::operator const opentxs::network::zeromq::SubscribeSocket &;
+%rename(assign) operator=(const opentxs::network::zeromq::SubscribeSocket&);
 %rename(ZMQSubscribeSocket) opentxs::network::zeromq::SubscribeSocket;
+%template(OTZMQSubscribeSocket) opentxs::Pimpl<opentxs::network::zeromq::SubscribeSocket>;
 // clang-format on
 #endif  // SWIG
 

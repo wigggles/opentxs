@@ -52,34 +52,19 @@
 
 using namespace opentxs;
 
-namespace
-{
-class Test_FrameIterator : public ::testing::Test
-{
-public:
-    static OTZMQContext context_;
-};
-
-OTZMQContext Test_FrameIterator::context_{
-    network::zeromq::Context::Factory()};
-
-}  // namespace
-
 TEST(FrameIterator, constructors)
 {
-    ASSERT_NE(nullptr, &Test_FrameIterator::context_.get());
-
     auto multipartMessage = network::zeromq::MultipartMessage::Factory();
 
     network::zeromq::FrameIterator frameIterator(multipartMessage->begin());
     ASSERT_EQ(multipartMessage->begin(), frameIterator);
-    
+
     network::zeromq::FrameIterator frameIterator2(&multipartMessage.get());
     ASSERT_EQ(multipartMessage->begin(), frameIterator2);
-    
+
     multipartMessage->AddFrame("msg1");
     multipartMessage->AddFrame("msg2");
-    
+
     network::zeromq::FrameIterator frameIterator3(&multipartMessage.get(), 1);
     auto& message = *frameIterator3;
     std::string messageString = message;
@@ -88,16 +73,14 @@ TEST(FrameIterator, constructors)
 
 TEST(FrameIterator, assignment_operator)
 {
-    ASSERT_NE(nullptr, &Test_FrameIterator::context_.get());
-
     auto multipartMessage = network::zeromq::MultipartMessage::Factory();
 
     network::zeromq::FrameIterator frameIterator = multipartMessage->begin();
     ASSERT_EQ(multipartMessage->begin(), frameIterator);
-    
+
     multipartMessage->AddFrame("msg1");
     multipartMessage->AddFrame("msg2");
-    
+
     network::zeromq::FrameIterator frameIterator2(&multipartMessage.get(), 1);
     network::zeromq::FrameIterator& frameIterator3 = frameIterator2;
     auto& message = *frameIterator3;
@@ -107,13 +90,24 @@ TEST(FrameIterator, assignment_operator)
 
 TEST(FrameIterator, operator_asterisk)
 {
-    ASSERT_NE(nullptr, &Test_FrameIterator::context_.get());
-
     auto multipartMessage = network::zeromq::MultipartMessage::Factory();
 
     multipartMessage->AddFrame("msg1");
-    
+
     network::zeromq::FrameIterator frameIterator = multipartMessage->begin();
+    auto& message = *frameIterator;
+    std::string messageString = message;
+    ASSERT_STREQ("msg1", messageString.c_str());
+}
+
+TEST(FrameIterator, operator_asterisk_const)
+{
+    auto multipartMessage = network::zeromq::MultipartMessage::Factory();
+
+    multipartMessage->AddFrame("msg1");
+
+    const network::zeromq::FrameIterator frameIterator =
+        multipartMessage->begin();
     auto& message = *frameIterator;
     std::string messageString = message;
     ASSERT_STREQ("msg1", messageString.c_str());
@@ -121,58 +115,52 @@ TEST(FrameIterator, operator_asterisk)
 
 TEST(FrameIterator, operator_equal)
 {
-    ASSERT_NE(nullptr, &Test_FrameIterator::context_.get());
-
     auto multipartMessage = network::zeromq::MultipartMessage::Factory();
-    
+
     ASSERT_TRUE(multipartMessage->begin() == multipartMessage->end());
 
     multipartMessage->AddFrame("msg1");
-    
+
     ASSERT_FALSE(multipartMessage->begin() == multipartMessage->end());
-    
+
     network::zeromq::FrameIterator frameIterator2(&multipartMessage.get(), 1);
     network::zeromq::FrameIterator& frameIterator3 = frameIterator2;
-    
+
     ASSERT_TRUE(frameIterator2 == frameIterator3);
     ASSERT_FALSE(multipartMessage->begin() == frameIterator2);
 }
 
 TEST(FrameIterator, operator_notEqual)
 {
-    ASSERT_NE(nullptr, &Test_FrameIterator::context_.get());
-
     auto multipartMessage = network::zeromq::MultipartMessage::Factory();
-    
+
     ASSERT_FALSE(multipartMessage->begin() != multipartMessage->end());
 
     multipartMessage->AddFrame("msg1");
-    
+
     ASSERT_TRUE(multipartMessage->begin() != multipartMessage->end());
-    
+
     network::zeromq::FrameIterator frameIterator2(&multipartMessage.get(), 1);
     network::zeromq::FrameIterator& frameIterator3 = frameIterator2;
-    
+
     ASSERT_FALSE(frameIterator2 != frameIterator3);
     ASSERT_TRUE(multipartMessage->begin() != frameIterator2);
 }
 
 TEST(FrameIterator, operator_pre_increment)
 {
-    ASSERT_NE(nullptr, &Test_FrameIterator::context_.get());
-
     auto multipartMessage = network::zeromq::MultipartMessage::Factory();
-    
+
     multipartMessage->AddFrame("msg1");
     multipartMessage->AddFrame("msg2");
-    
+
     network::zeromq::FrameIterator frameIterator = multipartMessage->begin();
     network::zeromq::FrameIterator& frameIterator2 = ++frameIterator;
 
     auto& message = *frameIterator2;
     std::string stringMessage = message;
     ASSERT_STREQ("msg2", stringMessage.c_str());
-    
+
     auto& message2 = *frameIterator;
     stringMessage = message2;
     ASSERT_STREQ("msg2", stringMessage.c_str());
@@ -180,22 +168,19 @@ TEST(FrameIterator, operator_pre_increment)
 
 TEST(FrameIterator, operator_post_increment)
 {
-    ASSERT_NE(nullptr, &Test_FrameIterator::context_.get());
-
     auto multipartMessage = network::zeromq::MultipartMessage::Factory();
-    
+
     multipartMessage->AddFrame("msg1");
     multipartMessage->AddFrame("msg2");
-    
+
     network::zeromq::FrameIterator frameIterator = multipartMessage->begin();
     network::zeromq::FrameIterator frameIterator2 = frameIterator++;
 
     auto& message = *frameIterator2;
     std::string stringMessage = message;
     ASSERT_STREQ("msg1", stringMessage.c_str());
-    
+
     auto& message2 = *frameIterator;
     stringMessage = message2;
     ASSERT_STREQ("msg2", stringMessage.c_str());
 }
-

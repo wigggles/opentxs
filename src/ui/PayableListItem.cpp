@@ -93,7 +93,8 @@ std::string PayableListItem::PaymentCode() const
     return payment_code_;
 }
 
-void PayableListItem::process_contact(const network::zeromq::Message& message)
+void PayableListItem::process_contact(
+    const network::zeromq::MultipartMessage& message)
 {
     ot_super::process_contact(message);
     const auto contact = contact_.Contact(id_);

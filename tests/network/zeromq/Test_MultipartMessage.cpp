@@ -43,64 +43,104 @@
 #include "gtest/gtest-test-part.h"
 
 #include "opentxs/core/Data.hpp"
-#include "opentxs/network/zeromq/Context.hpp"
+#include "opentxs/network/zeromq/FrameIterator.hpp"
+#include "opentxs/network/zeromq/FrameSection.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/MultipartMessage.hpp"
-#include "opentxs/network/zeromq/FrameIterator.hpp"
 
 #include <zmq.h>
 
 using namespace opentxs;
 
-namespace
-{
-class Test_MultipartMessage : public ::testing::Test
-{
-public:
-    static OTZMQContext context_;
-};
-
-OTZMQContext Test_MultipartMessage::context_{
-    network::zeromq::Context::Factory()};
-
-}  // namespace
-
 TEST(MultipartMessage, Factory)
 {
-    ASSERT_NE(nullptr, &Test_MultipartMessage::context_.get());
-
     auto multipartMessage = network::zeromq::MultipartMessage::Factory();
 
     ASSERT_NE(nullptr, &multipartMessage.get());
 }
 
+TEST(MultipartMessage, AddFrame)
+{
+    auto multipartMessage = network::zeromq::MultipartMessage::Factory();
+
+    network::zeromq::Message& message = multipartMessage->AddFrame();
+    ASSERT_EQ(1, multipartMessage->size());
+    ASSERT_NE(nullptr, message.data());
+    ASSERT_EQ(0, message.size());
+}
+
+TEST(MultipartMessage, AddFrame_Data)
+{
+    auto multipartMessage = network::zeromq::MultipartMessage::Factory();
+
+    network::zeromq::Message& message =
+        multipartMessage->AddFrame(Data::Factory("testString", 10));
+    ASSERT_EQ(1, multipartMessage->size());
+    ASSERT_NE(nullptr, message.data());
+    ASSERT_EQ(10, message.size());
+
+    std::string messageString = message;
+    ASSERT_STREQ("testString", messageString.c_str());
+}
+
+TEST(MultipartMessage, AddFrame_string)
+{
+    auto multipartMessage = network::zeromq::MultipartMessage::Factory();
+
+    network::zeromq::Message& message =
+        multipartMessage->AddFrame("testString");
+    ASSERT_EQ(1, multipartMessage->size());
+    ASSERT_NE(nullptr, message.data());
+    ASSERT_EQ(10, message.size());
+
+    std::string messageString = message;
+    ASSERT_STREQ("testString", messageString.c_str());
+}
+
 TEST(MultipartMessage, at)
 {
-    ASSERT_NE(nullptr, &Test_MultipartMessage::context_.get());
-
     auto multipartMessage = network::zeromq::MultipartMessage::Factory();
 
     multipartMessage->AddFrame("msg1");
     multipartMessage->AddFrame("msg2");
     multipartMessage->AddFrame("msg3");
 
-    auto& message = multipartMessage->at(0);
+    network::zeromq::Message& message = multipartMessage->at(0);
     std::string messageString = message;
     ASSERT_STREQ("msg1", messageString.c_str());
 
-    auto& message2 = multipartMessage->at(1);
+    network::zeromq::Message& message2 = multipartMessage->at(1);
     messageString = message2;
     ASSERT_STREQ("msg2", messageString.c_str());
 
-    auto& message3 = multipartMessage->at(2);
+    network::zeromq::Message& message3 = multipartMessage->at(2);
+    messageString = message3;
+    ASSERT_STREQ("msg3", messageString.c_str());
+}
+
+TEST(MultipartMessage, at_const)
+{
+    auto multipartMessage = network::zeromq::MultipartMessage::Factory();
+
+    multipartMessage->AddFrame("msg1");
+    multipartMessage->AddFrame("msg2");
+    multipartMessage->AddFrame("msg3");
+
+    const network::zeromq::Message& message = multipartMessage->at(0);
+    std::string messageString = message;
+    ASSERT_STREQ("msg1", messageString.c_str());
+
+    const network::zeromq::Message& message2 = multipartMessage->at(1);
+    messageString = message2;
+    ASSERT_STREQ("msg2", messageString.c_str());
+
+    const network::zeromq::Message& message3 = multipartMessage->at(2);
     messageString = message3;
     ASSERT_STREQ("msg3", messageString.c_str());
 }
 
 TEST(MultipartMessage, begin)
 {
-    ASSERT_NE(nullptr, &Test_MultipartMessage::context_.get());
-
     auto multipartMessage = network::zeromq::MultipartMessage::Factory();
 
     network::zeromq::FrameIterator it = multipartMessage->begin();
@@ -114,18 +154,76 @@ TEST(MultipartMessage, begin)
     ASSERT_NE(multipartMessage->end(), it);
     ASSERT_EQ(3, std::distance(it, multipartMessage->end()));
 
-    std::string messageString = *it;
-    ASSERT_STREQ("msg1", messageString.c_str());
-
     std::advance(it, 3);
     ASSERT_EQ(multipartMessage->end(), it);
     ASSERT_EQ(0, std::distance(it, multipartMessage->end()));
 }
 
+TEST(MultipartMessage, Body)
+{
+    auto multipartMessage = network::zeromq::MultipartMessage::Factory();
+
+    multipartMessage->AddFrame("msg1");
+    multipartMessage->AddFrame("msg2");
+    multipartMessage->AddFrame();
+    multipartMessage->AddFrame("msg3");
+    multipartMessage->AddFrame("msg4");
+
+    const network::zeromq::FrameSection bodySection = multipartMessage->Body();
+    ASSERT_EQ(2, bodySection.size());
+
+    const auto& message = bodySection.at(1);
+    std::string msgString = message;
+    ASSERT_STREQ("msg4", msgString.c_str());
+}
+
+TEST(MultipartMessage, Body_at)
+{
+    auto multipartMessage = network::zeromq::MultipartMessage::Factory();
+
+    multipartMessage->AddFrame("msg1");
+    multipartMessage->AddFrame("msg2");
+    multipartMessage->AddFrame();
+    multipartMessage->AddFrame("msg3");
+    multipartMessage->AddFrame("msg4");
+
+    const network::zeromq::Message& message = multipartMessage->Body_at(1);
+    std::string msgString = message;
+    ASSERT_STREQ("msg4", msgString.c_str());
+}
+
+TEST(MultipartMessage, Body_begin)
+{
+    auto multipartMessage = network::zeromq::MultipartMessage::Factory();
+
+    multipartMessage->AddFrame("msg1");
+    multipartMessage->AddFrame("msg2");
+    multipartMessage->AddFrame();
+    multipartMessage->AddFrame("msg3");
+    multipartMessage->AddFrame("msg4");
+
+    network::zeromq::FrameIterator bodyBegin = multipartMessage->Body_begin();
+    auto body = multipartMessage->Body();
+    ASSERT_EQ(body.begin(), bodyBegin);
+}
+
+TEST(MultipartMessage, Body_end)
+{
+    auto multipartMessage = network::zeromq::MultipartMessage::Factory();
+
+    multipartMessage->AddFrame("msg1");
+    multipartMessage->AddFrame("msg2");
+    multipartMessage->AddFrame();
+    multipartMessage->AddFrame("msg3");
+    multipartMessage->AddFrame("msg4");
+
+    network::zeromq::FrameIterator bodyEnd = multipartMessage->Body_end();
+    auto body = multipartMessage->Body();
+    ASSERT_EQ(body.end(), bodyEnd);
+}
+
 TEST(MultipartMessage, end)
 {
-    ASSERT_NE(nullptr, &Test_MultipartMessage::context_.get());
-
     auto multipartMessage = network::zeromq::MultipartMessage::Factory();
 
     network::zeromq::FrameIterator it = multipartMessage->end();
@@ -136,64 +234,86 @@ TEST(MultipartMessage, end)
     multipartMessage->AddFrame("msg2");
     multipartMessage->AddFrame("msg3");
 
-    auto it2 = multipartMessage->end();
+    network::zeromq::FrameIterator it2 = multipartMessage->end();
     ASSERT_NE(multipartMessage->begin(), it2);
     ASSERT_EQ(3, std::distance(multipartMessage->begin(), it2));
 }
 
-TEST(MultipartMessage, size)
+TEST(MultipartMessage, Header)
 {
-    ASSERT_NE(nullptr, &Test_MultipartMessage::context_.get());
-
     auto multipartMessage = network::zeromq::MultipartMessage::Factory();
 
-    ASSERT_EQ(0, multipartMessage->size());
+    multipartMessage->AddFrame("msg1");
+    multipartMessage->AddFrame("msg2");
+    multipartMessage->AddFrame();
+    multipartMessage->AddFrame("msg3");
+    multipartMessage->AddFrame("msg4");
+
+    network::zeromq::FrameSection headerSection = multipartMessage->Header();
+    ASSERT_EQ(2, headerSection.size());
+
+    const auto& message = headerSection.at(1);
+    std::string msgString = message;
+    ASSERT_STREQ("msg2", msgString.c_str());
+}
+
+TEST(MultipartMessage, Header_at)
+{
+    auto multipartMessage = network::zeromq::MultipartMessage::Factory();
+
+    multipartMessage->AddFrame("msg1");
+    multipartMessage->AddFrame("msg2");
+    multipartMessage->AddFrame();
+    multipartMessage->AddFrame("msg3");
+    multipartMessage->AddFrame("msg4");
+
+    const network::zeromq::Message& message = multipartMessage->Header_at(1);
+    std::string msgString = message;
+    ASSERT_STREQ("msg2", msgString.c_str());
+}
+
+TEST(MultipartMessage, Header_begin)
+{
+    auto multipartMessage = network::zeromq::MultipartMessage::Factory();
+
+    multipartMessage->AddFrame("msg1");
+    multipartMessage->AddFrame("msg2");
+    multipartMessage->AddFrame();
+    multipartMessage->AddFrame("msg3");
+    multipartMessage->AddFrame("msg4");
+
+    network::zeromq::FrameIterator headerBegin =
+        multipartMessage->Header_begin();
+    auto header = multipartMessage->Header();
+    ASSERT_EQ(header.begin(), headerBegin);
+}
+
+TEST(MultipartMessage, Header_end)
+{
+    auto multipartMessage = network::zeromq::MultipartMessage::Factory();
+
+    multipartMessage->AddFrame("msg1");
+    multipartMessage->AddFrame("msg2");
+    multipartMessage->AddFrame();
+    multipartMessage->AddFrame("msg3");
+    multipartMessage->AddFrame("msg4");
+
+    network::zeromq::FrameIterator headerEnd = multipartMessage->Header_end();
+    auto header = multipartMessage->Header();
+    ASSERT_EQ(header.end(), headerEnd);
+}
+
+TEST(MultipartMessage, size)
+{
+    auto multipartMessage = network::zeromq::MultipartMessage::Factory();
+
+    std::size_t size = multipartMessage->size();
+    ASSERT_EQ(0, size);
 
     multipartMessage->AddFrame("msg1");
     multipartMessage->AddFrame("msg2");
     multipartMessage->AddFrame("msg3");
 
-    ASSERT_EQ(3, multipartMessage->size());
-}
-
-TEST(MultipartMessage, AddFrame)
-{
-    ASSERT_NE(nullptr, &Test_MultipartMessage::context_.get());
-
-    auto multipartMessage = network::zeromq::MultipartMessage::Factory();
-
-    auto& message = multipartMessage->AddFrame();
-    ASSERT_EQ(1, multipartMessage->size());
-    ASSERT_NE(nullptr, message.data());
-    ASSERT_EQ(0, message.size());
-}
-
-TEST(MultipartMessage, AddFrame_Data)
-{
-    ASSERT_NE(nullptr, &Test_MultipartMessage::context_.get());
-
-    auto multipartMessage = network::zeromq::MultipartMessage::Factory();
-
-    auto& message = multipartMessage->AddFrame(Data::Factory("testString", 10));
-    ASSERT_EQ(1, multipartMessage->size());
-    ASSERT_NE(nullptr, message.data());
-    ASSERT_EQ(10, message.size());
-    
-    std::string messageString = message;
-    ASSERT_STREQ("testString", messageString.c_str());
-}
-
-TEST(MultipartMessage, AddFrame_string)
-{
-    ASSERT_NE(nullptr, &Test_MultipartMessage::context_.get());
-
-    auto multipartMessage = network::zeromq::MultipartMessage::Factory();
-
-    auto& message = multipartMessage->AddFrame("testString");
-    ASSERT_EQ(1, multipartMessage->size());
-    ASSERT_NE(nullptr, message.data());
-    ASSERT_EQ(10, message.size());
-    
-    std::string messageString = message;
-    ASSERT_STREQ("testString", messageString.c_str());
+    size = multipartMessage->size();
+    ASSERT_EQ(3, size);
 }

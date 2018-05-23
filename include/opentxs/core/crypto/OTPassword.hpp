@@ -58,6 +58,7 @@
 %ignore opentxs::OTPassword::randomizePassword_uint8;
 %ignore opentxs::OTPassword::safe_memcpy;
 %ignore opentxs::OTPassword::zeroMemory;
+%rename(assign) opentxs::OTPassword::operator=(const OTPassword& rhs);
 // clang-format on
 #endif  // SWIG
 

@@ -46,7 +46,10 @@
 #include "opentxs/core/UniqueQueue.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
+#include "opentxs/network/zeromq/FrameIterator.hpp"
+#include "opentxs/network/zeromq/FrameSection.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/network/zeromq/MultipartMessage.hpp"
 #include "opentxs/network/zeromq/SubscribeSocket.hpp"
 #include "opentxs/ui/ActivitySummaryItem.hpp"
 
@@ -105,7 +108,7 @@ ActivitySummaryItem::ActivitySummaryItem(
     , newest_item_thread_(nullptr)
     , newest_item_()
     , activity_subscriber_callback_(network::zeromq::ListenCallback::Factory(
-          [this](const network::zeromq::Message& message) -> void {
+          [this](const network::zeromq::MultipartMessage& message) -> void {
               this->process_thread(message);
           }))
     , activity_subscriber_(
@@ -284,9 +287,11 @@ const proto::StorageThreadItem& ActivitySummaryItem::newest_item(
 }
 
 void ActivitySummaryItem::process_thread(
-    const network::zeromq::Message& message)
+    const network::zeromq::MultipartMessage& message)
 {
-    const std::string id(message);
+    OT_ASSERT(1 == message.Body().size())
+
+    const std::string id(*message.Body().begin());
     otWarn << OT_METHOD << __FUNCTION__ << ": Thread " << id << " has updated.."
            << std::endl;
     const auto threadID = Identifier::Factory(id);

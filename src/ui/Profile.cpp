@@ -50,7 +50,10 @@
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
+#include "opentxs/network/zeromq/FrameIterator.hpp"
+#include "opentxs/network/zeromq/FrameSection.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/network/zeromq/MultipartMessage.hpp"
 #include "opentxs/network/zeromq/SubscribeSocket.hpp"
 #include "opentxs/ui/Profile.hpp"
 #include "opentxs/ui/ProfileSection.hpp"
@@ -109,7 +112,7 @@ Profile::Profile(
     , name_(nym_name(wallet, nymID))
     , payment_code_()
     , nym_subscriber_callback_(network::zeromq::ListenCallback::Factory(
-          [this](const network::zeromq::Message& message) -> void {
+          [this](const network::zeromq::MultipartMessage& message) -> void {
               this->process_nym(message);
           }))
     , nym_subscriber_(zmq_.SubscribeSocket(nym_subscriber_callback_.get()))
@@ -292,10 +295,13 @@ void Profile::process_nym(const Nym& nym)
     UpdateNotify();
 }
 
-void Profile::process_nym(const network::zeromq::Message& message)
+void Profile::process_nym(const network::zeromq::MultipartMessage& message)
 {
     wait_for_startup();
-    const std::string id(message);
+
+    OT_ASSERT(1 == message.Body().size());
+
+    const std::string id(*message.Body().begin());
     const Identifier nymID(id);
 
     OT_ASSERT(false == nymID.empty())

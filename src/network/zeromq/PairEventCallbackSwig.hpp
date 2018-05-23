@@ -48,7 +48,7 @@ namespace opentxs::network::zeromq::implementation
 class PairEventCallbackSwig : virtual public zeromq::PairEventCallback
 {
 public:
-    void Process(const zeromq::Message& message) const override;
+    void Process(const zeromq::MultipartMessage& message) const override;
 
     ~PairEventCallbackSwig();
 

@@ -46,6 +46,13 @@
 #ifdef SWIG
 // clang-format off
 %rename(ZMQFrameIterator) opentxs::network::zeromq::FrameIterator;
+%rename(assign) opentxs::network::zeromq::FrameIterator::operator=(const FrameIterator&);
+%rename(toMessageConst) opentxs::network::zeromq::FrameIterator::operator*() const;
+%rename(toMessage) opentxs::network::zeromq::FrameIterator::operator*();
+%rename(compareEqual) opentxs::network::zeromq::FrameIterator::operator==(const FrameIterator&) const;
+%rename(compareNotEqual) opentxs::network::zeromq::FrameIterator::operator!=(const FrameIterator&) const;
+%rename(preIncrement) opentxs::network::zeromq::FrameIterator::operator++();
+%rename(postIncrement) opentxs::network::zeromq::FrameIterator::operator++(int);
 // clang-format on
 #endif  // SWIG
 
@@ -69,13 +76,13 @@ public:
     EXPORT FrameIterator(
         const MultipartMessage* parent,
         std::size_t position = 0);
-    EXPORT FrameIterator& operator=(const FrameIterator&) = default;
+    EXPORT FrameIterator& operator=(const FrameIterator&);
 
     EXPORT const opentxs::network::zeromq::Message& operator*() const;
-    EXPORT opentxs::network::zeromq::Message& operator*();
     EXPORT bool operator==(const FrameIterator&) const;
     EXPORT bool operator!=(const FrameIterator&) const;
 
+    EXPORT opentxs::network::zeromq::Message& operator*();
     EXPORT FrameIterator& operator++();
     EXPORT FrameIterator operator++(int);
 

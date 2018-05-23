@@ -46,8 +46,12 @@
 #ifdef SWIG
 // clang-format off
 %ignore opentxs::network::zeromq::PushSocket::Factory;
-%template(OTZMQPushSocket) opentxs::Pimpl<opentxs::network::zeromq::PushSocket>;
+%ignore opentxs::Pimpl<opentxs::network::zeromq::PushSocket>::Pimpl(opentxs::network::zeromq::PushSocket const &);
+%ignore opentxs::Pimpl<opentxs::network::zeromq::PushSocket>::operator opentxs::network::zeromq::PushSocket&;
+%ignore opentxs::Pimpl<opentxs::network::zeromq::PushSocket>::operator const opentxs::network::zeromq::PushSocket &;
+%rename(assign) operator=(const opentxs::network::zeromq::PushSocket&);
 %rename(ZMQPushSocket) opentxs::network::zeromq::PushSocket;
+%template(OTZMQPushSocket) opentxs::Pimpl<opentxs::network::zeromq::PushSocket>;
 // clang-format on
 #endif  // SWIG
 
@@ -66,7 +70,7 @@ public:
 
     EXPORT virtual bool Push(const std::string& data) const = 0;
     EXPORT virtual bool Push(const opentxs::Data& data) const = 0;
-    EXPORT virtual bool Push(network::zeromq::Message& data) const = 0;
+    EXPORT virtual bool Push(network::zeromq::MultipartMessage& data) const = 0;
 
     EXPORT virtual ~PushSocket() = default;
 

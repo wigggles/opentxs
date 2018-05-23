@@ -46,8 +46,12 @@
 #ifdef SWIG
 // clang-format off
 %ignore opentxs::network::zeromq::ReplyCallback::Factory;
-%template(OTZMQReplyCallback) opentxs::Pimpl<opentxs::network::zeromq::ReplyCallback>;
+%ignore opentxs::Pimpl<opentxs::network::zeromq::ReplyCallback>::Pimpl(opentxs::network::zeromq::ReplyCallback const &);
+%ignore opentxs::Pimpl<opentxs::network::zeromq::ReplyCallback>::operator opentxs::network::zeromq::ReplyCallback&;
+%ignore opentxs::Pimpl<opentxs::network::zeromq::ReplyCallback>::operator const opentxs::network::zeromq::ReplyCallback &;
+%rename(assign) operator=(const opentxs::network::zeromq::ReplyCallback&);
 %rename(ZMQReplyCallback) opentxs::network::zeromq::ReplyCallback;
+%template(OTZMQReplyCallback) opentxs::Pimpl<opentxs::network::zeromq::ReplyCallback>;
 // clang-format on
 #endif  // SWIG
 
@@ -60,12 +64,13 @@ namespace zeromq
 class ReplyCallback
 {
 public:
-    using ReceiveCallback = std::function<OTZMQMessage(const Message&)>;
+    using ReceiveCallback =
+        std::function<OTZMQMultipartMessage(const MultipartMessage&)>;
 
     EXPORT static OTZMQReplyCallback Factory(ReceiveCallback callback);
 
-    EXPORT virtual Pimpl<opentxs::network::zeromq::Message> Process(
-        const Message& message) const = 0;
+    EXPORT virtual Pimpl<opentxs::network::zeromq::MultipartMessage> Process(
+        const MultipartMessage& message) const = 0;
 
     EXPORT virtual ~ReplyCallback() = default;
 

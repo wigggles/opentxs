@@ -43,15 +43,15 @@
 
 #ifdef SWIG
 // clang-format off
-%ignore opentxs::Pimpl<opentxs::network::zeromq::MultipartMessage>::operator+=;
-%ignore opentxs::Pimpl<opentxs::network::zeromq::MultipartMessage>::operator==;
-%ignore opentxs::Pimpl<opentxs::network::zeromq::MultipartMessage>::operator!=;
-%ignore opentxs::Pimpl<opentxs::network::zeromq::MultipartMessage>::operator<;
-%ignore opentxs::Pimpl<opentxs::network::zeromq::MultipartMessage>::operator<=;
-%ignore opentxs::Pimpl<opentxs::network::zeromq::MultipartMessage>::operator>;
-%ignore opentxs::Pimpl<opentxs::network::zeromq::MultipartMessage>::operator>=;
-%template(OTZMQMultipartMessage) opentxs::Pimpl<opentxs::network::zeromq::MultipartMessage>;
+%ignore opentxs::Pimpl<opentxs::network::zeromq::MultipartMessage>::Pimpl(opentxs::network::zeromq::MultipartMessage const &);
+%ignore opentxs::Pimpl<opentxs::network::zeromq::MultipartMessage>::operator opentxs::network::zeromq::MultipartMessage&;
+%ignore opentxs::Pimpl<opentxs::network::zeromq::MultipartMessage>::operator const opentxs::network::zeromq::MultipartMessage &;
+%ignore opentxs::network::zeromq::MultipartMessage::at(const std::size_t) const;
+%ignore opentxs::network::zeromq::MultipartMessage::begin() const;
+%ignore opentxs::network::zeromq::MultipartMessage::end() const;
+%rename(assign) operator=(const opentxs::network::zeromq::MultipartMessage&);
 %rename(ZMQMultipartMessage) opentxs::network::zeromq::MultipartMessage;
+%template(OTZMQMultipartMessage) opentxs::Pimpl<opentxs::network::zeromq::MultipartMessage>;
 // clang-format on
 #endif  // SWIG
 
@@ -64,32 +64,29 @@ namespace zeromq
 class MultipartMessage
 {
 public:
-    EXPORT static opentxs::Pimpl<opentxs::network::zeromq::MultipartMessage>
-    Factory();
-    //    EXPORT static
-    //    opentxs::Pimpl<opentxs::network::zeromq::MultipartMessage>
-    //    ReplyFactory(const MultipartMessage& request);
+    EXPORT static Pimpl<MultipartMessage> Factory();
+    EXPORT static Pimpl<MultipartMessage> Factory(const Data& input);
+    EXPORT static Pimpl<MultipartMessage> Factory(const std::string& input);
+    EXPORT static Pimpl<MultipartMessage> ReplyFactory(
+        const MultipartMessage& request);
 
     EXPORT virtual const Message& at(const std::size_t index) const = 0;
-    EXPORT virtual Message& at(const std::size_t index) = 0;
-    EXPORT virtual const FrameIterator begin() const = 0;
-    EXPORT virtual FrameIterator begin() = 0;
-    //    EXPORT virtual FrameIterator Body_begin() const = 0;
-    //    EXPORT virtual FrameIterator Body_end() const = 0;
-    //    EXPORT virtual const Message& Body_at(const std::size_t index) const =
-    //    0; EXPORT virtual const FrameSection& Body() const = 0;
-    EXPORT virtual const FrameIterator end() const = 0;
-    EXPORT virtual FrameIterator end() = 0;
-    //    EXPORT virtual const FrameSection& Header() const = 0;
-    //    EXPORT virtual FrameIterator Header_begin() const = 0;
-    //    EXPORT virtual FrameIterator Header_end() const = 0;
-    //    EXPORT virtual const Message& Header_at(const std::size_t index) const
-    //    = 0;
+    EXPORT virtual FrameIterator begin() const = 0;
+    EXPORT virtual const FrameSection Body() const = 0;
+    EXPORT virtual const Message& Body_at(const std::size_t index) const = 0;
+    EXPORT virtual FrameIterator Body_begin() const = 0;
+    EXPORT virtual FrameIterator Body_end() const = 0;
+    EXPORT virtual FrameIterator end() const = 0;
+    EXPORT virtual const FrameSection Header() const = 0;
+    EXPORT virtual const Message& Header_at(const std::size_t index) const = 0;
+    EXPORT virtual FrameIterator Header_begin() const = 0;
+    EXPORT virtual FrameIterator Header_end() const = 0;
     EXPORT virtual std::size_t size() const = 0;
 
     EXPORT virtual Message& AddFrame() = 0;
     EXPORT virtual Message& AddFrame(const opentxs::Data& input) = 0;
     EXPORT virtual Message& AddFrame(const std::string& input) = 0;
+    EXPORT virtual Message& at(const std::size_t index) = 0;
 
     EXPORT virtual ~MultipartMessage() = default;
 

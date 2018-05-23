@@ -47,8 +47,12 @@
 // clang-format off
 %ignore opentxs::network::zeromq::ReplySocket::Factory;
 %ignore opentxs::network::zeromq::ReplySocket::SetCurve;
-%template(OTZMQReplySocket) opentxs::Pimpl<opentxs::network::zeromq::ReplySocket>;
+%ignore opentxs::Pimpl<opentxs::network::zeromq::ReplySocket>::Pimpl(opentxs::network::zeromq::ReplySocket const &);
+%ignore opentxs::Pimpl<opentxs::network::zeromq::ReplySocket>::operator opentxs::network::zeromq::ReplySocket&;
+%ignore opentxs::Pimpl<opentxs::network::zeromq::ReplySocket>::operator const opentxs::network::zeromq::ReplySocket &;
+%rename(assign) operator=(const opentxs::network::zeromq::ReplySocket&);
 %rename(ZMQReplySocket) opentxs::network::zeromq::ReplySocket;
+%template(OTZMQReplySocket) opentxs::Pimpl<opentxs::network::zeromq::ReplySocket>;
 // clang-format on
 #endif  // SWIG
 

@@ -6,6 +6,7 @@ set(cxx-sources
   Test_Message.cpp
   Test_MultipartMessage.cpp
   Test_FrameIterator.cpp
+  Test_FrameSection.cpp
   Test_ReplySocket.cpp
   Test_RequestSocket.cpp
   Test_RequestReply.cpp

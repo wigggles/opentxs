@@ -47,10 +47,14 @@
 // clang-format off
 %ignore opentxs::network::zeromq::RequestSocket::Factory;
 %ignore opentxs::network::zeromq::RequestSocket::SetCurve;
+%ignore opentxs::Pimpl<opentxs::network::zeromq::RequestSocket>::Pimpl(opentxs::network::zeromq::RequestSocket const &);
+%ignore opentxs::Pimpl<opentxs::network::zeromq::RequestSocket>::operator opentxs::network::zeromq::RequestSocket&;
+%ignore opentxs::Pimpl<opentxs::network::zeromq::RequestSocket>::operator const opentxs::network::zeromq::RequestSocket &;
+%rename(assign) operator=(const opentxs::network::zeromq::RequestSocket&);
+%rename(ZMQRequestSocket) opentxs::network::zeromq::RequestSocket;
 %template(ZMQMessageSendResult) std::pair<opentxs::SendResult, Pimpl<opentxs::network::zeromq::Message>>;
 %template(ZMQMultipartMessageSendResult) std::pair<opentxs::SendResult, Pimpl<opentxs::network::zeromq::MultipartMessage>>;
 %template(OTZMQRequestSocket) opentxs::Pimpl<opentxs::network::zeromq::RequestSocket>;
-%rename(ZMQRequestSocket) opentxs::network::zeromq::RequestSocket;
 // clang-format on
 #endif  // SWIG
 
@@ -67,16 +71,12 @@ public:
 
     EXPORT virtual std::pair<
         opentxs::SendResult,
-        opentxs::Pimpl<opentxs::network::zeromq::Message>>
+        opentxs::Pimpl<opentxs::network::zeromq::MultipartMessage>>
     SendRequest(opentxs::Data& message) const = 0;
     EXPORT virtual std::pair<
         opentxs::SendResult,
-        opentxs::Pimpl<opentxs::network::zeromq::Message>>
+        opentxs::Pimpl<opentxs::network::zeromq::MultipartMessage>>
     SendRequest(const std::string& message) const = 0;
-    EXPORT virtual std::pair<
-        opentxs::SendResult,
-        opentxs::Pimpl<opentxs::network::zeromq::Message>>
-    SendRequest(opentxs::network::zeromq::Message& message) const = 0;
     EXPORT virtual std::pair<
         opentxs::SendResult,
         opentxs::Pimpl<opentxs::network::zeromq::MultipartMessage>>

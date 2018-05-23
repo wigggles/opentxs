@@ -69,7 +69,7 @@ private:
     ReplySocket* clone() const override;
     bool have_callback() const override;
 
-    void process_incoming(const Lock& lock, Message& message) override;
+    void process_incoming(const Lock& lock, MultipartMessage& message) override;
 
     ReplySocket(const zeromq::Context& context, const ReplyCallback& callback);
     ReplySocket() = delete;

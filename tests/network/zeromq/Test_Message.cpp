@@ -67,7 +67,7 @@ TEST(Message, Factory)
 {
     ASSERT_NE(nullptr, &Test_Message::context_.get());
 
-    auto message = network::zeromq::Message::Factory();
+    OTZMQMessage message = network::zeromq::Message::Factory();
 
     ASSERT_NE(nullptr, &message.get());
 }
@@ -78,7 +78,7 @@ TEST(Message, Factory2)
 
     auto data = Data::Factory("0", 1);
 
-    auto message = network::zeromq::Message::Factory(data);
+    OTZMQMessage message = network::zeromq::Message::Factory(data);
 
     ASSERT_NE(nullptr, &message.get());
     ASSERT_EQ(message->size(), data->GetSize());
@@ -88,7 +88,7 @@ TEST(Message, Factory3)
 {
     ASSERT_NE(nullptr, &Test_Message::context_.get());
 
-    auto message = network::zeromq::Message::Factory("testString");
+    OTZMQMessage message = network::zeromq::Message::Factory("testString");
 
     ASSERT_NE(nullptr, &message.get());
     std::string messageString = message.get();

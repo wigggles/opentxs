@@ -39,9 +39,11 @@
 #include "opentxs/stdafx.hpp"
 
 #include "Receiver.hpp"
+#include "MultipartMessage.hpp"
 
 #include "opentxs/core/Log.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/network/zeromq/MultipartMessage.hpp"
 
 #include <zmq.h>
 
@@ -104,17 +106,48 @@ void Receiver::thread()
         if (!lock.owns_lock()) {
             return;
         }
-        auto request = Message::Factory();
-        Message& message = request;
-        auto status = (-1 != zmq_msg_recv(message, receiver_socket_, 0));
 
-        if (status) {
-            process_incoming(lock, request);
-        } else {
-            const auto error = zmq_errno();
-            otErr << OT_METHOD << __FUNCTION__
-                  << ": Receive error: " << zmq_strerror(error) << std::endl;
+        auto reply = MultipartMessage::Factory();
+
+        bool receiving{true};
+
+        while (receiving) {
+            auto& frame = reply->AddFrame();
+            const bool received =
+                (-1 != zmq_msg_recv(frame, receiver_socket_, 0));
+
+            if (false == received) {
+                otErr << OT_METHOD << __FUNCTION__
+                      << ": Receive error: " << zmq_strerror(zmq_errno())
+                      << std::endl;
+
+                return;
+            }
+
+            int option{0};
+            std::size_t optionBytes{sizeof(option)};
+
+            const bool haveOption =
+                (-1 !=
+                 zmq_getsockopt(
+                     receiver_socket_, ZMQ_RCVMORE, &option, &optionBytes));
+
+            if (false == haveOption) {
+                otErr << OT_METHOD << __FUNCTION__
+                      << ": Failed to check socket options error:\n"
+                      << zmq_strerror(zmq_errno()) << std::endl;
+
+                return;
+            }
+
+            OT_ASSERT(optionBytes == sizeof(option))
+
+            if (1 != option) {
+                receiving = false;
+            }
         }
+
+        process_incoming(lock, reply);
 
         lock.unlock();
     }

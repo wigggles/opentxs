@@ -38,48 +38,50 @@
 
 #include "opentxs/stdafx.hpp"
 
-#include "ListenCallbackSwig.hpp"
+#include "opentxs/Internal.hpp"
 
-#include "opentxs/core/Log.hpp"
-#include "opentxs/network/zeromq/ListenCallbackSwig.hpp"
-
-#define OT_METHOD                                                              \
-    "opentxs::network::zeromq::implementation::ListenCallbackSwig::"
+#include "opentxs/network/zeromq/FrameIterator.hpp"
+#include "opentxs/network/zeromq/FrameSection.hpp"
+#include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/network/zeromq/MultipartMessage.hpp"
 
 namespace opentxs::network::zeromq
 {
-OTZMQListenCallback ListenCallback::Factory(
-    opentxs::ListenCallbackSwig* callback)
+FrameSection::FrameSection(const FrameSection& frameSection)
+    : parent_(frameSection.parent_)
+    , position_(frameSection.position_.load())
+    , size_(frameSection.size_.load())
 {
-    return OTZMQListenCallback(
-        new implementation::ListenCallbackSwig(callback));
+    OT_ASSERT(nullptr != parent_);
 }
+
+FrameSection::FrameSection(
+    const MultipartMessage* parent,
+    std::size_t position,
+    std::size_t size)
+    : parent_(parent)
+    , position_(position)
+    , size_(size)
+{
+    OT_ASSERT(nullptr != parent_);
+}
+
+const Message& FrameSection::at(const std::size_t index) const
+{
+    OT_ASSERT(size_ > index);
+
+    return parent_->at(position_ + index);
+}
+
+FrameIterator FrameSection::begin() const
+{
+    return FrameIterator(parent_, position_);
+}
+
+FrameIterator FrameSection::end() const
+{
+    return FrameIterator(parent_, position_ + size_);
+}
+
+std::size_t FrameSection::size() const { return size_; }
 }  // namespace opentxs::network::zeromq
-
-namespace opentxs::network::zeromq::implementation
-{
-ListenCallbackSwig::ListenCallbackSwig(opentxs::ListenCallbackSwig* callback)
-    : callback_(callback)
-{
-    if (nullptr == callback_) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Invalid callback pointer"
-              << std::endl;
-
-        OT_FAIL;
-    }
-}
-
-ListenCallbackSwig* ListenCallbackSwig::clone() const
-{
-    return new ListenCallbackSwig(callback_);
-}
-
-void ListenCallbackSwig::Process(const zeromq::MultipartMessage& message) const
-{
-    OT_ASSERT(nullptr != callback_)
-
-    callback_->Process(message);
-}
-
-ListenCallbackSwig::~ListenCallbackSwig() {}
-}  // namespace opentxs::network::zeromq::implementation

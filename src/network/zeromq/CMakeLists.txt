@@ -3,6 +3,7 @@ set(cxx-sources
   CurveClient.cpp
   CurveServer.cpp
   FrameIterator.cpp
+  FrameSection.cpp
   ListenCallback.cpp
   ListenCallbackSwig.cpp
   Message.cpp

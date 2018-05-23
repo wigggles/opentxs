@@ -43,7 +43,10 @@
 #include "gtest/gtest-test-part.h"
 
 #include "opentxs/network/zeromq/Context.hpp"
+#include "opentxs/network/zeromq/FrameIterator.hpp"
+#include "opentxs/network/zeromq/FrameSection.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/network/zeromq/MultipartMessage.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/SubscribeSocket.hpp"
 
@@ -67,7 +70,7 @@ OTZMQContext Test_SubscribeSocket::context_{
 TEST(SubscribeSocket, ListenCallback_Factory)
 {
     auto listenCallback = network::zeromq::ListenCallback::Factory(
-        [this](const network::zeromq::Message& input) -> void {
+        [this](const network::zeromq::MultipartMessage& input) -> void {
 
         });
 
@@ -77,15 +80,15 @@ TEST(SubscribeSocket, ListenCallback_Factory)
 TEST_F(Test_SubscribeSocket, ListenCallback_Process)
 {
     auto listenCallback = network::zeromq::ListenCallback::Factory(
-        [this](const network::zeromq::Message& input) -> void {
+        [this](const network::zeromq::MultipartMessage& input) -> void {
 
-            const std::string& inputString = input;
+            const std::string& inputString = *input.Body().begin();
             EXPECT_EQ(testMessage_, inputString);
         });
 
     ASSERT_NE(nullptr, &listenCallback.get());
 
-    auto testMessage = network::zeromq::Message::Factory(testMessage_);
+    auto testMessage = network::zeromq::MultipartMessage::Factory(testMessage_);
 
     ASSERT_NE(nullptr, &testMessage.get());
 
@@ -94,18 +97,16 @@ TEST_F(Test_SubscribeSocket, ListenCallback_Process)
 
 TEST_F(Test_SubscribeSocket, SubscribeSocket_Factory)
 {
+    ASSERT_NE(nullptr, &Test_SubscribeSocket::context_.get());
+
     auto listenCallback = network::zeromq::ListenCallback::Factory(
-        [this](const network::zeromq::Message& input) -> OTZMQMessage {
+        [this](const network::zeromq::MultipartMessage& input)
+            -> OTZMQMultipartMessage {
 
-            const std::string& inputString = input;
-            EXPECT_EQ(testMessage_, inputString);
-
-            return network::zeromq::Message::Factory(input);
+            return network::zeromq::MultipartMessage::Factory();
         });
 
     ASSERT_NE(nullptr, &listenCallback.get());
-
-    ASSERT_NE(nullptr, &Test_SubscribeSocket::context_.get());
 
     auto subscribeSocket = network::zeromq::SubscribeSocket::Factory(
         Test_SubscribeSocket::context_, listenCallback);

@@ -84,7 +84,7 @@ private:
         const proto::StorageThread& thread) const;
 
     void get_text();
-    void process_thread(const network::zeromq::Message& message);
+    void process_thread(const network::zeromq::MultipartMessage& message);
     void startup();
     void update(const proto::StorageThread& thread);
 

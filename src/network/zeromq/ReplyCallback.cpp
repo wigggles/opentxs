@@ -39,6 +39,7 @@
 #include "opentxs/stdafx.hpp"
 
 #include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/network/zeromq/MultipartMessage.hpp"
 
 #include "ReplyCallback.hpp"
 
@@ -67,7 +68,8 @@ ReplyCallback* ReplyCallback::clone() const
     return new ReplyCallback(callback_);
 }
 
-OTZMQMessage ReplyCallback::Process(const zeromq::Message& message) const
+OTZMQMultipartMessage ReplyCallback::Process(
+    const zeromq::MultipartMessage& message) const
 {
     return callback_(message);
 }

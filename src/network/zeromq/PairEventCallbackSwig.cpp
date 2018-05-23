@@ -41,7 +41,9 @@
 #include "PairEventCallbackSwig.hpp"
 
 #include "opentxs/core/Log.hpp"
+#include "opentxs/network/zeromq/FrameSection.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/network/zeromq/MultipartMessage.hpp"
 #include "opentxs/network/zeromq/PairEventCallbackSwig.hpp"
 
 #define OT_METHOD                                                              \
@@ -76,11 +78,13 @@ PairEventCallbackSwig* PairEventCallbackSwig::clone() const
     return new PairEventCallbackSwig(callback_);
 }
 
-void PairEventCallbackSwig::Process(const zeromq::Message& message) const
+void PairEventCallbackSwig::Process(
+    const zeromq::MultipartMessage& message) const
 {
     OT_ASSERT(nullptr != callback_)
+    OT_ASSERT(1 == message.Body().size());
 
-    const auto event = proto::TextToProto<proto::PairEvent>(message);
+    const auto event = proto::TextToProto<proto::PairEvent>(message.Body_at(0));
 
     switch (event.type()) {
         case proto::PAIREVENT_RENAME: {

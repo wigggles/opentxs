@@ -42,6 +42,7 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/network/zeromq/MultipartMessage.hpp"
 
 #include "Widget.hpp"
 

@@ -48,7 +48,7 @@ namespace opentxs::network::zeromq::implementation
 class ListenCallbackSwig : virtual public zeromq::ListenCallback
 {
 public:
-    void Process(const zeromq::Message& message) const override;
+    void Process(const zeromq::MultipartMessage& message) const override;
 
     ~ListenCallbackSwig();
 
