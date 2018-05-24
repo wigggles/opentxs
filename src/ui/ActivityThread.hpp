@@ -78,14 +78,6 @@ struct less<STORAGEID> {
 
 namespace opentxs::ui::implementation
 {
-using ActivityThreadPimpl = std::unique_ptr<opentxs::ui::ActivityThreadItem>;
-/** timestamp, index */
-using ActivityThreadSortKey =
-    std::pair<std::chrono::system_clock::time_point, std::uint64_t>;
-using ActivityThreadInner = std::map<ActivityThreadID, ActivityThreadPimpl>;
-using ActivityThreadOuter =
-    std::map<ActivityThreadSortKey, ActivityThreadInner>;
-using ActivityThreadReverse = std::map<ActivityThreadID, ActivityThreadSortKey>;
 using ActivityThreadType = List<
     opentxs::ui::ActivityThread,
     ActivityThreadParent,
@@ -95,8 +87,7 @@ using ActivityThreadType = List<
     ActivityThreadInner,
     ActivityThreadSortKey,
     ActivityThreadOuter,
-    ActivityThreadOuter::const_iterator,
-    ActivityThreadReverse>;
+    ActivityThreadOuter::const_iterator>;
 
 class ActivityThread : virtual public ActivityThreadType
 {

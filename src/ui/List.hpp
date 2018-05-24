@@ -58,8 +58,7 @@ template <
     typename InnerType,
     typename SortKeyType,
     typename OuterType,
-    typename OuterIteratorType,
-    typename ReverseType>
+    typename OuterIteratorType>
 class List : virtual public InterfaceType,
              virtual public InternalInterfaceType,
              public Widget,
@@ -109,6 +108,7 @@ public:
 
 protected:
     using CustomData = std::vector<const void*>;
+    using ReverseType = std::map<IDType, SortKeyType>;
 
     const api::ContactManager& contact_manager_;
     const OTIdentifier nym_id_;
@@ -121,7 +121,7 @@ protected:
     mutable OTFlag start_;
     mutable OTFlag startup_complete_;
     std::unique_ptr<std::thread> startup_{nullptr};
-    const std::unique_ptr<RowType> blank_p_{nullptr};
+    const std::shared_ptr<RowType> blank_p_{nullptr};
     const RowType& blank_;
     const OTIdentifier widget_id_;
 
@@ -351,14 +351,14 @@ protected:
         // to it
         if (inner_ == item) { increment_inner(lock); }
 
-        PimplType row = std::move(item->second);
+        std::shared_ptr<PimplType> row = std::move(item->second);
         const auto deleted = itemMap.erase(id);
 
         OT_ASSERT(1 == deleted)
 
         if (0 == itemMap.size()) { items_.erase(index); }
 
-        if (0 < custom.size()) { update(row, custom); }
+        if (0 < custom.size()) { update(*row, custom); }
 
         names_[id] = newIndex;
         items_[newIndex].emplace(id, std::move(row));

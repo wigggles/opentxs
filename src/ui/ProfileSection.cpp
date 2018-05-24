@@ -351,10 +351,9 @@ void ProfileSection::startup(const opentxs::ContactSection section)
 void ProfileSection::update(ProfileSectionPimpl& row, const CustomData& custom)
     const
 {
-    OT_ASSERT(row)
     OT_ASSERT(1 == custom.size())
 
-    row->Update(recover(custom[0]));
+    row.Update(recover(custom[0]));
 }
 
 void ProfileSection::Update(const opentxs::ContactSection& section)

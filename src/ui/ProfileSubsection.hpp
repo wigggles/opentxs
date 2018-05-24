@@ -43,15 +43,6 @@
 
 namespace opentxs::ui::implementation
 {
-using ProfileSubsectionPimpl = std::unique_ptr<opentxs::ui::ProfileItem>;
-using ProfileSubsectionIDType = OTIdentifier;
-using ProfileSubsectionSortKey = int;
-using ProfileSubsectionInner =
-    std::map<ProfileSubsectionIDType, ProfileSubsectionPimpl>;
-using ProfileSubsectionOuter =
-    std::map<ProfileSubsectionSortKey, ProfileSubsectionInner>;
-using ProfileSubsectionReverse =
-    std::map<ProfileSubsectionIDType, ProfileSubsectionSortKey>;
 using ProfileSubsectionType = List<
     opentxs::ui::ProfileSubsection,
     ProfileSubsectionParent,
@@ -61,8 +52,7 @@ using ProfileSubsectionType = List<
     ProfileSubsectionInner,
     ProfileSubsectionSortKey,
     ProfileSubsectionOuter,
-    ProfileSubsectionOuter::const_iterator,
-    ProfileSubsectionReverse>;
+    ProfileSubsectionOuter::const_iterator>;
 using ProfileSubsectionRowType = RowType<
     opentxs::ui::ProfileSubsection,
     ProfileSectionParent,

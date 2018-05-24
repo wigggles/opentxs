@@ -43,12 +43,6 @@
 
 namespace opentxs::ui::implementation
 {
-using PayableListPimpl = std::unique_ptr<opentxs::ui::PayableListItem>;
-using PayableListID = OTIdentifier;
-using PayableListSortKey = std::string;
-using PayableListInner = std::map<PayableListID, PayableListPimpl>;
-using PayableListOuter = std::map<PayableListSortKey, PayableListInner>;
-using PayableListReverse = std::map<PayableListID, PayableListSortKey>;
 using PayableListType = List<
     opentxs::ui::PayableList,
     ContactListParent,
@@ -58,8 +52,7 @@ using PayableListType = List<
     PayableListInner,
     PayableListSortKey,
     PayableListOuter,
-    PayableListOuter::const_iterator,
-    PayableListReverse>;
+    PayableListOuter::const_iterator>;
 
 class PayableList : virtual public PayableListType
 {

@@ -43,12 +43,6 @@
 
 namespace opentxs::ui::implementation
 {
-using ContactListPimpl = std::unique_ptr<opentxs::ui::ContactListItem>;
-using ContactListID = OTIdentifier;
-using ContactListSortKey = std::string;
-using ContactListInner = std::map<ContactListID, ContactListPimpl>;
-using ContactListOuter = std::map<ContactListSortKey, ContactListInner>;
-using ContactListReverse = std::map<ContactListID, ContactListSortKey>;
 using ContactListType = List<
     opentxs::ui::ContactList,
     ContactListParent,
@@ -58,8 +52,7 @@ using ContactListType = List<
     ContactListInner,
     ContactListSortKey,
     ContactListOuter,
-    ContactListOuter::const_iterator,
-    ContactListReverse>;
+    ContactListOuter::const_iterator>;
 
 class ContactList : virtual public ContactListType
 {

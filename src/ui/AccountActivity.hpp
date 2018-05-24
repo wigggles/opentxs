@@ -52,8 +52,7 @@ using AccountActivityType = List<
     AccountActivityInner,
     AccountActivitySortKey,
     AccountActivityOuter,
-    AccountActivityOuter::const_reverse_iterator,
-    AccountActivityReverse>;
+    AccountActivityOuter::const_reverse_iterator>;
 
 /** Show the list of Workflows applicable to this account
 
