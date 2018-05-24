@@ -39,15 +39,14 @@
 #include "opentxs/stdafx.hpp"
 
 #include "RequestSocket.hpp"
-#include "MultipartMessage.hpp"
-
 #include "opentxs/core/Log.hpp"
 #include "opentxs/network/zeromq/FrameIterator.hpp"
+#include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
-#include "opentxs/network/zeromq/MultipartMessage.hpp"
 #include "opentxs/OT.hpp"
 
 #include <zmq.h>
+#include "Message.hpp"
 
 template class opentxs::Pimpl<opentxs::network::zeromq::RequestSocket>;
 
@@ -83,7 +82,7 @@ RequestSocket* RequestSocket::clone() const
 Socket::MultipartSendResult RequestSocket::SendRequest(
     opentxs::Data& input) const
 {
-    return SendRequest(MultipartMessage::Factory(input));
+    return SendRequest(Message::Factory(input));
 }
 
 Socket::MultipartSendResult RequestSocket::SendRequest(
@@ -91,16 +90,16 @@ Socket::MultipartSendResult RequestSocket::SendRequest(
 {
     auto copy = input;
 
-    return SendRequest(MultipartMessage::Factory(copy));
+    return SendRequest(Message::Factory(copy));
 }
 
 Socket::MultipartSendResult RequestSocket::SendRequest(
-    zeromq::MultipartMessage& request) const
+    zeromq::Message& request) const
 {
     OT_ASSERT(nullptr != socket_);
 
     Lock lock(lock_);
-    MultipartSendResult output{SendResult::ERROR, MultipartMessage::Factory()};
+    MultipartSendResult output{SendResult::ERROR, Message::Factory()};
     auto& status = output.first;
     auto& reply = output.second;
     bool sent{true};
@@ -110,9 +109,7 @@ Socket::MultipartSendResult RequestSocket::SendRequest(
     for (auto& frame : request) {
         int flags{0};
 
-        if (++counter < parts) {
-            flags = ZMQ_SNDMORE;
-        }
+        if (++counter < parts) { flags = ZMQ_SNDMORE; }
 
         sent |= (-1 != zmq_msg_send(frame, socket_, flags));
     }
@@ -163,9 +160,7 @@ Socket::MultipartSendResult RequestSocket::SendRequest(
 
         OT_ASSERT(optionBytes == sizeof(option))
 
-        if (1 != option) {
-            receiving = false;
-        }
+        if (1 != option) { receiving = false; }
     }
 
     status = SendResult::VALID_REPLY;

@@ -99,7 +99,7 @@ public:
     EXPORT virtual const std::string& Endpoint() const = 0;
     EXPORT virtual bool Send(const std::string& data) const = 0;
     EXPORT virtual bool Send(const opentxs::Data& data) const = 0;
-    EXPORT virtual bool Send(network::zeromq::MultipartMessage& data) const = 0;
+    EXPORT virtual bool Send(network::zeromq::Message& data) const = 0;
 
     EXPORT virtual ~PairSocket() = default;
 

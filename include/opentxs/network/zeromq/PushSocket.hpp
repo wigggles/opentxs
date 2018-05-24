@@ -70,7 +70,7 @@ public:
 
     EXPORT virtual bool Push(const std::string& data) const = 0;
     EXPORT virtual bool Push(const opentxs::Data& data) const = 0;
-    EXPORT virtual bool Push(network::zeromq::MultipartMessage& data) const = 0;
+    EXPORT virtual bool Push(network::zeromq::Message& data) const = 0;
 
     EXPORT virtual ~PushSocket() = default;
 

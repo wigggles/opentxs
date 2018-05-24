@@ -77,8 +77,7 @@ private:
     std::unique_ptr<std::thread> thread_{nullptr};
 
     bool processMessage(const std::string& messageString, std::string& reply);
-    OTZMQMultipartMessage processSocket(
-        const network::zeromq::MultipartMessage& incoming);
+    OTZMQMessage processSocket(const network::zeromq::Message& incoming);
     void run();
 };
 }  // namespace server

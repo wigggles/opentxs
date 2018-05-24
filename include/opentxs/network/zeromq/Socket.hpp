@@ -80,8 +80,7 @@ namespace zeromq
 class Socket
 {
 public:
-    using MessageSendResult = std::pair<SendResult, OTZMQMessage>;
-    using MultipartSendResult = std::pair<SendResult, OTZMQMultipartMessage>;
+    using MultipartSendResult = std::pair<SendResult, OTZMQMessage>;
 
     EXPORT static const std::string ContactUpdateEndpoint;
     EXPORT static const std::string NymDownloadEndpoint;

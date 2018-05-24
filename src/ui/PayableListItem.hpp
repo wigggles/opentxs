@@ -61,8 +61,7 @@ private:
     std::string payment_code_{""};
     const proto::ContactItemType currency_;
 
-    void process_contact(
-        const network::zeromq::MultipartMessage& message) override;
+    void process_contact(const network::zeromq::Message& message) override;
 
     PayableListItem(
         const ContactListParent& parent,
@@ -78,5 +77,5 @@ private:
     PayableListItem& operator=(const PayableListItem&) = delete;
     PayableListItem& operator=(PayableListItem&&) = delete;
 };
-}  // opentxs::ui::implementation
+}  // namespace opentxs::ui::implementation
 #endif  // OPENTXS_UI_PAYABLELISTITEM_IMPLEMENTATION_HPP

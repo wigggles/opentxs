@@ -54,7 +54,7 @@ public:
     const std::string& Endpoint() const override;
     bool Send(const std::string& data) const override;
     bool Send(const opentxs::Data& data) const override;
-    bool Send(network::zeromq::MultipartMessage& data) const override;
+    bool Send(network::zeromq::Message& data) const override;
     bool Start(const std::string& endpoint) const override;
 
     ~PairSocket();
@@ -70,7 +70,7 @@ private:
 
     PairSocket* clone() const override;
     bool have_callback() const override;
-    void process_incoming(const Lock& lock, MultipartMessage& message) override;
+    void process_incoming(const Lock& lock, Message& message) override;
 
     PairSocket(
         const zeromq::Context& context,

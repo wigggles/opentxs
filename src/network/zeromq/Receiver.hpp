@@ -66,9 +66,7 @@ private:
 
     virtual bool have_callback() const { return false; }
 
-    virtual void process_incoming(
-        const Lock& lock,
-        MultipartMessage& message) = 0;
+    virtual void process_incoming(const Lock& lock, Message& message) = 0;
     void thread();
 
     Receiver() = delete;

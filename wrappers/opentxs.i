@@ -37,7 +37,7 @@ namespace std {
 namespace opentxs {
 namespace network {
 namespace zeromq {
-    class MultipartMessage;
+    class Message;
 };
 };
 };
@@ -71,10 +71,10 @@ typedef int64_t time64_t;
 %include "../../include/opentxs/ui/ProfileSubsection.hpp"
 %include "../../include/opentxs/ui/ProfileSection.hpp"
 %include "../../include/opentxs/ui/Profile.hpp"
-%include "../../include/opentxs/network/zeromq/Message.hpp"
+%include "../../include/opentxs/network/zeromq/Frame.hpp"
 %include "../../include/opentxs/network/zeromq/FrameIterator.hpp"
 %include "../../include/opentxs/network/zeromq/FrameSection.hpp"
-%include "../../include/opentxs/network/zeromq/MultipartMessage.hpp"
+%include "../../include/opentxs/network/zeromq/Message.hpp"
 %include "../../include/opentxs/Types.hpp"
 %include "../../include/opentxs/network/zeromq/Socket.hpp"
 %include "../../include/opentxs/network/zeromq/PublishSocket.hpp"

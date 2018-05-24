@@ -42,35 +42,47 @@
 #include "opentxs/Internal.hpp"
 
 #include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/network/zeromq/FrameSection.hpp"
 
 namespace opentxs::network::zeromq::implementation
 {
 class Message : virtual public zeromq::Message
 {
 public:
-    operator std::string() const override;
-
-    const void* data() const override;
+    const Frame& at(const std::size_t index) const override;
+    FrameIterator begin() const override;
+    const FrameSection Body() const override;
+    const Frame& Body_at(const std::size_t index) const override;
+    FrameIterator Body_begin() const override;
+    FrameIterator Body_end() const override;
+    FrameIterator end() const override;
+    const FrameSection Header() const override;
+    const Frame& Header_at(const std::size_t index) const override;
+    FrameIterator Header_begin() const override;
+    FrameIterator Header_end() const override;
     std::size_t size() const override;
 
-    operator zmq_msg_t*() override;
+    Frame& AddFrame() override;
+    Frame& AddFrame(const opentxs::Data& input) override;
+    Frame& AddFrame(const std::string& input) override;
+    Frame& at(const std::size_t index) override;
 
-    ~Message();
+    ~Message() = default;
 
 private:
     friend network::zeromq::Message;
 
-    zmq_msg_t* message_{nullptr};
+    std::vector<OTZMQFrame> messages_{};
 
     Message* clone() const override;
+    bool hasDivider() const;
+    std::size_t findDivider() const;
 
     Message();
-    explicit Message(const Data& input);
-    explicit Message(const std::string& input);
     Message(const Message&) = delete;
-    Message(Message&&) = delete;
-    Message& operator=(Message&&) = delete;
+    Message(Message&&) = default;
     Message& operator=(const Message&) = delete;
+    Message& operator=(Message&&) = default;
 };
 }  // namespace opentxs::network::zeromq::implementation
 #endif  // OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_MESSAGE_HPP

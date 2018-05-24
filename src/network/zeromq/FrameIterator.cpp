@@ -41,13 +41,11 @@
 #include "opentxs/Internal.hpp"
 
 #include "opentxs/network/zeromq/FrameIterator.hpp"
-#include "opentxs/network/zeromq/MultipartMessage.hpp"
+#include "opentxs/network/zeromq/Message.hpp"
 
 namespace opentxs::network::zeromq
 {
-FrameIterator::FrameIterator(
-    const MultipartMessage* parent,
-    std::size_t position)
+FrameIterator::FrameIterator(const Message* parent, std::size_t position)
     : position_(position)
     , parent_(parent)
 {
@@ -69,18 +67,18 @@ FrameIterator& FrameIterator::operator=(const FrameIterator& frameIterator)
     return *this;
 }
 
-const Message& FrameIterator::operator*() const
+const Frame& FrameIterator::operator*() const
 {
     OT_ASSERT(nullptr != parent_);
 
     return parent_->at(position_);
 }
 
-Message& FrameIterator::operator*()
+Frame& FrameIterator::operator*()
 {
     OT_ASSERT(nullptr != parent_);
 
-    return const_cast<MultipartMessage*>(parent_)->at(position_);
+    return const_cast<Message*>(parent_)->at(position_);
 }
 
 bool FrameIterator::operator==(const FrameIterator& rhs) const

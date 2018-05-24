@@ -56,7 +56,7 @@ class ServerAction;
 class Sync;
 class Wallet;
 class Workflow;
-}  // namespace opentxs::api::client
+}  // namespace client
 
 namespace crypto
 {
@@ -64,18 +64,18 @@ class Encode;
 class Hash;
 class Symmetric;
 class Util;
-}  // namespace opentxs::api::crypto
+}  // namespace crypto
 
 namespace storage
 {
 class Storage;
-}  // namespace opentxs::api::storage
+}  // namespace storage
 
 namespace network
 {
 class Dht;
 class ZMQ;
-}  // namespace opentxs::api::network
+}  // namespace network
 
 class Activity;
 class Api;
@@ -87,13 +87,13 @@ class Native;
 class Server;
 class Settings;
 class UI;
-}  // namespace opentxs::api
+}  // namespace api
 
 namespace client
 {
 class ServerAction;
 class Wallet;
-}  // namespace opentxs::client
+}  // namespace client
 
 namespace network
 {
@@ -103,8 +103,8 @@ class Context;
 class FrameIterator;
 class FrameSection;
 class ListenCallback;
+class Frame;
 class Message;
-class MultipartMessage;
 class PairEventCallback;
 class PairSocket;
 class Proxy;
@@ -116,25 +116,25 @@ class ReplySocket;
 class RequestSocket;
 class Socket;
 class SubscribeSocket;
-}  // namespace opentxs::network::zeromq
+}  // namespace zeromq
 
 class Dht;
 class OpenDHT;
 class ServerConnection;
 class ZMQ;
-}  // namespace opentxs::network
+}  // namespace network
 
 namespace OTDB
 {
 class OfferListNym;
 class TradeListMarket;
-}  // namespace opentxs::OTDB
+}  // namespace OTDB
 
 namespace server
 {
 class MessageProcessor;
 class Server;
-}  // namespace opentxs::server
+}  // namespace server
 
 namespace ui
 {
@@ -158,7 +158,7 @@ class Profile;
 class ProfileItem;
 class ProfileSection;
 class ProfileSubsection;
-}  // namespace opentxs::ui
+}  // namespace ui
 
 class Account;
 class AccountVisitor;
@@ -196,7 +196,6 @@ class ListenCallbackSwig;
 class Log;
 class MasterCredential;
 class Message;
-class MultipartMessage;
 #if OT_CASH
 class Mint;
 #endif  // OT_CASH
@@ -266,8 +265,8 @@ using OTPaymentCode = Pimpl<PaymentCode>;
 using OTServerConnection = Pimpl<network::ServerConnection>;
 using OTZMQContext = Pimpl<network::zeromq::Context>;
 using OTZMQListenCallback = Pimpl<network::zeromq::ListenCallback>;
+using OTZMQFrame = Pimpl<network::zeromq::Frame>;
 using OTZMQMessage = Pimpl<network::zeromq::Message>;
-using OTZMQMultipartMessage = Pimpl<network::zeromq::MultipartMessage>;
 using OTZMQPairEventCallback = Pimpl<network::zeromq::PairEventCallback>;
 using OTZMQPairSocket = Pimpl<network::zeromq::PairSocket>;
 using OTZMQProxy = Pimpl<network::zeromq::Proxy>;
@@ -288,9 +287,8 @@ extern template class opentxs::Pimpl<opentxs::network::ServerConnection>;
 // extern template class opentxs::Pimpl<opentxs::network::zeromq::Context>;
 // extern template class
 // opentxs::Pimpl<opentxs::network::zeromq::ListenCallback>;
+extern template class opentxs::Pimpl<opentxs::network::zeromq::Frame>;
 extern template class opentxs::Pimpl<opentxs::network::zeromq::Message>;
-extern template class opentxs::Pimpl<
-    opentxs::network::zeromq::MultipartMessage>;
 extern template class opentxs::Pimpl<
     opentxs::network::zeromq::PairEventCallback>;
 // extern template class opentxs::Pimpl<opentxs::network::zeromq::PairSocket>;

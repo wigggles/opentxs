@@ -51,8 +51,8 @@
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/FrameIterator.hpp"
 #include "opentxs/network/zeromq/FrameSection.hpp"
+#include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
-#include "opentxs/network/zeromq/MultipartMessage.hpp"
 #include "opentxs/network/zeromq/SubscribeSocket.hpp"
 #include "opentxs/ui/ActivityThread.hpp"
 #include "opentxs/ui/ActivityThreadItem.hpp"
@@ -111,7 +111,7 @@ ActivityThread::ActivityThread(
     , threadID_(Identifier::Factory(threadID))
     , participants_()
     , activity_subscriber_callback_(network::zeromq::ListenCallback::Factory(
-          [this](const network::zeromq::MultipartMessage& message) -> void {
+          [this](const network::zeromq::Message& message) -> void {
               this->process_thread(message);
           }))
     , activity_subscriber_(
@@ -389,8 +389,7 @@ ActivityThreadID ActivityThread::process_item(
     return id;
 }
 
-void ActivityThread::process_thread(
-    const network::zeromq::MultipartMessage& message)
+void ActivityThread::process_thread(const network::zeromq::Message& message)
 {
     wait_for_startup();
     check_drafts();

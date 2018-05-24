@@ -39,13 +39,12 @@
 #include "opentxs/stdafx.hpp"
 
 #include "Receiver.hpp"
-#include "MultipartMessage.hpp"
-
 #include "opentxs/core/Log.hpp"
+#include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
-#include "opentxs/network/zeromq/MultipartMessage.hpp"
 
 #include <zmq.h>
+#include "Message.hpp"
 
 #define CALLBACK_WAIT_MILLISECONDS 50
 #define POLL_MILLISECONDS 1000
@@ -72,9 +71,7 @@ void Receiver::thread()
     otInfo << OT_METHOD << __FUNCTION__ << ": Starting listener" << std::endl;
 
     while (receiver_run_.get()) {
-        if (have_callback()) {
-            break;
-        }
+        if (have_callback()) { break; }
 
         Log::Sleep(std::chrono::milliseconds(CALLBACK_WAIT_MILLISECONDS));
     }
@@ -103,11 +100,9 @@ void Receiver::thread()
         }
 
         Lock lock(receiver_lock_, std::try_to_lock);
-        if (!lock.owns_lock()) {
-            return;
-        }
+        if (!lock.owns_lock()) { return; }
 
-        auto reply = MultipartMessage::Factory();
+        auto reply = Message::Factory();
 
         bool receiving{true};
 
@@ -142,9 +137,7 @@ void Receiver::thread()
 
             OT_ASSERT(optionBytes == sizeof(option))
 
-            if (1 != option) {
-                receiving = false;
-            }
+            if (1 != option) { receiving = false; }
         }
 
         process_incoming(lock, reply);

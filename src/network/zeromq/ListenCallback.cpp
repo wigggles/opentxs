@@ -54,8 +54,8 @@ OTZMQListenCallback ListenCallback::Factory(
 
 OTZMQListenCallback ListenCallback::Factory()
 {
-    return OTZMQListenCallback(new implementation::ListenCallback(
-        [](const MultipartMessage&) -> void {}));
+    return OTZMQListenCallback(
+        new implementation::ListenCallback([](const Message&) -> void {}));
 }
 }  // namespace opentxs::network::zeromq
 
@@ -71,7 +71,7 @@ ListenCallback* ListenCallback::clone() const
     return new ListenCallback(callback_);
 }
 
-void ListenCallback::Process(const zeromq::MultipartMessage& message) const
+void ListenCallback::Process(const zeromq::Message& message) const
 {
     callback_(message);
 }

@@ -44,8 +44,8 @@
 
 #include "opentxs/core/Data.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
+#include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
-#include "opentxs/network/zeromq/MultipartMessage.hpp"
 #include "opentxs/network/zeromq/FrameIterator.hpp"
 #include "opentxs/network/zeromq/FrameSection.hpp"
 
@@ -55,7 +55,7 @@ using namespace opentxs;
 
 TEST(FrameSection, constructors)
 {
-    auto multipartMessage = network::zeromq::MultipartMessage::Factory();
+    auto multipartMessage = network::zeromq::Message::Factory();
 
     network::zeromq::FrameSection frameSection(multipartMessage->Header());
     ASSERT_EQ(0, frameSection.size());
@@ -87,18 +87,18 @@ TEST(FrameSection, constructors)
 
 TEST(FrameSection, at)
 {
-    auto multipartMessage = network::zeromq::MultipartMessage::Factory();
+    auto multipartMessage = network::zeromq::Message::Factory();
     multipartMessage->AddFrame("msg1");
     multipartMessage->AddFrame("msg2");
     multipartMessage->AddFrame();
 
     auto header = multipartMessage->Header();
 
-    const network::zeromq::Message& header1 = header.at(0);
+    const network::zeromq::Frame& header1 = header.at(0);
     std::string msgString = header1;
     ASSERT_STREQ("msg1", msgString.c_str());
 
-    const network::zeromq::Message& header2 = header.at(1);
+    const network::zeromq::Frame& header2 = header.at(1);
     msgString = header2;
     ASSERT_STREQ("msg2", msgString.c_str());
 
@@ -107,18 +107,18 @@ TEST(FrameSection, at)
 
     auto body = multipartMessage->Body();
 
-    const network::zeromq::Message& body1 = body.at(0);
+    const network::zeromq::Frame& body1 = body.at(0);
     msgString = body1;
     ASSERT_STREQ("msg3", msgString.c_str());
 
-    const network::zeromq::Message& body2 = body.at(1);
+    const network::zeromq::Frame& body2 = body.at(1);
     msgString = body2;
     ASSERT_STREQ("msg4", msgString.c_str());
 }
 
 TEST(FrameSection, begin)
 {
-    auto multipartMessage = network::zeromq::MultipartMessage::Factory();
+    auto multipartMessage = network::zeromq::Message::Factory();
 
     auto headerSection = multipartMessage->Header();
     network::zeromq::FrameIterator headerIterator = headerSection.begin();
@@ -158,7 +158,7 @@ TEST(FrameSection, begin)
 
 TEST(FrameSection, end)
 {
-    auto multipartMessage = network::zeromq::MultipartMessage::Factory();
+    auto multipartMessage = network::zeromq::Message::Factory();
 
     auto headerSection = multipartMessage->Header();
     network::zeromq::FrameIterator headerIterator = headerSection.end();
@@ -195,7 +195,7 @@ TEST(FrameSection, end)
 
 TEST(FrameSection, size)
 {
-    auto multipartMessage = network::zeromq::MultipartMessage::Factory();
+    auto multipartMessage = network::zeromq::Message::Factory();
 
     auto headerSection = multipartMessage->Header();
     std::size_t size = headerSection.size();

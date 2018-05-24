@@ -42,8 +42,8 @@
 
 #include "opentxs/core/Log.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
+#include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
-#include "opentxs/network/zeromq/MultipartMessage.hpp"
 
 #include <chrono>
 
@@ -87,9 +87,7 @@ SubscribeSocket* SubscribeSocket::clone() const
 
 bool SubscribeSocket::have_callback() const { return true; }
 
-void SubscribeSocket::process_incoming(
-    const Lock& lock,
-    MultipartMessage& message)
+void SubscribeSocket::process_incoming(const Lock& lock, Message& message)
 {
     OT_ASSERT(verify_lock(lock))
 

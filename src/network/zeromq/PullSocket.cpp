@@ -42,7 +42,7 @@
 
 #include "opentxs/core/Log.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
-#include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/network/zeromq/Frame.hpp"
 
 #include <chrono>
 
@@ -105,7 +105,7 @@ PullSocket* PullSocket::clone() const
 
 bool PullSocket::have_callback() const { return true; }
 
-void PullSocket::process_incoming(const Lock& lock, MultipartMessage& message)
+void PullSocket::process_incoming(const Lock& lock, Message& message)
 {
     OT_ASSERT(verify_lock(lock))
 

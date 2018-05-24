@@ -44,8 +44,8 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/FrameIterator.hpp"
+#include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
-#include "opentxs/network/zeromq/MultipartMessage.hpp"
 
 #include <zmq.h>
 
@@ -150,7 +150,7 @@ const std::string& PairSocket::Endpoint() const { return endpoint_; }
 
 bool PairSocket::have_callback() const { return true; }
 
-void PairSocket::process_incoming(const Lock& lock, MultipartMessage& message)
+void PairSocket::process_incoming(const Lock& lock, Message& message)
 {
     OT_ASSERT(verify_lock(lock))
 
@@ -159,15 +159,15 @@ void PairSocket::process_incoming(const Lock& lock, MultipartMessage& message)
 
 bool PairSocket::Send(const std::string& data) const
 {
-    return Send(MultipartMessage::Factory(data));
+    return Send(Message::Factory(data));
 }
 
 bool PairSocket::Send(const opentxs::Data& data) const
 {
-    return Send(MultipartMessage::Factory(data));
+    return Send(Message::Factory(data));
 }
 
-bool PairSocket::Send(zeromq::MultipartMessage& data) const
+bool PairSocket::Send(zeromq::Message& data) const
 {
     Lock lock(lock_);
     bool sent{true};
@@ -177,9 +177,7 @@ bool PairSocket::Send(zeromq::MultipartMessage& data) const
     for (auto& frame : data) {
         int flags{0};
 
-        if (++counter < parts) {
-            flags = ZMQ_SNDMORE;
-        }
+        if (++counter < parts) { flags = ZMQ_SNDMORE; }
 
         sent |= (-1 != zmq_msg_send(frame, socket_, flags));
     }

@@ -49,7 +49,7 @@
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
-#include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/PublishSocket.hpp"
 #include "opentxs/Proto.hpp"
 
@@ -125,7 +125,7 @@ Workflow::Cheque Workflow::InstantiateCheque(
     const proto::PaymentWorkflow& workflow)
 {
     Cheque output{proto::PAYMENTWORKFLOWSTATE_ERROR, nullptr};
-    auto & [ state, cheque ] = output;
+    auto& [state, cheque] = output;
 
     switch (workflow.type()) {
         case proto::PAYMENTWORKFLOWTYPE_OUTGOINGCHEQUE:
@@ -138,10 +138,7 @@ Workflow::Cheque Workflow::InstantiateCheque(
 
             const auto serialized = ExtractCheque(workflow);
 
-            if (serialized.empty()) {
-
-                return output;
-            }
+            if (serialized.empty()) { return output; }
 
             const auto loaded =
                 cheque->LoadContractFromString(serialized.c_str());
@@ -410,10 +407,7 @@ bool Workflow::CancelCheque(
     const Message& request,
     const Message* reply) const
 {
-    if (false == isCheque(cheque)) {
-
-        return false;
-    }
+    if (false == isCheque(cheque)) { return false; }
 
     const auto nymID = cheque.GetSenderNymID().str();
     eLock lock(shared_lock_);
@@ -427,10 +421,7 @@ bool Workflow::CancelCheque(
         return false;
     }
 
-    if (false == can_cancel_cheque(*workflow)) {
-
-        return false;
-    }
+    if (false == can_cancel_cheque(*workflow)) { return false; }
 
     return add_cheque_event(
         nymID,
@@ -461,10 +452,7 @@ bool Workflow::ClearCheque(
               << ": Failed to load cheque from receipt." << std::endl;
     }
 
-    if (false == isCheque(*cheque)) {
-
-        return false;
-    }
+    if (false == isCheque(*cheque)) { return false; }
 
     const auto nymID = cheque->GetSenderNymID().str();
     eLock lock(shared_lock_);
@@ -478,10 +466,7 @@ bool Workflow::ClearCheque(
         return false;
     }
 
-    if (false == can_accept_cheque(*workflow)) {
-
-        return false;
-    }
+    if (false == can_accept_cheque(*workflow)) { return false; }
 
     OT_ASSERT(1 == workflow->account_size())
 
@@ -526,7 +511,7 @@ std::pair<OTIdentifier, proto::PaymentWorkflow> Workflow::create_cheque(
 
     std::pair<OTIdentifier, proto::PaymentWorkflow> output{
         Identifier::Factory(), {}};
-    auto & [ workflowID, workflow ] = output;
+    auto& [workflowID, workflow] = output;
     const auto chequeID = Identifier::Factory(cheque);
     const std::string serialized = String(cheque).Get();
     const auto existing = get_workflow({workflowType}, nymID, cheque);
@@ -579,9 +564,7 @@ std::pair<OTIdentifier, proto::PaymentWorkflow> Workflow::create_cheque(
         }
     }
 
-    if (false == party.empty()) {
-        event.set_nym(party);
-    }
+    if (false == party.empty()) { event.set_nym(party); }
 
     event.set_success(true);
     workflow.add_unit(cheque.GetInstrumentDefinitionID().str());
@@ -601,10 +584,7 @@ bool Workflow::DepositCheque(
     const Message& request,
     const Message* reply) const
 {
-    if (false == isCheque(cheque)) {
-
-        return false;
-    }
+    if (false == isCheque(cheque)) { return false; }
 
     const auto nymID = receiver.str();
     eLock lock(shared_lock_);
@@ -618,10 +598,7 @@ bool Workflow::DepositCheque(
         return false;
     }
 
-    if (false == can_deposit_cheque(*workflow)) {
-
-        return false;
-    }
+    if (false == can_deposit_cheque(*workflow)) { return false; }
 
     return add_cheque_event(
         nymID,
@@ -639,10 +616,7 @@ bool Workflow::ExpireCheque(
     const Identifier& nym,
     const opentxs::Cheque& cheque) const
 {
-    if (false == isCheque(cheque)) {
-
-        return false;
-    }
+    if (false == isCheque(cheque)) { return false; }
 
     const auto nymID = nym.str();
     eLock lock(shared_lock_);
@@ -659,10 +633,7 @@ bool Workflow::ExpireCheque(
         return false;
     }
 
-    if (false == can_expire_cheque(cheque, *workflow)) {
-
-        return false;
-    }
+    if (false == can_expire_cheque(cheque, *workflow)) { return false; }
 
     workflow->set_state(proto::PAYMENTWORKFLOWSTATE_EXPIRED);
 
@@ -671,10 +642,7 @@ bool Workflow::ExpireCheque(
 
 bool Workflow::ExportCheque(const opentxs::Cheque& cheque) const
 {
-    if (false == isCheque(cheque)) {
-
-        return false;
-    }
+    if (false == isCheque(cheque)) { return false; }
 
     const auto nymID = cheque.GetSenderNymID().str();
     eLock lock(shared_lock_);
@@ -687,10 +655,7 @@ bool Workflow::ExportCheque(const opentxs::Cheque& cheque) const
         return false;
     }
 
-    if (false == can_convey_cheque(*workflow)) {
-
-        return false;
-    }
+    if (false == can_convey_cheque(*workflow)) { return false; }
 
     workflow->set_state(proto::PAYMENTWORKFLOWSTATE_CONVEYED);
     auto& event = *(workflow->add_event());
@@ -723,10 +688,7 @@ bool Workflow::FinishCheque(
     const Message& request,
     const Message* reply) const
 {
-    if (false == isCheque(cheque)) {
-
-        return false;
-    }
+    if (false == isCheque(cheque)) { return false; }
 
     const auto nymID = cheque.GetSenderNymID().str();
     eLock lock(shared_lock_);
@@ -740,10 +702,7 @@ bool Workflow::FinishCheque(
         return false;
     }
 
-    if (false == can_finish_cheque(*workflow)) {
-
-        return false;
-    }
+    if (false == can_finish_cheque(*workflow)) { return false; }
 
     return add_cheque_event(
         nymID,
@@ -806,10 +765,7 @@ std::shared_ptr<proto::PaymentWorkflow> Workflow::get_workflow_by_source(
 {
     const auto workflowID = storage_.PaymentWorkflowLookup(nymID, sourceID);
 
-    if (workflowID.empty()) {
-
-        return {};
-    }
+    if (workflowID.empty()) { return {}; }
 
     return get_workflow_by_id(types, nymID, workflowID);
 }
@@ -844,10 +800,7 @@ OTIdentifier Workflow::ImportCheque(
     const Identifier& nymID,
     const opentxs::Cheque& cheque) const
 {
-    if (false == isCheque(cheque)) {
-
-        return Identifier::Factory();
-    }
+    if (false == isCheque(cheque)) { return Identifier::Factory(); }
 
     if (false == validate_recipient(nymID, cheque)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Nym " << nymID.str()
@@ -858,7 +811,7 @@ OTIdentifier Workflow::ImportCheque(
 
     const std::string party = cheque.GetSenderNymID().str();
     eLock lock(shared_lock_);
-    const auto[workflowID, workflow] = create_cheque(
+    const auto [workflowID, workflow] = create_cheque(
         lock,
         nymID.str(),
         cheque,
@@ -956,10 +909,7 @@ OTIdentifier Workflow::ReceiveCheque(
     const opentxs::Cheque& cheque,
     const Message& message) const
 {
-    if (false == isCheque(cheque)) {
-
-        return Identifier::Factory();
-    }
+    if (false == isCheque(cheque)) { return Identifier::Factory(); }
 
     if (false == validate_recipient(nymID, cheque)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Nym " << nymID.str()
@@ -970,7 +920,7 @@ OTIdentifier Workflow::ReceiveCheque(
 
     const std::string party = cheque.GetSenderNymID().str();
     eLock lock(shared_lock_);
-    const auto[workflowID, workflow] = create_cheque(
+    const auto [workflowID, workflow] = create_cheque(
         lock,
         nymID.str(),
         cheque,
@@ -1009,9 +959,7 @@ bool Workflow::save_workflow(
 
     OT_ASSERT(saved)
 
-    if (false == accountID.empty()) {
-        account_publisher_->Publish(accountID);
-    }
+    if (false == accountID.empty()) { account_publisher_->Publish(accountID); }
 
     return valid && saved;
 }
@@ -1022,10 +970,7 @@ OTIdentifier Workflow::save_workflow(
     const std::string& accountID,
     const proto::PaymentWorkflow& workflow) const
 {
-    if (save_workflow(nymID, accountID, workflow)) {
-
-        return std::move(output);
-    }
+    if (save_workflow(nymID, accountID, workflow)) { return std::move(output); }
 
     return Identifier::Factory();
 }
@@ -1036,10 +981,7 @@ std::pair<OTIdentifier, proto::PaymentWorkflow> Workflow::save_workflow(
     const std::string& accountID,
     const proto::PaymentWorkflow& workflow) const
 {
-    if (save_workflow(nymID, accountID, workflow)) {
-
-        return std::move(output);
-    }
+    if (save_workflow(nymID, accountID, workflow)) { return std::move(output); }
 
     return {Identifier::Factory(), {}};
 }
@@ -1049,10 +991,7 @@ bool Workflow::SendCheque(
     const Message& request,
     const Message* reply) const
 {
-    if (false == isCheque(cheque)) {
-
-        return false;
-    }
+    if (false == isCheque(cheque)) { return false; }
 
     const auto nymID = cheque.GetSenderNymID().str();
     eLock lock(shared_lock_);
@@ -1066,10 +1005,7 @@ bool Workflow::SendCheque(
         return false;
     }
 
-    if (false == can_convey_cheque(*workflow)) {
-
-        return false;
-    }
+    if (false == can_convey_cheque(*workflow)) { return false; }
 
     return add_cheque_event(
         nymID,
@@ -1086,10 +1022,7 @@ bool Workflow::validate_recipient(
     const Identifier& nymID,
     const opentxs::Cheque& cheque)
 {
-    if (nymID.empty()) {
-
-        return true;
-    }
+    if (nymID.empty()) { return true; }
 
     return (nymID == cheque.GetRecipientNymID());
 }
@@ -1140,15 +1073,12 @@ std::vector<OTIdentifier> Workflow::WorkflowsByAccount(
 
 OTIdentifier Workflow::WriteCheque(const opentxs::Cheque& cheque) const
 {
-    if (false == isCheque(cheque)) {
-
-        return Identifier::Factory();
-    }
+    if (false == isCheque(cheque)) { return Identifier::Factory(); }
 
     eLock lock(shared_lock_);
     const std::string party =
         cheque.HasRecipient() ? cheque.GetRecipientNymID().str() : "";
-    const auto[workflowID, workflow] = create_cheque(
+    const auto [workflowID, workflow] = create_cheque(
         lock,
         cheque.GetSenderNymID().str(),
         cheque,
@@ -1173,5 +1103,5 @@ OTIdentifier Workflow::WriteCheque(const opentxs::Cheque& cheque) const
 
     return workflowID;
 }
-}  // opentxs::api::client::implementation
-}  // opentxs::api::client
+}  // namespace implementation
+}  // namespace opentxs::api::client

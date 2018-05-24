@@ -42,8 +42,8 @@
 
 #include "opentxs/network/zeromq/FrameIterator.hpp"
 #include "opentxs/network/zeromq/FrameSection.hpp"
+#include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
-#include "opentxs/network/zeromq/MultipartMessage.hpp"
 
 namespace opentxs::network::zeromq
 {
@@ -56,7 +56,7 @@ FrameSection::FrameSection(const FrameSection& frameSection)
 }
 
 FrameSection::FrameSection(
-    const MultipartMessage* parent,
+    const Message* parent,
     std::size_t position,
     std::size_t size)
     : parent_(parent)
@@ -66,7 +66,7 @@ FrameSection::FrameSection(
     OT_ASSERT(nullptr != parent_);
 }
 
-const Message& FrameSection::at(const std::size_t index) const
+const Frame& FrameSection::at(const std::size_t index) const
 {
     OT_ASSERT(size_ > index);
 

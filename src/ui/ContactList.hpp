@@ -94,7 +94,7 @@ private:
         const ContactListID& id,
         const ContactListSortKey& index,
         const CustomData& custom) override;
-    void process_contact(const network::zeromq::MultipartMessage& message);
+    void process_contact(const network::zeromq::Message& message);
     void startup();
 
     ContactList(

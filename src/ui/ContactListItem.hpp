@@ -63,8 +63,7 @@ protected:
     OTZMQListenCallback contact_subscriber_callback_;
     OTZMQSubscribeSocket contact_subscriber_;
 
-    virtual void process_contact(
-        const network::zeromq::MultipartMessage& message);
+    virtual void process_contact(const network::zeromq::Message& message);
 
     ContactListItem(
         const ContactListParent& parent,
@@ -82,5 +81,5 @@ private:
     ContactListItem& operator=(const ContactListItem&) = delete;
     ContactListItem& operator=(ContactListItem&&) = delete;
 };
-}  // opentxs::ui::implementation
+}  // namespace opentxs::ui::implementation
 #endif  // OPENTXS_UI_CONTACTLISTITEM_IMPLEMENTATION_HPP

@@ -50,8 +50,8 @@
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/FrameIterator.hpp"
 #include "opentxs/network/zeromq/FrameSection.hpp"
+#include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
-#include "opentxs/network/zeromq/MultipartMessage.hpp"
 #include "opentxs/network/zeromq/SubscribeSocket.hpp"
 #include "opentxs/ui/Contact.hpp"
 #include "opentxs/ui/ContactSection.hpp"
@@ -105,7 +105,7 @@ Contact::Contact(
     , name_(contact.ContactName(contactID))
     , payment_code_()
     , contact_subscriber_callback_(network::zeromq::ListenCallback::Factory(
-          [this](const network::zeromq::MultipartMessage& message) -> void {
+          [this](const network::zeromq::Message& message) -> void {
               this->process_contact(message);
           }))
     , contact_subscriber_(
@@ -188,7 +188,7 @@ void Contact::process_contact(const opentxs::Contact& contact)
     UpdateNotify();
 }
 
-void Contact::process_contact(const network::zeromq::MultipartMessage& message)
+void Contact::process_contact(const network::zeromq::Message& message)
 {
     wait_for_startup();
 

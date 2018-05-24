@@ -53,8 +53,8 @@
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/FrameIterator.hpp"
 #include "opentxs/network/zeromq/FrameSection.hpp"
+#include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
-#include "opentxs/network/zeromq/MultipartMessage.hpp"
 #include "opentxs/network/zeromq/RequestSocket.hpp"
 #include "opentxs/network/ServerConnection.hpp"
 #include "opentxs/OT.hpp"
@@ -190,10 +190,10 @@ NetworkReplyRaw ServerConnection::Send(const std::string& input)
 
     OT_ASSERT(reply);
 
-    auto result = get_socket(lock).SendRequest(
-        network::zeromq::MultipartMessage::Factory(input));
+    auto result =
+        get_socket(lock).SendRequest(network::zeromq::Message::Factory(input));
     status = result.first;
-    network::zeromq::MultipartMessage& message = result.second;
+    network::zeromq::Message& message = result.second;
 
     switch (status) {
         case SendResult::ERROR: {
