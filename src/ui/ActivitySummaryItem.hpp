@@ -84,7 +84,7 @@ private:
         const proto::StorageThread& thread) const;
 
     void get_text();
-    void process_thread(const network::zeromq::MultipartMessage& message);
+    void process_thread(const network::zeromq::Message& message);
     void startup();
     void update(const proto::StorageThread& thread);
 
@@ -101,5 +101,5 @@ private:
     ActivitySummaryItem& operator=(const ActivitySummaryItem&) = delete;
     ActivitySummaryItem& operator=(ActivitySummaryItem&&) = delete;
 };
-}  // opentxs::ui::implementation
+}  // namespace opentxs::ui::implementation
 #endif  // OPENTXS_UI_ACTIVITYSUMMARYITEM_IMPLEMENTATION_HPP

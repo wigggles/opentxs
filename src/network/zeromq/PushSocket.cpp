@@ -43,8 +43,8 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/FrameIterator.hpp"
+#include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
-#include "opentxs/network/zeromq/MultipartMessage.hpp"
 
 #include <zmq.h>
 
@@ -72,15 +72,15 @@ PushSocket::PushSocket(const zeromq::Context& context, const bool client)
 
 bool PushSocket::Push(const std::string& data) const
 {
-    return Push(MultipartMessage::Factory(data));
+    return Push(Message::Factory(data));
 }
 
 bool PushSocket::Push(const opentxs::Data& data) const
 {
-    return Push(MultipartMessage::Factory(data));
+    return Push(Message::Factory(data));
 }
 
-bool PushSocket::Push(zeromq::MultipartMessage& data) const
+bool PushSocket::Push(zeromq::Message& data) const
 {
     Lock lock(lock_);
     bool sent{true};
@@ -90,9 +90,7 @@ bool PushSocket::Push(zeromq::MultipartMessage& data) const
     for (auto& frame : data) {
         int flags{0};
 
-        if (++counter < parts) {
-            flags = ZMQ_SNDMORE;
-        }
+        if (++counter < parts) { flags = ZMQ_SNDMORE; }
 
         sent |= (-1 != zmq_msg_send(frame, socket_, flags));
     }

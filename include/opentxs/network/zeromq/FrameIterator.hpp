@@ -66,23 +66,21 @@ class FrameIterator
 {
 public:
     using difference_type = std::size_t;
-    using value_type = Message;
-    using pointer = Message*;
-    using reference = Message&;
+    using value_type = Frame;
+    using pointer = Frame*;
+    using reference = Frame&;
     using iterator_category = std::forward_iterator_tag;
 
     EXPORT FrameIterator() = default;
     EXPORT FrameIterator(const FrameIterator&);
-    EXPORT FrameIterator(
-        const MultipartMessage* parent,
-        std::size_t position = 0);
+    EXPORT FrameIterator(const Message* parent, std::size_t position = 0);
     EXPORT FrameIterator& operator=(const FrameIterator&);
 
-    EXPORT const opentxs::network::zeromq::Message& operator*() const;
+    EXPORT const opentxs::network::zeromq::Frame& operator*() const;
     EXPORT bool operator==(const FrameIterator&) const;
     EXPORT bool operator!=(const FrameIterator&) const;
 
-    EXPORT opentxs::network::zeromq::Message& operator*();
+    EXPORT opentxs::network::zeromq::Frame& operator*();
     EXPORT FrameIterator& operator++();
     EXPORT FrameIterator operator++(int);
 
@@ -90,7 +88,7 @@ public:
 
 private:
     std::atomic<std::size_t> position_{0};
-    const MultipartMessage* parent_{nullptr};
+    const Message* parent_{nullptr};
 
     FrameIterator(FrameIterator&&) = default;  // needed by operator++(int)
     FrameIterator& operator=(FrameIterator&&) = delete;

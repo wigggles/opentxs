@@ -48,8 +48,8 @@
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/FrameIterator.hpp"
 #include "opentxs/network/zeromq/FrameSection.hpp"
+#include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
-#include "opentxs/network/zeromq/MultipartMessage.hpp"
 #include "opentxs/network/zeromq/SubscribeSocket.hpp"
 #include "opentxs/ui/ActivitySummaryItem.hpp"
 
@@ -108,7 +108,7 @@ ActivitySummaryItem::ActivitySummaryItem(
     , newest_item_thread_(nullptr)
     , newest_item_()
     , activity_subscriber_callback_(network::zeromq::ListenCallback::Factory(
-          [this](const network::zeromq::MultipartMessage& message) -> void {
+          [this](const network::zeromq::Message& message) -> void {
               this->process_thread(message);
           }))
     , activity_subscriber_(
@@ -133,20 +133,11 @@ ActivitySummaryItem::ActivitySummaryItem(
 
 bool ActivitySummaryItem::check_thread(const proto::StorageThread& thread) const
 {
-    if (1 > thread.item_size()) {
+    if (1 > thread.item_size()) { return false; }
 
-        return false;
-    }
+    if (1 != thread.participant_size()) { OT_FAIL }
 
-    if (1 != thread.participant_size()) {
-
-        OT_FAIL
-    }
-
-    if (thread.id() != thread.participant(0)) {
-
-        OT_FAIL
-    }
+    if (thread.id() != thread.participant(0)) { OT_FAIL }
 
     return true;
 }
@@ -166,22 +157,15 @@ std::string ActivitySummaryItem::display_name(
         }
     }
 
-    if (names.empty()) {
-
-        return thread.id();
-    }
+    if (names.empty()) { return thread.id(); }
 
     std::stringstream stream{};
 
-    for (const auto& name : names) {
-        stream << name << ", ";
-    }
+    for (const auto& name : names) { stream << name << ", "; }
 
     std::string output = stream.str();
 
-    if (0 < output.size()) {
-        output.erase(output.size() - 2, 2);
-    }
+    if (0 < output.size()) { output.erase(output.size() - 2, 2); }
 
     return output;
 }
@@ -190,17 +174,14 @@ std::string ActivitySummaryItem::DisplayName() const
 {
     sLock lock(shared_lock_);
 
-    if (display_name_.empty()) {
-
-        return contact_.ContactName(id_);
-    }
+    if (display_name_.empty()) { return contact_.ContactName(id_); }
 
     return display_name_;
 }
 
 std::string ActivitySummaryItem::find_text(const ItemLocator& locator) const
 {
-    const auto & [ itemID, box, accountID ] = locator;
+    const auto& [itemID, box, accountID] = locator;
 
     switch (box) {
         case StorageBox::MAILINBOX:
@@ -287,7 +268,7 @@ const proto::StorageThreadItem& ActivitySummaryItem::newest_item(
 }
 
 void ActivitySummaryItem::process_thread(
-    const network::zeromq::MultipartMessage& message)
+    const network::zeromq::Message& message)
 {
     OT_ASSERT(1 == message.Body().size())
 
@@ -349,10 +330,7 @@ void ActivitySummaryItem::update(const proto::StorageThread& thread)
     display_name_ = displayName;
     lock.unlock();
 
-    if (false == haveItems) {
-
-        return;
-    }
+    if (false == haveItems) { return; }
 
     const auto& item = newest_item(thread);
     const auto time = std::chrono::system_clock::time_point(

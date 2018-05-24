@@ -109,7 +109,7 @@ private:
     void update(ContactPimpl& row, const CustomData& custom) const override;
 
     void process_contact(const opentxs::Contact& contact);
-    void process_contact(const network::zeromq::MultipartMessage& message);
+    void process_contact(const network::zeromq::Message& message);
     void startup();
 
     Contact(

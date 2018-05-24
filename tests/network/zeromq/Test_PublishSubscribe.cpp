@@ -51,8 +51,8 @@
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/FrameIterator.hpp"
 #include "opentxs/network/zeromq/FrameSection.hpp"
+#include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
-#include "opentxs/network/zeromq/MultipartMessage.hpp"
 #include "opentxs/network/zeromq/PublishSocket.hpp"
 #include "opentxs/network/zeromq/SubscribeSocket.hpp"
 
@@ -98,7 +98,7 @@ void Test_PublishSubscribe::subscribeSocketThread(
     ASSERT_NE(nullptr, &Test_PublishSubscribe::context_.get());
 
     auto listenCallback = network::zeromq::ListenCallback::Factory(
-        [this, msgs](const network::zeromq::MultipartMessage& input) -> void {
+        [this, msgs](const network::zeromq::Message& input) -> void {
 
             const std::string& inputString = *input.Body().begin();
             bool found = msgs.count(inputString);
@@ -186,7 +186,7 @@ TEST_F(Test_PublishSubscribe, Publish_Subscribe)
     publishSocket->Start(endpoint_);
 
     auto listenCallback = network::zeromq::ListenCallback::Factory(
-        [this](const network::zeromq::MultipartMessage& input) -> void {
+        [this](const network::zeromq::Message& input) -> void {
 
             const std::string& inputString = *input.Body().begin();
             EXPECT_EQ(testMessage_, inputString);
@@ -286,7 +286,7 @@ TEST_F(Test_PublishSubscribe, Publish_2_Subscribe_1)
     ASSERT_EQ(2, publishThreadStartedCount_);
 
     auto listenCallback = network::zeromq::ListenCallback::Factory(
-        [this](const network::zeromq::MultipartMessage& input) -> void {
+        [this](const network::zeromq::Message& input) -> void {
 
             const std::string& inputString = *input.Body().begin();
             bool match =

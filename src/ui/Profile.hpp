@@ -141,7 +141,7 @@ private:
     void update(ProfilePimpl& row, const CustomData& custom) const override;
 
     void process_nym(const Nym& nym);
-    void process_nym(const network::zeromq::MultipartMessage& message);
+    void process_nym(const network::zeromq::Message& message);
     void startup();
 
     Profile(

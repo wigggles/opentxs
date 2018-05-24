@@ -112,7 +112,7 @@ private:
     void process_workflow(
         const Identifier& workflowID,
         std::set<AccountActivityID>& active);
-    void process_workflow(const network::zeromq::MultipartMessage& message);
+    void process_workflow(const network::zeromq::Message& message);
     void startup();
 
     AccountActivity(

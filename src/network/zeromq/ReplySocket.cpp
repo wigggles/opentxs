@@ -42,8 +42,8 @@
 
 #include "opentxs/core/Log.hpp"
 #include "opentxs/network/zeromq/ReplyCallback.hpp"
+#include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
-#include "opentxs/network/zeromq/MultipartMessage.hpp"
 #include "opentxs/network/zeromq/FrameIterator.hpp"
 
 #include <zmq.h>
@@ -81,10 +81,10 @@ ReplySocket* ReplySocket::clone() const
 
 bool ReplySocket::have_callback() const { return true; }
 
-void ReplySocket::process_incoming(const Lock&, MultipartMessage& message)
+void ReplySocket::process_incoming(const Lock&, Message& message)
 {
     auto output = callback_.Process(message);
-    MultipartMessage& reply = output;
+    Message& reply = output;
     bool sent{true};
     const auto parts = reply.size();
     std::size_t counter{0};
@@ -92,9 +92,7 @@ void ReplySocket::process_incoming(const Lock&, MultipartMessage& message)
     for (auto& frame : reply) {
         int flags{0};
 
-        if (++counter < parts) {
-            flags = ZMQ_SNDMORE;
-        }
+        if (++counter < parts) { flags = ZMQ_SNDMORE; }
 
         sent |= (-1 != zmq_msg_send(frame, socket_, flags));
     }
@@ -103,12 +101,12 @@ void ReplySocket::process_incoming(const Lock&, MultipartMessage& message)
         otErr << OT_METHOD << __FUNCTION__ << ": Send error:\n"
               << zmq_strerror(zmq_errno())
               << "\nRequest: "
-              // TODO: Determine which part of the MultipartMessages to display.
+              // TODO: Determine which part of the Message to display.
               // << std::string(message)
-              << "(MultipartMessage)"
+              << "(Message)"
               // << "\nReply: " << std::string(reply) << std::endl;
               << "\nReply: "
-              << "(MultipartMessage)" << std::endl;
+              << "(Message)" << std::endl;
     }
 }
 

@@ -51,8 +51,8 @@
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/FrameIterator.hpp"
 #include "opentxs/network/zeromq/FrameSection.hpp"
+#include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
-#include "opentxs/network/zeromq/MultipartMessage.hpp"
 #include "opentxs/network/zeromq/ReplyCallback.hpp"
 #include "opentxs/network/zeromq/ReplySocket.hpp"
 #include "opentxs/server/Server.hpp"
@@ -76,8 +76,7 @@ MessageProcessor::MessageProcessor(
     , running_(running)
     , context_(context)
     , reply_socket_callback_(network::zeromq::ReplyCallback::Factory(
-          [this](const network::zeromq::MultipartMessage& incoming)
-              -> OTZMQMultipartMessage {
+          [this](const network::zeromq::Message& incoming) -> OTZMQMessage {
               return this->processSocket(incoming);
           }))
     , reply_socket_(context.ReplySocket(reply_socket_callback_.get()))
@@ -123,8 +122,8 @@ void MessageProcessor::run()
     }
 }
 
-OTZMQMultipartMessage MessageProcessor::processSocket(
-    const network::zeromq::MultipartMessage& incoming)
+OTZMQMessage MessageProcessor::processSocket(
+    const network::zeromq::Message& incoming)
 {
     // ProcessCron and processSocket must not run simultaneously
     Lock lock(lock_);
@@ -139,7 +138,7 @@ OTZMQMultipartMessage MessageProcessor::processSocket(
 
     if (error) { reply = ""; }
 
-    auto output = network::zeromq::MultipartMessage::ReplyFactory(incoming);
+    auto output = network::zeromq::Message::ReplyFactory(incoming);
     output->AddFrame(reply);
 
     return output;

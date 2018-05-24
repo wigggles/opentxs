@@ -45,8 +45,8 @@
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/FrameIterator.hpp"
 #include "opentxs/network/zeromq/FrameSection.hpp"
+#include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
-#include "opentxs/network/zeromq/MultipartMessage.hpp"
 #include "opentxs/network/zeromq/SubscribeSocket.hpp"
 #include "opentxs/ui/ContactListItem.hpp"
 
@@ -82,7 +82,7 @@ ContactListItem::ContactListItem(
     : ContactListItemType(parent, zmq, contact, id, true)
     , name_(name)
     , contact_subscriber_callback_(network::zeromq::ListenCallback::Factory(
-          [this](const network::zeromq::MultipartMessage& message) -> void {
+          [this](const network::zeromq::Message& message) -> void {
               this->process_contact(message);
           }))
     , contact_subscriber_(
@@ -110,17 +110,13 @@ std::string ContactListItem::ImageURI() const
     return {};
 }
 
-void ContactListItem::process_contact(
-    const network::zeromq::MultipartMessage& message)
+void ContactListItem::process_contact(const network::zeromq::Message& message)
 {
     OT_ASSERT(1 == message.Body().size());
 
     const Identifier contactID{std::string(*message.Body().begin())};
 
-    if (id_ != contactID) {
-
-        return;
-    }
+    if (id_ != contactID) { return; }
 
     Lock lock(lock_);
     name_ = contact_.ContactName(id_);
@@ -130,15 +126,9 @@ std::string ContactListItem::Section() const
 {
     Lock lock(lock_);
 
-    if (id_ == parent_.ID()) {
+    if (id_ == parent_.ID()) { return {"ME"}; }
 
-        return {"ME"};
-    }
-
-    if (name_.empty()) {
-
-        return {" "};
-    }
+    if (name_.empty()) { return {" "}; }
 
     std::locale loc;
     std::string output{" "};

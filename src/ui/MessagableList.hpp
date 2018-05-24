@@ -94,8 +94,8 @@ private:
     void process_contact(
         const MessagableListID& id,
         const MessagableListSortKey& key);
-    void process_contact(const network::zeromq::MultipartMessage& message);
-    void process_nym(const network::zeromq::MultipartMessage& message);
+    void process_contact(const network::zeromq::Message& message);
+    void process_nym(const network::zeromq::Message& message);
     void startup();
 
     MessagableList(

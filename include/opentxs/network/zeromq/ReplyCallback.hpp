@@ -64,13 +64,12 @@ namespace zeromq
 class ReplyCallback
 {
 public:
-    using ReceiveCallback =
-        std::function<OTZMQMultipartMessage(const MultipartMessage&)>;
+    using ReceiveCallback = std::function<OTZMQMessage(const Message&)>;
 
     EXPORT static OTZMQReplyCallback Factory(ReceiveCallback callback);
 
-    EXPORT virtual Pimpl<opentxs::network::zeromq::MultipartMessage> Process(
-        const MultipartMessage& message) const = 0;
+    EXPORT virtual Pimpl<opentxs::network::zeromq::Message> Process(
+        const Message& message) const = 0;
 
     EXPORT virtual ~ReplyCallback() = default;
 

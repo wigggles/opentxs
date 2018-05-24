@@ -63,7 +63,7 @@ namespace zeromq
 class ListenCallback
 {
 public:
-    using ReceiveCallback = std::function<void(const MultipartMessage&)>;
+    using ReceiveCallback = std::function<void(const Message&)>;
 
 #ifndef SWIG
     EXPORT static OTZMQListenCallback Factory(ReceiveCallback callback);
@@ -72,7 +72,7 @@ public:
     EXPORT static opentxs::Pimpl<opentxs::network::zeromq::ListenCallback>
     Factory(ListenCallbackSwig* callback);
 
-    EXPORT virtual void Process(const MultipartMessage& message) const = 0;
+    EXPORT virtual void Process(const Message& message) const = 0;
 
     EXPORT virtual ~ListenCallback() = default;
 

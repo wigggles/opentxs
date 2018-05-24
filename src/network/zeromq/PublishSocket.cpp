@@ -43,8 +43,8 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/FrameIterator.hpp"
+#include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
-#include "opentxs/network/zeromq/MultipartMessage.hpp"
 
 #include <zmq.h>
 
@@ -70,15 +70,15 @@ PublishSocket::PublishSocket(const zeromq::Context& context)
 
 bool PublishSocket::Publish(const std::string& data) const
 {
-    return Publish(MultipartMessage::Factory(data));
+    return Publish(Message::Factory(data));
 }
 
 bool PublishSocket::Publish(const opentxs::Data& data) const
 {
-    return Publish(MultipartMessage::Factory(data));
+    return Publish(Message::Factory(data));
 }
 
-bool PublishSocket::Publish(zeromq::MultipartMessage& data) const
+bool PublishSocket::Publish(zeromq::Message& data) const
 {
     Lock lock(lock_);
     bool sent{true};
@@ -88,9 +88,7 @@ bool PublishSocket::Publish(zeromq::MultipartMessage& data) const
     for (auto& frame : data) {
         int flags{0};
 
-        if (++counter < parts) {
-            flags = ZMQ_SNDMORE;
-        }
+        if (++counter < parts) { flags = ZMQ_SNDMORE; }
 
         sent |= (-1 != zmq_msg_send(frame, socket_, flags));
     }

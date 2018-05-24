@@ -48,8 +48,7 @@ namespace opentxs::network::zeromq::implementation
 class ReplyCallback : virtual public zeromq::ReplyCallback
 {
 public:
-    OTZMQMultipartMessage Process(
-        const zeromq::MultipartMessage& message) const override;
+    OTZMQMessage Process(const zeromq::Message& message) const override;
 
     ~ReplyCallback();
 

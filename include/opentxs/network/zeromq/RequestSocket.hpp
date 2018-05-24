@@ -53,7 +53,6 @@
 %rename(assign) operator=(const opentxs::network::zeromq::RequestSocket&);
 %rename(ZMQRequestSocket) opentxs::network::zeromq::RequestSocket;
 %template(ZMQMessageSendResult) std::pair<opentxs::SendResult, Pimpl<opentxs::network::zeromq::Message>>;
-%template(ZMQMultipartMessageSendResult) std::pair<opentxs::SendResult, Pimpl<opentxs::network::zeromq::MultipartMessage>>;
 %template(OTZMQRequestSocket) opentxs::Pimpl<opentxs::network::zeromq::RequestSocket>;
 // clang-format on
 #endif  // SWIG
@@ -71,16 +70,16 @@ public:
 
     EXPORT virtual std::pair<
         opentxs::SendResult,
-        opentxs::Pimpl<opentxs::network::zeromq::MultipartMessage>>
+        opentxs::Pimpl<opentxs::network::zeromq::Message>>
     SendRequest(opentxs::Data& message) const = 0;
     EXPORT virtual std::pair<
         opentxs::SendResult,
-        opentxs::Pimpl<opentxs::network::zeromq::MultipartMessage>>
+        opentxs::Pimpl<opentxs::network::zeromq::Message>>
     SendRequest(const std::string& message) const = 0;
     EXPORT virtual std::pair<
         opentxs::SendResult,
-        opentxs::Pimpl<opentxs::network::zeromq::MultipartMessage>>
-    SendRequest(opentxs::network::zeromq::MultipartMessage& message) const = 0;
+        opentxs::Pimpl<opentxs::network::zeromq::Message>>
+    SendRequest(opentxs::network::zeromq::Message& message) const = 0;
     EXPORT virtual bool SetCurve(const ServerContract& contract) const = 0;
     EXPORT virtual bool SetSocksProxy(const std::string& proxy) const = 0;
 

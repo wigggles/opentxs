@@ -45,7 +45,7 @@
 #include "opentxs/core/Lockable.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
-#include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/SubscribeSocket.hpp"
 #include "opentxs/ui/PayableListItem.hpp"
 
@@ -93,8 +93,7 @@ std::string PayableListItem::PaymentCode() const
     return payment_code_;
 }
 
-void PayableListItem::process_contact(
-    const network::zeromq::MultipartMessage& message)
+void PayableListItem::process_contact(const network::zeromq::Message& message)
 {
     ot_super::process_contact(message);
     const auto contact = contact_.Contact(id_);

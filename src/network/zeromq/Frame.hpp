@@ -36,47 +36,41 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_REPLYSOCKET_HPP
-#define OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_REPLYSOCKET_HPP
+#ifndef OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_FRAME_HPP
+#define OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_FRAME_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Internal.hpp"
 
-#include "opentxs/network/zeromq/ReplySocket.hpp"
-
-#include "CurveServer.hpp"
-#include "Receiver.hpp"
-#include "Socket.hpp"
+#include "opentxs/network/zeromq/Frame.hpp"
 
 namespace opentxs::network::zeromq::implementation
 {
-class ReplySocket : virtual public zeromq::ReplySocket,
-                    public Socket,
-                    CurveServer,
-                    Receiver
+class Frame : virtual public zeromq::Frame
 {
 public:
-    bool SetCurve(const OTPassword& key) const override;
-    bool Start(const std::string& endpoint) const override;
+    operator std::string() const override;
 
-    ~ReplySocket();
+    const void* data() const override;
+    std::size_t size() const override;
+
+    operator zmq_msg_t*() override;
+
+    ~Frame();
 
 private:
-    friend opentxs::network::zeromq::ReplySocket;
-    typedef Socket ot_super;
+    friend network::zeromq::Frame;
 
-    const ReplyCallback& callback_;
+    zmq_msg_t* message_{nullptr};
 
-    ReplySocket* clone() const override;
-    bool have_callback() const override;
+    Frame* clone() const override;
 
-    void process_incoming(const Lock& lock, Message& message) override;
-
-    ReplySocket(const zeromq::Context& context, const ReplyCallback& callback);
-    ReplySocket() = delete;
-    ReplySocket(const ReplySocket&) = delete;
-    ReplySocket(ReplySocket&&) = delete;
-    ReplySocket& operator=(const ReplySocket&) = delete;
-    ReplySocket& operator=(ReplySocket&&) = delete;
+    Frame();
+    explicit Frame(const Data& input);
+    explicit Frame(const std::string& input);
+    Frame(const Frame&) = delete;
+    Frame(Frame&&) = delete;
+    Frame& operator=(Frame&&) = delete;
+    Frame& operator=(const Frame&) = delete;
 };
 }  // namespace opentxs::network::zeromq::implementation
-#endif  // OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_REPLYSOCKET_HPP
+#endif  // OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_FRAME_HPP

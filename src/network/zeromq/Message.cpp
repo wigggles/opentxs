@@ -36,13 +36,12 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
-
 #include "Message.hpp"
 
-#include "opentxs/core/crypto/OTPassword.hpp"
-#include "opentxs/core/Data.hpp"
-#include "opentxs/core/Log.hpp"
+#include "opentxs/stdafx.hpp"
+
+#include "opentxs/network/zeromq/Frame.hpp"
+#include "opentxs/network/zeromq/FrameIterator.hpp"
 
 #include <zmq.h>
 
@@ -57,88 +56,164 @@ OTZMQMessage Message::Factory()
 
 OTZMQMessage Message::Factory(const Data& input)
 {
-    return OTZMQMessage(new implementation::Message(input));
+    auto multipartMessage = new implementation::Message();
+
+    OT_ASSERT(nullptr != multipartMessage);
+
+    multipartMessage->AddFrame(input);
+
+    return OTZMQMessage(multipartMessage);
 }
 
 OTZMQMessage Message::Factory(const std::string& input)
 {
-    return OTZMQMessage(new implementation::Message(input));
+    auto multipartMessage = new implementation::Message();
+
+    OT_ASSERT(nullptr != multipartMessage);
+
+    multipartMessage->AddFrame(input);
+
+    return OTZMQMessage(multipartMessage);
+}
+
+OTZMQMessage Message::ReplyFactory(const Message& request)
+{
+    auto output = new implementation::Message();
+
+    if (0 < request.Header().size()) {
+        for (const auto& frame : request.Header()) { output->AddFrame(frame); }
+
+        output->AddFrame();
+    }
+
+    return OTZMQMessage(output);
 }
 }  // namespace opentxs::network::zeromq
 
 namespace opentxs::network::zeromq::implementation
 {
 Message::Message()
-    : message_(new zmq_msg_t)
+    : messages_{}
 {
-    OT_ASSERT(nullptr != message_);
-
-    const auto init = zmq_msg_init(message_);
-
-    OT_ASSERT(0 == init);
 }
 
-Message::Message(const Data& input)
-    : message_(new zmq_msg_t)
+Frame& Message::AddFrame()
 {
-    OT_ASSERT(nullptr != message_);
+    OTZMQFrame message = Frame::Factory();
 
-    const auto init = zmq_msg_init_size(message_, input.GetSize());
-    OTPassword::safe_memcpy(
-        zmq_msg_data(message_),
-        zmq_msg_size(message_),
-        input.GetPointer(),
-        input.GetSize(),
-        false);
-
-    OT_ASSERT(0 == init);
+    messages_.emplace_back(message);
+    return messages_.back().get();
 }
 
-Message::Message(const std::string& input)
-    : message_(new zmq_msg_t)
+Frame& Message::AddFrame(const opentxs::Data& input)
 {
-    OT_ASSERT(nullptr != message_);
+    OTZMQFrame message = Frame::Factory(input);
 
-    const auto init = zmq_msg_init_size(message_, input.size());
-    OTPassword::safe_memcpy(
-        zmq_msg_data(message_),
-        zmq_msg_size(message_),
-        input.data(),
-        input.size(),
-        false);
-
-    OT_ASSERT(0 == init);
+    messages_.emplace_back(message);
+    return messages_.back().get();
 }
 
-Message::operator zmq_msg_t*() { return message_; }
-
-Message::operator std::string() const
+Frame& Message::AddFrame(const std::string& input)
 {
-    std::string output(static_cast<const char*>(data()), size());
+    OTZMQFrame message = Frame::Factory(input);
 
-    return output;
+    messages_.emplace_back(message);
+    return messages_.back().get();
 }
 
-Message* Message::clone() const { return new Message(std::string(*this)); }
-
-const void* Message::data() const
+const Frame& Message::at(const std::size_t index) const
 {
-    OT_ASSERT(nullptr != message_);
+    OT_ASSERT(messages_.size() > index);
 
-    return zmq_msg_data(message_);
+    return const_cast<const Frame&>(messages_.at(index).get());
 }
 
-std::size_t Message::size() const
+Frame& Message::at(const std::size_t index)
 {
-    OT_ASSERT(nullptr != message_);
+    OT_ASSERT(messages_.size() > index);
 
-    return zmq_msg_size(message_);
+    return messages_.at(index).get();
 }
 
-Message::~Message()
+FrameIterator Message::begin() const { return FrameIterator(this); }
+
+const FrameSection Message::Body() const
 {
-    if (nullptr != message_) {
-        zmq_msg_close(message_);
+    auto position = 0;
+
+    if (true == hasDivider()) { position = findDivider() + 1; }
+
+    return FrameSection(this, position, messages_.size() - position);
+}
+
+const Frame& Message::Body_at(const std::size_t index) const
+{
+    return Body().at(index);
+}
+
+FrameIterator Message::Body_begin() const { return Body().begin(); }
+
+FrameIterator Message::Body_end() const { return Body().end(); }
+
+Message* Message::clone() const
+{
+    Message* multipartMessage = new Message();
+
+    OT_ASSERT(nullptr != multipartMessage);
+
+    for (auto& message : messages_) {
+        multipartMessage->messages_.emplace_back(message);
     }
+
+    return multipartMessage;
 }
+
+FrameIterator Message::end() const
+{
+    return FrameIterator(this, messages_.size());
+}
+
+std::size_t Message::findDivider() const
+{
+    std::size_t divider = 0;
+
+    for (auto& message : messages_) {
+        if (0 == message->size()) { break; }
+        ++divider;
+    }
+
+    return divider;
+}
+
+bool Message::hasDivider() const
+{
+    return std::find_if(
+               messages_.begin(), messages_.end(), [](OTZMQFrame msg) -> bool {
+                   return 0 == msg->size();
+               }) != messages_.end();
+}
+
+const Frame& Message::Header_at(const std::size_t index) const
+{
+    return Header().at(index);
+}
+
+const FrameSection Message::Header() const
+{
+    auto size = 0;
+
+    if (true == hasDivider()) { size = findDivider(); }
+
+    return FrameSection(this, 0, size);
+}
+
+FrameIterator Message::Header_begin() const { return Header().begin(); }
+
+FrameIterator Message::Header_end() const { return Header().end(); }
+
+std::size_t Message::size() const { return messages_.size(); }
+
+// Message::~Message()
+//{
+//}
 }  // namespace opentxs::network::zeromq::implementation

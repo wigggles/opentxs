@@ -73,7 +73,7 @@ Proxy::Proxy(
     , frontend_(frontend)
     , backend_(backend)
     , null_callback_(opentxs::network::zeromq::ListenCallback::Factory(
-          [](const zeromq::MultipartMessage&) -> void {}))
+          [](const zeromq::Message&) -> void {}))
     , control_listener_(new PairSocket(context, null_callback_, false))
     , control_sender_(new PairSocket(null_callback_, control_listener_, false))
     , thread_(nullptr)
@@ -94,8 +94,6 @@ Proxy::~Proxy()
 {
     control_sender_->Send("TERMINATE");
 
-    if (thread_ && thread_->joinable()) {
-        thread_->join();
-    }
+    if (thread_ && thread_->joinable()) { thread_->join(); }
 }
 }  // namespace opentxs::network::zeromq::implementation

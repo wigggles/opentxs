@@ -47,8 +47,8 @@
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/FrameIterator.hpp"
 #include "opentxs/network/zeromq/FrameSection.hpp"
+#include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
-#include "opentxs/network/zeromq/MultipartMessage.hpp"
 #include "opentxs/network/zeromq/SubscribeSocket.hpp"
 #include "opentxs/ui/ContactList.hpp"
 #include "opentxs/ui/ContactListItem.hpp"
@@ -95,7 +95,7 @@ ContactList::ContactList(
           "Owner"))
     , owner_(*owner_p_)
     , contact_subscriber_callback_(network::zeromq::ListenCallback::Factory(
-          [this](const network::zeromq::MultipartMessage& message) -> void {
+          [this](const network::zeromq::Message& message) -> void {
               this->process_contact(message);
           }))
     , contact_subscriber_(
@@ -168,8 +168,7 @@ ContactListOuter::const_iterator ContactList::outer_end() const
     return items_.end();
 }
 
-void ContactList::process_contact(
-    const network::zeromq::MultipartMessage& message)
+void ContactList::process_contact(const network::zeromq::Message& message)
 {
     wait_for_startup();
 

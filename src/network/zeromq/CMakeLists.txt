@@ -2,12 +2,12 @@ set(cxx-sources
   Context.cpp
   CurveClient.cpp
   CurveServer.cpp
+  Frame.cpp
   FrameIterator.cpp
   FrameSection.cpp
   ListenCallback.cpp
   ListenCallbackSwig.cpp
   Message.cpp
-  MultipartMessage.cpp
   PairEventCallback.cpp
   PairEventCallbackSwig.cpp
   PairEventListener.cpp
@@ -33,9 +33,9 @@ set(cxx-headers
   ${CMAKE_CURRENT_SOURCE_DIR}/Context.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/CurveClient.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/CurveServer.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/Frame.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/ListenCallback.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/ListenCallbackSwig.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/Message.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/PairEventCallback.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/PairEventCallbackSwig.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/PairEventListener.hpp

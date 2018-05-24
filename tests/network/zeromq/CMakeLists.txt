@@ -3,8 +3,8 @@
 set(name unittests-opentxs-network-zeromq)
 
 set(cxx-sources
+  Test_Frame.cpp
   Test_Message.cpp
-  Test_MultipartMessage.cpp
   Test_FrameIterator.cpp
   Test_FrameSection.cpp
   Test_ReplySocket.cpp
