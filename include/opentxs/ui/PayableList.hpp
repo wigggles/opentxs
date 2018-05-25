@@ -45,6 +45,7 @@
 
 #ifdef SWIG
 // clang-format off
+%shared_ptr(opentxs::ui::PayableListItem)
 %rename(UIPayableList) opentxs::ui::PayableList;
 // clang-format on
 #endif  // SWIG
@@ -56,8 +57,8 @@ namespace ui
 class PayableList : virtual public Widget
 {
 public:
-    EXPORT virtual const PayableListItem& First() const = 0;
-    EXPORT virtual const PayableListItem& Next() const = 0;
+    EXPORT virtual std::shared_ptr<const PayableListItem> First() const = 0;
+    EXPORT virtual std::shared_ptr<const PayableListItem> Next() const = 0;
 
     EXPORT virtual ~PayableList() = default;
 

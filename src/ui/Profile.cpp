@@ -383,9 +383,8 @@ void Profile::startup()
 
 void Profile::update(ProfilePimpl& row, const CustomData& custom) const
 {
-    OT_ASSERT(row)
     OT_ASSERT(1 == custom.size())
 
-    row->Update(recover(custom[0]));
+    row.Update(recover(custom[0]));
 }
 }  // namespace opentxs::ui::implementation

@@ -52,8 +52,8 @@ namespace client
 namespace implementation
 {
 class Wallet;
-}  // namespace api::client::implementation
-}  // namespace api::client
+}  // namespace implementation
+}  // namespace client
 
 namespace implementation
 {
@@ -61,7 +61,7 @@ class Api;
 class Crypto;
 class Native;
 class UI;
-}  // namespace api::implementation
+}  // namespace implementation
 
 namespace network
 {
@@ -70,8 +70,8 @@ namespace implementation
 class Context;
 class Dht;
 class ZMQ;
-}  // namespace api::network::implementation
-}  // namespace api::network
+}  // namespace implementation
+}  // namespace network
 }  // namespace api
 
 namespace network
@@ -82,8 +82,8 @@ namespace implementation
 {
 class Context;
 class Proxy;
-}  // namespace network::zeromq::implementation
-}  // namespace network::zeromq
+}  // namespace implementation
+}  // namespace zeromq
 }  // namespace network
 
 namespace storage
@@ -100,7 +100,7 @@ class Root;
 class Thread;
 class Threads;
 class Tree;
-}  // namespace opentxs::storage
+}  // namespace storage
 
 namespace ui
 {
@@ -128,19 +128,93 @@ class ProfileSectionParent;
 class ProfileSubsection;
 class ProfileSubsectionParent;
 
-using AccountActivityPimpl = std::unique_ptr<opentxs::ui::BalanceItem>;
+using AccountActivityPimpl = opentxs::ui::BalanceItem;
 /** WorkflowID, state */
 using AccountActivityID = std::pair<OTIdentifier, proto::PaymentEventType>;
 using AccountActivitySortKey = std::chrono::system_clock::time_point;
-using AccountActivityInner = std::map<AccountActivityID, AccountActivityPimpl>;
+using AccountActivityInner =
+    std::map<AccountActivityID, std::shared_ptr<AccountActivityPimpl>>;
 using AccountActivityOuter =
     std::map<AccountActivitySortKey, AccountActivityInner>;
-using AccountActivityReverse =
-    std::map<AccountActivityID, AccountActivitySortKey>;
+using ActivitySummaryPimpl = opentxs::ui::ActivitySummaryItem;
+using ActivitySummaryID = OTIdentifier;
+using ActivitySummarySortKey =
+    std::pair<std::chrono::system_clock::time_point, std::string>;
+using ActivitySummaryInner =
+    std::map<ActivitySummaryID, std::shared_ptr<ActivitySummaryPimpl>>;
+using ActivitySummaryOuter =
+    std::map<ActivitySummarySortKey, ActivitySummaryInner>;
+using ActivityThreadPimpl = opentxs::ui::ActivityThreadItem;
 /** item id, box, accountID */
 using ActivityThreadID = std::tuple<OTIdentifier, StorageBox, OTIdentifier>;
-}  // namespace opentxs::ui::implementation
-}  // namespace opentxs::ui
+/** timestamp, index */
+using ActivityThreadSortKey =
+    std::pair<std::chrono::system_clock::time_point, std::uint64_t>;
+using ActivityThreadInner =
+    std::map<ActivityThreadID, std::shared_ptr<ActivityThreadPimpl>>;
+using ActivityThreadOuter =
+    std::map<ActivityThreadSortKey, ActivityThreadInner>;
+using ContactPimpl = opentxs::ui::ContactSection;
+using ContactIDType = proto::ContactSectionName;
+using ContactSortKey = int;
+using ContactInner = std::map<ContactIDType, std::shared_ptr<ContactPimpl>>;
+using ContactOuter = std::map<ContactSortKey, ContactInner>;
+using ContactListPimpl = opentxs::ui::ContactListItem;
+using ContactListID = OTIdentifier;
+using ContactListSortKey = std::string;
+using ContactListInner =
+    std::map<ContactListID, std::shared_ptr<ContactListPimpl>>;
+using ContactListOuter = std::map<ContactListSortKey, ContactListInner>;
+using ContactSectionPimpl = opentxs::ui::ContactSubsection;
+using ContactSectionIDType =
+    std::pair<proto::ContactSectionName, proto::ContactItemType>;
+using ContactSectionSortKey = int;
+using ContactSectionInner =
+    std::map<ContactSectionIDType, std::shared_ptr<ContactSectionPimpl>>;
+using ContactSectionOuter =
+    std::map<ContactSectionSortKey, ContactSectionInner>;
+using ContactSubsectionPimpl = opentxs::ui::ContactItem;
+using ContactSubsectionIDType = OTIdentifier;
+using ContactSubsectionSortKey = int;
+using ContactSubsectionInner =
+    std::map<ContactSubsectionIDType, std::shared_ptr<ContactSubsectionPimpl>>;
+using ContactSubsectionOuter =
+    std::map<ContactSubsectionSortKey, ContactSubsectionInner>;
+using MessagableListPimpl = opentxs::ui::ContactListItem;
+using MessagableListID = OTIdentifier;
+using MessagableListSortKey = std::string;
+using MessagableListInner =
+    std::map<MessagableListID, std::shared_ptr<MessagableListPimpl>>;
+using MessagableListOuter =
+    std::map<MessagableListSortKey, MessagableListInner>;
+using PayableListPimpl = opentxs::ui::PayableListItem;
+using PayableListID = OTIdentifier;
+using PayableListSortKey = std::string;
+using PayableListInner =
+    std::map<PayableListID, std::shared_ptr<PayableListPimpl>>;
+using PayableListOuter = std::map<PayableListSortKey, PayableListInner>;
+using ProfilePimpl = opentxs::ui::ProfileSection;
+using ProfileIDType = proto::ContactSectionName;
+using ProfileSortKey = int;
+using ProfileInner = std::map<ProfileIDType, std::shared_ptr<ProfilePimpl>>;
+using ProfileOuter = std::map<ProfileSortKey, ProfileInner>;
+using ProfileSectionPimpl = opentxs::ui::ProfileSubsection;
+using ProfileSectionIDType =
+    std::pair<proto::ContactSectionName, proto::ContactItemType>;
+using ProfileSectionSortKey = int;
+using ProfileSectionInner =
+    std::map<ProfileSectionIDType, std::shared_ptr<ProfileSectionPimpl>>;
+using ProfileSectionOuter =
+    std::map<ProfileSectionSortKey, ProfileSectionInner>;
+using ProfileSubsectionPimpl = opentxs::ui::ProfileItem;
+using ProfileSubsectionIDType = OTIdentifier;
+using ProfileSubsectionSortKey = int;
+using ProfileSubsectionInner =
+    std::map<ProfileSubsectionIDType, std::shared_ptr<ProfileSubsectionPimpl>>;
+using ProfileSubsectionOuter =
+    std::map<ProfileSubsectionSortKey, ProfileSubsectionInner>;
+}  // namespace implementation
+}  // namespace ui
 
 class DhtConfig;
 #if OT_CRYPTO_USING_LIBSECP256K1

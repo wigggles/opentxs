@@ -58,15 +58,14 @@ template <
     typename InnerType,
     typename SortKeyType,
     typename OuterType,
-    typename OuterIteratorType,
-    typename ReverseType>
+    typename OuterIteratorType>
 class List : virtual public InterfaceType,
              virtual public InternalInterfaceType,
              public Widget,
              public Lockable
 {
 public:
-    const RowType& First() const override
+    std::shared_ptr<const RowType> First() const override
     {
         Lock lock(lock_);
 
@@ -80,7 +79,7 @@ public:
         return start_.get() && same(id, last_id_);
     }
 
-    const RowType& Next() const override
+    std::shared_ptr<const RowType> Next() const override
     {
         Lock lock(lock_);
 
@@ -109,6 +108,7 @@ public:
 
 protected:
     using CustomData = std::vector<const void*>;
+    using ReverseType = std::map<IDType, SortKeyType>;
 
     const api::ContactManager& contact_manager_;
     const OTIdentifier nym_id_;
@@ -121,7 +121,7 @@ protected:
     mutable OTFlag start_;
     mutable OTFlag startup_complete_;
     std::unique_ptr<std::thread> startup_{nullptr};
-    const std::unique_ptr<RowType> blank_p_{nullptr};
+    const std::shared_ptr<const RowType> blank_p_{nullptr};
     const RowType& blank_;
     const OTIdentifier widget_id_;
 
@@ -132,7 +132,7 @@ protected:
         const CustomData& custom) const = 0;
     /** Returns item reference by the inner_ iterator. Does not increment
      *  iterators. */
-    const RowType& current(const Lock& lock) const
+    const std::shared_ptr<const RowType> current(const Lock& lock) const
     {
         OT_ASSERT(verify_lock(lock))
 
@@ -146,7 +146,7 @@ protected:
 
         OT_ASSERT(item)
 
-        return *item;
+        return item;
     }
     void delete_inactive(const std::set<IDType>& active) const
     {
@@ -196,7 +196,7 @@ protected:
      *  WARNING: if blank_p_ is not set, you must override this method in a
      *  child class
      */
-    virtual const RowType& first(const Lock& lock) const
+    virtual std::shared_ptr<const RowType> first(const Lock& lock) const
     {
         OT_ASSERT(verify_lock(lock))
 
@@ -209,7 +209,7 @@ protected:
         } else {
             last_id_ = blank_id();
 
-            return blank_;
+            return blank_p_;
         }
     }
     RowType& find_by_id(const Lock& lock, const IDType& id) const
@@ -319,9 +319,9 @@ protected:
         return true;
     }
     /** Returns the next item and increments iterators */
-    const RowType& next(const Lock& lock) const
+    const std::shared_ptr<const RowType> next(const Lock& lock) const
     {
-        const auto& output = current(lock);
+        const auto output = current(lock);
         increment_inner(lock);
 
         return output;
@@ -351,14 +351,14 @@ protected:
         // to it
         if (inner_ == item) { increment_inner(lock); }
 
-        PimplType row = std::move(item->second);
+        std::shared_ptr<PimplType> row = std::move(item->second);
         const auto deleted = itemMap.erase(id);
 
         OT_ASSERT(1 == deleted)
 
         if (0 == itemMap.size()) { items_.erase(index); }
 
-        if (0 < custom.size()) { update(row, custom); }
+        if (0 < custom.size()) { update(*row, custom); }
 
         names_[id] = newIndex;
         items_[newIndex].emplace(id, std::move(row));

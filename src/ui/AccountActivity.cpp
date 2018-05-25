@@ -342,11 +342,10 @@ void AccountActivity::update(
     AccountActivityPimpl& row,
     const CustomData& custom) const
 {
-    OT_ASSERT(row)
     OT_ASSERT(2 == custom.size())
 
     const auto& workflow = recover_workflow(custom[0]);
     const auto& event = recover_event(custom[1]);
-    row->Update(workflow, event);
+    row.Update(workflow, event);
 }
 }  // namespace opentxs::ui::implementation

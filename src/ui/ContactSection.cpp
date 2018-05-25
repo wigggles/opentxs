@@ -253,10 +253,9 @@ void ContactSection::startup(const opentxs::ContactSection section)
 void ContactSection::update(ContactSectionPimpl& row, const CustomData& custom)
     const
 {
-    OT_ASSERT(row)
     OT_ASSERT(1 == custom.size())
 
-    row->Update(recover(custom[0]));
+    row.Update(recover(custom[0]));
 }
 
 void ContactSection::Update(const opentxs::ContactSection& section)

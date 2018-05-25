@@ -43,15 +43,6 @@
 
 namespace opentxs::ui::implementation
 {
-using ContactSectionPimpl = std::unique_ptr<opentxs::ui::ContactSubsection>;
-using ContactSectionIDType =
-    std::pair<proto::ContactSectionName, proto::ContactItemType>;
-using ContactSectionSortKey = int;
-using ContactSectionInner = std::map<ContactSectionIDType, ContactSectionPimpl>;
-using ContactSectionOuter =
-    std::map<ContactSectionSortKey, ContactSectionInner>;
-using ContactSectionReverse =
-    std::map<ContactSectionIDType, ContactSectionSortKey>;
 using ContactSectionType = List<
     opentxs::ui::ContactSection,
     ContactSectionParent,
@@ -61,8 +52,7 @@ using ContactSectionType = List<
     ContactSectionInner,
     ContactSectionSortKey,
     ContactSectionOuter,
-    ContactSectionOuter::const_iterator,
-    ContactSectionReverse>;
+    ContactSectionOuter::const_iterator>;
 using ContactSectionRowType = RowType<
     opentxs::ui::ContactSection,
     ContactParent,

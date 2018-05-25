@@ -45,6 +45,7 @@
 
 #ifdef SWIG
 // clang-format off
+%shared_ptr(opentxs::ui::ActivitySummaryItem)
 %rename(UIActivitySummary) opentxs::ui::ActivitySummary;
 // clang-format on
 #endif  // SWIG
@@ -56,8 +57,8 @@ namespace ui
 class ActivitySummary : virtual public Widget
 {
 public:
-    EXPORT virtual const ActivitySummaryItem& First() const = 0;
-    EXPORT virtual const ActivitySummaryItem& Next() const = 0;
+    EXPORT virtual std::shared_ptr<const ActivitySummaryItem> First() const = 0;
+    EXPORT virtual std::shared_ptr<const ActivitySummaryItem> Next() const = 0;
 
     EXPORT virtual ~ActivitySummary() = default;
 

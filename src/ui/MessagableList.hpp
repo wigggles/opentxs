@@ -43,13 +43,6 @@
 
 namespace opentxs::ui::implementation
 {
-using MessagableListPimpl = std::unique_ptr<opentxs::ui::ContactListItem>;
-using MessagableListID = OTIdentifier;
-using MessagableListSortKey = std::string;
-using MessagableListInner = std::map<MessagableListID, MessagableListPimpl>;
-using MessagableListOuter =
-    std::map<MessagableListSortKey, MessagableListInner>;
-using MessagableListReverse = std::map<MessagableListID, MessagableListSortKey>;
 using MessagableListType = List<
     opentxs::ui::MessagableList,
     ContactListParent,
@@ -59,8 +52,7 @@ using MessagableListType = List<
     MessagableListInner,
     MessagableListSortKey,
     MessagableListOuter,
-    MessagableListOuter::const_iterator,
-    MessagableListReverse>;
+    MessagableListOuter::const_iterator>;
 
 class MessagableList : virtual public MessagableListType
 {

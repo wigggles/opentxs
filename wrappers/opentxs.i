@@ -8,6 +8,13 @@
 
 */
 
+%include "inttypes.i";
+%include "std_pair.i"
+%include "std_shared_ptr.i";
+%include "std_string.i";
+%include "std_vector.i";
+%include "typemaps.i"
+
 // add the following to every .cxx file.
 %inline %{
 #ifndef SWIG_VERSION
@@ -23,12 +30,6 @@
 #ifndef EXPORT
 #define EXPORT
 #endif
-
-%include "inttypes.i";
-%include "std_pair.i"
-%include "std_string.i";
-%include "std_vector.i";
-%include "typemaps.i"
 
 namespace std {
   typedef uint64_t size_t;

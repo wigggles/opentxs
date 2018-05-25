@@ -43,12 +43,6 @@
 
 namespace opentxs::ui::implementation
 {
-using ContactListPimpl = std::unique_ptr<opentxs::ui::ContactListItem>;
-using ContactListID = OTIdentifier;
-using ContactListSortKey = std::string;
-using ContactListInner = std::map<ContactListID, ContactListPimpl>;
-using ContactListOuter = std::map<ContactListSortKey, ContactListInner>;
-using ContactListReverse = std::map<ContactListID, ContactListSortKey>;
 using ContactListType = List<
     opentxs::ui::ContactList,
     ContactListParent,
@@ -58,8 +52,7 @@ using ContactListType = List<
     ContactListInner,
     ContactListSortKey,
     ContactListOuter,
-    ContactListOuter::const_iterator,
-    ContactListReverse>;
+    ContactListOuter::const_iterator>;
 
 class ContactList : virtual public ContactListType
 {
@@ -72,7 +65,7 @@ private:
     friend Factory;
 
     const OTIdentifier owner_contact_id_;
-    std::unique_ptr<opentxs::ui::ContactListItem> owner_p_;
+    std::shared_ptr<opentxs::ui::ContactListItem> owner_p_;
     opentxs::ui::ContactListItem& owner_;
     OTZMQListenCallback contact_subscriber_callback_;
     OTZMQSubscribeSocket contact_subscriber_;
@@ -82,7 +75,8 @@ private:
         const ContactListID& id,
         const ContactListSortKey& index,
         const CustomData& custom) const override;
-    const opentxs::ui::ContactListItem& first(const Lock& lock) const override;
+    std::shared_ptr<const opentxs::ui::ContactListItem> first(
+        const Lock& lock) const override;
     bool last(const ContactListID& id) const override
     {
         return ContactListType::last(id);

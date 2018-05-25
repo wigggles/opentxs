@@ -43,15 +43,6 @@
 
 namespace opentxs::ui::implementation
 {
-using ActivitySummaryPimpl = std::unique_ptr<opentxs::ui::ActivitySummaryItem>;
-using ActivitySummaryID = OTIdentifier;
-using ActivitySummarySortKey =
-    std::pair<std::chrono::system_clock::time_point, std::string>;
-using ActivitySummaryInner = std::map<ActivitySummaryID, ActivitySummaryPimpl>;
-using ActivitySummaryOuter =
-    std::map<ActivitySummarySortKey, ActivitySummaryInner>;
-using ActivitySummaryReverse =
-    std::map<ActivitySummaryID, ActivitySummarySortKey>;
 using ActivitySummaryType = List<
     opentxs::ui::ActivitySummary,
     ActivitySummaryParent,
@@ -61,8 +52,7 @@ using ActivitySummaryType = List<
     ActivitySummaryInner,
     ActivitySummarySortKey,
     ActivitySummaryOuter,
-    ActivitySummaryOuter::const_reverse_iterator,
-    ActivitySummaryReverse>;
+    ActivitySummaryOuter::const_reverse_iterator>;
 
 class ActivitySummary : virtual public ActivitySummaryType
 {

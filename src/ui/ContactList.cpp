@@ -145,7 +145,8 @@ void ContactList::construct_item(
 }
 
 /** Returns owner contact. Sets up iterators for next row */
-const opentxs::ui::ContactListItem& ContactList::first(const Lock& lock) const
+std::shared_ptr<const opentxs::ui::ContactListItem> ContactList::first(
+    const Lock& lock) const
 {
     OT_ASSERT(verify_lock(lock))
 
@@ -153,7 +154,7 @@ const opentxs::ui::ContactListItem& ContactList::first(const Lock& lock) const
     start_->Set(!have_items_.get());
     last_id_ = owner_contact_id_;
 
-    return owner_;
+    return owner_p_;
 }
 
 const Identifier& ContactList::ID() const { return owner_contact_id_; }

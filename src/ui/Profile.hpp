@@ -43,12 +43,6 @@
 
 namespace opentxs::ui::implementation
 {
-using ProfilePimpl = std::unique_ptr<opentxs::ui::ProfileSection>;
-using ProfileIDType = proto::ContactSectionName;
-using ProfileSortKey = int;
-using ProfileInner = std::map<ProfileIDType, ProfilePimpl>;
-using ProfileOuter = std::map<ProfileSortKey, ProfileInner>;
-using ProfileReverse = std::map<ProfileIDType, ProfileSortKey>;
 using ProfileType = List<
     opentxs::ui::Profile,
     ProfileParent,
@@ -58,8 +52,7 @@ using ProfileType = List<
     ProfileInner,
     ProfileSortKey,
     ProfileOuter,
-    ProfileOuter::const_iterator,
-    ProfileReverse>;
+    ProfileOuter::const_iterator>;
 
 class Profile : virtual public ProfileType
 {
