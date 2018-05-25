@@ -39,7 +39,7 @@
 #ifndef OPENTXS_STORAGE_STORAGECONFIG_HPP
 #define OPENTXS_STORAGE_STORAGECONFIG_HPP
 
-#include "opentxs/Forward.hpp"
+#include "Internal.hpp"
 
 #include <chrono>
 #include <cstdint>

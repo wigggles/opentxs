@@ -43,8 +43,9 @@
 
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Editor.hpp"
-#include "opentxs/storage/StorageConfig.hpp"
 #include "opentxs/core/Flag.hpp"
+
+#include "storage/StorageConfig.hpp"
 
 #include <iostream>
 #include <limits>

@@ -56,7 +56,7 @@
 #endif
 #include "storage/tree/Root.hpp"
 #include "storage/tree/Tree.hpp"
-#include "opentxs/storage/StorageConfig.hpp"
+#include "storage/StorageConfig.hpp"
 
 #include <limits>
 

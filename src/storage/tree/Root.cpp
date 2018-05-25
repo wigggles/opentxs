@@ -41,10 +41,10 @@
 #include "Root.hpp"
 
 #include "opentxs/api/storage/Driver.hpp"
-#include "opentxs/storage/Plugin.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/Proto.hpp"
 
+#include "storage/Plugin.hpp"
 #include "BlockchainTransactions.hpp"
 #include "Contacts.hpp"
 #include "Credentials.hpp"

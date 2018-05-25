@@ -45,9 +45,10 @@
 #include "opentxs/core/crypto/SymmetricKey.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/storage/StorageConfig.hpp"
+#include "opentxs/Proto.hpp"
+
+#include "storage/StorageConfig.hpp"
 
 #include <boost/filesystem.hpp>
 #include <boost/iostreams/device/file_descriptor.hpp>

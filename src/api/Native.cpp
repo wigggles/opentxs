@@ -59,7 +59,6 @@
 #include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/ServerConnection.hpp"
-#include "opentxs/storage/StorageConfig.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/OTStorage.hpp"
@@ -81,6 +80,7 @@
 #include "api/Server.hpp"
 #include "network/DhtConfig.hpp"
 #include "network/OpenDHT.hpp"
+#include "storage/StorageConfig.hpp"
 
 #include <atomic>
 #include <ctime>

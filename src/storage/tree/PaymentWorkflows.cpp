@@ -41,7 +41,8 @@
 #include "PaymentWorkflows.hpp"
 
 #include "opentxs/core/Log.hpp"
-#include "opentxs/storage/Plugin.hpp"
+
+#include "storage/Plugin.hpp"
 
 #define CURRENT_VERSION 1
 

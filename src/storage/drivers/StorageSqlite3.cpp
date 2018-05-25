@@ -41,7 +41,8 @@
 
 #if OT_STORAGE_SQLITE
 #include "opentxs/core/Log.hpp"
-#include "opentxs/storage/StorageConfig.hpp"
+
+#include "storage/StorageConfig.hpp"
 
 #include <sqlite3.h>
 

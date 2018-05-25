@@ -40,7 +40,7 @@
 
 #include "Seeds.hpp"
 
-#include "opentxs/storage/Plugin.hpp"
+#include "storage/Plugin.hpp"
 
 #define CURRENT_VERSION 2
 

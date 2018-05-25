@@ -41,7 +41,8 @@
 #include "Node.hpp"
 
 #include "opentxs/core/Log.hpp"
-#include "opentxs/storage/Plugin.hpp"
+
+#include "storage/Plugin.hpp"
 
 #define OT_METHOD "opentxs::storage::Node::"
 

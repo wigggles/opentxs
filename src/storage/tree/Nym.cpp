@@ -40,8 +40,7 @@
 
 #include "Nym.hpp"
 
-#include "opentxs/storage/Plugin.hpp"
-
+#include "storage/Plugin.hpp"
 #include "Contexts.hpp"
 #include "Issuers.hpp"
 #include "Mailbox.hpp"

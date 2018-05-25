@@ -43,8 +43,8 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/storage/Plugin.hpp"
 
+#include "storage/Plugin.hpp"
 #include "Mailbox.hpp"
 
 #define OT_METHOD "opentxs::storage::Thread::"

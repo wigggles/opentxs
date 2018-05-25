@@ -40,7 +40,7 @@
 
 #include "Contacts.hpp"
 
-#include "opentxs/storage/Plugin.hpp"
+#include "storage/Plugin.hpp"
 
 #include <set>
 

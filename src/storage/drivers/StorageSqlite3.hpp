@@ -43,7 +43,7 @@
 
 #if OT_STORAGE_SQLITE
 
-#include "opentxs/storage/Plugin.hpp"
+#include "storage/Plugin.hpp"
 
 extern "C" {
 #include <sqlite3.h>

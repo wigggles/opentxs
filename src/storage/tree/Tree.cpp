@@ -40,8 +40,7 @@
 
 #include "Tree.hpp"
 
-#include "opentxs/storage/Plugin.hpp"
-
+#include "storage/Plugin.hpp"
 #include "BlockchainTransactions.hpp"
 #include "Contacts.hpp"
 #include "Credentials.hpp"

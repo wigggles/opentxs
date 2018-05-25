@@ -40,7 +40,7 @@
 #include "StorageFS.hpp"
 
 #if OT_STORAGE_FS
-#include "opentxs/storage/StorageConfig.hpp"
+#include "storage/StorageConfig.hpp"
 
 #include <boost/filesystem.hpp>
 

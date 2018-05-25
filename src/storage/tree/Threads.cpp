@@ -38,10 +38,10 @@
 
 #include "stdafx.hpp"
 
-#include "Thread.hpp"
 #include "Threads.hpp"
 
-#include "opentxs/storage/Plugin.hpp"
+#include "storage/Plugin.hpp"
+#include "Thread.hpp"
 
 #include <utility>
 #include <string>

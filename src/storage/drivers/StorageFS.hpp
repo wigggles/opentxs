@@ -43,7 +43,8 @@
 
 #if OT_STORAGE_FS
 #include "opentxs/core/Flag.hpp"
-#include "opentxs/storage/Plugin.hpp"
+
+#include "storage/Plugin.hpp"
 
 #include <boost/iostreams/device/file_descriptor.hpp>
 #include <boost/iostreams/stream.hpp>
