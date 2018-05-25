@@ -3,6 +3,7 @@ set(name unittests-opentxs-client)
 
 set(cxx-sources
   ${PROJECT_SOURCE_DIR}/tests/main.cpp
+  Test_CreateNymHD.cpp
   Test_NymData.cpp
   ${PROJECT_SOURCE_DIR}/tests/OTTestEnvironment.cpp
 )

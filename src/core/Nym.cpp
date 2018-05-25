@@ -179,8 +179,9 @@ Nym::Nym(const NymParameters& nymParameters)
 
     SetDescription(source_->Description());
 
-    m_mapCredentialSets.insert(std::pair<std::string, CredentialSet*>(
-        pNewCredentialSet->GetMasterCredID().Get(), pNewCredentialSet));
+    m_mapCredentialSets.insert(
+        std::pair<std::string, CredentialSet*>(
+            pNewCredentialSet->GetMasterCredID().Get(), pNewCredentialSet));
 
     SaveCredentialIDs();
     SaveSignedNymfile(*this);
@@ -284,8 +285,9 @@ bool Nym::AddContract(
         init_claims(lock);
     }
 
-    contact_data_.reset(new ContactData(
-        contact_data_->AddContract(id, currency, primary, active)));
+    contact_data_.reset(
+        new ContactData(
+            contact_data_->AddContract(id, currency, primary, active)));
 
     OT_ASSERT(contact_data_);
 
@@ -343,8 +345,10 @@ bool Nym::AddPaymentCode(
         init_claims(lock);
     }
 
-    contact_data_.reset(new ContactData(
-        contact_data_->AddPaymentCode(paymentCode, currency, primary, active)));
+    contact_data_.reset(
+        new ContactData(
+            contact_data_->AddPaymentCode(
+                paymentCode, currency, primary, active)));
 
     OT_ASSERT(contact_data_);
 
@@ -406,8 +410,10 @@ bool Nym::AddSocialMediaProfile(
         init_claims(lock);
     }
 
-    contact_data_.reset(new ContactData(
-        contact_data_->AddSocialMediaProfile(value, type, primary, active)));
+    contact_data_.reset(
+        new ContactData(
+            contact_data_->AddSocialMediaProfile(
+                value, type, primary, active)));
 
     OT_ASSERT(contact_data_);
 
@@ -1078,11 +1084,12 @@ void Nym::init_claims(const Lock& lock) const
     OT_ASSERT(verify_lock(lock));
 
     const std::string nymID = String(m_nymID).Get();
-    contact_data_.reset(new class ContactData(
-        nymID,
-        NYM_CONTACT_DATA_VERSION,
-        NYM_CONTACT_DATA_VERSION,
-        ContactData::SectionMap()));
+    contact_data_.reset(
+        new class ContactData(
+            nymID,
+            NYM_CONTACT_DATA_VERSION,
+            NYM_CONTACT_DATA_VERSION,
+            ContactData::SectionMap()));
 
     OT_ASSERT(contact_data_);
 
@@ -1131,8 +1138,9 @@ bool Nym::LoadCredentialIndex(const serializedCredentialIndex& index)
         CredentialSet* newSet = new CredentialSet(mode, it);
 
         if (nullptr != newSet) {
-            m_mapCredentialSets.insert(std::pair<std::string, CredentialSet*>(
-                newSet->GetMasterCredID().Get(), newSet));
+            m_mapCredentialSets.insert(
+                std::pair<std::string, CredentialSet*>(
+                    newSet->GetMasterCredID().Get(), newSet));
         }
     }
 
@@ -1140,8 +1148,9 @@ bool Nym::LoadCredentialIndex(const serializedCredentialIndex& index)
         CredentialSet* newSet = new CredentialSet(mode, it);
 
         if (nullptr != newSet) {
-            m_mapCredentialSets.insert(std::pair<std::string, CredentialSet*>(
-                newSet->GetMasterCredID().Get(), newSet));
+            m_mapCredentialSets.insert(
+                std::pair<std::string, CredentialSet*>(
+                    newSet->GetMasterCredID().Get(), newSet));
         }
     }
 
@@ -1355,8 +1364,9 @@ bool Nym::LoadNymFromString(
                         if (iter ==
                             pMap->end())  // It's not already there, so it's
                                           // safe to add it.
-                            pMap->insert(std::pair<std::string, CredentialSet*>(
-                                strID.Get(), pCredential));  // <=====
+                            pMap->insert(
+                                std::pair<std::string, CredentialSet*>(
+                                    strID.Get(), pCredential));  // <=====
                         else {
                             otErr << __FUNCTION__
                                   << ": While loading credential (" << strID
@@ -1594,9 +1604,8 @@ bool Nym::LoadNymFromString(
 
                     if (!tempNotaryID.Exists() ||
                         !Contract::LoadEncodedTextField(xml, strTemp)) {
-                        otErr << __FUNCTION__
-                              << ": Error: transactionNums "
-                                 "field without value.\n";
+                        otErr << __FUNCTION__ << ": Error: transactionNums "
+                                                 "field without value.\n";
                         return false;  // error condition
                     }
 
@@ -2186,7 +2195,7 @@ bool Nym::Path(proto::HDPath& output) const
         const auto& set = *it.second;
 
         if (set.Path(output)) {
-
+            output.mutable_child()->RemoveLast();
             return true;
         }
     }
@@ -2277,8 +2286,9 @@ bool Nym::ReEncryptPrivateCredentials(
         CredentialSet* pCredential = it.second;
         OT_ASSERT(nullptr != pCredential);
 
-        if (false == pCredential->ReEncryptPrivateCredentials(
-                         *pExportPassphrase, bImporting))
+        if (false ==
+            pCredential->ReEncryptPrivateCredentials(
+                *pExportPassphrase, bImporting))
             return false;
     }
 

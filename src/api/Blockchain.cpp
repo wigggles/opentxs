@@ -589,7 +589,12 @@ OTIdentifier Blockchain::NewAccount(
     }
 
     proto::HDPath accountPath{};
-    init_path(nymPath.root(), type, nymPath.child(1), standard, accountPath);
+    init_path(
+        nymPath.root(),
+        type,
+        nymPath.child(1) | static_cast<std::uint32_t>(Bip32Child::HARDENED),
+        standard,
+        accountPath);
     const auto accountID = Identifier::Factory(type, accountPath);
     Lock accountLock(account_lock_[accountID]);
     proto::Bip44Account account{};

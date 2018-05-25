@@ -69,7 +69,7 @@ proto::BlockchainTransaction* MakeTransaction()
 /* Mark an address as used/allocated. associate tx
    Checks internal index increase, tx id matches
 */ 
-TEST(Test_Blockchain, testStoreIncoming)
+TEST(Test_StoreIncoming, testStoreIncoming)
 {
   std::cout << "Started testStoreIncoming !!\n";
   
@@ -153,4 +153,5 @@ TEST(Test_Blockchain, testStoreIncoming)
   EXPECT_EQ(NewLoadedAddress.incoming_size(), 1);
   EXPECT_STREQ(NewLoadedAddress.incoming(0).c_str(), StoredTx.txid().c_str());
 }
+
 }

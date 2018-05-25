@@ -110,6 +110,7 @@ private:  // Private prevents erroneous use by other classes.
 public:
     bool hasCapability(const NymCapability& capability) const override;
     bool Path(proto::HDPath& output) const;
+    std::string Path() const;
     using ot_super::Verify;
     bool Verify(
         const proto::Credential& credential,

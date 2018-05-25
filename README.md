@@ -45,6 +45,12 @@ we run [cppcheck](https://github.com/danmar/cppcheck/) and
 [clang-format](http://clang.llvm.org/docs/ClangFormat.html). The build will fail
 if either of them finds problems.
 
+#### Running the tests
+  
+The OT directory in `~/.ot` is deleted on every `make test` in the `build` directory.
+  
+BE ADVISED: Run `make test` in *development only*.
+  
 #### CppCheck and clang-format Git hooks
 
 For convenience please enable the git hooks which will trigger cppcheck and
@@ -57,7 +63,6 @@ clang-format each time you push or commit. To do so type in the repo directory:
 To check your code without pushing the following command can be used:
 
     git push -n
-
 ### Dependencies
 
 * [opentxs-proto](https://github.com/open-transactions/opentxs-proto)
