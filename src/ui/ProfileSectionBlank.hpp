@@ -59,16 +59,16 @@ public:
         return false;
     }
     bool Delete(const int, const std::string&) const override { return false; }
-    const opentxs::ui::ProfileSubsection& First() const override
+    std::shared_ptr<const opentxs::ui::ProfileSubsection> First() const override
     {
-        return *static_cast<const opentxs::ui::ProfileSubsection*>(nullptr);
+        return nullptr;
     }
     ItemTypeList Items(const std::string&) const override { return {}; }
     bool Last() const override { return true; }
     std::string Name(const std::string& lang) const override { return {}; }
-    const opentxs::ui::ProfileSubsection& Next() const override
+    std::shared_ptr<const opentxs::ui::ProfileSubsection> Next() const override
     {
-        return *static_cast<const opentxs::ui::ProfileSubsection*>(nullptr);
+        return nullptr;
     }
     bool SetActive(const int, const std::string&, const bool) const override
     {
@@ -102,5 +102,5 @@ private:
     ProfileSectionBlank& operator=(const ProfileSectionBlank&) = delete;
     ProfileSectionBlank& operator=(ProfileSectionBlank&&) = delete;
 };
-}  // opentxs::ui::implementation
+}  // namespace opentxs::ui::implementation
 #endif  // OPENTXS_UI_PROFILE_SECTION_BLANK_IMPLEMENTATION_HPP

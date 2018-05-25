@@ -106,6 +106,7 @@
 %ignore opentxs::ui::Profile::AddClaim;
 %ignore opentxs::ui::Profile::AllowedItems;
 %ignore opentxs::ui::Profile::AllowedSections;
+%shared_ptr(opentxs::ui::ProfileSection)
 %rename(UIProfile) opentxs::ui::Profile;
 // clang-format on
 #endif  // SWIG
@@ -140,9 +141,9 @@ public:
         const int type,
         const std::string& claimID) const = 0;
     EXPORT virtual std::string DisplayName() const = 0;
-    EXPORT virtual const ProfileSection& First() const = 0;
+    EXPORT virtual std::shared_ptr<const ProfileSection> First() const = 0;
     EXPORT virtual std::string ID() const = 0;
-    EXPORT virtual const ProfileSection& Next() const = 0;
+    EXPORT virtual std::shared_ptr<const ProfileSection> Next() const = 0;
     EXPORT virtual std::string PaymentCode() const = 0;
     EXPORT virtual bool SetActive(
         const int section,

@@ -65,7 +65,7 @@ private:
     friend Factory;
 
     const OTIdentifier owner_contact_id_;
-    std::unique_ptr<opentxs::ui::ContactListItem> owner_p_;
+    std::shared_ptr<opentxs::ui::ContactListItem> owner_p_;
     opentxs::ui::ContactListItem& owner_;
     OTZMQListenCallback contact_subscriber_callback_;
     OTZMQSubscribeSocket contact_subscriber_;
@@ -75,7 +75,8 @@ private:
         const ContactListID& id,
         const ContactListSortKey& index,
         const CustomData& custom) const override;
-    const opentxs::ui::ContactListItem& first(const Lock& lock) const override;
+    std::shared_ptr<const opentxs::ui::ContactListItem> first(
+        const Lock& lock) const override;
     bool last(const ContactListID& id) const override
     {
         return ContactListType::last(id);

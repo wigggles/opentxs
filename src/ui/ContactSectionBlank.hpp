@@ -51,14 +51,14 @@ class ContactSectionBlank : virtual public ui::ContactSection,
 {
 public:
     std::string Name(const std::string& lang) const override { return {}; }
-    const opentxs::ui::ContactSubsection& First() const override
+    std::shared_ptr<const opentxs::ui::ContactSubsection> First() const override
     {
-        return *static_cast<const opentxs::ui::ContactSubsection*>(nullptr);
+        return nullptr;
     }
     bool Last() const override { return true; }
-    const opentxs::ui::ContactSubsection& Next() const override
+    std::shared_ptr<const opentxs::ui::ContactSubsection> Next() const override
     {
-        return *static_cast<const opentxs::ui::ContactSubsection*>(nullptr);
+        return nullptr;
     }
     proto::ContactSectionName Type() const override { return {}; }
     bool Valid() const override { return false; }
@@ -79,5 +79,5 @@ private:
     ContactSectionBlank& operator=(const ContactSectionBlank&) = delete;
     ContactSectionBlank& operator=(ContactSectionBlank&&) = delete;
 };
-}  // opentxs::ui::implementation
+}  // namespace opentxs::ui::implementation
 #endif  // OPENTXS_UI_CONTACT_SECTION_BLANK_IMPLEMENTATION_HPP

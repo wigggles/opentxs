@@ -111,6 +111,7 @@
 %ignore opentxs::ui::ProfileSection::Items;
 %ignore opentxs::ui::ProfileSection::Type;
 %ignore opentxs::ui::ProfileSection::Update;
+%shared_ptr(opentxs::ui::ProfileSubsection);
 %rename(UIProfileSection) opentxs::ui::ProfileSection;
 // clang-format on
 #endif  // SWIG
@@ -140,8 +141,8 @@ public:
         const = 0;
     EXPORT virtual ItemTypeList Items(const std::string& lang) const = 0;
     EXPORT virtual std::string Name(const std::string& lang) const = 0;
-    EXPORT virtual const ProfileSubsection& First() const = 0;
-    EXPORT virtual const ProfileSubsection& Next() const = 0;
+    EXPORT virtual std::shared_ptr<const ProfileSubsection> First() const = 0;
+    EXPORT virtual std::shared_ptr<const ProfileSubsection> Next() const = 0;
     EXPORT virtual bool SetActive(
         const int type,
         const std::string& claimID,
