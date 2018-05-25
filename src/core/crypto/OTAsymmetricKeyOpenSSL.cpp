@@ -35,7 +35,7 @@
  *   for more details.
  *
  ************************************************************/
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/core/crypto/OTAsymmetricKeyOpenSSL.hpp"
 
@@ -160,10 +160,9 @@ OTAsymmetricKey_OpenSSL::~OTAsymmetricKey_OpenSSL()
 
     ReleaseKeyLowLevel_Hook();
 
-    if (nullptr !=
-        dp->m_pX509)  // Todo: figure out if I should put a copy of this
-                      // into ReleaseKeyLowLevel_Hook as we are with
-                      // m_pKey.
+    if (nullptr != dp->m_pX509)  // Todo: figure out if I should put a copy of
+                                 // this into ReleaseKeyLowLevel_Hook as we are
+                                 // with m_pKey.
         X509_free(dp->m_pX509);  // FYI: the reason it's not there already is
                                  // because the original need was for wiping
                                  // m_pKey when a private key timed out.
@@ -690,11 +689,11 @@ bool OTAsymmetricKey_OpenSSL::SaveCertToString(
 
     // todo hardcoded 4080 (see array above.)
     //
-    if (0 <
-        (len = BIO_read(bio_out_x509, buffer_x509, 8100)))  // returns number
-                                                            // of bytes
-                                                            // successfully
-                                                            // read.
+    if (0 < (len = BIO_read(bio_out_x509, buffer_x509, 8100)))  // returns
+                                                                // number of
+                                                                // bytes
+                                                                // successfully
+                                                                // read.
     {
         buffer_x509[len] = '\0';
         strx509.Set(reinterpret_cast<const char*>(buffer_x509));
@@ -836,9 +835,7 @@ bool OTAsymmetricKey_OpenSSL::TransportKey(
 {
     OT_ASSERT(nullptr != m_p_ascKey);
 
-    if (!IsPrivate()) {
-        return false;
-    }
+    if (!IsPrivate()) { return false; }
 
     auto key = Data::Factory();
     auto hash = Data::Factory();

@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/core/contract/peer/PeerObject.hpp"
 
@@ -139,9 +139,7 @@ std::unique_ptr<PeerObject> PeerObject::Create(
 {
     std::unique_ptr<PeerObject> output(new PeerObject(senderNym, message));
 
-    if (!output->Validate()) {
-        output.reset();
-    }
+    if (!output->Validate()) { output.reset(); }
 
     return output;
 }
@@ -151,16 +149,11 @@ std::unique_ptr<PeerObject> PeerObject::Create(
     const std::string& payment,
     const bool isPayment)
 {
-    if (!isPayment) {
-
-        return Create(senderNym, payment);
-    }
+    if (!isPayment) { return Create(senderNym, payment); }
 
     std::unique_ptr<PeerObject> output(new PeerObject(payment, senderNym));
 
-    if (!output->Validate()) {
-        output.reset();
-    }
+    if (!output->Validate()) { output.reset(); }
 
     return output;
 }
@@ -172,9 +165,7 @@ std::unique_ptr<PeerObject> PeerObject::Create(
 {
     std::unique_ptr<PeerObject> output(new PeerObject(request, reply, version));
 
-    if (!output->Validate()) {
-        output.reset();
-    }
+    if (!output->Validate()) { output.reset(); }
 
     return output;
 }
@@ -185,9 +176,7 @@ std::unique_ptr<PeerObject> PeerObject::Create(
 {
     std::unique_ptr<PeerObject> output(new PeerObject(request, version));
 
-    if (!output->Validate()) {
-        output.reset();
-    }
+    if (!output->Validate()) { output.reset(); }
 
     return output;
 }
@@ -217,15 +206,11 @@ std::unique_ptr<PeerObject> PeerObject::Factory(
     std::unique_ptr<PeerObject> output;
     OTEnvelope input;
 
-    if (!input.SetCiphertext(encrypted)) {
-        return output;
-    }
+    if (!input.SetCiphertext(encrypted)) { return output; }
 
     String contents;
 
-    if (!input.Open(*recipientNym, contents)) {
-        return output;
-    }
+    if (!input.Open(*recipientNym, contents)) { return output; }
 
     auto serialized = proto::StringToProto<proto::PeerObject>(contents);
     output = Factory(notUsed, serialized);
@@ -248,9 +233,7 @@ proto::PeerObject PeerObject::Serialize() const
             }
 
             if (message_) {
-                if (nym_) {
-                    *output.mutable_nym() = nym_->asPublicNym();
-                }
+                if (nym_) { *output.mutable_nym() = nym_->asPublicNym(); }
                 output.set_otmessage(String(*message_).Get());
             }
             break;
@@ -263,9 +246,7 @@ proto::PeerObject PeerObject::Serialize() const
             }
 
             if (payment_) {
-                if (nym_) {
-                    *output.mutable_nym() = nym_->asPublicNym();
-                }
+                if (nym_) { *output.mutable_nym() = nym_->asPublicNym(); }
                 output.set_otpayment(String(*payment_).Get());
             }
             break;
@@ -277,18 +258,14 @@ proto::PeerObject PeerObject::Serialize() const
                 *(output.mutable_otrequest()) = request_->Contract();
                 auto nym = OT::App().Wallet().Nym(request_->Initiator());
 
-                if (nym) {
-                    *output.mutable_nym() = nym->asPublicNym();
-                }
+                if (nym) { *output.mutable_nym() = nym->asPublicNym(); }
             }
             break;
         }
         case (proto::PEEROBJECT_RESPONSE): {
             output.set_version(version_);
 
-            if (reply_) {
-                *(output.mutable_otreply()) = reply_->Contract();
-            }
+            if (reply_) { *(output.mutable_otreply()) = reply_->Contract(); }
             if (request_) {
                 *(output.mutable_otrequest()) = request_->Contract();
             }
@@ -312,15 +289,11 @@ bool PeerObject::Validate() const
             break;
         }
         case (proto::PEEROBJECT_REQUEST): {
-            if (request_) {
-                validChildren = request_->Validate();
-            }
+            if (request_) { validChildren = request_->Validate(); }
             break;
         }
         case (proto::PEEROBJECT_RESPONSE): {
-            if (!reply_ || !request_) {
-                break;
-            }
+            if (!reply_ || !request_) { break; }
 
             validChildren = reply_->Validate() && request_->Validate();
             break;

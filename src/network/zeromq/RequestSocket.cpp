@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "RequestSocket.hpp"
 #include "opentxs/core/Log.hpp"

@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/contact/Contact.hpp"
 
@@ -153,30 +153,22 @@ Contact& Contact::operator+=(Contact& rhs)
     Lock lock(lock_, std::defer_lock);
     std::lock(rLock, lock);
 
-    if (label_.empty()) {
-        label_ = rhs.label_;
-    }
+    if (label_.empty()) { label_ = rhs.label_; }
 
     rhs.parent_ = id_;
 
-    if (primary_nym_->empty()) {
-        primary_nym_ = rhs.primary_nym_;
-    }
+    if (primary_nym_->empty()) { primary_nym_ = rhs.primary_nym_; }
 
     for (const auto& it : rhs.nyms_) {
         const auto& id = it.first;
         const auto& nym = it.second;
 
-        if (0 == nyms_.count(id)) {
-            nyms_[id] = nym;
-        }
+        if (0 == nyms_.count(id)) { nyms_[id] = nym; }
     }
 
     rhs.nyms_.clear();
 
-    for (const auto& it : rhs.merged_children_) {
-        merged_children_.insert(it);
-    }
+    for (const auto& it : rhs.merged_children_) { merged_children_.insert(it); }
 
     merged_children_.insert(rhs.id_);
     rhs.merged_children_.clear();
@@ -240,10 +232,7 @@ bool Contact::add_nym(
 {
     OT_ASSERT(verify_write_lock(lock));
 
-    if (false == bool(nym)) {
-
-        return false;
-    }
+    if (false == bool(nym)) { return false; }
 
     const auto contactType = type(lock);
     const auto nymType = ExtractType(*nym);
@@ -262,9 +251,7 @@ bool Contact::add_nym(
     const bool isPrimary = needPrimary || primary;
     nyms_[id] = nym;
 
-    if (isPrimary) {
-        primary_nym_ = id;
-    }
+    if (isPrimary) { primary_nym_ = id; }
 
     add_nym_claim(lock, id, isPrimary);
 
@@ -281,9 +268,7 @@ void Contact::add_nym_claim(
     std::set<proto::ContactItemAttribute> attr{proto::CITEMATTR_LOCAL,
                                                proto::CITEMATTR_ACTIVE};
 
-    if (primary) {
-        attr.emplace(proto::CITEMATTR_PRIMARY);
-    }
+    if (primary) { attr.emplace(proto::CITEMATTR_PRIMARY); }
 
     std::shared_ptr<ContactItem> claim{nullptr};
     claim.reset(new ContactItem(
@@ -341,9 +326,7 @@ bool Contact::AddEmail(
     const bool primary,
     const bool active)
 {
-    if (value.empty()) {
-        return false;
-    }
+    if (value.empty()) { return false; }
 
     Lock lock(lock_);
 
@@ -372,9 +355,7 @@ bool Contact::AddNym(const Identifier& nymID, const bool primary)
     const bool needPrimary = (0 == nyms_.size());
     const bool isPrimary = needPrimary || primary;
 
-    if (isPrimary) {
-        primary_nym_ = nymID;
-    }
+    if (isPrimary) { primary_nym_ = nymID; }
 
     add_nym_claim(lock, nymID, isPrimary);
 
@@ -391,13 +372,9 @@ bool Contact::AddPaymentCode(
 {
     std::set<proto::ContactItemAttribute> attr{proto::CITEMATTR_LOCAL};
 
-    if (active) {
-        attr.emplace(proto::CITEMATTR_ACTIVE);
-    }
+    if (active) { attr.emplace(proto::CITEMATTR_ACTIVE); }
 
-    if (primary) {
-        attr.emplace(proto::CITEMATTR_PRIMARY);
-    }
+    if (primary) { attr.emplace(proto::CITEMATTR_PRIMARY); }
 
     const std::string value = code.asBase58();
     std::shared_ptr<ContactItem> claim{nullptr};
@@ -427,9 +404,7 @@ bool Contact::AddPhoneNumber(
     const bool primary,
     const bool active)
 {
-    if (value.empty()) {
-        return false;
-    }
+    if (value.empty()) { return false; }
 
     Lock lock(lock_);
 
@@ -450,9 +425,7 @@ bool Contact::AddSocialMediaProfile(
     const bool primary,
     const bool active)
 {
-    if (value.empty()) {
-        return false;
-    }
+    if (value.empty()) { return false; }
 
     Lock lock(lock_);
 
@@ -469,25 +442,16 @@ bool Contact::AddSocialMediaProfile(
 
 std::shared_ptr<ContactItem> Contact::Best(const ContactGroup& group)
 {
-    if (0 == group.Size()) {
-
-        return {};
-    }
+    if (0 == group.Size()) { return {}; }
 
     const auto primary = group.PrimaryClaim();
 
-    if (primary) {
-
-        return primary;
-    }
+    if (primary) { return primary; }
 
     for (const auto& it : group) {
         const auto& claim = it.second;
 
-        if (claim->isActive()) {
-
-            return claim;
-        }
+        if (claim->isActive()) { return claim; }
     }
 
     return group.begin()->second;
@@ -499,10 +463,7 @@ std::string Contact::BestEmail() const
     const auto data = merged_data(lock);
     lock.unlock();
 
-    if (false == bool(data)) {
-
-        return {};
-    }
+    if (false == bool(data)) { return {}; }
 
     return data->BestEmail();
 }
@@ -513,10 +474,7 @@ std::string Contact::BestPhoneNumber() const
     const auto data = merged_data(lock);
     lock.unlock();
 
-    if (false == bool(data)) {
-
-        return {};
-    }
+    if (false == bool(data)) { return {}; }
 
     return data->BestPhoneNumber();
 }
@@ -528,10 +486,7 @@ std::string Contact::BestSocialMediaProfile(
     const auto data = merged_data(lock);
     lock.unlock();
 
-    if (false == bool(data)) {
-
-        return {};
-    }
+    if (false == bool(data)) { return {}; }
 
     return data->BestSocialMediaProfile(type);
 }
@@ -543,18 +498,12 @@ std::vector<Contact::BlockchainAddress> Contact::BlockchainAddresses() const
     auto data = merged_data(lock);
     lock.unlock();
 
-    if (false == bool(data)) {
-
-        return {};
-    }
+    if (false == bool(data)) { return {}; }
 
     const auto& version = data->Version();
     const auto section = data->Section(proto::CONTACTSECTION_ADDRESS);
 
-    if (false == bool(section)) {
-
-        return {};
-    }
+    if (false == bool(section)) { return {}; }
 
     for (const auto& it : *section) {
         const auto& type = it.first;
@@ -565,10 +514,7 @@ std::vector<Contact::BlockchainAddress> Contact::BlockchainAddresses() const
         const bool currency = proto::ValidContactItemType(
             {version, proto::CONTACTSECTION_CONTRACT}, type);
 
-        if (false == currency) {
-
-            continue;
-        }
+        if (false == currency) { continue; }
 
         for (const auto& it : *group) {
             const auto& item = it.second;
@@ -587,10 +533,7 @@ std::uint32_t Contact::check_version(
     const std::uint32_t targetVersion)
 {
     // Upgrade version
-    if (targetVersion > in) {
-
-        return targetVersion;
-    }
+    if (targetVersion > in) { return targetVersion; }
 
     return in;
 }
@@ -619,10 +562,7 @@ std::string Contact::EmailAddresses(bool active) const
     const auto data = merged_data(lock);
     lock.unlock();
 
-    if (false == bool(data)) {
-
-        return {};
-    }
+    if (false == bool(data)) { return {}; }
 
     return data->EmailAddresses(active);
 }
@@ -646,10 +586,7 @@ void Contact::init_nyms()
     const auto nyms = contact_data_->Group(
         proto::CONTACTSECTION_RELATIONSHIP, proto::CITEMTYPE_CONTACT);
 
-    if (false == bool(nyms)) {
-
-        return;
-    }
+    if (false == bool(nyms)) { return; }
 
     primary_nym_ = nyms->Primary();
 
@@ -678,17 +615,11 @@ std::time_t Contact::LastUpdated() const
     const auto group = contact_data_->Group(
         proto::CONTACTSECTION_EVENT, proto::CITEMTYPE_REFRESHED);
 
-    if (false == bool(group)) {
-
-        return {};
-    }
+    if (false == bool(group)) { return {}; }
 
     const auto claim = group->PrimaryClaim();
 
-    if (false == bool(claim)) {
-
-        return {};
-    }
+    if (false == bool(claim)) { return {}; }
 
     try {
         if (sizeof(int) == sizeof(std::time_t)) {
@@ -718,10 +649,7 @@ std::shared_ptr<ContactData> Contact::merged_data(const Lock& lock) const
     OT_ASSERT(contact_data_);
     OT_ASSERT(verify_write_lock(lock));
 
-    if (cached_contact_data_) {
-
-        return cached_contact_data_;
-    }
+    if (cached_contact_data_) { return cached_contact_data_; }
 
     cached_contact_data_.reset(new ContactData(*contact_data_));
     auto& output = cached_contact_data_;
@@ -743,14 +671,9 @@ std::shared_ptr<ContactData> Contact::merged_data(const Lock& lock) const
         const auto& nymID = it.first;
         const auto& nym = it.second;
 
-        if (false == bool(nym)) {
+        if (false == bool(nym)) { continue; }
 
-            continue;
-        }
-
-        if (nymID == primary_nym_) {
-            continue;
-        }
+        if (nymID == primary_nym_) { continue; }
 
         output.reset(new ContactData(*output + nym->Claims()));
     }
@@ -765,18 +688,12 @@ std::vector<opentxs::OTIdentifier> opentxs::Contact::Nyms(
     const auto data = merged_data(lock);
     lock.unlock();
 
-    if (false == bool(data)) {
-
-        return {};
-    }
+    if (false == bool(data)) { return {}; }
 
     const auto group = data->Group(
         proto::CONTACTSECTION_RELATIONSHIP, proto::CITEMTYPE_CONTACT);
 
-    if (false == bool(group)) {
-
-        return {};
-    }
+    if (false == bool(group)) { return {}; }
 
     std::vector<OTIdentifier> output{};
     const auto& primaryID = group->Primary();
@@ -788,10 +705,7 @@ std::vector<opentxs::OTIdentifier> opentxs::Contact::Nyms(
 
         const auto& itemID = item->ID();
 
-        if (false == (includeInactive || item->isActive())) {
-
-            continue;
-        }
+        if (false == (includeInactive || item->isActive())) { continue; }
 
         if (primaryID == itemID) {
             output.emplace(output.begin(), Identifier::Factory(item->Value()));
@@ -809,10 +723,7 @@ std::shared_ptr<ContactGroup> Contact::payment_codes(
 {
     const auto data = merged_data(lock);
 
-    if (false == bool(data)) {
-
-        return {};
-    }
+    if (false == bool(data)) { return {}; }
 
     return data->Group(proto::CONTACTSECTION_PROCEDURE, currency);
 }
@@ -823,17 +734,11 @@ std::string Contact::PaymentCode(
 {
     auto group = data.Group(proto::CONTACTSECTION_PROCEDURE, currency);
 
-    if (false == bool(group)) {
-
-        return {};
-    }
+    if (false == bool(group)) { return {}; }
 
     const auto item = Best(*group);
 
-    if (false == bool(item)) {
-
-        return {};
-    }
+    if (false == bool(item)) { return {}; }
 
     return item->Value();
 }
@@ -844,10 +749,7 @@ std::string Contact::PaymentCode(const proto::ContactItemType currency) const
     const auto data = merged_data(lock);
     lock.unlock();
 
-    if (false == bool(data)) {
-
-        return {};
-    }
+    if (false == bool(data)) { return {}; }
 
     return PaymentCode(*data, currency);
 }
@@ -859,10 +761,7 @@ std::vector<std::string> Contact::PaymentCodes(
     const auto group = payment_codes(lock, currency);
     lock.unlock();
 
-    if (false == bool(group)) {
-
-        return {};
-    }
+    if (false == bool(group)) { return {}; }
 
     std::vector<std::string> output{};
 
@@ -882,10 +781,7 @@ std::string Contact::PhoneNumbers(bool active) const
     const auto data = merged_data(lock);
     lock.unlock();
 
-    if (false == bool(data)) {
-
-        return {};
-    }
+    if (false == bool(data)) { return {}; }
 
     return data->PhoneNumbers(active);
 }
@@ -917,9 +813,7 @@ std::string Contact::Print() const
             const auto& id = it.first;
             out << " * " << String(id).Get();
 
-            if (id == primary_nym_) {
-                out << " (primary)";
-            }
+            if (id == primary_nym_) { out << " (primary)"; }
 
             out << "\n";
         }
@@ -927,9 +821,7 @@ std::string Contact::Print() const
 
     auto data = merged_data(lock);
 
-    if (data) {
-        out << std::string(*data);
-    }
+    if (data) { out << std::string(*data); }
 
     out << std::endl;
 
@@ -942,9 +834,7 @@ bool Contact::RemoveNym(const Identifier& nymID)
 
     auto result = nyms_.erase(nymID);
 
-    if (primary_nym_ == nymID) {
-        primary_nym_ = Identifier::Factory();
-    }
+    if (primary_nym_ == nymID) { primary_nym_ = Identifier::Factory(); }
 
     return (0 < result);
 }
@@ -969,10 +859,7 @@ std::string Contact::SocialMediaProfiles(
     const auto data = merged_data(lock);
     lock.unlock();
 
-    if (false == bool(data)) {
-
-        return {};
-    }
+    if (false == bool(data)) { return {}; }
 
     return data->SocialMediaProfiles(type, active);
 }
@@ -992,10 +879,7 @@ proto::ContactItemType Contact::type(const Lock& lock) const
 
     const auto data = merged_data(lock);
 
-    if (false == bool(data)) {
-
-        return proto::CITEMTYPE_ERROR;
-    }
+    if (false == bool(data)) { return proto::CITEMTYPE_ERROR; }
 
     return data->Type();
 }
@@ -1048,10 +932,7 @@ void Contact::update_label(const Lock& lock, const Nym& nym)
 {
     OT_ASSERT(verify_write_lock(lock));
 
-    if (false == label_.empty()) {
-
-        return;
-    }
+    if (false == label_.empty()) { return; }
 
     label_ = ExtractLabel(nym);
 }

@@ -76,8 +76,9 @@
 #include <opentxs/contact/ContactSection.hpp>
 #include <opentxs/core/contract/ServerContract.hpp>
 #include <opentxs/core/contract/UnitDefinition.hpp>
-#include <opentxs/core/crypto/Bip39.hpp>
 #include <opentxs/core/cron/OTCronItem.hpp>
+#include <opentxs/core/crypto/Bip39.hpp>
+#include <opentxs/core/crypto/ContactCredential.hpp>
 #include <opentxs/core/crypto/OTASCIIArmor.hpp>
 #include <opentxs/core/crypto/OTAsymmetricKey.hpp>
 #include <opentxs/core/crypto/OTCachedKey.hpp>

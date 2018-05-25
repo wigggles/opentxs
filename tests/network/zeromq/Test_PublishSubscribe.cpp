@@ -36,25 +36,9 @@
  *
  ************************************************************/
 
+#include "opentxs/opentxs.hpp"
+
 #include <gtest/gtest.h>
-#include <string>
-#include <set>
-#include <thread>
-#include <atomic>
-#include <chrono>
-
-#include "gtest/gtest-message.h"
-#include "gtest/gtest-test-part.h"
-
-#include "opentxs/Forward.hpp"
-#include "opentxs/network/zeromq/Context.hpp"
-#include "opentxs/network/zeromq/ListenCallback.hpp"
-#include "opentxs/network/zeromq/FrameIterator.hpp"
-#include "opentxs/network/zeromq/FrameSection.hpp"
-#include "opentxs/network/zeromq/Frame.hpp"
-#include "opentxs/network/zeromq/Message.hpp"
-#include "opentxs/network/zeromq/PublishSocket.hpp"
-#include "opentxs/network/zeromq/SubscribeSocket.hpp"
 
 using namespace opentxs;
 
@@ -99,7 +83,6 @@ void Test_PublishSubscribe::subscribeSocketThread(
 
     auto listenCallback = network::zeromq::ListenCallback::Factory(
         [this, msgs](const network::zeromq::Message& input) -> void {
-
             const std::string& inputString = *input.Body().begin();
             bool found = msgs.count(inputString);
             EXPECT_TRUE(found);
@@ -118,9 +101,7 @@ void Test_PublishSubscribe::subscribeSocketThread(
         std::chrono::milliseconds(0),
         std::chrono::milliseconds(-1),
         std::chrono::milliseconds(30000));
-    for (auto endpoint : endpoints) {
-        subscribeSocket->Start(endpoint);
-    }
+    for (auto endpoint : endpoints) { subscribeSocket->Start(endpoint); }
 
     ++subscribeThreadStartedCount_;
 
@@ -187,7 +168,6 @@ TEST_F(Test_PublishSubscribe, Publish_Subscribe)
 
     auto listenCallback = network::zeromq::ListenCallback::Factory(
         [this](const network::zeromq::Message& input) -> void {
-
             const std::string& inputString = *input.Body().begin();
             EXPECT_EQ(testMessage_, inputString);
             ++callbackFinishedCount_;
@@ -287,7 +267,6 @@ TEST_F(Test_PublishSubscribe, Publish_2_Subscribe_1)
 
     auto listenCallback = network::zeromq::ListenCallback::Factory(
         [this](const network::zeromq::Message& input) -> void {
-
             const std::string& inputString = *input.Body().begin();
             bool match =
                 inputString == testMessage_ || inputString == testMessage2_;

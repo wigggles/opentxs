@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/network/zeromq/Socket.hpp"
 #include "opentxs/network/zeromq/PairEventCallback.hpp"

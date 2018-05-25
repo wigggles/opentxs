@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 
@@ -272,9 +272,7 @@ std::string OTASCIIArmor::decompress_string(const std::string& str) const
     if (ret != Z_STREAM_END) {  // an error occurred that was not EOF
         std::ostringstream oss;
         oss << "Exception during zlib decompression: (" << ret << ")";
-        if (zs.msg != nullptr) {
-            oss << " " << zs.msg;
-        }
+        if (zs.msg != nullptr) { oss << " " << zs.msg; }
         throw(std::runtime_error(oss.str()));
     }
 
@@ -323,9 +321,7 @@ bool OTASCIIArmor::GetString(String& strData, bool bLineBreaks) const
 {
     strData.Release();
 
-    if (GetLength() < 1) {
-        return true;
-    }
+    if (GetLength() < 1) { return true; }
 
     std::string str_decoded = OT::App().Crypto().Encode().DataDecode(Get());
 
@@ -666,9 +662,7 @@ bool OTASCIIArmor::LoadFromString(
         }
 
         // Here we save the line to member variables, if appropriate
-        if (bContentMode) {
-            Concatenate("%s\n", pBuf);
-        }
+        if (bContentMode) { Concatenate("%s\n", pBuf); }
     } while (!bIsEOF && (bContentMode || !bHaveEnteredContentMode));
 
     // reset the string position back to 0

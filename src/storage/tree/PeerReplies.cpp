@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/storage/tree/PeerReplies.hpp"
 
@@ -75,9 +75,7 @@ void PeerReplies::init(const std::string& hash)
     version_ = serialized->version();
 
     // Upgrade to version 2
-    if (2 > version_) {
-        version_ = 2;
-    }
+    if (2 > version_) { version_ = 2; }
 
     for (const auto& it : serialized->nym()) {
         item_map_.emplace(
@@ -94,9 +92,7 @@ bool PeerReplies::Load(
 
     bool loaded = load_proto<proto::PeerReply>(id, output, notUsed, true);
 
-    if (loaded) {
-        return true;
-    }
+    if (loaded) { return true; }
 
     // The provided ID might actually be a request ID instead of a reply ID.
 
@@ -115,9 +111,7 @@ bool PeerReplies::Load(
 
     lock.unlock();
 
-    if (realID.empty()) {
-        return false;
-    }
+    if (realID.empty()) { return false; }
 
     return load_proto<proto::PeerReply>(realID, output, notUsed, checking);
     ;
@@ -132,9 +126,7 @@ bool PeerReplies::save(const std::unique_lock<std::mutex>& lock) const
 
     auto serialized = serialize();
 
-    if (!proto::Validate(serialized, VERBOSE)) {
-        return false;
-    }
+    if (!proto::Validate(serialized, VERBOSE)) { return false; }
 
     return driver_.StoreProto(serialized, root_);
 }

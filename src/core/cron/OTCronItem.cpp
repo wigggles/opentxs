@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/core/cron/OTCronItem.hpp"
 
@@ -145,9 +145,7 @@ OTCronItem* OTCronItem::NewCronItem(const String& strCronItem)
     }
 
     // Does the contract successfully load from the string passed in?
-    if (pItem->LoadContractFromString(strContract)) {
-        return pItem.release();
-    }
+    if (pItem->LoadContractFromString(strContract)) { return pItem.release(); }
     return nullptr;
 }
 
@@ -248,8 +246,8 @@ bool OTCronItem::GetActiveCronTransNums(
 
         if (strNumlist.Exists()) {
             if (false ==
-                strNumlist.DecodeIfArmored(false))  // bEscapedIsAllowed=true by
-                                                    // default.
+                strNumlist.DecodeIfArmored(false))  // bEscapedIsAllowed=true
+                                                    // by default.
             {
                 otErr << __FUNCTION__
                       << ": List of recurring transactions; string apparently "
@@ -296,8 +294,8 @@ bool OTCronItem::EraseActiveCronReceipt(
 
         if (strNumlist.Exists()) {
             if (false ==
-                strNumlist.DecodeIfArmored(false))  // bEscapedIsAllowed=true by
-                                                    // default.
+                strNumlist.DecodeIfArmored(false))  // bEscapedIsAllowed=true
+                                                    // by default.
             {
                 otErr << __FUNCTION__
                       << ": List of recurring transactions; string apparently "
@@ -376,7 +374,8 @@ bool OTCronItem::EraseActiveCronReceipt(
 }
 
 bool OTCronItem::SaveActiveCronReceipt(
-    const Identifier& theNymID)  // Client-side only.
+    const Identifier& theNymID)  // Client-side
+                                 // only.
 {
     const std::int64_t lOpeningNum = GetOpeningNumber(theNymID);
 
@@ -566,8 +565,8 @@ bool OTCronItem::SetDateRange(time64_t VALID_FROM, time64_t VALID_TO)
         SetValidTo(VALID_TO);  // Keep it at zero then, so it won't expire.
     } else if (OT_TIME_ZERO < VALID_TO)  // VALID_TO is ABOVE zero...
     {
-        if (VALID_TO <
-            VALID_FROM)  // If Valid-To date is EARLIER than Valid-From date...
+        if (VALID_TO < VALID_FROM)  // If Valid-To date is EARLIER than
+                                    // Valid-From date...
         {
             std::int64_t lValidTo = OTTimeGetSecondsFromTime(VALID_TO);
             std::int64_t lValidFrom = OTTimeGetSecondsFromTime(VALID_FROM);
@@ -820,9 +819,8 @@ void OTCronItem::HookRemovalFromCron(
         Nym* pOriginator = nullptr;
 
         if (pServerNym->CompareID(pOrigCronItem->GetSenderNymID())) {
-            pOriginator =
-                pServerNym;  // Just in case the originator Nym is also
-                             // the server Nym.
+            pOriginator = pServerNym;  // Just in case the originator Nym is
+                                       // also the server Nym.
         }  // This MIGHT be unnecessary, since pRemover is(I think) already
            // transmogrified
         // ******************************************************* to pServer
@@ -1219,9 +1217,9 @@ bool OTCronItem::DropFinalReceiptToInbox(
 
         // TODO: Better rollback capabilities in case of failures here:
 
-        if (nullptr ==
-            pActualAcct)  // no asset account was passed in as already
-                          // loaded, so let's load it ourselves then.
+        if (nullptr == pActualAcct)  // no asset account was passed in as
+                                     // already loaded, so let's load it
+                                     // ourselves then.
         {
             pActualAcct =
                 Account::LoadExistingAccount(ACCOUNT_ID, GetNotaryID());
@@ -1316,9 +1314,8 @@ bool OTCronItem::DropFinalReceiptToNymbox(
         theOriginType,
         lNewTransactionNumber);
 
-    if (nullptr !=
-        pTransaction)  // The above has an OT_ASSERT within, but I just
-                       // like to check my pointers.
+    if (nullptr != pTransaction)  // The above has an OT_ASSERT within, but I
+                                  // just like to check my pointers.
     {
         pTransaction->SetOriginType(theOriginType);  // Todo, verify we can just
                                                      // remove this line. (It's
@@ -1667,9 +1664,8 @@ bool OTCronItem::CancelBeforeActivation(const Nym& theCancelerNym)
 
 void OTCronItem::InitCronItem()
 {
-    m_strContractType.Set(
-        "CRONITEM");  // in practice should never appear. Child
-                      // classes will overwrite.
+    m_strContractType.Set("CRONITEM");  // in practice should never appear.
+                                        // Child classes will overwrite.
 }
 
 void OTCronItem::ClearClosingNumbers() { m_dequeClosingNumbers.clear(); }
@@ -1713,8 +1709,8 @@ std::int32_t OTCronItem::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
     nReturnVal = ot_super::ProcessXMLNode(xml);
 
-    if (nReturnVal !=
-        0)  // -1 is error, and 1 is "found it". Either way, return.
+    if (nReturnVal != 0)    // -1 is error, and 1 is "found it". Either way,
+                            // return.
         return nReturnVal;  // 0 means "nothing happened, keep going."
 
     const String strNodeName(xml->getNodeName());

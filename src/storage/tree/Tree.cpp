@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/storage/tree/Tree.hpp"
 
@@ -215,9 +215,7 @@ void Tree::init(const std::string& hash)
     version_ = serialized->version();
 
     // Upgrade version
-    if (CURRENT_VERSION > version_) {
-        version_ = CURRENT_VERSION;
-    }
+    if (CURRENT_VERSION > version_) { version_ = CURRENT_VERSION; }
 
     blockchain_root_ = normalize_hash(serialized->blockchaintransactions());
     contact_root_ = normalize_hash(serialized->contacts());
@@ -331,9 +329,7 @@ bool Tree::save(const Lock& lock) const
 
     auto serialized = serialize();
 
-    if (!proto::Validate(serialized, VERBOSE)) {
-        return false;
-    }
+    if (!proto::Validate(serialized, VERBOSE)) { return false; }
 
     return driver_.StoreProto(serialized, root_);
 }

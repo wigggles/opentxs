@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/core/crypto/NymParameters.hpp"
 
@@ -66,9 +66,7 @@ NymParameters::NymParameters(const NymParameters& rhs)
     credentialType_ = rhs.credentialType_;
 #if OT_CRYPTO_SUPPORTED_KEY_HD
 
-    if (rhs.entropy_) {
-        entropy_.reset(new OTPassword(*rhs.entropy_));
-    }
+    if (rhs.entropy_) { entropy_.reset(new OTPassword(*rhs.entropy_)); }
 
     seed_ = rhs.seed_;
     nym_ = rhs.nym_;

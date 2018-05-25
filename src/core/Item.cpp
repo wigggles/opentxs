@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/core/Item.hpp"
 
@@ -181,9 +181,7 @@ bool Item::VerifyTransactionStatement(
     String serialized;
     GetAttachment(serialized);
 
-    if (3 > serialized.GetLength()) {
-        return false;
-    }
+    if (3 > serialized.GetLength()) { return false; }
 
     const TransactionStatement statement(serialized);
 
@@ -1084,10 +1082,9 @@ Item* Item::CreateItemFromString(
     // This loads up the purported account ID and the user ID.
     if (pItem->LoadContractFromString(strItem)) {
         const Identifier& ACCOUNT_ID = pItem->GetPurportedAccountID();
-        pItem->SetRealAccountID(
-            ACCOUNT_ID);  // I do this because it's all we've
-                          // got in this case. It's what's in
-                          // the
+        pItem->SetRealAccountID(ACCOUNT_ID);  // I do this because it's all
+                                              // we've got in this case. It's
+                                              // what's in the
         // xml, so it must be right. If it's a lie, the signature will fail or
         // the
         // user will not show as the owner of that account. But remember, the
@@ -1215,9 +1212,7 @@ Item::Item(
     // (If you deposit, or withdraw, you don't need a "to" account.)
     // But for the ones that do, you can pass the "to" account's ID in
     // as a pointer, and we'll set that too....
-    if (nullptr != pDestinationAcctID) {
-        m_AcctToID = *pDestinationAcctID;
-    }
+    if (nullptr != pDestinationAcctID) { m_AcctToID = *pDestinationAcctID; }
 }
 
 Item::~Item() { Release_Item(); }
@@ -1457,9 +1452,9 @@ std::int32_t Item::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             m_Numlist.Release();
 
             if (strTotalList.Exists())
-                m_Numlist.Add(
-                    strTotalList);  // (Comma-separated list of numbers
-                                    // now becomes std::set<std::int64_t>.)
+                m_Numlist.Add(strTotalList);  // (Comma-separated list of
+                                              // numbers now becomes
+                                              // std::set<std::int64_t>.)
         }
 
         auto ACCOUNT_ID = Identifier::Factory(strAcctFromID),
@@ -1581,11 +1576,12 @@ std::int32_t Item::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                  NYM_ID = Identifier::Factory(strNymID);
 
             pItem->SetPurportedAccountID(
-                ACCOUNT_ID);  // OTTransactionType::m_AcctID  the PURPORTED
-                              // Account ID
+                ACCOUNT_ID);  // OTTransactionType::m_AcctID
+                              // the PURPORTED Account
+                              // ID
             pItem->SetPurportedNotaryID(
-                NOTARY_ID);  // OTTransactionType::m_AcctNotaryID the PURPORTED
-                             // Notary ID
+                NOTARY_ID);  // OTTransactionType::m_AcctNotaryID
+                             // the PURPORTED Notary ID
             pItem->SetNymID(NYM_ID);
 
             String strTemp;
@@ -1947,9 +1943,7 @@ void Item::UpdateContents()  // Before transmission or serialization, this is
         }
     }
 
-    if (m_ascNote.GetLength() > 2) {
-        tag.add_tag("note", m_ascNote.Get());
-    }
+    if (m_ascNote.GetLength() > 2) { tag.add_tag("note", m_ascNote.Get()); }
 
     if (m_ascInReferenceTo.GetLength() > 2) {
         tag.add_tag("inReferenceTo", m_ascInReferenceTo.Get());

@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/api/network/ZMQ.hpp"
 #include "opentxs/api/UI.hpp"

@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CORE_CRYPTO_OTCRYPTOOPENSSL_HPP
 #define OPENTXS_CORE_CRYPTO_OTCRYPTOOPENSSL_HPP
 
-#include "opentxs/Internal.hpp"
+#include "Internal.hpp"
 
 #if OT_CRYPTO_USING_OPENSSL
 
@@ -80,14 +80,14 @@ namespace opentxs
 {
 class OpenSSL : public Crypto
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
-                ,
+    ,
                 public CryptoAsymmetric
 #endif
 #if OT_CRYPTO_SUPPORTED_ALGO_AES
-                ,
+    ,
                 public CryptoSymmetric
 #endif
-                ,
+    ,
                 virtual public api::crypto::Util,
                 public CryptoHash
 {

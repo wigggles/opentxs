@@ -39,7 +39,7 @@
 #ifndef OPENTXS_API_CLIENT_IMPLEMENTATION_PAIR_HPP
 #define OPENTXS_API_CLIENT_IMPLEMENTATION_PAIR_HPP
 
-#include "opentxs/Internal.hpp"
+#include "Internal.hpp"
 
 namespace opentxs::api::client::implementation
 {

@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/contact/ContactGroup.hpp"
 
@@ -59,9 +59,7 @@ ContactGroup::ContactGroup(
     , primary_(Identifier::Factory(get_primary_item(items)))
     , items_(normalize_items(items))
 {
-    for (const auto& it : items_) {
-        OT_ASSERT(it.second);
-    }
+    for (const auto& it : items_) { OT_ASSERT(it.second); }
 }
 
 ContactGroup::ContactGroup(
@@ -79,9 +77,7 @@ ContactGroup ContactGroup::operator+(const ContactGroup& rhs) const
 
     auto primary = Identifier::Factory();
 
-    if (primary_->empty()) {
-        primary = Identifier::Factory(rhs.primary_);
-    }
+    if (primary_->empty()) { primary = Identifier::Factory(rhs.primary_); }
 
     auto map = items_;
 
@@ -92,9 +88,7 @@ ContactGroup ContactGroup::operator+(const ContactGroup& rhs) const
         const auto& id = item->ID();
         const bool exists = (1 == map.count(id));
 
-        if (exists) {
-            continue;
-        }
+        if (exists) { continue; }
 
         const bool isPrimary = item->isPrimary();
         const bool designated = (id == primary);
@@ -114,19 +108,13 @@ ContactGroup ContactGroup::AddItem(
 {
     OT_ASSERT(item);
 
-    if (item->isPrimary()) {
-
-        return AddPrimary(item);
-    }
+    if (item->isPrimary()) { return AddPrimary(item); }
 
     const auto& id = item->ID();
     const bool alreadyExists =
         (1 == items_.count(id)) && (*item == *items_.at(id));
 
-    if (alreadyExists) {
-
-        return *this;
-    }
+    if (alreadyExists) { return *this; }
 
     auto map = items_;
     map[id] = item;
@@ -137,10 +125,7 @@ ContactGroup ContactGroup::AddItem(
 ContactGroup ContactGroup::AddPrimary(
     const std::shared_ptr<ContactItem>& item) const
 {
-    if (false == bool(item)) {
-
-        return *this;
-    }
+    if (false == bool(item)) { return *this; }
 
     const auto& incomingID = item->ID();
     const bool isExistingPrimary = (primary_ == incomingID);
@@ -172,25 +157,16 @@ ContactGroup::ItemMap::const_iterator ContactGroup::begin() const
 
 std::shared_ptr<ContactItem> ContactGroup::Best() const
 {
-    if (0 == items_.size()) {
+    if (0 == items_.size()) { return {}; }
 
-        return {};
-    }
-
-    if (false == primary_->empty()) {
-
-        return items_.at(primary_);
-    }
+    if (false == primary_->empty()) { return items_.at(primary_); }
 
     for (const auto& it : items_) {
         const auto& claim = it.second;
 
         OT_ASSERT(claim);
 
-        if (claim->isActive()) {
-
-            return claim;
-        }
+        if (claim->isActive()) { return claim; }
     }
 
     return items_.begin()->second;
@@ -200,10 +176,7 @@ std::shared_ptr<ContactItem> ContactGroup::Claim(const Identifier& item) const
 {
     auto it = items_.find(item);
 
-    if (items_.end() == it) {
-
-        return {};
-    }
+    if (items_.end() == it) { return {}; }
 
     return it->second;
 }
@@ -223,10 +196,7 @@ ContactGroup ContactGroup::Delete(const Identifier& id) const
 {
     const bool exists = (1 == items_.count(id));
 
-    if (false == exists) {
-
-        return *this;
-    }
+    if (false == exists) { return *this; }
 
     auto map = items_;
     map.erase(id);
@@ -314,10 +284,7 @@ bool ContactGroup::SerializeTo(
 
 std::shared_ptr<ContactItem> ContactGroup::PrimaryClaim() const
 {
-    if (primary_->empty()) {
-
-        return {};
-    }
+    if (primary_->empty()) { return {}; }
 
     return items_.at(primary_);
 }

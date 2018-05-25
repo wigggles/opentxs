@@ -39,7 +39,7 @@
 #ifndef OPENTXS_UI_ACTIVITYTHREADITEM_IMPLEMENTATION_HPP
 #define OPENTXS_UI_ACTIVITYTHREADITEM_IMPLEMENTATION_HPP
 
-#include "opentxs/Internal.hpp"
+#include "Internal.hpp"
 
 namespace opentxs::ui::implementation
 {
@@ -93,5 +93,5 @@ private:
     ActivityThreadItem& operator=(const ActivityThreadItem&) = delete;
     ActivityThreadItem& operator=(ActivityThreadItem&&) = delete;
 };
-}  // opentxs::ui::implementation
+}  // namespace opentxs::ui::implementation
 #endif  // OPENTXS_UI_ACTIVITYTHREADITEM_IMPLEMENTATION_HPP

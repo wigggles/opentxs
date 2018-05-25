@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/core/util/OTPaths.hpp"
 
@@ -258,9 +258,7 @@ bool OTPaths::LoadSetPrefixFolder   // eg. /usr/local/
 
     if (!bPreLoaded) {
         config.Reset();
-        if (!config.Load()) {
-            OT_FAIL;
-        }
+        if (!config.Load()) { OT_FAIL; }
     }
 
     {
@@ -361,13 +359,9 @@ bool OTPaths::LoadSetPrefixFolder   // eg. /usr/local/
                     // the config if the override isn't set
                     String strTmp = strPrefixFolder;
 
-                    if (!ToReal(strTmp, strTmp)) {
-                        OT_FAIL;
-                    }
+                    if (!ToReal(strTmp, strTmp)) { OT_FAIL; }
 
-                    if (!FixPath(strTmp, strTmp, true)) {
-                        OT_FAIL;
-                    }
+                    if (!FixPath(strTmp, strTmp, true)) { OT_FAIL; }
 
                     if (!strLocalPrefixPath.Compare(strTmp)) {
                         strLocalPrefixPath = strTmp;
@@ -390,13 +384,9 @@ bool OTPaths::LoadSetPrefixFolder   // eg. /usr/local/
         }
 
         {
-            if (!strLocalPrefixPath.Exists()) {
-                OT_FAIL;
-            }
+            if (!strLocalPrefixPath.Exists()) { OT_FAIL; }
 
-            if (!ToReal(strLocalPrefixPath, strLocalPrefixPath)) {
-                OT_FAIL;
-            }
+            if (!ToReal(strLocalPrefixPath, strLocalPrefixPath)) { OT_FAIL; }
             if (!FixPath(strLocalPrefixPath, strLocalPrefixPath, true)) {
                 OT_FAIL;
             }
@@ -405,9 +395,7 @@ bool OTPaths::LoadSetPrefixFolder   // eg. /usr/local/
     }
 
     if (!bPreLoaded) {
-        if (!config.Save()) {
-            OT_FAIL;
-        }
+        if (!config.Save()) { OT_FAIL; }
         config.Reset();
     }
     return true;
@@ -427,9 +415,7 @@ bool OTPaths::LoadSetScriptsFolder    // ie. PrefixFolder() + [ if (NOT Android)
 
     if (!bPreLoaded) {
         config.Reset();
-        if (!config.Load()) {
-            OT_FAIL;
-        }
+        if (!config.Load()) { OT_FAIL; }
     }
 
     String strRelativeKey = "";
@@ -491,9 +477,7 @@ bool OTPaths::LoadSetScriptsFolder    // ie. PrefixFolder() + [ if (NOT Android)
     }
 
     if (bConfigIsRelative) {
-        if (!FixPath(strConfigFolder, strConfigFolder, true)) {
-            OT_FAIL;
-        }
+        if (!FixPath(strConfigFolder, strConfigFolder, true)) { OT_FAIL; }
 
         String strPrefixScriptPath = "";
         AppendFolder(strPrefixScriptPath, PrefixFolder(), strConfigFolder);
@@ -525,20 +509,14 @@ bool OTPaths::LoadSetScriptsFolder    // ie. PrefixFolder() + [ if (NOT Android)
         if (!s_strScriptsFolder.Exists()) OT_FAIL;
 
     } else {
-        if (!ToReal(strConfigFolder, strConfigFolder)) {
-            OT_FAIL;
-        }
+        if (!ToReal(strConfigFolder, strConfigFolder)) { OT_FAIL; }
 
-        if (!FixPath(strConfigFolder, strConfigFolder, true)) {
-            OT_FAIL;
-        }
+        if (!FixPath(strConfigFolder, strConfigFolder, true)) { OT_FAIL; }
         s_strScriptsFolder = strConfigFolder;  // set
     }
 
     if (!bPreLoaded) {
-        if (!config.Save()) {
-            OT_FAIL;
-        }
+        if (!config.Save()) { OT_FAIL; }
         config.Reset();
     }
     return true;  // success
@@ -574,9 +552,7 @@ bool OTPaths::Get(
 
     if (!bPreLoaded) {
         config.Reset();
-        if (!config.Load()) {
-            OT_FAIL;
-        }
+        if (!config.Load()) { OT_FAIL; }
     }
 
     bool bBoolExists(false), bIsRelative(false);
@@ -592,13 +568,9 @@ bool OTPaths::Get(
                 if (!bIsRelative)  // lets fix the path, so it dosn't matter how
                                    // people write it in the config.
                 {
-                    if (!ToReal(strOutFolder, strOutFolder)) {
-                        OT_FAIL;
-                    }
+                    if (!ToReal(strOutFolder, strOutFolder)) { OT_FAIL; }
 
-                    if (!FixPath(strOutFolder, strOutFolder, true)) {
-                        OT_FAIL;
-                    }
+                    if (!FixPath(strOutFolder, strOutFolder, true)) { OT_FAIL; }
                 }
 
                 out_strVar = strOutFolder;
@@ -610,9 +582,7 @@ bool OTPaths::Get(
                 out_bKeyExist = false;
             }
 
-            if (!bPreLoaded) {
-                config.Reset();
-            }
+            if (!bPreLoaded) { config.Reset(); }
 
             return true;
         }
@@ -651,9 +621,7 @@ bool OTPaths::Set(
     if (!bPreLoaded)  // we only need to load, if not already loaded.
     {
         config.Reset();
-        if (!config.Load()) {
-            OT_FAIL;
-        }
+        if (!config.Load()) { OT_FAIL; }
     }
 
     bool bBoolIsNew(false);
@@ -671,9 +639,7 @@ bool OTPaths::Set(
             }
 
             if (!bPreLoaded) {
-                if (!config.Save()) {
-                    OT_FAIL;
-                }
+                if (!config.Save()) { OT_FAIL; }
                 config.Reset();
             }
 
@@ -754,8 +720,8 @@ bool OTPaths::PathExists(const String& strPath)
     struct stat st;
     memset(&st, 0, sizeof(st));
 
-    if (0 ==
-        stat(l_strPath_stat.c_str(), &st))  // good we have at-least on a node
+    if (0 == stat(l_strPath_stat.c_str(), &st))  // good we have at-least on a
+                                                 // node
     {
         if ('/' != *l_strPath.rbegin()) {
             std::int64_t temp_l = 0;
@@ -868,7 +834,7 @@ bool OTPaths::ConfirmCreateFolder(
         out_IsNew = false;
         return true;  // Already Have Folder, lets return true!
     } else {
-    // It dosn't exist: lets create it.
+        // It dosn't exist: lets create it.
 
 #ifdef _WIN32
         bool bCreateDirSuccess = (_mkdir(strExactPath.Get()) == 0);

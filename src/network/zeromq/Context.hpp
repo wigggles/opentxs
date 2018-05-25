@@ -39,7 +39,7 @@
 #ifndef OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_CONTEXT_HPP
 #define OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_CONTEXT_HPP
 
-#include "opentxs/Internal.hpp"
+#include "Internal.hpp"
 
 #include "opentxs/network/zeromq/Context.hpp"
 

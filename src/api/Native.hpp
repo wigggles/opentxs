@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CORE_API_IMPLEMENTATION_NATIVE_HPP
 #define OPENTXS_CORE_API_IMPLEMENTATION_NATIVE_HPP
 
-#include "opentxs/Internal.hpp"
+#include "Internal.hpp"
 
 #include "opentxs/api/Native.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"

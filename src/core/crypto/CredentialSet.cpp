@@ -60,7 +60,7 @@
 // ChildCredentials are used for all other actions, and never sign other
 // Credentials
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/core/crypto/CredentialSet.hpp"
 
@@ -341,9 +341,7 @@ bool CredentialSet::CreateMasterCredential(const NymParameters& nymParameters)
 
 const String CredentialSet::GetMasterCredID() const
 {
-    if (m_MasterCredential) {
-        return String(m_MasterCredential->ID());
-    }
+    if (m_MasterCredential) { return String(m_MasterCredential->ID()); }
     return "";
 }
 
@@ -371,8 +369,9 @@ CredentialSet* CredentialSet::LoadMaster(
     const bool bLoaded = pCredential->Load_Master(
         strNymID, strMasterCredID, (nullptr == pPWData) ? &thePWData : pPWData);
     if (!bLoaded) {
-        otErr << __FUNCTION__ << ": Failed trying to load master credential "
-                                 "from local storage. 1\n";
+        otErr << __FUNCTION__
+              << ": Failed trying to load master credential "
+                 "from local storage. 1\n";
         return nullptr;
     }
 
@@ -442,9 +441,9 @@ bool CredentialSet::ReEncryptPrivateCredentials(
         bool bSignedMaster = false;
 
         if (bReEncryptMaster && bImporting) {
-            m_MasterCredential->ReleaseSignatures(
-                true);  // This time we'll sign it in
-                        // private mode.
+            m_MasterCredential->ReleaseSignatures(true);  // This time we'll
+                                                          // sign it in private
+                                                          // mode.
             bSignedMaster =
                 m_MasterCredential->SelfSign(passwordToUse, &thePWData, true);
         }
@@ -583,9 +582,7 @@ bool CredentialSet::LoadChildKeyCredentialFromString(
     serializedCredential serialized =
         Credential::ExtractArmoredCredential(strInput);
 
-    if (!serialized) {
-        return false;
-    }
+    if (!serialized) { return false; }
 
     auto child = Credential::Factory(*this, *serialized, mode_);
 
@@ -929,16 +926,12 @@ void CredentialSet::SerializeIDs(
         parent.add_tag(pTag);
 
         if (nullptr != pmapPubInfo)  // optional out-param.
-            pmapPubInfo->insert(
-                std::pair<std::string, std::string>(
-                    GetMasterCredID().Get(),
-                    m_MasterCredential->asString(false)));
+            pmapPubInfo->insert(std::pair<std::string, std::string>(
+                GetMasterCredID().Get(), m_MasterCredential->asString(false)));
 
         if (nullptr != pmapPriInfo)  // optional out-param.
-            pmapPriInfo->insert(
-                std::pair<std::string, std::string>(
-                    GetMasterCredID().Get(),
-                    m_MasterCredential->asString(true)));
+            pmapPriInfo->insert(std::pair<std::string, std::string>(
+                GetMasterCredID().Get(), m_MasterCredential->asString(true)));
     }
 
     for (const auto& it : m_mapCredentials) {
@@ -981,14 +974,12 @@ void CredentialSet::SerializeIDs(
             parent.add_tag(pTag);
 
             if (nullptr != pmapPubInfo)  // optional out-param.
-                pmapPubInfo->insert(
-                    std::pair<std::string, std::string>(
-                        str_cred_id.c_str(), pSub->asString(false)));
+                pmapPubInfo->insert(std::pair<std::string, std::string>(
+                    str_cred_id.c_str(), pSub->asString(false)));
 
             if (nullptr != pmapPriInfo)  // optional out-param.
-                pmapPriInfo->insert(
-                    std::pair<std::string, std::string>(
-                        str_cred_id.c_str(), pSub->asString(true)));
+                pmapPriInfo->insert(std::pair<std::string, std::string>(
+                    str_cred_id.c_str(), pSub->asString(true)));
 
         }  // if (bChildCredValid)
     }
@@ -1024,9 +1015,7 @@ SerializedCredentialSet CredentialSet::Serialize(
     credSet->set_masterid(GetMasterCredID().Get());
 
     if (CREDENTIAL_INDEX_MODE_ONLY_IDS == mode) {
-        if (proto::KEYMODE_PRIVATE == mode_) {
-            credSet->set_index(index_);
-        }
+        if (proto::KEYMODE_PRIVATE == mode_) { credSet->set_index(index_); }
         credSet->set_mode(proto::CREDSETMODE_INDEX);
 
         for (auto& it : m_mapCredentials) {
@@ -1107,9 +1096,7 @@ void CredentialSet::RevokeContactCredentials(
         }
     }
 
-    for (auto& it : credentialsToDelete) {
-        m_mapCredentials.erase(it);
-    }
+    for (auto& it : credentialsToDelete) { m_mapCredentials.erase(it); }
 }
 
 void CredentialSet::RevokeVerificationCredentials(
@@ -1127,9 +1114,7 @@ void CredentialSet::RevokeVerificationCredentials(
         }
     }
 
-    for (auto& it : credentialsToDelete) {
-        m_mapCredentials.erase(it);
-    }
+    for (auto& it : credentialsToDelete) { m_mapCredentials.erase(it); }
 }
 
 bool CredentialSet::AddContactCredential(const proto::ContactData& contactData)
@@ -1137,9 +1122,7 @@ bool CredentialSet::AddContactCredential(const proto::ContactData& contactData)
     otOut << OT_METHOD << __FUNCTION__ << ": Adding a contact credential."
           << std::endl;
 
-    if (!m_MasterCredential) {
-        return false;
-    }
+    if (!m_MasterCredential) { return false; }
 
     NymParameters nymParameters;
     nymParameters.SetContactData(contactData);
@@ -1147,18 +1130,14 @@ bool CredentialSet::AddContactCredential(const proto::ContactData& contactData)
     std::unique_ptr<Credential> newChildCredential =
         Credential::Create<ContactCredential>(*this, nymParameters);
 
-    if (!newChildCredential) {
-        return false;
-    }
+    if (!newChildCredential) { return false; }
 
     auto& it = m_mapCredentials[String(newChildCredential->ID()).Get()];
     it.swap(newChildCredential);
 
     auto version =
         proto::RequiredCredentialSetVersion(contactData.version(), version_);
-    if (version > version_) {
-        version_ = version;
-    }
+    if (version > version_) { version_ = version; }
 
     return true;
 }
@@ -1169,9 +1148,7 @@ bool CredentialSet::AddVerificationCredential(
     otOut << OT_METHOD << __FUNCTION__ << ": Adding a verification credential."
           << std::endl;
 
-    if (!m_MasterCredential) {
-        return false;
-    }
+    if (!m_MasterCredential) { return false; }
 
     NymParameters nymParameters;
     nymParameters.SetVerificationSet(verificationSet);
@@ -1179,9 +1156,7 @@ bool CredentialSet::AddVerificationCredential(
     std::unique_ptr<Credential> newChildCredential =
         Credential::Create<VerificationCredential>(*this, nymParameters);
 
-    if (!newChildCredential) {
-        return false;
-    }
+    if (!newChildCredential) { return false; }
 
     auto& it = m_mapCredentials[String(newChildCredential->ID()).Get()];
     it.swap(newChildCredential);

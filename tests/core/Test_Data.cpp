@@ -36,12 +36,9 @@
  *
  ************************************************************/
 
-#include <gtest/gtest.h>
-#include <string>
+#include "opentxs/opentxs.hpp"
 
-#include "gtest/gtest-message.h"
-#include "gtest/gtest-test-part.h"
-#include "opentxs/core/Data.hpp"
+#include <gtest/gtest.h>
 
 using namespace opentxs;
 
@@ -108,8 +105,7 @@ TEST(Data, copy_from_pimpl)
     auto one = Data::Factory("abcd", 4);
     auto other = Data::Factory(one);
     std::string value(
-        static_cast<const char*>(
-        other->GetPointer()), other->GetSize());
+        static_cast<const char*>(other->GetPointer()), other->GetSize());
     ASSERT_EQ(value, "abcd");
 }
 
@@ -118,7 +114,6 @@ TEST(Data, copy_from_interface)
     auto one = Data::Factory("abcd", 4);
     auto other = Data::Factory(one.get());
     std::string value(
-        static_cast<const char*>(
-        other->GetPointer()), other->GetSize());
+        static_cast<const char*>(other->GetPointer()), other->GetSize());
     ASSERT_EQ(value, "abcd");
 }

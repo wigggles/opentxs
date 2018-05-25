@@ -39,7 +39,7 @@
 #ifndef OPENTXS_NETWORK_ZEROMQ_CURVESERVER_IMPLEMENTATION_HPP
 #define OPENTXS_NETWORK_ZEROMQ_CURVESERVER_IMPLEMENTATION_HPP
 
-#include "opentxs/Internal.hpp"
+#include "Internal.hpp"
 
 #include <mutex>
 

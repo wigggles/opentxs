@@ -39,7 +39,7 @@
 #ifndef OPENTXS_NETWORK_ZEROMQ_PAIREVENT_LISTENER_HPP
 #define OPENTXS_NETWORK_ZEROMQ_PAIREVENT_LISTENER_HPP
 
-#include "opentxs/Internal.hpp"
+#include "Internal.hpp"
 
 #include "SubscribeSocket.hpp"
 

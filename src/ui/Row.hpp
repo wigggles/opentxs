@@ -39,7 +39,7 @@
 #ifndef OPENTXS_UI_ROW_IMPLEMENTATION_HPP
 #define OPENTXS_UI_ROW_IMPLEMENTATION_HPP
 
-#include "opentxs/Internal.hpp"
+#include "Internal.hpp"
 
 #include "RowType.hpp"
 #include "Widget.hpp"
@@ -72,5 +72,5 @@ protected:
 
     virtual ~Row() = default;
 };
-}  // opentxs::ui::implementation
+}  // namespace opentxs::ui::implementation
 #endif  // OPENTXS_UI_ROW_IMPLEMENTATION_HPP

@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/storage/tree/Root.hpp"
 
@@ -92,9 +92,7 @@ void Root::cleanup() const
     Lock gclock(gc_lock_);
 
     if (gc_thread_) {
-        if (gc_thread_->joinable()) {
-            gc_thread_->join();
-        }
+        if (gc_thread_->joinable()) { gc_thread_->join(); }
 
         gc_thread_.reset();
     }
@@ -158,9 +156,7 @@ void Root::init(const std::string& hash)
     version_ = serialized->version();
 
     // Upgrade version
-    if (CURRENT_VERSION > version_) {
-        version_ = CURRENT_VERSION;
-    }
+    if (CURRENT_VERSION > version_) { version_ = CURRENT_VERSION; }
 
     gc_root_ = normalize_hash(serialized->gcroot());
     current_bucket_.Set(serialized->altlocation());
@@ -214,10 +210,7 @@ bool Root::save(const Lock& lock, const opentxs::api::storage::Driver& to) const
 
     auto serialized = serialize();
 
-    if (false == proto::Validate(serialized, VERBOSE)) {
-
-        return false;
-    }
+    if (false == proto::Validate(serialized, VERBOSE)) { return false; }
 
     return to.StoreProto(serialized, root_);
 }
@@ -273,9 +266,7 @@ class Tree* Root::tree() const
 {
     Lock lock(tree_lock_);
 
-    if (!tree_) {
-        tree_.reset(new class Tree(driver_, tree_root_));
-    }
+    if (!tree_) { tree_.reset(new class Tree(driver_, tree_root_)); }
 
     OT_ASSERT(tree_);
 

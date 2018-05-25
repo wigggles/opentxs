@@ -35,7 +35,7 @@
  *   for more details.
  *
  ************************************************************/
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/storage/drivers/StorageFSGC.hpp"
 
@@ -115,9 +115,7 @@ void StorageFSGC::Init_StorageFSGC()
 
 void StorageFSGC::purge(const std::string& path) const
 {
-    if (path.empty()) {
-        return;
-    }
+    if (path.empty()) { return; }
 
     boost::filesystem::remove_all(path);
 }

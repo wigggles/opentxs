@@ -39,7 +39,7 @@
 #ifndef OPENTXS_UI_ACTIVITYTHREADITEMBLANK_IMPLEMENTATION_HPP
 #define OPENTXS_UI_ACTIVITYTHREADITEMBLANK_IMPLEMENTATION_HPP
 
-#include "opentxs/Internal.hpp"
+#include "Internal.hpp"
 
 #include "opentxs/ui/ActivityThreadItem.hpp"
 #include "opentxs/ui/Widget.hpp"
@@ -77,5 +77,5 @@ private:
     ActivityThreadItemBlank& operator=(const ActivityThreadItemBlank&) = delete;
     ActivityThreadItemBlank& operator=(ActivityThreadItemBlank&&) = delete;
 };
-}  // opentxs::ui::implementation
+}  // namespace opentxs::ui::implementation
 #endif  // OPENTXS_UI_ACTIVITYTHREADITEMBLANK_IMPLEMENTATION_HPP

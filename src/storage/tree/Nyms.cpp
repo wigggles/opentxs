@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/storage/tree/Nyms.hpp"
 
@@ -126,13 +126,9 @@ void Nyms::Map(NymLambda lambda) const
 
         std::shared_ptr<proto::CredentialIndex> serialized;
 
-        if (Node::BLANK_HASH == hash) {
-            continue;
-        }
+        if (Node::BLANK_HASH == hash) { continue; }
 
-        if (driver_.LoadProto(hash, serialized, false)) {
-            lambda(*serialized);
-        }
+        if (driver_.LoadProto(hash, serialized, false)) { lambda(*serialized); }
     }
 }
 
@@ -203,9 +199,7 @@ bool Nyms::RelabelThread(const std::string& threadID, const std::string label)
 
         const auto& threads = nym->Threads();
 
-        if (threads.Exists(threadID)) {
-            nyms.insert(nymID);
-        }
+        if (threads.Exists(threadID)) { nyms.insert(nymID); }
     }
 
     lock.unlock();
@@ -235,10 +229,7 @@ bool Nyms::save(const Lock& lock) const
 
     auto serialized = serialize();
 
-    if (!proto::Validate(serialized, VERBOSE)) {
-
-        return false;
-    }
+    if (!proto::Validate(serialized, VERBOSE)) { return false; }
 
     OT_ASSERT(CURRENT_VERSION == serialized.version())
 
@@ -263,9 +254,7 @@ void Nyms::save(class Nym* nym, const Lock& lock, const std::string& id)
     hash = nym->Root();
     alias = nym->Alias();
 
-    if (nym->private_.get()) {
-        local_nyms_.emplace(nym->nymid_);
-    }
+    if (nym->private_.get()) { local_nyms_.emplace(nym->nymid_); }
 
     if (!save(lock)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Save error" << std::endl;
@@ -288,9 +277,7 @@ proto::StorageNymList Nyms::serialize() const
         }
     }
 
-    for (const auto& nymID : local_nyms_) {
-        serialized.add_localnymid(nymID);
-    }
+    for (const auto& nymID : local_nyms_) { serialized.add_localnymid(nymID); }
 
     return serialized;
 }
@@ -306,10 +293,7 @@ void Nyms::UpgradeLocalnym()
         std::string alias{};
         const auto loaded = node.Load(credentials, alias, false);
 
-        if (false == loaded) {
-
-            continue;
-        }
+        if (false == loaded) { continue; }
 
         OT_ASSERT(node.checked_.get())
 

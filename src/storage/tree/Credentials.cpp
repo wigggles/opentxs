@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/storage/tree/Credentials.hpp"
 
@@ -112,9 +112,7 @@ void Credentials::init(const std::string& hash)
     version_ = serialized->version();
 
     // Upgrade to version 2
-    if (2 > version_) {
-        version_ = 2;
-    }
+    if (2 > version_) { version_ = 2; }
 
     for (const auto& it : serialized->cred()) {
         item_map_.emplace(
@@ -144,9 +142,7 @@ bool Credentials::Load(
     auto& isPrivate = std::get<3>(metadata);
     const bool loaded = driver_.LoadProto(hash, cred, checking);
 
-    if (!loaded) {
-        return false;
-    }
+    if (!loaded) { return false; }
 
     isPrivate = (proto::KEYMODE_PRIVATE == cred->mode());
 
@@ -162,9 +158,7 @@ bool Credentials::save(const std::unique_lock<std::mutex>& lock) const
 
     auto serialized = serialize();
 
-    if (!proto::Validate(serialized, VERBOSE)) {
-        return false;
-    }
+    if (!proto::Validate(serialized, VERBOSE)) { return false; }
 
     return driver_.StoreProto(serialized, root_);
 }
@@ -214,14 +208,9 @@ bool Credentials::Store(const proto::Credential& cred, const std::string& alias)
         }
     }
 
-    if (!driver_.StoreProto(cred, hash)) {
+    if (!driver_.StoreProto(cred, hash)) { return false; }
 
-        return false;
-    }
-
-    if (!alias.empty()) {
-        std::get<1>(metadata) = alias;
-    }
+    if (!alias.empty()) { std::get<1>(metadata) = alias; }
 
     return save(lock);
 }

@@ -39,7 +39,7 @@
 #ifndef OPENTXS_API_CRYPTO_IMPLEMENTATION_CRYPTO_HPP
 #define OPENTXS_API_CRYPTO_IMPLEMENTATION_CRYPTO_HPP
 
-#include "opentxs/Internal.hpp"
+#include "Internal.hpp"
 
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/Editor.hpp"

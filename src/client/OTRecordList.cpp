@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/client/OTRecordList.hpp"
 
@@ -192,16 +192,15 @@ std::string OTNameLookup::GetNymName(
             }
         }
     }
-    if (!display_label.empty()) {
-        return display_label;
-    }
+    if (!display_label.empty()) { return display_label; }
     // ---------------------------
     return {};
 }
 
 // virtual
 std::string OTNameLookup::GetContactName(
-    const std::string& str_id) const  // Contact ID
+    const std::string& str_id) const  // Contact
+                                      // ID
 {
     if (str_id.empty()) return {};
 
@@ -509,9 +508,7 @@ bool OTRecordList::checkIndicesRange(  // static method
     const std::string& indices,
     std::int32_t items)
 {
-    if ("all" == indices) {
-        return true;
-    }
+    if ("all" == indices) { return true; }
 
     for (std::string::size_type i = 0; i < indices.length(); i++) {
         std::int32_t value = 0;
@@ -616,9 +613,7 @@ bool OTRecordList::accept_from_paymentbox(  // static function
         return -1;
     }
 
-    if (!checkIndicesRange("indices", indices, items)) {
-        return -1;
-    }
+    if (!checkIndicesRange("indices", indices, items)) { return -1; }
 
     if (0 == items) {
         otOut << "The payment inbox is empty.\n";
@@ -766,12 +761,8 @@ std::int32_t OTRecordList::processPayment(  // a static method
 
     std::string instrument = "";
     if (-1 == index) {
-        if (CLI_input_allowed) {
-            instrument = inputText("the instrument");
-        }
-        if (instrument.empty()) {
-            return -1;
-        }
+        if (CLI_input_allowed) { instrument = inputText("the instrument"); }
+        if (instrument.empty()) { return -1; }
     } else {
         instrument = OTRecordList::get_payment_instrument(
             transport_notary, mynym, index, inbox);
@@ -1030,9 +1021,7 @@ std::int32_t OTRecordList::depositCheque(  // a static method
 {
     std::string assetType =
         SwigWrap::GetAccountWallet_InstrumentDefinitionID(myacct);
-    if (assetType.empty()) {
-        return -1;
-    }
+    if (assetType.empty()) { return -1; }
 
     if (assetType != SwigWrap::Instrmnt_GetInstrumentDefinitionID(instrument)) {
         otOut << "Error: instrument definitions of instrument and myacct do "
@@ -1057,13 +1046,9 @@ std::int32_t OTRecordList::depositCheque(  // a static method
     }
     std::int32_t reply = InterpretTransactionMsgReply(
         server, mynym, myacct, "deposit_cheque", response);
-    if (1 != reply) {
-        return reply;
-    }
+    if (1 != reply) { return reply; }
 
-    if (nullptr != pOptionalOutput) {
-        *pOptionalOutput = response;
-    }
+    if (nullptr != pOptionalOutput) { *pOptionalOutput = response; }
 
     {
         if (!OT::App().API().ServerAction().DownloadAccount(
@@ -1225,13 +1210,9 @@ std::int32_t OTRecordList::confirmPaymentPlan_lowLevel(  // a static method
 
     std::int32_t reply = InterpretTransactionMsgReply(
         server, senderUser, senderAcct, "deposit_payment_plan", response);
-    if (1 != reply) {
-        return reply;
-    }
+    if (1 != reply) { return reply; }
 
-    if (nullptr != pOptionalOutput) {
-        *pOptionalOutput = response;
-    }
+    if (nullptr != pOptionalOutput) { *pOptionalOutput = response; }
 
     {
         if (!OT::App().API().ServerAction().DownloadAccount(
@@ -1281,21 +1262,16 @@ bool OTRecordList::checkMandatory(const char* name, const std::string& value)
 // static
 bool OTRecordList::checkIndices(const char* name, const std::string& indices)
 {
-    if (!checkMandatory(name, indices)) {
-        return false;
-    }
+    if (!checkMandatory(name, indices)) { return false; }
 
-    if ("all" == indices) {
-        return true;
-    }
+    if ("all" == indices) { return true; }
 
     for (std::string::size_type i = 0; i < indices.length(); i++) {
         if (!isdigit(indices[i])) {
             otOut << "Error: " << name << ": not a value: " << indices << "\n";
             return false;
         }
-        for (i++; i < indices.length() && isdigit(indices[i]); i++) {
-        }
+        for (i++; i < indices.length() && isdigit(indices[i]); i++) {}
         if (i < indices.length() && ',' != indices[i]) {
             otOut << "Error: " << name << ": not a value: " << indices << "\n";
             return false;
@@ -1391,9 +1367,7 @@ bool OTRecordList::checkNym(
 // static
 bool OTRecordList::checkAccount(const char* name, std::string& account)
 {
-    if (!checkMandatory(name, account)) {
-        return false;
-    }
+    if (!checkMandatory(name, account)) { return false; }
 
     std::shared_ptr<Account> pAccount{nullptr};
     OTWallet* wallet = OT::App().API().OTAPI().GetWallet();
@@ -1429,18 +1403,12 @@ std::int32_t OTRecordList::discard_incoming_payments(
     const std::string& indices)
 {
     std::string the_server = transportNotaryId;
-    if (!checkServer("server", the_server)) {
-        return -1;
-    }
+    if (!checkServer("server", the_server)) { return -1; }
 
     std::string the_mynym = mynym;
-    if (!checkNym("mynym", the_mynym)) {
-        return -1;
-    }
+    if (!checkNym("mynym", the_mynym)) { return -1; }
 
-    if (!checkIndices("indices", indices)) {
-        return -1;
-    }
+    if (!checkIndices("indices", indices)) { return -1; }
 
     std::string inbox = SwigWrap::LoadPaymentInbox(the_server, the_mynym);
     if (inbox.empty()) {
@@ -1506,18 +1474,12 @@ std::int32_t OTRecordList::cancel_outgoing_payments(
     // number itself -- and that requires server communication.
 
     std::string the_mynym = mynym;
-    if (!checkNym("mynym", the_mynym)) {
-        return -1;
-    }
+    if (!checkNym("mynym", the_mynym)) { return -1; }
 
     std::string the_myacct = myacct;
-    if (!myacct.empty() && !checkAccount("myacct", the_myacct)) {
-        return -1;
-    }
+    if (!myacct.empty() && !checkAccount("myacct", the_myacct)) { return -1; }
 
-    if (!checkIndices("indices", indices)) {
-        return -1;
-    }
+    if (!checkIndices("indices", indices)) { return -1; }
 
     std::int32_t items = SwigWrap::GetNym_OutpaymentsCount(the_mynym);
     if (0 > items) {
@@ -1943,9 +1905,7 @@ std::int32_t OTRecordList::acceptFromInbox(  // a static method
     std::int32_t reply = InterpretTransactionMsgReply(
         server, mynym, myacct, "process_inbox", notary_response);
 
-    if (1 != reply) {
-        return reply;
-    }
+    if (1 != reply) { return reply; }
 
     // We KNOW they all just changed, since we just processed
     // the inbox. Might as well refresh our copy with the new changes.
@@ -2832,12 +2792,12 @@ bool OTRecordList::Populate()
             }
             // By this point, p_str_asset_type and p_str_asset_name are
             // definitely set.
-            OT_ASSERT(
-                nullptr != p_str_asset_type);  // and it's either blank, or
+            OT_ASSERT(nullptr != p_str_asset_type);  // and it's either blank,
+                                                     // or
             // it's one of the instrument definitions
             // we care about.
-            OT_ASSERT(
-                nullptr != p_str_asset_name);  // and it's either blank, or
+            OT_ASSERT(nullptr != p_str_asset_name);  // and it's either blank,
+                                                     // or
             // it's one of the instrument definitions
             // we care about.
             auto theAccountID = Identifier::Factory();
@@ -2894,10 +2854,9 @@ bool OTRecordList::Populate()
                 }
             }
             // By this point, p_str_account is definitely set.
-            OT_ASSERT(
-                nullptr != p_str_account);  // and it's either blank, or it's
-                                            // one of the accounts we care
-                                            // about.
+            OT_ASSERT(nullptr != p_str_account);  // and it's either blank, or
+                                                  // it's one of the accounts we
+                                                  // care about.
             // strOutpayment contains the actual outgoing payment instrument.
             //
             const std::string str_outpmt_transport_server =
@@ -3095,9 +3054,9 @@ bool OTRecordList::Populate()
                 auto it_server = std::find(
                     m_servers.begin(), m_servers.end(), str_mail_server);
 
-                if (it_server !=
-                    m_servers.end())  // Found the notaryID on the list
-                                      // of servers we care about.
+                if (it_server != m_servers.end())  // Found the notaryID on the
+                                                   // list of servers we care
+                                                   // about.
                 {
                     // TODO OPTIMIZE: instead of looking up the Nym's name every
                     // time, look it
@@ -3223,9 +3182,9 @@ bool OTRecordList::Populate()
                 auto it_server = std::find(
                     m_servers.begin(), m_servers.end(), str_mail_server);
 
-                if (it_server !=
-                    m_servers.end())  // Found the notaryID on the list
-                                      // of servers we care about.
+                if (it_server != m_servers.end())  // Found the notaryID on the
+                                                   // list of servers we care
+                                                   // about.
                 {
                     // TODO OPTIMIZE: instead of looking up the Nym's name every
                     // time, look it
@@ -5383,8 +5342,8 @@ bool OTRecordList::Populate()
                 Amount lAmount = pBoxTrans->GetAbbrevDisplayAmount();
 
                 if (0 == lAmount) lAmount = pBoxTrans->GetReceiptAmount();
-                if (lAmount >
-                    0)  // Outgoing transfer should display with negative amount
+                if (lAmount > 0)  // Outgoing transfer should display with
+                                  // negative amount
                     lAmount *= (-1);
                 if (0 != lAmount) {
                     String strTemp;
@@ -5684,10 +5643,9 @@ bool OTRecordList::Populate()
                         const std::string str_recipient_acct_id(
                             strRecipientAcctID.Get());
 
-                        if (0 !=
-                            str_account_id.compare(
-                                str_recipient_acct_id))  // str_account_id is
-                                                         // NOT
+                        if (0 != str_account_id.compare(
+                                     str_recipient_acct_id))  // str_account_id
+                                                              // is NOT
                         // str_recipient_acct_id.
                         {  // (Therefore we want str_recipient_acct_id.)
                             // If Nym is not the recipient, then he must be the
@@ -5730,9 +5688,9 @@ bool OTRecordList::Populate()
                         // Whereas if Nym were the recipient, then we'd want the
                         // SENDER. (For display.)
                         //
-                        if (0 ==
-                            str_nym_id.compare(
-                                str_sender_id))  // str_nym_id IS str_sender_id.
+                        if (0 == str_nym_id.compare(
+                                     str_sender_id))  // str_nym_id IS
+                                                      // str_sender_id.
                         // (Therefore we want recipient.)
                         {
                             bOutgoing = true;  // if Nym is the sender, then it
@@ -5864,12 +5822,11 @@ bool OTRecordList::Populate()
                     pBoxTrans->GetTypeString());  // pending, chequeReceipt,
                                                   // etc.
                 if (0 == str_type.compare("transferReceipt"))
-                    bOutgoing =
-                        true;  // only the sender of a transfer will have
-                               // a transferReceipt. (The recipient will have
-                               // the recipient will have his process inbox
-                               // receipt from when he accepts the incoming
-                               // transfer).
+                    bOutgoing = true;  // only the sender of a transfer will
+                                       // have a transferReceipt. (The recipient
+                                       // will have the recipient will have his
+                                       // process inbox receipt from when he
+                                       // accepts the incoming transfer).
                 else if (0 == str_type.compare("pending"))
                     bOutgoing = false;  // only the recipient of a transfer will
                                         // have a pending in his recordbox.

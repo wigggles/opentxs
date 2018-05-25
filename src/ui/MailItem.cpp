@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/api/Activity.hpp"
 #include "opentxs/core/Flag.hpp"
@@ -197,8 +197,6 @@ void MailItem::load()
 
 MailItem::~MailItem()
 {
-    if (load_ && load_->joinable()) {
-        load_->join();
-    }
+    if (load_ && load_->joinable()) { load_->join(); }
 }
 }  // namespace opentxs::ui::implementation

@@ -39,7 +39,7 @@
 #ifndef OPENTXS_UI_PROFILE_ITEM_BLANK_IMPLEMENTATION_HPP
 #define OPENTXS_UI_PROFILE_ITEM_BLANK_IMPLEMENTATION_HPP
 
-#include "opentxs/Internal.hpp"
+#include "Internal.hpp"
 
 #include "opentxs/ui/ProfileItem.hpp"
 #include "opentxs/ui/Widget.hpp"
@@ -50,7 +50,7 @@ class ProfileItemBlank : virtual public ui::ProfileItem
 {
 public:
     std::string ClaimID() const override { return {}; }
-    bool Delete() const override{ return false; }
+    bool Delete() const override { return false; }
     bool IsActive() const override { return false; }
     bool IsPrimary() const override { return false; }
     std::string Value() const override { return {}; }
@@ -74,5 +74,5 @@ private:
     ProfileItemBlank& operator=(const ProfileItemBlank&) = delete;
     ProfileItemBlank& operator=(ProfileItemBlank&&) = delete;
 };
-}  // opentxs::ui::implementation
+}  // namespace opentxs::ui::implementation
 #endif  // OPENTXS_UI_PROFILE_ITEM_BLANK_IMPLEMENTATION_HPP

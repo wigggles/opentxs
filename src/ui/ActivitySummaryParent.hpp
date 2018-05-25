@@ -39,7 +39,7 @@
 #ifndef OPENTXS_UI_ACTIVITY_SUMMARY_PARENT_HPP
 #define OPENTXS_UI_ACTIVITY_SUMMARY_PARENT_HPP
 
-#include "opentxs/Internal.hpp"
+#include "Internal.hpp"
 
 #include <chrono>
 #include <tuple>
@@ -69,5 +69,5 @@ protected:
     ActivitySummaryParent& operator=(const ActivitySummaryParent&) = delete;
     ActivitySummaryParent& operator=(ActivitySummaryParent&&) = delete;
 };
-}  // opentxs::ui::implementation
+}  // namespace opentxs::ui::implementation
 #endif  // OPENTXS_UI_ACTIVITY_SUMMARY_PARENT_HPP

@@ -39,7 +39,7 @@
 #ifndef OPENTXS_API_CLIENT_SYNC_IMPLEMENTATION_HPP
 #define OPENTXS_API_CLIENT_SYNC_IMPLEMENTATION_HPP
 
-#include "opentxs/Internal.hpp"
+#include "Internal.hpp"
 
 namespace std
 {
@@ -59,20 +59,11 @@ struct less<PAYMENTTASK> {
         const auto& rID = std::get<0>(rhs);
         const auto& rPayment = std::get<1>(rhs);
 
-        if (lID.str() < rID.str()) {
+        if (lID.str() < rID.str()) { return true; }
 
-            return true;
-        }
+        if (rID.str() < lID.str()) { return false; }
 
-        if (rID.str() < lID.str()) {
-
-            return false;
-        }
-
-        if (lPayment.get() < rPayment.get()) {
-
-            return true;
-        }
+        if (lPayment.get() < rPayment.get()) { return true; }
 
         return false;
     }

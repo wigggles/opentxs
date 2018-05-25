@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/ext/OTPayment.hpp"
 
@@ -1072,8 +1072,8 @@ bool OTPayment::GetOpeningNum(std::int64_t& lOutput, const Identifier& theNymID)
     // SMART CONTRACTS and PAYMENT PLANS get a little special
     // treatment here at the top.
     //
-    if ((false ==
-         m_bAreTempValuesSet) ||  // m_Type isn't available if this is false.
+    if ((false == m_bAreTempValuesSet) ||  // m_Type isn't available if this is
+                                           // false.
         (OTPayment::SMART_CONTRACT == m_Type) ||
         (OTPayment::PAYMENT_PLAN == m_Type)) {
         OTTrackable* pTrackable = Instantiate();
@@ -1906,10 +1906,7 @@ bool OTPayment::IsCancelledCheque()
 
     OT_ASSERT(m_bAreTempValuesSet)
 
-    if (false == IsCheque()) {
-
-        return false;
-    }
+    if (false == IsCheque()) { return false; }
 
     auto sender = Identifier::Factory();
     auto recipient = Identifier::Factory();
@@ -1929,10 +1926,7 @@ bool OTPayment::IsCancelledCheque()
         return false;
     }
 
-    if (sender != recipient) {
-
-        return false;
-    }
+    if (sender != recipient) { return false; }
 
     if (false == GetAmount(amount)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to amount" << std::endl;
@@ -1940,10 +1934,7 @@ bool OTPayment::IsCancelledCheque()
         return false;
     }
 
-    if (0 != amount) {
-
-        return false;
-    }
+    if (0 != amount) { return false; }
 
     return true;
 }

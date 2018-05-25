@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/core/crypto/OTPassword.hpp"
 
@@ -380,8 +380,8 @@ OTPassword::OTPassword(const OTPassword& rhs)
     , isText_(rhs.isPassword())
     , isBinary_(rhs.isMemory())
     , isPageLocked_(false)
-    , blockSize_(
-          rhs.blockSize_)  // The buffer has this size+1 as its static size.
+    , blockSize_(rhs.blockSize_)  // The buffer has this size+1 as its static
+                                  // size.
 {
     if (isText_) {
         data_[0] = '\0';
@@ -976,9 +976,7 @@ std::uint32_t OTPassword::OTfread(std::uint8_t* data, uint32_t size)
         // minus position_.
         sizeToRead = size_ - position_;
 
-        if (size < sizeToRead) {
-            sizeToRead = size;
-        }
+        if (size < sizeToRead) { sizeToRead = size; }
         safe_memcpy(data, sizeToRead, getMemory_uint8(), sizeToRead);
         position_ += sizeToRead;
     }

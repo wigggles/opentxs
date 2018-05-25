@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/core/contract/basket/BasketItem.hpp"
 #include "opentxs/core/Identifier.hpp"

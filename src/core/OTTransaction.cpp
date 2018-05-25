@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/core/OTTransaction.hpp"
 
@@ -3840,9 +3840,7 @@ std::int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     const String strNodeName = xml->getNodeName();
 
     NumList* pNumList = nullptr;
-    if (strNodeName.Compare("nymboxRecord")) {
-        pNumList = &m_Numlist;
-    }
+    if (strNodeName.Compare("nymboxRecord")) { pNumList = &m_Numlist; }
 
     if (strNodeName.Compare("nymboxRecord") ||
         strNodeName.Compare("inboxRecord") ||
@@ -3999,18 +3997,18 @@ std::int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             m_Numlist.Release();
 
             if (strTotalList.Exists())
-                m_Numlist.Add(
-                    strTotalList);  // (Comma-separated list of numbers
-                                    // now becomes std::set<std::int64_t>.)
+                m_Numlist.Add(strTotalList);  // (Comma-separated list of
+                                              // numbers now becomes
+                                              // std::set<std::int64_t>.)
         }
 
         Identifier ACCOUNT_ID(strAcctID), NOTARY_ID(strNotaryID),
             NYM_ID(strNymID);
 
-        SetPurportedAccountID(
-            ACCOUNT_ID);  // GetPurportedAccountID() const { return m_AcctID; }
-        SetPurportedNotaryID(NOTARY_ID);  // GetPurportedNotaryID() const {
-                                          // return m_AcctNotaryID; }
+        SetPurportedAccountID(ACCOUNT_ID);  // GetPurportedAccountID() const {
+                                            // return m_AcctID; }
+        SetPurportedNotaryID(NOTARY_ID);    // GetPurportedNotaryID() const {
+                                            // return m_AcctNotaryID; }
         SetNymID(NYM_ID);
 
         //  m_bLoadSecurely defaults to true.
@@ -4888,11 +4886,10 @@ void OTTransaction::SaveAbbreviatedOutboxRecord(Tag& parent)
                 lAdjustment =
                     0;  // In the inbox, a pending hasn't been accepted yet.
                 lDisplayValue =  //    In the outbox, it's already gone.
-                    (GetReceiptAmount() *
-                     (-1));  // Either way, it will have a 0
-                             // adjustment amount, even though
-                             // perhaps 500 clams display
-                             // amount.
+                    (GetReceiptAmount() * (-1));  // Either way, it will have a
+                                                  // 0 adjustment amount, even
+                                                  // though perhaps 500 clams
+                                                  // display amount.
             }
             break;  // In this case, since it's the outbox, then it's a MINUS
                     // (-500) Display amount (since I'm sending, not receiving
@@ -5215,16 +5212,16 @@ void OTTransaction::ProduceInboxReportItem(Item& theBalanceItem)
 
     Item* pReportItem = Item::CreateItemFromTransaction(*this, theItemType);
 
-    if (nullptr !=
-        pReportItem)  // above line will assert if mem allocation fails.
+    if (nullptr != pReportItem)  // above line will assert if mem allocation
+                                 // fails.
     {
         std::int64_t lAmount = GetReceiptAmount();
         pReportItem->SetAmount(lAmount);
 
         pReportItem->SetTransactionNum(
             GetTransactionNum());  // Just making sure these both get set.
-        pReportItem->SetReferenceToNum(
-            GetReferenceToNum());  // Especially this one.
+        pReportItem->SetReferenceToNum(GetReferenceToNum());  // Especially this
+                                                              // one.
         pReportItem->SetNumberOfOrigin(GetNumberOfOrigin());
 
         // The "closing transaction number" is only used on finalReceipts and
@@ -5240,8 +5237,8 @@ void OTTransaction::ProduceInboxReportItem(Item& theBalanceItem)
             (OTTransaction::basketReceipt == m_Type))
             pReportItem->SetClosingNum(GetClosingNum());
 
-        theBalanceItem.AddItem(
-            *pReportItem);  // Now theBalanceItem will handle cleaning it up.
+        theBalanceItem.AddItem(*pReportItem);  // Now theBalanceItem will handle
+                                               // cleaning it up.
 
         // No need to sign/save pReportItem, since it is just used for in-memory
         // storage, and is
@@ -5281,8 +5278,8 @@ void OTTransaction::ProduceOutboxReportItem(Item& theBalanceItem)
 
     Item* pReportItem = Item::CreateItemFromTransaction(*this, theItemType);
 
-    if (nullptr !=
-        pReportItem)  // above line will assert if mem allocation fails.
+    if (nullptr != pReportItem)  // above line will assert if mem allocation
+                                 // fails.
     {
         // I get away with "carte blanche" multiplying it by -1 here, because
         // I've
@@ -5298,12 +5295,12 @@ void OTTransaction::ProduceOutboxReportItem(Item& theBalanceItem)
 
         pReportItem->SetTransactionNum(
             GetTransactionNum());  // Just making sure these both get set.
-        pReportItem->SetReferenceToNum(
-            GetReferenceToNum());  // Especially this one.
+        pReportItem->SetReferenceToNum(GetReferenceToNum());  // Especially this
+                                                              // one.
         pReportItem->SetNumberOfOrigin(GetNumberOfOrigin());
 
-        theBalanceItem.AddItem(
-            *pReportItem);  // Now theBalanceItem will handle cleaning it up.
+        theBalanceItem.AddItem(*pReportItem);  // Now theBalanceItem will handle
+                                               // cleaning it up.
 
         // No need to sign/save pReportItem, since it is just used for in-memory
         // storage, and is

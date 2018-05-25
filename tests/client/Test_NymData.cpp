@@ -36,19 +36,9 @@
  *
  ************************************************************/
 
-#include <gtest/gtest.h>
+#include "opentxs/opentxs.hpp"
 
-#include "opentxs/OT.hpp"
-#include "opentxs/api/Native.hpp"
-#include "opentxs/api/Api.hpp"
-#include "opentxs/client/OTAPI_Exec.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/client/NymData.hpp"
-#include "opentxs/core/crypto/Credential.hpp"
-#include "opentxs/core/crypto/CredentialSet.hpp"
-#include "opentxs/contact/ContactItem.hpp"
-#include "opentxs/contact/ContactData.hpp"
-#include "opentxs/core/crypto/ContactCredential.hpp"
+#include <gtest/gtest.h>
 
 namespace
 {

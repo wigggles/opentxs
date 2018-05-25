@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/cash/Purse.hpp"
 
@@ -927,8 +927,8 @@ void Purse::UpdateContents()  // Before transmission or serialization, this is
     tag.add_attribute("isNymIDIncluded", formatBool(m_bIsNymIDIncluded));
     tag.add_attribute(
         "nymID",
-        (m_bIsNymIDIncluded &&
-         !m_NymID->IsEmpty())  // (Provided that the ID even exists, of course.)
+        (m_bIsNymIDIncluded && !m_NymID->IsEmpty())  // (Provided that the ID
+                                                     // even exists, of course.)
             ? NYM_ID.Get()
             : "");  // Then print the ID (otherwise print an empty string.)
     tag.add_attribute("instrumentDefinitionID", INSTRUMENT_DEFINITION_ID.Get());

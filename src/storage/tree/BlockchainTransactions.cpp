@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/storage/tree/BlockchainTransactions.hpp"
 
@@ -84,9 +84,7 @@ void BlockchainTransactions::init(const std::string& hash)
     version_ = serialized->version();
 
     // Upgrade version
-    if (CURRENT_VERSION > version_) {
-        version_ = CURRENT_VERSION;
-    }
+    if (CURRENT_VERSION > version_) { version_ = CURRENT_VERSION; }
 
     for (const auto& it : serialized->transaction()) {
         item_map_.emplace(
@@ -115,10 +113,7 @@ bool BlockchainTransactions::save(const Lock& lock) const
 
     auto serialized = serialize();
 
-    if (false == proto::Validate(serialized, VERBOSE)) {
-
-        return false;
-    }
+    if (false == proto::Validate(serialized, VERBOSE)) { return false; }
 
     return driver_.StoreProto(serialized, root_);
 }

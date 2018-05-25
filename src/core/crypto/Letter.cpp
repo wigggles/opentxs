@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/core/crypto/Letter.hpp"
 
@@ -400,9 +400,7 @@ bool Letter::Open(
             haveSessionKey = ecKey->ECDSA().DecryptSessionKeyECDH(
                 *ecKey, *dhPublicKey, keyPassword, *key);
 
-            if (haveSessionKey) {
-                break;
-            }
+            if (haveSessionKey) { break; }
         }
     }
 

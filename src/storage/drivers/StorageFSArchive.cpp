@@ -35,7 +35,7 @@
  *   for more details.
  *
  ************************************************************/
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/storage/drivers/StorageFSArchive.hpp"
 
@@ -150,17 +150,12 @@ void StorageFSArchive::Init_StorageFSArchive()
 
     boost::system::error_code ec{};
 
-    if (boost::filesystem::create_directory(folder_, ec)) {
-        ready_->On();
-    }
+    if (boost::filesystem::create_directory(folder_, ec)) { ready_->On(); }
 }
 
 std::string StorageFSArchive::prepare_read(const std::string& input) const
 {
-    if (false == encrypted_) {
-
-        return input;
-    }
+    if (false == encrypted_) { return input; }
 
     const auto ciphertext = proto::TextToProto<proto::Ciphertext>(input);
 
@@ -179,10 +174,7 @@ std::string StorageFSArchive::prepare_read(const std::string& input) const
 
 std::string StorageFSArchive::prepare_write(const std::string& plaintext) const
 {
-    if (false == encrypted_) {
-
-        return plaintext;
-    }
+    if (false == encrypted_) { return plaintext; }
 
     OT_ASSERT(encryption_key_);
 

@@ -39,7 +39,7 @@
 #ifndef OPENTXS_API_CONTACT_MANAGER_IMPLEMENTATION_HPP
 #define OPENTXS_API_CONTACT_MANAGER_IMPLEMENTATION_HPP
 
-#include "opentxs/Internal.hpp"
+#include "Internal.hpp"
 
 #include "opentxs/api/ContactManager.hpp"
 

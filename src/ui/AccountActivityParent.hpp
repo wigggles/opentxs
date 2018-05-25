@@ -39,7 +39,7 @@
 #ifndef OPENTXS_UI_ACCOUNT_ACTIVITY_PARENT_HPP
 #define OPENTXS_UI_ACCOUNT_ACTIVITY_PARENT_HPP
 
-#include "opentxs/Internal.hpp"
+#include "Internal.hpp"
 
 #include <chrono>
 #include <tuple>
@@ -65,5 +65,5 @@ protected:
     AccountActivityParent& operator=(const AccountActivityParent&) = delete;
     AccountActivityParent& operator=(AccountActivityParent&&) = delete;
 };
-}  // opentxs::ui::implementation
+}  // namespace opentxs::ui::implementation
 #endif  // OPENTXS_UI_ACCOUNT_ACTIVITY_PARENT_HPP

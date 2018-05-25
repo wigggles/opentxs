@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "Native.hpp"
 
@@ -136,7 +136,7 @@ Native::Native(
     , signal_handler_(nullptr)
     , server_args_(args)
 {
-    for (const auto & [ key, arg ] : args) {
+    for (const auto& [key, arg] : args) {
         if (key == OPENTXS_ARG_WORDS) {
             OT_ASSERT(2 > arg.size());
             OT_ASSERT(0 < arg.size());
@@ -175,9 +175,7 @@ const api::Activity& Native::Activity() const
 
 const api::Api& Native::API() const
 {
-    if (server_mode_) {
-        OT_FAIL;
-    }
+    if (server_mode_) { OT_FAIL; }
 
     OT_ASSERT(api_);
 
@@ -196,9 +194,7 @@ const api::Settings& Native::Config(const std::string& path) const
     std::unique_lock<std::mutex> lock(config_lock_);
     auto& config = config_[path];
 
-    if (!config) {
-        config.reset(new api::Settings(String(path)));
-    }
+    if (!config) { config.reset(new api::Settings(String(path))); }
 
     OT_ASSERT(config);
 
@@ -314,9 +310,7 @@ void Native::Init()
         Init_UI();  // requires Init_Activity(), Init_Contacts(), Init_Api()
     }
 
-    if (recover_) {
-        recover();
-    }
+    if (recover_) { recover(); }
 
     Init_Server();  // requires Init_Config(), Init_Storage(), Init_Crypto(),
                     // Init_Contracts(), Init_Log(), Init_Contracts()
@@ -345,10 +339,7 @@ void Native::Init_Api()
     OT_ASSERT(crypto_);
     OT_ASSERT(identity_);
 
-    if (server_mode_) {
-
-        return;
-    }
+    if (server_mode_) { return; }
 
     api_.reset(Factory::Api(
         running_,
@@ -504,9 +495,7 @@ void Native::Init_Log()
         type = "client";
     }
 
-    if (false == Log::Init(Config(), type.c_str())) {
-        abort();
-    }
+    if (false == Log::Init(Config(), type.c_str())) { abort(); }
 }
 
 void Native::Init_Periodic()
@@ -587,10 +576,7 @@ void Native::Init_Periodic()
 
 void Native::Init_Server()
 {
-    if (false == server_mode_) {
-
-        return;
-    }
+    if (false == server_mode_) { return; }
 
     OT_ASSERT(crypto_);
     OT_ASSERT(storage_);
@@ -869,13 +855,9 @@ void Native::Periodic()
 
         // This method has its own interval checking. Run here to avoid
         // spawning unnecessary threads.
-        if (storage_) {
-            storage_->RunGC();
-        }
+        if (storage_) { storage_->RunGC(); }
 
-        if (running_) {
-            Log::Sleep(std::chrono::milliseconds(100));
-        }
+        if (running_) { Log::Sleep(std::chrono::milliseconds(100)); }
     }
 }
 
@@ -948,9 +930,7 @@ void Native::shutdown()
 {
     running_.Off();
 
-    if (periodic_) {
-        periodic_->join();
-    }
+    if (periodic_) { periodic_->join(); }
 
     if (server_) {
         auto server = dynamic_cast<implementation::Server*>(server_.get());
@@ -974,9 +954,7 @@ void Native::shutdown()
     crypto_.reset();
     Log::Cleanup();
 
-    for (auto& config : config_) {
-        config.second.reset();
-    }
+    for (auto& config : config_) { config.second.reset(); }
 
     config_.clear();
 }
@@ -1000,9 +978,7 @@ void Native::start()
 
         OT_ASSERT(nullptr != wallet);
 
-        if (false == encrypted_directory_.empty()) {
-            set_storage_encryption();
-        }
+        if (false == encrypted_directory_.empty()) { set_storage_encryption(); }
 
         wallet->SaveWallet();
     }

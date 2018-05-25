@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/client/OTWallet.hpp"
 
@@ -211,7 +211,7 @@ bool OTWallet::GetAccount(
     if (iIndex < GetAccountCount()) {
         std::size_t iCurrentIndex{0};
 
-        for (auto & [ id, entry ] : m_mapAccounts) {
+        for (auto& [id, entry] : m_mapAccounts) {
             auto& pAccount = std::get<3>(entry);
 
             OT_ASSERT(pAccount);
@@ -292,13 +292,11 @@ void OTWallet::add_account(const Lock& lock, std::shared_ptr<Account>& theAcct)
         String name{};
         account->GetName(name);
 
-        if (name.Exists()) {
-            theAcct->SetName(name);
-        }
+        if (name.Exists()) { theAcct->SetName(name); }
 
         account = theAcct;
     } else {
-        auto[entry, success] = m_mapAccounts.emplace(
+        auto [entry, success] = m_mapAccounts.emplace(
             ACCOUNT_ID,
             AccountEntry{Identifier::Factory(),
                          Identifier::Factory(),
@@ -307,7 +305,7 @@ void OTWallet::add_account(const Lock& lock, std::shared_ptr<Account>& theAcct)
 
         OT_ASSERT(success)
 
-        auto & [ nymID, serverID, unitID, account ] = entry->second;
+        auto& [nymID, serverID, unitID, account] = entry->second;
         nymID = theAcct->GetNymID();
         serverID = theAcct->GetPurportedNotaryID();
         unitID = theAcct->GetInstrumentDefinitionID();
@@ -333,10 +331,7 @@ std::shared_ptr<Account> OTWallet::get_account(
 
     auto it = m_mapAccounts.find(theAccountID);
 
-    if (m_mapAccounts.end() == it) {
-
-        return nullptr;
-    }
+    if (m_mapAccounts.end() == it) { return nullptr; }
 
     return std::get<3>(it->second);
 }
@@ -445,8 +440,8 @@ bool OTWallet::verify_account(
         return false;
     }
 
-    if (false ==
-        theAcct.VerifyAccount(theNym))  // Verifies ContractID and Signature.
+    if (false == theAcct.VerifyAccount(theNym))  // Verifies ContractID and
+                                                 // Signature.
     {
         otOut << "OTWallet::VerifyAssetAccount " << szFunc
               << ": Account signature or AccountID fails to verify. "
@@ -477,8 +472,8 @@ std::shared_ptr<Account> OTWallet::GetOrLoadAccount(
 
     auto pAccount = get_account(lock, ACCT_ID);
 
-    if (nullptr ==
-        pAccount)  // It wasn't there already, so we'll have to load it...
+    if (nullptr == pAccount)  // It wasn't there already, so we'll have to load
+                              // it...
     {
         otOut << "OTWallet::GetOrLoadAccount " << szFunc
               << ": There's no asset account in the wallet with that ID ("
@@ -526,10 +521,7 @@ std::shared_ptr<Account> OTWallet::load_account(
         bool bVerified = verify_account(
             lock, theNym, *pAccount, NOTARY_ID, strAcctID, szFunc);
 
-        if (!bVerified) {
-
-            return nullptr;
-        }
+        if (!bVerified) { return nullptr; }
 
         // If I had to load it myself, that means I need to add it to the
         // wallet. (Whereas if GetAccount() had worked, then it would ALREADY
@@ -798,10 +790,7 @@ bool OTWallet::Decrypt_ByKeyID(
     String& strOutput,
     const String* pstrDisplay)
 {
-    if (key_id.empty() || !strCiphertext.Exists()) {
-
-        return false;
-    }
+    if (key_id.empty() || !strCiphertext.Exists()) { return false; }
 
     std::shared_ptr<OTSymmetricKey> pKey = getExtraKey(key_id);
 
@@ -948,13 +937,12 @@ bool OTWallet::LoadWallet(const char* szFilename)
     // of those will be appended to the local path to form the complete file
     // path.)
     //
-    if (!m_strFilename.Exists())  // If it's not already set, then set it.
-        m_strFilename.Set(
-            szFilename);  // (We know nullptr wasn't passed in, in this case.)
+    if (!m_strFilename.Exists())        // If it's not already set, then set it.
+        m_strFilename.Set(szFilename);  // (We know nullptr wasn't passed in, in
+                                        // this case.)
 
-    if (nullptr ==
-        szFilename)  // If nullptr was passed in, then set the pointer to
-                     // existing string.
+    if (nullptr == szFilename)  // If nullptr was passed in, then set the
+                                // pointer to existing string.
         szFilename = m_strFilename.Get();  // (We know existing string is there,
                                            // in this case.)
 
@@ -1179,8 +1167,8 @@ std::set<AccountInfo> OTWallet::AccountList() const
 
     Lock lock(lock_);
 
-    for (const auto & [ accountID, entry ] : m_mapAccounts) {
-        const auto & [ nymID, serverID, unitID, account ] = entry;
+    for (const auto& [accountID, entry] : m_mapAccounts) {
+        const auto& [nymID, serverID, unitID, account] = entry;
 
         OT_ASSERT(account)
 

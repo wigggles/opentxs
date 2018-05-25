@@ -12,7 +12,7 @@
 // Copyright (c) 2003 Song Ho Ahn
 //////////////////////////////////////////////////////////////////////////////
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/core/util/Timer.hpp"
 

@@ -36,14 +36,9 @@
  *
  ************************************************************/
 
-#include <gtest/gtest.h>
+#include "opentxs/opentxs.hpp"
 
-#include "opentxs/contact/ContactData.hpp"
-#include "opentxs/contact/ContactSection.hpp"
-#include "opentxs/contact/ContactGroup.hpp"
-#include "opentxs/contact/ContactItem.hpp"
-#include "opentxs/core/crypto/ContactCredential.hpp"
-#include "opentxs/core/Identifier.hpp"
+#include <gtest/gtest.h>
 
 namespace
 {

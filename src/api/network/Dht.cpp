@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "Dht.hpp"
 
@@ -104,9 +104,7 @@ void Dht::GetPublicNym(__attribute__((unused)) const std::string& key) const
     bool haveCB = (it != callback_map_.end());
     NotifyCB notifyCB;
 
-    if (haveCB) {
-        notifyCB = it->second;
-    }
+    if (haveCB) { notifyCB = it->second; }
 
     DhtResultsCallback gcb(
         [this, notifyCB, key](const DhtResults& values) -> bool {
@@ -125,9 +123,7 @@ void Dht::GetServerContract(__attribute__((unused))
     bool haveCB = (it != callback_map_.end());
     NotifyCB notifyCB;
 
-    if (haveCB) {
-        notifyCB = it->second;
-    }
+    if (haveCB) { notifyCB = it->second; }
 
     DhtResultsCallback gcb(
         [this, notifyCB, key](const DhtResults& values) -> bool {
@@ -146,9 +142,7 @@ void Dht::GetUnitDefinition(__attribute__((unused))
     bool haveCB = (it != callback_map_.end());
     NotifyCB notifyCB;
 
-    if (haveCB) {
-        notifyCB = it->second;
-    }
+    if (haveCB) { notifyCB = it->second; }
 
     DhtResultsCallback gcb(
         [this, notifyCB, key](const DhtResults& values) -> bool {
@@ -172,49 +166,35 @@ bool Dht::ProcessPublicNym(
     bool foundData = false;
     bool foundValid = false;
 
-    if (key.empty()) {
-        return false;
-    }
+    if (key.empty()) { return false; }
 
     for (const auto& it : values) {
-        if (nullptr == it) {
-            continue;
-        }
+        if (nullptr == it) { continue; }
 
         auto& data = *it;
         foundData = data.size() > 0;
 
-        if (0 == data.size()) {
-            continue;
-        }
+        if (0 == data.size()) { continue; }
 
         auto publicNym = proto::DataToProto<proto::CredentialIndex>(
             Data::Factory(data.c_str(), data.size()));
 
-        if (key != publicNym.nymid()) {
-            continue;
-        }
+        if (key != publicNym.nymid()) { continue; }
 
         auto existing = wallet.Nym(Identifier::Factory(key));
 
         if (existing) {
-            if (existing->Revision() >= publicNym.revision()) {
-                continue;
-            }
+            if (existing->Revision() >= publicNym.revision()) { continue; }
         }
 
         auto saved = wallet.Nym(publicNym);
 
-        if (!saved) {
-            continue;
-        }
+        if (!saved) { continue; }
 
         foundValid = true;
         otLog3 << "Saved nym: " << key << std::endl;
 
-        if (notifyCB) {
-            notifyCB(key);
-        }
+        if (notifyCB) { notifyCB(key); }
     }
 
     if (!foundValid) {
@@ -239,41 +219,29 @@ bool Dht::ProcessServerContract(
     bool foundData = false;
     bool foundValid = false;
 
-    if (key.empty()) {
-        return false;
-    }
+    if (key.empty()) { return false; }
 
     for (const auto& it : values) {
-        if (nullptr == it) {
-            continue;
-        }
+        if (nullptr == it) { continue; }
 
         auto& data = *it;
         foundData = data.size() > 0;
 
-        if (0 == data.size()) {
-            continue;
-        }
+        if (0 == data.size()) { continue; }
 
         auto contract = proto::DataToProto<proto::ServerContract>(
             Data::Factory(data.c_str(), data.size()));
 
-        if (key != contract.id()) {
-            continue;
-        }
+        if (key != contract.id()) { continue; }
 
         auto saved = wallet.Server(contract);
 
-        if (!saved) {
-            continue;
-        }
+        if (!saved) { continue; }
 
         otLog3 << "Saved contract: " << key << std::endl;
         foundValid = true;
 
-        if (notifyCB) {
-            notifyCB(key);
-        }
+        if (notifyCB) { notifyCB(key); }
 
         break;  // We only need the first valid result
     }
@@ -300,41 +268,29 @@ bool Dht::ProcessUnitDefinition(
     bool foundData = false;
     bool foundValid = false;
 
-    if (key.empty()) {
-        return false;
-    }
+    if (key.empty()) { return false; }
 
     for (const auto& it : values) {
-        if (nullptr == it) {
-            continue;
-        }
+        if (nullptr == it) { continue; }
 
         auto& data = *it;
         foundData = data.size() > 0;
 
-        if (0 == data.size()) {
-            continue;
-        }
+        if (0 == data.size()) { continue; }
 
         auto contract = proto::DataToProto<proto::UnitDefinition>(
             Data::Factory(data.c_str(), data.size()));
 
-        if (key != contract.id()) {
-            continue;
-        }
+        if (key != contract.id()) { continue; }
 
         auto saved = wallet.UnitDefinition(contract);
 
-        if (!saved) {
-            continue;
-        }
+        if (!saved) { continue; }
 
         otLog3 << "Saved unit definition: " << key << std::endl;
         foundValid = true;
 
-        if (notifyCB) {
-            notifyCB(key);
-        }
+        if (notifyCB) { notifyCB(key); }
 
         break;  // We only need the first valid result
     }
@@ -358,4 +314,4 @@ void Dht::RegisterCallbacks(const CallbackMap& callbacks) const
 }
 
 Dht::~Dht() {}
-}  // opentxs::api::network::implementation
+}  // namespace opentxs::api::network::implementation

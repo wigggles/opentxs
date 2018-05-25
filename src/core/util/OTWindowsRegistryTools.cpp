@@ -38,7 +38,7 @@
 
 #ifdef _WIN32
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/core/util/OTWindowsRegistryTools.hpp"
 
@@ -58,9 +58,7 @@ LONG WindowsRegistryTools::GetDWORDRegKey(
         nullptr,
         reinterpret_cast<LPBYTE>(&nResult),
         &dwBufferSize);
-    if (ERROR_SUCCESS == nError) {
-        nValue = nResult;
-    }
+    if (ERROR_SUCCESS == nError) { nValue = nResult; }
     return nError;
 }
 
@@ -73,9 +71,7 @@ LONG WindowsRegistryTools::GetBoolRegKey(
     DWORD nDefValue((bDefaultValue) ? 1 : 0);
     DWORD nResult(nDefValue);
     LONG nError = GetDWORDRegKey(hKey, strValueName, nResult, nDefValue);
-    if (ERROR_SUCCESS == nError) {
-        bValue = (nResult != 0) ? true : false;
-    }
+    if (ERROR_SUCCESS == nError) { bValue = (nResult != 0) ? true : false; }
     return nError;
 }
 
@@ -96,9 +92,7 @@ LONG WindowsRegistryTools::GetStringRegKey(
         nullptr,
         (LPBYTE)szBuffer,
         &dwBufferSize);
-    if (ERROR_SUCCESS == nError) {
-        strValue = szBuffer;
-    }
+    if (ERROR_SUCCESS == nError) { strValue = szBuffer; }
     return nError;
 }
 

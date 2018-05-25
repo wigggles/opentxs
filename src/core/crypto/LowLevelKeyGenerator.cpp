@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/core/crypto/LowLevelKeyGenerator.hpp"
 
@@ -114,13 +114,9 @@ public:
 
 LowLevelKeyGenerator::~LowLevelKeyGenerator()
 {
-    if (m_bCleanup) {
-        Cleanup();
-    }
+    if (m_bCleanup) { Cleanup(); }
     dp.reset();
-    if (pkeyData_) {
-        pkeyData_.release();
-    }
+    if (pkeyData_) { pkeyData_.release(); }
 }
 
 LowLevelKeyGenerator::LowLevelKeyGenerator(const NymParameters& pkeyData)
@@ -157,9 +153,7 @@ LowLevelKeyGenerator::LowLevelKeyGenerator(const NymParameters& pkeyData)
 void LowLevelKeyGenerator::Cleanup()
 {
 
-    if (dp) {
-        dp->Cleanup();
-    }
+    if (dp) { dp->Cleanup(); }
 }
 
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
@@ -189,9 +183,7 @@ void LowLevelKeyGenerator::LowLevelKeyGeneratorECdp::Cleanup()
 
 bool LowLevelKeyGenerator::MakeNewKeypair()
 {
-    if (!pkeyData_) {
-        return false;
-    }
+    if (!pkeyData_) { return false; }
 
     switch (pkeyData_->nymParameterType()) {
         case (NymParameterType::ED25519): {
@@ -288,9 +280,7 @@ bool LowLevelKeyGenerator::SetOntoKeypair(
     OTKeypair& theKeypair,
     OTPasswordData& passwordData)
 {
-    if (!pkeyData_) {
-        return false;
-    }
+    if (!pkeyData_) { return false; }
 
     switch (pkeyData_->nymParameterType()) {
         case (NymParameterType::ED25519): {

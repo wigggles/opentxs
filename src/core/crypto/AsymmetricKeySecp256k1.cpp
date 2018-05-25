@@ -35,7 +35,7 @@
  *   for more details.
  *
  ************************************************************/
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/core/crypto/AsymmetricKeySecp256k1.hpp"
 

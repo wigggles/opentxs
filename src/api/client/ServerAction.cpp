@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/api/client/ServerAction.hpp"
 #include "opentxs/cash/Purse.hpp"
@@ -1244,4 +1244,4 @@ ServerAction::Action ServerAction::WithdrawVoucher(
         amount,
         memo));
 }
-}  // namespace opentxs::api::implementation
+}  // namespace opentxs::api::client::implementation

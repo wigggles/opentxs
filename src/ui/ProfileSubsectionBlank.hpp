@@ -39,7 +39,7 @@
 #ifndef OPENTXS_UI_PROFILE_SUBSECTION_BLANK_IMPLEMENTATION_HPP
 #define OPENTXS_UI_PROFILE_SUBSECTION_BLANK_IMPLEMENTATION_HPP
 
-#include "opentxs/Internal.hpp"
+#include "Internal.hpp"
 
 #include "opentxs/ui/ProfileSubsection.hpp"
 #include "opentxs/ui/Widget.hpp"

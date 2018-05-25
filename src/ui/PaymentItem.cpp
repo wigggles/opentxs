@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/api/Activity.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
@@ -153,7 +153,7 @@ void PaymentItem::load()
         case StorageBox::OUTGOINGCHEQUE: {
             text = activity_.PaymentText(
                 nym_id_, item_id_.str(), account_id_.str());
-            const auto[cheque, contract] =
+            const auto [cheque, contract] =
                 activity_.Cheque(nym_id_, item_id_.str(), account_id_.str());
 
             if (cheque) {
@@ -206,8 +206,6 @@ std::string PaymentItem::Memo() const
 
 PaymentItem::~PaymentItem()
 {
-    if (load_ && load_->joinable()) {
-        load_->join();
-    }
+    if (load_ && load_->joinable()) { load_->join(); }
 }
 }  // namespace opentxs::ui::implementation

@@ -35,7 +35,7 @@
  *   for more details.
  *
  ************************************************************/
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/storage/drivers/StorageFS.hpp"
 
@@ -100,10 +100,7 @@ bool StorageFS::LoadFromBucket(
     const auto filename = calculate_path(key, bucket, directory);
     boost::system::error_code ec{};
 
-    if (false == boost::filesystem::exists(filename, ec)) {
-
-        return false;
-    }
+    if (false == boost::filesystem::exists(filename, ec)) { return false; }
 
     if (ready_.get() && false == folder_.empty()) {
         value = read_file(filename);
@@ -136,10 +133,7 @@ std::string StorageFS::read_file(const std::string& filename) const
 {
     boost::system::error_code ec{};
 
-    if (false == boost::filesystem::exists(filename, ec)) {
-
-        return {};
-    }
+    if (false == boost::filesystem::exists(filename, ec)) { return {}; }
 
     std::ifstream file(
         filename, std::ios::in | std::ios::ate | std::ios::binary);
@@ -147,9 +141,7 @@ std::string StorageFS::read_file(const std::string& filename) const
     if (file.good()) {
         std::ifstream::pos_type pos = file.tellg();
 
-        if ((0 >= pos) || (0xFFFFFFFF <= pos)) {
-            return {};
-        }
+        if ((0 >= pos) || (0xFFFFFFFF <= pos)) { return {}; }
 
         std::uint32_t size(pos);
         file.seekg(0, std::ios::beg);
@@ -205,9 +197,7 @@ bool StorageFS::sync(const std::string& path) const
 
         ~FileDescriptor()
         {
-            if (good()) {
-                ::close(fd_);
-            }
+            if (good()) { ::close(fd_); }
         }
 
     private:

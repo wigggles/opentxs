@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/api/ContactManager.hpp"
 #include "opentxs/contact/ContactGroup.hpp"

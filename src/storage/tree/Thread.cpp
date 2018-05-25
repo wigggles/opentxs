@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/storage/tree/Thread.hpp"
 
@@ -186,9 +186,7 @@ void Thread::init(const std::string& hash)
 
     version_ = serialized->version();
 
-    if (1 > version_) {
-        version_ = 1;
-    }
+    if (1 > version_) { version_ = 1; }
 
     for (const auto& participant : serialized->participant()) {
         participants_.emplace(participant);
@@ -198,9 +196,7 @@ void Thread::init(const std::string& hash)
         const auto& index = it.index();
         items_.emplace(it.id(), it);
 
-        if (index >= index_) {
-            index_ = index + 1;
-        }
+        if (index >= index_) { index_ = index + 1; }
     }
 
     Lock lock(write_lock_);
@@ -254,9 +250,7 @@ bool Thread::Remove(const std::string& id)
 
     auto it = items_.find(id);
 
-    if (items_.end() == it) {
-        return false;
-    }
+    if (items_.end() == it) { return false; }
 
     auto& item = it->second;
     StorageBox box = static_cast<StorageBox>(item.box());
@@ -298,9 +292,7 @@ bool Thread::save(const Lock& lock) const
 
     auto serialized = serialize(lock);
 
-    if (!proto::Validate(serialized, VERBOSE)) {
-        return false;
-    }
+    if (!proto::Validate(serialized, VERBOSE)) { return false; }
 
     return driver_.StoreProto(serialized, root_);
 }
@@ -314,9 +306,7 @@ proto::StorageThread Thread::serialize(const Lock& lock) const
     serialized.set_id(id_);
 
     for (const auto nym : participants_) {
-        if (!nym.empty()) {
-            *serialized.add_participant() = nym;
-        }
+        if (!nym.empty()) { *serialized.add_participant() = nym; }
     }
 
     auto sorted = sort(lock);
@@ -367,9 +357,7 @@ std::size_t Thread::UnreadCount() const
     for (const auto& it : items_) {
         const auto& item = it.second;
 
-        if (item.unread()) {
-            ++output;
-        }
+        if (item.unread()) { ++output; }
     }
 
     return output;
@@ -398,9 +386,7 @@ void Thread::upgrade(const Lock& lock)
         }
     }
 
-    if (changed) {
-        save(lock);
-    }
+    if (changed) { save(lock); }
 }
 }  // namespace storage
 }  // namespace opentxs

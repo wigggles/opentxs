@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/core/trade/OTMarket.hpp"
 
@@ -187,8 +187,8 @@ void OTMarket::UpdateContents()
         OTOffer* pOffer = it.second;
         OT_ASSERT(nullptr != pOffer);
 
-        String strOffer(
-            *pOffer);  // Extract the offer contract into string form.
+        String strOffer(*pOffer);  // Extract the offer contract into string
+                                   // form.
         OTASCIIArmor ascOffer(strOffer);  // Base64-encode that for storage.
 
         TagPtr tagOffer(new Tag("offer", ascOffer.Get()));
@@ -202,8 +202,8 @@ void OTMarket::UpdateContents()
         OTOffer* pOffer = it.second;
         OT_ASSERT(nullptr != pOffer);
 
-        String strOffer(
-            *pOffer);  // Extract the offer contract into string form.
+        String strOffer(*pOffer);  // Extract the offer contract into string
+                                   // form.
         OTASCIIArmor ascOffer(strOffer);  // Base64-encode that for storage.
 
         TagPtr tagOffer(new Tag("offer", ascOffer.Get()));
@@ -725,18 +725,16 @@ bool OTMarket::AddOffer(
             // since the code above basically already verifies that for us.
 
             m_mapBids.insert(
-                m_mapBids.lower_bound(
-                    lPriceLimit),  // highest bidders go first,
-                                   // so I am last in line at
-                                   // lower bound.
+                m_mapBids.lower_bound(lPriceLimit),  // highest bidders go
+                                                     // first, so I am last in
+                                                     // line at lower bound.
                 std::pair<std::int64_t, OTOffer*>(lPriceLimit, &theOffer));
             otLog4 << "Offer added as a bid to the market.\n";
         } else {
             m_mapAsks.insert(
-                m_mapAsks.upper_bound(
-                    lPriceLimit),  // lowest price sells first,
-                                   // so I am last in line at
-                                   // upper bound.
+                m_mapAsks.upper_bound(lPriceLimit),  // lowest price sells
+                                                     // first, so I am last in
+                                                     // line at upper bound.
                 std::pair<std::int64_t, OTOffer*>(lPriceLimit, &theOffer));
             otLog4 << "Offer added as an ask to the market.\n";
         }
@@ -879,9 +877,7 @@ std::int64_t OTMarket::GetHighestBidPrice()
 
     mapOfOffers::reverse_iterator rr = m_mapBids.rbegin();
 
-    if (rr != m_mapBids.rend()) {
-        lPrice = rr->first;
-    }
+    if (rr != m_mapBids.rend()) { lPrice = rr->first; }
 
     return lPrice;
 }
@@ -1004,9 +1000,8 @@ void OTMarket::ProcessTrade(
         "Offer was on the market, but somehow "
         "got into processing without a trade "
         "pointer.\n");
-    OT_ASSERT(
-        nullptr != pCron);  // Also need the Cron pointer which SHOULD ALWAYS
-                            // be there.
+    OT_ASSERT(nullptr != pCron);  // Also need the Cron pointer which SHOULD
+                                  // ALWAYS be there.
 
     Nym* pServerNym = pCron->GetServerNym();
 
@@ -1077,9 +1072,9 @@ void OTMarket::ProcessTrade(
                                              // that was already on the
                                              // market. (Could be same
                                              // Nym.)
-        NOTARY_NYM_ID = Identifier::Factory(
-            *pServerNym);  // The Server Nym (could be one or both of
-                           // the above.)
+        NOTARY_NYM_ID =
+            Identifier::Factory(*pServerNym);  // The Server Nym (could be one
+                                               // or both of the above.)
 
     Nym theNym, theOtherNym;  // We MIGHT use ONE, OR BOTH, of these, or none.
 
@@ -1694,10 +1689,9 @@ void OTMarket::ProcessTrade(
                                               // evenly divide into
             // the amount available
 
-            lMostAvailable -=
-                lTemp;  // We'll subtract remainder amount, so it's
-                        // even to scale (which is how it's
-                        // priced.)
+            lMostAvailable -= lTemp;  // We'll subtract remainder amount, so
+                                      // it's even to scale (which is how it's
+                                      // priced.)
 
             // We KNOW the amount available on the offer is at least as much as
             // the minimum increment (on both sides)

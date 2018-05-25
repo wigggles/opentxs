@@ -39,7 +39,7 @@
 #ifndef OPENTXS_UI_BALANCE_ITEM_BLANK_IMPLEMENTATION_HPP
 #define OPENTXS_UI_BALANCE_ITEM_BLANK_IMPLEMENTATION_HPP
 
-#include "opentxs/Internal.hpp"
+#include "Internal.hpp"
 
 #include "opentxs/ui/BalanceItem.hpp"
 #include "opentxs/ui/Widget.hpp"

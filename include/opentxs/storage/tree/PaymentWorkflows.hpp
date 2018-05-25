@@ -39,7 +39,7 @@
 #ifndef OPENTXS_STORAGE_TREE_PAYMENT_WORKFLOWS_HPP
 #define OPENTXS_STORAGE_TREE_PAYMENT_WORKFLOWS_HPP
 
-#include "opentxs/Internal.hpp"
+#include "Internal.hpp"
 
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Editor.hpp"

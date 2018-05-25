@@ -38,19 +38,17 @@
 
 #include "OTTestEnvironment.hpp"
 
-#include "opentxs/OT.hpp"
-#include "opentxs/Types.hpp"
+#include "opentxs/opentxs.hpp"
 
-void OTTestEnvironment::SetUp() {
-	opentxs::ArgList args;
-  opentxs::OT::ClientFactory(args);
+void OTTestEnvironment::SetUp()
+{
+    opentxs::ArgList args;
+    opentxs::OT::ClientFactory(args);
 }
 
-void OTTestEnvironment::TearDown() {
-	opentxs::OT::Cleanup();
-}
+void OTTestEnvironment::TearDown() { opentxs::OT::Cleanup(); }
 
-OTTestEnvironment::~OTTestEnvironment() {
-	// TODO Auto-generated destructor stub
+OTTestEnvironment::~OTTestEnvironment()
+{
+    // TODO Auto-generated destructor stub
 }
-

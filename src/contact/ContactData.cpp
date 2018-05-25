@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/contact/ContactData.hpp"
 #include "opentxs/contact/ContactGroup.hpp"
@@ -122,9 +122,7 @@ ContactData ContactData::AddContract(
     const proto::ContactSectionName section{proto::CONTACTSECTION_CONTRACT};
     auto group = Group(section, currency);
 
-    if (group) {
-        needPrimary = group->Primary().empty();
-    }
+    if (group) { needPrimary = group->Primary().empty(); }
 
     std::set<proto::ContactItemAttribute> attrib{};
 
@@ -132,9 +130,7 @@ ContactData ContactData::AddContract(
         attrib.emplace(proto::CITEMATTR_ACTIVE);
     }
 
-    if (primary || needPrimary) {
-        attrib.emplace(proto::CITEMATTR_PRIMARY);
-    }
+    if (primary || needPrimary) { attrib.emplace(proto::CITEMATTR_PRIMARY); }
 
     auto version = proto::RequiredVersion(section, currency, version_);
 
@@ -165,9 +161,7 @@ ContactData ContactData::AddEmail(
     const proto::ContactItemType type{proto::CITEMTYPE_EMAIL};
     auto group = Group(section, type);
 
-    if (group) {
-        needPrimary = group->Primary().empty();
-    }
+    if (group) { needPrimary = group->Primary().empty(); }
 
     std::set<proto::ContactItemAttribute> attrib{};
 
@@ -175,9 +169,7 @@ ContactData ContactData::AddEmail(
         attrib.emplace(proto::CITEMATTR_ACTIVE);
     }
 
-    if (primary || needPrimary) {
-        attrib.emplace(proto::CITEMATTR_PRIMARY);
-    }
+    if (primary || needPrimary) { attrib.emplace(proto::CITEMATTR_PRIMARY); }
 
     auto version = proto::RequiredVersion(section, type, version_);
 
@@ -248,9 +240,7 @@ ContactData ContactData::AddPaymentCode(
     const proto::ContactSectionName section{proto::CONTACTSECTION_PROCEDURE};
     auto group = Group(section, currency);
 
-    if (group) {
-        needPrimary = group->Primary().empty();
-    }
+    if (group) { needPrimary = group->Primary().empty(); }
 
     std::set<proto::ContactItemAttribute> attrib{};
 
@@ -258,9 +248,7 @@ ContactData ContactData::AddPaymentCode(
         attrib.emplace(proto::CITEMATTR_ACTIVE);
     }
 
-    if (primary || needPrimary) {
-        attrib.emplace(proto::CITEMATTR_PRIMARY);
-    }
+    if (primary || needPrimary) { attrib.emplace(proto::CITEMATTR_PRIMARY); }
 
     auto version = proto::RequiredVersion(section, currency, version_);
 
@@ -291,9 +279,7 @@ ContactData ContactData::AddPhoneNumber(
     const proto::ContactItemType type{proto::CITEMTYPE_PHONE};
     auto group = Group(section, type);
 
-    if (group) {
-        needPrimary = group->Primary().empty();
-    }
+    if (group) { needPrimary = group->Primary().empty(); }
 
     std::set<proto::ContactItemAttribute> attrib{};
 
@@ -301,9 +287,7 @@ ContactData ContactData::AddPhoneNumber(
         attrib.emplace(proto::CITEMATTR_ACTIVE);
     }
 
-    if (primary || needPrimary) {
-        attrib.emplace(proto::CITEMATTR_PRIMARY);
-    }
+    if (primary || needPrimary) { attrib.emplace(proto::CITEMATTR_PRIMARY); }
 
     auto version = proto::RequiredVersion(section, type, version_);
 
@@ -333,15 +317,11 @@ ContactData ContactData::AddPreferredOTServer(
     const proto::ContactItemType type{proto::CITEMTYPE_OPENTXS};
     auto group = Group(section, type);
 
-    if (group) {
-        needPrimary = group->Primary().empty();
-    }
+    if (group) { needPrimary = group->Primary().empty(); }
 
     std::set<proto::ContactItemAttribute> attrib{proto::CITEMATTR_ACTIVE};
 
-    if (primary || needPrimary) {
-        attrib.emplace(proto::CITEMATTR_PRIMARY);
-    }
+    if (primary || needPrimary) { attrib.emplace(proto::CITEMATTR_PRIMARY); }
 
     auto version = proto::RequiredVersion(section, type, version_);
 
@@ -375,9 +355,7 @@ ContactData ContactData::AddSocialMediaProfile(
     if (section) {
         auto group = section->Group(type);
 
-        if (group) {
-            needPrimary = group->Primary().empty();
-        }
+        if (group) { needPrimary = group->Primary().empty(); }
     }
 
     std::set<proto::ContactItemAttribute> attrib{};
@@ -386,9 +364,7 @@ ContactData ContactData::AddSocialMediaProfile(
         attrib.emplace(proto::CITEMATTR_ACTIVE);
     }
 
-    if (primary || needPrimary) {
-        attrib.emplace(proto::CITEMATTR_PRIMARY);
-    }
+    if (primary || needPrimary) { attrib.emplace(proto::CITEMATTR_PRIMARY); }
 
     auto version =
         proto::RequiredVersion(proto::CONTACTSECTION_PROFILE, type, version_);
@@ -425,9 +401,7 @@ ContactData ContactData::AddSocialMediaProfile(
         if (commSection) {
             auto group = commSection->Group(type);
 
-            if (group) {
-                needPrimary = group->Primary().empty();
-            }
+            if (group) { needPrimary = group->Primary().empty(); }
         }
 
         item = std::make_shared<ContactItem>(
@@ -467,9 +441,7 @@ ContactData ContactData::AddSocialMediaProfile(
         if (identifierSection) {
             auto group = identifierSection->Group(type);
 
-            if (group) {
-                needPrimary = group->Primary().empty();
-            }
+            if (group) { needPrimary = group->Primary().empty(); }
         }
 
         item = std::make_shared<ContactItem>(
@@ -513,9 +485,7 @@ std::string ContactData::BestEmail() const
     if (group) {
         std::shared_ptr<ContactItem> best = group->Best();
 
-        if (best) {
-            bestEmail = best->Value();
-        }
+        if (best) { bestEmail = best->Value(); }
     }
 
     return bestEmail;
@@ -531,9 +501,7 @@ std::string ContactData::BestPhoneNumber() const
     if (group) {
         std::shared_ptr<ContactItem> best = group->Best();
 
-        if (best) {
-            bestEmail = best->Value();
-        }
+        if (best) { bestEmail = best->Value(); }
     }
 
     return bestEmail;
@@ -548,9 +516,7 @@ std::string ContactData::BestSocialMediaProfile(
     if (group) {
         std::shared_ptr<ContactItem> best = group->Best();
 
-        if (best) {
-            bestProfile = best->Value();
-        }
+        if (best) { bestProfile = best->Value(); }
     }
 
     return bestProfile;
@@ -561,10 +527,7 @@ std::uint32_t ContactData::check_version(
     const std::uint32_t targetVersion)
 {
     // Upgrade version
-    if (targetVersion > in) {
-
-        return targetVersion;
-    }
+    if (targetVersion > in) { return targetVersion; }
 
     return in;
 }
@@ -578,10 +541,7 @@ std::shared_ptr<ContactItem> ContactData::Claim(const Identifier& item) const
 
         auto claim = section->Claim(item);
 
-        if (claim) {
-
-            return claim;
-        }
+        if (claim) { return claim; }
     }
 
     return {};
@@ -629,18 +589,13 @@ ContactData ContactData::Delete(const Identifier& id) const
 
             deleted = true;
 
-            if (0 == section->Size()) {
-                map.erase(it.first);
-            }
+            if (0 == section->Size()) { map.erase(it.first); }
 
             break;
         }
     }
 
-    if (false == deleted) {
-
-        return *this;
-    }
+    if (false == deleted) { return *this; }
 
     return ContactData(nym_, version_, version_, map);
 }
@@ -665,9 +620,7 @@ std::string ContactData::EmailAddresses(bool active) const
 
     std::string output = stream.str();
 
-    if (0 < output.size()) {
-        output.erase(output.size() - 1, 1);
-    }
+    if (0 < output.size()) { output.erase(output.size() - 1, 1); }
 
     return output;
 }
@@ -695,10 +648,7 @@ std::shared_ptr<ContactGroup> ContactData::Group(
 {
     const auto it = sections_.find(section);
 
-    if (sections_.end() == it) {
-
-        return {};
-    }
+    if (sections_.end() == it) { return {}; }
 
     OT_ASSERT(it->second);
 
@@ -710,10 +660,7 @@ bool ContactData::HaveClaim(const Identifier& item) const
     for (const auto& section : sections_) {
         OT_ASSERT(section.second);
 
-        if (section.second->HaveClaim(item)) {
-
-            return true;
-        }
+        if (section.second->HaveClaim(item)) { return true; }
     }
 
     return false;
@@ -726,20 +673,14 @@ bool ContactData::HaveClaim(
 {
     auto group = Group(section, type);
 
-    if (false == bool(group)) {
-
-        return false;
-    }
+    if (false == bool(group)) { return false; }
 
     for (const auto it : *group) {
         OT_ASSERT(it.second);
 
         const auto& claim = *it.second;
 
-        if (value == claim.Value()) {
-
-            return true;
-        }
+        if (value == claim.Value()) { return true; }
     }
 
     return false;
@@ -749,17 +690,11 @@ std::string ContactData::Name() const
 {
     auto group = scope().second;
 
-    if (false == bool(group)) {
-
-        return {};
-    }
+    if (false == bool(group)) { return {}; }
 
     auto claim = group->Best();
 
-    if (false == bool(claim)) {
-
-        return {};
-    }
+    if (false == bool(claim)) { return {}; }
 
     return claim->Value();
 }
@@ -784,9 +719,7 @@ std::string ContactData::PhoneNumbers(bool active) const
 
     std::string output = stream.str();
 
-    if (0 < output.size()) {
-        output.erase(output.size() - 1, 1);
-    }
+    if (0 < output.size()) { output.erase(output.size() - 1, 1); }
 
     return output;
 }
@@ -796,17 +729,11 @@ OTIdentifier ContactData::PreferredOTServer() const
     auto group =
         Group(proto::CONTACTSECTION_COMMUNICATION, proto::CITEMTYPE_OPENTXS);
 
-    if (false == bool(group)) {
-
-        return Identifier::Factory();
-    }
+    if (false == bool(group)) { return Identifier::Factory(); }
 
     auto claim = group->Best();
 
-    if (false == bool(claim)) {
-
-        return Identifier::Factory();
-    }
+    if (false == bool(claim)) { return Identifier::Factory(); }
 
     return Identifier::Factory(claim->Value());
 }
@@ -849,10 +776,7 @@ std::shared_ptr<ContactSection> ContactData::Section(
 {
     const auto it = sections_.find(section);
 
-    if (sections_.end() == it) {
-
-        return {};
-    }
+    if (sections_.end() == it) { return {}; }
 
     return it->second;
 }
@@ -892,9 +816,7 @@ ContactData ContactData::SetName(const std::string& name, const bool primary)
 
     std::set<proto::ContactItemAttribute> attrib{proto::CITEMATTR_ACTIVE};
 
-    if (primary) {
-        attrib.emplace(proto::CITEMATTR_PRIMARY);
-    }
+    if (primary) { attrib.emplace(proto::CITEMATTR_PRIMARY); }
 
     auto item = std::make_shared<ContactItem>(
         nym_,
@@ -960,19 +882,13 @@ ContactData::Scope ContactData::scope() const
 {
     const auto it = sections_.find(proto::CONTACTSECTION_SCOPE);
 
-    if (sections_.end() == it) {
-
-        return {proto::CITEMTYPE_UNKNOWN, nullptr};
-    }
+    if (sections_.end() == it) { return {proto::CITEMTYPE_UNKNOWN, nullptr}; }
 
     OT_ASSERT(it->second);
 
     const auto& section = *it->second;
 
-    if (1 != section.Size()) {
-
-        return {proto::CITEMTYPE_ERROR, nullptr};
-    }
+    if (1 != section.Size()) { return {proto::CITEMTYPE_ERROR, nullptr}; }
 
     return *section.begin();
 }
@@ -1014,9 +930,7 @@ std::string ContactData::SocialMediaProfiles(
 
     std::string output = stream.str();
 
-    if (0 < output.size()) {
-        output.erase(output.size() - 1, 1);
-    }
+    if (0 < output.size()) { output.erase(output.size() - 1, 1); }
 
     return output;
 }

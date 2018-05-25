@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "Activity.hpp"
 
@@ -119,9 +119,7 @@ bool Activity::AddBlockchainTransaction(
     const bool saved = storage_.Store(
         sNymID, sthreadID, transaction.txid(), transaction.time(), {}, {}, box);
 
-    if (saved) {
-        publish(nymID, sthreadID);
-    }
+    if (saved) { publish(nymID, sthreadID); }
 
     return saved;
 }
@@ -163,9 +161,7 @@ bool Activity::AddPaymentEvent(
         type,
         workflowID.str());
 
-    if (saved) {
-        publish(nymID, sthreadID);
-    }
+    if (saved) { publish(nymID, sthreadID); }
 
     return saved;
 }
@@ -176,8 +172,8 @@ Activity::ChequeData Activity::Cheque(
     const std::string& workflowID) const
 {
     ChequeData output;
-    auto & [ cheque, contract ] = output;
-    auto[type, state] = storage_.PaymentWorkflowState(nym.str(), workflowID);
+    auto& [cheque, contract] = output;
+    auto [type, state] = storage_.PaymentWorkflowState(nym.str(), workflowID);
     [[maybe_unused]] const auto& notUsed = state;
 
     switch (type) {
@@ -240,12 +236,9 @@ const opentxs::network::zeromq::PublishSocket& Activity::get_publisher(
     Lock lock(publisher_lock_);
     auto it = thread_publishers_.find(nymID);
 
-    if (thread_publishers_.end() != it) {
+    if (thread_publishers_.end() != it) { return it->second; }
 
-        return it->second;
-    }
-
-    const auto & [ publisher, inserted ] =
+    const auto& [publisher, inserted] =
         thread_publishers_.emplace(nymID, zmq_.PublishSocket());
 
     OT_ASSERT(inserted)
@@ -396,20 +389,14 @@ std::shared_ptr<const std::string> Activity::MailText(
     auto it = mail_cache_.find(id);
     lock.unlock();
 
-    if (mail_cache_.end() != it) {
-
-        return it->second;
-    }
+    if (mail_cache_.end() != it) { return it->second; }
 
     preload(nymID, id, box);
     lock.lock();
     it = mail_cache_.find(id);
     lock.unlock();
 
-    if (mail_cache_.end() == it) {
-
-        return {};
-    }
+    if (mail_cache_.end() == it) { return {}; }
 
     return it->second;
 }
@@ -443,9 +430,7 @@ void Activity::MigrateLegacyThreads() const
     eLock lock(shared_lock_);
     std::set<std::string> contacts{};
 
-    for (const auto& it : contact_.ContactList()) {
-        contacts.insert(it.first);
-    }
+    for (const auto& it : contact_.ContactList()) { contacts.insert(it.first); }
 
     const auto nymlist = storage_.NymList();
 
@@ -457,10 +442,7 @@ void Activity::MigrateLegacyThreads() const
             const auto& originalThreadID = it2.first;
             const bool isContactID = (1 == contacts.count(originalThreadID));
 
-            if (isContactID) {
-
-                continue;
-            }
+            if (isContactID) { continue; }
 
             auto contactID =
                 contact_.ContactID(Identifier::Factory(originalThreadID));
@@ -501,10 +483,7 @@ std::shared_ptr<const Contact> Activity::nym_to_contact(
     const auto nymID = Identifier::Factory(id);
     auto contactID = contact_.ContactID(nymID);
 
-    if (false == contactID->empty()) {
-
-        return contact_.Contact(contactID);
-    }
+    if (false == contactID->empty()) { return contact_.Contact(contactID); }
 
     // Contact does not yet exist. Create it.
     std::string label{};
@@ -525,7 +504,7 @@ std::shared_ptr<const std::string> Activity::PaymentText(
     const std::string& workflowID) const
 {
     std::shared_ptr<std::string> output;
-    auto[type, state] = storage_.PaymentWorkflowState(nym.str(), workflowID);
+    auto [type, state] = storage_.PaymentWorkflowState(nym.str(), workflowID);
     [[maybe_unused]] const auto& notUsed = state;
 
     switch (type) {
@@ -562,7 +541,7 @@ std::shared_ptr<const std::string> Activity::PaymentText(
         case proto::PAYMENTWORKFLOWTYPE_OUTGOINGINVOICE:
         case proto::PAYMENTWORKFLOWTYPE_INCOMINGINVOICE: {
             auto chequeData = Cheque(nym, id, workflowID);
-            const auto & [ cheque, contract ] = chequeData;
+            const auto& [cheque, contract] = chequeData;
 
             OT_ASSERT(cheque)
 
@@ -703,9 +682,7 @@ void Activity::thread_preload_thread(
     }
 
     for (auto i = (size - start); i > 0; --i) {
-        if (cached >= count) {
-            break;
-        }
+        if (cached >= count) { break; }
 
         const auto& item = thread->item(i - 1);
         const auto& box = static_cast<StorageBox>(item.box());

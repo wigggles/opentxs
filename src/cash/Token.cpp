@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/cash/Token.hpp"
 
@@ -875,11 +875,10 @@ std::int32_t Token::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         }
 
         return 1;
-    } else if (strNodeName.Compare(
-                   "protopurse")) {  // TODO for security, if the
-                                     // count here doesn't match
-                                     // what's loaded up, that
-                                     // should be part of
+    } else if (strNodeName.Compare("protopurse")) {  // TODO for security, if
+                                                     // the count here doesn't
+                                                     // match what's loaded up,
+                                                     // that should be part of
         // what is verified in each token when it's verified..
         m_nTokenCount = atoi(xml->getAttributeValue("count"));
         m_nChosenIndex = atoi(xml->getAttributeValue("chosenIndex"));
@@ -954,9 +953,7 @@ bool Token::GetPrototoken(OTASCIIArmor& ascPrototoken, std::int32_t nTokenIndex)
 {
     // out of bounds. For a count 10 element array, index 10 is out of bounds.
     // thus if attempted index is equal or larger to the count, out of bounds.
-    if (nTokenIndex >= m_nTokenCount) {
-        return false;
-    }
+    if (nTokenIndex >= m_nTokenCount) { return false; }
 
     for (auto& it : m_mapPublic) {
         OTASCIIArmor* pPrototoken = it.second;
@@ -979,9 +976,7 @@ bool Token::GetPrivatePrototoken(
 {
     // out of bounds. For a count 10 element array, index 10 is out of bounds.
     // thus if attempted index is equal or larger to the count, out of bounds.
-    if (nTokenIndex >= m_nTokenCount) {
-        return false;
-    }
+    if (nTokenIndex >= m_nTokenCount) { return false; }
 
     for (auto& it : m_mapPrivate) {
         OTASCIIArmor* pPrototoken = it.second;
@@ -1144,7 +1139,7 @@ bool Token::VerifyToken(Nym& theNotary, Mint& theMint)
     }
 }
 
-    // SUBCLASSES OF OTTOKEN FOR EACH DIGITAL CASH ALGORITHM.
+// SUBCLASSES OF OTTOKEN FOR EACH DIGITAL CASH ALGORITHM.
 
 #if OT_CASH_USING_MAGIC_MONEY
 // Todo:  Someday...

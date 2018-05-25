@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/server/ConfigLoader.hpp"
 
@@ -74,9 +74,7 @@ bool ConfigLoader::load(
     // Setup Config File
     String strConfigFolder, strConfigFilename;
 
-    if (!OTDataFolder::IsInitialized()) {
-        OT_FAIL;
-    }
+    if (!OTDataFolder::IsInitialized()) { OT_FAIL; }
 
     // LOG LEVEL
     {

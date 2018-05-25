@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/core/crypto/OTSymmetricKey.hpp"
 
@@ -102,9 +102,7 @@ void OTSymmetricKey::GetIdentifier(String& strIdentifier) const
     auto theIdentifier = Identifier::Factory();
     const bool bCalc = theIdentifier->CalculateDigest(encrypted_key_.get());
 
-    if (bCalc) {
-        theIdentifier->GetString(strIdentifier);
-    }
+    if (bCalc) { theIdentifier->GetString(strIdentifier); }
 }
 
 // Changes the passphrase on an existing symmetric key.
@@ -244,9 +242,7 @@ bool OTSymmetricKey::GenerateKey(
     {
         std::int32_t nRes =
             theActualKey.randomizeMemory(CryptoConfig::SymmetricKeySize());
-        if (0 > nRes) {
-            OT_FAIL;
-        }
+        if (0 > nRes) { OT_FAIL; }
         std::uint32_t uRes =
             static_cast<std::uint32_t>(nRes);  // we need an uint32_t value.
 
@@ -301,9 +297,7 @@ bool OTSymmetricKey::GenerateKey(
            << (m_bIsGenerated ? "SUCCESS" : "FAILED") << "\n";
 
     // return the pDerivedKey, if wanted.
-    if (nullptr != ppDerivedKey) {
-        *ppDerivedKey = pDerivedKey.release();
-    }
+    if (nullptr != ppDerivedKey) { *ppDerivedKey = pDerivedKey.release(); }
 
     return m_bIsGenerated;
 }
@@ -333,9 +327,8 @@ bool OTSymmetricKey::GenerateHashCheck(const OTPassword& thePassphrase)
         lock,
         thePassphrase);  // asserts already.
 
-    if (nullptr ==
-        pDerivedKey)  // A pointerpointer was passed in... (caller will
-                      // be responsible then, to delete.)
+    if (nullptr == pDerivedKey)  // A pointerpointer was passed in... (caller
+                                 // will be responsible then, to delete.)
     {
         otErr << __FUNCTION__ << ": failed to calculate derived key";
         return false;
@@ -486,9 +479,7 @@ bool OTSymmetricKey::get_raw_key_from_passphrase(
         theDerivedAngel.reset(pDerivedKey);
     }
 
-    if (nullptr == pDerivedKey) {
-        return false;
-    }
+    if (nullptr == pDerivedKey) { return false; }
 
     // Below this point, pDerivedKey contains a derived symmetric key, from the
     // salt, the iteration count, and the password that was passed in. The salt
@@ -536,8 +527,8 @@ bool OTSymmetricKey::get_raw_key_from_derived_key(
                         // encrypted_key_.
         // Here's what we're trying to decrypt: the encrypted
         // form of the symmetric key.
-        static_cast<const char*>(
-            encrypted_key_->GetPointer()),  // The Ciphertext.
+        static_cast<const char*>(encrypted_key_->GetPointer()),  // The
+                                                                 // Ciphertext.
         encrypted_key_->GetSize(),
         iv_.get(),   // Created when *this symmetric key was generated. Both are
                      // already stored.
@@ -730,9 +721,8 @@ bool OTSymmetricKey::Encrypt(
     OTASCIIArmor ascOutput;
     bool bSuccess = false;
 
-    if (nullptr !=
-        pPassUserInput)  // Success retrieving the passphrase from the
-                         // user. (Now let's encrypt...)
+    if (nullptr != pPassUserInput)  // Success retrieving the passphrase from
+                                    // the user. (Now let's encrypt...)
     {
         OTEnvelope theEnvelope;
 

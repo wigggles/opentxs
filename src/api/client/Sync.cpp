@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/api/client/Pair.hpp"
 #include "opentxs/api/client/Sync.hpp"
@@ -97,10 +97,7 @@
 
 #define YIELD(a)                                                               \
     {                                                                          \
-        if (!running_) {                                                       \
-                                                                               \
-            return;                                                            \
-        }                                                                      \
+        if (!running_) { return; }                                             \
                                                                                \
         Log::Sleep(std::chrono::milliseconds(a));                              \
     }
@@ -271,7 +268,7 @@ std::pair<bool, std::size_t> Sync::accept_incoming(
     ServerContext& context) const
 {
     std::pair<bool, std::size_t> output{false, 0};
-    auto & [ success, remaining ] = output;
+    auto& [success, remaining] = output;
     const std::string account = accountID.str();
     auto processInbox = ot_api_.CreateProcessInbox(accountID, context);
     auto& response = std::get<0>(processInbox);
@@ -380,7 +377,7 @@ bool Sync::AcceptIncoming(
     while (0 < remaining) {
         const auto attempt =
             accept_incoming(apiLock, max, accountID, context.It());
-        const auto & [ success, unprocessed ] = attempt;
+        const auto& [success, unprocessed] = attempt;
         remaining = unprocessed;
 
         if (false == success) {
@@ -423,10 +420,7 @@ void Sync::add_task(const Identifier& taskID, const ThreadStatus status) const
 {
     Lock lock(task_status_lock_);
 
-    if (0 != task_status_.count(taskID)) {
-
-        return;
-    }
+    if (0 != task_status_.count(taskID)) { return; }
 
     task_status_[taskID] = status;
 }
@@ -456,10 +450,7 @@ Depositability Sync::can_deposit(
 
     auto output = valid_recipient(payment, nymID, recipient);
 
-    if (Depositability::READY != output) {
-
-        return output;
-    }
+    if (Depositability::READY != output) { return output; }
 
     const bool registered =
         exec_.IsNym_RegisteredAtServer(recipient.str(), depositServer.str());
@@ -706,10 +697,7 @@ bool Sync::check_server_contract(const Identifier& serverID) const
 
     const auto serverContract = wallet_.Server(serverID);
 
-    if (serverContract) {
-
-        return true;
-    }
+    if (serverContract) { return true; }
 
     otErr << OT_METHOD << __FUNCTION__ << ": Server contract for "
           << serverID.str() << " is not in the wallet." << std::endl;
@@ -783,17 +771,13 @@ std::size_t Sync::DepositCheques(const Identifier& nymID) const
 
     for (const auto& id : workflows) {
         const auto chequeState = workflow_.LoadChequeByWorkflow(nymID, id);
-        const auto & [ state, cheque ] = chequeState;
+        const auto& [state, cheque] = chequeState;
 
-        if (proto::PAYMENTWORKFLOWSTATE_CONVEYED != state) {
-            continue;
-        }
+        if (proto::PAYMENTWORKFLOWSTATE_CONVEYED != state) { continue; }
 
         OT_ASSERT(cheque)
 
-        if (queue_cheque_deposit(nymID, *cheque)) {
-            ++output;
-        }
+        if (queue_cheque_deposit(nymID, *cheque)) { ++output; }
     }
 
     return output;
@@ -805,24 +789,17 @@ std::size_t Sync::DepositCheques(
 {
     std::size_t output{0};
 
-    if (chequeIDs.empty()) {
-
-        return DepositCheques(nymID);
-    }
+    if (chequeIDs.empty()) { return DepositCheques(nymID); }
 
     for (const auto& id : chequeIDs) {
         const auto chequeState = workflow_.LoadCheque(nymID, id);
-        const auto & [ state, cheque ] = chequeState;
+        const auto& [state, cheque] = chequeState;
 
-        if (proto::PAYMENTWORKFLOWSTATE_CONVEYED != state) {
-            continue;
-        }
+        if (proto::PAYMENTWORKFLOWSTATE_CONVEYED != state) { continue; }
 
         OT_ASSERT(cheque)
 
-        if (queue_cheque_deposit(nymID, *cheque)) {
-            ++output;
-        }
+        if (queue_cheque_deposit(nymID, *cheque)) { ++output; }
     }
 
     return {};
@@ -1358,10 +1335,7 @@ OTIdentifier Sync::MessageContact(
     const auto canMessage =
         can_message(senderNymID, contactID, recipientNymID, serverID);
 
-    if (Messagability::READY != canMessage) {
-
-        return Identifier::Factory();
-    }
+    if (Messagability::READY != canMessage) { return Identifier::Factory(); }
 
     OT_ASSERT(false == serverID->empty())
     OT_ASSERT(false == recipientNymID->empty())
@@ -1378,7 +1352,7 @@ std::pair<ThreadStatus, OTIdentifier> Sync::MessageStatus(
 {
     std::pair<ThreadStatus, OTIdentifier> output{{},
                                                  Identifier::Factory(taskID)};
-    auto & [ threadStatus, messageID ] = output;
+    auto& [threadStatus, messageID] = output;
     Lock lock(task_status_lock_);
     threadStatus = status(lock, taskID);
 
@@ -1407,10 +1381,7 @@ OTIdentifier Sync::PayContact(
     const auto canMessage =
         can_message(senderNymID, contactID, recipientNymID, serverID);
 
-    if (Messagability::READY != canMessage) {
-
-        return Identifier::Factory();
-    }
+    if (Messagability::READY != canMessage) { return Identifier::Factory(); }
 
     OT_ASSERT(false == serverID->empty())
     OT_ASSERT(false == recipientNymID->empty())
@@ -1440,10 +1411,7 @@ OTIdentifier Sync::PayContactCash(
     const auto canMessage =
         can_message(senderNymID, contactID, recipientNymID, serverID);
 
-    if (Messagability::READY != canMessage) {
-
-        return Identifier::Factory();
-    }
+    if (Messagability::READY != canMessage) { return Identifier::Factory(); }
 
     OT_ASSERT(false == serverID->empty())
     OT_ASSERT(false == recipientNymID->empty())
@@ -1575,7 +1543,7 @@ void Sync::refresh_accounts() const
 
     SHUTDOWN()
 
-    for (const auto & [ accountID, nymID, serverID, unitID ] : accounts) {
+    for (const auto& [accountID, nymID, serverID, unitID] : accounts) {
         SHUTDOWN()
 
         const auto& notUsed[[maybe_unused]] = unitID;
@@ -1643,10 +1611,7 @@ void Sync::refresh_contacts() const
                 // servers
                 const auto data = contact->Data();
 
-                if (false == bool(data)) {
-
-                    continue;
-                }
+                if (false == bool(data)) { continue; }
 
                 const auto serverGroup = data->Group(
                     proto::CONTACTSECTION_COMMUNICATION,
@@ -1659,17 +1624,14 @@ void Sync::refresh_contacts() const
                     continue;
                 }
 
-                for (const auto & [ claimID, item ] : *serverGroup) {
+                for (const auto& [claimID, item] : *serverGroup) {
                     SHUTDOWN()
                     OT_ASSERT(item)
 
                     const auto& notUsed[[maybe_unused]] = claimID;
                     const auto serverID = Identifier::Factory(item->Value());
 
-                    if (serverID->empty()) {
-
-                        continue;
-                    }
+                    if (serverID->empty()) { continue; }
 
                     otInfo << OT_METHOD << __FUNCTION__
                            << ": Will download nym " << nymID->str()
@@ -1762,9 +1724,7 @@ OTIdentifier Sync::RegisterNym(
 
     start_introduction_server(nymID);
 
-    if (setContactData) {
-        publish_server_registration(nymID, serverID, false);
-    }
+    if (setContactData) { publish_server_registration(nymID, serverID, false); }
 
     return ScheduleRegisterNym(nymID, serverID);
 }
@@ -1983,9 +1943,7 @@ void Sync::set_contact(const Identifier& nymID, const Identifier& serverID)
     auto nym = wallet_.mutable_Nym(nymID);
     const auto server = nym.PreferredOTServer();
 
-    if (server.empty()) {
-        nym.AddPreferredOTServer(serverID.str(), true);
-    }
+    if (server.empty()) { nym.AddPreferredOTServer(serverID.str(), true); }
 }
 
 OTIdentifier Sync::set_introduction_server(
@@ -1996,10 +1954,7 @@ OTIdentifier Sync::set_introduction_server(
 
     auto instantiated = wallet_.Server(contract.PublicContract());
 
-    if (false == bool(instantiated)) {
-
-        return Identifier::Factory();
-    }
+    if (false == bool(instantiated)) { return Identifier::Factory(); }
 
     const auto& id = instantiated->ID();
     introduction_server_id_.reset(new Identifier(id));
@@ -2021,10 +1976,7 @@ void Sync::start_introduction_server(const Identifier& nymID) const
 {
     auto& serverID = IntroductionServer();
 
-    if (serverID.empty()) {
-
-        return;
-    }
+    if (serverID.empty()) { return; }
 
     auto& queue = get_operations({nymID, serverID});
     const auto taskID(Identifier::Random());
@@ -2033,15 +1985,9 @@ void Sync::start_introduction_server(const Identifier& nymID) const
 
 OTIdentifier Sync::start_task(const Identifier& taskID, bool success) const
 {
-    if (taskID.empty()) {
+    if (taskID.empty()) { return Identifier::Factory(); }
 
-        return Identifier::Factory();
-    }
-
-    if (false == success) {
-
-        return Identifier::Factory();
-    }
+    if (false == success) { return Identifier::Factory(); }
 
     add_task(taskID, ThreadStatus::RUNNING);
 
@@ -2055,7 +2001,7 @@ void Sync::StartIntroductionServer(const Identifier& localNymID) const
 
 void Sync::state_machine(const ContextID id, OperationQueue& queue) const
 {
-    const auto & [ nymID, serverID ] = id;
+    const auto& [nymID, serverID] = id;
 
     // Make sure the server contract is available
     while (running_) {
@@ -2152,7 +2098,7 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
         // the contracts.
         const auto servers = missing_servers_.Copy();
 
-        for (const auto & [ targetID, taskID ] : servers) {
+        for (const auto& [targetID, taskID] : servers) {
             SHUTDOWN()
 
             if (targetID.empty()) {
@@ -2196,7 +2142,7 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
         // their credentials.
         const auto nyms = missing_nyms_.Copy();
 
-        for (const auto & [ targetID, taskID ] : nyms) {
+        for (const auto& [targetID, taskID] : nyms) {
             SHUTDOWN()
 
             if (targetID.empty()) {
@@ -2256,7 +2202,7 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
         while (queue.send_message_.Pop(taskID, message)) {
             SHUTDOWN()
 
-            const auto & [ recipientID, text ] = message;
+            const auto& [recipientID, text] = message;
 
             if (recipientID.empty()) {
                 otErr << OT_METHOD << __FUNCTION__
@@ -2274,7 +2220,7 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
         while (queue.send_payment_.Pop(taskID, payment)) {
             SHUTDOWN()
 
-            auto & [ recipientID, pPayment ] = payment;
+            auto& [recipientID, pPayment] = payment;
 
             if (recipientID.empty()) {
                 otErr << OT_METHOD << __FUNCTION__
@@ -2293,8 +2239,7 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
         while (queue.send_cash_.Pop(taskID, cash_payment)) {
             SHUTDOWN()
 
-            auto & [ recipientID, pRecipientPurse, pSenderPurse ] =
-                cash_payment;
+            auto& [recipientID, pRecipientPurse, pSenderPurse] = cash_payment;
 
             if (recipientID.empty()) {
                 otErr << OT_METHOD << __FUNCTION__
@@ -2367,7 +2312,7 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
 
         // Deposit any queued payments
         while (queue.deposit_payment_.Pop(taskID, deposit)) {
-            auto & [ accountIDHint, payment ] = deposit;
+            auto& [accountIDHint, payment] = deposit;
 
             SHUTDOWN()
             OT_ASSERT(payment)
@@ -2414,7 +2359,7 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
         while (queue.send_transfer_.Pop(taskID, transfer)) {
             SHUTDOWN()
 
-            const auto & [ sourceAccountID, targetAccountID, value, memo ] =
+            const auto& [sourceAccountID, targetAccountID, value, memo] =
                 transfer;
 
             send_transfer(
@@ -2453,26 +2398,18 @@ ThreadStatus Sync::status(const Lock& lock, const Identifier& taskID) const
 {
     OT_ASSERT(verify_lock(lock, task_status_lock_))
 
-    if (!running_) {
-
-        return ThreadStatus::SHUTDOWN;
-    }
+    if (!running_) { return ThreadStatus::SHUTDOWN; }
 
     auto it = task_status_.find(taskID);
 
-    if (task_status_.end() == it) {
-
-        return ThreadStatus::ERROR;
-    }
+    if (task_status_.end() == it) { return ThreadStatus::ERROR; }
 
     const auto output = it->second;
     const bool success = (ThreadStatus::FINISHED_SUCCESS == output);
     const bool failed = (ThreadStatus::FINISHED_FAILED == output);
     const bool finished = (success || failed);
 
-    if (finished) {
-        task_status_.erase(it);
-    }
+    if (finished) { task_status_.erase(it); }
 
     return output;
 }
@@ -2487,17 +2424,11 @@ ThreadStatus Sync::Status(const Identifier& taskID) const
 void Sync::update_task(const Identifier& taskID, const ThreadStatus status)
     const
 {
-    if (taskID.empty()) {
-
-        return;
-    }
+    if (taskID.empty()) { return; }
 
     Lock lock(task_status_lock_);
 
-    if (0 == task_status_.count(taskID)) {
-
-        return;
-    }
+    if (0 == task_status_.count(taskID)) { return; }
 
     task_status_[taskID] = status;
 }
@@ -2513,21 +2444,12 @@ Depositability Sync::valid_account(
     const auto accounts = ot_api_.Accounts();
     std::set<Identifier> matchingAccounts{};
 
-    for (const auto & [ accountID, nymID, serverID, unitID ] : accounts) {
-        if (nymID != recipient) {
+    for (const auto& [accountID, nymID, serverID, unitID] : accounts) {
+        if (nymID != recipient) { continue; }
 
-            continue;
-        }
+        if (serverID != paymentServerID) { continue; }
 
-        if (serverID != paymentServerID) {
-
-            continue;
-        }
-
-        if (unitID != paymentUnitID) {
-
-            continue;
-        }
+        if (unitID != paymentUnitID) { continue; }
 
         matchingAccounts.emplace(accountID);
     }
@@ -2571,24 +2493,19 @@ Depositability Sync::valid_recipient(
         return Depositability::READY;
     }
 
-    if (recipient == specified) {
-
-        return Depositability::READY;
-    }
+    if (recipient == specified) { return Depositability::READY; }
 
     return Depositability::WRONG_RECIPIENT;
 }
 
 Sync::~Sync()
 {
-    for (auto & [ id, thread ] : state_machines_) {
+    for (auto& [id, thread] : state_machines_) {
         const auto& notUsed[[maybe_unused]] = id;
 
         OT_ASSERT(thread)
 
-        if (thread->joinable()) {
-            thread->join();
-        }
+        if (thread->joinable()) { thread->join(); }
     }
 }
-}  // namespace opentxs::api::implementation
+}  // namespace opentxs::api::client::implementation

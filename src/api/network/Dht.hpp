@@ -39,7 +39,7 @@
 #ifndef OPENTXS_API_IMPLEMENTATION_DHT_HPP
 #define OPENTXS_API_IMPLEMENTATION_DHT_HPP
 
-#include "opentxs/Internal.hpp"
+#include "Internal.hpp"
 
 #include "opentxs/api/network/Dht.hpp"
 #include "opentxs/Types.hpp"

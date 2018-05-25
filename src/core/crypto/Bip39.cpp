@@ -35,7 +35,7 @@
  *   for more details.
  *
  ************************************************************/
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/core/crypto/Bip39.hpp"
 
@@ -75,9 +75,7 @@ bool Bip39::DecryptSeed(
     OTPassword& words,
     OTPassword& phrase) const
 {
-    if (!proto::Validate(seed, VERBOSE)) {
-        return false;
-    }
+    if (!proto::Validate(seed, VERBOSE)) { return false; }
 
     const auto& cwords = seed.words();
     const auto& cphrase = seed.passphrase();
@@ -225,15 +223,11 @@ std::string Bip39::Passphrase(const std::string& fingerprint) const
     std::uint32_t notUsed = 0;
     auto seed = SerializedSeed(input, notUsed);
 
-    if (!seed) {
-        return "";
-    }
+    if (!seed) { return ""; }
 
     OTPassword words, phrase;
 
-    if (!DecryptSeed(*seed, words, phrase)) {
-        return "";
-    }
+    if (!DecryptSeed(*seed, words, phrase)) { return ""; }
 
     return phrase.getPassword();
 }
@@ -256,10 +250,7 @@ std::shared_ptr<OTPassword> Bip39::Seed(
 
         OTPassword words, phrase;
 
-        if (false == DecryptSeed(*serialized, words, phrase)) {
-
-            return {};
-        }
+        if (false == DecryptSeed(*serialized, words, phrase)) { return {}; }
 
         bool extracted = SeedToData(words, phrase, *seed);
 
@@ -285,9 +276,7 @@ std::shared_ptr<proto::Seed> Bip39::SerializedSeed(
         std::string defaultFingerprint = native_.DB().DefaultSeed();
         bool haveDefaultSeed = !defaultFingerprint.empty();
 
-        if (false == haveDefaultSeed) {
-            defaultFingerprint = NewSeed();
-        }
+        if (false == haveDefaultSeed) { defaultFingerprint = NewSeed(); }
 
         if (!defaultFingerprint.empty()) {
             serialized = SerializedSeed(defaultFingerprint, index);
@@ -320,9 +309,7 @@ bool Bip39::UpdateIndex(std::string& seed, const std::uint32_t index) const
 
     serialized->set_index(index);
 
-    if (serialized->version() < 2) {
-        serialized->set_version(2);
-    }
+    if (serialized->version() < 2) { serialized->set_version(2); }
 
     return native_.DB().Store(*serialized, seed);
 }
@@ -334,15 +321,11 @@ std::string Bip39::Words(const std::string& fingerprint) const
     std::uint32_t notUsed;
     auto seed = SerializedSeed(input, notUsed);
 
-    if (!seed) {
-        return "";
-    }
+    if (!seed) { return ""; }
 
     OTPassword words, phrase;
 
-    if (!DecryptSeed(*seed, words, phrase)) {
-        return "";
-    }
+    if (!DecryptSeed(*seed, words, phrase)) { return ""; }
 
     return words.getPassword();
 }

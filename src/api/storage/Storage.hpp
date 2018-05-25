@@ -39,7 +39,7 @@
 #ifndef OPENTXS_API_STORAGE_IMPLEMENTATION_STORAGE_HPP
 #define OPENTXS_API_STORAGE_IMPLEMENTATION_STORAGE_HPP
 
-#include "opentxs/Internal.hpp"
+#include "Internal.hpp"
 
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Editor.hpp"

@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/core/trade/OTTrade.hpp"
 
@@ -1171,8 +1171,8 @@ bool OTTrade::IssueTrade(OTOffer& offer, char stopSign, std::int64_t stopPrice)
 
     tradesAlreadyDone_ = 0;
 
-    SetCreationDate(
-        OTTimeGetCurrentTime());  // This time is set to TODAY NOW  (OTCronItem)
+    SetCreationDate(OTTimeGetCurrentTime());  // This time is set to TODAY NOW
+                                              // (OTCronItem)
 
     // Validate the Notary ID, Instrument Definition ID, Currency Type ID, and
     // Date Range.

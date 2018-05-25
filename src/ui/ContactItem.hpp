@@ -39,7 +39,7 @@
 #ifndef OPENTXS_UI_CONTACT_ITEM_IMPLEMENTATION_HPP
 #define OPENTXS_UI_CONTACT_ITEM_IMPLEMENTATION_HPP
 
-#include "opentxs/Internal.hpp"
+#include "Internal.hpp"
 
 namespace opentxs::ui::implementation
 {
@@ -74,5 +74,5 @@ private:
     ContactItem& operator=(const ContactItem&) = delete;
     ContactItem& operator=(ContactItem&&) = delete;
 };
-}  // opentxs::ui::implementation
+}  // namespace opentxs::ui::implementation
 #endif  // OPENTXS_UI_CONTACT_ITEM_IMPLEMENTATION_HPP

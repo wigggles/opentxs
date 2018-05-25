@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/core/crypto/CryptoEncoding.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
@@ -81,9 +81,7 @@ bool Encode::Base64Decode(const std::string&& input, RawData& output) const
     const size_t decoded =
         ::Base64decode(reinterpret_cast<char*>(output.data()), input.data());
 
-    if (0 == decoded) {
-        return false;
-    }
+    if (0 == decoded) { return false; }
 
     OT_ASSERT(decoded <= output.size());
 
@@ -96,9 +94,7 @@ std::string Encode::BreakLines(const std::string& input) const
 {
     std::string output;
 
-    if (0 == input.size()) {
-        return output;
-    }
+    if (0 == input.size()) { return output; }
 
     std::size_t width = 0;
 
@@ -111,9 +107,7 @@ std::string Encode::BreakLines(const std::string& input) const
         }
     }
 
-    if ('\n' != output.back()) {
-        output.push_back('\n');
-    }
+    if ('\n' != output.back()) { output.push_back('\n'); }
 
     return output;
 }

@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "Context.hpp"
 
@@ -150,8 +150,6 @@ OTZMQSubscribeSocket Context::SubscribeSocket(
 
 Context::~Context()
 {
-    if (nullptr != context_) {
-        zmq_ctx_shutdown(context_);
-    }
+    if (nullptr != context_) { zmq_ctx_shutdown(context_); }
 }
 }  // namespace opentxs::network::zeromq::implementation

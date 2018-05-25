@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/core/crypto/SymmetricKey.hpp"
 
@@ -134,9 +134,7 @@ std::unique_ptr<SymmetricKey> SymmetricKey::Factory(
     std::unique_ptr<SymmetricKey> output;
     output.reset(new SymmetricKey(engine));
 
-    if (!output) {
-        return output;
-    }
+    if (!output) { return output; }
 
     proto::SymmetricMode realMode = proto::SMODE_ERROR;
 
@@ -150,9 +148,7 @@ std::unique_ptr<SymmetricKey> SymmetricKey::Factory(
     output->key_size_ = size;
     OTPassword key;
 
-    if (!output->Allocate(size, key, false)) {
-        return output;
-    }
+    if (!output->Allocate(size, key, false)) { return output; }
 
     output->EncryptKey(key, password);
 
@@ -166,9 +162,7 @@ std::unique_ptr<SymmetricKey> SymmetricKey::Factory(
     std::unique_ptr<SymmetricKey> output;
     const bool valid = proto::Validate(serialized, VERBOSE);
 
-    if (valid) {
-        output.reset(new SymmetricKey(engine, serialized));
-    }
+    if (valid) { output.reset(new SymmetricKey(engine, serialized)); }
 
     return output;
 }
@@ -201,15 +195,11 @@ std::unique_ptr<SymmetricKey> SymmetricKey::Factory(
 {
     std::unique_ptr<SymmetricKey> output;
 
-    if (!raw.isMemory()) {
-        return output;
-    }
+    if (!raw.isMemory()) { return output; }
 
     output.reset(new SymmetricKey(engine));
 
-    if (!output) {
-        return output;
-    }
+    if (!output) { return output; }
 
     OTPasswordData password("Encrypting a symmetric key.");
     output->EncryptKey(raw, password);
@@ -254,9 +244,7 @@ bool SymmetricKey::Allocate(
         result = container.randomizeMemory(size);
     }
 
-    if (0 > result) {
-        return false;
-    }
+    if (0 > result) { return false; }
 
     return (size == static_cast<std::uint32_t>(result));
 }
@@ -442,9 +430,7 @@ bool SymmetricKey::Encrypt(
         ciphertext,
         plaintext.isPassword());
 
-    if (success && attachKey) {
-        Serialize(*ciphertext.mutable_key());
-    }
+    if (success && attachKey) { Serialize(*ciphertext.mutable_key()); }
 
     return success;
 }
@@ -467,9 +453,7 @@ bool SymmetricKey::Encrypt(
         ciphertext,
         true);
 
-    if (success && attachKey) {
-        Serialize(*ciphertext.mutable_key());
-    }
+    if (success && attachKey) { Serialize(*ciphertext.mutable_key()); }
 
     return success;
 }
@@ -492,9 +476,7 @@ bool SymmetricKey::Encrypt(
         ciphertext,
         true);
 
-    if (success && attachKey) {
-        Serialize(*ciphertext.mutable_key());
-    }
+    if (success && attachKey) { Serialize(*ciphertext.mutable_key()); }
 
     return success;
 }
@@ -517,17 +499,12 @@ bool SymmetricKey::EncryptKey(
     GetPassword(keyPassword, key);
     const auto saltSize = engine_.SaltSize(type);
 
-    if (!salt_) {
-        salt_.reset(new std::string);
-    }
+    if (!salt_) { salt_.reset(new std::string); }
 
     OT_ASSERT(salt_);
 
     if (salt_->size() != saltSize) {
-        if (!Allocate(saltSize, *salt_, true)) {
-
-            return false;
-        }
+        if (!Allocate(saltSize, *salt_, true)) { return false; }
     }
 
     SymmetricKey secondaryKey(
@@ -603,16 +580,12 @@ bool SymmetricKey::Serialize(proto::SymmetricKey& output) const
     output.set_size(key_size_);
     *output.mutable_key() = *encrypted_key_;
 
-    if (salt_) {
-        output.set_salt(*salt_);
-    }
+    if (salt_) { output.set_salt(*salt_); }
 
     output.set_operations(operations_);
     output.set_difficulty(difficulty_);
 
-    if (!encrypted_key_) {
-        return false;
-    }
+    if (!encrypted_key_) { return false; }
 
     return proto::Validate(output, VERBOSE);
 }

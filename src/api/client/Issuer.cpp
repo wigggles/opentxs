@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/api/client/Issuer.hpp"
 #include "opentxs/api/client/Wallet.hpp"
@@ -171,12 +171,12 @@ Issuer::operator std::string() const
 
     output << "* Issued units:\n";
 
-    for (const auto & [ type, pGroup ] : *contractSection) {
+    for (const auto& [type, pGroup] : *contractSection) {
         OT_ASSERT(pGroup);
 
         const auto& group = *pGroup;
 
-        for (const auto & [ id, pClaim ] : group) {
+        for (const auto& [id, pClaim] : group) {
             OT_ASSERT(pClaim);
 
             const auto& notUsed[[maybe_unused]] = id;
@@ -188,12 +188,9 @@ Issuer::operator std::string() const
                    << ": " << claim.Value() << "\n";
             const auto accountSet = account_map_.find(type);
 
-            if (account_map_.end() == accountSet) {
+            if (account_map_.end() == accountSet) { continue; }
 
-                continue;
-            }
-
-            for (const auto & [ unit, accountID ] : accountSet->second) {
+            for (const auto& [unit, accountID] : accountSet->second) {
                 if (unit == unitID) {
                     output << "  * Account ID: " << accountID.str() << "\n";
                 }
@@ -203,7 +200,7 @@ Issuer::operator std::string() const
 
     output << "* Peer requests:\n";
 
-    for (const auto & [ type, workflow ] : peer_requests_) {
+    for (const auto& [type, workflow] : peer_requests_) {
         output << "  * Type: ";
 
         switch (type) {
@@ -235,8 +232,8 @@ Issuer::operator std::string() const
 
         output << "\n";
 
-        for (const auto & [ requestID, it ] : workflow) {
-            const auto & [ replyID, used ] = it;
+        for (const auto& [requestID, it] : workflow) {
+            const auto& [replyID, used] = it;
             output << "    * Request: " << String(requestID)
                    << ", Reply: " << String(replyID) << " ";
 
@@ -261,15 +258,10 @@ std::set<OTIdentifier> Issuer::AccountList(
     std::set<OTIdentifier> output{};
     auto accountSet = account_map_.find(type);
 
-    if (account_map_.end() == accountSet) {
+    if (account_map_.end() == accountSet) { return output; }
 
-        return output;
-    }
-
-    for (const auto & [ unit, accountID ] : accountSet->second) {
-        if (unit == unitID) {
-            output.emplace(accountID);
-        }
+    for (const auto& [unit, accountID] : accountSet->second) {
+        if (unit == unitID) { output.emplace(accountID); }
     }
 
     return output;
@@ -292,7 +284,7 @@ bool Issuer::add_request(
 {
     OT_ASSERT(verify_lock(lock))
 
-    auto[found, it] = find_request(lock, type, requestID);
+    auto [found, it] = find_request(lock, type, requestID);
     const auto& notUsed[[maybe_unused]] = it;
 
     if (found) {
@@ -314,8 +306,8 @@ bool Issuer::AddReply(
     const Identifier& replyID)
 {
     Lock lock(lock_);
-    auto[found, it] = find_request(lock, type, requestID);
-    auto & [ reply, used ] = it->second;
+    auto [found, it] = find_request(lock, type, requestID);
+    auto& [reply, used] = it->second;
 
     if (false == found) {
         otWarn << OT_METHOD << __FUNCTION__ << ": Request " << String(requestID)
@@ -353,7 +345,7 @@ bool Issuer::BailmentInitiated(const Identifier& unitID) const
     otInfo << OT_METHOD << __FUNCTION__ << ": Have " << requests.size()
            << " initiated requests." << std::endl;
 
-    for (const auto & [ requestID, a, b ] : requests) {
+    for (const auto& [requestID, a, b] : requests) {
         const auto& replyID[[maybe_unused]] = a;
         const auto& isUsed[[maybe_unused]] = b;
         std::time_t notUsed{0};
@@ -393,7 +385,7 @@ std::vector<Issuer::BailmentDetails> Issuer::BailmentInstructions(
         proto::PEERREQUEST_BAILMENT,
         (onlyUnused) ? RequestStatus::Unused : RequestStatus::Replied);
 
-    for (const auto & [ requestID, replyID, isUsed ] : replies) {
+    for (const auto& [requestID, replyID, isUsed] : replies) {
         std::time_t notUsed{0};
         const auto& notUsed2[[maybe_unused]] = isUsed;
         auto request = wallet_.PeerRequest(
@@ -406,10 +398,7 @@ std::vector<Issuer::BailmentDetails> Issuer::BailmentInstructions(
 
         OT_ASSERT(request);
 
-        if (request->bailment().unitid() != unitID.str()) {
-
-            continue;
-        }
+        if (request->bailment().unitid() != unitID.str()) { continue; }
 
         auto reply =
             wallet_.PeerReply(nym_id_, replyID, StorageBox::PROCESSEDPEERREPLY);
@@ -440,7 +429,7 @@ std::vector<Issuer::ConnectionDetails> Issuer::ConnectionInfo(
     otInfo << OT_METHOD << __FUNCTION__ << ": Have " << replies.size()
            << " total requests." << std::endl;
 
-    for (const auto & [ requestID, replyID, isUsed ] : replies) {
+    for (const auto& [requestID, replyID, isUsed] : replies) {
         std::time_t notUsed{0};
         const auto& notUsed2[[maybe_unused]] = isUsed;
         auto request = wallet_.PeerRequest(
@@ -489,7 +478,7 @@ bool Issuer::ConnectionInfoInitiated(const proto::ConnectionInfoType type) const
     otInfo << OT_METHOD << __FUNCTION__ << ": Have " << requests.size()
            << " total requests." << std::endl;
 
-    for (const auto & [ requestID, a, b ] : requests) {
+    for (const auto& [requestID, a, b] : requests) {
         const auto& replyID[[maybe_unused]] = a;
         const auto& isUsed[[maybe_unused]] = b;
         std::time_t notUsed{0};
@@ -546,20 +535,14 @@ std::set<std::tuple<OTIdentifier, OTIdentifier, bool>> Issuer::get_requests(
 
     std::set<std::tuple<OTIdentifier, OTIdentifier, bool>> output;
 
-    if (Issuer::RequestStatus::None == state) {
-
-        return output;
-    }
+    if (Issuer::RequestStatus::None == state) { return output; }
 
     const auto map = peer_requests_.find(type);
 
-    if (peer_requests_.end() == map) {
+    if (peer_requests_.end() == map) { return output; }
 
-        return output;
-    }
-
-    for (const auto & [ requestID, data ] : map->second) {
-        const auto & [ replyID, used ] = data;
+    for (const auto& [requestID, data] : map->second) {
+        const auto& [replyID, used] = data;
 
         switch (state) {
             case Issuer::RequestStatus::Unused: {
@@ -606,10 +589,7 @@ OTIdentifier Issuer::PrimaryServer() const
 
     auto nym = wallet_.Nym(issuer_id_);
 
-    if (false == bool(nym)) {
-
-        return Identifier::Factory();
-    }
+    if (false == bool(nym)) { return Identifier::Factory(); }
 
     return nym->Claims().PreferredOTServer();
 }
@@ -622,19 +602,13 @@ bool Issuer::RemoveAccount(
     Lock lock(lock_);
     auto accountSet = account_map_.find(type);
 
-    if (account_map_.end() == accountSet) {
-
-        return false;
-    }
+    if (account_map_.end() == accountSet) { return false; }
     const auto unitId = Identifier::Factory(unitID);
     const auto accountId = Identifier::Factory(accountID);
     auto& accounts = accountSet->second;
     auto it = accounts.find({unitId, accountId});
 
-    if (accounts.end() == it) {
-
-        return false;
-    }
+    if (accounts.end() == it) { return false; }
 
     accounts.erase(it);
 
@@ -646,7 +620,7 @@ std::set<proto::PeerRequestType> Issuer::RequestTypes() const
     Lock lock(lock_);
     std::set<proto::PeerRequestType> output{};
 
-    for (const auto & [ type, map ] : peer_requests_) {
+    for (const auto& [type, map] : peer_requests_) {
         const auto& notUsed[[maybe_unused]] = map;
         output.emplace(type);
     }
@@ -663,8 +637,8 @@ proto::Issuer Issuer::Serialize() const
     output.set_paired(paired_.get());
     output.set_pairingcode(pairing_code_);
 
-    for (const auto & [ type, accountSet ] : account_map_) {
-        for (const auto & [ unitID, accountID ] : accountSet) {
+    for (const auto& [type, accountSet] : account_map_) {
+        for (const auto& [unitID, accountID] : accountSet) {
             auto& map = *output.add_accounts();
             map.set_version(version_);
             map.set_type(type);
@@ -673,13 +647,13 @@ proto::Issuer Issuer::Serialize() const
         }
     }
 
-    for (const auto & [ type, work ] : peer_requests_) {
+    for (const auto& [type, work] : peer_requests_) {
         auto& history = *output.add_peerrequests();
         history.set_version(version_);
         history.set_type(type);
 
-        for (const auto & [ request, data ] : work) {
-            const auto & [ reply, isUsed ] = data;
+        for (const auto& [request, data] : work) {
+            const auto& [reply, isUsed] = data;
             auto& workflow = *history.add_workflow();
             workflow.set_version(version_);
             workflow.set_requestid(request.str());
@@ -708,14 +682,11 @@ bool Issuer::SetUsed(
     const bool isUsed)
 {
     Lock lock(lock_);
-    auto[found, it] = find_request(lock, type, requestID);
-    auto & [ reply, used ] = it->second;
+    auto [found, it] = find_request(lock, type, requestID);
+    auto& [reply, used] = it->second;
     const auto& notUsed[[maybe_unused]] = reply;
 
-    if (false == found) {
-
-        return false;
-    }
+    if (false == found) { return false; }
 
     used = isUsed;
 
@@ -741,4 +712,4 @@ bool Issuer::StoreSecretInitiated() const
 }
 
 Issuer::~Issuer() {}
-}  // namespace opentxs::api::implementation
+}  // namespace opentxs::api::client::implementation

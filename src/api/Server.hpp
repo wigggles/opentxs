@@ -39,7 +39,7 @@
 #ifndef OPENTXS_API_IMPLEMENTATION_SERVER_HPP
 #define OPENTXS_API_IMPLEMENTATION_SERVER_HPP
 
-#include "opentxs/Internal.hpp"
+#include "Internal.hpp"
 
 #include "opentxs/api/Server.hpp"
 #include "opentxs/core/Flag.hpp"

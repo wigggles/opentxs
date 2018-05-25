@@ -39,7 +39,7 @@
 #ifndef OPENTXS_UI_MAILITEM_IMPLEMENTATION_HPP
 #define OPENTXS_UI_MAILITEM_IMPLEMENTATION_HPP
 
-#include "opentxs/Internal.hpp"
+#include "Internal.hpp"
 
 #include "ActivityThreadItem.hpp"
 
@@ -82,5 +82,5 @@ private:
     MailItem& operator=(const MailItem&) = delete;
     MailItem& operator=(MailItem&&) = delete;
 };
-}  // opentxs::ui::implementation
+}  // namespace opentxs::ui::implementation
 #endif  // OPENTXS_UI_MAILITEM_IMPLEMENTATION_HPP

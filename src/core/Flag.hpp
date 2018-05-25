@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CORE_IMPLEMENTATION_FLAG_HPP
 #define OPENTXS_CORE_IMPLEMENTATION_FLAG_HPP
 
-#include "opentxs/Internal.hpp"
+#include "Internal.hpp"
 
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Lockable.hpp"

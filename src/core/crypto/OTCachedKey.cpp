@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/core/crypto/OTCachedKey.hpp"
 
@@ -164,10 +164,7 @@ std::shared_ptr<OTCachedKey> OTCachedKey::CreateMasterPassword(
                 // here, since it asks twice anyway,
                 // when first generating the key.
 
-    if (bGotPassphrase) {
-
-        return pMaster;
-    }
+    if (bGotPassphrase) { return pMaster; }
 
     return {};
 }
@@ -194,9 +191,7 @@ bool OTCachedKey::GetIdentifier(String& strIdentifier) const
 {
     auto id = Identifier::Factory();
 
-    if (!GetIdentifier(id)) {
-        return false;
-    }
+    if (!GetIdentifier(id)) { return false; }
 
     strIdentifier = String(id);
 
@@ -292,9 +287,7 @@ bool OTCachedKey::GetMasterPassword(
     OTPassword* pDerivedKey = nullptr;
     std::unique_ptr<OTPassword> theDerivedAngel;
 
-    if (!key_) {
-        key_.reset(new OTSymmetricKey);
-    }
+    if (!key_) { key_.reset(new OTSymmetricKey); }
 
     OT_ASSERT(key_);
 
@@ -673,9 +666,7 @@ bool OTCachedKey::GetMasterPassword(
         reset_timer(outer);
         shutdown_->Off();
 
-        if (thread_ && thread_->joinable()) {
-            thread_->join();
-        }
+        if (thread_ && thread_->joinable()) { thread_->join(); }
 
         thread_.reset(new std::thread(&OTCachedKey::timeout_thread, this));
 
@@ -719,10 +710,7 @@ bool OTCachedKey::HasHashCheck() const
 {
     Lock lock(general_lock_);
 
-    if (key_) {
-
-        return key_->HasHashCheck();
-    }
+    if (key_) { return key_->HasHashCheck(); }
 
     return false;
 }
@@ -731,10 +719,7 @@ bool OTCachedKey::IsGenerated() const
 {
     Lock lock(general_lock_);
 
-    if (key_) {
-
-        return key_->IsGenerated();
-    }
+    if (key_) { return key_->IsGenerated(); }
 
     return false;
 }
@@ -788,9 +773,7 @@ void OTCachedKey::reset_master_password()
     inner.unlock();
 
     if (key_) {
-        if (IsUsingSystemKeyring()) {
-            OTKeyring::DeleteSecret(secret_id_, "");
-        }
+        if (IsUsingSystemKeyring()) { OTKeyring::DeleteSecret(secret_id_, ""); }
     }
 }
 
@@ -807,9 +790,7 @@ bool OTCachedKey::SerializeFrom(const OTASCIIArmor& ascInput)
 {
     Lock lock(general_lock_);
 
-    if (key_) {
-        return key_->SerializeFrom(ascInput);
-    }
+    if (key_) { return key_->SerializeFrom(ascInput); }
 
     return false;
 }
@@ -818,9 +799,7 @@ bool OTCachedKey::SerializeTo(OTASCIIArmor& ascOutput) const
 {
     Lock lock(general_lock_);
 
-    if (key_) {
-        return key_->SerializeTo(ascOutput);
-    }
+    if (key_) { return key_->SerializeTo(ascOutput); }
 
     return false;
 }
@@ -882,9 +861,7 @@ void OTCachedKey::timeout_thread() const
     master_password_.reset();
     lock.unlock();
 
-    if (IsUsingSystemKeyring()) {
-        OTKeyring::DeleteSecret(secret_id_, "");
-    }
+    if (IsUsingSystemKeyring()) { OTKeyring::DeleteSecret(secret_id_, ""); }
 
     thread_exited_->On();
 }

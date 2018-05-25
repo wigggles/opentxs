@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/api/client/Cash.hpp"
 #include "opentxs/api/client/Pair.hpp"

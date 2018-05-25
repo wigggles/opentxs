@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/core/Account.hpp"
 
@@ -169,9 +169,7 @@ Ledger* Account::LoadInbox(const Nym& nym) const
     auto* box = new Ledger(GetNymID(), GetRealAccountID(), GetRealNotaryID());
     OT_ASSERT(box != nullptr);
 
-    if (box->LoadInbox() && box->VerifyAccount(nym)) {
-        return box;
-    }
+    if (box->LoadInbox() && box->VerifyAccount(nym)) { return box; }
 
     String strNymID(GetNymID()), strAcctID(GetRealAccountID());
     otInfo << "Unable to load or verify inbox:\n"
@@ -186,9 +184,7 @@ Ledger* Account::LoadOutbox(const Nym& nym) const
     auto* box = new Ledger(GetNymID(), GetRealAccountID(), GetRealNotaryID());
     OT_ASSERT(nullptr != box);
 
-    if (box->LoadOutbox() && box->VerifyAccount(nym)) {
-        return box;
-    }
+    if (box->LoadOutbox() && box->VerifyAccount(nym)) { return box; }
 
     String strNymID(GetNymID()), strAcctID(GetRealAccountID());
     otInfo << "Unable to load or verify outbox:\n"
@@ -432,9 +428,7 @@ Account* Account::LoadExistingAccount(
 
     String strDataFolder = "";
     String strAccountPath = "";
-    if (!OTDataFolder::Get(strDataFolder)) {
-        OT_FAIL;
-    }
+    if (!OTDataFolder::Get(strDataFolder)) { OT_FAIL; }
     if (!OTPaths::AppendFolder(
             strAccountPath, strDataFolder, OTFolders::Account())) {
         OT_FAIL;
@@ -612,9 +606,7 @@ bool Account::GenerateNewAccount(
 
 std::int64_t Account::GetBalance() const
 {
-    if (balanceAmount_.Exists()) {
-        return balanceAmount_.ToLong();
-    }
+    if (balanceAmount_.Exists()) { return balanceAmount_.ToLong(); }
     return 0;
 }
 
@@ -829,18 +821,14 @@ std::int32_t Account::ProcessXMLNode(IrrXMLReader*& xml)
     } else if (strNodeName.Compare("inboxHash")) {
 
         String strHash = xml->getAttributeValue("value");
-        if (strHash.Exists()) {
-            inboxHash_->SetString(strHash);
-        }
+        if (strHash.Exists()) { inboxHash_->SetString(strHash); }
         otLog3 << "Account inboxHash: " << strHash << "\n";
 
         retval = 1;
     } else if (strNodeName.Compare("outboxHash")) {
 
         String strHash = xml->getAttributeValue("value");
-        if (strHash.Exists()) {
-            outboxHash_->SetString(strHash);
-        }
+        if (strHash.Exists()) { outboxHash_->SetString(strHash); }
         otLog3 << "Account outboxHash: " << strHash << "\n";
 
         retval = 1;

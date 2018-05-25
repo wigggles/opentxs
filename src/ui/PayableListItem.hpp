@@ -39,7 +39,7 @@
 #ifndef OPENTXS_UI_PAYABLELISTITEM_IMPLEMENTATION_HPP
 #define OPENTXS_UI_PAYABLELISTITEM_IMPLEMENTATION_HPP
 
-#include "opentxs/Internal.hpp"
+#include "Internal.hpp"
 
 #include "ContactListItem.hpp"
 

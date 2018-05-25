@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/storage/tree/Servers.hpp"
 
@@ -80,9 +80,7 @@ void Servers::init(const std::string& hash)
     version_ = serialized->version();
 
     // Upgrade to version 2
-    if (2 > version_) {
-        version_ = 2;
-    }
+    if (2 > version_) { version_ = 2; }
 
     for (const auto& it : serialized->server()) {
         item_map_.emplace(
@@ -113,9 +111,7 @@ bool Servers::save(const std::unique_lock<std::mutex>& lock) const
 
     auto serialized = serialize();
 
-    if (!proto::Validate(serialized, VERBOSE)) {
-        return false;
-    }
+    if (!proto::Validate(serialized, VERBOSE)) { return false; }
 
     return driver_.StoreProto(serialized, root_);
 }

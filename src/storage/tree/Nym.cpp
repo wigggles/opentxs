@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/storage/tree/Nym.hpp"
 
@@ -152,10 +152,7 @@ std::set<std::string> Nym::BlockchainAccountList(
 
     auto it = blockchain_account_types_.find(type);
 
-    if (blockchain_account_types_.end() == it) {
-
-        return {};
-    }
+    if (blockchain_account_types_.end() == it) { return {}; }
 
     return it->second;
 }
@@ -272,9 +269,7 @@ void Nym::init(const std::string& hash)
     version_ = serialized->version();
 
     // Upgrade version
-    if (CURRENT_VERSION > version_) {
-        version_ = CURRENT_VERSION;
-    }
+    if (CURRENT_VERSION > version_) { version_ = CURRENT_VERSION; }
 
     nymid_ = serialized->nymid();
     credentials_ = normalize_hash(serialized->credlist().hash());
@@ -405,10 +400,7 @@ bool Nym::Load(
     alias = alias_;
     checked_->Set(driver_.LoadProto(credentials_, output, false));
 
-    if (!checked_.get()) {
-
-        return false;
-    }
+    if (!checked_.get()) { return false; }
 
     private_->Set(proto::CREDINDEX_PRIVATE == output->mode());
     revision_.store(output->revision());
@@ -675,9 +667,7 @@ bool Nym::save(const Lock& lock) const
 
     auto serialized = serialize();
 
-    if (!proto::Validate(serialized, VERBOSE)) {
-        return false;
-    }
+    if (!proto::Validate(serialized, VERBOSE)) { return false; }
 
     return driver_.StoreProto(serialized, root_);
 }
@@ -1002,9 +992,7 @@ proto::StorageNym Nym::serialize() const
         index.set_version(BLOCKCHAIN_INDEX_VERSION);
         index.set_id(chainType);
 
-        for (const auto& accountID : accountSet) {
-            index.add_list(accountID);
-        }
+        for (const auto& accountID : accountSet) { index.add_list(accountID); }
     }
 
     for (const auto& it : blockchain_accounts_) {
@@ -1110,15 +1098,11 @@ bool Nym::Store(
             const bool saved = driver_.StoreProto<proto::CredentialIndex>(
                 data, credentials_, plaintext);
 
-            if (!saved) {
-                return false;
-            }
+            if (!saved) { return false; }
 
             revision_.store(revision);
 
-            if (!alias.empty()) {
-                alias_ = alias;
-            }
+            if (!alias.empty()) { alias_ = alias; }
         }
     }
 

@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/storage/tree/Seeds.hpp"
 
@@ -88,9 +88,7 @@ void Seeds::init(const std::string& hash)
     version_ = serialized->version();
 
     // Upgrade version
-    if (CURRENT_VERSION > version_) {
-        version_ = CURRENT_VERSION;
-    }
+    if (CURRENT_VERSION > version_) { version_ = CURRENT_VERSION; }
 
     default_seed_ = serialized->defaultseed();
 
@@ -118,9 +116,7 @@ bool Seeds::save(const std::unique_lock<std::mutex>& lock) const
 
     auto serialized = serialize();
 
-    if (!proto::Validate(serialized, VERBOSE)) {
-        return false;
-    }
+    if (!proto::Validate(serialized, VERBOSE)) { return false; }
 
     return driver_.StoreProto(serialized, root_);
 }
@@ -191,17 +187,11 @@ bool Seeds::Store(const proto::Seed& data, const std::string& alias)
         }
     }
 
-    if (!driver_.StoreProto(data, hash)) {
-        return false;
-    }
+    if (!driver_.StoreProto(data, hash)) { return false; }
 
-    if (default_seed_.empty()) {
-        set_default(lock, id);
-    }
+    if (default_seed_.empty()) { set_default(lock, id); }
 
-    if (!alias.empty()) {
-        std::get<1>(metadata) = alias;
-    }
+    if (!alias.empty()) { std::get<1>(metadata) = alias; }
 
     return save(lock);
 }

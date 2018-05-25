@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/core/trade/OTOffer.hpp"
 
@@ -489,8 +489,8 @@ void OTOffer::Release()
 
 void OTOffer::InitOffer()
 {
-    m_strContractType.Set(
-        "OFFER");  // in practice should never appear. BID/ASK will overwrite.
+    m_strContractType.Set("OFFER");  // in practice should never appear. BID/ASK
+                                     // will overwrite.
 
     // This pointer will get wiped anytime Release() is called... which means
     // anytime LoadContractFromString()

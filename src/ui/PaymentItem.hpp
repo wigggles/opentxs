@@ -39,7 +39,7 @@
 #ifndef OPENTXS_UI_PAYMENTITEM_IMPLEMENTATION_HPP
 #define OPENTXS_UI_PAYMENTITEM_IMPLEMENTATION_HPP
 
-#include "opentxs/Internal.hpp"
+#include "Internal.hpp"
 
 #include "ActivityThreadItem.hpp"
 
@@ -78,5 +78,5 @@ private:
     PaymentItem& operator=(const PaymentItem&) = delete;
     PaymentItem& operator=(PaymentItem&&) = delete;
 };
-}  // opentxs::ui::implementation
+}  // namespace opentxs::ui::implementation
 #endif  // OPENTXS_UI_PAYMENTITEM_IMPLEMENTATION_HPP

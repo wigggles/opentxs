@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/core/Contract.hpp"
 
@@ -96,8 +96,8 @@ bool Contract::DearmorAndTrim(
 
     strOutput.Set(strInput);
 
-    if (false ==
-        strOutput.DecodeIfArmored(false))  // bEscapedIsAllowed=true by default.
+    if (false == strOutput.DecodeIfArmored(false))  // bEscapedIsAllowed=true by
+                                                    // default.
     {
         otLog5 << __FUNCTION__
                << ": Input string apparently was encoded and "
@@ -1177,8 +1177,8 @@ bool Contract::LoadContractFromString(const String& theStr)
 
     String strContract(theStr);
 
-    if (false ==
-        strContract.DecodeIfArmored())  // bEscapedIsAllowed=true by default.
+    if (false == strContract.DecodeIfArmored())  // bEscapedIsAllowed=true by
+                                                 // default.
     {
         otErr << __FUNCTION__
               << ": ERROR: Input string apparently was encoded "
@@ -1244,9 +1244,8 @@ bool Contract::ParseRawFile()
     do {
         // Just a fresh start at the top of the loop block... probably
         // unnecessary.
-        memset(
-            buffer1, 0, 2100);  // todo remove this in optimization. (might be
-                                // removed already...)
+        memset(buffer1, 0, 2100);  // todo remove this in optimization. (might
+                                   // be removed already...)
 
         // the call returns true if there's more to read, and false if there
         // isn't.
@@ -1392,12 +1391,12 @@ bool Contract::ParseRawFile()
                         }
 
                         OT_ASSERT(nullptr != pSig);
-                        if (false ==
-                            pSig->getMetaData().SetMetadata(
-                                line.at(9),
-                                line.at(10),
-                                line.at(11),
-                                line.at(12)))  // "knms" from "Meta:    knms"
+                        if (false == pSig->getMetaData().SetMetadata(
+                                         line.at(9),
+                                         line.at(10),
+                                         line.at(11),
+                                         line.at(12)))  // "knms" from "Meta:
+                                                        // knms"
                         {
                             otOut << "Error in signature for contract "
                                   << m_strFilename
@@ -1485,9 +1484,7 @@ bool Contract::LoadContractXML()
 {
     std::int32_t retProcess = 0;
 
-    if (!m_xmlUnsigned.Exists()) {
-        return false;
-    }
+    if (!m_xmlUnsigned.Exists()) { return false; }
 
     m_xmlUnsigned.reset();
 
@@ -1869,9 +1866,7 @@ bool Contract::LoadEncodedTextFieldByName(
             std::string first = it.first;
             String strTemp = xml->getAttributeValue(first.c_str());
 
-            if (strTemp.Exists()) {
-                mapExtraVars[first] = strTemp.Get();
-            }
+            if (strTemp.Exists()) { mapExtraVars[first] = strTemp.Get(); }
         }
     }
     // Any attribute names passed in, now have their corresponding
@@ -2003,9 +1998,9 @@ bool Contract::CreateContract(const String& strContract, const Nym& theSigner)
         if (LoadContractFromString(strTemp))  // The ultimate test is, once
         {                                     // we've created the serialized
             auto NEW_ID =
-                Identifier::Factory();  // string for this contract, is
-            CalculateContractID(
-                NEW_ID);  // to then load it up from that string.
+                Identifier::Factory();    // string for this contract, is
+            CalculateContractID(NEW_ID);  // to then load it up from that
+                                          // string.
             m_ID = NEW_ID;
 
             return true;

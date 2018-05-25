@@ -39,7 +39,7 @@
 #ifndef OPENTXS_STORAGE_TREE_NYM_HPP
 #define OPENTXS_STORAGE_TREE_NYM_HPP
 
-#include "opentxs/Internal.hpp"
+#include "Internal.hpp"
 
 #include "opentxs/api/Editor.hpp"
 #include "opentxs/core/Flag.hpp"

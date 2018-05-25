@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/contact/ContactItem.hpp"
 #include "opentxs/core/Flag.hpp"

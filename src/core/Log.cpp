@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/core/Log.hpp"
 
@@ -159,9 +159,7 @@ int OTLogStream::overflow(int c)
     rLock lock(lock_);
 
     pBuffer[next++] = c;
-    if (c != '\n' && next < 1000) {
-        return 0;
-    }
+    if (c != '\n' && next < 1000) { return 0; }
 
     pBuffer[next++] = '\0';
     next = 0;
@@ -217,9 +215,7 @@ bool Log::Init(
             api::Settings config(OTPaths::GlobalConfigFile());
 
             config.Reset();
-            if (!config.Load()) {
-                return false;
-            }
+            if (!config.Load()) { return false; }
 
             bool bIsNew(false);
             if (!config.CheckSet_str(
@@ -231,9 +227,7 @@ bool Log::Init(
                 return false;
             }
 
-            if (!config.Save()) {
-                return false;
-            }
+            if (!config.Save()) { return false; }
             config.Reset();
         }
 
@@ -282,9 +276,7 @@ bool Log::Cleanup()
 bool Log::CheckLogger(Log* pLogger)
 {
 
-    if (nullptr != pLogger) {
-        rLock lock(Log::pLogger->lock_);
-    }
+    if (nullptr != pLogger) { rLock lock(Log::pLogger->lock_); }
 
     if (nullptr != pLogger && pLogger->m_bInitialized) return true;
 
@@ -353,17 +345,12 @@ bool Log::LogToFile(const String& strOutput)
     // lets check if we are Initialized in this context
     if (bHaveLogger) CheckLogger(Log::pLogger);
 
-    if (nullptr != pLogger) {
-        rLock lock(Log::pLogger->lock_);
-    }
+    if (nullptr != pLogger) { rLock lock(Log::pLogger->lock_); }
 
     bool bSuccess = false;
 
     if (bHaveLogger) {
-        if (false == pLogger->write_log_file_) {
-
-            return true;
-        }
+        if (false == pLogger->write_log_file_) { return true; }
 
         // Append to logfile
         if ((strOutput.Exists()) && (Log::pLogger->m_strLogFilePath.Exists())) {
@@ -386,9 +373,7 @@ String Log::GetMemlogAtIndex(std::int32_t nIndex)
     // lets check if we are Initialized in this context
     CheckLogger(Log::pLogger);
 
-    if (nullptr != pLogger) {
-        rLock lock(Log::pLogger->lock_);
-    }
+    if (nullptr != pLogger) { rLock lock(Log::pLogger->lock_); }
 
     std::uint32_t uIndex = static_cast<uint32_t>(nIndex);
 
@@ -417,9 +402,7 @@ std::int32_t Log::GetMemlogSize()
     // lets check if we are Initialized in this context
     CheckLogger(Log::pLogger);
 
-    if (nullptr != pLogger) {
-        rLock lock(Log::pLogger->lock_);
-    }
+    if (nullptr != pLogger) { rLock lock(Log::pLogger->lock_); }
 
     return static_cast<std::int32_t>(Log::pLogger->logDeque.size());
 }
@@ -429,9 +412,7 @@ String Log::PeekMemlogFront()
     // lets check if we are Initialized in this context
     CheckLogger(Log::pLogger);
 
-    if (nullptr != pLogger) {
-        rLock lock(Log::pLogger->lock_);
-    }
+    if (nullptr != pLogger) { rLock lock(Log::pLogger->lock_); }
 
     if (Log::pLogger->logDeque.size() <= 0) return nullptr;
 
@@ -453,9 +434,7 @@ String Log::PeekMemlogBack()
     // lets check if we are Initialized in this context
     CheckLogger(Log::pLogger);
 
-    if (nullptr != pLogger) {
-        rLock lock(Log::pLogger->lock_);
-    }
+    if (nullptr != pLogger) { rLock lock(Log::pLogger->lock_); }
 
     if (Log::pLogger->logDeque.size() <= 0) return nullptr;
 
@@ -478,9 +457,7 @@ bool Log::PopMemlogFront()
     // lets check if we are Initialized in this context
     CheckLogger(Log::pLogger);
 
-    if (nullptr != pLogger) {
-        rLock lock(Log::pLogger->lock_);
-    }
+    if (nullptr != pLogger) { rLock lock(Log::pLogger->lock_); }
 
     if (Log::pLogger->logDeque.size() <= 0) return false;
 
@@ -499,9 +476,7 @@ bool Log::PopMemlogBack()
     // lets check if we are Initialized in this context
     CheckLogger(Log::pLogger);
 
-    if (nullptr != pLogger) {
-        rLock lock(Log::pLogger->lock_);
-    }
+    if (nullptr != pLogger) { rLock lock(Log::pLogger->lock_); }
 
     if (Log::pLogger->logDeque.size() <= 0) return false;
 
@@ -520,9 +495,7 @@ bool Log::PushMemlogFront(const String& strLog)
     // lets check if we are Initialized in this context
     CheckLogger(Log::pLogger);
 
-    if (nullptr != pLogger) {
-        rLock lock(Log::pLogger->lock_);
-    }
+    if (nullptr != pLogger) { rLock lock(Log::pLogger->lock_); }
 
     OT_ASSERT(strLog.Exists());
 
@@ -668,9 +641,7 @@ void Log::vOutput(std::int32_t nVerbosity, const char* szOutput, ...)
     // lets check if we are Initialized in this context
     if (bHaveLogger) CheckLogger(Log::pLogger);
 
-    if (nullptr != pLogger) {
-        rLock lock(Log::pLogger->lock_);
-    }
+    if (nullptr != pLogger) { rLock lock(Log::pLogger->lock_); }
 
     // If log level is 0, and verbosity of this message is 2, don't bother
     // logging it.
@@ -704,9 +675,7 @@ void Log::vError(const char* szError, ...)
     // lets check if we are Initialized in this context
     if (bHaveLogger) CheckLogger(Log::pLogger);
 
-    if (nullptr != pLogger) {
-        rLock lock(Log::pLogger->lock_);
-    }
+    if (nullptr != pLogger) { rLock lock(Log::pLogger->lock_); }
 
     if ((nullptr == szError)) return;
 
@@ -739,9 +708,7 @@ void Log::Error(const char* szError)
     // lets check if we are Initialized in this context
     if (bHaveLogger) CheckLogger(Log::pLogger);
 
-    if (nullptr != pLogger) {
-        rLock lock(Log::pLogger->lock_);
-    }
+    if (nullptr != pLogger) { rLock lock(Log::pLogger->lock_); }
 
     if ((nullptr == szError)) return;
 
@@ -771,9 +738,7 @@ void Log::Errno(const char* szLocation)  // stderr
     // lets check if we are Initialized in this context
     if (bHaveLogger) CheckLogger(Log::pLogger);
 
-    if (nullptr != pLogger) {
-        rLock lock(Log::pLogger->lock_);
-    }
+    if (nullptr != pLogger) { rLock lock(Log::pLogger->lock_); }
 
     const std::int32_t errnum = errno;
     char buf[128];
@@ -851,7 +816,7 @@ static const bool SET_TERMINATE __attribute__((unused)) =
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
-}
+}  // namespace
 
 // This is our custom std::terminate(). Also called for uncaught exceptions.
 void ot_terminate()

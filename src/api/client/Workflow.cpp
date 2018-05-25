@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/api/client/Workflow.hpp"
 #include "opentxs/api/storage/Storage.hpp"

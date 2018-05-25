@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/core/crypto/OTEnvelope.hpp"
 
@@ -86,10 +86,7 @@ OTEnvelope::OTEnvelope(const OTASCIIArmor& theArmoredText)
 
 bool OTEnvelope::GetCiphertext(OTASCIIArmor& theArmoredText) const
 {
-    if (ciphertext_->empty()) {
-
-        return false;
-    }
+    if (ciphertext_->empty()) { return false; }
 
     return theArmoredText.SetData(ciphertext_.get(), true);
 }
@@ -363,8 +360,8 @@ bool OTEnvelope::Decrypt(
 
     const bool bDecrypted = OT::App().Crypto().AES().Decrypt(
         theRawSymmetricKey,  // The symmetric key, in clear form.
-        static_cast<const char*>(
-            theCipherText->GetPointer()),  // This is the Ciphertext.
+        static_cast<const char*>(theCipherText->GetPointer()),  // This is the
+                                                                // Ciphertext.
         theCipherText->GetSize(),
         theIV,
         plaintext);  // OUTPUT. (Recovered plaintext.) You can pass
@@ -443,10 +440,7 @@ bool OTEnvelope::Open(
     String& theOutput,
     const OTPasswordData* pPWData)
 {
-    if (ciphertext_->empty()) {
-
-        return false;
-    }
+    if (ciphertext_->empty()) { return false; }
 
     if (nullptr == pPWData) {
         OTPasswordData password("Decrypt this document.");

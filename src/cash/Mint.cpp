@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/cash/Mint.hpp"
 
@@ -140,7 +140,7 @@ Mint* Mint::MintFactory(
     return pMint;
 }
 
-    // SUBCLASSES OF OTMINT FOR EACH DIGITAL CASH ALGORITHM.
+// SUBCLASSES OF OTMINT FOR EACH DIGITAL CASH ALGORITHM.
 
 #if OT_CASH_USING_MAGIC_MONEY
 // Todo:  Someday...
@@ -563,9 +563,7 @@ std::int64_t Mint::GetLargestDenomination(int64_t lAmount)
 std::int64_t Mint::GetDenomination(std::int32_t nIndex)
 {
     // index out of bounds.
-    if (nIndex > (m_nDenominationCount - 1)) {
-        return 0;
-    }
+    if (nIndex > (m_nDenominationCount - 1)) { return 0; }
 
     std::int32_t nIterateIndex = 0;
 

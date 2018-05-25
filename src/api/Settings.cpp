@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/api/Settings.hpp"
 
@@ -85,9 +85,7 @@ Settings::Settings(const String& strConfigFilePath)
         OT_FAIL;
     }
 
-    if (!Init()) {
-        OT_FAIL;
-    }
+    if (!Init()) { OT_FAIL; }
 }
 
 Settings::Settings()
@@ -480,8 +478,8 @@ bool Settings::Set_str(
         strSection.Get(), strKey.Get(), szValue, szComment, true);
     if (0 > rc) return false;
 
-    if (nullptr ==
-        szValue)  // We set the key's value to null, thus removing it.
+    if (nullptr == szValue)  // We set the key's value to null, thus removing
+                             // it.
     {
         if (bOldKeyExist)
             out_bNewOrUpdate = true;

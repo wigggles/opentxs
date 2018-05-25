@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/core/Nym.hpp"
 
@@ -179,9 +179,8 @@ Nym::Nym(const NymParameters& nymParameters)
 
     SetDescription(source_->Description());
 
-    m_mapCredentialSets.insert(
-        std::pair<std::string, CredentialSet*>(
-            pNewCredentialSet->GetMasterCredID().Get(), pNewCredentialSet));
+    m_mapCredentialSets.insert(std::pair<std::string, CredentialSet*>(
+        pNewCredentialSet->GetMasterCredID().Get(), pNewCredentialSet));
 
     SaveCredentialIDs();
     SaveSignedNymfile(*this);
@@ -255,9 +254,7 @@ bool Nym::AddClaim(const Claim& claim)
 {
     Lock lock(lock_);
 
-    if (false == bool(contact_data_)) {
-        init_claims(lock);
-    }
+    if (false == bool(contact_data_)) { init_claims(lock); }
 
     contact_data_.reset(new ContactData(contact_data_->AddItem(claim)));
 
@@ -274,20 +271,14 @@ bool Nym::AddContract(
 {
     const std::string id(String(instrumentDefinitionID).Get());
 
-    if (id.empty()) {
-
-        return false;
-    }
+    if (id.empty()) { return false; }
 
     Lock lock(lock_);
 
-    if (false == bool(contact_data_)) {
-        init_claims(lock);
-    }
+    if (false == bool(contact_data_)) { init_claims(lock); }
 
-    contact_data_.reset(
-        new ContactData(
-            contact_data_->AddContract(id, currency, primary, active)));
+    contact_data_.reset(new ContactData(
+        contact_data_->AddContract(id, currency, primary, active)));
 
     OT_ASSERT(contact_data_);
 
@@ -299,15 +290,11 @@ bool Nym::AddEmail(
     const bool primary,
     const bool active)
 {
-    if (value.empty()) {
-        return false;
-    }
+    if (value.empty()) { return false; }
 
     Lock lock(lock_);
 
-    if (false == bool(contact_data_)) {
-        init_claims(lock);
-    }
+    if (false == bool(contact_data_)) { init_claims(lock); }
 
     contact_data_.reset(
         new ContactData(contact_data_->AddEmail(value, primary, active)));
@@ -334,21 +321,14 @@ bool Nym::AddPaymentCode(
 {
     const auto paymentCode = code.asBase58();
 
-    if (paymentCode.empty()) {
-
-        return false;
-    }
+    if (paymentCode.empty()) { return false; }
 
     Lock lock(lock_);
 
-    if (false == bool(contact_data_)) {
-        init_claims(lock);
-    }
+    if (false == bool(contact_data_)) { init_claims(lock); }
 
-    contact_data_.reset(
-        new ContactData(
-            contact_data_->AddPaymentCode(
-                paymentCode, currency, primary, active)));
+    contact_data_.reset(new ContactData(
+        contact_data_->AddPaymentCode(paymentCode, currency, primary, active)));
 
     OT_ASSERT(contact_data_);
 
@@ -360,15 +340,11 @@ bool Nym::AddPhoneNumber(
     const bool primary,
     const bool active)
 {
-    if (value.empty()) {
-        return false;
-    }
+    if (value.empty()) { return false; }
 
     Lock lock(lock_);
 
-    if (false == bool(contact_data_)) {
-        init_claims(lock);
-    }
+    if (false == bool(contact_data_)) { init_claims(lock); }
 
     contact_data_.reset(
         new ContactData(contact_data_->AddPhoneNumber(value, primary, active)));
@@ -382,9 +358,7 @@ bool Nym::AddPreferredOTServer(const Identifier& id, const bool primary)
 {
     Lock lock(lock_);
 
-    if (false == bool(contact_data_)) {
-        init_claims(lock);
-    }
+    if (false == bool(contact_data_)) { init_claims(lock); }
 
     contact_data_.reset(
         new ContactData(contact_data_->AddPreferredOTServer(id, primary)));
@@ -400,20 +374,14 @@ bool Nym::AddSocialMediaProfile(
     const bool primary,
     const bool active)
 {
-    if (value.empty()) {
-        return false;
-    }
+    if (value.empty()) { return false; }
 
     Lock lock(lock_);
 
-    if (false == bool(contact_data_)) {
-        init_claims(lock);
-    }
+    if (false == bool(contact_data_)) { init_claims(lock); }
 
-    contact_data_.reset(
-        new ContactData(
-            contact_data_->AddSocialMediaProfile(
-                value, type, primary, active)));
+    contact_data_.reset(new ContactData(
+        contact_data_->AddSocialMediaProfile(value, type, primary, active)));
 
     OT_ASSERT(contact_data_);
 
@@ -446,9 +414,7 @@ std::string Nym::BestEmail() const
 {
     Lock lock(lock_);
 
-    if (false == bool(contact_data_)) {
-        init_claims(lock);
-    }
+    if (false == bool(contact_data_)) { init_claims(lock); }
 
     OT_ASSERT(contact_data_);
 
@@ -458,9 +424,7 @@ std::string Nym::BestEmail() const
 std::string Nym::BestPhoneNumber() const
 {
     Lock lock(lock_);
-    if (false == bool(contact_data_)) {
-        init_claims(lock);
-    }
+    if (false == bool(contact_data_)) { init_claims(lock); }
 
     OT_ASSERT(contact_data_);
 
@@ -470,9 +434,7 @@ std::string Nym::BestPhoneNumber() const
 std::string Nym::BestSocialMediaProfile(const proto::ContactItemType type) const
 {
     Lock lock(lock_);
-    if (false == bool(contact_data_)) {
-        init_claims(lock);
-    }
+    if (false == bool(contact_data_)) { init_claims(lock); }
 
     OT_ASSERT(contact_data_);
 
@@ -509,9 +471,7 @@ const class ContactData& Nym::Claims() const
 {
     Lock lock(lock_);
 
-    if (false == bool(contact_data_)) {
-        init_claims(lock);
-    }
+    if (false == bool(contact_data_)) { init_claims(lock); }
 
     OT_ASSERT(contact_data_);
 
@@ -560,9 +520,7 @@ std::set<OTIdentifier> Nym::Contracts(
 {
     Lock lock(lock_);
 
-    if (false == bool(contact_data_)) {
-        init_claims(lock);
-    }
+    if (false == bool(contact_data_)) { init_claims(lock); }
 
     OT_ASSERT(contact_data_);
 
@@ -573,9 +531,7 @@ bool Nym::DeleteClaim(const Identifier& id)
 {
     Lock lock(lock_);
 
-    if (false == bool(contact_data_)) {
-        init_claims(lock);
-    }
+    if (false == bool(contact_data_)) { init_claims(lock); }
 
     contact_data_.reset(new ContactData(contact_data_->Delete(id)));
 
@@ -644,9 +600,7 @@ std::string Nym::EmailAddresses(bool active) const
 {
     Lock lock(lock_);
 
-    if (false == bool(contact_data_)) {
-        init_claims(lock);
-    }
+    if (false == bool(contact_data_)) { init_claims(lock); }
 
     OT_ASSERT(contact_data_);
 
@@ -788,9 +742,7 @@ Message* Nym::GetOutpaymentsByTransNum(
     std::unique_ptr<OTPayment>* pReturnPayment /*=nullptr*/,
     std::int32_t* pnReturnIndex /*=nullptr*/) const
 {
-    if (nullptr != pnReturnIndex) {
-        *pnReturnIndex = -1;
-    }
+    if (nullptr != pnReturnIndex) { *pnReturnIndex = -1; }
 
     const std::int32_t nCount = GetOutpaymentsCount();
 
@@ -1070,9 +1022,7 @@ bool Nym::hasCapability(const NymCapability& capability) const
         if (nullptr != it.second) {
             const CredentialSet& credSet = *it.second;
 
-            if (credSet.hasCapability(capability)) {
-                return true;
-            }
+            if (credSet.hasCapability(capability)) { return true; }
         }
     }
 
@@ -1084,12 +1034,11 @@ void Nym::init_claims(const Lock& lock) const
     OT_ASSERT(verify_lock(lock));
 
     const std::string nymID = String(m_nymID).Get();
-    contact_data_.reset(
-        new class ContactData(
-            nymID,
-            NYM_CONTACT_DATA_VERSION,
-            NYM_CONTACT_DATA_VERSION,
-            ContactData::SectionMap()));
+    contact_data_.reset(new class ContactData(
+        nymID,
+        NYM_CONTACT_DATA_VERSION,
+        NYM_CONTACT_DATA_VERSION,
+        ContactData::SectionMap()));
 
     OT_ASSERT(contact_data_);
 
@@ -1138,9 +1087,8 @@ bool Nym::LoadCredentialIndex(const serializedCredentialIndex& index)
         CredentialSet* newSet = new CredentialSet(mode, it);
 
         if (nullptr != newSet) {
-            m_mapCredentialSets.insert(
-                std::pair<std::string, CredentialSet*>(
-                    newSet->GetMasterCredID().Get(), newSet));
+            m_mapCredentialSets.insert(std::pair<std::string, CredentialSet*>(
+                newSet->GetMasterCredID().Get(), newSet));
         }
     }
 
@@ -1148,9 +1096,8 @@ bool Nym::LoadCredentialIndex(const serializedCredentialIndex& index)
         CredentialSet* newSet = new CredentialSet(mode, it);
 
         if (nullptr != newSet) {
-            m_mapCredentialSets.insert(
-                std::pair<std::string, CredentialSet*>(
-                    newSet->GetMasterCredID().Get(), newSet));
+            m_mapCredentialSets.insert(std::pair<std::string, CredentialSet*>(
+                newSet->GetMasterCredID().Get(), newSet));
         }
     }
 
@@ -1208,9 +1155,7 @@ bool Nym::LoadNymFromString(
     const auto serverMode = OT::App().ServerMode();
     Identifier serverID{};
 
-    if (serverMode) {
-        serverID = OT::App().Server().ID();
-    }
+    if (serverMode) { serverID = OT::App().Server().ID(); }
 
     // parse the file until end reached
     while (xml && xml->read()) {
@@ -1284,9 +1229,9 @@ bool Nym::LoadNymFromString(
                         m_listRevokedIDs.begin(),
                         m_listRevokedIDs.end(),
                         strRevokedID.Get());
-                    if (iter ==
-                        m_listRevokedIDs.end())  // It's not already there,
-                                                 // so it's safe to add it.
+                    if (iter == m_listRevokedIDs.end())  // It's not already
+                                                         // there, so it's safe
+                                                         // to add it.
                         m_listRevokedIDs.push_back(
                             strRevokedID.Get());  // todo optimize.
                 } else if (strNodeName.Compare("masterCredential")) {
@@ -1300,9 +1245,9 @@ bool Nym::LoadNymFromString(
                     GetIdentifier(strNymID);
                     CredentialSet* pCredential = nullptr;
 
-                    if (nullptr ==
-                        pMapCredentials)  // pMapCredentials is an option
-                                          // that allows you to read
+                    if (nullptr == pMapCredentials)  // pMapCredentials is an
+                                                     // option that allows you
+                                                     // to read
                         // credentials from the map instead
                         // of from local storage. (While
                         // loading the Nym...) In this
@@ -1361,12 +1306,10 @@ bool Nym::LoadNymFromString(
                         mapOfCredentialSets* pMap =
                             bValid ? &m_mapCredentialSets : &m_mapRevokedSets;
                         auto iter = pMap->find(strID.Get());  // todo optimize.
-                        if (iter ==
-                            pMap->end())  // It's not already there, so it's
-                                          // safe to add it.
-                            pMap->insert(
-                                std::pair<std::string, CredentialSet*>(
-                                    strID.Get(), pCredential));  // <=====
+                        if (iter == pMap->end())  // It's not already there, so
+                                                  // it's safe to add it.
+                            pMap->insert(std::pair<std::string, CredentialSet*>(
+                                strID.Get(), pCredential));  // <=====
                         else {
                             otErr << __FUNCTION__
                                   << ": While loading credential (" << strID
@@ -1604,16 +1547,15 @@ bool Nym::LoadNymFromString(
 
                     if (!tempNotaryID.Exists() ||
                         !Contract::LoadEncodedTextField(xml, strTemp)) {
-                        otErr << __FUNCTION__ << ": Error: transactionNums "
-                                                 "field without value.\n";
+                        otErr << __FUNCTION__
+                              << ": Error: transactionNums "
+                                 "field without value.\n";
                         return false;  // error condition
                     }
 
                     NumList theNumList;
 
-                    if (strTemp.Exists()) {
-                        theNumList.Add(strTemp);
-                    }
+                    if (strTemp.Exists()) { theNumList.Add(strTemp); }
 
                     TransactionNumber lTemp = 0;
 
@@ -1751,9 +1693,7 @@ bool Nym::LoadNymFromString(
                     }
                     NumList theNumList;
 
-                    if (strTemp.Exists()) {
-                        theNumList.Add(strTemp);
-                    }
+                    if (strTemp.Exists()) { theNumList.Add(strTemp); }
 
                     RequestNumber lTemp = 0;
 
@@ -1989,9 +1929,7 @@ bool Nym::LoadNymFromString(
         }  // switch
     }      // while
 
-    if (converted) {
-        m_strVersion = "1.1";
-    }
+    if (converted) { m_strVersion = "1.1"; }
 
     return bSuccess;
 }
@@ -2067,9 +2005,7 @@ Nym* Nym::LoadPrivateNym(
 // gibberish itself.
 bool Nym::LoadPublicKey()
 {
-    if (LoadCredentials() && (GetMasterCredentialCount() > 0)) {
-        return true;
-    }
+    if (LoadCredentials() && (GetMasterCredentialCount() > 0)) { return true; }
     otInfo << __FUNCTION__ << ": Failure.\n";
     return false;
 }
@@ -2127,9 +2063,7 @@ bool Nym::LoadSignedNymfile(const Nym& SIGNER_NYM)
     const bool loaded =
         LoadNymFromString(theNymfile.GetFilePayload(), converted);
 
-    if (!loaded) {
-        return false;
-    }
+    if (!loaded) { return false; }
 
     if (converted) {
         // This will ensure that none of the old tags will be present the next
@@ -2170,18 +2104,13 @@ std::string Nym::Name() const
 {
     Lock lock(lock_);
 
-    if (false == bool(contact_data_)) {
-        init_claims(lock);
-    }
+    if (false == bool(contact_data_)) { init_claims(lock); }
 
     OT_ASSERT(contact_data_);
 
     std::string output = contact_data_->Name();
 
-    if (false == output.empty()) {
-
-        return output;
-    }
+    if (false == output.empty()) { return output; }
 
     return alias_;
 }
@@ -2209,19 +2138,13 @@ bool Nym::Path(proto::HDPath& output) const
 std::string Nym::PaymentCode() const
 {
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-    if (!source_) {
-        return "";
-    }
+    if (!source_) { return ""; }
 
-    if (proto::SOURCETYPE_BIP47 != source_->Type()) {
-        return "";
-    }
+    if (proto::SOURCETYPE_BIP47 != source_->Type()) { return ""; }
 
     auto serialized = source_->Serialize();
 
-    if (!serialized) {
-        return "";
-    }
+    if (!serialized) { return ""; }
 
     auto paymentCode = PaymentCode::Factory(serialized->paymentcode());
 
@@ -2236,9 +2159,7 @@ std::string Nym::PhoneNumbers(bool active) const
 {
     Lock lock(lock_);
 
-    if (false == bool(contact_data_)) {
-        init_claims(lock);
-    }
+    if (false == bool(contact_data_)) { init_claims(lock); }
 
     OT_ASSERT(contact_data_);
 
@@ -2286,9 +2207,8 @@ bool Nym::ReEncryptPrivateCredentials(
         CredentialSet* pCredential = it.second;
         OT_ASSERT(nullptr != pCredential);
 
-        if (false ==
-            pCredential->ReEncryptPrivateCredentials(
-                *pExportPassphrase, bImporting))
+        if (false == pCredential->ReEncryptPrivateCredentials(
+                         *pExportPassphrase, bImporting))
             return false;
     }
 
@@ -2474,9 +2394,7 @@ void Nym::revoke_contact_credentials(const Lock& lock)
         }
     }
 
-    for (auto& it : revokedIDs) {
-        m_listRevokedIDs.push_back(it);
-    }
+    for (auto& it : revokedIDs) { m_listRevokedIDs.push_back(it); }
 }
 
 void Nym::revoke_verification_credentials(const Lock& lock)
@@ -2491,9 +2409,7 @@ void Nym::revoke_verification_credentials(const Lock& lock)
         }
     }
 
-    for (auto& it : revokedIDs) {
-        m_listRevokedIDs.push_back(it);
-    }
+    for (auto& it : revokedIDs) { m_listRevokedIDs.push_back(it); }
 }
 
 std::shared_ptr<const proto::Credential> Nym::RevokedCredentialContents(
@@ -2519,9 +2435,7 @@ bool Nym::SaveCredentialIDs() const
         SerializeCredentialIndex(CREDENTIAL_INDEX_MODE_ONLY_IDS);
     const bool valid = proto::Validate(index, VERBOSE);
 
-    if (!valid) {
-        return false;
-    }
+    if (!valid) { return false; }
 
     if (!OT::App().DB().Store(index, alias_)) {
         otErr << __FUNCTION__ << ": Failure trying to store "
@@ -2766,9 +2680,7 @@ serializedCredentialIndex Nym::SerializeCredentialIndex(
     if (CREDENTIAL_INDEX_MODE_ONLY_IDS == mode) {
         index.set_mode(mode_);
 
-        if (proto::CREDINDEX_PRIVATE == mode_) {
-            index.set_index(index_);
-        }
+        if (proto::CREDINDEX_PRIVATE == mode_) { index.set_index(index_); }
     } else {
         index.set_mode(proto::CREDINDEX_PUBLIC);
     }
@@ -2870,9 +2782,7 @@ bool Nym::SetCommonName(const std::string& name)
 {
     Lock lock(lock_);
 
-    if (false == bool(contact_data_)) {
-        init_claims(lock);
-    }
+    if (false == bool(contact_data_)) { init_claims(lock); }
 
     contact_data_.reset(new ContactData(contact_data_->SetCommonName(name)));
 
@@ -2960,9 +2870,7 @@ bool Nym::SetScope(
 {
     Lock lock(lock_);
 
-    if (false == bool(contact_data_)) {
-        init_claims(lock);
-    }
+    if (false == bool(contact_data_)) { init_claims(lock); }
 
     if (proto::CITEMTYPE_UNKNOWN != contact_data_->Type()) {
         contact_data_.reset(
@@ -3003,9 +2911,7 @@ std::string Nym::SocialMediaProfiles(
 {
     Lock lock(lock_);
 
-    if (false == bool(contact_data_)) {
-        init_claims(lock);
-    }
+    if (false == bool(contact_data_)) { init_claims(lock); }
 
     OT_ASSERT(contact_data_);
 
@@ -3031,9 +2937,7 @@ std::unique_ptr<OTPassword> Nym::TransportKey(Data& pubkey) const
             const CredentialSet& credSet = *it.second;
             found = credSet.TransportKey(pubkey, *privateKey);
 
-            if (found) {
-                break;
-            }
+            if (found) { break; }
         }
     }
 
@@ -3048,9 +2952,7 @@ bool Nym::update_nym(const Lock& lock, const std::int32_t version)
 
     if (VerifyPseudonym()) {
         // Upgrade version
-        if (version > version_) {
-            version_ = version;
-        }
+        if (version > version_) { version_ = version; }
 
         ++revision_;
 
@@ -3077,9 +2979,7 @@ bool Nym::Verify(const Data& plaintext, const proto::Signature& sig) const
 {
     for (auto& it : m_mapCredentialSets) {
         if (nullptr != it.second) {
-            if (it.second->Verify(plaintext, sig)) {
-                return true;
-            }
+            if (it.second->Verify(plaintext, sig)) { return true; }
         }
     }
 

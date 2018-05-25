@@ -39,7 +39,7 @@
 #ifndef OPENTXS_UI_PROFILE_ITEM_IMPLEMENTATION_HPP
 #define OPENTXS_UI_PROFILE_ITEM_IMPLEMENTATION_HPP
 
-#include "opentxs/Internal.hpp"
+#include "Internal.hpp"
 
 namespace opentxs::ui::implementation
 {
@@ -85,5 +85,5 @@ private:
     ProfileItem& operator=(const ProfileItem&) = delete;
     ProfileItem& operator=(ProfileItem&&) = delete;
 };
-}  // opentxs::ui::implementation
+}  // namespace opentxs::ui::implementation
 #endif  // OPENTXS_UI_PROFILE_ITEM_IMPLEMENTATION_HPP

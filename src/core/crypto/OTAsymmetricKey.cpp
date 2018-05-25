@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 
@@ -507,12 +507,8 @@ bool OTAsymmetricKey::Sign(
 
     if (goodSig) {
         sig.set_version(1);
-        if (credID.Exists()) {
-            sig.set_credentialid(credID.Get());
-        }
-        if (proto::SIGROLE_ERROR != role) {
-            sig.set_role(role);
-        }
+        if (credID.Exists()) { sig.set_credentialid(credID.Get()); }
+        if (proto::SIGROLE_ERROR != role) { sig.set_role(role); }
         sig.set_hashtype(hash);
         sig.set_signature(signature->GetPointer(), signature->GetSize());
     }

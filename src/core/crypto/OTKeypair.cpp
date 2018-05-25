@@ -60,7 +60,7 @@
 // ChildCredentials are used for all other actions, and never sign other
 // Credentials
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/core/crypto/OTKeypair.hpp"
 
@@ -357,9 +357,7 @@ bool OTKeypair::TransportKey(Data& publicKey, OTPassword& privateKey) const
 
 bool OTKeypair::hasCapability(const NymCapability& capability) const
 {
-    if (m_pkeyPrivate) {
-        return m_pkeyPrivate->hasCapability(capability);
-    }
+    if (m_pkeyPrivate) { return m_pkeyPrivate->hasCapability(capability); }
 
     return false;
 }

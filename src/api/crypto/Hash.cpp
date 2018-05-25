@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "Hash.hpp"
 
@@ -243,9 +243,7 @@ bool Hash::Digest(
         data.size(),
         static_cast<std::uint8_t*>(const_cast<void*>(result->GetPointer())));
 
-    if (success) {
-        encodedDigest.assign(encode_.IdentifierEncode(result));
-    }
+    if (success) { encodedDigest.assign(encode_.IdentifierEncode(result)); }
 
     return success;
 }

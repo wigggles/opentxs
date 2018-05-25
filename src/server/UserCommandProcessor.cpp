@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/server/UserCommandProcessor.hpp"
 
@@ -216,9 +216,7 @@ bool UserCommandProcessor::add_numbers_to_nymbox(
     bool success = true;
     success &= nymbox.VerifyContractID();
 
-    if (success) {
-        success &= nymbox.VerifySignature(server_.m_nymServer);
-    }
+    if (success) { success &= nymbox.VerifySignature(server_.m_nymServer); }
 
     if (false == success) {
         otErr << OT_METHOD << __FUNCTION__ << ": Error veryfying nymbox."
@@ -338,9 +336,7 @@ void UserCommandProcessor::check_acknowledgements(ReplyMessage& reply) const
                             "to delete a box receipt, or "
                             "while removing its stub from the Nymbox.\n");
 
-                    if (bRemoved) {
-                        bIsDirtyNymbox = true;
-                    }
+                    if (bRemoved) { bIsDirtyNymbox = true; }
                 }
 
                 context.AddAcknowledgedNumber(lRequestNum);
@@ -460,10 +456,7 @@ bool UserCommandProcessor::check_ping_notary(const Message& msgIn) const
     nymAuthentKey.reset(
         OTAsymmetricKey::KeyFactory(keytypeAuthent, msgIn.m_strNymPublicKey));
 
-    if (false == bool(nymAuthentKey)) {
-
-        return false;
-    }
+    if (false == bool(nymAuthentKey)) { return false; }
 
     // Not all contracts are signed with the authentication key, but messages
     // are.
@@ -505,15 +498,9 @@ bool UserCommandProcessor::check_request_number(
 
 bool UserCommandProcessor::check_server_lock(const Identifier& nymID)
 {
-    if (false == ServerSettings::__admin_server_locked) {
+    if (false == ServerSettings::__admin_server_locked) { return true; }
 
-        return true;
-    }
-
-    if (isAdmin(nymID)) {
-
-        return true;
-    }
+    if (isAdmin(nymID)) { return true; }
 
     otErr << OT_METHOD << __FUNCTION__ << ": Nym " << String(nymID)
           << " failed attempt to message the server, while server is in "
@@ -562,9 +549,7 @@ bool UserCommandProcessor::cmd_add_claim(ReplyMessage& reply) const
     const bool primary = msgIn.m_bBool;
     std::set<std::uint32_t> attributes;
 
-    if (primary) {
-        attributes.insert(proto::CITEMATTR_PRIMARY);
-    }
+    if (primary) { attributes.insert(proto::CITEMATTR_PRIMARY); }
 
     attributes.insert(proto::CITEMATTR_ACTIVE);
 
@@ -1040,17 +1025,12 @@ bool UserCommandProcessor::cmd_get_market_offers(ReplyMessage& reply) const
 
     auto depth = msgIn.m_lDepth;
 
-    if (depth < 0) {
-        depth = 0;
-    }
+    if (depth < 0) { depth = 0; }
 
     auto market =
         server_.m_Cron.GetMarket(Identifier::Factory(msgIn.m_strNymID2));
 
-    if (nullptr == market) {
-
-        return false;
-    }
+    if (nullptr == market) { return false; }
 
     OTASCIIArmor output{};
     std::int32_t nOfferCount{0};
@@ -1080,10 +1060,7 @@ bool UserCommandProcessor::cmd_get_market_recent_trades(
     auto market =
         server_.m_Cron.GetMarket(Identifier::Factory(msgIn.m_strNymID2));
 
-    if (nullptr == market) {
-
-        return false;
-    }
+    if (nullptr == market) { return false; }
 
     OTASCIIArmor output;
     std::int32_t count = 0;
@@ -1634,10 +1611,7 @@ bool UserCommandProcessor::cmd_process_inbox(ReplyMessage& reply) const
     auto account =
         load_account(nymID, accountID, serverID, clientNym, serverNym);
 
-    if (false == bool(account)) {
-
-        return false;
-    }
+    if (false == bool(account)) { return false; }
 
     auto processInbox = input->GetTransaction(OTTransaction::processInbox);
 
@@ -1840,10 +1814,7 @@ bool UserCommandProcessor::cmd_query_instrument_definitions(
         OTDB::STORED_OBJ_STRING_MAP, msgIn.m_ascPayload.Get()));
     auto inputMap = dynamic_cast<OTDB::StringMap*>(pStorable.get());
 
-    if (nullptr == inputMap) {
-
-        return false;
-    }
+    if (nullptr == inputMap) { return false; }
 
     auto& map = inputMap->the_map;
     std::map<std::string, std::string> newMap{};
@@ -1852,9 +1823,7 @@ bool UserCommandProcessor::cmd_query_instrument_definitions(
         const auto& unitID = it.first;
         const auto& status = it.second;
 
-        if (unitID.empty()) {
-            continue;
-        }
+        if (unitID.empty()) { continue; }
 
         // TODO security: limit on length of this map? (sent through
         // user message...)
@@ -1949,17 +1918,11 @@ bool UserCommandProcessor::cmd_register_account(ReplyMessage& reply) const
         inboxLoaded =
             inbox.GenerateLedger(accountID, serverID, Ledger::inbox, true);
 
-        if (inboxLoaded) {
-            inboxLoaded = inbox.SignContract(serverNym);
-        }
+        if (inboxLoaded) { inboxLoaded = inbox.SignContract(serverNym); }
 
-        if (inboxLoaded) {
-            inboxLoaded = inbox.SaveContract();
-        }
+        if (inboxLoaded) { inboxLoaded = inbox.SaveContract(); }
 
-        if (inboxLoaded) {
-            inboxLoaded = account->SaveInbox(inbox);
-        }
+        if (inboxLoaded) { inboxLoaded = account->SaveInbox(inbox); }
     }
 
     if (true == outboxLoaded) {
@@ -1968,17 +1931,11 @@ bool UserCommandProcessor::cmd_register_account(ReplyMessage& reply) const
         outboxLoaded =
             outbox.GenerateLedger(accountID, serverID, Ledger::outbox, true);
 
-        if (outboxLoaded) {
-            outboxLoaded = outbox.SignContract(serverNym);
-        }
+        if (outboxLoaded) { outboxLoaded = outbox.SignContract(serverNym); }
 
-        if (outboxLoaded) {
-            outboxLoaded = outbox.SaveContract();
-        }
+        if (outboxLoaded) { outboxLoaded = outbox.SaveContract(); }
 
-        if (outboxLoaded) {
-            outboxLoaded = account->SaveOutbox(outbox);
-        }
+        if (outboxLoaded) { outboxLoaded = account->SaveOutbox(outbox); }
     }
 
     if (false == inboxLoaded) {
@@ -2129,17 +2086,11 @@ bool UserCommandProcessor::cmd_register_instrument_definition(
         inboxLoaded =
             inbox.GenerateLedger(accountID, serverID, Ledger::inbox, true);
 
-        if (inboxLoaded) {
-            inboxLoaded = inbox.SignContract(serverNym);
-        }
+        if (inboxLoaded) { inboxLoaded = inbox.SignContract(serverNym); }
 
-        if (inboxLoaded) {
-            inboxLoaded = inbox.SaveContract();
-        }
+        if (inboxLoaded) { inboxLoaded = inbox.SaveContract(); }
 
-        if (inboxLoaded) {
-            inboxLoaded = account->SaveInbox(inbox);
-        }
+        if (inboxLoaded) { inboxLoaded = account->SaveInbox(inbox); }
     }
 
     if (outboxLoaded) {
@@ -2148,17 +2099,11 @@ bool UserCommandProcessor::cmd_register_instrument_definition(
         outboxLoaded =
             outbox.GenerateLedger(accountID, serverID, Ledger::outbox, true);
 
-        if (outboxLoaded) {
-            outboxLoaded = outbox.SignContract(serverNym);
-        }
+        if (outboxLoaded) { outboxLoaded = outbox.SignContract(serverNym); }
 
-        if (outboxLoaded) {
-            outboxLoaded = outbox.SaveContract();
-        }
+        if (outboxLoaded) { outboxLoaded = outbox.SaveContract(); }
 
-        if (outboxLoaded) {
-            outboxLoaded = account->SaveOutbox(outbox);
-        }
+        if (outboxLoaded) { outboxLoaded = account->SaveOutbox(outbox); }
     }
 
     if (false == inboxLoaded) {
@@ -2223,10 +2168,7 @@ bool UserCommandProcessor::cmd_register_nym(ReplyMessage& reply) const
 
     otLog3 << OT_METHOD << __FUNCTION__ << ": Signature verified!" << std::endl;
 
-    if (false == reply.LoadContext()) {
-
-        return false;
-    }
+    if (false == reply.LoadContext()) { return false; }
 
     auto& context = reply.Context();
     const auto& serverNym = *context.Nym();
@@ -2238,14 +2180,9 @@ bool UserCommandProcessor::cmd_register_nym(ReplyMessage& reply) const
     //
     // He ALREADY exists. We'll set success to true, and send him a copy of his
     // own nymfile.
-    if (exists && (false == deleted)) {
+    if (exists && (false == deleted)) { return reregister_nym(reply); }
 
-        return reregister_nym(reply);
-    }
-
-    if (deleted) {
-        nymfile.MarkAsUndeleted();
-    }
+    if (deleted) { nymfile.MarkAsUndeleted(); }
 
     reply.SetSuccess(msgIn.WriteContract(
         OTFolders::UserAcct().Get(), msgIn.m_strNymID.Get()));
@@ -2510,9 +2447,7 @@ bool UserCommandProcessor::cmd_usage_credits(ReplyMessage& reply) const
     const bool admin = isAdmin(adminNymID);
     auto adjustment = msgIn.m_lDepth;
 
-    if (false == admin) {
-        adjustment = 0;
-    }
+    if (false == admin) { adjustment = 0; }
 
     const auto targetNymID = Identifier::Factory(msgIn.m_strNymID2);
     Nym targetNym(targetNymID);
@@ -2570,9 +2505,7 @@ bool UserCommandProcessor::cmd_usage_credits(ReplyMessage& reply) const
     const auto oldCredits = nymfile->GetUsageCredits();
     auto newCredits = oldCredits + adjustment;
 
-    if (0 > newCredits) {
-        newCredits = -1;
-    }
+    if (0 > newCredits) { newCredits = -1; }
 
     if (0 != adjustment) {
         nymfile->SetUsageCredits(newCredits);
@@ -2768,10 +2701,7 @@ bool UserCommandProcessor::isAdmin(const Identifier& nymID)
 {
     const auto adminNym = ServerSettings::GetOverrideNymID();
 
-    if (adminNym.empty()) {
-
-        return false;
-    }
+    if (adminNym.empty()) { return false; }
 
     return (0 == adminNym.compare(String(nymID).Get()));
 }
@@ -2871,9 +2801,7 @@ std::unique_ptr<Ledger> UserCommandProcessor::load_inbox(
 
     auto notUsed = Identifier::Factory();
 
-    if (inbox->LoadedLegacyData()) {
-        save_inbox(serverNym, notUsed, *inbox);
-    }
+    if (inbox->LoadedLegacyData()) { save_inbox(serverNym, notUsed, *inbox); }
 
     return inbox;
 }
@@ -2981,10 +2909,7 @@ bool UserCommandProcessor::ProcessUserCommand(
         type,
         msgOut);
 
-    if (false == reply.Init()) {
-
-        return false;
-    }
+    if (false == reply.Init()) { return false; }
 
     otErr << "==> Received a " << command
           << " message. Nym: " << msgIn.m_strNymID << " ..." << std::endl;
@@ -3000,15 +2925,9 @@ bool UserCommandProcessor::ProcessUserCommand(
         }
     }
 
-    if (false == check_client_nym(reply)) {
+    if (false == check_client_nym(reply)) { return false; }
 
-        return false;
-    }
-
-    if (false == reply.LoadContext()) {
-
-        return false;
-    }
+    if (false == reply.LoadContext()) { return false; }
 
     OT_ASSERT(reply.HaveContext());
 
@@ -3035,10 +2954,7 @@ bool UserCommandProcessor::ProcessUserCommand(
             return false;
         }
 
-        if (false == check_usage_credits(reply)) {
-
-            return false;
-        }
+        if (false == check_usage_credits(reply)) { return false; }
 
         context.IncrementRequest();
     }
@@ -3194,10 +3110,7 @@ bool UserCommandProcessor::save_box(const Nym& nym, Ledger& box) const
 {
     box.ReleaseSignatures();
 
-    if (false == box.SignContract(nym)) {
-
-        return false;
-    }
+    if (false == box.SignContract(nym)) { return false; }
 
     return box.SaveContract();
 }
@@ -3207,15 +3120,9 @@ bool UserCommandProcessor::save_inbox(
     Identifier& hash,
     Ledger& inbox) const
 {
-    if (false == save_box(nym, inbox)) {
+    if (false == save_box(nym, inbox)) { return false; }
 
-        return false;
-    }
-
-    if (false == inbox.SaveInbox(&hash)) {
-
-        return false;
-    }
+    if (false == inbox.SaveInbox(&hash)) { return false; }
 
     return true;
 }
@@ -3225,15 +3132,9 @@ bool UserCommandProcessor::save_nymbox(
     Identifier& hash,
     Ledger& nymbox) const
 {
-    if (false == save_box(nym, nymbox)) {
+    if (false == save_box(nym, nymbox)) { return false; }
 
-        return false;
-    }
-
-    if (false == nymbox.SaveNymbox(&hash)) {
-
-        return false;
-    }
+    if (false == nymbox.SaveNymbox(&hash)) { return false; }
 
     return true;
 }
@@ -3243,15 +3144,9 @@ bool UserCommandProcessor::save_outbox(
     Identifier& hash,
     Ledger& outbox) const
 {
-    if (false == save_box(nym, outbox)) {
+    if (false == save_box(nym, outbox)) { return false; }
 
-        return false;
-    }
-
-    if (false == outbox.SaveOutbox(&hash)) {
-
-        return false;
-    }
+    if (false == outbox.SaveOutbox(&hash)) { return false; }
 
     return true;
 }
@@ -3293,20 +3188,11 @@ bool UserCommandProcessor::verify_transaction(
     const OTTransaction* transaction,
     const Nym& signer) const
 {
-    if (nullptr == transaction) {
+    if (nullptr == transaction) { return false; }
 
-        return false;
-    }
+    if (transaction->IsAbbreviated()) { return false; }
 
-    if (transaction->IsAbbreviated()) {
-
-        return false;
-    }
-
-    if (false == transaction->VerifyContractID()) {
-
-        return false;
-    }
+    if (false == transaction->VerifyContractID()) { return false; }
 
     return transaction->VerifySignature(signer);
 }

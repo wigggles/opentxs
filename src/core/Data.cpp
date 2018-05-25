@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/core/Data_imp.hpp"
 
@@ -89,9 +89,7 @@ namespace implementation
 {
 Data::Data(const OTASCIIArmor& source)
 {
-    if (source.Exists()) {
-        source.GetData(*this);
-    }
+    if (source.Exists()) { source.GetData(*this); }
 }
 
 Data::Data(const void* data, std::size_t size)
@@ -167,9 +165,7 @@ std::string Data::asHex() const
 void Data::Assign(const opentxs::Data& rhs)
 {
     // can't assign to self.
-    if (&dynamic_cast<const Data&>(rhs) == this) {
-        return;
-    }
+    if (&dynamic_cast<const Data&>(rhs) == this) { return; }
 
     data_ = dynamic_cast<const Data&>(rhs).data_;
     position_ = dynamic_cast<const Data&>(rhs).position_;
@@ -190,9 +186,7 @@ Data* Data::Data::clone() const { return new Data(*this); }
 
 void Data::concatenate(const Vector& data)
 {
-    for (const auto& byte : data) {
-        data_.emplace_back(byte);
-    }
+    for (const auto& byte : data) { data_.emplace_back(byte); }
 }
 
 void Data::Concatenate(const void* data, const std::size_t& size)
@@ -200,9 +194,7 @@ void Data::Concatenate(const void* data, const std::size_t& size)
     OT_ASSERT(data != nullptr);
     OT_ASSERT(size > 0);
 
-    if (size == 0) {
-        return;
-    }
+    if (size == 0) { return; }
 
     Data temp(data, size);
     concatenate(temp.data_);
@@ -242,9 +234,7 @@ std::size_t Data::OTfread(std::uint8_t* data, const std::size_t& size)
         // minus position_.
         sizeToRead = GetSize() - position_;
 
-        if (size < sizeToRead) {
-            sizeToRead = size;
-        }
+        if (size < sizeToRead) { sizeToRead = size; }
 
         OTPassword::safe_memcpy(data, size, &data_[position_], sizeToRead);
         position_ += sizeToRead;
@@ -257,9 +247,7 @@ bool Data::Randomize(const std::size_t& size)
 {
     SetSize(size);
 
-    if (size == 0) {
-        return false;
-    }
+    if (size == 0) { return false; }
 
     return OTPassword::randomizeMemory_uint8(data_.data(), size);
 }
@@ -276,9 +264,7 @@ void Data::SetSize(const std::size_t& size)
 {
     Release();
 
-    if (size > 0) {
-        data_.assign(size, 0);
-    }
+    if (size > 0) { data_.assign(size, 0); }
 }
 
 void Data::swap(Data& rhs)
@@ -291,9 +277,7 @@ void Data::swap(opentxs::Data&& rhs) { swap(dynamic_cast<Data&>(rhs)); }
 
 void Data::zeroMemory()
 {
-    if (0 < data_.size()) {
-        data_.assign(data_.size(), 0);
-    }
+    if (0 < data_.size()) { data_.assign(data_.size(), 0); }
 }
-}  // namespace opentxs::implementation
+}  // namespace implementation
 }  // namespace opentxs

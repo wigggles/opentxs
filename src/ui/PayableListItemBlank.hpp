@@ -39,7 +39,7 @@
 #ifndef OPENTXS_UI_PAYABLELISTITEMBLANK_IMPLEMENTATION_HPP
 #define OPENTXS_UI_PAYABLELISTITEMBLANK_IMPLEMENTATION_HPP
 
-#include "opentxs/Internal.hpp"
+#include "Internal.hpp"
 
 #include "opentxs/ui/PayableListItem.hpp"
 #include "opentxs/ui/Widget.hpp"
@@ -67,5 +67,5 @@ private:
     PayableListItemBlank& operator=(const PayableListItemBlank&) = delete;
     PayableListItemBlank& operator=(PayableListItemBlank&&) = delete;
 };
-}  // opentxs::ui::implementation
+}  // namespace opentxs::ui::implementation
 #endif  // OPENTXS_UI_PAYABLELISTITEMBLANK_IMPLEMENTATION_HPP

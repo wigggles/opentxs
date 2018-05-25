@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/storage/tree/Thread.hpp"
 #include "opentxs/storage/tree/Threads.hpp"
@@ -139,9 +139,7 @@ bool Threads::FindAndDeleteItem(const std::string& itemID)
         }
     }
 
-    if (found) {
-        save(lock);
-    }
+    if (found) { save(lock); }
 
     return found;
 }
@@ -160,9 +158,7 @@ void Threads::init(const std::string& hash)
     version_ = serialized->version();
 
     // Upgrade to version 2
-    if (2 > version_) {
-        version_ = 2;
-    }
+    if (2 > version_) { version_ = 2; }
 
     for (const auto& it : serialized->nym()) {
         item_map_.emplace(
@@ -172,10 +168,7 @@ void Threads::init(const std::string& hash)
 
 ObjectList Threads::List(const bool unreadOnly) const
 {
-    if (false == unreadOnly) {
-
-        return ot_super::List();
-    }
+    if (false == unreadOnly) { return ot_super::List(); }
 
     ObjectList output{};
     Lock lock(write_lock_);
@@ -187,9 +180,7 @@ ObjectList Threads::List(const bool unreadOnly) const
 
         OT_ASSERT(nullptr != thread);
 
-        if (0 < thread->UnreadCount()) {
-            output.push_back({threadID, alias});
-        }
+        if (0 < thread->UnreadCount()) { output.push_back({threadID, alias}); }
     }
 
     return output;
@@ -275,10 +266,7 @@ bool Threads::Rename(const std::string& existingID, const std::string& newID)
 
     auto meta = it->second;
 
-    if (nullptr == thread(existingID, lock)) {
-
-        return false;
-    }
+    if (nullptr == thread(existingID, lock)) { return false; }
 
     auto threadItem = threads_.find(existingID);
 
@@ -316,10 +304,7 @@ bool Threads::save(const std::unique_lock<std::mutex>& lock) const
 
     auto serialized = serialize();
 
-    if (!proto::Validate(serialized, VERBOSE)) {
-
-        return false;
-    }
+    if (!proto::Validate(serialized, VERBOSE)) { return false; }
 
     return driver_.StoreProto(serialized, root_);
 }

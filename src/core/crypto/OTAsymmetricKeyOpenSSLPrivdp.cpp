@@ -35,7 +35,7 @@
  *   for more details.
  *
  ************************************************************/
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/core/crypto/OTAsymmetricKey_OpenSSLPrivdp.hpp"
 
@@ -605,10 +605,10 @@ EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::
     // This line base64 decodes the ascii-armored string into binary object
     // theData...
     //
-    backlink->m_p_ascKey->GetData(
-        theData);  // theData now contains binary data,
-                   // the encrypted private key itself,
-                   // no longer in text-armoring.
+    backlink->m_p_ascKey->GetData(theData);  // theData now contains binary
+                                             // data, the encrypted private key
+                                             // itself, no longer in
+                                             // text-armoring.
     //
     // Note, for future optimization: the ASCII-ARMORING could be used for
     // serialization, but the BIO (still encrypted)

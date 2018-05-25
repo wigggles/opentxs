@@ -39,7 +39,7 @@
 #ifndef OPENTXS_UI_CONTACT_ITEM_BLANK_IMPLEMENTATION_HPP
 #define OPENTXS_UI_CONTACT_ITEM_BLANK_IMPLEMENTATION_HPP
 
-#include "opentxs/Internal.hpp"
+#include "Internal.hpp"
 
 #include "opentxs/ui/ContactItem.hpp"
 #include "opentxs/ui/Widget.hpp"
@@ -70,5 +70,5 @@ private:
     ContactItemBlank& operator=(const ContactItemBlank&) = delete;
     ContactItemBlank& operator=(ContactItemBlank&&) = delete;
 };
-}  // opentxs::ui::implementation
+}  // namespace opentxs::ui::implementation
 #endif  // OPENTXS_UI_CONTACT_ITEM_BLANK_IMPLEMENTATION_HPP

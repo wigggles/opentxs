@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "ContactManager.hpp"
 
@@ -116,7 +116,7 @@ ContactManager::ContactNameMap ContactManager::build_name_map(
 {
     ContactNameMap output{};
 
-    for (const auto & [ id, alias ] : storage.ContactList()) {
+    for (const auto& [id, alias] : storage.ContactList()) {
         output.emplace(id, alias);
     }
 
@@ -130,9 +130,7 @@ void ContactManager::check_identifiers(
     bool& havePaymentCode,
     Identifier& outputNymID) const
 {
-    if (paymentCode.VerifyInternally()) {
-        havePaymentCode = true;
-    }
+    if (paymentCode.VerifyInternally()) { havePaymentCode = true; }
 
     if (false == inputNymID.empty()) {
         haveNymID = true;
@@ -153,10 +151,7 @@ std::shared_ptr<const class Contact> ContactManager::contact(
 
     const auto it = obtain_contact(lock, id);
 
-    if (contact_map_.end() != it) {
-
-        return it->second.second;
-    }
+    if (contact_map_.end() != it) { return it->second.second; }
 
     return {};
 }
@@ -219,10 +214,7 @@ std::string ContactManager::ContactName(const Identifier& contactID) const
     rLock lock(lock_);
     auto it = contact_name_map_.find(contactID);
 
-    if (contact_name_map_.end() == it) {
-
-        return {};
-    }
+    if (contact_name_map_.end() == it) { return {}; }
 
     return it->second;
 }
@@ -410,14 +402,9 @@ std::unique_ptr<Editor<class Contact>> ContactManager::mutable_contact(
 
     auto it = contact_map_.find(id);
 
-    if (contact_map_.end() == it) {
-        it = load_contact(lock, id);
-    }
+    if (contact_map_.end() == it) { it = load_contact(lock, id); }
 
-    if (contact_map_.end() == it) {
-
-        return {};
-    }
+    if (contact_map_.end() == it) { return {}; }
 
     std::function<void(class Contact*)> callback =
         [&](class Contact* in) -> void { this->save(in); };
@@ -463,19 +450,13 @@ std::shared_ptr<const class Contact> ContactManager::new_contact(
 
     auto newContact = contact(lock, label);
 
-    if (false == bool(newContact)) {
-
-        return {};
-    }
+    if (false == bool(newContact)) { return {}; }
 
     OTIdentifier contactID = newContact->ID();
     newContact.reset();
     auto output = mutable_contact(lock, contactID);
 
-    if (false == bool(output)) {
-
-        return {};
-    }
+    if (false == bool(output)) { return {}; }
 
     auto& mContact = output->It();
 
@@ -491,9 +472,7 @@ std::shared_ptr<const class Contact> ContactManager::new_contact(
         update_nym_map(lock, nymID, mContact, true);
     }
 
-    if (code.VerifyInternally()) {
-        mContact.AddPaymentCode(code, true);
-    }
+    if (code.VerifyInternally()) { mContact.AddPaymentCode(code, true); }
 
     output.reset();
 
@@ -527,10 +506,7 @@ std::shared_ptr<const class Contact> ContactManager::NewContactFromAddress(
 
     const auto existingID = address_to_contact(lock, address, currency);
 
-    if (false == existingID->empty()) {
-
-        return contact(lock, existingID);
-    }
+    if (false == existingID->empty()) { return contact(lock, existingID); }
 
     auto newContact = contact(lock, label);
 
@@ -567,10 +543,7 @@ ContactManager::ContactMap::iterator ContactManager::obtain_contact(
 
     auto it = contact_map_.find(id);
 
-    if (contact_map_.end() != it) {
-
-        return it;
-    }
+    if (contact_map_.end() != it) { return it; }
 
     return load_contact(lock, id);
 }

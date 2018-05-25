@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/consensus/ClientContext.hpp"
 
@@ -81,9 +81,7 @@ bool ClientContext::AcceptIssuedNumbers(std::set<TransactionNumber>& newNumbers)
     std::size_t added = 0;
     const auto offered = newNumbers.size();
 
-    if (0 == offered) {
-        return false;
-    }
+    if (0 == offered) { return false; }
 
     for (const auto& number : newNumbers) {
         // If number wasn't already on issued list, then add to BOTH lists.
@@ -93,9 +91,7 @@ bool ClientContext::AcceptIssuedNumbers(std::set<TransactionNumber>& newNumbers)
         const bool exists = 1 == issued_transaction_numbers_.count(number);
 
         if (!exists) {
-            if (issue_number(lock, number)) {
-                added++;
-            }
+            if (issue_number(lock, number)) { added++; }
         }
     }
 
@@ -140,9 +136,7 @@ std::size_t ClientContext::IssuedNumbers(
     for (const auto& number : issued_transaction_numbers_) {
         const bool excluded = (1 == exclude.count(number));
 
-        if (!excluded) {
-            output++;
-        }
+        if (!excluded) { output++; }
     }
 
     return output;
@@ -179,9 +173,7 @@ proto::Context ClientContext::serialize(const Lock& lock) const
     auto& client = *output.mutable_clientcontext();
     client.set_version(output.version());
 
-    for (const auto& it : open_cron_items_) {
-        client.add_opencronitems(it);
-    }
+    for (const auto& it : open_cron_items_) { client.add_opencronitems(it); }
 
     return output;
 }
@@ -268,9 +260,7 @@ bool ClientContext::VerifyIssuedNumber(
 {
     const bool excluded = (1 == exclude.count(number));
 
-    if (excluded) {
-        return false;
-    }
+    if (excluded) { return false; }
 
     return VerifyIssuedNumber(number);
 }

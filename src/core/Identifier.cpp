@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/core/Identifier.hpp"
 
@@ -141,9 +141,7 @@ OTIdentifier Identifier::Random()
 // static
 bool Identifier::validateID(const std::string& strPurportedID)
 {
-    if (strPurportedID.empty()) {
-        return false;
-    }
+    if (strPurportedID.empty()) { return false; }
     Identifier theID(strPurportedID);
 
     return (0 < theID.GetSize());
@@ -310,16 +308,10 @@ void Identifier::SetString(const std::string& encoded)
 {
     empty();
 
-    if (MinimumSize > encoded.size()) {
-        return;
-    }
+    if (MinimumSize > encoded.size()) { return; }
 
-    if ('o' != encoded.at(0)) {
-        return;
-    }
-    if ('t' != encoded.at(1)) {
-        return;
-    }
+    if ('o' != encoded.at(0)) { return; }
+    if ('t' != encoded.at(1)) { return; }
 
     std::string input(encoded.data() + 2, encoded.size() - 2);
     auto data = OT::App().Crypto().Encode().IdentifierDecode(input);
@@ -357,9 +349,7 @@ void Identifier::GetString(String& id) const
 
     OT_ASSERT(1 == data->GetSize());
 
-    if (0 == GetSize()) {
-        return;
-    }
+    if (0 == GetSize()) { return; }
 
     data->Concatenate(GetPointer(), GetSize());
 
@@ -376,9 +366,7 @@ std::string Identifier::str() const
 
     OT_ASSERT(1 == data->GetSize());
 
-    if (0 == GetSize()) {
-        return {};
-    }
+    if (0 == GetSize()) { return {}; }
 
     data->Concatenate(GetPointer(), GetSize());
 

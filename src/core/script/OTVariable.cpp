@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/core/script/OTVariable.hpp"
 
@@ -190,9 +190,7 @@ OTVariable::OTVariable(
 
 OTVariable::~OTVariable()
 {
-    if (nullptr != m_pScript) {
-        m_pScript->RemoveVariable(*this);
-    }
+    if (nullptr != m_pScript) { m_pScript->RemoveVariable(*this); }
 
     m_pScript =
         nullptr;  // I wasn't the owner, it was a pointer for convenience only.
@@ -258,13 +256,13 @@ bool OTVariable::IsDirty() const
                 bReturnVal = true;
             break;
         case OTVariable::Var_Integer:
-            if (m_nValue !=
-                m_nValueBackup)  // If they do NOT match, then it's dirty.
+            if (m_nValue != m_nValueBackup)  // If they do NOT match, then it's
+                                             // dirty.
                 bReturnVal = true;
             break;
         case OTVariable::Var_Bool:
-            if (m_bValue !=
-                m_bValueBackup)  // If they do NOT match, then it's dirty.
+            if (m_bValue != m_bValueBackup)  // If they do NOT match, then it's
+                                             // dirty.
                 bReturnVal = true;
             break;
         default:
@@ -282,22 +280,19 @@ void OTVariable::SetAsClean()
 {
     switch (m_Type) {
         case OTVariable::Var_String:
-            m_str_ValueBackup =
-                m_str_Value;  // Save a copy of the current value, so
-                              // we can check later and see if
-                              // they're different.
+            m_str_ValueBackup = m_str_Value;  // Save a copy of the current
+                                              // value, so we can check later
+                                              // and see if they're different.
             break;
         case OTVariable::Var_Integer:
-            m_nValueBackup =
-                m_nValue;  // Save a copy of the current value, so we
-                           // can check later and see if they're
-                           // different.
+            m_nValueBackup = m_nValue;  // Save a copy of the current value, so
+                                        // we can check later and see if they're
+                                        // different.
             break;
         case OTVariable::Var_Bool:
-            m_bValueBackup =
-                m_bValue;  // Save a copy of the current value, so we
-                           // can check later and see if they're
-                           // different.
+            m_bValueBackup = m_bValue;  // Save a copy of the current value, so
+                                        // we can check later and see if they're
+                                        // different.
             break;
         default:
             otErr

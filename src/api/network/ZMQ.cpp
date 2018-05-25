@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "ZMQ.hpp"
 
@@ -96,9 +96,7 @@ proto::AddressType ZMQ::DefaultAddressType() const
         configuredType,
         changed);
 
-    if (changed) {
-        config_.Save();
-    }
+    if (changed) { config_.Save(); }
 
     return static_cast<proto::AddressType>(configuredType);
 }
@@ -171,20 +169,15 @@ opentxs::network::ServerConnection& ZMQ::Server(const std::string& id) const
     Lock lock(lock_);
     auto existing = server_connections_.find(id);
 
-    if (server_connections_.end() != existing) {
+    if (server_connections_.end() != existing) { return existing->second; }
 
-        return existing->second;
-    }
-
-    auto[it, created] = server_connections_.emplace(
+    auto [it, created] = server_connections_.emplace(
         id, opentxs::network::ServerConnection::Factory(*this, id));
     auto& connection = it->second;
 
     OT_ASSERT(created);
 
-    if (false == socks_proxy_.empty()) {
-        connection->EnableProxy();
-    }
+    if (false == socks_proxy_.empty()) { connection->EnableProxy(); }
 
     return connection;
 }

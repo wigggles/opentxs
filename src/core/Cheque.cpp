@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/core/Cheque.hpp"
 
@@ -241,8 +241,9 @@ std::int32_t Cheque::ProcessXMLNode(IrrXMLReader*& xml)
                << "\n Valid From: " << str_valid_from
                << "\n Valid To: " << str_valid_to
                << "\n InstrumentDefinitionID: " << strInstrumentDefinitionID
-               << "\n NotaryID: " << strNotaryID << "\n"
-                                                    " senderAcctID: "
+               << "\n NotaryID: " << strNotaryID
+               << "\n"
+                  " senderAcctID: "
                << strSenderAcctID << "\n senderNymID: " << strSenderNymID
                << "\n "
                   " Has Recipient? "

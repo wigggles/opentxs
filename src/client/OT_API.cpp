@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/client/OT_API.hpp"
 
@@ -195,8 +195,8 @@ OTTransaction* GetPaymentReceipt(
             continue;
 
         if (transaction->GetReferenceToNum() == lReferenceNum) {
-            if (nullptr !=
-                ppPaymentOut)  // The caller might want a copy of this.
+            if (nullptr != ppPaymentOut)  // The caller might want a copy of
+                                          // this.
             {
                 String strPayment;
                 transaction->GetReferenceString(strPayment);
@@ -433,8 +433,9 @@ void OT_API::Pid::OpenPid(const String& strPidFilePath)
                     << "\n\n\nIS OPEN-TRANSACTIONS ALREADY RUNNING?\n\n"
                        "I found a PID ("
                     << lPID << ") in the data lock file, located at: "
-                    << m_strPidFilePath << "\n\n"
-                                           "If the OT process with PID "
+                    << m_strPidFilePath
+                    << "\n\n"
+                       "If the OT process with PID "
                     << lPID
                     << " is truly not running "
                        "anymore, "
@@ -599,9 +600,7 @@ bool OT_API::Init()
 
     if (bGetDataFolderSuccess) pid_->OpenPid(strPIDPath);
 
-    if (!pid_->IsPidOpen()) {
-        return false;
-    }  // failed loading
+    if (!pid_->IsPidOpen()) { return false; }  // failed loading
 
     // This way, everywhere else I can use the default storage context (for now)
     // and it will work everywhere I put it. (Because it's now set up...)
@@ -637,9 +636,7 @@ bool OT_API::Cleanup()
 
     pid_->ClosePid();
 
-    if (pid_->IsPidOpen()) {
-        OT_FAIL;
-    }  // failed closing
+    if (pid_->IsPidOpen()) { OT_FAIL; }  // failed closing
 
     return true;
 }
@@ -940,9 +937,7 @@ const BasketContract* OT_API::GetBasketContract(
         }
     } else {
         auto currency = dynamic_cast<const BasketContract*>(contract.get());
-        if (nullptr != currency) {
-            return currency;
-        }
+        if (nullptr != currency) { return currency; }
     }
 
     return nullptr;
@@ -957,12 +952,13 @@ std::shared_ptr<Account> OT_API::GetAccount(
     if (nullptr != pWallet) {
         auto account = pWallet->GetAccount(THE_ID);
 
-        if ((nullptr == account) &&
-            (nullptr != szFunc))  // We only log if the caller asked us to.
+        if ((nullptr == account) && (nullptr != szFunc))  // We only log if the
+                                                          // caller asked us to.
         {
             const String strID(THE_ID);
-            otWarn << __FUNCTION__ << " " << szFunc << ": No account found in "
-                                                       "wallet with ID: "
+            otWarn << __FUNCTION__ << " " << szFunc
+                   << ": No account found in "
+                      "wallet with ID: "
                    << strID << "\n";
         }
 
@@ -995,10 +991,7 @@ bool OT_API::IsNym_RegisteredAtServer(
 
     auto context = wallet_.ServerContext(NYM_ID, NOTARY_ID);
 
-    if (context) {
-
-        return (0 != context->Request());
-    }
+    if (context) { return (0 != context->Request()); }
 
     return false;
 }
@@ -1019,10 +1012,7 @@ bool OT_API::Wallet_ChangePassphrase() const
 
     OTWallet* pWallet = GetWallet(__FUNCTION__);
 
-    if (nullptr == pWallet) {
-
-        return false;
-    }
+    if (nullptr == pWallet) { return false; }
 
     // By this point, pWallet is a good pointer.  (No need to cleanup.)
     auto key = crypto_.mutable_DefaultKey();
@@ -1052,9 +1042,7 @@ bool OT_API::Wallet_ChangePassphrase() const
         otErr << OT_METHOD << __FUNCTION__
               << ": Failed saving wallet (reverting.)\n";
 
-        if (cachedKey.SerializeFrom(ascBackup)) {
-            pWallet->SaveWallet();
-        }
+        if (cachedKey.SerializeFrom(ascBackup)) { pWallet->SaveWallet(); }
 
         return false;
     } else {
@@ -1069,9 +1057,7 @@ std::string OT_API::Wallet_GetPhrase() const
 #if OT_CRYPTO_WITH_BIP32
     OTWallet* pWallet = GetWallet(__FUNCTION__);
 
-    if (nullptr == pWallet) {
-        return "";
-    };
+    if (nullptr == pWallet) { return ""; };
     // By this point, pWallet is a good pointer.  (No need to cleanup.)
     auto& cachedKey = crypto_.DefaultKey();
 
@@ -1093,9 +1079,7 @@ std::string OT_API::Wallet_GetSeed() const
 #if OT_CRYPTO_WITH_BIP32
     OTWallet* pWallet = GetWallet(__FUNCTION__);
 
-    if (nullptr == pWallet) {
-        return "";
-    }
+    if (nullptr == pWallet) { return ""; }
 
     // By this point, pWallet is a good pointer.  (No need to cleanup.)
     auto& cachedKey = crypto_.DefaultKey();
@@ -1118,9 +1102,7 @@ std::string OT_API::Wallet_GetWords() const
 #if OT_CRYPTO_WITH_BIP39
     OTWallet* pWallet = GetWallet(__FUNCTION__);
 
-    if (nullptr == pWallet) {
-        return "";
-    };
+    if (nullptr == pWallet) { return ""; };
     // By this point, pWallet is a good pointer.  (No need to cleanup.)
     auto& cachedKey = crypto_.DefaultKey();
 
@@ -1148,9 +1130,7 @@ std::string OT_API::Wallet_ImportSeed(
     OTWallet* pWallet =
         GetWallet(__FUNCTION__);  // This logs and ASSERTs already.
 
-    if (nullptr == pWallet) {
-        return "";
-    };
+    if (nullptr == pWallet) { return ""; };
 
     output = pWallet->ImportSeed(words, passphrase);
     pWallet->SaveWallet();
@@ -1198,8 +1178,9 @@ bool OT_API::Wallet_CanRemoveServer(const Identifier& NOTARY_ID) const
                   << ": Unable to remove server contract " << NOTARY_ID.str()
                   << " "
                      "from wallet, because Nym "
-                  << nymID->str() << " is registered "
-                                     "there. (Delete that first...)\n";
+                  << nymID->str()
+                  << " is registered "
+                     "there. (Delete that first...)\n";
             return false;
         }
     }
@@ -1414,9 +1395,7 @@ bool OT_API::Wallet_ExportNym(const Identifier& NYM_ID, String& strOutput) const
     String strReasonToSave(thePWDataSave.GetDisplayString());
     auto nym = wallet_.Nym(NYM_ID);
 
-    if (false == bool(nym)) {
-        return false;
-    }
+    if (false == bool(nym)) { return false; }
 
     std::string str_nym_name(nym->Alias());
     String strID;
@@ -1536,7 +1515,7 @@ bool OT_API::Wallet_ExportNym(const Identifier& NYM_ID, String& strOutput) const
         strOutput.Release();
         bReturnVal = ascTemp.WriteArmoredString(
             strOutput, "EXPORTED NYM"  // -----BEGIN OT EXPORTED NYM-----
-            );                         // (bool bEscaped=false by default.)
+        );                             // (bool bEscaped=false by default.)
     }
 
     return bReturnVal;
@@ -1748,13 +1727,12 @@ bool OT_API::Wallet_ImportNym(
                     String::Map& thePrivateMap = pPrivateMap->the_map;
                     bool unused = false;
 
-                    if (false ==
-                        nym->LoadNymFromString(
-                            strCredList,
-                            unused,
-                            &thePrivateMap,
-                            &strReasonToLoad,
-                            pExportPassphrase.get())) {
+                    if (false == nym->LoadNymFromString(
+                                     strCredList,
+                                     unused,
+                                     &thePrivateMap,
+                                     &strReasonToLoad,
+                                     pExportPassphrase.get())) {
                         otErr << OT_METHOD << __FUNCTION__
                               << ": Failure loading nym " << strNymID
                               << " from credential string.\n";
@@ -1817,8 +1795,9 @@ bool OT_API::Wallet_ImportNym(
             // Insert to wallet's list of Nyms.
             auto pNym = wallet_.Nym(nym->ID());
             if (false == bool(pNym)) {
-                otErr << OT_METHOD << __FUNCTION__ << ": Failed while saving "
-                                                      "the nym to the wallet.";
+                otErr << OT_METHOD << __FUNCTION__
+                      << ": Failed while saving "
+                         "the nym to the wallet.";
                 return false;
             } else
                 bConverted = true;
@@ -1946,7 +1925,7 @@ bool OT_API::Encode(
         strOutput.Release();
         bSuccess = ascArmor.WriteArmoredString(
             strOutput, "ENCODED TEXT"  // -----BEGIN OT ENCODED TEXT-----
-            );                         // (bool bEscaped=false by default.)
+        );                             // (bool bEscaped=false by default.)
     }
     return bSuccess;
 }
@@ -2017,7 +1996,7 @@ bool OT_API::Encrypt(
 
         bSuccess = ascCiphertext.WriteArmoredString(
             strOutput, "ENCRYPTED TEXT"  // -----BEGIN OT ENCRYPTED TEXT-----
-            );                           // (bool bEscaped=false by default.)
+        );                               // (bool bEscaped=false by default.)
     }
     return bSuccess;
 }
@@ -2053,9 +2032,7 @@ bool OT_API::Decrypt(
 {
     auto pRecipientNym = wallet_.Nym(theRecipientNymID);
 
-    if (false == bool(pRecipientNym)) {
-        return false;
-    }
+    if (false == bool(pRecipientNym)) { return false; }
 
     OTEnvelope theEnvelope;
     OTASCIIArmor ascCiphertext;
@@ -2087,9 +2064,7 @@ bool OT_API::FlatSign(
 {
     auto nym = wallet_.Nym(theSignerNymID);
 
-    if (false == bool(nym)) {
-        return false;
-    }
+    if (false == bool(nym)) { return false; }
 
     // By this point, nymfile is a good pointer, and is on the wallet. (No need
     // to
@@ -2131,9 +2106,7 @@ bool OT_API::SignContract(
 {
     auto nym = wallet_.Nym(theSignerNymID);
 
-    if (false == bool(nym)) {
-        return false;
-    }
+    if (false == bool(nym)) { return false; }
 
     // By this point, nymfile is a good pointer, and is on the wallet. (No need
     // to
@@ -2191,9 +2164,7 @@ bool OT_API::AddSignature(
 {
     auto nym = wallet_.Nym(theSignerNymID);
 
-    if (false == bool(nym)) {
-        return false;
-    }
+    if (false == bool(nym)) { return false; }
 
     // By this point, nymfile is a good pointer, and is on the wallet. (No need
     // to
@@ -2344,8 +2315,8 @@ bool OT_API::VerifyAndRetrieveXMLContents(
     std::unique_ptr<Contract> theAngel(contract);
     strOutput.Release();
 
-    if (nullptr !=
-        contract)  // contract will always exist, if we were successful.
+    if (nullptr != contract)  // contract will always exist, if we were
+                              // successful.
         return (bSuccess && contract->SaveContractRaw(strOutput));
 
     return bSuccess;  // In practice this will only happen on failure. (Could
@@ -2390,9 +2361,7 @@ bool OT_API::Create_SmartContract(
 {
     auto nym = wallet_.Nym(SIGNER_NYM_ID);
 
-    if (false == bool(nym)) {
-        return false;
-    }
+    if (false == bool(nym)) { return false; }
 
     // By this point, nymfile is a good pointer, and is on the wallet. (No need
     // to
@@ -2404,8 +2373,9 @@ bool OT_API::Create_SmartContract(
         "while trying to instantiate blank smart "
         "contract.\n");
     if (!contract->SetDateRange(VALID_FROM, VALID_TO)) {
-        otErr << "OT_API::" << __FUNCTION__ << ": Failed trying to set date "
-                                               "range.\n";
+        otErr << "OT_API::" << __FUNCTION__
+              << ": Failed trying to set date "
+                 "range.\n";
         return false;
     }
 
@@ -2431,9 +2401,7 @@ bool OT_API::SmartContract_SetDates(
 {
     auto nym = wallet_.Nym(SIGNER_NYM_ID);
 
-    if (false == bool(nym)) {
-        return false;
-    }
+    if (false == bool(nym)) { return false; }
 
     // By this point, nymfile is a good pointer, and is on the wallet. (No need
     // to
@@ -2447,8 +2415,9 @@ bool OT_API::SmartContract_SetDates(
         return false;
     }
     if (!contract->SetDateRange(VALID_FROM, VALID_TO)) {
-        otErr << "OT_API::" << __FUNCTION__ << ": Failed trying to set date "
-                                               "range.\n";
+        otErr << "OT_API::" << __FUNCTION__
+              << ": Failed trying to set date "
+                 "range.\n";
         return false;
     }
     contract->ReleaseSignatures();
@@ -2475,9 +2444,7 @@ bool OT_API::SmartContract_AddParty(
 {
     auto nym = wallet_.Nym(SIGNER_NYM_ID);
 
-    if (false == bool(nym)) {
-        return false;
-    }
+    if (false == bool(nym)) { return false; }
 
     // By this point, nymfile is a good pointer, and is on the wallet. (No need
     // to
@@ -2610,9 +2577,7 @@ bool OT_API::SmartContract_AddAccount(
 {
     auto nym = wallet_.Nym(SIGNER_NYM_ID);
 
-    if (false == bool(nym)) {
-        return false;
-    }
+    if (false == bool(nym)) { return false; }
 
     // By this point, nymfile is a good pointer, and is on the wallet. (No need
     // to
@@ -2640,8 +2605,9 @@ bool OT_API::SmartContract_AddAccount(
     if (nullptr != party->GetAccount(str_name)) {
         otErr << "OT_API::SmartContract_AddAccount: Failed adding: "
                  "account is already there with that name ("
-              << str_name << ") on "
-                             "party: "
+              << str_name
+              << ") on "
+                 "party: "
               << str_party_name << " \n";
         return false;
     }
@@ -2678,13 +2644,12 @@ bool OT_API::SmartContract_AddAccount(
 
     if (nullptr != szAssetTypeID) strInstrumentDefinitionID.Set(szAssetTypeID);
 
-    if (false ==
-        party->AddAccount(
-            strAgentName,
-            strAcctName,
-            strAcctID,
-            strInstrumentDefinitionID,
-            0)) {
+    if (false == party->AddAccount(
+                     strAgentName,
+                     strAcctName,
+                     strAcctID,
+                     strInstrumentDefinitionID,
+                     0)) {
         otErr << "OT_API::SmartContract_AddAccount: Failed trying to "
                  "add account ("
               << str_name << ") to party: " << str_party_name << " \n";
@@ -2714,9 +2679,7 @@ bool OT_API::SmartContract_RemoveAccount(
 {
     auto nym = wallet_.Nym(SIGNER_NYM_ID);
 
-    if (false == bool(nym)) {
-        return false;
-    }
+    if (false == bool(nym)) { return false; }
 
     // By this point, nymfile is a good pointer, and is on the wallet. (No need
     // to
@@ -2794,9 +2757,7 @@ bool OT_API::SmartContract_ConfirmAccount(
 {
     auto nym = wallet_.Nym(SIGNER_NYM_ID);
 
-    if (false == bool(nym)) {
-        return false;
-    }
+    if (false == bool(nym)) { return false; }
 
     // By this point, nymfile is a good pointer, and is on the wallet. (No need
     // to
@@ -2849,8 +2810,8 @@ bool OT_API::SmartContract_ConfirmAccount(
     const std::string str_name(ACCT_NAME.Get());
 
     OTPartyAccount* partyAcct = party->GetAccount(str_name);
-    if (nullptr ==
-        partyAcct)  // It's not already there. (Though it should be...)
+    if (nullptr == partyAcct)  // It's not already there. (Though it should
+                               // be...)
     {
         otErr << OT_METHOD << __FUNCTION__
               << ": Failed: No account found on contract with name: "
@@ -2942,8 +2903,9 @@ bool OT_API::SmartContract_ConfirmAccount(
         otErr << OT_METHOD << __FUNCTION__
               << ": Failure: The smart contract has a different "
                  "server ID on it already ("
-              << strServer1 << ") than the one "
-                               "that goes with this account (server "
+              << strServer1
+              << ") than the one "
+                 "that goes with this account (server "
               << strServer2 << ", for account " << ACCT_ID << ")\n";
         return false;
     }
@@ -3109,9 +3071,9 @@ bool OT_API::SmartContract_ConfirmParty(
     pMessage->SignContract(*pNym);
     pMessage->SaveContract();
 
-    nymfile.It().AddOutpayments(
-        *pMessage);  // Now the Nym is responsible to delete it.
-                     // It's in his "outpayments".
+    nymfile.It().AddOutpayments(*pMessage);  // Now the Nym is responsible to
+                                             // delete it. It's in his
+                                             // "outpayments".
 
     return true;
 }
@@ -3186,9 +3148,7 @@ bool OT_API::SmartContract_RemoveBylaw(
 {
     auto nym = wallet_.Nym(SIGNER_NYM_ID);
 
-    if (false == bool(nym)) {
-        return false;
-    }
+    if (false == bool(nym)) { return false; }
 
     // By this point, nym is a good pointer, and is on the wallet. (No need
     // to
@@ -3235,9 +3195,7 @@ bool OT_API::SmartContract_AddHook(
 {
     auto nym = wallet_.Nym(SIGNER_NYM_ID);
 
-    if (false == bool(nym)) {
-        return false;
-    }
+    if (false == bool(nym)) { return false; }
 
     // By this point, nym is a good pointer, and is on the wallet. (No need
     // to
@@ -3297,9 +3255,7 @@ bool OT_API::SmartContract_RemoveHook(
 {
     auto nym = wallet_.Nym(SIGNER_NYM_ID);
 
-    if (false == bool(nym)) {
-        return false;
-    }
+    if (false == bool(nym)) { return false; }
 
     // By this point, nym is a good pointer, and is on the wallet. (No need
     // to
@@ -3355,9 +3311,7 @@ bool OT_API::SmartContract_AddCallback(
 {
     auto nym = wallet_.Nym(SIGNER_NYM_ID);
 
-    if (false == bool(nym)) {
-        return false;
-    }
+    if (false == bool(nym)) { return false; }
 
     // By this point, nym is a good pointer, and is on the wallet. (No need
     // to
@@ -3421,9 +3375,7 @@ bool OT_API::SmartContract_RemoveCallback(
 {
     auto nym = wallet_.Nym(SIGNER_NYM_ID);
 
-    if (false == bool(nym)) {
-        return false;
-    }
+    if (false == bool(nym)) { return false; }
 
     // By this point, nym is a good pointer, and is on the wallet. (No need
     // to
@@ -3477,9 +3429,7 @@ bool OT_API::SmartContract_AddClause(
 {
     auto nym = wallet_.Nym(SIGNER_NYM_ID);
 
-    if (false == bool(nym)) {
-        return false;
-    }
+    if (false == bool(nym)) { return false; }
 
     // By this point, nym is a good pointer, and is on the wallet. (No need
     // to
@@ -3487,8 +3437,9 @@ bool OT_API::SmartContract_AddClause(
     std::unique_ptr<OTScriptable> contract(
         OTScriptable::InstantiateScriptable(THE_CONTRACT));
     if (nullptr == contract) {
-        otErr << "OT_API::" << __FUNCTION__ << ": Error loading "
-                                               "smart contract:\n\n"
+        otErr << "OT_API::" << __FUNCTION__
+              << ": Error loading "
+                 "smart contract:\n\n"
               << THE_CONTRACT << "\n\n";
         return false;
     }
@@ -3497,8 +3448,9 @@ bool OT_API::SmartContract_AddClause(
     OTBylaw* pBylaw = contract->GetBylaw(str_bylaw_name);
 
     if (nullptr == pBylaw) {
-        otErr << "OT_API::" << __FUNCTION__ << ": Failure: Bylaw "
-                                               "doesn't exist: "
+        otErr << "OT_API::" << __FUNCTION__
+              << ": Failure: Bylaw "
+                 "doesn't exist: "
               << str_bylaw_name << " \n Input contract: \n\n"
               << THE_CONTRACT << "\n\n";
         return false;
@@ -3509,14 +3461,16 @@ bool OT_API::SmartContract_AddClause(
         otErr << "OT_API::" << __FUNCTION__
               << ": Failed adding: "
                  "clause is already there with that name ("
-              << str_name << ") on "
-                             "bylaw: "
+              << str_name
+              << ") on "
+                 "bylaw: "
               << str_bylaw_name << " \n";
         return false;
     }
     if (!pBylaw->AddClause(str_name.c_str(), str_code.c_str())) {
-        otErr << "OT_API::" << __FUNCTION__ << ": Failed trying to "
-                                               "add clause ("
+        otErr << "OT_API::" << __FUNCTION__
+              << ": Failed trying to "
+                 "add clause ("
               << str_name << ") to bylaw: " << str_bylaw_name << " \n";
         return false;
     }
@@ -3545,9 +3499,7 @@ bool OT_API::SmartContract_UpdateClause(
 {
     auto nym = wallet_.Nym(SIGNER_NYM_ID);
 
-    if (false == bool(nym)) {
-        return false;
-    }
+    if (false == bool(nym)) { return false; }
 
     // By this point, nym is a good pointer, and is on the wallet. (No need
     // to
@@ -3555,8 +3507,9 @@ bool OT_API::SmartContract_UpdateClause(
     std::unique_ptr<OTScriptable> contract(
         OTScriptable::InstantiateScriptable(THE_CONTRACT));
     if (nullptr == contract) {
-        otErr << "OT_API::" << __FUNCTION__ << ": Error loading "
-                                               "smart contract:\n\n"
+        otErr << "OT_API::" << __FUNCTION__
+              << ": Error loading "
+                 "smart contract:\n\n"
               << THE_CONTRACT << "\n\n";
         return false;
     }
@@ -3565,8 +3518,9 @@ bool OT_API::SmartContract_UpdateClause(
     OTBylaw* pBylaw = contract->GetBylaw(str_bylaw_name);
 
     if (nullptr == pBylaw) {
-        otErr << "OT_API::" << __FUNCTION__ << ": Failure: Bylaw "
-                                               "doesn't exist: "
+        otErr << "OT_API::" << __FUNCTION__
+              << ": Failure: Bylaw "
+                 "doesn't exist: "
               << str_bylaw_name << " \n Input contract: \n\n"
               << THE_CONTRACT << "\n\n";
         return false;
@@ -3601,9 +3555,7 @@ bool OT_API::SmartContract_RemoveClause(
 {
     auto nym = wallet_.Nym(SIGNER_NYM_ID);
 
-    if (false == bool(nym)) {
-        return false;
-    }
+    if (false == bool(nym)) { return false; }
 
     // By this point, nym is a good pointer, and is on the wallet. (No need
     // to
@@ -3611,8 +3563,9 @@ bool OT_API::SmartContract_RemoveClause(
     std::unique_ptr<OTScriptable> contract(
         OTScriptable::InstantiateScriptable(THE_CONTRACT));
     if (nullptr == contract) {
-        otErr << "OT_API::" << __FUNCTION__ << ": Error loading "
-                                               "smart contract:\n\n"
+        otErr << "OT_API::" << __FUNCTION__
+              << ": Error loading "
+                 "smart contract:\n\n"
               << THE_CONTRACT << "\n\n";
         return false;
     }
@@ -3621,8 +3574,9 @@ bool OT_API::SmartContract_RemoveClause(
     OTBylaw* pBylaw = contract->GetBylaw(str_bylaw_name);
 
     if (nullptr == pBylaw) {
-        otErr << "OT_API::" << __FUNCTION__ << ": Failure: Bylaw "
-                                               "doesn't exist: "
+        otErr << "OT_API::" << __FUNCTION__
+              << ": Failure: Bylaw "
+                 "doesn't exist: "
               << str_bylaw_name << " \n Input contract: \n\n"
               << THE_CONTRACT << "\n\n";
         return false;
@@ -3665,9 +3619,7 @@ bool OT_API::SmartContract_AddVariable(
 {
     auto nym = wallet_.Nym(SIGNER_NYM_ID);
 
-    if (false == bool(nym)) {
-        return false;
-    }
+    if (false == bool(nym)) { return false; }
 
     // By this point, nym is a good pointer, and is on the wallet. (No need
     // to
@@ -3675,8 +3627,9 @@ bool OT_API::SmartContract_AddVariable(
     std::unique_ptr<OTScriptable> contract(
         OTScriptable::InstantiateScriptable(THE_CONTRACT));
     if (nullptr == contract) {
-        otErr << "OT_API::" << __FUNCTION__ << ": Error loading "
-                                               "smart contract:\n\n"
+        otErr << "OT_API::" << __FUNCTION__
+              << ": Error loading "
+                 "smart contract:\n\n"
               << THE_CONTRACT << "\n\n";
         return false;
     }
@@ -3685,8 +3638,9 @@ bool OT_API::SmartContract_AddVariable(
     OTBylaw* pBylaw = contract->GetBylaw(str_bylaw_name);
 
     if (nullptr == pBylaw) {
-        otErr << "OT_API::" << __FUNCTION__ << ": Failure: Bylaw "
-                                               "doesn't exist: "
+        otErr << "OT_API::" << __FUNCTION__
+              << ": Failure: Bylaw "
+                 "doesn't exist: "
               << str_bylaw_name << " \n";
         return false;
     }
@@ -3694,8 +3648,9 @@ bool OT_API::SmartContract_AddVariable(
         str_type(VAR_TYPE.Get()), str_value(VAR_VALUE.Get());
 
     if (nullptr != pBylaw->GetVariable(str_name)) {
-        otErr << "OT_API::" << __FUNCTION__ << ": Failure: "
-                                               "Variable ("
+        otErr << "OT_API::" << __FUNCTION__
+              << ": Failure: "
+                 "Variable ("
               << str_name << ") already exists on bylaw: " << str_bylaw_name
               << " \n";
         return false;
@@ -3746,8 +3701,9 @@ bool OT_API::SmartContract_AddVariable(
     }
 
     if (!bAdded) {
-        otErr << "OT_API::" << __FUNCTION__ << ": Failed trying to "
-                                               "add variable ("
+        otErr << "OT_API::" << __FUNCTION__
+              << ": Failed trying to "
+                 "add variable ("
               << str_name << ") to bylaw: " << str_bylaw_name << " \n";
         return false;
     }
@@ -3775,9 +3731,7 @@ bool OT_API::SmartContract_RemoveVariable(
 {
     auto nym = wallet_.Nym(SIGNER_NYM_ID);
 
-    if (false == bool(nym)) {
-        return false;
-    }
+    if (false == bool(nym)) { return false; }
 
     // By this point, nym is a good pointer, and is on the wallet. (No need
     // to
@@ -3785,8 +3739,9 @@ bool OT_API::SmartContract_RemoveVariable(
     std::unique_ptr<OTScriptable> contract(
         OTScriptable::InstantiateScriptable(THE_CONTRACT));
     if (nullptr == contract) {
-        otErr << "OT_API::" << __FUNCTION__ << ": Error loading "
-                                               "smart contract:\n\n"
+        otErr << "OT_API::" << __FUNCTION__
+              << ": Error loading "
+                 "smart contract:\n\n"
               << THE_CONTRACT << "\n\n";
         return false;
     }
@@ -3795,8 +3750,9 @@ bool OT_API::SmartContract_RemoveVariable(
     OTBylaw* pBylaw = contract->GetBylaw(str_bylaw_name);
 
     if (nullptr == pBylaw) {
-        otErr << "OT_API::" << __FUNCTION__ << ": Failure: Bylaw "
-                                               "doesn't exist: "
+        otErr << "OT_API::" << __FUNCTION__
+              << ": Failure: Bylaw "
+                 "doesn't exist: "
               << str_bylaw_name << " \n";
         return false;
     }
@@ -3848,9 +3804,7 @@ bool OT_API::Rename_Nym(
     if (proto::CITEMTYPE_ERROR == type) {
         const auto existingType = nymdata.Claims().Type();
 
-        if (proto::CITEMTYPE_ERROR == existingType) {
-            return false;
-        }
+        if (proto::CITEMTYPE_ERROR == existingType) { return false; }
 
         realType = existingType;
     } else {
@@ -3859,9 +3813,7 @@ bool OT_API::Rename_Nym(
 
     const bool renamed = nymdata.SetScope(realType, name, primary);
 
-    if (!renamed) {
-        return false;
-    }
+    if (!renamed) { return false; }
 
     nymdata.SetAlias(name);
 
@@ -3881,17 +3833,12 @@ bool OT_API::SetAccount_Name(
     OTWallet* pWallet =
         GetWallet(__FUNCTION__);  // This logs and ASSERTs already.
 
-    if (nullptr == pWallet) {
-
-        return false;
-    }
+    if (nullptr == pWallet) { return false; }
 
     // By this point, pWallet is a good pointer.  (No need to cleanup.)
     auto pSignerNym = wallet_.Nym(SIGNER_NYM_ID);
 
-    if (false == bool(pSignerNym)) {
-        return false;
-    }
+    if (false == bool(pSignerNym)) { return false; }
 
     auto account =
         GetAccount(accountID, __FUNCTION__);  // This logs and ASSERTs already.
@@ -3900,8 +3847,9 @@ bool OT_API::SetAccount_Name(
 
     if (!ACCT_NEW_NAME.Exists())  // Any other validation to do on the name?
     {
-        otErr << OT_METHOD << __FUNCTION__ << ": FYI, new name is empty. "
-                                              "(Proceeding anyway)\n";
+        otErr << OT_METHOD << __FUNCTION__
+              << ": FYI, new name is empty. "
+                 "(Proceeding anyway)\n";
     }
     account->SetName(ACCT_NEW_NAME);
     account->ReleaseSignatures();
@@ -4108,9 +4056,9 @@ bool OT_API::HarvestAllNumbers(
     // harvesting the numbers from the
     // Cron Item, and not the other way
     // around.
-    pCronItem->HarvestClosingNumbers(
-        context.It());  // <==== the Nym is actually
-                        // harvesting the numbers from the
+    pCronItem->HarvestClosingNumbers(context.It());  // <==== the Nym is
+                                                     // actually harvesting the
+                                                     // numbers from the
     // Cron Item, and not the other way
     // around.
     return true;
@@ -4146,13 +4094,9 @@ bool OT_API::AddClaim(
 {
     std::set<std::uint32_t> attribute;
 
-    if (active || primary) {
-        attribute.insert(proto::CITEMATTR_ACTIVE);
-    }
+    if (active || primary) { attribute.insert(proto::CITEMATTR_ACTIVE); }
 
-    if (primary) {
-        attribute.insert(proto::CITEMATTR_PRIMARY);
-    }
+    if (primary) { attribute.insert(proto::CITEMATTR_PRIMARY); }
 
     const Claim claim{"", section, type, value, start, end, attribute};
     toNym.AddClaim(claim);
@@ -4172,10 +4116,7 @@ std::shared_ptr<Account> OT_API::GetOrLoadAccount(
     const char* szFunc = (nullptr != szFuncName) ? szFuncName : __FUNCTION__;
     OTWallet* pWallet = GetWallet(szFunc);  // This logs and ASSERTs already.
 
-    if (nullptr == pWallet) {
-
-        return {};
-    }
+    if (nullptr == pWallet) { return {}; }
 
     return pWallet->GetOrLoadAccount(
         theNym,
@@ -4232,10 +4173,7 @@ Cheque* OT_API::WriteCheque(
     auto account =
         GetOrLoadAccount(*nym, SENDER_accountID, NOTARY_ID, __FUNCTION__);
 
-    if (false == bool(account)) {
-
-        return nullptr;
-    }
+    if (false == bool(account)) { return nullptr; }
 
     // By this point, account is a good pointer, and is on the wallet. (No need
     // to cleanup.)
@@ -4372,10 +4310,7 @@ OTPaymentPlan* OT_API::ProposePaymentPlan(
     auto account =
         GetOrLoadAccount(*nym, RECIPIENT_accountID, NOTARY_ID, __FUNCTION__);
 
-    if (false == bool(account)) {
-
-        return nullptr;
-    }
+    if (false == bool(account)) { return nullptr; }
 
     // By this point, account is a good pointer, and is on the wallet. (No need
     // to cleanup.)
@@ -4530,9 +4465,9 @@ OTPaymentPlan* OT_API::ProposePaymentPlan(
     pMessage->SignContract(*nym);
     pMessage->SaveContract();
 
-    nymfile.It().AddOutpayments(
-        *pMessage);  // Now the Nym is responsible to delete it.
-                     // It's in his "outpayments".
+    nymfile.It().AddOutpayments(*pMessage);  // Now the Nym is responsible to
+                                             // delete it. It's in his
+                                             // "outpayments".
     return pPlan;
 }
 
@@ -4565,10 +4500,7 @@ bool OT_API::ConfirmPaymentPlan(
     auto account =
         GetOrLoadAccount(*nym, SENDER_accountID, NOTARY_ID, __FUNCTION__);
 
-    if (false == bool(account)) {
-
-        return false;
-    }
+    if (false == bool(account)) { return false; }
 
     // By this point, account is a good pointer, and is on the wallet. (No need
     // to cleanup.)
@@ -4633,9 +4565,9 @@ bool OT_API::ConfirmPaymentPlan(
     pMessage->SignContract(*nym);
     pMessage->SaveContract();
 
-    nymfile.It().AddOutpayments(
-        *pMessage);  // Now the Nym is responsible to delete it.
-                     // It's in his "outpayments".
+    nymfile.It().AddOutpayments(*pMessage);  // Now the Nym is responsible to
+                                             // delete it. It's in his
+                                             // "outpayments".
     return true;
 }
 
@@ -4803,8 +4735,8 @@ OTNym_or_SymmetricKey* OT_API::LoadPurseAndOwnerFromString(
     const String* pstrDisplay2) const  // for password-protected purses
 {
     const bool bDoesOwnerIDExist =
-        (nullptr !=
-         pOWNER_ID);  // If not true, purse MUST be password-protected.
+        (nullptr != pOWNER_ID);  // If not true, purse MUST be
+                                 // password-protected.
     OTPasswordData thePWData1(
         (nullptr == pstrDisplay1)
             ? "Enter the master passphrase for your wallet. "
@@ -4820,9 +4752,7 @@ OTNym_or_SymmetricKey* OT_API::LoadPurseAndOwnerFromString(
     if (bDoesOwnerIDExist) {
         pOwnerNym = wallet_.Nym(*pOWNER_ID).get();
 
-        if (nullptr == pOwnerNym) {
-            return nullptr;
-        }
+        if (nullptr == pOwnerNym) { return nullptr; }
     }
     // By this point, pOwnerNym may be a good pointer, and on the wallet. (No
     // need to cleanup.)
@@ -4978,7 +4908,7 @@ OTNym_or_SymmetricKey* OT_API::LoadPurseAndOwnerForMerge(
              !thePurse.IsPasswordProtected())  // && (nullptr != pOWNER_ID))
                                                //
                                                // checked inside the block.
-            ) {
+        ) {
             const Identifier& pActualOwnerID =
                 thePurse.IsNymIDIncluded() ? idPurseNym.get() : *pOWNER_ID;
 
@@ -5508,8 +5438,9 @@ bool OT_API::Wallet_ImportPurse(
         nym->GetIdentifier(strNymID1);
         pNewOwner->GetIdentifier(strNymID2);
         otErr << OT_METHOD << __FUNCTION__ << ": (OldNymID: " << strNymID1
-              << ".) (New Owner ID: " << strNymID2 << ".) Failure merging new "
-                                                      "purse:\n\n"
+              << ".) (New Owner ID: " << strNymID2
+              << ".) Failure merging new "
+                 "purse:\n\n"
               << THE_PURSE << "\n\n";
     }
     return false;
@@ -5561,9 +5492,7 @@ Token* OT_API::Token_ChangeOwner(
 
     auto pSignerNym = context->Nymfile(cashPasswordReason);
 
-    if (false == bool(pSignerNym)) {
-        return nullptr;
-    }
+    if (false == bool(pSignerNym)) { return nullptr; }
 
     // By this point, nymfile is a good pointer, and is on the wallet. (No need
     // to
@@ -5592,9 +5521,7 @@ Token* OT_API::Token_ChangeOwner(
         oldOwnerNymID->SetString(OLD_OWNER);
         auto pOldNym = wallet_.Nym(oldOwnerNymID);
 
-        if (nullptr == pOldNym) {
-            return nullptr;
-        }
+        if (nullptr == pOldNym) { return nullptr; }
 
         pOldOwner = new OTNym_or_SymmetricKey(*pOldNym, &strWalletReason);
         OT_ASSERT(nullptr != pOldOwner);
@@ -5681,10 +5608,9 @@ Token* OT_API::Token_ChangeOwner(
     std::unique_ptr<Token> token(
         Token::TokenFactory(THE_TOKEN, NOTARY_ID, INSTRUMENT_DEFINITION_ID));
     OT_ASSERT(nullptr != token);
-    if (false ==
-        token->ReassignOwnership(
-            *pOldOwner,   // must be private, if a Nym.
-            *pNewOwner))  // can be public, if a Nym.
+    if (false == token->ReassignOwnership(
+                     *pOldOwner,   // must be private, if a Nym.
+                     *pNewOwner))  // can be public, if a Nym.
     {
         otErr << OT_METHOD << __FUNCTION__
               << ": Error re-assigning ownership of token.\n";
@@ -5719,9 +5645,7 @@ Mint* OT_API::LoadMint(
     const String strInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
     auto pServer = wallet_.Server(NOTARY_ID);
 
-    if (!pServer) {
-        return nullptr;
-    }
+    if (!pServer) { return nullptr; }
 
     auto pServerNym = pServer->Nym();
 
@@ -5828,9 +5752,7 @@ Ledger* OT_API::LoadNymboxNoVerify(
 {
     rLock lock(lock_callback_({NYM_ID.str(), NOTARY_ID.str()}));
 
-    if (!wallet_.IsLocalNym(NYM_ID.str())) {
-        return nullptr;
-    }
+    if (!wallet_.IsLocalNym(NYM_ID.str())) { return nullptr; }
     // By this point, nymfile is a good pointer, and is on the wallet.
     // (No need to cleanup later.)
     // ---------------------------------------------
@@ -5903,9 +5825,7 @@ Ledger* OT_API::LoadInboxNoVerify(
 {
     rLock lock(lock_callback_({NYM_ID.str(), NOTARY_ID.str()}));
 
-    if (!wallet_.IsLocalNym(NYM_ID.str())) {
-        return nullptr;
-    }
+    if (!wallet_.IsLocalNym(NYM_ID.str())) { return nullptr; }
     // By this point, nymfile is a good pointer, and is on the wallet.
     // (No need to cleanup later.)
     // ---------------------------------------------
@@ -5979,9 +5899,7 @@ Ledger* OT_API::LoadOutboxNoVerify(
 {
     rLock lock(lock_callback_({NYM_ID.str(), NOTARY_ID.str()}));
 
-    if (!wallet_.IsLocalNym(NYM_ID.str())) {
-        return nullptr;
-    }
+    if (!wallet_.IsLocalNym(NYM_ID.str())) { return nullptr; }
     // By this point, nymfile is a good pointer, and is on the wallet.
     // (No need to cleanup later.)
     // ---------------------------------------------
@@ -6040,9 +5958,7 @@ Ledger* OT_API::LoadPaymentInboxNoVerify(
 {
     rLock lock(lock_callback_({NYM_ID.str(), NOTARY_ID.str()}));
 
-    if (!wallet_.IsLocalNym(NYM_ID.str())) {
-        return nullptr;
-    }
+    if (!wallet_.IsLocalNym(NYM_ID.str())) { return nullptr; }
     // By this point, nymfile is a good pointer, and is on the wallet.
     // (No need to cleanup later.)
     // ---------------------------------------------
@@ -6109,9 +6025,7 @@ Ledger* OT_API::LoadRecordBoxNoVerify(
 {
     rLock lock(lock_callback_({NYM_ID.str(), NOTARY_ID.str()}));
 
-    if (!wallet_.IsLocalNym(NYM_ID.str())) {
-        return nullptr;
-    }
+    if (!wallet_.IsLocalNym(NYM_ID.str())) { return nullptr; }
     // By this point, nymfile is a good pointer, and is on the wallet.
     // (No need to cleanup later.)
     // ---------------------------------------------
@@ -6175,9 +6089,7 @@ Ledger* OT_API::LoadExpiredBoxNoVerify(
 {
     rLock lock(lock_callback_({NYM_ID.str(), NOTARY_ID.str()}));
 
-    if (!wallet_.IsLocalNym(NYM_ID.str())) {
-        return nullptr;
-    }
+    if (!wallet_.IsLocalNym(NYM_ID.str())) { return nullptr; }
     // By this point, nymfile is a good pointer, and is on the wallet.
     // (No need to cleanup later.)
     // ---------------------------------------------
@@ -6651,9 +6563,9 @@ bool OT_API::RecordPayment(
                      // Note that we still need to save
                      // pPaymentInbox somewhere below, assuming
                      // it's all successful.
-        theTransactionAngel.reset(
-            transaction);  // If below we put transaction onto the Record Box,
-                           // then we have to set this to nullptr.
+        theTransactionAngel.reset(transaction);  // If below we put transaction
+                                                 // onto the Record Box, then we
+                                                 // have to set this to nullptr.
 
         // NOTE: transaction is still good, below this point, and will be
         // cleaned up automatically whenever we exit this function.
@@ -7595,9 +7507,9 @@ bool OT_API::RecordPayment(
         // Now we actually remove the message from the outpayments...
         //
         bRemoved = transport_nymfile.It().RemoveOutpaymentsByIndex(
-            nIndex, false);  // bDeleteIt=true by default
-        theMessageAngel.reset(
-            pMessage);  // Since we chose to keep pMessage alive after removing
+            nIndex, false);               // bDeleteIt=true by default
+        theMessageAngel.reset(pMessage);  // Since we chose to keep pMessage
+                                          // alive after removing
         // it from the outpayments, we set the angel here to make
         // sure it gets cleaned up later whenever we return out
         // of this godforsaken function.
@@ -8038,9 +7950,7 @@ bool OT_API::IsBasketCurrency(const Identifier& BASKET_INSTRUMENT_DEFINITION_ID)
     bool loaded =
         storage_.Load(BASKET_INSTRUMENT_DEFINITION_ID.str(), contract, true);
 
-    if (!loaded) {
-        return false;
-    }
+    if (!loaded) { return false; }
 
     return (proto::UNITTYPE_BASKET == contract->type());
 }
@@ -8056,13 +7966,9 @@ std::int32_t OT_API::GetBasketMemberCount(
     std::shared_ptr<proto::UnitDefinition> serialized;
     storage_.Load(BASKET_INSTRUMENT_DEFINITION_ID.str(), serialized, true);
 
-    if (!serialized) {
-        return 0;
-    }
+    if (!serialized) { return 0; }
 
-    if (proto::UNITTYPE_BASKET != serialized->type()) {
-        return 0;
-    }
+    if (proto::UNITTYPE_BASKET != serialized->type()) { return 0; }
 
     return serialized->basket().item_size();
 }
@@ -8081,13 +7987,9 @@ bool OT_API::GetBasketMemberType(
     std::shared_ptr<proto::UnitDefinition> serialized;
     storage_.Load(BASKET_INSTRUMENT_DEFINITION_ID.str(), serialized, true);
 
-    if (!serialized) {
-        return false;
-    }
+    if (!serialized) { return false; }
 
-    if (proto::UNITTYPE_BASKET != serialized->type()) {
-        return false;
-    }
+    if (proto::UNITTYPE_BASKET != serialized->type()) { return false; }
 
     if ((nIndex >= serialized->basket().item_size()) || (nIndex < 0)) {
         otErr << OT_METHOD << __FUNCTION__
@@ -8116,13 +8018,9 @@ std::int64_t OT_API::GetBasketMemberMinimumTransferAmount(
     std::shared_ptr<proto::UnitDefinition> serialized;
     storage_.Load(BASKET_INSTRUMENT_DEFINITION_ID.str(), serialized, true);
 
-    if (!serialized) {
-        return 0;
-    }
+    if (!serialized) { return 0; }
 
-    if (proto::UNITTYPE_BASKET != serialized->type()) {
-        return 0;
-    }
+    if (proto::UNITTYPE_BASKET != serialized->type()) { return 0; }
 
     if ((nIndex >= serialized->basket().item_size()) || (nIndex < 0)) {
         otErr << OT_METHOD << __FUNCTION__
@@ -8144,13 +8042,9 @@ std::int64_t OT_API::GetBasketMinimumTransferAmount(
     std::shared_ptr<proto::UnitDefinition> serialized;
     storage_.Load(BASKET_INSTRUMENT_DEFINITION_ID.str(), serialized, true);
 
-    if (!serialized) {
-        return 0;
-    }
+    if (!serialized) { return 0; }
 
-    if (proto::UNITTYPE_BASKET != serialized->type()) {
-        return 0;
-    }
+    if (proto::UNITTYPE_BASKET != serialized->type()) { return 0; }
 
     return serialized->basket().weight();
 }
@@ -8165,9 +8059,7 @@ bool OT_API::AddBasketCreationItem(
 {
     auto item = basketTemplate.mutable_basket()->add_item();
 
-    if (nullptr == item) {
-        return false;
-    }
+    if (nullptr == item) { return false; }
 
     item->set_version(1);
     item->set_weight(weight);
@@ -8199,28 +8091,22 @@ CommandResult OT_API::issueBasket(
     rLock lock(
         lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
-    auto & [ requestNum, transactionNum, result ] = output;
-    auto & [ status, reply ] = result;
+    auto& [requestNum, transactionNum, result] = output;
+    auto& [status, reply] = result;
     requestNum = -1;
     transactionNum = 0;
     status = SendResult::ERROR;
     reply.reset();
-    auto[newRequestNumber, message] = context.InitializeServerCommand(
+    auto [newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::issueBasket,
         OTASCIIArmor(proto::ProtoAsData(basket)),
         Identifier::Factory(),
         requestNum);
     requestNum = newRequestNumber;
 
-    if (false == bool(message)) {
+    if (false == bool(message)) { return output; }
 
-        return output;
-    }
-
-    if (false == context.FinalizeServerCommand(*message)) {
-
-        return output;
-    }
+    if (false == context.FinalizeServerCommand(*message)) { return output; }
 
     result = send_message({}, context, *message);
 
@@ -8253,10 +8139,7 @@ Basket* OT_API::GenerateBasketExchange(
     // need to cleanup.)
     auto account = GetOrLoadAccount(*nym, accountID, NOTARY_ID, __FUNCTION__);
 
-    if (false == bool(account)) {
-
-        return nullptr;
-    }
+    if (false == bool(account)) { return nullptr; }
 
     // By this point, account is a good pointer, and is on the wallet. (No need
     // to cleanup.)
@@ -8330,17 +8213,12 @@ bool OT_API::AddBasketExchangeItem(
 
     auto contract = wallet_.UnitDefinition(INSTRUMENT_DEFINITION_ID);
 
-    if (!contract) {
-        return false;
-    }
+    if (!contract) { return false; }
 
     auto account =
         GetOrLoadAccount(*nym, ASSET_ACCOUNT_ID, NOTARY_ID, __FUNCTION__);
 
-    if (false == bool(account)) {
-
-        return false;
-    }
+    if (false == bool(account)) { return false; }
 
     // By this point, account is a good pointer, and is on the wallet. (No need
     // to cleanup.)
@@ -8520,8 +8398,8 @@ CommandResult OT_API::exchangeBasket(
     rLock lock(
         lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
-    auto & [ requestNum, transactionNum, result ] = output;
-    auto & [ status, reply ] = result;
+    auto& [requestNum, transactionNum, result] = output;
+    auto& [status, reply] = result;
     requestNum = -1;
     transactionNum = 0;
     status = SendResult::ERROR;
@@ -8532,28 +8410,19 @@ CommandResult OT_API::exchangeBasket(
     auto contract =
         GetBasketContract(BASKET_INSTRUMENT_DEFINITION_ID, __FUNCTION__);
 
-    if (nullptr == contract) {
-
-        return output;
-    }
+    if (nullptr == contract) { return output; }
 
     Basket basket;
     bool validBasket = (0 < BASKET_INFO.GetLength());
     validBasket &= basket.LoadContractFromString(BASKET_INFO);
 
-    if (false == validBasket) {
-
-        return output;
-    }
+    if (false == validBasket) { return output; }
 
     const Identifier& accountID(basket.GetRequestAccountID());
 
     auto account = GetOrLoadAccount(nym, accountID, serverID, __FUNCTION__);
 
-    if (nullptr == account) {
-
-        return output;
-    }
+    if (nullptr == account) { return output; }
 
     std::unique_ptr<Ledger> inbox(account->LoadInbox(nym));
 
@@ -8613,18 +8482,12 @@ CommandResult OT_API::exchangeBasket(
             originType::not_applicable,
             transactionNum));
 
-    if (false == bool(transaction)) {
-
-        return output;
-    }
+    if (false == bool(transaction)) { return output; }
 
     std::unique_ptr<Item> item(
         Item::CreateItemFromTransaction(*transaction, Item::exchangeBasket));
 
-    if (false == bool(item)) {
-
-        return output;
-    }
+    if (false == bool(item)) { return output; }
 
     managed.insert(
         context.NextTransactionNumber(MessageType::notarizeTransaction));
@@ -8654,10 +8517,7 @@ CommandResult OT_API::exchangeBasket(
     std::unique_ptr<Item> balanceItem(inbox->GenerateBalanceStatement(
         0, *transaction, context, *account, *outbox));
 
-    if (false == bool(balanceItem)) {
-
-        return output;
-    }
+    if (false == bool(balanceItem)) { return output; }
 
     transaction->AddItem(*balanceItem.release());
     transaction->SignContract(nym);
@@ -8667,22 +8527,16 @@ CommandResult OT_API::exchangeBasket(
     ledger.AddTransaction(*transaction.release());
     ledger.SignContract(nym);
     ledger.SaveContract();
-    auto[newRequestNumber, message] = context.InitializeServerCommand(
+    auto [newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::notarizeTransaction,
         OTASCIIArmor(String(ledger)),
         accountID,
         requestNum);
     requestNum = newRequestNumber;
 
-    if (false == bool(message)) {
+    if (false == bool(message)) { return output; }
 
-        return output;
-    }
-
-    if (false == context.FinalizeServerCommand(*message)) {
-
-        return output;
-    }
+    if (false == context.FinalizeServerCommand(*message)) { return output; }
 
     result = send_message(managed, context, *message);
 
@@ -8694,8 +8548,8 @@ CommandResult OT_API::getTransactionNumbers(ServerContext& context) const
     rLock lock(
         lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
-    auto & [ requestNum, transactionNum, result ] = output;
-    auto & [ status, reply ] = result;
+    auto& [requestNum, transactionNum, result] = output;
+    auto& [status, reply] = result;
     requestNum = -1;
     transactionNum = 0;
     status = SendResult::ERROR;
@@ -8740,8 +8594,8 @@ CommandResult OT_API::notarizeWithdrawal(
     rLock lock(
         lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
-    auto & [ requestNum, transactionNum, result ] = output;
-    auto & [ status, reply ] = result;
+    auto& [requestNum, transactionNum, result] = output;
+    auto& [status, reply] = result;
     requestNum = -1;
     transactionNum = 0;
     status = SendResult::ERROR;
@@ -8753,17 +8607,11 @@ CommandResult OT_API::notarizeWithdrawal(
     const auto& serverNymID = serverNym.ID();
     auto wallet = GetWallet(__FUNCTION__);
 
-    if (nullptr == wallet) {
-
-        return output;
-    }
+    if (nullptr == wallet) { return output; }
 
     auto account = GetOrLoadAccount(nym, accountID, serverID, __FUNCTION__);
 
-    if (nullptr == account) {
-
-        return output;
-    }
+    if (nullptr == account) { return output; }
 
     const auto& contractID = account->GetInstrumentDefinitionID();
     const bool exists =
@@ -8781,17 +8629,11 @@ CommandResult OT_API::notarizeWithdrawal(
     std::unique_ptr<Mint> mint{nullptr};
     mint.reset(Mint::MintFactory(String(serverID), String(contractID)));
 
-    if (false == bool(mint)) {
-
-        return output;
-    }
+    if (false == bool(mint)) { return output; }
 
     const bool validMint = mint->LoadMint() && mint->VerifyMint(serverNym);
 
-    if (false == validMint) {
-
-        return output;
-    }
+    if (false == validMint) { return output; }
 
     std::unique_ptr<Ledger> inbox(account->LoadInbox(nym));
 
@@ -8837,34 +8679,22 @@ CommandResult OT_API::notarizeWithdrawal(
             originType::not_applicable,
             transactionNum));
 
-    if (false == bool(transaction)) {
-
-        return output;
-    }
+    if (false == bool(transaction)) { return output; }
 
     std::unique_ptr<Item> item(
         Item::CreateItemFromTransaction(*transaction, Item::withdrawal));
 
-    if (false == bool(item)) {
-
-        return output;
-    }
+    if (false == bool(item)) { return output; }
 
     item->SetNote(String("Gimme cash!"));
     std::unique_ptr<Purse> purse(new Purse(serverID, contractID, serverNymID));
 
-    if (false == bool(purse)) {
-
-        return output;
-    }
+    if (false == bool(purse)) { return output; }
 
     std::unique_ptr<Purse> purseCopy(
         new Purse(serverID, contractID, serverNymID));
 
-    if (false == bool(purseCopy)) {
-
-        return output;
-    }
+    if (false == bool(purseCopy)) { return output; }
 
     // Create all the necessary tokens for the withdrawal amount. Push copies of
     // each token into a purse to be sent to the server, as well as a purse to
@@ -8883,10 +8713,7 @@ CommandResult OT_API::notarizeWithdrawal(
         std::unique_ptr<Token> token(Token::InstantiateAndGenerateTokenRequest(
             *purse, nym, *mint, tokenAmount));
 
-        if (false == bool(token)) {
-
-            return output;
-        }
+        if (false == bool(token)) { return output; }
 
         token->SignContract(nym);
         token->SaveContract();
@@ -8925,10 +8752,7 @@ CommandResult OT_API::notarizeWithdrawal(
     std::unique_ptr<Item> balanceItem(inbox->GenerateBalanceStatement(
         totalAmount * (-1), *transaction, context, *account, *outbox));
 
-    if (false == bool(balanceItem)) {
-
-        return output;
-    }
+    if (false == bool(balanceItem)) { return output; }
 
     transaction->AddItem(*balanceItem.release());
     transaction->SignContract(nym);
@@ -8938,22 +8762,16 @@ CommandResult OT_API::notarizeWithdrawal(
     ledger.AddTransaction(*transaction.release());
     ledger.SignContract(nym);
     ledger.SaveContract();
-    auto[newRequestNumber, message] = context.InitializeServerCommand(
+    auto [newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::notarizeTransaction,
         OTASCIIArmor(String(ledger)),
         accountID,
         requestNum);
     requestNum = newRequestNumber;
 
-    if (false == bool(message)) {
+    if (false == bool(message)) { return output; }
 
-        return output;
-    }
-
-    if (false == context.FinalizeServerCommand(*message)) {
-
-        return output;
-    }
+    if (false == context.FinalizeServerCommand(*message)) { return output; }
 
     result = send_message(managed, context, *message);
 
@@ -8970,8 +8788,8 @@ CommandResult OT_API::notarizeDeposit(
     rLock lock(
         lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
-    auto & [ requestNum, transactionNum, result ] = output;
-    auto & [ status, reply ] = result;
+    auto& [requestNum, transactionNum, result] = output;
+    auto& [status, reply] = result;
     requestNum = -1;
     transactionNum = 0;
     status = SendResult::ERROR;
@@ -9049,8 +8867,9 @@ CommandResult OT_API::notarizeDeposit(
         Item::CreateItemFromTransaction(*transaction, Item::deposit));
 
     if (false == bool(item)) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Failed generate deposit txn "
-                                              "item. "
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Failed generate deposit txn "
+                 "item. "
               << "account " << String(accountID) << std::endl;
 
         return output;
@@ -9164,7 +8983,7 @@ CommandResult OT_API::notarizeDeposit(
     ledger.SignContract(nym);
     ledger.SaveContract();
 
-    auto[newRequestNumber, message] = context.InitializeServerCommand(
+    auto [newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::notarizeTransaction,
         OTASCIIArmor(String(ledger)),
         accountID,
@@ -9214,8 +9033,8 @@ CommandResult OT_API::payDividend(
     rLock lock(
         lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
-    auto & [ requestNum, transactionNum, result ] = output;
-    auto & [ status, reply ] = result;
+    auto& [requestNum, transactionNum, result] = output;
+    auto& [status, reply] = result;
     requestNum = -1;
     transactionNum = 0;
     status = SendResult::ERROR;
@@ -9226,25 +9045,16 @@ CommandResult OT_API::payDividend(
     auto dividendAccount =
         GetOrLoadAccount(nym, DIVIDEND_FROM_accountID, serverID, __FUNCTION__);
 
-    if (nullptr == dividendAccount) {
-
-        return output;
-    }
+    if (nullptr == dividendAccount) { return output; }
 
     auto contract = wallet_.UnitDefinition(SHARES_INSTRUMENT_DEFINITION_ID);
 
-    if (false == bool(contract)) {
-
-        return output;
-    }
+    if (false == bool(contract)) { return output; }
 
     // wallet is not owned by this function
     auto wallet = GetWallet(__FUNCTION__);
 
-    if (nullptr == wallet) {
-
-        return output;
-    }
+    if (nullptr == wallet) { return output; }
 
     // issuerAccount is not owned by this function
     auto issuerAccount =
@@ -9352,10 +9162,7 @@ CommandResult OT_API::payDividend(
         DIVIDEND_MEMO,
         Identifier::Factory(nymID));
 
-    if (!bIssueCheque) {
-
-        return output;
-    }
+    if (!bIssueCheque) { return output; }
 
     /*
         NOTE: The above cheque isn't actually USED for anything, except as a
@@ -9398,18 +9205,12 @@ CommandResult OT_API::payDividend(
             originType::not_applicable,
             transactionNum));
 
-    if (false == bool(transaction)) {
-
-        return output;
-    }
+    if (false == bool(transaction)) { return output; }
 
     std::unique_ptr<Item> item(
         Item::CreateItemFromTransaction(*transaction, Item::payDividend));
 
-    if (false == bool(item)) {
-
-        return output;
-    }
+    if (false == bool(item)) { return output; }
 
     // Notice, while the CHEQUE is for AMOUNT_PER_SHARE, the item's AMOUNT is
     // set to totalCost. The server just needs both of those, so that's how we
@@ -9425,10 +9226,7 @@ CommandResult OT_API::payDividend(
     std::unique_ptr<Item> balanceItem(inbox->GenerateBalanceStatement(
         totalCost * (-1), *transaction, context, *dividendAccount, *outbox));
 
-    if (false == bool(balanceItem)) {
-
-        return output;
-    }
+    if (false == bool(balanceItem)) { return output; }
 
     // Notice the balance agreement is made for the "total cost of the
     // dividend", which we calculated as the issuer's account balance, times -1,
@@ -9454,22 +9252,16 @@ CommandResult OT_API::payDividend(
     ledger.AddTransaction(*transaction.release());
     ledger.SignContract(nym);
     ledger.SaveContract();
-    auto[newRequestNumber, message] = context.InitializeServerCommand(
+    auto [newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::notarizeTransaction,
         OTASCIIArmor(String(ledger)),
         DIVIDEND_FROM_accountID,
         requestNum);
     requestNum = newRequestNumber;
 
-    if (false == bool(message)) {
+    if (false == bool(message)) { return output; }
 
-        return output;
-    }
-
-    if (false == context.FinalizeServerCommand(*message)) {
-
-        return output;
-    }
+    if (false == context.FinalizeServerCommand(*message)) { return output; }
 
     result = send_message(managed, context, *message);
 
@@ -9488,8 +9280,8 @@ CommandResult OT_API::withdrawVoucher(
     rLock lock(
         lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
-    auto & [ requestNum, transactionNum, result ] = output;
-    auto & [ status, reply ] = result;
+    auto& [requestNum, transactionNum, result] = output;
+    auto& [status, reply] = result;
     requestNum = -1;
     transactionNum = 0;
     status = SendResult::ERROR;
@@ -9499,10 +9291,7 @@ CommandResult OT_API::withdrawVoucher(
     const auto& serverID = context.Server();
     auto account = GetOrLoadAccount(nym, accountID, serverID, __FUNCTION__);
 
-    if (nullptr == account) {
-
-        return output;
-    }
+    if (nullptr == account) { return output; }
 
     auto contractID = Identifier::Factory();
     String strContractID;
@@ -9567,10 +9356,7 @@ CommandResult OT_API::withdrawVoucher(
         return output;
     }
 
-    if (!bIssueCheque) {
-
-        return output;
-    }
+    if (!bIssueCheque) { return output; }
 
     std::unique_ptr<OTTransaction> transaction(
         OTTransaction::GenerateTransaction(
@@ -9580,18 +9366,12 @@ CommandResult OT_API::withdrawVoucher(
             OTTransaction::withdrawal,
             originType::not_applicable,
             withdrawalNumber));
-    if (false == bool(transaction)) {
-
-        return output;
-    }
+    if (false == bool(transaction)) { return output; }
 
     std::unique_ptr<Item> item(
         Item::CreateItemFromTransaction(*transaction, Item::withdrawVoucher));
 
-    if (false == bool(item)) {
-
-        return output;
-    }
+    if (false == bool(item)) { return output; }
 
     item->SetAmount(amount);
     item->SetNote(String(" "));
@@ -9605,10 +9385,7 @@ CommandResult OT_API::withdrawVoucher(
     std::unique_ptr<Item> balanceItem(inbox->GenerateBalanceStatement(
         amount * (-1), *transaction, context, *account, *outbox));
 
-    if (false == bool(item)) {
-
-        return output;
-    }
+    if (false == bool(item)) { return output; }
 
     transaction->AddItem(*balanceItem.release());
     transaction->SignContract(nym);
@@ -9618,22 +9395,16 @@ CommandResult OT_API::withdrawVoucher(
     ledger.AddTransaction(*transaction.release());
     ledger.SignContract(nym);
     ledger.SaveContract();
-    auto[newRequestNumber, message] = context.InitializeServerCommand(
+    auto [newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::notarizeTransaction,
         OTASCIIArmor(String(ledger)),
         accountID,
         requestNum);
     requestNum = newRequestNumber;
 
-    if (false == bool(message)) {
+    if (false == bool(message)) { return output; }
 
-        return output;
-    }
-
-    if (false == context.FinalizeServerCommand(*message)) {
-
-        return output;
-    }
+    if (false == context.FinalizeServerCommand(*message)) { return output; }
 
     result = send_message({}, context, *message);
 
@@ -9696,16 +9467,11 @@ bool OT_API::DiscardCheque(
 
     auto pServer = wallet_.Server(NOTARY_ID);
 
-    if (!pServer) {
-        return false;
-    }
+    if (!pServer) { return false; }
 
     auto account = GetOrLoadAccount(*nym, accountID, NOTARY_ID, __FUNCTION__);
 
-    if (false == bool(account)) {
-
-        return false;
-    }
+    if (false == bool(account)) { return false; }
 
     // By this point, account is a good pointer, and is on the wallet. (No need
     // to cleanup.)
@@ -9772,8 +9538,8 @@ CommandResult OT_API::depositCheque(
     rLock lock(
         lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
-    auto & [ requestNum, transactionNum, result ] = output;
-    auto & [ status, reply ] = result;
+    auto& [requestNum, transactionNum, result] = output;
+    auto& [status, reply] = result;
     requestNum = -1;
     transactionNum = 0;
     status = SendResult::ERROR;
@@ -9783,10 +9549,7 @@ CommandResult OT_API::depositCheque(
     const auto& serverID = context.Server();
     auto account = GetOrLoadAccount(nym, accountID, serverID, __FUNCTION__);
 
-    if (nullptr == account) {
-
-        return output;
-    }
+    if (nullptr == account) { return output; }
 
     if (theCheque.GetNotaryID() != serverID) {
         otErr << OT_METHOD << __FUNCTION__ << ": NotaryID on cheque ("
@@ -9919,18 +9682,12 @@ CommandResult OT_API::depositCheque(
             originType::not_applicable,
             transactionNum));
 
-    if (false == bool(transaction)) {
-
-        return output;
-    }
+    if (false == bool(transaction)) { return output; }
 
     std::unique_ptr<Item> item(
         Item::CreateItemFromTransaction(*transaction, Item::depositCheque));
 
-    if (false == bool(item)) {
-
-        return output;
-    }
+    if (false == bool(item)) { return output; }
 
     const String strNote(
         bCancellingCheque ? "Cancel this cheque, please!"
@@ -9953,10 +9710,7 @@ CommandResult OT_API::depositCheque(
     std::unique_ptr<Item> balanceItem(inbox->GenerateBalanceStatement(
         cheque.GetAmount(), *transaction, context, *account, *outbox));
 
-    if (false == bool(balanceItem)) {
-
-        return output;
-    }
+    if (false == bool(balanceItem)) { return output; }
 
     transaction->AddItem(*balanceItem.release());
     transaction->SignContract(nym);
@@ -9966,10 +9720,7 @@ CommandResult OT_API::depositCheque(
     const bool generated =
         ledger.GenerateLedger(accountID, serverID, Ledger::message);
 
-    if (false == generated) {
-
-        return output;
-    }
+    if (false == generated) { return output; }
 
     ledger.AddTransaction(*transaction.release());
 
@@ -9977,22 +9728,16 @@ CommandResult OT_API::depositCheque(
     ledger.SignContract(nym);
     ledger.SaveContract();
 
-    auto[newRequestNumber, message] = context.InitializeServerCommand(
+    auto [newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::notarizeTransaction,
         OTASCIIArmor(String(ledger)),
         accountID,
         requestNum);
     requestNum = newRequestNumber;
 
-    if (false == bool(message)) {
+    if (false == bool(message)) { return output; }
 
-        return output;
-    }
-
-    if (false == context.FinalizeServerCommand(*message)) {
-
-        return output;
-    }
+    if (false == context.FinalizeServerCommand(*message)) { return output; }
 
     result = send_message(managed, context, *message);
 
@@ -10028,8 +9773,8 @@ CommandResult OT_API::depositPaymentPlan(
     rLock lock(
         lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
-    auto & [ requestNum, transactionNum, result ] = output;
-    auto & [ status, reply ] = result;
+    auto& [requestNum, transactionNum, result] = output;
+    auto& [status, reply] = result;
     requestNum = -1;
     transactionNum = 0;
     status = SendResult::ERROR;
@@ -10082,10 +9827,7 @@ CommandResult OT_API::depositPaymentPlan(
         bCancelling ? plan.GetRecipientAcctID() : plan.GetSenderAcctID());
     auto account = GetOrLoadAccount(nym, accountID, serverID, __FUNCTION__);
 
-    if (nullptr == account) {
-
-        return output;
-    }
+    if (nullptr == account) { return output; }
 
     const auto openingNumber = plan.GetOpeningNumber(nymID);
     std::unique_ptr<OTTransaction> transaction(
@@ -10097,18 +9839,12 @@ CommandResult OT_API::depositPaymentPlan(
             originType::origin_payment_plan,
             openingNumber));
 
-    if (false == bool(transaction)) {
-
-        return output;
-    }
+    if (false == bool(transaction)) { return output; }
 
     std::unique_ptr<Item> item(
         Item::CreateItemFromTransaction(*transaction, Item::paymentPlan));
 
-    if (false == bool(item)) {
-
-        return output;
-    }
+    if (false == bool(item)) { return output; }
 
     item->SetAttachment(String(plan));
     item->SignContract(nym);
@@ -10116,10 +9852,7 @@ CommandResult OT_API::depositPaymentPlan(
     transaction->AddItem(*item.release());
     auto statement = context.Statement(*transaction);
 
-    if (false == bool(statement)) {
-
-        return output;
-    }
+    if (false == bool(statement)) { return output; }
 
     transaction->AddItem(*statement.release());
     transaction->SignContract(nym);
@@ -10128,22 +9861,16 @@ CommandResult OT_API::depositPaymentPlan(
     ledger.GenerateLedger(accountID, serverID, Ledger::message);
     ledger.AddTransaction(*transaction.release());
     ledger.SignContract(nym);
-    auto[newRequestNumber, message] = context.InitializeServerCommand(
+    auto [newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::notarizeTransaction,
         OTASCIIArmor(String(ledger)),
         accountID,
         requestNum);
     requestNum = newRequestNumber;
 
-    if (false == bool(message)) {
+    if (false == bool(message)) { return output; }
 
-        return output;
-    }
-
-    if (false == context.FinalizeServerCommand(*message)) {
-
-        return output;
-    }
+    if (false == context.FinalizeServerCommand(*message)) { return output; }
 
     result = send_message({}, context, *message);
 
@@ -10163,8 +9890,8 @@ CommandResult OT_API::triggerClause(
     rLock lock(
         lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
-    auto & [ requestNum, transactionNum, result ] = output;
-    auto & [ status, reply ] = result;
+    auto& [requestNum, transactionNum, result] = output;
+    auto& [status, reply] = result;
     requestNum = -1;
     transactionNum = transactionNumber;
     status = SendResult::ERROR;
@@ -10176,22 +9903,16 @@ CommandResult OT_API::triggerClause(
         payload.SetString(*pStrParam);
     }
 
-    auto[newRequestNumber, message] = context.InitializeServerCommand(
+    auto [newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::triggerClause, payload, Identifier::Factory(), requestNum);
     requestNum = newRequestNumber;
 
-    if (false == bool(message)) {
-
-        return output;
-    }
+    if (false == bool(message)) { return output; }
 
     message->m_lTransactionNum = transactionNumber;
     message->m_strNymID2 = strClauseName;
 
-    if (false == context.FinalizeServerCommand(*message)) {
-
-        return output;
-    }
+    if (false == context.FinalizeServerCommand(*message)) { return output; }
 
     result = send_message({}, context, *message);
 
@@ -10205,8 +9926,8 @@ CommandResult OT_API::activateSmartContract(
     rLock lock(
         lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
-    auto & [ requestNum, transactionNum, result ] = output;
-    auto & [ status, reply ] = result;
+    auto& [requestNum, transactionNum, result] = output;
+    auto& [status, reply] = result;
     requestNum = -1;
     transactionNum = 0;
     status = SendResult::ERROR;
@@ -10442,18 +10163,12 @@ CommandResult OT_API::activateSmartContract(
             originType::not_applicable,
             contract.GetTransactionNum()));
 
-    if (false == bool(transaction)) {
-
-        return output;
-    }
+    if (false == bool(transaction)) { return output; }
 
     std::unique_ptr<Item> item(
         Item::CreateItemFromTransaction(*transaction, Item::smartContract));
 
-    if (false == bool(item)) {
-
-        return output;
-    }
+    if (false == bool(item)) { return output; }
 
     item->SetAttachment(String(contract));
     item->SignContract(nym);
@@ -10461,10 +10176,7 @@ CommandResult OT_API::activateSmartContract(
     transaction->AddItem(*item.release());
     auto statement = context.Statement(*transaction);
 
-    if (false == bool(statement)) {
-
-        return output;
-    }
+    if (false == bool(statement)) { return output; }
 
     transaction->AddItem(*statement.release());
     transaction->SignContract(nym);
@@ -10475,22 +10187,16 @@ CommandResult OT_API::activateSmartContract(
     ledger.SignContract(nym);
     ledger.SaveContract();
 
-    auto[newRequestNumber, message] = context.InitializeServerCommand(
+    auto [newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::notarizeTransaction,
         OTASCIIArmor(String(ledger)),
         accountID,
         requestNum);
     requestNum = newRequestNumber;
 
-    if (false == bool(message)) {
+    if (false == bool(message)) { return output; }
 
-        return output;
-    }
-
-    if (false == context.FinalizeServerCommand(*message)) {
-
-        return output;
-    }
+    if (false == context.FinalizeServerCommand(*message)) { return output; }
 
     result = send_message({}, context, *message);
 
@@ -10556,8 +10262,8 @@ CommandResult OT_API::cancelCronItem(
     rLock lock(
         lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
-    auto & [ requestNum, transactionNum, result ] = output;
-    auto & [ status, reply ] = result;
+    auto& [requestNum, transactionNum, result] = output;
+    auto& [status, reply] = result;
     requestNum = -1;
     transactionNum = 0;
     status = SendResult::ERROR;
@@ -10601,18 +10307,12 @@ CommandResult OT_API::cancelCronItem(
             originType::not_applicable,
             transactionNum));
 
-    if (false == bool(transaction)) {
-
-        return output;
-    }
+    if (false == bool(transaction)) { return output; }
 
     std::unique_ptr<Item> item(
         Item::CreateItemFromTransaction(*transaction, Item::cancelCronItem));
 
-    if (false == bool(item)) {
-
-        return output;
-    }
+    if (false == bool(item)) { return output; }
 
     item->SetReferenceToNum(transactionNum);
     transaction->SetReferenceToNum(transactionNum);
@@ -10621,10 +10321,7 @@ CommandResult OT_API::cancelCronItem(
     transaction->AddItem(*item.release());
     auto statement = context.Statement(*transaction);
 
-    if (false == bool(statement)) {
-
-        return output;
-    }
+    if (false == bool(statement)) { return output; }
 
     transaction->AddItem(*statement.release());
     transaction->SignContract(nym);
@@ -10637,22 +10334,16 @@ CommandResult OT_API::cancelCronItem(
     ledger.SignContract(nym);
     ledger.SaveContract();
 
-    auto[newRequestNumber, message] = context.InitializeServerCommand(
+    auto [newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::notarizeTransaction,
         OTASCIIArmor(String(ledger)),
         ASSET_ACCOUNT_ID,
         requestNum);
     requestNum = newRequestNumber;
 
-    if (false == bool(message)) {
+    if (false == bool(message)) { return output; }
 
-        return output;
-    }
-
-    if (false == context.FinalizeServerCommand(*message)) {
-
-        return output;
-    }
+    if (false == context.FinalizeServerCommand(*message)) { return output; }
 
     result = send_message(managed, context, *message);
 
@@ -10686,8 +10377,8 @@ CommandResult OT_API::issueMarketOffer(
     rLock lock(
         lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
-    auto & [ requestNum, transactionNum, result ] = output;
-    auto & [ status, reply ] = result;
+    auto& [requestNum, transactionNum, result] = output;
+    auto& [status, reply] = result;
     requestNum = -1;
     transactionNum = 0;
     status = SendResult::ERROR;
@@ -10698,18 +10389,12 @@ CommandResult OT_API::issueMarketOffer(
     auto assetAccount =
         GetOrLoadAccount(nym, ASSET_ACCOUNT_ID, serverID, __FUNCTION__);
 
-    if (nullptr == assetAccount) {
-
-        return output;
-    }
+    if (nullptr == assetAccount) { return output; }
 
     auto currencyAccount =
         GetOrLoadAccount(nym, CURRENCY_ACCOUNT_ID, serverID, __FUNCTION__);
 
-    if (nullptr == currencyAccount) {
-
-        return output;
-    }
+    if (nullptr == currencyAccount) { return output; }
 
     const auto& assetContractID = assetAccount->GetInstrumentDefinitionID();
     const auto& currencyContractID =
@@ -10818,9 +10503,7 @@ CommandResult OT_API::issueMarketOffer(
     lMinimumIncrement *= lMarketScale;  // minimum increment is PER SCALE.
     String strOfferType("market order");
 
-    if (lPriceLimit > 0) {
-        strOfferType = "limit order";
-    }
+    if (lPriceLimit > 0) { strOfferType = "limit order"; }
 
     if (0 != cStopSign) {
         if (lPriceLimit > 0) {
@@ -10939,18 +10622,12 @@ CommandResult OT_API::issueMarketOffer(
             originType::origin_market_offer,
             openingNumber));
 
-    if (false == bool(transaction)) {
-
-        return output;
-    }
+    if (false == bool(transaction)) { return output; }
 
     std::unique_ptr<Item> item(Item::CreateItemFromTransaction(
         *transaction, Item::marketOffer, &CURRENCY_ACCOUNT_ID));
 
-    if (false == bool(item)) {
-
-        return output;
-    }
+    if (false == bool(item)) { return output; }
 
     String tradeAttachment;
     trade.SaveContractRaw(tradeAttachment);
@@ -10960,10 +10637,7 @@ CommandResult OT_API::issueMarketOffer(
     transaction->AddItem(*item.release());
     auto statement = context.Statement(*transaction);
 
-    if (false == bool(statement)) {
-
-        return output;
-    }
+    if (false == bool(statement)) { return output; }
 
     transaction->AddItem(*statement.release());
     transaction->SignContract(nym);
@@ -10973,22 +10647,16 @@ CommandResult OT_API::issueMarketOffer(
     ledger.AddTransaction(*transaction.release());
     ledger.SignContract(nym);
     ledger.SaveContract();
-    auto[newRequestNumber, message] = context.InitializeServerCommand(
+    auto [newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::notarizeTransaction,
         OTASCIIArmor(String(ledger)),
         ASSET_ACCOUNT_ID,
         requestNum);
     requestNum = newRequestNumber;
 
-    if (false == bool(message)) {
+    if (false == bool(message)) { return output; }
 
-        return output;
-    }
-
-    if (false == context.FinalizeServerCommand(*message)) {
-
-        return output;
-    }
+    if (false == context.FinalizeServerCommand(*message)) { return output; }
 
     result = send_message(managed, context, *message);
 
@@ -11008,25 +10676,19 @@ CommandResult OT_API::getMarketList(ServerContext& context) const
     rLock lock(
         lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
-    auto & [ requestNum, transactionNum, result ] = output;
-    auto & [ status, reply ] = result;
+    auto& [requestNum, transactionNum, result] = output;
+    auto& [status, reply] = result;
     requestNum = -1;
     transactionNum = 0;
     status = SendResult::ERROR;
     reply.reset();
-    auto[newRequestNumber, message] =
+    auto [newRequestNumber, message] =
         context.InitializeServerCommand(MessageType::getMarketList, requestNum);
     requestNum = newRequestNumber;
 
-    if (false == bool(message)) {
+    if (false == bool(message)) { return output; }
 
-        return output;
-    }
-
-    if (false == context.FinalizeServerCommand(*message)) {
-
-        return output;
-    }
+    if (false == context.FinalizeServerCommand(*message)) { return output; }
 
     result = send_message({}, context, *message);
 
@@ -11046,28 +10708,22 @@ CommandResult OT_API::getMarketOffers(
     rLock lock(
         lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
-    auto & [ requestNum, transactionNum, result ] = output;
-    auto & [ status, reply ] = result;
+    auto& [requestNum, transactionNum, result] = output;
+    auto& [status, reply] = result;
     requestNum = -1;
     transactionNum = 0;
     status = SendResult::ERROR;
     reply.reset();
-    auto[newRequestNumber, message] = context.InitializeServerCommand(
+    auto [newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::getMarketOffers, requestNum);
     requestNum = newRequestNumber;
 
-    if (false == bool(message)) {
-
-        return output;
-    }
+    if (false == bool(message)) { return output; }
 
     message->m_strNymID2 = String(MARKET_ID);
     message->m_lDepth = lDepth;
 
-    if (false == context.FinalizeServerCommand(*message)) {
-
-        return output;
-    }
+    if (false == context.FinalizeServerCommand(*message)) { return output; }
 
     result = send_message({}, context, *message);
 
@@ -11090,27 +10746,21 @@ CommandResult OT_API::getMarketRecentTrades(
     rLock lock(
         lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
-    auto & [ requestNum, transactionNum, result ] = output;
-    auto & [ status, reply ] = result;
+    auto& [requestNum, transactionNum, result] = output;
+    auto& [status, reply] = result;
     requestNum = -1;
     transactionNum = 0;
     status = SendResult::ERROR;
     reply.reset();
-    auto[newRequestNumber, message] = context.InitializeServerCommand(
+    auto [newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::getMarketRecentTrades, requestNum);
     requestNum = newRequestNumber;
 
-    if (false == bool(message)) {
-
-        return output;
-    }
+    if (false == bool(message)) { return output; }
 
     message->m_strNymID2 = String(MARKET_ID);
 
-    if (false == context.FinalizeServerCommand(*message)) {
-
-        return output;
-    }
+    if (false == context.FinalizeServerCommand(*message)) { return output; }
 
     result = send_message({}, context, *message);
 
@@ -11128,25 +10778,19 @@ CommandResult OT_API::getNymMarketOffers(ServerContext& context) const
     rLock lock(
         lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
-    auto & [ requestNum, transactionNum, result ] = output;
-    auto & [ status, reply ] = result;
+    auto& [requestNum, transactionNum, result] = output;
+    auto& [status, reply] = result;
     requestNum = -1;
     transactionNum = 0;
     status = SendResult::ERROR;
     reply.reset();
-    auto[newRequestNumber, message] = context.InitializeServerCommand(
+    auto [newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::getNymMarketOffers, requestNum);
     requestNum = newRequestNumber;
 
-    if (false == bool(message)) {
+    if (false == bool(message)) { return output; }
 
-        return output;
-    }
-
-    if (false == context.FinalizeServerCommand(*message)) {
-
-        return output;
-    }
+    if (false == context.FinalizeServerCommand(*message)) { return output; }
 
     result = send_message({}, context, *message);
 
@@ -11164,8 +10808,8 @@ CommandResult OT_API::notarizeTransfer(
     rLock lock(
         lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
-    auto & [ requestNum, transactionNum, result ] = output;
-    auto & [ status, reply ] = result;
+    auto& [requestNum, transactionNum, result] = output;
+    auto& [status, reply] = result;
     requestNum = -1;
     transactionNum = 0;
     status = SendResult::ERROR;
@@ -11176,10 +10820,7 @@ CommandResult OT_API::notarizeTransfer(
     auto account = GetOrLoadAccount(nym, ACCT_FROM, serverID, __FUNCTION__);
 
     // account is not owned by this function
-    if (nullptr == account) {
-
-        return output;
-    }
+    if (nullptr == account) { return output; }
 
     std::set<ServerContext::ManagedNumber> managed{};
     managed.insert(
@@ -11206,25 +10847,17 @@ CommandResult OT_API::notarizeTransfer(
             originType::not_applicable,
             transactionNum));
 
-    if (false == bool(transaction)) {
-
-        return output;
-    }
+    if (false == bool(transaction)) { return output; }
 
     std::unique_ptr<Item> item(Item::CreateItemFromTransaction(
         *transaction, Item::transfer, &ACCT_TO));
 
-    if (false == bool(item)) {
-
-        return output;
-    }
+    if (false == bool(item)) { return output; }
 
     item->SetAmount(amount);
 
     // The user can include a note here for the recipient.
-    if (NOTE.Exists() && NOTE.GetLength() > 2) {
-        item->SetNote(NOTE);
-    }
+    if (NOTE.Exists() && NOTE.GetLength() > 2) { item->SetNote(NOTE); }
 
     // sign the item
     item->SignContract(nym);
@@ -11298,22 +10931,16 @@ CommandResult OT_API::notarizeTransfer(
     ledger.SignContract(nym);
     ledger.SaveContract();
 
-    auto[newRequestNumber, message] = context.InitializeServerCommand(
+    auto [newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::notarizeTransaction,
         OTASCIIArmor(String(ledger)),
         ACCT_FROM,
         requestNum);
     requestNum = newRequestNumber;
 
-    if (false == bool(message)) {
+    if (false == bool(message)) { return output; }
 
-        return output;
-    }
-
-    if (false == context.FinalizeServerCommand(*message)) {
-
-        return output;
-    }
+    if (false == context.FinalizeServerCommand(*message)) { return output; }
 
     result = send_message(managed, context, *message);
 
@@ -11326,25 +10953,19 @@ CommandResult OT_API::getNymbox(ServerContext& context) const
     rLock lock(
         lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
-    auto & [ requestNum, transactionNum, result ] = output;
-    auto & [ status, reply ] = result;
+    auto& [requestNum, transactionNum, result] = output;
+    auto& [status, reply] = result;
     requestNum = -1;
     transactionNum = 0;
     status = SendResult::ERROR;
     reply.reset();
-    auto[newRequestNumber, message] =
+    auto [newRequestNumber, message] =
         context.InitializeServerCommand(MessageType::getNymbox, requestNum);
     requestNum = newRequestNumber;
 
-    if (false == bool(message)) {
+    if (false == bool(message)) { return output; }
 
-        return output;
-    }
-
-    if (false == context.FinalizeServerCommand(*message)) {
-
-        return output;
-    }
+    if (false == context.FinalizeServerCommand(*message)) { return output; }
 
     result = send_message({}, context, *message);
 
@@ -11356,8 +10977,8 @@ CommandResult OT_API::processNymbox(ServerContext& context) const
     rLock lock(
         lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
-    auto & [ requestNum, transactionNum, result ] = output;
-    auto & [ status, reply ] = result;
+    auto& [requestNum, transactionNum, result] = output;
+    auto& [status, reply] = result;
     requestNum = -1;
     transactionNum = 0;
     status = SendResult::ERROR;
@@ -11405,10 +11026,7 @@ CommandResult OT_API::processNymbox(ServerContext& context) const
 
     context.LocalNymboxHash()->GetString(message.m_strNymboxHash);
 
-    if (false == context.FinalizeServerCommand(message)) {
-
-        return output;
-    }
+    if (false == context.FinalizeServerCommand(message)) { return output; }
 
     result = send_message({}, context, message);
 
@@ -11424,8 +11042,8 @@ CommandResult OT_API::processInbox(
     const auto& serverID = context.Server();
     rLock lock(lock_callback_({nymID.str(), serverID.str()}));
     CommandResult output{};
-    auto & [ requestNum, transactionNum, result ] = output;
-    auto & [ status, reply ] = result;
+    auto& [requestNum, transactionNum, result] = output;
+    auto& [status, reply] = result;
     requestNum = -1;
     transactionNum = 0;
     status = SendResult::ERROR;
@@ -11449,22 +11067,16 @@ CommandResult OT_API::processInbox(
         return output;
     }
 
-    auto[newRequestNumber, message] = context.InitializeServerCommand(
+    auto [newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::processInbox,
         OTASCIIArmor(ACCT_LEDGER),
         accountID,
         requestNum);
     requestNum = newRequestNumber;
 
-    if (false == bool(message)) {
+    if (false == bool(message)) { return output; }
 
-        return output;
-    }
-
-    if (false == context.FinalizeServerCommand(*message)) {
-
-        return output;
-    }
+    if (false == context.FinalizeServerCommand(*message)) { return output; }
 
     result = send_message({}, context, *message);
     const auto cheques =
@@ -11495,8 +11107,8 @@ CommandResult OT_API::registerInstrumentDefinition(
     rLock lock(
         lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
-    auto & [ requestNum, transactionNum, result ] = output;
-    auto & [ status, reply ] = result;
+    auto& [requestNum, transactionNum, result] = output;
+    auto& [status, reply] = result;
     requestNum = -1;
     transactionNum = 0;
     status = SendResult::ERROR;
@@ -11510,24 +11122,18 @@ CommandResult OT_API::registerInstrumentDefinition(
         return output;
     }
 
-    auto[newRequestNumber, message] = context.InitializeServerCommand(
+    auto [newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::registerInstrumentDefinition, requestNum);
     requestNum = newRequestNumber;
 
-    if (false == bool(message)) {
-
-        return output;
-    }
+    if (false == bool(message)) { return output; }
 
     OTIdentifier newID = contract->ID();
     newID->GetString(message->m_strInstrumentDefinitionID);
     message->m_ascPayload.SetData(
         proto::ProtoAsData<proto::UnitDefinition>(contract->PublicContract()));
 
-    if (false == context.FinalizeServerCommand(*message)) {
-
-        return output;
-    }
+    if (false == context.FinalizeServerCommand(*message)) { return output; }
 
     result = send_message({}, context, *message);
 
@@ -11541,27 +11147,21 @@ CommandResult OT_API::getInstrumentDefinition(
     rLock lock(
         lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
-    auto & [ requestNum, transactionNum, result ] = output;
-    auto & [ status, reply ] = result;
+    auto& [requestNum, transactionNum, result] = output;
+    auto& [status, reply] = result;
     requestNum = -1;
     transactionNum = 0;
     status = SendResult::ERROR;
     reply.reset();
-    auto[newRequestNumber, message] = context.InitializeServerCommand(
+    auto [newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::getInstrumentDefinition, requestNum);
     requestNum = newRequestNumber;
 
-    if (false == bool(message)) {
-
-        return output;
-    }
+    if (false == bool(message)) { return output; }
 
     message->m_strInstrumentDefinitionID = String(INSTRUMENT_DEFINITION_ID);
 
-    if (false == context.FinalizeServerCommand(*message)) {
-
-        return output;
-    }
+    if (false == context.FinalizeServerCommand(*message)) { return output; }
 
     result = send_message({}, context, *message);
 
@@ -11575,34 +11175,25 @@ CommandResult OT_API::getMint(
     rLock lock(
         lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
-    auto & [ requestNum, transactionNum, result ] = output;
-    auto & [ status, reply ] = result;
+    auto& [requestNum, transactionNum, result] = output;
+    auto& [status, reply] = result;
     requestNum = -1;
     transactionNum = 0;
     status = SendResult::ERROR;
     reply.reset();
     auto unitDefinition = wallet_.UnitDefinition(INSTRUMENT_DEFINITION_ID);
 
-    if (false == bool(unitDefinition)) {
+    if (false == bool(unitDefinition)) { return output; }
 
-        return output;
-    }
-
-    auto[newRequestNumber, message] =
+    auto [newRequestNumber, message] =
         context.InitializeServerCommand(MessageType::getMint, requestNum);
     requestNum = newRequestNumber;
 
-    if (false == bool(message)) {
-
-        return output;
-    }
+    if (false == bool(message)) { return output; }
 
     message->m_strInstrumentDefinitionID = String(INSTRUMENT_DEFINITION_ID);
 
-    if (false == context.FinalizeServerCommand(*message)) {
-
-        return output;
-    }
+    if (false == context.FinalizeServerCommand(*message)) { return output; }
 
     result = send_message({}, context, *message);
 
@@ -11625,27 +11216,21 @@ CommandResult OT_API::queryInstrumentDefinitions(
     rLock lock(
         lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
-    auto & [ requestNum, transactionNum, result ] = output;
-    auto & [ status, reply ] = result;
+    auto& [requestNum, transactionNum, result] = output;
+    auto& [status, reply] = result;
     requestNum = -1;
     transactionNum = 0;
     status = SendResult::ERROR;
     reply.reset();
-    auto[newRequestNumber, message] = context.InitializeServerCommand(
+    auto [newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::queryInstrumentDefinitions, requestNum);
     requestNum = newRequestNumber;
 
-    if (false == bool(message)) {
-
-        return output;
-    }
+    if (false == bool(message)) { return output; }
 
     message->m_ascPayload = ENCODED_MAP;
 
-    if (false == context.FinalizeServerCommand(*message)) {
-
-        return output;
-    }
+    if (false == context.FinalizeServerCommand(*message)) { return output; }
 
     result = send_message({}, context, *message);
 
@@ -11664,34 +11249,25 @@ CommandResult OT_API::registerAccount(
     rLock lock(
         lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
-    auto & [ requestNum, transactionNum, result ] = output;
-    auto & [ status, reply ] = result;
+    auto& [requestNum, transactionNum, result] = output;
+    auto& [status, reply] = result;
     requestNum = -1;
     transactionNum = 0;
     status = SendResult::ERROR;
     reply.reset();
     auto contract = wallet_.UnitDefinition(INSTRUMENT_DEFINITION_ID);
 
-    if (false == bool(contract)) {
+    if (false == bool(contract)) { return output; }
 
-        return output;
-    }
-
-    auto[newRequestNumber, message] = context.InitializeServerCommand(
+    auto [newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::registerAccount, requestNum);
     requestNum = newRequestNumber;
 
-    if (false == bool(message)) {
-
-        return output;
-    }
+    if (false == bool(message)) { return output; }
 
     message->m_strInstrumentDefinitionID = String(INSTRUMENT_DEFINITION_ID);
 
-    if (false == context.FinalizeServerCommand(*message)) {
-
-        return output;
-    }
+    if (false == context.FinalizeServerCommand(*message)) { return output; }
 
     result = send_message({}, context, *message);
 
@@ -11705,8 +11281,8 @@ CommandResult OT_API::deleteAssetAccount(
     rLock lock(
         lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
-    auto & [ requestNum, transactionNum, result ] = output;
-    auto & [ status, reply ] = result;
+    auto& [requestNum, transactionNum, result] = output;
+    auto& [status, reply] = result;
     requestNum = -1;
     transactionNum = 0;
     status = SendResult::ERROR;
@@ -11715,26 +11291,17 @@ CommandResult OT_API::deleteAssetAccount(
     const auto& serverID = context.Server();
     auto account = GetOrLoadAccount(nym, ACCOUNT_ID, serverID, __FUNCTION__);
 
-    if (nullptr == account) {
+    if (nullptr == account) { return output; }
 
-        return output;
-    }
-
-    auto[newRequestNumber, message] = context.InitializeServerCommand(
+    auto [newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::unregisterAccount, requestNum);
     requestNum = newRequestNumber;
 
-    if (false == bool(message)) {
-
-        return output;
-    }
+    if (false == bool(message)) { return output; }
 
     message->m_strAcctID = String(ACCOUNT_ID);
 
-    if (false == context.FinalizeServerCommand(*message)) {
-
-        return output;
-    }
+    if (false == context.FinalizeServerCommand(*message)) { return output; }
 
     result = send_message({}, context, *message);
 
@@ -11771,8 +11338,8 @@ CommandResult OT_API::getBoxReceipt(
     rLock lock(
         lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
-    auto & [ requestNum, transactionNum, result ] = output;
-    auto & [ status, reply ] = result;
+    auto& [requestNum, transactionNum, result] = output;
+    auto& [status, reply] = result;
     requestNum = -1;
     transactionNum = 0;
     status = SendResult::ERROR;
@@ -11785,29 +11352,20 @@ CommandResult OT_API::getBoxReceipt(
         auto account =
             GetOrLoadAccount(nym, ACCOUNT_ID, serverID, __FUNCTION__);
 
-        if (nullptr == account) {
-
-            return output;
-        }
+        if (nullptr == account) { return output; }
     }
 
-    auto[newRequestNumber, message] =
+    auto [newRequestNumber, message] =
         context.InitializeServerCommand(MessageType::getBoxReceipt, requestNum);
     requestNum = newRequestNumber;
 
-    if (false == bool(message)) {
-
-        return output;
-    }
+    if (false == bool(message)) { return output; }
 
     message->m_strAcctID = String(ACCOUNT_ID);
     message->m_lDepth = static_cast<std::int64_t>(nBoxType);
     message->m_lTransactionNum = lTransactionNum;
 
-    if (false == context.FinalizeServerCommand(*message)) {
-
-        return output;
-    }
+    if (false == context.FinalizeServerCommand(*message)) { return output; }
 
     result = send_message({}, context, *message);
 
@@ -11821,8 +11379,8 @@ CommandResult OT_API::getAccountData(
     rLock lock(
         lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
-    auto & [ requestNum, transactionNum, result ] = output;
-    auto & [ status, reply ] = result;
+    auto& [requestNum, transactionNum, result] = output;
+    auto& [status, reply] = result;
     requestNum = -1;
     transactionNum = 0;
     status = SendResult::ERROR;
@@ -11831,26 +11389,17 @@ CommandResult OT_API::getAccountData(
     const auto& serverID = context.Server();
     auto account = GetOrLoadAccount(nym, accountID, serverID, __FUNCTION__);
 
-    if (nullptr == account) {
+    if (nullptr == account) { return output; }
 
-        return output;
-    }
-
-    auto[newRequestNumber, message] = context.InitializeServerCommand(
+    auto [newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::getAccountData, requestNum);
     requestNum = newRequestNumber;
 
-    if (false == bool(message)) {
-
-        return output;
-    }
+    if (false == bool(message)) { return output; }
 
     message->m_strAcctID = String(accountID);
 
-    if (false == context.FinalizeServerCommand(*message)) {
-
-        return output;
-    }
+    if (false == context.FinalizeServerCommand(*message)) { return output; }
 
     result = send_message({}, context, *message);
 
@@ -11865,27 +11414,21 @@ CommandResult OT_API::usageCredits(
     rLock lock(
         lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
-    auto & [ requestNum, transactionNum, result ] = output;
-    auto & [ status, reply ] = result;
+    auto& [requestNum, transactionNum, result] = output;
+    auto& [status, reply] = result;
     requestNum = -1;
     transactionNum = 0;
     status = SendResult::ERROR;
     reply.reset();
-    auto[newRequestNumber, message] = context.InitializeServerCommand(
+    auto [newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::usageCredits, NYM_ID_CHECK, requestNum);
     requestNum = newRequestNumber;
 
-    if (false == bool(message)) {
-
-        return output;
-    }
+    if (false == bool(message)) { return output; }
 
     message->m_lDepth = lAdjustment;
 
-    if (false == context.FinalizeServerCommand(*message)) {
-
-        return output;
-    }
+    if (false == context.FinalizeServerCommand(*message)) { return output; }
 
     result = send_message({}, context, *message);
 
@@ -11902,25 +11445,19 @@ CommandResult OT_API::checkNym(
     rLock lock(
         lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
-    auto & [ requestNum, transactionNum, result ] = output;
-    auto & [ status, reply ] = result;
+    auto& [requestNum, transactionNum, result] = output;
+    auto& [status, reply] = result;
     requestNum = -1;
     transactionNum = 0;
     status = SendResult::ERROR;
     reply.reset();
-    auto[newRequestNumber, message] = context.InitializeServerCommand(
+    auto [newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::checkNym, targetNymID, requestNum);
     requestNum = newRequestNumber;
 
-    if (false == bool(message)) {
+    if (false == bool(message)) { return output; }
 
-        return output;
-    }
-
-    if (false == context.FinalizeServerCommand(*message)) {
-
-        return output;
-    }
+    if (false == context.FinalizeServerCommand(*message)) { return output; }
 
     result = send_message({}, context, *message);
 
@@ -11935,20 +11472,17 @@ CommandResult OT_API::registerContract(
     rLock lock(
         lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
-    auto & [ requestNum, transactionNum, result ] = output;
-    auto & [ status, reply ] = result;
+    auto& [requestNum, transactionNum, result] = output;
+    auto& [status, reply] = result;
     requestNum = -1;
     transactionNum = 0;
     status = SendResult::ERROR;
     reply.reset();
-    auto[newRequestNumber, message] = context.InitializeServerCommand(
+    auto [newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::registerContract, requestNum);
     requestNum = newRequestNumber;
 
-    if (false == bool(message)) {
-
-        return output;
-    }
+    if (false == bool(message)) { return output; }
 
     message->enum_ = static_cast<std::uint8_t>(TYPE);
 
@@ -12000,10 +11534,7 @@ CommandResult OT_API::registerContract(
         }
     }
 
-    if (false == context.FinalizeServerCommand(*message)) {
-
-        return output;
-    }
+    if (false == context.FinalizeServerCommand(*message)) { return output; }
 
     result = send_message({}, context, *message);
 
@@ -12020,21 +11551,18 @@ CommandResult OT_API::sendNymObject(
     rLock lock(
         lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
-    auto & [ requestNum, transactionNum, result ] = output;
-    auto & [ status, reply ] = result;
+    auto& [requestNum, transactionNum, result] = output;
+    auto& [status, reply] = result;
     requestNum = -1;
     transactionNum = 0;
     status = SendResult::ERROR;
     reply.reset();
-    auto[newRequestNumber, request] = context.InitializeServerCommand(
+    auto [newRequestNumber, request] = context.InitializeServerCommand(
         MessageType::sendNymMessage, recipientNymID, provided);
     message.reset(request.release());
     requestNum = newRequestNumber;
 
-    if (false == bool(message)) {
-
-        return output;
-    }
+    if (false == bool(message)) { return output; }
 
     String plaintext = proto::ProtoAsArmored(object.Serialize(), "PEER OBJECT");
     OTEnvelope theEnvelope;
@@ -12063,10 +11591,7 @@ CommandResult OT_API::sendNymObject(
         return output;
     }
 
-    if (false == context.FinalizeServerCommand(*message)) {
-
-        return output;
-    }
+    if (false == context.FinalizeServerCommand(*message)) { return output; }
 
     result = send_message({}, context, *message);
 
@@ -12084,8 +11609,8 @@ CommandResult OT_API::sendNymMessage(
     Identifier& messageID) const
 {
     CommandResult output{};
-    auto & [ requestNum, transactionNum, result ] = output;
-    auto & [ status, reply ] = result;
+    auto& [requestNum, transactionNum, result] = output;
+    auto& [status, reply] = result;
     requestNum = -1;
     transactionNum = 0;
     status = SendResult::ERROR;
@@ -12105,17 +11630,11 @@ CommandResult OT_API::sendNymMessage(
     output =
         sendNymObject(context, request, recipientNymID, *object, requestNum);
 
-    if (SendResult::VALID_REPLY != status) {
-
-        return output;
-    }
+    if (SendResult::VALID_REPLY != status) { return output; }
 
     OT_ASSERT(reply)
 
-    if (false == reply->m_bSuccess) {
-
-        return output;
-    }
+    if (false == reply->m_bSuccess) { return output; }
 
     // store a copy in the outmail.
     std::unique_ptr<Message> sent(new Message);
@@ -12188,8 +11707,8 @@ CommandResult OT_API::sendNymInstrument(
     rLock lock(
         lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
-    auto & [ requestNum, transactionNum, result ] = output;
-    auto & [ status, reply ] = result;
+    auto& [requestNum, transactionNum, result] = output;
+    auto& [status, reply] = result;
     requestNum = -1;
     transactionNum = 0;
     status = SendResult::ERROR;
@@ -12423,9 +11942,7 @@ OT_API::ProcessInbox OT_API::Ledger_CreateResponse(
     // UPDATE: Actually I switched this to a unique pointer to fix all that, so
     // should no longer be necessary. I'll test, then remove this comment.
     // ------------------------------------------
-    if (processInbox && inbox) {
-        return response;
-    }
+    if (processInbox && inbox) { return response; }
     return {};
 }
 
@@ -12726,9 +12243,7 @@ bool OT_API::Ledger_AddTransaction(
 
     auto nym = wallet_.Nym(theNymID);
 
-    if (false == bool(nym)) {
-        return false;
-    }
+    if (false == bool(nym)) { return false; }
     // --------------------------------------------------
     if (!ledger.VerifyAccount(*nym)) {
         const Identifier& theAccountID = ledger.GetPurportedAccountID();
@@ -12742,8 +12257,9 @@ bool OT_API::Ledger_AddTransaction(
     if (!transaction->VerifyAccount(*nym)) {
         const Identifier& theAccountID = ledger.GetPurportedAccountID();
         String strAcctID(theAccountID);
-        otErr << OT_METHOD << __FUNCTION__ << ": Error verifying transaction. "
-                                              "Acct ID: "
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Error verifying transaction. "
+                 "Acct ID: "
               << strAcctID << "\n";
         return false;
     }
@@ -12883,8 +12399,9 @@ bool OT_API::Ledger_FinalizeResponse(
 
     if (!inbox) {
         String strAcctID(accountID);
-        otErr << OT_METHOD << __FUNCTION__ << ": Unable to load inbox."
-                                              " Acct ID: "
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Unable to load inbox."
+                 " Acct ID: "
               << strAcctID << std::endl;
 
         return false;
@@ -12892,8 +12409,9 @@ bool OT_API::Ledger_FinalizeResponse(
     // -------------------------------------------------------
     if (false == inbox->VerifyAccount(*nym)) {
         String strAcctID(accountID);
-        otErr << OT_METHOD << __FUNCTION__ << ": Unable to verify inbox."
-                                              " Acct ID: "
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Unable to verify inbox."
+                 " Acct ID: "
               << strAcctID << std::endl;
 
         return false;
@@ -12943,20 +12461,17 @@ CommandResult OT_API::registerNym(ServerContext& context) const
     rLock lock(
         lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
-    auto & [ requestNum, transactionNum, result ] = output;
-    auto & [ status, reply ] = result;
+    auto& [requestNum, transactionNum, result] = output;
+    auto& [status, reply] = result;
     requestNum = -1;
     transactionNum = 0;
     status = SendResult::ERROR;
     reply.reset();
-    auto[newRequestNumber, message] =
+    auto [newRequestNumber, message] =
         context.InitializeServerCommand(MessageType::registerNym, requestNum);
     requestNum = newRequestNumber;
 
-    if (false == bool(message)) {
-
-        return output;
-    }
+    if (false == bool(message)) { return output; }
 
     const auto& nym = *context.Nym();
 
@@ -12968,19 +12483,14 @@ CommandResult OT_API::registerNym(ServerContext& context) const
 
     message->m_ascPayload.SetData(proto::ProtoAsData(nym.asPublicNym()));
 
-    if (false == context.FinalizeServerCommand(*message)) {
-
-        return output;
-    }
+    if (false == context.FinalizeServerCommand(*message)) { return output; }
 
     result = send_message({}, context, *message);
 
     if (SendResult::VALID_REPLY == status) {
         OT_ASSERT(reply);
 
-        if (reply->m_bSuccess) {
-            context.SetRevision(nym.Revision());
-        }
+        if (reply->m_bSuccess) { context.SetRevision(nym.Revision()); }
     }
 
     return output;
@@ -12991,8 +12501,8 @@ CommandResult OT_API::unregisterNym(ServerContext& context) const
     rLock lock(
         lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
-    auto & [ requestNum, transactionNum, result ] = output;
-    auto & [ status, reply ] = result;
+    auto& [requestNum, transactionNum, result] = output;
+    auto& [status, reply] = result;
     requestNum = -1;
     transactionNum = 0;
     status = SendResult::ERROR;
@@ -13035,8 +12545,8 @@ CommandResult OT_API::initiatePeerRequest(
     const std::shared_ptr<PeerRequest>& peerRequest) const
 {
     CommandResult output{};
-    auto & [ requestNum, transactionNum, result ] = output;
-    auto & [ status, reply ] = result;
+    auto& [requestNum, transactionNum, result] = output;
+    auto& [status, reply] = result;
     requestNum = -1;
     transactionNum = 0;
     status = SendResult::ERROR;
@@ -13088,8 +12598,8 @@ CommandResult OT_API::initiatePeerReply(
     const std::shared_ptr<PeerReply>& peerReply) const
 {
     CommandResult output{};
-    auto & [ requestNum, transactionNum, result ] = output;
-    auto & [ status, reply ] = result;
+    auto& [requestNum, transactionNum, result] = output;
+    auto& [status, reply] = result;
     requestNum = -1;
     transactionNum = 0;
     status = SendResult::ERROR;
@@ -13168,27 +12678,21 @@ CommandResult OT_API::requestAdmin(
     rLock lock(
         lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
-    auto & [ requestNum, transactionNum, result ] = output;
-    auto & [ status, reply ] = result;
+    auto& [requestNum, transactionNum, result] = output;
+    auto& [status, reply] = result;
     requestNum = -1;
     transactionNum = 0;
     status = SendResult::ERROR;
     reply.reset();
-    auto[newRequestNumber, message] =
+    auto [newRequestNumber, message] =
         context.InitializeServerCommand(MessageType::requestAdmin, requestNum);
     requestNum = newRequestNumber;
 
-    if (false == bool(message)) {
-
-        return output;
-    }
+    if (false == bool(message)) { return output; }
 
     message->m_strAcctID = PASSWORD.c_str();
 
-    if (false == context.FinalizeServerCommand(*message)) {
-
-        return output;
-    }
+    if (false == context.FinalizeServerCommand(*message)) { return output; }
 
     result = send_message({}, context, *message);
 
@@ -13205,30 +12709,24 @@ CommandResult OT_API::serverAddClaim(
     rLock lock(
         lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     CommandResult output{};
-    auto & [ requestNum, transactionNum, result ] = output;
-    auto & [ status, reply ] = result;
+    auto& [requestNum, transactionNum, result] = output;
+    auto& [status, reply] = result;
     requestNum = -1;
     transactionNum = 0;
     status = SendResult::ERROR;
     reply.reset();
-    auto[newRequestNumber, message] =
+    auto [newRequestNumber, message] =
         context.InitializeServerCommand(MessageType::addClaim, requestNum);
     requestNum = newRequestNumber;
 
-    if (false == bool(message)) {
-
-        return output;
-    }
+    if (false == bool(message)) { return output; }
 
     message->m_strNymID2 = section.c_str();
     message->m_strInstrumentDefinitionID = type.c_str();
     message->m_strAcctID = value.c_str();
     message->m_bBool = primary;
 
-    if (false == context.FinalizeServerCommand(*message)) {
-
-        return output;
-    }
+    if (false == context.FinalizeServerCommand(*message)) { return output; }
 
     result = send_message({}, context, *message);
 
@@ -13273,9 +12771,7 @@ std::list<std::string> OT_API::BoxItemCount(
     const auto list = activity_.Mail(NYM_ID, box);
     std::list<std::string> output;
 
-    for (auto& item : list) {
-        output.push_back(item.first);
-    }
+    for (auto& item : list) { output.push_back(item.first); }
 
     return output;
 }
@@ -13299,7 +12795,7 @@ OT_API::ProcessInbox OT_API::CreateProcessInbox(
     const auto& nym = *context.Nym();
     const auto& nymID = nym.GetConstID();
     OT_API::ProcessInbox output{};
-    auto & [ processInbox, inbox ] = output;
+    auto& [processInbox, inbox] = output;
     inbox.reset(LoadInbox(serverID, nymID, accountID));
 
     if (false == bool(inbox)) {
@@ -13583,9 +13079,7 @@ bool OT_API::FinalizeProcessInbox(
         output &= (output && response.SaveContract());
     }
 
-    if (output) {
-        cleanup.SetSuccess(true);
-    }
+    if (output) { cleanup.SetSuccess(true); }
 
     return output;
 }
@@ -13616,9 +13110,7 @@ bool OT_API::find_cron(
                 const auto itemNumber = acceptItem->GetReferenceToNum();
                 auto transaction = inbox.GetTransaction(itemNumber);
 
-                if (nullptr == transaction) {
-                    continue;
-                }
+                if (nullptr == transaction) { continue; }
 
                 if (transaction->GetReferenceToNum() == openingNumber) {
                     referenceNumbers.insert(itemNumber);
@@ -13769,25 +13261,19 @@ bool OT_API::add_accept_item(
     std::unique_ptr<Item> acceptItem(
         Item::CreateItemFromTransaction(processInbox, type));
 
-    if (false == bool(acceptItem)) {
-        return false;
-    }
+    if (false == bool(acceptItem)) { return false; }
 
     acceptItem->SetNumberOfOrigin(originNumber);
     acceptItem->SetReferenceToNum(referenceNumber);
     acceptItem->SetAmount(amount);
 
-    if (note.Exists()) {
-        acceptItem->SetNote(note);
-    }
+    if (note.Exists()) { acceptItem->SetNote(note); }
 
     bool output = true;
     output &= acceptItem->SignContract(nym);
     output &= (output && acceptItem->SaveContract());
 
-    if (output) {
-        processInbox.AddItem(*acceptItem.release());
-    }
+    if (output) { processInbox.AddItem(*acceptItem.release()); }
 
     return output;
 }
@@ -13994,9 +13480,7 @@ std::set<std::unique_ptr<Cheque>> OT_API::extract_cheques(
     for (const auto& acceptItem : processInbox->GetItemList()) {
         OT_ASSERT(acceptItem);
 
-        if (Item::acceptItemReceipt != acceptItem->GetType()) {
-            continue;
-        }
+        if (Item::acceptItemReceipt != acceptItem->GetType()) { continue; }
 
         const auto inboxNumber = acceptItem->GetReferenceToNum();
         const auto inboxItem = inbox.GetTransaction(inboxNumber);
@@ -14010,9 +13494,7 @@ std::set<std::unique_ptr<Cheque>> OT_API::extract_cheques(
 
         OT_ASSERT(item)
 
-        if (Item::depositCheque != item->GetType()) {
-            continue;
-        }
+        if (Item::depositCheque != item->GetType()) { continue; }
 
         output.emplace(Cheque::CreateFromReceipt(*inboxItem));
     }

@@ -39,7 +39,7 @@
 #ifndef OPENTXS_API_CLIENT_IMPLEMENTATION_WALLET_HPP
 #define OPENTXS_API_CLIENT_IMPLEMENTATION_WALLET_HPP
 
-#include "opentxs/Internal.hpp"
+#include "Internal.hpp"
 
 namespace opentxs::api::client::implementation
 {

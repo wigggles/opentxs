@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "Socket.hpp"
 
@@ -201,8 +201,6 @@ Socket::~Socket()
 {
     Lock lock(lock_);
 
-    if (nullptr != socket_) {
-        zmq_close(socket_);
-    }
+    if (nullptr != socket_) { zmq_close(socket_); }
 }
 }  // namespace opentxs::network::zeromq::implementation

@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/storage/tree/Contexts.hpp"
 
@@ -75,9 +75,7 @@ void Contexts::init(const std::string& hash)
     version_ = serialized->version();
 
     // Minimum version is 2
-    if (2 > version_) {
-        version_ = 2;
-    }
+    if (2 > version_) { version_ = 2; }
 
     for (const auto& it : serialized->nym()) {
         item_map_.emplace(
@@ -103,10 +101,7 @@ bool Contexts::save(const std::unique_lock<std::mutex>& lock) const
 
     auto serialized = serialize();
 
-    if (false == proto::Validate(serialized, VERBOSE)) {
-
-        return false;
-    }
+    if (false == proto::Validate(serialized, VERBOSE)) { return false; }
 
     return driver_.StoreProto(serialized, root_);
 }

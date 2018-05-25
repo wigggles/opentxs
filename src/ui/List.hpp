@@ -39,7 +39,7 @@
 #ifndef OPENTXS_UI_LIST_HPP
 #define OPENTXS_UI_LIST_HPP
 
-#include "opentxs/Internal.hpp"
+#include "Internal.hpp"
 
 #include "Widget.hpp"
 

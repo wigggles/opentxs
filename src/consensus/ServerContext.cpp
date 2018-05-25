@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/consensus/ServerContext.hpp"
 
@@ -95,15 +95,9 @@ bool ServerContext::ManagedNumber::Valid() const { return managed_; }
 
 ServerContext::ManagedNumber::~ManagedNumber()
 {
-    if (false == managed_) {
+    if (false == managed_) { return; }
 
-        return;
-    }
-
-    if (success_.get()) {
-
-        return;
-    }
+    if (success_.get()) { return; }
 
     context_.RecoverAvailableNumber(number_);
 }
@@ -159,9 +153,7 @@ bool ServerContext::AcceptIssuedNumber(const TransactionNumber& number)
     bool accepted = false;
     const bool tentative = remove_tentative_number(lock, number);
 
-    if (tentative) {
-        accepted = issue_number(lock, number);
-    }
+    if (tentative) { accepted = issue_number(lock, number); }
 
     return accepted;
 }
@@ -172,9 +164,7 @@ bool ServerContext::AcceptIssuedNumbers(const TransactionStatement& statement)
     std::size_t added = 0;
     const auto offered = statement.Issued().size();
 
-    if (0 == offered) {
-        return false;
-    }
+    if (0 == offered) { return false; }
 
     std::set<TransactionNumber> adding, accepted, rejected;
 
@@ -187,9 +177,7 @@ bool ServerContext::AcceptIssuedNumbers(const TransactionStatement& statement)
             (1 == tentative_transaction_numbers_.count(number));
         const bool issued = (1 == issued_transaction_numbers_.count(number));
 
-        if (tentative && !issued) {
-            adding.insert(number);
-        }
+        if (tentative && !issued) { adding.insert(number); }
     }
 
     // Looks like we found some numbers to accept (tentative numbers we had
@@ -203,9 +191,7 @@ bool ServerContext::AcceptIssuedNumbers(const TransactionStatement& statement)
         for (const auto& number : accepted) {
             tentative_transaction_numbers_.erase(number);
 
-            if (issue_number(lock, number)) {
-                added++;
-            }
+            if (issue_number(lock, number)) { added++; }
         }
     }
 
@@ -216,9 +202,7 @@ bool ServerContext::AddTentativeNumber(const TransactionNumber& number)
 {
     Lock lock(lock_);
 
-    if (number < highest_transaction_number_.load()) {
-        return false;
-    }
+    if (number < highest_transaction_number_.load()) { return false; }
 
     auto output = tentative_transaction_numbers_.insert(number);
 
@@ -330,7 +314,7 @@ std::pair<RequestNumber, std::unique_ptr<Message>> ServerContext::
     OT_ASSERT(verify_write_lock(lock));
 
     std::pair<RequestNumber, std::unique_ptr<Message>> output{};
-    auto & [ requestNumber, message ] = output;
+    auto& [requestNumber, message] = output;
     message = initialize_server_command(type);
 
     OT_ASSERT(message);
@@ -366,7 +350,7 @@ std::pair<RequestNumber, std::unique_ptr<Message>> ServerContext::
     Lock lock(lock_);
     auto output = initialize_server_command(
         lock, type, provided, withAcknowledgments, withNymboxHash);
-    auto & [ requestNumber, message ] = output;
+    auto& [requestNumber, message] = output;
     const auto& notUsed[[maybe_unused]] = requestNumber;
 
     message->m_ascPayload = payload;
@@ -386,7 +370,7 @@ std::pair<RequestNumber, std::unique_ptr<Message>> ServerContext::
     Lock lock(lock_);
     auto output = initialize_server_command(
         lock, type, provided, withAcknowledgments, withNymboxHash);
-    auto & [ requestNumber, message ] = output;
+    auto& [requestNumber, message] = output;
     [[maybe_unused]] const auto& notUsed = requestNumber;
     message->m_strNymID2 = String(recipientNymID);
 
@@ -488,10 +472,7 @@ bool ServerContext::remove_acknowledged_number(
 
     std::set<RequestNumber> list{};
 
-    if (false == reply.m_AcknowledgedReplies.Output(list)) {
-
-        return false;
-    }
+    if (false == reply.m_AcknowledgedReplies.Output(list)) { return false; }
 
     return remove_acknowledged_number(lock, list);
 }
@@ -632,16 +613,12 @@ std::unique_ptr<Item> ServerContext::Statement(
         transaction, Item::transactionStatement));
 
     // The above has an ASSERT, so this this will never actually happen.
-    if (!output) {
-        return output;
-    }
+    if (!output) { return output; }
 
     const std::set<TransactionNumber> empty;
     auto statement = generate_statement(lock, adding, empty);
 
-    if (!statement) {
-        return output;
-    }
+    if (!statement) { return output; }
 
     switch (transaction.GetType()) {
         case OTTransaction::cancelCronItem: {

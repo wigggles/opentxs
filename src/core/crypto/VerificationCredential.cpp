@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/core/crypto/VerificationCredential.hpp"
 
@@ -107,9 +107,7 @@ VerificationCredential::VerificationCredential(
 bool VerificationCredential::GetVerificationSet(
     std::unique_ptr<proto::VerificationSet>& verificationSet) const
 {
-    if (!data_) {
-        return false;
-    }
+    if (!data_) { return false; }
 
     verificationSet.reset(new proto::VerificationSet(*data_));
 
@@ -147,9 +145,7 @@ serializedCredential VerificationCredential::serialize(
 bool VerificationCredential::verify_internally(const Lock& lock) const
 {
     // Perform common Credential verifications
-    if (!ot_super::verify_internally(lock)) {
-        return false;
-    }
+    if (!ot_super::verify_internally(lock)) { return false; }
 
     if (data_) {
         for (auto& nym : data_->internal().identity()) {

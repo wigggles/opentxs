@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/api/client/Issuer.hpp"
 #include "opentxs/api/client/Wallet.hpp"
@@ -120,18 +120,14 @@ std::shared_ptr<class Context> Wallet::context(
     auto it = context_map_.find(context);
     const bool inMap = (it != context_map_.end());
 
-    if (inMap) {
-        return it->second;
-    }
+    if (inMap) { return it->second; }
 
     // Load from storage, if it exists.
     std::shared_ptr<proto::Context> serialized;
     const bool loaded =
         ot_.DB().Load(localNymID.str(), remoteNymID.str(), serialized, true);
 
-    if (!loaded) {
-        return nullptr;
-    }
+    if (!loaded) { return nullptr; }
 
     if (local != serialized->localnym()) {
         otErr << OT_METHOD << __FUNCTION__ << ": Incorrect localnym in protobuf"
@@ -389,7 +385,7 @@ std::shared_ptr<const api::client::Issuer> Wallet::Issuer(
     const Identifier& nymID,
     const Identifier& issuerID) const
 {
-    auto & [ lock, pIssuer ] = issuer(nymID, issuerID, false);
+    auto& [lock, pIssuer] = issuer(nymID, issuerID, false);
     const auto& notUsed[[maybe_unused]] = lock;
 
     return pIssuer;
@@ -399,7 +395,7 @@ Editor<api::client::Issuer> Wallet::mutable_Issuer(
     const Identifier& nymID,
     const Identifier& issuerID) const
 {
-    auto & [ lock, pIssuer ] = issuer(nymID, issuerID, true);
+    auto& [lock, pIssuer] = issuer(nymID, issuerID, true);
 
     OT_ASSERT(pIssuer);
 
@@ -418,13 +414,10 @@ Wallet::IssuerLock& Wallet::issuer(
 {
     Lock lock(issuer_map_lock_);
     auto& output = issuer_map_[{nymID, issuerID}];
-    auto & [ issuerMutex, pIssuer ] = output;
+    auto& [issuerMutex, pIssuer] = output;
     const auto& notUsed[[maybe_unused]] = issuerMutex;
 
-    if (pIssuer) {
-
-        return output;
-    }
+    if (pIssuer) { return output; }
 
     std::shared_ptr<proto::Issuer> serialized{nullptr};
     const bool loaded =
@@ -517,9 +510,7 @@ ConstNym Wallet::Nym(
                     bool found = (nym_map_.find(nym) != nym_map_.end());
                     mapLock.unlock();
 
-                    if (found) {
-                        break;
-                    }
+                    if (found) { break; }
                 }
 
                 return Nym(id);  // timeout of zero prevents infinite recursion
@@ -527,14 +518,10 @@ ConstNym Wallet::Nym(
         }
     } else {
         auto& pNym = nym_map_[nym].second;
-        if (pNym) {
-            valid = pNym->VerifyPseudonym();
-        }
+        if (pNym) { valid = pNym->VerifyPseudonym(); }
     }
 
-    if (valid) {
-        return nym_map_[nym].second;
-    }
+    if (valid) { return nym_map_[nym].second; }
 
     return nullptr;
 }
@@ -547,10 +534,7 @@ ConstNym Wallet::Nym(const proto::CredentialIndex& publicNym) const
     auto existing = Nym(Identifier::Factory(nym));
 
     if (existing) {
-        if (existing->Revision() >= publicNym.revision()) {
-
-            return existing;
-        }
+        if (existing->Revision() >= publicNym.revision()) { return existing; }
     }
     existing.reset();
 
@@ -614,9 +598,7 @@ NymData Wallet::mutable_Nym(const Identifier& id) const
     Lock mapLock(nym_map_lock_);
     auto it = nym_map_.find(nym);
 
-    if (nym_map_.end() == it) {
-        OT_FAIL
-    }
+    if (nym_map_.end() == it) { OT_FAIL }
 
     return NymData(it->second.second);
 }
@@ -674,14 +656,10 @@ ConstNym Wallet::NymByIDPartialMatch(const std::string& partialId) const
         }
     } else {
         auto& pNym = nym_map_[partialId].second;
-        if (pNym) {
-            valid = pNym->VerifyPseudonym();
-        }
+        if (pNym) { valid = pNym->VerifyPseudonym(); }
     }
 
-    if (valid) {
-        return nym_map_[partialId].second;
-    }
+    if (valid) { return nym_map_[partialId].second; }
 
     return nullptr;
 }
@@ -1166,9 +1144,7 @@ bool Wallet::RemoveServer(const Identifier& id) const
     Lock mapLock(server_map_lock_);
     auto deleted = server_map_.erase(server);
 
-    if (0 != deleted) {
-        return ot_.DB().RemoveServer(server);
-    }
+    if (0 != deleted) { return ot_.DB().RemoveServer(server); }
 
     return false;
 }
@@ -1179,18 +1155,14 @@ bool Wallet::RemoveUnitDefinition(const Identifier& id) const
     Lock mapLock(unit_map_lock_);
     auto deleted = unit_map_.erase(unit);
 
-    if (0 != deleted) {
-        return ot_.DB().RemoveUnitDefinition(unit);
-    }
+    if (0 != deleted) { return ot_.DB().RemoveUnitDefinition(unit); }
 
     return false;
 }
 
 void Wallet::save(class Context* context) const
 {
-    if (nullptr == context) {
-        return;
-    }
+    if (nullptr == context) { return; }
 
     Lock lock(context->lock_);
 
@@ -1226,9 +1198,7 @@ void Wallet::save(class NymFile* nymfile, const Lock& lock) const
 
 std::shared_ptr<const class Nym> Wallet::signer_nym(const Identifier& id) const
 {
-    if (ot_.ServerMode()) {
-        return Nym(ot_.Server().NymID());
-    }
+    if (ot_.ServerMode()) { return Nym(ot_.Server().NymID()); }
 
     return Nym(id);
 }
@@ -1280,25 +1250,19 @@ ConstServerContract Wallet::Server(
                         (server_map_.find(server) != server_map_.end());
                     mapLock.unlock();
 
-                    if (found) {
-                        break;
-                    }
+                    if (found) { break; }
                 }
 
-                return Server(
-                    id);  // timeout of zero prevents infinite recursion
+                return Server(id);  // timeout of zero prevents infinite
+                                    // recursion
             }
         }
     } else {
         auto& pServer = server_map_[server];
-        if (pServer) {
-            valid = pServer->Validate();
-        }
+        if (pServer) { valid = pServer->Validate(); }
     }
 
-    if (valid) {
-        return server_map_[server];
-    }
+    if (valid) { return server_map_[server]; }
 
     return nullptr;
 }
@@ -1326,9 +1290,7 @@ ConstServerContract Wallet::Server(const proto::ServerContract& contract) const
     std::string server = contract.id();
     auto nym = Nym(Identifier::Factory(contract.nymid()));
 
-    if (!nym && contract.has_publicnym()) {
-        nym = Nym(contract.publicnym());
-    }
+    if (!nym && contract.has_publicnym()) { nym = Nym(contract.publicnym()); }
 
     if (nym) {
         std::unique_ptr<ServerContract> candidate(
@@ -1385,9 +1347,7 @@ bool Wallet::SetNymAlias(const Identifier& id, const std::string& alias) const
 
     auto it = nym_map_.find(id.str());
 
-    if (nym_map_.end() != it) {
-        nym_map_.erase(it);
-    }
+    if (nym_map_.end() != it) { nym_map_.erase(it); }
 
     return ot_.DB().SetNymAlias(id.str(), alias);
 }
@@ -1515,9 +1475,7 @@ const ConstUnitDefinition Wallet::UnitDefinition(
                     bool found = (unit_map_.find(unit) != unit_map_.end());
                     mapLock.unlock();
 
-                    if (found) {
-                        break;
-                    }
+                    if (found) { break; }
                 }
 
                 return UnitDefinition(id);  // timeout of zero prevents
@@ -1526,14 +1484,10 @@ const ConstUnitDefinition Wallet::UnitDefinition(
         }
     } else {
         auto& pUnit = unit_map_[unit];
-        if (pUnit) {
-            valid = pUnit->Validate();
-        }
+        if (pUnit) { valid = pUnit->Validate(); }
     }
 
-    if (valid) {
-        return unit_map_[unit];
-    }
+    if (valid) { return unit_map_[unit]; }
 
     return nullptr;
 }
@@ -1562,9 +1516,7 @@ ConstUnitDefinition Wallet::UnitDefinition(
     std::string unit = contract.id();
     auto nym = Nym(Identifier::Factory(contract.nymid()));
 
-    if (!nym && contract.has_publicnym()) {
-        nym = Nym(contract.publicnym());
-    }
+    if (!nym && contract.has_publicnym()) { nym = Nym(contract.publicnym()); }
 
     if (nym) {
         std::unique_ptr<class UnitDefinition> candidate(
@@ -1648,4 +1600,4 @@ ConstUnitDefinition Wallet::UnitDefinition(
 }
 
 Wallet::~Wallet() {}
-}  // namespace opentxs::api
+}  // namespace opentxs::api::client::implementation

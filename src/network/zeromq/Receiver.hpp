@@ -39,7 +39,7 @@
 #ifndef OPENTXS_NETWORK_ZEROMQ_RECEIVER_IMPLEMENTATION_HPP
 #define OPENTXS_NETWORK_ZEROMQ_RECEIVER_IMPLEMENTATION_HPP
 
-#include "opentxs/Internal.hpp"
+#include "Internal.hpp"
 
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/Types.hpp"

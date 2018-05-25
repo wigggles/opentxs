@@ -39,7 +39,7 @@
 #ifndef OPENTXS_UI_CONTACT_SECTION_PARENT_HPP
 #define OPENTXS_UI_CONTACT_SECTION_PARENT_HPP
 
-#include "opentxs/Internal.hpp"
+#include "Internal.hpp"
 
 #include <string>
 
@@ -69,5 +69,5 @@ protected:
     ContactSectionParent& operator=(const ContactSectionParent&) = delete;
     ContactSectionParent& operator=(ContactSectionParent&&) = delete;
 };
-}  // opentxs::ui::implementation
+}  // namespace opentxs::ui::implementation
 #endif  // OPENTXS_UI_CONTACT_SECTION_PARENT_HPP

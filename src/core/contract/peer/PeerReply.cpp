@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/core/contract/peer/PeerReply.hpp"
 
@@ -111,9 +111,7 @@ std::unique_ptr<PeerReply> PeerReply::Create(
 {
     auto peerRequest = LoadRequest(nym, requestID);
 
-    if (!peerRequest) {
-        return nullptr;
-    }
+    if (!peerRequest) { return nullptr; }
 
     std::unique_ptr<PeerReply> contract;
 
@@ -153,9 +151,7 @@ std::unique_ptr<PeerReply> PeerReply::Create(
 {
     auto peerRequest = LoadRequest(nym, requestID);
 
-    if (!peerRequest) {
-        return nullptr;
-    }
+    if (!peerRequest) { return nullptr; }
 
     std::unique_ptr<PeerReply> contract;
     const auto& type = peerRequest->type();
@@ -194,9 +190,7 @@ std::unique_ptr<PeerReply> PeerReply::Create(
 {
     auto peerRequest = LoadRequest(nym, request);
 
-    if (!peerRequest) {
-        return nullptr;
-    }
+    if (!peerRequest) { return nullptr; }
 
     std::unique_ptr<PeerReply> contract;
     const auto& type = peerRequest->type();
@@ -299,13 +293,9 @@ bool PeerReply::FinalizeContract(PeerReply& contract)
 {
     Lock lock(contract.lock_);
 
-    if (!contract.CalculateID(lock)) {
-        return false;
-    }
+    if (!contract.CalculateID(lock)) { return false; }
 
-    if (!contract.update_signature(lock)) {
-        return false;
-    }
+    if (!contract.update_signature(lock)) { return false; }
 
     return contract.validate(lock);
 }
@@ -413,9 +403,7 @@ proto::PeerReply PeerReply::SigVersion(const Lock& lock) const
 
 bool PeerReply::update_signature(const Lock& lock)
 {
-    if (!ot_super::update_signature(lock)) {
-        return false;
-    }
+    if (!ot_super::update_signature(lock)) { return false; }
 
     bool success = false;
     signatures_.clear();
@@ -470,9 +458,7 @@ bool PeerReply::validate(const Lock& lock) const
     bool validSig = false;
     auto& signature = *signatures_.cbegin();
 
-    if (signature) {
-        validSig = verify_signature(lock, *signature);
-    }
+    if (signature) { validSig = verify_signature(lock, *signature); }
 
     if (!validSig) {
         otErr << OT_METHOD << __FUNCTION__ << ": invalid signature."
@@ -486,9 +472,7 @@ bool PeerReply::verify_signature(
     const Lock& lock,
     const proto::Signature& signature) const
 {
-    if (!ot_super::verify_signature(lock, signature)) {
-        return false;
-    }
+    if (!ot_super::verify_signature(lock, signature)) { return false; }
 
     auto serialized = SigVersion(lock);
     auto& sigProto = *serialized.mutable_signature();
