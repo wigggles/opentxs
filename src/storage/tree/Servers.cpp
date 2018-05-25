@@ -38,7 +38,7 @@
 
 #include "stdafx.hpp"
 
-#include "opentxs/storage/tree/Servers.hpp"
+#include "Servers.hpp"
 
 #include "opentxs/storage/Plugin.hpp"
 

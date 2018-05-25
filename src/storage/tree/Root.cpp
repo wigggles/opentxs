@@ -38,22 +38,23 @@
 
 #include "stdafx.hpp"
 
-#include "opentxs/storage/tree/Root.hpp"
+#include "Root.hpp"
 
 #include "opentxs/api/storage/Driver.hpp"
-#include "opentxs/storage/tree/BlockchainTransactions.hpp"
-#include "opentxs/storage/tree/Contacts.hpp"
-#include "opentxs/storage/tree/Credentials.hpp"
-#include "opentxs/storage/tree/Node.hpp"
-#include "opentxs/storage/tree/Nym.hpp"
-#include "opentxs/storage/tree/Nyms.hpp"
-#include "opentxs/storage/tree/Seeds.hpp"
-#include "opentxs/storage/tree/Servers.hpp"
-#include "opentxs/storage/tree/Tree.hpp"
-#include "opentxs/storage/tree/Units.hpp"
 #include "opentxs/storage/Plugin.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/Proto.hpp"
+
+#include "BlockchainTransactions.hpp"
+#include "Contacts.hpp"
+#include "Credentials.hpp"
+#include "Node.hpp"
+#include "Nym.hpp"
+#include "Nyms.hpp"
+#include "Seeds.hpp"
+#include "Servers.hpp"
+#include "Tree.hpp"
+#include "Units.hpp"
 
 #define CURRENT_VERSION 2
 

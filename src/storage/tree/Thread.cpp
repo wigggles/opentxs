@@ -38,13 +38,14 @@
 
 #include "stdafx.hpp"
 
-#include "opentxs/storage/tree/Thread.hpp"
+#include "Thread.hpp"
 
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/storage/tree/Mailbox.hpp"
 #include "opentxs/storage/Plugin.hpp"
+
+#include "Mailbox.hpp"
 
 #define OT_METHOD "opentxs::storage::Thread::"
 

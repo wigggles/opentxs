@@ -38,7 +38,7 @@
 
 #include "stdafx.hpp"
 
-#include "opentxs/storage/tree/Node.hpp"
+#include "Node.hpp"
 
 #include "opentxs/core/Log.hpp"
 #include "opentxs/storage/Plugin.hpp"

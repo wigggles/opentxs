@@ -38,7 +38,7 @@
 
 #include "stdafx.hpp"
 
-#include "opentxs/storage/tree/PeerRequests.hpp"
+#include "PeerRequests.hpp"
 
 #include "opentxs/storage/Plugin.hpp"
 

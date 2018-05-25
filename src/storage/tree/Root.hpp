@@ -39,11 +39,12 @@
 #ifndef OPENTXS_STORAGE_TREE_ROOT_HPP
 #define OPENTXS_STORAGE_TREE_ROOT_HPP
 
-#include "opentxs/Forward.hpp"
+#include "Internal.hpp"
 
 #include "opentxs/api/Editor.hpp"
 #include "opentxs/Types.hpp"
-#include "opentxs/storage/tree/Node.hpp"
+
+#include "Node.hpp"
 
 #include <atomic>
 #include <cstdint>

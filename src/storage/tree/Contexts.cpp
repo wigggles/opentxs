@@ -38,7 +38,7 @@
 
 #include "stdafx.hpp"
 
-#include "opentxs/storage/tree/Contexts.hpp"
+#include "Contexts.hpp"
 
 #include "opentxs/storage/Plugin.hpp"
 

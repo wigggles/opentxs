@@ -38,7 +38,7 @@
 
 #include "stdafx.hpp"
 
-#include "opentxs/storage/tree/Credentials.hpp"
+#include "Credentials.hpp"
 
 #include "opentxs/storage/Plugin.hpp"
 

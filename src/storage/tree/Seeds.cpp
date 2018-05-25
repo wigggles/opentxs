@@ -38,7 +38,7 @@
 
 #include "stdafx.hpp"
 
-#include "opentxs/storage/tree/Seeds.hpp"
+#include "Seeds.hpp"
 
 #include "opentxs/storage/Plugin.hpp"
 

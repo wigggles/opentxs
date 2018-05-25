@@ -36,55 +36,53 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_STORAGE_TREE_BLOCKCHAIN_TRANSACTIONS_HPP
-#define OPENTXS_STORAGE_TREE_BLOCKCHAIN_TRANSACTIONS_HPP
+#ifndef OPENTXS_STORAGE_TREE_PEERREQUESTS_HPP
+#define OPENTXS_STORAGE_TREE_PEERREQUESTS_HPP
 
-#include "opentxs/Forward.hpp"
+#include "Internal.hpp"
 
 #include "opentxs/api/Editor.hpp"
-#include "opentxs/storage/tree/Node.hpp"
 
-#include <cstdint>
-#include <map>
-#include <set>
+#include "Node.hpp"
 
 namespace opentxs
 {
 namespace storage
 {
 
-class Tree;
+class Nym;
 
-class BlockchainTransactions : public Node
+class PeerRequests : public Node
 {
+private:
+    friend class Nym;
+
+    void init(const std::string& hash) override;
+    bool save(const std::unique_lock<std::mutex>& lock) const override;
+    proto::StorageNymList serialize() const;
+
+    PeerRequests(
+        const opentxs::api::storage::Driver& storage,
+        const std::string& hash);
+    PeerRequests() = delete;
+    PeerRequests(const PeerRequests&) = delete;
+    PeerRequests(PeerRequests&&) = delete;
+    PeerRequests operator=(const PeerRequests&) = delete;
+    PeerRequests operator=(PeerRequests&&) = delete;
+
 public:
     bool Load(
         const std::string& id,
-        std::shared_ptr<proto::BlockchainTransaction>& output,
+        std::shared_ptr<proto::PeerRequest>& output,
+        std::string& alias,
         const bool checking) const;
 
     bool Delete(const std::string& id);
-    bool Store(const proto::BlockchainTransaction& data);
+    bool SetAlias(const std::string& id, const std::string& alias);
+    bool Store(const proto::PeerRequest& data, const std::string& alias);
 
-    ~BlockchainTransactions() = default;
-
-private:
-    friend class Tree;
-
-    bool save(const std::unique_lock<std::mutex>& lock) const override;
-    proto::StorageBlockchainTransactions serialize() const;
-
-    void init(const std::string& hash) override;
-
-    BlockchainTransactions(
-        const opentxs::api::storage::Driver& storage,
-        const std::string& hash);
-    BlockchainTransactions() = delete;
-    BlockchainTransactions(const BlockchainTransactions&) = delete;
-    BlockchainTransactions(BlockchainTransactions&&) = delete;
-    BlockchainTransactions operator=(const BlockchainTransactions&) = delete;
-    BlockchainTransactions operator=(BlockchainTransactions&&) = delete;
+    ~PeerRequests() = default;
 };
 }  // namespace storage
 }  // namespace opentxs
-#endif  // OPENTXS_STORAGE_TREE_BLOCKCHAIN_TRANSACTIONS_HPP
+#endif  // OPENTXS_STORAGE_TREE_PEERREQUESTS_HPP

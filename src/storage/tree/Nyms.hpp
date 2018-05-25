@@ -36,62 +36,67 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_STORAGE_TREE_SEEDS_HPP
-#define OPENTXS_STORAGE_TREE_SEEDS_HPP
+#ifndef OPENTXS_STORAGE_TREE_NYMS_HPP
+#define OPENTXS_STORAGE_TREE_NYMS_HPP
 
-#include "opentxs/Forward.hpp"
+#include "Internal.hpp"
 
+#include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Editor.hpp"
-#include "opentxs/storage/tree/Node.hpp"
+#include "opentxs/Types.hpp"
 
-#include <cstdint>
+#include "Node.hpp"
+
+#include <map>
+#include <mutex>
+#include <set>
+#include <string>
+#include <tuple>
 
 namespace opentxs
 {
 namespace storage
 {
 
+class Nym;
 class Tree;
 
-class Seeds : public Node
+class Nyms : public Node
 {
 private:
     friend class Tree;
 
-    std::string default_seed_;
+    mutable std::map<std::string, std::unique_ptr<class Nym>> nyms_;
+    std::set<std::string> local_nyms_{};
+
+    class Nym* nym(const std::string& id) const;
+    class Nym* nym(const Lock& lock, const std::string& id) const;
+    void save(class Nym* nym, const Lock& lock, const std::string& id);
 
     void init(const std::string& hash) override;
-    bool save(const std::unique_lock<std::mutex>& lock) const override;
-    void set_default(
-        const std::unique_lock<std::mutex>& lock,
-        const std::string& id);
-    proto::StorageSeeds serialize() const;
+    bool save(const Lock& lock) const override;
+    proto::StorageNymList serialize() const;
 
-    Seeds(
-        const opentxs::api::storage::Driver& storage,
-        const std::string& hash);
-    Seeds() = delete;
-    Seeds(const Seeds&) = delete;
-    Seeds(Seeds&&) = delete;
-    Seeds operator=(const Seeds&) = delete;
-    Seeds operator=(Seeds&&) = delete;
+    Nyms(const opentxs::api::storage::Driver& storage, const std::string& hash);
+    Nyms() = delete;
+    Nyms(const Nyms&) = delete;
+    Nyms(Nyms&&) = delete;
+    Nyms operator=(const Nyms&) = delete;
+    Nyms operator=(Nyms&&) = delete;
 
 public:
-    std::string Alias(const std::string& id) const;
-    std::string Default() const;
-    bool Load(
-        const std::string& id,
-        std::shared_ptr<proto::Seed>& output,
-        std::string& alias,
-        const bool checking) const;
+    bool Exists(const std::string& id) const;
+    const std::set<std::string> LocalNyms() const;
+    void Map(NymLambda lambda) const;
+    bool Migrate(const opentxs::api::storage::Driver& to) const override;
+    const class Nym& Nym(const std::string& id) const;
 
-    bool Delete(const std::string& id);
-    bool SetAlias(const std::string& id, const std::string& alias);
-    bool SetDefault(const std::string& id);
-    bool Store(const proto::Seed& data, const std::string& alias);
+    Editor<class Nym> mutable_Nym(const std::string& id);
+    bool RelabelThread(const std::string& threadID, const std::string label);
+    void UpgradeLocalnym();
 
-    ~Seeds() = default;
+    ~Nyms() = default;
 };
 }  // namespace storage
 }  // namespace opentxs
-#endif  // OPENTXS_STORAGE_TREE_SEEDS_HPP
+#endif  // OPENTXS_STORAGE_TREE_NYMS_HPP

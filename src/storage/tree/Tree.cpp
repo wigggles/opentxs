@@ -38,17 +38,18 @@
 
 #include "stdafx.hpp"
 
-#include "opentxs/storage/tree/Tree.hpp"
+#include "Tree.hpp"
 
-#include "opentxs/storage/tree/BlockchainTransactions.hpp"
-#include "opentxs/storage/tree/Contacts.hpp"
-#include "opentxs/storage/tree/Credentials.hpp"
-#include "opentxs/storage/tree/Nym.hpp"
-#include "opentxs/storage/tree/Nyms.hpp"
-#include "opentxs/storage/tree/Seeds.hpp"
-#include "opentxs/storage/tree/Servers.hpp"
-#include "opentxs/storage/tree/Units.hpp"
 #include "opentxs/storage/Plugin.hpp"
+
+#include "BlockchainTransactions.hpp"
+#include "Contacts.hpp"
+#include "Credentials.hpp"
+#include "Nym.hpp"
+#include "Nyms.hpp"
+#include "Seeds.hpp"
+#include "Servers.hpp"
+#include "Units.hpp"
 
 namespace opentxs
 {

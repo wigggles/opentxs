@@ -36,54 +36,59 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_STORAGE_TREE_MAILBOX_HPP
-#define OPENTXS_STORAGE_TREE_MAILBOX_HPP
+#ifndef OPENTXS_STORAGE_TREE_SERVERS_HPP
+#define OPENTXS_STORAGE_TREE_SERVERS_HPP
 
-#include "opentxs/Forward.hpp"
+#include "Internal.hpp"
 
+#include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Editor.hpp"
-#include "opentxs/storage/tree/Node.hpp"
+
+#include "Node.hpp"
 
 namespace opentxs
 {
 namespace storage
 {
 
-class Nym;
+class Tree;
 
-class Mailbox : public Node
+class Servers : public Node
 {
 private:
-    friend class Nym;
+    friend class Tree;
 
     void init(const std::string& hash) override;
     bool save(const std::unique_lock<std::mutex>& lock) const override;
-    proto::StorageNymList serialize() const;
+    proto::StorageServers serialize() const;
 
-    Mailbox(
+    Servers(
         const opentxs::api::storage::Driver& storage,
         const std::string& hash);
-    Mailbox() = delete;
-    Mailbox(const Mailbox&) = delete;
-    Mailbox(Mailbox&&) = delete;
-    Mailbox operator=(const Mailbox&) = delete;
-    Mailbox operator=(Mailbox&&) = delete;
+    Servers() = delete;
+    Servers(const Servers&) = delete;
+    Servers(Servers&&) = delete;
+    Servers operator=(const Servers&) = delete;
+    Servers operator=(Servers&&) = delete;
 
 public:
+    std::string Alias(const std::string& id) const;
     bool Load(
         const std::string& id,
-        std::string& output,
+        std::shared_ptr<proto::ServerContract>& output,
         std::string& alias,
         const bool checking) const;
+    void Map(ServerLambda lambda) const;
 
     bool Delete(const std::string& id);
+    bool SetAlias(const std::string& id, const std::string& alias);
     bool Store(
-        const std::string& id,
-        const std::string& data,
-        const std::string& alias);
+        const proto::ServerContract& data,
+        const std::string& alias,
+        std::string& plaintext);
 
-    ~Mailbox() = default;
+    ~Servers() = default;
 };
 }  // namespace storage
 }  // namespace opentxs
-#endif  // OPENTXS_STORAGE_TREE_MAILBOX_HPP
+#endif  // OPENTXS_STORAGE_TREE_SERVERS_HPP

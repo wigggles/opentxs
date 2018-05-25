@@ -39,10 +39,11 @@
 #ifndef OPENTXS_STORAGE_TREE_CONTACTS_HPP
 #define OPENTXS_STORAGE_TREE_CONTACTS_HPP
 
-#include "opentxs/Forward.hpp"
+#include "Internal.hpp"
 
 #include "opentxs/api/Editor.hpp"
-#include "opentxs/storage/tree/Node.hpp"
+
+#include "Node.hpp"
 
 #include <cstdint>
 #include <map>

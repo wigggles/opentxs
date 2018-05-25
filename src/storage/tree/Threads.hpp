@@ -39,10 +39,11 @@
 #ifndef OPENTXS_STORAGE_TREE_THREADS_HPP
 #define OPENTXS_STORAGE_TREE_THREADS_HPP
 
-#include "opentxs/Forward.hpp"
+#include "Internal.hpp"
 
 #include "opentxs/api/Editor.hpp"
-#include "opentxs/storage/tree/Node.hpp"
+
+#include "Node.hpp"
 
 #include <map>
 #include <mutex>

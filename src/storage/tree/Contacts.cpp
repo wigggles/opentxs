@@ -38,7 +38,7 @@
 
 #include "stdafx.hpp"
 
-#include "opentxs/storage/tree/Contacts.hpp"
+#include "Contacts.hpp"
 
 #include "opentxs/storage/Plugin.hpp"
 

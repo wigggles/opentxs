@@ -38,17 +38,18 @@
 
 #include "stdafx.hpp"
 
-#include "opentxs/storage/tree/Nym.hpp"
+#include "Nym.hpp"
 
-#include "opentxs/storage/tree/Contexts.hpp"
-#include "opentxs/storage/tree/Issuers.hpp"
-#include "opentxs/storage/tree/Mailbox.hpp"
-#include "opentxs/storage/tree/PaymentWorkflows.hpp"
-#include "opentxs/storage/tree/PeerReplies.hpp"
-#include "opentxs/storage/tree/PeerRequests.hpp"
-#include "opentxs/storage/tree/Thread.hpp"
-#include "opentxs/storage/tree/Threads.hpp"
 #include "opentxs/storage/Plugin.hpp"
+
+#include "Contexts.hpp"
+#include "Issuers.hpp"
+#include "Mailbox.hpp"
+#include "PaymentWorkflows.hpp"
+#include "PeerReplies.hpp"
+#include "PeerRequests.hpp"
+#include "Thread.hpp"
+#include "Threads.hpp"
 
 #include <functional>
 

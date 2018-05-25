@@ -53,8 +53,8 @@
 #if OT_STORAGE_SQLITE
 #include "opentxs/storage/drivers/StorageSqlite3.hpp"
 #endif
-#include "opentxs/storage/tree/Root.hpp"
-#include "opentxs/storage/tree/Tree.hpp"
+#include "storage/tree/Root.hpp"
+#include "storage/tree/Tree.hpp"
 #include "opentxs/storage/StorageConfig.hpp"
 
 #include <limits>

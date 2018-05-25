@@ -38,14 +38,15 @@
 
 #include "stdafx.hpp"
 
-#include "opentxs/storage/tree/Nyms.hpp"
+#include "Nyms.hpp"
 
-#include "opentxs/storage/tree/Contexts.hpp"
-#include "opentxs/storage/tree/Mailbox.hpp"
-#include "opentxs/storage/tree/Nym.hpp"
-#include "opentxs/storage/tree/Thread.hpp"
-#include "opentxs/storage/tree/Threads.hpp"
 #include "opentxs/storage/Plugin.hpp"
+
+#include "Contexts.hpp"
+#include "Mailbox.hpp"
+#include "Nym.hpp"
+#include "Thread.hpp"
+#include "Threads.hpp"
 
 #include <functional>
 

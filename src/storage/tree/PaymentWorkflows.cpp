@@ -38,7 +38,7 @@
 
 #include "stdafx.hpp"
 
-#include "opentxs/storage/tree/PaymentWorkflows.hpp"
+#include "PaymentWorkflows.hpp"
 
 #include "opentxs/core/Log.hpp"
 #include "opentxs/storage/Plugin.hpp"

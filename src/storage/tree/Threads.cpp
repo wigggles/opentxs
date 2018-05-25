@@ -38,8 +38,8 @@
 
 #include "stdafx.hpp"
 
-#include "opentxs/storage/tree/Thread.hpp"
-#include "opentxs/storage/tree/Threads.hpp"
+#include "Thread.hpp"
+#include "Threads.hpp"
 
 #include "opentxs/storage/Plugin.hpp"
 

@@ -38,7 +38,7 @@
 
 #include "stdafx.hpp"
 
-#include "opentxs/storage/tree/PeerReplies.hpp"
+#include "PeerReplies.hpp"
 
 #include "opentxs/storage/Plugin.hpp"
 

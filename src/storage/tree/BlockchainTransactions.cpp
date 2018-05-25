@@ -38,7 +38,7 @@
 
 #include "stdafx.hpp"
 
-#include "opentxs/storage/tree/BlockchainTransactions.hpp"
+#include "BlockchainTransactions.hpp"
 
 #include "opentxs/storage/Plugin.hpp"
 

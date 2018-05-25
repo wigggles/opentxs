@@ -39,7 +39,7 @@
 #ifndef OPENTXS_STORAGE_TREE_NODE_HPP
 #define OPENTXS_STORAGE_TREE_NODE_HPP
 
-#include "opentxs/Forward.hpp"
+#include "Internal.hpp"
 
 #include "opentxs/api/storage/Driver.hpp"
 #include "opentxs/core/Log.hpp"
@@ -60,16 +60,16 @@ class Root;
 
 typedef std::function<bool(const std::string&)> keyFunction;
 /** A set of metadata associated with a stored object
-    *  * string: hash
-    *  * string: alias
-    *  * uint64: revision
-    *  * bool:   private
-    */
+ *  * string: hash
+ *  * string: alias
+ *  * uint64: revision
+ *  * bool:   private
+ */
 typedef std::tuple<std::string, std::string, std::uint64_t, bool> Metadata;
 /** Maps a logical id to the stored metadata for the object
-    *  * string: id of the stored object
-    *  * Metadata: metadata for the stored object
-    */
+ *  * string: id of the stored object
+ *  * Metadata: metadata for the stored object
+ */
 typedef std::map<std::string, Metadata> Index;
 
 class Node
@@ -88,13 +88,9 @@ protected:
         auto& metadata = item_map_[id];
         auto& hash = std::get<0>(metadata);
 
-        if (!driver_.StoreProto<T>(data, hash, plaintext)) {
-            return false;
-        }
+        if (!driver_.StoreProto<T>(data, hash, plaintext)) { return false; }
 
-        if (!alias.empty()) {
-            std::get<1>(metadata) = alias;
-        }
+        if (!alias.empty()) { std::get<1>(metadata) = alias; }
 
         return save(lock);
     }
@@ -158,9 +154,7 @@ protected:
             const auto& hash = std::get<0>(it.second);
             std::shared_ptr<T> serialized;
 
-            if (Node::BLANK_HASH == hash) {
-                continue;
-            }
+            if (Node::BLANK_HASH == hash) { continue; }
 
             if (driver_.LoadProto<T>(hash, serialized, false)) {
                 input(*serialized);

@@ -36,52 +36,63 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_STORAGE_TREE_PEERREQUESTS_HPP
-#define OPENTXS_STORAGE_TREE_PEERREQUESTS_HPP
+#ifndef OPENTXS_STORAGE_TREE_SEEDS_HPP
+#define OPENTXS_STORAGE_TREE_SEEDS_HPP
 
-#include "opentxs/Forward.hpp"
+#include "Internal.hpp"
 
 #include "opentxs/api/Editor.hpp"
-#include "opentxs/storage/tree/Node.hpp"
+
+#include "Node.hpp"
+
+#include <cstdint>
 
 namespace opentxs
 {
 namespace storage
 {
 
-class Nym;
+class Tree;
 
-class PeerRequests : public Node
+class Seeds : public Node
 {
 private:
-    friend class Nym;
+    friend class Tree;
+
+    std::string default_seed_;
 
     void init(const std::string& hash) override;
     bool save(const std::unique_lock<std::mutex>& lock) const override;
-    proto::StorageNymList serialize() const;
+    void set_default(
+        const std::unique_lock<std::mutex>& lock,
+        const std::string& id);
+    proto::StorageSeeds serialize() const;
 
-    PeerRequests(
+    Seeds(
         const opentxs::api::storage::Driver& storage,
         const std::string& hash);
-    PeerRequests() = delete;
-    PeerRequests(const PeerRequests&) = delete;
-    PeerRequests(PeerRequests&&) = delete;
-    PeerRequests operator=(const PeerRequests&) = delete;
-    PeerRequests operator=(PeerRequests&&) = delete;
+    Seeds() = delete;
+    Seeds(const Seeds&) = delete;
+    Seeds(Seeds&&) = delete;
+    Seeds operator=(const Seeds&) = delete;
+    Seeds operator=(Seeds&&) = delete;
 
 public:
+    std::string Alias(const std::string& id) const;
+    std::string Default() const;
     bool Load(
         const std::string& id,
-        std::shared_ptr<proto::PeerRequest>& output,
+        std::shared_ptr<proto::Seed>& output,
         std::string& alias,
         const bool checking) const;
 
     bool Delete(const std::string& id);
     bool SetAlias(const std::string& id, const std::string& alias);
-    bool Store(const proto::PeerRequest& data, const std::string& alias);
+    bool SetDefault(const std::string& id);
+    bool Store(const proto::Seed& data, const std::string& alias);
 
-    ~PeerRequests() = default;
+    ~Seeds() = default;
 };
 }  // namespace storage
 }  // namespace opentxs
-#endif  // OPENTXS_STORAGE_TREE_PEERREQUESTS_HPP
+#endif  // OPENTXS_STORAGE_TREE_SEEDS_HPP

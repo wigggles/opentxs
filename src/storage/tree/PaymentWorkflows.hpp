@@ -43,8 +43,9 @@
 
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Editor.hpp"
-#include "opentxs/storage/tree/Node.hpp"
 #include "opentxs/Proto.hpp"
+
+#include "Node.hpp"
 
 namespace opentxs::storage
 {

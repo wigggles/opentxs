@@ -36,56 +36,55 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_STORAGE_TREE_UNITS_HPP
-#define OPENTXS_STORAGE_TREE_UNITS_HPP
+#ifndef OPENTXS_STORAGE_TREE_MAILBOX_HPP
+#define OPENTXS_STORAGE_TREE_MAILBOX_HPP
 
-#include "opentxs/Forward.hpp"
+#include "Internal.hpp"
 
-#include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Editor.hpp"
-#include "opentxs/storage/tree/Node.hpp"
+
+#include "Node.hpp"
 
 namespace opentxs
 {
 namespace storage
 {
 
-class Tree;
+class Nym;
 
-class Units : public Node
+class Mailbox : public Node
 {
 private:
-    friend class Tree;
+    friend class Nym;
 
     void init(const std::string& hash) override;
     bool save(const std::unique_lock<std::mutex>& lock) const override;
-    proto::StorageUnits serialize() const;
+    proto::StorageNymList serialize() const;
 
-    Units(const opentxs::api::storage::Driver& storage, const std::string& key);
-    Units() = delete;
-    Units(const Units&) = delete;
-    Units(Units&&) = delete;
-    Units operator=(const Units&) = delete;
-    Units operator=(Units&&) = delete;
+    Mailbox(
+        const opentxs::api::storage::Driver& storage,
+        const std::string& hash);
+    Mailbox() = delete;
+    Mailbox(const Mailbox&) = delete;
+    Mailbox(Mailbox&&) = delete;
+    Mailbox operator=(const Mailbox&) = delete;
+    Mailbox operator=(Mailbox&&) = delete;
 
 public:
-    std::string Alias(const std::string& id) const;
     bool Load(
         const std::string& id,
-        std::shared_ptr<proto::UnitDefinition>& output,
+        std::string& output,
         std::string& alias,
         const bool checking) const;
-    void Map(UnitLambda lambda) const;
 
     bool Delete(const std::string& id);
-    bool SetAlias(const std::string& id, const std::string& alias);
     bool Store(
-        const proto::UnitDefinition& data,
-        const std::string& alias,
-        std::string& plaintext);
+        const std::string& id,
+        const std::string& data,
+        const std::string& alias);
 
-    ~Units() = default;
+    ~Mailbox() = default;
 };
 }  // namespace storage
 }  // namespace opentxs
-#endif  // OPENTXS_STORAGE_TREE_UNITS_HPP
+#endif  // OPENTXS_STORAGE_TREE_MAILBOX_HPP

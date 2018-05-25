@@ -36,66 +36,57 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_STORAGE_TREE_NYMS_HPP
-#define OPENTXS_STORAGE_TREE_NYMS_HPP
+#ifndef OPENTXS_STORAGE_TREE_UNITS_HPP
+#define OPENTXS_STORAGE_TREE_UNITS_HPP
 
-#include "opentxs/Forward.hpp"
+#include "Internal.hpp"
 
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Editor.hpp"
-#include "opentxs/storage/tree/Node.hpp"
-#include "opentxs/Types.hpp"
 
-#include <map>
-#include <mutex>
-#include <set>
-#include <string>
-#include <tuple>
+#include "Node.hpp"
 
 namespace opentxs
 {
 namespace storage
 {
 
-class Nym;
 class Tree;
 
-class Nyms : public Node
+class Units : public Node
 {
 private:
     friend class Tree;
 
-    mutable std::map<std::string, std::unique_ptr<class Nym>> nyms_;
-    std::set<std::string> local_nyms_{};
-
-    class Nym* nym(const std::string& id) const;
-    class Nym* nym(const Lock& lock, const std::string& id) const;
-    void save(class Nym* nym, const Lock& lock, const std::string& id);
-
     void init(const std::string& hash) override;
-    bool save(const Lock& lock) const override;
-    proto::StorageNymList serialize() const;
+    bool save(const std::unique_lock<std::mutex>& lock) const override;
+    proto::StorageUnits serialize() const;
 
-    Nyms(const opentxs::api::storage::Driver& storage, const std::string& hash);
-    Nyms() = delete;
-    Nyms(const Nyms&) = delete;
-    Nyms(Nyms&&) = delete;
-    Nyms operator=(const Nyms&) = delete;
-    Nyms operator=(Nyms&&) = delete;
+    Units(const opentxs::api::storage::Driver& storage, const std::string& key);
+    Units() = delete;
+    Units(const Units&) = delete;
+    Units(Units&&) = delete;
+    Units operator=(const Units&) = delete;
+    Units operator=(Units&&) = delete;
 
 public:
-    bool Exists(const std::string& id) const;
-    const std::set<std::string> LocalNyms() const;
-    void Map(NymLambda lambda) const;
-    bool Migrate(const opentxs::api::storage::Driver& to) const override;
-    const class Nym& Nym(const std::string& id) const;
+    std::string Alias(const std::string& id) const;
+    bool Load(
+        const std::string& id,
+        std::shared_ptr<proto::UnitDefinition>& output,
+        std::string& alias,
+        const bool checking) const;
+    void Map(UnitLambda lambda) const;
 
-    Editor<class Nym> mutable_Nym(const std::string& id);
-    bool RelabelThread(const std::string& threadID, const std::string label);
-    void UpgradeLocalnym();
+    bool Delete(const std::string& id);
+    bool SetAlias(const std::string& id, const std::string& alias);
+    bool Store(
+        const proto::UnitDefinition& data,
+        const std::string& alias,
+        std::string& plaintext);
 
-    ~Nyms() = default;
+    ~Units() = default;
 };
 }  // namespace storage
 }  // namespace opentxs
-#endif  // OPENTXS_STORAGE_TREE_NYMS_HPP
+#endif  // OPENTXS_STORAGE_TREE_UNITS_HPP

@@ -26,8 +26,26 @@ set(cxx-sources
   Units.cpp
 )
 
-file(GLOB cxx-headers
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/storage/tree/*.hpp"
+set(cxx-headers
+  BlockchainTransactions.hpp
+  Contacts.hpp
+  Contexts.hpp
+  Credentials.hpp
+  Issuers.hpp
+  Node.hpp
+  Mailbox.hpp
+  Nym.hpp
+  Nyms.hpp
+  PaymentWorkflows.hpp
+  PeerReplies.hpp
+  PeerRequests.hpp
+  Root.hpp
+  Seeds.hpp
+  Servers.hpp
+  Thread.hpp
+  Threads.hpp
+  Tree.hpp
+  Units.hpp
 )
 
 set(MODULE_NAME opentxs-storage-tree)

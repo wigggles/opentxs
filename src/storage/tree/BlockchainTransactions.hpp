@@ -36,51 +36,56 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_STORAGE_TREE_ISSUERS_HPP
-#define OPENTXS_STORAGE_TREE_ISSUERS_HPP
+#ifndef OPENTXS_STORAGE_TREE_BLOCKCHAIN_TRANSACTIONS_HPP
+#define OPENTXS_STORAGE_TREE_BLOCKCHAIN_TRANSACTIONS_HPP
 
-#include "opentxs/Forward.hpp"
+#include "Internal.hpp"
 
 #include "opentxs/api/Editor.hpp"
-#include "opentxs/storage/tree/Node.hpp"
+
+#include "Node.hpp"
+
+#include <cstdint>
+#include <map>
+#include <set>
 
 namespace opentxs
 {
 namespace storage
 {
 
-class Nym;
+class Tree;
 
-class Issuers : public Node
+class BlockchainTransactions : public Node
 {
 public:
     bool Load(
         const std::string& id,
-        std::shared_ptr<proto::Issuer>& output,
-        std::string& alias,
+        std::shared_ptr<proto::BlockchainTransaction>& output,
         const bool checking) const;
 
     bool Delete(const std::string& id);
-    bool Store(const proto::Issuer& data, const std::string& alias);
+    bool Store(const proto::BlockchainTransaction& data);
 
-    ~Issuers() = default;
+    ~BlockchainTransactions() = default;
 
 private:
-    friend class Nym;
+    friend class Tree;
+
+    bool save(const std::unique_lock<std::mutex>& lock) const override;
+    proto::StorageBlockchainTransactions serialize() const;
 
     void init(const std::string& hash) override;
-    bool save(const std::unique_lock<std::mutex>& lock) const override;
-    proto::StorageIssuers serialize() const;
 
-    Issuers(
+    BlockchainTransactions(
         const opentxs::api::storage::Driver& storage,
         const std::string& hash);
-    Issuers() = delete;
-    Issuers(const Issuers&) = delete;
-    Issuers(Issuers&&) = delete;
-    Issuers operator=(const Issuers&) = delete;
-    Issuers operator=(Issuers&&) = delete;
+    BlockchainTransactions() = delete;
+    BlockchainTransactions(const BlockchainTransactions&) = delete;
+    BlockchainTransactions(BlockchainTransactions&&) = delete;
+    BlockchainTransactions operator=(const BlockchainTransactions&) = delete;
+    BlockchainTransactions operator=(BlockchainTransactions&&) = delete;
 };
 }  // namespace storage
 }  // namespace opentxs
-#endif  // OPENTXS_STORAGE_TREE_ISSUERS_HPP
+#endif  // OPENTXS_STORAGE_TREE_BLOCKCHAIN_TRANSACTIONS_HPP

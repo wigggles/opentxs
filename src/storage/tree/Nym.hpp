@@ -43,8 +43,9 @@
 
 #include "opentxs/api/Editor.hpp"
 #include "opentxs/core/Flag.hpp"
-#include "opentxs/storage/tree/Node.hpp"
 #include "opentxs/Types.hpp"
+
+#include "Node.hpp"
 
 #include <cstdint>
 #include <map>

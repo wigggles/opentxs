@@ -36,58 +36,51 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_STORAGE_TREE_SERVERS_HPP
-#define OPENTXS_STORAGE_TREE_SERVERS_HPP
+#ifndef OPENTXS_STORAGE_TREE_PEERREPLIES_HPP
+#define OPENTXS_STORAGE_TREE_PEERREPLIES_HPP
 
-#include "opentxs/Forward.hpp"
+#include "Internal.hpp"
 
-#include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Editor.hpp"
-#include "opentxs/storage/tree/Node.hpp"
+
+#include "Node.hpp"
 
 namespace opentxs
 {
 namespace storage
 {
 
-class Tree;
+class Nym;
 
-class Servers : public Node
+class PeerReplies : public Node
 {
 private:
-    friend class Tree;
+    friend class Nym;
 
     void init(const std::string& hash) override;
     bool save(const std::unique_lock<std::mutex>& lock) const override;
-    proto::StorageServers serialize() const;
+    proto::StorageNymList serialize() const;
 
-    Servers(
+    PeerReplies(
         const opentxs::api::storage::Driver& storage,
         const std::string& hash);
-    Servers() = delete;
-    Servers(const Servers&) = delete;
-    Servers(Servers&&) = delete;
-    Servers operator=(const Servers&) = delete;
-    Servers operator=(Servers&&) = delete;
+    PeerReplies() = delete;
+    PeerReplies(const PeerReplies&) = delete;
+    PeerReplies(PeerReplies&&) = delete;
+    PeerReplies operator=(const PeerReplies&) = delete;
+    PeerReplies operator=(PeerReplies&&) = delete;
 
 public:
-    std::string Alias(const std::string& id) const;
     bool Load(
         const std::string& id,
-        std::shared_ptr<proto::ServerContract>& output,
-        std::string& alias,
+        std::shared_ptr<proto::PeerReply>& output,
         const bool checking) const;
-    void Map(ServerLambda lambda) const;
 
     bool Delete(const std::string& id);
-    bool SetAlias(const std::string& id, const std::string& alias);
-    bool Store(
-        const proto::ServerContract& data,
-        const std::string& alias,
-        std::string& plaintext);
+    bool Store(const proto::PeerReply& data);
 
-    ~Servers() = default;
+    ~PeerReplies() = default;
 };
 }  // namespace storage
 }  // namespace opentxs
-#endif  // OPENTXS_STORAGE_TREE_SERVERS_HPP
+#endif  // OPENTXS_STORAGE_TREE_PEERREPLIES_HPP

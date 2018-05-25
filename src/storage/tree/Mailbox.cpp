@@ -38,7 +38,7 @@
 
 #include "stdafx.hpp"
 
-#include "opentxs/storage/tree/Mailbox.hpp"
+#include "Mailbox.hpp"
 
 #include "opentxs/storage/Plugin.hpp"
 
