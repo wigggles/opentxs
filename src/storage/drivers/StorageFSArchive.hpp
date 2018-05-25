@@ -39,11 +39,11 @@
 #ifndef OPENTXS_STORAGE_STORAGEFSARCHIVE_HPP
 #define OPENTXS_STORAGE_STORAGEFSARCHIVE_HPP
 
-#include "opentxs/Forward.hpp"
+#include "Internal.hpp"
 
 #if OT_STORAGE_FS
 
-#include "opentxs/storage/drivers/StorageFS.hpp"
+#include "StorageFS.hpp"
 
 #include <memory>
 

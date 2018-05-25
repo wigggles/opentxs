@@ -39,7 +39,7 @@
 #ifndef OPENTXS_STORAGE_STORAGEMULTIPLEX_HPP
 #define OPENTXS_STORAGE_STORAGEMULTIPLEX_HPP
 
-#include "opentxs/Forward.hpp"
+#include "Internal.hpp"
 
 #include "opentxs/api/storage/Driver.hpp"
 #include "opentxs/Types.hpp"

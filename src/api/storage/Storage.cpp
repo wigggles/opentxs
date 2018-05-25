@@ -40,8 +40,7 @@
 
 #include "Storage.hpp"
 
-#include "opentxs/storage/drivers/StorageMultiplex.hpp"
-
+#include "storage/drivers/StorageMultiplex.hpp"
 #include "storage/tree/BlockchainTransactions.hpp"
 #include "storage/tree/Contacts.hpp"
 #include "storage/tree/Contexts.hpp"

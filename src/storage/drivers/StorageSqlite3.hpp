@@ -39,7 +39,7 @@
 #ifndef OPENTXS_STORAGE_STORAGESQLITE3_HPP
 #define OPENTXS_STORAGE_STORAGESQLITE3_HPP
 
-#include "opentxs/Forward.hpp"
+#include "Internal.hpp"
 
 #if OT_STORAGE_SQLITE
 

@@ -37,7 +37,7 @@
  ************************************************************/
 #include "stdafx.hpp"
 
-#include "opentxs/storage/drivers/StorageMultiplex.hpp"
+#include "StorageMultiplex.hpp"
 
 #include "opentxs/api/storage/Plugin.hpp"
 #if OT_STORAGE_FS
@@ -46,12 +46,13 @@
 #endif
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
+
 #if OT_STORAGE_FS
-#include "opentxs/storage/drivers/StorageFSGC.hpp"
-#include "opentxs/storage/drivers/StorageFSArchive.hpp"
+#include "StorageFSGC.hpp"
+#include "StorageFSArchive.hpp"
 #endif
 #if OT_STORAGE_SQLITE
-#include "opentxs/storage/drivers/StorageSqlite3.hpp"
+#include "StorageSqlite3.hpp"
 #endif
 #include "storage/tree/Root.hpp"
 #include "storage/tree/Tree.hpp"

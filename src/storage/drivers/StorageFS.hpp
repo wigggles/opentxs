@@ -39,7 +39,7 @@
 #ifndef OPENTXS_STORAGE_STORAGEFS_HPP
 #define OPENTXS_STORAGE_STORAGEFS_HPP
 
-#include "opentxs/Forward.hpp"
+#include "Internal.hpp"
 
 #if OT_STORAGE_FS
 #include "opentxs/core/Flag.hpp"

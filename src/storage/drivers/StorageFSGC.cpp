@@ -37,7 +37,7 @@
  ************************************************************/
 #include "stdafx.hpp"
 
-#include "opentxs/storage/drivers/StorageFSGC.hpp"
+#include "StorageFSGC.hpp"
 
 #if OT_STORAGE_FS
 #include "opentxs/storage/StorageConfig.hpp"

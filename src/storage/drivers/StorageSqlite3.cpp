@@ -37,7 +37,7 @@
  ************************************************************/
 #include "stdafx.hpp"
 
-#include "opentxs/storage/drivers/StorageSqlite3.hpp"
+#include "StorageSqlite3.hpp"
 
 #if OT_STORAGE_SQLITE
 #include "opentxs/core/Log.hpp"

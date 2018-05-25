@@ -37,7 +37,7 @@
  ************************************************************/
 #include "stdafx.hpp"
 
-#include "opentxs/storage/drivers/StorageFSArchive.hpp"
+#include "StorageFSArchive.hpp"
 
 #if OT_STORAGE_FS
 #include "opentxs/core/crypto/OTPassword.hpp"

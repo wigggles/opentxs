@@ -39,7 +39,7 @@
 #ifndef OPENTXS_STORAGE_STORAGEEXAMPLE_HPP
 #define OPENTXS_STORAGE_STORAGEEXAMPLE_HPP
 
-#include "opentxs/Forward.hpp"
+#include "Internal.hpp"
 
 #include "opentxs/storage/Plugin.hpp"
 
@@ -108,8 +108,8 @@ private:
     friend Storage;  // Allows access private constructor
 
     /** The default constructor can not be used because any implementation
-    *   of \ref opentxs::api::storage::Driver will require arguments.
-    */
+     *   of \ref opentxs::api::storage::Driver will require arguments.
+     */
     StorageExample() = delete;
 
     /** This is the required parameter profile for an opentx::storage child
