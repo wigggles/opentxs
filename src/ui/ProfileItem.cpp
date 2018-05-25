@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/client/NymData.hpp"
@@ -98,7 +98,7 @@ bool ProfileItem::add_claim(const Claim& claim) const
 Claim ProfileItem::as_claim() const
 {
     Claim output{};
-    auto & [ id, section, type, value, start, end, attributes ] = output;
+    auto& [id, section, type, value, start, end, attributes] = output;
     id = "";
     section = parent_.Section();
     type = parent_.Type();
@@ -106,13 +106,9 @@ Claim ProfileItem::as_claim() const
     start = start_;
     end = end_;
 
-    if (primary_) {
-        attributes.emplace(proto::CITEMATTR_PRIMARY);
-    }
+    if (primary_) { attributes.emplace(proto::CITEMATTR_PRIMARY); }
 
-    if (primary_ || active_) {
-        attributes.emplace(proto::CITEMATTR_ACTIVE);
-    }
+    if (primary_ || active_) { attributes.emplace(proto::CITEMATTR_ACTIVE); }
 
     return output;
 }

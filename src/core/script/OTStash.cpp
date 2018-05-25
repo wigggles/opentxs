@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/core/script/OTStash.hpp"
 
@@ -213,8 +213,8 @@ OTStashItem* OTStash::GetStash(const std::string& str_instrument_definition_id)
 {
     auto it = m_mapStashItems.find(str_instrument_definition_id);
 
-    if (m_mapStashItems.end() ==
-        it)  // It's not already there for this instrument definition.
+    if (m_mapStashItems.end() == it)  // It's not already there for this
+                                      // instrument definition.
     {
         const String strInstrumentDefinitionID(
             str_instrument_definition_id.c_str());

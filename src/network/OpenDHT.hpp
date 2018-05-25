@@ -39,7 +39,7 @@
 #ifndef OPENTXS_NETWORK_IMPLEMENTATION_OPENDHT_HPP
 #define OPENTXS_NETWORK_IMPLEMENTATION_OPENDHT_HPP
 
-#include "opentxs/Internal.hpp"
+#include "Internal.hpp"
 
 #if OT_DHT
 #include "opentxs/network/OpenDHT.hpp"
@@ -89,6 +89,6 @@ private:
     OpenDHT& operator=(const OpenDHT&) = delete;
     OpenDHT& operator=(OpenDHT&&) = delete;
 };
-}  // opentxs::network::implementation
+}  // namespace opentxs::network::implementation
 #endif  // OT_DHT
 #endif  // OPENTXS_NETWORK_IMPLEMENTATION_OPENDHT_HPP

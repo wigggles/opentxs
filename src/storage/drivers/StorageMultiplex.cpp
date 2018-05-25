@@ -35,9 +35,9 @@
  *   for more details.
  *
  ************************************************************/
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
-#include "opentxs/storage/drivers/StorageMultiplex.hpp"
+#include "StorageMultiplex.hpp"
 
 #include "opentxs/api/storage/Plugin.hpp"
 #if OT_STORAGE_FS
@@ -46,16 +46,17 @@
 #endif
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
+
 #if OT_STORAGE_FS
-#include "opentxs/storage/drivers/StorageFSGC.hpp"
-#include "opentxs/storage/drivers/StorageFSArchive.hpp"
+#include "StorageFSGC.hpp"
+#include "StorageFSArchive.hpp"
 #endif
 #if OT_STORAGE_SQLITE
-#include "opentxs/storage/drivers/StorageSqlite3.hpp"
+#include "StorageSqlite3.hpp"
 #endif
-#include "opentxs/storage/tree/Root.hpp"
-#include "opentxs/storage/tree/Tree.hpp"
-#include "opentxs/storage/StorageConfig.hpp"
+#include "storage/tree/Root.hpp"
+#include "storage/tree/Tree.hpp"
+#include "storage/StorageConfig.hpp"
 
 #include <limits>
 
@@ -125,9 +126,7 @@ std::string StorageMultiplex::best_root(bool& primaryOutOfSync)
         }
     }
 
-    if (0 == bestVersion) {
-        bestHash = "";
-    }
+    if (0 == bestVersion) { bestHash = ""; }
 
     if (originalHash != bestHash) {
         primary_plugin_->StoreRoot(false, bestHash);
@@ -216,10 +215,7 @@ void StorageMultiplex::Init_StorageMultiplex(
 
 void StorageMultiplex::InitBackup()
 {
-    if (config_.fs_backup_directory_.empty()) {
-
-        return;
-    }
+    if (config_.fs_backup_directory_.empty()) { return; }
 
 #if OT_STORAGE_FS
     std::unique_ptr<SymmetricKey> null(nullptr);
@@ -239,10 +235,7 @@ void StorageMultiplex::InitBackup()
 void StorageMultiplex::InitEncryptedBackup(__attribute__((unused))
                                            std::unique_ptr<SymmetricKey>& key)
 {
-    if (config_.fs_encrypted_backup_directory_.empty()) {
-
-        return;
-    }
+    if (config_.fs_encrypted_backup_directory_.empty()) { return; }
 
 #if OT_STORAGE_FS
     backup_plugins_.emplace_back(new StorageFSArchive(
@@ -265,10 +258,7 @@ bool StorageMultiplex::Load(
 {
     OT_ASSERT(primary_plugin_);
 
-    if (primary_plugin_->Load(key, checking, value)) {
-
-        return true;
-    }
+    if (primary_plugin_->Load(key, checking, value)) { return true; }
 
     if (false == checking) {
         otInfo << OT_METHOD << __FUNCTION__
@@ -313,18 +303,12 @@ bool StorageMultiplex::LoadFromBucket(
 {
     OT_ASSERT(primary_plugin_);
 
-    if (primary_plugin_->LoadFromBucket(key, value, bucket)) {
-
-        return true;
-    }
+    if (primary_plugin_->LoadFromBucket(key, value, bucket)) { return true; }
 
     for (const auto& plugin : backup_plugins_) {
         OT_ASSERT(plugin);
 
-        if (plugin->LoadFromBucket(key, value, bucket)) {
-
-            return true;
-        }
+        if (plugin->LoadFromBucket(key, value, bucket)) { return true; }
     }
 
     return false;
@@ -336,20 +320,14 @@ std::string StorageMultiplex::LoadRoot() const
 
     std::string root = primary_plugin_->LoadRoot();
 
-    if (false == root.empty()) {
-
-        return root;
-    }
+    if (false == root.empty()) { return root; }
 
     for (const auto& plugin : backup_plugins_) {
         OT_ASSERT(plugin);
 
         root = plugin->LoadRoot();
 
-        if (false == root.empty()) {
-
-            return root;
-        }
+        if (false == root.empty()) { return root; }
     }
 
     return root;
@@ -361,18 +339,12 @@ bool StorageMultiplex::Migrate(
 {
     OT_ASSERT(primary_plugin_);
 
-    if (primary_plugin_->Migrate(key, to)) {
-
-        return true;
-    }
+    if (primary_plugin_->Migrate(key, to)) { return true; }
 
     for (const auto& plugin : backup_plugins_) {
         OT_ASSERT(plugin);
 
-        if (plugin->Migrate(key, to)) {
-
-            return true;
-        }
+        if (plugin->Migrate(key, to)) { return true; }
     }
 
     return false;
@@ -453,9 +425,7 @@ bool StorageMultiplex::Store(
 
     bool output = false;
 
-    for (auto& future : futures) {
-        output |= future.get();
-    }
+    for (auto& future : futures) { output |= future.get(); }
 
     return output;
 }
@@ -533,10 +503,7 @@ void StorageMultiplex::synchronize_plugins(
     for (const auto& plugin : backup_plugins_) {
         OT_ASSERT(plugin);
 
-        if (hash == plugin->LoadRoot()) {
-
-            continue;
-        }
+        if (hash == plugin->LoadRoot()) { continue; }
 
         otErr << OT_METHOD << __FUNCTION__
               << ": Backup plugin is uninitialized or out of sync."

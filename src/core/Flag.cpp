@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/Types.hpp"
 
@@ -88,5 +88,5 @@ bool Flag::Toggle()
 
     return flag_.exchange(!value);
 }
-}  // namespace opentxs::implementation
+}  // namespace implementation
 }  // namespace opentxs

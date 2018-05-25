@@ -46,7 +46,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/core/crypto/OTKeyring.hpp"
 
@@ -205,9 +205,8 @@ bool OTKeyring::Windows_StoreSecret(
         static_cast<void*>(output.pbData),
         static_cast<std::uint32_t>(output.cbData));
 
-    LocalFree(
-        output.pbData);  // Note: should have a check for nullptr here... ?
-                         // And above...
+    LocalFree(output.pbData);  // Note: should have a check for nullptr here...
+                               // ? And above...
 
     // Success encrypting to ciphertext (std::string or Data)
 

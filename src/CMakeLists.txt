@@ -106,8 +106,8 @@ set(cxx-install-headers
 
 set(cxx-headers
   ${cxx-install-headers}
-  "${CMAKE_CURRENT_SOURCE_DIR}/../include/opentxs/Internal.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../include/opentxs/stdafx.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Internal.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/stdafx.hpp"
 )
 
 set(MODULE_NAME opentxs)

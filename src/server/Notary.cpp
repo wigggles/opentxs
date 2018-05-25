@@ -36,9 +36,9 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
-#include "opentxs/server/Notary.hpp"
+#include "Notary.hpp"
 
 #include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/Native.hpp"
@@ -73,11 +73,12 @@
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/ext/OTPayment.hpp"
-#include "opentxs/server/Macros.hpp"
-#include "opentxs/server/Server.hpp"
-#include "opentxs/server/PayDividendVisitor.hpp"
-#include "opentxs/server/ServerSettings.hpp"
-#include "opentxs/server/Transactor.hpp"
+
+#include "Macros.hpp"
+#include "Server.hpp"
+#include "PayDividendVisitor.hpp"
+#include "ServerSettings.hpp"
+#include "Transactor.hpp"
 
 #include <cinttypes>
 #include <cstdint>
@@ -143,10 +144,9 @@ void Notary::NotarizeTransfer(
     pResponseBalanceItem =
         Item::CreateItemFromTransaction(tranOut, Item::atBalanceStatement);
     pResponseBalanceItem->SetStatus(Item::rejection);  // the default.
-    tranOut.AddItem(
-        *pResponseBalanceItem);  // the Transaction's destructor will
-                                 // cleanup the item. It "owns" it
-                                 // now.
+    tranOut.AddItem(*pResponseBalanceItem);  // the Transaction's destructor
+                                             // will cleanup the item. It "owns"
+                                             // it now.
     pResponseItem = Item::CreateItemFromTransaction(tranOut, Item::atTransfer);
     pResponseItem->SetStatus(Item::rejection);  // the default.
     tranOut.AddItem(*pResponseItem);  // the Transaction's destructor will
@@ -691,10 +691,9 @@ void Notary::NotarizeWithdrawal(
     pResponseBalanceItem =
         Item::CreateItemFromTransaction(tranOut, Item::atBalanceStatement);
     pResponseBalanceItem->SetStatus(Item::rejection);  // the default.
-    tranOut.AddItem(
-        *pResponseBalanceItem);  // the Transaction's destructor will
-                                 // cleanup the item. It "owns" it
-                                 // now.
+    tranOut.AddItem(*pResponseBalanceItem);  // the Transaction's destructor
+                                             // will cleanup the item. It "owns"
+                                             // it now.
     if (nullptr == pItem) {
         String strTemp(tranIn);
         Log::vOutput(
@@ -2349,7 +2348,7 @@ void Notary::NotarizeDeposit(
 
     std::shared_ptr<Mint> pMint{nullptr};
     // the Mint's funds for cash withdrawals.
-    [[maybe_unused]] Account* pMintCashReserveAcct{nullptr};
+    [[maybe_unused]] Account* pMintCashReserveAcct { nullptr };
     // Here we find out if we're depositing cash, or a cheque
     Item::itemType theReplyItemType = Item::error_state;
 
@@ -2371,10 +2370,9 @@ void Notary::NotarizeDeposit(
     pResponseBalanceItem =
         Item::CreateItemFromTransaction(tranOut, Item::atBalanceStatement);
     pResponseBalanceItem->SetStatus(Item::rejection);  // the default.
-    tranOut.AddItem(
-        *pResponseBalanceItem);  // the Transaction's destructor will
-                                 // cleanup the item. It "owns" it
-                                 // now.
+    tranOut.AddItem(*pResponseBalanceItem);  // the Transaction's destructor
+                                             // will cleanup the item. It "owns"
+                                             // it now.
     if (nullptr == pItem) {
         String strTemp(tranIn);
         Log::vOutput(
@@ -2834,10 +2832,9 @@ void Notary::NotarizeDeposit(
                 Account* pRemitterAcct =
                     nullptr;  // Only used in the case of vouchers.
                 std::unique_ptr<Account> theRemitterAcctGuardian;
-                Account* pSourceAcct =
-                    nullptr;  // We'll load this up and change
-                              // its balance, save it then
-                              // delete the instance.
+                Account* pSourceAcct = nullptr;  // We'll load this up and
+                                                 // change its balance, save it
+                                                 // then delete the instance.
                 std::unique_ptr<Account> theSourceAcctGuardian;
                 // OTAccount::LoadExistingAccount().
                 Nym theRemitterNym(REMITTER_NYM_ID);
@@ -3959,9 +3956,7 @@ void Notary::NotarizeDeposit(
                 while (true) {
                     std::unique_ptr<Token> pToken(
                         thePurse.Pop(server_.m_nymServer));
-                    if (!pToken) {
-                        break;
-                    }
+                    if (!pToken) { break; }
 
                     pMint = mint_.GetPrivateMint(
                         INSTRUMENT_DEFINITION_ID, pToken->GetSeries());
@@ -4283,9 +4278,9 @@ void Notary::NotarizePaymentPlan(
     pResponseBalanceItem =
         Item::CreateItemFromTransaction(tranOut, Item::atTransactionStatement);
     pResponseBalanceItem->SetStatus(Item::rejection);  // the default.
-    tranOut.AddItem(
-        *pResponseBalanceItem);  // the Transaction's destructor will
-                                 // cleanup the item. It "owns" it now.
+    tranOut.AddItem(*pResponseBalanceItem);  // the Transaction's destructor
+                                             // will cleanup the item. It "owns"
+                                             // it now.
     if ((nullptr != pItem) &&
         (!NYM_IS_ALLOWED(
             strNymID.Get(), ServerSettings::__transact_payment_plan))) {
@@ -4791,18 +4786,18 @@ void Notary::NotarizePaymentPlan(
                                         .issueNextTransactionNumber(
                                             lOtherNewTransNumber);
 
-                                    if (false ==
-                                        pPlan->SendNoticeToAllParties(
-                                            true,  // bSuccessMsg=true
-                                            server_.m_nymServer,
-                                            NOTARY_ID,
-                                            lOtherNewTransNumber,
-                                            // Each party has its own opening
-                                            // number. Handled internally.
-                                            strPaymentPlan,
-                                            &strPaymentPlan,
-                                            nullptr,
-                                            &theNym)) {
+                                    if (false == pPlan->SendNoticeToAllParties(
+                                                     true,  // bSuccessMsg=true
+                                                     server_.m_nymServer,
+                                                     NOTARY_ID,
+                                                     lOtherNewTransNumber,
+                                                     // Each party has its own
+                                                     // opening number. Handled
+                                                     // internally.
+                                                     strPaymentPlan,
+                                                     &strPaymentPlan,
+                                                     nullptr,
+                                                     &theNym)) {
                                         Log::vOutput(
                                             0,
                                             "%s: Failed notifying parties "
@@ -4842,18 +4837,18 @@ void Notary::NotarizePaymentPlan(
                                         .issueNextTransactionNumber(
                                             lOtherNewTransNumber);
 
-                                    if (false ==
-                                        pPlan->SendNoticeToAllParties(
-                                            false,
-                                            server_.m_nymServer,
-                                            NOTARY_ID,
-                                            lOtherNewTransNumber,
-                                            // Each party has its own opening
-                                            // number. Handled internally.
-                                            strPaymentPlan,
-                                            &strPaymentPlan,
-                                            nullptr,
-                                            &theNym)) {
+                                    if (false == pPlan->SendNoticeToAllParties(
+                                                     false,
+                                                     server_.m_nymServer,
+                                                     NOTARY_ID,
+                                                     lOtherNewTransNumber,
+                                                     // Each party has its own
+                                                     // opening number. Handled
+                                                     // internally.
+                                                     strPaymentPlan,
+                                                     &strPaymentPlan,
+                                                     nullptr,
+                                                     &theNym)) {
                                         // NOTE: A party may deliberately try to
                                         // activate a payment plan without
                                         // signing it. (As a way of rejecting
@@ -4955,10 +4950,9 @@ void Notary::NotarizeSmartContract(
     pResponseBalanceItem =
         Item::CreateItemFromTransaction(tranOut, Item::atTransactionStatement);
     pResponseBalanceItem->SetStatus(Item::rejection);  // the default.
-    tranOut.AddItem(
-        *pResponseBalanceItem);  // the Transaction's destructor will
-                                 // cleanup the item. It "owns" it
-                                 // now.
+    tranOut.AddItem(*pResponseBalanceItem);  // the Transaction's destructor
+                                             // will cleanup the item. It "owns"
+                                             // it now.
     if ((nullptr != pItem) &&
         (false ==
          NYM_IS_ALLOWED(
@@ -5539,18 +5533,17 @@ void Notary::NotarizeSmartContract(
                     server_.transactor_.issueNextTransactionNumber(
                         lNewTransactionNumber);
 
-                    if (false ==
-                        pContract->SendNoticeToAllParties(
-                            false,
-                            server_.m_nymServer,
-                            NOTARY_ID,
-                            lNewTransactionNumber,
-                            // // Each party has its own opening number. Handled
-                            // internally.
-                            strContract,
-                            &strContract,
-                            nullptr,
-                            &theNym)) {
+                    if (false == pContract->SendNoticeToAllParties(
+                                     false,
+                                     server_.m_nymServer,
+                                     NOTARY_ID,
+                                     lNewTransactionNumber,
+                                     // // Each party has its own opening
+                                     // number. Handled internally.
+                                     strContract,
+                                     &strContract,
+                                     nullptr,
+                                     &theNym)) {
                         // NOTE: A party may deliberately try to activate a
                         // smart contract without signing it.
                         // (As a way of rejecting it.) This will cause rejection
@@ -5583,18 +5576,17 @@ void Notary::NotarizeSmartContract(
                     server_.transactor_.issueNextTransactionNumber(
                         lNewTransactionNumber);
 
-                    if (false ==
-                        pContract->SendNoticeToAllParties(
-                            true,
-                            server_.m_nymServer,
-                            NOTARY_ID,
-                            lNewTransactionNumber,
-                            // // Each party has its own opening number. Handled
-                            // internally.
-                            strContract,
-                            &strContract,
-                            nullptr,
-                            &theNym)) {
+                    if (false == pContract->SendNoticeToAllParties(
+                                     true,
+                                     server_.m_nymServer,
+                                     NOTARY_ID,
+                                     lNewTransactionNumber,
+                                     // // Each party has its own opening
+                                     // number. Handled internally.
+                                     strContract,
+                                     &strContract,
+                                     nullptr,
+                                     &theNym)) {
                         Log::vOutput(
                             0,
                             "%s: Failed notifying parties while trying to "
@@ -5627,9 +5619,8 @@ void Notary::NotarizeSmartContract(
                         // Now we can set the response item as an
                         // acknowledgement instead of rejection (the default)
                         pResponseItem->SetStatus(Item::acknowledgement);
-                        bOutSuccess =
-                            true;  // The smart contract activation was
-                                   // successful.
+                        bOutSuccess = true;  // The smart contract activation
+                                             // was successful.
                         Log::vOutput(
                             0,
                             "%s: Successfully added smart "
@@ -5730,10 +5721,9 @@ void Notary::NotarizeCancelCronItem(
     pResponseBalanceItem =
         Item::CreateItemFromTransaction(tranOut, Item::atTransactionStatement);
     pResponseBalanceItem->SetStatus(Item::rejection);  // the default.
-    tranOut.AddItem(
-        *pResponseBalanceItem);  // the Transaction's destructor will
-                                 // cleanup the item. It "owns" it
-                                 // now.
+    tranOut.AddItem(*pResponseBalanceItem);  // the Transaction's destructor
+                                             // will cleanup the item. It "owns"
+                                             // it now.
     if (!NYM_IS_ALLOWED(
             strNymID.Get(), ServerSettings::__transact_cancel_cron_item)) {
         Log::vOutput(
@@ -5932,10 +5922,9 @@ void Notary::NotarizeExchangeBasket(
     pResponseBalanceItem =
         Item::CreateItemFromTransaction(tranOut, Item::atBalanceStatement);
     pResponseBalanceItem->SetStatus(Item::rejection);  // the default.
-    tranOut.AddItem(
-        *pResponseBalanceItem);  // the Transaction's destructor will
-                                 // cleanup the item. It "owns" it
-                                 // now.
+    tranOut.AddItem(*pResponseBalanceItem);  // the Transaction's destructor
+                                             // will cleanup the item. It "owns"
+                                             // it now.
     bool bSuccess = false;
 
     if (!NYM_IS_ALLOWED(
@@ -5982,16 +5971,15 @@ void Notary::NotarizeExchangeBasket(
                                                  // RESPONSE to tranIn's balance
                                                  // agreement
         // Now after all that setup, we do the balance agreement!
-        if (false ==
-            pBalanceItem->VerifyBalanceStatement(
-                0,        // the one balance agreement that doesn't change any
-                          // balances.
-                context,  // Could have been a transaction agreement.
-                *pInbox,  // Still could be, in fact....
-                *pOutbox,
-                theAccount,
-                tranIn,
-                std::set<TransactionNumber>())) {
+        if (false == pBalanceItem->VerifyBalanceStatement(
+                         0,  // the one balance agreement that doesn't change
+                             // any balances.
+                         context,  // Could have been a transaction agreement.
+                         *pInbox,  // Still could be, in fact....
+                         *pOutbox,
+                         theAccount,
+                         tranIn,
+                         std::set<TransactionNumber>())) {
             Log::vOutput(
                 0,
                 "Notary::NotarizeExchangeBasket: ERROR "
@@ -6830,10 +6818,9 @@ void Notary::NotarizeMarketOffer(
     pResponseBalanceItem =
         Item::CreateItemFromTransaction(tranOut, Item::atTransactionStatement);
     pResponseBalanceItem->SetStatus(Item::rejection);  // the default.
-    tranOut.AddItem(
-        *pResponseBalanceItem);  // the Transaction's destructor will
-                                 // cleanup the item. It "owns" it
-                                 // now.
+    tranOut.AddItem(*pResponseBalanceItem);  // the Transaction's destructor
+                                             // will cleanup the item. It "owns"
+                                             // it now.
     if (!NYM_IS_ALLOWED(
             strNymID.Get(), ServerSettings::__transact_market_offer)) {
         Log::vOutput(
@@ -7893,8 +7880,8 @@ void Notary::NotarizeProcessNymbox(
                                             // notice.
                      (Item::acceptTransaction ==
                       pItem->GetType()) ||  // Accepting new transaction number.
-                     (Item::acceptMessage ==
-                      pItem->GetType()) ||  // Accepted message.
+                     (Item::acceptMessage == pItem->GetType()) ||  // Accepted
+                                                                   // message.
                      (Item::acceptNotice ==
                       pItem->GetType())  // Accepted server notification.
                      )) {
@@ -8110,12 +8097,12 @@ void Notary::NotarizeProcessNymbox(
                                         originType::not_applicable,
                                         lSuccessNoticeTransNum);
 
-                                if (nullptr !=
-                                    pSuccessNotice)  // The above has an
-                                                     // OT_ASSERT within,
-                                                     // but I just like
-                                                     // to check my
-                                                     // pointers.
+                                if (nullptr != pSuccessNotice)  // The above has
+                                                                // an OT_ASSERT
+                                                                // within, but I
+                                                                // just like to
+                                                                // check my
+                                                                // pointers.
                                 {
                                     // If I accepted blank trans#10, then this
                                     // successNotice is in reference to #10.
@@ -8859,9 +8846,7 @@ void Notary::NotarizeProcessInbox(
 
         // We already handled this one (if we're even in this block
         // in the first place.)
-        if (Item::balanceStatement == pItem->GetType()) {
-            continue;
-        }
+        if (Item::balanceStatement == pItem->GetType()) { continue; }
 
         // If the client sent an accept item, (or reject/dispute)
         // then let's process it.
@@ -8872,17 +8857,17 @@ void Notary::NotarizeProcessInbox(
                                     // trade or payment processing.
                                     // (Original in Cron Receipt.)
              //                       (OTItem::disputeCronReceipt
-             (Item::acceptItemReceipt ==
-              pItem->GetType()) ||  // Accepted item receipt
-                                    // (cheque,
-                                    // transfer)
-             (Item::acceptPending ==
-              pItem->GetType()) ||  // Accepting notice of pending
-                                    // transfer
-             (Item::acceptFinalReceipt ==
-              pItem->GetType()) ||  // Accepting finalReceipt
-             (Item::acceptBasketReceipt ==
-              pItem->GetType())  // Accepting basketReceipt
+             (Item::acceptItemReceipt == pItem->GetType()) ||  // Accepted item
+                                                               // receipt
+                                                               // (cheque,
+                                                               // transfer)
+             (Item::acceptPending == pItem->GetType()) ||  // Accepting notice
+                                                           // of pending
+                                                           // transfer
+             (Item::acceptFinalReceipt == pItem->GetType()) ||  // Accepting
+                                                                // finalReceipt
+             (Item::acceptBasketReceipt == pItem->GetType())    // Accepting
+                                                                // basketReceipt
             );
 
         if (false == validType) {
@@ -9105,14 +9090,14 @@ void Notary::NotarizeProcessInbox(
         // for pending transactions and cheque receipts, is NOT
         // the case above, with receipts from cron.
         else if (
-            ((Item::acceptItemReceipt ==
-              pItem->GetType())  // acceptItemReceipt
-                                 // includes checkReceipt
-                                 // and transferReceipts.
-             || (Item::acceptPending ==
-                 pItem->GetType())  // acceptPending includes
-                                    // checkReceipts. Because
-                                    // they are
+            ((Item::acceptItemReceipt == pItem->GetType())  // acceptItemReceipt
+                                                            // includes
+                                                            // checkReceipt and
+                                                            // transferReceipts.
+             || (Item::acceptPending == pItem->GetType())   // acceptPending
+                                                            // includes
+                                                            // checkReceipts.
+                                                            // Because they are
              ) &&
             (nullptr != (pServerTransaction = theInbox.GetTransaction(
                              pItem->GetReferenceToNum()))) &&
@@ -9608,9 +9593,7 @@ send_message:
         // The Nym (server side) stores a list of all opening and closing cron
         // #s. So when the number is released from the Nym, we also take it off
         // that list.
-        for (const auto& number : closedCron) {
-            context.CloseCronItem(number);
-        }
+        for (const auto& number : closedCron) { context.CloseCronItem(number); }
 
         signedNymfile.SaveSignedNymfile(server_.m_nymServer);
         bOutSuccess = true;  // the processInbox was successful.

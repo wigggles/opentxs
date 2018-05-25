@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/core/recurring/OTPaymentPlan.hpp"
 
@@ -514,8 +514,8 @@ bool OTPaymentPlan::SetPaymentPlan(
         return false;
     }
 
-    SetPaymentPlanLength(
-        tPlanLength);  // any zero (no expiry) or above-zero value will do.
+    SetPaymentPlanLength(tPlanLength);  // any zero (no expiry) or above-zero
+                                        // value will do.
 
     if (0 > nMaxPayments)  // if it's a negative number...
     {
@@ -523,8 +523,8 @@ bool OTPaymentPlan::SetPaymentPlan(
         return false;
     }
 
-    SetMaximumNoPayments(
-        nMaxPayments);  // any zero (no expiry) or above-zero value will do.
+    SetMaximumNoPayments(nMaxPayments);  // any zero (no expiry) or above-zero
+                                         // value will do.
 
     // Set these to zero, they will be incremented later at the right times.
     m_tDateOfLastPayment = OT_TIME_ZERO;
@@ -687,8 +687,8 @@ bool OTPaymentPlan::ProcessPayment(const std::int64_t& lAmount)
         pSenderNym = pServerNym;
     } else  // Else load the First Nym from storage.
     {
-        theSenderNym.SetIdentifier(
-            SENDER_NYM_ID);  // theSenderNym is pSenderNym
+        theSenderNym.SetIdentifier(SENDER_NYM_ID);  // theSenderNym is
+                                                    // pSenderNym
 
         if (!theSenderNym.LoadPublicKey()) {
             String strNymID(SENDER_NYM_ID);
@@ -1029,11 +1029,10 @@ bool OTPaymentPlan::ProcessPayment(const std::int64_t& lAmount)
                                                        // otherwise ambigious
                                                        // about whether you are
                                                        // paying or being paid.
-                pItemRecip->SetAmount(
-                    lAmount);  // So, I decided for payment and
-                               // market receipts, to use
-                               // negative and positive
-                               // amounts.
+                pItemRecip->SetAmount(lAmount);  // So, I decided for payment
+                                                 // and market receipts, to use
+                                                 // negative and positive
+                                                 // amounts.
                 // I will probably do the same for cheques, since they can be
                 // negative as well (invoices).
 
@@ -1063,10 +1062,10 @@ bool OTPaymentPlan::ProcessPayment(const std::int64_t& lAmount)
                                                          // // (But just making
                                                          // sure...)
 
-                pItemSend->SetAmount(
-                    0);  // No money changed hands. Just being explicit.
-                pItemRecip->SetAmount(
-                    0);  // No money changed hands. Just being explicit.
+                pItemSend->SetAmount(0);   // No money changed hands. Just being
+                                           // explicit.
+                pItemRecip->SetAmount(0);  // No money changed hands. Just being
+                                           // explicit.
 
                 if (m_bProcessingInitialPayment) {
                     IncrementNoInitialFailures();
@@ -1638,10 +1637,9 @@ void OTPaymentPlan::InitPaymentPlan()
     // Payment Plan...
     m_bPaymentPlan = false;    // Will there be a payment plan?
     m_lPaymentPlanAmount = 0;  // Amount of each payment.
-    m_tTimeBetweenPayments =
-        OT_TIME_MONTH_IN_SECONDS;  // How std::int64_t between
-                                   // each payment?
-                                   // (Default:
+    m_tTimeBetweenPayments = OT_TIME_MONTH_IN_SECONDS;  // How std::int64_t
+                                                        // between each payment?
+                                                        // (Default:
     // 30 days) // TODO don't hardcode.
     m_tPaymentPlanStartDate = OT_TIME_ZERO;  // Date for the first payment plan
                                              // payment. Measured seconds after

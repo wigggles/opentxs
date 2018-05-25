@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/core/contract/ServerContract.hpp"
 
@@ -111,17 +111,11 @@ ServerContract* ServerContract::Create(
 
         Lock lock(contract->lock_);
 
-        if (!contract->CalculateID(lock)) {
-            return nullptr;
-        }
+        if (!contract->CalculateID(lock)) { return nullptr; }
 
-        if (contract->nym_) {
-            contract->update_signature(lock);
-        }
+        if (contract->nym_) { contract->update_signature(lock); }
 
-        if (!contract->validate(lock)) {
-            return nullptr;
-        }
+        if (!contract->validate(lock)) { return nullptr; }
 
         contract->alias_ = contract->name_;
     } else {
@@ -143,15 +137,11 @@ ServerContract* ServerContract::Factory(
     std::unique_ptr<ServerContract> contract(
         new ServerContract(nym, serialized));
 
-    if (!contract) {
-        return nullptr;
-    }
+    if (!contract) { return nullptr; }
 
     Lock lock(contract->lock_);
 
-    if (!contract->validate(lock)) {
-        return nullptr;
-    }
+    if (!contract->validate(lock)) { return nullptr; }
 
     contract->alias_ = contract->name_;
 
@@ -316,9 +306,7 @@ std::unique_ptr<OTPassword> ServerContract::TransportKey(Data& pubkey) const
 
 bool ServerContract::update_signature(const Lock& lock)
 {
-    if (!ot_super::update_signature(lock)) {
-        return false;
-    }
+    if (!ot_super::update_signature(lock)) { return false; }
 
     bool success = false;
     signatures_.clear();
@@ -340,9 +328,7 @@ bool ServerContract::validate(const Lock& lock) const
 {
     bool validNym = false;
 
-    if (nym_) {
-        validNym = nym_->VerifyPseudonym();
-    }
+    if (nym_) { validNym = nym_->VerifyPseudonym(); }
 
     if (!validNym) {
         otErr << __FUNCTION__ << ": Invalid nym." << std::endl;
@@ -367,9 +353,7 @@ bool ServerContract::validate(const Lock& lock) const
     bool validSig = false;
     auto& signature = *signatures_.cbegin();
 
-    if (signature) {
-        validSig = verify_signature(lock, *signature);
-    }
+    if (signature) { validSig = verify_signature(lock, *signature); }
 
     if (!validSig) {
         otErr << __FUNCTION__ << ": Invalid signature." << std::endl;
@@ -384,9 +368,7 @@ bool ServerContract::verify_signature(
     const Lock& lock,
     const proto::Signature& signature) const
 {
-    if (!ot_super::verify_signature(lock, signature)) {
-        return false;
-    }
+    if (!ot_super::verify_signature(lock, signature)) { return false; }
 
     auto serialized = SigVersion(lock);
     auto& sigProto = *serialized.mutable_signature();

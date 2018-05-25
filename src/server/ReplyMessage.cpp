@@ -36,7 +36,9 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
+
+#include "ReplyMessage.hpp"
 
 #include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/Native.hpp"
@@ -45,9 +47,9 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/server/Server.hpp"
-#include "opentxs/server/ReplyMessage.hpp"
-#include "opentxs/server/UserCommandProcessor.hpp"
+
+#include "Server.hpp"
+#include "UserCommandProcessor.hpp"
 
 #define OT_METHOD "opentxs::ReplyMessage::"
 
@@ -233,20 +235,14 @@ bool ReplyMessage::init_nym()
 
 bool ReplyMessage::InitNymfileCredentials()
 {
-    if (false == bool(sender_nym_)) {
-
-        return false;
-    }
+    if (false == bool(sender_nym_)) { return false; }
 
     return nymfile_.LoadCredentialIndex(sender_nym_->asPublicNym());
 }
 
 bool ReplyMessage::LoadContext()
 {
-    if (false == init_nym()) {
-
-        return false;
-    }
+    if (false == init_nym()) { return false; }
 
     context_.reset(new Editor<ClientContext>(
         wallet_.mutable_ClientContext(signer_.ID(), sender_nym_->ID())));
@@ -341,9 +337,7 @@ void ReplyMessage::SetSuccess(const bool success)
 {
     message_.m_bSuccess = success;
 
-    if (success) {
-        clear_request();
-    }
+    if (success) { clear_request(); }
 }
 
 void ReplyMessage::SetTransactionNumber(const TransactionNumber& number)

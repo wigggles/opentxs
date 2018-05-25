@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CORE_CRYPTO_CRYPTOHASHENGINE_HPP
 #define OPENTXS_CORE_CRYPTO_CRYPTOHASHENGINE_HPP
 
-#include "opentxs/Internal.hpp"
+#include "Internal.hpp"
 
 #include "opentxs/api/crypto/Hash.hpp"
 

@@ -39,7 +39,7 @@
 #ifndef OPENTXS_UI_WIDGET_IMPLEMENTATION_HPP
 #define OPENTXS_UI_WIDGET_IMPLEMENTATION_HPP
 
-#include "opentxs/Internal.hpp"
+#include "Internal.hpp"
 
 #include "opentxs/network/zeromq/RequestSocket.hpp"
 #include "opentxs/ui/Widget.hpp"
@@ -71,5 +71,5 @@ private:
     Widget& operator=(const Widget&) = delete;
     Widget& operator=(Widget&&) = delete;
 };
-}  // opentxs::ui::implementation
+}  // namespace opentxs::ui::implementation
 #endif  // OPENTXS_UI_WIDGET_IMPLEMENTATION_HPP

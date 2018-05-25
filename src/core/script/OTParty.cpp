@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/core/script/OTParty.hpp"
 
@@ -224,9 +224,9 @@ OTParty::OTParty(
     // let's also create a default partyaccount for it.
     //
     if (nullptr != pAccount) {
-        OT_ASSERT(
-            nullptr != pstr_account_name);  // If passing an account, then you
-                                            // MUST pass an account name also.
+        OT_ASSERT(nullptr != pstr_account_name);  // If passing an account, then
+                                                  // you MUST pass an account
+                                                  // name also.
 
         bool bAdded = AddAccount(
             str_agent_name.c_str(),
@@ -875,8 +875,8 @@ Nym* OTParty::LoadAuthorizingAgentNym(
                 otErr << "OTParty::LoadAuthorizingAgentNym: Failed loading "
                          "Nym.\n";
             else {
-                if (nullptr !=
-                    ppAgent)  // Pass the agent back, too, if it was requested.
+                if (nullptr != ppAgent)  // Pass the agent back, too, if it was
+                                         // requested.
                     *ppAgent = pAgent;
 
                 return pNym;  // Success
@@ -1250,8 +1250,8 @@ bool OTParty::LoadAndVerifyAgentNyms(
         }
 
         // Server Nym is not allowed as a party (at this time :-)
-        if (str_agent_id.compare(strServerNymID.Get()) ==
-            0)  // If they DO match.
+        if (str_agent_id.compare(strServerNymID.Get()) == 0)  // If they DO
+                                                              // match.
         {
             otErr << "OTParty::LoadAndVerifyAgents: Server Nym is not allowed "
                      "to serve as an agent for smart contracts. Sorry.\n";
@@ -1438,9 +1438,7 @@ void OTParty::HarvestClosingNumbers(const String& strNotaryID)
             "Unexpected nullptr partyaccount pointer in "
             "party map.");
 
-        if (pAcct->GetClosingTransNo() <= 0) {
-            continue;
-        }
+        if (pAcct->GetClosingTransNo() <= 0) { continue; }
 
         const std::string str_agent_name(pAcct->GetAgentName().Get());
 
@@ -1478,15 +1476,11 @@ void OTParty::recover_closing_numbers(OTAgent& theAgent, ServerContext& context)
             "Unexpected nullptr partyaccount pointer in "
             "partyaccount map.");
 
-        if (pAcct->GetClosingTransNo() <= 0) {
-            continue;
-        }
+        if (pAcct->GetClosingTransNo() <= 0) { continue; }
 
         const std::string str_agent_name(pAcct->GetAgentName().Get());
 
-        if (str_agent_name.size() <= 0) {
-            continue;
-        }
+        if (str_agent_name.size() <= 0) { continue; }
 
         if (theAgent.GetName().Compare(str_agent_name.c_str())) {
             theAgent.RecoverTransactionNumber(

@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/core/script/OTBylaw.hpp"
 
@@ -592,8 +592,8 @@ bool OTBylaw::AddCallback(
     //
     auto it = m_mapCallbacks.find(str_CallbackName);
 
-    if (m_mapCallbacks.end() !=
-        it)  // It's already there. (Can't add it twice.)
+    if (m_mapCallbacks.end() != it)  // It's already there. (Can't add it
+                                     // twice.)
     {
         const std::string str_existing_clause = it->second;
         otOut << "OTBylaw::" << __FUNCTION__ << ": Failed to add callback ("
@@ -985,10 +985,9 @@ bool OTBylaw::AddClause(OTClause& theClause)
 
 const char* OTBylaw::GetLanguage() const
 {
-    return m_strLanguage.Exists()
-               ? m_strLanguage.Get()
-               : "chai";  // todo add default script to config
-                          // files. no hardcoding.
+    return m_strLanguage.Exists() ? m_strLanguage.Get()
+                                  : "chai";  // todo add default script to
+                                             // config files. no hardcoding.
 }
 
 OTBylaw::OTBylaw()

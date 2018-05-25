@@ -36,9 +36,9 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
-#include "opentxs/server/Server.hpp"
+#include "Server.hpp"
 
 #include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
@@ -65,8 +65,9 @@
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/ext/OTPayment.hpp"
-#include "opentxs/server/ConfigLoader.hpp"
-#include "opentxs/server/Transactor.hpp"
+
+#include "ConfigLoader.hpp"
+#include "Transactor.hpp"
 
 #include <sys/types.h>
 #ifndef WIN32

@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "Crypto.hpp"
 
@@ -349,10 +349,7 @@ std::unique_ptr<SymmetricKey> Crypto::GetStorageKey(__attribute__((unused))
     const bool decrypted =
         sessionKey->Decrypt(serialized->encryptedkey(), blank, keySource);
 
-    if (false == decrypted) {
-
-        return {};
-    }
+    if (false == decrypted) { return {}; }
 
     return Symmetric().Key(keySource);
 #else

@@ -36,9 +36,9 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
-#include "opentxs/server/ServerSettings.hpp"
+#include "ServerSettings.hpp"
 
 #include <cstdint>
 #include <string>

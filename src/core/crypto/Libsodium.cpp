@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/core/crypto/Libsodium.hpp"
 
@@ -295,13 +295,9 @@ bool Libsodium::ExpandSeed(
     OTPassword& privateKey,
     Data& publicKey) const
 {
-    if (!seed.isMemory()) {
-        return false;
-    }
+    if (!seed.isMemory()) { return false; }
 
-    if (crypto_sign_SEEDBYTES != seed.getMemorySize()) {
-        return false;
-    }
+    if (crypto_sign_SEEDBYTES != seed.getMemorySize()) { return false; }
 
     std::array<unsigned char, crypto_sign_SECRETKEYBYTES> secretKeyBlank{};
     privateKey.setMemory(secretKeyBlank.data(), secretKeyBlank.size());
@@ -502,9 +498,7 @@ bool Libsodium::Sign(
     const AsymmetricKeyEC* key =
         dynamic_cast<const AsymmetricKeyEd25519*>(&theKey);
 
-    if (nullptr == key) {
-        return false;
-    }
+    if (nullptr == key) { return false; }
 
     if (nullptr == pPWData) {
         OTPasswordData passwordData(
@@ -585,9 +579,7 @@ bool Libsodium::Verify(
     const AsymmetricKeyEC* key =
         dynamic_cast<const AsymmetricKeyEd25519*>(&theKey);
 
-    if (nullptr == key) {
-        return false;
-    }
+    if (nullptr == key) { return false; }
 
     auto pubkey = Data::Factory();
     ;
@@ -607,9 +599,7 @@ bool Libsodium::Verify(
         plaintext.GetSize(),
         static_cast<const unsigned char*>(pubkey->GetPointer()));
 
-    if (0 == output) {
-        return true;
-    }
+    if (0 == output) { return true; }
 
     // I made this "info" since it's not necessarily an
     // error. Perhaps someone tried to verify 3 signatures

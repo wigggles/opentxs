@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/util/Signals.hpp"
 
@@ -96,9 +96,7 @@ void Signals::handle()
         if (0 == sigwait(&allSignals, &sig)) {
             auto shouldBreak = process(sig);
 
-            if (shouldBreak) {
-                break;
-            }
+            if (shouldBreak) { break; }
         } else {
             otErr << OT_METHOD << __FUNCTION__
                   << ": ERROR: Invalid signal received." << std::endl;
@@ -128,8 +126,6 @@ bool Signals::shutdown()
 
 Signals::~Signals()
 {
-    if (thread_) {
-        thread_->detach();
-    }
+    if (thread_) { thread_->detach(); }
 }
 }  // namespace opentxs

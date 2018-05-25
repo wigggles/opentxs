@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/core/OTStringXML.hpp"
 
@@ -94,9 +94,7 @@ OTStringXML& OTStringXML::operator=(const String& rhs)
 
 OTStringXML& OTStringXML::operator=(const OTStringXML& rhs)
 {
-    if ((&rhs) != this) {
-        String::operator=(dynamic_cast<const String&>(rhs));
-    }
+    if ((&rhs) != this) { String::operator=(dynamic_cast<const String&>(rhs)); }
     return *this;
 }
 
@@ -112,9 +110,7 @@ std::int32_t OTStringXML::read(void* buffer, std::uint32_t sizeToRead)
         std::int32_t nBytesToCopy =
             (sizeToRead > GetLength() ? GetLength() : sizeToRead);
         std::int32_t i;
-        for (i = 0; i < nBytesToCopy; i++) {
-            pBuf[i] = sgetc();
-        }
+        for (i = 0; i < nBytesToCopy; i++) { pBuf[i] = sgetc(); }
         return i;
     } else {
         return 0;

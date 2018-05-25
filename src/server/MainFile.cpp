@@ -36,9 +36,9 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
-#include "opentxs/server/MainFile.hpp"
+#include "MainFile.hpp"
 
 #include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
@@ -58,8 +58,9 @@
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/OTStringXML.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/server/Server.hpp"
-#include "opentxs/server/Transactor.hpp"
+
+#include "Server.hpp"
+#include "Transactor.hpp"
 
 #include <irrxml/irrXML.hpp>
 
@@ -172,8 +173,8 @@ bool MainFile::SaveMainFile()
     String strFinal;
     OTASCIIArmor ascTemp(strMainFile);
 
-    if (false ==
-        ascTemp.WriteArmoredString(strFinal, "NOTARY"))  // todo hardcoding.
+    if (false == ascTemp.WriteArmoredString(strFinal, "NOTARY"))  // todo
+                                                                  // hardcoding.
     {
 
         Log::vError(
@@ -263,9 +264,7 @@ bool MainFile::CreateMainFile(
             "We do not have a check hash yet for this password, "
             "please enter your password",
             true);
-        if (!SaveMainFile()) {
-            OT_FAIL;
-        }
+        if (!SaveMainFile()) { OT_FAIL; }
     }
     // At this point, the contract is saved, the cert is saved, and the
     // notaryServer.xml file
@@ -332,8 +331,8 @@ bool MainFile::LoadMainFile(bool bReadOnly)
         OTStringXML xmlFileContents(strFileContents);
 
         if (false ==
-            xmlFileContents.DecodeIfArmored())  // bEscapedIsAllowed=true by
-                                                // default.
+            xmlFileContents.DecodeIfArmored())  // bEscapedIsAllowed=true
+                                                // by default.
         {
             Log::vError(
                 "%s: Notary server file apparently was encoded and "

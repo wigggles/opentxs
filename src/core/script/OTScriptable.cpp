@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/core/script/OTScriptable.hpp"
 
@@ -465,8 +465,8 @@ bool OTScriptable::CanExecuteClause(
         return false;
     }
 
-    if (str_clause_name.compare(0, 9, "callback_") ==
-        0)  // todo stop hardcoding
+    if (str_clause_name.compare(0, 9, "callback_") == 0)  // todo stop
+                                                          // hardcoding
     {
         otOut << "OTScriptable::CanExecuteClause: Parties may not directly "
                  "trigger clauses beginning in callback_\n";
@@ -966,9 +966,7 @@ OTParty* OTScriptable::FindPartyBasedOnAccount(
         OTParty* pParty = it.second;
         OT_ASSERT(nullptr != pParty);
 
-        if (pParty->HasAccount(theAccount, ppPartyAccount)) {
-            return pParty;
-        }
+        if (pParty->HasAccount(theAccount, ppPartyAccount)) { return pParty; }
     }
     return nullptr;
 }
@@ -1129,9 +1127,8 @@ bool OTScriptable::VerifyPartyAuthorization(
 
         if (nullptr != pAuthAgentsNym)  // success
         {
-            OT_ASSERT(
-                nullptr != pAuthorizingAgent);  // This HAS to be set now. I
-                                                // assume it henceforth.
+            OT_ASSERT(nullptr != pAuthorizingAgent);  // This HAS to be set now.
+                                                      // I assume it henceforth.
             otLog3 << __FUNCTION__
                    << ": I just had to load "
                       "the authorizing agent's Nym for a party ("
@@ -1446,9 +1443,8 @@ bool OTScriptable::VerifyNymAsAgent(
 
         if (nullptr != pAuthAgentsNym)  // success
         {
-            OT_ASSERT(
-                nullptr != pAuthorizingAgent);  // This HAS to be set now. I
-                                                // assume it henceforth.
+            OT_ASSERT(nullptr != pAuthorizingAgent);  // This HAS to be set now.
+                                                      // I assume it henceforth.
             otLog3 << "OTScriptable::VerifyNymAsAgent: I just had to load the "
                       "authorizing agent's Nym for a party ("
                    << pParty->GetPartyName()
@@ -2438,9 +2434,7 @@ std::vector<std::int64_t> stringToVector(const std::string& s)
     std::vector<std::int64_t> results;
 
     std::int64_t n;
-    while (stream >> n) {
-        results.push_back(n);
-    }
+    while (stream >> n) { results.push_back(n); }
 
     return results;
 }
@@ -2510,10 +2504,9 @@ void OTScriptable::UpdateContents()  // Before transmission or serialization,
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
 std::int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 {
-    std::int32_t nReturnVal =
-        0;  // Unless/until I want to add Contract::Compare(),
-            // then people would be able to surreptitiously
-            // insert keys and
+    std::int32_t nReturnVal = 0;  // Unless/until I want to add
+                                  // Contract::Compare(), then people would be
+                                  // able to surreptitiously insert keys and
     //    std::int32_t nReturnVal = ot_super::ProcessXMLNode(xml); //
     //    conditions, and
     // entities, that passed OTScriptable::Compare() with flying colors
@@ -2863,8 +2856,8 @@ std::int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                 OTPartyAccount* pAcct =
                                     GetPartyAccount(strAcctName.Get());
 
-                                if (nullptr !=
-                                    pAcct)  // Uh-oh, it's already there!
+                                if (nullptr != pAcct)  // Uh-oh, it's already
+                                                       // there!
                                 {
                                     otOut << szFunc
                                           << ": Error loading partyacct named "
@@ -3037,8 +3030,8 @@ std::int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                 OTVariable* pVar =
                                     GetVariable(strVarName.Get());
 
-                                if (nullptr !=
-                                    pVar)  // Uh-oh, it's already there!
+                                if (nullptr != pVar)  // Uh-oh, it's already
+                                                      // there!
                                 {
                                     otOut << szFunc
                                           << ": Error loading variable named "
@@ -3274,8 +3267,8 @@ std::int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                     OTClause* pClause =
                                         GetClause(str_name.c_str());
 
-                                    if (nullptr !=
-                                        pClause)  // Uh-oh, it's already there!
+                                    if (nullptr != pClause)  // Uh-oh, it's
+                                                             // already there!
                                     {
                                         otOut
                                             << szFunc
@@ -3425,8 +3418,8 @@ std::int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                 OTClause* pClause =
                                     GetCallback(strCallbackName.Get());
 
-                                if (nullptr !=
-                                    pClause)  // Uh-oh, it's already there!
+                                if (nullptr != pClause)  // Uh-oh, it's already
+                                                         // there!
                                 {
                                     otOut << szFunc
                                           << ": Error loading callback "
@@ -3546,8 +3539,8 @@ OTClause* OTScriptable::GetCallback(std::string str_CallbackName)
 //
 bool OTScriptable::GetHooks(std::string str_HookName, mapOfClauses& theResults)
 {
-    if (false ==
-        OTScriptable::ValidateHookName(str_HookName))  // this logs, FYI.
+    if (false == OTScriptable::ValidateHookName(str_HookName))  // this logs,
+                                                                // FYI.
     {
         otErr << "OTScriptable::GetHooks:  Error: invalid name.\n";
         return false;

@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/core/NymIDSource.hpp"
 
@@ -141,9 +141,7 @@ std::unique_ptr<proto::AsymmetricKey> NymIDSource::ExtractKey(
     const bool child = (proto::CREDROLE_CHILDKEY == credential.role());
     const bool keyCredential = master || child;
 
-    if (!keyCredential) {
-        return output;
-    }
+    if (!keyCredential) { return output; }
 
     const auto& publicCred = credential.publiccredential();
 
@@ -227,9 +225,7 @@ bool NymIDSource::Verify(
 
     switch (type_) {
         case proto::SOURCETYPE_PUBKEY:
-            if (!pubkey_) {
-                return false;
-            }
+            if (!pubkey_) { return false; }
 
             isSelfSigned =
                 (proto::SOURCEPROOFTYPE_SELF_SIGNATURE ==

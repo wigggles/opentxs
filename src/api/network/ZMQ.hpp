@@ -39,7 +39,7 @@
 #ifndef OPENTXS_API_NETWORK_IMPLEMENTATION_ZMQ_HPP
 #define OPENTXS_API_NETWORK_IMPLEMENTATION_ZMQ_HPP
 
-#include "opentxs/Internal.hpp"
+#include "Internal.hpp"
 
 #include "opentxs/api/network/ZMQ.hpp"
 #include "opentxs/core/Flag.hpp"

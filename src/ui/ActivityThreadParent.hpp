@@ -39,7 +39,7 @@
 #ifndef OPENTXS_UI_ACTIVITY_THREAD_PARENT_HPP
 #define OPENTXS_UI_ACTIVITY_THREAD_PARENT_HPP
 
-#include "opentxs/Internal.hpp"
+#include "Internal.hpp"
 
 #include <chrono>
 #include <cstdint>
@@ -69,5 +69,5 @@ protected:
     ActivityThreadParent& operator=(const ActivityThreadParent&) = delete;
     ActivityThreadParent& operator=(ActivityThreadParent&&) = delete;
 };
-}  // opentxs::ui::implementation
+}  // namespace opentxs::ui::implementation
 #endif  // OPENTXS_UI_ACTIVITY_THREAD_PARENT_HPP

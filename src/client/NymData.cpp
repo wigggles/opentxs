@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/client/NymData.hpp"
 
@@ -134,7 +134,6 @@ bool NymData::AddPreferredOTServer(const std::string& id, const bool primary)
     }
 
     return nym().AddPreferredOTServer(Identifier::Factory(id), primary);
-
 }
 
 bool NymData::AddSocialMediaProfile(
@@ -185,10 +184,7 @@ bool NymData::HaveContract(
 
     const auto contracts = nym_->Contracts(currency, active);
 
-    if (0 == contracts.size()) {
-
-        return false;
-    }
+    if (0 == contracts.size()) { return false; }
 
     const auto& data = nym_->Claims();
 
@@ -199,15 +195,9 @@ bool NymData::HaveContract(
 
         const auto value = Identifier::Factory(claim->Value());
 
-        if (false == (instrumentDefinitionID == value)) {
+        if (false == (instrumentDefinitionID == value)) { continue; }
 
-            continue;
-        }
-
-        if ((false == primary) || claim->isPrimary()) {
-
-            return true;
-        }
+        if ((false == primary) || claim->isPrimary()) { return true; }
     }
 
     return false;

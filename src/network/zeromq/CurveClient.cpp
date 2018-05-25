@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "CurveClient.hpp"
 
@@ -64,10 +64,7 @@ bool CurveClient::set_curve(const ServerContract& contract) const
 {
     Lock lock(curve_lock_);
 
-    if (false == set_remote_key(lock, contract)) {
-
-        return false;
-    }
+    if (false == set_remote_key(lock, contract)) { return false; }
 
     return set_local_keys(lock);
 }

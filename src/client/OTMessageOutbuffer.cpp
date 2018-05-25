@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/client/OTMessageOutbuffer.hpp"
 
@@ -94,9 +94,7 @@ void OTMessageOutbuffer::AddSentMessage(Message& theMessage)  // must be heap
 
         const std::int64_t& lTempReqNum = it->first;
 
-        if (lTempReqNum != lRequestNum) {
-            continue;
-        }
+        if (lTempReqNum != lRequestNum) { continue; }
 
         Message* pMsg = it->second;
         OT_ASSERT(nullptr != pMsg);
@@ -238,9 +236,7 @@ Message* OTMessageOutbuffer::GetSentMessage(
 
         const std::int64_t& lTempReqNum = it->first;
 
-        if (lTempReqNum != lRequestNum) {
-            continue;
-        }
+        if (lTempReqNum != lRequestNum) { continue; }
 
         Message* pMsg = it->second;
         OT_ASSERT(nullptr != pMsg);
@@ -492,9 +488,7 @@ void OTMessageOutbuffer::Clear(
             String strNumList(
                 OTDB::QueryPlainString(strFolder.Get(), str_data_filename));
 
-            if (strNumList.Exists()) {
-                theNumList.Add(strNumList);
-            }
+            if (strNumList.Exists()) { theNumList.Add(strNumList); }
 
             theNumList.Remove(lRequestNum);
         }

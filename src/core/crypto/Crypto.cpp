@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/core/crypto/Crypto.hpp"
 
@@ -164,9 +164,7 @@ const std::int32_t& CryptoConfig::GetValue(const int32_t*& pValue)
     if (nullptr == pValue) {
         if (!GetSetAll()) OT_FAIL;
     }
-    if (nullptr == pValue) {
-        OT_FAIL;
-    }
+    if (nullptr == pValue) { OT_FAIL; }
     return *pValue;
 }
 

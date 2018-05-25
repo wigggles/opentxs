@@ -35,13 +35,14 @@
  *   for more details.
  *
  ************************************************************/
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
-#include "opentxs/storage/drivers/StorageSqlite3.hpp"
+#include "StorageSqlite3.hpp"
 
 #if OT_STORAGE_SQLITE
 #include "opentxs/core/Log.hpp"
-#include "opentxs/storage/StorageConfig.hpp"
+
+#include "storage/StorageConfig.hpp"
 
 #include <sqlite3.h>
 

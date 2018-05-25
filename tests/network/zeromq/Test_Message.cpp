@@ -36,19 +36,9 @@
  *
  ************************************************************/
 
+#include "opentxs/opentxs.hpp"
+
 #include <gtest/gtest.h>
-#include <string>
-
-#include "gtest/gtest-message.h"
-#include "gtest/gtest-test-part.h"
-
-#include "opentxs/core/Data.hpp"
-#include "opentxs/network/zeromq/FrameIterator.hpp"
-#include "opentxs/network/zeromq/FrameSection.hpp"
-#include "opentxs/network/zeromq/Frame.hpp"
-#include "opentxs/network/zeromq/Message.hpp"
-
-#include <zmq.h>
 
 using namespace opentxs;
 
@@ -87,8 +77,7 @@ TEST(Message, AddFrame_string)
 {
     auto multipartMessage = network::zeromq::Message::Factory();
 
-    network::zeromq::Frame& message =
-        multipartMessage->AddFrame("testString");
+    network::zeromq::Frame& message = multipartMessage->AddFrame("testString");
     ASSERT_EQ(1, multipartMessage->size());
     ASSERT_NE(nullptr, message.data());
     ASSERT_EQ(10, message.size());

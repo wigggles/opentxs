@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/cash/TokenLucre.hpp"
 
@@ -115,8 +115,8 @@ bool Token_Lucre::GenerateTokenRequest(
 
     LucreDumper setDumper;  // todo security.
 
-    OpenSSL_BIO bioBank = BIO_new(
-        BIO_s_mem());  // Input. We must supply the bank's public lucre info
+    OpenSSL_BIO bioBank = BIO_new(BIO_s_mem());  // Input. We must supply the
+                                                 // bank's public lucre info
 
     // This version base64-DECODES the ascii-armored string passed in,
     // and then sets the decoded plaintext string onto the string.

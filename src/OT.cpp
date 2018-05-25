@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/OT.hpp"
 
@@ -60,9 +60,7 @@ void OT::Cleanup()
     if (nullptr != instance_pointer_) {
         auto ot = dynamic_cast<api::implementation::Native*>(instance_pointer_);
 
-        if (nullptr != ot) {
-            ot->shutdown();
-        }
+        if (nullptr != ot) { ot->shutdown(); }
 
         delete instance_pointer_;
         instance_pointer_ = nullptr;

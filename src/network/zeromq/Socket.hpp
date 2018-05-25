@@ -39,7 +39,7 @@
 #ifndef OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_SOCKET_HPP
 #define OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_SOCKET_HPP
 
-#include "opentxs/Internal.hpp"
+#include "Internal.hpp"
 
 #include "opentxs/core/Lockable.hpp"
 #include "opentxs/network/zeromq/Socket.hpp"

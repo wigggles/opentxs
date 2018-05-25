@@ -36,11 +36,11 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
-#include "opentxs/storage/tree/PeerRequests.hpp"
+#include "PeerRequests.hpp"
 
-#include "opentxs/storage/Plugin.hpp"
+#include "storage/Plugin.hpp"
 
 namespace opentxs
 {
@@ -75,9 +75,7 @@ void PeerRequests::init(const std::string& hash)
     version_ = serialized->version();
 
     // Upgrade to version 2
-    if (2 > version_) {
-        version_ = 2;
-    }
+    if (2 > version_) { version_ = 2; }
 
     for (const auto& it : serialized->nym()) {
         item_map_.emplace(
@@ -103,9 +101,7 @@ bool PeerRequests::save(const std::unique_lock<std::mutex>& lock) const
 
     auto serialized = serialize();
 
-    if (!proto::Validate(serialized, VERBOSE)) {
-        return false;
-    }
+    if (!proto::Validate(serialized, VERBOSE)) { return false; }
 
     return driver_.StoreProto(serialized, root_);
 }

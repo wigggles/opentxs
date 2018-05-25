@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/core/util/OTDataFolder.hpp"
 
@@ -209,9 +209,7 @@ bool OTDataFolder::Cleanup()
 
 String OTDataFolder::Get()
 {
-    if (!OTDataFolder::IsInitialized()) {
-        OT_FAIL;
-    }
+    if (!OTDataFolder::IsInitialized()) { OT_FAIL; }
 
     String strDataFolder = "";
     if (OTDataFolder::Get(strDataFolder)) {

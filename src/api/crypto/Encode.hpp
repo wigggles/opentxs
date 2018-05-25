@@ -39,7 +39,7 @@
 #ifndef OPENTXS_API_CRYPTO_IMPLEMENTATION_ENCODE_HPP
 #define OPENTXS_API_CRYPTO_IMPLEMENTATION_ENCODE_HPP
 
-#include "opentxs/Internal.hpp"
+#include "Internal.hpp"
 
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/Types.hpp"

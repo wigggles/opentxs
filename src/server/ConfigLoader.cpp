@@ -36,9 +36,9 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
-#include "opentxs/server/ConfigLoader.hpp"
+#include "ConfigLoader.hpp"
 
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/Native.hpp"
@@ -51,7 +51,8 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/server/ServerSettings.hpp"
+
+#include "ServerSettings.hpp"
 
 #include <cstdint>
 #include <memory>
@@ -74,9 +75,7 @@ bool ConfigLoader::load(
     // Setup Config File
     String strConfigFolder, strConfigFilename;
 
-    if (!OTDataFolder::IsInitialized()) {
-        OT_FAIL;
-    }
+    if (!OTDataFolder::IsInitialized()) { OT_FAIL; }
 
     // LOG LEVEL
     {

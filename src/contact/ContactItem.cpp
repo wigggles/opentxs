@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/contact/ContactItem.hpp"
 
@@ -113,50 +113,23 @@ ContactItem::ContactItem(
 
 bool ContactItem::operator==(const ContactItem& rhs) const
 {
-    if (false == (version_ == rhs.version_)) {
+    if (false == (version_ == rhs.version_)) { return false; }
 
-        return false;
-    }
+    if (false == (nym_ == rhs.nym_)) { return false; }
 
-    if (false == (nym_ == rhs.nym_)) {
+    if (false == (section_ == rhs.section_)) { return false; }
 
-        return false;
-    }
+    if (false == (type_ == rhs.type_)) { return false; }
 
-    if (false == (section_ == rhs.section_)) {
+    if (false == (value_ == rhs.value_)) { return false; }
 
-        return false;
-    }
+    if (false == (start_ == rhs.start_)) { return false; }
 
-    if (false == (type_ == rhs.type_)) {
+    if (false == (end_ == rhs.end_)) { return false; }
 
-        return false;
-    }
+    if (false == (attributes_ == rhs.attributes_)) { return false; }
 
-    if (false == (value_ == rhs.value_)) {
-
-        return false;
-    }
-
-    if (false == (start_ == rhs.start_)) {
-
-        return false;
-    }
-
-    if (false == (end_ == rhs.end_)) {
-
-        return false;
-    }
-
-    if (false == (attributes_ == rhs.attributes_)) {
-
-        return false;
-    }
-
-    if (false == (id_ == rhs.id_)) {
-
-        return false;
-    }
+    if (false == (id_ == rhs.id_)) { return false; }
 
     return true;
 }
@@ -168,10 +141,7 @@ std::uint32_t ContactItem::check_version(
     const std::uint32_t targetVersion)
 {
     // Upgrade version
-    if (targetVersion > in) {
-
-        return targetVersion;
-    }
+    if (targetVersion > in) { return targetVersion; }
 
     return in;
 }
@@ -229,9 +199,7 @@ proto::ContactItem ContactItem::Serialize(const bool withID) const
     proto::ContactItem output{};
     output.set_version(version_);
 
-    if (withID) {
-        output.set_id(String(id_).Get());
-    }
+    if (withID) { output.set_id(String(id_).Get()); }
 
     output.set_type(type_);
     output.set_value(value_);
@@ -251,10 +219,7 @@ ContactItem ContactItem::set_attribute(
 {
     const bool existingValue = 1 == attributes_.count(attribute);
 
-    if (existingValue == value) {
-
-        return *this;
-    }
+    if (existingValue == value) { return *this; }
 
     auto attributes = attributes_;
 
@@ -287,10 +252,7 @@ ContactItem ContactItem::SetActive(const bool active) const
 
 ContactItem ContactItem::SetEnd(const std::time_t end) const
 {
-    if (end_ == end) {
-
-        return *this;
-    }
+    if (end_ == end) { return *this; }
 
     return ContactItem(
         nym_,
@@ -316,10 +278,7 @@ ContactItem ContactItem::SetPrimary(const bool primary) const
 
 ContactItem ContactItem::SetStart(const std::time_t start) const
 {
-    if (start_ == start) {
-
-        return *this;
-    }
+    if (start_ == start) { return *this; }
 
     return ContactItem(
         nym_,
@@ -335,9 +294,7 @@ ContactItem ContactItem::SetStart(const std::time_t start) const
 
 ContactItem ContactItem::SetValue(const std::string& value) const
 {
-    if (value_ == value) {
-        return *this;
-    }
+    if (value_ == value) { return *this; }
 
     return ContactItem(
         nym_,

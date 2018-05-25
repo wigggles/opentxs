@@ -60,7 +60,7 @@
 // ChildCredentials are used for all other actions, and never sign other
 // Credentials
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/core/crypto/KeyCredential.hpp"
 
@@ -248,9 +248,7 @@ std::int32_t KeyCredential::GetPublicKeysBySignature(
 bool KeyCredential::verify_internally(const Lock& lock) const
 {
     // Perform common Credential verifications
-    if (!ot_super::verify_internally(lock)) {
-        return false;
-    }
+    if (!ot_super::verify_internally(lock)) { return false; }
 
     // All KeyCredentials must sign themselves
     if (!VerifySignedBySelf(lock)) {
@@ -423,9 +421,7 @@ std::shared_ptr<OTKeypair> KeyCredential::DeriveHDKeypair(
     std::shared_ptr<OTKeypair> newKeypair;
     auto privateKey = OT::App().Crypto().BIP32().GetHDKey(curve, seed, keyPath);
 
-    if (!privateKey) {
-        return newKeypair;
-    }
+    if (!privateKey) { return newKeypair; }
 
     privateKey->set_role(role);
     const Ecdsa* engine = nullptr;
@@ -447,9 +443,7 @@ std::shared_ptr<OTKeypair> KeyCredential::DeriveHDKeypair(
         }
     }
 
-    if (nullptr == engine) {
-        return newKeypair;
-    }
+    if (nullptr == engine) { return newKeypair; }
 
     proto::AsymmetricKey publicKey;
     const bool haveKey = engine->PrivateToPublic(*privateKey, publicKey);
@@ -520,15 +514,11 @@ bool KeyCredential::addKeytoSerializedKeyCredential(
             return false;
     }
 
-    if (!pKey) {
-        return false;
-    }
+    if (!pKey) { return false; }
 
     key = pKey->Serialize(getPrivate);
 
-    if (!key) {
-        return false;
-    }
+    if (!key) { return false; }
 
     key->set_role(role);
 

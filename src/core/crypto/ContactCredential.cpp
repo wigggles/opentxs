@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/core/crypto/ContactCredential.hpp"
 
@@ -111,9 +111,7 @@ Claim ContactCredential::asClaim(
 {
     std::set<std::uint32_t> attributes;
 
-    for (auto& attrib : item.attribute()) {
-        attributes.insert(attrib);
-    }
+    for (auto& attrib : item.attribute()) { attributes.insert(attrib); }
 
     return Claim{ClaimID(nymid.Get(), section, item),
                  section,
@@ -145,17 +143,13 @@ ContactCredential::ContactCredential(
     master_id_ = parent.GetMasterCredID();
     auto contacts = nymParameters.ContactData();
 
-    if (contacts) {
-        data_.reset(new proto::ContactData(*contacts));
-    }
+    if (contacts) { data_.reset(new proto::ContactData(*contacts)); }
 }
 
 bool ContactCredential::GetContactData(
     std::unique_ptr<proto::ContactData>& contactData) const
 {
-    if (!data_) {
-        return false;
-    }
+    if (!data_) { return false; }
 
     contactData.reset(new proto::ContactData(*data_));
 

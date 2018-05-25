@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/consensus/TransactionStatement.hpp"
 
@@ -69,9 +69,7 @@ TransactionStatement::TransactionStatement(const String& serialized)
     auto raw = irr::io::createIrrXMLReader(OTStringXML(serialized));
     std::unique_ptr<irr::io::IrrXMLReader> xml(raw);
 
-    if (!xml) {
-        return;
-    }
+    if (!xml) { return; }
 
     while (xml && xml->read()) {
         const String nodeName = xml->getNodeName();
@@ -101,9 +99,7 @@ TransactionStatement::TransactionStatement(const String& serialized)
 
                     NumList numlist;
 
-                    if (!list.empty()) {
-                        numlist.Add(list);
-                    }
+                    if (!list.empty()) { numlist.Add(list); }
 
                     TransactionNumber number = 0;
 
@@ -130,9 +126,7 @@ TransactionStatement::TransactionStatement(const String& serialized)
 
                     NumList numlist;
 
-                    if (!list.empty()) {
-                        numlist.Add(list);
-                    }
+                    if (!list.empty()) { numlist.Add(list); }
 
                     TransactionNumber number = 0;
 

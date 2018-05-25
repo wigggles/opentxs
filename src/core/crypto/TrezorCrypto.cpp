@@ -35,7 +35,7 @@
  *   for more details.
  *
  ************************************************************/
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/core/crypto/TrezorCrypto.hpp"
 
@@ -182,9 +182,7 @@ std::unique_ptr<HDNode> TrezorCrypto::GetChild(
     std::unique_ptr<HDNode> output;
     output.reset(new HDNode(parent));
 
-    if (!output) {
-        OT_FAIL;
-    }
+    if (!output) { OT_FAIL; }
 
     if (privateVersion) {
         hdnode_private_ckd(output.get(), index);
@@ -244,9 +242,7 @@ serializedAsymmetricKey TrezorCrypto::GetHDKey(
         *node,
         TrezorCrypto::DERIVE_PRIVATE);
 
-    if (output) {
-        *(output->mutable_path()) = path;
-    }
+    if (output) { *(output->mutable_path()) = path; }
 
     return output;
 }
@@ -313,9 +309,7 @@ std::unique_ptr<HDNode> TrezorCrypto::InstantiateHDNode(
 
     auto curveName = CurveName(curve);
 
-    if (1 > curveName.size()) {
-        return output;
-    }
+    if (1 > curveName.size()) { return output; }
 
     int result = ::hdnode_from_seed(
         static_cast<const std::uint8_t*>(seed.getMemory()),
@@ -401,9 +395,7 @@ bool TrezorCrypto::RandomKeypair(OTPassword& privateKey, Data& publicKey) const
     do {
         privateKey.randomizeMemory(256 / 8);
 
-        if (ValidPrivateKey(privateKey)) {
-            valid = true;
-        }
+        if (ValidPrivateKey(privateKey)) { valid = true; }
     } while (false == valid);
 
     return ScalarBaseMultiply(privateKey, publicKey);
@@ -501,9 +493,7 @@ std::string TrezorCrypto::Base58CheckEncode(
 {
     std::string output;
 
-    if (0 == inputSize) {
-        return output;
-    }
+    if (0 == inputSize) { return output; }
 
     if (128 < inputSize) {
         otWarn << OT_METHOD << __FUNCTION__ << ": Input too long." << std::endl;
@@ -531,9 +521,7 @@ bool TrezorCrypto::Base58CheckDecode(const std::string&& input, RawData& output)
 {
     const std::size_t inputSize = input.size();
 
-    if (0 == inputSize) {
-        return false;
-    }
+    if (0 == inputSize) { return false; }
 
     if (128 < inputSize) {
         otWarn << OT_METHOD << __FUNCTION__ << ": Input too long." << std::endl;

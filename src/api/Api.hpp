@@ -39,7 +39,7 @@
 #ifndef OPENTXS_API_IMPLEMENTATION_API_HPP
 #define OPENTXS_API_IMPLEMENTATION_API_HPP
 
-#include "opentxs/Internal.hpp"
+#include "Internal.hpp"
 
 namespace opentxs::api::implementation
 {
@@ -105,5 +105,5 @@ private:
     Api& operator=(const Api&) = delete;
     Api& operator=(Api&&) = delete;
 };
-}  // opentxs::api::implementation
+}  // namespace opentxs::api::implementation
 #endif  // OPENTXS_API_IMPLEMENTATION_API_HPP

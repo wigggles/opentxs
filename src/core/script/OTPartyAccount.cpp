@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/core/script/OTPartyAccount.hpp"
 
@@ -149,13 +149,9 @@ OTPartyAccount::~OTPartyAccount()
 
 bool OTPartyAccount::IsAccountByID(const Identifier& theAcctID) const
 {
-    if (!m_strAcctID.Exists()) {
-        return false;
-    }
+    if (!m_strAcctID.Exists()) { return false; }
 
-    if (!m_strInstrumentDefinitionID.Exists()) {
-        return false;
-    }
+    if (!m_strInstrumentDefinitionID.Exists()) { return false; }
 
     const auto theMemberAcctID = Identifier::Factory(m_strAcctID);
     if (!(theAcctID == theMemberAcctID)) {

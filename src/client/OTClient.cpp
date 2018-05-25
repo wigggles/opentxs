@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/client/OTClient.hpp"
 
@@ -144,15 +144,9 @@ bool OTClient::add_item_to_workflow(
 
     OTPayment payment(plaintext);
 
-    if (false == payment.IsCheque()) {
+    if (false == payment.IsCheque()) { return false; }
 
-        return false;
-    }
-
-    if (payment.IsCancelledCheque()) {
-
-        return false;
-    }
+    if (payment.IsCancelledCheque()) { return false; }
 
     Cheque cheque;
     cheque.LoadContractFromString(payment.Payment());
@@ -255,10 +249,7 @@ bool OTClient::createInstrumentNoticeFromPeerObject(
 
     // Extract the OTPayment so that we know whether to use the new Workflow
     // code or the old payment inbox code
-    if (add_item_to_workflow(*context.Nym(), message, payment)) {
-
-        return true;
-    }
+    if (add_item_to_workflow(*context.Nym(), message, payment)) { return true; }
 
     const bool bExists = OTDB::Exists(
         OTFolders::PaymentInbox().Get(), strNotaryID.Get(), strNymID.Get());
@@ -889,9 +880,7 @@ bool OTClient::AcceptEntireNymbox(
             // So when I see the success notice later, I'll know the server
             // isn't lying. (Store a copy here until then.)
             for (const auto& number : verifiedNumbers) {
-                if (context.AddTentativeNumber(number)) {
-                    tentative++;
-                }
+                if (context.AddTentativeNumber(number)) { tentative++; }
             }
 
             OT_ASSERT(pBalanceItem)
@@ -952,9 +941,7 @@ void OTClient::load_str_trans_add_to_ledger(
 {
     // If it's already there, then don't add it again.
     //
-    if (nullptr != ledger.GetTransaction(lTransNum)) {
-        return;
-    }
+    if (nullptr != ledger.GetTransaction(lTransNum)) { return; }
     // -----------------------------------------
     OTTransactionType* pTransType =
         OTTransactionType::TransactionFactory(str_trans_to_add);
@@ -2024,9 +2011,7 @@ void OTClient::ProcessDepositChequeResponse(
     std::unique_ptr<OTTransactionType> pTransType(
         OTTransactionType::TransactionFactory(strOriginalDepositItem));
 
-    if (pTransType) {
-        pOriginalItem = dynamic_cast<Item*>(pTransType.get());
-    }
+    if (pTransType) { pOriginalItem = dynamic_cast<Item*>(pTransType.get()); }
     if (nullptr == pOriginalItem) {
         return;  // Todo log something?
     }
@@ -2103,9 +2088,7 @@ void OTClient::ProcessDepositChequeResponse(
         //
         // Save a copy to the record box.
         //
-        if (!strPmntInboxTransaction.Exists()) {
-            continue;
-        }
+        if (!strPmntInboxTransaction.Exists()) { continue; }
         // ---------------------------------------------------
         const String strNymID(nymID);
         const String strNotaryID(serverID);
@@ -2488,10 +2471,10 @@ bool OTClient::processServerReplyGetNymBox(
 
         theNymbox.ReleaseSignatures();  // Now I'm keeping the server
                                         // signature, and just adding my own.
-        theNymbox.SignContract(
-            *context.Nym());       // UPDATE: Releasing the signature
-                                   // again, since Receipts are now
-                                   // fully functional.
+        theNymbox.SignContract(*context.Nym());  // UPDATE: Releasing the
+                                                 // signature again, since
+                                                 // Receipts are now fully
+                                                 // functional.
         theNymbox.SaveContract();  // Thus we can prove the Nymbox using the
                                    // last signed transaction receipt. This
                                    // means
@@ -2653,9 +2636,7 @@ bool OTClient::processServerReplyGetBoxReceipt(
                             proto::PeerObjectType type =
                                 proto::PEEROBJECT_ERROR;
 
-                            if (peerObject) {
-                                type = peerObject->Type();
-                            }
+                            if (peerObject) { type = peerObject->Type(); }
 
                             switch (type) {
                                 case (proto::PEEROBJECT_MESSAGE): {
@@ -5261,10 +5242,7 @@ bool OTClient::processServerReplyProcessBox(
                     // NOTE: there's only one place in the above function that
                     // actually returns false, and it has a comment questioning
                     // whether it should. Otherwise it'd just be a void function
-                    if (!bSuccess) {
-
-                        return false;
-                    }
+                    if (!bSuccess) { return false; }
                 }
             } else {
                 // We're processing the SERVER's REPLY to our processNymbox
@@ -5324,9 +5302,7 @@ bool OTClient::processServerReplyProcessBox(
                     // actually returns false, and it has a comment questioning
                     // whether it should. Otherwise it'd just be a void function
                     //
-                    if (!bSuccess) {
-                        return false;
-                    }
+                    if (!bSuccess) { return false; }
 
                 }  // pTransaction and pReplyTransaction are both NOT nullptr.
             }
@@ -5663,10 +5639,7 @@ bool OTClient::processServerReplyGetInstrumentDefinition(
 
         auto contract = wallet_.Server(serialized);
 
-        if (contract) {
-
-            return (purportedID != serialized.id());
-        }
+        if (contract) { return (purportedID != serialized.id()); }
     }
 
     return false;
@@ -6149,12 +6122,12 @@ bool OTClient::processServerReplyRegisterAccount(
             // UPDATE (above) we are releasing these now, for good, since
             // server's signature is not needed. Receipts are functional
             // now,
-            pAccount->SignContract(
-                *context.Nym());  // and the last receipt IS signed
-                                  // by the server, and it can be
-                                  // used to verify the nym,
-                                  // account, inbox, and outbox.
-                                  // Nifty!
+            pAccount->SignContract(*context.Nym());  // and the last receipt IS
+                                                     // signed by the server,
+                                                     // and it can be used to
+                                                     // verify the nym, account,
+                                                     // inbox, and outbox.
+                                                     // Nifty!
             pAccount->SaveContract();
 
             // (3) Save the Account to file
@@ -6284,9 +6257,7 @@ bool OTClient::processServerReply(
     // on the server connection that was passed in here...
 
     if (theReply.m_bSuccess) {
-        for (const auto& number : managed) {
-            number.SetSuccess(true);
-        }
+        for (const auto& number : managed) { number.SetSuccess(true); }
     } else {
         otInfo << OT_METHOD << __FUNCTION__ << ": Message status: failed for "
                << theReply.m_strCommand << std::endl;

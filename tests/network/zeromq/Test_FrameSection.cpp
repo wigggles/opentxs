@@ -36,20 +36,9 @@
  *
  ************************************************************/
 
+#include "opentxs/opentxs.hpp"
+
 #include <gtest/gtest.h>
-#include <string>
-
-#include "gtest/gtest-message.h"
-#include "gtest/gtest-test-part.h"
-
-#include "opentxs/core/Data.hpp"
-#include "opentxs/network/zeromq/Context.hpp"
-#include "opentxs/network/zeromq/Frame.hpp"
-#include "opentxs/network/zeromq/Message.hpp"
-#include "opentxs/network/zeromq/FrameIterator.hpp"
-#include "opentxs/network/zeromq/FrameSection.hpp"
-
-#include <zmq.h>
 
 using namespace opentxs;
 

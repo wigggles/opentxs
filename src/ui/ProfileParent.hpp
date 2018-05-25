@@ -39,7 +39,7 @@
 #ifndef OPENTXS_UI_PROFILE_PARENT_HPP
 #define OPENTXS_UI_PROFILE_PARENT_HPP
 
-#include "opentxs/Internal.hpp"
+#include "Internal.hpp"
 
 #include <string>
 
@@ -73,5 +73,5 @@ protected:
     ProfileParent& operator=(const ProfileParent&) = delete;
     ProfileParent& operator=(ProfileParent&&) = delete;
 };
-}  // opentxs::ui::implementation
+}  // namespace opentxs::ui::implementation
 #endif  // OPENTXS_UI_PROFILE_PARENT_HPP

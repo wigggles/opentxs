@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/api/client/Pair.hpp"
 #include "opentxs/api/client/Sync.hpp"
@@ -75,10 +75,7 @@
 
 #define SHUTDOWN()                                                             \
     {                                                                          \
-        if (!running_) {                                                       \
-                                                                               \
-            return;                                                            \
-        }                                                                      \
+        if (!running_) { return; }                                             \
                                                                                \
         Log::Sleep(std::chrono::milliseconds(50));                             \
     }
@@ -186,7 +183,7 @@ void Pair::check_pairing() const
 {
     Cleanup cleanup(pairing_);
 
-    for (const auto & [ nymID, issuerSet ] : create_issuer_map()) {
+    for (const auto& [nymID, issuerSet] : create_issuer_map()) {
         SHUTDOWN()
 
         for (const auto& issuerID : issuerSet) {
@@ -206,13 +203,9 @@ void Pair::check_refresh() const
         const auto current = sync_.RefreshCount();
         const auto previous = last_refresh_.exchange(current);
 
-        if (previous != current) {
-            refresh();
-        }
+        if (previous != current) { refresh(); }
 
-        if (update_.Pop(taskID, update)) {
-            refresh();
-        }
+        if (update_.Pop(taskID, update)) { refresh(); }
 
         Log::Sleep(std::chrono::milliseconds(100));
     }
@@ -237,15 +230,12 @@ std::pair<bool, OTIdentifier> Pair::get_connection(
     const proto::ConnectionInfoType type) const
 {
     std::pair<bool, OTIdentifier> output{false, Identifier::Factory()};
-    auto & [ success, requestID ] = output;
+    auto& [success, requestID] = output;
     auto action = action_.InitiateRequestConnection(
         localNymID, serverID, issuerNymID, type);
     action->Run();
 
-    if (SendResult::VALID_REPLY != action->LastSendResult()) {
-
-        return output;
-    }
+    if (SendResult::VALID_REPLY != action->LastSendResult()) { return output; }
 
     OT_ASSERT(action->Reply());
 
@@ -265,7 +255,7 @@ std::pair<bool, OTIdentifier> Pair::initiate_bailment(
     const Identifier& unitID) const
 {
     std::pair<bool, OTIdentifier> output(false, Identifier::Factory());
-    auto & [ success, requestID ] = output;
+    auto& [success, requestID] = output;
     const auto contract = wallet_.UnitDefinition(unitID);
 
     if (false == bool(contract)) {
@@ -277,10 +267,7 @@ std::pair<bool, OTIdentifier> Pair::initiate_bailment(
     auto action = action_.InitiateBailment(nymID, serverID, issuerID, unitID);
     action->Run();
 
-    if (SendResult::VALID_REPLY != action->LastSendResult()) {
-
-        return output;
-    }
+    if (SendResult::VALID_REPLY != action->LastSendResult()) { return output; }
 
     OT_ASSERT(action->Reply());
 
@@ -299,10 +286,7 @@ std::string Pair::IssuerDetails(
 {
     auto issuer = wallet_.Issuer(localNymID, issuerNymID);
 
-    if (false == bool(issuer)) {
-
-        return {};
-    }
+    if (false == bool(issuer)) { return {}; }
 
     return *issuer;
 }
@@ -321,13 +305,11 @@ std::set<OTIdentifier> Pair::IssuerList(
 
     std::set<OTIdentifier> output{};
 
-    for (const auto & [ key, value ] : pair_status_) {
+    for (const auto& [key, value] : pair_status_) {
         const auto& issuerID = std::get<1>(key);
         const auto& trusted = std::get<1>(value);
 
-        if (trusted || (false == onlyTrusted)) {
-            output.emplace(issuerID);
-        }
+        if (trusted || (false == onlyTrusted)) { output.emplace(issuerID); }
     }
 
     return output;
@@ -339,10 +321,7 @@ bool Pair::need_registration(
 {
     auto context = wallet_.ServerContext(localNymID, serverID);
 
-    if (context) {
-
-        return (0 == context->Request());
-    }
+    if (context) { return (0 == context->Request()); }
 
     return true;
 }
@@ -652,7 +631,7 @@ std::pair<bool, OTIdentifier> Pair::register_account(
     const Identifier& unitID) const
 {
     std::pair<bool, OTIdentifier> output{false, Identifier::Factory()};
-    auto & [ success, accountID ] = output;
+    auto& [success, accountID] = output;
     const auto contract = wallet_.UnitDefinition(unitID);
 
     if (false == bool(contract)) {
@@ -664,10 +643,7 @@ std::pair<bool, OTIdentifier> Pair::register_account(
     auto action = action_.RegisterAccount(nymID, serverID, unitID);
     action->Run();
 
-    if (SendResult::VALID_REPLY != action->LastSendResult()) {
-
-        return output;
-    }
+    if (SendResult::VALID_REPLY != action->LastSendResult()) { return output; }
 
     OT_ASSERT(action->Reply());
 
@@ -686,7 +662,7 @@ void Pair::state_machine(
     otWarn << OT_METHOD << __FUNCTION__ << ": Local nym: " << String(localNymID)
            << "\nIssuer Nym: " << String(issuerNymID) << std::endl;
     Lock lock(status_lock_);
-    auto & [ status, trusted ] = pair_status_[{localNymID, issuerNymID}];
+    auto& [status, trusted] = pair_status_[{localNymID, issuerNymID}];
     lock.unlock();
     const auto issuerNym = wallet_.Nym(issuerNymID);
 
@@ -813,7 +789,7 @@ void Pair::state_machine(
             if (needStoreSecret) {
                 otErr << OT_METHOD << __FUNCTION__
                       << ": Sending store secret peer request" << std::endl;
-                const auto[sent, requestID] =
+                const auto [sent, requestID] =
                     store_secret(localNymID, issuerNymID, serverID);
 
                 if (sent) {
@@ -836,7 +812,7 @@ void Pair::state_machine(
                     otErr << OT_METHOD << __FUNCTION__
                           << ": Sending connection info peer request"
                           << std::endl;
-                    const auto[sent, requestID] = get_connection(
+                    const auto [sent, requestID] = get_connection(
                         localNymID,
                         issuerNymID,
                         serverID,
@@ -850,13 +826,13 @@ void Pair::state_machine(
             }
 
             if (haveAccounts) {
-                for (const auto & [ type, pGroup ] : *contractSection) {
+                for (const auto& [type, pGroup] : *contractSection) {
                     SHUTDOWN()
                     OT_ASSERT(pGroup);
 
                     const auto& group = *pGroup;
 
-                    for (const auto & [ id, pClaim ] : group) {
+                    for (const auto& [id, pClaim] : group) {
                         SHUTDOWN()
                         OT_ASSERT(pClaim);
 
@@ -871,7 +847,7 @@ void Pair::state_machine(
                                   << ": Registering " << unitID->str()
                                   << " account for " << localNymID.str()
                                   << " on " << serverID->str() << std::endl;
-                            const auto & [ registered, accountID ] =
+                            const auto& [registered, accountID] =
                                 register_account(localNymID, serverID, unitID);
 
                             if (registered) {
@@ -898,9 +874,8 @@ void Pair::state_machine(
                             otErr << OT_METHOD << __FUNCTION__
                                   << ": Requesting bailment info for "
                                   << String(unitID) << std::endl;
-                            const auto & [ sent, requestID ] =
-                                initiate_bailment(
-                                    localNymID, serverID, issuerNymID, unitID);
+                            const auto& [sent, requestID] = initiate_bailment(
+                                localNymID, serverID, issuerNymID, unitID);
 
                             if (sent) {
                                 issuer.AddRequest(
@@ -922,7 +897,7 @@ std::pair<bool, Identifier> Pair::store_secret(
     const Identifier& serverID) const
 {
     std::pair<bool, OTIdentifier> output{false, Identifier::Factory()};
-    auto & [ success, requestID ] = output;
+    auto& [success, requestID] = output;
     auto action = action_.InitiateStoreSecret(
         localNymID,
         serverID,
@@ -932,10 +907,7 @@ std::pair<bool, Identifier> Pair::store_secret(
         exec_.Wallet_GetPassphrase());
     action->Run();
 
-    if (SendResult::VALID_REPLY != action->LastSendResult()) {
-
-        return output;
-    }
+    if (SendResult::VALID_REPLY != action->LastSendResult()) { return output; }
 
     OT_ASSERT(action->Reply());
 
@@ -968,7 +940,7 @@ void Pair::update_peer() const
 {
     Lock lock(peer_lock_);
 
-    for (const auto & [ nymID, issuerSet ] : create_issuer_map()) {
+    for (const auto& [nymID, issuerSet] : create_issuer_map()) {
         const auto& notUsed[[maybe_unused]] = issuerSet;
         process_peer_replies(lock, nymID);
         process_peer_requests(lock, nymID);
@@ -977,9 +949,7 @@ void Pair::update_peer() const
 
 Pair::~Pair()
 {
-    if (pairing_.get()) {
-        Log::Sleep(std::chrono::milliseconds(250));
-    }
+    if (pairing_.get()) { Log::Sleep(std::chrono::milliseconds(250)); }
 
     if (refresh_thread_) {
         refresh_thread_->join();
@@ -991,4 +961,4 @@ Pair::~Pair()
         pairing_thread_.reset();
     }
 }
-}  // namespace opentxs::api::implementation
+}  // namespace opentxs::api::client::implementation

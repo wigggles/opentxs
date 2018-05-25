@@ -36,19 +36,9 @@
  *
  ************************************************************/
 
+#include "opentxs/opentxs.hpp"
+
 #include <gtest/gtest.h>
-#include <string>
-
-#include "gtest/gtest-message.h"
-#include "gtest/gtest-test-part.h"
-
-#include "opentxs/network/zeromq/Context.hpp"
-#include "opentxs/network/zeromq/FrameIterator.hpp"
-#include "opentxs/network/zeromq/FrameSection.hpp"
-#include "opentxs/network/zeromq/Frame.hpp"
-#include "opentxs/network/zeromq/Message.hpp"
-#include "opentxs/network/zeromq/ReplyCallback.hpp"
-#include "opentxs/network/zeromq/ReplySocket.hpp"
 
 using namespace opentxs;
 
@@ -69,9 +59,7 @@ OTZMQContext Test_ReplySocket::context_{network::zeromq::Context::Factory()};
 TEST(ReplySocket, ReplyCallback_Factory)
 {
     auto replyCallback = network::zeromq::ReplyCallback::Factory(
-        [this](const network::zeromq::Message& input)
-            -> OTZMQMessage {
-
+        [this](const network::zeromq::Message& input) -> OTZMQMessage {
             return network::zeromq::Message::ReplyFactory(input);
         });
 
@@ -81,9 +69,7 @@ TEST(ReplySocket, ReplyCallback_Factory)
 TEST_F(Test_ReplySocket, ReplyCallback_Process)
 {
     auto replyCallback = network::zeromq::ReplyCallback::Factory(
-        [this](const network::zeromq::Message& input)
-            -> OTZMQMessage {
-
+        [this](const network::zeromq::Message& input) -> OTZMQMessage {
             const std::string& inputString = *input.Body().begin();
             EXPECT_EQ(testMessage_, inputString);
 
@@ -110,9 +96,7 @@ TEST(ReplySocket, ReplySocket_Factory)
     ASSERT_NE(nullptr, &Test_ReplySocket::context_.get());
 
     auto replyCallback = network::zeromq::ReplyCallback::Factory(
-        [this](const network::zeromq::Message& input)
-            -> OTZMQMessage {
-
+        [this](const network::zeromq::Message& input) -> OTZMQMessage {
             return network::zeromq::Message::Factory();
         });
 

@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/core/String.hpp"
 
@@ -273,15 +273,11 @@ std::string& String::trim(std::string& str)
 
     size_t found = str.find_first_not_of(whitespaces);
 
-    if (found != std::string::npos) {
-        str.erase(0, found);
-    }
+    if (found != std::string::npos) { str.erase(0, found); }
 
     found = str.find_last_not_of(whitespaces);
 
-    if (found != std::string::npos) {
-        str.erase(found + 1);
-    }
+    if (found != std::string::npos) { str.erase(found + 1); }
 
     //    otErr << "(DEBUGGING OTString.cpp) CONTRACT HAS BEEN TRIMMED!!!
     // RESULT: \n\n***BEGIN TRIM DATA:%s******END TRIM DATA\n\n",
@@ -335,57 +331,33 @@ std::string String::ws2s(const std::wstring& s)
 
 bool String::operator>(const String& s2) const
 {
-    if (s2.length_ == 0) {
-        return (true);
-    }
-    if (length_ == 0) {
-        return (false);
-    }
-    if (strcmp(data_, s2.data_) <= 0) {
-        return (false);
-    }
+    if (s2.length_ == 0) { return (true); }
+    if (length_ == 0) { return (false); }
+    if (strcmp(data_, s2.data_) <= 0) { return (false); }
     return (true);
 }
 
 bool String::operator<(const String& s2) const
 {
-    if (length_ == 0) {
-        return (true);
-    }
-    if (s2.length_ == 0) {
-        return (false);
-    }
-    if (strcmp(data_, s2.data_) >= 0) {
-        return (false);
-    }
+    if (length_ == 0) { return (true); }
+    if (s2.length_ == 0) { return (false); }
+    if (strcmp(data_, s2.data_) >= 0) { return (false); }
     return (true);
 }
 
 bool String::operator<=(const String& s2) const
 {
-    if (length_ == 0) {
-        return (true);
-    }
-    if (s2.length_ == 0) {
-        return (false);
-    }
-    if (strcmp(data_, s2.data_) > 0) {
-        return (false);
-    }
+    if (length_ == 0) { return (true); }
+    if (s2.length_ == 0) { return (false); }
+    if (strcmp(data_, s2.data_) > 0) { return (false); }
     return (true);
 }
 
 bool String::operator>=(const String& s2) const
 {
-    if (s2.length_ == 0) {
-        return (true);
-    }
-    if (length_ == 0) {
-        return (false);
-    }
-    if (strcmp(data_, s2.data_) < 0) {
-        return (false);
-    }
+    if (s2.length_ == 0) { return (true); }
+    if (length_ == 0) { return (false); }
+    if (strcmp(data_, s2.data_) < 0) { return (false); }
     return (true);
 }
 
@@ -635,9 +607,7 @@ std::int32_t String::ToInt() const
 
 void String::zeroMemory() const
 {
-    if (nullptr != data_) {
-        OTPassword::zeroMemory(data_, length_);
-    }
+    if (nullptr != data_) { OTPassword::zeroMemory(data_, length_); }
 }
 
 void String::Release_String(void)
@@ -972,20 +942,16 @@ void String::Set(const String& strBuf)
 bool String::operator==(const String& s2) const
 {
     // If they are not the same length, return false
-    if (length_ != s2.length_) {
-        return (false);
-    }
+    if (length_ != s2.length_) { return (false); }
 
     // At this point we know they are at least the same length.
     // Next--are they both 0? If they are both 0, return true
-    if (length_ == 0 && s2.length_ == 0) {
-        return (true);
-    }
+    if (length_ == 0 && s2.length_ == 0) { return (true); }
 
     // At this point we have 2 identical-length strings.
     // Now we call strcmp and convert it to true or false.
-    if (strcmp(data_, s2.data_) ==
-        0) {  // TODO security: use a replacement for strcmp.
+    if (strcmp(data_, s2.data_) == 0) {  // TODO security: use a replacement for
+                                         // strcmp.
         return (true);
     }
     return (false);
@@ -996,9 +962,7 @@ bool String::operator==(const String& s2) const
 // Compare is simple.  True if they match, False if they don't match.
 bool String::Compare(const char* strCompare) const
 {
-    if (nullptr == data_ || nullptr == strCompare) {
-        return false;
-    }
+    if (nullptr == data_ || nullptr == strCompare) { return false; }
 
     char* s1 = data_;
     char* s2 = const_cast<char*>(strCompare);
@@ -1013,9 +977,7 @@ bool String::Compare(const char* strCompare) const
 
 bool String::Compare(const String& strCompare) const
 {
-    if (nullptr == data_ || !strCompare.Exists()) {
-        return false;
-    }
+    if (nullptr == data_ || !strCompare.Exists()) { return false; }
 
     char* s1 = data_;
     const char* s2 = strCompare.Get();
@@ -1031,9 +993,7 @@ bool String::Compare(const String& strCompare) const
 // Should be easy to modify if the need arises.
 bool String::Contains(const char* strCompare) const
 {
-    if (nullptr == data_ || nullptr == strCompare) {
-        return false;
-    }
+    if (nullptr == data_ || nullptr == strCompare) { return false; }
 
     if (strstr(data_, strCompare)) return true;
 
@@ -1042,9 +1002,7 @@ bool String::Contains(const char* strCompare) const
 
 bool String::Contains(const String& strCompare) const
 {
-    if (nullptr == data_ || !strCompare.Exists()) {
-        return false;
-    }
+    if (nullptr == data_ || !strCompare.Exists()) { return false; }
 
     if (strstr(data_, strCompare.Get())) return true;
 
@@ -1065,13 +1023,9 @@ void String::OTfgets(std::istream& ifs)
 
 void String::ConvertToUpperCase() const
 {
-    if (data_ == nullptr) {
-        return;
-    }
+    if (data_ == nullptr) { return; }
 
-    for (char* s1 = data_; *s1; s1++) {
-        *s1 = static_cast<char>(toupper(*s1));
-    }
+    for (char* s1 = data_; *s1; s1++) { *s1 = static_cast<char>(toupper(*s1)); }
 }
 
 void String::Truncate(std::uint32_t lAt)
@@ -1125,15 +1079,14 @@ bool String::DecodeIfArmored(bool bEscapedIsAllowed)
     if (bArmored)  // it's armored, we have to decode it first.
     {
         OTASCIIArmor ascTemp;
-        if (false ==
-            (ascTemp.LoadFromString(
-                *this,
-                bArmoredAndALSOescaped,  // if it IS escaped or not, this
-                                         // variable will be true or false
-                                         // to show it.
-                // The below szOverride sub-string determines where the content
-                // starts, when loading.
-                OT_BEGIN_ARMORED)))  // Default is:       "-----BEGIN"
+        if (false == (ascTemp.LoadFromString(
+                         *this,
+                         bArmoredAndALSOescaped,  // if it IS escaped or not,
+                                                  // this variable will be true
+                                                  // or false to show it.
+                         // The below szOverride sub-string determines where the
+                         // content starts, when loading.
+                         OT_BEGIN_ARMORED)))  // Default is:       "-----BEGIN"
         // We're doing this: "-----BEGIN OT ARMORED" (Should worked for
         // escaped as well, here.)
         {
@@ -1148,8 +1101,8 @@ bool String::DecodeIfArmored(bool bEscapedIsAllowed)
         {
             String strTemp(ascTemp);  // <=== ascii-decoded here.
             std::string str_temp(strTemp.Get(), strTemp.GetLength());
-            str_Trim = String::trim(
-                str_temp);  // This is the std::string for the trim process.
+            str_Trim = String::trim(str_temp);  // This is the std::string for
+                                                // the trim process.
         }
     } else {
         std::string str_temp(Get(), GetLength());
@@ -1248,9 +1201,7 @@ void String::Concatenate(const String& strBuf)
 
 void String::WriteToFile(std::ostream& ofs) const
 {
-    if (!data_) {
-        return;
-    }
+    if (!data_) { return; }
     char* pchar = const_cast<char*>(data_);
     while (*pchar) {
         if (*pchar != '\r') ofs << *pchar;
@@ -1263,9 +1214,7 @@ void String::WriteToFile(std::ostream& ofs) const
 //
 bool String::sgets(char* szBuffer, std::uint32_t nBufSize)
 {
-    if (nullptr == szBuffer) {
-        return false;
-    }
+    if (nullptr == szBuffer) { return false; }
 
     if (position_ >= length_) return false;
 
@@ -1315,9 +1264,7 @@ bool String::sgets(char* szBuffer, std::uint32_t nBufSize)
 
     // We reached the end of the string.
     // EOF. So we return false to tell the caller not to bother calling again.
-    if (0 == *pChar) {
-        return false;
-    }
+    if (0 == *pChar) { return false; }
 
     // Obviously if *pChar isn't at the end, then there was more to read,
     // but the buffer was full, so we return true.
@@ -1328,9 +1275,7 @@ char String::sgetc(void)
 {
     char answer;
 
-    if (position_ >= length_) {
-        return EOF;
-    }
+    if (position_ >= length_) { return EOF; }
     answer = *(data_ + position_);
 
     ++position_;
@@ -1340,9 +1285,7 @@ char String::sgetc(void)
 
 void String::sungetc(void)
 {
-    if (position_ > 0) {
-        --position_;
-    }
+    if (position_ > 0) { --position_; }
 }
 
 void String::reset(void) { position_ = 0; }

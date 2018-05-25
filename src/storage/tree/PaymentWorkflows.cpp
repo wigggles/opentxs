@@ -36,12 +36,13 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
-#include "opentxs/storage/tree/PaymentWorkflows.hpp"
+#include "PaymentWorkflows.hpp"
 
 #include "opentxs/core/Log.hpp"
-#include "opentxs/storage/Plugin.hpp"
+
+#include "storage/Plugin.hpp"
 
 #define CURRENT_VERSION 1
 

@@ -39,7 +39,7 @@
 #ifndef OPENTXS_API_ACTIVITY_IMPLEMENTATION_HPP
 #define OPENTXS_API_ACTIVITY_IMPLEMENTATION_HPP
 
-#include "opentxs/Internal.hpp"
+#include "Internal.hpp"
 
 #include "opentxs/api/Activity.hpp"
 #include "opentxs/core/Lockable.hpp"

@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/client/OTRecord.hpp"
 
@@ -67,9 +67,8 @@ namespace opentxs
 
 bool OTRecord::FormatAmount(std::string& str_output) const
 {
-    if (m_str_amount.empty() ||
-        m_str_unit_type_id.empty())  // Need these to do the
-                                     // formatting.
+    if (m_str_amount.empty() || m_str_unit_type_id.empty())  // Need these to do
+                                                             // the formatting.
     {
         //      otOut << __FUNCTION__ << ": Unable to format amount. Type: " <<
         //      m_str_type << " Amount: "
@@ -84,9 +83,7 @@ bool OTRecord::FormatAmount(std::string& str_output) const
 
 bool OTRecord::FormatAmountWithoutSymbol(std::string& str_output)
 {
-    if (m_str_amount.empty() || m_str_unit_type_id.empty()) {
-        return false;
-    }
+    if (m_str_amount.empty() || m_str_unit_type_id.empty()) { return false; }
 
     str_output = OT::App().API().Exec().FormatAmountWithoutSymbol(
         m_str_unit_type_id, OT::App().API().Exec().StringToLong(m_str_amount));
@@ -98,9 +95,8 @@ bool OTRecord::FormatAmountLocale(
     const std::string& str_thousands,
     const std::string& str_decimal) const
 {
-    if (m_str_amount.empty() ||
-        m_str_unit_type_id.empty())  // Need these to do the
-                                     // formatting.
+    if (m_str_amount.empty() || m_str_unit_type_id.empty())  // Need these to do
+                                                             // the formatting.
     {
         //      otOut << __FUNCTION__ << ": Unable to format amount. Type: " <<
         //      m_str_type << " Amount: "
@@ -121,9 +117,7 @@ bool OTRecord::FormatAmountWithoutSymbolLocale(
     const std::string& str_thousands,
     const std::string& str_decimal)
 {
-    if (m_str_amount.empty() || m_str_unit_type_id.empty()) {
-        return false;
-    }
+    if (m_str_amount.empty() || m_str_unit_type_id.empty()) { return false; }
 
     str_output = OT::App().API().Exec().FormatAmountWithoutSymbolLocale(
         m_str_unit_type_id,
@@ -705,9 +699,9 @@ bool OTRecord::CanCancelOutgoing() const
                       // superfluous.)
         return false;
 
-    if (OTRecord::Transfer ==
-        GetRecordType())  // All outgoing, pending instruments
-                          // EXCEPT transfer can be canceled.
+    if (OTRecord::Transfer == GetRecordType())  // All outgoing, pending
+                                                // instruments EXCEPT transfer
+                                                // can be canceled.
         return false;
 
     return true;

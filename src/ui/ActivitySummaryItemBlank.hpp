@@ -39,7 +39,7 @@
 #ifndef OPENTXS_UI_ACTIVITYSUMMARYITEMBLANK_IMPLEMENTATION_HPP
 #define OPENTXS_UI_ACTIVITYSUMMARYITEMBLANK_IMPLEMENTATION_HPP
 
-#include "opentxs/Internal.hpp"
+#include "Internal.hpp"
 
 #include "opentxs/ui/ActivitySummaryItem.hpp"
 #include "opentxs/ui/Widget.hpp"
@@ -75,5 +75,5 @@ private:
         delete;
     ActivitySummaryItemBlank& operator=(ActivitySummaryItemBlank&&) = delete;
 };
-}  // opentxs::ui::implementation
+}  // namespace opentxs::ui::implementation
 #endif  // OPENTXS_UI_ACTIVITYSUMMARYITEMBLANK_IMPLEMENTATION_HPP

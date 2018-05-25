@@ -35,7 +35,7 @@
  *   for more details.
  *
  ************************************************************/
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/core/crypto/Libsecp256k1.hpp"
 
@@ -79,9 +79,7 @@ Libsecp256k1::Libsecp256k1(api::crypto::Util& ssl, Ecdsa& ecdsa)
 
 bool Libsecp256k1::RandomKeypair(OTPassword& privateKey, Data& publicKey) const
 {
-    if (nullptr == context_) {
-        return false;
-    }
+    if (nullptr == context_) { return false; }
 
     bool validPrivkey = false;
     std::uint8_t candidateKey[PrivateKeySize]{};
@@ -134,9 +132,7 @@ bool Libsecp256k1::Sign(
     const AsymmetricKeyEC* key =
         dynamic_cast<const AsymmetricKeySecp256k1*>(&theKey);
 
-    if (nullptr == key) {
-        return false;
-    }
+    if (nullptr == key) { return false; }
 
     if (nullptr == pPWData) {
         OTPasswordData passwordData(
@@ -188,37 +184,27 @@ bool Libsecp256k1::Verify(
     bool haveDigest =
         OT::App().Crypto().Hash().Digest(hashType, plaintext, hash);
 
-    if (!haveDigest) {
-        return false;
-    }
+    if (!haveDigest) { return false; }
 
     const AsymmetricKeyEC* key =
         dynamic_cast<const AsymmetricKeySecp256k1*>(&theKey);
 
-    if (nullptr == key) {
-        return false;
-    }
+    if (nullptr == key) { return false; }
 
     auto ecdsaPubkey = Data::Factory();
     const bool havePublicKey = AsymmetricKeyToECPubkey(*key, ecdsaPubkey);
 
-    if (!havePublicKey) {
-        return false;
-    }
+    if (!havePublicKey) { return false; }
 
     secp256k1_pubkey point;
     const bool pubkeyParsed = ParsePublicKey(ecdsaPubkey, point);
 
-    if (!pubkeyParsed) {
-        return false;
-    }
+    if (!pubkeyParsed) { return false; }
 
     secp256k1_ecdsa_signature ecdsaSignature;
     const bool haveSignature = DataToECSignature(signature, ecdsaSignature);
 
-    if (!haveSignature) {
-        return false;
-    }
+    if (!haveSignature) { return false; }
 
     return secp256k1_ecdsa_verify(
         context_,
@@ -285,9 +271,7 @@ void Libsecp256k1::Init_Override() const
 bool Libsecp256k1::ParsePublicKey(const Data& input, secp256k1_pubkey& output)
     const
 {
-    if (nullptr == context_) {
-        return false;
-    }
+    if (nullptr == context_) { return false; }
 
     return secp256k1_ec_pubkey_parse(
         context_,
@@ -300,13 +284,9 @@ bool Libsecp256k1::ScalarBaseMultiply(
     const OTPassword& privateKey,
     Data& publicKey) const
 {
-    if (nullptr == context_) {
-        return false;
-    }
+    if (nullptr == context_) { return false; }
 
-    if (!privateKey.isMemory()) {
-        return false;
-    }
+    if (!privateKey.isMemory()) { return false; }
 
     secp256k1_pubkey key;
 
@@ -315,9 +295,7 @@ bool Libsecp256k1::ScalarBaseMultiply(
         &key,
         static_cast<const unsigned char*>(privateKey.getMemory()));
 
-    if (1 != created) {
-        return false;
-    }
+    if (1 != created) { return false; }
 
     unsigned char output[PublicKeySize]{};
     size_t outputSize = sizeof(output);
@@ -325,9 +303,7 @@ bool Libsecp256k1::ScalarBaseMultiply(
     const auto serialized = secp256k1_ec_pubkey_serialize(
         context_, output, &outputSize, &key, SECP256K1_EC_COMPRESSED);
 
-    if (1 != serialized) {
-        return false;
-    }
+    if (1 != serialized) { return false; }
 
     publicKey.Assign(output, outputSize);
 

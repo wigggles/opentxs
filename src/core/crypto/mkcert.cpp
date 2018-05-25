@@ -1,7 +1,7 @@
 /* Certificate creation. Demonstrates some certificate related
  * operations.
  */
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/core/crypto/mkcert.hpp"
 

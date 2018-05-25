@@ -36,11 +36,11 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
-#include "opentxs/storage/tree/Issuers.hpp"
+#include "Issuers.hpp"
 
-#include "opentxs/storage/Plugin.hpp"
+#include "storage/Plugin.hpp"
 
 #define CURRENT_VERSION 1
 
@@ -76,9 +76,7 @@ void Issuers::init(const std::string& hash)
 
     version_ = serialized->version();
 
-    if (CURRENT_VERSION > version_) {
-        version_ = CURRENT_VERSION;
-    }
+    if (CURRENT_VERSION > version_) { version_ = CURRENT_VERSION; }
 
     for (const auto& it : serialized->issuer()) {
         item_map_.emplace(
@@ -104,10 +102,7 @@ bool Issuers::save(const std::unique_lock<std::mutex>& lock) const
 
     auto serialized = serialize();
 
-    if (false == proto::Validate(serialized, VERBOSE)) {
-
-        return false;
-    }
+    if (false == proto::Validate(serialized, VERBOSE)) { return false; }
 
     return driver_.StoreProto(serialized, root_);
 }

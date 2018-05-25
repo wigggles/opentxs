@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/client/Utility.hpp"
 
@@ -75,10 +75,7 @@ bool VerifyMessage(const std::string& message)
 
 NetworkOperationStatus VerifyMessageSuccess(const std::string& message)
 {
-    if (!VerifyMessage(message)) {
-
-        return REPLY_NOT_RECEIVED;
-    }
+    if (!VerifyMessage(message)) { return REPLY_NOT_RECEIVED; }
 
     const auto status = SwigWrap::Message_GetSuccess(message);
 
@@ -113,9 +110,7 @@ std::int32_t VerifyMsgBalanceAgrmntSuccess(
     const std::string& ACCOUNT_ID,
     const std::string& strMessage)  // For when an OTMessage is the input.
 {
-    if (!VerifyMessage(strMessage)) {
-        return -1;
-    }
+    if (!VerifyMessage(strMessage)) { return -1; }
 
     std::int32_t nSuccess = SwigWrap::Message_GetBalanceAgreementSuccess(
         NOTARY_ID, NYM_ID, ACCOUNT_ID, strMessage);
@@ -155,9 +150,7 @@ std::int32_t VerifyMsgTrnxSuccess(
     const std::string& ACCOUNT_ID,
     const std::string& strMessage)
 {
-    if (!VerifyMessage(strMessage)) {
-        return -1;
-    }
+    if (!VerifyMessage(strMessage)) { return -1; }
 
     std::int32_t nSuccess = SwigWrap::Message_GetTransactionSuccess(
         NOTARY_ID, NYM_ID, ACCOUNT_ID, strMessage);
@@ -281,8 +274,8 @@ std::int32_t Utility::getNymboxLowLevel()
 std::int32_t Utility::getNymboxLowLevel(bool& bWasSent)
 {
     bWasSent = false;
-    auto[nRequestNum, transactionNum, result] = otapi_.getNymbox(context_);
-    const auto & [ status, reply ] = result;
+    auto [nRequestNum, transactionNum, result] = otapi_.getNymbox(context_);
+    const auto& [status, reply] = result;
     [[maybe_unused]] const auto& notUsed1 = transactionNum;
 
     switch (status) {
@@ -375,8 +368,8 @@ std::int32_t Utility::getNymbox(
         return -1;
     }  // NOTE: for getNymbox, there is no '0' return value;
 
-    if (-1 ==
-        nGetNymbox)  // we'll try re-syncing the request number, then try again.
+    if (-1 == nGetNymbox)  // we'll try re-syncing the request number, then try
+                           // again.
     {
         otOut << strLocation
               << ": FYI: this.getNymboxLowLevel returned -1. (Re-trying...)\n";
@@ -941,9 +934,8 @@ std::int32_t Utility::getAndProcessNymbox_8(
         // case of 0, see next line which fixes this:)
         //
 
-        nProcess =
-            nMsgSentRequestNumOut;  // Sometimes this could be 0 still, so
-                                    // we fix it here.;
+        nProcess = nMsgSentRequestNumOut;  // Sometimes this could be 0 still,
+                                           // so we fix it here.;
         std::int32_t nReplySuccess = nReplySuccessOut;
         std::int32_t nTransSuccess = nTransSuccessOut;
         std::int32_t nBalanceSuccess = nBalanceSuccessOut;
@@ -1381,8 +1373,8 @@ std::int32_t Utility::processNymbox(
 
     // Next, we have to make sure we have all the BOX RECEIPTS downloaded
     // for this Nymbox.
-    const auto[nProcess, trans, result] = otapi_.processNymbox(context_);
-    const auto & [ status, reply ] = result;
+    const auto [nProcess, trans, result] = otapi_.processNymbox(context_);
+    const auto& [status, reply] = result;
     [[maybe_unused]] const auto& notUsed1 = trans;
     [[maybe_unused]] const auto& notUsed2 = status;
 
@@ -1460,13 +1452,13 @@ bool Utility::getBoxReceiptLowLevel(
     std::string strLocation = "Utility::getBoxReceiptLowLevel";
     bWasSent = false;
 
-    auto[nRequestNum, transactionNum, result] =
+    auto [nRequestNum, transactionNum, result] =
         OT::App().API().OTAPI().getBoxReceipt(
             context_,
             Identifier::Factory(accountID),
             nBoxType,
             strTransactionNum);
-    const auto & [ status, reply ] = result;
+    const auto& [status, reply] = result;
     [[maybe_unused]] const auto& notUsed1 = transactionNum;
     [[maybe_unused]] const auto& notUsed3 = nRequestNum;
 
@@ -1818,9 +1810,7 @@ bool Utility::insureHaveAllBoxReceipts(
         std::string strReplyNotice = SwigWrap::Nymbox_GetReplyNotice(
             notaryID, nymID, std::int64_t(nRequestSeeking));
 
-        if (VerifyStringVal(strReplyNotice)) {
-            bFoundIt = true;
-        }
+        if (VerifyStringVal(strReplyNotice)) { bFoundIt = true; }
     }
 
     return bReturnValue;
@@ -2320,9 +2310,9 @@ std::int32_t Utility::getInboxAccount(
     std::string strLocation = "Utility::getInboxAccount";
     bWasSentAccount = false;
     bWasSentInbox = false;
-    auto[nRequestNum, transactionNum, result] =
+    auto [nRequestNum, transactionNum, result] =
         otapi_.getAccountData(context_, Identifier::Factory(accountID));
-    const auto & [ status, reply ] = result;
+    const auto& [status, reply] = result;
     [[maybe_unused]] const auto& notUsed1 = transactionNum;
     [[maybe_unused]] const auto& notUsed2 = nRequestNum;
 

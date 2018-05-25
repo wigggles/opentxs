@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "OpenDHT.hpp"
 
@@ -71,20 +71,11 @@ bool OpenDHT::Init() const
 {
     Lock initLock(init_);
 
-    if (!config_->enable_dht_) {
+    if (!config_->enable_dht_) { return true; }
 
-        return true;
-    }
+    if (ready_.get()) { return true; }
 
-    if (ready_.get()) {
-
-        return true;
-    }
-
-    if (!node_) {
-
-        return false;
-    }
+    if (!node_) { return false; }
 
     std::int64_t listenPort = config_->listen_port_;
 
@@ -123,9 +114,7 @@ void OpenDHT::Insert(
     DhtDoneCallback cb) const
 {
     if (!ready_.get()) {
-        if (!Init()) {
-            return;
-        }
+        if (!Init()) { return; }
     }
 
     dht::InfoHash infoHash = dht::InfoHash::get(
@@ -134,9 +123,7 @@ void OpenDHT::Insert(
     std::shared_ptr<dht::Value> pValue = std::make_shared<dht::Value>(
         reinterpret_cast<const std::uint8_t*>(value.c_str()), value.size());
 
-    if (!pValue) {
-        return;
-    }
+    if (!pValue) { return; }
 
     if (value.size() > dht::MAX_VALUE_SIZE) {
         otErr << __FUNCTION__ << ": Error: data size exceeds DHT limits."
@@ -153,9 +140,7 @@ void OpenDHT::Retrieve(
     DhtDoneCallback dcb) const
 {
     if (!ready_.get()) {
-        if (!Init()) {
-            return;
-        }
+        if (!Init()) { return; }
     }
 
     // The OpenDHT get method wants a lambda function that accepts an
@@ -167,9 +152,7 @@ void OpenDHT::Retrieve(
             DhtResults input;
 
             for (const auto& it : results) {
-                if (nullptr == it) {
-                    continue;
-                }
+                if (nullptr == it) { continue; }
 
                 input.emplace(
                     input.end(),
@@ -187,9 +170,7 @@ void OpenDHT::Retrieve(
 
 OpenDHT::~OpenDHT()
 {
-    if (node_) {
-        node_->join();
-    }
+    if (node_) { node_->join(); }
 }
 #endif
 }  // namespace opentxs::network::implementation

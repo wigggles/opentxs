@@ -39,7 +39,7 @@
 #ifndef OPENTXS_UI_ROW_TYPE_HPP
 #define OPENTXS_UI_ROW_TYPE_HPP
 
-#include "opentxs/Internal.hpp"
+#include "Internal.hpp"
 
 namespace opentxs::ui::implementation
 {
@@ -69,5 +69,5 @@ protected:
 
     virtual ~RowType() = default;
 };
-}  // opentxs::ui::implementation
+}  // namespace opentxs::ui::implementation
 #endif  // OPENTXS_UI_ROW_TYPE_HPP

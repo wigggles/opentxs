@@ -494,7 +494,7 @@ receipts directly in response to their server messages, they can still compare
 various sequence numbers. Hm.
  */
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/core/script/OTSmartContract.hpp"
 
@@ -988,9 +988,7 @@ std::int64_t OTSmartContract::GetClosingNumber(
     OTPartyAccount* pPartyAcct =
         GetPartyAccountByID(theAcctID);  // from OTScriptable.
 
-    if (nullptr != pPartyAcct) {
-        return pPartyAcct->GetClosingTransNo();
-    }
+    if (nullptr != pPartyAcct) { return pPartyAcct->GetClosingTransNo(); }
 
     return 0;
 }
@@ -1967,9 +1965,9 @@ bool OTSmartContract::StashAcctFunds(
 
     theFromAgentID->GetString(m_strLastSenderUser);  // This is the last Nym ID
     // of a party who SENT money.
-    theFromAcctID->GetString(
-        m_strLastSenderAcct);  // This is the last Acct ID of
-                               // a party who SENT money.
+    theFromAcctID->GetString(m_strLastSenderAcct);  // This is the last Acct ID
+                                                    // of a party who SENT
+                                                    // money.
     //    theToAgentID.GetString(m_strLastRecipientUser);    // This is the last
     // Nym ID of a party who RECEIVED money.
     //    theToAcctID.GetString(m_strLastRecipientAcct);    // This is the last
@@ -2353,10 +2351,9 @@ bool OTSmartContract::StashFunds(
         return false;
     }
 
-    bool bWasAcctCreated =
-        false;  // GetOrRegisterAccount() will verifyContractID
-                // and verifySignature on the account
-                // internally.
+    bool bWasAcctCreated = false;  // GetOrRegisterAccount() will
+                                   // verifyContractID and verifySignature on
+                                   // the account internally.
     std::shared_ptr<Account> pStashAccount = m_StashAccts.GetOrRegisterAccount(
         *pServerNym,
         NOTARY_NYM_ID,
@@ -2878,8 +2875,8 @@ bool OTSmartContract::StashFunds(
                                                          // // These are
                                                          // already initialized
                                                          // to false.
-                pItemParty->SetAmount(
-                    0);  // No money changed hands. Just being explicit.
+                pItemParty->SetAmount(0);  // No money changed hands. Just being
+                                           // explicit.
 
                 otOut << "OTSmartContract::StashFunds: Move failed.\n";
             }
@@ -3312,9 +3309,9 @@ bool OTSmartContract::MoveAcctFundsStr(
 
     theFromAgentID->GetString(m_strLastSenderUser);  // This is the last Nym ID
     // of a party who SENT money.
-    theFromAcctID->GetString(
-        m_strLastSenderAcct);  // This is the last Acct ID of
-                               // a party who SENT money.
+    theFromAcctID->GetString(m_strLastSenderAcct);  // This is the last Acct ID
+                                                    // of a party who SENT
+                                                    // money.
     theToAgentID->GetString(m_strLastRecipientUser);  // This is the last Nym ID
                                                       // of a party who RECEIVED
                                                       // money.
@@ -3770,8 +3767,8 @@ void OTSmartContract::ExecuteClauses(
 
             // See if param_string variable is already found on the bylaw...
             //
-            if (nullptr !=
-                pBylaw->GetVariable(str_Name))  // disallow duplicate names.
+            if (nullptr != pBylaw->GetVariable(str_Name))  // disallow duplicate
+                                                           // names.
             {
                 otErr << "OTSmartContract::ExecuteClauses: While preparing to "
                          "run smartcontract trans# "
@@ -3986,9 +3983,8 @@ bool OTSmartContract::CanCancelContract(std::string str_party_name)
         GetCallback(str_CallbackName);  // See if there is a script clause
                                         // registered for this callback.
 
-    if (nullptr !=
-        pCallbackClause)  // Found it! There's a clause registered for
-                          // this callback. Let's call it...
+    if (nullptr != pCallbackClause)  // Found it! There's a clause registered
+                                     // for this callback. Let's call it...
     {
         otOut << "OTSmartContract::CanCancelContract: Found script for: "
               << SMARTCONTRACT_CALLBACK_PARTY_MAY_CANCEL << ". Asking...\n";
@@ -4333,16 +4329,16 @@ bool OTSmartContract::VerifySmartContract(
               << strNymID << ") as authorizing agent.\n";
         return false;
     }
-    OT_ASSERT(
-        nullptr != pAuthAgent);  // If it found the party, then it DEFINITELY
-                                 // should have set the agent pointer.
+    OT_ASSERT(nullptr != pAuthAgent);  // If it found the party, then it
+                                       // DEFINITELY should have set the agent
+                                       // pointer.
     // BELOW THIS POINT, pAuthAgent and pAuthParty and both good pointers.
     // Furthermore, we know that theNym
     // really is the authorizing agent for one of the parties to the contract.
 
-    const String strNotaryID(
-        GetNotaryID());  // the notaryID has already been verified by this time,
-                         // in Server::NotarizeSmartContract()
+    const String strNotaryID(GetNotaryID());  // the notaryID has already been
+                                              // verified by this time, in
+                                              // Server::NotarizeSmartContract()
 
     mapOfConstNyms map_Nyms_Already_Loaded;  // The list of Nyms that were
                                              // already instantiated before this
@@ -4499,15 +4495,14 @@ bool OTSmartContract::VerifySmartContract(
             // least one failed.
             bAreAnyInvalidParties = true;
 
-            theFailedParties.insert(
-                pParty);  // (So we can skip them in the loop
-                          // below. Meaning THEIR closing #s
-                          // also don't get marked as "used",
-                          // which is another reason for
-                          // clients to just harvest the
-                          // number in that case and consider
-                          // it as clean, since the server
-                          // is.)
+            theFailedParties.insert(pParty);  // (So we can skip them in the
+                                              // loop below. Meaning THEIR
+                                              // closing #s also don't get
+                                              // marked as "used", which is
+                                              // another reason for clients to
+                                              // just harvest the number in that
+                                              // case and consider it as clean,
+                                              // since the server is.)
             //            return false; // see above comment. We still allow all
             // parties to burn their opening #s, to keep things consistent for
             // the client GUI code.
@@ -4814,8 +4809,8 @@ bool OTSmartContract::VerifySmartContract(
     }
 
     const bool bSuccess =
-        (!bAreAnyInvalidParties &&
-         !bAreAnyInvalidAccounts);  // <=== THE RETURN VALUE
+        (!bAreAnyInvalidParties && !bAreAnyInvalidAccounts);  // <=== THE RETURN
+                                                              // VALUE
 
     if (bAreAnyInvalidParties)
         otOut << __FUNCTION__
@@ -5519,9 +5514,7 @@ std::int32_t OTSmartContract::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     //
     nReturnVal = ot_super::ProcessXMLNode(xml);
 
-    if (0 != (nReturnVal)) {
-        return nReturnVal;
-    }
+    if (0 != (nReturnVal)) { return nReturnVal; }
 
     if (strNodeName.Compare("smartContract")) {
         m_strVersion = xml->getAttributeValue("version");
@@ -5796,8 +5789,8 @@ bool OTSmartContract::MoveFunds(
     } else if (nullptr == pSenderNym)  // Else load the First Nym from storage,
                                        // if still not found.
     {
-        theSenderNym.SetIdentifier(
-            SENDER_NYM_ID);  // theSenderNym is pSenderNym
+        theSenderNym.SetIdentifier(SENDER_NYM_ID);  // theSenderNym is
+                                                    // pSenderNym
 
         if (!theSenderNym.LoadPublicKey()) {
             String strNymID(SENDER_NYM_ID);
@@ -6321,11 +6314,10 @@ bool OTSmartContract::MoveFunds(
                                                        // otherwise ambigious
                                                        // about whether you are
                                                        // paying or being paid.
-                pItemRecip->SetAmount(
-                    lAmount);  // So, I decided for payment and
-                               // market receipts, to use
-                               // negative and positive
-                               // amounts.
+                pItemRecip->SetAmount(lAmount);  // So, I decided for payment
+                                                 // and market receipts, to use
+                                                 // negative and positive
+                                                 // amounts.
                 // I will probably do the same for cheques, since they can be
                 // negative as well (invoices).
 
@@ -6343,10 +6335,10 @@ bool OTSmartContract::MoveFunds(
                                                          // // (But just making
                                                          // sure...)
 
-                pItemSend->SetAmount(
-                    0);  // No money changed hands. Just being explicit.
-                pItemRecip->SetAmount(
-                    0);  // No money changed hands. Just being explicit.
+                pItemSend->SetAmount(0);   // No money changed hands. Just being
+                                           // explicit.
+                pItemRecip->SetAmount(0);  // No money changed hands. Just being
+                                           // explicit.
 
                 otLog3 << "OTCronItem::MoveFunds: Move failed.\n";
             }

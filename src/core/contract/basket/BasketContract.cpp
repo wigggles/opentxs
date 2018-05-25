@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/core/contract/basket/BasketContract.hpp"
 
@@ -74,15 +74,11 @@ bool BasketContract::FinalizeTemplate(
     std::unique_ptr<BasketContract> contract(
         new BasketContract(nym, serialized));
 
-    if (!contract) {
-        return false;
-    }
+    if (!contract) { return false; }
 
     Lock lock(contract->lock_);
 
-    if (!contract->CalculateID(lock)) {
-        return false;
-    }
+    if (!contract->CalculateID(lock)) { return false; }
 
     if (contract->nym_) {
         proto::UnitDefinition basket = contract->SigVersion(lock);

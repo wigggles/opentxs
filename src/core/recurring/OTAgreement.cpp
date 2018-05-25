@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/core/recurring/OTAgreement.hpp"
 
@@ -665,9 +665,7 @@ void OTAgreement::onFinalReceipt(
                  "theOriginator.VerifyTransactionNum(lSenderClosingNumber)\n";
     }
 
-    if (nullptr == pRecipient) {
-        return;
-    }
+    if (nullptr == pRecipient) { return; }
 
     auto rContext = OT::App().Wallet().mutable_ClientContext(
         pServerNym->ID(), pRecipient->ID());
@@ -913,9 +911,7 @@ bool OTAgreement::CanRemoveItemFromCron(const ClientContext& context)
     // you check first and make sure the Nym who requested it actually has said
     // number (or a related closing number) signed out to him on his last
     // receipt...
-    if (true == ot_super::CanRemoveItemFromCron(context)) {
-        return true;
-    }
+    if (true == ot_super::CanRemoveItemFromCron(context)) { return true; }
 
     const String strNotaryID(GetNotaryID());
 
@@ -1158,9 +1154,7 @@ bool OTAgreement::Confirm(
     const Identifier* p_id_MERCHANT_NYM)
 {
     auto nym = context.Nym();
-    if (nullptr == nym) {
-        return false;
-    }
+    if (nullptr == nym) { return false; }
 
     auto id_PAYER_NYM = Identifier::Factory(*nym),
          id_PAYER_ACCT =
@@ -1281,9 +1275,9 @@ bool OTAgreement::Confirm(
     // We can't return without USING THEM or PUTTING THEM BACK.
     //
 
-    SetTransactionNum(openingNumber);  // Set the Transaction Number
-    AddClosingTransactionNo(
-        closingNumber);  // and the Closing Number (both for sender)...
+    SetTransactionNum(openingNumber);        // Set the Transaction Number
+    AddClosingTransactionNo(closingNumber);  // and the Closing Number (both for
+                                             // sender)...
 
     // CREATION DATE was set in the Merchant's proposal, and it's RESET here in
     // the Confirm.

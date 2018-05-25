@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/api/client/Wallet.hpp"
 #if OT_CASH
@@ -49,14 +49,15 @@
 #include "opentxs/core/Log.hpp"
 #include <opentxs/core/OTStorage.hpp>
 #include "opentxs/core/String.hpp"
-#include "opentxs/server/MessageProcessor.hpp"
-#include "opentxs/server/Server.hpp"
-#include "opentxs/server/ServerSettings.hpp"
 
-#include "Server.hpp"
+#include "server/MessageProcessor.hpp"
+#include "server/Server.hpp"
+#include "server/ServerSettings.hpp"
 
 #include <chrono>
 #include <ctime>
+
+#include "Server.hpp"
 
 #if OT_CASH
 #define SERIES_DIVIDER "."
@@ -315,10 +316,7 @@ std::int32_t Server::last_generated_series(
         const auto exists = OTDB::Exists(
             OTFolders::Mint().Get(), serverID.c_str(), filename.c_str());
 
-        if (false == exists) {
-
-            return output - 1;
-        }
+        if (false == exists) { return output - 1; }
     }
 
     return -1;
@@ -368,10 +366,7 @@ void Server::mint() const
     while (running_) {
         Log::Sleep(std::chrono::milliseconds(250));
 
-        if (false == server::ServerSettings::__cmd_get_mint) {
-
-            continue;
-        }
+        if (false == server::ServerSettings::__cmd_get_mint) { continue; }
 
         std::string unitID{""};
         updateLock.lock();
@@ -383,10 +378,7 @@ void Server::mint() const
 
         updateLock.unlock();
 
-        if (unitID.empty()) {
-
-            continue;
-        }
+        if (unitID.empty()) { continue; }
 
         const auto last = last_generated_series(serverID, unitID);
         const auto next = last + 1;

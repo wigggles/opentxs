@@ -36,17 +36,9 @@
  *
  ************************************************************/
 
+#include "opentxs/opentxs.hpp"
+
 #include <gtest/gtest.h>
-#include <string>
-
-#include "gtest/gtest-message.h"
-#include "gtest/gtest-test-part.h"
-
-#include "opentxs/core/Data.hpp"
-#include "opentxs/network/zeromq/Context.hpp"
-#include "opentxs/network/zeromq/Frame.hpp"
-#include "opentxs/network/zeromq/Message.hpp"
-
 #include <zmq.h>
 
 using namespace opentxs;
@@ -108,8 +100,7 @@ TEST(Frame, size)
     zmq_msg_t* zmq_msg = message.get();
     ASSERT_EQ(0, zmq_msg_size(zmq_msg));
 
-    message =
-        network::zeromq::Frame::Factory(Data::Factory("testString", 10));
+    message = network::zeromq::Frame::Factory(Data::Factory("testString", 10));
     size = message->size();
     ASSERT_EQ(10, size);
 

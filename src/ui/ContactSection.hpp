@@ -39,7 +39,7 @@
 #ifndef OPENTXS_UI_CONTACT_SECTION_IMPLEMENTATION_HPP
 #define OPENTXS_UI_CONTACT_SECTION_IMPLEMENTATION_HPP
 
-#include "opentxs/Internal.hpp"
+#include "Internal.hpp"
 
 namespace opentxs::ui::implementation
 {

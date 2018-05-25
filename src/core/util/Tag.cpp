@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/core/util/Tag.hpp"
 
@@ -86,9 +86,7 @@ void Tag::outputXML(std::string& str_output) const
         if (!text_.empty()) {
             str_output += text_;
         } else if (!tags_.empty()) {
-            for (auto& kv : tags_) {
-                kv->output(str_output);
-            }
+            for (auto& kv : tags_) { kv->output(str_output); }
         }
 
         str_output += ("\n</" + name_ + ">\n");
@@ -123,4 +121,4 @@ Tag::Tag(const std::string& str_name, const char* sztext)
 {
 }
 
-}  // namespace
+}  // namespace opentxs

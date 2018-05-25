@@ -36,19 +36,19 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
-#include "opentxs/storage/tree/Tree.hpp"
+#include "Tree.hpp"
 
-#include "opentxs/storage/tree/BlockchainTransactions.hpp"
-#include "opentxs/storage/tree/Contacts.hpp"
-#include "opentxs/storage/tree/Credentials.hpp"
-#include "opentxs/storage/tree/Nym.hpp"
-#include "opentxs/storage/tree/Nyms.hpp"
-#include "opentxs/storage/tree/Seeds.hpp"
-#include "opentxs/storage/tree/Servers.hpp"
-#include "opentxs/storage/tree/Units.hpp"
-#include "opentxs/storage/Plugin.hpp"
+#include "storage/Plugin.hpp"
+#include "BlockchainTransactions.hpp"
+#include "Contacts.hpp"
+#include "Credentials.hpp"
+#include "Nym.hpp"
+#include "Nyms.hpp"
+#include "Seeds.hpp"
+#include "Servers.hpp"
+#include "Units.hpp"
 
 namespace opentxs
 {
@@ -215,9 +215,7 @@ void Tree::init(const std::string& hash)
     version_ = serialized->version();
 
     // Upgrade version
-    if (CURRENT_VERSION > version_) {
-        version_ = CURRENT_VERSION;
-    }
+    if (CURRENT_VERSION > version_) { version_ = CURRENT_VERSION; }
 
     blockchain_root_ = normalize_hash(serialized->blockchaintransactions());
     contact_root_ = normalize_hash(serialized->contacts());
@@ -331,9 +329,7 @@ bool Tree::save(const Lock& lock) const
 
     auto serialized = serialize();
 
-    if (!proto::Validate(serialized, VERBOSE)) {
-        return false;
-    }
+    if (!proto::Validate(serialized, VERBOSE)) { return false; }
 
     return driver_.StoreProto(serialized, root_);
 }

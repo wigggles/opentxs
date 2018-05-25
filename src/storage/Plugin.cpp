@@ -36,9 +36,9 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
-#include "opentxs/storage/Plugin.hpp"
+#include "Plugin.hpp"
 
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/core/Log.hpp"
@@ -79,9 +79,7 @@ bool Plugin::Load(
     bool valid = false;
     const bool bucket{current_bucket_};
 
-    if (LoadFromBucket(key, value, bucket)) {
-        valid = 0 < value.size();
-    }
+    if (LoadFromBucket(key, value, bucket)) { valid = 0 < value.size(); }
 
     if (!valid) {
         // try again in the other bucket
@@ -109,17 +107,13 @@ bool Plugin::Migrate(
     const std::string& key,
     const opentxs::api::storage::Driver& to) const
 {
-    if (key.empty()) {
-        return false;
-    }
+    if (key.empty()) { return false; }
 
     std::string value;
     const bool targetBucket{current_bucket_};
     auto sourceBucket = targetBucket;
 
-    if (&to == this) {
-        sourceBucket = !targetBucket;
-    }
+    if (&to == this) { sourceBucket = !targetBucket; }
 
     // try to load the key from the source bucket
     if (LoadFromBucket(key, value, sourceBucket)) {

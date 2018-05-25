@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/core/crypto/OTNymOrSymmetricKey.hpp"
 
@@ -204,8 +204,8 @@ OTNym_or_SymmetricKey& OTNym_or_SymmetricKey::operator=(
 void OTNym_or_SymmetricKey::Release()  // Someday make this virtual, if we ever
                                        // subclass it.
 {
-    OT_ASSERT(
-        (m_pNym != nullptr) || (m_pKey != nullptr));  // m_pPassword is optional
+    OT_ASSERT((m_pNym != nullptr) || (m_pKey != nullptr));  // m_pPassword is
+                                                            // optional
 
     Release_Nym_or_SymmetricKey();
 
@@ -305,8 +305,8 @@ bool OTNym_or_SymmetricKey::Open_or_Decrypt(
                     ? &strDisplay
                     : m_pstrDisplay);  // bool bAskTwice=false
 
-            if (nullptr ==
-                pPassword)  // Unable to retrieve passphrase from user.
+            if (nullptr == pPassword)  // Unable to retrieve passphrase from
+                                       // user.
             {
                 otOut << szFunc
                       << ": Failed trying to retrieve passphrase for key. "
@@ -374,8 +374,8 @@ bool OTNym_or_SymmetricKey::Seal_or_Encrypt(
                     ? &strDisplay
                     : m_pstrDisplay);  // bool bAskTwice=false
 
-            if (nullptr ==
-                pPassword)  // Unable to retrieve passphrase from user.
+            if (nullptr == pPassword)  // Unable to retrieve passphrase from
+                                       // user.
             {
                 otOut << szFunc
                       << ": Failed trying to retrieve passphrase for key. "

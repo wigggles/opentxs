@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/core/crypto/Ecdsa.hpp"
 
@@ -66,9 +66,7 @@ bool Ecdsa::AsymmetricKeyToECPrivatekey(
     proto::Ciphertext dataPrivkey;
     const bool havePrivateKey = asymmetricKey.GetKey(dataPrivkey);
 
-    if (!havePrivateKey) {
-        return false;
-    }
+    if (!havePrivateKey) { return false; }
 
     return AsymmetricKeyToECPrivkey(dataPrivkey, passwordData, privkey);
 }
@@ -99,9 +97,7 @@ bool Ecdsa::DecryptPrivateKey(
     auto key = OT::App().Crypto().Symmetric().Key(
         encryptedKey.key(), encryptedKey.mode());
 
-    if (!key) {
-        return false;
-    }
+    if (!key) { return false; }
 
     return key->Decrypt(encryptedKey, password, plaintextKey);
 }
@@ -175,10 +171,7 @@ bool Ecdsa::ECPubkeyToAsymmetricKey(
     const Data& pubkey,
     AsymmetricKeyEC& asymmetricKey) const
 {
-    if (pubkey.empty()) {
-
-        return false;
-    }
+    if (pubkey.empty()) { return false; }
 
     return asymmetricKey.SetKey(pubkey);
 }
@@ -190,9 +183,7 @@ bool Ecdsa::EncryptPrivateKey(
 {
     auto key = OT::App().Crypto().Symmetric().Key(password);
 
-    if (!key) {
-        return false;
-    }
+    if (!key) { return false; }
 
     auto blank = Data::Factory();
 
@@ -208,9 +199,7 @@ bool Ecdsa::EncryptPrivateKey(
 {
     auto sessionKey = OT::App().Crypto().Symmetric().Key(password);
 
-    if (!sessionKey) {
-        return false;
-    }
+    if (!sessionKey) { return false; }
 
     auto blank = Data::Factory();
     const bool keyEncrypted =
@@ -325,9 +314,7 @@ bool Ecdsa::PrivateToPublic(
     const bool decrypted =
         DecryptPrivateKey(privateKey, password, *plaintextKey);
 
-    if (!decrypted) {
-        return false;
-    }
+    if (!decrypted) { return false; }
 
     return ScalarBaseMultiply(*plaintextKey, publicKey);
 }

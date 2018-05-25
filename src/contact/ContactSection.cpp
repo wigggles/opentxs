@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/contact/ContactSection.hpp"
 
@@ -136,9 +136,7 @@ ContactSection ContactSection::add_scope(
     GroupMap groups = groups_;
     const auto& group = groups[groupID];
 
-    if (group) {
-        needsPrimary = (1 > group->Size());
-    }
+    if (group) { needsPrimary = (1 > group->Size()); }
 
     if (needsPrimary && false == scope->isPrimary()) {
         scope.reset(new ContactItem(scope->SetPrimary(true)));
@@ -162,10 +160,7 @@ ContactSection ContactSection::AddItem(
 
     const bool specialCaseScope = (proto::CONTACTSECTION_SCOPE == section_);
 
-    if (specialCaseScope) {
-
-        return add_scope(item);
-    }
+    if (specialCaseScope) { return add_scope(item); }
 
     const auto& groupID = item->Type();
     const bool groupExists = groups_.count(groupID);
@@ -196,10 +191,7 @@ std::uint32_t ContactSection::check_version(
     const std::uint32_t targetVersion)
 {
     // Upgrade version
-    if (targetVersion > in) {
-
-        return targetVersion;
-    }
+    if (targetVersion > in) { return targetVersion; }
 
     return in;
 }
@@ -211,10 +203,7 @@ std::shared_ptr<ContactItem> ContactSection::Claim(const Identifier& item) const
 
         auto claim = group.second->Claim(item);
 
-        if (claim) {
-
-            return claim;
-        }
+        if (claim) { return claim; }
     }
 
     return {};
@@ -249,18 +238,13 @@ ContactSection ContactSection::Delete(const Identifier& id) const
             group.reset(new ContactGroup(group->Delete(id)));
             deleted = true;
 
-            if (0 == group->Size()) {
-                map.erase(it.first);
-            }
+            if (0 == group->Size()) { map.erase(it.first); }
 
             break;
         }
     }
 
-    if (false == deleted) {
-
-        return *this;
-    }
+    if (false == deleted) { return *this; }
 
     return ContactSection(nym_, version_, version_, section_, map);
 }
@@ -309,10 +293,7 @@ std::shared_ptr<ContactGroup> ContactSection::Group(
 {
     const auto it = groups_.find(type);
 
-    if (groups_.end() == it) {
-
-        return {};
-    }
+    if (groups_.end() == it) { return {}; }
 
     return it->second;
 }
@@ -322,10 +303,7 @@ bool ContactSection::HaveClaim(const Identifier& item) const
     for (const auto& group : groups_) {
         OT_ASSERT(group.second);
 
-        if (group.second->HaveClaim(item)) {
-
-            return true;
-        }
+        if (group.second->HaveClaim(item)) { return true; }
     }
 
     return false;

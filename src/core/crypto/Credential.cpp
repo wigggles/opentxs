@@ -60,7 +60,7 @@
 // ChildCredentials are used for all other actions, and never sign other
 // Credentials
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/core/crypto/Credential.hpp"
 
@@ -133,9 +133,7 @@ std::unique_ptr<Credential> Credential::Factory(
             break;
     }
 
-    if (!result->Validate()) {
-        result.reset();
-    }
+    if (!result->Validate()) { result.reset(); }
 
     return result;
 }
@@ -201,9 +199,7 @@ bool Credential::VerifyNymID() const
 bool Credential::VerifyMasterID() const
 {
     // This check is not applicable to master credentials
-    if (proto::CREDROLE_MASTERKEY == role_) {
-        return true;
-    }
+    if (proto::CREDROLE_MASTERKEY == role_) { return true; }
 
     const std::string parent = owner_backlink_->GetMasterCredID().Get();
     const std::string child = master_id_.Get();
@@ -314,9 +310,7 @@ bool Credential::isValid(const Lock& lock, serializedCredential& credential)
 {
     SerializationModeFlag serializationMode = AS_PUBLIC;
 
-    if (proto::KEYMODE_PRIVATE == mode_) {
-        serializationMode = AS_PRIVATE;
-    }
+    if (proto::KEYMODE_PRIVATE == mode_) { serializationMode = AS_PRIVATE; }
 
     credential = serialize(lock, serializationMode, WITH_SIGNATURES);
 
@@ -331,9 +325,7 @@ bool Credential::isValid(const Lock& lock, serializedCredential& credential)
 bool Credential::validate(const Lock& lock) const
 {
     // Check syntax
-    if (!isValid(lock)) {
-        return false;
-    }
+    if (!isValid(lock)) { return false; }
 
     // Check cryptographic requirements
     return verify_internally(lock);
@@ -353,9 +345,7 @@ OTIdentifier Credential::GetID(const Lock& lock) const
     serializedCredential idVersion =
         serialize(lock, AS_PUBLIC, WITHOUT_SIGNATURES);
 
-    if (idVersion->has_id()) {
-        idVersion->clear_id();
-    }
+    if (idVersion->has_id()) { idVersion->clear_id(); }
 
     auto serializedData = proto::ProtoAsData(*idVersion);
     auto id = Identifier::Factory();
@@ -430,15 +420,11 @@ serializedCredential Credential::serialize(
 
         auto publicSig = SelfSignature(PUBLIC_VERSION);
 
-        if (publicSig) {
-            *serializedCredential->add_signature() = *publicSig;
-        }
+        if (publicSig) { *serializedCredential->add_signature() = *publicSig; }
 
         auto sourceSig = SourceSignature();
 
-        if (sourceSig) {
-            *serializedCredential->add_signature() = *sourceSig;
-        }
+        if (sourceSig) { *serializedCredential->add_signature() = *sourceSig; }
     } else {
         serializedCredential->clear_signature();  // just in case...
     }

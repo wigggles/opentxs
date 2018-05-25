@@ -5,8 +5,9 @@ set(cxx-sources
   Plugin.cpp
 )
 
-file(GLOB cxx-headers
-     "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/storage/*.hpp"
+set(cxx-header
+  Plugin.hpp
+  StorageConfig.hpp
 )
 
 set(MODULE_NAME opentxs-storage)

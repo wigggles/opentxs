@@ -36,9 +36,9 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
-#include "opentxs/server/Transactor.hpp"
+#include "Transactor.hpp"
 
 #include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/core/Account.hpp"
@@ -49,8 +49,9 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/OTFolders.hpp"
-#include "opentxs/server/MainFile.hpp"
-#include "opentxs/server/Server.hpp"
+
+#include "MainFile.hpp"
+#include "Server.hpp"
 
 #include <cinttypes>
 #include <cstdint>
@@ -104,9 +105,7 @@ bool Transactor::issueNextTransactionNumberToNym(
     ClientContext& context,
     TransactionNumber& lTransactionNumber)
 {
-    if (!issueNextTransactionNumber(lTransactionNumber)) {
-        return false;
-    }
+    if (!issueNextTransactionNumber(lTransactionNumber)) { return false; }
 
     // Each Nym stores the transaction numbers that have been issued to it.
     // (On client AND server side.)
@@ -229,8 +228,8 @@ bool Transactor::lookupBasketAccountID(
         auto id_BASKET = Identifier::Factory(strBasketID),
              id_BASKET_ACCT = Identifier::Factory(strBasketAcctID);
 
-        if (BASKET_ID ==
-            id_BASKET)  // if the basket ID passed in matches this one...
+        if (BASKET_ID == id_BASKET)  // if the basket ID passed in matches this
+                                     // one...
         {
             BASKET_ACCOUNT_ID = id_BASKET_ACCT;
             return true;

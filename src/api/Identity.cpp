@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/api/Identity.hpp"
 
@@ -141,9 +141,7 @@ void Identity::DeleteVerification(
         }
     }
 
-    if (changed) {
-        identity = newData;
-    }
+    if (changed) { identity = newData; }
 }
 
 proto::VerificationGroup& Identity::GetOrCreateInternalGroup(
@@ -153,9 +151,7 @@ proto::VerificationGroup& Identity::GetOrCreateInternalGroup(
     const bool existing = verificationSet.has_internal();
     auto& output = *verificationSet.mutable_internal();
 
-    if (!existing) {
-        output.set_version(version);
-    }
+    if (!existing) { output.set_version(version); }
 
     return output;
 }
@@ -166,10 +162,7 @@ proto::VerificationIdentity& Identity::GetOrCreateVerificationIdentity(
     const std::uint32_t version) const
 {
     for (auto& identity : *verificationGroup.mutable_identity()) {
-        if (identity.nym() == nym) {
-
-            return identity;
-        }
+        if (identity.nym() == nym) { return identity; }
     }
 
     // We didn't find an existing item, so create a new one
@@ -192,23 +185,13 @@ bool Identity::HaveVerification(
     if (ClaimPolarity::NEUTRAL != polarity) {
         bool valid = false;
 
-        if (ClaimPolarity::POSITIVE == polarity) {
-            valid = true;
-        }
+        if (ClaimPolarity::POSITIVE == polarity) { valid = true; }
 
         for (auto& verification : identity.verification()) {
-            if (verification.claim() != claimID) {
-                break;
-            }
-            if (verification.valid() != valid) {
-                break;
-            }
-            if (verification.start() != start) {
-                break;
-            }
-            if (verification.end() != end) {
-                break;
-            }
+            if (verification.claim() != claimID) { break; }
+            if (verification.valid() != valid) { break; }
+            if (verification.start() != start) { break; }
+            if (verification.end() != end) { break; }
 
             match = true;
         }
@@ -239,21 +222,13 @@ bool Identity::MatchVerification(
     const std::int64_t end) const
 {
     // different claim
-    if (item.claim() != claimID) {
-        return false;
-    }
+    if (item.claim() != claimID) { return false; }
 
-    if ((item.start() == start) && (item.end() == end)) {
-        return true;
-    }
+    if ((item.start() == start) && (item.end() == end)) { return true; }
 
     // time range for claim falls outside given interval
-    if (item.start() >= end) {
-        return false;
-    }
-    if (item.end() <= start) {
-        return false;
-    }
+    if (item.start() >= end) { return false; }
+    if (item.end() <= start) { return false; }
 
     return true;
 }
@@ -344,9 +319,7 @@ std::unique_ptr<proto::VerificationSet> Identity::Verify(
         revised = InitializeVerificationSet();
     }
 
-    if (!revised) {
-        return revised;
-    }
+    if (!revised) { return revised; }
 
     bool finished = false;
 

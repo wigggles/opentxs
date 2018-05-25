@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/core/contract/peer/PeerRequest.hpp"
 
@@ -377,9 +377,7 @@ bool PeerRequest::FinalizeContract(PeerRequest& contract)
         return false;
     }
 
-    if (!contract.update_signature(lock)) {
-        return false;
-    }
+    if (!contract.update_signature(lock)) { return false; }
 
     return contract.validate(lock);
 }
@@ -460,9 +458,7 @@ proto::PeerRequest PeerRequest::SigVersion(const Lock& lock) const
 
 bool PeerRequest::update_signature(const Lock& lock)
 {
-    if (!ot_super::update_signature(lock)) {
-        return false;
-    }
+    if (!ot_super::update_signature(lock)) { return false; }
 
     bool success = false;
     signatures_.clear();
@@ -505,9 +501,7 @@ bool PeerRequest::validate(const Lock& lock) const
     bool validSig = false;
     auto& signature = *signatures_.cbegin();
 
-    if (signature) {
-        validSig = verify_signature(lock, *signature);
-    }
+    if (signature) { validSig = verify_signature(lock, *signature); }
 
     if (!validSig) {
         otErr << __FUNCTION__ << ": invalid signature." << std::endl;
@@ -520,9 +514,7 @@ bool PeerRequest::verify_signature(
     const Lock& lock,
     const proto::Signature& signature) const
 {
-    if (!ot_super::verify_signature(lock, signature)) {
-        return false;
-    }
+    if (!ot_super::verify_signature(lock, signature)) { return false; }
 
     auto serialized = SigVersion(lock);
     auto& sigProto = *serialized.mutable_signature();

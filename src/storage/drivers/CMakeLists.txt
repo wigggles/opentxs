@@ -12,8 +12,12 @@ set(cxx-sources
   StorageSqlite3.cpp
 )
 
-file(GLOB cxx-headers
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/storage/drivers/*.hpp"
+set(cxx-headers
+  StorageFS.hpp
+  StorageFSGC.hpp
+  StorageFSArchive.hpp
+  StorageMultiplex.hpp
+  StorageSqlite3.hpp
 )
 
 set(MODULE_NAME opentxs-storage-drivers)

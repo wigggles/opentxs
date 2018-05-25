@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/core/script/OTAgent.hpp"
 
@@ -171,8 +171,8 @@ Nym* OTAgent::LoadNym(const Nym& theServerNym)
             pNym = nullptr;
         } else if (
             pNym->VerifyPseudonym() && pNym->LoadSignedNymfile(theServerNym)) {
-            SetNymPointer(
-                *pNym);  // set this pointer in case I need it for later.
+            SetNymPointer(*pNym);  // set this pointer in case I need it for
+                                   // later.
             // also remember, caller is responsible to delete, so there's no
             // guarantee the pointer
             return pNym;  // is any good.  Then again, caller is also
@@ -287,12 +287,10 @@ void OTAgent::SetParty(OTParty& theOwnerParty)  // This happens when the agent
 
 OTAgent::~OTAgent()
 {
-    m_pNym =
-        nullptr;  // this pointer is not owned by this object, and is here for
-                  // convenience only.
-    m_pForParty =
-        nullptr;  // The agent probably has a pointer to the party it acts
-                  // on behalf of.
+    m_pNym = nullptr;  // this pointer is not owned by this object, and is here
+                       // for convenience only.
+    m_pForParty = nullptr;  // The agent probably has a pointer to the party it
+                            // acts on behalf of.
 }
 
 // If the agent is a Nym acting for himself, this will be true. Otherwise, if

@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/consensus/Context.hpp"
 
@@ -191,14 +191,10 @@ void Context::finish_acknowledgements(
     std::set<RequestNumber> toErase;
 
     for (const auto& number : acknowledged_request_numbers_) {
-        if (0 == req.count(number)) {
-            toErase.insert(number);
-        }
+        if (0 == req.count(number)) { toErase.insert(number); }
     }
 
-    for (const auto& it : toErase) {
-        acknowledged_request_numbers_.erase(it);
-    }
+    for (const auto& it : toErase) { acknowledged_request_numbers_.erase(it); }
 }
 
 OTIdentifier Context::GetID(const Lock& lock) const
@@ -231,9 +227,7 @@ proto::Context Context::IDVersion(const Lock& lock) const
 
     switch (Type()) {
         case proto::CONSENSUSTYPE_SERVER: {
-            if (nym_) {
-                output.set_localnym(String(nym_->ID()).Get());
-            }
+            if (nym_) { output.set_localnym(String(nym_->ID()).Get()); }
 
             if (remote_nym_) {
                 output.set_remotenym(String(remote_nym_->ID()).Get());
@@ -243,9 +237,7 @@ proto::Context Context::IDVersion(const Lock& lock) const
             output.set_remotenymboxhash(String(remote_nymbox_hash_).Get());
         } break;
         case proto::CONSENSUSTYPE_CLIENT: {
-            if (nym_) {
-                output.set_remotenym(String(nym_->ID()).Get());
-            }
+            if (nym_) { output.set_remotenym(String(nym_->ID()).Get()); }
 
             if (remote_nym_) {
                 output.set_localnym(String(remote_nym_->ID()).Get());
@@ -341,15 +333,9 @@ bool Context::NymboxHashMatch() const
 {
     Lock lock(lock_);
 
-    if (!HaveLocalNymboxHash()) {
+    if (!HaveLocalNymboxHash()) { return false; }
 
-        return false;
-    }
-
-    if (!HaveRemoteNymboxHash()) {
-
-        return false;
-    }
+    if (!HaveRemoteNymboxHash()) { return false; }
 
     return (local_nymbox_hash_ == remote_nymbox_hash_);
 }
@@ -369,17 +355,13 @@ std::unique_ptr<const class NymFile> Context::Nymfile(
 
 bool Context::RecoverAvailableNumber(const TransactionNumber& number)
 {
-    if (0 == number) {
-        return false;
-    }
+    if (0 == number) { return false; }
 
     Lock lock(lock_);
 
     const bool issued = 1 == issued_transaction_numbers_.count(number);
 
-    if (!issued) {
-        return false;
-    }
+    if (!issued) { return false; }
 
     return available_transaction_numbers_.insert(number).second;
 }
@@ -456,13 +438,9 @@ proto::Context Context::serialize(
     output.set_version(version_);
     output.set_type(type);
 
-    if (nym_) {
-        output.set_localnym(String(nym_->ID()).Get());
-    }
+    if (nym_) { output.set_localnym(String(nym_->ID()).Get()); }
 
-    if (remote_nym_) {
-        output.set_remotenym(String(remote_nym_->ID()).Get());
-    }
+    if (remote_nym_) { output.set_remotenym(String(remote_nym_->ID()).Get()); }
 
     output.set_localnymboxhash(String(local_nymbox_hash_).Get());
     output.set_remotenymboxhash(String(remote_nymbox_hash_).Get());
@@ -529,14 +507,9 @@ bool Context::update_signature(const Lock& lock)
 {
     OT_ASSERT(verify_write_lock(lock));
 
-    if (!ot_super::update_signature(lock)) {
+    if (!ot_super::update_signature(lock)) { return false; }
 
-        return false;
-    }
-
-    if (version_ < target_version_) {
-        version_ = target_version_;
-    }
+    if (version_ < target_version_) { version_ = target_version_; }
 
     bool success = false;
     signatures_.clear();

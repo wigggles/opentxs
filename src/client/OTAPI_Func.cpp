@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "OTAPI_Func.hpp"
 
@@ -242,8 +242,8 @@ OTAPI_Func::OTAPI_Func(
     , price_(0)
     , scale_(0)
     , remoteBoxType_{RemoteBoxType::Error}
-    , transactionNumber_(
-          0)  // This is not what gets returned by GetTransactionNumber.
+    , transactionNumber_(0)  // This is not what gets returned by
+                             // GetTransactionNumber.
     , infoType_(proto::CONNECTIONINFO_ERROR)
     , secretType_(proto::SECRETTYPE_ERROR)
     , unitDefinition_{}
@@ -913,17 +913,14 @@ OTAPI_Func::OTAPI_Func(
 
         accountID_ = accountID;  // the "official" asset account of the party
                                  // activating the contract.;
-        agentName_ =
-            agentName;  // the agent's name for that party, as listed on
-                        // the contract.;
+        agentName_ = agentName;  // the agent's name for that party, as listed
+                                 // on the contract.;
         contract_.reset(contract.release());  // the smart contract itself.;
 
         std::int32_t nNumsNeeded = exec_.SmartContract_CountNumsNeeded(
             String(*contract_).Get(), agentName_);
 
-        if (nNumsNeeded > 0) {
-            nTransNumsNeeded_ = nNumsNeeded;
-        }
+        if (nNumsNeeded > 0) { nTransNumsNeeded_ = nNumsNeeded; }
     } else {
         otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func() "
                  "ERROR!!!!!!\n";
@@ -1241,9 +1238,7 @@ OTAPI_Func::OTAPI_Func(
     const std::string strError =
         "Warning: Empty std::string passed to OTAPI_Func.OTAPI_Func() as: ";
 
-    if (!VerifyStringVal(value)) {
-        otErr << strError << "value" << std::endl;
-    }
+    if (!VerifyStringVal(value)) { otErr << strError << "value" << std::endl; }
 
     switch (theType) {
         case SERVER_ADD_CLAIM: {
@@ -1333,9 +1328,7 @@ OTAPI_Func::OTAPI_Func(
         "Warning: Empty std::string passed to OTAPI_Func.OTAPI_Func() as: ";
 
     if (ack_) {
-        if (!VerifyStringVal(url)) {
-            otErr << strError << "url" << std::endl;
-        }
+        if (!VerifyStringVal(url)) { otErr << strError << "url" << std::endl; }
 
         if (!VerifyStringVal(login)) {
             otErr << strError << "login" << std::endl;
@@ -1345,9 +1338,7 @@ OTAPI_Func::OTAPI_Func(
             otErr << strError << "password" << std::endl;
         }
 
-        if (!VerifyStringVal(key)) {
-            otErr << strError << "key" << std::endl;
-        }
+        if (!VerifyStringVal(key)) { otErr << strError << "key" << std::endl; }
     }
 
     switch (theType) {
@@ -1401,9 +1392,7 @@ OTAPI_Func::OTAPI_Func(
           serverID,
           theType)
 {
-    if (VerifyStringVal(stopSign)) {
-        stopSign_ = stopSign;
-    }
+    if (VerifyStringVal(stopSign)) { stopSign_ = stopSign; }
 
     switch (theType) {
         case CREATE_MARKET_OFFER: {
@@ -1467,8 +1456,8 @@ void OTAPI_Func::run()
 {
     Lock lock(lock_);
     const String triggerParameter(parameter_);
-    auto & [ requestNum, transactionNum, result ] = last_attempt_;
-    auto & [ status, reply ] = result;
+    auto& [requestNum, transactionNum, result] = last_attempt_;
+    auto& [status, reply] = result;
     requestNum = -1;
     transactionNum = 0;
     status = SendResult::ERROR;
@@ -2013,10 +2002,7 @@ std::string OTAPI_Func::send_request()
 
     const auto& reply = std::get<1>(std::get<2>(last_attempt_));
 
-    if (reply) {
-
-        return String(*reply).Get();
-    }
+    if (reply) { return String(*reply).Get(); }
 
     return {};
 }
@@ -2041,9 +2027,7 @@ std::string OTAPI_Func::send_once(
         return "";
     } else  // 1 and default.
     {
-        if (nlocalRequestNum < -1) {
-            return "";
-        }
+        if (nlocalRequestNum < -1) { return ""; }
 
         const auto& reply = std::get<1>(std::get<2>(last_attempt_));
 

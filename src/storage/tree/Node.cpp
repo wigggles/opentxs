@@ -36,12 +36,13 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
-#include "opentxs/storage/tree/Node.hpp"
+#include "Node.hpp"
 
 #include "opentxs/core/Log.hpp"
-#include "opentxs/storage/Plugin.hpp"
+
+#include "storage/Plugin.hpp"
 
 #define OT_METHOD "opentxs::storage::Node::"
 
@@ -69,9 +70,7 @@ bool Node::delete_item(const std::string& id)
 
     const auto items = item_map_.erase(id);
 
-    if (0 == items) {
-        return false;
-    }
+    if (0 == items) { return false; }
 
     return save(lock);
 }
@@ -97,9 +96,7 @@ std::string Node::get_alias(const std::string& id) const
     std::lock_guard<std::mutex> lock(write_lock_);
     const auto& it = item_map_.find(id);
 
-    if (item_map_.end() != it) {
-        output = std::get<1>(it->second);
-    }
+    if (item_map_.end() != it) { output = std::get<1>(it->second); }
 
     return output;
 }
@@ -146,10 +143,7 @@ bool Node::migrate(
     const std::string& hash,
     const opentxs::api::storage::Driver& to) const
 {
-    if (false == check_hash(hash)) {
-
-        return true;
-    }
+    if (false == check_hash(hash)) { return true; }
 
     return driver_.Migrate(hash, to);
 }
@@ -181,10 +175,7 @@ bool Node::Migrate(const opentxs::api::storage::Driver& to) const
 
 std::string Node::normalize_hash(const std::string& hash)
 {
-    if (hash.empty()) {
-
-        return BLANK_HASH;
-    }
+    if (hash.empty()) { return BLANK_HASH; }
 
     if (proto::MIN_PLAUSIBLE_IDENTIFIER > hash.size()) {
         otErr << OT_METHOD << __FUNCTION__ << ": Blanked out short hash "
@@ -229,9 +220,7 @@ bool Node::set_alias(const std::string& id, const std::string& alias)
 
     const bool exists = (item_map_.end() != item_map_.find(id));
 
-    if (!exists) {
-        return false;
-    }
+    if (!exists) { return false; }
 
     std::get<1>(item_map_[id]) = alias;
 
@@ -276,13 +265,9 @@ bool Node::store_raw(
     auto& metadata = item_map_[id];
     auto& hash = std::get<0>(metadata);
 
-    if (!driver_.Store(true, data, hash)) {
-        return false;
-    }
+    if (!driver_.Store(true, data, hash)) { return false; }
 
-    if (!alias.empty()) {
-        std::get<1>(metadata) = alias;
-    }
+    if (!alias.empty()) { std::get<1>(metadata) = alias; }
 
     return save(lock);
 }

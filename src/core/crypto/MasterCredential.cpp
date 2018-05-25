@@ -60,7 +60,7 @@
 // ChildCredentials are used for all other actions, and never sign other
 // Credentials
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/core/crypto/MasterCredential.hpp"
 
@@ -95,9 +95,7 @@ namespace opentxs
 bool MasterCredential::verify_internally(const Lock& lock) const
 {
     // Perform common Key Credential verifications
-    if (!ot_super::verify_internally(lock)) {
-        return false;
-    }
+    if (!ot_super::verify_internally(lock)) { return false; }
 
     // Check that the source validates this credential
     if (!verify_against_source(lock)) {
@@ -197,9 +195,7 @@ MasterCredential::MasterCredential(
 
 bool MasterCredential::New(const NymParameters& nymParameters)
 {
-    if (!ot_super::New(nymParameters)) {
-        return false;
-    }
+    if (!ot_super::New(nymParameters)) { return false; }
 
     if (proto::SOURCEPROOFTYPE_SELF_SIGNATURE != source_proof_->type()) {
         SerializedSignature sig = std::make_shared<proto::Signature>();

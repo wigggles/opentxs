@@ -35,7 +35,7 @@
  *   for more details.
  *
  ************************************************************/
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "PaymentCode.hpp"
 
@@ -122,9 +122,7 @@ PaymentCode::PaymentCode(const std::string& base58)
         version_ = rawCode[1];
         const std::uint8_t features = rawCode[2];
 
-        if (features & 0x80) {
-            hasBitmessage_ = true;
-        }
+        if (features & 0x80) { hasBitmessage_ = true; }
 
         auto key = Data::Factory(&rawCode[3], 33);
 
@@ -416,9 +414,7 @@ bool PaymentCode::Sign(
             .PrivateToPublic(*privatekey, compareKey);
 #endif
 
-    if (!haveKey) {
-        return false;
-    }
+    if (!haveKey) { return false; }
 
     compareKey.clear_path();
     pubkey_->GetKey(existingKeyData);
@@ -459,9 +455,7 @@ void PaymentCode::ConstructKey(const opentxs::Data& pubkey)
     AsymmetricKeyEC* key = dynamic_cast<AsymmetricKeySecp256k1*>(
         OTAsymmetricKey::KeyFactory(newKey));
 
-    if (nullptr != key) {
-        pubkey_.reset(key);
-    }
+    if (nullptr != key) { pubkey_.reset(key); }
 }
 
 bool PaymentCode::VerifyInternally() const

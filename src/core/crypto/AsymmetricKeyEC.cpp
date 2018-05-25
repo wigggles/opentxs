@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/core/crypto/AsymmetricKeyEC.hpp"
 
@@ -118,10 +118,7 @@ AsymmetricKeyEC::AsymmetricKeyEC(
 
 bool AsymmetricKeyEC::GetKey(Data& key) const
 {
-    if (key_->empty()) {
-
-        return false;
-    }
+    if (key_->empty()) { return false; }
 
     key.Assign(key_.get());
 
@@ -155,10 +152,7 @@ bool AsymmetricKeyEC::GetPublicKey(Data& key) const
         return true;
     }
 
-    if (false == bool(encrypted_key_)) {
-
-        return false;
-    }
+    if (false == bool(encrypted_key_)) { return false; }
 
     return ECDSA().PrivateToPublic(*encrypted_key_, key);
 }
@@ -303,13 +297,9 @@ serializedAsymmetricKey AsymmetricKeyEC::Serialize() const
     if (IsPrivate()) {
         serializedKey->set_mode(proto::KEYMODE_PRIVATE);
 
-        if (path_) {
-            *(serializedKey->mutable_path()) = *path_;
-        }
+        if (path_) { *(serializedKey->mutable_path()) = *path_; }
 
-        if (chain_code_) {
-            *serializedKey->mutable_chaincode() = *chain_code_;
-        }
+        if (chain_code_) { *serializedKey->mutable_chaincode() = *chain_code_; }
 
         if (encrypted_key_) {
             *serializedKey->mutable_encryptedkey() = *encrypted_key_;
@@ -348,13 +338,9 @@ bool AsymmetricKeyEC::SetKey(std::unique_ptr<proto::Ciphertext>& key)
 bool AsymmetricKeyEC::TransportKey(Data& publicKey, OTPassword& privateKey)
     const
 {
-    if (!IsPrivate()) {
-        return false;
-    }
+    if (!IsPrivate()) { return false; }
 
-    if (!encrypted_key_) {
-        return false;
-    }
+    if (!encrypted_key_) { return false; }
 
     OTPassword seed;
     ECDSA().AsymmetricKeyToECPrivatekey(*this, "Get transport key", seed);

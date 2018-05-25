@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/core/util/Assert.hpp"
 
@@ -97,9 +97,7 @@ static inline void dumpBacktrace(std::ostream& os, void** buffer, size_t count)
         const char* symbol = "";
 
         Dl_info info;
-        if (dladdr(addr, &info) && info.dli_sname) {
-            symbol = info.dli_sname;
-        }
+        if (dladdr(addr, &info) && info.dli_sname) { symbol = info.dli_sname; }
 
         os << "  #" << std::setw(2) << idx << ": " << addr << "  " << symbol
            << "\n";

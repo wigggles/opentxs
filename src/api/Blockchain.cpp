@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/api/Blockchain.hpp"
 
@@ -429,17 +429,11 @@ proto::Bip44Address& Blockchain::find_address(
 
     if (chain) {
         for (auto& address : *account.mutable_internaladdress()) {
-            if (address.index() == index) {
-
-                return address;
-            }
+            if (address.index() == index) { return address; }
         }
     } else {
         for (auto& address : *account.mutable_externaladdress()) {
-            if (address.index() == index) {
-
-                return address;
-            }
+            if (address.index() == index) { return address; }
         }
     }
 
@@ -610,10 +604,7 @@ OTIdentifier Blockchain::NewAccount(
 
     const bool saved = storage_.Store(sNymID, type, account);
 
-    if (saved) {
-
-        return accountID;
-    }
+    if (saved) { return accountID; }
 
     otErr << OT_METHOD << __FUNCTION__ << ": Failed to save account."
           << std::endl;
@@ -661,9 +652,7 @@ bool Blockchain::StoreIncoming(
         }
     }
 
-    if (false == exists) {
-        address.add_incoming(transaction.txid());
-    }
+    if (false == exists) { address.add_incoming(transaction.txid()); }
 
     auto saved = storage_.Store(sNymID, account->type(), *account);
 
@@ -683,10 +672,7 @@ bool Blockchain::StoreIncoming(
         return false;
     }
 
-    if (address.contact().empty()) {
-
-        return true;
-    }
+    if (address.contact().empty()) { return true; }
 
     const auto contactID = Identifier::Factory(address.contact());
 
@@ -733,10 +719,7 @@ bool Blockchain::StoreOutgoing(
         return false;
     }
 
-    if (recipientContactID.empty()) {
-
-        return true;
-    }
+    if (recipientContactID.empty()) { return true; }
 
     return activity_.AddBlockchainTransaction(
         senderNymID,

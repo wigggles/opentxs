@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/core/cron/OTCron.hpp"
 
@@ -486,8 +486,8 @@ std::int32_t OTCron::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         OT_ASSERT(nullptr != pMarket);
 
-        pMarket->SetCronPointer(
-            *this);  // This way every Market has a pointer to Cron.
+        pMarket->SetCronPointer(*this);  // This way every Market has a pointer
+                                         // to Cron.
 
         //    AddMarket normally saves to file, but we don't want that when
         // we're LOADING from file, now do we?
@@ -552,8 +552,8 @@ void OTCron::UpdateContents()
         OT_ASSERT(nullptr != pItem);
 
         time64_t tDateAdded = it.first;
-        String strItem(
-            *pItem);  // Extract the cron item contract into string form.
+        String strItem(*pItem);  // Extract the cron item contract into string
+                                 // form.
         OTASCIIArmor ascItem(strItem);  // Base64-encode that for storage.
 
         TagPtr tagCronItem(new Tag("cronItem", ascItem.Get()));
@@ -590,9 +590,7 @@ void OTCron::ProcessCronItems()
     }
 
     // check elapsed time since last items processing
-    if (computeTimeout() > 0) {
-        return;
-    }
+    if (computeTimeout() > 0) { return; }
     tCron.start();
 
     const std::int32_t nTwentyPercent = OTCron::GetCronRefillAmount() / 5;
@@ -685,17 +683,16 @@ bool OTCron::AddCronItem(
         // already there, then THAT is the
         // real problem.
         //
-        if (bSaveReceipt && (!theItem.SignContract(
-                                 *GetServerNym()) ||  // Notice the server adds
-                                                      // its signature
-                             // before saving the cron receipt to local
-                             // storage. This way, the server can
-                             // verify its own signature later, as
-                             // evidence the file hasn't been tampered
-                             // with. (BOTH signatures are there
-                             // now--user's and server's.)
-                             !theItem.SaveContract() ||
-                             !theItem.SaveCronReceipt())) {
+        if (bSaveReceipt &&
+            (!theItem.SignContract(*GetServerNym()) ||  // Notice the server
+                                                        // adds its signature
+             // before saving the cron receipt to local
+             // storage. This way, the server can
+             // verify its own signature later, as
+             // evidence the file hasn't been tampered
+             // with. (BOTH signatures are there
+             // now--user's and server's.)
+             !theItem.SaveContract() || !theItem.SaveCronReceipt())) {
             otErr << __FUNCTION__
                   << ": Error saving receipt while adding new "
                      "CronItem to Cron.\n";
@@ -953,8 +950,8 @@ bool OTCron::AddMarket(OTMarket& theMarket, bool bSaveMarketFile)
 {
     OT_ASSERT(nullptr != GetServerNym());
 
-    theMarket.SetCronPointer(
-        *this);  // This way every Market has a pointer to Cron.
+    theMarket.SetCronPointer(*this);  // This way every Market has a pointer to
+                                      // Cron.
 
     auto MARKET_ID = Identifier::Factory(theMarket);
     String str_MARKET_ID(MARKET_ID);

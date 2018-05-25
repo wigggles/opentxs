@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "opentxs/stdafx.hpp"
+#include "stdafx.hpp"
 
 #include "opentxs/core/Ledger.hpp"
 
@@ -378,9 +378,7 @@ std::set<std::int64_t> Ledger::GetTransactionNums(
         // -------------------------------
         std::set<std::int32_t>::const_iterator it_indices =
             pOnlyForIndices->find(current_index);
-        if (pOnlyForIndices->end() != it_indices) {
-            the_set.insert(lTransNum);
-        }
+        if (pOnlyForIndices->end() != it_indices) { the_set.insert(lTransNum); }
     }
     return the_set;
 }
@@ -923,10 +921,9 @@ bool Ledger::GenerateLedger(
         case Ledger::message:
             otLog4 << "Generating message ledger...\n";
             SetRealAccountID(theAcctID);
-            SetPurportedAccountID(
-                theAcctID);  // It's safe to set these the same
-                             // here, since we're creating the
-                             // ledger now.
+            SetPurportedAccountID(theAcctID);  // It's safe to set these the
+                                               // same here, since we're
+                                               // creating the ledger now.
             SetRealNotaryID(theNotaryID);
             SetPurportedNotaryID(theNotaryID);  // Always want the server ID on
             // anything that the server signs.
@@ -943,9 +940,9 @@ bool Ledger::GenerateLedger(
     SetRealAccountID(theAcctID);  // set this before calling LoadContract... (In
                                   // this case, will just be the Nym ID as
                                   // well...)
-    SetRealNotaryID(
-        theNotaryID);  // (Ledgers/transactions/items were originally
-                       // meant just for account-related functions.)
+    SetRealNotaryID(theNotaryID);  // (Ledgers/transactions/items were
+                                   // originally meant just for account-related
+                                   // functions.)
 
     if (bCreateFile) {
 
@@ -1402,9 +1399,8 @@ OTTransaction* Ledger::GetChequeReceipt(
                     // Also return pCheque, if the caller wants it (otherwise
                     // delete it.)
                     //
-                    if (nullptr !=
-                        ppChequeOut)  // caller wants us to return the
-                                      // cheque pointer as well.
+                    if (nullptr != ppChequeOut)  // caller wants us to return
+                                                 // the cheque pointer as well.
                     {
                         (*ppChequeOut) =
                             pCheque;  // now caller is responsible to delete.
@@ -1595,9 +1591,7 @@ Item* Ledger::GenerateBalanceStatement(
     std::set<TransactionNumber> adding;
     auto statement = context.Statement(adding, removing);
 
-    if (!statement) {
-        return nullptr;
-    }
+    if (!statement) { return nullptr; }
 
     pBalanceItem->SetAttachment(String(*statement));
     std::int64_t lCurrentBalance = theAccount.GetBalance();
@@ -1784,8 +1778,8 @@ void Ledger::UpdateContents()  // Before transmission or serialization, this is
         OTTransaction* pTransaction = it.second;
         OT_ASSERT(nullptr != pTransaction);
 
-        if (false ==
-            bSavingAbbreviated)  // only OTLedger::message uses this block.
+        if (false == bSavingAbbreviated)  // only OTLedger::message uses this
+                                          // block.
         {
             // Save the FULL version of the receipt inside the box, so
             // no separate files are necessary.
@@ -1793,8 +1787,8 @@ void Ledger::UpdateContents()  // Before transmission or serialization, this is
 
             pTransaction->SaveContractRaw(strTransaction);
             OTASCIIArmor ascTransaction;
-            ascTransaction.SetString(
-                strTransaction, true);  // linebreaks = true
+            ascTransaction.SetString(strTransaction, true);  // linebreaks =
+                                                             // true
 
             tag.add_tag("transaction", ascTransaction.Get());
         } else  // true == bSavingAbbreviated
@@ -2054,8 +2048,8 @@ std::int32_t Ledger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                     // "OTTransaction::successNotice",
                                     // otherwise nullptr.
                     if ((-1) == nAbbrevRetVal)
-                        return (
-                            -1);  // The function already logs appropriately.
+                        return (-1);  // The function already logs
+                                      // appropriately.
 
                     //
                     // See if the same-ID transaction already exists in the
@@ -2064,8 +2058,8 @@ std::int32_t Ledger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                     //
                     OTTransaction* pExistingTrans =
                         GetTransaction(lTransactionNum);
-                    if (nullptr !=
-                        pExistingTrans)  // Uh-oh, it's already there!
+                    if (nullptr != pExistingTrans)  // Uh-oh, it's already
+                                                    // there!
                     {
                         otOut << szFunc << ": Error loading transaction "
                               << lTransactionNum << " (" << strExpected
@@ -2373,9 +2367,9 @@ std::int32_t Ledger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                             const std::int64_t lBoxType =
                                 static_cast<std::int64_t>(nBoxType);
 
-                            if (false ==
-                                pTransaction->SaveBoxReceipt(
-                                    lBoxType))  //  <======== SAVE BOX RECEIPT
+                            if (false == pTransaction->SaveBoxReceipt(
+                                             lBoxType))  //  <======== SAVE BOX
+                                                         //  RECEIPT
                                 otErr << "--- FAILED trying to save BoxReceipt "
                                          "from legacy data to local storage!\n";
                         }
