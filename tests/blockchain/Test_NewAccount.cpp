@@ -130,8 +130,8 @@ namespace
   {
     static const proto::ContactItemType INDIVIDUAL = proto::CITEMTYPE_INDIVIDUAL;
 
-    const std::string& Alice = opentxs::OT::App().API().Exec().CreateNymHD(INDIVIDUAL, "Alice", "", 0);
-    const std::string& Bob = opentxs::OT::App().API().Exec().CreateNymHD(INDIVIDUAL, "Bob", "", 1);
+    const std::string& Alice = opentxs::OT::App().API().Exec().CreateNymHD(INDIVIDUAL, "testNymsDiff_Alice", "", 0);
+    const std::string& Bob = opentxs::OT::App().API().Exec().CreateNymHD(INDIVIDUAL, "testNymsDiff_Bob", "", 1);
 
     std::cout << "Created Alice: " << Alice << " \n";
     std::cout << "Created Bob: " << Bob << " \n";
@@ -170,7 +170,7 @@ namespace
   TEST(Test_NewAccount, TestNymIdempotence)
   {
     static const proto::ContactItemType INDIVIDUAL = proto::CITEMTYPE_INDIVIDUAL;    
-    const std::string& Alice = opentxs::OT::App().API().Exec().CreateNymHD(INDIVIDUAL, "Alice", "", 0);
+    const std::string& Alice = opentxs::OT::App().API().Exec().CreateNymHD(INDIVIDUAL, "testNymIdempotence_Alice", "", 0);
     const std::uint32_t BTC = proto::CITEMTYPE_BTC;
         
     const std::string& AliceBIP32AccountID = String(OT::App().Blockchain().NewAccount(Identifier(Alice),
@@ -196,7 +196,7 @@ namespace
   TEST(Test_NewAccount, TestChainDiff)
   {
     static const proto::ContactItemType INDIVIDUAL = proto::CITEMTYPE_INDIVIDUAL;    
-    const std::string& Alice = opentxs::OT::App().API().Exec().CreateNymHD(INDIVIDUAL, "Alice", "", 0);
+    const std::string& Alice = opentxs::OT::App().API().Exec().CreateNymHD(INDIVIDUAL, "testChainDiff_Alice", "", 0);
     const std::uint32_t BTC = proto::CITEMTYPE_BTC;
     const std::uint32_t LTC = proto::CITEMTYPE_LTC;
         

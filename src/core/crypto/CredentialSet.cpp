@@ -104,7 +104,9 @@ bool CredentialSet::Path(proto::HDPath& output) const
 {
     if (m_MasterCredential) {
 
-        return m_MasterCredential->Path(output);
+        const bool found = m_MasterCredential->Path(output);
+        output.mutable_child()->RemoveLast();
+        return found;
     }
 
     otErr << OT_METHOD << __FUNCTION__
@@ -369,9 +371,8 @@ CredentialSet* CredentialSet::LoadMaster(
     const bool bLoaded = pCredential->Load_Master(
         strNymID, strMasterCredID, (nullptr == pPWData) ? &thePWData : pPWData);
     if (!bLoaded) {
-        otErr << __FUNCTION__
-              << ": Failed trying to load master credential "
-                 "from local storage. 1\n";
+        otErr << __FUNCTION__ << ": Failed trying to load master credential "
+                                 "from local storage. 1\n";
         return nullptr;
     }
 
@@ -928,12 +929,16 @@ void CredentialSet::SerializeIDs(
         parent.add_tag(pTag);
 
         if (nullptr != pmapPubInfo)  // optional out-param.
-            pmapPubInfo->insert(std::pair<std::string, std::string>(
-                GetMasterCredID().Get(), m_MasterCredential->asString(false)));
+            pmapPubInfo->insert(
+                std::pair<std::string, std::string>(
+                    GetMasterCredID().Get(),
+                    m_MasterCredential->asString(false)));
 
         if (nullptr != pmapPriInfo)  // optional out-param.
-            pmapPriInfo->insert(std::pair<std::string, std::string>(
-                GetMasterCredID().Get(), m_MasterCredential->asString(true)));
+            pmapPriInfo->insert(
+                std::pair<std::string, std::string>(
+                    GetMasterCredID().Get(),
+                    m_MasterCredential->asString(true)));
     }
 
     for (const auto& it : m_mapCredentials) {
@@ -976,12 +981,14 @@ void CredentialSet::SerializeIDs(
             parent.add_tag(pTag);
 
             if (nullptr != pmapPubInfo)  // optional out-param.
-                pmapPubInfo->insert(std::pair<std::string, std::string>(
-                    str_cred_id.c_str(), pSub->asString(false)));
+                pmapPubInfo->insert(
+                    std::pair<std::string, std::string>(
+                        str_cred_id.c_str(), pSub->asString(false)));
 
             if (nullptr != pmapPriInfo)  // optional out-param.
-                pmapPriInfo->insert(std::pair<std::string, std::string>(
-                    str_cred_id.c_str(), pSub->asString(true)));
+                pmapPriInfo->insert(
+                    std::pair<std::string, std::string>(
+                        str_cred_id.c_str(), pSub->asString(true)));
 
         }  // if (bChildCredValid)
     }

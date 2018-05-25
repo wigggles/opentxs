@@ -301,6 +301,13 @@ bool MasterCredential::Path(proto::HDPath& output) const
         return false;
     }
 
-    return m_SigningKey->GetPrivateKey().Path(output);
+    const bool found = m_SigningKey->GetPrivateKey().Path(output);
+    output.mutable_child()->RemoveLast();
+    return found;
+}
+
+std::string MasterCredential::Path() const
+{
+    return m_SigningKey->GetPrivateKey().Path();
 }
 }  // namespace opentxs

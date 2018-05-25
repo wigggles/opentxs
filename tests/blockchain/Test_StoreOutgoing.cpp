@@ -39,6 +39,7 @@
 #include <gtest/gtest.h>
 
 #include "opentxs/api/Blockchain.hpp"
+#include "opentxs/api/UI.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/core/crypto/Bip39.hpp"
 #include "opentxs/api/Native.hpp"
@@ -48,7 +49,7 @@
 #include "opentxs/client/OTAPI_Exec.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/String.hpp"
-
+#include "opentxs/ui/ActivityThread.hpp"
 using namespace opentxs;
 
 namespace {
@@ -79,10 +80,12 @@ TEST(Test_Blockchain, testStoreOutgoing)
   std::cout << "Created Alice's Nym: " << Alice << " !!\n";
   const std::string& Bob = opentxs::OT::App().API().Exec().CreateNymHD(INDIVIDUAL, "Bob", "", 1);
   std::cout << "Created Bob's Nym: " << Bob << " !!\n";
+  const std::string& Charly = opentxs::OT::App().API().Exec().CreateNymHD(INDIVIDUAL, "Charly", "", 2);
+  std::cout << "Created Charly's Nym: " << Charly << " !!\n";
   
   const std::uint32_t BTC = proto::CITEMTYPE_BTC;
       
-  OTIdentifier AliceAccountID = OT::App().Blockchain().NewAccount(
+    OTIdentifier AliceAccountID = OT::App().Blockchain().NewAccount(
                                                               Identifier(Alice),
                                                               BlockchainAccountType::BIP44,
                                                               static_cast<proto::ContactItemType>(BTC)); 
@@ -91,8 +94,21 @@ TEST(Test_Blockchain, testStoreOutgoing)
   std::cout << "Created Account " << String(AliceAccountID).Get() << " !!\n";
 
   // expect account to have no outgoing transactions
-  ASSERT_EQ((*AliceAccount.get()).outgoing_size(), 0); 
-
+  ASSERT_EQ((*AliceAccount.get()).outgoing_size(), 0);
+  
+  // Allocate outgoing Alice address
+  const std::string& label = "Address label";
+  std::unique_ptr<proto::Bip44Address> AccountAddress = opentxs::OT::App()
+    .Blockchain().AllocateAddress(
+                                  Identifier(Alice),
+                                  Identifier(AliceAccountID),
+                                  label, false);
+  proto::Bip44Address Address = *AccountAddress.get();
+  std::cout << "\nCreated Address " << Address.address() << " (length " << Address.address().length()<< ")!!\n";
+  // check index count increases
+  ASSERT_EQ((*AliceAccount.get()).internalindex(), 0);
+  ASSERT_EQ((*AliceAccount.get()).externalindex(), 1);
+  
   // Associate Address Bob to an outgoing transaction
   proto::BlockchainTransaction* Tx = MakeTransaction();
   bool Stored = opentxs::OT::App().Blockchain().StoreOutgoing(
@@ -113,5 +129,22 @@ TEST(Test_Blockchain, testStoreOutgoing)
   std::shared_ptr<proto::Bip44Account> ReloadedAliceAccount = OT::App().Blockchain().Account(Identifier(Alice), AliceAccountID);
   ASSERT_EQ((*ReloadedAliceAccount.get()).outgoing_size(), 1);  
   ASSERT_STREQ((*ReloadedAliceAccount.get()).outgoing(0).c_str(), Tx->txid().c_str());
+
+
+  // Check that ActivityThread can be get
+    bool assigned = opentxs::OT::App()
+    .Blockchain().AssignAddress(
+                                Identifier(Alice),
+                                Identifier(AliceAccountID),
+                                0, Identifier(Bob), false);
+
+  std::cout << "Assigned address: " << assigned << " !!\n";
+  EXPECT_TRUE(assigned);
+//  const opentxs::ui::ActivityThread& Acts = opentxs::OT::App().UI().ActivityThread(Identifier(Alice), Identifier(Bob));
+  
+  //const std::string ps = Acts.Participants();
+ // EXPECT_STRNE(ps.c_str(),"");
+ // const std::string pcode = Acts.PaymentCode(static_cast<proto::ContactItemType>(BTC));
+ // EXPECT_STREQ(pcode.c_str(),"");
 }
 }

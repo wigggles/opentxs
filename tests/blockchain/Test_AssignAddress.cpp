@@ -56,7 +56,7 @@ namespace {
   /* 
    */ 
   
-TEST(Test_Blockchain, testAssign)
+TEST(Test_Blockchain, testAssignIncomingAddress)
 {
   // create nym and account
   static const proto::ContactItemType INDIVIDUAL = proto::CITEMTYPE_INDIVIDUAL;
