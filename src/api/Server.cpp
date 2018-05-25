@@ -49,14 +49,15 @@
 #include "opentxs/core/Log.hpp"
 #include <opentxs/core/OTStorage.hpp>
 #include "opentxs/core/String.hpp"
-#include "opentxs/server/MessageProcessor.hpp"
-#include "opentxs/server/Server.hpp"
-#include "opentxs/server/ServerSettings.hpp"
 
-#include "Server.hpp"
+#include "server/MessageProcessor.hpp"
+#include "server/Server.hpp"
+#include "server/ServerSettings.hpp"
 
 #include <chrono>
 #include <ctime>
+
+#include "Server.hpp"
 
 #if OT_CASH
 #define SERIES_DIVIDER "."

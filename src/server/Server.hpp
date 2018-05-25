@@ -39,16 +39,17 @@
 #ifndef OPENTXS_SERVER_OTSERVER_HPP
 #define OPENTXS_SERVER_OTSERVER_HPP
 
-#include "opentxs/Forward.hpp"
+#include "Internal.hpp"
 
 #include "opentxs/core/cron/OTCron.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/OTTransaction.hpp"
-#include "opentxs/server/Transactor.hpp"
-#include "opentxs/server/Notary.hpp"
-#include "opentxs/server/MainFile.hpp"
-#include "opentxs/server/UserCommandProcessor.hpp"
+
+#include "Transactor.hpp"
+#include "Notary.hpp"
+#include "MainFile.hpp"
+#include "UserCommandProcessor.hpp"
 
 #include <cstddef>
 #include <map>

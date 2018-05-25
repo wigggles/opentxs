@@ -38,7 +38,7 @@
 
 #include "stdafx.hpp"
 
-#include "opentxs/server/Notary.hpp"
+#include "Notary.hpp"
 
 #include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/Native.hpp"
@@ -73,11 +73,12 @@
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/ext/OTPayment.hpp"
-#include "opentxs/server/Macros.hpp"
-#include "opentxs/server/Server.hpp"
-#include "opentxs/server/PayDividendVisitor.hpp"
-#include "opentxs/server/ServerSettings.hpp"
-#include "opentxs/server/Transactor.hpp"
+
+#include "Macros.hpp"
+#include "Server.hpp"
+#include "PayDividendVisitor.hpp"
+#include "ServerSettings.hpp"
+#include "Transactor.hpp"
 
 #include <cinttypes>
 #include <cstdint>

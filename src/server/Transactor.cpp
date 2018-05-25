@@ -38,7 +38,7 @@
 
 #include "stdafx.hpp"
 
-#include "opentxs/server/Transactor.hpp"
+#include "Transactor.hpp"
 
 #include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/core/Account.hpp"
@@ -49,8 +49,9 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/OTFolders.hpp"
-#include "opentxs/server/MainFile.hpp"
-#include "opentxs/server/Server.hpp"
+
+#include "MainFile.hpp"
+#include "Server.hpp"
 
 #include <cinttypes>
 #include <cstdint>

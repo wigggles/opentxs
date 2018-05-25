@@ -38,7 +38,7 @@
 
 #include "stdafx.hpp"
 
-#include "opentxs/server/MainFile.hpp"
+#include "MainFile.hpp"
 
 #include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
@@ -58,8 +58,9 @@
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/OTStringXML.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/server/Server.hpp"
-#include "opentxs/server/Transactor.hpp"
+
+#include "Server.hpp"
+#include "Transactor.hpp"
 
 #include <irrxml/irrXML.hpp>
 

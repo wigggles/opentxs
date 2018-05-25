@@ -39,7 +39,7 @@
 #ifndef OPENTXS_SERVER_TRANSACTOR_HPP
 #define OPENTXS_SERVER_TRANSACTOR_HPP
 
-#include "opentxs/Forward.hpp"
+#include "Internal.hpp"
 
 #include "opentxs/core/AccountList.hpp"
 #include "opentxs/Types.hpp"

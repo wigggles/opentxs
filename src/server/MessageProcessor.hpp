@@ -36,65 +36,50 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_SERVER_MAINFILE_HPP
-#define OPENTXS_SERVER_MAINFILE_HPP
+#ifndef OPENTXS_SERVER_MESSAGEPROCESSOR_HPP
+#define OPENTXS_SERVER_MESSAGEPROCESSOR_HPP
 
-#include "opentxs/Forward.hpp"
+#include "Internal.hpp"
 
+#include "opentxs/core/Lockable.hpp"
+#include "opentxs/core/Flag.hpp"
+#include "opentxs/network/zeromq/Socket.hpp"
+
+#include <atomic>
+#include <memory>
 #include <string>
+#include <thread>
 
 namespace opentxs
 {
-class String;
-
-namespace api
-{
-class Crypto;
-class Server;
-
-namespace client
-{
-class Wallet;
-}  // namespace client
-}  // namespace api
-
 namespace server
 {
-
-class Server;
-
-class MainFile
+class MessageProcessor : Lockable
 {
 public:
-    explicit MainFile(
+    EXPORT explicit MessageProcessor(
         Server& server,
-        const opentxs::api::Crypto& crypto_,
-        const opentxs::api::client::Wallet& wallet_);
+        const network::zeromq::Context& context,
+        const Flag& running);
 
-    bool CreateMainFile(
-        const std::string& strContract,
-        const std::string& strNotaryID,
-        const std::string& strCert,
-        const std::string& strNymID,
-        const std::string& strCachedKey);
-    bool LoadMainFile(bool readOnly = false);
-    bool LoadServerUserAndContract();
-    bool SaveMainFile();
-    bool SaveMainFileToString(String& filename);
+    EXPORT void cleanup();
+    EXPORT void init(const int port, const OTPassword& privkey);
+    EXPORT void Start();
+
+    EXPORT ~MessageProcessor();
 
 private:
-    Server& server_;  // TODO: remove when feasible
-    const opentxs::api::Crypto& crypto_;
-    const opentxs::api::client::Wallet& wallet_;
-    std::string version_;
+    Server& server_;
+    const Flag& running_;
+    [[maybe_unused]] const network::zeromq::Context& context_;
+    OTZMQReplyCallback reply_socket_callback_;
+    OTZMQReplySocket reply_socket_;
+    std::unique_ptr<std::thread> thread_{nullptr};
 
-    MainFile() = delete;
-    MainFile(const MainFile&) = delete;
-    MainFile(MainFile&&) = delete;
-    MainFile& operator=(const MainFile&) = delete;
-    MainFile& operator=(MainFile&&) = delete;
+    bool processMessage(const std::string& messageString, std::string& reply);
+    OTZMQMessage processSocket(const network::zeromq::Message& incoming);
+    void run();
 };
 }  // namespace server
 }  // namespace opentxs
-
-#endif  // OPENTXS_SERVER_MAINFILE_HPP
+#endif  // OPENTXS_SERVER_MESSAGEPROCESSOR_HPP

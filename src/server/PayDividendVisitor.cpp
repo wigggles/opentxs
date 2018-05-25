@@ -38,7 +38,7 @@
 
 #include "stdafx.hpp"
 
-#include "opentxs/server/PayDividendVisitor.hpp"
+#include "PayDividendVisitor.hpp"
 
 #include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/Native.hpp"
@@ -52,9 +52,10 @@
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/ext/OTPayment.hpp"
-#include "opentxs/server/Server.hpp"
-#include "opentxs/server/Transactor.hpp"
 #include "opentxs/OT.hpp"
+
+#include "Server.hpp"
+#include "Transactor.hpp"
 
 #include <cinttypes>
 #include <cstdint>

@@ -39,7 +39,7 @@
 #ifndef OPENTXS_SERVER_REPLYMESSAGE_HPP
 #define OPENTXS_SERVER_REPLYMESSAGE_HPP
 
-#include "opentxs/Forward.hpp"
+#include "Internal.hpp"
 
 #include "opentxs/api/Editor.hpp"
 #include "opentxs/core/Nym.hpp"

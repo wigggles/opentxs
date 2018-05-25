@@ -39,7 +39,7 @@
 #ifndef OPENTXS_SERVER_SERVERSETTINGS_HPP
 #define OPENTXS_SERVER_SERVERSETTINGS_HPP
 
-#include "opentxs/Forward.hpp"
+#include "Internal.hpp"
 
 #include <cstdint>
 #include <string>

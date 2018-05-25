@@ -38,7 +38,7 @@
 
 #include "stdafx.hpp"
 
-#include "opentxs/server/MessageProcessor.hpp"
+#include "MessageProcessor.hpp"
 
 #include "opentxs/api/network/ZMQ.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
@@ -55,8 +55,9 @@
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/ReplyCallback.hpp"
 #include "opentxs/network/zeromq/ReplySocket.hpp"
-#include "opentxs/server/Server.hpp"
-#include "opentxs/server/UserCommandProcessor.hpp"
+
+#include "Server.hpp"
+#include "UserCommandProcessor.hpp"
 
 #include <stddef.h>
 #include <sys/types.h>

@@ -38,7 +38,7 @@
 
 #include "stdafx.hpp"
 
-#include "opentxs/server/UserCommandProcessor.hpp"
+#include "UserCommandProcessor.hpp"
 
 #include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/Identity.hpp"
@@ -71,13 +71,14 @@
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/server/Macros.hpp"
-#include "opentxs/server/MainFile.hpp"
-#include "opentxs/server/Notary.hpp"
-#include "opentxs/server/Server.hpp"
-#include "opentxs/server/ReplyMessage.hpp"
-#include "opentxs/server/ServerSettings.hpp"
-#include "opentxs/server/Transactor.hpp"
+
+#include "Macros.hpp"
+#include "MainFile.hpp"
+#include "Notary.hpp"
+#include "Server.hpp"
+#include "ReplyMessage.hpp"
+#include "ServerSettings.hpp"
+#include "Transactor.hpp"
 
 #include <cinttypes>
 #include <memory>

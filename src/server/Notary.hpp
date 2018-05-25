@@ -39,7 +39,7 @@
 #ifndef OPENTXS_SERVER_NOTARY_HPP
 #define OPENTXS_SERVER_NOTARY_HPP
 
-#include "opentxs/Forward.hpp"
+#include "Internal.hpp"
 
 namespace opentxs
 {

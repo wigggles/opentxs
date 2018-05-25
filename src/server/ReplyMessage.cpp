@@ -38,6 +38,8 @@
 
 #include "stdafx.hpp"
 
+#include "ReplyMessage.hpp"
+
 #include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/consensus/ClientContext.hpp"
@@ -45,9 +47,9 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/server/Server.hpp"
-#include "opentxs/server/ReplyMessage.hpp"
-#include "opentxs/server/UserCommandProcessor.hpp"
+
+#include "Server.hpp"
+#include "UserCommandProcessor.hpp"
 
 #define OT_METHOD "opentxs::ReplyMessage::"
 

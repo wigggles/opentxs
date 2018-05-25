@@ -13,10 +13,18 @@ set(cxx-sources
   UserCommandProcessor.cpp
 )
 
-file(GLOB cxx-install-headers "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/server/*.hpp")
-
 set(cxx-headers
-  ${cxx-install-headers}
+  ConfigLoader.hpp
+  Macros.hpp
+  MainFile.hpp
+  MessageProcessor.hpp
+  Notary.hpp
+  PayDividendVisitor.hpp
+  ReplyMessage.hpp
+  Server.hpp
+  ServerSettings.hpp
+  Transactor.hpp
+  UserCommandProcessor.hpp
 )
 
 set(MODULE_NAME opentxs-server)
@@ -39,10 +47,6 @@ else()
     ${cxx-headers}
   )
 endif()
-
-install(FILES ${cxx-install-headers}
-        DESTINATION include/opentxs/server
-        COMPONENT dev)
 
 set_property(TARGET ${MODULE_NAME} PROPERTY POSITION_INDEPENDENT_CODE 1)
 set_lib_property(${MODULE_NAME})
