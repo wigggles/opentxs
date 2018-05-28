@@ -96,11 +96,13 @@ set(object-deps
 )
 
 set(cxx-install-headers
+  "${CMAKE_CURRENT_SOURCE_DIR}/../include/opentxs/Exclusive.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../include/opentxs/Forward.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../include/opentxs/opentxs.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../include/opentxs/OT.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../include/opentxs/Pimpl.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../include/opentxs/Proto.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../include/opentxs/Shared.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../include/opentxs/SharedPimpl.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../include/opentxs/Types.hpp"
 )
@@ -108,6 +110,8 @@ set(cxx-install-headers
 set(cxx-headers
   ${cxx-install-headers}
   "${CMAKE_CURRENT_SOURCE_DIR}/Internal.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Exclusive.tpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Shared.tpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/stdafx.hpp"
 )
 

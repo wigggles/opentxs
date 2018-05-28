@@ -59,6 +59,7 @@
 #include "opentxs/core/contract/peer/PeerObject.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
+#include "opentxs/core/Account.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Message.hpp"
@@ -67,12 +68,18 @@
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/PublishSocket.hpp"
 
+#include "Exclusive.tpp"
+#include "Shared.tpp"
+
 #include <functional>
 #include <map>
 #include <mutex>
 #include <tuple>
 
 #include "Wallet.hpp"
+
+template class opentxs::Exclusive<opentxs::Account>;
+template class opentxs::Shared<opentxs::Account>;
 
 #define OT_METHOD "opentxs::api::client::implementation::Wallet::"
 

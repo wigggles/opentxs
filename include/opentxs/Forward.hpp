@@ -41,7 +41,9 @@
 
 #include "opentxs/Version.hpp"
 
+#include "opentxs/Exclusive.hpp"
 #include "opentxs/Pimpl.hpp"
+#include "opentxs/Shared.hpp"
 #include "opentxs/SharedPimpl.hpp"
 
 namespace opentxs
@@ -283,6 +285,10 @@ using OTZMQReplySocket = Pimpl<network::zeromq::ReplySocket>;
 using OTZMQRequestSocket = Pimpl<network::zeromq::RequestSocket>;
 using OTZMQSubscribeSocket = Pimpl<network::zeromq::SubscribeSocket>;
 
+using ExclusiveAccount = Exclusive<Account>;
+
+using SharedAccount = Shared<Account>;
+
 using OTUIActivitySummaryItem = SharedPimpl<ui::ActivitySummaryItem>;
 using OTUIActivityThreadItem = SharedPimpl<ui::ActivityThreadItem>;
 using OTUIBalanceItem = SharedPimpl<ui::BalanceItem>;
@@ -331,4 +337,7 @@ extern template class opentxs::SharedPimpl<opentxs::ui::ProfileItem>;
 extern template class opentxs::SharedPimpl<opentxs::ui::ProfileSection>;
 extern template class opentxs::SharedPimpl<opentxs::ui::ProfileSubsection>;
 
+extern template class opentxs::Exclusive<opentxs::Account>;
+
+extern template class opentxs::Shared<opentxs::Account>;
 #endif  // OPENTXS_FORWARD_HPP
