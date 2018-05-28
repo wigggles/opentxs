@@ -79,6 +79,8 @@
 #include <string>
 #include <utility>
 
+#define OT_METHOD "opentxs::OTWallet::"
+
 namespace opentxs
 {
 
@@ -468,31 +470,7 @@ std::shared_ptr<Account> OTWallet::GetOrLoadAccount(
     const char* szFunc =
         (nullptr != szFuncName) ? szFuncName : "OTWallet::GetOrLoadAccount";
 
-    const String strAcctID(ACCT_ID);
-
-    auto pAccount = get_account(lock, ACCT_ID);
-
-    if (nullptr == pAccount)  // It wasn't there already, so we'll have to load
-                              // it...
-    {
-        otOut << "OTWallet::GetOrLoadAccount " << szFunc
-              << ": There's no asset account in the wallet with that ID ("
-              << strAcctID
-              << "). "
-                 "Attempting to load it from storage...\n";
-        pAccount = load_account(lock, theNym, ACCT_ID, NOTARY_ID, szFuncName);
-    }  // pAccount == nullptr.
-
-    // It either was already there, or it loaded successfully...
-    //
-    if (false == bool(pAccount))  // pAccount EXISTS...
-    {
-        otErr << "OTWallet::GetOrLoadAccount " << szFunc
-              << ": Error loading Asset Account: " << strAcctID << "\n";
-        return nullptr;
-    }
-
-    return pAccount;
+    return obtain_account(lock, theNym, ACCT_ID, NOTARY_ID, szFunc);
 }
 
 // No need to cleanup the account returned, it's owned by the wallet.
@@ -1176,6 +1154,84 @@ std::set<AccountInfo> OTWallet::AccountList() const
     }
 
     return output;
+}
+
+std::shared_ptr<Account> OTWallet::obtain_account(
+    const Lock& lock,
+    const Nym& theNym,
+    const Identifier& ACCT_ID,
+    const Identifier& NOTARY_ID,
+    const char* szFuncName)
+{
+    OT_ASSERT(verify_lock(lock))
+
+    auto output = get_account(lock, ACCT_ID);
+
+    if (output) { return output; }
+
+    otWarn << OT_METHOD << __FUNCTION__ << ": Loading account " << ACCT_ID.str()
+           << " from storage." << std::endl;
+    output = load_account(lock, theNym, ACCT_ID, NOTARY_ID, szFuncName);
+
+    if (output) { return output; }
+
+    otErr << OT_METHOD << __FUNCTION__ << ": Failed to load account "
+          << ACCT_ID.str() << std::endl;
+
+    return {};
+}
+
+bool OTWallet::UpdateAccount(
+    const Nym& nym,
+    const Nym& serverNym,
+    const Identifier& serverID,
+    const Identifier& accountID,
+    const String& contract)
+{
+    Lock lock(lock_);
+    std::shared_ptr<Account> account{
+        new Account(nym.ID(), accountID, serverID)};
+
+    if (false == bool(account)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Unable to construct account"
+              << std::endl;
+
+        return false;
+    }
+
+    if (false == account->LoadContractFromString(contract)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Unable to deserialize account"
+              << std::endl;
+
+        return false;
+    }
+
+    if (false == account->VerifyAccount(serverNym)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Unable to verify account"
+              << std::endl;
+
+        return false;
+    }
+
+    account->ReleaseSignatures();
+
+    if (false == account->SignContract(nym)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Unable to sign account"
+              << std::endl;
+
+        return false;
+    }
+
+    if (false == account->SaveContract()) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Unable to serialize account"
+              << std::endl;
+
+        return false;
+    }
+
+    add_account(lock, account);
+
+    return save_wallet(lock);
 }
 
 OTWallet::~OTWallet()

@@ -72,17 +72,39 @@ public:
         err_acct
     };
 
-public:
-    EXPORT Account(
+private:
+    friend AccountList;
+    friend Ledger;
+    friend Mint;
+    friend OTCronItem;
+    friend OTMarket;
+    friend OTPartyAccount;
+    friend OTPaymentPlan;
+    friend OTSmartContract;
+    friend OTWallet;
+    friend UnitDefinition;
+    friend server::Notary;
+    friend server::UserCommandProcessor;
+
+    // Let's say you don't have or know the NymID, and you just want to load
+    // the damn thing up. Then call this function. It will set nymID for you.
+    static Account* LoadExistingAccount(
+        const Identifier& accountId,
+        const Identifier& notaryID);
+
+    Account(
         const Identifier& nymID,
         const Identifier& accountId,
         const Identifier& notaryID,
         const String& name);
-    EXPORT Account(
+    Account(
         const Identifier& nymID,
         const Identifier& accountId,
         const Identifier& notaryID);
+    Account(const Identifier& nymID, const Identifier& notaryID);
+    Account();
 
+public:
     EXPORT virtual ~Account();
 
     EXPORT void Release() override;
@@ -136,11 +158,6 @@ public:
         AccountType acctType = user,
         std::int64_t stashTransNum = 0);
 
-    // Let's say you don't have or know the NymID, and you just want to load
-    // the damn thing up. Then call this function. It will set nymID for you.
-    EXPORT static Account* LoadExistingAccount(
-        const Identifier& accountId,
-        const Identifier& notaryID);
     // Caller responsible to delete.
     EXPORT Ledger* LoadInbox(const Nym& nym) const;
     // Caller responsible to delete.
@@ -179,9 +196,6 @@ public:
     }
 
 protected:
-    Account(const Identifier& nymID, const Identifier& notaryID);
-    Account();
-
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
     std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
 

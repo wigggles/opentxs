@@ -40,6 +40,7 @@
 
 #include "opentxs/core/OTTransaction.hpp"
 
+#include "opentxs/client/OTWallet.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/consensus/TransactionStatement.hpp"
 #include "opentxs/core/cron/OTCronItem.hpp"
@@ -1268,7 +1269,9 @@ bool OTTransaction::HarvestClosingNumbers(
 // inbox/outbox/account/nym to sign a NEW receipt, causing me to sign agreement
 // to invalid data!  Instead, I want a red flag to go up, and the receipt
 // automatically saved to a disputes folder, etc.
-bool OTTransaction::VerifyBalanceReceipt(const ServerContext& context)
+bool OTTransaction::VerifyBalanceReceipt(
+    OTWallet& wallet,
+    const ServerContext& context)
 {
     // Compare the inbox I just downloaded with what my last signed receipt SAYS
     // it should say. Let's say the inbox has transaction 9 in it -- well, my
@@ -1569,26 +1572,18 @@ bool OTTransaction::VerifyBalanceReceipt(const ServerContext& context)
         pItemWithIssuedList = pTransactionItem;
     }
 
-    Account THE_ACCOUNT(NYM_ID, GetRealAccountID(), GetRealNotaryID());
+    auto account = wallet.GetOrLoadAccount(
+        *context.Nym(), GetRealAccountID(), GetRealNotaryID());
 
-    if (!THE_ACCOUNT.LoadContract() || !THE_ACCOUNT.VerifyAccount(THE_NYM)) {
+    if (false == bool(account)) {
         otOut << "Failed loading or verifying account for THE_NYM in "
                  "OTTransaction::VerifyBalanceReceipt.\n";
 
         return false;
-    } else if (THE_ACCOUNT.GetPurportedNotaryID() != GetPurportedNotaryID()) {
-        otOut << "Account, inbox or outbox server ID fails to match receipt "
-                 "server ID.\n";
-
-        return false;
-    } else if (THE_ACCOUNT.GetPurportedAccountID() != GetPurportedAccountID()) {
-        otOut << "Account ID fails to match receipt account ID.\n";
-
-        return false;
     }
 
-    std::unique_ptr<Ledger> pInbox(THE_ACCOUNT.LoadInbox(THE_NYM));
-    std::unique_ptr<Ledger> pOutbox(THE_ACCOUNT.LoadOutbox(THE_NYM));
+    std::unique_ptr<Ledger> pInbox(account->LoadInbox(THE_NYM));
+    std::unique_ptr<Ledger> pOutbox(account->LoadOutbox(THE_NYM));
 
     if ((!pInbox) || (!pOutbox)) {
         otOut << "Inbox or outbox was nullptr after THE_ACCOUNT.Load in "
@@ -2603,12 +2598,12 @@ bool OTTransaction::VerifyBalanceReceipt(const ServerContext& context)
     // from the last balance statement!
     const bool wrongBalance =
         (pBalanceItem->GetAmount() !=
-         (THE_ACCOUNT.GetBalance() + (lActualDifference * (-1))));
+         (account->GetBalance() + (lActualDifference * (-1))));
 
     if (wrongBalance) {
         otErr << "OTTransaction::" << __FUNCTION__
               << ": lActualDifference in receipts (" << lActualDifference
-              << ") plus current acct balance (" << THE_ACCOUNT.GetBalance()
+              << ") plus current acct balance (" << account->GetBalance()
               << ") is NOT equal to last signed balance ("
               << pBalanceItem->GetAmount() << ")" << std::endl;
 

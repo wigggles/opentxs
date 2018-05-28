@@ -605,7 +605,9 @@ public:
     // Call on abbreviated version, and pass in the purported full version.
     bool VerifyBoxReceipt(OTTransaction& theFullVersion);
 
-    EXPORT bool VerifyBalanceReceipt(const ServerContext& context);
+    EXPORT bool VerifyBalanceReceipt(
+        OTWallet& wallet,
+        const ServerContext& context);
 
     // First VerifyContractID() is performed already on all the items when
     // they are first loaded up. NotaryID and AccountID have been verified.
@@ -775,9 +777,9 @@ protected:
 
     time64_t m_DATE_SIGNED{0};  // The date, in seconds, when the instrument was
                                 // last signed.
-    transactionType m_Type{
-        error_state};  // blank, pending, processInbox, transfer, deposit,
-                       // withdrawal, trade, etc.
+    transactionType m_Type{error_state};  // blank, pending, processInbox,
+                                          // transfer, deposit, withdrawal,
+                                          // trade, etc.
     listOfItems m_listItems;  // the various items in this transaction.
 
     TransactionNumber m_lClosingTransactionNo{0};  // used by finalReceipt
@@ -792,9 +794,9 @@ protected:
     // have added a special variable here for request numbers, so that
     // replyNotices in the Nymbox can directly finger the messages they
     // came from.
-    RequestNumber m_lRequestNumber{
-        0};  // Unused except by "replyNotice" in Nymbox.
-    bool m_bReplyTransSuccess{false};  // Used only by replyNotice
+    RequestNumber m_lRequestNumber{0};  // Unused except by "replyNotice" in
+                                        // Nymbox.
+    bool m_bReplyTransSuccess{false};   // Used only by replyNotice
     // Unused except for notarizeTransactionResponse, specifically for
     // @paymentPlan
     // and @smartContract. (And maybe @depositCheque...) There are specific

@@ -157,6 +157,12 @@ public:
     // these two will require a server message, in addition to removing from
     // wallet. (To delete them on server side.)
     EXPORT bool SaveWallet(const char* szFilename = nullptr);
+    EXPORT bool UpdateAccount(
+        const Nym& nym,
+        const Nym& serverNym,
+        const Identifier& serverID,
+        const Identifier& accountID,
+        const String& contract);
 
     EXPORT ~OTWallet();
 
@@ -223,6 +229,12 @@ private:
         const Lock& lock,
         const Identifier& theAccountID);
     std::shared_ptr<Account> load_account(
+        const Lock& lock,
+        const Nym& theNym,
+        const Identifier& ACCT_ID,
+        const Identifier& NOTARY_ID,
+        const char* szFuncName = nullptr);
+    std::shared_ptr<Account> obtain_account(
         const Lock& lock,
         const Nym& theNym,
         const Identifier& ACCT_ID,

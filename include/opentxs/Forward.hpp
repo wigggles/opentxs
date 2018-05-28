@@ -134,7 +134,9 @@ class TradeListMarket;
 namespace server
 {
 class MessageProcessor;
+class Notary;
 class Server;
+class UserCommandProcessor;
 }  // namespace server
 
 namespace ui
@@ -162,6 +164,7 @@ class ProfileSubsection;
 }  // namespace ui
 
 class Account;
+class AccountList;
 class AccountVisitor;
 class AsymmetricKeyEC;
 class Basket;
@@ -224,6 +227,7 @@ class OTKeypair;
 class OTMarket;
 class OTNym_or_SymmetricKey;
 class OTOffer;
+class OTPartyAccount;
 class OTPassword;
 class OTPasswordData;
 class OTPaths;

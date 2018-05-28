@@ -46,6 +46,7 @@
 #include "opentxs/api/network/ZMQ.hpp"
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Activity.hpp"
+#include "opentxs/api/Api.hpp"
 #include "opentxs/api/Identity.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/api/Settings.hpp"
@@ -114,6 +115,7 @@
 #include "opentxs/ext/InstantiateContract.hpp"
 #include "opentxs/ext/OTPayment.hpp"
 #include "opentxs/network/ServerConnection.hpp"
+#include "opentxs/OT.hpp"
 #include "opentxs/Proto.hpp"
 
 #include <signal.h>
@@ -236,6 +238,10 @@ bool VerifyBalanceReceipt(
     const Identifier& NOTARY_ID,
     const Identifier& accountID)
 {
+    auto pWallet = OT::App().API().OTAPI().GetWallet(__FUNCTION__);
+
+    if (nullptr == pWallet) { return false; }
+
     const auto& THE_NYM = *context.Nym();
     const auto& SERVER_NYM = context.RemoteNym();
     auto NYM_ID = Identifier::Factory(THE_NYM),
@@ -331,7 +337,7 @@ bool VerifyBalanceReceipt(
     // At this point, transaction is successfully loaded and verified,
     // containing the last balance receipt.
 
-    return transaction->VerifyBalanceReceipt(context);
+    return transaction->VerifyBalanceReceipt(*pWallet, context);
 }
 
 }  // namespace
