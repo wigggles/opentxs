@@ -43,9 +43,28 @@
 
 namespace opentxs::api::client::implementation
 {
-class Wallet : virtual public opentxs::api::client::Wallet
+class Wallet : virtual public opentxs::api::client::Wallet, Lockable
 {
 public:
+    SharedAccount Account(const Identifier& accountID) const override;
+    OTIdentifier AccountPartialMatch(const std::string& hint) const override;
+    ExclusiveAccount CreateAccount(
+        const Identifier& ownerNymID,
+        const Identifier& notaryID,
+        const Identifier& instrumentDefinitionID,
+        const class Nym& signer,
+        Account::AccountType type,
+        TransactionNumber stash) const override;
+    bool DeleteAccount(const Identifier& accountID) const override;
+    SharedAccount IssuerAccount(const Identifier& unitID) const override;
+    ExclusiveAccount mutable_Account(
+        const Identifier& accountID) const override;
+    bool UpdateAccount(
+        const Identifier& accountID,
+        const opentxs::ServerContext& context,
+        const String& serialized) const override;
+    bool ImportAccount(
+        std::unique_ptr<opentxs::Account>& imported) const override;
     std::shared_ptr<const opentxs::Context> Context(
         const Identifier& notaryID,
         const Identifier& clientNymID) const override;
@@ -187,27 +206,34 @@ public:
     ~Wallet();
 
 private:
-    typedef std::pair<std::mutex, std::shared_ptr<class Nym>> NymLock;
-    typedef std::map<std::string, NymLock> NymMap;
-    typedef std::map<std::string, std::shared_ptr<class ServerContract>>
-        ServerMap;
-    typedef std::map<std::string, std::shared_ptr<class UnitDefinition>>
-        UnitMap;
-    typedef std::pair<std::string, std::string> ContextID;
-    typedef std::map<ContextID, std::shared_ptr<class Context>> ContextMap;
-    typedef std::pair<Identifier, Identifier> IssuerID;
-    typedef std::pair<std::mutex, std::shared_ptr<api::client::Issuer>>
-        IssuerLock;
-    typedef std::map<IssuerID, IssuerLock> IssuerMap;
+    using AccountLock =
+        std::pair<std::shared_mutex, std::unique_ptr<class Account>>;
+    using AccountMap = std::map<OTIdentifier, AccountLock>;
+    using NymLock = std::pair<std::mutex, std::shared_ptr<class Nym>>;
+    using NymMap = std::map<std::string, NymLock>;
+    using ServerMap =
+        std::map<std::string, std::shared_ptr<class ServerContract>>;
+    using UnitMap =
+        std::map<std::string, std::shared_ptr<class UnitDefinition>>;
+    using ContextID = std::pair<std::string, std::string>;
+    using ContextMap = std::map<ContextID, std::shared_ptr<class Context>>;
+    using IssuerID = std::pair<Identifier, Identifier>;
+    using IssuerLock =
+        std::pair<std::mutex, std::shared_ptr<api::client::Issuer>>;
+    using IssuerMap = std::map<IssuerID, IssuerLock>;
 
     friend Factory;
 
+    static const std::map<std::string, proto::ContactItemType> unit_of_account_;
+
     const Native& ot_;
+    mutable AccountMap account_map_;
     mutable NymMap nym_map_;
     mutable ServerMap server_map_;
     mutable UnitMap unit_map_;
     mutable ContextMap context_map_;
     mutable IssuerMap issuer_map_;
+    mutable std::mutex account_map_lock_;
     mutable std::mutex nym_map_lock_;
     mutable std::mutex server_map_lock_;
     mutable std::mutex unit_map_lock_;
@@ -219,13 +245,36 @@ private:
     mutable std::map<Identifier, std::mutex> nymfile_lock_;
     OTZMQPublishSocket nym_publisher_;
 
+    std::string account_alias(const std::string& accountID) const;
+    opentxs::Account* account_factory(
+        const Identifier& accountID,
+        const std::string& alias,
+        const std::string& serialized) const;
+    proto::ContactItemType extract_unit(const Identifier& contractID) const;
+    proto::ContactItemType extract_unit(
+        const opentxs::UnitDefinition& contract) const;
+    bool load_legacy_account(
+        const Identifier& accountID,
+        const Identifier& notaryID,
+        const eLock& lock,
+        AccountLock& row) const;
     std::mutex& nymfile_lock(const Identifier& nymID) const;
     std::mutex& peer_lock(const std::string& nymID) const;
+    void save(
+        const std::string id,
+        opentxs::Account* in,
+        eLock& lock,
+        bool success) const;
     void save(class Context* context) const;
     void save(const Lock& lock, api::client::Issuer* in) const;
     void save(class NymFile* nym, const Lock& lock) const;
     std::shared_ptr<const class Nym> signer_nym(const Identifier& id) const;
 
+    /* Throws std::out_of_range for missing accounts */
+    AccountLock& account(
+        const Lock& lock,
+        const Identifier& accountID,
+        const bool create) const;
     std::shared_ptr<class Context> context(
         const Identifier& localNymID,
         const Identifier& remoteNymID) const;
