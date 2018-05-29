@@ -1563,11 +1563,6 @@ std::int32_t OTAPI_Exec::GetAssetTypeCount(void) const
     return units.size();
 }
 
-std::int32_t OTAPI_Exec::GetAccountCount(void) const
-{
-    return ot_api_.GetAccountCount();
-}
-
 // *** FUNCTIONS FOR REMOVING VARIOUS CONTRACTS AND NYMS FROM THE WALLET ***
 
 // Can I remove this server contract from my wallet?
@@ -1581,51 +1576,7 @@ std::int32_t OTAPI_Exec::GetAccountCount(void) const
 //
 bool OTAPI_Exec::Wallet_CanRemoveServer(const std::string& NOTARY_ID) const
 {
-    Lock lock(lock_);
-
-    OT_ASSERT_MSG(
-        !NOTARY_ID.empty(),
-        "OTAPI_Exec::Wallet_CanRemoveServer: Null NOTARY_ID passed in.");
-
-    auto theID = Identifier::Factory(NOTARY_ID);
-    const std::int32_t& nCount = OTAPI_Exec::GetAccountCount();
-
-    // Loop through all the accounts.
-    for (std::int32_t i = 0; i < nCount; i++) {
-        std::string pAcctID = OTAPI_Exec::GetAccountWallet_ID(i);
-        String strAcctID(pAcctID);
-
-        std::string pID =
-            OTAPI_Exec::GetAccountWallet_NotaryID(strAcctID.Get());
-        auto theCompareID = Identifier::Factory(pID);
-
-        if (theID == theCompareID) {
-            otOut << OT_METHOD << __FUNCTION__
-                  << ": Unable to remove server contract " << NOTARY_ID
-                  << " from "
-                     "wallet, because Account "
-                  << strAcctID << " uses it.\n";
-            return false;
-        }
-    }
-
-    // Loop through all the Nyms. (One might be registered on that server.)
-    //
-
-    std::set<OTIdentifier> nymIDs = wallet_.LocalNyms();
-    for (auto& nymID : nymIDs) {
-        if (true ==
-            OTAPI_Exec::IsNym_RegisteredAtServer(nymID->str(), NOTARY_ID)) {
-            otOut << OT_METHOD << __FUNCTION__
-                  << ": Unable to remove server contract " << NOTARY_ID
-                  << " from "
-                     "wallet, because Nym "
-                  << nymID->str()
-                  << " is registered there. (Delete that first...)\n";
-            return false;
-        }
-    }
-    return true;
+    return ot_api_.Wallet_CanRemoveServer(Identifier::Factory(NOTARY_ID));
 }
 
 // Remove this server contract from my wallet!
@@ -1681,38 +1632,8 @@ bool OTAPI_Exec::Wallet_RemoveServer(const std::string& NOTARY_ID) const
 bool OTAPI_Exec::Wallet_CanRemoveAssetType(
     const std::string& INSTRUMENT_DEFINITION_ID) const
 {
-    Lock lock(lock_);
-
-    OT_ASSERT_MSG(
-        !INSTRUMENT_DEFINITION_ID.empty(),
-        "OTAPI_Exec::Wallet_"
-        "CanRemoveAssetType: Null "
-        "INSTRUMENT_DEFINITION_ID "
-        "passed in.");
-
-    auto theID = Identifier::Factory(INSTRUMENT_DEFINITION_ID);
-    const std::int32_t& nCount = GetAccountCount();
-
-    // Loop through all the accounts.
-    for (std::int32_t i = 0; i < nCount; i++) {
-        std::string pAcctID = GetAccountWallet_ID(i);
-        String strAcctID(pAcctID);
-
-        std::string pID =
-            GetAccountWallet_InstrumentDefinitionID(strAcctID.Get());
-        auto theCompareID = Identifier::Factory(pID);
-
-        if (theID == theCompareID) {
-            otOut << OT_METHOD << __FUNCTION__
-                  << ": Unable to remove asset contract "
-                  << INSTRUMENT_DEFINITION_ID
-                  << " from "
-                     "wallet: Account "
-                  << strAcctID << " uses it.\n";
-            return false;
-        }
-    }
-    return true;
+    return ot_api_.Wallet_CanRemoveAssetType(
+        Identifier::Factory(INSTRUMENT_DEFINITION_ID));
 }
 
 // Remove this asset contract from my wallet!
@@ -1825,14 +1746,13 @@ bool OTAPI_Exec::Wallet_CanRemoveAccount(const std::string& ACCOUNT_ID) const
         "OTAPI_Exec::Wallet_CanRemoveAccount: Null ACCOUNT_ID passed in.");
 
     const auto theAccountID = Identifier::Factory(ACCOUNT_ID);
+    auto account = wallet_.Account(theAccountID);
 
-    auto pAccount = ot_api_.GetAccount(theAccountID, __FUNCTION__);
-
-    if (false == bool(pAccount)) {
+    if (false == bool(account)) {
 
         return false;
         // Balance must be zero in order to close an account!
-    } else if (pAccount->GetBalance() != 0) {
+    } else if (account.get().GetBalance() != 0) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Account balance MUST be zero in order to "
                  "close an asset account: "
@@ -1841,8 +1761,8 @@ bool OTAPI_Exec::Wallet_CanRemoveAccount(const std::string& ACCOUNT_ID) const
     }
     bool BOOL_RETURN_VALUE = false;
 
-    const Identifier& theNotaryID = pAccount->GetPurportedNotaryID();
-    const Identifier& theNymID = pAccount->GetNymID();
+    const Identifier& theNotaryID = account.get().GetPurportedNotaryID();
+    const Identifier& theNymID = account.get().GetNymID();
 
     // There is an OT_ASSERT in here for memory failure,
     // but it still might return "" if various verification fails.
@@ -2162,42 +2082,7 @@ std::string OTAPI_Exec::Wallet_GetInstrumentDefinitionIDFromPartial(
 std::string OTAPI_Exec::Wallet_GetAccountIDFromPartial(
     const std::string& PARTIAL_ID) const
 {
-    if (PARTIAL_ID.empty()) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Null: PARTIAL_ID passed in!\n";
-        return {};
-    }
-
-    std::shared_ptr<Account> pObject{nullptr};
-    auto thePartialID = Identifier::Factory(PARTIAL_ID);
-
-    // In this case, the user passed in the FULL ID.
-    // (We STILL confirm whether he's found in the wallet...)
-    //
-    if (!thePartialID->empty())
-        pObject = ot_api_.GetAccount(
-            thePartialID, "OTAPI_Exec::Wallet_GetAccountIDFromPartial");
-
-    if (pObject)  // Found it (as full ID.)
-    {
-        String strID_Output(thePartialID);
-        std::string pBuf = strID_Output.Get();
-        return pBuf;
-    }
-    // Below this point, it definitely wasn't a FULL ID, so now we can
-    // go ahead and search for it as a PARTIAL ID...
-    //
-    pObject = ot_api_.GetAccountPartialMatch(
-        PARTIAL_ID, "OTAPI_Exec::Wallet_GetAccountIDFromPartial");
-
-    if (pObject)  // Found it (as partial ID.)
-    {
-        String strID_Output;
-        pObject->GetIdentifier(strID_Output);
-        std::string pBuf = strID_Output.Get();
-        return pBuf;
-    }
-
-    return {};
+    return wallet_.AccountPartialMatch(PARTIAL_ID)->str();
 }
 
 /// based on Index this returns the Nym's ID
@@ -3554,30 +3439,6 @@ std::string OTAPI_Exec::GetAssetType_TLA(const std::string& THE_ID) const
     return unit->TLA();
 }
 
-// returns a string containing the account ID, based on index.
-std::string OTAPI_Exec::GetAccountWallet_ID(const std::int32_t& nIndex) const
-{
-    if (0 > nIndex) {
-        otErr << OT_METHOD << __FUNCTION__
-              << ": nIndex is out of bounds (it's in the negative!)\n";
-        return {};
-    }
-
-    auto theID = Identifier::Factory();
-    String strName;
-
-    auto pAccount = ot_api_.GetAccount(nIndex, theID, strName);
-
-    if (pAccount) {
-        String strID(theID);
-
-        std::string pBuf = strID.Get();
-
-        return pBuf;
-    }
-    return {};
-}
-
 // returns the account name, based on account ID.
 std::string OTAPI_Exec::GetAccountWallet_Name(const std::string& THE_ID) const
 {
@@ -3586,66 +3447,14 @@ std::string OTAPI_Exec::GetAccountWallet_Name(const std::string& THE_ID) const
         "OTAPI_Exec::GetAccountWallet_Name: Null THE_ID passed in.");
 
     auto theID = Identifier::Factory(THE_ID);
-    std::string strFunc = "OTAPI_Exec::GetAccountWallet_Name";
-    auto pAccount = ot_api_.GetAccount(theID, strFunc.c_str());
+    auto account = wallet_.Account(theID);
 
-    if (false == bool(pAccount)) { return {}; }
+    if (false == bool(account)) { return {}; }
 
     String strName;
-    pAccount->GetName(strName);
+    account.get().GetName(strName);
 
     return strName.Get();
-}
-
-std::string OTAPI_Exec::GetAccountWallet_InboxHash(
-    const std::string& ACCOUNT_ID) const  // returns latest InboxHash according
-                                          // to the
-// account file. (Usually more recent than:
-// OTAPI_Exec::GetNym_InboxHash)
-{
-    OT_ASSERT_MSG(
-        !ACCOUNT_ID.empty(),
-        "OTAPI_Exec::GetAccountWallet_InboxHash: Null ACCOUNT_ID passed in.");
-
-    auto theID = Identifier::Factory(ACCOUNT_ID);
-    auto pAccount = ot_api_.GetAccount(theID, __FUNCTION__);
-
-    if (false == bool(pAccount)) { return {}; }
-
-    auto theOutput = Identifier::Factory();
-    const bool bGotHash = pAccount->GetInboxHash(theOutput);
-
-    String strOutput;
-
-    if (bGotHash) theOutput->GetString(strOutput);
-
-    return strOutput.Get();
-}
-
-std::string OTAPI_Exec::GetAccountWallet_OutboxHash(
-    const std::string& ACCOUNT_ID) const  // returns latest OutboxHash according
-                                          // to the
-// account file. (Usually more recent than:
-// OTAPI_Exec::GetNym_OutboxHash)
-{
-    OT_ASSERT_MSG(
-        !ACCOUNT_ID.empty(),
-        "OTAPI_Exec::GetAccountWallet_OutboxHash: Null ACCOUNT_ID passed in.");
-
-    auto theID = Identifier::Factory(ACCOUNT_ID);
-
-    auto pAccount = ot_api_.GetAccount(theID, __FUNCTION__);
-
-    if (false == bool(pAccount)) { return {}; }
-
-    auto theOutput = Identifier::Factory();
-    const bool bGotHash = pAccount->GetOutboxHash(theOutput);
-
-    String strOutput;
-
-    if (bGotHash) theOutput->GetString(strOutput);
-
-    return strOutput.Get();
 }
 
 /** TIME (in seconds, as string)
@@ -4150,8 +3959,8 @@ std::int64_t OTAPI_Exec::GetAccountWallet_Balance(
         "OTAPI_Exec::GetAccountWallet_Balance: Null THE_ID passed in.");
 
     auto theID = Identifier::Factory(THE_ID);
-    auto pAccount = ot_api_.GetAccount(theID, __FUNCTION__);
-    return (pAccount) ? pAccount->GetBalance() : OT_ERROR_AMOUNT;
+    auto account = wallet_.Account(theID);
+    return (account) ? account.get().GetBalance() : OT_ERROR_AMOUNT;
 }
 
 // returns an account's "account type", (simple, issuer, etc.)
@@ -4162,11 +3971,11 @@ std::string OTAPI_Exec::GetAccountWallet_Type(const std::string& THE_ID) const
         "OTAPI_Exec::GetAccountWallet_Type: Null THE_ID passed in.");
 
     auto theID = Identifier::Factory(THE_ID);
-    auto pAccount = ot_api_.GetAccount(theID, __FUNCTION__);
+    auto account = wallet_.Account(theID);
 
-    if (false == bool(pAccount)) return {};
+    if (false == bool(account)) return {};
 
-    return pAccount->GetTypeString();
+    return account.get().GetTypeString();
 }
 
 // Returns an account's instrument definition ID.
@@ -4177,12 +3986,12 @@ std::string OTAPI_Exec::GetAccountWallet_InstrumentDefinitionID(
     OT_VERIFY_ID_STR(THE_ID);
 
     auto theID = Identifier::Factory(THE_ID);
-    auto pAccount = ot_api_.GetAccount(theID, __FUNCTION__);
+    auto account = wallet_.Account(theID);
 
-    if (false == bool(pAccount)) return {};
+    if (false == bool(account)) return {};
 
     auto theInstrumentDefinitionID =
-        Identifier::Factory(pAccount->GetInstrumentDefinitionID());
+        Identifier::Factory(account.get().GetInstrumentDefinitionID());
     otWarn << OT_METHOD << __FUNCTION__ << ": Returning instrument definition "
            << theInstrumentDefinitionID->str() << " for account " << THE_ID
            << "\n";
@@ -4198,11 +4007,12 @@ std::string OTAPI_Exec::GetAccountWallet_NotaryID(
     OT_VERIFY_ID_STR(THE_ID);
 
     auto theID = Identifier::Factory(THE_ID);
-    auto pAccount = ot_api_.GetAccount(theID, __FUNCTION__);
+    auto account = wallet_.Account(theID);
 
-    if (false == bool(pAccount)) return {};
+    if (false == bool(account)) return {};
 
-    auto theNotaryID = Identifier::Factory(pAccount->GetPurportedNotaryID());
+    auto theNotaryID =
+        Identifier::Factory(account.get().GetPurportedNotaryID());
 
     return theNotaryID->str();
 }
@@ -4214,12 +4024,11 @@ std::string OTAPI_Exec::GetAccountWallet_NymID(const std::string& THE_ID) const
     OT_VERIFY_ID_STR(THE_ID);
 
     const auto theID = Identifier::Factory(THE_ID);
+    auto account = wallet_.Account(theID);
 
-    auto pAccount = ot_api_.GetAccount(theID, __FUNCTION__);
+    if (false == bool(account)) return {};
 
-    if (false == bool(pAccount)) return {};
-
-    auto theNymID = Identifier::Factory(pAccount->GetNymID());
+    auto theNymID = Identifier::Factory(account.get().GetNymID());
 
     return theNymID->str();
 }
@@ -6852,10 +6661,10 @@ bool OTAPI_Exec::Msg_HarvestTransactionNumbers(
             // Now we need to find the account ID (so we can find the server
             // ID...)
             //
-            auto pAccount = ot_api_.GetAccount(
-                theRequestBasket.GetRequestAccountID(), __FUNCTION__);
+            auto account =
+                wallet_.Account(theRequestBasket.GetRequestAccountID());
 
-            if (false == bool(pAccount)) {
+            if (false == bool(account)) {
                 const String strAcctID(theRequestBasket.GetRequestAccountID());
                 otOut << OT_METHOD << __FUNCTION__
                       << ": Error: Unable to find the main account based on "
@@ -6864,7 +6673,7 @@ bool OTAPI_Exec::Msg_HarvestTransactionNumbers(
                 return false;
             }
             // Now let's get the server ID...
-            const auto serverID = pAccount->GetPurportedNotaryID();
+            const auto serverID = account.get().GetPurportedNotaryID();
             auto pServer = wallet_.Server(serverID);
 
             if (!pServer) {
@@ -7190,37 +6999,6 @@ std::string OTAPI_Exec::LoadServerContract(
         armored.WriteArmoredString(strOutput, "SERVER CONTRACT");
         return strOutput.Get();
     }
-    return {};
-}
-
-// LOAD ACCOUNT / INBOX / OUTBOX   --  (from local storage)
-//
-// Loads an acct, or inbox or outbox, based on account ID, (from local storage)
-// and returns it as string (or returns "" if it couldn't load it.)
-//
-std::string OTAPI_Exec::LoadAssetAccount(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& ACCOUNT_ID) const  // Returns "", or an account.
-{
-    OT_VERIFY_ID_STR(NOTARY_ID);
-    OT_VERIFY_ID_STR(NYM_ID);
-    OT_VERIFY_ID_STR(ACCOUNT_ID);
-
-    const auto theNotaryID = Identifier::Factory(NOTARY_ID);
-    const auto theNymID = Identifier::Factory(NYM_ID);
-    const auto theAccountID = Identifier::Factory(ACCOUNT_ID);
-    // There is an OT_ASSERT in here for memory failure,
-    // but it still might return "" if various verification fails.
-    auto pAccount(
-        ot_api_.LoadAssetAccount(theNotaryID, theNymID, theAccountID));
-
-    if (pAccount) { return String(*pAccount).Get(); }
-
-    otOut << OT_METHOD << __FUNCTION__
-          << ": Failure calling OT_API::LoadAssetAccount.\nAccount ID: "
-          << ACCOUNT_ID << "\n";
-
     return {};
 }
 

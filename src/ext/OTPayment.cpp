@@ -1437,7 +1437,12 @@ bool OTPayment::GetNotaryID(Identifier& theOutput) const
 {
     theOutput.Release();
 
-    if (!m_bAreTempValuesSet) return false;
+    if (!m_bAreTempValuesSet) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Object not yet instantiated."
+              << std::endl;
+
+        return false;
+    }
 
     bool bSuccess = false;
 

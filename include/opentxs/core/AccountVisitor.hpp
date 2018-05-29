@@ -46,26 +46,22 @@
 
 namespace opentxs
 {
-typedef std::map<std::string, Account*> mapOfAccounts;
-
 class AccountVisitor
 {
 public:
-    EXPORT AccountVisitor(
-        const Identifier& notaryID,
-        mapOfAccounts* loadedAccounts = nullptr);
+    using mapOfAccounts = std::map<std::string, const Account*>;
 
-    EXPORT Identifier* GetNotaryID();
+    OTIdentifier GetNotaryID() const { return notaryID_; }
 
-    EXPORT mapOfAccounts* GetLoadedAccts() { return loadedAccounts_; }
+    virtual bool Trigger(const Account& account) = 0;
 
-    EXPORT virtual bool Trigger(Account& account) = 0;
-
-    EXPORT virtual ~AccountVisitor() = default;
+    virtual ~AccountVisitor() = default;
 
 protected:
-    OTIdentifier notaryID_;
+    const OTIdentifier notaryID_;
     mapOfAccounts* loadedAccounts_;
+
+    AccountVisitor(const Identifier& notaryID);
 };
 }  // namespace opentxs
 #endif  // OPENTXS_CORE_ACCOUNTVISITOR_HPP

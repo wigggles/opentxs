@@ -40,6 +40,8 @@
 
 #include "opentxs/core/script/OTPartyAccount.hpp"
 
+#include "opentxs/api/client/Wallet.hpp"
+#include "opentxs/api/Native.hpp"
 #include "opentxs/core/script/OTAgent.hpp"
 #include "opentxs/core/script/OTParty.hpp"
 #include "opentxs/core/script/OTScript.hpp"
@@ -50,6 +52,7 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/OT.hpp"
 
 #include <cstdint>
 #include <memory>
@@ -67,8 +70,8 @@ namespace opentxs
 {
 
 OTPartyAccount::OTPartyAccount()
-    : m_pForParty(nullptr)
-    , m_pAccount(nullptr)
+    : wallet_(OT::App().Wallet())
+    , m_pForParty(nullptr)
     , m_lClosingTransNo(0)
 {
 }
@@ -82,9 +85,9 @@ OTPartyAccount::OTPartyAccount(
     const String& strAgentName,
     Account& theAccount,
     std::int64_t lClosingTransNo)
-    : m_pForParty(nullptr)
+    : wallet_(OT::App().Wallet())
+    , m_pForParty(nullptr)
     // This gets set when this partyaccount is added to its party.
-    , m_pAccount(&theAccount)
     , m_lClosingTransNo(lClosingTransNo)
     , m_strName(str_account_name.c_str())
     , m_strAcctID(theAccount.GetRealAccountID())
@@ -99,15 +102,22 @@ OTPartyAccount::OTPartyAccount(
     const String& strAcctID,
     const String& strInstrumentDefinitionID,
     std::int64_t lClosingTransNo)
-    : m_pForParty(nullptr)
+    : wallet_(OT::App().Wallet())
+    , m_pForParty(nullptr)
     // This gets set when this partyaccount is added to its party.
-    , m_pAccount(nullptr)
     , m_lClosingTransNo(lClosingTransNo)
     , m_strName(strName)
     , m_strAcctID(strAcctID)
     , m_strInstrumentDefinitionID(strInstrumentDefinitionID)
     , m_strAgentName(strAgentName)
 {
+}
+
+SharedAccount OTPartyAccount::get_account() const
+{
+    if (!m_strAcctID.Exists()) { return {}; }
+
+    return wallet_.Account(Identifier::Factory(m_strAcctID));
 }
 
 // Every partyaccount has its own authorized agent's name.
@@ -141,10 +151,8 @@ void OTPartyAccount::SetParty(OTParty& theOwnerParty)
 
 OTPartyAccount::~OTPartyAccount()
 {
-    // m_pForParty and m_pAccount NOT cleaned up here. pointer is only for
-    // convenience.
+    // m_pForParty NOT cleaned up here. pointer is only for convenience.
     m_pForParty = nullptr;
-    m_pAccount = nullptr;
 }
 
 bool OTPartyAccount::IsAccountByID(const Identifier& theAcctID) const
@@ -169,7 +177,7 @@ bool OTPartyAccount::IsAccountByID(const Identifier& theAcctID) const
     return true;
 }
 
-bool OTPartyAccount::IsAccount(Account& theAccount)
+bool OTPartyAccount::IsAccount(const Account& theAccount)
 {
     if (!m_strAcctID.Exists()) {
         otErr << "OTPartyAccount::" << __FUNCTION__
@@ -211,7 +219,6 @@ bool OTPartyAccount::IsAccount(Account& theAccount)
         }
     }
 
-    m_pAccount = &theAccount;
     return true;
 }
 
@@ -225,7 +232,10 @@ bool OTPartyAccount::VerifyOwnership() const
                  "owner party. \n";
         return false;
     }
-    if (nullptr == m_pAccount) {
+
+    auto account = get_account();
+
+    if (false == bool(account)) {
         otErr << "OTPartyAccount::" << __FUNCTION__
               << ": Error: nullptr pointer to "
                  "account. (This function expects account to already be "
@@ -233,7 +243,7 @@ bool OTPartyAccount::VerifyOwnership() const
         return false;
     }  // todo maybe turn the above into OT_ASSERT()s.
 
-    if (!m_pForParty->VerifyOwnershipOfAccount(*m_pAccount)) {
+    if (!m_pForParty->VerifyOwnershipOfAccount(account.get())) {
         otOut << "OTPartyAccount::" << __FUNCTION__
               << ": Party %s doesn't verify as "
                  "the ACTUAL owner of account: "
@@ -248,7 +258,9 @@ bool OTPartyAccount::VerifyOwnership() const
 // I will ask him to verify whether he actually has agency over it.
 bool OTPartyAccount::VerifyAgency()
 {
-    if (nullptr == m_pAccount) {
+    auto account = get_account();
+
+    if (false == bool(account)) {
         otErr << "OTPartyAccount::" << __FUNCTION__
               << ": Error: nullptr pointer to "
                  "account. (This function expects account to already be "
@@ -265,7 +277,7 @@ bool OTPartyAccount::VerifyAgency()
         return false;
     }
 
-    if (!pAgent->VerifyAgencyOfAccount(*m_pAccount)) {
+    if (!pAgent->VerifyAgencyOfAccount(account.get())) {
         otOut << "OTPartyAccount::" << __FUNCTION__ << ": Agent "
               << GetAgentName()
               << " doesn't verify as ACTUALLY having rights over account "
@@ -329,61 +341,37 @@ bool OTPartyAccount::DropFinalReceiptToInbox(
 
 // CALLER IS RESPONSIBLE TO DELETE.
 // This is very low-level. (It's better to use OTPartyAccount through it's
-// interface, than to
-// just load up its account directly.) But this is here because it is
-// appropriate in certain cases.
-//
-Account* OTPartyAccount::LoadAccount(
-    Nym& theSignerNym,
-    const String& strNotaryID)
+// interface, than to just load up its account directly.) But this is here
+// because it is appropriate in certain cases.
+SharedAccount OTPartyAccount::LoadAccount()
 {
     if (!m_strAcctID.Exists()) {
         otOut << "OTPartyAccount::" << __FUNCTION__
               << ": Bad: Acct ID is blank for "
                  "account: "
               << m_strName << " \n";
-        return nullptr;
+
+        return {};
     }
 
-    const auto theAcctID = Identifier::Factory(m_strAcctID),
-               theNotaryID = Identifier::Factory(strNotaryID);
+    auto account = wallet_.Account(Identifier::Factory(m_strAcctID));
 
-    Account* pAccount = Account::LoadExistingAccount(theAcctID, theNotaryID);
-
-    if (nullptr == pAccount) {
+    if (false == bool(account)) {
         otOut << "OTPartyAccount::" << __FUNCTION__
               << ": Failed trying to load account: " << m_strName
               << ", with AcctID: " << m_strAcctID << " \n";
-        return nullptr;
-    }
-    // BELOW THIS POINT, You must delete pAccount if you don't return it!!
-    //
-    else if (!pAccount->VerifyAccount(theSignerNym)) {
-        otOut << "OTPartyAccount::" << __FUNCTION__
-              << ": Failed trying to verify account: " << m_strName
-              << ", with AcctID: " << m_strAcctID << " \n";
-        delete pAccount;
-        return nullptr;
+
+        return {};
     }
 
     // This compares instrument definition ID, AND account ID on the actual
-    // loaded account,
-    // to what is expected.
-    else if (!IsAccount(*pAccount))  // It also sets the internal pointer
-                                     // m_pAccount... FYI.
-    {
-        // IsAccount has plenty of logging already.
-        delete pAccount;
-        return nullptr;
+    // loaded account, to what is expected.
+    else if (!IsAccount(account.get())) {
+
+        return {};
     }
-    // BELOW THIS POINT, pAccount is loaded and validated, in-and-of-itself, and
-    // against the PartyAcct.
-    // (But not against the party ownership and agent rights.)
-    // It must be deleted or will leak.
 
-    // (No need to set m_pAccount, as that happened already in IsAccount().)
-
-    return pAccount;
+    return account;
 }
 
 void OTPartyAccount::Serialize(

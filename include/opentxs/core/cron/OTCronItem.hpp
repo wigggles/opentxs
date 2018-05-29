@@ -69,8 +69,8 @@ private:
     time64_t m_CREATION_DATE{0};  // The date, in seconds, when the CronItem was
                                   // authorized.
     time64_t m_LAST_PROCESS_DATE{0};  // The last time this item was processed.
-    std::int64_t m_PROCESS_INTERVAL{
-        0};  // How often to Process Cron on this item.
+    std::int64_t m_PROCESS_INTERVAL{0};  // How often to Process Cron on this
+                                         // item.
 
 protected:
     std::deque<std::int64_t> m_dequeClosingNumbers;  // Numbers used for CLOSING
@@ -89,18 +89,17 @@ protected:
 
     OTIdentifier m_pCancelerNymID;
 
-    bool m_bCanceled{
-        false};  // This defaults to false. But if someone cancels it
-                 // (BEFORE it is ever activated, just to nip it in the bud
-                 // and harvest the numbers, and send the notices, etc) --
-                 // then we set this to true, and we also set the canceler
-                 // Nym ID. (So we can see these values later and know
-                 // whether it was canceled before activation, and if so,
-                 // who did it.)
+    bool m_bCanceled{false};  // This defaults to false. But if someone cancels
+                              // it (BEFORE it is ever activated, just to nip it
+                              // in the bud and harvest the numbers, and send
+                              // the notices, etc) -- then we set this to true,
+                              // and we also set the canceler Nym ID. (So we can
+                              // see these values later and know whether it was
+                              // canceled before activation, and if so, who did
+                              // it.)
 
-    bool m_bRemovalFlag{
-        false};  // Set this to true and the cronitem will be removed
-                 // from Cron on next process.
+    bool m_bRemovalFlag{false};  // Set this to true and the cronitem will be
+                                 // removed from Cron on next process.
     // (And its offer will be removed from the Market as well, if appropriate.)
     virtual void onActivate() {}  // called by HookActivationOnCron().
 
@@ -124,8 +123,7 @@ public:
         const String& strOrigCronItem,
         const originType theOriginType,
         String* pstrNote = nullptr,
-        String* pstrAttachment = nullptr,
-        Account* pActualAcct = nullptr);
+        String* pstrAttachment = nullptr);
 
     // Notify the Nym that the OPENING number is now closed, so he can remove it
     // from his issued list.

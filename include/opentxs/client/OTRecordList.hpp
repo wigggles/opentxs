@@ -167,6 +167,7 @@ public:
 
 private:
     const OTNameLookup* m_pLookup{nullptr};
+    const api::client::Wallet& wallet_;
     // Defaults to false. If you set it true, it will run a lot faster. (And
     // give you less data.)
     bool m_bRunFast{false};

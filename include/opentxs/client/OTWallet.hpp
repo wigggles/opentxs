@@ -53,25 +53,14 @@
 
 namespace opentxs
 {
-/** AccountInfo: accountID, nymID, serverID, unitID*/
-using AccountInfo =
-    std::tuple<OTIdentifier, OTIdentifier, OTIdentifier, OTIdentifier>;
-
 class OTWallet : Lockable
 {
 public:
-    EXPORT std::set<AccountInfo> AccountList() const;
     EXPORT void DisplayStatistics(String& strOutput) const;
-    EXPORT bool GetAccount(
-        const std::size_t iIndex,
-        Identifier& THE_ID,
-        String& THE_NAME) const;
-    EXPORT std::size_t GetAccountCount() const;
     EXPORT std::string ImportSeed(
         const OTPassword& words,
         const OTPassword& passphrase) const;
 
-    EXPORT void AddAccount(std::shared_ptr<Account>& theAcct);
     // Low level.
     EXPORT bool addExtraKey(
         const std::string& str_id,
@@ -112,33 +101,18 @@ public:
         String& strOutput,
         const String* pstrDisplay = nullptr,
         bool bBookends = true);
-    EXPORT std::shared_ptr<Account> GetAccount(const Identifier& theAccountID);
-    EXPORT std::shared_ptr<Account> GetAccountPartialMatch(
-        std::string PARTIAL_ID);
     // Low level.
     EXPORT std::shared_ptr<OTSymmetricKey> getExtraKey(
         const std::string& str_id) const;
-    EXPORT std::shared_ptr<Account> GetIssuerAccount(
-        const Identifier& theInstrumentDefinitionID);
     EXPORT std::shared_ptr<OTSymmetricKey> getOrCreateExtraKey(
         const std::string& str_KeyID,
         const std::string* pReason = nullptr);  // Use this one.
-    EXPORT std::shared_ptr<Account> GetOrLoadAccount(
-        const Nym& theNym,
-        const Identifier& ACCT_ID,
-        const Identifier& NOTARY_ID,
-        const char* szFuncName = nullptr);
 #if OT_CASH
     EXPORT Purse* GetPendingWithdrawal();
 #endif  // OT_CASH
     EXPORT std::string GetPhrase();
     EXPORT std::string GetSeed();
     EXPORT std::string GetWords();
-    EXPORT std::shared_ptr<Account> LoadAccount(
-        const Nym& theNym,
-        const Identifier& ACCT_ID,
-        const Identifier& NOTARY_ID,
-        const char* szFuncName = nullptr);
     EXPORT bool LoadWallet(const char* szFilename = nullptr);
     // These functions are low-level. They don't check for dependent data before
     // deleting, and they don't save the wallet after they do.
@@ -146,40 +120,21 @@ public:
     // (You have to handle that at a higher level.) higher level version of
     // these two will require a server message, in addition to removing from
     // wallet. (To delete them on server side.)
-    EXPORT bool RemoveAccount(const Identifier& theTargetID);
 #if OT_CASH
     EXPORT void RemovePendingWithdrawal();
 #endif  // OT_CASH
-    // These functions are low-level. They don't check for dependent data before
-    // deleting, and they don't save the wallet after they do.
-    //
-    // (You have to handle that at a higher level.) higher level version of
-    // these two will require a server message, in addition to removing from
-    // wallet. (To delete them on server side.)
     EXPORT bool SaveWallet(const char* szFilename = nullptr);
-    EXPORT bool UpdateAccount(
-        const Nym& nym,
-        const Nym& serverNym,
-        const Identifier& serverID,
-        const Identifier& accountID,
-        const String& contract);
 
     EXPORT ~OTWallet();
 
 private:
     friend OT_API;
 
-    /** AccountEntry nymID, serverID, unitID, account */
-    using AccountEntry = std::tuple<
-        OTIdentifier,
-        OTIdentifier,
-        OTIdentifier,
-        std::shared_ptr<Account>>;
-    using mapOfAccounts = std::map<OTIdentifier, AccountEntry>;
     using mapOfSymmetricKeys =
         std::map<std::string, std::shared_ptr<OTSymmetricKey>>;
 
     const api::Crypto& crypto_;
+    const api::client::Wallet& wallet_;
     const api::storage::Storage& storage_;
 #if OT_CASH
     // While waiting on server response to withdrawal, store private coin data
@@ -190,7 +145,6 @@ private:
     String m_strVersion{};
     String m_strFilename{};
     String m_strDataFolder{};
-    mapOfAccounts m_mapAccounts;
     // Let's say you have some private data that you want to store safely.
     // For example, your Bitmessage user/pass. Perhaps you want to throw
     // your Bitmessage connect string into your client-side sql*lite DB.
@@ -220,38 +174,18 @@ private:
     // All the Nyms that use the Master key are listed here (makes it easy
     // to see which ones are converted already.)
 
-    void add_account(const Lock& lock, std::shared_ptr<Account>& theAcct);
     bool add_extra_key(
         const Lock& lock,
         const std::string& str_id,
         std::shared_ptr<OTSymmetricKey> pKey);
-    std::shared_ptr<Account> get_account(
-        const Lock& lock,
-        const Identifier& theAccountID);
-    std::shared_ptr<Account> load_account(
-        const Lock& lock,
-        const Nym& theNym,
-        const Identifier& ACCT_ID,
-        const Identifier& NOTARY_ID,
-        const char* szFuncName = nullptr);
-    std::shared_ptr<Account> obtain_account(
-        const Lock& lock,
-        const Nym& theNym,
-        const Identifier& ACCT_ID,
-        const Identifier& NOTARY_ID,
-        const char* szFuncName = nullptr);
     void release(const Lock& lock);
     bool save_contract(const Lock& lock, String& strContract);
     bool save_wallet(const Lock& lock, const char* szFilename = nullptr);
-    bool verify_account(
-        const Lock& lock,
-        const Nym& theNym,
-        Account& theAcct,
-        const Identifier& NOTARY_ID,
-        const String& strAcctID,
-        const char* szFuncName = nullptr);
 
-    OTWallet(const api::Crypto& crypto, const api::storage::Storage& storage);
+    OTWallet(
+        const api::Crypto& crypto,
+        const api::client::Wallet& wallet,
+        const api::storage::Storage& storage);
     OTWallet() = delete;
     OTWallet(const OTWallet&) = delete;
     OTWallet(OTWallet&&) = delete;

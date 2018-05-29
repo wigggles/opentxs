@@ -49,11 +49,19 @@
 
 namespace opentxs
 {
+namespace api
+{
+namespace client
+{
+namespace implementation
+{
+class Wallet;
+}  // namespace implementation
+}  // namespace client
+}  // namespace api
+
 class Account : public OTTransactionType
 {
-    friend OTTransactionType* OTTransactionType::TransactionFactory(
-        String input);
-
 public:
     // If you add any types to this list, update the list of strings at the
     // top of the .cpp file.
@@ -72,136 +80,59 @@ public:
         err_acct
     };
 
-private:
-    friend AccountList;
-    friend Ledger;
-    friend Mint;
-    friend OTCronItem;
-    friend OTMarket;
-    friend OTPartyAccount;
-    friend OTPaymentPlan;
-    friend OTSmartContract;
-    friend OTWallet;
-    friend UnitDefinition;
-    friend server::Notary;
-    friend server::UserCommandProcessor;
-
-    // Let's say you don't have or know the NymID, and you just want to load
-    // the damn thing up. Then call this function. It will set nymID for you.
-    static Account* LoadExistingAccount(
-        const Identifier& accountId,
-        const Identifier& notaryID);
-
-    Account(
-        const Identifier& nymID,
-        const Identifier& accountId,
-        const Identifier& notaryID,
-        const String& name);
-    Account(
-        const Identifier& nymID,
-        const Identifier& accountId,
-        const Identifier& notaryID);
-    Account(const Identifier& nymID, const Identifier& notaryID);
-    Account();
-
-public:
-    EXPORT virtual ~Account();
-
-    EXPORT void Release() override;
-    // overriding this so I can set filename automatically inside based on ID.
-    EXPORT bool LoadContract() override;
-    EXPORT bool SaveContractWallet(Tag& parent) const override;
-    EXPORT bool DisplayStatistics(String& contents) const override;
-
-    inline void MarkForDeletion() { markForDeletion_ = true; }
-
-    inline bool IsMarkedForDeletion() const { return markForDeletion_; }
-
-    EXPORT bool IsInternalServerAcct() const;
-
-    EXPORT bool IsOwnedByUser() const;
-    EXPORT bool IsOwnedByEntity() const;
-
-    EXPORT bool IsAllowedToGoNegative() const;
-    EXPORT bool IsIssuer() const;
-
-    // For accounts used by smart contracts, to stash funds while running.
-    EXPORT bool IsStashAcct() const { return (acctType_ == stash); }
-
-    EXPORT const std::int64_t& GetStashTransNum() const
-    {
-        return stashTransNum_;
-    }
-
-    EXPORT void SetStashTransNum(const std::int64_t& transNum)
-    {
-        stashTransNum_ = transNum;
-    }
-
-    EXPORT void InitAccount();
-
-    EXPORT void Release_Account();
-
-    EXPORT static Account* GenerateNewAccount(
-        const Identifier& nymID,
-        const Identifier& notaryID,
-        const Nym& serverNym,
-        const Identifier& userNymID,
-        const Identifier& instrumentDefinitionID,
-        AccountType acctType = user,
-        std::int64_t stashTransNum = 0);
-    EXPORT bool GenerateNewAccount(
-        const Nym& server,
-        const Identifier& userNymID,
-        const Identifier& notaryID,
-        const Identifier& instrumentDefinitionID,
-        AccountType acctType = user,
-        std::int64_t stashTransNum = 0);
-
-    // Caller responsible to delete.
-    EXPORT Ledger* LoadInbox(const Nym& nym) const;
-    // Caller responsible to delete.
-    EXPORT Ledger* LoadOutbox(const Nym& nym) const;
-
-    // If you pass the identifier in, the inbox hash is recorded there
-    EXPORT bool SaveInbox(Ledger& box, Identifier* hash = nullptr);
-    // If you pass the identifier in, the outbox hash is recorded there
-    EXPORT bool SaveOutbox(Ledger& box, Identifier* nash = nullptr);
-    EXPORT const Identifier& GetInstrumentDefinitionID() const;
-    EXPORT std::int64_t GetBalance() const;
-    // Debit a certain amount from the account (presumably the same amount is
-    // being added somewhere)
-    EXPORT bool Debit(const std::int64_t& amount);
-    // Credit a certain amount from the account (presumably the same amount is
-    // being subtracted somewhere)
-    EXPORT bool Credit(const std::int64_t& amount);
-    // Compares the NymID loaded from the account file with whatever Nym the
-    // programmer wants to verify.
-    EXPORT bool VerifyOwner(const Nym& candidate) const;
-    EXPORT bool VerifyOwnerByID(const Identifier& nymId) const;
-    // generates filename based on accounts path and account ID. Saves to the
-    // standard location for an acct.
-    EXPORT bool SaveAccount();
-
-    EXPORT void SetInboxHash(const Identifier& input);
-    EXPORT bool GetInboxHash(Identifier& output);
-
-    EXPORT void SetOutboxHash(const Identifier& input);
-    EXPORT bool GetOutboxHash(Identifier& output);
     EXPORT static char const* _GetTypeString(AccountType accountType);
 
+    EXPORT bool DisplayStatistics(String& contents) const override;
+    EXPORT Amount GetBalance() const;
+    EXPORT const Identifier& GetInstrumentDefinitionID() const;
+    EXPORT TransactionNumber GetStashTransNum() const { return stashTransNum_; }
     EXPORT char const* GetTypeString() const
     {
         return _GetTypeString(acctType_);
     }
+    EXPORT bool IsAllowedToGoNegative() const;
+    EXPORT bool IsInternalServerAcct() const;
+    EXPORT bool IsOwnedByUser() const;
+    EXPORT bool IsOwnedByEntity() const;
+    EXPORT bool IsIssuer() const;
+    // For accounts used by smart contracts, to stash funds while running.
+    EXPORT bool IsStashAcct() const { return (acctType_ == stash); }
+    // Caller responsible to delete.
+    EXPORT Ledger* LoadInbox(const Nym& nym) const;
+    // Caller responsible to delete.
+    EXPORT Ledger* LoadOutbox(const Nym& nym) const;
+    // Compares the NymID loaded from the account file with whatever Nym the
+    // programmer wants to verify.
+    EXPORT bool VerifyOwner(const Nym& candidate) const;
+    EXPORT bool VerifyOwnerByID(const Identifier& nymId) const;
 
-protected:
-    // return -1 if error, 0 if nothing, and 1 if the node was processed.
-    std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
+    // Debit a certain amount from the account (presumably the same amount is
+    // being added somewhere)
+    EXPORT bool Debit(const Amount amount);
+    // Credit a certain amount from the account (presumably the same amount is
+    // being subtracted somewhere)
+    EXPORT bool Credit(const Amount amount);
+    EXPORT bool GetInboxHash(Identifier& output);
+    EXPORT bool GetOutboxHash(Identifier& output);
+    // If you pass the identifier in, the inbox hash is recorded there
+    EXPORT bool SaveInbox(Ledger& box, Identifier* hash = nullptr);
+    // If you pass the identifier in, the outbox hash is recorded there
+    EXPORT bool SaveOutbox(Ledger& box, Identifier* nash = nullptr);
+    EXPORT void SetInboxHash(const Identifier& input);
+    EXPORT void SetOutboxHash(const Identifier& input);
+    EXPORT void SetStashTransNum(const TransactionNumber transNum)
+    {
+        stashTransNum_ = transNum;
+    }
 
-    void UpdateContents() override;
+    EXPORT virtual ~Account() override;
 
-protected:
+private:
+    friend OTWallet;
+    friend opentxs::api::client::implementation::Wallet;
+    friend OTTransactionType* OTTransactionType::TransactionFactory(
+        String input);
+
     AccountType acctType_{err_acct};
     // These are all the variables from the account file itself.
     OTIdentifier acctInstrumentDefinitionID_;
@@ -219,6 +150,54 @@ protected:
     // Hash of this account's Outbox, so we don't download it more often than
     // necessary.
     OTIdentifier outboxHash_;
+
+    static Account* GenerateNewAccount(
+        const Identifier& nymID,
+        const Identifier& notaryID,
+        const Nym& serverNym,
+        const Identifier& userNymID,
+        const Identifier& instrumentDefinitionID,
+        AccountType acctType = user,
+        TransactionNumber stashTransNum = 0);
+    // Let's say you don't have or know the NymID, and you just want to load
+    // the damn thing up. Then call this function. It will set nymID for you.
+    static Account* LoadExistingAccount(
+        const Identifier& accountId,
+        const Identifier& notaryID);
+
+    bool SaveContractWallet(Tag& parent) const override;
+
+    bool GenerateNewAccount(
+        const Nym& server,
+        const Identifier& userNymID,
+        const Identifier& notaryID,
+        const Identifier& instrumentDefinitionID,
+        AccountType acctType = user,
+        std::int64_t stashTransNum = 0);
+    void InitAccount();
+    // overriding this so I can set filename automatically inside based on ID.
+    bool LoadContract() override;
+    bool LoadContractFromString(const String& theStr) override;
+    // return -1 if error, 0 if nothing, and 1 if the node was processed.
+    std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
+    void Release() override;
+    void Release_Account();
+    // generates filename based on accounts path and account ID. Saves to the
+    // standard location for an acct.
+    bool SaveAccount();
+    void UpdateContents() override;
+
+    Account(
+        const Identifier& nymID,
+        const Identifier& accountId,
+        const Identifier& notaryID,
+        const String& name);
+    Account(
+        const Identifier& nymID,
+        const Identifier& accountId,
+        const Identifier& notaryID);
+    Account(const Identifier& nymID, const Identifier& notaryID);
+    Account();
 };
 }  // namespace opentxs
 #endif  // OPENTXS_CORE_OTACCOUNT_HPP

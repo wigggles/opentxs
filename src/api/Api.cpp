@@ -203,6 +203,7 @@ void Api::Init()
         wallet_,
         *workflow_,
         crypto_.Encode(),
+        storage_,
         zmq_.Context(),
         std::bind(&Api::get_lock, this, std::placeholders::_1)));
 

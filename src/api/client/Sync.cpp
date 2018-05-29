@@ -44,6 +44,7 @@
 #include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/client/Workflow.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
+#include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Api.hpp"
 #include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Settings.hpp"
@@ -154,6 +155,7 @@ api::client::Sync* Factory::Sync(
     const api::client::Wallet& wallet,
     const api::client::Workflow& workflow,
     const api::crypto::Encode& encoding,
+    const api::storage::Storage& storage,
     const network::zeromq::Context& zmq,
     const ContextLockCallback& lockCallback)
 {
@@ -167,6 +169,7 @@ api::client::Sync* Factory::Sync(
         wallet,
         workflow,
         encoding,
+        storage,
         zmq,
         lockCallback);
 }
@@ -233,6 +236,7 @@ Sync::Sync(
     const api::client::Wallet& wallet,
     const api::client::Workflow& workflow,
     const api::crypto::Encode& encoding,
+    const api::storage::Storage& storage,
     const opentxs::network::zeromq::Context& zmq,
     const ContextLockCallback& lockCallback)
     : lock_callback_(lockCallback)
@@ -246,6 +250,7 @@ Sync::Sync(
     , wallet_(wallet)
     , workflow_(workflow)
     , encoding_(encoding)
+    , storage_(storage)
     , zmq_(zmq)
     , introduction_server_lock_()
     , nym_fetch_lock_()
@@ -1512,7 +1517,7 @@ void Sync::refresh_accounts() const
 {
     otInfo << OT_METHOD << __FUNCTION__ << ": Begin" << std::endl;
     const auto serverList = wallet_.ServerList();
-    const auto accounts = ot_api_.Accounts();
+    const auto accounts = storage_.AccountList();
 
     for (const auto server : serverList) {
         SHUTDOWN()
@@ -1543,10 +1548,11 @@ void Sync::refresh_accounts() const
 
     SHUTDOWN()
 
-    for (const auto& [accountID, nymID, serverID, unitID] : accounts) {
+    for (const auto& it : accounts) {
         SHUTDOWN()
-
-        const auto& notUsed[[maybe_unused]] = unitID;
+        const auto accountID = Identifier::Factory(it.first);
+        const auto nymID = storage_.AccountOwner(accountID);
+        const auto serverID = storage_.AccountServer(accountID);
         otWarn << OT_METHOD << __FUNCTION__ << ": Account " << accountID->str()
                << ":\n"
                << "  * Owned by nym: " << nymID->str() << "\n"
@@ -1893,41 +1899,47 @@ OTIdentifier Sync::SendTransfer(
     CHECK_ARGS(localNymID, serverID, targetAccountID)
     CHECK_NYM(sourceAccountID)
 
-    auto sourceAccount = ot_api_.GetWallet()->GetAccount(sourceAccountID);
+    auto sourceAccount = wallet_.Account(sourceAccountID);
+
     if (false == bool(sourceAccount)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Invalid source account"
               << std::endl;
 
         return Identifier::Factory();
     }
-    auto targetAccount = ot_api_.GetWallet()->GetAccount(targetAccountID);
+
+    auto targetAccount = wallet_.Account(targetAccountID);
+
     if (false == bool(targetAccount)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Invalid target account"
               << std::endl;
 
         return Identifier::Factory();
     }
-    if (sourceAccount->GetNymID() != targetAccount->GetNymID()) {
+
+    if (sourceAccount.get().GetNymID() != targetAccount.get().GetNymID()) {
         otErr << OT_METHOD << __FUNCTION__ << ": Source and target account"
               << " owner ids don't match" << std::endl;
 
         return Identifier::Factory();
     }
-    if (sourceAccount->GetRealNotaryID() != targetAccount->GetRealNotaryID()) {
+
+    if (sourceAccount.get().GetRealNotaryID() !=
+        targetAccount.get().GetRealNotaryID()) {
         otErr << OT_METHOD << __FUNCTION__ << ": Source and target account"
               << " notary ids don't match" << std::endl;
 
         return Identifier::Factory();
     }
-    if (sourceAccount->GetInstrumentDefinitionID() !=
-        targetAccount->GetInstrumentDefinitionID()) {
+
+    if (sourceAccount.get().GetInstrumentDefinitionID() !=
+        targetAccount.get().GetInstrumentDefinitionID()) {
         otErr << OT_METHOD << __FUNCTION__ << ": Source and target account"
               << " instrument definition ids don't match" << std::endl;
 
         return Identifier::Factory();
     }
 
-    // start_introduction_server(localNymID);
     auto& queue = get_operations({localNymID, serverID});
     const auto taskID(Identifier::Random());
 
@@ -2441,10 +2453,14 @@ Depositability Sync::valid_account(
     const Identifier& accountIDHint,
     Identifier& depositAccount) const
 {
-    const auto accounts = ot_api_.Accounts();
     std::set<Identifier> matchingAccounts{};
 
-    for (const auto& [accountID, nymID, serverID, unitID] : accounts) {
+    for (const auto& it : storage_.AccountList()) {
+        const auto accountID = Identifier::Factory(it.first);
+        const auto nymID = storage_.AccountOwner(accountID);
+        const auto serverID = storage_.AccountServer(accountID);
+        const auto unitID = storage_.AccountContract(accountID);
+
         if (nymID != recipient) { continue; }
 
         if (serverID != paymentServerID) { continue; }

@@ -232,6 +232,7 @@ public:
         const api::client::Wallet& wallet,
         const api::client::Workflow& workflow,
         const api::crypto::Encode& encoding,
+        const api::storage::Storage& storage,
         const network::zeromq::Context& zmq,
         const ContextLockCallback& lockCallback);
     static api::UI* UI(

@@ -64,10 +64,6 @@ class OTScriptable;
 class ServerContext;
 class Tag;
 
-typedef std::map<std::string, Account*> mapOfAccounts;
-typedef std::map<std::string, OTAgent*> mapOfAgents;
-typedef std::map<std::string, OTPartyAccount*> mapOfPartyAccounts;
-
 // Party is always either an Owner Nym, or an Owner Entity formed by Contract.
 //
 // Either way, the agents are there to represent the interests of the parties.
@@ -89,6 +85,11 @@ typedef std::map<std::string, OTPartyAccount*> mapOfPartyAccounts;
 //
 class OTParty
 {
+public:
+    typedef std::map<std::string, SharedAccount> mapOfAccounts;
+    typedef std::map<std::string, OTAgent*> mapOfAgents;
+    typedef std::map<std::string, OTPartyAccount*> mapOfPartyAccounts;
+
 private:
     OTParty(const OTParty&);
     OTParty& operator=(const OTParty&);
@@ -228,8 +229,10 @@ public:
     std::int64_t GetClosingTransNo(std::string str_for_acct_name) const;
     // as used "IN THE SCRIPT."
     //
-    EXPORT std::string GetPartyName(bool* pBoolSuccess = nullptr)
-        const;  // "sales_director", "marketer", etc
+    EXPORT std::string GetPartyName(
+        bool* pBoolSuccess = nullptr) const;  // "sales_director",
+                                              // "marketer",
+                                              // etc
     bool SetPartyName(const std::string& str_party_name_input);
     // ACTUAL PARTY OWNER (Only ONE of these can be true...)
     // Debating whether these two functions should be private. (Should it matter
@@ -344,7 +347,7 @@ public:
     // return true.
     //
     bool HasAccount(
-        Account& theAccount,
+        const Account& theAccount,
         OTPartyAccount** ppPartyAccount = nullptr) const;
     bool HasAccountByID(
         const Identifier& theAcctID,
@@ -363,7 +366,6 @@ public:
         mapOfConstNyms& map_NewlyLoaded);
 
     bool LoadAndVerifyAssetAccounts(
-        Nym& theServerNym,
         const String& strNotaryID,
         mapOfAccounts& map_Accts_Already_Loaded,
         mapOfAccounts& map_NewlyLoaded);

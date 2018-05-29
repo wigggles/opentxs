@@ -72,19 +72,17 @@ class PayDividendVisitor : public AccountVisitor
     Identifier* m_pNymID{nullptr};
     Identifier* m_pPayoutInstrumentDefinitionID{nullptr};
     Identifier* m_pVoucherAcctID{nullptr};
-    String* m_pstrMemo{
-        nullptr};  // contains the original payDividend item from the
-                   // payDividend transaction request. (Stored in the
-                   // memo field for each voucher.)
-    server::Server* m_pServer{
-        nullptr};  // no need to cleanup. It's here for convenience only.
+    String* m_pstrMemo{nullptr};  // contains the original payDividend item from
+                                  // the payDividend transaction request.
+                                  // (Stored in the memo field for each
+                                  // voucher.)
+    server::Server* m_pServer{nullptr};  // no need to cleanup. It's here for
+                                         // convenience only.
     std::int64_t m_lPayoutPerShare{0};
-    std::int64_t m_lAmountPaidOut{
-        0};  // as we pay each voucher out, we keep a running
-             // count.
-    std::int64_t m_lAmountReturned{
-        0};  // as we pay each voucher out, we keep a running
-             // count.
+    std::int64_t m_lAmountPaidOut{0};   // as we pay each voucher out, we keep a
+                                        // running count.
+    std::int64_t m_lAmountReturned{0};  // as we pay each voucher out, we keep a
+                                        // running count.
 
 public:
     PayDividendVisitor(
@@ -94,8 +92,7 @@ public:
         const Identifier& theVoucherAcctID,
         const String& strMemo,
         server::Server& theServer,
-        std::int64_t lPayoutPerShare,
-        mapOfAccounts* pLoadedAccounts = nullptr);
+        std::int64_t lPayoutPerShare);
     virtual ~PayDividendVisitor();
 
     Identifier* GetNymID() { return m_pNymID; }
@@ -110,7 +107,7 @@ public:
     std::int64_t GetAmountPaidOut() { return m_lAmountPaidOut; }
     std::int64_t GetAmountReturned() { return m_lAmountReturned; }
 
-    bool Trigger(Account& theAccount) override;
+    bool Trigger(const Account& theAccount) override;
 };
 
 }  // namespace opentxs

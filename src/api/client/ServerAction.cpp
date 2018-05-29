@@ -292,11 +292,11 @@ ServerAction::Action ServerAction::CreateMarketOffer(
 {
     auto notaryID = Identifier::Factory();
     auto nymID = Identifier::Factory();
-    const auto assetAccount = otapi_.GetAccount(assetAccountID, __FUNCTION__);
+    const auto assetAccount = wallet_.Account(assetAccountID);
 
-    if (nullptr != assetAccount) {
-        nymID = assetAccount->GetNymID();
-        notaryID = assetAccount->GetPurportedNotaryID();
+    if (assetAccount) {
+        nymID = assetAccount.get().GetNymID();
+        notaryID = assetAccount.get().GetPurportedNotaryID();
     }
 
     if (!GetTransactionNumbers(nymID, notaryID, 10)) {

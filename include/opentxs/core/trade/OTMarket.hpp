@@ -108,30 +108,16 @@ private:
     std::string m_strLastSaleDate;
 
     // The server stores a map of markets, one for each unique combination of
-    // instrument definitions.
-    // That's what this market class represents: one instrument definition being
-    // traded and
-    // priced in another.
-    // It could be wheat for dollars, wheat for yen, or gold for dollars, or
-    // gold for wheat, or
-    // gold for oil, or oil for wheat.  REALLY, THE TWO ARE JUST ARBITRARY ASSET
-    // TYPES. But in
-    // order to keep terminology clear, I will refer to one as the "instrument
-    // definition"
-    // and the other as
-    // the "currency type" so that it stays VERY clear which instrument
-    // definition is up
-    // for sale, and which
-    // instrument definition (currency type) it is being priced in. Other than
-    // that, the
-    // two are technically
-    // interchangeable.
+    // instrument definitions. That's what this market class represents: one
+    // instrument definition being traded and priced in another. It could be
+    // wheat for dollars, wheat for yen, or gold for dollars, or gold for wheat,
+    // or gold for oil, or oil for wheat.  REALLY, THE TWO ARE JUST ARBITRARY
+    // ASSET TYPES. But in order to keep terminology clear, I will refer to one
+    // as the "instrument definition" and the other as the "currency type" so
+    // that it stays VERY clear which instrument definition is up for sale, and
+    // which instrument definition (currency type) it is being priced in. Other
+    // than that, the two are technically interchangeable.
 
-    void cleanup_four_accounts(
-        Account* p1,
-        Account* p2,
-        Account* p3,
-        Account* p4);
     void rollback_four_accounts(
         Account& p1,
         bool b1,
@@ -178,10 +164,14 @@ public:
     // --Returns True if Trade should stay on the Cron list for more processing.
     // --Returns False if it should be removed and deleted.
     void ProcessTrade(
+        const api::client::Wallet& wallet,
         OTTrade& theTrade,
         OTOffer& theOffer,
         OTOffer& theOtherOffer);
-    bool ProcessTrade(OTTrade& theTrade, OTOffer& theOffer);
+    bool ProcessTrade(
+        const api::client::Wallet& wallet,
+        OTTrade& theTrade,
+        OTOffer& theOffer);
 
     std::int64_t GetHighestBidPrice();
     std::int64_t GetLowestAskPrice();

@@ -1139,11 +1139,6 @@ std::int32_t SwigWrap::GetAssetTypeCount(void)
     return OT::App().API().Exec().GetAssetTypeCount();
 }
 
-std::int32_t SwigWrap::GetAccountCount(void)
-{
-    return OT::App().API().Exec().GetAccountCount();
-}
-
 bool SwigWrap::Wallet_CanRemoveServer(const std::string& NOTARY_ID)
 {
     return OT::App().API().Exec().Wallet_CanRemoveServer(NOTARY_ID);
@@ -1566,24 +1561,9 @@ std::string SwigWrap::GetAssetType_TLA(const std::string& THE_ID)
     return OT::App().API().Exec().GetAssetType_TLA(THE_ID);
 }
 
-std::string SwigWrap::GetAccountWallet_ID(const std::int32_t& nIndex)
-{
-    return OT::App().API().Exec().GetAccountWallet_ID(nIndex);
-}
-
 std::string SwigWrap::GetAccountWallet_Name(const std::string& THE_ID)
 {
     return OT::App().API().Exec().GetAccountWallet_Name(THE_ID);
-}
-
-std::string SwigWrap::GetAccountWallet_InboxHash(const std::string& ACCOUNT_ID)
-{
-    return OT::App().API().Exec().GetAccountWallet_InboxHash(ACCOUNT_ID);
-}
-
-std::string SwigWrap::GetAccountWallet_OutboxHash(const std::string& ACCOUNT_ID)
-{
-    return OT::App().API().Exec().GetAccountWallet_OutboxHash(ACCOUNT_ID);
 }
 
 time64_t SwigWrap::GetTime(void) { return OT::App().API().Exec().GetTime(); }
@@ -2372,15 +2352,6 @@ std::string SwigWrap::LoadMint(
 std::string SwigWrap::LoadServerContract(const std::string& NOTARY_ID)
 {
     return OT::App().API().Exec().LoadServerContract(NOTARY_ID);
-}
-
-std::string SwigWrap::LoadAssetAccount(
-    const std::string& NOTARY_ID,
-    const std::string& NYM_ID,
-    const std::string& ACCOUNT_ID)
-{
-    return OT::App().API().Exec().LoadAssetAccount(
-        NOTARY_ID, NYM_ID, ACCOUNT_ID);
 }
 
 std::string SwigWrap::Nymbox_GetReplyNotice(

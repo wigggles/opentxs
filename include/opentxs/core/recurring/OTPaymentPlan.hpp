@@ -199,18 +199,18 @@ public:
 
     // "INITIAL PAYMENT" private MEMBERS
 private:
-    bool m_bInitialPayment{false};  // Will there be an initial payment?
-    time64_t m_tInitialPaymentDate{
-        0};  // Date of the initial payment, measured seconds after creation.
-    time64_t m_tInitialPaymentCompletedDate{
-        0};  // Date the initial payment was finally transacted.
-    time64_t m_tFailedInitialPaymentDate{0};  // Date of the last failed
+    bool m_bInitialPayment{false};      // Will there be an initial payment?
+    time64_t m_tInitialPaymentDate{0};  // Date of the initial payment, measured
+                                        // seconds after creation.
+    time64_t m_tInitialPaymentCompletedDate{0};  // Date the initial payment was
+                                                 // finally transacted.
+    time64_t m_tFailedInitialPaymentDate{0};     // Date of the last failed
                                               // payment, measured seconds after
                                               // creation.
     std::int64_t m_lInitialPaymentAmount{0};  // Amount of the initial payment.
     bool m_bInitialPaymentDone{false};  // Has the initial payment been made?
-    std::int32_t m_nNumberInitialFailures{
-        0};  // If we've tried to process this multiple times, we'll know.
+    std::int32_t m_nNumberInitialFailures{0};  // If we've tried to process this
+                                               // multiple times, we'll know.
 
     // "INITIAL PAYMENT" protected SET METHODS
 protected:
@@ -287,21 +287,21 @@ public:
 private:
     bool m_bPaymentPlan{false};            // Will there be a payment plan?
     std::int64_t m_lPaymentPlanAmount{0};  // Amount of each payment.
-    time64_t m_tTimeBetweenPayments{0};  // How much time between each payment?
-    time64_t m_tPaymentPlanStartDate{
-        0};  // Date for the first payment plan payment.
-    time64_t m_tPaymentPlanLength{
-        0};  // Optional. Plan length measured in seconds since plan start.
-    std::int32_t m_nMaximumNoPayments{
-        0};  // Optional. The most number of payments that are authorized.
+    time64_t m_tTimeBetweenPayments{0};   // How much time between each payment?
+    time64_t m_tPaymentPlanStartDate{0};  // Date for the first payment plan
+                                          // payment.
+    time64_t m_tPaymentPlanLength{0};     // Optional. Plan length measured in
+                                          // seconds since plan start.
+    std::int32_t m_nMaximumNoPayments{0};  // Optional. The most number of
+                                           // payments that are authorized.
 
     time64_t m_tDateOfLastPayment{0};  // Recording of date of the last payment.
-    time64_t m_tDateOfLastFailedPayment{
-        0};  // Recording of date of the last failed payment.
-    std::int32_t m_nNoPaymentsDone{
-        0};  // Recording of the number of payments already processed.
-    std::int32_t m_nNoFailedPayments{
-        0};  // Every time a payment fails, we record that here.
+    time64_t m_tDateOfLastFailedPayment{0};  // Recording of date of the last
+                                             // failed payment.
+    std::int32_t m_nNoPaymentsDone{0};    // Recording of the number of payments
+                                          // already processed.
+    std::int32_t m_nNoFailedPayments{0};  // Every time a payment fails, we
+                                          // record that here.
 
     // "PAYMENT PLAN" protected SET METHODS
 protected:
@@ -363,9 +363,11 @@ protected:
     //  virtual void onRemovalFromCron();     // Now handled in the parent
     //  class.
 
-    bool ProcessPayment(const std::int64_t& lAmount);
-    void ProcessInitialPayment();
-    void ProcessPaymentPlan();
+    bool ProcessPayment(
+        const api::client::Wallet& wallet,
+        const Amount& amount);
+    void ProcessInitialPayment(const api::client::Wallet& wallet);
+    void ProcessPaymentPlan(const api::client::Wallet& wallet);
 
 public:
     EXPORT OTPaymentPlan();

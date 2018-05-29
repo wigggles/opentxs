@@ -93,25 +93,23 @@ private:
     OTIdentifier currencyAcctID_;  // My Dollar account, used for paying for
                                    // my Gold (say) trades.
 
-    OTOffer* offer_{
-        nullptr};  // The pointer to the Offer (NOT responsible for cleaning
-                   // this up!!!
+    OTOffer* offer_{nullptr};  // The pointer to the Offer (NOT responsible for
+                               // cleaning this up!!!
     // The offer is owned by the market and I only keep a pointer here for
     // convenience.
 
     bool hasTradeActivated_{false};  // Has the offer yet been first added to a
                                      // market?
 
-    std::int64_t stopPrice_{
-        0};               // The price limit that activates the STOP order.
-    char stopSign_{0x0};  // Value is 0, or '<', or '>'.
-    bool stopActivated_{
-        false};  // If the Stop Order has already activated, I need
-                 // to know that.
+    std::int64_t stopPrice_{0};  // The price limit that activates the STOP
+                                 // order.
+    char stopSign_{0x0};         // Value is 0, or '<', or '>'.
+    bool stopActivated_{false};  // If the Stop Order has already activated, I
+                                 // need to know that.
 
-    std::int32_t tradesAlreadyDone_{
-        0};  // How many trades have already processed
-             // through this order? We keep track.
+    std::int32_t tradesAlreadyDone_{0};  // How many trades have already
+                                         // processed through this order? We
+                                         // keep track.
 
     String marketOffer_;  // The market offer associated with this trade.
 
@@ -140,17 +138,13 @@ public:
     inline bool GetOfferString(String& offer)
     {
         offer.Set(marketOffer_);
-        if (marketOffer_.Exists()) {
-            return true;
-        }
+        if (marketOffer_.Exists()) { return true; }
         return false;
     }
 
     inline bool IsStopOrder() const
     {
-        if ((stopSign_ == '<') || (stopSign_ == '>')) {
-            return true;
-        }
+        if ((stopSign_ == '<') || (stopSign_ == '>')) { return true; }
         return false;
     }
 
@@ -158,17 +152,13 @@ public:
 
     inline bool IsGreaterThan() const
     {
-        if (stopSign_ == '>') {
-            return true;
-        }
+        if (stopSign_ == '>') { return true; }
         return false;
     }
 
     inline bool IsLessThan() const
     {
-        if (stopSign_ == '<') {
-            return true;
-        }
+        if (stopSign_ == '<') { return true; }
         return false;
     }
 
@@ -220,7 +210,7 @@ public:
         const Nym& signerNym,
         mapOfConstNyms* preloadedMap = nullptr) const override;
 
-    bool VerifyNymAsAgentForAccount(const Nym& nym, Account& account)
+    bool VerifyNymAsAgentForAccount(const Nym& nym, const Account& account)
         const override;
     EXPORT OTTrade();
     EXPORT OTTrade(

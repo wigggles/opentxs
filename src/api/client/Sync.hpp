@@ -224,6 +224,7 @@ private:
     const api::client::Wallet& wallet_;
     const api::client::Workflow& workflow_;
     const api::crypto::Encode& encoding_;
+    const api::storage::Storage& storage_;
     const opentxs::network::zeromq::Context& zmq_;
     mutable std::mutex introduction_server_lock_{};
     mutable std::mutex nym_fetch_lock_{};
@@ -405,6 +406,7 @@ private:
         const api::client::Wallet& wallet,
         const api::client::Workflow& workflow,
         const api::crypto::Encode& encoding,
+        const api::storage::Storage& storage,
         const opentxs::network::zeromq::Context& zmq,
         const ContextLockCallback& lockCallback);
     Sync() = delete;

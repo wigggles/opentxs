@@ -69,7 +69,7 @@ public:
     void NotarizeProcessInbox(
         Nym& nym,
         ClientContext& context,
-        Account& account,
+        ExclusiveAccount& account,
         OTTransaction& tranIn,
         OTTransaction& tranOut,
         bool& outSuccess);
@@ -96,63 +96,63 @@ private:
     void NotarizeCancelCronItem(
         Nym& nym,
         ClientContext& context,
-        Account& assetAccount,
+        ExclusiveAccount& assetAccount,
         OTTransaction& tranIn,
         OTTransaction& tranOut,
         bool& outSuccess);
     void NotarizeDeposit(
         Nym& nym,
         ClientContext& context,
-        Account& account,
+        ExclusiveAccount& account,
         OTTransaction& tranIn,
         OTTransaction& tranOut,
         bool& outSuccess);
     void NotarizeExchangeBasket(
         Nym& nym,
         ClientContext& context,
-        Account& sourceAccount,
+        ExclusiveAccount& sourceAccount,
         OTTransaction& tranIn,
         OTTransaction& tranOut,
         bool& outSuccess);
     void NotarizeMarketOffer(
         Nym& nym,
         ClientContext& context,
-        Account& assetAccount,
+        ExclusiveAccount& assetAccount,
         OTTransaction& tranIn,
         OTTransaction& tranOut,
         bool& outSuccess);
     void NotarizePayDividend(
         Nym& nym,
         ClientContext& context,
-        Account& account,
+        ExclusiveAccount& account,
         OTTransaction& tranIn,
         OTTransaction& tranOut,
         bool& outSuccess);
     void NotarizePaymentPlan(
         Nym& nym,
         ClientContext& context,
-        Account& depositorAccount,
+        ExclusiveAccount& depositorAccount,
         OTTransaction& tranIn,
         OTTransaction& tranOut,
         bool& outSuccess);
     void NotarizeSmartContract(
         Nym& nym,
         ClientContext& context,
-        Account& activatingAccount,
+        ExclusiveAccount& activatingAccount,
         OTTransaction& tranIn,
         OTTransaction& tranOut,
         bool& outSuccess);
     void NotarizeTransfer(
         Nym& nym,
         ClientContext& context,
-        Account& fromAccount,
+        ExclusiveAccount& fromAccount,
         OTTransaction& tranIn,
         OTTransaction& tranOut,
         bool& outSuccess);
     void NotarizeWithdrawal(
         Nym& nym,
         ClientContext& context,
-        Account& account,
+        ExclusiveAccount& account,
         OTTransaction& tranIn,
         OTTransaction& tranOut,
         bool& outSuccess);

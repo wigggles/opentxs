@@ -57,23 +57,19 @@
 
 namespace opentxs
 {
-
-class Account;
-class Nym;
-class NumList;
-class OTParty;
-class OTScript;
 class OTStash;
-
-typedef std::map<std::string, Account*> mapOfAccounts;
-typedef std::map<std::string, OTStash*> mapOfStashes;
 
 class OTSmartContract : public OTCronItem
 {
+public:
+    using mapOfAccounts = std::map<std::string, SharedAccount>;
+    using mapOfStashes = std::map<std::string, OTStash*>;
+
 private:  // Private prevents erroneous use by other classes.
     typedef OTCronItem ot_super;
 
 private:
+    const api::client::Wallet& wallet_;
     // In OTSmartContract, none of this normal crap is used.
     // The Sender/Recipient are unused.
     // The Opening and Closing Trans#s are unused.
@@ -123,8 +119,8 @@ private:
 
     // If onProcess() is on a timer (say, to wake up in a week) then this will
     // contain the
-    time64_t m_tNextProcessDate{
-        0};  // date that it WILL be, in a week. (Or zero.)
+    time64_t m_tNextProcessDate{0};  // date that it WILL be, in a week. (Or
+                                     // zero.)
 
     // For moving money from one nym's account to another.
     // it is also nearly identically copied in OTPaymentPlan.
@@ -253,7 +249,7 @@ public:
 
     EXPORT bool VerifySmartContract(
         Nym& theNym,
-        Account& theAcct,
+        const Account& theAcct,
         Nym& theServerNym,
         bool bBurnTransNo = false);
 
@@ -413,7 +409,6 @@ public:
     void ReleaseStashes();
 
     static void CleanupNyms(mapOfConstNyms& theMap);
-    static void CleanupAccts(mapOfAccounts& theMap);
     bool IsValidOpeningNumber(const std::int64_t& lOpeningNum) const override;
 
     std::int64_t GetOpeningNumber(const Identifier& theNymID) const override;
@@ -425,7 +420,5 @@ public:
                                      // this
                                      // is where the ledger saves its contents
 };
-
 }  // namespace opentxs
-
 #endif  // OPENTXS_CORE_SCRIPT_OTSMARTCONTRACT_HPP

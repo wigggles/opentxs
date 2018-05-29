@@ -40,6 +40,7 @@
 
 #include "opentxs/core/trade/OTMarket.hpp"
 
+#include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/core/cron/OTCron.hpp"
 #include "opentxs/core/cron/OTCronItem.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
@@ -914,19 +915,6 @@ std::int64_t OTMarket::GetLowestAskPrice()
 }
 
 // This utility function is used directly below (only).
-void OTMarket::cleanup_four_accounts(
-    Account* p1,
-    Account* p2,
-    Account* p3,
-    Account* p4)
-{
-    if (p1) delete p1;
-    if (p2) delete p2;
-    if (p3) delete p3;
-    if (p4) delete p4;
-}
-
-// This utility function is used directly below (only).
 // It is ASSUMED that the first two accounts are DEBITS, and the second two
 // accounts are CREDITS.
 // The bool is the original result of the debit or credit that was attempted
@@ -986,6 +974,7 @@ void OTMarket::rollback_four_accounts(
 // occur here.)
 //
 void OTMarket::ProcessTrade(
+    const api::client::Wallet& wallet,
     OTTrade& theTrade,
     OTOffer& theOffer,
     OTOffer& theOtherOffer)
@@ -1194,35 +1183,22 @@ void OTMarket::ProcessTrade(
     // Make sure have ALL FOUR accounts loaded and checked out.
     // (first nym's asset/currency, and other nym's asset/currency.)
 
-    Account* pFirstAssetAcct =
-        Account::LoadExistingAccount(theTrade.GetSenderAcctID(), NOTARY_ID);
-    Account* pFirstCurrencyAcct =
-        Account::LoadExistingAccount(theTrade.GetCurrencyAcctID(), NOTARY_ID);
+    auto pFirstAssetAcct = wallet.mutable_Account(theTrade.GetSenderAcctID());
+    auto pFirstCurrencyAcct =
+        wallet.mutable_Account(theTrade.GetCurrencyAcctID());
+    auto pOtherAssetAcct =
+        wallet.mutable_Account(pOtherTrade->GetSenderAcctID());
+    auto pOtherCurrencyAcct =
+        wallet.mutable_Account(pOtherTrade->GetCurrencyAcctID());
 
-    Account* pOtherAssetAcct =
-        Account::LoadExistingAccount(pOtherTrade->GetSenderAcctID(), NOTARY_ID);
-    Account* pOtherCurrencyAcct = Account::LoadExistingAccount(
-        pOtherTrade->GetCurrencyAcctID(), NOTARY_ID);
-
-    if ((nullptr == pFirstAssetAcct) || (nullptr == pFirstCurrencyAcct)) {
+    if ((!pFirstAssetAcct) || (!pFirstCurrencyAcct)) {
         otOut << "ERROR verifying existence of one of the first trader's "
                  "accounts during attempted Market trade.\n";
-        cleanup_four_accounts(
-            pFirstAssetAcct,
-            pFirstCurrencyAcct,
-            pOtherAssetAcct,
-            pOtherCurrencyAcct);
         theTrade.FlagForRemoval();  // Removes from Cron.
         return;
-    } else if (
-        (nullptr == pOtherAssetAcct) || (nullptr == pOtherCurrencyAcct)) {
+    } else if ((!pOtherAssetAcct) || (!pOtherCurrencyAcct)) {
         otOut << "ERROR verifying existence of one of the second trader's "
                  "accounts during attempted Market trade.\n";
-        cleanup_four_accounts(
-            pFirstAssetAcct,
-            pFirstCurrencyAcct,
-            pOtherAssetAcct,
-            pOtherCurrencyAcct);
         pOtherTrade->FlagForRemoval();  // Removes from Cron.
         return;
     }
@@ -1234,41 +1210,31 @@ void OTMarket::ProcessTrade(
     // But only once the accounts themselves have been loaded can we VERIFY this
     // to be true.
     else if (
-        (pFirstAssetAcct->GetInstrumentDefinitionID() !=
+        (pFirstAssetAcct.get().GetInstrumentDefinitionID() !=
          GetInstrumentDefinitionID()) ||  // the trader's asset accts have
                                           // same instrument definition
                                           // as the market.
-        (pFirstCurrencyAcct->GetInstrumentDefinitionID() !=
+        (pFirstCurrencyAcct.get().GetInstrumentDefinitionID() !=
          GetCurrencyID())  // the trader's currency accts have same asset
                            // type as the market.
     ) {
         otErr << "ERROR - First Trader has accounts of wrong "
                  "instrument definitions in OTMarket::"
               << __FUNCTION__ << "\n";
-        cleanup_four_accounts(
-            pFirstAssetAcct,
-            pFirstCurrencyAcct,
-            pOtherAssetAcct,
-            pOtherCurrencyAcct);
         theTrade.FlagForRemoval();  // Removes from Cron.
         return;
     } else if (
-        (pOtherAssetAcct->GetInstrumentDefinitionID() !=
+        (pOtherAssetAcct.get().GetInstrumentDefinitionID() !=
          GetInstrumentDefinitionID()) ||  // the trader's asset accts have
                                           // same asset
                                           // type as the market.
-        (pOtherCurrencyAcct->GetInstrumentDefinitionID() !=
+        (pOtherCurrencyAcct.get().GetInstrumentDefinitionID() !=
          GetCurrencyID()))  // the trader's currency accts have same asset
                             // type as market.
     {
         otErr << "ERROR - Other Trader has accounts of wrong "
                  "instrument definitions in OTMarket::"
               << __FUNCTION__ << "\n";
-        cleanup_four_accounts(
-            pFirstAssetAcct,
-            pFirstCurrencyAcct,
-            pOtherAssetAcct,
-            pOtherCurrencyAcct);
         pOtherTrade->FlagForRemoval();  // Removes from Cron.
         return;
     }
@@ -1279,33 +1245,23 @@ void OTMarket::ProcessTrade(
     // I call VerifySignature here since VerifyContractID was already called in
     // LoadExistingAccount().
     else if (
-        (!pFirstAssetAcct->VerifyOwner(*pFirstNym) ||
-         !pFirstAssetAcct->VerifySignature(*pServerNym)) ||
-        (!pFirstCurrencyAcct->VerifyOwner(*pFirstNym) ||
-         !pFirstCurrencyAcct->VerifySignature(*pServerNym))) {
+        (!pFirstAssetAcct.get().VerifyOwner(*pFirstNym) ||
+         !pFirstAssetAcct.get().VerifySignature(*pServerNym)) ||
+        (!pFirstCurrencyAcct.get().VerifyOwner(*pFirstNym) ||
+         !pFirstCurrencyAcct.get().VerifySignature(*pServerNym))) {
         otErr << "ERROR verifying ownership or signature on one of first "
                  "trader's accounts in OTMarket::"
               << __FUNCTION__ << "\n";
-        cleanup_four_accounts(
-            pFirstAssetAcct,
-            pFirstCurrencyAcct,
-            pOtherAssetAcct,
-            pOtherCurrencyAcct);
         theTrade.FlagForRemoval();  // Removes from Cron.
         return;
     } else if (
-        (!pOtherAssetAcct->VerifyOwner(*pOtherNym) ||
-         !pOtherAssetAcct->VerifySignature(*pServerNym)) ||
-        (!pOtherCurrencyAcct->VerifyOwner(*pOtherNym) ||
-         !pOtherCurrencyAcct->VerifySignature(*pServerNym))) {
+        (!pOtherAssetAcct.get().VerifyOwner(*pOtherNym) ||
+         !pOtherAssetAcct.get().VerifySignature(*pServerNym)) ||
+        (!pOtherCurrencyAcct.get().VerifyOwner(*pOtherNym) ||
+         !pOtherCurrencyAcct.get().VerifySignature(*pServerNym))) {
         otErr << "ERROR verifying ownership or signature on one of other "
                  "trader's accounts in OTMarket::"
               << __FUNCTION__ << "\n";
-        cleanup_four_accounts(
-            pFirstAssetAcct,
-            pFirstCurrencyAcct,
-            pOtherAssetAcct,
-            pOtherCurrencyAcct);
         pOtherTrade->FlagForRemoval();  // Removes from Cron.
         return;
     }
@@ -1387,11 +1343,6 @@ void OTMarket::ProcessTrade(
             otErr << "ERROR loading or generating an inbox for first trader in "
                      "OTMarket::"
                   << __FUNCTION__ << ".\n";
-            cleanup_four_accounts(
-                pFirstAssetAcct,
-                pFirstCurrencyAcct,
-                pOtherAssetAcct,
-                pOtherCurrencyAcct);
             theTrade.FlagForRemoval();  // Removes from Cron.
             return;
         } else if (
@@ -1400,11 +1351,6 @@ void OTMarket::ProcessTrade(
             otErr << "ERROR loading or generating an inbox for other trader in "
                      "OTMarket::"
                   << __FUNCTION__ << ".\n";
-            cleanup_four_accounts(
-                pFirstAssetAcct,
-                pFirstCurrencyAcct,
-                pOtherAssetAcct,
-                pOtherCurrencyAcct);
             pOtherTrade->FlagForRemoval();  // Removes from Cron.
             return;
         } else {
@@ -1417,11 +1363,6 @@ void OTMarket::ProcessTrade(
             if (0 == lNewTransactionNumber) {
                 otOut << "WARNING: Market is unable to process because there "
                          "are no more transaction numbers available.\n";
-                cleanup_four_accounts(
-                    pFirstAssetAcct,
-                    pFirstCurrencyAcct,
-                    pOtherAssetAcct,
-                    pOtherCurrencyAcct);
                 // (Here I flag neither trade for removal.)
                 return;
             }
@@ -1598,42 +1539,14 @@ void OTMarket::ProcessTrade(
             // reached. The trade is complete,
             // from his side of it, anyway. Then the loop will be over for sure.
 
-            Account* pAssetAccountToDebit = nullptr;
-            Account* pAssetAccountToCredit = nullptr;
-            Account* pCurrencyAccountToDebit = nullptr;
-            Account* pCurrencyAccountToCredit = nullptr;
-
-            if (theOffer.IsAsk())  // I'm selling, he's buying
-            {
-                pAssetAccountToDebit = pFirstAssetAcct;  // I am selling gold.
-                                                         // When I sell, my gold
-                                                         // balance goes down.
-                pAssetAccountToCredit = pOtherAssetAcct;  // He is bidding on
-                                                          // gold. When he buys,
-                                                          // his
-                // gold balance goes up.
-                pCurrencyAccountToDebit =
-                    pOtherCurrencyAcct;  // He is paying in dollars. When he
-                                         // pays, his dollar balance goes down.
-                pCurrencyAccountToCredit =
-                    pFirstCurrencyAcct;  // I am being paid in dollars. When I
-                                         // get paid, my dollar balance goes up.
-            } else                       // I'm buying, he's selling
-            {
-                pAssetAccountToDebit =
-                    pOtherAssetAcct;  // He is selling gold. When he sells, his
-                                      // gold balance goes down.
-                pAssetAccountToCredit =
-                    pFirstAssetAcct;  // I am bidding on gold. When I buy, my
-                                      // gold balance goes up.
-                pCurrencyAccountToDebit =
-                    pFirstCurrencyAcct;  // I am paying in dollars. When I pay,
-                                         // my dollar balance goes down.
-                pCurrencyAccountToCredit =
-                    pOtherCurrencyAcct;  // He is being paid in dollars. When he
-                                         // gets paid, his dollar balance goes
-                                         // up.
-            }
+            auto& pAssetAccountToDebit =
+                theOffer.IsAsk() ? pFirstAssetAcct : pOtherAssetAcct;
+            auto& pAssetAccountToCredit =
+                theOffer.IsAsk() ? pOtherAssetAcct : pFirstAssetAcct;
+            auto& pCurrencyAccountToDebit =
+                theOffer.IsAsk() ? pOtherCurrencyAcct : pFirstCurrencyAcct;
+            auto& pCurrencyAccountToCredit =
+                theOffer.IsAsk() ? pFirstCurrencyAcct : pOtherCurrencyAcct;
 
             // Calculate minimum increment to be traded each round.
             std::int64_t lMinIncrementPerRound =
@@ -1719,8 +1632,8 @@ void OTMarket::ProcessTrade(
 
             // To avoid rounds, first I see if I can satisfy the entire order at
             // once on either side...
-            if ((pAssetAccountToDebit->GetBalance() >= lMostAvailable) &&
-                (pCurrencyAccountToDebit->GetBalance() >=
+            if ((pAssetAccountToDebit.get().GetBalance() >= lMostAvailable) &&
+                (pCurrencyAccountToDebit.get().GetBalance() >=
                  lMostPrice)) {  // There's enough the accounts to do it all at
                                  // once! No need for rounds.
 
@@ -1760,22 +1673,23 @@ void OTMarket::ProcessTrade(
 
             // Continuing the example from above, each round I will trade:
             //        50 oz lMinIncrementPerRound, in return for $65,000 lPrice.
-            while (
-                (lMinIncrementPerRound <=
-                 (theOffer.GetAmountAvailable() -
-                  lOfferFinished)) &&  // The primary offer has at least 50
-                                       // available to trade (buy OR sell)
-                (lMinIncrementPerRound <=
-                 (theOtherOffer.GetAmountAvailable() -
-                  lOtherOfferFinished)) &&  // The other offer has at least 50
-                                            // available for trade also.
-                (lMinIncrementPerRound <=
-                 pAssetAccountToDebit->GetBalance()) &&  // Asset Acct to be
-                                                         // debited has at
-                                                         // least 50
-                                                         // available.
-                (lPrice <= pCurrencyAccountToDebit->GetBalance()))  // Currency
-                                                                    // Acct to
+            while ((lMinIncrementPerRound <=
+                    (theOffer.GetAmountAvailable() -
+                     lOfferFinished)) &&  // The primary offer has at least 50
+                                          // available to trade (buy OR sell)
+                   (lMinIncrementPerRound <=
+                    (theOtherOffer.GetAmountAvailable() -
+                     lOtherOfferFinished)) &&  // The other offer has at least
+                                               // 50 available for trade also.
+                   (lMinIncrementPerRound <=
+                    pAssetAccountToDebit.get().GetBalance()) &&  // Asset Acct
+                                                                 // to be
+                                                                 // debited has
+                                                                 // at least 50
+                                                                 // available.
+                   (lPrice <=
+                    pCurrencyAccountToDebit.get().GetBalance()))  // Currency
+                                                                  // Acct to
             // be debited has at
             // least 65000
             // available.
@@ -1786,11 +1700,11 @@ void OTMarket::ProcessTrade(
                 // So let's DO it.
 
                 bool bMove1 =
-                    pAssetAccountToDebit->Debit(lMinIncrementPerRound);
-                bool bMove2 = pCurrencyAccountToDebit->Debit(lPrice);
+                    pAssetAccountToDebit.get().Debit(lMinIncrementPerRound);
+                bool bMove2 = pCurrencyAccountToDebit.get().Debit(lPrice);
                 bool bMove3 =
-                    pAssetAccountToCredit->Credit(lMinIncrementPerRound);
-                bool bMove4 = pCurrencyAccountToCredit->Credit(lPrice);
+                    pAssetAccountToCredit.get().Credit(lMinIncrementPerRound);
+                bool bMove4 = pCurrencyAccountToCredit.get().Credit(lPrice);
 
                 // If ANY of these failed, then roll them all back and break.
                 if (!bMove1 || !bMove2 || !bMove3 || !bMove4) {
@@ -1800,16 +1714,16 @@ void OTMarket::ProcessTrade(
                     // We won't save the files anyway, if this failed. So the
                     // rollback is actually superfluous but somehow worthwhile.
                     rollback_four_accounts(
-                        *pAssetAccountToDebit,
+                        pAssetAccountToDebit.get(),
                         bMove1,
                         lMinIncrementPerRound,
-                        *pCurrencyAccountToDebit,
+                        pCurrencyAccountToDebit.get(),
                         bMove2,
                         lPrice,
-                        *pAssetAccountToCredit,
+                        pAssetAccountToCredit.get(),
                         bMove3,
                         lMinIncrementPerRound,
-                        *pCurrencyAccountToCredit,
+                        pCurrencyAccountToCredit.get(),
                         bMove4,
                         lPrice);
 
@@ -2192,10 +2106,10 @@ void OTMarket::ProcessTrade(
                 // Save the four inboxes to storage. (File, DB, wherever it
                 // goes.)
 
-                pFirstAssetAcct->SaveInbox(theFirstAssetInbox);
-                pFirstCurrencyAcct->SaveInbox(theFirstCurrencyInbox);
-                pOtherAssetAcct->SaveInbox(theOtherAssetInbox);
-                pOtherCurrencyAcct->SaveInbox(theOtherCurrencyInbox);
+                pFirstAssetAcct.get().SaveInbox(theFirstAssetInbox);
+                pFirstCurrencyAcct.get().SaveInbox(theFirstCurrencyInbox);
+                pOtherAssetAcct.get().SaveInbox(theOtherAssetInbox);
+                pOtherCurrencyAcct.get().SaveInbox(theOtherCurrencyInbox);
 
                 // These correspond to the AddTransaction() calls just above.
                 // The actual receipts are stored in separate files now.
@@ -2206,27 +2120,14 @@ void OTMarket::ProcessTrade(
                 pTrans4->SaveBoxReceipt(theOtherCurrencyInbox);
 
                 // Save the four accounts.
-                pFirstAssetAcct->ReleaseSignatures();
-                pFirstCurrencyAcct->ReleaseSignatures();
-                pOtherAssetAcct->ReleaseSignatures();
-                pOtherCurrencyAcct->ReleaseSignatures();
-                pFirstAssetAcct->SignContract(*pServerNym);
-                pFirstCurrencyAcct->SignContract(*pServerNym);
-                pOtherAssetAcct->SignContract(*pServerNym);
-                pOtherCurrencyAcct->SignContract(*pServerNym);
-                pFirstAssetAcct->SaveContract();
-                pFirstCurrencyAcct->SaveContract();
-                pOtherAssetAcct->SaveContract();
-                pOtherCurrencyAcct->SaveContract();
-                pFirstAssetAcct->SaveAccount();
-                pFirstCurrencyAcct->SaveAccount();
-                pOtherAssetAcct->SaveAccount();
-                pOtherCurrencyAcct->SaveAccount();
+                pFirstAssetAcct.Release();
+                pFirstCurrencyAcct.Release();
+                pOtherAssetAcct.Release();
+                pOtherCurrencyAcct.Release();
             }
             // If money was short, let's see WHO was short so we can remove his
-            // trade.
-            // Also, if money was short, inbox notices only go to the rejectees.
-            // But if success, then notices go to all four inboxes.
+            // trade. Also, if money was short, inbox notices only go to the
+            // rejectees. But if success, then notices go to all four inboxes.
             else {
                 otWarn << "Unable to perform trade in OTMarket::"
                        << __FUNCTION__ << "\n";
@@ -2251,7 +2152,7 @@ void OTMarket::ProcessTrade(
                 // and good to go, at least one of the four accounts was short
                 // of funds.
                 //
-                if (pAssetAccountToDebit->GetBalance() <
+                if (pAssetAccountToDebit.get().GetBalance() <
                     lMinIncrementPerRound) {
                     Item* pTempItem = nullptr;
                     OTTransaction* pTempTransaction = nullptr;
@@ -2310,7 +2211,7 @@ void OTMarket::ProcessTrade(
                 // This section is identical to the one above, except for the
                 // currency accounts.
                 //
-                if (pCurrencyAccountToDebit->GetBalance() < lPrice) {
+                if (pCurrencyAccountToDebit.get().GetBalance() < lPrice) {
                     Item* pTempItem = nullptr;
                     OTTransaction* pTempTransaction = nullptr;
                     Ledger* pTempInbox = nullptr;
@@ -2375,12 +2276,6 @@ void OTMarket::ProcessTrade(
             }  // success == false
         }      // all four boxes were successfully loaded or generated.
     }          // "this entire function can be divided..."
-
-    cleanup_four_accounts(
-        pFirstAssetAcct,
-        pFirstCurrencyAcct,
-        pOtherAssetAcct,
-        pOtherCurrencyAcct);
 }
 // Let's say pBid->Price is $10. He's bidding $10 as his price limit.
 // If I was ALREADY selling at $11, then NOTHING HAPPENS. (If we're the only two
@@ -2461,7 +2356,10 @@ void OTMarket::ProcessTrade(
 
 // Return True if Trade should stay on the Cron list for more processing.
 // Return False if it should be removed and deleted.
-bool OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer)
+bool OTMarket::ProcessTrade(
+    const api::client::Wallet& wallet,
+    OTTrade& theTrade,
+    OTOffer& theOffer)
 {
     if (theOffer.GetAmountAvailable() < theOffer.GetMinimumIncrement()) {
         otInfo << "OTMarket::" << __FUNCTION__
@@ -2591,7 +2489,8 @@ bool OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer)
                     (nullptr != pBid->GetTrade()) &&
                     !pBid->GetTrade()->IsFlaggedForRemoval())
 
-                    ProcessTrade(theTrade, theOffer, *pBid);  // <========
+                    ProcessTrade(
+                        wallet, theTrade, theOffer, *pBid);  // <========
             }
 
             // Else, the bid is lower than I am willing to sell. (And all the
@@ -2684,7 +2583,8 @@ bool OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer)
                     (nullptr != pAsk->GetTrade()) &&
                     !pAsk->GetTrade()->IsFlaggedForRemoval())
 
-                    ProcessTrade(theTrade, theOffer, *pAsk);  // <=======
+                    ProcessTrade(
+                        wallet, theTrade, theOffer, *pAsk);  // <=======
             }
             // Else, the ask price is higher than I am willing to pay. (And all
             // the remaining sellers are even HIGHER.)

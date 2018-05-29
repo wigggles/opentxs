@@ -71,6 +71,8 @@
 using namespace irr;
 using namespace io;
 
+#define OT_METHOD "opentxs::Account::"
+
 namespace opentxs
 {
 
@@ -161,6 +163,11 @@ char const* Account::_GetTypeString(AccountType accountType)
 {
     std::int32_t index = static_cast<int32_t>(accountType);
     return __TypeStringsAccount[index];
+}
+
+bool Account::LoadContractFromString(const String& theStr)
+{
+    return OTTransactionType::LoadContractFromString(theStr);
 }
 
 // Caller responsible to delete.
@@ -319,7 +326,7 @@ bool Account::SaveAccount()
 
 // Debit a certain amount from the account (presumably the same amount is being
 // credited somewhere else)
-bool Account::Debit(const std::int64_t& amount)
+bool Account::Debit(const Amount amount)
 {
     std::int64_t oldBalance = balanceAmount_.ToLong();
     // The MINUS here is the big difference between Debit and Credit
@@ -350,7 +357,7 @@ bool Account::Debit(const std::int64_t& amount)
 
 // Credit a certain amount to the account (presumably the same amount is being
 // debited somewhere else)
-bool Account::Credit(const std::int64_t& amount)
+bool Account::Credit(const Amount amount)
 {
     std::int64_t oldBalance = balanceAmount_.ToLong();
     // The PLUS here is the big difference between Debit and Credit.
@@ -441,14 +448,13 @@ Account* Account::LoadExistingAccount(
         return nullptr;
     }
 
-    Account* account = new Account;
-    OT_ASSERT(account != nullptr);
+    std::unique_ptr<Account> account{new Account};
+
+    OT_ASSERT(account);
 
     account->SetRealAccountID(accountId);
     account->SetRealNotaryID(notaryID);
-
     String strAcctID(accountId);
-
     account->m_strFoldername = OTFolders::Account().Get();
     account->m_strFilename = strAcctID.Get();
 
@@ -457,15 +463,15 @@ Account* Account::LoadExistingAccount(
         otInfo << "OTAccount::LoadExistingAccount: File does not exist: "
                << account->m_strFoldername << Log::PathSeparator()
                << account->m_strFilename << "\n";
-        delete account;
+
         return nullptr;
     }
 
     if (account->LoadContract() && account->VerifyContractID()) {
-        return account;
+
+        return account.release();
     }
 
-    delete account;
     return nullptr;
 }
 

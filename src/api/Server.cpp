@@ -157,6 +157,7 @@ void Server::generate_mint(
     }
 
     mint->GenerateNewMint(
+        wallet_,
         series,
         now,
         validTo,

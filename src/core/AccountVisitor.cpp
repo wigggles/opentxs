@@ -44,13 +44,8 @@
 
 namespace opentxs
 {
-AccountVisitor::AccountVisitor(
-    const Identifier& notaryID,
-    mapOfAccounts* loadedAccounts)
+AccountVisitor::AccountVisitor(const Identifier& notaryID)
     : notaryID_(Identifier::Factory(notaryID))
-    , loadedAccounts_(loadedAccounts)
 {
 }
-
-Identifier* AccountVisitor::GetNotaryID() { return &notaryID_.get(); }
 }  // namespace opentxs

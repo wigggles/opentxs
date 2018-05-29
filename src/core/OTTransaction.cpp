@@ -40,7 +40,8 @@
 
 #include "opentxs/core/OTTransaction.hpp"
 
-#include "opentxs/client/OTWallet.hpp"
+#include "opentxs/api/client/Wallet.hpp"
+#include "opentxs/api/Native.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/consensus/TransactionStatement.hpp"
 #include "opentxs/core/cron/OTCronItem.hpp"
@@ -67,6 +68,7 @@
 #include "opentxs/core/OTStringXML.hpp"
 #include "opentxs/core/OTTransactionType.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/OT.hpp"
 #include "opentxs/Types.hpp"
 
 #include <irrxml/irrXML.hpp>
@@ -1269,9 +1271,7 @@ bool OTTransaction::HarvestClosingNumbers(
 // inbox/outbox/account/nym to sign a NEW receipt, causing me to sign agreement
 // to invalid data!  Instead, I want a red flag to go up, and the receipt
 // automatically saved to a disputes folder, etc.
-bool OTTransaction::VerifyBalanceReceipt(
-    OTWallet& wallet,
-    const ServerContext& context)
+bool OTTransaction::VerifyBalanceReceipt(const ServerContext& context)
 {
     // Compare the inbox I just downloaded with what my last signed receipt SAYS
     // it should say. Let's say the inbox has transaction 9 in it -- well, my
@@ -1572,8 +1572,7 @@ bool OTTransaction::VerifyBalanceReceipt(
         pItemWithIssuedList = pTransactionItem;
     }
 
-    auto account = wallet.GetOrLoadAccount(
-        *context.Nym(), GetRealAccountID(), GetRealNotaryID());
+    auto account = OT::App().Wallet().Account(GetRealAccountID());
 
     if (false == bool(account)) {
         otOut << "Failed loading or verifying account for THE_NYM in "
@@ -1582,8 +1581,8 @@ bool OTTransaction::VerifyBalanceReceipt(
         return false;
     }
 
-    std::unique_ptr<Ledger> pInbox(account->LoadInbox(THE_NYM));
-    std::unique_ptr<Ledger> pOutbox(account->LoadOutbox(THE_NYM));
+    std::unique_ptr<Ledger> pInbox(account.get().LoadInbox(THE_NYM));
+    std::unique_ptr<Ledger> pOutbox(account.get().LoadOutbox(THE_NYM));
 
     if ((!pInbox) || (!pOutbox)) {
         otOut << "Inbox or outbox was nullptr after THE_ACCOUNT.Load in "
@@ -2598,12 +2597,12 @@ bool OTTransaction::VerifyBalanceReceipt(
     // from the last balance statement!
     const bool wrongBalance =
         (pBalanceItem->GetAmount() !=
-         (account->GetBalance() + (lActualDifference * (-1))));
+         (account.get().GetBalance() + (lActualDifference * (-1))));
 
     if (wrongBalance) {
         otErr << "OTTransaction::" << __FUNCTION__
               << ": lActualDifference in receipts (" << lActualDifference
-              << ") plus current acct balance (" << account->GetBalance()
+              << ") plus current acct balance (" << account.get().GetBalance()
               << ") is NOT equal to last signed balance ("
               << pBalanceItem->GetAmount() << ")" << std::endl;
 

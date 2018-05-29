@@ -40,6 +40,7 @@
 
 #include "opentxs/cash/Mint.hpp"
 
+#include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/cash/MintLucre.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Contract.hpp"
@@ -184,23 +185,14 @@ void Mint::ReleaseDenominations()
 void Mint::Release_Mint()
 {
     ReleaseDenominations();
-
     m_CashAccountID->Release();
-
-    if (m_pReserveAcct) {
-        delete m_pReserveAcct;
-        m_pReserveAcct = nullptr;
-    }
 }
 
 void Mint::Release()
 {
     Release_Mint();
-
-    Contract::Release();  // I overrode the parent, so now I give him a chance
-                          // to
-                          // clean up.
-
+    // I overrode the parent, so now I give him a chance to clean up.
+    Contract::Release();
     InitMint();
 }
 
@@ -222,8 +214,6 @@ void Mint::InitMint()
     m_VALID_FROM = OT_TIME_ZERO;
     m_VALID_TO = OT_TIME_ZERO;
     m_EXPIRATION = OT_TIME_ZERO;
-
-    m_pReserveAcct = nullptr;
 }
 
 Mint::Mint(
@@ -243,7 +233,6 @@ Mint::Mint(
     , m_VALID_TO(OT_TIME_ZERO)
     , m_EXPIRATION(OT_TIME_ZERO)
     , m_CashAccountID(Identifier::Factory())
-    , m_pReserveAcct(nullptr)
 {
     m_strFoldername.Set(OTFolders::Mint().Get());
     m_strFilename.Format(
@@ -269,7 +258,6 @@ Mint::Mint(const String& strNotaryID, const String& strInstrumentDefinitionID)
     , m_VALID_TO(OT_TIME_ZERO)
     , m_EXPIRATION(OT_TIME_ZERO)
     , m_CashAccountID(Identifier::Factory())
-    , m_pReserveAcct(nullptr)
 {
     m_strFoldername.Set(OTFolders::Mint().Get());
     m_strFilename.Format(
@@ -295,7 +283,6 @@ Mint::Mint()
     , m_VALID_TO(OT_TIME_ZERO)
     , m_EXPIRATION(OT_TIME_ZERO)
     , m_CashAccountID(Identifier::Factory())
-    , m_pReserveAcct(nullptr)
 {
     InitMint();
 }
@@ -683,17 +670,6 @@ std::int32_t Mint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         m_InstrumentDefinitionID->SetString(strInstrumentDefinitionID);
         m_CashAccountID->SetString(strCashAcctID);
 
-        if (m_pReserveAcct) {
-            delete m_pReserveAcct;
-            m_pReserveAcct = nullptr;
-        }
-
-        // Every Mint has its own cash account. Here we load ours so it's ready
-        // for transactions.
-        if (strCashAcctID.Exists())
-            m_pReserveAcct =
-                Account::LoadExistingAccount(m_CashAccountID, m_NotaryID);
-
         std::int64_t nValidFrom = OTTimeGetSecondsFromTime(m_VALID_FROM);
         std::int64_t nValidTo = OTTimeGetSecondsFromTime(m_VALID_TO);
         std::int64_t nExpiration = OTTimeGetSecondsFromTime(m_EXPIRATION);
@@ -706,7 +682,7 @@ std::int32_t Mint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                << "\n Cash Acct ID: " << strCashAcctID
                << "\n"
                   ""
-               << ((m_pReserveAcct != nullptr) ? "SUCCESS" : "FAILURE")
+               << ((false == m_CashAccountID->empty()) ? "SUCCESS" : "FAILURE")
                << " loading Cash Account into memory for pointer: "
                   "Mint::m_pReserveAcct\n"
                   " Series: "
@@ -802,6 +778,7 @@ std::int32_t Mint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 // INSTRUMENT_DEFINITION_ID, m_nymServer,
 // 1, 5, 10, 20, 50, 100, 500, 1000, 10000, 100000);
 void Mint::GenerateNewMint(
+    const api::client::Wallet& wallet,
     std::int32_t nSeries,
     time64_t VALID_FROM,
     time64_t VALID_TO,
@@ -832,16 +809,16 @@ void Mint::GenerateNewMint(
     m_VALID_FROM = VALID_FROM;
     m_VALID_TO = VALID_TO;
     m_EXPIRATION = MINT_EXPIRATION;
-    m_pReserveAcct = Account::GenerateNewAccount(
+    auto account = wallet.CreateAccount(
         NOTARY_NYM_ID,
         theNotaryID,
-        theNotary,
-        NOTARY_NYM_ID,
         theInstrumentDefinitionID,
-        Account::mint);
+        theNotary,
+        Account::mint,
+        0);
 
-    if (m_pReserveAcct) {
-        m_pReserveAcct->GetIdentifier(m_CashAccountID);
+    if (account) {
+        account.get().GetIdentifier(m_CashAccountID);
         otOut << "Successfully created cash reserve account for new mint.\n";
     } else {
         otErr << "Error creating cash reserve account for new mint.\n";

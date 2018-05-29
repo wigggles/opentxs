@@ -3318,17 +3318,16 @@ bool OTClient::processServerReplyProcessInbox(
                             pServerItem->GetTransactionNum());
                         pData->completed_count = to_string<std::int32_t>(
                             theTrade.GetCompletedCount());
-                        auto account = m_pWallet.GetOrLoadAccount(
-                            *context.Nym(), accountID, context.Server());
+                        auto account = wallet_.Account(accountID);
 
                         OT_ASSERT(account)
 
                         bool bIsAsset =
                             (theTrade.GetInstrumentDefinitionID() ==
-                             account->GetInstrumentDefinitionID());
+                             account.get().GetInstrumentDefinitionID());
                         bool bIsCurrency =
                             (theTrade.GetCurrencyID() ==
-                             account->GetInstrumentDefinitionID());
+                             account.get().GetInstrumentDefinitionID());
                         const String strAcctID(accountID);
                         const String strServerTransaction(*pServerTransaction);
 
@@ -5425,12 +5424,8 @@ bool OTClient::processServerReplyGetAccountData(
     }
 
     if (strAccount.Exists()) {
-        const auto updated = m_pWallet.UpdateAccount(
-            *context.Nym(),
-            context.RemoteNym(),
-            context.Server(),
-            accountID,
-            strAccount);
+        const auto updated =
+            wallet_.UpdateAccount(accountID, context, strAccount);
 
         if (updated) {
             otErr << OT_METHOD << __FUNCTION__
@@ -5478,9 +5473,8 @@ bool OTClient::processServerReplyGetAccountData(
 
                 if (false == bHash) {
                     otErr << OT_METHOD << __FUNCTION__
-                          << ": Failed setting InboxHash on Nym "
-                             "for account: "
-                          << str_acct_id << "\n";
+                          << ": Failed setting inbox hash for account: "
+                          << str_acct_id << " to (" << THE_HASH->str() << ")\n";
                 }
             }
 
@@ -5585,9 +5579,8 @@ bool OTClient::processServerReplyGetAccountData(
 
                 if (false == bHash) {
                     otErr << OT_METHOD << __FUNCTION__
-                          << ": Failed setting OutboxHash on Nym "
-                             "for account: "
-                          << str_acct_id << "\n";
+                          << ": Failed setting outbox hash for account: "
+                          << str_acct_id << " to (" << THE_HASH->str() << ")\n";
                 }
             }
 
@@ -6017,31 +6010,20 @@ bool OTClient::processServerReplyUnregisterAccount(
         theOriginalMessage.m_strCommand.Compare("unregisterAccount")) {
 
         const auto theAccountID = Identifier::Factory(theReply.m_strAcctID);
+        auto account = wallet_.mutable_Account(theAccountID);
 
-        auto pDeletedAcct = m_pWallet.GetAccount(theAccountID);
-
-        if (pDeletedAcct) {
-            pDeletedAcct->MarkForDeletion();
-            pDeletedAcct->ReleaseSignatures();
-            pDeletedAcct->SignContract(*context.Nym());
-            pDeletedAcct->SaveContract();
-            pDeletedAcct->SaveAccount();
-            // (The account still exists in storage, but has been MARKED FOR
-            // DELETION.)
-
-            // Remove the account from the wallet:
-            //
-            if (m_pWallet.RemoveAccount(theAccountID)) {
-                m_pWallet.SaveWallet();
-            }
+        if (account) {
+            account.Release();
+            wallet_.DeleteAccount(theAccountID);
         }
 
         otOut << "Successfully DELETED Asset Acct " << theReply.m_strAcctID
               << " from Server: " << strNotaryID << ".\n";
-    } else
+    } else {
         otErr << "The server just for some reason tried to trick me into "
                  "erasing my account "
               << theReply.m_strAcctID << " on Server " << strNotaryID << ".\n";
+    }
 
     return true;
 }
@@ -6055,12 +6037,8 @@ bool OTClient::processServerReplyRegisterInstrumentDefinition(
         // this decodes the ascii-armor payload where the new account file
         // is stored, and returns a normal string in strAcctContents.
         String strAcctContents(theReply.m_ascPayload);
-        const auto updated = m_pWallet.UpdateAccount(
-            *context.Nym(),
-            context.RemoteNym(),
-            context.Server(),
-            accountID,
-            strAcctContents);
+        const auto updated =
+            wallet_.UpdateAccount(accountID, context, strAcctContents);
 
         if (updated) {
             otErr << OT_METHOD << __FUNCTION__ << ": Saved new issuer account."
@@ -6085,12 +6063,8 @@ bool OTClient::processServerReplyRegisterAccount(
         // this decodes the ascii-armor payload where the new account file
         // is stored, and returns a normal string in strAcctContents.
         String strAcctContents(theReply.m_ascPayload);
-        const auto updated = m_pWallet.UpdateAccount(
-            *context.Nym(),
-            context.RemoteNym(),
-            context.Server(),
-            accountID,
-            strAcctContents);
+        const auto updated =
+            wallet_.UpdateAccount(accountID, context, strAcctContents);
 
         if (updated) {
             otErr << OT_METHOD << __FUNCTION__

@@ -183,12 +183,6 @@ private:
         const Nym& serverNym) const;
     bool hash_check(const ClientContext& context, Identifier& nymboxHash) const;
     RequestNumber initialize_request_number(ClientContext& context) const;
-    std::unique_ptr<Account> load_account(
-        const Identifier& nymID,
-        const Identifier& accountID,
-        const Identifier& serverID,
-        const Nym& clientNym,
-        const Nym& serverNym) const;
     std::unique_ptr<Ledger> load_inbox(
         const Identifier& nymID,
         const Identifier& accountID,

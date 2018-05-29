@@ -605,9 +605,7 @@ public:
     // Call on abbreviated version, and pass in the purported full version.
     bool VerifyBoxReceipt(OTTransaction& theFullVersion);
 
-    EXPORT bool VerifyBalanceReceipt(
-        OTWallet& wallet,
-        const ServerContext& context);
+    EXPORT bool VerifyBalanceReceipt(const ServerContext& context);
 
     // First VerifyContractID() is performed already on all the items when
     // they are first loaded up. NotaryID and AccountID have been verified.

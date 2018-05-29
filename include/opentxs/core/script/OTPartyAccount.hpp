@@ -96,11 +96,11 @@ class Tag;
 //
 class OTPartyAccount
 {
+    const api::client::Wallet& wallet_;
     OTParty* m_pForParty;  // When being added to a party, this pointer will be
                            // set.
     // NOTE: each party needs to have a list of partyaccounts, AND each account
     // on that list needs to have a CLOSING #!!! Ahh...
-    Account* m_pAccount;
     std::int64_t m_lClosingTransNo;  // Any account that is party to an
                                      // agreement,
                                      // must have a closing transaction # for
@@ -132,6 +132,9 @@ class OTPartyAccount
     // between them) should be logically the same as
     // m_pOwnerParty->GetPartyID().
     //
+
+    SharedAccount get_account() const;
+
 public:
     EXPORT void RegisterForExecution(OTScript& theScript);
 
@@ -164,8 +167,8 @@ public:
     }
     void SetAcctID(const String& strAccountID) { m_strAcctID = strAccountID; }
     EXPORT OTAgent* GetAuthorizedAgent();
-    Account* LoadAccount(Nym& theSignerNym, const String& strNotaryID);
-    bool IsAccount(Account& theAccount);
+    SharedAccount LoadAccount();
+    bool IsAccount(const Account& theAccount);
     bool IsAccountByID(const Identifier& theAcctID) const;
     bool VerifyOwnership() const;  // I have a ptr to my owner (party), as well
     // as to the actual account. I will ask him to
@@ -207,14 +210,6 @@ public:
         Tag& parent,
         bool bCalculatingID = false,
         bool bSpecifyInstrumentDefinitionID = false) const;
-
-    // For pointers I don't own, but store for convenience.
-    // This clears them once we're done processing, so I don't
-    // end up stuck with bad pointers on the next go-around.
-    //
-    void ClearTemporaryPointers() { m_pAccount = nullptr; }
 };
-
 }  // namespace opentxs
-
 #endif  // OPENTXS_CORE_SCRIPT_OTPARTYACCOUNT_HPP

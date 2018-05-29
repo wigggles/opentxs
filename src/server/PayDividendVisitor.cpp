@@ -70,9 +70,8 @@ PayDividendVisitor::PayDividendVisitor(
     const Identifier& theVoucherAcctID,
     const String& strMemo,
     server::Server& theServer,
-    std::int64_t lPayoutPerShare,
-    mapOfAccounts* pLoadedAccounts)
-    : AccountVisitor(theNotaryID, pLoadedAccounts)
+    std::int64_t lPayoutPerShare)
+    : AccountVisitor(theNotaryID)
     , m_pNymID(new Identifier(theNymID))
     , m_pPayoutInstrumentDefinitionID(
           new Identifier(thePayoutInstrumentDefinitionID))
@@ -108,9 +107,10 @@ PayDividendVisitor::~PayDividendVisitor()
 // PayDividendVisitor::Trigger() is used in
 // OTUnitDefinition::VisitAccountRecords()
 // cppcheck-suppress unusedFunction
-bool PayDividendVisitor::Trigger(Account& theSharesAccount)  // theSharesAccount
-                                                             // is, say, a Pepsi
-                                                             // shares
+bool PayDividendVisitor::Trigger(
+    const Account& theSharesAccount)  // theSharesAccount
+                                      // is, say, a Pepsi
+                                      // shares
 // account.  Here, we'll send a dollars voucher
 // to its owner.
 {
@@ -126,8 +126,8 @@ bool PayDividendVisitor::Trigger(Account& theSharesAccount)  // theSharesAccount
         return true;  // nothing to pay, since this account owns no shares.
                       // Success!
     }
-    OT_ASSERT(nullptr != GetNotaryID());
-    const Identifier& theNotaryID = *(GetNotaryID());
+    OT_ASSERT(false == GetNotaryID()->empty());
+    const auto theNotaryID = GetNotaryID();
     OT_ASSERT(nullptr != GetPayoutInstrumentDefinitionID());
     const Identifier& thePayoutInstrumentDefinitionID =
         *(GetPayoutInstrumentDefinitionID());
