@@ -62,10 +62,27 @@ namespace api
 {
 namespace storage
 {
-
 class Storage
 {
 public:
+    virtual ObjectList AccountList() const = 0;
+    virtual OTIdentifier AccountContract(const Identifier& accountID) const = 0;
+    virtual OTIdentifier AccountIssuer(const Identifier& accountID) const = 0;
+    virtual OTIdentifier AccountOwner(const Identifier& accountID) const = 0;
+    virtual OTIdentifier AccountServer(const Identifier& accountID) const = 0;
+    virtual OTIdentifier AccountSigner(const Identifier& accountID) const = 0;
+    virtual proto::ContactItemType AccountUnit(
+        const Identifier& accountID) const = 0;
+    virtual std::set<OTIdentifier> AccountsByContract(
+        const Identifier& contract) const = 0;
+    virtual std::set<OTIdentifier> AccountsByIssuer(
+        const Identifier& issuerNym) const = 0;
+    virtual std::set<OTIdentifier> AccountsByOwner(
+        const Identifier& ownerNym) const = 0;
+    virtual std::set<OTIdentifier> AccountsByServer(
+        const Identifier& server) const = 0;
+    virtual std::set<OTIdentifier> AccountsByUnit(
+        const proto::ContactItemType unit) const = 0;
     virtual std::set<std::string> BlockchainAccountList(
         const std::string& nymID,
         const proto::ContactItemType type) const = 0;
@@ -83,6 +100,7 @@ public:
         const std::string& nymID,
         const std::string& threadID,
         const std::set<std::string>& participants) const = 0;
+    virtual bool DeleteAccount(const std::string& id) const = 0;
     virtual std::string DefaultSeed() const = 0;
     virtual bool DeleteContact(const std::string& id) const = 0;
     virtual bool DeletePaymentWorkflow(
@@ -90,6 +108,11 @@ public:
         const std::string& workflowID) const = 0;
     virtual std::uint32_t HashType() const = 0;
     virtual ObjectList IssuerList(const std::string& nymID) const = 0;
+    virtual bool Load(
+        const std::string& accountID,
+        std::string& output,
+        std::string& alias,
+        const bool checking = false) const = 0;
     virtual bool Load(
         const std::string& nymID,
         const std::string& accountID,
@@ -260,6 +283,16 @@ public:
     virtual bool SetUnitDefinitionAlias(
         const std::string& id,
         const std::string& alias) const = 0;
+    virtual bool Store(
+        const std::string& accountID,
+        const std::string& data,
+        const std::string& alias,
+        const Identifier& ownerNym,
+        const Identifier& signerNym,
+        const Identifier& issuerNym,
+        const Identifier& server,
+        const Identifier& contract,
+        const proto::ContactItemType unit) const = 0;
     virtual bool Store(
         const std::string& nymID,
         const proto::ContactItemType type,

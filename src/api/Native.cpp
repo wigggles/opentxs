@@ -74,7 +74,7 @@
 #include "api/crypto/Crypto.hpp"
 #include "api/network/Dht.hpp"
 #include "api/network/ZMQ.hpp"
-#include "api/storage/Storage.hpp"
+#include "api/storage/StorageInternal.hpp"
 #include "api/Activity.hpp"
 #include "api/ContactManager.hpp"
 #include "api/Server.hpp"
@@ -776,7 +776,7 @@ void Native::Init_Storage()
 
     OT_ASSERT(crypto_);
 
-    storage_.reset(new api::storage::implementation::Storage(
+    storage_.reset(Factory::Storage(
         running_, config, defaultPlugin, migrate, old, hash, random));
     Config().Set_str(
         STORAGE_CONFIG_KEY,
@@ -790,18 +790,13 @@ void Native::Init_StorageBackup()
 {
     OT_ASSERT(storage_);
 
-    auto storage =
-        dynamic_cast<api::storage::implementation::Storage*>(storage_.get());
-
-    OT_ASSERT(nullptr != storage);
-
-    storage->InitBackup();
+    storage_->InitBackup();
 
     if (storage_encryption_key_) {
-        storage->InitEncryptedBackup(storage_encryption_key_);
+        storage_->InitEncryptedBackup(storage_encryption_key_);
     }
 
-    storage->start();
+    storage_->start();
 }
 
 void Native::Init_UI()

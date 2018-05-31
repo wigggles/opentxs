@@ -5,6 +5,7 @@ if (OT_STORAGE_SQLITE)
 endif()
 
 set(cxx-sources
+  Accounts.cpp
   BlockchainTransactions.cpp
   Contacts.cpp
   Contexts.cpp
@@ -27,6 +28,7 @@ set(cxx-sources
 )
 
 set(cxx-headers
+  Accounts.hpp
   BlockchainTransactions.hpp
   Contacts.hpp
   Contexts.hpp

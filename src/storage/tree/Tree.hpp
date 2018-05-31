@@ -50,33 +50,38 @@
 #include <memory>
 #include <mutex>
 
-namespace opentxs
+namespace opentxs::storage
 {
-namespace api
-{
-
-class Storage;
-
-}  // namespace api
-
-namespace storage
-{
-
-class BlockchainTransactions;
-class Contacts;
-class Credentials;
-class Nyms;
-class Root;
-class Seeds;
-class Servers;
-class Units;
-
 class Tree : public Node
 {
+public:
+    const Accounts& AccountNode() const;
+    const BlockchainTransactions& BlockchainNode() const;
+    const Contacts& ContactNode() const;
+    const Credentials& CredentialNode() const;
+    const Nyms& NymNode() const;
+    const Seeds& SeedNode() const;
+    const Servers& ServerNode() const;
+    const Units& UnitNode() const;
+
+    Editor<Accounts> mutable_Accounts();
+    Editor<BlockchainTransactions> mutable_Blockchain();
+    Editor<Contacts> mutable_Contacts();
+    Editor<Credentials> mutable_Credentials();
+    Editor<Nyms> mutable_Nyms();
+    Editor<Seeds> mutable_Seeds();
+    Editor<Servers> mutable_Servers();
+    Editor<Units> mutable_Units();
+
+    bool Migrate(const opentxs::api::storage::Driver& to) const override;
+
+    ~Tree();
+
 private:
-    friend class api::Storage;
+    friend class api::implementation::Storage;
     friend class Root;
 
+    std::string account_root_{Node::BLANK_HASH};
     std::string blockchain_root_{Node::BLANK_HASH};
     std::string contact_root_{Node::BLANK_HASH};
     std::string credential_root_{Node::BLANK_HASH};
@@ -85,6 +90,8 @@ private:
     std::string server_root_{Node::BLANK_HASH};
     std::string unit_root_{Node::BLANK_HASH};
 
+    mutable std::mutex account_lock_;
+    mutable std::unique_ptr<Accounts> account_;
     mutable std::mutex blockchain_lock_;
     mutable std::unique_ptr<BlockchainTransactions> blockchain_;
     mutable std::mutex contact_lock_;
@@ -100,6 +107,7 @@ private:
     mutable std::mutex unit_lock_;
     mutable std::unique_ptr<Units> units_;
 
+    Accounts* accounts() const;
     BlockchainTransactions* blockchain() const;
     Contacts* contacts() const;
     Credentials* credentials() const;
@@ -108,6 +116,7 @@ private:
     Servers* servers() const;
     Units* units() const;
 
+    void save(Accounts* accounts, const Lock& lock);
     void save(BlockchainTransactions* blockchain, const Lock& lock);
     void save(Contacts* contacts, const Lock& lock);
     void save(Credentials* credentials, const Lock& lock);
@@ -127,28 +136,6 @@ private:
     Tree(Tree&&) = delete;
     Tree operator=(const Tree&) = delete;
     Tree operator=(Tree&&) = delete;
-
-public:
-    const BlockchainTransactions& BlockchainNode() const;
-    const Contacts& ContactNode() const;
-    const Credentials& CredentialNode() const;
-    const Nyms& NymNode() const;
-    const Seeds& SeedNode() const;
-    const Servers& ServerNode() const;
-    const Units& UnitNode() const;
-
-    Editor<BlockchainTransactions> mutable_Blockchain();
-    Editor<Contacts> mutable_Contacts();
-    Editor<Credentials> mutable_Credentials();
-    Editor<Nyms> mutable_Nyms();
-    Editor<Seeds> mutable_Seeds();
-    Editor<Servers> mutable_Servers();
-    Editor<Units> mutable_Units();
-
-    bool Migrate(const opentxs::api::storage::Driver& to) const override;
-
-    ~Tree();
 };
-}  // namespace storage
-}  // namespace opentxs
+}  // namespace opentxs::storage
 #endif  // OPENTXS_STORAGE_TREE_TREE_HPP

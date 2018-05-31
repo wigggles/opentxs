@@ -214,6 +214,14 @@ public:
         const api::client::Wallet& wallet,
         const api::client::Workflow& workflow,
         const ContextLockCallback& lockCallback);
+    static api::storage::StorageInternal* Storage(
+        const Flag& running,
+        const StorageConfig& config,
+        const String& primary,
+        const bool migrate,
+        const String& previous,
+        const Digest& hash,
+        const Random& random);
     static api::client::Sync* Sync(
         const Flag& running,
         const OT_API& otapi,

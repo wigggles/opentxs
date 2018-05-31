@@ -60,6 +60,7 @@ namespace implementation
 class Api;
 class Crypto;
 class Native;
+class Storage;
 class UI;
 }  // namespace implementation
 
@@ -72,6 +73,11 @@ class Dht;
 class ZMQ;
 }  // namespace implementation
 }  // namespace network
+
+namespace storage
+{
+class StorageInternal;
+}  // namespace storage
 }  // namespace api
 
 namespace network
@@ -88,7 +94,11 @@ class Proxy;
 
 namespace storage
 {
+class Accounts;
+class BlockchainTransactions;
+class Contacts;
 class Contexts;
+class Credentials;
 class Issuers;
 class Mailbox;
 class Nym;
@@ -97,9 +107,12 @@ class PaymentWorkflows;
 class PeerReplies;
 class PeerRequests;
 class Root;
+class Seeds;
+class Servers;
 class Thread;
 class Threads;
 class Tree;
+class Units;
 }  // namespace storage
 
 namespace ui

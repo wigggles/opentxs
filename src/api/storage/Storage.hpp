@@ -41,30 +41,8 @@
 
 #include "Internal.hpp"
 
-#include "opentxs/api/storage/Storage.hpp"
-#include "opentxs/api/Editor.hpp"
-#include "opentxs/core/Flag.hpp"
-
-#include "storage/StorageConfig.hpp"
-
-#include <iostream>
-#include <limits>
-#include <list>
-#include <map>
-#include <mutex>
-#include <thread>
-#include <tuple>
-#include <vector>
-
-namespace opentxs
+namespace opentxs::api::storage::implementation
 {
-namespace api
-{
-namespace storage
-{
-namespace implementation
-{
-
 // Content-aware storage module for opentxs
 //
 // Storage accepts serialized opentxs objects in protobuf form, writes them
@@ -86,9 +64,27 @@ namespace implementation
 // Objects are either stored and retrieved from either the primary bucket, or
 // the alternate bucket. This allows for garbage collection of outdated keys
 // to be implemented.
-class Storage : public opentxs::api::storage::Storage
+class Storage : public opentxs::api::storage::StorageInternal
 {
 public:
+    ObjectList AccountList() const override;
+    OTIdentifier AccountContract(const Identifier& accountID) const override;
+    OTIdentifier AccountIssuer(const Identifier& accountID) const override;
+    OTIdentifier AccountOwner(const Identifier& accountID) const override;
+    OTIdentifier AccountServer(const Identifier& accountID) const override;
+    OTIdentifier AccountSigner(const Identifier& accountID) const override;
+    proto::ContactItemType AccountUnit(
+        const Identifier& accountID) const override;
+    std::set<OTIdentifier> AccountsByContract(
+        const Identifier& contract) const override;
+    std::set<OTIdentifier> AccountsByIssuer(
+        const Identifier& issuerNym) const override;
+    std::set<OTIdentifier> AccountsByOwner(
+        const Identifier& ownerNym) const override;
+    std::set<OTIdentifier> AccountsByServer(
+        const Identifier& server) const override;
+    std::set<OTIdentifier> AccountsByUnit(
+        const proto::ContactItemType unit) const override;
     std::set<std::string> BlockchainAccountList(
         const std::string& nymID,
         const proto::ContactItemType type) const override;
@@ -106,6 +102,7 @@ public:
         const std::string& nymID,
         const std::string& threadID,
         const std::set<std::string>& participants) const override;
+    bool DeleteAccount(const std::string& id) const override;
     std::string DefaultSeed() const override;
     bool DeleteContact(const std::string& id) const override;
     bool DeletePaymentWorkflow(
@@ -113,6 +110,11 @@ public:
         const std::string& workflowID) const override;
     std::uint32_t HashType() const override;
     ObjectList IssuerList(const std::string& nymID) const override;
+    bool Load(
+        const std::string& accountID,
+        std::string& output,
+        std::string& alias,
+        const bool checking = false) const override;
     bool Load(
         const std::string& nymID,
         const std::string& accountID,
@@ -280,6 +282,16 @@ public:
     bool SetUnitDefinitionAlias(const std::string& id, const std::string& alias)
         const override;
     bool Store(
+        const std::string& accountID,
+        const std::string& data,
+        const std::string& alias,
+        const Identifier& ownerNym,
+        const Identifier& signerNym,
+        const Identifier& issuerNym,
+        const Identifier& server,
+        const Identifier& contract,
+        const proto::ContactItemType unit) const override;
+    bool Store(
         const std::string& nymID,
         const proto::ContactItemType type,
         const proto::Bip44Account& data) const override;
@@ -335,7 +347,7 @@ public:
     ~Storage();
 
 private:
-    friend class opentxs::api::implementation::Native;
+    friend Factory;
 
     static const std::uint32_t HASH_TYPE;
 
@@ -356,15 +368,15 @@ private:
     void Cleanup();
     void Cleanup_Storage();
     void CollectGarbage() const;
-    void InitBackup();
-    void InitEncryptedBackup(std::unique_ptr<SymmetricKey>& key);
+    void InitBackup() override;
+    void InitEncryptedBackup(std::unique_ptr<SymmetricKey>& key) override;
     void InitPlugins();
     Editor<opentxs::storage::Root> mutable_Root() const;
     void RunMapPublicNyms(NymLambda lambda) const;
     void RunMapServers(ServerLambda lambda) const;
     void RunMapUnits(UnitLambda lambda) const;
     void save(opentxs::storage::Root* in, const Lock& lock) const;
-    void start();
+    void start() override;
 
     Storage(
         const Flag& running,
@@ -379,8 +391,5 @@ private:
     Storage& operator=(const Storage&) = delete;
     Storage& operator=(Storage&&) = delete;
 };
-}  // namespace implementation
-}  // namespace storage
-}  // namespace api
-}  // namespace opentxs
+}  // namespace opentxs::api::storage::implementation
 #endif  // OPENTXS_API_STORAGE_IMPLEMENTATION_STORAGE_HPP
