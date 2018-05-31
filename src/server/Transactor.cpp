@@ -88,7 +88,7 @@ bool Transactor::issueNextTransactionNumber(
     transactionNumber_++;
 
     // Next, we save it to file.
-    if (!server_->mainFile_.SaveMainFile()) {
+    if (!server_->GetMainFile().SaveMainFile()) {
         Log::Error("Error saving main server file.\n");
         transactionNumber_--;
         return false;
@@ -119,7 +119,7 @@ bool Transactor::issueNextTransactionNumberToNym(
         transactionNumber_--;
         // Save it back how it was, since we're not issuing this number after
         // all.
-        server_->mainFile_.SaveMainFile();
+        server_->GetMainFile().SaveMainFile();
 
         return false;
     }
@@ -246,11 +246,11 @@ bool Transactor::lookupBasketAccountID(
 ExclusiveAccount Transactor::getVoucherAccount(
     const Identifier& INSTRUMENT_DEFINITION_ID)
 {
-    const auto NOTARY_NYM_ID = Identifier::Factory(server_->m_nymServer),
-               NOTARY_ID = Identifier::Factory(server_->m_strNotaryID);
+    const auto NOTARY_NYM_ID = Identifier::Factory(server_->GetServerNym()),
+               NOTARY_ID = Identifier::Factory(server_->GetServerID());
     bool bWasAcctCreated = false;
     auto pAccount = voucherAccounts_.GetOrRegisterAccount(
-        server_->m_nymServer,
+        server_->GetServerNym(),
         NOTARY_NYM_ID,
         INSTRUMENT_DEFINITION_ID,
         NOTARY_ID,
@@ -267,7 +267,7 @@ ExclusiveAccount Transactor::getVoucherAccount(
             strAcctID.Get(),
             strInstrumentDefinitionID.Get());
 
-        if (!server_->mainFile_.SaveMainFile()) {
+        if (!server_->GetMainFile().SaveMainFile()) {
             Log::Error("Server::GetVoucherAccount: Error saving main "
                        "server file containing new account ID!!\n");
         }

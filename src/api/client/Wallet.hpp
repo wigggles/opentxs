@@ -268,7 +268,9 @@ private:
         bool success) const;
     void save(class Context* context) const;
     void save(const Lock& lock, api::client::Issuer* in) const;
+    void save(NymData* nymData, const Lock& lock) const;
     void save(class NymFile* nym, const Lock& lock) const;
+    bool SaveCredentialIDs(const class Nym& nym) const;
     std::shared_ptr<const class Nym> signer_nym(const Identifier& id) const;
 
     /* Throws std::out_of_range for missing accounts */

@@ -710,7 +710,7 @@ String::String(Nym& theValue)
 {
     //    Initialize();
 
-    theValue.SavePseudonym(*this);
+    theValue.SerializeNymfile(*this);
 }
 
 String::String(const String& strValue)

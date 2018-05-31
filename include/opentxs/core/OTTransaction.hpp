@@ -611,7 +611,7 @@ public:
     // they are first loaded up. NotaryID and AccountID have been verified.
     // Now we check ownership, and signatures, and transaction #s, etc.
     // (We go deeper.)
-    EXPORT bool VerifyItems(Nym& theNym);
+    EXPORT bool VerifyItems(const Nym& theNym);
 
     inline std::int32_t GetItemCount() const
     {

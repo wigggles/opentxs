@@ -53,7 +53,6 @@ public:
     EXPORT virtual void AddOutpayments(Message& theMessage) = 0;
     EXPORT virtual bool CompareID(const Identifier& theIdentifier) const = 0;
     EXPORT virtual void DisplayStatistics(String& strOutput) const = 0;
-    EXPORT virtual const Identifier& GetConstID() const = 0;
     EXPORT virtual bool GetInboxHash(
         const std::string& acct_id,
         Identifier& theOutput) const = 0;  // client-side
@@ -69,7 +68,7 @@ public:
     EXPORT virtual std::int32_t GetOutpaymentsCount() const = 0;
     EXPORT virtual std::set<std::string>& GetSetAssetAccounts() = 0;
     EXPORT virtual const std::int64_t& GetUsageCredits() const = 0;
-    EXPORT virtual bool IsMarkedForDeletion() const = 0;
+    EXPORT virtual const Identifier& ID() const = 0;
     EXPORT virtual std::string PaymentCode() const = 0;
     // IMPORTANT NOTE: Not all outpayments have a transaction num!
     // Imagine if you sent a cash purse to someone, for example.

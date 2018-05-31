@@ -70,7 +70,6 @@ ReplyMessage::ReplyMessage(
     , notary_id_(Identifier::Factory(notaryID))
     , message_(output)
     , server_(server)
-    , nymfile_(input.m_strNymID)
     , init_(false)
     , drop_(false)
     , drop_status_(false)
@@ -233,13 +232,6 @@ bool ReplyMessage::init_nym()
     return bool(sender_nym_);
 }
 
-bool ReplyMessage::InitNymfileCredentials()
-{
-    if (false == bool(sender_nym_)) { return false; }
-
-    return nymfile_.LoadCredentialIndex(sender_nym_->asPublicNym());
-}
-
 bool ReplyMessage::LoadContext()
 {
     if (false == init_nym()) { return false; }
@@ -250,18 +242,7 @@ bool ReplyMessage::LoadContext()
     return bool(context_);
 }
 
-bool ReplyMessage::LoadNym()
-{
-    auto serialized = proto::DataToProto<proto::CredentialIndex>(
-        Data::Factory(original_.m_ascPayload));
-    sender_nym_ = wallet_.Nym(serialized);
-
-    return bool(sender_nym_);
-}
-
 const Message& ReplyMessage::Original() const { return original_; }
-
-Nym& ReplyMessage::Nymfile() { return nymfile_; }
 
 void ReplyMessage::OverrideType(const String& replyCommand)
 {
@@ -363,8 +344,7 @@ ReplyMessage::~ReplyMessage()
             original_.m_strRequestNum.ToLong(),
             drop_status_,
             context_->It(),
-            server_,
-            &nymfile_);
+            server_);
     }
 
     if (context_ && context_->It().HaveLocalNymboxHash()) {

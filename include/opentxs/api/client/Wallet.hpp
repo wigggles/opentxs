@@ -60,7 +60,6 @@ namespace opentxs
 /** AccountInfo: accountID, nymID, serverID, unitID*/
 using AccountInfo =
     std::tuple<OTIdentifier, OTIdentifier, OTIdentifier, OTIdentifier>;
-typedef std::shared_ptr<const class Nym> ConstNym;
 typedef std::shared_ptr<const class ServerContract> ConstServerContract;
 typedef std::shared_ptr<const class UnitDefinition> ConstUnitDefinition;
 

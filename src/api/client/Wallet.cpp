@@ -1140,7 +1140,7 @@ ConstNym Wallet::Nym(
 
         if (loaded) {
             auto& pNym = nym_map_[nym].second;
-            pNym.reset(new class Nym(id));
+            pNym.reset(new class Nym(*this, id));
 
             if (pNym) {
                 if (pNym->LoadCredentialIndex(*serialized)) {
@@ -1182,30 +1182,34 @@ ConstNym Wallet::Nym(
 ConstNym Wallet::Nym(const proto::CredentialIndex& publicNym) const
 {
     const auto& id = publicNym.nymid();
-    auto nym = Identifier::Factory(id);
+    auto nymID = Identifier::Factory(id);
 
-    auto existing = Nym(Identifier::Factory(nym));
+    auto constNym = Nym(Identifier::Factory(nymID));
 
-    if (existing) {
-        if (existing->Revision() >= publicNym.revision()) { return existing; }
-    }
-    existing.reset();
+    if (constNym) {
+        if (constNym->Revision() >= publicNym.revision()) { return constNym; }
+    } else {
 
-    std::unique_ptr<class Nym> candidate(new class Nym(nym));
+        auto candidate = new class Nym(*this, nymID);
 
-    if (candidate) {
-        candidate->LoadCredentialIndex(publicNym);
+        if (candidate) {
+            candidate->LoadCredentialIndex(publicNym);
 
-        if (candidate->VerifyPseudonym()) {
-            candidate->WriteCredentials();
-            Lock mapLock(nym_map_lock_);
-            nym_map_.erase(id);
-            mapLock.unlock();
-            nym_publisher_->Publish(id);
+            if (candidate->VerifyPseudonym()) {
+                candidate->WriteCredentials();
+                SaveCredentialIDs(*candidate);
+                nym_publisher_->Publish(id);
+
+                Lock mapLock(nym_map_lock_);
+                auto& pMapNym = nym_map_[id].second;
+                pMapNym.reset(candidate);
+                return ConstNym(pMapNym);
+            }
         }
+        constNym.reset(candidate);
     }
 
-    return Nym(nym);
+    return constNym;
 }
 
 ConstNym Wallet::Nym(
@@ -1213,7 +1217,9 @@ ConstNym Wallet::Nym(
     const proto::ContactItemType type,
     const std::string name) const
 {
-    auto pNym = std::make_unique<class Nym>(nymParameters);
+    std::unique_ptr<class Nym> pNym(new class Nym(*this, nymParameters));
+
+    OT_ASSERT(pNym);
 
     if (pNym->VerifyPseudonym()) {
         const bool nameAndTypeSet =
@@ -1225,14 +1231,14 @@ ConstNym Wallet::Nym(
         }
 
         pNym->SaveSignedNymfile(*pNym);
-        const auto& otapi = ot_.API().OTAPI();
-        auto otwallet = otapi.GetWallet(nullptr);
 
-        OT_ASSERT(nullptr != otwallet);
+        SaveCredentialIDs(*pNym);
 
-        otwallet->SaveWallet();
+        Lock mapLock(nym_map_lock_);
+        auto& pMapNym = nym_map_[pNym->ID().str()].second;
+        pMapNym.reset(pNym.release());
 
-        return Nym(pNym->ID());
+        return ConstNym(pMapNym);
     } else {
         return nullptr;
     }
@@ -1253,7 +1259,12 @@ NymData Wallet::mutable_Nym(const Identifier& id) const
 
     if (nym_map_.end() == it) { OT_FAIL }
 
-    return NymData(it->second.second);
+    std::function<void(NymData*, Lock&)> callback = [&](NymData* nymData,
+                                                        Lock& lock) -> void {
+        this->save(nymData, lock);
+    };
+
+    return NymData(it->second.first, it->second.second, callback);
 }
 
 std::unique_ptr<const class NymFile> Wallet::Nymfile(
@@ -1272,12 +1283,22 @@ Editor<class NymFile> Wallet::mutable_Nymfile(
     const Identifier& id,
     const OTPasswordData& reason) const
 {
+    auto nym = std::unique_ptr<opentxs::Nym>(new opentxs::Nym(*this, id));
+
+    OT_ASSERT(nym)
+
+    const auto signerNym = signer_nym(id);
+
+    OT_ASSERT(signerNym)
+
+    if (false == nym->LoadSignedNymfile(*signerNym)) {
+        nym->SaveSignedNymfile(*signerNym);
+    }
+
     std::function<void(class NymFile*, Lock&)> callback =
         [&](class NymFile* in, Lock& lock) -> void { this->save(in, lock); };
-    auto nym =
-        Nym::LoadPrivateNym(id, false, nullptr, nullptr, &reason, nullptr);
 
-    return Editor<class NymFile>(nymfile_lock(id), nym, callback);
+    return Editor<class NymFile>(nymfile_lock(id), nym.release(), callback);
 }
 
 std::mutex& Wallet::nymfile_lock(const Identifier& nymID) const
@@ -1900,6 +1921,14 @@ void Wallet::save(const Lock& lock, api::client::Issuer* in) const
     ot_.DB().Store(in->LocalNymID().str(), in->Serialize());
 }
 
+void Wallet::save(NymData* nymData, const Lock& lock) const
+{
+    OT_ASSERT(nullptr != nymData);
+    OT_ASSERT(lock.owns_lock())
+
+    SaveCredentialIDs(nymData->nym());
+}
+
 void Wallet::save(class NymFile* nymfile, const Lock& lock) const
 {
     OT_ASSERT(nullptr != nymfile);
@@ -1909,10 +1938,40 @@ void Wallet::save(class NymFile* nymfile, const Lock& lock) const
 
     OT_ASSERT(nullptr != nym);
 
-    auto signerNym = signer_nym(nym->GetConstID());
+    auto signerNym = signer_nym(nym->ID());
     const auto saved = nym->SaveSignedNymfile(*signerNym);
 
     OT_ASSERT(saved);
+}
+
+bool Wallet::SaveCredentialIDs(const class Nym& nym) const
+{
+    serializedCredentialIndex index =
+        nym.SerializeCredentialIndex(CREDENTIAL_INDEX_MODE_ONLY_IDS);
+    const bool valid = proto::Validate(index, VERBOSE);
+
+    if (!valid) { return false; }
+
+    if (!OT::App().DB().Store(index, nym.Alias())) {
+        otErr << __FUNCTION__ << ": Failure trying to store "
+              << " credential list for Nym: " << nym.ID().str() << std::endl;
+
+        return false;
+    }
+
+    otWarn << "Credentials saved." << std::endl;
+
+    return true;
+}
+
+bool Wallet::SetNymAlias(const Identifier& id, const std::string& alias) const
+{
+    Lock mapLock(nym_map_lock_);
+    auto& nym = nym_map_[id.str()].second;
+
+    nym->SetAlias(alias);
+
+    return ot_.DB().SetNymAlias(id.str(), alias);
 }
 
 std::shared_ptr<const class Nym> Wallet::signer_nym(const Identifier& id) const
@@ -2059,17 +2118,6 @@ ConstServerContract Wallet::Server(
 }
 
 ObjectList Wallet::ServerList() const { return ot_.DB().ServerList(); }
-
-bool Wallet::SetNymAlias(const Identifier& id, const std::string& alias) const
-{
-    Lock mapLock(nym_map_lock_);
-
-    auto it = nym_map_.find(id.str());
-
-    if (nym_map_.end() != it) { nym_map_.erase(it); }
-
-    return ot_.DB().SetNymAlias(id.str(), alias);
-}
 
 OTIdentifier Wallet::ServerToNym(Identifier& input) const
 {

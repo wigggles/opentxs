@@ -524,31 +524,14 @@ public:
     EXPORT std::string GetNym_SourceForID(const std::string& NYM_ID) const;
     EXPORT std::string GetNym_Description(const std::string& NYM_ID) const;
 
-    EXPORT std::int32_t GetNym_MasterCredentialCount(
-        const std::string& NYM_ID) const;
-    EXPORT std::string GetNym_MasterCredentialID(
-        const std::string& NYM_ID,
-        const std::int32_t& nIndex) const;
     EXPORT std::string GetNym_MasterCredentialContents(
         const std::string& NYM_ID,
         const std::string& CREDENTIAL_ID) const;
 
-    EXPORT std::int32_t GetNym_RevokedCredCount(
-        const std::string& NYM_ID) const;
-    EXPORT std::string GetNym_RevokedCredID(
-        const std::string& NYM_ID,
-        const std::int32_t& nIndex) const;
     EXPORT std::string GetNym_RevokedCredContents(
         const std::string& NYM_ID,
         const std::string& CREDENTIAL_ID) const;
 
-    EXPORT std::int32_t GetNym_ChildCredentialCount(
-        const std::string& NYM_ID,
-        const std::string& MASTER_CRED_ID) const;
-    EXPORT std::string GetNym_ChildCredentialID(
-        const std::string& NYM_ID,
-        const std::string& MASTER_CRED_ID,
-        const std::int32_t& nIndex) const;
     EXPORT std::string GetNym_ChildCredentialContents(
         const std::string& NYM_ID,
         const std::string& MASTER_CRED_ID,

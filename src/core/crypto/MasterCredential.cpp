@@ -137,9 +137,10 @@ bool MasterCredential::verify_against_source(const Lock& lock) const
 }
 
 MasterCredential::MasterCredential(
+    const api::client::Wallet& wallet,
     CredentialSet& theOwner,
     const proto::Credential& serializedCred)
-    : ot_super(theOwner, serializedCred)
+    : ot_super(wallet, theOwner, serializedCred)
 {
     role_ = proto::CREDROLE_MASTERKEY;
 
@@ -152,9 +153,10 @@ MasterCredential::MasterCredential(
 }
 
 MasterCredential::MasterCredential(
+    const api::client::Wallet& wallet,
     CredentialSet& theOwner,
     const NymParameters& nymParameters)
-    : ot_super(theOwner, nymParameters)
+    : ot_super(wallet, theOwner, nymParameters)
 {
     role_ = proto::CREDROLE_MASTERKEY;
 
@@ -188,7 +190,7 @@ MasterCredential::MasterCredential(
 
     source_proof_.reset(sourceProof.release());
     owner_backlink_->SetSource(source);
-    String nymID = owner_backlink_->GetNymID();
+    std::string nymID = owner_backlink_->GetNymID();
 
     nym_id_ = nymID;
 }

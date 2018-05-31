@@ -64,7 +64,7 @@ private:  // Private prevents erroneous use by other classes.
 
 private:
     OTCron* m_pCron{nullptr};
-    Nym* serverNym_{nullptr};
+    ConstNym serverNym_{nullptr};
     OTIdentifier notaryID_;
     time64_t m_CREATION_DATE{0};  // The date, in seconds, when the CronItem was
                                   // authorized.
@@ -106,9 +106,9 @@ protected:
     virtual void onFinalReceipt(
         OTCronItem& theOrigCronItem,
         const std::int64_t& lNewTransactionNumber,
-        Nym& theOriginator,
-        Nym* pRemover);  // called by
-                         // HookRemovalFromCron().
+        ConstNym theOriginator,
+        ConstNym pRemover) = 0;  // called by
+                                 // HookRemovalFromCron().
 
     virtual void onRemovalFromCron() {}  // called by HookRemovalFromCron().
     void ClearClosingNumbers();
@@ -133,8 +133,7 @@ public:
         const String& strOrigCronItem,
         const originType theOriginType,
         String* pstrNote = nullptr,
-        String* pstrAttachment = nullptr,
-        const Nym* pActualNym = nullptr);
+        String* pstrAttachment = nullptr);
     virtual bool CanRemoveItemFromCron(const ClientContext& context);
     virtual void HarvestOpeningNumber(ServerContext& context);
     virtual void HarvestClosingNumbers(ServerContext& context);
@@ -143,16 +142,14 @@ public:
     // choose.
 
     // Called in OTCron::AddCronItem.
-    void HookActivationOnCron(
-        Nym* pActivator,
-        bool bForTheFirstTime = false);  // This calls
-                                         // onActivate,
-                                         // which is
-                                         // virtual.
+    void HookActivationOnCron(bool bForTheFirstTime = false);  // This calls
+                                                               // onActivate,
+                                                               // which is
+                                                               // virtual.
 
     // Called in OTCron::RemoveCronItem as well as OTCron::ProcessCron.
     // This calls onFinalReceipt, then onRemovalFromCron. Both are virtual.
-    void HookRemovalFromCron(Nym* pRemover, std::int64_t newTransactionNo);
+    void HookRemovalFromCron(ConstNym pRemover, std::int64_t newTransactionNo);
 
     inline bool IsFlaggedForRemoval() const { return m_bRemovalFlag; }
     inline void FlagForRemoval() { m_bRemovalFlag = true; }
@@ -201,7 +198,7 @@ public:
     }
 
     inline OTCron* GetCron() const { return m_pCron; }
-    void setServerNym(Nym* serverNym) { serverNym_ = serverNym; }
+    void setServerNym(ConstNym serverNym) { serverNym_ = serverNym; }
     void setNotaryID(const Identifier& notaryID);
     // When first adding anything to Cron, a copy needs to be saved in a folder
     // somewhere.

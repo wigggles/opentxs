@@ -67,20 +67,17 @@ class Notary
 {
 public:
     void NotarizeProcessInbox(
-        Nym& nym,
         ClientContext& context,
         ExclusiveAccount& account,
         OTTransaction& tranIn,
         OTTransaction& tranOut,
         bool& outSuccess);
     void NotarizeProcessNymbox(
-        Nym& nym,
         ClientContext& context,
         OTTransaction& tranIn,
         OTTransaction& tranOut,
         bool& outSuccess);
     void NotarizeTransaction(
-        Nym& nym,
         ClientContext& context,
         OTTransaction& tranIn,
         OTTransaction& tranOut,
@@ -94,63 +91,54 @@ private:
     const opentxs::api::client::Wallet& wallet_;
 
     void NotarizeCancelCronItem(
-        Nym& nym,
         ClientContext& context,
         ExclusiveAccount& assetAccount,
         OTTransaction& tranIn,
         OTTransaction& tranOut,
         bool& outSuccess);
     void NotarizeDeposit(
-        Nym& nym,
         ClientContext& context,
         ExclusiveAccount& account,
         OTTransaction& tranIn,
         OTTransaction& tranOut,
         bool& outSuccess);
     void NotarizeExchangeBasket(
-        Nym& nym,
         ClientContext& context,
         ExclusiveAccount& sourceAccount,
         OTTransaction& tranIn,
         OTTransaction& tranOut,
         bool& outSuccess);
     void NotarizeMarketOffer(
-        Nym& nym,
         ClientContext& context,
         ExclusiveAccount& assetAccount,
         OTTransaction& tranIn,
         OTTransaction& tranOut,
         bool& outSuccess);
     void NotarizePayDividend(
-        Nym& nym,
         ClientContext& context,
         ExclusiveAccount& account,
         OTTransaction& tranIn,
         OTTransaction& tranOut,
         bool& outSuccess);
     void NotarizePaymentPlan(
-        Nym& nym,
         ClientContext& context,
         ExclusiveAccount& depositorAccount,
         OTTransaction& tranIn,
         OTTransaction& tranOut,
         bool& outSuccess);
     void NotarizeSmartContract(
-        Nym& nym,
         ClientContext& context,
         ExclusiveAccount& activatingAccount,
         OTTransaction& tranIn,
         OTTransaction& tranOut,
         bool& outSuccess);
     void NotarizeTransfer(
-        Nym& nym,
         ClientContext& context,
         ExclusiveAccount& fromAccount,
         OTTransaction& tranIn,
         OTTransaction& tranOut,
         bool& outSuccess);
     void NotarizeWithdrawal(
-        Nym& nym,
         ClientContext& context,
         ExclusiveAccount& account,
         OTTransaction& tranIn,

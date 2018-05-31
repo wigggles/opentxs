@@ -123,19 +123,21 @@ Claim ContactCredential::asClaim(
 }
 
 ContactCredential::ContactCredential(
+    const api::client::Wallet& wallet,
     CredentialSet& parent,
     const proto::Credential& credential)
-    : ot_super(parent, credential)
+    : ot_super(wallet, parent, credential)
 {
     mode_ = proto::KEYMODE_NULL;
-    master_id_ = String(credential.childdata().masterid());
+    master_id_ = credential.childdata().masterid();
     data_.reset(new proto::ContactData(credential.contactdata()));
 }
 
 ContactCredential::ContactCredential(
+    const api::client::Wallet& wallet,
     CredentialSet& parent,
     const NymParameters& nymParameters)
-    : ot_super(parent, CONTACT_CREDENTIAL_VERSION, nymParameters)
+    : ot_super(wallet, parent, CONTACT_CREDENTIAL_VERSION, nymParameters)
 {
     mode_ = proto::KEYMODE_NULL;
     role_ = proto::CREDROLE_CONTACT;

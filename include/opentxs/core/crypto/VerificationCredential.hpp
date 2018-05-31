@@ -65,9 +65,11 @@ private:
     bool verify_internally(const Lock& lock) const override;
 
     VerificationCredential(
+        const api::client::Wallet& wallet,
         CredentialSet& parent,
         const proto::Credential& credential);
     VerificationCredential(
+        const api::client::Wallet& wallet,
         CredentialSet& parent,
         const NymParameters& nymParameters);
     VerificationCredential() = delete;

@@ -79,7 +79,7 @@ private:
     //  up and ready to go.
     bool m_bIsActivated{false};
     // I'll need this for later.
-    Nym* m_pServerNym{nullptr};
+    ConstNym m_pServerNym{nullptr};
     // Number of transaction numbers Cron  will grab for itself, when it gets
     // low, before each round.
     static std::int32_t __trans_refill_amount;
@@ -125,11 +125,12 @@ public:
     // RECURRING TRANSACTIONS
     EXPORT bool AddCronItem(
         OTCronItem& theItem,
-        Nym* pActivator,
         bool bSaveReceipt,
         time64_t tDateAdded);  // Date it was FIRST added to Cron.
     /** if returns false, item wasn't found. */
-    EXPORT bool RemoveCronItem(std::int64_t lTransactionNum, Nym& theRemover);
+    EXPORT bool RemoveCronItem(
+        std::int64_t lTransactionNum,
+        ConstNym theRemover);
     EXPORT OTCronItem* GetItemByOfficialNum(std::int64_t lTransactionNum);
     EXPORT OTCronItem* GetItemByValidOpeningNum(std::int64_t lOpeningNum);
     EXPORT mapOfCronItems::iterator FindItemOnMap(std::int64_t lTransactionNum);
@@ -181,12 +182,12 @@ public:
     }
     inline const Identifier& GetNotaryID() const { return m_NOTARY_ID; }
 
-    inline void SetServerNym(Nym* pServerNym)
+    inline void SetServerNym(ConstNym pServerNym)
     {
         OT_ASSERT(nullptr != pServerNym);
         m_pServerNym = pServerNym;
     }
-    inline Nym* GetServerNym() const { return m_pServerNym; }
+    inline ConstNym GetServerNym() const { return m_pServerNym; }
 
     EXPORT bool LoadCron();
     EXPORT bool SaveCron();

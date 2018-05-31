@@ -600,7 +600,7 @@ bool OTPaymentPlan::ProcessPayment(
     const OTCron* pCron = GetCron();
     OT_ASSERT(nullptr != pCron);
 
-    Nym* pServerNym = pCron->GetServerNym();
+    auto pServerNym = pCron->GetServerNym();
     OT_ASSERT(nullptr != pServerNym);
 
     bool bSuccess = false;  // The return value.
@@ -664,8 +664,7 @@ bool OTPaymentPlan::ProcessPayment(
     // the pointers accordingly, and then operate
     // using the pointers from there.
 
-    Nym theSenderNym, theRecipientNym;  // We MIGHT use ONE, OR BOTH, of
-                                        // these, or none. (But probably both.)
+    // We MIGHT use ONE, OR BOTH, of these, or none. (But probably both.)
 
     // Find out if either Nym is actually also the server.
     bool bSenderNymIsServerNym =
@@ -679,8 +678,8 @@ bool OTPaymentPlan::ProcessPayment(
     bool bUsersAreSameNym =
         ((SENDER_NYM_ID == RECIPIENT_NYM_ID) ? true : false);
 
-    Nym* pSenderNym = nullptr;
-    Nym* pRecipientNym = nullptr;
+    ConstNym pSenderNym = nullptr;
+    ConstNym pRecipientNym = nullptr;
 
     // Figure out if Sender Nym is also Server Nym.
     if (bSenderNymIsServerNym) {
@@ -688,29 +687,10 @@ bool OTPaymentPlan::ProcessPayment(
         pSenderNym = pServerNym;
     } else  // Else load the First Nym from storage.
     {
-        theSenderNym.SetIdentifier(SENDER_NYM_ID);  // theSenderNym is
-                                                    // pSenderNym
-
-        if (!theSenderNym.LoadPublicKey()) {
-            String strNymID(SENDER_NYM_ID);
-            otErr << "Failure loading Sender Nym public key in " << __FUNCTION__
-                  << ": " << strNymID << "\n";
-            FlagForRemoval();  // Remove it from future Cron processing, please.
-            return false;
-        }
-
-        if (theSenderNym.VerifyPseudonym() &&
-            theSenderNym.LoadSignedNymfile(*pServerNym))  // ServerNym here is
-                                                          // not theSenderNym's
-        // identity, but merely
-        // the signer on this
-        // file.
-        {
-            pSenderNym = &theSenderNym;  //  <=====
-        } else {
-            String strNymID(SENDER_NYM_ID);
-            otErr << "Failure loading or verifying Sender Nym public key in "
-                  << __FUNCTION__ << ": " << strNymID << "\n";
+        pSenderNym = OT::App().Wallet().Nym(SENDER_NYM_ID);
+        if (nullptr == pSenderNym) {
+            otErr << "Failure loading Sender Nym in " << __FUNCTION__ << ": "
+                  << SENDER_NYM_ID.str() << std::endl;
             FlagForRemoval();  // Remove it from future Cron processing, please.
             return false;
         }
@@ -726,23 +706,10 @@ bool OTPaymentPlan::ProcessPayment(
         pRecipientNym = pSenderNym;  // theSenderNym is pSenderNym
     } else  // Otherwise load the Other Nym from Disk and point to that.
     {
-        theRecipientNym.SetIdentifier(RECIPIENT_NYM_ID);
-
-        if (!theRecipientNym.LoadPublicKey()) {
-            String strNymID(RECIPIENT_NYM_ID);
-            otErr << "Failure loading Recipient Nym public key in "
-                  << __FUNCTION__ << ": " << strNymID << "\n";
-            FlagForRemoval();  // Remove it from future Cron processing, please.
-            return false;
-        }
-
-        if (theRecipientNym.VerifyPseudonym() &&
-            theRecipientNym.LoadSignedNymfile(*pServerNym)) {
-            pRecipientNym = &theRecipientNym;  //  <=====
-        } else {
-            String strNymID(RECIPIENT_NYM_ID);
-            otErr << "Failure loading or verifying Recipient Nym public key in "
-                  << __FUNCTION__ << ": " << strNymID << "\n";
+        pRecipientNym = OT::App().Wallet().Nym(RECIPIENT_NYM_ID);
+        if (nullptr == pRecipientNym) {
+            otErr << "Failure loading Recipient Nym in " << __FUNCTION__ << ": "
+                  << RECIPIENT_NYM_ID.str() << std::endl;
             FlagForRemoval();  // Remove it from future Cron processing, please.
             return false;
         }

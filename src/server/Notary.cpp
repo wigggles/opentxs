@@ -111,7 +111,6 @@ Notary::Notary(
 }
 
 void Notary::NotarizeTransfer(
-    Nym& theNym,
     ClientContext& context,
     ExclusiveAccount& theFromAccount,
     OTTransaction& tranIn,
@@ -135,8 +134,8 @@ void Notary::NotarizeTransfer(
 
     // Grab the actual server ID from this object, and use it as the server ID
     // here.
-    const auto NOTARY_ID = Identifier::Factory(server_.m_strNotaryID),
-               NYM_ID = Identifier::Factory(theNym),
+    const auto NOTARY_ID = Identifier::Factory(server_.GetServerID()),
+               NYM_ID = Identifier::Factory(context.RemoteNym()),
                ACCOUNT_ID = Identifier::Factory(theFromAccount.get()),
                INSTRUMENT_DEFINITION_ID = Identifier::Factory(
                    theFromAccount.get().GetInstrumentDefinitionID());
@@ -340,22 +339,22 @@ void Notary::NotarizeTransfer(
 
             if (true == bSuccessLoadingInbox)
                 bSuccessLoadingInbox =
-                    theToInbox.VerifyAccount(server_.m_nymServer);
+                    theToInbox.VerifyAccount(server_.GetServerNym());
             else
                 Log::Error(
                     "Notary::NotarizeTransfer: Error loading 'to' inbox.\n");
 
             if (true == bSuccessLoadingOutbox)
                 bSuccessLoadingOutbox =
-                    theFromOutbox.VerifyAccount(server_.m_nymServer);
+                    theFromOutbox.VerifyAccount(server_.GetServerNym());
             else
                 Log::Error("Notary::NotarizeTransfer: Error loading 'from' "
                            "outbox.\n");
 
             std::unique_ptr<Ledger> pInbox(
-                theFromAccount.get().LoadInbox(server_.m_nymServer));
+                theFromAccount.get().LoadInbox(server_.GetServerNym()));
             std::unique_ptr<Ledger> pOutbox(
-                theFromAccount.get().LoadOutbox(server_.m_nymServer));
+                theFromAccount.get().LoadOutbox(server_.GetServerNym()));
 
             if (nullptr == pInbox) {
                 Log::Error("Error loading or verifying inbox.\n");
@@ -370,7 +369,7 @@ void Notary::NotarizeTransfer(
                 // todo check this generation for failure (can it fail?)
                 std::int64_t lNewTransactionNumber = 0;
 
-                server_.transactor_.issueNextTransactionNumber(
+                server_.GetTransactor().issueNextTransactionNumber(
                     lNewTransactionNumber);
                 // I create TWO Outbox transactions -- one for the real outbox,
                 // (theFromOutbox)
@@ -426,8 +425,8 @@ void Notary::NotarizeTransfer(
                 // Now we have created 2 new transactions from the server to the
                 // users' boxes
                 // Let's sign them and add to their inbox / outbox.
-                pOutboxTransaction->SignContract(server_.m_nymServer);
-                pInboxTransaction->SignContract(server_.m_nymServer);
+                pOutboxTransaction->SignContract(server_.GetServerNym());
+                pInboxTransaction->SignContract(server_.GetServerNym());
 
                 pOutboxTransaction->SaveContract();
                 pInboxTransaction->SaveContract();
@@ -437,7 +436,7 @@ void Notary::NotarizeTransfer(
                 // copy of the outbox is used for actually adding the receipt
                 // and saving to the outbox file.)
                 //
-                pTEMPOutboxTransaction->SignContract(server_.m_nymServer);
+                pTEMPOutboxTransaction->SignContract(server_.GetServerNym());
                 pTEMPOutboxTransaction->SaveContract();
 
                 // No need to save a box receipt in this case, like we normally
@@ -526,8 +525,8 @@ void Notary::NotarizeTransfer(
                         theToInbox.ReleaseSignatures();
 
                         // Sign them.
-                        theFromOutbox.SignContract(server_.m_nymServer);
-                        theToInbox.SignContract(server_.m_nymServer);
+                        theFromOutbox.SignContract(server_.GetServerNym());
+                        theToInbox.SignContract(server_.GetServerNym());
 
                         // Save them internally
                         theFromOutbox.SaveContract();
@@ -598,11 +597,11 @@ void Notary::NotarizeTransfer(
     // Now, whether it was rejection or acknowledgement, it is set properly and
     // it is signed, and it
     // is owned by the transaction, who will take it from here.
-    pResponseItem->SignContract(server_.m_nymServer);
+    pResponseItem->SignContract(server_.GetServerNym());
     pResponseItem->SaveContract();  // the signing was of no effect because I
                                     // forgot to save.
 
-    pResponseBalanceItem->SignContract(server_.m_nymServer);
+    pResponseBalanceItem->SignContract(server_.GetServerNym());
     pResponseBalanceItem->SaveContract();
 }
 
@@ -619,7 +618,6 @@ void Notary::NotarizeTransfer(
 /// blind-signs the tokens.
 ///
 void Notary::NotarizeWithdrawal(
-    Nym& theNym,
     ClientContext& context,
     ExclusiveAccount& theAccount,
     OTTransaction& tranIn,
@@ -645,10 +643,10 @@ void Notary::NotarizeWithdrawal(
 
     // Grab the actual server ID from this object, and use it as the server ID
     // here.
-    const auto NOTARY_ID = Identifier::Factory(server_.m_strNotaryID),
-               NYM_ID = Identifier::Factory(theNym),
+    const auto NOTARY_ID = Identifier::Factory(server_.GetServerID()),
+               NYM_ID = Identifier::Factory(context.RemoteNym()),
                ACCOUNT_ID = Identifier::Factory(theAccount.get()),
-               NOTARY_NYM_ID = Identifier::Factory(server_.m_nymServer),
+               NOTARY_NYM_ID = Identifier::Factory(server_.GetServerNym()),
                INSTRUMENT_DEFINITION_ID = Identifier::Factory(
                    theAccount.get().GetInstrumentDefinitionID());
 
@@ -778,9 +776,9 @@ void Notary::NotarizeWithdrawal(
         // definition
         ExclusiveAccount voucherReserveAccount;
         std::unique_ptr<Ledger> pInbox(
-            theAccount.get().LoadInbox(server_.m_nymServer));
+            theAccount.get().LoadInbox(server_.GetServerNym()));
         std::unique_ptr<Ledger> pOutbox(
-            theAccount.get().LoadOutbox(server_.m_nymServer));
+            theAccount.get().LoadOutbox(server_.GetServerNym()));
 
         // I'm using the operator== because it exists.
         // If the ID on the "from" account that was passed in,
@@ -803,13 +801,13 @@ void Notary::NotarizeWithdrawal(
         // Actually, a list of them --
         // one for each instrument definition. Since this is the normal way of
         // doing
-        // business, transactor_.getVoucherAccount() will
+        // business, GetTransactor().getVoucherAccount() will
         // just create it if it doesn't already exist, and then return the
         // pointer. Therefore, a failure here
         // is a catastrophic failure!  Should never fail.
         //
         else if (
-            (voucherReserveAccount = server_.transactor_.getVoucherAccount(
+            (voucherReserveAccount = server_.GetTransactor().getVoucherAccount(
                  INSTRUMENT_DEFINITION_ID)) &&
             voucherReserveAccount) {
             String strVoucherRequest, strItemNote;
@@ -902,7 +900,7 @@ void Notary::NotarizeWithdrawal(
                 // remitter, instead of the transaction server.
                 //
                 //                std::int64_t lNewTransactionNumber = 0;
-                //                transactor_.issueNextTransactionNumberToNym(server_.m_nymServer,
+                //                GetTransactor().issueNextTransactionNumberToNym(server_.m_nymServer,
                 // lNewTransactionNumber);
                 // We save the transaction
                 // number on the server Nym (normally we'd discard it) because
@@ -970,7 +968,7 @@ void Notary::NotarizeWithdrawal(
                                                   // string to
                         // "VOUCHER" instead of "CHEQUE". Plus it saves the
                         // remitter's IDs.
-                        theVoucher.SignContract(server_.m_nymServer);
+                        theVoucher.SignContract(server_.GetServerNym());
                         theVoucher.SaveContract();
                         theVoucher.SaveContractRaw(strVoucher);
 
@@ -990,10 +988,11 @@ void Notary::NotarizeWithdrawal(
                 // else{} // TODO log that there was a problem with the amount
 
             }  // voucher request loaded successfully from string
-        }      // transactor_.getVoucherAccount()
+        }      // GetTransactor().getVoucherAccount()
         else {
             Log::vError(
-                "transactor_.getVoucherAccount() failed in NotarizeWithdrawal. "
+                "GetTransactor().getVoucherAccount() failed in "
+                "NotarizeWithdrawal. "
                 "Asset Type:\n%s\n",
                 strInstrumentDefinitionID.Get());
         }
@@ -1036,9 +1035,9 @@ void Notary::NotarizeWithdrawal(
                                           // to
                                           // pItem and its Owner Transaction.
         std::unique_ptr<Ledger> pInbox(
-            theAccount.get().LoadInbox(server_.m_nymServer));
+            theAccount.get().LoadInbox(server_.GetServerNym()));
         std::unique_ptr<Ledger> pOutbox(
-            theAccount.get().LoadOutbox(server_.m_nymServer));
+            theAccount.get().LoadOutbox(server_.GetServerNym()));
 
         std::shared_ptr<Mint> pMint{nullptr};
         ExclusiveAccount pMintCashReserveAcct{};
@@ -1139,7 +1138,7 @@ void Notary::NotarizeWithdrawal(
 
                 // Pull the token(s) out of the purse that was received from the
                 // client.
-                while ((pToken = thePurse.Pop(server_.m_nymServer)) !=
+                while ((pToken = thePurse.Pop(server_.GetServerNym())) !=
                        nullptr) {
                     // We are responsible to cleanup pToken
                     // So I grab a copy here for later...
@@ -1212,7 +1211,7 @@ void Notary::NotarizeWithdrawal(
                         // token index is always 0.
                         //
                         else if (!(pMint->SignToken(
-                                     server_.m_nymServer,
+                                     server_.GetServerNym(),
                                      *pToken,
                                      theStringReturnVal,
                                      0)))  // nTokenIndex = 0 //
@@ -1221,7 +1220,7 @@ void Notary::NotarizeWithdrawal(
                             bSuccess = false;
                             Log::vError(
                                 "%s: Failure in call: "
-                                "pMint->SignToken(server_.m_nymServer, "
+                                "pMint->SignToken(server_.GetServerNym(), "
                                 "*pToken, theStringReturnVal, 0). "
                                 "(Returning.)\n",
                                 __FUNCTION__);
@@ -1240,7 +1239,7 @@ void Notary::NotarizeWithdrawal(
                                 0);  // nTokenIndex = 0
 
                             // Sign and Save the token
-                            pToken->SignContract(server_.m_nymServer);
+                            pToken->SignContract(server_.GetServerNym());
                             pToken->SaveContract();
 
                             // Now the token is in signedToken mode, and the
@@ -1313,10 +1312,11 @@ void Notary::NotarizeWithdrawal(
                         pToken = theDeque.front();
                         theDeque.pop_front();
 
-                        theOutputPurse.Push(theNym, *pToken);  // these were in
-                                                               // reverse order.
-                                                               // Fixing with
-                                                               // theDeque.
+                        theOutputPurse.Push(
+                            context.RemoteNym(), *pToken);  // these were in
+                                                            // reverse order.
+                                                            // Fixing with
+                                                            // theDeque.
 
                         delete pToken;
                         pToken = nullptr;
@@ -1324,7 +1324,7 @@ void Notary::NotarizeWithdrawal(
 
                     strPurse.Release();  // just in case it only concatenates.
 
-                    theOutputPurse.SignContract(server_.m_nymServer);
+                    theOutputPurse.SignContract(server_.GetServerNym());
                     theOutputPurse.SaveContract();  // todo this is probably
                                                     // unnecessary
                     theOutputPurse.SaveContractRaw(strPurse);
@@ -1380,12 +1380,12 @@ void Notary::NotarizeWithdrawal(
         // Now, whether it was rejection or acknowledgement, it is set properly
         // and it is signed, and it
         // is owned by the transaction, who will take it from here.
-        pResponseItem->SignContract(server_.m_nymServer);
+        pResponseItem->SignContract(server_.GetServerNym());
         pResponseItem->SaveContract();  // the signing was of no effect because
                                         // I
                                         // forgot to save.
 
-        pResponseBalanceItem->SignContract(server_.m_nymServer);
+        pResponseBalanceItem->SignContract(server_.GetServerNym());
         pResponseBalanceItem->SaveContract();
     }
 #endif  // OT_CASH
@@ -1405,11 +1405,11 @@ void Notary::NotarizeWithdrawal(
     // Now, whether it was rejection or acknowledgement, it is set properly and
     // it is signed, and it
     // is owned by the transaction, who will take it from here.
-    pResponseItem->SignContract(server_.m_nymServer);
+    pResponseItem->SignContract(server_.GetServerNym());
     pResponseItem->SaveContract();  // the signing was of no effect because I
                                     // forgot to save.
 
-    pResponseBalanceItem->SignContract(server_.m_nymServer);
+    pResponseBalanceItem->SignContract(server_.GetServerNym());
     pResponseBalanceItem->SaveContract();
 }
 
@@ -1433,7 +1433,6 @@ void Notary::NotarizeWithdrawal(
 /// Phase 2: voting groups, hierarchical entities with agents, oversight,
 /// corporate asset accounts, etc.
 void Notary::NotarizePayDividend(
-    Nym& theNym,
     ClientContext& context,
     ExclusiveAccount& theSourceAccount,
     OTTransaction& tranIn,
@@ -1461,10 +1460,10 @@ void Notary::NotarizePayDividend(
     String strBalanceItem;
     // Grab the actual server ID from this object, and use it as the server ID
     // here.
-    const auto NOTARY_ID = Identifier::Factory(server_.m_strNotaryID);
-    const auto NYM_ID = Identifier::Factory(theNym);
+    const auto NOTARY_ID = Identifier::Factory(server_.GetServerID());
+    const auto NYM_ID = Identifier::Factory(context.RemoteNym());
     const auto SOURCE_ACCT_ID = Identifier::Factory(theSourceAccount.get());
-    const auto NOTARY_NYM_ID = Identifier::Factory(server_.m_nymServer);
+    const auto NOTARY_NYM_ID = Identifier::Factory(server_.GetServerNym());
     const auto PAYOUT_INSTRUMENT_DEFINITION_ID =
         Identifier::Factory(theSourceAccount.get().GetInstrumentDefinitionID());
     const String strNymID(NYM_ID);
@@ -1613,8 +1612,7 @@ void Notary::NotarizePayDividend(
                     wallet_.mutable_Account(SHARES_ISSUER_ACCT_ID);
             }
 
-            auto purportedID = Identifier::Factory();
-            theNym.GetIdentifier(purportedID);
+            auto purportedID = Identifier::Factory(context.RemoteNym());
 
             if (!pSharesContract) {
                 const String strSharesType(SHARES_INSTRUMENT_DEFINITION_ID);
@@ -1668,13 +1666,14 @@ void Notary::NotarizePayDividend(
                     szFunc,
                     strSharesType.Get());
             } else if (!sharesIssuerAccount.get().VerifyAccount(
-                           server_.m_nymServer)) {
+                           server_.GetServerNym())) {
                 const String strIssuerAcctID(SHARES_ISSUER_ACCT_ID);
                 Log::vError(
                     "%s: ERROR failed trying to verify issuer account: %s\n",
                     szFunc,
                     strIssuerAcctID.Get());
-            } else if (!sharesIssuerAccount.get().VerifyOwner(theNym)) {
+            } else if (!sharesIssuerAccount.get().VerifyOwner(
+                           context.RemoteNym())) {
                 const String strIssuerAcctID(SHARES_ISSUER_ACCT_ID);
                 Log::vOutput(
                     0,
@@ -1732,9 +1731,9 @@ void Notary::NotarizePayDividend(
                 // for any failures, so he can have a record of them, and so he
                 // can recover the funds.
                 std::unique_ptr<Ledger> pInbox(
-                    theSourceAccount.get().LoadInbox(server_.m_nymServer));
+                    theSourceAccount.get().LoadInbox(server_.GetServerNym()));
                 std::unique_ptr<Ledger> pOutbox(
-                    theSourceAccount.get().LoadOutbox(server_.m_nymServer));
+                    theSourceAccount.get().LoadOutbox(server_.GetServerNym()));
                 // contains the server's funds to back vouchers of a specific
                 // instrument definition.
                 ExclusiveAccount voucherReserveAccount;
@@ -1763,14 +1762,14 @@ void Notary::NotarizePayDividend(
                 // vouchers. Actually, a list of them --
                 // one for each instrument definition. Since this is the normal
                 // way of
-                // doing business, transactor_.getVoucherAccount() will
+                // doing business, GetTransactor().getVoucherAccount() will
                 // just create it if it doesn't already exist, and then return
                 // the pointer. Therefore, a failure here
                 // is a catastrophic failure!  Should never fail.
                 //
                 else if (
                     (voucherReserveAccount =
-                         server_.transactor_.getVoucherAccount(
+                         server_.GetTransactor().getVoucherAccount(
                              PAYOUT_INSTRUMENT_DEFINITION_ID)) &&
                     voucherReserveAccount) {
                     const auto VOUCHER_ACCOUNT_ID =
@@ -2029,7 +2028,7 @@ void Notary::NotarizePayDividend(
 
                                     std::int64_t lNewTransactionNumber = 0;
                                     const bool bGotNextTransNum =
-                                        server_.transactor_
+                                        server_.GetTransactor()
                                             .issueNextTransactionNumberToNym(
                                                 context, lNewTransactionNumber);
                                     // We save the
@@ -2045,7 +2044,7 @@ void Notary::NotarizePayDividend(
                                     if (bGotNextTransNum) {
                                         const auto NOTARY_NYM_ID =
                                             Identifier::Factory(
-                                                server_.m_nymServer);
+                                                server_.GetServerNym());
                                         const bool bIssueVoucher =
                                             theVoucher.IssueCheque(
                                                 lLeftovers,  // The amount of
@@ -2112,7 +2111,7 @@ void Notary::NotarizePayDividend(
                                             // contract
                                             // string
                                             theVoucher.SignContract(
-                                                server_.m_nymServer);  // to
+                                                server_.GetServerNym());  // to
                                             // "VOUCHER"
                                             // instead of
                                             // "CHEQUE".
@@ -2189,10 +2188,11 @@ void Notary::NotarizePayDividend(
                         // amount
 
                     }  // voucher request loaded successfully from string
-                }      // server_.transactor_.getVoucherAccount()
+                }      // server_.GetTransactor().getVoucherAccount()
                 else {
                     Log::vError(
-                        "%s: server_.transactor_.getVoucherAccount() failed. "
+                        "%s: server_.GetTransactor().getVoucherAccount() "
+                        "failed. "
                         "Asset Type:\n%s\n",
                         szFunc,
                         strInstrumentDefinitionID.Get());
@@ -2215,17 +2215,16 @@ void Notary::NotarizePayDividend(
     // Now, whether it was rejection or acknowledgement, it is set properly and
     // it is signed, and it
     // is owned by the transaction, who will take it from here.
-    pResponseItem->SignContract(server_.m_nymServer);
+    pResponseItem->SignContract(server_.GetServerNym());
     pResponseItem->SaveContract();  // the signing was of no effect because I
                                     // forgot to save.
 
-    pResponseBalanceItem->SignContract(server_.m_nymServer);
+    pResponseBalanceItem->SignContract(server_.GetServerNym());
     pResponseBalanceItem->SaveContract();
 }
 
 /// for depositing a cheque or cash.
 void Notary::NotarizeDeposit(
-    Nym& theNym,
     ClientContext& context,
     ExclusiveAccount& theAccount,
     OTTransaction& tranIn,
@@ -2251,10 +2250,10 @@ void Notary::NotarizeDeposit(
 
     // Grab the actual server ID from this object, and use it as the server ID
     // here.
-    const auto NOTARY_ID = Identifier::Factory(server_.m_strNotaryID),
-               NYM_ID = Identifier::Factory(theNym),
+    const auto NOTARY_ID = Identifier::Factory(server_.GetServerID()),
+               NYM_ID = Identifier::Factory(context.RemoteNym()),
                ACCOUNT_ID = Identifier::Factory(theAccount.get()),
-               NOTARY_NYM_ID = Identifier::Factory(server_.m_nymServer),
+               NOTARY_NYM_ID = Identifier::Factory(server_.GetServerNym()),
                INSTRUMENT_DEFINITION_ID = Identifier::Factory(
                    theAccount.get().GetInstrumentDefinitionID());
 
@@ -2384,9 +2383,9 @@ void Notary::NotarizeDeposit(
                                           // to
                                           // pItem and its Owner Transaction.
         std::unique_ptr<Ledger> pInbox(
-            theAccount.get().LoadInbox(server_.m_nymServer));
+            theAccount.get().LoadInbox(server_.GetServerNym()));
         std::unique_ptr<Ledger> pOutbox(
-            theAccount.get().LoadOutbox(server_.m_nymServer));
+            theAccount.get().LoadOutbox(server_.GetServerNym()));
 
         if (nullptr == pInbox)  // ||
                                 // !pInbox->VerifyAccount(server_.m_nymServer))
@@ -2536,7 +2535,7 @@ void Notary::NotarizeDeposit(
                 }
                 // Let's see if the sender's signature matches the one on the
                 // cheque...
-                else if (!theCheque.VerifySignature(theNym)) {
+                else if (!theCheque.VerifySignature(context.RemoteNym())) {
                     Log::vOutput(
                         0,
                         "%s: Failure verifying cheque signature for "
@@ -2584,7 +2583,7 @@ void Notary::NotarizeDeposit(
                         // todo check this generation for failure (can it fail?)
                         std::int64_t lNewTransactionNumber = 0;
 
-                        server_.transactor_.issueNextTransactionNumber(
+                        server_.GetTransactor().issueNextTransactionNumber(
                             lNewTransactionNumber);
 
                         OTTransaction* pInboxTransaction =
@@ -2607,7 +2606,7 @@ void Notary::NotarizeDeposit(
                         // Now we have created a new transaction from the server
                         // to the sender's inbox
                         // Let's sign and save it...
-                        pInboxTransaction->SignContract(server_.m_nymServer);
+                        pInboxTransaction->SignContract(server_.GetServerNym());
                         pInboxTransaction->SaveContract();
 
                         // Here the transaction we just created is actually
@@ -2620,7 +2619,7 @@ void Notary::NotarizeDeposit(
                         // changed.)
                         //
                         pInbox->ReleaseSignatures();
-                        pInbox->SignContract(server_.m_nymServer);
+                        pInbox->SignContract(server_.GetServerNym());
                         pInbox->SaveContract();
 
                         theAccount.get().SaveInbox(*pInbox);
@@ -2744,10 +2743,8 @@ void Notary::NotarizeDeposit(
                 Account* pSourceAcct{nullptr};
                 ExclusiveAccount sourceAccount{};
                 ExclusiveAccount remitterAccount{};
-                Nym theRemitterNym(REMITTER_NYM_ID);
-                Nym* pRemitterNym = &theRemitterNym;
-                Nym theSenderNym(SENDER_NYM_ID);
-                Nym* pSenderNym = &theSenderNym;
+                auto pRemitterNym = wallet_.Nym(REMITTER_NYM_ID);
+                auto pSenderNym = wallet_.Nym(SENDER_NYM_ID);
 
                 // Don't want to overwrite files or db records in cases where
                 // the sender is also the depositor.
@@ -2821,9 +2818,7 @@ void Notary::NotarizeDeposit(
                     (SOURCE_ACCT_ID == REMITTER_ACCT_ID);
                 bool bSenderIsServer = (SENDER_NYM_ID == NOTARY_NYM_ID);
                 bool bRemitterIsServer = (REMITTER_NYM_ID == NOTARY_NYM_ID);
-                bool bSenderUserAlreadyLoaded = false;
                 bool bSourceAcctAlreadyLoaded = false;
-                bool bRemitterUserAlreadyLoaded = false;
                 bool bRemitterAcctAlreadyLoaded = false;
 
                 // The depositor is already loaded, (for sure.)
@@ -2846,14 +2841,12 @@ void Notary::NotarizeDeposit(
                 // If the depositor IS the sender, pSenderNym points to
                 // depositor, and we're already loaded.
                 if (bDepositorIsSender) {
-                    pSenderNym = &theNym;
-                    bSenderUserAlreadyLoaded = true;
+                    pSenderNym = wallet_.Nym(context.RemoteNym().ID());
                 }
                 // If the server IS the sender, pSenderNym points to the server,
                 // and we're already loaded.
                 if (bSenderIsServer) {
-                    pSenderNym = &server_.m_nymServer;
-                    bSenderUserAlreadyLoaded = true;
+                    pSenderNym.reset(&server_.GetServerNym());
                 }
                 bool bSuccessLoadSenderInbox = false;
                 bool bSuccessLoadRemitterInbox = false;
@@ -2864,14 +2857,12 @@ void Notary::NotarizeDeposit(
                     // If the depositor IS the remitter, pRemitterNym points to
                     // depositor, and we're already loaded.
                     if (bDepositorIsRemitter) {
-                        pRemitterNym = &theNym;
-                        bRemitterUserAlreadyLoaded = true;
+                        pRemitterNym = wallet_.Nym(context.RemoteNym().ID());
                     }
                     // If the server IS the remitter, pRemitterNym points to the
                     // server, and we're already loaded.
                     if (bRemitterIsServer) {
-                        pRemitterNym = &server_.m_nymServer;
-                        bRemitterUserAlreadyLoaded = true;
+                        pRemitterNym.reset(&server_.GetServerNym());
                     }
                     // If the account IS the remitter's account, pRemitterNym
                     // points to the server, and we're already loaded.
@@ -2905,7 +2896,7 @@ void Notary::NotarizeDeposit(
                     // ...If it loads, verify it. Otherwise, generate it...
                     if (bSuccessLoadSenderInbox) {
                         bSuccessLoadSenderInbox =
-                            pSenderInbox->VerifyAccount(server_.m_nymServer);
+                            pSenderInbox->VerifyAccount(server_.GetServerNym());
                     } else {
                         Log::vOutput(
                             0,
@@ -2956,141 +2947,8 @@ void Notary::NotarizeDeposit(
                         strSenderNymID.Get());
                 }
 
-                // See if we can load the sender's public key (to verify cheque
-                // signature,
-                // and to remove transaction number if it's not a voucher.)
-                // if !bSenderUserAlreadyLoaded since the server already had its
-                // public key loaded at boot-time.
-                // (also since the depositor and sender might be the same
-                // person.)
-                else if (
-                    !bSenderUserAlreadyLoaded &&
-                    (false ==
-                     theSenderNym.LoadPublicKey())  // Old style (The call
-                                                    // on this line is
-                                                    // deprecated.) NOTE:
-                                                    // LoadPublicKey already
-                                                    // calls LoadCredentials
-                                                    // at its top, though
-                                                    // eventually we'll just
-                                                    // call it here
-                                                    // directly, once
-                                                    // LoadPublicKey is
-                                                    // removed for good.
-                ) {
-                    Log::vOutput(
-                        0,
-                        "Notary::%s: Error loading public key for %s "
-                        "signer during "
-                        "deposit: %s\nRecipient Nym ID: %s\n",
-                        __FUNCTION__,
-                        (bHasRemitter) ? "cheque" : "voucher",
-                        strSenderNymID.Get(),
-                        strRecipientNymID.Get());
-                }
-
-                // See if the Nym ID (Nym ID) that we have matches the message
-                // digest of his public key.
-                else if (!pSenderNym->VerifyPseudonym()) {
-                    Log::vOutput(
-                        0,
-                        "Notary::%s: Failure verifying %s: "
-                        "Bad Sender Nym ID (fails hash check of pubkey)"
-                        ": %s\nRecipient Nym ID: %s\n",
-                        __FUNCTION__,
-                        (bHasRemitter) ? "cheque" : "voucher",
-                        strSenderNymID.Get(),
-                        strRecipientNymID.Get());
-                }
-
-                // See if we can load the sender's nym file (to verify the
-                // transaction # on the cheque)
-                // if !bSenderUserAlreadyLoaded since the server already had its
-                // nym file loaded at boot-time.
-                // (also since the depositor and sender might be the same
-                // person.)
-                else if (
-                    !bSenderUserAlreadyLoaded &&
-                    (false ==
-                     theSenderNym.LoadSignedNymfile(server_.m_nymServer))) {
-                    Log::vOutput(
-                        0,
-                        "Notary::%s: Error loading nymfile for %s signer "
-                        "during deposit, user ID: %s\n"
-                        "Recipient Nym ID: %s\n",
-                        __FUNCTION__,
-                        (bHasRemitter) ? "cheque" : "voucher",
-                        strSenderNymID.Get(),
-                        strRecipientNymID.Get());
-                }
-                // See if we can load the remitter's public key (if it's a
-                // voucher.)
-                // if !bRemitterAlreadyLoaded since the server already had its
-                // public key loaded at boot-time.
-                // (also since the depositor or server, and remitter, might be
-                // the same person.)
-                else if (
-                    bHasRemitter && !bRemitterUserAlreadyLoaded &&
-                    (false ==
-                     theRemitterNym.LoadPublicKey())  // Old style (The call
-                                                      // on this line is
-                                                      // deprecated.) NOTE:
-                                                      // LoadPublicKey
-                                                      // already calls
-                                                      // LoadCredentials at
-                                                      // its top, though
-                                                      // eventually we'll
-                                                      // just call it here
-                                                      // directly, once
-                                                      // LoadPublicKey is
-                                                      // removed for good.
-                ) {
-                    Log::vOutput(
-                        0,
-                        "Notary::%s: Error loading public key for "
-                        "remitter during "
-                        "voucher deposit: %s\nRecipient Nym ID: %s\n",
-                        __FUNCTION__,
-                        strRemitterNymID.Get(),
-                        strRecipientNymID.Get());
-                }
-
-                // See if the Nym ID (Nym ID) that we have matches the message
-                // digest of his public key.
-                else if (bHasRemitter && !pRemitterNym->VerifyPseudonym()) {
-                    Log::vOutput(
-                        0,
-                        "Notary::%s: Failure verifying voucher: "
-                        "Bad Remitter Nym ID (fails hash check of pubkey)"
-                        ": %s\nRecipient Nym ID: %s\n",
-                        __FUNCTION__,
-                        strRemitterNymID.Get(),
-                        strRecipientNymID.Get());
-                }
-
-                // See if we can load the remitter's nym file (to verify the
-                // transaction # on the cheque)
-                // if !bRemitterUserAlreadyLoaded since the server already had
-                // its nym file loaded at boot-time.
-                // (also since the depositor and remitter might be the same
-                // person.)
-                else if (
-                    bHasRemitter && !bRemitterUserAlreadyLoaded &&
-                    (false ==
-                     theRemitterNym.LoadSignedNymfile(server_.m_nymServer))) {
-                    Log::vOutput(
-                        0,
-                        "Notary::%s: Error loading nymfile for "
-                        "remitter during voucher deposit: %s\n"
-                        "Recipient Nym ID: %s\n",
-                        __FUNCTION__,
-                        strRemitterNymID.Get(),
-                        strRecipientNymID.Get());
-                }
-                // Make sure they're not double-spending this cheque.
-                //
-                else if (!sContext.It().VerifyIssuedNumber(
-                             theCheque.GetTransactionNum())) {
+                if (!sContext.It().VerifyIssuedNumber(
+                        theCheque.GetTransactionNum())) {
                     Log::vOutput(
                         0,
                         "Notary::%s: Failure verifying %s: Bad "
@@ -3266,8 +3124,8 @@ void Notary::NotarizeDeposit(
                                                        // yet...
                         (!pRemitterInbox->LoadInbox() ||
                          !pRemitterInbox->VerifyAccount(
-                             server_.m_nymServer)))  // Then load and
-                                                     // verify it.
+                             server_.GetServerNym())))  // Then load and
+                                                        // verify it.
                     {
                         Log::vError(
                             "%s: ERROR loading or verifying inbox "
@@ -3528,8 +3386,9 @@ void Notary::NotarizeDeposit(
                                 // it fail?)
                                 std::int64_t lNewTransactionNumber = 0;
 
-                                server_.transactor_.issueNextTransactionNumber(
-                                    lNewTransactionNumber);
+                                server_.GetTransactor()
+                                    .issueNextTransactionNumber(
+                                        lNewTransactionNumber);
 
                                 OTTransaction* pInboxTransaction =
                                     OTTransaction::GenerateTransaction(
@@ -3560,7 +3419,7 @@ void Notary::NotarizeDeposit(
                                 // remitter's inbox.)
                                 // Let's sign and save it...
                                 pInboxTransaction->SignContract(
-                                    server_.m_nymServer);
+                                    server_.GetServerNym());
                                 pInboxTransaction->SaveContract();
 
                                 // Here the transaction we just created is
@@ -3576,7 +3435,7 @@ void Notary::NotarizeDeposit(
                                 //
                                 pInboxWhereReceiptGoes->ReleaseSignatures();
                                 pInboxWhereReceiptGoes->SignContract(
-                                    server_.m_nymServer);
+                                    server_.GetServerNym());
                                 pInboxWhereReceiptGoes->SaveContract();
                                 pAcctWhereReceiptGoes->SaveInbox(
                                     *pInboxWhereReceiptGoes);
@@ -3718,9 +3577,9 @@ void Notary::NotarizeDeposit(
                 "'from' account ID on the deposit item.\n");
         } else {
             std::unique_ptr<Ledger> pInbox(
-                theAccount.get().LoadInbox(server_.m_nymServer));
+                theAccount.get().LoadInbox(server_.GetServerNym()));
             std::unique_ptr<Ledger> pOutbox(
-                theAccount.get().LoadOutbox(server_.m_nymServer));
+                theAccount.get().LoadOutbox(server_.GetServerNym()));
 
             if (nullptr == pInbox) {
                 Log::Error("Notary::NotarizeDeposit: Error loading or "
@@ -3774,7 +3633,7 @@ void Notary::NotarizeDeposit(
                 // client.
                 while (true) {
                     std::unique_ptr<Token> pToken(
-                        thePurse.Pop(server_.m_nymServer));
+                        thePurse.Pop(server_.GetServerNym()));
                     if (!pToken) { break; }
 
                     pMint = mint_.GetPrivateMint(
@@ -3790,7 +3649,7 @@ void Notary::NotarizeDeposit(
                         pMintCashReserveAcct) {
                         String strSpendableToken;
                         bool bToken = pToken->GetSpendableString(
-                            server_.m_nymServer, strSpendableToken);
+                            server_.GetServerNym(), strSpendableToken);
 
                         if (!bToken)  // if failure getting the spendable token
                                       // data from the token object
@@ -3839,7 +3698,7 @@ void Notary::NotarizeDeposit(
                         // using the appropriate Mint private key.)
                         //
                         else if (!(pMint->VerifyToken(
-                                     server_.m_nymServer,
+                                     server_.GetServerNym(),
                                      strSpendableToken,
                                      pToken->GetDenomination()))) {
                             bSuccess = false;
@@ -4013,11 +3872,11 @@ void Notary::NotarizeDeposit(
     // Now, whether it was rejection or acknowledgement, it is set properly and
     // it is signed, and it
     // is owned by the transaction, who will take it from here.
-    pResponseItem->SignContract(server_.m_nymServer);
+    pResponseItem->SignContract(server_.GetServerNym());
     pResponseItem->SaveContract();  // the signing was of no effect because I
                                     // forgot to save.
 
-    pResponseBalanceItem->SignContract(server_.m_nymServer);
+    pResponseBalanceItem->SignContract(server_.GetServerNym());
     pResponseBalanceItem->SaveContract();
 }
 
@@ -4042,7 +3901,6 @@ void Notary::NotarizeDeposit(
 ///
 ///
 void Notary::NotarizePaymentPlan(
-    Nym& theNym,
     ClientContext& context,
     ExclusiveAccount& theDepositorAccount,
     OTTransaction& tranIn,
@@ -4066,12 +3924,12 @@ void Notary::NotarizePaymentPlan(
 
     // Grab the actual server ID from this object, and use it as the server ID
     // here.
-    const auto NOTARY_ID = Identifier::Factory(server_.m_strNotaryID),
-               DEPOSITOR_NYM_ID = Identifier::Factory(theNym),
-               NOTARY_NYM_ID = Identifier::Factory(server_.m_nymServer),
+    const auto NOTARY_ID = Identifier::Factory(server_.GetServerID()),
+               DEPOSITOR_NYM_ID = Identifier::Factory(context.RemoteNym()),
+               NOTARY_NYM_ID = Identifier::Factory(server_.GetServerNym()),
                DEPOSITOR_ACCT_ID =
                    Identifier::Factory(theDepositorAccount.get()),
-               NYM_ID = Identifier::Factory(theNym);
+               NYM_ID = Identifier::Factory(context.RemoteNym());
 
     const String strNymID(NYM_ID);
     pItem = tranIn.GetItem(Item::paymentPlan);
@@ -4441,7 +4299,7 @@ void Notary::NotarizePaymentPlan(
                             // VerifyContractID
                             // was already called in LoadExistingAccount().
                             else if (!pRecipientAcct->VerifySignature(
-                                         server_.m_nymServer)) {
+                                         server_.GetServerNym())) {
                                 Log::vOutput(
                                     0,
                                     "%s: ERROR verifying signature on the "
@@ -4501,9 +4359,8 @@ void Notary::NotarizePaymentPlan(
                                 // be loaded when necessary.)
                                 //
                                 if (!bCancelling &&
-                                    server_.m_Cron.AddCronItem(
+                                    server_.Cron().AddCronItem(
                                         *pPlan,
-                                        &theNym,
                                         true,
                                         OTTimeGetCurrentTime()))  // bSaveReceipt=true
                                 {
@@ -4545,7 +4402,7 @@ void Notary::NotarizePaymentPlan(
                                     // we didn't call this here, then I could
                                     // come back later and USE THE
                                     // NUMBER AGAIN! (Bad!)
-                                    // server_.transactor_.removeTransactionNumber
+                                    // server_.GetTransactor().removeTransactionNumber
                                     // was
                                     // already called for
                                     // tranIn->GetTransactionNum() (That's the
@@ -4588,22 +4445,20 @@ void Notary::NotarizePaymentPlan(
                                     // be waiting.)
                                     //
                                     std::int64_t lOtherNewTransNumber = 0;
-                                    server_.transactor_
+                                    server_.GetTransactor()
                                         .issueNextTransactionNumber(
                                             lOtherNewTransNumber);
 
                                     if (false == pPlan->SendNoticeToAllParties(
                                                      true,  // bSuccessMsg=true
-                                                     server_.m_nymServer,
+                                                     server_.GetServerNym(),
                                                      NOTARY_ID,
                                                      lOtherNewTransNumber,
                                                      // Each party has its own
                                                      // opening number. Handled
                                                      // internally.
                                                      strPaymentPlan,
-                                                     &strPaymentPlan,
-                                                     nullptr,
-                                                     &theNym)) {
+                                                     &strPaymentPlan)) {
                                         Log::vOutput(
                                             0,
                                             "%s: Failed notifying parties "
@@ -4639,22 +4494,20 @@ void Notary::NotarizePaymentPlan(
                                     // #s....
                                     //
                                     std::int64_t lOtherNewTransNumber = 0;
-                                    server_.transactor_
+                                    server_.GetTransactor()
                                         .issueNextTransactionNumber(
                                             lOtherNewTransNumber);
 
                                     if (false == pPlan->SendNoticeToAllParties(
                                                      false,
-                                                     server_.m_nymServer,
+                                                     server_.GetServerNym(),
                                                      NOTARY_ID,
                                                      lOtherNewTransNumber,
                                                      // Each party has its own
                                                      // opening number. Handled
                                                      // internally.
                                                      strPaymentPlan,
-                                                     &strPaymentPlan,
-                                                     nullptr,
-                                                     &theNym)) {
+                                                     &strPaymentPlan)) {
                                         // NOTE: A party may deliberately try to
                                         // activate a payment plan without
                                         // signing it. (As a way of rejecting
@@ -4707,16 +4560,15 @@ void Notary::NotarizePaymentPlan(
     // Now, whether it was rejection or acknowledgement, it is set properly and
     // it is signed, and it
     // is owned by the transaction, who will take it from here.
-    pResponseItem->SignContract(server_.m_nymServer);
+    pResponseItem->SignContract(server_.GetServerNym());
     pResponseItem->SaveContract();  // the signing was of no effect because I
                                     // forgot to save.
 
-    pResponseBalanceItem->SignContract(server_.m_nymServer);
+    pResponseBalanceItem->SignContract(server_.GetServerNym());
     pResponseBalanceItem->SaveContract();
 }
 
 void Notary::NotarizeSmartContract(
-    Nym& theNym,
     ClientContext& context,
     ExclusiveAccount& theActivatingAccount,
     OTTransaction& tranIn,
@@ -4740,11 +4592,11 @@ void Notary::NotarizeSmartContract(
 
     // Grab the actual server ID from this object, and use it as the server ID
     // here.
-    const auto NOTARY_ID = Identifier::Factory(server_.m_strNotaryID),
-               ACTIVATOR_NYM_ID = Identifier::Factory(theNym),
-               NOTARY_NYM_ID = Identifier::Factory(server_.m_nymServer),
+    const auto NOTARY_ID = Identifier::Factory(server_.GetServerID()),
+               ACTIVATOR_NYM_ID = Identifier::Factory(context.RemoteNym()),
+               NOTARY_NYM_ID = Identifier::Factory(server_.GetServerNym()),
                ACTIVATOR_ACCT_ID = Identifier::Factory(theActivatingAccount),
-               NYM_ID = Identifier::Factory(theNym);
+               NYM_ID = Identifier::Factory(context.RemoteNym());
     const String strNymID(NYM_ID);
     pItem = tranIn.GetItem(Item::smartContract);
     pBalanceItem = tranIn.GetItem(Item::transactionStatement);
@@ -4842,7 +4694,7 @@ void Notary::NotarizeSmartContract(
                     "contract. Expected %s\n",
                     __FUNCTION__,
                     strWrongID.Get(),
-                    String(server_.m_strNotaryID).Get());
+                    server_.GetServerID().str().c_str());
             } else {
                 // CANCELING, or ACTIVATING?
                 //
@@ -4958,7 +4810,7 @@ void Notary::NotarizeSmartContract(
                 else if (
                     (pContract->GetSenderNymID() == NOTARY_NYM_ID) ||
                     (nullptr != pContract->FindPartyBasedOnNymAsAgent(
-                                    server_.m_nymServer))) {
+                                    server_.GetServerNym()))) {
                     Log::vOutput(
                         0,
                         "%s: ** SORRY ** but the server itself is NOT ALLOWED "
@@ -5022,7 +4874,9 @@ void Notary::NotarizeSmartContract(
                   a legit agent for the party, and that each account has a legit
                   agent lording over it.
                 */
-                else if (bCancelling && !pContract->VerifySignature(theNym)) {
+                else if (
+                    bCancelling &&
+                    !pContract->VerifySignature(context.RemoteNym())) {
                     Log::vOutput(
                         0,
                         "%s: Failed verifying canceler signature "
@@ -5038,9 +4892,9 @@ void Notary::NotarizeSmartContract(
                 // done.
                 //
                 else if (!pContract->VerifySmartContract(
-                             theNym,
+                             context.RemoteNym(),
                              theActivatingAccount.get(),
-                             server_.m_nymServer,
+                             server_.GetServerNym(),
                              true))  // bBurnTransNo=false by default, but here
                                      // we pass TRUE.
                 {
@@ -5336,20 +5190,18 @@ void Notary::NotarizeSmartContract(
                     // SO THEY CAN CLAW BACK THEIR TRANSACTION #s....
                     //
                     std::int64_t lNewTransactionNumber = 0;
-                    server_.transactor_.issueNextTransactionNumber(
+                    server_.GetTransactor().issueNextTransactionNumber(
                         lNewTransactionNumber);
 
                     if (false == pContract->SendNoticeToAllParties(
                                      false,
-                                     server_.m_nymServer,
+                                     server_.GetServerNym(),
                                      NOTARY_ID,
                                      lNewTransactionNumber,
                                      // // Each party has its own opening
                                      // number. Handled internally.
                                      strContract,
-                                     &strContract,
-                                     nullptr,
-                                     &theNym)) {
+                                     &strContract)) {
                         // NOTE: A party may deliberately try to activate a
                         // smart contract without signing it.
                         // (As a way of rejecting it.) This will cause rejection
@@ -5379,20 +5231,18 @@ void Notary::NotarizeSmartContract(
                 //
                 else {
                     std::int64_t lNewTransactionNumber = 0;
-                    server_.transactor_.issueNextTransactionNumber(
+                    server_.GetTransactor().issueNextTransactionNumber(
                         lNewTransactionNumber);
 
                     if (false == pContract->SendNoticeToAllParties(
                                      true,
-                                     server_.m_nymServer,
+                                     server_.GetServerNym(),
                                      NOTARY_ID,
                                      lNewTransactionNumber,
                                      // // Each party has its own opening
                                      // number. Handled internally.
                                      strContract,
-                                     &strContract,
-                                     nullptr,
-                                     &theNym)) {
+                                     &strContract)) {
                         Log::vOutput(
                             0,
                             "%s: Failed notifying parties while trying to "
@@ -5401,11 +5251,8 @@ void Notary::NotarizeSmartContract(
                             pContract->GetTransactionNum());
                     }
                     // Add it to Cron...
-                    else if (server_.m_Cron.AddCronItem(
-                                 *pContract,
-                                 &theNym,
-                                 true,
-                                 OTTimeGetCurrentTime())) {
+                    else if (server_.Cron().AddCronItem(
+                                 *pContract, true, OTTimeGetCurrentTime())) {
                         // We add the smart contract to the server's Cron
                         // object, which does regular processing.
                         // That object will take care of processing the smart
@@ -5459,11 +5306,11 @@ void Notary::NotarizeSmartContract(
     // Now, whether it was rejection or acknowledgement, it is set properly and
     // it is signed, and it
     // is owned by the transaction, who will take it from here.
-    pResponseItem->SignContract(server_.m_nymServer);
+    pResponseItem->SignContract(server_.GetServerNym());
     pResponseItem->SaveContract();  // the signing was of no effect because I
                                     // forgot to save.
 
-    pResponseBalanceItem->SignContract(server_.m_nymServer);
+    pResponseBalanceItem->SignContract(server_.GetServerNym());
     pResponseBalanceItem->SaveContract();
 }
 
@@ -5488,7 +5335,6 @@ void Notary::NotarizeSmartContract(
 // the SAME closing numbers.
 //
 void Notary::NotarizeCancelCronItem(
-    Nym& theNym,
     ClientContext& context,
     ExclusiveAccount& theAssetAccount,
     OTTransaction& tranIn,
@@ -5512,8 +5358,8 @@ void Notary::NotarizeCancelCronItem(
 
     // Grab the actual server ID from this object, and use it as the server ID
     // here.
-    const auto NOTARY_ID = Identifier::Factory(server_.m_strNotaryID),
-               NYM_ID = Identifier::Factory(theNym);
+    const auto NOTARY_ID = Identifier::Factory(server_.GetServerID()),
+               NYM_ID = Identifier::Factory(context.RemoteNym());
 
     const String strNymID(NYM_ID);
 
@@ -5610,7 +5456,7 @@ void Notary::NotarizeCancelCronItem(
             } else  // LET'S SEE IF WE CAN REMOVE IT THEN...
             {
                 OTCronItem* pCronItem =
-                    server_.m_Cron.GetItemByValidOpeningNum(lReferenceToNum);
+                    server_.Cron().GetItemByValidOpeningNum(lReferenceToNum);
 
                 // Check for the closing number here (that happens in
                 // OTCronItem, since it's polymorphic.)
@@ -5621,8 +5467,9 @@ void Notary::NotarizeCancelCronItem(
                     // see if theNym has right to remove the cronItem from
                     // processing.
                     (pCronItem->CanRemoveItemFromCron(context))) {
-                    bSuccess = server_.m_Cron.RemoveCronItem(
-                        pCronItem->GetTransactionNum(), theNym);
+                    bSuccess = server_.Cron().RemoveCronItem(
+                        pCronItem->GetTransactionNum(),
+                        wallet_.Nym(context.RemoteNym().ID()));
                 }
 
                 // If we were just successful in removing the offer from the
@@ -5675,18 +5522,17 @@ void Notary::NotarizeCancelCronItem(
     // Now, whether it was rejection or acknowledgement, it is set properly and
     // it is signed, and it
     // is owned by the transaction, who will take it from here.
-    pResponseItem->SignContract(server_.m_nymServer);
+    pResponseItem->SignContract(server_.GetServerNym());
     pResponseItem->SaveContract();  // the signing was of no effect because I
                                     // forgot to save.
 
-    pResponseBalanceItem->SignContract(server_.m_nymServer);
+    pResponseBalanceItem->SignContract(server_.GetServerNym());
     pResponseBalanceItem->SaveContract();
 }
 
 /// a user is exchanging in or out of a basket.  (Ex. He's trading 2 gold and 3
 /// silver for 10 baskets, or vice-versa.)
 void Notary::NotarizeExchangeBasket(
-    Nym& theNym,
     ClientContext& context,
     ExclusiveAccount& theAccount,
     OTTransaction& tranIn,
@@ -5708,8 +5554,8 @@ void Notary::NotarizeExchangeBasket(
     String strInReferenceTo;
     String strBalanceItem;
 
-    const auto NYM_ID = Identifier::Factory(theNym),
-               NOTARY_ID = Identifier::Factory(server_.m_strNotaryID),
+    const auto NYM_ID = Identifier::Factory(context.RemoteNym()),
+               NOTARY_ID = Identifier::Factory(server_.GetServerID()),
                BASKET_CONTRACT_ID = Identifier::Factory(
                    theAccount.get().GetInstrumentDefinitionID()),
                ACCOUNT_ID = Identifier::Factory(theAccount);
@@ -5717,9 +5563,9 @@ void Notary::NotarizeExchangeBasket(
     const String strNymID(NYM_ID);
 
     std::unique_ptr<Ledger> pInbox(
-        theAccount.get().LoadInbox(server_.m_nymServer));
+        theAccount.get().LoadInbox(server_.GetServerNym()));
     std::unique_ptr<Ledger> pOutbox(
-        theAccount.get().LoadOutbox(server_.m_nymServer));
+        theAccount.get().LoadOutbox(server_.GetServerNym()));
 
     pResponseItem =
         Item::CreateItemFromTransaction(tranOut, Item::atExchangeBasket);
@@ -5817,7 +5663,7 @@ void Notary::NotarizeExchangeBasket(
             auto BASKET_ACCOUNT_ID = Identifier::Factory();
             ExclusiveAccount basketAccount{};
             bool bLookup =
-                server_.transactor_.lookupBasketAccountIDByContractID(
+                server_.GetTransactor().lookupBasketAccountIDByContractID(
                     BASKET_CONTRACT_ID, BASKET_ACCOUNT_ID);
 
             if (!bLookup) {
@@ -5826,7 +5672,7 @@ void Notary::NotarizeExchangeBasket(
             } else if (
                 !strBasket.Exists() ||
                 !theRequestBasket.LoadContractFromString(strBasket) ||
-                !theRequestBasket.VerifySignature(theNym)) {
+                !theRequestBasket.VerifySignature(context.RemoteNym())) {
                 Log::Error("Notary::NotarizeExchangeBasket: Expected "
                            "verifiable basket object to be attached to "
                            "exchangeBasket item.\n");
@@ -5852,7 +5698,7 @@ void Notary::NotarizeExchangeBasket(
                 // I call VerifySignature here since VerifyContractID was
                 // already called in LoadExistingAccount().
                 else if (!basketAccount.get().VerifySignature(
-                             server_.m_nymServer)) {
+                             server_.GetServerNym())) {
                     Log::Error("ERROR verifying signature on the basket "
                                "account in "
                                "Notary::NotarizeExchangeBasket\n");
@@ -6000,7 +5846,7 @@ void Notary::NotarizeExchangeBasket(
                                     //
                                     Ledger* pSubInbox =
                                         tempUserAccount.get().LoadInbox(
-                                            server_.m_nymServer);
+                                            server_.GetServerNym());
 
                                     if (nullptr == pSubInbox) {
                                         Log::Error("Error loading or "
@@ -6165,7 +6011,7 @@ void Notary::NotarizeExchangeBasket(
                                             std::int64_t lNewTransactionNumber =
                                                 0;
 
-                                            server_.transactor_
+                                            server_.GetTransactor()
                                                 .issueNextTransactionNumber(
                                                     lNewTransactionNumber);
 
@@ -6199,7 +6045,7 @@ void Notary::NotarizeExchangeBasket(
                                                     : lTransferAmount);
 
                                             pItemInbox->SignContract(
-                                                server_.m_nymServer);
+                                                server_.GetServerNym());
                                             pItemInbox->SaveContract();
 
                                             pInboxTransaction->AddItem(
@@ -6241,7 +6087,7 @@ void Notary::NotarizeExchangeBasket(
                                             // receipt).
                                             // Let's sign and save it...
                                             pInboxTransaction->SignContract(
-                                                server_.m_nymServer);
+                                                server_.GetServerNym());
                                             pInboxTransaction->SaveContract();
 
                                             // Here the transaction we just
@@ -6364,7 +6210,7 @@ void Notary::NotarizeExchangeBasket(
                                     // (can it fail?)
                                     std::int64_t lNewTransactionNumber = 0;
 
-                                    server_.transactor_
+                                    server_.GetTransactor()
                                         .issueNextTransactionNumber(
                                             lNewTransactionNumber);
 
@@ -6394,7 +6240,7 @@ void Notary::NotarizeExchangeBasket(
                                             : lTransferAmount * (-1));
 
                                     pItemInbox->SignContract(
-                                        server_.m_nymServer);
+                                        server_.GetServerNym());
                                     pItemInbox->SaveContract();
 
                                     pInboxTransaction->AddItem(
@@ -6431,7 +6277,7 @@ void Notary::NotarizeExchangeBasket(
                                     // from the server to the sender's inbox
                                     // Let's sign and save it...
                                     pInboxTransaction->SignContract(
-                                        server_.m_nymServer);
+                                        server_.GetServerNym());
                                     pInboxTransaction->SaveContract();
 
                                     // Here the transaction we just created is
@@ -6482,7 +6328,7 @@ void Notary::NotarizeExchangeBasket(
                                 if (true == bSuccess) {
                                     pTempInbox->ReleaseSignatures();
                                     pTempInbox->SignContract(
-                                        server_.m_nymServer);
+                                        server_.GetServerNym());
                                     pTempInbox->SaveContract();
                                     pTempInbox->SaveInbox();
                                 }
@@ -6492,7 +6338,7 @@ void Notary::NotarizeExchangeBasket(
                             }
                             if (true == bSuccess) {
                                 pInbox->ReleaseSignatures();
-                                pInbox->SignContract(server_.m_nymServer);
+                                pInbox->SignContract(server_.GetServerNym());
                                 pInbox->SaveContract();
                                 theAccount.get().SaveInbox(*pInbox);
                                 theAccount.Release();
@@ -6546,10 +6392,10 @@ void Notary::NotarizeExchangeBasket(
 
     // I put this here so it's signed/saved whether the balance agreement itself
     // was successful OR NOT.
-    pResponseItem->SignContract(server_.m_nymServer);
+    pResponseItem->SignContract(server_.GetServerNym());
     pResponseItem->SaveContract();
 
-    pResponseBalanceItem->SignContract(server_.m_nymServer);
+    pResponseBalanceItem->SignContract(server_.GetServerNym());
     pResponseBalanceItem->SaveContract();
 }
 
@@ -6557,7 +6403,6 @@ void Notary::NotarizeExchangeBasket(
 // use later in cron!
 
 void Notary::NotarizeMarketOffer(
-    Nym& theNym,
     ClientContext& context,
     ExclusiveAccount& theAssetAccount,
     OTTransaction& tranIn,
@@ -6581,8 +6426,8 @@ void Notary::NotarizeMarketOffer(
 
     // Grab the actual server ID from this object, and use it as the server ID
     // here.
-    const auto NOTARY_ID = Identifier::Factory(server_.m_strNotaryID),
-               NYM_ID = Identifier::Factory(theNym);
+    const auto NOTARY_ID = Identifier::Factory(server_.GetServerID()),
+               NYM_ID = Identifier::Factory(context.RemoteNym());
     const String strNymID(NYM_ID);
 
     pItem = tranIn.GetItem(Item::marketOffer);
@@ -6723,7 +6568,8 @@ void Notary::NotarizeMarketOffer(
                     0,
                     "ERROR verifying Contract ID on the currency "
                     "account in Notary::NotarizeMarketOffer\n");
-            } else if (!currencyAccount.get().VerifyOwner(theNym)) {
+            } else if (!currencyAccount.get().VerifyOwner(
+                           context.RemoteNym())) {
                 Log::Output(
                     0,
                     "ERROR verifying ownership of the currency "
@@ -6749,12 +6595,12 @@ void Notary::NotarizeMarketOffer(
             // I call VerifySignature here since VerifyContractID was already
             // called in LoadExistingAccount().
             else if (!currencyAccount.get().VerifySignature(
-                         server_.m_nymServer)) {
+                         server_.GetServerNym())) {
                 Log::Output(
                     0,
                     "ERROR verifying signature on the Currency "
                     "account in Notary::NotarizeMarketOffer\n");
-            } else if (!pTrade->VerifySignature(theNym)) {
+            } else if (!pTrade->VerifySignature(context.RemoteNym())) {
                 Log::Output(
                     0,
                     "ERROR verifying signature on the Trade in "
@@ -6855,7 +6701,7 @@ void Notary::NotarizeMarketOffer(
             }
             // ...And then we use that same Nym to verify the signature on the
             // offer.
-            else if (!theOffer.VerifySignature(theNym)) {
+            else if (!theOffer.VerifySignature(context.RemoteNym())) {
                 Log::Error("ERROR verifying offer signature in "
                            "Notary::NotarizeMarketOffer.\n");
             } else if (!pTrade->VerifyOffer(theOffer)) {
@@ -6916,9 +6762,8 @@ void Notary::NotarizeMarketOffer(
                 // processes. (The original receipt
                 // can always be loaded when necessary.)
                 //
-                if (server_.m_Cron.AddCronItem(
+                if (server_.Cron().AddCronItem(
                         *pTrade,
-                        &theNym,
                         true,
                         OTTimeGetCurrentTime()))  // bSaveReceipt=true
                 {
@@ -6960,9 +6805,6 @@ void Notary::NotarizeMarketOffer(
                     // transaction number when the finalReceipt is created.
                     // RemoveIssuedNum will be called for the Closing number
                     // when the finalReceipt is accepted.
-
-                    theNym.SaveSignedNymfile(
-                        server_.m_nymServer);  // <===== SAVED HERE.
                 } else {
                     Log::Output(
                         0,
@@ -6989,11 +6831,11 @@ void Notary::NotarizeMarketOffer(
     // Now, whether it was rejection or acknowledgement, it is set properly and
     // it is signed, and it
     // is owned by the transaction, who will take it from here.
-    pResponseItem->SignContract(server_.m_nymServer);
+    pResponseItem->SignContract(server_.GetServerNym());
     pResponseItem->SaveContract();  // the signing was of no effect because I
                                     // forgot to save. (fixed.)
 
-    pResponseBalanceItem->SignContract(server_.m_nymServer);
+    pResponseBalanceItem->SignContract(server_.GetServerNym());
     pResponseBalanceItem->SaveContract();
 }
 
@@ -7004,16 +6846,14 @@ void Notary::NotarizeMarketOffer(
 /// and for each transaction within, it calls THIS method.
 /// TODO think about error reporting here and sending a message back to user.
 void Notary::NotarizeTransaction(
-    Nym& theNym,
     ClientContext& context,
     OTTransaction& tranIn,
     OTTransaction& tranOut,
     bool& bOutSuccess)
 {
     const auto lTransactionNumber = tranIn.GetTransactionNum();
-    const auto NOTARY_ID = Identifier::Factory(server_.m_strNotaryID);
-    auto NYM_ID = Identifier::Factory();
-    theNym.GetIdentifier(NYM_ID);
+    const auto NOTARY_ID = Identifier::Factory(server_.GetServerID());
+    auto NYM_ID = Identifier::Factory(context.RemoteNym());
     const String strIDNym(NYM_ID);
     auto theFromAccount =
         wallet_.mutable_Account(tranIn.GetPurportedAccountID());
@@ -7035,7 +6875,7 @@ void Notary::NotarizeTransaction(
     // passed in to this function requesting a transaction on this account...
     // otherwise any asshole
     // could do transactions on your account, no?
-    else if (!theFromAccount.get().VerifyOwner(theNym)) {
+    else if (!theFromAccount.get().VerifyOwner(context.RemoteNym())) {
         const auto idAcct = Identifier::Factory(theFromAccount.get());
         const String strIDAcct(idAcct);
         Log::vOutput(
@@ -7046,7 +6886,7 @@ void Notary::NotarizeTransaction(
             strIDAcct.Get());
     }
     // Make sure I, the server, have signed this file.
-    else if (!theFromAccount.get().VerifySignature(server_.m_nymServer)) {
+    else if (!theFromAccount.get().VerifySignature(server_.GetServerNym())) {
         const auto idAcct = Identifier::Factory(theFromAccount.get());
         const String strIDAcct(idAcct);
         Log::vError(
@@ -7080,7 +6920,7 @@ void Notary::NotarizeTransaction(
     // security over and over
     // again in the subsequent calls.
     //
-    else if (!tranIn.VerifyItems(theNym)) {
+    else if (!tranIn.VerifyItems(context.RemoteNym())) {
         const auto idAcct = Identifier::Factory(theFromAccount.get());
         const String strIDAcct(idAcct);
         Log::vOutput(
@@ -7116,12 +6956,7 @@ void Notary::NotarizeTransaction(
                 case OTTransaction::transfer:
                     Log::Output(0, "NotarizeTransaction type: Transfer\n");
                     NotarizeTransfer(
-                        theNym,
-                        context,
-                        theFromAccount,
-                        tranIn,
-                        tranOut,
-                        bOutSuccess);
+                        context, theFromAccount, tranIn, tranOut, bOutSuccess);
                     theReplyItemType = Item::atTransfer;
                     break;
 
@@ -7133,12 +6968,7 @@ void Notary::NotarizeTransaction(
                 case OTTransaction::processInbox:
                     Log::Output(0, "NotarizeTransaction type: Process Inbox\n");
                     NotarizeProcessInbox(
-                        theNym,
-                        context,
-                        theFromAccount,
-                        tranIn,
-                        tranOut,
-                        bOutSuccess);
+                        context, theFromAccount, tranIn, tranOut, bOutSuccess);
                     //                    theReplyItemType =
                     //                    OTItem::atProcessInbox;
                     // // Nonexistent, and here, unused.
@@ -7170,12 +7000,7 @@ void Notary::NotarizeTransaction(
                             "NotarizeTransaction type: Withdrawal (voucher)\n");
                     }
                     NotarizeWithdrawal(
-                        theNym,
-                        context,
-                        theFromAccount,
-                        tranIn,
-                        tranOut,
-                        bOutSuccess);
+                        context, theFromAccount, tranIn, tranOut, bOutSuccess);
                 } break;
 
                 // DEPOSIT    (cash or cheque)
@@ -7188,12 +7013,7 @@ void Notary::NotarizeTransaction(
                 case OTTransaction::deposit:
                     Log::Output(0, "NotarizeTransaction type: Deposit\n");
                     NotarizeDeposit(
-                        theNym,
-                        context,
-                        theFromAccount,
-                        tranIn,
-                        tranOut,
-                        bOutSuccess);
+                        context, theFromAccount, tranIn, tranOut, bOutSuccess);
                     theReplyItemType = Item::atDeposit;
                     break;
 
@@ -7207,12 +7027,7 @@ void Notary::NotarizeTransaction(
                 case OTTransaction::payDividend:
                     Log::Output(0, "NotarizeTransaction type: Pay Dividend\n");
                     NotarizePayDividend(
-                        theNym,
-                        context,
-                        theFromAccount,
-                        tranIn,
-                        tranOut,
-                        bOutSuccess);
+                        context, theFromAccount, tranIn, tranOut, bOutSuccess);
                     theReplyItemType = Item::atPayDividend;
                     break;
 
@@ -7226,12 +7041,7 @@ void Notary::NotarizeTransaction(
                 case OTTransaction::marketOffer:
                     Log::Output(0, "NotarizeTransaction type: Market Offer\n");
                     NotarizeMarketOffer(
-                        theNym,
-                        context,
-                        theFromAccount,
-                        tranIn,
-                        tranOut,
-                        bOutSuccess);
+                        context, theFromAccount, tranIn, tranOut, bOutSuccess);
                     theReplyItemType = Item::atMarketOffer;
                     break;
 
@@ -7244,12 +7054,7 @@ void Notary::NotarizeTransaction(
                 case OTTransaction::paymentPlan:
                     Log::Output(0, "NotarizeTransaction type: Payment Plan\n");
                     NotarizePaymentPlan(
-                        theNym,
-                        context,
-                        theFromAccount,
-                        tranIn,
-                        tranOut,
-                        bOutSuccess);
+                        context, theFromAccount, tranIn, tranOut, bOutSuccess);
                     theReplyItemType = Item::atPaymentPlan;
                     break;
 
@@ -7270,12 +7075,7 @@ void Notary::NotarizeTransaction(
                     // removed again below, if the transaction fails.
                     context.OpenCronItem(lTransactionNumber);
                     NotarizeSmartContract(
-                        theNym,
-                        context,
-                        theFromAccount,
-                        tranIn,
-                        tranOut,
-                        bOutSuccess);
+                        context, theFromAccount, tranIn, tranOut, bOutSuccess);
                     theReplyItemType = Item::atSmartContract;
                 } break;
 
@@ -7287,12 +7087,7 @@ void Notary::NotarizeTransaction(
                     Log::Output(
                         0, "NotarizeTransaction type: cancelCronItem\n");
                     NotarizeCancelCronItem(
-                        theNym,
-                        context,
-                        theFromAccount,
-                        tranIn,
-                        tranOut,
-                        bOutSuccess);
+                        context, theFromAccount, tranIn, tranOut, bOutSuccess);
                     theReplyItemType = Item::atCancelCronItem;
                 } break;
 
@@ -7307,12 +7102,7 @@ void Notary::NotarizeTransaction(
                     Log::Output(
                         0, "NotarizeTransaction type: Exchange Basket\n");
                     NotarizeExchangeBasket(
-                        theNym,
-                        context,
-                        theFromAccount,
-                        tranIn,
-                        tranOut,
-                        bOutSuccess);
+                        context, theFromAccount, tranIn, tranOut, bOutSuccess);
                     theReplyItemType = Item::atExchangeBasket;
                     break;
 
@@ -7412,7 +7202,7 @@ void Notary::NotarizeTransaction(
     }
 
     // sign the outoing transaction
-    tranOut.SignContract(server_.m_nymServer);
+    tranOut.SignContract(server_.GetServerNym());
     tranOut.SaveContract();  // don't forget to save (to internal raw file
                              // member)
 
@@ -7441,7 +7231,6 @@ void Notary::NotarizeTransaction(
 // receipts. Why not? Haven't coded it yet. So your items on your processNymbox
 // transaction can only accept things (notices, new transaction numbers,
 void Notary::NotarizeProcessNymbox(
-    Nym& theNym,
     ClientContext& context,
     OTTransaction& tranIn,
     OTTransaction& tranOut,
@@ -7457,15 +7246,15 @@ void Notary::NotarizeProcessNymbox(
 
     // Grab the actual server ID from this object, and use it as the server ID
     // here.
-    const auto NOTARY_ID = Identifier::Factory(server_.m_strNotaryID),
-               NYM_ID = Identifier::Factory(theNym);
+    const auto NOTARY_ID = Identifier::Factory(server_.GetServerID()),
+               NYM_ID = Identifier::Factory(context.RemoteNym());
     std::set<TransactionNumber> newNumbers;
     Ledger theNymbox(NYM_ID, NYM_ID, NOTARY_ID);
     String strNymID(NYM_ID);
     bool bSuccessLoadingNymbox = theNymbox.LoadNymbox();
 
     if (true == bSuccessLoadingNymbox) {
-        bSuccessLoadingNymbox = theNymbox.VerifyAccount(server_.m_nymServer);
+        bSuccessLoadingNymbox = theNymbox.VerifyAccount(server_.GetServerNym());
     }
 
     pResponseBalanceItem =
@@ -7773,7 +7562,7 @@ void Notary::NotarizeProcessNymbox(
                                 pServerTransaction->GetTransactionNum());
 
                             theNymbox.ReleaseSignatures();
-                            theNymbox.SignContract(server_.m_nymServer);
+                            theNymbox.SignContract(server_.GetServerNym());
                             theNymbox.SaveContract();
                             theNymbox.SaveNymbox();
 
@@ -7808,7 +7597,7 @@ void Notary::NotarizeProcessNymbox(
                                 pServerTransaction->GetTransactionNum());
 
                             theNymbox.ReleaseSignatures();
-                            theNymbox.SignContract(server_.m_nymServer);
+                            theNymbox.SignContract(server_.GetServerNym());
                             theNymbox.SaveContract();
                             theNymbox.SaveNymbox();
 
@@ -7838,8 +7627,9 @@ void Notary::NotarizeProcessNymbox(
                             //
                             std::int64_t lSuccessNoticeTransNum = 0;
                             bool bGotNextTransNum =
-                                server_.transactor_.issueNextTransactionNumber(
-                                    lSuccessNoticeTransNum);
+                                server_.GetTransactor()
+                                    .issueNextTransactionNumber(
+                                        lSuccessNoticeTransNum);
 
                             if (!bGotNextTransNum) {
                                 lSuccessNoticeTransNum = 0;
@@ -7898,7 +7688,7 @@ void Notary::NotarizeProcessNymbox(
                                                      // lists.
 
                                     pSuccessNotice->SignContract(
-                                        server_.m_nymServer);
+                                        server_.GetServerNym());
                                     pSuccessNotice->SaveContract();
 
                                     theNymbox.AddTransaction(
@@ -7925,7 +7715,7 @@ void Notary::NotarizeProcessNymbox(
                                 pServerTransaction->GetTransactionNum());
 
                             theNymbox.ReleaseSignatures();
-                            theNymbox.SignContract(server_.m_nymServer);
+                            theNymbox.SignContract(server_.GetServerNym());
                             theNymbox.SaveContract();
                             theNymbox.SaveNymbox(&NYMBOX_HASH.get());
 
@@ -7960,7 +7750,7 @@ void Notary::NotarizeProcessNymbox(
                                 pServerTransaction->GetTransactionNum());
 
                             theNymbox.ReleaseSignatures();
-                            theNymbox.SignContract(server_.m_nymServer);
+                            theNymbox.SignContract(server_.GetServerNym());
                             theNymbox.SaveContract();
                             theNymbox.SaveNymbox(&NYMBOX_HASH.get());
 
@@ -7985,7 +7775,7 @@ void Notary::NotarizeProcessNymbox(
                     // set properly and it is signed, and it
                     // is owned by the transaction, who will take it from here.
                     pResponseItem->ReleaseSignatures();
-                    pResponseItem->SignContract(server_.m_nymServer);
+                    pResponseItem->SignContract(server_.GetServerNym());
                     pResponseItem->SaveContract();
                 } else {
                     const std::int32_t nStatus = pItem->GetStatus();
@@ -8004,17 +7794,16 @@ void Notary::NotarizeProcessNymbox(
     }
 
     pResponseBalanceItem->ReleaseSignatures();
-    pResponseBalanceItem->SignContract(server_.m_nymServer);
+    pResponseBalanceItem->SignContract(server_.GetServerNym());
     pResponseBalanceItem->SaveContract();
     tranOut.ReleaseSignatures();
-    tranOut.SignContract(server_.m_nymServer);
+    tranOut.SignContract(server_.GetServerNym());
     tranOut.SaveContract();
 
     if (bNymboxHashRegenerated) {
-        auto context = wallet_.mutable_ClientContext(
-            server_.GetServerNym().ID(), theNym.ID());
-        context.It().SetLocalNymboxHash(NYMBOX_HASH);
-        theNym.SaveSignedNymfile(server_.m_nymServer);  // TODO remove this
+        auto clientContext = wallet_.mutable_ClientContext(
+            server_.GetServerNym().ID(), context.RemoteNym().ID());
+        clientContext.It().SetLocalNymboxHash(NYMBOX_HASH);
     }
 
     String strPath;
@@ -8053,7 +7842,6 @@ void Notary::NotarizeProcessNymbox(
 /// server acknowledges and notarizes those transactions accordingly. (And each
 /// of those transactions must be accepted or rejected in whole.)
 void Notary::NotarizeProcessInbox(
-    Nym& signedNymfile,
     ClientContext& context,
     ExclusiveAccount& theAccount,
     OTTransaction& processInbox,
@@ -8077,15 +7865,15 @@ void Notary::NotarizeProcessInbox(
 
     // Grab the actual server ID from this object, and use it as the server ID
     // here.
-    const auto NOTARY_ID = Identifier::Factory(server_.m_strNotaryID);
+    const auto NOTARY_ID = Identifier::Factory(server_.GetServerID());
     const auto ACCOUNT_ID = Identifier::Factory(theAccount);
-    const auto& NYM_ID(context.Nym()->GetConstID());
+    const auto& NYM_ID(context.Nym()->ID());
     const std::string strNymID(String(NYM_ID).Get());
     std::set<TransactionNumber> closedNumbers, closedCron;
     std::unique_ptr<Ledger> pInbox(
-        theAccount.get().LoadInbox(server_.m_nymServer));
+        theAccount.get().LoadInbox(server_.GetServerNym()));
     std::unique_ptr<Ledger> pOutbox(
-        theAccount.get().LoadOutbox(server_.m_nymServer));
+        theAccount.get().LoadOutbox(server_.GetServerNym()));
     pResponseBalanceItem = Item::CreateItemFromTransaction(
         processInboxResponse, Item::atBalanceStatement);
     pResponseBalanceItem->SetStatus(Item::rejection);  // the default.
@@ -8728,7 +8516,7 @@ void Notary::NotarizeProcessInbox(
 
         if (!theInbox.LoadInbox()) {
             Log::Error("Error loading inbox during processInbox\n");
-        } else if (false == theInbox.VerifyAccount(server_.m_nymServer)) {
+        } else if (false == theInbox.VerifyAccount(server_.GetServerNym())) {
             Log::Error("Error verifying inbox during processInbox\n");
         }
         //
@@ -8761,7 +8549,7 @@ void Notary::NotarizeProcessInbox(
             theInbox.RemoveTransaction(pServerTransaction->GetTransactionNum());
 
             theInbox.ReleaseSignatures();
-            theInbox.SignContract(server_.m_nymServer);
+            theInbox.SignContract(server_.GetServerNym());
             theInbox.SaveContract();
             theAccount.get().SaveInbox(theInbox);
             theAccount.Release();
@@ -8789,7 +8577,7 @@ void Notary::NotarizeProcessInbox(
             theInbox.RemoveTransaction(pServerTransaction->GetTransactionNum());
 
             theInbox.ReleaseSignatures();
-            theInbox.SignContract(server_.m_nymServer);
+            theInbox.SignContract(server_.GetServerNym());
             theInbox.SaveContract();
             theAccount.get().SaveInbox(theInbox);
             theAccount.Release();
@@ -8817,7 +8605,7 @@ void Notary::NotarizeProcessInbox(
             theInbox.RemoveTransaction(pServerTransaction->GetTransactionNum());
 
             theInbox.ReleaseSignatures();
-            theInbox.SignContract(server_.m_nymServer);
+            theInbox.SignContract(server_.GetServerNym());
             theInbox.SaveContract();
             theAccount.get().SaveInbox(theInbox);
             theAccount.Release();
@@ -8983,7 +8771,7 @@ void Notary::NotarizeProcessInbox(
                     theInbox.RemoveTransaction(
                         pServerTransaction->GetTransactionNum());
                     theInbox.ReleaseSignatures();
-                    theInbox.SignContract(server_.m_nymServer);
+                    theInbox.SignContract(server_.GetServerNym());
                     theInbox.SaveContract();
                     theAccount.get().SaveInbox(theInbox);
                     theAccount.Release();
@@ -9055,7 +8843,7 @@ void Notary::NotarizeProcessInbox(
 
                     if (true == bSuccessLoadingInbox)
                         bSuccessLoadingInbox =
-                            theFromInbox.VerifyAccount(server_.m_nymServer);
+                            theFromInbox.VerifyAccount(server_.GetServerNym());
                     else
                         Log::Error("ERROR missing 'from' "
                                    "inbox in "
@@ -9067,7 +8855,7 @@ void Notary::NotarizeProcessInbox(
 
                     if (true == bSuccessLoadingOutbox)
                         bSuccessLoadingOutbox =
-                            theFromOutbox.VerifyAccount(server_.m_nymServer);
+                            theFromOutbox.VerifyAccount(server_.GetServerNym());
                     else  // If it does not already exist, that
                         // is an error condition. For now, log
                         // and fail.
@@ -9086,7 +8874,7 @@ void Notary::NotarizeProcessInbox(
                         // the sender's inbox (to notice him of
                         // acceptance.)
                         std::int64_t lNewTransactionNumber = 0;
-                        server_.transactor_.issueNextTransactionNumber(
+                        server_.GetTransactor().issueNextTransactionNumber(
                             lNewTransactionNumber);
 
                         // Generate a new transaction... (to
@@ -9130,7 +8918,7 @@ void Notary::NotarizeProcessInbox(
                         // from the server to the sender's inbox
                         // Let's sign it and add to his inbox.
                         pInboxTransaction->ReleaseSignatures();
-                        pInboxTransaction->SignContract(server_.m_nymServer);
+                        pInboxTransaction->SignContract(server_.GetServerNym());
                         pInboxTransaction->SaveContract();
 
                         // At this point I have theInbox ledger,
@@ -9222,8 +9010,8 @@ void Notary::NotarizeProcessInbox(
                             theFromInbox.ReleaseSignatures();
                             theFromOutbox.ReleaseSignatures();
 
-                            theFromInbox.SignContract(server_.m_nymServer);
-                            theFromOutbox.SignContract(server_.m_nymServer);
+                            theFromInbox.SignContract(server_.GetServerNym());
+                            theFromOutbox.SignContract(server_.GetServerNym());
 
                             theFromInbox.SaveContract();
                             theFromOutbox.SaveContract();
@@ -9236,7 +9024,7 @@ void Notary::NotarizeProcessInbox(
                             // verify anymore anyway, since the
                             // content has changed.)
                             theInbox.ReleaseSignatures();
-                            theInbox.SignContract(server_.m_nymServer);
+                            theInbox.SignContract(server_.GetServerNym());
                             theInbox.SaveContract();
                             theAccount.get().SaveInbox(theInbox);
                             theAccount.Release();
@@ -9304,7 +9092,7 @@ void Notary::NotarizeProcessInbox(
         // is set properly and it is signed, and it
         // is owned by the transaction, who will take it from
         // here.
-        pResponseItem->SignContract(server_.m_nymServer);
+        pResponseItem->SignContract(server_.GetServerNym());
         pResponseItem->SaveContract();
     }  // for LOOP (each item)
 
@@ -9312,10 +9100,10 @@ send_message:
     // I put this here so it's signed/saved whether the balance agreement itself
     // was successful OR NOT. (Or whether it even existed or not.)
     pResponseBalanceItem->ReleaseSignatures();
-    pResponseBalanceItem->SignContract(server_.m_nymServer);
+    pResponseBalanceItem->SignContract(server_.GetServerNym());
     pResponseBalanceItem->SaveContract();
     processInboxResponse.ReleaseSignatures();
-    processInboxResponse.SignContract(server_.m_nymServer);
+    processInboxResponse.SignContract(server_.GetServerNym());
     processInboxResponse.SaveContract();
     // SAVE THE RECEIPT TO LOCAL STORAGE (for dispute resolution.)
     String strPath;
@@ -9345,7 +9133,6 @@ send_message:
         // that list.
         for (const auto& number : closedCron) { context.CloseCronItem(number); }
 
-        signedNymfile.SaveSignedNymfile(server_.m_nymServer);
         bOutSuccess = true;  // the processInbox was successful.
         strPath.Format(const_cast<char*>("%s.success"), strAcctID.Get());
     } else

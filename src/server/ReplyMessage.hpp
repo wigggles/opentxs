@@ -89,10 +89,7 @@ public:
     ClientContext& Context();
     void ClearRequest();
     void DropToNymbox(const bool success);
-    bool InitNymfileCredentials();
     bool LoadContext();
-    bool LoadNym();
-    Nym& Nymfile();
     void OverrideType(const String& accountID);
     void SetAccount(const String& accountID);
     void SetAcknowledgments(const ClientContext& context);
@@ -120,11 +117,10 @@ private:
     const OTIdentifier notary_id_;
     Message& message_;
     Server& server_;
-    Nym nymfile_;
     bool init_{false};
     bool drop_{false};
     bool drop_status_{false};
-    std::shared_ptr<const Nym> sender_nym_{nullptr};
+    ConstNym sender_nym_{nullptr};
     std::unique_ptr<Editor<ClientContext>> context_{nullptr};
 
     void attach_request();

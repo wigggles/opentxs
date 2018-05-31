@@ -118,7 +118,7 @@ private:
     std::unique_ptr<MasterCredential> m_MasterCredential;
     mapOfCredentials m_mapCredentials;
     mapOfCredentials m_mapRevokedCredentials;
-    String m_strNymID;
+    std::string m_strNymID;
     std::shared_ptr<NymIDSource> nym_id_source_;
     const OTPassword* m_pImportPassword =
         nullptr;  // Not owned. Just here for convenience.  Sometimes it will be
@@ -130,19 +130,23 @@ private:
     std::uint32_t version_{};
     std::uint32_t index_{};
     proto::KeyMode mode_{proto::KEYMODE_ERROR};
+    const api::client::Wallet& wallet_;
 
     bool CreateMasterCredential(const NymParameters& nymParameters);
 
-    CredentialSet() = default;
+    CredentialSet() = delete;
 
 public:
     /** The source is the URL/DN/pubkey that hashes to form the NymID. Any
      * credential must verify against its own source. */
     void SetSource(const std::shared_ptr<NymIDSource>& source);
+    explicit CredentialSet(const api::client::Wallet& wallet);
     explicit CredentialSet(
+        const api::client::Wallet& wallet,
         const proto::KeyMode mode,
         const proto::CredentialSet& serializedCredentialSet);
     EXPORT CredentialSet(
+        const api::client::Wallet& wallet,
         const NymParameters& nymParameters,
         std::uint32_t version,
         const OTPasswordData* pPWData = nullptr);
@@ -200,8 +204,8 @@ public:
     /** Returns: m_MasterCredential's public credential protobuf. */
     EXPORT const serializedCredential GetSerializedPubCredential() const;
     /** Returns: Master Credential ID */
-    EXPORT const String GetMasterCredID() const;
-    EXPORT const String& GetNymID() const;
+    EXPORT const std::string GetMasterCredID() const;
+    EXPORT const std::string& GetNymID() const;
     EXPORT const NymIDSource& Source() const;
     EXPORT bool hasCapability(const NymCapability& capability) const;
 
@@ -333,10 +337,7 @@ public:
                                 serialized, signature, key, pPWData);
                         }
 
-                        if (haveSignature) {
-
-                            return true;
-                        }
+                        if (haveSignature) { return true; }
                     }
                 }
             }

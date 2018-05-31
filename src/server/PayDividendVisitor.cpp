@@ -171,7 +171,7 @@ bool PayDividendVisitor::Trigger(
     auto context = OT::App().Wallet().mutable_ClientContext(
         theServerNym.ID(), theServerNym.ID());
     bool bGotNextTransNum =
-        theServer.transactor_.issueNextTransactionNumberToNym(
+        theServer.GetTransactor().issueNextTransactionNumberToNym(
             context.It(), lNewTransactionNumber);  // We save the transaction
     // number on the server Nym (normally we'd discard it) because
     // when the cheque is deposited, the server nym, as the owner of

@@ -117,8 +117,8 @@ protected:
     void onFinalReceipt(
         OTCronItem& origCronItem,
         const std::int64_t& newTransactionNumber,
-        Nym& originator,
-        Nym* remover) override;
+        ConstNym originator,
+        ConstNym remover) override;
     void onRemovalFromCron() override;
 
 public:
@@ -205,10 +205,7 @@ public:
     // it the old way: they just check to
     // see if theNym has signed *this.
     //
-    bool VerifyNymAsAgent(
-        const Nym& nym,
-        const Nym& signerNym,
-        mapOfConstNyms* preloadedMap = nullptr) const override;
+    bool VerifyNymAsAgent(const Nym& nym, const Nym& signerNym) const override;
 
     bool VerifyNymAsAgentForAccount(const Nym& nym, const Account& account)
         const override;

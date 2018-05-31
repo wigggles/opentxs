@@ -436,7 +436,6 @@ std::int32_t OTCron::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                 return (-1);
             } else if (AddCronItem(
                            *pItem,
-                           nullptr,
                            false,          // bSaveReceipt=false. The receipt is
                                            // only saved once: When item FIRST
                                            // added to cron...
@@ -661,7 +660,6 @@ void OTCron::ProcessCronItems()
 // also make sure to delete it again if this call fails!
 bool OTCron::AddCronItem(
     OTCronItem& theItem,
-    Nym* pActivator,
     bool bSaveReceipt,
     time64_t tDateAdded)
 {
@@ -716,11 +714,10 @@ bool OTCron::AddCronItem(
 
         bool bSuccess = true;
 
-        theItem.HookActivationOnCron(
-            pActivator,     // (OTPseudonym* pActivator) // sometimes nullptr.
-            bSaveReceipt);  // If merely being reloaded after server reboot,
-                            // this
-                            // is false.
+        theItem.HookActivationOnCron(bSaveReceipt);  // If merely being reloaded
+                                                     // after server reboot,
+                                                     // this
+                                                     // is false.
         // But if actually being activated for the first time, then this is
         // true.
 
@@ -775,8 +772,8 @@ bool OTCron::AddCronItem(
 
 bool OTCron::RemoveCronItem(
     std::int64_t lTransactionNum,
-    Nym& theRemover)  // if returns false, item
-                      // wasn't found.
+    ConstNym theRemover)  // if returns false, item
+                          // wasn't found.
 {
     // See if there's a cron item with that transaction number.
     auto it_map = FindItemOnMap(lTransactionNum);
@@ -800,7 +797,7 @@ bool OTCron::RemoveCronItem(
                                                               // map, MUST be on
                                                               // multimap also.
 
-        pItem->HookRemovalFromCron(&theRemover, GetNextTransactionNumber());
+        pItem->HookRemovalFromCron(theRemover, GetNextTransactionNumber());
 
         m_mapCronItems.erase(it_map);            // Remove from MAP.
         m_multimapCronItems.erase(it_multimap);  // Remove from MULTIMAP.

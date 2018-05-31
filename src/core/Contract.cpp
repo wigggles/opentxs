@@ -40,6 +40,8 @@
 
 #include "opentxs/core/Contract.hpp"
 
+#include "opentxs/api/client/Wallet.hpp"
+#include "opentxs/api/Native.hpp"
 #include "opentxs/core/crypto/CryptoAsymmetric.hpp"
 #include "opentxs/core/crypto/CryptoHash.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
@@ -55,6 +57,7 @@
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/OTStringXML.hpp"
+#include "opentxs/OT.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/core/String.hpp"
 
@@ -189,14 +192,7 @@ void Contract::Release_Contract()
 
     m_mapConditions.clear();
 
-    // Go through the existing list of nyms at this point, and delete them all.
-    while (!m_mapNyms.empty()) {
-        Nym* pNym = m_mapNyms.begin()->second;
-        OT_ASSERT(nullptr != pNym);
-        delete pNym;
-        pNym = nullptr;
-        m_mapNyms.erase(m_mapNyms.begin());
-    }
+    m_mapNyms.clear();
 }
 
 void Contract::Release()
@@ -254,7 +250,7 @@ bool Contract::VerifyContract() const
 
     // Make sure we are able to read the official "contract" public key out of
     // this contract.
-    const Nym* pNym = GetContractPublicNym();
+    auto pNym = GetContractPublicNym();
 
     if (nullptr == pNym) {
         otOut << __FUNCTION__
@@ -334,10 +330,10 @@ bool Contract::VerifyContractID() const
     }
 }
 
-const Nym* Contract::GetContractPublicNym() const
+ConstNym Contract::GetContractPublicNym() const
 {
     for (auto& it : m_mapNyms) {
-        Nym* pNym = it.second;
+        ConstNym pNym = it.second;
         OT_ASSERT_MSG(
             nullptr != pNym,
             "nullptr pseudonym pointer in Contract::GetContractPublicNym.\n");
@@ -608,8 +604,7 @@ bool Contract::VerifySigAuthent(
 bool Contract::VerifySignature(const Nym& theNym, const OTPasswordData* pPWData)
     const
 {
-    String strNymID;
-    theNym.GetIdentifier(strNymID);
+    String strNymID(theNym.ID());
     char cNymID = '0';
     std::uint32_t uIndex = 3;
     const bool bNymID = strNymID.At(uIndex, cNymID);
@@ -1939,7 +1934,7 @@ bool Contract::CreateContract(const String& strContract, const Nym& theSigner)
         //
         if (nullptr == GetContractPublicNym()) {
             const bool bHasCredentials =
-                (theSigner.GetMasterCredentialCount() > 0);
+                (theSigner.HasCapability(NymCapability::SIGN_MESSAGE));
 
             if (!bHasCredentials) {
                 otErr << __FUNCTION__ << ": Signing nym has no credentials.\n";
@@ -1947,32 +1942,14 @@ bool Contract::CreateContract(const String& strContract, const Nym& theSigner)
             } else  // theSigner has Credentials, so we'll add him to the
                     // contract.
             {
-                const auto publicNym = theSigner.asPublicNym();
-
-                std::unique_ptr<Nym> pNym(new Nym);
-                if (!pNym->LoadCredentialIndex(publicNym)) {
-                    otErr << __FUNCTION__ << ": failed to load credentials."
+                auto pNym = OT::App().Wallet().Nym(theSigner.ID());
+                if (nullptr == pNym) {
+                    otErr << __FUNCTION__ << ": failed to load signing nym."
                           << std::endl;
                     return false;
                 }
-
-                // Now that the Nym has been loaded up from the public nym,
-                // let's try to Verify the pseudonym. If we
-                // verify, then we're safe to add the Nym to the contract.
-                //
-                if (!pNym->VerifyPseudonym()) {
-                    otErr
-                        << __FUNCTION__ << ": Loaded nym "
-                        << String(pNym->GetConstID())
-                        << " from credentials, but then it failed verifying.\n";
-                    return false;
-                } else  // Okay, we loaded the Nym up from the credentials, AND
-                {       // verified the Nym (including the credentials.)
-                    // So let's add it to the contract...
-                    // Add pNym to the contract's
-                    m_mapNyms["signer"] = pNym.release();
-                    // internal list of nyms.
-                }
+                // Add pNym to the contract's internal list of nyms.
+                m_mapNyms["signer"] = pNym;
             }
         }
         // This re-writes the contract internally based on its data members,
@@ -2035,14 +2012,14 @@ void Contract::CreateInnerContents(Tag& parent)
         // CREDENTIALS, based on NymID and Source, and credential IDs.
         for (auto& it : m_mapNyms) {
             std::string str_name = it.first;
-            Nym* pNym = it.second;
+            ConstNym pNym = it.second;
             OT_ASSERT_MSG(
                 nullptr != pNym,
                 "2: nullptr pseudonym pointer in "
                 "Contract::CreateInnerContents.\n");
 
             if ("signer" == str_name) {
-                OT_ASSERT(pNym->GetMasterCredentialCount() > 0);
+                OT_ASSERT(pNym->HasCapability(NymCapability::SIGN_MESSAGE));
 
                 String strNymID;
                 pNym->GetIdentifier(strNymID);
@@ -2141,38 +2118,19 @@ std::int32_t Contract::ProcessXMLNode(IrrXMLReader*& xml)
             return (-1);  // error condition
         }
 
-        std::unique_ptr<Nym> pNym(new Nym);
+        auto nymId = Identifier::Factory(strSignerNymID);
+        auto pNym = OT::App().Wallet().Nym(nymId);
 
-        auto publicNym = proto::StringToProto<proto::CredentialIndex>(
-            xml->getAttributeValue("publicNym"));
+        if (nullptr == pNym) {
+            otErr << __FUNCTION__ << ": Failure loading signing nym "
+                  << std::endl;
 
-        if (false == pNym->LoadCredentialIndex(publicNym)) {
-            otErr << __FUNCTION__ << ": Failure loading nym " << strSignerNymID
-                  << " from credential string.\n";
+            return (-1);
         }
-        // Now that the Nym has been loaded up from the two strings,
-        // including the list of credential IDs, and the map
-        // containing the
-        // credentials themselves, let's try to Verify the
-        // pseudonym. If we
-        // verify, then we're safe to add the Nym to the contract.
-        //
-        else if (!pNym->VerifyPseudonym()) {
-            otErr << __FUNCTION__ << ": Loaded nym " << strSignerNymID
-                  << " from credentials, but then it failed "
-                     "verifying.\n";
-        } else  // Okay, we loaded the Nym up from the credentials in
-                // the contract, AND
-        {       // verified the Nym (including the credentials.)
-            // So let's add it to the contract...
-            //
+        // Add pNym to the contract's internal list of nyms.
+        m_mapNyms[strNodeName.Get() /*"signer"*/] = pNym;
 
-            m_mapNyms[strNodeName.Get() /*"signer"*/] = pNym.release();
-            // Add pNym to the contract's internal list of nyms.
-
-            return 1;  // <==== Success!
-        }
-        return (-1);
+        return 1;  // <==== Success!
     }
     return 0;
 }

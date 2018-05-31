@@ -262,9 +262,10 @@ bool KeyCredential::verify_internally(const Lock& lock) const
 }
 
 KeyCredential::KeyCredential(
+    const api::client::Wallet& wallet,
     CredentialSet& theOwner,
     const proto::Credential& serializedCred)
-    : ot_super(theOwner, serializedCred)
+    : ot_super(wallet, theOwner, serializedCred)
 {
     const bool hasPrivate =
         (proto::KEYMODE_PRIVATE == serializedCred.mode()) ? true : false;
@@ -311,9 +312,10 @@ KeyCredential::KeyCredential(
 }
 
 KeyCredential::KeyCredential(
+    const api::client::Wallet& wallet,
     CredentialSet& theOwner,
     const NymParameters& nymParameters)
-    : ot_super(theOwner, KEY_CREDENTIAL_VERSION, nymParameters)
+    : ot_super(wallet, theOwner, KEY_CREDENTIAL_VERSION, nymParameters)
 {
     if (proto::CREDTYPE_HD != nymParameters.credentialType()) {
         m_AuthentKey =

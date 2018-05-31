@@ -91,8 +91,7 @@ public:
         const std::int64_t& requestNum,
         const bool replyTransSuccess,
         ClientContext& context,
-        Server& server,
-        Nym* actualNym = nullptr);
+        Server& server);
     static bool isAdmin(const Identifier& nymID);
 
     bool ProcessUserCommand(const Message& msgIn, Message& msgOut);

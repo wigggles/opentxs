@@ -709,9 +709,7 @@ bool OTCronItem::ProcessCron()
 // activated for the very first time. (Versus being re-added
 // to cron after a server reboot.)
 //
-void OTCronItem::HookActivationOnCron(
-    Nym*,  // sometimes nullptr.
-    bool bForTheFirstTime)
+void OTCronItem::HookActivationOnCron(bool bForTheFirstTime)
 {
     // Put anything else in here, that needs to be done in the
     // cron item base class, upon activation. (This executes
@@ -730,10 +728,10 @@ void OTCronItem::HookActivationOnCron(
 // and clean up any memory, before being destroyed.
 //
 void OTCronItem::HookRemovalFromCron(
-    Nym* pRemover,
+    ConstNym pRemover,
     std::int64_t newTransactionNo)
 {
-    Nym* pServerNym = serverNym_;
+    auto pServerNym = serverNym_;
     OT_ASSERT(nullptr != pServerNym);
 
     // Generate new transaction number for these new inbox receipts.
@@ -805,9 +803,6 @@ void OTCronItem::HookRemovalFromCron(
         // I now have a String copy of the original CronItem...
         const String strOrigCronItem(*pOrigCronItem);
 
-        Nym theOriginatorNym;  // Don't use this... use the pointer just
-                               // below.
-
         // The Nym who is actively requesting to remove a cron item will be
         // passed in as pRemover.
         // However, sometimes there is no Nym... perhaps it just expired and
@@ -816,7 +811,7 @@ void OTCronItem::HookRemovalFromCron(
         // Otherwise the originator
         // pointer just pointers to *pRemover.
         //
-        Nym* pOriginator = nullptr;
+        ConstNym pOriginator = nullptr;
 
         if (pServerNym->CompareID(pOrigCronItem->GetSenderNymID())) {
             pOriginator = pServerNym;  // Just in case the originator Nym is
@@ -856,27 +851,7 @@ void OTCronItem::HookRemovalFromCron(
             const auto NYM_ID =
                 Identifier::Factory(pOrigCronItem->GetSenderNymID());
 
-            theOriginatorNym.SetIdentifier(NYM_ID);
-
-            if (!theOriginatorNym.LoadPublicKey()) {
-                String strNymID(NYM_ID);
-                otErr << "OTCronItem::HookRemovalFromCron: Failure loading "
-                         "Sender's public key:\n"
-                      << strNymID << "\n";
-            } else if (
-                theOriginatorNym.VerifyPseudonym() &&
-                theOriginatorNym.LoadSignedNymfile(
-                    *pServerNym))  // ServerNym here is merely the signer
-                                   // on this file.
-            {
-                pOriginator = &theOriginatorNym;  //  <=====
-            } else {
-                String strNymID(NYM_ID);
-                otErr << "OTCronItem::HookRemovalFromCron: Failure verifying "
-                         "Sender's"
-                         " public key or loading signed nymfile: "
-                      << strNymID << "\n";
-            }
+            pOriginator = OT::App().Wallet().Nym(NYM_ID);
         }
 
         // pOriginator should NEVER be nullptr by this point, unless there was
@@ -890,7 +865,7 @@ void OTCronItem::HookRemovalFromCron(
             // obtained above.
             //
             onFinalReceipt(
-                *pOrigCronItem, lNewTransactionNumber, *pOriginator, pRemover);
+                *pOrigCronItem, lNewTransactionNumber, pOriginator, pRemover);
         } else {
             otErr << "MAJOR ERROR in OTCronItem::HookRemovalFromCron!! Failed "
                      "loading Originator Nym for Cron Item.\n";
@@ -911,17 +886,15 @@ void OTCronItem::HookRemovalFromCron(
 void OTCronItem::onFinalReceipt(
     OTCronItem& theOrigCronItem,
     const std::int64_t& lNewTransactionNumber,
-    Nym& theOriginator,
-    Nym* pRemover)  // may already point to
-                    // theOriginator... or
-                    // someone else...
+    ConstNym theOriginator,
+    ConstNym pRemover)  // may already point to
+                        // theOriginator... or
+                        // someone else...
 {
     OT_ASSERT(nullptr != serverNym_);
 
-    Nym& pServerNym = *serverNym_;
-
     auto context = OT::App().Wallet().mutable_ClientContext(
-        pServerNym.ID(), theOriginator.ID());
+        serverNym_->ID(), theOriginator->ID());
 
     // The finalReceipt Item's ATTACHMENT contains the UPDATED Cron Item.
     // (With the SERVER's signature on it!)
@@ -940,9 +913,6 @@ void OTCronItem::onFinalReceipt(
     // GetTransactionNum())
     const TransactionNumber lOpeningNumber = theOrigCronItem.GetOpeningNum();
     const TransactionNumber lClosingNumber = theOrigCronItem.GetClosingNum();
-    const String strNotaryID(GetNotaryID());
-    // unused unless it's really not already loaded. (use pActualNym.)
-    Nym theActualNym;
 
     // I'm ASSUMING here that pRemover is also theOriginator.
     //
@@ -956,7 +926,6 @@ void OTCronItem::onFinalReceipt(
         // that list.
         context.It().CloseCronItem(lOpeningNumber);
         context.It().ConsumeIssued(lOpeningNumber);
-        theOriginator.SaveSignedNymfile(pServerNym);
 
         // the RemoveIssued call means the original transaction# (to find this
         // cron item on cron) is now CLOSED.
@@ -967,51 +936,6 @@ void OTCronItem::onFinalReceipt(
         // remains ISSUED, until the final receipt itself is accepted during a
         // process inbox.
         //
-        const Identifier& ACTUAL_NYM_ID = GetSenderNymID();
-        Nym* pActualNym = nullptr;  // use this. DON'T use theActualNym.
-
-        if (pServerNym.CompareID(ACTUAL_NYM_ID))
-            pActualNym = &pServerNym;
-        else if (theOriginator.CompareID(ACTUAL_NYM_ID))
-            pActualNym = &theOriginator;
-        else if ((nullptr != pRemover) && pRemover->CompareID(ACTUAL_NYM_ID))
-            pActualNym = pRemover;
-
-        else  // We couldn't find the Nym among those already loaded--so we have
-              // to load
-        {     // it ourselves (so we can update its NymboxHash value.)
-            theActualNym.SetIdentifier(ACTUAL_NYM_ID);
-
-            if (!theActualNym.LoadPublicKey())  // Note: this step may be
-                                                // unnecessary since we
-                                                // are only updating his
-                                                // Nymfile, not his key.
-            {
-                String strNymID(ACTUAL_NYM_ID);
-                otErr << __FUNCTION__
-                      << ": Failure loading public key for Nym: " << strNymID
-                      << ". (To update his NymboxHash.) \n";
-            } else if (
-                theActualNym.VerifyPseudonym() &&  // this line may be
-                                                   // unnecessary.
-                theActualNym.LoadSignedNymfile(
-                    pServerNym))  // ServerNym here is not theActualNym's
-                                  // identity, but merely the signer on
-                                  // this file.
-            {
-                otLog3
-                    << __FUNCTION__
-                    << ": Loading actual Nym, since he wasn't already loaded. "
-                       "(To update his NymboxHash.)\n";
-                pActualNym = &theActualNym;  //  <=====
-            } else {
-                String strNymID(ACTUAL_NYM_ID);
-                otErr
-                    << __FUNCTION__
-                    << ": Failure loading or verifying Actual Nym public key: "
-                    << strNymID << ". (To update his NymboxHash.)\n";
-            }
-        }
 
         if (!DropFinalReceiptToNymbox(
                 GetSenderNymID(),
@@ -1019,8 +943,7 @@ void OTCronItem::onFinalReceipt(
                 strOrigCronItem,
                 GetOriginType(),
                 nullptr,  // note
-                pstrAttachment,
-                pActualNym)) {
+                pstrAttachment)) {
             otErr << __FUNCTION__
                   << ": Failure dropping finalReceipt to Nymbox.\n";
         }
@@ -1089,7 +1012,7 @@ bool OTCronItem::DropFinalReceiptToInbox(
 {
     OT_ASSERT(nullptr != serverNym_);
 
-    Nym& pServerNym = *serverNym_;
+    const Nym& pServerNym = *serverNym_;
     const char* szFunc = "OTCronItem::DropFinalReceiptToInbox";
 
     // Load the inbox in case it already exists.
@@ -1265,12 +1188,11 @@ bool OTCronItem::DropFinalReceiptToNymbox(
     const String& strOrigCronItem,
     const originType theOriginType,
     String* pstrNote,
-    String* pstrAttachment,
-    const Nym* pActualNym)
+    String* pstrAttachment)
 {
     OT_ASSERT(nullptr != serverNym_);
 
-    Nym& pServerNym = *serverNym_;
+    ConstNym pServerNym(serverNym_);
     const char* szFunc =
         "OTCronItem::DropFinalReceiptToNymbox";  // RESUME!!!!!!!
 
@@ -1282,7 +1204,7 @@ bool OTCronItem::DropFinalReceiptToNymbox(
     // ...or generate it otherwise...
 
     if (true == bSuccessLoading)
-        bSuccessLoading = theLedger.VerifyAccount(pServerNym);
+        bSuccessLoading = theLedger.VerifyAccount(*pServerNym);
     else
         otErr << szFunc << ": Unable to load Nymbox.\n";
     //    else
@@ -1381,13 +1303,13 @@ bool OTCronItem::DropFinalReceiptToNymbox(
 
         // sign the item
 
-        pItem1->SignContract(pServerNym);
+        pItem1->SignContract(*pServerNym);
         pItem1->SaveContract();
 
         // the Transaction "owns" the item now and will handle cleaning it up.
         pTransaction->AddItem(*pItem1);
 
-        pTransaction->SignContract(pServerNym);
+        pTransaction->SignContract(*pServerNym);
         pTransaction->SaveContract();
 
         // Here the transaction we just created is actually added to the ledger.
@@ -1398,7 +1320,7 @@ bool OTCronItem::DropFinalReceiptToNymbox(
         theLedger.ReleaseSignatures();
 
         // Sign and save.
-        theLedger.SignContract(pServerNym);
+        theLedger.SignContract(*pServerNym);
         theLedger.SaveContract();
 
         // TODO: Better rollback capabilities in case of failures here:
@@ -1416,64 +1338,9 @@ bool OTCronItem::DropFinalReceiptToNymbox(
         // Update the NymboxHash (in the nymfile.)
         //
 
-        const auto ACTUAL_NYM_ID = Identifier::Factory(NYM_ID);
-        Nym theActualNym;  // unused unless it's really not already
-                           // loaded. (use pActualNym.)
-
-        // We couldn't find the Nym among those already loaded--so we have to
-        // load it ourselves (so we can update its NymboxHash value.)
-
-        if (nullptr == pActualNym) {
-            if (pServerNym.CompareID(ACTUAL_NYM_ID))
-                pActualNym = &pServerNym;
-
-            else {
-                theActualNym.SetIdentifier(ACTUAL_NYM_ID);
-
-                if (!theActualNym.LoadPublicKey())  // Note: this step
-                                                    // may be unnecessary
-                                                    // since we are only
-                                                    // updating his
-                                                    // Nymfile, not his
-                                                    // key.
-                {
-                    String strNymID(ACTUAL_NYM_ID);
-                    otErr << szFunc << ": Failure loading public key for Nym: "
-                          << strNymID
-                          << ". "
-                             "(To update his NymboxHash.) \n";
-                } else if (
-                    theActualNym.VerifyPseudonym() &&  // this line may be
-                                                       // unnecessary.
-                    theActualNym.LoadSignedNymfile(pServerNym))  // ServerNym
-                                                                 // here is not
-                // theActualNym's identity, but
-                // merely the signer on this file.
-                {
-                    otLog3 << szFunc
-                           << ": Loading actual Nym, since he wasn't "
-                              "already loaded. "
-                              "(To update his NymboxHash.)\n";
-                    pActualNym = &theActualNym;  //  <=====
-                } else {
-                    String strNymID(ACTUAL_NYM_ID);
-                    otErr << szFunc
-                          << ": Failure loading or verifying Actual "
-                             "Nym public key: "
-                          << strNymID
-                          << ". "
-                             "(To update his NymboxHash.)\n";
-                }
-            }
-        }
-
-        // By this point we've made every possible effort to get the proper Nym
-        // loaded, so that we can update his NymboxHash appropriately.
-        if (nullptr != pActualNym) {
-            auto context = OT::App().Wallet().mutable_ClientContext(
-                pServerNym.ID(), pActualNym->ID());
-            context.It().SetLocalNymboxHash(theNymboxHash);
-        }
+        auto context =
+            OT::App().Wallet().mutable_ClientContext(pServerNym->ID(), NYM_ID);
+        context.It().SetLocalNymboxHash(theNymboxHash);
 
         // Really this true should be predicated on ALL the above functions
         // returning true. Right?
@@ -1641,7 +1508,7 @@ bool OTCronItem::CancelBeforeActivation(const Nym& theCancelerNym)
     if (IsCanceled()) return false;
 
     m_bCanceled = true;
-    m_pCancelerNymID = theCancelerNym.GetConstID();
+    m_pCancelerNymID = theCancelerNym.ID();
 
     ReleaseSignatures();
     SignContract(theCancelerNym);

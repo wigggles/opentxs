@@ -98,7 +98,7 @@ ServerContract* ServerContract::Create(
     const std::string& name)
 {
     OT_ASSERT(nym);
-    OT_ASSERT(nym->hasCapability(NymCapability::AUTHENTICATE_CONNECTION));
+    OT_ASSERT(nym->HasCapability(NymCapability::AUTHENTICATE_CONNECTION));
 
     ServerContract* contract = new ServerContract(nym);
 

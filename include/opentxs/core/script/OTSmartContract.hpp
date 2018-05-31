@@ -125,7 +125,6 @@ private:
     // For moving money from one nym's account to another.
     // it is also nearly identically copied in OTPaymentPlan.
     bool MoveFunds(
-        const mapOfConstNyms& map_NymsAlreadyLoaded,
         const std::int64_t& lAmount,
         const Identifier& SOURCE_ACCT_ID,
         const Identifier& SENDER_NYM_ID,
@@ -139,8 +138,8 @@ protected:
     void onFinalReceipt(
         OTCronItem& theOrigCronItem,
         const std::int64_t& lNewTransactionNumber,
-        Nym& theOriginator,
-        Nym* pRemover) override;
+        ConstNym theOriginator,
+        ConstNym pRemover) override;
     void onRemovalFromCron() override;
     // Above are stored the user and acct IDs of the last sender and recipient
     // of funds.
@@ -220,7 +219,7 @@ public:
     void CloseoutOpeningNumbers();
     using ot_super::HarvestClosingNumbers;
     void HarvestClosingNumbers(
-        Nym* pSignerNym = nullptr,
+        const Nym& pSignerNym,
         std::set<OTParty*>* pFailedParties = nullptr);  // Used on server-side.
                                                         // Assumes the
     // related Nyms are already loaded and
@@ -248,9 +247,9 @@ public:
     EXPORT bool SetNotaryIDIfEmpty(const Identifier& theID);
 
     EXPORT bool VerifySmartContract(
-        Nym& theNym,
+        const Nym& theNym,
         const Account& theAcct,
-        Nym& theServerNym,
+        const Nym& theServerNym,
         bool bBurnTransNo = false);
 
     // theNym is trying to activate the smart contract, and has
@@ -390,7 +389,6 @@ public:
     // a script, is to call StashAcctFunds() or UnstashAcctFunds() (BELOW)
     //
     EXPORT bool StashFunds(
-        const mapOfConstNyms& map_NymsAlreadyLoaded,
         const std::int64_t& lAmount,  // negative amount here means UNstash.
                                       // Positive
                                       // means STASH.
@@ -408,7 +406,6 @@ public:
     void Release_SmartContract();
     void ReleaseStashes();
 
-    static void CleanupNyms(mapOfConstNyms& theMap);
     bool IsValidOpeningNumber(const std::int64_t& lOpeningNum) const override;
 
     std::int64_t GetOpeningNumber(const Identifier& theNymID) const override;

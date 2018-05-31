@@ -83,9 +83,8 @@ private:
                                 // entity.)
 
     // If agent is active (has a nym), here is the sometimes-available pointer
-    // to said Agent Nym. This pointer is not owned by this object, and is here
-    // for convenience only. someday may add a "role" pointer here.
-    const Nym* m_pNym;
+    // to said Agent Nym. Someday may add a "role" pointer here.
+    ConstNym m_pNym;
 
     OTParty* m_pForParty;  // The agent probably has a pointer to the party it
                            // acts on behalf of.
@@ -140,15 +139,6 @@ public:
 
     void Serialize(Tag& parent) const;
 
-    // For pointers I don't own, but store for convenience.
-    // This clears them once we're done processing, so I don't
-    // end up stuck with bad pointers on the next go-around.
-    //
-    void ClearTemporaryPointers()
-    {
-        m_pNym = nullptr;
-    } /* Someday clear entity/role ptr here? And do NOT
-         clear party ptr here (since it's not temporary.)  */
     // NOTE: Current iteration, these functions ASSUME that m_pNym is loaded.
     // They will definitely fail if you haven't already loaded the Nym.
     //
@@ -188,8 +178,6 @@ public:
 
     void SetParty(OTParty& theOwnerParty);  // This happens when the agent is
                                             // added to the party.
-
-    void SetNymPointer(const Nym& theNym) { m_pNym = &theNym; }
 
     EXPORT bool IsValidSigner(const Nym& theNym);
     EXPORT bool IsValidSignerID(const Identifier& theNymID);
@@ -333,33 +321,17 @@ public:
     // This also makes sure that Nyms and Entities don't ever share IDs, so the
     // IDs become more and more interchangeable.
 
-    // Often we endeavor to avoid loading the same Nym twice, and a higher-level
-    // function
-    // will ask an OTParty for a list of all the Nym pointers that it already
-    // has,
-    // so they can be checked for various things if they are already loaded
-    // (when they are needed)
-    // without having to load them again in order to check those things, purely
-    // out of blindness
-    // to the fact that they had infact already been loaded and were floating
-    // around in memory somewhere.
-    //
-    void RetrieveNymPointer(mapOfConstNyms& map_Nyms_Already_Loaded);
-
-    Nym* LoadNym(const Nym& theServerNym);
+    ConstNym LoadNym();
 
     bool DropFinalReceiptToNymbox(
         OTSmartContract& theSmartContract,
         const std::int64_t& lNewTransactionNumber,
         const String& strOrigCronItem,
         String* pstrNote = nullptr,
-        String* pstrAttachment = nullptr,
-        Nym* pActualNym = nullptr);
+        String* pstrAttachment = nullptr);
 
     bool DropFinalReceiptToInbox(
-        mapOfNyms* pNymMap,
         const String& strNotaryID,
-        Nym& theServerNym,
         OTSmartContract& theSmartContract,
         const Identifier& theAccountID,
         const std::int64_t& lNewTransactionNumber,
@@ -370,7 +342,7 @@ public:
 
     bool DropServerNoticeToNymbox(
         bool bSuccessMsg,  // the notice can be "acknowledgment" or "rejection"
-        Nym& theServerNym,
+        const Nym& theServerNym,
         const Identifier& theNotaryID,
         const std::int64_t& lNewTransactionNumber,
         const std::int64_t& lInReferenceTo,

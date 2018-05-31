@@ -71,27 +71,40 @@ namespace server
 class Server
 {
     friend class opentxs::api::implementation::Server;
-    friend class Transactor;
-    friend class MessageProcessor;
-    friend class UserCommandProcessor;
     friend class MainFile;
-    friend class opentxs::PayDividendVisitor;
-    friend class Notary;
 
 public:
-    EXPORT bool GetConnectInfo(std::string& hostname, std::uint32_t& port)
-        const;
-    EXPORT const Identifier& GetServerID() const;
-    EXPORT const Nym& GetServerNym() const;
-    EXPORT std::unique_ptr<OTPassword> TransportKey(Data& pubkey) const;
-    EXPORT bool IsFlaggedForShutdown() const;
+    bool GetConnectInfo(std::string& hostname, std::uint32_t& port) const;
+    const Identifier& GetServerID() const;
+    const Nym& GetServerNym() const;
+    std::unique_ptr<OTPassword> TransportKey(Data& pubkey) const;
+    bool IsFlaggedForShutdown() const;
 
-    EXPORT void ActivateCron();
-    EXPORT void Init(bool readOnly = false);
-    EXPORT void ProcessCron();
-    EXPORT std::int64_t computeTimeout() { return m_Cron.computeTimeout(); }
+    void ActivateCron();
+    UserCommandProcessor& CommandProcessor() { return userCommandProcessor_; }
+    std::int64_t ComputeTimeout() { return m_Cron.computeTimeout(); }
+    OTCron& Cron() { return m_Cron; }
+    bool DropMessageToNymbox(
+        const Identifier& notaryID,
+        const Identifier& senderNymID,
+        const Identifier& recipientNymID,
+        OTTransaction::transactionType transactionType,
+        const Message& msg);
+    MainFile& GetMainFile() { return mainFile_; }
+    Notary& GetNotary() { return notary_; }
+    Transactor& GetTransactor() { return transactor_; }
+    void Init(bool readOnly = false);
+    bool LoadServerNym(const Identifier& nymID);
+    void ProcessCron();
+    bool SendInstrumentToNym(
+        const Identifier& notaryID,
+        const Identifier& senderNymID,
+        const Identifier& recipientNymID,
+        const OTPayment* payment,
+        const char* command);
+    String& WalletFilename() { return m_strWalletFilename; }
 
-    EXPORT ~Server();
+    ~Server();
 
 private:
     const std::string DEFAULT_EXTERNAL_IP = "127.0.0.1";
@@ -118,12 +131,12 @@ private:
     // this flag so the caller knows to do so.
     bool m_bShutdownFlag{false};
     // A hash of the server contract
-    OTIdentifier m_strNotaryID;
+    OTIdentifier m_notaryID;
     // A hash of the public key that signed the server contract
-    String m_strServerNymID;
+    std::string m_strServerNymID;
     // This is the server's own contract, containing its public key and
     // connect info.
-    Nym m_nymServer;
+    ConstNym m_nymServer;
     OTCron m_Cron;  // This is where re-occurring and expiring tasks go.
 
     Server(
@@ -144,21 +157,12 @@ private:
         const Message* msg = nullptr,
         const String* messageString = nullptr,
         const char* command = nullptr);
-    bool DropMessageToNymbox(
-        const Identifier& notaryID,
-        const Identifier& senderNymID,
-        const Identifier& recipientNymID,
-        OTTransaction::transactionType transactionType,
-        const Message& msg);
     std::pair<std::string, std::string> parse_seed_backup(
         const std::string& input) const;
+    const std::string& ServerNymID() const { return m_strServerNymID; }
+    void SetNotaryID(const Identifier& notaryID) { m_notaryID = notaryID; }
+    void SetServerNymID(const char* strNymID) { m_strServerNymID = strNymID; }
 
-    bool SendInstrumentToNym(
-        const Identifier& notaryID,
-        const Identifier& senderNymID,
-        const Identifier& recipientNymID,
-        const OTPayment* payment,
-        const char* command);
     bool SendInstrumentToNym(
         const Identifier& notaryID,
         const Identifier& senderNymID,

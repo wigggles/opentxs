@@ -41,6 +41,7 @@
 #include "opentxs/core/trade/OTMarket.hpp"
 
 #include "opentxs/api/client/Wallet.hpp"
+#include "opentxs/api/Native.hpp"
 #include "opentxs/core/cron/OTCron.hpp"
 #include "opentxs/core/cron/OTCronItem.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
@@ -63,6 +64,7 @@
 #include "opentxs/core/OTStringXML.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/OT.hpp"
 
 #include <irrxml/irrXML.hpp>
 
@@ -992,7 +994,7 @@ void OTMarket::ProcessTrade(
     OT_ASSERT(nullptr != pCron);  // Also need the Cron pointer which SHOULD
                                   // ALWAYS be there.
 
-    Nym* pServerNym = pCron->GetServerNym();
+    auto pServerNym = pCron->GetServerNym();
 
     OT_ASSERT_MSG(
         nullptr != pServerNym,
@@ -1065,7 +1067,7 @@ void OTMarket::ProcessTrade(
             Identifier::Factory(*pServerNym);  // The Server Nym (could be one
                                                // or both of the above.)
 
-    Nym theNym, theOtherNym;  // We MIGHT use ONE, OR BOTH, of these, or none.
+    // We MIGHT use ONE, OR BOTH, of these, or none.
 
     // Find out if either Nym is actually also the server.
     bool bFirstNymIsServerNym =
@@ -1078,8 +1080,8 @@ void OTMarket::ProcessTrade(
     bool bTradersAreSameNym = ((FIRST_NYM_ID == OTHER_NYM_ID) ? true : false);
 
     // Initially both nym pointers are set to their own blank objects
-    Nym* pFirstNym = nullptr;
-    Nym* pOtherNym = nullptr;
+    ConstNym pFirstNym = nullptr;
+    ConstNym pOtherNym = nullptr;
 
     // Unless either of them is actually the server,
     // in which case the pointer is re-pointed to the server Nym.
@@ -1090,25 +1092,8 @@ void OTMarket::ProcessTrade(
         pFirstNym = pServerNym;
     } else  // Else load the First Nym from storage.
     {
-        theNym.SetIdentifier(FIRST_NYM_ID);  // theNym is pFirstNym
-
-        if (!theNym.LoadPublicKey()) {
-            String strNymID(FIRST_NYM_ID);
-            otErr << "Failure loading First Nym public key in OTMarket::"
-                  << __FUNCTION__ << ": " << strNymID << "\n";
-            theTrade.FlagForRemoval();
-            return;
-        }
-
-        if (theNym.VerifyPseudonym() && theTrade.VerifySignature(*pServerNym) &&
-            theOffer.VerifySignature(*pServerNym) &&
-            theNym.LoadSignedNymfile(*pServerNym))  // ServerNym here is not
-                                                    // theNym's identity, but
-                                                    // merely the signer on this
-                                                    // file.
-        {
-            pFirstNym = &theNym;  //  <=====
-        } else {
+        pFirstNym = OT::App().Wallet().Nym(FIRST_NYM_ID);
+        if (nullptr == pFirstNym) {
             String strNymID(FIRST_NYM_ID);
             otErr << "OTMarket::" << __FUNCTION__
                   << ": Failure verifying trade, offer, or nym, or loading "
@@ -1130,22 +1115,8 @@ void OTMarket::ProcessTrade(
         pOtherNym = pFirstNym;  // theNym is pFirstNym
     } else  // Otherwise load the Other Nym from Disk and point to that.
     {
-        theOtherNym.SetIdentifier(OTHER_NYM_ID);
-
-        if (!theOtherNym.LoadPublicKey()) {
-            String strNymID(OTHER_NYM_ID);
-            otErr << "Failure loading Other Nym public key in OTMarket::"
-                  << __FUNCTION__ << ": " << strNymID << "\n";
-            pOtherTrade->FlagForRemoval();
-            return;
-        }
-
-        if (theOtherNym.VerifyPseudonym() &&
-            pOtherTrade->VerifySignature(*pServerNym) &&
-            theOtherOffer.VerifySignature(*pServerNym) &&
-            theOtherNym.LoadSignedNymfile(*pServerNym)) {
-            pOtherNym = &theOtherNym;  //  <=====
-        } else {
+        pOtherNym == OT::App().Wallet().Nym(OTHER_NYM_ID);
+        if (nullptr == pOtherNym) {
             String strNymID(OTHER_NYM_ID);
             otErr << "Failure loading or verifying Other Nym public key in "
                      "OTMarket::"
