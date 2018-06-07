@@ -298,7 +298,7 @@ bool Blockchain::AssignAddress(
         // check: does every incoming transaction exist as an activity
         std::shared_ptr<proto::StorageThread> thread =
             activity_.Thread(nymID, contactID);
-        OT_ASSERT(thread != nullptr);
+        OT_ASSERT(thread);
         for (const std::string& txID : address.incoming()) {
             bool exists = false;
             for (const auto activity : thread->item())
