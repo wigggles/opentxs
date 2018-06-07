@@ -590,7 +590,11 @@ std::string OTAPI_Exec::CreateNymHD(
 
     if (0 < fingerprint.size()) { nymParameters.SetSeed(fingerprint); }
 
-    nymParameters.SetNym(index);
+    if (0 > index) {
+        nymParameters.SetUseAutoIndex(true);
+    } else {
+        nymParameters.SetNym(index);
+    }
 
     ConstNym nym = wallet_.Nym(nymParameters, type, name);
 
