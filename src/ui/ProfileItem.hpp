@@ -41,6 +41,8 @@
 
 #include "Internal.hpp"
 
+template class opentxs::SharedPimpl<opentxs::ui::ProfileItem>;
+
 namespace opentxs::ui::implementation
 {
 using ProfileItemType =

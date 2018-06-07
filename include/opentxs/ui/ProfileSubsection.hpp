@@ -56,7 +56,7 @@
 }
 %ignore opentxs::ui::ProfileSubsection::Type;
 %ignore opentxs::ui::ProfileSubsection::Update;
-%shared_ptr(opentxs::ui::ProfileItem)
+%template(OTUIProfileSubsection) opentxs::SharedPimpl<opentxs::ui::ProfileSubsection>;
 %rename(UIProfileSubsection) opentxs::ui::ProfileSubsection;
 // clang-format on
 #endif  // SWIG
@@ -73,9 +73,11 @@ public:
         const bool primary,
         const bool active) const = 0;
     EXPORT virtual bool Delete(const std::string& claimID) const = 0;
-    EXPORT virtual std::shared_ptr<const ProfileItem> First() const = 0;
+    EXPORT virtual opentxs::SharedPimpl<opentxs::ui::ProfileItem> First()
+        const = 0;
     EXPORT virtual std::string Name(const std::string& lang) const = 0;
-    EXPORT virtual std::shared_ptr<const ProfileItem> Next() const = 0;
+    EXPORT virtual opentxs::SharedPimpl<opentxs::ui::ProfileItem> Next()
+        const = 0;
     EXPORT virtual bool SetActive(const std::string& claimID, const bool active)
         const = 0;
     EXPORT virtual bool SetPrimary(

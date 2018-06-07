@@ -65,11 +65,11 @@ class List : virtual public InterfaceType,
              public Lockable
 {
 public:
-    std::shared_ptr<const RowType> First() const override
+    SharedPimpl<RowType> First() const override
     {
         Lock lock(lock_);
 
-        return first(lock);
+        return SharedPimpl<RowType>(first(lock));
     }
 
     virtual bool last(const IDType& id) const override
@@ -79,13 +79,13 @@ public:
         return start_.get() && same(id, last_id_);
     }
 
-    std::shared_ptr<const RowType> Next() const override
+    SharedPimpl<RowType> Next() const override
     {
         Lock lock(lock_);
 
-        if (start_.get()) { return first(lock); }
+        if (start_.get()) { return SharedPimpl<RowType>(first(lock)); }
 
-        return next(lock);
+        return SharedPimpl<RowType>(next(lock));
     }
     using InternalInterfaceType::reindex_item;
     void reindex_item(const IDType& id, const SortKeyType& newIndex)

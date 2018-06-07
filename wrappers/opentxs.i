@@ -10,7 +10,6 @@
 
 %include "inttypes.i";
 %include "std_pair.i"
-%include "std_shared_ptr.i";
 %include "std_string.i";
 %include "std_vector.i";
 %include "typemaps.i"
@@ -47,6 +46,7 @@ typedef int64_t time64_t;
 
 %include "../../include/opentxs/client/NymData.hpp"
 %include "../../include/opentxs/Pimpl.hpp"
+%include "../../include/opentxs/SharedPimpl.hpp"
 %include "../../include/opentxs/core/Data.hpp"
 %include "../../include/opentxs/core/crypto/OTPassword.hpp"
 %include "../../include/opentxs/core/crypto/OTCallback.hpp"

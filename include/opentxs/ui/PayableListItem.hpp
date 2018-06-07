@@ -47,6 +47,7 @@
 
 #ifdef SWIG
 // clang-format off
+%template(OTUIPayableListItem) opentxs::SharedPimpl<opentxs::ui::PayableListItem>;
 %rename(UIPayableListItem) opentxs::ui::PayableListItem;
 // clang-format on
 #endif  // SWIG

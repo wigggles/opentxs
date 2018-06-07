@@ -67,6 +67,8 @@
 
 #include "ContactSubsection.hpp"
 
+template class opentxs::SharedPimpl<opentxs::ui::ContactSubsection>;
+
 //#define OT_METHOD "opentxs::ui::implementation::ContactSubsection::"
 
 namespace opentxs

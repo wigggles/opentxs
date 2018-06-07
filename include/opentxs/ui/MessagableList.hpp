@@ -45,7 +45,6 @@
 
 #ifdef SWIG
 // clang-format off
-%shared_ptr(opentxs::ui::ContactListItem)
 %rename(UIMessagableList) opentxs::ui::MessagableList;
 // clang-format on
 #endif  // SWIG
@@ -57,8 +56,10 @@ namespace ui
 class MessagableList : virtual public Widget
 {
 public:
-    EXPORT virtual std::shared_ptr<const ContactListItem> First() const = 0;
-    EXPORT virtual std::shared_ptr<const ContactListItem> Next() const = 0;
+    EXPORT virtual opentxs::SharedPimpl<opentxs::ui::ContactListItem> First()
+        const = 0;
+    EXPORT virtual opentxs::SharedPimpl<opentxs::ui::ContactListItem> Next()
+        const = 0;
 
     EXPORT virtual ~MessagableList() = default;
 

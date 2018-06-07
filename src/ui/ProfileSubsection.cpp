@@ -68,6 +68,8 @@
 
 #include "ProfileSubsection.hpp"
 
+template class opentxs::SharedPimpl<opentxs::ui::ProfileSubsection>;
+
 //#define OT_METHOD "opentxs::ui::implementation::ProfileSubsection::"
 
 namespace opentxs

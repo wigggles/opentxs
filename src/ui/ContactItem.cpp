@@ -49,6 +49,8 @@
 
 #include "ContactItem.hpp"
 
+template class opentxs::SharedPimpl<opentxs::ui::ContactItem>;
+
 namespace opentxs
 {
 ui::ContactItem* Factory::ContactItemWidget(

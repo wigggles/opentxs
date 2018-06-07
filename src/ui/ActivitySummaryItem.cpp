@@ -65,6 +65,8 @@
 
 #include "ActivitySummaryItem.hpp"
 
+template class opentxs::SharedPimpl<opentxs::ui::ActivitySummaryItem>;
+
 #define GET_TEXT_MILLISECONDS 10
 
 #define OT_METHOD "opentxs::ui::implementation::ActivitySummaryItem::"

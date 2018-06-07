@@ -51,14 +51,18 @@ class ContactSectionBlank : virtual public ui::ContactSection,
 {
 public:
     std::string Name(const std::string& lang) const override { return {}; }
-    std::shared_ptr<const opentxs::ui::ContactSubsection> First() const override
+    OTUIContactSubsection First() const override
     {
-        return nullptr;
+        const std::shared_ptr<const ui::ContactSubsection> empty;
+
+        return OTUIContactSubsection{empty};
     }
     bool Last() const override { return true; }
-    std::shared_ptr<const opentxs::ui::ContactSubsection> Next() const override
+    OTUIContactSubsection Next() const override
     {
-        return nullptr;
+        const std::shared_ptr<const ui::ContactSubsection> empty;
+
+        return OTUIContactSubsection{empty};
     }
     proto::ContactSectionName Type() const override { return {}; }
     bool Valid() const override { return false; }

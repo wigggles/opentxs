@@ -50,6 +50,8 @@
 
 #include "ActivityThreadItem.hpp"
 
+template class opentxs::SharedPimpl<opentxs::ui::ActivityThreadItem>;
+
 namespace opentxs::ui::implementation
 {
 ActivityThreadItem::ActivityThreadItem(

@@ -56,7 +56,6 @@
     }
 }
 %ignore opentxs::ui::ActivityThread::PaymentCode;
-%shared_ptr(opentxs::ui::ActivityThreadItem)
 %rename(UIActivityThread) opentxs::ui::ActivityThread;
 // clang-format on
 #endif  // SWIG
@@ -69,8 +68,10 @@ class ActivityThread : virtual public Widget
 {
 public:
     EXPORT virtual std::string DisplayName() const = 0;
-    EXPORT virtual std::shared_ptr<const ActivityThreadItem> First() const = 0;
-    EXPORT virtual std::shared_ptr<const ActivityThreadItem> Next() const = 0;
+    EXPORT virtual opentxs::SharedPimpl<opentxs::ui::ActivityThreadItem> First()
+        const = 0;
+    EXPORT virtual opentxs::SharedPimpl<opentxs::ui::ActivityThreadItem> Next()
+        const = 0;
     EXPORT virtual std::string GetDraft() const = 0;
     EXPORT virtual std::string Participants() const = 0;
     EXPORT virtual std::string PaymentCode(

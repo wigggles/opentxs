@@ -55,15 +55,19 @@ public:
         return false;
     }
     bool Delete(const std::string& claimID) const override { return false; }
-    std::shared_ptr<const opentxs::ui::ProfileItem> First() const override
+    OTUIProfileItem First() const override
     {
-        return nullptr;
+        const std::shared_ptr<const ui::ProfileItem> empty;
+
+        return OTUIProfileItem{empty};
     }
     bool Last() const override { return true; }
     std::string Name(const std::string& lang) const override { return {}; }
-    std::shared_ptr<const opentxs::ui::ProfileItem> Next() const override
+    OTUIProfileItem Next() const override
     {
-        return nullptr;
+        const std::shared_ptr<const ui::ProfileItem> empty;
+
+        return OTUIProfileItem{empty};
     }
     proto::ContactItemType Type() const override { return {}; }
     bool SetActive(const std::string&, const bool) const override

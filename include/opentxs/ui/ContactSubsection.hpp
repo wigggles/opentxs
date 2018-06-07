@@ -56,7 +56,7 @@
 }
 %ignore opentxs::ui::ContactSubsection::Type;
 %ignore opentxs::ui::ContactSubsection::Update;
-%shared_ptr(opentxs::ui::ContactItem)
+%template(OTUIContactSubsection) opentxs::SharedPimpl<opentxs::ui::ContactSubsection>;
 %rename(UIContactSubsection) opentxs::ui::ContactSubsection;
 // clang-format on
 #endif  // SWIG
@@ -69,8 +69,10 @@ class ContactSubsection : virtual public ListRow
 {
 public:
     EXPORT virtual std::string Name(const std::string& lang) const = 0;
-    EXPORT virtual std::shared_ptr<const ContactItem> First() const = 0;
-    EXPORT virtual std::shared_ptr<const ContactItem> Next() const = 0;
+    EXPORT virtual opentxs::SharedPimpl<opentxs::ui::ContactItem> First()
+        const = 0;
+    EXPORT virtual opentxs::SharedPimpl<opentxs::ui::ContactItem> Next()
+        const = 0;
     EXPORT virtual proto::ContactItemType Type() const = 0;
 
     virtual void Update(const opentxs::ContactGroup& group) = 0;

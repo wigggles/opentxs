@@ -58,6 +58,7 @@
     }
 }
 %ignore opentxs::ui::ActivityThreadItem::Timestamp;
+%template(OTUIActivityThreadItem) opentxs::SharedPimpl<opentxs::ui::ActivityThreadItem>;
 %rename(UIActivityThreadItem) opentxs::ui::ActivityThreadItem;
 // clang-format on
 #endif  // SWIG
