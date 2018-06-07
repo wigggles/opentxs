@@ -563,7 +563,7 @@ std::string OTAPI_Exec::CreateNymHD(
     const proto::ContactItemType type,
     const std::string& name,
     const std::string& fingerprint,
-    const std::uint32_t index) const
+    const std::int32_t index) const
 {
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     switch (type) {
@@ -590,7 +590,11 @@ std::string OTAPI_Exec::CreateNymHD(
 
     if (0 < fingerprint.size()) { nymParameters.SetSeed(fingerprint); }
 
-    nymParameters.SetNym(index);
+    if (0 > index) {
+        nymParameters.SetUseAutoIndex(true);
+    } else {
+        nymParameters.SetNym(index);
+    }
 
     ConstNym nym = wallet_.Nym(nymParameters, type, name);
 

@@ -85,6 +85,7 @@ private:
     std::uint32_t credset_{0};
     std::uint32_t cred_index_{0};
     bool default_{true};
+    bool use_auto_index_{false};
 #else
     proto::CredentialType credentialType_{proto::CREDTYPE_LEGACY};
 #endif
@@ -160,6 +161,9 @@ public:
 
     inline bool Default() const { return default_; }
     inline void SetDefault(const bool in) { default_ = in; }
+
+    inline bool UseAutoIndex() const { return use_auto_index_; }
+    inline void SetUseAutoIndex(const bool use) { use_auto_index_ = use; }
 #endif
 
     ~NymParameters() = default;

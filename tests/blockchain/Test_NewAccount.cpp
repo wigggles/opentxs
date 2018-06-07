@@ -47,13 +47,12 @@ namespace
 
 TEST(Test_NewAccount, TestNymDoesNotExist)
 {
-    const std::uint32_t BTC = proto::CITEMTYPE_BTC;
-    const std::string& nym = "Inexistent Nym";
+    const std::string nym = "Inexistent Nym";
     const std::string Result =
         String(OT::App().Blockchain().NewAccount(
                    Identifier(nym),
                    BlockchainAccountType::BIP32,
-                   static_cast<proto::ContactItemType>(BTC)))
+                   proto::CITEMTYPE_BTC))
             .Get();
     EXPECT_STREQ(Result.c_str(), "");
 
@@ -61,7 +60,7 @@ TEST(Test_NewAccount, TestNymDoesNotExist)
         String(OT::App().Blockchain().NewAccount(
                    Identifier(nym),
                    BlockchainAccountType::BIP32,
-                   static_cast<proto::ContactItemType>(BTC)))
+                   proto::CITEMTYPE_BTC))
             .Get();
     EXPECT_STREQ(Result2.c_str(), "");
 }
@@ -75,33 +74,31 @@ TEST(Test_NewAccount, TestSeedRoot)
     static const proto::ContactItemType INDIVIDUAL =
         proto::CITEMTYPE_INDIVIDUAL;
 
-    const std::string& seedA = "seed A";
+    const std::string seedA = "seed A";
 
     const std::string seedID =
         opentxs::OT::App().API().Exec().Wallet_ImportSeed(seedA, "");
 
-    const std::string& alias = "Alias 1";
-    const std::string& Nym0 = opentxs::OT::App().API().Exec().CreateNymHD(
+    const std::string alias = "Alias 1";
+    const auto Nym0 = opentxs::OT::App().API().Exec().CreateNymHD(
         INDIVIDUAL, alias, seedID, 0);
     std::cout << "Created Nym 0: " << Nym0 << " !!\n";
-    const std::string& Nym1 = opentxs::OT::App().API().Exec().CreateNymHD(
+    const auto Nym1 = opentxs::OT::App().API().Exec().CreateNymHD(
         INDIVIDUAL, alias, seedID, 1);
     std::cout << "Created Nym 1: " << Nym1 << " !!\n";
 
     EXPECT_STRNE(Nym0.c_str(), Nym1.c_str());
 
-    const std::uint32_t BTC = proto::CITEMTYPE_BTC;
-
     OTIdentifier Acc0ID = OT::App().Blockchain().NewAccount(
         Identifier(Nym0),
         BlockchainAccountType::BIP32,
-        static_cast<proto::ContactItemType>(BTC));
+        proto::CITEMTYPE_BTC);
 
     std::cout << "Created Nym 0's Account: " << String(Acc0ID).Get() << " !!\n";
     OTIdentifier Acc1ID = OT::App().Blockchain().NewAccount(
         Identifier(Nym1),
         BlockchainAccountType::BIP32,
-        static_cast<proto::ContactItemType>(BTC));
+        proto::CITEMTYPE_BTC);
 
     std::cout << "Created Nym 1's Account: " << String(Acc1ID).Get() << " !!\n";
 
@@ -130,80 +127,77 @@ TEST(Test_NewAccount, TestNymsDiff)
     static const proto::ContactItemType INDIVIDUAL =
         proto::CITEMTYPE_INDIVIDUAL;
 
-    const std::string& Alice = opentxs::OT::App().API().Exec().CreateNymHD(
-        INDIVIDUAL, "testNymsDiff_Alice", "", 0);
-    const std::string& Bob = opentxs::OT::App().API().Exec().CreateNymHD(
-        INDIVIDUAL, "testNymsDiff_Bob", "", 1);
+    const auto AliceNymID = opentxs::OT::App().API().Exec().CreateNymHD(
+        INDIVIDUAL, "testNymsDiff_Alice", "", 50);
+    const auto BobNymID = opentxs::OT::App().API().Exec().CreateNymHD(
+        INDIVIDUAL, "testNymsDiff_Bob", "", 60);
 
-    std::cout << "Created Alice: " << Alice << " \n";
-    std::cout << "Created Bob: " << Bob << " \n";
-
-    const std::uint32_t BTC = proto::CITEMTYPE_BTC;
+    std::cout << "Created Alice: " << AliceNymID << " \n";
+    std::cout << "Created Bob: " << BobNymID << " \n";
 
     OTIdentifier AliceAccountID = OT::App().Blockchain().NewAccount(
-        Identifier(Alice),
+        Identifier(AliceNymID),
         BlockchainAccountType::BIP44,
-        static_cast<proto::ContactItemType>(BTC));
+        proto::CITEMTYPE_BTC);
 
     OTIdentifier BobAccountID = OT::App().Blockchain().NewAccount(
-        Identifier(Bob),
+        Identifier(BobNymID),
         BlockchainAccountType::BIP44,
-        static_cast<proto::ContactItemType>(BTC));
+        proto::CITEMTYPE_BTC);
 
     std::shared_ptr<proto::Bip44Account> AliceAccount =
-        OT::App().Blockchain().Account(Identifier(Alice), AliceAccountID);
+        OT::App().Blockchain().Account(Identifier(AliceNymID), AliceAccountID);
     std::shared_ptr<proto::Bip44Account> BobAccount =
-        OT::App().Blockchain().Account(Identifier(Bob), BobAccountID);
+        OT::App().Blockchain().Account(Identifier(BobNymID), BobAccountID);
 
     ASSERT_TRUE(bool(AliceAccount));
     ASSERT_TRUE(bool(BobAccount));
 
     ASSERT_EQ((*AliceAccount.get()).version(), 1);
     ASSERT_EQ((*AliceAccount.get()).id(), String(AliceAccountID).Get());
-    ASSERT_EQ((*AliceAccount.get()).type(), BTC);
+    ASSERT_EQ((*AliceAccount.get()).type(), proto::CITEMTYPE_BTC);
     ASSERT_EQ((*AliceAccount.get()).internalindex(), 0);
     ASSERT_EQ((*AliceAccount.get()).externalindex(), 0);
 
-    const std::string& AliceAccDescr = String(AliceAccountID).Get();
-    const std::string& BobAccDescr = String(BobAccountID).Get();
+    const std::string AliceAccDescr = String(AliceAccountID).Get();
+    const std::string BobAccDescr = String(BobAccountID).Get();
     EXPECT_STRNE(AliceAccDescr.c_str(), BobAccDescr.c_str());
 }
 
 /** Test that one onym creates the same account for the same chain (BIP32 or
  * BIP44).
  */
-TEST(Test_NewAccount, TestNymIdempotence)
+TEST(Test_NewAccount, TestNym_AccountIdempotence)
 {
     static const proto::ContactItemType INDIVIDUAL =
         proto::CITEMTYPE_INDIVIDUAL;
-    const std::string& Alice = opentxs::OT::App().API().Exec().CreateNymHD(
-        INDIVIDUAL, "testNymIdempotence_Alice", "", 0);
-    const std::uint32_t BTC = proto::CITEMTYPE_BTC;
+    const auto Charly = opentxs::OT::App().API().Exec().CreateNymHD(
+        INDIVIDUAL, "testNymIdempotence_Charly", "", 70);
 
-    const std::string& AliceBIP32AccountID =
+    const std::string CharlyBIP32AccountID =
         String(OT::App().Blockchain().NewAccount(
-                   Identifier(Alice),
+                   Identifier(Charly),
                    BlockchainAccountType::BIP32,
-                   static_cast<proto::ContactItemType>(BTC)))
+                   proto::CITEMTYPE_BTC))
             .Get();
 
-    const std::string& AliceBIP44AccountID =
+    const std::string CharlyBIP44AccountID =
         String(OT::App().Blockchain().NewAccount(
-                   Identifier(Alice),
+                   Identifier(Charly),
                    BlockchainAccountType::BIP44,
-                   static_cast<proto::ContactItemType>(BTC)))
+                   proto::CITEMTYPE_BTC))
             .Get();
 
-    EXPECT_STREQ(AliceBIP32AccountID.c_str(), AliceBIP44AccountID.c_str());
+    EXPECT_STREQ(CharlyBIP32AccountID.c_str(), CharlyBIP44AccountID.c_str());
 
-    const std::string& AliceBIP44DupAccountID =
+    const std::string CharlyBIP44DupAccountID =
         String(OT::App().Blockchain().NewAccount(
-                   Identifier(Alice),
+                   Identifier(Charly),
                    BlockchainAccountType::BIP44,
-                   static_cast<proto::ContactItemType>(BTC)))
+                   proto::CITEMTYPE_BTC))
             .Get();
 
-    EXPECT_STREQ(AliceBIP44AccountID.c_str(), AliceBIP44DupAccountID.c_str());
+    EXPECT_STREQ(CharlyBIP44AccountID.c_str(), CharlyBIP44DupAccountID.c_str());
 }
 
 /** Test that the same nym creates different accounts for two chains
@@ -212,23 +206,21 @@ TEST(Test_NewAccount, TestChainDiff)
 {
     static const proto::ContactItemType INDIVIDUAL =
         proto::CITEMTYPE_INDIVIDUAL;
-    const std::string& Alice = opentxs::OT::App().API().Exec().CreateNymHD(
-        INDIVIDUAL, "testChainDiff_Alice", "", 0);
-    const std::uint32_t BTC = proto::CITEMTYPE_BTC;
-    const std::uint32_t LTC = proto::CITEMTYPE_LTC;
+    const auto Alice = opentxs::OT::App().API().Exec().CreateNymHD(
+        INDIVIDUAL, "testChainDiff_Alice", "", 80);
 
-    const std::string& AliceBTCAccountID =
+    const std::string AliceBTCAccountID =
         String(OT::App().Blockchain().NewAccount(
                    Identifier(Alice),
                    BlockchainAccountType::BIP32,
-                   static_cast<proto::ContactItemType>(BTC)))
+                   proto::CITEMTYPE_BTC))
             .Get();
 
-    const std::string& AliceLTCAccountID =
+    const std::string AliceLTCAccountID =
         String(OT::App().Blockchain().NewAccount(
                    Identifier(Alice),
                    BlockchainAccountType::BIP44,
-                   static_cast<proto::ContactItemType>(LTC)))
+                   proto::CITEMTYPE_LTC))
             .Get();
 
     EXPECT_STRNE(AliceBTCAccountID.c_str(), AliceLTCAccountID.c_str());
@@ -245,18 +237,17 @@ TEST(Test_NewAccount, TestSeedPassphrase)
             "fruit wave dwarf banana earth journey tattoo true farm silk olive "
             "fence",
             "banana");
-    const std::string& alias = "Alias 1";
-    const std::string& Nym0 = opentxs::OT::App().API().Exec().CreateNymHD(
+    const std::string alias = "Alias 1";
+    const auto Nym0 = opentxs::OT::App().API().Exec().CreateNymHD(
         INDIVIDUAL, alias, seedID, 0);
 
     EXPECT_STRNE(Nym0.c_str(), "");
     EXPECT_STRNE(alias.c_str(), Nym0.c_str());
 
-    const std::uint32_t BTC = proto::CITEMTYPE_BTC;
     OTIdentifier AccountID = OT::App().Blockchain().NewAccount(
         Identifier(Nym0),
         BlockchainAccountType::BIP32,
-        static_cast<proto::ContactItemType>(BTC));
+        proto::CITEMTYPE_BTC);
     std::shared_ptr<proto::Bip44Account> Acc =
         OT::App().Blockchain().Account(Identifier(Nym0), AccountID);
     // std::string rootKey =

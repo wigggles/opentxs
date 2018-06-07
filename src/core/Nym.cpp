@@ -153,7 +153,7 @@ Nym::Nym(const NymParameters& nymParameters)
 
     OT_ASSERT(seed);
 
-    const bool defaultIndex = (0 == nymParameters.Nym());
+    const bool defaultIndex = nymParameters.UseAutoIndex();
 
     if (!defaultIndex) {
         otErr << __FUNCTION__ << ": Re-creating nym at specified path. "
