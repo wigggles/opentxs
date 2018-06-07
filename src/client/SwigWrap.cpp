@@ -878,7 +878,7 @@ std::string SwigWrap::CreateNymLegacy(
 std::string SwigWrap::CreateIndividualNym(
     const std::string& name,
     const std::string& seed,
-    const std::uint32_t index)
+    const std::int32_t index)
 {
     return OT::App().API().Exec().CreateNymHD(
         proto::CITEMTYPE_INDIVIDUAL, name, seed, index);
@@ -887,7 +887,7 @@ std::string SwigWrap::CreateIndividualNym(
 std::string SwigWrap::CreateOrganizationNym(
     const std::string& name,
     const std::string& seed,
-    const std::uint32_t index)
+    const std::int32_t index)
 {
     return OT::App().API().Exec().CreateNymHD(
         proto::CITEMTYPE_ORGANIZATION, name, seed, index);
@@ -896,7 +896,7 @@ std::string SwigWrap::CreateOrganizationNym(
 std::string SwigWrap::CreateBusinessNym(
     const std::string& name,
     const std::string& seed,
-    const std::uint32_t index)
+    const std::int32_t index)
 {
     return OT::App().API().Exec().CreateNymHD(
         proto::CITEMTYPE_BUSINESS, name, seed, index);

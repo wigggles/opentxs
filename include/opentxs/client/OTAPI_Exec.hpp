@@ -504,7 +504,7 @@ public:
      *                              blank or not found, the default wallet seed
      *                              will be used.
      *  \param[in] index (optional) Derivation path of the nym to be created. A
-     *                              value of zero will use the next index for
+     *                              negative value will use the next index for
      *                              the specified seed.
      *  \returns nym id for the new nym on success, or an empty string
      */
@@ -512,7 +512,7 @@ public:
         const proto::ContactItemType type,
         const std::string& name,
         const std::string& fingerprint = "",
-        const std::uint32_t index = 0) const;
+        const std::int32_t index = -1) const;
 
     EXPORT std::string GetNym_ActiveCronItemIDs(
         const std::string& NYM_ID,
@@ -957,13 +957,12 @@ public:
     confusion with
     // a different set of similarly-named functions.
     */
-    EXPORT std::string GetAccountWallet_ID(const std::int32_t& nIndex)
-        const;  // returns a string containing the account ID,
-                // based on index.
-    EXPORT std::string GetAccountWallet_Name(const std::string& ACCOUNT_ID)
-        const;  // returns the account name, based
-                // on
-                // account ID.
+    EXPORT std::string GetAccountWallet_ID(
+        const std::int32_t& nIndex) const;  // returns a string containing the
+                                            // account ID, based on index.
+    EXPORT std::string GetAccountWallet_Name(
+        const std::string& ACCOUNT_ID) const;  // returns the account name,
+                                               // based on account ID.
     EXPORT std::int64_t GetAccountWallet_Balance(
         const std::string& ACCOUNT_ID) const;  // returns the account balance,
                                                // based on

@@ -285,6 +285,45 @@ bool Blockchain::AssignAddress(
     address.set_contact(sContactID);
     account->set_revision(account->revision() + 1);
 
+    // check: does the activity thread exist between nym and contact?
+    bool threadExists = false;
+    const auto threadList = storage_.ThreadList(sNymID, false);
+    for (const auto it : threadList) {
+        const auto& id = it.first;
+
+        if (id == sContactID) { threadExists = true; }
+    }
+
+    if (threadExists) {
+        // check: does every incoming transaction exist as an activity
+        std::shared_ptr<proto::StorageThread> thread =
+            activity_.Thread(nymID, contactID);
+        OT_ASSERT(thread != nullptr);
+        for (const std::string& txID : address.incoming()) {
+            bool exists = false;
+            for (const auto activity : thread->item())
+                if (txID.compare(activity.id()) == 0) exists = true;
+
+            // add: transaction to the thread
+            if (!exists) {
+                activity_.AddBlockchainTransaction(
+                    nymID,
+                    contactID,
+                    StorageBox::INCOMINGBLOCKCHAIN,
+                    *Transaction(txID));
+            }
+        }
+    } else {
+        // create the thread and add the transactions
+        for (const auto txID : address.incoming()) {
+            activity_.AddBlockchainTransaction(
+                nymID,
+                contactID,
+                StorageBox::INCOMINGBLOCKCHAIN,
+                *Transaction(txID));
+        }
+    }
+
     return storage_.Store(sNymID, type, *account);
 }
 
