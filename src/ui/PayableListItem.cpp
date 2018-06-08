@@ -54,6 +54,8 @@
 
 #include "PayableListItem.hpp"
 
+template class opentxs::SharedPimpl<opentxs::ui::PayableListItem>;
+
 namespace opentxs
 {
 ui::PayableListItem* Factory::PayableListItem(

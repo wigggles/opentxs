@@ -45,7 +45,6 @@
 
 #ifdef SWIG
 // clang-format off
-%shared_ptr(opentxs::ui::BalanceItem)
 %rename(UIAccountActivity) opentxs::ui::AccountActivity;
 // clang-format on
 #endif  // SWIG
@@ -57,8 +56,10 @@ namespace ui
 class AccountActivity : virtual public Widget
 {
 public:
-    EXPORT virtual std::shared_ptr<const BalanceItem> First() const = 0;
-    EXPORT virtual std::shared_ptr<const BalanceItem> Next() const = 0;
+    EXPORT virtual opentxs::SharedPimpl<opentxs::ui::BalanceItem> First()
+        const = 0;
+    EXPORT virtual opentxs::SharedPimpl<opentxs::ui::BalanceItem> Next()
+        const = 0;
 
     EXPORT virtual ~AccountActivity() = default;
 

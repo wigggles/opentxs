@@ -57,6 +57,8 @@
 
 #include "ContactListItem.hpp"
 
+template class opentxs::SharedPimpl<opentxs::ui::ContactListItem>;
+
 namespace opentxs
 {
 ui::ContactListItem* Factory::ContactListItem(

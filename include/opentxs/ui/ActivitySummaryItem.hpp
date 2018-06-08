@@ -57,6 +57,7 @@
     }
 }
 %ignore opentxs::ui::ActivitySummaryItem::Timestamp;
+%template(OTUIActivitySummaryItem) opentxs::SharedPimpl<opentxs::ui::ActivitySummaryItem>;
 %rename(UIActivitySummaryItem) opentxs::ui::ActivitySummaryItem;
 // clang-format on
 #endif  // SWIG

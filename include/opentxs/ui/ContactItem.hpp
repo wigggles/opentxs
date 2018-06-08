@@ -49,6 +49,7 @@
 
 #ifdef SWIG
 // clang-format off
+%template(OTUIContactItem) opentxs::SharedPimpl<opentxs::ui::ContactItem>;
 %rename(UIContactItem) opentxs::ui::ContactItem;
 // clang-format on
 #endif  // SWIG

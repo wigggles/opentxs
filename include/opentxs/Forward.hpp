@@ -42,6 +42,7 @@
 #include "opentxs/Version.hpp"
 
 #include "opentxs/Pimpl.hpp"
+#include "opentxs/SharedPimpl.hpp"
 
 namespace opentxs
 {
@@ -277,6 +278,18 @@ using OTZMQReplyCallback = Pimpl<network::zeromq::ReplyCallback>;
 using OTZMQReplySocket = Pimpl<network::zeromq::ReplySocket>;
 using OTZMQRequestSocket = Pimpl<network::zeromq::RequestSocket>;
 using OTZMQSubscribeSocket = Pimpl<network::zeromq::SubscribeSocket>;
+
+using OTUIActivitySummaryItem = SharedPimpl<ui::ActivitySummaryItem>;
+using OTUIActivityThreadItem = SharedPimpl<ui::ActivityThreadItem>;
+using OTUIBalanceItem = SharedPimpl<ui::BalanceItem>;
+using OTUIContactItem = SharedPimpl<ui::ContactItem>;
+using OTUIContactListItem = SharedPimpl<ui::ContactListItem>;
+using OTUIContactSection = SharedPimpl<ui::ContactSection>;
+using OTUIContactSubsection = SharedPimpl<ui::ContactSubsection>;
+using OTUIPayableListItem = SharedPimpl<ui::PayableListItem>;
+using OTUIProfileItem = SharedPimpl<ui::ProfileItem>;
+using OTUIProfileSection = SharedPimpl<ui::ProfileSection>;
+using OTUIProfileSubsection = SharedPimpl<ui::ProfileSubsection>;
 }  // namespace opentxs
 
 // extern template class opentxs::Pimpl<opentxs::Data>;
@@ -301,5 +314,17 @@ extern template class opentxs::Pimpl<opentxs::network::zeromq::ReplySocket>;
 extern template class opentxs::Pimpl<opentxs::network::zeromq::RequestSocket>;
 // extern template class
 // opentxs::Pimpl<opentxs::network::zeromq::SubscribeSocket>;
+
+extern template class opentxs::SharedPimpl<opentxs::ui::ActivitySummaryItem>;
+extern template class opentxs::SharedPimpl<opentxs::ui::ActivityThreadItem>;
+extern template class opentxs::SharedPimpl<opentxs::ui::BalanceItem>;
+extern template class opentxs::SharedPimpl<opentxs::ui::ContactItem>;
+extern template class opentxs::SharedPimpl<opentxs::ui::ContactListItem>;
+extern template class opentxs::SharedPimpl<opentxs::ui::ContactSection>;
+extern template class opentxs::SharedPimpl<opentxs::ui::ContactSubsection>;
+extern template class opentxs::SharedPimpl<opentxs::ui::PayableListItem>;
+extern template class opentxs::SharedPimpl<opentxs::ui::ProfileItem>;
+extern template class opentxs::SharedPimpl<opentxs::ui::ProfileSection>;
+extern template class opentxs::SharedPimpl<opentxs::ui::ProfileSubsection>;
 
 #endif  // OPENTXS_FORWARD_HPP

@@ -59,16 +59,20 @@ public:
         return false;
     }
     bool Delete(const int, const std::string&) const override { return false; }
-    std::shared_ptr<const opentxs::ui::ProfileSubsection> First() const override
+    OTUIProfileSubsection First() const override
     {
-        return nullptr;
+        const std::shared_ptr<const ui::ProfileSubsection> empty;
+
+        return OTUIProfileSubsection{empty};
     }
     ItemTypeList Items(const std::string&) const override { return {}; }
     bool Last() const override { return true; }
     std::string Name(const std::string& lang) const override { return {}; }
-    std::shared_ptr<const opentxs::ui::ProfileSubsection> Next() const override
+    OTUIProfileSubsection Next() const override
     {
-        return nullptr;
+        const std::shared_ptr<const ui::ProfileSubsection> empty;
+
+        return OTUIProfileSubsection{empty};
     }
     bool SetActive(const int, const std::string&, const bool) const override
     {

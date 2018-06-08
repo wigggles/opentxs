@@ -36,51 +36,55 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_UI_PROFILE_ITEM_HPP
-#define OPENTXS_UI_PROFILE_ITEM_HPP
+#ifndef OPENTXS_SHARED_PIMPL_HPP
+#define OPENTXS_SHARED_PIMPL_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/Types.hpp"
-
-#include <string>
-
-#include "ListRow.hpp"
+#include <cassert>
+#include <memory>
 
 #ifdef SWIG
-// clang-format off
-%template(OTUIProfileItem) opentxs::SharedPimpl<opentxs::ui::ProfileItem>;
-%rename(UIProfileItem) opentxs::ui::ProfileItem;
-// clang-format on
-#endif  // SWIG
+%ignore opentxs::SharedPimpl::SharedPimpl(const std::shared_ptr<const C>&);
+%ignore opentxs::SharedPimpl::SharedPimpl(SharedPimpl&&);
+%ignore opentxs::SharedPimpl::operator const C&();
+%rename(assign) opentxs::SharedPimpl::operator=(const SharedPimpl&);
+%rename(move) opentxs::SharedPimpl::operator=(SharedPimpl&&);
+#endif
 
 namespace opentxs
 {
-namespace ui
-{
-class ProfileItem : virtual public ListRow
+template <class C>
+class SharedPimpl
 {
 public:
-    EXPORT virtual std::string ClaimID() const = 0;
-    EXPORT virtual bool Delete() const = 0;
-    EXPORT virtual bool IsActive() const = 0;
-    EXPORT virtual bool IsPrimary() const = 0;
-    EXPORT virtual bool SetActive(const bool& active) const = 0;
-    EXPORT virtual bool SetPrimary(const bool& primary) const = 0;
-    EXPORT virtual bool SetValue(const std::string& value) const = 0;
-    EXPORT virtual std::string Value() const = 0;
+    explicit SharedPimpl(const std::shared_ptr<const C>& in) noexcept
+        : pimpl_(in)
+    {
+        assert(pimpl_);
+    }
+    SharedPimpl(const SharedPimpl& rhs) noexcept = default;
+    SharedPimpl(SharedPimpl&& rhs) noexcept = default;
+    SharedPimpl& operator=(const SharedPimpl& rhs) noexcept = default;
+    SharedPimpl& operator=(SharedPimpl&& rhs) noexcept = default;
 
-    EXPORT virtual ~ProfileItem() = default;
+    operator const C&() const noexcept { return *pimpl_; }
 
-protected:
-    ProfileItem() = default;
+    const C* operator->() const { return pimpl_.get(); }
+
+    const C& get() const noexcept { return *pimpl_; }
+
+    ~SharedPimpl() = default;
+
+#ifdef SWIG_VERSION
+    SharedPimpl() = default;
+#endif
 
 private:
-    ProfileItem(const ProfileItem&) = delete;
-    ProfileItem(ProfileItem&&) = delete;
-    ProfileItem& operator=(const ProfileItem&) = delete;
-    ProfileItem& operator=(ProfileItem&&) = delete;
-};
-}  // namespace ui
+    std::shared_ptr<const C> pimpl_{nullptr};
+
+#ifndef SWIG_VERSION
+    SharedPimpl() = delete;
+#endif
+};  // class SharedPimpl
 }  // namespace opentxs
-#endif  // OPENTXS_UI_PROFILE_ITEM_HPP
+
+#endif  // OPENTXS_SHARED_PIMPL_HPP

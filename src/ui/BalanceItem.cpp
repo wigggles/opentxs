@@ -62,6 +62,8 @@
 
 #include "BalanceItem.hpp"
 
+template class opentxs::SharedPimpl<opentxs::ui::BalanceItem>;
+
 #define OT_METHOD "opentxs::ui::implementation::BalanceItem::"
 
 namespace opentxs

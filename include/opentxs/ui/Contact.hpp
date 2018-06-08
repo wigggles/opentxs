@@ -48,7 +48,6 @@
 
 #ifdef SWIG
 // clang-format off
-%shared_ptr(opentxs::ui::ContactSection)
 %rename(UIContact) opentxs::ui::Contact;
 // clang-format on
 #endif  // SWIG
@@ -62,8 +61,10 @@ class Contact : virtual public Widget
 public:
     EXPORT virtual std::string ContactID() const = 0;
     EXPORT virtual std::string DisplayName() const = 0;
-    EXPORT virtual std::shared_ptr<const ContactSection> First() const = 0;
-    EXPORT virtual std::shared_ptr<const ContactSection> Next() const = 0;
+    EXPORT virtual opentxs::SharedPimpl<opentxs::ui::ContactSection> First()
+        const = 0;
+    EXPORT virtual opentxs::SharedPimpl<opentxs::ui::ContactSection> Next()
+        const = 0;
     EXPORT virtual std::string PaymentCode() const = 0;
 
     EXPORT virtual ~Contact() = default;

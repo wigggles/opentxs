@@ -59,6 +59,7 @@
 }
 %ignore opentxs::ui::BalanceItem::Timestamp;
 %ignore opentxs::ui::BalanceItem::Update;
+%template(OTUIBalanceItem) opentxs::SharedPimpl<opentxs::ui::BalanceItem>;
 %rename(UIBalanceItem) opentxs::ui::BalanceItem;
 // clang-format on
 #endif  // SWIG
