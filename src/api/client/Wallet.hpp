@@ -244,6 +244,7 @@ private:
     mutable std::mutex nymfile_map_lock_;
     mutable std::map<Identifier, std::mutex> nymfile_lock_;
     OTZMQPublishSocket nym_publisher_;
+    OTZMQPublishSocket account_publisher_;
 
     std::string account_alias(const std::string& accountID) const;
     opentxs::Account* account_factory(

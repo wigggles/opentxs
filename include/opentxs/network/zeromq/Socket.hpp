@@ -82,6 +82,7 @@ class Socket
 public:
     using MultipartSendResult = std::pair<SendResult, OTZMQMessage>;
 
+    EXPORT static const std::string AccountUpdateEndpoint;
     EXPORT static const std::string ContactUpdateEndpoint;
     EXPORT static const std::string NymDownloadEndpoint;
     EXPORT static const std::string PairEndpointPrefix;

@@ -68,6 +68,7 @@
 #include "opentxs/core/OTTransactionType.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
+#include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/PublishSocket.hpp"
 #include "opentxs/Types.hpp"
 
@@ -142,9 +143,12 @@ Wallet::Wallet(const Native& ot, const opentxs::network::zeromq::Context& zmq)
     , nymfile_map_lock_()
     , nymfile_lock_()
     , nym_publisher_(zmq.PublishSocket())
+    , account_publisher_(zmq.PublishSocket())
 {
     nym_publisher_->Start(
         opentxs::network::zeromq::Socket::NymDownloadEndpoint);
+    account_publisher_->Start(
+        opentxs::network::zeromq::Socket::AccountUpdateEndpoint);
 }
 
 Wallet::AccountLock& Wallet::account(
@@ -574,6 +578,12 @@ bool Wallet::UpdateAccount(
 
         return false;
     }
+
+    const auto balance = pAccount->GetBalance();
+    auto message = opentxs::network::zeromq::Message::Factory();
+    message->AddFrame(accountID.str());
+    message->AddFrame(Data::Factory(&balance, sizeof(balance)));
+    account_publisher_->Publish(message);
 
     return true;
 }

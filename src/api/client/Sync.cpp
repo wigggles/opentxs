@@ -75,7 +75,13 @@
 #include "opentxs/core/UniqueQueue.hpp"
 #include "opentxs/ext/OTPayment.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
+#include "opentxs/network/zeromq/Frame.hpp"
+#include "opentxs/network/zeromq/FrameIterator.hpp"
+#include "opentxs/network/zeromq/FrameSection.hpp"
+#include "opentxs/network/zeromq/ListenCallback.hpp"
+#include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/PublishSocket.hpp"
+#include "opentxs/network/zeromq/SubscribeSocket.hpp"
 
 #include <atomic>
 #include <chrono>
@@ -263,7 +269,22 @@ Sync::Sync(
     , state_machines_()
     , introduction_server_id_()
     , task_status_()
+    , task_message_id_()
+    , account_subscriber_callback_(
+          opentxs::network::zeromq::ListenCallback::Factory(
+              [this](const opentxs::network::zeromq::Message& message) -> void {
+                  this->process_account(message);
+              }))
+    , account_subscriber_(
+          zmq_.SubscribeSocket(account_subscriber_callback_.get()))
 {
+    const auto& endpoint =
+        opentxs::network::zeromq::Socket::AccountUpdateEndpoint;
+    otWarn << OT_METHOD << __FUNCTION__ << ": Connecting to " << endpoint
+           << std::endl;
+    const auto listening = account_subscriber_->Start(endpoint);
+
+    OT_ASSERT(listening)
 }
 
 std::pair<bool, std::size_t> Sync::accept_incoming(
@@ -1433,6 +1454,21 @@ OTIdentifier Sync::PayContactCash(
              std::shared_ptr<const Purse>(senderCopy)}));
 }
 #endif  // OT_CASH
+
+void Sync::process_account(
+    const opentxs::network::zeromq::Message& message) const
+{
+    OT_ASSERT(2 == message.Body().size())
+
+    const std::string id(*message.Body().begin());
+    const auto& balance = message.Body().at(1);
+
+    OT_ASSERT(balance.size() == sizeof(Amount))
+
+    otInfo << OT_METHOD << __FUNCTION__ << ": Account " << id << " balance: "
+           << std::to_string(*static_cast<const Amount*>(balance.data()))
+           << std::endl;
+}
 
 bool Sync::publish_server_contract(
     const Identifier& taskID,

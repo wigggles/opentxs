@@ -239,6 +239,8 @@ private:
     mutable std::map<Identifier, ThreadStatus> task_status_;
     // taskID, messageID
     mutable std::map<Identifier, Identifier> task_message_id_;
+    OTZMQListenCallback account_subscriber_callback_;
+    OTZMQSubscribeSocket account_subscriber_;
 
     std::pair<bool, std::size_t> accept_incoming(
         const rLock& lock,
@@ -338,6 +340,8 @@ private:
         std::shared_ptr<const Purse>& recipientCopy,
         std::shared_ptr<const Purse>& senderCopy) const;
 #endif  // OT_CASH
+    void process_account(
+        const opentxs::network::zeromq::Message& message) const;
     bool publish_server_contract(
         const Identifier& taskID,
         const Identifier& nymID,
