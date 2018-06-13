@@ -87,6 +87,7 @@ private:
     mutable std::mutex lock_;
     mutable std::string socks_proxy_;
     mutable std::map<std::string, OTServerConnection> server_connections_;
+    OTZMQPublishSocket status_publisher_;
 
     bool verify_lock(const Lock& lock) const;
 

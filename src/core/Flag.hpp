@@ -53,8 +53,8 @@ class Flag : virtual public opentxs::Flag, Lockable
 public:
     operator bool() const override;
 
-    void Off() override;
-    void On() override;
+    bool Off() override;
+    bool On() override;
     bool Set(const bool value) override;
     bool Toggle() override;
 

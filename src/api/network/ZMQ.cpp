@@ -43,6 +43,7 @@
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
+#include "opentxs/network/zeromq/PublishSocket.hpp"
 #include "opentxs/network/ServerConnection.hpp"
 
 #define CLIENT_SEND_TIMEOUT_SECONDS 20
@@ -71,7 +72,11 @@ ZMQ::ZMQ(
     , lock_()
     , socks_proxy_()
     , server_connections_()
+    , status_publisher_(context.PublishSocket())
 {
+    status_publisher_->Start(
+        opentxs::network::zeromq::Socket::ConnectionStatusEndpoint);
+
     Lock lock(lock_);
 
     init(lock);
@@ -172,7 +177,9 @@ opentxs::network::ServerConnection& ZMQ::Server(const std::string& id) const
     if (server_connections_.end() != existing) { return existing->second; }
 
     auto [it, created] = server_connections_.emplace(
-        id, opentxs::network::ServerConnection::Factory(*this, id));
+        id,
+        opentxs::network::ServerConnection::Factory(
+            *this, id, status_publisher_));
     auto& connection = it->second;
 
     OT_ASSERT(created);
